@@ -34,13 +34,17 @@ class Obstacle;
 class Artifact;
 class Dummy;
 
+#include "bnEntity.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTeam.h"
 #include "bnTextureType.h"
 #include "bnTileState.h"
 #include "bnAnimation.h"
-#include "bnField.h"
 #include "bnDefenseRule.h"
 #include "bnResourceHandle.h"
+
+// forward decl
+class Field;
 
 namespace Battle {
   class Tile : public SpriteProxyNode, public ResourceHandle {
@@ -51,8 +55,7 @@ namespace Battle {
       solid = 2,
     };
 
-    friend Field::Field(int _width, int _height);
-    friend void Field::Update(double _elapsed);
+    friend class Field;
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
@@ -265,6 +268,11 @@ namespace Battle {
      * @brief Notifies all entities that the battle is inactive
      */
     void BattleStop();
+
+    /**
+    * @brief Assigns the textures used by the tile according to team, their states, and their animation files
+    */
+    void SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim);
 
     void HandleTileBehaviors(Obstacle * obst);
     void HandleTileBehaviors(Character* character);

@@ -3,6 +3,7 @@
 #include "bnCharacter.h"
 #include "bnSpell.h"
 #include "bnArtifact.h"
+#include "bnTile.h"
 #include "bnTextureResourceManager.h"
 
 constexpr auto TILE_ANIMATION_PATH = "resources/tiles/tiles.animation";
@@ -29,10 +30,7 @@ Field::Field(int _width, int _height) :
     for (int x = 0; x < _width+2; x++) {
       Battle::Tile* tile = new Battle::Tile(x, y);
       tile->SetField(this);
-      tile->animation = a;
-      tile->blue_team_atlas = t_a_b;
-      tile->red_team_atlas = t_a_r;
-      tile->useParentShader = true;
+      tile->SetupGraphics(t_a_r, t_a_b, a);
       row.push_back(tile);
     }
     tiles.push_back(row);
@@ -151,7 +149,7 @@ Field::AddEntityStatus Field::AddEntity(Spell & spell, int x, int y)
   return Field::AddEntityStatus::deleted;
 }
 
-Field::AddEntityStatus Field::AddEntity(std::unique_ptr<Spell>& spell, int x, int y)
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y)
 {
   Spell* ptr = spell.release();
   return AddEntity(*ptr, x, y);
@@ -183,6 +181,12 @@ Field::AddEntityStatus Field::AddEntity(Obstacle & obst, int x, int y)
   }
 
   return Field::AddEntityStatus::deleted;
+}
+
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y)
+{
+  Obstacle* ptr = obst.release();
+  return AddEntity(*ptr, x, y);
 }
 
 Field::AddEntityStatus Field::AddEntity(Obstacle & obst, Battle::Tile & dest)

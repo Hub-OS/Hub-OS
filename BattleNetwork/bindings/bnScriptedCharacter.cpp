@@ -11,6 +11,7 @@ ScriptedCharacter::ScriptedCharacter(sol::state& script) :
   script(script),
   AI<ScriptedCharacter>(this), 
   Character() {
+  SetElement(Element::none);
   SetTeam(Team::blue);
   setScale(2.f, 2.f);
 

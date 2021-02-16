@@ -2,6 +2,7 @@
 #include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
 #include "bnProtoManSummon.h"
+#include "bnField.h"
 
 ProtoManCardAction::ProtoManCardAction(Character& owner, int damage) :
   damage(damage),

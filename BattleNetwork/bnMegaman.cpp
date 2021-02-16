@@ -1,4 +1,5 @@
 #include "bnMegaman.h"
+#include "bnField.h"
 #include "bnShaderResourceManager.h"
 #include "bnBusterCardAction.h"
 #include "bnCrackShotCardAction.h"

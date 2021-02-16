@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnCannon.h"
+#include "bnField.h"
 
 #define CANNON_PATH "resources/spells/CannonSeries.png"
 #define CANNON_ANIM "resources/spells/cannon.animation"

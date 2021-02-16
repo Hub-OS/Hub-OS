@@ -1,6 +1,7 @@
 #include "bnMachGunCardAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnField.h"
 #include "bnSuperVulcan.h"
 #include "bnCharacter.h"
 #include "bnObstacle.h"

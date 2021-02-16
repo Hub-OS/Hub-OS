@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTornado.h"
+#include "bnField.h"
 
 #define FAN_PATH "resources/spells/buster_fan.png"
 #define FAN_ANIM "resources/spells/buster_fan.animation"

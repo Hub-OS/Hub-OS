@@ -3,6 +3,7 @@
 #include "bnResourceHandle.h"
 #include "bnCardUseListener.h"
 #include "bnCharacter.h"
+#include "bnField.h"
 #include "bnTile.h"
 #include "bnCannon.h"
 #include "bnBasicSword.h"

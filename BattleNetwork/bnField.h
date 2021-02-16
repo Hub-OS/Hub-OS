@@ -4,6 +4,8 @@
 using std::map;
 using std::vector;
 
+#include "bindings/bnScriptedSpell.h"
+#include "bindings/bnScriptedObstacle.h"
 #include "bnEntity.h"
 #include "bnCharacterDeletePublisher.h"
 
@@ -79,7 +81,7 @@ public:
    * @param y row
    */
   AddEntityStatus AddEntity(Spell& spell, int x, int y);
-  AddEntityStatus AddEntity(std::unique_ptr<Spell>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
+  AddEntityStatus AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
   AddEntityStatus AddEntity(Spell& spell, Battle::Tile& dest);
 
   /**
@@ -89,6 +91,7 @@ public:
    * @param y row
    */
   AddEntityStatus AddEntity(Obstacle& obst, int x, int y);
+  AddEntityStatus AddEntity(std::unique_ptr<ScriptedObstacle>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
   AddEntityStatus AddEntity(Obstacle& obst, Battle::Tile& dest);
 
   /**

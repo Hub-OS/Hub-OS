@@ -2,6 +2,7 @@
 #include "bnMetalMan.h"
 #include "bnMetalBlade.h"
 #include "bnAudioResourceManager.h"
+#include "bnField.h"
 
 MetalManThrowState::MetalManThrowState() : AIState<MetalMan>()
 {

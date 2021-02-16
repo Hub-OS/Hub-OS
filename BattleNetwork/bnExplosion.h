@@ -2,7 +2,6 @@
 #include "bnArtifact.h"
 #include "bnAnimationComponent.h"
 
-class Field;
 /**
  * @class Explosion
  * @author mav

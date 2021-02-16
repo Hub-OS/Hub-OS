@@ -3,6 +3,7 @@
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnField.h"
 
 #define PATH "resources/spells/elecpulse.png"
 #define ANIM "resources/spells/elecpulse.animation"

@@ -553,6 +553,14 @@ namespace Battle {
     isBattleOver = true;
   }
 
+  void Tile::SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim)
+  {
+    animation = anim;
+    blue_team_atlas = blueTeam;
+    red_team_atlas = redTeam;
+    useParentShader = true;
+  }
+
   void Tile::HandleTileBehaviors(Obstacle* obst) {
     if (!isTimeFrozen || !isBattleOver || !(state == TileState::hidden)) {
 

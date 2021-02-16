@@ -3,18 +3,18 @@
 
 #include <sol/sol.hpp>
 #include "dynamic_object.h"
-#include "../bnSpell.h"
+#include "../bnObstacle.h"
 #include "../bnAnimationComponent.h"
 
 using sf::Texture;
 
 /**
- * @class ScriptedSpell
+ * @class ScriptedObstacle
 */
-class ScriptedSpell final : public Spell, public dynamic_object {
+class ScriptedObstacle final : public Obstacle, public dynamic_object {
 public:
-  ScriptedSpell(Team _team);
-  ~ScriptedSpell();
+  ScriptedObstacle(Team _team);
+  ~ScriptedObstacle();
   
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
@@ -28,11 +28,11 @@ public:
   AnimationComponent& GetAnimationComponent();
   void SetSlideTimeFrames(unsigned frames);
 
-  std::function<void(ScriptedSpell&, Battle::Tile&)> spawnCallback;
-  std::function<void(ScriptedSpell&, Character&)> attackCallback;
+  std::function<void(ScriptedObstacle&, Battle::Tile&)> spawnCallback;
+  std::function<void(ScriptedObstacle&, Character&)> attackCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(ScriptedSpell&)> deleteCallback;
-  std::function<void(ScriptedSpell&, double)> updateCallback;
+  std::function<void(ScriptedObstacle&)> deleteCallback;
+  std::function<void(ScriptedObstacle&, double)> updateCallback;
 private:
   float height{};
   SpriteProxyNode* shadow{ nullptr };

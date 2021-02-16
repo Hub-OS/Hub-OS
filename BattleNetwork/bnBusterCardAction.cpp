@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnBuster.h"
+#include "bnField.h"
 
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"

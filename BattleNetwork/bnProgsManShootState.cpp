@@ -1,6 +1,7 @@
 #include "bnProgsManShootState.h"
 #include "bnProgsMan.h"
 #include "bnBuster.h"
+#include "bnField.h"
 
 ProgsManShootState::ProgsManShootState() : AIState<ProgsMan>()
 {

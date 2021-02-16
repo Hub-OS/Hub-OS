@@ -1,6 +1,7 @@
 #include "bnCubeCardAction.h"
 #include "bnCharacter.h"
 #include "bnCube.h"
+#include "bnField.h"
 
 CubeCardAction::CubeCardAction(Character& owner) : 
   CardAction(owner, "PLAYER_IDLE"){

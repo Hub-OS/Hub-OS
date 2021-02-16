@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnAirShot.h"
+#include "bnField.h"
 
 #define NODE_PATH "resources/spells/AirShot.png"
 #define NODE_ANIM "resources/spells/airshot.animation"

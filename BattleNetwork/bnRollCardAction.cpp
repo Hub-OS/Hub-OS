@@ -3,6 +3,7 @@
 #include "bnSpriteProxyNode.h"
 #include "bnRollHeal.h"
 #include "bnRollHeart.h"
+#include "bnField.h"
 
 RollCardAction::RollCardAction(Character& owner, int damage) :
   CardAction(owner, "PLAYER_IDLE"), damage(damage)

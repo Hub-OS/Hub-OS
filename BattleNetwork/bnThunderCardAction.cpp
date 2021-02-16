@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnThunder.h"
+#include "bnField.h"
 
 ThunderCardAction::ThunderCardAction(Character& owner, int damage) :
   CardAction(owner, "PLAYER_SHOOTING"),

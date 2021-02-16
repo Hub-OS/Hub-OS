@@ -17,8 +17,109 @@ local miscAnim = nil
 local anim = nil
 local dir = Direction.Up
 
+local aiStateIndex = 1 
+local aiState = {} -- setup in the battle_init function
+
+local MINE_SLIDE_FRAMES = 20 -- frames
+
+function Mine() 
+    local mine = Battle.Obstacle.new(Team.Blue)
+    mine:SetHealth(20)
+    mine:SetSlideFrames(MINE_SLIDE_FRAMES)
+
+    mine.dir = Direction.Up
+    mine.verticalDir = Direction.Up
+    mine.moveOneColumn = false
+    mine.timer = 0
+
+    mine.node = Engine.SpriteNode.new()
+    mine.node:SetTexture(texture, true)
+    mine.node:SetPosition(0,0)
+    mine:AddNode(mine.node)
+
+    miscAnim:SetState("MINE", Playback.Once, nonce)
+    miscAnim:Refresh(mine.node:Sprite())
+
+    mine.updateFunc = function(self, dt) 
+        local tile = self:Tile()
+
+        -- every frame try to attack shared tile
+        tile:AttackEntities(self)
+
+        local tileW = tile:Width()/2.0 -- downscale 2x
+        local offset = math.min(1.0, ((self.timer*60.0)/((MINE_SLIDE_FRAMES*2.0)+1.0)))
+        local x = (-offset*tileW)+(tileW/2.0)
+
+        self.node:SetPosition(x, 0.0)
+        self.timer = self.timer + dt
+
+        if self:IsSliding() == false then
+            local nextTile = nil
+            
+            if self.dir == Direction.Up then
+                nextTile = self:Field():TileAt(self:Tile():X(), self:Tile():Y()-1)
+            elseif self.dir == Direction.Down then 
+                nextTile = self:Field():TileAt(self:Tile():X(), self:Tile():Y()+1)
+            end
+
+            if nextTile == nil then 
+                self:Delete()
+                return
+            end
+
+            if nextTile:IsEdge() and self.moveOneColumn == false then
+                    -- we must be moving up/down
+                    self.moveOneColumn = true
+                    self.timer = 0
+                    self.node:SetPosition(tileW/2.0, 0.0)
+
+                    if not self:Move(Direction.Left) then 
+                        self:Delete()
+                        return
+                    end
+
+                    self:AdoptNextTile()
+                    self:FinishMove()
+                    return
+            elseif self.moveOneColumn == true then
+                if self.verticalDir == Direction.Up then
+                    self.verticalDir = Direction.Down
+                    self.dir = Direction.Down 
+                else 
+                    self.dir = Direction.Up
+                    self.verticalDir = Direction.Up 
+                end
+
+                self.moveOneColumn = false
+            end
+
+            -- otherwise keep sliding
+            self:SlideToTile(true)
+            self:Move(self.dir)
+        end 
+    end
+
+    mine.attackFunc = function(self, other) 
+        local explosion = Battle.Explosion.new(1, 1)
+        self:Field():SpawnFX(explosion, self:Tile():X(), self:Tile():Y())
+        self:Delete()
+    end
+
+    mine.deleteFunc = function(self) 
+        -- nothing
+    end
+
+    mine.canMoveToFunc = function(tile)
+        -- mines fly over any tiles
+        return true
+    end
+
+    return mine
+end
+
 function Missile()
-    local missile = Battle.Spell.new(Team.Blue)
+    local missile = Battle.Obstacle.new(Team.Blue)
+    missile:SetHealth(20)
     missile:SetTexture(texture, true)
     missile:SetSlideFrames(30)
     missile:SetHeight(20.0)
@@ -68,6 +169,11 @@ function Missile()
 end
 
 function battle_init(self) 
+    aiState = {}
+    aiStateIndex = 1
+    aiState[1] = Missile
+    aiState[2] = Mine
+
     texture = LoadTexture(_modpath.."duo_compressed.png")
 
     print("modpath: ".._modpath)
@@ -126,9 +232,14 @@ function on_update(self, dt)
         
         -- pause before moving again
         if waitTime <= 0 then
-            -- spawn a missile 
-            self:Field():SpawnSpell(Missile(), self:Tile():X(), self:Tile():Y())
+            -- use AI state to determine next move 
+            self:Field():Spawn(aiState[aiStateIndex](), self:Tile():X(), self:Tile():Y())
             print("field spawn")
+
+            aiStateIndex = aiStateIndex + 1
+            if aiStateIndex > #aiState then 
+                aiStateIndex = 1
+            end
 
             local tile = nil
             

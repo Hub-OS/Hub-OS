@@ -3,6 +3,7 @@
 #include "bnAnimationComponent.h"
 #include "bnArtifact.h"
 #include "bnHitbox.h"
+#include "bnField.h"
 
 TomahawkSwingCardAction::TomahawkSwingCardAction(Character& owner, int damage) :
   CardAction(owner, "PLAYER_CHOP"),

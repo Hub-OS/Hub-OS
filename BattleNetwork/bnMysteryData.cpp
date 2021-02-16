@@ -1,5 +1,6 @@
 #include "bnMysteryData.h"
 #include "bnExplosion.h"
+#include "bnField.h"
 #include "bnTextureResourceManager.h"
 
 MysteryData::MysteryData(Field* _field, Team _team) : Character() {

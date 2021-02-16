@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnMiniBomb.h"
+#include "bnField.h"
 
 #include <Swoosh/Game.h>
 

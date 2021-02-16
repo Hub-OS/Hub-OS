@@ -1,6 +1,7 @@
 #pragma once
 #include "bnMegalianIdleState.h"
 #include "bnAI.h"
+#include "bnField.h"
 #include "bnCharacter.h"
 #include "bnObstacle.h"
 #include "bnTextureType.h"
@@ -93,7 +94,7 @@ private:
       SetHealth(base->GetHealth());
 
       auto baseOffset = base->GetFirstComponent<AnimationComponent>()->GetPoint("head");
-      auto origin = base->getSprite().getOrigin();
+      auto& origin = base->getSprite().getOrigin();
 
       // transform from sprite space to world space -- scale by 2
       baseOffset = baseOffset - origin;

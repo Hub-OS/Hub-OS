@@ -2,6 +2,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnHitbox.h"
+#include "bnField.h"
 
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 

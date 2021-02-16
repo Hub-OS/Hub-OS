@@ -1,4 +1,5 @@
 #include "bnDelayedAttack.h"
+#include "bnField.h"
 
 DelayedAttack::DelayedAttack(Spell * next, Battle::Tile::Highlight highlightMode, double seconds) : 
   duration(seconds),

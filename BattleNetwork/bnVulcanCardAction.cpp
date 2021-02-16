@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnVulcan.h"
+#include "bnField.h"
 
 #define PATH "resources/spells/spell_vulcan.png"
 #define ANIM "resources/spells/spell_vulcan.animation"

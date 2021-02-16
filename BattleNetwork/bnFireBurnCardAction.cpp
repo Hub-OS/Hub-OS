@@ -3,6 +3,7 @@
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnField.h"
 
 #define PATH "resources/spells/buster_flame.png"
 #define ANIM "resources/spells/buster_flame.animation"

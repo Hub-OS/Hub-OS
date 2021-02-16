@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnHitbox.h"
+#include "bnField.h"
 
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }

@@ -1,6 +1,7 @@
 #include "bnProgsManPunchState.h"
 #include "bnProgsMan.h"
 #include "bnHitbox.h"
+#include "bnField.h"
 
 ProgsManPunchState::ProgsManPunchState() : AIState<ProgsMan>()
 {

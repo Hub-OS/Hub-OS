@@ -13,7 +13,7 @@
 #include "bindings/bnScriptedCardAction.h"
 #include "bindings/bnScriptedCharacter.h"
 #include "bindings/bnScriptedSpell.h"
-//#include "bindings/bnScriptedObstacle.h"
+#include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
 
 // Useful prefabs to use in scripts...
@@ -27,7 +27,7 @@
 #include "bnCannonCardAction.h"
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
-  state.open_libraries(sol::lib::base);
+  state.open_libraries(sol::lib::base, sol::lib::math);
 
   auto& battle_namespace = state.create_table("Battle");
   auto& overworld_namespace = state.create_table("Overworld");
@@ -76,6 +76,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   auto& tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
     "X", &Battle::Tile::GetX,
     "Y", &Battle::Tile::GetY,
+    "Width", &Battle::Tile::GetWidth,
+    "Height", &Battle::Tile::GetHeight,
     "GetState", &Battle::Tile::GetState,
     "SetState", &Battle::Tile::SetState,
     "IsEdge", &Battle::Tile::IsEdgeTile,
@@ -91,7 +93,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "TileAt", &Field::GetAt,
     "Width", &Field::GetWidth,
     "Height", &Field::GetHeight,
-    "SpawnSpell", sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity),
+    "Spawn", sol::overload(
+      sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedSpell>&, int, int)>(&Field::AddEntity),
+      sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedObstacle>&, int, int)>(&Field::AddEntity)
+    ),
     "SpawnFX", sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity)
   );
 
@@ -106,10 +111,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Artifact>()
   );
 
+
   auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>("Spell",
-    sol::factories([](Team team) {
-      return new ScriptedSpell(team);
+    sol::factories([](Team team) -> std::unique_ptr<ScriptedSpell> {
+      return std::make_unique<ScriptedSpell>(team);
     }),
+    sol::meta_function::index,
+    &dynamic_object::dynamic_get,
+    sol::meta_function::new_index,
+    &dynamic_object::dynamic_set,
+    sol::meta_function::length,
+    [](dynamic_object& d) { return d.entries.size(); },
     "GetID", &ScriptedSpell::GetID,
     "SetHeight", &ScriptedSpell::SetHeight,
     "SetTexture", &ScriptedSpell::setTexture,
@@ -119,12 +131,16 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Field", &ScriptedSpell::GetField,
     "Move", &ScriptedSpell::Move,
     "SlideToTile", &ScriptedSpell::SlideToTile,
+    "AdoptNextTile", &ScriptedSpell::AdoptNextTile,
+    "FinishMove", &ScriptedSpell::FinishMove,
+    "Teleport", &ScriptedSpell::Teleport,
     "IsSliding", &ScriptedSpell::IsSliding,
     "SetSlideFrames", &ScriptedSpell::SetSlideTimeFrames,
     "ShowShadow", &ScriptedSpell::ShowShadow,
     "Teammate", &ScriptedSpell::Teammate,
     "AddNode", &ScriptedSpell::AddNode,
     "Delete", &ScriptedSpell::Delete,
+    "HighlightTile", &ScriptedSpell::HighlightTile,
     "attackFunc", &ScriptedSpell::attackCallback,
     "deleteFunc", &ScriptedSpell::deleteCallback,
     "updateFunc", &ScriptedSpell::updateCallback,
@@ -132,6 +148,51 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "onSpawnFunc", &ScriptedSpell::spawnCallback,
     //"ShakeCamera", &ScriptedSpell::ShakeCamera,
     sol::base_classes, sol::bases<Spell>()
+  );
+
+  auto& scriptedobstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
+    sol::factories([](Team team) -> std::unique_ptr<ScriptedObstacle> {
+      return std::make_unique<ScriptedObstacle>(team);
+    }),
+    sol::meta_function::index,
+    &dynamic_object::dynamic_get,
+    sol::meta_function::new_index,
+    &dynamic_object::dynamic_set,
+    sol::meta_function::length,
+    [](dynamic_object& d) { return d.entries.size(); },
+    "GetID", &ScriptedObstacle::GetID,
+    "SetHeight", &ScriptedObstacle::SetHeight,
+    "SetTexture", &ScriptedObstacle::setTexture,
+    "GetName", &ScriptedObstacle::GetName,
+    "GetHealth", &ScriptedObstacle::GetHealth,
+    "GetMaxHealth", &ScriptedObstacle::GetMaxHealth,
+    "SetName", &ScriptedObstacle::SetName,
+    "SetHealth", &ScriptedObstacle::SetHealth,
+    "SetHeight", &ScriptedObstacle::SetHeight,
+    "SetLayer", &ScriptedObstacle::SetLayer,
+    "GetAnimation", &ScriptedObstacle::GetAnimationComponent,
+    "Tile", &ScriptedObstacle::GetTile,
+    "Field", &ScriptedObstacle::GetField,
+    "Move", &ScriptedObstacle::Move,
+    "SlideToTile", &ScriptedObstacle::SlideToTile,
+    "AdoptNextTile", &ScriptedObstacle::AdoptNextTile,
+    "FinishMove", &ScriptedObstacle::FinishMove,
+    "Teleport", &ScriptedObstacle::Teleport,
+    "IsSliding", &ScriptedObstacle::IsSliding,
+    "SetSlideFrames", &ScriptedObstacle::SetSlideTimeFrames,
+    "ShowShadow", &ScriptedObstacle::ShowShadow,
+    "Teammate", &ScriptedObstacle::Teammate,
+    "AddNode", &ScriptedObstacle::AddNode,
+    "Delete", &ScriptedObstacle::Delete,
+    "HighlightTile", &ScriptedObstacle::HighlightTile,
+    "IgnoreCommonAggressor", &ScriptedObstacle::IgnoreCommonAggressor,
+    "attackFunc", &ScriptedObstacle::attackCallback,
+    "deleteFunc", &ScriptedObstacle::deleteCallback,
+    "updateFunc", &ScriptedObstacle::updateCallback,
+    "canMoveToFunc", &ScriptedObstacle::canMoveToCallback,
+    "onSpawnFunc", &ScriptedObstacle::spawnCallback,
+    //"ShakeCamera", &ScriptedObstacle::ShakeCamera,
+    sol::base_classes, sol::bases<Obstacle, Spell, Character>()
   );
 
   auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("ScriptedCharacter",
@@ -168,6 +229,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetName", &ScriptedPlayer::SetName,
     "SetHealth", &ScriptedPlayer::SetHealth,
     "SetTexture", &ScriptedPlayer::setTexture,
+    "SetElement", &ScriptedPlayer::SetElement,
+    "SetHeight",  &ScriptedPlayer::SetHeight,
     "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
     "SetChargePosition", &ScriptedPlayer::SetChargePosition,
     "GetAnimation", &ScriptedPlayer::GetAnimationComponent,
@@ -302,6 +365,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Red", Team::red,
     "Blue", Team::blue,
     "Other", Team::unknown
+  );
+
+  auto& highlight_record = state.new_enum("Highlight",
+    "Solid", Battle::Tile::Highlight::solid,
+    "Flash", Battle::Tile::Highlight::flash,
+    "None", Battle::Tile::Highlight::none
   );
 
   auto& add_status_record = state.new_enum("EntityStatus",

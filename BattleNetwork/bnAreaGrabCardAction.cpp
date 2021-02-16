@@ -1,6 +1,7 @@
 #include "bnAreaGrabCardAction.h"
 #include "bnCharacter.h"
 #include "bnPanelGrab.h"
+#include "bnField.h"
 
 AreaGrabCardAction::AreaGrabCardAction(Character& owner, int damage) : 
   damage(damage),
