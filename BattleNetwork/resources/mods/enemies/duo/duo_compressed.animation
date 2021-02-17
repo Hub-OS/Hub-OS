@@ -9,9 +9,9 @@ frame duration="0.05" x="254" y="86" w="100" h="82" originx="29" originy="79"
 frame duration="0.05" x="373" y="186" w="90" h="82" originx="24" originy="79"
 
 animation state="CHEST_GUN"
-frame duration="0.1" x="324" y="304" w="34" h="36" originx="15" originy="20"
-frame duration="0.1" x="324" y="340" w="34" h="36" originx="15" originy="20"
-frame duration="0.1" x="308" y="183" w="38" h="36" originx="20" originy="20"
+frame duration="0.1" x="324" y="304" w="34" h="36" originx="6" originy="10"
+frame duration="0.1" x="324" y="340" w="34" h="36" originx="6" originy="10"
+frame duration="0.1" x="308" y="183" w="38" h="36" originx="11" originy="10"
 
 animation state="LASER_BEAM_OPEN"
 frame duration="0.05" x="254" y="175" w="63" h="7" originx="63" originy="4"

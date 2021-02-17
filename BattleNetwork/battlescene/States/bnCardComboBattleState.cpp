@@ -8,7 +8,7 @@
 
 CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance) : 
   ui(ui), 
-  font(Font::Style::small), 
+  font(Font::Style::thick), 
   programAdvance(programAdvance) {
   /*
   Program Advance + labels

@@ -12,7 +12,6 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
 {
   ResourceHandle handle;
 
-  // TODO: move this to the preloaded textures      
   texture = handle.Textures().LoadTextureFromFile("resources/ui/img_health.png");
   uibox.setTexture(texture);
   uibox.setPosition(3.f, 0.0f);

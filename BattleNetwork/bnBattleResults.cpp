@@ -294,7 +294,7 @@ void BattleResults::Draw(sf::RenderTarget& surface) {
       surface.draw(pressA);
 
     // Draw shadow
-    rank.setPosition(rankPos.x+1.f, rankPos.y+2.f);
+    rank.setPosition(rankPos.x+2.f, rankPos.y+2.f);
 
     if (score > 10) {
       rank.SetColor(sf::Color(56, 92, 25));

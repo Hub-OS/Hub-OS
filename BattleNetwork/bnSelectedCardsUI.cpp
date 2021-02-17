@@ -30,6 +30,10 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) :
   icon.setTextureRect(iconRect);
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
+  text.setScale(2.f, 2.f);
+  dmg.setScale(2.f, 2.f);
+  multiplier.setScale(2.f, 2.f);
+
   frame.setTexture(LOAD_TEXTURE(CHIP_FRAME));
   frame.setScale(sf::Vector2f(2.f, 2.f));
 
@@ -45,6 +49,8 @@ SelectedCardsUI::~SelectedCardsUI() {
 
 void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if (this->IsHidden()) return;
+
+  const auto orange = sf::Color(225, 140, 0);
 
   text.SetString("");
   dmg.SetString("");
@@ -136,7 +142,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         dmg.SetString(dmgText);
         dmg.setOrigin(0, 0);
         dmg.setPosition((text.GetLocalBounds().width*text.getScale().x) + 13.f, 290.f);
-        dmg.SetColor(sf::Color(225, 140, 0));      }
+        dmg.SetColor(orange);      }
 
       if (multiplierValue != 1 && unmodDamage != 0) {
         // add "x N" where N is the multiplier
@@ -149,8 +155,37 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     }
   }
 
+  // shadow beneath
+  auto textPos = text.getPosition();
+  text.SetColor(sf::Color::Black);
+  text.setPosition(textPos.x + 2.f, textPos.y + 2.f);
   target.draw(text);
+
+  // font on top
+  text.setPosition(textPos);
+  text.SetColor(sf::Color::White);
+  target.draw(text);
+
+  // shadow
+  auto dmgPos = dmg.getPosition();
+  dmg.SetColor(sf::Color::Black);
+  dmg.setPosition(dmgPos.x + 2.f, dmgPos.y + 2.f);
   target.draw(dmg);
+
+  // font on top
+  dmg.setPosition(dmgPos);
+  dmg.SetColor(orange);
+  target.draw(dmg);
+
+  // shadow
+  auto multiPos = multiplier.getPosition();
+  multiplier.SetColor(sf::Color::Black);
+  multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
+  target.draw(multiplier);
+
+  // font on top
+  multiplier.setPosition(multiPos);
+  multiplier.SetColor(sf::Color::White);
   target.draw(multiplier);
 
   UIComponent::draw(target, states);
