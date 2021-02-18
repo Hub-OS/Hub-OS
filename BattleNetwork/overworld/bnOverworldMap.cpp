@@ -241,11 +241,23 @@ namespace Overworld {
 
   Map::Tile& Map::Layer::SetTile(int x, int y, Tile tile)
   {
+    if (x < 0 || y < 0 || x >= rows || y >= cols) {
+      // reset nullTile as it may have been mutated
+      nullTile = Map::Tile(0);
+      return nullTile;
+    }
+
     return tiles[y * rows + x] = tile;
   }
 
   Map::Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
   {
+    if (x < 0 || y < 0 || x >= rows || y >= cols) {
+      // reset nullTile as it may have been mutated
+      nullTile = Map::Tile(0);
+      return nullTile;
+    }
+
     return tiles[y * rows + x] = Map::Tile(gid);
   }
 
