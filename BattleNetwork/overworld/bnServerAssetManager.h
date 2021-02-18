@@ -13,8 +13,8 @@ namespace Overworld {
     std::shared_ptr<sf::Texture> GetTexture(const std::string& name);
     std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& name);
 
-    void EmplaceText(const std::string& name, const std::string& data);
-    void EmplaceTexture(const std::string& name, std::shared_ptr<sf::Texture>& texture);
-    void EmplaceAudio(const std::string& name, std::shared_ptr<sf::SoundBuffer>& audio);
+    void SetText(const std::string& name, const std::string& data);
+    void SetTexture(const std::string& name, std::shared_ptr<sf::Texture>& texture);
+    void SetAudio(const std::string& name, std::shared_ptr<sf::SoundBuffer>& audio);
   };
 }

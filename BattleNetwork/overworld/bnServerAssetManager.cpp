@@ -23,14 +23,17 @@ std::shared_ptr<sf::SoundBuffer> Overworld::ServerAssetManager::GetAudio(const s
   return audioAssets[name];
 }
 
-void Overworld::ServerAssetManager::EmplaceText(const std::string& name, const std::string& data) {
+void Overworld::ServerAssetManager::SetText(const std::string& name, const std::string& data) {
+  textAssets.erase(name);
   textAssets.emplace(name, data);
 }
 
-void Overworld::ServerAssetManager::EmplaceTexture(const std::string& name, std::shared_ptr<sf::Texture>& texture) {
+void Overworld::ServerAssetManager::SetTexture(const std::string& name, std::shared_ptr<sf::Texture>& texture) {
+  textureAssets.erase(name);
   textureAssets.emplace(name, texture);
 }
 
-void Overworld::ServerAssetManager::EmplaceAudio(const std::string& name, std::shared_ptr<sf::SoundBuffer>& audio) {
+void Overworld::ServerAssetManager::SetAudio(const std::string& name, std::shared_ptr<sf::SoundBuffer>& audio) {
+  audioAssets.erase(name);
   audioAssets.emplace(name, audio);
 }

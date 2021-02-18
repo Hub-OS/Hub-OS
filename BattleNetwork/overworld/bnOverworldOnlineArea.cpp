@@ -450,20 +450,20 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
   switch (type) {
   case AssetType::text:
     assetBuffer.append(0);
-    serverAssetManager.EmplaceText(name, assetReader.ReadString(assetBuffer));
+    serverAssetManager.SetText(name, assetReader.ReadString(assetBuffer));
     break;
   case AssetType::texture:
   {
     auto texture = std::make_shared<sf::Texture>();
     texture->loadFromMemory(assetBuffer.begin(), assetBuffer.size());
-    serverAssetManager.EmplaceTexture(name, texture);
+    serverAssetManager.SetTexture(name, texture);
     break;
   }
   case AssetType::audio:
   {
     auto audio = std::make_shared<sf::SoundBuffer>();
     audio->loadFromMemory(assetBuffer.begin(), assetBuffer.size());
-    serverAssetManager.EmplaceAudio(name, audio);
+    serverAssetManager.SetAudio(name, audio);
     break;
   }
   case AssetType::sfml_image:
@@ -476,7 +476,7 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
 
     auto texture = std::make_shared<sf::Texture>();
     texture->loadFromImage(image);
-    serverAssetManager.EmplaceTexture(name, texture);
+    serverAssetManager.SetTexture(name, texture);
     break;
   }
   }
