@@ -789,7 +789,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     auto firstgid = static_cast<unsigned int>(tilesetElement.GetAttributeInt("firstgid"));
     auto source = tilesetElement.GetAttribute("source");
 
-    if (source.rfind("/server", 0) != 0) {
+    if (source.find("/server", 0) != 0) {
       // client path
       // todo: hardcoded path oof, this will only be fine if all of our tiles are in this folder
       source = "resources/ow/tiles" + source.substr(source.rfind('/'));
@@ -916,7 +916,7 @@ std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(unsi
     else if (child.name == "image") {
       texturePath = child.GetAttribute("source");
 
-      if (texturePath.rfind("/server", 0) != 0) {
+      if (texturePath.find("/server", 0) != 0) {
         // client path
         // hardcoded
         texturePath = "resources/ow/tiles/" + texturePath;
