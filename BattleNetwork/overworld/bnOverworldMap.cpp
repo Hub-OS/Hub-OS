@@ -225,13 +225,13 @@ namespace Overworld {
 
   Map::Tile& Map::Layer::GetTile(int x, int y)
   {
-    if (x < 0 || y < 0 || x >= rows || y >= cols) {
+    if (x < 0 || y < 0 || x >= cols || y >= rows) {
       // reset nullTile as it may have been mutated
       nullTile = Map::Tile(0);
       return nullTile;
     }
 
-    return tiles[y * rows + x];
+    return tiles[y * cols + x];
   }
 
   Map::Tile& Map::Layer::GetTile(float x, float y)
@@ -241,24 +241,24 @@ namespace Overworld {
 
   Map::Tile& Map::Layer::SetTile(int x, int y, Tile tile)
   {
-    if (x < 0 || y < 0 || x >= rows || y >= cols) {
+    if (x < 0 || y < 0 || x >= cols || y >= rows) {
       // reset nullTile as it may have been mutated
       nullTile = Map::Tile(0);
       return nullTile;
     }
 
-    return tiles[y * rows + x] = tile;
+    return tiles[y * cols + x] = tile;
   }
 
   Map::Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
   {
-    if (x < 0 || y < 0 || x >= rows || y >= cols) {
+    if (x < 0 || y < 0 || x >= cols || y >= rows) {
       // reset nullTile as it may have been mutated
       nullTile = Map::Tile(0);
       return nullTile;
     }
 
-    return tiles[y * rows + x] = Map::Tile(gid);
+    return tiles[y * cols + x] = Map::Tile(gid);
   }
 
   Map::Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
