@@ -7,6 +7,36 @@ Animator::Mode::Mode(int playback)
   Mode::playback = playback;
 }
 
+
+void Animator::UpdateSpriteAttributes(sf::Sprite& target, const Frame& data)
+{
+  // rect attr 
+  int x = data.subregion.left;
+  int y = data.subregion.top;
+  int w = data.subregion.width;
+  int h = data.subregion.height;
+
+  // flip x and flip y attr
+  if (data.flipX) {
+    float newX = x + w;
+    w = -w;
+    x = newX;
+  }
+
+  if (data.flipY) {
+    float newY = y + h;
+    h = -h;
+    y = newY;
+  }
+
+  target.setTextureRect(sf::IntRect(x, y, w, h));
+
+  // origin attr
+  if (data.applyOrigin) {
+    target.setOrigin(static_cast<float>(data.origin.x), static_cast<float>(data.origin.y));
+  }
+}
+
 Animator::Animator() {
   onFinish = nullptr;
   queuedOnFinish = nullptr;
@@ -68,12 +98,8 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
       index = sequence.frames.size();
     }
 
-    target.setTextureRect((*iter).subregion);
-
-    // If applicable, update the origin
-    if ((*iter).applyOrigin) {
-      target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-    }
+    // apply rect, flip, and origin attributes
+    UpdateSpriteAttributes(target, *iter);
 
     // animation index are base 1
     UpdateCurrentPoints(int(index-1), sequence);
@@ -234,13 +260,8 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
         continue; // Start loop again
       }
 
-      // Apply the frame to the sprite object
-      target.setTextureRect((*iter).subregion);
-
-      // If applicable, apply the origin too
-      if ((*iter).applyOrigin) {
-        target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-      }
+      // apply rect, flip, and origin attributes
+      UpdateSpriteAttributes(target, *iter);
 
       UpdateCurrentPoints(index - 1, sequence);
 
@@ -253,12 +274,8 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
 
   // If we prematurely ended the loop, update the sprite
   if (iter != copy.end()) {
-    target.setTextureRect((*iter).subregion);
-
-    // If applicable, update the origin
-    if ((*iter).applyOrigin) {
-      target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-    }
+    // apply rect, flip, and origin attributes
+    UpdateSpriteAttributes(target, *iter);
   }
 
   // End updating flag

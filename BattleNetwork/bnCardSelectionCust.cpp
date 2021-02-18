@@ -735,7 +735,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       int i = 0;
       auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
 
-      for (auto f : formUI) {
+      for (sf::Sprite f : formUI) {
         formItemBG.setPosition(offset + 16.f, 16.f + float(i*32.0f));
         target.draw(formItemBG, states);
 

@@ -14,7 +14,8 @@ public:
     small = 1,
     tiny = 2,
     wide = 3,
-    thin = 4
+    thin = 4,
+    gradient = 5
   } style;
 
 private:

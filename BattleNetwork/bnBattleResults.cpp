@@ -63,10 +63,10 @@ BattleResults::BattleResults(sf::Time battleLength,
   score(0), 
   counterCount(0),
   totalElapsed(0),
-  time(font), 
-  rank(font), 
-  reward(font), 
-  cardCode(font)
+  time(numberFont), 
+  rank(numberFont), 
+  reward(letterFont), 
+  cardCode(letterFont)
 {
   this->counterCount = std::min(3, counterCount);
   this->counterCount = std::max(0, this->counterCount);
@@ -287,43 +287,20 @@ void BattleResults::Draw(sf::RenderTarget& surface) {
 
   // moves over when there's counter stars
   auto starSpacing = [](int index) -> float { return (19.f*index); };
-  auto rankPos = sf::Vector2f((2.f*191.f) - starSpacing(counterCount), 118.f);
+  auto rankPos = sf::Vector2f((2.f*191.f) - starSpacing(counterCount), 116.f);
 
   if (IsInView()) {
     if (!isRevealed)
       surface.draw(pressA);
 
-    // Draw shadow
-    rank.setPosition(rankPos.x+2.f, rankPos.y+2.f);
-
-    if (score > 10) {
-      rank.SetColor(sf::Color(56, 92, 25));
-    }
-    else {
-      rank.SetColor(sf::Color(80, 72, 88));
-    }
-
     surface.draw(rank);
 
     // Draw overlay
     rank.setPosition(rankPos);
-
-    if (score > 10) {
-      rank.SetColor(sf::Color(176, 228, 24));
-    }
-    else {
-      rank.SetColor(sf::Color(240, 248, 248));
-    }
     surface.draw(rank);
 
-    // Draw shadow
-    time.setPosition(2.f*192.f, 88.f);
-    time.SetColor(sf::Color(80, 72, 88));
-    surface.draw(time);
-
     // Draw overlay
-    time.setPosition(2.f*191.f, 86.f);
-    time.SetColor(sf::Color(240, 248, 248));
+    time.setPosition(2.f*191.f, 84.f);
     surface.draw(time);
 
     if (isRevealed) {
@@ -346,6 +323,15 @@ void BattleResults::Draw(sf::RenderTarget& surface) {
       }
 
       if (IsFinished()) {
+        // shadow first
+        auto rewardPos = reward.getPosition();
+        reward.setPosition(rewardPos.x + 2.f, rewardPos.y + 2.f);
+        reward.SetColor(sf::Color(80, 72, 88));
+        surface.draw(reward);
+
+        // then overlay
+        reward.setPosition(rewardPos);
+        reward.SetColor(sf::Color::White);
         surface.draw(reward);
 
         if (rewardIsCard) {

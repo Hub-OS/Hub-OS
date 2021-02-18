@@ -19,6 +19,13 @@ void Font::ApplyStyle()
     break;
   case Style::thin:
     animName = "THIN_";
+    break;
+  case Style::gradient:
+    animName = "GRADIENT_";
+    break;
+  default:
+    animName = "SMALL_";
+    break;
   }
 
   std::string letterStr(1, letter);
@@ -36,7 +43,7 @@ void Font::ApplyStyle()
     animName = animName + "QUOTE";
   }
 
-  auto list = animation.GetFrameList(animName);
+  FrameList list = animation.GetFrameList(animName);
   
   if (list.IsEmpty()) {
     list = animation.GetFrameList("SMALL_A");
