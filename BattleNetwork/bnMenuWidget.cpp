@@ -118,28 +118,28 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
   auto& t0f = easeInTimer.at(frames(0));
   
-  t0f.doTask([=](double elapsed) {
-      this->opacity = ease::linear(static_cast<float>(elapsed), seconds_cast<float>(frames(14)), 1.0f);
+  t0f.doTask([=](sf::Time elapsed) {
+      this->opacity = ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(14)), 1.0f);
   }).withDuration(frames(14));
 
-  t0f.doTask([=](double elapsed) {
-    float x = ease::linear(static_cast<float>(elapsed), milli_cast<float>(frames(8)), 1.0f);
+  t0f.doTask([=](sf::Time elapsed) {
+    float x = ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(8)), 1.0f);
     this->banner.setPosition((1.0f-x)*-this->banner.getSprite().getLocalBounds().width, 0);
   }).withDuration(frames(8));
 
   if (state == MenuWidget::state::closing) {
-    t0f.doTask([=](double elapsed) {
+    t0f.doTask([=](sf::Time elapsed) {
       currState = state::closed;
     });
 
-    t0f.doTask([=](double elapsed) {
+    t0f.doTask([=](sf::Time elapsed) {
       for (size_t i = 0; i < options.size(); i++) {
 
         //
         // labels (menu options)
         //
 
-        float x = ease::linear(static_cast<float>(elapsed), seconds_cast<float>(frames(20)), 1.0f);
+        float x = ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(20)), 1.0f);
         float start = 36;
         float dest = -(options[i]->getLocalBounds().width + start); // our destination
 
@@ -165,7 +165,7 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
   auto& t8f = easeInTimer.at(frames(8));
 
   if (state == MenuWidget::state::opening) {
-    t8f.doTask([=](double elapsed) {
+    t8f.doTask([=](sf::Time elapsed) {
       placeTextSpr.Reveal();
       selectTextSpr.Reveal();
       exit.Reveal();
@@ -179,16 +179,16 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
       }
     });
 
-    t8f.doTask([=](double elapsed) {
+    t8f.doTask([=](sf::Time elapsed) {
       for (size_t i = 0; i < options.size(); i++) {
-        float y = static_cast<float>(ease::linear(elapsed, milli_cast<double>(frames(12)), 1.0));
+        float y = static_cast<float>(ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(12)), 1.0f));
         options[i]->setPosition(36, 26 + (y * (i * 16)));
         optionIcons[i]->setPosition(16, 26 + (y * (i * 16)));
       }
     }).withDuration(frames(12));
   }
   else {
-    t8f.doTask([=](double elapsed) {
+    t8f.doTask([=](sf::Time elapsed) {
       placeTextSpr.Hide();
       selectTextSpr.Hide();
       exit.Hide();
@@ -207,19 +207,19 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
     });
   }
 
-  t8f.doTask([=](double elapsed) {
-    float x = 1.0f-ease::linear(static_cast<float>(elapsed), milli_cast<float>(frames(6)), 1.0f);
+  t8f.doTask([=](sf::Time elapsed) {
+    float x = 1.0f-ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(6)), 1.0f);
     exit.setPosition(130 + (x * 200), exit.getPosition().y);
   }).withDuration(frames(6));
 
-  t8f.doTask([=](double elapsed) {
+  t8f.doTask([=](sf::Time elapsed) {
     std::string printName = areaName;
 
     while (printName.size() < 12) {
       printName = "_" + printName; // add underscore brackets to output text
     }
 
-    size_t offset = static_cast<size_t>(12 * ease::linear(elapsed, milli_cast<double>(frames(2)), 1.0));
+    size_t offset = static_cast<size_t>(12 * ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(2)), 1.0f));
     std::string substr = printName.substr(0, offset);
     areaLabel.SetString(substr);
   }).withDuration(frames(2));
@@ -230,9 +230,9 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
   easeInTimer
     .at(time_cast<sf::Time>(frames(14)))
-    .doTask([=](double elapsed) {
+    .doTask([=](sf::Time elapsed) {
     infoBox.Reveal();
-    infoBoxAnim.SyncTime(static_cast<float>(elapsed)/1000.0f);
+    infoBoxAnim.SyncTime(static_cast<float>(elapsed.asSeconds()));
     infoBoxAnim.Refresh(infoBox.getSprite());
   }).withDuration(frames(4));
 
@@ -242,7 +242,7 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
   if (state == MenuWidget::state::opening) {
     easeInTimer
       .at(frames(20))
-      .doTask([=](double elapsed) {
+      .doTask([=](sf::Time elapsed) {
       currState = state::opened;
     });
   }
@@ -335,17 +335,17 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
     // draw all child nodes
     SceneNode::draw(target, states);
 
+    auto shadowColor = sf::Color(16, 82, 107, 255);
+
+    // area text
+    auto pos = areaLabel.getPosition();
+    auto copyAreaLabel = areaLabel;
+    copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
+    copyAreaLabel.SetColor(shadowColor);
+    target.draw(copyAreaLabel, states);
+    target.draw(areaLabel, states);
+
     if (IsOpen()) {
-      auto shadowColor = sf::Color(16, 82, 107, 255);
-
-      // area text
-      auto pos = areaLabel.getPosition();
-      auto copyAreaLabel = areaLabel;
-      copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
-      copyAreaLabel.SetColor(shadowColor);
-      target.draw(copyAreaLabel, states);
-      target.draw(areaLabel, states);
-
       // hp shadow
       infoText.SetString(std::to_string(health));
       infoText.setOrigin(infoText.GetLocalBounds().width, 0);
