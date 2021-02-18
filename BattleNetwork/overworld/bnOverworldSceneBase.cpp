@@ -828,8 +828,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
       auto row = 0;
       auto sliceStart = 0;
 
-      for (auto i = 0; i < dataLen; i++) {
+      for (auto i = 0; i <= dataLen; i++) {
         switch (dataElement.text[i]) {
+        case '\0':
         case ',': {
           auto tileId = static_cast<unsigned int>(stoul("0" + dataElement.text.substr(sliceStart, i)));
 
