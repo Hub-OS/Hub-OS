@@ -216,7 +216,7 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
     std::string printName = areaName;
 
     while (printName.size() < 12) {
-      printName += "_"; // add underscore brackets to output text
+      printName = "_" + printName; // add underscore brackets to output text
     }
 
     size_t offset = static_cast<size_t>(12 * ease::linear(elapsed, milli_cast<double>(frames(2)), 1.0));

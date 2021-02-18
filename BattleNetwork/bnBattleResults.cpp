@@ -335,6 +335,13 @@ void BattleResults::Draw(sf::RenderTarget& surface) {
         surface.draw(reward);
 
         if (rewardIsCard) {
+          auto codePos = cardCode.getPosition();
+          cardCode.setPosition(codePos.x + 2.f, codePos.y + 2.f);
+          cardCode.SetColor(sf::Color(80, 72, 88));
+          surface.draw(cardCode);
+
+          cardCode.setPosition(codePos);
+          cardCode.SetColor(sf::Color::White);
           surface.draw(cardCode);
         }
       }

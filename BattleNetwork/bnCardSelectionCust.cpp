@@ -653,8 +653,18 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       }
 
       cardCard.setPosition(lastPos);
-      label.setPosition(offset + 2.f*16.f, 16.f);
-      label.SetString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
+
+
+      // card name font shadow
+      const std::string& shortname = queue[cursorPos + (5 * cursorRow)].data->GetShortName();
+      label.setPosition((offset + 2.f * 16.f)+2.f, 22.f);
+      label.SetString(shortname);
+      label.SetColor(sf::Color(80, 75, 80));
+      target.draw(label, states);
+
+      // card name font overlay
+      label.setPosition(offset + 2.f*16.f, 20.f);
+      label.SetString(shortname);
       label.SetColor(sf::Color::White);
       target.draw(label, states);
 
@@ -662,14 +672,14 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
         label.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
         label.setOrigin(label.GetLocalBounds().width+label.GetLocalBounds().left, 0);
-        label.setPosition(offset + 2.f*(70.f), 143.f);
+        label.setPosition((offset + 2.f*(70.f))+2.f, 150.f);
         target.draw(label, states);
       }
 
       label.setOrigin(0, 0);
-      label.setPosition(offset + 2.f*16.f, 143.f);
+      label.setPosition(offset + 2.f*16.f, 150.f);
       label.SetString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
-      label.SetColor(sf::Color(225, 180, 0));
+      label.SetColor(sf::Color(253, 246, 71));
       target.draw(label, states);
 
       int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
