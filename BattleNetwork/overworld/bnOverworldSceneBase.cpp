@@ -805,8 +805,6 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   }
 
   // build layers
-  auto cols = map.GetCols();
-
   for (int i = std::max(layerElements.size(), objectLayerElements.size()) - 1; i >= 0; i--) {
     auto& layer = map.AddLayer();
 
