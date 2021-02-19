@@ -13,7 +13,7 @@ using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
-Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
+Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16_t maxPayloadSize, bool guestAccount) :
   font(Font::Style::small),
   name(font),
   SceneBase(controller, guestAccount),
@@ -21,6 +21,7 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
     getController().CommandLineValue<std::string>("cyberworld"),
     getController().CommandLineValue<int>("remotePort")
   )),
+  maxPayloadSize(maxPayloadSize),
   packetShipper(remoteAddress),
   packetSorter(remoteAddress)
 {
@@ -304,7 +305,7 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t h
   size_t remainingBytes = size;
 
   while (remainingBytes > 0) {
-    const uint16_t availableRoom = NetPlayConfig::MAX_BUFFER_LEN - headerSize - 2;
+    const uint16_t availableRoom = maxPayloadSize - headerSize - 2;
     uint16_t size = remainingBytes < availableRoom ? remainingBytes : availableRoom;
     remainingBytes -= size;
 

@@ -74,6 +74,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
         auto sig = reader.Read<ServerEvents>(packet);
         auto version = reader.ReadString(packet);
         auto iteration = reader.Read<uint64_t>(packet);
+        maxPayloadSize = reader.Read<uint16_t>(packet);
 
         if (sig == ServerEvents::pong && version == VERSION_ID && iteration == VERSION_ITERATION) {
           EnableNetWarps(true);
@@ -252,7 +253,7 @@ void Overworld::Homepage::OnTileCollision()
     auto teleportToCyberworld = [=] {
       this->TeleportUponReturn(returnPoint);
       client.close();
-      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(guest);
+      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(maxPayloadSize, guest);
     };
 
     playerController.ReleaseActor();

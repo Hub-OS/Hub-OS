@@ -30,6 +30,7 @@ namespace Overworld {
     std::string ticket; //!< How we are represented on the server
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
+    size_t maxPayloadSize;
     bool isConnected{ false };
     PacketShipper packetShipper;
     PacketSorter packetSorter;
@@ -81,7 +82,7 @@ namespace Overworld {
     /**
      * @brief Loads the player's library data and loads graphics
      */
-    OnlineArea(swoosh::ActivityController&, bool guestAccount);
+    OnlineArea(swoosh::ActivityController&, uint16_t maxPayloadSize, bool guestAccount);
 
     /**
     * @brief deconstructor
