@@ -1309,5 +1309,35 @@ frame duration="0.05" x="819" y="85" w="7" h="11" originx="0" originy="0" flipx=
 animation state="GRADIENT_GREEN_9"
 frame duration="0.05" x="827" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_GOLD_+"
-frame duration="0.05" x="747" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+animation state="GRADIENT_ORANGE_0"
+frame duration="0.05" x="756" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_1"
+frame duration="0.05" x="765" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_2"
+frame duration="0.05" x="772" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_3"
+frame duration="0.05" x="780" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_4"
+frame duration="0.05" x="788" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_5"
+frame duration="0.05" x="796" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_6"
+frame duration="0.05" x="804" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_7"
+frame duration="0.05" x="812" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_8"
+frame duration="0.05" x="820" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_9"
+frame duration="0.05" x="828" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_ORANGE_+"
+frame duration="0.05" x="748" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 

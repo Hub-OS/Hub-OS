@@ -55,6 +55,9 @@ void Font::ApplyStyle()
   case Style::gradient_green:
     animName = "GRADIENT_GREEN_";
     break;
+  case Style::gradient_orange:
+    animName = "GRADIENT_ORANGE_";
+    break;
   case Style::gradient_tall:
     animName = "GRADIENT_TALL_";
     break;
@@ -101,29 +104,14 @@ const bool Font::HasLowerCase(const Style& style)
   case Style::tiny:
     return true;
     break;
-  case Style::wide:
-    return false;
-    break;
   case Style::thin:
     return true;
-    break;
-  case Style::gradient:
-    return false;
-    break;
-  case Style::gradient_gold:
-    return false;
-    break;
-  case Style::gradient_green:
-    return false;
-    break;
-  case Style::gradient_tall:
-    return false;
     break;
   default:
     break;
   }
 
-  return true;
+  return false;
 }
 
 const Font::Style & Font::GetStyle() const

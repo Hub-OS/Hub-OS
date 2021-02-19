@@ -20,7 +20,7 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) :
   UIComponent(_player), 
   player(_player), 
   text(Font::Style::thick),
-  dmg(Font::Style::gradient_gold),
+  dmg(Font::Style::gradient_orange),
   multiplier(Font::Style::thick)
 {
 
