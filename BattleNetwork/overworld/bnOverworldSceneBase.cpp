@@ -9,8 +9,6 @@
 
 #include "bnOverworldSceneBase.h"
 
-#include "bnXML.h"
-
 #include "../bnWebClientMananger.h"
 #include "../Android/bnTouchArea.h"
 
@@ -785,9 +783,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   }
 
   // load tilesets
-  for (auto& tilesetElement : tilesetElements) {
-    auto firstgid = static_cast<unsigned int>(tilesetElement.GetAttributeInt("firstgid"));
-    auto source = tilesetElement.GetAttribute("source");
+  for (auto& mapTilesetElement : tilesetElements) {
+    auto firstgid = static_cast<unsigned int>(mapTilesetElement.GetAttributeInt("firstgid"));
+    auto source = mapTilesetElement.GetAttribute("source");
 
     if (source.find("/server", 0) != 0) {
       // client path
@@ -795,12 +793,12 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
       source = "resources/ow/tiles" + source.substr(source.rfind('/'));
     }
 
-    auto tilesetData = GetText(source);
+    XMLElement tilesetElement = parseXML(GetText(source));
+    auto tileset = ParseTileset(tilesetElement, firstgid);
+    auto tileMetas = ParseTileMetas(tilesetElement, tileset);
 
-    auto tileset = ParseTileset(firstgid, tilesetData);
-
-    for (auto i = 0; i < tileset->tileCount; i++) {
-      map.SetTileset(firstgid + i, i, tileset);
+    for (auto& tileMeta : tileMetas) {
+      map.SetTileset(tileset, std::move(tileMeta));
     }
   }
 
@@ -898,8 +896,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   this->map = std::move(map);
 }
 
-std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(unsigned int firstgid, const std::string& data) {
-  XMLElement tilesetElement = parseXML(data);
+std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(XMLElement tilesetElement, unsigned int firstgid) {
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
   auto tileWidth = tilesetElement.GetAttributeInt("tilewidth");
   auto tileHeight = tilesetElement.GetAttributeInt("tileheight");
@@ -1014,6 +1011,61 @@ std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(unsi
   };
 
   return std::make_shared<Overworld::Map::Tileset>(tileset);
+}
+
+std::vector<std::unique_ptr<Overworld::Map::TileMeta>> Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Map::Tileset> tileset) {
+  auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
+
+  std::vector<XMLElement> tileElements(tileCount);
+
+  for (auto& child : tilesetElement.children) {
+    if (child.name == "tile") {
+      auto tileId = child.GetAttributeInt("id");
+
+      if (tileElements.size() <= tileId) {
+        tileElements.resize(tileId + 1);
+      }
+
+      tileElements[tileId] = child;
+    }
+  }
+
+  std::vector<std::unique_ptr<Overworld::Map::TileMeta>> tileMetas;
+  auto tileId = 0;
+  auto tileGid = tileset->firstGid;
+
+  for (auto& tileElement : tileElements) {
+    auto tileMeta = std::make_unique<Overworld::Map::TileMeta>(
+      tileId,
+      tileGid,
+      tileset->offset
+      );
+
+    tileMeta->sprite.setTexture(*tileset->texture);
+    tileMeta->animation = tileset->animation;
+    tileMeta->animation << to_string(tileId) << Animator::Mode::Loop;
+    tileMeta->animation.Refresh(tileMeta->sprite);
+
+    for (auto& child : tileElement.children) {
+      if (child.name != "objectgroup") {
+        continue;
+      }
+
+      for (auto& objectElement : child.children) {
+        auto shape = Overworld::Shape::From(objectElement);
+
+        if (shape) {
+          tileMeta->collisionShapes.push_back(std::move(shape.value()));
+        }
+      }
+    }
+
+    tileMetas.push_back(std::move(tileMeta));
+    tileId += 1;
+    tileGid += 1;
+  }
+
+  return tileMetas;
 }
 
 void Overworld::SceneBase::TeleportUponReturn(const sf::Vector2f& position)

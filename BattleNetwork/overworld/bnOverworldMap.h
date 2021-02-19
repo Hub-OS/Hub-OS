@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <memory>
 
+#include "bnOverworldShapes.h"
 #include "../bnAnimation.h"
 #include "../bnSpriteProxyNode.h"
 
@@ -39,6 +40,7 @@ namespace Overworld {
       const sf::Vector2f offset;
       Animation animation;
       sf::Sprite sprite;
+      std::vector<std::unique_ptr<Shape>> collisionShapes;
 
 
       TileMeta(unsigned int id, unsigned int gid, sf::Vector2f offset)
@@ -158,10 +160,11 @@ namespace Overworld {
     std::unique_ptr<TileMeta>& GetTileMeta(unsigned int tileGid);
     std::shared_ptr<Tileset> GetTileset(std::string name);
     std::shared_ptr<Tileset> GetTileset(unsigned int tileGid);
-    void SetTileset(unsigned int tileGid, unsigned int tileId, std::shared_ptr<Tileset> tileset);
+    void SetTileset(std::shared_ptr<Tileset> tileset, std::unique_ptr<TileMeta> tileMeta);
     size_t GetLayerCount() const;
     Layer& GetLayer(size_t index);
     Layer& AddLayer();
+    bool CanMoveTo(float x, float y, int layer); // todo: move to layer?
     void RemoveSprites(SceneBase& scene);
 
   protected:

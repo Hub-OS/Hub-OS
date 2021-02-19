@@ -171,22 +171,13 @@ namespace Overworld {
     return tileToTilesetMap[tileGid];
   }
 
-  void Map::SetTileset(unsigned int tileGid, unsigned int tileId, std::shared_ptr<Map::Tileset> tileset) {
+  void Map::SetTileset(std::shared_ptr<Tileset> tileset, std::unique_ptr<TileMeta> tileMeta) {
+    auto tileGid = tileMeta->gid;
+
     if (tileToTilesetMap.size() <= tileGid) {
       tileToTilesetMap.resize(tileGid + 1);
       tileMetas.resize(tileGid + 1);
     }
-
-    auto tileMeta = std::make_unique<TileMeta>(
-      tileId,
-      tileGid,
-      tileset->offset
-      );
-
-    tileMeta->sprite.setTexture(*tileset->texture);
-    tileMeta->animation = tileset->animation;
-    tileMeta->animation << to_string(tileId) << Animator::Mode::Loop;
-    tileMeta->animation.Refresh(tileMeta->sprite);
 
     tileMetas[tileGid] = std::move(tileMeta);
     tileToTilesetMap[tileGid] = tileset;
@@ -198,13 +189,59 @@ namespace Overworld {
   }
 
   Map::Layer& Map::GetLayer(size_t index) {
-    return layers[index];
+    return layers.at(index);
   }
 
   Map::Layer& Map::AddLayer() {
     layers.emplace_back(Layer(cols, rows));
 
     return layers[layers.size() - 1];
+  }
+
+  // todo: move to layer?
+  // may require reference to map as tilemeta + tile size is used
+  bool Map::CanMoveTo(float x, float y, int layerIndex) {
+    auto& layer = GetLayer(layerIndex);
+    auto& tile = layer.GetTile(x, y);
+
+    if (tile.gid == 0) {
+      return false;
+    }
+
+    // get decimal part
+    float _;
+    auto iso = sf::Vector2f(
+      std::modf(x, &_),
+      std::modf(y, &_)
+    );
+
+    // get positive coords
+    if (iso.x < 0) {
+      iso.x += 1;
+    }
+    if (iso.y < 0) {
+      iso.y += 1;
+    }
+
+    // convert to iso pixels
+    iso.x *= tileWidth / 2;
+    iso.y *= tileHeight;
+
+    auto& tileMeta = *GetTileMeta(tile.gid);
+
+    auto ortho = IsoToOrthogonal(iso);
+
+    // get position on sprite
+    ortho.x += tileWidth / 2 - tileMeta.offset.x;
+    ortho.y += tileMeta.sprite.getLocalBounds().height - tileHeight - tileMeta.offset.y;
+
+    for (auto& shape : tileMeta.collisionShapes) {
+      if (shape->Intersects(ortho.x, ortho.y)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   void Map::RemoveSprites(SceneBase& scene) {
@@ -252,18 +289,12 @@ namespace Overworld {
 
   Map::Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
   {
-    if (x < 0 || y < 0 || x >= cols || y >= rows) {
-      // reset nullTile as it may have been mutated
-      nullTile = Map::Tile(0);
-      return nullTile;
-    }
-
-    return tiles[y * cols + x] = Map::Tile(gid);
+    return SetTile(x, y, Map::Tile(gid));
   }
 
   Map::Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
   {
-    return SetTile(std::floor(x), std::floor(y), gid);
+    return SetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)), gid);
   }
 
   Map::TileObject& Map::Layer::GetTileObject(unsigned int id) {

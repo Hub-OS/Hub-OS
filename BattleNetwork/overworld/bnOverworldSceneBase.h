@@ -27,6 +27,7 @@
 #include "bnOverworldTeleportController.h"
 #include "bnOverworldMap.h"
 #include "bnEmotes.h"
+#include "bnXML.h"
 
 class Background; // forward decl
 
@@ -85,7 +86,8 @@ namespace Overworld {
 
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
 
-    std::shared_ptr<Map::Tileset> ParseTileset(unsigned int firstgid, const std::string& data);
+    std::shared_ptr<Map::Tileset> ParseTileset(XMLElement element, unsigned int firstgid);
+    std::vector<std::unique_ptr<Overworld::Map::TileMeta>> ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Map::Tileset> tileset);
     void LoadBackground(const std::string& value);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
     void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);

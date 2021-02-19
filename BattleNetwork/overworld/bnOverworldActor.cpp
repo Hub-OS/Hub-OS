@@ -293,20 +293,19 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   */
 
   if (map && map->GetLayerCount() > layer) {
-    auto& mapLayer = map->GetLayer(layer);
     auto tileSize = sf::Vector2f(map->GetTileSize());
     tileSize.x *= .5f;
 
-    if (mapLayer.GetTile(newPos.x / tileSize.x, newPos.y / tileSize.y).gid == 0) {
+    if (!map->CanMoveTo(newPos.x / tileSize.x, newPos.y / tileSize.y, layer)) {
       if (second != Direction::none) {
         newPos = currPos;
 
-        if (mapLayer.GetTile((currPos.x + offset.x) / tileSize.x, currPos.y / tileSize.y).gid != 0) {
+        if (map->CanMoveTo((currPos.x + offset.x) / tileSize.x, currPos.y / tileSize.y, layer)) {
           newPos.x += offset.x;
         }
-        else if (mapLayer.GetTile(currPos.x / tileSize.x, (currPos.y + offset.y) / tileSize.y).gid != 0) {
+        else if (map->CanMoveTo(currPos.x / tileSize.x, (currPos.y + offset.y) / tileSize.y, layer)) {
           newPos.y += offset.y;
-        } 
+        }
 
         return { false, newPos };
       }
