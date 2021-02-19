@@ -344,6 +344,7 @@ void FolderScene::onUpdate(double elapsed) {
       } else if (Input().Has(InputEvents::pressed_confirm)) {
         if (!promptOptions) {
           promptOptions = true;
+          RefreshOptions();
           Audio().Play(AudioType::CHIP_DESC);
         }
         else if(folderNames.size()) {
@@ -630,8 +631,6 @@ void FolderScene::MakeNewFolder() {
   }
 
   folderNames = collection.GetFolderNames();
-
-  RefreshOptions();
 }
 
 void FolderScene::DeleteFolder(std::function<void()> onSuccess)
@@ -645,8 +644,6 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     if (collection.DeleteFolder(folderNames[currFolderIndex])) {
       onSuccess();
       folderNames = collection.GetFolderNames();
-
-      RefreshOptions();
     }
 
     textbox.Close();

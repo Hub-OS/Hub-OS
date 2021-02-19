@@ -260,6 +260,8 @@ public:
                 currFolder->AddCard(card);
             }
         }
+        
+        currFolder->SetErrors(folder.second->errors);
       }
 
       return collection;

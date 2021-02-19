@@ -12,15 +12,13 @@
  * 
  * Provides utilities to list the cards in the folder, provide the next card,
  * clone the folder, and shuffle the folder
- * 
- * TODO: any direct modification of this file is written to file by the collection class later
  */
 class CardFolder {
 private:
   std::vector<Battle::Card*> folderList; /*!< Cards */
   int folderSize; /*!< Size of the folder */
   int initialSize; /*!< Start of the folder size */
-
+  std::vector<std::string> errors; /*!< Error messages from folder source provider*/
 public:
   typedef std::vector<Battle::Card*>::const_iterator Iter;
 
@@ -72,6 +70,24 @@ public:
    */
   const int GetSize() const;
   
+  /**
+   * @brief Copies error messages into the folder
+   * @param copy
+   */
+  void SetErrors(std::vector<std::string> copy);
+
+  /**
+   * @brief Query if this folder has an error
+   * @return bool
+   */
+  const bool HasErrors() const;
+
+  /**
+   * @brief The remaining size of the folder
+   * @return int
+   */
+  const std::vector<std::string>& GetErrors() const;
+
   /**
    * @brief Iterator to beginning of the folder
    * @return Iter
