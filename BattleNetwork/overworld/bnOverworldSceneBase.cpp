@@ -885,7 +885,10 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     }
   }
 
-  LoadBackground(map.GetBackgroundName());
+  if (map.GetBackgroundName() != this->map.GetBackgroundName()) {
+    LoadBackground(map.GetBackgroundName());
+  }
+
   menuWidget.SetArea(map.GetName());
 
   // cleanup data from the previous map
