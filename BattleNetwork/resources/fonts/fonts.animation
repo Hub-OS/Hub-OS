@@ -1183,38 +1183,128 @@ frame duration="0.05" x="1056" y="125" w="7" h="12" originx="0" originy="0" flip
 animation state="THIN_,"
 frame duration="0.05" x="1024" y="40" w="5" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_0"
+animation state="GRADIENT_TALL_0"
 frame duration="0.05" x="736" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_1"
+animation state="GRADIENT_TALL_1"
 frame duration="0.05" x="745" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_2"
+animation state="GRADIENT_TALL_2"
 frame duration="0.05" x="754" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_3"
+animation state="GRADIENT_TALL_3"
 frame duration="0.05" x="764" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_4"
+animation state="GRADIENT_TALL_4"
 frame duration="0.05" x="774" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_5"
+animation state="GRADIENT_TALL_5"
 frame duration="0.05" x="784" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_6"
+animation state="GRADIENT_TALL_6"
 frame duration="0.05" x="794" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_7"
+animation state="GRADIENT_TALL_7"
 frame duration="0.05" x="804" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_8"
+animation state="GRADIENT_TALL_8"
 frame duration="0.05" x="814" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_9"
+animation state="GRADIENT_TALL_9"
 frame duration="0.05" x="824" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_S"
+animation state="GRADIENT_TALL_S"
 frame duration="0.05" x="834" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
-animation state="GRADIENT_:"
+animation state="GRADIENT_TALL_:"
 frame duration="0.05" x="843" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_0"
+frame duration="0.05" x="755" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_1"
+frame duration="0.05" x="764" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_2"
+frame duration="0.05" x="771" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_3"
+frame duration="0.05" x="779" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_4"
+frame duration="0.05" x="787" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_5"
+frame duration="0.05" x="795" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_6"
+frame duration="0.05" x="803" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_7"
+frame duration="0.05" x="811" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_8"
+frame duration="0.05" x="819" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_9"
+frame duration="0.05" x="827" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_0"
+frame duration="0.05" x="755" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_1"
+frame duration="0.05" x="764" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_2"
+frame duration="0.05" x="771" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_3"
+frame duration="0.05" x="779" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_4"
+frame duration="0.05" x="787" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_5"
+frame duration="0.05" x="795" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_6"
+frame duration="0.05" x="803" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_7"
+frame duration="0.05" x="811" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_8"
+frame duration="0.05" x="819" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_9"
+frame duration="0.05" x="827" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_0"
+frame duration="0.05" x="755" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_1"
+frame duration="0.05" x="764" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_2"
+frame duration="0.05" x="771" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_3"
+frame duration="0.05" x="779" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_4"
+frame duration="0.05" x="787" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_5"
+frame duration="0.05" x="795" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_6"
+frame duration="0.05" x="803" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_7"
+frame duration="0.05" x="811" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_8"
+frame duration="0.05" x="819" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GREEN_9"
+frame duration="0.05" x="827" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 

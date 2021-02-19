@@ -151,7 +151,8 @@ void Text::draw(sf::RenderTarget & target, sf::RenderStates states) const
 
 void Text::SetFont(const Font& font)
 {
-  this->font = font;
+  geometryDirty |= Text::font.GetStyle() != font.GetStyle();
+  Text::font = font;
 }
 
 void Text::SetString(const std::string& message)

@@ -5,6 +5,7 @@
 #include "bnTextureResourceManager.h"
 
 #include <memory>
+#include <array>
 
 class Font : ResourceHandle
 {
@@ -15,17 +16,24 @@ public:
     tiny = 2,
     wide = 3,
     thin = 4,
-    gradient = 5
+    gradient = 5,
+    gradient_gold = 6,
+    gradient_green = 7,
+    gradient_tall = 8,
+    size // don't use!
   } style;
 
 private:
-  Animation animation{};
+  static constexpr size_t style_sz = static_cast<size_t>(Style::size);
+  static std::array<Animation, style_sz> animationArray;
+  static bool animationsLoaded;
+
   char letter{ 'A' };
   sf::IntRect texcoords{};
   sf::IntRect letterATexcoords{};
   sf::Vector2f origin{};
   void ApplyStyle();
-
+  const bool HasLowerCase(const Style& style);
 public:
   Font(const Style& style);
   ~Font();

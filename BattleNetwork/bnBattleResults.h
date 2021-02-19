@@ -27,7 +27,7 @@ private:
   sf::Sprite pressA; /*!< Press A sprite */
   sf::Sprite star; /*!< Counter stars */
   Font letterFont{ Font::Style::thick };
-  Font numberFont{ Font::Style::gradient };
+  Font numberFont{ Font::Style::gradient_tall };
   Text time; /*!< Formatted time label */
   Text rank; /*!< Battle scored rank */
   Text reward; /*!< Name of reward */
