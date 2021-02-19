@@ -211,9 +211,7 @@ void AnimatedTextBox::Update(double elapsed) {
 }
 
 void AnimatedTextBox::SetTextSpeed(double factor) {
-  if (textSpeed >= 1.0) {
-    textSpeed = factor;
-  }
+  textSpeed = std::max(1.0, factor);
 }
 
 void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const

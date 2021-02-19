@@ -2,8 +2,7 @@
 #include "bnSceneNode.h"
 #include "bnFont.h"
 
-class Text :
-  public SceneNode
+class Text : public SceneNode
 {
 private:
   mutable Font font;

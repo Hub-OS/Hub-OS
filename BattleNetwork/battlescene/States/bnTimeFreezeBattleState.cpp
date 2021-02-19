@@ -89,7 +89,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
-  Text summonsLabel = Text(name, font);
+  Text summonsLabel = Text(name, Font::Style::thick);
 
   double summonSecs = summonTimer.getElapsed().asSeconds();
   double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
@@ -102,7 +102,6 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   }
 
   summonsLabel.setScale(2.0f, 2.0f*(float)scale);
-  summonsLabel.SetColor(sf::Color::White);
 
   if (team == Team::red) {
     summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height*0.5f);

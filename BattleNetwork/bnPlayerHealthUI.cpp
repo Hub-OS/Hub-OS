@@ -10,7 +10,7 @@ using std::to_string;
 PlayerHealthUI::PlayerHealthUI(Player* _player) : 
   player(_player), 
   UIComponent(_player),
-  glyphs(Font{Font::Style::gradient})
+  glyphs(Font::Style::gradient)
 {
   ResourceHandle handle;
 
@@ -111,7 +111,7 @@ void PlayerHealthUI::OnUpdate(double elapsed) {
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
 
-    glyphs.SetFont(Font{ Font::Style::gradient });
+    glyphs.SetFont(Font::Style::gradient);
 
     bool isBurning = false;
     bool isPoisoned = false;
@@ -125,7 +125,7 @@ void PlayerHealthUI::OnUpdate(double elapsed) {
     }
 
     if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.5) {
-      glyphs.SetFont(Font{ Font::Style::gradient_gold });
+      glyphs.SetFont(Font::Style::gradient_gold);
 
 
       // If HP is low, play beep with high priority
@@ -133,7 +133,7 @@ void PlayerHealthUI::OnUpdate(double elapsed) {
         ResourceHandle().Audio().Play(AudioType::LOW_HP, AudioPriority::high);
       }
     } else if (currHP < player->GetHealth()) {
-      glyphs.SetFont(Font{ Font::Style::gradient_green });
+      glyphs.SetFont(Font::Style::gradient_green);
     }
   }
 

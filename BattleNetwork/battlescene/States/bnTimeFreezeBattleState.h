@@ -30,7 +30,6 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   bool executeOnce{ false };
   std::string name;
   Team team{ Team::unknown };
-  Font font{ Font::Style::thick };
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
   Character* user{ nullptr };
   CardAction* action{ nullptr };

@@ -40,7 +40,6 @@ public:
   };
 
 private:
-  // TODO: take mutable attr out
   mutable sf::Sprite custSprite;
   mutable sf::Sprite custDarkCardOverlay, custMegaCardOverlay, custGigaCardOverlay;
   mutable sf::Sprite cursorSmall; // animated

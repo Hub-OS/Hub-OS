@@ -63,10 +63,10 @@ BattleResults::BattleResults(sf::Time battleLength,
   score(0), 
   counterCount(0),
   totalElapsed(0),
-  time(numberFont), 
-  rank(numberFont), 
-  reward(letterFont), 
-  cardCode(letterFont)
+  time(Font::Style::gradient_tall), 
+  rank(Font::Style::gradient_tall), 
+  reward(Font::Style::thick), 
+  cardCode(Font::Style::thick)
 {
   this->counterCount = std::min(3, counterCount);
   this->counterCount = std::max(0, this->counterCount);

@@ -778,7 +778,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
   }
 
-  target.draw(cardDescriptionTextbox, states);
+  target.draw(cardDescriptionTextbox);
 
   SceneNode::draw(target, states);
 

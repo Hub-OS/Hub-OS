@@ -15,7 +15,7 @@ public:
   /**
     * @brief sets the position of the textbox
     */
-  CardDescriptionTextbox(sf::Vector2f pos);
+  CardDescriptionTextbox(const sf::Vector2f& pos);
   
   /**
    * @brief Enqueues the card description and plays it

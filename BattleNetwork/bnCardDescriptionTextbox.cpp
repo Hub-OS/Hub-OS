@@ -2,10 +2,10 @@
 #include "bnMessage.h"
 #include "bnTextureResourceManager.h"
 
-CardDescriptionTextbox::CardDescriptionTextbox(sf::Vector2f pos) :
+CardDescriptionTextbox::CardDescriptionTextbox(const sf::Vector2f& pos) :
    AnimatedTextBox(pos)
 {
-  this->SetTextSpeed(2.0); // TODO just make this default
+  this->SetTextSpeed(2.0);
 }
 
 void CardDescriptionTextbox::DescribeCard(Battle::Card* card)
@@ -16,6 +16,6 @@ void CardDescriptionTextbox::DescribeCard(Battle::Card* card)
     DequeMessage();
   }
 
-  EnqueMessage(sf::Sprite(*LOAD_TEXTURE(MUG_NAVIGATOR)), "resources/ui/navigator.animation", new Message(card->GetDescription()));
+  EnqueMessage(new Message(card->GetDescription()));
   Open();
 }

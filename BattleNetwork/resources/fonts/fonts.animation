@@ -1308,3 +1308,6 @@ frame duration="0.05" x="819" y="85" w="7" h="11" originx="0" originy="0" flipx=
 
 animation state="GRADIENT_GREEN_9"
 frame duration="0.05" x="827" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="GRADIENT_GOLD_+"
+frame duration="0.05" x="747" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 

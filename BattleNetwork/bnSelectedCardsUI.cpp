@@ -19,10 +19,9 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) :
   CardUsePublisher(), 
   UIComponent(_player), 
   player(_player), 
-  font(Font::Style::thick), 
-  text(font), 
-  dmg(font),
-  multiplier(font)
+  text(Font::Style::thick),
+  dmg(Font::Style::gradient_gold),
+  multiplier(Font::Style::thick)
 {
 
   cardCount = curr = 0;
@@ -126,7 +125,6 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       text.SetString(selectedCards[curr]->GetShortName());
       text.setOrigin(0, 0);
       text.setPosition(3.0f, 290.0f);
-      text.SetColor(sf::Color::White);
 
       // Text sits at the bottom-left of the screen
       int unmodDamage = selectedCards[curr]->GetUnmoddedProps().damage;
@@ -134,23 +132,22 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       sf::String dmgText = std::to_string(unmodDamage);
 
       if (delta != 0) {
-        dmgText = dmgText + sf::String(" + ") + sf::String(std::to_string(delta));
+        dmgText = dmgText + sf::String("+") + sf::String(std::to_string(delta));
       }
 
       // attacks that normally show no damage will show if the modifer adds damage
       if (delta != 0 || unmodDamage != 0) {
         dmg.SetString(dmgText);
         dmg.setOrigin(0, 0);
-        dmg.setPosition((text.GetLocalBounds().width*text.getScale().x) + 13.f, 290.f);
-        dmg.SetColor(orange);      }
+        dmg.setPosition((text.GetLocalBounds().width*text.getScale().x) + 10.f, 290.f);
+      }
 
       if (multiplierValue != 1 && unmodDamage != 0) {
         // add "x N" where N is the multiplier
-        std::string multStr = "x " + std::to_string(multiplierValue);
+        std::string multStr = "x" + std::to_string(multiplierValue);
         multiplier.SetString(multStr);
         multiplier.setOrigin(0, 0);
-        multiplier.setPosition(dmg.getPosition().x + dmg.GetLocalBounds().width + 3.0f, 290.0f);
-        multiplier.SetColor(sf::Color::White);
+        multiplier.setPosition(dmg.getPosition().x + (dmg.GetLocalBounds().width*dmg.getScale().x) + 3.0f, 290.0f);
       }
     }
   }
@@ -166,15 +163,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
   text.SetColor(sf::Color::White);
   target.draw(text);
 
-  // shadow
-  auto dmgPos = dmg.getPosition();
-  dmg.SetColor(sf::Color::Black);
-  dmg.setPosition(dmgPos.x + 2.f, dmgPos.y + 2.f);
-  target.draw(dmg);
-
-  // font on top
-  dmg.setPosition(dmgPos);
-  dmg.SetColor(orange);
+  // our number font has shadow baked in
   target.draw(dmg);
 
   // shadow
