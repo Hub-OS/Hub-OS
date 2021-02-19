@@ -1,3 +1,5 @@
+#pragma once
+
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <memory>
