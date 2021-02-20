@@ -85,19 +85,15 @@ namespace Overworld {
   // shoot a ray to the right and count edge intersections
   // even = outside, odd = inside
   bool Polygon::Intersects(float x, float y) {
+    if (points.size() == 0) {
+      return false;
+    }
+
     uint intersections = 0;
 
-    std::tuple<float, float> lastPoint;
-    bool initializedFirstPoint = false;
+    std::tuple<float, float> lastPoint = points[points.size() - 1];
 
     for (auto& point : points) {
-      if (!initializedFirstPoint)
-      {
-        lastPoint = point;
-        initializedFirstPoint = true;
-        continue;
-      }
-
       auto Ax = std::get<0>(lastPoint) + this->x;
       auto Ay = std::get<1>(lastPoint) + this->y;
       auto Bx = std::get<0>(point) + this->x;
@@ -109,7 +105,7 @@ namespace Overworld {
         // column line
 
         // make sure y is between these points
-        auto yIsWithin = (y < Ay&& y > By) || (y > Ay && y < By);
+        auto yIsWithin = (y >= Ay && y <= By) || (y >= By && y <= Ay);
 
         if (x < Ax && yIsWithin) {
           // column is to the right and y is within
@@ -127,9 +123,10 @@ namespace Overworld {
         auto intersectionX = (y - yIntercept) / slope;
 
         // make sure x is between these points, y is implied through above calculation
-        auto xIsWithin = (intersectionX < Ax&& intersectionX > Bx) || (intersectionX > Ax && intersectionX < Bx);
+        auto xIsWithin = (intersectionX >= Ax && intersectionX < Bx) || (intersectionX >= Bx && intersectionX < Ax);
 
-        if (xIsWithin) {
+        // make sure intersectionX is to the right
+        if (xIsWithin && x >= intersectionX) {
           intersections += 1;
         }
       }

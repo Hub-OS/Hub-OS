@@ -235,6 +235,8 @@ namespace Overworld {
     ortho.x += tileWidth / 2 - tileMeta.offset.x;
     ortho.y += tileMeta.sprite.getLocalBounds().height - tileHeight - tileMeta.offset.y;
 
+    // todo handle tile flipping (and rotation?)
+
     for (auto& shape : tileMeta.collisionShapes) {
       if (shape->Intersects(ortho.x, ortho.y)) {
         return false;
