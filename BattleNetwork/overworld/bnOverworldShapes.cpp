@@ -187,6 +187,7 @@ namespace Overworld {
           }
 
           polygon->AddPoint(x, y);
+          sliceStart = i + 1;
           break;
         }
         default:
