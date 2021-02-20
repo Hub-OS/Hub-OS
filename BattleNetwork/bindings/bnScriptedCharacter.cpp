@@ -88,6 +88,6 @@ void ScriptedCharacter::ShakeCamera(double power, float duration)
   this->EventBus().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
 
-AnimationComponent& ScriptedCharacter::GetAnimationComponent() { 
-  return *animation;
+Animation& ScriptedCharacter::GetAnimationObject() {
+  return animation->GetAnimationObject();
 }

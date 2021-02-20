@@ -29,8 +29,8 @@
 class FolderEditScene : public Scene {
 private:
   enum class ViewMode : int {
-    FOLDER,
-    PACK
+    folder,
+    pack
   };
 
   /**
@@ -125,7 +125,7 @@ private:
   sf::Sprite bg;
   sf::Sprite folderDock, packDock;
   sf::Sprite scrollbar;
-  sf::Sprite cardHolder;
+  sf::Sprite cardHolder, packCardHolder;
   sf::Sprite element;
   sf::Sprite folderCursor, folderSwapCursor;
   sf::Sprite packCursor, packSwapCursor;
@@ -157,6 +157,7 @@ private:
   double frameElapsed;
  
   bool extendedHold{ false }; //!< If held for a 2nd pass, scroll quickly
+  InputEvent lastKey{};
   bool canInteract;
 
 #ifdef __ANDROID__

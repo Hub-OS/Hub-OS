@@ -13,7 +13,8 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
-CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms) : 
+CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, 
+                                             std::vector<std::shared_ptr<TrackedFormData>>& forms) : 
   tracked(tracked), 
   forms(forms),
   font(Font::Style::thick)
@@ -66,16 +67,6 @@ int& CardSelectBattleState::GetCardListLengthAddr()
 void CardSelectBattleState::onStart(const BattleSceneState*)
 {
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
-
-  for (Player* player : tracked) {
-    player->Charge(false);
-    SelectedCardsUI* ui = player->GetFirstComponent<SelectedCardsUI>();
-
-    if (ui) {
-      // Clear any card UI queues. they will contain null data.
-      ui->LoadCards(0, 0);
-    }
-  }
 
   Audio().Play(AudioType::CUSTOM_SCREEN_OPEN);
 
@@ -195,21 +186,22 @@ void CardSelectBattleState::onUpdate(double elapsed)
         if (cardCust.AreCardsReady()) {
           Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
 
-          cards = cardCust.GetCards();
-          cardCount = cardCust.GetCardCount();
-          currState = state::slideout;
+          // If the list is untouched, the start address will be the same
+          auto newCards = cardCust.GetCards();
 
           Player* player = tracked[0];
           SelectedCardsUI* ui = player->GetFirstComponent<SelectedCardsUI>();
 
-          if (ui) {
-            
+          if (ui && newCards != cards) {
+            cards = newCards;
+            cardCount = cardCust.GetCardCount();
             GetScene().FilterSupportCards(cards, cardCount);
             ui->LoadCards(cards, cardCount);
             ui->Hide();
           }
 
           CheckFormChanges();
+          currState = state::slideout;
         }
         else if (performed) {
           Audio().Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);

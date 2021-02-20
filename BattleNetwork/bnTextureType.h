@@ -143,7 +143,6 @@ enum class TextureType : int {
 
   // Navigator and textbox
   MUG_NAVIGATOR,
-  MUG_PROG,
   ANIMATED_TEXT_BOX,
   TEXT_BOX_NEXT_CURSOR,
   TEXT_BOX_CURSOR,

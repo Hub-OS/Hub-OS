@@ -19,6 +19,11 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
+// 1. This algorithm line breaks if a whole line goes over 9 characters
+// 2. When it breaks a new line, it will cleanup redundant space characters around it
+// 3. If no linebreak can be cleanly placed at the last word start position,
+//    it will break that word where the new line must start
+// 4. To finish off, if the char limit goes over 29, then it will trim the string
 std::string FolderEditScene::FormatCardDesc(const std::string && desc)
 {
   std::string output = desc;
@@ -28,6 +33,25 @@ std::string FolderEditScene::FormatCardDesc(const std::string && desc)
   std::string::iterator new_end = std::unique(output.begin(), output.end(), bothAreSpaces);
   output.erase(new_end, output.end());
 
+  std::string escaped_newline = "\\n";
+  std::string newline = "\n";
+
+  std::string::size_type i = output.find(escaped_newline);
+
+  while (i != std::string::npos) {
+    output.erase(i, escaped_newline.length());
+    output.insert(i, " "); // replace with space
+    i = output.find(escaped_newline);
+  }
+
+  /* std::string::size_type */ i = output.find(newline);
+
+  while (i != std::string::npos) {
+    output.erase(i, newline.length());
+    output.insert(i, " "); // replace with space
+    i = output.find(newline);
+  }
+
   int index = 0;
   int perLine = 0;
   int line = 0;
@@ -36,6 +60,42 @@ std::string FolderEditScene::FormatCardDesc(const std::string && desc)
   bool finished = false;
 
   while (index != output.size() && !finished) {
+  
+    // Only allow 9 letters
+    if (perLine > 0 && perLine % 9 == 0) {
+      if (wordIndex > -1) {
+        if (index == wordIndex + 8) {
+          wordIndex = index; // We have no choice but to cut off part of this lengthy word
+        }
+        // Line break at the last word if we continue...
+        if (output[index] != ' ') {
+          output.insert(wordIndex, "\n");
+          index = wordIndex; // Start counting from here
+          while (output[index] == ' ') { output.erase(index, 1); }
+        }
+        else {
+          output.insert(index, "\n"); index++;
+          while (output[index] == ' ') { output.erase(index, 1); }
+        }
+      }
+      else {
+        // Line break at the next word
+        while (output[index - 1] == ' ') { output.erase(index - 1, 1); index--; }
+        output.insert(index, "\n"); index++;
+        while (output[index] == ' ') { output.erase(index, 1); }
+      }
+      line++;
+
+      if (line == 3) {
+        output = output.substr(0, index + 1);
+        output[output.size() - 1] = '-'; // TODO: font glyph will show an elipses
+        finished = true;
+      }
+
+      perLine = -1;
+      wordIndex = -1;
+    }
+
     if (output[index] != ' ' && wordIndex == -1) {
       wordIndex = index;
     }
@@ -43,43 +103,14 @@ std::string FolderEditScene::FormatCardDesc(const std::string && desc)
       wordIndex = -1;
     }
 
-    if (perLine > 0 && perLine % 10 == 0) {
-      if (wordIndex > -1) {
-        if (index == wordIndex + 9) {
-          wordIndex = index; // We have no choice but to cut off part of this lengthy word
-        }
-        // Line break at the last word
-        //while (desc[index] == ' ') { index++; }
-        output.insert(wordIndex, "\n");
-        index = wordIndex; // Start counting from here
-        while (output[index] == ' ') { output.erase(index); }
-      }
-      else {
-        // Line break at the next word
-        while (output[index] == ' ') { index++; }
-        output.insert(index, "\n"); index++;
-        while (output[index] == ' ') { output.erase(index); }
-      }
-      line++;
-
-      if (line == 3) {
-        output = output.substr(0, index + 1);
-        output[output.size() - 1] = ';'; // font glyph will show an elipses
-        finished = true;
-      }
-
-      perLine = 0;
-      wordIndex = -1;
-    }
-
     perLine++;
     index++;
   }
 
-  // Battle::Card docks can only fit 9 characters per line, 3 lines total
-  if (output.size() > 3 * 10) {
-    output = output.substr(0, (3 * 10));
-    output[output.size()] = ';'; // font glyph will show an elipses
+  // Card docks only fit 9 chars per line + 2 possible linebreak chars
+  if (output.size() > (3 * 9)+2) {
+    output = output.substr(0, (3 * 9)+2);
+    output[output.size()-1] = '-'; // TODO: font glyph will show an elipses
   }
 
   return output;
@@ -98,7 +129,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   cardLabel("", cardFont),
   cardDescFont(Font::Style::thin),
   cardDesc("", cardDescFont),
-  numberFont(Font::Style::small),
+  numberFont(Font::Style::thick),
   numberLabel("", numberFont)
 {
   // Move card data into their appropriate containers for easier management
@@ -167,6 +198,9 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   cardHolder = sf::Sprite(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
   cardHolder.setScale(2.f, 2.f);
 
+  packCardHolder = sf::Sprite(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+  packCardHolder.setScale(2.f, 2.f);
+
   element = sf::Sprite(*LOAD_TEXTURE(ELEMENT_ICON));
   element.setScale(2.f, 2.f);
 
@@ -195,7 +229,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   packView.swapCardIndex = -1;
   packView.numOfCards = int(packCardBuckets.size());
 
-  prevViewMode = currViewMode = ViewMode::FOLDER;
+  prevViewMode = currViewMode = ViewMode::folder;
 
   totalTimeElapsed = frameElapsed = 0.0;
 
@@ -229,14 +263,19 @@ void FolderEditScene::onUpdate(double elapsed) {
   if (canInteract) {
     CardView* view = nullptr;
 
-    if (currViewMode == ViewMode::FOLDER) {
+    if (currViewMode == ViewMode::folder) {
       view = &folderView;
     }
-    else if (currViewMode == ViewMode::PACK) {
+    else if (currViewMode == ViewMode::pack) {
       view = &packView;
     }
 
     if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
+      if (lastKey != InputEvents::pressed_ui_up) {
+        lastKey = InputEvents::pressed_ui_up;
+        extendedHold = false;
+      }
+
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
@@ -259,6 +298,11 @@ void FolderEditScene::onUpdate(double elapsed) {
       }
     }
     else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
+      if (lastKey != InputEvents::pressed_ui_down) {
+        lastKey = InputEvents::pressed_ui_down;
+        extendedHold = false;
+      }
+
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
@@ -327,7 +371,7 @@ void FolderEditScene::onUpdate(double elapsed) {
     }
 
     if (Input().Has(InputEvents::pressed_confirm)) {
-      if (currViewMode == ViewMode::FOLDER) {
+      if (currViewMode == ViewMode::folder) {
         if (folderView.swapCardIndex != -1) {
           if (folderView.swapCardIndex == folderView.currCardIndex) {
             // Unselect the card
@@ -402,7 +446,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (currViewMode == ViewMode::PACK) {
+      else if (currViewMode == ViewMode::pack) {
         if (packView.swapCardIndex != -1) {
           if (packView.swapCardIndex == packView.currCardIndex) {
             // Unselect the card
@@ -478,13 +522,13 @@ void FolderEditScene::onUpdate(double elapsed) {
         }
       }
     }
-    else if (Input().Has(InputEvents::pressed_ui_right) && currViewMode == ViewMode::FOLDER) {
-      currViewMode = ViewMode::PACK;
+    else if (Input().Has(InputEvents::pressed_ui_right) && currViewMode == ViewMode::folder) {
+      currViewMode = ViewMode::pack;
       canInteract = false;
       Audio().Play(AudioType::CHIP_DESC);
     }
-    else if (Input().Has(InputEvents::pressed_ui_left) && currViewMode == ViewMode::PACK) {
-      currViewMode = ViewMode::FOLDER;
+    else if (Input().Has(InputEvents::pressed_ui_left) && currViewMode == ViewMode::pack) {
+      currViewMode = ViewMode::folder;
       canInteract = false;
       Audio().Play(AudioType::CHIP_DESC);
     }
@@ -492,9 +536,11 @@ void FolderEditScene::onUpdate(double elapsed) {
     view->currCardIndex = std::max(0, view->currCardIndex);
     view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex);
 
-    if (view->currCardIndex <= folderCardSlots.size()) {
-      auto slot = folderCardSlots[view->currCardIndex];
+    sf::Sprite& sprite = currViewMode == ViewMode::folder ? cardHolder : packCardHolder;
 
+    if (view->currCardIndex <= folderCardSlots.size()) {
+      FolderSlot slot = folderCardSlots[view->currCardIndex]; // copy data, do not mutate it
+     
       // If we have selected a new card, display the appropriate texture for its type
       if (!slot.IsEmpty() && (view->currCardIndex != view->prevIndex || view->prevIndex == 0)) {
         Battle::Card card;
@@ -502,18 +548,21 @@ void FolderEditScene::onUpdate(double elapsed) {
 
         switch (card.GetClass()) {
         case Battle::CardClass::mega:
-          cardHolder.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_MEGA));
+          sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_MEGA));
           break;
         case Battle::CardClass::giga:
-          cardHolder.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_GIGA));
+          sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_GIGA));
           break;
         case Battle::CardClass::dark:
-          cardHolder.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_DARK));
+          sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_DARK));
           break;
         default:
-          cardHolder.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+          sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
         }
       }
+    }
+    else {
+      sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
     }
 
     view->lastCardOnScreen = std::max(0, view->lastCardOnScreen);
@@ -546,7 +595,7 @@ void FolderEditScene::onUpdate(double elapsed) {
   } // end if(gotoLastScene)
   else {
     if (prevViewMode != currViewMode) {
-      if (currViewMode == ViewMode::FOLDER) {
+      if (currViewMode == ViewMode::folder) {
         if (camera.GetView().getCenter().x > 240) {
           camera.OffsetCamera(sf::Vector2f(-960.0f * 2.0f * float(elapsed), 0));
         }
@@ -555,7 +604,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           canInteract = true;
         }
       }
-      else if (currViewMode == ViewMode::PACK) {
+      else if (currViewMode == ViewMode::pack) {
         if (camera.GetView().getCenter().x < 720) {
           camera.OffsetCamera(sf::Vector2f(960.0f * 2.0f * float(elapsed), 0));
         }
@@ -605,7 +654,7 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
     // Draw number of cards in this folder
     numberLabel.SetString(str);
     numberLabel.setOrigin(cardLabel.GetLocalBounds().width, 0);
-    numberLabel.setPosition(410.f, 14.f);
+    numberLabel.setPosition(396.f, 10.f);
 
     if (nonempty.size() == 30) {
       numberLabel.SetColor(sf::Color::Green);
@@ -617,16 +666,16 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
     surface.draw(numberLabel);
 
     // Draw max
-    numberLabel.SetString(std::string(" / 30")); // will print "# / 30"
+    numberLabel.SetString(std::string(" /30")); // will print "# / 30"
     numberLabel.setOrigin(0, 0);
-    numberLabel.setPosition(410.f, 14.f);
+    numberLabel.setPosition(400.f, 10.f);
 
     surface.draw(numberLabel);
 
   }
 
   // folder card count opens on FOLDER view mode only
-  if (currViewMode == ViewMode::FOLDER) {
+  if (currViewMode == ViewMode::folder) {
     if (prevViewMode == currViewMode) { // camera pan finished
       scale = swoosh::ease::interpolate((float)frameElapsed*8.f, 2.0f, folderCardCountBox.getScale().y);
     }
@@ -752,12 +801,12 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
 void FolderEditScene::DrawLibrary(sf::RenderTarget& surface) {
   cardDesc.setPosition(sf::Vector2f(326.f + 480.f, 185.0f));
-  cardHolder.setPosition(310.f + 480.f, 35.f);
+  packCardHolder.setPosition(310.f + 480.f, 35.f);
   element.setPosition(400.f + 2.f*20.f + 480.f, 146.f);
   card.setPosition(389.f + 480.f, 93.f);
 
   surface.draw(packDock);
-  surface.draw(cardHolder);
+  surface.draw(packCardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 50.0f; float bottom = 230.0f;
@@ -780,7 +829,7 @@ void FolderEditScene::DrawLibrary(sf::RenderTarget& surface) {
     int count = iter->GetCount();
     const Battle::Card& copy = iter->ViewCard();
 
-    cardIcon.setTextureRect(sf::IntRect{ 0,0,16,16 });
+    cardIcon.setTexture(*WEBCLIENT.GetIconForCard(copy.GetUUID()));
     cardIcon.setPosition(19.f + 480.f, 65.0f + (32.f*i));
     surface.draw(cardIcon);
 

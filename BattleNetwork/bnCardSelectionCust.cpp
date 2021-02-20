@@ -30,8 +30,9 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   cardCap = cap;
   queue = new Bucket[cardCap];
   selectQueue = new Bucket*[cardCap];
+  newSelectQueue = new Bucket*[cardCap];
 
-  cardCount = selectCount = cursorPos = cursorRow = 0;
+  cardCount = selectCount = newSelectCount = cursorPos = cursorRow = 0;
 
   emblem.setScale(2.f, 2.f);
   emblem.setPosition(194.0f, 14.0f);
@@ -250,7 +251,7 @@ bool CardSelectionCust::CursorAction() {
   }
 
   // Should never happen but just in case
-  if (selectCount > 5) {
+  if (newSelectCount > 5) {
     return false;
   }
 
@@ -262,11 +263,11 @@ bool CardSelectionCust::CursorAction() {
     if (cursorPos + (5 * cursorRow) < cardCount) {
       // Queue this card if not selected
       if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::staged) {
-        selectQueue[selectCount++] = &queue[cursorPos + (5 * cursorRow)];
+        newSelectQueue[newSelectCount++] = &queue[cursorPos + (5 * cursorRow)];
         queue[cursorPos + (5 * cursorRow)].state = Bucket::state::queued;
 
         // We can only upload 5 cards to player...
-        if (selectCount == 5) {
+        if (newSelectCount == 5) {
           for (int i = 0; i < cardCount; i++) {
             if (queue[i].state == Bucket::state::queued) continue;
 
@@ -312,14 +313,14 @@ bool CardSelectionCust::CursorCancel() {
   }
 
   // Unqueue all cards buckets
-  if (selectCount <= 0) {
-    selectCount = 0;
+  if (newSelectCount <= 0) {
+    newSelectCount = 0;
     return false;// nothing happened
   }
 
-  selectQueue[--selectCount]->state = Bucket::state::staged;
+  newSelectQueue[--newSelectCount]->state = Bucket::state::staged;
 
-  if (selectCount == 0) {
+  if (newSelectCount == 0) {
     // Everything is selectable again
     for (int i = 0; i < cardCount; i++) {
       queue[i].state = Bucket::state::staged;
@@ -339,8 +340,8 @@ bool CardSelectionCust::CursorCancel() {
   */
 
 
-  for(int i = 0; i < selectCount; i++) {
-    char code = selectQueue[i]->data->GetCode();
+  for(int i = 0; i < newSelectCount; i++) {
+    char code = newSelectQueue[i]->data->GetCode();
 
     for (int j = 0; j < cardCount; j++) {
       if (i > 0) {
@@ -351,7 +352,7 @@ bool CardSelectionCust::CursorCancel() {
 
       char otherCode = queue[j].data->GetCode();
 
-      bool isSameCard = (queue[j].data->GetShortName() == selectQueue[i]->data->GetShortName());
+      bool isSameCard = (queue[j].data->GetShortName() == newSelectQueue[i]->data->GetShortName());
 
       if (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard) { queue[j].state = Bucket::state::staged; }
       else { queue[j].state = Bucket::state::voided; }
@@ -620,9 +621,9 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   icon.SetShader(nullptr);
 
-  for (int i = 0; i < selectCount; i++) {
+  for (int i = 0; i < newSelectCount; i++) {
     icon.setPosition(offset + 2 * 97.f, 2.f*(25.0f + (i*16.0f)));
-    icon.setTexture(WEBCLIENT.GetIconForCard((*selectQueue[i]).data->GetUUID()));
+    icon.setTexture(WEBCLIENT.GetIconForCard((*newSelectQueue[i]).data->GetUUID()));
 
     cardLock.setPosition(offset + 2 * 93.f, 2.f*(23.0f + (i*16.0f)));
     target.draw(cardLock, states);
@@ -880,14 +881,24 @@ void CardSelectionCust::Update(double elapsed)
 }
 
 Battle::Card** CardSelectionCust::GetCards() {
-  // Allocate selected cards list
-  size_t sz = sizeof(Battle::Card*) * selectCount;
+  if (newSelectCount != 0) {
+    // Allocate selected cards list
+    size_t sz = sizeof(Battle::Card*) * newSelectCount;
 
-  selectedCards = (Battle::Card**)malloc(sz);
+    if (selectCount > 0) {
+      delete[] selectedCards;
+    }
 
-  // Point to selected queue
-  for (int i = 0; i < selectCount; i++) {
-    selectedCards[i] = (*(selectQueue[i])).data;
+    selectedCards = (Battle::Card**)malloc(sz);
+
+    // Point to selected queue
+    for (int i = 0; i < newSelectCount; i++) {
+      selectedCards[i] = new Battle::Card(*newSelectQueue[i]->data);
+    }
+
+    selectCount = newSelectCount;
+
+    ClearCards(); // prepare for next selection
   }
 
   return selectedCards;
@@ -895,19 +906,13 @@ Battle::Card** CardSelectionCust::GetCards() {
 
 void CardSelectionCust::ClearCards() {
   if (areCardsReady) {
-    for (int i = 0; i < selectCount; i++) {
-      selectedCards[i] = nullptr; // point away
-      (*(selectQueue[i])).data = nullptr;
-    }
-
-    // Deleted the selected cards array
-    if (selectCount > 0) {
-      delete[] selectedCards;
+    for (int i = 0; i < newSelectCount; i++) {
+      newSelectQueue[i]->data = nullptr;
     }
   }
 
   // Restructure queue
-  // Line up all non-null buckets consequtively
+  // Line up all non-null buckets consecutively
   // Reset bucket state to STAGED
   for (int i = 0; i < cardCount; i++) {
     queue[i].state = Bucket::state::staged;
@@ -919,8 +924,8 @@ void CardSelectionCust::ClearCards() {
     }
   }
 
-  cardCount = cardCount - selectCount;
-  selectCount = 0;
+  cardCount = cardCount - newSelectCount;
+  newSelectCount = 0;
 }
 
 const int CardSelectionCust::GetCardCount() {
@@ -943,8 +948,6 @@ bool CardSelectionCust::CanInteract()
 }
 
 void CardSelectionCust::ResetState() {
-  ClearCards();
-
   cursorPos = formCursorRow = 0;
   areCardsReady = false;
   isInFormSelect = false;

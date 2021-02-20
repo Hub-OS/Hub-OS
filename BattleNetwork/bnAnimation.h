@@ -177,6 +177,20 @@ public:
 
   const bool HasAnimation(const std::string& state) const;
 
+  /**
+   * @brief Applies a callback
+   * @param frame integer frame (base 1)
+   * @param callback void() function callback type
+   * @param doOnce boolean to fire the callback once or every time
+   * @return Animation& for chaining
+   *
+   * This explicit function signature was added for scripting
+   */
+  Animation& AddCallback(int frame, FrameCallback callback, bool doOnce) {
+    *this << Animator::On(frame, callback, doOnce);
+    return *this;
+  }
+
 private:
   /**
    * @brief Strips the key-value from a file format

@@ -52,18 +52,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "State", &Animation::GetAnimationString,
     "Point", &Animation::GetPoint,
     "SetPlayback", sol::resolve<Animation&(char)>(&Animation::operator<<),
-    "OnComplete", sol::resolve<void(const FrameCallback&)>(&Animation::operator<<)
-  );
-
-  auto& animationcomp_record = engine_namespace.new_usertype<AnimationComponent>("AnimationComponent",
-    "Load", &AnimationComponent::Load,
-    "SetPath", &AnimationComponent::SetPath,
-    "SetState", sol::resolve<void(std::string, char, FrameFinishCallback)>(&AnimationComponent::SetAnimation),
-    "State", &AnimationComponent::GetAnimationString,
-    "Copy", &AnimationComponent::GetAnimationObject,
-    "CopyFrom", &AnimationComponent::CopyFrom,
-    "Point", &AnimationComponent::GetPoint,
-    "OnFrame", &AnimationComponent::AddCallback
+    "OnComplete", sol::resolve<void(const FrameCallback&)>(&Animation::operator<<),
+    "AddCallback", &Animation::AddCallback,
+    "OnInterrupt", &Animation::SetInterruptCallback
   );
 
   auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
@@ -132,7 +123,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHeight", &ScriptedSpell::SetHeight,
     "SetTexture", &ScriptedSpell::setTexture,
     "SetLayer", &ScriptedSpell::SetLayer,
-    "GetAnimation", &ScriptedSpell::GetAnimationComponent,
+    "GetAnimation", &ScriptedSpell::GetAnimationObject,
     "Tile", &ScriptedSpell::GetTile,
     "Field", &ScriptedSpell::GetField,
     "Move", &ScriptedSpell::Move,
@@ -180,7 +171,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHealth", &ScriptedObstacle::SetHealth,
     "SetHeight", &ScriptedObstacle::SetHeight,
     "SetLayer", &ScriptedObstacle::SetLayer,
-    "GetAnimation", &ScriptedObstacle::GetAnimationComponent,
+    "GetAnimation", &ScriptedObstacle::GetAnimationObject,
     "SetPosition", &ScriptedObstacle::SetTileOffset,
     "GetPosition", &ScriptedObstacle::GetTileOffset,
     "Tile", &ScriptedObstacle::GetTile,
@@ -222,7 +213,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHealth", &ScriptedCharacter::SetHealth,
     "SetHeight", &ScriptedCharacter::SetHeight,
     "SetTexture", &ScriptedCharacter::setTexture,
-    "GetAnimation", &ScriptedCharacter::GetAnimationComponent,
+    "GetAnimation", &ScriptedCharacter::GetAnimationObject,
     "Tile", &ScriptedCharacter::GetTile,
     "Field", &ScriptedCharacter::GetField,
     "Target", &ScriptedCharacter::GetTarget,

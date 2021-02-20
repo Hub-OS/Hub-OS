@@ -38,7 +38,7 @@ public:
   // duration in seconds
   void ShakeCamera(double power, float duration);
 
-  AnimationComponent& GetAnimationComponent();
+  Animation& GetAnimationObject();
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {

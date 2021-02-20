@@ -31,12 +31,12 @@ public:
    * A card may be voided, staged, queued
    */
   struct Bucket {
-    Battle::Card* data;
+    Battle::Card* data{ nullptr };
     enum class state : short {
       voided = 0,
       staged,
       queued
-    } state;
+    } state{};
   };
 
 private:
@@ -75,7 +75,7 @@ private:
   bool playFormSound;
 
   int cardCount; /*!< How many cards are listed in the GUI */
-  int selectCount; /*!< How many cards the user has selected */
+  int selectCount, newSelectCount; /*!< How many cards the user has selected */
   int cardCap; /*!< Cards user can get */
   mutable int cursorPos; /*!< Colum of the cursor */
   mutable int cursorRow; /*!< Row of the cursor */
@@ -89,7 +89,7 @@ private:
   CardFolder* folder; /*!< The loaded card folder. @warning Will consume and delete this resource */
   Battle::Card** selectedCards; /*!< Pointer to a list of selected cards */
   Bucket* queue; /*!< List of buckets */
-  Bucket** selectQueue; /*!< List of selected buckets in order */
+  Bucket** selectQueue, **newSelectQueue; /*!< List of selected buckets in order */
   CardDescriptionTextbox cardDescriptionTextbox; /*!< Popups card descriptions */
 
   double frameElapsed; /*!< delta seconds since last frame */

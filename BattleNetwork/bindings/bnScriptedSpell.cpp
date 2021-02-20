@@ -70,9 +70,9 @@ void ScriptedSpell::ShowShadow(const bool show)
   }
 }
 
-AnimationComponent& ScriptedSpell::GetAnimationComponent()
+Animation& ScriptedSpell::GetAnimationObject()
 {
-  return *animComponent;
+  return animComponent->GetAnimationObject();
 }
 
 void ScriptedSpell::SetSlideTimeFrames(unsigned frames)

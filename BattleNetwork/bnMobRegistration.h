@@ -206,14 +206,15 @@ public:
 template<class T, typename... Args>
 inline MobRegistration::MobMeta & MobRegistration::MobMeta::SetMobClass(Args&&... args)
 {
-  auto* field = new Field(6, 3);
-  loadMobClass = [this, args = std::make_tuple(field, std::forward<decltype(args)>(args)...)]() mutable {
+  loadMobClass = [this, args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable {
     if (mobFactory) {
       delete mobFactory;
       mobFactory = nullptr;
     }
 
-    mobFactory = stx::make_ptr_from_tuple<T>(args);
+    std::tuple full_args = std::tuple_cat(std::make_tuple(new Field(6, 3)), args);
+
+    mobFactory = stx::make_ptr_from_tuple<T>(full_args);
 
     if (!placeholderTexture) {
       placeholderTexture = ResourceHandle().Textures().LoadTextureFromFile(GetPlaceholderTexturePath());

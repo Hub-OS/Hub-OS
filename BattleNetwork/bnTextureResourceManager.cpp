@@ -260,7 +260,6 @@ TextureResourceManager::TextureResourceManager() {
 
   // Mugshots
   paths.push_back("resources/ui/navigator.png");
-  paths.push_back("resources/ui/prog.png");
   paths.push_back("resources/ui/textbox.png");
   paths.push_back("resources/ui/textbox_next.png");
   paths.push_back("resources/ui/textbox_cursor.png");

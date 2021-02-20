@@ -70,9 +70,9 @@ void ScriptedObstacle::ShowShadow(const bool show)
   }
 }
 
-AnimationComponent& ScriptedObstacle::GetAnimationComponent()
+Animation& ScriptedObstacle::GetAnimationObject()
 {
-  return *animComponent;
+  return animComponent->GetAnimationObject();
 }
 
 void ScriptedObstacle::SetSlideTimeFrames(unsigned frames)

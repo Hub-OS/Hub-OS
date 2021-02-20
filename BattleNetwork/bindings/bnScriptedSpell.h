@@ -25,7 +25,7 @@ public:
   void SetHeight(const float height);
   void ShowShadow(const bool shadow);
 
-  AnimationComponent& GetAnimationComponent();
+  Animation& GetAnimationObject();
   void SetSlideTimeFrames(unsigned frames);
   const sf::Vector2f& GetTileOffset() const;
   void SetTileOffset(float x, float y);
