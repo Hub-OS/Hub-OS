@@ -10,11 +10,14 @@
 
 namespace Overworld
 {
+  enum class Projection { Isometric, Orthographic };
+
   struct Tileset {
     const std::string name;
     const unsigned int firstGid;
     const unsigned int tileCount;
     const sf::Vector2f offset;
+    const Projection orientation; // used for collisions
     std::shared_ptr<sf::Texture> texture;
     Animation animation;
   };

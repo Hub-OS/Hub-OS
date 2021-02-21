@@ -904,6 +904,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
 
   sf::Vector2f offset;
   std::string texturePath;
+  Projection orientation = Projection::Orthographic;
 
   std::vector<XMLElement> tileElements(tileCount);
 
@@ -911,6 +912,12 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
     if (child.name == "tileoffset") {
       offset.x = child.GetAttributeInt("x");
       offset.y = child.GetAttributeInt("y");
+    }
+    else if (child.name == "grid") {
+      orientation =
+        child.GetAttribute("orientation") == "isometric" ?
+        Projection::Isometric
+        : Projection::Orthographic;
     }
     else if (child.name == "image") {
       texturePath = child.GetAttribute("source");
@@ -1006,6 +1013,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
    .firstGid = firstgid,
    .tileCount = tileCount,
    .offset = offset,
+   .orientation = orientation,
    .texture = GetTexture(texturePath),
    .animation = animation,
   };

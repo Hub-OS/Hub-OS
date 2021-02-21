@@ -167,42 +167,43 @@ namespace Overworld {
   bool Map::CanMoveTo(float x, float y, int layerIndex) {
     auto& layer = GetLayer(layerIndex);
     auto& tile = layer.GetTile(x, y);
+    auto tileset = GetTileset(tile.gid);
 
-    if (tile.gid == 0) {
+    if (!tileset) {
       return false;
     }
 
     // get decimal part
     float _;
-    auto iso = sf::Vector2f(
+    auto testPosition = sf::Vector2f(
       std::modf(x, &_),
       std::modf(y, &_)
     );
 
     // get positive coords
-    if (iso.x < 0) {
-      iso.x += 1;
+    if (testPosition.x < 0) {
+      testPosition.x += 1;
     }
-    if (iso.y < 0) {
-      iso.y += 1;
+    if (testPosition.y < 0) {
+      testPosition.y += 1;
     }
 
     // convert to iso pixels
-    iso.x *= tileWidth / 2;
-    iso.y *= tileHeight;
+    testPosition.x *= tileWidth / 2;
+    testPosition.y *= tileHeight;
 
     auto& tileMeta = *GetTileMeta(tile.gid);
 
-    auto ortho = IsoToOrthogonal(iso);
-
-    // get position on sprite
-    ortho.x += tileWidth / 2 - tileMeta.offset.x;
-    ortho.y += tileMeta.sprite.getLocalBounds().height - tileHeight - tileMeta.offset.y;
+    if (tileset->orientation == Projection::Orthographic) {
+      testPosition = IsoToOrthogonal(testPosition);
+      testPosition.x += tileWidth / 2 - tileMeta.offset.x;
+      testPosition.y += tileMeta.sprite.getLocalBounds().height - tileHeight - tileMeta.offset.y;
+    }
 
     // todo handle tile flipping (and rotation?)
 
     for (auto& shape : tileMeta.collisionShapes) {
-      if (shape->Intersects(ortho.x, ortho.y)) {
+      if (shape->Intersects(testPosition.x, testPosition.y)) {
         return false;
       }
     }
