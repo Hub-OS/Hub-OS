@@ -31,6 +31,7 @@ struct PlayerStats {
   static constexpr unsigned MAX_ATTACK_LEVEL = 5u;
 
   unsigned charge{1}, attack{1};
+  Element element{Element::none};
 };
 
 class Player : public Character, public AI<Player> {
@@ -48,8 +49,10 @@ private:
 public:
   using DefaultState = PlayerControlledState;
   static constexpr size_t MAX_FORM_SIZE = 5;
+  static constexpr char* BASE_NODE_TAG = "Base Node";
+  static constexpr char* FORM_NODE_TAG = "Form Node";
 
-    /**
+   /**
    * @brief Loads graphics and adds a charge component
    */
   Player();

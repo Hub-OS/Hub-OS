@@ -544,7 +544,10 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     }
 
     tile->move(viewOffset);
+    int black = static_cast<int>((1.0f - backdropOpacity) * 255);
+    tile->setColor(sf::Color(black, black, black, 255));
     surface.draw(*tile);
+    tile->setColor(sf::Color::White);
     tile->move(-viewOffset);
   }
 

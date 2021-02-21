@@ -447,7 +447,7 @@ protected:
   sf::Vector2f slideStartPosition{ 0,0 }; /**< Used internally when sliding*/
   Field* field{ nullptr };
   Team team{};
-  Element element{};
+  Element element{Element::none};
 
   std::vector<Component*> components; /*!< List of all components attached to this entity*/
 

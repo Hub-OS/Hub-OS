@@ -102,7 +102,7 @@ void TenguCross::OnActivate(Player& player)
   player.AddNode(overlay);
   player.SetAirShoe(true);
 
-  parentAnim->AddToOverrideList(&overlayAnimation);
+  parentAnim->AddToOverrideList(&overlayAnimation, overlay->getSprite());
 }
 
 void TenguCross::OnDeactivate(Player & player)
@@ -200,7 +200,7 @@ void HeatCross::OnActivate(Player& player)
   OnUpdate(0, player);
   player.AddNode(overlay);
 
-  parentAnim->AddToOverrideList(&overlayAnimation);
+  parentAnim->AddToOverrideList(&overlayAnimation, overlay->getSprite());
 
 }
 
@@ -225,7 +225,7 @@ void HeatCross::OnUpdate(double elapsed, Player& player)
 
   // update node position in the animation
   auto baseOffset = parentAnim->GetPoint("Head");
-  auto origin = player.getSprite().getOrigin();
+  auto& origin = player.getSprite().getOrigin();
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);
@@ -303,7 +303,7 @@ void TomahawkCross::OnActivate(Player& player)
   OnUpdate(0, player);
   player.AddNode(overlay);
 
-  parentAnim->AddToOverrideList(&overlayAnimation);
+  parentAnim->AddToOverrideList(&overlayAnimation, overlay->getSprite());
 
   player.AddDefenseRule(statusGuard);
 }
@@ -329,7 +329,7 @@ void TomahawkCross::OnUpdate(double elapsed, Player& player)
 
   // update node position in the animation
   auto baseOffset = parentAnim->GetPoint("Head");
-  auto origin = player.getSprite().getOrigin();
+  auto& origin = player.getSprite().getOrigin();
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);
@@ -404,7 +404,7 @@ void ElecCross::OnActivate(Player& player)
   OnUpdate(0, player);
   player.AddNode(overlay);
 
-  parentAnim->AddToOverrideList(&overlayAnimation);
+  parentAnim->AddToOverrideList(&overlayAnimation, overlay->getSprite());
 
 }
 
@@ -429,7 +429,7 @@ void ElecCross::OnUpdate(double elapsed, Player& player)
 
   // update node position in the animation
   auto baseOffset = parentAnim->GetPoint("Head");
-  auto origin = player.getSprite().getOrigin();
+  auto& origin = player.getSprite().getOrigin();
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);

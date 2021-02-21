@@ -116,7 +116,7 @@ Text::Text(const Font& font) : font(font), message(""), geometryDirty(true)
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
 }
 
-Text::Text(const std::string message, const Font& font) : font(font), message(message), geometryDirty(true)
+Text::Text(const std::string& message, const Font& font) : font(font), message(message), geometryDirty(true)
 {
   letterSpacing = (font.GetWhiteSpaceWidth()/3.0f) + 1.0f;
   lineSpacing = 1.0f;

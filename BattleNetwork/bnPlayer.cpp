@@ -242,6 +242,10 @@ void Player::ActivateFormAt(int index)
     RevertStats();
   }
 
+  for (auto& node : GetChildNodes()) {
+    node->AddTags({ Player::BASE_NODE_TAG });
+  }
+
   if (index >= 0 || index < forms.size()) {
     auto meta = forms[index];
     activeForm = meta->BuildForm();
@@ -249,6 +253,14 @@ void Player::ActivateFormAt(int index)
     if (activeForm) {
       SaveStats();
       activeForm->OnActivate(*this);
+    }
+  }
+
+  // Find nodes that do not have tags, those are newly added
+  for (auto& node : GetChildNodes()) {
+    if (!node->HasTag(Player::BASE_NODE_TAG)) {
+      // Tag them
+      node->AddTags({ Player::FORM_NODE_TAG });
     }
   }
 }
@@ -289,6 +301,7 @@ void Player::OverrideSpecialAbility(const std::function<CardAction* ()>& func)
 
 void Player::SaveStats()
 {
+  savedStats.element = GetElement();
   savedStats.charge = GetChargeLevel();
   savedStats.attack = GetAttackLevel();
 }
@@ -297,6 +310,7 @@ void Player::RevertStats()
 {
   SetChargeLevel(savedStats.charge);
   SetAttackLevel(savedStats.attack);
+  SetElement(savedStats.element);
 }
 
 bool Player::RegisterForm(PlayerFormMeta * info)

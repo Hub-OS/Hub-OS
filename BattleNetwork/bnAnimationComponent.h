@@ -143,7 +143,7 @@ public:
   void SyncAnimation(Animation& other);
   void SyncAnimation(AnimationComponent* other);
 
-  void AddToOverrideList(Animation* other);
+  void AddToOverrideList(Animation* other, sf::Sprite& sprite);
   void RemoveFromOverrideList(Animation* other);
   void SetInterruptCallback(const FrameFinishCallback& onInterrupt);
   /**
@@ -160,5 +160,5 @@ private:
   double speed; /*!< Playback speed */
   bool stunnedLastFrame{ false };
   Character* character; /*!< Owner already casted as Character*/
-  std::vector<Animation*> overrideList;
+  std::vector<std::pair<Animation*, std::reference_wrapper<sf::Sprite>>> overrideList;
 };

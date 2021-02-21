@@ -258,7 +258,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
       continue;
 
     std::string name = mob.GetName();
-    Text mobLabel = Text(name, font);
+    Text mobLabel{ name, font };
 
     mobLabel.setOrigin(mobLabel.GetLocalBounds().width, 0);
     mobLabel.setPosition(475.0f+2.f, nextLabelHeight+2.f); // shadow over and down 1px

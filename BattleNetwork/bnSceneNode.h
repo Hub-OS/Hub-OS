@@ -7,11 +7,13 @@
 
 #pragma once
 #include <vector>
+#include<set>
 #include <algorithm>
 #include <SFML/Graphics.hpp>
 
 class SceneNode : public sf::Transformable, public sf::Drawable {
 protected:
+  std::set<std::string> tags; /*!< Tags to lookup nodes by*/
   mutable std::vector<SceneNode*> childNodes; /*!< List of all children */
   SceneNode* parent; /*!< The node this node is a child of */
   bool show; /*!< Flag to hide or display a scene node and its children */
@@ -102,5 +104,15 @@ public:
   */
   std::vector<SceneNode*>& GetChildNodes();
 
+  /**
+  * Fetches all the nodes attached to this node with any of the tags
+  * @return a vector of SceneNode*
+  */
+  std::set<SceneNode*> GetChildNodesWithTag(const std::initializer_list<std::string>& query);
+  
   SceneNode* GetParent();
+
+  void AddTags(const std::initializer_list<std::string>& tags);
+  void RemoveTags(const std::initializer_list<std::string>& tags);
+  const bool HasTag(const std::string& name);
 };

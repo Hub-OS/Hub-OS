@@ -21,7 +21,7 @@ private:
 
 public:
   Text(const Font& font);
-  Text(const std::string message, const Font& font);
+  Text(const std::string& message, const Font& font);
   Text(const Text& rhs);
   Text& operator=(const Text& rhs) = default;
   virtual ~Text();
