@@ -63,9 +63,9 @@ static size_t skipToAfter(const std::string& data, size_t index, const std::stri
 
 static void trim(std::string& data) {
   auto start = std::find_if(data.begin(), data.end(), [](char c) { return !std::isspace(c); });
-  auto end = std::find_if(data.rbegin(), data.rend(), [](char c) { return !std::isspace(c); });
-
   data.erase(data.begin(), start);
+
+  auto end = std::find_if(data.rbegin(), data.rend(), [](char c) { return !std::isspace(c); });
   data.erase(end.base(), data.end());
 }
 
