@@ -1,4 +1,23 @@
 #include "bnOverworldShapes.h"
+#include <cmath>
+
+// using pointers to make mutation clear
+static inline void rotateAround(float centerX, float centerY, float rotation, float* x, float* y) {
+  if (rotation != 0.0f) {
+    float relativeX = *x - centerX;
+    float relativeY = *y - centerY;
+
+    float distance = std::sqrt(relativeX * relativeX + relativeY * relativeY);
+    float relativeRadians = std::atan2(relativeY, relativeX);
+    float rotationRadians = rotation / 180.0f * M_PI;
+    float radians = relativeRadians + rotationRadians;
+
+    // set x + y to a position rotated around centerX + centerY
+    *x = std::cos(radians) * distance + centerX;
+    *y = std::sin(radians) * distance + centerY;
+  }
+}
+
 
 namespace Overworld {
   Point::Point(float x, float y) {
@@ -13,14 +32,17 @@ namespace Overworld {
     return false;
   }
 
-  Rect::Rect(float x, float y, float width, float height) {
+  Rect::Rect(float x, float y, float width, float height, float rotation) {
     this->x = x;
     this->y = y;
     this->width = width;
     this->height = height;
+    this->rotation = rotation;
   }
 
   bool Rect::Intersects(float x, float y) {
+    rotateAround(this->x, this->y, -rotation, &x, &y);
+
     return
       x >= this->x &&
       y >= this->y &&
@@ -28,14 +50,17 @@ namespace Overworld {
       y <= this->y + height;
   }
 
-  Ellipse::Ellipse(float x, float y, float width, float height) {
+  Ellipse::Ellipse(float x, float y, float width, float height, float rotation) {
     this->x = x;
     this->y = y;
     this->width = width;
     this->height = height;
+    this->rotation = rotation;
   }
 
   bool Ellipse::Intersects(float x, float y) {
+    rotateAround(this->x, this->y, -rotation, &x, &y);
+
     auto distanceX = x - this->x;
     // add half height as tiled centers ellipse at the top
     auto distanceY = y - (this->y + this->height / 2.0f);
@@ -52,11 +77,12 @@ namespace Overworld {
     return unitX * unitX + unitY * unitY <= 1;
   }
 
-  Polygon::Polygon(float x, float y) {
+  Polygon::Polygon(float x, float y, float rotation) {
     this->x = x;
     this->y = y;
     this->width = 0;
     this->height = 0;
+    this->rotation = rotation;
   }
 
   void Polygon::AddPoint(float x, float y) {
@@ -88,6 +114,8 @@ namespace Overworld {
     if (points.size() == 0) {
       return false;
     }
+
+    rotateAround(this->x, this->y, -rotation, &x, &y);
 
     uint intersections = 0;
 
@@ -148,13 +176,14 @@ namespace Overworld {
     auto y = objectElement.GetAttributeFloat("y");
     auto width = objectElement.GetAttributeFloat("width");
     auto height = objectElement.GetAttributeFloat("height");
+    auto rotation = objectElement.GetAttributeFloat("rotation");
     auto childName = objectElement.children.size() > 0 ? objectElement.children[0].name : "";
 
     if (childName == "polygon") {
       auto& polygonElement = objectElement.children[0];
       auto pointsString = polygonElement.GetAttribute("points");
 
-      auto polygon = std::make_unique<Overworld::Polygon>(x, y);
+      auto polygon = std::make_unique<Overworld::Polygon>(x, y, rotation);
 
       auto sliceStart = 0;
       float x;
@@ -198,10 +227,10 @@ namespace Overworld {
       return std::make_unique<Overworld::Point>(x, y);
     }
     else if (childName == "ellipse") {
-      return std::make_unique<Overworld::Ellipse>(x, y, width, height);
+      return std::make_unique<Overworld::Ellipse>(x, y, width, height, rotation);
     }
     else {
-      return std::make_unique<Overworld::Rect>(x, y, width, height);
+      return std::make_unique<Overworld::Rect>(x, y, width, height, rotation);
     };
 
     return {};

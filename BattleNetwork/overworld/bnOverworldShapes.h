@@ -15,6 +15,7 @@ namespace Overworld {
     float GetY() { return y; }
     float GetWidth() { return width; }
     float GetHeight() { return height; }
+    float GetRotation() { return rotation; }
 
     // point is within the shape or on an edge
     virtual bool Intersects(float x, float y) = 0;
@@ -23,7 +24,7 @@ namespace Overworld {
 
   protected:
     Shape() = default;
-    float x, y, width, height;
+    float x, y, width, height, rotation;
   };
 
   class Point : public Shape {
@@ -34,19 +35,19 @@ namespace Overworld {
 
   class Rect : public Shape {
   public:
-    Rect(float x, float y, float width, float height);
+    Rect(float x, float y, float width, float height, float rotation = 0.0f);
     bool Intersects(float x, float y) override;
   };
 
   class Ellipse : public Shape {
   public:
-    Ellipse(float x, float y, float width, float height);
+    Ellipse(float x, float y, float width, float height, float rotation = 0.0f);
     bool Intersects(float x, float y) override;
   };
 
   class Polygon : public Shape {
   public:
-    Polygon(float x, float y);
+    Polygon(float x, float y, float rotation = 0.0f);
 
     void AddPoint(float x, float y);
 
