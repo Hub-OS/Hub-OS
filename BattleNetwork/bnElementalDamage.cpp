@@ -9,7 +9,7 @@
 
 using sf::IntRect;
 
-ElementalDamage::ElementalDamage(Field* field) : 
+ElementalDamage::ElementalDamage() : 
   Artifact(), 
   animationComponent(this)
 {

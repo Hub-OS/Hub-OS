@@ -21,7 +21,6 @@ CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvan
   programAdvanceSprite.setOrigin(0, programAdvanceSprite.getLocalBounds().height / 2.0f);
   programAdvanceSprite.setPosition(40.0f, 58.f);
 
-  font = Font(Font::Style::thick);
 }
 
 void CardComboBattleState::ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr)
@@ -171,7 +170,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
 
         stepLabel.setOrigin(0, 0);
         stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
-        stepLabel.setScale(1.0f, 1.0f);
+        stepLabel.setScale(2.0f, 2.0f);
 
         if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
           if (i < paStepIndex - 1) {
@@ -188,7 +187,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         surface.draw(stepLabel);
 
         // make the next label relative to this one
-        nextLabelHeight += stepLabel.GetLocalBounds().height;
+        nextLabelHeight += stepLabel.GetLocalBounds().height * stepLabel.getScale().y;
       }
       nextLabelHeight = 0;
     }
@@ -202,7 +201,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
 
         stepLabel.setOrigin(0, 0);
         stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
-        stepLabel.setScale(1.0f, 1.0f);
+        stepLabel.setScale(2.0f, 2.0f);
         stepLabel.SetColor(sf::Color(48, 56, 80));
 
         if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
@@ -219,7 +218,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
           }
           else {
             // make the next label relative to the hidden one and skip drawing
-            nextLabelHeight += stepLabel.GetLocalBounds().height;
+            nextLabelHeight += stepLabel.GetLocalBounds().height * stepLabel.getScale().y;
             continue;
           }
 
@@ -229,7 +228,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         }
 
         // make the next label relative to this one
-        nextLabelHeight += stepLabel.GetLocalBounds().height;
+        nextLabelHeight += stepLabel.GetLocalBounds().height * stepLabel.getScale().y;
       }
     }
   }

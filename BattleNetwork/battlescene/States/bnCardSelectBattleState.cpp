@@ -77,6 +77,7 @@ void CardSelectBattleState::onStart(const BattleSceneState*)
   // Reset state flags
   currState = state::slidein;
   formSelected = false;
+  hasNewChips = false;
 }
 
 void CardSelectBattleState::onUpdate(double elapsed)
@@ -198,6 +199,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
             GetScene().FilterSupportCards(cards, cardCount);
             ui->LoadCards(cards, cardCount);
             ui->Hide();
+            hasNewChips = true;
           }
 
           CheckFormChanges();
@@ -309,12 +311,12 @@ bool CardSelectBattleState::OKIsPressed() {
 
 bool CardSelectBattleState::HasForm()
 {
-  return formSelected;
+  return OKIsPressed() && formSelected;
 }
 
-const bool CardSelectBattleState::HasCombo()
+const bool CardSelectBattleState::SelectedNewChips()
 {
-  return OKIsPressed() && hasCombo;
+  return OKIsPressed() && hasNewChips;
 }
 
 void CardSelectBattleState::ResetSelectedForm()

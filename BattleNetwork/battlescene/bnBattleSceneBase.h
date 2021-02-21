@@ -112,8 +112,6 @@ private:
 
   // card stuff
   CardSelectionCust cardCustGUI; /*!< Card selection GUI that has an API to interact with */
-  Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
-  int cardCount; /*!< Length of card list */
 
   // sprites
   swoosh::Timer comboInfoTimer; /*!< How long the info should stay on screen */

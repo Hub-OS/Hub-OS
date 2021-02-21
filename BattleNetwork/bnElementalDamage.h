@@ -17,7 +17,7 @@ private:
   double progress;
 
 public:
-  ElementalDamage(Field* field);
+  ElementalDamage();
   ~ElementalDamage();
 
   /**

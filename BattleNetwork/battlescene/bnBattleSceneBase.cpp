@@ -112,11 +112,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   counterCombatRule = new CounterCombatRule(this);
 
-  /*
-  Cards + Card select setup*/
-  cards = nullptr;
-  cardCount = 0;
-
   // Load forms
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
 
@@ -361,12 +356,12 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
     cards[i] = *(newCardList + i);
   }
 
+  // Set the new card count
+  cardCount = newCardCount;
+
   // Delete the temp list space
   // NOTE: We are _not_ deleting the pointers in them
   delete[] newCardList;
-
-  cards = cards;
-  cardCount = newCardCount;
 }
 
 #ifdef __ANDROID__

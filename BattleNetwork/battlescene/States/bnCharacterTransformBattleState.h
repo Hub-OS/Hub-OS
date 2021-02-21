@@ -15,6 +15,12 @@ struct TrackedFormData {
   Player* player{ nullptr };
   int selectedForm{ -1 };
   bool animationComplete{ false };
+
+  TrackedFormData(Player* p, int selectedForm, bool animationComplete) :
+    player(p),
+    selectedForm(selectedForm),
+    animationComplete(animationComplete)
+  {}
 };
 /*
     \brief This state handles transformations

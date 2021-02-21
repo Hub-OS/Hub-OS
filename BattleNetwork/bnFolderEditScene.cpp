@@ -219,14 +219,10 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
 
   /* folder view */
   folderView.maxCardsOnScreen = 7;
-  folderView.currCardIndex = folderView.lastCardOnScreen = folderView.prevIndex = 0;
-  folderView.swapCardIndex = -1;
   folderView.numOfCards = int(folderCardSlots.size());
 
   /* library view */
   packView.maxCardsOnScreen = 7;
-  packView.currCardIndex = packView.lastCardOnScreen = packView.prevIndex = 0;
-  packView.swapCardIndex = -1;
   packView.numOfCards = int(packCardBuckets.size());
 
   prevViewMode = currViewMode = ViewMode::folder;
@@ -278,7 +274,6 @@ void FolderEditScene::onUpdate(double elapsed) {
 
       selectInputCooldown -= elapsed;
 
-      view->prevIndex = view->currCardIndex;
 
       if (selectInputCooldown <= 0) {
         if (!extendedHold) {
@@ -305,8 +300,6 @@ void FolderEditScene::onUpdate(double elapsed) {
 
       selectInputCooldown -= elapsed;
 
-      view->prevIndex = view->currCardIndex;
-
       if (selectInputCooldown <= 0) {
         if (!extendedHold) {
           selectInputCooldown = maxSelectInputCooldown;
@@ -327,8 +320,6 @@ void FolderEditScene::onUpdate(double elapsed) {
 
       selectInputCooldown -= elapsed;
 
-      view->prevIndex = view->currCardIndex;
-
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
         view->currCardIndex -= view->maxCardsOnScreen;
@@ -348,8 +339,6 @@ void FolderEditScene::onUpdate(double elapsed) {
       extendedHold = false;
 
       selectInputCooldown -= elapsed;
-
-      view->prevIndex = view->currCardIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
@@ -536,34 +525,9 @@ void FolderEditScene::onUpdate(double elapsed) {
     view->currCardIndex = std::max(0, view->currCardIndex);
     view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex);
 
-    sf::Sprite& sprite = currViewMode == ViewMode::folder ? cardHolder : packCardHolder;
+    RefreshCurrentCardDock(*view);
 
-    if (view->currCardIndex <= folderCardSlots.size()) {
-      FolderSlot slot = folderCardSlots[view->currCardIndex]; // copy data, do not mutate it
-     
-      // If we have selected a new card, display the appropriate texture for its type
-      if (!slot.IsEmpty() && (view->currCardIndex != view->prevIndex || view->prevIndex == 0)) {
-        Battle::Card card;
-        slot.GetCard(card);
-
-        switch (card.GetClass()) {
-        case Battle::CardClass::mega:
-          sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_MEGA));
-          break;
-        case Battle::CardClass::giga:
-          sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_GIGA));
-          break;
-        case Battle::CardClass::dark:
-          sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_DARK));
-          break;
-        default:
-          sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
-        }
-      }
-    }
-    else {
-      sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
-    }
+    view->prevIndex = view->currCardIndex;
 
     view->lastCardOnScreen = std::max(0, view->lastCardOnScreen);
     view->lastCardOnScreen = std::min(view->numOfCards - 1, view->lastCardOnScreen);
@@ -631,6 +595,8 @@ void FolderEditScene::onExit()
 
 void FolderEditScene::onEnter()
 {
+  folderView.currCardIndex = 0;
+  RefreshCurrentCardDock(folderView);
 }
 
 void FolderEditScene::onResume() {
@@ -691,7 +657,7 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 }
 
 void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
-  cardDesc.setPosition(sf::Vector2f(24.f, 178.0f));
+  cardDesc.setPosition(sf::Vector2f(26.f, 178.0f));
   scrollbar.setPosition(410.f, 60.f);
   cardHolder.setPosition(16.f, 32.f);
   element.setPosition(2.f*28.f, 136.f);
@@ -800,7 +766,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 }
 
 void FolderEditScene::DrawLibrary(sf::RenderTarget& surface) {
-  cardDesc.setPosition(sf::Vector2f(326.f + 480.f, 185.0f));
+  cardDesc.setPosition(sf::Vector2f(324.f + 480.f, 185.0f));
   packCardHolder.setPosition(310.f + 480.f, 35.f);
   element.setPosition(400.f + 2.f*20.f + 480.f, 146.f);
   card.setPosition(389.f + 480.f, 93.f);
@@ -834,7 +800,7 @@ void FolderEditScene::DrawLibrary(sf::RenderTarget& surface) {
     surface.draw(cardIcon);
 
     cardLabel.SetColor(sf::Color::White);
-    cardLabel.setPosition(50.f + 480.f, 60.0f + (32.f*i));
+    cardLabel.setPosition(50.f + 500.f, 60.0f + (32.f*i));
     cardLabel.SetString(copy.GetShortName());
     surface.draw(cardLabel);
 
@@ -968,6 +934,34 @@ void FolderEditScene::WriteNewFolderData()
     if ((*iter).IsEmpty()) continue; 
 
     folder.AddCard((*iter).ViewCard());
+  }
+}
+
+void FolderEditScene::RefreshCurrentCardDock(FolderEditScene::CardView& view)
+{
+  if (view.currCardIndex <= folderCardSlots.size()) {
+    FolderSlot slot = folderCardSlots[view.currCardIndex]; // copy data, do not mutate it
+
+    // If we have selected a new card, display the appropriate texture for its type
+    if (view.currCardIndex != view.prevIndex) {
+      sf::Sprite& sprite = currViewMode == ViewMode::folder ? cardHolder : packCardHolder;
+      Battle::Card card;
+      slot.GetCard(card);
+
+      switch (card.GetClass()) {
+      case Battle::CardClass::mega:
+        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_MEGA));
+        break;
+      case Battle::CardClass::giga:
+        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_GIGA));
+        break;
+      case Battle::CardClass::dark:
+        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_DARK));
+        break;
+      default:
+        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+      }
+    }
   }
 }
 

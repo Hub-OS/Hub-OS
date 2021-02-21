@@ -90,11 +90,6 @@ private:
     }
   };
 
-  void ExcludeFolderDataFromPack();
-  void PlaceFolderDataIntoCardSlots();
-  void PlaceLibraryDataIntoBuckets();
-  void WriteNewFolderData();
-
 private:
   std::vector<FolderSlot> folderCardSlots; /*!< Rows in the folder that can be inserted with cards or replaced */
   std::vector<PackBucket> packCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
@@ -142,12 +137,12 @@ private:
   swoosh::Timer easeInTimer;
 
   struct CardView {
-    int maxCardsOnScreen;
-    int currCardIndex;
-    int lastCardOnScreen; // index
-    int prevIndex; // for effect
-    int numOfCards;
-    int swapCardIndex; // -1 for unselected, otherwise ID
+    int maxCardsOnScreen{ 0 };
+    int currCardIndex{ 0 };
+    int lastCardOnScreen{ 0 }; // index
+    int prevIndex{ -1 }; // for effect
+    int numOfCards{ 0 };
+    int swapCardIndex{ -1 }; // -1 for unselected, otherwise ID
   } folderView, packView;
 
   ViewMode currViewMode;
@@ -175,6 +170,11 @@ private:
 
   void DrawFolder(sf::RenderTarget& surface);
   void DrawLibrary(sf::RenderTarget& surface);
+  void ExcludeFolderDataFromPack();
+  void PlaceFolderDataIntoCardSlots();
+  void PlaceLibraryDataIntoBuckets();
+  void WriteNewFolderData();
+  void RefreshCurrentCardDock(CardView& view);
 
 public:
   std::string FormatCardDesc(const std::string&& desc);
