@@ -43,10 +43,21 @@ namespace Overworld
 
     Tile(unsigned int gid) {
       // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tile-flipping
+      bool flippedHorizontal = (gid >> 31 & 1) == 1;
+      bool flippedVertical = (gid >> 30 & 1) == 1;
+      bool flippedAntiDiagonal = (gid >> 29 & 1) == 1;
+
       this->gid = gid << 3 >> 3;
-      flippedHorizontal = (gid >> 31 & 1) == 1;
-      flippedVertical = (gid >> 30 & 1) == 1;
-      rotated = (gid >> 29 & 1) == 1;
+      this->rotated = flippedAntiDiagonal;
+
+      if (rotated) {
+        this->flippedHorizontal = flippedVertical;
+        this->flippedVertical = !flippedHorizontal;
+      }
+      else {
+        this->flippedHorizontal = flippedHorizontal;
+        this->flippedVertical = flippedVertical;
+      }
     }
   };
 }

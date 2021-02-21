@@ -560,10 +560,10 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
       auto tileOffset = sf::Vector2f(-tileSize.x / 2 + spriteBounds.width / 2, tileSize.y + tileSize.y / 2 - spriteBounds.height);
 
       tileSprite.setPosition(ortho + tileMeta->offset + tileOffset);
-      tileSprite.setRotation(tile.rotated ? -90 : 0);
+      tileSprite.setRotation(tile.rotated ? 90 : 0);
       tileSprite.setScale(
-        (tile.flippedHorizontal && !tile.rotated) || (tile.rotated && tile.flippedVertical) ? -1.0f : 1.0f,
-        (tile.flippedVertical && !tile.rotated) || (tile.rotated && tile.flippedHorizontal) ? -1.0f : 1.0f
+        tile.flippedHorizontal ? -1.0f : 1.0f,
+        tile.flippedVertical ? -1.0f : 1.0f
       );
 
       /*auto color = tileSprite.getColor();
