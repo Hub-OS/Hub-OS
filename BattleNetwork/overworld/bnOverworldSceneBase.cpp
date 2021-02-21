@@ -871,7 +871,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
         auto visible = child.GetAttribute("visible") != "0";
 
         if (gid > 0) {
-          auto tileObject = Map::TileObject(id, gid);
+          auto tileObject = TileObject(id, gid);
           tileObject.name = name;
           tileObject.visible = visible;
           tileObject.position = position;
@@ -896,7 +896,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   this->map = std::move(map);
 }
 
-std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(XMLElement tilesetElement, unsigned int firstgid) {
+std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElement tilesetElement, unsigned int firstgid) {
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
   auto tileWidth = tilesetElement.GetAttributeInt("tilewidth");
   auto tileHeight = tilesetElement.GetAttributeInt("tileheight");
@@ -1001,7 +1001,7 @@ std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(XMLE
   Animation animation;
   animation.LoadWithData(animationString);
 
-  auto tileset = Overworld::Map::Tileset{
+  auto tileset = Overworld::Tileset{
    .name = tilesetElement.GetAttribute("name"),
    .firstGid = firstgid,
    .tileCount = tileCount,
@@ -1010,10 +1010,10 @@ std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(XMLE
    .animation = animation,
   };
 
-  return std::make_shared<Overworld::Map::Tileset>(tileset);
+  return std::make_shared<Overworld::Tileset>(tileset);
 }
 
-std::vector<std::unique_ptr<Overworld::Map::TileMeta>> Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Map::Tileset> tileset) {
+std::vector<std::unique_ptr<Overworld::TileMeta>> Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset) {
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
 
   std::vector<XMLElement> tileElements(tileCount);
@@ -1030,12 +1030,12 @@ std::vector<std::unique_ptr<Overworld::Map::TileMeta>> Overworld::SceneBase::Par
     }
   }
 
-  std::vector<std::unique_ptr<Overworld::Map::TileMeta>> tileMetas;
+  std::vector<std::unique_ptr<Overworld::TileMeta>> tileMetas;
   auto tileId = 0;
   auto tileGid = tileset->firstGid;
 
   for (auto& tileElement : tileElements) {
-    auto tileMeta = std::make_unique<Overworld::Map::TileMeta>(
+    auto tileMeta = std::make_unique<Overworld::TileMeta>(
       tileId,
       tileGid,
       tileset->offset

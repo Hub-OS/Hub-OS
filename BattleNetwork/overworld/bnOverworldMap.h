@@ -4,12 +4,14 @@
 #include <unordered_map>
 #include <memory>
 
-#include "bnOverworldShapes.h"
+#include "bnOverworldObject.h"
+#include "bnOverworldTile.h"
 #include "../bnAnimation.h"
 #include "../bnSpriteProxyNode.h"
 
 namespace Overworld {
   class SceneBase;
+  class TileObject;
 
   /*! \brief Incredibly simple overworld map class.
    *
@@ -25,68 +27,6 @@ namespace Overworld {
   class Map : public sf::Transformable
   {
   public:
-    struct Tileset {
-      const std::string name;
-      const unsigned int firstGid;
-      const unsigned int tileCount;
-      const sf::Vector2f offset;
-      std::shared_ptr<sf::Texture> texture;
-      Animation animation;
-    };
-
-    struct TileMeta {
-      const unsigned int id;
-      const unsigned int gid;
-      const sf::Vector2f offset;
-      Animation animation;
-      sf::Sprite sprite;
-      std::vector<std::unique_ptr<Shape>> collisionShapes;
-
-
-      TileMeta(unsigned int id, unsigned int gid, sf::Vector2f offset)
-        : id(id), gid(gid), offset(offset) {}
-    };
-
-    struct Tile {
-      unsigned int gid;
-      bool flippedHorizontal;
-      bool flippedVertical;
-      bool rotated;
-
-      Tile(unsigned int gid) {
-        // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tile-flipping
-        this->gid = gid << 3 >> 3;
-        flippedHorizontal = (gid >> 31 & 1) == 1;
-        flippedVertical = (gid >> 30 & 1) == 1;
-        rotated = (gid >> 29 & 1) == 1;
-      }
-    };
-
-    class Layer;
-
-    struct TileObject {
-      unsigned int id;
-      Tile tile;
-      std::string name;
-      bool visible;
-      sf::Vector2f position;
-      sf::Vector2f size;
-      float rotation;
-
-      TileObject(unsigned int id, Tile tile) : id(id), tile(tile) {
-        visible = true;
-        spriteProxy = std::make_shared<SpriteProxyNode>();
-      }
-
-      TileObject(unsigned int id, unsigned int gid) : TileObject(id, Tile(gid)) {}
-
-    private:
-      std::shared_ptr<SpriteProxyNode> spriteProxy;
-
-      friend class Map;
-      friend class Layer;
-    };
-
     class Layer {
     public:
       Tile& GetTile(int x, int y);

@@ -24,44 +24,8 @@ namespace Overworld {
     for (int i = 0; i < layers.size(); i++) {
       auto& layer = layers[i];
 
-      for (auto& tileObject : layer.GetTileObjects()) {
-        auto& tileMeta = tileMetas[tileObject.tile.gid];
-
-        if (tileMeta == nullptr) {
-          continue;
-        }
-
-        auto& spriteProxy = *tileObject.spriteProxy;
-        auto& sprite = spriteProxy.getSprite();
-
-        if (!tileObject.visible) {
-          sprite.setTextureRect(sf::IntRect(0, 0, 0, 0));
-          continue;
-        }
-
-        sprite.setTexture(*tileMeta->sprite.getTexture());
-        sprite.setTextureRect(tileMeta->sprite.getTextureRect());
-        sprite.setOrigin(tileMeta->sprite.getOrigin());
-
-        auto horizontalMultiplier = tileObject.tile.flippedHorizontal ? -1.0f : 1.0f;
-        auto verticalMultiplier = tileObject.tile.flippedVertical ? -1.0f : 1.0f;
-        auto localBounds = sprite.getLocalBounds();
-
-        spriteProxy.setPosition(tileObject.position);
-        spriteProxy.setScale(horizontalMultiplier * tileObject.size.x / localBounds.width, verticalMultiplier * tileObject.size.y / localBounds.height);
-        spriteProxy.setRotation(tileObject.rotation);
-
-        // offset could be subtracted directly from the origin, if it didn't mess up sprite flipping
-        auto radians = tileObject.rotation / 180.f * M_PI;
-        auto offsetRadians = std::atan2(tileMeta->offset.y, tileMeta->offset.x);
-        auto offsetLength = std::hypotf(tileMeta->offset.x, tileMeta->offset.y);
-
-        auto offset = sf::Vector2f(
-          std::cos(offsetRadians + radians) * offsetLength,
-          std::sin(offsetRadians + radians) * offsetLength
-        );
-
-        spriteProxy.move(OrthoToIsometric(offset));
+      for (auto& tileObject : layer.tileObjects) {
+        tileObject.Update(*this);
       }
 
       for (auto& spriteProxy : layer.spriteProxiesForAddition) {
@@ -147,7 +111,7 @@ namespace Overworld {
     return tileMetas.size();
   }
 
-  std::unique_ptr<Map::TileMeta>& Map::GetTileMeta(unsigned int tileGid) {
+  std::unique_ptr<TileMeta>& Map::GetTileMeta(unsigned int tileGid) {
     if (tileGid < 0 || tileGid >= tileMetas.size()) {
       return tileMetas[0];
     }
@@ -155,7 +119,7 @@ namespace Overworld {
     return tileMetas[tileGid];
   }
 
-  std::shared_ptr<Map::Tileset> Map::GetTileset(std::string name) {
+  std::shared_ptr<Tileset> Map::GetTileset(std::string name) {
     if (tilesets.find(name) == tilesets.end()) {
       return nullptr;
     }
@@ -163,7 +127,7 @@ namespace Overworld {
     return tilesets[name];
   }
 
-  std::shared_ptr<Map::Tileset> Map::GetTileset(unsigned int tileGid) {
+  std::shared_ptr<Tileset> Map::GetTileset(unsigned int tileGid) {
     if (tileToTilesetMap.size() <= tileGid) {
       return nullptr;
     }
@@ -249,12 +213,16 @@ namespace Overworld {
   void Map::RemoveSprites(SceneBase& scene) {
     for (auto& layer : layers) {
       for (auto& tileObject : layer.tileObjects) {
-        scene.RemoveSprite(tileObject.spriteProxy);
+        auto spriteProxy = tileObject.GetSpriteProxy();
+
+        if (spriteProxy) {
+          scene.RemoveSprite(spriteProxy);
+        }
       }
     }
   }
 
-  static Map::Tile nullTile = Map::Tile(0);
+  static Tile nullTile = Tile(0);
 
   Map::Layer::Layer(std::size_t cols, std::size_t rows) {
     this->cols = cols;
@@ -262,54 +230,54 @@ namespace Overworld {
     tiles.resize(cols * rows, nullTile);
   }
 
-  Map::Tile& Map::Layer::GetTile(int x, int y)
+  Tile& Map::Layer::GetTile(int x, int y)
   {
     if (x < 0 || y < 0 || x >= cols || y >= rows) {
       // reset nullTile as it may have been mutated
-      nullTile = Map::Tile(0);
+      nullTile = Tile(0);
       return nullTile;
     }
 
     return tiles[y * cols + x];
   }
 
-  Map::Tile& Map::Layer::GetTile(float x, float y)
+  Tile& Map::Layer::GetTile(float x, float y)
   {
     return GetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)));
   }
 
-  Map::Tile& Map::Layer::SetTile(int x, int y, Tile tile)
+  Tile& Map::Layer::SetTile(int x, int y, Tile tile)
   {
     if (x < 0 || y < 0 || x >= cols || y >= rows) {
       // reset nullTile as it may have been mutated
-      nullTile = Map::Tile(0);
+      nullTile = Tile(0);
       return nullTile;
     }
 
     return tiles[y * cols + x] = tile;
   }
 
-  Map::Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
+  Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
   {
-    return SetTile(x, y, Map::Tile(gid));
+    return SetTile(x, y, Tile(gid));
   }
 
-  Map::Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
+  Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
   {
     return SetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)), gid);
   }
 
-  Map::TileObject& Map::Layer::GetTileObject(unsigned int id) {
+  TileObject& Map::Layer::GetTileObject(unsigned int id) {
     return *std::find_if(tileObjects.begin(), tileObjects.end(), [id](TileObject& tileObject) { return tileObject.id == id; });
   }
 
-  const std::vector<Map::TileObject>& Map::Layer::GetTileObjects() {
+  const std::vector<TileObject>& Map::Layer::GetTileObjects() {
     return tileObjects;
   }
 
-  void Map::Layer::AddTileObject(Map::TileObject tileObject) {
+  void Map::Layer::AddTileObject(TileObject tileObject) {
     tileObjects.push_back(tileObject);
-    spriteProxiesForAddition.push_back(tileObject.spriteProxy);
+    spriteProxiesForAddition.push_back(tileObject.GetSpriteProxy());
   }
 }
 
