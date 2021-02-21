@@ -77,6 +77,8 @@ void MobHealthUI::Inject(BattleSceneBase& scene)
 
 void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
+  if (IsHidden()) return;
+
   auto this_states = states;
   this_states.transform *= getTransform();
 

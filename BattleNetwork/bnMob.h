@@ -277,7 +277,8 @@ public:
     MobData* data = new MobData();
     Character* character = constructor();
 
-    character->CreateComponent<MobHealthUI>(character);
+    auto ui = character->CreateComponent<MobHealthUI>(character);
+    ui->Hide(); // let default state invocation reveal health
 
     // Assign the enemy to the spawn data object
     data->character = character;
@@ -308,9 +309,9 @@ public:
       }
     };
 
-    auto defaultStateInvoker = [](Character* character) {
+    auto defaultStateInvoker = [ui](Character* character) {
       ClassType* enemy = static_cast<ClassType*>(character);
-      if (enemy) { enemy->InvokeDefaultState(); }
+      if (enemy) { enemy->InvokeDefaultState(); ui->Reveal(); }
     };
 
     mob->pixelStateInvokers.push_back(pixelStateInvoker);
