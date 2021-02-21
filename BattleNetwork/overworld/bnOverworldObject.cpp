@@ -46,6 +46,6 @@ namespace Overworld {
       std::sin(offsetRadians + radians) * offsetLength
     );
 
-    spriteProxy->move(map.ScreenToWorld(offset));
+    spriteProxy->move(map.OrthoToIsometric(offset));
   }
 }
