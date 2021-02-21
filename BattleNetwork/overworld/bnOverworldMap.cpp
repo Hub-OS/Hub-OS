@@ -192,16 +192,8 @@ namespace Overworld {
     testPosition.x *= tileWidth / 2;
     testPosition.y *= tileHeight;
 
-    // convert to orthogonal to simplify transformations
-    testPosition = IsoToOrthogonal(testPosition);
-
-    if (tile.rotated) {
-      auto tileCenter = sf::Vector2f(0, tileHeight / 2);
-
-      testPosition -= tileCenter;
-      // rotate position counter clockwise
-      testPosition = sf::Vector2(testPosition.y, -testPosition.x);
-      testPosition += tileCenter;
+    if(tile.Intersects(*this, testPosition.x, testPosition.y)) {
+      return false;
     }
 
     if (tile.flippedHorizontal) {

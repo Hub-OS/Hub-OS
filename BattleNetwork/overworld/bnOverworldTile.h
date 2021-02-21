@@ -5,11 +5,12 @@
 #include <memory>
 
 #include "bnOverworldShapes.h"
-#include "bnOverworldObject.h"
 #include "../bnAnimation.h"
 
 namespace Overworld
 {
+  class Map;
+
   enum class Projection { Isometric, Orthographic };
 
   struct Tileset {
@@ -59,5 +60,7 @@ namespace Overworld
         this->flippedVertical = flippedVertical;
       }
     }
+
+    bool Intersects(Map& map, float x, float y) const;
   };
 }
