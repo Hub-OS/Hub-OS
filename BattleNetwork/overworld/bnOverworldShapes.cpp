@@ -27,7 +27,7 @@ namespace Overworld {
     height = 0;
   }
 
-  bool Point::Intersects(float x, float y) {
+  bool Point::Intersects(float x, float y) const {
     // points have no size, no possible intersection
     return false;
   }
@@ -40,7 +40,7 @@ namespace Overworld {
     this->rotation = rotation;
   }
 
-  bool Rect::Intersects(float x, float y) {
+  bool Rect::Intersects(float x, float y) const {
     rotateAround(this->x, this->y, -rotation, &x, &y);
 
     return
@@ -58,7 +58,7 @@ namespace Overworld {
     this->rotation = rotation;
   }
 
-  bool Ellipse::Intersects(float x, float y) {
+  bool Ellipse::Intersects(float x, float y) const {
     rotateAround(this->x, this->y, -rotation, &x, &y);
 
     auto distanceX = x - this->x;
@@ -110,7 +110,7 @@ namespace Overworld {
 
   // shoot a ray to the right and count edge intersections
   // even = outside, odd = inside
-  bool Polygon::Intersects(float x, float y) {
+  bool Polygon::Intersects(float x, float y) const {
     if (points.size() == 0) {
       return false;
     }
