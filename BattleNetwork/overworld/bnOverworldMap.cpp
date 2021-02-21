@@ -192,15 +192,38 @@ namespace Overworld {
     testPosition.x *= tileWidth / 2;
     testPosition.y *= tileHeight;
 
+    // convert to orthogonal to simplify transformations
+    testPosition = IsoToOrthogonal(testPosition);
+
+    if (tile.rotated) {
+      auto tileCenter = sf::Vector2f(0, tileHeight / 2);
+
+      testPosition -= tileCenter;
+      // rotate position counter clockwise
+      testPosition = sf::Vector2(testPosition.y, -testPosition.x);
+      testPosition += tileCenter;
+    }
+
+    if (tile.flippedHorizontal) {
+      testPosition.x *= -1;
+    }
+
+    if (tile.flippedVertical) {
+      testPosition.y = tileHeight - testPosition.y;
+    }
+
     auto& tileMeta = *GetTileMeta(tile.gid);
 
     if (tileset->orientation == Projection::Orthographic) {
-      testPosition = IsoToOrthogonal(testPosition);
-      testPosition.x += tileWidth / 2 - tileMeta.offset.x;
-      testPosition.y += tileMeta.sprite.getLocalBounds().height - tileHeight - tileMeta.offset.y;
-    }
+      // tiled uses position on sprite with orthographic projection
+      auto spriteBounds = tileMeta.sprite.getLocalBounds();
 
-    // todo handle tile flipping (and rotation?)
+      testPosition.x += tileWidth / 2 - tileMeta.offset.x;
+      testPosition.y += spriteBounds.height - tileHeight - tileMeta.offset.y;
+    } else {
+      // isometric orientation
+      testPosition = OrthoToIsometric(testPosition);
+    }
 
     for (auto& shape : tileMeta.collisionShapes) {
       if (shape->Intersects(testPosition.x, testPosition.y)) {
