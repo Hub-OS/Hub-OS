@@ -34,7 +34,6 @@ namespace Overworld {
 
     worldSprite->setPosition(position);
     worldSprite->setScale(horizontalMultiplier * size.x / localBounds.width, verticalMultiplier * size.y / localBounds.height);
-    worldSprite->setRotation(rotation);
 
     auto ortho = map.WorldToScreen(position);
 
