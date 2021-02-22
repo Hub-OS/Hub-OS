@@ -55,9 +55,9 @@ AirShotCardAction::~AirShotCardAction()
 {
 }
 
-void AirShotCardAction::OnUpdate(double _elapsed)
+void AirShotCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void AirShotCardAction::OnAnimationEnd()

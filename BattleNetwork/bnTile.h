@@ -49,6 +49,7 @@ class Field;
 namespace Battle {
   class Tile : public SpriteProxyNode, public ResourceHandle {
   public:
+
     enum class Highlight : int {
       none = 0,
       flash = 1,
@@ -295,9 +296,11 @@ namespace Battle {
     * @brief Tile math easily returns tiles with the directional input enum type
     *
     * If the operand tile is an edge tile and the direction would proceed the edge tile,
-    * then the closest edge tile is returned: itself. This ensures any output tile is valid.
+    * then nullptr is returned
     */
-    Tile& operator+(const Direction& dir);
+    Tile* operator+(const Direction& dir);
+
+    Tile* Offset(int x, int y);
 
   private:
 

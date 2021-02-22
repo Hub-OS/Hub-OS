@@ -58,9 +58,9 @@ void YoYoCardAction::OnExecute() {
   AddAnimAction(1, onFire);
 }
 
-void YoYoCardAction::OnUpdate(double _elapsed)
+void YoYoCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 
   if (yoyo && yoyo->WillRemoveLater()) {
     yoyo = nullptr;

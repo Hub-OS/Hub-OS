@@ -5,7 +5,6 @@
 #include <functional>
 #include <map>
 
-#include "bnUIComponent.h"
 #include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
 #include "bnResourceHandle.h"
@@ -15,26 +14,31 @@
 
 using namespace swoosh;
 
-enum class ActionLockoutType : unsigned {
-  animation = 0,
-  async,
-  sequence
-};
-
-enum class ActionLockoutGroup : unsigned {
-  none = 0,
-  card,
-  ability
-};
-
-struct ActionLockoutProperties {
-  ActionLockoutType type{};
-  double cooldown{}; // in seconds
-  ActionLockoutGroup group{ ActionLockoutGroup::card };
-};
-
-class CardAction : public Component, public SceneNode, public ResourceHandle {
+class CardAction : public sf::Drawable, public ResourceHandle {
 public:
+  enum class ExecutionType : unsigned {
+    manual = 0,
+    immediate
+  };
+
+  enum class LockoutType : unsigned {
+    animation = 0,
+    async,
+    sequence
+  };
+
+  enum class LockoutGroup : unsigned {
+    none = 0,
+    card,
+    ability
+  };
+
+  struct LockoutProperties {
+    LockoutType type{};
+    double cooldown{}; // in seconds
+    LockoutGroup group{ LockoutGroup::card };
+  };
+
   class Attachment {
     using Attachments = std::multimap<std::string, Attachment>;
 
@@ -85,7 +89,8 @@ public:
 private:
   bool animationIsOver{ false };
   bool started{ false };
-  ActionLockoutProperties lockoutProps{};
+  ExecutionType execType{};
+  LockoutProperties lockoutProps{};
   std::string animation;
   std::string uuid, prevState;
   std::function<void()> prepareActionDelegate;
@@ -118,27 +123,27 @@ protected:
 public:
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
-  CardAction(Character& owner, const std::string& animation = "PLAYER_IDLE");
+  CardAction(Character& owner, const std::string& animation);
   virtual ~CardAction();
 
-  void Inject(BattleSceneBase&) final;
-  void SetLockout(const ActionLockoutProperties& props);
-  void SetLockoutGroup(const ActionLockoutGroup& group);
+  void SetExecutionType(const ExecutionType& type);
+  void SetLockout(const LockoutProperties& props);
+  void SetLockoutGroup(const LockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
   void Execute();
   void EndAction();
 
-  const ActionLockoutGroup GetLockoutGroup() const;
-  const ActionLockoutType GetLockoutType() const;
+  const LockoutGroup GetLockoutGroup() const;
+  const LockoutType GetLockoutType() const;
+  const ExecutionType GetExecutionType() const;
   const std::string& GetAnimState() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
   const bool CanExecute() const;
+  
+  Character& GetCharacter();
 
-  /** Override get owner to always return a character type */
-  Character* GetOwner();
-
-  virtual void OnUpdate(double _elapsed);
+  virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
 protected:

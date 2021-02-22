@@ -19,7 +19,7 @@ public:
 
   void OnUpdate(double _elapsed) override
   {
-    CardAction::OnUpdate(_elapsed);
+    CardAction::Update(_elapsed);
 
     // SCRIPTS.callback(card_name).OnUpdate(this);
   }

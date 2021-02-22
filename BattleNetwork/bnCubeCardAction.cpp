@@ -34,9 +34,9 @@ CubeCardAction::~CubeCardAction()
 {
 }
 
-void CubeCardAction::OnUpdate(double _elapsed)
+void CubeCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void CubeCardAction::OnAnimationEnd()

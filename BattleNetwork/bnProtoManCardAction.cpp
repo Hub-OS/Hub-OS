@@ -32,9 +32,9 @@ ProtoManCardAction::~ProtoManCardAction()
 {
 }
 
-void ProtoManCardAction::OnUpdate(double _elapsed)
+void ProtoManCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void ProtoManCardAction::OnAnimationEnd()

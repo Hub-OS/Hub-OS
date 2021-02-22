@@ -7,15 +7,13 @@ CardAction::CardAction(Character& user, const std::string& animation) :
   anim(user.GetFirstComponent<AnimationComponent>()),
   uuid(), 
   prevState(), 
-  attachments(), 
-  SceneNode(),
-  ResourceHandle(),
-  Component(&user, Component::lifetimes::battlestep)
+  attachments(),
+  ResourceHandle()
 {
   if (anim) {
-    prepareActionDelegate = [this, animation]() {
+    prepareActionDelegate = [this]() {
       for (auto& [nodeName, node] : attachments) {
-        this->GetOwner()->AddNode(&node.spriteProxy.get());
+        character.AddNode(&node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
@@ -77,14 +75,14 @@ void CardAction::RecallPreviousState()
   }
 
   // "Animation" for sequences are only complete when the animation sequence is complete
-  if (lockoutProps.type != ActionLockoutType::sequence) {
+  if (lockoutProps.type != CardAction::LockoutType::sequence) {
     animationIsOver = true;
   }
 }
 
-Character* CardAction::GetOwner()
+Character& CardAction::GetCharacter()
 {
-  return &user;
+  return user;
 }
 
 void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
@@ -129,7 +127,7 @@ void CardAction::Execute()
   // run
   OnExecute();
   // Position any new nodes to owner
-  OnUpdate(0);
+  Update(0);
 }
 
 void CardAction::EndAction()
@@ -161,7 +159,7 @@ CardAction::Attachment& CardAction::AddAttachment(Character& character, const st
   return AddAttachment(animComp->GetAnimationObject(), point, node);
 }
 
-void CardAction::OnUpdate(double _elapsed)
+void CardAction::Update(double _elapsed)
 {
   for (auto& [nodeName, node] : attachments) {
     // update the node's animation
@@ -169,7 +167,7 @@ void CardAction::OnUpdate(double _elapsed)
 
     // update the node's position
     auto baseOffset = node.GetParentAnim().GetPoint(nodeName);
-    auto origin = user.getSprite().getOrigin();
+    const auto& origin = user.getSprite().getOrigin();
     baseOffset = baseOffset - origin;
 
     node.SetOffset(baseOffset);
@@ -177,7 +175,7 @@ void CardAction::OnUpdate(double _elapsed)
 
   if (!started) return;
 
-  if (lockoutProps.type == ActionLockoutType::sequence) {
+  if (lockoutProps.type == CardAction::LockoutType::sequence) {
     sequence.update(_elapsed);
     if (sequence.isEmpty()) {
       animationIsOver = true; // animation for sequence is complete
@@ -195,20 +193,19 @@ void CardAction::OnUpdate(double _elapsed)
 }
 
 void CardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-  SceneNode::draw(target, states);
 };
 
-void CardAction::Inject(BattleSceneBase& scene)
+void CardAction::SetExecutionType(const ExecutionType& type)
 {
-  scene.Inject(this);
+  this->execType = type;
 }
 
-void CardAction::SetLockout(const ActionLockoutProperties& props)
+void CardAction::SetLockout(const CardAction::LockoutProperties& props)
 {
   this->lockoutProps = props;
 }
 
-void CardAction::SetLockoutGroup(const ActionLockoutGroup& group)
+void CardAction::SetLockoutGroup(const CardAction::LockoutGroup& group)
 {
   lockoutProps.group = group;
 }
@@ -225,14 +222,19 @@ void CardAction::FreeAttachedNodes() {
   this->anim->CancelCallbacks();
 }
 
-const ActionLockoutGroup CardAction::GetLockoutGroup() const
+const CardAction::LockoutGroup CardAction::GetLockoutGroup() const
 {
   return lockoutProps.group;
 }
 
-const ActionLockoutType CardAction::GetLockoutType() const
+const CardAction::LockoutType CardAction::GetLockoutType() const
 {
   return lockoutProps.type;
+}
+
+const CardAction::ExecutionType CardAction::GetExecutionType() const
+{
+  return execType;
 }
 
 const std::string& CardAction::GetAnimState() const
@@ -246,7 +248,7 @@ const bool CardAction::IsAnimationOver() const
 }
 
 const bool CardAction::IsLockoutOver() const {
-  if (lockoutProps.type == ActionLockoutType::animation) {
+  if (lockoutProps.type == CardAction::LockoutType::animation) {
     return animationIsOver;
   }
 
@@ -289,7 +291,7 @@ void CardAction::Attachment::Update(double elapsed)
 
     // update the node's position
     auto baseOffset = node.GetParentAnim().GetPoint(nodeName);
-    auto origin = spriteProxy.get().getSprite().getOrigin();
+    const auto& origin = spriteProxy.get().getSprite().getOrigin();
     baseOffset = baseOffset - origin;
 
     node.SetOffset(baseOffset);

@@ -5,24 +5,23 @@
 AntiDmgCardAction::AntiDmgCardAction(Character& owner, int damage) : 
   damage(damage),
   CardAction(owner, "PLAYER_IDLE"){
-  this->SetLockout(ActionLockoutProperties{
-    ActionLockoutType::animation,
+  this->SetLockout(CardAction::LockoutProperties{
+    CardAction::LockoutType::animation,
     3000, // milliseconds
-    ActionLockoutGroup::card
+    CardAction::LockoutGroup::card
   });
 }
 
 void AntiDmgCardAction::OnExecute() {
-  auto owner = GetOwner();
 }
 
 AntiDmgCardAction::~AntiDmgCardAction()
 {
 }
 
-void AntiDmgCardAction::OnUpdate(double _elapsed)
+void AntiDmgCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void AntiDmgCardAction::OnAnimationEnd()
@@ -31,6 +30,5 @@ void AntiDmgCardAction::OnAnimationEnd()
 
 void AntiDmgCardAction::OnEndAction()
 {
-  GetOwner()->Reveal();
-  Eject();
+  GetCharacter()->Reveal();
 }

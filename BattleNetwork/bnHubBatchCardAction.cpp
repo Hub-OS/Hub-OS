@@ -31,9 +31,9 @@ void HubBatchCardAction::OnExecute() {
   GetOwner()->CreateComponent<HubBatchProgram>(GetOwner());
 }
 
-void HubBatchCardAction::OnUpdate(double _elapsed)
+void HubBatchCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void HubBatchCardAction::OnAnimationEnd()

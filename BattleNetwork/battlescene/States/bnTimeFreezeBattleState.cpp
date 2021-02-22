@@ -129,7 +129,7 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
   if (action && action->CanExecute()) {
     action->Execute();
 
-    if (action->GetLockoutType() != ActionLockoutType::sequence) {
+    if (action->GetLockoutType() != CardAction::LockoutType::sequence) {
       user->ToggleTimeFreeze(false); // unfreeze the user to animate their sequences
     }
   }

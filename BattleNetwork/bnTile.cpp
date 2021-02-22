@@ -685,53 +685,61 @@ namespace Battle {
       return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());
   }
 
-  Tile& Tile::operator+(const Direction& dir)
+  Tile* Tile::operator+(const Direction& dir)
   {
     switch (dir) {
     case Direction::down:
     {
       Tile* next = field->GetAt(x, y + 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::down_left:
     {
       Tile* next = field->GetAt(x - 1, y + 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::down_right:
     {
       Tile* next = field->GetAt(x + 1, y + 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::left:
     {
       Tile* next = field->GetAt(x - 1, y);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::right:
     {
       Tile* next = field->GetAt(x + 1, y);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::up:
     {
       Tile* next = field->GetAt(x, y - 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::up_left:
     {
       Tile* next = field->GetAt(x - 1, y - 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::up_right:
     {
       Tile* next = field->GetAt(x + 1, y - 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::none:
     default:
-      return *this;
+      return this;
+      break;
     }
+
+    return nullptr;
+  }
+
+  Tile* Tile::Offset(int x, int y)
+  {
+    return field->GetAt(this->x + x, this->y + y);
   }
 
   std::string Tile::GetAnimState(const TileState state)

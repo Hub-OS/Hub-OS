@@ -68,9 +68,9 @@ void VulcanCardAction::OnExecute() {
   AddAnimAction(6, onFire);
 }
 
-void VulcanCardAction::OnUpdate(double _elapsed)
+void VulcanCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void VulcanCardAction::OnAnimationEnd()

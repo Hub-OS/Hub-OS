@@ -229,7 +229,7 @@ public:
   void EndCurrentAction();
 
 private:
-  int maxHealth;
+  int maxHealth{ std::numeric_limits<int>::max() };
   sf::Vector2f counterSlideOffset; /*!< Used when enemies delete on counter - they slide back */
   float counterSlideDelta;
 
@@ -251,12 +251,12 @@ protected:
   */
   bool IsCountered();
 
-  int health;
-  bool counterable;
+  int health{ std::numeric_limits<int>::max() };
+  bool counterable{};
   int counterFrameFlag{ 0 };
-  bool canTilePush;
+  bool canTilePush{};
   std::string name;
-  double stunCooldown; /*!< Timer until stun is over */
-  double invincibilityCooldown; /*!< Timer until invincibility is over */
+  double stunCooldown{ 0 }; /*!< Timer until stun is over */
+  double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   Character::Rank rank;
 };

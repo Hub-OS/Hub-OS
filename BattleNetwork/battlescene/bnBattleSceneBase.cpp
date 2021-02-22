@@ -515,16 +515,13 @@ void BattleSceneBase::onUpdate(double elapsed) {
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
-  float tint = 1.0f - static_cast<float>(backdropOpacity);
+  int tint = static_cast<int>((1.0f - backdropOpacity) * 255);
 
   if (!backdropAffectBG) {
-    tint = 1.f;
-  }
-  else if (backdropOpacity > 0) {
-    //getController().Postprocessing(&backdropShader);
+    tint = 255;
   }
 
-  background->setColor(sf::Color(int(255.f * tint), int(255.f * tint), int(255.f * tint), 255));
+  background->setColor(sf::Color(tint, tint, tint, 255));
 
   surface.draw(*background);
 
@@ -544,8 +541,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     }
 
     tile->move(viewOffset);
-    int black = static_cast<int>((1.0f - backdropOpacity) * 255);
-    tile->setColor(sf::Color(black, black, black, 255));
+    tile->setColor(sf::Color(tint, tint, tint, 255));
     surface.draw(*tile);
     tile->setColor(sf::Color::White);
     tile->move(-viewOffset);

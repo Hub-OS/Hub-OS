@@ -38,7 +38,7 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
   target.draw(timerLabel);
 }
 
-void ZetaCannonCardAction::OnUpdate(double _elapsed)
+void ZetaCannonCardAction::Update(double _elapsed)
 {
   if (timer > 0) {
     auto user = GetOwner();
@@ -85,7 +85,7 @@ void ZetaCannonCardAction::OnUpdate(double _elapsed)
   std::string string = "Z-Cannon 1: " + timeString;
   timerLabel.SetString(string);
 
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void ZetaCannonCardAction::OnAnimationEnd()

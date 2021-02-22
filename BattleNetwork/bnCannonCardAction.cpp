@@ -74,9 +74,9 @@ void CannonCardAction::OnExecute() {
   AddAnimAction(6, onFire);
 }
 
-void CannonCardAction::OnUpdate(double _elapsed)
+void CannonCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void CannonCardAction::OnAnimationEnd()

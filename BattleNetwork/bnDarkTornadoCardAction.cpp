@@ -68,7 +68,7 @@ void DarkTornadoCardAction::OnExecute() {
   });
 }
 
-void DarkTornadoCardAction::OnUpdate(double _elapsed)
+void DarkTornadoCardAction::Update(double _elapsed)
 {
   attachment->setPosition(CalculatePointOffset("buster"));
 
@@ -77,7 +77,7 @@ void DarkTornadoCardAction::OnUpdate(double _elapsed)
     attachmentAnim.Update(_elapsed, attachment->getSprite());
   }
 
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void DarkTornadoCardAction::OnAnimationEnd()

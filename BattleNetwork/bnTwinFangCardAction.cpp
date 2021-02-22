@@ -57,9 +57,9 @@ void TwinFangCardAction::OnExecute() {
   AddAnimAction(2, onFire);
 }
 
-void TwinFangCardAction::OnUpdate(double _elapsed)
+void TwinFangCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void TwinFangCardAction::OnAnimationEnd()

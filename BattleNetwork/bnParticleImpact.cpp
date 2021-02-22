@@ -11,6 +11,7 @@ const std::string VOLCANO_PATH  = "resources/spells/volcano_hit.animation";
 const std::string WIND_PATH     = "resources/spells/panel_wind.animation";
 
 ParticleImpact::ParticleImpact(ParticleImpact::Type type) :
+  type(type),
   randOffset(), 
   Artifact()
 {

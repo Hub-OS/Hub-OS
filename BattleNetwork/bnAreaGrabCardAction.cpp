@@ -96,9 +96,9 @@ AreaGrabCardAction::~AreaGrabCardAction()
 {
 }
 
-void AreaGrabCardAction::OnUpdate(double _elapsed)
+void AreaGrabCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void AreaGrabCardAction::OnAnimationEnd()

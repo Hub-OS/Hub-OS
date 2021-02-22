@@ -166,11 +166,18 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         formatted.resize(9, ' ');
         formatted[8] = (*cardsListPtr)[i]->GetCode();
 
-        Text stepLabel = Text(formatted, font);
+        Text stepLabel{ formatted, font };
 
         stepLabel.setOrigin(0, 0);
         stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
         stepLabel.setScale(2.0f, 2.0f);
+
+        auto stepLabelPos = stepLabel.getPosition();
+        stepLabel.setPosition(stepLabelPos + sf::Vector2f(2.f, 2.f));
+        stepLabel.SetColor(sf::Color::Black);
+        surface.draw(stepLabel);
+
+        stepLabel.setPosition(stepLabelPos);
 
         if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
           if (i < paStepIndex - 1) {
@@ -181,7 +188,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
           }
         }
         else {
-          stepLabel.SetColor(sf::Color(48, 56, 80));
+          stepLabel.SetColor(sf::Color::White);
         }
 
         surface.draw(stepLabel);
@@ -197,23 +204,35 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         formatted.resize(9, ' ');
         formatted[8] = (*cardsListPtr)[i]->GetCode();
 
-        Text stepLabel = Text(formatted, font);
+        Text stepLabel{ formatted, font };
 
         stepLabel.setOrigin(0, 0);
         stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
         stepLabel.setScale(2.0f, 2.0f);
-        stepLabel.SetColor(sf::Color(48, 56, 80));
+        stepLabel.SetColor(sf::Color::White);
 
         if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
           if (i == hasPA) {
             Battle::Card* paCard = programAdvance.GetAdvanceCard();
 
-            Text stepLabel = Text(paCard->GetShortName(), font);
+            Text stepLabel{ paCard->GetShortName(), font };
             stepLabel.setOrigin(0, 0);
             stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
-            stepLabel.setScale(1.0f, 1.0f);
+            stepLabel.setScale(2.0f, 2.0f);
 
-            stepLabel.SetColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
+            auto stepLabelPos = stepLabel.getPosition();
+            stepLabel.setPosition(stepLabelPos + sf::Vector2f(2.f, 2.f));
+            stepLabel.SetColor(sf::Color::Black);
+            surface.draw(stepLabel);
+
+            stepLabel.setPosition(stepLabelPos);
+
+            sf::Uint32 sin = static_cast<sf::Uint32>(std::sin(increment) * 255);
+            sf::Uint32 cos = static_cast<sf::Uint32>(std::cos(increment + 90 * swoosh::ease::pi) * 255);
+            sf::Uint32 sin2 = static_cast<sf::Uint32>(std::sin(increment + 180 * swoosh::ease::pi) * 255);
+
+            stepLabel.SetColor(sf::Color(sin, cos, sin2));
+
             surface.draw(stepLabel);
           }
           else {
@@ -224,6 +243,14 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
 
         }
         else {
+          auto stepLabelPos = stepLabel.getPosition();
+          stepLabel.setPosition(stepLabelPos + sf::Vector2f(2.f, 2.f));
+          stepLabel.SetColor(sf::Color::Black);
+          surface.draw(stepLabel);
+
+          stepLabel.setPosition(stepLabelPos);
+
+          stepLabel.SetColor(sf::Color::White);
           surface.draw(stepLabel);
         }
 

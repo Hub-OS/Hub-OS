@@ -92,9 +92,9 @@ void CrackShotCardAction::OnExecute() {
   AddAnimAction(4, onThrow);
 }
 
-void CrackShotCardAction::OnUpdate(double _elapsed)
+void CrackShotCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void CrackShotCardAction::OnAnimationEnd()

@@ -53,9 +53,9 @@ RollCardAction::~RollCardAction()
 {
 }
 
-void RollCardAction::OnUpdate(double _elapsed)
+void RollCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void RollCardAction::OnAnimationEnd()

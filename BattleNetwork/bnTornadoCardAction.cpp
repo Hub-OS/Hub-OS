@@ -69,7 +69,7 @@ void TornadoCardAction::OnAnimationEnd()
 {
 }
 
-void TornadoCardAction::OnUpdate(double _elapsed)
+void TornadoCardAction::Update(double _elapsed)
 {
   attachment->setPosition(CalculatePointOffset("buster"));
 
@@ -77,7 +77,7 @@ void TornadoCardAction::OnUpdate(double _elapsed)
     attachmentAnim.Update(_elapsed, attachment->getSprite());
   }
 
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void TornadoCardAction::OnEndAction()

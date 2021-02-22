@@ -34,7 +34,7 @@ AirHockeyCardAction::~AirHockeyCardAction()
 }
 
 void AirHockeyCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto* owner = &GetCharacter();
 
   auto onHand = [owner, this] {
     AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
@@ -49,13 +49,13 @@ void AirHockeyCardAction::OnExecute() {
       step = -1;
     }
 
-    auto& field = *GetOwner()->GetField();
-    auto tile = field.GetAt(GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+    auto& field = *owner->GetField();
+    auto tile = owner->GetTile()->Offset(step, 0);
 
     if (tile) {
-      AirHockey* b = new AirHockey(&field, GetOwner()->GetTeam(), this->damage, 10);
+      AirHockey* b = new AirHockey(&field, owner->GetTeam(), this->damage, 10);
       auto props = b->GetHitboxProperties();
-      props.aggressor = GetOwnerAs<Character>();
+      props.aggressor = &GetCharacter();
       b->SetHitboxProperties(props);
 
       field.AddEntity(*b, tile->GetX(), tile->GetY());
@@ -63,7 +63,7 @@ void AirHockeyCardAction::OnExecute() {
 
     if (tile == nullptr) {
       auto* fx = new MobMoveEffect();
-      field.AddEntity(*fx, *GetOwner()->GetTile());
+      field.AddEntity(*fx, *owner->GetTile());
     }
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);
@@ -73,9 +73,9 @@ void AirHockeyCardAction::OnExecute() {
   AddAnimAction(3, onThrow);
 }
 
-void AirHockeyCardAction::OnUpdate(double _elapsed)
+void AirHockeyCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void AirHockeyCardAction::OnAnimationEnd()
@@ -83,5 +83,4 @@ void AirHockeyCardAction::OnAnimationEnd()
 }
 
 void AirHockeyCardAction::OnEndAction() {
-  Eject();
 }

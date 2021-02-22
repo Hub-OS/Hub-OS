@@ -17,9 +17,9 @@ AuraCardAction::~AuraCardAction()
 {
 }
 
-void AuraCardAction::OnUpdate(double _elapsed)
+void AuraCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void AuraCardAction::OnAnimationEnd()

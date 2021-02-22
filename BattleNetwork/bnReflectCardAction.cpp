@@ -40,9 +40,9 @@ void ReflectCardAction::SetDuration(const frame_time_t& duration)
   });
 }
 
-void ReflectCardAction::OnUpdate(double _elapsed)
+void ReflectCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void ReflectCardAction::OnAnimationEnd()

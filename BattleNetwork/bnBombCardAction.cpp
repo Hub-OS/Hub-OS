@@ -53,9 +53,9 @@ void BombCardAction::OnExecute() {
   AddAnimAction(3, onThrow);
 }
 
-void BombCardAction::OnUpdate(double _elapsed)
+void BombCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void BombCardAction::OnAnimationEnd()

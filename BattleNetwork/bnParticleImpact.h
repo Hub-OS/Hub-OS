@@ -53,6 +53,6 @@ public:
 
 private:
   Animation animation;
-  sf::Vector2f randOffset, offset;
+  sf::Vector2f randOffset{}, offset{};
   Type type;
 }; 
