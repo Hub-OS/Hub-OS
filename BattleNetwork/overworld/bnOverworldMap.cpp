@@ -28,11 +28,11 @@ namespace Overworld {
         tileObject.Update(*this);
       }
 
-      for (auto& spriteProxy : layer.spriteProxiesForAddition) {
-        scene.AddSprite(spriteProxy, i);
+      for (auto& worldSprite : layer.spritesForAddition) {
+        scene.AddSprite(worldSprite);
       }
 
-      layer.spriteProxiesForAddition.clear();
+      layer.spritesForAddition.clear();
     }
   }
 
@@ -293,7 +293,7 @@ namespace Overworld {
 
   void Map::Layer::AddTileObject(TileObject tileObject) {
     tileObjects.push_back(tileObject);
-    spriteProxiesForAddition.push_back(tileObject.GetSpriteProxy());
+    spritesForAddition.push_back(tileObject.GetWorldSprite());
   }
 }
 

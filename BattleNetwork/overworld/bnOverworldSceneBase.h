@@ -21,6 +21,7 @@
 #include "../bnAnimatedTextBox.h"
 
 // overworld
+#include "bnOverworldSprite.h"
 #include "bnOverworldActor.h"
 #include "bnOverworldPlayerController.h"
 #include "bnOverworldPathController.h"
@@ -34,11 +35,6 @@ class Background; // forward decl
 namespace Overworld {
   class SceneBase : public Scene {
   private:
-    struct WorldSprite {
-      std::shared_ptr<SpriteProxyNode> node;
-      int layer{ 0 };
-    };
-
     std::shared_ptr<Actor> playerActor;
     Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
@@ -68,7 +64,7 @@ namespace Overworld {
     // Bunch of sprites and their attachments
     Background* bg{ nullptr }; /*!< Background image pointer */
     Overworld::Map map; /*!< Overworld map */
-    std::vector<WorldSprite> sprites;
+    std::vector<std::shared_ptr<WorldSprite>> sprites;
 
     AnimatedTextBox textbox;
 
@@ -177,15 +173,15 @@ namespace Overworld {
 
     /**
      * @brief Add a sprite
-     * @param _sprite
+     * @param sprite
      */
-    void AddSprite(std::shared_ptr<SpriteProxyNode> _sprite, int layer);
+    void AddSprite(std::shared_ptr<WorldSprite> sprite);
 
     /**
      * @brief Remove a sprite
-     * @param _sprite
+     * @param sprite
      */
-    void RemoveSprite(const std::shared_ptr<SpriteProxyNode> _sprite);
+    void RemoveSprite(const std::shared_ptr<WorldSprite> sprite);
 
     //
     // Menu selection callbacks

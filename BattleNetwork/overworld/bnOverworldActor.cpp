@@ -292,6 +292,8 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   * before checking neighboring actors
   */
 
+  auto layer = GetLayer();
+
   if (map && map->GetLayerCount() > layer) {
     auto tileSize = sf::Vector2f(map->GetTileSize());
     tileSize.x *= .5f;

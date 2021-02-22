@@ -9,7 +9,6 @@
 #include "../bnSpriteProxyNode.h"
 
 namespace Overworld {
-  class Map;
   struct Tile;
 
   class MapObject {
@@ -21,13 +20,12 @@ namespace Overworld {
     sf::Vector2f size;
     float rotation;
 
-    std::shared_ptr<SpriteProxyNode> GetSpriteProxy() { return spriteProxy; }
+    std::shared_ptr<WorldSprite> GetWorldSprite() { return worldSprite; }
 
     virtual ~MapObject() = default;
 
   protected:
-    std::shared_ptr<SpriteProxyNode> spriteProxy;
-    virtual void Update(Map& map) {};
+    std::shared_ptr<WorldSprite> worldSprite;
 
     MapObject() = default;
 
@@ -41,6 +39,6 @@ namespace Overworld {
     TileObject(unsigned int id, Overworld::Tile tile);
     TileObject(unsigned int id, unsigned int gid);
 
-    void Update(Map& map) override;
+    void Update(Map& map);
   };
 }

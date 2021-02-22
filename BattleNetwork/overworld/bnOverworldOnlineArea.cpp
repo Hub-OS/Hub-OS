@@ -539,11 +539,11 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   emoteNode.setPosition(0, emoteY);
   actor->AddNode(&emoteNode);
 
-  AddSprite(actor, 0);
+  AddSprite(actor);
 
   auto& teleportController = onlinePlayer->teleportController;
   teleportController.EnableSound(false);
-  AddSprite(teleportController.GetBeam(), 0);
+  AddSprite(teleportController.GetBeam());
 
   if (warp_in) {
     teleportController.TeleportIn(actor, pos, Direction::none);

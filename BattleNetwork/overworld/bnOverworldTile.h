@@ -17,7 +17,8 @@ namespace Overworld
     const std::string name;
     const unsigned int firstGid;
     const unsigned int tileCount;
-    const sf::Vector2f offset;
+    const sf::Vector2f drawingOffset;
+    const sf::Vector2f alignmentOffset;
     const Projection orientation; // used for collisions
     std::shared_ptr<sf::Texture> texture;
     Animation animation;
@@ -26,14 +27,15 @@ namespace Overworld
   struct TileMeta {
     const unsigned int id;
     const unsigned int gid;
-    const sf::Vector2f offset;
+    const sf::Vector2f drawingOffset;
+    const sf::Vector2f alignmentOffset;
     Animation animation;
     sf::Sprite sprite;
     std::vector<std::unique_ptr<Shape>> collisionShapes;
 
 
-    TileMeta(unsigned int id, unsigned int gid, sf::Vector2f offset)
-      : id(id), gid(gid), offset(offset) {}
+    TileMeta(unsigned int id, unsigned int gid, sf::Vector2f drawingOffset, sf::Vector2f alignmentOffset)
+      : id(id), gid(gid), drawingOffset(drawingOffset), alignmentOffset(alignmentOffset) {}
   };
 
   struct Tile {

@@ -8,7 +8,7 @@
 
 Overworld::TeleportController::TeleportController()
 {
-  beam = std::make_shared<SpriteProxyNode>();
+  beam = std::make_shared<WorldSprite>();
   beam->setTexture(Textures().LoadTextureFromFile("resources/ow/teleport.png"));
   beamAnim = Animation("resources/ow/teleport.animation");
   beamAnim.SetAnimation("teleport_in");
@@ -79,6 +79,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
 void Overworld::TeleportController::Update(double elapsed)
 {
   this->beamAnim.Update(static_cast<float>(elapsed), beam->getSprite());
+  this->beam->SetLayer(this->actor->GetLayer());
 
   if (sequence.empty()) return;
 
@@ -129,7 +130,7 @@ const bool Overworld::TeleportController::IsComplete() const
   return animComplete;
 }
 
-std::shared_ptr<SpriteProxyNode> Overworld::TeleportController::GetBeam()
+std::shared_ptr<Overworld::WorldSprite> Overworld::TeleportController::GetBeam()
 {
   return beam;
 }

@@ -141,8 +141,8 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 
   emoteNode.SetLayer(-100);
 
-  AddSprite(playerActor, 0);
-  AddSprite(teleportController.GetBeam(), 0);
+  AddSprite(playerActor);
+  AddSprite(teleportController.GetBeam());
 
   map.setScale(2.f, 2.f);
 
@@ -306,13 +306,13 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   // sort sprites
   std::sort(sprites.begin(), sprites.end(),
-    [](WorldSprite A, WorldSprite B)
+    [](std::shared_ptr<WorldSprite> A, std::shared_ptr<WorldSprite> B)
   {
-    int A_layer_inv = -A.layer;
-    int B_layer_inv = -B.layer;
+    int A_layer_inv = -A->GetLayer();
+    int B_layer_inv = -B->GetLayer();
 
-    auto A_pos = A.node->getPosition();
-    auto B_pos = B.node->getPosition();
+    auto A_pos = A->getPosition();
+    auto B_pos = B->getPosition();
     auto A_compare = A_pos.x + A_pos.y;
     auto B_compare = B_pos.x + B_pos.y;
 
@@ -559,7 +559,7 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
       auto ortho = map.WorldToScreen(pos);
       auto tileOffset = sf::Vector2f(-tileSize.x / 2 + spriteBounds.width / 2, tileSize.y + tileSize.y / 2 - spriteBounds.height);
 
-      tileSprite.setPosition(ortho + tileMeta->offset + tileOffset);
+      tileSprite.setPosition(ortho + tileMeta->drawingOffset + tileOffset);
       tileSprite.setRotation(tile.rotated ? 90 : 0);
       tileSprite.setScale(
         tile.flippedHorizontal ? -1.0f : 1.0f,
@@ -587,17 +587,16 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
 
 void Overworld::SceneBase::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
   for (auto& sprite : sprites) {
-    auto iso = sprite.node->getPosition();
+    auto iso = sprite->getPosition();
     auto ortho = map.WorldToScreen(iso);
 
-    auto tileSprite = sprite.node;
-    tileSprite->setPosition(ortho);
+    sprite->setPosition(ortho);
 
-    if (/*cam && cam->IsInView(tileSprite->getSprite())*/ true) {
-      target.draw(*tileSprite, states);
+    if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
+      target.draw(*sprite, states);
     }
 
-    tileSprite->setPosition(iso);
+    sprite->setPosition(iso);
   }
 }
 
@@ -902,7 +901,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
   auto tileHeight = tilesetElement.GetAttributeInt("tileheight");
   auto columns = tilesetElement.GetAttributeInt("columns");
 
-  sf::Vector2f offset;
+  sf::Vector2f drawingOffset;
   std::string texturePath;
   Projection orientation = Projection::Orthographic;
 
@@ -910,8 +909,8 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
 
   for (auto& child : tilesetElement.children) {
     if (child.name == "tileoffset") {
-      offset.x = child.GetAttributeInt("x");
-      offset.y = child.GetAttributeInt("y");
+      drawingOffset.x = child.GetAttributeInt("x");
+      drawingOffset.y = child.GetAttributeInt("y");
     }
     else if (child.name == "grid") {
       orientation =
@@ -944,25 +943,34 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
 
   auto objectAlignment = tilesetElement.GetAttribute("objectalignment");
   // default to bottom right
-  auto origin = sf::Vector2f(tileWidth, tileHeight);
+  auto alignmentOffset = sf::Vector2f(-tileWidth, -tileHeight);
 
   if (objectAlignment == "top") {
-    origin = sf::Vector2f(tileWidth / 2, 0);
+    alignmentOffset = sf::Vector2f(-tileWidth / 2, 0);
   }
   else if (objectAlignment == "topleft") {
-    origin = sf::Vector2f(0, 0);
+    alignmentOffset = sf::Vector2f(0, 0);
   }
   else if (objectAlignment == "topright") {
-    origin = sf::Vector2f(tileWidth, 0);
+    alignmentOffset = sf::Vector2f(-tileWidth, 0);
+  }
+  else if (objectAlignment == "center") {
+    alignmentOffset = sf::Vector2f(-tileWidth / 2, -tileHeight / 2);
+  }
+  else if (objectAlignment == "left") {
+    alignmentOffset = sf::Vector2f(0, -tileHeight / 2);
+  }
+  else if (objectAlignment == "right") {
+    alignmentOffset = sf::Vector2f(-tileWidth, -tileHeight / 2);
   }
   else if (objectAlignment == "bottom") {
-    origin = sf::Vector2f(tileWidth / 2, tileHeight);
+    alignmentOffset = sf::Vector2f(-tileWidth / 2, -tileHeight);
   }
   else if (objectAlignment == "bottomleft") {
-    origin = sf::Vector2f(0, tileHeight);
+    alignmentOffset = sf::Vector2f(0, -tileHeight);
   }
 
-  std::string frameOffsetString = " originx=\"" + to_string(origin.x) + "\" originy=\"" + to_string(origin.y) + '"';
+  std::string frameOffsetString = " originx=\"" + to_string(tileWidth / 2) + "\" originy=\"" + to_string(tileHeight / 2) + '"';
   std::string frameSizeString = " w=\"" + to_string(tileWidth) + "\" h=\"" + to_string(tileHeight) + '"';
 
   for (auto i = 0; i < tileElements.size(); i++) {
@@ -1012,7 +1020,8 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
    .name = tilesetElement.GetAttribute("name"),
    .firstGid = firstgid,
    .tileCount = tileCount,
-   .offset = offset,
+   .drawingOffset = drawingOffset,
+   .alignmentOffset = alignmentOffset,
    .orientation = orientation,
    .texture = GetTexture(texturePath),
    .animation = animation,
@@ -1046,7 +1055,8 @@ std::vector<std::unique_ptr<Overworld::TileMeta>> Overworld::SceneBase::ParseTil
     auto tileMeta = std::make_unique<Overworld::TileMeta>(
       tileId,
       tileGid,
-      tileset->offset
+      tileset->drawingOffset,
+      tileset->alignmentOffset
       );
 
     tileMeta->sprite.setTexture(*tileset->texture);
@@ -1097,13 +1107,13 @@ void Overworld::SceneBase::SetBackground(Background* background)
   this->bg = background;
 }
 
-void Overworld::SceneBase::AddSprite(std::shared_ptr<SpriteProxyNode> _sprite, int layer)
+void Overworld::SceneBase::AddSprite(std::shared_ptr<WorldSprite> sprite)
 {
-  sprites.push_back({ _sprite, layer });
+  sprites.push_back(sprite);
 }
 
-void Overworld::SceneBase::RemoveSprite(const std::shared_ptr<SpriteProxyNode> _sprite) {
-  auto pos = std::find_if(sprites.begin(), sprites.end(), [_sprite](WorldSprite in) { return in.node == _sprite; });
+void Overworld::SceneBase::RemoveSprite(const std::shared_ptr<WorldSprite> sprite) {
+  auto pos = std::find(sprites.begin(), sprites.end(), sprite);
 
   if (pos != sprites.end())
     sprites.erase(pos);

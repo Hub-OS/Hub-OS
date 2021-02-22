@@ -1,7 +1,9 @@
+#pragma once
+
 #include <SFML/System.hpp>
 #include <queue>
+#include "bnOverworldSprite.h"
 #include "../bnDirection.h"
-#include "../bnSpriteProxyNode.h"
 #include "../bnAnimation.h"
 #include "../bnCallback.h"
 #include "../bnDrawWindow.h"
@@ -27,7 +29,7 @@ namespace Overworld {
     float spinProgress{};
     frame_time_t walkFrames{};
     std::shared_ptr<Overworld::Actor> actor;
-    std::shared_ptr<SpriteProxyNode> beam;
+    std::shared_ptr<WorldSprite> beam;
     Animation beamAnim;
     sf::Vector2f startPos{};
     Direction startDir;
@@ -40,7 +42,7 @@ namespace Overworld {
     Command& TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector2f& start, Direction dir);
     void Update(double elapsed);
     const bool IsComplete() const;
-    std::shared_ptr<SpriteProxyNode> GetBeam();
+    std::shared_ptr<WorldSprite> GetBeam();
     void EnableSound(bool enable);
   };
 }

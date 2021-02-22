@@ -1,3 +1,6 @@
+#pragma once
+
+#include "bnOverworldSprite.h"
 #include "../bnTextureResourceManager.h"
 #include "../bnSpriteProxyNode.h"
 #include "../bnDirection.h"
@@ -21,7 +24,7 @@ namespace Overworld {
     std::vector<std::shared_ptr<Actor>> GetActors() const;
   };
 
-  class Actor : public SpriteProxyNode {
+  class Actor : public WorldSprite {
   public:
     enum class MovementState : unsigned char {
       idle = 0,

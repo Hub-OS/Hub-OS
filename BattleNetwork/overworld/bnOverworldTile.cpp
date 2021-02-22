@@ -40,8 +40,8 @@ namespace Overworld {
       // tiled uses position on sprite with orthographic projection
       auto spriteBounds = tileMeta.sprite.getLocalBounds();
 
-      testPosition.x += tileSize.x / 2 - tileMeta.offset.x;
-      testPosition.y += spriteBounds.height - tileSize.y - tileMeta.offset.y;
+      testPosition.x += tileSize.x / 2 - tileMeta.drawingOffset.x;
+      testPosition.y += spriteBounds.height - tileSize.y - tileMeta.drawingOffset.y;
     }
     else {
       // isometric orientation

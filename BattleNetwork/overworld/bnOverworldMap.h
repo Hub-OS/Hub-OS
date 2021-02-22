@@ -4,10 +4,10 @@
 #include <unordered_map>
 #include <memory>
 
-#include "bnOverworldObject.h"
+#include "bnOverworldSprite.h"
 #include "bnOverworldTile.h"
+#include "bnOverworldObject.h"
 #include "../bnAnimation.h"
-#include "../bnSpriteProxyNode.h"
 
 namespace Overworld {
   class SceneBase;
@@ -45,7 +45,7 @@ namespace Overworld {
       size_t cols, rows;
       std::vector<Tile> tiles;
       std::vector<TileObject> tileObjects;
-      std::vector<std::shared_ptr<SpriteProxyNode>> spriteProxiesForAddition;
+      std::vector<std::shared_ptr<WorldSprite>> spritesForAddition;
 
       friend class Map;
     };
