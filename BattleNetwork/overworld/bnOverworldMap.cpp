@@ -42,9 +42,9 @@ namespace Overworld {
     return OrthoToIsometric(sf::Vector2f{ screen.x / scale.x, screen.y / scale.y });
   }
 
-  const sf::Vector2f Map::WorldToScreen(sf::Vector2f screen) const
+  const sf::Vector2f Map::WorldToScreen(sf::Vector2f world) const
   {
-    return IsoToOrthogonal(screen);
+    return IsoToOrthogonal(world);
   }
 
   const sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
