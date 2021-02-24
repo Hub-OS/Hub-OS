@@ -15,10 +15,13 @@ namespace Overworld {
 
     // convert to orthogonal to simplify transformations
     testPosition = map.WorldToScreen(testPosition);
+
+    auto& tileMeta = *map.GetTileMeta(gid);
+    auto spriteBounds = tileMeta.sprite.getLocalBounds();
     auto tileSize = map.GetTileSize();
 
     if (rotated) {
-      auto tileCenter = sf::Vector2f(0, tileSize.y / 2);
+      auto tileCenter = sf::Vector2f(0, tileSize.y / 2.0f);
 
       testPosition -= tileCenter;
       // rotate position counter clockwise
@@ -31,18 +34,15 @@ namespace Overworld {
     }
 
     if (flippedVertical) {
-      testPosition.y = tileSize.y - testPosition.y;
+      testPosition.y = spriteBounds.height - testPosition.y;
     }
-
-    auto& tileMeta = *map.GetTileMeta(gid);
 
     testPosition -= tileMeta.drawingOffset;
 
     if (tileset->orientation == Projection::Orthographic) {
       // tiled uses position on sprite with orthographic projection
-      auto spriteBounds = tileMeta.sprite.getLocalBounds();
 
-      testPosition.x += tileSize.x / 2;
+      testPosition.x += tileSize.x / 2.0f;
       testPosition.y += spriteBounds.height - tileSize.y;
     }
     else {
