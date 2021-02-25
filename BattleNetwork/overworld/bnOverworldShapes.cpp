@@ -61,8 +61,8 @@ namespace Overworld {
   bool Ellipse::Intersects(float x, float y) const {
     rotateAround(this->x, this->y, -rotation, &x, &y);
 
-    auto distanceX = x - this->x;
-    // add half height as tiled centers ellipse at the top
+    // add half size as tiled centers ellipse at the top left
+    auto distanceX = x - (this->x + this->width / 2.0f);
     auto distanceY = y - (this->y + this->height / 2.0f);
 
     auto radiusX = this->width / 2.0f;
