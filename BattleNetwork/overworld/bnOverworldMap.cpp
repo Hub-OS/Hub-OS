@@ -167,17 +167,13 @@ namespace Overworld {
   bool Map::CanMoveTo(float x, float y, int layerIndex) {
     auto& layer = GetLayer(layerIndex);
     auto& tile = layer.GetTile(x, y);
-    auto tileset = GetTileset(tile.gid);
-
-    if (!tileset) {
-      return false;
-    }
 
     // get decimal part
-    float _;
+    float tileX;
+    float tileY;
     auto testPosition = sf::Vector2f(
-      std::modf(x, &_),
-      std::modf(y, &_)
+      std::modf(x, &tileX),
+      std::modf(y, &tileY)
     );
 
     // get positive coords
@@ -192,33 +188,16 @@ namespace Overworld {
     testPosition.x *= tileWidth / 2;
     testPosition.y *= tileHeight;
 
-    if(tile.Intersects(*this, testPosition.x, testPosition.y)) {
+    if (tile.Intersects(*this, testPosition.x, testPosition.y)) {
       return false;
     }
 
-    if (tile.flippedHorizontal) {
-      testPosition.x *= -1;
-    }
+    testPosition.x += tileX * tileWidth / 2;
+    testPosition.y += tileY * tileHeight;
 
-    if (tile.flippedVertical) {
-      testPosition.y = tileHeight - testPosition.y;
-    }
-
-    auto& tileMeta = *GetTileMeta(tile.gid);
-
-    if (tileset->orientation == Projection::Orthographic) {
-      // tiled uses position on sprite with orthographic projection
-      auto spriteBounds = tileMeta.sprite.getLocalBounds();
-
-      testPosition.x += tileWidth / 2 - tileMeta.offset.x;
-      testPosition.y += spriteBounds.height - tileHeight - tileMeta.offset.y;
-    } else {
-      // isometric orientation
-      testPosition = OrthoToIsometric(testPosition);
-    }
-
-    for (auto& shape : tileMeta.collisionShapes) {
-      if (shape->Intersects(testPosition.x, testPosition.y)) {
+    // todo: use a spatial map for increased performance
+    for (auto& tileObject : layer.GetTileObjects()) {
+      if (tileObject.Intersects(*this, testPosition.x, testPosition.y)) {
         return false;
       }
     }
@@ -229,7 +208,7 @@ namespace Overworld {
   void Map::RemoveSprites(SceneBase& scene) {
     for (auto& layer : layers) {
       for (auto& tileObject : layer.tileObjects) {
-        auto spriteProxy = tileObject.GetSpriteProxy();
+        auto spriteProxy = tileObject.GetWorldSprite();
 
         if (spriteProxy) {
           scene.RemoveSprite(spriteProxy);

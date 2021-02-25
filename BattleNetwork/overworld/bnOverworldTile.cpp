@@ -21,7 +21,7 @@ namespace Overworld {
     auto tileSize = map.GetTileSize();
 
     if (rotated) {
-      auto tileCenter = sf::Vector2f(0, tileSize.y / 2.0f);
+      auto tileCenter = sf::Vector2f(0, tileSize.y / 2);
 
       testPosition -= tileCenter;
       // rotate position counter clockwise
@@ -42,7 +42,7 @@ namespace Overworld {
     if (tileset->orientation == Projection::Orthographic) {
       // tiled uses position on sprite with orthographic projection
 
-      testPosition.x += tileSize.x / 2.0f;
+      testPosition.x += tileSize.x / 2;
       testPosition.y += spriteBounds.height - tileSize.y;
     }
     else {
