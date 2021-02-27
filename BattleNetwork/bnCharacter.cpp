@@ -75,21 +75,9 @@ const bool Character::CanTilePush() const {
   return canTilePush;
 }
 
-void Character::QueueAction(CardAction* action)
+void Character::QueueAction(const ActionEvent& action)
 {
-  if (queuedAction) {
-    delete action;
-    action = nullptr;
-  }
-
-  queuedAction = action;
-}
-
-CardAction* Character::DequeueAction()
-{
-  CardAction* temp = queuedAction;
-  queuedAction = nullptr;
-  return temp;
+  actionQueue.push(action);
 }
 
 void Character::Update(double _elapsed) {
@@ -150,14 +138,29 @@ void Character::Update(double _elapsed) {
 
   Entity::Update(_elapsed);
 
-  if (queuedAction && currentAction == nullptr && !GetNextTile()) {
-    currentAction = queuedAction;
-    queuedAction = nullptr;
-    currentAction->Execute();
-  }
+  if (actionQueue.size()) {
+    std::visit(
+      overload(
+        [_elapsed](CardAction* action) {
+          if (action->CanExecute()) {
+            action->Execute();
+          }
 
-  if (currentAction) {
-    currentAction->Update(_elapsed);
+          action->Update(_elapsed);
+        },
+
+        [_elapsed](const MoveEvent& event) {
+
+        },
+
+        [_elapsed](const BusterEvent& event) {
+          
+        },
+
+        [](auto&&) {}
+      ),
+      actionQueue.top().data
+    );
   }
 
   // If the counterSlideOffset has changed from 0, it's due to the character
@@ -271,7 +274,7 @@ const int Character::GetMaxHealth() const
 
 const bool Character::CanAttack() const
 {
-    return !IsSliding() && queuedAction == nullptr && GetComponentsDerivedFrom<CardAction>().empty();
+  return !IsSliding() && currentAction.data.index() == 0;
 }
 
 void Character::ResolveFrameBattleDamage()
@@ -587,6 +590,11 @@ void Character::CancelSharedHitboxDamage(Character * to)
 
 void Character::EndCurrentAction()
 {
-  if (currentAction) delete currentAction;
-  currentAction = nullptr;
+  std::visit(
+    overload(
+      [](CardAction* action) { action->EndAction();  delete action; },
+      [](auto&&) {}
+    ),
+    currentAction.data
+  );
 }
