@@ -9,6 +9,7 @@
 
 #include <string>
 #include <queue>
+#include <variant>
 #include <functional>
 
 using std::string;
@@ -16,6 +17,34 @@ using std::string;
 class DefenseRule;
 class Spell;
 class CardAction;
+
+enum class ActionPriority : short {
+  immediate = 0,
+  card_chain = 1, // !< For cards used in successive animations under special conditions
+  trigger = 2,
+  forced,
+  voluntary
+};
+
+struct ActionComparitor {
+  bool operator()(const ActionEvent& a, const ActionEvent& b) {
+    return a.value < b.value;
+  }
+};
+
+struct ActionEvent {
+  ActionPriority value{};
+  long long timestamp{}; //!< When was this action created?
+  std::variant<MoveData, CardAction*> data;
+};
+
+struct MoveData {
+  frame_time_t deltaFrames{}; //!< Frames between tile A and B. If 0, teleport. Else, we could be sliding
+  frame_time_t delayFrames{}; //!< Startup lag to be used with animations
+  frame_time_t endlagFrames{}; //!< Wait period before action is complete
+  float height{}; //!< If this is non-zero with delta frames, the character will effectively jump
+  Tile* dest{nullptr};
+};
 
 /**
  * @class Character
@@ -44,7 +73,8 @@ private:
 
   sf::Shader* whiteout; /*!< Flash white when hit */
   sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
-  CardAction* queuedAction{ nullptr }, *currentAction{ nullptr }; /*!< Allow actions to take place through a trusted state */
+  ActionEvent* currentAction{}; /*!< Allow actions to take place through a trusted state */
+  std::priority_queue<ActionEvent*, std::vector<ActionEvent*>, ActionComparitor> actionQueue;
 
   bool hit; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
