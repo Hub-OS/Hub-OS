@@ -544,7 +544,7 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
       auto& tile = layer.GetTile(j, i);
       if (tile.gid == 0) continue;
 
-      auto& tileMeta = map.GetTileMeta(tile.gid);
+      auto tileMeta = map.GetTileMeta(tile.gid);
 
       // failed to load tile
       if (tileMeta == nullptr) continue;
@@ -797,7 +797,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     auto tileMetas = ParseTileMetas(tilesetElement, tileset);
 
     for (auto& tileMeta : tileMetas) {
-      map.SetTileset(tileset, std::move(tileMeta));
+      map.SetTileset(tileset, tileMeta);
     }
   }
 
@@ -1030,7 +1030,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
   return std::make_shared<Overworld::Tileset>(tileset);
 }
 
-std::vector<std::unique_ptr<Overworld::TileMeta>> Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset) {
+std::vector<std::shared_ptr<Overworld::TileMeta>> Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset) {
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
 
   std::vector<XMLElement> tileElements(tileCount);
@@ -1047,12 +1047,12 @@ std::vector<std::unique_ptr<Overworld::TileMeta>> Overworld::SceneBase::ParseTil
     }
   }
 
-  std::vector<std::unique_ptr<Overworld::TileMeta>> tileMetas;
+  std::vector<std::shared_ptr<Overworld::TileMeta>> tileMetas;
   auto tileId = 0;
   auto tileGid = tileset->firstGid;
 
   for (auto& tileElement : tileElements) {
-    auto tileMeta = std::make_unique<Overworld::TileMeta>(
+    auto tileMeta = std::make_shared<Overworld::TileMeta>(
       tileId,
       tileGid,
       tileset->drawingOffset,
@@ -1078,7 +1078,7 @@ std::vector<std::unique_ptr<Overworld::TileMeta>> Overworld::SceneBase::ParseTil
       }
     }
 
-    tileMetas.push_back(std::move(tileMeta));
+    tileMetas.push_back(tileMeta);
     tileId += 1;
     tileGid += 1;
   }

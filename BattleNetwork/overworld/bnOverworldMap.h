@@ -97,10 +97,10 @@ namespace Overworld {
     const unsigned GetCols() const;
     const unsigned GetRows() const;
     unsigned int GetTileCount();
-    std::unique_ptr<TileMeta>& GetTileMeta(unsigned int tileGid);
+    std::shared_ptr<TileMeta> GetTileMeta(unsigned int tileGid);
     std::shared_ptr<Tileset> GetTileset(std::string name);
     std::shared_ptr<Tileset> GetTileset(unsigned int tileGid);
-    void SetTileset(std::shared_ptr<Tileset> tileset, std::unique_ptr<TileMeta> tileMeta);
+    void SetTileset(std::shared_ptr<Tileset> tileset, std::shared_ptr<TileMeta> tileMeta);
     size_t GetLayerCount() const;
     Layer& GetLayer(size_t index);
     Layer& AddLayer();
@@ -114,7 +114,7 @@ namespace Overworld {
     std::vector<Layer> layers;
     std::vector<std::shared_ptr<Tileset>> tileToTilesetMap;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> tilesets;
-    std::vector<std::unique_ptr<TileMeta>> tileMetas;
+    std::vector<std::shared_ptr<TileMeta>> tileMetas;
 
     /**
      * @brief Transforms an iso vector into an orthographic vector

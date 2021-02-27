@@ -16,8 +16,8 @@ namespace Overworld {
     // convert to orthogonal to simplify transformations
     testPosition = map.WorldToScreen(testPosition);
 
-    auto& tileMeta = *map.GetTileMeta(gid);
-    auto spriteBounds = tileMeta.sprite.getLocalBounds();
+    auto tileMeta = map.GetTileMeta(gid);
+    auto spriteBounds = tileMeta->sprite.getLocalBounds();
     auto tileSize = map.GetTileSize();
 
     if (rotated) {
@@ -37,7 +37,7 @@ namespace Overworld {
       testPosition.y = spriteBounds.height - testPosition.y;
     }
 
-    testPosition -= tileMeta.drawingOffset;
+    testPosition -= tileMeta->drawingOffset;
 
     if (tileset->orientation == Projection::Orthographic) {
       // tiled uses position on sprite with orthographic projection
@@ -50,7 +50,7 @@ namespace Overworld {
       testPosition = map.OrthoToIsometric(testPosition);
     }
 
-    for (auto& shape : tileMeta.collisionShapes) {
+    for (auto& shape : tileMeta->collisionShapes) {
       if (shape->Intersects(testPosition.x, testPosition.y)) {
         return true;
       }

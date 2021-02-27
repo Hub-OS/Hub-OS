@@ -111,7 +111,7 @@ namespace Overworld {
     return tileMetas.size();
   }
 
-  std::unique_ptr<TileMeta>& Map::GetTileMeta(unsigned int tileGid) {
+  std::shared_ptr<TileMeta> Map::GetTileMeta(unsigned int tileGid) {
     if (tileGid < 0 || tileGid >= tileMetas.size()) {
       return tileMetas[0];
     }
@@ -135,7 +135,7 @@ namespace Overworld {
     return tileToTilesetMap[tileGid];
   }
 
-  void Map::SetTileset(std::shared_ptr<Tileset> tileset, std::unique_ptr<TileMeta> tileMeta) {
+  void Map::SetTileset(std::shared_ptr<Tileset> tileset, std::shared_ptr<TileMeta> tileMeta) {
     auto tileGid = tileMeta->gid;
 
     if (tileToTilesetMap.size() <= tileGid) {
@@ -143,7 +143,7 @@ namespace Overworld {
       tileMetas.resize(tileGid + 1);
     }
 
-    tileMetas[tileGid] = std::move(tileMeta);
+    tileMetas[tileGid] = tileMeta;
     tileToTilesetMap[tileGid] = tileset;
     tilesets[tileset->name] = tileset;
   }

@@ -17,10 +17,10 @@ namespace Overworld {
       return false;
     }
 
-    auto& tileMeta = *map.GetTileMeta(tile.gid);
+    auto tileMeta = map.GetTileMeta(tile.gid);
     auto tileSize = map.GetTileSize();
-    auto spriteOrigin = tileMeta.sprite.getOrigin();
-    auto spriteBounds = tileMeta.sprite.getLocalBounds();
+    auto spriteOrigin = tileMeta->sprite.getOrigin();
+    auto spriteBounds = tileMeta->sprite.getLocalBounds();
 
     auto iso = sf::Vector2f(x, y);
     iso.x -= this->position.x;
@@ -79,7 +79,7 @@ namespace Overworld {
   }
 
   void TileObject::Update(Map& map) {
-    auto& tileMeta = map.GetTileMeta(tile.gid);
+    auto tileMeta = map.GetTileMeta(tile.gid);
     auto tileset = map.GetTileset(tile.gid);
 
     if (tileMeta == nullptr || tileset == nullptr) {

@@ -83,7 +83,7 @@ namespace Overworld {
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
 
     std::shared_ptr<Tileset> ParseTileset(XMLElement element, unsigned int firstgid);
-    std::vector<std::unique_ptr<Overworld::TileMeta>> ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset);
+    std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset);
     void LoadBackground(const std::string& value);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
     void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);
