@@ -1,6 +1,6 @@
 #include "bnAntiDmgCardAction.h"
 #include "bnCharacter.h"
-#include "bnDefenseAntiDamage.h"
+#include "bnNinjaAntiDamage.h"
 
 AntiDmgCardAction::AntiDmgCardAction(Character& owner, int damage) : 
   damage(damage),
@@ -13,6 +13,7 @@ AntiDmgCardAction::AntiDmgCardAction(Character& owner, int damage) :
 }
 
 void AntiDmgCardAction::OnExecute() {
+  GetCharacter().CreateComponent<NinjaAntiDamage>(&GetCharacter());
 }
 
 AntiDmgCardAction::~AntiDmgCardAction()

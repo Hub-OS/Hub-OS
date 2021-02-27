@@ -26,12 +26,6 @@ enum class ActionPriority : short {
   voluntary
 };
 
-struct ActionComparitor {
-  bool operator()(const ActionEvent& a, const ActionEvent& b) {
-    return a.value < b.value;
-  }
-};
-
 struct MoveEvent {
   frame_time_t deltaFrames{}; //!< Frames between tile A and B. If 0, teleport. Else, we could be sliding
   frame_time_t delayFrames{}; //!< Startup lag to be used with animations
@@ -48,15 +42,17 @@ struct BusterEvent {
   bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
 };
 
-//!< Used to 1) keep the variant well-formed 2) represent an empty event
-struct Nonce {};
-
 struct ActionEvent {
   ActionPriority value{};
   long long timestamp{}; //!< When was this action created
 
-  //!< NOTE: Nonce is first so it's index is always ZERO
-  std::variant<Nonce, MoveEvent, BusterEvent, CardAction*> data{ Nonce{} };
+  std::variant<MoveEvent, BusterEvent, CardAction*> data;
+};
+
+struct ActionComparitor {
+  bool operator()(const ActionEvent& a, const ActionEvent& b) {
+    return a.value < b.value;
+  }
 };
 
 // overload design pattern for variant visits
@@ -70,6 +66,8 @@ struct overload : Fs... {
 
 template <class ...Ts>
 overload(Ts&&...)->overload<std::remove_reference_t<Ts>...>;
+
+constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
 
 /**
  * @class Character
@@ -98,8 +96,8 @@ private:
 
   sf::Shader* whiteout; /*!< Flash white when hit */
   sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
-  ActionEvent currentAction{}; /*!< Allow actions to take place through a trusted state */
   std::priority_queue<ActionEvent, std::vector<ActionEvent>, ActionComparitor> actionQueue;
+  frame_time_t cardActionStartDelay{0};
 
   bool hit; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
@@ -147,6 +145,9 @@ public:
   virtual void OnUpdate(double elapsed) = 0;
 
   void QueueAction(const ActionEvent& action);
+  void ClearActionQueue();
+  const bool IsLockoutComplete();
+  CardAction* CurrentCardAction();
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization
   void Update(double elapsed) override;

@@ -77,7 +77,55 @@ const bool Character::CanTilePush() const {
 
 void Character::QueueAction(const ActionEvent& action)
 {
+  std::visit(
+    overload(
+      // if visiting a card action...
+      [this](CardAction*) {
+        this->cardActionStartDelay = CARD_ACTION_ARTIFICIAL_LAG;
+      },
+      // else
+      [](auto&&) {}
+    ),
+    action.data
+  );
+
   actionQueue.push(action);
+}
+
+void Character::ClearActionQueue()
+{
+  EndCurrentAction();
+  
+  while (actionQueue.size()) {
+    actionQueue.pop();
+  }
+}
+
+const bool Character::IsLockoutComplete()
+{
+  if (actionQueue.empty()) return true;
+
+  bool isComplete = true;
+
+  std::visit(
+    overload(
+      [&isComplete](CardAction* action) {
+        if (action->GetLockoutType() == CardAction::LockoutType::async && !action->IsAnimationOver()) {
+          isComplete = false;
+        }
+        else if (action->GetLockoutType() == CardAction::LockoutType::animation) {
+          isComplete = action->IsLockoutOver();
+        }
+      },
+      [&isComplete](const MoveEvent& event) {
+        isComplete = false;
+      },
+      [](auto&&) {}
+    ),
+    actionQueue.top().data
+  );
+
+  return isComplete;
 }
 
 void Character::Update(double _elapsed) {
@@ -141,20 +189,31 @@ void Character::Update(double _elapsed) {
   if (actionQueue.size()) {
     std::visit(
       overload(
-        [_elapsed](CardAction* action) {
+        [_elapsed, this](CardAction* action) {
           if (action->CanExecute()) {
-            action->Execute();
+            cardActionStartDelay -= from_seconds(_elapsed);
+
+            if (this->cardActionStartDelay <= frames(0)) {
+              action->Execute();
+            }
+            else {
+              return; // break early
+            }
           }
 
           action->Update(_elapsed);
+
+          if (action->IsAnimationOver()) {
+            actionQueue.pop();
+          }
         },
 
-        [_elapsed](const MoveEvent& event) {
-
+        [_elapsed, this](const MoveEvent& event) {
+          actionQueue.pop();
         },
 
-        [_elapsed](const BusterEvent& event) {
-          
+        [_elapsed, this](const BusterEvent& event) {
+          actionQueue.pop();
         },
 
         [](auto&&) {}
@@ -274,7 +333,7 @@ const int Character::GetMaxHealth() const
 
 const bool Character::CanAttack() const
 {
-  return !IsSliding() && currentAction.data.index() == 0;
+  return !IsSliding() && actionQueue.empty();
 }
 
 void Character::ResolveFrameBattleDamage()
@@ -318,11 +377,13 @@ void Character::ResolveFrameBattleDamage()
     {
       // Only register counter if:
       // 1. Hit type is impact
-      // 2. The character is on a counter frame
-      // 3. Hit properties has an aggressor
+      // 2. Hit type is also flinch
+      // 3. The hitbox is allowed to counter
+      // 4. The character is on a counter frame
+      // 5. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if (props.aggressor) {
+        if ((props.flags & Hit::flinch) == Hit::flinch && props.aggressor && props.counters) {
           frameCounterAggressor = props.aggressor;
         }
 
@@ -488,6 +549,29 @@ void Character::ResolveFrameBattleDamage()
   }
 }
 
+void Character::OnUpdate(double elapsed)
+{
+}
+
+CardAction* Character::CurrentCardAction()
+{
+    CardAction* action = nullptr;
+
+    if (actionQueue.size()) {
+      std::visit(
+        overload(
+          [&action](CardAction* item) {
+            action = item;
+          },
+          [](auto&&) {}
+        ),
+        actionQueue.top().data
+      );
+    }
+
+    return action;
+}
+
 void Character::SetHealth(const int _health) {
   health = _health;
 
@@ -590,11 +674,13 @@ void Character::CancelSharedHitboxDamage(Character * to)
 
 void Character::EndCurrentAction()
 {
+  if (actionQueue.empty()) return;
+
   std::visit(
     overload(
       [](CardAction* action) { action->EndAction();  delete action; },
       [](auto&&) {}
     ),
-    currentAction.data
+    actionQueue.top().data
   );
 }

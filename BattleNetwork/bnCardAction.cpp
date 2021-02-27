@@ -195,9 +195,9 @@ void CardAction::Update(double _elapsed)
 void CardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 };
 
-void CardAction::SetExecutionType(const ExecutionType& type)
+void CardAction::PreventCounters()
 {
-  this->execType = type;
+  preventCounters = true;
 }
 
 void CardAction::SetLockout(const CardAction::LockoutProperties& props)
@@ -230,11 +230,6 @@ const CardAction::LockoutGroup CardAction::GetLockoutGroup() const
 const CardAction::LockoutType CardAction::GetLockoutType() const
 {
   return lockoutProps.type;
-}
-
-const CardAction::ExecutionType CardAction::GetExecutionType() const
-{
-  return execType;
 }
 
 const std::string& CardAction::GetAnimState() const

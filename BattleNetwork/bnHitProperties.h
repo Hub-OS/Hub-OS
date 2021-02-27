@@ -37,6 +37,7 @@ namespace Hit {
     Element element{ Element::none };
     Character* aggressor{ nullptr };
     Direction drag{ Direction::none }; // Used by dragging payload
+    bool counters{ true };
 
     Properties() = default;
     Properties(const Properties& rhs) = default;
@@ -48,6 +49,7 @@ namespace Hit {
     Flags(Hit::recoil | Hit::impact), 
     Element::none, 
     nullptr, 
-    Direction::none 
+    Direction::none,
+    true
   };
 }

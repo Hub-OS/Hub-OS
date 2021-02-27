@@ -44,6 +44,7 @@ namespace Battle {
       std::vector<std::string> metaClasses; /*!< Cards can be tagged with additional user information*/
     };
 
+    Properties props;
     /**
       * @brief Cards are not designed to have default or partial data. Must provide all at once.
       */
@@ -172,7 +173,7 @@ namespace Battle {
     friend struct Compare;
 
   private:
-    Properties props;
+//    Properties props;
     Properties unmodded;
     unsigned int multiplier{ 0 };
   };

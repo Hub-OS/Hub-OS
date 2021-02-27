@@ -77,22 +77,31 @@ void Player::OnUpdate(double _elapsed) {
 }
 
 void Player::Attack() {
+  CardAction* action = nullptr;
+
   // Queue an action for the controller to fire at the right frame
   if (tile) {
-    chargeEffect.IsFullyCharged() ? QueueAction(ExecuteChargedBuster()) : QueueAction(ExecuteBuster());
+    chargeEffect.IsFullyCharged()? action = ExecuteChargedBuster() : action = ExecuteBuster(); 
+    
+    if (action) {
+      action->PreventCounters();
+      QueueAction({ ActionPriority::voluntary,CurrentTime::AsMilli(), action });
+    }
   }
 }
 
 void Player::UseSpecial()
 {
   if (tile) {
-    auto action = ExecuteSpecial();
-    
-    if (action) {
+    if (auto action = ExecuteSpecial()) {
+      action->PreventCounters();
       action->SetLockoutGroup(CardAction::LockoutGroup::ability);
-      QueueAction(action);
+      QueueAction({
+        ActionPriority::voluntary,
+        CurrentTime::AsMilli(),
+        action
+      });
     }
-
   }
 }
 

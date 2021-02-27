@@ -57,8 +57,8 @@ void BusterCardAction::OnExecute() {
     b->SetHitboxProperties(props);
 
     isBusterAlive = true;
-    Entity::RemoveCallback& busterRemoved = b->CreateRemoveCallback();
-    busterRemoved.Slot([this]() {
+    busterRemoved = &b->CreateRemoveCallback().get();
+    busterRemoved->Slot([this]() {
       isBusterAlive = false;
       OnEndAction();
       });
@@ -74,6 +74,9 @@ void BusterCardAction::OnExecute() {
 
 BusterCardAction::~BusterCardAction()
 {
+  if (busterRemoved) {
+    busterRemoved->Reset();
+  }
 }
 
 void BusterCardAction::Update(double _elapsed)

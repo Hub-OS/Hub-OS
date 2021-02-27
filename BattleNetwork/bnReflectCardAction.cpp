@@ -28,6 +28,7 @@ void ReflectCardAction::OnExecute() {
   // Create a new reflect shield component. This handles the logic for shields.
   ReflectShield* reflect = new ReflectShield(user, damage, type);
   reflect->SetDuration(this->duration);
+  user->GetField()->AddEntity(*reflect, *user->GetTile());
 }
 
 void ReflectCardAction::SetDuration(const frame_time_t& duration)

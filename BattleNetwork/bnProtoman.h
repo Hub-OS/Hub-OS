@@ -8,7 +8,7 @@
 #include "bnPlayer.h"
 #include "bnPlayerControlledState.h"
 #include "bnPlayerIdleState.h"
-
+ 
 using sf::IntRect;
 
 class Protoman : public Player {

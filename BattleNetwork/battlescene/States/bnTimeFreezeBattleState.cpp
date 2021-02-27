@@ -32,6 +32,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = startState;
+  action = user->CurrentCardAction();
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -116,16 +117,6 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
 void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
-  if (executeOnce) return;
-
-  executeOnce = true;
-
-  auto actions = user->GetComponentsDerivedFrom<CardAction>();
-
-  if (actions.empty()) return;
-
-  action = actions[0];
-
   if (action && action->CanExecute()) {
     action->Execute();
 

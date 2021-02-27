@@ -60,6 +60,8 @@ public:
   */
   void OnDelete() override;
 
+  void OnSpawn(Battle::Tile& start) override;
+
 private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */
   int random;

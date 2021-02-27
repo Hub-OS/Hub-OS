@@ -16,11 +16,6 @@ using namespace swoosh;
 
 class CardAction : public sf::Drawable, public ResourceHandle {
 public:
-  enum class ExecutionType : unsigned {
-    manual = 0,
-    immediate
-  };
-
   enum class LockoutType : unsigned {
     animation = 0,
     async,
@@ -89,7 +84,7 @@ public:
 private:
   bool animationIsOver{ false };
   bool started{ false };
-  ExecutionType execType{};
+  bool preventCounters{ false };
   LockoutProperties lockoutProps{};
   std::string animation;
   std::string uuid, prevState;
@@ -126,7 +121,7 @@ public:
   CardAction(Character& owner, const std::string& animation);
   virtual ~CardAction();
 
-  void SetExecutionType(const ExecutionType& type);
+  void PreventCounters();
   void SetLockout(const LockoutProperties& props);
   void SetLockoutGroup(const LockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
@@ -135,7 +130,6 @@ public:
 
   const LockoutGroup GetLockoutGroup() const;
   const LockoutType GetLockoutType() const;
-  const ExecutionType GetExecutionType() const;
   const std::string& GetAnimState() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;

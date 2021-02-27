@@ -28,7 +28,7 @@ void HubBatchCardAction::OnExecute() {
   Audio().Play(AudioType::RECOVER);
 
   // Add hubbatchprogram compontent
-  GetCharacter().CreateComponent<HubBatchProgram>(GetCharacter());
+  GetCharacter().CreateComponent<HubBatchProgram>(&GetCharacter());
 }
 
 void HubBatchCardAction::Update(double _elapsed)

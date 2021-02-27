@@ -220,6 +220,12 @@ const bool SelectedCardsUI::UseNextCard() {
   multiplierValue = 1; // reset 
 
   // Broadcast to all subscribed CardUseListeners
+
+  // TAKE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!
+  if (card->GetShortName() == "AntiDmg") {
+    card->props.timeFreeze = true;
+  }
+
   Broadcast(*card, *player, CurrentTime::AsMilli());
 
   return ++curr;
