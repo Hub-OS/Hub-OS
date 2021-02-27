@@ -145,7 +145,7 @@ const Direction AirHockey::Bounce(const Direction& dir, Battle::Tile& next)
   Direction flip_y = Reverse(y);
 
   auto testMoveThunk = [this](Battle::Tile& tile, const Direction& dir) -> bool {
-    Battle::Tile* new_tile = &(tile + dir);
+    Battle::Tile* new_tile = (tile + dir);
     return CanMoveTo(new_tile);
   };
 

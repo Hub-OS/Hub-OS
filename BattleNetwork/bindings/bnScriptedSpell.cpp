@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnScriptedSpell.h"
 
 ScriptedSpell::ScriptedSpell(Team _team) : 
@@ -89,3 +90,4 @@ void ScriptedSpell::SetTileOffset(float x, float y)
 {
   ScriptedSpell::scriptedOffset = { x, y };
 }
+#endif

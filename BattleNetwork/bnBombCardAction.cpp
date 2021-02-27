@@ -29,7 +29,7 @@ BombCardAction::~BombCardAction()
 void BombCardAction::OnExecute() {
   // On throw frame, spawn projectile
   auto onThrow = [this]() -> void {
-    auto* owner = GetOwner();
+    auto* owner = &GetCharacter();
 
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
 
@@ -64,6 +64,5 @@ void BombCardAction::OnAnimationEnd()
 
 void BombCardAction::OnEndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  Eject();
+  GetCharacter().RemoveNode(attachment);
 }

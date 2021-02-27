@@ -23,20 +23,20 @@ RecoverCardAction::~RecoverCardAction()
 }
 
 void RecoverCardAction::OnExecute() {
-  auto user = GetOwner();
+  auto& user = GetCharacter();
 
   // Increase player health
-  user->SetHealth(user->GetHealth() + heal);
+  user.SetHealth(user.GetHealth() + heal);
 
   // Play sound
   Audio().Play(AudioType::RECOVER);
 
   // Add artifact on the same layer as player
-  Battle::Tile* tile = user->GetTile();
+  Battle::Tile* tile = user.GetTile();
 
   if (tile) {
     auto healfx = new ParticleHeal();
-    user->GetField()->AddEntity(*healfx, tile->GetX(), tile->GetY());
+    user.GetField()->AddEntity(*healfx, *tile);
   }
 }
 
@@ -46,5 +46,4 @@ void RecoverCardAction::OnAnimationEnd()
 
 void RecoverCardAction::OnEndAction()
 {
-  Eject();
 }

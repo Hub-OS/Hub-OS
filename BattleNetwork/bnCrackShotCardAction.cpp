@@ -40,7 +40,7 @@ CrackShotCardAction::~CrackShotCardAction()
 }
 
 void CrackShotCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto owner = &GetCharacter();
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner]() -> void {
@@ -50,9 +50,11 @@ void CrackShotCardAction::OnExecute() {
       step = -1;
     }
 
-    auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+    auto tile = owner->GetTile()->Offset(step, 0);
+    auto field = owner->GetField();
 
     if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter()) {
+
       CrackShot* b = new CrackShot(owner->GetTeam(), tile);
       auto props = b->GetHitboxProperties();
       props.damage = damage;
@@ -64,7 +66,7 @@ void CrackShotCardAction::OnExecute() {
 
       owner->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 
-      GetOwner()->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
+      field->AddEntity(*b, *tile);
       Audio().Play(AudioType::TOSS_ITEM_LITE);
 
       tile->SetState(TileState::broken);
@@ -72,14 +74,14 @@ void CrackShotCardAction::OnExecute() {
 
     if (tile) {
       auto* fx = new ParticleImpact(ParticleImpact::Type::wind);
-      GetOwner()->GetField()->AddEntity(*fx, tile->GetX(), tile->GetY());
+      field->AddEntity(*fx, *tile);
     }
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);
   };
 
   auto addHand = [this] {
-    auto* owner = GetOwner();
+    auto owner = &GetCharacter();
     overlay.setTexture(*owner->getTexture());
     attachment = new SpriteProxyNode(overlay);
     attachment->SetLayer(-1);
@@ -102,5 +104,4 @@ void CrackShotCardAction::OnAnimationEnd()
 }
 
 void CrackShotCardAction::OnEndAction() {
-  Eject();
 }

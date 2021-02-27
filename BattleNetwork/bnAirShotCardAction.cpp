@@ -35,7 +35,7 @@ void AirShotCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    auto& user = *GetOwner();
+    auto& user = GetCharacter();
 
     Audio().Play(AudioType::SPREADER);
 
@@ -66,5 +66,4 @@ void AirShotCardAction::OnAnimationEnd()
 
 void AirShotCardAction::OnEndAction()
 {
-  Eject();
 }

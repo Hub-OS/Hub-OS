@@ -39,11 +39,11 @@ VulcanCardAction::~VulcanCardAction()
 {
 }
 void VulcanCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto owner = &GetCharacter();
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {
-    Team team = GetOwner()->GetTeam();
+    Team team = owner->GetTeam();
     Vulcan* b = new Vulcan(team, damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = owner;
@@ -59,7 +59,9 @@ void VulcanCardAction::OnExecute() {
       b->SetDirection(Direction::left);
     }
 
-    GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+    if (auto tile = owner->GetTile()->Offset(step, 0)) {
+      GetCharacter().GetField()->AddEntity(*b, *tile);
+    }
   };
 
 
@@ -79,5 +81,4 @@ void VulcanCardAction::OnAnimationEnd()
 
 void VulcanCardAction::OnEndAction()
 {
-  Eject();
 }

@@ -8,17 +8,17 @@
 RollCardAction::RollCardAction(Character& owner, int damage) :
   CardAction(owner, "PLAYER_IDLE"), damage(damage)
 {
-  this->SetLockout(ActionLockoutProperties{ ActionLockoutType::sequence });
+  this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
 void RollCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto& owner = GetCharacter();
 
   // On start of idle frame, spawn roll
-  GetOwner()->Hide();
-  auto* roll = new RollHeal(GetOwner()->GetTeam(), GetOwner(), damage);
+  owner.Hide();
+  auto* roll = new RollHeal(owner.GetTeam(), &owner, damage);
 
-  GetOwner()->GetField()->AddEntity(*roll, GetOwner()->GetTile()->GetX(), GetOwner()->GetTile()->GetY());
+  owner.GetField()->AddEntity(*roll, *owner.GetTile());
 
   // step 1 wait for her animation to end
   CardAction::Step step1;
@@ -36,8 +36,9 @@ void RollCardAction::OnExecute() {
 
   step2.updateFunc = [this](double elapsed, Step& self) {
     if (!heart) {
-      heart = new RollHeart(this->GetOwner(), damage * 3);
-      this->GetOwner()->GetField()->AddEntity(*heart, *this->GetOwner()->GetTile());
+      auto owner = &GetCharacter();
+      heart = new RollHeart(owner, damage * 3);
+      owner->GetField()->AddEntity(*heart, *owner->GetTile());
     }
     else if (heart->WillRemoveLater()) {
       self.markDone();
@@ -64,6 +65,5 @@ void RollCardAction::OnAnimationEnd()
 
 void RollCardAction::OnEndAction()
 {
-  GetOwner()->Reveal();
-  Eject();
+  GetCharacter().Reveal();
 }

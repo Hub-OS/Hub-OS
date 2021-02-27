@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnScriptedCharacter.h"
 #include "../bnExplodeState.h"
 #include "../bnTile.h"
@@ -91,3 +92,4 @@ void ScriptedCharacter::ShakeCamera(double power, float duration)
 Animation& ScriptedCharacter::GetAnimationObject() {
   return animation->GetAnimationObject();
 }
+#endif

@@ -38,13 +38,13 @@ YoYoCardAction::~YoYoCardAction()
 }
 
 void YoYoCardAction::OnExecute() {
-  auto owner = GetOwner();
-
   // On shoot frame, drop projectile
-  auto onFire = [this, owner]() -> void {
+  auto onFire = [this]() -> void {
+    auto owner = &GetCharacter();
+
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
-    Team team = GetOwner()->GetTeam();
+    Team team = owner->GetTeam();
     YoYo* y = new YoYo(team, damage);
 
     y->SetDirection(team == Team::red? Direction::right : Direction::left);
@@ -52,7 +52,12 @@ void YoYoCardAction::OnExecute() {
     props.aggressor = owner;
     y->SetHitboxProperties(props);
     yoyo = y;
-    owner->GetField()->AddEntity(*y, owner->GetTile()->GetX() + 1, owner->GetTile()->GetY());
+
+    auto tile = owner->GetTile()->Offset(1, 0);
+
+    if (tile) {
+      owner->GetField()->AddEntity(*y, *tile);
+    }
   };
 
   AddAnimAction(1, onFire);
@@ -65,7 +70,7 @@ void YoYoCardAction::Update(double _elapsed)
   if (yoyo && yoyo->WillRemoveLater()) {
     yoyo = nullptr;
 
-    GetOwner()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
+    GetCharacter().GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
     EndAction();
   }
 }
@@ -79,5 +84,4 @@ void YoYoCardAction::OnEndAction()
   if (yoyo) {
     yoyo->Delete();
   }
-  Eject();
 }

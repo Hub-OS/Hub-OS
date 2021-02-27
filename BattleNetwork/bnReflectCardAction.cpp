@@ -23,7 +23,7 @@ ReflectCardAction::~ReflectCardAction()
 }
 
 void ReflectCardAction::OnExecute() {
-  auto user = GetOwner();
+  auto user = &GetCharacter();
 
   // Create a new reflect shield component. This handles the logic for shields.
   ReflectShield* reflect = new ReflectShield(user, damage, type);
@@ -51,5 +51,4 @@ void ReflectCardAction::OnAnimationEnd()
 
 void ReflectCardAction::OnEndAction()
 {
-  Eject();
 }

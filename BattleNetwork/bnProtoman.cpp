@@ -27,8 +27,8 @@ CardAction* Protoman::OnExecuteChargedBusterAction()
 
 CardAction* Protoman::OnExecuteSpecialAction() {
   auto* action = new ReflectCardAction(*this, 20, ReflectShield::Type::red);
-  action->SetLockout(ActionLockoutProperties{
-    ActionLockoutType::async,
+  action->SetLockout({
+    CardAction::LockoutType::async,
     seconds_cast<double>(frames(40))
   });
   action->SetDuration(frames(21));

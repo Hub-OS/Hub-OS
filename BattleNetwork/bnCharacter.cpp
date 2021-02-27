@@ -157,7 +157,7 @@ void Character::Update(double _elapsed) {
   }
 
   if (currentAction) {
-    currentAction->OnUpdate(_elapsed);
+    currentAction->Update(_elapsed);
   }
 
   // If the counterSlideOffset has changed from 0, it's due to the character

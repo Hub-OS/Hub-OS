@@ -13,13 +13,13 @@ CardAction::CardAction(Character& user, const std::string& animation) :
   if (anim) {
     prepareActionDelegate = [this]() {
       for (auto& [nodeName, node] : attachments) {
-        character.AddNode(&node.spriteProxy.get());
+        this->user.AddNode(&node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
       // use the current animation's arrangement, do not overload
       prevState = anim->GetAnimationString();;
-      anim->SetAnimation(animation, [this]() {
+      anim->SetAnimation(this->animation, [this]() {
 
         if (this->IsLockoutOver()) {
           OnEndAction();
@@ -90,7 +90,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   if (anim) {
     prepareActionDelegate = [this, frameData]() {
       for (auto& [nodeName, node] : attachments) {
-        this->GetOwner()->AddNode(&node.spriteProxy.get());
+        this->GetCharacter().AddNode(&node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
@@ -139,7 +139,7 @@ CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::
   auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(node), std::ref(parent) }));
 
   if (started) {
-    this->GetOwner()->AddNode(&node);
+    this->GetCharacter().AddNode(&node);
 
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;
@@ -153,7 +153,7 @@ CardAction::Attachment& CardAction::AddAttachment(Character& character, const st
   assert(animComp && "character must have an animation component");
 
   if (started) {
-    this->GetOwner()->AddNode(&node);
+    this->GetCharacter().AddNode(&node);
   }
 
   return AddAttachment(animComp->GetAnimationObject(), point, node);
@@ -212,7 +212,7 @@ void CardAction::SetLockoutGroup(const CardAction::LockoutGroup& group)
 
 void CardAction::FreeAttachedNodes() {
   for (auto& [nodeName, node] : attachments) {
-    this->GetOwner()->RemoveNode(&node.spriteProxy.get());
+    this->GetCharacter().RemoveNode(&node.spriteProxy.get());
   }
 
   attachments.clear();

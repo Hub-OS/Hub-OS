@@ -18,7 +18,7 @@ public:
   BusterCardAction(Character& user, bool charged, int damage);
   ~BusterCardAction();
 
-  void OnUpdate(double _elapsed);
+  void Update(double _elapsed) override;
   void OnAnimationEnd();
   void OnEndAction();
   void OnExecute();

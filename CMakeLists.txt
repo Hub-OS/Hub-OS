@@ -56,7 +56,7 @@ add_compile_definitions(NOMINMAX)
 # load mods during the boot step
 # WARNING: sol2 bindings increase compile times by 2-3x! 
 #          Uncomment this only if you're working with scripting!
-add_compile_definitions(BN_MOD_SUPPORT)
+# add_compile_definitions(BN_MOD_SUPPORT)
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})

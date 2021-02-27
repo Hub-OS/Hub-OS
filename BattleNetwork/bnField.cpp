@@ -149,12 +149,6 @@ Field::AddEntityStatus Field::AddEntity(Spell & spell, int x, int y)
   return Field::AddEntityStatus::deleted;
 }
 
-Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y)
-{
-  Spell* ptr = spell.release();
-  return AddEntity(*ptr, x, y);
-}
-
 Field::AddEntityStatus Field::AddEntity(Spell & spell, Battle::Tile & dest)
 {
   return AddEntity(spell, dest.GetX(), dest.GetY());
@@ -183,11 +177,7 @@ Field::AddEntityStatus Field::AddEntity(Obstacle & obst, int x, int y)
   return Field::AddEntityStatus::deleted;
 }
 
-Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y)
-{
-  Obstacle* ptr = obst.release();
-  return AddEntity(*ptr, x, y);
-}
+
 
 Field::AddEntityStatus Field::AddEntity(Obstacle & obst, Battle::Tile & dest)
 {
@@ -535,3 +525,17 @@ Field::queueBucket::queueBucket(int x, int y, Spell& d) : x(x), y(y), entity_typ
   data.spell = &d;
   ID = d.GetID();
 }
+
+#ifdef BN_MOD_SUPPORT
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y)
+{
+  Spell* ptr = spell.release();
+  return AddEntity(*ptr, x, y);
+}
+
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y)
+{
+  Obstacle* ptr = obst.release();
+  return AddEntity(*ptr, x, y);
+}
+#endif

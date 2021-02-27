@@ -10,7 +10,7 @@ private:
 public:
   AreaGrabCardAction(Character& owner, int damage);
   ~AreaGrabCardAction();
-  void OnUpdate(double _elapsed);
+  void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction() override;
   void OnExecute() override;

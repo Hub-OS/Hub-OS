@@ -18,25 +18,31 @@ LongSwordCardAction::~LongSwordCardAction()
 void LongSwordCardAction::OnSpawnHitbox()
 {
   Audio().Play(AudioType::SWORD_SWING);
-  auto field = GetOwner()->GetField();
+  auto owner = &GetCharacter();
+  auto field = GetCharacter().GetField();
+
+  auto tiles = std::vector{
+    owner->GetTile()->Offset(1, 0),
+    owner->GetTile()->Offset(2, 0)
+  };
+ 
+  // this is the sword visual effect
 
   SwordEffect* e = new SwordEffect;
   e->SetAnimation("LONG");
+  field->AddEntity(*e, *tiles[0]);
 
-  field->AddEntity(*e, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
-
-  BasicSword* b = new BasicSword(GetOwner()->GetTeam(), damage);
-
+  // Basic sword properties & hitbox
+  BasicSword* b = new BasicSword(owner->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
   props.element = GetElement();
-  props.aggressor = GetOwner();
+  props.aggressor = owner;
+  b->SetHitboxProperties(props);
+  field->AddEntity(*b, *tiles[0]);
+
+  // resuse props with new hitbox
+  b = new BasicSword(owner->GetTeam(), damage);
   b->SetHitboxProperties(props);
 
-  field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
-
-  b = new BasicSword(GetOwner()->GetTeam(), damage);
-  // resuse props
-  b->SetHitboxProperties(props);
-
-  field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 2, GetOwner()->GetTile()->GetY());
+  field->AddEntity(*b, *tiles[1]);
 }

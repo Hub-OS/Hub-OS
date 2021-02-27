@@ -32,7 +32,7 @@ CardAction(user, "PLAYER_SWORD") {
   bladeAnim = Animation(ANIM);
   bladeAnim.SetAnimation("DEFAULT");
 
-  auto userAnim = GetOwner()->GetFirstComponent<AnimationComponent>();
+  auto userAnim = GetCharacter().GetFirstComponent<AnimationComponent>();
   hiltAnim = Animation(userAnim->GetFilePath());
   hiltAnim.Reload();
   hiltAnim.SetAnimation("HILT");
@@ -52,7 +52,7 @@ void SwordCardAction::OnExecute() {
   auto onTrigger = [this]() -> void {
     OnSpawnHitbox();
 
-    auto userAnim = GetOwner()->GetFirstComponent<AnimationComponent>();
+    auto userAnim = GetCharacter().GetFirstComponent<AnimationComponent>();
 
     auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObject(), "HILT", *hilt).UseAnimation(hiltAnim);
     hiltAttachment.AddAttachment(hiltAnim, "ENDPOINT", *blade).UseAnimation(bladeAnim);
@@ -72,20 +72,24 @@ void SwordCardAction::OnExecute() {
 
 void SwordCardAction::OnSpawnHitbox()
 {
-  auto field = GetOwner()->GetField();
+  auto field = GetCharacter().GetField();
+  auto tile = GetCharacter().GetTile()->Offset(1, 0);
 
-  SwordEffect* e = new SwordEffect;
-  field->AddEntity(*e, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+  if (tile) {
+    // visual fx
+    SwordEffect* e = new SwordEffect;
+    field->AddEntity(*e, *tile);
 
-  BasicSword* b = new BasicSword(GetOwner()->GetTeam(), damage);
-  auto props = b->GetHitboxProperties();
-  props.aggressor = GetOwner();
+    BasicSword* b = new BasicSword(GetCharacter().GetTeam(), damage);
+    auto props = b->GetHitboxProperties();
+    props.aggressor = &GetCharacter();
+    b->SetHitboxProperties(props);
 
-  b->SetHitboxProperties(props);
+    // add the hitbox beneath the visual fx
+    field->AddEntity(*b, *tile);
+  }
 
   Audio().Play(AudioType::SWORD_SWING);
-
-  field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 }
 
 void SwordCardAction::SetElement(Element elem)
@@ -104,5 +108,4 @@ void SwordCardAction::OnAnimationEnd()
 
 void SwordCardAction::OnEndAction()
 {
-  Eject();
 }

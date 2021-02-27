@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnScriptedMob.h"
 #include "bnScriptedCharacter.h"
 #include "../bnFadeInState.h"
@@ -32,3 +33,4 @@ Mob* ScriptedMob::Build() {
 
   return mob;
 }
+#endif

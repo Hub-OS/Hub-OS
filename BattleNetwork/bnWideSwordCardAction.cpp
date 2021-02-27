@@ -16,25 +16,32 @@ WideSwordCardAction::~WideSwordCardAction()
 
 void WideSwordCardAction::OnSpawnHitbox()
 {
-  auto field = GetOwner()->GetField();
+  auto& owner = GetCharacter();
+  auto field = GetCharacter().GetField();
+
+  auto tiles = std::vector{
+    owner.GetTile()->Offset(1, 0),
+    owner.GetTile()->Offset(1, 1),
+    owner.GetTile()->Offset(1,-1)
+  };
 
   SwordEffect* e = new SwordEffect;
   e->SetAnimation("WIDE");
-  field->AddEntity(*e, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+  field->AddEntity(*e, *tiles[0]);
 
-  BasicSword* b = new BasicSword(GetOwner()->GetTeam(), damage);
+  BasicSword* b = new BasicSword(owner.GetTeam(), damage);
   auto props = b->GetHitboxProperties();
-  props.aggressor = GetOwner();
+  props.aggressor = &owner;
   b->SetHitboxProperties(props);
 
   Audio().Play(AudioType::SWORD_SWING);
-  field ->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+  field ->AddEntity(*b, *tiles[0]);
 
-  b = new BasicSword(GetOwner()->GetTeam(), damage);
+  b = new BasicSword(owner.GetTeam(), damage);
   b->SetHitboxProperties(props);
-  field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() + 1);
+  field->AddEntity(*b, *tiles[1]);
   
-  b = new BasicSword(GetOwner()->GetTeam(), damage);
+  b = new BasicSword(owner.GetTeam(), damage);
   b->SetHitboxProperties(props);
-  field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() - 1);
+  field->AddEntity(*b, *tiles[2]);
 }

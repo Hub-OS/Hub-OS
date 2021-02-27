@@ -30,5 +30,5 @@ void AntiDmgCardAction::OnAnimationEnd()
 
 void AntiDmgCardAction::OnEndAction()
 {
-  GetCharacter()->Reveal();
+  GetCharacter().Reveal();
 }

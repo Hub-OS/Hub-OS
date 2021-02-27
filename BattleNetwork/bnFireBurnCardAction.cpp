@@ -42,11 +42,11 @@ FireBurnCardAction::~FireBurnCardAction()
 {
 }
 void FireBurnCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto owner = &GetCharacter();
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner](int offset) -> void {
-    Team team = GetOwner()->GetTeam();
+    Team team = owner->GetTeam();
     FireBurn* fb = new FireBurn(team, type, damage);
     auto props = fb->GetHitboxProperties();
     props.aggressor = owner;
@@ -62,7 +62,11 @@ void FireBurnCardAction::OnExecute() {
 
     int dir = team == Team::red ? 1 : -1;
 
-    GetOwner()->GetField()->AddEntity(*fb, GetOwner()->GetTile()->GetX() + ((1 + offset)*dir), GetOwner()->GetTile()->GetY());
+    auto tile = owner->GetTile()->Offset(((1 + offset) * dir), 0);
+
+    if (tile) {
+      owner->GetField()->AddEntity(*fb, *tile);
+    }
   };
 
 
@@ -83,11 +87,10 @@ void FireBurnCardAction::Update(double _elapsed)
 
 void FireBurnCardAction::OnAnimationEnd()
 {
-  GetOwner()->RemoveNode(attachment);
+  GetCharacter().RemoveNode(attachment);
 }
 
 void FireBurnCardAction::OnEndAction()
 {
   OnAnimationEnd();
-  Eject();
 }

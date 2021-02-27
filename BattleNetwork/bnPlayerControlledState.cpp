@@ -57,11 +57,11 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   bool canMove = true;
 
   for (auto&& action : actions) {
-    if (action->GetLockoutType() == ActionLockoutType::async && !action->IsAnimationOver()) {
+    if (action->GetLockoutType() == CardAction::LockoutType::async && !action->IsAnimationOver()) {
       canMove = false;
       break;
     }
-    else if(action->GetLockoutType() == ActionLockoutType::animation){
+    else if(action->GetLockoutType() == CardAction::LockoutType::animation){
       canMove = canMove && action->IsLockoutOver();
     }
   }

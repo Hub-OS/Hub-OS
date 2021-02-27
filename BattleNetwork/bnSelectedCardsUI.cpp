@@ -205,7 +205,7 @@ const bool SelectedCardsUI::UseNextCard() {
   // We could be using an ability, just make sure one of these actions are not from a card
   // Cards cannot be used if another card is still active
   for (auto&& action : actions) {
-    canUseCard = canUseCard && action->GetLockoutGroup() != ActionLockoutGroup::card;
+    canUseCard = canUseCard && action->GetLockoutGroup() != CardAction::LockoutGroup::card;
   }
 
   canUseCard = canUseCard && hasNextCard;

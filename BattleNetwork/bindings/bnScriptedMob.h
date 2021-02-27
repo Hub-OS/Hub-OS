@@ -1,6 +1,7 @@
 /*! \brief Loads mob data from a lua script
  */
 #pragma once
+#ifdef BN_MOD_SUPPORT
 #include <sol/sol.hpp>
 
 #include "../bnMobFactory.h"
@@ -19,4 +20,4 @@ public:
    */
   Mob* Build();
 };
-
+#endif

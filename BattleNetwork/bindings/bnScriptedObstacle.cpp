@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnScriptedObstacle.h"
 
 ScriptedObstacle::ScriptedObstacle(Team _team) :
@@ -89,3 +90,4 @@ void ScriptedObstacle::SetTileOffset(float x, float y)
 {
   ScriptedObstacle::scriptedOffset = { x, y };
 }
+#endif

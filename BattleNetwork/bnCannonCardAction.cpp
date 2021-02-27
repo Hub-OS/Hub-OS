@@ -49,13 +49,13 @@ CannonCardAction::~CannonCardAction()
 void CannonCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    Character& user = *GetOwner();
+    Character& user = GetCharacter();
 
     // Spawn a single cannon instance on the tile in front of the player
-    Team team = GetOwner()->GetTeam();
+    Team team = user.GetTeam();
     Cannon* cannon = new Cannon(team, damage);
     auto props = cannon->GetHitboxProperties();
-    props.aggressor = GetOwner();
+    props.aggressor = &user;
 
     cannon->SetHitboxProperties(props);
 
@@ -85,5 +85,4 @@ void CannonCardAction::OnAnimationEnd()
 
 void CannonCardAction::OnEndAction()
 {
-  Eject();
 }

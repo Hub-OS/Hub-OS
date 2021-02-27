@@ -89,7 +89,7 @@ void Player::UseSpecial()
     auto action = ExecuteSpecial();
     
     if (action) {
-      action->SetLockoutGroup(ActionLockoutGroup::ability);
+      action->SetLockoutGroup(CardAction::LockoutGroup::ability);
       QueueAction(action);
     }
 
@@ -221,7 +221,7 @@ CardAction* Player::ExecuteSpecial()
 
   // We could be using an ability, make sure we do not use another ability
   for (auto&& action : actions) {
-    canUse = canUse && action->GetLockoutGroup() != ActionLockoutGroup::ability;
+    canUse = canUse && action->GetLockoutGroup() != CardAction::LockoutGroup::ability;
   }
 
   if (!canUse) {

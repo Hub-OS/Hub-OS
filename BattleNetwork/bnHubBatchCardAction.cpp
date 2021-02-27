@@ -28,7 +28,7 @@ void HubBatchCardAction::OnExecute() {
   Audio().Play(AudioType::RECOVER);
 
   // Add hubbatchprogram compontent
-  GetOwner()->CreateComponent<HubBatchProgram>(GetOwner());
+  GetCharacter().CreateComponent<HubBatchProgram>(GetCharacter());
 }
 
 void HubBatchCardAction::Update(double _elapsed)
@@ -42,7 +42,6 @@ void HubBatchCardAction::OnAnimationEnd()
 
 void HubBatchCardAction::OnEndAction()
 {
-  Eject();
 }
 
 // class HubBatchProgram : public Component

@@ -505,7 +505,7 @@ TenguCross::SpecialAction::~SpecialAction()
 
 void TenguCross::SpecialAction::OnExecute()
 {
-  auto owner = GetOwner();
+  auto owner = &GetCharacter();
   auto team = owner->GetTeam();
   auto field = owner->GetField();
 
@@ -526,7 +526,6 @@ void TenguCross::SpecialAction::OnExecute()
 
 void TenguCross::SpecialAction::OnEndAction()
 {
-  Eject();
 }
 
 void TenguCross::SpecialAction::OnAnimationEnd()

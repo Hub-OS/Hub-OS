@@ -18,15 +18,15 @@ void Animator::UpdateSpriteAttributes(sf::Sprite& target, const Frame& data)
 
   // flip x and flip y attr
   if (data.flipX) {
-    float newX = x + w;
+    float newX = static_cast<float>(x + w);
     w = -w;
-    x = newX;
+    x = static_cast<int>(newX);
   }
 
   if (data.flipY) {
-    float newY = y + h;
+    float newY = static_cast<float>(y + h);
     h = -h;
-    y = newY;
+    y = static_cast<int>(newY);
   }
 
   target.setTextureRect(sf::IntRect(x, y, w, h));

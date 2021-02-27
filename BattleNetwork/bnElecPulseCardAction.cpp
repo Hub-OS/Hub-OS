@@ -46,29 +46,36 @@ ElecPulseCardAction::~ElecPulseCardAction()
 }
 
 void ElecPulseCardAction::OnExecute() {
-    auto* owner = GetOwner();
-
-    // On shoot frame, drop projectile`
-    auto onFire = [this, owner]() -> void {
-      Team team = GetOwner()->GetTeam();
+    // On shoot frame, drop projectile
+    auto onFire = [this]() -> void {
+      auto& owner = GetCharacter();
+      auto field = owner.GetField();
+      Team team = owner.GetTeam();
       elecpulse = new Elecpulse(team, damage);
       Audio().Play(AudioType::ELECPULSE);
 
       auto props = elecpulse->GetHitboxProperties();
-      props.aggressor = owner;
+      props.aggressor = &owner;
       elecpulse->SetHitboxProperties(props);
 
-      auto status = owner->GetField()->AddEntity(*elecpulse, owner->GetTile()->GetX() + 1, owner->GetTile()->GetY());
+      int step = 1;
+      if (team != Team::red) {
+        step = -1;
+      }
+
+      auto tiles = std::vector{
+        owner.GetTile()->Offset(1, 0),
+        owner.GetTile()->Offset(step, 0)
+      };
+
+      auto status = field->AddEntity(*elecpulse, *tiles[0]);
 
       if (status != Field::AddEntityStatus::deleted) {
         Entity::RemoveCallback& deleteHandler = elecpulse->CreateRemoveCallback();
         deleteHandler.Slot([this]() { EndAction(); });
-        int step = 1;
-        if (team != Team::red) {
-          step = -1;
-        }
 
-        GetOwner()->GetField()->AddEntity(*elecpulse, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+
+        field->AddEntity(*elecpulse, *tiles[1]);
       }
   };
 
@@ -81,5 +88,4 @@ void ElecPulseCardAction::OnAnimationEnd()
 
 void ElecPulseCardAction::OnEndAction()
 {
-  Eject();
 }

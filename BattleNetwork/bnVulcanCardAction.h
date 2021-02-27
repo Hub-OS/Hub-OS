@@ -13,7 +13,7 @@ private:
 public:
   VulcanCardAction(Character& owner, int damage);
   ~VulcanCardAction();
-  void OnUpdate(double _elapsed) override final;
+  void Update(double _elapsed) override final;
   void OnAnimationEnd() override final;
   void OnEndAction() override;
   void OnExecute() override;

@@ -15,7 +15,7 @@ private:
 public:
   DarkTornadoCardAction(Character& owner, int damage);
   ~DarkTornadoCardAction();
-  void OnUpdate(double _elapsed);
+  void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction() override;
   void OnExecute() override;
