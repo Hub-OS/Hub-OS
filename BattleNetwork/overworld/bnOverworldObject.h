@@ -11,6 +11,7 @@
 
 namespace Overworld {
   struct Tile;
+  class Map;
 
   class MapObject {
   public:
