@@ -51,7 +51,7 @@ namespace Overworld {
       orthoOffset.x *= -1;
 
       // starting from the right side of the image during a horizontal flip
-      orthoOffset.x -= spriteBounds.width;
+      orthoOffset.x -= spriteBounds.width + tileset->drawingOffset.x;
     }
 
     if (tile.flippedVertical) {
