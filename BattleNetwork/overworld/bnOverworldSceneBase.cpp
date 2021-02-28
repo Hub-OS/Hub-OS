@@ -180,22 +180,13 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
       auto frontPosition = playerActor->PositionInFrontOf();
 
-      auto tile = layer.GetTile(frontPosition.x / tileSize.x, frontPosition.y / tileSize.y);
-
-      // todo: this needs to be adjusted lol
-      // if (tile.token == "C") {
-      //   textbox.EnqueMessage({}, "", new Message("A cafe sign.\nYou feel welcomed."));
-      //   textbox.Open();
-      // }
-      // else if (tile.token == "G") {
-      //   textbox.EnqueMessage({}, "", new Message("The gate needs a key to get through."));
-      //   textbox.Open();
-      // }
-      // else if (tile.token == "X") {
-      //   textbox.EnqueMessage({}, "", new Message("An xmas tree program developed by Mars"));
-      //   textbox.EnqueMessage({}, "", new Message("It really puts you in the holiday spirit!"));
-      //   textbox.Open();
-      // }
+      // todo: use a spatial map?
+      for (auto& tileObject : layer.GetTileObjects()) {
+        if (tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
+          OnObjectInteraction(tileObject);
+          break;
+        }
+      }
     }
   }
   else if (Input().Has(InputEvents::pressed_interact)) {

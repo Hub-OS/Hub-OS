@@ -261,3 +261,5 @@ void Overworld::Homepage::OnTileCollision()
     command.onFinish.Slot(teleportToCyberworld);
   }
 }
+
+void Overworld::Homepage::OnObjectInteraction(const TileObject& tileObject) {}

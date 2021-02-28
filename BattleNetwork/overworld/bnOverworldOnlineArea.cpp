@@ -199,6 +199,12 @@ void Overworld::OnlineArea::OnTileCollision()
   }
 }
 
+void Overworld::OnlineArea::OnObjectInteraction(const TileObject& tileObject) {
+  // feels bad to have a function just call another function
+  // but this is for consistency for future searchability, compiler may inline anyway
+  sendObjectInteractionSignal(tileObject.id);
+}
+
 void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
 {
   SceneBase::OnEmoteSelected(emote);
@@ -411,6 +417,16 @@ void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&val, sizeof(uint8_t));
+  packetShipper.Send(client, Reliability::Reliable, buffer);
+}
+
+void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::object_interaction };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&tileObjectId, sizeof(unsigned int));
   packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 

@@ -58,6 +58,7 @@ namespace Overworld {
     void sendAvatarChangeSignal();
     void sendAvatarAssetStream();
     void sendEmoteSignal(const Overworld::Emotes emote);
+    void sendObjectInteractionSignal(unsigned int tileObjectId);
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -95,6 +96,7 @@ namespace Overworld {
     void onResume() override;
 
     void OnTileCollision() override;
+    void OnObjectInteraction(const TileObject& tileObject) override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
   };
 }
