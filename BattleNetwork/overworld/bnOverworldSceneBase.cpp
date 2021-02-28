@@ -18,6 +18,7 @@
 #include "../bnLibraryScene.h"
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
+#include "../bnKeyItemScene.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnLanBackground.h"
 #include "../bnACDCBackground.h"
@@ -109,6 +110,7 @@ auto MakeOptions = [] (Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
   return {
     { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
     { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
+    { "key_items",   std::bind(&Overworld::SceneBase::GotoKeyItems, scene) },
     { "mob_select",  std::bind(&Overworld::SceneBase::GotoMobSelect, scene) },
     { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) }
     /*{ "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }*/
@@ -1270,6 +1272,16 @@ void Overworld::SceneBase::GotoPVP()
     Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
     gotoNextScene = false;
   }
+}
+
+void Overworld::SceneBase::GotoKeyItems()
+{
+  // Config Select on PC
+  gotoNextScene = true;
+  Audio().Play(AudioType::CHIP_DESC);
+
+  using effect = segue<BlackWashFade, milliseconds<500>>;
+  getController().push<effect::to<KeyItemScene>>();
 }
 
 Overworld::QuadTree& Overworld::SceneBase::GetQuadTree()

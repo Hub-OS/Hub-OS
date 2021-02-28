@@ -208,6 +208,7 @@ namespace Overworld {
     void GotoConfig();
     void GotoMobSelect();
     void GotoPVP();
+    void GotoKeyItems();
 
     //
     // Getters
