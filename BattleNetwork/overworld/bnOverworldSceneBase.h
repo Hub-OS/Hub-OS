@@ -208,6 +208,11 @@ namespace Overworld {
     AnimatedTextBox& GetTextBox();
 
     //
+    // Helpers
+    //
+    std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const;
+
+    //
     // Optional events that can be decorated further
     //
     virtual void OnEmoteSelected(Emotes emote);
@@ -216,6 +221,5 @@ namespace Overworld {
     // Required implementations
     //
     virtual void OnTileCollision() = 0;
-    std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const;
   };
 }
