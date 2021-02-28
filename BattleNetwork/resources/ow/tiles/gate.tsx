@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.4" tiledversion="1.4.1" name="gate" tilewidth="34" tileheight="52" tilecount="5" columns="5" objectalignment="bottom">
- <tileoffset x="0" y="17"/>
  <properties>
   <property name="Solid" type="bool" value="true"/>
  </properties>

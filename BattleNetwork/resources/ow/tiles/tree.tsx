@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.4" tiledversion="1.4.1" name="tree" tilewidth="44" tileheight="61" tilecount="4" columns="4" objectalignment="bottom">
- <tileoffset x="0" y="20"/>
+ <tileoffset x="0" y="12"/>
  <properties>
   <property name="Solid" type="bool" value="true"/>
  </properties>
