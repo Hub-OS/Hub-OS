@@ -78,10 +78,10 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
 
 void Overworld::TeleportController::Update(double elapsed)
 {
+  if (sequence.empty()) return;
+
   this->beamAnim.Update(static_cast<float>(elapsed), beam->getSprite());
   this->beam->SetLayer(this->actor->GetLayer());
-
-  if (sequence.empty()) return;
 
   auto& next = sequence.front();
   if (next.state == Command::state::teleport_in) {
