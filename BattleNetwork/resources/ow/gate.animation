@@ -1,7 +1,0 @@
-imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/ow/gate.png"
-
-animation state="default"
-frame duration="0.05" x="0" y="0" w="33" h="52" originx="14" originy="48"
-frame duration="0.05" x="34" y="0" w="33" h="52" originx="14" originy="48"
-frame duration="0.05" x="68" y="0" w="33" h="52" originx="14" originy="48"
-frame duration="0.05" x="102" y="0" w="33" h="52" originx="14" originy="48"
