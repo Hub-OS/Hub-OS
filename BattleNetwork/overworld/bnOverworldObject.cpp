@@ -54,6 +54,9 @@ namespace Overworld {
       // starting from the right side of the image during a horizontal flip
       orthoOffset.x -= spriteBounds.width + tileset->alignmentOffset.x + tileset->drawingOffset.x;
 
+      // account for being incorrect?
+      orthoOffset.x -= (tileSize.x / 2 - (spriteBounds.width + tileset->drawingOffset.x)) / 2;
+
       // what??
       orthoOffset.x -= tileSize.x / 2 * (tileset->alignmentOffset.x / spriteBounds.width);
     }
@@ -62,7 +65,7 @@ namespace Overworld {
       orthoOffset.y *= -1;
 
       // might be similar to the flip above, but not sure
-      orthoOffset.y -= tileSize.y * 2 - (spriteBounds.height + tileset->alignmentOffset.y + tileset->drawingOffset.y);
+      orthoOffset.y -= tileSize.y * 2 - (spriteBounds.height + tileset->drawingOffset.y);
     }
 
     // skipping tile rotation, editor doesn't allow this
