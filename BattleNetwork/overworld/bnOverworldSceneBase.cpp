@@ -19,6 +19,7 @@
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
 #include "../bnKeyItemScene.h"
+#include "../bnVendorScene.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnLanBackground.h"
 #include "../bnACDCBackground.h"
@@ -281,36 +282,49 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
       // check to see what tile we pressed talk to
       const Overworld::Map::Tile tile = map.GetTileAt(playerActor.PositionInFrontOf());
       if (tile.token == "C") {
-        textbox.EnqueMessage({}, "", new Message("A cafe sign.\nYou feel welcomed."));
+        textbox.EnqueMessage(new Message("A cafe sign.\nYou feel welcomed."));
         textbox.Open();
       }
       else if (tile.token == "G") {
-        textbox.EnqueMessage({}, "", new Message("The gate needs a key to get through."));
+        textbox.EnqueMessage(new Message("The gate needs a key to get through."));
         textbox.Open();
       }
       else if (tile.token == "X") {
-        textbox.EnqueMessage({}, "", new Message("An xmas tree program developed by Mars"));
-        textbox.EnqueMessage({}, "", new Message("It really puts you in the holiday spirit!"));
+        textbox.EnqueMessage(new Message("An xmas tree program developed by Mars"));
+        textbox.EnqueMessage(new Message("It really puts you in the holiday spirit!"));
         textbox.Open();
       }
     }
   }
-  else if (Input().Has(InputEvents::pressed_interact)) {
-    // continue the conversation if the text is complete
-    if (textbox.IsEndOfMessage()) {
-      textbox.DequeMessage();
-
-      if (!textbox.HasMessage()) {
-        // if there are no more messages, close
-        textbox.Close();
+  else {
+    if (question) {
+      if (Input().Has(InputEvents::pressed_ui_left)) {
+        question->SelectYes();
+      }
+      else if (Input().Has(InputEvents::pressed_ui_right)) {
+        question->SelectNo();
+      }
+      else if (Input().Has(InputEvents::pressed_confirm)) {
+        question->ConfirmSelection();
       }
     }
-    else if (textbox.IsEndOfBlock()) {
-      textbox.ShowNextLines();
-    }
-    else {
-      // double tapping talk will complete the block
-      textbox.CompleteCurrentBlock();
+    else if (Input().Has(InputEvents::pressed_interact)) {
+      // continue the conversation if the text is complete
+      if (textbox.IsEndOfMessage()) {
+        textbox.DequeMessage();
+
+        if (!textbox.HasMessage()) {
+          // if there are no more messages, close
+          textbox.Close();
+        }
+      }
+      else if (textbox.IsEndOfBlock()) {
+        textbox.ShowNextLines();
+      }
+      else {
+        // double tapping talk will complete the block
+        textbox.CompleteCurrentBlock();
+      }
     }
   }
 
@@ -511,7 +525,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
         }
       }
 
-      // menu widget controlls
       if (menuWidget.IsOpen()) {
         if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
           selectInputCooldown -= elapsed;
@@ -554,13 +567,14 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
           extendedHold = false;
 
           bool exitSelected = !menuWidget.SelectExit();
+          AudioType selectsound = AudioType::CHIP_SELECT;
 
           if (exitSelected) {
             if (Input().Has(InputEvents::pressed_cancel)) {
               bool result = menuWidget.ExecuteSelection();
 
               if (result && menuWidget.IsOpen() == false) {
-                Audio().Play(AudioType::CHIP_DESC_CLOSE);
+                selectsound = AudioType::CHIP_DESC_CLOSE;
               }
             }
             else {
@@ -569,7 +583,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
             }
           }
 
-          Audio().Play(AudioType::CHIP_SELECT);
+          Audio().Play(selectsound);
         }
         else if (Input().Has(InputEvents::pressed_ui_left)) {
           menuWidget.SelectOptions() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
@@ -916,11 +930,26 @@ void Overworld::SceneBase::ResetMap()
 
           // Play message
           sf::Sprite face;
-          face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
-          textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
-            onlineWarpAnim.GetAnimationString() == "OFF"? new Message("This is your homepage! But it looks like the next area is offline...")
-            : new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
-          );
+          face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"), true);
+
+          Animation mugAnim("resources/ow/prog/prog_mug.animation");
+          MessageInterface* message = nullptr;
+
+          /*message = onlineWarpAnim.GetAnimationString() == "OFF" ? new Message("This is your homepage! But it looks like the next area is offline...")
+            : new Message("This is your homepage! Find an active telepad to take you into cyberspace!");*/
+
+          message = question = new Question("Take a look at my shop?", [this, face, mugAnim]() {
+              getController().push<segue<BlackWashFade>::to<VendorScene>>(face, mugAnim);
+              textbox.Close();
+              question = nullptr;
+            },
+            
+            [this, face, mugAnim]() {
+              textbox.EnqueMessage(face, mugAnim, new Message("Ok see you again!"));
+              question = nullptr;
+            });
+
+          textbox.EnqueMessage(face, mugAnim, message);
           textbox.Open();
         }
       });

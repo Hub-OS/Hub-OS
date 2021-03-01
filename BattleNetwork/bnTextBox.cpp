@@ -165,7 +165,7 @@ void TextBox::CompleteCurrentBlock()
   int lastLine = lineIndex + GetNumberOfFittingLines();
 
   if (lastLine < this->lines.size()) {
-    newCharIndex = this->lines[lastLine]-1;
+    newCharIndex = this->lines[lastLine];
   }
 
   int charactersSkipped = 0;

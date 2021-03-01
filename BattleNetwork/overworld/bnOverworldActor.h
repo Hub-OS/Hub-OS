@@ -37,8 +37,8 @@ namespace Overworld {
 
     Map* map{ nullptr };
     double animProgress{}; //!< Used to sync movement animations
-    double walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
-    double runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
+    double walkSpeed{70}; //!< walk speed as pixels per second. 
+    double runSpeed{140}; //!< run speed as pixels per second.
     bool moveThisFrame{ false }; //!< Tells actor to move in accordance with their states or remain stationairy
     Direction heading{ Direction::down }; //!< the character's current heading
     std::map<std::string, Animation> anims; //!< Map of animation objects per direction per state

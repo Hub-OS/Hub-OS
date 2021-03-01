@@ -32,7 +32,7 @@ private:
   double totalTime{}; /*!< elapsed */
   double textSpeed{}; /*!< desired speed of text */
   mutable std::vector<sf::Sprite> mugshots; /*!< List of current and next mugshots */
-  std::vector<std::string> animPaths; /*!< List of animation paths for the mugshots */
+  std::vector<Animation> anims; /*!< List of animation paths for the mugshots */
   std::vector<MessageInterface*> messages; /*!< Lists of current and next messages */
   mutable sf::Sprite frame; /*!< Size is calculated from the frame sprite */
   mutable Animation mugAnimator; /*!< Animators the mugshot frames */
@@ -61,7 +61,7 @@ public:
    * @param animationPath mugshot animations list
    * @param message message object
    */
-  void EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message);
+  void EnqueMessage(const sf::Sprite& speaker, const Animation& anim, MessageInterface* message);
   
   /**
    * @brief Adds message to queue
@@ -152,4 +152,7 @@ public:
   void DrawMessage(sf::RenderTarget& target, sf::RenderStates states) const;
 
   Text MakeTextObject(const std::string& data = std::string());
+
+  void Mute(bool enabled = true);
+  void Unmute();
 };

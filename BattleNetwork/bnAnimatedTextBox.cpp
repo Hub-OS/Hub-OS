@@ -124,12 +124,12 @@ void AnimatedTextBox::DequeMessage() {
 
   delete *messages.begin(); // TODO: use shared ptrs
   messages.erase(messages.begin());
-  animPaths.erase(animPaths.begin());
+  anims.erase(anims.begin());
   mugshots.erase(mugshots.begin());
 
   if (messages.size() == 0) return;
 
-  mugAnimator = Animation(animPaths[0]);
+  mugAnimator = Animation(anims[0]);
   mugAnimator.SetAnimation("TALK");
   mugAnimator << Animator::Mode::Loop;
   textBox.SetText(messages[0]->GetMessage());
@@ -143,17 +143,21 @@ void AnimatedTextBox::ClearAllMessages()
     DequeMessage();
   }
 }
-
-void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message) {
-  speaker.setScale(2.0f, 2.0f);
+void AnimatedTextBox::EnqueMessage(const sf::Sprite& speaker, const Animation& anim, MessageInterface* message)
+{
   messages.push_back(message);
+  anims.push_back(anim);
+  
+  auto& mugAnim = anims[anims.size() - 1];
+  mugAnim.SetAnimation("TALK");
+  mugAnim << Animator::Mode::Loop;
 
-  animPaths.push_back(animationPath);
+  if (messages.size() == 1) {
+    mugAnimator = mugAnim;
+  }
+
   mugshots.push_back(speaker);
-
-  mugAnimator = Animation(animPaths[0]);
-  mugAnimator.SetAnimation("TALK");
-  mugAnimator << Animator::Mode::Loop;
+  mugshots[mugshots.size() - 1].setScale(2.f, 2.f);
 
   std::string strMessage = messages[0]->GetMessage();
   textBox.SetText(strMessage);
@@ -162,7 +166,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
 }
 
 void AnimatedTextBox::EnqueMessage(MessageInterface* message) {
-  EnqueMessage({}, {}, message);
+  EnqueMessage(sf::Sprite{}, Animation{}, message);
 }
 
 /*void AnimatedTextBox::ReplaceText(std::string text)
@@ -196,10 +200,11 @@ void AnimatedTextBox::Update(double elapsed) {
         mugAnimator << Animator::Mode::Loop;
       }
     }
-
-    mugAnimator.Update((float)(elapsed*textSpeed), mugshots.front());
-
     messages.front()->OnUpdate(elapsed);
+  }
+
+  if (mugshots.size()) {
+    mugAnimator.Update((float)(elapsed * textSpeed), mugshots.front());
   }
 
   textBox.Play(!isPaused);
@@ -268,4 +273,13 @@ Text AnimatedTextBox::MakeTextObject(const std::string& data)
   obj.SetString(data);
   obj.setScale(2.f, 2.f);
   return obj;
+}
+
+void AnimatedTextBox::Mute(bool enabled)
+{
+  textBox.Mute(enabled);
+}
+
+void AnimatedTextBox::Unmute() {
+  textBox.Unmute();
 }

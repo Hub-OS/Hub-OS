@@ -19,6 +19,7 @@
 #include "../bnAnimation.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnAnimatedTextBox.h"
+#include "../bnMessageQuestion.h"
 
 // overworld
 #include "bnOverworldActor.h"
@@ -95,6 +96,8 @@ namespace Overworld {
       onlineWarpAnim;
 
     AnimatedTextBox textbox;
+    Question* question{ nullptr };
+
 
     double animElapsed{};
 

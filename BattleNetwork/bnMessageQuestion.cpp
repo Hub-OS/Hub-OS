@@ -12,6 +12,7 @@ Question::Question(std::string message, std::function<void()> onYes, std::functi
   selectCursor.scale(2.0f, 2.0f);
   elapsed = 0;
   yes = canceled = false;
+  ShowEndMessageCursor(false);
 }
 
 Question::~Question() {
@@ -36,11 +37,8 @@ void Question::ConfirmSelection()
 }
 
 void Question::ExecuteSelection() {
-  ResourceHandle handle;
-
   if (yes) { 
       onYes(); 
-      handle.Audio().Play(AudioType::NEW_GAME);
   }
   else {
       onNo(); 

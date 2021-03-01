@@ -12,6 +12,7 @@
 class Message : public MessageInterface {
   mutable SpriteProxyNode nextCursor; /*!< Green cursor at bottom-right */
   double totalElapsed;
+  bool showEndMessageCursor{ false };
 public:
   Message(std::string message);
 
@@ -28,4 +29,5 @@ public:
   */
   void Continue();
 
+  void ShowEndMessageCursor(bool show = true);
 };

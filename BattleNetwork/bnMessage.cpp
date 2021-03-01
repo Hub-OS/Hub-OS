@@ -21,7 +21,8 @@ void Message::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
 
   GetTextBox()->DrawMessage(target, states);
 
-  if (!GetTextBox()->IsPlaying() && (GetTextBox()->IsEndOfMessage() || GetTextBox()->HasMessage())) {
+  if (showEndMessageCursor && !GetTextBox()->IsPlaying() 
+    && (GetTextBox()->IsEndOfMessage() || GetTextBox()->HasMessage())) {
     target.draw(nextCursor, states);
   }
 }
@@ -39,5 +40,10 @@ void Message::Continue() {
   else {
     GetTextBox()->ShowNextLines();
   }
+}
+
+void Message::ShowEndMessageCursor(bool show)
+{
+  showEndMessageCursor = show;
 }
 

@@ -102,6 +102,7 @@ void KeyItemScene::onUpdate(double elapsed)
   else if (Input().Has(InputEvents::pressed_cancel)) {
     using namespace swoosh::types;
     getController().pop<segue<BlackWashFade, milli<500>>>();
+    Audio().Play(AudioType::CHIP_DESC_CLOSE);
   }
 
   signed lastRowOffset = rowOffset;
