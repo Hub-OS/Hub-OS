@@ -2,6 +2,19 @@
 #include <cmath>
 
 namespace Overworld {
+  ShapeObject::ShapeObject(unsigned int id, std::unique_ptr<Overworld::Shape> shape) {
+    this->id = id;
+    visible = true;
+    this->shape = std::move(shape);
+  }
+
+  bool ShapeObject::Intersects(Map& map, float x, float y) const {
+    auto relativePosition = sf::Vector2f(x, y) - this->position;
+    auto relativeOrtho = map.WorldToScreen(relativePosition);
+
+    return shape->Intersects(relativeOrtho.x, relativeOrtho.y);
+  }
+
   TileObject::TileObject(unsigned int id, Tile tile) : tile(tile) {
     this->id = id;
     visible = true;

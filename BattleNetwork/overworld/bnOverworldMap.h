@@ -11,6 +11,7 @@
 
 namespace Overworld {
   class SceneBase;
+  class ShapeObject;
   class TileObject;
 
   /*! \brief Incredibly simple overworld map class.
@@ -29,6 +30,11 @@ namespace Overworld {
   public:
     class Layer {
     public:
+      // ShapeObject can not be copied due to storing a unique_ptr
+      // delete the copy constructor to forward this property
+      Layer(const Layer&) = delete;
+      Layer(Layer&&) = default;
+
       Tile& GetTile(int x, int y);
       Tile& GetTile(float x, float y);
       Tile& SetTile(int x, int y, Tile tile);
@@ -39,11 +45,16 @@ namespace Overworld {
       const std::vector<TileObject>& GetTileObjects();
       void AddTileObject(TileObject tileObject);
 
+      ShapeObject& GetShapeObject(unsigned int id);
+      const std::vector<ShapeObject>& GetShapeObjects();
+      void AddShapeObject(ShapeObject shapeObject);
+
     private:
       Layer(size_t cols, size_t rows);
 
       size_t cols, rows;
       std::vector<Tile> tiles;
+      std::vector<ShapeObject> shapeObjects;
       std::vector<TileObject> tileObjects;
       std::vector<std::shared_ptr<WorldSprite>> spritesForAddition;
 

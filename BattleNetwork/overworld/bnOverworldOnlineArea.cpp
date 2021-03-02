@@ -205,7 +205,7 @@ void Overworld::OnlineArea::OnInteract() {
 
   // check to see what tile we pressed talk to
   auto layerIndex = playerActor->GetLayer();
-  auto layer = map.GetLayer(layerIndex);
+  auto& layer = map.GetLayer(layerIndex);
   auto tileSize = map.GetTileSize();
 
   auto frontPosition = playerActor->PositionInFrontOf();

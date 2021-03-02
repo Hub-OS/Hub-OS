@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "bnOverworldSprite.h"
+#include "bnOverworldShapes.h"
 #include "bnOverworldTile.h"
 #include "bnOverworldMap.h"
 #include "../bnSpriteProxyNode.h"
@@ -33,6 +34,15 @@ namespace Overworld {
     MapObject() = default;
 
     friend Map;
+  };
+
+  class ShapeObject : public MapObject {
+  public:
+    std::unique_ptr<Overworld::Shape> shape;
+
+    ShapeObject(unsigned int id, std::unique_ptr<Overworld::Shape> shape);
+
+    bool Intersects(Map& map, float x, float y) const override;
   };
 
   class TileObject : public MapObject {

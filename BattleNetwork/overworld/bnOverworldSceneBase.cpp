@@ -412,7 +412,7 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
   auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
 
-  auto layer = map.GetLayer(0);
+  auto& layer = map.GetLayer(0);
 
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
@@ -752,6 +752,20 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
           tileObject.size = size;
           tileObject.rotation = rotation;
           layer.AddTileObject(tileObject);
+        } else {
+          auto shapePtr = Shape::From(child);
+
+          if(!shapePtr) {
+            continue;
+          }
+
+          auto shapeObject = ShapeObject(id, std::move(shapePtr.value()));
+          shapeObject.name = name;
+          shapeObject.visible = visible;
+          shapeObject.position = position;
+          shapeObject.size = size;
+          shapeObject.rotation = rotation;
+          layer.AddShapeObject(std::move(shapeObject));
         }
       }
     }

@@ -157,7 +157,7 @@ namespace Overworld {
   }
 
   Map::Layer& Map::AddLayer() {
-    layers.emplace_back(Layer(cols, rows));
+    layers.push_back(std::move(Layer(cols, rows)));
 
     return layers[layers.size() - 1];
   }
@@ -274,6 +274,16 @@ namespace Overworld {
     tileObjects.push_back(tileObject);
     spritesForAddition.push_back(tileObject.GetWorldSprite());
   }
+
+  ShapeObject& Map::Layer::GetShapeObject(unsigned int id) {
+    return *std::find_if(shapeObjects.begin(), shapeObjects.end(), [id](ShapeObject& shapeObject) { return shapeObject.id == id; });
+  }
+
+  const std::vector<ShapeObject>& Map::Layer::GetShapeObjects() {
+    return shapeObjects;
+  }
+
+  void Map::Layer::AddShapeObject(ShapeObject shapeObject) {
+    shapeObjects.push_back(std::move(shapeObject));
+  }
 }
-
-
