@@ -169,20 +169,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // check to see if talk button was pressed
   if (PETMenu.IsClosed() && textbox.IsClosed()) {
     if (Input().Has(InputEvents::pressed_interact)) {
-      // check to see what tile we pressed talk to
-      auto layerIndex = playerActor->GetLayer();
-      auto layer = map.GetLayer(layerIndex);
-      auto tileSize = map.GetTileSize();
-
-      auto frontPosition = playerActor->PositionInFrontOf();
-
-      // todo: use a spatial map?
-      for (auto& tileObject : layer.GetTileObjects()) {
-        if (tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
-          OnObjectInteraction(tileObject);
-          break;
-        }
-      }
+      OnInteract();
     }
   }
   else if (Input().Has(InputEvents::pressed_interact)) {

@@ -199,10 +199,24 @@ void Overworld::OnlineArea::OnTileCollision()
   }
 }
 
-void Overworld::OnlineArea::OnObjectInteraction(const TileObject& tileObject) {
-  // feels bad to have a function just call another function
-  // but this is for consistency for future searchability, compiler may inline anyway
-  sendObjectInteractionSignal(tileObject.id);
+void Overworld::OnlineArea::OnInteract() {
+  auto& map = GetMap();
+  auto playerActor = GetPlayer();
+
+  // check to see what tile we pressed talk to
+  auto layerIndex = playerActor->GetLayer();
+  auto layer = map.GetLayer(layerIndex);
+  auto tileSize = map.GetTileSize();
+
+  auto frontPosition = playerActor->PositionInFrontOf();
+
+  // todo: use a spatial map?
+  for (auto& tileObject : layer.GetTileObjects()) {
+    if (tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
+      sendObjectInteractionSignal(tileObject.id);
+      break;
+    }
+  }
 }
 
 void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)

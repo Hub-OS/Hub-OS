@@ -96,7 +96,7 @@ namespace Overworld {
     void onResume() override;
 
     void OnTileCollision() override;
-    void OnObjectInteraction(const TileObject& tileObject) override;
+    void OnInteract() override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
   };
 }

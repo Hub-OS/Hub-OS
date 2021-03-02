@@ -216,6 +216,6 @@ namespace Overworld {
     // Required implementations
     //
     virtual void OnTileCollision() = 0;
-    virtual void OnObjectInteraction(const TileObject& tileObject) = 0;
+    virtual void OnInteract() = 0;
   };
 }

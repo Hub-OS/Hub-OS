@@ -34,6 +34,6 @@ namespace Overworld {
     void onLeave() override;
 
     void OnTileCollision() override;
-    void OnObjectInteraction(const TileObject& tileObject) override;
+    void OnInteract() override;
   };
 }

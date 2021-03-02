@@ -262,4 +262,4 @@ void Overworld::Homepage::OnTileCollision()
   }
 }
 
-void Overworld::Homepage::OnObjectInteraction(const TileObject& tileObject) {}
+void Overworld::Homepage::OnInteract() {}
