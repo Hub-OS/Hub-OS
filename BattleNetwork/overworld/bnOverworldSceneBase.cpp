@@ -41,7 +41,7 @@ using sf::Event;
 using namespace swoosh::types;
 
 /// \brief Thunk to populate menu options to callbacks
-auto MakeOptions = [](Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
+auto MakeOptions = [](Overworld::SceneBase* scene) -> Overworld::PETMenu::OptionsList {
   return {
     { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
     { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
@@ -54,7 +54,7 @@ auto MakeOptions = [](Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
 Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool guestAccount) :
   guestAccount(guestAccount),
   lastIsConnectedState(false),
-  menuWidget("Overworld", MakeOptions(this)),
+  PETMenu("Overworld", MakeOptions(this)),
   textbox({ 4, 255 }),
   camera(controller.getWindow().getView()),
   Scene(controller),
@@ -75,11 +75,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   // Draws the scrolling background
   SetBackground(new LanBackground);
 
-  // Selection input delays
-  maxSelectInputCooldown = 0.5; // half of a second
-  selectInputCooldown = maxSelectInputCooldown;
-
-  menuWidget.setScale(2.f, 2.f);
+  PETMenu.setScale(2.f, 2.f);
   emote.setScale(2.f, 2.f);
 
   auto windowSize = getController().getVirtualWindowSize();
@@ -163,7 +159,7 @@ void Overworld::SceneBase::onStart() {
 }
 
 void Overworld::SceneBase::onUpdate(double elapsed) {
-  if (menuWidget.IsClosed() && textbox.IsClosed()) {
+  if (PETMenu.IsClosed() && textbox.IsClosed()) {
     playerController.ListenToInputEvents(true);
   }
   else {
@@ -171,7 +167,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   // check to see if talk button was pressed
-  if (textbox.IsClosed() && menuWidget.IsClosed()) {
+  if (PETMenu.IsClosed() && textbox.IsClosed()) {
     if (Input().Has(InputEvents::pressed_interact)) {
       // check to see what tile we pressed talk to
       auto layerIndex = playerActor->GetLayer();
@@ -239,26 +235,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // animations
   animElapsed += elapsed;
 
-  static float ribbon_factor = 0;
-  static bool ribbon_bounce = false;
-
-  if (ribbon_factor >= 1.25f) {
-    ribbon_bounce = true;
-  }
-  else if (ribbon_factor <= -0.25f) {
-    ribbon_bounce = false;
-  }
-
-  if (ribbon_bounce) {
-    ribbon_factor -= static_cast<float>(elapsed * 1.6);
-  }
-  else {
-    ribbon_factor += static_cast<float>(elapsed * 1.6);
-  }
-
-  float input_factor = std::min(ribbon_factor, 1.0f);
-  input_factor = std::max(input_factor, 0.0f);
-
 #ifdef __ANDROID__
   if (gotoNextScene)
     return; // keep the screen looking the same when we come back
@@ -318,7 +294,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   bg->Update((float)elapsed);
 
   // Update the widget
-  menuWidget.Update((float)elapsed);
+  PETMenu.Update((float)elapsed);
 
   // Update the emote widget
   emote.Update(elapsed);
@@ -336,7 +312,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   if (!gotoNextScene && textbox.IsClosed()) {
     // emotes widget
-    if (Input().Has(InputEvents::pressed_option) && menuWidget.IsClosed()) {
+    if (Input().Has(InputEvents::pressed_option) && PETMenu.IsClosed()) {
       if (emote.IsClosed()) {
         emote.Open();
       }
@@ -346,87 +322,8 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     }
 
     if (emote.IsClosed()) {
-      // menu widget
-      if (Input().Has(InputEvents::pressed_pause) && !Input().Has(InputEvents::pressed_cancel)) {
-        if (menuWidget.IsClosed()) {
-          menuWidget.Open();
-          Audio().Play(AudioType::CHIP_DESC);
-        }
-        else if (menuWidget.IsOpen()) {
-          menuWidget.Close();
-          Audio().Play(AudioType::CHIP_DESC_CLOSE);
-        }
-      }
-
+      PETMenu.HandleInput(Input(), Audio());
       // menu widget controlls
-      if (menuWidget.IsOpen()) {
-        if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
-          selectInputCooldown -= elapsed;
-
-          if (selectInputCooldown <= 0) {
-            if (!extendedHold) {
-              selectInputCooldown = maxSelectInputCooldown;
-              extendedHold = true;
-            }
-            else {
-              selectInputCooldown = maxSelectInputCooldown / 4.0;
-            }
-
-            menuWidget.CursorMoveUp() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
-          }
-        }
-        else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
-          selectInputCooldown -= elapsed;
-
-          if (selectInputCooldown <= 0) {
-            if (!extendedHold) {
-              selectInputCooldown = maxSelectInputCooldown;
-              extendedHold = true;
-            }
-            else {
-              selectInputCooldown = maxSelectInputCooldown / 4.0;
-            }
-
-            menuWidget.CursorMoveDown() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
-          }
-        }
-        else if (Input().Has(InputEvents::pressed_confirm)) {
-          bool result = menuWidget.ExecuteSelection();
-
-          if (result && menuWidget.IsOpen() == false) {
-            Audio().Play(AudioType::CHIP_DESC_CLOSE);
-          }
-        }
-        else if (Input().Has(InputEvents::pressed_ui_right) || Input().Has(InputEvents::pressed_cancel)) {
-          extendedHold = false;
-
-          bool exitSelected = !menuWidget.SelectExit();
-
-          if (exitSelected) {
-            if (Input().Has(InputEvents::pressed_cancel)) {
-              bool result = menuWidget.ExecuteSelection();
-
-              if (result && menuWidget.IsOpen() == false) {
-                Audio().Play(AudioType::CHIP_DESC_CLOSE);
-              }
-            }
-            else {
-              // already selected, switch to options
-              menuWidget.SelectOptions();
-            }
-          }
-
-          Audio().Play(AudioType::CHIP_SELECT);
-        }
-        else if (Input().Has(InputEvents::pressed_ui_left)) {
-          menuWidget.SelectOptions() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
-          extendedHold = false;
-        }
-        else {
-          extendedHold = false;
-          selectInputCooldown = 0;
-        }
-      }
     }
   }
 
@@ -499,7 +396,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   DrawMap(surface, sf::RenderStates::Default);
 
   surface.draw(emote);
-  surface.draw(menuWidget);
+  surface.draw(PETMenu);
 
   // Add the web account connection symbol
   surface.draw(webAccountIcon);
@@ -608,8 +505,8 @@ void Overworld::SceneBase::RefreshNaviSprite()
 
   // refresh menu widget too
   int hp = std::atoi(meta.GetHPString().c_str());
-  menuWidget.SetHealth(hp);
-  menuWidget.SetMaxHealth(hp);
+  PETMenu.SetHealth(hp);
+  PETMenu.SetMaxHealth(hp);
 
   // If coming back from navi select, the navi has changed, update it
   auto owPath = meta.GetOverworldAnimationPath();
@@ -627,10 +524,10 @@ void Overworld::SceneBase::RefreshNaviSprite()
     auto iconTexture = meta.GetIconTexture();
 
     if (iconTexture) {
-      menuWidget.UseIconTexture(iconTexture);
+      PETMenu.UseIconTexture(iconTexture);
     }
     else {
-      menuWidget.ResetIconTexture();
+      PETMenu.ResetIconTexture();
     }
   }
   else {
@@ -877,7 +774,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     LoadBackground(map.GetBackgroundName());
   }
 
-  menuWidget.SetArea(map.GetName());
+  PETMenu.SetArea(map.GetName());
 
   // cleanup data from the previous map
   this->map.RemoveSprites(*this);

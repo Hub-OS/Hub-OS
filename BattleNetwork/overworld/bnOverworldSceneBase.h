@@ -7,7 +7,6 @@
 #include <Swoosh/ActivityController.h>
 
 #include "../bnScene.h"
-#include "../bnMenuWidget.h"
 #include "../bnCamera.h"
 #include "../bnInputManager.h"
 #include "../bnAudioResourceManager.h"
@@ -27,6 +26,7 @@
 #include "bnOverworldPathController.h"
 #include "bnOverworldTeleportController.h"
 #include "bnOverworldMap.h"
+#include "bnOverworldPETMenu.h"
 #include "bnEmotes.h"
 #include "bnXML.h"
 
@@ -46,16 +46,11 @@ namespace Overworld {
 
     Camera camera; /*!< camera in scene follows player */
     bool clicked{ false }, scaledmap{ false };
-    // Selection input delays
-    double maxSelectInputCooldown; /*!< Maximum delay */
-    double selectInputCooldown; /*!< timer to allow key presses again */
-    bool extendedHold{ false };
 
     sf::Vector2f returnPoint{};
     bool teleportedOut{ false }; /*!< We may return to this area*/
 
-    // menu widget
-    MenuWidget menuWidget;
+    PETMenu PETMenu;
 
     SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
     Animation webAccountAnimator; /*!< Use animator to represent different statuses */
