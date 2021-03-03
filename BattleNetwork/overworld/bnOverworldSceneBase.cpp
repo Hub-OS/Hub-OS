@@ -1089,6 +1089,11 @@ Overworld::QuadTree& Overworld::SceneBase::GetQuadTree()
   return quadTree;
 }
 
+std::vector<std::shared_ptr<Overworld::Actor>>& Overworld::SceneBase::GetActors()
+{
+  return actors;
+}
+
 Camera& Overworld::SceneBase::GetCamera()
 {
   return camera;

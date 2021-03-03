@@ -205,6 +205,7 @@ namespace Overworld {
     //
 
     Overworld::QuadTree& GetQuadTree();
+    std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
     Map& GetMap();
     std::shared_ptr<Actor> GetPlayer();
