@@ -245,7 +245,11 @@ void Overworld::OnlineArea::OnInteract() {
     }
   }
 
-  sendTileInteractionSignal(frontPosition.x, frontPosition.x, 0.0);
+  sendTileInteractionSignal(
+    frontPosition.x / (tileSize.x / 2),
+    frontPosition.y / tileSize.y,
+    0.0
+  );
 }
 
 void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
@@ -623,7 +627,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 
   actor->SetCollisionRadius(6);
   actor->SetInteractCallback([=](std::shared_ptr<Actor> with) {
-    if(with != GetPlayer()) {
+    if (with != GetPlayer()) {
       return;
     }
 
