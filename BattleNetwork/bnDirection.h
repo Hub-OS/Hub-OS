@@ -1,6 +1,8 @@
 #pragma once
 #include <assert.h>
+#include <cmath>
 #include <tuple>
+#include <SFML/System/Vector2.hpp>
 
 /**
 * @brief Used by entity movement
@@ -192,4 +194,29 @@ inline Direction Isometric(const Direction dir) {
   }
 
   return Direction::none;
+}
+
+inline sf::Vector2f UnitVector(Direction dir) {
+  const float deg45radians = std::sin(M_PI / 4.0);
+
+  switch(dir) {
+    case Direction::left:
+      return sf::Vector2f(-1, 0);
+    case Direction::right:
+      return sf::Vector2f(1, 0);
+    case Direction::up:
+      return sf::Vector2f(0, -1);
+    case Direction::up_left:
+      return sf::Vector2f(-deg45radians, -deg45radians);
+    case Direction::up_right:
+      return sf::Vector2f(deg45radians, -deg45radians);
+    case Direction::down:
+      return sf::Vector2f(0, 1);
+    case Direction::down_left:
+      return sf::Vector2f(-deg45radians, deg45radians);
+    case Direction::down_right:
+      return sf::Vector2f(deg45radians, deg45radians);
+  }
+
+  return sf::Vector2f();
 }
