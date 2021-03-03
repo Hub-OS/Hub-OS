@@ -137,14 +137,10 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 
   emoteNode.SetLayer(-100);
 
-  AddSprite(playerActor);
+  AddActor(playerActor);
   AddSprite(teleportController.GetBeam());
 
   map.setScale(2.f, 2.f);
-
-  // reserve 1000 elements so no references are invalidated
-  npcs.reserve(1000);
-  pathControllers.reserve(1000);
 
   // emotes
   emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
@@ -203,20 +199,13 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // update tile animations
   map.Update(*this, elapsed);
 
-  // objects
-  for (auto& pathController : pathControllers) {
-    pathController.Update(elapsed);
-  }
-
   if (gotoNextScene == false) {
     playerController.Update(elapsed);
     teleportController.Update(elapsed);
   }
 
-  playerActor->Update(elapsed);
-
-  for (auto& npc : npcs) {
-    npc.Update(elapsed);
+  for (auto& actor : actors) {
+    actor->Update(elapsed);
   }
 
   // animations
@@ -1006,6 +995,20 @@ void Overworld::SceneBase::RemoveSprite(const std::shared_ptr<WorldSprite> sprit
 
   if (pos != sprites.end())
     sprites.erase(pos);
+}
+
+void Overworld::SceneBase::AddActor(std::shared_ptr<Actor> actor) {
+  actors.push_back(actor);
+  AddSprite(actor);
+}
+
+void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor> actor) {
+  auto pos = std::find(actors.begin(), actors.end(), actor);
+
+  if (pos != actors.end())
+    actors.erase(pos);
+
+  RemoveSprite(actor);
 }
 
 void Overworld::SceneBase::GotoChipFolder()

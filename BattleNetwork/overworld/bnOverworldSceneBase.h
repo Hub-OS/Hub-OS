@@ -41,7 +41,7 @@ namespace Overworld {
     Overworld::TeleportController teleportController{};
     Overworld::PlayerController playerController{};
     Overworld::QuadTree quadTree{};
-    std::vector<Overworld::Actor> npcs;
+    std::vector<std::shared_ptr<Overworld::Actor>> actors;
     std::vector<Overworld::PathController> pathControllers{};
 
     Camera camera; /*!< camera in scene follows player */
@@ -177,6 +177,19 @@ namespace Overworld {
      * @param sprite
      */
     void RemoveSprite(const std::shared_ptr<WorldSprite> sprite);
+
+    /**
+     * @brief Adds Actor for updates and rendering. (Calls AddSprite)
+     * @param actor
+     */
+    void AddActor(std::shared_ptr<Actor> actor);
+
+
+    /**
+     * @brief Removes the actor for updates and rendering (Calls RemoveSprite)
+     * @param actor
+     */
+    void RemoveActor(const std::shared_ptr<Actor> actor);
 
     //
     // Menu selection callbacks

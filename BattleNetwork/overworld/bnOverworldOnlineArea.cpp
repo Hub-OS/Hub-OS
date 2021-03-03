@@ -97,11 +97,21 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       }
 
       player.second->teleportController.Update(elapsed);
-      actor->Update(elapsed);
       player.second->emoteNode.Update(elapsed);
     }
 
     for (auto remove : removePlayers) {
+      auto it = onlinePlayers.find(remove);
+
+      if(it == onlinePlayers.end()) {
+        Logger::Logf("Removed non existent Player %s", remove.c_str());
+        continue;
+      }
+
+      auto& player = it->second;
+      RemoveActor(player->actor);
+      RemoveSprite(player->teleportController.GetBeam());
+
       onlinePlayers.erase(remove);
     }
 
@@ -569,7 +579,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   emoteNode.setPosition(0, emoteY);
   actor->AddNode(&emoteNode);
 
-  AddSprite(actor);
+  AddActor(actor);
 
   auto& teleportController = onlinePlayer->teleportController;
   teleportController.EnableSound(false);
