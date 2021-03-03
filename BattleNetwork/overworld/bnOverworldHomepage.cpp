@@ -64,7 +64,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         return;
       }
 
-        // Face them
+      // Face them
       mrprog->Face(Reverse(with->GetHeading()));
 
       // Play message
@@ -86,7 +86,6 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         message = "This is your homepage! But it looks like the next area is offline...";
         break;
       }
-
 
       textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation", new Message(message));
       textbox.Open();
