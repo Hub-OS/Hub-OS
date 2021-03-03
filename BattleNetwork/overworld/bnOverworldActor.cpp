@@ -58,7 +58,7 @@ void Overworld::Actor::Face(const Direction& dir)
 
 void Overworld::Actor::Face(const Actor& actor)
 {
-  auto direction = MakeDirectionFromVector(actor.getPosition() - getPosition(), collisionRadius / 2);
+  auto direction = MakeDirectionFromVector(actor.getPosition() - getPosition());
 
   Face(direction);
 }
@@ -218,23 +218,23 @@ sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float leng
   return offset;
 }
 
-Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec, float threshold)
+Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec)
 {
-  Direction first = Direction::none;
-  Direction second = Direction::none;
-
-  if (vec.x < -std::fabs(threshold)) {
-    first = Direction::left;
-  }
-  else if (vec.x > std::fabs(threshold)) {
-    first = Direction::right;
+  if(vec.x == 0 && vec.y == 0) {
+    return Direction::none;
   }
 
-  if (vec.y < -std::fabs(threshold)) {
-    second = Direction::up;
+  Direction first = vec.x < 0 ? Direction::left : Direction::right;
+  Direction second = vec.y < 0 ? Direction::up : Direction::down;
+
+  // using slope to calculate direction, graph if you want to take a look
+  auto ratio = vec.x == 0 ? 0 : std::fabs(vec.y) / std::fabs(vec.x);
+
+  if (ratio < 1.f/2.f) {
+    return first;
   }
-  else if (vec.y > std::fabs(threshold)) {
-    second = Direction::down;
+  else if (ratio > 2.f) {
+    return second;
   }
 
   return Join(first, second);

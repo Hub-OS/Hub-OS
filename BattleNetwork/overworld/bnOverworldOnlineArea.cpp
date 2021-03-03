@@ -80,7 +80,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
         double expectedTime = calculatePlayerLag(*onlinePlayer);
         float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
-        Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
+        Direction newHeading = Actor::MakeDirectionFromVector(delta);
 
         if (distance <= 0.2f) {
           actor->Face(actor->GetHeading());
@@ -738,7 +738,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     // Adjust the lag time by the lag of this incoming frame
     double expectedTime = calculatePlayerLag(*onlinePlayer, incomingLag);
 
-    Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
+    Direction newHeading = Actor::MakeDirectionFromVector(delta);
 
     // Do not attempt to animate the teleport over quick movements if already teleporting
     if (onlinePlayer->teleportController.IsComplete() && onlinePlayer->packets > 1) {

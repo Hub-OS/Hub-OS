@@ -69,7 +69,7 @@ void Overworld::PathController::MoveToCommand::update(double elapsed)
     float mag = std::sqrt((vec.x * vec.x) + (vec.y * vec.y));
 
     if (mag > 1.f) {
-      Direction dir = Actor::MakeDirectionFromVector(vec, 0.5f);
+      Direction dir = Actor::MakeDirectionFromVector(vec);
 
       auto& [success, _] = actor->CanMoveTo(dir, Actor::MovementState::walking, elapsed);
 

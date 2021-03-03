@@ -202,7 +202,7 @@ namespace Overworld {
     * @param threshold. If the vector is below this value, the direction is considered Direction::none
     * @return Direction to be used in motion and state cases
     */
-    static Direction MakeDirectionFromVector(const sf::Vector2f& vec, float threshold);
+    static Direction MakeDirectionFromVector(const sf::Vector2f& vec);
 
     void CollideWithQuadTree(QuadTree& sector);
     void SetCollisionRadius(float radius);

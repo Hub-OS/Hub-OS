@@ -107,7 +107,7 @@ void Overworld::TeleportController::Update(double elapsed)
       sf::Uint8 alpha = static_cast<sf::Uint8>(255 * (1.0f - (spinProgress / spin_frames)));
       this->actor->setColor({ cyan.r, cyan.g, cyan.b, alpha });
 
-      actor->Face(Actor::MakeDirectionFromVector({ std::cos(spinProgress), std::sin(spinProgress) }, 0.5f));
+      actor->Face(Actor::MakeDirectionFromVector({ std::cos(spinProgress), std::sin(spinProgress) }));
     }
   }
   else {
