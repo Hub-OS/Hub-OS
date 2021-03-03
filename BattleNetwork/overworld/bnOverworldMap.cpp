@@ -262,8 +262,26 @@ namespace Overworld {
     return SetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)), gid);
   }
 
-  TileObject& Map::Layer::GetTileObject(unsigned int id) {
-    return *std::find_if(tileObjects.begin(), tileObjects.end(), [id](TileObject& tileObject) { return tileObject.id == id; });
+  std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(unsigned int id) {
+    auto iterEnd = tileObjects.end();
+    auto iter = std::find_if(tileObjects.begin(), tileObjects.end(), [id](TileObject& tileObject) { return tileObject.id == id; });
+
+    if (iter == iterEnd) {
+      return {};
+    }
+
+    return *iter;
+  }
+
+  std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(std::string name) {
+    auto iterEnd = tileObjects.end();
+    auto iter = std::find_if(tileObjects.begin(), tileObjects.end(), [name](TileObject& tileObject) { return tileObject.name == name; });
+
+    if (iter == iterEnd) {
+      return {};
+    }
+
+    return *iter;
   }
 
   const std::vector<TileObject>& Map::Layer::GetTileObjects() {
@@ -275,8 +293,26 @@ namespace Overworld {
     spritesForAddition.push_back(tileObject.GetWorldSprite());
   }
 
-  ShapeObject& Map::Layer::GetShapeObject(unsigned int id) {
-    return *std::find_if(shapeObjects.begin(), shapeObjects.end(), [id](ShapeObject& shapeObject) { return shapeObject.id == id; });
+  std::optional<std::reference_wrapper<ShapeObject>> Map::Layer::GetShapeObject(unsigned int id) {
+    auto iterEnd = shapeObjects.end();
+    auto iter = std::find_if(shapeObjects.begin(), shapeObjects.end(), [id](ShapeObject& shapeObject) { return shapeObject.id == id; });
+
+    if (iter == iterEnd) {
+      return {};
+    }
+
+    return *iter;
+  }
+
+  std::optional<std::reference_wrapper<ShapeObject>> Map::Layer::GetShapeObject(std::string name) {
+    auto iterEnd = shapeObjects.end();
+    auto iter = std::find_if(shapeObjects.begin(), shapeObjects.end(), [name](ShapeObject& shapeObject) { return shapeObject.name == name; });
+
+    if (iter == iterEnd) {
+      return {};
+    }
+
+    return *iter;
   }
 
   const std::vector<ShapeObject>& Map::Layer::GetShapeObjects() {

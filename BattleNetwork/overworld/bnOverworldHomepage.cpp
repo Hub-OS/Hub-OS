@@ -121,8 +121,13 @@ void Overworld::Homepage::PingRemoteAreaServer()
 void Overworld::Homepage::EnableNetWarps(bool enabled) {
   auto& map = GetMap();
 
-  auto& netWarp = map.GetLayer(0).GetTileObject(netWarpObjectId);
+  auto netWarpOptional = map.GetLayer(0).GetTileObject(netWarpObjectId);
 
+  if(!netWarpOptional) {
+    return;
+  }
+
+  auto& netWarp = netWarpOptional->get();
   auto tileset = map.GetTileset("warp");
 
   netWarp.tile.gid = tileset->firstGid + (enabled ? 1 : 0);

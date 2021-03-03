@@ -3,6 +3,8 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <optional>
+#include <functional>
 
 #include "bnOverworldSprite.h"
 #include "bnOverworldTile.h"
@@ -41,11 +43,13 @@ namespace Overworld {
       Tile& SetTile(int x, int y, unsigned int gid);
       Tile& SetTile(float x, float y, unsigned int gid);
 
-      TileObject& GetTileObject(unsigned int id);
+      std::optional<std::reference_wrapper<TileObject>> GetTileObject(unsigned int id);
+      std::optional<std::reference_wrapper<TileObject>> GetTileObject(std::string name);
       const std::vector<TileObject>& GetTileObjects();
       void AddTileObject(TileObject tileObject);
 
-      ShapeObject& GetShapeObject(unsigned int id);
+      std::optional<std::reference_wrapper<ShapeObject>> GetShapeObject(unsigned int id);
+      std::optional<std::reference_wrapper<ShapeObject>> GetShapeObject(std::string name);
       const std::vector<ShapeObject>& GetShapeObjects();
       void AddShapeObject(ShapeObject shapeObject);
 
