@@ -8,6 +8,7 @@
 #include "../bnDrawWindow.h"
 
 #include <map>
+#include <optional>
 
 namespace Overworld {
 
@@ -202,7 +203,7 @@ namespace Overworld {
     void SetInteractCallback(const std::function<void(std::shared_ptr<Actor>)>& func);
     void Interact(const std::shared_ptr<Actor>& with);
 
-    const std::pair<bool, sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
+    const std::optional<sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
     const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, double elapsed);
     const QuadTree* GetQuadTree();
   };

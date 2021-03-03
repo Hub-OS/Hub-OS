@@ -49,8 +49,8 @@ void Overworld::PlayerController::Update(double elapsed)
       for (auto other : actor->GetQuadTree()->GetActors()) {
         if (actor == other) continue;
 
-        auto& [hit, _] = actor->CollidesWith(*other, Actor::MakeVectorFromDirection(facing, 5.0f));
-        if (hit) {
+        auto collision = actor->CollidesWith(*other, Actor::MakeVectorFromDirection(facing, 5.0f));
+        if (collision) {
           actor->Face(facing);
           other->Interact(this->actor);
           break;

@@ -255,18 +255,23 @@ void Overworld::Actor::Interact(const std::shared_ptr<Actor>& with)
   }
 }
 
-const std::pair<bool, sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
+const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
 {
   auto delta = (getPosition() + offset) - actor.getPosition();
   float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
   float sumOfRadii = static_cast<float>(actor.collisionRadius + collisionRadius);
+
+  if (distance > sumOfRadii) {
+    return {};
+  }
+
   auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
 
   // suggested point of collision is the edge of the circle
   auto vec = actor.getPosition() + (delta_unit * static_cast<float>(sumOfRadii));
 
   // return collision status and point of potential intersection
-  return { distance < sumOfRadii, vec };
+  return vec;
 }
 
 const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, double elapsed)
@@ -323,10 +328,10 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
     for (auto actor : quadTree->actors) {
       if (actor.get() == this) continue;
 
-      auto& [hit, circle_edge] = CollidesWith(*actor, offset);
+      auto collision = CollidesWith(*actor, offset);
 
-      if (hit) {
-        return { false, circle_edge };
+      if (collision) {
+        return { false, collision.value() };
       }
     }
   }
