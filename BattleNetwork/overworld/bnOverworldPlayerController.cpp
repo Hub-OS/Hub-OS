@@ -52,8 +52,8 @@ void Overworld::PlayerController::Update(double elapsed)
         auto& [hit, _] = actor->CollidesWith(*other, Actor::MakeVectorFromDirection(facing, 5.0f));
         if (hit) {
           actor->Face(facing);
-          other->Interact(*this->actor);
-          return;
+          other->Interact(this->actor);
+          break;
         }
       }
     }

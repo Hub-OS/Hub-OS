@@ -50,7 +50,7 @@ namespace Overworld {
     sf::Vector2f pos{}; //!< 2d position in cartesian coordinates
     std::string name{}; //!< name of this character
     std::string lastStateStr{}; //!< String representing the last frame's state name
-    std::function<void(Actor& with)> onInteractFunc; //!< What happens if an actor interacts with the other
+    std::function<void(std::shared_ptr<Actor> with)> onInteractFunc; //!< What happens if an actor interacts with the other
     double collisionRadius{ 1.0 };
     QuadTree* quadTree{ nullptr };
 
@@ -199,8 +199,8 @@ namespace Overworld {
 
     void CollideWithQuadTree(QuadTree& sector);
     void SetCollisionRadius(double radius);
-    void SetInteractCallback(const std::function<void(Actor&)>& func);
-    void Interact(Actor& with);
+    void SetInteractCallback(const std::function<void(std::shared_ptr<Actor>)>& func);
+    void Interact(const std::shared_ptr<Actor>& with);
 
     const std::pair<bool, sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
     const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, double elapsed);

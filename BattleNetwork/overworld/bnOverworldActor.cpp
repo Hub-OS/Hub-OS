@@ -243,12 +243,12 @@ void Overworld::Actor::SetCollisionRadius(double radius)
   this->collisionRadius = radius;
 }
 
-void Overworld::Actor::SetInteractCallback(const std::function<void(Actor&)>& func)
+void Overworld::Actor::SetInteractCallback(const std::function<void(std::shared_ptr<Actor>)>& func)
 {
   this->onInteractFunc = func;
 }
 
-void Overworld::Actor::Interact(Actor& with)
+void Overworld::Actor::Interact(const std::shared_ptr<Actor>& with)
 {
   if (this->onInteractFunc) {
     this->onInteractFunc(with);

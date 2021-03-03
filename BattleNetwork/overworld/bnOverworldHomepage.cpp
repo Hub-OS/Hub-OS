@@ -3,6 +3,7 @@
 #include "bnOverworldHomepage.h"
 #include "bnOverworldOnlineArea.h"
 #include "../netplay/bnNetPlayConfig.h"
+#include "../bnMessage.h"
 
 using namespace swoosh::types;
 
@@ -20,9 +21,10 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   LoadMap(FileUtil::Read("resources/ow/maps/homepage.tmx"));
 
   auto& map = GetMap();
+  auto& layer0 = map.GetLayer(0);
   sf::Vector2f spawnPos;
 
-  for (auto& tileObject : map.GetLayer(0).GetTileObjects()) {
+  for (auto& tileObject : layer0.GetTileObjects()) {
     if (tileObject.name == "Home Warp") {
       spawnPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
     }
@@ -42,6 +44,57 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   command.onFinish.Slot([=] {
     GetPlayerController().ControlActor(GetPlayer());
   });
+
+  auto statusBotSpawnOptional = layer0.GetShapeObject("Warp Status Bot");
+
+  if (statusBotSpawnOptional) {
+    auto& statusBotSpawn = statusBotSpawnOptional->get();
+
+    auto& quadTree = GetQuadTree();
+
+    auto mrprog = std::make_shared<Overworld::Actor>("Mr. Prog");
+    mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
+    mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+    mrprog->setPosition(statusBotSpawn.position);
+    mrprog->CollideWithQuadTree(quadTree);
+    mrprog->SetCollisionRadius(3);
+    mrprog->SetInteractCallback([=](std::shared_ptr<Overworld::Actor> with) {
+      // if player interacted with us
+      if (with != GetPlayer()) {
+        return;
+      }
+
+        // Face them
+      mrprog->Face(Reverse(with->GetHeading()));
+
+      // Play message
+      sf::Sprite face;
+      face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+
+      auto& textbox = GetTextBox();
+
+      std::string message;
+
+      switch (cyberworldStatus) {
+      case CyberworldStatus::online:
+        message = "This is your homepage! Walk into the telepad to enter cyberspace!";
+        break;
+      case CyberworldStatus::mismatched_version:
+        message = "This is your homepage! But it looks like you need an update to connect to cyberspace...";
+        break;
+      case CyberworldStatus::offline:
+        message = "This is your homepage! But it looks like the next area is offline...";
+        break;
+      }
+
+
+      textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation", new Message(message));
+      textbox.Open();
+    });
+
+    quadTree.actors.push_back(mrprog);
+    AddActor(mrprog);
+  }
 }
 
 void Overworld::Homepage::PingRemoteAreaServer()
@@ -76,14 +129,18 @@ void Overworld::Homepage::PingRemoteAreaServer()
         auto iteration = reader.Read<uint64_t>(packet);
         maxPayloadSize = reader.Read<uint16_t>(packet);
 
-        if (sig == ServerEvents::pong && version == VERSION_ID && iteration == VERSION_ITERATION) {
-          EnableNetWarps(true);
-          isConnected = true;
+        if (sig == ServerEvents::pong) {
+          if (version == VERSION_ID && iteration == VERSION_ITERATION) {
+            EnableNetWarps(true);
+            cyberworldStatus = CyberworldStatus::online;
+          }
+          else {
+            cyberworldStatus = CyberworldStatus::mismatched_version;
+          }
         }
       }
       catch (Poco::Net::NetException& e) {
-        Logger::Logf("Homepage warp could not request ping: %s", e.what());
-        isConnected = false;
+        cyberworldStatus = CyberworldStatus::offline;
         reconnecting = false;
         client.close();
         EnableNetWarps(false);
@@ -107,7 +164,6 @@ void Overworld::Homepage::PingRemoteAreaServer()
       }
       catch (Poco::Net::NetException& e) {
         reconnecting = false;
-        Logger::Logf("Error trying to connect to remote address: %s", e.what());
       }
     }
     else {
@@ -123,7 +179,7 @@ void Overworld::Homepage::EnableNetWarps(bool enabled) {
 
   auto netWarpOptional = map.GetLayer(0).GetTileObject(netWarpObjectId);
 
-  if(!netWarpOptional) {
+  if (!netWarpOptional) {
     return;
   }
 
@@ -226,7 +282,7 @@ void Overworld::Homepage::onLeave()
   // repeat reconnection in case there was a fail that
   // forced us to return
   client.close();
-  isConnected = false;
+  cyberworldStatus = CyberworldStatus::offline;
   reconnecting = false;
 }
 
@@ -245,7 +301,7 @@ void Overworld::Homepage::OnTileCollision()
 
   auto& teleportController = GetTeleportController();
 
-  if (netWarpTilePos == tilePos && teleportController.IsComplete() && isConnected) {
+  if (netWarpTilePos == tilePos && teleportController.IsComplete() && cyberworldStatus == CyberworldStatus::online) {
     auto& playerController = GetPlayerController();
 
     // Calculate the origin by grabbing this tile's grid Y/X values
