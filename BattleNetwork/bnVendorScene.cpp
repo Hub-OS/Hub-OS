@@ -41,7 +41,9 @@ void VendorScene::VendorBackground::Update(double _elapsed)
 
 void VendorScene::ShowDefaultMessage()
 {
-  //textbox.ClearAllMessages();
+  // Not using the class `message` member variable
+  // so we can know when we are reading iformative text versus
+  // seeing the default message
   auto message = new Message(defaultMessage);
   message->ShowEndMessageCursor(false);
   textbox.EnqueMessage(mugshot, anim, message);
@@ -62,11 +64,11 @@ VendorScene::VendorScene(swoosh::ActivityController& controller, const sf::Sprit
   moreItems.setScale(2.f, 2.f);
 
   wallet.setTexture(*Textures().LoadTextureFromFile("resources/scenes/vendors/price.png"), true);
-  wallet.setScale(2.f, 2.f);
+  wallet.setScale(0.f, 0.f); // hide
   wallet.setPosition(340, 0.f);
 
   list.setTexture(*Textures().LoadTextureFromFile("resources/scenes/vendors/list.png"), true);
-  list.setScale(2.f, 2.f);
+  list.setScale(0.f, 0.f); // hide
   list.setPosition(0.f, 0.f);
 
   cursor.setTexture(*LOAD_TEXTURE(FOLDER_CURSOR));
@@ -84,10 +86,7 @@ VendorScene::VendorScene(swoosh::ActivityController& controller, const sf::Sprit
   };
 
   defaultMessage = "How can I help you? OPTION: description CANCEL: go back";
-  auto message = new Message(defaultMessage);
-  message->ShowEndMessageCursor(false);
-  textbox.EnqueMessage(mugshot, anim, message);
-  textbox.CompleteCurrentBlock();
+  this->ShowDefaultMessage();
 
   textbox.Mute();
   textbox.Open();
@@ -118,24 +117,66 @@ void VendorScene::onResume()
 
 void VendorScene::onStart()
 {
+  stateTimer.start();
 }
 
 void VendorScene::onUpdate(double elapsed)
 {
+  const float maxStateTime = static_cast<float>(frames(7).asSeconds().value);
   textbox.Update(elapsed);
   bg->Update(elapsed);
+  stateTimer.update(sf::seconds(static_cast<float>(elapsed)));
+
+  if (currState == state::slide_in) {
+    wallet.setScale(2.f, 2.f); // reveal
+    list.setScale(2.f, 2.f); // reveal
+
+    float startPos = 480.0f + wallet.getLocalBounds().width*wallet.getScale().x;
+    float endPos = 340.f;
+    float delta = swoosh::ease::linear(stateTimer.getElapsed().asSeconds(), maxStateTime, 1.0f);
+    float pos = (endPos * delta) + (startPos * (1.f - delta));
+    wallet.setPosition(pos, 0.f);
+
+    startPos = -list.getLocalBounds().width*list.getScale().x;
+    endPos = 0.f;
+    pos = (endPos * delta) + (startPos * (1.f - delta));
+    list.setPosition(pos, 0.f);
+
+    if (stateTimer.getElapsed().asSeconds() >= maxStateTime) {
+      currState = state::active;
+    }
+
+    return;
+  }
+  else if(currState == state::slide_out) {
+    
+    float startPos = 480.0f + wallet.getLocalBounds().width*wallet.getScale().x;
+    float endPos = 340.f;
+    float delta = swoosh::ease::linear(stateTimer.getElapsed().asSeconds(), maxStateTime, 1.0f);
+    float pos = (startPos * delta) + (endPos * (1.f - delta));
+    wallet.setPosition(pos, 0.f);
+
+    startPos = -list.getLocalBounds().width*list.getScale().x;
+    endPos = 0.f;
+    pos = (startPos * delta) + (endPos * (1.f - delta));
+    list.setPosition(pos, 0.f);
+
+    return;
+  }
+
+  //
+  // case currState == state::active
+  //
 
   unsigned lastRow = row;
   bool updateDescription = false;
 
   if (question) {
     if (Input().Has(InputEvents::pressed_ui_left)) {
-      question->SelectYes();
-      Audio().Play(AudioType::CHIP_SELECT);
+      question->SelectYes() ? Audio().Play(AudioType::CHIP_SELECT) : (void)0;
     }
     else if (Input().Has(InputEvents::pressed_ui_right)) {
-      question->SelectNo();
-      Audio().Play(AudioType::CHIP_SELECT);
+      question->SelectNo() ? Audio().Play(AudioType::CHIP_SELECT) : (void)0;
     }
     else if (Input().Has(InputEvents::pressed_confirm)) {
       question->ConfirmSelection();
@@ -157,15 +198,20 @@ void VendorScene::onUpdate(double elapsed)
     else if (Input().Has(InputEvents::pressed_confirm)) {
       // todo: long item descriptions?
       if (!showDescription) {
-         {
-          std::string itemName = items[row + rowOffset].name;
-          std::string msg = itemName + "\nAre you sure?";
+         if(!message) {
+          size_t index = static_cast<size_t>(row) + rowOffset;
+          std::string itemName = items[index].name;
+          std::string msg = "\"" + itemName + "\"\nAre you sure?";
+          Audio().Play(AudioType::CHIP_DESC);
           question = new Question(msg,
             [this, itemName]() {
-              textbox.EnqueMessage(new Message("I bought " + itemName));
+              message = new Message("I bought " + itemName);
+              textbox.EnqueMessage(message);
               textbox.CompleteCurrentBlock();
               question = nullptr;
               Audio().Play(AudioType::ITEM_GET);
+
+              ShowDefaultMessage(); //enqueues default message
             },
             [this]() {
               this->ShowDefaultMessage();
@@ -176,12 +222,21 @@ void VendorScene::onUpdate(double elapsed)
           textbox.ClearAllMessages();
           textbox.EnqueMessage(mugshot, anim, question);
           textbox.CompleteCurrentBlock();
-        }
+         }
+         else {
+           // message ptr is valid, we're reading the purchase text
+           if (textbox.IsEndOfBlock()) {
+             if (message->Continue() == Message::ContinueResult::dequeued) {
+               textbox.CompleteCurrentBlock();
+               message = nullptr;
+             }
+           }
+         }
       }
     }
     else if (Input().Has(InputEvents::pressed_cancel)) {
-      // Don't ask to leave if in the middle of another (or current) question
-      if (!question) {
+      // Don't ask to leave if in the middle of another state (including another question)
+      if (!question && !message) {
         question = new Question("Leaving so soon?",
           [this]() {
             textbox.EnqueMessage(mugshot, anim, new Message("Goodbye!"));
@@ -190,6 +245,8 @@ void VendorScene::onUpdate(double elapsed)
             getController().pop<segue<BlackWashFade, milli<500>>>();
             Audio().Play(AudioType::CHIP_DESC_CLOSE);
             question = nullptr;
+            currState = state::slide_out;
+            stateTimer.reset();
           },
           [this]() {
             this->ShowDefaultMessage();
@@ -250,8 +307,8 @@ void VendorScene::onUpdate(double elapsed)
     };
 
     if (showDescription) {
+      message = new Message(items[index].desc);
       textbox.ClearAllMessages();
-      auto message = new Message(items[index].desc);
       message->ShowEndMessageCursor(false);
       textbox.EnqueMessage(message);
       textbox.CompleteCurrentBlock();
@@ -287,7 +344,7 @@ void VendorScene::onDraw(sf::RenderTexture& surface)
   label.setPosition(wallet.getPosition() + sf::Vector2f{(wallet.getLocalBounds().width*2.f) - 10.f, 56.f});
   surface.draw(label);
 
-  if (items.size()) {
+  if (items.size() && currState == state::active) {
     for (size_t j = 0; j < maxRows; j++) {
       size_t offset = static_cast<size_t>(rowOffset);
       size_t index = offset + static_cast<size_t>(j);
@@ -313,7 +370,9 @@ void VendorScene::onDraw(sf::RenderTexture& surface)
     surface.draw(moreText);
   }*/
 
-  surface.draw(cursor);
+  if (currState == state::active) {
+    surface.draw(cursor);
+  }
 }
 
 void VendorScene::onEnd()

@@ -299,13 +299,15 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   else {
     if (question) {
       if (Input().Has(InputEvents::pressed_ui_left)) {
-        question->SelectYes();
+        question->SelectYes()? Audio().Play(AudioType::CHIP_CHOOSE) : (void)0;
       }
       else if (Input().Has(InputEvents::pressed_ui_right)) {
-        question->SelectNo();
+        question->SelectNo() ? Audio().Play(AudioType::CHIP_CHOOSE) : (void)0;
       }
       else if (Input().Has(InputEvents::pressed_confirm)) {
-        question->ConfirmSelection();
+        if (question) {
+          question->ConfirmSelection();
+        }
       }
     }
     else if (Input().Has(InputEvents::pressed_interact)) {
@@ -942,11 +944,13 @@ void Overworld::SceneBase::ResetMap()
               getController().push<segue<BlackWashFade>::to<VendorScene>>(face, mugAnim);
               textbox.Close();
               question = nullptr;
+              Audio().Play(AudioType::CHIP_CONFIRM);
             },
             
             [this, face, mugAnim]() {
               textbox.EnqueMessage(face, mugAnim, new Message("Ok see you again!"));
               question = nullptr;
+              Audio().Play(AudioType::CHIP_DESC_CLOSE);
             });
 
           textbox.EnqueMessage(face, mugAnim, message);

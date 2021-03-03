@@ -2,6 +2,7 @@
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
+#include "bnGame.h"
 
 Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) : 
   Message(message + "\n    YES        NO") {
@@ -19,14 +20,14 @@ Question::~Question() {
 
 }
 
-const bool Question::SelectYes() { if (!isQuestionReady) return false; else yes = true; return true; }
-const bool Question::SelectNo() { if (!isQuestionReady) return false; else yes = false; return true; }
+const bool Question::SelectYes() { if (!isQuestionReady || yes) return false; else yes = true; return true; }
+const bool Question::SelectNo() { if (!isQuestionReady || !yes) return false; else yes = false; return true; }
 
-void Question::Cancel()
+const bool Question::Cancel()
 {
-  if (!isQuestionReady) return;
-  SelectNo();
+  bool result = SelectNo();
   canceled = true; // wait one more frame
+  return result;
 }
 
 void Question::ConfirmSelection()
@@ -49,7 +50,8 @@ void Question::ExecuteSelection() {
 }
 
 void Question::OnUpdate(double elapsed) {
-  Question::elapsed = elapsed;
+  this->elapsed = elapsed;
+  this->totalElapsed += this->elapsed;
 
   isQuestionReady = GetTextBox()->IsEndOfMessage();
 
@@ -69,14 +71,16 @@ void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
   // Find out how many rows there are and place arrows to fit the text.
   int numOfFitLines = GetTextBox()->GetNumberOfFittingLines();
   int cursorY = static_cast<int>((3 - numOfFitLines) * -24.0f - 20.0f);
+  unsigned bob = from_seconds(this->totalElapsed*0.25).count() % 5; // 5 pixel bobs
+  float bobf = static_cast<float>(bob);
 
   float textBoxBottom = GetTextBox()->getPosition().y + GetTextBox()->GetFrameHeight() / 2.0f;
 
   if (yes) {
-      selectCursor.setPosition(142.0f, textBoxBottom + cursorY);
+      selectCursor.setPosition(142.0f + bobf, textBoxBottom + cursorY);
   }
   else {
-      selectCursor.setPosition(314.0f, textBoxBottom + cursorY);
+      selectCursor.setPosition(314.0f + bobf, textBoxBottom + cursorY);
   }
 
   if (isQuestionReady) {

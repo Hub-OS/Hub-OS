@@ -7,6 +7,13 @@
 #include <vector>
 
 class VendorScene : public Scene {
+  enum class state : char {
+    slide_in = 0,
+    active,
+    slide_out
+  } currState{};
+  swoosh::Timer stateTimer{};
+
   class VendorBackground : public IBackground<VendorBackground> {
   public:
     VendorBackground();
@@ -39,6 +46,7 @@ class VendorScene : public Scene {
   Animation anim;
   AnimatedTextBox textbox;
   Question* question{ nullptr };
+  Message* message{ nullptr };
   float totalElapsed{};
   float heldCooldown{};
   signed row{}, rowOffset{};

@@ -16,7 +16,7 @@ namespace Overworld {
         teleport_in = 0,
         teleport_out
       } const state{};
-
+      double originalWalkSpeed{};
       Callback<void()> onFinish;
     };
 

@@ -1046,7 +1046,7 @@ animation state="THIN_Z"
 frame duration="0.05" x="959" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_:"
-frame duration="0.05" x="981" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
+frame duration="0.05" x="981" y="44" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_&"
 frame duration="0.05" x="999" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 
@@ -1341,3 +1341,12 @@ frame duration="0.05" x="828" y="113" w="7" h="11" originx="0" originy="0" flipx
 
 animation state="GRADIENT_ORANGE_+"
 frame duration="0.05" x="748" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="THICK_SP"
+frame duration="0.05" x="298" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="THICK_EX"
+frame duration="0.05" x="314" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="THIN_QUOTE"
+frame duration="0.05" x="1060" y="47" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0" 

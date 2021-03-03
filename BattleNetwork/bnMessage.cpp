@@ -31,15 +31,17 @@ void Message::SetTextBox(AnimatedTextBox * textbox)
   MessageInterface::SetTextBox(textbox);
 }
 
-void Message::Continue() {
-  if (GetTextBox()->IsPlaying() || !GetTextBox()->HasMessage()) return;
+Message::ContinueResult Message::Continue() {
+  if (GetTextBox()->IsPlaying() || !GetTextBox()->HasMessage()) return ContinueResult::no_op;
 
   if (GetTextBox()->IsEndOfMessage()) {
     GetTextBox()->DequeMessage();
+    return ContinueResult::dequeued;
   }
-  else {
-    GetTextBox()->ShowNextLines();
-  }
+  
+  // else
+  GetTextBox()->ShowNextLines();
+  return ContinueResult::next_lines;
 }
 
 void Message::ShowEndMessageCursor(bool show)

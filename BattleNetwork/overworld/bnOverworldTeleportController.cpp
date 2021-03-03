@@ -70,7 +70,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
   actor.setPosition(start);
   this->beam.setPosition(start);
 
-  this->sequence.push(Command{ Command::state::teleport_in });
+  this->sequence.push(Command{ Command::state::teleport_in, actor.GetWalkSpeed() });
   return this->sequence.back();
 }
 
@@ -85,11 +85,13 @@ void Overworld::TeleportController::Update(double elapsed)
     if (animComplete) {
       if (walkFrames > frames(0) && this->startDir != Direction::none) {
         // walk out for 50 frames
-        actor->Walk(this->startDir);
+        actor->Walk(this->startDir, true);
+        actor->SetWalkSpeed(40); // overwrite
         walkFrames -= from_seconds(elapsed);
       }
       else {
         this->walkoutComplete = true;
+        actor->SetWalkSpeed(next.originalWalkSpeed);
         next.onFinish();
         sequence.pop();
       }

@@ -21,7 +21,7 @@ private:
   std::function<void()> onNo; /*!< Callback when user presses no */
   bool isQuestionReady; /*!< Flag for when the user has been prompted and input is waiting */
   mutable SpriteProxyNode selectCursor; /*!< Used for making selections */
-  double elapsed;
+  double elapsed{}, totalElapsed{};
 
   void ExecuteSelection();
 
@@ -43,7 +43,7 @@ public:
  */
   const bool SelectNo();
 
-  void Cancel();
+  const bool Cancel();
   void ConfirmSelection();
 
   void OnUpdate(double elapsed);
