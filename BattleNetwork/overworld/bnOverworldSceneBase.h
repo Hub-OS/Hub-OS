@@ -42,7 +42,6 @@ namespace Overworld {
     Overworld::PlayerController playerController{};
     Overworld::QuadTree quadTree{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
-    std::vector<Overworld::PathController> pathControllers{};
 
     Camera camera; /*!< camera in scene follows player */
     bool clicked{ false }, scaledmap{ false };
