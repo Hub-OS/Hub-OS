@@ -98,12 +98,12 @@ void Overworld::Actor::LoadAnimations(const Animation& animation)
   Update(0); // refresh
 }
 
-void Overworld::Actor::SetWalkSpeed(const double speed)
+void Overworld::Actor::SetWalkSpeed(float speed)
 {
   this->walkSpeed = speed;
 }
 
-void Overworld::Actor::SetRunSpeed(const double speed)
+void Overworld::Actor::SetRunSpeed(float speed)
 {
   this->runSpeed = speed;
 }
@@ -118,12 +118,12 @@ const std::string Overworld::Actor::GetName() const
   return this->name;
 }
 
-const double Overworld::Actor::GetWalkSpeed() const
+float Overworld::Actor::GetWalkSpeed() const
 {
   return walkSpeed;
 }
 
-const double Overworld::Actor::GetRunSpeed() const
+float Overworld::Actor::GetRunSpeed() const
 {
   return runSpeed;
 }
@@ -143,7 +143,7 @@ sf::Vector2f Overworld::Actor::PositionInFrontOf() const
   return getPosition() + MakeVectorFromDirection(GetHeading(), 2.0f);
 }
 
-void Overworld::Actor::Update(double elapsed)
+void Overworld::Actor::Update(float elapsed)
 {
   std::string stateStr = FindValidAnimState(this->heading, this->state);
   if (!stateStr.empty()) {
@@ -155,7 +155,7 @@ void Overworld::Actor::Update(double elapsed)
     animProgress += elapsed;
 
     if (lastStateStr.empty() == false) {
-      anims[lastStateStr].SyncTime(static_cast<float>(animProgress));
+      anims[lastStateStr].SyncTime(animProgress);
       anims[lastStateStr].Refresh(getSprite());
     }
 
@@ -238,7 +238,7 @@ void Overworld::Actor::CollideWithQuadTree(QuadTree& sector)
   this->quadTree = &sector;
 }
 
-void Overworld::Actor::SetCollisionRadius(double radius)
+void Overworld::Actor::SetCollisionRadius(float radius)
 {
   this->collisionRadius = radius;
 }
@@ -259,7 +259,7 @@ const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& ac
 {
   auto delta = (getPosition() + offset) - actor.getPosition();
   float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-  float sumOfRadii = static_cast<float>(actor.collisionRadius + collisionRadius);
+  float sumOfRadii = actor.collisionRadius + collisionRadius;
 
   if (distance > sumOfRadii) {
     return {};
@@ -268,15 +268,15 @@ const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& ac
   auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
 
   // suggested point of collision is the edge of the circle
-  auto vec = actor.getPosition() + (delta_unit * static_cast<float>(sumOfRadii));
+  auto vec = actor.getPosition() + (delta_unit * sumOfRadii);
 
   // return collision status and point of potential intersection
   return vec;
 }
 
-const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, double elapsed)
+const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed)
 {
-  double px_per_s = 0;
+  float px_per_s = 0;
 
   if (state == MovementState::running) {
     px_per_s = GetRunSpeed() * elapsed;
@@ -286,7 +286,7 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   }
 
   auto currPos = getPosition();
-  auto offset = MakeVectorFromDirection(dir, static_cast<float>(px_per_s));
+  auto offset = MakeVectorFromDirection(dir, px_per_s);
   auto newPos = currPos + offset;
 
   const auto& [first, second] = Split(dir);

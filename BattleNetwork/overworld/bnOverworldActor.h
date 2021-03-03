@@ -40,9 +40,9 @@ namespace Overworld {
     };
 
     Map* map{ nullptr };
-    double animProgress{}; //!< Used to sync movement animations
-    double walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
-    double runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
+    float animProgress{}; //!< Used to sync movement animations
+    float walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
+    float runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
     bool moveThisFrame{ false }; //!< Tells actor to move in accordance with their states or remain stationairy
     Direction heading{ Direction::down }; //!< the character's current heading
     std::map<std::string, Animation> anims; //!< Map of animation objects per direction per state
@@ -52,7 +52,7 @@ namespace Overworld {
     std::string name{}; //!< name of this character
     std::string lastStateStr{}; //!< String representing the last frame's state name
     std::function<void(std::shared_ptr<Actor> with)> onInteractFunc; //!< What happens if an actor interacts with the other
-    double collisionRadius{ 1.0 };
+    float collisionRadius{ 1.0 };
     QuadTree* quadTree{ nullptr };
 
     // aux functions
@@ -112,13 +112,13 @@ namespace Overworld {
     * @brief Set the walk speed as pixels per second
     * @param speed Pixels per second
     */
-    void SetWalkSpeed(const double speed);
+    void SetWalkSpeed(float speed);
 
     /**
     * @brief Set the run speed as pixels per second
     * @param speed Pixels per second
     */
-    void SetRunSpeed(const double speed);
+    void SetRunSpeed(float speed);
 
 
     /**
@@ -137,13 +137,13 @@ namespace Overworld {
     * @brief Fetch the walking speed
     * @return walk speed as pixels per second
     */
-    const double GetWalkSpeed() const;
+    float GetWalkSpeed() const;
 
     /**
     * @brief Fetch the running speed
     * @return run speed as pixels per second
     */
-    const double GetRunSpeed() const;
+    float GetRunSpeed() const;
 
     /**
     * @brief Fetch the current animation state as a string
@@ -171,7 +171,7 @@ namespace Overworld {
     * reflect the current state values. It will also offset the actor x/y
     * based on walk or run speeds.
     */
-    void Update(double elapsed);
+    void Update(float elapsed);
 
     /**
     * @brief Watch for tile-based collisions with an existing map
@@ -199,12 +199,12 @@ namespace Overworld {
     static Direction MakeDirectionFromVector(const sf::Vector2f& vec, float threshold);
 
     void CollideWithQuadTree(QuadTree& sector);
-    void SetCollisionRadius(double radius);
+    void SetCollisionRadius(float radius);
     void SetInteractCallback(const std::function<void(std::shared_ptr<Actor>)>& func);
     void Interact(const std::shared_ptr<Actor>& with);
 
     const std::optional<sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
-    const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, double elapsed);
+    const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, float elapsed);
     const QuadTree* GetQuadTree();
   };
 }
