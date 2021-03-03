@@ -27,19 +27,19 @@ void Overworld::PlayerController::Update(double elapsed)
   std::vector<Direction> inputs;
 
   if (listen) {
-    if (Input().Has(InputEvents::pressed_move_left) || Input().Has(InputEvents::held_move_left)) {
+    if (Input().Has(InputEvents::held_move_left)) {
       inputs.push_back(Direction::down_left);
     }
 
-    if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
+    if (Input().Has(InputEvents::held_move_right)) {
       inputs.push_back(Direction::up_right);
     }
 
-    if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {
+    if (Input().Has(InputEvents::held_move_up)) {
       inputs.push_back(Direction::up_left);
     }
 
-    if (Input().Has(InputEvents::pressed_move_down) || Input().Has(InputEvents::held_move_down)) {
+    if (Input().Has(InputEvents::held_move_down)) {
       inputs.push_back(Direction::down_right);
     }
 
