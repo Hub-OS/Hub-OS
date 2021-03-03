@@ -384,6 +384,10 @@ void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates st
 
   auto offset = getView().getCenter() - camera.GetView().getCenter();
 
+  // prevents stitching artifacts between tiles
+  offset.x = std::floor(offset.x);
+  offset.y = std::floor(offset.y);
+
   map.move(offset);
   states.transform *= map.getTransform();
   map.move(-offset);
@@ -453,6 +457,10 @@ void Overworld::SceneBase::DrawSprites(sf::RenderTarget& target, sf::RenderState
   for (auto& sprite : sprites) {
     auto iso = sprite->getPosition();
     auto ortho = map.WorldToScreen(iso);
+
+    // prevents blurring and camera jittering with the player
+    ortho.x = std::floor(ortho.x);
+    ortho.y = std::floor(ortho.y);
 
     sprite->setPosition(ortho);
 
