@@ -322,4 +322,18 @@ void Overworld::Homepage::OnTileCollision()
   }
 }
 
-void Overworld::Homepage::OnInteract() {}
+void Overworld::Homepage::OnInteract() {
+  auto player = GetPlayer();
+  auto positionInFrontOffset = player->PositionInFrontOf() - player->getPosition();
+
+  for (auto other : GetActors()) {
+    if (player == other) continue;
+
+    auto collision = player->CollidesWith(*other, positionInFrontOffset);
+
+    if (collision) {
+      other->Interact(player);
+      break;
+    }
+  }
+}
