@@ -31,7 +31,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       auto tileSize = map.GetTileSize();
 
       netWarpTilePos = sf::Vector2f(
-        std::floor(centerPos.x / tileSize.x),
+        std::floor(centerPos.x / (tileSize.x / 2)),
         std::floor(centerPos.y / tileSize.y)
       );
       netWarpObjectId = tileObject.id;
@@ -234,7 +234,7 @@ void Overworld::Homepage::OnTileCollision()
   auto tileSize = sf::Vector2f(map.GetTileSize());
 
   auto tilePos = sf::Vector2f(
-    std::floor(playerPos.x / tileSize.x),
+    std::floor(playerPos.x / (tileSize.x / 2)),
     std::floor(playerPos.y / tileSize.y)
   );
 
@@ -246,7 +246,7 @@ void Overworld::Homepage::OnTileCollision()
     // Calculate the origin by grabbing this tile's grid Y/X values
     // return at the center origin of this tile
     sf::Vector2f returnPoint = sf::Vector2f(
-      tilePos.x * tileSize.x + tileSize.x / 4.0f,
+      tilePos.x * tileSize.x / 2 + tileSize.x / 4.0f,
       tilePos.y * tileSize.y + tileSize.y / 2.0f
     );
 
