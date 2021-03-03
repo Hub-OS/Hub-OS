@@ -59,6 +59,8 @@ namespace Overworld {
     void sendAvatarAssetStream();
     void sendEmoteSignal(const Overworld::Emotes emote);
     void sendObjectInteractionSignal(unsigned int tileObjectId);
+    void sendNaviInteractionSignal(const std::string& ticket);
+    void sendTileInteractionSignal(float x, float y, float z);
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);

@@ -103,7 +103,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     for (auto remove : removePlayers) {
       auto it = onlinePlayers.find(remove);
 
-      if(it == onlinePlayers.end()) {
+      if (it == onlinePlayers.end()) {
         Logger::Logf("Removed non existent Player %s", remove.c_str());
         continue;
       }
@@ -224,9 +224,28 @@ void Overworld::OnlineArea::OnInteract() {
   for (auto& tileObject : layer.GetTileObjects()) {
     if (tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
       sendObjectInteractionSignal(tileObject.id);
-      break;
+
+      // block other interactions with return
+      return;
     }
   }
+
+  auto positionInFrontOffset = frontPosition - playerActor->getPosition();
+
+  for (auto other : GetActors()) {
+    if (playerActor == other) continue;
+
+    auto collision = playerActor->CollidesWith(*other, positionInFrontOffset);
+
+    if (collision) {
+      other->Interact(playerActor);
+
+      // block other interactions with return
+      return;
+    }
+  }
+
+  sendTileInteractionSignal(frontPosition.x, frontPosition.x, 0.0);
 }
 
 void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
@@ -454,6 +473,28 @@ void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectI
   packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 
+void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::navi_interaction };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append(ticket.c_str(), ticket.length() + 1);
+  packetShipper.Send(client, Reliability::Reliable, buffer);
+}
+
+void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::tile_interaction };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&x, sizeof(x));
+  buffer.append((char*)&y, sizeof(y));
+  buffer.append((char*)&z, sizeof(z));
+  packetShipper.Send(client, Reliability::Reliable, buffer);
+}
+
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   sendReadySignal();
@@ -560,6 +601,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 
   if (!success) return;
 
+  auto& ticket = pair->first;
   auto* onlinePlayer = pair->second;
   onlinePlayer->timestamp = CurrentTime::AsMilli();
   onlinePlayer->startBroadcastPos = pos;
@@ -578,6 +620,15 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   float emoteY = -actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
   emoteNode.setPosition(0, emoteY);
   actor->AddNode(&emoteNode);
+
+  actor->SetCollisionRadius(6);
+  actor->SetInteractCallback([=](std::shared_ptr<Actor> with) {
+    if(with != GetPlayer()) {
+      return;
+    }
+
+    sendNaviInteractionSignal(ticket);
+  });
 
   AddActor(actor);
 
