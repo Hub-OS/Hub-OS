@@ -56,6 +56,13 @@ void Overworld::Actor::Face(const Direction& dir)
   this->state = MovementState::idle;
 }
 
+void Overworld::Actor::Face(const Actor& actor)
+{
+  auto direction = MakeDirectionFromVector(actor.getPosition() - getPosition(), collisionRadius / 2);
+
+  Face(direction);
+}
+
 void Overworld::Actor::LoadAnimations(const Animation& animation)
 {
   validStates.clear();

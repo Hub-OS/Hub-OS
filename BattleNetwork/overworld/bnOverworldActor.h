@@ -93,6 +93,12 @@ namespace Overworld {
     void Face(const Direction& dir);
 
     /**
+    * @brief Make the character idle and face a direction
+    * @param dir direction to face. movement speed is applied as zero.
+    */
+    void Face(const Actor& actor);
+
+    /**
     * @brief Loads animation data from a file
     * @param path load the animations for this character from a file
     * @preconditions The animation file follows the standard for overworld states described below

@@ -60,7 +60,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
     mrprog->SetCollisionRadius(5);
     mrprog->SetInteractCallback([=](std::shared_ptr<Overworld::Actor> with) {
       // Face them
-      mrprog->Face(Reverse(with->GetHeading()));
+      mrprog->Face(*with);
 
       // Play message
       sf::Sprite face;
