@@ -314,6 +314,12 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
       case ServerEvents::map:
         receiveMapSignal(reader, data);
         break;
+      case ServerEvents::transfer_start:
+        receiveTransferStartSignal(reader, data);
+        break;
+      case ServerEvents::transfer_complete:
+        receiveTransferCompleteSignal(reader, data);
+        break;
       case ServerEvents::navi_connected:
         receiveNaviConnectedSignal(reader, data);
         break;
@@ -579,6 +585,22 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
   LoadMap(mapBuffer);
 }
 
+void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  isConnected = false;
+  removePlayers.clear();
+
+  for (auto& [key, _] : onlinePlayers) {
+    removePlayers.push_back(key);
+  }
+}
+
+void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  isConnected = true;
+  sendReadySignal();
+}
+
 void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto& map = GetMap();
@@ -648,16 +670,24 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
+  bool warpOut = reader.Read<bool>(buffer);
+
   auto userIter = onlinePlayers.find(user);
 
-  if (userIter != onlinePlayers.end()) {
-    auto actor = userIter->second->actor;
+  if (userIter == onlinePlayers.end()) {
+    return;
+  }
+
+  auto actor = userIter->second->actor;
+
+  if (warpOut) {
     auto* teleport = &userIter->second->teleportController;
     teleport->TeleportOut(actor).onFinish.Slot([=] {
-      RemoveSprite(actor);
-      RemoveSprite(teleport->GetBeam());
       removePlayers.push_back(user);
     });
+  }
+  else {
+    removePlayers.push_back(user);
   }
 }
 
