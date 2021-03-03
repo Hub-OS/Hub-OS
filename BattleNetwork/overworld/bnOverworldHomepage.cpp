@@ -57,13 +57,8 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
     mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
     mrprog->setPosition(statusBotSpawn.position);
     mrprog->CollideWithQuadTree(quadTree);
-    mrprog->SetCollisionRadius(3);
+    mrprog->SetCollisionRadius(5);
     mrprog->SetInteractCallback([=](std::shared_ptr<Overworld::Actor> with) {
-      // if player interacted with us
-      if (with != GetPlayer()) {
-        return;
-      }
-
       // Face them
       mrprog->Face(Reverse(with->GetHeading()));
 
