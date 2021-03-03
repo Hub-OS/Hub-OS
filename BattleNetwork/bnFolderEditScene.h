@@ -30,24 +30,24 @@ class FolderEditScene : public Scene {
 private:
   enum class ViewMode : int {
     folder,
-    pack
+    pool
   };
 
   /**
   * @class PackBucket
-  * @brief Cards in a pack avoid listing duplicates by bundling them in a counted bucket 
+  * @brief Cards in a pool avoid listing duplicates by bundling them in a counted bucket 
   * 
   * Users can select up to all of the cards in a bucket. The bucket will remain in the list but at 0. 
   */
-  class PackBucket {
+  class PoolBucket {
   private:
     unsigned size;
     unsigned maxSize;
     Battle::Card info;
 
   public:
-    PackBucket(unsigned size, Battle::Card info) : size(size), maxSize(size), info(info) { }
-    ~PackBucket() { }
+    PoolBucket(unsigned size, Battle::Card info) : size(size), maxSize(size), info(info) { }
+    ~PoolBucket() { }
 
     const bool IsEmpty() const { return size == 0; }
     const bool GetCard(Battle::Card& copy) { if (IsEmpty()) return false; else copy = Battle::Card(info); size--;  return true; }
@@ -92,7 +92,7 @@ private:
 
 private:
   std::vector<FolderSlot> folderCardSlots; /*!< Rows in the folder that can be inserted with cards or replaced */
-  std::vector<PackBucket> packCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
+  std::vector<PoolBucket> poolCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
   bool hasFolderChanged; /*!< Flag if folder needs to be saved before quitting screen */
   Camera camera;
   CardFolder& folder;
@@ -169,8 +169,8 @@ private:
 #endif
 
   void DrawFolder(sf::RenderTarget& surface);
-  void DrawLibrary(sf::RenderTarget& surface);
-  void ExcludeFolderDataFromPack();
+  void DrawPool(sf::RenderTarget& surface);
+  void ExcludeFolderDataFromPool();
   void PlaceFolderDataIntoCardSlots();
   void PlaceLibraryDataIntoBuckets();
   void WriteNewFolderData();

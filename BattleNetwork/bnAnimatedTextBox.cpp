@@ -210,7 +210,7 @@ void AnimatedTextBox::Update(double elapsed) {
   textBox.Play(!isPaused);
 
   // set the textbox position
-  textBox.setPosition(sf::Vector2f(getPosition().x + 100.0f, getPosition().y - 40.0f));
+  textBox.setPosition(sf::Vector2f(getPosition().x + 100.0f - 4.f, getPosition().y - 40.0f - 12.f));
 
   animator.Update((float)elapsed, frame);
 }

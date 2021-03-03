@@ -22,7 +22,7 @@ KeyItemScene::KeyItemScene(swoosh::ActivityController& controller) :
   bg.setScale(2.f, 2.f);
 
   // Text box navigator
-  textbox.setPosition(100, 210);
+  textbox.setPosition(100, 205);
   textbox.SetTextColor(sf::Color::Black);
   textbox.Mute();
 
@@ -172,7 +172,7 @@ void KeyItemScene::onDraw(sf::RenderTexture& surface)
         if (index < items.size()) {
           auto& item = items[index];
           label.SetString(item.name);
-          label.setPosition(55 + (i * 200) + 2.f, 46 + (j * 30) + 2.f);
+          label.setPosition(55 + (i * 200) + 2.f, 42 + (j * 30) + 2.f);
 
           const auto pos = label.getPosition();
           //label.SetColor(sf::Color::Black);

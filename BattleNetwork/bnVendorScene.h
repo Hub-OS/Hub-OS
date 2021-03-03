@@ -32,6 +32,7 @@ class VendorScene : public Scene {
     unsigned cost{};
   };
 
+  double totalElapsed{};
   unsigned monies{};
 
   std::vector<Item> items;
@@ -47,7 +48,6 @@ class VendorScene : public Scene {
   AnimatedTextBox textbox;
   Question* question{ nullptr };
   Message* message{ nullptr };
-  float totalElapsed{};
   float heldCooldown{};
   signed row{}, rowOffset{};
   bool showDescription{ false }; 

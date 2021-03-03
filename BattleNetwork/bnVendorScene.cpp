@@ -71,7 +71,7 @@ VendorScene::VendorScene(swoosh::ActivityController& controller, const sf::Sprit
   list.setScale(0.f, 0.f); // hide
   list.setPosition(0.f, 0.f);
 
-  cursor.setTexture(*LOAD_TEXTURE(FOLDER_CURSOR));
+  cursor.setTexture(*LOAD_TEXTURE(TEXT_BOX_CURSOR));
   cursor.setScale(2.f, 2.f);
 
   bg = new VendorBackground;
@@ -85,7 +85,7 @@ VendorScene::VendorScene(swoosh::ActivityController& controller, const sf::Sprit
     {"Sock", "Keeps your feet warms for the winter.", 20}
   };
 
-  defaultMessage = "How can I help you? OPTION: description CANCEL: go back";
+  defaultMessage = "How can I help you? OPTION:Description CANCEL:Back";
   this->ShowDefaultMessage();
 
   textbox.Mute();
@@ -126,6 +126,9 @@ void VendorScene::onUpdate(double elapsed)
   textbox.Update(elapsed);
   bg->Update(elapsed);
   stateTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  totalElapsed += elapsed;
+  unsigned bob = from_seconds(this->totalElapsed * 0.25).count() % 5; // 5 pixel bobs
+  float bobf = static_cast<float>(bob);
 
   if (currState == state::slide_in) {
     wallet.setScale(2.f, 2.f); // reveal
@@ -149,7 +152,6 @@ void VendorScene::onUpdate(double elapsed)
     return;
   }
   else if(currState == state::slide_out) {
-    
     float startPos = 480.0f + wallet.getLocalBounds().width*wallet.getScale().x;
     float endPos = 340.f;
     float delta = swoosh::ease::linear(stateTimer.getElapsed().asSeconds(), maxStateTime, 1.0f);
@@ -261,16 +263,19 @@ void VendorScene::onUpdate(double elapsed)
       }
     }
     else if (Input().Has(InputEvents::pressed_option)) {
-      showDescription = !showDescription;
+      // Only allow toggling if displaying the default message...
+      if (!message) {
+        showDescription = !showDescription;
 
-      if (!showDescription) {
-        textbox.ClearAllMessages();
-        this->ShowDefaultMessage();
+        if (!showDescription) {
+          textbox.ClearAllMessages();
+          this->ShowDefaultMessage();
+        }
+
+        Audio().Play(AudioType::CHIP_DESC);
+
+        updateDescription = true;
       }
-
-      Audio().Play(AudioType::CHIP_DESC);
-
-      updateDescription = true;
     }
   }
 
@@ -307,9 +312,10 @@ void VendorScene::onUpdate(double elapsed)
     };
 
     if (showDescription) {
-      message = new Message(items[index].desc);
-      textbox.ClearAllMessages();
+      // do not mistake this for VendorScene::message
+      auto message = new Message(items[index].desc);
       message->ShowEndMessageCursor(false);
+      textbox.ClearAllMessages();
       textbox.EnqueMessage(message);
       textbox.CompleteCurrentBlock();
     }
@@ -325,11 +331,10 @@ void VendorScene::onUpdate(double elapsed)
   float delta = static_cast<float>(rowOffset) / rowsPerView;
   float y = (endPos * delta) + (startPos * (1.f - delta));
 
-  cursor.setPosition(10 + 1.f, 18 + (row * 32) + 1.f);
+  cursor.setPosition(6.f + bobf, 18 + (row * 32) + 1.f);
 
   auto bounce = std::sin((float)totalElapsed * 20.0f);
   moreItems.setPosition(sf::Vector2f(225, 140 + bounce) * 2.0f);
-  totalElapsed += static_cast<float>(elapsed);
 }
 
 void VendorScene::onDraw(sf::RenderTexture& surface)
@@ -351,13 +356,13 @@ void VendorScene::onDraw(sf::RenderTexture& surface)
       if (index < items.size()) {
         auto& item = items[index];
         label.SetString(item.name);
-        label.setPosition(35, 18.f + (j * 32.f));
+        label.setPosition(35, 13.f + (j * 32.f));
         label.setOrigin(0.f, 0.f);
         surface.draw(label);
 
         label.SetString(std::to_string(item.cost)+"z");
         label.setOrigin(label.GetLocalBounds().width, 0.f);
-        label.setPosition(322.f, 18.f + (j * 32.f));
+        label.setPosition(322.f, 13.f + (j * 32.f));
         surface.draw(label);
       }
     }

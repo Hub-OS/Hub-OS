@@ -5,7 +5,7 @@
 #include "bnGame.h"
 
 Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) : 
-  Message(message + "\n    YES        NO") {
+  Message(message + "\n       YES     NO") {
   Question::onNo = onNo;
   Question::onYes = onYes;
   isQuestionReady = false;
@@ -70,17 +70,17 @@ void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
   // So it is visible when the message box is done printing.
   // Find out how many rows there are and place arrows to fit the text.
   int numOfFitLines = GetTextBox()->GetNumberOfFittingLines();
-  int cursorY = static_cast<int>((3 - numOfFitLines) * -24.0f - 20.0f);
+  int cursorY = (static_cast<int>(3 - numOfFitLines) * -30.0f) - 15.0f;
   unsigned bob = from_seconds(this->totalElapsed*0.25).count() % 5; // 5 pixel bobs
   float bobf = static_cast<float>(bob);
 
   float textBoxBottom = GetTextBox()->getPosition().y + GetTextBox()->GetFrameHeight() / 2.0f;
 
   if (yes) {
-      selectCursor.setPosition(142.0f + bobf, textBoxBottom + cursorY);
+      selectCursor.setPosition(180.0f + bobf, textBoxBottom + cursorY);
   }
   else {
-      selectCursor.setPosition(314.0f + bobf, textBoxBottom + cursorY);
+      selectCursor.setPosition(300.0f + bobf, textBoxBottom + cursorY);
   }
 
   if (isQuestionReady) {

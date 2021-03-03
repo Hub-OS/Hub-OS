@@ -70,7 +70,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const Sel
 
   // Text box navigator
   textbox.Stop();
-  textbox.setPosition(100, 210);
+  textbox.setPosition(100, 205);
   textbox.SetTextColor(sf::Color::Black);
   textbox.SetCharactersPerSecond(25);
 
