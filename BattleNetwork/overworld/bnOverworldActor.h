@@ -158,7 +158,7 @@ namespace Overworld {
     const Direction GetHeading() const;
 
     /**
-    * @brief Return the position + heading by 2px
+    * @brief Return the position + heading by collisionRadius
     * @return vector in front of the actor's heading
     */
     sf::Vector2f PositionInFrontOf() const;

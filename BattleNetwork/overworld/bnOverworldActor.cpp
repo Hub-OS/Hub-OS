@@ -140,7 +140,7 @@ const Direction Overworld::Actor::GetHeading() const
 
 sf::Vector2f Overworld::Actor::PositionInFrontOf() const
 {
-  return getPosition() + MakeVectorFromDirection(GetHeading(), 2.0f);
+  return getPosition() + MakeVectorFromDirection(GetHeading(), collisionRadius);
 }
 
 void Overworld::Actor::Update(float elapsed)
