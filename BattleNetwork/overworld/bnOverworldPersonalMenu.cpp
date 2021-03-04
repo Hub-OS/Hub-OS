@@ -1,11 +1,11 @@
-#include "bnOverworldPETMenu.h"
+#include "bnOverworldPersonalMenu.h"
 #include "../bnDrawWindow.h"
 #include "../bnTextureResourceManager.h"
 
 #include <Swoosh/Ease.h>
 
 namespace Overworld {
-  PETMenu::PETMenu(const std::string& area, const PETMenu::OptionsList& options) :
+  PersonalMenu::PersonalMenu(const std::string& area, const PersonalMenu::OptionsList& options) :
     optionsList(options),
     font(Font::Style::thick),
     infoText(font),
@@ -77,7 +77,7 @@ namespace Overworld {
     selectInputCooldown = maxSelectInputCooldown;
   }
 
-  PETMenu::~PETMenu()
+  PersonalMenu::~PersonalMenu()
   {
   }
 
@@ -104,11 +104,11 @@ namespace Overworld {
   - all the folder options have expanded
   - ease in animation is complete
   */
-  void PETMenu::QueueAnimTasks(const PETMenu::state& state)
+  void PersonalMenu::QueueAnimTasks(const PersonalMenu::state& state)
   {
     easeInTimer.clear();
 
-    if (state == PETMenu::state::opening) {
+    if (state == PersonalMenu::state::opening) {
       easeInTimer.reverse(false);
       easeInTimer.set(frames(0));
     }
@@ -132,7 +132,7 @@ namespace Overworld {
       this->banner.setPosition((1.0f - x) * -this->banner.getSprite().getLocalBounds().width, 0);
     }).withDuration(frames(8));
 
-    if (state == PETMenu::state::closing) {
+    if (state == PersonalMenu::state::closing) {
       t0f.doTask([=](double elapsed) {
         currState = state::closed;
       });
@@ -169,7 +169,7 @@ namespace Overworld {
 
     auto& t8f = easeInTimer.at(frames(8));
 
-    if (state == PETMenu::state::opening) {
+    if (state == PersonalMenu::state::opening) {
       t8f.doTask([=](double elapsed) {
         placeTextSpr.Reveal();
         selectTextSpr.Reveal();
@@ -244,7 +244,7 @@ namespace Overworld {
     //
     // on frame 20 change state flag
     //
-    if (state == PETMenu::state::opening) {
+    if (state == PersonalMenu::state::opening) {
       easeInTimer
         .at(frames(20))
         .doTask([=](double elapsed) {
@@ -253,7 +253,7 @@ namespace Overworld {
     }
   }
 
-  void PETMenu::CreateOptions()
+  void PersonalMenu::CreateOptions()
   {
     options.reserve(optionsList.size() * 2);
     optionIcons.reserve(optionsList.size() * 2);
@@ -282,7 +282,7 @@ namespace Overworld {
   }
 
 
-  void PETMenu::Update(double elapsed)
+  void PersonalMenu::Update(double elapsed)
   {
     easeInTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
@@ -323,7 +323,7 @@ namespace Overworld {
     }
   }
 
-  void PETMenu::HandleInput(InputManager& input, AudioResourceManager& audio) {
+  void PersonalMenu::HandleInput(InputManager& input, AudioResourceManager& audio) {
     // menu widget
     if (input.Has(InputEvents::pressed_pause) && !input.Has(InputEvents::pressed_cancel)) {
       if (IsClosed()) {
@@ -404,7 +404,7 @@ namespace Overworld {
     }
   }
 
-  void PETMenu::draw(sf::RenderTarget& target, sf::RenderStates states) const
+  void PersonalMenu::draw(sf::RenderTarget& target, sf::RenderStates states) const
   {
     if (IsHidden()) return;
 
@@ -486,33 +486,33 @@ namespace Overworld {
     }
   }
 
-  void PETMenu::SetArea(const std::string& name)
+  void PersonalMenu::SetArea(const std::string& name)
   {
     areaName = name;
   }
 
-  void PETMenu::SetCoins(int coins)
+  void PersonalMenu::SetCoins(int coins)
   {
-    PETMenu::coins = coins;
+    PersonalMenu::coins = coins;
   }
 
-  void PETMenu::SetHealth(int health)
+  void PersonalMenu::SetHealth(int health)
   {
-    PETMenu::health = health;
+    PersonalMenu::health = health;
   }
 
-  void PETMenu::SetMaxHealth(int maxHealth)
+  void PersonalMenu::SetMaxHealth(int maxHealth)
   {
-    PETMenu::maxHealth = maxHealth;
+    PersonalMenu::maxHealth = maxHealth;
   }
 
-  void PETMenu::UseIconTexture(const std::shared_ptr<sf::Texture> iconTexture)
+  void PersonalMenu::UseIconTexture(const std::shared_ptr<sf::Texture> iconTexture)
   {
     this->iconTexture = iconTexture;
     this->icon.setTexture(iconTexture, true);
   }
 
-  void PETMenu::ResetIconTexture()
+  void PersonalMenu::ResetIconTexture()
   {
     iconTexture.reset();
 
@@ -521,7 +521,7 @@ namespace Overworld {
     optionAnim.SetFrame(1, icon.getSprite());
   }
 
-  bool PETMenu::ExecuteSelection()
+  bool PersonalMenu::ExecuteSelection()
   {
     if (selectExit) {
       return Close();
@@ -538,7 +538,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PETMenu::SelectExit()
+  bool PersonalMenu::SelectExit()
   {
     if (!selectExit) {
       selectExit = true;
@@ -558,7 +558,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PETMenu::SelectOptions()
+  bool PersonalMenu::SelectOptions()
   {
     if (selectExit) {
       selectExit = false;
@@ -571,7 +571,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PETMenu::CursorMoveUp()
+  bool PersonalMenu::CursorMoveUp()
   {
     if (!selectExit) {
       if (--row < 0) {
@@ -586,7 +586,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PETMenu::CursorMoveDown()
+  bool PersonalMenu::CursorMoveDown()
   {
     if (!selectExit) {
       row = (row + 1u) % (int)optionsList.size();
@@ -597,7 +597,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PETMenu::Open()
+  bool PersonalMenu::Open()
   {
     if (currState == state::closed) {
       currState = state::opening;
@@ -609,7 +609,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PETMenu::Close()
+  bool PersonalMenu::Close()
   {
     if (currState == state::opened) {
       currState = state::closing;
@@ -621,12 +621,12 @@ namespace Overworld {
     return false;
   }
 
-  bool PETMenu::IsOpen() const
+  bool PersonalMenu::IsOpen() const
   {
     return currState == state::opened;
   }
 
-  bool PETMenu::IsClosed() const
+  bool PersonalMenu::IsClosed() const
   {
     return currState == state::closed;
   }

@@ -14,12 +14,12 @@
 namespace Overworld {
 
 /**
- * @class PETMenu
+ * @class PersonalMenu
  * @author mav
  * @date 11/04/20
- * @brief PETMenu used in over-world hub. Can be interacted through public API.
+ * @brief PersonalMenu used in over-world hub. Can be interacted through public API.
  */
-  class PETMenu : public SceneNode, public ResourceHandle {
+  class PersonalMenu : public SceneNode, public ResourceHandle {
   public:
     enum class state : unsigned {
       closed = 0,
@@ -75,12 +75,12 @@ namespace Overworld {
     /**
      * @brief Constructs main menu widget UI. The programmer must set info params using the public API
      */
-    PETMenu(const std::string& area, const OptionsList& options);
+    PersonalMenu(const std::string& area, const OptionsList& options);
 
     /**
      * @brief Deconstructor
      */
-    ~PETMenu();
+    ~PersonalMenu();
 
     /**
      * @brief Animators cursors and all animations

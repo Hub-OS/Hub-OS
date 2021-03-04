@@ -41,7 +41,7 @@ using sf::Event;
 using namespace swoosh::types;
 
 /// \brief Thunk to populate menu options to callbacks
-auto MakeOptions = [](Overworld::SceneBase* scene) -> Overworld::PETMenu::OptionsList {
+auto MakeOptions = [](Overworld::SceneBase* scene) -> Overworld::PersonalMenu::OptionsList {
   return {
     { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
     { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
@@ -54,7 +54,7 @@ auto MakeOptions = [](Overworld::SceneBase* scene) -> Overworld::PETMenu::Option
 Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool guestAccount) :
   guestAccount(guestAccount),
   lastIsConnectedState(false),
-  PETMenu("Overworld", MakeOptions(this)),
+  personalMenu("Overworld", MakeOptions(this)),
   textbox({ 4, 255 }),
   camera(controller.getWindow().getView()),
   Scene(controller),
@@ -75,7 +75,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   // Draws the scrolling background
   SetBackground(new LanBackground);
 
-  PETMenu.setScale(2.f, 2.f);
+  personalMenu.setScale(2.f, 2.f);
   emote.setScale(2.f, 2.f);
 
   auto windowSize = getController().getVirtualWindowSize();
@@ -155,7 +155,7 @@ void Overworld::SceneBase::onStart() {
 }
 
 void Overworld::SceneBase::onUpdate(double elapsed) {
-  if (PETMenu.IsClosed() && textbox.IsClosed()) {
+  if (personalMenu.IsClosed() && textbox.IsClosed()) {
     playerController.ListenToInputEvents(true);
   }
   else {
@@ -163,7 +163,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   // check to see if talk button was pressed
-  if (PETMenu.IsClosed() && textbox.IsClosed()) {
+  if (personalMenu.IsClosed() && textbox.IsClosed()) {
     if (Input().Has(InputEvents::pressed_interact)) {
       OnInteract();
     }
@@ -270,7 +270,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   bg->Update((float)elapsed);
 
   // Update the widget
-  PETMenu.Update((float)elapsed);
+  personalMenu.Update((float)elapsed);
 
   // Update the emote widget
   emote.Update(elapsed);
@@ -288,7 +288,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   if (!gotoNextScene && textbox.IsClosed()) {
     // emotes widget
-    if (Input().Has(InputEvents::pressed_option) && PETMenu.IsClosed()) {
+    if (Input().Has(InputEvents::pressed_option) && personalMenu.IsClosed()) {
       if (emote.IsClosed()) {
         emote.Open();
       }
@@ -298,7 +298,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     }
 
     if (emote.IsClosed()) {
-      PETMenu.HandleInput(Input(), Audio());
+      personalMenu.HandleInput(Input(), Audio());
       // menu widget controlls
     }
   }
@@ -372,7 +372,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   DrawMap(surface, sf::RenderStates::Default);
 
   surface.draw(emote);
-  surface.draw(PETMenu);
+  surface.draw(personalMenu);
 
   // Add the web account connection symbol
   surface.draw(webAccountIcon);
@@ -489,8 +489,8 @@ void Overworld::SceneBase::RefreshNaviSprite()
 
   // refresh menu widget too
   int hp = std::atoi(meta.GetHPString().c_str());
-  PETMenu.SetHealth(hp);
-  PETMenu.SetMaxHealth(hp);
+  personalMenu.SetHealth(hp);
+  personalMenu.SetMaxHealth(hp);
 
   // If coming back from navi select, the navi has changed, update it
   auto owPath = meta.GetOverworldAnimationPath();
@@ -508,10 +508,10 @@ void Overworld::SceneBase::RefreshNaviSprite()
     auto iconTexture = meta.GetIconTexture();
 
     if (iconTexture) {
-      PETMenu.UseIconTexture(iconTexture);
+      personalMenu.UseIconTexture(iconTexture);
     }
     else {
-      PETMenu.ResetIconTexture();
+      personalMenu.ResetIconTexture();
     }
   }
   else {
@@ -772,7 +772,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     LoadBackground(map.GetBackgroundName());
   }
 
-  PETMenu.SetArea(map.GetName());
+  personalMenu.SetArea(map.GetName());
 
   // cleanup data from the previous map
   this->map.RemoveSprites(*this);

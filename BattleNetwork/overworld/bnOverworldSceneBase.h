@@ -26,7 +26,7 @@
 #include "bnOverworldPathController.h"
 #include "bnOverworldTeleportController.h"
 #include "bnOverworldMap.h"
-#include "bnOverworldPETMenu.h"
+#include "bnOverworldPersonalMenu.h"
 #include "bnEmotes.h"
 #include "bnXML.h"
 
@@ -49,7 +49,7 @@ namespace Overworld {
     sf::Vector2f returnPoint{};
     bool teleportedOut{ false }; /*!< We may return to this area*/
 
-    PETMenu PETMenu;
+    PersonalMenu personalMenu;
 
     SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
     Animation webAccountAnimator; /*!< Use animator to represent different statuses */
