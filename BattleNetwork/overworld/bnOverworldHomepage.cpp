@@ -202,11 +202,11 @@ void Overworld::Homepage::onUpdate(double elapsed)
     map.setScale(2.f, 2.f);
   }
   else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp) && !scaledmap) {
-    map.setScale(map.getScale() * 1.25f);
+    map.setScale(map.getScale() * 2.f);
     scaledmap = true;
   }
   else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown) && !scaledmap) {
-    map.setScale(map.getScale() * 0.75f);
+    map.setScale(map.getScale() * 0.5f);
     scaledmap = true;
   }
 
