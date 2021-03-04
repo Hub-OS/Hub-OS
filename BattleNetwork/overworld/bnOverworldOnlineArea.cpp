@@ -112,6 +112,13 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       RemoveActor(player->actor);
       RemoveSprite(player->teleportController.GetBeam());
 
+      auto& quadTreeActors = GetQuadTree().actors;
+      auto quadTreeIt = find(quadTreeActors.begin(), quadTreeActors.end(), player->actor);
+
+      if(quadTreeIt != quadTreeActors.end()) {
+        quadTreeActors.erase(quadTreeIt);
+      }
+
       onlinePlayers.erase(remove);
     }
 
@@ -613,7 +620,8 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
   float y = reader.Read<float>(buffer) * tileSize.y;
   float z = reader.Read<float>(buffer);
-  bool warp_in = reader.Read<bool>(buffer);
+  bool solid = reader.Read<bool>(buffer);
+  bool warpIn = reader.Read<bool>(buffer);
 
   auto pos = sf::Vector2f(x, y);
 
@@ -658,11 +666,15 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 
   AddActor(actor);
 
+  if (solid) {
+    GetQuadTree().actors.push_back(actor);
+  }
+
   auto& teleportController = onlinePlayer->teleportController;
   teleportController.EnableSound(false);
   AddSprite(teleportController.GetBeam());
 
-  if (warp_in) {
+  if (warpIn) {
     teleportController.TeleportIn(actor, pos, Direction::none);
   }
 }
