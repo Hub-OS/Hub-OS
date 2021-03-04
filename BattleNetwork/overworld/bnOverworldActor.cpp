@@ -228,7 +228,7 @@ Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec)
   Direction second = vec.y < 0 ? Direction::up : Direction::down;
 
   // using slope to calculate direction, graph if you want to take a look
-  auto ratio = vec.x == 0 ? 0 : std::fabs(vec.y) / std::fabs(vec.x);
+  auto ratio = std::fabs(vec.y) / std::fabs(vec.x);
 
   if (ratio < 1.f/2.f) {
     return first;
