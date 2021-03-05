@@ -644,10 +644,6 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   actor->CollideWithMap(false);
   actor->SetCollisionRadius(6);
   actor->SetInteractCallback([=](std::shared_ptr<Actor> with) {
-    if (with != GetPlayer()) {
-      return;
-    }
-
     sendNaviInteractionSignal(ticket);
   });
 
