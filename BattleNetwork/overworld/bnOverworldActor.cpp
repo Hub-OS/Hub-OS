@@ -23,7 +23,6 @@ Overworld::Actor::Actor(Actor&& other) noexcept
   std::swap(lastStateStr, other.lastStateStr);
   std::swap(onInteractFunc, other.onInteractFunc);
   std::swap(collisionRadius, other.collisionRadius);
-  std::swap(quadTree, other.quadTree);
 }
 
 Overworld::Actor::~Actor()
@@ -102,7 +101,7 @@ void Overworld::Actor::LoadAnimations(const Animation& animation)
     }
   }
 
-  Update(0); // refresh
+  UpdateAnimationState(0); // refresh
 }
 
 void Overworld::Actor::SetWalkSpeed(float speed)
@@ -150,9 +149,23 @@ sf::Vector2f Overworld::Actor::PositionInFrontOf() const
   return getPosition() + UnitVector(GetHeading()) * collisionRadius;
 }
 
-void Overworld::Actor::Update(float elapsed)
+void Overworld::Actor::Update(float elapsed, SpatialMap& spatialMap)
 {
+  UpdateAnimationState(elapsed);
+
+  if (state != MovementState::idle && moveThisFrame) {
+    auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed, spatialMap);
+
+    // We don't care about success or not, update the best position
+    setPosition(new_pos);
+
+    moveThisFrame = false;
+  }
+}
+
+void Overworld::Actor::UpdateAnimationState(float elapsed) {
   std::string stateStr = FindValidAnimState(this->heading, this->state);
+
   if (!stateStr.empty()) {
     // If there is no supplied animation for the next state, ignore it
     if (!anims.begin()->second.HasAnimation(stateStr)) {
@@ -174,15 +187,6 @@ void Overworld::Actor::Update(float elapsed)
       anims[stateStr].Refresh(getSprite());
       lastStateStr = stateStr;
     }
-  }
-
-  if (state != MovementState::idle && moveThisFrame) {
-    auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed);
-
-    // We don't care about success or not, update the best position
-    setPosition(new_pos);
-
-    moveThisFrame = false;
   }
 }
 
@@ -240,9 +244,14 @@ Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec)
   return Join(first, second);
 }
 
-void Overworld::Actor::CollideWithQuadTree(QuadTree& sector)
+void Overworld::Actor::SetSolid(bool solid)
 {
-  this->quadTree = &sector;
+  this->solid = solid;
+}
+
+float Overworld::Actor::GetCollisionRadius()
+{
+  return collisionRadius;
 }
 
 void Overworld::Actor::SetCollisionRadius(float radius)
@@ -281,7 +290,7 @@ const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& ac
   return vec;
 }
 
-const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed)
+const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed, SpatialMap& spatialMap)
 {
   float px_per_s = 0;
 
@@ -331,9 +340,9 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   /**
   * If we can move forward, check neighboring actors
   */
-  if (quadTree) {
-    for (auto actor : quadTree->actors) {
-      if (actor.get() == this) continue;
+  if (solid) {
+    for (auto actor : spatialMap.GetNeighbors(*this)) {
+      if (actor.get() == this || !actor->solid) continue;
 
       auto collision = CollidesWith(*actor, offset);
 
@@ -356,11 +365,6 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
 
   // There were no obstructions
   return { true, newPos };
-}
-
-const Overworld::QuadTree* Overworld::Actor::GetQuadTree()
-{
-  return quadTree;
 }
 
 std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
@@ -515,11 +519,4 @@ std::string Overworld::Actor::DirectionAnimStrSuffix(const Direction& dir)
   }
 
   return "D"; // default is down
-}
-
-// class QuadTree
-
-std::vector<std::shared_ptr<Overworld::Actor>> Overworld::QuadTree::GetActors() const
-{
-  return this->actors;
 }

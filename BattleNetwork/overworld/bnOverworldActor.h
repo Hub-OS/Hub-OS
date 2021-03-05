@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bnOverworldSprite.h"
+#include "bnOverworldSpatialMap.h"
 #include "../bnTextureResourceManager.h"
 #include "../bnSpriteProxyNode.h"
 #include "../bnDirection.h"
@@ -11,20 +12,12 @@
 #include <optional>
 
 namespace Overworld {
+  class Map;
+  class SpatialMap;
 
   /**
     @brief Overworld::Actor class represents a character that can move, has animations for all movements, and has a name
   */
-  class Map;
-
-  class Actor;
-  // temp class
-  struct QuadTree {
-    std::vector<std::shared_ptr<Actor>> actors;
-
-    std::vector<std::shared_ptr<Actor>> GetActors() const;
-  };
-
   class Actor : public WorldSprite {
   public:
     enum class MovementState : unsigned char {
@@ -53,7 +46,9 @@ namespace Overworld {
     std::string lastStateStr{}; //!< String representing the last frame's state name
     std::function<void(std::shared_ptr<Actor> with)> onInteractFunc; //!< What happens if an actor interacts with the other
     float collisionRadius{ 1.0 };
-    QuadTree* quadTree{ nullptr };
+    bool solid{true};
+
+    void UpdateAnimationState(float elapsed);
 
     // aux functions
     std::string DirectionAnimStrSuffix(const Direction& dir);
@@ -177,7 +172,7 @@ namespace Overworld {
     * reflect the current state values. It will also offset the actor x/y
     * based on walk or run speeds.
     */
-    void Update(float elapsed);
+    void Update(float elapsed, SpatialMap& spatialMap);
 
     /**
     * @brief Watch for tile-based collisions with an existing map
@@ -204,13 +199,13 @@ namespace Overworld {
     */
     static Direction MakeDirectionFromVector(const sf::Vector2f& vec);
 
-    void CollideWithQuadTree(QuadTree& sector);
+    void SetSolid(bool solid);
+    float GetCollisionRadius();
     void SetCollisionRadius(float radius);
     void SetInteractCallback(const std::function<void(std::shared_ptr<Actor>)>& func);
     void Interact(const std::shared_ptr<Actor>& with);
 
     const std::optional<sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
-    const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, float elapsed);
-    const QuadTree* GetQuadTree();
+    const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, float elapsed, SpatialMap& spatialMap);
   };
 }

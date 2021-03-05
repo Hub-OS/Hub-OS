@@ -25,6 +25,7 @@
 #include "bnOverworldPlayerController.h"
 #include "bnOverworldPathController.h"
 #include "bnOverworldTeleportController.h"
+#include "bnOverworldSpatialMap.h"
 #include "bnOverworldMap.h"
 #include "bnOverworldPersonalMenu.h"
 #include "bnEmotes.h"
@@ -40,7 +41,7 @@ namespace Overworld {
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
     Overworld::PlayerController playerController{};
-    Overworld::QuadTree quadTree{};
+    Overworld::SpatialMap spatialMap{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
 
     Camera camera; /*!< camera in scene follows player */
@@ -204,7 +205,7 @@ namespace Overworld {
     // Getters
     //
 
-    Overworld::QuadTree& GetQuadTree();
+    SpatialMap& GetSpatialMap();
     std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
     Map& GetMap();

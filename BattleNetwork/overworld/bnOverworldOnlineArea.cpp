@@ -112,13 +112,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       RemoveActor(player->actor);
       RemoveSprite(player->teleportController.GetBeam());
 
-      auto& quadTreeActors = GetQuadTree().actors;
-      auto quadTreeIt = find(quadTreeActors.begin(), quadTreeActors.end(), player->actor);
-
-      if(quadTreeIt != quadTreeActors.end()) {
-        quadTreeActors.erase(quadTreeIt);
-      }
-
       onlinePlayers.erase(remove);
     }
 
@@ -239,7 +232,7 @@ void Overworld::OnlineArea::OnInteract() {
 
   auto positionInFrontOffset = frontPosition - playerActor->getPosition();
 
-  for (auto other : GetActors()) {
+  for (auto other : GetSpatialMap().GetChunk(frontPosition.x, frontPosition.y)) {
     if (playerActor == other) continue;
 
     auto collision = playerActor->CollidesWith(*other, positionInFrontOffset);
@@ -655,6 +648,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   emoteNode.setPosition(0, emoteY);
   actor->AddNode(&emoteNode);
 
+  actor->SetSolid(solid);
   actor->SetCollisionRadius(6);
   actor->SetInteractCallback([=](std::shared_ptr<Actor> with) {
     if (with != GetPlayer()) {
@@ -665,10 +659,6 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   });
 
   AddActor(actor);
-
-  if (solid) {
-    GetQuadTree().actors.push_back(actor);
-  }
 
   auto& teleportController = onlinePlayer->teleportController;
   teleportController.EnableSound(false);

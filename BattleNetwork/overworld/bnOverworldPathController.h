@@ -1,42 +1,28 @@
-#include <Swoosh/ActionList.h>
+#pragma once
 
+#include "bnOverworldSpatialMap.h"
 #include "../bnDrawWindow.h"
 
+#include <memory>
+#include <functional>
+
 namespace Overworld {
-  class Actor; // namespace Overworld::Actor;
+  class Actor;
+  class SpatialMap;
   class Map;
 
   class PathController {
-    Overworld::Actor* actor{ nullptr };
-    swoosh::ActionList actions;
-    std::vector<std::function<void()>> commands;
-    std::function<bool()> interruptCondition;
   public:
-    class MoveToCommand : public swoosh::BlockingActionItem {
-    private:
-      sf::Vector2f dest;
-      Overworld::Actor* actor{ nullptr };
-    public:
-      MoveToCommand(Overworld::Actor* actor, const sf::Vector2f& dest);
-      void update(double elapsed) override;
-      void draw(sf::RenderTexture& surface) override;
-    };
-
-    class WaitCommand : public swoosh::BlockingActionItem {
-    private:
-      frame_time_t frames;
-      Overworld::Actor* actor{ nullptr };
-    public:
-      WaitCommand(Overworld::Actor* actor, const frame_time_t& frames);
-      void update(double elapsed) override;
-      void draw(sf::RenderTexture& surface) override;
-    };
-
-    void ControlActor(Actor& actor);
-    void Update(double elapsed);
-    void AddPoint(const sf::Vector2f& point);
+    void ControlActor(std::shared_ptr<Actor> actor);
+    void Update(double elapsed, SpatialMap& spatialMap);
+    void AddPoint(sf::Vector2f point);
     void AddWait(const frame_time_t& frames);
     void ClearPoints();
     void InterruptUntil(const std::function<bool()>& condition);
+
+    private:
+      std::shared_ptr<Actor> actor;
+      std::queue<std::function<bool(float, SpatialMap&)>> commands;
+      std::function<bool()> interruptCondition;
   };
 }

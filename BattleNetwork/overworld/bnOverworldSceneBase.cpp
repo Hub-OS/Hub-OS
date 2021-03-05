@@ -132,7 +132,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   playerActor->setPosition(200, 20);
   playerActor->SetCollisionRadius(5);
   playerActor->CollideWithMap(map);
-  playerActor->CollideWithQuadTree(quadTree);
   playerActor->AddNode(&emoteNode);
 
   emoteNode.SetLayer(-100);
@@ -196,6 +195,9 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   * update all overworld objects and animations
   */
 
+  // expecting glitches, manually update when actors move?
+  spatialMap.Update();
+
   // update tile animations
   map.Update(*this, elapsed);
 
@@ -205,7 +207,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   for (auto& actor : actors) {
-    actor->Update(elapsed);
+    actor->Update(elapsed, spatialMap);
   }
 
   // animations
@@ -749,10 +751,11 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
           tileObject.size = size;
           tileObject.rotation = rotation;
           layer.AddTileObject(tileObject);
-        } else {
+        }
+        else {
           auto shapePtr = Shape::From(child);
 
-          if(!shapePtr) {
+          if (!shapePtr) {
             continue;
           }
 
@@ -1007,6 +1010,7 @@ void Overworld::SceneBase::RemoveSprite(const std::shared_ptr<WorldSprite> sprit
 
 void Overworld::SceneBase::AddActor(std::shared_ptr<Actor> actor) {
   actors.push_back(actor);
+  spatialMap.AddActor(actor);
   AddSprite(actor);
 }
 
@@ -1016,6 +1020,7 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor> actor) {
   if (pos != actors.end())
     actors.erase(pos);
 
+  spatialMap.RemoveActor(actor);
   RemoveSprite(actor);
 }
 
@@ -1084,9 +1089,9 @@ void Overworld::SceneBase::GotoPVP()
   }
 }
 
-Overworld::QuadTree& Overworld::SceneBase::GetQuadTree()
+Overworld::SpatialMap& Overworld::SceneBase::GetSpatialMap()
 {
-  return quadTree;
+  return spatialMap;
 }
 
 std::vector<std::shared_ptr<Overworld::Actor>>& Overworld::SceneBase::GetActors()

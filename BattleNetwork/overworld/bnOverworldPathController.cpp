@@ -2,116 +2,76 @@
 #include "bnOverworldActor.h"
 #include <cmath>
 
-void Overworld::PathController::ControlActor(Actor& actor)
+void Overworld::PathController::ControlActor(std::shared_ptr<Actor> actor)
 {
-  this->actor = &actor;
+  this->actor = actor;
 }
 
-void Overworld::PathController::Update(double elapsed)
+void Overworld::PathController::Update(double elapsed, SpatialMap& spatialMap)
 {
   if (interruptCondition && !interruptCondition()) return;
 
   // free interrupt condition
   interruptCondition = nullptr;
-  
-  if (actions.isEmpty()) {
-    for (auto& command : commands) {
-      command();
-    }
+
+  if (commands.empty()) {
+    return;
   }
 
-  actions.update(elapsed);
-
+  if(commands.front()(elapsed, spatialMap)) {
+    commands.pop();
+  }
 }
 
-void Overworld::PathController::AddPoint(const sf::Vector2f& point)
+void Overworld::PathController::AddPoint(sf::Vector2f dest)
 {
-  auto closure = [=] {
-    actions.add(new MoveToCommand(this->actor, point));
+  auto closure = [=](float elapsed, SpatialMap& spatialMap) {
+    auto vec = dest - actor->getPosition();
+    float mag = std::sqrt((vec.x * vec.x) + (vec.y * vec.y));
+
+    if (mag <= 1.f) {
+      return true;
+    }
+
+    Direction dir = Actor::MakeDirectionFromVector(vec);
+
+    auto& [success, _] = actor->CanMoveTo(dir, Actor::MovementState::walking, elapsed, spatialMap);
+
+    if (success) {
+      actor->Walk(dir);
+    }
+    else {
+      actor->Face(dir);
+    }
+
+    return false;
   };
 
-  commands.push_back(closure);
+  commands.push(closure);
 }
 
 void Overworld::PathController::AddWait(const frame_time_t& frames)
 {
-  auto closure = [=] {
-    actions.add(new WaitCommand(this->actor, frames));
+  frame_time_t remaining_frames = frames;
+
+  auto closure = [=](float elapsed, SpatialMap& spatialMap) mutable {
+    remaining_frames -= from_seconds(elapsed);
+
+    if (remaining_frames <= ::frames(0)) {
+      return true;
+    }
+
+    return false;
   };
 
-  commands.push_back(closure);
+  commands.push(closure);
 }
 
 void Overworld::PathController::ClearPoints() {
-  actions.clear();
-  commands.clear();
+  commands = {};
 }
 
 void Overworld::PathController::InterruptUntil(const std::function<bool()>& condition)
 {
   interruptCondition = condition;
-}
-
-// class PathController::MoveToCommand
-
-Overworld::PathController::MoveToCommand::MoveToCommand(Overworld::Actor* actor, const sf::Vector2f& dest) :
-  actor(actor),
-  dest(dest),
-  swoosh::BlockingActionItem()
-{
-
-}
-
-void Overworld::PathController::MoveToCommand::update(double elapsed)
-{
-  if (actor) {
-    auto vec = dest - actor->getPosition();
-    float mag = std::sqrt((vec.x * vec.x) + (vec.y * vec.y));
-
-    if (mag > 1.f) {
-      Direction dir = Actor::MakeDirectionFromVector(vec);
-
-      auto& [success, _] = actor->CanMoveTo(dir, Actor::MovementState::walking, elapsed);
-
-      if (success) {
-        actor->Walk(dir);
-      }
-      else {
-        actor->Face(dir);
-      }
-    }
-    else {
-      markDone();
-    }
-  }
-}
-
-void Overworld::PathController::MoveToCommand::draw(sf::RenderTexture& surface)
-{
-  // none
-}
-
-// class PathController::WaitCommand
-
-Overworld::PathController::WaitCommand::WaitCommand(Overworld::Actor* actor, const frame_time_t& frames) :
-  actor(actor),
-  frames(frames),
-  swoosh::BlockingActionItem()
-{
-}
-
-void Overworld::PathController::WaitCommand::update(double elapsed)
-{
-  frames -= from_seconds(elapsed);
-
-  if (frames <= ::frames(0)) {
-    markDone();
-  }
-
-  actor->Face(actor->GetHeading());
-}
-
-void Overworld::PathController::WaitCommand::draw(sf::RenderTexture& surface)
-{
-  // none
 }

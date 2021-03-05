@@ -50,13 +50,11 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   if (statusBotSpawnOptional) {
     auto& statusBotSpawn = statusBotSpawnOptional->get();
 
-    auto& quadTree = GetQuadTree();
-
     auto mrprog = std::make_shared<Overworld::Actor>("Mr. Prog");
     mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
     mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
     mrprog->setPosition(statusBotSpawn.position);
-    mrprog->CollideWithQuadTree(quadTree);
+    mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
     mrprog->SetInteractCallback([=](std::shared_ptr<Overworld::Actor> with) {
       // Face them
@@ -86,7 +84,6 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       textbox.Open();
     });
 
-    quadTree.actors.push_back(mrprog);
     AddActor(mrprog);
   }
 }
@@ -319,12 +316,13 @@ void Overworld::Homepage::OnTileCollision()
 
 void Overworld::Homepage::OnInteract() {
   auto player = GetPlayer();
-  auto positionInFrontOffset = player->PositionInFrontOf() - player->getPosition();
+  auto targetPos = player->PositionInFrontOf();
+  auto targetOffset = targetPos - player->getPosition();
 
-  for (auto other : GetActors()) {
+  for (auto other : GetSpatialMap().GetChunk(targetPos.x, targetPos.y)) {
     if (player == other) continue;
 
-    auto collision = player->CollidesWith(*other, positionInFrontOffset);
+    auto collision = player->CollidesWith(*other, targetOffset);
 
     if (collision) {
       other->Interact(player);
