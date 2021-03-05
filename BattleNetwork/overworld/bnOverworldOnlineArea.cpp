@@ -588,6 +588,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
 void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  LockInput();
   isConnected = false;
   removePlayers.clear();
 
@@ -598,8 +599,25 @@ void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, con
 
 void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  UnlockInput();
   isConnected = true;
   sendReadySignal();
+}
+
+void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  // todo: add warp option, add no beam teleport option, interpolate in update?
+
+  auto tileSize = GetMap().GetTileSize();
+  auto position = sf::Vector2f(
+    reader.Read<float>(buffer) * tileSize.x / 2.0f,
+    reader.Read<float>(buffer) * tileSize.y
+  );
+
+  auto z = reader.Read<float>(buffer);
+
+  auto player = GetPlayer();
+  player->setPosition(position);
 }
 
 void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
