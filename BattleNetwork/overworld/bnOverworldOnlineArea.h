@@ -14,6 +14,9 @@ namespace Overworld {
   constexpr size_t LAG_WINDOW_LEN = 300;
 
   struct OnlinePlayer {
+    OnlinePlayer(std::string name):
+      actor(std::make_shared<Overworld::Actor>(name)) {}
+
     std::shared_ptr<Overworld::Actor> actor;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
@@ -37,7 +40,7 @@ namespace Overworld {
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
     Poco::Buffer<char> assetBuffer{ 0 };
-    std::map<std::string, OnlinePlayer*> onlinePlayers;
+    std::map<std::string, OnlinePlayer> onlinePlayers;
     std::list<std::string> removePlayers;
     std::string mapBuffer;
     Timer movementTimer;

@@ -200,23 +200,23 @@ sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float leng
 
   const auto& [a, b] = Split(dir);
 
-  auto updateOffsetThunk = [](const Direction& dir, sf::Vector2f* vec, float value) {
+  auto updateOffsetThunk = [&offset, length](const Direction& dir) mutable {
     if (dir == Direction::left) {
-      vec->x -= value;
+      offset.x -= length;
     }
     else if (dir == Direction::right) {
-      vec->x += value;
+      offset.x += length;
     }
     else if (dir == Direction::up) {
-      vec->y -= value;
+      offset.y -= length;
     }
     else if (dir == Direction::down) {
-      vec->y += value;
+      offset.y += length;
     }
   };
 
-  updateOffsetThunk(a, &offset, length);
-  updateOffsetThunk(b, &offset, length);
+  updateOffsetThunk(a);
+  updateOffsetThunk(b);
 
   return offset;
 }
