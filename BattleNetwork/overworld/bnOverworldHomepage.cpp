@@ -56,7 +56,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
     mrprog->setPosition(statusBotSpawn.position);
     mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
-    mrprog->SetInteractCallback([=](std::shared_ptr<Overworld::Actor> with) {
+    mrprog->SetInteractCallback([&](std::shared_ptr<Overworld::Actor> with) {
       // Face them
       mrprog->Face(*with);
 
