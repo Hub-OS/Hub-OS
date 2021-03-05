@@ -153,7 +153,7 @@ void Overworld::SceneBase::onStart() {
 }
 
 void Overworld::SceneBase::onUpdate(double elapsed) {
-  if (personalMenu.IsClosed() && textbox.IsClosed()) {
+  if (!IsInputLocked()) {
     playerController.ListenToInputEvents(true);
   }
   else {
@@ -161,7 +161,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   // check to see if talk button was pressed
-  if (personalMenu.IsClosed() && textbox.IsClosed()) {
+  if (!IsInputLocked()) {
     if (Input().Has(InputEvents::pressed_interact)) {
       OnInteract();
     }
@@ -1022,6 +1022,19 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor> actor) {
   spatialMap.RemoveActor(actor);
   RemoveSprite(actor);
 }
+
+bool Overworld::SceneBase::IsInputLocked() {
+  return personalMenu.IsClosed() && textbox.IsClosed() && inputLocked;
+}
+
+void Overworld::SceneBase::LockInput() {
+  inputLocked = true;
+}
+
+void Overworld::SceneBase::UnlockInput() {
+  inputLocked = false;
+}
+
 
 void Overworld::SceneBase::GotoChipFolder()
 {

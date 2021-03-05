@@ -313,6 +313,14 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
       case ServerEvents::transfer_complete:
         receiveTransferCompleteSignal(reader, data);
         break;
+      case ServerEvents::lock_input:
+        LockInput();
+        break;
+      case ServerEvents::unlock_input:
+        UnlockInput();
+        break;
+      case ServerEvents::move:
+        break;
       case ServerEvents::navi_connected:
         receiveNaviConnectedSignal(reader, data);
         break;

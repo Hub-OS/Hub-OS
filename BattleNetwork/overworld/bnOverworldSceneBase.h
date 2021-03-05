@@ -43,6 +43,7 @@ namespace Overworld {
     Overworld::PlayerController playerController{};
     Overworld::SpatialMap spatialMap{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
+    bool inputLocked{ false };
 
     Camera camera; /*!< camera in scene follows player */
     bool clicked{ false }, scaledmap{ false };
@@ -191,6 +192,20 @@ namespace Overworld {
      */
     void RemoveActor(const std::shared_ptr<Actor> actor);
 
+
+    /**
+     * @brief Block the player from moving and interacting
+     * @param actor
+     */
+    void LockInput();
+
+
+    /**
+     * @brief Unblock the player from moving and interacting. Unlock is not guaranteed as the player may be in a menu
+     * @param actor
+     */
+    void UnlockInput();
+
     //
     // Menu selection callbacks
     //
@@ -215,6 +230,7 @@ namespace Overworld {
     SelectedNavi& GetCurrentNavi();
     Background* GetBackground();
     AnimatedTextBox& GetTextBox();
+    bool IsInputLocked();
 
     //
     // Helpers
