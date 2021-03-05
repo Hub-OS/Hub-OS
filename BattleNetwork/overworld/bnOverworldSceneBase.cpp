@@ -153,12 +153,7 @@ void Overworld::SceneBase::onStart() {
 }
 
 void Overworld::SceneBase::onUpdate(double elapsed) {
-  if (!IsInputLocked()) {
-    playerController.ListenToInputEvents(true);
-  }
-  else {
-    playerController.ListenToInputEvents(false);
-  }
+  playerController.ListenToInputEvents(!IsInputLocked());
 
   // check to see if talk button was pressed
   if (!IsInputLocked()) {
