@@ -319,6 +319,7 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         UnlockInput();
         break;
       case ServerEvents::move:
+        receiveMoveSignal(reader, data);
         break;
       case ServerEvents::navi_connected:
         receiveNaviConnectedSignal(reader, data);
