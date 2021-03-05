@@ -213,7 +213,6 @@ void Overworld::OnlineArea::OnInteract() {
 
   auto frontPosition = playerActor->PositionInFrontOf();
 
-  // todo: use a spatial map?
   for (auto& tileObject : layer.GetTileObjects()) {
     if (tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
       sendObjectInteractionSignal(tileObject.id);
