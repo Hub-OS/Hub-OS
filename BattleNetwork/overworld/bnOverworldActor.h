@@ -32,7 +32,6 @@ namespace Overworld {
       Direction dir{};
     };
 
-    Map* map{ nullptr };
     float animProgress{}; //!< Used to sync movement animations
     float walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
     float runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
@@ -47,6 +46,7 @@ namespace Overworld {
     std::function<void(std::shared_ptr<Actor> with)> onInteractFunc; //!< What happens if an actor interacts with the other
     float collisionRadius{ 1.0 };
     bool solid{true};
+    bool collidesWithMap{true};
 
     void UpdateAnimationState(float elapsed);
 
@@ -172,16 +172,16 @@ namespace Overworld {
     * reflect the current state values. It will also offset the actor x/y
     * based on walk or run speeds.
     */
-    void Update(float elapsed, SpatialMap& spatialMap);
+    void Update(float elapsed, Map& map, SpatialMap& spatialMap);
 
     /**
-    * @brief Watch for tile-based collisions with an existing map
-    * @param map to collide with
+    * @brief Watch for tile-based collisions with the current map
+    * @param bool
     * 
     * During Update() if the actor is intended to move, it will also check
     * against tiles to see if it should collide.
     */
-    void CollideWithMap(Map& map);
+    void CollideWithMap(bool);
 
     /**
     * @brief Convert direction flags into 2D mathematical vector objects with a length
@@ -206,6 +206,6 @@ namespace Overworld {
     void Interact(const std::shared_ptr<Actor>& with);
 
     const std::optional<sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
-    const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, float elapsed, SpatialMap& spatialMap);
+    const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap);
   };
 }

@@ -14,7 +14,7 @@ namespace Overworld {
   class PathController {
   public:
     void ControlActor(std::shared_ptr<Actor> actor);
-    void Update(double elapsed, SpatialMap& spatialMap);
+    void Update(double elapsed, Map& map, SpatialMap& spatialMap);
     void AddPoint(sf::Vector2f point);
     void AddWait(const frame_time_t& frames);
     void ClearPoints();
@@ -22,7 +22,7 @@ namespace Overworld {
 
     private:
       std::shared_ptr<Actor> actor;
-      std::queue<std::function<bool(float, SpatialMap&)>> commands;
+      std::queue<std::function<bool(float, Map&, SpatialMap&)>> commands;
       std::function<bool()> interruptCondition;
   };
 }

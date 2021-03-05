@@ -10,7 +10,6 @@ Overworld::Actor::Actor(const std::string& name) :
 
 Overworld::Actor::Actor(Actor&& other) noexcept
 {
-  std::swap(map, other.map);
   std::swap(animProgress, other.animProgress);
   std::swap(walkSpeed, other.walkSpeed);
   std::swap(runSpeed, other.runSpeed);
@@ -149,12 +148,12 @@ sf::Vector2f Overworld::Actor::PositionInFrontOf() const
   return getPosition() + UnitVector(GetHeading()) * collisionRadius;
 }
 
-void Overworld::Actor::Update(float elapsed, SpatialMap& spatialMap)
+void Overworld::Actor::Update(float elapsed, Map& map, SpatialMap& spatialMap)
 {
   UpdateAnimationState(elapsed);
 
   if (state != MovementState::idle && moveThisFrame) {
-    auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed, spatialMap);
+    auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed, map, spatialMap);
 
     // We don't care about success or not, update the best position
     setPosition(new_pos);
@@ -190,9 +189,9 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
   }
 }
 
-void Overworld::Actor::CollideWithMap(Map& map)
+void Overworld::Actor::CollideWithMap(bool collide)
 {
-  this->map = &map;
+  collidesWithMap = collide;
 }
 
 sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float length)
@@ -290,7 +289,7 @@ const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& ac
   return vec;
 }
 
-const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed, SpatialMap& spatialMap)
+const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap)
 {
   float px_per_s = 0;
 
@@ -315,18 +314,18 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
 
   auto layer = GetLayer();
 
-  if (map && map->GetLayerCount() > layer) {
-    auto tileSize = sf::Vector2f(map->GetTileSize());
+  if (collidesWithMap && layer >= 0 && map.GetLayerCount() > layer) {
+    auto tileSize = sf::Vector2f(map.GetTileSize());
     tileSize.x *= .5f;
 
-    if (!map->CanMoveTo(newPos.x / tileSize.x, newPos.y / tileSize.y, layer)) {
+    if (!map.CanMoveTo(newPos.x / tileSize.x, newPos.y / tileSize.y, layer)) {
       if (second != Direction::none) {
         newPos = currPos;
 
-        if (map->CanMoveTo((currPos.x + offset.x) / tileSize.x, currPos.y / tileSize.y, layer)) {
+        if (map.CanMoveTo((currPos.x + offset.x) / tileSize.x, currPos.y / tileSize.y, layer)) {
           newPos.x += offset.x;
         }
-        else if (map->CanMoveTo(currPos.x / tileSize.x, (currPos.y + offset.y) / tileSize.y, layer)) {
+        else if (map.CanMoveTo(currPos.x / tileSize.x, (currPos.y + offset.y) / tileSize.y, layer)) {
           newPos.y += offset.y;
         }
 

@@ -131,7 +131,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   // Spawn overworld player
   playerActor->setPosition(200, 20);
   playerActor->SetCollisionRadius(5);
-  playerActor->CollideWithMap(map);
   playerActor->AddNode(&emoteNode);
 
   emoteNode.SetLayer(-100);
@@ -207,7 +206,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   for (auto& actor : actors) {
-    actor->Update(elapsed, spatialMap);
+    actor->Update(elapsed, map, spatialMap);
   }
 
   // animations

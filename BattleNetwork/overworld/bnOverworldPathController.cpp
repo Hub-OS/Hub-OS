@@ -7,7 +7,7 @@ void Overworld::PathController::ControlActor(std::shared_ptr<Actor> actor)
   this->actor = actor;
 }
 
-void Overworld::PathController::Update(double elapsed, SpatialMap& spatialMap)
+void Overworld::PathController::Update(double elapsed, Map& map, SpatialMap& spatialMap)
 {
   if (interruptCondition && !interruptCondition()) return;
 
@@ -18,14 +18,14 @@ void Overworld::PathController::Update(double elapsed, SpatialMap& spatialMap)
     return;
   }
 
-  if(commands.front()(elapsed, spatialMap)) {
+  if(commands.front()(elapsed, map, spatialMap)) {
     commands.pop();
   }
 }
 
 void Overworld::PathController::AddPoint(sf::Vector2f dest)
 {
-  auto closure = [=](float elapsed, SpatialMap& spatialMap) {
+  auto closure = [=](float elapsed, Map& map, SpatialMap& spatialMap) {
     auto vec = dest - actor->getPosition();
     float mag = std::sqrt((vec.x * vec.x) + (vec.y * vec.y));
 
@@ -35,7 +35,7 @@ void Overworld::PathController::AddPoint(sf::Vector2f dest)
 
     Direction dir = Actor::MakeDirectionFromVector(vec);
 
-    auto& [success, _] = actor->CanMoveTo(dir, Actor::MovementState::walking, elapsed, spatialMap);
+    auto& [success, _] = actor->CanMoveTo(dir, Actor::MovementState::walking, elapsed, map, spatialMap);
 
     if (success) {
       actor->Walk(dir);
@@ -54,7 +54,7 @@ void Overworld::PathController::AddWait(const frame_time_t& frames)
 {
   frame_time_t remaining_frames = frames;
 
-  auto closure = [=](float elapsed, SpatialMap& spatialMap) mutable {
+  auto closure = [=](float elapsed, Map& map, SpatialMap& spatialMap) mutable {
     remaining_frames -= from_seconds(elapsed);
 
     if (remaining_frames <= ::frames(0)) {
