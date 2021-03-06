@@ -111,7 +111,7 @@ void Overworld::PacketShipper::sendSafe(
   {
     socket.sendTo(data.begin(), (int)data.size(), socketAddress);
   }
-  catch (Poco::Net::NetException& e)
+  catch (Poco::IOException& e)
   {
     Logger::Logf("Network exception: %s", e.what());
     failed = true;

@@ -37,7 +37,7 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16
   try {
     client.connect(remoteAddress);
   }
-  catch (Poco::Net::NetException& e) {
+  catch (Poco::IOException& e) {
     Logger::Log(e.message());
   }
 
@@ -356,7 +356,7 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
       }
     }
   }
-  catch (Poco::Net::NetException& e) {
+  catch (Poco::IOException& e) {
     Logger::Logf("OnlineArea Network exception: %s", e.what());
 
     leave();
