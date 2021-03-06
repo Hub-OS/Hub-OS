@@ -30,6 +30,7 @@ using std::string;
 #include "bnComponent.h"
 #include "bnCallback.h"
 #include "bnEventBus.h"
+#include "bnActionQueue.h"
 
 namespace Battle {
   class Tile;
@@ -439,6 +440,10 @@ public:
   */
   void FinishMove();
 
+  virtual void QueueAction(const ActionEvent& action) = 0;
+  virtual void EndCurrentAction() = 0;
+  void ClearActionQueue();
+
 protected:
   Battle::Tile* next{ nullptr }; /**< Pointer to the next tile */
   Battle::Tile* tile{ nullptr }; /**< Current tile pointer */
@@ -448,7 +453,7 @@ protected:
   Field* field{ nullptr };
   Team team{};
   Element element{Element::none};
-
+  ActionQueue actionQueue;
   std::vector<Component*> components; /*!< List of all components attached to this entity*/
 
   struct ComponentBucket {

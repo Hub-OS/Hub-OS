@@ -75,31 +75,6 @@ const bool Character::CanTilePush() const {
   return canTilePush;
 }
 
-void Character::QueueAction(const ActionEvent& action)
-{
-  std::visit(
-    overload(
-      // if visiting a card action...
-      [this](CardAction*) {
-        this->cardActionStartDelay = CARD_ACTION_ARTIFICIAL_LAG;
-      },
-      // else
-      [](auto&&) {}
-    ),
-    action.data
-  );
-
-  actionQueue.push(action);
-}
-
-void Character::ClearActionQueue()
-{
-  EndCurrentAction();
-  
-  while (actionQueue.size()) {
-    actionQueue.pop();
-  }
-}
 
 const bool Character::IsLockoutComplete()
 {
@@ -670,6 +645,22 @@ void Character::CancelSharedHitboxDamage(Character * to)
 
   if(iter != shareHit.end())
     shareHit.erase(iter);
+}
+
+void Character::QueueAction(const ActionEvent& action)
+{
+  std::visit(overload(
+      // if visiting a card action...
+      [this](CardAction*) {
+        this->cardActionStartDelay = CARD_ACTION_ARTIFICIAL_LAG;
+      },
+      // else
+      [](auto&&) {}
+    ),
+    action.data
+  );
+
+  actionQueue.push(action);
 }
 
 void Character::EndCurrentAction()

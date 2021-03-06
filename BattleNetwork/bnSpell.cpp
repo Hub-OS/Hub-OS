@@ -62,3 +62,12 @@ void Spell::SetHeight(double height)
 {
   heightOffset = -height;
 }
+
+void Spell::QueueAction(const ActionEvent& action)
+{
+  actionQueue.push(action);
+}
+
+void Spell::EndCurrentAction()
+{
+}

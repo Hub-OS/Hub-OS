@@ -631,3 +631,12 @@ const int Entity::GetMoveCount() const
 {
     return moveCount;
 }
+
+void Entity::ClearActionQueue()
+{
+  EndCurrentAction();
+
+  while (actionQueue.size()) {
+    actionQueue.pop();
+  }
+}
