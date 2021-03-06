@@ -262,8 +262,6 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
     return;
   }
 
-  if (!client.available()) return;
-
   static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
 
   try {
@@ -274,81 +272,87 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
       packetResendTimer = PACKET_RESEND_RATE;
     }
 
-    Poco::Net::SocketAddress sender;
-    int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
+    while (client.available()) {
+      Poco::Net::SocketAddress sender;
+      int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
 
-    if (sender != remoteAddress || read == 0) {
-      return;
-    }
+      if (sender != remoteAddress) {
+        continue;
+      }
 
-    Poco::Buffer<char> packet{ 0 };
-    packet.append(rawBuffer, size_t(read));
+      if (read == 0) {
+        break;
+      }
 
-    auto packetBodies = packetSorter.SortPacket(client, packet);
+      Poco::Buffer<char> packet{ 0 };
+      packet.append(rawBuffer, size_t(read));
 
-    for (auto& data : packetBodies) {
-      BufferReader reader;
+      auto packetBodies = packetSorter.SortPacket(client, packet);
 
-      auto sig = reader.Read<ServerEvents>(data);
+      for (auto& data : packetBodies) {
+        BufferReader reader;
 
-      switch (sig) {
-      case ServerEvents::ack:
-        packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<uint64_t>(data));
-        break;
-      case ServerEvents::login:
-        receiveLoginSignal(reader, data);
-        break;
-      case ServerEvents::asset_stream:
-        receiveAssetStreamSignal(reader, data);
-        break;
-      case ServerEvents::asset_stream_complete:
-        receiveAssetStreamCompleteSignal(reader, data);
-        break;
-      case ServerEvents::map:
-        receiveMapSignal(reader, data);
-        break;
-      case ServerEvents::transfer_start:
-        receiveTransferStartSignal(reader, data);
-        break;
-      case ServerEvents::transfer_complete:
-        receiveTransferCompleteSignal(reader, data);
-        break;
-      case ServerEvents::lock_input:
-        LockInput();
-        break;
-      case ServerEvents::unlock_input:
-        UnlockInput();
-        break;
-      case ServerEvents::move:
-        receiveMoveSignal(reader, data);
-        break;
-      case ServerEvents::message:
-        receiveMessageSignal(reader, data);
-        break;
-      case ServerEvents::question:
-        receiveQuestionSignal(reader, data);
-        break;
-      case ServerEvents::quiz:
-        receiveQuizSignal(reader, data);
-        break;
-      case ServerEvents::navi_connected:
-        receiveNaviConnectedSignal(reader, data);
-        break;
-      case ServerEvents::navi_disconnect:
-        receiveNaviDisconnectedSignal(reader, data);
-        break;
-      case ServerEvents::navi_set_name:
-        receiveNaviSetNameSignal(reader, data);
-        break;
-      case ServerEvents::navi_move_to:
-        receiveNaviMoveSignal(reader, data);
-        break;
-      case ServerEvents::navi_set_avatar:
-        receiveNaviSetAvatarSignal(reader, data);
-        break;
-      case ServerEvents::navi_emote:
-        receiveNaviEmoteSignal(reader, data);
-        break;
+        auto sig = reader.Read<ServerEvents>(data);
+
+        switch (sig) {
+        case ServerEvents::ack:
+          packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<uint64_t>(data));
+          break;
+        case ServerEvents::login:
+          receiveLoginSignal(reader, data);
+          break;
+        case ServerEvents::asset_stream:
+          receiveAssetStreamSignal(reader, data);
+          break;
+        case ServerEvents::asset_stream_complete:
+          receiveAssetStreamCompleteSignal(reader, data);
+          break;
+        case ServerEvents::map:
+          receiveMapSignal(reader, data);
+          break;
+        case ServerEvents::transfer_start:
+          receiveTransferStartSignal(reader, data);
+          break;
+        case ServerEvents::transfer_complete:
+          receiveTransferCompleteSignal(reader, data);
+          break;
+        case ServerEvents::lock_input:
+          LockInput();
+          break;
+        case ServerEvents::unlock_input:
+          UnlockInput();
+          break;
+        case ServerEvents::move:
+          receiveMoveSignal(reader, data);
+          break;
+        case ServerEvents::message:
+          receiveMessageSignal(reader, data);
+          break;
+        case ServerEvents::question:
+          receiveQuestionSignal(reader, data);
+          break;
+        case ServerEvents::quiz:
+          receiveQuizSignal(reader, data);
+          break;
+        case ServerEvents::navi_connected:
+          receiveNaviConnectedSignal(reader, data);
+          break;
+        case ServerEvents::navi_disconnect:
+          receiveNaviDisconnectedSignal(reader, data);
+          break;
+        case ServerEvents::navi_set_name:
+          receiveNaviSetNameSignal(reader, data);
+          break;
+        case ServerEvents::navi_move_to:
+          receiveNaviMoveSignal(reader, data);
+          break;
+        case ServerEvents::navi_set_avatar:
+          receiveNaviSetAvatarSignal(reader, data);
+          break;
+        case ServerEvents::navi_emote:
+          receiveNaviEmoteSignal(reader, data);
+          break;
+        }
       }
     }
   }
@@ -919,7 +923,6 @@ const bool Overworld::OnlineArea::isMouseHovering(const sf::RenderTarget& target
 
 const double Overworld::OnlineArea::calculatePlayerLag(OnlinePlayer& player, double nextLag)
 {
-
   size_t window_len = std::min(player.packets, player.lagWindow.size());
 
   double avg{ 0 };
