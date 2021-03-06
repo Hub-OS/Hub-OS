@@ -99,7 +99,7 @@ void Overworld::PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket& 
     }
 
     auto data = backedUpPacket.data;
-    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+    sendSafe(socket, data);
   }
 }
 
@@ -113,7 +113,11 @@ void Overworld::PacketShipper::sendSafe(
   }
   catch (Poco::IOException& e)
   {
-    Logger::Logf("Network exception: %s", e.displayText().c_str());
+    if(e.code() == POCO_EWOULDBLOCK) {
+      return;
+    }
+    Logger::Logf("Shipper Network exception: %s", e.displayText().c_str());
+
     failed = true;
   }
 }

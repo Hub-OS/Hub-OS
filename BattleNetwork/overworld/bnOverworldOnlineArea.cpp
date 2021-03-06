@@ -262,16 +262,16 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
     return;
   }
 
+  packetResendTimer -= elapsed;
+
+  if (packetResendTimer < 0) {
+    packetShipper.ResendBackedUpPackets(client);
+    packetResendTimer = PACKET_RESEND_RATE;
+  }
+
   static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
 
   try {
-    packetResendTimer -= elapsed;
-
-    if (packetResendTimer < 0) {
-      packetShipper.ResendBackedUpPackets(client);
-      packetResendTimer = PACKET_RESEND_RATE;
-    }
-
     while (client.available()) {
       Poco::Net::SocketAddress sender;
       int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);

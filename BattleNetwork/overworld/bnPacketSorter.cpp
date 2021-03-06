@@ -173,5 +173,16 @@ void Overworld::PacketSorter::sendAck(Poco::Net::DatagramSocket& socket, Reliabi
   data.append((char)reliability);
   data.append((char*)&id, sizeof(id));
 
-  socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+  try
+  {
+    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+  }
+  catch (Poco::IOException& e)
+  {
+    if(e.code() == POCO_EWOULDBLOCK) {
+      return;
+    }
+
+    Logger::Logf("Sorter Network exception: %s", e.displayText().c_str());
+  }
 }
