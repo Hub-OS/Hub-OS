@@ -8,6 +8,7 @@
 #include "../bnXmasBackground.h"
 #include "../bnNaviRegistration.h"
 #include "../netplay/bnNetPlayConfig.h"
+#include "../bnMessageQuestion.h"
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
@@ -321,6 +322,15 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
       case ServerEvents::move:
         receiveMoveSignal(reader, data);
         break;
+      case ServerEvents::message:
+        receiveMessageSignal(reader, data);
+        break;
+      case ServerEvents::question:
+        receiveQuestionSignal(reader, data);
+        break;
+      case ServerEvents::quiz:
+        receiveQuizSignal(reader, data);
+        break;
       case ServerEvents::navi_connected:
         receiveNaviConnectedSignal(reader, data);
         break;
@@ -506,6 +516,16 @@ void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
   packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 
+void Overworld::OnlineArea::sendDialogResponseSignal(char response)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::dialog_response };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&response, sizeof(response));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   sendReadySignal();
@@ -618,6 +638,60 @@ void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::
 
   auto player = GetPlayer();
   player->setPosition(position);
+}
+
+void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto message = reader.ReadString(buffer);
+  auto mugAnimationPath = reader.ReadString(buffer);
+  auto mugTexturePath = reader.ReadString(buffer);
+
+  auto& textbox = GetTextBox();
+
+  sf::Sprite face;
+  face.setTexture(*GetTexture(mugTexturePath));
+
+  // todo: accept animation instead of animation path
+  textbox.EnqueMessage(face, mugAnimationPath, new Message(message));
+  textbox.Open();
+}
+
+void Overworld::OnlineArea::receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto message = reader.ReadString(buffer);
+  auto mugAnimationPath = reader.ReadString(buffer);
+  auto mugTexturePath = reader.ReadString(buffer);
+
+  auto& textbox = GetTextBox();
+
+  sf::Sprite face;
+  face.setTexture(*GetTexture(mugTexturePath));
+
+  textbox.EnqueMessage(face, mugAnimationPath, new Question(
+    message,
+    [=]() { sendDialogResponseSignal(1); },
+    []() { /* auto handled as Message is */ }
+  ));
+
+  textbox.Open();
+}
+
+void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto optionA = reader.ReadString(buffer);
+  auto optionB = reader.ReadString(buffer);
+  auto optionC = reader.ReadString(buffer);
+  auto mugAnimationPath = reader.ReadString(buffer);
+  auto mugTexturePath = reader.ReadString(buffer);
+
+  auto& textbox = GetTextBox();
+
+  // todo:
+  sf::Sprite face;
+  face.setTexture(*GetTexture("resources/ow/prog/prog_mug.png"));
+
+  textbox.EnqueMessage(face, mugAnimationPath, new Message("Quiz feature is not complete!"));
+  textbox.Open();
 }
 
 void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

@@ -47,7 +47,7 @@ namespace Overworld {
     double packetResendTimer;
     Font font;
     Text name;
-    size_t errorCount{};
+    bool wasReadingTextBox{false};
 
 
     void processIncomingPackets(double elapsed);
@@ -64,6 +64,7 @@ namespace Overworld {
     void sendObjectInteractionSignal(unsigned int tileObjectId);
     void sendNaviInteractionSignal(const std::string& ticket);
     void sendTileInteractionSignal(float x, float y, float z);
+    void sendDialogResponseSignal(char response);
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -71,6 +72,9 @@ namespace Overworld {
     void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
