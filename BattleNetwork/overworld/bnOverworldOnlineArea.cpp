@@ -357,7 +357,7 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
     }
   }
   catch (Poco::IOException& e) {
-    Logger::Logf("OnlineArea Network exception: %s", e.what());
+    Logger::Logf("OnlineArea Network exception: %s", e.displayText().c_str());
 
     leave();
   }

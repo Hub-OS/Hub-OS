@@ -113,7 +113,7 @@ void Overworld::PacketShipper::sendSafe(
   }
   catch (Poco::IOException& e)
   {
-    Logger::Logf("Network exception: %s", e.what());
+    Logger::Logf("Network exception: %s", e.displayText().c_str());
     failed = true;
   }
 }
