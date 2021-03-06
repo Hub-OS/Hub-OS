@@ -639,10 +639,6 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 
   if (user == ticket) return;
 
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter != onlinePlayers.end()) return;
-
   auto [pair, success] = onlinePlayers.emplace(user, name);
 
   if (!success) return;
