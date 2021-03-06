@@ -1,4 +1,4 @@
-imagePath="C:\mmbn\net battle engine\Release\resources\navis\megaman\forms\slash_cross"
+imagePath="C:\mmbn\net battle engine\Release\resources\navis\megaman\forms\slash_cross.png"
 
 animation state="PLAYER_IDLE"
 frame duration="0.01" x="24" y="8" w="55" h="59" originx="34" originy="21"

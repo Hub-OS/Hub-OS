@@ -6,14 +6,12 @@
 
 MenuWidget::MenuWidget(const std::string& area, const MenuWidget::OptionsList& options) :
   optionsList(options),
-  font(Font::Style::thick),
-  infoText(font),
-  areaLabel(font)
+  infoText(Font::Style::thin),
+  areaLabel(Font::Style::thin),
+  areaLabelThick(Font::Style::thick)
 {
   // Load resources
-  areaLabel.SetFont(font);
   areaLabel.setPosition(127, 119);
-  //areaLabel.setScale(sf::Vector2f(2.0f, 2.0f));
   infoText = areaLabel;
   
   widgetTexture = Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png");
@@ -324,6 +322,15 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
   if (IsClosed()) {
     target.draw(icon, states);
+
+    auto pos = areaLabelThick.getPosition();
+    areaLabelThick.SetColor(sf::Color(105, 105, 105));
+    areaLabelThick.setPosition(pos.x + 1.f, pos.y + 1.f);
+    target.draw(areaLabelThick, states);
+
+    areaLabelThick.setPosition(pos);
+    areaLabelThick.SetColor(sf::Color::White);
+    target.draw(areaLabelThick, states);
   }
   else {
     // draw black square to darken bg
@@ -350,11 +357,11 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
       infoText.SetString(std::to_string(health));
       infoText.setOrigin(infoText.GetLocalBounds().width, 0);
       infoText.SetColor(shadowColor);
-      infoText.setPosition(174 + 1, 36 + 1);
+      infoText.setPosition(174 + 1, 33 + 1);
       target.draw(infoText, states);
 
       // hp text
-      infoText.setPosition(174, 36);
+      infoText.setPosition(174, 33);
       infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
@@ -362,11 +369,11 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
       infoText.SetString("/");
       infoText.setOrigin(infoText.GetLocalBounds().width, 0);
       infoText.SetColor(shadowColor);
-      infoText.setPosition(182 + 1, 36 + 1);
+      infoText.setPosition(182 + 1, 33 + 1);
       target.draw(infoText, states);
 
       // "/"
-      infoText.setPosition(182, 36);
+      infoText.setPosition(182, 33);
       infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
@@ -375,11 +382,11 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
       infoText.setOrigin(infoText.GetLocalBounds().width, 0);
       infoText.SetColor(shadowColor);
       infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-      infoText.setPosition(214 + 1, 36 + 1);
+      infoText.setPosition(214 + 1, 33 + 1);
       target.draw(infoText, states);
 
       // max hp 
-      infoText.setPosition(214, 36);
+      infoText.setPosition(214, 33);
       infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
@@ -387,11 +394,11 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
       infoText.SetColor(shadowColor);
       infoText.SetString(std::to_string(coins) + "z");
       infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-      infoText.setPosition(214 + 1, 60 + 1);
+      infoText.setPosition(214 + 1, 57 + 1);
       target.draw(infoText, states);
 
       // coins
-      infoText.setPosition(214, 60);
+      infoText.setPosition(214, 57);
       infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
     }
@@ -400,7 +407,17 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 void MenuWidget::SetArea(const std::string& name)
 {
+  auto& bounds = areaLabelThick.GetLocalBounds();
   areaName = name;
+  
+  std::string printName = name;
+  while (printName.size() < 12) {
+    printName = "_" + printName; // add underscore brackets to output text
+  }
+
+  areaLabelThick.SetString(printName);
+  areaLabelThick.setOrigin(bounds.width, bounds.height);
+  areaLabelThick.setPosition(240-1.f, 160-2.f);
 }
 
 void MenuWidget::SetCoins(int coins)

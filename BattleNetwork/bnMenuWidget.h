@@ -40,10 +40,10 @@ private:
   bool extendedHold{ false }; //!< If player holds the arrow keys down
   state currState{}; //!< Track all open/close states. Default is closed
   std::string areaName; //!< Area name typed out
-  Font font; //!< Used by text
   std::shared_ptr<sf::Texture> iconTexture; //!< If supplying an icon, use this one
   std::shared_ptr<sf::Texture> widgetTexture; //!< texture used by widget
-  Text areaLabel; //!< Area name displayed in widget
+  Text areaLabel; //!< Area name displayed by widget
+  mutable Text areaLabelThick; //!< Thick area name displayed outside of widget
   mutable Text infoText; //!< Text obj used for all other info
   swoosh::Timer easeInTimer; //!< Timer used for animations
   SpriteProxyNode banner;
