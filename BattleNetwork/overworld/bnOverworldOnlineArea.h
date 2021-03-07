@@ -44,8 +44,8 @@ namespace Overworld {
     std::list<std::string> removePlayers;
     Timer movementTimer;
     double packetResendTimer;
-    Font font;
-    Text name;
+    Text loadingText;
+    Text nameText;
     bool wasReadingTextBox{false};
 
 

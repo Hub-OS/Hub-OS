@@ -15,9 +15,9 @@ constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16_t maxPayloadSize, bool guestAccount) :
-  font(Font::Style::small),
-  name(font),
   SceneBase(controller, guestAccount),
+  loadingText(Font::Style::thick),
+  nameText(Font::Style::small),
   remoteAddress(Poco::Net::SocketAddress(
     getController().CommandLineValue<std::string>("cyberworld"),
     getController().CommandLineValue<int>("remotePort")
@@ -26,6 +26,8 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16
   packetShipper(remoteAddress),
   packetSorter(remoteAddress)
 {
+  loadingText.setScale(2, 2);
+
   lastFrameNavi = this->GetCurrentNavi();
   packetResendTimer = PACKET_RESEND_RATE;
 
@@ -129,10 +131,10 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     auto view = getController().getVirtualWindowSize();
     int precision = 1;
 
-    name.setPosition(view.x * 0.5f, view.y * 0.5f);
-    name.SetString("Connecting...");
-    name.setOrigin(name.GetLocalBounds().width * 0.5f, name.GetLocalBounds().height * 0.5f);
-    surface.draw(name);
+    loadingText.setPosition(view.x * 0.5f, view.y * 0.5f);
+    loadingText.SetString("Connecting...");
+    loadingText.setOrigin(loadingText.GetLocalBounds().width * 0.5f, loadingText.GetLocalBounds().height * 0.5f);
+    surface.draw(loadingText);
   }
 
   for (auto& pair : onlinePlayers) {
@@ -142,10 +144,10 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
       std::string nameStr = onlinePlayer.actor->GetName();
       auto mousei = sf::Mouse::getPosition(getController().getWindow());
       auto mousef = sf::Vector2f(static_cast<float>(mousei.x), static_cast<float>(mousei.y));
-      name.setPosition(mousef);
-      name.SetString(nameStr.c_str());
-      name.setOrigin(-10.0f, 0);
-      surface.draw(name);
+      nameText.setPosition(mousef);
+      nameText.SetString(nameStr.c_str());
+      nameText.setOrigin(-10.0f, 0);
+      surface.draw(nameText);
       continue;
     }
   }
