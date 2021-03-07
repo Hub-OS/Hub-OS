@@ -42,7 +42,6 @@ namespace Overworld {
     Poco::Buffer<char> assetBuffer{ 0 };
     std::map<std::string, OnlinePlayer> onlinePlayers;
     std::list<std::string> removePlayers;
-    std::string mapBuffer;
     Timer movementTimer;
     double packetResendTimer;
     Font font;

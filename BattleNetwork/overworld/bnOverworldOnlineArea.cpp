@@ -55,72 +55,74 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   auto currentTime = CurrentTime::AsMilli();
 
-  if (mapBuffer.empty() == false) {
-    SceneBase::onUpdate(elapsed);
+  if (!isConnected) {
+    return;
+  }
 
-    if (lastFrameNavi != GetCurrentNavi()) {
-      sendAvatarChangeSignal();
-    }
+  SceneBase::onUpdate(elapsed);
 
-    for (auto& pair : onlinePlayers) {
-      auto& onlinePlayer = pair.second;
-      auto& actor = onlinePlayer.actor;
+  if (lastFrameNavi != GetCurrentNavi()) {
+    sendAvatarChangeSignal();
+  }
 
-      if (onlinePlayer.teleportController.IsComplete()) {
-        auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
-        auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
-        float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-        double expectedTime = calculatePlayerLag(onlinePlayer);
-        float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
-        Direction newHeading = Actor::MakeDirectionFromVector(delta);
+  for (auto& pair : onlinePlayers) {
+    auto& onlinePlayer = pair.second;
+    auto& actor = onlinePlayer.actor;
 
-        if (distance <= 0.2f) {
-          actor->Face(actor->GetHeading());
-        }
-        else if (distance <= actor->GetWalkSpeed() * expectedTime) {
-          actor->Walk(newHeading, false); // Don't actually move or collide, but animate
-        }
-        else {
-          actor->Run(newHeading, false);
-        }
+    if (onlinePlayer.teleportController.IsComplete()) {
+      auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
+      auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
+      float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+      double expectedTime = calculatePlayerLag(onlinePlayer);
+      float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
+      Direction newHeading = Actor::MakeDirectionFromVector(delta);
 
-        auto newPos = onlinePlayer.startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
-        actor->setPosition(newPos);
+      if (distance <= 0.2f) {
+        actor->Face(actor->GetHeading());
+      }
+      else if (distance <= actor->GetWalkSpeed() * expectedTime) {
+        actor->Walk(newHeading, false); // Don't actually move or collide, but animate
+      }
+      else {
+        actor->Run(newHeading, false);
       }
 
-      onlinePlayer.teleportController.Update(elapsed);
-      onlinePlayer.emoteNode.Update(elapsed);
+      auto newPos = onlinePlayer.startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
+      actor->setPosition(newPos);
     }
 
-    for (auto remove : removePlayers) {
-      auto it = onlinePlayers.find(remove);
+    onlinePlayer.teleportController.Update(elapsed);
+    onlinePlayer.emoteNode.Update(elapsed);
+  }
 
-      if (it == onlinePlayers.end()) {
-        Logger::Logf("Removed non existent Player %s", remove.c_str());
-        continue;
-      }
+  for (auto remove : removePlayers) {
+    auto it = onlinePlayers.find(remove);
 
-      auto& player = it->second;
-      RemoveActor(player.actor);
-      RemoveSprite(player.teleportController.GetBeam());
-
-      onlinePlayers.erase(remove);
+    if (it == onlinePlayers.end()) {
+      Logger::Logf("Removed non existent Player %s", remove.c_str());
+      continue;
     }
 
-    removePlayers.clear();
+    auto& player = it->second;
+    RemoveActor(player.actor);
+    RemoveSprite(player.teleportController.GetBeam());
 
-    movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
+    onlinePlayers.erase(remove);
+  }
 
-    if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
-      movementTimer.reset();
-      sendPositionSignal();
-    }
+  removePlayers.clear();
+
+  movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
+
+  if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
+    movementTimer.reset();
+    sendPositionSignal();
   }
 }
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 {
-  if (mapBuffer.empty() == false && isConnected) {
+  if (isConnected) {
     SceneBase::onDraw(surface);
   }
   else {
@@ -605,7 +607,7 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto path = reader.ReadString(buffer);
-  mapBuffer = GetText(path);
+  auto mapBuffer = GetText(path);
 
   LoadMap(mapBuffer);
 }
@@ -797,8 +799,6 @@ void Overworld::OnlineArea::receiveNaviSetNameSignal(BufferReader& reader, const
 
 void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  if (mapBuffer.empty()) return;
-
   std::string user = reader.ReadString(buffer);
 
   // ignore our ip update
