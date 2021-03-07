@@ -137,18 +137,23 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     surface.draw(loadingText);
   }
 
+  auto& window = getController().getWindow();
+  auto viewport = window.getViewport(window.getView());
+  auto viewportOffset = sf::Vector2i(viewport.left, viewport.top);
+  auto cameraView = GetCamera().GetView();
+
+  // todo: mouse position is still read incorrectly when the game is scaled
+  auto mouse = surface.mapPixelToCoords(sf::Mouse::getPosition(window) - viewportOffset, cameraView);
+
   for (auto& pair : onlinePlayers) {
     auto& onlinePlayer = pair.second;
 
-    if (isMouseHovering(surface, *onlinePlayer.actor)) {
-      std::string nameStr = onlinePlayer.actor->GetName();
-      auto mousei = sf::Mouse::getPosition(getController().getWindow());
-      auto mousef = sf::Vector2f(static_cast<float>(mousei.x), static_cast<float>(mousei.y));
-      nameText.setPosition(mousef);
-      nameText.SetString(nameStr.c_str());
+    if (isMouseHovering(mouse, *onlinePlayer.actor)) {
+      nameText.setPosition(mouse - cameraView.getCenter() + cameraView.getSize() / 2.f);
+      nameText.SetString(onlinePlayer.actor->GetName());
       nameText.setOrigin(-10.0f, 0);
       surface.draw(nameText);
-      continue;
+      break;
     }
   }
 }
@@ -902,10 +907,8 @@ void Overworld::OnlineArea::leave() {
   getController().pop<effect>();
 }
 
-const bool Overworld::OnlineArea::isMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src)
+const bool Overworld::OnlineArea::isMouseHovering(const sf::Vector2f& mouse, const SpriteProxyNode& src)
 {
-  auto mouse = target.mapPixelToCoords(sf::Mouse::getPosition(getController().getWindow()), GetCamera().GetView());
-
   auto textureRect = src.getSprite().getTextureRect();
 
   auto& map = GetMap();

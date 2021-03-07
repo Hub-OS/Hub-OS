@@ -81,7 +81,7 @@ namespace Overworld {
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
-    const bool isMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src);
+    const bool isMouseHovering(const sf::Vector2f& mouse, const SpriteProxyNode& src);
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
 
   protected:
