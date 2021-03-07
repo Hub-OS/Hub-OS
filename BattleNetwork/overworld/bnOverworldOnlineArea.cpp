@@ -16,7 +16,7 @@ constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16_t maxPayloadSize, bool guestAccount) :
   SceneBase(controller, guestAccount),
-  loadingText(Font::Style::thick),
+  loadingText(Font::Style::small),
   nameText(Font::Style::small),
   remoteAddress(Poco::Net::SocketAddress(
     getController().CommandLineValue<std::string>("cyberworld"),
