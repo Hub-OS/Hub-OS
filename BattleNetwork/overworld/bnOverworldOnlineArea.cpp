@@ -656,37 +656,34 @@ void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::
 void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto message = reader.ReadString(buffer);
-  auto mugAnimationPath = reader.ReadString(buffer);
   auto mugTexturePath = reader.ReadString(buffer);
-
-  auto& textbox = GetTextBox();
+  auto mugAnimationPath = reader.ReadString(buffer);
 
   sf::Sprite face;
   face.setTexture(*GetTexture(mugTexturePath));
 
+  auto& textbox = GetTextBox();
   // todo: accept animation instead of animation path
-  textbox.EnqueMessage(face, mugAnimationPath, new Message(message));
-  textbox.Open();
+  textbox.SetNextSpeaker(face, mugAnimationPath);
+  textbox.EnqueueMessage(message,
+    [=]() { sendDialogResponseSignal(0); }
+  );
 }
 
 void Overworld::OnlineArea::receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto message = reader.ReadString(buffer);
-  auto mugAnimationPath = reader.ReadString(buffer);
   auto mugTexturePath = reader.ReadString(buffer);
-
-  auto& textbox = GetTextBox();
+  auto mugAnimationPath = reader.ReadString(buffer);
 
   sf::Sprite face;
   face.setTexture(*GetTexture(mugTexturePath));
 
-  textbox.EnqueMessage(face, mugAnimationPath, new Question(
-    message,
-    [=]() { sendDialogResponseSignal(1); },
-    []() { /* auto handled as Message is */ }
-  ));
-
-  textbox.Open();
+  auto& textbox = GetTextBox();
+  textbox.SetNextSpeaker(face, mugAnimationPath);
+  textbox.EnqueueQuestion(message,
+    [=](int response) { sendDialogResponseSignal(response); }
+  );
 }
 
 void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -694,17 +691,17 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
   auto optionA = reader.ReadString(buffer);
   auto optionB = reader.ReadString(buffer);
   auto optionC = reader.ReadString(buffer);
-  auto mugAnimationPath = reader.ReadString(buffer);
   auto mugTexturePath = reader.ReadString(buffer);
+  auto mugAnimationPath = reader.ReadString(buffer);
+
+  sf::Sprite face;
+  face.setTexture(*GetTexture(mugTexturePath));
 
   auto& textbox = GetTextBox();
-
-  // todo:
-  sf::Sprite face;
-  face.setTexture(*GetTexture("resources/ow/prog/prog_mug.png"));
-
-  textbox.EnqueMessage(face, mugAnimationPath, new Message("Quiz feature is not complete!"));
-  textbox.Open();
+  textbox.SetNextSpeaker(face, mugAnimationPath);
+  textbox.EnqueueQuiz(optionA, optionB, optionC,
+    [=](int response) { sendDialogResponseSignal(response); }
+  );
 }
 
 void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

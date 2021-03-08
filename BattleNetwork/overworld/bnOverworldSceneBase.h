@@ -17,7 +17,6 @@
 #include "../bnDrawWindow.h"
 #include "../bnAnimation.h"
 #include "../bnCardFolderCollection.h"
-#include "../bnAnimatedTextBox.h"
 
 // overworld
 #include "bnOverworldSprite.h"
@@ -28,6 +27,7 @@
 #include "bnOverworldSpatialMap.h"
 #include "bnOverworldMap.h"
 #include "bnOverworldPersonalMenu.h"
+#include "bnOverworldTextBox.h"
 #include "bnEmotes.h"
 #include "bnXML.h"
 
@@ -62,7 +62,7 @@ namespace Overworld {
     Overworld::Map map; /*!< Overworld map */
     std::vector<std::shared_ptr<WorldSprite>> sprites;
 
-    AnimatedTextBox textbox;
+    Overworld::TextBox textbox;
 
     double animElapsed{};
 
@@ -229,7 +229,7 @@ namespace Overworld {
     TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
     Background* GetBackground();
-    AnimatedTextBox& GetTextBox();
+    Overworld::TextBox& GetTextBox();
     bool IsInputLocked();
 
     //

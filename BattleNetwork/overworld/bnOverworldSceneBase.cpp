@@ -161,23 +161,8 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
       OnInteract();
     }
   }
-  else if (Input().Has(InputEvents::pressed_interact)) {
-    // continue the conversation if the text is complete
-    if (textbox.IsEndOfMessage()) {
-      textbox.DequeMessage();
-
-      if (!textbox.HasMessage()) {
-        // if there are no more messages, close
-        textbox.Close();
-      }
-    }
-    else if (textbox.IsEndOfBlock()) {
-      textbox.ShowNextLines();
-    }
-    else {
-      // double tapping talk will complete the block
-      textbox.CompleteCurrentBlock();
-    }
+  else if (textbox.IsOpen()) {
+    textbox.HandleInput(Input());
   }
 
   // handle custom tile collision
@@ -1141,7 +1126,7 @@ Background* Overworld::SceneBase::GetBackground()
   return this->bg;
 }
 
-AnimatedTextBox& Overworld::SceneBase::GetTextBox()
+Overworld::TextBox& Overworld::SceneBase::GetTextBox()
 {
   return textbox;
 }

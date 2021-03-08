@@ -80,8 +80,8 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         break;
       }
 
-      textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation", new Message(message));
-      textbox.Open();
+      textbox.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+      textbox.EnqueueMessage(message);
     });
 
     AddActor(mrprog);
