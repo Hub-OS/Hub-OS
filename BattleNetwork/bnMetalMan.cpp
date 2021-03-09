@@ -113,8 +113,6 @@ void MetalMan::OnUpdate(double _elapsed) {
   // TODO: use StuntDoubles to circumvent teleportaton
   if (movedByStun) {
     Teleport((rand() % 3) + 4, (rand() % 3) + 1);
-    AdoptNextTile();
-    FinishMove();
     movedByStun = false;
   }
 

@@ -58,11 +58,11 @@ void ProgsManMoveState::OnUpdate(double _elapsed, ProgsMan& progs) {
     nextDirection = static_cast<Direction>(randDirection + 1);
   }
 
-  bool moved = progs.Move(nextDirection);
+  bool moved = progs.Teleport(nextDirection);
 
   if (moved) {
     progs.AdoptNextTile();
-    auto onFinish = [&progs, this]() { progs.GoToNextState(); progs.FinishMove(); };
+    auto onFinish = [&progs, this]() { progs.GoToNextState(); };
     progs.GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
     isMoving = true;
   }

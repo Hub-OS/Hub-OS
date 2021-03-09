@@ -234,6 +234,7 @@ public:
 
   void QueueAction(const ActionEvent& action) override;
   void EndCurrentAction() override;
+  virtual void OnMoveEvent(const MoveEvent& event) = 0;
 
 private:
   int maxHealth{ std::numeric_limits<int>::max() };

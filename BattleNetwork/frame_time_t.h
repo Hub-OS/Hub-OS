@@ -16,6 +16,7 @@
 */
 struct frame_time_t {
   static const unsigned frames_per_second = 60u;
+  static const unsigned invalid = std::numeric_limits<unsigned>::max();
 
   struct milliseconds {
     long long value{};

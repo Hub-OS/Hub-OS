@@ -566,7 +566,7 @@ namespace Battle {
 
       // DIRECTIONAL TILES
       auto directional = Direction::none;
-      auto notMoving = obst->GetNextTile() == nullptr;
+      auto notMoving = !obst->IsMoving();
 
       switch (GetState()) {
       case TileState::directionDown:
@@ -586,8 +586,7 @@ namespace Battle {
       if (directional != Direction::none) {
         if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
           if (!obst->IsSliding() && notMoving) {
-            obst->SlideToTile(true);
-            obst->Move(directional);
+            obst->Slide(directional, frames(3), frames(7));
           }
         }
       }
@@ -633,7 +632,7 @@ namespace Battle {
 
       auto directional = Direction::none;
 
-      auto notMoving = character && character->GetNextTile() == nullptr;
+      auto notMoving = !character->IsMoving();
 
       switch (GetState()) {
       case TileState::directionDown:
@@ -653,11 +652,8 @@ namespace Battle {
       if (directional != Direction::none) {
         if (!character->HasAirShoe() && !character->HasFloatShoe()) {
           if (notMoving && !character->IsSliding()) {
-            character->SlideToTile(true);
-            character->Move(directional);
-           
-            // TODO: more evidence that the movement system needs redesigning. 
-            //       I shouldn't have to rely on hacks and strange behavior checks
+            character->Slide(directional, frames(3), frames(7));
+
             if (character->IsSliding()) {
               Audio().Play(AudioType::DIR_TILE, AudioPriority::highest);
             }

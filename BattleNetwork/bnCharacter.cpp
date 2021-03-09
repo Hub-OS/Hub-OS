@@ -133,7 +133,7 @@ void Character::Update(double _elapsed) {
 
     if (invincibilityCooldown > 0) {
       // This just blinks every 15 frames
-      if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
+      if (from_seconds(invincibilityCooldown).count() % 15 == 0) {
         Hide();
       }
       else {
@@ -161,38 +161,39 @@ void Character::Update(double _elapsed) {
 
   Entity::Update(_elapsed);
 
+  auto cardActionVisitor = [_elapsed, this](CardAction* action) {
+    if (action->CanExecute()) {
+      cardActionStartDelay -= from_seconds(_elapsed);
+
+      if (this->cardActionStartDelay <= frames(0)) {
+        action->Execute();
+      }
+      else {
+        return; // break early
+      }
+    }
+
+    action->Update(_elapsed);
+
+    if (action->IsAnimationOver()) {
+      actionQueue.pop();
+    }
+  };
+
+  auto moveEventVisitor = [_elapsed, this](const MoveEvent& event) {
+    Entity::HandleMoveEvent(event);
+    OnMoveEvent(event);
+    actionQueue.pop();
+  };
+
+  auto busterEventVisitor = [_elapsed, this](const BusterEvent& event) {
+    actionQueue.pop();
+  };
+
+  auto elseVisitor = [](auto&&) {};
+
   if (actionQueue.size()) {
-    std::visit(
-      overload(
-        [_elapsed, this](CardAction* action) {
-          if (action->CanExecute()) {
-            cardActionStartDelay -= from_seconds(_elapsed);
-
-            if (this->cardActionStartDelay <= frames(0)) {
-              action->Execute();
-            }
-            else {
-              return; // break early
-            }
-          }
-
-          action->Update(_elapsed);
-
-          if (action->IsAnimationOver()) {
-            actionQueue.pop();
-          }
-        },
-
-        [_elapsed, this](const MoveEvent& event) {
-          actionQueue.pop();
-        },
-
-        [_elapsed, this](const BusterEvent& event) {
-          actionQueue.pop();
-        },
-
-        [](auto&&) {}
-      ),
+    std::visit(overload(cardActionVisitor, moveEventVisitor, busterEventVisitor, elseVisitor),
       actionQueue.top().data
     );
   }
@@ -367,7 +368,7 @@ void Character::ResolveFrameBattleDamage()
 
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.flags & Hit::drag) == Hit::drag) {
-        if (slideFromDrag || GetNextTile()) {
+        if (slideFromDrag || IsSliding()) {
           append.push({ 0, Hit::drag, Element::none, nullptr, props.drag });
         }
         else {
@@ -492,9 +493,8 @@ void Character::ResolveFrameBattleDamage()
   if (postDragDir != Direction::none) {
     // enemies and objects on opposing side of field are granted immunity from drag
     if (Teammate(GetTile()->GetTeam())) {
-      SlideToTile(true);
       slideFromDrag = true;
-      Move(postDragDir);
+      Slide(postDragDir, frames(3));
 
       // cancel stun
       stunCooldown = 0;
@@ -510,7 +510,7 @@ void Character::ResolveFrameBattleDamage()
     stunCooldown = 0;
     invincibilityCooldown = 0;
 
-    SlideToTile(false); // cancel slide
+    FinishMove(); // cancels slide
 
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
@@ -667,11 +667,17 @@ void Character::EndCurrentAction()
 {
   if (actionQueue.empty()) return;
 
+  bool deleted = false;
+
   std::visit(
     overload(
-      [](CardAction* action) { action->EndAction();  delete action; },
+      [&deleted](CardAction* action) { action->EndAction();  delete action; deleted = true; },
       [](auto&&) {}
     ),
     actionQueue.top().data
   );
+
+  if (deleted) {
+    actionQueue.pop();
+  }
 }

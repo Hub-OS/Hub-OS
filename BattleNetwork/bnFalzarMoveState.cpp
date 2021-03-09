@@ -33,9 +33,8 @@ void FalzarMoveState::OnMoveComplete(Falzar& falzar)
   int randY = (rand() % 3)+1;
 
   // +3 to teleport on the blue team side of the field
-  falzar.Teleport(randX+3, randY);
+  falzar.Teleport(falzar.GetField()->TileAt(randX+3, randY));
   falzar.AdoptNextTile();
-  falzar.FinishMove();
   auto animation = falzar.GetFirstComponent<AnimationComponent>();
 
   auto falzarPtr = &falzar;

@@ -117,7 +117,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   replicator? replicator->SendMoveSignal(direction) : (void(0));
 
-  if(player.Move(direction)) {
+  if(player.Teleport(player.GetTile() + direction)) {
     bool moved = player.GetNextTile();
 
     if (moved) {
@@ -126,7 +126,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
       auto onFinish = [playerPtr, this]() {
         playerPtr->SetAnimation("PLAYER_MOVED", [playerPtr, this]() {
           playerPtr->SetAnimation(PLAYER_IDLE);
-          playerPtr->FinishMove();
 
           // Player should shoot or execute action on the immediate next tile
           // Note: I added this check because buster shoots would stay in queue

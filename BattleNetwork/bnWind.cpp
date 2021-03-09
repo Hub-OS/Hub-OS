@@ -22,17 +22,13 @@ void Wind::OnUpdate(double _elapsed) {
   // Strike panel and leave
   GetTile()->AffectEntities(this);
 
-  if (!IsSliding()) {
-    // Wind is active on the opposing team's area
-    // Once we enter our team area, we're useless
-    if (Teammate(GetTile()->GetTeam())) {
-      Delete();
-    }
-
-    SlideToTile(true);
-    SetSlideTime(time_cast<sf::Time>(frames(4)));
-    Move(GetDirection());
+  // Wind is active on the opposing team's area
+  // Once we enter our team area, we're useless
+  if (Teammate(GetTile()->GetTeam())) {
+    Delete();
   }
+
+  Slide(GetDirection(), frames(4));
 }
 
 bool Wind::CanMoveTo(Battle::Tile* next) {
@@ -40,9 +36,7 @@ bool Wind::CanMoveTo(Battle::Tile* next) {
 }
 
 void Wind::Attack(Character* _entity) {
-  _entity->SlideToTile(true);
-  _entity->Move(GetDirection());
-  _entity->FinishMove();
+  _entity->Slide(GetDirection(), frames(4));
 }
 
 void Wind::OnDelete()

@@ -486,7 +486,6 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
   if (remotePlayer->GetTile() != t && !remotePlayer->IsSliding()) {
     remotePlayer->GetTile()->RemoveEntityByID(remotePlayer->GetID());
     remotePlayer->AdoptTile(t);
-    remotePlayer->FinishMove();
   }
 }
 

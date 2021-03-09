@@ -42,10 +42,7 @@ void MetalManMoveState::OnUpdate(double _elapsed, MetalMan& metal) {
   Battle::Tile* next = nullptr;
 
   if (moved) {
-    metal.AdoptNextTile();
-
     auto onFinish = [this, m = &metal]() {
-      m->FinishMove();
         m->GoToNextState();
     };
 

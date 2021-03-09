@@ -1,5 +1,5 @@
 #pragma once
-#include "bnGame.h"
+#include "frame_time_t.h"
 #include <vector>
 #include <queue>
 #include <variant>
@@ -25,6 +25,18 @@ struct MoveEvent {
   frame_time_t endlagFrames{}; //!< Wait period before action is complete
   float height{}; //!< If this is non-zero with delta frames, the character will effectively jump
   Battle::Tile* dest{ nullptr };
+
+  bool IsJumping() const {
+    return dest && height > 0.f && deltaFrames > frames(0);
+  }
+
+  bool IsSliding() const {
+    return dest && deltaFrames > frames(0) && height <= 0.0f;
+  }
+
+  bool IsTeleporting() const {
+    return dest && deltaFrames == frames(0) && (+height) == 0.0f;
+  }
 };
 
 struct BusterEvent {
@@ -37,26 +49,51 @@ struct BusterEvent {
 
 struct ActionEvent {
   ActionPriority value{};
-  long long timestamp{}; //!< When was this action created
   std::variant<MoveEvent, BusterEvent, CardAction*> data;
 };
 
+// TODO: create bnActionQueue.cpp and put function impl there so I can include CardAction headers...
 struct ActionComparitor {
   bool operator()(const ActionEvent& a, const ActionEvent& b) {
-    return a.value < b.value;
+    if (a.value < b.value) {
+      return true;
+    }
+    
+    // else 
+    auto visitor = [](const ActionEvent& event) -> short {
+      short p = std::numeric_limits<short>::max();
+
+      auto visitBusterEvent = [&p](const BusterEvent&) {
+        p = 1;
+      };
+
+      auto visitCardEvent = [&p](const CardAction* action) {
+        p = 2;
+      };
+
+      auto visitMoveEvent = [&p](const MoveEvent&) {
+        p = 3;
+      };
+
+      std::visit(overload(visitBusterEvent, visitCardEvent, visitMoveEvent), event.data);
+
+      return p;
+    };
+
+    return visitor(a) < visitor(b);
   }
 };
 
 // overload design pattern for variant visits
-template <class ...Fs>
+template <class... Fs>
 struct overload : Fs... {
-  overload(Fs const&... fs) : Fs{ fs }...
+  overload(const Fs&... fs) : Fs{ fs }...
   {}
 
   using Fs::operator()...;
 };
 
-template <class ...Ts>
+template <class... Ts>
 overload(Ts&&...)->overload<std::remove_reference_t<Ts>...>;
 
 using ActionQueue = std::priority_queue<ActionEvent, std::vector<ActionEvent>, ActionComparitor>;

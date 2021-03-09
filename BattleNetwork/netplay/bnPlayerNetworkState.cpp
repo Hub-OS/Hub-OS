@@ -72,26 +72,19 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
 
   if (player.PlayerControllerSlideEnabled()) {
-    player.SlideToTile(true);
+    //player.SlideToTile(true);
   }
 
-  if (player.Move(direction)) {
+  if (player.Teleport(direction)) {
+    auto onFinish = [&]() {
+      player.SetAnimation("PLAYER_MOVED", [p = &player]() {
+        p->SetAnimation(PLAYER_IDLE);
+        });
 
-    bool moved = player.GetNextTile();
-
-    if (moved) {
-      auto onFinish = [&]() {
-        player.SetAnimation("PLAYER_MOVED", [p = &player]() {
-          p->SetAnimation(PLAYER_IDLE);
-          p->FinishMove();
-          });
-
-        player.AdoptNextTile();
-        direction = Direction::none;
-      }; // end lambda
-      player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
-      player.SetAnimation(PLAYER_MOVING, onFinish);
-    }
+      direction = Direction::none;
+    }; // end lambda
+    player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
+    player.SetAnimation(PLAYER_MOVING, onFinish);
   }
 }
 

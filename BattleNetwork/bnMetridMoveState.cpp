@@ -58,9 +58,6 @@ void MetridMoveState::OnUpdate(double _elapsed, Metrid& met) {
     auto fx = new MobMoveEffect();
     met.GetField()->AddEntity(*fx, met.GetTile()->GetX(), met.GetTile()->GetY());
 
-    met.AdoptNextTile();
-    met.FinishMove();
-
     //isMoving = true;
     moveCount--;
   }

@@ -126,10 +126,7 @@ private:
 
           // teleporting erases our direction information
           auto tele1 = Teleport(x, y);
-          AdoptNextTile();
           auto tele2 = base->Teleport(x, y);
-          base->AdoptNextTile();
-          base->FinishMove();
           SetDirection(Direction::left);
 
           Logger::Log("tele1: " + std::to_string(tele1) + " tele2: " + std::to_string(tele2));

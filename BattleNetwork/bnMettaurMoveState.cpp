@@ -47,7 +47,7 @@ void MettaurMoveState::OnUpdate(double _elapsed, Mettaur& met) {
   
   if (moved) {
     met.AdoptNextTile();
-    auto onFinish = [this, &met]() { met.ChangeState<MettaurIdleState>(); met.FinishMove(); };
+    auto onFinish = [this, &met]() { met.ChangeState<MettaurIdleState>(); };
 
     met.GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
     isMoving = true;
