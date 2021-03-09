@@ -662,9 +662,11 @@ void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poc
   sf::Sprite face;
   face.setTexture(*GetTexture(mugTexturePath));
 
+  Animation animation;
+  animation.LoadWithData(GetText(mugAnimationPath));
+
   auto& textbox = GetTextBox();
-  // todo: accept animation instead of animation path
-  textbox.SetNextSpeaker(face, mugAnimationPath);
+  textbox.SetNextSpeaker(face, animation);
   textbox.EnqueueMessage(message,
     [=]() { sendDialogResponseSignal(0); }
   );
@@ -679,8 +681,11 @@ void Overworld::OnlineArea::receiveQuestionSignal(BufferReader& reader, const Po
   sf::Sprite face;
   face.setTexture(*GetTexture(mugTexturePath));
 
+  Animation animation;
+  animation.LoadWithData(GetText(mugAnimationPath));
+
   auto& textbox = GetTextBox();
-  textbox.SetNextSpeaker(face, mugAnimationPath);
+  textbox.SetNextSpeaker(face, animation);
   textbox.EnqueueQuestion(message,
     [=](int response) { sendDialogResponseSignal(response); }
   );
@@ -696,9 +701,12 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
 
   sf::Sprite face;
   face.setTexture(*GetTexture(mugTexturePath));
+  Animation animation;
+
+  animation.LoadWithData(GetText(mugAnimationPath));
 
   auto& textbox = GetTextBox();
-  textbox.SetNextSpeaker(face, mugAnimationPath);
+  textbox.SetNextSpeaker(face, animation);
   textbox.EnqueueQuiz(optionA, optionB, optionC,
     [=](int response) { sendDialogResponseSignal(response); }
   );

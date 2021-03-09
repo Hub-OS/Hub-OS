@@ -7,9 +7,9 @@
 namespace Overworld {
   TextBox::TextBox(sf::Vector2f pos) : textbox(pos) {}
 
-  void TextBox::SetNextSpeaker(sf::Sprite speaker, std::string animationPath) {
+  void TextBox::SetNextSpeaker(sf::Sprite speaker, Animation animation) {
     nextSpeaker = speaker;
-    nextAnimationPath = animationPath;
+    nextAnimation = animation;
   }
 
   void TextBox::EnqueueMessage(const std::string& message, const std::function<void()>& onComplete) {
@@ -17,7 +17,7 @@ namespace Overworld {
       textbox.Open();
     }
 
-    textbox.EnqueMessage(nextSpeaker, nextAnimationPath, new Message(message));
+    textbox.EnqueMessage(nextSpeaker, nextAnimation, new Message(message));
 
     handlerQueue.push([=](InputManager& input) {
       if (!input.Has(InputEvents::pressed_interact)) {
@@ -46,7 +46,7 @@ namespace Overworld {
     }
 
     auto question = new Question(prompt, [=]() {onResponse(1);}, [=]() {onResponse(0);});
-    textbox.EnqueMessage(nextSpeaker, nextAnimationPath, question);
+    textbox.EnqueMessage(nextSpeaker, nextAnimation, question);
 
 
     handlerQueue.push([=](InputManager& input) {
@@ -92,7 +92,7 @@ namespace Overworld {
     }
 
     auto quiz = new Quiz(optionA, optionB, optionC, onResponse);
-    textbox.EnqueMessage(nextSpeaker, nextAnimationPath, quiz);
+    textbox.EnqueMessage(nextSpeaker, nextAnimation, quiz);
 
     handlerQueue.push([=](InputManager& input) {
       bool up = input.Has(InputEvents::pressed_ui_up);

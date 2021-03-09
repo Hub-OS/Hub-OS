@@ -32,7 +32,7 @@ private:
   double totalTime{}; /*!< elapsed */
   double textSpeed{}; /*!< desired speed of text */
   mutable std::vector<sf::Sprite> mugshots; /*!< List of current and next mugshots */
-  std::vector<std::string> animPaths; /*!< List of animation paths for the mugshots */
+  std::vector<Animation> animations; /*!< List of animation paths for the mugshots */
   std::vector<MessageInterface*> messages; /*!< Lists of current and next messages */
   mutable sf::Sprite frame; /*!< Size is calculated from the frame sprite */
   mutable Animation mugAnimator; /*!< Animators the mugshot frames */
@@ -58,10 +58,10 @@ public:
   /**
    * @brief Adds message and mugshot to queue
    * @param speaker mugshot sprite
-   * @param animationPath mugshot animations list
+   * @param animation mugshot animation
    * @param message message object
    */
-  void EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message);
+  void EnqueMessage(sf::Sprite speaker, Animation animation, MessageInterface* message);
   
   /**
    * @brief Adds message to queue
