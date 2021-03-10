@@ -984,21 +984,21 @@ const double Overworld::OnlineArea::calculatePlayerLag(OnlinePlayer& player, dou
 }
 
 std::string Overworld::OnlineArea::GetText(const std::string& path) {
-  if (path.rfind("/server", 0) == 0) {
+  if (path.find("/server", 0) == 0) {
     return serverAssetManager.GetText(path);
   }
   return Overworld::SceneBase::GetText(path);
 }
 
 std::shared_ptr<sf::Texture> Overworld::OnlineArea::GetTexture(const std::string& path) {
-  if (path.rfind("/server", 0) == 0) {
+  if (path.find("/server", 0) == 0) {
     return serverAssetManager.GetTexture(path);
   }
   return Overworld::SceneBase::GetTexture(path);
 }
 
 std::shared_ptr<sf::SoundBuffer> Overworld::OnlineArea::GetAudio(const std::string& path) {
-  if (path.rfind("/server", 0) == 0) {
+  if (path.find("/server", 0) == 0) {
     return serverAssetManager.GetAudio(path);
   }
   return Overworld::SceneBase::GetAudio(path);
