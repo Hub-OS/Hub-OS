@@ -26,9 +26,9 @@ namespace Overworld {
 
       // continue the conversation if the text is complete
       if (textbox.IsEndOfMessage()) {
+        onComplete();
         textbox.DequeMessage();
         handlerQueue.pop();
-        onComplete();
       }
       else if (textbox.IsEndOfBlock()) {
         textbox.ShowNextLines();
