@@ -80,6 +80,7 @@ namespace Overworld {
 
     std::shared_ptr<Tileset> ParseTileset(XMLElement element, unsigned int firstgid);
     std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset);
+    void HandleInput();
     void LoadBackground(const std::string& value);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
     void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);

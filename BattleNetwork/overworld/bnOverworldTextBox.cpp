@@ -63,15 +63,15 @@ namespace Overworld {
         question->SelectNo();
       }
 
-      if (confirm && cancel) {}
-      else if (confirm) {
-        if (!textbox.IsEndOfMessage()) {
+      if (!textbox.IsEndOfMessage()) {
+        if (confirm) {
           textbox.CompleteCurrentBlock();
         }
-        else {
-          question->ConfirmSelection();
-          handlerQueue.pop();
-        }
+      }
+      else if (confirm && cancel) {}
+      else if (confirm) {
+        question->ConfirmSelection();
+        handlerQueue.pop();
       }
       else if (cancel) {
         question->SelectNo();
@@ -132,7 +132,9 @@ namespace Overworld {
   }
 
   void TextBox::HandleInput(InputManager& input) {
-    handlerQueue.front()(input);
+    if (!handlerQueue.empty()) {
+      handlerQueue.front()(input);
+    }
 
     if (!textbox.HasMessage()) {
       // if there are no more messages, close

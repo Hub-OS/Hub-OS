@@ -51,10 +51,15 @@ namespace Overworld {
 
     void processIncomingPackets(double elapsed);
 
+    void login();
+
+    void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
+    void sendAssetsFound();
     void sendTextureStreamHeaders(uint16_t width, uint16_t height);
     void sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size);
     void sendLoginSignal();
     void sendLogoutSignal();
+    void sendRequestJoinSignal();
     void sendReadySignal();
     void sendPositionSignal();
     void sendAvatarChangeSignal();
@@ -64,7 +69,9 @@ namespace Overworld {
     void sendNaviInteractionSignal(const std::string& ticket);
     void sendTileInteractionSignal(float x, float y, float z);
     void sendDialogResponseSignal(char response);
+
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);

@@ -24,7 +24,8 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16
   )),
   maxPayloadSize(maxPayloadSize),
   packetShipper(remoteAddress),
-  packetSorter(remoteAddress)
+  packetSorter(remoteAddress),
+  serverAssetManager("cache/" + remoteAddress.toString())
 {
   loadingText.setScale(2, 2);
 
@@ -162,7 +163,12 @@ void Overworld::OnlineArea::onStart()
 {
   SceneBase::onStart();
   movementTimer.start();
+  
   sendLoginSignal();
+  sendAssetsFound();
+  sendAvatarChangeSignal();
+  sendRequestJoinSignal();
+
   Audio().Stream("resources/loops/loop_overworld.ogg", false);
 }
 
@@ -310,6 +316,9 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::login:
           receiveLoginSignal(reader, data);
           break;
+        case ServerEvents::remove_asset:
+          receiveAssetRemoveSignal(reader, data);
+          break;
         case ServerEvents::asset_stream:
           receiveAssetStreamSignal(reader, data);
           break;
@@ -371,6 +380,21 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
     leave();
   }
 }
+void Overworld::OnlineArea::sendAssetFoundSignal(const std::string& path, uint64_t lastModified) {
+  ClientEvents event{ ClientEvents::asset_found };
+
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char*)&event, sizeof(ClientEvents));
+  buffer.append(path.c_str(), path.size() + 1);
+  buffer.append((char*)&lastModified, sizeof(lastModified));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendAssetsFound() {
+  for (auto [name, lastModified] : serverAssetManager.GetCachedAssetList()) {
+    sendAssetFoundSignal(name, lastModified);
+  }
+}
 
 void Overworld::OnlineArea::sendTextureStreamHeaders(uint16_t width, uint16_t height) {
   ClientEvents event{ ClientEvents::texture_stream };
@@ -404,8 +428,6 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t h
 
 void Overworld::OnlineArea::sendLoginSignal()
 {
-  sendAvatarAssetStream();
-
   std::string username = "James";
   std::string password = ""; // No servers need passwords at this time
 
@@ -423,6 +445,14 @@ void Overworld::OnlineArea::sendLogoutSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::logout };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendRequestJoinSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::request_join };
   buffer.append((char*)&type, sizeof(ClientEvents));
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
@@ -464,7 +494,7 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::avatar_change };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(client, Reliability::Reliable, buffer);
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendAvatarAssetStream() {
@@ -561,6 +591,12 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   });
 }
 
+void Overworld::OnlineArea::receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto path = reader.ReadString(buffer);
+
+  serverAssetManager.RemoveAsset(path);
+}
+
 void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto size = reader.Read<uint16_t>(buffer);
 
@@ -569,6 +605,8 @@ void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const
 
 void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto name = reader.ReadString(buffer);
+  auto lastModified = reader.Read<uint64_t>(buffer);
+  auto cachable = reader.Read<bool>(buffer);
   auto type = reader.Read<AssetType>(buffer);
 
   BufferReader assetReader;
@@ -576,24 +614,19 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
   switch (type) {
   case AssetType::text:
     assetBuffer.append(0);
-    serverAssetManager.SetText(name, assetReader.ReadString(assetBuffer));
+    serverAssetManager.SetText(name, lastModified, assetReader.ReadString(assetBuffer), cachable);
     break;
   case AssetType::texture:
-  {
-    auto texture = std::make_shared<sf::Texture>();
-    texture->loadFromMemory(assetBuffer.begin(), assetBuffer.size());
-    serverAssetManager.SetTexture(name, texture);
+    serverAssetManager.SetTexture(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
     break;
-  }
   case AssetType::audio:
-  {
-    auto audio = std::make_shared<sf::SoundBuffer>();
-    audio->loadFromMemory(assetBuffer.begin(), assetBuffer.size());
-    serverAssetManager.SetAudio(name, audio);
+    serverAssetManager.SetAudio(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
     break;
-  }
   case AssetType::sfml_image:
   {
+    if(assetBuffer.size() < sizeof(uint16_t) * 2) {
+      break;
+    }
     auto width = assetReader.Read<uint16_t>(assetBuffer);
     auto height = assetReader.Read<uint16_t>(assetBuffer);
 
@@ -602,7 +635,7 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
 
     auto texture = std::make_shared<sf::Texture>();
     texture->loadFromImage(image);
-    serverAssetManager.SetTexture(name, texture);
+    serverAssetManager.SetTextureDirect(name, texture);
     break;
   }
   }

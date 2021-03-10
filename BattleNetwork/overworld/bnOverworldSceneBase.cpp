@@ -155,14 +155,8 @@ void Overworld::SceneBase::onStart() {
 void Overworld::SceneBase::onUpdate(double elapsed) {
   playerController.ListenToInputEvents(!IsInputLocked());
 
-  // check to see if talk button was pressed
-  if (!IsInputLocked()) {
-    if (Input().Has(InputEvents::pressed_interact)) {
-      OnInteract();
-    }
-  }
-  else if (textbox.IsOpen()) {
-    textbox.HandleInput(Input());
+  if (!gotoNextScene) {
+    HandleInput();
   }
 
   // handle custom tile collision
@@ -267,29 +261,39 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   pos = sf::Vector2f(pos.x * map.getScale().x, pos.y * map.getScale().y);
   camera.PlaceCamera(pos);
 
-  if (!gotoNextScene && textbox.IsClosed()) {
-    // emotes widget
-    if (Input().Has(InputEvents::pressed_option) && personalMenu.IsClosed()) {
-      if (emote.IsClosed()) {
-        emote.Open();
-      }
-      else if (emote.IsOpen()) {
-        emote.Close();
-      }
-    }
-
-    if (emote.IsClosed()) {
-      personalMenu.HandleInput(Input(), Audio());
-      // menu widget controlls
-    }
-  }
-
   // Allow player to resync with remote account by pressing the pause action
   /*if (Input().Has(InputEvents::pressed_option)) {
       accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
   }*/
 
   webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
+}
+
+void Overworld::SceneBase::HandleInput() {
+
+  // check to see if talk button was pressed
+  if (emote.IsClosed() && !IsInputLocked()) {
+    if (Input().Has(InputEvents::pressed_interact)) {
+      OnInteract();
+    }
+  }
+
+  if(emote.IsOpen()) {
+    if (Input().Has(InputEvents::pressed_option)) {
+      emote.Close();
+    }
+  }
+  else if (textbox.IsOpen()) {
+    textbox.HandleInput(Input());
+  }
+  else if (personalMenu.IsOpen()) {
+    personalMenu.HandleInput(Input(), Audio());
+  }
+  else {
+    if (Input().Has(InputEvents::pressed_option)) {
+      emote.Open();
+    }
+  }
 }
 
 void Overworld::SceneBase::onLeave() {
@@ -1004,7 +1008,7 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor> actor) {
 }
 
 bool Overworld::SceneBase::IsInputLocked() {
-  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed();
+  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene;
 }
 
 void Overworld::SceneBase::LockInput() {
