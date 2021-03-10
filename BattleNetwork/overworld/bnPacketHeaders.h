@@ -6,7 +6,7 @@
 namespace Overworld
 {
   const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server/tree/proposed-packets";
-  const uint64_t VERSION_ITERATION = 12;
+  const uint64_t VERSION_ITERATION = 13;
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
@@ -53,6 +53,9 @@ namespace Overworld
     map,
     transfer_start,
     transfer_complete,
+    move_camera,
+    slide_camera,
+    unlock_camera,
     lock_input,
     unlock_input,
     move,

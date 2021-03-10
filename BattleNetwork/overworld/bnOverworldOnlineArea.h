@@ -77,6 +77,8 @@ namespace Overworld {
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);

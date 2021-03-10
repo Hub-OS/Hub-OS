@@ -332,6 +332,15 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::transfer_complete:
           receiveTransferCompleteSignal(reader, data);
           break;
+        case ServerEvents::move_camera:
+          receiveMoveCameraSignal(reader, data);
+          break;
+        case ServerEvents::slide_camera:
+          receiveSlideCameraSignal(reader, data);
+          break;
+        case ServerEvents::unlock_camera:
+          QueueUnlockCamera();
+          break;
         case ServerEvents::lock_input:
           LockInput();
           break;
@@ -674,6 +683,42 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
   UnlockInput();
   isConnected = true;
   sendReadySignal();
+}
+
+void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
+
+  auto x = reader.Read<float>(buffer)* tileSize.x / 2.0f;
+  auto y = reader.Read<float>(buffer)* tileSize.y;
+  auto z = reader.Read<float>(buffer);
+
+  auto position = sf::Vector2f(x, y);
+
+  auto ortho = map.WorldToScreen(position);
+
+  auto duration = reader.Read<float>(buffer);
+
+  QueuePlaceCamera(ortho, sf::seconds(duration));
+}
+
+void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
+
+  auto x = reader.Read<float>(buffer)* tileSize.x / 2.0f;
+  auto y = reader.Read<float>(buffer)* tileSize.y;
+  auto z = reader.Read<float>(buffer);
+
+  auto position = sf::Vector2f(x, y);
+
+  auto ortho = map.WorldToScreen(position);
+
+  auto duration = reader.Read<float>(buffer);
+
+  QueueMoveCamera(ortho, sf::seconds(duration));
 }
 
 void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
