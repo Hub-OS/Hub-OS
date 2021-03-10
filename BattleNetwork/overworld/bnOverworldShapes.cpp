@@ -1,6 +1,6 @@
 #include "bnOverworldShapes.h"
 #include <cmath>
-
+#include "../bnLogger.h"
 // using pointers to make mutation clear
 static inline void rotateAround(float centerX, float centerY, float rotation, float* x, float* y) {
   if (rotation != 0.0f) {
@@ -154,7 +154,7 @@ namespace Overworld {
         auto xIsWithin = (intersectionX >= Ax && intersectionX < Bx) || (intersectionX >= Bx && intersectionX < Ax);
 
         // make sure intersectionX is to the right
-        if (xIsWithin && x >= intersectionX) {
+        if (xIsWithin && x <= intersectionX) {
           intersections += 1;
         }
       }
