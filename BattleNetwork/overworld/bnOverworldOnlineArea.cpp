@@ -1061,7 +1061,6 @@ void Overworld::OnlineArea::playSong(const std::string& path) {
   if (songPath.find("/server", 0) == 0) {
     songPath = serverAssetManager.GetPath(path);
   }
-// sf::Music::TimeSpan::
-  // todo: loop?
+
   Audio().Stream(songPath, true);
 }
