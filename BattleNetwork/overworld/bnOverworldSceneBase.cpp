@@ -142,6 +142,9 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 
   // emotes
   emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
+
+  cameraTimer.reverse(true);
+  cameraTimer.start();
 }
 
 void Overworld::SceneBase::onStart() {
@@ -238,9 +241,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
   );
 
-  // Update the camera
-  camera.Update((float)elapsed);
-
   // Loop the bg
   bg->Update((float)elapsed);
 
@@ -256,10 +256,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // Update the textbox
   textbox.Update(elapsed);
 
-  // Follow the navi
-  sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
-  pos = sf::Vector2f(pos.x * map.getScale().x, pos.y * map.getScale().y);
-  camera.PlaceCamera(pos);
+  HandleCamera(elapsed);
 
   // Allow player to resync with remote account by pressing the pause action
   /*if (Input().Has(InputEvents::pressed_option)) {
@@ -267,6 +264,42 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }*/
 
   webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
+}
+
+void Overworld::SceneBase::HandleCamera(double elapsed) {
+  camera.Update(elapsed);
+
+  if (!cameraLocked) {
+    // Follow the navi
+    sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
+    pos = sf::Vector2f(pos.x * map.getScale().x, pos.y * map.getScale().y);
+    camera.PlaceCamera(pos);
+    return;
+  }
+
+  cameraTimer.update(sf::seconds(elapsed));
+
+  if (cameraTimer.getElapsed().asMilliseconds() > 0 || cameraQueue.empty()) {
+    return;
+  }
+
+  auto& event = cameraQueue.front();
+
+  if (event.unlock) {
+    UnlockCamera();
+    cameraQueue = {};
+    return;
+  }
+
+  if (event.slide) {
+    camera.MoveCamera(event.position, event.duration);
+  }
+  else {
+    camera.PlaceCamera(event.position);
+  }
+
+  cameraTimer.set(event.duration);
+  cameraQueue.pop();
 }
 
 void Overworld::SceneBase::HandleInput() {
@@ -1019,6 +1052,53 @@ void Overworld::SceneBase::UnlockInput() {
   inputLocked = false;
 }
 
+bool Overworld::SceneBase::IsCameraLocked() {
+  return cameraLocked;
+}
+
+void Overworld::SceneBase::LockCamera() {
+  cameraLocked = true;
+}
+
+void Overworld::SceneBase::UnlockCamera() {
+  cameraLocked = false;
+}
+
+void Overworld::SceneBase::QueuePlaceCamera(sf::Vector2f position, sf::Time holdTime) {
+  LockCamera();
+
+  QueuedCameraEvent event{
+    .unlock = false,
+    .slide = false,
+    .position = position,
+    .duration = holdTime
+  };
+
+  cameraQueue.push(event);
+}
+
+void Overworld::SceneBase::QueueMoveCamera(sf::Vector2f position, sf::Time duration) {
+  LockCamera();
+
+  QueuedCameraEvent event{
+    .unlock = false,
+    .slide = true,
+    .position = position,
+    .duration = duration
+  };
+
+  cameraQueue.push(event);
+}
+
+void Overworld::SceneBase::QueueUnlockCamera() {
+  LockCamera();
+
+  QueuedCameraEvent event{
+    .unlock = true
+  };
+
+  cameraQueue.push(event);
+}
 
 void Overworld::SceneBase::GotoChipFolder()
 {

@@ -45,7 +45,17 @@ namespace Overworld {
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
     bool inputLocked{ false };
 
+    struct QueuedCameraEvent {
+      bool unlock;
+      bool slide;
+      sf::Vector2f position;
+      sf::Time duration;
+    };
+
+    std::queue<QueuedCameraEvent> cameraQueue;
     Camera camera; /*!< camera in scene follows player */
+    bool cameraLocked{ false };
+    swoosh::Timer cameraTimer;
     bool clicked{ false }, scaledmap{ false };
 
     sf::Vector2f returnPoint{};
@@ -80,6 +90,7 @@ namespace Overworld {
 
     std::shared_ptr<Tileset> ParseTileset(XMLElement element, unsigned int firstgid);
     std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset);
+    void HandleCamera(double elapsed);
     void HandleInput();
     void LoadBackground(const std::string& value);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
@@ -207,6 +218,39 @@ namespace Overworld {
      */
     void UnlockInput();
 
+
+    /**
+     * @brief Stops the camera from following the player
+     * @param actor
+     */
+    void LockCamera();
+
+
+    /**
+     * @brief Locks the camera and queues PlaceCamera
+     * @param position
+     * @param holdTime
+     */
+    void QueuePlaceCamera(sf::Vector2f position, sf::Time holdTime = sf::Time::Zero);
+
+
+    /**
+     * @brief Locks the camera and queues MoveCamera
+     * @param position
+     * @param duration
+     */
+    void QueueMoveCamera(sf::Vector2f position, sf::Time duration);
+
+    /**
+     * @brief Unlocks the camera and clears the queue after completing previous camera events
+     */
+    void QueueUnlockCamera();
+
+    /**
+     * @brief Clears the camera queue and follow the player again
+     */
+    void UnlockCamera();
+
     //
     // Menu selection callbacks
     //
@@ -232,6 +276,7 @@ namespace Overworld {
     Background* GetBackground();
     Overworld::TextBox& GetTextBox();
     bool IsInputLocked();
+    bool IsCameraLocked();
 
     //
     // Helpers
