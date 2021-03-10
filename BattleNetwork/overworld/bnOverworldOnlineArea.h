@@ -90,7 +90,7 @@ namespace Overworld {
     void leave();
     const bool isMouseHovering(const sf::Vector2f& mouse, const SpriteProxyNode& src);
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
-
+    void playSong(const std::string& name);
   protected:
     virtual std::string GetText(const std::string& path);
     virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);

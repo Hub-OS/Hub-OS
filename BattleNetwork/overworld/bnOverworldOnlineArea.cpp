@@ -168,13 +168,11 @@ void Overworld::OnlineArea::onStart()
   sendAssetsFound();
   sendAvatarChangeSignal();
   sendRequestJoinSignal();
-
-  Audio().Stream("resources/loops/loop_overworld.ogg", false);
 }
 
 void Overworld::OnlineArea::onResume()
 {
-  Audio().Stream("resources/loops/loop_overworld.ogg", false);
+  playSong(GetMap().GetSongPath());
 }
 
 void Overworld::OnlineArea::OnTileCollision()
@@ -649,7 +647,15 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
   auto path = reader.ReadString(buffer);
   auto mapBuffer = GetText(path);
 
+  auto lastSongPath = GetMap().GetSongPath();
+
   LoadMap(mapBuffer);
+
+  auto newSongPath = GetMap().GetSongPath();
+
+  if (lastSongPath != newSongPath) {
+    playSong(newSongPath);
+  }
 }
 
 void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1002,4 +1008,15 @@ std::shared_ptr<sf::SoundBuffer> Overworld::OnlineArea::GetAudio(const std::stri
     return serverAssetManager.GetAudio(path);
   }
   return Overworld::SceneBase::GetAudio(path);
+}
+
+void Overworld::OnlineArea::playSong(const std::string& path) {
+  auto songPath = path;
+
+  if (songPath.find("/server", 0) == 0) {
+    songPath = serverAssetManager.GetPath(path);
+  }
+// sf::Music::TimeSpan::
+  // todo: loop?
+  Audio().Stream(songPath, true);
 }
