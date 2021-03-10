@@ -278,7 +278,7 @@ void Overworld::SceneBase::HandleInput() {
     }
   }
 
-  if(emote.IsOpen()) {
+  if (emote.IsOpen()) {
     if (Input().Has(InputEvents::pressed_option)) {
       emote.Close();
     }

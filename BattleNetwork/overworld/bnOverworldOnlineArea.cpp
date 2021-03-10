@@ -163,7 +163,7 @@ void Overworld::OnlineArea::onStart()
 {
   SceneBase::onStart();
   movementTimer.start();
-  
+
   sendLoginSignal();
   sendAssetsFound();
   sendAvatarChangeSignal();
@@ -624,7 +624,7 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
     break;
   case AssetType::sfml_image:
   {
-    if(assetBuffer.size() < sizeof(uint16_t) * 2) {
+    if (assetBuffer.size() < sizeof(uint16_t) * 2) {
       break;
     }
     auto width = assetReader.Read<uint16_t>(assetBuffer);

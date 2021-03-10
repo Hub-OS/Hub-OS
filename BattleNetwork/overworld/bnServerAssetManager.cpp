@@ -111,7 +111,7 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) 
       data.insert(data.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
 
       auto extensionIndex = name.rfind('.');
-      auto extension = extensionIndex != std::string::npos ?  name.substr(extensionIndex) : "";
+      auto extension = extensionIndex != std::string::npos ? name.substr(extensionIndex) : "";
 
       if (extension == ".png" || extension == ".bmp") {
         SetTexture(name, secondsSinceEpoch, data.data(), length, false);
