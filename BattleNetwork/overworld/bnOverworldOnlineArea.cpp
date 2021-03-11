@@ -947,9 +947,10 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     // Calculcate the NEXT  frame and see if we're moving too far
     auto& onlinePlayer = userIter->second;
     auto currentTime = CurrentTime::AsMilli();
+    auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector2f(x, y);
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
-    auto delta = onlinePlayer.endBroadcastPos - newPos;
+    auto delta = endBroadcastPos - newPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
     double incomingLag = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
@@ -957,21 +958,23 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     double expectedTime = calculatePlayerLag(onlinePlayer, incomingLag);
 
     Direction newHeading = Actor::MakeDirectionFromVector(delta);
+    auto teleportController = &onlinePlayer.teleportController;
+    auto actor = onlinePlayer.actor;
 
     // Do not attempt to animate the teleport over quick movements if already teleporting
-    if (onlinePlayer.teleportController.IsComplete() && onlinePlayer.packets > 1) {
+    if (teleportController->IsComplete() && onlinePlayer.packets > 1) {
       // we can't possibly have moved this far away without teleporting
       if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2) * expectedTime) {
-        onlinePlayer.actor->setPosition(onlinePlayer.endBroadcastPos);
-        auto& action = onlinePlayer.teleportController.TeleportOut(onlinePlayer.actor);
-        action.onFinish.Slot([&] {
-          onlinePlayer.teleportController.TeleportIn(onlinePlayer.actor, onlinePlayer.endBroadcastPos, Direction::none);
+        actor->setPosition(endBroadcastPos);
+        auto& action = teleportController->TeleportOut(actor);
+        action.onFinish.Slot([=] {
+          teleportController->TeleportIn(actor, endBroadcastPos, Direction::none);
         });
       }
     }
 
     // update our records
-    onlinePlayer.startBroadcastPos = onlinePlayer.endBroadcastPos;
+    onlinePlayer.startBroadcastPos = endBroadcastPos;
     onlinePlayer.endBroadcastPos = sf::Vector2f(x, y);
     auto previous = onlinePlayer.timestamp;
     onlinePlayer.timestamp = currentTime;
