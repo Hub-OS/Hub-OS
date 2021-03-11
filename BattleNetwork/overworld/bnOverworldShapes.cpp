@@ -1,5 +1,6 @@
 #include "bnOverworldShapes.h"
-#include <cmath>
+#include <math.h>
+#include <Swoosh/Ease.h>
 #include "../bnLogger.h"
 // using pointers to make mutation clear
 static inline void rotateAround(float centerX, float centerY, float rotation, float* x, float* y) {
@@ -9,7 +10,7 @@ static inline void rotateAround(float centerX, float centerY, float rotation, fl
 
     float distance = std::sqrt(relativeX * relativeX + relativeY * relativeY);
     float relativeRadians = std::atan2(relativeY, relativeX);
-    float rotationRadians = rotation / 180.0f * M_PI;
+    float rotationRadians = rotation / 180.0f * static_cast<float>(swoosh::ease::pi);
     float radians = relativeRadians + rotationRadians;
 
     // set x + y to a position rotated around centerX + centerY
@@ -117,7 +118,7 @@ namespace Overworld {
 
     rotateAround(this->x, this->y, -rotation, &x, &y);
 
-    uint intersections = 0;
+    unsigned int intersections = 0;
 
     std::tuple<float, float> lastPoint = points[points.size() - 1];
 

@@ -12,7 +12,30 @@
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
-constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
+constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 20;
+
+const std::string sanitize_folder_name(std::string in) {
+  // todo: use regex for multiple erroneous folder names?
+
+  size_t pos = in.find(".");
+
+  // Repeat till end is reached
+  while (pos != std::string::npos)
+  {
+    in.replace(pos, 1, "_");
+    pos = in.find(".", pos + 1);
+  }
+
+  pos = in.find(":");
+
+  // Repeat till end is reached
+  if (pos != std::string::npos)
+  {
+    in.replace(pos, 1, "_p");
+  }
+
+  return in;
+}
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16_t maxPayloadSize, bool guestAccount) :
   SceneBase(controller, guestAccount),
@@ -25,7 +48,7 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16
   maxPayloadSize(maxPayloadSize),
   packetShipper(remoteAddress),
   packetSorter(remoteAddress),
-  serverAssetManager("cache/" + remoteAddress.toString())
+  serverAssetManager("cache/" + sanitize_folder_name(remoteAddress.toString()))
 {
   loadingText.setScale(2, 2);
 
@@ -309,8 +332,12 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
 
         switch (sig) {
         case ServerEvents::ack:
-          packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<uint64_t>(data));
+        {
+          Reliability r = reader.Read<Reliability>(data);
+          uint64_t id = reader.Read<uint64_t>(data);
+          packetShipper.Acknowledged(r, id);
           break;
+        }
         case ServerEvents::login:
           receiveLoginSignal(reader, data);
           break;
@@ -725,10 +752,13 @@ void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::
 {
   // todo: add warp option, add no beam teleport option, interpolate in update?
 
+  float x = reader.Read<float>(buffer);
+  float y = reader.Read<float>(buffer);
+
   auto tileSize = GetMap().GetTileSize();
   auto position = sf::Vector2f(
-    reader.Read<float>(buffer) * tileSize.x / 2.0f,
-    reader.Read<float>(buffer) * tileSize.y
+     x * tileSize.x / 2.0f,
+     y * tileSize.y
   );
 
   auto z = reader.Read<float>(buffer);

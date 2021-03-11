@@ -4,6 +4,7 @@
 #include "bnAnimatedTextBox.h"
 #include <string>
 #include <functional>
+#include <array>
 
 /**
   * @class Quiz

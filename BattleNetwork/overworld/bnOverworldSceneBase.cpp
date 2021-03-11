@@ -922,14 +922,14 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
   animation.LoadWithData(animationString);
 
   auto tileset = Overworld::Tileset{
-   .name = tilesetElement.GetAttribute("name"),
-   .firstGid = firstgid,
-   .tileCount = tileCount,
-   .drawingOffset = drawingOffset,
-   .alignmentOffset = alignmentOffset,
-   .orientation = orientation,
-   .texture = GetTexture(texturePath),
-   .animation = animation,
+    tilesetElement.GetAttribute("name"),
+    firstgid,
+    tileCount,
+    drawingOffset,
+    alignmentOffset,
+    orientation,
+    GetTexture(texturePath),
+    animation
   };
 
   return std::make_shared<Overworld::Tileset>(tileset);
@@ -1068,10 +1068,10 @@ void Overworld::SceneBase::QueuePlaceCamera(sf::Vector2f position, sf::Time hold
   LockCamera();
 
   QueuedCameraEvent event{
-    .unlock = false,
-    .slide = false,
-    .position = position,
-    .duration = holdTime
+    false,
+    false,
+    position,
+    holdTime
   };
 
   cameraQueue.push(event);
@@ -1081,10 +1081,10 @@ void Overworld::SceneBase::QueueMoveCamera(sf::Vector2f position, sf::Time durat
   LockCamera();
 
   QueuedCameraEvent event{
-    .unlock = false,
-    .slide = true,
-    .position = position,
-    .duration = duration
+    false,
+    true,
+    position,
+    duration
   };
 
   cameraQueue.push(event);
@@ -1094,7 +1094,7 @@ void Overworld::SceneBase::QueueUnlockCamera() {
   LockCamera();
 
   QueuedCameraEvent event{
-    .unlock = true
+    true // unlock
   };
 
   cameraQueue.push(event);

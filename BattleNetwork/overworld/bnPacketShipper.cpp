@@ -50,9 +50,9 @@ void Overworld::PacketShipper::Send(
     sendSafe(socket, data);
 
     backedUpReliable.push_back(BackedUpPacket{
-        .id = nextReliable,
-        .creationTime = std::chrono::steady_clock::now(),
-        .data = data,
+        nextReliable,
+        std::chrono::steady_clock::now(),
+        data
       });
 
     nextReliable += 1;
@@ -66,9 +66,9 @@ void Overworld::PacketShipper::Send(
     sendSafe(socket, data);
 
     backedUpReliableOrdered.push_back(BackedUpPacket{
-        .id = nextReliableOrdered,
-        .creationTime = std::chrono::steady_clock::now(),
-        .data = data,
+        nextReliableOrdered,
+        std::chrono::steady_clock::now(),
+        data
       });
 
     nextReliableOrdered += 1;
@@ -128,7 +128,7 @@ void Overworld::PacketShipper::Acknowledged(Reliability reliability, uint64_t id
   {
   case Reliability::Unreliable:
   case Reliability::UnreliableSequenced:
-    Logger::Log("Server is acknowledging unreliable packets?");
+    Logger::Logf("Server is acknowledging unreliable packets? ID: %i", id);
     break;
   case Reliability::Reliable:
     acknowledgedReliable(id);

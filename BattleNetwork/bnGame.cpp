@@ -35,6 +35,13 @@ Game::Game(DrawWindow& window) :
   shaderManager(),
   inputManager(*window.GetRenderWindow()),
   ActivityController(*window.GetRenderWindow()) {
+  
+  // figure out system endianness
+  {
+    int n = 1;
+    // little endian if true
+    if (*(char*)&n == 1) { endian = Endianness::little; }
+  }
 
   // Link the resource handle to use all the manangers created by the game
   ResourceHandle::audio    = &audioManager;
@@ -201,6 +208,11 @@ void Game::NoPostprocess()
 const sf::Vector2f Game::CameraViewOffset(Camera& camera)
 {
   return window.GetView().getCenter() - camera.GetView().getCenter();
+}
+
+const Endianness Game::GetEndianness()
+{
+  return endian;
 }
 
 void Game::LoadConfigSettings()

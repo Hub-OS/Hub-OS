@@ -1,5 +1,6 @@
 #include "bnOverworldObject.h"
-#include <cmath>
+#include <Swoosh/Ease.h>
+#include <math.h>
 
 namespace Overworld {
   ShapeObject::ShapeObject(unsigned int id, std::unique_ptr<Overworld::Shape> shape) {
@@ -44,7 +45,7 @@ namespace Overworld {
     if (rotation != 0.0) {
       auto magnitude = std::hypotf(ortho.x, ortho.y);
       auto orthoRadians = std::atan2(ortho.y, ortho.x);
-      auto rotationRadians = -rotation / 180.0f * M_PI;
+      auto rotationRadians = -rotation / 180.0f * static_cast<float>(swoosh::ease::pi);
       ortho.x = std::cos(orthoRadians + rotationRadians) * magnitude;
       ortho.y = std::sin(orthoRadians + rotationRadians) * magnitude;
     }

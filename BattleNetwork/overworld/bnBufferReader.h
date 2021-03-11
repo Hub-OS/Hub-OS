@@ -7,7 +7,7 @@ namespace Overworld
   class BufferReader
   {
   private:
-    size_t offset;
+    size_t offset{};
 
   public:
     BufferReader();
@@ -20,8 +20,10 @@ namespace Overworld
     template <typename T>
     T Read(const Poco::Buffer<char>& buffer)
     {
-      auto result = *(T*)(buffer.begin() + offset);
-      offset += sizeof(T);
+      T result;
+      size_t size = sizeof(T);
+      std::memcpy(&result, buffer.begin()+offset, size);
+      offset += size;
       return result;
     }
 

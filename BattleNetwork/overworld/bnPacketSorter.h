@@ -13,14 +13,14 @@ namespace Overworld
   private:
     struct BackedUpPacket
     {
-      uint64_t id;
-      Poco::Buffer<char> data;
+      uint64_t id{};
+      Poco::Buffer<char> data{ 0 };
     };
 
     Poco::Net::SocketAddress socketAddress;
-    uint64_t nextReliable;
-    uint64_t nextUnreliableSequenced;
-    uint64_t nextReliableOrdered;
+    uint64_t nextReliable{};
+    uint64_t nextUnreliableSequenced{};
+    uint64_t nextReliableOrdered{};
     std::vector<uint64_t> missingReliable;
     std::vector<BackedUpPacket> backedUpOrderedPackets;
     std::chrono::time_point<std::chrono::steady_clock> lastMessageTime;

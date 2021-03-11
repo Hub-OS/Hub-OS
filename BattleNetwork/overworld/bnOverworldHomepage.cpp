@@ -66,7 +66,8 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
       auto& textbox = GetTextBox();
 
-      std::string message;
+      std::string message = "If you're seeing this message, something has gone horribly wrong with the next area's connection.";
+      message += "For your safety you cannot enter the next area!";
 
       switch (cyberworldStatus) {
       case CyberworldStatus::online:

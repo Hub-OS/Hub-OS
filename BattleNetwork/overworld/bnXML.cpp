@@ -78,7 +78,7 @@ static std::string getTextTokenText(const std::string& data, const XMLToken& tok
 
 static XMLToken nextToken(const std::string& data, XMLTokenType lastType, size_t start) {
   XMLToken token{
-    .type = XMLTokenType::none,
+    XMLTokenType::none // type
   };
 
   auto index = start;
@@ -212,7 +212,7 @@ XMLElement parseXML(const std::string& data) {
   index = token.exit;
 
   XMLElement rootElement = {
-    .name = token.text
+    token.text // name
   };
 
   // error, exiting for safety
@@ -234,7 +234,7 @@ XMLElement parseXML(const std::string& data) {
     {
     case XMLTokenType::element: {
       XMLElement child = {
-        .name = token.text,
+        token.text // name
       };
 
       currentElement->children.push_back(child);

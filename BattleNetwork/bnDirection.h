@@ -1,6 +1,6 @@
 #pragma once
-#include <assert.h>
-#include <cmath>
+#include <Swoosh/Ease.h>
+#include <math.h>
 #include <tuple>
 #include <SFML/System/Vector2.hpp>
 
@@ -197,7 +197,7 @@ inline Direction Isometric(const Direction dir) {
 }
 
 inline sf::Vector2f UnitVector(Direction dir) {
-  const float deg45radians = std::sin(M_PI / 4.0);
+  const float deg45radians = static_cast<float>(std::sin(swoosh::ease::pi / 4.0));
 
   switch(dir) {
     case Direction::left:

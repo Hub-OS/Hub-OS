@@ -41,6 +41,11 @@
 
 using swoosh::ActivityController;
 
+enum class Endianness : short {
+  big = 0,
+  little
+};
+
 class Game final : public ActivityController {
 private:
   TextureResourceManager textureManager;
@@ -53,6 +58,7 @@ private:
 
   DrawWindow& window;
   bool showScreenBars{};
+  
   ConfigReader reader;
   ConfigSettings configSettings;
 
@@ -73,6 +79,9 @@ private:
   // We need a render surface to draw to so Swoosh ActivityController
   // can add screen transition effects from the title screen
   sf::RenderTexture loadSurface;
+
+  Endianness endian{ Endianness::big };
+
 public:
   Game(DrawWindow& window);
   Game(const Game&) = delete;
@@ -89,6 +98,7 @@ public:
   void Postprocess(ShaderType shaderType);
   void NoPostprocess();
   const sf::Vector2f CameraViewOffset(Camera& camera);
+  const Endianness GetEndianness();
 
   /**
    * @brief Store parsed command line values into the engine for easy access
