@@ -272,7 +272,10 @@ void Overworld::SceneBase::HandleCamera(double elapsed) {
   if (!cameraLocked) {
     // Follow the navi
     sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
-    pos = sf::Vector2f(pos.x * map.getScale().x, pos.y * map.getScale().y);
+    pos = sf::Vector2f(
+      std::floor(pos.x) * map.getScale().x,
+      std::floor(pos.y) * map.getScale().y
+    );
     camera.PlaceCamera(pos);
     return;
   }
@@ -406,9 +409,8 @@ void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates st
   offset.x = std::floor(offset.x);
   offset.y = std::floor(offset.y);
 
-  map.move(offset);
+  states.transform.translate(offset);
   states.transform *= map.getTransform();
-  map.move(-offset);
 
   DrawTiles(target, states);
   DrawSprites(target, states);
