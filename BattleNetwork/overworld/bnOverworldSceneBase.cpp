@@ -565,34 +565,34 @@ void Overworld::SceneBase::LoadBackground(const std::string& value)
     return std::tolower(in);
   });
 
-  if (value == "undernet") {
+  if (str == "undernet") {
     SetBackground(new UndernetBackground);
   }
-  else if (value == "robot") {
+  else if (str == "robot") {
     SetBackground(new RobotBackground);
   }
-  else if (value == "misc") {
+  else if (str == "misc") {
     SetBackground(new MiscBackground);
   }
-  else if (value == "grave") {
+  else if (str == "grave") {
     SetBackground(new GraveyardBackground);
   }
-  else if (value == "weather") {
+  else if (str == "weather") {
     SetBackground(new WeatherBackground);
   }
-  else if (value == "medical") {
+  else if (str == "medical") {
     SetBackground(new MedicalBackground);
   }
-  else if (value == "acdc") {
+  else if (str == "acdc") {
     SetBackground(new ACDCBackground);
   }
-  else if (value == "virus") {
+  else if (str == "virus") {
     SetBackground(new VirusBackground);
   }
-  else if (value == "judge") {
+  else if (str == "judge") {
     SetBackground(new JudgeTreeBackground);
   }
-  else if (value == "secret") {
+  else if (str == "secret") {
     SetBackground(new SecretBackground);
   }
   else {
@@ -787,8 +787,14 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     }
   }
 
+
+
   if (map.GetBackgroundName() != this->map.GetBackgroundName()) {
     LoadBackground(map.GetBackgroundName());
+  }
+  
+  if (map.GetSongPath() != this->map.GetSongPath()) {
+    Audio().Stream(map.GetSongPath());
   }
 
   personalMenu.SetArea(map.GetName());
@@ -798,6 +804,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   // replace the previous map
   this->map = std::move(map);
+
+  // scale to the game resolution
+  this->map.setScale(2.f, 2.f);
 }
 
 std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElement tilesetElement, unsigned int firstgid) {
@@ -935,7 +944,8 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
   return std::make_shared<Overworld::Tileset>(tileset);
 }
 
-std::vector<std::shared_ptr<Overworld::TileMeta>> Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset) {
+std::vector<std::shared_ptr<Overworld::TileMeta>> 
+Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset) {
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
 
   std::vector<XMLElement> tileElements(tileCount);

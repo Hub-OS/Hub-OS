@@ -56,7 +56,10 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
     mrprog->setPosition(statusBotSpawn.position);
     mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
-    mrprog->SetInteractCallback([&](std::shared_ptr<Overworld::Actor> with) {
+
+    // we ensure pointer to mrprog is alive because when we interact, 
+    // mrprog must've been alive to interact in the first place...
+    mrprog->SetInteractCallback([mrprog = mrprog.get(), this](std::shared_ptr<Overworld::Actor> with) {
       // Face them
       mrprog->Face(*with);
 
@@ -66,7 +69,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
       auto& textbox = GetTextBox();
 
-      std::string message = "If you're seeing this message, something has gone horribly wrong with the next area's connection.";
+      std::string message = "If you're seeing this message, something has gone horribly wrong with the next area.";
       message += "For your safety you cannot enter the next area!";
 
       switch (cyberworldStatus) {
@@ -255,15 +258,12 @@ void Overworld::Homepage::onDraw(sf::RenderTexture& surface)
 void Overworld::Homepage::onStart()
 {
   SceneBase::onStart();
-
-  Audio().Stream("resources/loops/undernet.ogg", false);
   infocus = true;
 }
 
 void Overworld::Homepage::onResume()
 {
   SceneBase::onResume();
-  Audio().Stream("resources/loops/undernet.ogg", false);
   infocus = true;
 }
 

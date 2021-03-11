@@ -17,11 +17,11 @@ namespace Overworld {
     bool guest{ false }, infocus{ false };
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
-    uint16_t maxPayloadSize;
+    uint16_t maxPayloadSize{};
     bool reconnecting{ false };
     swoosh::Timer pingServerTimer;
     sf::Vector2f netWarpTilePos;
-    unsigned int netWarpObjectId;
+    unsigned int netWarpObjectId{};
     CyberworldStatus cyberworldStatus{ CyberworldStatus::offline };
 
     void PingRemoteAreaServer();
