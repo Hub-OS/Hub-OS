@@ -272,10 +272,6 @@ void Overworld::SceneBase::HandleCamera(double elapsed) {
   if (!cameraLocked) {
     // Follow the navi
     sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
-    pos = sf::Vector2f(
-      std::floor(pos.x) * map.getScale().x,
-      std::floor(pos.y) * map.getScale().y
-    );
     camera.PlaceCamera(pos);
     return;
   }
@@ -318,17 +314,22 @@ void Overworld::SceneBase::HandleInput() {
     if (Input().Has(InputEvents::pressed_option)) {
       emote.Close();
     }
+    return;
   }
-  else if (textbox.IsOpen()) {
+
+  if (textbox.IsOpen()) {
     textbox.HandleInput(Input());
+    return;
   }
-  else if (personalMenu.IsOpen()) {
-    personalMenu.HandleInput(Input(), Audio());
+
+  personalMenu.HandleInput(Input(), Audio());
+
+  if (personalMenu.IsOpen()) {
+    return;
   }
-  else {
-    if (Input().Has(InputEvents::pressed_option)) {
-      emote.Open();
-    }
+
+  if (Input().Has(InputEvents::pressed_option)) {
+    emote.Open();
   }
 }
 
@@ -402,8 +403,12 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 }
 
 void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates states) {
+  auto mapScale = GetMap().getScale();
+  auto cameraCenter = camera.GetView().getCenter();
+  cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
+  cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
 
-  auto offset = getView().getCenter() - camera.GetView().getCenter();
+  auto offset = getView().getCenter() - cameraCenter;
 
   // prevents stitching artifacts between tiles
   offset.x = std::floor(offset.x);
@@ -794,7 +799,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   if (map.GetBackgroundName() != this->map.GetBackgroundName()) {
     LoadBackground(map.GetBackgroundName());
   }
-  
+
   if (map.GetSongPath() != this->map.GetSongPath()) {
     Audio().Stream(map.GetSongPath());
   }
@@ -946,7 +951,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
   return std::make_shared<Overworld::Tileset>(tileset);
 }
 
-std::vector<std::shared_ptr<Overworld::TileMeta>> 
+std::vector<std::shared_ptr<Overworld::TileMeta>>
 Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset) {
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
 

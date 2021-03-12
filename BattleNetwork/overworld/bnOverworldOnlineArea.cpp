@@ -12,7 +12,7 @@
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
-constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 20;
+constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
 const std::string sanitize_folder_name(std::string in) {
   // todo: use regex for multiple erroneous folder names?
@@ -164,9 +164,15 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   auto& window = getController().getWindow();
   auto viewport = window.getViewport(window.getView());
   auto viewportOffset = sf::Vector2i(viewport.left, viewport.top);
-  auto cameraView = GetCamera().GetView();
 
-  // todo: mouse position is still read incorrectly when the game is scaled
+  auto cameraView = GetCamera().GetView();
+  auto cameraCenter = cameraView.getCenter();
+  auto mapScale = GetMap().getScale();
+  cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
+  cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
+  cameraView.setCenter(cameraCenter);
+
+  // todo: mouse position is still read incorrectly when the window is resized
   auto mouse = surface.mapPixelToCoords(sf::Mouse::getPosition(window) - viewportOffset, cameraView);
 
   for (auto& pair : onlinePlayers) {

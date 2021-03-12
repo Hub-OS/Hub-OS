@@ -13,7 +13,7 @@ struct XMLElement {
   bool HasAttribute(const std::string& name) const;
   std::string GetAttribute(const std::string& name) const;
   int GetAttributeInt(const std::string& name) const;
-  int GetAttributeFloat(const std::string& name) const;
+  float GetAttributeFloat(const std::string& name) const;
 };
 
 // expects valid XML, does no error checking
