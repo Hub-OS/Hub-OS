@@ -314,17 +314,22 @@ void Overworld::SceneBase::HandleInput() {
     if (Input().Has(InputEvents::pressed_option)) {
       emote.Close();
     }
+    return;
   }
-  else if (textbox.IsOpen()) {
+
+  if (textbox.IsOpen()) {
     textbox.HandleInput(Input());
+    return;
   }
-  else if (personalMenu.IsOpen()) {
-    personalMenu.HandleInput(Input(), Audio());
+
+  personalMenu.HandleInput(Input(), Audio());
+
+  if (personalMenu.IsOpen()) {
+    return;
   }
-  else {
-    if (Input().Has(InputEvents::pressed_option)) {
-      emote.Open();
-    }
+
+  if (Input().Has(InputEvents::pressed_option)) {
+    emote.Open();
   }
 }
 
