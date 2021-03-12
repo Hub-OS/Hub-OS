@@ -12,7 +12,7 @@
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
-constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 20;
+constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
 const std::string sanitize_folder_name(std::string in) {
   // todo: use regex for multiple erroneous folder names?
