@@ -52,13 +52,13 @@ namespace Overworld {
     auto x = pos.x / chunkLength;
     auto y = pos.y / chunkLength;
 
-    size_t startX = x - radius;
-    size_t startY = y - radius;
-    size_t endX = x + radius + 1;
-    size_t endY = y + radius + 1;
+    int startX = x - radius;
+    int startY = y - radius;
+    int endX = x + radius + 1;
+    int endY = y + radius + 1;
 
-    for (size_t i = startX; i < endX; i++) {
-      for (size_t j = startY; j < endY; j++) {
+    for (int i = startX; i < endX; i++) {
+      for (int j = startY; j < endY; j++) {
         callback(GetHash(i, j));
       }
     }
