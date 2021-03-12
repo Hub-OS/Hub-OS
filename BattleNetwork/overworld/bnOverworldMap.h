@@ -1,110 +1,80 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include <sstream>
+#include <unordered_map>
+#include <memory>
+#include <optional>
+#include <functional>
 
-#include "bnOverworldLight.h"
-#include "../bnSpriteProxyNode.h"
-#include "../bnTextureResourceManager.h"
-#include "../bnCamera.h"
-#include "../bnResourceHandle.h"
+#include "bnOverworldSprite.h"
+#include "bnOverworldTile.h"
+#include "bnOverworldObject.h"
+#include "../bnAnimation.h"
 
 namespace Overworld {
+  class SceneBase;
+  class ShapeObject;
+  class TileObject;
+
   /*! \brief Incredibly simple overworld map class.
-   * 
-   * This generates a WxH isometric map. 
-   * 
+   *
+   * This generates a WxH isometric map.
+   *
    * It sorts all sprites by Y and gives illusion of depth
-   * 
+   *
    * If something it outside of the camera view, it is not drawn
-   * 
+   *
    * The map also supports psuedo lighting by multiplying sprites
    * by the light color. Limit light sources because this is slow.
    */
-  class Map : public sf::Drawable, public sf::Transformable, public ResourceHandle
+  class Map : public sf::Transformable
   {
   public:
-    struct Tile {
-      size_t ID{}; //!< ID of 0 should always be empty
-      bool solid{ true }; //!< Default are non-moveable spaces
-      std::string token;
-    };
-
-    class Tileset {
+    class Layer {
     public:
-      struct Item {
-        sf::Sprite sprite;
-      };
+      // ShapeObject can not be copied due to storing a unique_ptr
+      // delete the copy constructor to forward this property
+      Layer(const Layer&) = delete;
+      Layer(Layer&&) = default;
 
-      const sf::Sprite& Graphic(size_t ID) const;
+      Tile& GetTile(int x, int y);
+      Tile& GetTile(float x, float y);
+      Tile& SetTile(int x, int y, Tile tile);
+      Tile& SetTile(int x, int y, unsigned int gid);
+      Tile& SetTile(float x, float y, unsigned int gid);
 
-      void Register(size_t ID, const sf::Sprite& sprite);
+      std::optional<std::reference_wrapper<TileObject>> GetTileObject(unsigned int id);
+      std::optional<std::reference_wrapper<TileObject>> GetTileObject(std::string name);
+      const std::vector<TileObject>& GetTileObjects();
+      void AddTileObject(TileObject tileObject);
 
-      const size_t size() const;
+      std::optional<std::reference_wrapper<ShapeObject>> GetShapeObject(unsigned int id);
+      std::optional<std::reference_wrapper<ShapeObject>> GetShapeObject(std::string name);
+      const std::vector<ShapeObject>& GetShapeObjects();
+      void AddShapeObject(ShapeObject shapeObject);
 
     private:
-      std::map<size_t, Item> idToSpriteHash;
+      Layer(size_t cols, size_t rows);
+
+      size_t cols, rows;
+      std::vector<Tile> tiles;
+      std::vector<ShapeObject> shapeObjects;
+      std::vector<TileObject> tileObjects;
+      std::vector<std::shared_ptr<WorldSprite>> spritesForAddition;
+
+      friend class Map;
     };
 
-  protected:
-    struct MapSprite {
-      SpriteProxyNode* node{ nullptr };
-      int layer{ 0 };
-
-    };
-    Tile** tiles{ nullptr };
-    Tileset tileset{};
-    std::vector<Overworld::Light*> lights; /*!< light sources */
-    std::vector<MapSprite> sprites; /*!< other sprites in the scene */
-    
-    bool enableLighting{ false }; /*!< if true, enables light shading */
-
-    unsigned cols{}, rows{}; /*!< map is made out of Cols x Rows tiles */
-    int tileWidth{}, tileHeight{}; /*!< tile dimensions */
-    Camera* cam{ nullptr }; /*!< camera */
-    std::string name, background;
-
-    /**
-     * @brief Transforms an ortho vector into an isometric vector
-     * @param ortho position in orthographic space
-     * @return vector in isometric space
-     */
-    const sf::Vector2f OrthoToIsometric(const sf::Vector2f& ortho) const;
-    
-    /**
-     * @brief Transforms an iso vector into an orthographic vector
-     * @param iso position in isometric space
-     * @return vector in orthographic space
-     */
-    const sf::Vector2f IsoToOrthogonal(const sf::Vector2f& iso) const;
-    
-    /**
-     * @brief Draws the tiles 
-     * @param target
-     * @param states
-     */
-    virtual void DrawTiles(sf::RenderTarget& target, sf::RenderStates states) const ;
-    
-    /**
-     * @brief Draws the sprites in the scene
-     * @param target
-     * @param states
-     */
-    virtual void DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const;
-
-    public:
     /**
      * \brief Simple constructor
      */
-    Map();
-
-    void Load(Tileset tilset, Tile** tiles, unsigned cols, unsigned rows);
+    Map(size_t cols, size_t rows, int tileWidth, int tileHeight);
 
     /**
-     * @brief toggle lighting
-     * @param state if true, lighting is enabled. If false, lighting is disabled
+     * @brief Updates tile animations and tile objects
+     * @param elapsed in seconds
      */
-    void ToggleLighting(bool state = true);
+    void Update(SceneBase& scene, double elapsed);
 
     /**
      * @brief Transforms a point on the screen to in-world coordinates
@@ -112,7 +82,7 @@ namespace Overworld {
      * @return world coordinates
      */
     const sf::Vector2f ScreenToWorld(sf::Vector2f screen) const;
- 
+
      /**
      * @brief Transforms a point in-world to screen cordinates
      * @param screen vector from world
@@ -121,42 +91,11 @@ namespace Overworld {
     const sf::Vector2f WorldToScreen(sf::Vector2f screen) const;
 
     /**
-     * @brief Deletes tiles and lights.
+     * @brief Transforms an ortho vector into an isometric vector
+     * @param ortho position in orthographic space
+     * @return vector in isometric space
      */
-    ~Map();
-
-    void SetCamera(Camera* _camera);
-
-    /**
-     * @brief Add a light
-     * @param _light
-     */
-    void AddLight(Overworld::Light* _light);
-    
-    /**
-     * @brief Add a sprite
-     * @param _sprite
-     */
-    void AddSprite(SpriteProxyNode* _sprite, int layer);
-    
-    /**
-     * @brief Remove a sprite
-     * @param _sprite
-     */
-    void RemoveSprite(const SpriteProxyNode* _sprite);
-
-    /**
-     * @brief Sorts tiles. Deletes ones marked for removal.
-     * @param elapsed in seconds
-     */
-    virtual void Update(double elapsed);
-    
-    /**
-     * @brief Draws the tiles first and sprites on top with lighting.
-     * @param target
-     * @param states
-     */
-    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+    const sf::Vector2f OrthoToIsometric(const sf::Vector2f& ortho) const;
 
     /**
      * @brief Returns tile dimensions as a vector
@@ -164,31 +103,39 @@ namespace Overworld {
      */
     const sf::Vector2i GetTileSize() const;
 
-    const size_t GetTilesetItemCount() const;
-
-    /**
-     * @brief Returns a tile at the the pos
-     * @param pos position in cartesian space
-     * @return Map::Tile if valid position otherwise an empty tile is returned
-     */
-    const Map::Tile GetTileAt(const sf::Vector2f& pos) const;
-
-    void SetTileAt(const sf::Vector2f& pos, const Tile& newTile);
-
-    const std::vector<sf::Vector2f> FindToken(const std::string& token);
-
-    static const std::pair<bool, Map::Tile**> LoadFromFile(Map& map, const std::string& path);
-    static const std::pair<bool, Map::Tile**> LoadFromStream(Map& map, std::istringstream& stream);
-
-    std::pair<unsigned, unsigned> OrthoToRowCol(const sf::Vector2f& ortho) const;
-    std::pair<unsigned, unsigned> IsoToRowCol(const sf::Vector2f& iso) const;
-    std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const;
-
     const std::string& GetName() const;
-    const std::string& GetBackgroundValue() const;
+    const std::string& GetBackgroundName() const;
+    const std::string& GetSongPath() const;
     void SetName(const std::string& name);
-    void SetBackgroundValue(const std::string& value);
+    void SetBackgroundName(const std::string& name);
+    void SetSongPath(const std::string& path);
     const unsigned GetCols() const;
     const unsigned GetRows() const;
+    unsigned int GetTileCount();
+    std::shared_ptr<TileMeta> GetTileMeta(unsigned int tileGid);
+    std::shared_ptr<Tileset> GetTileset(std::string name);
+    std::shared_ptr<Tileset> GetTileset(unsigned int tileGid);
+    void SetTileset(std::shared_ptr<Tileset> tileset, std::shared_ptr<TileMeta> tileMeta);
+    size_t GetLayerCount() const;
+    Layer& GetLayer(size_t index);
+    Layer& AddLayer();
+    bool CanMoveTo(float x, float y, int layer); // todo: move to layer?
+    void RemoveSprites(SceneBase& scene);
+
+  protected:
+    unsigned cols{}, rows{}; /*!< map is made out of Cols x Rows tiles */
+    int tileWidth{}, tileHeight{}; /*!< tile dimensions */
+    std::string name, backgroundName, songPath;
+    std::vector<Layer> layers;
+    std::vector<std::shared_ptr<Tileset>> tileToTilesetMap;
+    std::unordered_map<std::string, std::shared_ptr<Tileset>> tilesets;
+    std::vector<std::shared_ptr<TileMeta>> tileMetas;
+
+    /**
+     * @brief Transforms an iso vector into an orthographic vector
+     * @param iso position in isometric space
+     * @return vector in orthographic space
+     */
+    const sf::Vector2f IsoToOrthogonal(const sf::Vector2f& iso) const;
   };
 }

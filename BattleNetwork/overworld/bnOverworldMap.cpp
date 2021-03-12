@@ -1,360 +1,70 @@
+#include <algorithm>
 #include <cmath>
 
 #include "bnOverworldMap.h"
+#include "bnOverworldSceneBase.h"
 
-#include "../bnDrawWindow.h"
 
 namespace Overworld {
-  Map::Map() :
-    sf::Drawable(), sf::Transformable() {
-    // NOTE: hard coded tilesets for now
-    tileWidth = static_cast<int>(62 + 2.5f); // calculated by hand. the offsets seem important.
-    tileHeight = static_cast<int>(32 + 0.5f); // calculated by hand. the offsets seem important.
-  }
-
-  void Map::Load(Map::Tileset tileset, Map::Tile** tiles, unsigned cols, unsigned rows)
-  {
-    this->tileset = tileset;
-    this->tiles = tiles;
+  Map::Map(std::size_t cols, std::size_t rows, int tileWidth, int tileHeight) {
+    this->tileWidth = tileWidth;
+    this->tileHeight = tileHeight;
     this->cols = cols;
     this->rows = rows;
+    this->tileToTilesetMap.push_back(nullptr);
   }
 
-  void Map::ToggleLighting(bool state) {
-    enableLighting = state;
+  void Map::Update(SceneBase& scene, double elapsed) {
+    for (auto& tileMeta : tileMetas) {
+      if (tileMeta != nullptr) {
+        tileMeta->animation.Update(elapsed, tileMeta->sprite);
+      }
+    }
 
-    if (!enableLighting) {
-      for (int i = 0; i < lights.size(); i++) {
-        delete lights[i];
+    for (int i = 0; i < layers.size(); i++) {
+      auto& layer = layers[i];
+
+      for (auto& tileObject : layer.tileObjects) {
+        tileObject.Update(*this);
       }
 
-      lights.clear();
+      for (auto& worldSprite : layer.spritesForAddition) {
+        scene.AddSprite(worldSprite);
+      }
+
+      layer.spritesForAddition.clear();
     }
   }
 
   const sf::Vector2f Map::ScreenToWorld(sf::Vector2f screen) const
   {
-    return OrthoToIsometric(screen);
+    auto scale = getScale();
+    return OrthoToIsometric(sf::Vector2f{ screen.x / scale.x, screen.y / scale.y });
   }
 
-  const sf::Vector2f Map::WorldToScreen(sf::Vector2f screen) const
+  const sf::Vector2f Map::WorldToScreen(sf::Vector2f world) const
   {
-    
-    return IsoToOrthogonal(sf::Vector2f{ screen.x / getScale().x, screen.y / getScale().y });
+    return IsoToOrthogonal(world);
   }
 
-  Map::~Map() {
-    for (int i = 0; i < lights.size(); i++) {
-      delete lights[i];
-    }
-
-    lights.clear();
-
-    sprites.clear();
-  }
-
-  void Map::SetCamera(Camera* _camera) {
-    cam = _camera;
-  }
-
-  void Map::AddLight(Overworld::Light * _light)
-  {
-    lights.push_back(_light);
-  }
-
-  void Map::AddSprite(SpriteProxyNode * _sprite, int layer)
-  {
-    sprites.push_back({ _sprite, layer });
-  }
-
-  void Map::RemoveSprite(const SpriteProxyNode * _sprite) {
-    auto pos = std::find_if(sprites.begin(), sprites.end(), [_sprite](MapSprite in) { return in.node == _sprite; });
-
-    if(pos != sprites.end())
-      sprites.erase(pos);
-  }
-
-  void Map::Update(double elapsed)
-  {
-    std::sort(sprites.begin(), sprites.end(), 
-        [](MapSprite A, MapSprite B)
-      { 
-        int A_layer_inv = -A.layer;
-        int B_layer_inv = -B.layer;
-
-        auto A_pos = A.node->getPosition();
-        auto B_pos = B.node->getPosition();
-        auto A_compare = A_pos.x + A_pos.y;
-        auto B_compare = B_pos.x + B_pos.y;
-
-        return std::tie(A_layer_inv, A_compare) < std::tie(B_layer_inv, B_compare);
-      }
-    );
-
-  }
-
-  void Map::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    states.transform *= this->getTransform();
-
-    DrawTiles(target, states);
-    DrawSprites(target, states);
-  }
-
-  const Map::Tile Map::GetTileAt(const sf::Vector2f& pos) const
-  {
-    float xf = pos.x / (static_cast<float>(tileWidth) * 0.5f);
-    float yf = pos.y / static_cast<float>(tileHeight);
-
-    if (!(xf < 0 || yf < 0)) {
-      int x = static_cast<int>(xf);
-      int y = static_cast<int>(yf);
-
-      if (x >= 0 && x < static_cast<int>(cols) && y >= 0 && y < static_cast<int>(rows)) {
-        return tiles[y][x];
-      }
-    }
-
-    return Map::Tile{};
-  }
-
-  void Map::SetTileAt(const sf::Vector2f& pos, const Tile& newTile)
-  {
-    int x = static_cast<int>(pos.x / (static_cast<float>(tileWidth) * 0.5f));
-    int y = static_cast<int>(pos.y / static_cast<float>(tileHeight));
-
-    if (x >= 0 && x < static_cast<int>(cols) && y >= 0 && y < static_cast<int>(rows)) {
-      tiles[y][x] = newTile;
-    }
-  }
-
-  const std::vector<sf::Vector2f> Map::FindToken(const std::string& token)
-  {
-    std::vector<sf::Vector2f> results;
-
-    for (unsigned i = 0; i < rows; i++) {
-      for (unsigned j = 0; j < cols; j++) {
-        if (tiles[i][j].token == token) {
-          // find tile pos + half of width and height so the point is center tile
-          results.push_back(sf::Vector2f((j * tileWidth * 0.5f)+(tileWidth*0.25f), (i * tileHeight)+(tileHeight*0.5f)));
-        }
-      }
-    }
-
-    return results;
-  }
-
-  void Map::DrawTiles(sf::RenderTarget& target, sf::RenderStates states) const {
-    for (unsigned i = 0; i < rows; i++) {
-      for (unsigned j = 0; j < cols; j++) {
-        size_t ID = tiles[i][j].ID;
-
-        if (ID == 0) continue; // reserved for empty tile
-
-        sf::Sprite tileSprite = tileset.Graphic(ID);
-        sf::Vector2f pos(static_cast<float>(j * tileWidth * 0.5f), static_cast<float>(i * tileHeight));
-        auto iso = OrthoToIsometric(pos);
-        iso = sf::Vector2f(iso.x, iso.y);
-        tileSprite.setPosition(iso);
-
-        /*auto color = tileSprite.getColor();
-        
-        auto& [y, x] = PixelToRowCol(sf::Mouse::getPosition(*ENGINE.GetWindow()));
-
-        bool hover = (y == i && x == j);
-
-        if (hover) {
-          tileSprite.setColor({ color.r, color.b, color.g, 200 });
-        }*/
-
-        if (/*cam && cam->IsInView(tileSprite)*/ true) {
-          target.draw(tileSprite, states);
-        }
-      }
-    }
-  }
-
-  void Map::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
-    for (int i = 0; i < sprites.size(); i++) {
-      auto ortho = sprites[i].node->getPosition();
-      auto iso = OrthoToIsometric(ortho);
-      iso = sf::Vector2f(iso.x, iso.y);
-
-      auto tileSprite = sprites[i].node;
-      tileSprite->setPosition(iso);
-
-      if (/*cam && cam->IsInView(tileSprite->getSprite())*/ true) {
-        target.draw(*tileSprite, states);
-      }
-
-      tileSprite->setPosition(ortho);
-    }
-  }
   const sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
     sf::Vector2f iso{};
-    iso.x = (ortho.x - ortho.y);
-    iso.y = (ortho.x + ortho.y) * 0.5f;
+    iso.x = (2.0f * ortho.y + ortho.x) * 0.5f;
+    iso.y = (2.0f * ortho.y - ortho.x) * 0.5f;
 
     return iso;
   }
 
   const sf::Vector2f Map::IsoToOrthogonal(const sf::Vector2f& iso) const {
     sf::Vector2f ortho{};
-    ortho.x = (2.0f * iso.y + iso.x) * 0.5f;
-    ortho.y = (2.0f * iso.y - iso.x) * 0.5f;
+    ortho.x = (iso.x - iso.y);
+    ortho.y = (iso.x + iso.y) * 0.5f;
 
     return ortho;
   }
 
-  const sf::Vector2i Map::GetTileSize() const { return sf::Vector2i(static_cast<int>(tileWidth * 0.5f), tileHeight); }
-
-  const size_t Map::GetTilesetItemCount() const
-  {
-    return tileset.size();
-  }
-
-  const std::pair<bool, Map::Tile**> Map::LoadFromStream(Map& map, std::istringstream& stream) {
-    std::string line;
-
-    // name of map
-    std::getline(stream, line);
-    std::string name = line;
-
-    // background or url
-    std::getline(stream, line);
-    std::string background = line;
-
-    // rows x cols
-    std::getline(stream, line);
-    size_t space_index = line.find_first_of(" ");
-
-    if (space_index == std::string::npos) {
-      return { false, nullptr };
-    }
-
-    std::string rows_str = line.substr(0, space_index);
-    std::string cols_str = line.substr(space_index);
-    unsigned rows = std::atoi(rows_str.c_str());
-    unsigned cols = std::atoi(cols_str.c_str());
-
-    Tile** tiles = new Tile * [rows] {};
-
-    for (size_t i = 0; i < rows; i++) {
-      tiles[i] = new Tile[cols]{};
-    }
-
-    size_t index = 0;
-
-    // load all tiles
-    while (std::getline(stream, line))
-    {
-      std::stringstream linestream(line);
-      std::string value;
-
-      while (getline(linestream, value, ',') && static_cast<unsigned>(index) < rows * cols)
-      {
-        size_t row = index / cols;
-        size_t col = index % cols;
-
-        Tile& tile = tiles[row][col];
-
-        bool is_integer = !value.empty() && std::find_if(value.begin(),
-          value.end(), [](unsigned char c) { return !std::isdigit(c); }) == value.end();
-
-        if (is_integer) {
-          unsigned val = std::atoi(value.c_str());
-          tile.ID = val;
-
-          if (val != 0) {
-            tile.solid = false;
-          }
-        }
-        else {
-          tile.ID = 1;
-          tile.solid = false;
-        }
-
-        tile.token = value;
-
-        index++;
-      }
-    }
-
-    // default tileset code for now:
-    auto texture = map.Textures().LoadTextureFromFile("resources/ow/basic_tileset.png");
-
-    std::vector<sf::Sprite> items;
-
-    for (size_t index = 0; index < 3; index++) {
-      sf::Sprite item;
-      item.setTexture(*texture);
-      item.setTextureRect(sf::IntRect{ 62 * static_cast<int>(index), 0, 62, 49 });
-      item.setOrigin(sf::Vector2f((map.tileWidth * 0.5f) - 2.0f, 2.0f));
-      items.push_back(item);
-    }
-
-    Map::Tileset tileset{};
-
-    size_t i = 1;
-    for (auto& item : items) {
-      tileset.Register(i++, item);
-    }
-
-    map.Load(tileset, tiles, cols, rows);
-    map.SetName(name);
-    map.SetBackgroundValue(background);
-
-    return { true, tiles };
-  }
-
-  const std::pair<bool, Map::Tile**> Map::LoadFromFile(Map& map, const std::string& path)
-  {
-    std::ifstream file(path.c_str());
-
-    if (!file.is_open()) {
-      file.close();
-      return { false, nullptr };
-    }
-
-    /**
-    Use the file stream contents and copy them into the istringstream 
-    */
-    file.seekg(0, std::ios::end);
-    std::streampos length = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::vector<char> buffer(length);
-    file.read(&buffer[0], length);
-
-    std::istringstream iss(std::string(&buffer[0], length));
-
-    return Map::LoadFromStream(map, iss);
-  }
-
-  std::pair<unsigned, unsigned> Map::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const
-  {
-    // convert it to world coordinates
-    sf::Vector2f world = window.mapPixelToCoords(px);
-
-    // consider the point on screen relative to the camera focus
-    auto pos = world - window.getView().getCenter() - cam->GetView().getCenter();
-    
-    // respect the current scale and transform form isometric coordinates
-    return IsoToRowCol({ pos.x / getScale().x, pos.y / getScale().y });
-  }
-
-  std::pair<unsigned, unsigned> Map::OrthoToRowCol(const sf::Vector2f& ortho) const
-  {
-    // divide by the tile size to get the integer grid values
-    unsigned x = static_cast<unsigned>(ortho.x / (tileWidth * 0.5f));
-    unsigned y = static_cast<unsigned>(ortho.y / tileHeight);
-
-    return { y, x };
-  }
-
-  std::pair<unsigned, unsigned> Map::IsoToRowCol(const sf::Vector2f& iso) const
-  {
-    // convert from iso to ortho before converting to grid values
-    return OrthoToRowCol(IsoToOrthogonal({ iso.x, iso.y }));
+  const sf::Vector2i Map::GetTileSize() const {
+    return sf::Vector2i(tileWidth, tileHeight);
   }
 
   const std::string& Map::GetName() const
@@ -362,9 +72,14 @@ namespace Overworld {
     return name;
   }
 
-  const std::string& Map::GetBackgroundValue() const
+  const std::string& Map::GetBackgroundName() const
   {
-    return background;
+    return backgroundName;
+  }
+
+  const std::string& Map::GetSongPath() const
+  {
+    return songPath;
   }
 
   void Map::SetName(const std::string& name)
@@ -372,38 +87,239 @@ namespace Overworld {
     this->name = name;
   }
 
-  void Map::SetBackgroundValue(const std::string& value)
+  void Map::SetBackgroundName(const std::string& name)
   {
-    background = value;
+    backgroundName = name;
+  }
+
+  void Map::SetSongPath(const std::string& path)
+  {
+    songPath = path;
   }
 
   const unsigned Map::GetCols() const
   {
-    return this->cols;
+    return cols;
   }
 
   const unsigned Map::GetRows() const
   {
-    return this->rows;
+    return rows;
   }
 
-  // class Map::Tileset
-
-  const sf::Sprite& Map::Tileset::Graphic(size_t ID) const
-  {
-    auto& item = idToSpriteHash.at(ID);
-    return item.sprite;
+  unsigned int Map::GetTileCount() {
+    return tileMetas.size();
   }
 
-  void Map::Tileset::Register(size_t ID, const sf::Sprite& sprite)
-  {
-    Tileset::Item item{ sprite };
-    idToSpriteHash.insert(std::make_pair(ID, item));
+  std::shared_ptr<TileMeta> Map::GetTileMeta(unsigned int tileGid) {
+    if (tileGid < 0 || tileGid >= tileMetas.size()) {
+      return tileMetas[0];
+    }
+
+    return tileMetas[tileGid];
   }
-  const size_t Map::Tileset::size() const
+
+  std::shared_ptr<Tileset> Map::GetTileset(std::string name) {
+    if (tilesets.find(name) == tilesets.end()) {
+      return nullptr;
+    }
+
+    return tilesets[name];
+  }
+
+  std::shared_ptr<Tileset> Map::GetTileset(unsigned int tileGid) {
+    if (tileToTilesetMap.size() <= tileGid) {
+      return nullptr;
+    }
+
+    return tileToTilesetMap[tileGid];
+  }
+
+  void Map::SetTileset(std::shared_ptr<Tileset> tileset, std::shared_ptr<TileMeta> tileMeta) {
+    auto tileGid = tileMeta->gid;
+
+    if (tileToTilesetMap.size() <= tileGid) {
+      tileToTilesetMap.resize(tileGid + 1);
+      tileMetas.resize(tileGid + 1);
+    }
+
+    tileMetas[tileGid] = tileMeta;
+    tileToTilesetMap[tileGid] = tileset;
+    tilesets[tileset->name] = tileset;
+  }
+
+  std::size_t Map::GetLayerCount() const {
+    return layers.size();
+  }
+
+  Map::Layer& Map::GetLayer(size_t index) {
+    return layers.at(index);
+  }
+
+  Map::Layer& Map::AddLayer() {
+    layers.push_back(std::move(Layer(cols, rows)));
+
+    return layers[layers.size() - 1];
+  }
+
+  // todo: move to layer?
+  // may require reference to map as tilemeta + tile size is used
+  bool Map::CanMoveTo(float x, float y, int layerIndex) {
+    auto& layer = GetLayer(layerIndex);
+    auto& tile = layer.GetTile(x, y);
+
+    // get decimal part
+    float tileX;
+    float tileY;
+    auto testPosition = sf::Vector2f(
+      std::modf(x, &tileX),
+      std::modf(y, &tileY)
+    );
+
+    // get positive coords
+    if (testPosition.x < 0) {
+      testPosition.x += 1;
+    }
+    if (testPosition.y < 0) {
+      testPosition.y += 1;
+    }
+
+    // convert to iso pixels
+    testPosition.x *= tileWidth / 2;
+    testPosition.y *= tileHeight;
+
+    if (tile.Intersects(*this, testPosition.x, testPosition.y)) {
+      return false;
+    }
+
+    testPosition.x += tileX * tileWidth / 2;
+    testPosition.y += tileY * tileHeight;
+
+    // todo: use a spatial map for increased performance
+    for (auto& tileObject : layer.GetTileObjects()) {
+      if (tileObject.Intersects(*this, testPosition.x, testPosition.y)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void Map::RemoveSprites(SceneBase& scene) {
+    for (auto& layer : layers) {
+      for (auto& tileObject : layer.tileObjects) {
+        auto spriteProxy = tileObject.GetWorldSprite();
+
+        if (spriteProxy) {
+          scene.RemoveSprite(spriteProxy);
+        }
+      }
+    }
+  }
+
+  static Tile nullTile = Tile(0);
+
+  Map::Layer::Layer(std::size_t cols, std::size_t rows) {
+    this->cols = cols;
+    this->rows = rows;
+    tiles.resize(cols * rows, nullTile);
+  }
+
+  Tile& Map::Layer::GetTile(int x, int y)
   {
-    return idToSpriteHash.size();
+    if (x < 0 || y < 0 || x >= cols || y >= rows) {
+      // reset nullTile as it may have been mutated
+      nullTile = Tile(0);
+      return nullTile;
+    }
+
+    return tiles[y * cols + x];
+  }
+
+  Tile& Map::Layer::GetTile(float x, float y)
+  {
+    return GetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)));
+  }
+
+  Tile& Map::Layer::SetTile(int x, int y, Tile tile)
+  {
+    if (x < 0 || y < 0 || x >= cols || y >= rows) {
+      // reset nullTile as it may have been mutated
+      nullTile = Tile(0);
+      return nullTile;
+    }
+
+    return tiles[y * cols + x] = tile;
+  }
+
+  Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
+  {
+    return SetTile(x, y, Tile(gid));
+  }
+
+  Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
+  {
+    return SetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)), gid);
+  }
+
+  std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(unsigned int id) {
+    auto iterEnd = tileObjects.end();
+    auto iter = std::find_if(tileObjects.begin(), tileObjects.end(), [id](TileObject& tileObject) { return tileObject.id == id; });
+
+    if (iter == iterEnd) {
+      return {};
+    }
+
+    return *iter;
+  }
+
+  std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(std::string name) {
+    auto iterEnd = tileObjects.end();
+    auto iter = std::find_if(tileObjects.begin(), tileObjects.end(), [name](TileObject& tileObject) { return tileObject.name == name; });
+
+    if (iter == iterEnd) {
+      return {};
+    }
+
+    return *iter;
+  }
+
+  const std::vector<TileObject>& Map::Layer::GetTileObjects() {
+    return tileObjects;
+  }
+
+  void Map::Layer::AddTileObject(TileObject tileObject) {
+    tileObjects.push_back(tileObject);
+    spritesForAddition.push_back(tileObject.GetWorldSprite());
+  }
+
+  std::optional<std::reference_wrapper<ShapeObject>> Map::Layer::GetShapeObject(unsigned int id) {
+    auto iterEnd = shapeObjects.end();
+    auto iter = std::find_if(shapeObjects.begin(), shapeObjects.end(), [id](ShapeObject& shapeObject) { return shapeObject.id == id; });
+
+    if (iter == iterEnd) {
+      return {};
+    }
+
+    return *iter;
+  }
+
+  std::optional<std::reference_wrapper<ShapeObject>> Map::Layer::GetShapeObject(std::string name) {
+    auto iterEnd = shapeObjects.end();
+    auto iter = std::find_if(shapeObjects.begin(), shapeObjects.end(), [name](ShapeObject& shapeObject) { return shapeObject.name == name; });
+
+    if (iter == iterEnd) {
+      return {};
+    }
+
+    return *iter;
+  }
+
+  const std::vector<ShapeObject>& Map::Layer::GetShapeObjects() {
+    return shapeObjects;
+  }
+
+  void Map::Layer::AddShapeObject(ShapeObject shapeObject) {
+    shapeObjects.push_back(std::move(shapeObject));
   }
 }
-
-

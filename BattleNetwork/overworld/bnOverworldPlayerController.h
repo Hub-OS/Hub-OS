@@ -6,10 +6,10 @@ namespace Overworld {
   class Map;
 
   class PlayerController : public InputHandle {
-    Overworld::Actor* actor{ nullptr };
+    std::shared_ptr<Overworld::Actor> actor;
     bool listen{ true };
   public:
-    void ControlActor(Actor& actor);
+    void ControlActor(std::shared_ptr<Actor> actor);
     void ReleaseActor();
     void Update(double elapsed);
     void ListenToInputEvents(const bool listen);

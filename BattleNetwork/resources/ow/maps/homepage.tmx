@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.3" orientation="isometric" renderorder="right-down" compressionlevel="0" width="10" height="10" tilewidth="64" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="54">
+ <properties>
+  <property name="Background" value="Grave"/>
+  <property name="Name" value="Homepage"/>
+  <property name="Song" value="resources/loops/loop_overworld.ogg"/>
+ </properties>
+ <tileset firstgid="1" source="../tiles/floor.tsx"/>
+ <tileset firstgid="4" source="../tiles/warp.tsx"/>
+ <tileset firstgid="10" source="../tiles/hp_warp.tsx"/>
+ <tileset firstgid="15" source="../tiles/home_warp.tsx"/>
+ <tileset firstgid="20" source="../tiles/tree.tsx"/>
+ <tileset firstgid="24" source="../tiles/coffee.tsx"/>
+ <tileset firstgid="28" source="../tiles/gate.tsx"/>
+ <tileset firstgid="33" source="../../../../build/Release/resources/ow/tiles/gate.tsx"/>
+ <layer id="1" name="Floor" width="10" height="10">
+  <data encoding="csv">
+0,0,0,2147483649,1,2147483649,0,0,0,0,
+2147483649,1,2147483649,1,2,1,2147483649,1,2147483649,0,
+1,2,0,2,2,2,0,2,1,2147483649,
+2147483649,2,2,2,2,2,2,2,2147483649,0,
+1,2,2,2,2,2,2,2,1,2147483649,
+2147483649,2,0,2,2,2,0,2,2147483649,0,
+2147483649,1,1,2147483649,2,2147483649,1,2147483649,1,2147483649,
+0,0,0,1,2,1,0,0,0,0,
+0,0,0,2147483649,2,2147483649,0,0,0,0,
+0,0,0,1,2147483649,1,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="5" name="Object Layer">
+  <object id="25" name="Home Warp" gid="10" x="116" y="244" width="114" height="64"/>
+  <object id="27" name="Net Warp" gid="4" x="127" y="31" width="61" height="32"/>
+  <object id="49" name="Warp Status Bot" x="176" y="48">
+   <point/>
+  </object>
+ </objectgroup>
+</map>

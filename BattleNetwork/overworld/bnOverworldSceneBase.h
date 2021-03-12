@@ -7,7 +7,6 @@
 #include <Swoosh/ActivityController.h>
 
 #include "../bnScene.h"
-#include "../bnMenuWidget.h"
 #include "../bnCamera.h"
 #include "../bnInputManager.h"
 #include "../bnAudioResourceManager.h"
@@ -18,43 +17,51 @@
 #include "../bnDrawWindow.h"
 #include "../bnAnimation.h"
 #include "../bnCardFolderCollection.h"
-#include "../bnAnimatedTextBox.h"
 
 // overworld
+#include "bnOverworldSprite.h"
 #include "bnOverworldActor.h"
 #include "bnOverworldPlayerController.h"
 #include "bnOverworldPathController.h"
 #include "bnOverworldTeleportController.h"
+#include "bnOverworldSpatialMap.h"
 #include "bnOverworldMap.h"
+#include "bnOverworldPersonalMenu.h"
+#include "bnOverworldTextBox.h"
 #include "bnEmotes.h"
+#include "bnXML.h"
 
 class Background; // forward decl
 
 namespace Overworld {
   class SceneBase : public Scene {
   private:
-    Overworld::Actor playerActor{ "You" };
+    std::shared_ptr<Actor> playerActor;
     Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
     Overworld::PlayerController playerController{};
-    Overworld::QuadTree quadTree{};
-    std::vector<Overworld::Actor> npcs;
-    std::vector<Overworld::PathController> pathControllers{};
+    Overworld::SpatialMap spatialMap{};
+    std::vector<std::shared_ptr<Overworld::Actor>> actors;
+    bool inputLocked{ false };
 
+    struct QueuedCameraEvent {
+      bool unlock;
+      bool slide;
+      sf::Vector2f position;
+      sf::Time duration;
+    };
+
+    std::queue<QueuedCameraEvent> cameraQueue;
     Camera camera; /*!< camera in scene follows player */
+    bool cameraLocked{ false };
+    swoosh::Timer cameraTimer;
     bool clicked{ false }, scaledmap{ false };
-    bool firstTimeLoad{ true };
-    // Selection input delays
-    double maxSelectInputCooldown; /*!< Maximum delay */
-    double selectInputCooldown; /*!< timer to allow key presses again */
-    bool extendedHold{ false };
 
     sf::Vector2f returnPoint{};
     bool teleportedOut{ false }; /*!< We may return to this area*/
 
-    // menu widget
-    MenuWidget menuWidget;
+    PersonalMenu personalMenu;
 
     SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
     Animation webAccountAnimator; /*!< Use animator to represent different statuses */
@@ -63,44 +70,15 @@ namespace Overworld {
     // Bunch of sprites and their attachments
     Background* bg{ nullptr }; /*!< Background image pointer */
     Overworld::Map map; /*!< Overworld map */
-    Overworld::Map::Tile** tiles{ nullptr }; /*!< Loaded tiles from file */
-    std::vector<SpriteProxyNode*> ribbons, stars, bulbs, lights;
+    std::vector<std::shared_ptr<WorldSprite>> sprites;
 
-    std::vector<std::shared_ptr<SpriteProxyNode>> trees, 
-      warps, 
-      netWarps, 
-      homeWarps,
-      coffees, 
-      gates,
-      onlineWarps; // onlineWarp is the warp that takes us online
-
-    std::shared_ptr<sf::Texture> 
-      treeTexture, 
-      gateTexture, 
-      ornamentTexture, 
-      coffeeTexture, 
-      warpTexture, 
-      homeWarpTexture,
-      netWarpTexture;
-
-    Animation treeAnim,
-      starAnim,
-      lightsAnim,
-      xmasAnim,
-      gateAnim,
-      coffeeAnim,
-      warpAnim,
-      homeWarpAnim,
-      netWarpAnim,
-      onlineWarpAnim;
-
-    AnimatedTextBox textbox;
+    Overworld::TextBox textbox;
 
     double animElapsed{};
 
     /*!< Current navi selection index */
-    SelectedNavi currentNavi{}, 
-      lastSelectedNavi{ std::numeric_limits<SelectedNavi>::max() }; 
+    SelectedNavi currentNavi{},
+      lastSelectedNavi{ std::numeric_limits<SelectedNavi>::max() };
 
     bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
     bool guestAccount{ false };
@@ -110,17 +88,24 @@ namespace Overworld {
 
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
 
-    /**
-    * @brief aux function clears the map object
-    */
-    void ClearMap(unsigned rows, unsigned cols);
-
+    std::shared_ptr<Tileset> ParseTileset(XMLElement element, unsigned int firstgid);
+    std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset);
+    void HandleCamera(double elapsed);
+    void HandleInput();
     void LoadBackground(const std::string& value);
+    void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
+    void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);
+    void DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const;
 
 #ifdef __ANDROID__
     void StartupTouchControls();
     void ShutdownTouchControls();
 #endif
+
+  protected:
+    virtual std::string GetText(const std::string& path);
+    virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
+    virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
 
   public:
 
@@ -131,11 +116,6 @@ namespace Overworld {
      * @brief Loads the player's library data and loads graphics
      */
     SceneBase(swoosh::ActivityController&, bool guestAccount);
-
-    /**
-    * @brief deconstructor
-    */
-    virtual ~SceneBase();
 
     /**
      * @brief Checks input events and listens for select buttons. Segues to new screens.
@@ -190,14 +170,86 @@ namespace Overworld {
     void NaviEquipSelectedFolder();
 
     /**
-    * @brief Effectively reloads the map and sets the scene
+    * @brief Effectively sets the scene
     */
-    void ResetMap();
+    void LoadMap(const std::string& data);
 
     void TeleportUponReturn(const sf::Vector2f& position);
     const bool HasTeleportedAway() const;
 
     void SetBackground(Background*);
+
+    /**
+     * @brief Add a sprite
+     * @param sprite
+     */
+    void AddSprite(std::shared_ptr<WorldSprite> sprite);
+
+    /**
+     * @brief Remove a sprite
+     * @param sprite
+     */
+    void RemoveSprite(const std::shared_ptr<WorldSprite> sprite);
+
+    /**
+     * @brief Adds Actor for updates and rendering. (Calls AddSprite)
+     * @param actor
+     */
+    void AddActor(std::shared_ptr<Actor> actor);
+
+
+    /**
+     * @brief Removes the actor for updates and rendering (Calls RemoveSprite)
+     * @param actor
+     */
+    void RemoveActor(const std::shared_ptr<Actor> actor);
+
+
+    /**
+     * @brief Block the player from moving and interacting
+     * @param actor
+     */
+    void LockInput();
+
+
+    /**
+     * @brief Unblock the player from moving and interacting. Unlock is not guaranteed as the player may be in a menu
+     * @param actor
+     */
+    void UnlockInput();
+
+
+    /**
+     * @brief Stops the camera from following the player
+     * @param actor
+     */
+    void LockCamera();
+
+
+    /**
+     * @brief Locks the camera and queues PlaceCamera
+     * @param position
+     * @param holdTime
+     */
+    void QueuePlaceCamera(sf::Vector2f position, sf::Time holdTime = sf::Time::Zero);
+
+
+    /**
+     * @brief Locks the camera and queues MoveCamera
+     * @param position
+     * @param duration
+     */
+    void QueueMoveCamera(sf::Vector2f position, sf::Time duration);
+
+    /**
+     * @brief Unlocks the camera and clears the queue after completing previous camera events
+     */
+    void QueueUnlockCamera();
+
+    /**
+     * @brief Clears the camera queue and follow the player again
+     */
+    void UnlockCamera();
 
     //
     // Menu selection callbacks
@@ -213,18 +265,23 @@ namespace Overworld {
     // Getters
     //
 
-    Overworld::QuadTree& GetQuadTree();
+    SpatialMap& GetSpatialMap();
+    std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
     Map& GetMap();
-    Actor& GetPlayer();
+    std::shared_ptr<Actor> GetPlayer();
     PlayerController& GetPlayerController();
-    TeleportController& GetTeleportControler();
+    TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
     Background* GetBackground();
-    AnimatedTextBox& GetTextBox();
-    
-    // TODO: temporary, remove
-    void EnableNetWarps(bool enabled);
+    Overworld::TextBox& GetTextBox();
+    bool IsInputLocked();
+    bool IsCameraLocked();
+
+    //
+    // Helpers
+    //
+    std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const;
 
     //
     // Optional events that can be decorated further
@@ -234,7 +291,7 @@ namespace Overworld {
     //
     // Required implementations
     //
-    virtual const std::pair<bool, Map::Tile**> FetchMapData() = 0;
-    virtual void OnTileCollision(const Map::Tile& tile) = 0;
+    virtual void OnTileCollision() = 0;
+    virtual void OnInteract() = 0;
   };
 }

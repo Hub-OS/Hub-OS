@@ -39,6 +39,19 @@ Animation::~Animation() {
 }
 
 void Animation::Reload() {
+  if (path != "") {
+    string data = FileUtil::Read(path);
+    LoadWithData(data);
+  }
+}
+
+void Animation::Load()
+{
+  Reload();
+}
+
+void Animation::LoadWithData(const string& data)
+{
   int frameAnimationIndex = -1;
   vector<FrameList> frameLists;
   string currentState = "";
@@ -47,11 +60,19 @@ void Animation::Reload() {
   int currentHeight = 0;
   bool legacySupport = false;
   progress = 0;
-  string data = FileUtil::Read(path);
-  int endline = 0;
+
+  size_t endLine = 0;
+
   do {
-    endline = (int)data.find("\n");
-    string line = data.substr(0, endline);
+    size_t startLine = endLine;
+    endLine = data.find("\n", startLine);
+
+    if (endLine == string::npos) {
+      break;
+    }
+
+    string line = data.substr(startLine, endLine - startLine);
+    endLine += 1;
 
     // NOTE: Support older animation files until we upgrade completely...
     if (line.find("VERSION") != string::npos) {
@@ -135,19 +156,12 @@ void Animation::Reload() {
 
       frameLists[frameAnimationIndex].SetPoint(pointName, x, y);
     }
-
-    data = data.substr(endline + 1);
-  } while (endline > -1);
+  } while (endLine < data.length());
 
   // One more addAnimation to do if file is good
   if (frameAnimationIndex >= 0) {
     animations.insert(std::make_pair(currentState, frameLists.at(frameAnimationIndex)));
   }
-}
-
-void Animation::Load()
-{
-  Reload();
 }
 
 string Animation::ValueOf(string _key, string _line) {

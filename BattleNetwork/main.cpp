@@ -9,6 +9,13 @@ int main(int argc, char** argv) {
   win.Initialize(DrawWindow::WindowMode::window);
   Game game{ win };
 
+  if (game.GetEndianness() == Endianness::big) {
+    Logger::Log("System arch is Big Endian");
+  }
+  else {
+    Logger::Log("System arch is Little Endian");
+  }
+
   cxxopts::Options options("ONB", "Open Net Battle Engine");
   options.add_options()
     ("d,debug", "Enable debugging")

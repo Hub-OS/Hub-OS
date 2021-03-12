@@ -8,154 +8,176 @@
 #include "../bnXmasBackground.h"
 #include "../bnNaviRegistration.h"
 #include "../netplay/bnNetPlayConfig.h"
+#include "../bnMessageQuestion.h"
 
 using namespace swoosh::types;
-constexpr int MAX_ERROR_COUNT = 10;
-constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
-constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
+constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
+constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 20;
 
-Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
-  font(Font::Style::small),
-  name(font),
-  SceneBase(controller, guestAccount)
+const std::string sanitize_folder_name(std::string in) {
+  // todo: use regex for multiple erroneous folder names?
+
+  size_t pos = in.find(".");
+
+  // Repeat till end is reached
+  while (pos != std::string::npos)
+  {
+    in.replace(pos, 1, "_");
+    pos = in.find(".", pos + 1);
+  }
+
+  pos = in.find(":");
+
+  // Repeat till end is reached
+  if (pos != std::string::npos)
+  {
+    in.replace(pos, 1, "_p");
+  }
+
+  return in;
+}
+
+Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16_t maxPayloadSize, bool guestAccount) :
+  SceneBase(controller, guestAccount),
+  loadingText(Font::Style::small),
+  nameText(Font::Style::small),
+  remoteAddress(Poco::Net::SocketAddress(
+    getController().CommandLineValue<std::string>("cyberworld"),
+    getController().CommandLineValue<int>("remotePort")
+  )),
+  maxPayloadSize(maxPayloadSize),
+  packetShipper(remoteAddress),
+  packetSorter(remoteAddress),
+  serverAssetManager("cache/" + sanitize_folder_name(remoteAddress.toString()))
 {
+  loadingText.setScale(2, 2);
+
   lastFrameNavi = this->GetCurrentNavi();
+  packetResendTimer = PACKET_RESEND_RATE;
 
   int myPort = getController().CommandLineValue<int>("port");
   Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
   client = Poco::Net::DatagramSocket(sa);
   client.setBlocking(false);
 
-  int remotePort = getController().CommandLineValue<int>("remotePort");
-  std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
-  remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
-
   try {
     client.connect(remoteAddress);
   }
-  catch (Poco::Net::NetException& e) {
+  catch (Poco::IOException& e) {
     Logger::Log(e.message());
-    errorCount = MAX_ERROR_COUNT+1;
   }
 
   SetBackground(new XmasBackground);
-
-  loadMapTime.reverse(true);
-  loadMapTime.set(sf::seconds(MAX_TIMEOUT_SECONDS));
 }
 
 Overworld::OnlineArea::~OnlineArea()
 {
-  auto& map = GetMap();
-
-  for (auto player : onlinePlayers) {
-    map.RemoveSprite(&(player.second->actor));
-    delete player.second;
-  }
-
   sendLogoutSignal();
-
-  onlinePlayers.clear();
 }
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
-  this->processIncomingPackets();
+  this->processIncomingPackets(elapsed);
 
   auto currentTime = CurrentTime::AsMilli();
 
-  if (mapBuffer.empty() == false) {
-    SceneBase::onUpdate(elapsed);
+  if (!isConnected) {
+    return;
+  }
 
-    if (lastFrameNavi != GetCurrentNavi()) {
-      lastFrameNavi = GetCurrentNavi();
-      sendNaviChangeSignal(lastFrameNavi);
-    }
+  SceneBase::onUpdate(elapsed);
 
-    for (auto player : onlinePlayers) {
-      auto* onlinePlayer = player.second;
-      auto& actor = player.second->actor;
+  if (lastFrameNavi != GetCurrentNavi()) {
+    sendAvatarChangeSignal();
+  }
 
-      if (onlinePlayer->teleportController.IsComplete()) {
-        auto deltaTime = static_cast<double>(currentTime - onlinePlayer->timestamp) / 1000.0;
-        auto delta = player.second->endBroadcastPos - player.second->startBroadcastPos;
-        float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-        double expectedTime = CalculatePlayerLag(*onlinePlayer);
-        float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
-        Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
+  for (auto& pair : onlinePlayers) {
+    auto& onlinePlayer = pair.second;
+    auto& actor = onlinePlayer.actor;
 
-        if (distance <= 0.2f) {
-          actor.Face(actor.GetHeading());
-        }
-        else if (distance <= actor.GetWalkSpeed() * expectedTime) {
-          actor.Walk(newHeading, false); // Don't actually move or collide, but animate
-        }
-        else {
-          actor.Run(newHeading, false);
-        }
+    if (onlinePlayer.teleportController.IsComplete()) {
+      auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
+      auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
+      float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+      double expectedTime = calculatePlayerLag(onlinePlayer);
+      float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
+      Direction newHeading = Actor::MakeDirectionFromVector(delta);
 
-        auto newPos = player.second->startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
-        actor.setPosition(newPos);
+      if (distance <= 0.2f) {
+        actor->Face(actor->GetHeading());
+      }
+      else if (distance <= actor->GetWalkSpeed() * expectedTime) {
+        actor->Walk(newHeading, false); // Don't actually move or collide, but animate
+      }
+      else {
+        actor->Run(newHeading, false);
       }
 
-      player.second->teleportController.Update(elapsed);
-      actor.Update(elapsed);
-      player.second->emoteNode.Update(elapsed);
+      auto newPos = onlinePlayer.startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
+      actor->setPosition(newPos);
     }
 
-    for (auto remove : removePlayers) {
-      onlinePlayers.erase(remove);
-    }
-
-    removePlayers.clear();
-
-    loadMapTime.reset();
-    loadMapTime.pause();
-
-    movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
-
-    if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
-      movementTimer.reset();
-      sendXYZSignal();
-    }
+    onlinePlayer.teleportController.Update(elapsed);
+    onlinePlayer.emoteNode.Update(elapsed);
   }
-  else {
-    loadMapTime.update(sf::seconds(static_cast<float>(elapsed)));
 
-    if (loadMapTime.getElapsed().asSeconds() == 0) {
-      using effect = segue<PixelateBlackWashFade>;
-      getController().pop<effect>();
+  for (auto remove : removePlayers) {
+    auto it = onlinePlayers.find(remove);
+
+    if (it == onlinePlayers.end()) {
+      Logger::Logf("Removed non existent Player %s", remove.c_str());
+      continue;
     }
+
+    auto& player = it->second;
+    RemoveActor(player.actor);
+    RemoveSprite(player.teleportController.GetBeam());
+
+    onlinePlayers.erase(remove);
+  }
+
+  removePlayers.clear();
+
+  movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
+
+  if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
+    movementTimer.reset();
+    sendPositionSignal();
   }
 }
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 {
-  if (mapBuffer.empty() == false && isConnected) {
+  if (isConnected) {
     SceneBase::onDraw(surface);
   }
   else {
     auto view = getController().getVirtualWindowSize();
     int precision = 1;
 
-    name.setPosition(view.x*0.5f, view.y*0.5f);
-    std::string secondsStr = std::to_string(loadMapTime.getElapsed().asSeconds());
-    std::string trimmed = secondsStr.substr(0, secondsStr.find(".") + precision + 1);
-    name.SetString("Connecting " + trimmed + "s...");
-    name.setOrigin(name.GetLocalBounds().width * 0.5f, name.GetLocalBounds().height * 0.5f);
-    surface.draw(name);
+    loadingText.setPosition(view.x * 0.5f, view.y * 0.5f);
+    loadingText.SetString("Connecting...");
+    loadingText.setOrigin(loadingText.GetLocalBounds().width * 0.5f, loadingText.GetLocalBounds().height * 0.5f);
+    surface.draw(loadingText);
   }
 
-  for (auto player : onlinePlayers) {
-    if (IsMouseHovering(surface, player.second->actor)) {
-      std::string nameStr = player.second->actor.GetName();
-      auto mousei = sf::Mouse::getPosition(getController().getWindow());
-      auto mousef = sf::Vector2f(static_cast<float>(mousei.x), static_cast<float>(mousei.y));
-      name.setPosition(mousef);
-      name.SetString(nameStr.c_str());
-      name.setOrigin(-10.0f, 0);
-      surface.draw(name);
-      continue;
+  auto& window = getController().getWindow();
+  auto viewport = window.getViewport(window.getView());
+  auto viewportOffset = sf::Vector2i(viewport.left, viewport.top);
+  auto cameraView = GetCamera().GetView();
+
+  // todo: mouse position is still read incorrectly when the game is scaled
+  auto mouse = surface.mapPixelToCoords(sf::Mouse::getPosition(window) - viewportOffset, cameraView);
+
+  for (auto& pair : onlinePlayers) {
+    auto& onlinePlayer = pair.second;
+
+    if (isMouseHovering(mouse, *onlinePlayer.actor)) {
+      nameText.setPosition(mouse - cameraView.getCenter() + cameraView.getSize() / 2.f);
+      nameText.SetString(onlinePlayer.actor->GetName());
+      nameText.setOrigin(-10.0f, 0);
+      surface.draw(nameText);
+      break;
     }
   }
 }
@@ -163,104 +185,100 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 void Overworld::OnlineArea::onStart()
 {
   SceneBase::onStart();
-  loadMapTime.start();
   movementTimer.start();
+
   sendLoginSignal();
-  Audio().Stream("resources/loops/loop_overworld.ogg", false);
+  sendAssetsFound();
+  sendAvatarChangeSignal();
+  sendRequestJoinSignal();
 }
 
 void Overworld::OnlineArea::onResume()
 {
-  Audio().Stream("resources/loops/loop_overworld.ogg", false);
+  playSong(GetMap().GetSongPath());
 }
 
-const std::pair<bool, Overworld::Map::Tile**> Overworld::OnlineArea::FetchMapData()
+void Overworld::OnlineArea::OnTileCollision()
 {
-  std::istringstream iss{ mapBuffer };
-  return Map::LoadFromStream(GetMap(), iss);
-}
+  auto playerActor = GetPlayer();
+  auto playerPos = playerActor->getPosition();
 
-// NOTE: these are super hacky to make it look like maps have more going on for them (e.g. connected warps...)
-// TODO: replace
-void Overworld::OnlineArea::OnTileCollision(const Overworld::Map::Tile& tile)
-{
-  if (errorCount > MAX_ERROR_COUNT) return;
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
 
-  // on collision with warps
-  static size_t next_warp = 0, next_warp_2 = 1;
-  auto* teleportController = &GetTeleportControler();
+  auto tilePos = sf::Vector2f(
+    std::floor(playerPos.x / tileSize.x * 2.0f),
+    std::floor(playerPos.y / tileSize.y)
+  );
 
-  if (tile.token == "W" && teleportController->IsComplete()) {
-    auto& map = GetMap();
-    auto* playerController = &GetPlayerController();
-    auto* playerActor = &GetPlayer();
+  auto& teleportController = GetTeleportController();
 
-    auto warps = map.FindToken("W");
+  for (auto& tileObject : map.GetLayer(playerActor->GetLayer()).GetTileObjects()) {
+    if (tileObject.name != "Home Warp") {
+      continue;
+    }
 
-    if (warps.size()) {
-      if (++next_warp >= warps.size()) {
-        next_warp = 0;
-      }
+    auto homeWarpPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+    auto homeWarpTilePos = sf::Vector2f(
+      std::floor(homeWarpPos.x / tileSize.x * 2.0f),
+      std::floor(homeWarpPos.y / tileSize.y)
+    );
 
-      auto teleportToNextWarp = [=] {
-        auto finishTeleport = [=] {
-          playerController->ControlActor(*playerActor);
-        };
+    if (homeWarpTilePos == tilePos && teleportController.IsComplete()) {
+      GetPlayerController().ReleaseActor();
+      auto& command = teleportController.TeleportOut(playerActor);
 
-        auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp], Direction::up);
-        command.onFinish.Slot(finishTeleport);
+      auto teleportHome = [=] {
+        TeleportUponReturn(playerActor->getPosition());
+        sendLogoutSignal();
+        getController().pop<segue<BlackWashFade>>();
       };
 
-      playerController->ReleaseActor();
-      auto& command = teleportController->TeleportOut(*playerActor);
-      command.onFinish.Slot(teleportToNextWarp);
+      command.onFinish.Slot(teleportHome);
+    }
+  }
+}
+
+void Overworld::OnlineArea::OnInteract() {
+  auto& map = GetMap();
+  auto playerActor = GetPlayer();
+
+  // check to see what tile we pressed talk to
+  auto layerIndex = playerActor->GetLayer();
+  auto& layer = map.GetLayer(layerIndex);
+  auto tileSize = map.GetTileSize();
+
+  auto frontPosition = playerActor->PositionInFrontOf();
+
+  for (auto& tileObject : layer.GetTileObjects()) {
+    if (tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
+      sendObjectInteractionSignal(tileObject.id);
+
+      // block other interactions with return
+      return;
     }
   }
 
-  if (tile.token == "W2" && teleportController->IsComplete()) {
-    auto& map = GetMap();
-    auto* playerController = &GetPlayerController();
-    auto* playerActor = &GetPlayer();
+  auto positionInFrontOffset = frontPosition - playerActor->getPosition();
 
-    auto warps = map.FindToken("W2");
+  for (auto other : GetSpatialMap().GetChunk(frontPosition.x, frontPosition.y)) {
+    if (playerActor == other) continue;
 
-    if (warps.size()) {
-      if (++next_warp_2 >= warps.size()) {
-        next_warp_2 = 0;
-      }
+    auto collision = playerActor->CollidesWith(*other, positionInFrontOffset);
 
-      auto teleportToNextWarp = [=] {
-        auto finishTeleport = [=] {
-          playerController->ControlActor(*playerActor);
-        };
+    if (collision) {
+      other->Interact(playerActor);
 
-        auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp_2], Direction::up);
-        command.onFinish.Slot(finishTeleport);
-      };
-
-      playerController->ReleaseActor();
-      auto& command = teleportController->TeleportOut(*playerActor);
-      command.onFinish.Slot(teleportToNextWarp);
+      // block other interactions with return
+      return;
     }
   }
 
-  // on collision with homepage warps
-  if (tile.token == "H" && teleportController->IsComplete()) {
-    auto& map = GetMap();
-    auto* playerController = &GetPlayerController();
-    auto* playerActor = &GetPlayer();
-   
-    playerController->ReleaseActor();
-    auto& command = teleportController->TeleportOut(*playerActor);
-
-    auto teleportHome = [=] {
-      TeleportUponReturn(playerActor->getPosition());
-      sendLogoutSignal();
-      getController().pop<segue<BlackWashFade>>();
-    };
-
-    command.onFinish.Slot(teleportHome);
-  }
+  sendTileInteractionSignal(
+    frontPosition.x / (tileSize.x / 2),
+    frontPosition.y / tileSize.y,
+    0.0
+  );
 }
 
 void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
@@ -269,429 +287,769 @@ void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
   sendEmoteSignal(emote);
 }
 
-void Overworld::OnlineArea::sendXYZSignal()
+void Overworld::OnlineArea::processIncomingPackets(double elapsed)
 {
-  if (errorCount > MAX_ERROR_COUNT) return;
+  auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
+    std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
+    );
 
-  auto vec = GetPlayer().getPosition();
-  double x = static_cast<double>(vec.x);
-  double y = static_cast<double>(vec.y);
-  double z = 0;
+  if (timeDifference.count() > MAX_TIMEOUT_SECONDS) {
+    leave();
+    return;
+  }
+
+  packetResendTimer -= elapsed;
+
+  if (packetResendTimer < 0) {
+    packetShipper.ResendBackedUpPackets(client);
+    packetResendTimer = PACKET_RESEND_RATE;
+  }
+
+  static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
+
+  try {
+    while (client.available()) {
+      Poco::Net::SocketAddress sender;
+      int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
+
+      if (sender != remoteAddress) {
+        continue;
+      }
+
+      if (read == 0) {
+        break;
+      }
+
+      Poco::Buffer<char> packet{ 0 };
+      packet.append(rawBuffer, size_t(read));
+
+      auto packetBodies = packetSorter.SortPacket(client, packet);
+
+      for (auto& data : packetBodies) {
+        BufferReader reader;
+
+        auto sig = reader.Read<ServerEvents>(data);
+
+        switch (sig) {
+        case ServerEvents::ack:
+        {
+          Reliability r = reader.Read<Reliability>(data);
+          uint64_t id = reader.Read<uint64_t>(data);
+          packetShipper.Acknowledged(r, id);
+          break;
+        }
+        case ServerEvents::login:
+          receiveLoginSignal(reader, data);
+          break;
+        case ServerEvents::remove_asset:
+          receiveAssetRemoveSignal(reader, data);
+          break;
+        case ServerEvents::asset_stream:
+          receiveAssetStreamSignal(reader, data);
+          break;
+        case ServerEvents::asset_stream_complete:
+          receiveAssetStreamCompleteSignal(reader, data);
+          break;
+        case ServerEvents::map:
+          receiveMapSignal(reader, data);
+          break;
+        case ServerEvents::transfer_start:
+          receiveTransferStartSignal(reader, data);
+          break;
+        case ServerEvents::transfer_complete:
+          receiveTransferCompleteSignal(reader, data);
+          break;
+        case ServerEvents::move_camera:
+          receiveMoveCameraSignal(reader, data);
+          break;
+        case ServerEvents::slide_camera:
+          receiveSlideCameraSignal(reader, data);
+          break;
+        case ServerEvents::unlock_camera:
+          QueueUnlockCamera();
+          break;
+        case ServerEvents::lock_input:
+          LockInput();
+          break;
+        case ServerEvents::unlock_input:
+          UnlockInput();
+          break;
+        case ServerEvents::move:
+          receiveMoveSignal(reader, data);
+          break;
+        case ServerEvents::message:
+          receiveMessageSignal(reader, data);
+          break;
+        case ServerEvents::question:
+          receiveQuestionSignal(reader, data);
+          break;
+        case ServerEvents::quiz:
+          receiveQuizSignal(reader, data);
+          break;
+        case ServerEvents::navi_connected:
+          receiveNaviConnectedSignal(reader, data);
+          break;
+        case ServerEvents::navi_disconnect:
+          receiveNaviDisconnectedSignal(reader, data);
+          break;
+        case ServerEvents::navi_set_name:
+          receiveNaviSetNameSignal(reader, data);
+          break;
+        case ServerEvents::navi_move_to:
+          receiveNaviMoveSignal(reader, data);
+          break;
+        case ServerEvents::navi_set_avatar:
+          receiveNaviSetAvatarSignal(reader, data);
+          break;
+        case ServerEvents::navi_emote:
+          receiveNaviEmoteSignal(reader, data);
+          break;
+        }
+      }
+    }
+  }
+  catch (Poco::IOException& e) {
+    Logger::Logf("OnlineArea Network exception: %s", e.displayText().c_str());
+
+    leave();
+  }
+}
+void Overworld::OnlineArea::sendAssetFoundSignal(const std::string& path, uint64_t lastModified) {
+  ClientEvents event{ ClientEvents::asset_found };
 
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::user_xyz };
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&x, sizeof(double));
-  buffer.append((char*)&y, sizeof(double));
-  buffer.append((char*)&z, sizeof(double));
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  buffer.append((char*)&event, sizeof(ClientEvents));
+  buffer.append(path.c_str(), path.size() + 1);
+  buffer.append((char*)&lastModified, sizeof(lastModified));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
-void Overworld::OnlineArea::sendNaviChangeSignal(const SelectedNavi& navi)
-{
-  if (errorCount > MAX_ERROR_COUNT) return;
+void Overworld::OnlineArea::sendAssetsFound() {
+  for (auto [name, lastModified] : serverAssetManager.GetCachedAssetList()) {
+    sendAssetFoundSignal(name, lastModified);
+  }
+}
+
+void Overworld::OnlineArea::sendTextureStreamHeaders(uint16_t width, uint16_t height) {
+  ClientEvents event{ ClientEvents::texture_stream };
+  uint16_t size = sizeof(uint16_t) * 2;
 
   Poco::Buffer<char> buffer{ 0 };
-  uint16_t form = navi;
-  ClientEvents type{ ClientEvents::avatar_change };
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&form, sizeof(uint16_t));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  buffer.append((char*)&event, sizeof(ClientEvents));
+  buffer.append((char*)&size, sizeof(uint16_t));
+  buffer.append((char*)&width, sizeof(uint16_t));
+  buffer.append((char*)&height, sizeof(uint16_t));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size) {
+  size_t remainingBytes = size;
+
+  while (remainingBytes > 0) {
+    const uint16_t availableRoom = maxPayloadSize - headerSize - 2;
+    uint16_t size = remainingBytes < availableRoom ? remainingBytes : availableRoom;
+    remainingBytes -= size;
+
+    Poco::Buffer<char> buffer{ 0 };
+    buffer.append((char*)&event, sizeof(ClientEvents));
+    buffer.append((char*)&size, sizeof(uint16_t));
+    buffer.append(data, size);
+    packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+
+    data += size;
+  }
 }
 
 void Overworld::OnlineArea::sendLoginSignal()
 {
-  if (errorCount > MAX_ERROR_COUNT) return;
-
-  std::string username("James\0", 5);
-  std::string password("\0", 1); // No servers need passwords at this time
+  std::string username = "James";
+  std::string password = ""; // No servers need passwords at this time
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::login };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)username.data(), username.length());
-  buffer.append((char*)password.data(), password.length());
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  buffer.append(username.data(), username.length());
+  buffer.append(0);
+  buffer.append(password.data(), password.length());
+  buffer.append(0);
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendLogoutSignal()
 {
-  if (errorCount > MAX_ERROR_COUNT) return;
-
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::logout };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
-void Overworld::OnlineArea::sendMapRefreshSignal()
+void Overworld::OnlineArea::sendRequestJoinSignal()
 {
-  if (errorCount > MAX_ERROR_COUNT) return;
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::request_join };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendReadySignal()
+{
+  ClientEvents type{ ClientEvents::ready };
 
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::loaded_map };
-  size_t mapID{};
-
   buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&mapID, sizeof(size_t));
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendPositionSignal()
+{
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
+
+  auto vec = GetPlayer()->getPosition();
+  float x = vec.x / tileSize.x * 2.0f;
+  float y = vec.y / tileSize.y;
+  float z = 0;
+
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::position };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&x, sizeof(float));
+  buffer.append((char*)&y, sizeof(float));
+  buffer.append((char*)&z, sizeof(float));
+  packetShipper.Send(client, Reliability::UnreliableSequenced, buffer);
+}
+
+void Overworld::OnlineArea::sendAvatarChangeSignal()
+{
+  sendAvatarAssetStream();
+
+  // mark completion
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::avatar_change };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendAvatarAssetStream() {
+  auto& naviMeta = NAVIS.At(GetCurrentNavi());
+
+  // send texture
+  auto naviImage = naviMeta.GetOverworldTexture()->copyToImage();
+  auto textureDimensions = naviImage.getSize();
+
+  size_t textureSize = textureDimensions.x * textureDimensions.y * 4;
+  const char* textureData = (const char*)naviImage.getPixelsPtr();
+
+  std::string animationData = FileUtil::Read(naviMeta.GetOverworldAnimationPath());
+
+  // + reliability type + id + packet type
+  auto packetHeaderSize = 1 + 8 + 2;
+  sendTextureStreamHeaders(textureDimensions.x, textureDimensions.y);
+  sendAssetStreamSignal(ClientEvents::texture_stream, packetHeaderSize, textureData, textureSize);
+  sendAssetStreamSignal(ClientEvents::animation_stream, packetHeaderSize, animationData.c_str(), animationData.length());
 }
 
 void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
 {
-  if (errorCount > MAX_ERROR_COUNT) return;
-
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::emote };
   uint8_t val = static_cast<uint8_t>(emote);
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&val, sizeof(uint8_t));
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId)
 {
-  if (!isConnected) return;
-  if (errorCount > MAX_ERROR_COUNT) return;
-  if (mapBuffer.empty()) return;
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::object_interaction };
 
-  std::string user = std::string(buffer.begin());
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&tileObjectId, sizeof(unsigned int));
+  packetShipper.Send(client, Reliability::Reliable, buffer);
+}
+
+void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::navi_interaction };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append(ticket.c_str(), ticket.length() + 1);
+  packetShipper.Send(client, Reliability::Reliable, buffer);
+}
+
+void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::tile_interaction };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&x, sizeof(x));
+  buffer.append((char*)&y, sizeof(y));
+  buffer.append((char*)&z, sizeof(z));
+  packetShipper.Send(client, Reliability::Reliable, buffer);
+}
+
+void Overworld::OnlineArea::sendDialogResponseSignal(char response)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::dialog_response };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&response, sizeof(response));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  sendReadySignal();
+  isConnected = true;
+
+  this->ticket = reader.ReadString(buffer);
+
+  auto& map = GetMap();
+  sf::Vector2f spawnPos;
+
+  for (auto& tileObject : map.GetLayer(0).GetTileObjects()) {
+    if (tileObject.name == "Home Warp") {
+      spawnPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+    }
+  }
+
+  auto& command = GetTeleportController().TeleportIn(GetPlayer(), spawnPos, Direction::up);
+  command.onFinish.Slot([=] {
+    GetPlayerController().ControlActor(GetPlayer());
+  });
+}
+
+void Overworld::OnlineArea::receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto path = reader.ReadString(buffer);
+
+  serverAssetManager.RemoveAsset(path);
+}
+
+void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto size = reader.Read<uint16_t>(buffer);
+
+  assetBuffer.append(buffer.begin() + reader.GetOffset() + 2, size);
+}
+
+void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto name = reader.ReadString(buffer);
+  auto lastModified = reader.Read<uint64_t>(buffer);
+  auto cachable = reader.Read<bool>(buffer);
+  auto type = reader.Read<AssetType>(buffer);
+
+  BufferReader assetReader;
+
+  switch (type) {
+  case AssetType::text:
+    assetBuffer.append(0);
+    serverAssetManager.SetText(name, lastModified, assetReader.ReadString(assetBuffer), cachable);
+    break;
+  case AssetType::texture:
+    serverAssetManager.SetTexture(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
+    break;
+  case AssetType::audio:
+    serverAssetManager.SetAudio(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
+    break;
+  case AssetType::sfml_image:
+  {
+    if (assetBuffer.size() < sizeof(uint16_t) * 2) {
+      break;
+    }
+    auto width = assetReader.Read<uint16_t>(assetBuffer);
+    auto height = assetReader.Read<uint16_t>(assetBuffer);
+
+    sf::Image image;
+    image.create(width, height, (const sf::Uint8*)assetBuffer.begin() + assetReader.GetOffset());
+
+    auto texture = std::make_shared<sf::Texture>();
+    texture->loadFromImage(image);
+    serverAssetManager.SetTextureDirect(name, texture);
+    break;
+  }
+  }
+
+  assetBuffer.setCapacity(0);
+}
+
+
+void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto path = reader.ReadString(buffer);
+  auto mapBuffer = GetText(path);
+
+  auto lastSongPath = GetMap().GetSongPath();
+
+  LoadMap(mapBuffer);
+
+  auto newSongPath = GetMap().GetSongPath();
+
+  if (lastSongPath != newSongPath) {
+    playSong(newSongPath);
+  }
+}
+
+void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  LockInput();
+  isConnected = false;
+  removePlayers.clear();
+
+  for (auto& [key, _] : onlinePlayers) {
+    removePlayers.push_back(key);
+  }
+}
+
+void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  UnlockInput();
+  isConnected = true;
+  sendReadySignal();
+}
+
+void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
+
+  auto x = reader.Read<float>(buffer)* tileSize.x / 2.0f;
+  auto y = reader.Read<float>(buffer)* tileSize.y;
+  auto z = reader.Read<float>(buffer);
+
+  auto position = sf::Vector2f(x, y);
+
+  auto ortho = map.WorldToScreen(position);
+
+  auto duration = reader.Read<float>(buffer);
+
+  QueuePlaceCamera(ortho, sf::seconds(duration));
+}
+
+void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
+
+  auto x = reader.Read<float>(buffer)* tileSize.x / 2.0f;
+  auto y = reader.Read<float>(buffer)* tileSize.y;
+  auto z = reader.Read<float>(buffer);
+
+  auto position = sf::Vector2f(x, y);
+
+  auto ortho = map.WorldToScreen(position);
+
+  auto duration = reader.Read<float>(buffer);
+
+  QueueMoveCamera(ortho, sf::seconds(duration));
+}
+
+void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  // todo: add warp option, add no beam teleport option, interpolate in update?
+
+  float x = reader.Read<float>(buffer);
+  float y = reader.Read<float>(buffer);
+
+  auto tileSize = GetMap().GetTileSize();
+  auto position = sf::Vector2f(
+     x * tileSize.x / 2.0f,
+     y * tileSize.y
+  );
+
+  auto z = reader.Read<float>(buffer);
+
+  auto player = GetPlayer();
+  player->setPosition(position);
+}
+
+void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto message = reader.ReadString(buffer);
+  auto mugTexturePath = reader.ReadString(buffer);
+  auto mugAnimationPath = reader.ReadString(buffer);
+
+  sf::Sprite face;
+  face.setTexture(*GetTexture(mugTexturePath));
+
+  Animation animation;
+  animation.LoadWithData(GetText(mugAnimationPath));
+
+  auto& textbox = GetTextBox();
+  textbox.SetNextSpeaker(face, animation);
+  textbox.EnqueueMessage(message,
+    [=]() { sendDialogResponseSignal(0); }
+  );
+}
+
+void Overworld::OnlineArea::receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto message = reader.ReadString(buffer);
+  auto mugTexturePath = reader.ReadString(buffer);
+  auto mugAnimationPath = reader.ReadString(buffer);
+
+  sf::Sprite face;
+  face.setTexture(*GetTexture(mugTexturePath));
+
+  Animation animation;
+  animation.LoadWithData(GetText(mugAnimationPath));
+
+  auto& textbox = GetTextBox();
+  textbox.SetNextSpeaker(face, animation);
+  textbox.EnqueueQuestion(message,
+    [=](int response) { sendDialogResponseSignal(response); }
+  );
+}
+
+void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto optionA = reader.ReadString(buffer);
+  auto optionB = reader.ReadString(buffer);
+  auto optionC = reader.ReadString(buffer);
+  auto mugTexturePath = reader.ReadString(buffer);
+  auto mugAnimationPath = reader.ReadString(buffer);
+
+  sf::Sprite face;
+  face.setTexture(*GetTexture(mugTexturePath));
+  Animation animation;
+
+  animation.LoadWithData(GetText(mugAnimationPath));
+
+  auto& textbox = GetTextBox();
+  textbox.SetNextSpeaker(face, animation);
+  textbox.EnqueueQuiz(optionA, optionB, optionC,
+    [=](int response) { sendDialogResponseSignal(response); }
+  );
+}
+
+void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
+
+  std::string user = reader.ReadString(buffer);
+  std::string name = reader.ReadString(buffer);
+  std::string texturePath = reader.ReadString(buffer);
+  std::string animationPath = reader.ReadString(buffer);
+  float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  float y = reader.Read<float>(buffer) * tileSize.y;
+  float z = reader.Read<float>(buffer);
+  bool solid = reader.Read<bool>(buffer);
+  bool warpIn = reader.Read<bool>(buffer);
+
+  auto pos = sf::Vector2f(x, y);
+
+  if (user == ticket) return;
+
+  auto [pair, success] = onlinePlayers.emplace(user, name);
+
+  if (!success) return;
+
+  auto& ticket = pair->first;
+  auto& onlinePlayer = pair->second;
+  onlinePlayer.timestamp = CurrentTime::AsMilli();
+  onlinePlayer.startBroadcastPos = pos;
+  onlinePlayer.endBroadcastPos = pos;
+
+  auto actor = onlinePlayer.actor;
+  actor->setPosition(pos);
+  actor->setTexture(GetTexture(texturePath));
+
+  Animation animation;
+  animation.LoadWithData(GetText(animationPath));
+  actor->LoadAnimations(animation);
+
+  auto& emoteNode = onlinePlayer.emoteNode;
+  float emoteY = -actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+  emoteNode.setPosition(0, emoteY);
+  actor->AddNode(&emoteNode);
+
+  actor->SetSolid(solid);
+  actor->CollideWithMap(false);
+  actor->SetCollisionRadius(6);
+  actor->SetInteractCallback([=](std::shared_ptr<Actor> with) {
+    sendNaviInteractionSignal(ticket);
+  });
+
+  AddActor(actor);
+
+  auto& teleportController = onlinePlayer.teleportController;
+  teleportController.EnableSound(false);
+  AddSprite(teleportController.GetBeam());
+
+  if (warpIn) {
+    teleportController.TeleportIn(actor, pos, Direction::none);
+  }
+}
+
+void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string user = reader.ReadString(buffer);
+  bool warpOut = reader.Read<bool>(buffer);
+
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter == onlinePlayers.end()) {
+    return;
+  }
+
+  auto& onlinePlayer = userIter->second;
+  auto actor = onlinePlayer.actor;
+
+  if (warpOut) {
+    auto& teleport = onlinePlayer.teleportController;
+    teleport.TeleportOut(actor).onFinish.Slot([=] {
+      removePlayers.push_back(user);
+    });
+  }
+  else {
+    removePlayers.push_back(user);
+  }
+}
+
+void Overworld::OnlineArea::receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string user = reader.ReadString(buffer);
+  std::string name = reader.ReadString(buffer);
+
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter != onlinePlayers.end()) {
+    userIter->second.actor->Rename(name);
+  }
+}
+
+void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string user = reader.ReadString(buffer);
 
   // ignore our ip update
   if (user == ticket) {
     return;
   }
 
-  double xd{}, yd{}, zd{};
-  std::memcpy(&xd, buffer.begin()+user.size(), sizeof(double));
-  std::memcpy(&yd, buffer.begin()+user.size()+sizeof(double),    sizeof(double));
-  std::memcpy(&zd, buffer.begin()+user.size()+(sizeof(double)*2), sizeof(double));
 
-  float x = static_cast<float>(xd);
-  float y = static_cast<float>(yd);
-  float z = static_cast<float>(zd);
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
+
+  float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  float y = reader.Read<float>(buffer) * tileSize.y;
+  float z = reader.Read<float>(buffer);
 
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
 
     // Calculcate the NEXT  frame and see if we're moving too far
-    auto* onlinePlayer = userIter->second;
+    auto& onlinePlayer = userIter->second;
     auto currentTime = CurrentTime::AsMilli();
+    auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector2f(x, y);
-    auto deltaTime = static_cast<double>(currentTime - onlinePlayer->timestamp) / 1000.0;
-    auto delta = onlinePlayer->endBroadcastPos - newPos;
+    auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
+    auto delta = endBroadcastPos - newPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double incomingLag = (currentTime - static_cast<double>(onlinePlayer->timestamp)) / 1000.0;
+    double incomingLag = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
     // Adjust the lag time by the lag of this incoming frame
-    double expectedTime = CalculatePlayerLag(*onlinePlayer, incomingLag);
+    double expectedTime = calculatePlayerLag(onlinePlayer, incomingLag);
 
-    Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
+    Direction newHeading = Actor::MakeDirectionFromVector(delta);
+    auto teleportController = &onlinePlayer.teleportController;
+    auto actor = onlinePlayer.actor;
 
     // Do not attempt to animate the teleport over quick movements if already teleporting
-    if(onlinePlayer->teleportController.IsComplete() && onlinePlayer->packets > 1) {
+    if (teleportController->IsComplete() && onlinePlayer.packets > 1) {
       // we can't possibly have moved this far away without teleporting
-      if (distance >= (onlinePlayer->actor.GetRunSpeed() * 2) * expectedTime) {
-        onlinePlayer->actor.setPosition(onlinePlayer->endBroadcastPos);
-        auto& action = onlinePlayer->teleportController.TeleportOut(onlinePlayer->actor);
+      if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2) * expectedTime) {
+        actor->setPosition(endBroadcastPos);
+        auto& action = teleportController->TeleportOut(actor);
         action.onFinish.Slot([=] {
-          onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
+          teleportController->TeleportIn(actor, endBroadcastPos, Direction::none);
         });
       }
     }
 
     // update our records
-    onlinePlayer->startBroadcastPos = onlinePlayer->endBroadcastPos;
-    onlinePlayer->endBroadcastPos = sf::Vector2f(x, y);
-    auto previous = onlinePlayer->timestamp;
-    onlinePlayer->timestamp = currentTime;
-    onlinePlayer->packets++;
-    onlinePlayer->lagWindow[onlinePlayer->packets%Overworld::LAG_WINDOW_LEN] = incomingLag;
-  }
-  else {
-    auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
-
-    if (success) {
-      auto& actor = pair->second->actor;
-      pair->second->actor.AddNode(&pair->second->emoteNode);
-      pair->second->timestamp = CurrentTime::AsMilli();
-      pair->second->startBroadcastPos = sf::Vector2f(x, y);
-      pair->second->endBroadcastPos = sf::Vector2f(x, y);
-      RefreshOnlinePlayerSprite(*pair->second, SelectedNavi{ 0 });
-      actor.setPosition(pair->second->endBroadcastPos);
-      GetMap().AddSprite(&actor, 0);
-      GetMap().AddSprite(&pair->second->teleportController.GetBeam(), 0);
-    }
+    onlinePlayer.startBroadcastPos = endBroadcastPos;
+    onlinePlayer.endBroadcastPos = sf::Vector2f(x, y);
+    auto previous = onlinePlayer.timestamp;
+    onlinePlayer.timestamp = currentTime;
+    onlinePlayer.packets++;
+    onlinePlayer.lagWindow[onlinePlayer.packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
   }
 }
 
-void Overworld::OnlineArea::recieveNameSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  if (!isConnected) return;
-  if (errorCount > MAX_ERROR_COUNT) return;
+  std::string user = reader.ReadString(buffer);
+  std::string texturePath = reader.ReadString(buffer);
+  std::string animationPath = reader.ReadString(buffer);
 
-  SelectedNavi form{};
-  std::string user = std::string(buffer.begin(), buffer.size());
-  std::string name = std::string(buffer.begin() + user.size(), buffer.size() - user.size());
+  if (user == ticket) return;
 
   auto userIter = onlinePlayers.find(user);
 
-  if (userIter != onlinePlayers.end()) {
-    userIter->second->actor.Rename(name);
-  }
+  if (userIter == onlinePlayers.end()) return;
+
+  auto& onlinePlayer = userIter->second;
+  auto& actor = onlinePlayer.actor;
+
+  actor->setTexture(GetTexture(texturePath));
+
+  Animation animation;
+  animation.LoadWithData(GetText(animationPath));
+  actor->LoadAnimations(animation);
+
+  auto& emoteNode = onlinePlayer.emoteNode;
+  float emoteY = -actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+  emoteNode.setPosition(0, emoteY);
 }
 
-void Overworld::OnlineArea::recieveNaviChangeSignal(const Poco::Buffer<char>& buffer) 
+void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  if (!isConnected) return;
-  if (errorCount > MAX_ERROR_COUNT) return;
-
-  uint16_t form{};
-  std::memcpy(&form, buffer.begin(), sizeof(uint16_t));
-  std::string user = std::string(buffer.begin()+sizeof(uint16_t), buffer.size()-sizeof(uint16_t));
+  uint8_t emote = reader.Read<uint8_t>(buffer);
+  std::string user = reader.ReadString(buffer);
 
   if (user == ticket) return;
 
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
-    RefreshOnlinePlayerSprite(*userIter->second, form);
+    auto& onlinePlayer = userIter->second;
+    onlinePlayer.emoteNode.Emote(static_cast<Overworld::Emotes>(emote));
   }
 }
 
-void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
-{
-  if (errorCount > MAX_ERROR_COUNT) return;
-
-  if (!isConnected) {
-    sendMapRefreshSignal();
-    sendNaviChangeSignal(GetCurrentNavi());
-    isConnected = true;
-
-    // Ignore error codes for login signals
-    this->ticket = std::string(buffer.begin() + sizeof(uint16_t), buffer.size() - sizeof(uint16_t));
-  }
-
-  return;
+void Overworld::OnlineArea::leave() {
+  using effect = segue<PixelateBlackWashFade>;
+  getController().pop<effect>();
 }
 
-void Overworld::OnlineArea::recieveAvatarJoinSignal(const Poco::Buffer<char>& buffer)
+const bool Overworld::OnlineArea::isMouseHovering(const sf::Vector2f& mouse, const SpriteProxyNode& src)
 {
-  if (!isConnected) return;
-  if (errorCount > MAX_ERROR_COUNT) return;
-  if (mapBuffer.empty()) return;
+  auto textureRect = src.getSprite().getTextureRect();
 
-  std::string user = std::string(buffer.begin(), buffer.size());
+  auto& map = GetMap();
+  auto& scale = map.getScale();
 
-  if (user == ticket) return;
-
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter == onlinePlayers.end()) {
-
-    auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
-
-    if (success) {
-      auto token = GetMap().FindToken("H")[0];
-      auto* onlinePlayer = pair->second;
-
-      auto& actor = onlinePlayer->actor;
-      auto& teleport = onlinePlayer->teleportController;
-      onlinePlayer->actor.AddNode(&onlinePlayer->emoteNode);
-      onlinePlayer->timestamp = CurrentTime::AsMilli();
-      onlinePlayer->startBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
-      onlinePlayer->endBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
-      RefreshOnlinePlayerSprite(*onlinePlayer, SelectedNavi{ 0 });
-      actor.setPosition(onlinePlayer->endBroadcastPos);
-      actor.Hide();
-      GetMap().AddSprite(&actor, 0);
-      GetMap().AddSprite(&teleport.GetBeam(), 0);
-
-      onlinePlayer->actor.setPosition(onlinePlayer->startBroadcastPos);
-      onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
-      onlinePlayer->teleportController.EnableSound(false);
-    }
-  }
-}
-
-void Overworld::OnlineArea::recieveLogoutSignal(const Poco::Buffer<char>& buffer)
-{
-  if (!isConnected) return;
-  if (errorCount > MAX_ERROR_COUNT) return;
-
-  std::string user = std::string(buffer.begin(), buffer.size());
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter != onlinePlayers.end()) {
-    auto* actor = &userIter->second->actor;
-    auto* teleport = &userIter->second->teleportController;
-    teleport->TeleportOut(*actor).onFinish.Slot([=] {
-      GetMap().RemoveSprite(actor);
-      GetMap().RemoveSprite(&teleport->GetBeam());
-      removePlayers.push_back(user);
-    });
-  }
-}
-
-void Overworld::OnlineArea::recieveMapSignal(const Poco::Buffer<char>& buffer)
-{
-  if (errorCount > MAX_ERROR_COUNT) return;
-
-  mapBuffer = std::string(buffer.begin(), buffer.size());
-
-  // If we are still invalid after this, there's a problem
-  if (mapBuffer.empty()) {
-    Logger::Logf("Server sent empty map data");
-  }
-  else {
-    sendLoginSignal();
-  }
-}
-
-void Overworld::OnlineArea::recieveEmoteSignal(const Poco::Buffer<char>& buffer)
-{
-  if (!isConnected) return;
-  if (errorCount > MAX_ERROR_COUNT) return;
-
-  uint8_t emote{};
-  std::memcpy(&emote, buffer.begin(), sizeof(uint8_t));
-  std::string user = std::string(buffer.begin() + sizeof(uint8_t), buffer.size() - sizeof(uint8_t));
-
-  if (user == ticket) return;
-
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter != onlinePlayers.end()) {
-    auto& player = userIter->second;
-    player->emoteNode.Emote(static_cast<Overworld::Emotes>(emote));
-  }
-}
-
-void Overworld::OnlineArea::processIncomingPackets()
-{
-  if (!client.available()) return;
-
-  auto* teleportController = &GetTeleportControler();
-  if (errorCount > MAX_ERROR_COUNT && teleportController->IsComplete()) {
-    auto& map = GetMap();
-    auto* playerController = &GetPlayerController();
-    auto* playerActor = &GetPlayer();
-
-    playerController->ReleaseActor();
-    auto& command = teleportController->TeleportOut(*playerActor);
-
-    auto teleportHome = [=] {
-      TeleportUponReturn(playerActor->getPosition());
-      getController().pop<segue<PixelateBlackWashFade>>();
-    };
-
-    command.onFinish.Slot(teleportHome);
-    return;
-  }
-
-  static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
-  static int read = 0;
-
-  try {
-    Poco::Net::SocketAddress sender;
-    read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
-
-    if (sender == remoteAddress && read > 0) {
-      rawBuffer[read] = '\0';
-
-      ServerEvents sig = *(ServerEvents*)rawBuffer;
-      size_t sigLen = sizeof(ServerEvents);
-      Poco::Buffer<char> data{ 0 };
-      data.append(rawBuffer + sigLen, size_t(read) - sigLen);
-
-      switch (sig) {
-      case ServerEvents::avatar_change:
-        recieveNaviChangeSignal(data);
-        break;
-      case ServerEvents::hologram_xyz:
-        recieveXYZSignal(data);
-        break;
-      case ServerEvents::login:
-        recieveLoginSignal(data);
-        break;
-      case ServerEvents::logout:
-        recieveLogoutSignal(data);
-        break;
-      case ServerEvents::map:
-        recieveMapSignal(data);
-        break;
-      case ServerEvents::emote:
-        recieveEmoteSignal(data);
-        break;
-      case ServerEvents::avatar_join:
-        recieveAvatarJoinSignal(data);
-        break;
-      }
-    }
-
-    errorCount = 0;
-  }
-  catch (Poco::Net::NetException& e) {
-    Logger::Logf("OnlineArea Network exception: %s", e.message().c_str());
-
-    // Assume we've connected fine, what other errors continue to occur?
-    if (isConnected && mapBuffer.size()) {
-      errorCount++;
-    }
-  }
-
-  read = 0;
-  std::memset(rawBuffer, 0, NetPlayConfig::MAX_BUFFER_LEN);
-}
-
-void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi)
-{
-  if (player.currNavi == navi) return;
-
-  auto & meta = NAVIS.At(navi);
-  auto owPath = meta.GetOverworldAnimationPath();
-
-  if (owPath.size()) {
-    player.actor.setTexture(meta.GetOverworldTexture());
-    player.actor.LoadAnimations(owPath);
-    player.currNavi = navi;
-
-    // move the emote above the player's head
-    float h = player.actor.getLocalBounds().height;
-    float y = h - (h - player.actor.getOrigin().y);
-    player.emoteNode.setPosition(sf::Vector2f(0, -y));
-  }
-}
-
-const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src)
-{
-
-  // convert it to world coordinates
-  sf::Vector2f world = target.mapPixelToCoords(sf::Mouse::getPosition(getController().getWindow()), GetCamera().GetView());
-
-  // consider the point on screen relative to the camera focus
-  //auto mouse = GetMap().WorldToScreen(world);
-
-  auto mouse = world;
-
-  sf::FloatRect bounds = src.getSprite().getLocalBounds();
-  bounds.left += src.getPosition().x - GetCamera().GetView().getCenter().x;
-  bounds.top += src.getPosition().y - GetCamera().GetView().getCenter().y;
-  bounds.left *= GetMap().getScale().x;
-  bounds.top *= GetMap().getScale().y;;
-  bounds.width = bounds.width * GetMap().getScale().x;
-  bounds.height = bounds.height * GetMap().getScale().y;
-
-  // Logger::Logf("mouse: {%f, %f} ... bounds: {%f, %f, %f, %f}", mouse.x, mouse.y, bounds.left, bounds.top, bounds.width, bounds.height);
+  auto position = src.getPosition();
+  auto screenPosition = map.WorldToScreen(position);
+  auto bounds = sf::FloatRect(
+    (screenPosition.x - textureRect.width / 2) * scale.x,
+    (screenPosition.y - textureRect.height) * scale.y,
+    textureRect.width * scale.x,
+    textureRect.height * scale.y
+  );
 
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
 
-const double Overworld::OnlineArea::CalculatePlayerLag(OnlinePlayer& player, double nextLag)
+const double Overworld::OnlineArea::calculatePlayerLag(OnlinePlayer& player, double nextLag)
 {
-  
   size_t window_len = std::min(player.packets, player.lagWindow.size());
 
   double avg{ 0 };
@@ -707,4 +1065,35 @@ const double Overworld::OnlineArea::CalculatePlayerLag(OnlinePlayer& player, dou
   avg = avg / static_cast<double>(window_len);
 
   return avg;
+}
+
+std::string Overworld::OnlineArea::GetText(const std::string& path) {
+  if (path.find("/server", 0) == 0) {
+    return serverAssetManager.GetText(path);
+  }
+  return Overworld::SceneBase::GetText(path);
+}
+
+std::shared_ptr<sf::Texture> Overworld::OnlineArea::GetTexture(const std::string& path) {
+  if (path.find("/server", 0) == 0) {
+    return serverAssetManager.GetTexture(path);
+  }
+  return Overworld::SceneBase::GetTexture(path);
+}
+
+std::shared_ptr<sf::SoundBuffer> Overworld::OnlineArea::GetAudio(const std::string& path) {
+  if (path.find("/server", 0) == 0) {
+    return serverAssetManager.GetAudio(path);
+  }
+  return Overworld::SceneBase::GetAudio(path);
+}
+
+void Overworld::OnlineArea::playSong(const std::string& path) {
+  auto songPath = path;
+
+  if (songPath.find("/server", 0) == 0) {
+    songPath = serverAssetManager.GetPath(path);
+  }
+
+  Audio().Stream(songPath, true);
 }

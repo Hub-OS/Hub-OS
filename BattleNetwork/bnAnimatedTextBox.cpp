@@ -124,12 +124,12 @@ void AnimatedTextBox::DequeMessage() {
 
   delete *messages.begin(); // TODO: use shared ptrs
   messages.erase(messages.begin());
-  animPaths.erase(animPaths.begin());
+  animations.erase(animations.begin());
   mugshots.erase(mugshots.begin());
 
   if (messages.size() == 0) return;
 
-  mugAnimator = Animation(animPaths[0]);
+  mugAnimator = animations[0];
   mugAnimator.SetAnimation("TALK");
   mugAnimator << Animator::Mode::Loop;
   textBox.SetText(messages[0]->GetMessage());
@@ -144,25 +144,27 @@ void AnimatedTextBox::ClearAllMessages()
   }
 }
 
-void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message) {
+void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, Animation animation, MessageInterface* message) {
   speaker.setScale(2.0f, 2.0f);
   messages.push_back(message);
 
-  animPaths.push_back(animationPath);
+  animations.push_back(animation);
   mugshots.push_back(speaker);
 
-  mugAnimator = Animation(animPaths[0]);
-  mugAnimator.SetAnimation("TALK");
-  mugAnimator << Animator::Mode::Loop;
+  if(messages.size() == 1) {
+    mugAnimator = animation;
+    mugAnimator.SetAnimation("TALK");
+    mugAnimator << Animator::Mode::Loop;
 
-  std::string strMessage = messages[0]->GetMessage();
-  textBox.SetText(strMessage);
+    std::string strMessage = message->GetMessage();
+    textBox.SetText(strMessage);
+  }
 
   message->SetTextBox(this);
 }
 
 void AnimatedTextBox::EnqueMessage(MessageInterface* message) {
-  EnqueMessage({}, {}, message);
+  EnqueMessage({}, "", message);
 }
 
 /*void AnimatedTextBox::ReplaceText(std::string text)

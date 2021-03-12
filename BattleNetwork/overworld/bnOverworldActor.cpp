@@ -10,7 +10,6 @@ Overworld::Actor::Actor(const std::string& name) :
 
 Overworld::Actor::Actor(Actor&& other) noexcept
 {
-  std::swap(map, other.map);
   std::swap(animProgress, other.animProgress);
   std::swap(walkSpeed, other.walkSpeed);
   std::swap(runSpeed, other.runSpeed);
@@ -18,12 +17,11 @@ Overworld::Actor::Actor(Actor&& other) noexcept
   std::swap(anims, other.anims);
   std::swap(validStates, other.validStates);
   std::swap(state, other.state);
-  std::swap(pos, other.pos); 
-  std::swap(name, other.name); 
-  std::swap(lastStateStr, other.lastStateStr); 
+  std::swap(pos, other.pos);
+  std::swap(name, other.name);
+  std::swap(lastStateStr, other.lastStateStr);
   std::swap(onInteractFunc, other.onInteractFunc);
   std::swap(collisionRadius, other.collisionRadius);
-  std::swap(quadTree, other.quadTree);
 }
 
 Overworld::Actor::~Actor()
@@ -56,7 +54,14 @@ void Overworld::Actor::Face(const Direction& dir)
   this->state = MovementState::idle;
 }
 
-void Overworld::Actor::LoadAnimations(const std::string& path)
+void Overworld::Actor::Face(const Actor& actor)
+{
+  auto direction = MakeDirectionFromVector(actor.getPosition() - getPosition());
+
+  Face(direction);
+}
+
+void Overworld::Actor::LoadAnimations(const Animation& animation)
 {
   validStates.clear();
   anims.clear();
@@ -73,10 +78,9 @@ void Overworld::Actor::LoadAnimations(const std::string& path)
 
   auto loadDirectionalAnimationThunk = [=](Direction dir, MovementState state) {
     std::string str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(dir);
-    Animation anim = Animation(path);
 
-    if (anim.HasAnimation(str)) {
-      const auto& [iter, success] = anims.insert(std::make_pair(str, anim));
+    if (animation.HasAnimation(str)) {
+      const auto& [iter, success] = anims.insert(std::make_pair(str, animation));
 
       if (success) {
         iter->second.SetAnimation(str);
@@ -96,15 +100,15 @@ void Overworld::Actor::LoadAnimations(const std::string& path)
     }
   }
 
-  Update(0); // refresh
+  UpdateAnimationState(0); // refresh
 }
 
-void Overworld::Actor::SetWalkSpeed(const double speed)
+void Overworld::Actor::SetWalkSpeed(float speed)
 {
   this->walkSpeed = speed;
 }
 
-void Overworld::Actor::SetRunSpeed(const double speed)
+void Overworld::Actor::SetRunSpeed(float speed)
 {
   this->runSpeed = speed;
 }
@@ -119,12 +123,12 @@ const std::string Overworld::Actor::GetName() const
   return this->name;
 }
 
-const double Overworld::Actor::GetWalkSpeed() const
+float Overworld::Actor::GetWalkSpeed() const
 {
   return walkSpeed;
 }
 
-const double Overworld::Actor::GetRunSpeed() const
+float Overworld::Actor::GetRunSpeed() const
 {
   return runSpeed;
 }
@@ -141,12 +145,26 @@ const Direction Overworld::Actor::GetHeading() const
 
 sf::Vector2f Overworld::Actor::PositionInFrontOf() const
 {
-    return getPosition() + MakeVectorFromDirection(GetHeading(), 2.0f);
+  return getPosition() + UnitVector(GetHeading()) * collisionRadius;
 }
 
-void Overworld::Actor::Update(double elapsed)
+void Overworld::Actor::Update(float elapsed, Map& map, SpatialMap& spatialMap)
 {
+  UpdateAnimationState(elapsed);
+
+  if (state != MovementState::idle && moveThisFrame) {
+    auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed, map, spatialMap);
+
+    // We don't care about success or not, update the best position
+    setPosition(new_pos);
+
+    moveThisFrame = false;
+  }
+}
+
+void Overworld::Actor::UpdateAnimationState(float elapsed) {
   std::string stateStr = FindValidAnimState(this->heading, this->state);
+
   if (!stateStr.empty()) {
     // If there is no supplied animation for the next state, ignore it
     if (!anims.begin()->second.HasAnimation(stateStr)) {
@@ -156,7 +174,7 @@ void Overworld::Actor::Update(double elapsed)
     animProgress += elapsed;
 
     if (lastStateStr.empty() == false) {
-      anims[lastStateStr].SyncTime(static_cast<float>(animProgress));
+      anims[lastStateStr].SyncTime(animProgress);
       anims[lastStateStr].Refresh(getSprite());
     }
 
@@ -169,20 +187,11 @@ void Overworld::Actor::Update(double elapsed)
       lastStateStr = stateStr;
     }
   }
-  
-  if (state != MovementState::idle && moveThisFrame) {
-    auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed);
-
-    // We don't care about success or not, update the best position
-    setPosition(new_pos);
-
-    moveThisFrame = false;
-  }
 }
 
-void Overworld::Actor::CollideWithMap(Map& map)
+void Overworld::Actor::CollideWithMap(bool collide)
 {
-  this->map = &map;
+  collidesWithMap = collide;
 }
 
 sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float length)
@@ -191,88 +200,98 @@ sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float leng
 
   const auto& [a, b] = Split(dir);
 
-  auto updateOffsetThunk = [](const Direction& dir, sf::Vector2f* vec, float value) {
+  auto updateOffsetThunk = [&offset, length](const Direction& dir) mutable {
     if (dir == Direction::left) {
-      vec->x -= value;
+      offset.x -= length;
     }
     else if (dir == Direction::right) {
-      vec->x += value;
+      offset.x += length;
     }
     else if (dir == Direction::up) {
-      vec->y -= value;
+      offset.y -= length;
     }
     else if (dir == Direction::down) {
-      vec->y += value;
+      offset.y += length;
     }
   };
 
-  updateOffsetThunk(a, &offset, length);
-  updateOffsetThunk(b, &offset, length);
+  updateOffsetThunk(a);
+  updateOffsetThunk(b);
 
   return offset;
 }
 
-Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec, float threshold)
+Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec)
 {
-  Direction first = Direction::none;
-  Direction second = Direction::none;
-
-  if (vec.x < -std::fabs(threshold)) {
-    first = Direction::left;
-  }
-  else if (vec.x > std::fabs(threshold)) {
-    first = Direction::right;
+  if(vec.x == 0 && vec.y == 0) {
+    return Direction::none;
   }
 
-  if (vec.y < -std::fabs(threshold)) {
-    second = Direction::up;
+  Direction first = vec.x < 0 ? Direction::left : Direction::right;
+  Direction second = vec.y < 0 ? Direction::up : Direction::down;
+
+  // using slope to calculate direction, graph if you want to take a look
+  auto ratio = std::fabs(vec.y) / std::fabs(vec.x);
+
+  if (ratio < 1.f/2.f) {
+    return first;
   }
-  else if (vec.y > std::fabs(threshold)) {
-    second = Direction::down;
+  else if (ratio > 2.f) {
+    return second;
   }
 
   return Join(first, second);
 }
 
-void Overworld::Actor::CollideWithQuadTree(QuadTree& sector)
+void Overworld::Actor::SetSolid(bool solid)
 {
-  this->quadTree = &sector;
+  this->solid = solid;
 }
 
-void Overworld::Actor::SetCollisionRadius(double radius)
+float Overworld::Actor::GetCollisionRadius()
+{
+  return collisionRadius;
+}
+
+void Overworld::Actor::SetCollisionRadius(float radius)
 {
   this->collisionRadius = radius;
 }
 
-void Overworld::Actor::SetInteractCallback(const std::function<void(Actor&)>& func)
+void Overworld::Actor::SetInteractCallback(const std::function<void(std::shared_ptr<Actor>)>& func)
 {
   this->onInteractFunc = func;
 }
 
-void Overworld::Actor::Interact(Actor& with)
+void Overworld::Actor::Interact(const std::shared_ptr<Actor>& with)
 {
   if (this->onInteractFunc) {
     this->onInteractFunc(with);
   }
 }
 
-const std::pair<bool, sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
+const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
 {
   auto delta = (getPosition() + offset) - actor.getPosition();
   float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-  float sumOfRadii = static_cast<float>(actor.collisionRadius + collisionRadius);
+  float sumOfRadii = actor.collisionRadius + collisionRadius;
+
+  if (distance > sumOfRadii) {
+    return {};
+  }
+
   auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
 
   // suggested point of collision is the edge of the circle
-  auto vec = actor.getPosition() + (delta_unit * static_cast<float>(sumOfRadii));
+  auto vec = actor.getPosition() + (delta_unit * sumOfRadii);
 
   // return collision status and point of potential intersection
-  return { distance < sumOfRadii, vec };
+  return vec;
 }
 
-const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, double elapsed)
+const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap)
 {
-  double px_per_s = 0;
+  float px_per_s = 0;
 
   if (state == MovementState::running) {
     px_per_s = GetRunSpeed() * elapsed;
@@ -282,53 +301,52 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   }
 
   auto currPos = getPosition();
-  auto offset = MakeVectorFromDirection(dir, static_cast<float>(px_per_s));
+  auto offset = MakeVectorFromDirection(dir, px_per_s);
   auto newPos = currPos + offset;
 
   const auto& [first, second] = Split(dir);
 
   /**
   * Check if colliding with the map
-  * This should be a cheaper check to do first 
+  * This should be a cheaper check to do first
   * before checking neighboring actors
   */
 
-  if (map && map->GetTileAt(newPos).solid) {
-    if (second != Direction::none) {
-      // split vector into parts and try each individual segment
-      auto diffx = offset;
-      diffx.y = 0;
+  auto layer = GetLayer();
 
-      auto diffy = offset;
-      diffy.x = 0;
+  if (collidesWithMap && layer >= 0 && map.GetLayerCount() > layer) {
+    auto tileSize = sf::Vector2f(map.GetTileSize());
+    tileSize.x *= .5f;
 
-      newPos = currPos;
+    if (!map.CanMoveTo(newPos.x / tileSize.x, newPos.y / tileSize.y, layer)) {
+      if (second != Direction::none) {
+        newPos = currPos;
 
-      if (map->GetTileAt(currPos + diffx).solid == false) {
-        newPos = currPos + diffx;
+        if (map.CanMoveTo((currPos.x + offset.x) / tileSize.x, currPos.y / tileSize.y, layer)) {
+          newPos.x += offset.x;
+        }
+        else if (map.CanMoveTo(currPos.x / tileSize.x, (currPos.y + offset.y) / tileSize.y, layer)) {
+          newPos.y += offset.y;
+        }
+
+        return { false, newPos };
       }
 
-      if (map->GetTileAt(currPos + diffy).solid == false) {
-        newPos = currPos + diffy;
-      }
-
-      return { false, newPos };
+      return { false, currPos }; // Otherwise, we cannot move
     }
-
-    return { false, currPos }; // Otherwise, we cannot move
   }
 
   /**
   * If we can move forward, check neighboring actors
   */
-  if (quadTree) {
-    for (auto actor : quadTree->actors) {
-      if (actor == this) continue;
+  if (solid) {
+    for (auto actor : spatialMap.GetNeighbors(*this)) {
+      if (actor.get() == this || !actor->solid) continue;
 
-      auto& [hit, circle_edge] = CollidesWith(*actor, offset);
+      auto collision = CollidesWith(*actor, offset);
 
-      if (hit) {
-        return { false, circle_edge };
+      if (collision) {
+        return { false, collision.value() };
       }
     }
   }
@@ -346,11 +364,6 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
 
   // There were no obstructions
   return { true, newPos };
-}
-
-const Overworld::QuadTree* Overworld::Actor::GetQuadTree()
-{
-  return quadTree;
 }
 
 std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
@@ -382,14 +395,14 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
   auto hasAnimStateThunk = [this](const Direction& dir, const MovementState& state) {
     auto iter = std::find_if(validStates.begin(), validStates.end(),
       [dir, state](const AnimStatePair& pair) {
-        return std::tie(dir, state) == std::tie(pair.dir, pair.movement);
-      });
+      return std::tie(dir, state) == std::tie(pair.dir, pair.movement);
+    });
 
     return std::tuple{ iter != validStates.end(), dir, state };
   };
 
   auto attemptThunk = [](const std::initializer_list<std::tuple<bool, Direction, MovementState>>& ts) {
-    for(auto& item : ts) {
+    for (auto& item : ts) {
       if (std::get<0>(item)) {
         return AnimStatePair{ std::get<2>(item), std::get<1>(item) };
       }
@@ -403,7 +416,7 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
 
   if (anims.begin()->second.HasAnimation(str) == false) {
     const auto& [ud, lr] = Split(Isometric(dir));
-    
+
     std::map<Direction, std::initializer_list<std::tuple<bool, Direction, MovementState>>> attempts = {
       {
         Direction::left,
@@ -505,11 +518,4 @@ std::string Overworld::Actor::DirectionAnimStrSuffix(const Direction& dir)
   }
 
   return "D"; // default is down
-}
-
-// class QuadTree
-
-std::vector<Overworld::Actor*> Overworld::QuadTree::GetActors() const
-{
-  return this->actors;
 }

@@ -5,41 +5,22 @@
 #include <map>
 
 #include "bnOverworldSceneBase.h"
+#include "bnPacketShipper.h"
+#include "bnPacketSorter.h"
+#include "bnBufferReader.h"
+#include "bnServerAssetManager.h"
 
 namespace Overworld {
   constexpr size_t LAG_WINDOW_LEN = 300;
 
-  // server expects uint16_t codes
-  enum class ClientEvents : uint16_t {
-    login = 0,    // 0 login request
-    user_xyz,     // 1 reporting avatar world location
-    logout,       // 2 logout notification
-    loaded_map,   // 3 avatar loaded map
-    avatar_change,// 4 avatar was switched
-    emote,        // 5 player emoted
-    size,
-    unknown = size
-  };
-
-  enum class ServerEvents : uint16_t {
-    login = 0,     // 0
-    hologram_xyz,  // 1
-    hologram_name, // 2
-    time_of_day,   // 3
-    map,           // 4
-    logout,        // 5
-    avatar_change, // 6
-    emote,         // 7
-    avatar_join,   // 8
-    size,
-    unknown = size
-  };
-
   struct OnlinePlayer {
-    Overworld::Actor actor{"?"};
+    OnlinePlayer(std::string name):
+      actor(std::make_shared<Overworld::Actor>(name)) {}
+
+    std::shared_ptr<Overworld::Actor> actor;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
-    SelectedNavi currNavi{std::numeric_limits<SelectedNavi>::max()};
+    SelectedNavi currNavi{ std::numeric_limits<SelectedNavi>::max() };
     sf::Vector2f startBroadcastPos{};
     sf::Vector2f endBroadcastPos{};
     long long timestamp{};
@@ -52,24 +33,77 @@ namespace Overworld {
     std::string ticket; //!< How we are represented on the server
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
+    size_t maxPayloadSize;
     bool isConnected{ false };
+    PacketShipper packetShipper;
+    PacketSorter packetSorter;
     SelectedNavi lastFrameNavi{};
-    std::map<std::string, OnlinePlayer*> onlinePlayers;
+    ServerAssetManager serverAssetManager;
+    Poco::Buffer<char> assetBuffer{ 0 };
+    std::map<std::string, OnlinePlayer> onlinePlayers;
     std::list<std::string> removePlayers;
-    std::string mapBuffer;
-    Timer loadMapTime, movementTimer;
-    Font font;
-    Text name;
-    size_t errorCount{};
+    Timer movementTimer;
+    double packetResendTimer;
+    Text loadingText;
+    Text nameText;
+    bool wasReadingTextBox{false};
 
-    void RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi);
-    const bool IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src);
-    const double CalculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
+
+    void processIncomingPackets(double elapsed);
+
+    void login();
+
+    void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
+    void sendAssetsFound();
+    void sendTextureStreamHeaders(uint16_t width, uint16_t height);
+    void sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size);
+    void sendLoginSignal();
+    void sendLogoutSignal();
+    void sendRequestJoinSignal();
+    void sendReadySignal();
+    void sendPositionSignal();
+    void sendAvatarChangeSignal();
+    void sendAvatarAssetStream();
+    void sendEmoteSignal(const Overworld::Emotes emote);
+    void sendObjectInteractionSignal(unsigned int tileObjectId);
+    void sendNaviInteractionSignal(const std::string& ticket);
+    void sendTileInteractionSignal(float x, float y, float z);
+    void sendDialogResponseSignal(char response);
+
+    void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void leave();
+    const bool isMouseHovering(const sf::Vector2f& mouse, const SpriteProxyNode& src);
+    const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
+    void playSong(const std::string& name);
+  protected:
+    virtual std::string GetText(const std::string& path);
+    virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
+    virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
+
+
   public:
     /**
      * @brief Loads the player's library data and loads graphics
      */
-    OnlineArea(swoosh::ActivityController&, bool guestAccount);
+    OnlineArea(swoosh::ActivityController&, uint16_t maxPayloadSize, bool guestAccount);
 
     /**
     * @brief deconstructor
@@ -81,26 +115,8 @@ namespace Overworld {
     void onStart() override;
     void onResume() override;
 
-    const std::pair<bool, Map::Tile**> FetchMapData() override;
-    void OnTileCollision(const Map::Tile& tile) override;
+    void OnTileCollision() override;
+    void OnInteract() override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
-
-    void sendXYZSignal();
-    void sendNaviChangeSignal(const SelectedNavi& navi);
-    void sendLoginSignal();
-    void sendLogoutSignal();
-    void sendMapRefreshSignal();
-    void sendEmoteSignal(const Overworld::Emotes emote);
-    void recieveXYZSignal(const Poco::Buffer<char>&);
-    void recieveNameSignal(const Poco::Buffer<char>&);
-    void recieveNaviChangeSignal(const Poco::Buffer<char>&);
-    void recieveLoginSignal(const Poco::Buffer<char>&);
-    void recieveAvatarJoinSignal(const Poco::Buffer<char>&);
-    void recieveLogoutSignal(const Poco::Buffer<char>&);
-    void recieveMapSignal(const Poco::Buffer<char>&);
-    void recieveEmoteSignal(const Poco::Buffer<char>&);
-
-    void processIncomingPackets();
-
   };
 }

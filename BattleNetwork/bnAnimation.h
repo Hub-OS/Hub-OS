@@ -86,6 +86,13 @@ public:
     Effectively same as calling Reload();
  */
   void Load();
+ 
+  /**
+ * @brief Parses lines, and populates FrameList with data
+
+    Effectively same as calling Reload();
+ */
+  void LoadWithData(const string& data);
 
   /**
    * @brief Apply FrameList to sprite
