@@ -23,7 +23,7 @@ int XMLElement::GetAttributeInt(const std::string& name) const {
   return 0;
 }
 
-int XMLElement::GetAttributeFloat(const std::string& name) const {
+float XMLElement::GetAttributeFloat(const std::string& name) const {
   try {
     return stof(GetAttribute(name));
   }
