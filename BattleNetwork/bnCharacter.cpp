@@ -193,9 +193,16 @@ void Character::Update(double _elapsed) {
   auto elseVisitor = [](auto&&) {};
 
   if (actionQueue.size()) {
+    ActionEvent top = actionQueue.top();
+    actionQueue.pop();
     std::visit(overload(cardActionVisitor, moveEventVisitor, busterEventVisitor, elseVisitor),
-      actionQueue.top().data
+      top.data
     );
+
+    ActionQueue nextQueue;
+    while (actionQueue.size()) {
+
+    }
   }
 
   // If the counterSlideOffset has changed from 0, it's due to the character

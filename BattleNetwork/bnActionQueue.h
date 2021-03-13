@@ -19,6 +19,11 @@ enum class ActionPriority : short {
   voluntary
 };
 
+enum class ActionDiscard : short {
+  until_resolve = 0, // these types stay in the queue until resolved
+  until_eof // at the end of frame, discard these matching types
+};
+
 struct MoveEvent {
   frame_time_t deltaFrames{}; //!< Frames between tile A and B. If 0, teleport. Else, we could be sliding
   frame_time_t delayFrames{}; //!< Startup lag to be used with animations
@@ -50,6 +55,7 @@ struct BusterEvent {
 struct ActionEvent {
   ActionPriority value{};
   std::variant<MoveEvent, BusterEvent, CardAction*> data;
+  ActionDiscard discardType{};
 };
 
 // TODO: create bnActionQueue.cpp and put function impl there so I can include CardAction headers...
