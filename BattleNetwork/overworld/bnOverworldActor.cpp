@@ -321,15 +321,39 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
 
   auto [canMove, firstPositionResult] = CanMoveTo(newPos, map, spatialMap);
 
-  if (!canMove && second != Direction::none) {
+  if (!canMove) {
     // test alternate directions, this provides a sliding effect
-    auto [canMoveOffsetX, offsetXResult] = CanMoveTo(sf::Vector2f(currPos.x + offset.x, currPos.y), map, spatialMap);
+    sf::Vector2f altOffsetA;
+    sf::Vector2f altOffsetB;
+
+    if (second != Direction::none) {
+      altOffsetA.x = offset.x;
+      altOffsetB.y = offset.y;
+    }
+    else if (first == Direction::left || first == Direction::right) {
+      // normalized diagonal
+      altOffsetA.x = offset.x * 0.5f;
+      altOffsetA.y = altOffsetA.x;
+      // flipped y
+      altOffsetB.x = altOffsetA.x;
+      altOffsetB.y = -altOffsetA.y;
+    }
+    else {
+      // normalized diagonal
+      altOffsetA.x = offset.y * 0.5f;
+      altOffsetA.y = altOffsetA.x;
+      // flipped x
+      altOffsetB.x = -altOffsetA.x;
+      altOffsetB.y = altOffsetA.y;
+    }
+
+    auto [canMoveOffsetX, offsetXResult] = CanMoveTo(currPos + altOffsetA, map, spatialMap);
 
     if (canMoveOffsetX) {
       return { canMoveOffsetX, offsetXResult };
     }
 
-    auto [canMoveOffsetY, offsetYResult] = CanMoveTo(sf::Vector2f(currPos.x, currPos.y + offset.y), map, spatialMap);
+    auto [canMoveOffsetY, offsetYResult] = CanMoveTo(currPos + altOffsetB, map, spatialMap);
 
     if (canMoveOffsetY) {
       return { canMoveOffsetY, offsetYResult };
