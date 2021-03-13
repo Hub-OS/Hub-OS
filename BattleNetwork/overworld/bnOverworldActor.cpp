@@ -179,6 +179,7 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
     }
 
     if (lastStateStr != stateStr) {
+      animProgress = 0; // reset animation
       anims[stateStr].SyncTime(animProgress);
 
       // we have changed states
