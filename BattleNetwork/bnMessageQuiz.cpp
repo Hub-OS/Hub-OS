@@ -66,8 +66,8 @@ const bool Quiz::SelectDown() {
 }
 
 void Quiz::ConfirmSelection() {
-  GetTextBox()->DequeMessage();
   onResponse(selection);
+  GetTextBox()->DequeMessage();
 }
 
 void Quiz::OnUpdate(double elapsed) {
