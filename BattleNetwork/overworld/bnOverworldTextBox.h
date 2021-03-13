@@ -12,7 +12,7 @@ namespace Overworld {
   public:
     TextBox(sf::Vector2f pos);
 
-    void SetNextSpeaker(sf::Sprite speaker, Animation animation);
+    void SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation);
     void EnqueueMessage(const std::string& message, const std::function<void()>& onComplete = []() {});
     void EnqueueQuestion(const std::string& prompt, const std::function<void(bool)>& onResponse);
     void EnqueueQuiz(

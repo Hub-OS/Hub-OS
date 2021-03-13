@@ -22,7 +22,7 @@ private:
   int selection;
   std::array<std::string, 3> options;
 public:
-  Quiz(std::string optionA, std::string optionB, std::string optionC, std::function<void(int)> onResponse = [](int){});
+  Quiz(const std::string& optionA, const std::string& optionB, const std::string& optionC, const std::function<void(int)>& onResponse = [](int){});
 
   /**
    * @brief Moves selection up if applicable

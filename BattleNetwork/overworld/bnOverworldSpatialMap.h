@@ -15,8 +15,8 @@ namespace Overworld {
     SpatialMap();
 
     // automatically handled by Overworld::SceneBase AddActor/RemoveActor
-    void AddActor(std::shared_ptr<Actor> actor);
-    void RemoveActor(std::shared_ptr<Actor> actor);
+    void AddActor(const std::shared_ptr<Actor>& actor);
+    void RemoveActor(const std::shared_ptr<Actor>& actor);
     std::vector<std::shared_ptr<Actor>> GetChunk(float x, float y);
     std::unordered_set<std::shared_ptr<Actor>> GetNeighbors(Actor& actor);
 

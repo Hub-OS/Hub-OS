@@ -31,10 +31,10 @@ namespace Overworld
     void acknowledgedReliableOrdered(uint64_t id);
 
   public:
-    PacketShipper(Poco::Net::SocketAddress socketAddress);
+    PacketShipper(const Poco::Net::SocketAddress& socketAddress);
 
     bool HasFailed();
-    void Send(Poco::Net::DatagramSocket& socket, Reliability Reliability, const Poco::Buffer<char> body);
+    void Send(Poco::Net::DatagramSocket& socket, Reliability Reliability, const Poco::Buffer<char>& body);
     void ResendBackedUpPackets(Poco::Net::DatagramSocket& socket);
     void Acknowledged(Reliability reliability, uint64_t id);
   };

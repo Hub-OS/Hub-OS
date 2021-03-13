@@ -17,16 +17,16 @@ constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 const std::string sanitize_folder_name(std::string in) {
   // todo: use regex for multiple erroneous folder names?
 
-  size_t pos = in.find(".");
+  size_t pos = in.find('.');
 
   // Repeat till end is reached
   while (pos != std::string::npos)
   {
     in.replace(pos, 1, "_");
-    pos = in.find(".", pos + 1);
+    pos = in.find('.', pos + 1);
   }
 
-  pos = in.find(":");
+  pos = in.find(':');
 
   // Repeat till end is reached
   if (pos != std::string::npos)
@@ -87,8 +87,10 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   SceneBase::onUpdate(elapsed);
 
-  if (lastFrameNavi != GetCurrentNavi()) {
+  auto currentNavi = GetCurrentNavi();
+  if (lastFrameNavi != currentNavi) {
     sendAvatarChangeSignal();
+    lastFrameNavi = currentNavi;
   }
 
   for (auto& pair : onlinePlayers) {
@@ -121,7 +123,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     onlinePlayer.emoteNode.Update(elapsed);
   }
 
-  for (auto remove : removePlayers) {
+  for (const auto& remove : removePlayers) {
     auto it = onlinePlayers.find(remove);
 
     if (it == onlinePlayers.end()) {
@@ -267,7 +269,7 @@ void Overworld::OnlineArea::OnInteract() {
 
   auto positionInFrontOffset = frontPosition - playerActor->getPosition();
 
-  for (auto other : GetSpatialMap().GetChunk(frontPosition.x, frontPosition.y)) {
+  for (const auto& other : GetSpatialMap().GetChunk(frontPosition.x, frontPosition.y)) {
     if (playerActor == other) continue;
 
     auto collision = playerActor->CollidesWith(*other, positionInFrontOffset);
@@ -281,7 +283,7 @@ void Overworld::OnlineArea::OnInteract() {
   }
 
   sendTileInteractionSignal(
-    frontPosition.x / (tileSize.x / 2),
+    frontPosition.x / (float)(tileSize.x / 2),
     frontPosition.y / tileSize.y,
     0.0
   );
@@ -453,7 +455,7 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t h
 
   while (remainingBytes > 0) {
     const uint16_t availableRoom = maxPayloadSize - headerSize - 2;
-    uint16_t size = remainingBytes < availableRoom ? remainingBytes : availableRoom;
+    uint16_t size = remainingBytes < availableRoom ? (uint16_t)remainingBytes : availableRoom;
     remainingBytes -= size;
 
     Poco::Buffer<char> buffer{ 0 };
@@ -807,7 +809,7 @@ void Overworld::OnlineArea::receiveQuestionSignal(BufferReader& reader, const Po
   auto& textbox = GetTextBox();
   textbox.SetNextSpeaker(face, animation);
   textbox.EnqueueQuestion(message,
-    [=](int response) { sendDialogResponseSignal(response); }
+    [=](int response) { sendDialogResponseSignal((char)response); }
   );
 }
 
@@ -828,7 +830,7 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
   auto& textbox = GetTextBox();
   textbox.SetNextSpeaker(face, animation);
   textbox.EnqueueQuiz(optionA, optionB, optionC,
-    [=](int response) { sendDialogResponseSignal(response); }
+    [=](int response) { sendDialogResponseSignal((char)response); }
   );
 }
 
@@ -877,7 +879,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   actor->SetSolid(solid);
   actor->CollideWithMap(false);
   actor->SetCollisionRadius(6);
-  actor->SetInteractCallback([=](std::shared_ptr<Actor> with) {
+  actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with) {
     sendNaviInteractionSignal(ticket);
   });
 
@@ -955,7 +957,6 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     auto currentTime = CurrentTime::AsMilli();
     auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector2f(x, y);
-    auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = endBroadcastPos - newPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
     double incomingLag = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
@@ -963,7 +964,6 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     // Adjust the lag time by the lag of this incoming frame
     double expectedTime = calculatePlayerLag(onlinePlayer, incomingLag);
 
-    Direction newHeading = Actor::MakeDirectionFromVector(delta);
     auto teleportController = &onlinePlayer.teleportController;
     auto actor = onlinePlayer.actor;
 
@@ -982,7 +982,6 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     // update our records
     onlinePlayer.startBroadcastPos = endBroadcastPos;
     onlinePlayer.endBroadcastPos = sf::Vector2f(x, y);
-    auto previous = onlinePlayer.timestamp;
     onlinePlayer.timestamp = currentTime;
     onlinePlayer.packets++;
     onlinePlayer.lagWindow[onlinePlayer.packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
@@ -1045,7 +1044,7 @@ const bool Overworld::OnlineArea::isMouseHovering(const sf::Vector2f& mouse, con
   auto position = src.getPosition();
   auto screenPosition = map.WorldToScreen(position);
   auto bounds = sf::FloatRect(
-    (screenPosition.x - textureRect.width / 2) * scale.x,
+    (screenPosition.x - (float)(textureRect.width / 2)) * scale.x,
     (screenPosition.y - textureRect.height) * scale.y,
     textureRect.width * scale.x,
     textureRect.height * scale.y

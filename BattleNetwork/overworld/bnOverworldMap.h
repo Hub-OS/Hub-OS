@@ -44,19 +44,19 @@ namespace Overworld {
       Tile& SetTile(float x, float y, unsigned int gid);
 
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(unsigned int id);
-      std::optional<std::reference_wrapper<TileObject>> GetTileObject(std::string name);
+      std::optional<std::reference_wrapper<TileObject>> GetTileObject(const std::string& name);
       const std::vector<TileObject>& GetTileObjects();
       void AddTileObject(TileObject tileObject);
 
       std::optional<std::reference_wrapper<ShapeObject>> GetShapeObject(unsigned int id);
-      std::optional<std::reference_wrapper<ShapeObject>> GetShapeObject(std::string name);
+      std::optional<std::reference_wrapper<ShapeObject>> GetShapeObject(const std::string& name);
       const std::vector<ShapeObject>& GetShapeObjects();
       void AddShapeObject(ShapeObject shapeObject);
 
     private:
-      Layer(size_t cols, size_t rows);
+      Layer(unsigned cols, unsigned rows);
 
-      size_t cols, rows;
+      unsigned cols, rows;
       std::vector<Tile> tiles;
       std::vector<ShapeObject> shapeObjects;
       std::vector<TileObject> tileObjects;
@@ -68,7 +68,7 @@ namespace Overworld {
     /**
      * \brief Simple constructor
      */
-    Map(size_t cols, size_t rows, int tileWidth, int tileHeight);
+    Map(unsigned cols, unsigned rows, int tileWidth, int tileHeight);
 
     /**
      * @brief Updates tile animations and tile objects
@@ -113,9 +113,9 @@ namespace Overworld {
     const unsigned GetRows() const;
     unsigned int GetTileCount();
     std::shared_ptr<TileMeta> GetTileMeta(unsigned int tileGid);
-    std::shared_ptr<Tileset> GetTileset(std::string name);
+    std::shared_ptr<Tileset> GetTileset(const std::string& name);
     std::shared_ptr<Tileset> GetTileset(unsigned int tileGid);
-    void SetTileset(std::shared_ptr<Tileset> tileset, std::shared_ptr<TileMeta> tileMeta);
+    void SetTileset(const std::shared_ptr<Tileset>& tileset, const std::shared_ptr<TileMeta>& tileMeta);
     size_t GetLayerCount() const;
     Layer& GetLayer(size_t index);
     Layer& AddLayer();
