@@ -87,10 +87,11 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   SceneBase::onUpdate(elapsed);
 
-  if (lastFrameNavi != GetCurrentNavi()) {
+  auto currentNavi = GetCurrentNavi();
+  if (lastFrameNavi != currentNavi) {
     sendAvatarChangeSignal();
-  }
     lastFrameNavi = currentNavi;
+  }
 
   for (auto& pair : onlinePlayers) {
     auto& onlinePlayer = pair.second;
