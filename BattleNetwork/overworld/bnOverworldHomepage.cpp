@@ -134,7 +134,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
           }
         }
       }
-      catch (Poco::IOException& e) {
+      catch (Poco::IOException&) {
         cyberworldStatus = CyberworldStatus::offline;
         reconnecting = false;
         client.close();
@@ -157,7 +157,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
         reconnecting = true;
         doSendThunk();
       }
-      catch (Poco::IOException& e) {
+      catch (Poco::IOException&) {
         reconnecting = false;
       }
     }

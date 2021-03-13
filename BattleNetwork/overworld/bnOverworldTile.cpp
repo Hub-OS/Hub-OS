@@ -21,7 +21,7 @@ namespace Overworld {
     auto tileSize = map.GetTileSize();
 
     if (rotated) {
-      auto tileCenter = sf::Vector2f(0, tileSize.y / 2);
+      auto tileCenter = sf::Vector2f(0, (float)(tileSize.y / 2));
 
       testPosition -= tileCenter;
       // rotate position counter clockwise

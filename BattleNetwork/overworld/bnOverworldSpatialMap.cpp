@@ -28,7 +28,7 @@ namespace Overworld {
   }
 
   std::vector<std::shared_ptr<Actor>> SpatialMap::GetChunk(float x, float y) {
-    auto chunkHash = GetHash(x / chunkLength, y / chunkLength);
+    auto chunkHash = GetHash((size_t)(x / chunkLength), (size_t)(y / chunkLength));
 
     auto it = chunks.find(chunkHash);
 

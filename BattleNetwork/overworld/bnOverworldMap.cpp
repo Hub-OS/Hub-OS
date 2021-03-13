@@ -108,7 +108,7 @@ namespace Overworld {
   }
 
   unsigned int Map::GetTileCount() {
-    return tileMetas.size();
+    return static_cast<unsigned int>(tileMetas.size());
   }
 
   std::shared_ptr<TileMeta> Map::GetTileMeta(unsigned int tileGid) {
@@ -227,7 +227,7 @@ namespace Overworld {
 
   Tile& Map::Layer::GetTile(int x, int y)
   {
-    if (x < 0 || y < 0 || x >= cols || y >= rows) {
+    if (x < 0 || y < 0 || x >= (int)cols || y >= (int)rows) {
       // reset nullTile as it may have been mutated
       nullTile = Tile(0);
       return nullTile;
@@ -243,7 +243,7 @@ namespace Overworld {
 
   Tile& Map::Layer::SetTile(int x, int y, Tile tile)
   {
-    if (x < 0 || y < 0 || x >= cols || y >= rows) {
+    if (x < 0 || y < 0 || x >= (int)cols || y >= (int)rows) {
       // reset nullTile as it may have been mutated
       nullTile = Tile(0);
       return nullTile;

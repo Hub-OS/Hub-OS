@@ -455,7 +455,7 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t h
 
   while (remainingBytes > 0) {
     const uint16_t availableRoom = maxPayloadSize - headerSize - 2;
-    uint16_t size = remainingBytes < availableRoom ? remainingBytes : availableRoom;
+    uint16_t size = remainingBytes < availableRoom ? (uint16_t)remainingBytes : availableRoom;
     remainingBytes -= size;
 
     Poco::Buffer<char> buffer{ 0 };

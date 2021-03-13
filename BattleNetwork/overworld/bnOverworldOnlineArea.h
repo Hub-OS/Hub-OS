@@ -33,7 +33,7 @@ namespace Overworld {
     std::string ticket; //!< How we are represented on the server
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
-    size_t maxPayloadSize;
+    uint16_t maxPayloadSize;
     bool isConnected{ false };
     PacketShipper packetShipper;
     PacketSorter packetSorter;

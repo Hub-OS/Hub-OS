@@ -457,7 +457,7 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
       ));
 
       tileSprite.setPosition(ortho + tileMeta->drawingOffset + tileOffset);
-      tileSprite.setRotation(tile.rotated ? 90 : 0);
+      tileSprite.setRotation(tile.rotated ? 90.0f : 0.0f);
       tileSprite.setScale(
         tile.flippedHorizontal ? -1.0f : 1.0f,
         tile.flippedVertical ? -1.0f : 1.0f
@@ -833,8 +833,8 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
 
   for (auto& child : tilesetElement.children) {
     if (child.name == "tileoffset") {
-      drawingOffset.x = child.GetAttributeInt("x");
-      drawingOffset.y = child.GetAttributeInt("y");
+      drawingOffset.x = child.GetAttributeFloat("x");
+      drawingOffset.y = child.GetAttributeFloat("y");
     }
     else if (child.name == "grid") {
       orientation =
