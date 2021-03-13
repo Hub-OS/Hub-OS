@@ -7,7 +7,7 @@
 namespace Overworld {
   TextBox::TextBox(sf::Vector2f pos) : textbox(pos) {}
 
-  void TextBox::SetNextSpeaker(sf::Sprite speaker, Animation animation) {
+  void TextBox::SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation) {
     nextSpeaker = speaker;
     nextAnimation = animation;
   }

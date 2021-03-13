@@ -33,7 +33,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       auto tileSize = map.GetTileSize();
 
       netWarpTilePos = sf::Vector2f(
-        std::floor(centerPos.x / (tileSize.x / 2)),
+        std::floor(centerPos.x / (float)(tileSize.x / 2)),
         std::floor(centerPos.y / tileSize.y)
       );
       netWarpObjectId = tileObject.id;
@@ -59,7 +59,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
     // we ensure pointer to mrprog is alive because when we interact, 
     // mrprog must've been alive to interact in the first place...
-    mrprog->SetInteractCallback([mrprog = mrprog.get(), this](std::shared_ptr<Overworld::Actor> with) {
+    mrprog->SetInteractCallback([mrprog = mrprog.get(), this](const std::shared_ptr<Overworld::Actor>& with) {
       // Face them
       mrprog->Face(*with);
 
@@ -320,7 +320,7 @@ void Overworld::Homepage::OnInteract() {
   auto targetPos = player->PositionInFrontOf();
   auto targetOffset = targetPos - player->getPosition();
 
-  for (auto other : GetSpatialMap().GetChunk(targetPos.x, targetPos.y)) {
+  for (const auto& other : GetSpatialMap().GetChunk(targetPos.x, targetPos.y)) {
     if (player == other) continue;
 
     auto collision = player->CollidesWith(*other, targetOffset);

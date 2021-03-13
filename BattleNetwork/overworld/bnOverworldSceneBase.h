@@ -88,9 +88,9 @@ namespace Overworld {
 
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
 
-    std::shared_ptr<Tileset> ParseTileset(XMLElement element, unsigned int firstgid);
-    std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset);
-    void HandleCamera(double elapsed);
+    std::shared_ptr<Tileset> ParseTileset(const XMLElement& element, unsigned int firstgid);
+    std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(const XMLElement& tilesetElement, const Overworld::Tileset& tileset);
+    void HandleCamera(float elapsed);
     void HandleInput();
     void LoadBackground(const std::string& value);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
@@ -183,26 +183,26 @@ namespace Overworld {
      * @brief Add a sprite
      * @param sprite
      */
-    void AddSprite(std::shared_ptr<WorldSprite> sprite);
+    void AddSprite(const std::shared_ptr<WorldSprite>& sprite);
 
     /**
      * @brief Remove a sprite
      * @param sprite
      */
-    void RemoveSprite(const std::shared_ptr<WorldSprite> sprite);
+    void RemoveSprite(const std::shared_ptr<WorldSprite>& sprite);
 
     /**
      * @brief Adds Actor for updates and rendering. (Calls AddSprite)
      * @param actor
      */
-    void AddActor(std::shared_ptr<Actor> actor);
+    void AddActor(const std::shared_ptr<Actor>& actor);
 
 
     /**
      * @brief Removes the actor for updates and rendering (Calls RemoveSprite)
      * @param actor
      */
-    void RemoveActor(const std::shared_ptr<Actor> actor);
+    void RemoveActor(const std::shared_ptr<Actor>& actor);
 
 
     /**

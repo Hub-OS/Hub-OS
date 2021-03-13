@@ -10,11 +10,11 @@ namespace Overworld {
     this->chunkLength = 32;
   }
 
-  void SpatialMap::AddActor(std::shared_ptr<Actor> actor) {
+  void SpatialMap::AddActor(const std::shared_ptr<Actor>& actor) {
     actors.insert(actor);
   }
 
-  void SpatialMap::RemoveActor(std::shared_ptr<Actor> actor) {
+  void SpatialMap::RemoveActor(const std::shared_ptr<Actor>& actor) {
     auto iterEnd = actors.end();
     auto iter = find(actors.begin(), iterEnd, actor);
 
@@ -45,17 +45,17 @@ namespace Overworld {
   static void ForEachOverlappingChunk(
     float chunkLength,
     Actor& actor,
-    const std::function<void(size_t)> callback
+    const std::function<void(size_t)>& callback
   ) {
     auto pos = actor.getPosition();
     auto radius = actor.GetCollisionRadius() / chunkLength;
     auto x = pos.x / chunkLength;
     auto y = pos.y / chunkLength;
 
-    int startX = x - radius;
-    int startY = y - radius;
-    int endX = x + radius + 1;
-    int endY = y + radius + 1;
+    int startX = static_cast<int>(x - radius);
+    int startY = static_cast<int>(y - radius);
+    int endX = static_cast<int>(x + radius + 1);
+    int endY = static_cast<int>(y + radius + 1);
 
     for (int i = startX; i < endX; i++) {
       for (int j = startY; j < endY; j++) {

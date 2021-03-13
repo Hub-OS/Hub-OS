@@ -28,7 +28,7 @@ namespace Overworld
     void sendAck(Poco::Net::DatagramSocket& socket, Reliability Reliability, uint64_t id);
 
   public:
-    PacketSorter(Poco::Net::SocketAddress socketAddress);
+    PacketSorter(const Poco::Net::SocketAddress& socketAddress);
 
     std::chrono::time_point<std::chrono::steady_clock> GetLastMessageTime();
     std::vector<Poco::Buffer<char>> SortPacket(Poco::Net::DatagramSocket& socket, Poco::Buffer<char> packet);

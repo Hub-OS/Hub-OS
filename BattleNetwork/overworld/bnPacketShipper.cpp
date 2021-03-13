@@ -4,7 +4,7 @@
 #include <Poco/Net/NetException.h>
 #include <algorithm>
 
-Overworld::PacketShipper::PacketShipper(Poco::Net::SocketAddress socketAddress)
+Overworld::PacketShipper::PacketShipper(const Poco::Net::SocketAddress& socketAddress)
 {
   this->socketAddress = socketAddress;
   nextUnreliableSequenced = 0;
@@ -20,7 +20,7 @@ bool Overworld::PacketShipper::HasFailed() {
 void Overworld::PacketShipper::Send(
   Poco::Net::DatagramSocket& socket,
   Reliability reliability,
-  const Poco::Buffer<char> body)
+  const Poco::Buffer<char>& body)
 {
   Poco::Buffer<char> data(0);
 
@@ -113,7 +113,7 @@ void Overworld::PacketShipper::sendSafe(
   }
   catch (Poco::IOException& e)
   {
-    if(e.code() == POCO_EWOULDBLOCK) {
+    if (e.code() == POCO_EWOULDBLOCK) {
       return;
     }
     Logger::Logf("Shipper Network exception: %s", e.displayText().c_str());

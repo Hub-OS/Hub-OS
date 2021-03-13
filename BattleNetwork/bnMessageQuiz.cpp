@@ -1,6 +1,6 @@
 #include "bnMessageQuiz.h"
 
-Quiz::Quiz(std::string optionA, std::string optionB, std::string optionC, std::function<void(int)> onResponse) :
+Quiz::Quiz(const std::string& optionA, const std::string& optionB, const std::string& optionC, const std::function<void(int)>& onResponse) :
   MessageInterface(("  " +optionA + "\n  " + optionB + "\n  " + optionC).c_str()),
   onResponse(onResponse) {
   selection = 0;
@@ -86,7 +86,7 @@ void Quiz::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
   auto textboxBottom = textboxPosition.y - 40 + 1;
 
   auto cursorX = textboxPosition.x + 100 + 1;
-  auto cursorY = textboxBottom + selection * 12 * 2;
+  auto cursorY = textboxBottom + (float)selection * 12 * 2;
 
   selectCursor.setPosition(cursorX,  cursorY);
 

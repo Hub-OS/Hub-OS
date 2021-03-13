@@ -3,7 +3,7 @@
 #include "bnBufferReader.h"
 #include "../bnLogger.h"
 
-Overworld::PacketSorter::PacketSorter(Poco::Net::SocketAddress socketAddress)
+Overworld::PacketSorter::PacketSorter(const Poco::Net::SocketAddress& socketAddress)
 {
   this->socketAddress = socketAddress;
   nextReliable = 0;

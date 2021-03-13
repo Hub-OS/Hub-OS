@@ -183,7 +183,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   for (auto& actor : actors) {
-    actor->Update(elapsed, map, spatialMap);
+    actor->Update((float)elapsed, map, spatialMap);
   }
 
   // animations
@@ -227,8 +227,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   // sort sprites
   std::sort(sprites.begin(), sprites.end(),
-    [](std::shared_ptr<WorldSprite> A, std::shared_ptr<WorldSprite> B)
-  {
+    [](const std::shared_ptr<WorldSprite>& A, const std::shared_ptr<WorldSprite>& B) {
     int A_layer_inv = -A->GetLayer();
     int B_layer_inv = -B->GetLayer();
 
@@ -238,8 +237,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     auto B_compare = B_pos.x + B_pos.y;
 
     return std::tie(A_layer_inv, A_compare) < std::tie(B_layer_inv, B_compare);
-  }
-  );
+  });
 
   // Loop the bg
   bg->Update((float)elapsed);
@@ -254,9 +252,9 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   emoteNode.Update(elapsed);
 
   // Update the textbox
-  textbox.Update(elapsed);
+  textbox.Update((float)elapsed);
 
-  HandleCamera(elapsed);
+  HandleCamera((float)elapsed);
 
   // Allow player to resync with remote account by pressing the pause action
   /*if (Input().Has(InputEvents::pressed_option)) {
@@ -266,7 +264,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
 }
 
-void Overworld::SceneBase::HandleCamera(double elapsed) {
+void Overworld::SceneBase::HandleCamera(float elapsed) {
   camera.Update(elapsed);
 
   if (!cameraLocked) {
@@ -446,11 +444,17 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
       auto spriteBounds = tileSprite.getLocalBounds();
 
       auto originalOrigin = tileSprite.getOrigin();
-      tileSprite.setOrigin(spriteBounds.width / 2, tileSize.y / 2);
+      tileSprite.setOrigin(sf::Vector2f(sf::Vector2i(
+        (int)spriteBounds.width / 2,
+        tileSize.y / 2
+      )));
 
-      sf::Vector2f pos(static_cast<float>(j * tileSize.x * 0.5f), static_cast<float>(i * tileSize.y));
-      auto ortho = map.WorldToScreen(pos);
-      auto tileOffset = sf::Vector2f(-tileSize.x / 2 + spriteBounds.width / 2, tileSize.y + tileSize.y / 2 - spriteBounds.height);
+      sf::Vector2i pos((j * tileSize.x) / 2, i * tileSize.y);
+      auto ortho = map.WorldToScreen(sf::Vector2f(pos));
+      auto tileOffset = sf::Vector2f(sf::Vector2i(
+        -tileSize.x / 2 + (int)spriteBounds.width / 2,
+        tileSize.y + tileSize.y / 2 - (int)spriteBounds.height
+      ));
 
       tileSprite.setPosition(ortho + tileMeta->drawingOffset + tileOffset);
       tileSprite.setRotation(tile.rotated ? 90 : 0);
@@ -518,7 +522,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
   personalMenu.SetMaxHealth(hp);
 
   // If coming back from navi select, the navi has changed, update it
-  auto owPath = meta.GetOverworldAnimationPath();
+  const auto& owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
     if (auto tex = meta.GetOverworldTexture()) {
@@ -663,7 +667,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     tileHeight);
 
   // read custom properties
-  for (auto propertyElement : propertiesElement.children) {
+  for (const auto& propertyElement : propertiesElement.children) {
     auto propertyName = propertyElement.GetAttribute("name");
     auto propertyValue = propertyElement.GetAttribute("value");
 
@@ -691,7 +695,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
     XMLElement tilesetElement = parseXML(GetText(source));
     auto tileset = ParseTileset(tilesetElement, firstgid);
-    auto tileMetas = ParseTileMetas(tilesetElement, tileset);
+    auto tileMetas = ParseTileMetas(tilesetElement, *tileset);
 
     for (auto& tileMeta : tileMetas) {
       map.SetTileset(tileset, tileMeta);
@@ -699,7 +703,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   }
 
   // build layers
-  for (int i = std::max(layerElements.size(), objectLayerElements.size()) - 1; i >= 0; i--) {
+  for (int i = (int)std::max(layerElements.size(), objectLayerElements.size()) - 1; i >= 0; i--) {
     auto& layer = map.AddLayer();
 
     // add tiles to layer
@@ -795,7 +799,6 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   }
 
 
-
   if (map.GetBackgroundName() != this->map.GetBackgroundName()) {
     LoadBackground(map.GetBackgroundName());
   }
@@ -816,7 +819,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   this->map.setScale(2.f, 2.f);
 }
 
-std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElement tilesetElement, unsigned int firstgid) {
+std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XMLElement& tilesetElement, unsigned int firstgid) {
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
   auto tileWidth = tilesetElement.GetAttributeInt("tilewidth");
   auto tileHeight = tilesetElement.GetAttributeInt("tileheight");
@@ -864,31 +867,31 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
 
   auto objectAlignment = tilesetElement.GetAttribute("objectalignment");
   // default to bottom right
-  auto alignmentOffset = sf::Vector2f(-tileWidth, -tileHeight);
+  auto alignmentOffset = sf::Vector2i(-tileWidth, -tileHeight);
 
   if (objectAlignment == "top") {
-    alignmentOffset = sf::Vector2f(-tileWidth / 2, 0);
+    alignmentOffset = sf::Vector2i(-tileWidth / 2, 0);
   }
   else if (objectAlignment == "topleft") {
-    alignmentOffset = sf::Vector2f(0, 0);
+    alignmentOffset = sf::Vector2i(0, 0);
   }
   else if (objectAlignment == "topright") {
-    alignmentOffset = sf::Vector2f(-tileWidth, 0);
+    alignmentOffset = sf::Vector2i(-tileWidth, 0);
   }
   else if (objectAlignment == "center") {
-    alignmentOffset = sf::Vector2f(-tileWidth / 2, -tileHeight / 2);
+    alignmentOffset = sf::Vector2i(-tileWidth / 2, -tileHeight / 2);
   }
   else if (objectAlignment == "left") {
-    alignmentOffset = sf::Vector2f(0, -tileHeight / 2);
+    alignmentOffset = sf::Vector2i(0, -tileHeight / 2);
   }
   else if (objectAlignment == "right") {
-    alignmentOffset = sf::Vector2f(-tileWidth, -tileHeight / 2);
+    alignmentOffset = sf::Vector2i(-tileWidth, -tileHeight / 2);
   }
   else if (objectAlignment == "bottom") {
-    alignmentOffset = sf::Vector2f(-tileWidth / 2, -tileHeight);
+    alignmentOffset = sf::Vector2i(-tileWidth / 2, -tileHeight);
   }
   else if (objectAlignment == "bottomleft") {
-    alignmentOffset = sf::Vector2f(0, -tileHeight);
+    alignmentOffset = sf::Vector2i(0, -tileHeight);
   }
 
   std::string frameOffsetString = " originx=\"" + to_string(tileWidth / 2) + "\" originy=\"" + to_string(tileHeight / 2) + '"';
@@ -942,7 +945,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
     firstgid,
     tileCount,
     drawingOffset,
-    alignmentOffset,
+    sf::Vector2f(alignmentOffset),
     orientation,
     GetTexture(texturePath),
     animation
@@ -952,7 +955,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(XMLElemen
 }
 
 std::vector<std::shared_ptr<Overworld::TileMeta>>
-Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<Overworld::Tileset> tileset) {
+Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Overworld::Tileset& tileset) {
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
 
   std::vector<XMLElement> tileElements(tileCount);
@@ -971,18 +974,18 @@ Overworld::SceneBase::ParseTileMetas(XMLElement tilesetElement, std::shared_ptr<
 
   std::vector<std::shared_ptr<Overworld::TileMeta>> tileMetas;
   auto tileId = 0;
-  auto tileGid = tileset->firstGid;
+  auto tileGid = tileset.firstGid;
 
   for (auto& tileElement : tileElements) {
     auto tileMeta = std::make_shared<Overworld::TileMeta>(
       tileId,
       tileGid,
-      tileset->drawingOffset,
-      tileset->alignmentOffset
+      tileset.drawingOffset,
+      tileset.alignmentOffset
       );
 
-    tileMeta->sprite.setTexture(*tileset->texture);
-    tileMeta->animation = tileset->animation;
+    tileMeta->sprite.setTexture(*tileset.texture);
+    tileMeta->animation = tileset.animation;
     tileMeta->animation << to_string(tileId) << Animator::Mode::Loop;
     tileMeta->animation.Refresh(tileMeta->sprite);
 
@@ -1029,32 +1032,32 @@ void Overworld::SceneBase::SetBackground(Background* background)
   this->bg = background;
 }
 
-void Overworld::SceneBase::AddSprite(std::shared_ptr<WorldSprite> sprite)
+void Overworld::SceneBase::AddSprite(const std::shared_ptr<WorldSprite>& sprite)
 {
   sprites.push_back(sprite);
 }
 
-void Overworld::SceneBase::RemoveSprite(const std::shared_ptr<WorldSprite> sprite) {
+void Overworld::SceneBase::RemoveSprite(const std::shared_ptr<WorldSprite>& sprite) {
   auto pos = std::find(sprites.begin(), sprites.end(), sprite);
 
   if (pos != sprites.end())
     sprites.erase(pos);
 }
 
-void Overworld::SceneBase::AddActor(std::shared_ptr<Actor> actor) {
+void Overworld::SceneBase::AddActor(const std::shared_ptr<Actor>& actor) {
   actors.push_back(actor);
   spatialMap.AddActor(actor);
   AddSprite(actor);
 }
 
-void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor> actor) {
+void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
+  spatialMap.RemoveActor(actor);
+  RemoveSprite(actor);
+
   auto pos = std::find(actors.begin(), actors.end(), actor);
 
   if (pos != actors.end())
     actors.erase(pos);
-
-  spatialMap.RemoveActor(actor);
-  RemoveSprite(actor);
 }
 
 bool Overworld::SceneBase::IsInputLocked() {

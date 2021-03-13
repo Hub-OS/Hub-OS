@@ -42,7 +42,7 @@ namespace Overworld {
     if (tileset->orientation == Projection::Orthographic) {
       // tiled uses position on sprite with orthographic projection
 
-      testPosition.x += tileSize.x / 2;
+      testPosition.x += static_cast<float>(tileSize.x / 2);
       testPosition.y += spriteBounds.height - tileSize.y;
     }
     else {

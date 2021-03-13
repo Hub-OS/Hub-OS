@@ -6,7 +6,7 @@
 
 
 namespace Overworld {
-  Map::Map(std::size_t cols, std::size_t rows, int tileWidth, int tileHeight) {
+  Map::Map(unsigned cols, unsigned rows, int tileWidth, int tileHeight) {
     this->tileWidth = tileWidth;
     this->tileHeight = tileHeight;
     this->cols = cols;
@@ -119,7 +119,7 @@ namespace Overworld {
     return tileMetas[tileGid];
   }
 
-  std::shared_ptr<Tileset> Map::GetTileset(std::string name) {
+  std::shared_ptr<Tileset> Map::GetTileset(const std::string& name) {
     if (tilesets.find(name) == tilesets.end()) {
       return nullptr;
     }
@@ -135,7 +135,7 @@ namespace Overworld {
     return tileToTilesetMap[tileGid];
   }
 
-  void Map::SetTileset(std::shared_ptr<Tileset> tileset, std::shared_ptr<TileMeta> tileMeta) {
+  void Map::SetTileset(const std::shared_ptr<Tileset>& tileset, const std::shared_ptr<TileMeta>& tileMeta) {
     auto tileGid = tileMeta->gid;
 
     if (tileToTilesetMap.size() <= tileGid) {
@@ -219,7 +219,7 @@ namespace Overworld {
 
   static Tile nullTile = Tile(0);
 
-  Map::Layer::Layer(std::size_t cols, std::size_t rows) {
+  Map::Layer::Layer(unsigned cols, unsigned rows) {
     this->cols = cols;
     this->rows = rows;
     tiles.resize(cols * rows, nullTile);
@@ -273,7 +273,7 @@ namespace Overworld {
     return *iter;
   }
 
-  std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(std::string name) {
+  std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(const std::string& name) {
     auto iterEnd = tileObjects.end();
     auto iter = std::find_if(tileObjects.begin(), tileObjects.end(), [name](TileObject& tileObject) { return tileObject.name == name; });
 
@@ -304,7 +304,7 @@ namespace Overworld {
     return *iter;
   }
 
-  std::optional<std::reference_wrapper<ShapeObject>> Map::Layer::GetShapeObject(std::string name) {
+  std::optional<std::reference_wrapper<ShapeObject>> Map::Layer::GetShapeObject(const std::string& name) {
     auto iterEnd = shapeObjects.end();
     auto iter = std::find_if(shapeObjects.begin(), shapeObjects.end(), [name](ShapeObject& shapeObject) { return shapeObject.name == name; });
 

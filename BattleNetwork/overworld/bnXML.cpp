@@ -16,7 +16,7 @@ int XMLElement::GetAttributeInt(const std::string& name) const {
   try {
     return stoi(GetAttribute(name));
   }
-  catch (std::exception& e) {
+  catch (std::exception&) {
     // conversion failure, use default value (0)
   }
 
@@ -27,7 +27,7 @@ float XMLElement::GetAttributeFloat(const std::string& name) const {
   try {
     return stof(GetAttribute(name));
   }
-  catch (std::exception& e) {
+  catch (std::exception&) {
     // conversion failure, use default value (0)
   }
 

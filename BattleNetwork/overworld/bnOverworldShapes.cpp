@@ -195,7 +195,7 @@ namespace Overworld {
           try {
             x = stof(pointsString.substr(sliceStart, i));
           }
-          catch (std::exception& e) {
+          catch (std::exception&) {
             x = 0;
           }
 
@@ -209,7 +209,7 @@ namespace Overworld {
           try {
             y = stof(pointsString.substr(sliceStart, i));
           }
-          catch (std::exception& e) {
+          catch (std::exception&) {
             y = 0;
           }
 

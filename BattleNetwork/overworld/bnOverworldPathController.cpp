@@ -18,7 +18,7 @@ void Overworld::PathController::Update(double elapsed, Map& map, SpatialMap& spa
     return;
   }
 
-  if(commands.front()(elapsed, map, spatialMap)) {
+  if(commands.front()((float)elapsed, map, spatialMap)) {
     commands.pop();
   }
 }
