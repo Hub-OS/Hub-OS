@@ -223,7 +223,7 @@ sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float leng
 
 Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec)
 {
-  if(vec.x == 0 && vec.y == 0) {
+  if (vec.x == 0 && vec.y == 0) {
     return Direction::none;
   }
 
@@ -233,7 +233,7 @@ Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec)
   // using slope to calculate direction, graph if you want to take a look
   auto ratio = std::fabs(vec.y) / std::fabs(vec.x);
 
-  if (ratio < 1.f/2.f) {
+  if (ratio < 1.f / 2.f) {
     return first;
   }
   else if (ratio > 2.f) {
@@ -302,9 +302,47 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
 
   auto currPos = getPosition();
   auto offset = MakeVectorFromDirection(dir, px_per_s);
-  auto newPos = currPos + offset;
 
   const auto& [first, second] = Split(dir);
+
+  // The referenced games did not use isometric coordinates
+  // and moved uniformly in screen-space.
+  // These 2 cases are quicker in isometric space because it is extremely 
+  // negative or positive for both x and y.
+  bool shouldNormalize = dir == Direction::up_right || dir == Direction::down_left;
+  auto normalizedOffset = offset;
+
+  if (shouldNormalize) {
+    // If we are clearly moving in these extreme directions, nerf the result
+    normalizedOffset *= 0.5f;
+  }
+
+  auto newPos = currPos + normalizedOffset;
+
+  auto [canMove, firstPositionResult] = CanMoveTo(newPos, map, spatialMap);
+
+  if (!canMove && second != Direction::none) {
+    // test alternate directions, this provides a sliding effect
+    auto [canMoveOffsetX, offsetXResult] = CanMoveTo(sf::Vector2f(currPos.x + offset.x, currPos.y), map, spatialMap);
+
+    if (canMoveOffsetX) {
+      return { canMoveOffsetX, offsetXResult };
+    }
+
+    auto [canMoveOffsetY, offsetYResult] = CanMoveTo(sf::Vector2f(currPos.x, currPos.y + offset.y), map, spatialMap);
+
+    if (canMoveOffsetY) {
+      return { canMoveOffsetY, offsetYResult };
+    }
+  }
+
+  return { canMove, firstPositionResult };
+}
+
+const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(sf::Vector2f newPos, Map& map, SpatialMap& spatialMap) {
+  auto currPos = getPosition();
+  auto offset = newPos - currPos;
+  auto dir = MakeDirectionFromVector(offset);
 
   /**
   * Check if colliding with the map
@@ -319,19 +357,6 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
     tileSize.x *= .5f;
 
     if (!map.CanMoveTo(newPos.x / tileSize.x, newPos.y / tileSize.y, layer)) {
-      if (second != Direction::none) {
-        newPos = currPos;
-
-        if (map.CanMoveTo((currPos.x + offset.x) / tileSize.x, currPos.y / tileSize.y, layer)) {
-          newPos.x += offset.x;
-        }
-        else if (map.CanMoveTo(currPos.x / tileSize.x, (currPos.y + offset.y) / tileSize.y, layer)) {
-          newPos.y += offset.y;
-        }
-
-        return { false, newPos };
-      }
-
       return { false, currPos }; // Otherwise, we cannot move
     }
   }
@@ -349,17 +374,6 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
         return { false, collision.value() };
       }
     }
-  }
-
-  // The referenced games did not use isometric coordinates
-  // and moved uniformly in screen-space.
-  // These 2 cases are quicker in isometric space because it is extremely 
-  // negative or positive for both x and y.
-  bool normalize = dir == Direction::up_right || dir == Direction::down_left;
-
-  if (normalize) {
-    // If we are clearly moving in these extreme directions, nerf the result
-    newPos = currPos + (offset * 0.5f);
   }
 
   // There were no obstructions
