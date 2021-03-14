@@ -44,7 +44,7 @@ namespace {
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16_t maxPayloadSize, bool guestAccount) :
   SceneBase(controller, guestAccount),
-  loadingText(Font::Style::small),
+  transitionText(Font::Style::small),
   nameText(Font::Style::small),
   remoteAddress(Poco::Net::SocketAddress(
     getController().CommandLineValue<std::string>("cyberworld"),
@@ -55,7 +55,8 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16
   packetSorter(remoteAddress),
   serverAssetManager("cache/" + ::sanitize_folder_name(remoteAddress.toString()))
 {
-  loadingText.setScale(2, 2);
+  transitionText.setScale(2, 2);
+  transitionText.SetString("Connecting...");
 
   lastFrameNavi = this->GetCurrentNavi();
   packetResendTimer = PACKET_RESEND_RATE;
@@ -82,9 +83,20 @@ Overworld::OnlineArea::~OnlineArea()
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
-  this->processIncomingPackets(elapsed);
+  auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
+    std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
+  );
 
-  auto currentTime = CurrentTime::AsMilli();
+  if (timeDifference.count() > MAX_TIMEOUT_SECONDS) {
+    leave();
+    return;
+  }
+
+  if (kicked) {
+    return;
+  }
+
+  this->processIncomingPackets(elapsed);
 
   if (!isConnected) {
     return;
@@ -97,6 +109,8 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     sendAvatarChangeSignal();
     lastFrameNavi = currentNavi;
   }
+
+  auto currentTime = CurrentTime::AsMilli();
 
   for (auto& pair : onlinePlayers) {
     auto& onlinePlayer = pair.second;
@@ -162,10 +176,9 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     auto view = getController().getVirtualWindowSize();
     int precision = 1;
 
-    loadingText.setPosition(view.x * 0.5f, view.y * 0.5f);
-    loadingText.SetString("Connecting...");
-    loadingText.setOrigin(loadingText.GetLocalBounds().width * 0.5f, loadingText.GetLocalBounds().height * 0.5f);
-    surface.draw(loadingText);
+    transitionText.setPosition(view.x * 0.5f, view.y * 0.5f);
+    transitionText.setOrigin(transitionText.GetLocalBounds().width * 0.5f, transitionText.GetLocalBounds().height * 0.5f);
+    surface.draw(transitionText);
   }
 
   auto& window = getController().getWindow();
@@ -303,15 +316,6 @@ void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
 
 void Overworld::OnlineArea::processIncomingPackets(double elapsed)
 {
-  auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
-    std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
-    );
-
-  if (timeDifference.count() > MAX_TIMEOUT_SECONDS) {
-    leave();
-    return;
-  }
-
   packetResendTimer -= elapsed;
 
   if (packetResendTimer < 0) {
@@ -354,6 +358,9 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         }
         case ServerEvents::login:
           receiveLoginSignal(reader, data);
+          break;
+        case ServerEvents::kick:
+          receiveKickSignal(reader, data);
           break;
         case ServerEvents::remove_asset:
           receiveAssetRemoveSignal(reader, data);
@@ -647,6 +654,27 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   command.onFinish.Slot([=] {
     GetPlayerController().ControlActor(GetPlayer());
   });
+}
+
+void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string kickReason = reader.ReadString(buffer);
+  std::string kickText = "kicked for";
+
+  // insert padding to center the text
+  auto lengthDifference = (int)kickReason.length() - (int)kickText.length();
+
+  if(lengthDifference > 0) {
+    kickText.insert(kickText.begin(), lengthDifference / 2, ' ');
+  } else {
+    kickReason.insert(kickReason.begin(), -lengthDifference / 2, ' ');
+  }
+
+  transitionText.SetString(kickText + "\n\n" + kickReason);
+  kicked = true;
+  isConnected = false;
+
+  // bool kicked will block incoming packets, so we'll leave in update from a timeout
 }
 
 void Overworld::OnlineArea::receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {

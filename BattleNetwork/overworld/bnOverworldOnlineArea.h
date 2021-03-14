@@ -35,6 +35,7 @@ namespace Overworld {
     Poco::Net::SocketAddress remoteAddress; //!< server
     uint16_t maxPayloadSize;
     bool isConnected{ false };
+    bool kicked{ false };
     PacketShipper packetShipper;
     PacketSorter packetSorter;
     SelectedNavi lastFrameNavi{};
@@ -44,7 +45,7 @@ namespace Overworld {
     std::list<std::string> removePlayers;
     Timer movementTimer;
     double packetResendTimer;
-    Text loadingText;
+    Text transitionText;
     Text nameText;
     bool wasReadingTextBox{false};
 
@@ -70,6 +71,7 @@ namespace Overworld {
     void sendDialogResponseSignal(char response);
 
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveKickSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
