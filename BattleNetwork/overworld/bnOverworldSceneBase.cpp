@@ -525,7 +525,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
   const auto& owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
-    if (auto tex = meta.GetOverworldTexture()) {
+    if (auto tex = Textures().LoadTextureFromFile(meta.GetOverworldTexturePath())) {
       playerActor->setTexture(tex);
     }
     playerActor->LoadAnimations(Animation(owPath));

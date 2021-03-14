@@ -44,9 +44,9 @@ public:
     Player* navi; /*!< The net navi to construct */
     std::string special; /*!< The net navi's special description */
     std::string overworldAnimationPath; /*!< The net navi's overworld animation */
+    std::string overworldTexturePath; /*!< The path of the texture to load */
     std::string name; /*!< The net navi's name */
     std::shared_ptr<sf::Texture> iconTexture; /*!< Icon on the top of the screen */
-    std::shared_ptr<sf::Texture> overworldTexture; /*!< Texture of overworld animation */
     std::shared_ptr<sf::Texture> previewTexture; /*!< Roster profile picture */
     unsigned atk; /*!< Attack level of the net navi */
     int chargedAtk; /*!< Charged attack level of the net navi */
@@ -118,14 +118,14 @@ public:
      * @brief Sets the overworld animation path used in menu screen
      * @return NaviMeta& to chain
      */
-    NaviMeta& SetOverworldAnimationPath(const std::string&& path);
+    NaviMeta& SetOverworldAnimationPath(const std::string& path);
     
     /**
      * @brief Sets the texture of the overworld animation
      * @param texture
      * @return NaviMeta& to chain
      */
-    NaviMeta& SetOverworldTexture(const std::shared_ptr<sf::Texture> texture);
+    NaviMeta& SetOverworldTexturePath(const std::string& texture);
     
     /**
      * @brief Sets the texture of the preview used in select screen
@@ -148,10 +148,10 @@ public:
     const std::shared_ptr<sf::Texture> GetIconTexture() const;
 
     /**
-     * @brief Gets the overworld texture to draw
-     * @return const sf::Texture&
+     * @brief Gets the overworld texture path to load
+     * @return const std::string&
      */
-    const std::shared_ptr<Texture> GetOverworldTexture() const;
+    const std::string GetOverworldTexturePath() const;
     
     /**
      * @brief Gets the overworld animation path

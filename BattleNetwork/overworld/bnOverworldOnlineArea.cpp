@@ -28,7 +28,7 @@ const std::string sanitize_folder_name(std::string in) {
 
   pos = in.find(':');
 
-  // Repeat till end is reached
+  // find port
   if (pos != std::string::npos)
   {
     in.replace(pos, 1, "_p");
@@ -203,6 +203,7 @@ void Overworld::OnlineArea::onStart()
 
 void Overworld::OnlineArea::onResume()
 {
+  SceneBase::onResume();
   playSong(GetMap().GetSongPath());
 }
 
@@ -543,7 +544,7 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
   auto& naviMeta = NAVIS.At(GetCurrentNavi());
 
   // send texture
-  auto naviImage = naviMeta.GetOverworldTexture()->copyToImage();
+  auto naviImage = Textures().LoadTextureFromFile(naviMeta.GetOverworldTexturePath())->copyToImage();
   auto textureDimensions = naviImage.getSize();
 
   size_t textureSize = textureDimensions.x * textureDimensions.y * 4;
