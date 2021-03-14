@@ -14,27 +14,30 @@ using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
-const std::string sanitize_folder_name(std::string in) {
-  // todo: use regex for multiple erroneous folder names?
+// hide util function in anon namespace exclusive to this file
+namespace {
+  const std::string sanitize_folder_name(std::string in) {
+    // todo: use regex for multiple erroneous folder names?
 
-  size_t pos = in.find('.');
+    size_t pos = in.find('.');
 
-  // Repeat till end is reached
-  while (pos != std::string::npos)
-  {
-    in.replace(pos, 1, "_");
-    pos = in.find('.', pos + 1);
+    // Repeat till end is reached
+    while (pos != std::string::npos)
+    {
+      in.replace(pos, 1, "_");
+      pos = in.find('.', pos + 1);
+    }
+
+    pos = in.find(':');
+
+    // find port
+    if (pos != std::string::npos)
+    {
+      in.replace(pos, 1, "_p");
+    }
+
+    return in;
   }
-
-  pos = in.find(':');
-
-  // find port
-  if (pos != std::string::npos)
-  {
-    in.replace(pos, 1, "_p");
-  }
-
-  return in;
 }
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16_t maxPayloadSize, bool guestAccount) :
@@ -48,7 +51,7 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16
   maxPayloadSize(maxPayloadSize),
   packetShipper(remoteAddress),
   packetSorter(remoteAddress),
-  serverAssetManager("cache/" + sanitize_folder_name(remoteAddress.toString()))
+  serverAssetManager("cache/" + ::sanitize_folder_name(remoteAddress.toString()))
 {
   loadingText.setScale(2, 2);
 
