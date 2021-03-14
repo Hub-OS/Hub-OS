@@ -564,7 +564,7 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
   }
 
     // get animation data
-  auto animationPath = naviMeta.GetOverworldAnimationPath();
+  const auto& animationPath = naviMeta.GetOverworldAnimationPath();
   std::string animationData = FileUtil::Read(animationPath);
 
   // send data

@@ -75,7 +75,6 @@ namespace Overworld
   enum class AssetType : char {
     text = 0,
     texture,
-    audio,
-    sfml_image
+    audio
   };
 } // namespace Overworld
