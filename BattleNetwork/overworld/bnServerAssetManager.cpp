@@ -203,11 +203,6 @@ void Overworld::ServerAssetManager::SetTexture(const std::string& name, uint64_t
   textureAssets.emplace(name, texture);
 }
 
-void Overworld::ServerAssetManager::SetTextureDirect(const std::string& name, std::shared_ptr<sf::Texture>& texture) {
-  textureAssets.erase(name);
-  textureAssets.emplace(name, texture);
-}
-
 void Overworld::ServerAssetManager::SetAudio(const std::string& name, uint64_t lastModified, const char* data, size_t length, bool cache) {
   if (cache && Save(GetPath(name), lastModified, data, length)) {
     cachedAssets.emplace(name, lastModified);

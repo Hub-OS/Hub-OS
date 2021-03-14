@@ -55,7 +55,6 @@ namespace Overworld {
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
     void sendAssetsFound();
-    void sendTextureStreamHeaders(uint16_t width, uint16_t height);
     void sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size);
     void sendLoginSignal();
     void sendLogoutSignal();

@@ -3,6 +3,8 @@
 #include <Segues/PixelateBlackWashFade.h>
 #include <Segues/BlackWashFade.h>
 #include <Poco/Net/NetException.h>
+#include <filesystem>
+#include <fstream>
 
 #include "bnOverworldOnlineArea.h"
 #include "../bnXmasBackground.h"
@@ -442,18 +444,6 @@ void Overworld::OnlineArea::sendAssetsFound() {
   }
 }
 
-void Overworld::OnlineArea::sendTextureStreamHeaders(uint16_t width, uint16_t height) {
-  ClientEvents event{ ClientEvents::texture_stream };
-  uint16_t size = sizeof(uint16_t) * 2;
-
-  Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char*)&event, sizeof(ClientEvents));
-  buffer.append((char*)&size, sizeof(uint16_t));
-  buffer.append((char*)&width, sizeof(uint16_t));
-  buffer.append((char*)&height, sizeof(uint16_t));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
-}
-
 void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size) {
   size_t remainingBytes = size;
 
@@ -546,19 +536,41 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
 void Overworld::OnlineArea::sendAvatarAssetStream() {
   auto& naviMeta = NAVIS.At(GetCurrentNavi());
 
-  // send texture
-  auto naviImage = Textures().LoadTextureFromFile(naviMeta.GetOverworldTexturePath())->copyToImage();
-  auto textureDimensions = naviImage.getSize();
+  // get texture data
+  auto texturePath = naviMeta.GetOverworldTexturePath();
+  size_t textureLength;
+  std::vector<char> textureData;
 
-  size_t textureSize = textureDimensions.x * textureDimensions.y * 4;
-  const char* textureData = (const char*)naviImage.getPixelsPtr();
+  try {
+    textureLength = std::filesystem::file_size(texturePath);;
+  }
+  catch (std::filesystem::filesystem_error& e) {
+    Logger::Logf("Failed to read avatar texture \"%s\": %s", texturePath.c_str(), e.what());
+    return;
+  }
 
-  std::string animationData = FileUtil::Read(naviMeta.GetOverworldAnimationPath());
+  try {
+    std::ifstream fin(texturePath, std::ios::binary);
 
+    // prevents newlines from being skipped
+    fin.unsetf(std::ios::skipws);
+
+    textureData.reserve(textureLength);
+    textureData.insert(textureData.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
+  }
+  catch (std::ifstream::failure& e) {
+    Logger::Logf("Failed to read avatar texture \"%s\": %s", texturePath.c_str(), e.what());
+    return;
+  }
+
+    // get animation data
+  auto animationPath = naviMeta.GetOverworldAnimationPath();
+  std::string animationData = FileUtil::Read(animationPath);
+
+  // send data
   // + reliability type + id + packet type
   auto packetHeaderSize = 1 + 8 + 2;
-  sendTextureStreamHeaders(textureDimensions.x, textureDimensions.y);
-  sendAssetStreamSignal(ClientEvents::texture_stream, packetHeaderSize, textureData, textureSize);
+  sendAssetStreamSignal(ClientEvents::texture_stream, packetHeaderSize, textureData.data(), textureLength);
   sendAssetStreamSignal(ClientEvents::animation_stream, packetHeaderSize, animationData.c_str(), animationData.length());
 }
 
@@ -668,22 +680,6 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
   case AssetType::audio:
     serverAssetManager.SetAudio(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
     break;
-  case AssetType::sfml_image:
-  {
-    if (assetBuffer.size() < sizeof(uint16_t) * 2) {
-      break;
-    }
-    auto width = assetReader.Read<uint16_t>(assetBuffer);
-    auto height = assetReader.Read<uint16_t>(assetBuffer);
-
-    sf::Image image;
-    image.create(width, height, (const sf::Uint8*)assetBuffer.begin() + assetReader.GetOffset());
-
-    auto texture = std::make_shared<sf::Texture>();
-    texture->loadFromImage(image);
-    serverAssetManager.SetTextureDirect(name, texture);
-    break;
-  }
   }
 
   assetBuffer.setCapacity(0);
@@ -729,8 +725,8 @@ void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const 
   auto& map = GetMap();
   auto tileSize = map.GetTileSize();
 
-  auto x = reader.Read<float>(buffer)* tileSize.x / 2.0f;
-  auto y = reader.Read<float>(buffer)* tileSize.y;
+  auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  auto y = reader.Read<float>(buffer) * tileSize.y;
   auto z = reader.Read<float>(buffer);
 
   auto position = sf::Vector2f(x, y);
@@ -747,8 +743,8 @@ void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const
   auto& map = GetMap();
   auto tileSize = map.GetTileSize();
 
-  auto x = reader.Read<float>(buffer)* tileSize.x / 2.0f;
-  auto y = reader.Read<float>(buffer)* tileSize.y;
+  auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  auto y = reader.Read<float>(buffer) * tileSize.y;
   auto z = reader.Read<float>(buffer);
 
   auto position = sf::Vector2f(x, y);
@@ -769,8 +765,8 @@ void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::
 
   auto tileSize = GetMap().GetTileSize();
   auto position = sf::Vector2f(
-     x * tileSize.x / 2.0f,
-     y * tileSize.y
+    x * tileSize.x / 2.0f,
+    y * tileSize.y
   );
 
   auto z = reader.Read<float>(buffer);
