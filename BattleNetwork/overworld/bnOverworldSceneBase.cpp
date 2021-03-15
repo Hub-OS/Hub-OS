@@ -73,7 +73,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   webAccountAnimator.SetAnimation("NO_CONNECTION");
 
   // Draws the scrolling background
-  SetBackground(new LanBackground);
+  SetBackground(std::make_shared<LanBackground>());
 
   personalMenu.setScale(2.f, 2.f);
   emote.setScale(2.f, 2.f);
@@ -577,37 +577,37 @@ void Overworld::SceneBase::LoadBackground(const std::string& value)
   });
 
   if (str == "undernet") {
-    SetBackground(new UndernetBackground);
+    SetBackground(std::make_shared<UndernetBackground>());
   }
   else if (str == "robot") {
-    SetBackground(new RobotBackground);
+    SetBackground(std::make_shared<RobotBackground>());
   }
   else if (str == "misc") {
-    SetBackground(new MiscBackground);
+    SetBackground(std::make_shared<MiscBackground>());
   }
   else if (str == "grave") {
-    SetBackground(new GraveyardBackground);
+    SetBackground(std::make_shared<GraveyardBackground>());
   }
   else if (str == "weather") {
-    SetBackground(new WeatherBackground);
+    SetBackground(std::make_shared<WeatherBackground>());
   }
   else if (str == "medical") {
-    SetBackground(new MedicalBackground);
+    SetBackground(std::make_shared<MedicalBackground>());
   }
   else if (str == "acdc") {
-    SetBackground(new ACDCBackground);
+    SetBackground(std::make_shared<ACDCBackground>());
   }
   else if (str == "virus") {
-    SetBackground(new VirusBackground);
+    SetBackground(std::make_shared<VirusBackground>());
   }
   else if (str == "judge") {
-    SetBackground(new JudgeTreeBackground);
+    SetBackground(std::make_shared<JudgeTreeBackground>());
   }
   else if (str == "secret") {
-    SetBackground(new SecretBackground);
+    SetBackground(std::make_shared<SecretBackground>());
   }
   else {
-    SetBackground(new LanBackground);
+    SetBackground(std::make_shared<LanBackground>());
   }
 
   // TODO: else if (isPNG(value)) { WriteToDisc(".areaname.png.value"); /* should cache too */ }
@@ -1026,13 +1026,8 @@ const bool Overworld::SceneBase::HasTeleportedAway() const
   return teleportedOut;
 }
 
-void Overworld::SceneBase::SetBackground(Background* background)
+void Overworld::SceneBase::SetBackground(const std::shared_ptr<Background>& background)
 {
-  if (this->bg) {
-    delete this->bg;
-    this->bg = nullptr;
-  }
-
   this->bg = background;
 }
 
@@ -1160,7 +1155,7 @@ void Overworld::SceneBase::GotoMobSelect()
   CardFolder* folder = nullptr;
 
   if (folders.GetFolder(0, folder)) {
-    SelectMobScene::Properties props{ currentNavi, *folder, programAdvance, GetBackground()->Clone() };
+    SelectMobScene::Properties props{ currentNavi, *folder, programAdvance, bg };
     using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
     Audio().Play(AudioType::CHIP_DESC);
     getController().push<effect::to<SelectMobScene>>(props);
@@ -1229,7 +1224,7 @@ SelectedNavi& Overworld::SceneBase::GetCurrentNavi()
   return currentNavi;
 }
 
-Background* Overworld::SceneBase::GetBackground()
+std::shared_ptr<Background> Overworld::SceneBase::GetBackground()
 {
   return this->bg;
 }

@@ -68,7 +68,7 @@ namespace Overworld {
     bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
     // Bunch of sprites and their attachments
-    Background* bg{ nullptr }; /*!< Background image pointer */
+    std::shared_ptr<Background> bg{ nullptr }; /*!< Background image pointer */
     Overworld::Map map; /*!< Overworld map */
     std::vector<std::shared_ptr<WorldSprite>> sprites;
 
@@ -177,7 +177,7 @@ namespace Overworld {
     void TeleportUponReturn(const sf::Vector2f& position);
     const bool HasTeleportedAway() const;
 
-    void SetBackground(Background*);
+    void SetBackground(const std::shared_ptr<Background>&);
 
     /**
      * @brief Add a sprite
@@ -273,7 +273,7 @@ namespace Overworld {
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
-    Background* GetBackground();
+    std::shared_ptr<Background> GetBackground();
     Overworld::TextBox& GetTextBox();
     bool IsInputLocked();
     bool IsCameraLocked();

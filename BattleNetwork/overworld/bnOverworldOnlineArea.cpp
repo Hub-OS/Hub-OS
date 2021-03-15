@@ -73,7 +73,7 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, uint16
     Logger::Log(e.message());
   }
 
-  SetBackground(new XmasBackground);
+  SetBackground(std::make_shared<XmasBackground>());
 }
 
 Overworld::OnlineArea::~OnlineArea()

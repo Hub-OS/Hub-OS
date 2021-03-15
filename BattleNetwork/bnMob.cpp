@@ -113,15 +113,11 @@ bool Mob::IsBoss() {
   return isBoss;
 }
 
-void Mob::SetBackground(Background* background) {
-  if (Mob::background) {
-    delete Mob::background;
-  }
-
+void Mob::SetBackground(const std::shared_ptr<Background> background) {
   Mob::background = background;
 }
 
-Background* Mob::GetBackground() {
+std::shared_ptr<Background> Mob::GetBackground() {
   return background;
 }
 

@@ -53,7 +53,7 @@ struct BattleSceneBaseProps {
   PA& programAdvance;
   CardFolder* folder{ nullptr };
   Field* field{ nullptr };
-  Background* background{ nullptr };
+  std::shared_ptr<Background> background{ nullptr };
 };
 
 /**
@@ -97,7 +97,7 @@ private:
   Field* field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
   Player* player{ nullptr }; /*!< Pointer to player's selected character */
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
-  Background* background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
+  std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   Font mobFont; /*!< Name of mob font */
   std::vector<SceneNode*> scenenodes; /*!< Scene node system */
