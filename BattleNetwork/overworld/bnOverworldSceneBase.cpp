@@ -19,6 +19,7 @@
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
 #include "../bnCardFolderCollection.h"
+#include "../bnCustomBackground.h"
 #include "../bnLanBackground.h"
 #include "../bnACDCBackground.h"
 #include "../bnGraveyardBackground.h"
@@ -569,48 +570,51 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
   }
 }
 
-void Overworld::SceneBase::LoadBackground(const std::string& value)
+void Overworld::SceneBase::LoadBackground(const Map& map, const std::string& value)
 {
-  std::string str = value;
-  std::transform(str.begin(), str.end(), str.begin(), [](auto in) {
-    return std::tolower(in);
-  });
+  if (value == "custom") {
+    const auto& texture = GetTexture(map.GetBackgroundCustomTexturePath());
+    const auto& animationData = GetText(map.GetBackgroundCustomAnimationPath());
+    const auto& velocity = map.GetBackgroundCustomVelocity();
 
-  if (str == "undernet") {
+    Animation animation;
+    animation.LoadWithData(animationData);
+
+    SetBackground(std::make_shared<CustomBackground>(texture, animation, velocity));
+  }
+  else if (value == "undernet") {
     SetBackground(std::make_shared<UndernetBackground>());
   }
-  else if (str == "robot") {
+  else if (value == "robot") {
     SetBackground(std::make_shared<RobotBackground>());
   }
-  else if (str == "misc") {
+  else if (value == "misc") {
     SetBackground(std::make_shared<MiscBackground>());
   }
-  else if (str == "grave") {
+  else if (value == "grave") {
     SetBackground(std::make_shared<GraveyardBackground>());
   }
-  else if (str == "weather") {
+  else if (value == "weather") {
     SetBackground(std::make_shared<WeatherBackground>());
   }
-  else if (str == "medical") {
+  else if (value == "medical") {
     SetBackground(std::make_shared<MedicalBackground>());
   }
-  else if (str == "acdc") {
+  else if (value == "acdc") {
     SetBackground(std::make_shared<ACDCBackground>());
   }
-  else if (str == "virus") {
+  else if (value == "virus") {
     SetBackground(std::make_shared<VirusBackground>());
   }
-  else if (str == "judge") {
+  else if (value == "judge") {
     SetBackground(std::make_shared<JudgeTreeBackground>());
   }
-  else if (str == "secret") {
+  else if (value == "secret") {
     SetBackground(std::make_shared<SecretBackground>());
   }
   else {
     SetBackground(std::make_shared<LanBackground>());
   }
-
-  // TODO: else if (isPNG(value)) { WriteToDisc(".areaname.png.value"); /* should cache too */ }
 }
 
 std::string Overworld::SceneBase::GetText(const std::string& path) {
@@ -672,7 +676,29 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     auto propertyValue = propertyElement.GetAttribute("value");
 
     if (propertyName == "Background") {
+      std::transform(propertyValue.begin(), propertyValue.end(), propertyValue.begin(), [](auto in) {
+        return std::tolower(in);
+      });
+
       map.SetBackgroundName(propertyValue);
+    }
+    else if (propertyName == "Background Texture") {
+      map.SetBackgroundCustomTexturePath(propertyValue);
+    }
+    else if (propertyName == "Background Animation") {
+      map.SetBackgroundCustomAnimationPath(propertyValue);
+    }
+    else if (propertyName == "Background Vel X") {
+      auto velocity = map.GetBackgroundCustomVelocity();
+      velocity.x = propertyElement.GetAttributeFloat("value");
+
+      map.SetBackgroundCustomVelocity(velocity);
+    }
+    else if (propertyName == "Background Vel Y") {
+      auto velocity = map.GetBackgroundCustomVelocity();
+      velocity.y = propertyElement.GetAttributeFloat("value");
+
+      map.SetBackgroundCustomVelocity(velocity);
     }
     else if (propertyName == "Name") {
       map.SetName(propertyValue);
@@ -802,9 +828,16 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     }
   }
 
+  bool backgroundDiffers = map.GetBackgroundName() != this->map.GetBackgroundName() || (
+    map.GetBackgroundName() == "custom" && (
+      map.GetBackgroundCustomTexturePath() != this->map.GetBackgroundCustomTexturePath() ||
+      map.GetBackgroundCustomAnimationPath() != this->map.GetBackgroundCustomAnimationPath() ||
+      map.GetBackgroundCustomVelocity() != this->map.GetBackgroundCustomVelocity()
+      )
+    );
 
-  if (map.GetBackgroundName() != this->map.GetBackgroundName()) {
-    LoadBackground(map.GetBackgroundName());
+  if (backgroundDiffers) {
+    LoadBackground(map, map.GetBackgroundName());
   }
 
   if (map.GetSongPath() != this->map.GetSongPath()) {

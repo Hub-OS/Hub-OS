@@ -92,7 +92,7 @@ namespace Overworld {
     std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(const XMLElement& tilesetElement, const Overworld::Tileset& tileset);
     void HandleCamera(float elapsed);
     void HandleInput();
-    void LoadBackground(const std::string& value);
+    void LoadBackground(const Map& map, const std::string& value);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
     void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);
     void DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const;

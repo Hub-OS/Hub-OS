@@ -77,6 +77,21 @@ namespace Overworld {
     return backgroundName;
   }
 
+  const std::string& Map::GetBackgroundCustomTexturePath() const
+  {
+    return backgroundCustomTexturePath;
+  }
+
+  const std::string& Map::GetBackgroundCustomAnimationPath() const
+  {
+    return backgroundCustomAnimationPath;
+  }
+
+  sf::Vector2f Map::GetBackgroundCustomVelocity() const
+  {
+    return backgroundCustomVelocity;
+  }
+
   const std::string& Map::GetSongPath() const
   {
     return songPath;
@@ -90,6 +105,23 @@ namespace Overworld {
   void Map::SetBackgroundName(const std::string& name)
   {
     backgroundName = name;
+  }
+
+  void Map::SetBackgroundCustomTexturePath(const std::string& path) {
+    backgroundCustomTexturePath = path;
+  }
+
+  void Map::SetBackgroundCustomAnimationPath(const std::string& path) {
+    backgroundCustomAnimationPath = path;
+  }
+
+  void Map::SetBackgroundCustomVelocity(float x, float y) {
+    backgroundCustomVelocity.x = x;
+    backgroundCustomVelocity.y = y;
+  }
+
+  void Map::SetBackgroundCustomVelocity(sf::Vector2f velocity) {
+    backgroundCustomVelocity = velocity;
   }
 
   void Map::SetSongPath(const std::string& path)

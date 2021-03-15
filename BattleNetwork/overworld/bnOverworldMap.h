@@ -105,9 +105,16 @@ namespace Overworld {
 
     const std::string& GetName() const;
     const std::string& GetBackgroundName() const;
+    const std::string& GetBackgroundCustomTexturePath() const;
+    const std::string& GetBackgroundCustomAnimationPath() const;
+    sf::Vector2f GetBackgroundCustomVelocity() const;
     const std::string& GetSongPath() const;
     void SetName(const std::string& name);
     void SetBackgroundName(const std::string& name);
+    void SetBackgroundCustomTexturePath(const std::string& path);
+    void SetBackgroundCustomAnimationPath(const std::string& path);
+    void SetBackgroundCustomVelocity(float x, float y);
+    void SetBackgroundCustomVelocity(sf::Vector2f velocity);
     void SetSongPath(const std::string& path);
     const unsigned GetCols() const;
     const unsigned GetRows() const;
@@ -125,7 +132,8 @@ namespace Overworld {
   protected:
     unsigned cols{}, rows{}; /*!< map is made out of Cols x Rows tiles */
     int tileWidth{}, tileHeight{}; /*!< tile dimensions */
-    std::string name, backgroundName, songPath;
+    std::string name, backgroundName, backgroundCustomTexturePath, backgroundCustomAnimationPath, songPath;
+    sf::Vector2f backgroundCustomVelocity;
     std::vector<Layer> layers;
     std::vector<std::shared_ptr<Tileset>> tileToTilesetMap;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> tilesets;
