@@ -14,7 +14,4 @@ public:
   virtual void OnDelete() = 0;
   void Update(double _elapsed) override final;
   void AdoptTile(Battle::Tile* tile) override final;
-
-  void QueueAction(const ActionEvent& action) override;
-  void EndCurrentAction() override;
 };

@@ -47,13 +47,4 @@ const bool Obstacle::WillIgnoreCommonAggressor() const
   return ignoreCommonAggressor;
 }
 
-void Obstacle::QueueAction(const ActionEvent& action)
-{
-  actionQueue.push(action);
-}
-
-void Obstacle::EndCurrentAction()
-{
-}
-
 

@@ -21,6 +21,16 @@ class DefenseRule;
 class Spell;
 class CardAction;
 
+struct CardEvent {
+  CardAction* action{ nullptr };
+
+  struct Deleter {
+    void operator()(const CardEvent& in) {
+      delete in.action;
+    }
+  };
+};
+
 constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
 
 /**
@@ -36,8 +46,8 @@ protected:
   using StatusCallback = std::function<void()>;
 
 private:
-  bool canShareTile; /*!< Some characters can share tiles with others */
-  bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
+  bool canShareTile{}; /*!< Some characters can share tiles with others */
+  bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
   std::vector<Character*> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
   std::vector<Component::ID_t> attacks;
@@ -48,11 +58,12 @@ private:
   // This continues until all statuses are processed
   std::queue<Hit::Properties> statusQueue;
 
-  sf::Shader* whiteout; /*!< Flash white when hit */
-  sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
+  sf::Shader* whiteout{ nullptr }; /*!< Flash white when hit */
+  sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
+  CardAction* currCardAction{ nullptr };
   frame_time_t cardActionStartDelay{0};
 
-  bool hit; /*!< Was hit this frame */
+  bool hit{}; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
 public:
 
@@ -232,14 +243,13 @@ public:
   */
   void CancelSharedHitboxDamage(Character* to);
 
-  void QueueAction(const ActionEvent& action) override;
-  void EndCurrentAction() override;
-  virtual void OnMoveEvent(const MoveEvent& event) = 0;
+  void AddAction(const CardEvent& event, const ActionOrder& order);
+  void HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec);
 
 private:
   int maxHealth{ std::numeric_limits<int>::max() };
-  sf::Vector2f counterSlideOffset; /*!< Used when enemies delete on counter - they slide back */
-  float counterSlideDelta;
+  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
+  float counterSlideDelta{};
 
 protected:
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);

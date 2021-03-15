@@ -375,4 +375,13 @@ namespace Battle {
 
     return false;
   }
+
+  // handles pointer to tiles and will return nullptr if lhs is null
+  static Tile* operator+(Tile* lhs, Direction rhs) {
+    if (lhs) {
+      return *lhs + rhs;
+    }
+
+    return nullptr;
+  }
 }

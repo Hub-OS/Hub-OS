@@ -29,13 +29,3 @@ void Artifact::AdoptTile(Battle::Tile * tile)
     setPosition(tile->getPosition());
   }
 }
-
-void Artifact::QueueAction(const ActionEvent& action)
-{
-  actionQueue.push(action);
-}
-
-void Artifact::EndCurrentAction()
-{
-}
-

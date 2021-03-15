@@ -34,6 +34,16 @@ struct PlayerStats {
   Element element{Element::none};
 };
 
+struct BusterEvent {
+  frame_time_t deltaFrames{}; //!< e.g. how long it animates
+  frame_time_t endlagFrames{}; //!< Wait period after completition
+
+  // Default is false which is shoot-then-move
+  bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
+
+  CardAction* action{ nullptr };
+};
+
 class Player : public Character, public AI<Player> {
 private:
   friend class PlayerControlledState;
@@ -74,6 +84,8 @@ public:
   void Attack();
 
   void UseSpecial();
+
+  void HandleBusterEvent(const BusterEvent& event, const ActionQueue::ExecutionType& exec);
 
   /**
    * @brief when player is deleted, changes state to delete state and hide charge component

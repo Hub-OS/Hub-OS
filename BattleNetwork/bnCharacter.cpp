@@ -35,6 +35,10 @@ Character::Character(Rank _rank) :
 
   whiteout = Shaders().GetShader(ShaderType::WHITE);
   stun = Shaders().GetShader(ShaderType::YELLOW);
+
+  using namespace std::placeholders;
+  auto handler = std::bind(&Character::HandleCardEvent, this, _1, _2);
+  actionQueue.RegisterType<CardEvent, CardEvent::Deleter>(ActionTypes::chip, handler);
 }
 
 Character::~Character() {
@@ -78,29 +82,10 @@ const bool Character::CanTilePush() const {
 
 const bool Character::IsLockoutComplete()
 {
-  if (actionQueue.empty()) return true;
+  if (currCardAction)
+    return currCardAction->IsLockoutOver();
 
-  bool isComplete = true;
-
-  std::visit(
-    overload(
-      [&isComplete](CardAction* action) {
-        if (action->GetLockoutType() == CardAction::LockoutType::async && !action->IsAnimationOver()) {
-          isComplete = false;
-        }
-        else if (action->GetLockoutType() == CardAction::LockoutType::animation) {
-          isComplete = action->IsLockoutOver();
-        }
-      },
-      [&isComplete](const MoveEvent& event) {
-        isComplete = false;
-      },
-      [](auto&&) {}
-    ),
-    actionQueue.top().data
-  );
-
-  return isComplete;
+  return false;
 }
 
 void Character::Update(double _elapsed) {
@@ -161,47 +146,29 @@ void Character::Update(double _elapsed) {
 
   Entity::Update(_elapsed);
 
-  auto cardActionVisitor = [_elapsed, this](CardAction* action) {
-    if (action->CanExecute()) {
+  // If we have an attack from the action queue...
+  if (currCardAction) {
+
+    // if we have yet to invoke this attack...
+    if (currCardAction->CanExecute()) {
+
+      // reduce the artificial delay
       cardActionStartDelay -= from_seconds(_elapsed);
 
+      // execute when delay is over
       if (this->cardActionStartDelay <= frames(0)) {
-        action->Execute();
-      }
-      else {
-        return; // break early
+        currCardAction->Execute();
       }
     }
 
-    action->Update(_elapsed);
+    // update will exit early if not executed (configured) 
+    currCardAction->Update(_elapsed);
 
-    if (action->IsAnimationOver()) {
-      actionQueue.pop();
-    }
-  };
-
-  auto moveEventVisitor = [_elapsed, this](const MoveEvent& event) {
-    Entity::HandleMoveEvent(event);
-    OnMoveEvent(event);
-    actionQueue.pop();
-  };
-
-  auto busterEventVisitor = [_elapsed, this](const BusterEvent& event) {
-    actionQueue.pop();
-  };
-
-  auto elseVisitor = [](auto&&) {};
-
-  if (actionQueue.size()) {
-    ActionEvent top = actionQueue.top();
-    actionQueue.pop();
-    std::visit(overload(cardActionVisitor, moveEventVisitor, busterEventVisitor, elseVisitor),
-      top.data
-    );
-
-    ActionQueue nextQueue;
-    while (actionQueue.size()) {
-
+    // once the animation is complete, 
+    // cleanup the attack and pop the action queue
+    if (currCardAction->IsAnimationOver()) {
+      currCardAction->EndAction();
+      actionQueue.Pop();
     }
   }
 
@@ -316,7 +283,7 @@ const int Character::GetMaxHealth() const
 
 const bool Character::CanAttack() const
 {
-  return !IsSliding() && actionQueue.empty();
+  return !IsSliding() && !currCardAction;
 }
 
 void Character::ResolveFrameBattleDamage()
@@ -537,21 +504,7 @@ void Character::OnUpdate(double elapsed)
 
 CardAction* Character::CurrentCardAction()
 {
-    CardAction* action = nullptr;
-
-    if (actionQueue.size()) {
-      std::visit(
-        overload(
-          [&action](CardAction* item) {
-            action = item;
-          },
-          [](auto&&) {}
-        ),
-        actionQueue.top().data
-      );
-    }
-
-    return action;
+  return currCardAction;
 }
 
 void Character::SetHealth(const int _health) {
@@ -654,37 +607,20 @@ void Character::CancelSharedHitboxDamage(Character * to)
     shareHit.erase(iter);
 }
 
-void Character::QueueAction(const ActionEvent& action)
+void Character::AddAction(const CardEvent& event, const ActionOrder& order)
 {
-  std::visit(overload(
-      // if visiting a card action...
-      [this](CardAction*) {
-        this->cardActionStartDelay = CARD_ACTION_ARTIFICIAL_LAG;
-      },
-      // else
-      [](auto&&) {}
-    ),
-    action.data
-  );
-
-  actionQueue.push(action);
+  actionQueue.Add(event, order, ActionDiscardOp::until_resolve);
 }
 
-void Character::EndCurrentAction()
+void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec)
 {
-  if (actionQueue.empty()) return;
+  if (currCardAction == nullptr) {
+    currCardAction = event.action;
+  }
 
-  bool deleted = false;
-
-  std::visit(
-    overload(
-      [&deleted](CardAction* action) { action->EndAction();  delete action; deleted = true; },
-      [](auto&&) {}
-    ),
-    actionQueue.top().data
-  );
-
-  if (deleted) {
-    actionQueue.pop();
+  if (exec == ActionQueue::ExecutionType::interrupt) {
+    currCardAction->EndAction();
+    delete currCardAction;
+    currCardAction = nullptr;
   }
 }

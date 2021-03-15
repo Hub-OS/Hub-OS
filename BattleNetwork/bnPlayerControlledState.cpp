@@ -110,11 +110,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
 
-  // TODO: this is a dumb hack, take this out
-  if (player.PlayerControllerSlideEnabled()) {
-    player.SlideToTile(true);
-  }
-
   replicator? replicator->SendMoveSignal(direction) : (void(0));
 
   if(player.Teleport(player.GetTile() + direction)) {

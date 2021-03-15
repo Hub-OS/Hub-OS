@@ -39,6 +39,37 @@ namespace Battle {
 class Field;
 class BattleSceneBase; // forward decl
 
+struct MoveEvent {
+  frame_time_t deltaFrames{}; //!< Frames between tile A and B. If 0, teleport. Else, we could be sliding
+  frame_time_t delayFrames{}; //!< Startup lag to be used with animations
+  frame_time_t endlagFrames{}; //!< Wait period before action is complete
+  float height{}; //!< If this is non-zero with delta frames, the character will effectively jump
+  Battle::Tile* dest{ nullptr };
+
+  //!< helper function true if jumping
+  inline bool IsJumping() const {
+    return dest && height > 0.f && deltaFrames > frames(0);
+  }
+
+  //!< helper function true if sliding
+  inline bool IsSliding() const {
+    return dest && deltaFrames > frames(0) && height <= 0.0f;
+  }
+
+  //!< helper function true if normal moving
+  inline bool IsTeleporting() const {
+    return dest && deltaFrames == frames(0) && (+height) == 0.0f;
+  }
+};
+
+struct BusterEvent {
+  frame_time_t deltaFrames{}; //!< e.g. how long it animates
+  frame_time_t endlagFrames{}; //!< Wait period after completition
+
+  // Default is false which is shoot-then-move
+  bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
+};
+
 struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
 };
@@ -126,6 +157,8 @@ public:
   bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag = frames(0));
   bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag = frames(0));
   void FinishMove();
+  void HandleMoveEvent(const MoveEvent& event, const ActionQueue::ExecutionType& exec);
+  void ClearActionQueue();
 
   /**
    * @brief Virtual. Queries if an entity can move to a target tile.
@@ -422,10 +455,6 @@ public:
 
   virtual void SetHeight(const float height);
 
-  virtual void QueueAction(const ActionEvent& action) = 0;
-  virtual void EndCurrentAction() = 0;
-  void ClearActionQueue();
-
 protected:
   Battle::Tile* tile{ nullptr }; /**< Current tile pointer */
   Battle::Tile* previous{ nullptr }; /**< Entities retain a previous pointer in case they need to be moved back */
@@ -453,7 +482,6 @@ protected:
   std::vector<RemoveCallback> removeCallbacks;
 
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
-  void HandleMoveEvent(const MoveEvent& event);
   void SetMoveEndlag(const frame_time_t& frames);
   void SetMoveStartupDelay(const frame_time_t& frames);
 

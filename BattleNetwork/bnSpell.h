@@ -85,10 +85,6 @@ public:
 
   void SetHeight(double height);
 
-  void QueueAction(const ActionEvent& action) override;
-
-  void EndCurrentAction() override;
-
 protected:
   Battle::Tile::Highlight mode; /*!< Highlight occupying tile */
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */

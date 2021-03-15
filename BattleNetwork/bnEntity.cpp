@@ -21,6 +21,10 @@ Entity::Entity() :
   channel(nullptr)
 {
   ID = ++Entity::numOfIDs;
+
+  using namespace std::placeholders;
+  auto handler = std::bind(&Entity::HandleMoveEvent, this, _1, _2);
+  actionQueue.RegisterType<MoveEvent>(ActionTypes::movement, handler);
 }
 
 Entity::~Entity() {
@@ -114,7 +118,7 @@ void Entity::UpdateMovement(double elapsed)
     // When delta is 1.0, the slide duration is complete
     if (delta == 1.0f)
     {
-      currMoveEvent = {};
+      actionQueue.Pop();
       Battle::Tile* prevTile = GetTile();
       tileOffset = { 0, 0 };
 
@@ -206,6 +210,9 @@ const bool Entity::IsSuperEffective(Element _other) const {
 void Entity::Update(double _elapsed) {
   isUpdating = true;
 
+  actionQueue.Process();
+  UpdateMovement(_elapsed);
+
   // Update all components
   auto iter = components.begin();
 
@@ -228,7 +235,6 @@ void Entity::Update(double _elapsed) {
   }
 
   ReleaseComponentsPendingRemoval();
-  UpdateMovement(_elapsed);
   InsertComponentsPendingRegistration();
   ClearPendingComponents();
 
@@ -273,10 +279,8 @@ bool Entity::Jump(Direction dir, float destHeight, const frame_time_t& jumpTime,
 
 bool Entity::Teleport(Battle::Tile* dest) {
   if (dest && CanMoveTo(dest)) {
-    QueueAction({
-      ActionPriority::voluntary,
-      MoveEvent{0, moveStartupDelay, moveEndlagDelay, 0, dest }
-      });
+    MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest };
+    actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
 
     return true;
   }
@@ -287,10 +291,8 @@ bool Entity::Teleport(Battle::Tile* dest) {
 bool Entity::Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag)
 {
   if (dest && CanMoveTo(dest)) {
-    QueueAction({
-      ActionPriority::voluntary,
-      MoveEvent{slideTime, moveStartupDelay, moveEndlagDelay, 0, dest }
-      });
+    MoveEvent event = { slideTime, moveStartupDelay, moveEndlagDelay, 0, dest };
+    actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
 
     return true;
   }
@@ -303,10 +305,8 @@ bool Entity::Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jump
   destHeight = std::min(destHeight, 0.f); // no negative jumps
 
   if (dest && CanMoveTo(dest)) {
-    QueueAction({
-      ActionPriority::voluntary,
-      MoveEvent{jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest }
-      });
+    MoveEvent event = { jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest };
+    actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
 
     return true;
   }
@@ -320,6 +320,21 @@ void Entity::FinishMove()
   if (currMoveEvent.dest) {
     AdoptNextTile();
     currMoveEvent = {};
+    actionQueue.ClearFilters();
+  }
+}
+
+void Entity::HandleMoveEvent(const MoveEvent& event, const ActionQueue::ExecutionType& exec)
+{
+  if (currMoveEvent.dest == nullptr) {
+    currMoveEvent = event;
+    moveEventFrame = this->frame;
+
+    actionQueue.CreateDiscardFilter(ActionTypes::buster, ActionDiscardOp::until_resolve);
+  }
+
+  if (exec == ActionQueue::ExecutionType::interrupt) {
+    FinishMove();
   }
 }
 
@@ -622,12 +637,6 @@ const int Entity::GetMoveCount() const
     return moveCount;
 }
 
-void Entity::HandleMoveEvent(const MoveEvent& event)
-{
-  currMoveEvent = event;
-  moveEventFrame = this->frame;
-}
-
 void Entity::SetMoveEndlag(const frame_time_t& frames)
 {
   moveEndlagDelay = frames;
@@ -640,9 +649,5 @@ void Entity::SetMoveStartupDelay(const frame_time_t& frames)
 
 void Entity::ClearActionQueue()
 {
-  EndCurrentAction();
-
-  while (actionQueue.size()) {
-    actionQueue.pop();
-  }
+  actionQueue.ClearQueue();
 }

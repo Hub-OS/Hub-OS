@@ -84,7 +84,9 @@ void Animation::Reload() {
     }
     else if (line.find("blank") != string::npos) {
       string duration = ValueOf("duration", line);
-      float currentFrameDuration = (float)atof(duration.c_str());
+
+      // prevent negative frame numbers
+      float currentFrameDuration = static_cast<float>(std::fabs(atof(duration.c_str())));
 
       frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect{}, sf::Vector2f{ 0, 0 }, false, false);
     }

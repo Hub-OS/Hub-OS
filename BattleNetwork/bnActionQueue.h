@@ -1,105 +1,179 @@
 #pragma once
 #include "frame_time_t.h"
 #include <vector>
-#include <queue>
-#include <variant>
+#include <iostream>
+#include <limits>
+#include <functional>
+#include <memory>
+#include <map>
 #include <any>
 
-class CardAction;
-
-namespace Battle {
-  class Tile;
-}
-
-enum class ActionPriority : short {
+enum class ActionOrder : short {
   immediate = 0,
-  card_chain = 1, // !< For cards used in successive animations under special conditions
-  trigger = 2,
-  forced,
+  combo,
+  traps,
+  involuntary,
   voluntary
 };
 
-enum class ActionDiscard : short {
-  until_resolve = 0, // these types stay in the queue until resolved
-  until_eof // at the end of frame, discard these matching types
+enum class ActionTypes : short {
+  none = 0, // indicates empty queue
+  special,
+  buster,
+  chip,
+  movement
 };
 
-struct MoveEvent {
-  frame_time_t deltaFrames{}; //!< Frames between tile A and B. If 0, teleport. Else, we could be sliding
-  frame_time_t delayFrames{}; //!< Startup lag to be used with animations
-  frame_time_t endlagFrames{}; //!< Wait period before action is complete
-  float height{}; //!< If this is non-zero with delta frames, the character will effectively jump
-  Battle::Tile* dest{ nullptr };
-
-  bool IsJumping() const {
-    return dest && height > 0.f && deltaFrames > frames(0);
-  }
-
-  bool IsSliding() const {
-    return dest && deltaFrames > frames(0) && height <= 0.0f;
-  }
-
-  bool IsTeleporting() const {
-    return dest && deltaFrames == frames(0) && (+height) == 0.0f;
-  }
+enum class ActionDiscardOp : short {
+  until_resolve = 0, // stay in queue until resolved
+  until_eof          // stay in queue until End Of Frame
 };
 
-struct BusterEvent {
-  frame_time_t deltaFrames{}; //!< e.g. how long it animates
-  frame_time_t endlagFrames{}; //!< Wait period after completition
+namespace Battle {
+  class Tile; // forward decl
+}
 
-  // Default is false which is shoot-then-move
-  bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
+template<typename T>
+struct Queue {
+  std::vector<T> list;
 };
 
-struct ActionEvent {
-  ActionPriority value{};
-  std::variant<MoveEvent, BusterEvent, CardAction*> data;
-  ActionDiscard discardType{};
+class ActionQueue {
+public:
+  struct Index {
+    ActionTypes type{};
+    ActionOrder order{};
+    ActionDiscardOp discardOp{};
+    size_t index{}; // index of the Queue<> in the ActionQueue::types hash
+    bool processing{}; // whether or not this action is being processed
+  };
+
+  enum class ExecutionType : short {
+    reserve = 0,
+    process,
+    interrupt
+  };
+
+private:
+  friend std::ostream& operator<<(std::ostream& os, const ActionQueue::Index& index);
+  friend std::ostream& operator<<(std::ostream& os, const ActionQueue& queue);
+
+  bool clearFilters{ false };
+  bool toggleInterval{ false };
+  std::map<ActionTypes, std::function<void(const ExecutionType&)>> handlers;
+  std::map<ActionTypes, std::function<void(size_t)>> poppers;
+  std::map<std::string, ActionTypes> type2Action;
+  std::map<ActionTypes, std::any> types;
+  std::map<ActionTypes, ActionDiscardOp> discardFilters;
+  std::map<ActionOrder, ActionOrder> priorityFilters;
+  std::vector<Index> indices;
+
+public:
+  ~ActionQueue();
+  ActionOrder ApplyPriorityFilter(const ActionOrder& in);
+  ActionTypes TopType();
+  Index ApplyDiscardFilter(const Index& in);
+  bool IsProcessing(const Index& in);
+  void CreatePriorityFilter(const ActionOrder& target, const ActionOrder& newOrder);
+  void CreateDiscardFilter(const ActionTypes& type, const ActionDiscardOp& newOp);
+  void ClearFilters();
+  void Sort();
+  void Process();
+  void Pop();
+  void ClearQueue();
+
+  template<typename T>
+  struct NoDeleter {
+    void operator()(const T&) {};
+  };
+
+  template<typename Key, typename DeleterFunc = NoDeleter<Key>, typename Func>
+  void RegisterType(ActionTypes type, const Func& func);
+
+  template<typename Y>
+  void Add(const Y& in, ActionOrder priority, ActionDiscardOp discard);
 };
 
-// TODO: create bnActionQueue.cpp and put function impl there so I can include CardAction headers...
-struct ActionComparitor {
-  bool operator()(const ActionEvent& a, const ActionEvent& b) {
-    if (a.value < b.value) {
-      return true;
+template<typename Key, typename DeleterFunc, typename Func>
+void ActionQueue::RegisterType(ActionTypes type, const Func& func) {
+  if (type == ActionTypes::none) return;
+
+  types.insert(std::make_pair(type, std::make_shared<Queue<Key>>()));
+  type2Action.insert(std::make_pair(typeid(Key).name(), type));
+
+  auto invoker = [=](const ExecutionType& exec) {
+    // ExecutionType::reserve
+    auto queue = std::any_cast<std::shared_ptr<Queue<Key>>>(types[type]);
+    Index& idx = indices[0];
+    idx.processing = true;
+
+    if (exec >= ExecutionType::process) {
+      func(queue->list[idx.index], exec);
     }
-    
-    // else 
-    auto visitor = [](const ActionEvent& event) -> short {
-      short p = std::numeric_limits<short>::max();
+  };
 
-      auto visitBusterEvent = [&p](const BusterEvent&) {
-        p = 1;
-      };
+  handlers.insert(std::make_pair(type, invoker));
 
-      auto visitCardEvent = [&p](const CardAction* action) {
-        p = 2;
-      };
+  auto popper = [=](size_t index) {
+    auto queue = std::any_cast<std::shared_ptr<Queue<Key>>>(types[type]);
 
-      auto visitMoveEvent = [&p](const MoveEvent&) {
-        p = 3;
-      };
+    if (index < queue->list.size()) {
+      DeleterFunc(queue->list[index]);
+      queue->list.erase(queue->list.begin() + index);
+    }
+  };
 
-      std::visit(overload(visitBusterEvent, visitCardEvent, visitMoveEvent), event.data);
+  poppers.insert(std::make_pair(type, popper));
+}
 
-      return p;
-    };
+template<typename Y>
+void ActionQueue::Add(const Y& in, ActionOrder priority, ActionDiscardOp discard) {
+  try {
+    ActionTypes key = type2Action[typeid(Y).name()];
+    auto queue = std::any_cast<std::shared_ptr<Queue<Y>>>(types[key]);
 
-    return visitor(a) < visitor(b);
+    if (queue) {
+      queue->list.push_back(in);
+      indices.push_back(Index{ key, priority, discard, indices.size() });
+      Sort();
+    }
   }
-};
+  catch (std::bad_any_cast& err) {
+    std::cout << "Type " << typeid(Y).name() << " not registered" << std::endl;
+  }
+}
 
-// overload design pattern for variant visits
-template <class... Fs>
-struct overload : Fs... {
-  overload(const Fs&... fs) : Fs{ fs }...
-  {}
+inline std::ostream& operator<<(std::ostream& os, const ActionQueue::Index& index) {
+  std::string type;
 
-  using Fs::operator()...;
-};
+  switch (index.type) {
+  case ActionTypes::none:
+    type = "none";
+    break;
+  case ActionTypes::special:
+    type = "special";
+    break;
+  case ActionTypes::buster:
+    type = "buster";
+    break;
+  case ActionTypes::chip:
+    type = "chip";
+    break;
+  case ActionTypes::movement:
+    type = "movement";
+    break;
+  }
+  os << "(" << type << ", " << index.index << ")";
+  return os;
+}
 
-template <class... Ts>
-overload(Ts&&...)->overload<std::remove_reference_t<Ts>...>;
+inline std::ostream& operator<<(std::ostream& os, const ActionQueue& queue) {
+  os << "[";
+  for (auto& i : queue.indices) {
+    os << i << ", ";
+  }
+  os << "]";
 
-using ActionQueue = std::priority_queue<ActionEvent, std::vector<ActionEvent>, ActionComparitor>;
+  return os;
+}
+

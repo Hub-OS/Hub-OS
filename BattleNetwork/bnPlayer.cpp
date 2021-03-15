@@ -56,6 +56,10 @@ Player::Player() :
   };
 
   this->RegisterStatusCallback(Hit::bubble, Callback<void()>{ bubbleState});
+
+  using namespace std::placeholders;
+  auto handler = std::bind(&Player::HandleBusterEvent, this, _1);
+  actionQueue.RegisterType<BusterEvent>(ActionTypes::buster, handler);
 }
 
 Player::~Player() {
@@ -85,7 +89,8 @@ void Player::Attack() {
     
     if (action) {
       action->PreventCounters();
-      QueueAction({ ActionPriority::voluntary,CurrentTime::AsMilli(), action });
+      BusterEvent event = { frames(0), frames(0), false, action };
+      actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
     }
   }
 }
@@ -96,13 +101,15 @@ void Player::UseSpecial()
     if (auto action = ExecuteSpecial()) {
       action->PreventCounters();
       action->SetLockoutGroup(CardAction::LockoutGroup::ability);
-      QueueAction({
-        ActionPriority::voluntary,
-        CurrentTime::AsMilli(),
-        action
-      });
+      BusterEvent event = { frames(0), frames(0), false, action };
+      actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
     }
   }
+}
+
+void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::ExecutionType& exec)
+{
+  Character::HandleCardEvent({ event.action }, exec);
 }
 
 void Player::OnDelete() {

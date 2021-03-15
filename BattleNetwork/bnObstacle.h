@@ -51,7 +51,4 @@ public:
   * @brief Query if ICA is enabled or not
   */
   const bool WillIgnoreCommonAggressor() const;
-
-  void QueueAction(const ActionEvent& action) override;
-  void EndCurrentAction() override;
 };
