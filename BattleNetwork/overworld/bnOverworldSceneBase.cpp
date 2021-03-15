@@ -690,7 +690,11 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     if (source.find("/server", 0) != 0) {
       // client path
       // todo: hardcoded path oof, this will only be fine if all of our tiles are in this folder
-      source = "resources/ow/tiles" + source.substr(source.rfind('/'));
+      size_t pos = source.rfind('/');
+
+      if (pos != std::string::npos) {
+        source = "resources/ow/tiles" + source.substr(pos);
+      }
     }
 
     XMLElement tilesetElement = parseXML(GetText(source));
