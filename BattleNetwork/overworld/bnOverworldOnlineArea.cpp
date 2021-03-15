@@ -85,7 +85,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 {
   auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
     std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
-  );
+    );
 
   if (timeDifference.count() > MAX_TIMEOUT_SECONDS) {
     leave();
@@ -636,24 +636,23 @@ void Overworld::OnlineArea::sendDialogResponseSignal(char response)
 
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  sendReadySignal();
-  isConnected = true;
+  auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
 
   this->ticket = reader.ReadString(buffer);
+  auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  auto y = reader.Read<float>(buffer) * tileSize.y;
+  auto z = reader.Read<float>(buffer);
 
-  auto& map = GetMap();
-  sf::Vector2f spawnPos;
-
-  for (auto& tileObject : map.GetLayer(0).GetTileObjects()) {
-    if (tileObject.name == "Home Warp") {
-      spawnPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
-    }
-  }
+  auto spawnPos = sf::Vector2f(x, y);
 
   auto& command = GetTeleportController().TeleportIn(GetPlayer(), spawnPos, Direction::up);
   command.onFinish.Slot([=] {
     GetPlayerController().ControlActor(GetPlayer());
   });
+
+  isConnected = true;
+  sendReadySignal();
 }
 
 void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -664,9 +663,10 @@ void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::
   // insert padding to center the text
   auto lengthDifference = (int)kickReason.length() - (int)kickText.length();
 
-  if(lengthDifference > 0) {
+  if (lengthDifference > 0) {
     kickText.insert(kickText.begin(), lengthDifference / 2, ' ');
-  } else {
+  }
+  else {
     kickReason.insert(kickReason.begin(), -lengthDifference / 2, ' ');
   }
 
