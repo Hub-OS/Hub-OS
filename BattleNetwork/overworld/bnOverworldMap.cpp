@@ -171,8 +171,8 @@ namespace Overworld {
     auto tileGid = tileMeta->gid;
 
     if (tileToTilesetMap.size() <= tileGid) {
-      tileToTilesetMap.resize(tileGid + 1);
-      tileMetas.resize(tileGid + 1);
+      tileToTilesetMap.resize(size_t(tileGid + 1u));
+      tileMetas.resize(size_t(tileGid + 1u));
     }
 
     tileMetas[tileGid] = tileMeta;
@@ -292,6 +292,16 @@ namespace Overworld {
   Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
   {
     return SetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)), gid);
+  }
+
+  void Map::Layer::SetVisible(bool enabled)
+  {
+    visible = enabled;
+  }
+
+  const bool Map::Layer::IsVisible() const
+  {
+      return visible;
   }
 
   std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(unsigned int id) {

@@ -43,6 +43,9 @@ namespace Overworld {
       Tile& SetTile(int x, int y, unsigned int gid);
       Tile& SetTile(float x, float y, unsigned int gid);
 
+      void SetVisible(bool enabled);
+      const bool IsVisible() const;
+
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(unsigned int id);
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(const std::string& name);
       const std::vector<TileObject>& GetTileObjects();
@@ -56,7 +59,8 @@ namespace Overworld {
     private:
       Layer(unsigned cols, unsigned rows);
 
-      unsigned cols, rows;
+      bool visible{ true };
+      unsigned cols{}, rows{};
       std::vector<Tile> tiles;
       std::vector<ShapeObject> shapeObjects;
       std::vector<TileObject> tileObjects;

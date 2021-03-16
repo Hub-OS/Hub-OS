@@ -431,6 +431,8 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
 
   auto& layer = map.GetLayer(0);
 
+  if (!layer.IsVisible()) return;
+
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
       auto& tile = layer.GetTile(j, i);
@@ -740,10 +742,12 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     if (layerElements.size() > i) {
       auto& layerElement = layerElements[i];
 
-      auto dataIt = std::find_if(layerElement.children.begin(), layerElement.children.end(), [](XMLElement& el) {return el.name == "data";});
+      layer.SetVisible(layerElement.attributes["visible"] != "0");
 
+      auto dataIt = std::find_if(layerElement.children.begin(), layerElement.children.end(), [](XMLElement& el) {return el.name == "data";});
       if (dataIt == layerElement.children.end()) {
         Logger::Log("Map layer missing data element!");
+        continue;
       }
 
       auto& dataElement = *dataIt;

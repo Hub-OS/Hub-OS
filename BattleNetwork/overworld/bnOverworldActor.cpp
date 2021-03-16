@@ -301,8 +301,8 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   }
 
   auto currPos = getPosition();
-  auto offset = MakeVectorFromDirection(dir, px_per_s);
 
+  auto offset = MakeVectorFromDirection(dir, px_per_s);
   const auto& [first, second] = Split(dir);
 
   // The referenced games did not use isometric coordinates
@@ -318,7 +318,6 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   }
 
   auto newPos = currPos + normalizedOffset;
-
   auto [canMove, firstPositionResult] = CanMoveTo(newPos, map, spatialMap);
 
   if (!canMove) {
@@ -380,7 +379,11 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(sf::Vector2f new
     auto tileSize = sf::Vector2f(map.GetTileSize());
     tileSize.x *= .5f;
 
-    if (!map.CanMoveTo(newPos.x / tileSize.x, newPos.y / tileSize.y, layer)) {
+    float length = std::sqrt(std::pow(offset.x, 2.0f) + std::pow(offset.y, 2.0f));
+    auto ray_unit = sf::Vector2f(offset.x / length, offset.y / length);
+    auto ray = ray_unit * collisionRadius;
+
+    if (!map.CanMoveTo((currPos.x + ray.x) / tileSize.x, (currPos.y + ray.y) / tileSize.y, layer)) {
       return { false, currPos }; // Otherwise, we cannot move
     }
   }

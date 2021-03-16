@@ -33,8 +33,8 @@ namespace Overworld {
     };
 
     float animProgress{}; //!< Used to sync movement animations
-    float walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
-    float runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
+    float walkSpeed{80}; //!< walk speed as pixels per second. Default 40px/s
+    float runSpeed{140}; //!< run speed as pixels per second. Default 70px/s
     bool moveThisFrame{ false }; //!< Tells actor to move in accordance with their states or remain stationairy
     Direction heading{ Direction::down }; //!< the character's current heading
     std::map<std::string, Animation> anims; //!< Map of animation objects per direction per state
@@ -44,7 +44,7 @@ namespace Overworld {
     std::string name{}; //!< name of this character
     std::string lastStateStr{}; //!< String representing the last frame's state name
     std::function<void(std::shared_ptr<Actor> with)> onInteractFunc; //!< What happens if an actor interacts with the other
-    float collisionRadius{ 1.0 };
+    float collisionRadius{ 1.0 }; //px
     bool solid{true};
     bool collidesWithMap{true};
 
