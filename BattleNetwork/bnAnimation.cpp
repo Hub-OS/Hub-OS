@@ -168,7 +168,7 @@ void Animation::Reload() {
       frameLists[frameAnimationIndex].SetPoint(pointName, x, y);
     }
 
-    data = data.substr(static_cast<size_t>(endline + 1));
+    data = data.substr(1ull + endline);
   } while (endline > -1);
 
   // One more addAnimation to do if file is good
@@ -331,7 +331,7 @@ void Animation::operator<<(const std::function<void()>& onFinish)
 
 sf::Vector2f Animation::GetPoint(const std::string & pointName)
 {
-  auto point = pointName;
+  std::string point = pointName;
   std::transform(point.begin(), point.end(), point.begin(), ::toupper);
 
   auto res = animator.GetPoint(point);
@@ -339,9 +339,25 @@ sf::Vector2f Animation::GetPoint(const std::string & pointName)
   return res;
 }
 
+char Animation::GetMode()
+{
+  return animator.GetMode();
+}
+
+float Animation::GetStateDuration(const std::string& state) const
+{
+  auto iter = animations.find(state);
+  
+  if (iter != animations.end()) {
+    return static_cast<float>(iter->second.GetTotalDuration());
+  }
+  
+  return 0.0f;
+}
+
 void Animation::OverrideAnimationFrames(const std::string& animation, const std::list<OverrideFrame>&data, std::string& uuid)
 {
-  auto currentAnimation = animation;
+  std::string currentAnimation = animation;
   std::transform(currentAnimation.begin(), currentAnimation.end(), currentAnimation.begin(), ::toupper);
 
   if (uuid.empty()) {

@@ -51,7 +51,8 @@ void MetridMoveState::OnUpdate(double _elapsed, Metrid& met) {
       teley = myteam[randIndex]->GetY();
   }
 
-  bool moved = (myteam.size() > 0) && met.Teleport(telex, teley);
+  Battle::Tile* nextTile = met.GetField()->GetAt(telex, teley);
+  bool moved = (myteam.size() > 0) && met.Teleport(nextTile);
 
   if (moved) {
 

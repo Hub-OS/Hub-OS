@@ -58,7 +58,7 @@ Player::Player() :
   this->RegisterStatusCallback(Hit::bubble, Callback<void()>{ bubbleState});
 
   using namespace std::placeholders;
-  auto handler = std::bind(&Player::HandleBusterEvent, this, _1);
+  auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
   actionQueue.RegisterType<BusterEvent>(ActionTypes::buster, handler);
 }
 
@@ -78,6 +78,12 @@ void Player::OnUpdate(double _elapsed) {
 
   //Node updates
   chargeEffect.Update(_elapsed);
+}
+
+void Player::FilterMoveEvent(MoveEvent& event)
+{
+  auto anim = this->animationComponent;
+  event.delayFrames = from_seconds(anim->GetAnimationObject().GetStateDuration("PLAYER_MOVING"));
 }
 
 void Player::Attack() {

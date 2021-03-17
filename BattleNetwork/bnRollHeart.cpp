@@ -64,10 +64,6 @@ void RollHeart::OnUpdate(double _elapsed) {
   }
 }
 
-bool RollHeart::Move(Direction _direction) {
-  return false;
-}
-
 void RollHeart::Attack(Character* _entity) {
 }
 

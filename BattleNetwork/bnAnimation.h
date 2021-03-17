@@ -47,11 +47,6 @@ using std::to_string;
  */
 class Animation {
 public:
-
-  auto GetMode() {
-    return animator.GetMode();
-  }
-
   /**
    * @brief No frame list is loaded*/
   Animation();
@@ -168,6 +163,10 @@ public:
   void operator<<(const std::function<void()>& onFinish);
 
   sf::Vector2f GetPoint(const std::string& pointName);
+
+  char GetMode();
+
+  float GetStateDuration(const std::string& state) const;
 
   void OverrideAnimationFrames(const std::string& animation, const std::list<OverrideFrame>& data, std::string& uuid);
 

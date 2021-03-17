@@ -67,13 +67,6 @@ public:
   void OnDelete() override;
 
   /**
-   * @brief This artifact does not move across the grid
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
-
-  /**
    * @brief If the first time reflecting, spawn a RowHit spell
    * @param in the attack we are reflecting
    * @param owner the owner of the attack

@@ -30,8 +30,6 @@ Bees::Bees(Team _team,int damage)
 
   elapsed = 0;
 
-  SetSlideTime(sf::seconds(0.45f));
-
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
   animation << Animator::Mode::Loop;
@@ -93,7 +91,6 @@ Bees::Bees(const Bees & leader)
   setScale(2.f, 2.f);
 
   HighlightTile(Battle::Tile::Highlight::solid);
-  SetSlideTime(sf::seconds(0.45f));
 
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
@@ -220,11 +217,10 @@ void Bees::OnUpdate(double _elapsed) {
     }
 
     // Always slide to the tile we're moving to
-    SlideToTile(true);
-    Move(GetDirection());
+    Slide(GetDirection(), frames(27));
 
     // Did not move and update next tile pointer
-    if (!GetNextTile() && GetTile()->IsEdgeTile()) {
+    if (!this->IsMoving() && GetTile()->IsEdgeTile()) {
       Delete();
     }
   }

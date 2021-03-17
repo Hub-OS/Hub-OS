@@ -38,10 +38,6 @@ void RowHit::OnUpdate(double _elapsed) {
   tile->AffectEntities(this);
 }
 
-bool RowHit::Move(Direction _direction) {
-  return false;
-}
-
 void RowHit::Attack(Character* _entity) {
   if (_entity && _entity->GetTeam() != GetTeam()) {
     auto props = Hit::DefaultProperties;

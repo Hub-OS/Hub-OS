@@ -49,13 +49,6 @@ public:
   void OnSpawn(Battle::Tile& start) override;
 
   /**
-   * @brief Explosion doesnt move
-   * @param _direction ignored
-   * @return false
-   */
-  virtual bool Move(Direction _direction) override;
-
-  /**
    * @brief Used by root. Increment the number of explosions
    */
   void IncrementExplosionCount();

@@ -13,6 +13,12 @@
 #include "bnShakingEffect.h"
 #include "bnBubbleTrap.h"
 
+struct CardActionDeleter {
+  void operator()(CardEvent& in) {
+    delete in.action;
+  }
+};
+
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
 {
   statusCallbackHash.insert(std::make_pair(flag, callback));
@@ -38,7 +44,7 @@ Character::Character(Rank _rank) :
 
   using namespace std::placeholders;
   auto handler = std::bind(&Character::HandleCardEvent, this, _1, _2);
-  actionQueue.RegisterType<CardEvent, CardEvent::Deleter>(ActionTypes::chip, handler);
+  actionQueue.RegisterType<CardEvent, CardActionDeleter>(ActionTypes::chip, handler);
 }
 
 Character::~Character() {
@@ -522,7 +528,7 @@ void Character::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!IsSliding()) {
+  if (!IsMoving()) {
     setPosition(tile->getPosition());
   }
 }

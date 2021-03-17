@@ -33,11 +33,6 @@ void ElementalDamage::OnUpdate(double _elapsed) {
   setPosition((GetTile()->getPosition().x - 30.0f), (GetTile()->getPosition().y - 30.0f));
 }
 
-bool ElementalDamage::Move(Direction _direction)
-{
-  return false;
-}
-
 void ElementalDamage::OnDelete()
 {
 }

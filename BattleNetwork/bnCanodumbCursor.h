@@ -38,11 +38,4 @@ public:
   * @brief Removes cursor from play
   */
   void OnDelete() override;
-  
-  /**
-   * @brief Legacy code. The cursor should be using this...
-   * @param _direction
-   * @return false
-   */
-  bool Move(Direction _direction) override;
 };

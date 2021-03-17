@@ -40,10 +40,6 @@ void SuperVulcan::OnUpdate(double _elapsed) {
   tile->AffectEntities(this);
 }
 
-bool SuperVulcan::Move(Direction _direction) {
-  return false;
-}
-
 void SuperVulcan::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     Audio().Play(AudioType::HURT);

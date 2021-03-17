@@ -118,7 +118,8 @@ void ActionQueue::RegisterType(ActionTypes type, const Func& func) {
     auto queue = std::any_cast<std::shared_ptr<Queue<Key>>>(types[type]);
 
     if (index < queue->list.size()) {
-      DeleterFunc(queue->list[index]);
+      DeleterFunc deleter{};
+      deleter.operator()(queue->list[index]);
       queue->list.erase(queue->list.begin() + index);
     }
   };
@@ -138,7 +139,7 @@ void ActionQueue::Add(const Y& in, ActionOrder priority, ActionDiscardOp discard
       Sort();
     }
   }
-  catch (std::bad_any_cast& err) {
+  catch (std::bad_any_cast&) {
     std::cout << "Type " << typeid(Y).name() << " not registered" << std::endl;
   }
 }

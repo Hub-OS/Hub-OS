@@ -27,11 +27,6 @@ void ShineExplosion::OnDelete()
 {
 }
 
-bool ShineExplosion::Move(Direction _direction)
-{
-  return false;
-}
-
 ShineExplosion::~ShineExplosion()
 {
 }

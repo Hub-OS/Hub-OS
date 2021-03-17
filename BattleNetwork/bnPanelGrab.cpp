@@ -79,10 +79,6 @@ void PanelGrab::OnUpdate(double _elapsed) {
   }
 }
 
-bool PanelGrab::Move(Direction _direction) {
-  return false;
-}
-
 void PanelGrab::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
 }

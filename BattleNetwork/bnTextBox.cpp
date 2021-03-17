@@ -51,7 +51,7 @@ void TextBox::FormatToFit() {
       wordIndex = -1;
     }
 
-    text.SetString(message.substr(lastRow, index - lastRow));
+    text.SetString(message.substr(lastRow, (size_t)index - (size_t)lastRow));
     double width = text.GetWorldBounds().width;
     double height = text.GetWorldBounds().height;
 
@@ -130,8 +130,8 @@ void TextBox::Unmute() {
 }
 
 const bool TextBox::HasMore() const {
-  if (lineIndex + numberOfFittingLines < lines.size())
-      if (charIndex > lines[lineIndex + numberOfFittingLines])
+  if ((size_t)lineIndex + (size_t)numberOfFittingLines < lines.size())
+      if (charIndex > lines[(size_t)lineIndex + (size_t)numberOfFittingLines])
         return true;
 
   return false;
@@ -190,7 +190,7 @@ void TextBox::CompleteCurrentBlock()
 
 void TextBox::CompleteAll()
 {
-  charIndex = message.length();
+  charIndex = static_cast<int>(message.length());
 
   dirty = true; // will try and pause once it completes, so we force it to update
 }
@@ -251,8 +251,9 @@ void TextBox::Update(const double elapsed) {
     int last = lines[lastIndex];
     int len = 0;
 
-    if (lineIndex + (numberOfFittingLines) < lines.size()) {
-      len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
+    size_t pos = static_cast<size_t>(lineIndex) + static_cast<size_t>(numberOfFittingLines);
+    if (pos < lines.size()) {
+      len = std::min(charIndex - begin, lines[pos] - begin);
     }
     else {
       len = charIndex - begin;
@@ -318,8 +319,9 @@ void TextBox::Update(const double elapsed) {
     * We make sure we show the last visible character in the line*/
 
     if (charIndex >= lines[lineIndex]) {
-      if (lineIndex + (numberOfFittingLines) < lines.size()) {
-        len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
+      size_t pos = static_cast<size_t>(lineIndex) + static_cast<size_t>(numberOfFittingLines);
+      if (pos < lines.size()) {
+        len = std::min(charIndex - begin, lines[pos] - begin);
       }
       else {
         len = charIndex - begin;

@@ -118,10 +118,6 @@ void RollHeal::OnUpdate(double _elapsed) {
   }
 }
 
-bool RollHeal::Move(Direction _direction) {
-  return false;
-}
-
 void RollHeal::Attack(Character* _entity) {
     // Old code went here
 }

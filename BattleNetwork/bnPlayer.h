@@ -77,7 +77,8 @@ public:
    * @param _elapsed for secs
    */
   virtual void OnUpdate(double _elapsed);
-  
+  void FilterMoveEvent(MoveEvent& event) override;
+
   /**
    * @brief Fires a buster
    */

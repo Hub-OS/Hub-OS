@@ -108,47 +108,33 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     direction = Direction::none;
   }
 
-  if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
-
   replicator? replicator->SendMoveSignal(direction) : (void(0));
 
-  if(player.Teleport(player.GetTile() + direction)) {
-    bool moved = player.GetNextTile();
+  unsigned frame{};
+  if (player.IsMoving(&frame)) {
+    auto t = player.GetTile();
 
-    if (moved) {
+    if (frame != moveFrame) {
+      // this is a new move event, kick off the animation
       auto playerPtr = &player;
 
       auto onFinish = [playerPtr, this]() {
-        playerPtr->SetAnimation("PLAYER_MOVED", [playerPtr, this]() {
+        playerPtr->SetAnimation("PLAYER_MOVED", [playerPtr]() {
           playerPtr->SetAnimation(PLAYER_IDLE);
-
-          // Player should shoot or execute action on the immediate next tile
-          // Note: I added this check because buster shoots would stay in queue
-          // if the player was pressing the D-pad this frame too
-          /*if (queuedAction && actions.empty()) {
-            playerPtr->RegisterComponent(queuedAction);
-            queuedAction->Execute();
-            queuedAction = nullptr;
-          }*/
-
-          auto t = playerPtr->GetTile();
-
-          replicator? replicator->SendTileSignal(t->GetX(), t->GetY()) : (void(0));
         });
 
-        playerPtr->AdoptNextTile();
         direction = Direction::none;
       }; // end lambda
       player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
       player.SetAnimation(PLAYER_MOVING, onFinish);
+      moveFrame = frame;
     }
-  }
-  else if (player.IsSliding() && player.GetNextTile()) {
-    auto t = player.GetTile();
 
-    // we are sliding and have a valid next tile, update remote
     replicator ? replicator->SendTileSignal(t->GetX(), t->GetY()) : (void(0));
   }
+  else if(direction != Direction::none) {
+    player.Teleport(player.GetTile() + direction);
+  } 
 }
 
 void PlayerControlledState::OnLeave(Player& player) {

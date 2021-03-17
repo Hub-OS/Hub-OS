@@ -16,7 +16,7 @@ ActionOrder ActionQueue::ApplyPriorityFilter(const ActionOrder& in) {
   return in;
 }
 
-ActionQueue::Index ActionQueue::ApplyDiscardFilter(const Index& in) {
+ActionQueue::Index ActionQueue::ApplyDiscardFilter(const ActionQueue::Index& in) {
   // Filter types and apply new discard operations
   auto iter = discardFilters.find(in.type);
 
@@ -29,7 +29,7 @@ ActionQueue::Index ActionQueue::ApplyDiscardFilter(const Index& in) {
   return out;
 }
 
-bool ActionQueue::IsProcessing(const Index& in) {
+bool ActionQueue::IsProcessing(const ActionQueue::Index& in) {
   return in.processing;
 }
 
@@ -48,7 +48,7 @@ void ActionQueue::ClearFilters() {
 void ActionQueue::Sort() {
 // if toggleInterval is true, voluntary preceeds involuntary
 std::sort(indices.begin(), indices.end(),
-  [this](const Index& first, const Index& second) -> bool {
+  [this](const ActionQueue::Index& first, const ActionQueue::Index& second) -> bool {
     ActionOrder first_order = ApplyPriorityFilter(first.order);
     ActionOrder second_order = ApplyPriorityFilter(second.order);
 
@@ -97,7 +97,7 @@ void ActionQueue::Process() {
   auto iter = indices.begin();
   while (iter != indices.end()) {
     if (iter->processing == false) {
-      Index index = ApplyDiscardFilter(*iter);
+      ActionQueue::Index index = ApplyDiscardFilter(*iter);
       if (index.discardOp == ActionDiscardOp::until_eof) {
           iter = indices.erase(iter);
           continue;
@@ -124,7 +124,7 @@ void ActionQueue::Pop() {
   auto iter = types.find(queue);
 
   if (iter != types.end()) {
-    Index idx = indices[0];
+    ActionQueue::Index idx = indices[0];
     size_t index = idx.index;
    
     if (idx.order == ActionOrder::voluntary) {

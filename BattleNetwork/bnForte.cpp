@@ -72,7 +72,7 @@ void Forte::OnUpdate(double _elapsed)
   Player::OnUpdate(_elapsed);
 
   // We are moving
-  if (GetNextTile()) {
+  if (IsMoving()) {
     if (dropCooldown <= 0) {
       auto fx = new MoveEffect(field);
 

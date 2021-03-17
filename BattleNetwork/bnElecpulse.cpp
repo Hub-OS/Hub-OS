@@ -67,10 +67,6 @@ void Elecpulse::OnDelete()
   Remove();
 }
 
-bool Elecpulse::Move(Direction _direction) {
-  return false;
-}
-
 void Elecpulse::Attack(Character* _entity) {
     long ID = _entity->GetID();
 
@@ -84,7 +80,6 @@ void Elecpulse::Attack(Character* _entity) {
     props.damage = damage;
 
     _entity->Hit(props);
-    _entity->SlideToTile(true);
 
     taggedCharacters.insert(taggedCharacters.begin(), _entity->GetID());
 }

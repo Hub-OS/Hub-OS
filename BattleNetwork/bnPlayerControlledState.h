@@ -13,8 +13,9 @@ class PlayerInputReplicator;
 class PlayerControlledState : public AIState<Player>, public InputHandle
 {
 private:  
-  bool isChargeHeld; /*!< Flag if player is holding down shoot button */
-  PlayerInputReplicator* replicator; /*!< Pass actions onto a replicator to handle if requested */
+  bool isChargeHeld{}; /*!< Flag if player is holding down shoot button */
+  unsigned moveFrame{};
+  PlayerInputReplicator* replicator{ nullptr }; /*!< Pass actions onto a replicator to handle if requested */
 
 public:
 

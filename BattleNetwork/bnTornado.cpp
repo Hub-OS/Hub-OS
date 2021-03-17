@@ -63,10 +63,6 @@ void Tornado::OnUpdate(double _elapsed) {
   animation.Update(_elapsed, getSprite());
 }
 
-bool Tornado::Move(Direction _direction) {
-  return false;
-}
-
 void Tornado::Attack(Character* _entity) {
 
 }

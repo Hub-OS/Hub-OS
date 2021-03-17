@@ -32,7 +32,7 @@ void Obstacle::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!IsSliding()) {
+  if (!IsMoving()) {
     setPosition(tile->getPosition());
   }
 }

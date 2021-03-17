@@ -21,14 +21,9 @@ class DefenseRule;
 class Spell;
 class CardAction;
 
+
 struct CardEvent {
   CardAction* action{ nullptr };
-
-  struct Deleter {
-    void operator()(const CardEvent& in) {
-      delete in.action;
-    }
-  };
 };
 
 constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);

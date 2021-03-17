@@ -62,11 +62,6 @@ void GuardHit::OnDelete()
   Remove();
 }
 
-bool GuardHit::Move(Direction _direction)
-{
-  return false;
-}
-
 GuardHit::~GuardHit()
 {
 }

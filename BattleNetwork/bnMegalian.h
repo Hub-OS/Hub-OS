@@ -42,7 +42,7 @@ private:
       SetLayer(-1); // on top of base
       SetHealth(base->GetHealth());
       SetDirection(Direction::left);
-      SetSlideTime(sf::milliseconds(250));
+      //SetSlideTime(sf::milliseconds(250));
       timer = 0;
       moveCount = 0;
       progress = 0;
@@ -125,11 +125,11 @@ private:
           }
 
           // teleporting erases our direction information
-          auto tele1 = Teleport(x, y);
-          auto tele2 = base->Teleport(x, y);
+          //auto tele1 = Teleport(x, y);
+          //auto tele2 = base->Teleport(x, y);
           SetDirection(Direction::left);
 
-          Logger::Log("tele1: " + std::to_string(tele1) + " tele2: " + std::to_string(tele2));
+          //Logger::Log("tele1: " + std::to_string(tele1) + " tele2: " + std::to_string(tele2));
 
           lastTile = GetTile();
         }
@@ -138,7 +138,7 @@ private:
           static bool playOnce = true;
           auto adjusted = 0;  swoosh::ease::wideParabola(timer - 5.0, 0.1, 1.0);
 
-          SetSlideTime(sf::milliseconds(250 + (adjusted * 500)));
+          //SetSlideTime(sf::milliseconds(250 + (adjusted * 500)));
 
           Logger::Log("timer: " + std::to_string(timer-5.0) + " adjusted: " + std::to_string(adjusted) + " SetSlideTime: " + std::to_string(250 + (adjusted * 500)));
 
@@ -157,8 +157,8 @@ private:
           }
           else {
 
-            SlideToTile(true);
-            Move(GetDirection());
+            //SlideToTile(true);
+            //Move(GetDirection());
             animation->SetFrame(2);
 
             if(moveCount >= 2) {

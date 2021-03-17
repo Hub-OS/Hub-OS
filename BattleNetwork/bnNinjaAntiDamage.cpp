@@ -54,11 +54,8 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       void OnEndAction() override {};
     };
 
-    owner.QueueAction({
-      ActionPriority::trigger,
-      CurrentTime::AsMilli(),
-      new AntiDamageTriggerAction(owner, in.GetHitboxProperties().aggressor, *this)
-    });
+    auto* action = new AntiDamageTriggerAction(owner, in.GetHitboxProperties().aggressor, *this);
+    owner.AddAction({ action }, ActionOrder::traps);
 
     this->Eject();
   }; // END callback 

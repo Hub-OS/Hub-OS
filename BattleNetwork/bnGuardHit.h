@@ -34,12 +34,5 @@ public:
   * @brief Removes Guard Hit from play
   */
   void OnDelete() override;
-  
-  /**
-   * @brief Does not move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
 };
 

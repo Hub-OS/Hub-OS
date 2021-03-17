@@ -75,10 +75,6 @@ void NinjaStar::OnUpdate(double _elapsed) {
   progress += _elapsed;
 }
 
-bool NinjaStar::Move(Direction _direction) {
-  return false;
-}
-
 void NinjaStar::Attack(Character* _entity) {
     _entity->Hit(GetHitboxProperties());
 }

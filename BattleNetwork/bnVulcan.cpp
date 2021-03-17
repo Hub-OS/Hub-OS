@@ -35,10 +35,7 @@ void Vulcan::OnUpdate(double _elapsed) {
   // Strike panel and leave
   GetTile()->AffectEntities(this);
 
-  if (Move(GetDirection())) {
-    AdoptNextTile();
-    FinishMove();
-  }
+  Teleport(GetDirection());
 
   if (GetTile()->IsEdgeTile()) {
     Delete();

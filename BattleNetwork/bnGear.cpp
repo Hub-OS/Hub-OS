@@ -31,8 +31,6 @@ Gear::Gear(Team _team,Direction startDir)
 
   animation->OnUpdate(0);
 
-  SetSlideTime(sf::seconds(2.0f)); // crawl
-
   Hit::Properties props = Hit::DefaultProperties;
   props.flags |= Hit::recoil | Hit::breaking;
   SetHitboxProperties(props);
@@ -93,8 +91,7 @@ void Gear::OnUpdate(double _elapsed) {
 
   // Keep moving
   if (!IsSliding()) {
-    SlideToTile(true);
-    Move(GetDirection());
+    Slide(GetDirection(), frames(8));
   }
 
   if (GetDirection() == Direction::none) {
@@ -109,8 +106,7 @@ void Gear::OnUpdate(double _elapsed) {
     }
 
     // Now try to move
-    SlideToTile(true);
-    Move(GetDirection());
+    Slide(GetDirection(), frames(120));
   }
 
 }

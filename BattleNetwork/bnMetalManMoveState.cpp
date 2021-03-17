@@ -20,28 +20,18 @@ void MetalManMoveState::OnUpdate(double _elapsed, MetalMan& metal) {
 
   nextDirection = Direction::none;
 
-  bool moved = false;
+  Battle::Tile* nextTile = nullptr;
 
-  auto oldTile = metal.GetTile();
+  auto tiles = metal.GetField()->FindTiles([metalPtr = &metal](Battle::Tile* t) {
+    return t->GetTeam() == metalPtr->GetTeam();
+  });
 
+  if (tiles.empty()) metal.GoToNextState();
 
-  // TODO: Field api should have a next-best tile routine
-  int tries = 50;
+  nextTile = tiles[rand() % tiles.size()];
 
-  do {
-    // Find a new spot that is on our team
-    moved = metal.Teleport((rand() % 6) + 1, (rand() % 3) + 1);
-    tries--;
-  } while ((!moved || metal.GetNextTile()->GetTeam() != metal.GetTeam()) && tries > 0);
-
-  if(tries == 0) {
-      oldTile->ReserveEntityByID(metal.GetID());
-      moved = metal.Teleport(oldTile->GetX(), oldTile->GetY());
-  }
-
-  Battle::Tile* next = nullptr;
-
-  if (moved) {
+  // Find a new spot that is on our team
+  if (metal.Teleport(nextTile)) {
     auto onFinish = [this, m = &metal]() {
         m->GoToNextState();
     };

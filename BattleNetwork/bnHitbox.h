@@ -34,13 +34,6 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief Does not move
-   * @param _direction
-   * @return false
-   */
-  bool Move(Direction _direction) override;
-  
-  /**
    * @brief Deals hitbox property damage and then deletes itself
    * @param _entity entity to attack
    */

@@ -64,7 +64,7 @@ void Buster::OnUpdate(double _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    if (Move(GetDirection())) {
+    if (Teleport(GetDirection())) {
       cooldown = 0;
     }
     else {

@@ -10,14 +10,9 @@ Fishy::Fishy(Team _team, double speed) : Obstacle(team) {
   
   setTexture(Textures().LoadTextureFromFile("resources/spells/fishy_temp.png"));
   setScale(2.f, 2.f);
-  // why do we need to do this??
-  // The super constructor is failing to set this value
-  // TODO: find out why
-  team = _team;
 
   Fishy::speed = speed;
 
-  SetSlideTime(sf::seconds(0.1f));
   SetHealth(1);
 
   Audio().Play(AudioType::TOSS_ITEM_LITE, AudioPriority::lowest);
@@ -42,8 +37,7 @@ void Fishy::OnUpdate(double _elapsed) {
 
   // Keep moving
   if (!IsSliding()) {
-    SlideToTile(true);
-    Move(GetDirection());
+    Slide(GetDirection(), frames(8));
   }
 
   tile->AffectEntities(this);

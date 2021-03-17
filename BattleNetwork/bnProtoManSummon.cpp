@@ -129,10 +129,6 @@ void ProtoManSummon::OnUpdate(double _elapsed) {
   }
 }
 
-bool ProtoManSummon::Move(Direction _direction) {
-  return false;
-}
-
 void ProtoManSummon::Attack(Character* _entity) {
   auto field = GetField();
 

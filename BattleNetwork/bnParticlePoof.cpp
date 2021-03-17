@@ -44,11 +44,6 @@ void ParticlePoof::OnDelete()
   Remove();
 }
 
-bool ParticlePoof::Move(Direction _direction)
-{
-  return false;
-}
-
 ParticlePoof::~ParticlePoof()
 {
 }

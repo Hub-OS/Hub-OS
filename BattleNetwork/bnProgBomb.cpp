@@ -62,10 +62,6 @@ void ProgBomb::OnUpdate(double _elapsed) {
   }
 }
 
-bool ProgBomb::Move(Direction _direction) {
-  return true;
-}
-
 void ProgBomb::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
   Delete();

@@ -42,10 +42,6 @@ void SharedHitbox::OnUpdate(double _elapsed) {
   }
 }
 
-bool SharedHitbox::Move(Direction _direction) {
-  return false;
-}
-
 void SharedHitbox::Attack(Character* _entity) {
   if(owner) {
     if (_entity->GetID() == owner->GetID()) return;

@@ -14,11 +14,6 @@ Thunder::Thunder(Team _team) : Spell(_team) {
   elapsed = 0;
 
   HighlightTile(Battle::Tile::Highlight::solid);
-
-  // Thunder moves from tile to tile in exactly 60 frames
-  // The app is clocked at 60 frames a second
-  // Therefore thunder slide duration is 1 second
-  SetSlideTime(sf::seconds(1.0f));
   
   // Thunder is removed in roughly 7 seconds
   timeout = sf::seconds(20.f / 3.f);
@@ -114,8 +109,9 @@ void Thunder::OnUpdate(double _elapsed) {
     }
 
     // Always slide to the tile we're moving to
-    SlideToTile(true);
-    Move(GetDirection());
+    if (!IsSliding()) {
+      Slide(GetDirection(), frames(60));
+    }
   }
 
   // Always affect the tile we're occupying

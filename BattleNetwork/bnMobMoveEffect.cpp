@@ -43,11 +43,6 @@ void MobMoveEffect::OnDelete()
   Remove();
 }
 
-bool MobMoveEffect::Move(Direction _direction)
-{
-  return false;
-}
-
 void MobMoveEffect::SetOffset(const sf::Vector2f& offset)
 {
   this->offset = offset;

@@ -68,11 +68,6 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) :
 
 }
 
-bool ParticleImpact::Move(Direction _direction)
-{
-  return false;
-}
-
 void ParticleImpact::OnSpawn(Battle::Tile& tile) {
   float height = GetHeight();
   float width = 10;

@@ -32,10 +32,6 @@ void Hitbox::OnUpdate(double _elapsed) {
   Delete();
 }
 
-bool Hitbox::Move(Direction _direction) {
-  return false;
-}
-
 void Hitbox::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties()) && callback) {
     callback(_entity);

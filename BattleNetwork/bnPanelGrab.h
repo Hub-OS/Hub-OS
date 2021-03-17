@@ -39,13 +39,6 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief PanelGrab does not move across field
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
-  
-  /**
    * @brief Deals 10 damage
    * @param _entity to hit
    */

@@ -63,10 +63,6 @@ void FireBurn::OnUpdate(double _elapsed) {
   tile->AffectEntities(this);
 }
 
-bool FireBurn::Move(Direction _direction) {
-  return false;
-}
-
 void FireBurn::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     // X hit effect when hit by fire

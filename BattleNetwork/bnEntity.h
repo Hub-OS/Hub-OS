@@ -62,14 +62,6 @@ struct MoveEvent {
   }
 };
 
-struct BusterEvent {
-  frame_time_t deltaFrames{}; //!< e.g. how long it animates
-  frame_time_t endlagFrames{}; //!< Wait period after completition
-
-  // Default is false which is shoot-then-move
-  bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
-};
-
 struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
 };
@@ -157,8 +149,9 @@ public:
   bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag = frames(0));
   bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag = frames(0));
   void FinishMove();
-  void HandleMoveEvent(const MoveEvent& event, const ActionQueue::ExecutionType& exec);
+  void HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec);
   void ClearActionQueue();
+  virtual void FilterMoveEvent(MoveEvent& event) {};
 
   /**
    * @brief Virtual. Queries if an entity can move to a target tile.
@@ -491,7 +484,6 @@ private:
   bool passthrough{};
   bool floatShoe{};
   bool airShoe{};
-  bool isSliding{}; /*!< If sliding/gliding to a tile */
   bool deleted{}; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
   bool flagForRemove{}; /*!< Used to remove this entity from the field immediately */
   int moveCount{}; /*!< Used by battle results */

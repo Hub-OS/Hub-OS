@@ -48,12 +48,5 @@ public:
   * @brief Removes debris from play
   */
   void OnDelete() override;
-  
-  /**
-   * @brief Does not move along the grid
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
 };
 

@@ -13,9 +13,6 @@ CrackShot::CrackShot(Team _team,Battle::Tile* tile) : Spell(_team) {
   setTexture(Textures().GetTexture(TextureType::SPELL_CRACKSHOT));
   setScale(2.f, 2.f);
 
-  // 8 frames = 0.1 seconds
-  SetSlideTime(sf::seconds(0.1f));
-
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/spell_panel_shot.animation");
   animation->Load();
@@ -47,14 +44,11 @@ void CrackShot::OnUpdate(double _elapsed) {
 
   // Keep moving, when we reach the end of the map, remove from play
   if (!IsSliding()) {
-    SlideToTile(true);
-
-    // Keep moving
-    Move(GetDirection());
-
-    // Move failed can only be an edge
-    if (!GetNextTile()) {
+    if (!CanMoveTo(GetTile() + GetDirection())) {
       Delete();
+    }
+    else {
+      Slide(GetDirection(), frames(8));
     }
   }
 

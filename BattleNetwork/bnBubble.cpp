@@ -21,8 +21,6 @@ Bubble::Bubble(Team _team,double speed)
 
   Bubble::speed = speed;
 
-  SetSlideTime(sf::seconds(0.75f / (float)speed));
-
   animation = Animation("resources/spells/bubble.animation");
 
   auto onFinish = [this]() { animation << "FLOAT" << Animator::Mode::Loop; };
@@ -67,11 +65,13 @@ void Bubble::OnUpdate(double _elapsed) {
       }
     }
 
-    SlideToTile(true);
-    Move(GetDirection());
-
-    if (!GetNextTile()) {
-      Remove(); // Don't pop
+    if (!IsSliding()) {
+      if (!CanMoveTo(GetTile() + GetDirection())) {
+        Remove(); // doesn't make the bubble pop
+      }
+      else {
+        Slide(GetDirection(), frames(45));
+      }
     }
   }
 

@@ -18,7 +18,6 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
   SetDirection(Direction::left);
   SetHealth(999);
   ShareTileSpace(true);
-  SetSlideTime(time_cast<sf::Time>(frames(8))); // 8 frames
   SetName("AlphaArm");
   Hit::Properties props = Hit::DefaultProperties;
   props.flags |= Hit::recoil | Hit::breaking;
@@ -58,7 +57,6 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
     break;
   case Type::RIGHT_SWIPE:
     animComponent->SetAnimation("RIGHT_CLAW_SWIPE");
-    SetSlideTime(sf::seconds(0.13f)); // 8 frames in 60 seconds
     SetDirection(Direction::down);
     AddNode(shadow);
 
@@ -77,7 +75,6 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
     break;
   case Type::LEFT_SWIPE:
     animComponent->SetAnimation("LEFT_CLAW_SWIPE");
-    SetSlideTime(sf::seconds(0.13f)); // 8 frames in 60 seconds
     SetDirection(Direction::left);
     changeState = (rand() % 10 < 5) ? TileState::poison : TileState::ice;
     SetLayer(-1);
@@ -145,11 +142,11 @@ void AlphaArm::OnUpdate(double _elapsed) {
 
         // Keep moving
         if (!IsSliding()) {
-          SlideToTile(true);
-          Move(GetDirection());
-
-          if (!GetNextTile()) {
+          if (!CanMoveTo(GetTile() + GetDirection())) {
             isFinished = true;
+          }
+          else {
+            Slide(GetDirection(), frames(8));
           }
         }
       }
@@ -173,11 +170,11 @@ void AlphaArm::OnUpdate(double _elapsed) {
 
       // Keep moving
       if (!IsSliding()) {
-        SlideToTile(true);
-        Move(GetDirection());
-
-        if (!GetNextTile()) {
+        if (!CanMoveTo(GetTile() + GetDirection())) {
           isFinished = true;
+        }
+        else {
+          Slide(GetDirection(), frames(8));
         }
       }
     }

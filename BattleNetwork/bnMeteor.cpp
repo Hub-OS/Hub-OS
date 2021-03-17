@@ -80,10 +80,6 @@ void Meteor::OnUpdate(double _elapsed) {
   progress += _elapsed;
 }
 
-bool Meteor::Move(Direction _direction) {
-  return true;
-}
-
 void Meteor::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
 }

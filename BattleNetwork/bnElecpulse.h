@@ -16,7 +16,6 @@ public:
   void OnSpawn(Battle::Tile& start) override;
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
-  bool Move(Direction _direction) override;
   void Attack(Character* _entity) override;
 
 private:

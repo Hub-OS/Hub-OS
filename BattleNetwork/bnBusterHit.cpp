@@ -38,11 +38,6 @@ void BusterHit::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition() + offset);
 }
 
-bool BusterHit::Move(Direction _direction)
-{
-  return false;
-}
-
 void BusterHit::OnDelete()
 {
   Remove();

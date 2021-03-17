@@ -35,13 +35,6 @@ public:
    void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief Does not move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
-  
-  /**
    * @brief owner->Attack(_entity) is called 
    * @param _entity the character to attack that is not the same as the owner
    */

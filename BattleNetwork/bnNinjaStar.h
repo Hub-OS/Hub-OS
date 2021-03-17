@@ -33,13 +33,6 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief Does not move across tiles
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
-  
-  /**
    * @brief Attacks entity
    * @param _entity to deal hitbox damage to
    */

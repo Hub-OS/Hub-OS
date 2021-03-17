@@ -41,11 +41,6 @@ void SwordEffect::OnDelete()
   Remove();
 }
 
-bool SwordEffect::Move(Direction _direction)
-{
-  return false;
-}
-
 void SwordEffect::SetAnimation(const std::string & animStr)
 {
     auto animation = GetFirstComponent<AnimationComponent>();
