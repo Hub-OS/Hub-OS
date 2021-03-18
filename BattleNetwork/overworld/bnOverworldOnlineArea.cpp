@@ -278,7 +278,9 @@ void Overworld::OnlineArea::OnInteract() {
   auto frontPosition = playerActor->PositionInFrontOf();
 
   for (auto& tileObject : layer.GetTileObjects()) {
-    if (tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
+    auto interactable = tileObject.visible || tileObject.solid;
+
+    if (interactable && tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
       sendObjectInteractionSignal(tileObject.id);
 
       // block other interactions with return
@@ -373,6 +375,12 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
           break;
         case ServerEvents::map:
           receiveMapSignal(reader, data);
+          break;
+        case ServerEvents::exclude_object:
+          receiveExcludeObjectSignal(reader, data);
+          break;
+        case ServerEvents::include_object:
+          receiveIncludeObjectSignal(reader, data);
           break;
         case ServerEvents::transfer_start:
           receiveTransferStartSignal(reader, data);
@@ -713,20 +721,98 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
   assetBuffer.setCapacity(0);
 }
 
-
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto path = reader.ReadString(buffer);
   auto mapBuffer = GetText(path);
 
-  auto lastSongPath = GetMap().GetSongPath();
+  auto& map = GetMap();
+
+  auto lastSongPath = map.GetSongPath();
 
   LoadMap(mapBuffer);
 
-  auto newSongPath = GetMap().GetSongPath();
+  auto newSongPath = map.GetSongPath();
 
   if (lastSongPath != newSongPath) {
     playSong(newSongPath);
+  }
+
+  for (auto& [objectId, excludedData] : excludedObjects) {
+    for (auto i = 0; i < map.GetLayerCount(); i++) {
+      auto& layer = map.GetLayer(i);
+
+      auto optional_object_ref = layer.GetTileObject(objectId);
+
+      if (optional_object_ref) {
+        auto object_ref = optional_object_ref.value();
+        auto& object = object_ref.get();
+
+        excludedData.visible = object.visible;
+        excludedData.solid = object.solid;
+
+        object.visible = false;
+        object.solid = false;
+        break;
+      }
+    }
+  }
+}
+
+void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto objectId = reader.Read<uint32_t>(buffer);
+
+  if (excludedObjects.find(objectId) != excludedObjects.end()) {
+    return;
+  }
+
+  auto& map = GetMap();
+
+  for (auto i = 0; i < map.GetLayerCount(); i++) {
+    auto& layer = map.GetLayer(i);
+
+    auto optional_object_ref = layer.GetTileObject(objectId);
+
+    if (optional_object_ref) {
+      auto object_ref = optional_object_ref.value();
+      auto& object = object_ref.get();
+
+      ExcludedObjectData excludedData;
+      excludedData.visible = object.visible;
+      excludedData.solid = object.solid;
+
+      excludedObjects.emplace(objectId, excludedData);
+
+      object.visible = false;
+      object.solid = false;
+      break;
+    }
+  }
+}
+
+void Overworld::OnlineArea::receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto objectId = reader.Read<uint32_t>(buffer);
+  auto& map = GetMap();
+
+  if (excludedObjects.erase(objectId) == 0) {
+    return;
+  }
+
+  for (auto i = 0; i < map.GetLayerCount(); i++) {
+    auto& layer = map.GetLayer(i);
+
+    auto optional_object_ref = layer.GetTileObject(objectId);
+
+    if (optional_object_ref) {
+      auto object_ref = optional_object_ref.value();
+      auto& object = object_ref.get();
+
+      object.visible = true;
+      object.solid = true;
+      break;
+    }
   }
 }
 
@@ -734,6 +820,7 @@ void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, con
 {
   LockInput();
   isConnected = false;
+  excludedObjects.clear();
   removePlayers.clear();
 
   for (auto& [key, _] : onlinePlayers) {

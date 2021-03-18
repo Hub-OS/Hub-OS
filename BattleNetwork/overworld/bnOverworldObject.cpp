@@ -5,7 +5,6 @@
 namespace Overworld {
   ShapeObject::ShapeObject(unsigned int id, std::unique_ptr<Overworld::Shape> shape) {
     this->id = id;
-    visible = true;
     this->shape = std::move(shape);
   }
 
@@ -18,7 +17,7 @@ namespace Overworld {
 
   TileObject::TileObject(unsigned int id, Tile tile) : tile(tile) {
     this->id = id;
-    visible = true;
+    solid = true;
     worldSprite = std::make_shared<WorldSprite>();
   }
 

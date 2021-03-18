@@ -18,7 +18,8 @@ namespace Overworld {
   public:
     unsigned int id;
     std::string name;
-    bool visible;
+    bool visible{ true };
+    bool solid{};
     sf::Vector2f position;
     sf::Vector2f size;
     float rotation;

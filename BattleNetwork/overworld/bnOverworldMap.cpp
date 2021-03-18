@@ -229,7 +229,7 @@ namespace Overworld {
 
     // todo: use a spatial map for increased performance
     for (auto& tileObject : layer.GetTileObjects()) {
-      if (tileObject.Intersects(*this, testPosition.x, testPosition.y)) {
+      if (tileObject.solid && tileObject.Intersects(*this, testPosition.x, testPosition.y)) {
         return false;
       }
     }

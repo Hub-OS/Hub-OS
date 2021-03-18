@@ -30,6 +30,11 @@ namespace Overworld {
 
   class OnlineArea final : public SceneBase {
   private:
+    struct ExcludedObjectData {
+      bool visible;
+      bool solid;
+    };
+
     std::string ticket; //!< How we are represented on the server
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
@@ -42,6 +47,7 @@ namespace Overworld {
     ServerAssetManager serverAssetManager;
     Poco::Buffer<char> assetBuffer{ 0 };
     std::map<std::string, OnlinePlayer> onlinePlayers;
+    std::map<unsigned, ExcludedObjectData> excludedObjects;
     std::list<std::string> removePlayers;
     Timer movementTimer;
     double packetResendTimer;
@@ -76,6 +82,8 @@ namespace Overworld {
     void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
