@@ -126,7 +126,6 @@ void Overworld::Homepage::PingRemoteAreaServer()
 
         if (sig == ServerEvents::pong) {
           if (version == VERSION_ID && iteration == VERSION_ITERATION) {
-            EnableNetWarps(true);
             cyberworldStatus = CyberworldStatus::online;
           }
           else {
@@ -138,8 +137,10 @@ void Overworld::Homepage::PingRemoteAreaServer()
         cyberworldStatus = CyberworldStatus::offline;
         reconnecting = false;
         client.close();
-        EnableNetWarps(false);
       }
+
+      auto isOnline = cyberworldStatus == CyberworldStatus::online;
+      EnableNetWarps(isOnline);
     };
 
     if (!reconnecting) {
