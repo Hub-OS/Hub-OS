@@ -156,17 +156,6 @@ void CombatBattleState::onUpdate(double elapsed)
   // After this function, the player may have used a card.
   GetScene().GetField()->Update((float)elapsed);
 
-  /**
-    Cards are executed at the end of the battle frame (this combat state update begins the end)
-    After the player controller dequeue's and registers a card action, we must be the authority to execute it
-  */
-  if (!HasTimeFreeze()) {
-    auto actions = tracked[0]->GetComponentsDerivedFrom<CardAction>();
-    if (actions.size() > 0 && actions[0]->CanExecute()) {
-      actions[0]->Execute();
-    }
-  }
-
   if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
     isGaugeFull = true;
     Audio().Play(AudioType::CUSTOM_BAR_FULL);

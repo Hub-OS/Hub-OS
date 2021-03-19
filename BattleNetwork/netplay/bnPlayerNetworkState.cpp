@@ -91,5 +91,4 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 void PlayerNetworkState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.chargeEffect.SetCharging(false);
-  player.ClearActionQueue();
 }

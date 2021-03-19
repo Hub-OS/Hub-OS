@@ -54,6 +54,11 @@ public:
     interrupt
   };
 
+  enum class CleanupType: short {
+    allow_interrupts = 0,
+    no_interrupts
+  };
+
 private:
   friend std::ostream& operator<<(std::ostream& os, const ActionQueue::Index& index);
   friend std::ostream& operator<<(std::ostream& os, const ActionQueue& queue);
@@ -80,7 +85,7 @@ public:
   void Sort();
   void Process();
   void Pop();
-  void ClearQueue();
+  void ClearQueue(CleanupType cleanup);
 
   template<typename T>
   struct NoDeleter {
@@ -120,6 +125,15 @@ void ActionQueue::RegisterType(ActionTypes type, const Func& func) {
     if (index < queue->list.size()) {
       DeleterFunc deleter{};
       deleter.operator()(queue->list[index]);
+
+      // update the index positions referring to this queue...
+      for (auto& idx : indices) {
+        size_t new_index = (idx.index==0)? 0 : idx.index-1;
+        if (idx.type == type && idx.index >= index) {
+          idx.index = new_index;
+        }
+      }
+
       queue->list.erase(queue->list.begin() + index);
     }
   };
@@ -135,7 +149,9 @@ void ActionQueue::Add(const Y& in, ActionOrder priority, ActionDiscardOp discard
 
     if (queue) {
       queue->list.push_back(in);
-      indices.push_back(Index{ key, priority, discard, indices.size() });
+      size_t sz = queue->list.size();
+      size_t index = sz == 0? 0 : sz-1;
+      indices.push_back(Index{ key, priority, discard, index });
       Sort();
     }
   }

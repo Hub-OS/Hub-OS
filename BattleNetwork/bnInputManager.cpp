@@ -351,26 +351,49 @@ void InputManager::Update() {
   }
 
   // First, we must see if any InputState::held keys from the last frame are released this frame
-  for (auto e : events) {
-    if (e.state == InputState::released) {
-      InputEvent find1 = { e.name, InputState::pressed };
-      InputEvent find2 = { e.name, InputState::held };
-      auto trunc = std::remove(eventsLastFrame.begin(), eventsLastFrame.end(), find1);
-      eventsLastFrame.erase(trunc, eventsLastFrame.end());
+  auto eventEraseThunk=[](std::vector<InputEvent>& container, InputState if_value, InputState erase_value) {
+    for (auto iter = container.begin(); iter != container.end();) {
+      InputEvent e = *iter;
 
-      trunc = std::remove(eventsLastFrame.begin(), eventsLastFrame.end(), find2);
-      eventsLastFrame.erase(trunc, eventsLastFrame.end());
+      if (e.state == if_value) {
+        auto trunc = std::remove(container.begin(), container.end(), InputEvent{ e.name, erase_value });
+        size_t sz = std::distance(trunc, container.end());
+        container.erase(trunc, container.end());
 
-      trunc = std::remove(events.begin(), events.end(), find1);
-      events.erase(trunc, events.end());
+        if (sz > 0) {
+          iter = container.begin(); // start over now that we changed the order of the container
+        }
+      }
 
-      trunc = std::remove(events.begin(), events.end(), find2);
-      events.erase(trunc, events.end());
+      iter++;
     }
-  }
+  };
+
+  eventEraseThunk(eventsLastFrame, InputState::released, InputState::pressed);
+  eventEraseThunk(eventsLastFrame, InputState::released, InputState::held);
+  eventEraseThunk(events, InputState::released, InputState::pressed);
+  eventEraseThunk(events, InputState::released, InputState::held);
+
+  // Uncomment for debugging
+  /*for (InputEvent e : eventsLastFrame) {
+    std::string state = "NONE";
+
+    switch (e.state) {
+    case InputState::held:
+      state = "InputState::held";
+      break;
+    case InputState::released:
+      state = "InputState::released";
+      break;
+    case InputState::pressed:
+      state = "InputState::pressed";
+      break;
+    }
+    Logger::Logf("input event %s, %s", e.name.c_str(), state.c_str());
+  }*/
 
   // Finally, merge the continuous InputState::held key events into the final event buffer
-  for (auto e : eventsLastFrame) {
+  for (InputEvent e : eventsLastFrame) {
     InputEvent insert = InputEvents::none;
     InputEvent erase  = InputEvents::none;
 
@@ -394,26 +417,6 @@ void InputManager::Update() {
       events.push_back(insert); // migrate this input
     }
   }
-  
-  /*
-  // Uncomment for debugging
-  for (auto e : events) {
-    std::string state = "NONE";
-
-    switch (e.state) {
-    case InputState::InputState::held:
-      state = "InputState::held";
-      break;
-    case InputState::released:
-      state = "RELEASED";
-      break;
-    case InputState::released:
-      state = "InputState::pressed";
-      break;
-    }
-    Logger::Logf("input event %s, %s", e.name.c_str(), state.c_str());
-  }
-  */
 
   eventsLastFrame.clear();
 

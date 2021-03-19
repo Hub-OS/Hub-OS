@@ -37,7 +37,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   bool notAnimating = player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE;
 
   // Are we creating an action this frame?
-  if (player.CanAttack() && notAnimating) {
     if (Input().Has(InputEvents::pressed_use_chip)) {
       auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
       if (cardsUI) {
@@ -61,29 +60,27 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
       isChargeHeld = false;
       player.chargeEffect.SetCharging(false);
     }
-  }
+
 
   // Movement increments are restricted based on anim speed at this time
-  if (player.state != PLAYER_IDLE)
+  if (player.IsMoving())
     return;
 
-  static Direction direction = Direction::none;
-  //if (!player.IsTimeFrozen()) { // TODO: take out IsTimeFrozen from API
-    if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {
-      direction = Direction::up;
-    }
-    else if (Input().Has(InputEvents::pressed_move_left) || Input().Has(InputEvents::held_move_left)) {
-      direction = Direction::left;
-    }
-    else if (Input().Has(InputEvents::pressed_move_down) || Input().Has(InputEvents::held_move_down)) {
-      direction = Direction::down;
-    }
-    else if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
-      direction = Direction::right;
-    }
-  //}
+  Direction direction = Direction::none;
+  if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {
+    direction = Direction::up;
+  }
+  else if (Input().Has(InputEvents::pressed_move_left) || Input().Has(InputEvents::held_move_left)) {
+    direction = Direction::left;
+  }
+  else if (Input().Has(InputEvents::pressed_move_down) || Input().Has(InputEvents::held_move_down)) {
+    direction = Direction::down;
+  }
+  else if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
+    direction = Direction::right;
+  }
 
-    bool shouldShoot = Input().Has(InputEvents::held_shoot) && isChargeHeld == false && player.CanAttack();
+  bool shouldShoot = Input().Has(InputEvents::held_shoot) && isChargeHeld == false && player.CanAttack();
 
 #ifdef __ANDROID__
   shouldShoot = Input().Has(PRESSED_A);
@@ -95,44 +92,9 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     player.chargeEffect.SetCharging(true);
   }
 
-  if (Input().Has(InputEvents::released_move_up)) {
-    direction = Direction::none;
-  }
-  else if (Input().Has(InputEvents::released_move_left)) {
-    direction = Direction::none;
-  }
-  else if (Input().Has(InputEvents::released_move_down)) {
-    direction = Direction::none;
-  }
-  else if (Input().Has(InputEvents::released_move_right)) {
-    direction = Direction::none;
-  }
+  if(direction != Direction::none) {
+    replicator ? replicator->SendMoveSignal(direction) : (void(0));
 
-  replicator? replicator->SendMoveSignal(direction) : (void(0));
-
-  unsigned frame{};
-  if (player.IsMoving(&frame)) {
-    auto t = player.GetTile();
-
-    if (frame != moveFrame) {
-      // this is a new move event, kick off the animation
-      auto playerPtr = &player;
-
-      auto onFinish = [playerPtr, this]() {
-        playerPtr->SetAnimation("PLAYER_MOVED", [playerPtr]() {
-          playerPtr->SetAnimation(PLAYER_IDLE);
-        });
-
-        direction = Direction::none;
-      }; // end lambda
-      player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
-      player.SetAnimation(PLAYER_MOVING, onFinish);
-      moveFrame = frame;
-    }
-
-    replicator ? replicator->SendTileSignal(t->GetX(), t->GetY()) : (void(0));
-  }
-  else if(direction != Direction::none) {
     player.Teleport(player.GetTile() + direction);
   } 
 }
@@ -142,6 +104,4 @@ void PlayerControlledState::OnLeave(Player& player) {
   player.chargeEffect.SetCharging(false);
 
   replicator? replicator->SendChargeSignal(false) : (void(0));
-
-  player.ClearActionQueue();
 }

@@ -3,7 +3,7 @@
 #include <algorithm>
 
 ActionQueue::~ActionQueue() {
-  ClearQueue();
+  ClearQueue(ActionQueue::CleanupType::no_interrupts);
 }
 
 ActionOrder ActionQueue::ApplyPriorityFilter(const ActionOrder& in) {
@@ -99,8 +99,9 @@ void ActionQueue::Process() {
     if (iter->processing == false) {
       ActionQueue::Index index = ApplyDiscardFilter(*iter);
       if (index.discardOp == ActionDiscardOp::until_eof) {
-          iter = indices.erase(iter);
-          continue;
+        poppers[index.type](index.index);
+        iter = indices.erase(iter);
+        continue;
       }
     }
 
@@ -147,23 +148,24 @@ void ActionQueue::Pop() {
   }
 }
 
-void ActionQueue::ClearQueue()
+void ActionQueue::ClearQueue(ActionQueue::CleanupType cleanup)
 {
   if (indices.empty()) return;
 
   ActionTypes queue = TopType();
   auto iter = types.find(queue);
+  bool interrupt = cleanup == ActionQueue::CleanupType::allow_interrupts && indices[0].processing;
 
-  if (iter != types.end()) {
+  if (iter != types.end() && interrupt) {
     handlers[queue](ActionQueue::ExecutionType::interrupt);
   }
 
-  while (iter != types.end()) {
+  while (indices.size()) {
     size_t index = indices[0].index;
     poppers[queue](index);
 
+    indices.erase(indices.begin());
     queue = TopType();
-    iter = types.find(queue);
   }
 
   discardFilters.clear();

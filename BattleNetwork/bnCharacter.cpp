@@ -91,7 +91,7 @@ const bool Character::IsLockoutComplete()
   if (currCardAction)
     return currCardAction->IsLockoutOver();
 
-  return false;
+  return true;
 }
 
 void Character::Update(double _elapsed) {
@@ -173,7 +173,8 @@ void Character::Update(double _elapsed) {
     // once the animation is complete, 
     // cleanup the attack and pop the action queue
     if (currCardAction->IsAnimationOver()) {
-      currCardAction->EndAction();
+      // currCardAction->EndAction();
+      currCardAction = nullptr;
       actionQueue.Pop();
     }
   }
@@ -289,7 +290,7 @@ const int Character::GetMaxHealth() const
 
 const bool Character::CanAttack() const
 {
-  return !IsSliding() && !currCardAction;
+  return !IsMoving() && !currCardAction;
 }
 
 void Character::ResolveFrameBattleDamage()
@@ -626,7 +627,6 @@ void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::Execu
 
   if (exec == ActionQueue::ExecutionType::interrupt) {
     currCardAction->EndAction();
-    delete currCardAction;
     currCardAction = nullptr;
   }
 }

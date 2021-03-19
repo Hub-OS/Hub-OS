@@ -1,4 +1,5 @@
 #pragma once
+#include "../bnGame.h"
 #include "../bnInputHandle.h"
 
 namespace Overworld {
@@ -8,6 +9,11 @@ namespace Overworld {
   class PlayerController : public InputHandle {
     Overworld::Actor* actor{ nullptr };
     bool listen{ true };
+
+    struct {
+      frame_time_t up{}, left{}, right{}, down{};
+    } frameDelay{};
+
   public:
     void ControlActor(Actor& actor);
     void ReleaseActor();

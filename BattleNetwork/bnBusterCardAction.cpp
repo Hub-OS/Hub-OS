@@ -60,7 +60,7 @@ void BusterCardAction::OnExecute() {
     busterRemoved = &b->CreateRemoveCallback().get();
     busterRemoved->Slot([this]() {
       isBusterAlive = false;
-      OnEndAction();
+      EndAction();
       });
 
     owner->GetField()->AddEntity(*b, *owner->GetTile());

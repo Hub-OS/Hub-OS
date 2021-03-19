@@ -28,19 +28,31 @@ void Overworld::PlayerController::Update(double elapsed)
 
   if (listen) {
     if (Input().Has(InputEvents::pressed_move_left) || Input().Has(InputEvents::held_move_left)) {
-      inputs.push_back(Direction::down_left);
+      frameDelay.left += from_seconds(elapsed);
+    }
+    else {
+      frameDelay.left = frames(0);
     }
 
     if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
-      inputs.push_back(Direction::up_right);
+      frameDelay.right += from_seconds(elapsed);
+    }
+    else {
+      frameDelay.right = frames(0);
     }
 
     if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {
-      inputs.push_back(Direction::up_left);
+      frameDelay.up += from_seconds(elapsed);
+    }
+    else {
+      frameDelay.up = frames(0);
     }
 
     if (Input().Has(InputEvents::pressed_move_down) || Input().Has(InputEvents::held_move_down)) {
-      inputs.push_back(Direction::down_right);
+      frameDelay.down += from_seconds(elapsed);
+    }
+    else {
+      frameDelay.down = frames(0);
     }
 
     if (Input().Has(InputEvents::pressed_interact)) {
@@ -56,6 +68,22 @@ void Overworld::PlayerController::Update(double elapsed)
           return;
         }
       }
+    }
+
+    if (frameDelay.left >= frames(5)) {
+      inputs.push_back(Direction::down_left);
+    }
+
+    if (frameDelay.right >= frames(5)) {
+      inputs.push_back(Direction::up_right);
+    }
+
+    if (frameDelay.up >= frames(5)) {
+      inputs.push_back(Direction::up_left);
+    }
+
+    if (frameDelay.down >= frames(5)) {
+      inputs.push_back(Direction::down_right);
     }
   }
 

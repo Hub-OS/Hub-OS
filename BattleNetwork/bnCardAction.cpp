@@ -11,18 +11,18 @@ CardAction::CardAction(Character& user, const std::string& animation) :
   ResourceHandle()
 {
   if (anim) {
-    prepareActionDelegate = [this]() {
+    prepareActionDelegate = [this] {
       for (auto& [nodeName, node] : attachments) {
         this->user.AddNode(&node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
       // use the current animation's arrangement, do not overload
-      prevState = anim->GetAnimationString();;
+      prevState = anim->GetAnimationString();
       anim->SetAnimation(this->animation, [this]() {
 
         if (this->IsLockoutOver()) {
-          OnEndAction();
+          EndAction();
         }
 
         RecallPreviousState();
@@ -44,7 +44,9 @@ CardAction::~CardAction()
   stepList.clear();
   sequence.clear();
 
-  FreeAttachedNodes();
+  if (started) {
+    FreeAttachedNodes();
+  }
 }
 
 void CardAction::AddStep(Step step)
@@ -100,7 +102,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
         anim->SetPlaybackMode(Animator::Mode::Loop);
 
         if (this->IsLockoutOver()) {
-          OnEndAction();
+          EndAction();
         }
 
         RecallPreviousState();
@@ -132,7 +134,7 @@ void CardAction::Execute()
 
 void CardAction::EndAction()
 {
-  this->OnEndAction();
+  OnEndAction();
 }
 
 CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
@@ -179,7 +181,7 @@ void CardAction::Update(double _elapsed)
     sequence.update(_elapsed);
     if (sequence.isEmpty()) {
       animationIsOver = true; // animation for sequence is complete
-      OnEndAction();
+      EndAction();
     }
   }
   else {
@@ -187,7 +189,8 @@ void CardAction::Update(double _elapsed)
     lockoutProps.cooldown = std::max(lockoutProps.cooldown, 0.0);
 
     if (IsLockoutOver()) {
-      OnEndAction();
+      EndAction();
+      animationIsOver = true;
     }
   }
 }

@@ -81,9 +81,9 @@ void Entity::UpdateMovement(double elapsed)
 
     if (from_seconds(elapsedMoveTime) > currMoveEvent.delayFrames) {
       // Get a value from 0.0 to 1.0
-      float duration = seconds_cast<float>(currMoveEvent.delayFrames + currMoveEvent.deltaFrames);
-      float delta = swoosh::ease::linear(static_cast<float>(elapsedMoveTime), duration, 1.0f);
-
+      float duration = seconds_cast<float>(currMoveEvent.deltaFrames);
+      float delta = swoosh::ease::linear(static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value), duration, 1.0f);
+      
       sf::Vector2f pos = moveStartPosition;
       sf::Vector2f tar = next->getPosition();
 
@@ -117,10 +117,13 @@ void Entity::UpdateMovement(double elapsed)
         }
       }
 
+      float heightDelta = swoosh::ease::wideParabola(static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value), duration, 1.0f);
+      tileOffset.y -= (heightDelta * currMoveEvent.height);
+      
       // When delta is 1.0, the slide duration is complete
       if (delta == 1.0f)
       {
-        actionQueue.Pop();
+        FinishMove();
         Battle::Tile* prevTile = GetTile();
         tileOffset = { 0, 0 };
 
@@ -130,7 +133,7 @@ void Entity::UpdateMovement(double elapsed)
           Teleport(*tile + GetPreviousDirection());
 
           // calculate our new entity's position
-          UpdateSlideStartPosition();
+          UpdateMoveStartPosition();
 
           // TODO: shorten with GetPreviousDirection() switch
           if (previous->GetX() > prevTile->GetX()) {
@@ -324,7 +327,9 @@ void Entity::FinishMove()
   // completes the move or moves the object back
   if (currMoveEvent.dest) {
     AdoptNextTile();
+    tileOffset = {};
     currMoveEvent = {};
+    actionQueue.Pop();
     actionQueue.ClearFilters();
   }
 }
@@ -332,9 +337,11 @@ void Entity::FinishMove()
 void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec)
 {
   if (currMoveEvent.dest == nullptr) {
+    UpdateMoveStartPosition();
     FilterMoveEvent(event);
     currMoveEvent = event;
     moveEventFrame = this->frame;
+    previous = tile;
     elapsedMoveTime = 0;
     actionQueue.CreateDiscardFilter(ActionTypes::buster, ActionDiscardOp::until_resolve);
   }
@@ -632,7 +639,7 @@ Component* Entity::RegisterComponent(Component* c) {
   return c;
 }
 
-void Entity::UpdateSlideStartPosition()
+void Entity::UpdateMoveStartPosition()
 {
   if (tile) {
     moveStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
@@ -656,5 +663,5 @@ void Entity::SetMoveStartupDelay(const frame_time_t& frames)
 
 void Entity::ClearActionQueue()
 {
-  actionQueue.ClearQueue();
+  actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
 }

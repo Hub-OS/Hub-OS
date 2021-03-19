@@ -45,7 +45,7 @@ struct MoveEvent {
   frame_time_t endlagFrames{}; //!< Wait period before action is complete
   float height{}; //!< If this is non-zero with delta frames, the character will effectively jump
   Battle::Tile* dest{ nullptr };
-
+  std::function<void()> onBegin = []{};
   //!< helper function true if jumping
   inline bool IsJumping() const {
     return dest && height > 0.f && deltaFrames > frames(0);
@@ -492,9 +492,9 @@ private:
   Direction previousDirection{};
 
     /**
-   * @brief Used internally before moving and updates the start position vector used in the sliding motion
+   * @brief Used internally before moving and updates the start position
    */
-  void UpdateSlideStartPosition();
+  void UpdateMoveStartPosition();
 };
 
 template<typename ComponentType>

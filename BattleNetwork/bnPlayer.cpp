@@ -13,6 +13,12 @@
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
+struct BusterActionDeleter {
+  void operator()(BusterEvent& in) {
+    delete in.action;
+  }
+};
+
 Player::Player() :
   state(PLAYER_IDLE),
   chargeEffect(this),
@@ -44,8 +50,8 @@ Player::Player() :
   activeForm = nullptr;
 
   auto recoil = [this]() {
-    // When movement is interrupted because of a hit, we need to flush the movement state data
-    FinishMove();
+    // When movement is interrupted because of a hit, we need to flush the action queue
+    ClearActionQueue();
     ChangeState<PlayerHitState>();
   };
 
@@ -59,7 +65,9 @@ Player::Player() :
 
   using namespace std::placeholders;
   auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
-  actionQueue.RegisterType<BusterEvent>(ActionTypes::buster, handler);
+  actionQueue.RegisterType<BusterEvent, BusterActionDeleter>(ActionTypes::buster, handler);
+
+  SetPassthrough(true);
 }
 
 Player::~Player() {
@@ -84,6 +92,8 @@ void Player::FilterMoveEvent(MoveEvent& event)
 {
   auto anim = this->animationComponent;
   event.delayFrames = from_seconds(anim->GetAnimationObject().GetStateDuration("PLAYER_MOVING"));
+  event.height = 140;
+  event.deltaFrames = frames(30);
 }
 
 void Player::Attack() {
@@ -228,28 +238,16 @@ frame_time_t Player::CalculateChargeTime(const unsigned chargeLevel)
 
 CardAction* Player::ExecuteBuster()
 {
-    return OnExecuteBusterAction();
+   return OnExecuteBusterAction();
 }
 
 CardAction* Player::ExecuteChargedBuster()
 {
-    return OnExecuteChargedBusterAction();
+   return OnExecuteChargedBusterAction();
 }
 
 CardAction* Player::ExecuteSpecial()
 {
-  auto actions = this->GetComponentsDerivedFrom<CardAction>();
-  bool canUse = true;
-
-  // We could be using an ability, make sure we do not use another ability
-  for (auto&& action : actions) {
-    canUse = canUse && action->GetLockoutGroup() != CardAction::LockoutGroup::ability;
-  }
-
-  if (!canUse) {
-    return nullptr;
-  }
-  
   return OnExecuteSpecialAction();
 }
 
