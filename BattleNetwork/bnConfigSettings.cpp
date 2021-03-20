@@ -42,7 +42,7 @@ const std::list<std::string> ConfigSettings::GetPairedActions(const sf::Keyboard
 
     auto iter = keyboard.cbegin();
 
-    while (iter != keyboard.end()) {
+    while (iter != keyboard.cend()) {
         if (iter->first == event) {
             list.push_back(iter->second);
         }
@@ -87,7 +87,7 @@ const Gamepad ConfigSettings::GetPairedGamepadButton(std::string action) const
         iter++;
     }
 
-    return (Gamepad) - 1;
+    return Gamepad::BAD_CODE;
 }
 
 const std::list<std::string> ConfigSettings::GetPairedActions(const Gamepad& event) const {
@@ -96,7 +96,7 @@ const std::list<std::string> ConfigSettings::GetPairedActions(const Gamepad& eve
     if (gamepad.size()) {
         auto iter = gamepad.cbegin();
 
-        while (iter != gamepad.end()) {
+        while (iter != gamepad.cend()) {
             if (iter->first == event) {
                 list.push_back(iter->second);
             }
@@ -142,14 +142,7 @@ void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
 
 ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
 {
-    discord = rhs.discord;
-    webServer = rhs.webServer;
-    gamepad = rhs.gamepad;
-    musicLevel = rhs.musicLevel;
-    sfxLevel = rhs.sfxLevel;
-    isOK = rhs.isOK;
-    keyboard = rhs.keyboard;
-    fullscreen = rhs.fullscreen;
+  this->operator=(rhs);
 }
 
 ConfigSettings::ConfigSettings()

@@ -13,8 +13,7 @@
 class MettaurMoveState : public AIState<Mettaur>
 {
 private:
-  Direction nextDirection; /*!< Direction to move to */
-  bool isMoving; /*!< Whether or not move animation is playing */
+  bool isMoving{}; /*!< Whether or not move animation is playing */
 public:
 
   /**

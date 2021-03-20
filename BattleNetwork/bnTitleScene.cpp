@@ -56,6 +56,9 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   totalObjects += static_cast<unsigned>(AudioType::AUDIO_TYPE_SIZE);
   totalObjects += static_cast<unsigned>(ShaderType::SHADER_TYPE_SIZE);
 
+  startLabel.SetString("Loading, Please Wait");
+  CenterLabel();
+
   setView(sf::Vector2u(480, 320));
 }
 
@@ -72,9 +75,6 @@ void TitleScene::onUpdate(double elapsed)
 {
   // If not ready, do no proceed past this point!
   if (IsComplete() == false) {
-    ellipsis = (ellipsis + 1) % 6;
-    auto dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
-    startLabel.SetString(taskStr + dots);
     return;
   }
 
@@ -87,8 +87,8 @@ void TitleScene::onUpdate(double elapsed)
     startLabel.SetString("TAP SCREEN");
 #else
     startLabel.SetString("PRESS START");
-#endif
     CenterLabel();
+#endif
   }
 
   if (Input().GetAnyKey() == sf::Keyboard::Enter && !pressedStart) {
@@ -138,9 +138,9 @@ void TitleScene::onEnd()
 
 void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 {
-  taskStr = taskName;
-  startLabel.SetString(taskName);
-  CenterLabel();
+  // TODO: TaskGroup callbacks are NOT threadsafe!
+  //startLabel.SetString(taskName);
+  //CenterLabel();
 
   Logger::Logf("[%.2f] Began task %s", progress, taskName.c_str());
 }

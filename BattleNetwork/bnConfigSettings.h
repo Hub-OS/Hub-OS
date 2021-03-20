@@ -8,9 +8,6 @@
 struct DiscordInfo {
   std::string user;
   std::string key;
-
-  DiscordInfo() = default;
-  DiscordInfo(const DiscordInfo&) = default;
 };
 
 struct WebServerInfo {
@@ -18,10 +15,7 @@ struct WebServerInfo {
     std::string password;
     std::string URL;
     std::string version;
-    int port;
-
-    WebServerInfo() = default;
-    WebServerInfo(const WebServerInfo&) = default;
+    int port{};
 };
 
 /*! \brief easy to cast in with some special codes for joystick x/y axis */
@@ -108,11 +102,11 @@ private:
   DiscordInfo discord; /*!< account info to allow alerts on discord channel */
   WebServerInfo webServer; /*!< account info that hosts cards and folders */
 
-  int musicLevel;
-  int sfxLevel;
+  int musicLevel{};
+  int sfxLevel{};
 
-  bool fullscreen;
+  bool fullscreen{};
 
   // State flags
-  bool isOK; /*!< true if the file was ok */
+  bool isOK{}; /*!< true if the file was ok */
 };

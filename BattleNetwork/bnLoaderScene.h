@@ -22,7 +22,7 @@ class LoaderScene : public Scene {
 private:
   TaskGroup tasks;
   std::thread taskThread;
-
+  bool isComplete{};
   void ExecuteTasks();
 public:
   LoaderScene(swoosh::ActivityController& controller, TaskGroup&& tasks);

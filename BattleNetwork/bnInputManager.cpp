@@ -36,31 +36,31 @@ void InputManager::Update() {
   events.clear();
   systemCopyEvent = systemPasteEvent = false;
 
-  Event event;
+  Event event{};
 
   lastkey = sf::Keyboard::Key::Unknown;
-  lastButton = (decltype(lastButton))-1;
+  lastButton = static_cast<Gamepad>(-1);
 
   while (window.pollEvent(event)) {
     if (event.type == Event::Closed) {
-      onLoseFocus();
+      onLoseFocus? onLoseFocus() : (void)0;
       window.close();
       hasFocus = false;
     } else if (event.type == Event::LostFocus) {
-      onLoseFocus();
+      onLoseFocus ? onLoseFocus() : (void)0;
       hasFocus = false;
 
       FlushAllInputEvents();
     }
     else if (event.type == Event::GainedFocus) {
-      onRegainFocus();
+      onRegainFocus ? onRegainFocus() : (void)0;
       hasFocus = true;
 
       // we have re-entered, do not let keys be held down
       FlushAllInputEvents();
     }
     else if (event.type == Event::Resized) {
-      onResized(event.size.width, event.size.height);
+      onResized? onResized(event.size.width, event.size.height) : (void)0;
       hasFocus = true;
     }
 
@@ -69,17 +69,18 @@ void InputManager::Update() {
     }
 
     if(event.type == sf::Event::EventType::KeyPressed) {
-      if (!hasFocus) continue;
+      if (hasFocus) {
 
-      lastkey = event.key.code;
+        lastkey = event.key.code;
 
 #ifndef __ANDROID__
-      if (event.key.control && event.key.code == sf::Keyboard::V)
-        systemPasteEvent = true;
+        if (event.key.control && event.key.code == sf::Keyboard::V)
+          systemPasteEvent = true;
 
-      if (event.key.control && event.key.code == sf::Keyboard::C)
-        systemCopyEvent = true;
+        if (event.key.control && event.key.code == sf::Keyboard::C)
+          systemCopyEvent = true;
 #endif
+      }
     }
 
     // keep the gamepad list up-to-date
@@ -100,9 +101,9 @@ void InputManager::Update() {
     if (sf::Joystick::isConnected(currGamepad) && settings.IsOK() && hasFocus && IsUsingGamepadControls()) {
       for (unsigned int i = 0; i < sf::Joystick::getButtonCount(currGamepad); i++) {
         if (sf::Joystick::isButtonPressed(currGamepad, i)) {
-          auto action = settings.GetPairedActions((Gamepad)i);
+          auto action1 = settings.GetPairedActions((Gamepad)i);
 
-          for (auto a : action) {
+          for (auto a : action1) {
             events.push_back({ a, InputState::pressed });
           }
           
@@ -112,9 +113,9 @@ void InputManager::Update() {
           we must compare with the last frame to determine if this 
           was a release event
           */
-          auto action = settings.GetPairedActions((Gamepad)i);
+          auto action2 = settings.GetPairedActions((Gamepad)i);
 
-          for (auto a : action) {
+          for (auto a : action2) {
             bool canRelease = false;
 
             InputEvent find1 = { a, InputState::held };
@@ -136,9 +137,9 @@ void InputManager::Update() {
     } else if (Event::EventType::KeyPressed == event.type && hasFocus && IsUsingKeyboardControls()) {
       /* Gamepad not connected. Strictly use keyboard events. */
       if (settings.IsOK() && settings.IsKeyboardOK()) {
-        auto action = settings.GetPairedActions(event.key.code);
+        auto action3 = settings.GetPairedActions(event.key.code);
 
-        for (auto a : action) {
+        for (auto a : action3) {
           events.push_back({ a, InputState::pressed });
         }
       } else {
@@ -190,11 +191,9 @@ void InputManager::Update() {
       }
     } else if (Event::KeyReleased == event.type && hasFocus && IsUsingKeyboardControls()) {
       if (settings.IsOK() && settings.IsKeyboardOK()) {
-        auto action = settings.GetPairedActions(event.key.code);
+        auto action4 = settings.GetPairedActions(event.key.code);
 
-        if (!action.size()) continue;
-
-        for (auto a : action) {
+        for (auto a : action4) {
           events.push_back({ a, InputState::released });
         }
       }
@@ -276,9 +275,9 @@ void InputManager::Update() {
     if (axisXPower <= -GAMEPAD_AXIS_SENSITIVITY) {
       lastButton = Gamepad::LEFT;
 
-      auto action = settings.GetPairedActions((Gamepad)lastButton);
+      auto action5 = settings.GetPairedActions((Gamepad)lastButton);
 
-      for (auto a : action) {
+      for (auto a : action5) {
         events.push_back({ a, InputState::pressed });
       }
     }
@@ -286,9 +285,9 @@ void InputManager::Update() {
     if (axisXPower >= GAMEPAD_AXIS_SENSITIVITY) {
       lastButton = Gamepad::RIGHT;
 
-      auto action = settings.GetPairedActions((Gamepad)lastButton);
+      auto action6 = settings.GetPairedActions((Gamepad)lastButton);
 
-      for (auto a : action) {
+      for (auto a : action6) {
         events.push_back({ a, InputState::pressed });
       }
     }
@@ -296,9 +295,9 @@ void InputManager::Update() {
     if (axisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
       lastButton = Gamepad::UP;
 
-      auto action = settings.GetPairedActions((Gamepad)lastButton);
+      auto action7 = settings.GetPairedActions((Gamepad)lastButton);
 
-      for (auto a : action) {
+      for (auto a : action7) {
         events.push_back({ a, InputState::pressed });
       }
     }
@@ -306,26 +305,26 @@ void InputManager::Update() {
     if (axisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
       lastButton = Gamepad::DOWN;
 
-      auto action = settings.GetPairedActions((Gamepad)lastButton);
+      auto action8 = settings.GetPairedActions((Gamepad)lastButton);
 
-      for (auto a : action) {
+      for (auto a : action8) {
         events.push_back({ a, InputState::pressed });
       }
     }
 
     if (axisXPower - lastAxisXPower != 0.f) {
       if (axisXPower > -GAMEPAD_AXIS_SENSITIVITY && lastAxisXPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-        auto action = settings.GetPairedActions(Gamepad::LEFT);
+        auto action9 = settings.GetPairedActions(Gamepad::LEFT);
 
-        for (auto a : action) {
+        for (auto a : action9) {
           events.push_back({ a, InputState::released });
         }
       }
 
       if (axisXPower < GAMEPAD_AXIS_SENSITIVITY && lastAxisXPower >= GAMEPAD_AXIS_SENSITIVITY) {
-        auto action = settings.GetPairedActions(Gamepad::RIGHT);
+        auto action10 = settings.GetPairedActions(Gamepad::RIGHT);
 
-        for (auto a : action) {
+        for (auto a : action10) {
           events.push_back({ a, InputState::released });
         }
       }
@@ -333,17 +332,17 @@ void InputManager::Update() {
 
     if (axisYPower - lastAxisYPower != 0.f) {
       if (axisYPower > -GAMEPAD_AXIS_SENSITIVITY && lastAxisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-        auto action = settings.GetPairedActions(Gamepad::DOWN);
+        auto action11 = settings.GetPairedActions(Gamepad::DOWN);
 
-        for (auto a : action) {
+        for (auto a : action11) {
           events.push_back({ a, InputState::released });
         }
       }
 
       if (axisYPower < GAMEPAD_AXIS_SENSITIVITY && lastAxisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
-        auto action = settings.GetPairedActions(Gamepad::UP);
+        auto action12 = settings.GetPairedActions(Gamepad::UP);
 
-        for (auto a : action) {
+        for (auto a : action12) {
           events.push_back({ a, InputState::released });
         }
       }
@@ -699,16 +698,16 @@ void InputManager::HandleInputBuffer(sf::Event e) {
   if ((e.type == e.KeyPressed && e.key.code == sf::Keyboard::BackSpace) || (e.text.unicode == 8 && inputBuffer.size() != 0)) {
     inputBuffer.pop_back();
   } else if(e.text.unicode < 128 && e.text.unicode != 8) {
-      //std::cout << e.text.unicode << std::endl;
+    //std::cout << e.text.unicode << std::endl;
 
 #ifdef __ANDROID__
-      if(e.text.unicode == 10) {
-        VirtualKeyEvent(InputEvent::RELEASED_B);
-        return;
-      }
+    if(e.text.unicode == 10) {
+      VirtualKeyEvent(InputEvent::RELEASED_B);
+      return;
+    }
 #endif
 
-      inputBuffer.push_back((char)e.text.unicode);
+    inputBuffer.push_back((char)e.text.unicode);
   }
 }
 

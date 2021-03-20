@@ -20,6 +20,8 @@ void MettaurMoveState::OnUpdate(double _elapsed, Mettaur& met) {
 
   Entity* target = met.GetTarget();
 
+  Direction nextDirection = Direction::none;
+
   if (target && target->GetTile()) {
     if (target->GetTile()->GetY() < met.GetTile()->GetY()) {
       nextDirection = Direction::up;
@@ -34,7 +36,10 @@ void MettaurMoveState::OnUpdate(double _elapsed, Mettaur& met) {
   }
   
   if (met.Teleport(nextDirection)) {
-    auto onFinish = [this, &met]() { met.ChangeState<MettaurIdleState>(); };
+    auto onFinish = [this, ptr = &met]() { 
+      ptr->ChangeState<MettaurIdleState>(); 
+    };
+
     auto anim = met.GetFirstComponent<AnimationComponent>();
     anim->SetAnimation("MOVING", onFinish);
     anim->SetInterruptCallback(onFinish);

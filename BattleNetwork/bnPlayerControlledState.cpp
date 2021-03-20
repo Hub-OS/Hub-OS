@@ -59,6 +59,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
       isChargeHeld = false;
       player.chargeEffect.SetCharging(false);
+    } else if (Input().Has(InputEvents::held_shoot)) {
+      isChargeHeld = true;
+      if (replicator) replicator->SendChargeSignal(true);
+      player.chargeEffect.SetCharging(true);
     }
 
 
@@ -78,18 +82,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
   else if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
     direction = Direction::right;
-  }
-
-  bool shouldShoot = Input().Has(InputEvents::held_shoot) && isChargeHeld == false && player.CanAttack();
-
-#ifdef __ANDROID__
-  shouldShoot = Input().Has(PRESSED_A);
-#endif
-
-  if (shouldShoot) {
-    isChargeHeld = true;
-    if (replicator) replicator->SendChargeSignal(true);
-    player.chargeEffect.SetCharging(true);
   }
 
   if(direction != Direction::none) {

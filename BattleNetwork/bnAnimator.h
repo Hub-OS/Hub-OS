@@ -48,7 +48,7 @@ struct Frame {
   }
 
   Frame(const Frame& rhs) {
-    *this = rhs;
+    this->operator=(rhs);
   }
 
   Frame& operator=(const Frame& rhs) {

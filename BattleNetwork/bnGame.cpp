@@ -108,17 +108,21 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   Callback<void()> mobs;
   mobs.Slot(std::bind(&Game::RunMobInit, this, &progress));
 
+  Callback<void()> finish;
+  finish.Slot([this] {
+    // Tell the input event loop how to behave when the app loses and regains focus
+    inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
+    inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
+    inputManager.BindResizedEvent(std::bind(&Game::Resize, this, std::placeholders::_1, std::placeholders::_2));
+    inputManager.SupportConfigSettings(reader);
+  });
+
   TaskGroup tasks;
   tasks.AddTask("Init graphics and shaders", std::move(graphics));
   tasks.AddTask("Init audio", std::move(audio));
   tasks.AddTask("Load Navis", std::move(navis));
   tasks.AddTask("Load mobs", std::move(mobs));
-
-  // Tell the input event loop how to behave when the app loses and regains focus
-  inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
-  inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
-  inputManager.BindResizedEvent(std::bind(&Game::Resize, this, std::placeholders::_1, std::placeholders::_2));
-  inputManager.SupportConfigSettings(reader);
+  tasks.AddTask("Finishing up", std::move(finish));
 
   if (configSettings.IsOK()) {
     // If the file is good, use the Audio() and 
@@ -163,10 +167,10 @@ void Game::Run()
 
     clock.restart();
 
-    textureManager.HandleExpiredTextureCache();
-
     // Poll input
     inputManager.Update();
+
+    textureManager.HandleExpiredTextureCache();
 
     double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
     this->elapsed += from_seconds(delta);

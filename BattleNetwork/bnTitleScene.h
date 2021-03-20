@@ -19,7 +19,7 @@ private:
   std::atomic<int> progress;
   std::atomic<int> navisLoaded;
   std::atomic<int> mobsLoaded;
-  std::string taskStr;
+  std::string taskStr, incomingTaskStr;
 
   // Status flags
   bool inLoadState = true;

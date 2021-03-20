@@ -58,7 +58,7 @@ void Text::UpdateGeometry() const
   float maxX = 0.f;
   float maxY = 0.f;
 
-  for (auto&& letter : message) {
+  for (char letter : message) {
 
     // Handle special characters
     if ((letter == L' ') || (letter == L'\n') || (letter == L'\t'))
