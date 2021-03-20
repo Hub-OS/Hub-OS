@@ -9,10 +9,6 @@
  <tileset firstgid="4" source="../tiles/warp.tsx"/>
  <tileset firstgid="10" source="../tiles/hp_warp.tsx"/>
  <tileset firstgid="15" source="../tiles/home_warp.tsx"/>
- <tileset firstgid="20" source="../tiles/tree.tsx"/>
- <tileset firstgid="24" source="../tiles/coffee.tsx"/>
- <tileset firstgid="28" source="../tiles/gate.tsx"/>
- <tileset firstgid="33" source="../../../../build/Release/resources/ow/tiles/gate.tsx"/>
  <layer id="1" name="Floor" width="10" height="10">
   <data encoding="csv">
 0,0,0,2147483649,1,2147483649,0,0,0,0,
