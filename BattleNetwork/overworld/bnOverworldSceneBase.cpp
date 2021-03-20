@@ -390,7 +390,7 @@ void Overworld::SceneBase::onResume() {
 void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   surface.draw(*bg);
 
-  DrawMap(surface, sf::RenderStates::Default);
+  DrawWorld(surface, sf::RenderStates::Default);
 
   surface.draw(emote);
   surface.draw(personalMenu);
@@ -401,7 +401,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   surface.draw(textbox);
 }
 
-void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates states) {
+void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
   auto mapScale = GetMap().getScale();
   auto cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
@@ -416,22 +416,29 @@ void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates st
   states.transform.translate(offset);
   states.transform *= map.getTransform();
 
-  DrawTiles(target, states);
+  DrawMap(target, states);
   DrawSprites(target, states);
 }
 
-void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates states) {
-  if (map.GetLayerCount() == 0) {
-    return;
+void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates states) {
+  auto tileSize = map.GetTileSize();
+
+  for (auto i = 0; i < map.GetLayerCount(); i++) {
+    DrawLayer(target, states, i);
+
+    // translate next layer
+    states.transform.translate(0, -tileSize.y / 2);
   }
+}
+
+void Overworld::SceneBase::DrawLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
+  auto& layer = map.GetLayer(index);
+
+  if (!layer.IsVisible()) return;
 
   auto rows = map.GetRows();
   auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
-
-  auto& layer = map.GetLayer(0);
-
-  if (!layer.IsVisible()) return;
 
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
@@ -734,8 +741,10 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     }
   }
 
+  int layerCount = (int)std::max(layerElements.size(), objectLayerElements.size());
+
   // build layers
-  for (int i = (int)std::max(layerElements.size(), objectLayerElements.size()) - 1; i >= 0; i--) {
+  for (int i = 0; i < layerCount; i++) {
     auto& layer = map.AddLayer();
 
     // add tiles to layer

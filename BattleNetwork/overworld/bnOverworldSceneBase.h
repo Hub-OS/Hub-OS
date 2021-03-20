@@ -93,8 +93,9 @@ namespace Overworld {
     void HandleCamera(float elapsed);
     void HandleInput();
     void LoadBackground(const Map& map, const std::string& value);
+    void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
-    void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);
+    void DrawLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
     void DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const;
 
 #ifdef __ANDROID__
