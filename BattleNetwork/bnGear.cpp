@@ -91,24 +91,18 @@ void Gear::OnUpdate(double _elapsed) {
 
   // Keep moving
   if (!IsSliding()) {
-    Slide(GetDirection(), frames(8));
-  }
-
-  if (GetDirection() == Direction::none) {
-    if (GetPreviousDirection() == Direction::left) {
-      SetDirection(Direction::right);
-    }
-    else if (GetPreviousDirection() == Direction::right) {
-      SetDirection(Direction::left);
-    }
-    else if (GetPreviousDirection() == Direction::none) {
-      SetDirection(startDir); // Todo: should slide mechanism remove previous direction info? This works but not necessary
+    if (!CanMoveTo(GetTile() + GetDirection())) {
+      if (CanMoveTo(GetTile() + Direction::right)) {
+        SetDirection(Direction::right);
+      }
+      else if (CanMoveTo(GetTile() + Direction::left)) {
+        SetDirection(Direction::left);
+      }
     }
 
     // Now try to move
     Slide(GetDirection(), frames(120));
   }
-
 }
 
 void Gear::OnDelete() {

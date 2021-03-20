@@ -111,7 +111,7 @@ static inline void QueueMobRegistration() {
   info->SetName("Alpha");
   info->SetSpeed(0);
   info->SetAttack(80);
-  info->SetHP(2000);
+  info->SetHP(2000);*/
 
   info = MOBS.AddClass<FalzarMob>(); // create and register object
   info->SetDescription("Cybeast Falzar is back and that's no good!");
@@ -119,7 +119,7 @@ static inline void QueueMobRegistration() {
   info->SetName("Falzar");
   info->SetSpeed(10);
   info->SetAttack(100);
-  info->SetHP(2000);*/
+  info->SetHP(2000);
 
 
 #ifdef BN_MOD_SUPPORT

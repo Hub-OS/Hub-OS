@@ -32,9 +32,14 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   bool canMove = player.IsLockoutComplete();
 
   // One of our active actions are preventing us from moving
-  if (!canMove) return;
+  if (!canMove) {
+    player.chargeEffect.SetCharging(false);
+    isChargeHeld = false;
+    return;
+  }
 
   bool notAnimating = player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE;
+  bool missChargeKey = isChargeHeld && !Input().Has(InputEvents::held_shoot);
 
   // Are we creating an action this frame?
     if (Input().Has(InputEvents::pressed_use_chip)) {
@@ -48,10 +53,8 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
       if (replicator) replicator->SendUseSpecialSignal();
       player.UseSpecial();
     }    // queue attack based on input behavior (buster or charge?)
-    else if ((!Input().Has(InputEvents::held_shoot) && isChargeHeld) || Input().Has(InputEvents::released_shoot)) {
+    else if (Input().Has(InputEvents::released_shoot) || missChargeKey) {
       // This routine is responsible for determining the outcome of the attack
-      player.Attack();
-
       if (replicator) {
         replicator->SendShootSignal();
         replicator->SendChargeSignal(false);
@@ -59,6 +62,8 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
       isChargeHeld = false;
       player.chargeEffect.SetCharging(false);
+      player.Attack();
+
     } else if (Input().Has(InputEvents::held_shoot)) {
       isChargeHeld = true;
       if (replicator) replicator->SendChargeSignal(true);
@@ -86,8 +91,13 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   if(direction != Direction::none) {
     replicator ? replicator->SendMoveSignal(direction) : (void(0));
-
-    player.Teleport(player.GetTile() + direction);
+    if (player.Teleport(player.GetTile() + direction)) {
+      player.SetAnimation("PLAYER_MOVE", [player = &player] {
+        player->SetAnimation("PLAYER_MOVED", [player] {
+          player->SetAnimation("PLAYER_IDLE");
+          });
+        });
+    }
   } 
 }
 

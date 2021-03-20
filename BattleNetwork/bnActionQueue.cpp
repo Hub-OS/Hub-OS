@@ -43,6 +43,12 @@ void ActionQueue::CreateDiscardFilter(const ActionTypes& type, const ActionDisca
 
 void ActionQueue::ClearFilters() {
   clearFilters = true;
+
+  if (clearFilters) {
+    priorityFilters.clear();
+    discardFilters.clear();
+    clearFilters = false;
+  }
 }
 
 void ActionQueue::Sort() {
@@ -106,12 +112,6 @@ void ActionQueue::Process() {
     }
 
     iter++;
-  }
-
-  if (clearFilters) {
-    priorityFilters.clear();
-    discardFilters.clear();
-    clearFilters = false;
   }
 
   // Resort and apply any new priority filters to the sort

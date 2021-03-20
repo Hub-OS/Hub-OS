@@ -491,7 +491,7 @@ void Character::ResolveFrameBattleDamage()
     stunCooldown = 0;
     invincibilityCooldown = 0;
 
-    FinishMove(); // cancels slide
+    //FinishMove(); // cancels slide
 
     if(frameCounterAggressor) {
       // Slide entity back a few pixels

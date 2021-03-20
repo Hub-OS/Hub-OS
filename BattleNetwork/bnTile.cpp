@@ -866,8 +866,8 @@ namespace Battle {
           if (character.GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
             continue;
 
-          //if (unknownTeams && character.UnknownTeamResolveCollision(*spell));
-         //   continue;
+          if (unknownTeams && !character.UnknownTeamResolveCollision(*spell)) // Case: unknown vs unknown need further inspection
+            continue;
 
           character.DefenseCheck(judge, *spell, DefenseOrder::always);
 

@@ -66,7 +66,7 @@ void Bubble::OnUpdate(double _elapsed) {
     }
 
     if (!IsSliding()) {
-      if (!CanMoveTo(GetTile() + GetDirection())) {
+      if (GetTile()->IsEdgeTile()) {
         Remove(); // doesn't make the bubble pop
       }
       else {
@@ -84,8 +84,11 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 
 
 const bool Bubble::UnknownTeamResolveCollision(const Spell& other) const {
+  Entity* aggro = other.GetHitboxProperties().aggressor;
+  bool is_aggro_team = aggro && Teammate(aggro->GetTeam());
+  bool is_spell_team = Teammate(other.GetTeam());
   // don't pop if hit by other bubbles from the same character
-  return other.GetHitboxProperties().aggressor != GetHitboxProperties().aggressor;
+  return !(is_aggro_team || is_spell_team);
 }
 
 void Bubble::OnCollision() {

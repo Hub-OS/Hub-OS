@@ -176,7 +176,7 @@ public:
    * @param _team
    * @return true if the input team is the same or friendly, false if they are opposing teams
    */
-  bool Teammate(Team _team);
+  bool Teammate(Team _team) const;
 
   /**
    * @brief Changes the tile pointer to the input tile

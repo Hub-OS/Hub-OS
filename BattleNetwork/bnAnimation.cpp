@@ -189,6 +189,14 @@ string Animation::ValueOf(string _key, string _line) {
   return s.substr(0, s.find("\""));
 }
 
+void Animation::HandleInterrupted()
+{
+  if (interruptCallback && progress < animations[currAnimation].GetTotalDuration()) {
+    interruptCallback();
+    interruptCallback = nullptr;
+  }
+}
+
 void Animation::Refresh(sf::Sprite& target) {
   Update(0, target);
 }
@@ -212,10 +220,7 @@ void Animation::Update(double elapsed, sf::Sprite& target, double playbackSpeed)
     animator(0, target, animations[currAnimation]);
     progress = 0;
     
-    if (interruptCallback) {
-      interruptCallback();
-      interruptCallback = nullptr;
-    }
+    HandleInterrupted();
   }
 
   const double duration = animations[currAnimation].GetTotalDuration();
@@ -264,30 +269,28 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
 }
 
 void Animation::SetAnimation(string state) {
-   if (interruptCallback) {
-     interruptCallback();
-     interruptCallback = nullptr;
-   }
+  HandleInterrupted();
+  RemoveCallbacks();
+  progress = 0.0f;
 
-   RemoveCallbacks();
-   progress = 0.0f;
+  std::transform(state.begin(), state.end(), state.begin(), ::toupper);
 
-   std::transform(state.begin(), state.end(), state.begin(), ::toupper);
+  auto pos = animations.find(state);
 
-   auto pos = animations.find(state);
+  noAnim = false; // presumptious reset
 
-   noAnim = false; // presumptious reset
+  if (pos == animations.end()) {
+#ifdef BN_LOG_MISSING_STATE
+    Logger::Log("No animation found in file for \"" + state + "\"");
+#endif
+    noAnim = true;
+  }
+  else {
+    animator.UpdateCurrentPoints(0, pos->second);
+  }
 
-   if (pos == animations.end()) {
-      Logger::Log("No animation found in file for \"" + state + "\"");
-      noAnim = true;
-   }
-   else {
-     animator.UpdateCurrentPoints(0, pos->second);
-   }
-
-   // Even if we don't have this animation, switch to it anyway
-   currAnimation = state;
+  // Even if we don't have this animation, switch to it anyway
+  currAnimation = state;
 }
 
 void Animation::RemoveCallbacks()

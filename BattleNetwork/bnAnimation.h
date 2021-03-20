@@ -198,6 +198,7 @@ private:
    * @return value as string or empty string
    */
   string ValueOf(string _key, string _line);
+  void HandleInterrupted();
 protected:
   bool noAnim{ false }; /*!< If the requested state was not found, hide the sprite when updating */
   Animator animator; /*!< Internal animator to delegate most of the work to */

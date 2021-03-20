@@ -92,8 +92,8 @@ void Player::FilterMoveEvent(MoveEvent& event)
 {
   auto anim = this->animationComponent;
   event.delayFrames = from_seconds(anim->GetAnimationObject().GetStateDuration("PLAYER_MOVING"));
-  event.height = 140;
-  event.deltaFrames = frames(30);
+  //event.height = 140;
+  //event.deltaFrames = frames(20);
 }
 
 void Player::Attack() {

@@ -358,7 +358,9 @@ const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
   auto str = pointName;
   std::transform(str.begin(), str.end(), str.begin(), ::toupper);
   if (currentPoints.find(str) == currentPoints.end()) {
+#ifdef BN_LOG_MISSING_POINT
     Logger::Log("Could not find point in current sequence named " + str);
+#endif
     return sf::Vector2f();
   }
   return currentPoints[str];

@@ -110,12 +110,14 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
   Callback<void()> finish;
   finish.Slot([this] {
+    // TODO: managers are not thread safe!
     // Tell the input event loop how to behave when the app loses and regains focus
-    inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
-    inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
-    inputManager.BindResizedEvent(std::bind(&Game::Resize, this, std::placeholders::_1, std::placeholders::_2));
-    inputManager.SupportConfigSettings(reader);
+    //inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
+    //inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
+    //inputManager.BindResizedEvent(std::bind(&Game::Resize, this, std::placeholders::_1, std::placeholders::_2));
   });
+
+  inputManager.SupportConfigSettings(reader);
 
   TaskGroup tasks;
   tasks.AddTask("Init graphics and shaders", std::move(graphics));

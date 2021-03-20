@@ -113,7 +113,7 @@ void Entity::UpdateMovement(double elapsed)
         else {
           // Slide back into the origin tile if we can no longer slide to the next tile
           moveStartPosition = next->getPosition();
-          next = tile;
+          currMoveEvent.dest = tile;
         }
       }
 
@@ -126,6 +126,7 @@ void Entity::UpdateMovement(double elapsed)
         FinishMove();
         Battle::Tile* prevTile = GetTile();
         tileOffset = { 0, 0 };
+        previousDirection = direction;
 
         // If we slide onto an ice block and we don't have float shoe enabled, slide
         if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
@@ -219,6 +220,7 @@ void Entity::Update(double _elapsed) {
   isUpdating = true;
 
   actionQueue.Process();
+
   UpdateMovement(_elapsed);
 
   // Update all components
@@ -329,13 +331,18 @@ void Entity::FinishMove()
     AdoptNextTile();
     tileOffset = {};
     currMoveEvent = {};
-    actionQueue.Pop();
     actionQueue.ClearFilters();
+    actionQueue.Pop();
   }
 }
 
 void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec)
 {
+  if (exec == ActionQueue::ExecutionType::interrupt) {
+    FinishMove();
+    return;
+  }
+
   if (currMoveEvent.dest == nullptr) {
     UpdateMoveStartPosition();
     FilterMoveEvent(event);
@@ -346,9 +353,6 @@ void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType&
     actionQueue.CreateDiscardFilter(ActionTypes::buster, ActionDiscardOp::until_resolve);
   }
 
-  if (exec == ActionQueue::ExecutionType::interrupt) {
-    FinishMove();
-  }
 }
 
 // Default implementation of CanMoveTo() checks 
@@ -367,7 +371,7 @@ const long Entity::GetID() const
 }
 
 /** \brief Unkown team entities are friendly to all spaces @see Cubes */
-bool Entity::Teammate(Team _team) {
+bool Entity::Teammate(Team _team) const {
   return (team == Team::unknown) || (team == _team);
 }
 
