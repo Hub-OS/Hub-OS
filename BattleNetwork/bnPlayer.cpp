@@ -91,7 +91,7 @@ void Player::OnUpdate(double _elapsed) {
 void Player::FilterMoveEvent(MoveEvent& event)
 {
   auto anim = this->animationComponent;
-  event.delayFrames = from_seconds(anim->GetAnimationObject().GetStateDuration("PLAYER_MOVING"));
+  event.delayFrames = from_seconds(anim->GetAnimationObject().GetStateDuration("PLAYER_MOVE")*0.5f);
   //event.height = 140;
   //event.deltaFrames = frames(20);
 }

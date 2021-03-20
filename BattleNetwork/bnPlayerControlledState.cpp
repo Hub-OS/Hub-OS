@@ -93,10 +93,8 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     replicator ? replicator->SendMoveSignal(direction) : (void(0));
     if (player.Teleport(player.GetTile() + direction)) {
       player.SetAnimation("PLAYER_MOVE", [player = &player] {
-        player->SetAnimation("PLAYER_MOVED", [player] {
-          player->SetAnimation("PLAYER_IDLE");
-          });
-        });
+        player->SetAnimation("PLAYER_IDLE");
+      });
     }
   } 
 }

@@ -7,8 +7,9 @@
 #include "bnAudioResourceManager.h"
 #include "bnSharedHitbox.h"
 
-Bubble::Bubble(Team _team,double speed)
-  : popping(false), Obstacle(_team) {
+Bubble::Bubble(Team _team,double speed) : 
+  popping(false), 
+  Obstacle(_team) {
   SetLayer(-100);
 
   SetHealth(1);

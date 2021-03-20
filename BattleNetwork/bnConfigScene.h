@@ -1,11 +1,5 @@
 #pragma once
-
-#pragma once
-#include <Swoosh/Activity.h>
-#include <SFML/Graphics.hpp>
-#include <time.h>
-
-#include "bnScene.h"
+#include "Overworld/bnOverworldHomepage.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
@@ -17,118 +11,125 @@
 #include "bnConfigWriter.h"
 #include "bnAnimatedTextBox.h"
 #include "bnMessageQuestion.h"
-#include "bnFont.h"
-#include "bnText.h"
-#include "widgets/bnButton.h"
+#include <SFML/Graphics.hpp>
+#include <time.h>
 
 /*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
 
-    This could use a redesign
+    This could use a redesign (and re-code)
 */
-class Background;
-class ConfigScene final : public Scene {
+class ConfigScene : public Scene {
 private:
-  // scene states
-  enum class states : unsigned {
-    top_menu = 0,
-    gamepad,
-    keyboard,
-    login
-  } currState{ 0 };
-
-  // member variables
-  int audioModeBGM{};
-  int audioModeSFX{};
-  bool leave{};
-  bool awaitingKey{};
-  bool interactive{ false }; /*!< If false, player cannot interact with screen yet */
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
   ConfigSettings::GamepadHash gamepadHash;
+
+  AnimatedTextBox textbox;
+
+  // ui sprite maps
   Animation endBtnAnimator;
   Animation audioAnimator;
-  Animation lightAnimator;
-  Text label;
-  AnimatedTextBox textbox;
+  int menuSelectionIndex;; /*!< Current selection */
+  int lastMenuSelectionIndex;
+  int maxMenuSelectionIndex;
+  int colIndex;
+  int maxCols;
+
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
-  sf::Sprite audioBGM,audioSFX;
+  SpriteProxyNode audioBGM, audioSFX;
   sf::Sprite hint;
   sf::Sprite endBtn;
-  sf::Sprite authWidget, light;
+
+  bool leave; // ?
+  bool awaitingKey;
+  bool isSelectingTopMenu;
+  bool inGamepadList;
+  bool inKeyboardList;
+  bool inLoginMenu;
+  int audioModeBGM;
+  int audioModeSFX;
+
   Background* bg{ nullptr };
-  Question* questionInterface{ nullptr };
-  Widget* menu{ nullptr };
+
+  struct uiData {
+    std::string label;
+    sf::Vector2f position;
+    sf::Vector2f scale;
+    enum class ActionItemType : int {
+      KEYBOARD,
+      GAMEPAD,
+      DISABLED
+    } type;
+    int alpha;
+
+    uiData() = default;
+    uiData(const uiData& rhs) = default;
+    ~uiData() = default;
+  };
+
+  int menuDivideIndex;
+
+  std::vector<uiData> uiList[3], boundKeys, boundGamepadButtons;
+
+  bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
+
+  Question* questionInterface;
+
 #ifdef __ANDROID__
   void StartupTouchControls();
   void ShutdownTouchControls();
 #endif
-
-  /*
-    the following use direct keyboard events as 
-    opposed to config bindings because the 
-    configuration may be invalid or the user
-    wishes to change them so make this easy for
-    them to do
-    */
-  const bool HasConfirmed() const;
-  const bool HasCancelled() const;
-  const bool HasUpButton() const;
-  const bool HasDownButton() const;
-  const bool HasLeftButton() const;
-  const bool HasRightButton() const;
+  void DrawMenuOptions(sf::RenderTexture& surface);
+  void DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTexture& surface);
 public:
 
   /**
    * @brief Load's the joystick config file
    */
   ConfigScene(swoosh::ActivityController&);
+  ~ConfigScene();
 
   /**
    * @brief Checks input events and listens for select buttons. Segues to new screens.
    * @param elapsed in seconds
    */
-  void onUpdate(double elapsed);
+  void onUpdate(double elapsed) override;
 
   /**
    * @brief Draws the UI
    * @param surface
    */
-  void onDraw(sf::RenderTexture& surface);
+  void onDraw(sf::RenderTexture& surface) override;
 
   /**
    * @brief Stops music, plays new track, reset the camera
    */
-  void onStart();
+  void onStart() override;
 
   /**
    * @brief Music fades out
    */
-  void onLeave();
+  void onLeave() override;
 
   /**
    * @brief Does nothing
    */
-  void onExit();
+  void onExit() override;
 
   /**
    * @brief Does nothing
    */
-  void onEnter();
+  void onEnter() override;
 
   /**
    * @brief Does nothing
    */
-  void onResume();
+  void onResume() override;
 
   /**
    * @brief Stops the music
    */
-  void onEnd();
-
-  /**
-   * @brief deconstructor
-   */
-  ~ConfigScene();
+  void onEnd() override;
 };

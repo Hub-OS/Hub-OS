@@ -59,6 +59,11 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   startLabel.SetString("Loading, Please Wait");
   CenterLabel();
 
+  ConfigSettings config = Input().GetConfigSettings();
+  WebServerInfo web = config.GetWebServerInfo();
+  WEBCLIENT.ConnectToWebServer(web.version.c_str(), web.URL.c_str(), web.port);
+  loginResult = WEBCLIENT.SendLoginCommand(web.user.c_str(), web.password.c_str());
+
   setView(sf::Vector2u(480, 320));
 }
 
@@ -73,37 +78,57 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
-  // If not ready, do no proceed past this point!
-  if (IsComplete() == false) {
-    return;
-  }
+  try {
+    // If not ready, do no proceed past this point!
+    if (IsComplete() == false) {
+      return;
+    }
 
-  static bool doOnce = true;
+    if (loginResult.valid() && !is_ready(loginResult)) {
+      startLabel.SetString("Loggin in...");
+      CenterLabel();
+      return;
+    }
 
-  if (doOnce) {
-    doOnce = false;
+    static bool doOnce = true;
+
+    if (doOnce) {
+      doOnce = false;
+
+      if (loginResult.valid()) {
+        if (loginResult.get()) {
+          Logger::Logf("Logged in successfully!");
+        }
+        else {
+          Logger::Logf("Could not log in!");
+        }
+      }
 
 #if defined(__ANDROID__)
-    startLabel.SetString("TAP SCREEN");
+      startLabel.SetString("TAP SCREEN");
 #else
-    startLabel.SetString("PRESS START");
-    CenterLabel();
+      startLabel.SetString("PRESS START");
+      CenterLabel();
 #endif
+    }
+
+    if (Input().GetAnyKey() == sf::Keyboard::Enter && !pressedStart) {
+      pressedStart = true;
+
+      // We want the next screen to be the main menu screen
+      using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
+      getController().push<tx>(loginSelected);
+
+      /*if (!loginSelected) {
+        getController().push<ConfigScene>();
+      }*/
+
+      // Zoom out and start a segue effect
+      //getController().pop<segue<DiamondTileCircle>>();
+    }
   }
-
-  if (Input().GetAnyKey() == sf::Keyboard::Enter && !pressedStart) {
-    pressedStart = true;
-
-    // We want the next screen to be the main menu screen
-    using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
-    getController().push<tx>(loginSelected);
-
-    /*if (!loginSelected) {
-      getController().push<ConfigScene>();
-    }*/
-
-    // Zoom out and start a segue effect
-    //getController().pop<segue<DiamondTileCircle>>();
+  catch (std::future_error& err) {
+    Logger::Logf("future_error: %s", err.what());
   }
 }
 

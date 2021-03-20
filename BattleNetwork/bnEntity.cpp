@@ -117,7 +117,8 @@ void Entity::UpdateMovement(double elapsed)
         }
       }
 
-      float heightDelta = swoosh::ease::wideParabola(static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value), duration, 1.0f);
+      float heightElapsed = static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value);
+      float heightDelta = swoosh::ease::wideParabola(heightElapsed, duration, 1.0f);
       tileOffset.y -= (heightDelta * currMoveEvent.height);
       
       // When delta is 1.0, the slide duration is complete
