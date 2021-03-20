@@ -799,43 +799,16 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
           continue;
         }
 
-        auto id = child.GetAttributeInt("id");
-        auto gid = static_cast<unsigned int>(stoul("0" + child.GetAttribute("gid")));
-        auto name = child.GetAttribute("name");
-        auto position = sf::Vector2f(
-          child.GetAttributeFloat("x"),
-          child.GetAttributeFloat("y")
-        );
-        auto size = sf::Vector2f(
-          child.GetAttributeFloat("width"),
-          child.GetAttributeFloat("height")
-        );
-        auto rotation = child.GetAttributeFloat("rotation");
-        auto visible = child.GetAttribute("visible") != "0";
-
-        if (gid > 0) {
-          auto tileObject = TileObject(id, gid);
-          tileObject.name = name;
-          tileObject.visible = visible;
-          tileObject.position = position;
-          tileObject.size = size;
-          tileObject.rotation = rotation;
+        if (child.HasAttribute("gid")) {
+          auto tileObject = TileObject::From(child);
           layer.AddTileObject(tileObject);
         }
         else {
-          auto shapePtr = Shape::From(child);
+          auto shapeObject = ShapeObject::From(child);
 
-          if (!shapePtr) {
-            continue;
+          if (shapeObject) {
+            layer.AddShapeObject(std::move(shapeObject.value()));
           }
-
-          auto shapeObject = ShapeObject(id, std::move(shapePtr.value()));
-          shapeObject.name = name;
-          shapeObject.visible = visible;
-          shapeObject.position = position;
-          shapeObject.size = size;
-          shapeObject.rotation = rotation;
-          layer.AddShapeObject(std::move(shapeObject));
         }
       }
     }
@@ -878,6 +851,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
   sf::Vector2f drawingOffset;
   std::string texturePath;
   Projection orientation = Projection::Orthographic;
+  CustomProperties customProperties;
 
   std::vector<XMLElement> tileElements(tileCount);
 
@@ -909,6 +883,9 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
       }
 
       tileElements[tileId] = child;
+    }
+    else if (child.name == "properties") {
+      customProperties = CustomProperties::From(child);
     }
   }
 
@@ -997,6 +974,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
     drawingOffset,
     sf::Vector2f(alignmentOffset),
     orientation,
+    customProperties,
     GetTexture(texturePath),
     animation
   };
@@ -1027,19 +1005,15 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
   auto tileGid = tileset.firstGid;
 
   for (auto& tileElement : tileElements) {
-    auto tileMeta = std::make_shared<Overworld::TileMeta>(
-      tileId,
-      tileGid,
-      tileset.drawingOffset,
-      tileset.alignmentOffset
-      );
-
-    tileMeta->sprite.setTexture(*tileset.texture);
-    tileMeta->animation = tileset.animation;
-    tileMeta->animation << to_string(tileId) << Animator::Mode::Loop;
-    tileMeta->animation.Refresh(tileMeta->sprite);
+    std::vector<std::unique_ptr<Shape>> collisionShapes;
+    CustomProperties customProperties;
 
     for (auto& child : tileElement.children) {
+      if (child.name == "properties") {
+        customProperties = CustomProperties::From(child);
+        continue;
+      }
+
       if (child.name != "objectgroup") {
         continue;
       }
@@ -1048,10 +1022,21 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
         auto shape = Overworld::Shape::From(objectElement);
 
         if (shape) {
-          tileMeta->collisionShapes.push_back(std::move(shape.value()));
+          collisionShapes.push_back(std::move(shape.value()));
         }
       }
     }
+
+    auto tileMeta = std::make_shared<Overworld::TileMeta>(
+      tileset,
+      tileId,
+      tileGid,
+      tileset.drawingOffset,
+      tileset.alignmentOffset,
+      tileElement.GetAttribute("type"),
+      customProperties,
+      std::move(collisionShapes)
+      );
 
     tileMetas.push_back(tileMeta);
     tileId += 1;
