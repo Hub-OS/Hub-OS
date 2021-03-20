@@ -2,10 +2,11 @@
 #include "bnTextureResourceManager.h"
 #include <Segues/BlackWashFade.h>
 
-KeyItemScene::KeyItemScene(swoosh::ActivityController& controller) : 
+KeyItemScene::KeyItemScene(swoosh::ActivityController& controller, const std::vector<Item>& items) :
   Scene(controller),
   label(Font::Style::thin),
-  textbox(360,40, Font::Style::thin)
+  textbox(360,40, Font::Style::thin),
+  items(items)
 {
   label.setScale(2.f, 2.f);
 
@@ -27,7 +28,7 @@ KeyItemScene::KeyItemScene(swoosh::ActivityController& controller) :
   textbox.Mute();
 
   // Load key items 
-  items = std::vector<KeyItemScene::Item>{
+  /*items = std::vector<KeyItemScene::Item>{
     {"SmartWatch", "A watch program"},
     {"N1Pass", "Pass that allows you to enter the N1 tournament"},
     {"Key", "Opens a gate"},
@@ -37,7 +38,7 @@ KeyItemScene::KeyItemScene(swoosh::ActivityController& controller) :
     {"NotAVirus", "Given as a gift from a shady navi"},
     {"KCode", "Security code for KonstComp server"},
     {"MCode", "Security code for MarsComp server"}
-  };
+  };*/
 
   if (items.size()) {
     textbox.SetText(items[0].desc);
@@ -120,7 +121,11 @@ void KeyItemScene::onUpdate(double elapsed)
   signed maxRowOffset = static_cast<signed>(items.size() / maxCols);
 
   row = std::max(0, row);
-  row = std::min(maxRowOffset-1, row);
+
+  if (maxRowOffset > 1) {
+    row = std::min(maxRowOffset - 1, row);
+  }
+
   col = std::max(0, col);
   col = std::min(maxCols - 1, col);
 

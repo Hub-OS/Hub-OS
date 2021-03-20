@@ -241,7 +241,8 @@ const bool TextBox::IsPlaying() const {
 void TextBox::Update(const double elapsed) {
   // If we're paused don't update
   // If the message is empty don't update
-  if (!dirty && (!play || message.empty())) return;
+  if (message.empty()) return;
+  if (!play && !dirty) return;
 
   // If we're at the end of the message, don't step  
   // through the words

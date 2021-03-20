@@ -448,11 +448,11 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
     try {
-      const WebAccounts::AccountState& account = accountCommandResponse.get();
-      Logger::Logf("You have %i folders on your account", account.folders.size());
-      WEBCLIENT.CacheTextureData(account);
-      folders = CardFolderCollection::ReadFromWebAccount(account);
-      programAdvance = PA::ReadFromWebAccount(account);
+      webAccount = accountCommandResponse.get();
+      Logger::Logf("You have %i folders on your account", webAccount.folders.size());
+      WEBCLIENT.CacheTextureData(webAccount);
+      folders = CardFolderCollection::ReadFromWebAccount(webAccount);
+      programAdvance = PA::ReadFromWebAccount(webAccount);
 
       NaviEquipSelectedFolder();
 
@@ -1314,7 +1314,16 @@ void Overworld::SceneBase::GotoKeyItems()
   Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<BlackWashFade, milliseconds<500>>;
-  getController().push<effect::to<KeyItemScene>>();
+
+  std::vector<KeyItemScene::Item> items;
+  for (auto& item : webAccount.keyItems) {
+    items.push_back(KeyItemScene::Item{
+      item.id,
+      item.name
+    });
+  }
+
+  getController().push<effect::to<KeyItemScene>>(items);
 }
 
 Overworld::QuadTree& Overworld::SceneBase::GetQuadTree()

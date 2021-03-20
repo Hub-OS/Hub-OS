@@ -6,11 +6,13 @@
 #include <vector>
 
 class KeyItemScene : public Scene {
+public:
   struct Item {
     std::string name;
     std::string desc;
   };
 
+private:
   Text label;
   sf::Sprite moreText;
   sf::Sprite scroll;
@@ -25,7 +27,7 @@ class KeyItemScene : public Scene {
   const signed maxRows = 4;
   const signed maxCols = 2;
 public:
-  KeyItemScene(swoosh::ActivityController& controller);
+  KeyItemScene(swoosh::ActivityController& controller, const std::vector<Item>& items);
   ~KeyItemScene();
 
   void onLeave() override;

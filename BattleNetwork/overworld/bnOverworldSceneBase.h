@@ -112,6 +112,7 @@ namespace Overworld {
     PA programAdvance;
 
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
+    WebAccounts::AccountState webAccount;
 
     /**
     * @brief aux function clears the map object
