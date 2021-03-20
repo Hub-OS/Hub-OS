@@ -1318,8 +1318,8 @@ void Overworld::SceneBase::GotoKeyItems()
   std::vector<KeyItemScene::Item> items;
   for (auto& item : webAccount.keyItems) {
     items.push_back(KeyItemScene::Item{
-      item.id,
-      item.name
+      item.name,
+      item.description
     });
   }
 
