@@ -19,10 +19,10 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   if (!texture.create(240, 160)) return minimap;
 
   // fill with background color
-  texture.clear(minimap.bgColor);
+  texture.clear(sf::Color(0,0,0,0));
 
   // shader pass transforms opaque pixels into purple hues
-  std::string program = GLSL(
+  std::string recolor = GLSL(
     110,
     uniform sampler2D texture;
 
@@ -35,13 +35,37 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
     }
   );
 
+  std::string edgeDetection = GLSL(
+    110,
+    uniform sampler2D texture;
+
+    void main(void)
+    {
+      float dx = 1.0 / 240.0;
+      float dy = 1.0 / 160.0;
+
+      // 120, 112, 192
+      vec4 edgeColor = vec4(0.470, 0.439, 0.752, 1.0);
+      vec2 pos = gl_TexCoord[0].xy;
+      vec4 incolor = texture2D(texture, pos).rgba;
+
+      float top = texture2D(texture, vec2(pos.x, pos.y-dy)).a;
+      float left = texture2D(texture, vec2(pos.x-dx, pos.y)).a;
+      float right = texture2D(texture, vec2(pos.x+dx, pos.y)).a;
+      float down = texture2D(texture, vec2(pos.x, pos.y+dy)).a;
+      float n = max(top, max(left, max(right, down)))*(1.0-incolor.a);
+
+      gl_FragColor = (edgeColor*n) + ((1.0-n)*incolor);
+    }
+  );
+
   sf::Shader shader;
-  shader.loadFromMemory(program, sf::Shader::Type::Fragment);
+  shader.loadFromMemory(recolor, sf::Shader::Type::Fragment);
   states.shader = &shader;
 
   // guestimate best fit "center" of the map
   auto tileSize = map.GetTileSize();
-  float tilex = tileSize.x * map.GetCols() * 0.5;
+  float tilex = tileSize.x * map.GetCols() * 0.5f;
   float tiley = tileSize.y * map.GetRows() * 1.0f;
   sf::Vector2f center = map.WorldToScreen({ tilex, tiley }) * 0.5f;
 
@@ -56,6 +80,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   // apply transforms
   map.setScale(minimap.scaling, minimap.scaling);
   map.setPosition((240.f*0.5f)-minimap.offset.x, (160.f*0.5f)-minimap.offset.y);
+
   states.transform *= map.getTransform();
 
   // draw. every layer passes through the shader
@@ -74,7 +99,19 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   // Grab image data to make a texture
   // NOTE: gpu <-> cpu is a costly process. do this sparringly.
   texture.display();
+  sf::Texture tempTex = texture.getTexture();
+  sf::Sprite temp(tempTex);
+
+
+  // do a second pass for edge detection
+  shader.loadFromMemory(edgeDetection, sf::Shader::Type::Fragment);
+  states.transform = sf::Transform::Identity;
+  texture.clear(minimap.bgColor); // fill with background color
+  texture.draw(temp, states);
+  texture.display();
   minimap.bakedMapTex = std::make_shared<sf::Texture>(texture.getTexture());
+
+  // set the final texture
   minimap.bakedMap.setTexture(*minimap.bakedMapTex, false);
 
   return minimap;
