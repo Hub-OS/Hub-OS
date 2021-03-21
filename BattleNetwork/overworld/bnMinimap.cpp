@@ -173,10 +173,6 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       auto& tileSprite = tileMeta->sprite;
       auto subRect = tileSprite.getTextureRect();
 
-      auto subrect = tileSprite.getTextureRect();
-      sf::Vector2f subrectUV = sf::Vector2f((float)subrect.left / tileSize.x, (float)subrect.top / tileSize.y);
-      states.shader->setUniform("subrect", subrectUV);
-
       auto originalOrigin = tileSprite.getOrigin();
       tileSprite.setOrigin(sf::Vector2f(sf::Vector2i(
         subRect.width / 2,
