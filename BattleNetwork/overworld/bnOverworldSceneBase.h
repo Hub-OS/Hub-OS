@@ -30,6 +30,7 @@
 #include "bnOverworldTextBox.h"
 #include "bnEmotes.h"
 #include "bnXML.h"
+#include "bnMinimap.h"
 
 class Background; // forward decl
 
@@ -43,7 +44,6 @@ namespace Overworld {
     Overworld::PlayerController playerController{};
     Overworld::SpatialMap spatialMap{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
-    bool inputLocked{ false };
 
     struct QueuedCameraEvent {
       bool unlock;
@@ -52,20 +52,26 @@ namespace Overworld {
       sf::Time duration;
     };
 
+    double animElapsed{};
+    bool showMinimap{ false };
+    bool inputLocked{ false };
+    bool cameraLocked{ false };
+    bool teleportedOut{ false }; /*!< We may return to this area*/
+    bool clicked{ false }, scaledmap{ false };
+    bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
+    bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
+    bool guestAccount{ false };
+
     std::queue<QueuedCameraEvent> cameraQueue;
     Camera camera; /*!< camera in scene follows player */
-    bool cameraLocked{ false };
-    swoosh::Timer cameraTimer;
-    bool clicked{ false }, scaledmap{ false };
 
+    swoosh::Timer cameraTimer;
     sf::Vector2f returnPoint{};
-    bool teleportedOut{ false }; /*!< We may return to this area*/
 
     PersonalMenu personalMenu;
-
+    Minimap minimap;
     SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
     Animation webAccountAnimator; /*!< Use animator to represent different statuses */
-    bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
     // Bunch of sprites and their attachments
     std::shared_ptr<Background> bg{ nullptr }; /*!< Background image pointer */
@@ -74,14 +80,10 @@ namespace Overworld {
 
     Overworld::TextBox textbox;
 
-    double animElapsed{};
-
     /*!< Current navi selection index */
     SelectedNavi currentNavi{},
       lastSelectedNavi{ std::numeric_limits<SelectedNavi>::max() };
 
-    bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
-    bool guestAccount{ false };
 
     CardFolderCollection folders; /*!< Collection of folders */
     PA programAdvance;
@@ -266,7 +268,7 @@ namespace Overworld {
     //
     // Getters
     //
-
+    Minimap& GetMinimap();
     SpatialMap& GetSpatialMap();
     std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();

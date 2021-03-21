@@ -37,6 +37,8 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         std::floor(centerPos.y / tileSize.y)
       );
       netWarpObjectId = tileObject.id;
+
+      GetMinimap().SetHomepagePosition(GetMap().WorldToScreen(centerPos));
     }
   }
 

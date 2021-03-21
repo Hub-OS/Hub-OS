@@ -181,6 +181,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   if (gotoNextScene == false) {
     playerController.Update(elapsed);
     teleportController.Update(elapsed);
+    minimap.SetPlayerPosition(map.WorldToScreen(playerActor->getPosition()));
   }
 
   for (auto& actor : actors) {
@@ -327,6 +328,11 @@ void Overworld::SceneBase::HandleInput() {
     return;
   }
 
+  if (Input().GetAnyKey() == sf::Keyboard::M) {
+    showMinimap = !showMinimap;
+    return;
+  }
+
   if (Input().Has(InputEvents::pressed_option)) {
     emote.Open();
   }
@@ -394,6 +400,11 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 
   DrawWorld(surface, sf::RenderStates::Default);
 
+  if (showMinimap) {
+    surface.draw(minimap);
+    return;
+  }
+
   surface.draw(emote);
   surface.draw(personalMenu);
 
@@ -429,7 +440,7 @@ void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates st
     DrawLayer(target, states, i);
 
     // translate next layer
-    states.transform.translate(0, -tileSize.y / 2);
+    states.transform.translate(0.f, -tileSize.y * 0.5f);
   }
 }
 
@@ -846,6 +857,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   // scale to the game resolution
   this->map.setScale(2.f, 2.f);
+
+  minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
+  minimap.setScale(2.f, 2.f);
 }
 
 std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XMLElement& tilesetElement, unsigned int firstgid) {
@@ -885,7 +899,8 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
       auto tileId = child.GetAttributeInt("id");
 
       if (tileElements.size() <= tileId) {
-        tileElements.resize(tileId + 1);
+        size_t sz = static_cast<size_t>(tileId) + 1;
+        tileElements.resize(sz);
       }
 
       tileElements[tileId] = child;
@@ -999,7 +1014,8 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
       auto tileId = child.GetAttributeInt("id");
 
       if (tileElements.size() <= tileId) {
-        tileElements.resize(tileId + 1);
+        size_t sz = static_cast<size_t>(tileId) + 1;
+        tileElements.resize(sz);
       }
 
       tileElements[tileId] = child;
@@ -1219,6 +1235,11 @@ void Overworld::SceneBase::GotoPVP()
     Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
     gotoNextScene = false;
   }
+}
+
+Overworld::Minimap& Overworld::SceneBase::GetMinimap()
+{
+  return minimap;
 }
 
 Overworld::SpatialMap& Overworld::SceneBase::GetSpatialMap()
