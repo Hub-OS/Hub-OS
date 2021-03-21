@@ -7,6 +7,14 @@
 #include <vector>
 
 class VendorScene : public Scene {
+public:
+  struct Item {
+    std::string name;
+    std::string desc;
+    unsigned cost{};
+  };
+
+private:
   enum class state : char {
     slide_in = 0,
     active,
@@ -26,14 +34,8 @@ class VendorScene : public Scene {
     sf::Sprite dummy;
   }*bg{ nullptr };
 
-  struct Item {
-    std::string name;
-    std::string desc;
-    unsigned cost{};
-  };
-
+  uint32_t& monies;
   double totalElapsed{};
-  unsigned monies{};
 
   std::vector<Item> items;
 
@@ -57,7 +59,9 @@ class VendorScene : public Scene {
   void ShowDefaultMessage();
 
 public:
-  VendorScene(swoosh::ActivityController& controller, const sf::Sprite& mugshot, const Animation& anim);
+  VendorScene(swoosh::ActivityController& controller, const std::vector<VendorScene::Item>& items, uint32_t& monies, 
+    const sf::Sprite& mugshot, const Animation& anim);
+
   ~VendorScene();
 
   void onLeave() override;

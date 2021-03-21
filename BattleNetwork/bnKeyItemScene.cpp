@@ -3,10 +3,10 @@
 #include <Segues/BlackWashFade.h>
 
 KeyItemScene::KeyItemScene(swoosh::ActivityController& controller, const std::vector<Item>& items) :
-  Scene(controller),
+  items(items),
   label(Font::Style::thin),
   textbox(360,40, Font::Style::thin),
-  items(items)
+  Scene(controller)
 {
   label.setScale(2.f, 2.f);
 

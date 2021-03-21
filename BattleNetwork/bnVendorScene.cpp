@@ -51,12 +51,15 @@ void VendorScene::ShowDefaultMessage()
   this->showDescription = false;
 }
 
-VendorScene::VendorScene(swoosh::ActivityController& controller, const sf::Sprite& mugshot, const Animation& anim) :
-  Scene(controller),
+VendorScene::VendorScene(swoosh::ActivityController& controller, const std::vector<VendorScene::Item>& items, uint32_t& monies, 
+  const sf::Sprite& mugshot, const Animation& anim) :
+  monies(monies),
+  items(items),
   label(Font::Style::thin),
   textbox({ 4, 255 }),
   mugshot(mugshot),
-  anim(anim)
+  anim(anim),
+  Scene(controller)
 {
   label.setScale(2.f, 2.f);
 
@@ -75,15 +78,6 @@ VendorScene::VendorScene(swoosh::ActivityController& controller, const sf::Sprit
   cursor.setScale(2.f, 2.f);
 
   bg = new VendorBackground;
-
-  // Load key items 
-  items = std::vector<VendorScene::Item>{
-    {"SmartWatch", "Tells time.", 2000},
-    {"Pizza", "Smells delicious and recovers HP.", 500},
-    {"Key", "Opens a gate.", 1000},
-    {"GigaFreeze", "Control cyberworld with this neat trick.", 99999},
-    {"Sock", "Keeps your feet warms for the winter.", 20}
-  };
 
   defaultMessage = "How can I help you? OPTION:Description CANCEL:Back";
   this->ShowDefaultMessage();
@@ -122,6 +116,10 @@ void VendorScene::onStart()
 
 void VendorScene::onUpdate(double elapsed)
 {
+  if (items.empty()) {
+    currState = state::slide_out;
+  }
+
   const float maxStateTime = static_cast<float>(frames(7).asSeconds().value);
   textbox.Update(elapsed);
   bg->Update(elapsed);
@@ -203,17 +201,30 @@ void VendorScene::onUpdate(double elapsed)
          if(!message) {
           size_t index = static_cast<size_t>(row) + rowOffset;
           std::string itemName = items[index].name;
+          int itemCost = items[index].cost;
           std::string msg = "\"" + itemName + "\"\nAre you sure?";
           Audio().Play(AudioType::CHIP_DESC);
           question = new Question(msg,
-            [this, itemName]() {
-              message = new Message("I bought " + itemName);
-              textbox.EnqueMessage(message);
-              textbox.CompleteCurrentBlock();
-              question = nullptr;
-              Audio().Play(AudioType::ITEM_GET);
+            [this, itemName, itemCost]() {
+              if (static_cast<int>(monies) >= itemCost) {
+                monies -= itemCost;
+                message = new Message("I bought " + itemName);
+                textbox.EnqueMessage(message);
+                textbox.CompleteCurrentBlock();
+                question = nullptr;
+                Audio().Play(AudioType::ITEM_GET);
 
-              ShowDefaultMessage(); //enqueues default message
+                ShowDefaultMessage(); //enqueues default message
+              }
+              else {
+                message = new Message("Not enough monies!");
+                textbox.EnqueMessage(message);
+                textbox.CompleteCurrentBlock();
+                question = nullptr;
+                Audio().Play(AudioType::CHIP_ERROR);
+
+                ShowDefaultMessage(); //enqueues default message
+              }
             },
             [this]() {
               this->ShowDefaultMessage();

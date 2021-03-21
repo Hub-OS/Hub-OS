@@ -34,7 +34,7 @@ public:
 private:
   int row{ 0 }; //!< Current row index
   int health{}, maxHealth{}; //!< Health displayed by main character
-  int coins{}; //!< Coins held by main character
+  int monies{}; //!< monies held by main character
   float opacity{}; //!< Background darkens
   bool selectExit{ false }; //!< If exit option is selected
   bool extendedHold{ false }; //!< If player holds the arrow keys down
@@ -97,9 +97,11 @@ public:
 
   /**
   * @brief Set the numer of coins to display
-  * @param coins Integer of coins
+  * @param coins Positive integer of coins.
+  * 
+  * If not positive, will cap at zero.
   */
-  void SetCoins(int coins);
+  void SetMonies(int amt);
 
   /**
   * @brief Set the health to display e.g. (health / 100)

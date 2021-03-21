@@ -291,7 +291,7 @@ void MenuWidget::Update(double elapsed)
       optionAnim << optionsList[i].name;
       optionAnim.SetFrame(2, optionIcons[i]->getSprite());
 
-      auto pos = optionIcons[i]->getPosition();
+      const auto& pos = optionIcons[i]->getPosition();
       float delta = ease::interpolate(0.5f, pos.x, 20.0f + 5.0f);
       optionIcons[i]->setPosition(delta, pos.y);
     }
@@ -303,7 +303,7 @@ void MenuWidget::Update(double elapsed)
       optionAnim << optionsList[i].name;
       optionAnim.SetFrame(1, optionIcons[i]->getSprite());
 
-      auto pos = optionIcons[i]->getPosition();
+      const auto& pos = optionIcons[i]->getPosition();
       float delta = ease::interpolate(0.5f, pos.x, 16.0f);
       optionIcons[i]->setPosition(delta, pos.y);
     }
@@ -345,8 +345,8 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
     auto shadowColor = sf::Color(16, 82, 107, 255);
 
     // area text
-    auto pos = areaLabel.getPosition();
-    auto copyAreaLabel = areaLabel;
+    const auto& pos = areaLabel.getPosition();
+    Text copyAreaLabel = areaLabel;
     copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
     copyAreaLabel.SetColor(shadowColor);
     target.draw(copyAreaLabel, states);
@@ -392,7 +392,7 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
       // coins shadow
       infoText.SetColor(shadowColor);
-      infoText.SetString(std::to_string(coins) + "z");
+      infoText.SetString(std::to_string(monies) + "z");
       infoText.setOrigin(infoText.GetLocalBounds().width, 0);
       infoText.setPosition(214 + 1, 57 + 1);
       target.draw(infoText, states);
@@ -420,9 +420,9 @@ void MenuWidget::SetArea(const std::string& name)
   areaLabelThick.setPosition(240-1.f, 160-2.f);
 }
 
-void MenuWidget::SetCoins(int coins)
+void MenuWidget::SetMonies(int amt)
 {
-  MenuWidget::coins = coins;
+  MenuWidget::monies = std::max(0, amt);
 }
 
 void MenuWidget::SetHealth(int health)

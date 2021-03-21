@@ -456,6 +456,8 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
       NaviEquipSelectedFolder();
 
+      menuWidget.SetMonies(webAccount.monies);
+
       // Replace
       WEBCLIENT.SaveSession("profile.bin");
     }
@@ -941,7 +943,16 @@ void Overworld::SceneBase::ResetMap()
             : new Message("This is your homepage! Find an active telepad to take you into cyberspace!");*/
 
           message = question = new Question("Take a look at my shop?", [this, face, mugAnim]() {
-              getController().push<segue<BlackWashFade>::to<VendorScene>>(face, mugAnim);
+              // Load items 
+              auto items = std::vector<VendorScene::Item>{
+                {"SmartWatch", "Tells time.", 2000},
+                {"Pizza", "Smells delicious and recovers HP.", 500},
+                {"Key", "Opens a gate.", 1000},
+                {"GigaFreeze", "Control cyberworld with this neat trick.", 99999},
+                {"Sock", "Keeps your feet warms for the winter.", 20}
+              };
+
+              getController().push<segue<BlackWashFade>::to<VendorScene>>(items, webAccount.monies, face, mugAnim);
               textbox.Close();
               question = nullptr;
               Audio().Play(AudioType::CHIP_CONFIRM);
