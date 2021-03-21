@@ -303,6 +303,39 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
 
 void Overworld::SceneBase::HandleInput() {
 
+  // TODO: change this to use Input().Has(event)
+  if (Input().GetAnyKey() == sf::Keyboard::M) {
+    showMinimap = !showMinimap;
+    if (!showMinimap) {
+      minimap.ResetPanning();
+    } 
+
+    return;
+  }
+
+  if (showMinimap) {
+    sf::Vector2f panning = {};
+
+    if (Input().Has(InputEvents::held_ui_left)) {
+      panning.x -= 1.f;
+    }
+
+    if (Input().Has(InputEvents::held_ui_right)) {
+      panning.x += 1.f;
+    }
+
+    if (Input().Has(InputEvents::held_ui_up)) {
+      panning.y -= 1.f;
+    }
+
+    if (Input().Has(InputEvents::held_ui_down)) {
+      panning.y += 1.f;
+    }
+
+    minimap.Pan(panning);
+    return;
+  }
+
   // check to see if talk button was pressed
   if (emote.IsClosed() && !IsInputLocked()) {
     if (Input().Has(InputEvents::pressed_interact)) {
@@ -325,11 +358,6 @@ void Overworld::SceneBase::HandleInput() {
   personalMenu.HandleInput(Input(), Audio());
 
   if (personalMenu.IsOpen()) {
-    return;
-  }
-
-  if (Input().GetAnyKey() == sf::Keyboard::M) {
-    showMinimap = !showMinimap;
     return;
   }
 
@@ -1113,7 +1141,7 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 }
 
 bool Overworld::SceneBase::IsInputLocked() {
-  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene;
+  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene ||  showMinimap;
 }
 
 void Overworld::SceneBase::LockInput() {

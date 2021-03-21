@@ -27,6 +27,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   for (auto& tileObject : layer0.GetTileObjects()) {
     if (tileObject.name == "Home Warp") {
       spawnPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+      GetMinimap().SetHomepagePosition(GetMap().WorldToScreen(spawnPos));
     }
     else if (tileObject.name == "Net Warp") {
       auto centerPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
@@ -37,8 +38,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         std::floor(centerPos.y / tileSize.y)
       );
       netWarpObjectId = tileObject.id;
-
-      GetMinimap().SetHomepagePosition(GetMap().WorldToScreen(centerPos));
+      GetMinimap().AddWarpPosition(GetMap().WorldToScreen(centerPos));
     }
   }
 

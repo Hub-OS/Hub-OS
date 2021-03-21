@@ -100,7 +100,7 @@ public:
   * Fetches all the child nodes attached to this node
   * @return a reference to the vector of SceneNode*
   */
-  std::vector<SceneNode*>& GetChildNodes();
+  std::vector<SceneNode*>& GetChildNodes() const;
 
   SceneNode* GetParent();
 };

@@ -75,7 +75,7 @@ const bool SceneNode::IsUsingParentShader() const
   return useParentShader;
 }
 
-std::vector<SceneNode*>& SceneNode::GetChildNodes()
+std::vector<SceneNode*>& SceneNode::GetChildNodes() const
 {
   return childNodes;
 }

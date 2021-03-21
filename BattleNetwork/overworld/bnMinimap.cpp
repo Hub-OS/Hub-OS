@@ -16,7 +16,19 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   sf::RenderTexture texture;
   sf::RenderStates states;
 
-  if (!texture.create(240, 160)) return minimap;
+  const float maxTileHeight = 10.f;
+  const float minTileHeight = 4.f;
+  const auto screenSize = sf::Vector2i{ 240, 160 };
+  const auto gridSize = sf::Vector2i(maxTileHeight * map.GetCols(), maxTileHeight * map.GetRows());
+
+  // how many times could this map fit into the screen? make that many.
+  auto textureSize = sf::Vector2i( screenSize.x * (static_cast<float>(gridSize.x) / screenSize.x), 
+    screenSize.y * (static_cast<float>(gridSize.y) / screenSize.y));
+
+  textureSize.x = std::max(screenSize.x, textureSize.x);
+  textureSize.y = std::max(screenSize.y, textureSize.y);
+
+  if (!texture.create(textureSize.x, textureSize.y)) return minimap;
 
   // fill with background color
   texture.clear(sf::Color(0,0,0,0));
@@ -25,7 +37,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   std::string recolor = GLSL(
     110,
     uniform sampler2D texture;
-    // uniform vec2 subrect;
+    uniform vec2 subrect;
     uniform vec2 tileSize;
 
     void main() {
@@ -35,7 +47,10 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
       // these are uv coordinate checks
       // if (abs(pos.x) + abs(2.0 * pos.y) > 1.0)
       //   discard;
-      //if (abs(pos.x / tileSize.x) + abs(pos.y / tileSize.y) > 1.0)
+
+      //float x = pos.x  tileSize.x;
+      //float y = pos.y % tileSize.y;
+      //if (abs(tileSize.x-pos.x) + abs(pos.y) > 1.0)
       //  discard;
 
       // 152, 144, 224
@@ -47,11 +62,13 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   std::string edgeDetection = GLSL(
     110,
     uniform sampler2D texture;
+    uniform float resolutionW;
+    uniform float resolutionH;
 
     void main(void)
     {
-      float dx = 1.0 / 240.0;
-      float dy = 1.0 / 160.0;
+      float dx = 1.0 / resolutionW;
+      float dy = 1.0 / resolutionH;
 
       // 120, 112, 192
       vec4 edgeColor = vec4(0.470, 0.439, 0.752, 1.0);
@@ -71,18 +88,28 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   sf::Shader shader;
   shader.loadFromMemory(recolor, sf::Shader::Type::Fragment);
   states.shader = &shader;
+  //auto spriteSheetSz = map.GetTileset("floor")->texture->getSize();
 
   // guestimate best fit "center" of the map
   auto tileSize = map.GetTileSize();
+
+  //sf::Vector2f tileUV = sf::Vector2f(static_cast<float>(tileSize.x) / spriteSheetSz.x, static_cast<float>(tileSize.y) / spriteSheetSz.y);
+  //shader.setUniform("tileSize", tileUV);
+
   float tilex = tileSize.x * map.GetCols() * 0.5f;
   float tiley = tileSize.y * map.GetRows() * 1.0f;
   sf::Vector2f center = map.WorldToScreen({ tilex, tiley }) * 0.5f;
 
   // move the map to the center of the screen and fit
   // TODO: chunk the minimap for large map
-  const float maxTileHeight = 10.f;
   float mapHeight = (map.GetRows() + map.GetCols()) * (tileSize.y * 0.5f);
-  auto targetTileHeight = maxTileHeight * std::min(1.0f, 160.f/(mapHeight*0.5f));
+  auto targetTileHeight = maxTileHeight *std::min(1.0f, 160.f / (mapHeight * 0.30f));
+
+  if (targetTileHeight <= minTileHeight) {
+    targetTileHeight = minTileHeight;
+    minimap.largeMapControls = true;
+  }
+
   minimap.scaling = (targetTileHeight / tileSize.y);
   minimap.offset = center * minimap.scaling;
 
@@ -111,18 +138,18 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   sf::Texture tempTex = texture.getTexture();
   sf::Sprite temp(tempTex);
 
-
   // do a second pass for edge detection
   shader.loadFromMemory(edgeDetection, sf::Shader::Type::Fragment);
   states.transform = sf::Transform::Identity;
-  texture.clear(minimap.bgColor); // fill with background color
+  shader.setUniform("resolutionW", (float)textureSize.x);
+  shader.setUniform("resolutionH", (float)textureSize.y);
+
+  texture.clear(sf::Color(0,0,0,0)); // clear transparent pixels
   texture.draw(temp, states);
   texture.display();
-  minimap.bakedMapTex = std::make_shared<sf::Texture>(texture.getTexture());
 
   // set the final texture
-  minimap.bakedMap.setTexture(*minimap.bakedMapTex, false);
-
+  minimap.bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
   return minimap;
 }
 
@@ -148,6 +175,10 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::RenderStates st
 
       auto& tileSprite = tileMeta->sprite;
       auto spriteBounds = tileSprite.getLocalBounds();
+
+      auto subrect = tileSprite.getTextureRect();
+      sf::Vector2f subrectUV = sf::Vector2f((float)subrect.left / tileSize.x, (float)subrect.top / tileSize.y);
+      states.shader->setUniform("subrect", subrectUV);
 
       auto originalOrigin = tileSprite.getOrigin();
       tileSprite.setOrigin(sf::Vector2f(sf::Vector2i(
@@ -176,54 +207,140 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::RenderStates st
   }
 }
 
+void Overworld::Minimap::EnforceTextureSizeLimits()
+{
+  player.setTextureRect({ 0, 0, 6, 8 });
+  hp.setTextureRect({ 0, 0, 8, 8 });
+  warp.setTextureRect({ 0, 0, 8, 6 });
+  overlay.setTextureRect({ 0, 0, 240, 160 });
+
+  player.setOrigin({ 3, 6 });
+  hp.setOrigin({ 4, 4 });
+  warp.setOrigin({ 4, 3 });
+}
+
 Overworld::Minimap::Minimap()
 {
-  playerTex = Textures().LoadTextureFromFile("resources/ow/minimap/mm_pos.png");
-  hpTex = Textures().LoadTextureFromFile("resources/ow/minimap/mm_hp.png");
-  overlayTex = Textures().LoadTextureFromFile("resources/ow/minimap/mm_over.png");
-
-  player.setTextureRect({ 0, 0, 6, 8 });
-  hp.setTextureRect({0, 0, 8, 8});
-  overlay.setTextureRect({0, 0, 240, 160});
-
-  player.setOrigin({ 3, 5 });
-  hp.setOrigin({ 4, 4 });
-
-  player.setTexture(*playerTex, false);
-  hp.setTexture(*hpTex, false);
-  overlay.setTexture(*overlayTex, false);
+  player.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_pos.png"));
+  hp.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_hp.png"));
+  overlay.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_over.png"));
+  arrows.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_over_arrows.png"));
+  warp.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_warp.png"));
+  EnforceTextureSizeLimits();
 
   // dark blueish
   bgColor = sf::Color(24, 56, 104, 255);
+  rectangle = sf::RectangleShape({ 240,160 });
+  rectangle.setFillColor(bgColor);
+}
+
+Overworld::Minimap::Minimap(const Minimap& rhs)
+{
+  this->operator=(rhs);
 }
 
 Overworld::Minimap::~Minimap()
 {
 }
 
+Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
+{
+  player.setTexture(rhs.player.getTexture(), false);
+  hp.setTexture(rhs.hp.getTexture(), false);
+  bakedMap.setTexture(rhs.bakedMap.getTexture(), false);
+  arrows.setTexture(rhs.arrows.getTexture(), false);
+  warp.setTexture(rhs.warp.getTexture(), false);
+  player.setPosition(rhs.player.getPosition());
+  hp.setPosition(rhs.hp.getPosition());
+  bakedMap.setPosition(rhs.bakedMap.getPosition());
+  EnforceTextureSizeLimits();
+
+  bgColor = rhs.bgColor;
+  scaling = rhs.scaling;
+  rectangle = rhs.rectangle;
+  largeMapControls = rhs.largeMapControls;
+  offset = rhs.offset;
+  name = rhs.name;
+
+  for (auto node : rhs.bakedMap.GetChildNodes()) {
+    bakedMap.AddNode(node);
+  }
+
+  return *this;
+}
+
+void Overworld::Minimap::ResetPanning()
+{
+  panning = {};
+}
+
+void Overworld::Minimap::Pan(const sf::Vector2f& amount)
+{
+  panning += amount;
+
+  float maxx = bakedMap.getLocalBounds().width * 0.5f;
+  float maxy = bakedMap.getLocalBounds().height * 0.5f;
+  float minx = -maxx;
+  float miny = -maxy;
+
+  if (panning.x < minx) {
+    panning.x = minx;
+  }
+
+  if (panning.x > maxx) {
+    panning.x = maxx;
+  }
+
+  if (panning.y < miny) {
+    panning.y = miny;
+  }
+
+  if (panning.y > maxy) {
+    panning.y = maxy;
+  }
+}
+
 void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos)
 {
-  auto newpos = pos * this->scaling;
-  player.setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  if (largeMapControls) {
+    auto newpos = panning + (-pos * this->scaling);
+    player.setPosition((240.f * 0.5f)+panning.x, (160.f * 0.5f)+panning.y);
+    this->bakedMap.setPosition(newpos + offset);
+  }
+  else {
+    auto newpos = pos * this->scaling;
+    player.setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+    this->bakedMap.setPosition(0,0);
+  }
 }
 
 void Overworld::Minimap::SetHomepagePosition(const sf::Vector2f& pos)
 {
-  this->validHpIcon = true;
   auto newpos = pos * this->scaling;
   hp.setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  bakedMap.AddNode(&hp); // follow the map
+  hp.SetLayer(-1); // on top of the map
+}
+
+void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos)
+{
+  auto newpos = pos * this->scaling;
+  std::shared_ptr<SpriteProxyNode> newWarp = std::make_shared<SpriteProxyNode>();
+  newWarp->setTexture(warp.getTexture());
+  newWarp->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  newWarp->SetLayer(-1);
+  warps.push_back(newWarp);
+  bakedMap.AddNode(warps.back().get());
 }
 
 void Overworld::Minimap::draw(sf::RenderTarget& surface, sf::RenderStates states) const
 {
   states.transform *= getTransform();
+  surface.draw(rectangle, states);
   surface.draw(this->bakedMap, states);
-
-  if (this->validHpIcon) {
-    surface.draw(this->hp, states);
-  }
-
   surface.draw(this->player, states);
-
   surface.draw(this->overlay, states);
+
+  if (!largeMapControls) return;
+  surface.draw(this->arrows, states);
 }
