@@ -37,21 +37,18 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   std::string recolor = GLSL(
     110,
     uniform sampler2D texture;
-    uniform vec2 subrect;
+    uniform vec2 center;
     uniform vec2 tileSize;
 
     void main() {
       vec2 pos = gl_TexCoord[0].xy; // pos is the uv coord (subrect)
       vec4 incolor = texture2D(texture, pos).rgba;
 
-      // these are uv coordinate checks
-      // if (abs(pos.x) + abs(2.0 * pos.y) > 1.0)
-      //   discard;
+      pos.x = center.x - pos.x;
+      pos.y = center.y - pos.y;
 
-      //float x = pos.x  tileSize.x;
-      //float y = pos.y % tileSize.y;
-      //if (abs(tileSize.x-pos.x) + abs(pos.y) > 1.0)
-      //  discard;
+      if (abs(2.0 * pos.x / tileSize.x) + abs(2.0 * pos.y / tileSize.y) > 1.0)
+       discard;
 
       // 152, 144, 224
       vec4 outcolor = vec4(0.596, 0.564, 0.878, 1.0) * incolor.a;
@@ -121,7 +118,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
 
   // draw. every layer passes through the shader
   for (auto i = 0; i < map.GetLayerCount(); i++) {
-    minimap.DrawLayer(texture, states, map, i);
+    minimap.DrawLayer(texture, shader, states, map, i);
 
     // translate next layer
     states.transform.translate(0.f, -tileSize.y * 0.5f);
@@ -153,7 +150,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   return minimap;
 }
 
-void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::RenderStates states, Overworld::Map& map, size_t index) {
+void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Overworld::Map& map, size_t index) {
   auto& layer = map.GetLayer(index);
 
   // TODO: render SOME objects that are overlaying the map
@@ -174,7 +171,7 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::RenderStates st
       if (tileMeta == nullptr) continue;
 
       auto& tileSprite = tileMeta->sprite;
-      auto spriteBounds = tileSprite.getLocalBounds();
+      auto subRect = tileSprite.getTextureRect();
 
       auto subrect = tileSprite.getTextureRect();
       sf::Vector2f subrectUV = sf::Vector2f((float)subrect.left / tileSize.x, (float)subrect.top / tileSize.y);
@@ -182,15 +179,15 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::RenderStates st
 
       auto originalOrigin = tileSprite.getOrigin();
       tileSprite.setOrigin(sf::Vector2f(sf::Vector2i(
-        (int)spriteBounds.width / 2,
+        subRect.width / 2,
         tileSize.y / 2
       )));
 
       sf::Vector2i pos((j * tileSize.x) / 2, i * tileSize.y);
       auto ortho = map.WorldToScreen(sf::Vector2f(pos));
       auto tileOffset = sf::Vector2f(sf::Vector2i(
-        -tileSize.x / 2 + (int)spriteBounds.width / 2,
-        tileSize.y + tileSize.y / 2 - (int)spriteBounds.height
+        -tileSize.x / 2 + subRect.width / 2,
+        tileSize.y + tileSize.y / 2 - subRect.height
       ));
 
       tileSprite.setPosition(ortho + tileMeta->drawingOffset + tileOffset);
@@ -200,8 +197,20 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::RenderStates st
         tile.flippedVertical ? -1.0f : 1.0f
       );
 
+      // pass info to shader
+      auto center = sf::Vector2f(
+        subRect.left + tileSize.x / 2,
+        subRect.top + subRect.height - tileSize.y / 2
+      ) - tileMeta->drawingOffset;
+
+      sf::Vector2f sizeUv(tileSprite.getTexture()->getSize());
+      shader.setUniform("center", sf::Glsl::Vec2(center.x / sizeUv.x, center.y / sizeUv.y));
+      shader.setUniform("tileSize", sf::Glsl::Vec2((tileSize.x + 1) / sizeUv.x, (tileSize.y + 1) / sizeUv.y));
+
+      // draw
       target.draw(tileSprite, states);
 
+      // reset origin
       tileSprite.setOrigin(originalOrigin);
     }
   }

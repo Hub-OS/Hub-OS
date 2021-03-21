@@ -16,7 +16,7 @@ namespace Overworld {
     sf::Color bgColor{};
     SpriteProxyNode player, hp, warp, overlay, arrows, bakedMap;
     std::vector<std::shared_ptr<SpriteProxyNode>> warps;
-    void DrawLayer(sf::RenderTarget& target, sf::RenderStates states, Map& map, size_t index);
+    void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
     void EnforceTextureSizeLimits();
   public:
     static Minimap CreateFrom(const std::string& name, Map& map);
