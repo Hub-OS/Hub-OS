@@ -222,7 +222,6 @@ void Overworld::OnlineArea::onStart()
 void Overworld::OnlineArea::onResume()
 {
   SceneBase::onResume();
-  playSong(GetMap().GetSongPath());
 }
 
 void Overworld::OnlineArea::OnTileCollision()
@@ -732,12 +731,6 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
   LoadMap(mapBuffer);
 
-  auto newSongPath = map.GetSongPath();
-
-  if (lastSongPath != newSongPath) {
-    playSong(newSongPath);
-  }
-
   for (auto& [objectId, excludedData] : excludedObjects) {
     for (auto i = 0; i < map.GetLayerCount(); i++) {
       auto& layer = map.GetLayer(i);
@@ -1208,12 +1201,10 @@ std::shared_ptr<sf::SoundBuffer> Overworld::OnlineArea::GetAudio(const std::stri
   return Overworld::SceneBase::GetAudio(path);
 }
 
-void Overworld::OnlineArea::playSong(const std::string& path) {
-  auto songPath = path;
-
-  if (songPath.find("/server", 0) == 0) {
-    songPath = serverAssetManager.GetPath(path);
+std::string Overworld::OnlineArea::GetPath(const std::string& path) {
+  if (path.find("/server", 0) == 0) {
+    return serverAssetManager.GetPath(path);
   }
 
-  Audio().Stream(songPath, true);
+  return path;
 }

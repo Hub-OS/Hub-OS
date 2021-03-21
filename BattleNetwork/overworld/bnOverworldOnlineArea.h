@@ -103,6 +103,7 @@ namespace Overworld {
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
     void playSong(const std::string& name);
   protected:
+    virtual std::string GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);
     virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
     virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
