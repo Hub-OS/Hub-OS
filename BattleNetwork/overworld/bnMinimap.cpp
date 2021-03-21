@@ -25,13 +25,22 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   std::string recolor = GLSL(
     110,
     uniform sampler2D texture;
+    // uniform vec2 subrect;
+    uniform vec2 tileSize;
 
     void main() {
-      vec4 outcol = texture2D(texture, gl_TexCoord[0].xy);
+      vec2 pos = gl_TexCoord[0].xy; // pos is the uv coord (subrect)
+      vec4 incolor = texture2D(texture, pos).rgba;
+
+      // these are uv coordinate checks
+      // if (abs(pos.x) + abs(2.0 * pos.y) > 1.0)
+      //   discard;
+      //if (abs(pos.x / tileSize.x) + abs(pos.y / tileSize.y) > 1.0)
+      //  discard;
 
       // 152, 144, 224
-      outcol = vec4(0.596, 0.564, 0.878, 1.0) * outcol.a;
-      gl_FragColor = outcol;
+      vec4 outcolor = vec4(0.596, 0.564, 0.878, 1.0) * incolor.a;
+      gl_FragColor = outcolor;
     }
   );
 
@@ -49,11 +58,11 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
       vec2 pos = gl_TexCoord[0].xy;
       vec4 incolor = texture2D(texture, pos).rgba;
 
-      float top = texture2D(texture, vec2(pos.x, pos.y-dy)).a;
-      float left = texture2D(texture, vec2(pos.x-dx, pos.y)).a;
-      float right = texture2D(texture, vec2(pos.x+dx, pos.y)).a;
-      float down = texture2D(texture, vec2(pos.x, pos.y+dy)).a;
-      float n = max(top, max(left, max(right, down)))*(1.0-incolor.a);
+      float top = 1.0-texture2D(texture, vec2(pos.x, pos.y-dy)).a;
+      float left = 1.0-texture2D(texture, vec2(pos.x-dx, pos.y)).a;
+      float right = 1.0-texture2D(texture, vec2(pos.x+dx, pos.y)).a;
+      float down = 1.0-texture2D(texture, vec2(pos.x, pos.y+dy)).a;
+      float n = max(top, max(left, max(right, down))) *(incolor.a);
 
       gl_FragColor = (edgeColor*n) + ((1.0-n)*incolor);
     }
@@ -160,19 +169,7 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::RenderStates st
         tile.flippedVertical ? -1.0f : 1.0f
       );
 
-      /*auto color = tileSprite.getColor();
-
-      auto& [y, x] = PixelToRowCol(sf::Mouse::getPosition(*ENGINE.GetWindow()));
-
-      bool hover = (y == i && x == j);
-
-      if (hover) {
-        tileSprite.setColor({ color.r, color.b, color.g, 200 });
-      }*/
-
-      if (/*cam && cam->IsInView(tileSprite)*/ true) {
-        target.draw(tileSprite, states);
-      }
+      target.draw(tileSprite, states);
 
       tileSprite.setOrigin(originalOrigin);
     }
