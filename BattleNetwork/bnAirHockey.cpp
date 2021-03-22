@@ -54,7 +54,7 @@ void AirHockey::OnUpdate(double _elapsed)
           // the new dir was recalculated by 
           // CanMoveTo() and `reflecting`
           // was set to true to signal this
-          Slide(dir, frames(4));
+          Slide(dir, frames(4), frames(0));
           reflecting = false;
         }
 

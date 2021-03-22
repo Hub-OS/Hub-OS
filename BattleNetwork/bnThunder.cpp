@@ -110,7 +110,7 @@ void Thunder::OnUpdate(double _elapsed) {
 
     // Always slide to the tile we're moving to
     if (!IsSliding()) {
-      Slide(GetDirection(), frames(60));
+      Slide(GetDirection(), frames(60), frames(0));
     }
   }
 

@@ -336,10 +336,10 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
 
           card->ModDamage(buff);
         }
-      }
 
-      i++;
-      continue;
+        i++;
+        continue;
+      }
     }
 
     newCardList[j] = cards[i];

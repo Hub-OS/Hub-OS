@@ -28,7 +28,7 @@ void Wind::OnUpdate(double _elapsed) {
     Delete();
   }
 
-  Slide(GetDirection(), frames(4));
+  Slide(GetDirection(), frames(4), frames(0));
 }
 
 bool Wind::CanMoveTo(Battle::Tile* next) {
@@ -36,7 +36,7 @@ bool Wind::CanMoveTo(Battle::Tile* next) {
 }
 
 void Wind::Attack(Character* _entity) {
-  _entity->Slide(GetDirection(), frames(4));
+  _entity->Slide(GetDirection(), frames(4), frames(0));
 }
 
 void Wind::OnDelete()

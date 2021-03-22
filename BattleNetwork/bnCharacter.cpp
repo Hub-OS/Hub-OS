@@ -392,6 +392,7 @@ void Character::ResolveFrameBattleDamage()
           if ((props.flags & Hit::flinch) == Hit::flinch && !hasSuperArmor) {
             // cancel stun
             stunCooldown = 0.0;
+            actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
           }
           else {
             // refresh stun
@@ -407,6 +408,8 @@ void Character::ResolveFrameBattleDamage()
 
       // Flinch can be queued if dragging this frame
       if ((props.flags & Hit::flinch) == Hit::flinch) {
+        actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
+
         if (postDragDir != Direction::none) {
           append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
         }
@@ -431,6 +434,7 @@ void Character::ResolveFrameBattleDamage()
       props.flags &= ~Hit::retangible;
 
       if ((props.flags & Hit::bubble) == Hit::bubble) {
+        actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
         CreateComponent<BubbleTrap>(this);
         flagCheckThunk(Hit::bubble);
       }
@@ -474,8 +478,9 @@ void Character::ResolveFrameBattleDamage()
   if (postDragDir != Direction::none) {
     // enemies and objects on opposing side of field are granted immunity from drag
     if (Teammate(GetTile()->GetTeam())) {
+      actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
       slideFromDrag = true;
-      Slide(postDragDir, frames(3));
+      Slide(postDragDir, frames(3), frames(0));
 
       // cancel stun
       stunCooldown = 0;
@@ -491,7 +496,7 @@ void Character::ResolveFrameBattleDamage()
     stunCooldown = 0;
     invincibilityCooldown = 0;
 
-    //FinishMove(); // cancels slide
+    //FinishMove(); // cancels slide. TODO: obstacles do not use this but characters do!
 
     if(frameCounterAggressor) {
       // Slide entity back a few pixels

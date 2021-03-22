@@ -586,7 +586,7 @@ namespace Battle {
       if (directional != Direction::none) {
         if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
           if (!obst->IsSliding() && notMoving) {
-            obst->Slide(directional, frames(3), frames(7));
+            obst->Slide(directional, frames(3), frames(7), ActionOrder::involuntary);
           }
         }
       }
@@ -632,8 +632,6 @@ namespace Battle {
 
       auto directional = Direction::none;
 
-      auto notMoving = !character->IsMoving();
-
       switch (GetState()) {
       case TileState::directionDown:
         directional = Direction::down;
@@ -650,13 +648,10 @@ namespace Battle {
       }
 
       if (directional != Direction::none) {
+        auto notMoving = !character->IsMoving();
         if (!character->HasAirShoe() && !character->HasFloatShoe()) {
           if (notMoving && !character->IsSliding()) {
-            character->Slide(directional, frames(3), frames(7));
-
-            if (character->IsSliding()) {
-              Audio().Play(AudioType::DIR_TILE, AudioPriority::highest);
-            }
+            character->Slide(directional, frames(3), frames(7), ActionOrder::involuntary);
           }
         }
       }

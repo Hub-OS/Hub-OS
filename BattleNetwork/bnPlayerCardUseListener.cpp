@@ -35,6 +35,7 @@
 #include "bnThunder.h"
 #include "bnInvis.h"
 #include "bnElecpulse.h"
+#include "bnParticlePoof.h"
 #include "bnHideUntil.h"
 
 void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, long long timestamp) {
@@ -44,7 +45,14 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   // Identify the card by the name
   std::string name = card.GetShortName();
 
-  if (name.substr(0, 5) == "Recov") {
+  if (name.substr(0, 4) == "Atk+") {
+    Battle::Tile* playerTile = player->GetTile();
+    ParticlePoof* poof = new ParticlePoof();
+    poof->SetHeight(player->GetHeight());
+    poof->SetLayer(-100); // in front of player and player widgets
+
+    player->GetField()->AddEntity(*poof, *playerTile);
+  }else if (name.substr(0, 5) == "Recov") {
     auto action = new RecoverCardAction(*player, card.GetDamage());
     player->AddAction({ action }, ActionOrder::voluntary);
   }

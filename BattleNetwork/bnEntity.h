@@ -142,12 +142,12 @@ public:
    * 
    * NOTE: This doesn't mean that the entity will successfully move just that they could at the time
    */
-  bool Teleport(Direction dir);
-  bool Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag = frames(0));
-  bool Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag = frames(0));
-  bool Teleport(Battle::Tile* dest);
-  bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag = frames(0));
-  bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag = frames(0));
+  bool Teleport(Direction dir, ActionOrder order = ActionOrder::voluntary);
+  bool Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary);
+  bool Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary);
+  bool Teleport(Battle::Tile* dest, ActionOrder order = ActionOrder::voluntary);
+  bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary);
+  bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary);
   void FinishMove();
   void HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec);
   void ClearActionQueue();

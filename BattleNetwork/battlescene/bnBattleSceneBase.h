@@ -311,7 +311,6 @@ public:
   virtual void onStart() override;
   virtual void onLeave() override;
   virtual void onUpdate(double elapsed) override;
-
   virtual void onDraw(sf::RenderTexture& surface) override;
 
   bool IsPlayerDeleted() const;

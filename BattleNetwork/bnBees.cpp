@@ -217,7 +217,7 @@ void Bees::OnUpdate(double _elapsed) {
     }
 
     // Always slide to the tile we're moving to
-    Slide(GetDirection(), frames(27));
+    Slide(GetDirection(), frames(27), frames(0));
 
     // Did not move and update next tile pointer
     if (!this->IsMoving() && GetTile()->IsEdgeTile()) {

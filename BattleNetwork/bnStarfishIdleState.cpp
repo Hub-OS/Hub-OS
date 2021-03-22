@@ -14,7 +14,7 @@ void StarfishIdleState::OnEnter(Starfish& star) {
 void StarfishIdleState::OnUpdate(double _elapsed, Starfish& star) {
   if (cooldown < 0) {
     // Attack 3 times
-    star.ChangeState<StarfishAttackState>(3);
+    // star.ChangeState<StarfishAttackState>(3);
   }
 
   cooldown -= _elapsed;

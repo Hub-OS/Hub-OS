@@ -131,9 +131,6 @@ void Entity::UpdateMovement(double elapsed)
 
         // If we slide onto an ice block and we don't have float shoe enabled, slide
         if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
-          // Move again in the same direction as before
-          Teleport(*tile + GetPreviousDirection());
-
           // calculate our new entity's position
           UpdateMoveStartPosition();
 
@@ -158,7 +155,7 @@ void Entity::UpdateMovement(double elapsed)
           bool cancelSlide = notIce || cannotMove || weAreIce;
 
           if (!cancelSlide) {
-            Slide(GetPreviousDirection(), frames(8));
+            Slide(GetPreviousDirection(), frames(8), frames(0), ActionOrder::involuntary);
           }
         }
         else {
@@ -261,34 +258,34 @@ void Entity::SetAlpha(int value)
   setColor(c);
 }
 
-bool Entity::Teleport(Direction dir)
+bool Entity::Teleport(Direction dir, ActionOrder order)
 {
   Battle::Tile* currTile = GetTile();
 
   if (!currTile) return false;
 
-  return Teleport(*currTile + dir);
+  return Teleport(*currTile + dir, order);
 }
 
-bool Entity::Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag)
+bool Entity::Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order)
 {
   Battle::Tile* currTile = GetTile();
 
   if (!currTile) return false;
 
-  return Slide(*currTile + dir, slideTime, endlag);
+  return Slide(*currTile + dir, slideTime, endlag, order);
 }
 
-bool Entity::Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag)
+bool Entity::Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order)
 {
   Battle::Tile* currTile = GetTile();
 
   if (!currTile) return false;
 
-  return Jump(*currTile + dir, destHeight, jumpTime, endlag);
+  return Jump(*currTile + dir, destHeight, jumpTime, endlag, order);
 }
 
-bool Entity::Teleport(Battle::Tile* dest) {
+bool Entity::Teleport(Battle::Tile* dest, ActionOrder order) {
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest };
     actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
@@ -299,7 +296,7 @@ bool Entity::Teleport(Battle::Tile* dest) {
   return false;
 }
 
-bool Entity::Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag)
+bool Entity::Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order)
 {
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { slideTime, moveStartupDelay, moveEndlagDelay, 0, dest };
@@ -311,13 +308,13 @@ bool Entity::Slide(Battle::Tile* dest, const frame_time_t& slideTime, const fram
   return false;
 }
 
-bool Entity::Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag)
+bool Entity::Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order)
 {
   destHeight = std::min(destHeight, 0.f); // no negative jumps
 
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest };
-    actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
+    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
 
     return true;
   }

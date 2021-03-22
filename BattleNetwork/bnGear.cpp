@@ -101,7 +101,7 @@ void Gear::OnUpdate(double _elapsed) {
     }
 
     // Now try to move
-    Slide(GetDirection(), frames(120));
+    Slide(GetDirection(), frames(120), frames(0));
   }
 }
 

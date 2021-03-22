@@ -37,7 +37,7 @@ void Fishy::OnUpdate(double _elapsed) {
 
   // Keep moving
   if (!IsSliding()) {
-    Slide(GetDirection(), frames(8));
+    Slide(GetDirection(), frames(8), frames(0));
   }
 
   tile->AffectEntities(this);
