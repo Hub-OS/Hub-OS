@@ -337,28 +337,28 @@ void Overworld::SceneBase::HandleInput() {
     return;
   }
 
-  // check to see if talk button was pressed
-  if (emote.IsClosed() && !IsInputLocked()) {
-    if (Input().Has(InputEvents::pressed_interact)) {
-      OnInteract();
-    }
-  }
-
-  if (emote.IsOpen()) {
+  if (!emote.IsClosed()) {
     if (Input().Has(InputEvents::pressed_option)) {
       emote.Close();
     }
     return;
   }
 
-  if (textbox.IsOpen()) {
+  if (!textbox.IsClosed()) {
     textbox.HandleInput(Input());
     return;
   }
 
-  if (personalMenu.IsOpen()) {
+  if (!personalMenu.IsClosed()) {
     personalMenu.HandleInput(Input(), Audio());
     return;
+  }
+
+  // check to see if talk button was pressed
+  if (!IsInputLocked()) {
+    if (Input().Has(InputEvents::pressed_interact)) {
+      OnInteract();
+    }
   }
 
   if (Input().Has(InputEvents::pressed_pause) && !Input().Has(InputEvents::pressed_cancel)) {
