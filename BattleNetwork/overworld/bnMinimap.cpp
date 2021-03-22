@@ -194,10 +194,23 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       );
 
       // pass info to shader
-      auto center = sf::Vector2f(
-        subRect.left + tileSize.x / 2,
-        subRect.top + subRect.height - tileSize.y / 2
-      ) - tileMeta->drawingOffset;
+      auto center = sf::Vector2f(subRect.left, subRect.top);
+
+      if(tile.flippedHorizontal) {
+        center.x += subRect.width - tileSize.x / 2;
+        center.x += tileMeta->drawingOffset.x;
+      } else {
+        center.x += tileSize.x / 2;
+        center.x += -tileMeta->drawingOffset.x;
+      }
+
+      if (tile.flippedVertical) {
+        center.y += tileSize.y / 2;
+        center.y += tileMeta->drawingOffset.y;
+      } else {
+        center.y += subRect.height - tileSize.y / 2;
+        center.y += -tileMeta->drawingOffset.y;
+      }
 
       sf::Vector2f sizeUv(tileSprite.getTexture()->getSize());
       shader.setUniform("center", sf::Glsl::Vec2(center.x / sizeUv.x, center.y / sizeUv.y));
