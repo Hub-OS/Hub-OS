@@ -951,8 +951,8 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
   std::string animationString = "imagePath=\"./" + texturePath + "\"\n\n";
 
   auto objectAlignment = tilesetElement.GetAttribute("objectalignment");
-  // default to bottom right
-  auto alignmentOffset = sf::Vector2i(-tileWidth, -tileHeight);
+  // default to bottom
+  auto alignmentOffset = sf::Vector2i(-tileWidth / 2, -tileHeight);
 
   if (objectAlignment == "top") {
     alignmentOffset = sf::Vector2i(-tileWidth / 2, 0);
@@ -972,11 +972,11 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
   else if (objectAlignment == "right") {
     alignmentOffset = sf::Vector2i(-tileWidth, -tileHeight / 2);
   }
-  else if (objectAlignment == "bottom") {
-    alignmentOffset = sf::Vector2i(-tileWidth / 2, -tileHeight);
-  }
   else if (objectAlignment == "bottomleft") {
     alignmentOffset = sf::Vector2i(0, -tileHeight);
+  }
+  else if (objectAlignment == "bottomright") {
+    alignmentOffset = sf::Vector2i(-tileWidth, -tileHeight);
   }
 
   std::string frameOffsetString = " originx=\"" + to_string(tileWidth / 2) + "\" originy=\"" + to_string(tileHeight / 2) + '"';
