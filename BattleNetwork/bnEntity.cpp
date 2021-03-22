@@ -288,7 +288,7 @@ bool Entity::Jump(Direction dir, float destHeight, const frame_time_t& jumpTime,
 bool Entity::Teleport(Battle::Tile* dest, ActionOrder order) {
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest };
-    actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
+    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
 
     return true;
   }
@@ -300,7 +300,7 @@ bool Entity::Slide(Battle::Tile* dest, const frame_time_t& slideTime, const fram
 {
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { slideTime, moveStartupDelay, moveEndlagDelay, 0, dest };
-    actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
+    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
 
     return true;
   }

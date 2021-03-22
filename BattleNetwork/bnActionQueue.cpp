@@ -92,6 +92,9 @@ ActionTypes ActionQueue::TopType() {
 }
 
 void ActionQueue::Process() {
+  // Resort and apply any new priority filters to the sort
+  Sort();
+
   ActionTypes top = TopType();
 
   if (top == ActionTypes::none) return; // nothing to process. abort
@@ -113,9 +116,6 @@ void ActionQueue::Process() {
 
     iter++;
   }
-
-  // Resort and apply any new priority filters to the sort
-  Sort();
 }
 
 void ActionQueue::Pop() {
@@ -141,10 +141,10 @@ void ActionQueue::Pop() {
     // below is frame-perfect implementation of the next queue item
     ActionTypes top = TopType();
 
-    if (top == ActionTypes::none) 
+    /*if (top == ActionTypes::none) 
       return; // nothing to process. abort
 
-    handlers[top](ExecutionType::reserve);
+    handlers[top](ExecutionType::reserve);*/
   }
 }
 
