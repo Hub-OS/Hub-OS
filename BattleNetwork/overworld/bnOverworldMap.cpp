@@ -266,19 +266,37 @@ namespace Overworld {
     relativeY = std::modf(y, &_);
 
     float layerRelativeDepth = 0.0;
-    auto direction = tileMeta->customProperties.GetProperty("Direction");
+    auto directionString = tileMeta->customProperties.GetProperty("Direction");
+    Direction direction;
 
-    if (direction == "Up Left") {
+    if (directionString == "Up Left") {
+      direction = tile.flippedHorizontal ? Direction::up_right : Direction::up_left;
+    }
+    else if (directionString == "Up Right") {
+      direction = tile.flippedHorizontal ? Direction::up_left : Direction::up_right;
+    }
+    if (directionString == "Down Left") {
+      direction = tile.flippedHorizontal ? Direction::down_right : Direction::down_left;
+    }
+    else if (directionString == "Down Right") {
+      direction = tile.flippedHorizontal ? Direction::down_left : Direction::down_right;
+    }
+
+    switch (direction) {
+    case Direction::up_left:
       layerRelativeDepth = 1 - relativeX;
-    }
-    else if (direction == "Up Right") {
+      break;
+    case Direction::up_right:
       layerRelativeDepth = 1 - relativeY;
-    }
-    if (direction == "Down Left") {
+      break;
+    case Direction::down_left:
       layerRelativeDepth = relativeX;
-    }
-    else if (direction == "Down Right") {
+      break;
+    case Direction::down_right:
       layerRelativeDepth = relativeY;
+      break;
+    default:
+      break;
     }
 
     return layerDepth + layerRelativeDepth;
