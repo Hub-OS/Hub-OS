@@ -7,46 +7,29 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Bees::Bees(Team _team,int damage)
-  : 
-  animation(), 
-  elapsed(0), 
-  target(nullptr), 
-  turnCount(0),
-  hitCount(0), 
-  shadow(nullptr), 
-  leader(nullptr),
-  attackCooldown(0), 
-  dropped(), 
+Bees::Bees(Team _team,int damage) :
   damage(damage),
-  madeContact(false),
   Spell(_team) {
   SetLayer(0);
+  SetHeight(22.f);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
   setScale(2.f, 2.f);
 
   HighlightTile(Battle::Tile::Highlight::solid);
 
-  elapsed = 0;
-
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
   animation << Animator::Mode::Loop;
 
-  target = nullptr;
-
-  turnCount = 0;
-  hitCount = 0;
   attackCooldown = 0.60f;
 
-  animation.Update(0, getSprite());
+  animation.Refresh(getSprite());
 
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->setPosition(-8.0f, 20.0f);
-
   AddNode(shadow);
 
   auto props = GetHitboxProperties();
@@ -70,22 +53,18 @@ Bees::Bees(Team _team,int damage)
   }
 }
 
-Bees::Bees(const Bees & leader)
-  :
+Bees::Bees(const Bees & leader) :
   animation(leader.animation), 
-  elapsed(0), 
   target(leader.target),
-  turnCount(leader.turnCount), 
-  hitCount(0), 
-  shadow(nullptr), 
+  turnCount(leader.turnCount),
   leader(const_cast<Bees*>(&leader)),
   attackCooldown(leader.attackCooldown), 
-  dropped(), 
   damage(leader.damage),
   madeContact(false),
   Spell(leader.GetTeam())
 {
   SetLayer(0);
+  SetHeight(leader.GetHeight());
 
   setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
   setScale(2.f, 2.f);
@@ -95,7 +74,7 @@ Bees::Bees(const Bees & leader)
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
   animation << Animator::Mode::Loop;
-  animation.Update(0, getSprite());
+  animation.Refresh(getSprite());
 
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
@@ -105,12 +84,11 @@ Bees::Bees(const Bees & leader)
   AddNode(shadow);
 
   SetHitboxProperties(leader.GetHitboxProperties());
-
   Entity::RemoveCallback& selfDeleteHandler = CreateRemoveCallback();
   Entity::RemoveCallback& deleteHandler = this->leader->CreateRemoveCallback();
 
   deleteHandler.Slot([this, s = &selfDeleteHandler]() {
-    if (target == this->leader && target != this) target = nullptr;
+    if (target == this->leader) target = nullptr;
     this->leader = nullptr;
 
     s->Reset();
@@ -128,6 +106,36 @@ Bees::Bees(const Bees & leader)
   }
 }
 
+void Bees::TargetDirection(Direction& direction)
+{
+  assert(target && "target was nullptr!");
+
+  Battle::Tile* targetTile = target->GetTile();
+  assert(targetTile && "target tile was nullptr!");
+
+  Battle::Tile* tile = GetTile();
+
+  if (tile->GetX() < targetTile->GetX()) {
+    direction = Direction::right;
+    return;
+  }
+
+  if (tile->GetX() > targetTile->GetX()) {
+    direction = Direction::left;
+    return;
+  }
+
+  if (tile->GetY() < targetTile->GetY()) {
+    direction = Direction::down;
+    return;
+  }
+
+  if (tile->GetY() > targetTile->GetY()) {
+    direction = Direction::up;
+    return;
+  }
+}
+
 Bees::~Bees() {
   delete shadow;
 }
@@ -135,7 +143,7 @@ Bees::~Bees() {
 void Bees::OnUpdate(double _elapsed) {
   elapsed += _elapsed;
 
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 60.0f);
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHeight());
 
   animation.Update(_elapsed, getSprite());
 
@@ -169,41 +177,44 @@ void Bees::OnUpdate(double _elapsed) {
   // If sliding is flagged to false, we know we've ended a move
   auto direction = Direction::none;
   bool wasMovingVertical   = (GetDirection() == Direction::down || GetDirection() == Direction::up);
-  wasMovingVertical = (wasMovingVertical || GetDirection() == Direction::none);
-
   bool wasMovingHorizontal = (GetDirection() == Direction::left || GetDirection() == Direction::right);
-  wasMovingHorizontal = (wasMovingHorizontal || GetDirection() == Direction::none);
 
   if (!IsSliding()) {
     if (target) {
-      if (target->GetTile() && turnCount < 2) {
-        if (wasMovingVertical || target->GetTile()->GetY() == tile->GetY()) {
-          if (target->GetTile()->GetX() < tile->GetX()) {
-            direction = Direction::left;
-          }
-          else if (target->GetTile()->GetX() > tile->GetX()) {
-            direction = Direction::right;
+      if (target->GetTile()) {
+        /*
+          once a bee commits to travelling in a direction, they will not change directions again until 
+          they enter the same column (if moving horizontally) or row (if moving vertically) as their target, 
+          or if their target moves behind them
+        */
+        // target moved behind us? check.
+        bool behindUs = false;
+        if (GetDirection() == Direction::left) {
+          if (target->GetTile()->GetX() > GetTile()->GetX()) {
+            TargetDirection(direction);
+            behindUs = true;
           }
         }
-        else if (wasMovingHorizontal && target->GetTile()->GetX() == tile->GetX()) {
-          if (target->GetTile()->GetY() < tile->GetY()) {
-            direction = Direction::up;
+        else if (GetDirection() == Direction::right) {
+          if (target->GetTile()->GetX() < GetTile()->GetX()) {
+            TargetDirection(direction);
+            behindUs = true;
           }
-          else if (target->GetTile()->GetY() > tile->GetY()) {
-            direction = Direction::down;
+        }
+        
+        if (!behindUs) {
+          if (GetTile()->GetX() == target->GetTile()->GetX()) {
+            TargetDirection(direction);
+          }
+          else if (wasMovingVertical && GetTile()->GetY() == target->GetTile()->GetY()) {
+            TargetDirection(direction);
           }
         }
       }
     }
-    else {
-      // If there are no targets, aimlessly move right or left
-      // depending on the team
-      if (GetTeam() == Team::red) {
-        direction = Direction::right;
-      }
-      else {
-        direction = Direction::left;
-      }
+
+    if (turnCount > 2) {
+      direction = Direction::none;
     }
 
     if (direction != GetDirection() && direction != Direction::none) {
@@ -214,14 +225,16 @@ void Bees::OnUpdate(double _elapsed) {
     // stay on top of the real target, not the leader
     if (target && target->GetTile() == GetTile() && !Teammate(target->GetTeam()) && madeContact) {
       SetDirection(Direction::none);
+      setPosition(target->getPosition() - sf::Vector2f{ 0, GetHeight() });
     }
+    else {
+      // Always slide to the tile we're moving to
+      Slide(GetDirection(), frames(27), frames(0));
 
-    // Always slide to the tile we're moving to
-    Slide(GetDirection(), frames(27), frames(0));
-
-    // Did not move and update next tile pointer
-    if (!this->IsMoving() && GetTile()->IsEdgeTile()) {
-      Delete();
+      // Did not move and update next tile pointer
+      if (!IsMoving() && GetTile()->IsEdgeTile()) {
+        Delete();
+      }
     }
   }
 
@@ -244,6 +257,7 @@ void Bees::OnUpdate(double _elapsed) {
     // all other hitbox events will be ignored after 5 hits
     if (hitCount < 5) {
       hitCount++;
+      
       hitbox->AddCallback([this](Character* entity) {
         this->madeContact = true; // we hit something!
 
@@ -251,10 +265,21 @@ void Bees::OnUpdate(double _elapsed) {
         auto fx = new ParticleImpact(ParticleImpact::Type::green);
         entity->GetField()->AddEntity(*fx, *entity->GetTile());
         fx->SetHeight(entity->GetHeight());
+      });
+
+    }
+
+    if (GetField()->AddEntity(*hitbox, *GetTile()) != Field::AddEntityStatus::deleted) {
+      Entity::RemoveCallback& selfDeleteHandler = CreateRemoveCallback();
+      selfDeleteHandler.Slot([hitbox]() {
+        hitbox->Remove();
+      });
+
+      Entity::RemoveCallback& hitboxDeleteHandler = hitbox->CreateRemoveCallback();
+      hitboxDeleteHandler.Slot([handler = &selfDeleteHandler]() {
+        handler->Reset();
         });
     }
-    GetField()->AddEntity(*hitbox, *GetTile());
-    dropped.push_back(hitbox);
   }
 
   attackCooldown = std::max(attackCooldown - (float)elapsed, 0.0f);
@@ -276,6 +301,5 @@ void Bees::Attack(Character* _entity) {
 
 void Bees::OnDelete()
 {
-  dropped.clear();
   Remove();
 }

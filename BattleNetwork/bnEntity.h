@@ -314,7 +314,7 @@ public:
   * @brief Builds and returns a reference to a callback function of type void()
   * Useful for safely determining the lifetime of another entity in play
   */
-  std::reference_wrapper<RemoveCallback> CreateRemoveCallback();
+  RemoveCallback& CreateRemoveCallback();
   
   /**
    * @brief Query if an entity has been deleted but not removed this frame
@@ -472,7 +472,7 @@ protected:
     Status action{ Status::add };
   };
   std::list<ComponentBucket> queuedComponents;
-  std::vector<RemoveCallback> removeCallbacks;
+  std::vector<RemoveCallback*> removeCallbacks;
 
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
   void SetMoveEndlag(const frame_time_t& frames);

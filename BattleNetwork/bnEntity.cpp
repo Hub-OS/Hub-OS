@@ -29,6 +29,10 @@ Entity::Entity() :
 
 Entity::~Entity() {
   this->FreeAllComponents();
+
+  for (RemoveCallback* callback : removeCallbacks) {
+    delete callback;
+  }
 }
 
 void Entity::SortComponents()
@@ -521,8 +525,9 @@ void Entity::Delete()
 
   OnDelete();
 
-  for (auto&& callbacks : removeCallbacks) {
-    callbacks();
+  for (RemoveCallback* callback : removeCallbacks) {
+    (*callback)();
+    delete callback;
   }
 
   removeCallbacks.clear();
@@ -533,10 +538,10 @@ void Entity::Remove()
   flagForRemove = true;
 }
 
-std::reference_wrapper<Entity::RemoveCallback> Entity::CreateRemoveCallback()
+Entity::RemoveCallback& Entity::CreateRemoveCallback()
 {
-  removeCallbacks.push_back(std::move(Entity::RemoveCallback()));
-  return std::ref(*(removeCallbacks.end()-1));
+  removeCallbacks.push_back(new Entity::RemoveCallback());
+  return *removeCallbacks[removeCallbacks.size() - 1];
 }
 
 bool Entity::IsDeleted() const {

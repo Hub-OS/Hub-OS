@@ -57,7 +57,7 @@ void BusterCardAction::OnExecute() {
     b->SetHitboxProperties(props);
 
     isBusterAlive = true;
-    busterRemoved = &b->CreateRemoveCallback().get();
+    busterRemoved = &b->CreateRemoveCallback();
     busterRemoved->Slot([this]() {
       isBusterAlive = false;
       EndAction();

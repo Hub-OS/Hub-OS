@@ -7,26 +7,23 @@ class Hitbox;
 
 class Bees : public Spell {
 protected:
+  int damage{}, hitCount{}, turnCount{};
+  bool madeContact{}; /*!< if a bee hits something, it stays on top of it else it moves*/
+  float attackCooldown{};
+  double elapsed{};
   Animation animation;
-  double elapsed;
-  Entity* target; /**< The current enemy to approach */
-  int damage;
-  int turnCount, hitCount;
-  bool madeContact; /*!< if a bee hits something, it stays on top of it else it moves*/
-  SpriteProxyNode* shadow;
-  Bees* leader;/*!< which bee to follow*/
-  float attackCooldown; 
-  std::list<Hitbox*> dropped;
+  Entity* target{ nullptr }; /**< The current enemy to approach */
+  SpriteProxyNode* shadow{ nullptr };
+  Bees* leader{ nullptr };/*!< which bee to follow*/
+
+  void TargetDirection(Direction& direction);
 public:
   Bees(Team _team,int damage);
   Bees(const Bees& leader);
   ~Bees();
 
   bool CanMoveTo(Battle::Tile* tile);
-
   void OnUpdate(double _elapsed);
-
   void Attack(Character* _entity);
-
   void OnDelete();
 };

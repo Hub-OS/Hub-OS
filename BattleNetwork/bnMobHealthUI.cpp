@@ -8,8 +8,7 @@ using std::to_string;
 #include "bnTextureResourceManager.h"
 #include "bnLogger.h"
 
-MobHealthUI::MobHealthUI(Character* _mob)
-  : mob(_mob), UIComponent(_mob) {
+MobHealthUI::MobHealthUI(Character* _mob) : mob(_mob), UIComponent(_mob) {
   healthCounter = mob->GetHealth();
   cooldown = 0;
   color = sf::Color::White;

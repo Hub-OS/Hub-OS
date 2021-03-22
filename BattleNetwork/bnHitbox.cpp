@@ -29,6 +29,7 @@ void Hitbox::OnSpawn(Battle::Tile & start)
 
 void Hitbox::OnUpdate(double _elapsed) {
   tile->AffectEntities(this);
+
   Delete();
 }
 
