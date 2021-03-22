@@ -292,8 +292,10 @@ const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& ac
 const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap)
 {
   float px_per_s = 0;
+  float depth = GetDepth();
+  bool onStairs = depth != std::floor(depth);
 
-  if (state == MovementState::running) {
+  if (onStairs || state == MovementState::running) {
     px_per_s = GetRunSpeed() * elapsed;
   }
   else if (state == MovementState::walking) {
