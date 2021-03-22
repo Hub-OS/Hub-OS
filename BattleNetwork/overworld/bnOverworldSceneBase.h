@@ -77,6 +77,7 @@ namespace Overworld {
     std::shared_ptr<Background> bg{ nullptr }; /*!< Background image pointer */
     Overworld::Map map; /*!< Overworld map */
     std::vector<std::shared_ptr<WorldSprite>> sprites;
+    std::vector<std::vector<std::shared_ptr<WorldSprite>>> spriteLayers;
 
     Overworld::TextBox textbox;
 
@@ -96,9 +97,7 @@ namespace Overworld {
     void HandleInput();
     void LoadBackground(const Map& map, const std::string& value);
     void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
-    void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
     void DrawLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
-    void DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const;
 
 #ifdef __ANDROID__
     void StartupTouchControls();

@@ -227,19 +227,37 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     lastIsConnectedState = currentConnectivity;
   }
 
-  // sort sprites
-  std::sort(sprites.begin(), sprites.end(),
-    [](const std::shared_ptr<WorldSprite>& A, const std::shared_ptr<WorldSprite>& B) {
-    int A_layer_inv = -A->GetLayer();
-    int B_layer_inv = -B->GetLayer();
+  auto layerCount = map.GetLayerCount();
 
-    auto A_pos = A->getPosition();
-    auto B_pos = B->getPosition();
-    auto A_compare = A_pos.x + A_pos.y;
-    auto B_compare = B_pos.x + B_pos.y;
+  if (spriteLayers.size() != layerCount) {
+    spriteLayers.resize(layerCount);
+  }
 
-    return std::tie(A_layer_inv, A_compare) < std::tie(B_layer_inv, B_compare);
-  });
+  for (auto i = 0; i < layerCount; i++) {
+    auto& spriteLayer = spriteLayers[i];
+    auto depth = (float)i;
+
+    spriteLayer.clear();
+
+    // match sprites to layer
+    for (auto& sprite : sprites) {
+      // use ceil(depth) instead of GetLayer to prevent sorting issues with stairs
+      if (std::ceil(sprite->GetDepth()) == depth) {
+        spriteLayer.push_back(sprite);
+      }
+    }
+
+    // sort sprites within the layer
+    std::sort(spriteLayer.begin(), spriteLayer.end(),
+      [](const std::shared_ptr<WorldSprite>& A, const std::shared_ptr<WorldSprite>& B) {
+      auto A_pos = A->getPosition();
+      auto B_pos = B->getPosition();
+      auto A_compare = A_pos.x + A_pos.y;
+      auto B_compare = B_pos.x + B_pos.y;
+
+      return A_compare < B_compare;
+    });
+  }
 
   // Loop the bg
   bg->Update((float)elapsed);
@@ -461,11 +479,6 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
   states.transform.translate(offset);
   states.transform *= map.getTransform();
 
-  DrawMap(target, states);
-  DrawSprites(target, states);
-}
-
-void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates states) {
   auto tileSize = map.GetTileSize();
 
   for (auto i = 0; i < map.GetLayerCount(); i++) {
@@ -535,15 +548,18 @@ void Overworld::SceneBase::DrawLayer(sf::RenderTarget& target, sf::RenderStates 
       tileSprite.setOrigin(originalOrigin);
     }
   }
-}
 
-void Overworld::SceneBase::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
-  auto tileSize = map.GetTileSize();
+  if (index >= spriteLayers.size()) {
+    // save from possible map layer count change after OverworldSceneBase::Update
+    return;
+  }
 
-  for (auto& sprite : sprites) {
+  auto depth = (float)index;
+
+  for (auto& sprite : spriteLayers[index]) {
     auto worldPos = sprite->getPosition();
     auto screenPos = map.WorldToScreen(worldPos);
-    screenPos.y -= sprite->GetDepth() * tileSize.y / 2.0f;
+    screenPos.y -= (sprite->GetDepth() - depth) * tileSize.y * 0.5f;
 
     // prevents blurring and camera jittering with the player
     screenPos.x = std::floor(screenPos.x);
