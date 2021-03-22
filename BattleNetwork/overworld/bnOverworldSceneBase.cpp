@@ -356,13 +356,16 @@ void Overworld::SceneBase::HandleInput() {
     return;
   }
 
-  personalMenu.HandleInput(Input(), Audio());
-
   if (personalMenu.IsOpen()) {
+    personalMenu.HandleInput(Input(), Audio());
     return;
   }
 
-  if (Input().Has(InputEvents::pressed_option)) {
+  if (Input().Has(InputEvents::pressed_pause) && !Input().Has(InputEvents::pressed_cancel)) {
+    personalMenu.Open();
+    Audio().Play(AudioType::CHIP_DESC);
+  }
+  else if (Input().Has(InputEvents::pressed_option)) {
     emote.Open();
   }
 }

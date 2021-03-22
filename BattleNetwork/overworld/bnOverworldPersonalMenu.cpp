@@ -326,14 +326,8 @@ namespace Overworld {
   void PersonalMenu::HandleInput(InputManager& input, AudioResourceManager& audio) {
     // menu widget
     if (input.Has(InputEvents::pressed_pause) && !input.Has(InputEvents::pressed_cancel)) {
-      if (IsClosed()) {
-        Open();
-        audio.Play(AudioType::CHIP_DESC);
-      }
-      else if (IsOpen()) {
-        Close();
-        audio.Play(AudioType::CHIP_DESC_CLOSE);
-      }
+      Close();
+      audio.Play(AudioType::CHIP_DESC_CLOSE);
     }
 
     if (!IsOpen()) {
