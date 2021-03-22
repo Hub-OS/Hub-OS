@@ -21,41 +21,54 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   LoadMap(FileUtil::Read("resources/ow/maps/homepage.tmx"));
 
   auto& map = GetMap();
-  auto& layer0 = map.GetLayer(0);
-  sf::Vector2f spawnPos;
+  sf::Vector3f spawnPos;
+  std::optional<sf::Vector3f> statusBotSpawnOptional;
 
-  for (auto& tileObject : layer0.GetTileObjects()) {
-    if (tileObject.name == "Home Warp") {
-      spawnPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
-      GetMinimap().SetHomepagePosition(GetMap().WorldToScreen(spawnPos));
+  for (auto i = 0; i < map.GetLayerCount(); i++) {
+    auto& layer = map.GetLayer(i);
+    auto z = (float)i;
+
+    // search for status bot while it hasn't been found
+    if (!statusBotSpawnOptional) {
+      auto pointOptional = layer.GetShapeObject("Warp Status Bot");
+
+      if (pointOptional) {
+        auto& point = pointOptional->get();
+        statusBotSpawnOptional = { point.position.x, point.position.y, z };
+      }
     }
-    else if (tileObject.name == "Net Warp") {
-      auto centerPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
-      auto tileSize = map.GetTileSize();
 
-      netWarpTilePos = sf::Vector2f(
-        std::floor(centerPos.x / (float)(tileSize.x / 2)),
-        std::floor(centerPos.y / tileSize.y)
-      );
-      netWarpObjectId = tileObject.id;
-      GetMinimap().AddWarpPosition(GetMap().WorldToScreen(centerPos));
+    // search for warps
+    for (auto& tileObject : layer.GetTileObjects()) {
+      if (tileObject.name == "Home Warp") {
+        auto warpLayerPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+        spawnPos = { warpLayerPos.x, warpLayerPos.y, z };
+
+        auto screenPos = GetMap().WorldToScreen(spawnPos);
+        GetMinimap().SetHomepagePosition(screenPos);
+      }
+      else if (tileObject.name == "Net Warp") {
+        auto centerPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+        auto tileSize = map.GetTileSize();
+
+        netWarpTilePos = sf::Vector3f(
+          std::floor(centerPos.x / (float)(tileSize.x / 2)),
+          std::floor(centerPos.y / tileSize.y),
+          z
+        );
+        netWarpObjectId = tileObject.id;
+
+        auto screenPos = GetMap().WorldToScreen({ centerPos.x, centerPos.y, z });
+        GetMinimap().AddWarpPosition(screenPos);
+      }
     }
   }
 
-  auto& command = GetTeleportController().TeleportIn(GetPlayer(), spawnPos, Direction::up);
-  command.onFinish.Slot([=] {
-    GetPlayerController().ControlActor(GetPlayer());
-  });
-
-  auto statusBotSpawnOptional = layer0.GetShapeObject("Warp Status Bot");
-
   if (statusBotSpawnOptional) {
-    auto& statusBotSpawn = statusBotSpawnOptional->get();
-
     auto mrprog = std::make_shared<Overworld::Actor>("Mr. Prog");
     mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
     mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
-    mrprog->setPosition(statusBotSpawn.position);
+    mrprog->Set3DPosition(statusBotSpawnOptional.value());
     mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
 
@@ -92,6 +105,13 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
     AddActor(mrprog);
   }
+
+  // spawn in the player
+  auto player = GetPlayer();
+  auto& command = GetTeleportController().TeleportIn(player, spawnPos, Direction::up);
+  command.onFinish.Slot([=] {
+    GetPlayerController().ControlActor(player);
+  });
 }
 
 void Overworld::Homepage::PingRemoteAreaServer()
@@ -289,9 +309,10 @@ void Overworld::Homepage::OnTileCollision()
   auto& map = GetMap();
   auto tileSize = sf::Vector2f(map.GetTileSize());
 
-  auto tilePos = sf::Vector2f(
+  auto tilePos = sf::Vector3f(
     std::floor(playerPos.x / (tileSize.x / 2)),
-    std::floor(playerPos.y / tileSize.y)
+    std::floor(playerPos.y / tileSize.y),
+    std::floor(playerActor->GetDepth())
   );
 
   auto& teleportController = GetTeleportController();
@@ -301,9 +322,10 @@ void Overworld::Homepage::OnTileCollision()
 
     // Calculate the origin by grabbing this tile's grid Y/X values
     // return at the center origin of this tile
-    sf::Vector2f returnPoint = sf::Vector2f(
+    auto returnPoint = sf::Vector3f(
       tilePos.x * tileSize.x / 2 + tileSize.x / 4.0f,
-      tilePos.y * tileSize.y + tileSize.y / 2.0f
+      tilePos.y * tileSize.y + tileSize.y / 2.0f,
+      netWarpTilePos.z
     );
 
     auto teleportToCyberworld = [=] {

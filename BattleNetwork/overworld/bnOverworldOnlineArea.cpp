@@ -122,7 +122,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
       double expectedTime = calculatePlayerLag(onlinePlayer);
       float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
-      Direction newHeading = Actor::MakeDirectionFromVector(delta);
+      Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
 
       if (distance <= 0.2f) {
         actor->Face(actor->GetHeading());
@@ -134,8 +134,8 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         actor->Run(newHeading, false);
       }
 
-      auto newPos = onlinePlayer.startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
-      actor->setPosition(newPos);
+      auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
+      actor->Set3DPosition(newPos);
     }
 
     onlinePlayer.teleportController.Update(elapsed);
@@ -255,7 +255,7 @@ void Overworld::OnlineArea::OnTileCollision()
       auto& command = teleportController.TeleportOut(playerActor);
 
       auto teleportHome = [=] {
-        TeleportUponReturn(playerActor->getPosition());
+        TeleportUponReturn(playerActor->Get3DPosition());
         sendLogoutSignal();
         getController().pop<segue<BlackWashFade>>();
       };
@@ -522,10 +522,11 @@ void Overworld::OnlineArea::sendPositionSignal()
   auto& map = GetMap();
   auto tileSize = sf::Vector2f(map.GetTileSize());
 
-  auto vec = GetPlayer()->getPosition();
+  auto player = GetPlayer();
+  auto vec = player->getPosition();
   float x = vec.x / tileSize.x * 2.0f;
   float y = vec.y / tileSize.y;
-  float z = 0;
+  float z = player->GetDepth();
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::position };
@@ -651,11 +652,13 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   auto y = reader.Read<float>(buffer) * tileSize.y;
   auto z = reader.Read<float>(buffer);
 
-  auto spawnPos = sf::Vector2f(x, y);
+  auto spawnPos = sf::Vector3f(x, y, z);
 
-  auto& command = GetTeleportController().TeleportIn(GetPlayer(), spawnPos, Direction::up);
+  auto player = GetPlayer();
+
+  auto& command = GetTeleportController().TeleportIn(player, spawnPos, Direction::up);
   command.onFinish.Slot([=] {
-    GetPlayerController().ControlActor(GetPlayer());
+    GetPlayerController().ControlActor(player);
   });
 
   isConnected = true;
@@ -839,11 +842,12 @@ void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const 
 
   auto position = sf::Vector2f(x, y);
 
-  auto ortho = map.WorldToScreen(position);
+  auto screenPos = map.WorldToScreen(position);
+  screenPos.y -= z * tileSize.y / 2.0f;
 
   auto duration = reader.Read<float>(buffer);
 
-  QueuePlaceCamera(ortho, sf::seconds(duration));
+  QueuePlaceCamera(screenPos, sf::seconds(duration));
 }
 
 void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -857,11 +861,12 @@ void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const
 
   auto position = sf::Vector2f(x, y);
 
-  auto ortho = map.WorldToScreen(position);
+  auto screenPos = map.WorldToScreen(position);
+  screenPos.y -= z * tileSize.y / 2.0f;
 
   auto duration = reader.Read<float>(buffer);
 
-  QueueMoveCamera(ortho, sf::seconds(duration));
+  QueueMoveCamera(screenPos, sf::seconds(duration));
 }
 
 void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -870,17 +875,17 @@ void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::
 
   float x = reader.Read<float>(buffer);
   float y = reader.Read<float>(buffer);
-
-  auto tileSize = GetMap().GetTileSize();
-  auto position = sf::Vector2f(
-    x * tileSize.x / 2.0f,
-    y * tileSize.y
-  );
-
   auto z = reader.Read<float>(buffer);
 
+  auto tileSize = GetMap().GetTileSize();
+  auto position = sf::Vector3f(
+    x * tileSize.x / 2.0f,
+    y * tileSize.y,
+    z
+  );
+
   auto player = GetPlayer();
-  player->setPosition(position);
+  player->Set3DPosition(position);
 }
 
 void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -957,7 +962,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   bool solid = reader.Read<bool>(buffer);
   bool warpIn = reader.Read<bool>(buffer);
 
-  auto pos = sf::Vector2f(x, y);
+  auto pos = sf::Vector3f(x, y, z);
 
   if (user == ticket) return;
 
@@ -972,7 +977,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   onlinePlayer.endBroadcastPos = pos;
 
   auto actor = onlinePlayer.actor;
-  actor->setPosition(pos);
+  actor->Set3DPosition(pos);
   actor->setTexture(GetTexture(texturePath));
 
   Animation animation;
@@ -1064,7 +1069,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     auto& onlinePlayer = userIter->second;
     auto currentTime = CurrentTime::AsMilli();
     auto endBroadcastPos = onlinePlayer.endBroadcastPos;
-    auto newPos = sf::Vector2f(x, y);
+    auto newPos = sf::Vector3f(x, y, z);
     auto delta = endBroadcastPos - newPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
     double incomingLag = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
@@ -1079,7 +1084,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     if (teleportController->IsComplete() && onlinePlayer.packets > 1) {
       // we can't possibly have moved this far away without teleporting
       if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2) * expectedTime) {
-        actor->setPosition(endBroadcastPos);
+        actor->Set3DPosition(endBroadcastPos);
         auto& action = teleportController->TeleportOut(actor);
         action.onFinish.Slot([=] {
           teleportController->TeleportIn(actor, endBroadcastPos, Direction::none);
@@ -1089,7 +1094,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
 
     // update our records
     onlinePlayer.startBroadcastPos = endBroadcastPos;
-    onlinePlayer.endBroadcastPos = sf::Vector2f(x, y);
+    onlinePlayer.endBroadcastPos = newPos;
     onlinePlayer.timestamp = currentTime;
     onlinePlayer.packets++;
     onlinePlayer.lagWindow[onlinePlayer.packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
@@ -1142,15 +1147,18 @@ void Overworld::OnlineArea::leave() {
   getController().pop<effect>();
 }
 
-const bool Overworld::OnlineArea::isMouseHovering(const sf::Vector2f& mouse, const SpriteProxyNode& src)
+const bool Overworld::OnlineArea::isMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src)
 {
   auto textureRect = src.getSprite().getTextureRect();
 
   auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
   auto& scale = map.getScale();
 
   auto position = src.getPosition();
   auto screenPosition = map.WorldToScreen(position);
+  screenPosition.y -= src.GetDepth() * tileSize.y / 2.0f;
+
   auto bounds = sf::FloatRect(
     (screenPosition.x - (float)(textureRect.width / 2)) * scale.x,
     (screenPosition.y - textureRect.height) * scale.y,

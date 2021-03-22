@@ -272,6 +272,7 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
   if (!cameraLocked) {
     // Follow the navi
     sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
+    pos.y -= playerActor->GetDepth() * map.GetTileSize().y / 2.0f;
     camera.PlaceCamera(pos);
     return;
   }
@@ -308,7 +309,7 @@ void Overworld::SceneBase::HandleInput() {
     showMinimap = !showMinimap;
     if (!showMinimap) {
       minimap.ResetPanning();
-    } 
+    }
 
     return;
   }
@@ -534,21 +535,24 @@ void Overworld::SceneBase::DrawLayer(sf::RenderTarget& target, sf::RenderStates 
 }
 
 void Overworld::SceneBase::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
+  auto tileSize = map.GetTileSize();
+
   for (auto& sprite : sprites) {
-    auto iso = sprite->getPosition();
-    auto ortho = map.WorldToScreen(iso);
+    auto worldPos = sprite->getPosition();
+    auto screenPos = map.WorldToScreen(worldPos);
+    screenPos.y -= sprite->GetDepth() * tileSize.y / 2.0f;
 
     // prevents blurring and camera jittering with the player
-    ortho.x = std::floor(ortho.x);
-    ortho.y = std::floor(ortho.y);
+    screenPos.x = std::floor(screenPos.x);
+    screenPos.y = std::floor(screenPos.y);
 
-    sprite->setPosition(ortho);
+    sprite->setPosition(screenPos);
 
     if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
       target.draw(*sprite, states);
     }
 
-    sprite->setPosition(iso);
+    sprite->setPosition(worldPos);
   }
 }
 
@@ -838,6 +842,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     // add objects to layer
     if (objectLayerElements.size() > i) {
       auto& objectLayerElement = objectLayerElements[i];
+      float depth = (float)i;
 
       for (auto& child : objectLayerElement.children) {
         if (child.name != "object") {
@@ -846,6 +851,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
         if (child.HasAttribute("gid")) {
           auto tileObject = TileObject::From(child);
+          tileObject.GetWorldSprite()->SetDepth(depth);
           layer.AddTileObject(tileObject);
         }
         else {
@@ -1096,7 +1102,7 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
   return tileMetas;
 }
 
-void Overworld::SceneBase::TeleportUponReturn(const sf::Vector2f& position)
+void Overworld::SceneBase::TeleportUponReturn(const sf::Vector3f& position)
 {
   teleportedOut = true;
   returnPoint = position;
@@ -1141,7 +1147,7 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 }
 
 bool Overworld::SceneBase::IsInputLocked() {
-  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene ||  showMinimap;
+  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene || showMinimap;
 }
 
 void Overworld::SceneBase::LockInput() {

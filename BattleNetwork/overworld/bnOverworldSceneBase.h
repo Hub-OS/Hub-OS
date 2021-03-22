@@ -66,7 +66,7 @@ namespace Overworld {
     Camera camera; /*!< camera in scene follows player */
 
     swoosh::Timer cameraTimer;
-    sf::Vector2f returnPoint{};
+    sf::Vector3f returnPoint{};
 
     PersonalMenu personalMenu;
     Minimap minimap;
@@ -178,7 +178,7 @@ namespace Overworld {
     */
     void LoadMap(const std::string& data);
 
-    void TeleportUponReturn(const sf::Vector2f& position);
+    void TeleportUponReturn(const sf::Vector3f& position);
     const bool HasTeleportedAway() const;
 
     void SetBackground(const std::shared_ptr<Background>&);

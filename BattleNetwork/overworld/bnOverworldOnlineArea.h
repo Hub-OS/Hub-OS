@@ -21,8 +21,8 @@ namespace Overworld {
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
     SelectedNavi currNavi{ std::numeric_limits<SelectedNavi>::max() };
-    sf::Vector2f startBroadcastPos{};
-    sf::Vector2f endBroadcastPos{};
+    sf::Vector3f startBroadcastPos{};
+    sf::Vector3f endBroadcastPos{};
     long long timestamp{};
     std::array<double, LAG_WINDOW_LEN> lagWindow{ 0 };
     size_t packets{};
@@ -99,7 +99,7 @@ namespace Overworld {
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
-    const bool isMouseHovering(const sf::Vector2f& mouse, const SpriteProxyNode& src);
+    const bool isMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src);
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
     void playSong(const std::string& name);
   protected:

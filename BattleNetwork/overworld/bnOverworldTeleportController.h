@@ -31,7 +31,6 @@ namespace Overworld {
     std::shared_ptr<Overworld::Actor> actor;
     std::shared_ptr<WorldSprite> beam;
     Animation beamAnim;
-    sf::Vector2f startPos{};
     Direction startDir;
 
   public:
@@ -39,7 +38,7 @@ namespace Overworld {
     ~TeleportController() = default;
 
     Command& TeleportOut(std::shared_ptr<Actor> actor);
-    Command& TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector2f& start, Direction dir);
+    Command& TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir);
     void Update(double elapsed);
     const bool IsComplete() const;
     std::shared_ptr<WorldSprite> GetBeam();

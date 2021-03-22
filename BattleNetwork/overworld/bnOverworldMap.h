@@ -88,11 +88,25 @@ namespace Overworld {
     const sf::Vector2f ScreenToWorld(sf::Vector2f screen) const;
 
      /**
+     * @brief Transforms a point in-world (assuming layer 0) to screen cordinates
+     * @param screen vector from world
+     * @return screen coordinates
+     */
+    const sf::Vector2f WorldToScreen(sf::Vector2f world) const;
+
+     /**
      * @brief Transforms a point in-world to screen cordinates
      * @param screen vector from world
      * @return screen coordinates
      */
-    const sf::Vector2f WorldToScreen(sf::Vector2f screen) const;
+    const sf::Vector2f WorldToScreen(sf::Vector3f world) const;
+
+    /**
+     * @brief Transforms a point in-world to screen cordinates
+     * @param screen vector from world
+     * @return screen coordinates
+     */
+    const sf::Vector2f WorldToTileSpace(sf::Vector2f world) const;
 
     /**
      * @brief Transforms an ortho vector into an isometric vector
@@ -131,6 +145,8 @@ namespace Overworld {
     Layer& GetLayer(size_t index);
     Layer& AddLayer();
     bool CanMoveTo(float x, float y, int layer); // todo: move to layer?
+    float GetDepthAt(float x, float y, int layer);
+    bool TileRequiresOpening(float x, float y, int layer);
     void RemoveSprites(SceneBase& scene);
 
   protected:

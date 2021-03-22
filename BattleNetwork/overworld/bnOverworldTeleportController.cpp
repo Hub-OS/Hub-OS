@@ -33,13 +33,13 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportO
   this->animComplete = false;
   this->beamAnim << "TELEPORT_OUT" << Animator::On(1, onStart) << onFinish;
   this->beamAnim.Refresh(this->beam->getSprite());
-  this->beam->setPosition(actor->getPosition());
+  this->beam->Set3DPosition(actor->Get3DPosition());
 
   this->sequence.push(Command{ Command::state::teleport_out });
   return this->sequence.back();
 }
 
-Overworld::TeleportController::Command& Overworld::TeleportController::TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector2f& start, Direction dir)
+Overworld::TeleportController::Command& Overworld::TeleportController::TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir)
 {
   auto onStart = [=] {
     if (!mute) {
@@ -63,14 +63,13 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
 
   this->walkFrames = frames(50);
   this->startDir = dir;
-  this->startPos = start;
   this->actor = actor;
   this->animComplete = this->walkoutComplete = this->spin = false;
   this->beamAnim << "TELEPORT_IN" << Animator::On(2, onStart) << Animator::On(4, onSpin) << onFinish;
   this->beamAnim.Refresh(this->beam->getSprite());
   actor->Hide();
-  actor->setPosition(start);
-  this->beam->setPosition(start);
+  actor->Set3DPosition(start);
+  this->beam->Set3DPosition(start);
 
   this->sequence.push(Command{ Command::state::teleport_in });
   return this->sequence.back();
@@ -99,7 +98,7 @@ void Overworld::TeleportController::Update(double elapsed)
     }
     else if (spin) {
       constexpr float _2pi = static_cast<float>(2.0f * M_PI);
-      constexpr float spin_frames = _2pi/0.25f;
+      constexpr float spin_frames = _2pi / 0.25f;
       float progress = spin_frames * static_cast<float>(elapsed);
       spinProgress += progress;
 

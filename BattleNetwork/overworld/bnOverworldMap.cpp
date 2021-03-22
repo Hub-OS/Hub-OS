@@ -47,6 +47,19 @@ namespace Overworld {
     return IsoToOrthogonal(world);
   }
 
+  const sf::Vector2f Map::WorldToScreen(sf::Vector3f world) const
+  {
+    auto screenPos = IsoToOrthogonal({ world.x, world.y });
+    screenPos.y -= tileHeight / 2.0f;
+
+    return screenPos;
+  }
+
+  const sf::Vector2f Map::WorldToTileSpace(sf::Vector2f world) const
+  {
+    return { world.x / (float)tileWidth * 2.0f, world.y / (float)tileHeight };
+  }
+
   const sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
     sf::Vector2f iso{};
     iso.x = (2.0f * ortho.y + ortho.x) * 0.5f;
@@ -237,6 +250,48 @@ namespace Overworld {
     return true;
   }
 
+  float Map::GetDepthAt(float x, float y, int layerIndex) {
+    auto& layer = layers[layerIndex];
+    auto& tile = layer.GetTile(x, y);
+    auto& tileMeta = tileMetas[tile.gid];
+
+    auto layerDepth = (float)layerIndex;
+
+    if (!tileMeta || tileMeta->type != "Stairs") {
+      return layerDepth;
+    }
+
+    float _, relativeX, relativeY;
+    relativeX = std::modf(x, &_);
+    relativeY = std::modf(y, &_);
+
+    float layerRelativeDepth = 0.0;
+    auto direction = tileMeta->customProperties.GetProperty("Direction");
+
+    if (direction == "Up Left") {
+      layerRelativeDepth = 1 - relativeX;
+    }
+    else if (direction == "Up Right") {
+      layerRelativeDepth = 1 - relativeY;
+    }
+    if (direction == "Down Left") {
+      layerRelativeDepth = relativeX;
+    }
+    else if (direction == "Down Right") {
+      layerRelativeDepth = relativeY;
+    }
+
+    return layerDepth + layerRelativeDepth;
+  }
+
+  bool Map::TileRequiresOpening(float x, float y, int layerIndex) {
+    auto& layer = layers[layerIndex];
+    auto& tile = layer.GetTile(x, y);
+    auto& tileMeta = tileMetas[tile.gid];
+
+    return tileMeta && tileMeta->type == "Stairs";
+  }
+
   void Map::RemoveSprites(SceneBase& scene) {
     for (auto& layer : layers) {
       for (auto& tileObject : layer.tileObjects) {
@@ -301,7 +356,7 @@ namespace Overworld {
 
   const bool Map::Layer::IsVisible() const
   {
-      return visible;
+    return visible;
   }
 
   std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(unsigned int id) {
