@@ -1,11 +1,12 @@
 
 #pragma once
-#include "bnSpell.h"
+#include "bnObstacle.h"
 #include "bnAnimation.h"
+#include "bnDefenseRule.h"
 
 class Hitbox;
 
-class Bees : public Spell {
+class Bees : public Obstacle {
 protected:
   int damage{}, hitCount{}, turnCount{};
   bool madeContact{}; /*!< if a bee hits something, it stays on top of it else it moves*/
@@ -15,8 +16,7 @@ protected:
   Entity* target{ nullptr }; /**< The current enemy to approach */
   SpriteProxyNode* shadow{ nullptr };
   Bees* leader{ nullptr };/*!< which bee to follow*/
-
-  void TargetDirection(Direction& direction);
+  DefenseRule* absorbDamage;
 public:
   Bees(Team _team,int damage);
   Bees(const Bees& leader);

@@ -3,13 +3,16 @@
 #include "bnField.h"
 #include "bnObstacle.h"
 #include "bnParticleImpact.h"
+#include "bnDefenseAura.h"
 #include "bnHitbox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
 Bees::Bees(Team _team,int damage) :
   damage(damage),
-  Spell(_team) {
+  Obstacle(_team) {
+  SetName("Bees");
+  SetHealth(1);
   SetLayer(0);
   SetHeight(22.f);
 
@@ -51,6 +54,9 @@ Bees::Bees(Team _team,int damage) :
   else {
     SetDirection(Direction::left);
   }
+
+  absorbDamage = new DefenseAura();
+  AddDefenseRule(absorbDamage);
 }
 
 Bees::Bees(const Bees & leader) :
@@ -61,8 +67,10 @@ Bees::Bees(const Bees & leader) :
   attackCooldown(leader.attackCooldown), 
   damage(leader.damage),
   madeContact(false),
-  Spell(leader.GetTeam())
+  Obstacle(leader.GetTeam())
 {
+  SetName("Bees");
+  SetHealth(1);
   SetLayer(0);
   SetHeight(leader.GetHeight());
 
@@ -104,40 +112,14 @@ Bees::Bees(const Bees & leader) :
   else {
     SetDirection(Direction::left);
   }
-}
 
-void Bees::TargetDirection(Direction& direction)
-{
-  assert(target && "target was nullptr!");
-
-  Battle::Tile* targetTile = target->GetTile();
-  assert(targetTile && "target tile was nullptr!");
-
-  Battle::Tile* tile = GetTile();
-
-  if (tile->GetX() < targetTile->GetX()) {
-    direction = Direction::right;
-    return;
-  }
-
-  if (tile->GetX() > targetTile->GetX()) {
-    direction = Direction::left;
-    return;
-  }
-
-  if (tile->GetY() < targetTile->GetY()) {
-    direction = Direction::down;
-    return;
-  }
-
-  if (tile->GetY() > targetTile->GetY()) {
-    direction = Direction::up;
-    return;
-  }
+  absorbDamage = new DefenseAura();
+  AddDefenseRule(absorbDamage);
 }
 
 Bees::~Bees() {
   delete shadow;
+  delete absorbDamage;
 }
 
 void Bees::OnUpdate(double _elapsed) {
@@ -187,33 +169,44 @@ void Bees::OnUpdate(double _elapsed) {
           they enter the same column (if moving horizontally) or row (if moving vertically) as their target, 
           or if their target moves behind them
         */
-        // target moved behind us? check.
-        bool behindUs = false;
-        if (GetDirection() == Direction::left) {
-          if (target->GetTile()->GetX() > GetTile()->GetX()) {
-            TargetDirection(direction);
-            behindUs = true;
+        bool isbehind = false;
+        Battle::Tile* targetTile = target->GetTile();
+        Battle::Tile* tile = GetTile();
+
+        if (tile->GetX() <= targetTile->GetX() && GetDirection() != Direction::right) {
+          isbehind = true;
+        }
+
+        if (tile->GetX() >= targetTile->GetX() && GetDirection() != Direction::left) {
+          isbehind = true;
+        }
+
+        if (tile->GetY() == targetTile->GetY()) {
+          if (targetTile->GetX() < tile->GetX()) {
+            direction = Direction::left;
+          }
+          else if (targetTile->GetX() > tile->GetX()) {
+            direction = Direction::right;
           }
         }
-        else if (GetDirection() == Direction::right) {
-          if (target->GetTile()->GetX() < GetTile()->GetX()) {
-            TargetDirection(direction);
-            behindUs = true;
-          }
-        }
-        
-        if (!behindUs) {
-          if (GetTile()->GetX() == target->GetTile()->GetX()) {
-            TargetDirection(direction);
-          }
-          else if (wasMovingVertical && GetTile()->GetY() == target->GetTile()->GetY()) {
-            TargetDirection(direction);
+        else {
+          bool lastTurn = turnCount + 1 < 2;
+          bool sameCol = tile->GetX() == targetTile->GetX();
+          bool changeDir = lastTurn || sameCol;
+          if (isbehind && changeDir) {
+            if (targetTile->GetY() < tile->GetY()) {
+              direction = Direction::up;
+            }
+            else if (targetTile->GetY() > tile->GetY()) {
+              direction = Direction::down;
+            }
           }
         }
       }
     }
 
-    if (turnCount > 2) {
+    // only turn twice
+    if (turnCount >= 2) {
       direction = Direction::none;
     }
 
@@ -256,11 +249,9 @@ void Bees::OnUpdate(double _elapsed) {
 
     // all other hitbox events will be ignored after 5 hits
     if (hitCount < 5) {
-      hitCount++;
-      
       hitbox->AddCallback([this](Character* entity) {
         this->madeContact = true; // we hit something!
-
+        this->hitCount++;
         Audio().Play(AudioType::HURT, AudioPriority::high);
         auto fx = new ParticleImpact(ParticleImpact::Type::green);
         entity->GetField()->AddEntity(*fx, *entity->GetTile());

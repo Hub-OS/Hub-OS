@@ -24,10 +24,7 @@ void HoneyBomberAttackState::OnUpdate(double _elapsed, HoneyBomber& honey) {
 
   spawnCooldown -= _elapsed;
 
-  bool canAttack = !honey.GetField()->GetAt(honey.GetTile()->GetX() - 1, honey.GetTile()->GetY())->ContainsEntityType<Bees>();
-  canAttack = canAttack && spawnCooldown <= 0;
-
-  if (canAttack) {
+  if (spawnCooldown <= 0) {
       DoAttack(honey);
       spawnCooldown = 0.4; // reset wait time inbetween spawns
   }

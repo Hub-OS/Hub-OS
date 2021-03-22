@@ -19,7 +19,7 @@ Obstacle::~Obstacle() {
 
 void Obstacle::Update(double _elapsed)
 {
-  Spell::Update(_elapsed);
+  //Spell::Update(_elapsed);
   Character::Update(_elapsed);
 }
 
