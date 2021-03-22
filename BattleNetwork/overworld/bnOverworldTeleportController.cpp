@@ -64,7 +64,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
   this->startPos = start;
   this->actor = &actor;
   this->animComplete = this->walkoutComplete = this->spin = false;
-  this->beamAnim << "TELEPORT_IN" << Animator::On(2, onStart) << Animator::On(4, onSpin) << onFinish;
+  this->beamAnim << "TELEPORT_IN" << Animator::On(2, onStart) << Animator::On(5, onSpin) << onFinish;
   this->beamAnim.Refresh(this->beam.getSprite());
   actor.Hide();
   actor.setPosition(start);

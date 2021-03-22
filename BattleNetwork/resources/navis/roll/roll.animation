@@ -1,10 +1,13 @@
 imagePath="navi_roll_atlas.png"
 
-animation state="PLAYER_MOVING"
+animation state="PLAYER_MOVE"
 frame duration="0.02" x="413" y="0" w="41" h="78" originx="21" originy="70"
 frame duration="0.02" x="71" y="0" w="42" h="90" originx="22" originy="82"
 frame duration="0.02" x="113" y="0" w="36" h="88" originx="20" originy="77"
 frame duration="0.02" x="71" y="0" w="42" h="90" originx="22" originy="82"
+frame duration="0.02" x="71" y="0" w="42" h="90" originx="22" originy="82"
+frame duration="0.02" x="113" y="0" w="36" h="88" originx="20" originy="77"
+frame duration="0.02" x="413" y="0" w="41" h="78" originx="21" originy="70"
 
 animation state="PLAYER_IDLE"
 frame duration="0.1" x="454" y="0" w="39" h="80" originx="17" originy="78"
@@ -59,11 +62,6 @@ frame duration="0.067" x="307" y="143" w="52" h="57" originx="19" originy="52"
 point label="Hand" x="0" y="0"
 frame duration="0.083" x="368" y="146" w="35" h="64" originx="16" originy="61"
 point label="Hand" x="0" y="0"
-
-animation state="PLAYER_MOVED"
-frame duration="0.02" x="71" y="0" w="42" h="90" originx="22" originy="82"
-frame duration="0.02" x="113" y="0" w="36" h="88" originx="20" originy="77"
-frame duration="0.02" x="413" y="0" w="41" h="78" originx="21" originy="70"
 
 animation state="HAND"
 frame duration="0.05" x="493" y="32" w="16" h="16" originx="0" originy="5"
