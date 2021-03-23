@@ -240,27 +240,27 @@ void Overworld::OnlineArea::OnTileCollision()
   auto& teleportController = GetTeleportController();
 
   for (auto& tileObject : map.GetLayer(playerActor->GetLayer()).GetTileObjects()) {
-    if (tileObject.name != "Home Warp") {
-      continue;
-    }
+    auto type = tileObject.type;
 
-    auto homeWarpPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
-    auto homeWarpTilePos = sf::Vector2f(
-      std::floor(homeWarpPos.x / tileSize.x * 2.0f),
-      std::floor(homeWarpPos.y / tileSize.y)
-    );
+    if (type == "Home Warp") {
+      auto homeWarpPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+      auto homeWarpTilePos = sf::Vector2f(
+        std::floor(homeWarpPos.x / tileSize.x * 2.0f),
+        std::floor(homeWarpPos.y / tileSize.y)
+      );
 
-    if (homeWarpTilePos == tilePos && teleportController.IsComplete()) {
-      GetPlayerController().ReleaseActor();
-      auto& command = teleportController.TeleportOut(playerActor);
+      if (homeWarpTilePos == tilePos && teleportController.IsComplete()) {
+        GetPlayerController().ReleaseActor();
+        auto& command = teleportController.TeleportOut(playerActor);
 
-      auto teleportHome = [=] {
-        TeleportUponReturn(playerActor->Get3DPosition());
-        sendLogoutSignal();
-        getController().pop<segue<BlackWashFade>>();
-      };
+        auto teleportHome = [=] {
+          TeleportUponReturn(playerActor->Get3DPosition());
+          sendLogoutSignal();
+          getController().pop<segue<BlackWashFade>>();
+        };
 
-      command.onFinish.Slot(teleportHome);
+        command.onFinish.Slot(teleportHome);
+      }
     }
   }
 }
