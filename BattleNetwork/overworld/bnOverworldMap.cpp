@@ -210,6 +210,10 @@ namespace Overworld {
   // todo: move to layer?
   // may require reference to map as tilemeta + tile size is used
   bool Map::CanMoveTo(float x, float y, int layerIndex) {
+    if(layerIndex < 0 || layerIndex >= layers.size()) {
+      return false;
+    }
+
     auto& layer = GetLayer(layerIndex);
     auto& tile = layer.GetTile(x, y);
 
