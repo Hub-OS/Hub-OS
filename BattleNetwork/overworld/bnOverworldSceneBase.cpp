@@ -227,7 +227,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     lastIsConnectedState = currentConnectivity;
   }
 
-  auto layerCount = map.GetLayerCount();
+  auto layerCount = map.GetLayerCount() + 1;
 
   if (spriteLayers.size() != layerCount) {
     spriteLayers.resize(layerCount);
@@ -241,8 +241,8 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
     // match sprites to layer
     for (auto& sprite : sprites) {
-      // use ceil(depth) instead of GetLayer to prevent sorting issues with stairs
-      if (std::ceil(sprite->GetDepth()) == depth) {
+      // use ceil(depth) + 1 instead of GetLayer to prevent sorting issues with stairs
+      if (std::ceil(sprite->GetDepth()) + 1 == depth) {
         spriteLayer.push_back(sprite);
       }
     }
@@ -480,16 +480,27 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
   states.transform *= map.getTransform();
 
   auto tileSize = map.GetTileSize();
+  auto mapLayerCount = map.GetLayerCount();
 
-  for (auto i = 0; i < map.GetLayerCount(); i++) {
-    DrawLayer(target, states, i);
+  // there should be mapLayerCount + 1 sprite layers
+  for (auto i = 0; i < mapLayerCount + 1; i++) {
+    // loop is based on expected sprite layers
+    // make sure we dont try to draw an extra map layer and segfault
+    if (i < mapLayerCount) {
+      DrawMapLayer(target, states, i);
+    }
+
+    // save from possible map layer count change after OverworldSceneBase::Update
+    if (i < spriteLayers.size()) {
+      DrawSpriteLayer(target, states, i);
+    }
 
     // translate next layer
     states.transform.translate(0.f, -tileSize.y * 0.5f);
   }
 }
 
-void Overworld::SceneBase::DrawLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
+void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
   auto& layer = map.GetLayer(index);
 
   if (!layer.IsVisible()) return;
@@ -548,12 +559,11 @@ void Overworld::SceneBase::DrawLayer(sf::RenderTarget& target, sf::RenderStates 
       tileSprite.setOrigin(originalOrigin);
     }
   }
+}
 
-  if (index >= spriteLayers.size()) {
-    // save from possible map layer count change after OverworldSceneBase::Update
-    return;
-  }
 
+void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
+  auto tileSize = map.GetTileSize();
   auto depth = (float)index;
 
   for (auto& sprite : spriteLayers[index]) {

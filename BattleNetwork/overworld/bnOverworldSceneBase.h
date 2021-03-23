@@ -97,7 +97,8 @@ namespace Overworld {
     void HandleInput();
     void LoadBackground(const Map& map, const std::string& value);
     void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
-    void DrawLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
+    void DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
+    void DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
 
 #ifdef __ANDROID__
     void StartupTouchControls();
