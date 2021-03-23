@@ -108,7 +108,7 @@ public:
    * @brief Get sprite local bounds proxy
    * @return sf::FloatRect of local bounds
    */
-  sf::FloatRect getLocalBounds();
+  sf::FloatRect getLocalBounds() const;
 
   /**
    * @brief Set sprite texture proxy

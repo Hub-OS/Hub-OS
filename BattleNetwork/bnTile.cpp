@@ -883,7 +883,7 @@ namespace Battle {
           
         // If colliding with a character, always do collision effect
         if (!obst) {
-          spell->OnCollision();
+          spell->OnCollision(&character);
         } else if(obst) {
           // Obstacles can hit eachother, even on the same team
           // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
@@ -891,7 +891,7 @@ namespace Battle {
             
           // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
           if (!(sharesCommonAggressor && obst->WillIgnoreCommonAggressor())) {
-            spell->OnCollision();
+            spell->OnCollision(&character);
           }
         }
 

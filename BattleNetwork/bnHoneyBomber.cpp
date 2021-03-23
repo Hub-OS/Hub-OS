@@ -9,8 +9,8 @@
 
 const std::string RESOURCE_PATH = "resources/mobs/honeybomber/honeybomber.animation";
 
-HoneyBomber::HoneyBomber(Rank _rank)
-  : hitHeight(0), shadow(nullptr), virusBody(nullptr),
+HoneyBomber::HoneyBomber(Rank _rank) : 
+  hitHeight(0), shadow(nullptr), virusBody(nullptr),
   AI<HoneyBomber>(this), TurnOrderTrait<HoneyBomber>(), Character(_rank) {
   name = "HonyBmbr";
   SetTeam(Team::blue);
@@ -64,7 +64,9 @@ void HoneyBomber::OnUpdate(double _elapsed) {
 }
 
 void HoneyBomber::OnHit() {
-  GetFirstComponent<AnimationComponent>()->SetPlaybackSpeed(2.0);
+  if (TurnOrderTrait<HoneyBomber>::IsMyTurn()) {
+    GetFirstComponent<AnimationComponent>()->SetPlaybackSpeed(2.0);
+  }
 }
 
 const float HoneyBomber::GetHeight() const {

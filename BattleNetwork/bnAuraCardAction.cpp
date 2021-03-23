@@ -4,7 +4,7 @@
 AuraCardAction::AuraCardAction(Character& owner, Aura::Type type) : 
   type(type),
   CardAction(owner, "PLAYER_IDLE"){
-  this->SetLockout({CardAction::LockoutType::animation,3000});
+  this->SetLockout({CardAction::LockoutType::animation,3});
 }
 
 void AuraCardAction::OnExecute() {

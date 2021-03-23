@@ -24,6 +24,8 @@ public:
 
   void OnDelete() override;
 
+  void OnCollision(const Character*) override;
+
   /**
    * @brief Deal impact damage
    * @param _entity

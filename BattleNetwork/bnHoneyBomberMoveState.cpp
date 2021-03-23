@@ -23,7 +23,8 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
 
   Entity* target = honey.GetTarget();
 
-  if (target && target->GetTile() && honey.GetFirstComponent<AnimationComponent>()->GetPlaybackSpeed() != 1.0)
+  bool isAggro = honey.GetFirstComponent<AnimationComponent>()->GetPlaybackSpeed() != 1.0;
+  if (target && target->GetTile() && isAggro)
  {
     // Try attacking
     return honey.ChangeState<HoneyBomberAttackState>();

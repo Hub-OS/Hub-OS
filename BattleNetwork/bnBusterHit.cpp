@@ -49,5 +49,5 @@ BusterHit::~BusterHit()
 
 void BusterHit::SetOffset(const sf::Vector2f offset)
 {
-  this->offset = { offset.x, -offset.y };
+  this->offset = { offset.x, offset.y };
 }

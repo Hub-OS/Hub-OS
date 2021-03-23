@@ -109,7 +109,7 @@ void AirHockey::OnDelete()
   Remove();
 }
 
-void AirHockey::OnCollision()
+void AirHockey::OnCollision(const Character*)
 {
   auto* particle = new ParticleImpact(ParticleImpact::Type::blue);
   particle->SetOffset(tileOffset);

@@ -14,8 +14,8 @@ Bees::Bees(Team _team,int damage) :
   SetName("Bees");
   SetHealth(1);
   SetLayer(0);
-  SetHeight(22.f);
-
+  SetHeight(42.f);
+  ShareTileSpace(true);
   setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
   setScale(2.f, 2.f);
 
@@ -32,7 +32,7 @@ Bees::Bees(Team _team,int damage) :
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
-  shadow->setPosition(-8.0f, 20.0f);
+  shadow->setPosition(-6.0f, 12.0f);
   AddNode(shadow);
 
   auto props = GetHitboxProperties();
@@ -62,7 +62,6 @@ Bees::Bees(Team _team,int damage) :
 Bees::Bees(const Bees & leader) :
   animation(leader.animation), 
   target(leader.target),
-  turnCount(leader.turnCount),
   leader(const_cast<Bees*>(&leader)),
   attackCooldown(leader.attackCooldown), 
   damage(leader.damage),
@@ -73,6 +72,7 @@ Bees::Bees(const Bees & leader) :
   SetHealth(1);
   SetLayer(0);
   SetHeight(leader.GetHeight());
+  ShareTileSpace(true);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
   setScale(2.f, 2.f);
@@ -87,22 +87,22 @@ Bees::Bees(const Bees & leader) :
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
-  shadow->setPosition(-12.0f, 18.0f);
+  shadow->setPosition(-6.0f, 12.0f);
 
   AddNode(shadow);
 
   SetHitboxProperties(leader.GetHitboxProperties());
   Entity::RemoveCallback& selfDeleteHandler = CreateRemoveCallback();
-  Entity::RemoveCallback& deleteHandler = this->leader->CreateRemoveCallback();
+  Entity::RemoveCallback& leaderDeleteHandler = this->leader->CreateRemoveCallback();
 
-  deleteHandler.Slot([this, s = &selfDeleteHandler]() {
+  leaderDeleteHandler.Slot([this, s = &selfDeleteHandler]() {
     if (target == this->leader) target = nullptr;
     this->leader = nullptr;
 
     s->Reset();
   });
 
-  selfDeleteHandler.Slot([s = &deleteHandler]() {
+  selfDeleteHandler.Slot([s = &leaderDeleteHandler]() {
     s->Reset();
   });
 

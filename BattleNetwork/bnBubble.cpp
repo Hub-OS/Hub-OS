@@ -92,7 +92,7 @@ const bool Bubble::UnknownTeamResolveCollision(const Spell& other) const {
   return !(is_aggro_team || is_spell_team);
 }
 
-void Bubble::OnCollision() {
+void Bubble::OnCollision(const Character*) {
   Delete();
 }
 

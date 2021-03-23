@@ -50,24 +50,20 @@ void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
   else {
     int damage = 5; // 5 bees per hit = 25 units of damage total
 
+    Bees* newBee{ nullptr };
     if (lastBee) {
-      lastBee = new Bees(*lastBee);
+      newBee = new Bees(*lastBee);
     } else {
-      lastBee = new Bees(honey.GetTeam(), damage);
+      newBee = new Bees(honey.GetTeam(), damage);
     }
 
-    auto props = lastBee->GetHitboxProperties();
+    auto props = newBee->GetHitboxProperties();
     props.aggressor = &honey;
-    lastBee->SetHitboxProperties(props);
+    newBee->SetHitboxProperties(props);
 
-    const auto status = honey.GetField()->AddEntity(*lastBee, honey.GetTile()->GetX() - 1, honey.GetTile()->GetY());
+    const auto status = honey.GetField()->AddEntity(*newBee, honey.GetTile()->GetX() - 1, honey.GetTile()->GetY());
     if (status != Field::AddEntityStatus::deleted) {
-      Bees* bee = lastBee;
-      lastBee->CreateRemoveCallback().Slot([this, bee] {
-        if (bee == this->lastBee) {
-          lastBee = nullptr;
-        }
-        });
+      lastBee = newBee;
     }
   }
 }
