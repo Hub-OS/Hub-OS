@@ -196,6 +196,32 @@ inline Direction Isometric(const Direction dir) {
   return Direction::none;
 }
 
+/**
+* @brief Returns new direction value from an isometric perspective to a cartesian perspective
+*/
+inline Direction Orthographic(const Direction dir) {
+  switch (dir) {
+  case Direction::up:
+    return Direction::up_left;
+  case Direction::left:
+    return Direction::down_left;
+  case Direction::down:
+    return Direction::down_right;
+  case Direction::right:
+    return Direction::up_right;
+  case Direction::up_left:
+    return Direction::left;
+  case Direction::up_right:
+    return Direction::up;
+  case Direction::down_left:
+    return Direction::down;
+  case Direction::down_right:
+    return Direction::right;
+  }
+
+  return Direction::none;
+}
+
 inline sf::Vector2f UnitVector(Direction dir) {
   const float deg45radians = static_cast<float>(std::sin(swoosh::ease::pi / 4.0));
 

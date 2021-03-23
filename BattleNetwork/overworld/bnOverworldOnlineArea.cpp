@@ -706,6 +706,35 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
   assetBuffer.setCapacity(0);
 }
 
+static Direction resolveDirectionString(const std::string& direction) {
+  if (direction == "Left") {
+    return Direction::left;
+  }
+  else if (direction == "Right") {
+    return Direction::right;
+  }
+  else if (direction == "Up") {
+    return Direction::up;
+  }
+  else if (direction == "Down") {
+    return Direction::down;
+  }
+  else if (direction == "Up Left") {
+    return Direction::up_left;
+  }
+  else if (direction == "Up Right") {
+    return Direction::up_right;
+  }
+  else if (direction == "Down Left") {
+    return Direction::down_left;
+  }
+  else if (direction == "Down Right") {
+    return Direction::down_right;
+  }
+
+  return Direction::none;
+}
+
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto path = reader.ReadString(buffer);
@@ -769,6 +798,38 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
           };
 
           command.onFinish.Slot(teleportHome);
+        };
+      }
+      else if (type == "Position Warp") {
+        auto targetTilePos = sf::Vector2f(
+          tileObject.customProperties.GetPropertyFloat("X"),
+          tileObject.customProperties.GetPropertyFloat("Y")
+        );
+
+        auto targetWorldPos = map.TileToWorld(targetTilePos);
+        auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("Z"));
+        auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
+
+        tileTriggers[i][hash] = [=]() {
+          auto player = GetPlayer();
+          auto& teleportController = GetTeleportController();
+
+          if (!teleportController.IsComplete()) {
+            return;
+          }
+
+          auto& command = teleportController.TeleportOut(player);
+          LockInput();
+
+          auto teleport = [=] {
+            auto& command = GetTeleportController().TeleportIn(player, targetPosition, Orthographic(direction));
+
+            command.onFinish.Slot([=]() {
+              UnlockInput();
+            });
+          };
+
+          command.onFinish.Slot(teleport);
         };
       }
     }
