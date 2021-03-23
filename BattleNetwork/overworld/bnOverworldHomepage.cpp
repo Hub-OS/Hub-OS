@@ -312,7 +312,7 @@ void Overworld::Homepage::OnTileCollision()
   auto tilePos = sf::Vector3f(
     std::floor(playerPos.x / (tileSize.x / 2)),
     std::floor(playerPos.y / tileSize.y),
-    std::floor(playerActor->GetDepth())
+    std::floor(playerActor->GetElevation())
   );
 
   auto& teleportController = GetTeleportController();

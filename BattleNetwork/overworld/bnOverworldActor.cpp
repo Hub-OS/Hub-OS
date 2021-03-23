@@ -292,8 +292,8 @@ const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& ac
 const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap)
 {
   float px_per_s = 0;
-  float depth = GetDepth();
-  bool onStairs = depth != std::floor(depth);
+  float elevation = GetElevation();
+  bool onStairs = elevation != std::floor(elevation);
 
   if (onStairs || state == MovementState::running) {
     px_per_s = GetRunSpeed() * elapsed;
@@ -368,18 +368,18 @@ static bool SameTile(sf::Vector2f a, sf::Vector2f b) {
   return std::floor(a.x) == std::floor(b.x) && std::floor(a.y) == std::floor(b.y);
 }
 
-static int GetTargetLayer(Overworld::Map& map, int currentLayer, float layerRelativeDepth, sf::Vector2f currentTilePos, sf::Vector2f targetTilePos) {
+static int GetTargetLayer(Overworld::Map& map, int currentLayer, float layerRelativeElevation, sf::Vector2f currentTilePos, sf::Vector2f targetTilePos) {
   const auto offset = targetTilePos - currentTilePos;
   const float offsetLength = std::sqrt(std::pow(offset.x, 2.0f) + std::pow(offset.y, 2.0f));
-  const float depthPadding = 1.0f / map.GetTileSize().y * 2.0f;
-  const float maxDepthDiff = offsetLength + depthPadding;
+  const float elevationPadding = 1.0f / map.GetTileSize().y * 2.0f;
+  const float maxElevationDiff = offsetLength + elevationPadding;
 
   const auto layerBelow = currentLayer - 1;
 
   if (layerBelow >= 0 && layerBelow < map.GetLayerCount() && map.TileRequiresOpening(targetTilePos.x, targetTilePos.y, layerBelow)) {
     return layerBelow;
   }
-  else if (layerRelativeDepth > 1 - maxDepthDiff && !SameTile(currentTilePos, targetTilePos)) {
+  else if (layerRelativeElevation > 1 - maxElevationDiff && !SameTile(currentTilePos, targetTilePos)) {
     // if we're at the top of stairs, target the layer above
     return currentLayer + 1;
   }
@@ -389,21 +389,21 @@ static int GetTargetLayer(Overworld::Map& map, int currentLayer, float layerRela
 
 const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f newPos, Map& map, SpatialMap& spatialMap) {
   auto currPos = getPosition();
-  auto currPos3D = sf::Vector3f(currPos.x, currPos.y, GetDepth());
-  auto layerRelativeDepth = currPos3D.z - std::floor(currPos3D.z);
+  auto currPos3D = sf::Vector3f(currPos.x, currPos.y, GetElevation());
+  auto layerRelativeElevation = currPos3D.z - std::floor(currPos3D.z);
 
   auto offset = newPos - currPos;
   float offsetLength = std::sqrt(std::pow(offset.x, 2.0f) + std::pow(offset.y, 2.0f));
-  const float maxDepthDiff = (offsetLength + 1.0f) / map.GetTileSize().y * 2.0f;
+  const float maxElevationDiff = (offsetLength + 1.0f) / map.GetTileSize().y * 2.0f;
 
   auto currPosTileSpace = map.WorldToTileSpace(currPos);
   auto newPosTileSpace = map.WorldToTileSpace(newPos);
 
-  int newLayer = GetTargetLayer(map, GetLayer(), layerRelativeDepth, currPosTileSpace, newPosTileSpace);
+  int newLayer = GetTargetLayer(map, GetLayer(), layerRelativeElevation, currPosTileSpace, newPosTileSpace);
 
   // check if there's stairs below, if there is, target that layer for newPos3D
 
-  auto newPos3D = sf::Vector3f(newPos.x, newPos.y, map.GetDepthAt(newPosTileSpace.x, newPosTileSpace.y, newLayer));
+  auto newPos3D = sf::Vector3f(newPos.x, newPos.y, map.GetElevationAt(newPosTileSpace.x, newPosTileSpace.y, newLayer));
 
   /**
   * Check if colliding with the map
@@ -412,7 +412,7 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
   */
 
   if (collidesWithMap && newLayer >= 0 && map.GetLayerCount() > newLayer) {
-    if (std::fabs(newPos3D.z - currPos3D.z) > maxDepthDiff) {
+    if (std::fabs(newPos3D.z - currPos3D.z) > maxElevationDiff) {
       // height difference is too great
       return { false, currPos3D };
     }
@@ -422,12 +422,12 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
     auto ray = ray_unit * collisionRadius;
 
     auto edgeTileSpace = map.WorldToTileSpace(currPos + ray);
-    auto edgeLayer = GetTargetLayer(map, GetLayer(), layerRelativeDepth, currPosTileSpace, edgeTileSpace);
-    auto edgeDepth = map.GetDepthAt(edgeTileSpace.x, edgeTileSpace.y, edgeLayer);
+    auto edgeLayer = GetTargetLayer(map, GetLayer(), layerRelativeElevation, currPosTileSpace, edgeTileSpace);
+    auto edgeElevation = map.GetElevationAt(edgeTileSpace.x, edgeTileSpace.y, edgeLayer);
 
     if (
       !map.CanMoveTo(edgeTileSpace.x, edgeTileSpace.y, edgeLayer) || // can't move
-      std::fabs(newPos3D.z - edgeDepth) > maxDepthDiff // height difference is too great at edge
+      std::fabs(newPos3D.z - edgeElevation) > maxElevationDiff // height difference is too great at edge
       ) {
       return { false, currPos3D };
     }
@@ -440,9 +440,9 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
     for (const auto& actor : spatialMap.GetNeighbors(*this)) {
       if (actor.get() == this || !actor->solid) continue;
 
-      auto depthDifference = std::fabs(actor->GetDepth() - newPos3D.z);
+      auto elevationDifference = std::fabs(actor->GetElevation() - newPos3D.z);
 
-      if (depthDifference > 0.1f) continue;
+      if (elevationDifference > 0.1f) continue;
 
       auto collision = CollidesWith(*actor, offset);
 
@@ -456,9 +456,9 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
         auto outPos = actor->getPosition() + (delta_unit * sumOfRadii);
 
         auto outPosInTileSpace = map.WorldToTileSpace(outPos);
-        auto depth = map.GetDepthAt(outPosInTileSpace.x, outPosInTileSpace.y, newLayer);
+        auto elevation = map.GetElevationAt(outPosInTileSpace.x, outPosInTileSpace.y, newLayer);
 
-        return { false, { outPos.x, outPos.y, depth } };
+        return { false, { outPos.x, outPos.y, elevation } };
       }
     }
   }

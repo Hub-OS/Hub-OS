@@ -526,7 +526,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   auto vec = player->getPosition();
   float x = vec.x / tileSize.x * 2.0f;
   float y = vec.y / tileSize.y;
-  float z = player->GetDepth();
+  float z = player->GetElevation();
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::position };
@@ -1157,7 +1157,7 @@ const bool Overworld::OnlineArea::isMouseHovering(const sf::Vector2f& mouse, con
 
   auto position = src.getPosition();
   auto screenPosition = map.WorldToScreen(position);
-  screenPosition.y -= src.GetDepth() * tileSize.y / 2.0f;
+  screenPosition.y -= src.GetElevation() * tileSize.y / 2.0f;
 
   auto bounds = sf::FloatRect(
     (screenPosition.x - (float)(textureRect.width / 2)) * scale.x,

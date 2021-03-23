@@ -1,23 +1,23 @@
 #include "bnOverworldSprite.h"
 
 namespace Overworld {
-  void WorldSprite::SetDepth(float depth) {
-    SetLayer((int)depth);
-    this->depth = depth;
+  void WorldSprite::SetElevation(float elevation) {
+    SetLayer((int)elevation);
+    this->elevation = elevation;
   }
 
-  float WorldSprite::GetDepth() const {
-    return depth;
+  float WorldSprite::GetElevation() const {
+    return elevation;
   }
 
   void WorldSprite::Set3DPosition(sf::Vector3f position) {
     setPosition(position.x, position.y);
-    SetDepth(position.z);
+    SetElevation(position.z);
   }
 
   sf::Vector3f WorldSprite::Get3DPosition() const {
     auto layerPosition = getPosition();
-    return { layerPosition.x, layerPosition.y, depth };
+    return { layerPosition.x, layerPosition.y, elevation };
   }
 
   void WorldSprite::draw(sf::RenderTarget& target, sf::RenderStates states) const {

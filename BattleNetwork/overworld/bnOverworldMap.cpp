@@ -250,22 +250,22 @@ namespace Overworld {
     return true;
   }
 
-  float Map::GetDepthAt(float x, float y, int layerIndex) {
+  float Map::GetElevationAt(float x, float y, int layerIndex) {
     auto& layer = layers[layerIndex];
     auto& tile = layer.GetTile(x, y);
     auto& tileMeta = tileMetas[tile.gid];
 
-    auto layerDepth = (float)layerIndex;
+    auto layerElevation = (float)layerIndex;
 
     if (!tileMeta || tileMeta->type != "Stairs") {
-      return layerDepth;
+      return layerElevation;
     }
 
     float _, relativeX, relativeY;
     relativeX = std::modf(x, &_);
     relativeY = std::modf(y, &_);
 
-    float layerRelativeDepth = 0.0;
+    float layerRelativeElevation = 0.0;
     auto directionString = tileMeta->customProperties.GetProperty("Direction");
     Direction direction;
 
@@ -284,22 +284,22 @@ namespace Overworld {
 
     switch (direction) {
     case Direction::up_left:
-      layerRelativeDepth = 1 - relativeX;
+      layerRelativeElevation = 1 - relativeX;
       break;
     case Direction::up_right:
-      layerRelativeDepth = 1 - relativeY;
+      layerRelativeElevation = 1 - relativeY;
       break;
     case Direction::down_left:
-      layerRelativeDepth = relativeX;
+      layerRelativeElevation = relativeX;
       break;
     case Direction::down_right:
-      layerRelativeDepth = relativeY;
+      layerRelativeElevation = relativeY;
       break;
     default:
       break;
     }
 
-    return layerDepth + layerRelativeDepth;
+    return layerElevation + layerRelativeElevation;
   }
 
   bool Map::TileRequiresOpening(float x, float y, int layerIndex) {

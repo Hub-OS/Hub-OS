@@ -235,14 +235,14 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   for (auto i = 0; i < layerCount; i++) {
     auto& spriteLayer = spriteLayers[i];
-    auto depth = (float)i;
+    auto elevation = (float)i;
 
     spriteLayer.clear();
 
     // match sprites to layer
     for (auto& sprite : sprites) {
-      // use ceil(depth) + 1 instead of GetLayer to prevent sorting issues with stairs
-      if (std::ceil(sprite->GetDepth()) + 1 == depth) {
+      // use ceil(elevation) + 1 instead of GetLayer to prevent sorting issues with stairs
+      if (std::ceil(sprite->GetElevation()) + 1 == elevation) {
         spriteLayer.push_back(sprite);
       }
     }
@@ -290,7 +290,7 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
   if (!cameraLocked) {
     // Follow the navi
     sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
-    pos.y -= playerActor->GetDepth() * map.GetTileSize().y / 2.0f;
+    pos.y -= playerActor->GetElevation() * map.GetTileSize().y / 2.0f;
     camera.PlaceCamera(pos);
     return;
   }
@@ -564,12 +564,12 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
 
 void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
   auto tileSize = map.GetTileSize();
-  auto depth = (float)index;
+  auto elevation = (float)index;
 
   for (auto& sprite : spriteLayers[index]) {
     auto worldPos = sprite->getPosition();
     auto screenPos = map.WorldToScreen(worldPos);
-    screenPos.y -= (sprite->GetDepth() - depth) * tileSize.y * 0.5f;
+    screenPos.y -= (sprite->GetElevation() - elevation) * tileSize.y * 0.5f;
 
     // prevents blurring and camera jittering with the player
     screenPos.x = std::floor(screenPos.x);
@@ -871,7 +871,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     // add objects to layer
     if (objectLayerElements.size() > i) {
       auto& objectLayerElement = objectLayerElements[i];
-      float depth = (float)i;
+      float elevation = (float)i;
 
       for (auto& child : objectLayerElement.children) {
         if (child.name != "object") {
@@ -880,7 +880,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
         if (child.HasAttribute("gid")) {
           auto tileObject = TileObject::From(child);
-          tileObject.GetWorldSprite()->SetDepth(depth);
+          tileObject.GetWorldSprite()->SetElevation(elevation);
           layer.AddTileObject(tileObject);
         }
         else {
