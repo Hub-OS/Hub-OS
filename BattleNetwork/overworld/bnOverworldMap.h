@@ -102,11 +102,18 @@ namespace Overworld {
     const sf::Vector2f WorldToScreen(sf::Vector3f world) const;
 
     /**
-     * @brief Transforms a point in-world to screen cordinates
+     * @brief Transforms a point in-world to tile cordinates
      * @param screen vector from world
      * @return screen coordinates
      */
     const sf::Vector2f WorldToTileSpace(sf::Vector2f world) const;
+
+    /**
+     * @brief Transforms a point in tile space to world cordinates
+     * @param screen vector from world
+     * @return screen coordinates
+     */
+    const sf::Vector2f TileToWorld(sf::Vector2f world) const;
 
     /**
      * @brief Transforms an ortho vector into an isometric vector

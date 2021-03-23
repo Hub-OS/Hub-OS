@@ -3,6 +3,8 @@
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Buffer.h>
 #include <map>
+#include <unordered_map>
+#include <functional>
 
 #include "bnOverworldSceneBase.h"
 #include "bnPacketShipper.h"
@@ -54,6 +56,7 @@ namespace Overworld {
     Text transitionText;
     Text nameText;
     bool wasReadingTextBox{false};
+    std::vector<std::unordered_map<int, std::function<void()>>> tileTriggers;
 
 
     void processIncomingPackets(double elapsed);

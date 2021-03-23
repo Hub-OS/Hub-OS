@@ -60,6 +60,11 @@ namespace Overworld {
     return { world.x / (float)tileWidth * 2.0f, world.y / (float)tileHeight };
   }
 
+  const sf::Vector2f Map::TileToWorld(sf::Vector2f tileSpace) const
+  {
+    return { tileSpace.x * (float)tileWidth * 0.5f, tileSpace.y * (float)tileHeight };
+  }
+
   const sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
     sf::Vector2f iso{};
     iso.x = (2.0f * ortho.y + ortho.x) * 0.5f;

@@ -226,43 +226,26 @@ void Overworld::OnlineArea::onResume()
 
 void Overworld::OnlineArea::OnTileCollision()
 {
-  auto playerActor = GetPlayer();
-  auto playerPos = playerActor->getPosition();
+  auto player = GetPlayer();
+  auto layer = player->GetLayer();
 
   auto& map = GetMap();
-  auto tileSize = sf::Vector2f(map.GetTileSize());
 
-  auto tilePos = sf::Vector2f(
-    std::floor(playerPos.x / tileSize.x * 2.0f),
-    std::floor(playerPos.y / tileSize.y)
-  );
-
-  auto& teleportController = GetTeleportController();
-
-  for (auto& tileObject : map.GetLayer(playerActor->GetLayer()).GetTileObjects()) {
-    auto type = tileObject.type;
-
-    if (type == "Home Warp") {
-      auto homeWarpPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
-      auto homeWarpTilePos = sf::Vector2f(
-        std::floor(homeWarpPos.x / tileSize.x * 2.0f),
-        std::floor(homeWarpPos.y / tileSize.y)
-      );
-
-      if (homeWarpTilePos == tilePos && teleportController.IsComplete()) {
-        GetPlayerController().ReleaseActor();
-        auto& command = teleportController.TeleportOut(playerActor);
-
-        auto teleportHome = [=] {
-          TeleportUponReturn(playerActor->Get3DPosition());
-          sendLogoutSignal();
-          getController().pop<segue<BlackWashFade>>();
-        };
-
-        command.onFinish.Slot(teleportHome);
-      }
-    }
+  if (layer < 0 || layer >= map.GetLayerCount()) {
+    return;
   }
+
+  auto playerPos = player->getPosition();
+  auto tilePos = sf::Vector2i(map.WorldToTileSpace(playerPos));
+  auto hash = tilePos.x + map.GetCols() * tilePos.y;
+
+  auto tileTriggerLayer = tileTriggers[layer];
+
+  if (tileTriggerLayer.find(hash) == tileTriggerLayer.end()) {
+    return;
+  }
+
+  tileTriggerLayer[hash]();
 }
 
 void Overworld::OnlineArea::OnInteract() {
@@ -734,8 +717,10 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
   LoadMap(mapBuffer);
 
+  auto layerCount = map.GetLayerCount();
+
   for (auto& [objectId, excludedData] : excludedObjects) {
-    for (auto i = 0; i < map.GetLayerCount(); i++) {
+    for (auto i = 0; i < layerCount; i++) {
       auto& layer = map.GetLayer(i);
 
       auto optional_object_ref = layer.GetTileObject(objectId);
@@ -750,6 +735,41 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         object.visible = false;
         object.solid = false;
         break;
+      }
+    }
+  }
+
+  tileTriggers.clear();
+  tileTriggers.resize(layerCount);
+
+  for (auto i = 0; i < layerCount; i++) {
+    for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
+      auto type = tileObject.type;
+
+      auto objectCenterPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+      auto objectTilePos = sf::Vector2i(map.WorldToTileSpace(objectCenterPos));
+      auto hash = objectTilePos.x + map.GetCols() * objectTilePos.y;
+
+      if (type == "Home Warp") {
+        tileTriggers[i][hash] = [=]() {
+          auto player = GetPlayer();
+          auto& teleportController = GetTeleportController();
+
+          if (!teleportController.IsComplete()) {
+            return;
+          }
+
+          GetPlayerController().ReleaseActor();
+          auto& command = teleportController.TeleportOut(player);
+
+          auto teleportHome = [=] {
+            TeleportUponReturn(player->Get3DPosition());
+            sendLogoutSignal();
+            getController().pop<segue<BlackWashFade>>();
+          };
+
+          command.onFinish.Slot(teleportHome);
+        };
       }
     }
   }
