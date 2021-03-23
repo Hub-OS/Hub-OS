@@ -38,7 +38,7 @@
 #include "bnParticlePoof.h"
 #include "bnHideUntil.h"
 
-void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, long long timestamp) {
+void PlayerCardUseListener::OnCardUse(const Battle::Card& card, Character& character, long long timestamp) {
   // Player charging is cancelled
   player->Charge(false);
 

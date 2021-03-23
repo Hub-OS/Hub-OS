@@ -20,10 +20,14 @@ namespace Battle {
 class DefenseRule;
 class Spell;
 class CardAction;
-
+class SelectedCardsUI;
 
 struct CardEvent {
   CardAction* action{ nullptr };
+};
+
+struct PeekCardEvent {
+  SelectedCardsUI* publisher{ nullptr };
 };
 
 constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
@@ -239,8 +243,9 @@ public:
   void CancelSharedHitboxDamage(Character* to);
 
   void AddAction(const CardEvent& event, const ActionOrder& order);
+  void AddAction(const PeekCardEvent& event, const ActionOrder& order);
   void HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec);
-
+  void HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::ExecutionType& exec);
 private:
   int maxHealth{ std::numeric_limits<int>::max() };
   sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */

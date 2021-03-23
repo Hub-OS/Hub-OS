@@ -278,7 +278,7 @@ void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
   this->customDuration = maxTimeSeconds;
 }
 
-void BattleSceneBase::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
+void BattleSceneBase::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
 {
   HandleCounterLoss(user);
 }

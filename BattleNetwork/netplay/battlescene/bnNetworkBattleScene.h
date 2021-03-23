@@ -31,7 +31,6 @@
 #include "../../bnPlayer.h"
 #include "../../bnSelectedCardsUI.h"
 #include "../../bnPlayerCardUseListener.h"
-#include "../../bnEnemyCardUseListener.h"
 #include "../../bnCounterHitListener.h"
 #include "../../bnCharacterDeleteListener.h"
 #include "../../bnNaviRegistration.h"
@@ -147,7 +146,7 @@ public:
 
   }
 
-  void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override {
+  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override {
     nbs.sendChipUseSignal(card.GetUUID());
   }
 };

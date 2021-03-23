@@ -30,5 +30,5 @@ public:
    * @param card Card used
    * @param character Character using card
    */
-  void OnCardUse(Battle::Card& card, Character& character, long long timestamp);
+  void OnCardUse(const Battle::Card& card, Character& character, long long timestamp);
 };

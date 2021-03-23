@@ -353,6 +353,7 @@ void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType&
     previous = tile;
     elapsedMoveTime = 0;
     actionQueue.CreateDiscardFilter(ActionTypes::buster, ActionDiscardOp::until_resolve);
+    actionQueue.CreateDiscardFilter(ActionTypes::peek_card, ActionDiscardOp::until_resolve);
   }
 
 }

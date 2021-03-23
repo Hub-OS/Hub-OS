@@ -2,6 +2,7 @@
 #include "../bnBattleSceneBase.h"
 
 #include "../../bnPlayer.h"
+#include "../../bnField.h"
 #include "../../bnCardAction.h"
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"

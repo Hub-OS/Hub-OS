@@ -1,4 +1,5 @@
 #include "bnCardUsePublisher.h"
+#include "bnCardUseListener.h"
 
 void CardUsePublisher::AddListener(CardUseListener* listener)
 {
@@ -14,7 +15,7 @@ CardUsePublisher::~CardUsePublisher()
 {
 }
 
-void CardUsePublisher::Broadcast(Battle::Card& card, Character& user, uint64_t timestamp)
+void CardUsePublisher::Broadcast(const Battle::Card& card, Character& user, uint64_t timestamp)
 {
   std::list<CardUseListener*>::iterator iter = listeners.begin();
 

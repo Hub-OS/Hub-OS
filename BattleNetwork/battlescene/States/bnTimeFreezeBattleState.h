@@ -44,5 +44,5 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   const bool FadeOutBackdrop();
   const bool FadeInBackdrop();
   bool IsOver();
-  void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override;
+  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override;
 };

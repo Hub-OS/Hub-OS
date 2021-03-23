@@ -497,7 +497,7 @@ void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
   std::string used = std::string(buffer.begin()+sizeof(uint64_t), buffer.size()-sizeof(uint64_t));
   remoteState.remoteChipUse = used;
   Battle::Card card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ used });
-  remoteCardUsePublisher->Broadcast(card, *remotePlayer, timestamp);
+  //remoteCardUsePublisher->Broadcast(card, *remotePlayer, timestamp);
   Logger::Logf("remote used chip %s", used.c_str());
 }
 

@@ -1,6 +1,7 @@
 #include <Swoosh/Ease.h>
 
 #include "bnCharacter.h"
+#include "bnSelectedCardsUI.h"
 #include "bnDefenseRule.h"
 #include "bnDefenseSuperArmor.h"
 #include "bnCardAction.h"
@@ -43,8 +44,11 @@ Character::Character(Rank _rank) :
   stun = Shaders().GetShader(ShaderType::YELLOW);
 
   using namespace std::placeholders;
-  auto handler = std::bind(&Character::HandleCardEvent, this, _1, _2);
-  actionQueue.RegisterType<CardEvent, CardActionDeleter>(ActionTypes::chip, handler);
+  auto cardHandler = std::bind(&Character::HandleCardEvent, this, _1, _2);
+  actionQueue.RegisterType<CardEvent, CardActionDeleter>(ActionTypes::card, cardHandler);
+
+  auto peekHandler = std::bind(&Character::HandlePeekEvent, this, _1, _2);
+  actionQueue.RegisterType<PeekCardEvent>(ActionTypes::peek_card, peekHandler);
 }
 
 Character::~Character() {
@@ -624,6 +628,11 @@ void Character::AddAction(const CardEvent& event, const ActionOrder& order)
   actionQueue.Add(event, order, ActionDiscardOp::until_resolve);
 }
 
+void Character::AddAction(const PeekCardEvent& event, const ActionOrder& order)
+{
+  actionQueue.Add(event, order, ActionDiscardOp::until_eof);
+}
+
 void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec)
 {
   if (currCardAction == nullptr) {
@@ -634,4 +643,19 @@ void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::Execu
     currCardAction->EndAction();
     currCardAction = nullptr;
   }
+}
+
+void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::ExecutionType& exec)
+{
+  SelectedCardsUI* publisher = event.publisher;
+  if (publisher) {
+    auto maybe_card = publisher->Peek();
+
+    if (maybe_card.has_value()) {
+      const Battle::Card& card = maybe_card.value();
+      publisher->Broadcast(card, *this);
+    }
+  }
+
+  actionQueue.Pop();
 }

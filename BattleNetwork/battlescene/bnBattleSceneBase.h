@@ -23,8 +23,6 @@
 #include "../bnCharacterDeleteListener.h"
 #include "../bnCardUseListener.h"
 #include "../bnPlayerCardUseListener.h"
-#include "../bnEnemyCardUseListener.h"
-#include "../bnSelectedCardsUI.h"
 #include "../bnSelectedCardsUI.h"
 #include "../bnCardSelectionCust.h"
 
@@ -89,7 +87,6 @@ private:
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
   PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
-  EnemyCardUseListener enemyCardListener; /*!< Enemies can use cards now */
   SelectedCardsUI* cardUI{ nullptr }; /*!< Player's Card UI implementation */
   Camera camera; /*!< Camera object - will shake screen */
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
@@ -241,7 +238,7 @@ protected:
   */
   void ProcessNewestComponents();
 
-  void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override final;
+  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override final;
   void OnCounter(Character& victim, Character& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
 

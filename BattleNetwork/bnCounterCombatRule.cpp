@@ -1,4 +1,5 @@
 #include "bnCounterCombatRule.h"
+#include "bnSpell.h"
 #include "battlescene/bnBattleSceneBase.h"
 
 CounterCombatRule::CounterCombatRule(BattleSceneBase* battleScene) 

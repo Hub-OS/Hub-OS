@@ -23,7 +23,6 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) :
   dmg(Font::Style::gradient_orange),
   multiplier(Font::Style::thick)
 {
-
   cardCount = curr = 0;
   auto iconRect = sf::IntRect(0, 0, 14, 14);
   icon.setTextureRect(iconRect);
@@ -197,7 +196,7 @@ void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
   curr = 0;
 }
 
-const bool SelectedCardsUI::UseNextCard() {
+void SelectedCardsUI::UseNextCard() {
   auto actions = player->GetComponentsDerivedFrom<CardAction>();
   bool hasNextCard = curr < cardCount;
   bool canUseCard = true;
@@ -211,7 +210,7 @@ const bool SelectedCardsUI::UseNextCard() {
   canUseCard = canUseCard && hasNextCard;
 
   if (!canUseCard) {
-    return false;
+    return;
   }
 
   auto card = selectedCards[curr];
@@ -226,9 +225,25 @@ const bool SelectedCardsUI::UseNextCard() {
     card->props.timeFreeze = true;
   }
 
-  Broadcast(*card, *player, CurrentTime::AsMilli());
+  // Broadcast(*card, *player, CurrentTime::AsMilli());
+  player->AddAction(PeekCardEvent{ this }, ActionOrder::voluntary);
 
-  return ++curr;
+  // return ++curr;
+}
+
+void SelectedCardsUI::Broadcast(const Battle::Card& card, Character& user)
+{
+  curr++;
+  CardUsePublisher::Broadcast(card, user, CurrentTime::AsMilli());
+}
+
+std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek()
+{
+  if (cardCount > 0) {
+    return { std::ref(*selectedCards[curr]) };
+  }
+
+  return {};
 }
 
 void SelectedCardsUI::Inject(BattleSceneBase& scene) {

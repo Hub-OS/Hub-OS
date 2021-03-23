@@ -20,7 +20,8 @@ enum class ActionTypes : short {
   none = 0, // indicates empty queue
   special,
   buster,
-  chip,
+  peek_card,
+  card,
   movement
 };
 
@@ -173,8 +174,11 @@ inline std::ostream& operator<<(std::ostream& os, const ActionQueue::Index& inde
   case ActionTypes::buster:
     type = "buster";
     break;
-  case ActionTypes::chip:
-    type = "chip";
+  case ActionTypes::peek_card:
+    type = "peek_card";
+    break;
+  case ActionTypes::card:
+    type = "card";
     break;
   case ActionTypes::movement:
     type = "movement";

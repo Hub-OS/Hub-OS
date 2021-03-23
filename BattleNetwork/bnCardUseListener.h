@@ -23,7 +23,7 @@ public:
    * @param card
    * @param user
    */
-  virtual void OnCardUse(Battle::Card& card, Character& user, long long timestamp) = 0;
+  virtual void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) = 0;
   
   /**
    * @brief Subscribe this listener to a publisher objects

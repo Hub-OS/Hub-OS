@@ -4,6 +4,7 @@
 #include "../../bnCard.h"
 #include "../../bnCardAction.h"
 #include "../../bnCharacter.h"
+#include "../../bnField.h"
 
 TimeFreezeBattleState::TimeFreezeBattleState()
 {
@@ -130,7 +131,7 @@ bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
-void TimeFreezeBattleState::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
+void TimeFreezeBattleState::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
 {
   if (card.IsTimeFreeze() && timestamp < lockedTimestamp) {
     this->name = card.GetShortName();

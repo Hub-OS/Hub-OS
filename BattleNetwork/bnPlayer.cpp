@@ -66,8 +66,6 @@ Player::Player() :
   using namespace std::placeholders;
   auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
   actionQueue.RegisterType<BusterEvent, BusterActionDeleter>(ActionTypes::buster, handler);
-
-  SetPassthrough(true);
 }
 
 Player::~Player() {
