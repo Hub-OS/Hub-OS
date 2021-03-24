@@ -634,12 +634,13 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
   auto y = reader.Read<float>(buffer) * tileSize.y;
   auto z = reader.Read<float>(buffer);
+  auto direction = reader.Read<Direction>(buffer);
 
   auto spawnPos = sf::Vector3f(x, y, z);
 
   auto player = GetPlayer();
 
-  auto& command = GetTeleportController().TeleportIn(player, spawnPos, Direction::up);
+  auto& command = GetTeleportController().TeleportIn(player, spawnPos, Orthographic(direction));
   command.onFinish.Slot([=] {
     GetPlayerController().ControlActor(player);
   });
@@ -895,6 +896,8 @@ void Overworld::OnlineArea::receiveIncludeObjectSignal(BufferReader& reader, con
 
 void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  bool warpOut = reader.Read<bool>(buffer);
+
   LockInput();
   isConnected = false;
   excludedObjects.clear();
@@ -903,10 +906,26 @@ void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, con
   for (auto& [key, _] : onlinePlayers) {
     removePlayers.push_back(key);
   }
+
+  if (warpOut) {
+    auto& command = GetTeleportController().TeleportOut(GetPlayer());
+
+    command.onFinish.Slot([=](){
+      UnlockInput();
+    });
+  }
 }
 
 void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  bool warpIn = reader.Read<bool>(buffer);
+  auto direction = reader.Read<Direction>(buffer);
+
+  if (warpIn) {
+    auto player = GetPlayer();
+    GetTeleportController().TeleportIn(player, player->Get3DPosition(), Orthographic(direction));
+  }
+
   UnlockInput();
   isConnected = true;
   sendReadySignal();
