@@ -476,11 +476,12 @@ frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
 //             SPECIAL ABILITY IMPLEMENTATIONS                //
 ////////////////////////////////////////////////////////////////
 
-#define FRAME1 { 1, 0.05 }
+#define FRAME1 { 1, 0.1666 }
 #define FRAME2 { 2, 0.05 }
-#define FRAME3 { 3, 0.3 }
+#define FRAME3 { 3, 0.05 }
+#define FRAME4 { 4, 0.5 }
 
-#define FRAMES FRAME1, FRAME2, FRAME3
+#define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
 // class TenguCross
 TenguCross::SpecialAction::SpecialAction(Character& owner) : 
@@ -495,8 +496,6 @@ TenguCross::SpecialAction::SpecialAction(Character& owner) :
 
   attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.SetAnimation("HAND");
-
-  AddAttachment(owner, "hilt", *attachment).UseAnimation(attachmentAnim);
 }
 
 TenguCross::SpecialAction::~SpecialAction()
@@ -510,7 +509,9 @@ void TenguCross::SpecialAction::OnExecute()
   auto field = owner->GetField();
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, team, field]() -> void {
+  auto onThrow = [this, team, owner, field]() -> void {
+    AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
+
     auto wind = new Wind(team);
     field->AddEntity(*wind, 6, 1);
 
@@ -521,7 +522,7 @@ void TenguCross::SpecialAction::OnExecute()
     field->AddEntity(*wind, 6, 3);
   };
 
-  AddAnimAction(3, onThrow);
+  AddAnimAction(2, onThrow);
 }
 
 void TenguCross::SpecialAction::OnEndAction()

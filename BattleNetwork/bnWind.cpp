@@ -36,7 +36,16 @@ bool Wind::CanMoveTo(Battle::Tile* next) {
 }
 
 void Wind::Attack(Character* _entity) {
-  _entity->Slide(GetDirection(), frames(4), frames(0));
+  _entity->Hit(
+    {
+      0,
+      Hit::Flags(Hit::drag),
+      Element::none,
+      nullptr,
+      { GetDirection(), 9 },
+      true
+    }
+  );
 }
 
 void Wind::OnDelete()

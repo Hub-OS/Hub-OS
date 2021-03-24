@@ -303,7 +303,7 @@ void Character::ResolveFrameBattleDamage()
 
   Character* frameCounterAggressor = nullptr;
   bool frameStunCancel = false;
-  Direction postDragDir = Direction::none;
+  Hit::Drag postDragEffect{};
 
   std::queue<Hit::Properties> append;
 
@@ -357,18 +357,21 @@ void Character::ResolveFrameBattleDamage()
           append.push({ 0, Hit::drag, Element::none, nullptr, props.drag });
         }
         else {
-          // Apply directional slide in a moment
-          postDragDir = props.drag;
-
           // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
-          append.push({ 0, Hit::impact, Element::none, frameCounterAggressor, Direction::none });
+          append.push({ 0, Hit::impact, Element::none, frameCounterAggressor});
           frameCounterAggressor = nullptr;
+
+          // requeue drag if count is > 0
+          if(props.drag.count > 0) {
+            // Apply drag effect post status resolution
+            postDragEffect.dir = props.drag.dir;
+            postDragEffect.count = props.drag.count - 1u;
+          }
         }
 
         flagCheckThunk(Hit::drag);
 
         // exclude this from the next processing step
-        props.drag = Direction::none;
         props.flags &= ~Hit::drag;
       }
 
@@ -381,9 +384,9 @@ void Character::ResolveFrameBattleDamage()
       This effect is requeued for another frame if currently dragging
       */
       if ((props.flags & Hit::stun) == Hit::stun) {
-        if (postDragDir != Direction::none) {
+        if (postDragEffect.dir != Direction::none) {
           // requeue these statuses if in the middle of a slide
-          append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
+          append.push({ 0, props.flags });
         }
         else {
           bool hasSuperArmor = false;
@@ -414,8 +417,8 @@ void Character::ResolveFrameBattleDamage()
       if ((props.flags & Hit::flinch) == Hit::flinch) {
         actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
 
-        if (postDragDir != Direction::none) {
-          append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
+        if (postDragEffect.dir != Direction::none) {
+          append.push({ 0, props.flags });
         }
         else {
           invincibilityCooldown = 2.0; // used as a `flinch` status timer
@@ -467,7 +470,7 @@ void Character::ResolveFrameBattleDamage()
         OnHit();
         SetHealth(GetHealth() - tileDamage);
         if (GetHealth() == 0) {
-          postDragDir = Direction::none; // Cancel slide post-status if blowing up
+          postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up
         }
         this->OnUpdate(0);
         HitPublisher::Broadcast(*this, props);
@@ -479,12 +482,20 @@ void Character::ResolveFrameBattleDamage()
     statusQueue = append;
   }
 
-  if (postDragDir != Direction::none) {
+  if (postDragEffect.dir != Direction::none) {
     // enemies and objects on opposing side of field are granted immunity from drag
     if (Teammate(GetTile()->GetTeam())) {
       actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
       slideFromDrag = true;
-      Slide(postDragDir, frames(3), frames(0));
+      Battle::Tile* dest = GetTile() + postDragEffect.dir;
+
+      if (CanMoveTo(dest)) {
+        // Enqueue a move action at the top of our priorities
+        actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
+
+        // Re-queue the drag status to be re-considered in our next combat checks
+        append.push({ 0, Hit::drag, Element::none, nullptr, postDragEffect });
+      }
 
       // cancel stun
       stunCooldown = 0;

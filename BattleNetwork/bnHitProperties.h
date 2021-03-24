@@ -25,6 +25,12 @@ namespace Hit {
   const Flags bubble = 0x0400;
   // 0x0800 - 0x8000 remaining = 5 remaining
 
+
+  struct Drag {
+    Direction dir{ Direction::none };
+    unsigned count{ 0 };
+  };
+
   /**
    * @struct Properties
    * @author mav
@@ -36,7 +42,7 @@ namespace Hit {
     Flags flags{ none };
     Element element{ Element::none };
     Character* aggressor{ nullptr };
-    Direction drag{ Direction::none }; // Used by dragging payload
+    Drag drag{ }; // Used by Hit::drag flag
     bool counters{ true };
 
     Properties() = default;
