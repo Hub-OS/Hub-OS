@@ -30,13 +30,15 @@ Tornado::Tornado(Team _team, int count, int damage) :
     auto onHit = [this](Character* entity) {
       if (entity->Hit(GetHitboxProperties())) {
         Audio().Play(AudioType::HURT);
-
-        Artifact* hitfx = new BusterHit(BusterHit::Type::CHARGED);
-        GetField()->AddEntity(*hitfx, entity->GetTile()->GetX(), entity->GetTile()->GetY());
       }
     };
 
-    hitbox->AddCallback(onHit);
+    auto onCollision = [this](const Character* entity) {
+      Artifact* hitfx = new BusterHit(BusterHit::Type::CHARGED);
+      GetField()->AddEntity(*hitfx, entity->GetTile()->GetX(), entity->GetTile()->GetY());
+    };
+
+    hitbox->AddCallback(onHit, onCollision);
     GetField()->AddEntity(*hitbox, *GetTile());
   };
 

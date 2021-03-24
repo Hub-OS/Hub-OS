@@ -161,6 +161,7 @@ void MobBattleScene::OnHit(Character& victim, const Hit::Properties& props)
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
     Artifact* seSymbol = new ElementalDamage;
     seSymbol->SetLayer(-100);
+    seSymbol->SetHeight(victim.GetHeight());
     GetField()->AddEntity(*seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
   }
 }

@@ -86,6 +86,9 @@ void ParticleImpact::OnSpawn(Battle::Tile& tile) {
     height = 0;
     width = 0;
     break;
+  case Type::green:
+    height = GetHeight();
+    break;
   }
 
   randOffset = sf::Vector2f(float(rand() % static_cast<int>(width+1)), float(rand() % static_cast<int>(height+1)));

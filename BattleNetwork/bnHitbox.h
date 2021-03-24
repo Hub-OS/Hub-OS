@@ -12,8 +12,8 @@ class Hitbox : public Spell {
 private:
   int damage; /*!< how many units of damage to deal */
   bool hit; /*!< Flag if hit last frame */
-  std::function<void(Character*)> callback; /*!< Optional callback when Attack() is triggered*/
-
+  std::function<void(Character*)> attackCallback{}; /*!< Optional callback when Attack() is triggered*/
+  std::function<void(const Character*)> collisionCallback{};
 public:
   /**
    * @brief disables tile highlighting by default
@@ -39,10 +39,12 @@ public:
    */
   void Attack(Character* _entity) override;
 
+  void OnCollision(const Character* entity) override;
+
   /**
   * @brief Some hitboxes perform actions on hit and this is the best place to add them
   */
-  void AddCallback(decltype(callback) callback);
+  void AddCallback(std::function<void(Character*)> attackCallback, std::function<void(const Character*)> collisionCallback = [](const Character*) {});
 
   void OnDelete() override;
 };

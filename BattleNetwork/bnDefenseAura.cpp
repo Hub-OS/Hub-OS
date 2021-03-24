@@ -26,7 +26,6 @@ void DefenseAura::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& 
   auto hitbox = new Hitbox(owner.GetTeam(), 0);
   owner.GetField()->AddEntity(*hitbox, *owner.GetTile());
 
-
   judge.BlockDamage();
 
   if(callback) {

@@ -62,6 +62,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       // Reset the player state
       playerPtr->ChangeState<PlayerControlledState>();
 
+      // Interrupt right away
+      playerPtr->Character::Update(0);
+
       if (lastSelectedForm == -1) {
         Audio().Play(AudioType::DEFORM);
       }

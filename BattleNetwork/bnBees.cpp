@@ -3,7 +3,6 @@
 #include "bnField.h"
 #include "bnObstacle.h"
 #include "bnParticleImpact.h"
-#include "bnDefenseAura.h"
 #include "bnHitbox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
@@ -55,7 +54,7 @@ Bees::Bees(Team _team,int damage) :
     SetDirection(Direction::left);
   }
 
-  absorbDamage = new DefenseAura();
+  absorbDamage = new BeeDefenseRule();
   AddDefenseRule(absorbDamage);
 }
 
@@ -160,10 +159,28 @@ void Bees::OnUpdate(double _elapsed) {
   auto direction = Direction::none;
   bool wasMovingVertical   = (GetDirection() == Direction::down || GetDirection() == Direction::up);
   bool wasMovingHorizontal = (GetDirection() == Direction::left || GetDirection() == Direction::right);
+  bool skipMoveCode = false;
 
-  if (!IsSliding()) {
+  if (target) {
+    Battle::Tile* targetTile = target->GetTile();
+    if (targetTile) {
+      if (this->madeContact) {
+        if (this->IsMoving()) {
+          this->FinishMove(); // flush movement if moving
+        }
+
+        this->Teleport(targetTile, ActionOrder::immediate);
+        skipMoveCode = true;
+      }
+    }
+  }
+
+  if (!IsSliding() && !skipMoveCode) {
     if (target) {
       if (target->GetTile()) {
+        if (this->madeContact) {
+          this->FinishMove();
+        }
         /*
           once a bee commits to travelling in a direction, they will not change directions again until 
           they enter the same column (if moving horizontally) or row (if moving vertically) as their target, 
@@ -253,10 +270,12 @@ void Bees::OnUpdate(double _elapsed) {
         this->madeContact = true; // we hit something!
         this->hitCount++;
         Audio().Play(AudioType::HURT, AudioPriority::high);
-        auto fx = new ParticleImpact(ParticleImpact::Type::green);
-        entity->GetField()->AddEntity(*fx, *entity->GetTile());
-        fx->SetHeight(entity->GetHeight());
-      });
+        }, [](const Character* entity) {
+          auto fx = new ParticleImpact(ParticleImpact::Type::green);
+          fx->SetHeight(entity->GetHeight());
+          entity->GetField()->AddEntity(*fx, *entity->GetTile());
+          fx->SetHeight(entity->GetHeight());
+        });
 
     }
 
@@ -287,7 +306,12 @@ bool Bees::CanMoveTo(Battle::Tile* tile) {
 
 void Bees::Attack(Character* _entity) {
   // Bees doesn't directly attack, they drop 5 hitboxes
-  // and we track that
+  // and we track that...
+
+  // However, if Bee's attack an object, they are removed by end of frame
+  if (dynamic_cast<Obstacle*>(_entity)) {
+    this->Delete();
+  }
 }
 
 void Bees::OnDelete()

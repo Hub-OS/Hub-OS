@@ -15,8 +15,6 @@ Hitbox::Hitbox(Team _team, int _damage) : Spell(_team) {
   props.flags |= Hit::impact;
   props.damage = _damage;
   SetHitboxProperties(props);
-
-  callback = 0;
 }
 
 Hitbox::~Hitbox() {
@@ -34,14 +32,22 @@ void Hitbox::OnUpdate(double _elapsed) {
 }
 
 void Hitbox::Attack(Character* _entity) {
-  if (_entity->Hit(GetHitboxProperties()) && callback) {
-    callback(_entity);
+  if (_entity->Hit(GetHitboxProperties()) && attackCallback) {
+    attackCallback(_entity);
   }
 }
 
-void Hitbox::AddCallback(decltype(callback) callback)
+void Hitbox::OnCollision(const Character* _entity)
 {
-  Hitbox::callback = callback;
+  if (collisionCallback) {
+    collisionCallback(_entity);
+  }
+}
+
+void Hitbox::AddCallback(std::function<void(Character*)> attackCallback, std::function<void(const Character*)> collisionCallback)
+{
+  Hitbox::attackCallback = attackCallback;
+  Hitbox::collisionCallback = collisionCallback;
 }
 
 void Hitbox::OnDelete()

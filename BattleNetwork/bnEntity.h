@@ -192,7 +192,8 @@ public:
    * @return Tile pointer
    */
   Battle::Tile* GetTile() const;
-  
+  const sf::Vector2f GetTileOffset() const;
+
   /**
    * @brief Checks if entity is moving
    * @param framecheck, optional unsigned pointer to a frame value to check against
@@ -445,7 +446,6 @@ public:
    * @return float
    */
   virtual const float GetHeight() const;
-
   virtual void SetHeight(const float height);
 
 protected:

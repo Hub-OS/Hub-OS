@@ -386,6 +386,11 @@ Battle::Tile* Entity::GetTile() const {
   return tile;
 }
 
+const sf::Vector2f Entity::GetTileOffset() const
+{
+  return this->tileOffset;
+}
+
 const bool Entity::IsSliding(unsigned* framecheck) const
 {
   bool is_moving = currMoveEvent.IsSliding();
