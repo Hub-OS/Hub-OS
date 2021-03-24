@@ -81,6 +81,11 @@ void Entity::UpdateMovement(double elapsed)
   // Only move if we have a valid next tile pointer
   auto next = currMoveEvent.dest;
   if (next) {
+    if (currMoveEvent.deltaFrames == frames(0)) {
+      currMoveEvent.onBegin();
+      currMoveEvent.onBegin = [] {}; // clear so we only fire once
+    }
+
     elapsedMoveTime += elapsed;
 
     if (from_seconds(elapsedMoveTime) > currMoveEvent.delayFrames) {
@@ -128,43 +133,49 @@ void Entity::UpdateMovement(double elapsed)
       // When delta is 1.0, the slide duration is complete
       if (delta == 1.0f)
       {
-        FinishMove();
-        Battle::Tile* prevTile = GetTile();
+        // Slide or jump is complete, clear the tile offset used in those animations
         tileOffset = { 0, 0 };
-        previousDirection = direction;
 
-        // If we slide onto an ice block and we don't have float shoe enabled, slide
-        if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
-          // calculate our new entity's position
-          UpdateMoveStartPosition();
+        // Now that we have finished moving across panels, we must wait out endlag
+        frame_time_t lastFrame = currMoveEvent.delayFrames + currMoveEvent.deltaFrames + currMoveEvent.endlagFrames;
+        if (from_seconds(elapsedMoveTime) > lastFrame) {
+          FinishMove();
+          Battle::Tile* prevTile = GetTile();
+          previousDirection = direction;
 
-          // TODO: shorten with GetPreviousDirection() switch
-          if (previous->GetX() > prevTile->GetX()) {
-            next = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
-          }
-          else if (previous->GetX() < prevTile->GetX()) {
-            next = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
-          }
-          else if (previous->GetY() < prevTile->GetY()) {
-            next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() + 1);
-          }
-          else if (previous->GetY() > prevTile->GetY()) {
-            next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() - 1);
-          }
+          // If we slide onto an ice block and we don't have float shoe enabled, slide
+          if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
+            // calculate our new entity's position
+            UpdateMoveStartPosition();
 
-          // If the next tile is not available, not ice, or we are ice element, don't slide
-          bool notIce = (next && tile->GetState() != TileState::ice);
-          bool cannotMove = (next && !CanMoveTo(next));
-          bool weAreIce = (GetElement() == Element::ice);
-          bool cancelSlide = notIce || cannotMove || weAreIce;
+            // TODO: shorten with GetPreviousDirection() switch
+            if (previous->GetX() > prevTile->GetX()) {
+              next = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
+            }
+            else if (previous->GetX() < prevTile->GetX()) {
+              next = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
+            }
+            else if (previous->GetY() < prevTile->GetY()) {
+              next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() + 1);
+            }
+            else if (previous->GetY() > prevTile->GetY()) {
+              next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() - 1);
+            }
 
-          if (!cancelSlide) {
-            Slide(GetPreviousDirection(), frames(8), frames(0), ActionOrder::involuntary);
+            // If the next tile is not available, not ice, or we are ice element, don't slide
+            bool notIce = (next && tile->GetState() != TileState::ice);
+            bool cannotMove = (next && !CanMoveTo(next));
+            bool weAreIce = (GetElement() == Element::ice);
+            bool cancelSlide = notIce || cannotMove || weAreIce;
+
+            if (!cancelSlide) {
+              Slide(GetPreviousDirection(), frames(8), frames(0), ActionOrder::involuntary);
+            }
           }
-        }
-        else {
-          // Invalidate the next tile pointer
-          next = nullptr;
+          else {
+            // Invalidate the next tile pointer
+            next = nullptr;
+          }
         }
       }
     }
@@ -262,36 +273,38 @@ void Entity::SetAlpha(int value)
   setColor(c);
 }
 
-bool Entity::Teleport(Direction dir, ActionOrder order)
+bool Entity::Teleport(Direction dir, ActionOrder order, std::function<void()> onBegin)
 {
   Battle::Tile* currTile = GetTile();
 
   if (!currTile) return false;
 
-  return Teleport(*currTile + dir, order);
+  return Teleport(*currTile + dir, order, onBegin);
 }
 
-bool Entity::Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order)
+bool Entity::Slide(Direction dir, 
+  const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
   Battle::Tile* currTile = GetTile();
 
   if (!currTile) return false;
 
-  return Slide(*currTile + dir, slideTime, endlag, order);
+  return Slide(*currTile + dir, slideTime, endlag, order, onBegin);
 }
 
-bool Entity::Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order)
+bool Entity::Jump(Direction dir, float destHeight, 
+  const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
   Battle::Tile* currTile = GetTile();
 
   if (!currTile) return false;
 
-  return Jump(*currTile + dir, destHeight, jumpTime, endlag, order);
+  return Jump(*currTile + dir, destHeight, jumpTime, endlag, order, onBegin);
 }
 
-bool Entity::Teleport(Battle::Tile* dest, ActionOrder order) {
+bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void()> onBegin) {
   if (dest && CanMoveTo(dest)) {
-    MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest };
+    MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
     actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
 
     return true;
@@ -300,10 +313,11 @@ bool Entity::Teleport(Battle::Tile* dest, ActionOrder order) {
   return false;
 }
 
-bool Entity::Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order)
+bool Entity::Slide(Battle::Tile* dest, 
+  const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
   if (dest && CanMoveTo(dest)) {
-    MoveEvent event = { slideTime, moveStartupDelay, moveEndlagDelay, 0, dest };
+    MoveEvent event = { slideTime, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
     actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
 
     return true;
@@ -312,12 +326,13 @@ bool Entity::Slide(Battle::Tile* dest, const frame_time_t& slideTime, const fram
   return false;
 }
 
-bool Entity::Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order)
+bool Entity::Jump(Battle::Tile* dest, float destHeight, 
+  const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
   destHeight = std::min(destHeight, 0.f); // no negative jumps
 
   if (dest && CanMoveTo(dest)) {
-    MoveEvent event = { jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest };
+    MoveEvent event = { jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest, onBegin };
     actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
 
     return true;

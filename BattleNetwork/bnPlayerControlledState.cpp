@@ -91,11 +91,13 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   if(direction != Direction::none) {
     replicator ? replicator->SendMoveSignal(direction) : (void(0));
-    if (player.Teleport(player.GetTile() + direction)) {
-      player.SetAnimation("PLAYER_MOVE", [player = &player] {
+    auto onMoveBegin = [player = &player] {
+      player->SetAnimation("PLAYER_MOVE", [player] {
         player->SetAnimation("PLAYER_IDLE");
-      });
-    }
+        });
+    };
+
+    player.Teleport(player.GetTile() + direction, ActionOrder::voluntary, onMoveBegin);
   } 
 }
 

@@ -51,6 +51,7 @@ Player::Player() :
 
   auto recoil = [this]() {
     // When movement is interrupted because of a hit, we need to flush the action queue
+    animationComponent->CancelCallbacks();
     ClearActionQueue();
     ChangeState<PlayerHitState>();
   };
@@ -89,7 +90,9 @@ void Player::OnUpdate(double _elapsed) {
 void Player::FilterMoveEvent(MoveEvent& event)
 {
   auto anim = this->animationComponent;
-  event.delayFrames = from_seconds(anim->GetAnimationObject().GetStateDuration("PLAYER_MOVE")*0.5f);
+  frame_time_t halfMoveTime = from_seconds(anim->GetAnimationObject().GetStateDuration("PLAYER_MOVE") * 0.5f);
+  event.delayFrames = halfMoveTime;
+  event.endlagFrames = halfMoveTime;
   //event.height = 140;
   //event.deltaFrames = frames(20);
 }

@@ -142,12 +142,12 @@ public:
    * 
    * NOTE: This doesn't mean that the entity will successfully move just that they could at the time
    */
-  bool Teleport(Direction dir, ActionOrder order = ActionOrder::voluntary);
-  bool Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary);
-  bool Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary);
-  bool Teleport(Battle::Tile* dest, ActionOrder order = ActionOrder::voluntary);
-  bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary);
-  bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary);
+  bool Teleport(Direction dir, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Teleport(Battle::Tile* dest, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
   void FinishMove();
   void HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec);
   void ClearActionQueue();
