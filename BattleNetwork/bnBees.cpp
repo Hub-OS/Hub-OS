@@ -112,7 +112,7 @@ Bees::Bees(const Bees & leader) :
     SetDirection(Direction::left);
   }
 
-  absorbDamage = new DefenseAura();
+  absorbDamage = new BeeDefenseRule();
   AddDefenseRule(absorbDamage);
 }
 

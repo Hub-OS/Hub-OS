@@ -2,30 +2,28 @@
 #pragma once
 #include "bnObstacle.h"
 #include "bnAnimation.h"
-#include "bnDefenseAura.h"
+#include "bnDefenseRule.h"
 #include "bnParticleImpact.h"
 class Hitbox;
 
-namespace {
-  constexpr auto beeCallback = [](Spell& spell, Character& in) -> void {
-    if (spell.GetHitboxProperties().element == Element::fire) { 
-      in.Delete(); 
-      ParticleImpact* fx = new ParticleImpact(ParticleImpact::Type::volcano);
-      fx->SetHeight(in.GetHeight());
-      fx->SetOffset(in.GetTileOffset());
-      in.GetField()->AddEntity(*fx, *in.GetTile());
-    }
-  };
-}
-
 class Bees : public Obstacle {
-  class BeeDefenseRule : public DefenseAura {
+  class BeeDefenseRule : public DefenseRule {
 
 
   public:
-    BeeDefenseRule() : DefenseAura(::beeCallback)
-    {
-      // silence is golden
+  public:
+    BeeDefenseRule() : DefenseRule(Priority(4), DefenseOrder::always) {}
+    ~BeeDefenseRule() {}
+
+    void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override {
+      if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return;
+
+      if (in.GetHitboxProperties().element == Element::fire) {
+        judge.SignalDefenseWasPierced();
+      }
+      else {
+        judge.BlockDamage();
+      }
     }
   };
 protected:
@@ -37,7 +35,7 @@ protected:
   Entity* target{ nullptr }; /**< The current enemy to approach */
   SpriteProxyNode* shadow{ nullptr };
   Bees* leader{ nullptr };/*!< which bee to follow*/
-  DefenseAura* absorbDamage;
+  BeeDefenseRule* absorbDamage;
 public:
   Bees(Team _team,int damage);
   Bees(const Bees& leader);
