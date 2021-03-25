@@ -510,6 +510,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   float x = vec.x / tileSize.x * 2.0f;
   float y = vec.y / tileSize.y;
   float z = player->GetElevation();
+  auto direction = player->GetHeading();
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::position };
@@ -517,6 +518,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   buffer.append((char*)&x, sizeof(float));
   buffer.append((char*)&y, sizeof(float));
   buffer.append((char*)&z, sizeof(float));
+  buffer.append((char*)&direction, sizeof(Direction));
   packetShipper.Send(client, Reliability::UnreliableSequenced, buffer);
 }
 
@@ -1056,6 +1058,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   std::string name = reader.ReadString(buffer);
   std::string texturePath = reader.ReadString(buffer);
   std::string animationPath = reader.ReadString(buffer);
+  auto direction = reader.Read<Direction>(buffer);
   float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
   float y = reader.Read<float>(buffer) * tileSize.y;
   float z = reader.Read<float>(buffer);
@@ -1078,6 +1081,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 
   auto actor = onlinePlayer.actor;
   actor->Set3DPosition(pos);
+  actor->Face(direction);
   actor->setTexture(GetTexture(texturePath));
 
   Animation animation;
