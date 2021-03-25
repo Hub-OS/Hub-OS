@@ -1,5 +1,5 @@
 #pragma once
-#include "Overworld/bnOverworldHomepage.h"
+#include "overworld/bnOverworldHomepage.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"

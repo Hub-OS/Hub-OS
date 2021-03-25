@@ -119,7 +119,7 @@ public:
   void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
   const std::string GetMoveAnimHash();
 
-  void SlideWhenMoving(bool enable = true, const frame_time_t& frames = frames(1));
+  void SlideWhenMoving(bool enable = true, const frame_time_t& = frames(1));
 
   virtual CardAction* OnExecuteBusterAction() = 0;
   virtual CardAction* OnExecuteChargedBusterAction() = 0;

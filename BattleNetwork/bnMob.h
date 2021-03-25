@@ -1,4 +1,5 @@
 #pragma once
+#include "bnAI.h"
 #include "bnComponent.h"
 #include "bnCharacter.h"
 #include "bnBattleItem.h"
