@@ -43,6 +43,9 @@ namespace Overworld {
       Tile& SetTile(int x, int y, unsigned int gid);
       Tile& SetTile(float x, float y, unsigned int gid);
 
+      void SetVisible(bool enabled);
+      const bool IsVisible() const;
+
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(unsigned int id);
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(const std::string& name);
       const std::vector<TileObject>& GetTileObjects();
@@ -56,7 +59,8 @@ namespace Overworld {
     private:
       Layer(unsigned cols, unsigned rows);
 
-      unsigned cols, rows;
+      bool visible{ true };
+      unsigned cols{}, rows{};
       std::vector<Tile> tiles;
       std::vector<ShapeObject> shapeObjects;
       std::vector<TileObject> tileObjects;
@@ -84,11 +88,32 @@ namespace Overworld {
     const sf::Vector2f ScreenToWorld(sf::Vector2f screen) const;
 
      /**
+     * @brief Transforms a point in-world (assuming layer 0) to screen cordinates
+     * @param screen vector from world
+     * @return screen coordinates
+     */
+    const sf::Vector2f WorldToScreen(sf::Vector2f world) const;
+
+     /**
      * @brief Transforms a point in-world to screen cordinates
      * @param screen vector from world
      * @return screen coordinates
      */
-    const sf::Vector2f WorldToScreen(sf::Vector2f screen) const;
+    const sf::Vector2f WorldToScreen(sf::Vector3f world) const;
+
+    /**
+     * @brief Transforms a point in-world to tile cordinates
+     * @param screen vector from world
+     * @return screen coordinates
+     */
+    const sf::Vector2f WorldToTileSpace(sf::Vector2f world) const;
+
+    /**
+     * @brief Transforms a point in tile space to world cordinates
+     * @param screen vector from world
+     * @return screen coordinates
+     */
+    const sf::Vector2f TileToWorld(sf::Vector2f world) const;
 
     /**
      * @brief Transforms an ortho vector into an isometric vector
@@ -105,9 +130,16 @@ namespace Overworld {
 
     const std::string& GetName() const;
     const std::string& GetBackgroundName() const;
+    const std::string& GetBackgroundCustomTexturePath() const;
+    const std::string& GetBackgroundCustomAnimationPath() const;
+    sf::Vector2f GetBackgroundCustomVelocity() const;
     const std::string& GetSongPath() const;
     void SetName(const std::string& name);
     void SetBackgroundName(const std::string& name);
+    void SetBackgroundCustomTexturePath(const std::string& path);
+    void SetBackgroundCustomAnimationPath(const std::string& path);
+    void SetBackgroundCustomVelocity(float x, float y);
+    void SetBackgroundCustomVelocity(sf::Vector2f velocity);
     void SetSongPath(const std::string& path);
     const unsigned GetCols() const;
     const unsigned GetRows() const;
@@ -120,12 +152,15 @@ namespace Overworld {
     Layer& GetLayer(size_t index);
     Layer& AddLayer();
     bool CanMoveTo(float x, float y, int layer); // todo: move to layer?
+    float GetElevationAt(float x, float y, int layer);
+    bool TileRequiresOpening(float x, float y, int layer);
     void RemoveSprites(SceneBase& scene);
 
   protected:
     unsigned cols{}, rows{}; /*!< map is made out of Cols x Rows tiles */
     int tileWidth{}, tileHeight{}; /*!< tile dimensions */
-    std::string name, backgroundName, songPath;
+    std::string name, backgroundName, backgroundCustomTexturePath, backgroundCustomAnimationPath, songPath;
+    sf::Vector2f backgroundCustomVelocity;
     std::vector<Layer> layers;
     std::vector<std::shared_ptr<Tileset>> tileToTilesetMap;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> tilesets;

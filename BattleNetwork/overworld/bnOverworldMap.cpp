@@ -47,6 +47,24 @@ namespace Overworld {
     return IsoToOrthogonal(world);
   }
 
+  const sf::Vector2f Map::WorldToScreen(sf::Vector3f world) const
+  {
+    auto screenPos = IsoToOrthogonal({ world.x, world.y });
+    screenPos.y -= tileHeight / 2.0f;
+
+    return screenPos;
+  }
+
+  const sf::Vector2f Map::WorldToTileSpace(sf::Vector2f world) const
+  {
+    return { world.x / (float)tileWidth * 2.0f, world.y / (float)tileHeight };
+  }
+
+  const sf::Vector2f Map::TileToWorld(sf::Vector2f tileSpace) const
+  {
+    return { tileSpace.x * (float)tileWidth * 0.5f, tileSpace.y * (float)tileHeight };
+  }
+
   const sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
     sf::Vector2f iso{};
     iso.x = (2.0f * ortho.y + ortho.x) * 0.5f;
@@ -77,6 +95,21 @@ namespace Overworld {
     return backgroundName;
   }
 
+  const std::string& Map::GetBackgroundCustomTexturePath() const
+  {
+    return backgroundCustomTexturePath;
+  }
+
+  const std::string& Map::GetBackgroundCustomAnimationPath() const
+  {
+    return backgroundCustomAnimationPath;
+  }
+
+  sf::Vector2f Map::GetBackgroundCustomVelocity() const
+  {
+    return backgroundCustomVelocity;
+  }
+
   const std::string& Map::GetSongPath() const
   {
     return songPath;
@@ -90,6 +123,23 @@ namespace Overworld {
   void Map::SetBackgroundName(const std::string& name)
   {
     backgroundName = name;
+  }
+
+  void Map::SetBackgroundCustomTexturePath(const std::string& path) {
+    backgroundCustomTexturePath = path;
+  }
+
+  void Map::SetBackgroundCustomAnimationPath(const std::string& path) {
+    backgroundCustomAnimationPath = path;
+  }
+
+  void Map::SetBackgroundCustomVelocity(float x, float y) {
+    backgroundCustomVelocity.x = x;
+    backgroundCustomVelocity.y = y;
+  }
+
+  void Map::SetBackgroundCustomVelocity(sf::Vector2f velocity) {
+    backgroundCustomVelocity = velocity;
   }
 
   void Map::SetSongPath(const std::string& path)
@@ -139,8 +189,8 @@ namespace Overworld {
     auto tileGid = tileMeta->gid;
 
     if (tileToTilesetMap.size() <= tileGid) {
-      tileToTilesetMap.resize(tileGid + 1);
-      tileMetas.resize(tileGid + 1);
+      tileToTilesetMap.resize(size_t(tileGid + 1u));
+      tileMetas.resize(size_t(tileGid + 1u));
     }
 
     tileMetas[tileGid] = tileMeta;
@@ -165,6 +215,10 @@ namespace Overworld {
   // todo: move to layer?
   // may require reference to map as tilemeta + tile size is used
   bool Map::CanMoveTo(float x, float y, int layerIndex) {
+    if(layerIndex < 0 || layerIndex >= layers.size()) {
+      return false;
+    }
+
     auto& layer = GetLayer(layerIndex);
     auto& tile = layer.GetTile(x, y);
 
@@ -197,12 +251,72 @@ namespace Overworld {
 
     // todo: use a spatial map for increased performance
     for (auto& tileObject : layer.GetTileObjects()) {
-      if (tileObject.Intersects(*this, testPosition.x, testPosition.y)) {
+      if (tileObject.solid && tileObject.Intersects(*this, testPosition.x, testPosition.y)) {
         return false;
       }
     }
 
     return true;
+  }
+
+  float Map::GetElevationAt(float x, float y, int layerIndex) {
+    auto& layer = layers[layerIndex];
+    auto& tile = layer.GetTile(x, y);
+    auto& tileMeta = tileMetas[tile.gid];
+
+    auto layerElevation = (float)layerIndex;
+
+    if (!tileMeta || tileMeta->type != "Stairs") {
+      return layerElevation;
+    }
+
+    float _, relativeX, relativeY;
+    relativeX = std::modf(x, &_);
+    relativeY = std::modf(y, &_);
+
+    float layerRelativeElevation = 0.0;
+    auto directionString = tileMeta->customProperties.GetProperty("Direction");
+    Direction direction;
+
+    if (directionString == "Up Left") {
+      direction = tile.flippedHorizontal ? Direction::up_right : Direction::up_left;
+    }
+    else if (directionString == "Up Right") {
+      direction = tile.flippedHorizontal ? Direction::up_left : Direction::up_right;
+    }
+    if (directionString == "Down Left") {
+      direction = tile.flippedHorizontal ? Direction::down_right : Direction::down_left;
+    }
+    else if (directionString == "Down Right") {
+      direction = tile.flippedHorizontal ? Direction::down_left : Direction::down_right;
+    }
+
+    switch (direction) {
+    case Direction::up_left:
+      layerRelativeElevation = 1 - relativeX;
+      break;
+    case Direction::up_right:
+      layerRelativeElevation = 1 - relativeY;
+      break;
+    case Direction::down_left:
+      layerRelativeElevation = relativeX;
+      break;
+    case Direction::down_right:
+      layerRelativeElevation = relativeY;
+      break;
+    default:
+      break;
+    }
+
+    return layerElevation + layerRelativeElevation;
+  }
+
+  bool Map::TileRequiresOpening(float x, float y, int layerIndex) {
+    auto& layer = layers[layerIndex];
+    auto& tile = layer.GetTile(x, y);
+    auto& tileMeta = tileMetas[tile.gid];
+
+    return tileMeta && tileMeta->type == "Stairs";
   }
 
   void Map::RemoveSprites(SceneBase& scene) {
@@ -260,6 +374,16 @@ namespace Overworld {
   Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
   {
     return SetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)), gid);
+  }
+
+  void Map::Layer::SetVisible(bool enabled)
+  {
+    visible = enabled;
+  }
+
+  const bool Map::Layer::IsVisible() const
+  {
+    return visible;
   }
 
   std::optional<std::reference_wrapper<TileObject>> Map::Layer::GetTileObject(unsigned int id) {

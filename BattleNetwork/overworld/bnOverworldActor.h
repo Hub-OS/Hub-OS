@@ -33,8 +33,9 @@ namespace Overworld {
     };
 
     float animProgress{}; //!< Used to sync movement animations
-    float walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
-    float runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
+    float walkSpeed{ 80 }; //!< walk speed as pixels per second. Default 40px/s
+    float runSpeed{ 140 }; //!< run speed as pixels per second. Default 70px/s
+    bool onStairs{ false };
     bool moveThisFrame{ false }; //!< Tells actor to move in accordance with their states or remain stationairy
     Direction heading{ Direction::down }; //!< the character's current heading
     std::map<std::string, Animation> anims; //!< Map of animation objects per direction per state
@@ -44,9 +45,9 @@ namespace Overworld {
     std::string name{}; //!< name of this character
     std::string lastStateStr{}; //!< String representing the last frame's state name
     std::function<void(std::shared_ptr<Actor> with)> onInteractFunc; //!< What happens if an actor interacts with the other
-    float collisionRadius{ 1.0 };
-    bool solid{true};
-    bool collidesWithMap{true};
+    float collisionRadius{ 1.0 }; //px
+    bool solid{ true };
+    bool collidesWithMap{ true };
 
     void UpdateAnimationState(float elapsed);
 
@@ -60,7 +61,7 @@ namespace Overworld {
     */
     Actor(const std::string& name);
 
-    Actor(Actor&& ) noexcept;
+    Actor(Actor&&) noexcept;
 
     /**
     * @brief Deconstructor
@@ -72,14 +73,14 @@ namespace Overworld {
     * @param dir direction to walk in
     * @param move if true then move (default), if false remain in place
     */
-    void Walk(const Direction& dir, bool move=true);
+    void Walk(const Direction& dir, bool move = true);
 
     /**
     * @brief Make the character run
     * @param dir direction to run in
     * @param move if true then move (default), if false remain in place
     */
-    void Run(const Direction& dir, bool move=true);
+    void Run(const Direction& dir, bool move = true);
 
     /**
     * @brief Make the character idle and face a direction
@@ -97,11 +98,11 @@ namespace Overworld {
     * @brief Loads animation data from a file
     * @param path load the animations for this character from a file
     * @preconditions The animation file follows the standard for overworld states described below
-    * 
+    *
     * Each heading must end with a one letter suffix. For diagonal directions they are two letter suffixes.
-    * For diagonal directions the y axis takes priority 
+    * For diagonal directions the y axis takes priority
     *   e.g. _YX would be _DL for "Down Right"
-    * 
+    *
     * Each movement state must prefix the heading with either "IDLE", "WALK", or "RUN"
     * e.g. "IDLE_L" would be "Idle left"
     *      "WALK_UL" would be "Walking Up left"
@@ -167,7 +168,7 @@ namespace Overworld {
     /**
     * @brief Update the actor location and frame
     * @param elapsed Time elapsed in seconds
-    * 
+    *
     * This funtion will set the appropriate animation if it is not set to
     * reflect the current state values. It will also offset the actor x/y
     * based on walk or run speeds.
@@ -177,7 +178,7 @@ namespace Overworld {
     /**
     * @brief Watch for tile-based collisions with the current map
     * @param bool
-    * 
+    *
     * During Update() if the actor is intended to move, it will also check
     * against tiles to see if it should collide.
     */
@@ -206,7 +207,7 @@ namespace Overworld {
     void Interact(const std::shared_ptr<Actor>& with);
 
     const std::optional<sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
-    const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap);
-    const std::pair<bool, sf::Vector2f> CanMoveTo(sf::Vector2f pos, Map& map, SpatialMap& spatialMap);
+    const std::pair<bool, sf::Vector3f> CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap);
+    const std::pair<bool, sf::Vector3f> CanMoveTo(sf::Vector2f pos, Map& map, SpatialMap& spatialMap);
   };
 }

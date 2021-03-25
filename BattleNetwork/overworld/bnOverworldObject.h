@@ -1,14 +1,17 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <optional>
 #include <unordered_map>
 #include <memory>
 
 #include "bnOverworldSprite.h"
+#include "bnOverworldCustomProperties.h"
 #include "bnOverworldShapes.h"
 #include "bnOverworldTile.h"
 #include "bnOverworldMap.h"
 #include "../bnSpriteProxyNode.h"
+#include "bnXML.h"
 
 namespace Overworld {
   struct Tile;
@@ -18,10 +21,13 @@ namespace Overworld {
   public:
     unsigned int id;
     std::string name;
-    bool visible;
+    std::string type;
+    bool visible{ true };
+    bool solid{};
     sf::Vector2f position;
     sf::Vector2f size;
     float rotation;
+    CustomProperties customProperties;
 
     virtual bool Intersects(Map& map, float x, float y) const { return false; }
     std::shared_ptr<WorldSprite> GetWorldSprite() { return worldSprite; }
@@ -42,6 +48,8 @@ namespace Overworld {
 
     ShapeObject(unsigned int id, std::unique_ptr<Overworld::Shape> shape);
 
+    static std::optional<ShapeObject> From(const XMLElement& element);
+
     bool Intersects(Map& map, float x, float y) const override;
   };
 
@@ -51,6 +59,8 @@ namespace Overworld {
 
     TileObject(unsigned int id, Overworld::Tile tile);
     TileObject(unsigned int id, unsigned int gid);
+
+    static TileObject From(const XMLElement& element);
 
     bool Intersects(Map& map, float x, float y) const override;
 

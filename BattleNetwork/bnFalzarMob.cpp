@@ -16,7 +16,7 @@ Mob* FalzarMob::Build() {
     mob->ToggleBossFlag();
     mob->StreamCustomMusic("resources/loops/loop_falzar.ogg");
 
-    auto bg = new VirusBackground();
+    auto bg = std::make_shared<VirusBackground>();
     bg->ScrollUp();
     bg->SetScrollSpeed(0.15f); // crawl upward slowly
     mob->SetBackground(bg);

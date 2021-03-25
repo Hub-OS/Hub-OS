@@ -33,7 +33,6 @@ namespace Overworld {
     auto it = chunks.find(chunkHash);
 
     if (it == chunks.end()) {
-      auto& chunk = it->second;
       return {};
     }
 

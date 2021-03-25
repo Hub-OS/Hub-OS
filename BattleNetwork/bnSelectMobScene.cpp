@@ -86,7 +86,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const Sel
 
 SelectMobScene::~SelectMobScene() {
   if (mob) delete mob;
-  if (props.background) delete props.background;
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
@@ -375,7 +374,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       mob->SetBackground(props.background);
 
       MobBattleProperties props{ 
-        { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground()->Clone() },
+        { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
         MobBattleProperties::RewardBehavior::take,
         { mob }
       };

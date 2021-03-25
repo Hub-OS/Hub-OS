@@ -50,7 +50,7 @@ public:
     SelectedNavi navi;
     CardFolder& folder;
     PA& pa;
-    Background* background{ nullptr };
+    std::shared_ptr<Background> background{ nullptr };
   };
 
 private:

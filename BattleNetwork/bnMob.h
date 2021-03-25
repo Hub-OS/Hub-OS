@@ -32,7 +32,7 @@ private:
   std::vector<std::function<void(Character*)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
   std::multimap<int, BattleItem> rewards; /*!< All possible rewards for this mob by rank */
   Field* field{ nullptr }; /*!< The field to play on */
-  Background* background; /*!< Override with custom background */
+  std::shared_ptr<Background> background; /*!< Override with custom background */
 
 public:
 
@@ -117,13 +117,13 @@ public:
    * @brief Set a custom background
    * @param background
    */
-  void SetBackground(Background* background);
+  void SetBackground(const std::shared_ptr<Background> background);
 
   /**
    * @brief Get the background object
    * @return Background*
    */
-  Background* GetBackground();
+  std::shared_ptr<Background> GetBackground();
 
   /**
    * @brief The battle scene will load this custom music

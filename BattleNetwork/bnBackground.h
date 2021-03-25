@@ -21,8 +21,6 @@ public:
   /**
   * @brief uses CRTP to implement this function in the child class IBackground
   */
-  virtual Background* Clone() = 0;
-
   virtual void setColor(sf::Color color) = 0;
   
   /**
@@ -174,10 +172,6 @@ public:
     for (int i = 0; i < vertices.getVertexCount(); i++) {
       vertices[i].color = color;
     }
-  }
-
-  Background* Clone() override final {
-    return new T; // no arguments
   }
 
 

@@ -4,6 +4,30 @@
 #include <SFML/Graphics.hpp>
 
 namespace Overworld {
+  TileMeta::TileMeta(
+    const Tileset& tileset,
+    unsigned int id,
+    unsigned int gid,
+    sf::Vector2f drawingOffset,
+    sf::Vector2f alignmentOffset,
+    const std::string& type,
+    const CustomProperties& customProperties,
+    std::vector<std::unique_ptr<Shape>> collisionShapes
+  ) :
+    id(id),
+    gid(gid),
+    drawingOffset(drawingOffset),
+    alignmentOffset(alignmentOffset),
+    type(type),
+    customProperties(customProperties),
+    collisionShapes(std::move(collisionShapes))
+  {
+    sprite.setTexture(*tileset.texture);
+    animation = tileset.animation;
+    animation << to_string(id) << Animator::Mode::Loop;
+    animation.Refresh(sprite);
+  }
+
   bool Tile::Intersects(Map& map, float x, float y) const {
     auto tileset = map.GetTileset(gid);
 

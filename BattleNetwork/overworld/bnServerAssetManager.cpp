@@ -102,13 +102,20 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) 
 
       auto length = entry.file_size();
 
-      std::ifstream fin(path, std::ios::binary);
-      // prevents newlines from being skipped
-      fin.unsetf(std::ios::skipws);
-
       std::vector<char> data;
-      data.reserve(length);
-      data.insert(data.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
+
+      try {
+        std::ifstream fin(path, std::ios::binary);
+        // prevents newlines from being skipped
+        fin.unsetf(std::ios::skipws);
+
+        data.reserve(length);
+        data.insert(data.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
+      }
+      catch (std::ifstream::failure& e) {
+        Logger::Logf("Failed to read cached data \"%s\": %s", path.c_str(), e.what());
+        continue;
+      }
 
       auto extensionIndex = name.rfind('.');
       auto extension = extensionIndex != std::string::npos ? name.substr(extensionIndex) : "";
@@ -199,11 +206,6 @@ void Overworld::ServerAssetManager::SetTexture(const std::string& name, uint64_t
   auto texture = std::make_shared<sf::Texture>();
   texture->loadFromMemory(data, length);
 
-  textureAssets.erase(name);
-  textureAssets.emplace(name, texture);
-}
-
-void Overworld::ServerAssetManager::SetTextureDirect(const std::string& name, std::shared_ptr<sf::Texture>& texture) {
   textureAssets.erase(name);
   textureAssets.emplace(name, texture);
 }

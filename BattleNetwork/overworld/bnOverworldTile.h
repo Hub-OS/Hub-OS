@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 
+#include "bnOverworldCustomProperties.h"
 #include "bnOverworldShapes.h"
 #include "../bnAnimation.h"
 
@@ -20,6 +21,7 @@ namespace Overworld
     const sf::Vector2f drawingOffset;
     const sf::Vector2f alignmentOffset;
     const Projection orientation; // used for collisions
+    const CustomProperties customProperties;
     std::shared_ptr<sf::Texture> texture;
     Animation animation;
   };
@@ -29,13 +31,23 @@ namespace Overworld
     const unsigned int gid;
     const sf::Vector2f drawingOffset;
     const sf::Vector2f alignmentOffset;
+    const std::string type;
+    const CustomProperties customProperties;
+    const std::vector<std::unique_ptr<Shape>> collisionShapes;
     Animation animation;
     sf::Sprite sprite;
-    std::vector<std::unique_ptr<Shape>> collisionShapes;
 
 
-    TileMeta(unsigned int id, unsigned int gid, sf::Vector2f drawingOffset, sf::Vector2f alignmentOffset)
-      : id(id), gid(gid), drawingOffset(drawingOffset), alignmentOffset(alignmentOffset) {}
+    TileMeta(
+      const Tileset& tileset,
+      unsigned int id,
+      unsigned int gid,
+      sf::Vector2f drawingOffset,
+      sf::Vector2f alignmentOffset,
+      const std::string& type,
+      const CustomProperties& customProperties,
+      std::vector<std::unique_ptr<Shape>> collisionShapes
+    );
   };
 
   struct Tile {

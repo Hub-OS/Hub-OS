@@ -20,7 +20,7 @@ namespace Overworld {
     uint16_t maxPayloadSize{};
     bool reconnecting{ false };
     swoosh::Timer pingServerTimer;
-    sf::Vector2f netWarpTilePos;
+    sf::Vector3f netWarpTilePos;
     unsigned int netWarpObjectId{};
     CyberworldStatus cyberworldStatus{ CyberworldStatus::offline };
 

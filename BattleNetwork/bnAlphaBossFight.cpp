@@ -21,7 +21,7 @@ AlphaBossFight::~AlphaBossFight()
 
 Mob* AlphaBossFight::Build() {
   Mob* mob = new Mob(field);
-  auto bg = new VirusBackground;
+  auto bg = std::make_shared<VirusBackground>();
   bg->SetScrollSpeed(2.f);
   bg->ScrollLeft();
 

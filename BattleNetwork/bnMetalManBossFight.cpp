@@ -21,7 +21,7 @@ MetalManBossFight::~MetalManBossFight()
 
 Mob* MetalManBossFight::Build() {
   Mob* mob = new Mob(field);
-  mob->SetBackground(new UndernetBackground());
+  mob->SetBackground(std::make_shared<UndernetBackground>());
   mob->StreamCustomMusic("resources/loops/loop_boss_battle.ogg");
 
   //mob->RegisterRankedReward(1, BattleItem(Battle::Card(100, 139, 'Y', 0, Element::none, "YoYo", "", "", 0)));

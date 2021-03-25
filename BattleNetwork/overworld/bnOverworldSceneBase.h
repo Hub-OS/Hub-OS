@@ -30,6 +30,7 @@
 #include "bnOverworldTextBox.h"
 #include "bnEmotes.h"
 #include "bnXML.h"
+#include "bnMinimap.h"
 
 class Background; // forward decl
 
@@ -43,7 +44,6 @@ namespace Overworld {
     Overworld::PlayerController playerController{};
     Overworld::SpatialMap spatialMap{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
-    bool inputLocked{ false };
 
     struct QueuedCameraEvent {
       bool unlock;
@@ -52,36 +52,39 @@ namespace Overworld {
       sf::Time duration;
     };
 
+    double animElapsed{};
+    bool showMinimap{ false };
+    bool inputLocked{ false };
+    bool cameraLocked{ false };
+    bool teleportedOut{ false }; /*!< We may return to this area*/
+    bool clicked{ false }, scaledmap{ false };
+    bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
+    bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
+    bool guestAccount{ false };
+
     std::queue<QueuedCameraEvent> cameraQueue;
     Camera camera; /*!< camera in scene follows player */
-    bool cameraLocked{ false };
-    swoosh::Timer cameraTimer;
-    bool clicked{ false }, scaledmap{ false };
 
-    sf::Vector2f returnPoint{};
-    bool teleportedOut{ false }; /*!< We may return to this area*/
+    swoosh::Timer cameraTimer;
+    sf::Vector3f returnPoint{};
 
     PersonalMenu personalMenu;
-
+    Minimap minimap;
     SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
     Animation webAccountAnimator; /*!< Use animator to represent different statuses */
-    bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
     // Bunch of sprites and their attachments
-    Background* bg{ nullptr }; /*!< Background image pointer */
+    std::shared_ptr<Background> bg{ nullptr }; /*!< Background image pointer */
     Overworld::Map map; /*!< Overworld map */
     std::vector<std::shared_ptr<WorldSprite>> sprites;
+    std::vector<std::vector<std::shared_ptr<WorldSprite>>> spriteLayers;
 
     Overworld::TextBox textbox;
-
-    double animElapsed{};
 
     /*!< Current navi selection index */
     SelectedNavi currentNavi{},
       lastSelectedNavi{ std::numeric_limits<SelectedNavi>::max() };
 
-    bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
-    bool guestAccount{ false };
 
     CardFolderCollection folders; /*!< Collection of folders */
     PA programAdvance;
@@ -92,10 +95,10 @@ namespace Overworld {
     std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(const XMLElement& tilesetElement, const Overworld::Tileset& tileset);
     void HandleCamera(float elapsed);
     void HandleInput();
-    void LoadBackground(const std::string& value);
-    void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
-    void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);
-    void DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const;
+    void LoadBackground(const Map& map, const std::string& value);
+    void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
+    void DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
+    void DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
 
 #ifdef __ANDROID__
     void StartupTouchControls();
@@ -103,6 +106,7 @@ namespace Overworld {
 #endif
 
   protected:
+    virtual std::string GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);
     virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
     virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
@@ -174,10 +178,10 @@ namespace Overworld {
     */
     void LoadMap(const std::string& data);
 
-    void TeleportUponReturn(const sf::Vector2f& position);
+    void TeleportUponReturn(const sf::Vector3f& position);
     const bool HasTeleportedAway() const;
 
-    void SetBackground(Background*);
+    void SetBackground(const std::shared_ptr<Background>&);
 
     /**
      * @brief Add a sprite
@@ -264,7 +268,7 @@ namespace Overworld {
     //
     // Getters
     //
-
+    Minimap& GetMinimap();
     SpatialMap& GetSpatialMap();
     std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
@@ -273,7 +277,7 @@ namespace Overworld {
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
-    Background* GetBackground();
+    std::shared_ptr<Background> GetBackground();
     Overworld::TextBox& GetTextBox();
     bool IsInputLocked();
     bool IsCameraLocked();

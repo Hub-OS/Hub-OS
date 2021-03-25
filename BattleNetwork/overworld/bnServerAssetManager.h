@@ -27,7 +27,6 @@ namespace Overworld {
 
     void SetText(const std::string& name, uint64_t lastModified, const std::string& data, bool cache);
     void SetTexture(const std::string& name, uint64_t lastModified, const char* data, size_t length, bool cache);
-    void SetTextureDirect(const std::string& name, std::shared_ptr<sf::Texture>& texture);
     void SetAudio(const std::string& name, uint64_t lastModified, const char* data, size_t length, bool cache);
     void RemoveAsset(const std::string& name);
   };

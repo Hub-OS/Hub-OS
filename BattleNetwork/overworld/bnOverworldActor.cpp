@@ -156,7 +156,7 @@ void Overworld::Actor::Update(float elapsed, Map& map, SpatialMap& spatialMap)
     auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed, map, spatialMap);
 
     // We don't care about success or not, update the best position
-    setPosition(new_pos);
+    Set3DPosition(new_pos);
 
     moveThisFrame = false;
   }
@@ -289,11 +289,13 @@ const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& ac
   return vec;
 }
 
-const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap)
+const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap)
 {
   float px_per_s = 0;
+  float elevation = GetElevation();
+  bool onStairs = elevation != std::floor(elevation);
 
-  if (state == MovementState::running) {
+  if (onStairs || state == MovementState::running) {
     px_per_s = GetRunSpeed() * elapsed;
   }
   else if (state == MovementState::walking) {
@@ -301,8 +303,8 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   }
 
   auto currPos = getPosition();
-  auto offset = MakeVectorFromDirection(dir, px_per_s);
 
+  auto offset = MakeVectorFromDirection(dir, px_per_s);
   const auto& [first, second] = Split(dir);
 
   // The referenced games did not use isometric coordinates
@@ -318,7 +320,6 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   }
 
   auto newPos = currPos + normalizedOffset;
-
   auto [canMove, firstPositionResult] = CanMoveTo(newPos, map, spatialMap);
 
   if (!canMove) {
@@ -363,10 +364,46 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   return { canMove, firstPositionResult };
 }
 
-const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(sf::Vector2f newPos, Map& map, SpatialMap& spatialMap) {
+static bool SameTile(sf::Vector2f a, sf::Vector2f b) {
+  return std::floor(a.x) == std::floor(b.x) && std::floor(a.y) == std::floor(b.y);
+}
+
+static int GetTargetLayer(Overworld::Map& map, int currentLayer, float layerRelativeElevation, sf::Vector2f currentTilePos, sf::Vector2f targetTilePos) {
+  const auto offset = targetTilePos - currentTilePos;
+  const float offsetLength = std::sqrt(std::pow(offset.x, 2.0f) + std::pow(offset.y, 2.0f));
+  const float elevationPadding = 1.0f / map.GetTileSize().y * 2.0f;
+  const float maxElevationDiff = offsetLength + elevationPadding;
+
+  const auto layerBelow = currentLayer - 1;
+
+  if (layerBelow >= 0 && layerBelow < map.GetLayerCount() && map.TileRequiresOpening(targetTilePos.x, targetTilePos.y, layerBelow)) {
+    return layerBelow;
+  }
+  else if (layerRelativeElevation > 1 - maxElevationDiff && !SameTile(currentTilePos, targetTilePos)) {
+    // if we're at the top of stairs, target the layer above
+    return currentLayer + 1;
+  }
+
+  return currentLayer;
+}
+
+const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f newPos, Map& map, SpatialMap& spatialMap) {
   auto currPos = getPosition();
+  auto currPos3D = sf::Vector3f(currPos.x, currPos.y, GetElevation());
+  auto layerRelativeElevation = currPos3D.z - std::floor(currPos3D.z);
+
   auto offset = newPos - currPos;
-  auto dir = MakeDirectionFromVector(offset);
+  float offsetLength = std::sqrt(std::pow(offset.x, 2.0f) + std::pow(offset.y, 2.0f));
+  const float maxElevationDiff = (offsetLength + 1.0f) / map.GetTileSize().y * 2.0f;
+
+  auto currPosTileSpace = map.WorldToTileSpace(currPos);
+  auto newPosTileSpace = map.WorldToTileSpace(newPos);
+
+  int newLayer = GetTargetLayer(map, GetLayer(), layerRelativeElevation, currPosTileSpace, newPosTileSpace);
+
+  // check if there's stairs below, if there is, target that layer for newPos3D
+
+  auto newPos3D = sf::Vector3f(newPos.x, newPos.y, map.GetElevationAt(newPosTileSpace.x, newPosTileSpace.y, newLayer));
 
   /**
   * Check if colliding with the map
@@ -374,14 +411,25 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(sf::Vector2f new
   * before checking neighboring actors
   */
 
-  auto layer = GetLayer();
+  if (collidesWithMap && newLayer >= 0 && map.GetLayerCount() > newLayer) {
+    if (std::fabs(newPos3D.z - currPos3D.z) > maxElevationDiff) {
+      // height difference is too great
+      return { false, currPos3D };
+    }
 
-  if (collidesWithMap && layer >= 0 && map.GetLayerCount() > layer) {
-    auto tileSize = sf::Vector2f(map.GetTileSize());
-    tileSize.x *= .5f;
+    // detect collision at the edge of the collisionRadius
+    auto ray_unit = sf::Vector2f(offset.x / offsetLength, offset.y / offsetLength);
+    auto ray = ray_unit * collisionRadius;
 
-    if (!map.CanMoveTo(newPos.x / tileSize.x, newPos.y / tileSize.y, layer)) {
-      return { false, currPos }; // Otherwise, we cannot move
+    auto edgeTileSpace = map.WorldToTileSpace(currPos + ray);
+    auto edgeLayer = GetTargetLayer(map, GetLayer(), layerRelativeElevation, currPosTileSpace, edgeTileSpace);
+    auto edgeElevation = map.GetElevationAt(edgeTileSpace.x, edgeTileSpace.y, edgeLayer);
+
+    if (
+      !map.CanMoveTo(edgeTileSpace.x, edgeTileSpace.y, edgeLayer) || // can't move
+      std::fabs(newPos3D.z - edgeElevation) > maxElevationDiff // height difference is too great at edge
+      ) {
+      return { false, currPos3D };
     }
   }
 
@@ -389,19 +437,34 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(sf::Vector2f new
   * If we can move forward, check neighboring actors
   */
   if (solid) {
-    for (auto actor : spatialMap.GetNeighbors(*this)) {
+    for (const auto& actor : spatialMap.GetNeighbors(*this)) {
       if (actor.get() == this || !actor->solid) continue;
+
+      auto elevationDifference = std::fabs(actor->GetElevation() - newPos3D.z);
+
+      if (elevationDifference > 0.1f) continue;
 
       auto collision = CollidesWith(*actor, offset);
 
       if (collision) {
-        return { false, collision.value() };
+        // push the ourselves out of the ohter actor
+        // use current position to prevent sliding off map
+        auto delta = currPos - actor->getPosition();
+        float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+        auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
+        auto sumOfRadii = collisionRadius + actor->GetCollisionRadius();
+        auto outPos = actor->getPosition() + (delta_unit * sumOfRadii);
+
+        auto outPosInTileSpace = map.WorldToTileSpace(outPos);
+        auto elevation = map.GetElevationAt(outPosInTileSpace.x, outPosInTileSpace.y, newLayer);
+
+        return { false, { outPos.x, outPos.y, elevation } };
       }
     }
   }
 
   // There were no obstructions
-  return { true, newPos };
+  return { true, newPos3D };
 }
 
 std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)

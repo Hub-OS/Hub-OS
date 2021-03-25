@@ -5,7 +5,6 @@
 namespace Overworld {
   ShapeObject::ShapeObject(unsigned int id, std::unique_ptr<Overworld::Shape> shape) {
     this->id = id;
-    visible = true;
     this->shape = std::move(shape);
   }
 
@@ -18,7 +17,7 @@ namespace Overworld {
 
   TileObject::TileObject(unsigned int id, Tile tile) : tile(tile) {
     this->id = id;
-    visible = true;
+    solid = true;
     worldSprite = std::make_shared<WorldSprite>();
   }
 
@@ -132,5 +131,53 @@ namespace Overworld {
     preTransform.translate(tileMeta->alignmentOffset + tileMeta->drawingOffset + origin);
     preTransform.translate(-ortho);
     worldSprite->SetPreTransform(preTransform);
+  }
+
+
+  static void AdoptAttributes(MapObject& object, const XMLElement& element) {
+    object.name = element.GetAttribute("name");
+    object.type = element.GetAttribute("type");
+    object.position = sf::Vector2f(
+      element.GetAttributeFloat("x"),
+      element.GetAttributeFloat("y")
+    );
+    object.size = sf::Vector2f(
+      element.GetAttributeFloat("width"),
+      element.GetAttributeFloat("height")
+    );
+    object.rotation = element.GetAttributeFloat("rotation");
+    object.visible = element.GetAttribute("visible") != "0";
+
+    for (auto child : element.children) {
+      if (child.name == "properties") {
+        object.customProperties = CustomProperties::From(child);
+      }
+    }
+  }
+
+  std::optional<ShapeObject> ShapeObject::From(const XMLElement& element) {
+    auto id = element.GetAttributeInt("id");
+    auto shapePtr = Shape::From(element);
+
+    if (!shapePtr) {
+      return {};
+    }
+
+    auto shapeObject = ShapeObject(id, std::move(shapePtr.value()));
+
+    AdoptAttributes(shapeObject, element);
+
+    return shapeObject;
+  }
+
+  TileObject TileObject::From(const XMLElement& element) {
+    auto id = element.GetAttributeInt("id");
+    auto gid = static_cast<unsigned int>(stoul("0" + element.GetAttribute("gid")));
+
+    auto tileObject = TileObject(id, gid);
+
+    AdoptAttributes(tileObject, element);
+
+    return tileObject;
   }
 }

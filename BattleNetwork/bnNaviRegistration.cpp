@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-NaviRegistration::NaviMeta::NaviMeta() : iconTexture(), overworldTexture(), previewTexture()
+NaviRegistration::NaviMeta::NaviMeta() : iconTexture(), previewTexture()
 {
   navi = nullptr;
   special = "None";
@@ -66,15 +66,15 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetIsSword(const bool en
   return *this;
 }
 
-NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldAnimationPath(const std::string && path)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldAnimationPath(const std::string& path)
 {
   overworldAnimationPath = path;
   return *this;
 }
 
-NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldTexture(const std::shared_ptr<Texture> texture)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldTexturePath(const std::string& path)
 {
-  overworldTexture = texture;
+  overworldTexturePath = path;
   return *this;
 }
 
@@ -89,9 +89,9 @@ const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetIconTexture() cons
   return iconTexture;
 }
 
-const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetOverworldTexture() const
+const std::string NaviRegistration::NaviMeta::GetOverworldTexturePath() const
 {
-  return overworldTexture;
+  return overworldTexturePath;
 }
 
 const std::string & NaviRegistration::NaviMeta::GetOverworldAnimationPath() const 

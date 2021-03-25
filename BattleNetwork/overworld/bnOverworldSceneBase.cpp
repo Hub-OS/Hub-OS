@@ -19,6 +19,7 @@
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
 #include "../bnCardFolderCollection.h"
+#include "../bnCustomBackground.h"
 #include "../bnLanBackground.h"
 #include "../bnACDCBackground.h"
 #include "../bnGraveyardBackground.h"
@@ -73,7 +74,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   webAccountAnimator.SetAnimation("NO_CONNECTION");
 
   // Draws the scrolling background
-  SetBackground(new LanBackground);
+  SetBackground(std::make_shared<LanBackground>());
 
   personalMenu.setScale(2.f, 2.f);
   emote.setScale(2.f, 2.f);
@@ -180,6 +181,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   if (gotoNextScene == false) {
     playerController.Update(elapsed);
     teleportController.Update(elapsed);
+    minimap.SetPlayerPosition(map.WorldToScreen(playerActor->getPosition()));
   }
 
   for (auto& actor : actors) {
@@ -225,19 +227,37 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     lastIsConnectedState = currentConnectivity;
   }
 
-  // sort sprites
-  std::sort(sprites.begin(), sprites.end(),
-    [](const std::shared_ptr<WorldSprite>& A, const std::shared_ptr<WorldSprite>& B) {
-    int A_layer_inv = -A->GetLayer();
-    int B_layer_inv = -B->GetLayer();
+  auto layerCount = map.GetLayerCount() + 1;
 
-    auto A_pos = A->getPosition();
-    auto B_pos = B->getPosition();
-    auto A_compare = A_pos.x + A_pos.y;
-    auto B_compare = B_pos.x + B_pos.y;
+  if (spriteLayers.size() != layerCount) {
+    spriteLayers.resize(layerCount);
+  }
 
-    return std::tie(A_layer_inv, A_compare) < std::tie(B_layer_inv, B_compare);
-  });
+  for (auto i = 0; i < layerCount; i++) {
+    auto& spriteLayer = spriteLayers[i];
+    auto elevation = (float)i;
+
+    spriteLayer.clear();
+
+    // match sprites to layer
+    for (auto& sprite : sprites) {
+      // use ceil(elevation) + 1 instead of GetLayer to prevent sorting issues with stairs
+      if (std::ceil(sprite->GetElevation()) + 1 == elevation) {
+        spriteLayer.push_back(sprite);
+      }
+    }
+
+    // sort sprites within the layer
+    std::sort(spriteLayer.begin(), spriteLayer.end(),
+      [](const std::shared_ptr<WorldSprite>& A, const std::shared_ptr<WorldSprite>& B) {
+      auto A_pos = A->getPosition();
+      auto B_pos = B->getPosition();
+      auto A_compare = A_pos.x + A_pos.y;
+      auto B_compare = B_pos.x + B_pos.y;
+
+      return A_compare < B_compare;
+    });
+  }
 
   // Loop the bg
   bg->Update((float)elapsed);
@@ -270,6 +290,7 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
   if (!cameraLocked) {
     // Follow the navi
     sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
+    pos.y -= playerActor->GetElevation() * map.GetTileSize().y / 2.0f;
     camera.PlaceCamera(pos);
     return;
   }
@@ -301,32 +322,68 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
 
 void Overworld::SceneBase::HandleInput() {
 
-  // check to see if talk button was pressed
-  if (emote.IsClosed() && !IsInputLocked()) {
-    if (Input().Has(InputEvents::pressed_interact)) {
-      OnInteract();
+  // TODO: change this to use Input().Has(event)
+  if (Input().GetAnyKey() == sf::Keyboard::M) {
+    showMinimap = !showMinimap;
+    if (!showMinimap) {
+      minimap.ResetPanning();
     }
+
+    return;
   }
 
-  if (emote.IsOpen()) {
+  if (showMinimap) {
+    sf::Vector2f panning = {};
+
+    if (Input().Has(InputEvents::held_ui_left)) {
+      panning.x -= 1.f;
+    }
+
+    if (Input().Has(InputEvents::held_ui_right)) {
+      panning.x += 1.f;
+    }
+
+    if (Input().Has(InputEvents::held_ui_up)) {
+      panning.y -= 1.f;
+    }
+
+    if (Input().Has(InputEvents::held_ui_down)) {
+      panning.y += 1.f;
+    }
+
+    minimap.Pan(panning);
+    return;
+  }
+
+  if (!emote.IsClosed()) {
     if (Input().Has(InputEvents::pressed_option)) {
       emote.Close();
     }
     return;
   }
 
-  if (textbox.IsOpen()) {
+  if (!textbox.IsClosed()) {
     textbox.HandleInput(Input());
     return;
   }
 
-  personalMenu.HandleInput(Input(), Audio());
-
-  if (personalMenu.IsOpen()) {
+  if (!personalMenu.IsClosed()) {
+    personalMenu.HandleInput(Input(), Audio());
     return;
   }
 
-  if (Input().Has(InputEvents::pressed_option)) {
+  // check to see if talk button was pressed
+  if (!IsInputLocked()) {
+    if (Input().Has(InputEvents::pressed_interact)) {
+      OnInteract();
+    }
+  }
+
+  if (Input().Has(InputEvents::pressed_pause) && !Input().Has(InputEvents::pressed_cancel)) {
+    personalMenu.Open();
+    Audio().Play(AudioType::CHIP_DESC);
+  }
+  else if (Input().Has(InputEvents::pressed_option)) {
     emote.Open();
   }
 }
@@ -381,6 +438,8 @@ void Overworld::SceneBase::onResume() {
     });
   }
 
+  Audio().Stream(GetPath(map.GetSongPath()));
+
 #ifdef __ANDROID__
   StartupTouchControls();
 #endif
@@ -389,7 +448,12 @@ void Overworld::SceneBase::onResume() {
 void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   surface.draw(*bg);
 
-  DrawMap(surface, sf::RenderStates::Default);
+  DrawWorld(surface, sf::RenderStates::Default);
+
+  if (showMinimap) {
+    surface.draw(minimap);
+    return;
+  }
 
   surface.draw(emote);
   surface.draw(personalMenu);
@@ -400,7 +464,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   surface.draw(textbox);
 }
 
-void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates states) {
+void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
   auto mapScale = GetMap().getScale();
   auto cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
@@ -415,20 +479,35 @@ void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates st
   states.transform.translate(offset);
   states.transform *= map.getTransform();
 
-  DrawTiles(target, states);
-  DrawSprites(target, states);
+  auto tileSize = map.GetTileSize();
+  auto mapLayerCount = map.GetLayerCount();
+
+  // there should be mapLayerCount + 1 sprite layers
+  for (auto i = 0; i < mapLayerCount + 1; i++) {
+    // loop is based on expected sprite layers
+    // make sure we dont try to draw an extra map layer and segfault
+    if (i < mapLayerCount) {
+      DrawMapLayer(target, states, i);
+    }
+
+    // save from possible map layer count change after OverworldSceneBase::Update
+    if (i < spriteLayers.size()) {
+      DrawSpriteLayer(target, states, i);
+    }
+
+    // translate next layer
+    states.transform.translate(0.f, -tileSize.y * 0.5f);
+  }
 }
 
-void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates states) {
-  if (map.GetLayerCount() == 0) {
-    return;
-  }
+void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
+  auto& layer = map.GetLayer(index);
+
+  if (!layer.IsVisible()) return;
 
   auto rows = map.GetRows();
   auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
-
-  auto& layer = map.GetLayer(0);
 
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
@@ -482,22 +561,27 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
   }
 }
 
-void Overworld::SceneBase::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
-  for (auto& sprite : sprites) {
-    auto iso = sprite->getPosition();
-    auto ortho = map.WorldToScreen(iso);
+
+void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
+  auto tileSize = map.GetTileSize();
+  auto elevation = (float)index;
+
+  for (auto& sprite : spriteLayers[index]) {
+    auto worldPos = sprite->getPosition();
+    auto screenPos = map.WorldToScreen(worldPos);
+    screenPos.y -= (sprite->GetElevation() - elevation) * tileSize.y * 0.5f;
 
     // prevents blurring and camera jittering with the player
-    ortho.x = std::floor(ortho.x);
-    ortho.y = std::floor(ortho.y);
+    screenPos.x = std::floor(screenPos.x);
+    screenPos.y = std::floor(screenPos.y);
 
-    sprite->setPosition(ortho);
+    sprite->setPosition(screenPos);
 
     if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
       target.draw(*sprite, states);
     }
 
-    sprite->setPosition(iso);
+    sprite->setPosition(worldPos);
   }
 }
 
@@ -525,7 +609,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
   const auto& owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
-    if (auto tex = meta.GetOverworldTexture()) {
+    if (auto tex = Textures().LoadTextureFromFile(meta.GetOverworldTexturePath())) {
       playerActor->setTexture(tex);
     }
     playerActor->LoadAnimations(Animation(owPath));
@@ -569,48 +653,55 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
   }
 }
 
-void Overworld::SceneBase::LoadBackground(const std::string& value)
+void Overworld::SceneBase::LoadBackground(const Map& map, const std::string& value)
 {
-  std::string str = value;
-  std::transform(str.begin(), str.end(), str.begin(), [](auto in) {
-    return std::tolower(in);
-  });
+  if (value == "custom") {
+    const auto& texture = GetTexture(map.GetBackgroundCustomTexturePath());
+    const auto& animationData = GetText(map.GetBackgroundCustomAnimationPath());
+    const auto& velocity = map.GetBackgroundCustomVelocity();
 
-  if (str == "undernet") {
-    SetBackground(new UndernetBackground);
+    Animation animation;
+    animation.LoadWithData(animationData);
+
+    SetBackground(std::make_shared<CustomBackground>(texture, animation, velocity));
   }
-  else if (str == "robot") {
-    SetBackground(new RobotBackground);
+  else if (value == "undernet") {
+    SetBackground(std::make_shared<UndernetBackground>());
   }
-  else if (str == "misc") {
-    SetBackground(new MiscBackground);
+  else if (value == "robot") {
+    SetBackground(std::make_shared<RobotBackground>());
   }
-  else if (str == "grave") {
-    SetBackground(new GraveyardBackground);
+  else if (value == "misc") {
+    SetBackground(std::make_shared<MiscBackground>());
   }
-  else if (str == "weather") {
-    SetBackground(new WeatherBackground);
+  else if (value == "grave") {
+    SetBackground(std::make_shared<GraveyardBackground>());
   }
-  else if (str == "medical") {
-    SetBackground(new MedicalBackground);
+  else if (value == "weather") {
+    SetBackground(std::make_shared<WeatherBackground>());
   }
-  else if (str == "acdc") {
-    SetBackground(new ACDCBackground);
+  else if (value == "medical") {
+    SetBackground(std::make_shared<MedicalBackground>());
   }
-  else if (str == "virus") {
-    SetBackground(new VirusBackground);
+  else if (value == "acdc") {
+    SetBackground(std::make_shared<ACDCBackground>());
   }
-  else if (str == "judge") {
-    SetBackground(new JudgeTreeBackground);
+  else if (value == "virus") {
+    SetBackground(std::make_shared<VirusBackground>());
   }
-  else if (str == "secret") {
-    SetBackground(new SecretBackground);
+  else if (value == "judge") {
+    SetBackground(std::make_shared<JudgeTreeBackground>());
+  }
+  else if (value == "secret") {
+    SetBackground(std::make_shared<SecretBackground>());
   }
   else {
-    SetBackground(new LanBackground);
+    SetBackground(std::make_shared<LanBackground>());
   }
+}
 
-  // TODO: else if (isPNG(value)) { WriteToDisc(".areaname.png.value"); /* should cache too */ }
+std::string Overworld::SceneBase::GetPath(const std::string& path) {
+  return path;
 }
 
 std::string Overworld::SceneBase::GetText(const std::string& path) {
@@ -672,7 +763,29 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     auto propertyValue = propertyElement.GetAttribute("value");
 
     if (propertyName == "Background") {
+      std::transform(propertyValue.begin(), propertyValue.end(), propertyValue.begin(), [](auto in) {
+        return std::tolower(in);
+      });
+
       map.SetBackgroundName(propertyValue);
+    }
+    else if (propertyName == "Background Texture") {
+      map.SetBackgroundCustomTexturePath(propertyValue);
+    }
+    else if (propertyName == "Background Animation") {
+      map.SetBackgroundCustomAnimationPath(propertyValue);
+    }
+    else if (propertyName == "Background Vel X") {
+      auto velocity = map.GetBackgroundCustomVelocity();
+      velocity.x = propertyElement.GetAttributeFloat("value");
+
+      map.SetBackgroundCustomVelocity(velocity);
+    }
+    else if (propertyName == "Background Vel Y") {
+      auto velocity = map.GetBackgroundCustomVelocity();
+      velocity.y = propertyElement.GetAttributeFloat("value");
+
+      map.SetBackgroundCustomVelocity(velocity);
     }
     else if (propertyName == "Name") {
       map.SetName(propertyValue);
@@ -690,7 +803,11 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     if (source.find("/server", 0) != 0) {
       // client path
       // todo: hardcoded path oof, this will only be fine if all of our tiles are in this folder
-      source = "resources/ow/tiles" + source.substr(source.rfind('/'));
+      size_t pos = source.rfind('/');
+
+      if (pos != std::string::npos) {
+        source = "resources/ow/tiles" + source.substr(pos);
+      }
     }
 
     XMLElement tilesetElement = parseXML(GetText(source));
@@ -702,18 +819,22 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     }
   }
 
+  int layerCount = (int)std::max(layerElements.size(), objectLayerElements.size());
+
   // build layers
-  for (int i = (int)std::max(layerElements.size(), objectLayerElements.size()) - 1; i >= 0; i--) {
+  for (int i = 0; i < layerCount; i++) {
     auto& layer = map.AddLayer();
 
     // add tiles to layer
     if (layerElements.size() > i) {
       auto& layerElement = layerElements[i];
 
-      auto dataIt = std::find_if(layerElement.children.begin(), layerElement.children.end(), [](XMLElement& el) {return el.name == "data";});
+      layer.SetVisible(layerElement.attributes["visible"] != "0");
 
+      auto dataIt = std::find_if(layerElement.children.begin(), layerElement.children.end(), [](XMLElement& el) {return el.name == "data";});
       if (dataIt == layerElement.children.end()) {
         Logger::Log("Map layer missing data element!");
+        continue;
       }
 
       auto& dataElement = *dataIt;
@@ -724,7 +845,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
       auto row = 0;
       auto sliceStart = 0;
 
-      for (auto i = 0; i <= dataLen; i++) {
+      for (size_t i = 0; i <= dataLen; i++) {
         switch (dataElement.text[i]) {
         case '\0':
         case ',': {
@@ -750,61 +871,43 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     // add objects to layer
     if (objectLayerElements.size() > i) {
       auto& objectLayerElement = objectLayerElements[i];
+      float elevation = (float)i;
 
       for (auto& child : objectLayerElement.children) {
         if (child.name != "object") {
           continue;
         }
 
-        auto id = child.GetAttributeInt("id");
-        auto gid = static_cast<unsigned int>(stoul("0" + child.GetAttribute("gid")));
-        auto name = child.GetAttribute("name");
-        auto position = sf::Vector2f(
-          child.GetAttributeFloat("x"),
-          child.GetAttributeFloat("y")
-        );
-        auto size = sf::Vector2f(
-          child.GetAttributeFloat("width"),
-          child.GetAttributeFloat("height")
-        );
-        auto rotation = child.GetAttributeFloat("rotation");
-        auto visible = child.GetAttribute("visible") != "0";
-
-        if (gid > 0) {
-          auto tileObject = TileObject(id, gid);
-          tileObject.name = name;
-          tileObject.visible = visible;
-          tileObject.position = position;
-          tileObject.size = size;
-          tileObject.rotation = rotation;
+        if (child.HasAttribute("gid")) {
+          auto tileObject = TileObject::From(child);
+          tileObject.GetWorldSprite()->SetElevation(elevation);
           layer.AddTileObject(tileObject);
         }
         else {
-          auto shapePtr = Shape::From(child);
+          auto shapeObject = ShapeObject::From(child);
 
-          if (!shapePtr) {
-            continue;
+          if (shapeObject) {
+            layer.AddShapeObject(std::move(shapeObject.value()));
           }
-
-          auto shapeObject = ShapeObject(id, std::move(shapePtr.value()));
-          shapeObject.name = name;
-          shapeObject.visible = visible;
-          shapeObject.position = position;
-          shapeObject.size = size;
-          shapeObject.rotation = rotation;
-          layer.AddShapeObject(std::move(shapeObject));
         }
       }
     }
   }
 
+  bool backgroundDiffers = map.GetBackgroundName() != this->map.GetBackgroundName() || (
+    map.GetBackgroundName() == "custom" && (
+      map.GetBackgroundCustomTexturePath() != this->map.GetBackgroundCustomTexturePath() ||
+      map.GetBackgroundCustomAnimationPath() != this->map.GetBackgroundCustomAnimationPath() ||
+      map.GetBackgroundCustomVelocity() != this->map.GetBackgroundCustomVelocity()
+      )
+    );
 
-  if (map.GetBackgroundName() != this->map.GetBackgroundName()) {
-    LoadBackground(map.GetBackgroundName());
+  if (backgroundDiffers) {
+    LoadBackground(map, map.GetBackgroundName());
   }
 
   if (map.GetSongPath() != this->map.GetSongPath()) {
-    Audio().Stream(map.GetSongPath());
+    Audio().Stream(GetPath(map.GetSongPath()));
   }
 
   personalMenu.SetArea(map.GetName());
@@ -817,6 +920,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   // scale to the game resolution
   this->map.setScale(2.f, 2.f);
+
+  minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
+  minimap.setScale(2.f, 2.f);
 }
 
 std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XMLElement& tilesetElement, unsigned int firstgid) {
@@ -828,6 +934,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
   sf::Vector2f drawingOffset;
   std::string texturePath;
   Projection orientation = Projection::Orthographic;
+  CustomProperties customProperties;
 
   std::vector<XMLElement> tileElements(tileCount);
 
@@ -855,10 +962,14 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
       auto tileId = child.GetAttributeInt("id");
 
       if (tileElements.size() <= tileId) {
-        tileElements.resize(tileId + 1);
+        size_t sz = static_cast<size_t>(tileId) + 1;
+        tileElements.resize(sz);
       }
 
       tileElements[tileId] = child;
+    }
+    else if (child.name == "properties") {
+      customProperties = CustomProperties::From(child);
     }
   }
 
@@ -866,8 +977,8 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
   std::string animationString = "imagePath=\"./" + texturePath + "\"\n\n";
 
   auto objectAlignment = tilesetElement.GetAttribute("objectalignment");
-  // default to bottom right
-  auto alignmentOffset = sf::Vector2i(-tileWidth, -tileHeight);
+  // default to bottom
+  auto alignmentOffset = sf::Vector2i(-tileWidth / 2, -tileHeight);
 
   if (objectAlignment == "top") {
     alignmentOffset = sf::Vector2i(-tileWidth / 2, 0);
@@ -887,11 +998,11 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
   else if (objectAlignment == "right") {
     alignmentOffset = sf::Vector2i(-tileWidth, -tileHeight / 2);
   }
-  else if (objectAlignment == "bottom") {
-    alignmentOffset = sf::Vector2i(-tileWidth / 2, -tileHeight);
-  }
   else if (objectAlignment == "bottomleft") {
     alignmentOffset = sf::Vector2i(0, -tileHeight);
+  }
+  else if (objectAlignment == "bottomright") {
+    alignmentOffset = sf::Vector2i(-tileWidth, -tileHeight);
   }
 
   std::string frameOffsetString = " originx=\"" + to_string(tileWidth / 2) + "\" originy=\"" + to_string(tileHeight / 2) + '"';
@@ -947,6 +1058,7 @@ std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XML
     drawingOffset,
     sf::Vector2f(alignmentOffset),
     orientation,
+    customProperties,
     GetTexture(texturePath),
     animation
   };
@@ -965,7 +1077,8 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
       auto tileId = child.GetAttributeInt("id");
 
       if (tileElements.size() <= tileId) {
-        tileElements.resize(tileId + 1);
+        size_t sz = static_cast<size_t>(tileId) + 1;
+        tileElements.resize(sz);
       }
 
       tileElements[tileId] = child;
@@ -977,19 +1090,15 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
   auto tileGid = tileset.firstGid;
 
   for (auto& tileElement : tileElements) {
-    auto tileMeta = std::make_shared<Overworld::TileMeta>(
-      tileId,
-      tileGid,
-      tileset.drawingOffset,
-      tileset.alignmentOffset
-      );
-
-    tileMeta->sprite.setTexture(*tileset.texture);
-    tileMeta->animation = tileset.animation;
-    tileMeta->animation << to_string(tileId) << Animator::Mode::Loop;
-    tileMeta->animation.Refresh(tileMeta->sprite);
+    std::vector<std::unique_ptr<Shape>> collisionShapes;
+    CustomProperties customProperties;
 
     for (auto& child : tileElement.children) {
+      if (child.name == "properties") {
+        customProperties = CustomProperties::From(child);
+        continue;
+      }
+
       if (child.name != "objectgroup") {
         continue;
       }
@@ -998,10 +1107,21 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
         auto shape = Overworld::Shape::From(objectElement);
 
         if (shape) {
-          tileMeta->collisionShapes.push_back(std::move(shape.value()));
+          collisionShapes.push_back(std::move(shape.value()));
         }
       }
     }
+
+    auto tileMeta = std::make_shared<Overworld::TileMeta>(
+      tileset,
+      tileId,
+      tileGid,
+      tileset.drawingOffset,
+      tileset.alignmentOffset,
+      tileElement.GetAttribute("type"),
+      customProperties,
+      std::move(collisionShapes)
+      );
 
     tileMetas.push_back(tileMeta);
     tileId += 1;
@@ -1011,7 +1131,7 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
   return tileMetas;
 }
 
-void Overworld::SceneBase::TeleportUponReturn(const sf::Vector2f& position)
+void Overworld::SceneBase::TeleportUponReturn(const sf::Vector3f& position)
 {
   teleportedOut = true;
   returnPoint = position;
@@ -1022,13 +1142,8 @@ const bool Overworld::SceneBase::HasTeleportedAway() const
   return teleportedOut;
 }
 
-void Overworld::SceneBase::SetBackground(Background* background)
+void Overworld::SceneBase::SetBackground(const std::shared_ptr<Background>& background)
 {
-  if (this->bg) {
-    delete this->bg;
-    this->bg = nullptr;
-  }
-
   this->bg = background;
 }
 
@@ -1061,7 +1176,7 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 }
 
 bool Overworld::SceneBase::IsInputLocked() {
-  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene;
+  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene || showMinimap;
 }
 
 void Overworld::SceneBase::LockInput() {
@@ -1156,7 +1271,7 @@ void Overworld::SceneBase::GotoMobSelect()
   CardFolder* folder = nullptr;
 
   if (folders.GetFolder(0, folder)) {
-    SelectMobScene::Properties props{ currentNavi, *folder, programAdvance, GetBackground()->Clone() };
+    SelectMobScene::Properties props{ currentNavi, *folder, programAdvance, bg };
     using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
     Audio().Play(AudioType::CHIP_DESC);
     getController().push<effect::to<SelectMobScene>>(props);
@@ -1183,6 +1298,11 @@ void Overworld::SceneBase::GotoPVP()
     Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
     gotoNextScene = false;
   }
+}
+
+Overworld::Minimap& Overworld::SceneBase::GetMinimap()
+{
+  return minimap;
 }
 
 Overworld::SpatialMap& Overworld::SceneBase::GetSpatialMap()
@@ -1225,7 +1345,7 @@ SelectedNavi& Overworld::SceneBase::GetCurrentNavi()
   return currentNavi;
 }
 
-Background* Overworld::SceneBase::GetBackground()
+std::shared_ptr<Background> Overworld::SceneBase::GetBackground()
 {
   return this->bg;
 }

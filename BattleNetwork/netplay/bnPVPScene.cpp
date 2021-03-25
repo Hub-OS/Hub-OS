@@ -544,7 +544,7 @@ void PVPScene::onUpdate(double elapsed) {
     client.close();
 
     NetworkBattleSceneProps props = {
-      { *player, pa, copy, new Field(6, 3), new SecretBackground() },
+      { *player, pa, copy, new Field(6, 3), std::make_shared<SecretBackground>() },
       config
     };
 

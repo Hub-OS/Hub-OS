@@ -64,28 +64,28 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
     int randBG = rand() % 8;
 
     if (randBG == 0) {
-      background = new LanBackground();
+      background = std::make_shared<LanBackground>();
     }
     else if (randBG == 1) {
-      background = new GraveyardBackground();
+      background = std::make_shared<GraveyardBackground>();
     }
     else if (randBG == 2) {
-      background = new WeatherBackground();
+      background = std::make_shared<WeatherBackground>();
     }
     else if (randBG == 3) {
-      background = new RobotBackground();
+      background = std::make_shared<RobotBackground>();
     }
     else if (randBG == 4) {
-      background = new MedicalBackground();
+      background = std::make_shared<MedicalBackground>();
     }
     else if (randBG == 5) {
-      background = new ACDCBackground();
+      background = std::make_shared<ACDCBackground>();
     }
     else if (randBG == 6) {
-      background = new MiscBackground();
+      background = std::make_shared<MiscBackground>();
     }
     else if (randBG == 7) {
-      background = new JudgeTreeBackground();
+      background = std::make_shared<JudgeTreeBackground>();
     }
   }
 
@@ -159,8 +159,6 @@ BattleSceneBase::~BattleSceneBase() {
   for (auto elem : nodeToEdges) {
     delete elem.second;
   }
-
-  delete background;
 }
 
 const bool BattleSceneBase::DoubleDelete() const
