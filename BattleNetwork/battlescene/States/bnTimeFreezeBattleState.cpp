@@ -3,6 +3,7 @@
 #include "../bnBattleSceneBase.h"
 #include "../../bnCard.h"
 #include "../../bnCardAction.h"
+#include "../../bnCardToActions.h"
 #include "../../bnCharacter.h"
 #include "../../bnField.h"
 
@@ -33,7 +34,6 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = startState;
-  action = user->CurrentCardAction();
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -138,5 +138,7 @@ void TimeFreezeBattleState::OnCardUse(const Battle::Card& card, Character& user,
     this->team = user.GetTeam();
     this->user = &user;
     lockedTimestamp = timestamp;
+
+    action = CardToAction(card, user);
   }
 }

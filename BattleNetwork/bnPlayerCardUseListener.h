@@ -20,11 +20,10 @@
 
 class PlayerCardUseListener : public CardUseListener {
 private:
-  Player * player; /*!< Entity to listen for */
-  
+  Player* player{ nullptr }; /*!< Entity to listen for */
 public:
   PlayerCardUseListener(Player& _player) : CardUseListener() { player = &_player;  }
-
+  
   /**
    * @brief What happens when a card is used
    * @param card Card used

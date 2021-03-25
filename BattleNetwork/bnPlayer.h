@@ -55,6 +55,7 @@ private:
 
   void SaveStats();
   void RevertStats();
+  void CreateMoveAnimHash();
 
 public:
   using DefaultState = PlayerControlledState;
@@ -77,7 +78,6 @@ public:
    * @param _elapsed for secs
    */
   virtual void OnUpdate(double _elapsed);
-  void FilterMoveEvent(MoveEvent& event) override;
 
   /**
    * @brief Fires a buster
@@ -118,11 +118,9 @@ public:
    * @param _state name of the animation
    */
   void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
+  const std::string GetMoveAnimHash();
 
-  // TODO: these two are hacks and shouldn't belong
-  // TODO: this should change when the movement API changes 11/16/2020
-  void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
-  const bool PlayerControllerSlideEnabled() const;
+  void SlideWhenMoving(bool enable = true, const frame_time_t& frames = frames(1));
 
   virtual CardAction* OnExecuteBusterAction() = 0;
   virtual CardAction* OnExecuteChargedBusterAction() = 0;
@@ -152,6 +150,8 @@ protected:
 
   // member vars
   string state; /*!< Animation state name */
+  string moveAnimHash;
+  frame_time_t slideFrames{ frames(1) };
   bool playerControllerSlide;
   AnimationComponent* animationComponent;
   ChargeEffectSceneNode chargeEffect; /*!< Handles charge effect */

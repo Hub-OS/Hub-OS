@@ -38,7 +38,11 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     return;
   }
 
-  bool notAnimating = player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE;
+  // we are actionable
+  if (player.actionQueue.IsEmpty() && player.animationComponent->GetAnimationString() != "PLAYER_IDLE") {
+    player.SetAnimation("PLAYER_IDLE");
+  }
+
   bool missChargeKey = isChargeHeld && !Input().Has(InputEvents::held_shoot);
 
   // Are we creating an action this frame?
@@ -92,12 +96,18 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   if(direction != Direction::none) {
     replicator ? replicator->SendMoveSignal(direction) : (void(0));
     auto onMoveBegin = [player = &player] {
-      player->SetAnimation("PLAYER_MOVE", [player] {
+      const std::string& move_anim = player->GetMoveAnimHash();
+      player->SetAnimation(move_anim, [player] {
         player->SetAnimation("PLAYER_IDLE");
         });
     };
 
-    player.Teleport(player.GetTile() + direction, ActionOrder::voluntary, onMoveBegin);
+    if (player.playerControllerSlide) {
+      player.Slide(player.GetTile() + direction, player.slideFrames, frames(0), ActionOrder::voluntary);
+    }
+    else {
+      player.Teleport(player.GetTile() + direction, ActionOrder::voluntary, onMoveBegin);
+    }
   } 
 }
 

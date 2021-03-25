@@ -50,9 +50,6 @@ Player::Player() :
   activeForm = nullptr;
 
   auto recoil = [this]() {
-    // When movement is interrupted because of a hit, we need to flush the action queue
-    animationComponent->CancelCallbacks();
-    ClearActionQueue();
     ChangeState<PlayerHitState>();
   };
 
@@ -67,6 +64,8 @@ Player::Player() :
   using namespace std::placeholders;
   auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
   actionQueue.RegisterType<BusterEvent, BusterActionDeleter>(ActionTypes::buster, handler);
+
+  CreateMoveAnimHash();
 }
 
 Player::~Player() {
@@ -85,16 +84,6 @@ void Player::OnUpdate(double _elapsed) {
 
   //Node updates
   chargeEffect.Update(_elapsed);
-}
-
-void Player::FilterMoveEvent(MoveEvent& event)
-{
-  auto anim = this->animationComponent;
-  frame_time_t halfMoveTime = from_seconds(anim->GetAnimationObject().GetStateDuration("PLAYER_MOVE") * 0.5f);
-  event.delayFrames = halfMoveTime;
-  event.endlagFrames = halfMoveTime;
-  //event.height = 140;
-  //event.deltaFrames = frames(20);
 }
 
 void Player::Attack() {
@@ -192,16 +181,19 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   else {
     animationComponent->SetAnimation(_state, 0, onFinish);
   }
+
+  animationComponent->Refresh();
 }
 
-void Player::EnablePlayerControllerSlideMovementBehavior(bool enable)
+const std::string Player::GetMoveAnimHash()
 {
+  return moveAnimHash;
+}
+
+void Player::SlideWhenMoving(bool enable, const frame_time_t& frames)
+{
+  slideFrames = frames;
   playerControllerSlide = enable;
-}
-
-const bool Player::PlayerControllerSlideEnabled() const
-{
-  return playerControllerSlide;
 }
 
 CardAction* Player::OnExecuteSpecialAction()
@@ -332,6 +324,28 @@ void Player::RevertStats()
   SetChargeLevel(savedStats.charge);
   SetAttackLevel(savedStats.attack);
   SetElement(savedStats.element);
+}
+
+void Player::CreateMoveAnimHash()
+{
+  const auto i4_frames = frames(4);
+  const auto i4_seconds = seconds_cast<float>(i4_frames);
+  const auto i1_seconds = seconds_cast<float>(frames(1));
+
+  this->moveStartupDelay = i4_frames;
+  this->moveEndlagDelay = i4_frames;
+  auto frame_data = std::initializer_list<OverrideFrame>{
+    { 1, i4_seconds },
+    { 2, i1_seconds },
+    { 3, i1_seconds },
+    { 4, i1_seconds },
+    { 3, i1_seconds },
+    { 2, i1_seconds },
+    { 1, i4_seconds }
+  };
+
+  // creates and stores the new state in variable `moveAnimHash`
+  animationComponent->OverrideAnimationFrames("PLAYER_MOVE", frame_data, moveAnimHash);
 }
 
 bool Player::RegisterForm(PlayerFormMeta * info)

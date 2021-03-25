@@ -16,6 +16,10 @@ PlayerHitState::~PlayerHitState()
 }
 
 void PlayerHitState::OnEnter(Player& player) {
+  // When movement is interrupted because of a hit, we need to flush the action queue
+  player.animationComponent->CancelCallbacks();
+  player.ClearActionQueue();
+
   auto onFinished = [&player]() { 
     // This is so hacky and I hate it!
     // TODO: PlayerControlledState should be bare bones enough to

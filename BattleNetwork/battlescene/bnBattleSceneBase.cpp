@@ -154,11 +154,11 @@ BattleSceneBase::~BattleSceneBase() {
   // drop the camera from our event bus
   channel.Drop(&camera);
 
-  for (auto elem : states) {
+  for (auto& elem : states) {
     delete elem;
   }
 
-  for (auto elem : nodeToEdges) {
+  for (auto& elem : nodeToEdges) {
     delete elem.second;
   }
 

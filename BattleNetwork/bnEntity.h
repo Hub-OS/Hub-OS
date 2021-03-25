@@ -46,6 +46,8 @@ struct MoveEvent {
   float height{}; //!< If this is non-zero with delta frames, the character will effectively jump
   Battle::Tile* dest{ nullptr };
   std::function<void()> onBegin = []{};
+  bool immutable{ false }; //!< Some move events cannot be cancelled or interupted
+
   //!< helper function true if jumping
   inline bool IsJumping() const {
     return dest && height > 0.f && deltaFrames > frames(0);
@@ -516,7 +518,7 @@ inline std::vector<ComponentType*> Entity::GetComponents() const
 
   for (vector<Component*>::const_iterator it = components.begin(); it != components.end(); ++it) {
     if (typeid(*(*it)) == typeid(ComponentType)) {
-      res.push_back(dynamic_cast<ComponentType*>(*it));
+      res.push_back(static_cast<ComponentType*>(*it));
     }
   }
 

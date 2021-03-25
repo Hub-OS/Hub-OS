@@ -51,6 +51,7 @@ public:
   void OnBattleStop() override;
 
 private:
+  DefenseRule* nodrag{ nullptr }, *indestructable{ nullptr };
   Direction startDir;
   Team tileStartTeam; // only move around on the origin team's area
   Texture* texture;

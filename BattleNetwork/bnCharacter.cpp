@@ -167,6 +167,12 @@ void Character::Update(double _elapsed) {
 
       // execute when delay is over
       if (this->cardActionStartDelay <= frames(0)) {
+        // TODO: have an `IsActionable()` function that can be implemented for characters with animations?
+        // note: move animations need to cancel their callbacks when attacking
+        for(auto anim : this->GetComponents<AnimationComponent>()) {
+          anim->CancelCallbacks();
+        }
+
         currCardAction->Execute();
       }
     }
@@ -491,7 +497,7 @@ void Character::ResolveFrameBattleDamage()
 
       if (CanMoveTo(dest)) {
         // Enqueue a move action at the top of our priorities
-        actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
+        actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
 
         // Re-queue the drag status to be re-considered in our next combat checks
         append.push({ 0, Hit::drag, Element::none, nullptr, postDragEffect });

@@ -14,6 +14,7 @@
 #include "bnGame.h"
 #include "bnExplodeState.h"
 #include "bnDefenseVirusBody.h"
+#include "bnDefenseNodrag.h"
 #include "bnHitbox.h"
 #include <cmath>
 
@@ -125,6 +126,10 @@ AlphaCore::AlphaCore(Rank _rank) :
 }
 
 AlphaCore::~AlphaCore() {
+  RemoveDefenseRule(defense);
+  RemoveDefenseRule(virusBody);
+  delete defense;
+  delete virusBody;
   delete head;
   delete acid;
   delete side;

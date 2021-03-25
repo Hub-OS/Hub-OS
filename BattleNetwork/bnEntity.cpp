@@ -344,7 +344,7 @@ bool Entity::Jump(Battle::Tile* dest, float destHeight,
 void Entity::FinishMove()
 {
   // completes the move or moves the object back
-  if (currMoveEvent.dest) {
+  if (currMoveEvent.dest && !currMoveEvent.immutable) {
     AdoptNextTile();
     tileOffset = {};
     currMoveEvent = {};

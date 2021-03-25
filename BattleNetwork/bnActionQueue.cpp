@@ -91,6 +91,11 @@ ActionTypes ActionQueue::TopType() {
   return indices[0].type;
 }
 
+bool ActionQueue::IsEmpty() const
+{
+  return indices.empty();
+}
+
 void ActionQueue::Process() {
   // Resort and apply any new priority filters to the sort
   Sort();
@@ -138,13 +143,17 @@ void ActionQueue::Pop() {
     poppers[queue](index);
     indices.erase(indices.begin());
 
+    // NOTE: I had this commented but don't know why
+    // It might have something to do with directional tiles... idk
+    /*
     // below is frame-perfect implementation of the next queue item
     ActionTypes top = TopType();
 
-    /*if (top == ActionTypes::none) 
+    if (top == ActionTypes::none) 
       return; // nothing to process. abort
 
-    handlers[top](ExecutionType::reserve);*/
+    handlers[top](ExecutionType::reserve);
+    */
   }
 }
 

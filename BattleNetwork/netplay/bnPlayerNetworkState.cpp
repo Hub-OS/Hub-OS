@@ -71,10 +71,6 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 
   if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
 
-  if (player.PlayerControllerSlideEnabled()) {
-    //player.SlideToTile(true);
-  }
-
   if (player.Teleport(direction)) {
     auto onFinish = [&]() {
       player.SetAnimation("PLAYER_MOVED", [p = &player]() {

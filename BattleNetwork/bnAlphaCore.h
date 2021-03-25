@@ -12,16 +12,16 @@ class AlphaArm;
 class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   friend class AlphaIdleState;
 
-  DefenseRule* virusBody;
-  AnimationComponent* animationComponent;
+  DefenseRule* virusBody{ nullptr };
+  AnimationComponent* animationComponent{ nullptr };
   SpriteProxyNode *acid, *head, *side, *leftShoulder, *rightShoulder, *leftShoulderShoot, *rightShoulderShoot;
   Animation animation;
   double totalElapsed, coreRegen;
   float hitHeight;
   int coreHP, prevCoreHP;
 
-  AlphaArm* leftArm;
-  AlphaArm* rightArm;
+  AlphaArm* leftArm{ nullptr };
+  AlphaArm* rightArm{ nullptr };
 
   bool impervious;
   bool shootSuperVulcans;
@@ -37,7 +37,7 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
     ~AlphaCoreDefenseRule();
     void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
     Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
-  } *defense;
+  } *defense{ nullptr };
 public:
   using DefaultState = AlphaIdleState;
 

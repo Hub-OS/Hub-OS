@@ -268,6 +268,7 @@ void Bees::OnUpdate(double _elapsed) {
     if (hitCount < 5) {
       hitbox->AddCallback([this](Character* entity) {
         this->madeContact = true; // we hit something!
+        this->target = entity;
         this->hitCount++;
         Audio().Play(AudioType::HURT, AudioPriority::high);
         }, [](const Character* entity) {

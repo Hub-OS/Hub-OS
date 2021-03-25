@@ -48,7 +48,7 @@ void BattleOverBattleState::onStart(const BattleSceneState*)
             p->RemoveNode(node);
           }
         }
-
+        p->ClearActionQueue();
         p->ChangeState<PlayerIdleState>();
       });
     }

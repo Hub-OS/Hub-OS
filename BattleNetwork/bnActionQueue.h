@@ -74,12 +74,15 @@ private:
   std::map<ActionOrder, ActionOrder> priorityFilters;
   std::vector<Index> indices;
 
-public:
-  ~ActionQueue();
   ActionOrder ApplyPriorityFilter(const ActionOrder& in);
-  ActionTypes TopType();
   Index ApplyDiscardFilter(const Index& in);
   bool IsProcessing(const Index& in);
+
+public:
+  ~ActionQueue();
+
+  ActionTypes TopType();
+  bool IsEmpty() const;
   void CreatePriorityFilter(const ActionOrder& target, const ActionOrder& newOrder);
   void CreateDiscardFilter(const ActionTypes& type, const ActionDiscardOp& newOp);
   void ClearFilters();

@@ -1,12 +1,12 @@
 #include "bnGear.h"
 #include "bnTile.h"
 #include "bnDefenseIndestructable.h"
+#include "bnDefenseNodrag.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Gear::Gear(Team _team,Direction startDir) 
-    : 
+Gear::Gear(Team _team,Direction startDir) : 
   startDir(startDir), 
   stopMoving(false), 
   Obstacle(team) {
@@ -37,12 +37,17 @@ Gear::Gear(Team _team,Direction startDir)
 
   tileStartTeam = Team::unknown;
 
-  AddDefenseRule(new DefenseIndestructable(true));
+  AddDefenseRule((indestructable = new DefenseIndestructable(true)));
+  AddDefenseRule((nodrag = new DefenseNodrag()));
 
   stopMoving = true;
 }
 
 Gear::~Gear() {
+  RemoveDefenseRule(indestructable);
+  RemoveDefenseRule(nodrag);
+  delete indestructable;
+  delete nodrag;
 }
 
 bool Gear::CanMoveTo(Battle::Tile * next)

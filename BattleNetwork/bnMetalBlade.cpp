@@ -104,7 +104,7 @@ void MetalBlade::OnUpdate(double _elapsed) {
 
 // Nothing prevents blade from cutting through
 bool MetalBlade::CanMoveTo(Battle::Tile* tile) {
-  return true;
+  return !tile->IsEdgeTile();
 }
 
 void MetalBlade::Attack(Character* _entity) {

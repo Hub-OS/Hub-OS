@@ -50,7 +50,7 @@ Forte::Forte() : Player()
   dropCooldown = COPY_DROP_COOLDOWN;
 
   // Bass slides around lookin pretty slick
-  EnablePlayerControllerSlideMovementBehavior(true);
+  SlideWhenMoving(true, frames(4));
 
   chargeEffect.SetFullyChargedColor(sf::Color::Magenta);
 }
@@ -77,7 +77,7 @@ void Forte::OnUpdate(double _elapsed)
       auto fx = new MoveEffect(field);
 
       if (GetTeam() == Team::blue) {
-        auto scale = fx->getScale();
+        const auto& scale = fx->getScale();
         fx->setScale(-scale.x, scale.y);
       }
 
