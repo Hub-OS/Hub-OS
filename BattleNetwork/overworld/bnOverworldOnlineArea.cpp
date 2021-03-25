@@ -102,6 +102,26 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     return;
   }
 
+  // remove players before update, to prevent removed players from being added to sprite layers
+  // players do not have a shared pointer to the emoteNode
+  // a segfault would occur if this loop is placed after onUpdate due to emoteNode being deleted
+  for (const auto& remove : removePlayers) {
+    auto it = onlinePlayers.find(remove);
+
+    if (it == onlinePlayers.end()) {
+      Logger::Logf("Removed non existent Player %s", remove.c_str());
+      continue;
+    }
+
+    auto& player = it->second;
+    RemoveActor(player.actor);
+    RemoveSprite(player.teleportController.GetBeam());
+
+    onlinePlayers.erase(remove);
+  }
+
+  removePlayers.clear();
+
   SceneBase::onUpdate(elapsed);
 
   auto currentNavi = GetCurrentNavi();
@@ -141,23 +161,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     onlinePlayer.teleportController.Update(elapsed);
     onlinePlayer.emoteNode.Update(elapsed);
   }
-
-  for (const auto& remove : removePlayers) {
-    auto it = onlinePlayers.find(remove);
-
-    if (it == onlinePlayers.end()) {
-      Logger::Logf("Removed non existent Player %s", remove.c_str());
-      continue;
-    }
-
-    auto& player = it->second;
-    RemoveActor(player.actor);
-    RemoveSprite(player.teleportController.GetBeam());
-
-    onlinePlayers.erase(remove);
-  }
-
-  removePlayers.clear();
 
   movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
