@@ -491,7 +491,7 @@ namespace Overworld {
 
   void PersonalMenu::SetArea(const std::string& name)
   {
-    auto& bounds = areaLabelThick.GetLocalBounds();
+    auto bounds = areaLabelThick.GetLocalBounds();
     areaName = name;
 
     std::string printName = name;

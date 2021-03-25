@@ -173,10 +173,10 @@ void VendorScene::onUpdate(double elapsed)
 
   if (question) {
     if (Input().Has(InputEvents::pressed_ui_left)) {
-      question->SelectYes() ? Audio().Play(AudioType::CHIP_SELECT) : (void)0;
+      question->SelectYes() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
     }
     else if (Input().Has(InputEvents::pressed_ui_right)) {
-      question->SelectNo() ? Audio().Play(AudioType::CHIP_SELECT) : (void)0;
+      question->SelectNo() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
     }
     else if (Input().Has(InputEvents::pressed_confirm)) {
       question->ConfirmSelection();

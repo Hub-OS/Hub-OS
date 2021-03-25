@@ -7,6 +7,7 @@
 #include "bnCard.h"
 
 class Character;
+class CardUseListener;
 
 /**
  * @class CardUsePublisher

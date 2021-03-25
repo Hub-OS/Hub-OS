@@ -56,7 +56,7 @@ namespace Battle {
       solid = 2,
     };
 
-    friend class Field;
+    friend Field;
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
