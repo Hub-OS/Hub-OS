@@ -1,7 +1,33 @@
 #include "bnFont.h"
 
+std::array<Animation, Font::style_sz> Font::animationArray{};
+bool Font::animationsLoaded = false;
+
+Font::Font(const Style& style) :
+  style(style),
+  letter('A')
+{
+  if (!Font::animationsLoaded) {
+    Font::animationArray.fill(Animation("resources/fonts/fonts_compressed.animation"));
+
+    for (auto& a : animationArray) {
+      a.Load();
+    }
+
+    Font::animationsLoaded = true;
+  }
+
+  ApplyStyle();
+  letterATexcoords = texcoords;
+}
+
+Font::~Font()
+{
+}
+
 void Font::ApplyStyle()
 {
+  auto& animation = animationArray[static_cast<size_t>(style)];
   std::string animName;
 
   switch (style) {
@@ -19,14 +45,33 @@ void Font::ApplyStyle()
     break;
   case Style::thin:
     animName = "THIN_";
+    break;
+  case Style::gradient:
+    animName = "GRADIENT_";
+    break;
+  case Style::gradient_gold:
+    animName = "GRADIENT_GOLD_";
+    break;
+  case Style::gradient_green:
+    animName = "GRADIENT_GREEN_";
+    break;
+  case Style::gradient_orange:
+    animName = "GRADIENT_ORANGE_";
+    break;
+  case Style::gradient_tall:
+    animName = "GRADIENT_TALL_";
+    break;
+  default:
+    animName = "SMALL_";
+    break;
   }
 
   std::string letterStr(1, letter);
   std::transform(letterStr.begin(), letterStr.end(), letterStr.begin(), ::toupper);
 
   if (letter != '"') {
-    // WIDE font does not have lower case values
-    if (::islower(letter) && style != Style::wide) {
+    // some font cannot be lower-cased
+    if (::islower(letter) && HasLowerCase(style)) {
       letterStr = "LOWER_" + letterStr;
     }
 
@@ -36,7 +81,7 @@ void Font::ApplyStyle()
     animName = animName + "QUOTE";
   }
 
-  auto list = animation.GetFrameList(animName);
+  FrameList list = animation.GetFrameList(animName);
   
   if (list.IsEmpty()) {
     list = animation.GetFrameList("SMALL_A");
@@ -47,15 +92,26 @@ void Font::ApplyStyle()
   origin = frame.origin;
 }
 
-Font::Font(const Style & style) 
-  : style(style), letter('A'), animation("resources/fonts/fonts_compressed.animation")
+const bool Font::HasLowerCase(const Style& style)
 {
-  ApplyStyle();
-  letterATexcoords = texcoords;
-}
+  switch (style) {
+  case Style::thick:
+    return true;
+    break;
+  case Style::small:
+    return true;
+    break;
+  case Style::tiny:
+    return true;
+    break;
+  case Style::thin:
+    return true;
+    break;
+  default:
+    break;
+  }
 
-Font::~Font()
-{
+  return false;
 }
 
 const Font::Style & Font::GetStyle() const

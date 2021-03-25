@@ -5,7 +5,7 @@
 #include "bnCard.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnSpawnPolicy.h"
+#include "bnFadeInState.h"
 
 ProgsManBossFight::ProgsManBossFight(Field* field) : MobFactory(field)
 {
@@ -30,8 +30,9 @@ Mob* ProgsManBossFight::Build() {
 
   int x = 5;
   int y = (field->GetHeight() / 2) + 1;
-  
-  mob->Spawn<RankEX<ProgsMan>>(x, y);
+
+  auto spawner = mob->CreateSpawner<ProgsMan>(ProgsMan::Rank::EX);
+  spawner.SpawnAt<FadeInState>(5, 3);
 
   Battle::Tile* tile = field->GetAt(x, y);
   if (!tile->IsWalkable()) { tile->SetState(TileState::normal); }

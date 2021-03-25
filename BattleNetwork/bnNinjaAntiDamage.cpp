@@ -13,43 +13,57 @@
 NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
   // Construct a callback when anti damage is triggered
   DefenseAntiDamage::Callback onHit = [this](Spell& in, Character& owner) {
-      
-    // Get the aggressor of the attack, if any
-    Entity* user = in.GetHitboxProperties().aggressor;
-    Battle::Tile* tile = nullptr;
+     
+    class AntiDamageTriggerAction : public CardAction {
+    private:
+      Character* aggressor{ nullptr };
+      NinjaAntiDamage& anti;
 
-    // Add a HideTimer for the owner of anti damage
-    owner.RegisterComponent(new HideTimer(&owner, 1.0));
+    public:
+      AntiDamageTriggerAction(Character& owner, Character* aggressor, NinjaAntiDamage& anti) :
+        CardAction(owner, "PLAYER_IDLE"),
+        aggressor(aggressor),
+        anti(anti) {}
 
-    // Add a poof particle to denote owner dissapearing
-    owner.GetField()->AddEntity(*new ParticlePoof(), *owner.GetTile());
+      ~AntiDamageTriggerAction() { }
 
-    if (user) {
-      // If there's an aggressor, grab their tile and target it
-      tile = user->GetTile();
-      
-    }
+      void Update(double elapsed) override {}
+      void OnExecute() override {
+        auto& owner = GetCharacter();
+        Battle::Tile* tile = nullptr;
 
-    // If there's a tile
-    if (tile) {
-      // Add ninja star spell targetting the aggressor's tile
-      owner.GetField()->AddEntity(*new NinjaStar(owner.GetTeam(), 0.2f), tile->GetX(), tile->GetY());
-    }
+        // Add a HideTimer for the owner of anti damage
+        owner.RegisterComponent(new HideTimer(&owner, 1.0));
 
-    // Remove the anti damage rule from the owner
-    owner.RemoveDefenseRule(defense);
-    
-    // Remove this component from the owner
-    owner.FreeComponentByID(GetID());
-    
-    // Self cleanup
-    delete this;
+        // Add a poof particle to denote owner dissapearing
+        owner.GetField()->AddEntity(*new ParticlePoof(), *owner.GetTile());
+
+        if (aggressor) {
+          // If there's an aggressor, grab their tile and target it
+          if (auto tile = aggressor->GetTile()) {
+            // Add ninja star spell targetting the aggressor's tile
+            owner.GetField()->AddEntity(*new NinjaStar(owner.GetTeam(), 0.2f), *tile);
+          }
+        }
+
+        // Remove the anti damage rule from the owner
+        owner.RemoveDefenseRule(anti.defense);
+        anti.Eject();
+      }
+      void OnAnimationEnd() override {}
+      void OnEndAction() override {};
+    };
+
+    auto* action = new AntiDamageTriggerAction(owner, in.GetHitboxProperties().aggressor, *this);
+    owner.AddAction({ action }, ActionOrder::traps);
+
+    this->Eject();
   }; // END callback 
 
 
   // Construct a anti damage defense rule check with callback onHit
   defense = new DefenseAntiDamage(onHit);
-  added = false;
+  GetOwnerAs<Character>()->AddDefenseRule(defense);
 }
 
 NinjaAntiDamage::~NinjaAntiDamage() {
@@ -58,11 +72,6 @@ NinjaAntiDamage::~NinjaAntiDamage() {
 }
 
 void NinjaAntiDamage::OnUpdate(double _elapsed) {
-  if (!(added || GetOwner()->GetComponentsDerivedFrom<CardAction>().size())) {
-    // Add the defense rule to the owner of this component
-    GetOwnerAs<Character>()->AddDefenseRule(defense);
-    added = true;
-  }
 }
 
 void NinjaAntiDamage::Inject(BattleSceneBase&) {

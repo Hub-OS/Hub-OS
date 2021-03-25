@@ -31,6 +31,17 @@ struct PlayerStats {
   static constexpr unsigned MAX_ATTACK_LEVEL = 5u;
 
   unsigned charge{1}, attack{1};
+  Element element{Element::none};
+};
+
+struct BusterEvent {
+  frame_time_t deltaFrames{}; //!< e.g. how long it animates
+  frame_time_t endlagFrames{}; //!< Wait period after completition
+
+  // Default is false which is shoot-then-move
+  bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
+
+  CardAction* action{ nullptr };
 };
 
 class Player : public Character, public AI<Player> {
@@ -44,12 +55,15 @@ private:
 
   void SaveStats();
   void RevertStats();
+  void CreateMoveAnimHash();
 
 public:
   using DefaultState = PlayerControlledState;
   static constexpr size_t MAX_FORM_SIZE = 5;
+  static constexpr char* BASE_NODE_TAG = "Base Node";
+  static constexpr char* FORM_NODE_TAG = "Form Node";
 
-    /**
+   /**
    * @brief Loads graphics and adds a charge component
    */
   Player();
@@ -64,13 +78,15 @@ public:
    * @param _elapsed for secs
    */
   virtual void OnUpdate(double _elapsed);
-  
+
   /**
    * @brief Fires a buster
    */
   void Attack();
 
   void UseSpecial();
+
+  void HandleBusterEvent(const BusterEvent& event, const ActionQueue::ExecutionType& exec);
 
   /**
    * @brief when player is deleted, changes state to delete state and hide charge component
@@ -102,11 +118,9 @@ public:
    * @param _state name of the animation
    */
   void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
+  const std::string GetMoveAnimHash();
 
-  // TODO: these two are hacks and shouldn't belong
-  // TODO: this should change when the movement API changes 11/16/2020
-  void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
-  const bool PlayerControllerSlideEnabled() const;
+  void SlideWhenMoving(bool enable = true, const frame_time_t& frames = frames(1));
 
   virtual CardAction* OnExecuteBusterAction() = 0;
   virtual CardAction* OnExecuteChargedBusterAction() = 0;
@@ -136,6 +150,8 @@ protected:
 
   // member vars
   string state; /*!< Animation state name */
+  string moveAnimHash;
+  frame_time_t slideFrames{ frames(1) };
   bool playerControllerSlide;
   AnimationComponent* animationComponent;
   ChargeEffectSceneNode chargeEffect; /*!< Handles charge effect */

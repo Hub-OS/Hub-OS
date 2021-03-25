@@ -8,12 +8,10 @@ frame duration="0.1" x="261" y="75" w="49" h="72" originx="27" originy="71"
 frame duration="0.1" x="61" y="75" w="49" h="72" originx="27" originy="71"
 frame duration="0.1" x="415" y="74" w="49" h="72" originx="27" originy="71"
 
-animation state="PLAYER_MOVING"
+animation state="PLAYER_MOVE"
 frame duration="0.07" x="363" y="72" w="47" h="75" originx="27" originy="74"
 frame duration="0.02" x="168" y="0" w="48" h="80" originx="26" originy="79"
 frame duration="0.02" x="216" y="0" w="45" h="82" originx="25" originy="81"
-
-animation state="PLAYER_MOVED"
 frame duration="0.03" x="216" y="0" w="45" h="82" originx="25" originy="81"
 frame duration="0.03" x="168" y="0" w="48" h="80" originx="26" originy="79"
 frame duration="0.05" x="363" y="72" w="47" h="75" originx="27" originy="74"

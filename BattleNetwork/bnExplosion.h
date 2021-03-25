@@ -2,7 +2,6 @@
 #include "bnArtifact.h"
 #include "bnAnimationComponent.h"
 
-class Field;
 /**
  * @class Explosion
  * @author mav
@@ -48,13 +47,6 @@ public:
   void OnDelete() override;
   
   void OnSpawn(Battle::Tile& start) override;
-
-  /**
-   * @brief Explosion doesnt move
-   * @param _direction ignored
-   * @return false
-   */
-  virtual bool Move(Direction _direction) override;
 
   /**
    * @brief Used by root. Increment the number of explosions

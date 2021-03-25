@@ -51,7 +51,7 @@ void TextBox::FormatToFit() {
       wordIndex = -1;
     }
 
-    text.SetString(message.substr(lastRow, index - lastRow));
+    text.SetString(message.substr(lastRow, (size_t)index - (size_t)lastRow));
     double width = text.GetWorldBounds().width;
     double height = text.GetWorldBounds().height;
 
@@ -130,8 +130,8 @@ void TextBox::Unmute() {
 }
 
 const bool TextBox::HasMore() const {
-  if (lineIndex + numberOfFittingLines < lines.size())
-      if (charIndex > lines[lineIndex + numberOfFittingLines])
+  if ((size_t)lineIndex + (size_t)numberOfFittingLines < lines.size())
+      if (charIndex > lines[(size_t)lineIndex + (size_t)numberOfFittingLines])
         return true;
 
   return false;
@@ -146,6 +146,8 @@ void TextBox::ShowNextLine() {
 
   if (lineIndex >= lines.size())
     lineIndex = (int)lines.size() - 1;
+
+  dirty = true;
 }
 
 void TextBox::ShowPreviousLine() {
@@ -153,6 +155,8 @@ void TextBox::ShowPreviousLine() {
 
   if (lineIndex < 0)
     lineIndex = 0;
+
+  dirty = true;
 }
 
 void TextBox::CompleteCurrentBlock()
@@ -161,14 +165,34 @@ void TextBox::CompleteCurrentBlock()
   int lastLine = lineIndex + GetNumberOfFittingLines();
 
   if (lastLine < this->lines.size()) {
-    newCharIndex = this->lines[lastLine]-1;
+    newCharIndex = this->lines[lastLine];
   }
 
-  int charactersSkipped = (int)newCharIndex - charIndex;
+  int charactersSkipped = 0;
+  int index = charIndex;
+
+  // do not count spaces
+  while (index < newCharIndex) {
+    if (message[index] == ' ') {
+      index++;
+      continue;
+    }
+
+    index++;
+    charactersSkipped++;
+  }
+
   double elapsed = static_cast<double>(charactersSkipped) / this->charsPerSecond;
   this->progress += elapsed;
 
-  play = true; // will try and pause once it completes, so we force it to update
+  dirty = true; // will try and pause once it completes, so we force it to update
+}
+
+void TextBox::CompleteAll()
+{
+  charIndex = static_cast<int>(message.length());
+
+  dirty = true; // will try and pause once it completes, so we force it to update
 }
 
 void TextBox::SetCharactersPerSecond(const double cps) {
@@ -183,6 +207,7 @@ void TextBox::SetText(const std::string& text) {
   lineIndex = 0;
   numberOfFittingLines = 1;
   FormatToFit();
+  dirty = true;
 }
 
 void TextBox::Play(const bool play) {
@@ -216,7 +241,8 @@ const bool TextBox::IsPlaying() const {
 void TextBox::Update(const double elapsed) {
   // If we're paused don't update
   // If the message is empty don't update
-  if (!play || message.empty()) return;
+  if (message.empty()) return;
+  if (!play && !dirty) return;
 
   // If we're at the end of the message, don't step  
   // through the words
@@ -226,8 +252,9 @@ void TextBox::Update(const double elapsed) {
     int last = lines[lastIndex];
     int len = 0;
 
-    if (lineIndex + (numberOfFittingLines) < lines.size()) {
-      len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
+    size_t pos = static_cast<size_t>(lineIndex) + static_cast<size_t>(numberOfFittingLines);
+    if (pos < lines.size()) {
+      len = std::min(charIndex - begin, lines[pos] - begin);
     }
     else {
       len = charIndex - begin;
@@ -293,8 +320,9 @@ void TextBox::Update(const double elapsed) {
     * We make sure we show the last visible character in the line*/
 
     if (charIndex >= lines[lineIndex]) {
-      if (lineIndex + (numberOfFittingLines) < lines.size()) {
-        len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
+      size_t pos = static_cast<size_t>(lineIndex) + static_cast<size_t>(numberOfFittingLines);
+      if (pos < lines.size()) {
+        len = std::min(charIndex - begin, lines[pos] - begin);
       }
       else {
         len = charIndex - begin;
@@ -306,11 +334,15 @@ void TextBox::Update(const double elapsed) {
     // Len will be > 0 after first call to Update()
     // Set the sf::Text to show only the visible text in 
     // the text area
-    if (len <= 0)
+    if (len <= 0) {
       text.SetString("");
-    else
+    }
+    else {
       text.SetString(message.substr(begin, len));
+    }
   }
+
+  dirty = false;
 }
 
 const bool TextBox::IsEndOfMessage() const {

@@ -3,10 +3,11 @@
 #include "../bnBattleSceneBase.h"
 #include "../../bnCard.h"
 #include "../../bnCardAction.h"
+#include "../../bnCardToActions.h"
 #include "../../bnCharacter.h"
+#include "../../bnField.h"
 
-TimeFreezeBattleState::TimeFreezeBattleState() :
-  font(Font::Style::thick)
+TimeFreezeBattleState::TimeFreezeBattleState()
 {
   lockedTimestamp = lockedTimestamp = std::numeric_limits<long long>::max();
 }
@@ -21,13 +22,18 @@ const bool TimeFreezeBattleState::FadeOutBackdrop()
   return GetScene().FadeOutBackdrop(backdropInc);
 }
 
+void TimeFreezeBattleState::SkipToAnimateState()
+{
+  startState = state::animate;
+}
+
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
   GetScene().GetSelectedCardsUI().Hide();
   GetScene().GetField()->ToggleTimeFreeze(true); // freeze everything on the field but accept hits
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
-  currState = state::fadein;
+  currState = startState;
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -37,6 +43,8 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
   GetScene().HighlightTiles(false);
   action = nullptr;
   user = nullptr;
+  startState = state::fadein; // assume fadein for most time freezes
+  executeOnce = false; // reset execute flag
 }
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
@@ -59,14 +67,14 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
     if (summonSecs >= summonTextLength) {
       GetScene().HighlightTiles(true); // re-enable tile highlighting for new entities
-
-      ExecuteTimeFreeze();
       currState = state::animate; // animate this attack
     }
   }
   break;
   case state::animate:
     {
+      ExecuteTimeFreeze();
+
       if (action && action->IsAnimationOver() == false) {
           action->Update(elapsed);
       }
@@ -83,7 +91,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
-  Text summonsLabel = Text(name, font);
+  Text summonsLabel = Text(name, Font::Style::thick);
 
   double summonSecs = summonTimer.getElapsed().asSeconds();
   double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
@@ -95,14 +103,13 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     summonsLabel.setPosition(470.0f, 80.0f);
   }
 
-  summonsLabel.setScale(1.0f, (float)scale);
-  summonsLabel.SetColor(sf::Color::White);
+  summonsLabel.setScale(2.0f, 2.0f*(float)scale);
 
   if (team == Team::red) {
-    summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height);
+    summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height*0.5f);
   }
   else {
-    summonsLabel.setOrigin(summonsLabel.GetLocalBounds().width, summonsLabel.GetLocalBounds().height);
+    summonsLabel.setOrigin(summonsLabel.GetLocalBounds().width, summonsLabel.GetLocalBounds().height*0.5f);
   }
 
   surface.draw(GetScene().GetCardSelectWidget());
@@ -111,16 +118,10 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
 void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
-  auto actions = user->GetComponentsDerivedFrom<CardAction>();
-
-  if (actions.empty()) return;
-
-  action = actions[0];
-
   if (action && action->CanExecute()) {
     action->Execute();
 
-    if (action->GetLockoutType() != ActionLockoutType::sequence) {
+    if (action->GetLockoutType() != CardAction::LockoutType::sequence) {
       user->ToggleTimeFreeze(false); // unfreeze the user to animate their sequences
     }
   }
@@ -130,12 +131,14 @@ bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
-void TimeFreezeBattleState::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
+void TimeFreezeBattleState::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
 {
   if (card.IsTimeFreeze() && timestamp < lockedTimestamp) {
     this->name = card.GetShortName();
     this->team = user.GetTeam();
     this->user = &user;
     lockedTimestamp = timestamp;
+
+    action = CardToAction(card, user);
   }
 }

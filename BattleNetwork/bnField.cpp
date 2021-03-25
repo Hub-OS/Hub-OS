@@ -3,6 +3,7 @@
 #include "bnCharacter.h"
 #include "bnSpell.h"
 #include "bnArtifact.h"
+#include "bnTile.h"
 #include "bnTextureResourceManager.h"
 
 constexpr auto TILE_ANIMATION_PATH = "resources/tiles/tiles.animation";
@@ -29,10 +30,7 @@ Field::Field(int _width, int _height) :
     for (int x = 0; x < _width+2; x++) {
       Battle::Tile* tile = new Battle::Tile(x, y);
       tile->SetField(this);
-      tile->animation = a;
-      tile->blue_team_atlas = t_a_b;
-      tile->red_team_atlas = t_a_r;
-      tile->useParentShader = true;
+      tile->SetupGraphics(t_a_r, t_a_b, a);
       row.push_back(tile);
     }
     tiles.push_back(row);
@@ -179,6 +177,8 @@ Field::AddEntityStatus Field::AddEntity(Obstacle & obst, int x, int y)
   return Field::AddEntityStatus::deleted;
 }
 
+
+
 Field::AddEntityStatus Field::AddEntity(Obstacle & obst, Battle::Tile & dest)
 {
   return AddEntity(obst, dest.GetX(), dest.GetY());
@@ -279,88 +279,114 @@ void Field::Update(double _elapsed) {
   double syncRedTeamCooldown = 0;
 
   for (int i = 0; i < tiles.size(); i++) {
-      for (int j = 0; j < tiles[i].size(); j++) {
-          tiles[i][j]->Update(_elapsed);
-      }
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->CleanupEntities();
+      tiles[i][j]->UpdateSpells(_elapsed);
+    }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
-      for (int j = 0; j < tiles[i].size(); j++) {
-          auto&& t = tiles[i][j];
-
-          // How far has entity of either moved across the map?
-          // This check will help prevent trapping moving characters 
-          // when their tiles' team type resets
-          for(auto&& it = t->characters.begin(); it != t->characters.end(); it++) {
-            Team team = (*it)->GetTeam();
-            if (team == Team::red) { redTeamFarCol = std::max(redTeamFarCol, j); }
-            else if(team == Team::blue) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
-          }
-
-          if(j <= 3) {
-            // This tile was originally red
-            if(t->GetTeam() == Team::blue) {
-              syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->teamCooldown);
-
-              if(t->teamCooldown <= 0) {
-                backToRed.insert(backToRed.begin(), j);
-              }
-            }
-          } else{
-            // This tile was originally blue
-            if(t->GetTeam() == Team::red) {
-              syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, t->flickerTeamCooldown);
-
-              if(t->teamCooldown <= 0) {
-                backToBlue.insert(backToBlue.begin(), j);
-              }
-            }
-          }
-
-          // now that the loop for this tile is over
-          // and it has been updated, we calculate how many entities remain
-          // on the field
-          entityCount += (int)tiles[i][j]->GetEntityCount();
-        }
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->ExecuteAllSpellAttacks();
+    }
   }
 
-    // plan: Restore column team states not just a single tile
-    // col must be relatively ahead of the furthest character of the same team
-    // e.g. red team characters must be behind the col row
-    //      blue team characters must be after the col row
-    //      otherwise we risk trapping characters in a striped battle field
-
-    // stolen blue tiles
-    for(auto&& p : backToBlue) {
-        if (p > redTeamFarCol && syncBlueTeamCooldown <= 0.0f) {
-            for (int i = 0; i < tiles.size(); i++) {
-                tiles[i][p]->SetTeam(Team::blue, true);
-            }
-        }
-        else {
-            // resync
-            for (int i = 0; i < tiles.size(); i++) {
-                tiles[i][p]->flickerTeamCooldown = Battle::Tile::flickerTeamCooldownLength;
-            }
-        }
+  for (int i = 0; i < tiles.size(); i++) {
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->UpdateArtifacts(_elapsed);
+      // TODO: tiles[i][j]->UpdateObjects(_elapsed);
     }
+  }
 
-    backToBlue.clear();
-
-    // stolen red tiles
-    for(auto&& p : backToRed) {
-        if (p < blueTeamFarCol && syncRedTeamCooldown <= 0.0f) {
-            for (int i = 0; i < tiles.size(); i++) {
-                tiles[i][p]->SetTeam(Team::red, true);
-            }
-        }
-        else {
-            // resync
-            for (int i = 0; i < tiles.size(); i++) {
-                tiles[i][p]->flickerTeamCooldown = Battle::Tile::flickerTeamCooldownLength;
-            }
-        }
+  for (int i = 0; i < tiles.size(); i++) {
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->Update(_elapsed);
     }
+  }
+
+  for (int i = 0; i < tiles.size(); i++) {
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->UpdateCharacters(_elapsed);
+    }
+  }
+
+  for (int i = 0; i < tiles.size(); i++) {
+    for (int j = 0; j < tiles[i].size(); j++) {
+      auto&& t = tiles[i][j];
+
+      // How far has entity of either moved across the map?
+      // This check will help prevent trapping moving characters 
+      // when their tiles' team type resets
+      for(auto&& it = t->characters.begin(); it != t->characters.end(); it++) {
+        Team team = (*it)->GetTeam();
+        if (team == Team::red) { redTeamFarCol = std::max(redTeamFarCol, j); }
+        else if(team == Team::blue) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
+      }
+
+      if(j <= 3) {
+        // This tile was originally red
+        if(t->GetTeam() == Team::blue) {
+          syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->teamCooldown);
+
+          if(t->teamCooldown <= 0) {
+            backToRed.insert(backToRed.begin(), j);
+          }
+        }
+      } else{
+        // This tile was originally blue
+        if(t->GetTeam() == Team::red) {
+          syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, t->flickerTeamCooldown);
+
+          if(t->teamCooldown <= 0) {
+            backToBlue.insert(backToBlue.begin(), j);
+          }
+        }
+      }
+
+      // now that the loop for this tile is over
+      // and it has been updated, we calculate how many entities remain
+      // on the field
+      entityCount += (int)tiles[i][j]->GetEntityCount();
+      }
+  }
+
+  // plan: Restore column team states not just a single tile
+  // col must be relatively ahead of the furthest character of the same team
+  // e.g. red team characters must be behind the col row
+  //      blue team characters must be after the col row
+  //      otherwise we risk trapping characters in a striped battle field
+
+  // stolen blue tiles
+  for(auto&& p : backToBlue) {
+    if (p > redTeamFarCol && syncBlueTeamCooldown <= 0.0f) {
+      for (int i = 0; i < tiles.size(); i++) {
+        tiles[i][p]->SetTeam(Team::blue, true);
+      }
+    }
+    else {
+      // resync
+      for (int i = 0; i < tiles.size(); i++) {
+        tiles[i][p]->flickerTeamCooldown = Battle::Tile::flickerTeamCooldownLength;
+      }
+    }
+  }
+
+  backToBlue.clear();
+
+  // stolen red tiles
+  for(auto&& p : backToRed) {
+    if (p < blueTeamFarCol && syncRedTeamCooldown <= 0.0f) {
+      for (int i = 0; i < tiles.size(); i++) {
+        tiles[i][p]->SetTeam(Team::red, true);
+      }
+    }
+    else {
+      // resync
+      for (int i = 0; i < tiles.size(); i++) {
+        tiles[i][p]->flickerTeamCooldown = Battle::Tile::flickerTeamCooldownLength;
+      }
+    }
+  }
 
   backToRed.clear();
 
@@ -369,17 +395,17 @@ void Field::Update(double _elapsed) {
 
   short combatEvaluationIteration = BN_MAX_COMBAT_EVALUATION_STEPS;
   while(HasPendingEntities() && combatEvaluationIteration > 0) {
-      // This may force battle steps to evaluate again
-      SpawnPendingEntities();
+    // This may force battle steps to evaluate again
+    SpawnPendingEntities();
 
-      // Apply new spells into this frame's combat resolution
-      for (int i = 0; i < tiles.size(); i++) {
-          for (int j = 0; j < tiles[i].size(); j++) {
-              tiles[i][j]->ExecuteAllSpellAttacks();
-          }
+    // Apply new spells into this frame's combat resolution
+    for (int i = 0; i < tiles.size(); i++) {
+      for (int j = 0; j < tiles[i].size(); j++) {
+        tiles[i][j]->ExecuteAllSpellAttacks();
       }
+    }
 
-      combatEvaluationIteration--;
+    combatEvaluationIteration--;
   }
 
   updatedEntities.clear();
@@ -440,7 +466,7 @@ void Field::SpawnPendingEntities()
 {
     
     while (pending.size()) {
-        auto next = pending.back();
+        auto& next = pending.back();
         pending.pop_back();
 
         switch (next.entity_type) {
@@ -525,3 +551,17 @@ Field::queueBucket::queueBucket(int x, int y, Spell& d) : x(x), y(y), entity_typ
   data.spell = &d;
   ID = d.GetID();
 }
+
+#ifdef BN_MOD_SUPPORT
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y)
+{
+  Spell* ptr = spell.release();
+  return AddEntity(*ptr, x, y);
+}
+
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y)
+{
+  Obstacle* ptr = obst.release();
+  return AddEntity(*ptr, x, y);
+}
+#endif

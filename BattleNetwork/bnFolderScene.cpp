@@ -344,6 +344,7 @@ void FolderScene::onUpdate(double elapsed) {
       } else if (Input().Has(InputEvents::pressed_confirm)) {
         if (!promptOptions) {
           promptOptions = true;
+          RefreshOptions();
           Audio().Play(AudioType::CHIP_DESC);
         }
         else if(folderNames.size()) {
@@ -362,16 +363,22 @@ void FolderScene::onUpdate(double elapsed) {
             break;
           case 1: // EQUIP
           {
-            selectedFolderIndex = currFolderIndex;
-            collection.SwapOrder(0, selectedFolderIndex);
+            CardFolder* folder{ nullptr };
+            if (collection.GetFolder(currFolderIndex, folder) && !folder->HasErrors()) {
+              selectedFolderIndex = currFolderIndex;
+              collection.SwapOrder(0, selectedFolderIndex);
 
-            // Save this session data
-            auto folderStr = collection.GetFolderNames()[0];
-            auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
-            if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
-            WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
+              // Save this session data
+              auto folderStr = collection.GetFolderNames()[0];
+              auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
+              if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
+              WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
 
-            Audio().Play(AudioType::PA_ADVANCE);
+              Audio().Play(AudioType::PA_ADVANCE);
+            }
+            else {
+              Audio().Play(AudioType::CHIP_ERROR);
+            }
           }
             break;
           case 2: // CHANGE NAME
@@ -582,7 +589,13 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       iter++;
     }
 
-    cardLabel.SetColor(sf::Color::White);
+    if (folder->HasErrors()) {
+      cardLabel.SetColor(sf::Color::Red);
+    }
+    else {
+      cardLabel.SetColor(sf::Color::White);
+    }
+
     cardLabel.SetString(folderNames[currFolderIndex]);
     cardLabel.setOrigin(0.f, 0.f);
     cardLabel.setPosition(195.0f, 102.0f);
@@ -630,8 +643,6 @@ void FolderScene::MakeNewFolder() {
   }
 
   folderNames = collection.GetFolderNames();
-
-  RefreshOptions();
 }
 
 void FolderScene::DeleteFolder(std::function<void()> onSuccess)
@@ -645,8 +656,6 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     if (collection.DeleteFolder(folderNames[currFolderIndex])) {
       onSuccess();
       folderNames = collection.GetFolderNames();
-
-      RefreshOptions();
     }
 
     textbox.Close();

@@ -80,6 +80,44 @@ std::vector<SceneNode*>& SceneNode::GetChildNodes() const
   return childNodes;
 }
 
+std::set<SceneNode*> SceneNode::GetChildNodesWithTag(const std::initializer_list<std::string>& query)
+{
+  std::set<SceneNode*> results;
+
+  for (auto& q : query) {
+    for (auto& n : childNodes) {
+      if (n->HasTag(q)) {
+        results.insert(n);
+      }
+    }
+  }
+
+  return results;
+}
+
 SceneNode* SceneNode::GetParent() {
   return parent;
+}
+
+void SceneNode::AddTags(const std::initializer_list<std::string>& tags)
+{
+  for (auto& t : tags) {
+    this->tags.insert(t);
+  }
+}
+
+void SceneNode::RemoveTags(const std::initializer_list<std::string>& tags)
+{
+  for (auto& t : tags) {
+    this->tags.insert(t);
+  }
+}
+
+const bool SceneNode::HasTag(const std::string& name)
+{
+  for (auto& t : tags) {
+    if (t == name) return true;
+  }
+
+  return false;
 }

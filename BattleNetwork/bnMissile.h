@@ -21,6 +21,5 @@ public:
 
     void OnUpdate(double _elapsed) override;
     void OnDelete() override;
-    bool Move(Direction _direction) override;
     void Attack(Character* _entity) override;
 }; 

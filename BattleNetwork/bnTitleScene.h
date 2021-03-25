@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <future>
 #include "bnLoaderScene.h"
 #include "bnSpriteProxyNode.h"
 #include "bnFont.h"
@@ -19,7 +20,8 @@ private:
   std::atomic<int> progress;
   std::atomic<int> navisLoaded;
   std::atomic<int> mobsLoaded;
-  std::string taskStr;
+  std::future<bool> loginResult;
+  std::string taskStr, incomingTaskStr;
 
   // Status flags
   bool inLoadState = true;

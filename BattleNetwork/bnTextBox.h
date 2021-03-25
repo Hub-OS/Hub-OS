@@ -22,8 +22,9 @@ private:
   int lineIndex; /**< Index of the current line being typed. */
   int numberOfFittingLines; /**< Precalculated. Number of fitting lines in the area. */
   int charIndex; /**< The current character index in the entire message. */
-  bool play; /**< If true, types out message. If false, pauses. */
-  bool mute; /**< Enables a sound to play every time a character is printed */
+  bool play{}; /**< If true, types out message. If false, pauses. */
+  bool mute{}; /**< Enables a sound to play every time a character is printed */
+  bool dirty{};
   int charSize; /**< Font size */
 
   /**
@@ -118,6 +119,11 @@ public:
   * @brief Writes-out the currently unrolling line and effectively skips the animation
   */
   void CompleteCurrentBlock();
+
+  /**
+  * @brief skips all animation. Useful if you just want to show text.
+  */
+  void CompleteAll();
 
   /**
    * @brief Change how many characters are printed per second

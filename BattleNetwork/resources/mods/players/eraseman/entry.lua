@@ -17,6 +17,8 @@ end
 function battle_init(player)
     player:SetName("Eraseman")
     player:SetHealth(1100)
+    player:SetElement(Element.Cursor)
+    player:SetHeight(100.0)
     player:GetAnimation():SetPath(_modpath.."eraseman.animation")
     player:SetTexture(LoadTexture(_modpath.."navi_eraseman_atlas.png"), true)
     player:SetFullyChargeColor(Color.new(255,0,0,255))

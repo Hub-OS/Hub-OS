@@ -44,7 +44,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI(props.folder, 8, 8),
   mobFont(Font::Style::thick),
-  camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) })
+  camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
+  channel(this)
 {
   /*
   Set Scene*/
@@ -111,11 +112,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   counterCombatRule = new CounterCombatRule(this);
 
-  /*
-  Cards + Card select setup*/
-  cards = nullptr;
-  cardCount = 0;
-
   // Load forms
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
 
@@ -149,14 +145,20 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   HitListener::Subscribe(*player);
 
   setView(sf::Vector2u(480, 320));
+
+  // add the camera to our event bus
+  channel.Register(&camera);
 }
 
 BattleSceneBase::~BattleSceneBase() {
-  for (auto elem : states) {
+  // drop the camera from our event bus
+  channel.Drop(&camera);
+
+  for (auto& elem : states) {
     delete elem;
   }
 
-  for (auto elem : nodeToEdges) {
+  for (auto& elem : nodeToEdges) {
     delete elem.second;
   }
 }
@@ -274,7 +276,7 @@ void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
   this->customDuration = maxTimeSeconds;
 }
 
-void BattleSceneBase::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
+void BattleSceneBase::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
 {
   HandleCounterLoss(user);
 }
@@ -332,10 +334,10 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
 
           card->ModDamage(buff);
         }
-      }
 
-      i++;
-      continue;
+        i++;
+        continue;
+      }
     }
 
     newCardList[j] = cards[i];
@@ -352,12 +354,12 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
     cards[i] = *(newCardList + i);
   }
 
+  // Set the new card count
+  cardCount = newCardCount;
+
   // Delete the temp list space
   // NOTE: We are _not_ deleting the pointers in them
   delete[] newCardList;
-
-  cards = cards;
-  cardCount = newCardCount;
 }
 
 #ifdef __ANDROID__
@@ -511,16 +513,13 @@ void BattleSceneBase::onUpdate(double elapsed) {
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
-  float tint = 1.0f - static_cast<float>(backdropOpacity);
+  int tint = static_cast<int>((1.0f - backdropOpacity) * 255);
 
   if (!backdropAffectBG) {
-    tint = 1.f;
-  }
-  else if (backdropOpacity > 0) {
-    //getController().Postprocessing(&backdropShader);
+    tint = 255;
   }
 
-  background->setColor(sf::Color(int(255.f * tint), int(255.f * tint), int(255.f * tint), 255));
+  background->setColor(sf::Color(tint, tint, tint, 255));
 
   surface.draw(*background);
 
@@ -540,7 +539,9 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     }
 
     tile->move(viewOffset);
+    tile->setColor(sf::Color(tint, tint, tint, 255));
     surface.draw(*tile);
+    tile->setColor(sf::Color::White);
     tile->move(-viewOffset);
   }
 

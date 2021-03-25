@@ -44,14 +44,15 @@ void AnimationComponent::Reload() {
   animation.Reload();
 }
 
+void AnimationComponent::CopyFrom(const AnimationComponent& rhs)
+{
+  animation = rhs.animation;
+  path = rhs.path;
+}
+
 const std::string AnimationComponent::GetAnimationString() const
 {
   return animation.GetAnimationString();
-}
-
-Animation& AnimationComponent::GetAnimationObj()
-{
-  return animation;
 }
 
 const std::string& AnimationComponent::GetFilePath() const
@@ -73,8 +74,9 @@ void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish
 {
   animation.SetAnimation(state);
 
-  for (auto&& o : overrideList) {
-    o->SetAnimation(state);
+  for (auto& o : overrideList) {
+    o.first->SetAnimation(state);
+    o.first->Refresh(o.second);
   }
 
   animation << onFinish;
@@ -85,8 +87,9 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, FrameFini
 {
   animation.SetAnimation(state);
 
-  for (auto&& o : overrideList) {
-    o->SetAnimation(state);
+  for (auto& o : overrideList) {
+    o.first->SetAnimation(state);
+    o.first->Refresh(o.second);
   }
 
   animation << playbackMode << onFinish;
@@ -99,7 +102,7 @@ void AnimationComponent::SetPlaybackMode(char playbackMode)
   animation << playbackMode;
 
   for (auto&& o : overrideList) {
-    (*o) << playbackMode;
+    (*o.first) << playbackMode;
   }
 }
 
@@ -131,9 +134,9 @@ void AnimationComponent::CancelCallbacks()
   animation.RemoveCallbacks();
   animation << mode;
 
-  for (auto&& o : overrideList) {
-    o->RemoveCallbacks();
-    (*o) << mode;
+  for (auto& o : overrideList) {
+    o.first->RemoveCallbacks();
+    (*o.first) << mode;
   }
 }
 
@@ -157,8 +160,8 @@ void AnimationComponent::OverrideAnimationFrames(const std::string& animation, s
 {
   AnimationComponent::animation.OverrideAnimationFrames(animation, data, uuid);
 
-  for (auto&& o : overrideList) {
-    o->OverrideAnimationFrames(animation, data, uuid);
+  for (auto& o : overrideList) {
+    o.first->OverrideAnimationFrames(animation, data, uuid);
   }
 }
 
@@ -173,14 +176,14 @@ void AnimationComponent::SyncAnimation(AnimationComponent * other)
   other->OnUpdate(0);
 }
 
-void AnimationComponent::AddToOverrideList(Animation * other)
+void AnimationComponent::AddToOverrideList(Animation* other, sf::Sprite& sprite)
 {
   if (other == &animation) return;
 
-  auto iter = std::find(overrideList.begin(), overrideList.end(), other);
+  auto iter = std::find_if(overrideList.begin(), overrideList.end(), [other](auto in) {return in.first == other; });
 
   if (iter == overrideList.end()) {
-    overrideList.push_back(other);
+    overrideList.push_back(std::make_pair(other, std::ref(sprite)));
   }
 }
 
@@ -188,10 +191,11 @@ void AnimationComponent::RemoveFromOverrideList(Animation * other)
 {
   if (other == &animation) return;
 
-  auto iter = std::find(overrideList.begin(), overrideList.end(), other);
+  auto iter = std::find_if(overrideList.begin(), overrideList.end(), [other](auto in) {return in.first == other; });
 
-  if (iter != overrideList.end()) {
+  while (iter != overrideList.end()) {
     overrideList.erase(iter);
+    iter = std::find_if(overrideList.begin(), overrideList.end(), [other](auto in) {return in.first == other; });
   }
 }
 
@@ -204,9 +208,8 @@ void AnimationComponent::SetFrame(const int index)
 {
   animation.SetFrame(index, GetOwner()->getSprite());
 
-  for (auto&& o : overrideList) {
-    // TODO: track the override animation's target sprite?
-    // o->SetFrame(index);
+  for (auto& o : overrideList) {
+    o.first->SetFrame(index, o.second);
   }
 }
 

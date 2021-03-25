@@ -6,10 +6,18 @@
 #include "bnResourceHandle.h"
 #include "bnEntity.h"
 #include "bnElements.h"
+#include "bnField.h"
+#include "bnTile.h"
 
 #include "bnNaviRegistration.h"
 #include "bindings/bnScriptedCardAction.h"
+#include "bindings/bnScriptedCharacter.h"
+#include "bindings/bnScriptedSpell.h"
+#include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
+
+// Useful prefabs to use in scripts...
+#include "bnExplosion.h"
 
 // temporary proof of concept includes...
 #include "bnBusterCardAction.h"
@@ -19,26 +27,208 @@
 #include "bnCannonCardAction.h"
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
-  state.open_libraries(sol::lib::base);
+  state.open_libraries(sol::lib::base, sol::lib::math);
 
-  auto battle_namespace = state.create_table("Battle");
-  auto overworld_namespace = state.create_table("Overworld");
-  auto engine_namespace = state.create_table("Engine");
+  auto& battle_namespace = state.create_table("Battle");
+  auto& overworld_namespace = state.create_table("Overworld");
+  auto& engine_namespace = state.create_table("Engine");
 
   // global namespace
-  auto color_record = state.new_usertype<sf::Color>("Color",
+  auto& color_record = state.new_usertype<sf::Color>("Color",
     sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>()
-    );
-
-  auto animation_record = battle_namespace.new_usertype<AnimationComponent>("Animation",
-    "SetPath", &AnimationComponent::SetPath
   );
 
-  auto player_record = battle_namespace.new_usertype<Player>("Player",
+  auto& vector_record = state.new_usertype<sf::Vector2f>("Vector2",
+    "x", &sf::Vector2f::x,
+    "y", &sf::Vector2f::y
+  );
+
+  auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
+    sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
+    "Load", &Animation::Load,
+    "Update", &Animation::Update,
+    "Refresh", &Animation::Refresh,
+    "SetState", &Animation::SetAnimation,
+    "State", &Animation::GetAnimationString,
+    "Point", &Animation::GetPoint,
+    "SetPlayback", sol::resolve<Animation&(char)>(&Animation::operator<<),
+    "OnComplete", sol::resolve<void(const FrameCallback&)>(&Animation::operator<<),
+    "AddCallback", &Animation::AddCallback,
+    "OnInterrupt", &Animation::SetInterruptCallback
+  );
+
+  auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
+    sol::constructors<SpriteProxyNode()>(),
+    "SetTexture", &SpriteProxyNode::setTexture,
+    "SetLayer", &SpriteProxyNode::SetLayer,
+    "Show", &SpriteProxyNode::Reveal,
+    "Hide", &SpriteProxyNode::Hide,
+    "SetPosition", sol::resolve<void(float, float)>(&SpriteProxyNode::setPosition),
+    "GetPosition", &SpriteProxyNode::getPosition,
+    "Sprite", &SpriteProxyNode::getSprite,
+    "EnableParentShader", &SpriteProxyNode::EnableParentShader,
+    sol::base_classes, sol::bases<SceneNode>()
+  );
+
+  auto& tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
+    "X", &Battle::Tile::GetX,
+    "Y", &Battle::Tile::GetY,
+    "Width", &Battle::Tile::GetWidth,
+    "Height", &Battle::Tile::GetHeight,
+    "GetState", &Battle::Tile::GetState,
+    "SetState", &Battle::Tile::SetState,
+    "IsEdge", &Battle::Tile::IsEdgeTile,
+    "IsCracked", &Battle::Tile::IsCracked,
+    "IsHole", &Battle::Tile::IsHole,
+    "IsWalkable", &Battle::Tile::IsWalkable,
+    "IsReserved", &Battle::Tile::IsReservedByCharacter,
+    "Team", &Battle::Tile::GetTeam,
+    "AttackEntities", &Battle::Tile::AffectEntities
+  );
+
+  auto& field_record = battle_namespace.new_usertype<Field>("Field",
+    "TileAt", &Field::GetAt,
+    "Width", &Field::GetWidth,
+    "Height", &Field::GetHeight,
+    "Spawn", sol::overload(
+      sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedSpell>&, int, int)>(&Field::AddEntity),
+      sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedObstacle>&, int, int)>(&Field::AddEntity)
+    ),
+    "SpawnFX", sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity)
+  );
+
+  auto& player_record = battle_namespace.new_usertype<Player>("Player",
     sol::base_classes, sol::bases<Character>()
   );
 
-  auto scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("ScriptedPlayer",
+  auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
+    sol::factories([](int count, double speed) {
+      return new Explosion(count, speed);
+    }),
+    sol::base_classes, sol::bases<Artifact>()
+  );
+
+
+  auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>("Spell",
+    sol::factories([](Team team) -> std::unique_ptr<ScriptedSpell> {
+      return std::make_unique<ScriptedSpell>(team);
+    }),
+    sol::meta_function::index,
+    &dynamic_object::dynamic_get,
+    sol::meta_function::new_index,
+    &dynamic_object::dynamic_set,
+    sol::meta_function::length,
+    [](dynamic_object& d) { return d.entries.size(); },
+    "GetID", &ScriptedSpell::GetID,
+    "SetHeight", &ScriptedSpell::SetHeight,
+    "SetTexture", &ScriptedSpell::setTexture,
+    "SetLayer", &ScriptedSpell::SetLayer,
+    "GetAnimation", &ScriptedSpell::GetAnimationObject,
+    "Tile", &ScriptedSpell::GetTile,
+    "Field", &ScriptedSpell::GetField,
+    "Move", &ScriptedSpell::Move,
+    "SlideToTile", &ScriptedSpell::SlideToTile,
+    "AdoptNextTile", &ScriptedSpell::AdoptNextTile,
+    "FinishMove", &ScriptedSpell::FinishMove,
+    "Teleport", &ScriptedSpell::Teleport,
+    "IsSliding", &ScriptedSpell::IsSliding,
+    "SetSlideFrames", &ScriptedSpell::SetSlideTimeFrames,
+    "SetPosition", &ScriptedSpell::SetTileOffset,
+    "GetPosition", &ScriptedSpell::GetTileOffset,
+    "ShowShadow", &ScriptedSpell::ShowShadow,
+    "Teammate", &ScriptedSpell::Teammate,
+    "AddNode", &ScriptedSpell::AddNode,
+    "Delete", &ScriptedSpell::Delete,
+    "HighlightTile", &ScriptedSpell::HighlightTile,
+    "GetHitProps", &ScriptedSpell::GetHitboxProperties,
+    "SetHitProps", &ScriptedSpell::SetHitboxProperties,
+    "attackFunc", &ScriptedSpell::attackCallback,
+    "deleteFunc", &ScriptedSpell::deleteCallback,
+    "updateFunc", &ScriptedSpell::updateCallback,
+    "canMoveToFunc", &ScriptedSpell::canMoveToCallback,
+    "onSpawnFunc", &ScriptedSpell::spawnCallback,
+    //"ShakeCamera", &ScriptedSpell::ShakeCamera,
+    sol::base_classes, sol::bases<Spell>()
+  );
+
+  auto& scriptedobstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
+    sol::factories([](Team team) -> std::unique_ptr<ScriptedObstacle> {
+      return std::make_unique<ScriptedObstacle>(team);
+    }),
+    sol::meta_function::index,
+    &dynamic_object::dynamic_get,
+    sol::meta_function::new_index,
+    &dynamic_object::dynamic_set,
+    sol::meta_function::length,
+    [](dynamic_object& d) { return d.entries.size(); },
+    "GetID", &ScriptedObstacle::GetID,
+    "SetHeight", &ScriptedObstacle::SetHeight,
+    "SetTexture", &ScriptedObstacle::setTexture,
+    "GetName", &ScriptedObstacle::GetName,
+    "GetHealth", &ScriptedObstacle::GetHealth,
+    "GetMaxHealth", &ScriptedObstacle::GetMaxHealth,
+    "SetName", &ScriptedObstacle::SetName,
+    "SetHealth", &ScriptedObstacle::SetHealth,
+    "SetHeight", &ScriptedObstacle::SetHeight,
+    "SetLayer", &ScriptedObstacle::SetLayer,
+    "GetAnimation", &ScriptedObstacle::GetAnimationObject,
+    "SetPosition", &ScriptedObstacle::SetTileOffset,
+    "GetPosition", &ScriptedObstacle::GetTileOffset,
+    "Tile", &ScriptedObstacle::GetTile,
+    "Field", &ScriptedObstacle::GetField,
+    "Move", &ScriptedObstacle::Move,
+    "SlideToTile", &ScriptedObstacle::SlideToTile,
+    "AdoptNextTile", &ScriptedObstacle::AdoptNextTile,
+    "FinishMove", &ScriptedObstacle::FinishMove,
+    "Teleport", &ScriptedObstacle::Teleport,
+    "IsSliding", &ScriptedObstacle::IsSliding,
+    "SetSlideFrames", &ScriptedObstacle::SetSlideTimeFrames,
+    "ShowShadow", &ScriptedObstacle::ShowShadow,
+    "Teammate", &ScriptedObstacle::Teammate,
+    "AddNode", &ScriptedObstacle::AddNode,
+    "Delete", &ScriptedObstacle::Delete,
+    "HighlightTile", &ScriptedObstacle::HighlightTile,
+    "GetHitProps", &ScriptedObstacle::GetHitboxProperties,
+    "SetHitProps", &ScriptedObstacle::SetHitboxProperties,
+    "IgnoreCommonAggressor", &ScriptedObstacle::IgnoreCommonAggressor,
+    "attackFunc", &ScriptedObstacle::attackCallback,
+    "deleteFunc", &ScriptedObstacle::deleteCallback,
+    "updateFunc", &ScriptedObstacle::updateCallback,
+    "canMoveToFunc", &ScriptedObstacle::canMoveToCallback,
+    "onSpawnFunc", &ScriptedObstacle::spawnCallback,
+    //"ShakeCamera", &ScriptedObstacle::ShakeCamera,
+    sol::base_classes, sol::bases<Obstacle, Spell, Character>()
+  );
+
+  auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("ScriptedCharacter",
+    "GetName", &ScriptedCharacter::GetName,
+    "GetID", &ScriptedCharacter::GetID,
+    "GetRank", &ScriptedCharacter::GetRank,
+    "SetRank", &ScriptedCharacter::SetRank,
+    "GetHealth", &ScriptedCharacter::GetHealth,
+    "GetMaxHealth", &ScriptedCharacter::GetMaxHealth,
+    "SetPosition", &ScriptedCharacter::SetTileOffset,
+    "GetPosition", &ScriptedCharacter::GetTileOffset,
+    "SetName", &ScriptedCharacter::SetName,
+    "SetHealth", &ScriptedCharacter::SetHealth,
+    "SetHeight", &ScriptedCharacter::SetHeight,
+    "SetTexture", &ScriptedCharacter::setTexture,
+    "GetAnimation", &ScriptedCharacter::GetAnimationObject,
+    "Tile", &ScriptedCharacter::GetTile,
+    "Field", &ScriptedCharacter::GetField,
+    "Target", &ScriptedCharacter::GetTarget,
+    "Move", &ScriptedCharacter::Move,
+    "SlideToTile", &ScriptedCharacter::SlideToTile,
+    "IsSliding", &ScriptedCharacter::IsSliding,
+    "SetSlideFrames", &ScriptedCharacter::SetSlideTimeFrames,
+    "ShareTile", &ScriptedCharacter::ShareTileSpace,
+    "Teammate", &ScriptedCharacter::Teammate,
+    "AddNode", &ScriptedCharacter::AddNode,
+    "ShakeCamera", &ScriptedCharacter::ShakeCamera,
+    sol::base_classes, sol::bases<Character>()
+  );
+
+  auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("ScriptedPlayer",
     "GetName", &ScriptedPlayer::GetName,
     "GetID", &ScriptedPlayer::GetID,
     "GetHealth", &ScriptedPlayer::GetHealth,
@@ -46,34 +236,36 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetName", &ScriptedPlayer::SetName,
     "SetHealth", &ScriptedPlayer::SetHealth,
     "SetTexture", &ScriptedPlayer::setTexture,
+    "SetElement", &ScriptedPlayer::SetElement,
+    "SetHeight",  &ScriptedPlayer::SetHeight,
     "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
     "SetChargePosition", &ScriptedPlayer::SetChargePosition,
     "GetAnimation", &ScriptedPlayer::GetAnimationComponent,
     sol::base_classes, sol::bases<Player>()
-    );
+   );
 
-  auto busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
+  auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories([](Character& character, bool charged, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<BusterCardAction>(character, charged, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
 
-  auto swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
+  auto& swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
     sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<SwordCardAction>(character, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
 
-  auto bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
+  auto& bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
     sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<BombCardAction>(character, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
 
-  auto fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
+  auto& fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
     sol::factories([](Character& character, FireBurn::Type type, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<FireBurnCardAction>(character, type, dmg);
     }),
@@ -81,7 +273,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
 
-  auto cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
+  auto& cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
     sol::factories([](Character& character, CannonCardAction::Type type, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<CannonCardAction>(character, type, dmg);
       }),
@@ -89,20 +281,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
 
-  auto textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
+  auto& textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
     "LoadFile", &TextureResourceManager::LoadTextureFromFile
   );
 
-  auto audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
-    "LoadFile", &AudioResourceManager::LoadFromFile
+  auto& audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
+    "LoadFile", &AudioResourceManager::LoadFromFile,
+    "Stream", sol::resolve<int(std::string, bool)>(&AudioResourceManager::Stream)
   );
 
-  auto shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
+  auto& shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
     "LoadFile", &ShaderResourceManager::LoadShaderFromFile
   );
 
   // make resource handle metatable
-  auto resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
+  auto& resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
     sol::constructors<ResourceHandle()>(),
     "Textures", sol::property(sol::resolve<TextureResourceManager& ()>(&ResourceHandle::Textures)),
     "Audio", sol::property(sol::resolve<AudioResourceManager& ()>(&ResourceHandle::Audio)),
@@ -129,7 +322,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );*/
 
   // make meta object info metatable
-  auto navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
+  auto& navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
     "SetSpecialDescription", &NaviRegistration::NaviMeta::SetSpecialDescription,
     "SetAttack", &NaviRegistration::NaviMeta::SetAttack,
     "SetChargedAttack", &NaviRegistration::NaviMeta::SetChargedAttack,
@@ -142,21 +335,87 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
   );
 
-  auto elements_table = battle_namespace.new_enum("Element",
-    "FIRE", Element::fire,
-    "AQUA", Element::aqua,
-    "ELEC", Element::elec,
-    "WOOD", Element::wood,
-    "SWORD", Element::sword,
-    "WIND", Element::wind,
-    "CURSOR", Element::cursor,
-    "SUMMON", Element::summon,
-    "PLUS", Element::plus,
-    "BREAK", Element::breaker,
-    "NONE", Element::none,
-    "ICE", Element::ice
+  auto elements_table = state.new_enum("Element",
+    "Fire", Element::fire,
+    "Aqua", Element::aqua,
+    "Elec", Element::elec,
+    "Wood", Element::wood,
+    "Sword", Element::sword,
+    "Wind", Element::wind,
+    "Cursor", Element::cursor,
+    "Summon", Element::summon,
+    "Plus", Element::plus,
+    "Break", Element::breaker,
+    "None", Element::none,
+    "Ice", Element::ice
   );
 
+  auto& direction_table = state.new_enum("Direction",
+    "None", Direction::none,
+    "Up", Direction::up,
+    "Down", Direction::down,
+    "Left", Direction::left,
+    "Right", Direction::right,
+    "UpLeft", Direction::up_left,
+    "UpRight", Direction::up_right,
+    "DownLeft", Direction::down_left,
+    "DownRight", Direction::down_right
+  );
+
+  auto& animation_mode_record = state.new_enum("Playback",
+    "Once", Animator::Mode::NoEffect,
+    "Loop", Animator::Mode::Loop,
+    "Bounce", Animator::Mode::Bounce,
+    "Reverse", Animator::Mode::Reverse
+  );
+
+  auto& team_record = state.new_enum("Team",
+    "Red", Team::red,
+    "Blue", Team::blue,
+    "Other", Team::unknown
+  );
+
+  auto& highlight_record = state.new_enum("Highlight",
+    "Solid", Battle::Tile::Highlight::solid,
+    "Flash", Battle::Tile::Highlight::flash,
+    "None", Battle::Tile::Highlight::none
+  );
+
+  auto& add_status_record = state.new_enum("EntityStatus",
+    "Queued", Field::AddEntityStatus::queued,
+    "Added", Field::AddEntityStatus::added,
+    "Failed", Field::AddEntityStatus::deleted
+  );
+
+  auto& hitbox_flags_record = state.new_enum("Hit",
+    "None", Hit::none,
+    "Recoil", Hit::recoil,
+    "Flinch", Hit::flinch,
+    "Stun", Hit::stun,
+    "Impact", Hit::impact,
+    "Shake", Hit::shake,
+    "Pierce", Hit::pierce,
+    "Retangible", Hit::retangible,
+    "Breaking", Hit::breaking,
+    "Bubble", Hit::bubble,
+    "Freeze", Hit::freeze,
+    "Drag", Hit::drag
+  );
+
+  /**
+    int damage{};
+    Flags flags{ none };
+    Element element{ Element::none };
+    Character* aggressor{ nullptr };
+    Direction drag{ Direction::none }; // Used by dragging payload
+  */
+  state.set_function("HitProps", 
+    [](int damage, Hit::Flags flags, Element element, Character* aggressor, Direction drag) {
+      return Hit::Properties{
+        damage, flags, element, aggressor, drag
+      };
+    }
+  );
 
   /*
   * // Script for field class support

@@ -30,6 +30,7 @@ using std::string;
 #include "bnComponent.h"
 #include "bnCallback.h"
 #include "bnEventBus.h"
+#include "bnActionQueue.h"
 
 namespace Battle {
   class Tile;
@@ -37,6 +38,31 @@ namespace Battle {
 
 class Field;
 class BattleSceneBase; // forward decl
+
+struct MoveEvent {
+  frame_time_t deltaFrames{}; //!< Frames between tile A and B. If 0, teleport. Else, we could be sliding
+  frame_time_t delayFrames{}; //!< Startup lag to be used with animations
+  frame_time_t endlagFrames{}; //!< Wait period before action is complete
+  float height{}; //!< If this is non-zero with delta frames, the character will effectively jump
+  Battle::Tile* dest{ nullptr };
+  std::function<void()> onBegin = []{};
+  bool immutable{ false }; //!< Some move events cannot be cancelled or interupted
+
+  //!< helper function true if jumping
+  inline bool IsJumping() const {
+    return dest && height > 0.f && deltaFrames > frames(0);
+  }
+
+  //!< helper function true if sliding
+  inline bool IsSliding() const {
+    return dest && deltaFrames > frames(0) && height <= 0.0f;
+  }
+
+  //!< helper function true if normal moving
+  inline bool IsTeleporting() const {
+    return dest && deltaFrames == frames(0) && (+height) == 0.0f;
+  }
+};
 
 struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
@@ -51,14 +77,17 @@ public:
   friend class BattleSceneBase;
 
 private:
-  ID_t ID;              /*!< IDs are used for tagging during battle & to identify entities in scripting. */
+  ID_t ID{};              /*!< IDs are used for tagging during battle & to identify entities in scripting. */
   static long numOfIDs; /*!< Internal counter to identify the next entity with. */
-  int alpha;            /*!< Control the transparency of an entity. */
-  Component::ID_t lastComponentID; /*!< Entities keep track of new components to run through scene injection later. */
-  bool hasSpawned;      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
-  float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
+  int alpha{ 255 };            /*!< Control the transparency of an entity. */
+  Component::ID_t lastComponentID{}; /*!< Entities keep track of new components to run through scene injection later. */
+  bool hasSpawned{ false };      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
+  float height{0};         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
   bool isUpdating{ false }; /*!< If an entity has updated once this frame, skip some update routines */
   EventBus::Channel channel; /*!< Our event bus channel to emit events */
+  MoveEvent currMoveEvent{};
+  unsigned moveEventFrame{};
+  unsigned frame{};
 
   /**
    * @brief Frees one component with the same ID
@@ -68,6 +97,8 @@ private:
   void ClearPendingComponents();
   void ReleaseComponentsPendingRemoval();
   void InsertComponentsPendingRegistration();
+  void UpdateMovement(double elapsed);
+  void SetFrame(unsigned frame);
 public:
 
   using RemoveCallback = Callback<void()>;
@@ -103,40 +134,27 @@ public:
   virtual void OnBattleStop() { };
 
   /**
-   * @brief Virtual. Update an entity. Used by Character class. @see Character::Update()
-   * This must be used by Character base class to perform correctly. All entities slide.
-   * Sliding can be used for entities that always glide over tiles like Boomerangs or Fishy
-   * but they are also used for entities that sometime slide like when traveling over
-   * Ice or being pushed like Cubes. This update routine correctly checks the movement
-   * state and determines when to accurately move the entity from its current Tile pointer
-   * to the next Tile pointer. 
-   * 
-   * After sliding, the next Tile pointer will be set to null.
-   * Also, if the entitiy does not have FloatShoe or AirShoe, sliding will be set to false
-   * only if the next tile isn't also Ice. Otherwise, the entity will continue to slide.
-   * 
-   * To recreate entities that slide at all times, poll IsSliding() in your Update method
-   * and if it is false, use SlideToTile(true) to slide again. @see Gear::Update()
-   * 
-   * @param _elapsed Amount of time elapsed since last frame in seconds.
+   * @brief TODO
    */
   virtual void Update(double _elapsed);
   
   /**
-   * @brief Virtual. Move to another tile given a direction.
-   * @param _direction The direction to try and move to
-   * @return true if the next tile pointer was able to move, false if obstructed.
+   * @brief Move to any tile on the field
+   * @return true if the move action was queued. False if obstructed.
+   * 
+   * NOTE: This doesn't mean that the entity will successfully move just that they could at the time
    */
-  virtual bool Move(Direction _direction);
-  
-  /**
-   * @brief Virtual. Move to any tile on the field given it's column and row number.
-   * @param x The tile's column
-   * @param y The tile's row
-   * @return true if the next tile pointer was able to move, false if obstructed.
-   */
-  virtual bool Teleport(int x, int y);
-  
+  bool Teleport(Direction dir, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Teleport(Battle::Tile* dest, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
+  void FinishMove();
+  void HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec);
+  void ClearActionQueue();
+  virtual void FilterMoveEvent(MoveEvent& event) {};
+
   /**
    * @brief Virtual. Queries if an entity can move to a target tile.
    * This function dictates the rules of when an entity can move.
@@ -160,7 +178,7 @@ public:
    * @param _team
    * @return true if the input team is the same or friendly, false if they are opposing teams
    */
-  bool Teammate(Team _team);
+  bool Teammate(Team _team) const;
 
   /**
    * @brief Changes the tile pointer to the input tile
@@ -176,24 +194,25 @@ public:
    * @return Tile pointer
    */
   Battle::Tile* GetTile() const;
-  
+  const sf::Vector2f GetTileOffset() const;
+
   /**
-   * @brief Get the next tile pointer
-   * The next tile pointer refer to the tile the entity is attempting to tranfer to
-   * @return Tile pointer
+   * @brief Checks if entity is moving
+   * @param framecheck, optional unsigned pointer to a frame value to check against
+   * 
+   * If the frame value to check is not equal to the current move event's assigned frame number
+   * then we return the value of the move and update the value stored in framecheck.
+   * This way we can test for immediate changes in motion since the last update.
+   * This is useful for entities who are only allowed to move/slide/jump so many tiles per AI step
+   * and because actions are queued and not gauranteed, there's no better way to know if the move has started.
+   * @see: bnHoneyBomberMoveState.cpp
+   * 
+   * If framecheck is nullptr, it returns true if the action is happening
    */
-  const Battle::Tile * GetNextTile() const;
-  
-  /**
-   * @brief Changes the behavior in the movement resolve step to slide to the next tile
-   */
-  void SlideToTile(bool );
-  
-  /**
-   * @brief Checks if entity is sliding
-   * @return true if sliding, false if no longer sliding
-   */
-  const bool IsSliding() const;
+  const bool IsSliding(unsigned* framecheck = nullptr) const;
+  const bool IsJumping(unsigned* framecheck = nullptr) const;
+  const bool IsTeleporting(unsigned* framecheck = nullptr) const;
+  const bool IsMoving(unsigned* framecheck = nullptr) const;
 
   /**
    * @brief Sets the field pointer
@@ -298,7 +317,7 @@ public:
   * @brief Builds and returns a reference to a callback function of type void()
   * Useful for safely determining the lifetime of another entity in play
   */
-  std::reference_wrapper<RemoveCallback> CreateRemoveCallback();
+  RemoveCallback& CreateRemoveCallback();
   
   /**
    * @brief Query if an entity has been deleted but not removed this frame
@@ -429,25 +448,19 @@ public:
    * @return float
    */
   virtual const float GetHeight() const;
-
   virtual void SetHeight(const float height);
 
-  /**
-  * @brief used by move systems to signal a move is complete 
-  * use with animation component to complete a move animation after teleporting to the next tile
-  * otherwise the move system will incorrectly deduce the move states
-  */
-  void FinishMove();
-
 protected:
-  Battle::Tile* next; /**< Pointer to the next tile */
-  Battle::Tile* tile; /**< Current tile pointer */
-  Battle::Tile* previous; /**< Entities retain a previous pointer in case they need to be moved back */
-  sf::Vector2f tileOffset; /**< All entities draw at the center of the tile + tileOffset*/
-  sf::Vector2f slideStartPosition; /**< Used internally when sliding*/
-  Field* field;
-  Team team;
-  Element element;
+  Battle::Tile* tile{ nullptr }; /**< Current tile pointer */
+  Battle::Tile* previous{ nullptr }; /**< Entities retain a previous pointer in case they need to be moved back */
+  sf::Vector2f tileOffset{ 0,0 }; /**< complete motion is captured by `tile_pos + tileOffset`*/
+  sf::Vector2f moveStartPosition{ 0,0 }; /**< Used internally when moving*/
+  Field* field{ nullptr };
+  Team team{};
+  Element element{Element::none};
+  ActionQueue actionQueue;
+  frame_time_t moveStartupDelay{};
+  frame_time_t moveEndlagDelay{};
 
   std::vector<Component*> components; /*!< List of all components attached to this entity*/
 
@@ -461,32 +474,29 @@ protected:
     Status action{ Status::add };
   };
   std::list<ComponentBucket> queuedComponents;
-  std::vector<RemoveCallback> removeCallbacks;
-
-  void SetSlideTime(sf::Time time);
+  std::vector<RemoveCallback*> removeCallbacks;
 
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
+  void SetMoveEndlag(const frame_time_t& frames);
+  void SetMoveStartupDelay(const frame_time_t& frames);
 
 private:
-  bool isTimeFrozen;
-  bool ownedByField; /*!< Must delete the entity manual if not owned by the field. */
-  bool passthrough;
-  bool floatShoe;
-  bool airShoe;
-  bool isSliding; /*!< If sliding/gliding to a tile */
-  bool deleted; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
-  bool flagForRemove; /*!< Used to remove this entity from the field immediately */
-  int moveCount; /*!< Used by battle results */
-  sf::Time slideTime; /*!< how long slide behavior lasts */
-  sf::Time defaultSlideTime; /*!< If slidetime is modified by outside source, the slide to return back to */
-  double elapsedSlideTime; /*!< When elapsedSlideTime is equal to slideTime, slide is over */
-  Direction direction;
-  Direction previousDirection;
+  bool isTimeFrozen{};
+  bool ownedByField{}; /*!< Must delete the entity manual if not owned by the field. */
+  bool passthrough{};
+  bool floatShoe{};
+  bool airShoe{};
+  bool deleted{}; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
+  bool flagForRemove{}; /*!< Used to remove this entity from the field immediately */
+  int moveCount{}; /*!< Used by battle results */
+  double elapsedMoveTime{}; /*!< delta time since recent move event began */
+  Direction direction{};
+  Direction previousDirection{};
 
     /**
-   * @brief Used internally before moving and updates the start position vector used in the sliding motion
+   * @brief Used internally before moving and updates the start position
    */
-  void UpdateSlideStartPosition();
+  void UpdateMoveStartPosition();
 };
 
 template<typename ComponentType>
@@ -508,7 +518,7 @@ inline std::vector<ComponentType*> Entity::GetComponents() const
 
   for (vector<Component*>::const_iterator it = components.begin(); it != components.end(); ++it) {
     if (typeid(*(*it)) == typeid(ComponentType)) {
-      res.push_back(dynamic_cast<ComponentType*>(*it));
+      res.push_back(static_cast<ComponentType*>(*it));
     }
   }
 

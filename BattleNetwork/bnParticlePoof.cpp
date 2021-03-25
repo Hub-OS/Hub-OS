@@ -33,7 +33,7 @@ ParticlePoof::ParticlePoof() :
 }
 
 void ParticlePoof::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition());
+  setPosition(GetTile()->getPosition() - sf::Vector2f{ 0.f, this->GetHeight() });
 
   animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
@@ -42,11 +42,6 @@ void ParticlePoof::OnUpdate(double _elapsed) {
 void ParticlePoof::OnDelete()
 {
   Remove();
-}
-
-bool ParticlePoof::Move(Direction _direction)
-{
-  return false;
 }
 
 ParticlePoof::~ParticlePoof()

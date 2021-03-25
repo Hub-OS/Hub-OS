@@ -3,10 +3,9 @@
 #include "bnCanodumb.h"
 #include "bnField.h"
 #include "bnTile.h"
-#include "bnSpawnPolicy.h"
-#include "bnCardsSpawnPolicy.h"
 #include "bnWebClientMananger.h"
 #include "bnCardUUIDs.h"
+#include "bnFadeInState.h"
 
 MetridMob::MetridMob(Field* field) : MobFactory(field)
 {
@@ -33,8 +32,9 @@ Mob* MetridMob::Build() {
     Battle::Tile* tile = field->GetAt(4, 2);
     if (!tile->IsWalkable()) { tile->SetState(TileState::normal); }
 
-    mob->Spawn< Rank1<Metrid> >(5, 1);
-    mob->Spawn< Rank1<Metrid> >(6, 2);
+    auto spawner = mob->CreateSpawner<Metrid>();
+    spawner.SpawnAt<FadeInState>(5, 1);
+    spawner.SpawnAt<FadeInState>(6, 2);
 
     return mob;
 
@@ -46,9 +46,12 @@ Mob* MetridMob::Build() {
     tile = field->GetAt(6, 3);
     tile->SetState(TileState::empty);
 
-    mob->Spawn< Rank1<Metrid> >(5, 1);
-    mob->Spawn< Rank2<Metrid> >(6, 2);
-    mob->Spawn< Rank2<Canodumb> >(5, 3);
+    auto spawner = mob->CreateSpawner<Metrid>();
+    spawner.SpawnAt<FadeInState>(5, 1);
+    spawner.SpawnAt<FadeInState>(6, 2);
+
+    auto spawner2 = mob->CreateSpawner<Canodumb>();
+    spawner2.SpawnAt<FadeInState>(5, 3);
 
     return mob;
   }
@@ -75,9 +78,12 @@ Mob* MetridMob::Build() {
   tile = field->GetAt(4, 1);
   tile->SetState(TileState::normal);
 
-  mob->Spawn< Rank3<Canodumb> >(4, 1);
-  mob->Spawn< Rank3<Metrid> >(5, 1);
-  mob->Spawn< Rank3<Metrid> >(6, 2);
+  auto spawner = mob->CreateSpawner<Metrid>(Metrid::Rank::_3);
+  spawner.SpawnAt<FadeInState>(5, 1);
+  spawner.SpawnAt<FadeInState>(6, 2);
+
+  auto spawner2 = mob->CreateSpawner<Canodumb>(Canodumb::Rank::_3);
+  spawner2.SpawnAt<FadeInState>(4, 1);
 
   return mob;
 }

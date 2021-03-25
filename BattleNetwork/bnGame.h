@@ -80,6 +80,10 @@ private:
   // can add screen transition effects from the title screen
   sf::RenderTexture loadSurface;
 
+  // total elapsed frame time
+  frame_time_t elapsed{};
+
+
   Endianness endian{ Endianness::big };
 
 public:
@@ -98,6 +102,7 @@ public:
   void Postprocess(ShaderType shaderType);
   void NoPostprocess();
   const sf::Vector2f CameraViewOffset(Camera& camera);
+  unsigned FrameNumber() const;
   const Endianness GetEndianness();
 
   /**

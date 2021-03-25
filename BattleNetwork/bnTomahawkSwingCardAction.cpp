@@ -3,6 +3,7 @@
 #include "bnAnimationComponent.h"
 #include "bnArtifact.h"
 #include "bnHitbox.h"
+#include "bnField.h"
 
 TomahawkSwingCardAction::TomahawkSwingCardAction(Character& owner, int damage) :
   CardAction(owner, "PLAYER_CHOP"),
@@ -18,16 +19,17 @@ TomahawkSwingCardAction::~TomahawkSwingCardAction()
 void TomahawkSwingCardAction::OnExecute()
 {
   auto spawn = [this] {
-    auto* tile = GetOwner()->GetTile();
-    auto* field = GetOwner()->GetField();
+    auto& owner = GetCharacter();
+    auto* tile = owner.GetTile();
+    auto* field =owner.GetField();
     field->AddEntity(*new TomahawkEffect, tile->GetX() + 1, tile->GetY());
 
     for (auto col : { 1, 2 }) {
       for (auto row : { 1, 0, -1 }) {
-        auto* hitbox = new Hitbox(GetOwner()->GetTeam(), damage);
+        auto* hitbox = new Hitbox(owner.GetTeam(), damage);
         auto props = hitbox->GetHitboxProperties();
         props.flags |= Hit::flinch;
-        props.aggressor = GetOwner();
+        props.aggressor = &owner;
         hitbox->SetHitboxProperties(props);
         field->AddEntity(*hitbox, tile->GetX() + col, tile->GetY() + row);
       }
@@ -39,7 +41,6 @@ void TomahawkSwingCardAction::OnExecute()
 
 void TomahawkSwingCardAction::OnEndAction()
 {
-  Eject();
 }
 
 void TomahawkSwingCardAction::OnAnimationEnd()

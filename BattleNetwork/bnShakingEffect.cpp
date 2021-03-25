@@ -7,7 +7,7 @@ ShakingEffect::ShakingEffect(Entity * owner) :
   shakeDur(0.35f),
   stress(3),
   shakeProgress(0),
-  startPos(privOwner->getPosition()),
+  startPos(owner->getPosition()),
   bscene(nullptr),
   isShaking(false),
   Component(owner, Component::lifetimes::ui)

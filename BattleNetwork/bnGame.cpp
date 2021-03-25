@@ -115,20 +115,23 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   Callback<void()> mobs;
   mobs.Slot(std::bind(&Game::RunMobInit, this, &progress));
 
-  // TODO:
-  //Callback<void> scripts;
+  Callback<void()> finish;
+  finish.Slot([this] {
+    // TODO: managers are not thread safe!
+    // Tell the input event loop how to behave when the app loses and regains focus
+    //inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
+    //inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
+    //inputManager.BindResizedEvent(std::bind(&Game::Resize, this, std::placeholders::_1, std::placeholders::_2));
+  });
+
+  inputManager.SupportConfigSettings(reader);
 
   TaskGroup tasks;
   tasks.AddTask("Init graphics and shaders", std::move(graphics));
   tasks.AddTask("Init audio", std::move(audio));
   tasks.AddTask("Load Navis", std::move(navis));
   tasks.AddTask("Load mobs", std::move(mobs));
-
-  // Tell the input event loop how to behave when the app loses and regains focus
-  inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
-  inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
-  inputManager.BindResizedEvent(std::bind(&Game::Resize, this, std::placeholders::_1, std::placeholders::_2));
-  inputManager.SupportConfigSettings(reader);
+  tasks.AddTask("Finishing up", std::move(finish));
 
   if (configSettings.IsOK()) {
     // If the file is good, use the Audio() and 
@@ -157,7 +160,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 void Game::Run()
 {
   sf::Clock clock;
-  float elapsed = 0.0f;
+  float scope_elapsed = 0.0f;
   float speed = 1.0f;
   float messageCooldown = 3;
 
@@ -166,19 +169,21 @@ void Game::Run()
   while (window.Running()) {
     float FPS = 0.f;
 
-    FPS = (float)(1.0 / (float)elapsed);
+    FPS = (float)(1.0 / (float)scope_elapsed);
     std::string fpsStr = std::to_string(FPS);
     fpsStr.resize(4);
     getWindow().setTitle(sf::String(std::string("FPS: ") + fpsStr));
 
     clock.restart();
 
-    textureManager.HandleExpiredTextureCache();
-
     // Poll input
     inputManager.Update();
 
-    this->update(1.0/static_cast<double>(frame_time_t::frames_per_second));
+    textureManager.HandleExpiredTextureCache();
+
+    double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
+    this->elapsed += from_seconds(delta);
+    this->update(delta);
     this->draw();
 
     window.Display();
@@ -186,7 +191,7 @@ void Game::Run()
     // Prepare for next draw calls
     window.Clear();
 
-    elapsed = clock.getElapsedTime().asSeconds();
+    scope_elapsed = clock.getElapsedTime().asSeconds();
   }
 }
 
@@ -208,6 +213,11 @@ void Game::NoPostprocess()
 const sf::Vector2f Game::CameraViewOffset(Camera& camera)
 {
   return window.GetView().getCenter() - camera.GetView().getCenter();
+}
+
+unsigned Game::FrameNumber() const
+{
+  return this->elapsed.count();
 }
 
 const Endianness Game::GetEndianness()

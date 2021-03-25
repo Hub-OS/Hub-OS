@@ -12,6 +12,7 @@ void LoaderScene::ExecuteTasks()
     progress = tasknumber / static_cast<float>(tasks.GetTotalTasks());
     this->onTaskComplete(taskname, progress);
   }
+  isComplete = true;
 }
 
 LoaderScene::LoaderScene(swoosh::ActivityController& controller, TaskGroup && tasks) : 
@@ -28,7 +29,7 @@ LoaderScene::~LoaderScene()
 
 const bool LoaderScene::IsComplete() const
 {
-  return tasks.HasMore() == false;
+  return isComplete;
 }
 
 void LoaderScene::LaunchTasks()

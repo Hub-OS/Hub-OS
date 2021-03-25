@@ -26,23 +26,29 @@ struct OverrideFrame {
  * @struct Frame
  * @author mav
  * @date 13/05/19
- * @brief Lightweight frame is just an integer rect, duration (in seconds), an origin, and points
+ * @brief Lightweight frame composed of  rect, duration (in seconds), an origin, points, and flipped orientations
  */
 struct Frame {
   double duration;
   sf::IntRect subregion;
-  bool applyOrigin;
+  bool applyOrigin{}, flipX{}, flipY{};
   sf::Vector2f origin;
-  
+
   PointHash points;
 
-  Frame(double duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin) 
-  : duration(duration), subregion(subregion), applyOrigin(applyOrigin), origin(origin) {
+  Frame(double duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin, bool flipX, bool flipY) :
+    duration(duration),
+    subregion(subregion),
+    applyOrigin(applyOrigin),
+    origin(origin),
+    flipX(flipX),
+    flipY(flipY)
+  {
     points["ORIGIN"] = origin;
   }
 
   Frame(const Frame& rhs) {
-    *this = rhs;
+    this->operator=(rhs);
   }
 
   Frame& operator=(const Frame& rhs) {
@@ -51,6 +57,8 @@ struct Frame {
     applyOrigin = rhs.applyOrigin;
     origin = rhs.origin;
     points = rhs.points;
+    flipX = rhs.flipX;
+    flipY = rhs.flipY;
 
     return *this;
   }
@@ -68,6 +76,12 @@ struct Frame {
     origin = rhs.origin;
     points = rhs.points;
     rhs.points.clear();
+
+    flipX = rhs.flipX;
+    flipY = rhs.flipY;
+
+    rhs.flipX = rhs.flipY = false;
+
     return *this;
   }
 
@@ -95,7 +109,7 @@ public:
     totalDuration = rhs.totalDuration;
   }
 
-  FrameList MakeNewFromOverrideData(std::list<OverrideFrame> data) {
+  FrameList MakeNewFromOverrideData(const std::list<OverrideFrame>& data) {
     auto iter = data.begin();
 
     FrameList res;
@@ -116,8 +130,8 @@ public:
    * @param dur duration of frame in seconds
    * @param sub int rectangle defining the frame from a texture sheet
    */
-  void Add(double dur, sf::IntRect sub) {
-    frames.emplace_back(std::move(Frame(dur, sub, false, sf::Vector2f(0,0) )));
+  inline void Add(double dur, sf::IntRect sub) {
+    frames.emplace_back(std::move(Frame(dur, sub, false, sf::Vector2f(0,0), false, false )));
     totalDuration += dur;
   }
 
@@ -126,9 +140,11 @@ public:
    * @param dur duration of frame in seconds
    * @param sub int rectangle defininf the frame from a texture sheet
    * @param origin origin of frame
+   * @param flipX if the frame is flipped horizontally visually (does not affect points)
+   * @param flipY if the frame is flipped vertically   visually (does not affect points)
    */
-  void Add(double dur, sf::IntRect sub, sf::Vector2f origin) {
-    frames.emplace_back(std::move(Frame(dur, sub, true, origin)));
+  inline void Add(double dur, sf::IntRect sub, sf::Vector2f origin, bool flipX, bool flipY) {
+    frames.emplace_back(std::move(Frame(dur, sub, true, origin, flipX, flipY)));
     totalDuration += dur;
   }
 
@@ -139,7 +155,7 @@ public:
   * @param y of the vector
   * Will overwrite any other point with the same name in the frame - unique names only
   */
-  void SetPoint(const std::string& name, int x, int y) {
+  inline void SetPoint(const std::string& name, int x, int y) {
     auto str = name;
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
     frames[frames.size() - 1].points[name] = sf::Vector2f(float(x), float(y));
@@ -149,26 +165,26 @@ public:
  * @brief Get the total number of frames in this list
  * @return const unsigned int
  */
-  const size_t GetFrameCount() { return frames.size(); }
+  inline const size_t GetFrameCount() { return frames.size(); }
 
   /**
   * @brief Get the frame data at the given index
   * @param index of the frame in the list (base 0)
   * @return const Frame immutable
   */
-  const Frame& GetFrame(const int index) { return frames[index]; }
+  inline const Frame& GetFrame(const int index) { return frames[index]; }
 
   /**
    * @brief Get the total duration for the list of frames
    * @return const float
    */
-  const double GetTotalDuration() const { return totalDuration; }
+  inline const double GetTotalDuration() const { return totalDuration; }
 
   /**
    * @brief Query if frame list is empty
    * @return true if empty, false otherwise
    */
-  const bool IsEmpty() const { return frames.empty(); }
+  inline const bool IsEmpty() const { return frames.empty(); }
 };
 
 /**
@@ -200,6 +216,8 @@ private:
   bool isUpdating; /*!< Flag if in the middle of update */
   bool callbacksAreValid; /*!< Flag for queues. If false, all added callbacks are discarded. */
   bool clearLater{ false }; //!< if clearing inside a callback, wait until after callback scope ends
+
+  void UpdateSpriteAttributes(sf::Sprite& target, const Frame& data);
 
 public:
   inline static const FrameCallback NoCallback = [](){};

@@ -34,7 +34,7 @@ AirShot::AirShot(Team _team,int _damage) : Spell(_team) {
   auto props = Hit::DefaultProperties;
   props.damage = damage;
   props.flags |= Hit::drag;
-  props.drag = Direction::right;
+  props.drag = { Direction::right, 1u };
   SetHitboxProperties(props);
 }
 
@@ -47,8 +47,8 @@ void AirShot::OnUpdate(double _elapsed) {
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
     if (GetTile()->GetX() == 6) { Delete(); }
-    if (Move(Direction::right)) {
-      AdoptNextTile();
+    if (CanMoveTo(GetTile() + Direction::right)) {
+      Teleport(Direction::right);
     }
 
     cooldown = 0;

@@ -9,7 +9,6 @@
 
 
 Spell::Spell(Team team) : 
-  heightOffset(0), 
   mode(Battle::Tile::Highlight::none), 
   hitboxProperties(Hit::DefaultProperties), 
   Entity() {
@@ -28,7 +27,7 @@ void Spell::Update(double _elapsed) {
 
   OnUpdate(_elapsed);
 
-  setPosition(getPosition().x, getPosition().y + (float)heightOffset);
+  setPosition(getPosition().x, getPosition().y - GetHeight());
 }
 const Battle::Tile::Highlight Spell::GetTileHighlightMode() const {
   return mode;
@@ -38,7 +37,7 @@ void Spell::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!IsSliding()) {
+  if (!IsMoving()) {
     setPosition(tile->getPosition());
   }
 }
@@ -58,7 +57,4 @@ const Hit::Properties Spell::GetHitboxProperties() const
   return hitboxProperties;
 }
 
-void Spell::SetHeight(double height)
-{
-  heightOffset = -height;
-}
+

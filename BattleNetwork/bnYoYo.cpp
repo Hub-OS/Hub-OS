@@ -17,9 +17,6 @@ YoYo::YoYo(Team _team, int damage, double speed) : Spell(_team) {
 
   YoYo::speed = speed;
 
-  // Adjust by speed factor
-  SetSlideTime(sf::seconds(0.11f / (float)speed));
-
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/spell_yoyo.animation");
   animation->Load();
@@ -62,14 +59,8 @@ void YoYo::OnUpdate(double _elapsed) {
       Delete();
     }
 
-    // Always slide
-    SlideToTile(true);
-
-    // Keep moving
-    Move(GetDirection());
-
     // Retract after moving 2 spaces, if possible
-    if (!GetNextTile() || (++tileCount == 2)) {
+    if (!IsSliding() || (++tileCount == 2)) {
       if (!reversed) {
         auto direction = GetPreviousDirection();
 
@@ -95,6 +86,11 @@ void YoYo::OnUpdate(double _elapsed) {
         });
       }
     }
+    else {
+      // Keep moving
+      Slide(GetDirection(), frames(7), frames(0));
+    }
+
   }else if (tileCount != 3) {
     // The tile counter updates when it has reached
     // center tile, when count == 2, we were spinning in place

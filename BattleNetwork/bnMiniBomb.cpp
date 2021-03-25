@@ -69,10 +69,6 @@ void MiniBomb::OnUpdate(double _elapsed) {
   }
 }
 
-bool MiniBomb::Move(Direction _direction) {
-  return true;
-}
-
 void MiniBomb::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
   Delete();

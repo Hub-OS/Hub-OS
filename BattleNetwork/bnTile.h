@@ -34,25 +34,29 @@ class Obstacle;
 class Artifact;
 class Dummy;
 
+#include "bnEntity.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTeam.h"
 #include "bnTextureType.h"
 #include "bnTileState.h"
 #include "bnAnimation.h"
-#include "bnField.h"
 #include "bnDefenseRule.h"
 #include "bnResourceHandle.h"
+
+// forward decl
+class Field;
 
 namespace Battle {
   class Tile : public SpriteProxyNode, public ResourceHandle {
   public:
+
     enum class Highlight : int {
       none = 0,
       flash = 1,
       solid = 2,
     };
 
-    friend Field::Field(int _width, int _height);
-    friend void Field::Update(double _elapsed);
+    friend class Field;
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
@@ -266,6 +270,11 @@ namespace Battle {
      */
     void BattleStop();
 
+    /**
+    * @brief Assigns the textures used by the tile according to team, their states, and their animation files
+    */
+    void SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim);
+
     void HandleTileBehaviors(Obstacle * obst);
     void HandleTileBehaviors(Character* character);
 
@@ -287,9 +296,11 @@ namespace Battle {
     * @brief Tile math easily returns tiles with the directional input enum type
     *
     * If the operand tile is an edge tile and the direction would proceed the edge tile,
-    * then the closest edge tile is returned: itself. This ensures any output tile is valid.
+    * then nullptr is returned
     */
-    Tile& operator+(const Direction& dir);
+    Tile* operator+(const Direction& dir);
+
+    Tile* Offset(int x, int y);
 
   private:
 
@@ -363,5 +374,14 @@ namespace Battle {
     }
 
     return false;
+  }
+
+  // handles pointer to tiles and will return nullptr if lhs is null
+  static Tile* operator+(Tile* lhs, Direction rhs) {
+    if (lhs) {
+      return *lhs + rhs;
+    }
+
+    return nullptr;
   }
 }

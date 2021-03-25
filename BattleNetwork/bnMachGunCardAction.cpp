@@ -1,6 +1,7 @@
 #include "bnMachGunCardAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnField.h"
 #include "bnSuperVulcan.h"
 #include "bnCharacter.h"
 #include "bnObstacle.h"
@@ -38,12 +39,12 @@ MachGunCardAction::~MachGunCardAction()
 void MachGunCardAction::OnExecute()
 {
   auto shoot = [this]() {
-    auto* owner = GetOwner();
-    auto* field = owner->GetField();
+    auto& owner = GetCharacter();
+    auto* field = owner.GetField();
 
     if (target == nullptr || target->WillRemoveLater()) {
       // find the closest
-      auto ents = field->FindEntities([owner](Entity* e) {
+      auto ents = field->FindEntities([owner = &owner](Entity* e) {
         Team team = e->GetTeam();
         Character* character = dynamic_cast<Character*>(e);
         Obstacle* obst = dynamic_cast<Obstacle*>(e);
@@ -53,7 +54,7 @@ void MachGunCardAction::OnExecute()
 
       if (ents.empty() == false) {
         std::sort(ents.begin(), ents.end(), 
-          [owner](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); }
+          [owner = &owner](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); }
         );
         target = ents[0];
       }
@@ -86,7 +87,6 @@ void MachGunCardAction::OnExecute()
 
 void MachGunCardAction::OnEndAction()
 {
-  Eject();
 }
 
 void MachGunCardAction::OnAnimationEnd()

@@ -47,11 +47,6 @@ using std::to_string;
  */
 class Animation {
 public:
-
-  auto GetMode() {
-    return animator.GetMode();
-  }
-
   /**
    * @brief No frame list is loaded*/
   Animation();
@@ -176,13 +171,31 @@ public:
 
   sf::Vector2f GetPoint(const std::string& pointName);
 
-  void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string& uuid);
+  char GetMode();
+
+  float GetStateDuration(const std::string& state) const;
+
+  void OverrideAnimationFrames(const std::string& animation, const std::list<OverrideFrame>& data, std::string& uuid);
 
   void SyncAnimation(Animation& other);
 
   void SetInterruptCallback(const std::function<void()> onInterrupt);
 
   const bool HasAnimation(const std::string& state) const;
+
+  /**
+   * @brief Applies a callback
+   * @param frame integer frame (base 1)
+   * @param callback void() function callback type
+   * @param doOnce boolean to fire the callback once or every time
+   * @return Animation& for chaining
+   *
+   * This explicit function signature was added for scripting
+   */
+  Animation& AddCallback(int frame, FrameCallback callback, bool doOnce) {
+    *this << Animator::On(frame, callback, doOnce);
+    return *this;
+  }
 
 private:
   /**
@@ -192,6 +205,7 @@ private:
    * @return value as string or empty string
    */
   string ValueOf(string _key, string _line);
+  void HandleInterrupted();
 protected:
   bool noAnim{ false }; /*!< If the requested state was not found, hide the sprite when updating */
   Animator animator; /*!< Internal animator to delegate most of the work to */

@@ -10,17 +10,12 @@ class InputManager;
 class CardAction;
 class PlayerInputReplicator;
 
-constexpr const auto STARTUP_DELAY_LEN { frames(5) }; // 5 frame startup delay out of 60fps
-
 class PlayerControlledState : public AIState<Player>, public InputHandle
 {
 private:  
-  bool isChargeHeld; /*!< Flag if player is holding down shoot button */
-  CardAction* queuedAction; /*!< Movement takes priority. If there is an action queued, fire on next best frame*/
-  PlayerInputReplicator* replicator; /*!< Pass actions onto a replicator to handle if requested */
-  double startupDelay{ 0 };
-
-  void QueueAction(Player& player);
+  bool isChargeHeld{}; /*!< Flag if player is holding down shoot button */
+  unsigned moveFrame{};
+  PlayerInputReplicator* replicator{ nullptr }; /*!< Pass actions onto a replicator to handle if requested */
 
 public:
 

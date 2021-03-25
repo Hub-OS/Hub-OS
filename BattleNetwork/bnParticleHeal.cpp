@@ -43,11 +43,6 @@ void ParticleHeal::OnDelete()
   Remove();
 }
 
-bool ParticleHeal::Move(Direction _direction)
-{
-  return false;
-}
-
 ParticleHeal::~ParticleHeal()
 {
 }

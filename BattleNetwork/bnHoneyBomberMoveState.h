@@ -13,8 +13,8 @@
 class HoneyBomberMoveState : public AIState<HoneyBomber>
 {
 private:
-  bool isMoving; /*!< Whether or not move animation is playing */
   int moveCount; /*!< 4 counts down to 0 before attacking*/
+  unsigned lastcheck{}; //!< Last frame check for identifying move events
   double cooldown; /*!< wait before moving again*/
 public:
 
@@ -46,5 +46,7 @@ public:
    * @param honey
    */
   void OnLeave(HoneyBomber& honey);
+
+  void OnMoveEvent(const MoveEvent& event);
 };
 

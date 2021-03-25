@@ -114,10 +114,6 @@ void Missile::OnDelete()
   Remove();
 }
 
-bool Missile::Move(Direction _direction) {
-    return true;
-}
-
 void Missile::Attack(Character* _entity) {
     _entity->Hit(GetHitboxProperties());
 }

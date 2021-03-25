@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnThunder.h"
+#include "bnField.h"
 
 ThunderCardAction::ThunderCardAction(Character& owner, int damage) :
   CardAction(owner, "PLAYER_SHOOTING"),
@@ -24,12 +25,12 @@ ThunderCardAction::ThunderCardAction(Character& owner, int damage) :
 void ThunderCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-
-    Team team = GetOwner()->GetTeam();
+    auto& owner = GetCharacter();
+    Team team = owner.GetTeam();
     auto* thunder = new Thunder(team);
     auto props = thunder->GetHitboxProperties();
     props.damage = damage;
-    props.aggressor = GetOwner();
+    props.aggressor = &owner;
     thunder->SetHitboxProperties(props);
 
     int step = 1;
@@ -38,7 +39,9 @@ void ThunderCardAction::OnExecute() {
       step = -1;
     }
 
-    GetOwner()->GetField()->AddEntity(*thunder, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+    if (auto tile = owner.GetTile()->Offset(step, 0)) {
+      owner.GetField()->AddEntity(*thunder, *tile);
+    }
   };
 
   AddAnimAction(1, onFire);
@@ -57,5 +60,4 @@ void ThunderCardAction::OnAnimationEnd()
 
 void ThunderCardAction::OnEndAction()
 {
-  Eject();
 }

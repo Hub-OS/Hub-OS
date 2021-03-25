@@ -58,7 +58,7 @@ void Text::UpdateGeometry() const
   float maxX = 0.f;
   float maxY = 0.f;
 
-  for (auto&& letter : message) {
+  for (char letter : message) {
 
     // Handle special characters
     if ((letter == L' ') || (letter == L'\n') || (letter == L'\t'))
@@ -116,7 +116,7 @@ Text::Text(const Font& font) : font(font), message(""), geometryDirty(true)
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
 }
 
-Text::Text(const std::string message, const Font& font) : font(font), message(message), geometryDirty(true)
+Text::Text(const std::string& message, const Font& font) : font(font), message(message), geometryDirty(true)
 {
   letterSpacing = (font.GetWhiteSpaceWidth()/3.0f) + 1.0f;
   lineSpacing = 1.0f;
@@ -151,7 +151,8 @@ void Text::draw(sf::RenderTarget & target, sf::RenderStates states) const
 
 void Text::SetFont(const Font& font)
 {
-  this->font = font;
+  geometryDirty |= Text::font.GetStyle() != font.GetStyle();
+  Text::font = font;
 }
 
 void Text::SetString(const std::string& message)

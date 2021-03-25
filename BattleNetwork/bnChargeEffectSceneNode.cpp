@@ -37,7 +37,6 @@ void ChargeEffectSceneNode::Update(double _elapsed) {
         animation << Animator::Mode::Loop;
         setColor(chargeColor);
         SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
-
       }
 
       isCharged = true;      

@@ -1,4 +1,4 @@
-imagePath="C:\mmbn\net battle engine\Release\resources\navis\megaman\forms\slash_cross"
+imagePath="C:\mmbn\net battle engine\Release\resources\navis\megaman\forms\slash_cross.png"
 
 animation state="PLAYER_IDLE"
 frame duration="0.01" x="24" y="8" w="55" h="59" originx="34" originy="21"
@@ -8,12 +8,10 @@ animation state="PLAYER_HIT"
 frame duration="0.2" x="125" y="9" w="46" h="61" originx="16" originy="11"
 frame duration="0.02" x="223" y="14" w="54" h="55" originx="37" originy="19"
 
-animation state="PLAYER_MOVING"
+animation state="PLAYER_MOVE"
 frame duration="0.07" x="24" y="8" w="57" h="60" originx="34" originy="21"
 frame duration="0.02" x="24" y="106" w="61" h="62" originx="34" originy="22"
 frame duration="0.02" x="123" y="102" w="63" h="66" originx="35" originy="25"
-
-animation state="PLAYER_MOVED"
 frame duration="0.02" x="221" y="98" w="62" h="70" originx="34" originy="27"
 frame duration="0.02" x="123" y="102" w="60" h="66" originx="35" originy="25"
 frame duration="0.02" x="24" y="106" w="56" h="62" originx="34" originy="21"

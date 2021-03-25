@@ -18,6 +18,7 @@
 
 #include "bnPlayer.h"
 #include "bnUIComponent.h"
+#include "bnText.h"
 
 class Entity;
 class Player;
@@ -63,21 +64,10 @@ private:
   int lastHP; /*!< HP of target last frame */
   int currHP; /*!< HP of target current frame */
   int startHP; /*!< HP of target when this component was attached */
-  Player* player; /*!< target entity of type Player */
-  mutable SpriteProxyNode glyphs; /*!< bitmap image object to draw */
-  SpriteProxyNode uibox; /*!< the box surrounding the health */
-  std::shared_ptr<Texture> texture; /*!< the texture of the box */
-
-  /**
-   * @class Color
-   * @brief strong type for glyph colors
-   */
-  enum class Color : int {
-    normal,
-    orange,
-    green
-  } color; /*!< color of the glyphs */
-
   bool isBattleOver; /*!< flag when battle scene ends to stop beeping */
   double cooldown; /*!< timer to colorize the health. Set to 0.5 seconds */
+  Player* player; /*!< target entity of type Player */
+  mutable Text glyphs; /*!< numbers to draw */
+  SpriteProxyNode uibox; /*!< the box surrounding the health */
+  std::shared_ptr<Texture> texture; /*!< the texture of the box */
 };

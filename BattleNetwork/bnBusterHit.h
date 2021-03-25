@@ -26,7 +26,6 @@ public:
   ~BusterHit();
   void SetOffset(const sf::Vector2f offset);
   void OnUpdate(double _elapsed) override;
-  bool Move(Direction _direction) override;
   void OnDelete() override;
 
 };

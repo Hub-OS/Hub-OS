@@ -15,7 +15,6 @@ public:
   virtual ~BasicSword();
 
   virtual void OnUpdate(double _elapsed) override;
-  virtual bool Move(Direction _direction) override;
   virtual void Attack(Character* _entity) override;
   virtual void OnDelete() override;
 private:

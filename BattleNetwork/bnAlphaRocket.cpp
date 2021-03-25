@@ -18,8 +18,6 @@ AlphaRocket::AlphaRocket(Team _team) : Obstacle(_team)  {
   setTexture(texture);
   setScale(2.f, 2.f);
 
-  SetSlideTime(sf::seconds(0.5f));
-
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/spell_alpha_rocket.animation");
   animation->Load();
@@ -47,24 +45,14 @@ void AlphaRocket::OnUpdate(double _elapsed) {
     setScale(-2.f, 2.f);
   }
 
-  // Keep moving, when we reach the end of the map, remove from play
-  if (!IsSliding()) {
-    SlideToTile(true);
+  // Keep moving
+  Slide(GetDirection(), frames(3), frames(0));
 
-    // Keep moving
-    Move(GetDirection());
-
-    // Move failed can only be an edge
-    if (!GetNextTile()) {
-        Delete();
-    }
+  if (GetTile()->IsEdgeTile()) {
+      Delete();
   }
 
   tile->AffectEntities(this);
-
-  /*if (tile->ContainsEntityType<Character>()) {
-      Delete();
-  }*/
 }
 
 // Nothing prevents AlphaRocket from moving over it

@@ -12,6 +12,6 @@ public:
 
   virtual void OnUpdate(double _elapsed) = 0;
   virtual void OnDelete() = 0;
-  virtual void Update(double _elapsed) final;
-  virtual void AdoptTile(Battle::Tile* tile) final;
+  void Update(double _elapsed) override final;
+  void AdoptTile(Battle::Tile* tile) override final;
 };

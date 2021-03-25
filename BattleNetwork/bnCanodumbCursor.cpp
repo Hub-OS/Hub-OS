@@ -90,11 +90,6 @@ void CanodumbCursor::OnDelete()
   Remove();
 }
 
-bool CanodumbCursor::Move(Direction _direction)
-{
-  return false;
-}
-
 CanodumbCursor::~CanodumbCursor()
 {
 }

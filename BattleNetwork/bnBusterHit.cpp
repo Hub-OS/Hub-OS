@@ -38,11 +38,6 @@ void BusterHit::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition() + offset);
 }
 
-bool BusterHit::Move(Direction _direction)
-{
-  return false;
-}
-
 void BusterHit::OnDelete()
 {
   Remove();
@@ -54,5 +49,5 @@ BusterHit::~BusterHit()
 
 void BusterHit::SetOffset(const sf::Vector2f offset)
 {
-  this->offset = { offset.x, -offset.y };
+  this->offset = { offset.x, offset.y };
 }

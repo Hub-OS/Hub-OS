@@ -6,6 +6,7 @@
 #include <SFML/Graphics.hpp>
 #include <sstream>
 #include <vector>
+#include <optional>
 #include "bnUIComponent.h"
 #include "bnCardUsePublisher.h"
 #include "bnSpriteProxyNode.h"
@@ -55,8 +56,21 @@ public:
    * @brief Broadcasts the card at the cursor curr. Increases curr.
    * @return True if there was a card to use
    */
-  const bool UseNextCard() override;
+  void UseNextCard() override;
+
+  /**
+ * @brief Broadcasts the card information to all listeners
+ * @param card being used
+ * @param user using the card
+ */
+  void Broadcast(const Battle::Card& card, Character& user);
   
+  /**
+  * @brief return a const reference to the next card, if valid
+  * @preconditions Assumes the card can be used and currCard < cardCount!
+  */
+  std::optional<std::reference_wrapper<const Battle::Card>> Peek();
+
   /**
    * @brief nothing
    */
@@ -76,7 +90,6 @@ private:
   mutable bool firstFrame{ true }; /*!< If true, this UI graphic is being drawn for the first time*/
   sf::Time interpolDur; /*!< Max duration for interpolation 0.2 seconds */
   Player* player{ nullptr }; /*!< Player this component is attached to */
-  Font font; /*!< Card name font */
   mutable Text text; /*!< Text displays card name */
   mutable Text multiplier;
   mutable Text dmg; /*!< Text displays card damage */

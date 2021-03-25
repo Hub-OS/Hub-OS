@@ -20,6 +20,8 @@ void MettaurMoveState::OnUpdate(double _elapsed, Mettaur& met) {
 
   Entity* target = met.GetTarget();
 
+  Direction nextDirection = Direction::none;
+
   if (target && target->GetTile()) {
     if (target->GetTile()->GetY() < met.GetTile()->GetY()) {
       nextDirection = Direction::up;
@@ -29,27 +31,19 @@ void MettaurMoveState::OnUpdate(double _elapsed, Mettaur& met) {
     }
     else {
       // Try attacking if facing an available tile
-      Battle::Tile* forward = met.GetField()->GetAt(temp->GetX() - 1, temp->GetY());
-
-      if (forward && forward->IsWalkable()) {
-        return met.ChangeState<MettaurAttackState>();
-      }
-      else {
-        // Forfeit turn.
-        met.ChangeState<MettaurIdleState>();
-        met.EndMyTurn();
-        return;
-      }
+      return met.ChangeState<MettaurAttackState>();
     }
   }
-
-  bool moved = met.Move(nextDirection);
   
-  if (moved) {
-    met.AdoptNextTile();
-    auto onFinish = [this, &met]() { met.ChangeState<MettaurIdleState>(); met.FinishMove(); };
+  if (met.Teleport(nextDirection)) {
+    auto onFinish = [this, ptr = &met]() { 
+      ptr->ChangeState<MettaurIdleState>(); 
+    };
 
-    met.GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
+    auto anim = met.GetFirstComponent<AnimationComponent>();
+    anim->SetAnimation("MOVING", onFinish);
+    anim->SetInterruptCallback(onFinish);
+
     isMoving = true;
   }
   else {

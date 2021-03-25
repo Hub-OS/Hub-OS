@@ -7,8 +7,9 @@
 #include <future>
 
 #include <SFML/Graphics/Texture.hpp>
-
 #include "bnCard.h"
+
+#undef GetUserName
 
 template<typename T>
 bool is_ready(const std::future<T>& f) {

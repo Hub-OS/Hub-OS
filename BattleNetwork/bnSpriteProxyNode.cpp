@@ -81,7 +81,7 @@ void SpriteProxyNode::setTextureRect(const sf::IntRect& rect) {
   sprite->setTextureRect(rect);
 }
 
-sf::FloatRect SpriteProxyNode::getLocalBounds() {
+sf::FloatRect SpriteProxyNode::getLocalBounds() const {
   return sprite->getLocalBounds();
 }
 

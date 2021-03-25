@@ -14,7 +14,7 @@ void MobIntroBattleState::onUpdate(double elapsed)
   if (mob->NextMobReady()) {
     Mob::MobData* data = mob->GetNextMob();
 
-    Agent* cast = dynamic_cast<Agent*>(data->mob);
+    Agent* cast = dynamic_cast<Agent*>(data->character);
 
     // Some entities have AI and need targets
     // TODO: support multiple targets
@@ -23,7 +23,7 @@ void MobIntroBattleState::onUpdate(double elapsed)
       cast->SetTarget(player);
     }
 
-    Character* enemy = data->mob;
+    Character* enemy = data->character;
 
     enemy->ToggleTimeFreeze(false);
     GetScene().GetField()->AddEntity(*enemy, data->tileX, data->tileY);

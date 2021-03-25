@@ -81,11 +81,6 @@ void ReflectShield::OnDelete()
   Remove();
 }
 
-bool ReflectShield::Move(Direction _direction)
-{
-  return false;
-}
-
 void ReflectShield::DoReflect(Spell& in, Character& owner)
 {
   if (!activated) {

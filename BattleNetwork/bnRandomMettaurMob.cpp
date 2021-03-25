@@ -10,13 +10,12 @@
 #include "bnCard.h"
 #include "bnField.h"
 #include "bnTile.h"
-#include "bnSpawnPolicy.h"
-#include "bnCardsSpawnPolicy.h"
 #include "bnMysteryData.h"
 #include "bnGear.h"
 #include "bnStarfishIdleState.h"
 #include "bnUndernetBackground.h"
 #include "bnMetrid.h"
+#include "bnFadeInState.h"
 
 RandomMettaurMob::RandomMettaurMob(Field* field) : MobFactory(field)
 {
@@ -45,7 +44,8 @@ Mob* RandomMettaurMob::Build() {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
 
         if (tile->GetTeam() == Team::blue && !tile->ContainsEntityType<Character>() && rand() % 10 == 0) {
-          mob->Spawn<Rank1<Metrid>>(i + 1, j + 1);
+          auto spawner = mob->CreateSpawner<Metrid>();
+          spawner.SpawnAt<FadeInState>(i + 1, j + 1);
         }
       }
     }

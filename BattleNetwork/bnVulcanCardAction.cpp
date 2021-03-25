@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnVulcan.h"
+#include "bnField.h"
 
 #define PATH "resources/spells/spell_vulcan.png"
 #define ANIM "resources/spells/spell_vulcan.animation"
@@ -38,11 +39,11 @@ VulcanCardAction::~VulcanCardAction()
 {
 }
 void VulcanCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto owner = &GetCharacter();
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {
-    Team team = GetOwner()->GetTeam();
+    Team team = owner->GetTeam();
     Vulcan* b = new Vulcan(team, damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = owner;
@@ -58,7 +59,9 @@ void VulcanCardAction::OnExecute() {
       b->SetDirection(Direction::left);
     }
 
-    GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+    if (auto tile = owner->GetTile()->Offset(step, 0)) {
+      GetCharacter().GetField()->AddEntity(*b, *tile);
+    }
   };
 
 
@@ -67,9 +70,9 @@ void VulcanCardAction::OnExecute() {
   AddAnimAction(6, onFire);
 }
 
-void VulcanCardAction::OnUpdate(double _elapsed)
+void VulcanCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void VulcanCardAction::OnAnimationEnd()
@@ -78,5 +81,4 @@ void VulcanCardAction::OnAnimationEnd()
 
 void VulcanCardAction::OnEndAction()
 {
-  Eject();
 }

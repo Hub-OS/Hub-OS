@@ -1,9 +1,8 @@
 #include "bnTwoMettaurMob.h"
 #include "bnField.h"
-#include "bnSpawnPolicy.h"
-#include "bnCardsSpawnPolicy.h"
 #include "bnWebClientMananger.h"
 #include "bnCardUUIDs.h"
+#include "bnFadeInState.h"
 
 TwoMettaurMob::TwoMettaurMob(Field* field) : MobFactory(field)
 {
@@ -72,7 +71,8 @@ Mob* TwoMettaurMob::Build() {
 
         if (tile->IsWalkable() && !tile->IsReservedByCharacter() && tile->GetTeam() == Team::blue) {
           if (rand() % 50 > 25 && count-- > 0) {
-            mob->Spawn<Rank1<Mettaur>>(i + 1, j + 1);
+            auto spawner = mob->CreateSpawner<Mettaur>();
+            spawner.SpawnAt<FadeInState>(i + 1, j + 1);
           }
         }
       }

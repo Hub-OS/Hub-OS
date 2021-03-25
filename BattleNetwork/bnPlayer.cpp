@@ -13,6 +13,12 @@
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
+struct BusterActionDeleter {
+  void operator()(BusterEvent& in) {
+    delete in.action;
+  }
+};
+
 Player::Player() :
   state(PLAYER_IDLE),
   chargeEffect(this),
@@ -44,8 +50,6 @@ Player::Player() :
   activeForm = nullptr;
 
   auto recoil = [this]() {
-    // When movement is interrupted because of a hit, we need to flush the movement state data
-    FinishMove();
     ChangeState<PlayerHitState>();
   };
 
@@ -56,6 +60,12 @@ Player::Player() :
   };
 
   this->RegisterStatusCallback(Hit::bubble, Callback<void()>{ bubbleState});
+
+  using namespace std::placeholders;
+  auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
+  actionQueue.RegisterType<BusterEvent, BusterActionDeleter>(ActionTypes::buster, handler);
+
+  CreateMoveAnimHash();
 }
 
 Player::~Player() {
@@ -77,23 +87,35 @@ void Player::OnUpdate(double _elapsed) {
 }
 
 void Player::Attack() {
+  CardAction* action = nullptr;
+
   // Queue an action for the controller to fire at the right frame
   if (tile) {
-    chargeEffect.IsFullyCharged() ? QueueAction(ExecuteChargedBuster()) : QueueAction(ExecuteBuster());
+    chargeEffect.IsFullyCharged()? action = ExecuteChargedBuster() : action = ExecuteBuster(); 
+    
+    if (action) {
+      action->PreventCounters();
+      BusterEvent event = { frames(0), frames(0), false, action };
+      actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
+    }
   }
 }
 
 void Player::UseSpecial()
 {
   if (tile) {
-    auto action = ExecuteSpecial();
-    
-    if (action) {
-      action->SetLockoutGroup(ActionLockoutGroup::ability);
-      QueueAction(action);
+    if (auto action = ExecuteSpecial()) {
+      action->PreventCounters();
+      action->SetLockoutGroup(CardAction::LockoutGroup::ability);
+      BusterEvent event = { frames(0), frames(0), false, action };
+      actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
     }
-
   }
+}
+
+void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::ExecutionType& exec)
+{
+  Character::HandleCardEvent({ event.action }, exec);
 }
 
 void Player::OnDelete() {
@@ -159,16 +181,19 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   else {
     animationComponent->SetAnimation(_state, 0, onFinish);
   }
+
+  animationComponent->Refresh();
 }
 
-void Player::EnablePlayerControllerSlideMovementBehavior(bool enable)
+const std::string Player::GetMoveAnimHash()
 {
+  return moveAnimHash;
+}
+
+void Player::SlideWhenMoving(bool enable, const frame_time_t& frames)
+{
+  slideFrames = frames;
   playerControllerSlide = enable;
-}
-
-const bool Player::PlayerControllerSlideEnabled() const
-{
-  return playerControllerSlide;
 }
 
 CardAction* Player::OnExecuteSpecialAction()
@@ -206,28 +231,16 @@ frame_time_t Player::CalculateChargeTime(const unsigned chargeLevel)
 
 CardAction* Player::ExecuteBuster()
 {
-    return OnExecuteBusterAction();
+   return OnExecuteBusterAction();
 }
 
 CardAction* Player::ExecuteChargedBuster()
 {
-    return OnExecuteChargedBusterAction();
+   return OnExecuteChargedBusterAction();
 }
 
 CardAction* Player::ExecuteSpecial()
 {
-  auto actions = this->GetComponentsDerivedFrom<CardAction>();
-  bool canUse = true;
-
-  // We could be using an ability, make sure we do not use another ability
-  for (auto&& action : actions) {
-    canUse = canUse && action->GetLockoutGroup() != ActionLockoutGroup::ability;
-  }
-
-  if (!canUse) {
-    return nullptr;
-  }
-  
   return OnExecuteSpecialAction();
 }
 
@@ -242,6 +255,10 @@ void Player::ActivateFormAt(int index)
     RevertStats();
   }
 
+  for (auto& node : GetChildNodes()) {
+    node->AddTags({ Player::BASE_NODE_TAG });
+  }
+
   if (index >= 0 || index < forms.size()) {
     auto meta = forms[index];
     activeForm = meta->BuildForm();
@@ -249,6 +266,14 @@ void Player::ActivateFormAt(int index)
     if (activeForm) {
       SaveStats();
       activeForm->OnActivate(*this);
+    }
+  }
+
+  // Find nodes that do not have tags, those are newly added
+  for (auto& node : GetChildNodes()) {
+    if (!node->HasTag(Player::BASE_NODE_TAG)) {
+      // Tag them
+      node->AddTags({ Player::FORM_NODE_TAG });
     }
   }
 }
@@ -289,6 +314,7 @@ void Player::OverrideSpecialAbility(const std::function<CardAction* ()>& func)
 
 void Player::SaveStats()
 {
+  savedStats.element = GetElement();
   savedStats.charge = GetChargeLevel();
   savedStats.attack = GetAttackLevel();
 }
@@ -297,6 +323,29 @@ void Player::RevertStats()
 {
   SetChargeLevel(savedStats.charge);
   SetAttackLevel(savedStats.attack);
+  SetElement(savedStats.element);
+}
+
+void Player::CreateMoveAnimHash()
+{
+  const auto i4_frames = frames(4);
+  const auto i4_seconds = seconds_cast<float>(i4_frames);
+  const auto i1_seconds = seconds_cast<float>(frames(1));
+
+  this->moveStartupDelay = i4_frames;
+  this->moveEndlagDelay = i4_frames;
+  auto frame_data = std::initializer_list<OverrideFrame>{
+    { 1, i4_seconds },
+    { 2, i1_seconds },
+    { 3, i1_seconds },
+    { 4, i1_seconds },
+    { 3, i1_seconds },
+    { 2, i1_seconds },
+    { 1, i4_seconds }
+  };
+
+  // creates and stores the new state in variable `moveAnimHash`
+  animationComponent->OverrideAnimationFrames("PLAYER_MOVE", frame_data, moveAnimHash);
 }
 
 bool Player::RegisterForm(PlayerFormMeta * info)

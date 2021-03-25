@@ -12,6 +12,29 @@ bool EntityComparitor::operator()(Entity* f, Entity* s) const
   return f->GetID() < s->GetID();
 }
 
+// First entity ID begins at 1
+Entity::Entity() : 
+  elapsedMoveTime(0),
+  lastComponentID(0),
+  height(0),
+  moveCount(0),
+  channel(nullptr)
+{
+  ID = ++Entity::numOfIDs;
+
+  using namespace std::placeholders;
+  auto handler = std::bind(&Entity::HandleMoveEvent, this, _1, _2);
+  actionQueue.RegisterType<MoveEvent>(ActionTypes::movement, handler);
+}
+
+Entity::~Entity() {
+  this->FreeAllComponents();
+
+  for (RemoveCallback* callback : removeCallbacks) {
+    delete callback;
+  }
+}
+
 void Entity::SortComponents()
 {
   // Newest components appear first in the list for easy referencing
@@ -50,44 +73,124 @@ void Entity::InsertComponentsPendingRegistration()
     }
   }
 
-  sort? SortComponents() : (void(0));
+  sort ? SortComponents() : (void(0));
 }
 
-// First entity ID begins at 1
-Entity::Entity()
-  : tile(nullptr),
-  next(nullptr),
-  previous(nullptr),
-  field(nullptr),
-  floatShoe(false),
-  airShoe(false),
-  previousDirection(Direction::none),
-  direction(Direction::none),
-  team(Team::unknown),
-  isTimeFrozen(false),
-  deleted(false),
-  passthrough(false),
-  ownedByField(false),
-  isSliding(false),
-  hasSpawned(false),
-  flagForRemove(false),
-  element(Element::none),
-  tileOffset(),
-  slideStartPosition(),
-  slideTime(sf::milliseconds(100)),
-  defaultSlideTime(slideTime),
-  elapsedSlideTime(0),
-  lastComponentID(0),
-  height(0),
-  moveCount(0),
-  alpha(255),
-  channel(nullptr)
+void Entity::UpdateMovement(double elapsed)
 {
-  ID = ++Entity::numOfIDs;
+  // Only move if we have a valid next tile pointer
+  auto next = currMoveEvent.dest;
+  if (next) {
+    if (currMoveEvent.deltaFrames == frames(0)) {
+      currMoveEvent.onBegin();
+      currMoveEvent.onBegin = [] {}; // clear so we only fire once
+    }
+
+    elapsedMoveTime += elapsed;
+
+    if (from_seconds(elapsedMoveTime) > currMoveEvent.delayFrames) {
+      // Get a value from 0.0 to 1.0
+      float duration = seconds_cast<float>(currMoveEvent.deltaFrames);
+      float delta = swoosh::ease::linear(static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value), duration, 1.0f);
+      
+      sf::Vector2f pos = moveStartPosition;
+      sf::Vector2f tar = next->getPosition();
+
+      // Interpolate the sliding position from the start position to the end position
+      auto interpol = tar * delta + (pos * (1.0f - delta));
+      tileOffset = interpol - pos;
+
+      // Once halfway, the mmbn entities switch to the next tile
+      // and the slide position offset must be readjusted 
+      if (delta >= 0.5f) {
+        // conditions of the target tile may change, ensure by the time we switch
+        if (CanMoveTo(next)) {
+          if (tile != next) {
+            // Remove the entity from its previous tile pointer 
+            previous->RemoveEntityByID(GetID());
+
+            // Previous tile is now the current tile
+            previous = tile;
+
+            // Curent tile is now the next tile
+            AdoptTile(next);
+          }
+
+          // Adjust for the new current tile, begin halfway approaching the current tile
+          tileOffset = -tar + pos + tileOffset;
+        }
+        else {
+          // Slide back into the origin tile if we can no longer slide to the next tile
+          moveStartPosition = next->getPosition();
+          currMoveEvent.dest = tile;
+        }
+      }
+
+      float heightElapsed = static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value);
+      float heightDelta = swoosh::ease::wideParabola(heightElapsed, duration, 1.0f);
+      tileOffset.y -= (heightDelta * currMoveEvent.height);
+      
+      // When delta is 1.0, the slide duration is complete
+      if (delta == 1.0f)
+      {
+        // Slide or jump is complete, clear the tile offset used in those animations
+        tileOffset = { 0, 0 };
+
+        // Now that we have finished moving across panels, we must wait out endlag
+        frame_time_t lastFrame = currMoveEvent.delayFrames + currMoveEvent.deltaFrames + currMoveEvent.endlagFrames;
+        if (from_seconds(elapsedMoveTime) > lastFrame) {
+          FinishMove();
+          Battle::Tile* prevTile = GetTile();
+          previousDirection = direction;
+
+          // If we slide onto an ice block and we don't have float shoe enabled, slide
+          if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
+            // calculate our new entity's position
+            UpdateMoveStartPosition();
+
+            // TODO: shorten with GetPreviousDirection() switch
+            if (previous->GetX() > prevTile->GetX()) {
+              next = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
+            }
+            else if (previous->GetX() < prevTile->GetX()) {
+              next = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
+            }
+            else if (previous->GetY() < prevTile->GetY()) {
+              next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() + 1);
+            }
+            else if (previous->GetY() > prevTile->GetY()) {
+              next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() - 1);
+            }
+
+            // If the next tile is not available, not ice, or we are ice element, don't slide
+            bool notIce = (next && tile->GetState() != TileState::ice);
+            bool cannotMove = (next && !CanMoveTo(next));
+            bool weAreIce = (GetElement() == Element::ice);
+            bool cancelSlide = notIce || cannotMove || weAreIce;
+
+            if (!cancelSlide) {
+              Slide(GetPreviousDirection(), frames(8), frames(0), ActionOrder::involuntary);
+            }
+          }
+          else {
+            // Invalidate the next tile pointer
+            next = nullptr;
+          }
+        }
+      }
+    }
+  }
+  else {
+    // If we don't have a valid next tile pointer or are not sliding,
+    // Keep centered in the current tile with no offset
+    tileOffset = sf::Vector2f(0, 0);
+    elapsedMoveTime = 0;
+  }
 }
 
-Entity::~Entity() {
-  this->FreeAllComponents();
+void Entity::SetFrame(unsigned frame)
+{
+  this->frame = frame;
 }
 
 void Entity::Spawn(Battle::Tile & start)
@@ -129,6 +232,10 @@ const bool Entity::IsSuperEffective(Element _other) const {
 void Entity::Update(double _elapsed) {
   isUpdating = true;
 
+  actionQueue.Process();
+
+  UpdateMovement(_elapsed);
+
   // Update all components
   auto iter = components.begin();
 
@@ -136,7 +243,7 @@ void Entity::Update(double _elapsed) {
   for (auto* child : GetChildNodes()) {
     auto* sprite = dynamic_cast<SpriteProxyNode*>(child);
     if (sprite) {
-      auto color = sprite->getColor();
+      sf::Color color = sprite->getColor();
       sprite->setColor(sf::Color(color.r, color.g, color.b, alpha));
     }
   }
@@ -151,104 +258,6 @@ void Entity::Update(double _elapsed) {
   }
 
   ReleaseComponentsPendingRemoval();
-
-  // Do not upate if the entity's current tile pointer is null
-  if (_elapsed <= 0 || !tile) {
-    InsertComponentsPendingRegistration();
-    ClearPendingComponents();
-    return;
-  }
-
-  // Only slide if we have a valid next tile pointer
-  if (isSliding && next) {
-    elapsedSlideTime += _elapsed;
-
-    // Get a value from 0.0 to 1.0
-    float delta = swoosh::ease::linear((float)elapsedSlideTime, slideTime.asSeconds(), 1.0f);
-
-    sf::Vector2f pos = slideStartPosition;
-    sf::Vector2f tar = next->getPosition();
-
-    // Interpolate the sliding position from the start position to the end position
-    auto interpol = tar * delta + (pos*(1.0f - delta));
-    tileOffset = interpol - pos;
-
-    // Once halfway, the mmbn entities switch to the next tile
-    // and the slide position offset must be readjusted 
-    if (delta >= 0.5f) {
-      // conditions of the target tile may change, ensure by the time we switch
-      if (CanMoveTo(next)) {
-        if (tile != next) {
-          // Remove the entity from its previous tile pointer 
-          previous->RemoveEntityByID(GetID());
-          
-          // Previous tile is now the current tile
-          previous = tile;
-
-          // Curent tile is now the next tile
-          AdoptTile(next);
-        }
-
-        // Adjust for the new current tile, begin halfway approaching the current tile
-        tileOffset = -tar + pos + tileOffset;
-      }
-      else {
-        // Slide back into the origin tile if we can no longer slide to the next tile
-        slideStartPosition = next->getPosition();
-        next = tile;
-      }
-    } 
-
-    // When delta is 1.0, the slide duration is complete
-    if(delta == 1.0f)
-    {
-      elapsedSlideTime = 0;
-      Battle::Tile* prevTile = GetTile();
-      tileOffset = sf::Vector2f(0, 0);
-
-      // If we slide onto an ice block and we don't have float shoe enabled, slide
-      if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
-        // Move again in the same direction as before
-        Move(GetPreviousDirection());
-
-        // calculate our new entity's position
-        UpdateSlideStartPosition();
-
-        // TODO: shorten with GetPreviousDirection() switch
-        if (previous->GetX() > prevTile->GetX()) {
-          next = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
-        }
-        else if (previous->GetX() < prevTile->GetX()) {
-          next = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
-        }
-        else if (previous->GetY() < prevTile->GetY()) {
-          next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() + 1);
-        }
-        else if (previous->GetY() > prevTile->GetY()) {
-          next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() - 1);
-        }
-
-        // If the next tile is not available, not ice, or we are ice element, don't slide
-        if (((next && tile->GetState() != TileState::ice) 
-          || (next && !CanMoveTo(next)))
-          || (GetElement() == Element::ice)) {
-          // Conditions not met
-          isSliding = false;
-        }
-      }
-      else {
-        // Invalidate the next tile pointer
-        next = nullptr;
-      }
-    }
-  }
-  else {
-    // If we don't have a valid next tile pointer or are not sliding,
-    // Keep centered in the current tile with no offset
-    tileOffset = sf::Vector2f(0, 0);
-    isSliding = false;
-  }
-
   InsertComponentsPendingRegistration();
   ClearPendingComponents();
 
@@ -264,131 +273,104 @@ void Entity::SetAlpha(int value)
   setColor(c);
 }
 
+bool Entity::Teleport(Direction dir, ActionOrder order, std::function<void()> onBegin)
+{
+  Battle::Tile* currTile = GetTile();
 
-bool Entity::Move(Direction _direction) {
-  if (!tile) return false;
+  if (!currTile) return false;
 
-  bool moved = false;
-
-  // Update the entity direction 
-  direction = _direction;
-
-  Battle::Tile* temp = tile;
-  
-  if (_direction == Direction::none) next = nullptr;
-
-  // Based on the input direction grab the tile we wish 
-  // to move to and check to see if this entity is allowed
-  // to move onto it with CanMoveTo() 
-  if (_direction == Direction::up) {
-    if (tile->GetY() - 1 >= 0) {
-      next = field->GetAt(tile->GetX(), tile->GetY() - 1);
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::left) {
-    if (tile->GetX() - 1 >= 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::down) {
-    if (tile->GetY() + 1 <= (int)field->GetHeight()+1) {
-      next = field->GetAt(tile->GetX(), tile->GetY() + 1);
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::right) {
-    if (tile->GetX() + 1 <= (int)(field->GetWidth()+1)) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::up_left) {
-    if (tile->GetX() - 1 >= 0 && tile->GetY() - 1 >= 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY() - 1);
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::up_right) {
-    if (tile->GetX() + 1 <= (int)(field->GetWidth() + 1) && tile->GetY() - 1 >= 0) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY() - 1);
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::down_left) {
-    if (tile->GetX() - 1 >= 0 && tile->GetY() + 1 <= (int)(field->GetHeight() + 1)) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY() + 1);
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::down_right) {
-    if (tile->GetX() + 1 <= (int)(field->GetWidth() + 1) && tile->GetY() + 1 <= (int)(field->GetHeight() + 1)) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY() + 1);
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-
-  // If the next tile pointer is valid and is different from our current tile, we are moving
-  if (next && next != tile) {
-    previousDirection = _direction;
-
-    previous = temp;
-
-    // If we are sliding onto this tile, prevent move callbacks by returning false
-    if (isSliding) return false;
-
-    moved = true;
-  }
-  else {
-    direction = Direction::none;
-    isSliding = false;
-  }
-
-  return moved;
+  return Teleport(*currTile + dir, order, onBegin);
 }
 
-bool Entity::Teleport(int col, int row) {
-  bool moved = false;
+bool Entity::Slide(Direction dir, 
+  const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
+{
+  Battle::Tile* currTile = GetTile();
 
-  Battle::Tile* temp = tile;
+  if (!currTile) return false;
 
-  direction = Direction::none;
+  return Slide(*currTile + dir, slideTime, endlag, order, onBegin);
+}
 
+bool Entity::Jump(Direction dir, float destHeight, 
+  const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
+{
+  Battle::Tile* currTile = GetTile();
 
-  next = field->GetAt(col, row);
+  if (!currTile) return false;
 
-  if (!(next && CanMoveTo(next))) {
-    next = nullptr;
+  return Jump(*currTile + dir, destHeight, jumpTime, endlag, order, onBegin);
+}
+
+bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void()> onBegin) {
+  if (dest && CanMoveTo(dest)) {
+    MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
+    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
+
+    return true;
   }
 
-  if (next) {
-    previousDirection = Direction::none;
+  return false;
+}
 
-    previous = temp;
+bool Entity::Slide(Battle::Tile* dest, 
+  const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
+{
+  if (dest && CanMoveTo(dest)) {
+    MoveEvent event = { slideTime, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
+    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
 
-    moved = true;
+    return true;
   }
 
-  isSliding = false;
+  return false;
+}
 
-  return moved;
+bool Entity::Jump(Battle::Tile* dest, float destHeight, 
+  const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
+{
+  destHeight = std::min(destHeight, 0.f); // no negative jumps
+
+  if (dest && CanMoveTo(dest)) {
+    MoveEvent event = { jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest, onBegin };
+    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
+
+    return true;
+  }
+
+  return false;
+}
+
+void Entity::FinishMove()
+{
+  // completes the move or moves the object back
+  if (currMoveEvent.dest && !currMoveEvent.immutable) {
+    AdoptNextTile();
+    tileOffset = {};
+    currMoveEvent = {};
+    actionQueue.ClearFilters();
+    actionQueue.Pop();
+  }
+}
+
+void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec)
+{
+  if (exec == ActionQueue::ExecutionType::interrupt) {
+    FinishMove();
+    return;
+  }
+
+  if (currMoveEvent.dest == nullptr) {
+    UpdateMoveStartPosition();
+    FilterMoveEvent(event);
+    currMoveEvent = event;
+    moveEventFrame = this->frame;
+    previous = tile;
+    elapsedMoveTime = 0;
+    actionQueue.CreateDiscardFilter(ActionTypes::buster, ActionDiscardOp::until_resolve);
+    actionQueue.CreateDiscardFilter(ActionTypes::peek_card, ActionDiscardOp::until_resolve);
+  }
+
 }
 
 // Default implementation of CanMoveTo() checks 
@@ -407,7 +389,7 @@ const long Entity::GetID() const
 }
 
 /** \brief Unkown team entities are friendly to all spaces @see Cubes */
-bool Entity::Teammate(Team _team) {
+bool Entity::Teammate(Team _team) const {
   return (team == Team::unknown) || (team == _team);
 }
 
@@ -419,25 +401,82 @@ Battle::Tile* Entity::GetTile() const {
   return tile;
 }
 
-const Battle::Tile* Entity::GetNextTile() const {
-  return next;
+const sf::Vector2f Entity::GetTileOffset() const
+{
+  return this->tileOffset;
 }
 
-void Entity::SlideToTile(bool enabled)
+const bool Entity::IsSliding(unsigned* framecheck) const
 {
-  if (!isSliding) {
-    isSliding = enabled;
+  bool is_moving = currMoveEvent.IsSliding();
 
-    if (enabled) {
-      // capture potential slide starting position
-      UpdateSlideStartPosition();
+  if (framecheck) {
+    if (*framecheck != moveEventFrame) {
+      *framecheck = moveEventFrame;
+      return is_moving;
     }
+    
+    // else framecheck matches the event frame number
+    // this represents no change in movement since last check
+    return false; 
   }
+
+  return is_moving;
 }
 
-const bool Entity::IsSliding() const
+const bool Entity::IsJumping(unsigned* framecheck) const
 {
-  return isSliding;
+  bool is_moving = currMoveEvent.IsJumping();
+
+  if (framecheck) {
+    if (*framecheck != moveEventFrame) {
+      *framecheck = moveEventFrame;
+      return is_moving;
+    }
+
+    // else framecheck matches the event frame number
+    // this represents no change in movement since last check
+    return false;
+  }
+
+  return is_moving;
+}
+
+const bool Entity::IsTeleporting(unsigned* framecheck) const
+{
+  bool is_moving = currMoveEvent.IsTeleporting();
+
+  if (framecheck) {
+    if (*framecheck != moveEventFrame) {
+      *framecheck = moveEventFrame;
+      return is_moving;
+    }
+
+    // else framecheck matches the event frame number
+    // this represents no change in movement since last check
+    return false;
+  }
+
+  return is_moving;
+}
+
+const bool Entity::IsMoving(unsigned* framecheck) const
+{
+  if (framecheck) {
+    unsigned a{ *framecheck };
+    unsigned b{ *framecheck };
+    unsigned c{ *framecheck };
+
+    bool is_moving = IsSliding(&a) || IsJumping(&b) || IsTeleporting(&c);
+
+    // only one motion event happens at a time, so find the highest
+    // up-to-date frame number out of the 3 calls
+    *framecheck = std::max(a, b);
+    *framecheck = std::max(*framecheck, c);
+    return is_moving;
+  }
+
+  return IsSliding() || IsJumping() || IsTeleporting();
 }
 
 void Entity::SetField(Field* _field) {
@@ -507,8 +546,9 @@ void Entity::Delete()
 
   OnDelete();
 
-  for (auto&& callbacks : removeCallbacks) {
-    callbacks();
+  for (RemoveCallback* callback : removeCallbacks) {
+    (*callback)();
+    delete callback;
   }
 
   removeCallbacks.clear();
@@ -519,10 +559,10 @@ void Entity::Remove()
   flagForRemove = true;
 }
 
-std::reference_wrapper<Entity::RemoveCallback> Entity::CreateRemoveCallback()
+Entity::RemoveCallback& Entity::CreateRemoveCallback()
 {
-  removeCallbacks.push_back(std::move(Entity::RemoveCallback()));
-  return std::ref(*(removeCallbacks.end()-1));
+  removeCallbacks.push_back(new Entity::RemoveCallback());
+  return *removeCallbacks[removeCallbacks.size() - 1];
 }
 
 bool Entity::IsDeleted() const {
@@ -546,6 +586,7 @@ const Element Entity::GetElement() const
 
 void Entity::AdoptNextTile()
 {
+  Battle::Tile* next = currMoveEvent.dest;
   if (next == nullptr) {
     return;
   }
@@ -557,9 +598,7 @@ void Entity::AdoptNextTile()
   AdoptTile(next);
 
   // Slide if the tile we are moving to is ICE
-  if (next->GetState() == TileState::ice && !HasFloatShoe()) {
-    SlideToTile(true);
-  } else {
+  if (next->GetState() != TileState::ice || HasFloatShoe()) {
     // If not using animations, then 
     // adopting a tile is the last step in the move procedure
     // Increase the move count
@@ -610,14 +649,6 @@ void Entity::FreeComponentByID(Component::ID_t ID) {
   }
 }
 
-void Entity::FinishMove()
-{
-  // prevent breaking sliding mechanics
-  if (IsSliding()) return;
-
-  next = nullptr;
-}
-
 Component* Entity::RegisterComponent(Component* c) {
   if (c == nullptr) return nullptr;
 
@@ -636,18 +667,29 @@ Component* Entity::RegisterComponent(Component* c) {
   return c;
 }
 
-void Entity::UpdateSlideStartPosition()
+void Entity::UpdateMoveStartPosition()
 {
   if (tile) {
-    slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
+    moveStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
   }
-}
-
-void Entity::SetSlideTime(sf::Time time) {
-  slideTime = time;
 }
 
 const int Entity::GetMoveCount() const
 {
     return moveCount;
+}
+
+void Entity::SetMoveEndlag(const frame_time_t& frames)
+{
+  moveEndlagDelay = frames;
+}
+
+void Entity::SetMoveStartupDelay(const frame_time_t& frames)
+{
+  moveStartupDelay = frames;
+}
+
+void Entity::ClearActionQueue()
+{
+  actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
 }

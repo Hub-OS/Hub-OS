@@ -103,6 +103,14 @@ void Animation::LoadWithData(const string& data)
       frameLists.push_back(FrameList());
       frameAnimationIndex++;
     }
+    else if (line.find("blank") != string::npos) {
+      string duration = ValueOf("duration", line);
+
+      // prevent negative frame numbers
+      float currentFrameDuration = static_cast<float>(std::fabs(atof(duration.c_str())));
+
+      frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect{}, sf::Vector2f{ 0, 0 }, false, false);
+    }
     else if (line.find("frame") != string::npos) {
       string duration = ValueOf("duration", line);
       float currentFrameDuration = (float)atof(duration.c_str());
@@ -111,6 +119,8 @@ void Animation::LoadWithData(const string& data)
       int currentStarty = 0;
       float originX = 0;
       float originY = 0;
+      bool flipX = false;
+      bool flipY = false;
 
       if (legacySupport) {
         string startx = ValueOf("startx", line);
@@ -126,6 +136,8 @@ void Animation::LoadWithData(const string& data)
         string h = ValueOf("h", line);
         string ox = ValueOf("originx", line);
         string oy = ValueOf("originy", line);
+        string fx = ValueOf("flipX", line);
+        string fy = ValueOf("flipY", line);
 
         currentStartx = atoi(x.c_str());
         currentStarty = atoi(y.c_str());
@@ -133,6 +145,20 @@ void Animation::LoadWithData(const string& data)
         currentHeight = atoi(h.c_str());
         originX = (float)atoi(ox.c_str());
         originY = (float)atoi(oy.c_str());
+
+        if (fy == "true" || fy == "1") {
+          flipY = true;
+        }
+        else {
+          flipY = false;
+        }
+
+        if (fx == "true" || fx == "1") {
+          flipX = true;
+        }
+        else {
+          flipX = false;
+        }
       }
 
       currentAnimationDuration += currentFrameDuration;
@@ -141,7 +167,13 @@ void Animation::LoadWithData(const string& data)
         frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect(currentStartx, currentStarty, currentWidth, currentHeight));
       }
       else {
-        frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect(currentStartx, currentStarty, currentWidth, currentHeight), sf::Vector2f(originX, originY));
+        frameLists.at(frameAnimationIndex).Add(
+          currentFrameDuration, 
+          IntRect(currentStartx, currentStarty, currentWidth, currentHeight), 
+          sf::Vector2f(originX, originY),
+          flipX,
+          flipY
+        );
       }
     }
     else if (line.find("point") != string::npos) {
@@ -156,7 +188,9 @@ void Animation::LoadWithData(const string& data)
 
       frameLists[frameAnimationIndex].SetPoint(pointName, x, y);
     }
-  } while (endLine < data.length());
+
+    data = data.substr(1ull + endline);
+  } while (endline > -1);
 
   // One more addAnimation to do if file is good
   if (frameAnimationIndex >= 0) {
@@ -169,6 +203,14 @@ string Animation::ValueOf(string _key, string _line) {
   // assert(keyIndex > -1 && "Key was not found in .animation file.");
   string s = _line.substr(keyIndex + _key.size() + 2);
   return s.substr(0, s.find("\""));
+}
+
+void Animation::HandleInterrupted()
+{
+  if (interruptCallback && progress < animations[currAnimation].GetTotalDuration()) {
+    interruptCallback();
+    interruptCallback = nullptr;
+  }
 }
 
 void Animation::Refresh(sf::Sprite& target) {
@@ -194,10 +236,7 @@ void Animation::Update(double elapsed, sf::Sprite& target, double playbackSpeed)
     animator(0, target, animations[currAnimation]);
     progress = 0;
     
-    if (interruptCallback) {
-      interruptCallback();
-      interruptCallback = nullptr;
-    }
+    HandleInterrupted();
   }
 
   const double duration = animations[currAnimation].GetTotalDuration();
@@ -246,30 +285,28 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
 }
 
 void Animation::SetAnimation(string state) {
-   if (interruptCallback) {
-     interruptCallback();
-     interruptCallback = nullptr;
-   }
+  HandleInterrupted();
+  RemoveCallbacks();
+  progress = 0.0f;
 
-   RemoveCallbacks();
-   progress = 0.0f;
+  std::transform(state.begin(), state.end(), state.begin(), ::toupper);
 
-   std::transform(state.begin(), state.end(), state.begin(), ::toupper);
+  auto pos = animations.find(state);
 
-   auto pos = animations.find(state);
+  noAnim = false; // presumptious reset
 
-   noAnim = false; // presumptious reset
+  if (pos == animations.end()) {
+#ifdef BN_LOG_MISSING_STATE
+    Logger::Log("No animation found in file for \"" + state + "\"");
+#endif
+    noAnim = true;
+  }
+  else {
+    animator.UpdateCurrentPoints(0, pos->second);
+  }
 
-   if (pos == animations.end()) {
-      Logger::Log("No animation found in file for \"" + state + "\"");
-      noAnim = true;
-   }
-   else {
-     animator.UpdateCurrentPoints(0, pos->second);
-   }
-
-   // Even if we don't have this animation, switch to it anyway
-   currAnimation = state;
+  // Even if we don't have this animation, switch to it anyway
+  currAnimation = state;
 }
 
 void Animation::RemoveCallbacks()
@@ -313,7 +350,7 @@ void Animation::operator<<(const std::function<void()>& onFinish)
 
 sf::Vector2f Animation::GetPoint(const std::string & pointName)
 {
-  auto point = pointName;
+  std::string point = pointName;
   std::transform(point.begin(), point.end(), point.begin(), ::toupper);
 
   auto res = animator.GetPoint(point);
@@ -321,9 +358,25 @@ sf::Vector2f Animation::GetPoint(const std::string & pointName)
   return res;
 }
 
-void Animation::OverrideAnimationFrames(const std::string& animation, std::list <OverrideFrame> data, std::string& uuid)
+char Animation::GetMode()
 {
-  auto currentAnimation = animation;
+  return animator.GetMode();
+}
+
+float Animation::GetStateDuration(const std::string& state) const
+{
+  auto iter = animations.find(state);
+  
+  if (iter != animations.end()) {
+    return static_cast<float>(iter->second.GetTotalDuration());
+  }
+  
+  return 0.0f;
+}
+
+void Animation::OverrideAnimationFrames(const std::string& animation, const std::list<OverrideFrame>&data, std::string& uuid)
+{
+  std::string currentAnimation = animation;
   std::transform(currentAnimation.begin(), currentAnimation.end(), currentAnimation.begin(), ::toupper);
 
   if (uuid.empty()) {

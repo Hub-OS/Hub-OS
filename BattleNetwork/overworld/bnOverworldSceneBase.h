@@ -90,6 +90,7 @@ namespace Overworld {
     PA programAdvance;
 
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
+    WebAccounts::AccountState webAccount;
 
     std::shared_ptr<Tileset> ParseTileset(const XMLElement& element, unsigned int firstgid);
     std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(const XMLElement& tilesetElement, const Overworld::Tileset& tileset);
@@ -264,6 +265,7 @@ namespace Overworld {
     void GotoConfig();
     void GotoMobSelect();
     void GotoPVP();
+    void GotoKeyItems();
 
     //
     // Getters

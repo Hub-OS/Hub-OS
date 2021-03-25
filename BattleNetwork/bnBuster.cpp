@@ -64,9 +64,7 @@ void Buster::OnUpdate(double _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    if (Move(GetDirection())) {
-      AdoptNextTile();
-      FinishMove();
+    if (Teleport(GetDirection())) {
       cooldown = 0;
     }
     else {
@@ -86,13 +84,12 @@ void Buster::OnDelete()
   Remove();
 }
 
-void Buster::Attack(Character* _entity) {
-  if (!_entity->Hit(GetHitboxProperties())) return;
-
-  hitHeight = (float)(std::floor(_entity->GetHeight()));
+void Buster::OnCollision(const Character* entity)
+{
+  random = entity->getLocalBounds().width / 2.0f;
+  hitHeight = (float)(entity->getLocalBounds().height + std::floor(entity->GetHeight()));
 
   if (!isCharged) {
-    random = _entity->getLocalBounds().width / 2.0f;
     random *= rand() % 2 == 0 ? -1.0f : 1.0f;
 
     if (hitHeight > 0) {
@@ -100,13 +97,18 @@ void Buster::Attack(Character* _entity) {
     }
   }
   else {
+    random = 0;
     hitHeight /= 2;
   }
 
   auto bhit = new BusterHit(isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
-  bhit->SetOffset({ random, GetHeight() + hitHeight });
+  bhit->SetOffset({ random, -(GetHeight() + hitHeight) });
   GetField()->AddEntity(*bhit, *GetTile());
 
   Delete();
   Audio().Play(AudioType::HURT);
+}
+
+void Buster::Attack(Character* _entity) {
+  if (!_entity->Hit(GetHitboxProperties())) return;
 }

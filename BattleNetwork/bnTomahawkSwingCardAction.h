@@ -1,8 +1,6 @@
 #include "bnCardAction.h"
 #include "bnArtifact.h"
 
-class Field;
-
 class TomahawkSwingCardAction : public CardAction {
   int damage{};
 

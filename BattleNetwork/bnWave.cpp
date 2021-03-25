@@ -70,10 +70,6 @@ void Wave::OnUpdate(double _elapsed) {
   }
 }
 
-bool Wave::Move(Direction _direction) {
-  return false;
-}
-
 void Wave::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
 }

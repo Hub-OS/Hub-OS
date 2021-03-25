@@ -35,6 +35,11 @@ struct frame_time_t {
     return this->milli;
   }
 
+  unsigned count() const {
+    // returns the number of full frames in this time span
+    return static_cast<unsigned>(asSeconds().value * frames_per_second);
+  }
+
   operator seconds() const {
     return asSeconds();
   }

@@ -2,20 +2,21 @@
 #include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
 #include "bnProtoManSummon.h"
+#include "bnField.h"
 
 ProtoManCardAction::ProtoManCardAction(Character& owner, int damage) :
   damage(damage),
   CardAction(owner, "PLAYER_IDLE"){
-  this->SetLockout({ ActionLockoutType::sequence });
+  this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
 void ProtoManCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto& owner = GetCharacter();
 
-  owner->Hide();
-  auto* proto = new ProtoManSummon(owner, damage);
+  owner.Hide();
+  auto* proto = new ProtoManSummon(&owner, damage);
 
-  owner->GetField()->AddEntity(*proto, owner->GetTile()->GetX(), owner->GetTile()->GetY());
+  owner.GetField()->AddEntity(*proto, *owner.GetTile());
 
   CardAction::Step protoman;
   protoman.updateFunc = [proto](double elapsed, Step& step) {
@@ -31,9 +32,9 @@ ProtoManCardAction::~ProtoManCardAction()
 {
 }
 
-void ProtoManCardAction::OnUpdate(double _elapsed)
+void ProtoManCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void ProtoManCardAction::OnAnimationEnd()
@@ -43,6 +44,5 @@ void ProtoManCardAction::OnAnimationEnd()
 
 void ProtoManCardAction::OnEndAction()
 {
-  GetOwner()->Reveal();
-  Eject();
+  GetCharacter().Reveal();
 }

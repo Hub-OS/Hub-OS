@@ -35,7 +35,7 @@ void VolcanoErupt::OnDelete()
 {
 }
 
-void VolcanoErupt::OnCollision()
+void VolcanoErupt::OnCollision(const Character*)
 {
   field->AddEntity(*new ParticleImpact(ParticleImpact::Type::volcano), *GetTile());
 }

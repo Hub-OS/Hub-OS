@@ -31,13 +31,6 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief Protoman teleports and doesn't use this
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
-  
-  /**
    * @brief Deals damage to the enemy with recoil
    * @param _entity
    * 
@@ -59,6 +52,8 @@ public:
   * @brief Does nothing
   */
   void OnDelete() override;
+
+  void OnSpawn(Battle::Tile& start) override;
 
 private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */

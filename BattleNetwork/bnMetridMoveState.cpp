@@ -51,15 +51,13 @@ void MetridMoveState::OnUpdate(double _elapsed, Metrid& met) {
       teley = myteam[randIndex]->GetY();
   }
 
-  bool moved = (myteam.size() > 0) && met.Teleport(telex, teley);
+  Battle::Tile* nextTile = met.GetField()->GetAt(telex, teley);
+  bool moved = (myteam.size() > 0) && met.Teleport(nextTile);
 
   if (moved) {
 
     auto fx = new MobMoveEffect();
     met.GetField()->AddEntity(*fx, met.GetTile()->GetX(), met.GetTile()->GetY());
-
-    met.AdoptNextTile();
-    met.FinishMove();
 
     //isMoving = true;
     moveCount--;

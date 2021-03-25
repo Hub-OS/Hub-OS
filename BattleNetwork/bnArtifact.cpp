@@ -7,7 +7,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 
-Artifact::Artifact() {
+Artifact::Artifact() : Entity() {
   SetTeam(Team::unknown);
   SetPassthrough(true);
 }
@@ -25,8 +25,7 @@ void Artifact::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!IsSliding()) {
+  if (!IsMoving()) {
     setPosition(tile->getPosition());
   }
 }
-

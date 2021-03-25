@@ -50,6 +50,10 @@ template<typename Any>
 void BubbleState<Any>::OnEnter(Any& e) {
   prevFloatShoe = e.HasFloatShoe(); // Hack: bubble would be otherwise pushed by moving tiles
   e.SetFloatShoe(true);
+  auto animationComponent = e.GetFirstComponent<AnimationComponent>();
+  if (animationComponent) { animationComponent->CancelCallbacks(); }
+  e.ClearActionQueue();
+  e.FinishMove();
 }
 
 template<typename Any>
@@ -76,5 +80,4 @@ void BubbleState<Any>::OnLeave(Any& e) {
   //std::cout << "left bubblestate" << std::endl;
 
   ResourceHandle().Audio().Play(AudioType::BUBBLE_POP);
-  e.FinishMove(); // any movement ops need to be reset
 }

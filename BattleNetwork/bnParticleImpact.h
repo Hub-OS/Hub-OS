@@ -36,23 +36,12 @@ public:
    * @param _elapsed in seconds
    */
   void OnUpdate(double _elapsed) final override;
-
   void OnDelete() final override;
-
-  /**
-   * @brief particle fx effect doesn't move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) final override;
-
   void OnSpawn(Battle::Tile& tile) final override;
-
-
   void SetOffset(const sf::Vector2f& offset);
 
 private:
   Animation animation;
-  sf::Vector2f randOffset, offset;
+  sf::Vector2f randOffset{}, offset{};
   Type type;
 }; 

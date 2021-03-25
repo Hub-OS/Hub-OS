@@ -1,6 +1,7 @@
 #include "bnProgsManThrowState.h"
 #include "bnProgsMan.h"
 #include "bnProgBomb.h"
+#include "bnField.h"
 
 ProgsManThrowState::ProgsManThrowState() : AIState<ProgsMan>()
 {

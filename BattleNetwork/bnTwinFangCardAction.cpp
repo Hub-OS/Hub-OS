@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTwinFang.h"
+#include "bnField.h"
 
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
@@ -26,39 +27,42 @@ TwinFangCardAction::~TwinFangCardAction()
 void TwinFangCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    auto user = GetOwner();
+    auto& user = GetCharacter();
 
-    auto tile = user->GetTile();
+    auto tiles = std::vector{
+      user.GetTile()->Offset(0,-1),
+      user.GetTile()->Offset(0, 1)
+    };
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
-    if (tile->GetY() != 0) {
-      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::ABOVE, damage);
+    if (user.GetTile()->GetY() != 0) {
+      TwinFang* twinfang = new TwinFang(user.GetTeam(), TwinFang::Type::ABOVE, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = user;
+      props.aggressor = &user;
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
-      user->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() - 1);
+      user.GetField()->AddEntity(*twinfang, *tiles[0]);
     }
 
-    if (tile->GetY() != 4) {
-      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::BELOW, damage);
+    if (user.GetTile()->GetY() != 4) {
+      TwinFang* twinfang = new TwinFang(user.GetTeam(), TwinFang::Type::BELOW, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = user;
+      props.aggressor = &user;
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
-      user->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() + 1);
+      user.GetField()->AddEntity(*twinfang, *tiles[1]);
     }
   };
 
   AddAnimAction(2, onFire);
 }
 
-void TwinFangCardAction::OnUpdate(double _elapsed)
+void TwinFangCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void TwinFangCardAction::OnAnimationEnd()
@@ -67,5 +71,4 @@ void TwinFangCardAction::OnAnimationEnd()
 
 void TwinFangCardAction::OnEndAction()
 {
-  Eject();
 }

@@ -27,7 +27,7 @@ void ScriptedPlayer::SetFullyChargeColor(const sf::Color& color)
   chargeEffect.SetFullyChargedColor(color);
 }
 
-void ScriptedPlayer::SetHeight(const float& height)
+void ScriptedPlayer::SetHeight(const float height)
 {
   this->height = height;
 }

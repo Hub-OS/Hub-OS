@@ -17,7 +17,7 @@ private:
   double progress;
 
 public:
-  ElementalDamage(Field* field);
+  ElementalDamage();
   ~ElementalDamage();
 
   /**
@@ -25,8 +25,6 @@ public:
    * @param _elapsed
    */
   void OnUpdate(double _elapsed) override;
-
-  bool Move(Direction _direction) override;
 
   void OnDelete() override;
 };

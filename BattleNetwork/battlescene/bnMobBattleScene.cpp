@@ -35,9 +35,8 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   players = { &props.base.player };
 
   // ptr to player, form select index (-1 none), if should transform
-  // TODO: just make this a struct to use across all states that need it...
   trackedForms = { 
-    std::make_shared<TrackedFormData>(TrackedFormData{&props.base.player, -1, false})
+    std::make_shared<TrackedFormData>(&props.base.player, -1, false)
   }; 
 
   // in seconds
@@ -55,11 +54,28 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto reward      = AddState<RewardBattleState>(current, &props.base.player, &playerHitCount);
   auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
 
-  // Important! State transitions are added in order of priority!
+  //////////////////////////////////////////////////////////////////
+  // Important! State transitions are added in order of priority! //
+  //////////////////////////////////////////////////////////////////
+
   intro.ChangeOnEvent(cardSelect, &MobIntroBattleState::IsOver);
-  cardSelect.ChangeOnEvent(combo,  &CardSelectBattleState::OKIsPressed);
+
+  // Goto the combo check state if new cards are selected...
+  cardSelect.ChangeOnEvent(combo, &CardSelectBattleState::SelectedNewChips);
+
+  // ... else if forms were selected, go directly to forms ....
+  cardSelect.ChangeOnEvent(forms, &CardSelectBattleState::HasForm);
+
+  // ... Finally if none of the above, just start the battle
+  cardSelect.ChangeOnEvent(battlestart, &CardSelectBattleState::OKIsPressed);
+
+  // If we reached the combo state, we must also check if form transformation was next
+  // or to just start the battle after
   combo.ChangeOnEvent(forms, [cardSelect, combo]() mutable {return combo->IsDone() && cardSelect->HasForm(); });
   combo.ChangeOnEvent(battlestart, &CardComboBattleState::IsDone);
+
+  // Forms is the last state before kicking off the battle
+  // if we reached this state...
   forms.ChangeOnEvent(combat, [forms, cardSelect, this]() mutable { 
     bool triggered = forms->IsFinished() && (GetPlayer()->GetHealth() == 0 || playerDecross); 
 
@@ -74,9 +90,12 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
     return triggered; 
   });
   forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
+
+  // Combat begins when the battle start animations are finished
   battlestart.ChangeOnEvent(combat, &BattleStartBattleState::IsFinished);
+
+  // Mob rewards players after the battle over animations are finished
   battleover.ChangeOnEvent(reward, &BattleOverBattleState::IsFinished);
-  timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
 
   // share some values between states
   combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
@@ -103,6 +122,9 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
           .ChangeOnEvent(fadeout,    &CombatBattleState::PlayerLost)
           .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
           .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
+
+  // Time freeze state interrupts combat state which must resume after animations are finished
+  timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
 
   // Some states need to know about card uses
   auto& ui = this->GetSelectedCardsUI();
@@ -137,8 +159,9 @@ void MobBattleScene::OnHit(Character& victim, const Hit::Properties& props)
   }
 
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
-    Artifact* seSymbol = new ElementalDamage(GetField());
+    Artifact* seSymbol = new ElementalDamage;
     seSymbol->SetLayer(-100);
+    seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
     GetField()->AddEntity(*seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
   }
 }

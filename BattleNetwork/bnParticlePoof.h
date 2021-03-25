@@ -31,11 +31,4 @@ public:
   * @brief Removes the poof
   */
   void OnDelete() override;
-
-  /**
-   * @brief particle poof effect doesn't move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
 };

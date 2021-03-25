@@ -11,6 +11,7 @@ const std::string VOLCANO_PATH  = "resources/spells/volcano_hit.animation";
 const std::string WIND_PATH     = "resources/spells/panel_wind.animation";
 
 ParticleImpact::ParticleImpact(ParticleImpact::Type type) :
+  type(type),
   randOffset(), 
   Artifact()
 {
@@ -67,11 +68,6 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) :
 
 }
 
-bool ParticleImpact::Move(Direction _direction)
-{
-  return false;
-}
-
 void ParticleImpact::OnSpawn(Battle::Tile& tile) {
   float height = GetHeight();
   float width = 10;
@@ -89,6 +85,9 @@ void ParticleImpact::OnSpawn(Battle::Tile& tile) {
   case Type::wind:
     height = 0;
     width = 0;
+    break;
+  case Type::green:
+    height = GetHeight();
     break;
   }
 

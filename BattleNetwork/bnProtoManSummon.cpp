@@ -24,10 +24,6 @@ ProtoManSummon::ProtoManSummon(Character* user, int damage) :
   int lr = (team == Team::red) ? 1 : -1;
   setScale(2.0f*lr, 2.0f);
 
-  Battle::Tile* _tile = user->GetTile();
-
-  field->AddEntity(*this, *_tile);
-
   Audio().Play(AudioType::APPEAR);
 
   setTexture(Textures().LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
@@ -36,38 +32,7 @@ ProtoManSummon::ProtoManSummon(Character* user, int damage) :
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
 
-  Battle::Tile* next = nullptr;
-
-  auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
-  auto iter = allTiles.begin();
-
-  while (iter != allTiles.end()) {
-    next = (*iter);
-
-    if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != GetTeam()) {
-      int step = -1;
-
-      if (GetTeam() == Team::blue) {
-        step = 1;
-      }
-      
-      Battle::Tile* prev = field->GetAt(next->GetX() + step, next->GetY());
-
-      auto characters = prev->FindEntities([this](Entity* in) {
-        return this->user != in && (dynamic_cast<Character*>(in)  && in->GetTeam() != Team::unknown);
-      });
-
-      bool blocked = (characters.size() > 0) || !prev->IsWalkable();
-
-      if(!blocked) {
-        targets.push_back(next);
-      }
-    }
-
-    iter++;
-  }
-
-  // TODO: noodely callbacks desgin might be best abstracted by ActionLists
+  // TODO: noodely callbacks desgin might be best abstracted by ActionLists (use CardAction::Step) 2/27/2021
   animationComponent->SetAnimation("APPEAR", [this] {
   auto handleAttack = [this] () {
       DoAttackStep();
@@ -124,14 +89,44 @@ void ProtoManSummon::OnDelete()
   Remove();
 }
 
+void ProtoManSummon::OnSpawn(Battle::Tile& start)
+{
+  Battle::Tile* next = nullptr;
+
+  auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+  auto iter = allTiles.begin();
+
+  while (iter != allTiles.end()) {
+    next = (*iter);
+
+    if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != GetTeam()) {
+      int step = -1;
+
+      if (GetTeam() == Team::blue) {
+        step = 1;
+      }
+
+      Battle::Tile* prev = field->GetAt(next->GetX() + step, next->GetY());
+
+      auto characters = prev->FindEntities([this](Entity* in) {
+        return this->user != in && (dynamic_cast<Character*>(in) && in->GetTeam() != Team::unknown);
+        });
+
+      bool blocked = (characters.size() > 0) || !prev->IsWalkable();
+
+      if (!blocked) {
+        targets.push_back(next);
+      }
+    }
+
+    iter++;
+  }
+}
+
 void ProtoManSummon::OnUpdate(double _elapsed) {
   if (tile != nullptr) {
     setPosition(tile->getPosition());
   }
-}
-
-bool ProtoManSummon::Move(Direction _direction) {
-  return false;
 }
 
 void ProtoManSummon::Attack(Character* _entity) {

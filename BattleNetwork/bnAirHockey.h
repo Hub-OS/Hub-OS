@@ -16,5 +16,5 @@ public:
   bool CanMoveTo(Battle::Tile* next) override;
   void OnSpawn(Battle::Tile& start) override;
   void OnDelete() override;
-  void OnCollision() override;
+  void OnCollision(const Character*) override;
 };

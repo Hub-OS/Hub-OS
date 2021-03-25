@@ -22,19 +22,20 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
     display_name,
     animate,
     fadeout
-  } currState{ state::fadein };
+  } currState{ state::fadein }, startState{ state::fadein };
 
   long long lockedTimestamp{ 0 };
   double summonTextLength{ 1.0 }; /*!< How long TFC label should stay on screen */
   double backdropInc{ 1.25 }; //!< alpha increase per frame (max 255)
+  bool executeOnce{ false };
   std::string name;
   Team team{ Team::unknown };
-  Font font;
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
   Character* user{ nullptr };
   CardAction* action{ nullptr };
   TimeFreezeBattleState();
 
+  void SkipToAnimateState();
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
@@ -43,5 +44,5 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   const bool FadeOutBackdrop();
   const bool FadeInBackdrop();
   bool IsOver();
-  void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override;
+  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override;
 };

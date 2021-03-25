@@ -11,9 +11,9 @@ class Bees;
 class HoneyBomberAttackState : public AIState<HoneyBomber>
 {
 private:
-  int beeCount;
-  double attackCooldown, spawnCooldown;
-  Bees* lastBee;
+  int beeCount{};
+  double attackCooldown{}, spawnCooldown{};
+  Bees* lastBee{ nullptr };
 public:
 
   /**

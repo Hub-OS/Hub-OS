@@ -7,8 +7,9 @@
 #include "bnAudioResourceManager.h"
 #include "bnSharedHitbox.h"
 
-Bubble::Bubble(Team _team,double speed)
-  : popping(false), Obstacle(_team) {
+Bubble::Bubble(Team _team,double speed) : 
+  popping(false), 
+  Obstacle(_team) {
   SetLayer(-100);
 
   SetHealth(1);
@@ -20,8 +21,6 @@ Bubble::Bubble(Team _team,double speed)
   setScale(2.f, 2.f);
 
   Bubble::speed = speed;
-
-  SetSlideTime(sf::seconds(0.75f / (float)speed));
 
   animation = Animation("resources/spells/bubble.animation");
 
@@ -67,11 +66,13 @@ void Bubble::OnUpdate(double _elapsed) {
       }
     }
 
-    SlideToTile(true);
-    Move(GetDirection());
-
-    if (!GetNextTile()) {
-      Remove(); // Don't pop
+    if (!IsSliding()) {
+      if (GetTile()->IsEdgeTile()) {
+        Remove(); // doesn't make the bubble pop
+      }
+      else {
+        Slide(GetDirection(), frames(45), frames(0));
+      }
     }
   }
 
@@ -84,11 +85,14 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 
 
 const bool Bubble::UnknownTeamResolveCollision(const Spell& other) const {
+  Entity* aggro = other.GetHitboxProperties().aggressor;
+  bool is_aggro_team = aggro && Teammate(aggro->GetTeam());
+  bool is_spell_team = Teammate(other.GetTeam());
   // don't pop if hit by other bubbles from the same character
-  return other.GetHitboxProperties().aggressor != GetHitboxProperties().aggressor;
+  return !(is_aggro_team || is_spell_team);
 }
 
-void Bubble::OnCollision() {
+void Bubble::OnCollision(const Character*) {
   Delete();
 }
 

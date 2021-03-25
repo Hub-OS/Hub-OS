@@ -281,12 +281,16 @@ void Overworld::Homepage::onDraw(sf::RenderTexture& surface)
 void Overworld::Homepage::onStart()
 {
   SceneBase::onStart();
+
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
+  SceneBase::EnableNetWarps(false);
   infocus = true;
 }
 
 void Overworld::Homepage::onResume()
 {
   SceneBase::onResume();
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
   infocus = true;
 }
 

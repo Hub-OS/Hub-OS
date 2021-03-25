@@ -53,7 +53,7 @@ public:
   * If this function is called it does not gaurantee the attack will do damage to the character
   * Use this for visual effects like bubble pop
   */
-  virtual void OnCollision() { };
+  virtual void OnCollision(const Character* _entity) { };
 
   /**
    * @brief Uses visitor double-dispatch pattern to add to the spell bucket 
@@ -83,10 +83,7 @@ public:
    */
   const Hit::Properties GetHitboxProperties() const;
 
-  void SetHeight(double height);
-
 protected:
   Battle::Tile::Highlight mode; /*!< Highlight occupying tile */
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
-  double heightOffset; /*!< When drawing, how high up this spell should be. Used for card attacks where busters must align.*/
 };

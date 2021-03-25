@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnMiniBomb.h"
+#include "bnField.h"
 
 #include <Swoosh/Game.h>
 
@@ -28,7 +29,7 @@ BombCardAction::~BombCardAction()
 void BombCardAction::OnExecute() {
   // On throw frame, spawn projectile
   auto onThrow = [this]() -> void {
-    auto* owner = GetOwner();
+    auto* owner = &GetCharacter();
 
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
 
@@ -52,9 +53,9 @@ void BombCardAction::OnExecute() {
   AddAnimAction(3, onThrow);
 }
 
-void BombCardAction::OnUpdate(double _elapsed)
+void BombCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void BombCardAction::OnAnimationEnd()
@@ -63,6 +64,5 @@ void BombCardAction::OnAnimationEnd()
 
 void BombCardAction::OnEndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  Eject();
+  GetCharacter().RemoveNode(attachment);
 }

@@ -15,10 +15,6 @@ MetalBlade::MetalBlade(Team _team, double speed) : Spell(_team) {
 
   MetalBlade::speed = speed;
 
-  // Blades move from tile to tile in 25 frames
-  // Adjust by speed factor
-  SetSlideTime(sf::seconds(0.25f / (float)speed));
-
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/mobs/metalman/metalman.animation");
   animation->Load();
@@ -92,14 +88,14 @@ void MetalBlade::OnUpdate(double _elapsed) {
     }
 
     // Always slide
-    SlideToTile(true);
-    
-    // Keep moving
-    Move(GetDirection());
-
-    // We must have flown off screen
-    if (!GetNextTile()) {
-      Delete();
+    if (!IsSliding()) {
+      if (!CanMoveTo(GetTile() + GetDirection())) {
+        Delete();
+      }
+      else {
+        int ispeed = static_cast<unsigned>(25 * speed);
+        Slide(GetDirection(), frames(ispeed), frames(0));
+      }
     }
   }
 
@@ -108,7 +104,7 @@ void MetalBlade::OnUpdate(double _elapsed) {
 
 // Nothing prevents blade from cutting through
 bool MetalBlade::CanMoveTo(Battle::Tile* tile) {
-  return true;
+  return !tile->IsEdgeTile();
 }
 
 void MetalBlade::Attack(Character* _entity) {

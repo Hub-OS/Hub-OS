@@ -5,20 +5,26 @@
 */
 template<typename T>
 class CachedResource {
-  long long lastRequestTime; //!< Used to determine if we should remove this resource
-  unsigned int useCount; //!< Higher useCount means this is frequently used
-
+  long long lastRequestTime{}; //!< Used to determine if we should remove this resource
+  unsigned int useCount{}; //!< Higher useCount means this is frequently used
+  bool permanent{}; //!< Never delete resource when timer is up
   using SharedPtrType = std::shared_ptr<std::remove_pointer_t<T>>;
   SharedPtrType resource; //!< shared ptr to the actual resource
 public:
 
   /*! \brief Constructor creates a shared resouce, pauses the timer, and sets count to 0*/
-  CachedResource(const T& item) : resource(std::make_shared(item)) {
+  CachedResource(const T& item, bool perm = false) : 
+    resource(std::make_shared(item)),
+    permanent(perm)
+  {
     lastRequestTime = CurrentTime::AsMilli();
     useCount = 0;
   }
 
-  CachedResource(const SharedPtrType& ref) : resource(ref) {
+  CachedResource(SharedPtrType ref, bool perm = false) : 
+    resource(ref),
+    permanent(perm)
+  {
     lastRequestTime = CurrentTime::AsMilli();
     useCount = 0;
   }
@@ -30,7 +36,7 @@ public:
 
   /*! \brief checks if this resource is still in use*/
   const bool IsInUse() const {
-    return resource.use_count() >= 1;
+    return resource.use_count() >= 1 || permanent;
   }
 
   /*! \brief returns the resource

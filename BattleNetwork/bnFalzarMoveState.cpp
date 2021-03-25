@@ -1,6 +1,7 @@
 #include "bnFalzarMoveState.h"
 #include "bnAnimationComponent.h"
 #include "bnFalzar.h"
+#include "bnField.h"
 
 FalzarMoveState::FalzarMoveState(int moveCount) : maxMoveCount(moveCount), moveCount(0)
 {
@@ -33,9 +34,8 @@ void FalzarMoveState::OnMoveComplete(Falzar& falzar)
   int randY = (rand() % 3)+1;
 
   // +3 to teleport on the blue team side of the field
-  falzar.Teleport(randX+3, randY);
+  falzar.Teleport(falzar.GetField()->GetAt(randX+3, randY));
   falzar.AdoptNextTile();
-  falzar.FinishMove();
   auto animation = falzar.GetFirstComponent<AnimationComponent>();
 
   auto falzarPtr = &falzar;

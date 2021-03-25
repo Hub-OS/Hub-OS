@@ -165,7 +165,7 @@ void Mob::FlagNextReady() {
 
 void Mob::DefaultState() {
   for (int i = 0; i < (int)defaultStateInvokers.size(); i++) {
-    defaultStateInvokers[i](spawn[i]->mob);
+    defaultStateInvokers[i](tracked[i]);
   }
 
   defaultStateInvokers.clear();
@@ -184,8 +184,8 @@ Mob::MobData* Mob::GetNextMob() {
   if (spawnIndex >= spawn.size()) return nullptr;
 
   nextReady = false;
-  MobData* data = spawn[spawnIndex++];
-  pixelStateInvokers[data->index](data->mob);
+  MobData* data = spawn[spawnIndex++]->GetSpawned();
+  pixelStateInvokers[data->index](data->character);
   return data;
 }
 

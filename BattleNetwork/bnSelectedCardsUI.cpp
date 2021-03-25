@@ -19,16 +19,18 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) :
   CardUsePublisher(), 
   UIComponent(_player), 
   player(_player), 
-  font(Font::Style::thick), 
-  text(font), 
-  dmg(font),
-  multiplier(font)
+  text(Font::Style::thick),
+  dmg(Font::Style::gradient_orange),
+  multiplier(Font::Style::thick)
 {
-
   cardCount = curr = 0;
   auto iconRect = sf::IntRect(0, 0, 14, 14);
   icon.setTextureRect(iconRect);
   icon.setScale(sf::Vector2f(2.f, 2.f));
+
+  text.setScale(2.f, 2.f);
+  dmg.setScale(2.f, 2.f);
+  multiplier.setScale(2.f, 2.f);
 
   frame.setTexture(LOAD_TEXTURE(CHIP_FRAME));
   frame.setScale(sf::Vector2f(2.f, 2.f));
@@ -45,6 +47,8 @@ SelectedCardsUI::~SelectedCardsUI() {
 
 void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if (this->IsHidden()) return;
+
+  const auto orange = sf::Color(225, 140, 0);
 
   text.SetString("");
   dmg.SetString("");
@@ -120,7 +124,6 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       text.SetString(selectedCards[curr]->GetShortName());
       text.setOrigin(0, 0);
       text.setPosition(3.0f, 290.0f);
-      text.SetColor(sf::Color::White);
 
       // Text sits at the bottom-left of the screen
       int unmodDamage = selectedCards[curr]->GetUnmoddedProps().damage;
@@ -128,29 +131,49 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       sf::String dmgText = std::to_string(unmodDamage);
 
       if (delta != 0) {
-        dmgText = dmgText + sf::String(" + ") + sf::String(std::to_string(delta));
+        dmgText = dmgText + sf::String("+") + sf::String(std::to_string(delta));
       }
 
       // attacks that normally show no damage will show if the modifer adds damage
       if (delta != 0 || unmodDamage != 0) {
         dmg.SetString(dmgText);
         dmg.setOrigin(0, 0);
-        dmg.setPosition((text.GetLocalBounds().width*text.getScale().x) + 13.f, 290.f);
-        dmg.SetColor(sf::Color(225, 140, 0));      }
+        dmg.setPosition((text.GetLocalBounds().width*text.getScale().x) + 10.f, 290.f);
+      }
 
       if (multiplierValue != 1 && unmodDamage != 0) {
         // add "x N" where N is the multiplier
-        std::string multStr = "x " + std::to_string(multiplierValue);
+        std::string multStr = "x" + std::to_string(multiplierValue);
         multiplier.SetString(multStr);
         multiplier.setOrigin(0, 0);
-        multiplier.setPosition(dmg.getPosition().x + dmg.GetLocalBounds().width + 3.0f, 290.0f);
-        multiplier.SetColor(sf::Color::White);
+        multiplier.setPosition(dmg.getPosition().x + (dmg.GetLocalBounds().width*dmg.getScale().x) + 3.0f, 290.0f);
       }
     }
   }
 
+  // shadow beneath
+  auto textPos = text.getPosition();
+  text.SetColor(sf::Color::Black);
+  text.setPosition(textPos.x + 2.f, textPos.y + 2.f);
   target.draw(text);
+
+  // font on top
+  text.setPosition(textPos);
+  text.SetColor(sf::Color::White);
+  target.draw(text);
+
+  // our number font has shadow baked in
   target.draw(dmg);
+
+  // shadow
+  auto multiPos = multiplier.getPosition();
+  multiplier.SetColor(sf::Color::Black);
+  multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
+  target.draw(multiplier);
+
+  // font on top
+  multiplier.setPosition(multiPos);
+  multiplier.SetColor(sf::Color::White);
   target.draw(multiplier);
 
   UIComponent::draw(target, states);
@@ -173,7 +196,7 @@ void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
   curr = 0;
 }
 
-const bool SelectedCardsUI::UseNextCard() {
+void SelectedCardsUI::UseNextCard() {
   auto actions = player->GetComponentsDerivedFrom<CardAction>();
   bool hasNextCard = curr < cardCount;
   bool canUseCard = true;
@@ -181,13 +204,13 @@ const bool SelectedCardsUI::UseNextCard() {
   // We could be using an ability, just make sure one of these actions are not from a card
   // Cards cannot be used if another card is still active
   for (auto&& action : actions) {
-    canUseCard = canUseCard && action->GetLockoutGroup() != ActionLockoutGroup::card;
+    canUseCard = canUseCard && action->GetLockoutGroup() != CardAction::LockoutGroup::card;
   }
 
   canUseCard = canUseCard && hasNextCard;
 
   if (!canUseCard) {
-    return false;
+    return;
   }
 
   auto card = selectedCards[curr];
@@ -196,9 +219,31 @@ const bool SelectedCardsUI::UseNextCard() {
   multiplierValue = 1; // reset 
 
   // Broadcast to all subscribed CardUseListeners
-  Broadcast(*card, *player, CurrentTime::AsMilli());
 
-  return ++curr;
+  // TAKE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!
+  if (card->GetShortName() == "AntiDmg") {
+    card->props.timeFreeze = true;
+  }
+
+  // Broadcast(*card, *player, CurrentTime::AsMilli());
+  player->AddAction(PeekCardEvent{ this }, ActionOrder::voluntary);
+
+  // return ++curr;
+}
+
+void SelectedCardsUI::Broadcast(const Battle::Card& card, Character& user)
+{
+  curr++;
+  CardUsePublisher::Broadcast(card, user, CurrentTime::AsMilli());
+}
+
+std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek()
+{
+  if (cardCount > 0) {
+    return { std::ref(*selectedCards[curr]) };
+  }
+
+  return {};
 }
 
 void SelectedCardsUI::Inject(BattleSceneBase& scene) {

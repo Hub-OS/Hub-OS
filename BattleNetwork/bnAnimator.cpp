@@ -7,6 +7,36 @@ Animator::Mode::Mode(int playback)
   Mode::playback = playback;
 }
 
+
+void Animator::UpdateSpriteAttributes(sf::Sprite& target, const Frame& data)
+{
+  // rect attr 
+  int x = data.subregion.left;
+  int y = data.subregion.top;
+  int w = data.subregion.width;
+  int h = data.subregion.height;
+
+  // flip x and flip y attr
+  if (data.flipX) {
+    float newX = static_cast<float>(x + w);
+    w = -w;
+    x = static_cast<int>(newX);
+  }
+
+  if (data.flipY) {
+    float newY = static_cast<float>(y + h);
+    h = -h;
+    y = static_cast<int>(newY);
+  }
+
+  target.setTextureRect(sf::IntRect(x, y, w, h));
+
+  // origin attr
+  if (data.applyOrigin) {
+    target.setOrigin(static_cast<float>(data.origin.x), static_cast<float>(data.origin.y));
+  }
+}
+
 Animator::Animator() {
   onFinish = nullptr;
   queuedOnFinish = nullptr;
@@ -64,16 +94,12 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
     // If the playback mode is reverse, flip the frames
     // and the index
     if ((playbackMode & Mode::Reverse) == Mode::Reverse) {
-      iter = sequence.frames.end();
+      iter = sequence.frames.end()-1;
       index = sequence.frames.size();
     }
 
-    target.setTextureRect((*iter).subregion);
-
-    // If applicable, update the origin
-    if ((*iter).applyOrigin) {
-      target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-    }
+    // apply rect, flip, and origin attributes
+    UpdateSpriteAttributes(target, *iter);
 
     // animation index are base 1
     UpdateCurrentPoints(int(index-1), sequence);
@@ -234,13 +260,8 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
         continue; // Start loop again
       }
 
-      // Apply the frame to the sprite object
-      target.setTextureRect((*iter).subregion);
-
-      // If applicable, apply the origin too
-      if ((*iter).applyOrigin) {
-        target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-      }
+      // apply rect, flip, and origin attributes
+      UpdateSpriteAttributes(target, *iter);
 
       UpdateCurrentPoints(index - 1, sequence);
 
@@ -253,12 +274,8 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
 
   // If we prematurely ended the loop, update the sprite
   if (iter != copy.end()) {
-    target.setTextureRect((*iter).subregion);
-
-    // If applicable, update the origin
-    if ((*iter).applyOrigin) {
-      target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-    }
+    // apply rect, flip, and origin attributes
+    UpdateSpriteAttributes(target, *iter);
   }
 
   // End updating flag
@@ -341,7 +358,9 @@ const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
   auto str = pointName;
   std::transform(str.begin(), str.end(), str.begin(), ::toupper);
   if (currentPoints.find(str) == currentPoints.end()) {
+#ifdef BN_LOG_MISSING_POINT
     Logger::Log("Could not find point in current sequence named " + str);
+#endif
     return sf::Vector2f();
   }
   return currentPoints[str];

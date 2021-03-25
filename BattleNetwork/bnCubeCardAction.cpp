@@ -1,41 +1,46 @@
 #include "bnCubeCardAction.h"
 #include "bnCharacter.h"
 #include "bnCube.h"
+#include "bnField.h"
 
 CubeCardAction::CubeCardAction(Character& owner) : 
   CardAction(owner, "PLAYER_IDLE"){
-  this->SetLockout({ ActionLockoutType::sequence });
+  this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
 void CubeCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto& owner = GetCharacter();
   
-  auto* cube = new Cube(GetOwner()->GetField());
+  auto* cube = new Cube(owner.GetField());
 
-  GetOwner()->GetField()->AddEntity(*cube, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+  auto tile = owner.GetTile()->Offset(1, 0);
 
-  // On start of idle frame, spawn
-  AddStep({
-    // update step
-    [cube](double elapsed, Step& self) {
-      if (cube->IsFinishedSpawning()) {
-        if (cube->DidSpawnCorrectly() == false) {
-          cube->Remove();
+  if (tile) {
+    owner.GetField()->AddEntity(*cube, *tile);
+
+    // On start of idle frame, spawn
+    AddStep({
+      // update step
+      [cube](double elapsed, Step& self) {
+        if (cube->IsFinishedSpawning()) {
+          if (cube->DidSpawnCorrectly() == false) {
+            cube->Remove();
+          }
+
+          self.markDone();
         }
-
-        self.markDone();
       }
-    }
-  });
+      });
+  }
 }
 
 CubeCardAction::~CubeCardAction()
 {
 }
 
-void CubeCardAction::OnUpdate(double _elapsed)
+void CubeCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void CubeCardAction::OnAnimationEnd()
@@ -44,5 +49,4 @@ void CubeCardAction::OnAnimationEnd()
 
 void CubeCardAction::OnEndAction()
 {
-  Eject();
 }

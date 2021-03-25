@@ -49,25 +49,18 @@ void AirHockey::OnUpdate(double _elapsed)
     else {
       lastTileTeam = GetTile()->GetTeam();
 
-      //try moving
-      SlideToTile(true);
-      SetSlideTime(frames(4));
-      Move(dir);
+      if (CanMoveTo(*GetTile() + dir)) {
+        if (reflecting) {
+          // the new dir was recalculated by 
+          // CanMoveTo() and `reflecting`
+          // was set to true to signal this
+          Slide(dir, frames(4), frames(0));
+          reflecting = false;
+        }
 
-      if (reflecting) {
-        // the new dir was recalculated by 
-        // CanMoveTo() and `reflecting`
-        // was set to true to signal this
-        SlideToTile(true);
-        SetSlideTime(frames(4));
-        Move(dir);
-        reflecting = false;
-      }
-
-      FinishMove();
-
-      if (--moveCount < 0) {
-        Delete();
+        if (--moveCount < 0) {
+          Delete();
+        }
       }
     }
   }
@@ -116,7 +109,7 @@ void AirHockey::OnDelete()
   Remove();
 }
 
-void AirHockey::OnCollision()
+void AirHockey::OnCollision(const Character*)
 {
   auto* particle = new ParticleImpact(ParticleImpact::Type::blue);
   particle->SetOffset(tileOffset);
@@ -145,7 +138,7 @@ const Direction AirHockey::Bounce(const Direction& dir, Battle::Tile& next)
   Direction flip_y = Reverse(y);
 
   auto testMoveThunk = [this](Battle::Tile& tile, const Direction& dir) -> bool {
-    Battle::Tile* new_tile = &(tile + dir);
+    Battle::Tile* new_tile = (tile + dir);
     return CanMoveTo(new_tile);
   };
 

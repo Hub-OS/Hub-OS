@@ -39,7 +39,7 @@ public:
    */
   void Attack(Character* _entity) override;
 
-  void OnCollision() override;
+  void OnCollision(const Character*) override;
 
   const bool UnknownTeamResolveCollision(const Spell& other) const override final;
 

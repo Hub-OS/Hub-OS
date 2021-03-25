@@ -30,8 +30,9 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   cardCap = cap;
   queue = new Bucket[cardCap];
   selectQueue = new Bucket*[cardCap];
+  newSelectQueue = new Bucket*[cardCap];
 
-  cardCount = selectCount = cursorPos = cursorRow = 0;
+  cardCount = selectCount = newSelectCount = cursorPos = cursorRow = 0;
 
   emblem.setScale(2.f, 2.f);
   emblem.setPosition(194.0f, 14.0f);
@@ -250,7 +251,7 @@ bool CardSelectionCust::CursorAction() {
   }
 
   // Should never happen but just in case
-  if (selectCount > 5) {
+  if (newSelectCount > 5) {
     return false;
   }
 
@@ -262,11 +263,11 @@ bool CardSelectionCust::CursorAction() {
     if (cursorPos + (5 * cursorRow) < cardCount) {
       // Queue this card if not selected
       if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::staged) {
-        selectQueue[selectCount++] = &queue[cursorPos + (5 * cursorRow)];
+        newSelectQueue[newSelectCount++] = &queue[cursorPos + (5 * cursorRow)];
         queue[cursorPos + (5 * cursorRow)].state = Bucket::state::queued;
 
         // We can only upload 5 cards to player...
-        if (selectCount == 5) {
+        if (newSelectCount == 5) {
           for (int i = 0; i < cardCount; i++) {
             if (queue[i].state == Bucket::state::queued) continue;
 
@@ -312,14 +313,14 @@ bool CardSelectionCust::CursorCancel() {
   }
 
   // Unqueue all cards buckets
-  if (selectCount <= 0) {
-    selectCount = 0;
+  if (newSelectCount <= 0) {
+    newSelectCount = 0;
     return false;// nothing happened
   }
 
-  selectQueue[--selectCount]->state = Bucket::state::staged;
+  newSelectQueue[--newSelectCount]->state = Bucket::state::staged;
 
-  if (selectCount == 0) {
+  if (newSelectCount == 0) {
     // Everything is selectable again
     for (int i = 0; i < cardCount; i++) {
       queue[i].state = Bucket::state::staged;
@@ -339,8 +340,8 @@ bool CardSelectionCust::CursorCancel() {
   */
 
 
-  for(int i = 0; i < selectCount; i++) {
-    char code = selectQueue[i]->data->GetCode();
+  for(int i = 0; i < newSelectCount; i++) {
+    char code = newSelectQueue[i]->data->GetCode();
 
     for (int j = 0; j < cardCount; j++) {
       if (i > 0) {
@@ -351,7 +352,7 @@ bool CardSelectionCust::CursorCancel() {
 
       char otherCode = queue[j].data->GetCode();
 
-      bool isSameCard = (queue[j].data->GetShortName() == selectQueue[i]->data->GetShortName());
+      bool isSameCard = (queue[j].data->GetShortName() == newSelectQueue[i]->data->GetShortName());
 
       if (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard) { queue[j].state = Bucket::state::staged; }
       else { queue[j].state = Bucket::state::voided; }
@@ -611,7 +612,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       target.draw(icon, states);
     }
 
-    smCodeLabel.setPosition(offset + 2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
+    smCodeLabel.setPosition(offset + 2.f*(13.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
 
     char code = queue[i].data->GetCode();
     smCodeLabel.SetString(code);
@@ -620,9 +621,9 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   icon.SetShader(nullptr);
 
-  for (int i = 0; i < selectCount; i++) {
+  for (int i = 0; i < newSelectCount; i++) {
     icon.setPosition(offset + 2 * 97.f, 2.f*(25.0f + (i*16.0f)));
-    icon.setTexture(WEBCLIENT.GetIconForCard((*selectQueue[i]).data->GetUUID()));
+    icon.setTexture(WEBCLIENT.GetIconForCard((*newSelectQueue[i]).data->GetUUID()));
 
     cardLock.setPosition(offset + 2 * 93.f, 2.f*(23.0f + (i*16.0f)));
     target.draw(cardLock, states);
@@ -653,22 +654,33 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       }
 
       cardCard.setPosition(lastPos);
-      label.setPosition(offset + 2.f*16.f, 16.f);
-      label.SetString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
+
+
+      // card name font shadow
+      const std::string& shortname = queue[cursorPos + (5 * cursorRow)].data->GetShortName();
+      label.setPosition((offset + 2.f * 16.f)+2.f, 22.f);
+      label.SetString(shortname);
+      label.SetColor(sf::Color(80, 75, 80));
+      target.draw(label, states);
+
+      // card name font overlay
+      label.setPosition(offset + 2.f*16.f, 20.f);
+      label.SetString(shortname);
+      label.SetColor(sf::Color::White);
       target.draw(label, states);
 
       // the order here is very important:
       if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
         label.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
         label.setOrigin(label.GetLocalBounds().width+label.GetLocalBounds().left, 0);
-        label.setPosition(offset + 2.f*(70.f), 143.f);
+        label.setPosition((offset + 2.f*(70.f))+2.f, 150.f);
         target.draw(label, states);
       }
 
       label.setOrigin(0, 0);
-      label.setPosition(offset + 2.f*16.f, 143.f);
+      label.setPosition(offset + 2.f*16.f, 150.f);
       label.SetString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
-      label.SetColor(sf::Color(225, 180, 0));
+      label.SetColor(sf::Color(253, 246, 71));
       target.draw(label, states);
 
       int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
@@ -734,7 +746,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       int i = 0;
       auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
 
-      for (auto f : formUI) {
+      for (sf::Sprite f : formUI) {
         formItemBG.setPosition(offset + 16.f, 16.f + float(i*32.0f));
         target.draw(formItemBG, states);
 
@@ -767,7 +779,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
   }
 
-  target.draw(cardDescriptionTextbox, states);
+  target.draw(cardDescriptionTextbox);
 
   SceneNode::draw(target, states);
 
@@ -869,14 +881,24 @@ void CardSelectionCust::Update(double elapsed)
 }
 
 Battle::Card** CardSelectionCust::GetCards() {
-  // Allocate selected cards list
-  size_t sz = sizeof(Battle::Card*) * selectCount;
+  if (newSelectCount != 0) {
+    // Allocate selected cards list
+    size_t sz = sizeof(Battle::Card*) * newSelectCount;
 
-  selectedCards = (Battle::Card**)malloc(sz);
+    if (selectCount > 0) {
+      delete[] selectedCards;
+    }
 
-  // Point to selected queue
-  for (int i = 0; i < selectCount; i++) {
-    selectedCards[i] = (*(selectQueue[i])).data;
+    selectedCards = (Battle::Card**)malloc(sz);
+
+    // Point to selected queue
+    for (int i = 0; i < newSelectCount; i++) {
+      selectedCards[i] = new Battle::Card(*newSelectQueue[i]->data);
+    }
+
+    selectCount = newSelectCount;
+
+    ClearCards(); // prepare for next selection
   }
 
   return selectedCards;
@@ -884,19 +906,13 @@ Battle::Card** CardSelectionCust::GetCards() {
 
 void CardSelectionCust::ClearCards() {
   if (areCardsReady) {
-    for (int i = 0; i < selectCount; i++) {
-      selectedCards[i] = nullptr; // point away
-      (*(selectQueue[i])).data = nullptr;
-    }
-
-    // Deleted the selected cards array
-    if (selectCount > 0) {
-      delete[] selectedCards;
+    for (int i = 0; i < newSelectCount; i++) {
+      newSelectQueue[i]->data = nullptr;
     }
   }
 
   // Restructure queue
-  // Line up all non-null buckets consequtively
+  // Line up all non-null buckets consecutively
   // Reset bucket state to STAGED
   for (int i = 0; i < cardCount; i++) {
     queue[i].state = Bucket::state::staged;
@@ -908,8 +924,8 @@ void CardSelectionCust::ClearCards() {
     }
   }
 
-  cardCount = cardCount - selectCount;
-  selectCount = 0;
+  cardCount = cardCount - newSelectCount;
+  newSelectCount = 0;
 }
 
 const int CardSelectionCust::GetCardCount() {
@@ -932,8 +948,6 @@ bool CardSelectionCust::CanInteract()
 }
 
 void CardSelectionCust::ResetState() {
-  ClearCards();
-
   cursorPos = formCursorRow = 0;
   areCardsReady = false;
   isInFormSelect = false;

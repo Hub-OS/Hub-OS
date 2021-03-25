@@ -41,7 +41,7 @@ public:
   const float GetHeight() const override;
 
 private:
-  float hitHeight; /*!< hit height of this mettaur */
+  float hitHeight{}; /*!< hit height of this mettaur */
   TextureType textureType;
   AnimationComponent* animation;
   DefenseRule* virusBody;

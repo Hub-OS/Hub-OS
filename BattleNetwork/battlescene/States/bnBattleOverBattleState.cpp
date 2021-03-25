@@ -2,6 +2,8 @@
 #include "../bnBattleSceneBase.h"
 
 #include "../../bnPlayer.h"
+#include "../../bnField.h"
+#include "../../bnCardAction.h"
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 
@@ -31,6 +33,22 @@ void BattleOverBattleState::onStart(const BattleSceneState*)
     // If animating, let the animation end to look natural
     if (animComponent) {
       animComponent->OnFinish([p] {
+        if (auto action = p->CurrentCardAction()) {
+          action->EndAction();
+        }
+
+        // NOTE: paranoid cleanup codes ALWAYS cleans up!
+        // some attacks use nodes that would be cleanup with End() but overwriting the animation prevents this
+        auto ourNodes = p->GetChildNodesWithTag({ Player::BASE_NODE_TAG,Player::FORM_NODE_TAG });
+        auto allNodes = p->GetChildNodes();
+
+        for (auto node : allNodes) {
+          auto iter = ourNodes.find(node);
+          if (iter == ourNodes.end()) {
+            p->RemoveNode(node);
+          }
+        }
+        p->ClearActionQueue();
         p->ChangeState<PlayerIdleState>();
       });
     }

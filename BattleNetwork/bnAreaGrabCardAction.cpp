@@ -1,26 +1,27 @@
 #include "bnAreaGrabCardAction.h"
 #include "bnCharacter.h"
 #include "bnPanelGrab.h"
+#include "bnField.h"
 
 AreaGrabCardAction::AreaGrabCardAction(Character& owner, int damage) : 
   damage(damage),
   CardAction(owner, "PLAYER_IDLE"){
-  this->SetLockout({ ActionLockoutType::sequence });
+  this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
 void AreaGrabCardAction::OnExecute() {
-  auto owner = GetOwner();
-  Field* f = owner->GetField();
+  auto& owner = GetCharacter();
+  Field* f = owner.GetField();
   PanelGrab** grab = new PanelGrab * [3];
 
   for (int i = 0; i < 3; i++) {
-    grab[i] = new PanelGrab(owner->GetTeam(), 0.25f);
+    grab[i] = new PanelGrab(owner.GetTeam(), 0.25f);
   }
 
   Battle::Tile** tile = new Battle::Tile * [3];
 
   // Read team grab scans from left to right
-  if (owner->GetTeam() == Team::red) {
+  if (owner.GetTeam() == Team::red) {
     int minIndex = 6;
 
     for (int i = 0; i < f->GetHeight(); i++) {
@@ -47,7 +48,7 @@ void AreaGrabCardAction::OnExecute() {
       }
     }
   }
-  else if (owner->GetTeam() == Team::blue) {
+  else if (owner.GetTeam() == Team::blue) {
     // Blue team grab scans from right to left
 
     int maxIndex = 1;
@@ -95,9 +96,9 @@ AreaGrabCardAction::~AreaGrabCardAction()
 {
 }
 
-void AreaGrabCardAction::OnUpdate(double _elapsed)
+void AreaGrabCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void AreaGrabCardAction::OnAnimationEnd()
@@ -106,6 +107,5 @@ void AreaGrabCardAction::OnAnimationEnd()
 
 void AreaGrabCardAction::OnEndAction()
 {
-  GetOwner()->Reveal();
-  Eject();
+  GetCharacter().Reveal();
 }

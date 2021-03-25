@@ -67,10 +67,6 @@ void Elecpulse::OnDelete()
   Remove();
 }
 
-bool Elecpulse::Move(Direction _direction) {
-  return false;
-}
-
 void Elecpulse::Attack(Character* _entity) {
     long ID = _entity->GetID();
 
@@ -80,11 +76,10 @@ void Elecpulse::Attack(Character* _entity) {
     Hit::Properties props;
     props.element = GetElement();
     props.flags = Hit::recoil | Hit::stun | Hit::drag;
-    props.drag = (GetTeam() == Team::red)? Direction::left : Direction::right;
+    props.drag = { (GetTeam() == Team::red) ? Direction::left : Direction::right, 1u };
     props.damage = damage;
 
     _entity->Hit(props);
-    _entity->SlideToTile(true);
 
     taggedCharacters.insert(taggedCharacters.begin(), _entity->GetID());
 }

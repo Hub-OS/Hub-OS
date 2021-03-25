@@ -45,10 +45,6 @@ void BasicSword::OnUpdate(double _elapsed) {
   cooldown += _elapsed;
 }
 
-bool BasicSword::Move(Direction _direction) {
-  return false;
-}
-
 void BasicSword::Attack(Character* _entity) {
   hit = hit || _entity->Hit(GetHitboxProperties());
   hitHeight = _entity->GetHeight();

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <list>
+#include <optional>
 
 #include "bnComponent.h"
 #include "bnCard.h"
-#include "bnCardUseListener.h"
 
 class Character;
 
@@ -13,7 +13,7 @@ class Character;
  * @author mav
  * @date 05/05/19
  * @brief Emits card use information to all subscribers
- * @see CounterHitPublisher
+ * @see CardUsePublisher
  */
 class CardUsePublisher {
 private:
@@ -23,20 +23,21 @@ private:
 
   void AddListener(CardUseListener* listener);
 
+protected:
+  /**
+ * @brief Broadcasts the card information to all listeners
+ * @param card being used
+ * @param user using the card
+ */
+  void Broadcast(const Battle::Card& card, Character& user, uint64_t timestamp = 0);
+
 public:
   virtual ~CardUsePublisher();
   
   /**
    * @brief Must implement
    */
-  virtual const bool UseNextCard() = 0;
-
- /**
-  * @brief Broadcasts the card information to all listeners
-  * @param card being used
-  * @param user using the card
-  */
-  void Broadcast(Battle::Card& card, Character& user, uint64_t timestamp = 0);
+  virtual void UseNextCard() = 0;
 
   void DropSubscribers();
 };

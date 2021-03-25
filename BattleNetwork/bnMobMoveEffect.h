@@ -30,12 +30,5 @@ public:
   */
   void OnDelete() final override;
 
-  /**
-   * @brief mob move effect doesn't move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) final override;
-
   void SetOffset(const sf::Vector2f& offset); 
 };

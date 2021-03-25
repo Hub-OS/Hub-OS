@@ -13,7 +13,7 @@ class HubBatchCardAction : public CardAction {
 public:
   HubBatchCardAction(Character& owner);
   ~HubBatchCardAction();
-  void OnUpdate(double _elapsed);
+  void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction() override;
   void OnExecute() override;

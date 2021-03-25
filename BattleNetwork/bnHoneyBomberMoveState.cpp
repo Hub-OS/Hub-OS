@@ -6,7 +6,7 @@
 #include "bnAnimationComponent.h"
 #include "bnHoneyBomberAttackState.h"
 
-HoneyBomberMoveState::HoneyBomberMoveState() : isMoving(false), moveCount(3), cooldown(1), AIState<HoneyBomber>() { ; }
+HoneyBomberMoveState::HoneyBomberMoveState() : moveCount(3), cooldown(1), AIState<HoneyBomber>() { ; }
 HoneyBomberMoveState::~HoneyBomberMoveState() { ; }
 
 void HoneyBomberMoveState::OnEnter(HoneyBomber& honey) {
@@ -14,8 +14,6 @@ void HoneyBomberMoveState::OnEnter(HoneyBomber& honey) {
 }
 
 void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
-  if (isMoving) return; // We're already moving (animations take time)
-
   cooldown -= _elapsed;
 
   if (cooldown > 0) return; // wait for move cooldown to end
@@ -25,7 +23,8 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
 
   Entity* target = honey.GetTarget();
 
-  if (target && target->GetTile() && honey.GetFirstComponent<AnimationComponent>()->GetPlaybackSpeed() != 1.0)
+  bool isAggro = honey.GetFirstComponent<AnimationComponent>()->GetPlaybackSpeed() != 1.0;
+  if (target && target->GetTile() && isAggro)
  {
     // Try attacking
     return honey.ChangeState<HoneyBomberAttackState>();
@@ -47,17 +46,13 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
       teley = myteam[randIndex]->GetY();
   }
 
-  bool moved = (myteam.size() > 0) && honey.Teleport(telex, teley);
+  Battle::Tile* destTile = honey.GetField()->GetAt(telex, teley);
+  bool queued = (myteam.size() > 0) && honey.Teleport(destTile);
 
-  if (moved) {
+  if (honey.IsMoving(&lastcheck)) {
 
     auto fx = new MobMoveEffect();
     honey.GetField()->AddEntity(*fx, *honey.GetTile());
-
-    honey.AdoptNextTile();
-    honey.FinishMove();
-
-    //isMoving = true;
     moveCount--;
   }
 
@@ -67,4 +62,8 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
 
 void HoneyBomberMoveState::OnLeave(HoneyBomber& met) {
 
+}
+
+void HoneyBomberMoveState::OnMoveEvent(const MoveEvent& event)
+{
 }

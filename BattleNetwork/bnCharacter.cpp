@@ -1,6 +1,7 @@
 #include <Swoosh/Ease.h>
 
 #include "bnCharacter.h"
+#include "bnSelectedCardsUI.h"
 #include "bnDefenseRule.h"
 #include "bnDefenseSuperArmor.h"
 #include "bnCardAction.h"
@@ -12,6 +13,12 @@
 #include "bnAnimationComponent.h"
 #include "bnShakingEffect.h"
 #include "bnBubbleTrap.h"
+
+struct CardActionDeleter {
+  void operator()(CardEvent& in) {
+    delete in.action;
+  }
+};
 
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
 {
@@ -35,6 +42,13 @@ Character::Character(Rank _rank) :
 
   whiteout = Shaders().GetShader(ShaderType::WHITE);
   stun = Shaders().GetShader(ShaderType::YELLOW);
+
+  using namespace std::placeholders;
+  auto cardHandler = std::bind(&Character::HandleCardEvent, this, _1, _2);
+  actionQueue.RegisterType<CardEvent, CardActionDeleter>(ActionTypes::card, cardHandler);
+
+  auto peekHandler = std::bind(&Character::HandlePeekEvent, this, _1, _2);
+  actionQueue.RegisterType<PeekCardEvent>(ActionTypes::peek_card, peekHandler);
 }
 
 Character::~Character() {
@@ -75,26 +89,16 @@ const bool Character::CanTilePush() const {
   return canTilePush;
 }
 
-void Character::QueueAction(CardAction* action)
-{
-  if (queuedAction) {
-    delete action;
-    action = nullptr;
-  }
 
-  queuedAction = action;
-}
-
-CardAction* Character::DequeueAction()
+const bool Character::IsLockoutComplete()
 {
-  CardAction* temp = queuedAction;
-  queuedAction = nullptr;
-  return temp;
+  if (currCardAction)
+    return currCardAction->IsLockoutOver();
+
+  return true;
 }
 
 void Character::Update(double _elapsed) {
-  hit = false; // reset our hit flag
-
   ResolveFrameBattleDamage();
 
   // normal color every start frame
@@ -124,7 +128,7 @@ void Character::Update(double _elapsed) {
 
     if (invincibilityCooldown > 0) {
       // This just blinks every 15 frames
-      if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
+      if (from_seconds(invincibilityCooldown).count() % 15 == 0) {
         Hide();
       }
       else {
@@ -152,14 +156,37 @@ void Character::Update(double _elapsed) {
 
   Entity::Update(_elapsed);
 
-  if (queuedAction && currentAction == nullptr && !GetNextTile()) {
-    currentAction = queuedAction;
-    queuedAction = nullptr;
-    currentAction->Execute();
-  }
+  // If we have an attack from the action queue...
+  if (currCardAction) {
 
-  if (currentAction) {
-    currentAction->OnUpdate(_elapsed);
+    // if we have yet to invoke this attack...
+    if (currCardAction->CanExecute()) {
+
+      // reduce the artificial delay
+      cardActionStartDelay -= from_seconds(_elapsed);
+
+      // execute when delay is over
+      if (this->cardActionStartDelay <= frames(0)) {
+        // TODO: have an `IsActionable()` function that can be implemented for characters with animations?
+        // note: move animations need to cancel their callbacks when attacking
+        for(auto anim : this->GetComponents<AnimationComponent>()) {
+          anim->CancelCallbacks();
+        }
+
+        currCardAction->Execute();
+      }
+    }
+
+    // update will exit early if not executed (configured) 
+    currCardAction->Update(_elapsed);
+
+    // once the animation is complete, 
+    // cleanup the attack and pop the action queue
+    if (currCardAction->IsAnimationOver()) {
+      // currCardAction->EndAction();
+      currCardAction = nullptr;
+      actionQueue.Pop();
+    }
   }
 
   // If the counterSlideOffset has changed from 0, it's due to the character
@@ -192,6 +219,8 @@ void Character::Update(double _elapsed) {
 
   // If drag status is over, reset the flag
   if (!IsSliding() && slideFromDrag) slideFromDrag = false;
+
+  hit = false; // reset our hit flag
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -238,6 +267,10 @@ const bool Character::Hit(Hit::Properties props) {
   // Add to status queue for state resolution
   statusQueue.push(props);
 
+  if ((props.flags & Hit::impact) == Hit::impact) {
+    this->hit = true; // flash white immediately
+  }
+
   return true;
 }
 
@@ -267,7 +300,7 @@ const int Character::GetMaxHealth() const
 
 const bool Character::CanAttack() const
 {
-    return !IsSliding() && queuedAction == nullptr && GetComponentsDerivedFrom<CardAction>().empty();
+  return !IsMoving() && !currCardAction;
 }
 
 void Character::ResolveFrameBattleDamage()
@@ -276,7 +309,7 @@ void Character::ResolveFrameBattleDamage()
 
   Character* frameCounterAggressor = nullptr;
   bool frameStunCancel = false;
-  Direction postDragDir = Direction::none;
+  Hit::Drag postDragEffect{};
 
   std::queue<Hit::Properties> append;
 
@@ -287,7 +320,7 @@ void Character::ResolveFrameBattleDamage()
     // a re-usable thunk for custom status effects
     auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
       if ((props.flags & toCheck) == toCheck) {
-        auto func = statusCallbackHash[toCheck];
+        auto& func = statusCallbackHash[toCheck];
         func ? func() : (void(0));
       }
     };
@@ -311,11 +344,13 @@ void Character::ResolveFrameBattleDamage()
     {
       // Only register counter if:
       // 1. Hit type is impact
-      // 2. The character is on a counter frame
-      // 3. Hit properties has an aggressor
+      // 2. Hit type is also flinch
+      // 3. The hitbox is allowed to counter
+      // 4. The character is on a counter frame
+      // 5. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if (props.aggressor) {
+        if ((props.flags & Hit::flinch) == Hit::flinch && props.aggressor && props.counters) {
           frameCounterAggressor = props.aggressor;
         }
 
@@ -324,22 +359,25 @@ void Character::ResolveFrameBattleDamage()
 
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.flags & Hit::drag) == Hit::drag) {
-        if (slideFromDrag || GetNextTile()) {
+        if (slideFromDrag || IsSliding()) {
           append.push({ 0, Hit::drag, Element::none, nullptr, props.drag });
         }
         else {
-          // Apply directional slide in a moment
-          postDragDir = props.drag;
-
           // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
-          append.push({ 0, Hit::impact, Element::none, frameCounterAggressor, Direction::none });
+          append.push({ 0, Hit::impact, Element::none, frameCounterAggressor});
           frameCounterAggressor = nullptr;
+
+          // requeue drag if count is > 0
+          if(props.drag.count > 0) {
+            // Apply drag effect post status resolution
+            postDragEffect.dir = props.drag.dir;
+            postDragEffect.count = props.drag.count - 1u;
+          }
         }
 
         flagCheckThunk(Hit::drag);
 
         // exclude this from the next processing step
-        props.drag = Direction::none;
         props.flags &= ~Hit::drag;
       }
 
@@ -352,9 +390,9 @@ void Character::ResolveFrameBattleDamage()
       This effect is requeued for another frame if currently dragging
       */
       if ((props.flags & Hit::stun) == Hit::stun) {
-        if (postDragDir != Direction::none) {
+        if (postDragEffect.dir != Direction::none) {
           // requeue these statuses if in the middle of a slide
-          append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
+          append.push({ 0, props.flags });
         }
         else {
           bool hasSuperArmor = false;
@@ -367,6 +405,7 @@ void Character::ResolveFrameBattleDamage()
           if ((props.flags & Hit::flinch) == Hit::flinch && !hasSuperArmor) {
             // cancel stun
             stunCooldown = 0.0;
+            actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
           }
           else {
             // refresh stun
@@ -382,8 +421,10 @@ void Character::ResolveFrameBattleDamage()
 
       // Flinch can be queued if dragging this frame
       if ((props.flags & Hit::flinch) == Hit::flinch) {
-        if (postDragDir != Direction::none) {
-          append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
+        actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
+
+        if (postDragEffect.dir != Direction::none) {
+          append.push({ 0, props.flags });
         }
         else {
           invincibilityCooldown = 2.0; // used as a `flinch` status timer
@@ -406,6 +447,7 @@ void Character::ResolveFrameBattleDamage()
       props.flags &= ~Hit::retangible;
 
       if ((props.flags & Hit::bubble) == Hit::bubble) {
+        actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
         CreateComponent<BubbleTrap>(this);
         flagCheckThunk(Hit::bubble);
       }
@@ -430,13 +472,11 @@ void Character::ResolveFrameBattleDamage()
       flagCheckThunk(Hit::shake);
       flagCheckThunk(Hit::recoil);
 
-      hit = hit || props.damage;
-
-      if (hit) {
+      if (props.damage) {
         OnHit();
         SetHealth(GetHealth() - tileDamage);
         if (GetHealth() == 0) {
-          postDragDir = Direction::none; // Cancel slide post-status if blowing up
+          postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up
         }
         this->OnUpdate(0);
         HitPublisher::Broadcast(*this, props);
@@ -448,12 +488,20 @@ void Character::ResolveFrameBattleDamage()
     statusQueue = append;
   }
 
-  if (postDragDir != Direction::none) {
+  if (postDragEffect.dir != Direction::none) {
     // enemies and objects on opposing side of field are granted immunity from drag
     if (Teammate(GetTile()->GetTeam())) {
-      SlideToTile(true);
+      actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
       slideFromDrag = true;
-      Move(postDragDir);
+      Battle::Tile* dest = GetTile() + postDragEffect.dir;
+
+      if (CanMoveTo(dest)) {
+        // Enqueue a move action at the top of our priorities
+        actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
+
+        // Re-queue the drag status to be re-considered in our next combat checks
+        append.push({ 0, Hit::drag, Element::none, nullptr, postDragEffect });
+      }
 
       // cancel stun
       stunCooldown = 0;
@@ -469,7 +517,7 @@ void Character::ResolveFrameBattleDamage()
     stunCooldown = 0;
     invincibilityCooldown = 0;
 
-    SlideToTile(false); // cancel slide
+    //FinishMove(); // cancels slide. TODO: obstacles do not use this but characters do!
 
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
@@ -481,6 +529,15 @@ void Character::ResolveFrameBattleDamage()
     ToggleCounter(false);
     Stun(2.5); // 150 frames @ 60 fps = 2.5 seconds
   }
+}
+
+void Character::OnUpdate(double elapsed)
+{
+}
+
+CardAction* Character::CurrentCardAction()
+{
+  return currCardAction;
 }
 
 void Character::SetHealth(const int _health) {
@@ -498,7 +555,7 @@ void Character::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!IsSliding()) {
+  if (!IsMoving()) {
     setPosition(tile->getPosition());
   }
 }
@@ -583,8 +640,39 @@ void Character::CancelSharedHitboxDamage(Character * to)
     shareHit.erase(iter);
 }
 
-void Character::EndCurrentAction()
+void Character::AddAction(const CardEvent& event, const ActionOrder& order)
 {
-  if (currentAction) delete currentAction;
-  currentAction = nullptr;
+  actionQueue.Add(event, order, ActionDiscardOp::until_resolve);
+}
+
+void Character::AddAction(const PeekCardEvent& event, const ActionOrder& order)
+{
+  actionQueue.Add(event, order, ActionDiscardOp::until_eof);
+}
+
+void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec)
+{
+  if (currCardAction == nullptr) {
+    currCardAction = event.action;
+  }
+
+  if (exec == ActionQueue::ExecutionType::interrupt) {
+    currCardAction->EndAction();
+    currCardAction = nullptr;
+  }
+}
+
+void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::ExecutionType& exec)
+{
+  SelectedCardsUI* publisher = event.publisher;
+  if (publisher) {
+    auto maybe_card = publisher->Peek();
+
+    if (maybe_card.has_value()) {
+      const Battle::Card& card = maybe_card.value();
+      publisher->Broadcast(card, *this);
+    }
+  }
+
+  actionQueue.Pop();
 }

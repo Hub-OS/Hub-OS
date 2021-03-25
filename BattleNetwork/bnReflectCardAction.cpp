@@ -23,11 +23,12 @@ ReflectCardAction::~ReflectCardAction()
 }
 
 void ReflectCardAction::OnExecute() {
-  auto user = GetOwner();
+  auto user = &GetCharacter();
 
   // Create a new reflect shield component. This handles the logic for shields.
   ReflectShield* reflect = new ReflectShield(user, damage, type);
   reflect->SetDuration(this->duration);
+  user->GetField()->AddEntity(*reflect, *user->GetTile());
 }
 
 void ReflectCardAction::SetDuration(const frame_time_t& duration)
@@ -40,9 +41,9 @@ void ReflectCardAction::SetDuration(const frame_time_t& duration)
   });
 }
 
-void ReflectCardAction::OnUpdate(double _elapsed)
+void ReflectCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void ReflectCardAction::OnAnimationEnd()
@@ -51,5 +52,4 @@ void ReflectCardAction::OnAnimationEnd()
 
 void ReflectCardAction::OnEndAction()
 {
-  Eject();
 }

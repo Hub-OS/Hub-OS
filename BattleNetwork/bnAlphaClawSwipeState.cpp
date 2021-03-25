@@ -1,6 +1,7 @@
 #include "bnAlphaClawSwipeState.h"
 #include "bnAlphaCore.h"
 #include "bnAlphaArm.h"
+#include "bnField.h"
 
 AlphaClawSwipeState::AlphaClawSwipeState(bool goldenArmState) : AIState<AlphaCore>(), goldenArmState(goldenArmState) { 
   leftArm = rightArm = nullptr;

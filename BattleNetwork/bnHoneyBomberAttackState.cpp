@@ -24,15 +24,7 @@ void HoneyBomberAttackState::OnUpdate(double _elapsed, HoneyBomber& honey) {
 
   spawnCooldown -= _elapsed;
 
-  bool canAttack = !honey.GetField()->GetAt(honey.GetTile()->GetX() - 1, honey.GetTile()->GetY())->ContainsEntityType<Bees>();
-  canAttack = canAttack && spawnCooldown <= 0;
-
-  // we do not want null leaders
-  if (lastBee && lastBee->IsDeleted()) {
-    lastBee = nullptr;
-  }
-
-  if (canAttack) {
+  if (spawnCooldown <= 0) {
       DoAttack(honey);
       spawnCooldown = 0.4; // reset wait time inbetween spawns
   }
@@ -58,19 +50,20 @@ void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
   else {
     int damage = 5; // 5 bees per hit = 25 units of damage total
 
-    Bees* bee;
-
+    Bees* newBee{ nullptr };
     if (lastBee) {
-      bee = lastBee = new Bees(*lastBee);
+      newBee = new Bees(*lastBee);
     } else {
-      bee = new Bees(honey.GetTeam(), damage);
-      lastBee = bee;
+      newBee = new Bees(honey.GetTeam(), damage);
     }
 
-    auto props = bee->GetHitboxProperties();
+    auto props = newBee->GetHitboxProperties();
     props.aggressor = &honey;
-    bee->SetHitboxProperties(props);
+    newBee->SetHitboxProperties(props);
 
-    honey.GetField()->AddEntity(*bee, honey.GetTile()->GetX() - 1, honey.GetTile()->GetY());
+    const auto status = honey.GetField()->AddEntity(*newBee, honey.GetTile()->GetX() - 1, honey.GetTile()->GetY());
+    if (status != Field::AddEntityStatus::deleted) {
+      lastBee = newBee;
+    }
   }
 }

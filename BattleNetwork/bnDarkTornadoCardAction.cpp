@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTornado.h"
+#include "bnField.h"
 
 #define FAN_PATH "resources/spells/buster_fan_dark.png"
 #define FAN_ANIM "resources/spells/buster_fan_dark.animation"
@@ -36,23 +37,23 @@ DarkTornadoCardAction::~DarkTornadoCardAction()
 }
 
 void DarkTornadoCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto& owner = GetCharacter();
 
   attachmentAnim.Update(0, attachment->getSprite());
 
-  owner->AddNode(attachment);
+  owner.AddNode(attachment);
 
-  auto team = GetOwner()->GetTeam();
-  auto tile = GetOwner()->GetTile();
-  auto field = GetOwner()->GetField();
+  auto team = owner.GetTeam();
+  auto tile = owner.GetTile();
+  auto field = owner.GetField();
 
   // On shoot frame, drop projectile
-  auto onFire = [this, team, tile, field]() -> void {
+  auto onFire = [this, team, tile, field, owner = &owner]() -> void {
     Tornado* tornado = new Tornado(team, 8, damage);
     tornado->setTexture(Textures().LoadTextureFromFile("resources/spells/spell_tornado_dark.png"));
 
     auto props = tornado->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = owner;
     tornado->SetHitboxProperties(props);
 
     int step = team == Team::red ? 2 : -2;
@@ -60,14 +61,14 @@ void DarkTornadoCardAction::OnExecute() {
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
-  AddAnimAction(2, [onFire, owner, this]() {
+  AddAnimAction(2, [onFire, this]() {
     Audio().Play(AudioType::WIND);
     armIsOut = true;
     onFire();
   });
 }
 
-void DarkTornadoCardAction::OnUpdate(double _elapsed)
+void DarkTornadoCardAction::Update(double _elapsed)
 {
   attachment->setPosition(CalculatePointOffset("buster"));
 
@@ -76,7 +77,7 @@ void DarkTornadoCardAction::OnUpdate(double _elapsed)
     attachmentAnim.Update(_elapsed, attachment->getSprite());
   }
 
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void DarkTornadoCardAction::OnAnimationEnd()
@@ -85,6 +86,5 @@ void DarkTornadoCardAction::OnAnimationEnd()
 
 void DarkTornadoCardAction::OnEndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  Eject();
+  GetCharacter().RemoveNode(attachment);
 }

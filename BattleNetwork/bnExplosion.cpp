@@ -122,11 +122,6 @@ void Explosion::OnSpawn(Battle::Tile& start)
   OnUpdate(0); // refresh and position explosion graphic
 }
 
-bool Explosion::Move(Direction _direction)
-{
-  return false;
-}
-
 void Explosion::IncrementExplosionCount() {
   count++;
 }

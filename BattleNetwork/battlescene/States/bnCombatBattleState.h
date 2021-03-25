@@ -43,7 +43,7 @@ struct CombatBattleState final : public BattleSceneState, public CardUseListener
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
-  void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override;
+  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override;
   const bool HandleNextRoundSetup(const BattleSceneState* state);
 
   CombatBattleState(Mob* mob, std::vector<Player*>& tracked, double customDuration);

@@ -35,11 +35,6 @@ void CanonSmoke::OnDelete()
   Remove();
 }
 
-bool CanonSmoke::Move(Direction _direction)
-{
-  return false;
-}
-
 CanonSmoke::~CanonSmoke()
 {
 }

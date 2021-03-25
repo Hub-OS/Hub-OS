@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnAirShot.h"
+#include "bnField.h"
 
 #define NODE_PATH "resources/spells/AirShot.png"
 #define NODE_ANIM "resources/spells/airshot.animation"
@@ -34,7 +35,7 @@ void AirShotCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    auto& user = *GetOwner();
+    auto& user = GetCharacter();
 
     Audio().Play(AudioType::SPREADER);
 
@@ -54,9 +55,9 @@ AirShotCardAction::~AirShotCardAction()
 {
 }
 
-void AirShotCardAction::OnUpdate(double _elapsed)
+void AirShotCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void AirShotCardAction::OnAnimationEnd()
@@ -65,5 +66,4 @@ void AirShotCardAction::OnAnimationEnd()
 
 void AirShotCardAction::OnEndAction()
 {
-  Eject();
 }

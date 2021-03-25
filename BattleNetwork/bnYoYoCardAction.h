@@ -14,8 +14,8 @@ private:
 public:
   YoYoCardAction(Character& owner, int damage);
   ~YoYoCardAction();
+  void Update(double _elapsed) override;
   void OnAnimationEnd() override;
-  void OnUpdate(double _elapsed) override;
   void OnEndAction() override;
   void OnExecute() override;
 };

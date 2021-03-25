@@ -22,13 +22,6 @@ public:
    * @brief Removes sword effect from play
    */
   void OnDelete() override;
-  
-  /**
-   * @brief Effect doesnt move across tiles
-   * @param _direction dismissed
-   * @return false
-   */
-  bool Move(Direction _direction) override;
 
   // On animation end it deletes itself
   void SetAnimation(const std::string& animation);

@@ -22,7 +22,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
   bool allCompleted = true;
 
   size_t count = 0;
-  for (auto data : tracking) {
+  for (auto& data : tracking) {
     auto& [player, index, complete] = *data;
 
     if (complete) continue;
@@ -31,12 +31,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     player->Reveal(); // If flickering, stablizes the sprite for the animation
 
-    // Preserve the original child node states
-    auto playerChildNodes = player->GetChildNodes();
-
     // The list of nodes change when adding the shine overlay and new form overlay nodes
-    std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(playerChildNodes.size()));
-    std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(playerChildNodes.size()));
+    std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>());
+    std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>());
 
     auto paletteSwap = player->GetFirstComponent<PaletteSwap>();
 
@@ -47,8 +44,8 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     auto collectChildNodes = [this, playerPtr, index_, states = childShaderUseStates, originals = originalChildNodes]
     () {
-      // collect original child nodes
-      for (auto child : playerPtr->GetChildNodes()) {
+      // collect ALL child nodes
+      for (auto child : playerPtr->GetChildNodesWithTag({ Player::BASE_NODE_TAG, Player::FORM_NODE_TAG })) {
         states->push_back(child->IsUsingParentShader());
         originals->push_back(child);
         child->EnableParentShader(true);
@@ -65,6 +62,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       // Reset the player state
       playerPtr->ChangeState<PlayerControlledState>();
 
+      // Interrupt right away
+      playerPtr->Character::Update(0);
+
       if (lastSelectedForm == -1) {
         Audio().Play(AudioType::DEFORM);
       }
@@ -77,17 +77,10 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       }
 
       // Activating the form will add NEW child nodes onto our character
-      for (auto child : playerPtr->GetChildNodes()) {
-        auto it = std::find_if(originals->begin(), originals->end(),
-          [child](auto in) { return (child == in); }
-        );
-
-        // If this is a new node, add it to the list
-        if (it == originals->end()) {
+      for (auto child : playerPtr->GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
           states->push_back(child->IsUsingParentShader());
           originals->push_back(child);
           child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
-        }
       }
 
       playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));

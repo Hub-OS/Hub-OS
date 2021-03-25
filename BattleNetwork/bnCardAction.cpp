@@ -7,24 +7,22 @@ CardAction::CardAction(Character& user, const std::string& animation) :
   anim(user.GetFirstComponent<AnimationComponent>()),
   uuid(), 
   prevState(), 
-  attachments(), 
-  SceneNode(),
-  ResourceHandle(),
-  Component(&user, Component::lifetimes::battlestep)
+  attachments(),
+  ResourceHandle()
 {
   if (anim) {
-    prepareActionDelegate = [this, animation]() {
+    prepareActionDelegate = [this] {
       for (auto& [nodeName, node] : attachments) {
-        this->GetOwner()->AddNode(&node.spriteProxy.get());
+        this->user.AddNode(&node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
       // use the current animation's arrangement, do not overload
-      prevState = anim->GetAnimationString();;
-      anim->SetAnimation(animation, [this]() {
+      prevState = anim->GetAnimationString();
+      anim->SetAnimation(this->animation, [this]() {
 
         if (this->IsLockoutOver()) {
-          OnEndAction();
+          EndAction();
         }
 
         RecallPreviousState();
@@ -46,7 +44,9 @@ CardAction::~CardAction()
   stepList.clear();
   sequence.clear();
 
-  FreeAttachedNodes();
+  if (started) {
+    FreeAttachedNodes();
+  }
 }
 
 void CardAction::AddStep(Step step)
@@ -77,14 +77,14 @@ void CardAction::RecallPreviousState()
   }
 
   // "Animation" for sequences are only complete when the animation sequence is complete
-  if (lockoutProps.type != ActionLockoutType::sequence) {
+  if (lockoutProps.type != CardAction::LockoutType::sequence) {
     animationIsOver = true;
   }
 }
 
-Character* CardAction::GetOwner()
+Character& CardAction::GetCharacter()
 {
-  return &user;
+  return user;
 }
 
 void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
@@ -92,7 +92,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   if (anim) {
     prepareActionDelegate = [this, frameData]() {
       for (auto& [nodeName, node] : attachments) {
-        this->GetOwner()->AddNode(&node.spriteProxy.get());
+        this->GetCharacter().AddNode(&node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
@@ -102,7 +102,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
         anim->SetPlaybackMode(Animator::Mode::Loop);
 
         if (this->IsLockoutOver()) {
-          OnEndAction();
+          EndAction();
         }
 
         RecallPreviousState();
@@ -129,19 +129,19 @@ void CardAction::Execute()
   // run
   OnExecute();
   // Position any new nodes to owner
-  OnUpdate(0);
+  Update(0);
 }
 
 void CardAction::EndAction()
 {
-  this->OnEndAction();
+  OnEndAction();
 }
 
 CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
   auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(node), std::ref(parent) }));
 
   if (started) {
-    this->GetOwner()->AddNode(&node);
+    this->GetCharacter().AddNode(&node);
 
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;
@@ -155,13 +155,13 @@ CardAction::Attachment& CardAction::AddAttachment(Character& character, const st
   assert(animComp && "character must have an animation component");
 
   if (started) {
-    this->GetOwner()->AddNode(&node);
+    this->GetCharacter().AddNode(&node);
   }
 
-  return AddAttachment(animComp->GetAnimationObj(), point, node);
+  return AddAttachment(animComp->GetAnimationObject(), point, node);
 }
 
-void CardAction::OnUpdate(double _elapsed)
+void CardAction::Update(double _elapsed)
 {
   for (auto& [nodeName, node] : attachments) {
     // update the node's animation
@@ -169,7 +169,7 @@ void CardAction::OnUpdate(double _elapsed)
 
     // update the node's position
     auto baseOffset = node.GetParentAnim().GetPoint(nodeName);
-    auto origin = user.getSprite().getOrigin();
+    const auto& origin = user.getSprite().getOrigin();
     baseOffset = baseOffset - origin;
 
     node.SetOffset(baseOffset);
@@ -177,11 +177,11 @@ void CardAction::OnUpdate(double _elapsed)
 
   if (!started) return;
 
-  if (lockoutProps.type == ActionLockoutType::sequence) {
+  if (lockoutProps.type == CardAction::LockoutType::sequence) {
     sequence.update(_elapsed);
     if (sequence.isEmpty()) {
       animationIsOver = true; // animation for sequence is complete
-      OnEndAction();
+      EndAction();
     }
   }
   else {
@@ -189,33 +189,33 @@ void CardAction::OnUpdate(double _elapsed)
     lockoutProps.cooldown = std::max(lockoutProps.cooldown, 0.0);
 
     if (IsLockoutOver()) {
-      OnEndAction();
+      EndAction();
+      animationIsOver = true;
     }
   }
 }
 
 void CardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-  SceneNode::draw(target, states);
 };
 
-void CardAction::Inject(BattleSceneBase& scene)
+void CardAction::PreventCounters()
 {
-  scene.Inject(this);
+  preventCounters = true;
 }
 
-void CardAction::SetLockout(const ActionLockoutProperties& props)
+void CardAction::SetLockout(const CardAction::LockoutProperties& props)
 {
   this->lockoutProps = props;
 }
 
-void CardAction::SetLockoutGroup(const ActionLockoutGroup& group)
+void CardAction::SetLockoutGroup(const CardAction::LockoutGroup& group)
 {
   lockoutProps.group = group;
 }
 
 void CardAction::FreeAttachedNodes() {
   for (auto& [nodeName, node] : attachments) {
-    this->GetOwner()->RemoveNode(&node.spriteProxy.get());
+    this->GetCharacter().RemoveNode(&node.spriteProxy.get());
   }
 
   attachments.clear();
@@ -225,12 +225,12 @@ void CardAction::FreeAttachedNodes() {
   this->anim->CancelCallbacks();
 }
 
-const ActionLockoutGroup CardAction::GetLockoutGroup() const
+const CardAction::LockoutGroup CardAction::GetLockoutGroup() const
 {
   return lockoutProps.group;
 }
 
-const ActionLockoutType CardAction::GetLockoutType() const
+const CardAction::LockoutType CardAction::GetLockoutType() const
 {
   return lockoutProps.type;
 }
@@ -246,7 +246,7 @@ const bool CardAction::IsAnimationOver() const
 }
 
 const bool CardAction::IsLockoutOver() const {
-  if (lockoutProps.type == ActionLockoutType::animation) {
+  if (lockoutProps.type == CardAction::LockoutType::animation) {
     return animationIsOver;
   }
 
@@ -289,7 +289,7 @@ void CardAction::Attachment::Update(double elapsed)
 
     // update the node's position
     auto baseOffset = node.GetParentAnim().GetPoint(nodeName);
-    auto origin = spriteProxy.get().getSprite().getOrigin();
+    const auto& origin = spriteProxy.get().getSprite().getOrigin();
     baseOffset = baseOffset - origin;
 
     node.SetOffset(baseOffset);

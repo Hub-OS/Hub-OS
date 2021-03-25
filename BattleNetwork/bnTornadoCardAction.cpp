@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTornado.h"
+#include "bnField.h"
 
 #define FAN_PATH "resources/spells/buster_fan.png"
 #define FAN_ANIM "resources/spells/buster_fan.animation"
@@ -36,17 +37,17 @@ TornadoCardAction::~TornadoCardAction()
 }
 
 void TornadoCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto& owner = GetCharacter();
   
   attachmentAnim.Update(0, attachment->getSprite());
-  owner->AddNode(attachment);
+  owner.AddNode(attachment);
 
-  auto team = GetOwner()->GetTeam();
-  auto tile = GetOwner()->GetTile();
-  auto field = GetOwner()->GetField();
+  auto team = owner.GetTeam();
+  auto tile = owner.GetTile();
+  auto field = owner.GetField();
 
   // On shoot frame, drop projectile
-  auto onFire = [this, team, tile, field, owner]() -> void {
+  auto onFire = [this, team, tile, field, owner = &owner]() -> void {
     Tornado* tornado = new Tornado(team, 8, damage);
     auto props = tornado->GetHitboxProperties();
     props.aggressor = owner;
@@ -57,7 +58,7 @@ void TornadoCardAction::OnExecute() {
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
-  AddAnimAction(2, [onFire, owner, this]() {
+  AddAnimAction(2, [onFire, owner = &owner, this]() {
     Audio().Play(AudioType::WIND);
     armIsOut = true;
     onFire();
@@ -68,7 +69,7 @@ void TornadoCardAction::OnAnimationEnd()
 {
 }
 
-void TornadoCardAction::OnUpdate(double _elapsed)
+void TornadoCardAction::Update(double _elapsed)
 {
   attachment->setPosition(CalculatePointOffset("buster"));
 
@@ -76,11 +77,10 @@ void TornadoCardAction::OnUpdate(double _elapsed)
     attachmentAnim.Update(_elapsed, attachment->getSprite());
   }
 
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void TornadoCardAction::OnEndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  Eject();
+  GetCharacter().RemoveNode(attachment);
 }

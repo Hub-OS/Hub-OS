@@ -24,8 +24,6 @@ Cube::Cube(Field* _field) :
   SetHealth(200);
   timer = 100;
 
-  SetSlideTime(sf::seconds(1.0f / 5.0f)); // 1/5 of 60 fps = 12 frames
-
   previousDirection = Direction::none;
 
   defense = new DefenseObstacleBody();
@@ -70,10 +68,8 @@ bool Cube::CanMoveTo(Battle::Tile * next)
         Cube* isCube = dynamic_cast<Cube*>(e);
 
         if (isCube && isCube->GetElement() == Element::ice && GetElement() == Element::ice) {
-          isCube->SlideToTile(true);
           Direction dir = GetDirection();
-          isCube->Move(dir);
-          isCube->FinishMove();
+          isCube->Slide(dir, frames(12), frames(0));
           stop = true;
         }
         else if (isCube) {
@@ -86,7 +82,6 @@ bool Cube::CanMoveTo(Battle::Tile * next)
       if (stop) {
         SetDirection(Direction::none);
         previousDirection = Direction::none;
-        FinishMove();
         pushedByDrag = false;
         return false;
       }
@@ -119,9 +114,7 @@ void Cube::OnUpdate(double _elapsed) {
 
   // Keep momentum
   if (!IsSliding() && pushedByDrag) {
-    SlideToTile(true);
-    Move(GetDirection());
-    FinishMove();
+    Slide(GetDirection(), frames(12), frames(0));
   }
 
   if (timer <= 0 ) {

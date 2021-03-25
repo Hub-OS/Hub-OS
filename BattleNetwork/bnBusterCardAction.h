@@ -11,6 +11,7 @@ private:
   SpriteProxyNode* buster{ nullptr }, * flare{ nullptr };
   Attachment* busterAttachment{ nullptr };
   Animation busterAnim, flareAnim;
+  Entity::RemoveCallback* busterRemoved{ nullptr };
   bool charged{};
   int damage{};
   bool isBusterAlive{};
@@ -18,7 +19,7 @@ public:
   BusterCardAction(Character& user, bool charged, int damage);
   ~BusterCardAction();
 
-  void OnUpdate(double _elapsed);
+  void Update(double _elapsed) override;
   void OnAnimationEnd();
   void OnEndAction();
   void OnExecute();

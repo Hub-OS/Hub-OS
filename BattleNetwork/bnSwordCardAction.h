@@ -12,7 +12,7 @@ protected:
   SpriteProxyNode* hilt;
   Animation bladeAnim, hiltAnim;
   int damage;
-  Element element;
+  Element element{ Element::none };
 public:
   SwordCardAction(Character& owner, int damage);
   virtual ~SwordCardAction();

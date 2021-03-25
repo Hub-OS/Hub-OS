@@ -25,10 +25,6 @@ TwinFang::TwinFang(Team _team,Type _type, int damage) :
   setTexture(Textures().GetTexture(TextureType::SPELL_TWIN_FANG));
   setScale(2.f, 2.f);
 
-  // Twin fang move from tile to tile in 4 frames
-  // Adjust by speed factor
-  SetSlideTime(sf::seconds(1.0f / 15.0f));
-
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/twin_fang.animation");
   animation->Load();
@@ -85,18 +81,13 @@ void TwinFang::OnUpdate(double _elapsed) {
       }
     }
     else {
-      // Always glide
       if (!IsSliding()) {
-        SlideToTile(true);
-
-        // Keep moving
-        Move(GetDirection());
-
-        if (GetNextTile() == nullptr) {
-          // we hit the wall
+        if (!CanMoveTo(GetTile() + GetDirection())) {
           onEdgeOfMap = true;
         }
-
+        else {
+          Slide(GetDirection(), frames(4), frames(0));
+        }
       }
     }
   }

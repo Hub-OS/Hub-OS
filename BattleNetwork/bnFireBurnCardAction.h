@@ -17,7 +17,7 @@ public:
   FireBurnCardAction(Character& owner, FireBurn::Type type, int damage);
   ~FireBurnCardAction();
 
-  void OnUpdate(double _elapsed);
+  void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction() override;
   void OnExecute() override;

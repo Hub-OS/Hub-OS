@@ -26,11 +26,4 @@ public:
   * @brief Removes shine explosion from play
   */
   void OnDelete() override;
-
-  /**
-   * @brief the shine effect does not move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
 };

@@ -15,7 +15,7 @@ ZetaCannonCardAction::ZetaCannonCardAction(Character& owner, int damage)  :
   timerLabel.SetFont(font);
   timerLabel.setPosition(20.f, 50.0f);
   timerLabel.setScale(1.f, 1.f);
-  this->SetLockout(ActionLockoutProperties{ActionLockoutType::async, timer});
+  this->SetLockout({CardAction::LockoutType::async, timer});
 }
 
 ZetaCannonCardAction::~ZetaCannonCardAction()
@@ -38,8 +38,8 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
   target.draw(timerLabel);
 }
 
-void ZetaCannonCardAction::OnUpdate(double _elapsed)
-{
+void ZetaCannonCardAction::Update(double _elapsed)
+{ /*
   if (timer > 0) {
     auto user = GetOwner();
     auto actions = user->GetComponentsDerivedFrom<CardAction>();
@@ -85,7 +85,7 @@ void ZetaCannonCardAction::OnUpdate(double _elapsed)
   std::string string = "Z-Cannon 1: " + timeString;
   timerLabel.SetString(string);
 
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);*/
 }
 
 void ZetaCannonCardAction::OnAnimationEnd()
@@ -94,8 +94,6 @@ void ZetaCannonCardAction::OnAnimationEnd()
 
 void ZetaCannonCardAction::OnEndAction()
 {
-  GetOwner()->RemoveDefenseRule(defense);
+  GetCharacter().RemoveDefenseRule(defense);
   delete defense;
-
-  Eject();
 }

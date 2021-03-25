@@ -110,14 +110,6 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
 }
 
 void MetalMan::OnUpdate(double _elapsed) {
-  // TODO: use StuntDoubles to circumvent teleportaton
-  if (movedByStun) {
-    Teleport((rand() % 3) + 4, (rand() % 3) + 1);
-    AdoptNextTile();
-    FinishMove();
-    movedByStun = false;
-  }
-
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   BossPatternAI<MetalMan>::Update(_elapsed);

@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnBuster.h"
+#include "bnField.h"
 
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
@@ -32,17 +33,17 @@ BusterCardAction::BusterCardAction(Character& owner, bool charged, int damage)
 
   busterAttachment = &AddAttachment(owner, "buster", *buster).UseAnimation(busterAnim);
 
-  this->SetLockout(ActionLockoutProperties{ ActionLockoutType::async, 0.5 });
+  this->SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
 
 void BusterCardAction::OnExecute() {
-  auto owner = GetOwner();
+  auto owner = &GetCharacter();
 
   buster->EnableParentShader(true);
 
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    Team team = this->GetOwner()->GetTeam();
+  auto onFire = [this, owner]() -> void {
+    Team team = owner->GetTeam();
     Buster* b = new Buster(team, charged, damage);
 
     if (team == Team::red) {
@@ -56,13 +57,13 @@ void BusterCardAction::OnExecute() {
     b->SetHitboxProperties(props);
 
     isBusterAlive = true;
-    Entity::RemoveCallback& busterRemoved = b->CreateRemoveCallback();
-    busterRemoved.Slot([this]() {
+    busterRemoved = &b->CreateRemoveCallback();
+    busterRemoved->Slot([this]() {
       isBusterAlive = false;
-      OnEndAction();
+      EndAction();
       });
 
-    GetOwner()->GetField()->AddEntity(*b, *GetOwner()->GetTile());
+    owner->GetField()->AddEntity(*b, *owner->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
 
     busterAttachment->AddAttachment(busterAnim, "endpoint", *flare).UseAnimation(flareAnim);
@@ -73,17 +74,19 @@ void BusterCardAction::OnExecute() {
 
 BusterCardAction::~BusterCardAction()
 {
+  if (busterRemoved) {
+    busterRemoved->Reset();
+  }
 }
 
-void BusterCardAction::OnUpdate(double _elapsed)
+void BusterCardAction::Update(double _elapsed)
 {
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void BusterCardAction::OnEndAction()
 {
   OnAnimationEnd();
-  Eject();
 }
 
 void BusterCardAction::OnAnimationEnd()

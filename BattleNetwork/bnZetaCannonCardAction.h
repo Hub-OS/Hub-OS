@@ -12,15 +12,15 @@ class ZetaCannonCardAction : public CardAction, public InputHandle {
 public:
   int damage{ 0 };
   double timer{ 5.0 }; // 5 seconds
-  mutable Text timerLabel; // on the screen somewhere
   Font font;
+  mutable Text timerLabel; // on the screen somewhere
   bool firstTime{ true };
   DefenseRule* defense{ nullptr };
 public:
 
   ZetaCannonCardAction(Character& owner, int damage);
   ~ZetaCannonCardAction();
-  void OnUpdate(double _elapsed) override final;
+  void Update(double _elapsed) override final;
   void OnAnimationEnd() override final;
   void OnEndAction() override final;
   void OnExecute() override final;

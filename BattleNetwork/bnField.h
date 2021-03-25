@@ -4,6 +4,8 @@
 using std::map;
 using std::vector;
 
+#include "bindings/bnScriptedSpell.h"
+#include "bindings/bnScriptedObstacle.h"
 #include "bnEntity.h"
 #include "bnCharacterDeletePublisher.h"
 
@@ -188,6 +190,11 @@ public:
   void RevealCounterFrames(bool enabled);
 
   const bool DoesRevealCounterFrames() const;
+
+#ifdef BN_MOD_SUPPORT
+  AddEntityStatus AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
+  AddEntityStatus AddEntity(std::unique_ptr<ScriptedObstacle>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
+#endif
 
 private:
   bool isTimeFrozen; 

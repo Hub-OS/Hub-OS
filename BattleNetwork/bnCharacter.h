@@ -6,16 +6,31 @@
 #include "bnDefenseRule.h"
 #include "bnHitProperties.h"
 #include "bnTile.h"
+#include "bnActionQueue.h"
 
 #include <string>
-#include <queue>
 #include <functional>
 
 using std::string;
 
+namespace Battle {
+  class Tile;
+}
+
 class DefenseRule;
 class Spell;
 class CardAction;
+class SelectedCardsUI;
+
+struct CardEvent {
+  CardAction* action{ nullptr };
+};
+
+struct PeekCardEvent {
+  SelectedCardsUI* publisher{ nullptr };
+};
+
+constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
 
 /**
  * @class Character
@@ -30,8 +45,8 @@ protected:
   using StatusCallback = std::function<void()>;
 
 private:
-  bool canShareTile; /*!< Some characters can share tiles with others */
-  bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
+  bool canShareTile{}; /*!< Some characters can share tiles with others */
+  bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
   std::vector<Character*> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
   std::vector<Component::ID_t> attacks;
@@ -42,11 +57,12 @@ private:
   // This continues until all statuses are processed
   std::queue<Hit::Properties> statusQueue;
 
-  sf::Shader* whiteout; /*!< Flash white when hit */
-  sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
-  CardAction* queuedAction{ nullptr }, *currentAction{ nullptr }; /*!< Allow actions to take place through a trusted state */
+  sf::Shader* whiteout{ nullptr }; /*!< Flash white when hit */
+  sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
+  CardAction* currCardAction{ nullptr };
+  frame_time_t cardActionStartDelay{0};
 
-  bool hit; /*!< Was hit this frame */
+  bool hit{}; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
 public:
 
@@ -91,8 +107,8 @@ public:
 
   virtual void OnUpdate(double elapsed) = 0;
 
-  void QueueAction(CardAction* action);
-  CardAction* DequeueAction();
+  const bool IsLockoutComplete();
+  CardAction* CurrentCardAction();
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization
   void Update(double elapsed) override;
@@ -226,12 +242,14 @@ public:
   */
   void CancelSharedHitboxDamage(Character* to);
 
-  void EndCurrentAction();
-
+  void AddAction(const CardEvent& event, const ActionOrder& order);
+  void AddAction(const PeekCardEvent& event, const ActionOrder& order);
+  void HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec);
+  void HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::ExecutionType& exec);
 private:
-  int maxHealth;
-  sf::Vector2f counterSlideOffset; /*!< Used when enemies delete on counter - they slide back */
-  float counterSlideDelta;
+  int maxHealth{ std::numeric_limits<int>::max() };
+  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
+  float counterSlideDelta{};
 
 protected:
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
@@ -251,12 +269,12 @@ protected:
   */
   bool IsCountered();
 
-  int health;
-  bool counterable;
+  int health{ std::numeric_limits<int>::max() };
+  bool counterable{};
   int counterFrameFlag{ 0 };
-  bool canTilePush;
+  bool canTilePush{};
   std::string name;
-  double stunCooldown; /*!< Timer until stun is over */
-  double invincibilityCooldown; /*!< Timer until invincibility is over */
+  double stunCooldown{ 0 }; /*!< Timer until stun is over */
+  double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   Character::Rank rank;
 };

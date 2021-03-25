@@ -29,25 +29,25 @@
 class FolderEditScene : public Scene {
 private:
   enum class ViewMode : int {
-    FOLDER,
-    PACK
+    folder,
+    pool
   };
 
   /**
   * @class PackBucket
-  * @brief Cards in a pack avoid listing duplicates by bundling them in a counted bucket 
+  * @brief Cards in a pool avoid listing duplicates by bundling them in a counted bucket 
   * 
   * Users can select up to all of the cards in a bucket. The bucket will remain in the list but at 0. 
   */
-  class PackBucket {
+  class PoolBucket {
   private:
     unsigned size;
     unsigned maxSize;
     Battle::Card info;
 
   public:
-    PackBucket(unsigned size, Battle::Card info) : size(size), maxSize(size), info(info) { }
-    ~PackBucket() { }
+    PoolBucket(unsigned size, Battle::Card info) : size(size), maxSize(size), info(info) { }
+    ~PoolBucket() { }
 
     const bool IsEmpty() const { return size == 0; }
     const bool GetCard(Battle::Card& copy) { if (IsEmpty()) return false; else copy = Battle::Card(info); size--;  return true; }
@@ -90,14 +90,9 @@ private:
     }
   };
 
-  void ExcludeFolderDataFromPack();
-  void PlaceFolderDataIntoCardSlots();
-  void PlaceLibraryDataIntoBuckets();
-  void WriteNewFolderData();
-
 private:
   std::vector<FolderSlot> folderCardSlots; /*!< Rows in the folder that can be inserted with cards or replaced */
-  std::vector<PackBucket> packCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
+  std::vector<PoolBucket> poolCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
   bool hasFolderChanged; /*!< Flag if folder needs to be saved before quitting screen */
   Camera camera;
   CardFolder& folder;
@@ -125,7 +120,7 @@ private:
   sf::Sprite bg;
   sf::Sprite folderDock, packDock;
   sf::Sprite scrollbar;
-  sf::Sprite cardHolder;
+  sf::Sprite cardHolder, packCardHolder;
   sf::Sprite element;
   sf::Sprite folderCursor, folderSwapCursor;
   sf::Sprite packCursor, packSwapCursor;
@@ -142,12 +137,12 @@ private:
   swoosh::Timer easeInTimer;
 
   struct CardView {
-    int maxCardsOnScreen;
-    int currCardIndex;
-    int lastCardOnScreen; // index
-    int prevIndex; // for effect
-    int numOfCards;
-    int swapCardIndex; // -1 for unselected, otherwise ID
+    int maxCardsOnScreen{ 0 };
+    int currCardIndex{ 0 };
+    int lastCardOnScreen{ 0 }; // index
+    int prevIndex{ -1 }; // for effect
+    int numOfCards{ 0 };
+    int swapCardIndex{ -1 }; // -1 for unselected, otherwise ID
   } folderView, packView;
 
   ViewMode currViewMode;
@@ -157,6 +152,7 @@ private:
   double frameElapsed;
  
   bool extendedHold{ false }; //!< If held for a 2nd pass, scroll quickly
+  InputEvent lastKey{};
   bool canInteract;
 
 #ifdef __ANDROID__
@@ -173,7 +169,12 @@ private:
 #endif
 
   void DrawFolder(sf::RenderTarget& surface);
-  void DrawLibrary(sf::RenderTarget& surface);
+  void DrawPool(sf::RenderTarget& surface);
+  void ExcludeFolderDataFromPool();
+  void PlaceFolderDataIntoCardSlots();
+  void PlaceLibraryDataIntoBuckets();
+  void WriteNewFolderData();
+  void RefreshCurrentCardDock(CardView& view);
 
 public:
   std::string FormatCardDesc(const std::string&& desc);

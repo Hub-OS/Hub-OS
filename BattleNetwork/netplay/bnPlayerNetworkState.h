@@ -7,9 +7,7 @@ class PlayerNetworkState : public AIState<Player>
 {
 private:
   bool isChargeHeld; /*!< Flag if player is holding down shoot button */
-  CardAction* queuedAction; /*!< Movement takes priority. If there is an action queued, fire on next best frame*/
   NetPlayFlags& netflags;
-  void QueueAction(Player& player);
 public:
 
   /**

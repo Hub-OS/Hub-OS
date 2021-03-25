@@ -27,13 +27,6 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief Does not move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
-  
-  /**
    * @brief Deals damage with default hit props
    * @param _entity
    */

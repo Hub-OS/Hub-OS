@@ -2,6 +2,7 @@
 #include "../bnBattleSceneBase.h"
 
 #include "../../bnPlayer.h"
+#include "../../bnField.h"
 
 FadeOutBattleState::FadeOutBattleState(const FadeOut& mode, std::vector<Player*>& tracked) : mode(mode), tracked(tracked) {}
 

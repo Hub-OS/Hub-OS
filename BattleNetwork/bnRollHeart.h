@@ -25,13 +25,6 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief does not move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) override;
-  
-  /**
    * @brief Does nothing
    * @param _entity
    */

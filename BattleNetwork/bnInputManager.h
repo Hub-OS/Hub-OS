@@ -182,7 +182,7 @@ public:
   void FlushAllInputEvents();
 
 private:
-  sf::Keyboard::Key lastkey;
+  sf::Keyboard::Key lastkey{};
   sf::Window& window;
 
   Gamepad lastButton{};
@@ -209,8 +209,3 @@ private:
   std::function<void()> onLoseFocus; /*!< How the application should respond to losing focus */
   std::function<void(int, int)> onResized; /*!< How the application should respond to resized */
 };
-
-/**
- * @brief macro to shorten manager calls
- */
-#define INPUTx InputManager::GetInstance()

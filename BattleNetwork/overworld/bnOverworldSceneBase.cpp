@@ -18,6 +18,8 @@
 #include "../bnLibraryScene.h"
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
+#include "../bnKeyItemScene.h"
+#include "../bnVendorScene.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnCustomBackground.h"
 #include "../bnLanBackground.h"
@@ -46,9 +48,10 @@ auto MakeOptions = [](Overworld::SceneBase* scene) -> Overworld::PersonalMenu::O
   return {
     { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
     { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
+    { "key_items",   std::bind(&Overworld::SceneBase::GotoKeyItems, scene) },
     { "mob_select",  std::bind(&Overworld::SceneBase::GotoMobSelect, scene) },
-    { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) },
-    { "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }
+    { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) }
+    /*{ "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }*/
   };
 };
 
@@ -198,13 +201,15 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
     try {
-      const WebAccounts::AccountState& account = accountCommandResponse.get();
-      Logger::Logf("You have %i folders on your account", account.folders.size());
-      WEBCLIENT.CacheTextureData(account);
-      folders = CardFolderCollection::ReadFromWebAccount(account);
-      programAdvance = PA::ReadFromWebAccount(account);
+      webAccount = accountCommandResponse.get();
+      Logger::Logf("You have %i folders on your account", webAccount.folders.size());
+      WEBCLIENT.CacheTextureData(webAccount);
+      folders = CardFolderCollection::ReadFromWebAccount(webAccount);
+      programAdvance = PA::ReadFromWebAccount(webAccount);
 
       NaviEquipSelectedFolder();
+
+      menuWidget.SetMonies(webAccount.monies);
 
       // Replace
       WEBCLIENT.SaveSession("profile.bin");
@@ -1298,6 +1303,25 @@ void Overworld::SceneBase::GotoPVP()
     Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
     gotoNextScene = false;
   }
+}
+
+void Overworld::SceneBase::GotoKeyItems()
+{
+  // Config Select on PC
+  gotoNextScene = true;
+  Audio().Play(AudioType::CHIP_DESC);
+
+  using effect = segue<BlackWashFade, milliseconds<500>>;
+
+  std::vector<KeyItemScene::Item> items;
+  for (auto& item : webAccount.keyItems) {
+    items.push_back(KeyItemScene::Item{
+      item.name,
+      item.description
+    });
+  }
+
+  getController().push<effect::to<KeyItemScene>>(items);
 }
 
 Overworld::Minimap& Overworld::SceneBase::GetMinimap()

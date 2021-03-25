@@ -1,12 +1,12 @@
 #include "bnGear.h"
 #include "bnTile.h"
 #include "bnDefenseIndestructable.h"
+#include "bnDefenseNodrag.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Gear::Gear(Team _team,Direction startDir) 
-    : 
+Gear::Gear(Team _team,Direction startDir) : 
   startDir(startDir), 
   stopMoving(false), 
   Obstacle(team) {
@@ -31,20 +31,23 @@ Gear::Gear(Team _team,Direction startDir)
 
   animation->OnUpdate(0);
 
-  SetSlideTime(sf::seconds(2.0f)); // crawl
-
   Hit::Properties props = Hit::DefaultProperties;
   props.flags |= Hit::recoil | Hit::breaking;
   SetHitboxProperties(props);
 
   tileStartTeam = Team::unknown;
 
-  AddDefenseRule(new DefenseIndestructable(true));
+  AddDefenseRule((indestructable = new DefenseIndestructable(true)));
+  AddDefenseRule((nodrag = new DefenseNodrag()));
 
   stopMoving = true;
 }
 
 Gear::~Gear() {
+  RemoveDefenseRule(indestructable);
+  RemoveDefenseRule(nodrag);
+  delete indestructable;
+  delete nodrag;
 }
 
 bool Gear::CanMoveTo(Battle::Tile * next)
@@ -93,26 +96,18 @@ void Gear::OnUpdate(double _elapsed) {
 
   // Keep moving
   if (!IsSliding()) {
-    SlideToTile(true);
-    Move(GetDirection());
-  }
-
-  if (GetDirection() == Direction::none) {
-    if (GetPreviousDirection() == Direction::left) {
-      SetDirection(Direction::right);
-    }
-    else if (GetPreviousDirection() == Direction::right) {
-      SetDirection(Direction::left);
-    }
-    else if (GetPreviousDirection() == Direction::none) {
-      SetDirection(startDir); // Todo: should slide mechanism remove previous direction info? This works but not necessary
+    if (!CanMoveTo(GetTile() + GetDirection())) {
+      if (CanMoveTo(GetTile() + Direction::right)) {
+        SetDirection(Direction::right);
+      }
+      else if (CanMoveTo(GetTile() + Direction::left)) {
+        SetDirection(Direction::left);
+      }
     }
 
     // Now try to move
-    SlideToTile(true);
-    Move(GetDirection());
+    Slide(GetDirection(), frames(120), frames(0));
   }
-
 }
 
 void Gear::OnDelete() {

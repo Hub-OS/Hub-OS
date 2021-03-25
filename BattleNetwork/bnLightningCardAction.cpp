@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnHitbox.h"
+#include "bnField.h"
 
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
@@ -41,12 +42,12 @@ LightningCardAction::LightningCardAction(Character& owner, int damage) :
 }
 
 void LightningCardAction::OnExecute() {
-  auto owner = GetOwner();
-
   attachment->EnableParentShader(true);
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
+    auto& owner = GetCharacter();
+
     Audio().Play(AudioType::SPREADER);
 
     attachment->AddNode(attack);
@@ -54,16 +55,16 @@ void LightningCardAction::OnExecute() {
 
     attackAnim.Update(0, attack->getSprite());
 
-    auto field = GetOwner()->GetField();
-    auto team = GetOwner()->GetTeam();
-    int col = GetOwner()->GetTile()->GetX();
-    int row = GetOwner()->GetTile()->GetY();
+    auto field = owner.GetField();
+    auto team = owner.GetTeam();
+    int col = owner.GetTile()->GetX();
+    int row = owner.GetTile()->GetY();
 
     for (int i = 1; i < 6; i++) {
       auto hitbox = new Hitbox(team, LightningCardAction::damage);
       hitbox->HighlightTile(Battle::Tile::Highlight::solid);
       auto props = hitbox->GetHitboxProperties();
-      props.aggressor = GetOwnerAs<Character>();
+      props.aggressor = &owner;
       props.damage = LightningCardAction::damage;
       props.element = Element::elec;
 
@@ -91,13 +92,13 @@ LightningCardAction::~LightningCardAction()
 {
 }
 
-void LightningCardAction::OnUpdate(double _elapsed)
+void LightningCardAction::Update(double _elapsed)
 {
   if (fired && attack) {
     attackAnim.Update(_elapsed, attack->getSprite());
   }
 
-  CardAction::OnUpdate(_elapsed);
+  CardAction::Update(_elapsed);
 }
 
 void LightningCardAction::OnAnimationEnd()
@@ -112,5 +113,4 @@ void LightningCardAction::OnAnimationEnd()
 void LightningCardAction::OnEndAction()
 {
   OnAnimationEnd();
-  Eject();
 }

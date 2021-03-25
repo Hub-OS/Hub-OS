@@ -322,6 +322,7 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter()
   {
+    // TODO: character might be queued but not added so character.size() != 0 gives false values at intro time...
     return (reserved.size() != 0) && (characters.size() != 0);
   }
 
@@ -451,29 +452,19 @@ namespace Battle {
     totalElapsed += _elapsed;
 
     if (!isTimeFrozen && isBattleStarted) {
-        // LAVA TILES
-        elapsedBurnTime -= _elapsed;
+      // LAVA TILES
+      elapsedBurnTime -= _elapsed;
 
-        // VOLCANO 
-        volcanoEruptTimer -= _elapsed;
+      // VOLCANO 
+      volcanoEruptTimer -= _elapsed;
 
-        if (volcanoEruptTimer <= 0) {
-          volcanoErupt.Update(_elapsed, volcanoSprite.getSprite());
-        }
+      if (volcanoEruptTimer <= 0) {
+        volcanoErupt.Update(_elapsed, volcanoSprite.getSprite());
+      }
 
-        // set the offset to be at center origin
-        volcanoSprite.setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
+      // set the offset to be at center origin
+      volcanoSprite.setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
     }
-
-    CleanupEntities();
-
-    UpdateSpells(_elapsed);
-
-    ExecuteAllSpellAttacks();
-
-    UpdateArtifacts(_elapsed);
-
-    UpdateCharacters(_elapsed);
 
     for (auto&& chars : deletingCharacters) {
       field->UpdateEntityOnce(chars, _elapsed);
@@ -499,7 +490,6 @@ namespace Battle {
     }
 
     RefreshTexture();
-
     animation.SyncTime(totalElapsed);
     animation.Refresh(this->getSprite());
 
@@ -521,6 +511,14 @@ namespace Battle {
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
     highlightMode = Highlight::none;
+
+    // Process tile behaviors
+    vector<Character*> characters_copy = characters;
+    for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
+      if (!(*entity)->IsTimeFrozen()) {
+        HandleTileBehaviors(*entity);
+      }
+    }
   }
 
   void Tile::ToggleTimeFreeze(bool state)
@@ -552,12 +550,20 @@ namespace Battle {
     isBattleOver = true;
   }
 
+  void Tile::SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim)
+  {
+    animation = anim;
+    blue_team_atlas = blueTeam;
+    red_team_atlas = redTeam;
+    useParentShader = true;
+  }
+
   void Tile::HandleTileBehaviors(Obstacle* obst) {
     if (!isTimeFrozen || !isBattleOver || !(state == TileState::hidden)) {
 
       // DIRECTIONAL TILES
       auto directional = Direction::none;
-      auto notMoving = obst->GetNextTile() == nullptr;
+      auto notMoving = !obst->IsMoving();
 
       switch (GetState()) {
       case TileState::directionDown:
@@ -577,8 +583,7 @@ namespace Battle {
       if (directional != Direction::none) {
         if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
           if (!obst->IsSliding() && notMoving) {
-            obst->SlideToTile(true);
-            obst->Move(directional);
+            obst->Slide(directional, frames(3), frames(7), ActionOrder::involuntary);
           }
         }
       }
@@ -624,8 +629,6 @@ namespace Battle {
 
       auto directional = Direction::none;
 
-      auto notMoving = character && character->GetNextTile() == nullptr;
-
       switch (GetState()) {
       case TileState::directionDown:
         directional = Direction::down;
@@ -642,16 +645,10 @@ namespace Battle {
       }
 
       if (directional != Direction::none) {
+        auto notMoving = !character->IsMoving();
         if (!character->HasAirShoe() && !character->HasFloatShoe()) {
           if (notMoving && !character->IsSliding()) {
-            character->SlideToTile(true);
-            character->Move(directional);
-           
-            // TODO: more evidence that the movement system needs redesigning. 
-            //       I shouldn't have to rely on hacks and strange behavior checks
-            if (character->IsSliding()) {
-              Audio().Play(AudioType::DIR_TILE, AudioPriority::highest);
-            }
+            character->Slide(directional, frames(3), frames(7), ActionOrder::involuntary);
           }
         }
       }
@@ -676,53 +673,61 @@ namespace Battle {
       return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());
   }
 
-  Tile& Tile::operator+(const Direction& dir)
+  Tile* Tile::operator+(const Direction& dir)
   {
     switch (dir) {
     case Direction::down:
     {
       Tile* next = field->GetAt(x, y + 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::down_left:
     {
       Tile* next = field->GetAt(x - 1, y + 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::down_right:
     {
       Tile* next = field->GetAt(x + 1, y + 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::left:
     {
       Tile* next = field->GetAt(x - 1, y);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::right:
     {
       Tile* next = field->GetAt(x + 1, y);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::up:
     {
       Tile* next = field->GetAt(x, y - 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::up_left:
     {
       Tile* next = field->GetAt(x - 1, y - 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::up_right:
     {
       Tile* next = field->GetAt(x + 1, y - 1);
-      return next ? *next : *this;
+      return next;
     }
     case Direction::none:
     default:
-      return *this;
+      return this;
+      break;
     }
+
+    return nullptr;
+  }
+
+  Tile* Tile::Offset(int x, int y)
+  {
+    return field->GetAt(this->x + x, this->y + y);
   }
 
   std::string Tile::GetAnimState(const TileState state)
@@ -826,107 +831,107 @@ namespace Battle {
     // Spells dont cause damage when the battle is over
     if (isBattleOver) return;
 
-      // Now that spells and characters have updated and moved, they are due to check for attack outcomes
-      auto characters_copy = characters; // may be modified after hitboxes are resolved
+    // Now that spells and characters have updated and moved, they are due to check for attack outcomes
+    auto characters_copy = characters; // may be modified after hitboxes are resolved
 
-      for (auto it = characters_copy.begin(); it != characters_copy.end(); ++it) {
-        // the entity is a character (can be hit) and the team isn't the same
-        // we see if it passes defense checks, then call attack
+    for (auto it = characters_copy.begin(); it != characters_copy.end(); ++it) {
+      // the entity is a character (can be hit) and the team isn't the same
+      // we see if it passes defense checks, then call attack
 
-        Character& character = *(*it);
-        bool retangible = false;
-        DefenseFrameStateJudge judge; // judge for this character's defenses
+      Character& character = *(*it);
+      bool retangible = false;
+      DefenseFrameStateJudge judge; // judge for this character's defenses
 
-        for (Entity::ID_t ID : queuedSpells) {
-          Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
+      for (Entity::ID_t ID : queuedSpells) {
+        Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
 
-          // this shouldn't happen but it does sometimes... 
-          // TODO: we need to be sure it's always right to perform static casting
-          if (!spell) continue;
+        // this shouldn't happen but it does sometimes... 
+        // TODO: we need to be sure it's always right to perform static casting
+        if (!spell) continue;
 
-          if (character.GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
-            continue;
+        if (character.GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
+          continue;
 
-          bool unknownTeams = character.GetTeam() == Team::unknown;
-          unknownTeams = unknownTeams && (spell->GetTeam() == Team::unknown);
+        bool unknownTeams = character.GetTeam() == Team::unknown;
+        unknownTeams = unknownTeams && (spell->GetTeam() == Team::unknown);
 
-          if (character.GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
-            continue;
+        if (character.GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
+          continue;
 
-          //if (unknownTeams && character.UnknownTeamResolveCollision(*spell));
-         //   continue;
+        if (unknownTeams && !character.UnknownTeamResolveCollision(*spell)) // Case: unknown vs unknown need further inspection
+          continue;
 
-          character.DefenseCheck(judge, *spell, DefenseOrder::always);
+        character.DefenseCheck(judge, *spell, DefenseOrder::always);
 
-          bool alreadyTagged = false;
+        bool alreadyTagged = false;
 
-          if (judge.IsDamageBlocked()) {
-            alreadyTagged = true;
-            // Tag the spell
-            // only ignore spells that have already hit something on a tile
-            // this is similar to the hitbox being removed in mmbn mechanics
-            taggedSpells.push_back(spell->GetID());
-          }
+        if (judge.IsDamageBlocked()) {
+          alreadyTagged = true;
+          // Tag the spell
+          // only ignore spells that have already hit something on a tile
+          // this is similar to the hitbox being removed in mmbn mechanics
+          taggedSpells.push_back(spell->GetID());
+        }
 
-          // Collision here means "we are able to hit" 
-          // either with a hitbox that can pierce a defense or by tangibility
-          auto props = spell->GetHitboxProperties();
-          if (!character.HasCollision(props)) continue;
+        // Collision here means "we are able to hit" 
+        // either with a hitbox that can pierce a defense or by tangibility
+        auto props = spell->GetHitboxProperties();
+        if (!character.HasCollision(props)) continue;
 
-          // There was a collision (not necessarilly implies damage will be done)
-          Obstacle* obst = dynamic_cast<Obstacle*>(&character); 
+        // There was a collision (not necessarilly implies damage will be done)
+        Obstacle* obst = dynamic_cast<Obstacle*>(&character); 
           
-          // If colliding with a character, always do collision effect
-          if (!obst) {
-            spell->OnCollision();
-          } else if(obst) {
-            // Obstacles can hit eachother, even on the same team
-            // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
-            bool sharesCommonAggressor = spell->GetHitboxProperties().aggressor == obst->GetHitboxProperties().aggressor;
+        // If colliding with a character, always do collision effect
+        if (!obst) {
+          spell->OnCollision(&character);
+        } else if(obst) {
+          // Obstacles can hit eachother, even on the same team
+          // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
+          bool sharesCommonAggressor = spell->GetHitboxProperties().aggressor == obst->GetHitboxProperties().aggressor;
             
-            // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
-            if (!(sharesCommonAggressor && obst->WillIgnoreCommonAggressor())) {
-              spell->OnCollision();
-            }
+          // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
+          if (!(sharesCommonAggressor && obst->WillIgnoreCommonAggressor())) {
+            spell->OnCollision(&character);
           }
+        }
 
-          if (!alreadyTagged) {
-            // If not collided by the earlier defense types, tag it now
-            // since we have a definite collision
-            taggedSpells.push_back(spell->GetID());
-          }
+        if (!alreadyTagged) {
+          // If not collided by the earlier defense types, tag it now
+          // since we have a definite collision
+          taggedSpells.push_back(spell->GetID());
+        }
 
-          // Retangible flag takes characters out of passthrough status
-          retangible = retangible || ((props.flags & Hit::retangible) == Hit::retangible);
+        // Retangible flag takes characters out of passthrough status
+        retangible = retangible || ((props.flags & Hit::retangible) == Hit::retangible);
 
-          // The spell passed at least one defense check
-          character.DefenseCheck(judge, *spell, DefenseOrder::collisionOnly);
+        // The spell passed at least one defense check
+        character.DefenseCheck(judge, *spell, DefenseOrder::collisionOnly);
 
-          if (!judge.IsDamageBlocked()) {
+        if (!judge.IsDamageBlocked()) {
 
-            // We make sure to apply any tile bonuses at this stage
-            if (GetState() == TileState::holy) {
-              auto props = spell->GetHitboxProperties();
-              props.damage /= 2;
-              spell->SetHitboxProperties(props);
-            }
-
-            // Attack() routine has Hit() which immediately subtracts HP
-            if (isTimeFrozen) {
-              auto props = spell->GetHitboxProperties();
-              props.flags |= Hit::shake;
-              spell->SetHitboxProperties(props);
-            }
-
-            spell->Attack(&character);
+          // We make sure to apply any tile bonuses at this stage
+          if (GetState() == TileState::holy) {
+            auto props = spell->GetHitboxProperties();
+            props.damage /= 2;
             spell->SetHitboxProperties(props);
           }
 
-          judge.PrepareForNextAttack();
-      } // end each spell loop
+          // Attack() routine has Hit() which immediately subtracts HP
+          if (isTimeFrozen) {
+            auto props = spell->GetHitboxProperties();
+            props.flags |= Hit::shake;
+            spell->SetHitboxProperties(props);
+          }
 
-      judge.ExecuteAllTriggers();
-      if (retangible) character.SetPassthrough(false);
+          spell->Attack(&character);
+          spell->SetHitboxProperties(props);
+        }
+
+        judge.PrepareForNextAttack();
+    } // end each spell loop
+
+    judge.ExecuteAllTriggers();
+    if (retangible) character.SetPassthrough(false);
     } // end each character loop
 
     // empty previous frame queue to be used this current frame
@@ -964,7 +969,6 @@ namespace Battle {
       if (!(*entity)->IsTimeFrozen()) {
         // Allow user input to move them out of tiles if they are frame perfect
         field->UpdateEntityOnce(*entity, elapsed);
-        HandleTileBehaviors(*entity);
       }
     }
   }

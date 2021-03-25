@@ -25,7 +25,7 @@ class CardSelectBattleState final : public BattleSceneState {
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
   bool pvpMode{ false };
-  bool hasCombo{ false }; 
+  bool hasNewChips{ false }; 
   bool formSelected{ false };
   int currForm{ -1 };
   int cardCount{ 0 }; /*!< Length of card list */
@@ -48,7 +48,7 @@ public:
   void EnablePVPMode();
   bool OKIsPressed();
   bool HasForm();
-  const bool HasCombo();
+  const bool SelectedNewChips();
   void ResetSelectedForm();
   CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
 };
