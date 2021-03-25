@@ -189,8 +189,7 @@ void Animation::LoadWithData(const string& data)
       frameLists[frameAnimationIndex].SetPoint(pointName, x, y);
     }
 
-    data = data.substr(1ull + endline);
-  } while (endline > -1);
+  } while (endLine < data.length());
 
   // One more addAnimation to do if file is good
   if (frameAnimationIndex >= 0) {
