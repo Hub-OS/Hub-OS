@@ -1181,7 +1181,7 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 }
 
 bool Overworld::SceneBase::IsInputLocked() {
-  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene || showMinimap;
+  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene || showMinimap || !teleportController.IsComplete();
 }
 
 void Overworld::SceneBase::LockInput() {

@@ -918,7 +918,6 @@ void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, con
 {
   bool warpOut = reader.Read<bool>(buffer);
 
-  LockInput();
   isConnected = false;
   excludedObjects.clear();
   removePlayers.clear();
@@ -928,11 +927,7 @@ void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, con
   }
 
   if (warpOut) {
-    auto& command = GetTeleportController().TeleportOut(GetPlayer());
-
-    command.onFinish.Slot([=](){
-      UnlockInput();
-    });
+    GetTeleportController().TeleportOut(GetPlayer());
   }
 }
 
@@ -946,7 +941,6 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
     GetTeleportController().TeleportIn(player, player->Get3DPosition(), Orthographic(direction));
   }
 
-  UnlockInput();
   isConnected = true;
   sendReadySignal();
 }
