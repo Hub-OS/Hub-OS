@@ -53,6 +53,8 @@ Forte::Forte() : Player()
   SlideWhenMoving(true, frames(4));
 
   chargeEffect.SetFullyChargedColor(sf::Color::Magenta);
+
+  CreateMoveAnimHash();
 }
 
 Forte::~Forte()

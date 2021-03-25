@@ -20,6 +20,8 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
     return;
   }
 
+  metal.canEnterRedTeam = true;
+
   auto anim = metal.GetFirstComponent<AnimationComponent>();
 
   auto nextTile = metal.GetField()->GetAt(tile->GetX() + 1, tile->GetY());
@@ -62,7 +64,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
 void MetalManPunchState::OnLeave(MetalMan& metal) {
   auto anim = metal.GetFirstComponent<AnimationComponent>();
   anim->SetAnimation("IDLE");
-
+  metal.canEnterRedTeam = false;
 }
 
 void MetalManPunchState::OnUpdate(double _elapsed, MetalMan& metal) {

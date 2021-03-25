@@ -583,7 +583,8 @@ namespace Battle {
       if (directional != Direction::none) {
         if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
           if (!obst->IsSliding() && notMoving) {
-            obst->Slide(directional, frames(3), frames(7), ActionOrder::involuntary);
+            MoveEvent event{ frames(3), frames(0), frames(0), 0, obst->GetTile() + directional };
+            obst->Entity::RawMoveEvent(event, ActionOrder::involuntary);
           }
         }
       }
@@ -648,7 +649,8 @@ namespace Battle {
         auto notMoving = !character->IsMoving();
         if (!character->HasAirShoe() && !character->HasFloatShoe()) {
           if (notMoving && !character->IsSliding()) {
-            character->Slide(directional, frames(3), frames(7), ActionOrder::involuntary);
+            MoveEvent event{ frames(3), frames(0), frames(0), 0, character->GetTile() + directional };
+            character->RawMoveEvent(event, ActionOrder::involuntary);
           }
         }
       }

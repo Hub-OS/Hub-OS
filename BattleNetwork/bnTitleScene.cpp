@@ -26,11 +26,15 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   LoaderScene(controller, std::move(tasks))
 {
   // Title screen logo based on region
-#if ONB_REGION_JAPAN
-  std::shared_ptr<sf::Texture> logo = Textures().LoadTextureFromFile("resources/scenes/title/tile.png");
-#else
-  std::shared_ptr<sf::Texture> logo = Textures().LoadTextureFromFile("resources/scenes/title/tile_en.png");
-#endif
+  std::shared_ptr<sf::Texture> logo;
+  
+  if (getController().CommandLineValue<std::string>("locale") == "jp") {
+    logo = Textures().LoadTextureFromFile("resources/scenes/title/tile.png");
+  }
+  else {
+    logo = Textures().LoadTextureFromFile("resources/scenes/title/tile_en.png");
+  }
+
 
   bgSprite.setTexture(Textures().LoadTextureFromFile("resources/scenes/title/bg_blue.png"));
   bgSprite.setScale(2.f, 2.f);

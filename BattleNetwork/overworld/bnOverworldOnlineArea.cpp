@@ -182,29 +182,42 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   }
 
   auto& window = getController().getWindow();
-  auto viewport = window.getViewport(window.getView());
-  auto viewportOffset = sf::Vector2i(viewport.left, viewport.top);
+  auto viewport = window.getViewport(getView());
+  auto vsize = getController().getVirtualWindowSize();
+  auto windowScale = sf::Vector2f((float)vsize.x / (float)viewport.width, (float)vsize.y / (float)viewport.height);
+  auto mousei = sf::Mouse::getPosition(window);
+  auto mousef = sf::Vector2f(mousei.x * windowScale.x, mousei.y * windowScale.y);
 
   auto cameraView = GetCamera().GetView();
   auto cameraCenter = cameraView.getCenter();
+  auto offset = getView().getCenter() - cameraCenter;
   auto mapScale = GetMap().getScale();
-  cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
-  cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
-  cameraView.setCenter(cameraCenter);
+  //cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
+  //cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
+  //cameraView.setCenter(cameraCenter);
 
-  // todo: mouse position is still read incorrectly when the window is resized
-  auto mouse = surface.mapPixelToCoords(sf::Mouse::getPosition(window) - viewportOffset, cameraView);
+  //auto mouseWorld = sf::Vector2f(mousef.x / (float)viewport.width, mousef.y / (float)viewport.height);
+  //mouseWorld = sf::Vector2f(mouseWorld.x * cameraView.getSize().x, mouseWorld.x * cameraView.getSize().y);
+  auto mouseWorld = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
+  mouseWorld = GetMap().WorldToScreen(mouseWorld);
 
   for (auto& pair : onlinePlayers) {
     auto& onlinePlayer = pair.second;
 
-    if (isMouseHovering(mouse, *onlinePlayer.actor)) {
-      nameText.setPosition(mouse - cameraView.getCenter() + cameraView.getSize() / 2.f);
+    if (IsMouseHovering(mouseWorld, *onlinePlayer.actor)) {
+      nameText.setPosition(mousef);
       nameText.SetString(onlinePlayer.actor->GetName());
       nameText.setOrigin(-10.0f, 0);
       surface.draw(nameText);
       break;
     }
+  }
+
+  if (IsMouseHovering(mouseWorld, *playerActor)) {
+    nameText.setPosition(mousef);
+    nameText.SetString(playerActor->GetName());
+    nameText.setOrigin(-10.0f, 0);
+    surface.draw(nameText);
   }
 }
 
@@ -461,7 +474,12 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t h
 
 void Overworld::OnlineArea::sendLoginSignal()
 {
-  std::string username = "James";
+  std::string username = WEBCLIENT.GetUserName();
+
+  if (username.empty()) {
+    username = "Anon";
+  }
+
   std::string password = ""; // No servers need passwords at this time
 
   Poco::Buffer<char> buffer{ 0 };
@@ -1249,28 +1267,6 @@ void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const P
 void Overworld::OnlineArea::leave() {
   using effect = segue<PixelateBlackWashFade>;
   getController().pop<effect>();
-}
-
-const bool Overworld::OnlineArea::isMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src)
-{
-  auto textureRect = src.getSprite().getTextureRect();
-
-  auto& map = GetMap();
-  auto tileSize = map.GetTileSize();
-  auto& scale = map.getScale();
-
-  auto position = src.getPosition();
-  auto screenPosition = map.WorldToScreen(position);
-  screenPosition.y -= src.GetElevation() * tileSize.y / 2.0f;
-
-  auto bounds = sf::FloatRect(
-    (screenPosition.x - (float)(textureRect.width / 2)) * scale.x,
-    (screenPosition.y - textureRect.height) * scale.y,
-    textureRect.width * scale.x,
-    textureRect.height * scale.y
-  );
-
-  return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
 
 const double Overworld::OnlineArea::calculatePlayerLag(OnlinePlayer& player, double nextLag)

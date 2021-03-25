@@ -353,6 +353,13 @@ void Entity::FinishMove()
   }
 }
 
+void Entity::RawMoveEvent(const MoveEvent& event, ActionOrder order)
+{
+  if (event.dest) {
+    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
+  }
+}
+
 void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec)
 {
   if (exec == ActionQueue::ExecutionType::interrupt) {

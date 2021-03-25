@@ -29,7 +29,7 @@ CardAction* Protoman::OnExecuteSpecialAction() {
   auto* action = new ReflectCardAction(*this, 20, ReflectShield::Type::red);
   action->SetLockout({
     CardAction::LockoutType::async,
-    seconds_cast<double>(frames(40))
+    seconds_cast<double>(frames(80))
   });
   action->SetDuration(frames(21));
 
@@ -52,6 +52,8 @@ Protoman::Protoman() : Player()
   SetHealth(1000);
 
   chargeEffect.SetFullyChargedColor(sf::Color::White);
+
+  CreateMoveAnimHash();
 }
 
 Protoman::~Protoman()

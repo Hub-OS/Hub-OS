@@ -38,6 +38,7 @@ namespace Overworld {
     int health{}, maxHealth{}; //!< Health displayed by main character
     int monies{}; //!< monies held by main character
     float opacity{}; //!< Background darkens
+    double elapsedThisFrame{};
     bool selectExit{ false }; //!< If exit option is selected
     bool extendedHold{ false }; //!< If player holds the arrow keys down
     state currState{}; //!< Track all open/close states. Default is closed

@@ -28,7 +28,9 @@ Roll::Roll() : Player()
 
   SetHealth(1000);
 
-  SetFloatShoe(true);
+  SetFloatShoe(true);  
+  
+  CreateMoveAnimHash();
 }
 
 const float Roll::GetHeight() const

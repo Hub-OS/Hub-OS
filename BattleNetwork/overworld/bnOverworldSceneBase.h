@@ -36,7 +36,7 @@ class Background; // forward decl
 
 namespace Overworld {
   class SceneBase : public Scene {
-  private:
+  public:
     std::shared_ptr<Actor> playerActor;
     Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
@@ -111,6 +111,7 @@ namespace Overworld {
     virtual std::string GetText(const std::string& path);
     virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
     virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
+    const bool IsMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src);
 
   public:
 

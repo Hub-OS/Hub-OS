@@ -24,6 +24,9 @@ namespace Overworld {
     lol,
     yes,
     no,
+    vomit,
+    cool,
+    uncool,
     size
   };
 

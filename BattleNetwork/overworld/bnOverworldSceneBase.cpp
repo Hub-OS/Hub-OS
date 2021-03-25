@@ -572,8 +572,8 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
   auto elevation = (float)index;
 
   for (auto& sprite : spriteLayers[index]) {
-    const auto& worldPos = sprite->getPosition();
-    auto screenPos = map.WorldToScreen(worldPos);
+    const sf::Vector2f worldPos = sprite->getPosition();
+    sf::Vector2f screenPos = map.WorldToScreen(worldPos);
     screenPos.y -= (sprite->GetElevation() - elevation) * tileSize.y * 0.5f;
 
     // prevents blurring and camera jittering with the player
@@ -582,7 +582,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
 
     sprite->setPosition(screenPos);
 
-    if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
+    if (/*cam && cam->IsInView(sprite->getSprite())*/ true) { 
       target.draw(*sprite, states);
     }
 
@@ -1401,6 +1401,29 @@ std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vect
 
   return { y, x };
 }
+
+const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src)
+{
+  auto textureRect = src.getSprite().getTextureRect();
+
+  auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
+  auto& scale = map.getScale();
+
+  auto position = src.getPosition();
+  auto screenPosition = map.WorldToScreen(position);
+  screenPosition.y -= src.GetElevation() * tileSize.y / 2.0f;
+
+  auto bounds = sf::FloatRect(
+    (screenPosition.x - (float)(textureRect.width / 2)) * scale.x,
+    (screenPosition.y - textureRect.height) * scale.y,
+    textureRect.width * scale.x,
+    textureRect.height * scale.y
+  );
+
+  return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
+}
+
 
 #ifdef __ANDROID__
 void Overworld::SceneBase::StartupTouchControls() {

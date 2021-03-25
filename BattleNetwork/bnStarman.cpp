@@ -28,6 +28,8 @@ Starman::Starman() : Player()
 
   // Starman has FloatShoe enabled
   SetFloatShoe(true);
+
+  CreateMoveAnimHash();
 }
 
 Starman::~Starman() {

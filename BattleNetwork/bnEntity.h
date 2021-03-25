@@ -151,6 +151,7 @@ public:
   bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
   bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
   void FinishMove();
+  void RawMoveEvent(const MoveEvent& event, ActionOrder order = ActionOrder::voluntary);
   void HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec);
   void ClearActionQueue();
   virtual void FilterMoveEvent(MoveEvent& event) {};

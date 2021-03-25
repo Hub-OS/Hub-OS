@@ -285,6 +285,8 @@ namespace Overworld {
 
     if (!IsOpen()) return;
 
+    elapsedThisFrame = elapsed;
+
     // loop over options
     for (size_t i = 0; i < optionsList.size(); i++) {
       if (i == row && selectExit == false) {
@@ -328,6 +330,8 @@ namespace Overworld {
     if (!IsOpen()) {
       return;
     }
+
+    selectInputCooldown -= this->elapsedThisFrame;
 
     if (input.Has(InputEvents::pressed_ui_up) || input.Has(InputEvents::held_ui_up)) {
       if (selectInputCooldown <= 0) {

@@ -49,6 +49,5 @@ private:
   float hitHeight; /*!< Hit height of metalman */
   string state; /*!< current animation name */
   MobHealthUI* healthUI; /*!< Health ui component */
-
-  bool movedByStun; /*!< If metalman was stunned outside of this area, move him back to his space */
+  bool canEnterRedTeam{};
 };

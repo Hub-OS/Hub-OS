@@ -81,15 +81,10 @@ MetalMan::MetalMan(Rank _rank)
   virusBody = new DefenseVirusBody();
   AddDefenseRule(virusBody);
 
-  // TODO: take this out
-  // multi-move attacks (like punch) will have a destination tile
-  movedByStun = false;
-
   auto stun = [this]() {
-    // TODO: this this code will be moved because this should have a destination tile
-    //       which should automatically move to via combat system
     if (!Teammate(GetTile()->GetTeam())) {
-      movedByStun = true;
+      MoveEvent event = { 0, 0, frames(3), 0, GetField()->GetAt(6, 2) };
+      actionQueue.Add(event, ActionOrder::immediate, ActionDiscardOp::until_resolve);
     }
   };
 
@@ -103,7 +98,9 @@ MetalMan::~MetalMan() {
 bool MetalMan::CanMoveTo(Battle::Tile * next)
 {
   if (!next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && !next->IsEdgeTile()) {
-    return true;
+    if (next->GetTeam() != GetTeam() && canEnterRedTeam) {
+      return true;
+    }
   }
 
   return false;
