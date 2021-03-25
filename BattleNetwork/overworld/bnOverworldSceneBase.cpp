@@ -470,7 +470,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 }
 
 void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
-  auto& mapScale = GetMap().getScale();
+  const auto& mapScale = GetMap().getScale();
   sf::Vector2f cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
   cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
@@ -527,7 +527,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       auto& tileSprite = tileMeta->sprite;
       auto spriteBounds = tileSprite.getLocalBounds();
 
-      auto& originalOrigin = tileSprite.getOrigin();
+      const auto& originalOrigin = tileSprite.getOrigin();
       tileSprite.setOrigin(sf::Vector2f(sf::Vector2i(
         (int)spriteBounds.width / 2,
         tileSize.y / 2
@@ -572,7 +572,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
   auto elevation = (float)index;
 
   for (auto& sprite : spriteLayers[index]) {
-    auto& worldPos = sprite->getPosition();
+    const auto& worldPos = sprite->getPosition();
     auto screenPos = map.WorldToScreen(worldPos);
     screenPos.y -= (sprite->GetElevation() - elevation) * tileSize.y * 0.5f;
 

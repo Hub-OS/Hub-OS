@@ -2,8 +2,7 @@
 #include "bnOverworldMap.h"
 #include <cmath>
 
-Overworld::Actor::Actor(const std::string& name) :
-  name(name)
+Overworld::Actor::Actor(const std::string& name) : name(name)
 {
 
 }
@@ -388,7 +387,7 @@ static int GetTargetLayer(Overworld::Map& map, int currentLayer, float layerRela
 }
 
 const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f newPos, Map& map, SpatialMap& spatialMap) {
-  auto currPos = getPosition();
+  const auto& currPos = getPosition();
   auto currPos3D = sf::Vector3f(currPos.x, currPos.y, GetElevation());
   auto layerRelativeElevation = currPos3D.z - std::floor(currPos3D.z);
 
