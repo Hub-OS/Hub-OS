@@ -1,20 +1,18 @@
 #include "bnOverworldPersonalMenu.h"
+#include <Swoosh/Ease.h>
 #include "../bnDrawWindow.h"
 #include "../bnTextureResourceManager.h"
-
-#include <Swoosh/Ease.h>
+#include "../bnAudioResourceManager.h"
 
 namespace Overworld {
   PersonalMenu::PersonalMenu(const std::string& area, const PersonalMenu::OptionsList& options) :
     optionsList(options),
-    font(Font::Style::thick),
-    infoText(font),
-    areaLabel(font)
+    infoText(Font::Style::thin),
+    areaLabel(Font::Style::thin),
+    areaLabelThick(Font::Style::thick)
   {
     // Load resources
-    areaLabel.SetFont(font);
     areaLabel.setPosition(127, 119);
-    //areaLabel.setScale(sf::Vector2f(2.0f, 2.0f));
     infoText = areaLabel;
 
     widgetTexture = Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png");
@@ -72,7 +70,6 @@ namespace Overworld {
     // Set name
     SetArea(area);
 
-      // Selection input delays
     maxSelectInputCooldown = 0.5; // half of a second
     selectInputCooldown = maxSelectInputCooldown;
   }
@@ -123,134 +120,134 @@ namespace Overworld {
 
     auto& t0f = easeInTimer.at(frames(0));
 
-    t0f.doTask([=](double elapsed) {
-      this->opacity = ease::linear(static_cast<float>(elapsed), seconds_cast<float>(frames(14)), 1.0f);
-    }).withDuration(frames(14));
+    t0f.doTask([=](sf::Time elapsed) {
+      this->opacity = ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(14)), 1.0f);
+      }).withDuration(frames(14));
 
-    t0f.doTask([=](double elapsed) {
-      float x = ease::linear(static_cast<float>(elapsed), milli_cast<float>(frames(8)), 1.0f);
-      this->banner.setPosition((1.0f - x) * -this->banner.getSprite().getLocalBounds().width, 0);
-    }).withDuration(frames(8));
+      t0f.doTask([=](sf::Time elapsed) {
+        float x = ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(8)), 1.0f);
+        this->banner.setPosition((1.0f - x) * -this->banner.getSprite().getLocalBounds().width, 0);
+        }).withDuration(frames(8));
 
-    if (state == PersonalMenu::state::closing) {
-      t0f.doTask([=](double elapsed) {
-        currState = state::closed;
-      });
+        if (state == PersonalMenu::state::closing) {
+          t0f.doTask([=](sf::Time elapsed) {
+            currState = state::closed;
+            });
 
-      t0f.doTask([=](double elapsed) {
-        for (size_t i = 0; i < options.size(); i++) {
+          t0f.doTask([=](sf::Time elapsed) {
+            for (size_t i = 0; i < options.size(); i++) {
 
-          //
-          // labels (menu options)
-          //
+              //
+              // labels (menu options)
+              //
 
-          float x = ease::linear(static_cast<float>(elapsed), seconds_cast<float>(frames(20)), 1.0f);
-          float start = 36;
-          float dest = -(options[i]->getLocalBounds().width + start); // our destination
+              float x = ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(20)), 1.0f);
+              float start = 36;
+              float dest = -(options[i]->getLocalBounds().width + start); // our destination
 
-          // lerp to our hiding spot
-          options[i]->setPosition(dest * (1.0f - x) + (x * start), options[i]->getPosition().y);
+              // lerp to our hiding spot
+              options[i]->setPosition(dest * (1.0f - x) + (x * start), options[i]->getPosition().y);
 
-          //
-          // icons
-          //
-          start = 16;
-          dest = dest - start; // our destination is calculated from the previous label's pos
+              //
+              // icons
+              //
+              start = 16;
+              dest = dest - start; // our destination is calculated from the previous label's pos
 
-          // lerp to our hiding spot
-          optionIcons[i]->setPosition(dest * (1.0f - x) + (x * start), optionIcons[i]->getPosition().y);
-        }
-      }).withDuration(frames(20));
-    }
-
-    //
-    // These tasks begin at the 8th frame
-    //
-
-    auto& t8f = easeInTimer.at(frames(8));
-
-    if (state == PersonalMenu::state::opening) {
-      t8f.doTask([=](double elapsed) {
-        placeTextSpr.Reveal();
-        selectTextSpr.Reveal();
-        exit.Reveal();
-
-        for (auto&& opts : options) {
-          opts->Reveal();
+              // lerp to our hiding spot
+              optionIcons[i]->setPosition(dest * (1.0f - x) + (x * start), optionIcons[i]->getPosition().y);
+            }
+            }).withDuration(frames(20));
         }
 
-        for (auto&& opts : optionIcons) {
-          opts->Reveal();
+        //
+        // These tasks begin at the 8th frame
+        //
+
+        auto& t8f = easeInTimer.at(frames(8));
+
+        if (state == PersonalMenu::state::opening) {
+          t8f.doTask([=](sf::Time elapsed) {
+            placeTextSpr.Reveal();
+            selectTextSpr.Reveal();
+            exit.Reveal();
+
+            for (auto&& opts : options) {
+              opts->Reveal();
+            }
+
+            for (auto&& opts : optionIcons) {
+              opts->Reveal();
+            }
+            });
+
+          t8f.doTask([=](sf::Time elapsed) {
+            for (size_t i = 0; i < options.size(); i++) {
+              float y = static_cast<float>(ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(12)), 1.0f));
+              options[i]->setPosition(36, 26 + (y * (i * 16)));
+              optionIcons[i]->setPosition(16, 26 + (y * (i * 16)));
+            }
+            }).withDuration(frames(12));
         }
-      });
+        else {
+          t8f.doTask([=](sf::Time elapsed) {
+            placeTextSpr.Hide();
+            selectTextSpr.Hide();
+            exit.Hide();
 
-      t8f.doTask([=](double elapsed) {
-        for (size_t i = 0; i < options.size(); i++) {
-          float y = static_cast<float>(ease::linear(elapsed, milli_cast<double>(frames(12)), 1.0));
-          options[i]->setPosition(36, 26 + (y * (i * 16)));
-          optionIcons[i]->setPosition(16, 26 + (y * (i * 16)));
-        }
-      }).withDuration(frames(12));
-    }
-    else {
-      t8f.doTask([=](double elapsed) {
-        placeTextSpr.Hide();
-        selectTextSpr.Hide();
-        exit.Hide();
+            //infobox task handles showing, but we need to hide if closing
+            infoBox.Hide();
 
-        //infobox task handles showing, but we need to hide if closing
-        infoBox.Hide();
+            for (auto&& opts : options) {
+              opts->Hide();
+            }
 
-        for (auto&& opts : options) {
-          opts->Hide();
+
+            for (auto&& opts : optionIcons) {
+              opts->Hide();
+            }
+            });
         }
 
+        t8f.doTask([=](sf::Time elapsed) {
+          float x = 1.0f - ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(6)), 1.0f);
+          exit.setPosition(130 + (x * 200), exit.getPosition().y);
+          }).withDuration(frames(6));
 
-        for (auto&& opts : optionIcons) {
-          opts->Hide();
-        }
-      });
-    }
+          t8f.doTask([=](sf::Time elapsed) {
+            std::string printName = areaName;
 
-    t8f.doTask([=](double elapsed) {
-      float x = 1.0f - ease::linear(static_cast<float>(elapsed), milli_cast<float>(frames(6)), 1.0f);
-      exit.setPosition(130 + (x * 200), exit.getPosition().y);
-    }).withDuration(frames(6));
+            while (printName.size() < 12) {
+              printName = "_" + printName; // add underscore brackets to output text
+            }
 
-    t8f.doTask([=](double elapsed) {
-      std::string printName = areaName;
+            size_t offset = static_cast<size_t>(12 * ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(2)), 1.0f));
+            std::string substr = printName.substr(0, offset);
+            areaLabel.SetString(substr);
+            }).withDuration(frames(2));
 
-      while (printName.size() < 12) {
-        printName += "_"; // add underscore brackets to output text
-      }
+            //
+            // These tasks begin on the 14th frame
+            //
 
-      size_t offset = static_cast<size_t>(12 * ease::linear(elapsed, milli_cast<double>(frames(2)), 1.0));
-      std::string substr = printName.substr(0, offset);
-      areaLabel.SetString(substr);
-    }).withDuration(frames(2));
+            easeInTimer
+              .at(time_cast<sf::Time>(frames(14)))
+              .doTask([=](sf::Time elapsed) {
+              infoBox.Reveal();
+              infoBoxAnim.SyncTime(static_cast<float>(elapsed.asSeconds()));
+              infoBoxAnim.Refresh(infoBox.getSprite());
+                }).withDuration(frames(4));
 
-    //
-    // These tasks begin on the 14th frame
-    //
-
-    easeInTimer
-      .at(time_cast<sf::Time>(frames(14)))
-      .doTask([=](double elapsed) {
-      infoBox.Reveal();
-      infoBoxAnim.SyncTime(static_cast<float>(elapsed) / 1000.0f);
-      infoBoxAnim.Refresh(infoBox.getSprite());
-    }).withDuration(frames(4));
-
-    //
-    // on frame 20 change state flag
-    //
-    if (state == PersonalMenu::state::opening) {
-      easeInTimer
-        .at(frames(20))
-        .doTask([=](double elapsed) {
-        currState = state::opened;
-      });
-    }
+                //
+                // on frame 20 change state flag
+                //
+                if (state == PersonalMenu::state::opening) {
+                  easeInTimer
+                    .at(frames(20))
+                    .doTask([=](sf::Time elapsed) {
+                    currState = state::opened;
+                      });
+                }
   }
 
   void PersonalMenu::CreateOptions()
@@ -288,8 +285,6 @@ namespace Overworld {
 
     if (!IsOpen()) return;
 
-    selectInputCooldown -= elapsed;
-
     // loop over options
     for (size_t i = 0; i < optionsList.size(); i++) {
       if (i == row && selectExit == false) {
@@ -300,7 +295,7 @@ namespace Overworld {
         optionAnim << optionsList[i].name;
         optionAnim.SetFrame(2, optionIcons[i]->getSprite());
 
-        auto pos = optionIcons[i]->getPosition();
+        const auto& pos = optionIcons[i]->getPosition();
         float delta = ease::interpolate(0.5f, pos.x, 20.0f + 5.0f);
         optionIcons[i]->setPosition(delta, pos.y);
       }
@@ -312,7 +307,7 @@ namespace Overworld {
         optionAnim << optionsList[i].name;
         optionAnim.SetFrame(1, optionIcons[i]->getSprite());
 
-        auto pos = optionIcons[i]->getPosition();
+        const auto& pos = optionIcons[i]->getPosition();
         float delta = ease::interpolate(0.5f, pos.x, 16.0f);
         optionIcons[i]->setPosition(delta, pos.y);
       }
@@ -398,6 +393,7 @@ namespace Overworld {
     }
   }
 
+
   void PersonalMenu::draw(sf::RenderTarget& target, sf::RenderStates states) const
   {
     if (IsHidden()) return;
@@ -406,6 +402,15 @@ namespace Overworld {
 
     if (IsClosed()) {
       target.draw(icon, states);
+
+      auto& pos = areaLabelThick.getPosition();
+      areaLabelThick.SetColor(sf::Color(105, 105, 105));
+      areaLabelThick.setPosition(pos.x + 1.f, pos.y + 1.f);
+      target.draw(areaLabelThick, states);
+
+      areaLabelThick.setPosition(pos);
+      areaLabelThick.SetColor(sf::Color::White);
+      target.draw(areaLabelThick, states);
     }
     else {
       // draw black square to darken bg
@@ -417,26 +422,26 @@ namespace Overworld {
       // draw all child nodes
       SceneNode::draw(target, states);
 
+      auto shadowColor = sf::Color(16, 82, 107, 255);
+
+      // area text
+      const auto& pos = areaLabel.getPosition();
+      Text copyAreaLabel = areaLabel;
+      copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
+      copyAreaLabel.SetColor(shadowColor);
+      target.draw(copyAreaLabel, states);
+      target.draw(areaLabel, states);
+
       if (IsOpen()) {
-        auto shadowColor = sf::Color(16, 82, 107, 255);
-
-        // area text
-        auto pos = areaLabel.getPosition();
-        auto copyAreaLabel = areaLabel;
-        copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
-        copyAreaLabel.SetColor(shadowColor);
-        target.draw(copyAreaLabel, states);
-        target.draw(areaLabel, states);
-
         // hp shadow
         infoText.SetString(std::to_string(health));
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
         infoText.SetColor(shadowColor);
-        infoText.setPosition(174 + 1, 36 + 1);
+        infoText.setPosition(174 + 1, 33 + 1);
         target.draw(infoText, states);
 
         // hp text
-        infoText.setPosition(174, 36);
+        infoText.setPosition(174, 33);
         infoText.SetColor(sf::Color::White);
         target.draw(infoText, states);
 
@@ -444,11 +449,11 @@ namespace Overworld {
         infoText.SetString("/");
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
         infoText.SetColor(shadowColor);
-        infoText.setPosition(182 + 1, 36 + 1);
+        infoText.setPosition(182 + 1, 33 + 1);
         target.draw(infoText, states);
 
         // "/"
-        infoText.setPosition(182, 36);
+        infoText.setPosition(182, 33);
         infoText.SetColor(sf::Color::White);
         target.draw(infoText, states);
 
@@ -457,23 +462,23 @@ namespace Overworld {
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
         infoText.SetColor(shadowColor);
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-        infoText.setPosition(214 + 1, 36 + 1);
+        infoText.setPosition(214 + 1, 33 + 1);
         target.draw(infoText, states);
 
         // max hp 
-        infoText.setPosition(214, 36);
+        infoText.setPosition(214, 33);
         infoText.SetColor(sf::Color::White);
         target.draw(infoText, states);
 
         // coins shadow
         infoText.SetColor(shadowColor);
-        infoText.SetString(std::to_string(coins) + "z");
+        infoText.SetString(std::to_string(monies) + "z");
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-        infoText.setPosition(214 + 1, 60 + 1);
+        infoText.setPosition(214 + 1, 57 + 1);
         target.draw(infoText, states);
 
         // coins
-        infoText.setPosition(214, 60);
+        infoText.setPosition(214, 57);
         infoText.SetColor(sf::Color::White);
         target.draw(infoText, states);
       }
@@ -482,12 +487,22 @@ namespace Overworld {
 
   void PersonalMenu::SetArea(const std::string& name)
   {
+    auto& bounds = areaLabelThick.GetLocalBounds();
     areaName = name;
+
+    std::string printName = name;
+    while (printName.size() < 12) {
+      printName = "_" + printName; // add underscore brackets to output text
+    }
+
+    areaLabelThick.SetString(printName);
+    areaLabelThick.setOrigin(bounds.width, bounds.height);
+    areaLabelThick.setPosition(240 - 1.f, 160 - 2.f);
   }
 
-  void PersonalMenu::SetCoins(int coins)
+  void PersonalMenu::SetMonies(int amt)
   {
-    PersonalMenu::coins = coins;
+    PersonalMenu::monies = std::max(0, amt);
   }
 
   void PersonalMenu::SetHealth(int health)
@@ -521,7 +536,7 @@ namespace Overworld {
       return Close();
     }
     else {
-      auto func = optionsList[row].onSelectFunc;
+      auto& func = optionsList[row].onSelectFunc;
 
       if (func) {
         func();

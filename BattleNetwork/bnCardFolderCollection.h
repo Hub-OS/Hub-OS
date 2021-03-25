@@ -225,7 +225,7 @@ public:
         }
       }
 
-      data = data.substr(static_cast<size_t>(endline + 1));
+      data = data.substr(static_cast<size_t>(endline) + 1);
     } while (endline > -1);
 
     return collection;

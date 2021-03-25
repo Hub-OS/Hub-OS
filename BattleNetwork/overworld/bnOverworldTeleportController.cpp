@@ -71,7 +71,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
   actor->Set3DPosition(start);
   this->beam->Set3DPosition(start);
 
-  this->sequence.push(Command{ Command::state::teleport_in, actor.GetWalkSpeed() });
+  this->sequence.push(Command{ Command::state::teleport_in, actor->GetWalkSpeed() });
   return this->sequence.back();
 }
 

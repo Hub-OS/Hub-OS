@@ -283,7 +283,6 @@ void Overworld::Homepage::onStart()
   SceneBase::onStart();
 
   Audio().Stream("resources/loops/loop_overworld.ogg", false);
-  SceneBase::EnableNetWarps(false);
   infocus = true;
 }
 

@@ -7,18 +7,16 @@
 #include "../bnSpriteProxyNode.h"
 #include "../bnAnimation.h"
 #include "../bnResourceHandle.h"
-#include "../bnAudioResourceManager.h"
 #include "../bnFont.h"
 #include "../bnText.h"
 
 namespace Overworld {
-
-/**
- * @class PersonalMenu
- * @author mav
- * @date 11/04/20
- * @brief PersonalMenu used in over-world hub. Can be interacted through public API.
- */
+  /**
+   * @class PersonalMenu
+   * @author mav
+   * @date 11/04/20
+   * @brief PersonalMenu used in over-world hub. Can be interacted through public API.
+   */
   class PersonalMenu : public SceneNode, public ResourceHandle {
   public:
     enum class state : unsigned {
@@ -38,16 +36,16 @@ namespace Overworld {
   private:
     int row{ 0 }; //!< Current row index
     int health{}, maxHealth{}; //!< Health displayed by main character
-    int coins{}; //!< Coins held by main character
+    int monies{}; //!< monies held by main character
     float opacity{}; //!< Background darkens
     bool selectExit{ false }; //!< If exit option is selected
     bool extendedHold{ false }; //!< If player holds the arrow keys down
     state currState{}; //!< Track all open/close states. Default is closed
     std::string areaName; //!< Area name typed out
-    Font font; //!< Used by text
     std::shared_ptr<sf::Texture> iconTexture; //!< If supplying an icon, use this one
     std::shared_ptr<sf::Texture> widgetTexture; //!< texture used by widget
-    Text areaLabel; //!< Area name displayed in widget
+    Text areaLabel; //!< Area name displayed by widget
+    mutable Text areaLabelThick; //!< Thick area name displayed outside of widget
     mutable Text infoText; //!< Text obj used for all other info
     swoosh::Timer easeInTimer; //!< Timer used for animations
     SpriteProxyNode banner;
@@ -65,8 +63,8 @@ namespace Overworld {
     Animation exitAnim;
 
     // Selection input delays
-    double maxSelectInputCooldown; /*!< Maximum delay */
-    double selectInputCooldown; /*!< timer to allow key presses again */
+    double maxSelectInputCooldown{}; /*!< Maximum delay */
+    double selectInputCooldown{}; /*!< timer to allow key presses again */
 
     void QueueAnimTasks(const state& state);
     void CreateOptions();
@@ -83,10 +81,15 @@ namespace Overworld {
     ~PersonalMenu();
 
     /**
-     * @brief Animators cursors and all animations
-     * @param elapsed in seconds
-     */
+    * @brief Animators cursors and all animations
+    * @param elapsed in seconds
+    */
     void Update(double elapsed);
+
+    /**
+    * @brief handles specific key presses to interact with this widget
+    * @param 
+    */
     void HandleInput(InputManager&, AudioResourceManager&);
 
     /**
@@ -106,9 +109,11 @@ namespace Overworld {
 
     /**
     * @brief Set the numer of coins to display
-    * @param coins Integer of coins
+    * @param coins Positive integer of coins.
+    *
+    * If not positive, will cap at zero.
     */
-    void SetCoins(int coins);
+    void SetMonies(int amt);
 
     /**
     * @brief Set the health to display e.g. (health / 100)

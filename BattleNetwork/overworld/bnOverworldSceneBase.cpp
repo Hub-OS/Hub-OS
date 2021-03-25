@@ -209,7 +209,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
       NaviEquipSelectedFolder();
 
-      menuWidget.SetMonies(webAccount.monies);
+      personalMenu.SetMonies(webAccount.monies);
 
       // Replace
       WEBCLIENT.SaveSession("profile.bin");
@@ -255,8 +255,8 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     // sort sprites within the layer
     std::sort(spriteLayer.begin(), spriteLayer.end(),
       [](const std::shared_ptr<WorldSprite>& A, const std::shared_ptr<WorldSprite>& B) {
-      auto A_pos = A->getPosition();
-      auto B_pos = B->getPosition();
+      auto& A_pos = A->getPosition();
+      auto& B_pos = B->getPosition();
       auto A_compare = A_pos.x + A_pos.y;
       auto B_compare = B_pos.x + B_pos.y;
 
@@ -470,8 +470,8 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 }
 
 void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
-  auto mapScale = GetMap().getScale();
-  auto cameraCenter = camera.GetView().getCenter();
+  auto& mapScale = GetMap().getScale();
+  sf::Vector2f cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
   cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
 
@@ -527,7 +527,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       auto& tileSprite = tileMeta->sprite;
       auto spriteBounds = tileSprite.getLocalBounds();
 
-      auto originalOrigin = tileSprite.getOrigin();
+      auto& originalOrigin = tileSprite.getOrigin();
       tileSprite.setOrigin(sf::Vector2f(sf::Vector2i(
         (int)spriteBounds.width / 2,
         tileSize.y / 2
@@ -572,7 +572,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
   auto elevation = (float)index;
 
   for (auto& sprite : spriteLayers[index]) {
-    auto worldPos = sprite->getPosition();
+    auto& worldPos = sprite->getPosition();
     auto screenPos = map.WorldToScreen(worldPos);
     screenPos.y -= (sprite->GetElevation() - elevation) * tileSize.y * 0.5f;
 
@@ -858,12 +858,12 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
           layer.SetTile(col, row, tileId);
 
-          sliceStart = i + 1;
+          sliceStart = static_cast<int>(i) + 1;
           col++;
           break;
         }
         case '\n':
-          sliceStart = i + 1;
+          sliceStart = static_cast<int>(i) + 1;
           col = 0;
           row++;
           break;
