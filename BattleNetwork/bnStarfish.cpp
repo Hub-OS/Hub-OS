@@ -13,8 +13,7 @@
 
 #define RESOURCE_PATH "resources/mobs/starfish/starfish.animation"
 
-Starfish::Starfish(Rank _rank)
-  : AI<Starfish>(this), Character(_rank) {
+Starfish::Starfish(Rank _rank) : AI<Starfish>(this), Character(_rank) {
   SetName("Starfish");
   team = Team::blue;
 

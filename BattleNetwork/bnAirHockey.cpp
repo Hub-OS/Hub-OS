@@ -51,16 +51,19 @@ void AirHockey::OnUpdate(double _elapsed)
 
       if (CanMoveTo(*GetTile() + dir)) {
         if (reflecting) {
-          // the new dir was recalculated by 
-          // CanMoveTo() and `reflecting`
-          // was set to true to signal this
-          Slide(dir, frames(4), frames(0));
+
           reflecting = false;
         }
+        // the new dir was recalculated by 
+      // CanMoveTo() and `reflecting`
+      // was set to true to signal this
+        auto onBegin = [this] {
+          if (--this->moveCount < 0) {
+            Delete();
+          }
+        };
 
-        if (--moveCount < 0) {
-          Delete();
-        }
+        Slide(dir, frames(4), frames(0), ActionOrder::voluntary, onBegin);
       }
     }
   }

@@ -56,6 +56,8 @@ Bees::Bees(Team _team,int damage) :
 
   absorbDamage = new BeeDefenseRule();
   AddDefenseRule(absorbDamage);
+
+  flickerCooldown = frames(3 * 60);
 }
 
 Bees::Bees(const Bees & leader) :
@@ -114,6 +116,8 @@ Bees::Bees(const Bees & leader) :
 
   absorbDamage = new BeeDefenseRule();
   AddDefenseRule(absorbDamage);
+
+  flickerCooldown = frames(3 * 60);
 }
 
 Bees::~Bees() {
@@ -123,6 +127,22 @@ Bees::~Bees() {
 
 void Bees::OnUpdate(double _elapsed) {
   elapsed += _elapsed;
+
+  if (battleOver) {
+    flickerCooldown -= from_seconds(_elapsed);
+
+    if (flickerCooldown.count() % 3 == 0) {
+      SetAlpha(0);
+    }
+    else {
+      SetAlpha(255);
+    }
+
+    if (flickerCooldown <= frames(0)) {
+      Remove();
+      return;
+    }
+  }
 
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHeight());
 
@@ -161,7 +181,7 @@ void Bees::OnUpdate(double _elapsed) {
   bool wasMovingHorizontal = (GetDirection() == Direction::left || GetDirection() == Direction::right);
   bool skipMoveCode = false;
 
-  if (target) {
+  if (target && target != this->leader) {
     Battle::Tile* targetTile = target->GetTile();
     if (targetTile) {
       if (this->madeContact) {
@@ -299,6 +319,11 @@ void Bees::OnUpdate(double _elapsed) {
     // Mark us for deletion
     Delete();
   }
+}
+
+void Bees::OnBattleStop()
+{
+  battleOver = true;
 }
 
 bool Bees::CanMoveTo(Battle::Tile* tile) {

@@ -5,7 +5,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Wave::Wave(Team _team, double speed) : Spell(_team) {
+Wave::Wave(Team _team, double speed, int damage) : Spell(_team) {
   SetLayer(0);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_WAVE));
@@ -28,11 +28,12 @@ Wave::Wave(Team _team, double speed) : Spell(_team) {
     }
 
     if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
-        auto* wave = new Wave(GetTeam(), Wave::speed);
-        wave->SetDirection(dir);
-        wave->SetHitboxProperties(GetHitboxProperties());
-        wave->CrackTiles(this->crackTiles);
-        GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
+      auto* wave = new Wave(GetTeam(), Wave::speed);
+      wave->SetDirection(dir);
+      wave->SetHitboxProperties(GetHitboxProperties());
+      wave->CrackTiles(this->crackTiles);
+      wave->PoisonTiles(this->poisonTiles);
+      GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
     }
   };
 
@@ -45,7 +46,7 @@ Wave::Wave(Team _team, double speed) : Spell(_team) {
   animation->OnUpdate(0);
 
   auto props = Hit::DefaultProperties;
-  props.damage = 10;
+  props.damage = damage;
   props.flags |= Hit::flinch;
   SetHitboxProperties(props);
 
@@ -68,6 +69,10 @@ void Wave::OnUpdate(double _elapsed) {
   if (crackTiles) {
     GetTile()->SetState(TileState::cracked);
   }
+
+  if (poisonTiles) {
+    GetTile()->SetState(TileState::poison);
+  }
 }
 
 void Wave::Attack(Character* _entity) {
@@ -77,6 +82,11 @@ void Wave::Attack(Character* _entity) {
 void Wave::OnDelete()
 {
   Remove();
+}
+
+void Wave::PoisonTiles(bool state)
+{
+  poisonTiles = state;
 }
 
 void Wave::CrackTiles(bool state)

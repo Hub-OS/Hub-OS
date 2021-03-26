@@ -109,15 +109,17 @@ void Character::Update(double _elapsed) {
   double prevThisFrameStun = stunCooldown;
 
   if (!hit) {
-    if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
+    unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
+    if (stunCooldown && stunFrame < 2) {
       SetShader(stun);
     }
     else if(GetHealth() > 0) {
       SetShader(nullptr);
 
-      counterFrameFlag = ((int)(++counterFrameFlag) % 5);
+      counterFrameFlag = counterFrameFlag % 4;
+      counterFrameFlag++;
 
-      if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag != 0) {
+      if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag < 2) {
         // Highlight when the character can be countered
         setColor(sf::Color(55, 55, 255, getColor().a));
 
@@ -127,8 +129,8 @@ void Character::Update(double _elapsed) {
     }
 
     if (invincibilityCooldown > 0) {
-      // This just blinks every 15 frames
-      if (from_seconds(invincibilityCooldown).count() % 15 == 0) {
+      unsigned frame = from_seconds(invincibilityCooldown).count() % 4;
+      if (frame < 2) {
         Hide();
       }
       else {
@@ -239,7 +241,7 @@ bool Character::CanMoveTo(Battle::Tile * next)
 
 const bool Character::Hit(Hit::Properties props) {
 
-  if (GetHealth() <= 0) return false;
+  if (GetHealth() <= 0 || IsJumping()) return false;
 
   if ((props.flags & Hit::shake) == Hit::shake) {
     CreateComponent<ShakingEffect>(this);
@@ -281,6 +283,8 @@ const bool Character::UnknownTeamResolveCollision(const Spell& other) const
 
 const bool Character::HasCollision(const Hit::Properties & props)
 {
+  if (IsJumping() && GetJumpHeight() > 10.f) return false;
+
   // Pierce status hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
     if (invincibilityCooldown > 0 || IsPassthrough()) return false;
@@ -350,7 +354,7 @@ void Character::ResolveFrameBattleDamage()
       // 5. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if ((props.flags & Hit::flinch) == Hit::flinch && props.aggressor && props.counters) {
+        if (/*(props.flags & Hit::flinch) == Hit::flinch &&*/ props.aggressor && props.counters) {
           frameCounterAggressor = props.aggressor;
         }
 

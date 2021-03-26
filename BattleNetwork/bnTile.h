@@ -100,6 +100,8 @@ namespace Battle {
      */
     const Team GetTeam() const;
     
+    void HandleMove(Entity* entity);
+
     /**
      * @brief Change the tile's team if unoccupied
      * This will also change the color of the tile. 

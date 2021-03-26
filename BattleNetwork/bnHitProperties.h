@@ -39,7 +39,7 @@ namespace Hit {
    */
   struct Properties {
     int damage{};
-    Flags flags{ none };
+    Flags flags{ Hit::none };
     Element element{ Element::none };
     Character* aggressor{ nullptr };
     Drag drag{ }; // Used by Hit::drag flag
@@ -52,7 +52,7 @@ namespace Hit {
 
   const constexpr Hit::Properties DefaultProperties = { 
     0, 
-    Flags(Hit::recoil | Hit::impact), 
+    Flags(Hit::recoil | Hit::impact | Hit::flinch), 
     Element::none, 
     nullptr, 
     Direction::none,

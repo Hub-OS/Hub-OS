@@ -154,6 +154,7 @@ public:
   void RawMoveEvent(const MoveEvent& event, ActionOrder order = ActionOrder::voluntary);
   void HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec);
   void ClearActionQueue();
+  const float GetJumpHeight() const;
   virtual void FilterMoveEvent(MoveEvent& event) {};
 
   /**

@@ -71,7 +71,7 @@ Mob* TwoMettaurMob::Build() {
 
         if (tile->IsWalkable() && !tile->IsReservedByCharacter() && tile->GetTeam() == Team::blue) {
           if (rand() % 50 > 25 && count-- > 0) {
-            auto spawner = mob->CreateSpawner<Mettaur>();
+            auto spawner = mob->CreateSpawner<Mettaur>(Mettaur::Rank::Rare2);
             spawner.SpawnAt<FadeInState>(i + 1, j + 1);
           }
         }

@@ -29,7 +29,9 @@ class Bees : public Obstacle {
 protected:
   int damage{}, hitCount{}, turnCount{};
   bool madeContact{}; /*!< if a bee hits something, it stays on top of it else it moves*/
+  bool battleOver{};
   float attackCooldown{};
+  frame_time_t flickerCooldown{};
   double elapsed{};
   Animation animation;
   Entity* target{ nullptr }; /**< The current enemy to approach */
@@ -41,8 +43,9 @@ public:
   Bees(const Bees& leader);
   ~Bees();
 
-  bool CanMoveTo(Battle::Tile* tile);
-  void OnUpdate(double _elapsed);
+  bool CanMoveTo(Battle::Tile* tile) override;
+  void OnUpdate(double _elapsed) override;
+  void OnBattleStop() override;
   void Attack(Character* _entity);
-  void OnDelete();
+  void OnDelete() override;
 };

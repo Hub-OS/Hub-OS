@@ -176,6 +176,8 @@ void AnimatedTextBox::EnqueMessage(MessageInterface* message) {
 }*/
 
 void AnimatedTextBox::Update(double elapsed) {
+  float mugshotSpeed = 1.0f;
+
   if (isReady && messages.size() > 0) {
 
     int yIndex = (int)(textBox.GetNumberOfLines() % textBox.GetNumberOfFittingLines());
@@ -186,6 +188,9 @@ void AnimatedTextBox::Update(double elapsed) {
       if (mugAnimator.GetAnimationString() != "TALK") {
         mugAnimator.SetAnimation("TALK");
         mugAnimator << Animator::Mode::Loop;
+      }
+      else {
+        mugshotSpeed = textSpeed;
       }
 
       textBox.Update(elapsed*(float)textSpeed);
@@ -204,7 +209,7 @@ void AnimatedTextBox::Update(double elapsed) {
   }
 
   if (mugshots.size()) {
-    mugAnimator.Update((float)(elapsed * textSpeed), mugshots.front());
+    mugAnimator.Update(elapsed*mugshotSpeed, mugshots.front());
   }
 
   textBox.Play(!isPaused);

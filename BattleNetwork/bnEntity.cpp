@@ -81,10 +81,10 @@ void Entity::UpdateMovement(double elapsed)
   // Only move if we have a valid next tile pointer
   auto next = currMoveEvent.dest;
   if (next) {
-    if (currMoveEvent.deltaFrames == frames(0)) {
+    //if (currMoveEvent.deltaFrames == frames(0)) {
       currMoveEvent.onBegin();
       currMoveEvent.onBegin = [] {}; // clear so we only fire once
-    }
+    //}
 
     elapsedMoveTime += elapsed;
 
@@ -108,6 +108,9 @@ void Entity::UpdateMovement(double elapsed)
           if (tile != next) {
             // Remove the entity from its previous tile pointer 
             previous->RemoveEntityByID(GetID());
+
+            // If removing an entity and the tile was broken, crack the tile
+            previous->HandleMove(this);
 
             // Previous tile is now the current tile
             previous = tile;
@@ -141,7 +144,6 @@ void Entity::UpdateMovement(double elapsed)
         if (from_seconds(elapsedMoveTime) > lastFrame) {
           FinishMove();
           Battle::Tile* prevTile = GetTile();
-          previousDirection = direction;
 
           // If we slide onto an ice block and we don't have float shoe enabled, slide
           if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
@@ -151,15 +153,19 @@ void Entity::UpdateMovement(double elapsed)
             // TODO: shorten with GetPreviousDirection() switch
             if (previous->GetX() > prevTile->GetX()) {
               next = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
+              previousDirection = Direction::left;
             }
             else if (previous->GetX() < prevTile->GetX()) {
               next = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
+              previousDirection = Direction::right;
             }
             else if (previous->GetY() < prevTile->GetY()) {
               next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() + 1);
+              previousDirection = Direction::down;
             }
             else if (previous->GetY() > prevTile->GetY()) {
               next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() - 1);
+              previousDirection = Direction::up;
             }
 
             // If the next tile is not available, not ice, or we are ice element, don't slide
@@ -169,7 +175,7 @@ void Entity::UpdateMovement(double elapsed)
             bool cancelSlide = notIce || cannotMove || weAreIce;
 
             if (!cancelSlide) {
-              Slide(GetPreviousDirection(), frames(8), frames(0), ActionOrder::involuntary);
+              Slide(previousDirection, frames(3), frames(0), ActionOrder::involuntary);
             }
           }
           else {
@@ -355,8 +361,8 @@ void Entity::FinishMove()
 
 void Entity::RawMoveEvent(const MoveEvent& event, ActionOrder order)
 {
-  if (event.dest) {
-    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
+  if (event.dest && CanMoveTo(event.dest)) {
+    actionQueue.Add(event, order, ActionDiscardOp::until_eof);
   }
 }
 
@@ -699,4 +705,9 @@ void Entity::SetMoveStartupDelay(const frame_time_t& frames)
 void Entity::ClearActionQueue()
 {
   actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
+}
+
+const float Entity::GetJumpHeight() const
+{
+  return currMoveEvent.height;
 }

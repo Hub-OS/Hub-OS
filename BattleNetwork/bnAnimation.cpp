@@ -68,7 +68,7 @@ void Animation::LoadWithData(const string& data)
     endLine = data.find("\n", startLine);
 
     if (endLine == string::npos) {
-      break;
+      endLine = data.size();
     }
 
     string line = data.substr(startLine, endLine - startLine);

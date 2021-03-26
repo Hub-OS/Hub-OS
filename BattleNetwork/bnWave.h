@@ -13,12 +13,14 @@ protected:
   AnimationComponent* animation;
   double speed;
   bool crackTiles{ false };
+  bool poisonTiles{ false };
 public:
-  Wave(Team _team,double speed = 1.0);
+  Wave(Team _team,double speed = 1.0, int damage = 10);
   ~Wave();
 
   void OnUpdate(double _elapsed) override;
   void Attack(Character* _entity) override;
   void OnDelete() override;
+  void PoisonTiles(bool state);
   void CrackTiles(bool state);
 };

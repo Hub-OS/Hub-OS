@@ -101,6 +101,9 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
     if (next->GetTeam() != GetTeam() && canEnterRedTeam) {
       return true;
     }
+    else {
+      return next->GetTeam() == GetTeam();
+    }
   }
 
   return false;

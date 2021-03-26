@@ -30,7 +30,9 @@ void MettaurAttackState::OnLeave(Mettaur& met) {
 
 void MettaurAttackState::DoAttack(Mettaur& met) {
   if (met.GetField()->GetAt(met.tile->GetX() - 1, met.tile->GetY())->IsWalkable()) {
-    Wave* spell = new Wave(met.team, (met.GetRank() == Mettaur::Rank::SP)? 1.2 : 1.0);
+    double speed = (met.GetRank() >= Mettaur::Rank::SP) ? 1.2 : 1.0;
+    int damage = (met.GetRank() >= Mettaur::Rank::SP) ? 100 : 10;
+    Wave* spell = new Wave(met.team, speed, damage);
 
     auto props = spell->GetHitboxProperties();
     props.aggressor = &met;
@@ -38,6 +40,9 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
 
     if (met.GetRank() == Mettaur::Rank::SP) {
       spell->CrackTiles(true);
+    }
+    else if (met.GetRank() == Mettaur::Rank::Rare2) {
+      spell->PoisonTiles(true);
     }
 
     spell->SetDirection(Direction::left);

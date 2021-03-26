@@ -34,6 +34,10 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = startState;
+
+  if (auto player = dynamic_cast<Player*>(user)) {
+    player->Charge(false);
+  }
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -96,11 +100,10 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   double summonSecs = summonTimer.getElapsed().asSeconds();
   double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
-  if (team == Team::red) {
-    summonsLabel.setPosition(40.0f, 80.f);
-  }
-  else {
-    summonsLabel.setPosition(470.0f, 80.0f);
+  sf::Vector2f position = sf::Vector2f(40.0f, 80.f);
+
+  if (team == Team::blue) {
+    position = sf::Vector2f(470.0f, 80.0f);
   }
 
   summonsLabel.setScale(2.0f, 2.0f*(float)scale);
@@ -113,6 +116,12 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   }
 
   surface.draw(GetScene().GetCardSelectWidget());
+
+  summonsLabel.SetColor(sf::Color::Black);
+  summonsLabel.setPosition(position.x + 2.f, position.y + 2.f);
+  surface.draw(summonsLabel);
+  summonsLabel.SetColor(sf::Color::White);
+  summonsLabel.setPosition(position);
   surface.draw(summonsLabel);
 }
 

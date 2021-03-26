@@ -187,6 +187,15 @@ namespace Battle {
     return team;
   }
 
+  void Tile::HandleMove(Entity* entity)
+  {
+    // If removing an entity and the tile was broken, crack the tile
+    if (reserved.size() == 0 && dynamic_cast<Character*>(entity) != nullptr && (IsCracked() && !(entity->HasFloatShoe() || entity->HasAirShoe()))) {
+      SetState(TileState::broken);
+      Audio().Play(AudioType::PANEL_CRACK);
+    }
+  }
+
   void Tile::SetTeam(Team _team, bool useFlicker) {
     if (IsEdgeTile() || state == TileState::hidden) return;
 
@@ -384,23 +393,13 @@ namespace Battle {
     auto reservedIter = reserved.find(ID);
     if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
-    bool doBreakState = false;
-
     auto itEnt   = find_if(entities.begin(), entities.end(), [ID](Entity* in) { return in->GetID() == ID; });
     auto itSpell = find_if(spells.begin(), spells.end(), [ID](Entity* in) { return in->GetID() == ID; });
     auto itChar  = find_if(characters.begin(), characters.end(), [ID](Entity* in) { return in->GetID() == ID; });
     auto itArt   = find_if(artifacts.begin(), artifacts.end(), [ID](Entity* in) { return in->GetID() == ID; });
 
     if (itEnt != entities.end()) {
-      // TODO: HasFloatShoe and HasAirShoe should be a component and use the component system
-
-      // If removing an entity and the tile was broken, crack the tile
-      if(reserved.size() == 0 && dynamic_cast<Character*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
-        doBreakState = true;
-      }
-
       entities.erase(itEnt);
-
       modified = true;
     }
 
@@ -419,11 +418,6 @@ namespace Battle {
 
     if (itArt != artifacts.end()) {
       artifacts.erase(itArt);
-    }
-
-    if (doBreakState) {
-      SetState(TileState::broken);
-      Audio().Play(AudioType::PANEL_CRACK);
     }
 
     return modified;

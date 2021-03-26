@@ -73,6 +73,12 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
 
 void TitleScene::onStart()
 {
+  ConfigSettings config = Input().GetConfigSettings();
+
+  // TODO: sfx and music level should already be in 0-100 values imo...
+  Audio().SetChannelVolume(((float)config.GetSFXLevel()/3.f)*100.f);
+  Audio().SetStreamVolume(((float)config.GetMusicLevel() / 3.f) * 100.f);
+
   // stream some music while we wait
   Audio().Stream("resources/loops/loop_theme.ogg");
 
