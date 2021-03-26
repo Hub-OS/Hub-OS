@@ -489,15 +489,16 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
 
   // there should be mapLayerCount + 1 sprite layers
   for (auto i = 0; i < mapLayerCount + 1; i++) {
+    
     // loop is based on expected sprite layers
     // make sure we dont try to draw an extra map layer and segfault
     if (i < mapLayerCount) {
-      DrawMapLayer(target, states, i);
+      DrawMapLayer(target, states, i, mapLayerCount, gridShadows);
     }
 
     // save from possible map layer count change after OverworldSceneBase::Update
     if (i < spriteLayers.size()) {
-      DrawSpriteLayer(target, states, i);
+      DrawSpriteLayer(target, states, i, gridShadows);
     }
 
     // translate next layer
@@ -505,7 +506,7 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
   }
 }
 
-void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
+void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index, size_t maxLayers, std::vector<short>& gridShadows) {
   auto& layer = map.GetLayer(index);
 
   if (!layer.IsVisible()) return;
@@ -557,8 +558,29 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
         tileSprite.setColor({ color.r, color.b, color.g, 200 });
       }*/
 
+      bool localHasShadow = false;
+      size_t checkIndex = index+1;
+      while (checkIndex < maxLayers) {
+        auto& layer = map.GetLayer(checkIndex);
+        auto& tile = layer.GetTile(j, i);
+
+        if (tile.gid != 0) {
+          auto meta = map.GetTileMeta(tile.gid);
+          localHasShadow = true;
+        }
+
+        checkIndex++; 
+      }
+
+      gridShadows[(index * rows * cols) + (j * cols + i)] = localHasShadow;
+
       if (/*cam && cam->IsInView(tileSprite)*/ true) {
+        sf::Color originalColor = tileSprite.getColor();
+        if (localHasShadow) {
+          tileSprite.setColor(sf::Color(originalColor.r * 0.5, originalColor.b * 0.5, originalColor.g * 0.5, originalColor.a));
+        }
         target.draw(tileSprite, states);
+        tileSprite.setColor(originalColor);
       }
 
       tileSprite.setOrigin(originalOrigin);
@@ -567,7 +589,9 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
 }
 
 
-void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
+void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index, const std::vector<short>& gridShadows) {
+  auto rows = map.GetRows();
+  auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
   auto elevation = (float)index;
 
@@ -582,8 +606,27 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
 
     sprite->setPosition(screenPos);
 
+    sf::Vector2i gridPos = sf::Vector2i(map.WorldToTileSpace(worldPos));
+
     if (/*cam && cam->IsInView(sprite->getSprite())*/ true) { 
+      sf::Color originalColor = sprite->getColor();
+      // NOTE: we snap players so elevations with floating decimals, even if not precise, will 
+      //       let us know if we're on the correct elevation or not
+      if (sprite->GetElevation() != elevation-1.f) {
+        if (index >= 2) {
+          index = index - 2;
+        }
+        else {
+          index = 0;
+        }
+      }
+
+      // index == 0 will NEVER have sprites
+      if (index > 0 && gridShadows[((index-1) * rows * cols) + (gridPos.x * cols + gridPos.y)] > 0) {
+        sprite->setColor(sf::Color(originalColor.r * 0.5, originalColor.b * 0.5, originalColor.g * 0.5, originalColor.a));
+      }
       target.draw(*sprite, states);
+      sprite->setColor(originalColor);
     }
 
     sprite->setPosition(worldPos);
@@ -928,6 +971,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
   minimap.setScale(2.f, 2.f);
+
+  // resize shadow grid
+  gridShadows.resize(this->map.GetCols()* this->map.GetRows() * this->map.GetLayerCount());
 }
 
 std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XMLElement& tilesetElement, unsigned int firstgid) {
