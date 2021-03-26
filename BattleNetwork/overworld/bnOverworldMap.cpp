@@ -311,7 +311,7 @@ namespace Overworld {
     return layerElevation + layerRelativeElevation;
   }
 
-  bool Map::TileRequiresOpening(float x, float y, int layerIndex) {
+  bool Map::IgnoreTileAbove(float x, float y, int layerIndex) {
     auto& layer = layers[layerIndex];
     auto& tile = layer.GetTile(x, y);
     auto& tileMeta = tileMetas[tile.gid];

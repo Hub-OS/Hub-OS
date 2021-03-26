@@ -560,12 +560,16 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
 
       bool localHasShadow = false;
       size_t checkIndex = index+1;
+
+      if (map.IgnoreTileAbove(j, i, index)) {
+        checkIndex++;
+      }
+
       while (checkIndex < maxLayers) {
         auto& layer = map.GetLayer(checkIndex);
         auto& tile = layer.GetTile(j, i);
 
         if (tile.gid != 0) {
-          auto meta = map.GetTileMeta(tile.gid);
           localHasShadow = true;
         }
 
@@ -613,12 +617,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
       // NOTE: we snap players so elevations with floating decimals, even if not precise, will 
       //       let us know if we're on the correct elevation or not
       if (sprite->GetElevation() != elevation-1.f) {
-        if (index >= 2) {
-          index = index - 2;
-        }
-        else {
-          index = 0;
-        }
+        index = index >= 1 ? (index - 1) : 0;
       }
 
       // index == 0 will NEVER have sprites

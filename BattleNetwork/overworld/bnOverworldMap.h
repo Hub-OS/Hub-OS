@@ -153,7 +153,7 @@ namespace Overworld {
     Layer& AddLayer();
     bool CanMoveTo(float x, float y, int layer); // todo: move to layer?
     float GetElevationAt(float x, float y, int layer);
-    bool TileRequiresOpening(float x, float y, int layer);
+    bool IgnoreTileAbove(float x, float y, int layer);
     void RemoveSprites(SceneBase& scene);
 
   protected:

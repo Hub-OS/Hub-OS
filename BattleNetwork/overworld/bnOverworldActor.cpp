@@ -375,7 +375,7 @@ static int GetTargetLayer(Overworld::Map& map, int currentLayer, float layerRela
 
   const auto layerBelow = currentLayer - 1;
 
-  if (layerBelow >= 0 && layerBelow < map.GetLayerCount() && map.TileRequiresOpening(targetTilePos.x, targetTilePos.y, layerBelow)) {
+  if (layerBelow >= 0 && layerBelow < map.GetLayerCount() && map.IgnoreTileAbove(targetTilePos.x, targetTilePos.y, layerBelow)) {
     return layerBelow;
   }
   else if (layerRelativeElevation > 1 - maxElevationDiff && !SameTile(currentTilePos, targetTilePos)) {
