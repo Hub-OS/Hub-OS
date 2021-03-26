@@ -184,7 +184,15 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   if (gotoNextScene == false) {
     playerController.Update(elapsed);
     teleportController.Update(elapsed);
-    minimap.SetPlayerPosition(map.WorldToScreen(playerActor->getPosition()));
+
+    // factor in player's position for the minimap
+    sf::Vector2f screenPos = map.WorldToScreen(playerActor->getPosition());
+    screenPos.y -= playerActor->GetElevation() * map.GetTileSize().y * 0.5f;
+    screenPos.x = std::floor(screenPos.x);
+    screenPos.y = std::floor(screenPos.y);
+
+    // update minimap
+    minimap.SetPlayerPosition(screenPos);
   }
 
   for (auto& actor : actors) {
