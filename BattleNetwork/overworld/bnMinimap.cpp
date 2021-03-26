@@ -39,19 +39,28 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
     uniform sampler2D texture;
     uniform vec2 center;
     uniform vec2 tileSize;
+    uniform vec4 finalColor;
+    uniform int mask;
 
     void main() {
+
       vec2 pos = gl_TexCoord[0].xy; // pos is the uv coord (subrect)
       vec4 incolor = texture2D(texture, pos).rgba;
+      vec4 outcolor;
 
       pos.x = center.x - pos.x;
       pos.y = center.y - pos.y;
 
-      if (abs(2.0 * pos.x / tileSize.x) + abs(2.0 * pos.y / tileSize.y) > 1.0)
+      if (mask == 0) {
+        outcolor = vec4(finalColor.r, finalColor.g*1.01, finalColor.b*0.60, incolor.a);
+      }
+      else {
+        outcolor = finalColor * incolor.a;
+      }
+
+      if (mask > 0 && abs(2.0 * pos.x / tileSize.x) + abs(2.0 * pos.y / tileSize.y) > 1.0)
        discard;
 
-      // 152, 144, 224
-      vec4 outcolor = vec4(0.596, 0.564, 0.878, 1.0) * incolor.a;
       gl_FragColor = outcolor;
     }
   );
@@ -61,37 +70,71 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
     uniform sampler2D texture;
     uniform float resolutionW;
     uniform float resolutionH;
+    uniform float delta;
+    uniform vec4 edgeColor;
 
     void main(void)
     {
       float dx = 1.0 / resolutionW;
       float dy = 1.0 / resolutionH;
 
-      // 120, 112, 192
-      vec4 edgeColor = vec4(0.470, 0.439, 0.752, 1.0);
       vec2 pos = gl_TexCoord[0].xy;
       vec4 incolor = texture2D(texture, pos).rgba;
 
-      float top = 1.0-texture2D(texture, vec2(pos.x, pos.y-dy)).a;
-      float left = 1.0-texture2D(texture, vec2(pos.x-dx, pos.y)).a;
-      float right = 1.0-texture2D(texture, vec2(pos.x+dx, pos.y)).a;
-      float down = 1.0-texture2D(texture, vec2(pos.x, pos.y+dy)).a;
-      float n = max(top, max(left, max(right, down))) *(incolor.a);
+      /*
+      * NOTE: checks difference in color for game-accurate map generation.
+      */
+      
+      /*float g = incolor.g;
+      float top = texture2D(texture, vec2(pos.x, pos.y-dy)).g;
+      float left = texture2D(texture, vec2(pos.x-dx, pos.y)).g;
+      float right = texture2D(texture, vec2(pos.x+dx, pos.y)).g;
+      float down = texture2D(texture, vec2(pos.x, pos.y+dy)).g;
+    
+      float maxDiff = g - min(down, min(top, min(left, right)));
 
-      gl_FragColor = (edgeColor*n) + ((1.0-n)*incolor);
+      /*if (maxDiff >= delta-0.008) {
+        gl_FragColor = (incolor * 0.75).rgba;
+      }
+      else {
+        gl_FragColor = incolor;
+      }*/
+
+      // this just checks for alpha
+      vec4 top = texture2D(texture, vec2(pos.x, pos.y - dy));
+      vec4 left = texture2D(texture, vec2(pos.x - dx, pos.y));
+      vec4 right = texture2D(texture, vec2(pos.x + dx, pos.y));
+      vec4 down = texture2D(texture, vec2(pos.x, pos.y + dy));
+
+      vec4 n = max(down, max(top, max(left, right)));
+      float m = n.a*(1.0 - incolor.a);
+
+      gl_FragColor = m * (n * 0.90);
     }
   );
+
+  /**
+  layer1= 152 144 224
+  layer2= 176 168 240 diff = 24 24 16
+  layer3= 208 200 248 diff = 24 32  8
+                             ---------
+                             0  +8 -8
+
+  potential layer4= 208, 208, 240? ??
+  **/
+
+  sf::Color layer1Color = sf::Color(152, 144, 224);
+  sf::Color layerMaxColor = sf::Color(208, 208, 240);
+
+  sf::Color edge1Color = sf::Color(120, 112, 192);
+  sf::Color edgeMaxColor = sf::Color(160, 152, 224); // sf::Color(168, 160, 240);
 
   sf::Shader shader;
   shader.loadFromMemory(recolor, sf::Shader::Type::Fragment);
   states.shader = &shader;
-  //auto spriteSheetSz = map.GetTileset("floor")->texture->getSize();
 
   // guestimate best fit "center" of the map
   auto tileSize = map.GetTileSize();
-
-  //sf::Vector2f tileUV = sf::Vector2f(static_cast<float>(tileSize.x) / spriteSheetSz.x, static_cast<float>(tileSize.y) / spriteSheetSz.y);
-  //shader.setUniform("tileSize", tileUV);
 
   float tilex = tileSize.x * map.GetCols() * 0.5f;
   float tiley = tileSize.y * map.GetRows() * 1.0f;
@@ -109,6 +152,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
 
   minimap.scaling = (targetTileHeight / tileSize.y);
   minimap.offset = center * minimap.scaling;
+  minimap.offset.y = minimap.offset.y + (map.GetLayerCount() * minimap.scaling);
 
   // apply transforms
   map.setScale(minimap.scaling, minimap.scaling);
@@ -116,37 +160,58 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
 
   states.transform *= map.getTransform();
 
+  const int maxLayerCount = map.GetLayerCount();
+
   // draw. every layer passes through the shader
-  for (auto i = 0; i < map.GetLayerCount(); i++) {
+  for (auto i = 0; i < maxLayerCount; i++) {
+    auto lerpColor = [](int index, int maxCount, sf::Color minColor, sf::Color maxColor) {
+      if (index > maxCount) {
+        index = maxCount;
+      }
+
+      float delta = ((float)index / (float)maxCount);
+
+      float r = (1.f - delta) * minColor.r + (delta * maxColor.r);
+      float g = (1.f - delta) * minColor.g + (delta * maxColor.g);
+      float b = (1.f - delta) * minColor.b + (delta * maxColor.b);
+
+      return sf::Glsl::Vec4(r / 255.f, g / 255.f, b / 255.f, 1.f);
+    };
+
+    shader.setUniform("finalColor", lerpColor(i, maxLayerCount, layer1Color, layerMaxColor));
+
+    // draw layer (Applies masking)
     minimap.DrawLayer(texture, shader, states, map, i);
 
-    // translate next layer
+    // iso layers are offset (prepare for the next layer)
     states.transform.translate(0.f, -tileSize.y * 0.5f);
   }
+
+  // Grab image data to make a texture
+    // NOTE: gpu <-> cpu is a costly process. do this sparringly.
+  texture.display();
+  sf::Texture tempTex = texture.getTexture();
+  sf::Sprite temp(tempTex);
+
+  // do a second pass for edge detection
+  states.transform = sf::Transform::Identity;
+  shader.loadFromMemory(edgeDetection, sf::Shader::Type::Fragment);
+  shader.setUniform("resolutionW", (float)textureSize.x);
+  shader.setUniform("resolutionH", (float)textureSize.y);
+  shader.setUniform("edgeColor", sf::Glsl::Vec4(edge1Color));
+  shader.setUniform("delta", (1.0f / (float)maxLayerCount)*((float)layer1Color.g/255.f));
+  texture.draw(temp, states);
+
+  texture.display();
+
+  // set the final texture
+  minimap.bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
 
   // revert original settings
   map.setScale(oldscale);
   map.setPosition(oldposition);
   map.setOrigin(oldorigin);
 
-  // Grab image data to make a texture
-  // NOTE: gpu <-> cpu is a costly process. do this sparringly.
-  texture.display();
-  sf::Texture tempTex = texture.getTexture();
-  sf::Sprite temp(tempTex);
-
-  // do a second pass for edge detection
-  shader.loadFromMemory(edgeDetection, sf::Shader::Type::Fragment);
-  states.transform = sf::Transform::Identity;
-  shader.setUniform("resolutionW", (float)textureSize.x);
-  shader.setUniform("resolutionH", (float)textureSize.y);
-
-  texture.clear(sf::Color(0,0,0,0)); // clear transparent pixels
-  texture.draw(temp, states);
-  texture.display();
-
-  // set the final texture
-  minimap.bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
   return minimap;
 }
 
@@ -169,6 +234,13 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
 
       // failed to load tile
       if (tileMeta == nullptr) continue;
+
+      if (tileMeta->type == "Stairs") {
+        states.shader->setUniform("mask", false);
+      }
+      else {
+        states.shader->setUniform("mask", true);
+      }
 
       auto& tileSprite = tileMeta->sprite;
       auto subRect = tileSprite.getTextureRect();
