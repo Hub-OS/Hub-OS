@@ -123,5 +123,5 @@ void MetalMan::OnUpdate(double _elapsed) {
 }
 
 void MetalMan::OnDelete() {
-  InterruptState<NaviExplodeState<MetalMan>>(); // freezes animation
+  InterruptState<NaviExplodeState<MetalMan>>(10, 1.3); // freezes animation
 }

@@ -11,25 +11,39 @@
 #include "bnGame.h"
 #include "bnDefenseVirusBody.h"
 
-#define RESOURCE_PATH "resources/mobs/starfish/starfish.animation"
+#define RESOURCE_PATH "resources/mobs/starfish/starfish"
 
 Starfish::Starfish(Rank _rank) : AI<Starfish>(this), Character(_rank) {
   SetName("Starfish");
   team = Team::blue;
 
   SetElement(Element::aqua);
-  SetHealth(100);
-  textureType = TextureType::MOB_STARFISH_ATLAS;
-
   animation = CreateComponent<AnimationComponent>(this);
-  animation->SetPath(RESOURCE_PATH);
+
+  switch (_rank) {
+  case Starfish::Rank::SP:
+  {
+    SetName("StarfishSP");
+    animation->SetPath(RESOURCE_PATH"2.animation");
+    setTexture(Textures().LoadTextureFromFile(RESOURCE_PATH"2_atlas.png"));
+    SetHealth(200);
+  }
+  break;
+  default: 
+  {
+    animation->SetPath(RESOURCE_PATH".animation");
+    setTexture(Textures().LoadTextureFromFile(RESOURCE_PATH"_atlas.png"));
+    SetHealth(100);
+  }
+  break;
+  }
+
   animation->Load();
   animation->SetAnimation("IDLE");
   animation->SetPlaybackMode(Animator::Mode::Loop);
 
   hitHeight = 60;
 
-  setTexture(Textures().GetTexture(textureType));
   setScale(2.f, 2.f);
 
   SetHealth(health);

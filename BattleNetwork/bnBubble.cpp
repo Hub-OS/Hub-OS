@@ -71,7 +71,7 @@ void Bubble::OnUpdate(double _elapsed) {
         Remove(); // doesn't make the bubble pop
       }
       else {
-        Slide(GetDirection(), frames(45), frames(0));
+        Slide(GetDirection(), frames(35/this->speed), frames(0));
       }
     }
   }

@@ -2,15 +2,18 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 
-Obstacle::Obstacle(Team _team) : 
-  ignoreCommonAggressor(false), 
-  Spell(_team), 
-  Character()  {
+Obstacle::Obstacle(Team _team) :
+  ignoreCommonAggressor(false),
+  Spell(_team),
+  Character() {
   team = _team;
 
   SetFloatShoe(true);
   SetLayer(1);
   hitboxProperties.flags = Hit::none;
+
+  // overwrite bubble...
+  RegisterStatusCallback(Hit::bubble, [] {});
 }
 
 Obstacle::~Obstacle() {

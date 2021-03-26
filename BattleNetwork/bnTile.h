@@ -32,7 +32,6 @@ class Spell;
 class Character;
 class Obstacle;
 class Artifact;
-class Dummy;
 
 #include "bnEntity.h"
 #include "bnSpriteProxyNode.h"

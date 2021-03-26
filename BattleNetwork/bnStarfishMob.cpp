@@ -18,7 +18,8 @@ Mob* StarfishMob::Build() {
   Mob* mob = new Mob(field);
   mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::YoYo_M)));
 
-  auto spawner = mob->CreateSpawner<Starfish>();
+  Starfish::Rank rank = rand() % 4 == 0 ? Starfish::Rank::SP : Starfish::Rank::_1;
+  auto spawner = mob->CreateSpawner<Starfish>(rank);
   spawner.SpawnAt<FadeInState>(4 + (rand() % 3), 1);
   spawner.SpawnAt<FadeInState>(4 + (rand() % 3), 3);
 

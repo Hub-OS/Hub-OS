@@ -19,13 +19,14 @@ Wind::~Wind() {
 void Wind::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition() + tileOffset);
 
-  // Strike panel and leave
-  GetTile()->AffectEntities(this);
-
   // Wind is active on the opposing team's area
   // Once we enter our team area, we're useless
   if (Teammate(GetTile()->GetTeam())) {
     Delete();
+  }
+  else {
+    // Strike panel and leave
+    GetTile()->AffectEntities(this);
   }
 
   Slide(GetDirection(), frames(4), frames(0));
@@ -39,7 +40,7 @@ void Wind::Attack(Character* _entity) {
   _entity->Hit(
     {
       0,
-      Hit::Flags(Hit::drag),
+      Hit::drag,
       Element::none,
       nullptr,
       { GetDirection(), 9 },

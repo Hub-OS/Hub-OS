@@ -22,7 +22,7 @@ struct CardActionDeleter {
 
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
 {
-  statusCallbackHash.insert(std::make_pair(flag, callback));
+  statusCallbackHash[flag] = callback;
 }
 
 Character::Character(Rank _rank) :
@@ -49,6 +49,10 @@ Character::Character(Rank _rank) :
 
   auto peekHandler = std::bind(&Character::HandlePeekEvent, this, _1, _2);
   actionQueue.RegisterType<PeekCardEvent>(ActionTypes::peek_card, peekHandler);
+
+  RegisterStatusCallback(Hit::bubble, [this] {
+    CreateComponent<BubbleTrap>(this);
+  });
 }
 
 Character::~Character() {
@@ -318,7 +322,7 @@ void Character::ResolveFrameBattleDamage()
   std::queue<Hit::Properties> append;
 
   while (!statusQueue.empty() && !IsSliding()) {
-    Hit::Properties& props = statusQueue.front();
+    Hit::Properties props = statusQueue.front();
     statusQueue.pop();
 
     // a re-usable thunk for custom status effects
@@ -363,13 +367,15 @@ void Character::ResolveFrameBattleDamage()
 
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.flags & Hit::drag) == Hit::drag) {
-        if (slideFromDrag || IsSliding()) {
+        if (IsSliding()) {
           append.push({ 0, Hit::drag, Element::none, nullptr, props.drag });
         }
         else {
           // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
-          append.push({ 0, Hit::impact, Element::none, frameCounterAggressor});
-          frameCounterAggressor = nullptr;
+          if (frameCounterAggressor) {
+            append.push({ 0, Hit::impact, Element::none, frameCounterAggressor });
+            frameCounterAggressor = nullptr;
+          }
 
           // requeue drag if count is > 0
           if(props.drag.count > 0) {
@@ -425,14 +431,12 @@ void Character::ResolveFrameBattleDamage()
 
       // Flinch can be queued if dragging this frame
       if ((props.flags & Hit::flinch) == Hit::flinch) {
-        actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
-
         if (postDragEffect.dir != Direction::none) {
           append.push({ 0, props.flags });
         }
         else {
-          invincibilityCooldown = 2.0; // used as a `flinch` status timer
-
+          actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
+          invincibilityCooldown = 2.0; // used as a `flinch` status time
           flagCheckThunk(Hit::flinch);
         }
       }
@@ -452,7 +456,6 @@ void Character::ResolveFrameBattleDamage()
 
       if ((props.flags & Hit::bubble) == Hit::bubble) {
         actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
-        CreateComponent<BubbleTrap>(this);
         flagCheckThunk(Hit::bubble);
       }
 

@@ -35,22 +35,26 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
     auto onFinish = [metal = &metal, nextTile, lastTile, anim, this]() {
       Logger::Log("metalman move on finish called");
 
-      metal->Teleport(nextTile);
+      if (metal->Teleport(nextTile)) {
 
-      auto onFinishPunch = [m = metal, lastTile]() {
-        Logger::Log("finish punch called");
-        m->Teleport(lastTile);
-        m->GoToNextState();
-      };
-      auto onGroundHit = [this, m = metal]() {
-        Logger::Log("on ground hit called");
-        Attack(*m);
-      };
+        auto onFinishPunch = [m = metal, anim, lastTile]() {
+          auto onFinishMove = [m, anim, lastTile] {
+            m->Teleport(lastTile, ActionOrder::immediate);
+            m->GoToNextState();
+          };
+          anim->SetAnimation("MOVING", onFinishMove);
+        };
+        auto onGroundHit = [this, m = metal]() {
+          Attack(*m);
+        };
 
-      anim->SetAnimation("PUNCH", onFinishPunch); // TODO: this is not firing
-      anim->SetCounterFrameRange(1, 3);
-      anim->AddCallback(4, onGroundHit, true);
-
+        anim->SetAnimation("PUNCH", onFinishPunch);
+        anim->SetCounterFrameRange(1, 3);
+        anim->AddCallback(4, onGroundHit, true);
+      }
+      else {
+        metal->GoToNextState();
+      }
     };
 
     anim->SetAnimation("MOVING", onFinish);

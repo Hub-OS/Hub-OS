@@ -31,16 +31,17 @@ void MetalManMoveState::OnUpdate(double _elapsed, MetalMan& metal) {
   nextTile = tiles[rand() % tiles.size()];
 
   // Find a new spot that is on our team
-  if (metal.Teleport(nextTile)) {
-    auto onFinish = [this, m = &metal]() {
-        m->GoToNextState();
+  auto onBegin = [this, metalPtr = &metal] {
+    auto onFinish = [this, metalPtr]() {
+      metalPtr->GoToNextState();
     };
 
-    metal.GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
-    isMoving = true;
-  }
-  else {
-  metal.GoToNextState();
+    metalPtr->GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
+    this->isMoving = true;
+  };
+
+  if (!metal.Teleport(nextTile, ActionOrder::voluntary, onBegin)) {
+    metal.GoToNextState();
   }
 }
 

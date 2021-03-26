@@ -82,8 +82,10 @@ void Entity::UpdateMovement(double elapsed)
   auto next = currMoveEvent.dest;
   if (next) {
     //if (currMoveEvent.deltaFrames == frames(0)) {
+    if (currMoveEvent.onBegin) {
       currMoveEvent.onBegin();
-      currMoveEvent.onBegin = [] {}; // clear so we only fire once
+      currMoveEvent.onBegin = nullptr;
+    }
     //}
 
     elapsedMoveTime += elapsed;
@@ -126,6 +128,8 @@ void Entity::UpdateMovement(double elapsed)
           // Slide back into the origin tile if we can no longer slide to the next tile
           moveStartPosition = next->getPosition();
           currMoveEvent.dest = tile;
+
+          tileOffset = -tar + pos + tileOffset;
         }
       }
 
@@ -350,7 +354,7 @@ bool Entity::Jump(Battle::Tile* dest, float destHeight,
 void Entity::FinishMove()
 {
   // completes the move or moves the object back
-  if (currMoveEvent.dest && !currMoveEvent.immutable) {
+  if (currMoveEvent.dest /*&& !currMoveEvent.immutable*/) {
     AdoptNextTile();
     tileOffset = {};
     currMoveEvent = {};

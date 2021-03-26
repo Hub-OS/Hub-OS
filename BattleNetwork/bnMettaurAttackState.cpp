@@ -30,8 +30,24 @@ void MettaurAttackState::OnLeave(Mettaur& met) {
 
 void MettaurAttackState::DoAttack(Mettaur& met) {
   if (met.GetField()->GetAt(met.tile->GetX() - 1, met.tile->GetY())->IsWalkable()) {
-    double speed = (met.GetRank() >= Mettaur::Rank::SP) ? 1.2 : 1.0;
-    int damage = (met.GetRank() >= Mettaur::Rank::SP) ? 100 : 10;
+    double speed = 1.0;
+    int damage = 10;
+
+    switch (met.GetRank()) {
+    case Mettaur::Rank::SP: {
+      speed = 1.2;
+      damage = 40;
+    }
+      break;
+    case Mettaur::Rank::Rare2: {
+      speed = 1.6;
+      damage = 100;
+    }
+      break;
+    default:
+      break;
+    }
+
     Wave* spell = new Wave(met.team, speed, damage);
 
     auto props = spell->GetHitboxProperties();
