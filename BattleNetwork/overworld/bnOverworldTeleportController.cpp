@@ -52,6 +52,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
     this->actor->SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
     this->actor->setColor(sf::Color::Cyan);
     this->spin = doSpin;
+    this->entered = true;
     this->spinProgress = 0;
   };
 
@@ -99,7 +100,7 @@ void Overworld::TeleportController::Update(double elapsed)
         sequence.pop();
       }
     }
-    else if (spin) {
+    else if (entered) {
       constexpr float _2pi = static_cast<float>(2.0f * M_PI);
       constexpr float spin_frames = _2pi / 0.25f;
       float progress = spin_frames * static_cast<float>(elapsed);
@@ -109,7 +110,12 @@ void Overworld::TeleportController::Update(double elapsed)
       sf::Uint8 alpha = static_cast<sf::Uint8>(255 * (1.0f - (spinProgress / spin_frames)));
       this->actor->setColor({ cyan.r, cyan.g, cyan.b, alpha });
 
-      actor->Face(Actor::MakeDirectionFromVector({ std::cos(spinProgress), std::sin(spinProgress) }));
+      if (spin) {
+        actor->Face(Actor::MakeDirectionFromVector({ std::cos(spinProgress), std::sin(spinProgress) }));
+      }
+      else {
+        actor->Face(this->startDir);
+      }
     }
   }
   else {

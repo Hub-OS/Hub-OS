@@ -55,12 +55,6 @@ Player::Player() :
 
   this->RegisterStatusCallback(Hit::recoil, Callback<void()>{ recoil });
 
-  auto bubbleState = [this]() {
-    ChangeState<BubbleState<Player>>();
-  };
-
-  this->RegisterStatusCallback(Hit::bubble, Callback<void()>{ bubbleState});
-
   using namespace std::placeholders;
   auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
   actionQueue.RegisterType<BusterEvent, BusterActionDeleter>(ActionTypes::buster, handler);

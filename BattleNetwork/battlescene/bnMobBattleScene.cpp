@@ -31,6 +31,8 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
     LoadMob(*props.mobs.front());
   }
 
+  GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
+
   // If playing co-op, add more players to track here
   players = { &props.base.player };
 
@@ -117,11 +119,11 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
 
   // combat has multiple state interruptions based on events
   // so we can chain them together
-  combat  .ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
-          .ChangeOnEvent(forms,      playerDecrosses)
-          .ChangeOnEvent(fadeout,    &CombatBattleState::PlayerLost)
-          .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
-          .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
+  combat.ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
+    .ChangeOnEvent(forms, playerDecrosses)
+    .ChangeOnEvent(fadeout, &CombatBattleState::PlayerLost)
+    .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
+    .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 
   // Time freeze state interrupts combat state which must resume after animations are finished
   timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);

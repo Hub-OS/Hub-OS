@@ -369,7 +369,11 @@ void SelectMobScene::onUpdate(double elapsed) {
       Audio().StopStream();
 
       // Get the navi we selected
-      Player* player = NAVIS.At(selectedNavi).GetNavi();
+      auto& meta = NAVIS.At(selectedNavi);
+      const std::string& image = meta.GetMugshotTexturePath();
+      const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
+      auto mugshot = Textures().LoadTextureFromFile(image);
+      Player* player = meta.GetNavi();
 
       // Shuffle our new folder
       CardFolder* newFolder = selectedFolder.Clone();
@@ -382,7 +386,9 @@ void SelectMobScene::onUpdate(double elapsed) {
       MobBattleProperties props{ 
         { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
         MobBattleProperties::RewardBehavior::take,
-        { mob }
+        { mob },
+        sf::Sprite(*mugshot),
+        mugshotAnim
       };
 
       using effect = segue<WhiteWashFade>;

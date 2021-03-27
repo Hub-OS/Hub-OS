@@ -24,7 +24,7 @@ namespace Overworld {
 
     std::queue<Command> sequence;
 
-    bool animComplete{ true }, walkoutComplete{ true }, spin{ false };
+    bool animComplete{ true }, walkoutComplete{ true }, entered{ false }, spin{ false };
     bool mute{ false };
     float spinProgress{};
     frame_time_t walkFrames{};

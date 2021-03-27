@@ -460,7 +460,7 @@ namespace Battle {
       volcanoSprite.setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
     }
 
-    for (auto&& chars : deletingCharacters) {
+    for (auto* chars : deletingCharacters) {
       field->UpdateEntityOnce(chars, _elapsed);
     }
 

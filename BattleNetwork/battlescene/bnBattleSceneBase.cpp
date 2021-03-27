@@ -42,7 +42,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   iceShader(*Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   cardListener(props.player),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI(props.folder, 8, 8),
+  cardCustGUI({ props.folder, 8, 8 }),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
   channel(this)

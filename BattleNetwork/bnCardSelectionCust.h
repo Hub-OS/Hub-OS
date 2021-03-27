@@ -6,7 +6,7 @@
 #include "bnCardFolder.h"
 #include "bnGame.h"
 #include "bnAnimation.h"
-#include "bnCardDescriptionTextbox.h"
+#include "bnBattleTextbox.h"
 #include "bnCustEmblem.h"
 #include "bnSceneNode.h"
 #include "bnPlayerForm.h"
@@ -22,6 +22,16 @@
  */
 class CardSelectionCust : public SceneNode, public ResourceHandle {
 public:
+  /**
+    @brief struct to hold class constructor properties
+    @warning CardSelectionCust WILL deallocate the folder passed in
+  **/
+  struct Props {
+    CardFolder* _folder{ nullptr };
+    int cap{};
+    int perTurn{ 5 };
+  };
+
   /**
    * @struct Bucket
    * @author mav
@@ -40,6 +50,7 @@ public:
   };
 
 private:
+  Props props{};
   mutable sf::Sprite custSprite;
   mutable sf::Sprite custDarkCardOverlay, custMegaCardOverlay, custGigaCardOverlay;
   mutable sf::Sprite cursorSmall; // animated
@@ -70,13 +81,8 @@ private:
   int selectedFormRow; //!< selected form row
   int selectedFormIndex; //!< Form Index of selection 
   int lockedInFormIndex; //!< What the card cust has locked our selection in as
-  std::vector<sf::Sprite> formUI;
-  double formSelectQuitTimer;
-  bool playFormSound;
-
   int cardCount; /*!< How many cards are listed in the GUI */
   int selectCount, newSelectCount; /*!< How many cards the user has selected */
-  int cardCap; /*!< Cards user can get */
   mutable int cursorPos; /*!< Colum of the cursor */
   mutable int cursorRow; /*!< Row of the cursor */
   bool areCardsReady; /*!< If cards have been OKd by user */
@@ -84,16 +90,15 @@ private:
   bool isInFormSelect; 
   bool canInteract;
   bool isDarkCardSelected;
+  bool playFormSound;
   float darkCardShadowAlpha;
-  int perTurn; /*!< How many cards the player can get per turn */
-  CardFolder* folder; /*!< The loaded card folder. @warning Will consume and delete this resource */
+  std::vector<sf::Sprite> formUI;
+  double formSelectQuitTimer;
+  double frameElapsed; /*!< delta seconds since last frame */
   Battle::Card** selectedCards; /*!< Pointer to a list of selected cards */
   Bucket* queue; /*!< List of buckets */
   Bucket** selectQueue, **newSelectQueue; /*!< List of selected buckets in order */
-  CardDescriptionTextbox cardDescriptionTextbox; /*!< Popups card descriptions */
-
-  double frameElapsed; /*!< delta seconds since last frame */
-
+  Battle::Textbox textbox; /*!< Popups card descriptions */
   std::vector<PlayerFormMeta*> forms;
 
 public:
@@ -103,7 +108,7 @@ public:
    * @param cap How many cards that can load in total. GUI only supports 8 max.
    * @param perTurn How many cards are drawn per turn. Default is 5.
    */
-  CardSelectionCust(CardFolder* _folder, int cap, int perTurn = 5);
+  CardSelectionCust(const Props& props);
   
   /**
    * @brief Clears and deletes all cards and queues. Deletes folder.
@@ -116,38 +121,61 @@ public:
    * @brief Opens the textbox with card description
    * @return true if successful. False otherwise.
    */
-  bool OpenCardDescription();
+  bool OpenTextbox();
+
+  const bool HasQuestion() const;
   
   /**
    * @brief Continues onto the next "page" of text 
    * @return true if successful. False otherwise.
    */
-  bool ContinueCardDescription();
+  bool ContinueTextbox();
   
   /**
    * @brief Speed up text
    * @param factor speed up amount
    * @return true if successful. False otherwise.
    */
-  bool FastForwardCardDescription(double factor);
+  bool FastForwardTextbox(double factor);
   
   /**
    * @brief Closes textbox
    * @return true if succesful. False otherwise.
    */
-  bool CloseCardDescription();
+  bool CloseTextbox();
+
+  void SetSpeaker(const sf::Sprite& mug, const Animation& anim);
+  void PromptRetreat();
   
   /**
    * @brief If in a question, selects YES
    * @return true if operation successful. False otherwise.
    */
-  bool CardDescriptionYes();
+  bool TextboxSelectYes();
   
   /**
    * @brief If in a question, selects NO
    * @return true if operation successful. False otherwise.
    */
-  bool CardDescriptionNo();
+  bool TextboxSelectNo();
+
+  /**
+   * @brief Confirm question selection for textbox
+   * @return true if operation was successful, false otherwise
+   */
+  bool TextboxConfirmQuestion();
+
+  /**
+   * @brief Check if the textbox is fully open
+   * @return true if textbox is open. False otherwise.
+   */
+  bool IsTextboxOpen();
+
+  /**
+ * @brief Check if the textbox is fully closed
+ * @return true if textbox is closed. False otherwise.
+ */
+  bool IsTextboxClosed();
   
   /**
    * @brief Moves card cursor up
@@ -203,12 +231,6 @@ public:
    */
   const bool IsInView();
   
-  /**
-   * @brief Check if the textbox is open
-   * @return true if textbox is open. False otherwise.
-   */
-  bool IsCardDescriptionTextBoxOpen();
-  
   const bool IsDarkCardSelected();
 
   /**
@@ -241,12 +263,6 @@ public:
    */
   void Update(double elapsed);
 
-  /**
-   * @brief Confirm question selection for textbox 
-   * @return true if operation was successful, false otherwise
-   */
-  bool CardDescriptionConfirmQuestion();
-
   // Card ops
   
   /**
@@ -275,7 +291,9 @@ public:
 
   const bool SelectedNewForm();
 
-  bool CanInteract();
+  const bool CanInteract();
+
+  const bool RequestedRetreat();
   
   /**
    * @brief Calls ClearCards(), resets cursor, and sets AreCardsReady are false

@@ -50,27 +50,27 @@ public:
    */
   void Update();
 
-  sf::Keyboard::Key GetAnyKey();
+  sf::Keyboard::Key GetAnyKey() const;
   
-  std::string GetClipboard();
+  std::string GetClipboard() const;
   void SetClipboard(const std::string& data);
 
-  Gamepad GetAnyGamepadButton();
+  Gamepad GetAnyGamepadButton() const;
   
-  const bool ConvertKeyToString(const sf::Keyboard::Key key, std::string& out);
+  const bool ConvertKeyToString(const sf::Keyboard::Key key, std::string& out) const;
 
   /**
    * @brief Queries if an input event has been fired
    * @param _event the event to look for.
    * @return true if present, false otherwise
    */
-  bool Has(InputEvent _event);
+  bool Has(InputEvent _event) const;
   
   /**
    * @brief Checks if the input event list is empty
    * @return true if empty, false otherwise
    */
-  bool Empty();
+  bool Empty() const;
   
   /**
    * @brief Creates a reference to the config reader object
@@ -82,7 +82,7 @@ public:
    * @brief Returns true if the config reader is set and config file is valid
    * @return 
    */
-  bool IsConfigFileValid();
+  bool IsConfigFileValid() const;
   
   /**
    * @brief Begins capturing entered text instead of firing game input events
@@ -125,7 +125,7 @@ public:
    * @brief Returns the contents of the current captured text
    * @return const std::string
    */
-  const std::string GetInputBuffer();
+  const std::string GetInputBuffer() const;
   
   /**
    * @brief Transforms SFML keycodes into ASCII char texts and stores into input buffer

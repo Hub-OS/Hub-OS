@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../bnResourceHandle.h"
 #include "../bnInputManager.h"
 #include "../bnMessageInterface.h"
 #include "../bnAnimatedTextBox.h"
@@ -8,7 +9,7 @@
 #include <functional>
 
 namespace Overworld {
-  class TextBox : public sf::Drawable {
+  class TextBox : public sf::Drawable, ResourceHandle {
   public:
     TextBox(sf::Vector2f pos);
 

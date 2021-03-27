@@ -16,6 +16,8 @@ struct MobBattleProperties {
       none         //!< No rewards given
   } reward{ };
   std::vector<Mob*> mobs;
+  sf::Sprite mug; // speaker mugshot
+  Animation anim; // mugshot animation
 };
 
 /*

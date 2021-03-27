@@ -8,10 +8,10 @@
 
 #define WILDCARD '*'
 
-CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) :
-  perTurn(perTurn),
+CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) : 
+  props(props),
   greyscale(*Shaders().GetShader(ShaderType::GREYSCALE)),
-  cardDescriptionTextbox({ 4, 255 }),
+  textbox({ 4, 255 }),
   isInView(false),
   isInFormSelect(false),
   playFormSound(false),
@@ -24,13 +24,12 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   label("", labelFont),
   smCodeLabel("?", codeFont)
 {
+  this->props.cap = std::min(this->props.cap, 8);
+
   frameElapsed = 1;
-  folder = _folder;
-  cap = std::min(cap, 8);
-  cardCap = cap;
-  queue = new Bucket[cardCap];
-  selectQueue = new Bucket*[cardCap];
-  newSelectQueue = new Bucket*[cardCap];
+  queue = new Bucket[this->props.cap];
+  selectQueue = new Bucket*[this->props.cap];
+  newSelectQueue = new Bucket*[this->props.cap];
 
   cardCount = selectCount = newSelectCount = cursorPos = cursorRow = 0;
 
@@ -138,7 +137,7 @@ CardSelectionCust::~CardSelectionCust() {
 
   cardCount = 0;
 
-  delete folder;
+  delete props._folder;
 }
 
 bool CardSelectionCust::CursorUp() {
@@ -396,9 +395,14 @@ const bool CardSelectionCust::IsInView() {
   return (getPosition().x == bounds);
 }
 
-bool CardSelectionCust::IsCardDescriptionTextBoxOpen()
+bool CardSelectionCust::IsTextboxOpen()
 {
-  return cardDescriptionTextbox.IsOpen();
+  return textbox.IsOpen();
+}
+
+bool CardSelectionCust::IsTextboxClosed()
+{
+  return textbox.IsClosed();
 }
 
 const bool CardSelectionCust::IsDarkCardSelected()
@@ -411,82 +415,95 @@ void CardSelectionCust::Move(sf::Vector2f delta) {
   IsInView();
 }
 
-bool CardSelectionCust::OpenCardDescription()
+bool CardSelectionCust::OpenTextbox()
 {
   if (isInFormSelect) return false;
 
   int index = cursorPos + (5 * cursorRow);
 
-  if (!IsInView() || cardDescriptionTextbox.IsOpen() ||
+  if (!IsInView() || textbox.IsOpen() ||
     (cursorPos == 5 && cursorRow == 0) || (index >= cardCount)) return false;
 
-  cardDescriptionTextbox.DescribeCard(queue[index].data);
+  textbox.DescribeCard(queue[index].data);
 
   return true;
 }
 
-bool CardSelectionCust::ContinueCardDescription() {
+const bool CardSelectionCust::HasQuestion() const
+{
+  return textbox.HasQuestion();
+}
+
+bool CardSelectionCust::ContinueTextbox() {
   if (isInFormSelect) return false;
-  if (!IsInView() || cardDescriptionTextbox.IsClosed()) return false;
+  if (!IsInView() || textbox.IsClosed()) return false;
 
-  //cardDescriptionTextbox.Continue();
-
-  return true;
+  // textbox.Continue();
+  return false;
 }
 
-bool CardSelectionCust::FastForwardCardDescription(double factor) {
+bool CardSelectionCust::FastForwardTextbox(double factor) {
   if (isInFormSelect) return false;
-  if (!IsInView() || cardDescriptionTextbox.IsClosed()) return false;
+  if (!IsInView() || textbox.IsClosed()) return false;
 
-  cardDescriptionTextbox.SetTextSpeed(factor);
+  textbox.SetTextSpeed(factor);
 
   return true;
 }
 
-bool CardSelectionCust::CloseCardDescription() {
+bool CardSelectionCust::CloseTextbox() {
   if (isInFormSelect) return false;
-  if (!IsInView() || cardDescriptionTextbox.IsClosed()) return false;
+  if (!IsInView() || textbox.IsClosed()) return false;
 
-  cardDescriptionTextbox.Close();
+  textbox.Close();
 
   return true;
 }
 
-bool CardSelectionCust::CardDescriptionYes() {
+void CardSelectionCust::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
+{
+  textbox.SetSpeaker(mug, anim);
+}
+
+void CardSelectionCust::PromptRetreat()
+{
+  if (!IsInView() || textbox.IsOpen()) return;
+
+  textbox.PromptRetreat();
+}
+
+bool CardSelectionCust::TextboxSelectYes() {
   if (isInFormSelect) return false;
-  if (!IsInView() || cardDescriptionTextbox.IsClosed()) return false;
+  if (!IsInView() || textbox.IsClosed()) return false;
 
-  //return cardDescriptionTextbox.SelectYes();
-  return true;
-
+  return textbox.SelectYes();
 }
 
-bool CardSelectionCust::CardDescriptionNo() {
-  if (!IsInView() || cardDescriptionTextbox.IsClosed()) return false;
+bool CardSelectionCust::TextboxSelectNo() {
+  if (!IsInView() || textbox.IsClosed()) return false;
 
-  //return cardDescriptionTextbox.SelectNo();
-  return true;
+  return textbox.SelectNo();
 }
 
 
-bool CardSelectionCust::CardDescriptionConfirmQuestion() {
+bool CardSelectionCust::TextboxConfirmQuestion() {
   if (isInFormSelect) return false;
-  if (!IsInView() || cardDescriptionTextbox.IsClosed()) return false;
+  if (!IsInView() || textbox.IsClosed()) return false;
 
-  // return cardDescriptionTextbox.ConfirmSelection();
-  return true;
+  textbox.ConfirmSelection();
+  return true; // play audio
 }
 
 void CardSelectionCust::GetNextCards() {
 
   bool selectFirstDarkCard = true;
 
-  for (int i = cardCount; i < cardCap; i++) {
+  for (int i = cardCount; i < props.cap; i++) {
 
     // The do-while loop ensures that only cards parsed successfully
     // should be used in combat
     do {
-      queue[i].data = folder->Next();
+      queue[i].data = props._folder->Next();
 
       if (!queue[i].data) {
         // nullptr is end of list
@@ -508,9 +525,9 @@ void CardSelectionCust::GetNextCards() {
     queue[i].state = Bucket::state::staged;
 
     cardCount++;
-    perTurn--;
+    props.perTurn--;
 
-   if (perTurn == 0) return;
+   if (props.perTurn == 0) return;
   }
 }
 
@@ -779,7 +796,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
   }
 
-  target.draw(cardDescriptionTextbox);
+  target.draw(textbox);
 
   SceneNode::draw(target, states);
 
@@ -832,7 +849,7 @@ void CardSelectionCust::Update(double elapsed)
   cursorSmallAnimator.Update(elapsed, cursorSmall);
   cursorBigAnimator.Update(elapsed, cursorBig);
 
-  cardDescriptionTextbox.Update(elapsed);
+  textbox.Update(elapsed);
 
   emblem.Update(elapsed);
 
@@ -942,9 +959,14 @@ const bool CardSelectionCust::SelectedNewForm()
   return (selectedFormIndex != -1);
 }
 
-bool CardSelectionCust::CanInteract()
+const bool CardSelectionCust::CanInteract()
 {
   return canInteract;
+}
+
+const bool CardSelectionCust::RequestedRetreat()
+{
+  return textbox.RequestedRetreat();
 }
 
 void CardSelectionCust::ResetState() {

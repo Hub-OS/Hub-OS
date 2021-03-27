@@ -14,11 +14,11 @@ struct InputEvent {
   std::string name;
   InputState state{};
 
-  const bool operator==(const InputEvent& rhs) {
+  const bool operator==(const InputEvent& rhs) const {
     return (rhs.name == name && rhs.state == state);
   }
 
-  const bool operator!=(const InputEvent& rhs) {
+  const bool operator!=(const InputEvent& rhs) const {
     return !(rhs.name == name && rhs.state == state);
   }
 };

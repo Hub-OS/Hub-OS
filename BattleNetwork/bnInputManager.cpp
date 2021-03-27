@@ -425,12 +425,12 @@ void InputManager::Update() {
 #endif
 }
 
-sf::Keyboard::Key InputManager::GetAnyKey()
+sf::Keyboard::Key InputManager::GetAnyKey() const
 {
   return lastkey;
 }
 
-std::string InputManager::GetClipboard()
+std::string InputManager::GetClipboard() const
 {
   return sf::Clipboard::getString();
 }
@@ -440,12 +440,12 @@ void InputManager::SetClipboard(const std::string& data)
   sf::Clipboard::setString(sf::String(data));
 }
 
-Gamepad InputManager::GetAnyGamepadButton()
+Gamepad InputManager::GetAnyGamepadButton() const
 {
   return lastButton;
 }
 
-const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::string & out)
+const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::string & out) const
 {
   switch (key) {
     case sf::Keyboard::Key::Num1:
@@ -575,8 +575,8 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
   return false;
 }
 
-bool InputManager::Has(InputEvent _event) {
-  return events.end() != find(events.begin(), events.end(), _event);
+bool InputManager::Has(InputEvent _event) const {
+  return events.cend() != std::find(events.cbegin(), events.cend(), _event);
 }
 
 void InputManager::VirtualKeyEvent(InputEvent event) {
@@ -649,11 +649,11 @@ void InputManager::FlushAllInputEvents()
   }
 }
 
-bool InputManager::Empty() {
+bool InputManager::Empty() const {
   return events.empty();
 }
 
-bool InputManager::IsConfigFileValid()
+bool InputManager::IsConfigFileValid() const
 {
   return settings.IsOK();
 }
@@ -689,7 +689,7 @@ const size_t InputManager::GetGamepadCount() const
   return gamepads.size();
 }
 
-const std::string InputManager::GetInputBuffer()
+const std::string InputManager::GetInputBuffer() const
 {
   return inputBuffer;
 }

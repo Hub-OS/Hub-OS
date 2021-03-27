@@ -179,7 +179,8 @@ void Entity::UpdateMovement(double elapsed)
             bool cancelSlide = notIce || cannotMove || weAreIce;
 
             if (!cancelSlide) {
-              Slide(previousDirection, frames(3), frames(0), ActionOrder::involuntary);
+              MoveEvent event = { frames(3), frames(0), frames(0), 0, tile + previousDirection };
+              RawMoveEvent(event, ActionOrder::immediate);
             }
           }
           else {

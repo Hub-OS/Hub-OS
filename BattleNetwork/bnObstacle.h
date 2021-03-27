@@ -21,7 +21,7 @@ using sf::Texture;
 
 class Obstacle : public Character, public  Spell {
 private:
-  bool ignoreCommonAggressor;
+  bool ignoreCommonAggressor{};
 
 public:
   Obstacle(Team _team);

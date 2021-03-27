@@ -1,11 +1,12 @@
 #include "bnOverworldTextBox.h"
 
+#include "../bnAudioResourceManager.h"
 #include "../bnMessage.h"
 #include "../bnMessageQuestion.h"
 #include "../bnMessageQuiz.h"
 
 namespace Overworld {
-  TextBox::TextBox(sf::Vector2f pos) : textbox(pos) {}
+  TextBox::TextBox(sf::Vector2f pos) : textbox(pos), ResourceHandle() {}
 
   void TextBox::SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation) {
     nextSpeaker = speaker;
@@ -59,10 +60,10 @@ namespace Overworld {
 
       if (left && right) {}
       else if (left) {
-        question->SelectYes();
+        question->SelectYes() ? Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low) : 0;
       }
       else if (right) {
-        question->SelectNo();
+        question->SelectNo() ? Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low) : 0;
       }
 
       if (!textbox.IsEndOfMessage()) {
@@ -96,12 +97,12 @@ namespace Overworld {
       bool down = input.Has(InputEvents::pressed_ui_down);
       bool confirm = input.Has(InputEvents::pressed_confirm);
 
-      if (up && down) {}
+      if (up && down) { /* silence is golden */ }
       else if (up) {
-        quiz->SelectUp();
+        quiz->SelectUp()? Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low) : 0;
       }
       else if (down) {
-        quiz->SelectDown();
+        quiz->SelectDown() ? Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low) : 0;
       }
 
       if (confirm) {

@@ -13,6 +13,8 @@
 #include "bnAnimationComponent.h"
 #include "bnShakingEffect.h"
 #include "bnBubbleTrap.h"
+#include "bnBubbleState.h"
+#include "bnPlayer.h"
 
 struct CardActionDeleter {
   void operator()(CardEvent& in) {
@@ -51,7 +53,13 @@ Character::Character(Rank _rank) :
   actionQueue.RegisterType<PeekCardEvent>(ActionTypes::peek_card, peekHandler);
 
   RegisterStatusCallback(Hit::bubble, [this] {
+    actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
     CreateComponent<BubbleTrap>(this);
+    
+    // TODO: this is an ugly hack
+    if (auto ai = dynamic_cast<Player*>(this)) {
+      ai->ChangeState<BubbleState<Player>>();
+    }
   });
 }
 
@@ -328,8 +336,9 @@ void Character::ResolveFrameBattleDamage()
     // a re-usable thunk for custom status effects
     auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
       if ((props.flags & toCheck) == toCheck) {
-        auto& func = statusCallbackHash[toCheck];
-        func ? func() : (void(0));
+        if (auto& func = statusCallbackHash[toCheck]) {
+          func();
+        }
       }
     };
 
@@ -455,7 +464,6 @@ void Character::ResolveFrameBattleDamage()
       props.flags &= ~Hit::retangible;
 
       if ((props.flags & Hit::bubble) == Hit::bubble) {
-        actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
         flagCheckThunk(Hit::bubble);
       }
 
