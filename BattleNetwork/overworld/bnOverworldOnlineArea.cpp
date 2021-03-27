@@ -452,8 +452,8 @@ void Overworld::OnlineArea::sendAssetFoundSignal(const std::string& path, uint64
 }
 
 void Overworld::OnlineArea::sendAssetsFound() {
-  for (auto [name, lastModified] : serverAssetManager.GetCachedAssetList()) {
-    sendAssetFoundSignal(name, lastModified);
+  for (auto& [name, meta] : serverAssetManager.GetCachedAssetList()) {
+    sendAssetFoundSignal(name, meta.lastModified);
   }
 }
 
