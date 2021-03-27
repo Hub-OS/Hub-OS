@@ -98,38 +98,14 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) 
       auto lastWriteTime = entry.last_write_time();
       auto secondsSinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(lastWriteTime.time_since_epoch()).count();
 
-      cachedAssets.emplace(name, secondsSinceEpoch);
 
-      auto length = entry.file_size();
+      CacheMeta meta{
+        path,
+        (uint64_t)secondsSinceEpoch,
+        entry.file_size()
+      };
 
-      std::vector<char> data;
-
-      try {
-        std::ifstream fin(path, std::ios::binary);
-        // prevents newlines from being skipped
-        fin.unsetf(std::ios::skipws);
-
-        data.reserve(length);
-        data.insert(data.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
-      }
-      catch (std::ifstream::failure& e) {
-        Logger::Logf("Failed to read cached data \"%s\": %s", path.c_str(), e.what());
-        continue;
-      }
-
-      auto extensionIndex = name.rfind('.');
-      auto extension = extensionIndex != std::string::npos ? name.substr(extensionIndex) : "";
-
-      if (extension == ".png" || extension == ".bmp") {
-        SetTexture(name, secondsSinceEpoch, data.data(), length, false);
-      }
-      else if (extension == ".ogg") {
-        SetAudio(name, secondsSinceEpoch, data.data(), length, false);
-      }
-      else {
-        std::string text(data.data(), length);
-        SetText(name, secondsSinceEpoch, text, false);
-      }
+      cachedAssets.emplace(name, meta);
     }
   }
   catch (std::filesystem::filesystem_error& err) {
@@ -142,20 +118,49 @@ std::string Overworld::ServerAssetManager::GetPath(const std::string& name) {
   return cachePrefix + encodeName(name);
 }
 
-const std::unordered_map<std::string, uint64_t>& Overworld::ServerAssetManager::GetCachedAssetList() {
+const std::unordered_map<std::string, Overworld::ServerAssetManager::CacheMeta>& Overworld::ServerAssetManager::GetCachedAssetList() {
   return cachedAssets;
+}
+
+std::vector<char> Overworld::ServerAssetManager::LoadFromCache(const std::string& name) {
+  auto meta = cachedAssets[name];
+
+  std::vector<char> data;
+
+  if (meta.size == 0) {
+    return data;
+  }
+
+  try {
+    std::ifstream fin(meta.path, std::ios::binary);
+    // prevents newlines from being skipped
+    fin.unsetf(std::ios::skipws);
+
+    data.reserve(meta.size);
+    data.insert(data.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
+  }
+  catch (std::ifstream::failure& e) {
+    Logger::Logf("Failed to read cached data \"%s\": %s", meta.path.c_str(), e.what());
+  }
+
+  return data;
 }
 
 std::string Overworld::ServerAssetManager::GetText(const std::string& name) {
   if (textAssets.find(name) == textAssets.end()) {
-    return "";
+    auto data = LoadFromCache(name);
+    std::string text(data.data(), data.size());
+    textAssets[name] = text;
   }
   return textAssets[name];
 }
 
 std::shared_ptr<sf::Texture> Overworld::ServerAssetManager::GetTexture(const std::string& name) {
   if (textureAssets.find(name) == textureAssets.end()) {
-    return std::make_shared<sf::Texture>();
+    auto data = LoadFromCache(name);
+    auto texture = std::make_shared<sf::Texture>();
+    texture->loadFromMemory(data.data(), data.size());
+    textureAssets[name] = texture;
   }
 
   return textureAssets[name];
@@ -163,35 +168,52 @@ std::shared_ptr<sf::Texture> Overworld::ServerAssetManager::GetTexture(const std
 
 std::shared_ptr<sf::SoundBuffer> Overworld::ServerAssetManager::GetAudio(const std::string& name) {
   if (audioAssets.find(name) == audioAssets.end()) {
-    return std::make_shared<sf::SoundBuffer>();
+    auto data = LoadFromCache(name);
+    auto audio = std::make_shared<sf::SoundBuffer>();
+    audio->loadFromMemory(data.data(), data.size());
+    audioAssets[name] = audio;
   }
 
   return audioAssets[name];
 }
 
-static bool Save(std::string path, uint64_t lastModified, const char* data, size_t length) {
+void Overworld::ServerAssetManager::CacheAsset(const std::string& name, uint64_t lastModified, const char* data, size_t size) {
+  auto path = GetPath(name);
+
   std::ofstream fout;
   fout.open(path, std::ios::out | std::ios::binary);
 
   if (!fout.is_open()) {
     Logger::Logf("Failed to cache server asset to file: %s", path.c_str());
-    return false;
+    return;
   }
 
-  fout.write(data, length);
+  fout.write(data, size);
   fout.close();
 
-  auto durationFromEpoch = std::chrono::seconds(lastModified);
-  auto lastModifiedTime = std::filesystem::file_time_type(durationFromEpoch);
-  std::filesystem::last_write_time(path, lastModifiedTime);
+  try {
+    auto durationFromEpoch = std::chrono::seconds(lastModified);
+    auto lastModifiedTime = std::filesystem::file_time_type(durationFromEpoch);
+    std::filesystem::last_write_time(path, lastModifiedTime);
+  }
+  catch (std::filesystem::filesystem_error& err) {
+    Logger::Log("Error occured while setting the last write time of a cached asset");
+    Logger::Log(err.what());
+    return;
+  }
 
-  return true;
+  CacheMeta meta{
+    path,
+    lastModified,
+    size
+  };
+
+  cachedAssets.emplace(name, meta);
 }
 
 void Overworld::ServerAssetManager::SetText(const std::string& name, uint64_t lastModified, const std::string& data, bool cache) {
   if (cache) {
-    Save(GetPath(name), lastModified, data.c_str(), data.size());
-    cachedAssets.emplace(name, lastModified);
+    CacheAsset(name, lastModified, data.c_str(), data.size());
   }
 
   textAssets.erase(name);
@@ -199,8 +221,8 @@ void Overworld::ServerAssetManager::SetText(const std::string& name, uint64_t la
 }
 
 void Overworld::ServerAssetManager::SetTexture(const std::string& name, uint64_t lastModified, const char* data, size_t length, bool cache) {
-  if (cache && Save(GetPath(name), lastModified, data, length)) {
-    cachedAssets.emplace(name, lastModified);
+  if (cache) {
+    CacheAsset(name, lastModified, data, length);
   }
 
   auto texture = std::make_shared<sf::Texture>();
@@ -211,8 +233,8 @@ void Overworld::ServerAssetManager::SetTexture(const std::string& name, uint64_t
 }
 
 void Overworld::ServerAssetManager::SetAudio(const std::string& name, uint64_t lastModified, const char* data, size_t length, bool cache) {
-  if (cache && Save(GetPath(name), lastModified, data, length)) {
-    cachedAssets.emplace(name, lastModified);
+  if (cache) {
+    CacheAsset(name, lastModified, data, length);
   }
 
   auto audio = std::make_shared<sf::SoundBuffer>();
