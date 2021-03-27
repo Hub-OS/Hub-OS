@@ -235,6 +235,8 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       // failed to load tile
       if (tileMeta == nullptr) continue;
 
+      if(index > 0 && map.IgnoreTileAbove(j, i, index - 1)) continue;
+
       if (tileMeta->type == "Stairs") {
         states.shader->setUniform("mask", false);
       }
