@@ -276,7 +276,8 @@ void Overworld::Homepage::onUpdate(double elapsed)
     auto mugshot = Textures().LoadTextureFromFile(image);
 
     textbox.SetNextSpeaker(sf::Sprite(*mugshot), anim);
-    textbox.EnqueueMessage("This is your homepage. You can edit it how you like!");
+    textbox.EnqueueMessage("This is your homepage.");
+    textbox.EnqueueMessage("You can edit it anyway you like!");
   }
 
   // do default logic

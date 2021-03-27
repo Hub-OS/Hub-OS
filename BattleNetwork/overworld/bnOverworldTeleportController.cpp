@@ -47,12 +47,11 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
     }
   };
 
-  auto onSpin = [=] {
-
+  auto onEnter = [=] {
     this->actor->Reveal();
     this->actor->SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
     this->actor->setColor(sf::Color::Cyan);
-    this->spin = true;
+    this->spin = doSpin;
     this->spinProgress = 0;
   };
 
@@ -66,13 +65,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
   this->startDir = dir;
   this->actor = actor;
   this->animComplete = this->walkoutComplete = this->spin = false;
-  this->beamAnim << "TELEPORT_IN" << Animator::On(2, onStart);
-  
-  if (doSpin) {
-    this->beamAnim << Animator::On(5, onSpin);
-  }
-  
-  this->beamAnim << onFinish;
+  this->beamAnim << "TELEPORT_IN" << Animator::On(2, onStart) << Animator::On(5, onEnter) << onFinish;
 
   this->beamAnim.Refresh(this->beam->getSprite());
   actor->Hide();
