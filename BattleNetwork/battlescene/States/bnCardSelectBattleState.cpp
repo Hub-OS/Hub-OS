@@ -99,7 +99,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
   if (cardCust.IsInView()) {
     currState = state::select;
 
-    if (Input().Has(InputEvents::pressed_scan_right) || Input().Has(InputEvents::pressed_scan_left)) {
+    if (Input().Has(InputEvents::pressed_shoulder_right) || Input().Has(InputEvents::pressed_shoulder_left)) {
       if (cardCust.IsVisible()) {
         cardCust.Hide();
       }

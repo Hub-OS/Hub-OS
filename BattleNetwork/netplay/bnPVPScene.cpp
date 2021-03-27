@@ -574,12 +574,12 @@ void PVPScene::onUpdate(double elapsed) {
     else if (Input().HasSystemPasteEvent() && !infoMode) {
       HandlePasteEvent();
     }
-    else if (Input().Has(InputEvents::pressed_scan_left) && infoMode) {
+    else if (Input().Has(InputEvents::pressed_shoulder_left) && infoMode) {
       infoMode = false;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       HandleJoinMode();
     }
-    else if (Input().Has(InputEvents::pressed_scan_right) && !infoMode) {
+    else if (Input().Has(InputEvents::pressed_shoulder_right) && !infoMode) {
       infoMode = true;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       HandleInfoMode();

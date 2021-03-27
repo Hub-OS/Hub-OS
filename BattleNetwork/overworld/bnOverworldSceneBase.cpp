@@ -334,9 +334,7 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
 }
 
 void Overworld::SceneBase::HandleInput() {
-
-  // TODO: change this to use Input().Has(event)
-  if (Input().GetAnyKey() == sf::Keyboard::M) {
+  if (Input().Has(InputEvents::pressed_map)) {
     showMinimap = !showMinimap;
     if (!showMinimap) {
       minimap.ResetPanning();
@@ -629,7 +627,8 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
       }
 
       // index == 0 will NEVER have sprites
-      if (index > 0 && gridShadows[((index-1) * rows * cols) + (gridPos.x * cols + gridPos.y)] > 0) {
+      bool evaluate = gridPos.x > 0 && gridPos.y > 0 && index > 0;
+      if (evaluate && gridShadows[((index-1) * rows * cols) + (gridPos.x * cols + gridPos.y)] > 0) {
         sprite->setColor(sf::Color(originalColor.r * 0.5, originalColor.b * 0.5, originalColor.g * 0.5, originalColor.a));
       }
       target.draw(*sprite, states);

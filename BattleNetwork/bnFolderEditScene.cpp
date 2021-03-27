@@ -315,7 +315,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           ++view->lastCardOnScreen;
         }
       }
-    }else if (Input().Has(InputEvents::pressed_scan_left)) {
+    }else if (Input().Has(InputEvents::pressed_shoulder_left)) {
       extendedHold = false;
 
       selectInputCooldown -= elapsed;
@@ -335,7 +335,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         cardRevealTimer.reset();
       }
     }
-    else if (Input().Has(InputEvents::pressed_scan_right)) {
+    else if (Input().Has(InputEvents::pressed_shoulder_right)) {
       extendedHold = false;
 
       selectInputCooldown -= elapsed;

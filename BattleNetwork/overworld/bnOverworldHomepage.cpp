@@ -108,7 +108,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
   // spawn in the player
   auto player = GetPlayer();
-  auto& command = GetTeleportController().TeleportIn(player, spawnPos, Direction::up);
+  auto& command = GetTeleportController().TeleportIn(player, spawnPos, Direction::up, true);
   command.onFinish.Slot([=] {
     GetPlayerController().ControlActor(player);
   });
@@ -268,6 +268,16 @@ void Overworld::Homepage::onUpdate(double elapsed)
   {
     clicked = false;
   }*/
+
+  if (Input().Has(InputEvents::pressed_shoulder_left) && textbox.IsClosed()) {
+    auto& meta = NAVIS.At(currentNavi);
+    const std::string& image = meta.GetMugshotTexturePath();
+    const std::string& anim = meta.GetMugshotAnimationPath();
+    auto mugshot = Textures().LoadTextureFromFile(image);
+
+    textbox.SetNextSpeaker(sf::Sprite(*mugshot), anim);
+    textbox.EnqueueMessage("This is your homepage. You can edit it how you like!");
+  }
 
   // do default logic
   SceneBase::onUpdate(elapsed);

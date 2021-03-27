@@ -18,7 +18,7 @@ namespace Overworld {
         teleport_in = 0,
         teleport_out
       } const state{};
-      double originalWalkSpeed{};
+      const float originalWalkSpeed{};
       Callback<void()> onFinish;
     };
 
@@ -38,7 +38,7 @@ namespace Overworld {
     ~TeleportController() = default;
 
     Command& TeleportOut(std::shared_ptr<Actor> actor);
-    Command& TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir);
+    Command& TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir, bool doSpin = false);
     void Update(double elapsed);
     const bool IsComplete() const;
     std::shared_ptr<WorldSprite> GetBeam();

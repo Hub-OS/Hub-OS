@@ -28,6 +28,8 @@ public:
     std::string special; /*!< The net navi's special description */
     std::string overworldAnimationPath; /*!< The net navi's overworld animation */
     std::string overworldTexturePath; /*!< The path of the texture to load */
+    std::string mugshotTexturePath;
+    std::string mugshotAnimationPath;
     std::string name; /*!< The net navi's name */
     std::shared_ptr<sf::Texture> iconTexture; /*!< Icon on the top of the screen */
     std::shared_ptr<sf::Texture> previewTexture; /*!< Roster profile picture */
@@ -98,6 +100,19 @@ public:
     NaviMeta& SetIsSword(const bool enabled);
     
     /**
+   * @brief Sets the mugshot animation path used in textboxes
+   * @return NaviMeta& to chain
+   */
+    NaviMeta& SetMugshotAnimationPath(const std::string& path);
+
+    /**
+     * @brief Sets the texture of the mugshot animation
+     * @param texture
+     * @return NaviMeta& to chain
+     */
+    NaviMeta& SetMugshotTexturePath(const std::string& texture);
+
+    /**
      * @brief Sets the overworld animation path used in menu screen
      * @return NaviMeta& to chain
      */
@@ -141,6 +156,18 @@ public:
      * @return const std::string&
      */
     const std::string& GetOverworldAnimationPath() const;
+
+    /**
+   * @brief Gets the mugshot texture path
+   * @return const std::string&
+   */
+    const std::string& GetMugshotTexturePath() const;
+
+    /**
+   * @brief Gets the mugshot animation path
+   * @return const std::string&
+   */
+    const std::string& GetMugshotAnimationPath() const;
     
     /**
      * @brief Gets the preview texture to draw

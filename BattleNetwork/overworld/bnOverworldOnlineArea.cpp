@@ -122,6 +122,23 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   removePlayers.clear();
 
+  if (Input().Has(InputEvents::pressed_shoulder_left) && textbox.IsClosed()) {
+    auto& meta = NAVIS.At(currentNavi);
+    const std::string& image = meta.GetMugshotTexturePath();
+    const std::string& anim = meta.GetMugshotAnimationPath();
+    auto mugshot = Textures().LoadTextureFromFile(image);
+
+    textbox.SetNextSpeaker(sf::Sprite(*mugshot), anim);
+    textbox.EnqueueQuestion("Return to your homepage?", [this](bool result) {
+      if (result) {
+        teleportController.TeleportOut(playerActor).onFinish.Slot([this] {
+          this->sendLogoutSignal();
+          this->leave();
+        });
+      }
+    });
+  }
+
   SceneBase::onUpdate(elapsed);
 
   auto currentNavi = GetCurrentNavi();

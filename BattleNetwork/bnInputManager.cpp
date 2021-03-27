@@ -183,10 +183,10 @@ void InputManager::Update() {
           events.push_back(InputEvents::pressed_special);
         }
         else if (Keyboard::D == event.key.code) {
-          events.push_back(InputEvents::pressed_scan_left);
+          events.push_back(InputEvents::pressed_shoulder_left);
         }
         else if (Keyboard::F == event.key.code) {
-          events.push_back(InputEvents::pressed_scan_right);
+          events.push_back(InputEvents::pressed_shoulder_right);
         }
       }
     } else if (Event::KeyReleased == event.type && hasFocus && IsUsingKeyboardControls()) {
@@ -238,10 +238,10 @@ void InputManager::Update() {
           events.push_back(InputEvents::released_special);
         }
         else if (Keyboard::D == event.key.code) {
-          events.push_back(InputEvents::released_scan_left);
+          events.push_back(InputEvents::released_shoulder_left);
         }
         else if (Keyboard::F == event.key.code) {
-          events.push_back(InputEvents::released_scan_right);
+          events.push_back(InputEvents::released_shoulder_right);
         }
       }
     }

@@ -39,7 +39,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportO
   return this->sequence.back();
 }
 
-Overworld::TeleportController::Command& Overworld::TeleportController::TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir)
+Overworld::TeleportController::Command& Overworld::TeleportController::TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir, bool doSpin)
 {
   auto onStart = [=] {
     if (!mute) {
@@ -48,6 +48,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
   };
 
   auto onSpin = [=] {
+
     this->actor->Reveal();
     this->actor->SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
     this->actor->setColor(sf::Color::Cyan);
@@ -65,7 +66,14 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
   this->startDir = dir;
   this->actor = actor;
   this->animComplete = this->walkoutComplete = this->spin = false;
-  this->beamAnim << "TELEPORT_IN" << Animator::On(2, onStart) << Animator::On(5, onSpin) << onFinish;
+  this->beamAnim << "TELEPORT_IN" << Animator::On(2, onStart);
+  
+  if (doSpin) {
+    this->beamAnim << Animator::On(5, onSpin);
+  }
+  
+  this->beamAnim << onFinish;
+
   this->beamAnim.Refresh(this->beam->getSprite());
   actor->Hide();
   actor->Set3DPosition(start);

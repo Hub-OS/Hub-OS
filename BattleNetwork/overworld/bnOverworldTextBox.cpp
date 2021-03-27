@@ -17,7 +17,9 @@ namespace Overworld {
       textbox.Open();
     }
 
-    textbox.EnqueMessage(nextSpeaker, nextAnimation, new Message(message));
+    Message* object = new Message(message);
+    object->ShowEndMessageCursor(true);
+    textbox.EnqueMessage(nextSpeaker, nextAnimation, object);
 
     handlerQueue.push([=](InputManager& input) {
       if (!input.Has(InputEvents::pressed_interact)) {
@@ -81,12 +83,7 @@ namespace Overworld {
     });
   }
 
-  void TextBox::EnqueueQuiz(
-    const std::string& optionA,
-    const std::string& optionB,
-    const std::string& optionC,
-    const std::function<void(int)>& onResponse
-  ) {
+  void TextBox::EnqueueQuiz(const std::string& optionA, const std::string& optionB, const std::string& optionC, const std::function<void(int)>& onResponse) {
     if (!textbox.HasMessage()) {
       textbox.Open();
     }

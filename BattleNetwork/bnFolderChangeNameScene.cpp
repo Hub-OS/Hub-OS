@@ -196,10 +196,10 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
     else if (Input().Has(InputEvents::pressed_ui_down)) {
     cursorPosY++;
     }
-    else if (Input().Has(InputEvents::pressed_scan_left)) {
+    else if (Input().Has(InputEvents::pressed_shoulder_left)) {
       DoBACK();
     }
-    else if (Input().Has(InputEvents::pressed_scan_right)) {
+    else if (Input().Has(InputEvents::pressed_shoulder_right)) {
       DoNEXT();
     }
     else if (Input().Has(InputEvents::pressed_option)) {

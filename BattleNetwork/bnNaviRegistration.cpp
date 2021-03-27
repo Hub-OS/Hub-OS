@@ -66,6 +66,18 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetIsSword(const bool en
   return *this;
 }
 
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetMugshotAnimationPath(const std::string& path)
+{
+  mugshotAnimationPath = path;
+  return *this;
+}
+
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetMugshotTexturePath(const std::string& path)
+{
+  mugshotTexturePath = path;
+  return *this;
+}
+
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldAnimationPath(const std::string& path)
 {
   overworldAnimationPath = path;
@@ -97,6 +109,16 @@ const std::string NaviRegistration::NaviMeta::GetOverworldTexturePath() const
 const std::string & NaviRegistration::NaviMeta::GetOverworldAnimationPath() const 
 {
   return overworldAnimationPath;
+}
+
+const std::string& NaviRegistration::NaviMeta::GetMugshotTexturePath() const
+{
+  return mugshotTexturePath;
+}
+
+const std::string& NaviRegistration::NaviMeta::GetMugshotAnimationPath() const
+{
+  return mugshotAnimationPath;
 }
 
 const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetPreviewTexture() const

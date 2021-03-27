@@ -106,7 +106,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
 
   Emotes end = static_cast<Emotes>(static_cast<size_t>(Emotes::size) - 1);
 
-  if (Input().Has(InputEvents::pressed_scan_left)) {
+  if (Input().Has(InputEvents::pressed_shoulder_left)) {
     if (currEmote == Emotes{ 0 }) {
       currEmote = end;
     }
@@ -115,7 +115,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
     }
   }
 
-  if (Input().Has(InputEvents::pressed_scan_right)) {
+  if (Input().Has(InputEvents::pressed_shoulder_right)) {
     if (currEmote == end) {
       currEmote = Emotes{ 0 };
     }

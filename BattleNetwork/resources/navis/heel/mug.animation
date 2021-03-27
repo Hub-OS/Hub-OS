@@ -1,0 +1,7 @@
+imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/navis/heel/mug.png"
+
+animation state="TALK"
+frame duration="0.1" x="1" y="1" w="40" h="48" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="IDLE"
+frame duration="0.1" x="1" y="1" w="40" h="48" originx="0" originy="0" flipx="0" flipy="0" 
