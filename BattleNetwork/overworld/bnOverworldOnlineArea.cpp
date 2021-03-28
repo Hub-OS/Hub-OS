@@ -827,6 +827,8 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       auto hash = objectTilePos.x + map.GetCols() * objectTilePos.y;
 
       if (type == "Home Warp") {
+        GetMinimap().SetHomepagePosition(map.WorldToScreen(objectCenterPos));
+
         tileTriggers[i][hash] = [=]() {
           auto player = GetPlayer();
           auto& teleportController = GetTeleportController();
