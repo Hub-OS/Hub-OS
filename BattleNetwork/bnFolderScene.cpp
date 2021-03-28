@@ -543,8 +543,8 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
     if (currFolderIndex > 2) {
       auto before = folderOffsetX;
-      folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX,
-        (double)(((currFolderIndex - 2) * 144.0f)));
+      auto after = (double(currFolderIndex) - 2.0) * 144.0;
+      folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, after);
     }
     else {
       auto before = folderOffsetX;

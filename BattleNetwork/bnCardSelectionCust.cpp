@@ -264,6 +264,7 @@ bool CardSelectionCust::CursorAction() {
       if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::staged) {
         newSelectQueue[newSelectCount++] = &queue[cursorPos + (5 * cursorRow)];
         queue[cursorPos + (5 * cursorRow)].state = Bucket::state::queued;
+        newHand = true;
 
         // We can only upload 5 cards to player...
         if (newSelectCount == 5) {
@@ -320,6 +321,8 @@ bool CardSelectionCust::CursorCancel() {
   newSelectQueue[--newSelectCount]->state = Bucket::state::staged;
 
   if (newSelectCount == 0) {
+    newHand = false;
+
     // Everything is selectable again
     for (int i = 0; i < cardCount; i++) {
       queue[i].state = Bucket::state::staged;
@@ -926,6 +929,11 @@ Battle::Card** CardSelectionCust::GetCards() {
   return selectedCards;
 }
 
+bool CardSelectionCust::HasNewHand() const
+{
+    return newHand;
+}
+
 void CardSelectionCust::ClearCards() {
   if (areCardsReady) {
     for (int i = 0; i < newSelectCount; i++) {
@@ -978,6 +986,7 @@ void CardSelectionCust::ResetState() {
   cursorPos = formCursorRow = 0;
   areCardsReady = false;
   isInFormSelect = false;
+  newHand = false;
   selectedFormIndex = lockedInFormIndex;
   textbox.Reset();
 }

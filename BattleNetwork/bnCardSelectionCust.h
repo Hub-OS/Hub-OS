@@ -91,6 +91,7 @@ private:
   bool canInteract;
   bool isDarkCardSelected;
   bool playFormSound;
+  bool newHand{};
   float darkCardShadowAlpha;
   std::vector<sf::Sprite> formUI;
   double formSelectQuitTimer;
@@ -277,6 +278,8 @@ public:
    * @return List of Card*
    */
   Battle::Card** GetCards();
+
+  bool HasNewHand() const;
   
   /**
    * @brief Shifts all leftover cards so that the queue has non-null buckets. Points selected cards to null.

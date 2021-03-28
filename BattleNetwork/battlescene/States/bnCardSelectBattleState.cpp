@@ -192,13 +192,14 @@ void CardSelectBattleState::onUpdate(double elapsed)
         if (cardCust.AreCardsReady()) {
           Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
 
-          // If the list is untouched, the start address will be the same
+          // If the list is untouched, we do not re-assign the cards
+          bool hasNewHand = cardCust.HasNewHand();
           auto newCards = cardCust.GetCards();
 
           Player* player = tracked[0];
           SelectedCardsUI* ui = player->GetFirstComponent<SelectedCardsUI>();
 
-          if (ui && newCards != cards) {
+          if (ui && hasNewHand) {
             cards = newCards;
             cardCount = cardCust.GetCardCount();
             GetScene().FilterSupportCards(cards, cardCount);
