@@ -137,7 +137,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         teleportController.TeleportOut(playerActor).onFinish.Slot([this] {
           this->sendLogoutSignal();
           this->leave();
-          });
+        });
       }
     });
 
@@ -959,7 +959,7 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
   bool warpIn = reader.Read<bool>(buffer);
   auto direction = reader.Read<Direction>(buffer);
   auto worldDirection = Orthographic(direction);
-  
+
   auto player = GetPlayer();
   player->Face(worldDirection);
 
