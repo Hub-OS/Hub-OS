@@ -1,5 +1,6 @@
 #include "bnText.h"
 #include <cmath>
+#include <cctype> // for control codes
 
 void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char letter) const
 {
@@ -59,7 +60,6 @@ void Text::UpdateGeometry() const
   float maxY = 0.f;
 
   for (char letter : message) {
-
     // Handle special characters
     if ((letter == L' ') || (letter == L'\n') || (letter == L'\t'))
     {
@@ -81,6 +81,9 @@ void Text::UpdateGeometry() const
       // Next glyph, no need to create a quad for whitespace
       continue;
     }
+
+    // skip user-defined control codes
+    if (iscntrl(letter)) continue;
 
     AddLetterQuad(sf::Vector2f(x, y), color, letter);
 

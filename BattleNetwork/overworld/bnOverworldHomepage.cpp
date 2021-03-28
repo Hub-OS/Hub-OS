@@ -269,7 +269,10 @@ void Overworld::Homepage::onUpdate(double elapsed)
     clicked = false;
   }*/
 
-  if (Input().Has(InputEvents::pressed_shoulder_right) && textbox.IsClosed()) {
+  // do default logic
+  SceneBase::onUpdate(elapsed);
+
+  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && emote.IsClosed()) {
     auto& meta = NAVIS.At(currentNavi);
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
@@ -281,9 +284,6 @@ void Overworld::Homepage::onUpdate(double elapsed)
 
     playerActor->Face(Direction::down_right);
   }
-
-  // do default logic
-  SceneBase::onUpdate(elapsed);
 }
 
 void Overworld::Homepage::onDraw(sf::RenderTexture& surface)

@@ -214,208 +214,208 @@ void FolderScene::onUpdate(double elapsed) {
 #endif
     }
   } else if (!gotoNextScene) {
-      if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
-        selectInputCooldown -= elapsed;
+    if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
+      selectInputCooldown -= elapsed;
 
-        if (selectInputCooldown <= 0) {
-          if (!extendedHold) {
-            selectInputCooldown = maxSelectInputCooldown;
-            extendedHold = true;
-          }
-          else {
-            selectInputCooldown = maxSelectInputCooldown * 0.25;
-          }
-
-          if (!promptOptions) {
-            currCardIndex--;
-          }
-          else {
-            optionIndex--;
-          }
-        }
-      }
-      else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          if (!extendedHold) {
-            selectInputCooldown = maxSelectInputCooldown;
-            extendedHold = true;
-          }
-          else {
-            selectInputCooldown = maxSelectInputCooldown * 0.25;
-          }
-
-          if (!promptOptions) {
-            currCardIndex++;
-          }
-          else {
-            optionIndex++;
-          }
-        }
-      }
-      else if (Input().Has(InputEvents::pressed_ui_right)) {
-        extendedHold = false;
-
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
+      if (selectInputCooldown <= 0) {
+        if (!extendedHold) {
           selectInputCooldown = maxSelectInputCooldown;
-
-          if (!promptOptions) {
-            currFolderIndex++;
-            folderSwitch = true;
-          }
-        }
-      }
-      else if (Input().Has(InputEvents::pressed_ui_left)) {
-        extendedHold = false;
-
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          selectInputCooldown = maxSelectInputCooldown;
-
-          if (!promptOptions) {
-            currFolderIndex--;
-            folderSwitch = true;
-          }
-        }
-      }
-      else {
-        selectInputCooldown = 0;
-        extendedHold = false;
-      }
-
-      currCardIndex = std::max(0, currCardIndex);
-      currCardIndex = std::min(std::max(0, numOfCards - 1), currCardIndex);
-      currFolderIndex = std::max(0, currFolderIndex);
-      currFolderIndex = std::min(std::max(0, static_cast<int>(folderNames.size()) - 1), currFolderIndex);
-      optionIndex = std::max(0, optionIndex);
-
-      if (folderNames.size()) {
-        optionIndex = std::min(4, optionIndex); // total of 5 options 
-      }
-      else {
-        optionIndex = 0; // "NEW" option only
-      }
-
-      if (currCardIndex != lastCardIndex 
-        || currFolderIndex != lastFolderIndex 
-        || optionIndex != lastOptionIndex) {
-        Audio().Play(AudioType::CHIP_SELECT);
-      }
-
-#ifdef __ANDROID__
-      if(lastFolderIndex != currFolderIndex) {
-          folderSwitch = true;
-      }
-#endif
-
-      if (folderSwitch) {
-        if (collection.GetFolderNames().size() > 0 && folderNames.size() > 0) {
-          collection.GetFolder(*(folderNames.begin() + currFolderIndex), folder);
-
-          numOfCards = folder->GetSize();
-          currCardIndex = 0;
-        }
-
-        folderSwitch = false;
-      }
-
-      InputEvent cancelButton = InputEvents::released_cancel;
-
-      if (Input().Has(InputEvents::pressed_cancel)) {
-        if (!promptOptions) {
-          gotoNextScene = true;
-          Audio().Play(AudioType::CHIP_DESC_CLOSE);
-
-          using segue = segue<PushIn<direction::right>, milli<500>>;
-          getController().pop<segue>();
-        } else {
-            promptOptions = false;
-            Audio().Play(AudioType::CHIP_DESC_CLOSE);
-        }
-      } else if (Input().Has(InputEvents::pressed_cancel)) {
-          if (promptOptions) {
-            promptOptions = false;
-            Audio().Play(AudioType::CHIP_DESC_CLOSE);
-          }
-      } else if (Input().Has(InputEvents::pressed_confirm)) {
-        if (!promptOptions) {
-          promptOptions = true;
-          RefreshOptions();
-          Audio().Play(AudioType::CHIP_DESC);
-        }
-        else if(folderNames.size()) {
-          switch (optionIndex) {
-          case 0: // EDIT
-            if (folder) {
-              Audio().Play(AudioType::CHIP_CONFIRM);
-
-              using effect = segue<BlackWashFade, milli<500>>;
-              getController().push<effect::to<FolderEditScene>>(*folder);
-              gotoNextScene = true;
-            }
-            else {
-              Audio().Play(AudioType::CHIP_ERROR);
-            }
-            break;
-          case 1: // EQUIP
-          {
-            CardFolder* folder{ nullptr };
-            if (collection.GetFolder(currFolderIndex, folder) && !folder->HasErrors()) {
-              selectedFolderIndex = currFolderIndex;
-              collection.SwapOrder(0, selectedFolderIndex);
-
-              // Save this session data
-              auto folderStr = collection.GetFolderNames()[0];
-              auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
-              if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
-              WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
-
-              Audio().Play(AudioType::PA_ADVANCE);
-            }
-            else {
-              Audio().Play(AudioType::CHIP_ERROR);
-            }
-          }
-            break;
-          case 2: // CHANGE NAME
-            if (folder) {
-              Audio().Play(AudioType::CHIP_CONFIRM);
-              using effect = segue<BlackWashFade, milli<500>>;
-              getController().push<effect::to<FolderChangeNameScene>>(folderNames[currFolderIndex]);
-
-              gotoNextScene = true;
-            }
-            else {
-              Audio().Play(AudioType::CHIP_ERROR);
-            }
-            break;
-          case 3: // NEW 
-            MakeNewFolder();
-            promptOptions = false;
-            currFolderIndex = (int)folderNames.size() - 1;
-            folderSwitch = true;
-
-            break;
-          case 4: // DELETE 
-            DeleteFolder([this]() {
-              promptOptions = false;
-              currFolderIndex--;
-              folderSwitch = true;
-              });
-            break;
-          }
+          extendedHold = true;
         }
         else {
-          MakeNewFolder();
-          promptOptions = false;
-          currFolderIndex = std::max(0, static_cast<int>(folderNames.size() - 1));
+          selectInputCooldown = maxSelectInputCooldown * 0.25;
+        }
+
+        if (!promptOptions) {
+          currCardIndex--;
+        }
+        else {
+          optionIndex--;
+        }
+      }
+    }
+    else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
+      selectInputCooldown -= elapsed;
+
+      if (selectInputCooldown <= 0) {
+        if (!extendedHold) {
+          selectInputCooldown = maxSelectInputCooldown;
+          extendedHold = true;
+        }
+        else {
+          selectInputCooldown = maxSelectInputCooldown * 0.25;
+        }
+
+        if (!promptOptions) {
+          currCardIndex++;
+        }
+        else {
+          optionIndex++;
+        }
+      }
+    }
+    else if (Input().Has(InputEvents::pressed_ui_right)) {
+      extendedHold = false;
+
+      selectInputCooldown -= elapsed;
+
+      if (selectInputCooldown <= 0) {
+        selectInputCooldown = maxSelectInputCooldown;
+
+        if (!promptOptions) {
+          currFolderIndex++;
           folderSwitch = true;
         }
       }
+    }
+    else if (Input().Has(InputEvents::pressed_ui_left)) {
+      extendedHold = false;
+
+      selectInputCooldown -= elapsed;
+
+      if (selectInputCooldown <= 0) {
+        selectInputCooldown = maxSelectInputCooldown;
+
+        if (!promptOptions) {
+          currFolderIndex--;
+          folderSwitch = true;
+        }
+      }
+    }
+    else {
+      selectInputCooldown = 0;
+      extendedHold = false;
+    }
+
+    currCardIndex = std::max(0, currCardIndex);
+    currCardIndex = std::min(std::max(0, numOfCards - 1), currCardIndex);
+    currFolderIndex = std::max(0, currFolderIndex);
+    currFolderIndex = std::min(std::max(0, static_cast<int>(folderNames.size()) - 1), currFolderIndex);
+    optionIndex = std::max(0, optionIndex);
+
+    if (folderNames.size()) {
+      optionIndex = std::min(4, optionIndex); // total of 5 options 
+    }
+    else {
+      optionIndex = 0; // "NEW" option only
+    }
+
+    if (currCardIndex != lastCardIndex 
+      || currFolderIndex != lastFolderIndex 
+      || optionIndex != lastOptionIndex) {
+      Audio().Play(AudioType::CHIP_SELECT);
+    }
+
+#ifdef __ANDROID__
+    if(lastFolderIndex != currFolderIndex) {
+        folderSwitch = true;
+    }
+#endif
+
+    if (folderSwitch) {
+      if (collection.GetFolderNames().size() > 0 && folderNames.size() > 0) {
+        collection.GetFolder(*(folderNames.begin() + currFolderIndex), folder);
+
+        numOfCards = folder->GetSize();
+        currCardIndex = 0;
+      }
+
+      folderSwitch = false;
+    }
+
+    InputEvent cancelButton = InputEvents::released_cancel;
+
+    if (Input().Has(InputEvents::pressed_cancel)) {
+      if (!promptOptions) {
+        gotoNextScene = true;
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
+
+        using segue = segue<PushIn<direction::right>, milli<500>>;
+        getController().pop<segue>();
+      } else {
+          promptOptions = false;
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
+      }
+    } else if (Input().Has(InputEvents::pressed_cancel)) {
+        if (promptOptions) {
+          promptOptions = false;
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
+        }
+    } else if (Input().Has(InputEvents::pressed_confirm)) {
+      if (!promptOptions) {
+        promptOptions = true;
+        RefreshOptions();
+        Audio().Play(AudioType::CHIP_DESC);
+      }
+      else if(folderNames.size()) {
+        switch (optionIndex) {
+        case 0: // EDIT
+          if (folder) {
+            Audio().Play(AudioType::CHIP_CONFIRM);
+
+            using effect = segue<BlackWashFade, milli<500>>;
+            getController().push<effect::to<FolderEditScene>>(*folder);
+            gotoNextScene = true;
+          }
+          else {
+            Audio().Play(AudioType::CHIP_ERROR);
+          }
+          break;
+        case 1: // EQUIP
+        {
+          CardFolder* folder{ nullptr };
+          if (collection.GetFolder(currFolderIndex, folder) && !folder->HasErrors()) {
+            selectedFolderIndex = currFolderIndex;
+            collection.SwapOrder(0, selectedFolderIndex);
+
+            // Save this session data
+            auto folderStr = collection.GetFolderNames()[0];
+            auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
+            if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
+            WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
+
+            Audio().Play(AudioType::PA_ADVANCE);
+          }
+          else {
+            Audio().Play(AudioType::CHIP_ERROR);
+          }
+        }
+          break;
+        case 2: // CHANGE NAME
+          if (folder) {
+            Audio().Play(AudioType::CHIP_CONFIRM);
+            using effect = segue<BlackWashFade, milli<500>>;
+            getController().push<effect::to<FolderChangeNameScene>>(folderNames[currFolderIndex]);
+
+            gotoNextScene = true;
+          }
+          else {
+            Audio().Play(AudioType::CHIP_ERROR);
+          }
+          break;
+        case 3: // NEW 
+          MakeNewFolder();
+          promptOptions = false;
+          currFolderIndex = (int)folderNames.size() - 1;
+          folderSwitch = true;
+
+          break;
+        case 4: // DELETE 
+          DeleteFolder([this]() {
+            promptOptions = false;
+            currFolderIndex = std::max(0, currFolderIndex-1);
+            folderSwitch = true;
+            });
+          break;
+        }
+      }
+      else {
+        MakeNewFolder();
+        promptOptions = false;
+        currFolderIndex = std::max(0, static_cast<int>(folderNames.size() - 1));
+        folderSwitch = true;
+      }
+    }
   }
 
 #ifdef __ANDROID__

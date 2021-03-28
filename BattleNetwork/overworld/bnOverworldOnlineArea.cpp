@@ -122,7 +122,10 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   removePlayers.clear();
 
-  if (Input().Has(InputEvents::pressed_shoulder_right) && textbox.IsClosed()) {
+  SceneBase::onUpdate(elapsed);
+
+
+  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && emote.IsClosed()) {
     auto& meta = NAVIS.At(currentNavi);
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
@@ -134,14 +137,12 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         teleportController.TeleportOut(playerActor).onFinish.Slot([this] {
           this->sendLogoutSignal();
           this->leave();
-        });
+          });
       }
     });
 
     playerActor->Face(Direction::down_right);
   }
-
-  SceneBase::onUpdate(elapsed);
 
   auto currentNavi = GetCurrentNavi();
   if (lastFrameNavi != currentNavi) {

@@ -11,11 +11,17 @@
 #include "bnResourceHandle.h"
 
 class TextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
+public:
+  typedef uint16_t vfx;
+
+  struct effects {
+    static const vfx none = 0x0000;
+    static const vfx dramatic = 0x0001;
+    static const vfx zzz = 0x0002; // useful for sleeping or lip-sealed textbox moments
+  };
+
 private:
-  enum class effects : char {
-    none = 0x0000,
-    dramatic = 0x0001
-  } currEffect{};
+  vfx currEffect{};
 
   Font font;
   mutable Text text;
@@ -62,6 +68,8 @@ public:
    * @return Text&
    */
   const Text& GetText() const;
+
+  const vfx GetVFX() const;
 
   /**
  * @brief Get reference to Font object

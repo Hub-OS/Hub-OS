@@ -29,6 +29,7 @@ void TextBox::FormatToFit() {
     return;
 
   message = replace(message, "\\n", "\n"); // replace all ascii "\n" to carriage return char '\n'
+  message = replace(message, "\\x01", "\x01"); // replace ascii
 
   lines.push_back(0); // All text begins at pos 0
 
@@ -42,7 +43,7 @@ void TextBox::FormatToFit() {
   double fitHeight = 0;
 
   while (index < message.size()) {
-    if (message[index] != ' ' && message[index] != '\n') {
+    if (message[index] != ' ' && message[index] != '\n' && message[index] != '\x01') {
       if (wordIndex == -1) { // only mark the beginning of a word
         wordIndex = index;
       }
@@ -51,7 +52,11 @@ void TextBox::FormatToFit() {
       wordIndex = -1;
     }
 
-    text.SetString(message.substr(lastRow, (size_t)index - (size_t)lastRow));
+    std::string fitString = message.substr(lastRow, (size_t)index - (size_t)lastRow);
+    fitString = replace(fitString, "\n", ""); // line breaks shouldn't increase real estate...
+    fitString = replace(fitString, "\x01", ""); // mute sections shouldn't increase real estate...
+    text.SetString(fitString);
+
     double width = text.GetWorldBounds().width;
     double height = text.GetWorldBounds().height;
 
@@ -59,6 +64,9 @@ void TextBox::FormatToFit() {
 
       if (wordIndex > 0) {
         lastRow = wordIndex + 1;
+      }
+      else {
+        lastRow = index;
       }
 
       lines.push_back(index + 1);
@@ -106,6 +114,11 @@ std::string TextBox::replace(std::string str, const std::string& from, const std
 
 const Text& TextBox::GetText() const { return text; }
 
+const TextBox::vfx TextBox::GetVFX() const
+{
+  return currEffect;
+}
+
 const Font& TextBox::GetFont() const { return font; }
 
 void TextBox::SetTextFillColor(sf::Color color) {
@@ -130,9 +143,11 @@ void TextBox::Unmute() {
 }
 
 const bool TextBox::HasMore() const {
-  if ((size_t)lineIndex + (size_t)numberOfFittingLines < lines.size())
-      if (charIndex > lines[(size_t)lineIndex + (size_t)numberOfFittingLines])
-        return true;
+  if ((size_t)lineIndex + (size_t)numberOfFittingLines < lines.size()) {
+    if (charIndex > lines[(size_t)lineIndex + (size_t)numberOfFittingLines]) {
+      return true;
+    }
+  }
 
   return false;
 }
@@ -249,6 +264,8 @@ void TextBox::Update(const double elapsed) {
   // If we're at the end of the message, don't step  
   // through the words
   if (charIndex >= message.length()) {
+    currEffect = effects::none;
+
     int begin = lines[lineIndex];
     int lastIndex = std::min((int)lines.size() - 1, lineIndex + numberOfFittingLines - 1);
     int last = lines[lastIndex];
@@ -278,7 +295,7 @@ void TextBox::Update(const double elapsed) {
 
   double modifiedCharsPerSecond = charsPerSecond;
 
-  if (currEffect == effects::dramatic) {
+  if ((currEffect & effects::dramatic) == effects::dramatic) {
     // if we are doing dramatic text, reduce speed
     modifiedCharsPerSecond = 0.5;
   }
@@ -290,11 +307,14 @@ void TextBox::Update(const double elapsed) {
 
     // The following conditions handles elipses for dramatic effect
     if (elipsesEndPos < message.size() && message.substr(charIndexIter, 3) == "...") {
-      currEffect = effects::dramatic;
+      currEffect |= effects::dramatic;
     }
     else if (charIndexIter > 2 && message.substr(elipsesStartPos, 3) == "...") {
       // if we have passes an elipses, restore the simulation speed
-      currEffect = effects::none;
+      currEffect &= ~effects::dramatic;
+    }
+    else if (message[charIndexIter] == '\x01') {
+      currEffect ^= effects::zzz;
     }
 
     progress -= 1.0 / modifiedCharsPerSecond;
@@ -356,6 +376,11 @@ void TextBox::Update(const double elapsed) {
     else {
       text.SetString(message.substr(begin, len));
     }
+  }
+
+  // we may have finished the text at this step, remove all playback effects
+  if (charIndex >= message.length()) {
+    currEffect = effects::none;
   }
 
   dirty = false;

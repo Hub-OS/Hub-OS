@@ -5,7 +5,7 @@
 #include "bnGame.h"
 
 Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) : 
-  Message(message + "\\n       YES     NO") {
+  Message(message + "\n\x01       YES     NO") {
   Question::onNo = onNo;
   Question::onYes = onYes;
   isQuestionReady = false;

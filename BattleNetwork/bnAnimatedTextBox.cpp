@@ -184,9 +184,10 @@ void AnimatedTextBox::Update(double elapsed) {
     y = frame.getPosition().y - y;
 
     char currChar = textBox.GetCurrentCharacter();
+    bool muteFX = (textBox.GetVFX() & TextBox::effects::zzz) == TextBox::effects::zzz;
     bool speakingDot = currChar == '.';
-    bool speakingSpace = currChar == ' ';
-    bool lipsSealed = speakingDot || (speakingSpace && mugAnimator.GetAnimationString() == "IDLE");
+    bool silence = (currChar == ' ' && mugAnimator.GetAnimationString() == "IDLE");
+    bool lipsSealed = muteFX || speakingDot || silence;
 
     auto playIdleThunk = [this] {
       if (mugAnimator.GetAnimationString() != "IDLE") {
