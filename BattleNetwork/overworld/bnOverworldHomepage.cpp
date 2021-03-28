@@ -279,7 +279,7 @@ void Overworld::Homepage::onUpdate(double elapsed)
     textbox.EnqueueMessage("This is your homepage.");
     textbox.EnqueueMessage("You can edit it anyway you like!");
 
-    playerActor->Face(Isometric(Direction::down_right));
+    playerActor->Face(Direction::down_right);
   }
 
   // do default logic

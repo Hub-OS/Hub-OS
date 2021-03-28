@@ -138,7 +138,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       }
     });
 
-    playerActor->Face(Isometric(Direction::down_right));
+    playerActor->Face(Direction::down_right);
   }
 
   SceneBase::onUpdate(elapsed);

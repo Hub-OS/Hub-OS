@@ -179,13 +179,27 @@ void AnimatedTextBox::Update(double elapsed) {
   float mugshotSpeed = 1.0f;
 
   if (isReady && messages.size() > 0) {
-
     int yIndex = (int)(textBox.GetNumberOfLines() % textBox.GetNumberOfFittingLines());
     auto y = (textBox.GetNumberOfFittingLines() -yIndex) * 10.0f;
     y = frame.getPosition().y - y;
 
+    char currChar = textBox.GetCurrentCharacter();
+    bool speakingDot = currChar == '.';
+    bool speakingSpace = currChar == ' ';
+    bool lipsSealed = speakingDot || (speakingSpace && mugAnimator.GetAnimationString() == "IDLE");
+
+    auto playIdleThunk = [this] {
+      if (mugAnimator.GetAnimationString() != "IDLE") {
+        mugAnimator.SetAnimation("IDLE");
+        mugAnimator << Animator::Mode::Loop;
+      }
+    };
+
     if (!isPaused) {
-      if (mugAnimator.GetAnimationString() != "TALK") {
+      if (lipsSealed) {
+        playIdleThunk();
+      }
+      else if (mugAnimator.GetAnimationString() != "TALK") {
         mugAnimator.SetAnimation("TALK");
         mugAnimator << Animator::Mode::Loop;
       }
@@ -200,11 +214,9 @@ void AnimatedTextBox::Update(double elapsed) {
       }
     }
     else {
-      if (mugAnimator.GetAnimationString() != "IDLE") {
-        mugAnimator.SetAnimation("IDLE");
-        mugAnimator << Animator::Mode::Loop;
-      }
+      playIdleThunk();
     }
+
     messages.front()->OnUpdate(elapsed);
   }
 

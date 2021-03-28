@@ -273,31 +273,31 @@ void TextBox::Update(const double elapsed) {
   // Without this, the Audio() would play numerous times per frame and sounds bad
   bool playOnce = true;
 
-  int charIndexIter = 0;
+  int charIndexIter = charIndex;
   progress += elapsed;
 
-  // Work backwards, printing what we can show at this frame in respect to the CPS
-  double simulate = progress;
-  // Start at elapsed time `progress` and simulate until it his zero
-  // That is our new state
   double modifiedCharsPerSecond = charsPerSecond;
 
-  while (simulate > 0 && charsPerSecond > 0) {
+  if (currEffect == effects::dramatic) {
+    // if we are doing dramatic text, reduce speed
+    modifiedCharsPerSecond = 0.5;
+  }
 
+  while (modifiedCharsPerSecond > 0 && progress > 1.0/modifiedCharsPerSecond) {
+    // scan for special tokens...
     size_t elipsesEndPos = size_t(charIndexIter)+2;
     size_t elipsesStartPos = size_t(charIndexIter)-3;
 
     // The following conditions handles elipses for dramatic effect
     if (elipsesEndPos < message.size() && message.substr(charIndexIter, 3) == "...") {
-      // if we see an elipses up a head, reduce simulation speed
-      modifiedCharsPerSecond = charsPerSecond * 0.5;
+      currEffect = effects::dramatic;
     }
     else if (charIndexIter > 2 && message.substr(elipsesStartPos, 3) == "...") {
       // if we have passes an elipses, restore the simulation speed
-      modifiedCharsPerSecond = charsPerSecond;
+      currEffect = effects::none;
     }
 
-    simulate -= 1.0 / modifiedCharsPerSecond;
+    progress -= 1.0 / modifiedCharsPerSecond;
 
     // Skip over line breaks and empty spaces
     while (charIndexIter < message.size() && message[charIndexIter] == ' ') {
@@ -309,23 +309,21 @@ void TextBox::Update(const double elapsed) {
 
     // If we're passed the current char index but there's more text to show...
     if (charIndexIter > charIndex && charIndex < message.size()) {
+      // See how many non-spaces there were in this pass
+      int length = charIndexIter - charIndex;
+      std::string pass = message.substr(charIndex, length);
+      bool talking = pass.end() != std::find_if(pass.begin(), pass.end(), [](char in) { return !isspace(in); });
+
+      if (talking) {
+        // Play a sound if we are able and the character is a letter
+        if (!mute && playOnce) {
+          Audio().Play(AudioType::TEXT, AudioPriority::high);
+          playOnce = false;
+        }
+      }
 
       // Update the current char index
       charIndex = charIndexIter;
-
-      // We may overshoot, adjust
-      if (charIndexIter >= message.size()) {
-        charIndex--;
-      }
-      else {
-        // Play a sound if we are able and the character is a letter
-        if (!mute && message[charIndex] != ' ' && message[charIndex] != '\n') {
-          if (playOnce) {
-            Audio().Play(AudioType::TEXT, AudioPriority::high);
-            playOnce = false;
-          }
-        }
-      }
     }
 
     int begin = lines[lineIndex];

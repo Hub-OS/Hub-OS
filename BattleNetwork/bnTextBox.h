@@ -12,6 +12,11 @@
 
 class TextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
 private:
+  enum class effects : char {
+    none = 0x0000,
+    dramatic = 0x0001
+  } currEffect{};
+
   Font font;
   mutable Text text;
   double charsPerSecond; /**< default is 10 cps */
