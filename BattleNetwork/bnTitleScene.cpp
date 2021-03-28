@@ -55,11 +55,6 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   startLabel.setPosition(sf::Vector2f(240.0f, 240.f));
   startLabel.setScale(2.f, 2.f);
 
-  // When progress is equal to the totalObject count, we are 100% ready
-  totalObjects = static_cast<unsigned>(TextureType::TEXTURE_TYPE_SIZE);
-  totalObjects += static_cast<unsigned>(AudioType::AUDIO_TYPE_SIZE);
-  totalObjects += static_cast<unsigned>(ShaderType::SHADER_TYPE_SIZE);
-
   startLabel.SetString("Loading, Please Wait");
   CenterLabel();
 
@@ -88,14 +83,22 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
-  Poll();
-
   try {
     // If not ready, do no proceed past this point!
-    if (IsComplete() == false) {
+    if (IsComplete() == false || progress < 100) {
       ellipsis = (ellipsis + 1) % 4;
       auto dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
-      startLabel.SetString(taskStr + dots);
+
+      if (progress < total) {
+        progress++;
+      }
+
+      std::string percent = std::to_string(this->progress) + "%";
+      std::string label = taskStr + ": " + percent + dots;
+      startLabel.SetString(label);
+
+      Poll();
+
       return;
     } else if (loginResult.valid() && !is_ready(loginResult)) {
       startLabel.SetString("Loggin in...");
@@ -177,15 +180,16 @@ void TitleScene::onEnd()
 
 void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 {
-  std::string percent = std::to_string(int(progress * 100)) + "%";
-  this->taskStr = taskName + ": " + percent;
-  startLabel.SetString(this->taskStr);
-  CenterLabel();
+  this->total = unsigned(progress * 100);
+  this->taskStr = taskName;
 
   Logger::Logf("[%.2f] Began task %s", progress, taskName.c_str());
 }
 
 void TitleScene::onTaskComplete(const std::string & taskName, float progress)
 {
+  this->total = unsigned(progress * 100);
+  this->taskStr = taskName;
+
   Logger::Logf("[%.2f] Completed task %s", progress, taskName.c_str());
 }

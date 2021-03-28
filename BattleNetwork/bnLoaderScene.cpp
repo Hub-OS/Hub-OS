@@ -12,14 +12,13 @@ void LoaderScene::ExecuteTasks()
     mutex.unlock();
 
     tasks.DoNextTask();
-    progress = tasknumber / static_cast<float>(tasks.GetTotalTasks());
+    progress = (tasknumber+1) / static_cast<float>(tasks.GetTotalTasks());
 
     mutex.lock();
     events.push([=] { this->onTaskComplete(taskname, progress); });
 
     mutex.unlock();
   }
-  isComplete = true;
 }
 
 LoaderScene::LoaderScene(swoosh::ActivityController& controller, TaskGroup && tasks) : 
@@ -52,5 +51,8 @@ void LoaderScene::Poll()
   if (events.size()) {
     events.front()();
     events.pop();
+  }
+  else if (!tasks.HasMore()) {
+    isComplete = true;
   }
 }

@@ -15,11 +15,8 @@ private:
   Font font, startFont;
   Text logLabel, startLabel;
   std::vector<std::string> logs;
-  unsigned totalObjects{};
+  unsigned progress{}, total {};
   unsigned ellipsis{};
-  std::atomic<int> progress;
-  std::atomic<int> navisLoaded;
-  std::atomic<int> mobsLoaded;
   std::future<bool> loginResult;
   std::string taskStr, incomingTaskStr;
 

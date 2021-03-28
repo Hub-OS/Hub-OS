@@ -16,14 +16,10 @@ const bool TaskGroup::HasMore() const
 
 void TaskGroup::DoNextTask()
 {
-  if (currentTask > 0) {
-    tasks.erase(tasks.begin());
-  }
-
-  currentTask++;
-
   if (tasks.size()) {
     tasks.begin()->second();
+    tasks.erase(tasks.begin());
+    currentTask++;
   }
 }
 
