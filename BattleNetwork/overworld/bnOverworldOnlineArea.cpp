@@ -1302,6 +1302,22 @@ void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const P
   }
 }
 
+void Overworld::OnlineArea::receiveNaviAnimateSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString(buffer);
+  auto state = reader.ReadString(buffer);
+
+  if (user == ticket) return;
+
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter == onlinePlayers.end()) return;
+
+  auto& onlinePlayer = userIter->second;
+
+  // stub
+}
+
 void Overworld::OnlineArea::leave() {
   using effect = segue<PixelateBlackWashFade>;
   getController().pop<effect>();

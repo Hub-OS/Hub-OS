@@ -101,6 +101,7 @@ namespace Overworld {
     void receiveNaviSetDirectionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
     void playSong(const std::string& name);
