@@ -523,8 +523,6 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
 void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index, size_t maxLayers, std::vector<short>& gridShadows) {
   auto& layer = map.GetLayer(index);
 
-  if (!layer.IsVisible()) return;
-
   auto rows = map.GetRows();
   auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
@@ -593,7 +591,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       size_t xyz = (index * rows * cols) + size_t(j) * size_t(cols) + size_t(i);
       gridShadows[xyz] = localHasShadow;
 
-      if (/*cam && cam->IsInView(tileSprite)*/ true) {
+      if (/*cam && cam->IsInView(tileSprite)*/ true && layer.IsVisible()) {
         sf::Color originalColor = tileSprite.getColor();
         if (localHasShadow) {
           sf::Uint8 r, g, b;
@@ -1000,6 +998,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   // resize shadow grid
   size_t length = size_t(this->map.GetCols()) * this->map.GetLayerCount() * this->map.GetRows();
   gridShadows.resize(length);
+  std::fill(gridShadows.begin(), gridShadows.end(), 0);
 }
 
 std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XMLElement& tilesetElement, unsigned int firstgid) {
@@ -1499,7 +1498,7 @@ const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, cons
 void Overworld::SceneBase::PrintTime(sf::RenderTarget& target)
 {
   auto shadowColor = sf::Color(105, 105, 105);
-  std::string timeStr = CurrentTime::AsFormattedString("%OH:%OM %p");
+  std::string timeStr = CurrentTime::AsFormattedString("%OI:%OM %p");
   time.SetString(timeStr);
   time.setOrigin(time.GetLocalBounds().width, 0.f);
   auto origin = time.GetLocalBounds().width;
