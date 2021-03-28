@@ -151,7 +151,7 @@ namespace Overworld {
     size_t GetLayerCount() const;
     Layer& GetLayer(size_t index);
     Layer& AddLayer();
-    bool CanMoveTo(float x, float y, int layer); // todo: move to layer?
+    bool CanMoveTo(float x, float y, float z, int layer); // todo: move to layer?
     float GetElevationAt(float x, float y, int layer);
     bool IgnoreTileAbove(float x, float y, int layer);
     void RemoveSprites(SceneBase& scene);

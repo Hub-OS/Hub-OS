@@ -214,7 +214,7 @@ namespace Overworld {
 
   // todo: move to layer?
   // may require reference to map as tilemeta + tile size is used
-  bool Map::CanMoveTo(float x, float y, int layerIndex) {
+  bool Map::CanMoveTo(float x, float y, float z, int layerIndex) {
     if(layerIndex < 0 || layerIndex >= layers.size()) {
       return false;
     }
@@ -242,7 +242,14 @@ namespace Overworld {
     testPosition.x *= tileWidth / 2;
     testPosition.y *= tileHeight;
 
-    if (tile.Intersects(*this, testPosition.x, testPosition.y)) {
+    float layerElevation;
+    auto layerRelativeZ = std::modf(z, &layerElevation);
+    auto tileTestPos = sf::Vector2f(
+      testPosition.x - layerRelativeZ * tileHeight,
+      testPosition.y - layerRelativeZ * tileHeight
+    );
+
+    if (tile.Intersects(*this, tileTestPos.x, tileTestPos.y)) {
       return false;
     }
 
