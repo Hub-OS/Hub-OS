@@ -589,9 +589,9 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
         sf::Color originalColor = tileSprite.getColor();
         if (localHasShadow) {
           sf::Uint8 r, g, b;
-          r = sf::Uint8(originalColor.r * 0.75);
-          b = sf::Uint8(originalColor.b * 0.75);
-          g = sf::Uint8(originalColor.g * 0.75);
+          r = sf::Uint8(originalColor.r * 0.65);
+          b = sf::Uint8(originalColor.b * 0.65);
+          g = sf::Uint8(originalColor.g * 0.65);
 
           tileSprite.setColor(sf::Color(r, g, b, originalColor.a));
         }

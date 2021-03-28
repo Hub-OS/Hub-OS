@@ -97,12 +97,18 @@ void TitleScene::onUpdate(double elapsed)
       auto dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
       startLabel.SetString(taskStr + dots);
       return;
-    }
-
-    if (loginResult.valid() && !is_ready(loginResult)) {
+    } else if (loginResult.valid() && !is_ready(loginResult)) {
       startLabel.SetString("Loggin in...");
       CenterLabel();
       return;
+    }
+    else {
+#if defined(__ANDROID__)
+      startLabel.SetString("TAP SCREEN");
+#else
+      startLabel.SetString("PRESS START");
+      CenterLabel();
+#endif
     }
 
     static bool doOnce = true;
@@ -118,13 +124,6 @@ void TitleScene::onUpdate(double elapsed)
           Logger::Logf("Could not log in!");
         }
       }
-
-#if defined(__ANDROID__)
-      startLabel.SetString("TAP SCREEN");
-#else
-      startLabel.SetString("PRESS START");
-      CenterLabel();
-#endif
     }
 
     if (Input().GetAnyKey() == sf::Keyboard::Enter && !pressedStart) {
@@ -180,6 +179,7 @@ void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 {
   std::string percent = std::to_string(int(progress * 100)) + "%";
   this->taskStr = taskName + ": " + percent;
+  startLabel.SetString(this->taskStr);
   CenterLabel();
 
   Logger::Logf("[%.2f] Began task %s", progress, taskName.c_str());
