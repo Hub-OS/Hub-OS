@@ -445,6 +445,9 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::navi_move_to:
           receiveNaviMoveSignal(reader, data);
           break;
+        case ServerEvents::navi_set_direction:
+          receiveNaviSetDirectionSignal(reader, data);
+          break;
         case ServerEvents::navi_set_avatar:
           receiveNaviSetAvatarSignal(reader, data);
           break;
@@ -1241,6 +1244,21 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     onlinePlayer.packets++;
     onlinePlayer.lagWindow[onlinePlayer.packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
   }
+}
+
+void Overworld::OnlineArea::receiveNaviSetDirectionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString(buffer);
+  auto direction = reader.Read<Direction>(buffer);
+
+  if (user == ticket) return;
+
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter == onlinePlayers.end()) return;
+
+  auto& onlinePlayer = userIter->second;
+  onlinePlayer.actor->Face(Orthographic(direction));
 }
 
 void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

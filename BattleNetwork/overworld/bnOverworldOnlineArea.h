@@ -98,6 +98,7 @@ namespace Overworld {
     void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviSetDirectionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
