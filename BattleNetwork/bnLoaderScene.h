@@ -3,6 +3,9 @@
 #include <list>
 #include <string>
 #include <thread>
+#include <queue>
+#include <functional>
+#include <mutex>
 
 #include "bnTaskGroup.h"
 #include "bnScene.h"
@@ -21,7 +24,9 @@ class TaskGroup;
 class LoaderScene : public Scene {
 private:
   TaskGroup tasks;
+  std::mutex mutex;
   std::thread taskThread;
+  std::queue<std::function<void()>> events;
   bool isComplete{};
   void ExecuteTasks();
 public:
@@ -30,6 +35,7 @@ public:
 
   const bool IsComplete() const;
   void LaunchTasks();
+  void Poll();
 
   virtual void onTaskComplete(const std::string& taskName, float progress) = 0;
   virtual void onTaskBegin(const std::string& taskName, float progress) = 0;

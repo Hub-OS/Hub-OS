@@ -88,9 +88,14 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
+  Poll();
+
   try {
     // If not ready, do no proceed past this point!
     if (IsComplete() == false) {
+      ellipsis = (ellipsis + 1) % 4;
+      auto dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
+      startLabel.SetString(taskStr + dots);
       return;
     }
 
@@ -173,9 +178,9 @@ void TitleScene::onEnd()
 
 void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 {
-  // TODO: TaskGroup callbacks are NOT threadsafe!
-  //startLabel.SetString(taskName);
-  //CenterLabel();
+  std::string percent = std::to_string(int(progress * 100)) + "%";
+  this->taskStr = taskName + ": " + percent;
+  CenterLabel();
 
   Logger::Logf("[%.2f] Began task %s", progress, taskName.c_str());
 }

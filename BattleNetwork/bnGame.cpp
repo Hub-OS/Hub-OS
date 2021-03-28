@@ -127,11 +127,11 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   inputManager.SupportConfigSettings(reader);
 
   TaskGroup tasks;
-  tasks.AddTask("Init graphics and shaders", std::move(graphics));
+  tasks.AddTask("Init graphics", std::move(graphics));
   tasks.AddTask("Init audio", std::move(audio));
   tasks.AddTask("Load Navis", std::move(navis));
   tasks.AddTask("Load mobs", std::move(mobs));
-  tasks.AddTask("Finishing up", std::move(finish));
+  tasks.AddTask("Finishing", std::move(finish));
 
   if (configSettings.IsOK()) {
     // If the file is good, use the Audio() and 
