@@ -156,27 +156,27 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     auto& onlinePlayer = pair.second;
     auto& actor = onlinePlayer.actor;
 
-    if (onlinePlayer.teleportController.IsComplete()) {
-      auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
-      auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
-      float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-      double expectedTime = calculatePlayerLag(onlinePlayer);
-      float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
-      Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
+    auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
+    auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
+    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+    double expectedTime = calculatePlayerLag(onlinePlayer);
+    float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
+    Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
 
-      if (distance <= 0.2f) {
-        actor->Face(actor->GetHeading());
-      }
-      else if (distance <= actor->GetWalkSpeed() * expectedTime) {
-        actor->Walk(newHeading, false); // Don't actually move or collide, but animate
-      }
-      else {
-        actor->Run(newHeading, false);
-      }
+    auto oldHeading = actor->GetHeading();
 
-      auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
-      actor->Set3DPosition(newPos);
+    if (distance == 0.0) {
+      actor->Face(newHeading == Direction::none ? oldHeading : newHeading);
     }
+    else if (distance <= actor->GetWalkSpeed() * expectedTime) {
+      actor->Walk(newHeading, false); // Don't actually move or collide, but animate
+    }
+    else {
+      actor->Run(newHeading, false);
+    }
+
+    auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
+    actor->Set3DPosition(newPos);
 
     onlinePlayer.teleportController.Update(elapsed);
     onlinePlayer.emoteNode.Update(elapsed);
@@ -1232,7 +1232,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
         actor->Set3DPosition(endBroadcastPos);
         auto& action = teleportController->TeleportOut(actor);
         action.onFinish.Slot([=] {
-          teleportController->TeleportIn(actor, endBroadcastPos, Direction::none);
+          teleportController->TeleportIn(actor, newPos, Direction::none);
         });
       }
     }
