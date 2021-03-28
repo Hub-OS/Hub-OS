@@ -14,10 +14,11 @@ namespace Overworld {
     this->tileToTilesetMap.push_back(nullptr);
   }
 
-  void Map::Update(SceneBase& scene, double elapsed) {
+  void Map::Update(SceneBase& scene, double time) {
     for (auto& tileMeta : tileMetas) {
       if (tileMeta != nullptr) {
-        tileMeta->animation.Update(elapsed, tileMeta->sprite);
+        tileMeta->animation.SyncTime(time);
+        tileMeta->animation.Refresh(tileMeta->sprite);
       }
     }
 

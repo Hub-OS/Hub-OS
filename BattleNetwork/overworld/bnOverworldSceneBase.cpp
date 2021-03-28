@@ -181,11 +181,14 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   * update all overworld objects and animations
   */
 
+  // animations
+  animElapsed += elapsed;
+
   // expecting glitches, manually update when actors move?
   spatialMap.Update();
 
   // update tile animations
-  map.Update(*this, elapsed);
+  map.Update(*this, animElapsed);
 
   if (gotoNextScene == false) {
     playerController.Update(elapsed);
@@ -204,9 +207,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   for (auto& actor : actors) {
     actor->Update((float)elapsed, map, spatialMap);
   }
-
-  // animations
-  animElapsed += elapsed;
 
 #ifdef __ANDROID__
   if (gotoNextScene)

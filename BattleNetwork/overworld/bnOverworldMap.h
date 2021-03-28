@@ -78,7 +78,7 @@ namespace Overworld {
      * @brief Updates tile animations and tile objects
      * @param elapsed in seconds
      */
-    void Update(SceneBase& scene, double elapsed);
+    void Update(SceneBase& scene, double time);
 
     /**
      * @brief Transforms a point on the screen to in-world coordinates
