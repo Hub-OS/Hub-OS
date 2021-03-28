@@ -27,46 +27,46 @@ enum class Element : int {
 
 static const Element GetElementFromStr(const std::string& type)
 {
-    Element elemType;
+  Element elemType;
 
-    std::string temp = type;
-    std::transform(temp.begin(), temp.end(), temp.begin(), ::toupper);
+  std::string temp = type;
+  std::transform(temp.begin(), temp.end(), temp.begin(), ::toupper);
 
-    if (temp == "FIRE") {
-        elemType = Element::fire;
-    }
-    else if (temp == "AQUA") {
-        elemType = Element::aqua;
-    }
-    else if (temp == "WOOD") {
-        elemType = Element::wood;
-    }
-    else if (temp == "ELEC" || temp == "ELECTRIC") {
-        elemType = Element::elec;
-    }
-    else if (temp == "WIND") {
-        elemType = Element::wind;
-    }
-    else if (temp == "SWORD") {
-        elemType = Element::sword;
-    }
-    else if (temp == "BREAK") {
-        elemType = Element::breaker;
-    }
-    else if (temp == "CURSOR") {
-        elemType = Element::cursor;
-    }
-    else if (temp == "PLUS") {
-        elemType = Element::plus;
-    }
-    else if (temp == "SUMMON") {
-        elemType = Element::summon;
-    }
-    else {
-        elemType = Element::none;
-    }
+  if (temp == "FIRE") {
+    elemType = Element::fire;
+  }
+  else if (temp == "AQUA") {
+    elemType = Element::aqua;
+  }
+  else if (temp == "WOOD") {
+    elemType = Element::wood;
+  }
+  else if (temp == "ELEC" || temp == "ELECTRIC") {
+    elemType = Element::elec;
+  }
+  else if (temp == "WIND") {
+    elemType = Element::wind;
+  }
+  else if (temp == "SWORD") {
+    elemType = Element::sword;
+  }
+  else if (temp == "BREAK") {
+    elemType = Element::breaker;
+  }
+  else if (temp == "CURSOR") {
+    elemType = Element::cursor;
+  }
+  else if (temp == "PLUS") {
+    elemType = Element::plus;
+  }
+  else if (temp == "SUMMON") {
+    elemType = Element::summon;
+  }
+  else {
+    elemType = Element::none;
+  }
 
-    return elemType;
+  return elemType;
 }
 
 /*static const Element GetElementFromStr(const char* type) {
@@ -74,48 +74,48 @@ static const Element GetElementFromStr(const std::string& type)
 }*/
 
 static const std::string GetStrFromElement(const Element& type) {
-    std::string res = "NONE";
+  std::string res = "NONE";
 
-    switch (type) {
-    case Element::aqua:
-        res = "AQUA";
-        break;
-    case Element::breaker:
-        res = "BREAK";
-        break;
-    case Element::cursor:
-        res = "CURSOR";
-        break;
-    case Element::elec:
-        res = "ELEC";
-        break;
-    case Element::fire:
-        res = "FIRE";
-        break;
-    case Element::ice:
-        res = "ICE";
-        break;
-    case Element::none:
-        res = "NONE";
-        break;
-    case Element::plus:
-        res = "PLUS";
-        break;
-    case Element::summon:
-        res = "SUMMON";
-        break;
-    case Element::sword:
-        res = "SWORD";
-        break;
-    case Element::wind:
-        res = "WIND";
-        break;
-    case Element::wood:
-        res = "WOOD";
-        break;
-    default:
-        res = "NONE";
-    }
+  switch (type) {
+  case Element::aqua:
+    res = "AQUA";
+    break;
+  case Element::breaker:
+    res = "BREAK";
+    break;
+  case Element::cursor:
+    res = "CURSOR";
+    break;
+  case Element::elec:
+    res = "ELEC";
+    break;
+  case Element::fire:
+    res = "FIRE";
+    break;
+  case Element::ice:
+    res = "ICE";
+    break;
+  case Element::none:
+    res = "NONE";
+    break;
+  case Element::plus:
+    res = "PLUS";
+    break;
+  case Element::summon:
+    res = "SUMMON";
+    break;
+  case Element::sword:
+    res = "SWORD";
+    break;
+  case Element::wind:
+    res = "WIND";
+    break;
+  case Element::wood:
+    res = "WOOD";
+    break;
+  default:
+    res = "NONE";
+  }
 
-    return res;
+  return res;
 }

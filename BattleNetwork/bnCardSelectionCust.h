@@ -6,7 +6,7 @@
 #include "bnCardFolder.h"
 #include "bnGame.h"
 #include "bnAnimation.h"
-#include "bnBattleTextbox.h"
+#include "bnBattleTextBox.h"
 #include "bnCustEmblem.h"
 #include "bnSceneNode.h"
 #include "bnPlayerForm.h"
@@ -98,7 +98,7 @@ private:
   Battle::Card** selectedCards; /*!< Pointer to a list of selected cards */
   Bucket* queue; /*!< List of buckets */
   Bucket** selectQueue, **newSelectQueue; /*!< List of selected buckets in order */
-  Battle::Textbox textbox; /*!< Popups card descriptions */
+  Battle::TextBox textbox; /*!< Popups card descriptions */
   std::vector<PlayerFormMeta*> forms;
 
 public:
@@ -121,7 +121,7 @@ public:
    * @brief Opens the textbox with card description
    * @return true if successful. False otherwise.
    */
-  bool OpenTextbox();
+  bool OpenTextBox();
 
   const bool HasQuestion() const;
   
@@ -129,20 +129,20 @@ public:
    * @brief Continues onto the next "page" of text 
    * @return true if successful. False otherwise.
    */
-  bool ContinueTextbox();
+  bool ContinueTextBox();
   
   /**
    * @brief Speed up text
    * @param factor speed up amount
    * @return true if successful. False otherwise.
    */
-  bool FastForwardTextbox(double factor);
+  bool FastForwardTextBox(double factor);
   
   /**
    * @brief Closes textbox
    * @return true if succesful. False otherwise.
    */
-  bool CloseTextbox();
+  bool CloseTextBox();
 
   void SetSpeaker(const sf::Sprite& mug, const Animation& anim);
   void PromptRetreat();
@@ -151,32 +151,34 @@ public:
    * @brief If in a question, selects YES
    * @return true if operation successful. False otherwise.
    */
-  bool TextboxSelectYes();
+  bool TextBoxSelectYes();
   
   /**
    * @brief If in a question, selects NO
    * @return true if operation successful. False otherwise.
    */
-  bool TextboxSelectNo();
+  bool TextBoxSelectNo();
 
   /**
    * @brief Confirm question selection for textbox
    * @return true if operation was successful, false otherwise
    */
-  bool TextboxConfirmQuestion();
+  bool TextBoxConfirmQuestion();
 
   /**
    * @brief Check if the textbox is fully open
    * @return true if textbox is open. False otherwise.
    */
-  bool IsTextboxOpen();
+  bool IsTextBoxOpen();
 
   /**
  * @brief Check if the textbox is fully closed
  * @return true if textbox is closed. False otherwise.
  */
-  bool IsTextboxClosed();
+  bool IsTextBoxClosed();
   
+  AnimatedTextBox& GetTextBox();
+
   /**
    * @brief Moves card cursor up
    * @return true if successful. False otherwise.

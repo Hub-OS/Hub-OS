@@ -16,14 +16,16 @@ class Player;
     Quit() routine
 */
 class FadeOutBattleState final : public BattleSceneState {
-    FadeOut mode;
-    double wait{ 2 }; // in seconds
-    std::vector<Player*>& tracked;
+  bool keepPlaying{ true };
+  FadeOut mode;
+  double wait{ 2 }; // in seconds
+  std::vector<Player*>& tracked;
 public:
-    FadeOutBattleState(const FadeOut& mode, std::vector<Player*>& tracked);
+  FadeOutBattleState(const FadeOut& mode, std::vector<Player*>& tracked);
 
-    void onStart(const BattleSceneState* last) override;
-    void onEnd(const BattleSceneState* next) override;
-    void onUpdate(double);
-    void onDraw(sf::RenderTexture&);
+  void onStart(const BattleSceneState* last) override;
+  void onEnd(const BattleSceneState* next) override;
+  void onUpdate(double);
+  void onDraw(sf::RenderTexture&);
+  void EnableKeepPlaying(bool enable);
 };

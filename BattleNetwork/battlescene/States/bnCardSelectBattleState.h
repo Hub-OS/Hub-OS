@@ -39,6 +39,8 @@ class CardSelectBattleState final : public BattleSceneState {
   // Check if a form change was properly triggered
   void CheckFormChanges();
 public:
+  CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
+
   Battle::Card**& GetCardPtrList();
   int& GetCardListLengthAddr();
   void onStart(const BattleSceneState* last) override;
@@ -48,7 +50,7 @@ public:
   void EnablePVPMode();
   bool OKIsPressed();
   bool HasForm();
+  bool RequestedRetreat();
   const bool SelectedNewChips();
   void ResetSelectedForm();
-  CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
 };

@@ -96,7 +96,12 @@ void CardSelectBattleState::onUpdate(double elapsed)
   }
 
   if (cardCust.IsInView()) {
-    currState = state::select;
+    if (cardCust.RequestedRetreat()) {
+      currState = state::slideout;
+    }
+    else {
+      currState = state::select;
+    }
 
     if (Input().Has(InputEvents::pressed_shoulder_right) && cardCust.HasQuestion()) {
       if (cardCust.IsVisible()) {
@@ -109,25 +114,27 @@ void CardSelectBattleState::onUpdate(double elapsed)
   }
 
   if (cardCust.CanInteract() && currState == state::select) {
-    if (cardCust.IsTextboxOpen()) {
+    if (cardCust.IsTextBoxOpen()) {
       if (!Input().Has(InputEvents::held_option) && !cardCust.HasQuestion()) {
-        cardCust.CloseTextbox() ? Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::lowest) : 1;
+        if (cardCust.CloseTextBox() && cardCust.RequestedRetreat()) {
+          Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::lowest);
+        }
       }
       else if (Input().Has(InputEvents::pressed_confirm)) {
 
-        cardCust.TextboxConfirmQuestion() ? Audio().Play(AudioType::CHIP_CHOOSE) : 1;
-        cardCust.ContinueTextbox();
+        cardCust.TextBoxConfirmQuestion() ? Audio().Play(AudioType::CHIP_CHOOSE) : 1;
+        cardCust.ContinueTextBox();
       }
 
-      cardCust.FastForwardTextbox(4.0);
+      cardCust.FastForwardTextBox(4.0);
 
       if (Input().Has(InputEvents::pressed_ui_left)) {
-        cardCust.TextboxSelectYes()? Audio().Play(AudioType::CHIP_SELECT) : 1;;
+        cardCust.TextBoxSelectYes()? Audio().Play(AudioType::CHIP_SELECT) : 1;;
       }
       else if (Input().Has(InputEvents::pressed_ui_right)) {
-        cardCust.TextboxSelectNo()? Audio().Play(AudioType::CHIP_SELECT) : 1;;
+        cardCust.TextBoxSelectNo()? Audio().Play(AudioType::CHIP_SELECT) : 1;;
       }
-    } else if(cardCust.IsTextboxClosed()) {
+    } else if(cardCust.IsTextBoxClosed()) {
       // there's a wait time between moving ones and moving repeatedly (Sticky keys)
       bool moveCursor = cardSelectInputCooldown <= 0 || cardSelectInputCooldown == heldCardSelectInputCooldown;
 
@@ -220,7 +227,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
         cardCust.CursorCancel() ? Audio().Play(AudioType::CHIP_CANCEL, AudioPriority::highest) : 1;
       }
       else if (Input().Has(InputEvents::held_option)) {
-        cardCust.OpenTextbox() ? Audio().Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
+        cardCust.OpenTextBox() ? Audio().Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
       }
       else if (Input().Has(InputEvents::pressed_shoulder_left)) {
         cardCust.PromptRetreat();
@@ -313,6 +320,11 @@ bool CardSelectBattleState::OKIsPressed() {
 bool CardSelectBattleState::HasForm()
 {
   return OKIsPressed() && formSelected;
+}
+
+bool CardSelectBattleState::RequestedRetreat()
+{
+  return OKIsPressed() && GetScene().GetCardSelectWidget().RequestedRetreat();
 }
 
 const bool CardSelectBattleState::SelectedNewChips()

@@ -4,17 +4,17 @@
 #include "bnAnimatedTextBox.h"
 #include "bnCard.h"
 /**
- * @class BattleTextbox
+ * @class BattleTextBox
  * @author mav
  * @date 05/05/19
- * @file bnBattleTextbox.h
+ * @file bnBattleTextBox.h
  * @brief Opens textbox with navi's face and describes the card. Used for retreating as well.
  */
 
 class Question;
 
 namespace Battle {
-  class Textbox : public AnimatedTextBox {
+  class TextBox : public AnimatedTextBox {
     bool requestedRetreat{}, asking{};
     sf::Sprite mug;
     Animation anim;
@@ -23,7 +23,7 @@ namespace Battle {
     /**
       * @brief sets the position of the textbox
       */
-    Textbox(const sf::Vector2f& pos);
+    TextBox(const sf::Vector2f& pos);
 
     /**
      * @brief Enqueues the card description and plays it
@@ -35,6 +35,7 @@ namespace Battle {
     void DescribeCard(Battle::Card* card);
     void PromptRetreat();
     void SetSpeaker(const sf::Sprite& mug, const Animation& anim);
+    void Reset();
 
     const bool RequestedRetreat() const;
     const bool HasQuestion() const;

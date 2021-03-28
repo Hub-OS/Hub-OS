@@ -395,14 +395,19 @@ const bool CardSelectionCust::IsInView() {
   return (getPosition().x == bounds);
 }
 
-bool CardSelectionCust::IsTextboxOpen()
+bool CardSelectionCust::IsTextBoxOpen()
 {
   return textbox.IsOpen();
 }
 
-bool CardSelectionCust::IsTextboxClosed()
+bool CardSelectionCust::IsTextBoxClosed()
 {
   return textbox.IsClosed();
+}
+
+AnimatedTextBox& CardSelectionCust::GetTextBox()
+{
+  return textbox;
 }
 
 const bool CardSelectionCust::IsDarkCardSelected()
@@ -415,7 +420,7 @@ void CardSelectionCust::Move(sf::Vector2f delta) {
   IsInView();
 }
 
-bool CardSelectionCust::OpenTextbox()
+bool CardSelectionCust::OpenTextBox()
 {
   if (isInFormSelect) return false;
 
@@ -434,7 +439,7 @@ const bool CardSelectionCust::HasQuestion() const
   return textbox.HasQuestion();
 }
 
-bool CardSelectionCust::ContinueTextbox() {
+bool CardSelectionCust::ContinueTextBox() {
   if (isInFormSelect) return false;
   if (!IsInView() || textbox.IsClosed()) return false;
 
@@ -442,7 +447,7 @@ bool CardSelectionCust::ContinueTextbox() {
   return false;
 }
 
-bool CardSelectionCust::FastForwardTextbox(double factor) {
+bool CardSelectionCust::FastForwardTextBox(double factor) {
   if (isInFormSelect) return false;
   if (!IsInView() || textbox.IsClosed()) return false;
 
@@ -451,7 +456,7 @@ bool CardSelectionCust::FastForwardTextbox(double factor) {
   return true;
 }
 
-bool CardSelectionCust::CloseTextbox() {
+bool CardSelectionCust::CloseTextBox() {
   if (isInFormSelect) return false;
   if (!IsInView() || textbox.IsClosed()) return false;
 
@@ -472,21 +477,21 @@ void CardSelectionCust::PromptRetreat()
   textbox.PromptRetreat();
 }
 
-bool CardSelectionCust::TextboxSelectYes() {
+bool CardSelectionCust::TextBoxSelectYes() {
   if (isInFormSelect) return false;
   if (!IsInView() || textbox.IsClosed()) return false;
 
   return textbox.SelectYes();
 }
 
-bool CardSelectionCust::TextboxSelectNo() {
+bool CardSelectionCust::TextBoxSelectNo() {
   if (!IsInView() || textbox.IsClosed()) return false;
 
   return textbox.SelectNo();
 }
 
 
-bool CardSelectionCust::TextboxConfirmQuestion() {
+bool CardSelectionCust::TextBoxConfirmQuestion() {
   if (isInFormSelect) return false;
   if (!IsInView() || textbox.IsClosed()) return false;
 
@@ -973,8 +978,8 @@ void CardSelectionCust::ResetState() {
   cursorPos = formCursorRow = 0;
   areCardsReady = false;
   isInFormSelect = false;
-
   selectedFormIndex = lockedInFormIndex;
+  textbox.Reset();
 }
 
 bool CardSelectionCust::AreCardsReady() {

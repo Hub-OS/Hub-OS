@@ -11,6 +11,7 @@
 #include "States/bnMobIntroBattleState.h"
 #include "States/bnCardSelectBattleState.h"
 #include "States/bnCardComboBattleState.h"
+#include "States/bnRetreatBattleState.h"
 
 using namespace swoosh;
 
@@ -54,13 +55,19 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto battleover  = AddState<BattleOverBattleState>(players);
   auto timeFreeze  = AddState<TimeFreezeBattleState>();
   auto reward      = AddState<RewardBattleState>(current, &props.base.player, &playerHitCount);
-  auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
+  auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players);
+
+  // TODO: create a textbox in the battle scene and supply it to the card select widget and other states...
+  auto retreat     = AddState<RetreatBattleState>(GetCardSelectWidget().GetTextBox(), props.mug, props.anim);
 
   //////////////////////////////////////////////////////////////////
   // Important! State transitions are added in order of priority! //
   //////////////////////////////////////////////////////////////////
 
   intro.ChangeOnEvent(cardSelect, &MobIntroBattleState::IsOver);
+
+  // Prevent all other conditions if the player tried to retreat
+  cardSelect.ChangeOnEvent(retreat, &CardSelectBattleState::RequestedRetreat);
 
   // Goto the combo check state if new cards are selected...
   cardSelect.ChangeOnEvent(combo, &CardSelectBattleState::SelectedNewChips);
@@ -75,6 +82,21 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   // or to just start the battle after
   combo.ChangeOnEvent(forms, [cardSelect, combo]() mutable {return combo->IsDone() && cardSelect->HasForm(); });
   combo.ChangeOnEvent(battlestart, &CardComboBattleState::IsDone);
+
+  // If retreating fails, we jump right into battle start
+  retreat.ChangeOnEvent(battlestart, &RetreatBattleState::Fail);
+
+  // Otherwise, we leave
+  retreat.ChangeOnEvent(fadeout, [retreat, fadeout]() mutable {
+    if (retreat->Success()) {
+      // fadeout pauses animations only when retreating
+      fadeout->EnableKeepPlaying(false);
+      return true;
+    }
+
+    return false;
+    }
+  );
 
   // Forms is the last state before kicking off the battle
   // if we reached this state...

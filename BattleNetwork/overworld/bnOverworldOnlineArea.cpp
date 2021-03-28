@@ -122,7 +122,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   removePlayers.clear();
 
-  if (Input().Has(InputEvents::pressed_shoulder_left) && textbox.IsClosed()) {
+  if (Input().Has(InputEvents::pressed_shoulder_right) && textbox.IsClosed()) {
     auto& meta = NAVIS.At(currentNavi);
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
@@ -137,6 +137,8 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         });
       }
     });
+
+    playerActor->Face(Isometric(Direction::down_right));
   }
 
   SceneBase::onUpdate(elapsed);

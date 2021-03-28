@@ -239,9 +239,11 @@ const bool TextBox::IsPlaying() const {
 }
 
 void TextBox::Update(const double elapsed) {
-  // If we're paused don't update
   // If the message is empty don't update
   if (message.empty()) return;
+
+  // If we're paused don't update
+  // If the text is set don't update the first frame
   if (!play && !dirty) return;
 
   // If we're at the end of the message, don't step  
@@ -303,7 +305,7 @@ void TextBox::Update(const double elapsed) {
         // Play a sound if we are able and the character is a letter
         if (!mute && message[charIndex] != ' ' && message[charIndex] != '\n') {
           if (playOnce) {
-            Audio().Play(AudioType::TEXT);
+            Audio().Play(AudioType::TEXT, AudioPriority::high);
             playOnce = false;
           }
         }

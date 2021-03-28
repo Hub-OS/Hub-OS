@@ -611,8 +611,8 @@ namespace Battle {
           elapsedBurnTime = 0;
         }
 
-        if (GetState() == TileState::lava && character->GetElement() != Element::fire) {
-          if (character->Hit(Hit::Properties({ 50, Hit::pierce | Hit::flinch, Element::fire, nullptr, Direction::none }))) {
+        if (GetState() == TileState::lava) {
+          if (character->Hit(Hit::Properties({ 50, Hit::flinch, Element::none, nullptr, Direction::none }))) {
             Artifact* explosion = new Explosion;
             field->AddEntity(*explosion, GetX(), GetY());
             SetState(TileState::normal);
@@ -621,7 +621,6 @@ namespace Battle {
       }
 
       // DIRECTIONAL TILES
-
       auto directional = Direction::none;
 
       switch (GetState()) {
@@ -943,6 +942,11 @@ namespace Battle {
       if (!(*entity)->IsTimeFrozen()) {
         if (request > (int)highlightMode) {
           highlightMode = (Highlight)request;
+        }
+
+        Element hitboxElement = (*entity)->GetElement();
+        if (hitboxElement == Element::aqua && state == TileState::volcano) {
+          SetState(TileState::normal);
         }
 
         field->UpdateEntityOnce(*entity, elapsed);

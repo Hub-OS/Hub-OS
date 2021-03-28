@@ -25,11 +25,16 @@ void FadeOutBattleState::onUpdate(double elapsed)
   if (wait <= 0.0) {
     GetScene().Quit(mode);
   }
-  else {
+  else if(keepPlaying) {
     GetScene().GetField()->Update(elapsed);
   }
 }
 
 void FadeOutBattleState::onDraw(sf::RenderTexture&)
 {
+}
+
+void FadeOutBattleState::EnableKeepPlaying(bool enable)
+{
+  this->keepPlaying = enable;
 }

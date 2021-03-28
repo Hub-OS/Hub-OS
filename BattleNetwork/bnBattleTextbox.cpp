@@ -1,15 +1,15 @@
-#include "bnBattleTextbox.h"
+#include "bnBattleTextBox.h"
 #include "bnMessage.h"
 #include "bnMessageQuestion.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
-Battle::Textbox::Textbox(const sf::Vector2f& pos) : AnimatedTextBox(pos)
+Battle::TextBox::TextBox(const sf::Vector2f& pos) : AnimatedTextBox(pos)
 {
   this->SetTextSpeed(2.0);
 }
 
-void Battle::Textbox::DescribeCard(Battle::Card* card)
+void Battle::TextBox::DescribeCard(Battle::Card* card)
 {
   if (card == nullptr || requestedRetreat) return;
 
@@ -21,7 +21,7 @@ void Battle::Textbox::DescribeCard(Battle::Card* card)
   Open();
 }
 
-void Battle::Textbox::PromptRetreat()
+void Battle::TextBox::PromptRetreat()
 {
   if (requestedRetreat) return;
 
@@ -40,23 +40,28 @@ void Battle::Textbox::PromptRetreat()
   asking = true;
 }
 
-void Battle::Textbox::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
+void Battle::TextBox::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
 {
   this->mug = mug;
   this->anim = anim;
 }
 
-const bool Battle::Textbox::RequestedRetreat() const
+void Battle::TextBox::Reset()
+{
+  asking = requestedRetreat = false;
+}
+
+const bool Battle::TextBox::RequestedRetreat() const
 {
   return this->requestedRetreat;
 }
 
-const bool Battle::Textbox::HasQuestion() const
+const bool Battle::TextBox::HasQuestion() const
 {
   return asking;
 }
 
-bool Battle::Textbox::SelectYes() const
+bool Battle::TextBox::SelectYes() const
 {
   if (asking) {
     return question->SelectYes();
@@ -65,7 +70,7 @@ bool Battle::Textbox::SelectYes() const
   return false;
 }
 
-bool Battle::Textbox::SelectNo() const
+bool Battle::TextBox::SelectNo() const
 {
   if (asking) {
     return question->SelectNo();
@@ -74,18 +79,20 @@ bool Battle::Textbox::SelectNo() const
   return false;
 }
 
-void Battle::Textbox::ConfirmSelection()
+void Battle::TextBox::ConfirmSelection()
 {
   if (asking) {
     question->ConfirmSelection();
     asking = false;
   }
+  this->Close();
 }
 
-void Battle::Textbox::Cancel()
+void Battle::TextBox::Cancel()
 {
   if (asking) {
     question->Cancel();
     asking = false;
   }
+  this->Close();
 }
