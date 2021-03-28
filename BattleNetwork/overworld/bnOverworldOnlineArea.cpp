@@ -958,10 +958,13 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
 {
   bool warpIn = reader.Read<bool>(buffer);
   auto direction = reader.Read<Direction>(buffer);
+  auto worldDirection = Orthographic(direction);
+  
+  auto player = GetPlayer();
+  player->Face(worldDirection);
 
   if (warpIn) {
-    auto player = GetPlayer();
-    GetTeleportController().TeleportIn(player, player->Get3DPosition(), Orthographic(direction));
+    GetTeleportController().TeleportIn(player, player->Get3DPosition(), worldDirection);
   }
 
   isConnected = true;
