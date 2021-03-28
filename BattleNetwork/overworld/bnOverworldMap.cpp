@@ -215,7 +215,7 @@ namespace Overworld {
   // todo: move to layer?
   // may require reference to map as tilemeta + tile size is used
   bool Map::CanMoveTo(float x, float y, float z, int layerIndex) {
-    if(layerIndex < 0 || layerIndex >= layers.size()) {
+    if (layerIndex < 0 || layerIndex >= layers.size()) {
       return false;
     }
 
@@ -267,6 +267,14 @@ namespace Overworld {
   }
 
   float Map::GetElevationAt(float x, float y, int layerIndex) {
+    auto totalLayers = layers.size();
+
+    if (layerIndex >= totalLayers) {
+      layerIndex = totalLayers - 1;
+    } else if (layerIndex < 0) {
+      layerIndex = 0;
+    }
+
     auto& layer = layers[layerIndex];
     auto& tile = layer.GetTile(x, y);
     auto& tileMeta = tileMetas[tile.gid];
