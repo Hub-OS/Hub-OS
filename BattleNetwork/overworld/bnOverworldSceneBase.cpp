@@ -11,6 +11,7 @@
 
 #include "../bnWebClientMananger.h"
 #include "../Android/bnTouchArea.h"
+#include "../bnCurrentTime.h"
 
 #include "../bnFolderScene.h"
 #include "../bnSelectNaviScene.h"
@@ -63,6 +64,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   camera(controller.getWindow().getView()),
   Scene(controller),
   map(0, 0, 0, 0),
+  time(Font::Style::thick),
   playerActor(std::make_shared<Overworld::Actor>("You"))
 {
   // When we reach the menu scene we need to load the player information
@@ -146,6 +148,10 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 
   // emotes
   emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
+
+  // clock
+  time.setPosition(480-2.f, 4.f);
+  time.setScale(2.f, 2.f);
 
   cameraTimer.reverse(true);
   cameraTimer.start();
@@ -473,6 +479,8 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   surface.draw(webAccountIcon);
 
   surface.draw(textbox);
+
+  PrintTime(surface);
 }
 
 void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
@@ -1488,6 +1496,36 @@ const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, cons
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
 
+void Overworld::SceneBase::PrintTime(sf::RenderTarget& target)
+{
+  auto shadowColor = sf::Color(105, 105, 105);
+  std::string timeStr = CurrentTime::AsFormattedString("%OH:%OM %p");
+  time.SetString(timeStr);
+  time.setOrigin(time.GetLocalBounds().width, 0.f);
+  auto origin = time.GetLocalBounds().width;
+
+  auto pos = time.getPosition();
+  time.SetColor(shadowColor);
+  time.setPosition(pos.x + 2.f, pos.y + 2.f);
+  target.draw(time);
+
+  time.SetString(timeStr.substr(0, 5));
+  time.setPosition(pos);
+  time.SetColor(sf::Color::White);
+  target.draw(time);
+
+  auto pColor = sf::Color::Red;
+  time.SetString("AM");
+  
+  if (timeStr[6] != 'A') {
+    pColor = sf::Color::Green;
+    time.SetString("PM");
+  }
+
+  time.setOrigin(time.GetLocalBounds().width, 0.f);
+  time.SetColor(pColor);
+  target.draw(time);
+}
 
 #ifdef __ANDROID__
 void Overworld::SceneBase::StartupTouchControls() {

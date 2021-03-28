@@ -163,8 +163,6 @@ Aura::VisualFX::VisualFX(Entity* owner, Aura::Type type) :
   ResourceHandle handle;
   auraSprite.setTexture(*handle.Textures().GetTexture(TextureType::SPELL_AURA));
   aura = new SpriteProxyNode(auraSprite);
-
-  aura = new SpriteProxyNode(auraSprite);
   SetLayer(1); // behind player
 
   fontTextureRef = LOAD_TEXTURE(AURA_NUMSET);
@@ -224,7 +222,7 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
   if (currHP > 0) {
     int size = (int)(std::to_string(currHP).size());
     int hp = currHP;
-    float offsetx = -(((size) * 8.0f) / 2.0f) * font.getScale().x;
+    float offsetx = -(((size) * 4.0f) / 2.0f) * font.getScale().x;
     int index = 0;
     while (index < size) {
       const char c = std::to_string(currHP)[index];
@@ -238,7 +236,7 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
       int col = 8 * (number % 5);
 
       font.setTextureRect(sf::IntRect(col, rowstart, 8, 15));
-      font.setPosition(sf::Vector2f(offsetx, 35.0f));
+      font.setPosition(sf::Vector2f(offsetx, 15.0f));
 
 
       float fontScaleX = font.getScale().x;
@@ -249,11 +247,11 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
       }
 
       auto font_states = this_states;
-      font_states.transform = font.getTransform();
+      font_states.transform *= font.getTransform();
 
       target.draw(font, font_states);
 
-      offsetx += 8.0f * font.getScale().x;
+      offsetx += 4.0f * font.getScale().x;
 
       index++;
     }

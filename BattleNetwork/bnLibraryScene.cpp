@@ -284,7 +284,7 @@ void LibraryScene::onUpdate(double elapsed) {
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
     }
     else if (Input().Has(InputEvents::pressed_confirm) && textbox.IsOpen()) {
-      textbox.SetTextSpeed(3.0);
+      textbox.SetTextSpeed(2.0);
     }
     else if (Input().Has(InputEvents::released_confirm) && textbox.IsOpen()) {
       textbox.SetTextSpeed(1.0);

@@ -34,6 +34,10 @@ public:
     return time_stamp("%y-%m-%d %OH:%OM:%OS");
   }
 
+  static std::string AsFormattedString(const std::string& fmt) {
+    return time_stamp(fmt.c_str());
+  }
+
   static long long AsMilli() {
     using namespace std::chrono;
 

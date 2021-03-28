@@ -64,6 +64,7 @@ namespace Overworld {
 
     std::queue<QueuedCameraEvent> cameraQueue;
     Camera camera; /*!< camera in scene follows player */
+    Text time;
 
     swoosh::Timer cameraTimer;
     sf::Vector3f returnPoint{};
@@ -100,6 +101,7 @@ namespace Overworld {
     void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
     void DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer, size_t maxLayers, std::vector<short>&);
     void DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer, const std::vector<short>&);
+    void PrintTime(sf::RenderTarget& target);
 
 #ifdef __ANDROID__
     void StartupTouchControls();

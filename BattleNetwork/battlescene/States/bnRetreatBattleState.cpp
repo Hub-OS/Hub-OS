@@ -40,8 +40,6 @@ void RetreatBattleState::onUpdate(double elapsed)
       textbox.Close();
     }
   }
-
-  textbox.Update(elapsed);
 }
 
 void RetreatBattleState::onDraw(sf::RenderTexture& surface)

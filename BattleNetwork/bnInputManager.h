@@ -182,6 +182,7 @@ public:
   void FlushAllInputEvents();
 
 private:
+  std::mutex mutex;
   sf::Keyboard::Key lastkey{};
   sf::Window& window;
 

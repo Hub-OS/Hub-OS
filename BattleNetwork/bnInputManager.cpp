@@ -43,16 +43,24 @@ void InputManager::Update() {
 
   while (window.pollEvent(event)) {
     if (event.type == Event::Closed) {
-      onLoseFocus? onLoseFocus() : (void)0;
+      {
+        std::lock_guard lock(mutex);
+        onLoseFocus ? onLoseFocus() : (void)0;
+      }
+
       window.close();
       hasFocus = false;
     } else if (event.type == Event::LostFocus) {
+      std::lock_guard lock(mutex);
+
       onLoseFocus ? onLoseFocus() : (void)0;
       hasFocus = false;
 
       FlushAllInputEvents();
     }
     else if (event.type == Event::GainedFocus) {
+      std::lock_guard lock(mutex);
+
       onRegainFocus ? onRegainFocus() : (void)0;
       hasFocus = true;
 
@@ -60,6 +68,8 @@ void InputManager::Update() {
       FlushAllInputEvents();
     }
     else if (event.type == Event::Resized) {
+      std::lock_guard lock(mutex);
+
       onResized? onResized(event.size.width, event.size.height) : (void)0;
       hasFocus = true;
     }
@@ -585,16 +595,19 @@ void InputManager::VirtualKeyEvent(InputEvent event) {
 
 void InputManager::BindRegainFocusEvent(std::function<void()> callback)
 {
+  std::lock_guard lock(mutex);
   onRegainFocus = callback;
 }
 
 void InputManager::BindResizedEvent(std::function<void(int, int)> callback)
 {
+  std::lock_guard lock(mutex);
   onResized = callback;
 }
 
 void InputManager::BindLoseFocusEvent(std::function<void()> callback)
 {
+  std::lock_guard lock(mutex);
   onLoseFocus = callback;;
 }
 

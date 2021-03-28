@@ -126,8 +126,6 @@ void CardSelectBattleState::onUpdate(double elapsed)
         cardCust.ContinueTextBox();
       }
 
-      cardCust.FastForwardTextBox(4.0);
-
       if (Input().Has(InputEvents::pressed_ui_left)) {
         cardCust.TextBoxSelectYes()? Audio().Play(AudioType::CHIP_SELECT) : 1;;
       }

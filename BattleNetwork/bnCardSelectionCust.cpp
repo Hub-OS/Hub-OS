@@ -655,7 +655,6 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     target.draw(icon, states);
   }
 
-
   if ((cursorPos < 5 && cursorRow == 0) || (cursorPos < 3 && cursorRow == 1)) {
 
     if (cursorPos + (5 * cursorRow) < cardCount) {
@@ -679,7 +678,6 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       }
 
       cardCard.setPosition(lastPos);
-
 
       // card name font shadow
       const std::string& shortname = queue[cursorPos + (5 * cursorRow)].data->GetShortName();

@@ -6,7 +6,6 @@
 
 Battle::TextBox::TextBox(const sf::Vector2f& pos) : AnimatedTextBox(pos)
 {
-  this->SetTextSpeed(2.0);
 }
 
 void Battle::TextBox::DescribeCard(Battle::Card* card)

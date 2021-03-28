@@ -50,7 +50,7 @@ void BattleOverBattleState::onStart(const BattleSceneState*)
         }
         p->ClearActionQueue();
         p->ChangeState<PlayerIdleState>();
-      });
+        });
     }
     else {
       // Otherwise force state

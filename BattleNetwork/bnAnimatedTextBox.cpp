@@ -13,8 +13,6 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   setPosition(pos);
   setScale(2.0f, 2.0f);
 
-  textSpeed = 2.0;
-
   // Load the textbox animation
   animator = Animation("resources/ui/textbox.animation");
   animator.Reload();
@@ -208,7 +206,8 @@ void AnimatedTextBox::Update(double elapsed) {
         mugshotSpeed = static_cast<float>(textSpeed);
       }
 
-      textBox.Update(elapsed*static_cast<float>(textSpeed));
+      // multiplying the speed by a factor of 2 looks more natural
+      textBox.Update(elapsed*static_cast<float>(textSpeed)*2.0);
 
       if (textBox.IsEndOfMessage() || textBox.HasMore()) {
         isPaused = true;

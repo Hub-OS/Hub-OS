@@ -14,7 +14,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   textbox(sf::Vector2f(4, 250)), 
   Scene(controller)
 {
-  textbox.SetTextSpeed(4.0);
+  textbox.SetTextSpeed(2.0);
   isSelectingTopMenu = inGamepadList = inKeyboardList = false;
 
   // Draws the scrolling background

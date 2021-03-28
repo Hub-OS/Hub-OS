@@ -182,6 +182,8 @@ void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 {
   this->total = unsigned(progress * 100);
   this->taskStr = taskName;
+  startLabel.SetString(this->taskStr + " xxx");
+  CenterLabel();
 
   Logger::Logf("[%.2f] Began task %s", progress, taskName.c_str());
 }

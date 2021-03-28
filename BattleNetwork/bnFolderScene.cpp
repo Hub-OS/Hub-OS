@@ -37,7 +37,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   questionInterface(nullptr),
   Scene(controller)
 {
-  textbox.SetTextSpeed(2.0f);
+  textbox.SetTextSpeed(1.0f);
 
   promptOptions = false;
   enterText = false;
