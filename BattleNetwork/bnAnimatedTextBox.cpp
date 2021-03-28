@@ -190,10 +190,10 @@ void AnimatedTextBox::Update(double elapsed) {
         mugAnimator << Animator::Mode::Loop;
       }
       else {
-        mugshotSpeed = textSpeed;
+        mugshotSpeed = static_cast<float>(textSpeed);
       }
 
-      textBox.Update(elapsed*(float)textSpeed);
+      textBox.Update(elapsed*static_cast<float>(textSpeed));
 
       if (textBox.IsEndOfMessage() || textBox.HasMore()) {
         isPaused = true;

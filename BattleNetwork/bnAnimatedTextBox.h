@@ -24,7 +24,6 @@
  */
 class AnimatedTextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
 private:
-  bool dramaticEffect{}; /*!< Represents elipses */
   bool isPaused{}; /*!< Pause text flag */
   bool isReady{}; /*!< Ready to type text flag */
   bool isOpening{}; /*!< Opening textbox flag */

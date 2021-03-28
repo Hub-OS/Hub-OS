@@ -567,7 +567,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       bool localHasShadow = false;
       size_t checkIndex = index+1;
 
-      if (map.IgnoreTileAbove(j, i, index)) {
+      if (map.IgnoreTileAbove(float(j), float(i), int(index))) {
         checkIndex++;
       }
 
@@ -582,12 +582,18 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
         checkIndex++; 
       }
 
-      gridShadows[(index * rows * cols) + (j * cols + i)] = localHasShadow;
+      size_t xyz = (index * rows * cols) + size_t(j) * size_t(cols) + size_t(i);
+      gridShadows[xyz] = localHasShadow;
 
       if (/*cam && cam->IsInView(tileSprite)*/ true) {
         sf::Color originalColor = tileSprite.getColor();
         if (localHasShadow) {
-          tileSprite.setColor(sf::Color(originalColor.r * 0.5, originalColor.b * 0.5, originalColor.g * 0.5, originalColor.a));
+          sf::Uint8 r, g, b;
+          r = sf::Uint8(originalColor.r * 0.75);
+          b = sf::Uint8(originalColor.b * 0.75);
+          g = sf::Uint8(originalColor.g * 0.75);
+
+          tileSprite.setColor(sf::Color(r, g, b, originalColor.a));
         }
         target.draw(tileSprite, states);
         tileSprite.setColor(originalColor);
@@ -628,8 +634,13 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
 
       // index == 0 will NEVER have sprites
       bool evaluate = gridPos.x > 0 && gridPos.y > 0 && index > 0;
-      if (evaluate && gridShadows[((index-1) * rows * cols) + (gridPos.x * cols + gridPos.y)] > 0) {
-        sprite->setColor(sf::Color(originalColor.r * 0.5, originalColor.b * 0.5, originalColor.g * 0.5, originalColor.a));
+      size_t xyz = ((index - 1) * rows * cols) + (size_t(gridPos.x) * size_t(cols) + size_t(gridPos.y));
+      if (evaluate && gridShadows[xyz] > 0) {
+        sf::Uint8 r, g, b;
+        r = sf::Uint8(originalColor.r * 0.5);
+        b = sf::Uint8(originalColor.b * 0.5);
+        g = sf::Uint8(originalColor.g * 0.5);
+        sprite->setColor(sf::Color(r, g, b, originalColor.a));
       }
       target.draw(*sprite, states);
       sprite->setColor(originalColor);
@@ -979,7 +990,8 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   minimap.setScale(2.f, 2.f);
 
   // resize shadow grid
-  gridShadows.resize(this->map.GetCols()* this->map.GetRows() * this->map.GetLayerCount());
+  size_t length = size_t(this->map.GetCols()) * this->map.GetLayerCount() * this->map.GetRows();
+  gridShadows.resize(length);
 }
 
 std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XMLElement& tilesetElement, unsigned int firstgid) {

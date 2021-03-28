@@ -280,8 +280,24 @@ void TextBox::Update(const double elapsed) {
   double simulate = progress;
   // Start at elapsed time `progress` and simulate until it his zero
   // That is our new state
+  double modifiedCharsPerSecond = charsPerSecond;
+
   while (simulate > 0 && charsPerSecond > 0) {
-    simulate -= 1.0 / charsPerSecond;
+
+    size_t elipsesEndPos = size_t(charIndexIter)+2;
+    size_t elipsesStartPos = size_t(charIndexIter)-3;
+
+    // The following conditions handles elipses for dramatic effect
+    if (elipsesEndPos < message.size() && message.substr(charIndexIter, 3) == "...") {
+      // if we see an elipses up a head, reduce simulation speed
+      modifiedCharsPerSecond = charsPerSecond * 0.5;
+    }
+    else if (charIndexIter > 2 && message.substr(elipsesStartPos, 3) == "...") {
+      // if we have passes an elipses, restore the simulation speed
+      modifiedCharsPerSecond = charsPerSecond;
+    }
+
+    simulate -= 1.0 / modifiedCharsPerSecond;
 
     // Skip over line breaks and empty spaces
     while (charIndexIter < message.size() && message[charIndexIter] == ' ') {

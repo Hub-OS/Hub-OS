@@ -1221,7 +1221,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     // Do not attempt to animate the teleport over quick movements if already teleporting
     if (teleportController->IsComplete() && onlinePlayer.packets > 1) {
       // we can't possibly have moved this far away without teleporting
-      if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2) * expectedTime) {
+      if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2.f) * float(expectedTime)) {
         actor->Set3DPosition(endBroadcastPos);
         auto& action = teleportController->TeleportOut(actor);
         action.onFinish.Slot([=] {
