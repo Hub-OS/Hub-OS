@@ -1153,7 +1153,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   actor->LoadAnimations(animation);
 
   auto& emoteNode = onlinePlayer.emoteNode;
-  float emoteY = -actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+  float emoteY = -actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2 - 1;
   emoteNode.setPosition(0, emoteY);
   actor->AddNode(&emoteNode);
 
