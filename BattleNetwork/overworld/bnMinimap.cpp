@@ -304,11 +304,15 @@ void Overworld::Minimap::EnforceTextureSizeLimits()
   player.setTextureRect({ 0, 0, 6, 8 });
   hp.setTextureRect({ 0, 0, 8, 8 });
   warp.setTextureRect({ 0, 0, 8, 6 });
+  board.setTextureRect({ 0, 0, 6, 7 });
+  shop.setTextureRect({ 0, 0, 6, 7 });
   overlay.setTextureRect({ 0, 0, 240, 160 });
 
-  player.setOrigin({ 3, 6 });
+  player.setOrigin({ 3, 8 });
   hp.setOrigin({ 4, 4 });
   warp.setOrigin({ 4, 3 });
+  board.setOrigin({ 3, 7 });
+  shop.setOrigin({ 3, 7 });
 }
 
 Overworld::Minimap::Minimap()
@@ -318,6 +322,8 @@ Overworld::Minimap::Minimap()
   overlay.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_over.png"));
   arrows.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_over_arrows.png"));
   warp.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_warp.png"));
+  board.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_board.png"));
+  shop.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_shop.png"));
   EnforceTextureSizeLimits();
 
   // dark blueish
@@ -353,6 +359,7 @@ Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
   largeMapControls = rhs.largeMapControls;
   offset = rhs.offset;
   name = rhs.name;
+  markers = rhs.markers;
 
   for (auto node : rhs.bakedMap.GetChildNodes()) {
     bakedMap.AddNode(node);
@@ -410,8 +417,20 @@ void Overworld::Minimap::SetHomepagePosition(const sf::Vector2f& pos)
 {
   auto newpos = pos * this->scaling;
   hp.setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  bakedMap.RemoveNode(&hp);
   bakedMap.AddNode(&hp); // follow the map
   hp.SetLayer(-1); // on top of the map
+}
+
+void Overworld::Minimap::ClearIcons()
+{
+  bakedMap.RemoveNode(&hp);
+
+  for(auto& marker : markers) {
+    bakedMap.RemoveNode(marker.get());
+  }
+
+  markers.clear();
 }
 
 void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos)
@@ -419,10 +438,39 @@ void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos)
   auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newWarp = std::make_shared<SpriteProxyNode>();
   newWarp->setTexture(warp.getTexture());
+
+  // getOrigin is returning { 0, 0 } ????
+  // Logger::Logf("added: %f %f", warp.getOrigin().x, warp.getOrigin().y);
+  newWarp->setOrigin({ 4, 3 });
+
   newWarp->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   newWarp->SetLayer(-1);
-  warps.push_back(newWarp);
-  bakedMap.AddNode(warps.back().get());
+  markers.push_back(newWarp);
+  bakedMap.AddNode(markers.back().get());
+}
+
+void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos)
+{
+  auto newpos = pos * this->scaling;
+  std::shared_ptr<SpriteProxyNode> newBoard = std::make_shared<SpriteProxyNode>();
+  newBoard->setTexture(board.getTexture());
+  newBoard->setOrigin({ 3, 7 });
+  newBoard->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  newBoard->SetLayer(-1);
+  markers.push_back(newBoard);
+  bakedMap.AddNode(markers.back().get());
+}
+
+void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos)
+{
+  auto newpos = pos * this->scaling;
+  std::shared_ptr<SpriteProxyNode> newShop = std::make_shared<SpriteProxyNode>();
+  newShop->setTexture(shop.getTexture());
+  newShop->setOrigin({ 3, 7 });
+  newShop->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  newShop->SetLayer(-1);
+  markers.push_back(newShop);
+  bakedMap.AddNode(markers.back().get());
 }
 
 void Overworld::Minimap::draw(sf::RenderTarget& surface, sf::RenderStates states) const

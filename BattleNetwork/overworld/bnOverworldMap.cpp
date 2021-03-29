@@ -51,7 +51,7 @@ namespace Overworld {
   const sf::Vector2f Map::WorldToScreen(sf::Vector3f world) const
   {
     auto screenPos = IsoToOrthogonal({ world.x, world.y });
-    screenPos.y -= tileHeight / 2.0f;
+    screenPos.y -= world.z * tileHeight / 2.0f;
 
     return screenPos;
   }

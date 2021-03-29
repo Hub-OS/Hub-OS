@@ -815,6 +815,10 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
   tileTriggers.clear();
   tileTriggers.resize(layerCount);
 
+  auto& minimap = GetMinimap();
+  minimap.ClearIcons();
+  auto tileSize = map.GetTileSize();
+
   for (auto i = 0; i < layerCount; i++) {
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
       auto type = tileObject.type;
@@ -830,8 +834,10 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       auto objectTilePos = sf::Vector2i(map.WorldToTileSpace(objectCenterPos));
       auto hash = objectTilePos.x + map.GetCols() * objectTilePos.y;
 
+      auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
+
       if (type == "Home Warp") {
-        GetMinimap().SetHomepagePosition(map.WorldToScreen(objectCenterPos));
+        minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset);
 
         tileTriggers[i][hash] = [=]() {
           auto player = GetPlayer();
@@ -854,6 +860,8 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         };
       }
       else if (type == "Position Warp") {
+        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos));
+
         auto targetTilePos = sf::Vector2f(
           tileObject.customProperties.GetPropertyFloat("X"),
           tileObject.customProperties.GetPropertyFloat("Y")
@@ -884,6 +892,15 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
           command.onFinish.Slot(teleport);
         };
+      }
+      else if (type == "Custom Warp") {
+        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos));
+      }
+      else if (type == "Board") {
+        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position));
+      }
+      else if (type == "Shop") {
+        minimap.AddShopPosition(map.WorldToScreen(tileObject.position));
       }
     }
   }
