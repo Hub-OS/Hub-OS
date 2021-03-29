@@ -387,7 +387,7 @@ void Entity::SetTile(Battle::Tile* _tile) {
 }
 
 Battle::Tile* Entity::GetTile(Direction dir, unsigned count) const {
-  auto next = GetTile();
+  auto next = this->tile;
 
   while (count > 0) {
     next = next + dir;
