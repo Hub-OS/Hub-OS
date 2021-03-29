@@ -34,10 +34,6 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = startState;
-
-  if (auto player = dynamic_cast<Player*>(user)) {
-    player->Charge(false);
-  }
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)

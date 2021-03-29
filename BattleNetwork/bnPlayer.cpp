@@ -78,6 +78,8 @@ void Player::OnUpdate(double _elapsed) {
 
   //Node updates
   chargeEffect.Update(_elapsed);
+
+  fullyCharged = chargeEffect.IsFullyCharged();
 }
 
 void Player::Attack() {
@@ -85,7 +87,7 @@ void Player::Attack() {
 
   // Queue an action for the controller to fire at the right frame
   if (tile) {
-    chargeEffect.IsFullyCharged()? action = ExecuteChargedBuster() : action = ExecuteBuster(); 
+    fullyCharged? action = ExecuteChargedBuster() : action = ExecuteBuster(); 
     
     if (action) {
       action->PreventCounters();

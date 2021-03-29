@@ -8,6 +8,7 @@ ChargeEffectSceneNode::ChargeEffectSceneNode(Entity* _entity) {
   entity = _entity;
   charging = false;
   chargeCounter = frames(0) ;
+  setScale(0.f, 0.f);
   setTexture(LOAD_TEXTURE(SPELL_BUSTER_CHARGE));
 
   animation = Animation("resources/spells/spell_buster_charge.animation");
@@ -20,13 +21,7 @@ ChargeEffectSceneNode::~ChargeEffectSceneNode() {
 }
 
 void ChargeEffectSceneNode::Update(double _elapsed) {
-  if (!charging) {
-    chargeCounter = frames(0);
-    setScale(0.0f, 0.0f);
-    isCharged = false;
-    isPartiallyCharged = false;
-  } else {
-
+  if (charging) {
     chargeCounter += from_seconds(_elapsed);
 
     if (chargeCounter >= maxChargeTime + i10) {
@@ -64,6 +59,13 @@ void ChargeEffectSceneNode::Update(double _elapsed) {
 
 void ChargeEffectSceneNode::SetCharging(bool _charging) {
   charging = _charging;
+
+  if (!charging) {
+    chargeCounter = frames(0);
+    setScale(0.0f, 0.0f);
+    isCharged = false;
+    isPartiallyCharged = false;
+  }
 }
 
 void ChargeEffectSceneNode::SetMaxChargeTime(const frame_time_t& max)

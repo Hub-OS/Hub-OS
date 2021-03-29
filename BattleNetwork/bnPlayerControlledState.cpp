@@ -46,34 +46,36 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   bool missChargeKey = isChargeHeld && !Input().Has(InputEvents::held_shoot);
 
   // Are we creating an action this frame?
-    if (Input().Has(InputEvents::pressed_use_chip)) {
-      auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
-      if (cardsUI) {
-        cardsUI->UseNextCard();
-      }
-      // If the card used was successful, we may have a card in queue
-    }
-    else if (Input().Has(InputEvents::released_special)) {
-      if (replicator) replicator->SendUseSpecialSignal();
-      player.UseSpecial();
-    }    // queue attack based on input behavior (buster or charge?)
-    else if (Input().Has(InputEvents::released_shoot) || missChargeKey) {
-      // This routine is responsible for determining the outcome of the attack
-      if (replicator) {
-        replicator->SendShootSignal();
-        replicator->SendChargeSignal(false);
-      }
-
+  if (Input().Has(InputEvents::pressed_use_chip)) {
+    auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
+    if (cardsUI) {
+      cardsUI->UseNextCard();
       isChargeHeld = false;
-      player.chargeEffect.SetCharging(false);
-      player.Attack();
-
-    } else if (Input().Has(InputEvents::held_shoot)) {
-      isChargeHeld = true;
-      if (replicator) replicator->SendChargeSignal(true);
-      player.chargeEffect.SetCharging(true);
+    }
+    // If the card used was successful, we may have a card in queue
+  }
+  else if (Input().Has(InputEvents::released_special)) {
+    if (replicator) replicator->SendUseSpecialSignal();
+    player.UseSpecial();
+  }    // queue attack based on input behavior (buster or charge?)
+  else if (Input().Has(InputEvents::released_shoot) || missChargeKey) {
+    // This routine is responsible for determining the outcome of the attack
+    if (replicator) {
+      replicator->SendShootSignal();
+      replicator->SendChargeSignal(false);
     }
 
+    isChargeHeld = false;
+    player.chargeEffect.SetCharging(false);
+    player.Attack();
+    Logger::Logf("use attack");
+
+
+  } else if (Input().Has(InputEvents::held_shoot)) {
+    isChargeHeld = true;
+    if (replicator) replicator->SendChargeSignal(true);
+    player.chargeEffect.SetCharging(true);
+  }
 
   // Movement increments are restricted based on anim speed at this time
   if (player.IsMoving())
@@ -113,7 +115,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
 void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
-  player.chargeEffect.SetCharging(false);
-
+  player.Charge(false);
   replicator? replicator->SendChargeSignal(false) : (void(0));
 }

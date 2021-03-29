@@ -40,7 +40,6 @@ struct BusterEvent {
 
   // Default is false which is shoot-then-move
   bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
-
   CardAction* action{ nullptr };
 };
 
@@ -152,7 +151,8 @@ protected:
   string state; /*!< Animation state name */
   string moveAnimHash;
   frame_time_t slideFrames{ frames(1) };
-  bool playerControllerSlide;
+  bool playerControllerSlide{};
+  bool fullyCharged{}; //!< Per-frame value of the charge
   AnimationComponent* animationComponent;
   ChargeEffectSceneNode chargeEffect; /*!< Handles charge effect */
 

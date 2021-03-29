@@ -218,17 +218,9 @@ void SelectedCardsUI::UseNextCard() {
   card->MultiplyDamage(multiplierValue);
   multiplierValue = 1; // reset 
 
-  // Broadcast to all subscribed CardUseListeners
-
-  // TAKE THIS OUT!!!!!!!!!!!!!!!!!!!!!!!
-  if (card->GetShortName() == "AntiDmg") {
-    card->props.timeFreeze = true;
-  }
-
-  // Broadcast(*card, *player, CurrentTime::AsMilli());
+  // add a peek event to the action queue
   player->AddAction(PeekCardEvent{ this }, ActionOrder::voluntary);
 
-  // return ++curr;
 }
 
 void SelectedCardsUI::Broadcast(const Battle::Card& card, Character& user)
