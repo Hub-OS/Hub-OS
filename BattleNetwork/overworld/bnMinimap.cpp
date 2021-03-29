@@ -52,7 +52,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
       pos.y = center.y - pos.y;
 
       if (mask == 0) {
-        outcolor = vec4(finalColor.r, finalColor.g*1.01, finalColor.b*0.60, incolor.a);
+        outcolor = vec4(finalColor.r*0.60, finalColor.g*1.20, finalColor.b*0.60, incolor.a);
       }
       else {
         outcolor = finalColor * incolor.a;
