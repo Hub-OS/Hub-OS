@@ -480,16 +480,20 @@ void Overworld::OnlineArea::sendAssetsFound() {
   }
 }
 
-void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size) {
+void Overworld::OnlineArea::sendAssetStreamSignal(ClientAssetType assetType, uint16_t headerSize, const char* data, size_t size) {
   size_t remainingBytes = size;
+  auto event = ClientEvents::asset_stream;
+
+  // - 1 for asset type, - 2 for size
+  const uint16_t availableRoom = maxPayloadSize - headerSize - 3;
 
   while (remainingBytes > 0) {
-    const uint16_t availableRoom = maxPayloadSize - headerSize - 2;
     uint16_t size = remainingBytes < availableRoom ? (uint16_t)remainingBytes : availableRoom;
     remainingBytes -= size;
 
     Poco::Buffer<char> buffer{ 0 };
     buffer.append((char*)&event, sizeof(ClientEvents));
+    buffer.append(assetType);
     buffer.append((char*)&size, sizeof(uint16_t));
     buffer.append(data, size);
     packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
@@ -614,8 +618,8 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
   // send data
   // + reliability type + id + packet type
   auto packetHeaderSize = 1 + 8 + 2;
-  sendAssetStreamSignal(ClientEvents::texture_stream, packetHeaderSize, textureData.data(), textureLength);
-  sendAssetStreamSignal(ClientEvents::animation_stream, packetHeaderSize, animationData.c_str(), animationData.length());
+  sendAssetStreamSignal(ClientAssetType::texture, packetHeaderSize, textureData.data(), textureLength);
+  sendAssetStreamSignal(ClientAssetType::animation, packetHeaderSize, animationData.c_str(), animationData.length());
 }
 
 void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
