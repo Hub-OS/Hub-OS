@@ -150,7 +150,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
 
   // clock
-  time.setPosition(480-2.f, 4.f);
+  time.setPosition(480-4.f, 4.f);
   time.setScale(2.f, 2.f);
 
   cameraTimer.reverse(true);
