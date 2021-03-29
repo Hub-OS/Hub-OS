@@ -787,12 +787,9 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
   auto path = reader.ReadString(buffer);
   auto mapBuffer = GetText(path);
 
-  auto& map = GetMap();
-
-  auto lastSongPath = map.GetSongPath();
-
   LoadMap(mapBuffer);
 
+  auto& map = GetMap();
   auto layerCount = map.GetLayerCount();
 
   for (auto& [objectId, excludedData] : excludedObjects) {
@@ -822,7 +819,14 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
       auto type = tileObject.type;
 
-      auto objectCenterPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+      auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
+
+      if (!tileMeta) continue;
+
+      auto screenOffset = tileMeta->drawingOffset;
+      screenOffset.y += tileObject.size.y / 2.0f;
+
+      auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
       auto objectTilePos = sf::Vector2i(map.WorldToTileSpace(objectCenterPos));
       auto hash = objectTilePos.x + map.GetCols() * objectTilePos.y;
 
