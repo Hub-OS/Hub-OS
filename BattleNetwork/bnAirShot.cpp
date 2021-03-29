@@ -47,8 +47,9 @@ void AirShot::OnUpdate(double _elapsed) {
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
     if (GetTile()->GetX() == 6) { Delete(); }
-    if (CanMoveTo(GetTile() + Direction::right)) {
-      Teleport(Direction::right);
+    Battle::Tile* dest = GetTile() + Direction::right;
+    if (CanMoveTo(dest)) {
+      Teleport(dest);
     }
 
     cooldown = 0;

@@ -46,15 +46,14 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
       teley = myteam[randIndex]->GetY();
   }
 
-  Battle::Tile* destTile = honey.GetField()->GetAt(telex, teley);
-  bool queued = (myteam.size() > 0) && honey.Teleport(destTile);
-
-  if (honey.IsMoving(&lastcheck)) {
-
+  auto onMove = [this, honeyPtr = &honey] {
     auto fx = new MobMoveEffect();
-    honey.GetField()->AddEntity(*fx, *honey.GetTile());
+    honeyPtr->GetField()->AddEntity(*fx, *honeyPtr->GetTile());
     moveCount--;
-  }
+  };
+
+  Battle::Tile* destTile = honey.GetField()->GetAt(telex, teley);
+  bool queued = (myteam.size() > 0) && honey.Teleport(destTile, ActionOrder::voluntary, onMove);
 
   // else repeat 
   return honey.ChangeState<HoneyBomberIdleState>();

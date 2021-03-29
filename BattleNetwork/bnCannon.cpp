@@ -48,7 +48,7 @@ void Cannon::OnUpdate(double _elapsed) {
   if (cooldown >= COOLDOWN) {
     if (GetTile()->GetX() == 6 && GetTeam() == Team::red) { Delete(); } 
     if (GetTile()->GetX() == 1 && GetTeam() == Team::blue) { Delete(); }
-    Teleport(GetDirection());
+    Teleport(GetTile() + GetDirection());
     cooldown = 0;
   }
 }

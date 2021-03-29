@@ -31,9 +31,9 @@ public:
   void SetHeight(const float height);
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile * next) override;
-  void SetSlideTimeFrames(unsigned frames);
   const sf::Vector2f& GetTileOffset() const;
   void SetTileOffset(float x, float y);
+  Battle::Tile* GetCurrentTile() const;
 
   // duration in seconds
   void ShakeCamera(double power, float duration);

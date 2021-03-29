@@ -17,7 +17,7 @@ public:
   {
   }
 
-  void OnUpdate(double _elapsed) override
+  void Update(double _elapsed) override
   {
     CardAction::Update(_elapsed);
 
@@ -31,7 +31,6 @@ public:
   void OnEndAction()
   {
     // SCRIPTS.callback(card_name).onDestroy(this);
-    Eject();
   }
 
   void OnExecute() override {

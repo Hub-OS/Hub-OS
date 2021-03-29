@@ -30,14 +30,14 @@ function UpwardFist(duo)
     local fist = Battle.Spell.new(Team.Blue)
     fist:SetTexture(texture, true)
     fist:HighlightTile(Highlight.Flash)
-    fist:SetSlideFrames(4)
 
     fist:SetHitProps(HitProps(
         50, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        Direction.None)
+        { Direction.None, 0 }
+        )
     )
 
     local fistAnim = fist:GetAnimation()
@@ -65,8 +65,8 @@ function UpwardFist(duo)
             end 
 
             if self.startSwinging == true then
-                self:SlideToTile(true)
-                self:Move(Direction.Up)
+                local dest = self:GetTile(Direction.Up, 1)
+                self:Slide(dest, frames(4), frames(0), ActionOrder.Voluntary, nonce)
             end
         end
     end
@@ -95,7 +95,8 @@ function DownwardFist(duo)
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        Direction.None)
+        { Direction.None, 0 }
+        )
     )
 
     local fistAnim = fist:GetAnimation()
@@ -123,8 +124,8 @@ function DownwardFist(duo)
             end 
 
             if self.startSwinging == true then
-                self:SlideToTile(true)
-                self:Move(Direction.Down)
+                local dest = self:GetTile(Direction.Down, 1)
+                self:Slide(dest, frames(4), frames(0), ActionOrder.Voluntary, nonce)
             end
         end
     end
@@ -146,14 +147,13 @@ end
 function Mine(duo) 
     local mine = Battle.Obstacle.new(Team.Blue)
     mine:SetHealth(20)
-    mine:SetSlideFrames(MINE_SLIDE_FRAMES)
 
     mine:SetHitProps(HitProps(
         20, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        Direction.None)
+        { Direction.None, 0 } )
     )
 
     mine.dir = Direction.Up
@@ -207,14 +207,14 @@ function Mine(duo)
                     self.moveOneColumn = true
                     self.timer = 0
                     self.node:SetPosition(tileW/2.0, 0.0)
-
-                    if not self:Move(Direction.Left) then 
+                    
+                    local dest = self:GetTile(Direction.Left, 1)
+                    local slide = self:Slide(dest, frames(MINE_SLIDE_FRAMES), frames(0), ActionOrder.Voluntary, nonce)
+                    if not slide then 
                         self:Delete()
                         return
                     end
 
-                    self:AdoptNextTile()
-                    self:FinishMove()
                     return
             elseif self.moveOneColumn == true then
                 if self.verticalDir == Direction.Up then
@@ -229,8 +229,8 @@ function Mine(duo)
             end
 
             -- otherwise keep sliding
-            self:SlideToTile(true)
-            self:Move(self.dir)
+            local dest = self:GetTile(self.dir, 1)
+            local slide = self:Slide(dest, frames(MINE_SLIDE_FRAMES), frames(0), ActionOrder.Voluntary, nonce)
         end 
     end
 
@@ -265,7 +265,7 @@ function LaserBeam(duo)
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        Direction.None)
+        { Direction.None, 0 })
     )
 
     local origin = duo:GetAnimation():Point("origin")
@@ -317,7 +317,6 @@ function Missile(duo)
     local missile = Battle.Obstacle.new(Team.Blue)
     missile:SetHealth(20)
     missile:SetTexture(texture, true)
-    missile:SetSlideFrames(20)
     missile:SetHeight(20.0)
     missile:SetLayer(-2)
     missile:ShowShadow(false)
@@ -328,7 +327,7 @@ function Missile(duo)
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        Direction.None)
+        { Direction.None })
     )
 
     local missileAnim = missile:GetAnimation()
@@ -347,8 +346,8 @@ function Missile(duo)
             end
 
             -- otherwise keep sliding
-            self:SlideToTile(true)
-            self:Move(Direction.Left)
+            local dest = self:GetTile(Direction.Left, 1)
+            self:Slide(dest, frames(20), frames(0), ActionOrder.Voluntary, nonce)
         end 
 
         if self:Tile():IsHole() == false then 
@@ -536,8 +535,8 @@ function MoveState(self, dt)
 
             shake = true -- can shake again
             middle:Show() -- coverup red center
-            self:SlideToTile(true)
-            self:Move(dir)
+            local dest = self:GetTile(dir, 1)
+            self:Slide(dest, frames(80), frames(0), ActionOrder.Voluntary, nonce)
             NextState()
         end
     end 
@@ -583,7 +582,6 @@ function battle_init(self)
     self:SetHealth(3000)
     self:SetTexture(texture, true)
     self:SetHeight(60)
-    self:SetSlideFrames(80)
     self:ShareTile(true)
     self:SetPosition(idleDuoPos.x, idleDuoPos.y)
 
@@ -623,10 +621,6 @@ function num_of_explosions()
 end
 
 function on_update(self, dt)
-    --handTimer = handTimer + dt
-    --local x = math.sin(handTimer*60)*5
-    --hand:setPosition(x, x)
-
     aiState[aiStateIndex](self, dt)
 end
 

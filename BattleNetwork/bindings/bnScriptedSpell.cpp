@@ -76,11 +76,6 @@ Animation& ScriptedSpell::GetAnimationObject()
   return animComponent->GetAnimationObject();
 }
 
-void ScriptedSpell::SetSlideTimeFrames(unsigned frames)
-{
-  this->SetSlideTime(time_cast<sf::Time>(::frames(frames)));
-}
-
 const sf::Vector2f& ScriptedSpell::GetTileOffset() const
 {
   return ScriptedSpell::scriptedOffset;
@@ -89,5 +84,15 @@ const sf::Vector2f& ScriptedSpell::GetTileOffset() const
 void ScriptedSpell::SetTileOffset(float x, float y)
 {
   ScriptedSpell::scriptedOffset = { x, y };
+}
+
+Battle::Tile* ScriptedSpell::GetCurrentTile() const
+{
+  return GetTile();
+}
+
+void ScriptedSpell::ShakeCamera(double power, float duration)
+{
+  this->EventBus().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
 #endif

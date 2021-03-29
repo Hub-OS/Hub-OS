@@ -69,7 +69,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 
         if (isCube && isCube->GetElement() == Element::ice && GetElement() == Element::ice) {
           Direction dir = GetDirection();
-          isCube->Slide(dir, frames(12), frames(0));
+          isCube->Slide(GetTile() + dir, frames(12), frames(0));
           stop = true;
         }
         else if (isCube) {
@@ -114,7 +114,7 @@ void Cube::OnUpdate(double _elapsed) {
 
   // Keep momentum
   if (!IsSliding() && pushedByDrag) {
-    Slide(GetDirection(), frames(12), frames(0));
+    Slide(GetTile() + GetDirection(), frames(12), frames(0));
   }
 
   if (timer <= 0 ) {

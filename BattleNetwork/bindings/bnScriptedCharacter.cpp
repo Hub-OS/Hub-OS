@@ -69,11 +69,6 @@ bool ScriptedCharacter::CanMoveTo(Battle::Tile * next) {
   return script["can_move_to"](*next);
 }
 
-void ScriptedCharacter::SetSlideTimeFrames(unsigned frames)
-{
-  this->SetSlideTime(time_cast<sf::Time>(::frames(frames)));
-}
-
 const sf::Vector2f& ScriptedCharacter::GetTileOffset() const
 {
   return ScriptedCharacter::scriptedOffset;
@@ -82,6 +77,11 @@ const sf::Vector2f& ScriptedCharacter::GetTileOffset() const
 void ScriptedCharacter::SetTileOffset(float x, float y)
 {
   ScriptedCharacter::scriptedOffset = { x, y };
+}
+
+Battle::Tile* ScriptedCharacter::GetCurrentTile() const
+{
+  return GetTile();
 }
 
 void ScriptedCharacter::ShakeCamera(double power, float duration)

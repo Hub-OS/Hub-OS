@@ -31,6 +31,7 @@ public:
   void SetHeight(const float height);
   const float GetHeight() const;
   AnimationComponent& GetAnimationComponent();
+  Battle::Tile* GetCurrentTile() const;
 
   CardAction* OnExecuteSpecialAction() override final;
   CardAction* OnExecuteBusterAction() override final;

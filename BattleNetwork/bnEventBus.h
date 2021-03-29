@@ -65,8 +65,7 @@ public:
     */
     template<typename T>
     void try_insert_item(std::map<std::string, std::vector<std::any>>& map,
-      std::string typeStr,
-      T* obj) {
+      std::string typeStr, T* obj) {
       if (obj == nullptr) return;
 
       auto& vec = map[typeStr];
@@ -89,8 +88,7 @@ public:
     */
     template<typename T>
     void try_remove_item(std::map<std::string, std::vector<std::any>>& map,
-      std::string typeStr,
-      T* obj) {
+      std::string typeStr, T* obj) {
       if (obj == nullptr) return;
 
       auto& vec = map[typeStr];
@@ -191,7 +189,7 @@ public:
 
         if (typenameIter != mapIter->second.end()) {
           for (auto any : typenameIter->second) {
-            (std::any_cast<Class*>(any)->*Func)(std::forward<decltype(args)>(args)...);          
+            (std::any_cast<Class*>(any)->*Func)(std::forward<decltype(args)>(args)...);
           }
         }
       }

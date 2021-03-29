@@ -35,7 +35,7 @@ void MettaurMoveState::OnUpdate(double _elapsed, Mettaur& met) {
     }
   }
   
-  if (met.Teleport(nextDirection)) {
+  if (met.Teleport(met.GetTile() + nextDirection)) {
     auto onFinish = [this, ptr = &met]() { 
       ptr->ChangeState<MettaurIdleState>(); 
     };

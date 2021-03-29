@@ -8,10 +8,12 @@ function roster_init(info)
     info:SetSpeed(2.0)
     info:SetAttack(2)
     info:SetChargedAttack(20)
-    info:SetOverworldAnimationPath(_modpath.."erase_OW.animation")
     info:SetIconTexture(LoadTexture(_modpath.."eraseman_face.png"))
     info:SetPreviewTexture(LoadTexture(_modpath.."preview.png"))
-    info:SetOverworldTexture(LoadTexture(_modpath.."erase_OW.png"))
+    info:SetOverworldAnimationPath(_modpath.."erase_OW.animation")
+    info:SetOverworldTexturePath(_modpath.."erase_OW.png")
+    info:SetMugshotTexturePath(_modpath.."mug.png")
+    info:SetMugshotAnimationPath(_modpath.."mug.animation")
 end
 
 function battle_init(player)
@@ -36,5 +38,5 @@ end
 
 function execute_charged_attack(player)
     print("charged attack")
-    return Battle.Buster.new(player, true, 100)
+    return Battle.Bomb.new(player, 40)
 end

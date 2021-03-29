@@ -76,11 +76,6 @@ Animation& ScriptedObstacle::GetAnimationObject()
   return animComponent->GetAnimationObject();
 }
 
-void ScriptedObstacle::SetSlideTimeFrames(unsigned frames)
-{
-  this->SetSlideTime(time_cast<sf::Time>(::frames(frames)));
-}
-
 const sf::Vector2f& ScriptedObstacle::GetTileOffset() const
 {
   return ScriptedObstacle::scriptedOffset;
@@ -89,5 +84,14 @@ const sf::Vector2f& ScriptedObstacle::GetTileOffset() const
 void ScriptedObstacle::SetTileOffset(float x, float y)
 {
   ScriptedObstacle::scriptedOffset = { x, y };
+}
+
+Battle::Tile* ScriptedObstacle::GetCurrentTile() const
+{
+    return GetTile();
+}
+
+void ScriptedObstacle::ShakeCamera(double power, float duration)
+{
 }
 #endif

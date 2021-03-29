@@ -48,7 +48,7 @@ void CrackShot::OnUpdate(double _elapsed) {
       Delete();
     }
     else {
-      Slide(GetDirection(), frames(8), frames(0));
+      Slide(GetTile() + GetDirection(), frames(8), frames(0));
     }
   }
 

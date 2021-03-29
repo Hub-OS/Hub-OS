@@ -284,35 +284,6 @@ void Entity::SetAlpha(int value)
   setColor(c);
 }
 
-bool Entity::Teleport(Direction dir, ActionOrder order, std::function<void()> onBegin)
-{
-  Battle::Tile* currTile = GetTile();
-
-  if (!currTile) return false;
-
-  return Teleport(*currTile + dir, order, onBegin);
-}
-
-bool Entity::Slide(Direction dir, 
-  const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
-{
-  Battle::Tile* currTile = GetTile();
-
-  if (!currTile) return false;
-
-  return Slide(*currTile + dir, slideTime, endlag, order, onBegin);
-}
-
-bool Entity::Jump(Direction dir, float destHeight, 
-  const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
-{
-  Battle::Tile* currTile = GetTile();
-
-  if (!currTile) return false;
-
-  return Jump(*currTile + dir, destHeight, jumpTime, endlag, order, onBegin);
-}
-
 bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void()> onBegin) {
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
@@ -415,7 +386,14 @@ void Entity::SetTile(Battle::Tile* _tile) {
   tile = _tile;
 }
 
-Battle::Tile* Entity::GetTile() const {
+Battle::Tile* Entity::GetTile(Direction dir, unsigned count) const {
+  auto next = GetTile();
+
+  while (count > 0) {
+    next = next + dir;
+    count--;
+  }
+
   return tile;
 }
 
@@ -424,76 +402,29 @@ const sf::Vector2f Entity::GetTileOffset() const
   return this->tileOffset;
 }
 
-const bool Entity::IsSliding(unsigned* framecheck) const
+const bool Entity::IsSliding() const
 {
   bool is_moving = currMoveEvent.IsSliding();
 
-  if (framecheck) {
-    if (*framecheck != moveEventFrame) {
-      *framecheck = moveEventFrame;
-      return is_moving;
-    }
-    
-    // else framecheck matches the event frame number
-    // this represents no change in movement since last check
-    return false; 
-  }
-
   return is_moving;
 }
 
-const bool Entity::IsJumping(unsigned* framecheck) const
+const bool Entity::IsJumping() const
 {
   bool is_moving = currMoveEvent.IsJumping();
 
-  if (framecheck) {
-    if (*framecheck != moveEventFrame) {
-      *framecheck = moveEventFrame;
-      return is_moving;
-    }
-
-    // else framecheck matches the event frame number
-    // this represents no change in movement since last check
-    return false;
-  }
-
   return is_moving;
 }
 
-const bool Entity::IsTeleporting(unsigned* framecheck) const
+const bool Entity::IsTeleporting() const
 {
   bool is_moving = currMoveEvent.IsTeleporting();
 
-  if (framecheck) {
-    if (*framecheck != moveEventFrame) {
-      *framecheck = moveEventFrame;
-      return is_moving;
-    }
-
-    // else framecheck matches the event frame number
-    // this represents no change in movement since last check
-    return false;
-  }
-
   return is_moving;
 }
 
-const bool Entity::IsMoving(unsigned* framecheck) const
+const bool Entity::IsMoving() const
 {
-  if (framecheck) {
-    unsigned a{ *framecheck };
-    unsigned b{ *framecheck };
-    unsigned c{ *framecheck };
-
-    bool is_moving = IsSliding(&a) || IsJumping(&b) || IsTeleporting(&c);
-
-    // only one motion event happens at a time, so find the highest
-    // up-to-date frame number out of the 3 calls
-    *framecheck = std::max(a, b);
-    *framecheck = std::max(*framecheck, c);
-    return is_moving;
-  }
-
   return IsSliding() || IsJumping() || IsTeleporting();
 }
 

@@ -103,7 +103,7 @@ static constexpr frame_time_t from_seconds(T sec) {
 }
 
  //!< frames utility method transforms frames to engine time
-static constexpr frame_time_t frames(int frames) {
+static constexpr frame_time_t frames(unsigned int frames) {
   return frame_time_t{ static_cast<long long>(1000 * (double(frames) / 60.0)) };
 };
 

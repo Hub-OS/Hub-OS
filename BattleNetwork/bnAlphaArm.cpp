@@ -146,7 +146,7 @@ void AlphaArm::OnUpdate(double _elapsed) {
             isFinished = true;
           }
           else {
-            Slide(GetDirection(), frames(8), frames(0));
+            Slide(GetTile() + GetDirection(), frames(8), frames(0));
           }
         }
       }
@@ -174,7 +174,7 @@ void AlphaArm::OnUpdate(double _elapsed) {
           isFinished = true;
         }
         else {
-          Slide(GetDirection(), frames(8), frames(0));
+          Slide(GetTile() + GetDirection(), frames(8), frames(0));
         }
       }
     }

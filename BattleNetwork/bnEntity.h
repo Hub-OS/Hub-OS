@@ -144,9 +144,6 @@ public:
    * 
    * NOTE: This doesn't mean that the entity will successfully move just that they could at the time
    */
-  bool Teleport(Direction dir, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
-  bool Slide(Direction dir, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
-  bool Jump(Direction dir, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
   bool Teleport(Battle::Tile* dest, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
   bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
   bool Jump(Battle::Tile* dest, float destHeight, const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
@@ -195,26 +192,16 @@ public:
    * The tile pointer refers to the tile the entity is currently standing in
    * @return Tile pointer
    */
-  Battle::Tile* GetTile() const;
+  Battle::Tile* GetTile(Direction dir = Direction::none, unsigned count = 0) const;
   const sf::Vector2f GetTileOffset() const;
 
   /**
    * @brief Checks if entity is moving
-   * @param framecheck, optional unsigned pointer to a frame value to check against
-   * 
-   * If the frame value to check is not equal to the current move event's assigned frame number
-   * then we return the value of the move and update the value stored in framecheck.
-   * This way we can test for immediate changes in motion since the last update.
-   * This is useful for entities who are only allowed to move/slide/jump so many tiles per AI step
-   * and because actions are queued and not gauranteed, there's no better way to know if the move has started.
-   * @see: bnHoneyBomberMoveState.cpp
-   * 
-   * If framecheck is nullptr, it returns true if the action is happening
    */
-  const bool IsSliding(unsigned* framecheck = nullptr) const;
-  const bool IsJumping(unsigned* framecheck = nullptr) const;
-  const bool IsTeleporting(unsigned* framecheck = nullptr) const;
-  const bool IsMoving(unsigned* framecheck = nullptr) const;
+  const bool IsSliding() const;
+  const bool IsJumping() const;
+  const bool IsTeleporting() const;
+  const bool IsMoving() const;
 
   /**
    * @brief Sets the field pointer

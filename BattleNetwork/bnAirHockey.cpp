@@ -63,7 +63,7 @@ void AirHockey::OnUpdate(double _elapsed)
           }
         };
 
-        Slide(dir, frames(4), frames(0), ActionOrder::voluntary, onBegin);
+        Slide(GetTile() + dir, frames(4), frames(0), ActionOrder::voluntary, onBegin);
       }
     }
   }

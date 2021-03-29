@@ -29,7 +29,7 @@ void Wind::OnUpdate(double _elapsed) {
     GetTile()->AffectEntities(this);
   }
 
-  Slide(GetDirection(), frames(4), frames(0));
+  Slide(GetTile() + GetDirection(), frames(4), frames(0));
 }
 
 bool Wind::CanMoveTo(Battle::Tile* next) {

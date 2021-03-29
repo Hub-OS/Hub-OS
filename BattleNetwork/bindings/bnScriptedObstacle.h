@@ -26,9 +26,12 @@ public:
   void ShowShadow(const bool shadow);
 
   Animation& GetAnimationObject();
-  void SetSlideTimeFrames(unsigned frames);
   const sf::Vector2f& GetTileOffset() const;
   void SetTileOffset(float x, float y);
+  Battle::Tile* GetCurrentTile() const;
+
+  // duration in seconds
+  void ShakeCamera(double power, float duration);
 
   std::function<void(ScriptedObstacle&, Battle::Tile&)> spawnCallback;
   std::function<void(ScriptedObstacle&, Character&)> attackCallback;

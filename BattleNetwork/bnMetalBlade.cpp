@@ -94,7 +94,7 @@ void MetalBlade::OnUpdate(double _elapsed) {
       }
       else {
         int ispeed = static_cast<unsigned>(25 * speed);
-        Slide(GetDirection(), frames(ispeed), frames(0));
+        Slide(GetTile() + GetDirection(), frames(ispeed), frames(0));
       }
     }
   }

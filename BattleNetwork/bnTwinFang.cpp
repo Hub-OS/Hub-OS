@@ -86,7 +86,7 @@ void TwinFang::OnUpdate(double _elapsed) {
           onEdgeOfMap = true;
         }
         else {
-          Slide(GetDirection(), frames(4), frames(0));
+          Slide(GetTile() + GetDirection(), frames(4), frames(0));
         }
       }
     }

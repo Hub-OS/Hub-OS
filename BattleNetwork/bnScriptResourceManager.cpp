@@ -108,6 +108,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Artifact>()
   );
 
+  // auto& frame_time_record = state.new_usertype<frame_time_t>("Frame");
+  auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent");
 
   auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>("Spell",
     sol::factories([](Team team) -> std::unique_ptr<ScriptedSpell> {
@@ -124,15 +126,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetTexture", &ScriptedSpell::setTexture,
     "SetLayer", &ScriptedSpell::SetLayer,
     "GetAnimation", &ScriptedSpell::GetAnimationObject,
-    "Tile", &ScriptedSpell::GetTile,
+    "GetTile", &ScriptedSpell::GetTile,
+    "Tile", &ScriptedSpell::GetCurrentTile,
     "Field", &ScriptedSpell::GetField,
-    "Move", &ScriptedSpell::Move,
-    "SlideToTile", &ScriptedSpell::SlideToTile,
-    "AdoptNextTile", &ScriptedSpell::AdoptNextTile,
-    "FinishMove", &ScriptedSpell::FinishMove,
-    "Teleport", &ScriptedSpell::Teleport,
+    "Slide", &ScriptedSpell::Slide,
+    "Jump", &ScriptedSpell::Jump,
+    "Teleport", & ScriptedSpell::Teleport,
+    "RawMoveEvent", &ScriptedSpell::RawMoveEvent,
     "IsSliding", &ScriptedSpell::IsSliding,
-    "SetSlideFrames", &ScriptedSpell::SetSlideTimeFrames,
+    "IsJumping", &ScriptedSpell::IsJumping,
+    "IsTeleporting", &ScriptedSpell::IsTeleporting,
+    "IsMoving", &ScriptedSpell::IsMoving,
     "SetPosition", &ScriptedSpell::SetTileOffset,
     "GetPosition", &ScriptedSpell::GetTileOffset,
     "ShowShadow", &ScriptedSpell::ShowShadow,
@@ -142,12 +146,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "HighlightTile", &ScriptedSpell::HighlightTile,
     "GetHitProps", &ScriptedSpell::GetHitboxProperties,
     "SetHitProps", &ScriptedSpell::SetHitboxProperties,
+    "GetTileOffset", &ScriptedSpell::GetTileOffset,
     "attackFunc", &ScriptedSpell::attackCallback,
     "deleteFunc", &ScriptedSpell::deleteCallback,
     "updateFunc", &ScriptedSpell::updateCallback,
     "canMoveToFunc", &ScriptedSpell::canMoveToCallback,
     "onSpawnFunc", &ScriptedSpell::spawnCallback,
-    //"ShakeCamera", &ScriptedSpell::ShakeCamera,
+    "ShakeCamera", &ScriptedSpell::ShakeCamera,
     sol::base_classes, sol::bases<Spell>()
   );
 
@@ -174,15 +179,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "GetAnimation", &ScriptedObstacle::GetAnimationObject,
     "SetPosition", &ScriptedObstacle::SetTileOffset,
     "GetPosition", &ScriptedObstacle::GetTileOffset,
-    "Tile", &ScriptedObstacle::GetTile,
+    "GetTile", &ScriptedObstacle::GetTile,
+    "Tile", &ScriptedObstacle::GetCurrentTile,
     "Field", &ScriptedObstacle::GetField,
-    "Move", &ScriptedObstacle::Move,
-    "SlideToTile", &ScriptedObstacle::SlideToTile,
-    "AdoptNextTile", &ScriptedObstacle::AdoptNextTile,
-    "FinishMove", &ScriptedObstacle::FinishMove,
+    "Slide", &ScriptedObstacle::Slide,
+    "Jump", &ScriptedObstacle::Jump,
     "Teleport", &ScriptedObstacle::Teleport,
+    "RawMoveEvent", &ScriptedObstacle::RawMoveEvent,
     "IsSliding", &ScriptedObstacle::IsSliding,
-    "SetSlideFrames", &ScriptedObstacle::SetSlideTimeFrames,
+    "IsJumping", &ScriptedObstacle::IsJumping,
+    "IsTeleporting", &ScriptedObstacle::IsTeleporting,
+    "IsMoving", &ScriptedObstacle::IsMoving,
     "ShowShadow", &ScriptedObstacle::ShowShadow,
     "Teammate", &ScriptedObstacle::Teammate,
     "AddNode", &ScriptedObstacle::AddNode,
@@ -196,7 +203,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "updateFunc", &ScriptedObstacle::updateCallback,
     "canMoveToFunc", &ScriptedObstacle::canMoveToCallback,
     "onSpawnFunc", &ScriptedObstacle::spawnCallback,
-    //"ShakeCamera", &ScriptedObstacle::ShakeCamera,
+    "ShakeCamera", &ScriptedObstacle::ShakeCamera,
     sol::base_classes, sol::bases<Obstacle, Spell, Character>()
   );
 
@@ -214,13 +221,18 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHeight", &ScriptedCharacter::SetHeight,
     "SetTexture", &ScriptedCharacter::setTexture,
     "GetAnimation", &ScriptedCharacter::GetAnimationObject,
-    "Tile", &ScriptedCharacter::GetTile,
+    "GetTile", &ScriptedCharacter::GetTile,
+    "Tile", &ScriptedCharacter::GetCurrentTile,
     "Field", &ScriptedCharacter::GetField,
     "Target", &ScriptedCharacter::GetTarget,
-    "Move", &ScriptedCharacter::Move,
-    "SlideToTile", &ScriptedCharacter::SlideToTile,
+    "Slide", &ScriptedCharacter::Slide,
+    "Jump", &ScriptedCharacter::Jump,
+    "Teleport", &ScriptedCharacter::Teleport,
+    "RawMoveEvent", &ScriptedCharacter::RawMoveEvent,
     "IsSliding", &ScriptedCharacter::IsSliding,
-    "SetSlideFrames", &ScriptedCharacter::SetSlideTimeFrames,
+    "IsJumping", &ScriptedCharacter::IsJumping,
+    "IsTeleporting", &ScriptedCharacter::IsTeleporting,
+    "IsMoving", &ScriptedCharacter::IsMoving,
     "ShareTile", &ScriptedCharacter::ShareTileSpace,
     "Teammate", &ScriptedCharacter::Teammate,
     "AddNode", &ScriptedCharacter::AddNode,
@@ -237,6 +249,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHealth", &ScriptedPlayer::SetHealth,
     "SetTexture", &ScriptedPlayer::setTexture,
     "SetElement", &ScriptedPlayer::SetElement,
+    "GetTile", &ScriptedPlayer::GetTile,
+    "Tile", &ScriptedPlayer::GetCurrentTile,
     "SetHeight",  &ScriptedPlayer::SetHeight,
     "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
     "SetChargePosition", &ScriptedPlayer::SetChargePosition,
@@ -330,7 +344,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHP", &NaviRegistration::NaviMeta::SetHP,
     "SetIsSword", &NaviRegistration::NaviMeta::SetIsSword,
     "SetOverworldAnimationPath", &NaviRegistration::NaviMeta::SetOverworldAnimationPath,
-    "SetOverworldTexture", &NaviRegistration::NaviMeta::SetOverworldTexture,
+    "SetOverworldTexturePath", &NaviRegistration::NaviMeta::SetOverworldTexturePath,
+    "SetMugshotTexturePath", &NaviRegistration::NaviMeta::SetMugshotTexturePath,
+    "SetMugshotAnimationPath", &NaviRegistration::NaviMeta::SetMugshotAnimationPath,
     "SetPreviewTexture", &NaviRegistration::NaviMeta::SetPreviewTexture,
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
   );
@@ -402,6 +418,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Drag", Hit::drag
   );
 
+  auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
+    "direction", &Hit::Drag::dir,
+    "count", &Hit::Drag::count
+  );
+
   /**
     int damage{};
     Flags flags{ none };
@@ -410,10 +431,16 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     Direction drag{ Direction::none }; // Used by dragging payload
   */
   state.set_function("HitProps", 
-    [](int damage, Hit::Flags flags, Element element, Character* aggressor, Direction drag) {
+    [](int damage, Hit::Flags flags, Element element, Character* aggressor, Hit::Drag drag) {
       return Hit::Properties{
         damage, flags, element, aggressor, drag
       };
+    }
+  );
+
+  state.set_function("frames",
+    [](unsigned num) {
+      return frames(num);
     }
   );
 

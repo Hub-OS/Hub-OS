@@ -88,7 +88,7 @@ void YoYo::OnUpdate(double _elapsed) {
     }
     else {
       // Keep moving
-      Slide(GetDirection(), frames(7), frames(0));
+      Slide(GetTile() + GetDirection(), frames(7), frames(0));
     }
 
   }else if (tileCount != 3) {

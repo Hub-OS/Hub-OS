@@ -58,7 +58,7 @@ void ProgsManMoveState::OnUpdate(double _elapsed, ProgsMan& progs) {
     nextDirection = static_cast<Direction>(randDirection + 1);
   }
 
-  bool moved = progs.Teleport(nextDirection);
+  bool moved = progs.Teleport(progs.GetTile() + nextDirection);
 
   if (moved) {
     progs.AdoptNextTile();

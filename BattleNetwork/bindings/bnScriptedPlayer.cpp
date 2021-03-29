@@ -42,6 +42,11 @@ AnimationComponent& ScriptedPlayer::GetAnimationComponent()
   return *animationComponent;
 }
 
+Battle::Tile* ScriptedPlayer::GetCurrentTile() const
+{
+  return GetTile();
+}
+
 CardAction * ScriptedPlayer::OnExecuteSpecialAction()
 {
   Character& character = *this;
