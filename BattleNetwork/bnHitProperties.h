@@ -44,10 +44,6 @@ namespace Hit {
     Character* aggressor{ nullptr };
     Drag drag{ }; // Used by Hit::drag flag
     bool counters{ true };
-
-    Properties() = default;
-    Properties(const Properties& rhs) = default;
-    ~Properties() = default;
   };
 
   const constexpr Hit::Properties DefaultProperties = { 

@@ -253,6 +253,8 @@ bool Character::CanMoveTo(Battle::Tile * next)
 
 const bool Character::Hit(Hit::Properties props) {
 
+  const auto original = props;
+
   if (GetHealth() <= 0 || IsJumping()) return false;
 
   if ((props.flags & Hit::shake) == Hit::shake) {
@@ -279,7 +281,7 @@ const bool Character::Hit(Hit::Properties props) {
   SetHealth(GetHealth() - props.damage);
 
   // Add to status queue for state resolution
-  statusQueue.push(props);
+  statusQueue.push(CombatHitProps{ original, props });
 
   if ((props.flags & Hit::impact) == Hit::impact) {
     this->hit = true; // flash white immediately
@@ -327,15 +329,15 @@ void Character::ResolveFrameBattleDamage()
   bool frameStunCancel = false;
   Hit::Drag postDragEffect{};
 
-  std::queue<Hit::Properties> append;
+  std::queue<CombatHitProps> append;
 
   while (!statusQueue.empty() && !IsSliding()) {
-    Hit::Properties props = statusQueue.front();
+    CombatHitProps props = statusQueue.front();
     statusQueue.pop();
 
     // a re-usable thunk for custom status effects
     auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
-      if ((props.flags & toCheck) == toCheck) {
+      if ((props.filtered.flags & toCheck) == toCheck) {
         if (auto& func = statusCallbackHash[toCheck]) {
           func();
         }
@@ -345,59 +347,59 @@ void Character::ResolveFrameBattleDamage()
     int tileDamage = 0;
 
     // Calculate elemental damage if the tile the character is on is super effective to it
-    if (props.element == Element::fire
+    if (props.filtered.element == Element::fire
       && GetTile()->GetState() == TileState::grass
       && !(HasAirShoe() || HasFloatShoe())) {
-      tileDamage = props.damage;
+      tileDamage = props.filtered.damage;
       GetTile()->SetState(TileState::normal);
     }
-    else if (props.element == Element::elec
+    else if (props.filtered.element == Element::elec
       && GetTile()->GetState() == TileState::ice
       && !(HasAirShoe() || HasFloatShoe())) {
-      tileDamage = props.damage;
+      tileDamage = props.filtered.damage;
       GetTile()->SetState(TileState::normal);
     }
 
     {
       // Only register counter if:
       // 1. Hit type is impact
-      // 2. Hit type is also flinch
+      // 2. Hit original hit type is also flinch
       // 3. The hitbox is allowed to counter
       // 4. The character is on a counter frame
       // 5. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
-      if (IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if (/*(props.flags & Hit::flinch) == Hit::flinch &&*/ props.aggressor && props.counters) {
-          frameCounterAggressor = props.aggressor;
+      if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+        if ((props.hitbox.flags & Hit::flinch) == Hit::flinch && props.filtered.aggressor && props.filtered.counters) {
+          frameCounterAggressor = props.filtered.aggressor;
         }
 
         flagCheckThunk(Hit::impact);
       }
 
       // Requeue drag if already sliding by drag or in the middle of a move
-      if ((props.flags & Hit::drag) == Hit::drag) {
+      if ((props.filtered.flags & Hit::drag) == Hit::drag) {
         if (IsSliding()) {
-          append.push({ 0, Hit::drag, Element::none, nullptr, props.drag });
+          append.push({ props.hitbox, { 0, Hit::drag, Element::none, nullptr, props.filtered.drag } });
         }
         else {
           // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
           if (frameCounterAggressor) {
-            append.push({ 0, Hit::impact, Element::none, frameCounterAggressor });
+            append.push({ props.hitbox, { 0, Hit::impact, Element::none, frameCounterAggressor } });
             frameCounterAggressor = nullptr;
           }
 
           // requeue drag if count is > 0
-          if(props.drag.count > 0) {
+          if(props.filtered.drag.count > 0) {
             // Apply drag effect post status resolution
-            postDragEffect.dir = props.drag.dir;
-            postDragEffect.count = props.drag.count - 1u;
+            postDragEffect.dir = props.filtered.drag.dir;
+            postDragEffect.count = props.filtered.drag.count - 1u;
           }
         }
 
         flagCheckThunk(Hit::drag);
 
         // exclude this from the next processing step
-        props.flags &= ~Hit::drag;
+        props.filtered.flags &= ~Hit::drag;
       }
 
       /**
@@ -408,10 +410,10 @@ void Character::ResolveFrameBattleDamage()
       
       This effect is requeued for another frame if currently dragging
       */
-      if ((props.flags & Hit::stun) == Hit::stun) {
+      if ((props.filtered.flags & Hit::stun) == Hit::stun) {
         if (postDragEffect.dir != Direction::none) {
           // requeue these statuses if in the middle of a slide
-          append.push({ 0, props.flags });
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
           bool hasSuperArmor = false;
@@ -421,7 +423,7 @@ void Character::ResolveFrameBattleDamage()
             hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
           }
 
-          if ((props.flags & Hit::flinch) == Hit::flinch && !hasSuperArmor) {
+          if ((props.filtered.flags & Hit::flinch) == Hit::flinch && !hasSuperArmor) {
             // cancel stun
             stunCooldown = 0.0;
             actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
@@ -436,12 +438,12 @@ void Character::ResolveFrameBattleDamage()
       }
 
       // exclude this from the next processing step
-      props.flags &= ~Hit::stun;
+      props.filtered.flags &= ~Hit::stun;
 
       // Flinch can be queued if dragging this frame
-      if ((props.flags & Hit::flinch) == Hit::flinch) {
+      if ((props.filtered.flags & Hit::flinch) == Hit::flinch) {
         if (postDragEffect.dir != Direction::none) {
-          append.push({ 0, props.flags });
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
           actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
@@ -451,24 +453,24 @@ void Character::ResolveFrameBattleDamage()
       }
 
       // exclude this from the next processing step
-      props.flags &= ~Hit::flinch;
+      props.filtered.flags &= ~Hit::flinch;
 
       // Flinch is canceled if retangibility is applied
-      if ((props.flags & Hit::retangible) == Hit::retangible) {
+      if ((props.filtered.flags & Hit::retangible) == Hit::retangible) {
         invincibilityCooldown = 0.0;
 
         flagCheckThunk(Hit::retangible);
       }
 
       // exclude this from the next processing step
-      props.flags &= ~Hit::retangible;
+      props.filtered.flags &= ~Hit::retangible;
 
-      if ((props.flags & Hit::bubble) == Hit::bubble) {
+      if ((props.filtered.flags & Hit::bubble) == Hit::bubble) {
         flagCheckThunk(Hit::bubble);
       }
 
       // exclude this from the next processing step 
-      props.flags &= ~Hit::bubble;
+      props.filtered.flags &= ~Hit::bubble;
 
       /*
       flags already accounted for:
@@ -487,14 +489,14 @@ void Character::ResolveFrameBattleDamage()
       flagCheckThunk(Hit::shake);
       flagCheckThunk(Hit::recoil);
 
-      if (props.damage) {
+      if (props.filtered.damage) {
         OnHit();
         SetHealth(GetHealth() - tileDamage);
         if (GetHealth() == 0) {
           postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up
         }
         this->OnUpdate(0);
-        HitPublisher::Broadcast(*this, props);
+        HitPublisher::Broadcast(*this, props.filtered);
       }
     }
   } // end while-loop
@@ -515,7 +517,7 @@ void Character::ResolveFrameBattleDamage()
         actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
 
         // Re-queue the drag status to be re-considered in our next combat checks
-        append.push({ 0, Hit::drag, Element::none, nullptr, postDragEffect });
+        statusQueue.push({ {}, { 0, Hit::drag, Element::none, nullptr, postDragEffect } });
       }
 
       // cancel stun

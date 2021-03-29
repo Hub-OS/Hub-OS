@@ -30,6 +30,25 @@ struct PeekCardEvent {
   SelectedCardsUI* publisher{ nullptr };
 };
 
+struct CombatHitProps {
+  const Hit::Properties hitbox; // original hitbox data
+  Hit::Properties filtered; // statuses after defense rules pass
+
+  CombatHitProps(const Hit::Properties& original, const Hit::Properties& props) : 
+    hitbox(original), filtered(props)
+  {}
+
+  CombatHitProps(const CombatHitProps& rhs) : 
+    hitbox(rhs.hitbox) {
+    filtered = rhs.filtered;
+  }
+
+  CombatHitProps& operator=(const CombatHitProps& rhs) {
+    this->CombatHitProps::CombatHitProps(rhs);
+    return *this;
+  }
+};
+
 constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
 
 /**
@@ -55,7 +74,7 @@ private:
   // until the entire Flag object is equal to 0x00 None
   // Then we process the next status
   // This continues until all statuses are processed
-  std::queue<Hit::Properties> statusQueue;
+  std::queue<CombatHitProps> statusQueue;
 
   sf::Shader* whiteout{ nullptr }; /*!< Flash white when hit */
   sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
