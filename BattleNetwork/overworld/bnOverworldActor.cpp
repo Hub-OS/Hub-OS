@@ -425,7 +425,7 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
     auto edgeElevation = map.GetElevationAt(edgeTileSpace.x, edgeTileSpace.y, edgeLayer);
 
     if (
-      !map.CanMoveTo(edgeTileSpace.x, edgeTileSpace.y, edgeLayer) || // can't move
+      !map.CanMoveTo(edgeTileSpace.x, edgeTileSpace.y, edgeElevation, edgeLayer) || // can't move
       std::fabs(newPos3D.z - edgeElevation) > maxElevationDiff // height difference is too great at edge
       ) {
       return { false, currPos3D };
