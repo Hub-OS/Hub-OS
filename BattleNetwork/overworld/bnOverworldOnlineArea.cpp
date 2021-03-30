@@ -581,20 +581,16 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
-void Overworld::OnlineArea::sendAvatarAssetStream() {
-  auto& naviMeta = NAVIS.At(GetCurrentNavi());
-
-  // get texture data
-  auto texturePath = naviMeta.GetOverworldTexturePath();
+static std::vector<char> readBytes(std::string texturePath) {
   size_t textureLength;
   std::vector<char> textureData;
 
   try {
-    textureLength = std::filesystem::file_size(texturePath);;
+    textureLength = std::filesystem::file_size(texturePath);
   }
   catch (std::filesystem::filesystem_error& e) {
-    Logger::Logf("Failed to read avatar texture \"%s\": %s", texturePath.c_str(), e.what());
-    return;
+    Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+    return textureData;
   }
 
   try {
@@ -607,19 +603,33 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
     textureData.insert(textureData.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
   }
   catch (std::ifstream::failure& e) {
-    Logger::Logf("Failed to read avatar texture \"%s\": %s", texturePath.c_str(), e.what());
-    return;
+    Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
   }
 
-    // get animation data
-  const auto& animationPath = naviMeta.GetOverworldAnimationPath();
-  std::string animationData = FileUtil::Read(animationPath);
+  return textureData;
+}
 
-  // send data
+void Overworld::OnlineArea::sendAvatarAssetStream() {
   // + reliability type + id + packet type
   auto packetHeaderSize = 1 + 8 + 2;
-  sendAssetStreamSignal(ClientAssetType::texture, packetHeaderSize, textureData.data(), textureLength);
+
+  auto& naviMeta = NAVIS.At(GetCurrentNavi());
+
+  auto texturePath = naviMeta.GetOverworldTexturePath();
+  auto textureData = readBytes(texturePath);
+  sendAssetStreamSignal(ClientAssetType::texture, packetHeaderSize, textureData.data(), textureData.size());
+
+  const auto& animationPath = naviMeta.GetOverworldAnimationPath();
+  std::string animationData = FileUtil::Read(animationPath);
   sendAssetStreamSignal(ClientAssetType::animation, packetHeaderSize, animationData.c_str(), animationData.length());
+
+  auto mugshotTexturePath = naviMeta.GetMugshotTexturePath();
+  auto mugshotTextureData = readBytes(mugshotTexturePath);
+  sendAssetStreamSignal(ClientAssetType::mugshot_texture, packetHeaderSize, mugshotTextureData.data(), mugshotTextureData.size());
+
+  const auto& mugshotAnimationPath = naviMeta.GetMugshotAnimationPath();
+  std::string mugshotAnimationData = FileUtil::Read(mugshotAnimationPath);
+  sendAssetStreamSignal(ClientAssetType::mugshot_animation, packetHeaderSize, mugshotAnimationData.c_str(), mugshotAnimationData.length());
 }
 
 void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)

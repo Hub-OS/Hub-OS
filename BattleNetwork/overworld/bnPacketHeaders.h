@@ -42,8 +42,10 @@ namespace Overworld
   };
 
   enum ClientAssetType : char {
-    texture,
+    texture = 0,
     animation,
+    mugshot_texture,
+    mugshot_animation,
   };
 
   enum class ServerEvents : uint16_t
