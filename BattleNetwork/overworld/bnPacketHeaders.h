@@ -5,8 +5,8 @@
 
 namespace Overworld
 {
-  const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
-  const uint64_t VERSION_ITERATION = 3;
+  const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server/tree/development";
+  const uint64_t VERSION_ITERATION = 7;
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
@@ -25,8 +25,7 @@ namespace Overworld
     ping = 0,
     ack,
     asset_found,
-    texture_stream,
-    animation_stream,
+    asset_stream,
     login,
     logout,
     request_join,
@@ -40,6 +39,13 @@ namespace Overworld
     dialog_response,
     size,
     unknown = size
+  };
+
+  enum ClientAssetType : char {
+    texture = 0,
+    animation,
+    mugshot_texture,
+    mugshot_animation,
   };
 
   enum class ServerEvents : uint16_t
@@ -69,8 +75,10 @@ namespace Overworld
     navi_disconnect,
     navi_set_name,
     navi_move_to,
+    navi_set_direction,
     navi_set_avatar,
     navi_emote,
+    navi_animate,
     size,
     unknown = size
   };

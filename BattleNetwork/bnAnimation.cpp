@@ -243,8 +243,8 @@ void Animation::Update(double elapsed, sf::Sprite& target, double playbackSpeed)
   if(duration <= 0.) return;
 
   // Since we are manually keeping track of the progress, we must account for the animator's loop mode
-  while (progress > duration && (animator.GetMode() & Animator::Mode::Loop) == Animator::Mode::Loop) {
-    progress -= duration;
+  if (progress > duration && (animator.GetMode() & Animator::Mode::Loop) == Animator::Mode::Loop) {
+    progress = std::fmod(progress, duration);
   }
 }
 
