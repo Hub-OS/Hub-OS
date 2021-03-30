@@ -166,7 +166,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     auto oldHeading = actor->GetHeading();
 
     if (distance == 0.0) {
-      actor->Face(newHeading == Direction::none ? oldHeading : newHeading);
+      actor->Face(onlinePlayer.idleDirection);
     }
     else if (distance <= actor->GetWalkSpeed() * expectedTime) {
       actor->Walk(newHeading, false); // Don't actually move or collide, but animate
@@ -444,9 +444,6 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
           break;
         case ServerEvents::navi_move_to:
           receiveNaviMoveSignal(reader, data);
-          break;
-        case ServerEvents::navi_set_direction:
-          receiveNaviSetDirectionSignal(reader, data);
           break;
         case ServerEvents::navi_set_avatar:
           receiveNaviSetAvatarSignal(reader, data);
@@ -1156,6 +1153,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   onlinePlayer.timestamp = CurrentTime::AsMilli();
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
+  onlinePlayer.idleDirection = direction;
 
   auto actor = onlinePlayer.actor;
   actor->Set3DPosition(pos);
@@ -1242,6 +1240,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
   float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
   float y = reader.Read<float>(buffer) * tileSize.y;
   float z = reader.Read<float>(buffer);
+  auto direction = reader.Read<Direction>(buffer);
 
   auto userIter = onlinePlayers.find(user);
 
@@ -1280,22 +1279,8 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     onlinePlayer.timestamp = currentTime;
     onlinePlayer.packets++;
     onlinePlayer.lagWindow[onlinePlayer.packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
+    onlinePlayer.idleDirection = direction;
   }
-}
-
-void Overworld::OnlineArea::receiveNaviSetDirectionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
-{
-  auto user = reader.ReadString(buffer);
-  auto direction = reader.Read<Direction>(buffer);
-
-  if (user == ticket) return;
-
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter == onlinePlayers.end()) return;
-
-  auto& onlinePlayer = userIter->second;
-  onlinePlayer.actor->Face(Orthographic(direction));
 }
 
 void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

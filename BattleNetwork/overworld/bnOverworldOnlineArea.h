@@ -21,7 +21,7 @@ namespace Overworld {
     std::shared_ptr<Overworld::Actor> actor;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
-    SelectedNavi currNavi{ std::numeric_limits<SelectedNavi>::max() };
+    Direction idleDirection;
     sf::Vector3f startBroadcastPos{};
     sf::Vector3f endBroadcastPos{};
     long long timestamp{};
@@ -98,7 +98,6 @@ namespace Overworld {
     void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviSetDirectionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);

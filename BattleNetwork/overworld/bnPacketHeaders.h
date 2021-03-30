@@ -5,8 +5,8 @@
 
 namespace Overworld
 {
-  const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
-  const uint64_t VERSION_ITERATION = 4;
+  const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server/tree/development";
+  const uint64_t VERSION_ITERATION = 8;
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
@@ -75,7 +75,6 @@ namespace Overworld
     navi_disconnect,
     navi_set_name,
     navi_move_to,
-    navi_set_direction,
     navi_set_avatar,
     navi_emote,
     navi_animate,
