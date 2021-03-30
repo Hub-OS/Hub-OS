@@ -14,8 +14,8 @@ namespace Overworld {
     std::string name;
     sf::RectangleShape rectangle;
     sf::Color bgColor{};
-    SpriteProxyNode player, hp, warp, overlay, arrows, bakedMap;
-    std::vector<std::shared_ptr<SpriteProxyNode>> warps;
+    SpriteProxyNode player, hp, warp, board, shop, overlay, arrows, bakedMap;
+    std::vector<std::shared_ptr<SpriteProxyNode>> markers;
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
     void EnforceTextureSizeLimits();
   public:
@@ -30,7 +30,10 @@ namespace Overworld {
     void Pan(const sf::Vector2f& amount);
     void SetPlayerPosition(const sf::Vector2f& pos);
     void SetHomepagePosition(const sf::Vector2f& pos);
+    void ClearIcons();
     void AddWarpPosition(const sf::Vector2f& pos);
+    void AddShopPosition(const sf::Vector2f& pos);
+    void AddBoardPosition(const sf::Vector2f& pos);
     void draw(sf::RenderTarget& surface, sf::RenderStates states) const override final;
   };
 }

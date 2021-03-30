@@ -64,7 +64,7 @@ namespace Overworld {
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
     void sendAssetsFound();
-    void sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size);
+    void sendAssetStreamSignal(ClientAssetType assetType, uint16_t headerSize, const char* data, size_t size);
     void sendLoginSignal();
     void sendLogoutSignal();
     void sendRequestJoinSignal();
@@ -98,8 +98,10 @@ namespace Overworld {
     void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviSetDirectionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
     void playSong(const std::string& name);

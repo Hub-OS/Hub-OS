@@ -181,11 +181,14 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   * update all overworld objects and animations
   */
 
+  // animations
+  animElapsed += elapsed;
+
   // expecting glitches, manually update when actors move?
   spatialMap.Update();
 
   // update tile animations
-  map.Update(*this, elapsed);
+  map.Update(*this, animElapsed);
 
   if (gotoNextScene == false) {
     playerController.Update(elapsed);
@@ -204,9 +207,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   for (auto& actor : actors) {
     actor->Update((float)elapsed, map, spatialMap);
   }
-
-  // animations
-  animElapsed += elapsed;
 
 #ifdef __ANDROID__
   if (gotoNextScene)
@@ -615,6 +615,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
   auto rows = map.GetRows();
   auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
+  auto mapLayerCount = map.GetLayerCount();
   auto elevation = (float)index;
 
   for (auto& sprite : spriteLayers[index]) {
@@ -639,7 +640,12 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
       }
 
       // index == 0 will NEVER have sprites
-      bool evaluate = gridPos.x > 0 && gridPos.y > 0 && index > 0;
+      bool evaluate = (
+        gridPos.x >= 0 && gridPos.x < cols &&
+        gridPos.y >= 0 && gridPos.y < rows &&
+        index > 0 && index < mapLayerCount + 1
+      );
+
       size_t xyz = ((index - 1) * rows * cols) + (size_t(gridPos.x) * size_t(cols) + size_t(gridPos.y));
       if (evaluate && gridShadows[xyz] > 0) {
         sf::Uint8 r, g, b;

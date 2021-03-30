@@ -14,10 +14,11 @@ namespace Overworld {
     this->tileToTilesetMap.push_back(nullptr);
   }
 
-  void Map::Update(SceneBase& scene, double elapsed) {
+  void Map::Update(SceneBase& scene, double time) {
     for (auto& tileMeta : tileMetas) {
       if (tileMeta != nullptr) {
-        tileMeta->animation.Update(elapsed, tileMeta->sprite);
+        tileMeta->animation.SyncTime(time);
+        tileMeta->animation.Refresh(tileMeta->sprite);
       }
     }
 
@@ -50,7 +51,7 @@ namespace Overworld {
   const sf::Vector2f Map::WorldToScreen(sf::Vector3f world) const
   {
     auto screenPos = IsoToOrthogonal({ world.x, world.y });
-    screenPos.y -= tileHeight / 2.0f;
+    screenPos.y -= world.z * tileHeight / 2.0f;
 
     return screenPos;
   }
@@ -214,8 +215,8 @@ namespace Overworld {
 
   // todo: move to layer?
   // may require reference to map as tilemeta + tile size is used
-  bool Map::CanMoveTo(float x, float y, int layerIndex) {
-    if(layerIndex < 0 || layerIndex >= layers.size()) {
+  bool Map::CanMoveTo(float x, float y, float z, int layerIndex) {
+    if (layerIndex < 0 || layerIndex >= layers.size()) {
       return false;
     }
 
@@ -242,7 +243,14 @@ namespace Overworld {
     testPosition.x *= tileWidth / 2;
     testPosition.y *= tileHeight;
 
-    if (tile.Intersects(*this, testPosition.x, testPosition.y)) {
+    float layerElevation;
+    auto layerRelativeZ = std::modf(z, &layerElevation);
+    auto tileTestPos = sf::Vector2f(
+      testPosition.x - layerRelativeZ * tileHeight,
+      testPosition.y - layerRelativeZ * tileHeight
+    );
+
+    if (tile.Intersects(*this, tileTestPos.x, tileTestPos.y)) {
       return false;
     }
 
@@ -260,6 +268,14 @@ namespace Overworld {
   }
 
   float Map::GetElevationAt(float x, float y, int layerIndex) {
+    auto totalLayers = layers.size();
+
+    if (layerIndex >= totalLayers) {
+      layerIndex = totalLayers - 1;
+    } else if (layerIndex < 0) {
+      layerIndex = 0;
+    }
+
     auto& layer = layers[layerIndex];
     auto& tile = layer.GetTile(x, y);
     auto& tileMeta = tileMetas[tile.gid];
