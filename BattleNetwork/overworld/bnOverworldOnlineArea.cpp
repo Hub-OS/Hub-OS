@@ -1289,14 +1289,22 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
   std::string texturePath = reader.ReadString(buffer);
   std::string animationPath = reader.ReadString(buffer);
 
-  if (user == ticket) return;
+  EmoteNode* emoteNode;
+  std::shared_ptr<Actor> actor;
 
-  auto userIter = onlinePlayers.find(user);
+  if (user == ticket) {
+    actor = GetPlayer();
+    emoteNode = &GetEmoteNode();
+  }
+  else {
+    auto userIter = onlinePlayers.find(user);
 
-  if (userIter == onlinePlayers.end()) return;
+    if (userIter == onlinePlayers.end()) return;
 
-  auto& onlinePlayer = userIter->second;
-  auto& actor = onlinePlayer.actor;
+    auto& onlinePlayer = userIter->second;
+    actor = onlinePlayer.actor;
+    emoteNode = &onlinePlayer.emoteNode;
+  }
 
   actor->setTexture(GetTexture(texturePath));
 
@@ -1304,9 +1312,8 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
 
-  auto& emoteNode = onlinePlayer.emoteNode;
-  float emoteY = -actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
-  emoteNode.setPosition(0, emoteY);
+  float emoteY = -actor->getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
+  emoteNode->setPosition(0, emoteY);
 }
 
 void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

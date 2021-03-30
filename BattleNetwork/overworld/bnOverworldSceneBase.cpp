@@ -1446,6 +1446,11 @@ SelectedNavi& Overworld::SceneBase::GetCurrentNavi()
   return currentNavi;
 }
 
+Overworld::EmoteNode& Overworld::SceneBase::GetEmoteNode()
+{
+  return emoteNode;
+}
+
 std::shared_ptr<Background> Overworld::SceneBase::GetBackground()
 {
   return this->bg;

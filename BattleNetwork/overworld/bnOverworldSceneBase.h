@@ -282,6 +282,7 @@ namespace Overworld {
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
+    EmoteNode& GetEmoteNode();
     std::shared_ptr<Background> GetBackground();
     Overworld::TextBox& GetTextBox();
     bool IsInputLocked();
