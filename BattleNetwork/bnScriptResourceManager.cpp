@@ -49,11 +49,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Update", &Animation::Update,
     "Refresh", &Animation::Refresh,
     "SetState", &Animation::SetAnimation,
+    "CopyFrom", &Animation::CopyFrom,
     "State", &Animation::GetAnimationString,
     "Point", &Animation::GetPoint,
     "SetPlayback", sol::resolve<Animation&(char)>(&Animation::operator<<),
     "OnComplete", sol::resolve<void(const FrameCallback&)>(&Animation::operator<<),
-    "AddCallback", &Animation::AddCallback,
+    "OnFrame", &Animation::AddCallback,
     "OnInterrupt", &Animation::SetInterruptCallback
   );
 
@@ -207,7 +208,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Obstacle, Spell, Character>()
   );
 
-  auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("ScriptedCharacter",
+  auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
     "GetName", &ScriptedCharacter::GetName,
     "GetID", &ScriptedCharacter::GetID,
     "GetRank", &ScriptedCharacter::GetRank,
@@ -240,7 +241,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Character>()
   );
 
-  auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("ScriptedPlayer",
+  auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
     "GetName", &ScriptedPlayer::GetName,
     "GetID", &ScriptedPlayer::GetID,
     "GetHealth", &ScriptedPlayer::GetHealth,
@@ -254,7 +255,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHeight",  &ScriptedPlayer::SetHeight,
     "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
     "SetChargePosition", &ScriptedPlayer::SetChargePosition,
-    "GetAnimation", &ScriptedPlayer::GetAnimationComponent,
+    "GetAnimation", &ScriptedPlayer::GetAnimationObject,
+    "SetAnimation", &ScriptedPlayer::SetAnimation,
     sol::base_classes, sol::bases<Player>()
    );
 
@@ -351,7 +353,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
   );
 
-  auto elements_table = state.new_enum("Element",
+  auto& elements_table = state.new_enum("Element",
     "Fire", Element::fire,
     "Aqua", Element::aqua,
     "Elec", Element::elec,
@@ -403,6 +405,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Failed", Field::AddEntityStatus::deleted
   );
 
+  auto& action_order_record = state.new_enum("ActionOrder",
+    "Involuntary", ActionOrder::involuntary,
+    "Voluntary", ActionOrder::voluntary,
+    "Immediate", ActionOrder::immediate
+  );
+
   auto& hitbox_flags_record = state.new_enum("Hit",
     "None", Hit::none,
     "Recoil", Hit::recoil,
@@ -435,6 +443,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       return Hit::Properties{
         damage, flags, element, aggressor, drag
       };
+    }
+  );
+
+  state.set_function("Drag",
+    [](Direction dir, unsigned count) {
+      return Hit::Drag{ dir, count };
     }
   );
 

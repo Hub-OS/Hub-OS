@@ -68,6 +68,9 @@ public:
   Animation& operator=(const Animation& rhs);
 
   ~Animation();
+
+  void CopyFrom(const Animation& rhs);
+
   /**
    * @brief Reads file at path set by constructor, parses lines, and populates FrameList with data
 
@@ -80,7 +83,7 @@ public:
 
     Effectively same as calling Reload();
  */
-  void Load();
+  void Load(const std::string& newPath = "");
  
   /**
  * @brief Parses lines, and populates FrameList with data

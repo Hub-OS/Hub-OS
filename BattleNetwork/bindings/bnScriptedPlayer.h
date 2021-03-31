@@ -29,8 +29,9 @@ public:
   void SetChargePosition(const float x, const float y);
   void SetFullyChargeColor(const sf::Color& color);
   void SetHeight(const float height);
+  void SetAnimation(const std::string& path);
   const float GetHeight() const;
-  AnimationComponent& GetAnimationComponent();
+  Animation& GetAnimationObject();
   Battle::Tile* GetCurrentTile() const;
 
   CardAction* OnExecuteSpecialAction() override final;

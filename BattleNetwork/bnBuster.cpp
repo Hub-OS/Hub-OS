@@ -11,13 +11,11 @@
 
 #include "bnGear.h" 
 
-#define COOLDOWN 40.0/1000.0
-
 Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_team) {
   SetPassthrough(true);
   SetLayer(-100);
 
-  cooldown = 0;
+  cooldown = frames(2);
 
   progress = 0.0f;
 
@@ -62,10 +60,10 @@ Buster::~Buster() {
 void Buster::OnUpdate(double _elapsed) {
   GetTile()->AffectEntities(this);
 
-  cooldown += _elapsed;
-  if (cooldown >= COOLDOWN) {
+  cooldown -= from_seconds(_elapsed);
+  if (cooldown <= frames(0)) {
     if (Teleport(GetTile() + GetDirection())) {
-      cooldown = 0;
+      cooldown = frames(2);
     }
     else {
       Delete();

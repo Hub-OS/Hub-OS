@@ -7,6 +7,7 @@ class SpriteProxyNode;
 class Character;
 class TornadoCardAction : public CardAction {
 private:
+  sf::Sprite fan;
   SpriteProxyNode* attachment;
   Animation attachmentAnim;
   bool armIsOut;

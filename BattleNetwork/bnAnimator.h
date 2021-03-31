@@ -115,10 +115,14 @@ public:
     FrameList res;
 
     while (iter != data.end() && data.size() > 0) {
-      auto copy = frames[static_cast<size_t>(iter->frameIndex) - 1];
-      copy.duration = (float)iter->duration;
-      res.frames.push_back(copy);
-      res.totalDuration += copy.duration;
+      size_t index = static_cast<size_t>(iter->frameIndex) - 1;
+      if (index < frames.size()) {
+        auto copy = frames[index];
+        copy.duration = (float)iter->duration;
+        res.frames.push_back(copy);
+        res.totalDuration += copy.duration;
+      }
+
       iter++;
     }
 

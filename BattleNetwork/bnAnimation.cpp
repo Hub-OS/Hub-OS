@@ -38,6 +38,11 @@ Animation & Animation::operator=(const Animation & rhs)
 Animation::~Animation() {
 }
 
+void Animation::CopyFrom(const Animation& rhs)
+{
+  *this = rhs;
+}
+
 void Animation::Reload() {
   if (path != "") {
     string data = FileUtil::Read(path);
@@ -45,8 +50,11 @@ void Animation::Reload() {
   }
 }
 
-void Animation::Load()
+void Animation::Load(const std::string& newPath)
 {
+  if (!newPath.empty()) {
+    path = newPath;
+  }
   Reload();
 }
 

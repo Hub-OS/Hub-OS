@@ -36,7 +36,7 @@ function UpwardFist(duo)
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        { Direction.None, 0 }
+        Drag(Direction.None, 0)
         )
     )
 
@@ -44,7 +44,8 @@ function UpwardFist(duo)
     fist.startSwinging = false
 
     fistAnim:CopyFrom(anim)
-    fistAnim:SetState("HAND_SWIPE_BOTTOM_UP", Playback.Once, nonce)
+    fistAnim:SetState("HAND_SWIPE_BOTTOM_UP")
+    fistAnim:SetPlayback(Playback.Once)
 
     local closure = function() 
         local fistRef = fist
@@ -88,14 +89,13 @@ end
 function DownwardFist(duo) 
     local fist = Battle.Spell.new(Team.Blue)
     fist:SetTexture(texture, true)
-    fist:SetSlideFrames(4)
 
     fist:SetHitProps(HitProps(
         50, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        { Direction.None, 0 }
+        Drag(Direction.None, 0)
         )
     )
 
@@ -103,7 +103,8 @@ function DownwardFist(duo)
     fist.startSwinging = false
 
     fistAnim:CopyFrom(anim)
-    fistAnim:SetState("HAND_SWIPE_TOP_DOWN", Playback.Once, nonce)
+    fistAnim:SetState("HAND_SWIPE_TOP_DOWN")
+    fistAnim:SetPlayback(Playback.Once)
 
     local closure = function() 
         local fistRef = fist
@@ -153,7 +154,8 @@ function Mine(duo)
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        { Direction.None, 0 } )
+        Drag(Direction.None, 0)
+        )
     )
 
     mine.dir = Direction.Up
@@ -166,7 +168,8 @@ function Mine(duo)
     mine.node:SetPosition(0,0)
     mine:AddNode(mine.node)
 
-    miscAnim:SetState("MINE", Playback.Once, nonce)
+    miscAnim:SetState("MINE")
+    miscAnim:SetPlayback(Playback.Once)
     miscAnim:Refresh(mine.node:Sprite())
 
     mine.updateFunc = function(self, dt) 
@@ -265,7 +268,8 @@ function LaserBeam(duo)
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        { Direction.None, 0 })
+        Drag(Direction.None, 0 )
+        )
     )
 
     local origin = duo:GetAnimation():Point("origin")
@@ -280,11 +284,15 @@ function LaserBeam(duo)
         local animRef = laserAnim
         return function()
             laserRef.laserCount = 0
-            animRef:SetState("LASER_BEAM", Playback.Loop, function() 
+            animRef:SetState("LASER_BEAM")
+            animRef:SetPlayback(Playback.Loop)
+            animRef:OnComplete(function() 
                 laserRef.laserCount = laserRef.laserCount + 1
 
                 if laserRef.laserCount > 40 then
-                    animRef:SetState("LASER_BEAM_OPEN", Playback.Reverse, function()
+                    animRef:SetState("LASER_BEAM_OPEN")
+                    animRef:SetPlayback(Playback.Reverse)
+                    animRef:OnComplete(function()
                         laserComplete = true
                         laserRef:Delete()
                     end)
@@ -293,7 +301,9 @@ function LaserBeam(duo)
         end 
     end 
 
-    laserAnim:SetState("LASER_BEAM_OPEN", Playback.Once, onComplete())
+    laserAnim:SetState("LASER_BEAM_OPEN")
+    laserAnim:SetPlayback(Playback.Once)
+    laserAnim:OnComplete(onComplete())
 
     laser.updateFunc = function(self, dt) 
         self:Tile():AttackEntities(self)
@@ -327,12 +337,14 @@ function Missile(duo)
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
         duo, 
-        { Direction.None })
+        Drag(Direction.None, 0)
+        )
     )
 
     local missileAnim = missile:GetAnimation()
     missileAnim:CopyFrom(anim)
-    missileAnim:SetState("MISSILE", Playback.Loop, nonce)
+    missileAnim:SetState("MISSILE")
+    missileAnim:SetPlayback(Playback.Loop)
 
     missile.updateFunc = function(self, dt) 
         self.waitTimer = self.waitTimer - dt
@@ -505,7 +517,7 @@ function WaitState(self, dt)
 end
 
 function MoveState(self, dt) 
-    if self:IsSliding() == false then
+    if self:IsJumping() == false then
         -- we arrive, shake the ground
         
         if shake then
@@ -533,11 +545,14 @@ function MoveState(self, dt)
                 end
             end
 
-            shake = true -- can shake again
             middle:Show() -- coverup red center
             local dest = self:GetTile(dir, 1)
-            self:Slide(dest, frames(80), frames(0), ActionOrder.Voluntary, nonce)
-            NextState()
+            self:Jump(dest, 40.0, frames(60), frames(60), ActionOrder.Voluntary, 
+                function() 
+                    print("jumping started")
+                    shake = true 
+                    NextState()
+                end)
         end
     end 
 end
@@ -586,9 +601,9 @@ function battle_init(self)
     self:SetPosition(idleDuoPos.x, idleDuoPos.y)
 
     anim = self:GetAnimation()
-    anim:SetPath(_modpath.."duo_compressed.animation")
-    anim:Load()
-    anim:SetState("BODY", Playback.Once, nonce)
+    anim:Load(_modpath.."duo_compressed.animation")
+    anim:SetState("BODY")
+    anim:SetPlayback(Playback.Once)
 
     hand = Engine.SpriteNode.new()
     hand:SetTexture(texture, true)
@@ -597,7 +612,7 @@ function battle_init(self)
     hand:EnableParentShader(true)
     self:AddNode(hand)
 
-    miscAnim = Engine.Animation.new(anim:Copy())
+    miscAnim = Engine.Animation.new(anim)
     miscAnim:SetState("HAND_IDLE")
     miscAnim:Refresh(hand:Sprite())
 

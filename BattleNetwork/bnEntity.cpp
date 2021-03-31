@@ -311,7 +311,7 @@ bool Entity::Slide(Battle::Tile* dest,
 bool Entity::Jump(Battle::Tile* dest, float destHeight, 
   const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
-  destHeight = std::min(destHeight, 0.f); // no negative jumps
+  destHeight = std::max(destHeight, 0.f); // no negative jumps
 
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest, onBegin };
@@ -394,7 +394,7 @@ Battle::Tile* Entity::GetTile(Direction dir, unsigned count) const {
     count--;
   }
 
-  return tile;
+  return next;
 }
 
 const sf::Vector2f Entity::GetTileOffset() const

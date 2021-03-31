@@ -37,7 +37,7 @@ private:
   bool spawnGuard;
   Character* contact;
   int damage;
-  double cooldown{};
+  frame_time_t cooldown;
   float random; // offset
   float hitHeight;
   std::shared_ptr<sf::Texture> texture;

@@ -15,6 +15,7 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   script["battle_init"](this);
 
   animationComponent->Reload();
+  CreateMoveAnimHash();
 }
 
 void ScriptedPlayer::SetChargePosition(const float x, const float y)
@@ -32,14 +33,19 @@ void ScriptedPlayer::SetHeight(const float height)
   this->height = height;
 }
 
+void ScriptedPlayer::SetAnimation(const std::string& path)
+{
+  animationComponent->SetPath(path);
+}
+
 const float ScriptedPlayer::GetHeight() const
 {
   return height;
 }
 
-AnimationComponent& ScriptedPlayer::GetAnimationComponent()
+Animation& ScriptedPlayer::GetAnimationObject()
 {
-  return *animationComponent;
+  return animationComponent->GetAnimationObject();
 }
 
 Battle::Tile* ScriptedPlayer::GetCurrentTile() const
