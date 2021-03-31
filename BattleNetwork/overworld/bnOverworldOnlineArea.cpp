@@ -391,8 +391,14 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::asset_stream_complete:
           receiveAssetStreamCompleteSignal(reader, data);
           break;
+        case ServerEvents::preload:
+          receivePreloadSignal(reader, data);
+          break;
         case ServerEvents::map:
           receiveMapSignal(reader, data);
+          break;
+        case ServerEvents::play_sound:
+          receivePlaySoundSignal(reader, data);
           break;
         case ServerEvents::exclude_object:
           receiveExcludeObjectSignal(reader, data);
@@ -764,6 +770,12 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
   assetBuffer.setCapacity(0);
 }
 
+void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto name = reader.ReadString(buffer);
+
+  serverAssetManager.Preload(name);
+}
+
 static Direction resolveDirectionString(const std::string& direction) {
   if (direction == "Left") {
     return Direction::left;
@@ -915,6 +927,12 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       }
     }
   }
+}
+
+void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto name = reader.ReadString(buffer);
+
+  Audio().Play(GetAudio(name));
 }
 
 void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

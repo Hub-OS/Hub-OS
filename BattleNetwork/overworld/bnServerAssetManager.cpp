@@ -146,34 +146,65 @@ std::vector<char> Overworld::ServerAssetManager::LoadFromCache(const std::string
   return data;
 }
 
-std::string Overworld::ServerAssetManager::GetText(const std::string& name) {
+void Overworld::ServerAssetManager::Preload(const std::string& name) {
+  auto extensionPos = name.rfind('.');
+
+  if (extensionPos == std::string::npos) {
+    PreloadText(name);
+    return;
+  }
+
+  auto extension = name.substr(extensionPos);
+
+  if (extension == ".ogg") {
+    PreloadAudio(name);
+  }
+  else if (extension == ".png" || extension == ".bmp") {
+    PreloadTexture(name);
+  }
+  else {
+    PreloadText(name);
+  }
+}
+
+void Overworld::ServerAssetManager::PreloadText(const std::string& name) {
   if (textAssets.find(name) == textAssets.end()) {
     auto data = LoadFromCache(name);
     std::string text(data.data(), data.size());
     textAssets[name] = text;
   }
-  return textAssets[name];
 }
 
-std::shared_ptr<sf::Texture> Overworld::ServerAssetManager::GetTexture(const std::string& name) {
+void Overworld::ServerAssetManager::PreloadTexture(const std::string& name) {
   if (textureAssets.find(name) == textureAssets.end()) {
     auto data = LoadFromCache(name);
     auto texture = std::make_shared<sf::Texture>();
     texture->loadFromMemory(data.data(), data.size());
     textureAssets[name] = texture;
   }
-
-  return textureAssets[name];
 }
 
-std::shared_ptr<sf::SoundBuffer> Overworld::ServerAssetManager::GetAudio(const std::string& name) {
+void Overworld::ServerAssetManager::PreloadAudio(const std::string& name) {
   if (audioAssets.find(name) == audioAssets.end()) {
     auto data = LoadFromCache(name);
     auto audio = std::make_shared<sf::SoundBuffer>();
     audio->loadFromMemory(data.data(), data.size());
     audioAssets[name] = audio;
   }
+}
 
+std::string Overworld::ServerAssetManager::GetText(const std::string& name) {
+  PreloadText(name);
+  return textAssets[name];
+}
+
+std::shared_ptr<sf::Texture> Overworld::ServerAssetManager::GetTexture(const std::string& name) {
+  PreloadTexture(name);
+  return textureAssets[name];
+}
+
+std::shared_ptr<sf::SoundBuffer> Overworld::ServerAssetManager::GetAudio(const std::string& name) {
+  PreloadAudio(name);
   return audioAssets[name];
 }
 
