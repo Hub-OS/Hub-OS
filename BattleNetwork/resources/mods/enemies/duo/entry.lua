@@ -314,6 +314,16 @@ function LaserBeam(duo)
         return false
     end
 
+    laser.onSpawnFunc = function(self, tile) 
+       local hitbox = Battle.Hitbox.new(self:Team())
+       hitbox:SetHitProps(self:GetHitProps())
+       local dest = self:GetTile(Direction.Left, 1)
+
+       if dest ~= nil then
+            self:Field():Spawn(hitbox, dest:X(), dest:Y())
+       end
+    end
+
     return laser
 end
 

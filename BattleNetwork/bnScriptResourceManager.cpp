@@ -5,9 +5,16 @@
 #include "bnShaderResourceManager.h"
 #include "bnResourceHandle.h"
 #include "bnEntity.h"
+#include "bnSpell.h"
 #include "bnElements.h"
 #include "bnField.h"
 #include "bnTile.h"
+#include "bnHitbox.h"
+#include "bnSharedHitbox.h"
+#include "bnDefenseNodrag.h"
+#include "bnDefenseVirusBody.h"
+#include "bnParticlePoof.h"
+#include "bnParticleImpact.h"
 
 #include "bnNaviRegistration.h"
 #include "bindings/bnScriptedCardAction.h"
@@ -91,6 +98,20 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<DefenseRule>()
     );
 
+  auto& defense_rule_nodrag = battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
+    sol::factories([] {
+      return std::make_unique<DefenseNodrag>();
+    }),
+    sol::base_classes, sol::bases<DefenseRule>()
+  );
+
+  auto& defense_rule_virus_body = battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
+    sol::factories([] {
+      return std::make_unique<DefenseVirusBody>();
+    }),
+    sol::base_classes, sol::bases<DefenseRule>()
+  );
+
   auto& tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
     "X", &Battle::Tile::GetX,
     "Y", &Battle::Tile::GetY,
@@ -112,6 +133,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Width", &Field::GetWidth,
     "Height", &Field::GetHeight,
     "Spawn", sol::overload(
+      sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity),
+      sol::resolve<Field::AddEntityStatus(Obstacle&, int, int)>(&Field::AddEntity),
       sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedSpell>&, int, int)>(&Field::AddEntity),
       sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedObstacle>&, int, int)>(&Field::AddEntity)
     ),
@@ -170,6 +193,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "GetTileOffset", &ScriptedSpell::GetTileOffset,
     "ShakeCamera", &ScriptedSpell::ShakeCamera,
     "Remove", &ScriptedSpell::Remove,
+    "Team", &ScriptedSpell::GetTeam,
     "attackFunc", &ScriptedSpell::attackCallback,
     "deleteFunc", &ScriptedSpell::deleteCallback,
     "updateFunc", &ScriptedSpell::updateCallback,
@@ -224,6 +248,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Remove", &ScriptedObstacle::Remove,
     "ShareTile", &ScriptedObstacle::ShareTileSpace,
     "AddDefenseRule", &ScriptedObstacle::AddDefenseRule,
+    "Team", &ScriptedObstacle::GetTeam,
     "attackFunc", &ScriptedObstacle::attackCallback,
     "deleteFunc", &ScriptedObstacle::deleteCallback,
     "updateFunc", &ScriptedObstacle::updateCallback,
@@ -269,6 +294,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "AddNode", &ScriptedCharacter::AddNode,
     "ShakeCamera", &ScriptedCharacter::ShakeCamera,
     "AddDefenseRule", &ScriptedCharacter::AddDefenseRule,
+    "Team", &ScriptedCharacter::GetTeam,
     sol::base_classes, sol::bases<Character>()
   );
 
@@ -288,8 +314,32 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetChargePosition", &ScriptedPlayer::SetChargePosition,
     "GetAnimation", &ScriptedPlayer::GetAnimationObject,
     "SetAnimation", &ScriptedPlayer::SetAnimation,
+    "Team", &ScriptedPlayer::GetTeam,
     sol::base_classes, sol::bases<Player>()
    );
+
+  auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
+    sol::constructors<Hitbox(Team)>(),
+    "OnAttack", &Hitbox::AddCallback,
+    "SetHitProps", &Hitbox::SetHitboxProperties,
+    "GetHitProps", &Hitbox::GetHitboxProperties,
+    sol::base_classes, sol::bases<Spell>()
+  );
+
+  auto& shared_hitbox_record = battle_namespace.new_usertype<SharedHitbox>("SharedHitbox",
+    sol::constructors<SharedHitbox(Spell*, float)>(),
+    sol::base_classes, sol::bases<Spell>()
+    );
+
+  auto& particle_poof = battle_namespace.new_usertype<ParticlePoof>("ParticlePoof",
+    sol::constructors<ParticlePoof()>(),
+    sol::base_classes, sol::bases<Artifact>()
+    );
+
+  auto& particle_impact = battle_namespace.new_usertype<ParticleImpact>("ParticleImpact",
+    sol::constructors<ParticleImpact(ParticleImpact::Type)>(),
+    sol::base_classes, sol::bases<Artifact>()
+  );
 
   auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories([](Character& character, bool charged, int dmg) -> std::unique_ptr<CardAction> {
@@ -387,6 +437,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   auto& defense_order_table = state.new_enum("DefenseOrder",
     "Always", DefenseOrder::always,
     "CollisionOnly", DefenseOrder::collisionOnly
+  );
+
+  auto& particle_impact_type_table = state.new_enum("ParticleType",
+    "Blue", ParticleImpact::Type::blue,
+    "Fire", ParticleImpact::Type::fire,
+    "Green", ParticleImpact::Type::green,
+    "Thin", ParticleImpact::Type::thin,
+    "Volcano", ParticleImpact::Type::volcano,
+    "Vulcan", ParticleImpact::Type::vulcan,
+    "Wind", ParticleImpact::Type::wind,
+    "Yellow", ParticleImpact::Type::yellow
   );
 
   auto& elements_table = state.new_enum("Element",
