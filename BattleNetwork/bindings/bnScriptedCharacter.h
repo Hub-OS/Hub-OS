@@ -2,6 +2,7 @@
 #ifdef BN_MOD_SUPPORT
 
 #include <sol/sol.hpp>
+#include "dynamic_object.h"
 #include "../bnCharacter.h"
 #include "../bnAI.h"
 
@@ -11,7 +12,7 @@
  * @date 02/10/21
  * @brief Character reads from lua files for behavior and settings
  */
-class ScriptedCharacter final : public Character, public AI<ScriptedCharacter> {
+class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, public dynamic_object {
   friend class ScriptedCharacterState;
   sol::state& script;
   float height{};

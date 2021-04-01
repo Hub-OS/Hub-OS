@@ -47,6 +47,8 @@ Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spe
 
   auto props = Hit::DefaultProperties;
   props.flags = props.flags & ~Hit::recoil;
+  // props.flags = props.flags & ~(Hit::recoil | Hit::flinch);
+
   props.damage = damage;
   SetHitboxProperties(props);
 

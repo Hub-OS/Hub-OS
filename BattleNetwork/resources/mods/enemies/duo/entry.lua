@@ -18,7 +18,7 @@ local middle = nil
 local miscAnim = nil
 local anim = nil
 local dir = Direction.Up
-local laserComplete = true
+local laserComplete = false
 local laserOpening = false
 local handTimer = 0
 local aiStateIndex = 1 
@@ -31,7 +31,7 @@ function UpwardFist(duo)
     fist:SetTexture(texture, true)
     fist:HighlightTile(Highlight.Flash)
 
-    fist:SetHitProps(HitProps(
+    fist:SetHitProps(MakeHitProps(
         50, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
@@ -90,7 +90,7 @@ function DownwardFist(duo)
     local fist = Battle.Spell.new(Team.Blue)
     fist:SetTexture(texture, true)
 
-    fist:SetHitProps(HitProps(
+    fist:SetHitProps(MakeHitProps(
         50, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
@@ -149,7 +149,7 @@ function Mine(duo)
     local mine = Battle.Obstacle.new(Team.Blue)
     mine:SetHealth(20)
     mine:ShareTile(true)
-    mine:SetHitProps(HitProps(
+    mine:SetHitProps(MakeHitProps(
         20, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
@@ -257,7 +257,7 @@ function LaserBeam(duo)
     laser:SetTexture(texture, true)
     laser:SetLayer(-2)
 
-    laser:SetHitProps(HitProps(
+    laser:SetHitProps(MakeHitProps(
         100, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
@@ -327,7 +327,7 @@ function Missile(duo)
     missile:ShareTile(true)
     missile.waitTimer = 1 -- second
 
-    missile:SetHitProps(HitProps(
+    missile:SetHitProps(MakeHitProps(
         30, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
         Element.None, 
@@ -430,7 +430,7 @@ end
 function ShootLaserState(self, dt)
     if miscAnim:State() ~= "CHEST_GUN" then
         laserOpening = true
-
+        laserComplete = false
         function onComplete() 
             local duoRef = self 
             return function() 
@@ -449,12 +449,13 @@ function ShootLaserState(self, dt)
 end
 
 function ShootMissileState(self, dt)
-    -- middle:Hide() -- reveal red center
+    middle:Hide() -- reveal red center
     self:Field():Spawn(Missile(self), self:Tile():X()-1, self:Tile():Y())
     NextState()
 end 
 
 function ShootMineState(self, dt) 
+    middle:Hide() -- reveal red center
     self:Field():Spawn(Mine(self), self:Tile():X()-1, self:Tile():Y())
     NextState()
 end 
@@ -487,26 +488,31 @@ function SetWaitTimer(seconds)
     end 
 end 
 
-function WaitState(self, dt)
+function WaitLaserState(self, dt)
+    miscAnim:Update(dt, middle:Sprite(), 1.0) 
+
     -- also wait for laser to complete
-    if laserComplete == false then 
+    if laserComplete == true then 
         middle:Show()
 
-        if laserOpening == true then 
-            miscAnim:SetPlayback(Playback.Reverse)
-            miscAnim:OnComplete(function()
-                    miscAnim:SetState("NO_SHOOT")
-                    miscAnim:SetPlayback(Playback.Once)
-                    miscAnim:Refresh(middle:Sprite())
+        miscAnim:SetState("CHEST_GUN")
+        miscAnim:SetPlayback(Playback.Reverse)
+        miscAnim:OnComplete(function()
+                miscAnim:SetState("NO_SHOOT")
+                miscAnim:SetPlayback(Playback.Once)
+                miscAnim:Refresh(middle:Sprite())
+                miscAnim:OnComplete(function() 
+                    NextState()
                 end)
-                
-            laserOpening = false
-        end
-
-        miscAnim:Update(dt, middle:Sprite(), 1.0) 
+            end)
+            
+        laserOpening = false
+        laserComplete = false
         return 
     end 
+end
 
+function WaitState(self, dt)
     if not self:IsJumping() then
         waitTime = waitTime - dt 
     end
@@ -587,6 +593,7 @@ function battle_init(self)
         SetWaitTimer(IDLE_TIME*0.5),
         WaitState,
         ShootLaserState,
+        WaitLaserState,
         SetWaitTimer(IDLE_TIME),
         WaitState,
     }
@@ -626,8 +633,23 @@ function battle_init(self)
 
     local origin = anim:Point("origin")
     local point  = anim:Point("NO_SHOOT")
-    middle:SetOffset(point.x - origin.x, point.y - origin.y)
+    middle:SetPosition(point.x - origin.x, point.y - origin.y)
     self:AddNode(middle)
+
+    print("right before self.defense")
+
+    self.defense = Battle.DefenseRule.new(0, DefenseOrder.Always)
+
+    print("defense was created")
+
+    self.defense.filterStatusesFunc = function(props) 
+        print("inside filterStatusesFunc")
+
+        props.flags = props.flags~Hit.Flinch
+        return props
+    end
+
+    self:AddDefenseRule(self.defense)
 
     print("done")
 end

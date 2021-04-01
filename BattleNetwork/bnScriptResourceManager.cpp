@@ -59,24 +59,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "OnInterrupt", &Animation::SetInterruptCallback
   );
 
-  auto& defense_frame_state_judge_record = engine_namespace.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
-    "BlockDamage", &DefenseFrameStateJudge::BlockDamage,
-    "BlockImpact", &DefenseFrameStateJudge::BlockImpact,
-    "IsDamageBlocked", &DefenseFrameStateJudge::IsDamageBlocked,
-    "IsImpactBlocked", &DefenseFrameStateJudge::IsImpactBlocked,
-    /*"AddTrigger", &DefenseFrameStateJudge::AddTrigger,*/
-    "SignalDefenseWasPierced", &DefenseFrameStateJudge::SignalDefenseWasPierced
-  );
-
-  auto& defense_rule_record = engine_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
-    sol::constructors <ScriptedDefenseRule(const Priority, const DefenseOrder&)>(),
-    "IsReplaced", &DefenseRule::IsReplaced,
-    "canBlockFunc", &DefenseRule::CanBlock,
-    "filterStatusesFunc", &DefenseRule::FilterStatuses,
-    sol::base_classes, sol::bases<DefenseRule>()
-  );
-
-
   auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
     "SetTexture", &SpriteProxyNode::setTexture,
@@ -89,6 +71,25 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "EnableParentShader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
   );
+
+  auto& defense_frame_state_judge_record = battle_namespace.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
+    "BlockDamage", &DefenseFrameStateJudge::BlockDamage,
+    "BlockImpact", &DefenseFrameStateJudge::BlockImpact,
+    "IsDamageBlocked", &DefenseFrameStateJudge::IsDamageBlocked,
+    "IsImpactBlocked", &DefenseFrameStateJudge::IsImpactBlocked,
+    /*"AddTrigger", &DefenseFrameStateJudge::AddTrigger,*/
+    "SignalDefenseWasPierced", &DefenseFrameStateJudge::SignalDefenseWasPierced
+    );
+
+  auto& defense_rule_record = battle_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
+    sol::factories([](int priority, const DefenseOrder& order) -> std::unique_ptr<ScriptedDefenseRule> {
+      return std::make_unique<ScriptedDefenseRule>(Priority(priority), order);
+    }),
+    "IsReplaced", &ScriptedDefenseRule::IsReplaced,
+    "canBlockFunc", &ScriptedDefenseRule::canBlockCallback,
+    "filterStatusesFunc", &ScriptedDefenseRule::filterStatusesCallback,
+    sol::base_classes, sol::bases<DefenseRule>()
+    );
 
   auto& tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
     "X", &Battle::Tile::GetX,
@@ -232,6 +233,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
+    sol::meta_function::index,
+    &dynamic_object::dynamic_get,
+    sol::meta_function::new_index,
+    &dynamic_object::dynamic_set,
+    sol::meta_function::length,
+    [](dynamic_object& d) { return d.entries.size(); },
     "GetName", &ScriptedCharacter::GetName,
     "GetID", &ScriptedCharacter::GetID,
     "GetRank", &ScriptedCharacter::GetRank,
@@ -460,6 +467,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "count", &Hit::Drag::count
   );
 
+  auto& hitbox_props_record = state.new_usertype<Hit::Properties>("HitProps",
+    "aggressor", &Hit::Properties::aggressor,
+    "damage", &Hit::Properties::damage,
+    "drag", &Hit::Properties::drag,
+    "element", &Hit::Properties::element,
+    "flags", &Hit::Properties::flags
+  );
+
   /**
     int damage{};
     Flags flags{ none };
@@ -467,7 +482,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     Character* aggressor{ nullptr };
     Direction drag{ Direction::none }; // Used by dragging payload
   */
-  state.set_function("HitProps", 
+  state.set_function("MakeHitProps", 
     [](int damage, Hit::Flags flags, Element element, Character* aggressor, Hit::Drag drag) {
       return Hit::Properties{
         damage, flags, element, aggressor, drag
