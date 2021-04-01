@@ -345,10 +345,13 @@ void Overworld::Homepage::OnTileCollision()
       netWarpTilePos.z
     );
 
+    auto address = getController().CommandLineValue<std::string>("cyberworld");
+    auto port = getController().CommandLineValue<uint16_t>("remotePort");
+
     auto teleportToCyberworld = [=] {
       this->TeleportUponReturn(returnPoint);
       client.close();
-      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(maxPayloadSize, guest);
+      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, "", maxPayloadSize, guest);
     };
 
     playerController.ReleaseActor();
