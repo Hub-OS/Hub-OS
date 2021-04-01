@@ -15,6 +15,7 @@
 #include "bindings/bnScriptedSpell.h"
 #include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
+#include "bindings/bnScriptedDefenseRule.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -57,6 +58,24 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "OnFrame", &Animation::AddCallback,
     "OnInterrupt", &Animation::SetInterruptCallback
   );
+
+  auto& defense_frame_state_judge_record = engine_namespace.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
+    "BlockDamage", &DefenseFrameStateJudge::BlockDamage,
+    "BlockImpact", &DefenseFrameStateJudge::BlockImpact,
+    "IsDamageBlocked", &DefenseFrameStateJudge::IsDamageBlocked,
+    "IsImpactBlocked", &DefenseFrameStateJudge::IsImpactBlocked,
+    /*"AddTrigger", &DefenseFrameStateJudge::AddTrigger,*/
+    "SignalDefenseWasPierced", &DefenseFrameStateJudge::SignalDefenseWasPierced
+  );
+
+  auto& defense_rule_record = engine_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
+    sol::constructors <ScriptedDefenseRule(const Priority, const DefenseOrder&)>(),
+    "IsReplaced", &DefenseRule::IsReplaced,
+    "canBlockFunc", &DefenseRule::CanBlock,
+    "filterStatusesFunc", &DefenseRule::FilterStatuses,
+    sol::base_classes, sol::bases<DefenseRule>()
+  );
+
 
   auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
@@ -148,12 +167,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "GetHitProps", &ScriptedSpell::GetHitboxProperties,
     "SetHitProps", &ScriptedSpell::SetHitboxProperties,
     "GetTileOffset", &ScriptedSpell::GetTileOffset,
+    "ShakeCamera", &ScriptedSpell::ShakeCamera,
+    "Remove", &ScriptedSpell::Remove,
     "attackFunc", &ScriptedSpell::attackCallback,
     "deleteFunc", &ScriptedSpell::deleteCallback,
     "updateFunc", &ScriptedSpell::updateCallback,
     "canMoveToFunc", &ScriptedSpell::canMoveToCallback,
     "onSpawnFunc", &ScriptedSpell::spawnCallback,
-    "ShakeCamera", &ScriptedSpell::ShakeCamera,
     sol::base_classes, sol::bases<Spell>()
   );
 
@@ -199,12 +219,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "GetHitProps", &ScriptedObstacle::GetHitboxProperties,
     "SetHitProps", &ScriptedObstacle::SetHitboxProperties,
     "IgnoreCommonAggressor", &ScriptedObstacle::IgnoreCommonAggressor,
+    "ShakeCamera", &ScriptedObstacle::ShakeCamera,
+    "Remove", &ScriptedObstacle::Remove,
+    "ShareTile", &ScriptedObstacle::ShareTileSpace,
+    "AddDefenseRule", &ScriptedObstacle::AddDefenseRule,
     "attackFunc", &ScriptedObstacle::attackCallback,
     "deleteFunc", &ScriptedObstacle::deleteCallback,
     "updateFunc", &ScriptedObstacle::updateCallback,
     "canMoveToFunc", &ScriptedObstacle::canMoveToCallback,
     "onSpawnFunc", &ScriptedObstacle::spawnCallback,
-    "ShakeCamera", &ScriptedObstacle::ShakeCamera,
     sol::base_classes, sol::bases<Obstacle, Spell, Character>()
   );
 
@@ -238,6 +261,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Teammate", &ScriptedCharacter::Teammate,
     "AddNode", &ScriptedCharacter::AddNode,
     "ShakeCamera", &ScriptedCharacter::ShakeCamera,
+    "AddDefenseRule", &ScriptedCharacter::AddDefenseRule,
     sol::base_classes, sol::bases<Character>()
   );
 
@@ -351,6 +375,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetMugshotAnimationPath", &NaviRegistration::NaviMeta::SetMugshotAnimationPath,
     "SetPreviewTexture", &NaviRegistration::NaviMeta::SetPreviewTexture,
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
+  );
+
+  auto& defense_order_table = state.new_enum("DefenseOrder",
+    "Always", DefenseOrder::always,
+    "CollisionOnly", DefenseOrder::collisionOnly
   );
 
   auto& elements_table = state.new_enum("Element",

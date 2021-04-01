@@ -1,7 +1,8 @@
 #include "bnDefenseRule.h"
 
-DefenseRule::DefenseRule(const Priority level, const DefenseOrder& order) 
-  : priorityLevel(level), order(order), replaced(false) {
+DefenseRule::DefenseRule(const Priority level, const DefenseOrder& order) : 
+  priorityLevel(level), order(order), replaced(false) 
+{
 }
 
 DefenseRule::~DefenseRule() { }

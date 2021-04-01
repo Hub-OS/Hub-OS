@@ -148,7 +148,7 @@ end
 function Mine(duo) 
     local mine = Battle.Obstacle.new(Team.Blue)
     mine:SetHealth(20)
-
+    mine:ShareTile(true)
     mine:SetHitProps(HitProps(
         20, 
         Hit.Impact | Hit.Recoil | Hit.Flinch, 
@@ -159,10 +159,12 @@ function Mine(duo)
     )
 
     mine.dir = Direction.Up
-    mine.verticalDir = Direction.Up
+    mine.verticalDir = Direction.Down
     mine.moveOneColumn = false
     mine.timer = 0
     mine.waitTimer = 1 -- second
+    mine.slideFrames = MINE_SLIDE_FRAMES
+    mine.moveStart = true -- first time starts
     mine.node = Engine.SpriteNode.new()
     mine.node:SetTexture(texture, true)
     mine.node:SetPosition(0,0)
@@ -177,75 +179,67 @@ function Mine(duo)
 
         -- every frame try to attack shared tile
         tile:AttackEntities(self)
+        self:HighlightTile(Highlight.Solid)
 
         local tileW = tile:Width()/2.0 -- downscale 2x
-        local offset = math.min(1.0, ((self.timer*60.0)/((MINE_SLIDE_FRAMES*2.0)+1.0)))
-        local x = (-offset*tileW)+(tileW/2.0)
+        local tileH = tile:Height()/2.0 
+        local offset = -self.timer*(1.0/(mine.slideFrames/60.0))*0.5
+        -- local x = (-offset*tileW)+(tileW/2.0)
+        -- local x = math.cos(offset*2.0*math.pi)*tileW/2.0
+        local y = math.sin(offset*2.0*math.pi)*tileH/2.0
+        self.node:SetPosition(0, y)
 
-        self.node:SetPosition(x, 0.0)
-
-        self.waitTimer = self.waitTimer - dt
-        if(self.waitTimer > 0) then 
-            return 
-        end
-
-        self.timer = self.timer + dt
+        if self.moveStart then
+            self.waitTimer = self.waitTimer - dt
+            
+            if(self.waitTimer > 0) then 
+                return 
+            end
+        
+            self.timer = self.timer + dt
+        end 
 
         if self:IsSliding() == false then
-            local nextTile = nil
-            
-            if self.dir == Direction.Up then
-                nextTile = self:Field():TileAt(self:Tile():X(), self:Tile():Y()-1)
-            elseif self.dir == Direction.Down then 
-                nextTile = self:Field():TileAt(self:Tile():X(), self:Tile():Y()+1)
-            end
 
-            if nextTile == nil then 
-                self:Delete()
-                return
-            end
-
-            if nextTile:IsEdge() and self.moveOneColumn == false then
-                    -- we must be moving up/down
-                    self.moveOneColumn = true
-                    self.timer = 0
-                    self.node:SetPosition(tileW/2.0, 0.0)
-                    
-                    local dest = self:GetTile(Direction.Left, 1)
-                    local slide = self:Slide(dest, frames(MINE_SLIDE_FRAMES), frames(0), ActionOrder.Voluntary, nonce)
-                    if not slide then 
-                        self:Delete()
-                        return
-                    end
-
-                    return
-            elseif self.moveOneColumn == true then
+            if self.moveOneColumn == false then
                 if self.verticalDir == Direction.Up then
-                    self.verticalDir = Direction.Down
-                    self.dir = Direction.Down 
-                else 
+                    self.dir = Direction.Down
+                elseif self.verticalDir == Direction.Down then 
                     self.dir = Direction.Up
-                    self.verticalDir = Direction.Up 
                 end
-
-                self.moveOneColumn = false
+            else 
+                self.dir = Direction.Left
             end
 
             -- otherwise keep sliding
+            local ref = self
             local dest = self:GetTile(self.dir, 1)
-            local slide = self:Slide(dest, frames(MINE_SLIDE_FRAMES), frames(0), ActionOrder.Voluntary, nonce)
+            local slide = self:Slide(dest, frames(MINE_SLIDE_FRAMES), frames(0), ActionOrder.Voluntary, 
+                function() 
+                    ref.moveStart = true
+
+                    if ref.moveOneColumn == false then 
+                        ref.verticalDir = ref.dir
+                    end
+
+                    ref.moveOneColumn = not ref.moveOneColumn
+
+                end)
+
+            if not slide then 
+                self:Remove()
+            end
         end 
     end
 
     mine.attackFunc = function(self, other) 
-        local explosion = Battle.Explosion.new(1, 1)
-        self:Field():SpawnFX(explosion, self:Tile():X(), self:Tile():Y())
         self:Delete()
     end
 
     mine.deleteFunc = function(self) 
         local explosion = Battle.Explosion.new(1, 1)
         self:Field():SpawnFX(explosion, self:Tile():X(), self:Tile():Y())
+        self:Remove()
     end
 
     mine.canMoveToFunc = function(tile)
@@ -330,6 +324,7 @@ function Missile(duo)
     missile:SetHeight(20.0)
     missile:SetLayer(-2)
     missile:ShowShadow(false)
+    missile:ShareTile(true)
     missile.waitTimer = 1 -- second
 
     missile:SetHitProps(HitProps(
@@ -354,7 +349,7 @@ function Missile(duo)
 
         if self:IsSliding() == false then
             if self:Tile():IsEdge() then 
-                self:Delete()
+                self:Remove()
             end
 
             -- otherwise keep sliding
@@ -454,6 +449,7 @@ function ShootLaserState(self, dt)
 end
 
 function ShootMissileState(self, dt)
+    -- middle:Hide() -- reveal red center
     self:Field():Spawn(Missile(self), self:Tile():X()-1, self:Tile():Y())
     NextState()
 end 
@@ -494,6 +490,8 @@ end
 function WaitState(self, dt)
     -- also wait for laser to complete
     if laserComplete == false then 
+        middle:Show()
+
         if laserOpening == true then 
             miscAnim:SetPlayback(Playback.Reverse)
             miscAnim:OnComplete(function()
@@ -509,7 +507,9 @@ function WaitState(self, dt)
         return 
     end 
 
-    waitTime = waitTime - dt 
+    if not self:IsJumping() then
+        waitTime = waitTime - dt 
+    end
 
     if waitTime <= 0 then
         NextState()
@@ -517,18 +517,20 @@ function WaitState(self, dt)
 end
 
 function MoveState(self, dt) 
-    if self:IsJumping() == false then
+    if self:IsJumping() == false then      
         -- we arrive, shake the ground
-        
         if shake then
             self:ShakeCamera(3.0, 1.0)
             shake = false
-            middle:Hide() -- reveal red center
+            NextState()
+            return
         end
-        
+
         local tile = nil
         
         waitTime = waitTime - dt
+
+
         -- pause before moving again
         if waitTime <= 0 then
             if dir == Direction.Up then 
@@ -551,7 +553,6 @@ function MoveState(self, dt)
                 function() 
                     print("jumping started")
                     shake = true 
-                    NextState()
                 end)
         end
     end 
@@ -625,7 +626,7 @@ function battle_init(self)
 
     local origin = anim:Point("origin")
     local point  = anim:Point("NO_SHOOT")
-    middle:SetPosition(point.x - origin.x, point.y - origin.y)
+    middle:SetOffset(point.x - origin.x, point.y - origin.y)
     self:AddNode(middle)
 
     print("done")

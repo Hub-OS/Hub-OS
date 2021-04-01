@@ -43,5 +43,6 @@ private:
   float height{};
   SpriteProxyNode* shadow{ nullptr };
   AnimationComponent* animComponent{ nullptr };
+  DefenseRule* obstacleBody{ nullptr };
 };
 #endif

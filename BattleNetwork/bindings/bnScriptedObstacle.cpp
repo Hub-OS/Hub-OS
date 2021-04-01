@@ -1,5 +1,6 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedObstacle.h"
+#include "../bnDefenseObstacleBody.h"
 
 ScriptedObstacle::ScriptedObstacle(Team _team) :
   Obstacle(_team) {
@@ -12,10 +13,14 @@ ScriptedObstacle::ScriptedObstacle(Team _team) :
   AddNode(shadow);
 
   animComponent = CreateComponent<AnimationComponent>(this);
+
+  obstacleBody = new DefenseObstacleBody();
+  this->AddDefenseRule(obstacleBody);
 }
 
 ScriptedObstacle::~ScriptedObstacle() {
   delete shadow;
+  delete obstacleBody;
 }
 
 bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
