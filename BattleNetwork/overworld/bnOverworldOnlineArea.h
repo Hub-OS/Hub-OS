@@ -16,12 +16,12 @@ namespace Overworld {
   constexpr size_t LAG_WINDOW_LEN = 300;
 
   struct OnlinePlayer {
-    OnlinePlayer(std::string name): actor(std::make_shared<Overworld::Actor>(name)) {}
+    OnlinePlayer(std::string name) : actor(std::make_shared<Overworld::Actor>(name)) {}
 
     std::shared_ptr<Overworld::Actor> actor;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
-    SelectedNavi currNavi{ std::numeric_limits<SelectedNavi>::max() };
+    Direction idleDirection;
     sf::Vector3f startBroadcastPos{};
     sf::Vector3f endBroadcastPos{};
     long long timestamp{};
@@ -39,8 +39,10 @@ namespace Overworld {
     std::string ticket; //!< How we are represented on the server
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
+    std::string connectData;
     uint16_t maxPayloadSize;
     bool isConnected{ false };
+    bool transferringServers{ false };
     bool kicked{ false };
     PacketShipper packetShipper;
     PacketSorter packetSorter;
@@ -54,13 +56,13 @@ namespace Overworld {
     double packetResendTimer;
     Text transitionText;
     Text nameText;
-    bool wasReadingTextBox{false};
+    bool wasReadingTextBox{ false };
     std::vector<std::unordered_map<int, std::function<void()>>> tileTriggers;
 
 
     void processIncomingPackets(double elapsed);
 
-    void login();
+    void transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut);
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
     void sendAssetsFound();
@@ -79,15 +81,18 @@ namespace Overworld {
     void sendDialogResponseSignal(char response);
 
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTransferServerSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveKickSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -98,7 +103,6 @@ namespace Overworld {
     void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviSetDirectionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -116,7 +120,14 @@ namespace Overworld {
     /**
      * @brief Loads the player's library data and loads graphics
      */
-    OnlineArea(swoosh::ActivityController&, uint16_t maxPayloadSize, bool guestAccount);
+    OnlineArea(
+      swoosh::ActivityController&,
+      const std::string& address,
+      uint16_t port,
+      const std::string& connectData,
+      uint16_t maxPayloadSize,
+      bool guestAccount
+    );
 
     /**
     * @brief deconstructor

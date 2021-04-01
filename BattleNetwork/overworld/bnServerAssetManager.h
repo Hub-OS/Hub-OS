@@ -30,6 +30,11 @@ namespace Overworld {
     std::string GetPath(const std::string& name);
     const std::unordered_map<std::string, CacheMeta>& GetCachedAssetList();
 
+    void Preload(const std::string& name);
+    void PreloadText(const std::string& name);
+    void PreloadTexture(const std::string& name);
+    void PreloadAudio(const std::string& name);
+
     std::string GetText(const std::string& name);
     std::shared_ptr<sf::Texture> GetTexture(const std::string& name);
     std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& name);
