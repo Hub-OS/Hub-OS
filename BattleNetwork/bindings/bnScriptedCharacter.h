@@ -14,6 +14,7 @@
  */
 class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, public dynamic_object {
   friend class ScriptedCharacterState;
+  friend class ScriptedIntroState;
   sol::state& script;
   float height{};
   AnimationComponent* animation{ nullptr };
@@ -52,6 +53,20 @@ public:
   }
 
   void OnLeave(ScriptedCharacter& s) override {
+
+  }
+};
+
+class ScriptedIntroState : public AIState<ScriptedCharacter> {
+  void OnEnter(ScriptedCharacter& context) override {
+
+  }
+
+  void OnUpdate(double _elapsed, ScriptedCharacter& context) override {
+
+  }
+
+  void OnLeave(ScriptedCharacter& context) override {
 
   }
 };

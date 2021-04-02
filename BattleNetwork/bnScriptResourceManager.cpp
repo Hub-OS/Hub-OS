@@ -17,6 +17,7 @@
 #include "bnParticleImpact.h"
 
 #include "bnNaviRegistration.h"
+#include "bnMobRegistration.h"
 #include "bindings/bnScriptedCardAction.h"
 #include "bindings/bnScriptedCharacter.h"
 #include "bindings/bnScriptedSpell.h"
@@ -134,11 +135,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Height", &Field::GetHeight,
     "Spawn", sol::overload(
       sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity),
-      sol::resolve<Field::AddEntityStatus(Obstacle&, int, int)>(&Field::AddEntity),
+      sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity),
       sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedSpell>&, int, int)>(&Field::AddEntity),
       sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedObstacle>&, int, int)>(&Field::AddEntity)
-    ),
-    "SpawnFX", sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity)
+    )
   );
 
   auto& player_record = battle_namespace.new_usertype<Player>("Player",
@@ -319,7 +319,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
    );
 
   auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
-    sol::constructors<Hitbox(Team)>(),
+    sol::factories([](Team team) {
+      return new Hitbox(team);
+      }),
     "OnAttack", &Hitbox::AddCallback,
     "SetHitProps", &Hitbox::SetHitboxProperties,
     "GetHitProps", &Hitbox::GetHitboxProperties,
@@ -434,6 +436,59 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
   );
 
+  auto& mobmeta_table = engine_namespace.new_usertype<MobRegistration::MobMeta>("MobInfo",
+    "SetDescription", &MobRegistration::MobMeta::SetDescription,
+    "SetName", &MobRegistration::MobMeta::SetName,
+    "SetPreviewTexturePath", &MobRegistration::MobMeta::SetPlaceholderTexturePath,
+    "SetSpeed", &MobRegistration::MobMeta::SetSpeed,
+    "SetAttack", &MobRegistration::MobMeta::SetAttack,
+    "SetHP", &MobRegistration::MobMeta::SetHP
+    );
+
+  auto& scriptedmob_table = engine_namespace.new_usertype<ScriptedMob>("Mob",
+    "CreateSpawner", &ScriptedMob::CreateSpawner,
+    "SetBackground", &ScriptedMob::SetBackground,
+    "StreamMusic", &ScriptedMob::StreamMusic
+  );
+
+  auto& scriptedspawner_table = engine_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
+    "SpawnAt", &ScriptedMob::ScriptedSpawner::SpawnAt
+  );
+
+  engine_namespace.set_function("DefineCharacter",
+    [this](const std::string& fqn, const std::string& path) {
+      this->DefineCharacter(fqn, path+"/entry.lua");
+    }
+  );
+
+  engine_namespace.set_function("RequiresCharacter",
+    [this](const std::string& fqn) {
+      if (this->FetchCharacter(fqn) == nullptr) {
+        std::string msg = "Failed to Require character with FQN " + fqn;
+        Logger::Log(msg);
+        throw std::exception(msg.c_str());
+      }
+    }
+  );
+
+  auto& tile_state_table = state.new_enum("TileState",
+    "Broken", TileState::broken,
+    "Cracked", TileState::cracked,
+    "DirectionDown", TileState::directionDown,
+    "DirectionLevel", TileState::directionLeft,
+    "DirectionRight", TileState::directionRight,
+    "DirectionUp", TileState::directionUp,
+    "Empty", TileState::empty,
+    "Grass", TileState::grass,
+    "Hidden", TileState::hidden,
+    "Holy", TileState::holy,
+    "Ice", TileState::ice,
+    "Lava", TileState::lava,
+    "Normal", TileState::normal,
+    "Poison", TileState::poison,
+    "Volcano", TileState::volcano
+  );
+
   auto& defense_order_table = state.new_enum("DefenseOrder",
     "Always", DefenseOrder::always,
     "CollisionOnly", DefenseOrder::collisionOnly
@@ -536,13 +591,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "flags", &Hit::Properties::flags
   );
 
-  /**
-    int damage{};
-    Flags flags{ none };
-    Element element{ Element::none };
-    Character* aggressor{ nullptr };
-    Direction drag{ Direction::none }; // Used by dragging payload
-  */
   state.set_function("MakeHitProps", 
     [](int damage, Hit::Flags flags, Element element, Character* aggressor, Hit::Drag drag) {
       return Hit::Properties{
@@ -562,81 +610,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       return frames(num);
     }
   );
-
-  /*
-  * // Script for field class support
-  try {
-    state.script(
-      "--[[This system EXPECTS type Entity to have a GetID() function"
-      "call to return a unique identifier"
-      "--]]"
-
-      "Handles = {}"
-      "local memoizedFuncs = {}"
-
-      "-- metatable which caches function calls"
-      "local mt = {}"
-      "mt.__index = function(handle, key)"
-      "  if not handle.isValid then"
-      "    print(debug.traceback())"
-      "    error('Error: handle is not valid!', 2)"
-      "  end"
-
-      "  local f = memoizedFuncs[key]"
-      "     if not f then"
-      "       if handle.classType == 'Entity' then"
-      "         f = function(handle, ...) return Battle.Entity[key](handle.cppRef, ...) end"
-      "       elseif handle.classType == 'Character' then"
-      "         f = function(handle, ...) return Battle.Character[key](handle.cppRef, ...) end"
-      "       end"
-
-      "       memoizedFuncs[key] = f"
-      "     end"
-      "  return f"
-      "end"
-
-      "-- exception catcher to avoid problems in C++"
-      "function getWrappedSafeFunction(f)"
-      "  return function(handle, ...)"
-      "    if not handle.isValid then"
-      "      print(debug.traceback())"
-      "      error('Error: handle is not valid!', 2)"
-      "    end"
-
-      "    return f(handle.cppRef, ...)"
-      "  end"
-      "end"
-
-      "-- To be called at the beginning of an Entity's lifetime"
-      "  function createHandle(cppRef, classType)"
-      "  local handle = {"
-      "      cppRef = cppRef,"
-      "      classType = classType,"
-      "      isValid = true"
-      "  }"
-
-      "-- speedy access without __index call"
-      "-- decrease call - time and wraps in an exception - catcher:"
-      "-- handle.getName = getWrappedSafeFunction(Entity.getName)"
-
-      "setmetatable(handle, mt)"
-      "  Handles[cppRef:GetID()] = handle"
-      "  return handle"
-      "end"
-
-      "-- To be called at the end of an Entity's lifetime"
-      "function onEntityRemoved(cppRef)"
-      "  local handle = Handles[cppRef:GetID()];"
-      "  handle.cppRef = nil"
-      "  handle.isValid = false"
-      "  Handles[cppRef:GetID()] = nil"
-      "end"
-    );
-  }
-  catch (const sol::error& err) {
-    Logger::Logf("[ShaderResourceManager] Something went wrong while configuring the environment: thrown error, %s", err.what());
-  }
-  */
 }
 
 ScriptResourceManager& ScriptResourceManager::GetInstance()
@@ -669,5 +642,41 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
   auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
+}
+
+void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::string& path)
+{
+  auto iter = characterFQN.find(fqn);
+
+  if (iter == characterFQN.end()) {
+    auto& res = LoadScript(path);
+
+    if (res.result.valid()) {
+      characterFQN[fqn] = path;
+    }
+    else {
+      sol::error error = res.result;
+      Logger::Logf("Failed to Require character with FQN %s. Reason: %s", fqn.c_str(), error.what());
+
+      // bubble up to end this scene from loading that needs this character...
+      throw std::exception(error.what());
+    }
+  }
+}
+
+sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)
+{
+  auto iter = characterFQN.find(fqn);
+
+  if (iter != characterFQN.end()) {
+    return LoadScript(iter->second).state;
+  }
+
+  // else miss
+  return nullptr;
+}
+
+const std::string& ScriptResourceManager::CharacterToModpath(const std::string& fqn) {
+  return characterFQN[fqn];
 }
 #endif

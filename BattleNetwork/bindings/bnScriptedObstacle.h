@@ -45,4 +45,20 @@ private:
   AnimationComponent* animComponent{ nullptr };
   DefenseRule* obstacleBody{ nullptr };
 };
+
+//
+// class ScriptedIntroState : public AIState<ScriptedCharacter> 
+// 
+void ScriptedMob::ScriptedIntroState::OnEnter(ScriptedCharacter& context)
+{
+  context
+}
+
+void ScriptedMob::ScriptedIntroState::OnUpdate(double _elapsed, ScriptedCharacter& context)
+{
+}
+
+void ScriptedMob::ScriptedIntroState::OnLeave(ScriptedCharacter& context)
+{
+}
 #endif

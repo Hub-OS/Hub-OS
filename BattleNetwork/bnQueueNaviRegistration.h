@@ -120,8 +120,10 @@ static inline void QueuNaviRegistration() {
       sol::state& state = *res.state;
       auto customInfo = NAVIS.AddClass<ScriptedPlayer>(std::ref(state));
 
-      // run script on meta info object
+      // Sets the predefined _modpath variable
       state["_modpath"] = modpath;
+
+      // run script on meta info object
       state["roster_init"](customInfo);
     }
     else {

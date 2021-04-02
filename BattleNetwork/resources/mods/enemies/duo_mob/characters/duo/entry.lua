@@ -175,6 +175,7 @@ function Mine(duo)
     miscAnim:Refresh(mine.node:Sprite())
 
     mine.updateFunc = function(self, dt) 
+        print("updating mine")
         local tile = self:Tile()
 
         -- every frame try to attack shared tile
@@ -238,7 +239,7 @@ function Mine(duo)
 
     mine.deleteFunc = function(self) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():SpawnFX(explosion, self:Tile():X(), self:Tile():Y())
+        self:Field():Spawn(explosion, self:Tile():X(), self:Tile():Y())
         self:Remove()
     end
 
@@ -315,12 +316,15 @@ function LaserBeam(duo)
     end
 
     laser.onSpawnFunc = function(self, tile) 
-       local hitbox = Battle.Hitbox.new(self:Team())
-       hitbox:SetHitProps(self:GetHitProps())
+       local count = 1
        local dest = self:GetTile(Direction.Left, 1)
 
-       if dest ~= nil then
+       while dest ~= nil do
+            count = count + 1
+            local hitbox = Battle.Hitbox.new(self:Team())
+            hitbox:SetHitProps(self:GetHitProps())
             self:Field():Spawn(hitbox, dest:X(), dest:Y())
+            dest = self:GetTile(Direction.Left, count)
        end
     end
 
@@ -352,6 +356,8 @@ function Missile(duo)
     missileAnim:SetPlayback(Playback.Loop)
 
     missile.updateFunc = function(self, dt) 
+        print("updating missile")
+
         self.waitTimer = self.waitTimer - dt
         if(self.waitTimer > 0) then 
             return 
@@ -377,13 +383,13 @@ function Missile(duo)
 
     missile.attackFunc = function(self, other) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():SpawnFX(explosion, self:Tile():X(), self:Tile():Y())
+        self:Field():Spawn(explosion, self:Tile():X(), self:Tile():Y())
         self:Delete()
     end
 
     missile.deleteFunc = function(self) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():SpawnFX(explosion, self:Tile():X(), self:Tile():Y())
+        self:Field():Spawn(explosion, self:Tile():X(), self:Tile():Y())
     end
 
     missile.canMoveToFunc = function(tile)
@@ -546,7 +552,6 @@ function MoveState(self, dt)
         
         waitTime = waitTime - dt
 
-
         -- pause before moving again
         if waitTime <= 0 then
             if dir == Direction.Up then 
@@ -574,7 +579,7 @@ function MoveState(self, dt)
     end 
 end
 
-function battle_init(self) 
+function battle_init(self)
     aiStateIndex = 1
     aiState = { 
         SetWaitTimer(IDLE_TIME),
@@ -654,8 +659,9 @@ function battle_init(self)
 
     self.defense.filterStatusesFunc = function(props) 
         print("inside filterStatusesFunc")
-
-        props.flags = props.flags~Hit.Flinch
+        if props.flags & Hit.Flinch == Hit.Flinch then
+            props.flags = props.flags~Hit.Flinch
+        end
         return props
     end
 
@@ -681,7 +687,6 @@ function on_battle_end(self)
 end
 
 function on_spawn(self, tile) 
-    StreamMusic(_modpath.."music.ogg", true)
     print("on_spawn called")
 end
 

@@ -5,12 +5,23 @@
 #include <sol/sol.hpp>
 
 #include "../bnMobFactory.h"
+#include "../bnResourceHandle.h"
+#include "bnScriptedCharacter.h"
 
-class ScriptedMob : public MobFactory
+class ScriptedMob : public MobFactory, public ResourceHandle
 {
   private:
   sol::state& script;
+  Mob* mob{ nullptr }; //!< ptr for scripts to access
 public:
+  class ScriptedSpawner : public Mob::Spawner<ScriptedCharacter> {
+  public:
+    ScriptedSpawner(sol::state& script, const std::string& fqn);
+    ~ScriptedSpawner();
+
+    void SpawnAt(int x, int y);
+  };
+
   ScriptedMob(Field* field, sol::state& script);
   ~ScriptedMob();
 
@@ -19,5 +30,15 @@ public:
    * @return Mob*
    */
   Mob* Build();
+
+  /**
+  * @brief Creates a spawner object that loads a scripted or built-in character by its Fully Qualified Names (FQN) 
+  * @param fqn String. The name of the character stored in script cache. Use `BuiltIns.NAME` prefix for built-in characters.
+  * @preconditions The mob `load_script` function should never throw an exception prior to using this function.
+  */
+  ScriptedSpawner CreateSpawner(const std::string& fqn);
+
+  void SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely);
+  void StreamMusic(const std::string& path);
 };
 #endif

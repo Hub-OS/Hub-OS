@@ -128,28 +128,27 @@ static inline void QueueMobRegistration() {
   // Script resource manager load scripts from designated folder "resources/mods/players"
   std::string path = "resources/mods/enemies";
   for (const auto& entry : std::filesystem::directory_iterator(path)) {
-    const auto& path = entry.path();
-    std::string mobName = path.filename().string();
-    std::string modpath = path.string() + "/";
-    auto& res = handle.Scripts().LoadScript(modpath + "entry.lua");
+    try {
+      const auto& path = entry.path();
+      std::string mobName = path.filename().string();
+      std::string modpath = path.string() + "/";
+      auto& res = handle.Scripts().LoadScript(modpath + "mob.lua");
 
-    if (res.result.valid()) {
-      sol::state& state = *res.state;
-      auto customInfo = MOBS.AddClass<ScriptedMob>(std::ref(state));  // Create and register mob info object
-      customInfo->SetDescription("Test to load mobs from lua"); // Set property
-      customInfo->SetName("Scripted Mob");
-      customInfo->SetPlaceholderTexturePath("");
-      customInfo->SetSpeed(0);
-      customInfo->SetAttack(0);
-      customInfo->SetHP(0);
+      if (res.result.valid()) {
+        sol::state& state = *res.state;
+        auto customInfo = MOBS.AddClass<ScriptedMob>(std::ref(state));  // Create and register mob info object
 
-      // run script on meta info object
-      state["_modpath"] = modpath;
-      //state["roster_init"](customInfo);
+        // run script on meta info object
+        state["_modpath"] = modpath;
+        state["roster_init"](customInfo);
+      }
+      else {
+        sol::error error = res.result;
+        Logger::Logf("Failed to load mob mod %s. Reason: %s", mobName.c_str(), error.what());
+      }
     }
-    else {
-      sol::error error = res.result;
-      Logger::Logf("Failed to load mob mod %s. Reason: %s", mobName.c_str(), error.what());
+    catch (...) {
+      // TODO: log here?
     }
   }
 #endif

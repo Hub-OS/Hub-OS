@@ -11,6 +11,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include "bindings\bnScriptedMob.h"
 
 /*! \brief Manages spawning and deleting the enemy mob and delivers a reward based on rank */
 class Mob
@@ -249,7 +250,7 @@ Mob::Spawner<ClassType> Mob::CreateSpawner(Args&&... args) {
 
 template<class ClassType>
 class Mob::Spawner {
-private:
+protected:
   std::function<ClassType*()> constructor;
   Mob* mob{ nullptr };
 public:
@@ -267,6 +268,9 @@ public:
       return new ClassType();
     };
   }
+
+  // virtual deconstructor for inheritence
+  virtual ~Spawner() { }
 
   template<template<typename> class IntroState>
   Mutator* SpawnAt(unsigned x, unsigned y) {
@@ -291,8 +295,6 @@ public:
 
     auto mutator = new Mutator(data);
 
-    // TODO: custom intro invokers like Alpha?
-    //
     // Thinking we need to remove AI inheritence and be another component on its own
     Mob* mobPtr = this->mob;
     auto pixelStateInvoker = [mobPtr](Character* character) {

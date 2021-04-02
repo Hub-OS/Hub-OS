@@ -5,19 +5,19 @@
 
 enum class TileState : int {
   normal = 0,
-  cracked = 1,
-  broken = 2,
-  ice = 3,
-  grass = 4,
-  lava = 5,
-  poison = 6,
-  empty = 7,
-  holy = 9,
-  directionLeft = 10,
-  directionRight = 11,
-  directionUp = 12,
-  directionDown = 13,
-  volcano = 14,
-  hidden = 15, // immutable
-  size = 16
+  cracked,
+  broken,
+  ice,
+  grass,
+  lava,
+  poison,
+  empty,
+  holy,
+  directionLeft,
+  directionRight,
+  directionUp,
+  directionDown,
+  volcano,
+  hidden, // immutable
+  size // no a valid state! used for enum length
 };

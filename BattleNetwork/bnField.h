@@ -193,7 +193,7 @@ public:
 
 #ifdef BN_MOD_SUPPORT
   AddEntityStatus AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
-  AddEntityStatus AddEntity(std::unique_ptr<ScriptedObstacle>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
+  AddEntityStatus AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
 #endif
 
 private:
