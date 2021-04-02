@@ -24,6 +24,7 @@
 #include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
 #include "bindings/bnScriptedDefenseRule.h"
+#include "bindings/bnScriptedMob.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"

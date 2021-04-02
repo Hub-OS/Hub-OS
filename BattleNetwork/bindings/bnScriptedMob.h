@@ -5,15 +5,17 @@
 #include <sol/sol.hpp>
 
 #include "../bnMobFactory.h"
+#include "../bnMob.h"
 #include "../bnResourceHandle.h"
 #include "bnScriptedCharacter.h"
 
 class ScriptedMob : public MobFactory, public ResourceHandle
 {
-  private:
+private:
   sol::state& script;
   Mob* mob{ nullptr }; //!< ptr for scripts to access
 public:
+  // ScriptedSpawner wrapper for scripted mobs...
   class ScriptedSpawner : public Mob::Spawner<ScriptedCharacter> {
   public:
     ScriptedSpawner(sol::state& script, const std::string& fqn);

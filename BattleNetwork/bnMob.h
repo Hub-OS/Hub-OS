@@ -11,7 +11,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
-#include "bindings\bnScriptedMob.h"
+#include <type_traits>
 
 /*! \brief Manages spawning and deleting the enemy mob and delivers a reward based on rank */
 class Mob
@@ -231,11 +231,28 @@ public:
    * @param Args... constructor arguments for deferred loading
    * @return Spawner<> object to reuse
    */
+  template<class ClassType>
+  Spawner<ClassType> CreateSpawner();
+
+  // with args...
   template<class ClassType, typename... Args>
   Spawner<ClassType> CreateSpawner(Args&&...);
 
+
+
   void Track(Character& character);
 };
+
+//
+// Mob::CreateSpawner() function implementations...
+//
+
+template<class ClassType>
+Mob::Spawner<ClassType> Mob::CreateSpawner() {
+  auto item = Mob::Spawner<ClassType>();
+  item.SetMob(this);
+  return item;
+}
 
 template<class ClassType, typename... Args>
 Mob::Spawner<ClassType> Mob::CreateSpawner(Args&&... args) {
@@ -254,18 +271,21 @@ protected:
   std::function<ClassType*()> constructor;
   Mob* mob{ nullptr };
 public:
-  // c-tors with arguments
-  template<typename... Args>
-  Spawner(Args&&... args) {
-    constructor = [args = std::make_tuple(std::forward<decltype(args)>(args)...)] () mutable -> ClassType* {
-      return stx::make_ptr_from_tuple<ClassType>(args);
+  // ctors with zero arguments (or default args are provided)
+  Spawner() {
+    constructor = []() mutable {
+      return new ClassType();
     };
   }
 
-  // c-tors with zero arguments (or default args are provided)
-  Spawner() {
-    constructor = [] () mutable {
-      return new ClassType();
+  // copy ctor
+  Spawner(const Spawner& rhs) : constructor(rhs.constructor), mob(rhs.mob) {}
+
+  // c-tors with arguments (std::enable_if_t prevents matching with the copy ctor)
+  template<typename... Args, typename std::enable_if_t<!std::is_convertible<Args&&..., const Spawner&>::value>* = nullptr>
+  Spawner(Args&&... args) {
+    constructor = [tuple_args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable->ClassType* {
+      return stx::make_ptr_from_tuple<ClassType>(tuple_args);
     };
   }
 

@@ -349,7 +349,12 @@ void SelectMobScene::onUpdate(double elapsed) {
   if (Input().Has(InputEvents::pressed_confirm) && !gotoNextScene) {
     
     if (MOBS.Size() != 0) {
-      mob = MOBS.At(mobSelectionIndex).GetMob();
+      try {
+        mob = MOBS.At(mobSelectionIndex).GetMob();
+      }
+      catch (...) {
+        mob = nullptr;
+      }
     }
 
     if (!mob) {

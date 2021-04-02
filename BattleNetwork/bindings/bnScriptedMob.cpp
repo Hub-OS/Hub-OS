@@ -56,8 +56,10 @@ ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn)
 }
 void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely)
 {
-  auto texture = Texture().loadFromFile(bgTexturePath);
-  std::shared_ptr<Background> background = std::make_shared<CustomBackground>(bgTexturePath, animPath, sf::Vector2f{ velx, vely });
+  auto texture = Textures().LoadTextureFromFile(bgTexturePath);
+  auto anim = Animation(animPath);
+  auto vel = sf::Vector2f{ velx, vely };
+  std::shared_ptr<Background> background = std::make_shared<CustomBackground>(texture, anim, vel);
   mob->SetBackground(background);
 }
 
