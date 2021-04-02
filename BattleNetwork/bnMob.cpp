@@ -121,7 +121,7 @@ std::shared_ptr<Background> Mob::GetBackground() {
   return background;
 }
 
-void Mob::StreamCustomMusic(const std::string path) {
+void Mob::StreamCustomMusic(const std::string& path) {
   music = path;
 }
 

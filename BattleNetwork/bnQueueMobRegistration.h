@@ -140,6 +140,11 @@ static inline void QueueMobRegistration() {
 
         // run script on meta info object
         state["_modpath"] = modpath;
+
+        // load any required mods for these scripts
+        state["load_scripts"]();
+
+        // set roster properties for this mob
         state["roster_init"](customInfo);
       }
       else {

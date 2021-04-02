@@ -449,7 +449,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   auto& scriptedmob_table = engine_namespace.new_usertype<ScriptedMob>("Mob",
     "CreateSpawner", &ScriptedMob::CreateSpawner,
     "SetBackground", &ScriptedMob::SetBackground,
-    "StreamMusic", &ScriptedMob::StreamMusic
+    "StreamMusic", &ScriptedMob::StreamMusic,
+    "Field", &ScriptedMob::GetField
   );
 
   auto& scriptedspawner_table = engine_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
@@ -458,7 +459,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   engine_namespace.set_function("DefineCharacter",
     [this](const std::string& fqn, const std::string& path) {
-      this->DefineCharacter(fqn, path+"/entry.lua");
+      this->DefineCharacter(fqn, path);
     }
   );
 
@@ -650,7 +651,7 @@ void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::s
   auto iter = characterFQN.find(fqn);
 
   if (iter == characterFQN.end()) {
-    auto& res = LoadScript(path);
+    auto& res = LoadScript(path+"/entry.lua");
 
     if (res.result.valid()) {
       characterFQN[fqn] = path;
@@ -670,7 +671,7 @@ sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)
   auto iter = characterFQN.find(fqn);
 
   if (iter != characterFQN.end()) {
-    return LoadScript(iter->second).state;
+    return LoadScript(iter->second+"/entry.lua").state;
   }
 
   // else miss

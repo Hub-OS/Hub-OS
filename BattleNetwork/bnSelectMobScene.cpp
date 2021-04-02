@@ -386,7 +386,9 @@ void SelectMobScene::onUpdate(double elapsed) {
 
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
-      mob->SetBackground(props.background);
+      if (!mob->GetBackground()) {
+        mob->SetBackground(props.background);
+      }
 
       MobBattleProperties props{ 
         { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },

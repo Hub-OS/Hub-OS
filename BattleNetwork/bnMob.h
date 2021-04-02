@@ -160,7 +160,7 @@ public:
    * @brief The battle scene will load this custom music
    * @param path path relative to the app 
    */
-  void StreamCustomMusic(const std::string path);
+  void StreamCustomMusic(const std::string& path);
 
   /**
    * @brief Checks if custom music path was set

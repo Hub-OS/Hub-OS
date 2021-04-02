@@ -18,7 +18,7 @@ public:
   // ScriptedSpawner wrapper for scripted mobs...
   class ScriptedSpawner : public Mob::Spawner<ScriptedCharacter> {
   public:
-    ScriptedSpawner(sol::state& script, const std::string& fqn);
+    ScriptedSpawner(sol::state& script, const std::string& path);
     ~ScriptedSpawner();
 
     void SpawnAt(int x, int y);
@@ -32,6 +32,7 @@ public:
    * @return Mob*
    */
   Mob* Build();
+  Field* GetField();
 
   /**
   * @brief Creates a spawner object that loads a scripted or built-in character by its Fully Qualified Names (FQN) 

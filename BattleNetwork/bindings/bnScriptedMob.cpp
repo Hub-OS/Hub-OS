@@ -8,13 +8,13 @@
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
 //
-ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& fqn) :
+ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path) :
   Mob::Spawner <ScriptedCharacter>(std::ref(script)) 
 { 
   auto lambda = this->constructor;
 
-  this->constructor = [lambda, fqn, scriptPtr=&script] () -> ScriptedCharacter* {
-    (*scriptPtr)["_modpath"] = fqn;
+  this->constructor = [lambda, path, scriptPtr=&script] () -> ScriptedCharacter* {
+    (*scriptPtr)["_modpath"] = path+"/";
 
     return lambda();
   };
@@ -46,13 +46,20 @@ ScriptedMob::~ScriptedMob()
 Mob* ScriptedMob::Build() {
   // Build a mob around the field input
   this->mob = new Mob(field);
-  script["build"](mob);
+  script["build"](this);
   return mob;
+}
+
+Field* ScriptedMob::GetField()
+{
+  return this->field;
 }
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn)
 {
-  return ScriptedSpawner(*this->Scripts().FetchCharacter(fqn), fqn);
+  auto obj = ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn));
+  obj.SetMob(this->mob);
+  return obj;
 }
 void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely)
 {
