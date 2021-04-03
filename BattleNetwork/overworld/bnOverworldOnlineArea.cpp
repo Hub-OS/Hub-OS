@@ -312,9 +312,14 @@ void Overworld::OnlineArea::OnInteract() {
   }
 
   auto positionInFrontOffset = frontPosition - playerActor->getPosition();
+  auto elevation = playerActor->GetElevation();
 
   for (const auto& other : GetSpatialMap().GetChunk(frontPosition.x, frontPosition.y)) {
     if (playerActor == other) continue;
+
+    auto elevationDifference = std::fabs(other->GetElevation() - elevation);
+
+    if (elevationDifference >= 1.0f) continue;
 
     auto collision = playerActor->CollidesWith(*other, positionInFrontOffset);
 
@@ -720,6 +725,7 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   auto tileSize = map.GetTileSize();
 
   this->ticket = reader.ReadString(buffer);
+  auto warpIn = reader.Read<bool>(buffer);
   auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
   auto y = reader.Read<float>(buffer) * tileSize.y;
   auto z = reader.Read<float>(buffer);
@@ -729,10 +735,17 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
 
   auto player = GetPlayer();
 
-  auto& command = GetTeleportController().TeleportIn(player, spawnPos, Orthographic(direction));
-  command.onFinish.Slot([=] {
+  if (warpIn) {
+    auto& command = GetTeleportController().TeleportIn(player, spawnPos, Orthographic(direction));
+    command.onFinish.Slot([=] {
+      GetPlayerController().ControlActor(player);
+    });
+  }
+  else {
+    player->Set3DPosition(spawnPos);
+    player->Face(Orthographic(direction));
     GetPlayerController().ControlActor(player);
-  });
+  }
 
   isConnected = true;
   sendReadySignal();
@@ -1418,16 +1431,19 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
 
 void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  uint8_t emote = reader.Read<uint8_t>(buffer);
-  std::string user = reader.ReadString(buffer);
+  auto emote = reader.Read<Emotes>(buffer);
+  auto user = reader.ReadString(buffer);
 
-  if (user == ticket) return;
+  if (user == ticket) {
+    SceneBase::OnEmoteSelected(emote);
+    return;
+  }
 
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
     auto& onlinePlayer = userIter->second;
-    onlinePlayer.emoteNode.Emote(static_cast<Overworld::Emotes>(emote));
+    onlinePlayer.emoteNode.Emote(emote);
   }
 }
 
