@@ -78,7 +78,7 @@ private:
 
   // We need a render surface to draw to so Swoosh ActivityController
   // can add screen transition effects from the title screen
-  sf::RenderTexture loadSurface;
+  sf::RenderTexture renderSurface;
 
   // total elapsed frame time
   frame_time_t elapsed{};

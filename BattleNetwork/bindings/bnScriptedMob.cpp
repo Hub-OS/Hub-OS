@@ -5,25 +5,29 @@
 #include "../bnScriptResourceManager.h"
 #include "../bnCustomBackground.h"
 
+// Builtins
+#include "../bnMettaur.h"
+#include "../bnCanodumb.h"
+
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
 //
-ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path) :
-  Mob::Spawner <ScriptedCharacter>(std::ref(script)) 
+ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path)
 { 
-  auto lambda = this->constructor;
+  scriptedSpawner = new Mob::Spawner <ScriptedCharacter>(std::ref(script));
+  auto lambda = scriptedSpawner->constructor;
 
-  this->constructor = [lambda, path, scriptPtr=&script] () -> ScriptedCharacter* {
+  scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> ScriptedCharacter* {
     (*scriptPtr)["_modpath"] = path+"/";
 
     return lambda();
   };
 }
 
-/*ScriptedMob::ScriptedSpawner::ScriptedSpawner(const std::string& builtin)
+ScriptedMob::ScriptedSpawner::ScriptedSpawner(const std::function<Character*()>& new_constructor)
 {
-
-}*/
+  this->builtInSpawner = new_constructor;
+}
 
 ScriptedMob::ScriptedSpawner::~ScriptedSpawner()
 {}
@@ -31,7 +35,12 @@ ScriptedMob::ScriptedSpawner::~ScriptedSpawner()
 void ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
 {
   // todo: swap out with ScriptedIntroState
-  Mob::Spawner <ScriptedCharacter>::SpawnAt<FadeInState>(x, y);
+ scriptedSpawner->SpawnAt<FadeInState>(x, y);
+}
+
+void ScriptedMob::ScriptedSpawner::SetMob(Mob* mob)
+{
+  scriptedSpawner->SetMob(mob);
 }
 
 //
@@ -62,10 +71,37 @@ Field* ScriptedMob::GetField()
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn)
 {
-  auto obj = ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn));
+  size_t builtin = fqn.find_first_of("BuiltIns.");
+
+  if (builtin == std::string::npos) {
+    auto obj = ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn));
+    obj.SetMob(this->mob);
+    return obj;
+  }
+
+  // else we are built in
+
+  if (fqn == "BuiltIns.Canodumb") {
+    auto makeCano = []() -> Character* {
+      return new Canodumb();
+    };
+    auto obj = ScriptedSpawner(makeCano);
+    obj.SetMob(this->mob);
+    return obj;
+  }
+
+  // else, none of the above? TODO: throw?
+  // for now spawn metts if nothing matches...
+  
+  // else if (fqn == "BuiltIns.Mettaur")
+  auto makeMet = []() -> Character* {
+    return new Mettaur();
+  };
+  auto obj = ScriptedSpawner(makeMet);
   obj.SetMob(this->mob);
   return obj;
 }
+
 void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely)
 {
   auto texture = Textures().LoadTextureFromFile(bgTexturePath);

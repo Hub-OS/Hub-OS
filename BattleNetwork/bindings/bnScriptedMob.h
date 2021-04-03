@@ -14,15 +14,19 @@ class ScriptedMob : public MobFactory, public ResourceHandle
 private:
   sol::state& script;
   Mob* mob{ nullptr }; //!< ptr for scripts to access
+
 public:
   // ScriptedSpawner wrapper for scripted mobs...
-  class ScriptedSpawner : public Mob::Spawner<ScriptedCharacter> {
+  class ScriptedSpawner  {
+    Mob::Spawner<ScriptedCharacter>* scriptedSpawner{ nullptr };
+    std::function<Character* ()> builtInSpawner;
   public:
     ScriptedSpawner(sol::state& script, const std::string& path);
-    // ScriptedSpawner(const std::string& builtin);
+    ScriptedSpawner(const std::function<Character*()>& );
     ~ScriptedSpawner();
 
     void SpawnAt(int x, int y);
+    void SetMob(Mob* mob);
   };
 
   ScriptedMob(Field* field, sol::state& script);

@@ -60,10 +60,10 @@ Game::Game(DrawWindow& window) :
   unsigned int win_x = static_cast<unsigned int>(window.GetView().getSize().x);
   unsigned int win_y = static_cast<unsigned int>(window.GetView().getSize().y);
 
-  loadSurface.create(win_x, win_y, window.GetRenderWindow()->getSettings());
+  renderSurface.create(win_x, win_y, window.GetRenderWindow()->getSettings());
 
   // Use our external render surface as the game's screen
-  window.SetRenderSurface(loadSurface);
+  window.SetRenderSurface(renderSurface);
 }
 
 Game::~Game() {

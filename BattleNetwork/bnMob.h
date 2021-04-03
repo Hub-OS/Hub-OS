@@ -271,6 +271,8 @@ protected:
   std::function<ClassType*()> constructor;
   Mob* mob{ nullptr };
 public:
+  friend class ScriptedMob;
+
   // ctors with zero arguments (or default args are provided)
   Spawner() {
     constructor = []() mutable {

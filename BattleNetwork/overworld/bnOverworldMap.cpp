@@ -271,7 +271,7 @@ namespace Overworld {
     auto totalLayers = layers.size();
 
     if (layerIndex >= totalLayers) {
-      layerIndex = totalLayers - 1;
+      layerIndex = (int)totalLayers - 1;
     } else if (layerIndex < 0) {
       layerIndex = 0;
     }
