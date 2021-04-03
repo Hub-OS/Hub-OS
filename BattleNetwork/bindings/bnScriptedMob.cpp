@@ -20,6 +20,11 @@ ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::str
   };
 }
 
+/*ScriptedMob::ScriptedSpawner::ScriptedSpawner(const std::string& builtin)
+{
+
+}*/
+
 ScriptedMob::ScriptedSpawner::~ScriptedSpawner()
 {}
 

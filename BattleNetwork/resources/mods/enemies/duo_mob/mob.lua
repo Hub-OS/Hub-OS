@@ -1,11 +1,3 @@
-function roster_init(info) 
-    info:SetName("Dangerous Duo")
-    info:SetDescription("... Duo is back too? The nightmare never ends!")
-    info:SetSpeed(1)
-    info:SetAttack(100)
-    info:SetHP(3000)
-end
-
 function load_scripts()
     -- Tries to fetch the scripted character from the engine by namespace
     -- Note: most scripts won't have access to the files outside of the mod
@@ -17,6 +9,14 @@ function load_scripts()
     print("Before defined character!")
     Engine.DefineCharacter("Example.Duo", _modpath.."characters/duo")
     print("Defined character!")
+end
+
+function roster_init(info) 
+    info:SetName("Dangerous Duo")
+    info:SetDescription("Duo is back too? The nightmare never ends!")
+    info:SetSpeed(1)
+    info:SetAttack(100)
+    info:SetHP(3000)
 end
 
 function build(mob) 

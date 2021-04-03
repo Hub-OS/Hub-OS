@@ -20,7 +20,7 @@ void main()
     vec2 texCoord = gl_TexCoord[0].xy;
 
     // Make its lower-left be at (0,0) and it's upper right be at (1,1)
-    texCoord = (texCoord - origin) / size;
+    texCoord = texCoord / size;
 
     // Apply the offest
     texCoord = texCoord + vec2(offsetx,offsety);

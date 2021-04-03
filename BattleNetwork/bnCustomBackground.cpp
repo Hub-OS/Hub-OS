@@ -11,6 +11,8 @@ CustomBackground::CustomBackground(const std::shared_ptr<Texture>& texture, cons
   this->animation << Animator::Mode::Loop;
 
   sf::Vector2u textureSize = texture->getSize();
+  textureSize.x = std::min(textureSize.x, 240u);
+  textureSize.y = std::min(textureSize.y, 180u);
 
   if (this->animation.HasAnimation("BG")) {
     auto& frameList = this->animation.GetFrameList("BG");

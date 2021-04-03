@@ -146,7 +146,7 @@ public:
     states.transform *= getTransform();
 
     // apply the tileset texture
-    states.texture = &*texture;
+    states.texture = &(*texture);
 
     sf::Vector2u size = texture->getSize();
 

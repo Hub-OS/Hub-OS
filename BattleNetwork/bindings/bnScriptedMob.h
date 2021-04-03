@@ -19,6 +19,7 @@ public:
   class ScriptedSpawner : public Mob::Spawner<ScriptedCharacter> {
   public:
     ScriptedSpawner(sol::state& script, const std::string& path);
+    // ScriptedSpawner(const std::string& builtin);
     ~ScriptedSpawner();
 
     void SpawnAt(int x, int y);
