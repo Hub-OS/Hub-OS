@@ -312,9 +312,14 @@ void Overworld::OnlineArea::OnInteract() {
   }
 
   auto positionInFrontOffset = frontPosition - playerActor->getPosition();
+  auto elevation = playerActor->GetElevation();
 
   for (const auto& other : GetSpatialMap().GetChunk(frontPosition.x, frontPosition.y)) {
     if (playerActor == other) continue;
+
+    auto elevationDifference = std::fabs(other->GetElevation() - elevation);
+
+    if (elevationDifference >= 1.0f) continue;
 
     auto collision = playerActor->CollidesWith(*other, positionInFrontOffset);
 
