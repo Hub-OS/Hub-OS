@@ -6,9 +6,7 @@ function load_scripts()
 
     -- Creates a new namespace to the script and contents
     -- Note: if conflicts will throw
-    print("Before defined character!")
     Engine.DefineCharacter("Example.Duo", _modpath.."characters/duo")
-    print("Defined character!")
 end
 
 function roster_init(info) 
@@ -17,6 +15,7 @@ function roster_init(info)
     info:SetSpeed(1)
     info:SetAttack(100)
     info:SetHP(3000)
+    info:SetPreviewTexturePath(_modpath.."preview.png")
 end
 
 function build(mob) 
@@ -24,26 +23,14 @@ function build(mob)
     local texPath = _modpath.."background.png"
     local animPath = _modpath.."background.animation"
     mob:SetBackground(texPath, animPath, -1.4, 0.0)
-
-    print("Background set")
-
     mob:StreamMusic(_modpath.."music.ogg")
-
-    print("Music set!")
 
     for i=1,3 do
         mob:Field():TileAt(5, i):SetState(TileState.Hidden)
         mob:Field():TileAt(6, i):SetState(TileState.Hidden)
     end
 
-    print("field set!")
-
     local duo_spawner = mob:CreateSpawner("Example.Duo")
-
-    print("spawner created!")
-
     -- duo_spawner:SpawnAt(5,2,Duo.custom_intro)
     duo_spawner:SpawnAt(5, 2)
-
-    print("Duo spawned")
 end

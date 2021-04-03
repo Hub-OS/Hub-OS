@@ -136,24 +136,27 @@ static inline void QueueMobRegistration() {
 
       if (res.result.valid()) {
         sol::state& state = *res.state;
-        auto customInfo = MOBS.AddClass<ScriptedMob>(std::ref(state));  // Create and register mob info object
 
         // run script on meta info object
         state["_modpath"] = modpath;
 
         // load any required mods for these scripts
-        state["load_scripts"]();
+        auto function_result = state["load_scripts"]();
 
-        // set roster properties for this mob
-        state["roster_init"](customInfo);
+        if (function_result.valid()) {
+          // set roster properties for this mob
+          auto customInfo = MOBS.AddClass<ScriptedMob>(std::ref(state));  // Create and register mob info object
+          state["roster_init"](customInfo);
+        }
       }
       else {
         sol::error error = res.result;
         Logger::Logf("Failed to load mob mod %s. Reason: %s", mobName.c_str(), error.what());
       }
     }
-    catch (...) {
-      // TODO: log here?
+    catch (std::exception& stderror) {
+      Logger::Logf("Failed to load mob at %s. Reason: %s", entry.path().c_str(), stderror.what());
+      continue;
     }
   }
 #endif

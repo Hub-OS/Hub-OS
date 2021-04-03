@@ -10,13 +10,14 @@ function roster_init(info)
   info:SetSpeed(999)
   info:SetAttack(999)
   info:SetHP(9999)
+  info:SetPreviewTexturePath(_modpath.."preview.png")
 end
 
 function build(mob) 
   local duo_spawner = mob:CreateSpawner("Example.Duo")
   duo_spawner:SpawnAt(5, 2)
   
-  local met_spawner = mob:CreateSpawner("BuiltIns.Mettaur")
+  local met_spawner = mob:CreateSpawner("BuiltIns.Canodumb")
   met_spawner:SpawnAt(4, 1)
   met_spawner:SpawnAt(4, 3)
 end

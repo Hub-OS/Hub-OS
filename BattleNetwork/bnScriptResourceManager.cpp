@@ -465,6 +465,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   engine_namespace.set_function("RequiresCharacter",
     [this](const std::string& fqn) {
+      // Handle built-ins...
+      auto builtins = { "BuiltIns.Canodumb", "BuiltIns.Mettaur" };
+      for (auto&& match : builtins) {
+        if (fqn == match) return;
+      }
+
       if (this->FetchCharacter(fqn) == nullptr) {
         std::string msg = "Failed to Require character with FQN " + fqn;
         Logger::Log(msg);
@@ -641,7 +647,7 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   ConfigureEnvironment(*lua);
   states.push_back(lua);
 
-  auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
+  auto load_result = lua->safe_script_file(path, sol::script_throw_on_error);
   auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }
