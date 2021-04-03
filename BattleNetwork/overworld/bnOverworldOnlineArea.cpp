@@ -344,11 +344,12 @@ void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t 
     getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, data, maxPayloadSize, !WEBCLIENT.IsLoggedIn());
   };
 
-  if(warpOut) {
+  if (warpOut) {
     GetPlayerController().ReleaseActor();
     auto& command = teleportController.TeleportOut(GetPlayer());
     command.onFinish.Slot(transfer);
-  } else {
+  }
+  else {
     transfer();
   }
 
@@ -410,7 +411,7 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
           receiveTransferServerSignal(reader, data);
           break;
         case ServerEvents::kick:
-          if(!transferringServers) {
+          if (!transferringServers) {
             // ignore kick signal if we're leaving anyway
             receiveKickSignal(reader, data);
           }
@@ -1218,12 +1219,17 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 
   if (user == ticket) return;
 
-  auto [pair, success] = onlinePlayers.emplace(user, name);
-
-  if (!success) return;
+  // ignore success, update if this player already exists
+  auto [pair, isNew] = onlinePlayers.emplace(user, name);
 
   auto& ticket = pair->first;
   auto& onlinePlayer = pair->second;
+
+  // cancel possible removal since we're trying to add this user back
+  removePlayers.remove(user);
+  onlinePlayer.disconnecting = false;
+
+  // update
   onlinePlayer.timestamp = CurrentTime::AsMilli();
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
@@ -1241,20 +1247,24 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   auto& emoteNode = onlinePlayer.emoteNode;
   float emoteY = -actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2 - 1;
   emoteNode.setPosition(0, emoteY);
-  actor->AddNode(&emoteNode);
-
-  actor->SetSolid(solid);
-  actor->CollideWithMap(false);
-  actor->SetCollisionRadius(6);
-  actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with) {
-    sendNaviInteractionSignal(ticket);
-  });
-
-  AddActor(actor);
 
   auto& teleportController = onlinePlayer.teleportController;
-  teleportController.EnableSound(false);
-  AddSprite(teleportController.GetBeam());
+
+  if (isNew) {
+    // add nodes to the scene base
+    teleportController.EnableSound(false);
+    AddSprite(teleportController.GetBeam());
+
+    actor->AddNode(&emoteNode);
+    actor->SetSolid(solid);
+    actor->CollideWithMap(false);
+    actor->SetCollisionRadius(6);
+    actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with) {
+      sendNaviInteractionSignal(ticket);
+    });
+
+    AddActor(actor);
+  }
 
   if (warpIn) {
     teleportController.TeleportIn(actor, pos, Direction::none);
@@ -1273,12 +1283,28 @@ void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, 
   }
 
   auto& onlinePlayer = userIter->second;
+
+  onlinePlayer.disconnecting = true;
+
   auto actor = onlinePlayer.actor;
 
   if (warpOut) {
     auto& teleport = onlinePlayer.teleportController;
     teleport.TeleportOut(actor).onFinish.Slot([=] {
-      removePlayers.push_back(user);
+
+      // search for the player again, in case they were already removed
+      auto userIter = this->onlinePlayers.find(user);
+
+      if (userIter == this->onlinePlayers.end()) {
+        return;
+      }
+
+      auto& onlinePlayer = userIter->second;
+
+      // make sure this player is still disconnecting
+      if (onlinePlayer.disconnecting) {
+        removePlayers.push_back(user);
+      }
     });
   }
   else {

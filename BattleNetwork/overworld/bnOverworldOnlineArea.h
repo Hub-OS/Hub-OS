@@ -21,6 +21,7 @@ namespace Overworld {
     std::shared_ptr<Overworld::Actor> actor;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
+    bool disconnecting{ false };
     Direction idleDirection;
     sf::Vector3f startBroadcastPos{};
     sf::Vector3f endBroadcastPos{};
