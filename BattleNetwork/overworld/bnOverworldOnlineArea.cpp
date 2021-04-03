@@ -725,6 +725,7 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   auto tileSize = map.GetTileSize();
 
   this->ticket = reader.ReadString(buffer);
+  auto warpIn = reader.Read<bool>(buffer);
   auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
   auto y = reader.Read<float>(buffer) * tileSize.y;
   auto z = reader.Read<float>(buffer);
@@ -734,10 +735,17 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
 
   auto player = GetPlayer();
 
-  auto& command = GetTeleportController().TeleportIn(player, spawnPos, Orthographic(direction));
-  command.onFinish.Slot([=] {
+  if (warpIn) {
+    auto& command = GetTeleportController().TeleportIn(player, spawnPos, Orthographic(direction));
+    command.onFinish.Slot([=] {
+      GetPlayerController().ControlActor(player);
+    });
+  }
+  else {
+    player->Set3DPosition(spawnPos);
+    player->Face(Orthographic(direction));
     GetPlayerController().ControlActor(player);
-  });
+  }
 
   isConnected = true;
   sendReadySignal();
