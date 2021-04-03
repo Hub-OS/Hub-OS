@@ -1423,16 +1423,19 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
 
 void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  uint8_t emote = reader.Read<uint8_t>(buffer);
-  std::string user = reader.ReadString(buffer);
+  auto emote = reader.Read<Emotes>(buffer);
+  auto user = reader.ReadString(buffer);
 
-  if (user == ticket) return;
+  if (user == ticket) {
+    SceneBase::OnEmoteSelected(emote);
+    return;
+  }
 
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
     auto& onlinePlayer = userIter->second;
-    onlinePlayer.emoteNode.Emote(static_cast<Overworld::Emotes>(emote));
+    onlinePlayer.emoteNode.Emote(emote);
   }
 }
 
