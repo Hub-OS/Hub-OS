@@ -1045,7 +1045,7 @@ void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, con
       auto object_ref = optional_object_ref.value();
       auto& object = object_ref.get();
 
-      ExcludedObjectData excludedData;
+      ExcludedObjectData excludedData{};
       excludedData.visible = object.visible;
       excludedData.solid = object.solid;
 

@@ -64,6 +64,8 @@ private:
   std::shared_ptr<Background> background; /*!< Override with custom background */
 
 public:
+  friend class ScriptedMob;
+
   // forward decl
   template<class ClassType> class Spawner;
 

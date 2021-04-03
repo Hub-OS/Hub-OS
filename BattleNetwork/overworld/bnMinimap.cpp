@@ -355,11 +355,16 @@ Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
 
   bgColor = rhs.bgColor;
   scaling = rhs.scaling;
-  rectangle = rhs.rectangle;
-  largeMapControls = rhs.largeMapControls;
   offset = rhs.offset;
   name = rhs.name;
+  rectangle = rhs.rectangle;
+  largeMapControls = rhs.largeMapControls;
   markers = rhs.markers;
+
+  auto oldNodes = bakedMap.GetChildNodes();
+  for (auto old : oldNodes) {
+    bakedMap.RemoveNode(old);
+  }
 
   for (auto node : rhs.bakedMap.GetChildNodes()) {
     bakedMap.AddNode(node);

@@ -5,8 +5,8 @@ function load_scripts()
 end
 
 function roster_init(info) 
-  info:SetName("Kool Konst")
-  info:SetDescription("crazy konst makes a kool enemy mod")
+  info:SetName("Test Mob")
+  info:SetDescription("this mob uses a scripted character define elsewhere!")
   info:SetSpeed(999)
   info:SetAttack(999)
   info:SetHP(9999)

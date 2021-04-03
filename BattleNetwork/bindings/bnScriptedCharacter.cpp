@@ -7,6 +7,7 @@
 #include "../bnAudioResourceManager.h"
 #include "../bnGame.h"
 #include "../bnDefenseVirusBody.h"
+#include "../bnUIComponent.h"
 
 ScriptedCharacter::ScriptedCharacter(sol::state& script) : 
   script(script),

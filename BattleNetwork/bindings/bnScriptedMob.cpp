@@ -24,23 +24,62 @@ ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::str
   };
 }
 
-ScriptedMob::ScriptedSpawner::ScriptedSpawner(const std::function<Character*()>& new_constructor)
-{
-  this->builtInSpawner = new_constructor;
-}
-
 ScriptedMob::ScriptedSpawner::~ScriptedSpawner()
 {}
 
-void ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
+Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
 {
-  // todo: swap out with ScriptedIntroState
- scriptedSpawner->SpawnAt<FadeInState>(x, y);
+  if (scriptedSpawner) {
+    // todo: swap out with ScriptedIntroState
+    return scriptedSpawner->SpawnAt<FadeInState>(x, y);
+  }
+
+  // ensure we're in range or return `nil` in Lua
+  if (x < 1 || x > mob->GetField()->GetWidth() || y < 1 || y > mob->GetField()->GetHeight())
+    return nullptr;
+
+  // Create a new enemy spawn data object
+  Mob::MobData* data = new Mob::MobData();
+  Character* character = constructor();
+
+  auto ui = character->CreateComponent<MobHealthUI>(character);
+  ui->Hide(); // let default state invocation reveal health
+
+  // Assign the enemy to the spawn data object
+  data->character = character;
+  data->tileX = x;
+  data->tileY = y;
+  data->index = (unsigned)mob->spawn.size();
+
+  mob->GetField()->GetAt(x, y)->ReserveEntityByID(character->GetID());
+
+  auto mutator = new Mob::Mutator(data);
+
+  mob->pixelStateInvokers.push_back(this->pixelStateInvoker);
+
+  auto next = this->defaultStateInvoker;
+  auto defaultStateWrapper = [ui, next](Character* in) {
+    ui->Reveal();
+    next(in);
+  };
+
+  mob->defaultStateInvokers.push_back(defaultStateWrapper);
+
+  // Add the mob spawn data to our list of enemies to spawn
+  mob->spawn.push_back(mutator);
+  mob->tracked.push_back(data->character);
+
+  // Return a mutator to change some spawn info
+  return mutator;
 }
 
 void ScriptedMob::ScriptedSpawner::SetMob(Mob* mob)
 {
-  scriptedSpawner->SetMob(mob);
+  this->mob = mob;
+
+  if (scriptedSpawner) {
+    scriptedSpawner->SetMob(mob);
+  }
 }
 
 //
@@ -71,34 +110,33 @@ Field* ScriptedMob::GetField()
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn)
 {
-  size_t builtin = fqn.find_first_of("BuiltIns.");
+  std::string_view prefix = "BuiltIns.";
+  size_t builtin = fqn.find(prefix);
 
   if (builtin == std::string::npos) {
-    auto obj = ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn));
+    auto obj = ScriptedMob::ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn));
     obj.SetMob(this->mob);
     return obj;
   }
 
+  std::string name = fqn.substr(builtin+prefix.size());
+
+  //
   // else we are built in
+  //
 
-  if (fqn == "BuiltIns.Canodumb") {
-    auto makeCano = []() -> Character* {
-      return new Canodumb();
-    };
-    auto obj = ScriptedSpawner(makeCano);
-    obj.SetMob(this->mob);
-    return obj;
+  auto obj = ScriptedMob::ScriptedSpawner();
+  obj.SetMob(this->mob);
+
+  if (name == "Canodumb") {
+    obj.UseBuiltInType<Canodumb>();
+  }
+  else /* if (name == "BuiltIns.Mettaur") */ {
+    // else, none of the above? TODO: throw?
+    // for now spawn metts if nothing matches...
+    obj.UseBuiltInType<Mettaur>();
   }
 
-  // else, none of the above? TODO: throw?
-  // for now spawn metts if nothing matches...
-  
-  // else if (fqn == "BuiltIns.Mettaur")
-  auto makeMet = []() -> Character* {
-    return new Mettaur();
-  };
-  auto obj = ScriptedSpawner(makeMet);
-  obj.SetMob(this->mob);
   return obj;
 }
 
