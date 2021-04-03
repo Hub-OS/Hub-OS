@@ -6,7 +6,7 @@
 #include "../bnCallback.h"
 
 namespace Overworld {
-  enum class Emotes : size_t {
+  enum class Emotes : char {
     happy = 0,
     blank,
     mad,
