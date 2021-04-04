@@ -990,7 +990,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
       }
       else if (type == "Position Warp") {
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos));
+        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
 
         auto targetTilePos = sf::Vector2f(
           tileObject.customProperties.GetPropertyFloat("X"),
@@ -1024,13 +1024,13 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         };
       }
       else if (type == "Custom Warp") {
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos));
+        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
       }
       else if (type == "Board") {
-        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position));
+        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + zOffset);
       }
       else if (type == "Shop") {
-        minimap.AddShopPosition(map.WorldToScreen(tileObject.position));
+        minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset);
       }
     }
   }
