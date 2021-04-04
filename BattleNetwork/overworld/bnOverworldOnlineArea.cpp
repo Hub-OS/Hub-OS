@@ -584,6 +584,8 @@ void Overworld::OnlineArea::sendReadySignal()
 
 void Overworld::OnlineArea::sendPositionSignal()
 {
+  uint64_t creationTime = CurrentTime::AsMilli();
+
   auto& map = GetMap();
   auto tileSize = sf::Vector2f(map.GetTileSize());
 
@@ -597,6 +599,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::position };
   buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&creationTime, sizeof(creationTime));
   buffer.append((char*)&x, sizeof(float));
   buffer.append((char*)&y, sizeof(float));
   buffer.append((char*)&z, sizeof(float));
