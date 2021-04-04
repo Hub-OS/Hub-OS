@@ -15,7 +15,7 @@ SharedHitbox::SharedHitbox(Spell* owner, float duration) :
   keepAlive = (duration == 0.0f);
 
   Entity::RemoveCallback& deleteHandler = owner->CreateRemoveCallback();
-  deleteHandler.Slot([this]() {
+  deleteHandler.Slot([this](Entity*) {
       SharedHitbox::owner = nullptr;
   });
 }

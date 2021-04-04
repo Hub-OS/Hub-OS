@@ -101,7 +101,7 @@ private:
   void SetFrame(unsigned frame);
 public:
 
-  using RemoveCallback = Callback<void()>;
+  using RemoveCallback = Callback<void(Entity*)>;
 
   Entity();
   virtual ~Entity();

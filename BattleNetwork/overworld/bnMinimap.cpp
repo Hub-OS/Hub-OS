@@ -19,11 +19,11 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   const float maxTileHeight = 10.f;
   const float minTileHeight = 4.f;
   const auto screenSize = sf::Vector2i{ 240, 160 };
-  const auto gridSize = sf::Vector2i(maxTileHeight * map.GetCols(), maxTileHeight * map.GetRows());
+  const auto gridSize = sf::Vector2i(int(maxTileHeight * map.GetCols()), int(maxTileHeight * map.GetRows()));
 
   // how many times could this map fit into the screen? make that many.
-  auto textureSize = sf::Vector2i( screenSize.x * (static_cast<float>(gridSize.x) / screenSize.x), 
-    screenSize.y * (static_cast<float>(gridSize.y) / screenSize.y));
+  sf::Vector2f texsizef = { screenSize.x * (gridSize.x / float(screenSize.x)), screenSize.y * (gridSize.y / float(screenSize.y)) };
+  auto textureSize = sf::Vector2i((int)texsizef.x, (int)texsizef.y);
 
   textureSize.x = std::max(screenSize.x, textureSize.x);
   textureSize.y = std::max(screenSize.y, textureSize.y);
@@ -160,7 +160,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
 
   states.transform *= map.getTransform();
 
-  const int maxLayerCount = map.GetLayerCount();
+  const int maxLayerCount = (int)map.GetLayerCount();
 
   // draw. every layer passes through the shader
   for (auto i = 0; i < maxLayerCount; i++) {
@@ -221,8 +221,8 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
   // TODO: render SOME objects that are overlaying the map
   // if (!layer.IsVisible()) return;
 
-  auto rows = map.GetRows();
-  auto cols = map.GetCols();
+  int rows = (int)map.GetRows();
+  int cols = (int)map.GetCols();
   auto tileSize = map.GetTileSize();
 
   for (int i = 0; i < rows; i++) {
@@ -235,7 +235,7 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       // failed to load tile
       if (tileMeta == nullptr) continue;
 
-      if(index > 0 && map.IgnoreTileAbove(j, i, index - 1)) continue;
+      if(index > 0 && map.IgnoreTileAbove((float)j, (float)i, (int)index - 1)) continue;
 
       if (tileMeta->type == "Stairs") {
         states.shader->setUniform("mask", false);
@@ -245,9 +245,9 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       }
 
       auto& tileSprite = tileMeta->sprite;
-      auto subRect = tileSprite.getTextureRect();
+      const auto subRect = tileSprite.getTextureRect();
 
-      auto originalOrigin = tileSprite.getOrigin();
+      const auto originalOrigin = tileSprite.getOrigin();
       tileSprite.setOrigin(sf::Vector2f(sf::Vector2i(
         subRect.width / 2,
         tileSize.y / 2
@@ -268,21 +268,21 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       );
 
       // pass info to shader
-      auto center = sf::Vector2f(subRect.left, subRect.top);
+      auto center = sf::Vector2f(float(subRect.left), float(subRect.top));
 
       if(tile.flippedHorizontal) {
-        center.x += subRect.width - tileSize.x / 2;
+        center.x += float(subRect.width) - (tileSize.x / 2.0f);
         center.x += tileMeta->drawingOffset.x;
       } else {
-        center.x += tileSize.x / 2;
+        center.x += tileSize.x / 2.0f;
         center.x += -tileMeta->drawingOffset.x;
       }
 
       if (tile.flippedVertical) {
-        center.y += tileSize.y / 2;
+        center.y += tileSize.y / 2.0f;
         center.y += tileMeta->drawingOffset.y;
       } else {
-        center.y += subRect.height - tileSize.y / 2;
+        center.y += subRect.height - (tileSize.y / 2.0f);
         center.y += -tileMeta->drawingOffset.y;
       }
 
@@ -361,7 +361,7 @@ Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
   largeMapControls = rhs.largeMapControls;
   markers = rhs.markers;
 
-  auto oldNodes = bakedMap.GetChildNodes();
+  const auto oldNodes = bakedMap.GetChildNodes();
   for (auto old : oldNodes) {
     bakedMap.RemoveNode(old);
   }

@@ -184,7 +184,7 @@ void CardAction::Update(double _elapsed)
       EndAction();
     }
   }
-  else {
+  else if(animationIsOver) /* lockoutProps.type == CardAction::LockoutType::async */ {
     lockoutProps.cooldown -= _elapsed;
     lockoutProps.cooldown = std::max(lockoutProps.cooldown, 0.0);
 

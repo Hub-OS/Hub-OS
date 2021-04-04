@@ -13,9 +13,8 @@
 class HoneyBomberMoveState : public AIState<HoneyBomber>
 {
 private:
-  int moveCount; /*!< 4 counts down to 0 before attacking*/
   unsigned lastcheck{}; //!< Last frame check for identifying move events
-  double cooldown; /*!< wait before moving again*/
+  double cooldown{}; /*!< wait before moving again*/
 public:
 
   /**

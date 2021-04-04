@@ -496,7 +496,7 @@ void Entity::Delete()
   OnDelete();
 
   for (RemoveCallback* callback : removeCallbacks) {
-    (*callback)();
+    (*callback)(this);
     delete callback;
   }
 

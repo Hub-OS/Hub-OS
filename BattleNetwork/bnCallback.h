@@ -23,5 +23,6 @@ public:
     use = false;
   }
 
-  void operator()() { if (!use) return;  slot ? slot() : (void(0)); }
+  template<typename... Args>
+  void operator()(Args&&... args) { if (!use) return;  slot ? slot(std::forward<decltype(args)>(args)...) : (void(0)); }
 };

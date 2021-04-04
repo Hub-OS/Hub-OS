@@ -72,7 +72,7 @@ void ElecPulseCardAction::OnExecute() {
 
       if (status != Field::AddEntityStatus::deleted) {
         Entity::RemoveCallback& deleteHandler = elecpulse->CreateRemoveCallback();
-        deleteHandler.Slot([this]() { EndAction(); });
+        deleteHandler.Slot([this](Entity*) { EndAction(); });
 
 
         field->AddEntity(*elecpulse, *tiles[1]);

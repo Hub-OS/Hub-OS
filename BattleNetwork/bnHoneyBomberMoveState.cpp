@@ -6,7 +6,7 @@
 #include "bnAnimationComponent.h"
 #include "bnHoneyBomberAttackState.h"
 
-HoneyBomberMoveState::HoneyBomberMoveState() : moveCount(3), cooldown(1), AIState<HoneyBomber>() { ; }
+HoneyBomberMoveState::HoneyBomberMoveState() : AIState<HoneyBomber>() { ; }
 HoneyBomberMoveState::~HoneyBomberMoveState() { ; }
 
 void HoneyBomberMoveState::OnEnter(HoneyBomber& honey) {
@@ -31,14 +31,11 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
   }
 
   auto myteam = honey.GetField()->FindTiles([&honey](Battle::Tile* t) {
-    if (t->GetTeam() == honey.GetTeam())
-      return true;
-
-    return false;
+    return t->GetTeam() == honey.GetTeam();
   });
 
-  int telex = 0;
-  int teley = 0;
+  int telex = honey.GetTile()->GetX();
+  int teley = honey.GetTile()->GetY();
 
   if (myteam.size() > 0) {
       int randIndex = rand() % myteam.size();
@@ -46,17 +43,20 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
       teley = myteam[randIndex]->GetY();
   }
 
-  auto onMove = [this, honeyPtr = &honey] {
+  auto onMove = [honeyPtr = &honey] {
     auto fx = new MobMoveEffect();
     honeyPtr->GetField()->AddEntity(*fx, *honeyPtr->GetTile());
-    moveCount--;
+    return honeyPtr->ChangeState<HoneyBomberIdleState>();
+
   };
 
   Battle::Tile* destTile = honey.GetField()->GetAt(telex, teley);
-  bool queued = (myteam.size() > 0) && honey.Teleport(destTile, ActionOrder::voluntary, onMove);
+  bool queued = honey.Teleport(destTile, ActionOrder::voluntary, onMove);
 
   // else repeat 
-  return honey.ChangeState<HoneyBomberIdleState>();
+  if (!queued) {
+    return honey.ChangeState<HoneyBomberIdleState>();
+  }
 }
 
 void HoneyBomberMoveState::OnLeave(HoneyBomber& met) {

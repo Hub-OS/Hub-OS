@@ -58,7 +58,7 @@ void BusterCardAction::OnExecute() {
 
     isBusterAlive = true;
     busterRemoved = &b->CreateRemoveCallback();
-    busterRemoved->Slot([this]() {
+    busterRemoved->Slot([this](Entity*) {
       isBusterAlive = false;
       EndAction();
       });

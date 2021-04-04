@@ -96,14 +96,14 @@ Bees::Bees(const Bees & leader) :
   Entity::RemoveCallback& selfDeleteHandler = CreateRemoveCallback();
   Entity::RemoveCallback& leaderDeleteHandler = this->leader->CreateRemoveCallback();
 
-  leaderDeleteHandler.Slot([this, s = &selfDeleteHandler]() {
+  leaderDeleteHandler.Slot([this, s = &selfDeleteHandler](Entity*) {
     if (target == this->leader) target = nullptr;
     this->leader = nullptr;
 
     s->Reset();
   });
 
-  selfDeleteHandler.Slot([s = &leaderDeleteHandler]() {
+  selfDeleteHandler.Slot([s = &leaderDeleteHandler](Entity*) {
     s->Reset();
   });
 
@@ -302,12 +302,12 @@ void Bees::OnUpdate(double _elapsed) {
 
     if (GetField()->AddEntity(*hitbox, *GetTile()) != Field::AddEntityStatus::deleted) {
       Entity::RemoveCallback& selfDeleteHandler = CreateRemoveCallback();
-      selfDeleteHandler.Slot([hitbox]() {
+      selfDeleteHandler.Slot([hitbox](Entity*) {
         hitbox->Remove();
       });
 
       Entity::RemoveCallback& hitboxDeleteHandler = hitbox->CreateRemoveCallback();
-      hitboxDeleteHandler.Slot([handler = &selfDeleteHandler]() {
+      hitboxDeleteHandler.Slot([handler = &selfDeleteHandler](Entity*) {
         handler->Reset();
         });
     }
