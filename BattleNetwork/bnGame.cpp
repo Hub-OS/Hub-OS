@@ -85,6 +85,8 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 {
   SetCommandLineValues(values);
 
+  isDebug = CommandLineValue<bool>("debug");
+
   // Load font symbols for use across the entire engine...
   textureManager.LoadImmediately(TextureType::FONT);
 
@@ -182,13 +184,28 @@ void Game::Run()
 
     double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
     this->elapsed += from_seconds(delta);
-    this->update(delta);
-    this->draw();
 
-    window.Display();
+    bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame);
+    bool resumeKey = inputManager.Has(InputEvents::pressed_resume_frames);
 
-    // Prepare for next draw calls
-    window.Clear();
+    if (nextFrameKey && isDebug && !frameByFrame) {
+      frameByFrame = true;
+    }
+    else if (resumeKey && frameByFrame) {
+      frameByFrame = false;
+    }
+
+    bool updateFrame = (frameByFrame && nextFrameKey) || !frameByFrame;
+
+    if (updateFrame) {
+      this->update(delta);
+      this->draw();
+
+      window.Display();
+
+      // Prepare for next draw calls
+      window.Clear();
+    }
 
     scope_elapsed = clock.getElapsedTime().asSeconds();
   }
@@ -313,7 +330,7 @@ void Game::RunAudioInit(std::atomic<int> * progress) {
 
 void Game::GainFocus() {
   window.RegainFocus();
-  audioManager.EnableAudio(true);
+  audioManager.Mute(false);
 
 #ifdef __ANDROID__
   // TODO: Reload all graphics and somehow reassign all gl IDs to all allocated sfml graphics structures
@@ -323,7 +340,7 @@ void Game::GainFocus() {
 }
 
 void Game::LoseFocus() {
-  audioManager.EnableAudio(false);
+  audioManager.Mute(true);
 }
 
 void Game::Resize(int newWidth, int newHeight) {

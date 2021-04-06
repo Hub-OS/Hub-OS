@@ -15,6 +15,7 @@ class HoneyBomberMoveState : public AIState<HoneyBomber>
 private:
   unsigned lastcheck{}; //!< Last frame check for identifying move events
   double cooldown{}; /*!< wait before moving again*/
+  bool isMoving{};
 public:
 
   /**

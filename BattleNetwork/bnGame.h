@@ -48,6 +48,9 @@ enum class Endianness : short {
 
 class Game final : public ActivityController {
 private:
+  double mouseAlpha{};
+  bool showScreenBars{};
+  bool frameByFrame{}, isDebug{};
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
@@ -57,8 +60,6 @@ private:
   InputManager inputManager;
 
   DrawWindow& window;
-  bool showScreenBars{};
-  
   ConfigReader reader;
   ConfigSettings configSettings;
 
@@ -66,7 +67,6 @@ private:
   SpriteProxyNode mouse;
   sf::Vector2f lastMousepos;
   Animation mouseAnimation;
-  double mouseAlpha{};
 
   // loading spinner
   SpriteProxyNode spinner;

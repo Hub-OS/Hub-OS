@@ -190,7 +190,6 @@ void CardAction::Update(double _elapsed)
 
     if (IsLockoutOver()) {
       EndAction();
-      animationIsOver = true;
     }
   }
 }
@@ -242,7 +241,7 @@ const std::string& CardAction::GetAnimState() const
 
 const bool CardAction::IsAnimationOver() const
 {
-  return this->animationIsOver;
+  return IsLockoutOver();
 }
 
 const bool CardAction::IsLockoutOver() const {
@@ -250,7 +249,7 @@ const bool CardAction::IsLockoutOver() const {
     return animationIsOver;
   }
 
-  return lockoutProps.cooldown <= 0;
+  return lockoutProps.cooldown <= 0 && animationIsOver;
 }
 
 const bool CardAction::CanExecute() const

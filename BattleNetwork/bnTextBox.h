@@ -16,7 +16,7 @@ public:
 
   struct effects {
     static const vfx none = 0x0000;
-    static const vfx dramatic = 0x0001;
+    static const vfx dramatic = 0x0001; // halves the text play-out animation for dramatic moments
     static const vfx zzz = 0x0002; // useful for sleeping or lip-sealed textbox moments
   };
 

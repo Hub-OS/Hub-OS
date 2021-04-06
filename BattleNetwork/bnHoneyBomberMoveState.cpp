@@ -14,6 +14,8 @@ void HoneyBomberMoveState::OnEnter(HoneyBomber& honey) {
 }
 
 void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
+  if (isMoving) return; // animations take time...
+
   cooldown -= _elapsed;
 
   if (cooldown > 0) return; // wait for move cooldown to end
@@ -43,11 +45,11 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
       teley = myteam[randIndex]->GetY();
   }
 
-  auto onMove = [honeyPtr = &honey] {
+  auto onMove = [honeyPtr = &honey, this] {
+    this->isMoving = true;
     auto fx = new MobMoveEffect();
     honeyPtr->GetField()->AddEntity(*fx, *honeyPtr->GetTile());
     return honeyPtr->ChangeState<HoneyBomberIdleState>();
-
   };
 
   Battle::Tile* destTile = honey.GetField()->GetAt(telex, teley);

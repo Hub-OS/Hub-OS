@@ -47,6 +47,8 @@ namespace InputEvents {
   static const InputEvent pressed_map            = { "Minimap",    InputState::pressed };
   static const InputEvent pressed_shoulder_left  = { "Shoulder L", InputState::pressed };
   static const InputEvent pressed_shoulder_right = { "Shoulder R", InputState::pressed };
+  static const InputEvent pressed_advance_frame  = { "Advance Frame", InputState::pressed };
+  static const InputEvent pressed_resume_frames  = { "Resume Frames", InputState::pressed };
 
   static const InputEvent released_move_up        = { "Move Up",    InputState::released };
   static const InputEvent released_move_down      = { "Move Down",  InputState::released };
@@ -69,6 +71,8 @@ namespace InputEvents {
   static const InputEvent released_map            = { "Minimap",    InputState::released };
   static const InputEvent released_shoulder_left  = { "Shoulder L", InputState::released };
   static const InputEvent released_shoulder_right = { "Shoulder R", InputState::released };
+  static const InputEvent released_advance_frame  = { "Advance Frame", InputState::released };
+  static const InputEvent released_resume_frames  = { "Resume Frames", InputState::released };
 
   static const InputEvent held_move_up        = { "Move Up",    InputState::held };
   static const InputEvent held_move_down      = { "Move Down",  InputState::held };
@@ -91,10 +95,12 @@ namespace InputEvents {
   static const InputEvent held_map            = { "Minimap",    InputState::held };
   static const InputEvent held_shoulder_left  = { "Shoulder L", InputState::held };
   static const InputEvent held_shoulder_right = { "Shoulder R", InputState::held };
+  static const InputEvent held_advance_frame  = { "Advance Frame", InputState::held };
+  static const InputEvent held_resume_frames  = { "Resume Frames", InputState::held };
 
-  static const std::string KEYS[] = { "Move Up",  "Move Down", "Move Left", "Move Right", "Shoot",
-                                      "Use Card", "Special",   "Cust Menu", "Pause",      "UI Up", 
-                                      "UI Left",  "UI Right",  "UI Down",   "Confirm",    "Cancel",    
-                                      "Option",   "Run",       "Interact",  "Shoulder L", "Shoulder R", 
-                                      "Minimap" };
+  static const std::string KEYS[] = { "Move Up",  "Move Down",     "Move Left", "Move Right", "Shoot",
+                                      "Use Card", "Special",       "Cust Menu", "Pause",      "UI Up", 
+                                      "UI Left",  "UI Right",      "UI Down",   "Confirm",    "Cancel",    
+                                      "Option",   "Run",           "Interact",  "Shoulder L", "Shoulder R", 
+                                      "Minimap",  "Advance Frame", "Resume Frames" };
 };

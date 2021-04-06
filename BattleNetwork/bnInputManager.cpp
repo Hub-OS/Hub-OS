@@ -51,17 +51,23 @@ void InputManager::Update() {
       window.close();
       hasFocus = false;
     } else if (event.type == Event::LostFocus) {
-      std::lock_guard lock(mutex);
+      {
+        std::lock_guard lock(mutex);
 
-      onLoseFocus ? onLoseFocus() : (void)0;
+        onLoseFocus ? onLoseFocus() : (void)0;
+      }
+
       hasFocus = false;
 
       FlushAllInputEvents();
     }
     else if (event.type == Event::GainedFocus) {
-      std::lock_guard lock(mutex);
+      {
+        std::lock_guard lock(mutex);
 
-      onRegainFocus ? onRegainFocus() : (void)0;
+        onRegainFocus ? onRegainFocus() : (void)0;
+      }
+
       hasFocus = true;
 
       // we have re-entered, do not let keys be held down

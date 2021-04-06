@@ -9,7 +9,11 @@ HoneyBomberAttackState::HoneyBomberAttackState()
 : beeCount(3), attackCooldown(0.4), spawnCooldown(0.4), lastBee(nullptr), AIState<HoneyBomber>() { 
 }
 
-HoneyBomberAttackState::~HoneyBomberAttackState() { mycallbacks.clear(); }
+HoneyBomberAttackState::~HoneyBomberAttackState() {
+  for (auto callback : mycallbacks) {
+    callback.get().Reset();
+  }
+}
 
 void HoneyBomberAttackState::OnEnter(HoneyBomber& honey) {
   auto animation = honey.GetFirstComponent<AnimationComponent>();

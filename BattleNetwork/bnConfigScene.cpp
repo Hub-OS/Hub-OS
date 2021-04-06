@@ -503,7 +503,7 @@ void ConfigScene::onUpdate(double elapsed)
 
       s = sf::Vector2f(2.f * scale, 2.f * scale);
 
-      auto limit = std::min(menuSelectionIndex, maxMenuSelectionIndex - 1); // stop the screen from rolling up when reaching this point of the list
+      auto limit = std::min(menuSelectionIndex, maxMenuSelectionIndex); // stop the screen from rolling up when reaching this point of the list
       auto pos = sf::Vector2f(/*2.f * (5 + (3 * s.x))*/2.0f + 2.0f * (j * colSpan), 2.f * (starty + (i * lineSpan) - (limit * 10)));
       auto lerp = sf::Vector2f(swoosh::ease::interpolate(delta, pos.x, (*container)[i].position.x), swoosh::ease::interpolate(delta, pos.y, (*container)[i].position.y));
 

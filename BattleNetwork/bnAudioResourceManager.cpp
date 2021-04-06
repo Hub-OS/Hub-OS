@@ -35,18 +35,6 @@ AudioResourceManager::~AudioResourceManager() {
 
 void AudioResourceManager::EnableAudio(bool status) {
   isEnabled = status;
-
-  if(isEnabled) {
-    SetStreamVolume(streamVolume);
-    SetChannelVolume(channelVolume);
-  } else {
-    auto streamBefore = streamVolume;
-    auto channelBefore = channelVolume;
-    SetStreamVolume(0);
-    SetChannelVolume(0);
-    streamVolume = streamBefore;
-    channelVolume = channelBefore;
-  }
 }
 
 void AudioResourceManager::Mute(bool status)

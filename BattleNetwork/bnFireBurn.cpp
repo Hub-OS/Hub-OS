@@ -67,6 +67,7 @@ void FireBurn::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     // X hit effect when hit by fire
     auto fx = new ParticleImpact(ParticleImpact::Type::volcano);
+    fx->SetOffset({ _entity->GetTileOffset().x, -_entity->GetHeight() });
     GetField()->AddEntity(*fx, *GetTile());
 
     Audio().Play(AudioType::HURT);

@@ -405,13 +405,14 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   // Close mouth when there's a space.
   // Overload boolean logic to close mouth whenever the text box is also paused
-  bool isEqual = !textbox.IsPlaying() || textbox.GetCurrentCharacter() == '\0';
+  bool isDone = !textbox.IsPlaying() || textbox.GetCurrentCharacter() == '\0';
+  isDone = isDone || textbox.IsEndOfMessage();
 
-  if (isEqual && navigatorAnimator.GetAnimationString() != "IDLE") {
+  if (isDone && navigatorAnimator.GetAnimationString() != "IDLE") {
     navigatorAnimator.SetAnimation("IDLE");
     navigatorAnimator << Animator::Mode::Loop;
   }
-  else if(!isEqual && navigatorAnimator.GetAnimationString() != "TALK") {
+  else if(!isDone && navigatorAnimator.GetAnimationString() != "TALK") {
     navigatorAnimator.SetAnimation("TALK");
     navigatorAnimator << Animator::Mode::Loop;
   }

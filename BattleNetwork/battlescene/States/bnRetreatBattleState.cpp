@@ -17,10 +17,10 @@ RetreatBattleState::RetreatBattleState(AnimatedTextBox& textbox, const sf::Sprit
 void RetreatBattleState::onStart(const BattleSceneState*)
 {
   if (rand() % 10 < 5) {
-    textbox.EnqueMessage(mug, anim, new Message("... It's no good!\nWe can't run away!"));
+    textbox.EnqueMessage(mug, anim, new Message("\x01...\x01 It's no good!\nWe can't run away!"));
   }
   else {
-    textbox.EnqueMessage(mug, anim, new Message("... OK!\nWe got away!"));
+    textbox.EnqueMessage(mug, anim, new Message("\x01...\x01 OK!\nWe got away!"));
     escaped = true;
   }
   currState = RetreatBattleState::state::pending;

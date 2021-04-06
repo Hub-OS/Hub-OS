@@ -147,7 +147,7 @@ void AnimatedTextBox::EnqueMessage(const sf::Sprite& speaker, const Animation& a
   anims.push_back(anim);
   
   auto& mugAnim = anims[anims.size() - 1];
-  mugAnim.SetAnimation("TALK");
+  mugAnim.SetAnimation("IDLE");
   mugAnim << Animator::Mode::Loop;
 
   if (messages.size() == 1) {
@@ -176,6 +176,9 @@ void AnimatedTextBox::EnqueMessage(MessageInterface* message) {
 void AnimatedTextBox::Update(double elapsed) {
   float mugshotSpeed = 1.0f;
 
+  // multiplying the speed by a factor of 2 looks more natural
+  textBox.Update(elapsed * static_cast<float>(textSpeed) * 2.0);
+
   if (isReady && messages.size() > 0) {
     int yIndex = (int)(textBox.GetNumberOfLines() % textBox.GetNumberOfFittingLines());
     auto y = (textBox.GetNumberOfFittingLines() -yIndex) * 10.0f;
@@ -183,7 +186,7 @@ void AnimatedTextBox::Update(double elapsed) {
 
     char currChar = textBox.GetCurrentCharacter();
     bool muteFX = (textBox.GetVFX() & TextBox::effects::zzz) == TextBox::effects::zzz;
-    bool speakingDot = currChar == '.';
+    bool speakingDot = currChar == '.' || currChar == '\0';
     bool silence = (currChar == ' ' && mugAnimator.GetAnimationString() == "IDLE");
     bool lipsSealed = muteFX || speakingDot || silence;
 
@@ -205,9 +208,6 @@ void AnimatedTextBox::Update(double elapsed) {
       else {
         mugshotSpeed = static_cast<float>(textSpeed);
       }
-
-      // multiplying the speed by a factor of 2 looks more natural
-      textBox.Update(elapsed*static_cast<float>(textSpeed)*2.0);
 
       if (textBox.IsEndOfMessage() || textBox.HasMore()) {
         isPaused = true;

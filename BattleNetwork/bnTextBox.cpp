@@ -2,6 +2,12 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
+namespace {
+  const char dramatic_token = '\x01';
+  const char nolip_token = '\x02';
+  const auto special_chars = { ::nolip_token, ::dramatic_token, ' ',  '\n' };
+}
+
 TextBox::TextBox(int width, int height) :
   TextBox::TextBox(width, height, Font::Style::thin) { } 
 
@@ -30,6 +36,7 @@ void TextBox::FormatToFit() {
 
   message = replace(message, "\\n", "\n"); // replace all ascii "\n" to carriage return char '\n'
   message = replace(message, "\\x01", "\x01"); // replace ascii
+  message = replace(message, "\\x02", "\x02"); // replace ascii
 
   lines.push_back(0); // All text begins at pos 0
 
@@ -43,7 +50,8 @@ void TextBox::FormatToFit() {
   double fitHeight = 0;
 
   while (index < message.size()) {
-    if (message[index] != ' ' && message[index] != '\n' && message[index] != '\x01') {
+    auto iter = std::find(::special_chars.begin(), ::special_chars.end(), message[index]);
+    if (iter == special_chars.end()) {
       if (wordIndex == -1) { // only mark the beginning of a word
         wordIndex = index;
       }
@@ -54,7 +62,8 @@ void TextBox::FormatToFit() {
 
     std::string fitString = message.substr(lastRow, (size_t)index - (size_t)lastRow);
     fitString = replace(fitString, "\n", ""); // line breaks shouldn't increase real estate...
-    fitString = replace(fitString, "\x01", ""); // mute sections shouldn't increase real estate...
+    fitString = replace(fitString, std::string(1, ::nolip_token), ""); // fx sections shouldn't increase real estate...
+    fitString = replace(fitString, std::string(1, ::dramatic_token), ""); //fx sections shouldn't increase real estate...
     text.SetString(fitString);
 
     double width = text.GetWorldBounds().width;
@@ -221,6 +230,7 @@ void TextBox::SetText(const std::string& text) {
   lines.clear();
   lineIndex = 0;
   numberOfFittingLines = 1;
+  currEffect = TextBox::effects::none;
   FormatToFit();
   dirty = true;
 }
@@ -234,7 +244,9 @@ void TextBox::Stop() {
 }
 
 const char TextBox::GetCurrentCharacter() const {
-  return message[charIndex];
+  if (text.GetString().empty()) return '\0';
+
+  return text.GetString().back();
 }
 
 const int TextBox::GetNumberOfFittingLines() const {
@@ -264,8 +276,6 @@ void TextBox::Update(const double elapsed) {
   // If we're at the end of the message, don't step  
   // through the words
   if (charIndex >= message.length()) {
-    currEffect = effects::none;
-
     int begin = lines[lineIndex];
     int lastIndex = std::min((int)lines.size() - 1, lineIndex + numberOfFittingLines - 1);
     int last = lines[lastIndex];
@@ -301,38 +311,52 @@ void TextBox::Update(const double elapsed) {
   }
 
   while (modifiedCharsPerSecond > 0 && progress > 1.0/modifiedCharsPerSecond) {
-    // scan for special tokens...
-    size_t elipsesEndPos = size_t(charIndexIter)+2;
-    size_t elipsesStartPos = size_t(charIndexIter)-3;
-
-    // The following conditions handles elipses for dramatic effect
-    if (elipsesEndPos < message.size() && message.substr(charIndexIter, 3) == "...") {
-      currEffect |= effects::dramatic;
-    }
-    else if (charIndexIter > 2 && message.substr(elipsesStartPos, 3) == "...") {
-      // if we have passes an elipses, restore the simulation speed
-      currEffect &= ~effects::dramatic;
-    }
-    else if (message[charIndexIter] == '\x01') {
-      currEffect ^= effects::zzz;
-    }
-
     progress -= 1.0 / modifiedCharsPerSecond;
 
-    // Skip over line breaks and empty spaces
-    while (charIndexIter < message.size() && message[charIndexIter] == ' ') {
-      charIndexIter++;
-    }
+    auto checkSpecialCharacters = [this](int& pos) {
+      if (pos >= message.size()) return false;
+
+      bool processed = false;
+
+      // Skip over line breaks and empty spaces
+      auto iter = std::find(::special_chars.begin(), ::special_chars.end(), message[pos]);
+      while (iter != ::special_chars.end()) {
+        processed = true;
+
+        // The following conditions handles elipses for dramatic effect
+        if (message[pos] == ::dramatic_token) {
+          currEffect ^= effects::dramatic;
+        }
+        else if (message[pos] == ::nolip_token) {
+          // this makes mugshots stop animating (for thinking effects)
+          currEffect ^= effects::zzz;
+        }
+
+        pos++;
+
+        if (pos >= message.size()) break;
+
+        iter = std::find(::special_chars.begin(), ::special_chars.end(), message[pos]);
+      }
+
+      return processed;
+    };
 
     // Try the next character
-    charIndexIter++;
+    if (!checkSpecialCharacters(charIndexIter)) {
+      charIndexIter++;
+      checkSpecialCharacters(charIndexIter);
+    }
 
     // If we're passed the current char index but there's more text to show...
     if (charIndexIter > charIndex && charIndex < message.size()) {
       // See how many non-spaces there were in this pass
       int length = charIndexIter - charIndex;
-      std::string pass = message.substr(charIndex, length);
-      bool talking = pass.end() != std::find_if(pass.begin(), pass.end(), [](char in) { return !isspace(in); });
+      std::string pass = message.substr(charIndex, length+1);
+      bool talking = pass.end() != std::find_if(pass.begin(), pass.end(), [](char in) { 
+        auto iter = std::find(::special_chars.begin(), ::special_chars.end(), in);
+        return iter == ::special_chars.end();
+      });
 
       if (talking) {
         // Play a sound if we are able and the character is a letter
@@ -364,8 +388,9 @@ void TextBox::Update(const double elapsed) {
         len = charIndex - begin;
       }
     }
-    else
+    else {
       len = 0;
+    }
 
     // Len will be > 0 after first call to Update()
     // Set the sf::Text to show only the visible text in 
@@ -374,13 +399,12 @@ void TextBox::Update(const double elapsed) {
       text.SetString("");
     }
     else {
-      text.SetString(message.substr(begin, len));
+      size_t count = (size_t)len + 1;
+      std::string outString = message.substr(begin, count);
+      outString = replace(outString, std::string(1, ::nolip_token), ""); // fx should not appear in final message
+      outString = replace(outString, std::string(1, ::dramatic_token), ""); // fx should not appear in final message
+      text.SetString(outString);
     }
-  }
-
-  // we may have finished the text at this step, remove all playback effects
-  if (charIndex >= message.length()) {
-    currEffect = effects::none;
   }
 
   dirty = false;
