@@ -54,7 +54,7 @@ void WebClientManager::QueuedTasksThreadHandler()
 
       lock.lock();
       isWorking = false;
-      }
+    }
   } while (!shutdownSignal);
 }
 

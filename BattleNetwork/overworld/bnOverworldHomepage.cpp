@@ -90,6 +90,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       switch (cyberworldStatus) {
       case CyberworldStatus::online:
         message = "This is your homepage! Walk into the telepad to enter cyberspace!";
+        message = "This is the longest conversation that will act as a test. Something is happening. The textbox moves to the next conversation but it's several characters in. I thought I fixed this. But like everything something broke something and I'm about fed up with it. But this is how it is. I know how to debug so this is what I'll do... Ugh.";
         break;
       case CyberworldStatus::mismatched_version:
         message = "This is your homepage! But it looks like you need an update to connect to cyberspace...";

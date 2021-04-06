@@ -1,6 +1,7 @@
 #include "bnTextBox.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
+#include "stx/string.h"
 
 namespace {
   const char dramatic_token = '\x01';
@@ -34,9 +35,9 @@ void TextBox::FormatToFit() {
   if (message.empty())
     return;
 
-  message = replace(message, "\\n", "\n"); // replace all ascii "\n" to carriage return char '\n'
-  message = replace(message, "\\x01", "\x01"); // replace ascii
-  message = replace(message, "\\x02", "\x02"); // replace ascii
+  message = stx::replace(message, "\\n", "\n"); // replace all ascii "\n" to carriage return char '\n'
+  message = stx::replace(message, "\\x01", "\x01"); // replace ascii
+  message = stx::replace(message, "\\x02", "\x02"); // replace ascii
 
   lines.push_back(0); // All text begins at pos 0
 
@@ -61,9 +62,9 @@ void TextBox::FormatToFit() {
     }
 
     std::string fitString = message.substr(lastRow, (size_t)index - (size_t)lastRow);
-    fitString = replace(fitString, "\n", ""); // line breaks shouldn't increase real estate...
-    fitString = replace(fitString, std::string(1, ::nolip_token), ""); // fx sections shouldn't increase real estate...
-    fitString = replace(fitString, std::string(1, ::dramatic_token), ""); //fx sections shouldn't increase real estate...
+    fitString = stx::replace(fitString, "\n", ""); // line breaks shouldn't increase real estate...
+    fitString = stx::replace(fitString, std::string(1, ::nolip_token), ""); // fx sections shouldn't increase real estate...
+    fitString = stx::replace(fitString, std::string(1, ::dramatic_token), ""); //fx sections shouldn't increase real estate...
     text.SetString(fitString);
 
     double width = text.GetWorldBounds().width;
@@ -111,15 +112,34 @@ void TextBox::FormatToFit() {
   numberOfFittingLines = line;
 }
 
-std::string TextBox::replace(std::string str, const std::string& from, const std::string& to) {
-  size_t start_pos = 0;
-  while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-    str.replace(start_pos, from.length(), to);
-    start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
-  }
-  return str;
-}
+const bool TextBox::ProcessSpecialCharacters(int& pos) {
+  if (pos >= message.size()) return false;
 
+  bool processed = false;
+
+  // Skip over line breaks and empty spaces
+  auto iter = std::find(::special_chars.begin(), ::special_chars.end(), message[pos]);
+  while (iter != ::special_chars.end()) {
+    processed = true;
+
+    // The following conditions handles elipses for dramatic effect
+    if (message[pos] == ::dramatic_token) {
+      currEffect ^= effects::dramatic;
+    }
+    else if (message[pos] == ::nolip_token) {
+      // this makes mugshots stop animating (for thinking effects)
+      currEffect ^= effects::zzz;
+    }
+
+    pos++;
+
+    if (pos >= message.size()) break;
+
+    iter = std::find(::special_chars.begin(), ::special_chars.end(), message[pos]);
+  }
+
+  return processed;
+};
 
 const Text& TextBox::GetText() const { return text; }
 
@@ -134,13 +154,8 @@ void TextBox::SetTextFillColor(sf::Color color) {
   text.SetColor(color);
 }
 
-void TextBox::SetTextOutlineColor(sf::Color color) {
-  // outlineColor = color;
-}
-
 void TextBox::SetTextColor(sf::Color color) {
   SetTextFillColor(color);
-  SetTextOutlineColor(color);
 }
 
 void TextBox::Mute(bool enabled) {
@@ -185,29 +200,35 @@ void TextBox::ShowPreviousLine() {
 
 void TextBox::CompleteCurrentBlock()
 {
-  size_t newCharIndex = message.size() - 1;
-  int lastLine = lineIndex + GetNumberOfFittingLines();
-
-  if (lastLine < this->lines.size()) {
-    newCharIndex = this->lines[lastLine];
+  // simulate the end of the text block starting from the beginning 
+  // and compile a list of flags and set as complete
+  int start = lines[lineIndex];
+  int end = (int)message.size();
+  size_t block_end = (size_t)lineIndex + numberOfFittingLines;
+  if (block_end < lines.size()) {
+    end = lines[block_end];
   }
 
-  int charactersSkipped = 0;
-  int index = charIndex;
+  currEffect = effects::none;
 
-  // do not count spaces
-  while (index < newCharIndex) {
-    if (message[index] == ' ') {
-      index++;
-      continue;
+  double simProgress = 0;
+
+  while (start < end) {
+    double modifiedCharsPerSeconds = charsPerSecond;
+
+    if (!ProcessSpecialCharacters(start)) {
+      start++;
     }
 
-    index++;
-    charactersSkipped++;
+    if ((currEffect & effects::dramatic) == effects::dramatic) {
+      modifiedCharsPerSeconds = DRAMATIC_TEXT_SPEED;
+    }
+    
+    simProgress += 1.0 / modifiedCharsPerSeconds;
   }
 
-  double elapsed = static_cast<double>(charactersSkipped) / this->charsPerSecond;
-  this->progress += elapsed;
+  charIndex = end;
+  progress = simProgress;
 
   dirty = true; // will try and pause once it completes, so we force it to update
 }
@@ -297,7 +318,7 @@ void TextBox::Update(const double elapsed) {
     return;
   }
 
-  // Without this, the Audio() would play numerous times per frame and sounds bad
+  // Without this, the audio fx would play numerous times per frame and sounds bad
   bool playOnce = true;
 
   int charIndexIter = charIndex;
@@ -307,52 +328,23 @@ void TextBox::Update(const double elapsed) {
 
   if ((currEffect & effects::dramatic) == effects::dramatic) {
     // if we are doing dramatic text, reduce speed
-    modifiedCharsPerSecond = 0.5;
+    modifiedCharsPerSecond = DRAMATIC_TEXT_SPEED;
   }
 
   while (modifiedCharsPerSecond > 0 && progress > 1.0/modifiedCharsPerSecond) {
     progress -= 1.0 / modifiedCharsPerSecond;
 
-    auto checkSpecialCharacters = [this](int& pos) {
-      if (pos >= message.size()) return false;
-
-      bool processed = false;
-
-      // Skip over line breaks and empty spaces
-      auto iter = std::find(::special_chars.begin(), ::special_chars.end(), message[pos]);
-      while (iter != ::special_chars.end()) {
-        processed = true;
-
-        // The following conditions handles elipses for dramatic effect
-        if (message[pos] == ::dramatic_token) {
-          currEffect ^= effects::dramatic;
-        }
-        else if (message[pos] == ::nolip_token) {
-          // this makes mugshots stop animating (for thinking effects)
-          currEffect ^= effects::zzz;
-        }
-
-        pos++;
-
-        if (pos >= message.size()) break;
-
-        iter = std::find(::special_chars.begin(), ::special_chars.end(), message[pos]);
-      }
-
-      return processed;
-    };
-
     // Try the next character
-    if (!checkSpecialCharacters(charIndexIter)) {
+    if (!ProcessSpecialCharacters(charIndexIter)) {
       charIndexIter++;
-      checkSpecialCharacters(charIndexIter);
+      ProcessSpecialCharacters(charIndexIter);
     }
 
     // If we're passed the current char index but there's more text to show...
     if (charIndexIter > charIndex && charIndex < message.size()) {
       // See how many non-spaces there were in this pass
       int length = charIndexIter - charIndex;
-      std::string pass = message.substr(charIndex, length+1);
+      std::string pass = message.substr(charIndex, (size_t)length+1);
       bool talking = pass.end() != std::find_if(pass.begin(), pass.end(), [](char in) { 
         auto iter = std::find(::special_chars.begin(), ::special_chars.end(), in);
         return iter == ::special_chars.end();
@@ -399,11 +391,11 @@ void TextBox::Update(const double elapsed) {
       text.SetString("");
     }
     else {
-      size_t count = (size_t)len + 1;
-      std::string outString = message.substr(begin, count);
-      outString = replace(outString, std::string(1, ::nolip_token), ""); // fx should not appear in final message
-      outString = replace(outString, std::string(1, ::dramatic_token), ""); // fx should not appear in final message
+      std::string outString = message.substr(begin, (size_t)len);
+      outString = stx::replace(outString, std::string(1, ::nolip_token), ""); // fx should not appear in final message
+      outString = stx::replace(outString, std::string(1, ::dramatic_token), ""); // fx should not appear in final message
       text.SetString(outString);
+      progress = 0;
     }
   }
 

@@ -21,6 +21,8 @@ public:
   };
 
 private:
+  const double DRAMATIC_TEXT_SPEED = 0.5;
+
   vfx currEffect{};
 
   Font font;
@@ -43,14 +45,7 @@ private:
    */
   void FormatToFit();
 
-  /**
-   * @brief Replaces matching string `from` to `to` in source string `str`
-   * @param str source string
-   * @param from matching pattern
-   * @param to replace with
-   * @return modified string
-   */
-  std::string replace(std::string str, const std::string& from, const std::string& to);
+  const bool ProcessSpecialCharacters(int& pos);
 
 public:
   /**
@@ -82,12 +77,6 @@ public:
    * @param color
    */
   void SetTextFillColor(sf::Color color);
-
-  /**
-   * @brief Set text outline color
-   * @param color
-   */
-  void SetTextOutlineColor(sf::Color color);
 
   /**
    * @brief Set both text outline and fill color
