@@ -218,21 +218,17 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   auto cameraView = GetCamera().GetView();
   auto cameraCenter = cameraView.getCenter();
-  auto offset = getView().getCenter() - cameraCenter;
   auto mapScale = GetMap().getScale();
-  //cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
-  //cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
-  //cameraView.setCenter(cameraCenter);
+  cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
+  cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
+  auto offset = cameraCenter - getView().getCenter();
 
-  //auto mouseWorld = sf::Vector2f(mousef.x / (float)viewport.width, mousef.y / (float)viewport.height);
-  //mouseWorld = sf::Vector2f(mouseWorld.x * cameraView.getSize().x, mouseWorld.x * cameraView.getSize().y);
-  auto mouseWorld = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
-  mouseWorld = GetMap().WorldToScreen(mouseWorld);
+  auto mouseScreen = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
 
   for (auto& pair : onlinePlayers) {
     auto& onlinePlayer = pair.second;
 
-    if (IsMouseHovering(mouseWorld, *onlinePlayer.actor)) {
+    if (IsMouseHovering(mouseScreen, *onlinePlayer.actor)) {
       nameText.setPosition(mousef);
       nameText.SetString(onlinePlayer.actor->GetName());
       nameText.setOrigin(-10.0f, 0);
@@ -241,7 +237,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     }
   }
 
-  if (IsMouseHovering(mouseWorld, *playerActor)) {
+  if (IsMouseHovering(mouseScreen, *playerActor)) {
     nameText.setPosition(mousef);
     nameText.SetString(playerActor->GetName());
     nameText.setOrigin(-10.0f, 0);
