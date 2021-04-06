@@ -65,13 +65,13 @@ void Overworld::Actor::LoadAnimations(const Animation& animation)
   validStates.clear();
   anims.clear();
 
-  auto dir_array = {
+  auto dir_list = {
     Direction::down, Direction::down_left, Direction::down_right,
     Direction::left, Direction::right, Direction::up,
     Direction::up_left, Direction::up_right
   };
 
-  auto state_array = {
+  auto state_list = {
     MovementState::idle, MovementState::running, MovementState::walking
   };
 
@@ -93,8 +93,8 @@ void Overworld::Actor::LoadAnimations(const Animation& animation)
     return false;
   };
 
-  for (auto dir : dir_array) {
-    for (auto state : state_array) {
+  for (auto dir : dir_list) {
+    for (auto state : state_list) {
       loadDirectionalAnimationThunk(dir, state);
     }
   }
@@ -162,29 +162,48 @@ void Overworld::Actor::Update(float elapsed, Map& map, SpatialMap& spatialMap)
 }
 
 void Overworld::Actor::UpdateAnimationState(float elapsed) {
-  std::string stateStr = FindValidAnimState(this->heading, this->state);
+  std::string stateStr;
 
-  if (!stateStr.empty()) {
-    // If there is no supplied animation for the next state, ignore it
-    if (!anims.begin()->second.HasAnimation(stateStr)) {
-      stateStr = lastStateStr;
+  auto findValidAnimThunk = [this](const MovementState& state) {
+    return FindValidAnimState(this->heading, state);
+  };
+
+  auto state_list = { MovementState::running, MovementState::walking, MovementState::idle };
+
+  for (auto item : state_list) {
+    // begin with our desired state and work our way through the list...
+    // only look down in the state list for valid state alternatives
+    // i.e. no RUN animations but there are valid animations for WALK!
+    if (item <= this->state) {
+      stateStr = findValidAnimThunk(item);
+
+      // If we have something (non-empty string), exit the loop!
+      if (anims.begin()->second.HasAnimation(stateStr)) {
+        break;
+      }
     }
+  }
 
-    animProgress += elapsed;
+  // we may have exhausted the possible animations to substitute in the previous for-loop
+  // so we need to check again that the new state string is valid...
+  if (!anims.begin()->second.HasAnimation(stateStr)) {
+    stateStr = lastStateStr;
+  }
 
-    if (lastStateStr.empty() == false) {
-      anims[lastStateStr].SyncTime(animProgress);
-      anims[lastStateStr].Refresh(getSprite());
-    }
+  animProgress += elapsed;
 
-    if (lastStateStr != stateStr) {
-      animProgress = 0; // reset animation
-      anims[stateStr].SyncTime(animProgress);
+  if (lastStateStr.empty() == false) {
+    anims[lastStateStr].SyncTime(animProgress);
+    anims[lastStateStr].Refresh(getSprite());
+  }
 
-      // we have changed states
-      anims[stateStr].Refresh(getSprite());
-      lastStateStr = stateStr;
-    }
+  if (lastStateStr != stateStr) {
+    animProgress = 0; // reset animation
+    anims[stateStr].SyncTime(animProgress);
+
+    // we have changed states
+    anims[stateStr].Refresh(getSprite());
+    lastStateStr = stateStr;
   }
 }
 
