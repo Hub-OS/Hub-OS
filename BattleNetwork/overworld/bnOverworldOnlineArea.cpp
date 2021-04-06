@@ -1395,7 +1395,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     onlinePlayer.timestamp = currentTime;
     onlinePlayer.packets++;
     onlinePlayer.lagWindow[onlinePlayer.packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
-    onlinePlayer.idleDirection = direction;
+    onlinePlayer.idleDirection = Orthographic(direction);
   }
 }
 
