@@ -38,7 +38,7 @@ namespace Overworld {
     bool onStairs{ false };
     bool moveThisFrame{ false }; //!< Tells actor to move in accordance with their states or remain stationairy
     Direction heading{ Direction::down }; //!< the character's current heading
-    std::map<std::string, Animation> anims; //!< Map of animation objects per direction per state
+    Animation anim; //!< actor animation object
     std::vector<AnimStatePair> validStates; //!< Map of provided animations states
     MovementState state{}; //!< Current movement state (idle, moving, or running)
     sf::Vector2f pos{}; //!< 2d position in cartesian coordinates

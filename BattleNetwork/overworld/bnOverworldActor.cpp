@@ -13,7 +13,7 @@ Overworld::Actor::Actor(Actor&& other) noexcept
   std::swap(walkSpeed, other.walkSpeed);
   std::swap(runSpeed, other.runSpeed);
   std::swap(heading, other.heading);
-  std::swap(anims, other.anims);
+  std::swap(anim, other.anim);
   std::swap(validStates, other.validStates);
   std::swap(state, other.state);
   std::swap(pos, other.pos);
@@ -62,8 +62,9 @@ void Overworld::Actor::Face(const Actor& actor)
 
 void Overworld::Actor::LoadAnimations(const Animation& animation)
 {
+  anim = animation;
+
   validStates.clear();
-  anims.clear();
 
   auto dir_list = {
     Direction::down, Direction::down_left, Direction::down_right,
@@ -79,15 +80,8 @@ void Overworld::Actor::LoadAnimations(const Animation& animation)
     std::string str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(dir);
 
     if (animation.HasAnimation(str)) {
-      const auto& [iter, success] = anims.insert(std::make_pair(str, animation));
-
-      if (success) {
-        iter->second.SetAnimation(str);
-        iter->second << Animator::Mode::Loop;
-        validStates.push_back({ state, dir });
-      }
-
-      return success;
+      validStates.push_back({ state, dir });
+      return true;
     }
 
     return false;
@@ -178,7 +172,7 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
       stateStr = findValidAnimThunk(item);
 
       // If we have something (non-empty string), exit the loop!
-      if (anims.begin()->second.HasAnimation(stateStr)) {
+      if (anim.HasAnimation(stateStr)) {
         break;
       }
     }
@@ -186,23 +180,26 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
 
   // we may have exhausted the possible animations to substitute in the previous for-loop
   // so we need to check again that the new state string is valid...
-  if (!anims.begin()->second.HasAnimation(stateStr)) {
+  if (!anim.HasAnimation(stateStr)) {
     stateStr = lastStateStr;
   }
 
   animProgress += elapsed;
 
+  // we're going to be syncing the time so this is required if changing sprites
+  anim << stateStr << Animator::Mode::Loop;
+
   if (lastStateStr.empty() == false) {
-    anims[lastStateStr].SyncTime(animProgress);
-    anims[lastStateStr].Refresh(getSprite());
+    anim.SyncTime(animProgress);
+    anim.Refresh(getSprite());
   }
 
   if (lastStateStr != stateStr) {
     animProgress = 0; // reset animation
-    anims[stateStr].SyncTime(animProgress);
+    anim.SyncTime(animProgress);
 
     // we have changed states
-    anims[stateStr].Refresh(getSprite());
+    anim.Refresh(getSprite());
     lastStateStr = stateStr;
   }
 }
@@ -501,8 +498,6 @@ std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
 
 std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const MovementState& state)
 {
-  if (anims.empty()) return "";
-
   // Some animations do not need to be provided (like cardinal-facing left or right)
   // when others can be substituted
   //
@@ -533,7 +528,7 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
 
   auto str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(Isometric(dir));
 
-  if (anims.begin()->second.HasAnimation(str) == false) {
+  if (anim.HasAnimation(str) == false) {
     const auto& [ud, lr] = Split(Isometric(dir));
 
     std::map<Direction, std::initializer_list<std::tuple<bool, Direction, MovementState>>> attempts = {

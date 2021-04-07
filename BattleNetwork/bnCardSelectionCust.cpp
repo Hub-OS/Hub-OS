@@ -381,6 +381,11 @@ bool CardSelectionCust::IsOutOfView() {
 
   if (getPosition().x <= bounds) {
     setPosition(bounds, getPosition().y);
+
+    if (RequestedRetreat()) {
+      ResetPlayerFormSelection();
+      selectedFormRow = -1;
+    }
   }
 
   return (getPosition().x == bounds);
@@ -475,7 +480,7 @@ void CardSelectionCust::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
 
 void CardSelectionCust::PromptRetreat()
 {
-  if (!IsInView() || textbox.IsOpen()) return;
+  if (!IsInView() || textbox.IsOpen() || isInFormSelect) return;
 
   textbox.PromptRetreat();
 }
