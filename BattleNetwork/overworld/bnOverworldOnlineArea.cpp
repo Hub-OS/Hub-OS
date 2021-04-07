@@ -1245,7 +1245,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   onlinePlayer.timestamp = CurrentTime::AsMilli();
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
-  onlinePlayer.idleDirection = direction;
+  onlinePlayer.idleDirection = Orthographic(direction);
 
   auto actor = onlinePlayer.actor;
   actor->Set3DPosition(pos);
