@@ -144,8 +144,8 @@ void Animation::LoadWithData(const string& data)
         string h = ValueOf("h", line);
         string ox = ValueOf("originx", line);
         string oy = ValueOf("originy", line);
-        string fx = ValueOf("flipX", line);
-        string fy = ValueOf("flipY", line);
+        string fx = ValueOf("flipx", line);
+        string fy = ValueOf("flipy", line);
 
         currentStartx = atoi(x.c_str());
         currentStarty = atoi(y.c_str());

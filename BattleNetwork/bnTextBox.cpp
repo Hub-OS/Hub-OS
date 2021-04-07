@@ -374,7 +374,7 @@ void TextBox::Update(const double elapsed) {
     if (charIndex >= lines[lineIndex]) {
       size_t pos = static_cast<size_t>(lineIndex) + static_cast<size_t>(numberOfFittingLines);
       if (pos < lines.size()) {
-        len = std::min(charIndex - begin, lines[pos] - begin);
+        len = std::min(charIndex - begin, lines[pos] - begin) - 1;
       }
       else {
         len = charIndex - begin;
@@ -391,11 +391,11 @@ void TextBox::Update(const double elapsed) {
       text.SetString("");
     }
     else {
-      std::string outString = message.substr(begin, (size_t)len);
+      std::string outString = message.substr(begin, (size_t)len+1);
       outString = stx::replace(outString, std::string(1, ::nolip_token), ""); // fx should not appear in final message
       outString = stx::replace(outString, std::string(1, ::dramatic_token), ""); // fx should not appear in final message
       text.SetString(outString);
-      progress = 0;
+      progress = 0; // don't roll over
     }
   }
 

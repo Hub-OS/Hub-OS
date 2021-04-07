@@ -16,14 +16,21 @@ void Animator::UpdateSpriteAttributes(sf::Sprite& target, const Frame& data)
   int w = data.subregion.width;
   int h = data.subregion.height;
 
+  float originx = static_cast<float>(data.origin.x);
+  float originy = static_cast<float>(data.origin.y);
+
   // flip x and flip y attr
   if (data.flipX) {
+    originx = w - originx;
+
     float newX = static_cast<float>(x + w);
     w = -w;
     x = static_cast<int>(newX);
   }
 
   if (data.flipY) {
+    originy = h - originy;
+
     float newY = static_cast<float>(y + h);
     h = -h;
     y = static_cast<int>(newY);
@@ -33,7 +40,7 @@ void Animator::UpdateSpriteAttributes(sf::Sprite& target, const Frame& data)
 
   // origin attr
   if (data.applyOrigin) {
-    target.setOrigin(static_cast<float>(data.origin.x), static_cast<float>(data.origin.y));
+    target.setOrigin(originx, originy);
   }
 }
 

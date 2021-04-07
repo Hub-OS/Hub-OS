@@ -28,15 +28,15 @@ using std::to_string;
  *
  * ```
  * animation state="PLAYER_SHOOTING"
- * frame duration="0.05" x="0" y="10" w="70" h="47" originx="21" originy="40"
+ * frame duration="0.05" x="0" y="10" w="70" h="47" originx="21" originy="40" flipx="0" flipy="0"
  * point label="Buster" x="42" y="15"
- * frame duration="0.05" x="72" y="7" w="70" h="47" originx="23" originy="40"
+ * frame duration="0.05" x="72" y="7" w="70" h="47" originx="23" originy="40" flipx="0" flipy="0"
  * point label="Buster" x="42" y="15"
- * frame duration="0.05" x="149" y="11" w="75" h="47" originx="21" originy="39"
+ * frame duration="0.05" x="149" y="11" w="75" h="47" originx="21" originy="39" flipx="0" flipy="0"
  * point label="Buster" x="40" y="14"
- * frame duration="0.05" x="225" y="11" w="77" h="47" originx="20" originy="39"
+ * frame duration="0.05" x="225" y="11" w="77" h="47" originx="20" originy="39" flipx="0" flipy="0"
  * point label="Buster" x="39" y="14"
- * frame duration="0.05" x="302" y="11" w="68" h="47" originx="18" originy="39"
+ * frame duration="0.05" x="302" y="11" w="68" h="47" originx="18" originy="39" flipx="0" flipy="0"
  * point label="Buster" x="38" y="14"
  * 
  * animation state="PLAYER_MOVING"
