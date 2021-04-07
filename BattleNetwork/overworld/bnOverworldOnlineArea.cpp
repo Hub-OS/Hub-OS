@@ -420,11 +420,11 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::remove_asset:
           receiveAssetRemoveSignal(reader, data);
           break;
+        case ServerEvents::asset_stream_start:
+          receiveAssetStreamStartSignal(reader, data);
+          break;
         case ServerEvents::asset_stream:
           receiveAssetStreamSignal(reader, data);
-          break;
-        case ServerEvents::asset_stream_complete:
-          receiveAssetStreamCompleteSignal(reader, data);
           break;
         case ServerEvents::preload:
           receivePreloadSignal(reader, data);
@@ -822,34 +822,74 @@ void Overworld::OnlineArea::receiveAssetRemoveSignal(BufferReader& reader, const
   serverAssetManager.RemoveAsset(path);
 }
 
-void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
-  auto size = reader.Read<uint16_t>(buffer);
-
-  assetBuffer.append(buffer.begin() + reader.GetOffset() + 2, size);
-}
-
-void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+void Overworld::OnlineArea::receiveAssetStreamStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto name = reader.ReadString(buffer);
   auto lastModified = reader.Read<uint64_t>(buffer);
   auto cachable = reader.Read<bool>(buffer);
   auto type = reader.Read<AssetType>(buffer);
+  auto size = reader.Read<size_t>(buffer);
+
+  auto slashIndex = name.rfind("/");
+  std::string shortName;
+
+  if (slashIndex != std::string::npos) {
+    shortName = name.substr(slashIndex + 1);
+  }
+  else {
+    shortName = name;
+  }
+
+  if(shortName.length() > 20) {
+    shortName = shortName.substr(0, 17) + "...";
+  }
+
+  incomingAsset = {
+    name,
+    shortName,
+    lastModified,
+    cachable,
+    type,
+    size,
+  };
+
+  transitionText.SetString("Downloading " + shortName + ": 0%");
+}
+
+void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto size = reader.Read<uint16_t>(buffer);
+
+  incomingAsset.buffer.append(buffer.begin() + reader.GetOffset() + 2, size);
+
+  auto progress = (float)incomingAsset.buffer.size() / (float)incomingAsset.size * 100;
+
+  std::stringstream transitionTextStream;
+  transitionTextStream << "Downloading " << incomingAsset.shortName << ": ";
+  transitionTextStream << std::floor(progress);
+  transitionTextStream << '%';
+  transitionText.SetString(transitionTextStream.str());
+
+  if (incomingAsset.buffer.size() < incomingAsset.size) return;
+
+  auto name = incomingAsset.name;
+  auto lastModified = incomingAsset.lastModified;
+  auto cachable = incomingAsset.cachable;
 
   BufferReader assetReader;
 
-  switch (type) {
+  switch (incomingAsset.type) {
   case AssetType::text:
-    assetBuffer.append(0);
-    serverAssetManager.SetText(name, lastModified, assetReader.ReadString(assetBuffer), cachable);
+    incomingAsset.buffer.append(0);
+    serverAssetManager.SetText(name, lastModified, assetReader.ReadString(incomingAsset.buffer), cachable);
     break;
   case AssetType::texture:
-    serverAssetManager.SetTexture(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
+    serverAssetManager.SetTexture(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
     break;
   case AssetType::audio:
-    serverAssetManager.SetAudio(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
+    serverAssetManager.SetAudio(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
     break;
   }
 
-  assetBuffer.setCapacity(0);
+  incomingAsset.buffer.setCapacity(0);
 }
 
 void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
