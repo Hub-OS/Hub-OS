@@ -2,6 +2,8 @@
 #include "bnOverworldMap.h"
 #include <cmath>
 
+std::shared_ptr<sf::Texture> Overworld::Actor::missing; 
+
 Overworld::Actor::Actor(const std::string& name) : name(name)
 {
 
@@ -92,8 +94,6 @@ void Overworld::Actor::LoadAnimations(const Animation& animation)
       loadDirectionalAnimationThunk(dir, state);
     }
   }
-
-  UpdateAnimationState(0); // refresh
 }
 
 void Overworld::Actor::SetWalkSpeed(float speed)
@@ -143,6 +143,12 @@ sf::Vector2f Overworld::Actor::PositionInFrontOf() const
 
 void Overworld::Actor::Update(float elapsed, Map& map, SpatialMap& spatialMap)
 {
+  auto texture = getTexture();
+
+  if (texture != Actor::missing && currTexture == nullptr) {
+    currTexture = texture;
+  }
+
   UpdateAnimationState(elapsed);
 
   if (state != MovementState::idle && moveThisFrame) {
@@ -153,6 +159,11 @@ void Overworld::Actor::Update(float elapsed, Map& map, SpatialMap& spatialMap)
 
     moveThisFrame = false;
   }
+}
+
+void Overworld::Actor::SetMissingTexture(std::shared_ptr<sf::Texture> texture)
+{
+  Actor::missing = texture;
 }
 
 void Overworld::Actor::UpdateAnimationState(float elapsed) {
@@ -180,27 +191,45 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
 
   // we may have exhausted the possible animations to substitute in the previous for-loop
   // so we need to check again that the new state string is valid...
+  bool missingAnim = false;
   if (!anim.HasAnimation(stateStr)) {
-    stateStr = lastStateStr;
+    missingAnim = true;
+
+    // Do we have a valid 'missing' texture?
+    if (missing) {
+      sf::Vector2u origin = missing->getSize();
+      sf::Vector2f originf = sf::Vector2f((float)origin.x * 0.5f, (float)origin.y * 0.5f);
+      this->setTexture(missing, true);
+      this->setOrigin(originf);
+    }
+  }
+  else {
+    auto texture = getTexture();
+
+    if (texture == Actor::missing && currTexture) {
+      this->setTexture(currTexture, true);
+    }
+
+    // we're going to be syncing the time so this is required if changing sprites
+    anim << stateStr << Animator::Mode::Loop;
   }
 
-  animProgress += elapsed;
+  if (!missingAnim) {
+    animProgress += elapsed;
 
-  // we're going to be syncing the time so this is required if changing sprites
-  anim << stateStr << Animator::Mode::Loop;
+    if (!lastStateStr.empty()) {
+      anim.SyncTime(animProgress);
+      anim.Refresh(getSprite());
+    }
 
-  if (lastStateStr.empty() == false) {
-    anim.SyncTime(animProgress);
-    anim.Refresh(getSprite());
-  }
+    if (lastStateStr != stateStr) {
+      animProgress = 0; // reset animation
+      anim.SyncTime(animProgress);
 
-  if (lastStateStr != stateStr) {
-    animProgress = 0; // reset animation
-    anim.SyncTime(animProgress);
-
-    // we have changed states
-    anim.Refresh(getSprite());
-    lastStateStr = stateStr;
+      // we have changed states
+      anim.Refresh(getSprite());
+      lastStateStr = stateStr;
+    }
   }
 }
 

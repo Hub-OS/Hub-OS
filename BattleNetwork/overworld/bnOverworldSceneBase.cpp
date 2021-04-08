@@ -69,8 +69,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 {
   // When we reach the menu scene we need to load the player information
   // before proceeding to next sub menus
-  // data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
-
   webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
   webAccountIcon.setScale(2.f, 2.f);
   webAccountIcon.setPosition(4, getController().getVirtualWindowSize().y - 44.0f);
@@ -80,6 +78,10 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 
   // Draws the scrolling background
   SetBackground(std::make_shared<LanBackground>());
+
+  // set the missing texture for all actor objects
+  auto missingTexture = Textures().LoadTextureFromFile("resources/ow/missing.png");
+  Overworld::Actor::SetMissingTexture(missingTexture);
 
   personalMenu.setScale(2.f, 2.f);
   emote.setScale(2.f, 2.f);

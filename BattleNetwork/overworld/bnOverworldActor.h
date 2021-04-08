@@ -26,6 +26,9 @@ namespace Overworld {
       running,
       size = 3
     };
+
+    static void SetMissingTexture(std::shared_ptr<sf::Texture> texture);
+
   private:
     struct AnimStatePair {
       MovementState movement{};
@@ -49,9 +52,11 @@ namespace Overworld {
     bool solid{ true };
     bool collidesWithMap{ true };
 
-    void UpdateAnimationState(float elapsed);
+    static std::shared_ptr<sf::Texture> missing; //!< Used when an animation state is missing
+    std::shared_ptr<sf::Texture> currTexture; //!< Spritesheet (if any) we are using
 
     // aux functions
+    void UpdateAnimationState(float elapsed);
     std::string DirectionAnimStrSuffix(const Direction& dir);
     std::string MovementAnimStrPrefix(const MovementState& state);
     std::string FindValidAnimState(const Direction& dir, const MovementState& state);

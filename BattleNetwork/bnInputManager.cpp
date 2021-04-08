@@ -78,15 +78,10 @@ void InputManager::Update() {
 
       onResized? onResized(event.size.width, event.size.height) : (void)0;
       hasFocus = true;
-    }
-
-    if (event.type == sf::Event::TextEntered && captureInputBuffer) {
+    } else if (event.type == sf::Event::TextEntered && captureInputBuffer) {
       HandleInputBuffer(event);
-    }
-
-    if(event.type == sf::Event::EventType::KeyPressed) {
+    } else if(event.type == sf::Event::EventType::KeyPressed) {
       if (hasFocus) {
-
         lastkey = event.key.code;
 
 #ifndef __ANDROID__
@@ -119,7 +114,7 @@ void InputManager::Update() {
         if (sf::Joystick::isButtonPressed(currGamepad, i)) {
           auto action1 = settings.GetPairedActions((Gamepad)i);
 
-          for (auto a : action1) {
+          for (auto& a : action1) {
             events.push_back({ a, InputState::pressed });
           }
           
@@ -131,7 +126,7 @@ void InputManager::Update() {
           */
           auto action2 = settings.GetPairedActions((Gamepad)i);
 
-          for (auto a : action2) {
+          for (auto& a : action2) {
             bool canRelease = false;
 
             InputEvent find1 = { a, InputState::held };
@@ -155,7 +150,7 @@ void InputManager::Update() {
       if (settings.IsOK() && settings.IsKeyboardOK()) {
         auto action3 = settings.GetPairedActions(event.key.code);
 
-        for (auto a : action3) {
+        for (auto& a : action3) {
           events.push_back({ a, InputState::pressed });
         }
       } else {
@@ -209,7 +204,7 @@ void InputManager::Update() {
       if (settings.IsOK() && settings.IsKeyboardOK()) {
         auto action4 = settings.GetPairedActions(event.key.code);
 
-        for (auto a : action4) {
+        for (auto& a : action4) {
           events.push_back({ a, InputState::released });
         }
       }
@@ -264,6 +259,7 @@ void InputManager::Update() {
   } // end event poll
 
   // Check these every frame regardless of input state...
+
   lastAxisXPower = axisXPower;
   lastAxisYPower = axisYPower;
 
@@ -293,7 +289,7 @@ void InputManager::Update() {
 
       auto action5 = settings.GetPairedActions((Gamepad)lastButton);
 
-      for (auto a : action5) {
+      for (auto& a : action5) {
         events.push_back({ a, InputState::pressed });
       }
     }
@@ -303,7 +299,7 @@ void InputManager::Update() {
 
       auto action6 = settings.GetPairedActions((Gamepad)lastButton);
 
-      for (auto a : action6) {
+      for (auto& a : action6) {
         events.push_back({ a, InputState::pressed });
       }
     }
@@ -313,7 +309,7 @@ void InputManager::Update() {
 
       auto action7 = settings.GetPairedActions((Gamepad)lastButton);
 
-      for (auto a : action7) {
+      for (auto& a : action7) {
         events.push_back({ a, InputState::pressed });
       }
     }
@@ -323,7 +319,7 @@ void InputManager::Update() {
 
       auto action8 = settings.GetPairedActions((Gamepad)lastButton);
 
-      for (auto a : action8) {
+      for (auto& a : action8) {
         events.push_back({ a, InputState::pressed });
       }
     }
@@ -332,7 +328,7 @@ void InputManager::Update() {
       if (axisXPower > -GAMEPAD_AXIS_SENSITIVITY && lastAxisXPower <= -GAMEPAD_AXIS_SENSITIVITY) {
         auto action9 = settings.GetPairedActions(Gamepad::LEFT);
 
-        for (auto a : action9) {
+        for (auto& a : action9) {
           events.push_back({ a, InputState::released });
         }
       }
@@ -340,7 +336,7 @@ void InputManager::Update() {
       if (axisXPower < GAMEPAD_AXIS_SENSITIVITY && lastAxisXPower >= GAMEPAD_AXIS_SENSITIVITY) {
         auto action10 = settings.GetPairedActions(Gamepad::RIGHT);
 
-        for (auto a : action10) {
+        for (auto& a : action10) {
           events.push_back({ a, InputState::released });
         }
       }
@@ -350,7 +346,7 @@ void InputManager::Update() {
       if (axisYPower > -GAMEPAD_AXIS_SENSITIVITY && lastAxisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
         auto action11 = settings.GetPairedActions(Gamepad::DOWN);
 
-        for (auto a : action11) {
+        for (auto& a : action11) {
           events.push_back({ a, InputState::released });
         }
       }
@@ -358,7 +354,7 @@ void InputManager::Update() {
       if (axisYPower < GAMEPAD_AXIS_SENSITIVITY && lastAxisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
         auto action12 = settings.GetPairedActions(Gamepad::UP);
 
-        for (auto a : action12) {
+        for (auto& a : action12) {
           events.push_back({ a, InputState::released });
         }
       }
