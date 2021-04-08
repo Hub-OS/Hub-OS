@@ -315,6 +315,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetChargePosition", &ScriptedPlayer::SetChargePosition,
     "GetAnimation", &ScriptedPlayer::GetAnimationObject,
     "SetAnimation", &ScriptedPlayer::SetAnimation,
+    "SetFloatShoe", &ScriptedPlayer::SetFloatShoe,
+    "SetAirShoe", &ScriptedPlayer::SetAirShoe,
     "Team", &ScriptedPlayer::GetTeam,
     sol::base_classes, sol::bases<Player>()
    );
