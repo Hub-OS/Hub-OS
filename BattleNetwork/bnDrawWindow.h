@@ -106,13 +106,6 @@ public:
   void RevokeShader();
 
   /**
-   * @brief Query if mouse is hovering over a sprite
-   * @param sprite
-   * @return true if the mouse is within the local bounds of the sprite
-   */
-  const bool IsMouseHovering(sf::Sprite& sprite) const;
-
-  /**
   * @brief Describes how the engine should regain focus on diff hardware
   * 
   * Callback assigned to the InputManager */

@@ -210,10 +210,11 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   }
 
   auto& window = getController().getWindow();
-  auto viewport = window.getViewport(getView());
+  auto viewport = window.getViewport(window.getView());
+  auto windowSize = window.getSize();
   auto vsize = getController().getVirtualWindowSize();
   auto windowScale = sf::Vector2f((float)vsize.x / (float)viewport.width, (float)vsize.y / (float)viewport.height);
-  auto mousei = sf::Mouse::getPosition(window);
+  auto mousei = sf::Mouse::getPosition() - window.getPosition() - sf::Vector2i(viewport.left, viewport.top);
   auto mousef = sf::Vector2f(mousei.x * windowScale.x, mousei.y * windowScale.y);
 
   auto cameraView = GetCamera().GetView();
@@ -224,6 +225,11 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   auto offset = cameraCenter - getView().getCenter();
 
   auto mouseScreen = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
+
+  sf::RectangleShape rect({ 2.f, 2.f });
+  rect.setFillColor(sf::Color::Red);
+  rect.setPosition(mousef);
+  surface.draw(rect);
 
   for (auto& pair : onlinePlayers) {
     auto& onlinePlayer = pair.second;
