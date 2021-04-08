@@ -1487,6 +1487,7 @@ std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vect
 const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src)
 {
   auto textureRect = src.getSprite().getTextureRect();
+  auto origin = src.getOrigin();
 
   auto& map = GetMap();
   auto tileSize = map.GetTileSize();
@@ -1497,8 +1498,8 @@ const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, cons
   screenPosition.y -= src.GetElevation() * tileSize.y / 2.0f;
 
   auto bounds = sf::FloatRect(
-    (screenPosition.x - (float)(textureRect.width / 2)) * scale.x,
-    (screenPosition.y - textureRect.height) * scale.y,
+    (screenPosition.x - origin.x) * scale.x,
+    (screenPosition.y - origin.y) * scale.y,
     textureRect.width * scale.x,
     textureRect.height * scale.y
   );

@@ -218,21 +218,17 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   auto cameraView = GetCamera().GetView();
   auto cameraCenter = cameraView.getCenter();
-  auto offset = getView().getCenter() - cameraCenter;
   auto mapScale = GetMap().getScale();
-  //cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
-  //cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
-  //cameraView.setCenter(cameraCenter);
+  cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
+  cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
+  auto offset = cameraCenter - getView().getCenter();
 
-  //auto mouseWorld = sf::Vector2f(mousef.x / (float)viewport.width, mousef.y / (float)viewport.height);
-  //mouseWorld = sf::Vector2f(mouseWorld.x * cameraView.getSize().x, mouseWorld.x * cameraView.getSize().y);
-  auto mouseWorld = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
-  mouseWorld = GetMap().WorldToScreen(mouseWorld);
+  auto mouseScreen = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
 
   for (auto& pair : onlinePlayers) {
     auto& onlinePlayer = pair.second;
 
-    if (IsMouseHovering(mouseWorld, *onlinePlayer.actor)) {
+    if (IsMouseHovering(mouseScreen, *onlinePlayer.actor)) {
       nameText.setPosition(mousef);
       nameText.SetString(onlinePlayer.actor->GetName());
       nameText.setOrigin(-10.0f, 0);
@@ -241,7 +237,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     }
   }
 
-  if (IsMouseHovering(mouseWorld, *playerActor)) {
+  if (IsMouseHovering(mouseScreen, *playerActor)) {
     nameText.setPosition(mousef);
     nameText.SetString(playerActor->GetName());
     nameText.setOrigin(-10.0f, 0);
@@ -424,11 +420,11 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::remove_asset:
           receiveAssetRemoveSignal(reader, data);
           break;
+        case ServerEvents::asset_stream_start:
+          receiveAssetStreamStartSignal(reader, data);
+          break;
         case ServerEvents::asset_stream:
           receiveAssetStreamSignal(reader, data);
-          break;
-        case ServerEvents::asset_stream_complete:
-          receiveAssetStreamCompleteSignal(reader, data);
           break;
         case ServerEvents::preload:
           receivePreloadSignal(reader, data);
@@ -472,23 +468,23 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::quiz:
           receiveQuizSignal(reader, data);
           break;
-        case ServerEvents::navi_connected:
-          receiveNaviConnectedSignal(reader, data);
+        case ServerEvents::actor_connected:
+          receiveActorConnectedSignal(reader, data);
           break;
-        case ServerEvents::navi_disconnect:
-          receiveNaviDisconnectedSignal(reader, data);
+        case ServerEvents::actor_disconnect:
+          receiveActorDisconnectedSignal(reader, data);
           break;
-        case ServerEvents::navi_set_name:
-          receiveNaviSetNameSignal(reader, data);
+        case ServerEvents::actor_set_name:
+          receiveActorSetNameSignal(reader, data);
           break;
-        case ServerEvents::navi_move_to:
-          receiveNaviMoveSignal(reader, data);
+        case ServerEvents::actor_move_to:
+          receiveActorMoveSignal(reader, data);
           break;
-        case ServerEvents::navi_set_avatar:
-          receiveNaviSetAvatarSignal(reader, data);
+        case ServerEvents::actor_set_avatar:
+          receiveActorSetAvatarSignal(reader, data);
           break;
-        case ServerEvents::navi_emote:
-          receiveNaviEmoteSignal(reader, data);
+        case ServerEvents::actor_emote:
+          receiveActorEmoteSignal(reader, data);
           break;
         }
       }
@@ -693,7 +689,7 @@ void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectI
 void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
 {
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::navi_interaction };
+  ClientEvents type{ ClientEvents::actor_interaction };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append(ticket.c_str(), ticket.length() + 1);
@@ -759,6 +755,7 @@ void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, con
   bool warpOut = reader.Read<bool>(buffer);
 
   isConnected = false;
+  transitionText.SetString("");
   excludedObjects.clear();
   removePlayers.clear();
 
@@ -814,8 +811,8 @@ void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::
   }
 
   transitionText.SetString(kickText + "\n\n" + kickReason);
-  kicked = true;
   isConnected = false;
+  kicked = true;
 
   // bool kicked will block incoming packets, so we'll leave in update from a timeout
 }
@@ -826,34 +823,74 @@ void Overworld::OnlineArea::receiveAssetRemoveSignal(BufferReader& reader, const
   serverAssetManager.RemoveAsset(path);
 }
 
-void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
-  auto size = reader.Read<uint16_t>(buffer);
-
-  assetBuffer.append(buffer.begin() + reader.GetOffset() + 2, size);
-}
-
-void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+void Overworld::OnlineArea::receiveAssetStreamStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto name = reader.ReadString(buffer);
   auto lastModified = reader.Read<uint64_t>(buffer);
   auto cachable = reader.Read<bool>(buffer);
   auto type = reader.Read<AssetType>(buffer);
+  auto size = reader.Read<size_t>(buffer);
+
+  auto slashIndex = name.rfind("/");
+  std::string shortName;
+
+  if (slashIndex != std::string::npos) {
+    shortName = name.substr(slashIndex + 1);
+  }
+  else {
+    shortName = name;
+  }
+
+  if(shortName.length() > 20) {
+    shortName = shortName.substr(0, 17) + "...";
+  }
+
+  incomingAsset = {
+    name,
+    shortName,
+    lastModified,
+    cachable,
+    type,
+    size,
+  };
+
+  transitionText.SetString("Downloading " + shortName + ": 0%");
+}
+
+void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto size = reader.Read<uint16_t>(buffer);
+
+  incomingAsset.buffer.append(buffer.begin() + reader.GetOffset() + 2, size);
+
+  auto progress = (float)incomingAsset.buffer.size() / (float)incomingAsset.size * 100;
+
+  std::stringstream transitionTextStream;
+  transitionTextStream << "Downloading " << incomingAsset.shortName << ": ";
+  transitionTextStream << std::floor(progress);
+  transitionTextStream << '%';
+  transitionText.SetString(transitionTextStream.str());
+
+  if (incomingAsset.buffer.size() < incomingAsset.size) return;
+
+  auto name = incomingAsset.name;
+  auto lastModified = incomingAsset.lastModified;
+  auto cachable = incomingAsset.cachable;
 
   BufferReader assetReader;
 
-  switch (type) {
+  switch (incomingAsset.type) {
   case AssetType::text:
-    assetBuffer.append(0);
-    serverAssetManager.SetText(name, lastModified, assetReader.ReadString(assetBuffer), cachable);
+    incomingAsset.buffer.append(0);
+    serverAssetManager.SetText(name, lastModified, assetReader.ReadString(incomingAsset.buffer), cachable);
     break;
   case AssetType::texture:
-    serverAssetManager.SetTexture(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
+    serverAssetManager.SetTexture(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
     break;
   case AssetType::audio:
-    serverAssetManager.SetAudio(name, lastModified, assetBuffer.begin(), assetBuffer.size(), cachable);
+    serverAssetManager.SetAudio(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
     break;
   }
 
-  assetBuffer.setCapacity(0);
+  incomingAsset.buffer.setCapacity(0);
 }
 
 void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
@@ -1215,7 +1252,7 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
   );
 }
 
-void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto& map = GetMap();
   auto tileSize = sf::Vector2f(map.GetTileSize());
@@ -1249,7 +1286,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   onlinePlayer.timestamp = CurrentTime::AsMilli();
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
-  onlinePlayer.idleDirection = direction;
+  onlinePlayer.idleDirection = Orthographic(direction);
 
   auto actor = onlinePlayer.actor;
   actor->Set3DPosition(pos);
@@ -1287,7 +1324,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   }
 }
 
-void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
   bool warpOut = reader.Read<bool>(buffer);
@@ -1328,7 +1365,7 @@ void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, 
   }
 }
 
-void Overworld::OnlineArea::receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorSetNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
   std::string name = reader.ReadString(buffer);
@@ -1340,7 +1377,7 @@ void Overworld::OnlineArea::receiveNaviSetNameSignal(BufferReader& reader, const
   }
 }
 
-void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
 
@@ -1395,11 +1432,11 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     onlinePlayer.timestamp = currentTime;
     onlinePlayer.packets++;
     onlinePlayer.lagWindow[onlinePlayer.packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
-    onlinePlayer.idleDirection = direction;
+    onlinePlayer.idleDirection = Orthographic(direction);
   }
 }
 
-void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
   std::string texturePath = reader.ReadString(buffer);
@@ -1432,7 +1469,7 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
   emoteNode->setPosition(0, emoteY);
 }
 
-void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto emote = reader.Read<Emotes>(buffer);
   auto user = reader.ReadString(buffer);
@@ -1450,7 +1487,7 @@ void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const P
   }
 }
 
-void Overworld::OnlineArea::receiveNaviAnimateSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto user = reader.ReadString(buffer);
   auto state = reader.ReadString(buffer);
