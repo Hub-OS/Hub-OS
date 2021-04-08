@@ -596,7 +596,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   float x = vec.x / tileSize.x * 2.0f;
   float y = vec.y / tileSize.y;
   float z = player->GetElevation();
-  auto direction = player->GetHeading();
+  auto direction = Isometric(player->GetHeading());
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::position };
