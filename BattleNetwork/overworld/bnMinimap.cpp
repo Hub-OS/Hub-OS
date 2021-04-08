@@ -52,10 +52,10 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
       pos.y = center.y - pos.y;
 
       if (mask == 0) {
-        outcolor = vec4(finalColor.r*0.60, finalColor.g*1.20, finalColor.b*0.60, incolor.a);
+        outcolor = vec4(finalColor.r*0.60, finalColor.g*1.20, finalColor.b*0.60, ceil(incolor.a));
       }
       else {
-        outcolor = finalColor * incolor.a;
+        outcolor = finalColor * ceil(incolor.a);
       }
 
       if (mask > 0 && abs(2.0 * pos.x / tileSize.x) + abs(2.0 * pos.y / tileSize.y) > 1.0)
@@ -70,8 +70,6 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
     uniform sampler2D texture;
     uniform float resolutionW;
     uniform float resolutionH;
-    uniform float delta;
-    uniform vec4 edgeColor;
 
     void main(void)
     {
@@ -80,25 +78,6 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
 
       vec2 pos = gl_TexCoord[0].xy;
       vec4 incolor = texture2D(texture, pos).rgba;
-
-      /*
-      * NOTE: checks difference in color for game-accurate map generation.
-      */
-      
-      /*float g = incolor.g;
-      float top = texture2D(texture, vec2(pos.x, pos.y-dy)).g;
-      float left = texture2D(texture, vec2(pos.x-dx, pos.y)).g;
-      float right = texture2D(texture, vec2(pos.x+dx, pos.y)).g;
-      float down = texture2D(texture, vec2(pos.x, pos.y+dy)).g;
-    
-      float maxDiff = g - min(down, min(top, min(left, right)));
-
-      /*if (maxDiff >= delta-0.008) {
-        gl_FragColor = (incolor * 0.75).rgba;
-      }
-      else {
-        gl_FragColor = incolor;
-      }*/
 
       // this just checks for alpha
       vec4 top = texture2D(texture, vec2(pos.x, pos.y - dy));
@@ -198,8 +177,6 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   shader.loadFromMemory(edgeDetection, sf::Shader::Type::Fragment);
   shader.setUniform("resolutionW", (float)textureSize.x);
   shader.setUniform("resolutionH", (float)textureSize.y);
-  shader.setUniform("edgeColor", sf::Glsl::Vec4(edge1Color));
-  shader.setUniform("delta", (1.0f / (float)maxLayerCount)*((float)layer1Color.g/255.f));
   texture.draw(temp, states);
 
   texture.display();

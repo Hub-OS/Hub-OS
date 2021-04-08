@@ -37,6 +37,16 @@ namespace Overworld {
       bool solid;
     };
 
+    struct AssetMeta {
+      std::string name;
+      std::string shortName;
+      uint64_t lastModified{};
+      bool cachable{};
+      AssetType type{};
+      size_t size{};
+      Poco::Buffer<char> buffer{ 0 };
+    };
+
     std::string ticket; //!< How we are represented on the server
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
@@ -49,7 +59,7 @@ namespace Overworld {
     PacketSorter packetSorter;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
-    Poco::Buffer<char> assetBuffer{ 0 };
+    AssetMeta incomingAsset;
     std::map<std::string, OnlinePlayer> onlinePlayers;
     std::map<unsigned, ExcludedObjectData> excludedObjects;
     std::list<std::string> removePlayers;
@@ -87,8 +97,8 @@ namespace Overworld {
     void receiveTransferServerSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveKickSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAssetStreamStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -100,13 +110,13 @@ namespace Overworld {
     void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
     void playSong(const std::string& name);
