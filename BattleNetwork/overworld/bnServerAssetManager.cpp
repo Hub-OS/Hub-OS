@@ -16,13 +16,13 @@ static char encodeHexChar(char c) {
 
 // prevents a server from doing something dangerous by abusing special characters that we may be unaware of
 // also allows us to have a flat file structure for easy reading
-static std::string encodeName(std::string name) {
+static std::string URIEncode(std::string name) {
   std::stringstream encodedName;
 
   for (auto i = 0; i < name.length(); i++) {
     auto c = name[i];
 
-    if (std::isalpha(c) || std::isdigit(c) || c == '.') {
+    if (std::isalpha(c) || std::isdigit(c) || c == '.' || c == ' ') {
       encodedName << c;
       continue;
     }
@@ -41,7 +41,7 @@ static char decodeHexChar(char h) {
   return h - '0';
 }
 
-static std::string decodeName(std::string encodedName) {
+static std::string URIDecode(std::string encodedName) {
   std::stringstream decodedName;
 
   auto len = encodedName.size();
@@ -70,6 +70,28 @@ static std::string decodeName(std::string encodedName) {
   return decodedName.str();
 }
 
+static std::string encodeName(const std::string& name, uint64_t lastModified) {
+  return std::to_string(lastModified) + "-" + URIEncode(name);
+}
+
+static std::tuple<std::string, uint64_t> decodeName(const std::string& name) {
+  auto dashIndex = name.find('-');
+
+  if(dashIndex == std::string::npos) {
+    return { URIDecode(name), 0 };
+  }
+
+  uint64_t lastModifiedTime;
+
+  try {
+    lastModifiedTime = stoull(name);
+  } catch(std::exception&) {
+    lastModifiedTime = 0;
+  }
+
+  return { URIDecode(name.substr(dashIndex + 1)), lastModifiedTime };
+}
+
 
 Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) :
   cachePath(cachePath)
@@ -93,15 +115,11 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) 
       // load asset
       // todo: load on demand? worries are pauses and initial sound effect delay
 
-      auto name = decodeName(path.substr(cachePrefix.length()));
-
-      auto lastWriteTime = entry.last_write_time();
-      auto secondsSinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(lastWriteTime.time_since_epoch()).count();
-
+      auto [name, lastModified] = decodeName(path.substr(cachePrefix.length()));
 
       CacheMeta meta{
         path,
-        (uint64_t)secondsSinceEpoch,
+        lastModified,
         entry.file_size()
       };
 
@@ -115,7 +133,14 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) 
 }
 
 std::string Overworld::ServerAssetManager::GetPath(const std::string& name) {
-  return cachePrefix + encodeName(name);
+  auto it = cachedAssets.find(name);
+
+  if(it == cachedAssets.end()) {
+    // fallback
+    return cachePrefix + URIEncode(name);
+  }
+
+  return it->second.path;
 }
 
 const std::unordered_map<std::string, Overworld::ServerAssetManager::CacheMeta>& Overworld::ServerAssetManager::GetCachedAssetList() {
@@ -209,7 +234,7 @@ std::shared_ptr<sf::SoundBuffer> Overworld::ServerAssetManager::GetAudio(const s
 }
 
 void Overworld::ServerAssetManager::CacheAsset(const std::string& name, uint64_t lastModified, const char* data, size_t size) {
-  auto path = GetPath(name);
+  auto path = cachePrefix + encodeName(name, lastModified);
 
   std::ofstream fout;
   fout.open(path, std::ios::out | std::ios::binary);
@@ -221,17 +246,6 @@ void Overworld::ServerAssetManager::CacheAsset(const std::string& name, uint64_t
 
   fout.write(data, size);
   fout.close();
-
-  try {
-    auto durationFromEpoch = std::chrono::seconds(lastModified);
-    auto lastModifiedTime = std::filesystem::file_time_type(durationFromEpoch);
-    std::filesystem::last_write_time(path, lastModifiedTime);
-  }
-  catch (std::filesystem::filesystem_error& err) {
-    Logger::Log("Error occured while setting the last write time of a cached asset");
-    Logger::Log(err.what());
-    return;
-  }
 
   CacheMeta meta{
     path,
@@ -276,8 +290,6 @@ void Overworld::ServerAssetManager::SetAudio(const std::string& name, uint64_t l
 }
 
 void Overworld::ServerAssetManager::RemoveAsset(const std::string& name) {
-  cachedAssets.erase(name);
-
   try {
     std::filesystem::remove(GetPath(name));
   }
@@ -285,4 +297,6 @@ void Overworld::ServerAssetManager::RemoveAsset(const std::string& name) {
     Logger::Log("Error occured while removing asset");
     Logger::Log(err.what());
   }
+  
+  cachedAssets.erase(name);
 }
