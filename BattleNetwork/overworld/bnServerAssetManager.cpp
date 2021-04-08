@@ -253,7 +253,7 @@ void Overworld::ServerAssetManager::CacheAsset(const std::string& name, uint64_t
     size
   };
 
-  cachedAssets.emplace(name, meta);
+  cachedAssets[name] = meta;
 }
 
 void Overworld::ServerAssetManager::SetText(const std::string& name, uint64_t lastModified, const std::string& data, bool cache) {
