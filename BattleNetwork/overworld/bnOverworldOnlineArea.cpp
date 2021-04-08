@@ -468,23 +468,23 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::quiz:
           receiveQuizSignal(reader, data);
           break;
-        case ServerEvents::navi_connected:
-          receiveNaviConnectedSignal(reader, data);
+        case ServerEvents::actor_connected:
+          receiveActorConnectedSignal(reader, data);
           break;
-        case ServerEvents::navi_disconnect:
-          receiveNaviDisconnectedSignal(reader, data);
+        case ServerEvents::actor_disconnect:
+          receiveActorDisconnectedSignal(reader, data);
           break;
-        case ServerEvents::navi_set_name:
-          receiveNaviSetNameSignal(reader, data);
+        case ServerEvents::actor_set_name:
+          receiveActorSetNameSignal(reader, data);
           break;
-        case ServerEvents::navi_move_to:
-          receiveNaviMoveSignal(reader, data);
+        case ServerEvents::actor_move_to:
+          receiveActorMoveSignal(reader, data);
           break;
-        case ServerEvents::navi_set_avatar:
-          receiveNaviSetAvatarSignal(reader, data);
+        case ServerEvents::actor_set_avatar:
+          receiveActorSetAvatarSignal(reader, data);
           break;
-        case ServerEvents::navi_emote:
-          receiveNaviEmoteSignal(reader, data);
+        case ServerEvents::actor_emote:
+          receiveActorEmoteSignal(reader, data);
           break;
         }
       }
@@ -689,7 +689,7 @@ void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectI
 void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
 {
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::navi_interaction };
+  ClientEvents type{ ClientEvents::actor_interaction };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append(ticket.c_str(), ticket.length() + 1);
@@ -1252,7 +1252,7 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
   );
 }
 
-void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto& map = GetMap();
   auto tileSize = sf::Vector2f(map.GetTileSize());
@@ -1324,7 +1324,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   }
 }
 
-void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
   bool warpOut = reader.Read<bool>(buffer);
@@ -1365,7 +1365,7 @@ void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, 
   }
 }
 
-void Overworld::OnlineArea::receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorSetNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
   std::string name = reader.ReadString(buffer);
@@ -1377,7 +1377,7 @@ void Overworld::OnlineArea::receiveNaviSetNameSignal(BufferReader& reader, const
   }
 }
 
-void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
 
@@ -1436,7 +1436,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
   }
 }
 
-void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
   std::string texturePath = reader.ReadString(buffer);
@@ -1469,7 +1469,7 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
   emoteNode->setPosition(0, emoteY);
 }
 
-void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto emote = reader.Read<Emotes>(buffer);
   auto user = reader.ReadString(buffer);
@@ -1487,7 +1487,7 @@ void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const P
   }
 }
 
-void Overworld::OnlineArea::receiveNaviAnimateSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto user = reader.ReadString(buffer);
   auto state = reader.ReadString(buffer);
