@@ -210,12 +210,8 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   }
 
   auto& window = getController().getWindow();
-  auto viewport = window.getViewport(window.getView());
-  auto windowSize = window.getSize();
-  auto vsize = getController().getVirtualWindowSize();
-  auto windowScale = sf::Vector2f((float)vsize.x / (float)viewport.width, (float)vsize.y / (float)viewport.height);
-  auto mousei = sf::Mouse::getPosition() - window.getPosition() - sf::Vector2i(viewport.left, viewport.top);
-  auto mousef = sf::Vector2f(mousei.x * windowScale.x, mousei.y * windowScale.y);
+  auto mousei = sf::Mouse::getPosition(window);
+  auto mousef = window.mapPixelToCoords(mousei);
 
   auto cameraView = GetCamera().GetView();
   auto cameraCenter = cameraView.getCenter();
@@ -239,7 +235,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
       nameText.SetString(onlinePlayer.actor->GetName());
       nameText.setOrigin(-10.0f, 0);
       surface.draw(nameText);
-      break;
+      return;
     }
   }
 
@@ -596,7 +592,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   float x = vec.x / tileSize.x * 2.0f;
   float y = vec.y / tileSize.y;
   float z = player->GetElevation();
-  auto direction = player->GetHeading();
+  auto direction = Isometric(player->GetHeading());
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::position };
