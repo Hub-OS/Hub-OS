@@ -755,6 +755,7 @@ void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, con
   bool warpOut = reader.Read<bool>(buffer);
 
   isConnected = false;
+  transitionText.SetString("");
   excludedObjects.clear();
   removePlayers.clear();
 
@@ -810,8 +811,8 @@ void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::
   }
 
   transitionText.SetString(kickText + "\n\n" + kickReason);
-  kicked = true;
   isConnected = false;
+  kicked = true;
 
   // bool kicked will block incoming packets, so we'll leave in update from a timeout
 }
