@@ -230,9 +230,15 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   for (auto& pair : onlinePlayers) {
     auto& onlinePlayer = pair.second;
 
+    auto& name = onlinePlayer.actor->GetName();
+
+    if(name == "") {
+      continue;
+    }
+
     if (IsMouseHovering(mouseScreen, *onlinePlayer.actor)) {
       nameText.setPosition(mousef);
-      nameText.SetString(onlinePlayer.actor->GetName());
+      nameText.SetString(name);
       nameText.setOrigin(-10.0f, 0);
       surface.draw(nameText);
       return;
