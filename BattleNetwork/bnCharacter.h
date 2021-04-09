@@ -44,7 +44,7 @@ struct CombatHitProps {
   }
 
   CombatHitProps& operator=(const CombatHitProps& rhs) {
-    this->CombatHitProps::CombatHitProps(rhs);
+    *this = CombatHitProps(rhs);
     return *this;
   }
 };

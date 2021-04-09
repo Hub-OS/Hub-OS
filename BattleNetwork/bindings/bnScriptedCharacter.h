@@ -6,6 +6,10 @@
 #include "../bnCharacter.h"
 #include "../bnAI.h"
 
+class AnimationComponent;
+class ScriptedCharacterState;
+class ScriptedIntroState;
+
 /**
  * @class ScriptedCharacter
  * @author mav

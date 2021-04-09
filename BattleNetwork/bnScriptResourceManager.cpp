@@ -1,5 +1,6 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptResourceManager.h"
+#include "bnAnimator.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -39,21 +40,22 @@
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.open_libraries(sol::lib::base, sol::lib::math);
 
-  auto& battle_namespace = state.create_table("Battle");
-  auto& overworld_namespace = state.create_table("Overworld");
-  auto& engine_namespace = state.create_table("Engine");
+  // create_table returns non reference to global table? internal tracking?
+  sol::table battle_namespace = state.create_table("Battle");
+  sol::table overworld_namespace = state.create_table("Overworld");
+  sol::table engine_namespace = state.create_table("Engine");
 
   // global namespace
-  auto& color_record = state.new_usertype<sf::Color>("Color",
+  const auto& color_record = state.new_usertype<sf::Color>("Color",
     sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>()
   );
 
-  auto& vector_record = state.new_usertype<sf::Vector2f>("Vector2",
+  const auto& vector_record = state.new_usertype<sf::Vector2f>("Vector2",
     "x", &sf::Vector2f::x,
     "y", &sf::Vector2f::y
   );
 
-  auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
+  const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
     sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
     "Load", &Animation::Load,
     "Update", &Animation::Update,
@@ -68,7 +70,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "OnInterrupt", &Animation::SetInterruptCallback
   );
 
-  auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
+  const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
     "SetTexture", &SpriteProxyNode::setTexture,
     "SetLayer", &SpriteProxyNode::SetLayer,
@@ -81,7 +83,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<SceneNode>()
   );
 
-  auto& defense_frame_state_judge_record = battle_namespace.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
+  const auto& defense_frame_state_judge_record = battle_namespace.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
     "BlockDamage", &DefenseFrameStateJudge::BlockDamage,
     "BlockImpact", &DefenseFrameStateJudge::BlockImpact,
     "IsDamageBlocked", &DefenseFrameStateJudge::IsDamageBlocked,
@@ -90,7 +92,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SignalDefenseWasPierced", &DefenseFrameStateJudge::SignalDefenseWasPierced
     );
 
-  auto& defense_rule_record = battle_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
+  const auto& defense_rule_record = battle_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
     sol::factories([](int priority, const DefenseOrder& order) -> std::unique_ptr<ScriptedDefenseRule> {
       return std::make_unique<ScriptedDefenseRule>(Priority(priority), order);
     }),
@@ -100,21 +102,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<DefenseRule>()
     );
 
-  auto& defense_rule_nodrag = battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
+  const auto& defense_rule_nodrag = battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
     sol::factories([] {
       return std::make_unique<DefenseNodrag>();
     }),
     sol::base_classes, sol::bases<DefenseRule>()
   );
 
-  auto& defense_rule_virus_body = battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
+  const auto& defense_rule_virus_body = battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
     sol::factories([] {
       return std::make_unique<DefenseVirusBody>();
     }),
     sol::base_classes, sol::bases<DefenseRule>()
   );
 
-  auto& tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
+  const auto& tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
     "X", &Battle::Tile::GetX,
     "Y", &Battle::Tile::GetY,
     "Width", &Battle::Tile::GetWidth,
@@ -130,7 +132,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "AttackEntities", &Battle::Tile::AffectEntities
   );
 
-  auto& field_record = battle_namespace.new_usertype<Field>("Field",
+  const auto& field_record = battle_namespace.new_usertype<Field>("Field",
     "TileAt", &Field::GetAt,
     "Width", &Field::GetWidth,
     "Height", &Field::GetHeight,
@@ -142,11 +144,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     )
   );
 
-  auto& player_record = battle_namespace.new_usertype<Player>("Player",
+  const auto& player_record = battle_namespace.new_usertype<Player>("Player",
     sol::base_classes, sol::bases<Character>()
   );
 
-  auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
+  const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
     sol::factories([](int count, double speed) {
       return new Explosion(count, speed);
     }),
@@ -154,9 +156,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   // auto& frame_time_record = state.new_usertype<frame_time_t>("Frame");
-  auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent");
+  const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent");
 
-  auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>("Spell",
+  const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>("Spell",
     sol::factories([](Team team) -> std::unique_ptr<ScriptedSpell> {
       return std::make_unique<ScriptedSpell>(team);
     }),
@@ -203,7 +205,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Spell>()
   );
 
-  auto& scriptedobstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
+  const auto& scriptedobstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
     sol::factories([](Team team) -> std::unique_ptr<ScriptedObstacle> {
       return std::make_unique<ScriptedObstacle>(team);
     }),
@@ -258,7 +260,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Obstacle, Spell, Character>()
   );
 
-  auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
+  const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
     sol::meta_function::index,
     &dynamic_object::dynamic_get,
     sol::meta_function::new_index,
@@ -299,7 +301,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Character>()
   );
 
-  auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
+  const auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
     "GetName", &ScriptedPlayer::GetName,
     "GetID", &ScriptedPlayer::GetID,
     "GetHealth", &ScriptedPlayer::GetHealth,
@@ -319,7 +321,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Player>()
    );
 
-  auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
+  const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
     sol::factories([](Team team) {
       return new Hitbox(team);
       }),
@@ -329,43 +331,43 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Spell>()
   );
 
-  auto& shared_hitbox_record = battle_namespace.new_usertype<SharedHitbox>("SharedHitbox",
+  const auto& shared_hitbox_record = battle_namespace.new_usertype<SharedHitbox>("SharedHitbox",
     sol::constructors<SharedHitbox(Spell*, float)>(),
     sol::base_classes, sol::bases<Spell>()
     );
 
-  auto& particle_poof = battle_namespace.new_usertype<ParticlePoof>("ParticlePoof",
+  const auto& particle_poof = battle_namespace.new_usertype<ParticlePoof>("ParticlePoof",
     sol::constructors<ParticlePoof()>(),
     sol::base_classes, sol::bases<Artifact>()
     );
 
-  auto& particle_impact = battle_namespace.new_usertype<ParticleImpact>("ParticleImpact",
+  const auto& particle_impact = battle_namespace.new_usertype<ParticleImpact>("ParticleImpact",
     sol::constructors<ParticleImpact(ParticleImpact::Type)>(),
     sol::base_classes, sol::bases<Artifact>()
   );
 
-  auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
+  const auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories([](Character& character, bool charged, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<BusterCardAction>(character, charged, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
 
-  auto& swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
+  const auto& swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
     sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<SwordCardAction>(character, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
 
-  auto& bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
+  const auto& bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
     sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<BombCardAction>(character, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
 
-  auto& fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
+  const auto& fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
     sol::factories([](Character& character, FireBurn::Type type, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<FireBurnCardAction>(character, type, dmg);
     }),
@@ -373,7 +375,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
 
-  auto& cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
+  const auto& cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
     sol::factories([](Character& character, CannonCardAction::Type type, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<CannonCardAction>(character, type, dmg);
       }),
@@ -381,21 +383,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
 
-  auto& textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
+  const auto& textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
     "LoadFile", &TextureResourceManager::LoadTextureFromFile
   );
 
-  auto& audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
+  const auto& audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
     "LoadFile", &AudioResourceManager::LoadFromFile,
     "Stream", sol::resolve<int(std::string, bool)>(&AudioResourceManager::Stream)
   );
 
-  auto& shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
+  const auto& shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
     "LoadFile", &ShaderResourceManager::LoadShaderFromFile
   );
 
   // make resource handle metatable
-  auto& resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
+  const auto& resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
     sol::constructors<ResourceHandle()>(),
     "Textures", sol::property(sol::resolve<TextureResourceManager& ()>(&ResourceHandle::Textures)),
     "Audio", sol::property(sol::resolve<AudioResourceManager& ()>(&ResourceHandle::Audio)),
@@ -422,7 +424,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );*/
 
   // make meta object info metatable
-  auto& navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
+  const auto& navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
     "SetSpecialDescription", &NaviRegistration::NaviMeta::SetSpecialDescription,
     "SetAttack", &NaviRegistration::NaviMeta::SetAttack,
     "SetChargedAttack", &NaviRegistration::NaviMeta::SetChargedAttack,
@@ -437,7 +439,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
   );
 
-  auto& mobmeta_table = engine_namespace.new_usertype<MobRegistration::MobMeta>("MobInfo",
+  const auto& mobmeta_table = engine_namespace.new_usertype<MobRegistration::MobMeta>("MobInfo",
     "SetDescription", &MobRegistration::MobMeta::SetDescription,
     "SetName", &MobRegistration::MobMeta::SetName,
     "SetPreviewTexturePath", &MobRegistration::MobMeta::SetPlaceholderTexturePath,
@@ -446,14 +448,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHP", &MobRegistration::MobMeta::SetHP
     );
 
-  auto& scriptedmob_table = engine_namespace.new_usertype<ScriptedMob>("Mob",
+  const auto& scriptedmob_table = engine_namespace.new_usertype<ScriptedMob>("Mob",
     "CreateSpawner", &ScriptedMob::CreateSpawner,
     "SetBackground", &ScriptedMob::SetBackground,
     "StreamMusic", &ScriptedMob::StreamMusic,
     "Field", &ScriptedMob::GetField
   );
 
-  auto& scriptedspawner_table = engine_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
+  const auto& scriptedspawner_table = engine_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
     "SpawnAt", &ScriptedMob::ScriptedSpawner::SpawnAt
   );
 
@@ -474,12 +476,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       if (this->FetchCharacter(fqn) == nullptr) {
         std::string msg = "Failed to Require character with FQN " + fqn;
         Logger::Log(msg);
-        throw std::exception(msg.c_str());
+        throw std::runtime_error(msg);
       }
     }
   );
 
-  auto& tile_state_table = state.new_enum("TileState",
+  const auto& tile_state_table = state.new_enum("TileState",
     "Broken", TileState::broken,
     "Cracked", TileState::cracked,
     "DirectionDown", TileState::directionDown,
@@ -497,12 +499,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Volcano", TileState::volcano
   );
 
-  auto& defense_order_table = state.new_enum("DefenseOrder",
+  const auto& defense_order_table = state.new_enum("DefenseOrder",
     "Always", DefenseOrder::always,
     "CollisionOnly", DefenseOrder::collisionOnly
   );
 
-  auto& particle_impact_type_table = state.new_enum("ParticleType",
+  const auto& particle_impact_type_table = state.new_enum("ParticleType",
     "Blue", ParticleImpact::Type::blue,
     "Fire", ParticleImpact::Type::fire,
     "Green", ParticleImpact::Type::green,
@@ -513,7 +515,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Yellow", ParticleImpact::Type::yellow
   );
 
-  auto& elements_table = state.new_enum("Element",
+  const auto& elements_table = state.new_enum("Element",
     "Fire", Element::fire,
     "Aqua", Element::aqua,
     "Elec", Element::elec,
@@ -528,7 +530,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Ice", Element::ice
   );
 
-  auto& direction_table = state.new_enum("Direction",
+  const auto& direction_table = state.new_enum("Direction",
     "None", Direction::none,
     "Up", Direction::up,
     "Down", Direction::down,
@@ -540,38 +542,38 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "DownRight", Direction::down_right
   );
 
-  auto& animation_mode_record = state.new_enum("Playback",
+  const auto& animation_mode_record = state.new_enum("Playback",
     "Once", Animator::Mode::NoEffect,
     "Loop", Animator::Mode::Loop,
     "Bounce", Animator::Mode::Bounce,
     "Reverse", Animator::Mode::Reverse
   );
 
-  auto& team_record = state.new_enum("Team",
+  const auto& team_record = state.new_enum("Team",
     "Red", Team::red,
     "Blue", Team::blue,
     "Other", Team::unknown
   );
 
-  auto& highlight_record = state.new_enum("Highlight",
+  const auto& highlight_record = state.new_enum("Highlight",
     "Solid", Battle::Tile::Highlight::solid,
     "Flash", Battle::Tile::Highlight::flash,
     "None", Battle::Tile::Highlight::none
   );
 
-  auto& add_status_record = state.new_enum("EntityStatus",
+  const auto& add_status_record = state.new_enum("EntityStatus",
     "Queued", Field::AddEntityStatus::queued,
     "Added", Field::AddEntityStatus::added,
     "Failed", Field::AddEntityStatus::deleted
   );
 
-  auto& action_order_record = state.new_enum("ActionOrder",
+  const auto& action_order_record = state.new_enum("ActionOrder",
     "Involuntary", ActionOrder::involuntary,
     "Voluntary", ActionOrder::voluntary,
     "Immediate", ActionOrder::immediate
   );
 
-  auto& hitbox_flags_record = state.new_enum("Hit",
+  const auto& hitbox_flags_record = state.new_enum("Hit",
     "None", Hit::none,
     "Recoil", Hit::recoil,
     "Flinch", Hit::flinch,
@@ -586,12 +588,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Drag", Hit::drag
   );
 
-  auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
+  const auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
     "direction", &Hit::Drag::dir,
     "count", &Hit::Drag::count
   );
 
-  auto& hitbox_props_record = state.new_usertype<Hit::Properties>("HitProps",
+  const auto& hitbox_props_record = state.new_usertype<Hit::Properties>("HitProps",
     "aggressor", &Hit::Properties::aggressor,
     "damage", &Hit::Properties::damage,
     "drag", &Hit::Properties::drag,
@@ -667,7 +669,7 @@ void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::s
       Logger::Logf("Failed to Require character with FQN %s. Reason: %s", fqn.c_str(), error.what());
 
       // bubble up to end this scene from loading that needs this character...
-      throw std::exception(error.what());
+      throw std::exception(error);
     }
   }
 }
