@@ -197,17 +197,17 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 {
-  if (isConnected) {
-    SceneBase::onDraw(surface);
-  }
-  else {
+  if (!isConnected) {
     auto view = getController().getVirtualWindowSize();
     int precision = 1;
 
     transitionText.setPosition(view.x * 0.5f, view.y * 0.5f);
     transitionText.setOrigin(transitionText.GetLocalBounds().width * 0.5f, transitionText.GetLocalBounds().height * 0.5f);
     surface.draw(transitionText);
+    return;
   }
+
+  SceneBase::onDraw(surface);
 
   auto& window = getController().getWindow();
   auto mousei = sf::Mouse::getPosition(window);
