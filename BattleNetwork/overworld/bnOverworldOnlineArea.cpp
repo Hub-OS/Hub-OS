@@ -227,30 +227,41 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   rect.setPosition(mousef);
   surface.draw(rect);
 
-  for (auto& pair : onlinePlayers) {
-    auto& onlinePlayer = pair.second;
+  auto& map = GetMap();
 
-    auto& name = onlinePlayer.actor->GetName();
+  auto topLayer = -1;
+  auto topY = std::numeric_limits<float>::min();
+  std::string topName;
 
-    if(name == "") {
-      continue;
-    }
+  auto testActor = [&](Actor& actor) {
+    auto& name = actor.GetName();
+    auto layer = (int)std::ceil(actor.GetElevation());
+    auto screenY = map.WorldToScreen(actor.Get3DPosition()).y;
 
-    if (IsMouseHovering(mouseScreen, *onlinePlayer.actor)) {
-      nameText.setPosition(mousef);
-      nameText.SetString(name);
-      nameText.setOrigin(-10.0f, 0);
-      surface.draw(nameText);
+    if (name == "" || layer < topLayer || screenY <= topY) {
       return;
     }
+
+    if (IsMouseHovering(mouseScreen, actor)) {
+      topLayer = layer;
+      topName = name;
+      topY = screenY;
+    }
+  };
+
+  for (auto& pair : onlinePlayers) {
+    auto& onlinePlayer = pair.second;
+    auto& actor = *onlinePlayer.actor;
+
+    testActor(actor);
   }
 
-  if (IsMouseHovering(mouseScreen, *playerActor)) {
-    nameText.setPosition(mousef);
-    nameText.SetString(playerActor->GetName());
-    nameText.setOrigin(-10.0f, 0);
-    surface.draw(nameText);
-  }
+  testActor(*playerActor);
+
+  nameText.setPosition(mousef);
+  nameText.SetString(topName);
+  nameText.setOrigin(-10.0f, 0);
+  surface.draw(nameText);
 }
 
 void Overworld::OnlineArea::onStart()
@@ -848,7 +859,7 @@ void Overworld::OnlineArea::receiveAssetStreamStartSignal(BufferReader& reader, 
     shortName = name;
   }
 
-  if(shortName.length() > 20) {
+  if (shortName.length() > 20) {
     shortName = shortName.substr(0, 17) + "...";
   }
 
