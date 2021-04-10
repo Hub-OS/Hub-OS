@@ -10,9 +10,9 @@ namespace Overworld {
   class ServerAssetManager {
   private:
     struct CacheMeta {
-      const std::string path;
-      const uint64_t lastModified{};
-      const size_t size{};
+      std::string path;
+      uint64_t lastModified{};
+      size_t size{};
     };
 
     std::unordered_map<std::string, std::string> textAssets;

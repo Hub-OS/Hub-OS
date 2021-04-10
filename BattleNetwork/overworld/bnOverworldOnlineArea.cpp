@@ -197,17 +197,17 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 {
-  if (isConnected) {
-    SceneBase::onDraw(surface);
-  }
-  else {
+  if (!isConnected) {
     auto view = getController().getVirtualWindowSize();
     int precision = 1;
 
     transitionText.setPosition(view.x * 0.5f, view.y * 0.5f);
     transitionText.setOrigin(transitionText.GetLocalBounds().width * 0.5f, transitionText.GetLocalBounds().height * 0.5f);
     surface.draw(transitionText);
+    return;
   }
+
+  SceneBase::onDraw(surface);
 
   auto& window = getController().getWindow();
   auto mousei = sf::Mouse::getPosition(window);
@@ -227,24 +227,41 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   rect.setPosition(mousef);
   surface.draw(rect);
 
-  for (auto& pair : onlinePlayers) {
-    auto& onlinePlayer = pair.second;
+  auto& map = GetMap();
 
-    if (IsMouseHovering(mouseScreen, *onlinePlayer.actor)) {
-      nameText.setPosition(mousef);
-      nameText.SetString(onlinePlayer.actor->GetName());
-      nameText.setOrigin(-10.0f, 0);
-      surface.draw(nameText);
+  auto topLayer = -1;
+  auto topY = std::numeric_limits<float>::min();
+  std::string topName;
+
+  auto testActor = [&](Actor& actor) {
+    auto& name = actor.GetName();
+    auto layer = (int)std::ceil(actor.GetElevation());
+    auto screenY = map.WorldToScreen(actor.Get3DPosition()).y;
+
+    if (name == "" || layer < topLayer || screenY <= topY) {
       return;
     }
+
+    if (IsMouseHovering(mouseScreen, actor)) {
+      topLayer = layer;
+      topName = name;
+      topY = screenY;
+    }
+  };
+
+  for (auto& pair : onlinePlayers) {
+    auto& onlinePlayer = pair.second;
+    auto& actor = *onlinePlayer.actor;
+
+    testActor(actor);
   }
 
-  if (IsMouseHovering(mouseScreen, *playerActor)) {
-    nameText.setPosition(mousef);
-    nameText.SetString(playerActor->GetName());
-    nameText.setOrigin(-10.0f, 0);
-    surface.draw(nameText);
-  }
+  testActor(*playerActor);
+
+  nameText.setPosition(mousef);
+  nameText.SetString(topName);
+  nameText.setOrigin(-10.0f, 0);
+  surface.draw(nameText);
 }
 
 void Overworld::OnlineArea::onStart()
@@ -842,7 +859,7 @@ void Overworld::OnlineArea::receiveAssetStreamStartSignal(BufferReader& reader, 
     shortName = name;
   }
 
-  if(shortName.length() > 20) {
+  if (shortName.length() > 20) {
     shortName = shortName.substr(0, 17) + "...";
   }
 

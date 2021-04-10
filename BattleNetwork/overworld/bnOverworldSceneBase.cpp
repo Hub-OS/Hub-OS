@@ -1502,8 +1502,8 @@ const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, cons
   auto bounds = sf::FloatRect(
     (screenPosition.x - origin.x) * scale.x,
     (screenPosition.y - origin.y) * scale.y,
-    textureRect.width * scale.x,
-    textureRect.height * scale.y
+    std::abs(textureRect.width) * scale.x,
+    std::abs(textureRect.height) * scale.y
   );
 
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);

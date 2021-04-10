@@ -1,6 +1,6 @@
 #pragma once
-#include "bnCardAction.h"
-#include "bnAnimation.h"
+#include "../bnCardAction.h"
+#include "../bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
 class SpriteProxyNode;
