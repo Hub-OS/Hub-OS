@@ -1083,7 +1083,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
       }
       else if (type == "Board") {
-        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + zOffset);
+        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + zOffset, tileObject.tile.flippedHorizontal);
       }
       else if (type == "Shop") {
         minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset);
