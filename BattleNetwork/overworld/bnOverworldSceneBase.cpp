@@ -691,7 +691,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
     if (auto tex = Textures().LoadTextureFromFile(meta.GetOverworldTexturePath())) {
       playerActor->setTexture(tex);
     }
-    playerActor->LoadAnimations(Animation(owPath));
+    playerActor->LoadAnimations(owPath);
 
     // move the emote above the player's head
     float emoteY = -playerActor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;

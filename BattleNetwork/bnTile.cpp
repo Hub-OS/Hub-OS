@@ -393,10 +393,15 @@ namespace Battle {
     auto reservedIter = reserved.find(ID);
     if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
-    auto itEnt   = find_if(entities.begin(), entities.end(), [ID](Entity* in) { return in->GetID() == ID; });
-    auto itSpell = find_if(spells.begin(), spells.end(), [ID](Entity* in) { return in->GetID() == ID; });
-    auto itChar  = find_if(characters.begin(), characters.end(), [ID](Entity* in) { return in->GetID() == ID; });
-    auto itArt   = find_if(artifacts.begin(), artifacts.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itEnt    = find_if(entities.begin(), entities.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itSpell  = find_if(spells.begin(), spells.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itChar   = find_if(characters.begin(), characters.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itArt    = find_if(artifacts.begin(), artifacts.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itDelete = find_if(deletingCharacters.begin(), deletingCharacters.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    
+    if (itDelete != deletingCharacters.end()) {
+      deletingCharacters.erase(itDelete);
+    }
 
     if (itEnt != entities.end()) {
       entities.erase(itEnt);
@@ -460,7 +465,10 @@ namespace Battle {
       volcanoSprite.setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
     }
 
-    for (auto* chars : deletingCharacters) {
+    // We need a copy because we WILL invalidate the iterator
+    const std::set<Character*, EntityComparitor> deletingCharsCopy = deletingCharacters;
+    for (auto* chars : deletingCharsCopy) {
+      // Can remove the character from the tile's deleting queue
       field->UpdateEntityOnce(chars, _elapsed);
     }
 
@@ -800,6 +808,8 @@ namespace Battle {
         // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
         Character* character = dynamic_cast<Character*>(ptr);
         Obstacle* obst = dynamic_cast<Obstacle*>(ptr);
+
+        ptr->ExecuteRemoveCallbacks();
 
         // We only want to know about character deletions since they are the actors in the battle
         if (character && !obst) {

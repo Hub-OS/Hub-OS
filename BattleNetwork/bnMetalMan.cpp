@@ -52,13 +52,12 @@ MetalMan::MetalMan(Rank _rank)
     AddState<MetalManIdleState>();
   }
   else {
-    SetHealth(1000);
+    SetHealth(100);
   }
 
   ShareTileSpace(true); // mega can walk into him on red tiles
 
-  hitHeight = 64;
-  SetHeight(hitHeight);
+  SetHeight(96.f);
 
   healthUI = new MobHealthUI(this);
 
@@ -92,7 +91,7 @@ MetalMan::MetalMan(Rank _rank)
 }
 
 MetalMan::~MetalMan() {
-    delete virusBody;
+  delete virusBody;
 }
 
 bool MetalMan::CanMoveTo(Battle::Tile * next)
@@ -123,5 +122,5 @@ void MetalMan::OnUpdate(double _elapsed) {
 }
 
 void MetalMan::OnDelete() {
-  InterruptState<NaviExplodeState<MetalMan>>(10, 1.3); // freezes animation
+  InterruptState<NaviExplodeState<MetalMan>>(10, 0.9); // freezes animation
 }

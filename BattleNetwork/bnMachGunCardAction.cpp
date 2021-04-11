@@ -57,6 +57,12 @@ void MachGunCardAction::OnExecute()
           [owner = &owner](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); }
         );
         target = ents[0];
+        auto& removeCallback = target->CreateRemoveCallback();
+        removeCallback.Slot([this](Entity* in) {
+          this->target = nullptr;
+        });
+        
+        removeCallbacks.push_back(std::ref(removeCallback));
       }
     }
 
@@ -87,6 +93,11 @@ void MachGunCardAction::OnExecute()
 
 void MachGunCardAction::OnEndAction()
 {
+  for (auto callback : removeCallbacks) {
+    callback.get().Reset();
+  }
+
+  removeCallbacks.clear();
 }
 
 void MachGunCardAction::OnAnimationEnd()
@@ -100,10 +111,12 @@ void MachGunCardAction::FreeTarget()
 
 Battle::Tile* MachGunCardAction::MoveRectical(Field* field, bool colMove)
 {
-  auto* charTile = target->GetTile();
-
   // Figure out where our last rectical was
-  if (target && targetTile && charTile) {
+  if (target && targetTile) {
+    auto* charTile = target->GetTile();
+
+    if (!charTile) return targetTile;
+
     Battle::Tile* nextTile = nullptr;
 
     if (colMove && charTile->GetX() != targetTile->GetX()) {
@@ -155,7 +168,7 @@ Target::Target(int damage) :
   setScale(2.f, 2.f);
   setTexture(Textures().LoadTextureFromFile("resources/spells/target.png"));
   anim = Animation("resources/spells/target.animation") << "DEFAULT";
-  anim.Update(0, getSprite());
+  anim.Refresh(getSprite());
 }
 
 Target::~Target()

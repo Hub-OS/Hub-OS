@@ -92,8 +92,9 @@ template<typename Any>
 void ExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
   elapsed += _elapsed;
 
-  /* freeze frame, flash white */
-  if ((((int)(elapsed * 15))) % 2 == 0) {
+  // flicker white every 2 frames 
+  unsigned frame = from_seconds(elapsed).count() % 4;
+  if (frame < 2) {
     e.SetShader(whiteout);
   }
   else {
@@ -108,9 +109,7 @@ void ExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
 
     if (explosion->IsSequenceComplete()) {
       Entity::ID_t ID = e.GetID();
-      CleanupExplosions(e);
-      e.GetTile()->RemoveEntityByID(ID);
-      e.GetField()->ForgetEntity(ID);
+      e.GetField()->DeallocEntity(ID);
     }
   }
 }

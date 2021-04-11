@@ -19,9 +19,10 @@ public:
   void Attack(Character* _entity) override;
 
 private:
-  int damage;
-  int random;
-  float cooldown, progress;
-  AnimationComponent* animation;
+  int damage{};
+  int random{};
+  float cooldown{}, progress{};
+  bool hasHitbox{true};
+  AnimationComponent* animation{ nullptr };
   std::list<int> taggedCharacters; //< We share a hit box, don't attack these
 };

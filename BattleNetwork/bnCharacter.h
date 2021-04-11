@@ -31,20 +31,20 @@ struct PeekCardEvent {
 };
 
 struct CombatHitProps {
-  const Hit::Properties hitbox; // original hitbox data
+  Hit::Properties hitbox; // original hitbox data
   Hit::Properties filtered; // statuses after defense rules pass
 
   CombatHitProps(const Hit::Properties& original, const Hit::Properties& props) : 
     hitbox(original), filtered(props)
   {}
 
-  CombatHitProps(const CombatHitProps& rhs) : 
-    hitbox(rhs.hitbox) {
-    filtered = rhs.filtered;
+  CombatHitProps(const CombatHitProps& rhs) {
+    this->operator=(rhs);
   }
 
   CombatHitProps& operator=(const CombatHitProps& rhs) {
-    *this = CombatHitProps(rhs);
+    hitbox = rhs.hitbox;
+    filtered = rhs.filtered;
     return *this;
   }
 };

@@ -183,6 +183,11 @@ public:
   void ForgetEntity(Entity::ID_t ID);
 
   /**
+  * @brief removes the ID from allEntityHash, safely removes from tiles, and deletes the entity pointer
+  */
+  void DeallocEntity(Entity::ID_t ID);
+
+  /**
   * @brief returns the entity from the allEntityHash otherwise nullptr
   */
   Entity* GetEntity(Entity::ID_t ID);
@@ -236,5 +241,6 @@ private:
   map<Entity::ID_t, Entity*> allEntityHash; /*!< Quick lookup of entities on the field */
   map<Entity::ID_t, void*> updatedEntities; /*!< Since entities can be shared across tiles, prevent multiple updates*/
   vector<queueBucket> pending;
+  vector<Entity*> dueForDeallocation; /*!< Entities to be deallocated via the `delete` keyword */
   vector<vector<Battle::Tile*>> tiles; /*!< Nested vector to make calls via tiles[x][y] */
 };

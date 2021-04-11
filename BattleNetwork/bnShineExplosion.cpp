@@ -16,11 +16,11 @@ ShineExplosion::ShineExplosion() : Artifact()
   animationComponent->SetPath("resources/mobs/boss_shine.animation");
   animationComponent->Load();
   animationComponent->SetAnimation("SHINE", Animator::Mode::Loop);
-  animationComponent->OnUpdate(0.0f);
+  animationComponent->Refresh();
 }
 
 void ShineExplosion::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y - 30.f);
+  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y - this->GetHeight());
 }
 
 void ShineExplosion::OnDelete()

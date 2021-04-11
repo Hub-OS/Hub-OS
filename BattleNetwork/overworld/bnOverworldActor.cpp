@@ -94,6 +94,8 @@ void Overworld::Actor::LoadAnimations(const Animation& animation)
       loadDirectionalAnimationThunk(dir, state);
     }
   }
+
+  UpdateAnimationState(0);
 }
 
 void Overworld::Actor::SetWalkSpeed(float speed)
@@ -145,7 +147,7 @@ void Overworld::Actor::Update(float elapsed, Map& map, SpatialMap& spatialMap)
 {
   auto texture = getTexture();
 
-  if (texture != Actor::missing && currTexture == nullptr) {
+  if (texture != Actor::missing) {
     currTexture = texture;
   }
 
@@ -197,10 +199,17 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
 
     // Do we have a valid 'missing' texture?
     if (missing) {
+      // try and preserve what texture we currently have
+      auto texture = getTexture();
+
+      if (texture != Actor::missing) {
+        currTexture = texture;
+      }
+
       sf::Vector2u origin = missing->getSize();
       sf::Vector2f originf = sf::Vector2f((float)origin.x * 0.5f, (float)origin.y * 0.5f);
       this->setTexture(missing, true);
-      this->setOrigin(originf);
+      this->getSprite().setOrigin(originf);
     }
   }
   else {

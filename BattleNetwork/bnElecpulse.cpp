@@ -12,7 +12,6 @@ Elecpulse::Elecpulse(Team _team, int _damage) : Spell(_team) {
   SetLayer(0);
   SetPassthrough(true);
   SetElement(Element::elec);
-  HighlightTile(Battle::Tile::Highlight::flash);
   setScale(2.f, 2.f);
   progress = 0.0f;
 
@@ -24,7 +23,8 @@ Elecpulse::Elecpulse(Team _team, int _damage) : Spell(_team) {
   animation->SetPath("resources/spells/elecpulse.animation");
   animation->Reload();
 
-  auto onFinish = [this]() { Delete(); };
+  auto onFinish = [this]() { Remove(); };
+
   animation->SetAnimation("PULSE", onFinish);
 }
 
@@ -39,48 +39,70 @@ void Elecpulse::OnSpawn(Battle::Tile & start)
     step = -1;
   }
 
-  auto field = GetField();
-  auto forward = GetField()->GetAt(start.GetX() + step, start.GetY());
-  auto shared = new SharedHitbox(this);
-  shared->HighlightTile(Battle::Tile::Highlight::flash);
-  field->AddEntity(*shared, *forward);
+  auto& tile = *GetTile();
+  auto top = tile.Offset(step, -1);
+  auto forward = tile.Offset(step, 0);
+  auto bottom = tile.Offset(step, 1);
 
-  auto top = GetField()->GetAt(start.GetX() + step, start.GetY() - step);
-  shared = new SharedHitbox(this);
-  shared->HighlightTile(Battle::Tile::Highlight::flash);
-  field->AddEntity(*shared, *top);
+  if (forward) {
+    auto shared = new SharedHitbox(this);
+    field->AddEntity(*shared, *forward);
+  }
 
-  auto bottom = GetField()->GetAt(start.GetX() + step, start.GetY()+ step);
-  shared = new SharedHitbox(this);
-  shared->HighlightTile(Battle::Tile::Highlight::flash);
-  field->AddEntity(*shared, *bottom);
+  if (top) {
+    auto shared = new SharedHitbox(this);
+    field->AddEntity(*shared, *top);
+  }
+
+  if (bottom) {
+    auto shared = new SharedHitbox(this);
+    field->AddEntity(*shared, *bottom);
+  }
 }
 
 void Elecpulse::OnUpdate(double _elapsed) {
-  GetTile()->AffectEntities(this);
+  if (hasHitbox) {
+    GetTile()->AffectEntities(this);
+
+    int step = 1;
+    if (GetTeam() == Team::blue) {
+      step = -1;
+    }
+
+    auto& tile = *GetTile();
+    auto top = tile.Offset(step, -1);
+    auto forward = tile.Offset(step, 0);
+    auto bottom = tile.Offset(step, 1);
+
+    auto flashMode = Battle::Tile::Highlight::solid;
+    tile.RequestHighlight(flashMode);
+    top ? top->RequestHighlight(flashMode) : 0;
+    forward ? forward->RequestHighlight(flashMode) : 0;
+    bottom ? bottom->RequestHighlight(flashMode) : 0;
+  }
 
   setPosition(tile->getPosition()+sf::Vector2f(70.0f, -60.0f));
 }
 
 void Elecpulse::OnDelete()
 {
-  Remove();
+  hasHitbox = false;
 }
 
 void Elecpulse::Attack(Character* _entity) {
-    long ID = _entity->GetID();
+  long ID = _entity->GetID();
 
-    if (std::find(taggedCharacters.begin(), taggedCharacters.end(), ID) != taggedCharacters.end())
-        return; // we've already hit this entity somewhere
+  if (std::find(taggedCharacters.begin(), taggedCharacters.end(), ID) != taggedCharacters.end())
+    return; // we've already hit this entity somewhere
 
-    Hit::Properties props;
-    props.element = GetElement();
-    props.flags = Hit::recoil | Hit::stun | Hit::drag;
-    props.drag = { (GetTeam() == Team::red) ? Direction::left : Direction::right, 1u };
-    props.damage = damage;
+  Hit::Properties props;
+  props.element = GetElement();
+  props.flags = Hit::recoil | Hit::stun | Hit::drag;
+  props.drag = { (GetTeam() == Team::red) ? Direction::left : Direction::right, 1u };
+  props.damage = damage;
 
-    _entity->Hit(props);
+  _entity->Hit(props);
 
-    taggedCharacters.insert(taggedCharacters.begin(), _entity->GetID());
+  taggedCharacters.insert(taggedCharacters.begin(), _entity->GetID());
 }
 

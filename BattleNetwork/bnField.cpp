@@ -409,6 +409,12 @@ void Field::Update(double _elapsed) {
   }
 
   updatedEntities.clear();
+
+  for (auto* entity : dueForDeallocation) {
+    delete entity;
+  }
+
+  dueForDeallocation.clear();
 }
 
 void Field::ToggleTimeFreeze(bool state)
@@ -418,32 +424,32 @@ void Field::ToggleTimeFreeze(bool state)
   isTimeFrozen = state;
 
   for (int i = 0; i < tiles.size(); i++) {
-      for (int j = 0; j < tiles[i].size(); j++) {
-          tiles[i][j]->ToggleTimeFreeze(isTimeFrozen);
-      }
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->ToggleTimeFreeze(isTimeFrozen);
+    }
   }
 }
 
 void Field::RequestBattleStart()
 {
-    isBattleActive = true;
+  isBattleActive = true;
 
-    for (int i = 0; i < tiles.size(); i++) {
-        for (int j = 0; j < tiles[i].size(); j++) {
-            tiles[i][j]->BattleStart();
-        }
+  for (int i = 0; i < tiles.size(); i++) {
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->BattleStart();
     }
+  }
 }
 
 void Field::RequestBattleStop()
 {
-    isBattleActive = false;
+  isBattleActive = false;
 
-    for (int i = 0; i < tiles.size(); i++) {
-        for (int j = 0; j < tiles[i].size(); j++) {
-            tiles[i][j]->BattleStop();
-        }
+  for (int i = 0; i < tiles.size(); i++) {
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->BattleStop();
     }
+  }
 }
 
 void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, Entity::ID_t ID)
@@ -453,7 +459,7 @@ void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, Entity::ID_t ID)
     if (q->x == tile->GetX() && q->y == tile->GetY()) {
       if (q->ID == ID) {
         q = pending.erase(q);
-        allEntityHash.erase(ID);
+        DeallocEntity(ID);
         break;
       }
     }
@@ -464,34 +470,33 @@ void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, Entity::ID_t ID)
 
 void Field::SpawnPendingEntities()
 {
-    
-    while (pending.size()) {
-        auto& next = pending.back();
-        pending.pop_back();
+  while (pending.size()) {
+    auto& next = pending.back();
+    pending.pop_back();
 
-        switch (next.entity_type) {
-        case queueBucket::type::artifact:
-            if (AddEntity(*next.data.artifact, next.x, next.y) == Field::AddEntityStatus::added) {
-                next.data.artifact->Update(0);
-            }
-            break;
-        case queueBucket::type::character:
-            if (AddEntity(*next.data.character, next.x, next.y) == Field::AddEntityStatus::added) {
-                next.data.character->Update(0);
-            }
-            break;
-        case queueBucket::type::obstacle:
-            if (AddEntity(*next.data.obstacle, next.x, next.y) == Field::AddEntityStatus::added) {
-                next.data.obstacle->Update(0);
-            }
-            break;
-        case queueBucket::type::spell:
-            if (AddEntity(*next.data.spell, next.x, next.y) == Field::AddEntityStatus::added) {
-                next.data.spell->Update(0);
-            }
-            break;
-        }
+    switch (next.entity_type) {
+    case queueBucket::type::artifact:
+      if (AddEntity(*next.data.artifact, next.x, next.y) == Field::AddEntityStatus::added) {
+          next.data.artifact->Update(0);
+      }
+      break;
+    case queueBucket::type::character:
+      if (AddEntity(*next.data.character, next.x, next.y) == Field::AddEntityStatus::added) {
+          next.data.character->Update(0);
+      }
+      break;
+    case queueBucket::type::obstacle:
+      if (AddEntity(*next.data.obstacle, next.x, next.y) == Field::AddEntityStatus::added) {
+          next.data.obstacle->Update(0);
+      }
+      break;
+    case queueBucket::type::spell:
+      if (AddEntity(*next.data.spell, next.x, next.y) == Field::AddEntityStatus::added) {
+          next.data.spell->Update(0);
+      }
+      break;
     }
+  }
 }
 
 const bool Field::HasPendingEntities() const
@@ -510,12 +515,24 @@ void Field::UpdateEntityOnce(Entity *entity, const double elapsed)
 
 void Field::ForgetEntity(Entity::ID_t ID)
 {
-    allEntityHash.erase(ID);
+  allEntityHash.erase(ID);
+}
+
+void Field::DeallocEntity(Entity::ID_t ID)
+{
+  auto iter = allEntityHash.find(ID);
+
+  if (iter != allEntityHash.end()) {
+    auto* entity = iter->second;
+    entity->GetTile()->RemoveEntityByID(ID);
+    ForgetEntity(ID);
+    dueForDeallocation.push_back(entity);
+  }
 }
 
 Entity * Field::GetEntity(Entity::ID_t ID)
 {
-    return allEntityHash[ID];
+  return allEntityHash[ID];
 }
 
 void Field::RevealCounterFrames(bool enabled)

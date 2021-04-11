@@ -21,24 +21,24 @@
 ElecPulseCardAction::ElecPulseCardAction(Character& owner, int damage) : 
   CardAction(owner, "PLAYER_SHOOTING"), 
   attachmentAnim(ANIM) {
-    ElecPulseCardAction::damage = damage;
+  ElecPulseCardAction::damage = damage;
 
-    attachment = new SpriteProxyNode();
-    attachment->setTexture(Textures().GetTexture(TextureType::SPELL_ELEC_PULSE));
-    attachment->SetLayer(-1);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(Textures().GetTexture(TextureType::SPELL_ELEC_PULSE));
+  attachment->SetLayer(-1);
 
-    attachmentAnim = Animation(ANIM);
-    attachmentAnim.SetAnimation("BUSTER");
+  attachmentAnim = Animation(ANIM);
+  attachmentAnim.SetAnimation("BUSTER");
 
-    auto anim = owner.GetFirstComponent<AnimationComponent>();
+  auto anim = owner.GetFirstComponent<AnimationComponent>();
 
-    if (anim) {
-      AddAttachment(anim->GetAnimationObject(), "buster", *attachment).UseAnimation(attachmentAnim);
-      AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  if (anim) {
+    AddAttachment(anim->GetAnimationObject(), "buster", *attachment).UseAnimation(attachmentAnim);
+    AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 
-      // add override anims
-      OverrideAnimationFrames({ FRAMES });
-    }
+    // add override anims
+    OverrideAnimationFrames({ FRAMES });
+  }
 }
 
 ElecPulseCardAction::~ElecPulseCardAction()
@@ -46,40 +46,28 @@ ElecPulseCardAction::~ElecPulseCardAction()
 }
 
 void ElecPulseCardAction::OnExecute() {
-    // On shoot frame, drop projectile
-    auto onFire = [this]() -> void {
-      auto& owner = GetCharacter();
-      auto field = owner.GetField();
-      Team team = owner.GetTeam();
-      elecpulse = new Elecpulse(team, damage);
-      Audio().Play(AudioType::ELECPULSE);
+  // On shoot frame, drop projectile
+  auto onFire = [this]() -> void {
+    auto& owner = GetCharacter();
+    auto field = owner.GetField();
+    Team team = owner.GetTeam();
+    elecpulse = new Elecpulse(team, damage);
+    Audio().Play(AudioType::ELECPULSE);
 
-      auto props = elecpulse->GetHitboxProperties();
-      props.aggressor = &owner;
-      elecpulse->SetHitboxProperties(props);
+    auto props = elecpulse->GetHitboxProperties();
+    props.aggressor = &owner;
+    elecpulse->SetHitboxProperties(props);
 
-      int step = 1;
-      if (team != Team::red) {
-        step = -1;
-      }
+    int step = 1;
+    if (team != Team::red) {
+      step = -1;
+    }
 
-      auto tiles = std::vector{
-        owner.GetTile()->Offset(1, 0),
-        owner.GetTile()->Offset(step, 0)
-      };
-
-      auto status = field->AddEntity(*elecpulse, *tiles[0]);
-
-      if (status != Field::AddEntityStatus::deleted) {
-        Entity::RemoveCallback& deleteHandler = elecpulse->CreateRemoveCallback();
-        deleteHandler.Slot([this](Entity*) { EndAction(); });
-
-
-        field->AddEntity(*elecpulse, *tiles[1]);
-      }
+    auto tile = owner.GetTile()->Offset(step, 0);
+    field->AddEntity(*elecpulse, *tile);
   };
 
-    AddAnimAction(2, onFire);
+  AddAnimAction(2, onFire);
 }
 
 void ElecPulseCardAction::OnAnimationEnd()

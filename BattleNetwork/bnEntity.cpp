@@ -204,6 +204,16 @@ void Entity::SetFrame(unsigned frame)
   this->frame = frame;
 }
 
+void Entity::ExecuteRemoveCallbacks()
+{
+  for (RemoveCallback* callback : removeCallbacks) {
+    (*callback)(this);
+    delete callback;
+  }
+
+  removeCallbacks.clear();
+}
+
 void Entity::Spawn(Battle::Tile & start)
 {
   if (!hasSpawned) {
@@ -494,13 +504,6 @@ void Entity::Delete()
   deleted = true;
 
   OnDelete();
-
-  for (RemoveCallback* callback : removeCallbacks) {
-    (*callback)(this);
-    delete callback;
-  }
-
-  removeCallbacks.clear();
 }
 
 void Entity::Remove()

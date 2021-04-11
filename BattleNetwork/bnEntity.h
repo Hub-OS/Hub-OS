@@ -307,6 +307,14 @@ public:
   * Useful for safely determining the lifetime of another entity in play
   */
   RemoveCallback& CreateRemoveCallback();
+
+  /**
+  * @brief Executes all pending callbacks for the entity's removal from battle
+  * 
+  * note: this will be called at the End Of Frame when something is removed or deleted
+  * @see bnTile.cpp `void CleanupEntities()`
+  */
+  void ExecuteRemoveCallbacks();
   
   /**
    * @brief Query if an entity has been deleted but not removed this frame

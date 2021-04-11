@@ -3,16 +3,19 @@
 #include "bnArtifact.h"
 #include "bnSpriteProxyNode.h"
 
+#include <vector>
+
 class Character;
 class Target;
 
 class MachGunCardAction : public CardAction {
   int damage{};
+  bool moveUp{ true }, firstSpawn{ true };
   SpriteProxyNode machgun;
   Animation machgunAnim;
   Entity* target{ nullptr };
   Battle::Tile* targetTile{ nullptr };
-  bool moveUp{ true }, firstSpawn{ true };
+  std::vector<std::reference_wrapper<Entity::RemoveCallback>> removeCallbacks;
 
   void FreeTarget();
   Battle::Tile* MoveRectical(Field*, bool columnMove);
