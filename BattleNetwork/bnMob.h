@@ -240,8 +240,6 @@ public:
   template<class ClassType, typename... Args>
   Spawner<ClassType> CreateSpawner(Args&&...);
 
-
-
   void Track(Character& character);
 };
 

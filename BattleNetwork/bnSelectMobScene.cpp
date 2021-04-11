@@ -79,13 +79,10 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const Sel
   canSwipe = false;
 #endif
 
-  mob = nullptr;
-
   setView(sf::Vector2u(480, 320));
 }
 
 SelectMobScene::~SelectMobScene() {
-  if (mob) delete mob;
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
@@ -347,7 +344,8 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   // Make a selection
   if (Input().Has(InputEvents::pressed_confirm) && !gotoNextScene) {
-    
+    Mob* mob = nullptr;
+
     if (MOBS.Size() != 0) {
       try {
         mob = MOBS.At(mobSelectionIndex).GetMob();
@@ -521,11 +519,6 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
 }
 
 void SelectMobScene::onResume() {
-  if (mob) {
-    delete mob;
-    mob = nullptr;
-  }
-
   // Re-play music
   Audio().Stream("resources/loops/loop_navi_customizer.ogg", true);
 

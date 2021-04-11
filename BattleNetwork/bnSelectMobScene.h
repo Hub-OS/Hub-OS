@@ -61,8 +61,6 @@ private:
   
   CardFolder& selectedFolder; /*!< Reference to the selected folder */
 
-  Mob* mob; /*!< Pointer to the mob data */
-
   Font font; /*!< Menu title font */
   Text menuLabel; /*!< "Mob Select" */
 

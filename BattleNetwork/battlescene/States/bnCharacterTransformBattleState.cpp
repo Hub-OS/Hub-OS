@@ -87,8 +87,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     };
 
     bool* completePtr = &complete;
-    Animation* animPtr = &shineAnimations[count];
-    auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes, completePtr, animPtr ]
+    auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes, completePtr ]
     () {
       if (paletteSwap) paletteSwap->Enable();
 
@@ -197,16 +196,16 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
   for (auto data : tracking) {
     auto& [player, index, complete] = *data;
 
-      Animation& anim = shineAnimations[count];
-      anim.Update(static_cast<float>(frameElapsed), shine);
+    Animation& anim = shineAnimations[count];
+    anim.Update(static_cast<float>(frameElapsed), shine);
 
-      if (index != -1) {
-        // re-use the shine graphic for all animating player-types 
-        auto pos = player->getPosition();
-        shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
+    if (index != -1) {
+      // re-use the shine graphic for all animating player-types 
+      auto pos = player->getPosition();
+      shine.setPosition(pos.x, pos.y - (player->GetHeight() / 2.0f));
 
-        surface.draw(shine);
-      }
+      surface.draw(shine);
+    }
 
     count++;
   }

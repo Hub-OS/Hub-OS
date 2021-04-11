@@ -22,6 +22,8 @@ Megaman::Megaman() : Player() {
 
   SetHealth(900);
   SetName("Megaman");
+  SetHeight(48.f);
+
   setTexture(Textures().GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");

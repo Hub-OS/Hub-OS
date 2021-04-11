@@ -166,7 +166,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
 
 MobBattleScene::~MobBattleScene() {
   for (auto&& m : props.mobs) {
-    // delete m;
+    delete m;
   }
 
   props.mobs.clear();

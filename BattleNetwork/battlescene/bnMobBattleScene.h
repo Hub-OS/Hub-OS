@@ -11,9 +11,9 @@ class Mob;
 struct MobBattleProperties {
   BattleSceneBaseProps base;
   enum class RewardBehavior : int {
-      take = 0,    //!< One reward at the end of all mobs
-      takeForEach, //!< Each mobs rewards the player
-      none         //!< No rewards given
+    take = 0,    //!< One reward at the end of all mobs
+    takeForEach, //!< Each mobs rewards the player
+    none         //!< No rewards given
   } reward{ };
   std::vector<Mob*> mobs;
   sf::Sprite mug; // speaker mugshot

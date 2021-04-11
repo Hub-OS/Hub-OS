@@ -52,8 +52,6 @@ void HoneyBomber::OnDelete() {
     }
 
   ChangeState<ExplodeState<HoneyBomber>>();
-
-  RemoveMeFromTurnOrder();
 }
 
 void HoneyBomber::OnUpdate(double _elapsed) {

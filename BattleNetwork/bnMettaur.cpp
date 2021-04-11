@@ -71,8 +71,6 @@ Mettaur::~Mettaur() {
 void Mettaur::OnDelete() {
   RemoveDefenseRule(virusBody);
   ChangeState<ExplodeState<Mettaur>>();
-
-  RemoveMeFromTurnOrder();
 }
 
 void Mettaur::OnUpdate(double _elapsed) {

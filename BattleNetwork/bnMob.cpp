@@ -64,6 +64,8 @@ BattleItem* Mob::GetRankedReward(int score) {
 }
 
 void Mob::Cleanup() {
+  delete field;
+
   //for (int i = 0; i < spawn.size(); i++) {
   //  delete spawn[i];
   //}
