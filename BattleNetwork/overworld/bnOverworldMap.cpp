@@ -315,10 +315,10 @@ namespace Overworld {
       layerRelativeElevation = 1 - relativeY;
       break;
     case Direction::down_left:
-      layerRelativeElevation = relativeX;
+      layerRelativeElevation = relativeY;
       break;
     case Direction::down_right:
-      layerRelativeElevation = relativeY;
+      layerRelativeElevation = relativeX;
       break;
     default:
       break;
