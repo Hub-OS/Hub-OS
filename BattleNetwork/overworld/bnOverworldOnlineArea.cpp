@@ -479,8 +479,8 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::unlock_input:
           UnlockInput();
           break;
-        case ServerEvents::move:
-          receiveMoveSignal(reader, data);
+        case ServerEvents::teleport:
+          receiveTeleportSignal(reader, data);
           break;
         case ServerEvents::message:
           receiveMessageSignal(reader, data);
@@ -1251,13 +1251,16 @@ void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const
   QueueMoveCamera(screenPos, sf::seconds(duration));
 }
 
-void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveTeleportSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  // todo: add warp option, add no beam teleport option, interpolate in update?
+  // todo: prevent warp animation for other clients if warp = false?
+  // maybe add a warped signal we send to the server?
 
-  float x = reader.Read<float>(buffer);
-  float y = reader.Read<float>(buffer);
+  auto warp = reader.Read<bool>(buffer);
+  auto x = reader.Read<float>(buffer);
+  auto y = reader.Read<float>(buffer);
   auto z = reader.Read<float>(buffer);
+  auto direction = reader.Read<Direction>(buffer);
 
   auto tileSize = GetMap().GetTileSize();
   auto position = sf::Vector3f(
@@ -1267,7 +1270,18 @@ void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::
   );
 
   auto player = GetPlayer();
-  player->Set3DPosition(position);
+
+  if (warp) {
+    auto& action = GetTeleportController().TeleportOut(player);
+    action.onFinish.Slot([this, player, position] {
+      GetTeleportController().TeleportIn(player, position, Direction::none);
+    });
+  }
+  else {
+    player->Set3DPosition(position);
+  }
+
+  player->Face(Orthographic(direction));
 }
 
 void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1359,7 +1373,7 @@ void Overworld::OnlineArea::receiveOpenBoardSignal(BufferReader& reader, const P
 
   auto depth = reader.Read<unsigned char>(buffer);
 
-  if(depth != menuSystem.CountBBS()) {
+  if (depth != menuSystem.CountBBS()) {
     // player closed the board this packet is referencing
     sendBoardCloseSignal();
     return;
@@ -1388,7 +1402,7 @@ void Overworld::OnlineArea::receivePrependPostsSignal(BufferReader& reader, cons
 
   auto depth = reader.Read<unsigned char>(buffer);
 
-  if(depth != menuSystem.CountBBS()) {
+  if (depth != menuSystem.CountBBS()) {
     // player closed the board this packet is referencing
     return;
   }
@@ -1419,7 +1433,7 @@ void Overworld::OnlineArea::receiveAppendPostsSignal(BufferReader& reader, const
 
   auto depth = reader.Read<unsigned char>(buffer);
 
-  if(depth != menuSystem.CountBBS()) {
+  if (depth != menuSystem.CountBBS()) {
     // player closed the board this packet is referencing
     return;
   }
@@ -1450,7 +1464,7 @@ void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const 
 
   auto depth = reader.Read<unsigned char>(buffer);
 
-  if(depth != menuSystem.CountBBS()) {
+  if (depth != menuSystem.CountBBS()) {
     // player closed the board this packet is referencing
     return;
   }
