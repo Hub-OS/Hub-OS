@@ -112,9 +112,6 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) 
         continue;
       }
 
-      // load asset
-      // todo: load on demand? worries are pauses and initial sound effect delay
-
       auto [name, lastModified] = decodeName(path.substr(cachePrefix.length()));
 
       CacheMeta meta{
