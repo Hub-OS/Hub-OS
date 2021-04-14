@@ -14,7 +14,6 @@ private:
   Entity::RemoveCallback* busterRemoved{ nullptr };
   bool charged{};
   int damage{};
-  bool isBusterAlive{};
 public:
   BusterCardAction(Character& user, bool charged, int damage);
   ~BusterCardAction();

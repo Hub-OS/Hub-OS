@@ -267,6 +267,8 @@ namespace Battle {
 
   // Set the right texture based on the team color and state
   void Tile::RefreshTexture() {
+    return;
+
     if (state == TileState::hidden) {
       animState = "";
       setScale(sf::Vector2f(0, 0));

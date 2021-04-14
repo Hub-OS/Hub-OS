@@ -115,7 +115,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       }
     }
 
-    if (player->CanAttack() == false) return;
+    if (!player->CanAttack() && player->IsMoving()) return;
 
     // If we have a valid card, update and draw the data
     if (cardCount > 0 && curr < cardCount && selectedCards[curr]) {
@@ -197,13 +197,13 @@ void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
 }
 
 void SelectedCardsUI::UseNextCard() {
-  auto actions = player->GetComponentsDerivedFrom<CardAction>();
+  const auto actions = player->AsyncActionList();
   bool hasNextCard = curr < cardCount;
   bool canUseCard = true;
 
   // We could be using an ability, just make sure one of these actions are not from a card
   // Cards cannot be used if another card is still active
-  for (auto&& action : actions) {
+  for (const CardAction* action : actions) {
     canUseCard = canUseCard && action->GetLockoutGroup() != CardAction::LockoutGroup::card;
   }
 

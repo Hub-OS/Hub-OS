@@ -84,6 +84,7 @@ public:
 private:
   bool animationIsOver{ false };
   bool started{ false };
+  bool recalledAnimation{ false };
   bool preventCounters{ false };
   LockoutProperties lockoutProps{};
   std::string animation;

@@ -68,6 +68,7 @@ private:
   bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
   std::vector<Character*> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
+  std::vector<CardAction*> asyncActions;
   std::vector<Component::ID_t> attacks;
 
   // Statuses are resolved one property at a time
@@ -126,7 +127,9 @@ public:
 
   virtual void OnUpdate(double elapsed) = 0;
 
-  const bool IsLockoutComplete();
+  const bool IsLockoutAnimationComplete();
+
+  const std::vector<const CardAction*> AsyncActionList() const;
   CardAction* CurrentCardAction();
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization

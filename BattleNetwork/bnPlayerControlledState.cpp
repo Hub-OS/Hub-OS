@@ -23,13 +23,13 @@ PlayerControlledState::~PlayerControlledState()
 }
 
 void PlayerControlledState::OnEnter(Player& player) {
-  player.SetAnimation(PLAYER_IDLE);
+  player.SetAnimation("PLAYER_IDLE");
   replicator = player.GetFirstComponent<PlayerInputReplicator>();
 }
 
 void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Actions with animation lockout controls take priority over movement
-  bool canMove = player.IsLockoutComplete();
+  bool canMove = player.IsLockoutAnimationComplete();
 
   // One of our active actions are preventing us from moving
   if (!canMove) {
@@ -48,16 +48,26 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Are we creating an action this frame?
   if (Input().Has(InputEvents::pressed_use_chip)) {
     auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
-    if (cardsUI) {
+    if (cardsUI && player.CanAttack()) {
       cardsUI->UseNextCard();
       isChargeHeld = false;
     }
     // If the card used was successful, we may have a card in queue
   }
   else if (Input().Has(InputEvents::released_special)) {
-    if (replicator) replicator->SendUseSpecialSignal();
-    player.UseSpecial();
-  }    // queue attack based on input behavior (buster or charge?)
+    const auto actions = player.AsyncActionList();
+    bool canUseSpecial = player.CanAttack();
+
+    // Just make sure one of these actions are not from an ability
+    for (const CardAction* action : actions) {
+      canUseSpecial = canUseSpecial && action->GetLockoutGroup() != CardAction::LockoutGroup::ability;
+    }
+
+    if (canUseSpecial) {
+      if (replicator) replicator->SendUseSpecialSignal();
+      player.UseSpecial();
+    }
+  } // queue attack based on input behavior (buster or charge?)
   else if (Input().Has(InputEvents::released_shoot) || missChargeKey) {
     // This routine is responsible for determining the outcome of the attack
     if (replicator) {
@@ -68,8 +78,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     isChargeHeld = false;
     player.chargeEffect.SetCharging(false);
     player.Attack();
-    Logger::Logf("use attack");
-
 
   } else if (Input().Has(InputEvents::held_shoot)) {
     isChargeHeld = true;

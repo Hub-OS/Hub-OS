@@ -319,6 +319,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetAnimation", &ScriptedPlayer::SetAnimation,
     "SetFloatShoe", &ScriptedPlayer::SetFloatShoe,
     "SetAirShoe", &ScriptedPlayer::SetAirShoe,
+    "SlideWhenMoving", &ScriptedPlayer::SlideWhenMoving,
     "Team", &ScriptedPlayer::GetTeam,
     sol::base_classes, sol::bases<Player>()
    );

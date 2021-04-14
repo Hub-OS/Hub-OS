@@ -19,18 +19,15 @@ CardAction::CardAction(Character& user, const std::string& animation) :
 
       // use the current animation's arrangement, do not overload
       prevState = anim->GetAnimationString();
+
+      Logger::Logf("prevState was %s", prevState.c_str());
+
       anim->SetAnimation(this->animation, [this]() {
-
-        if (this->IsLockoutOver()) {
-          EndAction();
-        }
-
         RecallPreviousState();
       });
 
       anim->SetInterruptCallback([this]() {
-        this->animationIsOver = true;
-        this->FreeAttachedNodes();
+        RecallPreviousState();
       });
 
       this->animationIsOver = false;
@@ -68,17 +65,25 @@ sf::Vector2f CardAction::CalculatePointOffset(const std::string& point) {
 
 void CardAction::RecallPreviousState()
 {
-  FreeAttachedNodes();
+  if (!recalledAnimation) {
+    Logger::Log("RecallPreviousState() called");
 
-  if (anim) {
-    anim->SetAnimation(prevState);
-    anim->SetPlaybackMode(Animator::Mode::Loop);
-    OnAnimationEnd();
-  }
+    FreeAttachedNodes();
 
-  // "Animation" for sequences are only complete when the animation sequence is complete
-  if (lockoutProps.type != CardAction::LockoutType::sequence) {
+    if (anim) {
+      anim->SetAnimation(prevState);
+      anim->SetPlaybackMode(Animator::Mode::Loop);
+      OnAnimationEnd();
+    }
+
     animationIsOver = true;
+
+    // "Animation" for sequences are only complete when the animation sequence is complete
+    //if (lockoutProps.type != CardAction::LockoutType::sequence) {
+    //  animationIsOver = true;
+    //}
+
+    recalledAnimation = true;
   }
 }
 
@@ -97,22 +102,15 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       }
 
       prevState = anim->GetAnimationString();;
+      Logger::Logf("prevState was %s", prevState.c_str());
+
       anim->OverrideAnimationFrames(animation, frameData, uuid);
       anim->SetAnimation(uuid, [this]() {
-        anim->SetPlaybackMode(Animator::Mode::Loop);
-
-        if (this->IsLockoutOver()) {
-          EndAction();
-        }
-
         RecallPreviousState();
       });
 
       anim->SetInterruptCallback([this]() {
-        this->animationIsOver = true;
-        this->FreeAttachedNodes();
-
-        // we don't want to recall the previous state because we may be interrupted into a new state...
+        RecallPreviousState();
       });
 
       this->animationIsOver = false;
@@ -134,6 +132,7 @@ void CardAction::Execute()
 
 void CardAction::EndAction()
 {
+  RecallPreviousState();
   OnEndAction();
 }
 
@@ -181,16 +180,15 @@ void CardAction::Update(double _elapsed)
     sequence.update(_elapsed);
     if (sequence.isEmpty()) {
       animationIsOver = true; // animation for sequence is complete
+      RecallPreviousState();
       EndAction();
     }
   }
   else if(animationIsOver) /* lockoutProps.type == CardAction::LockoutType::async */ {
+    RecallPreviousState();
+
     lockoutProps.cooldown -= _elapsed;
     lockoutProps.cooldown = std::max(lockoutProps.cooldown, 0.0);
-
-    if (IsLockoutOver()) {
-      EndAction();
-    }
   }
 }
 
@@ -241,15 +239,16 @@ const std::string& CardAction::GetAnimState() const
 
 const bool CardAction::IsAnimationOver() const
 {
-  return IsLockoutOver();
+  return animationIsOver;
 }
 
 const bool CardAction::IsLockoutOver() const {
-  if (lockoutProps.type == CardAction::LockoutType::animation) {
-    return animationIsOver;
+  // animation and sequence lockout type checks
+  if (lockoutProps.type != CardAction::LockoutType::async) {
+    return IsAnimationOver();
   }
 
-  return lockoutProps.cooldown <= 0 && animationIsOver;
+  return IsAnimationOver() && lockoutProps.cooldown <= 0;
 }
 
 const bool CardAction::CanExecute() const

@@ -15,7 +15,9 @@
 
 struct BusterActionDeleter {
   void operator()(BusterEvent& in) {
-    delete in.action;
+    if (in.action->CanExecute()) {
+      delete in.action;
+    }
   }
 };
 

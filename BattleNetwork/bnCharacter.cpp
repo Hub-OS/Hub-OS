@@ -18,7 +18,10 @@
 
 struct CardActionDeleter {
   void operator()(CardEvent& in) {
-    delete in.action;
+    // TODO: use shared_ptrs?
+    if (in.action->CanExecute()) {
+      delete in.action;
+    }
   }
 };
 
@@ -66,6 +69,13 @@ Character::Character(Rank _rank) :
 Character::~Character() {
   // Defense items need to be manually deleted where they are created
   defenses.clear();
+
+  for (CardAction* action : asyncActions) {
+    action->EndAction();
+    delete action;
+  }
+
+  asyncActions.clear();
 }
 
 void Character::OnHit()
@@ -101,11 +111,11 @@ const bool Character::CanTilePush() const {
   return canTilePush;
 }
 
-
-const bool Character::IsLockoutComplete()
+const bool Character::IsLockoutAnimationComplete()
 {
-  if (currCardAction)
-    return currCardAction->IsLockoutOver();
+  if (currCardAction) {
+    return currCardAction->IsAnimationOver();
+  }
 
   return true;
 }
@@ -170,6 +180,20 @@ void Character::Update(double _elapsed) {
 
   Entity::Update(_elapsed);
 
+  // process async actions
+  auto asyncCopy = asyncActions;
+  for (CardAction* action : asyncCopy) {
+    action->Update(_elapsed);
+
+    if (action->IsLockoutOver()) {
+      auto iter = std::find(asyncActions.begin(), asyncActions.end(), action);
+      if (iter != asyncActions.end()) {
+        asyncActions.erase(iter);
+      }
+      delete action;
+    }
+  }
+
   // If we have an attack from the action queue...
   if (currCardAction) {
 
@@ -184,6 +208,7 @@ void Character::Update(double _elapsed) {
         // TODO: have an `IsActionable()` function that can be implemented for characters with animations?
         // note: move animations need to cancel their callbacks when attacking
         for(auto anim : this->GetComponents<AnimationComponent>()) {
+          anim->SetAnimation("PLAYER_IDLE");
           anim->CancelCallbacks();
         }
 
@@ -197,7 +222,15 @@ void Character::Update(double _elapsed) {
     // once the animation is complete, 
     // cleanup the attack and pop the action queue
     if (currCardAction->IsAnimationOver()) {
-      // currCardAction->EndAction();
+      currCardAction->EndAction();
+
+      if (currCardAction->GetLockoutType() != CardAction::LockoutType::async) {
+        delete currCardAction; // TODO: will shared_ptrs solve the responsibility of deleting actions everywhere in our current design?
+      }
+      else {
+        asyncActions.push_back(currCardAction);
+      }
+
       currCardAction = nullptr;
       actionQueue.Pop();
     }
@@ -318,7 +351,7 @@ const int Character::GetMaxHealth() const
 
 const bool Character::CanAttack() const
 {
-  return !IsMoving() && !currCardAction;
+  return !currCardAction;
 }
 
 void Character::ResolveFrameBattleDamage()
@@ -550,6 +583,17 @@ void Character::ResolveFrameBattleDamage()
 
 void Character::OnUpdate(double elapsed)
 {
+}
+
+const std::vector<const CardAction*> Character::AsyncActionList() const
+{
+  std::vector<const CardAction*> list;
+
+  for (const CardAction* action : asyncActions) {
+    list.push_back(action);
+  }
+
+  return list;
 }
 
 CardAction* Character::CurrentCardAction()

@@ -9,8 +9,7 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(Character& owner, bool charged, int damage) 
-  : CardAction(owner, "PLAYER_SHOOTING")
+BusterCardAction::BusterCardAction(Character& owner, bool charged, int damage) : CardAction(owner, "PLAYER_SHOOTING")
 {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
@@ -29,11 +28,9 @@ BusterCardAction::BusterCardAction(Character& owner, bool charged, int damage)
   flareAnim = Animation(NODE_ANIM);
   flareAnim.SetAnimation("DEFAULT");
 
-  isBusterAlive = false;
-
   busterAttachment = &AddAttachment(owner, "buster", *buster).UseAnimation(busterAnim);
 
-  this->SetLockout({ CardAction::LockoutType::async, 0.5 });
+  this->SetLockout({ CardAction::LockoutType::async, 0.0 });
 }
 
 void BusterCardAction::OnExecute() {
@@ -53,13 +50,8 @@ void BusterCardAction::OnExecute() {
       b->SetDirection(Direction::left);
     }
 
-    auto props = b->GetHitboxProperties();
-    b->SetHitboxProperties(props);
-
-    isBusterAlive = true;
     busterRemoved = &b->CreateRemoveCallback();
     busterRemoved->Slot([this](Entity*) {
-      isBusterAlive = false;
       EndAction();
       });
 
@@ -86,10 +78,8 @@ void BusterCardAction::Update(double _elapsed)
 
 void BusterCardAction::OnEndAction()
 {
-  OnAnimationEnd();
 }
 
 void BusterCardAction::OnAnimationEnd()
 {
-  isBusterAlive = false;
 }
