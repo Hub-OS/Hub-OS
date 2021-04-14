@@ -341,15 +341,6 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
 }
 
 void Overworld::SceneBase::HandleInput() {
-  if (Input().Has(InputEvents::pressed_map)) {
-    showMinimap = !showMinimap;
-    if (!showMinimap) {
-      minimap.ResetPanning();
-    }
-
-    return;
-  }
-
   if (showMinimap) {
     sf::Vector2f panning = {};
 
@@ -367,6 +358,11 @@ void Overworld::SceneBase::HandleInput() {
 
     if (Input().Has(InputEvents::held_ui_down)) {
       panning.y += 1.f;
+    }
+
+    if (Input().Has(InputEvents::pressed_map)) {
+      showMinimap = false;
+      minimap.ResetPanning();
     }
 
     minimap.Pan(panning);
@@ -403,6 +399,9 @@ void Overworld::SceneBase::HandleInput() {
   }
   else if (Input().Has(InputEvents::pressed_option)) {
     emote.Open();
+  } else if (Input().Has(InputEvents::pressed_map)) {
+    showMinimap = true;
+    minimap.ResetPanning();
   }
 }
 
