@@ -6,7 +6,7 @@
 namespace Overworld
 {
   const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
-  const uint64_t VERSION_ITERATION = 9;
+  const uint64_t VERSION_ITERATION = 12;
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
@@ -24,6 +24,7 @@ namespace Overworld
   {
     ping = 0,
     ack,
+    server_message, // not used by clients
     asset_found,
     asset_stream,
     login,
@@ -36,7 +37,11 @@ namespace Overworld
     object_interaction,
     actor_interaction,
     tile_interaction,
-    dialog_response,
+    textbox_response,
+    board_open,
+    board_close,
+    post_request,
+    post_selection,
     size,
     unknown = size
   };
@@ -70,10 +75,15 @@ namespace Overworld
     unlock_camera,
     lock_input,
     unlock_input,
-    move,
+    teleport,
     message,
     question,
     quiz,
+    open_board,
+    prepend_posts,
+    append_posts,
+    remove_post,
+    post_selection_ack,
     actor_connected,
     actor_disconnect,
     actor_set_name,

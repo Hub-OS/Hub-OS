@@ -27,7 +27,7 @@
 #include "bnOverworldSpatialMap.h"
 #include "bnOverworldMap.h"
 #include "bnOverworldPersonalMenu.h"
-#include "bnOverworldTextBox.h"
+#include "bnOverworldMenuSystem.h"
 #include "bnEmotes.h"
 #include "bnXML.h"
 #include "bnMinimap.h"
@@ -80,7 +80,7 @@ namespace Overworld {
     std::vector<std::shared_ptr<WorldSprite>> sprites;
     std::vector<std::vector<std::shared_ptr<WorldSprite>>> spriteLayers;
     std::vector<short> gridShadows;
-    Overworld::TextBox textbox;
+    Overworld::MenuSystem menuSystem;
 
     /*!< Current navi selection index */
     SelectedNavi currentNavi{},
@@ -284,7 +284,7 @@ namespace Overworld {
     SelectedNavi& GetCurrentNavi();
     EmoteNode& GetEmoteNode();
     std::shared_ptr<Background> GetBackground();
-    Overworld::TextBox& GetTextBox();
+    Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
     bool IsCameraLocked();
 

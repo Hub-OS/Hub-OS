@@ -89,7 +89,11 @@ namespace Overworld {
     void sendObjectInteractionSignal(unsigned int tileObjectId);
     void sendNaviInteractionSignal(const std::string& ticket);
     void sendTileInteractionSignal(float x, float y, float z);
-    void sendDialogResponseSignal(char response);
+    void sendTextBoxResponseSignal(char response);
+    void sendBoardOpenSignal();
+    void sendBoardCloseSignal();
+    void sendPostRequestSignal();
+    void sendPostSelectSignal(const std::string& postId);
 
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -106,10 +110,15 @@ namespace Overworld {
     void receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTeleportSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveOpenBoardSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receivePrependPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAppendPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveRemovePostSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receivePostSelectionAckSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);

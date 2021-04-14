@@ -82,8 +82,6 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       sf::Sprite face;
       face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
 
-      auto& textbox = GetTextBox();
-
       std::string message = "If you're seeing this message, something has gone horribly wrong with the next area.";
       message += "For your safety you cannot enter the next area!";
 
@@ -100,8 +98,8 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         break;
       }
 
-      textbox.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
-      textbox.EnqueueMessage(message);
+      menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+      menuSystem.EnqueueMessage(message);
     });
 
     AddActor(mrprog);
@@ -279,9 +277,9 @@ void Overworld::Homepage::onUpdate(double elapsed)
     const std::string& anim = meta.GetMugshotAnimationPath();
     auto mugshot = Textures().LoadTextureFromFile(image);
 
-    textbox.SetNextSpeaker(sf::Sprite(*mugshot), anim);
-    textbox.EnqueueMessage("This is your homepage.");
-    textbox.EnqueueMessage("You can edit it anyway you like!");
+    menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
+    menuSystem.EnqueueMessage("This is your homepage.");
+    menuSystem.EnqueueMessage("You can edit it anyway you like!");
 
     playerActor->Face(Direction::down_right);
   }

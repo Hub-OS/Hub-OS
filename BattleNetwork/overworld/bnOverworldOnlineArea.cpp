@@ -134,9 +134,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
     auto mugshot = Textures().LoadTextureFromFile(image);
-    textbox.SetNextSpeaker(sf::Sprite(*mugshot), anim);
+    menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
 
-    textbox.EnqueueQuestion("Return to your homepage?", [this](bool result) {
+    menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
       if (result) {
         teleportController.TeleportOut(playerActor).onFinish.Slot([this] {
           this->sendLogoutSignal();
@@ -207,6 +207,10 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   }
 
   SceneBase::onDraw(surface);
+
+  if (menuSystem.IsFullscreen()) {
+    return;
+  }
 
   auto& window = getController().getWindow();
   auto mousei = sf::Mouse::getPosition(window);
@@ -474,8 +478,8 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::unlock_input:
           UnlockInput();
           break;
-        case ServerEvents::move:
-          receiveMoveSignal(reader, data);
+        case ServerEvents::teleport:
+          receiveTeleportSignal(reader, data);
           break;
         case ServerEvents::message:
           receiveMessageSignal(reader, data);
@@ -485,6 +489,21 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
           break;
         case ServerEvents::quiz:
           receiveQuizSignal(reader, data);
+          break;
+        case ServerEvents::open_board:
+          receiveOpenBoardSignal(reader, data);
+          break;
+        case ServerEvents::prepend_posts:
+          receivePrependPostsSignal(reader, data);
+          break;
+        case ServerEvents::append_posts:
+          receiveAppendPostsSignal(reader, data);
+          break;
+        case ServerEvents::remove_post:
+          receiveRemovePostSignal(reader, data);
+          break;
+        case ServerEvents::post_selection_ack:
+          receivePostSelectionAckSignal(reader, data);
           break;
         case ServerEvents::actor_connected:
           receiveActorConnectedSignal(reader, data);
@@ -726,15 +745,54 @@ void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
   packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::sendDialogResponseSignal(char response)
+void Overworld::OnlineArea::sendTextBoxResponseSignal(char response)
 {
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::dialog_response };
+  ClientEvents type{ ClientEvents::textbox_response };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&response, sizeof(response));
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
+
+
+void Overworld::OnlineArea::sendBoardOpenSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::board_open };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendBoardCloseSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::board_close };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendPostRequestSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::post_request };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::post_selection };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append(postId.c_str(), postId.length() + 1);
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
 
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
@@ -1082,7 +1140,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
       }
       else if (type == "Board") {
-        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + zOffset);
+        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + zOffset, tileObject.tile.flippedHorizontal);
       }
       else if (type == "Shop") {
         minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset);
@@ -1192,13 +1250,16 @@ void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const
   QueueMoveCamera(screenPos, sf::seconds(duration));
 }
 
-void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveTeleportSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  // todo: add warp option, add no beam teleport option, interpolate in update?
+  // todo: prevent warp animation for other clients if warp = false?
+  // maybe add a warped signal we send to the server?
 
-  float x = reader.Read<float>(buffer);
-  float y = reader.Read<float>(buffer);
+  auto warp = reader.Read<bool>(buffer);
+  auto x = reader.Read<float>(buffer);
+  auto y = reader.Read<float>(buffer);
   auto z = reader.Read<float>(buffer);
+  auto direction = reader.Read<Direction>(buffer);
 
   auto tileSize = GetMap().GetTileSize();
   auto position = sf::Vector3f(
@@ -1208,7 +1269,18 @@ void Overworld::OnlineArea::receiveMoveSignal(BufferReader& reader, const Poco::
   );
 
   auto player = GetPlayer();
-  player->Set3DPosition(position);
+
+  if (warp) {
+    auto& action = GetTeleportController().TeleportOut(player);
+    action.onFinish.Slot([this, player, position] {
+      GetTeleportController().TeleportIn(player, position, Direction::none);
+    });
+  }
+  else {
+    player->Set3DPosition(position);
+  }
+
+  player->Face(Orthographic(direction));
 }
 
 void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1223,10 +1295,10 @@ void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poc
   Animation animation;
   animation.LoadWithData(GetText(mugAnimationPath));
 
-  auto& textbox = GetTextBox();
-  textbox.SetNextSpeaker(face, animation);
-  textbox.EnqueueMessage(message,
-    [=]() { sendDialogResponseSignal(0); }
+  auto& menuSystem = GetMenuSystem();
+  menuSystem.SetNextSpeaker(face, animation);
+  menuSystem.EnqueueMessage(message,
+    [=]() { sendTextBoxResponseSignal(0); }
   );
 }
 
@@ -1242,10 +1314,10 @@ void Overworld::OnlineArea::receiveQuestionSignal(BufferReader& reader, const Po
   Animation animation;
   animation.LoadWithData(GetText(mugAnimationPath));
 
-  auto& textbox = GetTextBox();
-  textbox.SetNextSpeaker(face, animation);
-  textbox.EnqueueQuestion(message,
-    [=](int response) { sendDialogResponseSignal((char)response); }
+  auto& menuSystem = GetMenuSystem();
+  menuSystem.SetNextSpeaker(face, animation);
+  menuSystem.EnqueueQuestion(message,
+    [=](int response) { sendTextBoxResponseSignal((char)response); }
   );
 }
 
@@ -1263,11 +1335,155 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
 
   animation.LoadWithData(GetText(mugAnimationPath));
 
-  auto& textbox = GetTextBox();
-  textbox.SetNextSpeaker(face, animation);
-  textbox.EnqueueQuiz(optionA, optionB, optionC,
-    [=](int response) { sendDialogResponseSignal((char)response); }
+  auto& menuSystem = GetMenuSystem();
+  menuSystem.SetNextSpeaker(face, animation);
+  menuSystem.EnqueueQuiz(optionA, optionB, optionC,
+    [=](int response) { sendTextBoxResponseSignal((char)response); }
   );
+}
+
+static std::vector<BBS::Post> ReadPosts(Overworld::BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto total = reader.Read<uint16_t>(buffer);
+
+  std::vector<BBS::Post> posts;
+  posts.reserve(total);
+
+  for (auto i = 0; i < total; i++) {
+    auto id = reader.ReadString(buffer);
+    auto read = reader.Read<bool>(buffer);
+    auto title = reader.ReadString(buffer);
+    auto author = reader.ReadString(buffer);
+
+    posts.push_back({
+      id,
+      read,
+      title,
+      author
+      });
+  }
+
+  return posts;
+}
+
+void Overworld::OnlineArea::receiveOpenBoardSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  sendBoardOpenSignal();
+  auto& menuSystem = GetMenuSystem();
+
+  auto depth = reader.Read<unsigned char>(buffer);
+
+  if (depth != menuSystem.CountBBS()) {
+    // player closed the board this packet is referencing
+    sendBoardCloseSignal();
+    return;
+  }
+
+  auto topic = reader.ReadString(buffer);
+  auto r = reader.Read<unsigned char>(buffer);
+  auto g = reader.Read<unsigned char>(buffer);
+  auto b = reader.Read<unsigned char>(buffer);
+  auto posts = ReadPosts(reader, buffer);
+
+  menuSystem.EnqueueBBS(
+    topic,
+    sf::Color(r, g, b, 255),
+    [=](auto id) { sendPostSelectSignal(id); },
+    [=] { sendBoardCloseSignal(); }
+  );
+
+  auto& bbs = menuSystem.GetBBS()->get();
+  bbs.AppendPosts(posts);
+}
+
+void Overworld::OnlineArea::receivePrependPostsSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& menuSystem = GetMenuSystem();
+
+  auto depth = reader.Read<unsigned char>(buffer);
+
+  if (depth != menuSystem.CountBBS()) {
+    // player closed the board this packet is referencing
+    return;
+  }
+
+  auto hasReference = reader.Read<bool>(buffer);
+  auto reference = hasReference ? reader.ReadString(buffer) : "";
+  auto posts = ReadPosts(reader, buffer);
+
+  auto optionalBbs = menuSystem.GetBBS();
+
+  if (!optionalBbs) {
+    return;
+  }
+
+  auto& bbs = optionalBbs->get();
+
+  if (!hasReference) {
+    bbs.PrependPosts(posts);
+  }
+  else {
+    bbs.PrependPosts(reference, posts);
+  }
+}
+
+void Overworld::OnlineArea::receiveAppendPostsSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& menuSystem = GetMenuSystem();
+
+  auto depth = reader.Read<unsigned char>(buffer);
+
+  if (depth != menuSystem.CountBBS()) {
+    // player closed the board this packet is referencing
+    return;
+  }
+
+  auto hasReference = reader.Read<bool>(buffer);
+  auto reference = hasReference ? reader.ReadString(buffer) : "";
+  auto posts = ReadPosts(reader, buffer);
+
+  auto optionalBbs = menuSystem.GetBBS();
+
+  if (!optionalBbs) {
+    return;
+  }
+
+  auto& bbs = optionalBbs->get();
+
+  if (!hasReference) {
+    bbs.AppendPosts(posts);
+  }
+  else {
+    bbs.AppendPosts(reference, posts);
+  }
+}
+
+void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& menuSystem = GetMenuSystem();
+
+  auto depth = reader.Read<unsigned char>(buffer);
+
+  if (depth != menuSystem.CountBBS()) {
+    // player closed the board this packet is referencing
+    return;
+  }
+
+  auto postId = reader.ReadString(buffer);
+
+  auto optionalBbs = menuSystem.GetBBS();
+
+  if (!optionalBbs) {
+    return;
+  }
+
+  auto& bbs = optionalBbs->get();
+
+  bbs.RemovePost(postId);
+}
+
+void Overworld::OnlineArea::receivePostSelectionAckSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  GetMenuSystem().AcknowledgeBBSSelection();
 }
 
 void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

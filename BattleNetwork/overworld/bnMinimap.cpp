@@ -431,13 +431,14 @@ void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos)
   bakedMap.AddNode(markers.back().get());
 }
 
-void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos)
+void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip)
 {
   auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newBoard = std::make_shared<SpriteProxyNode>();
   newBoard->setTexture(board.getTexture());
   newBoard->setOrigin({ 3, 7 });
   newBoard->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  newBoard->setScale(flip ? -1 : 1, 1);
   newBoard->SetLayer(-1);
   markers.push_back(newBoard);
   bakedMap.AddNode(markers.back().get());
