@@ -125,6 +125,10 @@ namespace Overworld {
     return textbox.IsClosed();
   }
 
+  size_t TextBox::GetRemainingMessages() {
+    return handlerQueue.size();
+  }
+
   void TextBox::Update(float elapsed) {
     textbox.Update(elapsed);
   }

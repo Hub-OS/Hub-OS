@@ -33,7 +33,7 @@ namespace Overworld {
     void ClearIcons();
     void AddWarpPosition(const sf::Vector2f& pos);
     void AddShopPosition(const sf::Vector2f& pos);
-    void AddBoardPosition(const sf::Vector2f& pos);
+    void AddBoardPosition(const sf::Vector2f& pos, bool flip);
     void draw(sf::RenderTarget& surface, sf::RenderStates states) const override final;
   };
 }

@@ -2,16 +2,22 @@
 
 #include "../bnResourceHandle.h"
 #include "../bnInputManager.h"
-#include "../bnMessageInterface.h"
-#include "../bnAnimatedTextBox.h"
-
+#include "bnOverworldTextBox.h"
+#include "bnBBS.h"
 #include <SFML/Graphics/Drawable.hpp>
 #include <functional>
+#include <optional>
 
 namespace Overworld {
-  class TextBox : public sf::Drawable, ResourceHandle {
+  class MenuSystem : public sf::Drawable, ResourceHandle {
   public:
-    TextBox(sf::Vector2f pos);
+    MenuSystem();
+
+    // grabs the latest BBS
+    std::optional<std::reference_wrapper<BBS>> GetBBS();
+    size_t CountBBS();
+    void EnqueueBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose);
+    void AcknowledgeBBSSelection();
 
     void SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation);
     void EnqueueMessage(const std::string& message, const std::function<void()>& onComplete = []() {});
@@ -25,7 +31,7 @@ namespace Overworld {
 
     bool IsOpen();
     bool IsClosed();
-    size_t GetRemainingMessages();
+    bool IsFullscreen();
 
     void Update(float elapsed);
     void HandleInput(InputManager& input);
@@ -33,9 +39,17 @@ namespace Overworld {
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
   private:
-    AnimatedTextBox textbox;
-    sf::Sprite nextSpeaker;
-    Animation nextAnimation;
-    std::queue<std::function<void(InputManager& input)>> handlerQueue;
+    struct PendingBBS {
+      std::unique_ptr<BBS> bbs;
+      size_t remainingMessages{};
+    };
+
+    std::queue<PendingBBS> pendingBbs;
+    size_t totalRemainingMessagesForBBS{};
+    std::vector<std::unique_ptr<BBS>> bbs;
+    Overworld::TextBox textbox;
+    bool bbsNeedsAck{ };
+
+    void PopMessage();
   };
 }

@@ -60,7 +60,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   guestAccount(guestAccount),
   lastIsConnectedState(false),
   personalMenu("Overworld", MakeOptions(this)),
-  textbox({ 4, 255 }),
   camera(controller.getWindow().getView()),
   Scene(controller),
   map(0, 0, 0, 0),
@@ -152,7 +151,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
 
   // clock
-  time.setPosition(480-4.f, 4.f);
+  time.setPosition(480 - 4.f, 4.f);
   time.setScale(2.f, 2.f);
 
   cameraTimer.reverse(true);
@@ -293,7 +292,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   emoteNode.Update(elapsed);
 
   // Update the textbox
-  textbox.Update((float)elapsed);
+  menuSystem.Update((float)elapsed);
 
   HandleCamera((float)elapsed);
 
@@ -381,8 +380,8 @@ void Overworld::SceneBase::HandleInput() {
     return;
   }
 
-  if (!textbox.IsClosed()) {
-    textbox.HandleInput(Input());
+  if (!menuSystem.IsClosed()) {
+    menuSystem.HandleInput(Input());
     return;
   }
 
@@ -465,14 +464,19 @@ void Overworld::SceneBase::onResume() {
 }
 
 void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
-  surface.draw(*bg);
-
-  DrawWorld(surface, sf::RenderStates::Default);
-
   if (showMinimap) {
     surface.draw(minimap);
     return;
   }
+
+  if (menuSystem.IsFullscreen()) {
+    surface.draw(menuSystem);
+    return;
+  }
+
+  surface.draw(*bg);
+
+  DrawWorld(surface, sf::RenderStates::Default);
 
   surface.draw(emote);
   surface.draw(personalMenu);
@@ -480,7 +484,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   // Add the web account connection symbol
   surface.draw(webAccountIcon);
 
-  surface.draw(textbox);
+  surface.draw(menuSystem);
 
   PrintTime(surface);
 }
@@ -505,7 +509,7 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
 
   // there should be mapLayerCount + 1 sprite layers
   for (auto i = 0; i < mapLayerCount + 1; i++) {
-    
+
     // loop is based on expected sprite layers
     // make sure we dont try to draw an extra map layer and segfault
     if (i < mapLayerCount) {
@@ -573,7 +577,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       }*/
 
       bool localHasShadow = false;
-      size_t checkIndex = index+1;
+      size_t checkIndex = index + 1;
 
       if (map.IgnoreTileAbove(float(j), float(i), int(index))) {
         checkIndex++;
@@ -587,7 +591,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
           localHasShadow = true;
         }
 
-        checkIndex++; 
+        checkIndex++;
       }
 
       size_t xyz = (index * rows * cols) + size_t(j) * size_t(cols) + size_t(i);
@@ -633,20 +637,20 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
 
     sf::Vector2i gridPos = sf::Vector2i(map.WorldToTileSpace(worldPos));
 
-    if (/*cam && cam->IsInView(sprite->getSprite())*/ true) { 
+    if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
       sf::Color originalColor = sprite->getColor();
       // NOTE: we snap players so elevations with floating decimals, even if not precise, will 
       //       let us know if we're on the correct elevation or not
-      if (sprite->GetElevation() != elevation-1.f) {
+      if (sprite->GetElevation() != elevation - 1.f) {
         index = index >= 1 ? (index - 1) : 0;
       }
 
       // index == 0 will NEVER have sprites
       bool evaluate = (
-        gridPos.x >= 0 && gridPos.x < cols &&
-        gridPos.y >= 0 && gridPos.y < rows &&
+        gridPos.x >= 0 && gridPos.x < cols&&
+        gridPos.y >= 0 && gridPos.y < rows&&
         index > 0 && index < mapLayerCount + 1
-      );
+        );
 
       size_t xyz = ((index - 1) * rows * cols) + (size_t(gridPos.x) * size_t(cols) + size_t(gridPos.y));
       if (evaluate && gridShadows[xyz] > 0) {
@@ -1260,7 +1264,7 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 }
 
 bool Overworld::SceneBase::IsInputLocked() {
-  return inputLocked || !personalMenu.IsClosed() || !textbox.IsClosed() || gotoNextScene || showMinimap || !teleportController.IsComplete();
+  return inputLocked || !personalMenu.IsClosed() || !menuSystem.IsClosed() || gotoNextScene || showMinimap || !teleportController.IsComplete();
 }
 
 void Overworld::SceneBase::LockInput() {
@@ -1397,7 +1401,7 @@ void Overworld::SceneBase::GotoKeyItems()
     items.push_back(KeyItemScene::Item{
       item.name,
       item.description
-    });
+      });
   }
 
   getController().push<effect::to<KeyItemScene>>(items);
@@ -1458,9 +1462,9 @@ std::shared_ptr<Background> Overworld::SceneBase::GetBackground()
   return this->bg;
 }
 
-Overworld::TextBox& Overworld::SceneBase::GetTextBox()
+Overworld::MenuSystem& Overworld::SceneBase::GetMenuSystem()
 {
-  return textbox;
+  return menuSystem;
 }
 
 void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
@@ -1529,7 +1533,7 @@ void Overworld::SceneBase::PrintTime(sf::RenderTarget& target)
 
   auto pColor = sf::Color::Red;
   time.SetString("AM");
-  
+
   if (timeStr[6] != 'A') {
     pColor = sf::Color::Green;
     time.SetString("PM");
