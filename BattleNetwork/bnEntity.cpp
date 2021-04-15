@@ -81,12 +81,10 @@ void Entity::UpdateMovement(double elapsed)
   // Only move if we have a valid next tile pointer
   auto next = currMoveEvent.dest;
   if (next) {
-    //if (currMoveEvent.deltaFrames == frames(0)) {
     if (currMoveEvent.onBegin) {
       currMoveEvent.onBegin();
       currMoveEvent.onBegin = nullptr;
     }
-    //}
 
     elapsedMoveTime += elapsed;
 
@@ -297,7 +295,7 @@ void Entity::SetAlpha(int value)
 bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void()> onBegin) {
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
-    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
+    actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
     return true;
   }
@@ -310,7 +308,7 @@ bool Entity::Slide(Battle::Tile* dest,
 {
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { slideTime, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
-    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
+    actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
     return true;
   }
@@ -325,7 +323,7 @@ bool Entity::Jump(Battle::Tile* dest, float destHeight,
 
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest, onBegin };
-    actionQueue.Add(std::move(event), order, ActionDiscardOp::until_eof);
+    actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
     return true;
   }

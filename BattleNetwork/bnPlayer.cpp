@@ -93,6 +93,7 @@ void Player::Attack() {
     
     if (action) {
       action->PreventCounters();
+      action->SetLockoutGroup(CardAction::LockoutGroup::weapon);
       BusterEvent event = { frames(0), frames(0), false, action };
       actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
     }

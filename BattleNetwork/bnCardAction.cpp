@@ -22,6 +22,8 @@ CardAction::CardAction(Character& user, const std::string& animation) :
 
       Logger::Logf("prevState was %s", prevState.c_str());
 
+      anim->CancelCallbacks();
+
       anim->SetAnimation(this->animation, [this]() {
         RecallPreviousState();
       });
@@ -54,6 +56,7 @@ void CardAction::AddStep(Step step)
 }
 
 void CardAction::AddAnimAction(int frame, const FrameCallback& action) {
+  Logger::Logf("AddAnimAction() called");
   anim->AddCallback(frame, action);
 }
 
@@ -66,7 +69,8 @@ sf::Vector2f CardAction::CalculatePointOffset(const std::string& point) {
 void CardAction::RecallPreviousState()
 {
   if (!recalledAnimation) {
-    Logger::Log("RecallPreviousState() called");
+    recalledAnimation = true;
+    animationIsOver = true;
 
     FreeAttachedNodes();
 
@@ -75,15 +79,6 @@ void CardAction::RecallPreviousState()
       anim->SetPlaybackMode(Animator::Mode::Loop);
       OnAnimationEnd();
     }
-
-    animationIsOver = true;
-
-    // "Animation" for sequences are only complete when the animation sequence is complete
-    //if (lockoutProps.type != CardAction::LockoutType::sequence) {
-    //  animationIsOver = true;
-    //}
-
-    recalledAnimation = true;
   }
 }
 
@@ -101,8 +96,10 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
         node.AttachAllPendingNodes();
       }
 
+      anim->CancelCallbacks();
+
       prevState = anim->GetAnimationString();;
-      Logger::Logf("prevState was %s", prevState.c_str());
+      Logger::Logf("(override animation) prevState was %s", prevState.c_str());
 
       anim->OverrideAnimationFrames(animation, frameData, uuid);
       anim->SetAnimation(uuid, [this]() {
@@ -216,10 +213,6 @@ void CardAction::FreeAttachedNodes() {
   }
 
   attachments.clear();
-
-  // some animation callbacks will expect to have some attachments,
-  // erase the animation callbacks
-  this->anim->CancelCallbacks();
 }
 
 const CardAction::LockoutGroup CardAction::GetLockoutGroup() const

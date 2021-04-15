@@ -30,7 +30,7 @@ BusterCardAction::BusterCardAction(Character& owner, bool charged, int damage) :
 
   busterAttachment = &AddAttachment(owner, "buster", *buster).UseAnimation(busterAnim);
 
-  this->SetLockout({ CardAction::LockoutType::async, 0.0 });
+  this->SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
 
 void BusterCardAction::OnExecute() {

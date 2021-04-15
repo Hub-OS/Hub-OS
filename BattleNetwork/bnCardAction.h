@@ -24,6 +24,7 @@ public:
 
   enum class LockoutGroup : unsigned {
     none = 0,
+    weapon,
     card,
     ability
   };
