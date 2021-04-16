@@ -180,10 +180,9 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
     bool reachedLastFrame = &(*iter) == &copy.back() && startProgress != 0.f;
 
     if (progress <= 0.f || reachedLastFrame) {
-      FrameCallbackHash::iterator callbackIter, callbackFind = callbacks.find(index);
+      FrameCallbackHash::iterator callbackIter = callbacks.begin();
+      FrameCallbackHash::iterator callbackFind = callbacks.find(index);
       FrameCallbackHash::iterator onetimeCallbackIter = onetimeCallbacks.find(index);
-
-      callbackIter = callbacks.begin();
 
       // step through and execute any callbacks that haven't triggerd up to this frame
       while (callbacksAreValid && callbacks.size() && callbackIter != callbackFind && callbackFind != callbacks.end()) {

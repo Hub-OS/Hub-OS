@@ -30,8 +30,6 @@ CardAction(user, "PLAYER_SWORD") {
     attachmentAnim = Animation(anim->GetFilePath());
     attachmentAnim.Reload();
     attachmentAnim.SetAnimation("HAND");
-
-    AddAttachment(anim->GetAnimationObject(), "hilt", *attachment).UseAnimation(attachmentAnim);
   }
 }
 

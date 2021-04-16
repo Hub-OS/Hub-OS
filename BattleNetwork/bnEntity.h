@@ -77,12 +77,12 @@ public:
   friend class BattleSceneBase;
 
 private:
-  ID_t ID{};              /*!< IDs are used for tagging during battle & to identify entities in scripting. */
+  ID_t ID{}; /*!< IDs are used for tagging during battle & to identify entities in scripting. */
   static long numOfIDs; /*!< Internal counter to identify the next entity with. */
-  int alpha{ 255 };            /*!< Control the transparency of an entity. */
+  int alpha{ 255 }; /*!< Control the transparency of an entity. */
   Component::ID_t lastComponentID{}; /*!< Entities keep track of new components to run through scene injection later. */
-  bool hasSpawned{ false };      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
-  float height{0};         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
+  bool hasSpawned{ false }; /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
+  float height{0}; /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
   bool isUpdating{ false }; /*!< If an entity has updated once this frame, skip some update routines */
   EventBus::Channel channel; /*!< Our event bus channel to emit events */
   MoveEvent currMoveEvent{};

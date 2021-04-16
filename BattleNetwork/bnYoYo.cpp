@@ -59,8 +59,8 @@ void YoYo::OnUpdate(double _elapsed) {
       Delete();
     }
 
-    // Retract after moving 2 spaces, if possible
-    if (!IsSliding() || (++tileCount == 2)) {
+    // Retract after moving 2 spaces ahead, if possible
+    if (++tileCount == 3) {
       if (!reversed) {
         auto direction = GetPreviousDirection();
 

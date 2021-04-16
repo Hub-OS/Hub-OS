@@ -52,7 +52,7 @@ MetalMan::MetalMan(Rank _rank)
     AddState<MetalManIdleState>();
   }
   else {
-    SetHealth(100);
+    SetHealth(1000);
   }
 
   ShareTileSpace(true); // mega can walk into him on red tiles

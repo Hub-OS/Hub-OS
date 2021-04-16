@@ -145,6 +145,7 @@ void Entity::UpdateMovement(double elapsed)
         frame_time_t lastFrame = currMoveEvent.delayFrames + currMoveEvent.deltaFrames + currMoveEvent.endlagFrames;
         if (from_seconds(elapsedMoveTime) > lastFrame) {
           FinishMove();
+          previousDirection = direction;
           Battle::Tile* prevTile = GetTile();
 
           // If we slide onto an ice block and we don't have float shoe enabled, slide

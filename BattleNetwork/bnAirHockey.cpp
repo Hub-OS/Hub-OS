@@ -12,6 +12,7 @@ AirHockey::AirHockey(Field* field, Team team, int damage, int moveCount) :
   setTexture(Textures().LoadTextureFromFile("resources/spells/puck.png"));
   setOrigin(getLocalBounds().width / 2.f, 16.f);
   setScale(2.f, 2.f);
+  SetFloatShoe(true);
 
   if (team == Team::blue) {
     dir = Direction::down_left;
@@ -51,12 +52,11 @@ void AirHockey::OnUpdate(double _elapsed)
 
       if (CanMoveTo(*GetTile() + dir)) {
         if (reflecting) {
-
           reflecting = false;
         }
         // the new dir was recalculated by 
-      // CanMoveTo() and `reflecting`
-      // was set to true to signal this
+        // CanMoveTo() and `reflecting`
+        // was set to true to signal this
         auto onBegin = [this] {
           if (--this->moveCount < 0) {
             Delete();
@@ -81,9 +81,11 @@ void AirHockey::Attack(Character* _entity)
 
 bool AirHockey::CanMoveTo(Battle::Tile* next)
 {
-  bool isOnOtherTeam = lastTileTeam != next->GetTeam() && Teammate(next->GetTeam());
+  if (!next) return false;
 
-  if (next->GetState() == TileState::hidden || isOnOtherTeam) {
+  bool isOnOtherTeam = lastTileTeam != next->GetTeam() && Teammate(next->GetTeam());
+  bool hidden = next->GetState() == TileState::hidden || next->IsEdgeTile();
+  if (hidden || isOnOtherTeam) {
     if (!reflecting) {
       reflecting = true;
       dir = Bounce(dir, *next);
