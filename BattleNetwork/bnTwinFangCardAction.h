@@ -8,6 +8,9 @@ class Character;
 class TwinFangCardAction : public CardAction {
 private:
   int damage;
+  SpriteProxyNode* buster{ nullptr };
+  Attachment* busterAttachment{ nullptr };
+  Animation busterAnim;
 public:
   TwinFangCardAction(Character& owner, int damage);
   ~TwinFangCardAction();

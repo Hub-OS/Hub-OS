@@ -8,7 +8,93 @@
 
 #define WILDCARD '*'
 
-CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) : 
+void CardSelectionCust::RefreshAvailableCards(int handSize)
+{
+  // Stage valid available cards
+  // If other cards are not compatible, set their bucket state flag to voided
+
+  enum class SelectionMode {
+    any,
+    same_name_or_code,
+    same_code,
+    same_name
+  };
+
+  // get info about the hand
+  auto resolvedCode = '*';
+  std::string resolvedName = "";
+  bool codeDiffers = false;
+  bool nameDiffers = false;
+
+  for (int i = 0; i < handSize; i++) {
+    auto& selectedCard = newSelectQueue[i]->data;
+    auto name = selectedCard->GetShortName();
+    auto code = selectedCard->GetCode();
+
+    if (i == 0) {
+      resolvedName = name;
+      resolvedCode = code;
+      continue;
+    }
+
+    if (code != WILDCARD) {
+      if (resolvedCode == WILDCARD) {
+        resolvedCode = code;
+      }
+      else if (resolvedCode != code) {
+        codeDiffers = true;
+      }
+    }
+
+    if (name != resolvedName) {
+      nameDiffers = true;
+    }
+  }
+
+  // resolve mode
+  auto selectionMode = SelectionMode::any;
+
+  if (nameDiffers && resolvedCode != WILDCARD) {
+    selectionMode = SelectionMode::same_code;
+  }
+  else if (codeDiffers) {
+    selectionMode = SelectionMode::same_name;
+  }
+  else if (resolvedCode != WILDCARD) {
+    selectionMode = SelectionMode::same_name_or_code;
+  }
+
+  // voiding, this could be reduced
+  for (int i = 0; i < cardCount; i++) {
+    auto& bucket = queue[i];
+    auto* card = bucket.data;
+    bool matchingName = card->GetShortName() == resolvedName;
+    bool matchingCode = card->GetCode() == resolvedCode || card->GetCode() == WILDCARD;
+
+    bool shouldVoid = false;
+
+    switch (selectionMode) {
+    case SelectionMode::any:
+      // we could prob just skip this loop to begin with for SelectionMode::any
+      break;
+    case SelectionMode::same_name_or_code:
+      shouldVoid = !matchingName && !matchingCode;
+      break;
+    case SelectionMode::same_code:
+      shouldVoid = !matchingCode;
+      break;
+    case SelectionMode::same_name:
+      shouldVoid = !matchingName;
+      break;
+    }
+
+    if (shouldVoid) {
+      bucket.state = CardSelectionCust::Bucket::state::voided;
+    }
+  }
+}
+
+CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
   props(props),
   greyscale(*Shaders().GetShader(ShaderType::GREYSCALE)),
   textbox({ 4, 255 }),
@@ -278,21 +364,7 @@ bool CardSelectionCust::CursorAction() {
           return true;
         }
         else {
-          // Otherwise display the remaining compatible cards...
-          // Check card code. If other cards are not compatible, set their bucket state flag to 0
-          Battle::Card* card = queue[cursorPos + (5 * cursorRow)].data;
-          char code = card->GetCode();
-          bool isDark = card->GetClass() == Battle::CardClass::dark;
-
-          for (int i = 0; i < cardCount; i++) {
-            if (i == cursorPos + (5 * cursorRow) || (queue[i].state == Bucket::state::voided) || queue[i].state == Bucket::state::queued) continue;
-            char otherCode = queue[i].data->GetCode();
-            bool isOtherDark = queue[i].data->GetClass() == Battle::CardClass::dark;
-            bool isSameCard = (queue[i].data->GetShortName() == queue[cursorPos + (5 * cursorRow)].data->GetShortName());
-            bool canPair = (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard);
-            if (isOtherDark == isDark && canPair) { queue[i].state = Bucket::state::staged; }
-            else { queue[i].state = Bucket::state::voided; }
-          }
+          RefreshAvailableCards(newSelectCount);
 
           emblem.CreateWireEffect();
           return true;
@@ -320,13 +392,17 @@ bool CardSelectionCust::CursorCancel() {
 
   newSelectQueue[--newSelectCount]->state = Bucket::state::staged;
 
+  // Everything is selectable again
+  for (int i = 0; i < cardCount; i++) {
+    queue[i].state = Bucket::state::staged;
+  }
+
+  for (int i = 0; i < newSelectCount; i++) {
+    newSelectQueue[i]->state = Bucket::state::queued;
+  }
+
   if (newSelectCount == 0) {
     newHand = false;
-
-    // Everything is selectable again
-    for (int i = 0; i < cardCount; i++) {
-      queue[i].state = Bucket::state::staged;
-    }
 
     // This is also where beastout card would be removed from queue
     // when beastout is available
@@ -341,24 +417,8 @@ bool CardSelectionCust::CursorCancel() {
     card queue and build up the state again.
   */
 
-
   for(int i = 0; i < newSelectCount; i++) {
-    char code = newSelectQueue[i]->data->GetCode();
-
-    for (int j = 0; j < cardCount; j++) {
-      if (i > 0) {
-        if (queue[j].state == Bucket::state::voided && code != queue[j].data->GetCode() - 1) continue; // already checked and not a PA sequence
-      }
-
-      if (queue[j].state == Bucket::state::queued) continue; // skip
-
-      char otherCode = queue[j].data->GetCode();
-
-      bool isSameCard = (queue[j].data->GetShortName() == newSelectQueue[i]->data->GetShortName());
-
-      if (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard) { queue[j].state = Bucket::state::staged; }
-      else { queue[j].state = Bucket::state::voided; }
-    }
+    RefreshAvailableCards(i+1);
   }
 
   emblem.UndoWireEffect();

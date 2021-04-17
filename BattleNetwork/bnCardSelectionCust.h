@@ -102,6 +102,7 @@ private:
   Battle::TextBox textbox; /*!< Popups card descriptions */
   std::vector<PlayerFormMeta*> forms;
 
+  void RefreshAvailableCards(int handSize);
 public:
   /**
    * @brief Constructs card select GUI. Creates a select queue of 8 buckets. Limits cap to 8.

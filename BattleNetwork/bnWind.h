@@ -2,6 +2,8 @@
 #include "bnSpell.h"
 
 class Wind : public Spell {
+  bool deleteOnTeam{};
+
 public:
 
   Wind(Team _team);
@@ -10,6 +12,8 @@ public:
   void OnUpdate(double _elapsed) override;
 
   bool CanMoveTo(Battle::Tile* next) override;
+
+  void DeleteOnTeamTile();
 
   /**
    * @brief moves entities

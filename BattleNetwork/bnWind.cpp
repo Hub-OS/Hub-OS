@@ -6,7 +6,6 @@
 Wind::Wind(Team _team) : Spell(_team) {
   SetPassthrough(true);
   SetLayer(-1);
-  SetDirection(_team == Team::blue ? Direction::right : Direction::left);
 
   setTexture(LOAD_TEXTURE(SPELL_WIND));
   swoosh::game::setOrigin(getSprite(), 0.8, 0.8);
@@ -21,7 +20,13 @@ void Wind::OnUpdate(double _elapsed) {
 
   // Wind is active on the opposing team's area
   // Once we enter our team area, we're useless
-  if (Teammate(GetTile()->GetTeam())) {
+  bool opposingTeamOnly = deleteOnTeam && Teammate(GetTile()->GetTeam());
+
+  // Unbiased wind hitboxes delete when reaching the end of the field...
+  bool reachedEnd = !IsSliding() && GetTile()->IsEdgeTile();
+
+  // Test tile or apply hitbox...
+  if (opposingTeamOnly || reachedEnd) {
     Delete();
   }
   else {
@@ -34,6 +39,11 @@ void Wind::OnUpdate(double _elapsed) {
 
 bool Wind::CanMoveTo(Battle::Tile* next) {
   return true;
+}
+
+void Wind::DeleteOnTeamTile()
+{
+  deleteOnTeam = true;
 }
 
 void Wind::Attack(Character* _entity) {

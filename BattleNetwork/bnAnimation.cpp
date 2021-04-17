@@ -85,20 +85,23 @@ void Animation::LoadWithData(const string& data)
     // NOTE: Support older animation files until we upgrade completely...
     if (line.find("VERSION") != string::npos) {
       string version = ValueOf("VERSION", line);
-      if (version == "1.0") legacySupport = true;
 
+      if (version == "1.0") {
+        legacySupport = true;
+      }
     }
     else if (line.find("animation") != string::npos) {
       if (!frameLists.empty()) {
         //std::cout << "animation total seconds: " << sf::seconds(currentAnimationDuration).asSeconds() << "\n";
         //std::cout << "animation name push " << currentState << endl;
+
+        std::transform(currentState.begin(), currentState.end(), currentState.begin(), ::toupper);
+
         animations.insert(std::make_pair(currentState, frameLists.at(frameAnimationIndex)));
         currentAnimationDuration = 0.0f;
       }
       string state = ValueOf("state", line);
       currentState = state;
-
-      std::transform(currentState.begin(), currentState.end(), currentState.begin(), ::toupper);
 
       if (legacySupport) {
         string width = ValueOf("width", line);
@@ -201,6 +204,7 @@ void Animation::LoadWithData(const string& data)
 
   // One more addAnimation to do if file is good
   if (frameAnimationIndex >= 0) {
+    std::transform(currentState.begin(), currentState.end(), currentState.begin(), ::toupper);
     animations.insert(std::make_pair(currentState, frameLists.at(frameAnimationIndex)));
   }
 }

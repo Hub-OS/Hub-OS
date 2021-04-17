@@ -68,5 +68,8 @@ point label="endpoint" x="1" y="1"
 
 animation state="FAN"
 frame duration="0.05" x="470" y="417" w="26" h="19" originx="0" originy="9"
+point label="endpoint" x="14" y="3"
 frame duration="0.05" x="507" y="407" w="26" h="19" originx="3" originy="18"
+point label="endpoint" x="9" y="1"
 frame duration="0.2" x="549" y="403" w="27" h="24" originx="20" originy="21"
+point label="endpoint" x="1" y="1"

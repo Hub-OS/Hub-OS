@@ -1,0 +1,7 @@
+imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/spells/WindRack/attachment.png"
+
+animation state="default"
+frame duration="0.05" x="0" y="0" w="20" h="21" originx="2" originy="10" flipx="0" flipy="0" 
+frame duration="0.05" x="20" y="0" w="21" h="21" originx="5" originy="16" flipx="0" flipy="0" 
+frame duration="0.05" x="42" y="0" w="23" h="21" originx="13" originy="17" flipx="0" flipy="0" 
+frame duration="0.1" x="66" y="0" w="21" h="21" originx="15" originy="16" flipx="0" flipy="0" 

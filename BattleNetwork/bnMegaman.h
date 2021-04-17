@@ -29,14 +29,10 @@ public:
 private:
   bool loaded;
   AnimationComponent* parentAnim{ nullptr };
-  Animation overlayAnimation;
+  Animation overlayAnimation, fanAnimation;
   SpriteProxyNode* overlay{ nullptr };
 
   class SpecialAction : public CardAction {
-    sf::Sprite overlay;
-    SpriteProxyNode* attachment{ nullptr };
-    Animation attachmentAnim;
-
   public:
     SpecialAction(Character& owner);
     ~SpecialAction();
@@ -46,7 +42,6 @@ private:
     void OnEndAction() override;
     void OnAnimationEnd() override;
   };
-
 };
 
 class HeatCross final : public PlayerForm {

@@ -16,6 +16,18 @@ TwinFangCardAction::TwinFangCardAction(Character& owner, int damage) :
   CardAction(owner, "PLAYER_SHOOTING") {
   TwinFangCardAction::damage = damage;
 
+  buster = new SpriteProxyNode();
+  buster->setTexture(owner.getTexture());
+  buster->SetLayer(-1);
+  buster->EnableParentShader(true);
+
+  busterAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
+
+  std::string newAnimState;
+  busterAnim.OverrideAnimationFrames("BUSTER", { FRAMES }, newAnimState);
+  busterAnim.SetAnimation(newAnimState);
+  busterAttachment = &AddAttachment(owner, "buster", *buster).UseAnimation(busterAnim);
+
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 }

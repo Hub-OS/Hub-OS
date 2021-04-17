@@ -44,7 +44,8 @@ CardAction(user, "PLAYER_SWORD") {
 
 SwordCardAction::~SwordCardAction()
 {
-  delete blade, hilt;
+  delete blade;
+  delete hilt;
 }
 
 void SwordCardAction::OnExecute() {

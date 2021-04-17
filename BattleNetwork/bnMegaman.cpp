@@ -3,6 +3,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnBusterCardAction.h"
 #include "bnCrackShotCardAction.h"
+#include "bnWindRackCardAction.h"
 #include "bnFireBurnCardAction.h"
 #include "bnTornadoCardAction.h"
 #include "bnLightningCardAction.h"
@@ -86,6 +87,10 @@ void TenguCross::OnActivate(Player& player)
 
   overlayAnimation = Animation("resources/navis/megaman/forms/tengu_cross.animation");
   overlayAnimation.Load();
+
+  fanAnimation = overlayAnimation;
+  fanAnimation.SetAnimation("FAN");
+
   auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
@@ -133,7 +138,11 @@ void TenguCross::OnUpdate(double elapsed, Player& player)
 
 CardAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  return new BusterCardAction(player, true, 20*player.GetAttackLevel()+40);
+  auto* action = new WindRackCardAction(player, 20 * player.GetAttackLevel() + 40);
+  auto fan = new SpriteProxyNode();
+  fan->setTexture(overlay->getTexture());
+  action->ReplaceRack(fan, fanAnimation);
+  return action;
 }
 
 CardAction* TenguCross::OnSpecialAction(Player& player)
@@ -478,26 +487,15 @@ frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
 //             SPECIAL ABILITY IMPLEMENTATIONS                //
 ////////////////////////////////////////////////////////////////
 
-#define FRAME1 { 1, 0.1666 }
-#define FRAME2 { 2, 0.05 }
-#define FRAME3 { 3, 0.05 }
-#define FRAME4 { 4, 0.5 }
+#define FRAME1 { 1, 0.4 }
 
-#define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
+#define FRAMES FRAME1
 
 // class TenguCross
 TenguCross::SpecialAction::SpecialAction(Character& owner) : 
-  CardAction(owner, "PLAYER_SWORD") {
-  overlay.setTexture(*owner.getTexture());
-  attachment = new SpriteProxyNode(overlay);
-
-  attachment->SetLayer(-1);
-  attachment->EnableParentShader(true);
+  CardAction(owner, "PLAYER_IDLE") {
 
   OverrideAnimationFrames({ FRAMES });
-
-  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
-  attachmentAnim.SetAnimation("HAND");
 }
 
 TenguCross::SpecialAction::~SpecialAction()
@@ -510,21 +508,30 @@ void TenguCross::SpecialAction::OnExecute()
   auto team = owner->GetTeam();
   auto field = owner->GetField();
 
-  // On throw frame, spawn projectile
-  auto onThrow = [this, team, owner, field]() -> void {
-    AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
+  auto onTrigger = [this, team, owner, field]() -> void {
+    Direction direction{ Direction::left };
+
+    if (team == Team::blue) {
+      direction = Direction::right;
+    }
 
     auto wind = new Wind(team);
+    wind->SetDirection(direction);
+    wind->DeleteOnTeamTile();
     field->AddEntity(*wind, 6, 1);
 
     wind = new Wind(team);
+    wind->SetDirection(direction);
+    wind->DeleteOnTeamTile();
     field->AddEntity(*wind, 6, 2);
 
     wind = new Wind(team);
+    wind->SetDirection(direction);
+    wind->DeleteOnTeamTile();
     field->AddEntity(*wind, 6, 3);
   };
 
-  AddAnimAction(2, onThrow);
+  AddAnimAction(1, onTrigger);
 }
 
 void TenguCross::SpecialAction::OnEndAction()

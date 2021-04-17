@@ -2,6 +2,7 @@
 #include "bnFishy.h"
 #include "bnTile.h"
 #include "bnAura.h"
+#include "bnWindRackCardAction.h"
 #include "bnAirHockeyCardAction.h"
 #include "bnHubBatchCardAction.h"
 #include "bnMachGunCardAction.h"
@@ -207,6 +208,9 @@ static CardAction* CardToAction(const Battle::Card& card, Character& character) 
   }
   else if (name == "AirHocky") {
     next = new AirHockeyCardAction(character, card.GetDamage());
+  }
+  else if (name == "WindRack") {
+    next = new WindRackCardAction(character, card.GetDamage());
   }
 
   return next;
