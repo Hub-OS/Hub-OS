@@ -6,6 +6,7 @@
 #include "../bnShaderResourceManager.h"
 #include "../bnInputManager.h"
 #include "../bnMob.h"
+#include "../bnCardAction.h"
 #include "../bnPlayerHealthUI.h"
 #include "../bnUndernetBackground.h"
 #include "../bnWeatherBackground.h"
@@ -448,7 +449,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   // Update components
   for (auto c : components) {
-    if (c->Lifetime() == Component::lifetimes::ui) {
+    if (c->Lifetime() == Component::lifetimes::ui && battleTimer.getElapsed().asMilliseconds() > 0) {
       c->Update((float)elapsed);
     }
     else if (c->Lifetime() == Component::lifetimes::battlestep) {
@@ -570,6 +571,29 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       ui->move(viewOffset);
       surface.draw(*ui);
       ui->move(-viewOffset);
+    }
+  }
+
+  // draw extra card action graphics
+  std::vector<Character*> allCharacters;
+  field->FindEntities([&allCharacters](Entity* e) mutable {
+    if (auto* character = dynamic_cast<Character*>(e)) {
+      allCharacters.push_back(character);
+    }
+
+    return false;
+  });
+
+  for (Character* c : allCharacters) {
+    auto actionList = c->AsyncActionList();
+    auto* currAction = c->CurrentCardAction();
+
+    for (auto* action : actionList) {
+      surface.draw(*action);
+    }
+
+    if (currAction) {
+      surface.draw(*currAction);
     }
   }
 

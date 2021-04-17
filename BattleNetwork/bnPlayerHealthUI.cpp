@@ -29,6 +29,7 @@ PlayerHealthUI::PlayerHealthUI(Player* _player) :
   isBattleOver = false;
 
   SetDrawOnUIPass(false);
+  OnUpdate(0); // refresh and prepare for the 1st frame
 }
 
 PlayerHealthUI::~PlayerHealthUI() {

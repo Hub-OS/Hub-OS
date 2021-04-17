@@ -142,6 +142,8 @@ void Gear::OnBattleStart()
 
 void Gear::OnBattleStop()
 {
+  Character::OnBattleStop();
+
     Logger::Log("Gear::OnBattleStop()");
     stopMoving = true;
 }

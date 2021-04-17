@@ -19,7 +19,7 @@ using sf::Texture;
     to entities occupying the same tile.
 */
 
-class Obstacle : public Character, public  Spell {
+class Obstacle : public Character, public Spell {
 private:
   bool ignoreCommonAggressor{};
 
@@ -41,6 +41,8 @@ public:
    * @param tile
    */
   void AdoptTile(Battle::Tile* tile) final override;
+
+  virtual void OnBattleStop() override;
 
   /**
   * @brief if true, other obstacles from the same aggressor cannot hit eachother

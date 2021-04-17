@@ -82,6 +82,15 @@ void Character::OnHit()
 {
 }
 
+void Character::OnBattleStop()
+{
+  for (auto* action : asyncActions) {
+    delete action;
+  }
+
+  asyncActions.clear();
+}
+
 bool Character::IsStunned()
 {
   return stunCooldown > 0;

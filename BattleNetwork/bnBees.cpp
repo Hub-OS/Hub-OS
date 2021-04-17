@@ -323,6 +323,7 @@ void Bees::OnUpdate(double _elapsed) {
 
 void Bees::OnBattleStop()
 {
+  Character::OnBattleStop();
   battleOver = true;
 }
 

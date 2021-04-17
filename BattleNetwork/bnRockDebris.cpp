@@ -14,7 +14,7 @@ RockDebris::RockDebris(RockDebris::Type type, double intensity) :
   Artifact(), 
   type(type), 
   intensity(intensity), 
-  duration(0.5), 
+  duration(0.3), 
   progress(0)
 {
   SetLayer(0);

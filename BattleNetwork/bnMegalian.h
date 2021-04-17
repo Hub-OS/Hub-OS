@@ -55,7 +55,7 @@ private:
       SetName("M. Head");
       lastTile = nullptr;
 
-      DefenseAura::Callback nothing = [](Spell& in, Character& protect) {};
+      DefenseAura::Callback nothing = [](Spell& in, Character& protect, bool) {};
       copout = new DefenseAura(nothing);
     }
 

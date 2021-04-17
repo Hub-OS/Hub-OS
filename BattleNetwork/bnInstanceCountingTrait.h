@@ -25,7 +25,7 @@ protected:
     return IDs[0] == myCounterID;
   }
 
-  static const int GetCounterSize() {
+  static const int GetCountedSize() {
     return (int)IDs.size();
   }
 

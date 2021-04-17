@@ -10,6 +10,15 @@ Wind::Wind(Team _team) : Spell(_team) {
   setTexture(LOAD_TEXTURE(SPELL_WIND));
   swoosh::game::setOrigin(getSprite(), 0.8, 0.8);
   setScale(-2.f, 2.f);
+
+  SetHitboxProperties({
+    0,
+    Hit::drag,
+    Element::wind,
+    nullptr,
+    { GetDirection(), 9 },
+    true
+  });
 }
 
 Wind::~Wind() {
@@ -35,6 +44,15 @@ void Wind::OnUpdate(double _elapsed) {
   }
 
   Slide(GetTile() + GetDirection(), frames(4), frames(0));
+
+  SetHitboxProperties({
+    0,
+    Hit::drag,
+    Element::wind,
+    nullptr,
+    { GetDirection(), 9 },
+    true
+  });
 }
 
 bool Wind::CanMoveTo(Battle::Tile* next) {
@@ -47,16 +65,7 @@ void Wind::DeleteOnTeamTile()
 }
 
 void Wind::Attack(Character* _entity) {
-  _entity->Hit(
-    {
-      0,
-      Hit::drag,
-      Element::none,
-      nullptr,
-      { GetDirection(), 9 },
-      true
-    }
-  );
+  _entity->Hit(GetHitboxProperties());
 }
 
 void Wind::OnDelete()

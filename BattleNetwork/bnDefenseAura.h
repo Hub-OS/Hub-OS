@@ -13,7 +13,7 @@
  */
 class DefenseAura : public DefenseRule {
 public:
-  typedef std::function<void(Spell& in, Character& owner)> Callback;
+  typedef std::function<void(Spell& in, Character& owner, bool windRemove)> Callback;
   
 private:
   Callback callback;

@@ -63,6 +63,7 @@ void ScriptedCharacter::OnBattleStart() {
 }
 
 void ScriptedCharacter::OnBattleStop() {
+  Character::OnBattleStop();
   script["on_battle_stop"]();
 }
 

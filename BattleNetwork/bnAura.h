@@ -43,6 +43,8 @@ public:
     mutable Sprite font; /*!< Aura HP glyphs */
     std::shared_ptr<sf::Texture> fontTextureRef; /*!< reference to the texture set used */
     double timer{ 0 };
+    sf::Vector2f flySpeed{}, flyAccel{};
+    Battle::Tile* flyStartTile{ nullptr };
   public:
     VisualFX(Entity* owner, Aura::Type type);
     ~VisualFX();

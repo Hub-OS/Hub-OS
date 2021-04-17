@@ -40,6 +40,11 @@ void Obstacle::AdoptTile(Battle::Tile * tile)
   }
 }
 
+void Obstacle::OnBattleStop()
+{
+  Character::OnBattleStop();
+}
+
 void Obstacle::IgnoreCommonAggressor(bool enable = true)
 {
   ignoreCommonAggressor = enable;

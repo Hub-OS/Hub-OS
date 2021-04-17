@@ -547,7 +547,8 @@ namespace Battle {
     if (isBattleOver) return;
 
     for (auto&& e : entities) {
-        e->OnBattleStop();
+      e->OnBattleStop();
+      e->ClearActionQueue();
     }
     isBattleOver = true;
   }

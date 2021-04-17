@@ -9,24 +9,27 @@ ZetaCannonCardAction::ZetaCannonCardAction(Character& owner, int damage)  :
   CardAction(owner, "PLAYER_IDLE"), 
   InputHandle(),
   damage(damage), 
-  font(Font::Style::small), 
+  font(Font::Style::thick), 
   timerLabel(font)
 { 
   timerLabel.SetFont(font);
-  timerLabel.setPosition(20.f, 50.0f);
-  timerLabel.setScale(1.f, 1.f);
+  timerLabel.setPosition(40.f, 70.0f);
+  timerLabel.setScale(2.f, 2.f);
   this->SetLockout({CardAction::LockoutType::async, timer});
 }
 
 ZetaCannonCardAction::~ZetaCannonCardAction()
-{ }
+{ 
+  GetCharacter().RemoveDefenseRule(defense);
+  delete defense;
+}
 
 void ZetaCannonCardAction::OnExecute() {
 }
 
 void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-  if (firstTime) return;
+  if (!showTimerText) return;
 
   auto pos = timerLabel.getPosition();
   auto og = pos;
@@ -39,53 +42,51 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
 }
 
 void ZetaCannonCardAction::Update(double _elapsed)
-{ /*
+{
   if (timer > 0) {
-    auto user = GetOwner();
-    auto actions = user->GetComponentsDerivedFrom<CardAction>();
+    auto& user = this->GetCharacter();
 
-    // TODO: some sort of event pipeline for actions needs to be restricted
-    //       currently, each stacked action will override the current animation and will 
-    //       prevent the action from ending correctly (if animation-based)
-    //       Also, we do not want to have to allow the programmer to follow these following conditions:
-    bool canShoot = user->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !user->IsSliding();
+    // TODO: change the "PLAYER_IDLE" check to a `IsActionable()` function per mars' notes...
+    bool canShoot = user.GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !user.IsMoving();
 
-    if (canShoot && (firstTime || Input().Has(InputEvents::pressed_use_chip)) && actions.size() == 1) {
-      auto attack = user->CreateComponent<CannonCardAction>(*user, CannonCardAction::Type::red, damage);
+    if (canShoot && Input().Has(InputEvents::pressed_use_chip)) {
 
-      auto actionProps = ActionLockoutProperties();
-      actionProps.type = ActionLockoutType::animation;
-      actionProps.group = ActionLockoutGroup::card;
-      attack->SetLockout(actionProps);
-      attack->OnExecute();
+      auto* newCannon = new CannonCardAction(user, CannonCardAction::Type::red, damage);
+      auto actionProps = CardAction::LockoutProperties();
+      actionProps.type = CardAction::LockoutType::animation;
+      actionProps.group = CardAction::LockoutGroup::card;
+      newCannon->SetLockout(actionProps);
 
-      if (firstTime) {
-        firstTime = false;
+      auto event = CardEvent{ newCannon };
+      user.AddAction(event, ActionOrder::voluntary);
+
+      if (!showTimerText) {
+        showTimerText = true;
         Audio().Play(AudioType::COUNTER_BONUS);
         defense = new DefenseIndestructable(true);
-        user->AddDefenseRule(defense);
+        user.AddDefenseRule(defense);
       }
     }
   }
 
-  if (firstTime) return;
+  if (showTimerText) {
+    timer = std::max(0.0, timer - _elapsed);
 
-  timer = std::max(0.0, timer - _elapsed);
+    // Create an output string stream
+    std::ostringstream sstream;
+    sstream << std::fixed;
+    sstream << std::setprecision(2);
+    sstream << timer;
 
-  // Create an output string stream
-  std::ostringstream sstream;
-  sstream << std::fixed;
-  sstream << std::setprecision(2);
-  sstream << timer;
+    // Get string from output string stream
+    std::string timeString = sstream.str();
 
-  // Get string from output string stream
-  std::string timeString = sstream.str();
+    // Set timer
+    std::string string = "Z-Cannon 1: " + timeString;
+    timerLabel.SetString(string);
+  }
 
-  // Set timer
-  std::string string = "Z-Cannon 1: " + timeString;
-  timerLabel.SetString(string);
-
-  CardAction::Update(_elapsed);*/
+  CardAction::Update(_elapsed);
 }
 
 void ZetaCannonCardAction::OnAnimationEnd()
@@ -93,7 +94,4 @@ void ZetaCannonCardAction::OnAnimationEnd()
 }
 
 void ZetaCannonCardAction::OnEndAction()
-{
-  GetCharacter().RemoveDefenseRule(defense);
-  delete defense;
-}
+{ }

@@ -83,7 +83,6 @@ private:
   // total elapsed frame time
   frame_time_t elapsed{};
 
-
   Endianness endian{ Endianness::big };
 
 public:

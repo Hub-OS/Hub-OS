@@ -111,6 +111,8 @@ public:
    */
   virtual void OnHit();
 
+  virtual void OnBattleStop() override;
+
   /**
   * The hit routine that happens for every character. Queues status properties and damage
   * to resolve at the end of the battle step.

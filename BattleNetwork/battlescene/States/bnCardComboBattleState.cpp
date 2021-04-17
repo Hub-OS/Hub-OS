@@ -49,7 +49,7 @@ void CardComboBattleState::onEnd(const BattleSceneState*)
 
 void CardComboBattleState::onUpdate(double elapsed)
 {
-  increment += elapsed;
+  increment += 360.0 * elapsed;
   PAStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   this->elapsed += elapsed;
@@ -227,11 +227,16 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
 
             stepLabel.setPosition(stepLabelPos);
 
-            sf::Uint32 sin = static_cast<sf::Uint32>(std::sin(increment) * 255);
-            sf::Uint32 cos = static_cast<sf::Uint32>(std::cos(increment + 90 * swoosh::ease::pi) * 255);
-            sf::Uint32 sin2 = static_cast<sf::Uint32>(std::sin(increment + 180 * swoosh::ease::pi) * 255);
+            float rad = swoosh::ease::radians((float)increment*2.f);
+            sf::Uint32 sin = static_cast<sf::Uint32>(((std::sin(rad)*0.5) + 0.5) * 150);
+            sf::Uint32 sin2 = static_cast<sf::Uint32>(((std::sin(rad+swoosh::ease::pi*0.5) *0.5)+ 0.5) * 150);
+            sf::Uint32 sin3 = static_cast<sf::Uint32>(((std::sin(rad+swoosh::ease::pi) * 0.5) + 0.5) * 150);
 
-            stepLabel.SetColor(sf::Color(sin, cos, sin2));
+            sin += 105u;
+            sin2 += 105u;
+            sin3 += 105u;
+
+            stepLabel.SetColor(sf::Color(sin, sin2, sin3));
 
             surface.draw(stepLabel);
           }

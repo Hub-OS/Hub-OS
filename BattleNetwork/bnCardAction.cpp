@@ -190,6 +190,7 @@ void CardAction::Update(double _elapsed)
 }
 
 void CardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  /* silence is golden */
 };
 
 void CardAction::PreventCounters()

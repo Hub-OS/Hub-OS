@@ -44,8 +44,35 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Com
 
   currHP = health;
 
-  DefenseAura::Callback onHit = [this](Spell& in, Character& owner) {
-    TakeDamage(in.GetHitboxProperties().damage);
+  DefenseAura::Callback onHit = [this](Spell& in, Character& owner, bool windRemove) { 
+    auto hitbox = in.GetHitboxProperties();
+    if (windRemove) {
+      if (fx->flyStartTile == nullptr) {
+        // Attach visual fx node to the tile and make it fly up and away based on direction
+        if (in.GetDirection() == Direction::left) {
+          this->fx->flyAccel = { -5.f, -12.0f };
+        }
+        else if (in.GetDirection() == Direction::right) {
+          this->fx->flyAccel = { 5.f, -12.0f };
+        }
+
+        owner.RemoveNode(this->fx);
+
+        this->fx->flyStartTile = owner.GetTile();
+        this->fx->flyStartTile->AddNode(this->fx);
+
+        // this will trigger the flicker-out animation as it flies away
+        // and at the end of the flicker-out animation, it will cleanup memory
+        this->health = 0;
+      }
+      else {
+        // We can no longer protect this user...
+        owner.Hit(hitbox);
+      }
+    }
+    else {
+      TakeDamage(in.GetHitboxProperties().damage);
+    }
   };
   
   defense = new DefenseAura(onHit);
@@ -85,12 +112,19 @@ void Aura::OnUpdate(double _elapsed) {
     }
   }
   else if (timer <= 0.0) {
-    if (auto character = GetOwnerAs<Character>(); character) {
+    if (auto character = GetOwnerAs<Character>()) {
       character->RemoveDefenseRule(defense);
     }
 
-    fx->Eject();
-    GetOwner()->RemoveNode(fx);
+    /*fx->Eject();
+
+    if (fx->flyStartTile) {
+      fx->flyStartTile->RemoveNode(fx);
+    }
+    else {
+      GetOwner()->RemoveNode(fx);
+    }*/
+
     Eject();
     return;
   }
@@ -108,8 +142,16 @@ void Aura::OnUpdate(double _elapsed) {
  }
 
  // Update the visual fx
- fx->timer = timer;
  fx->currHP = currHP;
+
+ fx->flySpeed.x += fx->flyAccel.x * float(_elapsed);
+ fx->flySpeed.y += fx->flyAccel.y * float(_elapsed);
+
+ sf::Vector2f newPos = fx->getPosition();
+ newPos.x += fx->flySpeed.x;
+ newPos.y += fx->flySpeed.y;
+
+ fx->setPosition(newPos);
 }
 
 void Aura::Inject(BattleSceneBase& bs)
@@ -150,6 +192,16 @@ void Aura::TakeDamage(int damage)
 
 Aura::~Aura()
 {
+  fx->Eject();
+
+  if (fx->flyStartTile) {
+    fx->flyStartTile->RemoveNode(fx);
+  }
+  else {
+    GetOwner()->RemoveNode(fx);
+  }
+
+  delete fx;
   delete defense;
 }
 
@@ -238,7 +290,6 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
       font.setTextureRect(sf::IntRect(col, rowstart, 8, 15));
       font.setPosition(sf::Vector2f(offsetx, 15.0f));
 
-
       float fontScaleX = font.getScale().x;
 
       // this is flipped, but we do not want to flip fonts
@@ -267,17 +318,18 @@ void Aura::VisualFX::OnUpdate(double _elapsed)
 {
   timer += _elapsed;
 
-  if (currHP == 0) {
-    auraSprite.setColor(sf::Color(255, 255, 255, 50));
-  }
-  else {
-    // flicker
-    if (int(timer * 15000) % 3 == 0) {
+  // Barriers flicker every 3rd frame
+  if (type > Type::AURA_1000) {
+    if (from_seconds(timer).count() % 4 == 0) {
       Hide();
     }
     else {
       Reveal();
     }
+  }
+
+  if (currHP == 0 && !flyStartTile) {
+    auraSprite.setColor(sf::Color(255, 255, 255, 50));
   }
 
   animation.Update(_elapsed, aura->getSprite());

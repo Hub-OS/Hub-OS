@@ -11,10 +11,10 @@ public:
 
 protected:
   AnimationComponent* animation;
-  bool spreadOut, onEdgeOfMap;
-  float spreadOffset;
-  double flickeroutTimer;
-  Type type;
+  bool spreadOut{}, onEdgeOfMap{};
+  float spreadOffset{};
+  double flickeroutTimer{};
+  Type type{};
 
 public:
 

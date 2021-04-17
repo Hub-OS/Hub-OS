@@ -100,13 +100,7 @@ void Cube::OnUpdate(double _elapsed) {
   if (animation->GetAnimationString() == "APPEAR") return;
 
   if (killLater) {
-    SetHealth(0);
-  }
-
-  if (GetCounterSize() > Cube::numOfAllowedCubesOnField) {
-    if (IsLast()) {
-      SetHealth(0); // Trigger death and deletion
-    }
+    Delete();
   }
 
   // May have just finished sliding
@@ -118,7 +112,7 @@ void Cube::OnUpdate(double _elapsed) {
   }
 
   if (timer <= 0 ) {
-    SetHealth(0);
+    Delete();
   }
 
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
@@ -149,8 +143,7 @@ void Cube::OnDelete() {
     Audio().Play(AudioType::PANEL_CRACK);
   }
 
-  tile->RemoveEntityByID(GetID());
-  Delete();
+  Remove();
 }
 
 const float Cube::GetHeight() const
@@ -224,6 +217,24 @@ void Cube::OnSpawn(Battle::Tile & start)
   }
   else {
     animation->SetAnimation("APPEAR", 0, onFinish);
-  }
 
+    // delete other cubes present
+    std::vector<Cube*> otherCubes;
+
+    field->FindEntities([&otherCubes](Entity* in) mutable {
+      if (Cube* o = dynamic_cast<Cube*>(in)) {
+        otherCubes.push_back(o);
+      }
+      return false;
+      });
+
+    if (GetCountedSize() > Cube::numOfAllowedCubesOnField) {
+      for (auto* cube : otherCubes) {
+        if (cube->IsLast()) {
+          cube->ToggleTimeFreeze(false);
+          cube->Delete(); // Trigger death and deletion
+        }
+      }
+    }
+  }
 }

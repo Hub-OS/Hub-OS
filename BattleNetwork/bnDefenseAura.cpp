@@ -20,6 +20,18 @@ DefenseAura::~DefenseAura()
 
 void DefenseAura::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
 {
+  // special case: removed by wind element
+  if ((in.GetHitboxProperties().element == Element::wind)) {
+    judge.BlockDamage();
+
+    if (callback) {
+      judge.AddTrigger(callback, std::ref(in), std::ref(owner), true);
+    }
+
+    return;
+  }
+
+  // base case: impact-only hitboxes are processed further
   if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return;
 
   // weak obstacles will break
@@ -29,6 +41,6 @@ void DefenseAura::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& 
   judge.BlockDamage();
 
   if(callback) {
-    judge.AddTrigger(callback, std::ref(in), std::ref(owner));
+    judge.AddTrigger(callback, std::ref(in), std::ref(owner), false);
   }
 }
