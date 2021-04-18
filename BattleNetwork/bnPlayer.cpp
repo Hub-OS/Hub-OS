@@ -265,6 +265,7 @@ void Player::ActivateFormAt(int index)
     if (activeForm) {
       SaveStats();
       activeForm->OnActivate(*this);
+      CreateMoveAnimHash();
     }
   }
 

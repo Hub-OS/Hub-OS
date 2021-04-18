@@ -31,6 +31,7 @@ private:
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation, fanAnimation;
   SpriteProxyNode* overlay{ nullptr };
+  AnimationComponent::SyncItem sync;
 
   class SpecialAction : public CardAction {
   public:
@@ -59,6 +60,7 @@ private:
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
   SpriteProxyNode* overlay{ nullptr };
+  AnimationComponent::SyncItem sync;
 };
 
 class DefenseRule; // forward declare
@@ -79,6 +81,7 @@ private:
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
   SpriteProxyNode* overlay{ nullptr };
+  AnimationComponent::SyncItem sync;
 };
 
 class ElecCross final : public PlayerForm {
@@ -96,4 +99,5 @@ private:
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
   SpriteProxyNode* overlay{ nullptr };
+  AnimationComponent::SyncItem sync;
 };

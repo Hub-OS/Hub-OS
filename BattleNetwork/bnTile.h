@@ -315,7 +315,7 @@ namespace Battle {
 
     int x; /**< Column number*/
     int y; /**< Row number*/
-    Team team;
+    Team team{}, ogTeam{};
     TileState state;
     std::string animState; /**< reflects the tile's state - lookup animation from animation file */
 

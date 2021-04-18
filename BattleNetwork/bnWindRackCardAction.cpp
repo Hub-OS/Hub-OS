@@ -22,7 +22,9 @@ WindRackCardAction::WindRackCardAction(Character& owner, int damage) :
   auto userAnim = GetCharacter().GetFirstComponent<AnimationComponent>();
   hiltAnim = Animation(userAnim->GetFilePath());
   hiltAnim.Reload();
-  hiltAnim.SetAnimation("HILT");
+
+  hiltAnim.OverrideAnimationFrames("HILT", { { 1, 0.05 }, { 2, 0.05 }, { 3, 0.5 } }, newHilt);
+  hiltAnim.SetAnimation(newHilt);
 
   attachment = new SpriteProxyNode();
   attachment->setTexture(Textures().LoadTextureFromFile("resources/spells/WindRack/attachment.png"));
@@ -31,7 +33,9 @@ WindRackCardAction::WindRackCardAction(Character& owner, int damage) :
   attachment->EnableParentShader(false);
 
   attachmentAnim = Animation("resources/spells/WindRack/attachment.animation");
-  attachmentAnim.SetAnimation("DEFAULT");
+
+  attachmentAnim.OverrideAnimationFrames("DEFAULT", { { 1, 0.05 }, { 2, 0.05 }, { 3, 0.05 }, {4, 0.45} }, newDefault);
+  attachmentAnim.SetAnimation(newDefault);
 
   OverrideAnimationFrames({ FRAMES });
 }

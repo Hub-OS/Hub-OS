@@ -109,7 +109,11 @@ void TenguCross::OnActivate(Player& player)
   player.AddNode(overlay);
   player.SetAirShoe(true);
 
-  parentAnim->AddToOverrideList(&overlayAnimation, overlay->getSprite());
+  sync.anim = &overlayAnimation;
+  sync.node = overlay;
+  sync.point = "Head";
+
+  parentAnim->AddToSyncList(sync);
 }
 
 void TenguCross::OnDeactivate(Player & player)
@@ -118,22 +122,12 @@ void TenguCross::OnDeactivate(Player & player)
   auto pswap = player.GetFirstComponent<PaletteSwap>();
   pswap->Revert();
 
-  parentAnim->RemoveFromOverrideList(&overlayAnimation);
+  parentAnim->RemoveFromSyncList(sync);
 }
 
 void TenguCross::OnUpdate(double elapsed, Player& player)
 {
-  parentAnim->SyncAnimation(overlayAnimation);
-  overlayAnimation.Refresh(overlay->getSprite());
-
   overlay->setColor(player.getColor());
-
-  // update node position in the animation
-  auto baseOffset = parentAnim->GetPoint("Head");
-  auto origin = player.getOrigin();
-  baseOffset = baseOffset - origin;
-
-  overlay->setPosition(baseOffset);
 }
 
 CardAction* TenguCross::OnChargedBusterAction(Player& player)
@@ -211,8 +205,11 @@ void HeatCross::OnActivate(Player& player)
   OnUpdate(0, player);
   player.AddNode(overlay);
 
-  parentAnim->AddToOverrideList(&overlayAnimation, overlay->getSprite());
+  sync.anim = &overlayAnimation;
+  sync.node = overlay;
+  sync.point = "Head";
 
+  parentAnim->AddToSyncList(sync);
 }
 
 void HeatCross::OnDeactivate(Player & player)
@@ -223,23 +220,13 @@ void HeatCross::OnDeactivate(Player & player)
 
   player.SetElement(Element::none);
 
-  parentAnim->RemoveFromOverrideList(&overlayAnimation);
+  parentAnim->RemoveFromSyncList(sync);
 
 }
 
 void HeatCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
-
-  parentAnim->SyncAnimation(overlayAnimation);
-  overlayAnimation.Refresh(overlay->getSprite());
-
-  // update node position in the animation
-  auto baseOffset = parentAnim->GetPoint("Head");
-  auto& origin = player.getSprite().getOrigin();
-  baseOffset = baseOffset - origin;
-
-  overlay->setPosition(baseOffset);
 }
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
@@ -314,7 +301,11 @@ void TomahawkCross::OnActivate(Player& player)
   OnUpdate(0, player);
   player.AddNode(overlay);
 
-  parentAnim->AddToOverrideList(&overlayAnimation, overlay->getSprite());
+  sync.anim = &overlayAnimation;
+  sync.node = overlay;
+  sync.point = "Head";
+
+  parentAnim->AddToSyncList(sync);
 
   player.AddDefenseRule(statusGuard);
 }
@@ -325,7 +316,7 @@ void TomahawkCross::OnDeactivate(Player & player)
   auto pswap = player.GetFirstComponent<PaletteSwap>();
   pswap->Revert();
 
-  parentAnim->RemoveFromOverrideList(&overlayAnimation);
+  parentAnim->RemoveFromSyncList(sync);
   player.SetAirShoe(false);
 
   player.RemoveDefenseRule(statusGuard);
@@ -334,16 +325,6 @@ void TomahawkCross::OnDeactivate(Player & player)
 void TomahawkCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
-
-  parentAnim->SyncAnimation(overlayAnimation);
-  overlayAnimation.Refresh(overlay->getSprite());
-
-  // update node position in the animation
-  auto baseOffset = parentAnim->GetPoint("Head");
-  auto& origin = player.getSprite().getOrigin();
-  baseOffset = baseOffset - origin;
-
-  overlay->setPosition(baseOffset);
 }
 
 CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
@@ -415,8 +396,11 @@ void ElecCross::OnActivate(Player& player)
   OnUpdate(0, player);
   player.AddNode(overlay);
 
-  parentAnim->AddToOverrideList(&overlayAnimation, overlay->getSprite());
+  sync.anim = &overlayAnimation;
+  sync.node = overlay;
+  sync.point = "Head";
 
+  parentAnim->AddToSyncList(sync);
 }
 
 void ElecCross::OnDeactivate(Player& player)
@@ -427,23 +411,12 @@ void ElecCross::OnDeactivate(Player& player)
 
   player.SetElement(Element::none);
 
-  parentAnim->RemoveFromOverrideList(&overlayAnimation);
-
+  parentAnim->RemoveFromSyncList(sync);
 }
 
 void ElecCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
-
-  parentAnim->SyncAnimation(overlayAnimation);
-  overlayAnimation.Refresh(overlay->getSprite());
-
-  // update node position in the animation
-  auto baseOffset = parentAnim->GetPoint("Head");
-  auto& origin = player.getSprite().getOrigin();
-  baseOffset = baseOffset - origin;
-
-  overlay->setPosition(baseOffset);
 }
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)

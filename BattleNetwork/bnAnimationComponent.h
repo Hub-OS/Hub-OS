@@ -11,6 +11,7 @@ using std::to_string;
 
 class Entity;
 class Character;
+class SpriteProxyNode;
 
 /**
  * @class AnimationComponent
@@ -22,6 +23,15 @@ class Character;
  */
 class AnimationComponent : public Component {
 public:
+  /**
+  * @brief struct that references the other animation, point to sync with, and sprite to apply to
+  */
+  struct SyncItem {
+    Animation* anim{ nullptr };
+    SpriteProxyNode* node{ nullptr };
+    std::string point{ "origin" };
+  };
+
   /**
    @param _entity Owner of this component
     */
@@ -143,8 +153,8 @@ public:
   void SyncAnimation(Animation& other);
   void SyncAnimation(AnimationComponent* other);
 
-  void AddToOverrideList(Animation* other, sf::Sprite& sprite);
-  void RemoveFromOverrideList(Animation* other);
+  void AddToSyncList(const AnimationComponent::SyncItem& item);
+  void RemoveFromSyncList(const AnimationComponent::SyncItem& item);
   void SetInterruptCallback(const FrameFinishCallback& onInterrupt);
   /**
    * @brief Force the animation to jump to this frame index 
@@ -160,5 +170,7 @@ private:
   double speed; /*!< Playback speed */
   bool stunnedLastFrame{ false };
   Character* character; /*!< Owner already casted as Character*/
-  std::vector<std::pair<Animation*, std::reference_wrapper<sf::Sprite>>> overrideList;
+  std::vector<SyncItem> syncList;
+
+  void RefreshSyncItem(SyncItem& item);
 };

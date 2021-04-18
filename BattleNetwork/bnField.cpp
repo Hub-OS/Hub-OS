@@ -31,6 +31,14 @@ Field::Field(int _width, int _height) :
       Battle::Tile* tile = new Battle::Tile(x, y);
       tile->SetField(this);
       tile->SetupGraphics(t_a_r, t_a_b, a);
+
+      if (x <= 3) {
+        tile->SetTeam(Team::red);
+      }
+      else {
+        tile->SetTeam(Team::blue);
+      }
+
       row.push_back(tile);
     }
     tiles.push_back(row);
@@ -272,8 +280,8 @@ void Field::Update(double _elapsed) {
   int blueTeamFarCol = 7; // from red's perspective, 0  is the farthest - begin at the first (7th col) index and decrement
 
   // tile cols to check to restore team state
-  std::list<int> backToRed;
-  std::list<int> backToBlue;
+  std::set<int> backToRed;
+  std::set<int> backToBlue;
 
   double syncBlueTeamCooldown = 0;
   double syncRedTeamCooldown = 0;
@@ -310,25 +318,35 @@ void Field::Update(double _elapsed) {
     }
   }
 
+  std::set<int> skipCol = {};
+
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      auto&& t = tiles[i][j];
+      auto& t = tiles[i][j];
 
       // How far has entity of either moved across the map?
       // This check will help prevent trapping moving characters 
       // when their tiles' team type resets
+      bool hasObject = false;
       for(auto&& it = t->characters.begin(); it != t->characters.end(); it++) {
         Team team = (*it)->GetTeam();
         if (team == Team::red) { redTeamFarCol = std::max(redTeamFarCol, j); }
         else if(team == Team::blue) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
+
+        if (!hasObject && dynamic_cast<Obstacle*>(*it)) {
+          hasObject = true;
+          if (t->ogTeam != t->GetTeam()) {
+            skipCol.insert(skipCol.begin(), j);
+          }
+        }
       }
 
-      if(j <= 3) {
+      if(t->ogTeam == Team::red) {
         // This tile was originally red
         if(t->GetTeam() == Team::blue) {
           syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->teamCooldown);
 
-          if(t->teamCooldown <= 0) {
+          if(t->teamCooldown <= 0 && !hasObject) {
             backToRed.insert(backToRed.begin(), j);
           }
         }
@@ -337,7 +355,7 @@ void Field::Update(double _elapsed) {
         if(t->GetTeam() == Team::red) {
           syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, t->flickerTeamCooldown);
 
-          if(t->teamCooldown <= 0) {
+          if(t->teamCooldown <= 0 && !hasObject) {
             backToBlue.insert(backToBlue.begin(), j);
           }
         }
@@ -347,18 +365,25 @@ void Field::Update(double _elapsed) {
       // and it has been updated, we calculate how many entities remain
       // on the field
       entityCount += (int)tiles[i][j]->GetEntityCount();
-      }
+    }
   }
 
   // plan: Restore column team states not just a single tile
   // col must be relatively ahead of the furthest character of the same team
-  // e.g. red team characters must be behind the col row
-  //      blue team characters must be after the col row
+  // e.g. red team characters must be behind the col value
+  //      blue team characters must be after the col value
   //      otherwise we risk trapping characters in a striped battle field
 
   // stolen blue tiles
-  for(auto&& p : backToBlue) {
-    if (p > redTeamFarCol && syncBlueTeamCooldown <= 0.0f) {
+  for(auto& p : backToBlue) {
+    bool skip = false;
+    for (auto col : skipCol) {
+      if (col >= p) {
+        skip = true;
+      }
+    }
+
+    if (p > redTeamFarCol && syncBlueTeamCooldown <= 0.0f && !skip) {
       for (int i = 0; i < tiles.size(); i++) {
         tiles[i][p]->SetTeam(Team::blue, true);
       }
@@ -374,8 +399,15 @@ void Field::Update(double _elapsed) {
   backToBlue.clear();
 
   // stolen red tiles
-  for(auto&& p : backToRed) {
-    if (p < blueTeamFarCol && syncRedTeamCooldown <= 0.0f) {
+  for(auto& p : backToRed) {
+    bool skip = false;
+    for (auto col : skipCol) {
+      if (col <= p) {
+        skip = true;
+      }
+    }
+
+    if (p < blueTeamFarCol && syncRedTeamCooldown <= 0.0f && !skip) {
       for (int i = 0; i < tiles.size(); i++) {
         tiles[i][p]->SetTeam(Team::red, true);
       }

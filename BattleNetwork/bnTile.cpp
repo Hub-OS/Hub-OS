@@ -37,12 +37,6 @@ namespace Battle {
     totalElapsed = 0;
     x = _x;
     y = _y;
-    if (x <= 3) {
-      team = Team::red;
-    }
-    else {
-      team = Team::blue;
-    }
 
     if (x == 0 || x == 7 || y == 0 || y == 4) {
       state = TileState::hidden;
@@ -113,6 +107,7 @@ namespace Battle {
 
     totalElapsed = other.totalElapsed;
     team = other.team;
+    ogTeam = other.ogTeam;
     state = other.state;
     RefreshTexture();
     entities = other.entities;
@@ -197,6 +192,11 @@ namespace Battle {
   }
 
   void Tile::SetTeam(Team _team, bool useFlicker) {
+    if (ogTeam == Team::unknown) {
+      ogTeam = _team;
+      team = _team;
+    }
+
     if (IsEdgeTile() || state == TileState::hidden) return;
 
     // You cannot steal the player's back columns

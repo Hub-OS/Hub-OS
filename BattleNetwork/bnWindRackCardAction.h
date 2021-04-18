@@ -5,6 +5,7 @@ class WindRackCardAction : public CardAction {
   SpriteProxyNode* attachment{ nullptr }, *hilt{ nullptr };
   Animation attachmentAnim, hiltAnim;
   int damage{};
+  std::string newDefault, newHilt; // hacky test
 public:
   WindRackCardAction(Character& owner, int damage);
   ~WindRackCardAction();

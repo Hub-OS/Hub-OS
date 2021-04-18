@@ -3,6 +3,7 @@ using sf::Sprite;
 using sf::IntRect;
 
 #include "bnAnimationComponent.h"
+#include "bnSpriteProxyNode.h"
 #include "bnFileUtil.h"
 #include "bnLogger.h"
 #include "bnEntity.h"
@@ -28,6 +29,12 @@ void AnimationComponent::OnUpdate(double _elapsed)
 
   stunnedLastFrame = (character && character->IsStunned());
   animation.Update(_elapsed, GetOwner()->getSprite(), speed);
+
+  for (auto& s : syncList) {
+    animation.SyncAnimation(*s.anim);
+    s.anim->Refresh(s.node->getSprite());
+    RefreshSyncItem(s);
+  }
 }
 
 void AnimationComponent::SetPath(string _path)
@@ -74,9 +81,10 @@ void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish
 {
   animation.SetAnimation(state);
 
-  for (auto& o : overrideList) {
-    o.first->SetAnimation(state);
-    o.first->Refresh(o.second);
+  for (auto& s : syncList) {
+    s.anim->SetAnimation(state);
+    s.anim->Refresh(s.node->getSprite());
+    RefreshSyncItem(s);
   }
 
   animation << onFinish;
@@ -87,9 +95,10 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, FrameFini
 {
   animation.SetAnimation(state);
 
-  for (auto& o : overrideList) {
-    o.first->SetAnimation(state);
-    o.first->Refresh(o.second);
+  for (auto& s : syncList) {
+    s.anim->SetAnimation(state);
+    s.anim->Refresh(s.node->getSprite());
+    RefreshSyncItem(s);
   }
 
   animation << playbackMode << onFinish;
@@ -101,8 +110,8 @@ void AnimationComponent::SetPlaybackMode(char playbackMode)
 {
   animation << playbackMode;
 
-  for (auto&& o : overrideList) {
-    (*o.first) << playbackMode;
+  for (auto&& o : syncList) {
+    (*o.anim) << playbackMode;
   }
 }
 
@@ -134,9 +143,9 @@ void AnimationComponent::CancelCallbacks()
   animation.RemoveCallbacks();
   animation << mode;
 
-  for (auto& o : overrideList) {
-    o.first->RemoveCallbacks();
-    (*o.first) << mode;
+  for (auto& o : syncList) {
+    o.anim->RemoveCallbacks();
+    (*o.anim) << mode;
   }
 }
 
@@ -160,8 +169,8 @@ void AnimationComponent::OverrideAnimationFrames(const std::string& animation, s
 {
   AnimationComponent::animation.OverrideAnimationFrames(animation, data, uuid);
 
-  for (auto& o : overrideList) {
-    o.first->OverrideAnimationFrames(animation, data, uuid);
+  for (auto& o : syncList) {
+    o.anim->OverrideAnimationFrames(animation, data, uuid);
   }
 }
 
@@ -176,26 +185,25 @@ void AnimationComponent::SyncAnimation(AnimationComponent * other)
   other->OnUpdate(0);
 }
 
-void AnimationComponent::AddToOverrideList(Animation* other, sf::Sprite& sprite)
+void AnimationComponent::AddToSyncList(const AnimationComponent::SyncItem& item)
 {
-  if (other == &animation) return;
+  auto iter = std::find_if(syncList.begin(), syncList.end(), [item](auto in) {
+    return std::tie(in.anim, in.node, in.point) == std::tie(item.anim, item.node, item.point); 
+  });
 
-  auto iter = std::find_if(overrideList.begin(), overrideList.end(), [other](auto in) {return in.first == other; });
-
-  if (iter == overrideList.end()) {
-    overrideList.push_back(std::make_pair(other, std::ref(sprite)));
+  if (iter == syncList.end()) {
+    syncList.push_back(item);
   }
 }
 
-void AnimationComponent::RemoveFromOverrideList(Animation * other)
+void AnimationComponent::RemoveFromSyncList(const AnimationComponent::SyncItem& item)
 {
-  if (other == &animation) return;
+  auto iter = std::find_if(syncList.begin(), syncList.end(), [item](auto in) {
+    return std::tie(in.anim, in.node, in.point) == std::tie(item.anim, item.node, item.point);
+  });
 
-  auto iter = std::find_if(overrideList.begin(), overrideList.end(), [other](auto in) {return in.first == other; });
-
-  while (iter != overrideList.end()) {
-    overrideList.erase(iter);
-    iter = std::find_if(overrideList.begin(), overrideList.end(), [other](auto in) {return in.first == other; });
+  if (iter != syncList.end()) {
+    syncList.erase(iter);
   }
 }
 
@@ -208,12 +216,23 @@ void AnimationComponent::SetFrame(const int index)
 {
   animation.SetFrame(index, GetOwner()->getSprite());
 
-  for (auto& o : overrideList) {
-    o.first->SetFrame(index, o.second);
+  for (auto& s : syncList) {
+    s.anim->SetFrame(index, s.node->getSprite());
+    RefreshSyncItem(s);
   }
 }
 
 void AnimationComponent::Refresh()
 {
   this->OnUpdate(0);
+}
+
+void AnimationComponent::RefreshSyncItem(AnimationComponent::SyncItem& item)
+{
+  // update node position in the animation
+  auto baseOffset = GetPoint(item.point);
+  auto& origin = character->getSprite().getOrigin();
+  baseOffset = baseOffset - origin;
+
+  item.node->setPosition(baseOffset);
 }

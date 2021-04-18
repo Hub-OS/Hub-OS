@@ -34,7 +34,7 @@ AirShot::AirShot(Team _team,int _damage) : Spell(_team) {
   auto props = Hit::DefaultProperties;
   props.damage = damage;
   props.flags |= Hit::drag;
-  props.drag = { Direction::right, 1u };
+  props.drag = { Direction::right, 9u };
   SetHitboxProperties(props);
 }
 
