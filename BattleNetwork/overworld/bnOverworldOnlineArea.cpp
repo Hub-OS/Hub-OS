@@ -1532,7 +1532,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   actor->LoadAnimations(animation);
 
   auto& emoteNode = onlinePlayer.emoteNode;
-  float emoteY = -actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2 - 1;
+  float emoteY = -actor->getSprite().getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2 - 1;
   emoteNode.setPosition(0, emoteY);
 
   auto& teleportController = onlinePlayer.teleportController;
@@ -1699,7 +1699,7 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
 
-  float emoteY = -actor->getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
+  float emoteY = -actor->getSprite().getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
   emoteNode->setPosition(0, emoteY);
 }
 
