@@ -2,6 +2,11 @@
 #include <Swoosh/EmbedGLSL.h>
 #include "../bnTextureResourceManager.h"
 
+static void CopyTextureAndOrigin(SpriteProxyNode& dest, const SpriteProxyNode& source) {
+  dest.setTexture(source.getTexture());
+  dest.setOrigin(source.getOrigin());
+}
+
 Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& map)
 {
   Minimap minimap;
@@ -336,15 +341,26 @@ Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
   name = rhs.name;
   rectangle = rhs.rectangle;
   largeMapControls = rhs.largeMapControls;
-  markers = rhs.markers;
 
-  const auto oldNodes = bakedMap.GetChildNodes();
+  std::vector<SceneNode*> oldNodes = bakedMap.GetChildNodes();
   for (auto old : oldNodes) {
     bakedMap.RemoveNode(old);
   }
 
-  for (auto node : rhs.bakedMap.GetChildNodes()) {
-    bakedMap.AddNode(node);
+  auto& rhsNodes = rhs.bakedMap.GetChildNodes();
+  auto hpIter = std::find(rhsNodes.begin(), rhsNodes.end(), &rhs.hp);
+
+  if (hpIter != rhsNodes.end()) {
+    bakedMap.AddNode(&hp);
+  }
+
+  for (auto& rhsMarker : rhs.markers) {
+    auto marker = std::make_shared<SpriteProxyNode>();
+    CopyTextureAndOrigin(*marker, *rhsMarker);
+    marker->setPosition(rhsMarker->getPosition());
+    marker->SetLayer(-1);
+    bakedMap.AddNode(marker.get());
+    markers.push_back(marker);
   }
 
   return *this;
@@ -419,12 +435,7 @@ void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos)
 {
   auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newWarp = std::make_shared<SpriteProxyNode>();
-  newWarp->setTexture(warp.getTexture());
-
-  // getOrigin is returning { 0, 0 } ????
-  // Logger::Logf("added: %f %f", warp.getOrigin().x, warp.getOrigin().y);
-  newWarp->setOrigin({ 4, 3 });
-
+  CopyTextureAndOrigin(*newWarp, warp);
   newWarp->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   newWarp->SetLayer(-1);
   markers.push_back(newWarp);
@@ -435,8 +446,7 @@ void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip)
 {
   auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newBoard = std::make_shared<SpriteProxyNode>();
-  newBoard->setTexture(board.getTexture());
-  newBoard->setOrigin({ 3, 7 });
+  CopyTextureAndOrigin(*newBoard, board);
   newBoard->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   newBoard->setScale(flip ? -1 : 1, 1);
   newBoard->SetLayer(-1);
@@ -448,8 +458,7 @@ void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos)
 {
   auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newShop = std::make_shared<SpriteProxyNode>();
-  newShop->setTexture(shop.getTexture());
-  newShop->setOrigin({ 3, 7 });
+  CopyTextureAndOrigin(*newShop, shop);
   newShop->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   newShop->SetLayer(-1);
   markers.push_back(newShop);
