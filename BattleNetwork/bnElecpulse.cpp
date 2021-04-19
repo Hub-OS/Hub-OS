@@ -76,9 +76,9 @@ void Elecpulse::OnUpdate(double _elapsed) {
 
     auto flashMode = Battle::Tile::Highlight::solid;
     tile.RequestHighlight(flashMode);
-    top ? top->RequestHighlight(flashMode) : 0;
-    forward ? forward->RequestHighlight(flashMode) : 0;
-    bottom ? bottom->RequestHighlight(flashMode) : 0;
+    top ? top->RequestHighlight(flashMode) : (void)0;
+    forward ? forward->RequestHighlight(flashMode) : (void)0;
+    bottom ? bottom->RequestHighlight(flashMode) : (void)0;
   }
 
   setPosition(tile->getPosition()+sf::Vector2f(70.0f, -60.0f));
