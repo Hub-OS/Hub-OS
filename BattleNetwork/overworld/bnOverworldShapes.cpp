@@ -89,6 +89,14 @@ namespace Overworld {
   void Polygon::AddPoint(float x, float y) {
     points.emplace_back(std::make_tuple(x, y));
 
+    if(points.size() == 1) {
+      smallestX = x;
+      smallestY = y;
+      largestX = x;
+      largestY = y;
+      return;
+    }
+
     if (x < smallestX) {
       smallestX = x;
     }
