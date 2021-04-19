@@ -697,7 +697,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
     playerActor->LoadAnimations(owPath);
 
     // move the emote above the player's head
-    float emoteY = -playerActor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+    float emoteY = -playerActor->getSprite().getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
     emoteNode.setPosition(0, emoteY);
 
     auto iconTexture = meta.GetIconTexture();
@@ -1492,7 +1492,7 @@ std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vect
 const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src)
 {
   auto textureRect = src.getSprite().getTextureRect();
-  auto origin = src.getOrigin();
+  auto origin = src.getSprite().getOrigin();
 
   auto& map = GetMap();
   auto tileSize = map.GetTileSize();

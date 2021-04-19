@@ -68,13 +68,6 @@ public:
   sf::Sprite& getSprite() const;
 
   /**
-  * @brief returns the sprite's origin values
-  */
-  const sf::Vector2f getOrigin() const {
-    return sprite->getOrigin();
-  }
-
-  /**
    * @brief Get current texture proxy
    * @return texture of sprite
    */
