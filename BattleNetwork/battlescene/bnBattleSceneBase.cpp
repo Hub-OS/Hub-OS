@@ -242,12 +242,12 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   }
 }
 
-const int BattleSceneBase::ComboDeleteSize()
+const int BattleSceneBase::ComboDeleteSize() const 
 {
   return comboInfoTimer.getElapsed().asSeconds() <= 1.0f ? comboDeleteCounter : 0;
 }
 
-const bool BattleSceneBase::Countered()
+const bool BattleSceneBase::Countered() const
 {
   return comboInfoTimer.getElapsed().asSeconds() <= 1.0f && didCounterHit;
 }

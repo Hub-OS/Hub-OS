@@ -34,9 +34,11 @@ Field::Field(int _width, int _height) :
 
       if (x <= 3) {
         tile->SetTeam(Team::red);
+        tile->SetFacing(Direction::right);
       }
       else {
         tile->SetTeam(Team::blue);
+        tile->SetFacing(Direction::left);
       }
 
       row.push_back(tile);
@@ -275,17 +277,6 @@ void Field::Update(double _elapsed) {
 
   int entityCount = 0;
 
-  // These are the columns that an entity was found on
-  int redTeamFarCol = 0; // from blue's perspective, 7 is the farthest - begin at the first (0 col) index and increment
-  int blueTeamFarCol = 7; // from red's perspective, 0  is the farthest - begin at the first (7th col) index and decrement
-
-  // tile cols to check to restore team state
-  std::set<int> backToRed;
-  std::set<int> backToBlue;
-
-  double syncBlueTeamCooldown = 0;
-  double syncRedTeamCooldown = 0;
-
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
       tiles[i][j]->CleanupEntities();
@@ -318,109 +309,97 @@ void Field::Update(double _elapsed) {
     }
   }
 
-  std::set<int> skipCol = {};
+  std::set<int> charCol = {}; // columns with characters in them
+  std::set<int> syncCol = {}; // synchronize columns
+  std::set<int> restCol = {}; // restore columns
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
       auto& t = tiles[i][j];
-
-      // How far has entity of either moved across the map?
-      // This check will help prevent trapping moving characters 
-      // when their tiles' team type resets
-      bool hasObject = false;
-      for(auto&& it = t->characters.begin(); it != t->characters.end(); it++) {
-        Team team = (*it)->GetTeam();
-        if (team == Team::red) { redTeamFarCol = std::max(redTeamFarCol, j); }
-        else if(team == Team::blue) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
-
-        if (!hasObject && dynamic_cast<Obstacle*>(*it)) {
-          hasObject = true;
-          if (t->ogTeam != t->GetTeam()) {
-            skipCol.insert(skipCol.begin(), j);
-          }
-        }
+      if (t->teamCooldown > 0) {
+        syncCol.insert(syncCol.begin(), j);
+      }
+      else if(t->GetTeam() != t->ogTeam){
+        restCol.insert(restCol.begin(), j);
       }
 
-      if(t->ogTeam == Team::red) {
-        // This tile was originally red
-        if(t->GetTeam() == Team::blue) {
-          syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->teamCooldown);
-
-          if(t->teamCooldown <= 0 && !hasObject) {
-            backToRed.insert(backToRed.begin(), j);
-          }
-        }
-      } else{
-        // This tile was originally blue
-        if(t->GetTeam() == Team::red) {
-          syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, t->flickerTeamCooldown);
-
-          if(t->teamCooldown <= 0 && !hasObject) {
-            backToBlue.insert(backToBlue.begin(), j);
-          }
-        }
+      if (t->characters.size()) {
+        charCol.insert(charCol.begin(), j);
       }
-
+      
       // now that the loop for this tile is over
       // and it has been updated, we calculate how many entities remain
       // on the field
-      entityCount += (int)tiles[i][j]->GetEntityCount();
+      entityCount += (int)t->GetEntityCount();
     }
   }
 
-  // plan: Restore column team states not just a single tile
-  // col must be relatively ahead of the furthest character of the same team
-  // e.g. red team characters must be behind the col value
-  //      blue team characters must be after the col value
-  //      otherwise we risk trapping characters in a striped battle field
+  // any columns with a stolen tile do not need to revert
+  for (auto syncIter = syncCol.begin(); syncIter != syncCol.end(); syncIter++) {
+    auto iter = restCol.find(*syncIter);
 
-  // stolen blue tiles
-  for(auto& p : backToBlue) {
-    bool skip = false;
-    for (auto col : skipCol) {
-      if (col >= p) {
-        skip = true;
-      }
+    if (iter != restCol.end()) {
+      restCol.erase(iter);
     }
+  }
 
-    if (p > redTeamFarCol && syncBlueTeamCooldown <= 0.0f && !skip) {
-      for (int i = 0; i < tiles.size(); i++) {
-        tiles[i][p]->SetTeam(Team::blue, true);
-      }
+  // any columns with a character in them do not need to revert
+  for (auto charIter = charCol.begin(); charIter != charCol.end(); charIter++) {
+    auto iter = restCol.find(*charIter);
+
+    if (iter != restCol.end()) {
+      restCol.erase(iter);
     }
-    else {
-      // resync
-      for (int i = 0; i < tiles.size(); i++) {
-        tiles[i][p]->flickerTeamCooldown = Battle::Tile::flickerTeamCooldownLength;
+  }
+
+  // revert strategy for tiles:
+  //  1. For each tile in the revertBucket column
+  //  2. if that tile is not it's original team then
+  //    a.check the current facing direction of the tile
+  //    b.move to that column's direction
+  //    c. if any of the tiles in that direction are not our team, then we can revert
+  //    d.otherwise, skip this tileand do not revert
+
+  for (auto col : restCol) {
+    for (size_t i = 1; i <= GetHeight(); i++) {
+      auto& t = tiles[i][col];
+
+      if (t->GetTeam() != t->ogTeam) {
+        if (auto* facing = t + t->facing) {
+          bool canRevert = false;
+
+          for (size_t i2 = 1; i2 <= GetHeight(); i2++) {
+            auto& t2 = tiles[i2][facing->GetX()];
+
+            if (t2->GetTeam() != t->GetTeam()) {
+              canRevert = true;
+              break; // found a match, we can revert now
+            }
+          }
+
+          if (canRevert) {
+            t->SetTeam(t->ogTeam, true);
+            t->SetFacing(t->ogFacing);
+          }
+        }
       }
     }
   }
 
-  backToBlue.clear();
-
-  // stolen red tiles
-  for(auto& p : backToRed) {
-    bool skip = false;
-    for (auto col : skipCol) {
-      if (col <= p) {
-        skip = true;
-      }
+  // Finally, sync stolen tiles with their corresponding columns
+  for (auto col : syncCol) {
+    double maxTimer = 0.0;
+    for (size_t i = 1; i <= GetHeight(); i++) {
+      maxTimer = std::max(maxTimer, tiles[i][col]->teamCooldown);
     }
+    for (size_t i = 1; i <= GetHeight(); i++) {
+      auto& t = tiles[i][col];
 
-    if (p < blueTeamFarCol && syncRedTeamCooldown <= 0.0f && !skip) {
-      for (int i = 0; i < tiles.size(); i++) {
-        tiles[i][p]->SetTeam(Team::red, true);
-      }
-    }
-    else {
-      // resync
-      for (int i = 0; i < tiles.size(); i++) {
-        tiles[i][p]->flickerTeamCooldown = Battle::Tile::flickerTeamCooldownLength;
+      if (t->GetTeam() != t->ogTeam) {
+        t->teamCooldown = maxTimer;
       }
     }
   }
-
-  backToRed.clear();
 
   // Now that updating is complete any entities being added to the field will be added directly
   isUpdating = false;

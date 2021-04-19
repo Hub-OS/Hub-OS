@@ -12,75 +12,52 @@ AreaGrabCardAction::AreaGrabCardAction(Character& owner, int damage) :
 void AreaGrabCardAction::OnExecute() {
   auto& owner = GetCharacter();
   Field* f = owner.GetField();
-  PanelGrab** grab = new PanelGrab * [3];
 
-  for (int i = 0; i < 3; i++) {
-    grab[i] = new PanelGrab(owner.GetTeam(), 0.25f);
-  }
+  // Strategy: 1. Scanning will happen tile-by-tile from the direction the user is facing
+  //           2. Scan the field for the first fully owned column, starting the furthest column behind the user
+  //           3. When found, start the second scan from that column
+  //           4. From the new start, scan for the first column with enemy team tiles
+  //           5. If found, spawn panel grab attacks on all tiles in that column
 
-  Battle::Tile** tile = new Battle::Tile * [3];
+  // find our team's fully owned column
+  int column = owner.GetFacing() == Direction::left ? owner.GetField()->GetWidth() : 0;
+  int lastColumn = owner.GetField()->GetWidth() - column;
+  int inc = owner.GetFacing() == Direction::left ? -1 : 1;
+  int teamColumnStart = column;
 
-  // Read team grab scans from left to right
-  if (owner.GetTeam() == Team::red) {
-    int minIndex = 6;
-
-    for (int i = 0; i < f->GetHeight(); i++) {
-      int index = 1;
-      while (f->GetAt(index, i + 1) && f->GetAt(index, i + 1)->GetTeam() == Team::red) {
-        index++;
-      }
-
-      minIndex = std::min(minIndex, index);
+  for (int i = column; i != lastColumn; i += inc) {
+    bool allSameTeam = true;
+    for (int j = 1; j <= 3; j++) {
+      allSameTeam = allSameTeam && owner.Teammate(f->GetAt(i, j)->GetTeam());
     }
 
-    for (int i = 0; i < f->GetHeight(); i++) {
-      tile[i] = f->GetAt(minIndex, i + 1);
+    if (allSameTeam) {
+      teamColumnStart = i;
+      break;
+    }
+  }
 
-      if (tile[i]) {
-        auto status = f->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
+  // find a column with at least one of our enemies tiles
+  for (int i = teamColumnStart; i != lastColumn; i += inc) {
+    bool allSameTeam = true;
+    for (int j = 1; j <= 3; j++) {
+      allSameTeam = allSameTeam && owner.Teammate(f->GetAt(i, j)->GetTeam());
+    }
 
-        if (status != Field::AddEntityStatus::deleted) {
-          panelPtr = grab[i];
+    // steal this column
+    if (!allSameTeam) {
+      for (int j = 1; j <= 3; j++) {
+        auto panelGrab = new PanelGrab(owner.GetTeam(), owner.GetFacing(), 0.25);
+        auto result = f->AddEntity(*panelGrab, i, j);
+
+        if (result != Field::AddEntityStatus::deleted && !panelPtr) {
+          panelPtr = panelGrab;
         }
       }
-      else {
-        delete grab[i];
-      }
+
+      break;
     }
   }
-  else if (owner.GetTeam() == Team::blue) {
-    // Blue team grab scans from right to left
-
-    int maxIndex = 1;
-
-    for (int i = 0; i < f->GetHeight(); i++) {
-      int index = f->GetWidth();
-      while (f->GetAt(index, i + 1) && f->GetAt(index, i + 1)->GetTeam() == Team::blue) {
-        index--;
-      }
-
-      maxIndex = std::max(maxIndex, index);
-    }
-
-    for (int i = 0; i < f->GetHeight(); i++) {
-      tile[i] = f->GetAt(maxIndex, i + 1);
-
-      if (tile[i]) {
-        auto status = f->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
-
-        if (status != Field::AddEntityStatus::deleted) {
-          panelPtr = grab[i];
-        }
-      }
-      else {
-        delete grab[i];
-      }
-    }
-  }
-
-  // cleanup buckets
-  delete[] tile;
-  delete[] grab;
 
   CardAction::Step step;
   step.updateFunc = [this](double elapsed, Step& self) {

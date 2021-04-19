@@ -5,9 +5,9 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-PanelGrab::PanelGrab(Team _team, float _duration) : duration(_duration), Spell(_team) {
+PanelGrab::PanelGrab(Team _team, Direction facing, float _duration) : duration(_duration), Spell(_team) {
   SetLayer(0);
-  
+  SetFacing(facing);
   setTexture(Textures().GetTexture(TextureType::SPELL_AREAGRAB));
   setScale(2.f, 2.f);
 
@@ -60,6 +60,7 @@ void PanelGrab::OnUpdate(double _elapsed) {
       
       // Change the team
       tile->SetTeam(GetTeam());
+      tile->SetFacing(GetFacing());
 
       // Show the panel grab spread animation
       if (animationComponent->GetAnimationString() != "HIT") {

@@ -259,8 +259,8 @@ public:
 
   const bool DoubleDelete() const;
   const bool TripleDelete() const;
-  const int ComboDeleteSize();
-  const bool Countered();
+  const int ComboDeleteSize() const;
+  const bool Countered() const;
   void HandleCounterLoss(Character& subject);
   void HighlightTiles(bool enable);
 

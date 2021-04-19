@@ -491,6 +491,16 @@ Direction Entity::GetDirection()
   return direction;
 }
 
+void Entity::SetFacing(Direction facing)
+{
+  this->facing = facing;
+}
+
+Direction Entity::GetFacing()
+{
+  return facing;
+}
+
 Direction Entity::GetPreviousDirection()
 {
   return previousDirection;

@@ -44,6 +44,27 @@ void Animator::UpdateSpriteAttributes(sf::Sprite& target, const Frame& data)
   }
 }
 
+const sf::Vector2f Animator::CalculatePointData(const sf::Vector2f& point, const Frame& data)
+{
+  // rect attr 
+  int w = data.subregion.width;
+  int h = data.subregion.height;
+
+  float pointx = static_cast<float>(point.x);
+  float pointy = static_cast<float>(point.y);
+
+  // flip x and flip y attr
+  if (data.flipX) {
+    pointx = w - pointx;
+  }
+
+  if (data.flipY) {
+    pointy = h - pointy;
+  }
+
+  return sf::Vector2f{ pointx, pointy };
+}
+
 Animator::Animator() {
   onFinish = nullptr;
   queuedOnFinish = nullptr;
@@ -86,7 +107,12 @@ Animator::~Animator() {
 void Animator::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
   if (sequence.frames.size() <= frameIndex) return;
 
-  currentPoints = sequence.frames[frameIndex].points;
+  auto& data = sequence.frames[frameIndex];
+  currentPoints = data.points;
+
+  for (auto&& points : currentPoints) {
+    points.second = CalculatePointData(points.second, data);
+  }
 }
 
 void Animator::operator() (double progress, sf::Sprite& target, FrameList& sequence) {

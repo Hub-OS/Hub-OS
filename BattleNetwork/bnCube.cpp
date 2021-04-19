@@ -22,7 +22,7 @@ Cube::Cube(Field* _field) :
   //SetTeam(Team::unknown);
 
   SetHealth(200);
-  timer = 100;
+  timer = 30;
 
   previousDirection = Direction::none;
 

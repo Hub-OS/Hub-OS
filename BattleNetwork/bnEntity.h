@@ -284,6 +284,8 @@ public:
    */
   Direction GetDirection();
   
+  void SetFacing(Direction facing);
+  Direction GetFacing();
   /**
    * @brief Query the entity's previous direction
    * Can be used to see if an entity was previously moving before it changed direction
@@ -489,6 +491,7 @@ private:
   double elapsedMoveTime{}; /*!< delta time since recent move event began */
   Direction direction{};
   Direction previousDirection{};
+  Direction facing{};
 
     /**
    * @brief Used internally before moving and updates the start position

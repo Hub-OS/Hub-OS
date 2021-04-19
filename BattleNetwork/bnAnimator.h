@@ -222,7 +222,7 @@ private:
   bool clearLater{ false }; //!< if clearing inside a callback, wait until after callback scope ends
 
   void UpdateSpriteAttributes(sf::Sprite& target, const Frame& data);
-
+  const sf::Vector2f CalculatePointData(const sf::Vector2f& point, const Frame& data);
 public:
   inline static const FrameCallback NoCallback = [](){};
 

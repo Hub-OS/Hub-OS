@@ -68,7 +68,7 @@ const bool CombatBattleState::PlayerWon() const
     return e->GetTeam() == Team::blue && dynamic_cast<Character*>(e) && (dynamic_cast<Obstacle*>(e) == nullptr);
   });
 
-  return !PlayerLost() && mob->IsCleared() && blueTeamChars.empty();
+  return !PlayerLost() && mob->IsCleared() && blueTeamChars.empty() && GetScene().ComboDeleteSize() == 0;
 }
 
 const bool CombatBattleState::PlayerLost() const

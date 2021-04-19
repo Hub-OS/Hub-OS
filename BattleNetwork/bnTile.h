@@ -111,6 +111,8 @@ namespace Battle {
      */
     void SetTeam(Team _team, bool useFlicker = false);
 
+    void SetFacing(Direction facing);
+
     /**
      * @brief Get the width of the tile sprite
      * @return width in pixels
@@ -316,6 +318,7 @@ namespace Battle {
     int x; /**< Column number*/
     int y; /**< Row number*/
     Team team{}, ogTeam{};
+    Direction facing{}, ogFacing{};
     TileState state;
     std::string animState; /**< reflects the tile's state - lookup animation from animation file */
 

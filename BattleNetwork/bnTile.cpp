@@ -219,10 +219,19 @@ namespace Battle {
           flickerTeamCooldown = 0; // cancel 
           teamCooldown = teamCooldownLength;
         }
-
-        RefreshTexture();
       }
+
+      RefreshTexture();
     }
+  }
+
+  void Tile::SetFacing(Direction facing)
+  {
+    if (ogFacing == Direction::none) {
+      ogFacing = facing;
+    }
+
+    this->facing = facing;
   }
 
   float Tile::GetWidth() const {
@@ -289,6 +298,11 @@ namespace Battle {
       animState = std::move(GetAnimState(state));
     }
 
+    if (prevAnimState != animState) {
+      animation.SetAnimation(animState);
+      animation << Animator::Mode::Loop;
+    }
+
     if (currTeam == Team::red) {
       setTexture(red_team_atlas);
     }
@@ -296,10 +310,7 @@ namespace Battle {
       setTexture(blue_team_atlas);
     }
 
-    if (prevAnimState != animState) {
-      animation.SetAnimation(animState);
-      animation << Animator::Mode::Loop;
-    }
+    animation.Refresh(getSprite());
   }
 
   bool Tile::IsWalkable() const {
@@ -375,6 +386,10 @@ namespace Battle {
     // May be part of the spawn routine
     // First tile set means entity is live and ready to go
     _entity->Spawn(*this);
+
+    if (_entity->GetFacing() == Direction::none) {
+      _entity->SetFacing(this->facing);
+    }
 
     auto reservedIter = reserved.find(_entity->GetID());
     if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
