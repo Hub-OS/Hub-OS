@@ -793,6 +793,49 @@ void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
+static bool PositionIsInWarp(Overworld::Map& map, sf::Vector3f position) {
+  auto layerCount = map.GetLayerCount();
+
+  if (position.z < 0 || position.z >= layerCount) return false;
+
+  auto tilePos = sf::Vector2i(map.WorldToTileSpace({ position.x, position.y }));
+  auto& layer = map.GetLayer((size_t)position.z);
+
+  for (auto& object : layer.GetTileObjects()) {
+    auto& type = object.type;
+
+    bool isWarp =
+      type == "Home Warp" ||
+      type == "Server Warp" ||
+      type == "Custom Server Warp" ||
+      type == "Position Warp" ||
+      type == "Custom Warp";
+
+    if (!isWarp) continue;
+
+    auto objectTilePos = sf::Vector2i(map.WorldToTileSpace(object.position));
+
+    if (tilePos == objectTilePos) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static Overworld::TeleportController::Command& TeleportIn(
+  Overworld::Map& map,
+  Overworld::TeleportController& teleportController,
+  const std::shared_ptr<Overworld::Actor>& actor,
+  sf::Vector3f position, Direction direction
+) {
+  if (!PositionIsInWarp(map, position)) {
+    actor->Face(direction);
+    direction = Direction::none;
+  }
+
+  return teleportController.TeleportIn(actor, position, direction);
+}
 
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
@@ -811,7 +854,7 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   auto player = GetPlayer();
 
   if (warpIn) {
-    auto& command = GetTeleportController().TeleportIn(player, spawnPos, Orthographic(direction));
+    auto& command = TeleportIn(map, GetTeleportController(), player, spawnPos, Orthographic(direction));
     command.onFinish.Slot([=] {
       GetPlayerController().ControlActor(player);
     });
@@ -854,7 +897,7 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
   player->Face(worldDirection);
 
   if (warpIn) {
-    GetTeleportController().TeleportIn(player, player->Get3DPosition(), worldDirection);
+    TeleportIn(GetMap(), GetTeleportController(), player, player->Get3DPosition(), worldDirection);
   }
 
   isConnected = true;
@@ -1126,7 +1169,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
           LockInput();
 
           auto teleport = [=] {
-            auto& command = GetTeleportController().TeleportIn(player, targetPosition, Orthographic(direction));
+            auto& command = TeleportIn(GetMap(), GetTeleportController(), player, targetPosition, Orthographic(direction));
 
             command.onFinish.Slot([=]() {
               UnlockInput();
@@ -1272,15 +1315,14 @@ void Overworld::OnlineArea::receiveTeleportSignal(BufferReader& reader, const Po
 
   if (warp) {
     auto& action = GetTeleportController().TeleportOut(player);
-    action.onFinish.Slot([this, player, position] {
-      GetTeleportController().TeleportIn(player, position, Direction::none);
+    action.onFinish.Slot([this, player, position, direction] {
+      TeleportIn(map, GetTeleportController(), player, position, Orthographic(direction));
     });
   }
   else {
+    player->Face(Orthographic(direction));
     player->Set3DPosition(position);
   }
-
-  player->Face(Orthographic(direction));
 }
 
 void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
