@@ -11,12 +11,12 @@ class DefenseRule;
 
 class HubBatchCardAction : public CardAction {
 public:
-  HubBatchCardAction(Character& owner);
+  HubBatchCardAction(Character& actor);
   ~HubBatchCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction() override;
-  void OnExecute() override;
+  void OnExecute(Character* user) override;
 };
 
 class HubBatchProgram : public Component {

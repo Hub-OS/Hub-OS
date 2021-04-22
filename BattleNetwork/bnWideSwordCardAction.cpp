@@ -6,7 +6,7 @@
 #include "bnBasicSword.h"
 #include "bnSwordEffect.h"
 
-WideSwordCardAction::WideSwordCardAction(Character& user, int damage) : SwordCardAction(user, damage) {
+WideSwordCardAction::WideSwordCardAction(Character& actor, int damage) : SwordCardAction(actor, damage) {
   WideSwordCardAction::damage = damage;
 }
 
@@ -14,34 +14,34 @@ WideSwordCardAction::~WideSwordCardAction()
 {
 }
 
-void WideSwordCardAction::OnSpawnHitbox()
+void WideSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
 {
-  auto& owner = GetCharacter();
-  auto field = GetCharacter().GetField();
+  auto& actor = GetActor();
+  auto field = actor.GetField();
 
   auto tiles = std::vector{
-    owner.GetTile()->Offset(1, 0),
-    owner.GetTile()->Offset(1, 1),
-    owner.GetTile()->Offset(1,-1)
+    actor.GetTile()->Offset(1, 0),
+    actor.GetTile()->Offset(1, 1),
+    actor.GetTile()->Offset(1,-1)
   };
 
   SwordEffect* e = new SwordEffect;
   e->SetAnimation("WIDE");
   field->AddEntity(*e, *tiles[0]);
 
-  BasicSword* b = new BasicSword(owner.GetTeam(), damage);
+  BasicSword* b = new BasicSword(actor.GetTeam(), damage);
   auto props = b->GetHitboxProperties();
-  props.aggressor = owner.GetID();
+  props.aggressor = userId;
   b->SetHitboxProperties(props);
 
   Audio().Play(AudioType::SWORD_SWING);
   field ->AddEntity(*b, *tiles[0]);
 
-  b = new BasicSword(owner.GetTeam(), damage);
+  b = new BasicSword(actor.GetTeam(), damage);
   b->SetHitboxProperties(props);
   field->AddEntity(*b, *tiles[1]);
   
-  b = new BasicSword(owner.GetTeam(), damage);
+  b = new BasicSword(actor.GetTeam(), damage);
   b->SetHitboxProperties(props);
   field->AddEntity(*b, *tiles[2]);
 }

@@ -16,8 +16,8 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-SwordCardAction::SwordCardAction(Character& user, int damage) : 
-CardAction(user, "PLAYER_SWORD") {
+SwordCardAction::SwordCardAction(Character& actor, int damage) : 
+CardAction(actor, "PLAYER_SWORD") {
   SwordCardAction::damage = damage;
 
   blade = new SpriteProxyNode();
@@ -25,14 +25,14 @@ CardAction(user, "PLAYER_SWORD") {
   blade->SetLayer(-2);
 
   hilt = new SpriteProxyNode();
-  hilt->setTexture(user.getTexture());
+  hilt->setTexture(actor.getTexture());
   hilt->SetLayer(-1);
   hilt->EnableParentShader(true);
 
   bladeAnim = Animation(ANIM);
   bladeAnim.SetAnimation("DEFAULT");
 
-  auto userAnim = GetCharacter().GetFirstComponent<AnimationComponent>();
+  auto userAnim = GetActor().GetFirstComponent<AnimationComponent>();
   hiltAnim = Animation(userAnim->GetFilePath());
   hiltAnim.Reload();
   hiltAnim.SetAnimation("HILT");
@@ -48,12 +48,12 @@ SwordCardAction::~SwordCardAction()
   delete hilt;
 }
 
-void SwordCardAction::OnExecute() {
+void SwordCardAction::OnExecute(Character* user) {
   // On attack frame, drop sword hitbox
-  auto onTrigger = [this]() -> void {
-    OnSpawnHitbox();
+  auto onTrigger = [=]() -> void {
+    OnSpawnHitbox(user->GetID());
 
-    auto userAnim = GetCharacter().GetFirstComponent<AnimationComponent>();
+    auto userAnim = GetActor().GetFirstComponent<AnimationComponent>();
 
     auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObject(), "HILT", *hilt).UseAnimation(hiltAnim);
     hiltAttachment.AddAttachment(hiltAnim, "ENDPOINT", *blade).UseAnimation(bladeAnim);
@@ -71,19 +71,19 @@ void SwordCardAction::OnExecute() {
   AddAnimAction(2, onTrigger);
 }
 
-void SwordCardAction::OnSpawnHitbox()
+void SwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
 {
-  auto field = GetCharacter().GetField();
-  auto tile = GetCharacter().GetTile()->Offset(1, 0);
+  auto field = GetActor().GetField();
+  auto tile = GetActor().GetTile()->Offset(1, 0);
 
   if (tile) {
     // visual fx
     SwordEffect* e = new SwordEffect;
     field->AddEntity(*e, *tile);
 
-    BasicSword* b = new BasicSword(GetCharacter().GetTeam(), damage);
+    BasicSword* b = new BasicSword(GetActor().GetTeam(), damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = GetCharacter().GetID();
+    props.aggressor = userId;
     b->SetHitboxProperties(props);
 
     // add the hitbox beneath the visual fx

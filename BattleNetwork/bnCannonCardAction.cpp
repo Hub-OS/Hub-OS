@@ -15,8 +15,8 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
-CannonCardAction::CannonCardAction(Character& owner, CannonCardAction::Type type, int damage) :
-  CardAction(owner, "PLAYER_SHOOTING"), 
+CannonCardAction::CannonCardAction(Character& actor, CannonCardAction::Type type, int damage) :
+  CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(CANNON_ANIM),  
   type(type) {
   CannonCardAction::damage = damage;
@@ -39,23 +39,21 @@ CannonCardAction::CannonCardAction(Character& owner, CannonCardAction::Type type
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
-  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 CannonCardAction::~CannonCardAction()
 {
 }
 
-void CannonCardAction::OnExecute() {
+void CannonCardAction::OnExecute(Character* user) {
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    Character& user = GetCharacter();
-
+  auto onFire = [=]() -> void {
     // Spawn a single cannon instance on the tile in front of the player
-    Team team = user.GetTeam();
+    Team team = user->GetTeam();
     Cannon* cannon = new Cannon(team, damage);
     auto props = cannon->GetHitboxProperties();
-    props.aggressor = user.GetID();
+    props.aggressor = user->GetID();
 
     cannon->SetHitboxProperties(props);
 
@@ -68,7 +66,7 @@ void CannonCardAction::OnExecute() {
       cannon->SetDirection(Direction::left);
     }
 
-    user.GetField()->AddEntity(*cannon, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+    user->GetField()->AddEntity(*cannon, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
   };
 
   AddAnimAction(6, onFire);

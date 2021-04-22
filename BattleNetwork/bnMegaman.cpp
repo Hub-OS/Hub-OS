@@ -20,7 +20,8 @@
 
 Megaman::Megaman() : Player() {
   auto basePallete = Textures().LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
-  PaletteSwap* pswap = CreateComponent<PaletteSwap>(this, basePallete);
+  PaletteSwap* pswap = CreateComponent<PaletteSwap>(this);
+  pswap->SetBase(basePallete);
 
   SetHealth(900);
   SetName("Megaman");
@@ -540,8 +541,8 @@ frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
 #define FRAMES FRAME1
 
 // class TenguCross
-TenguCross::SpecialAction::SpecialAction(Character& owner) : 
-  CardAction(owner, "PLAYER_IDLE") {
+TenguCross::SpecialAction::SpecialAction(Character& actor) : 
+  CardAction(actor, "PLAYER_IDLE") {
 
   OverrideAnimationFrames({ FRAMES });
 }
@@ -550,13 +551,12 @@ TenguCross::SpecialAction::~SpecialAction()
 {
 }
 
-void TenguCross::SpecialAction::OnExecute()
+void TenguCross::SpecialAction::OnExecute(Character* user)
 {
-  auto owner = &GetCharacter();
-  auto team = owner->GetTeam();
-  auto field = owner->GetField();
+  auto team = user->GetTeam();
+  auto field = user->GetField();
 
-  auto onTrigger = [this, team, owner, field]() -> void {
+  auto onTrigger = [=]() -> void {
     Direction direction{ Direction::left };
 
     if (team == Team::blue) {

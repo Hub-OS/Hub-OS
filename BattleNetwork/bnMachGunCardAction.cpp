@@ -18,8 +18,8 @@
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, 
 
-MachGunCardAction::MachGunCardAction(Character& owner, int damage) :
-  CardAction(owner, "PLAYER_SHOOTING"),
+MachGunCardAction::MachGunCardAction(Character& actor, int damage) :
+  CardAction(actor, "PLAYER_SHOOTING"),
   damage(damage)
 {
   machgun.setTexture(Textures().LoadTextureFromFile("resources/spells/machgun_buster.png"));
@@ -27,7 +27,7 @@ MachGunCardAction::MachGunCardAction(Character& owner, int damage) :
 
   machgunAnim = Animation("resources/spells/machgun_buster.animation") << "FIRE";
 
-  AddAttachment(owner, "BUSTER", machgun).UseAnimation(machgunAnim);
+  AddAttachment(actor, "BUSTER", machgun).UseAnimation(machgunAnim);
 
   OverrideAnimationFrames({ FRAMES });
 }
@@ -36,28 +36,28 @@ MachGunCardAction::~MachGunCardAction()
 {
 }
 
-void MachGunCardAction::OnExecute()
+void MachGunCardAction::OnExecute(Character* user)
 {
   auto shoot = [this]() {
-    auto& owner = GetCharacter();
-    auto* field = owner.GetField();
+    auto& actor = GetActor();
+    auto* field = actor.GetField();
 
     if (target == nullptr || target->WillRemoveLater()) {
       // find the closest
-      auto ents = field->FindEntities([owner = &owner](Entity* e) {
+      auto ents = field->FindEntities([actor = &actor](Entity* e) {
         Team team = e->GetTeam();
         Character* character = dynamic_cast<Character*>(e);
         Obstacle* obst = dynamic_cast<Obstacle*>(e);
         return character && !obst && !e->WillRemoveLater()
-               && team != owner->GetTeam() && team != Team::unknown;
+               && team != actor->GetTeam() && team != Team::unknown;
       });
 
       if (!ents.empty()) {
-        auto filter = [owner = &owner](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); };
+        auto filter = [actor = &actor](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); };
         std::sort(ents.begin(), ents.end(), filter);
 
         for (auto e : ents) {
-          if (e->GetTile()->GetX() > owner.GetTile()->GetX()) {
+          if (e->GetTile()->GetX() > actor.GetTile()->GetX()) {
             target = e;
             break;
           }
@@ -67,7 +67,7 @@ void MachGunCardAction::OnExecute()
           auto& removeCallback = target->CreateRemoveCallback();
           removeCallback.Slot([this](Entity* in) {
             this->target = nullptr;
-            });
+          });
 
           removeCallbacks.push_back(std::ref(removeCallback));
         }

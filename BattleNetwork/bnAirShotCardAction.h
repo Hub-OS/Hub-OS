@@ -11,11 +11,11 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  AirShotCardAction(Character& user, int damage);
+  AirShotCardAction(Character& actor, int damage);
   ~AirShotCardAction();
 
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction() override;
-  void OnExecute() override;
+  void OnExecute(Character* user) override;
 };

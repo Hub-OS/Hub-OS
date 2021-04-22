@@ -26,5 +26,5 @@ public:
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction();
-  void OnExecute();
+  void OnExecute(Character* user);
 };

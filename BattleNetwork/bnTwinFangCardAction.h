@@ -12,11 +12,11 @@ private:
   Attachment* busterAttachment{ nullptr };
   Animation busterAnim;
 public:
-  TwinFangCardAction(Character& owner, int damage);
+  TwinFangCardAction(Character& actor, int damage);
   ~TwinFangCardAction();
 
   void Update(double _elapsed) override;
-  void OnExecute();
+  void OnExecute(Character* user);
   void OnEndAction() override;
   void OnAnimationEnd() override;
 };

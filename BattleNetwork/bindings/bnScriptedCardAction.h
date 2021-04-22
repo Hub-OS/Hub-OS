@@ -7,8 +7,8 @@ class SpriteProxyNode;
 class Character;
 class ScriptedCardAction : public CardAction {
 public:
-  ScriptedCardAction(Character& owner, int damage) : 
-    CardAction(owner, "PLAYER_IDLE") 
+  ScriptedCardAction(Character& actor, int damage) : 
+    CardAction(actor, "PLAYER_IDLE")
   {
     // SCRIPTS.callback(card_name).onCreate(this);
   }
@@ -33,7 +33,7 @@ public:
     // SCRIPTS.callback(card_name).onDestroy(this);
   }
 
-  void OnExecute() override {
+  void OnExecute(Character* user) override {
 
   }
 };

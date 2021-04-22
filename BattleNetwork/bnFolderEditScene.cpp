@@ -525,7 +525,23 @@ void FolderEditScene::onUpdate(double elapsed) {
     view->currCardIndex = std::max(0, view->currCardIndex);
     view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex);
 
-    RefreshCurrentCardDock(*view);
+    switch (currViewMode) {
+    case ViewMode::folder:
+    {
+      using SlotType = decltype(folderCardSlots)::value_type;
+      RefreshCurrentCardDock<SlotType>(*view, folderCardSlots);
+    }
+      break;
+    case ViewMode::pool:
+    {
+      using SlotType = decltype(poolCardBuckets)::value_type;
+      RefreshCurrentCardDock<SlotType>(*view, poolCardBuckets);
+    }
+      break;
+    default:
+      Logger::Logf("No applicable view mode for folder edit scene: %i", static_cast<int>(currViewMode));
+      break;
+    }
 
     view->prevIndex = view->currCardIndex;
 
@@ -596,7 +612,7 @@ void FolderEditScene::onExit()
 void FolderEditScene::onEnter()
 {
   folderView.currCardIndex = 0;
-  RefreshCurrentCardDock(folderView);
+  RefreshCurrentCardDock(folderView, folderCardSlots);
 }
 
 void FolderEditScene::onResume() {
@@ -765,7 +781,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 }
 
 void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
-  cardDesc.setPosition(sf::Vector2f(324.f + 480.f, 175.0f));
+  cardDesc.setPosition(sf::Vector2f(320.f + 480.f, 175.0f));
   packCardHolder.setPosition(310.f + 480.f, 35.f);
   element.setPosition(400.f + 2.f*20.f + 480.f, 146.f);
   card.setPosition(389.f + 480.f, 93.f);
@@ -795,34 +811,33 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
     const Battle::Card& copy = iter->ViewCard();
 
     cardIcon.setTexture(*WEBCLIENT.GetIconForCard(copy.GetUUID()));
-    cardIcon.setPosition(19.f + 480.f, 65.0f + (32.f*i));
+    cardIcon.setPosition(16.f + 480.f, 65.0f + (32.f*i));
     surface.draw(cardIcon);
 
     cardLabel.SetColor(sf::Color::White);
-    cardLabel.setPosition(50.f + 500.f, 60.0f + (32.f*i));
+    cardLabel.setPosition(49.f + 480.f, 69.0f + (32.f*i));
     cardLabel.SetString(copy.GetShortName());
     surface.draw(cardLabel);
 
-
     int offset = (int)(copy.GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-    element.setPosition(163.0f + 480.f, 65.0f + (32.f*i));
+    element.setPosition(182.0f + 480.f, 65.0f + (32.f*i));
     surface.draw(element);
 
     cardLabel.setOrigin(0, 0);
-    cardLabel.setPosition(196.f + 480.f, 60.0f + (32.f*i));
+    cardLabel.setPosition(216.f + 480.f, 69.0f + (32.f*i));
     cardLabel.SetString(std::string() + copy.GetCode());
     surface.draw(cardLabel);
 
+    //Draw MB
+    mbPlaceholder.setPosition(236.f + 480.f, 67.0f + (32.f * i));
+    surface.draw(mbPlaceholder);
+
     // Draw count in pack
     cardLabel.setOrigin(0, 0);
-    cardLabel.setPosition(275.f + 480.f, 60.0f + (32.f*i));
+    cardLabel.setPosition(274.f + 480.f, 69.0f + (32.f*i));
     cardLabel.SetString(std::to_string(count));
     surface.draw(cardLabel);
-
-    //Draw MB
-    mbPlaceholder.setPosition(220.f + 480.f, 67.0f + (32.f*i));
-    surface.draw(mbPlaceholder);
 
     // Draw cursor
     if (packView.lastCardOnScreen + i == packView.currCardIndex) {
@@ -935,35 +950,6 @@ void FolderEditScene::WriteNewFolderData()
     folder.AddCard((*iter).ViewCard());
   }
 }
-
-void FolderEditScene::RefreshCurrentCardDock(FolderEditScene::CardView& view)
-{
-  if (view.currCardIndex <= folderCardSlots.size()) {
-    FolderSlot slot = folderCardSlots[view.currCardIndex]; // copy data, do not mutate it
-
-    // If we have selected a new card, display the appropriate texture for its type
-    if (view.currCardIndex != view.prevIndex) {
-      sf::Sprite& sprite = currViewMode == ViewMode::folder ? cardHolder : packCardHolder;
-      Battle::Card card;
-      slot.GetCard(card);
-
-      switch (card.GetClass()) {
-      case Battle::CardClass::mega:
-        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_MEGA));
-        break;
-      case Battle::CardClass::giga:
-        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_GIGA));
-        break;
-      case Battle::CardClass::dark:
-        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_DARK));
-        break;
-      default:
-        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
-      }
-    }
-  }
-}
-
 
 #ifdef __ANDROID__
 void FolderEditScene::StartupTouchControls() {

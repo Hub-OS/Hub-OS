@@ -4,19 +4,19 @@
 #include "bnProtoManSummon.h"
 #include "bnField.h"
 
-ProtoManCardAction::ProtoManCardAction(Character& owner, int damage) :
+ProtoManCardAction::ProtoManCardAction(Character& actor, int damage) :
   damage(damage),
-  CardAction(owner, "PLAYER_IDLE"){
+  CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
-void ProtoManCardAction::OnExecute() {
-  auto& owner = GetCharacter();
+void ProtoManCardAction::OnExecute(Character* user) {
+  auto& actor = GetActor();
 
-  owner.Hide();
-  auto* proto = new ProtoManSummon(&owner, damage);
+  actor.Hide();
+  auto* proto = new ProtoManSummon(&actor, damage);
 
-  owner.GetField()->AddEntity(*proto, *owner.GetTile());
+  actor.GetField()->AddEntity(*proto, *actor.GetTile());
 
   CardAction::Step protoman;
   protoman.updateFunc = [proto](double elapsed, Step& step) {
@@ -44,5 +44,5 @@ void ProtoManCardAction::OnAnimationEnd()
 
 void ProtoManCardAction::OnEndAction()
 {
-  GetCharacter().Reveal();
+  GetActor().Reveal();
 }

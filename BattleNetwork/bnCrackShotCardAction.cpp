@@ -13,18 +13,18 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-CrackShotCardAction::CrackShotCardAction(Character& user, int damage) : 
-CardAction(user, "PLAYER_SWORD") {
+CrackShotCardAction::CrackShotCardAction(Character& actor, int damage) : 
+CardAction(actor, "PLAYER_SWORD") {
   CrackShotCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(user.getTexture());
+  attachment->setTexture(actor.getTexture());
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  auto* anim = user.GetFirstComponent<AnimationComponent>();
+  auto* anim = actor.GetFirstComponent<AnimationComponent>();
 
   if (anim) {
     attachmentAnim = Animation(anim->GetFilePath());
@@ -37,32 +37,32 @@ CrackShotCardAction::~CrackShotCardAction()
 {
 }
 
-void CrackShotCardAction::OnExecute() {
-  auto owner = &GetCharacter();
+void CrackShotCardAction::OnExecute(Character* user) {
+  auto actor = &GetActor();
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, owner]() -> void {
+  auto onThrow = [=]() -> void {
     int step = 1;
 
-    if (owner->GetTeam() == Team::blue) {
+    if (actor->GetTeam() == Team::blue) {
       step = -1;
     }
 
-    auto tile = owner->GetTile()->Offset(step, 0);
-    auto field = owner->GetField();
+    auto tile = actor->GetTile()->Offset(step, 0);
+    auto field = actor->GetField();
 
     if (tile && tile->IsWalkable()) {
       if (!tile->IsReservedByCharacter()) {
-        CrackShot* b = new CrackShot(owner->GetTeam(), tile);
+        CrackShot* b = new CrackShot(actor->GetTeam(), tile);
         auto props = b->GetHitboxProperties();
         props.damage = damage;
-        props.aggressor = owner->GetID();
+        props.aggressor = user->GetID();
         b->SetHitboxProperties(props);
 
-        auto direction = (owner->GetTeam() == Team::red) ? Direction::right : Direction::left;
+        auto direction = (actor->GetTeam() == Team::red) ? Direction::right : Direction::left;
         b->SetDirection(direction);
 
-        owner->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
+        actor->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 
         field->AddEntity(*b, *tile);
         Audio().Play(AudioType::TOSS_ITEM_LITE);
@@ -81,7 +81,7 @@ void CrackShotCardAction::OnExecute() {
   };
 
   auto addHand = [this] {
-    auto owner = &GetCharacter();
+    auto owner = &GetActor();
     overlay.setTexture(*owner->getTexture());
     attachment = new SpriteProxyNode(overlay);
     attachment->SetLayer(-1);

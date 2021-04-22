@@ -3,10 +3,9 @@
 #include "bnShaderResourceManager.h"
 #include "bnEntity.h"
 
-PaletteSwap::PaletteSwap(Entity * owner, std::shared_ptr<sf::Texture> base_palette) : Component(owner), base(base_palette), enabled(true)
+PaletteSwap::PaletteSwap(Entity * owner) : Component(owner), enabled(true)
 {
   paletteSwap = ResourceHandle().Shaders().GetShader(ShaderType::PALETTE_SWAP);
-  paletteSwap->setUniform("palette", *base);
   paletteSwap->setUniform("texture", sf::Shader::CurrentTexture);
 }
 
@@ -32,10 +31,23 @@ void PaletteSwap::LoadPaletteTexture(std::string path)
 
 }
 
+void PaletteSwap::CopyFrom(PaletteSwap& other)
+{
+  base = other.base;
+  palette = other.palette;
+  Apply();
+}
+
 void PaletteSwap::SetTexture(const std::shared_ptr<sf::Texture>& texture)
 {
   palette = texture;
   paletteSwap->setUniform("palette", *palette);
+}
+
+void PaletteSwap::SetBase(const std::shared_ptr<sf::Texture>& base)
+{
+  this->base = base;
+  paletteSwap->setUniform("palette", *base);
 }
 
 void PaletteSwap::Revert()

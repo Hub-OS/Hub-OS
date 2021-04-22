@@ -18,9 +18,8 @@
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-FireBurnCardAction::FireBurnCardAction(Character& owner, FireBurn::Type type, int damage) 
-  : 
-  CardAction(owner, "PLAYER_SHOOTING"),
+FireBurnCardAction::FireBurnCardAction(Character& actor, FireBurn::Type type, int damage) : 
+  CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(ANIM) {
   FireBurnCardAction::damage = damage;
   FireBurnCardAction::type = type;
@@ -35,37 +34,35 @@ FireBurnCardAction::FireBurnCardAction(Character& owner, FireBurn::Type type, in
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 FireBurnCardAction::~FireBurnCardAction()
 {
 }
-void FireBurnCardAction::OnExecute() {
-  auto owner = &GetCharacter();
+void FireBurnCardAction::OnExecute(Character* user) {
+  auto actor = &GetActor();
 
   // On shoot frame, drop projectile
-  auto onFire = [this, owner](int offset) -> void {
-    Team team = owner->GetTeam();
+  auto onFire = [=](int offset) -> void {
+    Team team = actor->GetTeam();
     FireBurn* fb = new FireBurn(team, type, damage);
     auto props = fb->GetHitboxProperties();
-    props.aggressor = owner->GetID();
+    props.aggressor = user->GetID();
     fb->SetHitboxProperties(props);
     fb->CrackTiles(crackTiles);
 
     // update node position in the animation
     auto baseOffset = CalculatePointOffset("buster");
-
     baseOffset *= 2.0f;
 
     fb->SetHeight(-baseOffset.y);
 
     int dir = team == Team::red ? 1 : -1;
-
-    auto tile = owner->GetTile()->Offset(((1 + offset) * dir), 0);
+    auto tile = actor->GetTile()->Offset(((1 + offset) * dir), 0);
 
     if (tile) {
-      owner->GetField()->AddEntity(*fb, *tile);
+      actor->GetField()->AddEntity(*fb, *tile);
     }
   };
 
@@ -87,7 +84,7 @@ void FireBurnCardAction::Update(double _elapsed)
 
 void FireBurnCardAction::OnAnimationEnd()
 {
-  GetCharacter().RemoveNode(attachment);
+  GetActor().RemoveNode(attachment);
 }
 
 void FireBurnCardAction::OnEndAction()

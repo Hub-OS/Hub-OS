@@ -20,16 +20,16 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       DefenseRule& defense;
 
     public:
-      AntiDamageTriggerAction(Character& owner, Character& aggressor, DefenseRule& defense) :
-        CardAction(owner, "PLAYER_IDLE"),
+      AntiDamageTriggerAction(Character& actor, Character& aggressor, DefenseRule& defense) :
+        CardAction(actor, "PLAYER_IDLE"),
         aggressor(aggressor),
         defense(defense) {}
 
       ~AntiDamageTriggerAction() { }
 
       void Update(double elapsed) override {}
-      void OnExecute() override {
-        auto& owner = GetCharacter();
+      void OnExecute(Character* user) override {
+        auto& owner = GetActor();
         Battle::Tile* tile = nullptr;
 
         // Add a HideTimer for the owner of anti damage

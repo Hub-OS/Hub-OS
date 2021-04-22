@@ -10,8 +10,8 @@
 #define FRAMES FRAME1
 
 
-RecoverCardAction::RecoverCardAction(Character& owner, int heal) : 
-  CardAction(owner, "PLAYER_IDLE") {
+RecoverCardAction::RecoverCardAction(Character& actor, int heal) : 
+  CardAction(actor, "PLAYER_IDLE") {
   RecoverCardAction::heal = heal;
 
   // add override anims
@@ -22,21 +22,19 @@ RecoverCardAction::~RecoverCardAction()
 {
 }
 
-void RecoverCardAction::OnExecute() {
-  auto& user = GetCharacter();
-
+void RecoverCardAction::OnExecute(Character* user) {
   // Increase player health
-  user.SetHealth(user.GetHealth() + heal);
+  user->SetHealth(user->GetHealth() + heal);
 
   // Play sound
   Audio().Play(AudioType::RECOVER);
 
   // Add artifact on the same layer as player
-  Battle::Tile* tile = user.GetTile();
+  Battle::Tile* tile = user->GetTile();
 
   if (tile) {
     auto healfx = new ParticleHeal();
-    user.GetField()->AddEntity(*healfx, *tile);
+    user->GetField()->AddEntity(*healfx, *tile);
   }
 }
 

@@ -342,7 +342,7 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter(const std::initializer_list<Character*>& exclude)
   {
-    if (!reserved.empty()) return false;
+    if (!reserved.empty()) return true;
 
     if (exclude.size() == 0) {
       return !characters.empty();
@@ -570,7 +570,8 @@ namespace Battle {
   void Tile::BattleStop() {
     if (isBattleOver) return;
 
-    for (auto&& e : entities) {
+    auto copy = entities;
+    for (auto&& e : copy) {
       e->OnBattleStop();
       e->ClearActionQueue();
     }

@@ -580,7 +580,7 @@ const bool Entity::IsTimeFrozen()
 void Entity::FreeAllComponents()
 {
   for (int i = 0; i < components.size(); i++) {
-    components[i]->FreeOwner();
+    components[i]->Eject();
   }
 
   components.clear();

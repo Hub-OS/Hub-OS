@@ -2,9 +2,9 @@
 #include "bnCharacter.h"
 #include "bnNinjaAntiDamage.h"
 
-AntiDmgCardAction::AntiDmgCardAction(Character& owner, int damage) : 
+AntiDmgCardAction::AntiDmgCardAction(Character& actor, int damage) : 
   damage(damage),
-  CardAction(owner, "PLAYER_IDLE"){
+  CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout(CardAction::LockoutProperties{
     CardAction::LockoutType::animation,
     3000, // milliseconds
@@ -12,8 +12,8 @@ AntiDmgCardAction::AntiDmgCardAction(Character& owner, int damage) :
   });
 }
 
-void AntiDmgCardAction::OnExecute() {
-  GetCharacter().CreateComponent<NinjaAntiDamage>(&GetCharacter());
+void AntiDmgCardAction::OnExecute(Character* user) {
+  user->CreateComponent<NinjaAntiDamage>(user);
 }
 
 AntiDmgCardAction::~AntiDmgCardAction()
@@ -31,5 +31,5 @@ void AntiDmgCardAction::OnAnimationEnd()
 
 void AntiDmgCardAction::OnEndAction()
 {
-  GetCharacter().Reveal();
+
 }

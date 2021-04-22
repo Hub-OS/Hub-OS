@@ -4,10 +4,10 @@ class Character;
 
 class CubeCardAction : public CardAction {
 public:
-  CubeCardAction(Character& owner);
+  CubeCardAction(Character& actor);
   ~CubeCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction() override;
-  void OnExecute() override;
+  void OnExecute(Character* user) override;
 };

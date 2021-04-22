@@ -73,7 +73,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Com
         this->fx = nullptr;
       }
       else {
-        // We can no longer protect this user...
+        // We can no longer protect this user->..
         owner.Hit(hitbox);
       }
     }

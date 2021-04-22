@@ -17,7 +17,7 @@
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, \
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
-TornadoCardAction::TornadoCardAction(Character& owner, int damage) : CardAction(owner, "PLAYER_SHOOTING"),
+TornadoCardAction::TornadoCardAction(Character& actor, int damage) : CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(FAN_ANIM), armIsOut(false), damage(damage) {
   fan.setTexture(*Textures().LoadTextureFromFile(FAN_PATH));
   attachment = new SpriteProxyNode(fan);
@@ -35,24 +35,24 @@ TornadoCardAction::~TornadoCardAction()
 {
 }
 
-void TornadoCardAction::OnExecute() {
-  auto& owner = GetCharacter();
+void TornadoCardAction::OnExecute(Character* user) {
+  auto& actor = GetActor();
 
   attachmentAnim.Update(0, attachment->getSprite());
 
-  owner.AddNode(attachment);
+  actor.AddNode(attachment);
 
-  auto team = owner.GetTeam();
-  auto tile = owner.GetTile();
-  auto field = owner.GetField();
+  auto team = actor.GetTeam();
+  auto tile = actor.GetTile();
+  auto field = actor.GetField();
 
   // On shoot frame, drop projectile
-  auto onFire = [this, team, tile, field, owner = &owner]() -> void {
+  auto onFire = [=]() -> void {
     Tornado* tornado = new Tornado(team, 8, damage);
     tornado->setTexture(Textures().LoadTextureFromFile("resources/spells/spell_tornado.png"));
 
     auto props = tornado->GetHitboxProperties();
-    props.aggressor = owner->GetID();
+    props.aggressor = user->GetID();
     tornado->SetHitboxProperties(props);
 
     int step = team == Team::red ? 2 : -2;
@@ -85,5 +85,5 @@ void TornadoCardAction::OnAnimationEnd()
 
 void TornadoCardAction::OnEndAction()
 {
-  GetCharacter().RemoveNode(attachment);
+  GetActor().RemoveNode(attachment);
 }

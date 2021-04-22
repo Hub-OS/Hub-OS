@@ -9,16 +9,16 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(Character& owner, bool charged, int damage) : CardAction(owner, "PLAYER_SHOOTING")
+BusterCardAction::BusterCardAction(Character& actor, bool charged, int damage) : CardAction(actor, "PLAYER_SHOOTING")
 {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
   buster = new SpriteProxyNode();
-  buster->setTexture(owner.getTexture());
+  buster->setTexture(actor.getTexture());
   buster->SetLayer(-1);
 
-  busterAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  busterAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
   busterAnim.SetAnimation("BUSTER");
 
   flare = new SpriteProxyNode();
@@ -28,19 +28,17 @@ BusterCardAction::BusterCardAction(Character& owner, bool charged, int damage) :
   flareAnim = Animation(NODE_ANIM);
   flareAnim.SetAnimation("DEFAULT");
 
-  busterAttachment = &AddAttachment(owner, "buster", *buster).UseAnimation(busterAnim);
+  busterAttachment = &AddAttachment(actor, "buster", *buster).UseAnimation(busterAnim);
 
   this->SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
 
-void BusterCardAction::OnExecute() {
-  auto owner = &GetCharacter();
-
+void BusterCardAction::OnExecute(Character* user) {
   buster->EnableParentShader(true);
 
   // On shoot frame, drop projectile
-  auto onFire = [this, owner]() -> void {
-    Team team = owner->GetTeam();
+  auto onFire = [this, user]() -> void {
+    Team team = user->GetTeam();
     Buster* b = new Buster(team, charged, damage);
 
     if (team == Team::red) {
@@ -55,7 +53,7 @@ void BusterCardAction::OnExecute() {
       EndAction();
       });
 
-    owner->GetField()->AddEntity(*b, *owner->GetTile());
+    user->GetField()->AddEntity(*b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
 
     busterAttachment->AddAttachment(busterAnim, "endpoint", *flare).UseAnimation(flareAnim);

@@ -110,8 +110,8 @@ void AnimationComponent::SetPlaybackMode(char playbackMode)
 {
   animation << playbackMode;
 
-  for (auto&& o : syncList) {
-    (*o.anim) << playbackMode;
+  for (auto&& s : syncList) {
+    (*s.anim) << playbackMode;
   }
 }
 
@@ -143,9 +143,9 @@ void AnimationComponent::CancelCallbacks()
   animation.RemoveCallbacks();
   animation << mode;
 
-  for (auto& o : syncList) {
-    o.anim->RemoveCallbacks();
-    (*o.anim) << mode;
+  for (auto& s : syncList) {
+    s.anim->RemoveCallbacks();
+    (*s.anim) << mode;
   }
 }
 
@@ -205,6 +205,11 @@ void AnimationComponent::RemoveFromSyncList(const AnimationComponent::SyncItem& 
   if (iter != syncList.end()) {
     syncList.erase(iter);
   }
+}
+
+std::vector<AnimationComponent::SyncItem> AnimationComponent::GetSyncItems()
+{
+  return syncList;
 }
 
 void AnimationComponent::SetInterruptCallback(const FrameFinishCallback& onInterrupt)

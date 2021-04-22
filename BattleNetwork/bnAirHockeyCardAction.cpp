@@ -13,18 +13,18 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-AirHockeyCardAction::AirHockeyCardAction(Character& owner, int damage) :
-  CardAction(owner, "PLAYER_SWORD") {
+AirHockeyCardAction::AirHockeyCardAction(Character& actor, int damage) :
+  CardAction(actor, "PLAYER_SWORD") {
   AirHockeyCardAction::damage = damage;
 
-  overlay.setTexture(*owner.getTexture());
+  overlay.setTexture(*actor.getTexture());
   attachment = new SpriteProxyNode(overlay);
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("HAND");
 }
@@ -33,29 +33,29 @@ AirHockeyCardAction::~AirHockeyCardAction()
 {
 }
 
-void AirHockeyCardAction::OnExecute() {
-  auto* owner = &GetCharacter();
+void AirHockeyCardAction::OnExecute(Character* user) {
+  auto* actor = &GetActor();
 
-  auto onHand = [owner, this] {
-    AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
+  auto onHand = [=] {
+    AddAttachment(*actor, "hilt", *attachment).UseAnimation(attachmentAnim);
   };
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, owner]() -> void {
+  auto onThrow = [=]() -> void {
 
     int step = 1;
 
-    if (owner->GetTeam() == Team::blue) {
+    if (actor->GetTeam() == Team::blue) {
       step = -1;
     }
 
-    auto& field = *owner->GetField();
-    auto tile = owner->GetTile()->Offset(step, 0);
+    auto& field = *actor->GetField();
+    auto tile = actor->GetTile()->Offset(step, 0);
 
     if (tile) {
-      AirHockey* b = new AirHockey(&field, owner->GetTeam(), this->damage, 10);
+      AirHockey* b = new AirHockey(&field, actor->GetTeam(), this->damage, 10);
       auto props = b->GetHitboxProperties();
-      props.aggressor = GetCharacter().GetID();
+      props.aggressor = user->GetID();
       b->SetHitboxProperties(props);
 
       field.AddEntity(*b, tile->GetX(), tile->GetY());
@@ -63,7 +63,7 @@ void AirHockeyCardAction::OnExecute() {
 
     if (tile == nullptr) {
       auto* fx = new MobMoveEffect();
-      field.AddEntity(*fx, *owner->GetTile());
+      field.AddEntity(*fx, *actor->GetTile());
     }
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);

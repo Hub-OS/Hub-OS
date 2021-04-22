@@ -92,7 +92,7 @@ private:
   std::function<void()> prepareActionDelegate;
   ActionList sequence;
   std::list<Step*> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
-  Character& user;
+  Character& actor;
   Attachments attachments;
   AnimationComponent* anim{ nullptr };
 
@@ -119,14 +119,14 @@ protected:
 public:
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
-  CardAction(Character& owner, const std::string& animation);
+  CardAction(Character& actor, const std::string& animation);
   virtual ~CardAction();
 
   void PreventCounters();
   void SetLockout(const LockoutProperties& props);
   void SetLockoutGroup(const LockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
-  void Execute();
+  void Execute(Character* user);
   void EndAction();
 
   const LockoutGroup GetLockoutGroup() const;
@@ -136,7 +136,7 @@ public:
   const bool IsLockoutOver() const;
   const bool CanExecute() const;
   
-  Character& GetCharacter();
+  Character& GetActor();
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -144,5 +144,5 @@ public:
 protected:
   virtual void OnEndAction() = 0;
   virtual void OnAnimationEnd() = 0;
-  virtual void OnExecute() = 0;
+  virtual void OnExecute(Character* user) = 0;
 };

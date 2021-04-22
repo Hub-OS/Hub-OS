@@ -31,11 +31,11 @@ private:
   std::string prevAnimation, prevState;
   /*class SpecialAction : public CardAction {
   public:
-    SpecialAction(Character& owner);
+    SpecialAction(Character& actor);
     ~SpecialAction();
 
     // Inherited via CardAction
-    void OnExecute() override;
+    void OnExecute(Character* user) override;
     void OnEndAction() override;
     void OnAnimationEnd() override;
   };*/
@@ -60,11 +60,11 @@ private:
 
   class SpecialAction : public CardAction {
   public:
-    SpecialAction(Character& owner);
+    SpecialAction(Character& actor);
     ~SpecialAction();
 
     // Inherited via CardAction
-    void OnExecute() override;
+    void OnExecute(Character* user) override;
     void OnEndAction() override;
     void OnAnimationEnd() override;
   };

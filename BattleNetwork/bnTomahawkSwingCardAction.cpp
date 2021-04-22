@@ -5,8 +5,8 @@
 #include "bnHitbox.h"
 #include "bnField.h"
 
-TomahawkSwingCardAction::TomahawkSwingCardAction(Character& owner, int damage) :
-  CardAction(owner, "PLAYER_CHOP"),
+TomahawkSwingCardAction::TomahawkSwingCardAction(Character& actor, int damage) :
+  CardAction(actor, "PLAYER_CHOP"),
   damage(damage)
 {
 
@@ -16,20 +16,19 @@ TomahawkSwingCardAction::~TomahawkSwingCardAction()
 {
 }
 
-void TomahawkSwingCardAction::OnExecute()
+void TomahawkSwingCardAction::OnExecute(Character* user)
 {
-  auto spawn = [this] {
-    auto& owner = GetCharacter();
-    auto* tile = owner.GetTile();
-    auto* field =owner.GetField();
+  auto spawn = [=] {
+    auto* tile  = user->GetTile();
+    auto* field = user->GetField();
     field->AddEntity(*new TomahawkEffect, tile->GetX() + 1, tile->GetY());
 
     for (auto col : { 1, 2 }) {
       for (auto row : { 1, 0, -1 }) {
-        auto* hitbox = new Hitbox(owner.GetTeam(), damage);
+        auto* hitbox = new Hitbox(user->GetTeam(), damage);
         auto props = hitbox->GetHitboxProperties();
         props.flags |= Hit::flinch;
-        props.aggressor = owner.GetID();
+        props.aggressor = user->GetID();
         hitbox->SetHitboxProperties(props);
         field->AddEntity(*hitbox, tile->GetX() + col, tile->GetY() + row);
       }

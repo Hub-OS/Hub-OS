@@ -11,15 +11,15 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-WindRackCardAction::WindRackCardAction(Character& owner, int damage) :
+WindRackCardAction::WindRackCardAction(Character& actor, int damage) :
   damage(damage),
-  CardAction(owner, "PLAYER_SWORD") {
+  CardAction(actor, "PLAYER_SWORD") {
   hilt = new SpriteProxyNode();
-  hilt->setTexture(owner.getTexture());
+  hilt->setTexture(actor.getTexture());
   hilt->SetLayer(-1);
   hilt->EnableParentShader(true);
 
-  auto userAnim = GetCharacter().GetFirstComponent<AnimationComponent>();
+  auto userAnim = GetActor().GetFirstComponent<AnimationComponent>();
   hiltAnim = Animation(userAnim->GetFilePath());
   hiltAnim.Reload();
 
@@ -61,15 +61,16 @@ void WindRackCardAction::ReplaceRack(SpriteProxyNode* node, const Animation& new
   hiltAnim = newAnim;
 }
 
-void WindRackCardAction::OnExecute()
+void WindRackCardAction::OnExecute(Character* user)
 {
-  auto owner = &GetCharacter();
-  auto team = owner->GetTeam();
-  auto field = owner->GetField();
+  auto actor = &GetActor();
+  auto team = actor->GetTeam();
+  auto field = actor->GetField();
+  Entity::ID_t userId{ user->GetID() };
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, team, owner, field]() -> void {
-    auto userAnim = GetCharacter().GetFirstComponent<AnimationComponent>();
+  auto onThrow = [=]() -> void {
+    auto userAnim = GetActor().GetFirstComponent<AnimationComponent>();
     auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObject(), "HILT", *hilt).UseAnimation(hiltAnim);
 
     if (attachment) {
@@ -78,15 +79,15 @@ void WindRackCardAction::OnExecute()
 
     Direction direction{ Direction::right };
 
-    if (owner->GetTeam() == Team::blue) {
+    if (actor->GetTeam() == Team::blue) {
       direction = Direction::left;
     }
 
     // tiles
     auto tiles = std::vector{
-      owner->GetTile()->Offset(1, 0),
-      owner->GetTile()->Offset(1, 1),
-      owner->GetTile()->Offset(1,-1)
+      actor->GetTile()->Offset(1, 0),
+      actor->GetTile()->Offset(1, 1),
+      actor->GetTile()->Offset(1,-1)
     };
 
     // big push effect
@@ -111,19 +112,19 @@ void WindRackCardAction::OnExecute()
     e->SetAnimation("WIDE");
     field->AddEntity(*e, *tiles[0]);
 
-    BasicSword* b = new BasicSword(owner->GetTeam(), damage);
+    BasicSword* b = new BasicSword(actor->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = owner->GetID();
+    props.aggressor = userId;
     b->SetHitboxProperties(props);
 
     Audio().Play(AudioType::SWORD_SWING);
     field->AddEntity(*b, *tiles[0]);
 
-    b = new BasicSword(owner->GetTeam(), damage);
+    b = new BasicSword(actor->GetTeam(), damage);
     b->SetHitboxProperties(props);
     field->AddEntity(*b, *tiles[1]);
 
-    b = new BasicSword(owner->GetTeam(), damage);
+    b = new BasicSword(actor->GetTeam(), damage);
     b->SetHitboxProperties(props);
     field->AddEntity(*b, *tiles[2]);
   };

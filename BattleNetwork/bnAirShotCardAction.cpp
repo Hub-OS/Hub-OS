@@ -15,7 +15,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME3, FRAME3
 
-AirShotCardAction::AirShotCardAction(Character& user, int damage) : CardAction(user, "PLAYER_SHOOTING") {
+AirShotCardAction::AirShotCardAction(Character& actor, int damage) : CardAction(actor, "PLAYER_SHOOTING") {
   AirShotCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
@@ -28,24 +28,24 @@ AirShotCardAction::AirShotCardAction(Character& user, int damage) : CardAction(u
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(user, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
-void AirShotCardAction::OnExecute() {
+void AirShotCardAction::OnExecute(Character* user) {
 
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    auto& user = GetCharacter();
+  auto onFire = [=]() -> void {
+    auto& actor = GetActor();
 
     Audio().Play(AudioType::SPREADER);
 
-    AirShot* airshot = new AirShot(user.GetTeam(), damage);
+    AirShot* airshot = new AirShot(actor.GetTeam(), damage);
     airshot->SetDirection(Direction::right);
     auto props = airshot->GetHitboxProperties();
-    props.aggressor = user.GetID();
+    props.aggressor = user->GetID();
     airshot->SetHitboxProperties(props);
 
-    user.GetField()->AddEntity(*airshot, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+    actor.GetField()->AddEntity(*airshot, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
   };
 
   AddAnimAction(2, onFire);

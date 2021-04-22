@@ -21,10 +21,10 @@ class MachGunCardAction : public CardAction {
   Battle::Tile* MoveRectical(Field*, bool columnMove);
 
 public:
-  MachGunCardAction(Character& owner, int damage);
+  MachGunCardAction(Character& actor, int damage);
   ~MachGunCardAction();
 
-  void OnExecute() override;
+  void OnExecute(Character* user) override;
   void OnEndAction() override;
   void OnAnimationEnd() override;
 };

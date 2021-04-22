@@ -7,7 +7,7 @@ class SpriteProxyNode;
 class Character;
 class ElecSwordCardAction : public LongSwordCardAction {
 public:
-  ElecSwordCardAction(Character& owner, int damage);
+  ElecSwordCardAction(Character& actor, int damage);
   ~ElecSwordCardAction();
 };
 

@@ -5,11 +5,17 @@
 #include "../../bnCardAction.h"
 #include "../../bnCardToActions.h"
 #include "../../bnCharacter.h"
+#include "../../bnStuntDouble.h"
 #include "../../bnField.h"
 
 TimeFreezeBattleState::TimeFreezeBattleState()
 {
   lockedTimestamp = lockedTimestamp = std::numeric_limits<long long>::max();
+}
+
+TimeFreezeBattleState::~TimeFreezeBattleState()
+{
+  CleanupStuntDouble();
 }
 
 const bool TimeFreezeBattleState::FadeInBackdrop()
@@ -20,6 +26,22 @@ const bool TimeFreezeBattleState::FadeInBackdrop()
 const bool TimeFreezeBattleState::FadeOutBackdrop()
 {
   return GetScene().FadeOutBackdrop(backdropInc);
+}
+
+void TimeFreezeBattleState::CleanupStuntDouble()
+{
+  if (stuntDouble) {
+    GetScene().GetField()->DeallocEntity(stuntDouble->GetID());
+  }
+
+  stuntDouble = nullptr;
+}
+
+Character* TimeFreezeBattleState::CreateStuntDouble(Character* from)
+{
+  CleanupStuntDouble();
+  stuntDouble = new StuntDouble(*from);
+  return stuntDouble;
 }
 
 void TimeFreezeBattleState::SkipToAnimateState()
@@ -68,20 +90,32 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     if (summonSecs >= summonTextLength) {
       GetScene().HighlightTiles(true); // re-enable tile highlighting for new entities
       currState = state::animate; // animate this attack
+      ExecuteTimeFreeze();
     }
   }
   break;
   case state::animate:
     {
-      ExecuteTimeFreeze();
+      bool updateAnim = false;
 
-      if (action && action->IsAnimationOver() == false) {
-          // action->Update(elapsed);
-          GetScene().GetField()->Update(elapsed);
+      // update the action until it is is complete
+      switch(action->GetLockoutType()){
+      case CardAction::LockoutType::sequence:
+        updateAnim = !action->IsLockoutOver();
+        break;
+      default:
+        updateAnim = !action->IsAnimationOver();
+        break;
+      }
+
+      if (updateAnim) {
+        action->Update(elapsed);
+        GetScene().GetField()->Update(elapsed);
       }
       else{
         currState = state::fadeout;
-        user->ToggleTimeFreeze(true); // in case the user was animating
+        user->Reveal();
+        CleanupStuntDouble();
         lockedTimestamp = std::numeric_limits<long long>::max();
       }
     }
@@ -124,7 +158,9 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (action && action->CanExecute()) {
-    action->Execute();
+    user->Hide();
+    GetScene().GetField()->AddEntity(*stuntDouble, *user->GetTile());
+    action->Execute(user);
   }
 }
 
@@ -140,6 +176,7 @@ void TimeFreezeBattleState::OnCardUse(const Battle::Card& card, Character& user,
     this->user = &user;
     lockedTimestamp = timestamp;
 
-    action = CardToAction(card, user);
+    stuntDouble = CreateStuntDouble(this->user);
+    action = CardToAction(card, *stuntDouble);
   }
 }

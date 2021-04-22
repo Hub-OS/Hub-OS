@@ -16,8 +16,8 @@
 // TODO: check frame-by-frame anim
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-VulcanCardAction::VulcanCardAction(Character& owner, int damage) : 
-  CardAction(owner, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
+VulcanCardAction::VulcanCardAction(Character& actor, int damage) : 
+  CardAction(actor, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
   VulcanCardAction::damage = damage;
   attachment = new SpriteProxyNode();
   attachment->setTexture(Textures().LoadTextureFromFile(PATH));
@@ -26,27 +26,26 @@ VulcanCardAction::VulcanCardAction(Character& owner, int damage) :
   attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
 
-  Animation& userAnim = owner.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  Animation& userAnim = actor.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
   AddAttachment(userAnim, "BUSTER", *attachment).UseAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 VulcanCardAction::~VulcanCardAction()
 {
 }
-void VulcanCardAction::OnExecute() {
-  auto owner = &GetCharacter();
+void VulcanCardAction::OnExecute(Character* user) {
 
   // On shoot frame, drop projectile
-  auto onFire = [this, owner]() -> void {
-    Team team = owner->GetTeam();
+  auto onFire = [=]() -> void {
+    Team team = user->GetTeam();
     Vulcan* b = new Vulcan(team, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = owner->GetID();
+    props.aggressor = user->GetID();
     b->SetHitboxProperties(props);
 
     int step = 1;
@@ -59,8 +58,8 @@ void VulcanCardAction::OnExecute() {
       b->SetDirection(Direction::left);
     }
 
-    if (auto tile = owner->GetTile()->Offset(step, 0)) {
-      GetCharacter().GetField()->AddEntity(*b, *tile);
+    if (auto tile = user->GetTile()->Offset(step, 0)) {
+      GetActor().GetField()->AddEntity(*b, *tile);
     }
   };
 

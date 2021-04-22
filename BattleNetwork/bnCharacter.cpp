@@ -221,7 +221,7 @@ void Character::Update(double _elapsed) {
           anim->CancelCallbacks();
         }
 
-        currCardAction->Execute();
+        currCardAction->Execute(this);
       }
     }
 

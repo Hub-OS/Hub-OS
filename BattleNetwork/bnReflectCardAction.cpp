@@ -8,8 +8,8 @@
 
 #define FRAMES FRAME1
 
-ReflectCardAction::ReflectCardAction(Character& owner, int damage, ReflectShield::Type type) :
-  CardAction(owner, "PLAYER_IDLE"),
+ReflectCardAction::ReflectCardAction(Character& actor, int damage, ReflectShield::Type type) :
+  CardAction(actor, "PLAYER_IDLE"),
   type(type) 
 {
   ReflectCardAction::damage = damage;
@@ -22,9 +22,7 @@ ReflectCardAction::~ReflectCardAction()
 {
 }
 
-void ReflectCardAction::OnExecute() {
-  auto user = &GetCharacter();
-
+void ReflectCardAction::OnExecute(Character* user) {
   // Create a new reflect shield component. This handles the logic for shields.
   ReflectShield* reflect = new ReflectShield(user, damage, type);
   reflect->SetDuration(this->duration);

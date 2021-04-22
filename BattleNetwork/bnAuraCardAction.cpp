@@ -1,15 +1,14 @@
 #include "bnAuraCardAction.h"
 #include "bnCharacter.h"
 
-AuraCardAction::AuraCardAction(Character& owner, Aura::Type type) : 
+AuraCardAction::AuraCardAction(Character& actor, Aura::Type type) : 
   type(type),
-  CardAction(owner, "PLAYER_IDLE"){
+  CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout({CardAction::LockoutType::animation,3});
 }
 
-void AuraCardAction::OnExecute() {
-  auto& owner = GetCharacter();
-  owner.CreateComponent<Aura>(type, &owner);
+void AuraCardAction::OnExecute(Character* user) {
+  user->CreateComponent<Aura>(type, user);
 }
 
 AuraCardAction::~AuraCardAction()
@@ -27,5 +26,4 @@ void AuraCardAction::OnAnimationEnd()
 
 void AuraCardAction::OnEndAction()
 {
-  GetCharacter().Reveal();
 }

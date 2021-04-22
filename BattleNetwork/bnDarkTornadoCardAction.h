@@ -13,10 +13,10 @@ private:
   bool armIsOut;
   int damage;
 public:
-  DarkTornadoCardAction(Character& owner, int damage);
+  DarkTornadoCardAction(Character& actor, int damage);
   ~DarkTornadoCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction() override;
-  void OnExecute() override;
+  void OnExecute(Character* user) override;
 }; 

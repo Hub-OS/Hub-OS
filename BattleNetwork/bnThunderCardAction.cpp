@@ -6,31 +6,31 @@
 #include "bnThunder.h"
 #include "bnField.h"
 
-ThunderCardAction::ThunderCardAction(Character& owner, int damage) :
-  CardAction(owner, "PLAYER_SHOOTING"),
-  attachmentAnim(owner.GetFirstComponent<AnimationComponent>()->GetFilePath()) {
+ThunderCardAction::ThunderCardAction(Character& actor, int damage) :
+  CardAction(actor, "PLAYER_SHOOTING"),
+  attachmentAnim(actor.GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   ThunderCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(owner.getTexture());
+  attachment->setTexture(actor.getTexture());
   attachment->SetLayer(-1);
   attachment->EnableParentShader();
 
-  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("BUSTER");
-  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
-void ThunderCardAction::OnExecute() {
+void ThunderCardAction::OnExecute(Character* user) {
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    auto& owner = GetCharacter();
+  auto onFire = [=]() -> void {
+    auto& owner = GetActor();
     Team team = owner.GetTeam();
     auto* thunder = new Thunder(team);
     auto props = thunder->GetHitboxProperties();
     props.damage = damage;
-    props.aggressor = owner.GetID();
+    props.aggressor = user->GetID();
     thunder->SetHitboxProperties(props);
 
     int step = 1;

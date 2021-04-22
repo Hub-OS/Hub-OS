@@ -3,20 +3,20 @@
 #include "bnCube.h"
 #include "bnField.h"
 
-CubeCardAction::CubeCardAction(Character& owner) : 
-  CardAction(owner, "PLAYER_IDLE"){
+CubeCardAction::CubeCardAction(Character& actor) : 
+  CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
-void CubeCardAction::OnExecute() {
-  auto& owner = GetCharacter();
+void CubeCardAction::OnExecute(Character* user) {
+  auto& actor = GetActor();
   
-  auto* cube = new Cube(owner.GetField());
+  auto* cube = new Cube(actor.GetField());
 
-  auto tile = owner.GetTile()->Offset(1, 0);
+  auto tile = actor.GetTile()->Offset(1, 0);
 
   if (tile) {
-    owner.GetField()->AddEntity(*cube, *tile);
+    actor.GetField()->AddEntity(*cube, *tile);
 
     // On start of idle frame, spawn
     AddStep({

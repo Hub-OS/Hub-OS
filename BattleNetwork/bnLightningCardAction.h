@@ -14,11 +14,11 @@ private:
   bool fired{ false };
   bool stun{ true };
 public:
-  LightningCardAction(Character& owner, int damage);
+  LightningCardAction(Character& actor, int damage);
   ~LightningCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd();
   void OnEndAction();
-  void OnExecute();
+  void OnExecute(Character* user);
   void SetStun(bool stun);
 };

@@ -12,8 +12,8 @@
 #define FRAMES FRAME1
 
 
-HubBatchCardAction::HubBatchCardAction(Character& owner) :
-  CardAction(owner, "PLAYER_IDLE") {
+HubBatchCardAction::HubBatchCardAction(Character& actor) :
+  CardAction(actor, "PLAYER_IDLE") {
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -23,12 +23,12 @@ HubBatchCardAction::~HubBatchCardAction()
 {
 }
 
-void HubBatchCardAction::OnExecute() {
+void HubBatchCardAction::OnExecute(Character* user) {
   // Play sound
   Audio().Play(AudioType::RECOVER);
 
   // Add hubbatchprogram compontent
-  GetCharacter().CreateComponent<HubBatchProgram>(&GetCharacter());
+  user->CreateComponent<HubBatchProgram>(user);
 }
 
 void HubBatchCardAction::Update(double _elapsed)

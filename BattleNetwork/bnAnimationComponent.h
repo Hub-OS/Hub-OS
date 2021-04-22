@@ -155,6 +155,8 @@ public:
 
   void AddToSyncList(const AnimationComponent::SyncItem& item);
   void RemoveFromSyncList(const AnimationComponent::SyncItem& item);
+  std::vector<SyncItem> GetSyncItems();
+
   void SetInterruptCallback(const FrameFinishCallback& onInterrupt);
   /**
    * @brief Force the animation to jump to this frame index 

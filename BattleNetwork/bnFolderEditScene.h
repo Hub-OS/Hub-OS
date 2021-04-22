@@ -174,7 +174,9 @@ private:
   void PlaceFolderDataIntoCardSlots();
   void PlaceLibraryDataIntoBuckets();
   void WriteNewFolderData();
-  void RefreshCurrentCardDock(CardView& view);
+
+  template<typename ElementType>
+  void RefreshCurrentCardDock(CardView& view, const std::vector<ElementType>& list);
 
 public:
   std::string FormatCardDesc(const std::string&& desc);
@@ -191,3 +193,32 @@ public:
   FolderEditScene(swoosh::ActivityController&, CardFolder& folder);
   ~FolderEditScene();
 };
+
+template<typename ElementType>
+void FolderEditScene::RefreshCurrentCardDock(FolderEditScene::CardView& view, const std::vector<ElementType>& list)
+{
+  if (view.currCardIndex < list.size()) {
+    ElementType slot = list[view.currCardIndex]; // copy data, do not mutate it
+
+    // If we have selected a new card, display the appropriate texture for its type
+    if (view.currCardIndex != view.prevIndex) {
+      sf::Sprite& sprite = currViewMode == ViewMode::folder ? cardHolder : packCardHolder;
+      Battle::Card card;
+      slot.GetCard(card); // Returns and frees the card from the bucket, this is why we needed a copy
+
+      switch (card.GetClass()) {
+      case Battle::CardClass::mega:
+        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_MEGA));
+        break;
+      case Battle::CardClass::giga:
+        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_GIGA));
+        break;
+      case Battle::CardClass::dark:
+        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_DARK));
+        break;
+      default:
+        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+      }
+    }
+  }
+}

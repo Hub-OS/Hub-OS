@@ -14,13 +14,13 @@ protected:
   int damage;
   Element element{ Element::none };
 public:
-  SwordCardAction(Character& owner, int damage);
+  SwordCardAction(Character& actor, int damage);
   virtual ~SwordCardAction();
 
   void OnAnimationEnd() override;
   void OnEndAction() override;
-  void OnExecute() override;
-  virtual void OnSpawnHitbox();
+  void OnExecute(Character* user) override;
+  virtual void OnSpawnHitbox(Entity::ID_t);
   void SetElement(Element elem);
   const Element GetElement() const;
 };

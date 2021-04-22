@@ -5,10 +5,10 @@ class TomahawkSwingCardAction : public CardAction {
   int damage{};
 
 public:
-  TomahawkSwingCardAction(Character& owner, int damage);
+  TomahawkSwingCardAction(Character& actor, int damage);
   ~TomahawkSwingCardAction();
 
-  void OnExecute() override;
+  void OnExecute(Character* user) override;
   void OnEndAction() override;
   void OnAnimationEnd() override;
 };

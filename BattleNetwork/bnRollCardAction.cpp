@@ -5,20 +5,20 @@
 #include "bnRollHeart.h"
 #include "bnField.h"
 
-RollCardAction::RollCardAction(Character& owner, int damage) :
-  CardAction(owner, "PLAYER_IDLE"), damage(damage)
+RollCardAction::RollCardAction(Character& actor, int damage) :
+  CardAction(actor, "PLAYER_IDLE"), damage(damage)
 {
   this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
-void RollCardAction::OnExecute() {
-  auto& owner = GetCharacter();
+void RollCardAction::OnExecute(Character* user) {
+  auto& actor = GetActor();
 
   // On start of idle frame, spawn roll
-  owner.Hide();
-  auto* roll = new RollHeal(owner.GetTeam(), &owner, damage);
+  actor.Hide();
+  auto* roll = new RollHeal(actor.GetTeam(), &actor, damage);
 
-  owner.GetField()->AddEntity(*roll, *owner.GetTile());
+  actor.GetField()->AddEntity(*roll, *actor.GetTile());
 
   // step 1 wait for her animation to end
   CardAction::Step step1;
@@ -34,11 +34,11 @@ void RollCardAction::OnExecute() {
   // step 2 spawn the heart
   CardAction::Step step2;
 
-  step2.updateFunc = [this](double elapsed, Step& self) {
+  step2.updateFunc = [=](double elapsed, Step& self) {
     if (!heart) {
-      auto owner = &GetCharacter();
-      heart = new RollHeart(owner, damage * 3);
-      owner->GetField()->AddEntity(*heart, *owner->GetTile());
+      auto actor = &GetActor();
+      heart = new RollHeart(user, damage * 3);
+      actor->GetField()->AddEntity(*heart, *actor->GetTile());
     }
     else if (heart->WillRemoveLater()) {
       self.markDone();
@@ -65,5 +65,4 @@ void RollCardAction::OnAnimationEnd()
 
 void RollCardAction::OnEndAction()
 {
-  GetCharacter().Reveal();
 }

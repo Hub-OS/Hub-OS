@@ -13,10 +13,10 @@ private:
     Spell* elecpulse;
     int damage;
 public:
-    ElecPulseCardAction(Character& owner, int damage);
+    ElecPulseCardAction(Character& actor, int damage);
     ~ElecPulseCardAction();
 
     void OnAnimationEnd() override;
     void OnEndAction();
-    void OnExecute();
+    void OnExecute(Character* user);
 };

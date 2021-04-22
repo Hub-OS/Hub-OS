@@ -9,10 +9,10 @@ private:
   int damage;
   RollHeart* heart{ nullptr };
 public:
-  RollCardAction(Character& owner, int damage);
+  RollCardAction(Character& actor, int damage);
   ~RollCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnEndAction();
-  void OnExecute();
+  void OnExecute(Character* user);
 };

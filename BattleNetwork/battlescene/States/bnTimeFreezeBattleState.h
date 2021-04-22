@@ -31,10 +31,14 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   std::string name;
   Team team{ Team::unknown };
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
-  Character* user{ nullptr };
+  Character* user{ nullptr }, *stuntDouble{ nullptr };
   CardAction* action{ nullptr };
-  TimeFreezeBattleState();
 
+  TimeFreezeBattleState();
+  ~TimeFreezeBattleState();
+
+  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override;
+  void CleanupStuntDouble();
   void SkipToAnimateState();
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
@@ -44,5 +48,6 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   const bool FadeOutBackdrop();
   const bool FadeInBackdrop();
   bool IsOver();
-  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override;
+
+  Character* CreateStuntDouble(Character* from);
 };

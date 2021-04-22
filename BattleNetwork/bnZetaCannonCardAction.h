@@ -18,11 +18,11 @@ public:
   DefenseRule* defense{ nullptr };
 public:
 
-  ZetaCannonCardAction(Character& owner, int damage);
+  ZetaCannonCardAction(Character& actor, int damage);
   ~ZetaCannonCardAction();
   void Update(double _elapsed) override final;
   void OnAnimationEnd() override final;
   void OnEndAction() override final;
-  void OnExecute() override final;
+  void OnExecute(Character*) override final;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
 };

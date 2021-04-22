@@ -15,16 +15,16 @@
 #define LIGHTNING_IMG "resources/spells/spell_lightning.png"
 #define LIGHTNING_ANI "resources/spells/spell_lightning.animation"
 
-LightningCardAction::LightningCardAction(Character& owner, int damage) :
-  CardAction(owner, "PLAYER_SHOOTING")
+LightningCardAction::LightningCardAction(Character& actor, int damage) :
+  CardAction(actor, "PLAYER_SHOOTING")
 {
   LightningCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(owner.getTexture());
+  attachment->setTexture(actor.getTexture());
   attachment->SetLayer(-1);
 
-  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("BUSTER");
 
@@ -35,19 +35,17 @@ LightningCardAction::LightningCardAction(Character& owner, int damage) :
   attackAnim = Animation(LIGHTNING_ANI);
   attackAnim.SetAnimation("DEFAULT");
 
-  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 }
 
-void LightningCardAction::OnExecute() {
+void LightningCardAction::OnExecute(Character* user) {
   attachment->EnableParentShader(true);
 
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    auto& owner = GetCharacter();
-
+  auto onFire = [=]() -> void {
     Audio().Play(AudioType::SPREADER);
 
     attachment->AddNode(attack);
@@ -55,16 +53,16 @@ void LightningCardAction::OnExecute() {
 
     attackAnim.Update(0, attack->getSprite());
 
-    auto field = owner.GetField();
-    auto team = owner.GetTeam();
-    int col = owner.GetTile()->GetX();
-    int row = owner.GetTile()->GetY();
+    auto field = user->GetField();
+    auto team = user->GetTeam();
+    int col = user->GetTile()->GetX();
+    int row = user->GetTile()->GetY();
 
     for (int i = 1; i < 6; i++) {
       auto hitbox = new Hitbox(team, LightningCardAction::damage);
       hitbox->HighlightTile(Battle::Tile::Highlight::solid);
       auto props = hitbox->GetHitboxProperties();
-      props.aggressor = owner.GetID();
+      props.aggressor = user->GetID();
       props.damage = LightningCardAction::damage;
       props.element = Element::elec;
 

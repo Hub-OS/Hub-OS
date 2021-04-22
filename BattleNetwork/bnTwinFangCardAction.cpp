@@ -12,21 +12,21 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME2, FRAME1, FRAME1
 
-TwinFangCardAction::TwinFangCardAction(Character& owner, int damage) : 
-  CardAction(owner, "PLAYER_SHOOTING") {
+TwinFangCardAction::TwinFangCardAction(Character& actor, int damage) : 
+  CardAction(actor, "PLAYER_SHOOTING") {
   TwinFangCardAction::damage = damage;
 
   buster = new SpriteProxyNode();
-  buster->setTexture(owner.getTexture());
+  buster->setTexture(actor.getTexture());
   buster->SetLayer(-1);
   buster->EnableParentShader(true);
 
-  busterAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  busterAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
 
   std::string newAnimState;
   busterAnim.OverrideAnimationFrames("BUSTER", { FRAMES }, newAnimState);
   busterAnim.SetAnimation(newAnimState);
-  busterAttachment = &AddAttachment(owner, "buster", *buster).UseAnimation(busterAnim);
+  busterAttachment = &AddAttachment(actor, "buster", *buster).UseAnimation(busterAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -36,36 +36,34 @@ TwinFangCardAction::~TwinFangCardAction()
 {
 }
 
-void TwinFangCardAction::OnExecute() {
+void TwinFangCardAction::OnExecute(Character* user) {
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    auto& user = GetCharacter();
-
+  auto onFire = [=]() -> void {
     auto tiles = std::vector{
-      user.GetTile()->Offset(0,-1),
-      user.GetTile()->Offset(0, 1)
+      user->GetTile()->Offset(0,-1),
+      user->GetTile()->Offset(0, 1)
     };
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
-    if (user.GetTile()->GetY() != 0) {
-      TwinFang* twinfang = new TwinFang(user.GetTeam(), TwinFang::Type::ABOVE, damage);
+    if (user->GetTile()->GetY() != 0) {
+      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::ABOVE, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = user.GetID();
+      props.aggressor = user->GetID();
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
-      user.GetField()->AddEntity(*twinfang, *tiles[0]);
+      user->GetField()->AddEntity(*twinfang, *tiles[0]);
     }
 
-    if (user.GetTile()->GetY() != 4) {
-      TwinFang* twinfang = new TwinFang(user.GetTeam(), TwinFang::Type::BELOW, damage);
+    if (user->GetTile()->GetY() != 4) {
+      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::BELOW, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = user.GetID();
+      props.aggressor = user->GetID();
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
-      user.GetField()->AddEntity(*twinfang, *tiles[1]);
+      user->GetField()->AddEntity(*twinfang, *tiles[1]);
     }
   };
 

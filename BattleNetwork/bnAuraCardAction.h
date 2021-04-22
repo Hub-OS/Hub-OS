@@ -7,10 +7,10 @@ class AuraCardAction : public CardAction {
 private:
   Aura::Type type;
 public:
-  AuraCardAction(Character& owner, Aura::Type type);
+  AuraCardAction(Character& actor, Aura::Type type);
   ~AuraCardAction();
   void Update(double _elapsed);
   void OnAnimationEnd() override;
   void OnEndAction() override;
-  void OnExecute() override;
+  void OnExecute(Character* user) override;
 };

@@ -5,8 +5,8 @@
 #include "bnDefenseIndestructable.h"
 #include "bnInputManager.h"
 
-ZetaCannonCardAction::ZetaCannonCardAction(Character& owner, int damage)  : 
-  CardAction(owner, "PLAYER_IDLE"), 
+ZetaCannonCardAction::ZetaCannonCardAction(Character& actor, int damage)  : 
+  CardAction(actor, "PLAYER_IDLE"), 
   InputHandle(),
   damage(damage), 
   font(Font::Style::thick), 
@@ -20,11 +20,11 @@ ZetaCannonCardAction::ZetaCannonCardAction(Character& owner, int damage)  :
 
 ZetaCannonCardAction::~ZetaCannonCardAction()
 { 
-  GetCharacter().RemoveDefenseRule(defense);
+  GetActor().RemoveDefenseRule(defense);
   delete defense;
 }
 
-void ZetaCannonCardAction::OnExecute() {
+void ZetaCannonCardAction::OnExecute(Character*) {
 }
 
 void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -44,27 +44,27 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
 void ZetaCannonCardAction::Update(double _elapsed)
 {
   if (timer > 0) {
-    auto& user = this->GetCharacter();
+    auto& actor = this->GetActor();
 
     // TODO: change the "PLAYER_IDLE" check to a `IsActionable()` function per mars' notes...
-    bool canShoot = user.GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !user.IsMoving();
+    bool canShoot = actor.GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !actor.IsMoving();
 
     if (canShoot && Input().Has(InputEvents::pressed_use_chip)) {
 
-      auto* newCannon = new CannonCardAction(user, CannonCardAction::Type::red, damage);
+      auto* newCannon = new CannonCardAction(actor, CannonCardAction::Type::red, damage);
       auto actionProps = CardAction::LockoutProperties();
       actionProps.type = CardAction::LockoutType::animation;
       actionProps.group = CardAction::LockoutGroup::card;
       newCannon->SetLockout(actionProps);
 
       auto event = CardEvent{ newCannon };
-      user.AddAction(event, ActionOrder::voluntary);
+      actor.AddAction(event, ActionOrder::voluntary);
 
       if (!showTimerText) {
         showTimerText = true;
         Audio().Play(AudioType::COUNTER_BONUS);
         defense = new DefenseIndestructable(true);
-        user.AddDefenseRule(defense);
+        actor.AddDefenseRule(defense);
       }
     }
   }

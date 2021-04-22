@@ -14,9 +14,9 @@
 
 #define FRAMES FRAME1, FRAME3
 
-YoYoCardAction::YoYoCardAction(Character& owner, int damage) :
+YoYoCardAction::YoYoCardAction(Character& actor, int damage) :
   attachmentAnim(NODE_ANIM), yoyo(nullptr),
-  CardAction(owner, "PLAYER_SHOOTING") {
+  CardAction(actor, "PLAYER_SHOOTING") {
   YoYoCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
@@ -29,7 +29,7 @@ YoYoCardAction::YoYoCardAction(Character& owner, int damage) :
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 
 }
 
@@ -37,26 +37,26 @@ YoYoCardAction::~YoYoCardAction()
 {
 }
 
-void YoYoCardAction::OnExecute() {
+void YoYoCardAction::OnExecute(Character* user) {
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    auto owner = &GetCharacter();
+  auto onFire = [=]() -> void {
+    auto actor = &GetActor();
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
-    Team team = owner->GetTeam();
+    Team team = actor->GetTeam();
     YoYo* y = new YoYo(team, damage);
 
     y->SetDirection(team == Team::red? Direction::right : Direction::left);
     auto props = y->GetHitboxProperties();
-    props.aggressor = owner->GetID();
+    props.aggressor = user->GetID();
     y->SetHitboxProperties(props);
     yoyo = y;
 
-    auto tile = owner->GetTile()->Offset(1, 0);
+    auto tile = actor->GetTile()->Offset(1, 0);
 
     if (tile) {
-      owner->GetField()->AddEntity(*y, *tile);
+      actor->GetField()->AddEntity(*y, *tile);
     }
   };
 
@@ -70,7 +70,7 @@ void YoYoCardAction::Update(double _elapsed)
   if (yoyo && yoyo->WillRemoveLater()) {
     yoyo = nullptr;
 
-    GetCharacter().GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
+    GetActor().GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
     EndAction();
   }
 }

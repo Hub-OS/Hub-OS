@@ -6,8 +6,8 @@
 #include "bnBasicSword.h"
 #include "bnSwordEffect.h"
 
-LongSwordCardAction::LongSwordCardAction(Character& owner, int damage) : 
-  SwordCardAction(owner, damage) {
+LongSwordCardAction::LongSwordCardAction(Character& actor, int damage) : 
+  SwordCardAction(actor, damage) {
   LongSwordCardAction::damage = damage;
 }
 
@@ -15,11 +15,11 @@ LongSwordCardAction::~LongSwordCardAction()
 {
 }
 
-void LongSwordCardAction::OnSpawnHitbox()
+void LongSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
 {
   Audio().Play(AudioType::SWORD_SWING);
-  auto owner = &GetCharacter();
-  auto field = GetCharacter().GetField();
+  auto owner = &GetActor();
+  auto field = owner->GetField();
 
   auto tiles = std::vector{
     owner->GetTile()->Offset(1, 0),
@@ -36,7 +36,7 @@ void LongSwordCardAction::OnSpawnHitbox()
   BasicSword* b = new BasicSword(owner->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
   props.element = GetElement();
-  props.aggressor = owner->GetID();
+  props.aggressor = userId;
   b->SetHitboxProperties(props);
   field->AddEntity(*b, *tiles[0]);
 
