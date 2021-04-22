@@ -76,14 +76,14 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       ExecuteTimeFreeze();
 
       if (action && action->IsAnimationOver() == false) {
-          action->Update(elapsed);
+          // action->Update(elapsed);
+          GetScene().GetField()->Update(elapsed);
       }
       else{
         currState = state::fadeout;
         user->ToggleTimeFreeze(true); // in case the user was animating
         lockedTimestamp = std::numeric_limits<long long>::max();
       }
-      GetScene().GetField()->Update(elapsed);
     }
     break;
   }
@@ -125,10 +125,6 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (action && action->CanExecute()) {
     action->Execute();
-
-    if (action->GetLockoutType() != CardAction::LockoutType::sequence) {
-      user->ToggleTimeFreeze(false); // unfreeze the user to animate their sequences
-    }
   }
 }
 

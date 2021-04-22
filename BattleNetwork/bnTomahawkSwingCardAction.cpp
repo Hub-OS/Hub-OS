@@ -29,7 +29,7 @@ void TomahawkSwingCardAction::OnExecute()
         auto* hitbox = new Hitbox(owner.GetTeam(), damage);
         auto props = hitbox->GetHitboxProperties();
         props.flags |= Hit::flinch;
-        props.aggressor = &owner;
+        props.aggressor = owner.GetID();
         hitbox->SetHitboxProperties(props);
         field->AddEntity(*hitbox, tile->GetX() + col, tile->GetY() + row);
       }

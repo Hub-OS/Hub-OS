@@ -313,6 +313,11 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
   // End updating flag
   isUpdating = false;
 
+  if (clearLater) {
+    onFinish = nullptr;
+    clearLater = false;
+  }
+
   callbacksAreValid = true;
 
   if (index == 0) {
@@ -401,8 +406,15 @@ const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
 void Animator::Clear() {
   callbacksAreValid = false;
   queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
-  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0;
-  clearLater = false;
+  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); playbackMode = 0;
+
+  if (isUpdating) {
+    clearLater = true;
+  }
+  else {
+    clearLater = false;
+    onFinish = nullptr;
+  }
 }
 
 void Animator::SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence)

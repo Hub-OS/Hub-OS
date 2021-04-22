@@ -51,26 +51,28 @@ void CrackShotCardAction::OnExecute() {
     auto tile = owner->GetTile()->Offset(step, 0);
     auto field = owner->GetField();
 
-    if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter()) {
+    if (tile && tile->IsWalkable()) {
+      if (!tile->IsReservedByCharacter()) {
+        CrackShot* b = new CrackShot(owner->GetTeam(), tile);
+        auto props = b->GetHitboxProperties();
+        props.damage = damage;
+        props.aggressor = owner->GetID();
+        b->SetHitboxProperties(props);
 
-      CrackShot* b = new CrackShot(owner->GetTeam(), tile);
-      auto props = b->GetHitboxProperties();
-      props.damage = damage;
-      props.aggressor = owner;
-      b->SetHitboxProperties(props);
+        auto direction = (owner->GetTeam() == Team::red) ? Direction::right : Direction::left;
+        b->SetDirection(direction);
 
-      auto direction = (owner->GetTeam() == Team::red) ? Direction::right : Direction::left;
-      b->SetDirection(direction);
+        owner->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 
-      owner->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
+        field->AddEntity(*b, *tile);
+        Audio().Play(AudioType::TOSS_ITEM_LITE);
 
-      field->AddEntity(*b, *tile);
-      Audio().Play(AudioType::TOSS_ITEM_LITE);
+        tile->SetState(TileState::broken);
+      }
+      else {
+        tile->SetState(TileState::cracked);
+      }
 
-      tile->SetState(TileState::broken);
-    }
-
-    if (tile) {
       auto* fx = new ParticleImpact(ParticleImpact::Type::wind);
       field->AddEntity(*fx, *tile);
     }

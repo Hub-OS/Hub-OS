@@ -52,7 +52,7 @@ void TornadoCardAction::OnExecute() {
     tornado->setTexture(Textures().LoadTextureFromFile("resources/spells/spell_tornado.png"));
 
     auto props = tornado->GetHitboxProperties();
-    props.aggressor = owner;
+    props.aggressor = owner->GetID();
     tornado->SetHitboxProperties(props);
 
     int step = team == Team::red ? 2 : -2;

@@ -79,7 +79,7 @@ void AlphaClawSwipeState::SpawnLeftArm(AlphaCore& a) {
     });
 
     auto props = leftArm->GetHitboxProperties();
-    props.aggressor = &a;
+    props.aggressor = a.GetID();
     leftArm->SetHitboxProperties(props);
 
     Field* field = a.GetField();
@@ -104,7 +104,7 @@ void AlphaClawSwipeState::SpawnRightArm(AlphaCore& a) {
     });
 
     auto props = rightArm->GetHitboxProperties();
-    props.aggressor = &a;
+    props.aggressor = a.GetID();
     rightArm->SetHitboxProperties(props);
 
     Field* field = a.GetField();

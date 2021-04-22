@@ -46,7 +46,7 @@ void VulcanCardAction::OnExecute() {
     Team team = owner->GetTeam();
     Vulcan* b = new Vulcan(team, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = owner;
+    props.aggressor = owner->GetID();
     b->SetHitboxProperties(props);
 
     int step = 1;

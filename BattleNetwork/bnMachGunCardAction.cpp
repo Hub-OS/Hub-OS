@@ -48,26 +48,38 @@ void MachGunCardAction::OnExecute()
         Team team = e->GetTeam();
         Character* character = dynamic_cast<Character*>(e);
         Obstacle* obst = dynamic_cast<Obstacle*>(e);
-        return character && !obst && e->WillRemoveLater() == false 
+        return character && !obst && !e->WillRemoveLater()
                && team != owner->GetTeam() && team != Team::unknown;
       });
 
-      if (ents.empty() == false) {
-        std::sort(ents.begin(), ents.end(), 
-          [owner = &owner](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); }
-        );
-        target = ents[0];
-        auto& removeCallback = target->CreateRemoveCallback();
-        removeCallback.Slot([this](Entity* in) {
-          this->target = nullptr;
-        });
-        
-        removeCallbacks.push_back(std::ref(removeCallback));
+      if (!ents.empty()) {
+        auto filter = [owner = &owner](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); };
+        std::sort(ents.begin(), ents.end(), filter);
+
+        for (auto e : ents) {
+          if (e->GetTile()->GetX() > owner.GetTile()->GetX()) {
+            target = e;
+            break;
+          }
+        }
+
+        if (target) {
+          auto& removeCallback = target->CreateRemoveCallback();
+          removeCallback.Slot([this](Entity* in) {
+            this->target = nullptr;
+            });
+
+          removeCallbacks.push_back(std::ref(removeCallback));
+        }
       }
     }
 
     if (!targetTile && target) {
       targetTile = field->GetAt(target->GetTile()->GetX(), 3);
+    }
+    else if (!targetTile && !target) {
+      // pick back col
+      targetTile = field->GetAt(6, 3);
     }
 
     // We initially spawn the rectical where we want to start
@@ -93,7 +105,7 @@ void MachGunCardAction::OnExecute()
 
 void MachGunCardAction::OnEndAction()
 {
-  for (auto callback : removeCallbacks) {
+  for (auto&& callback : removeCallbacks) {
     callback.get().Reset();
   }
 

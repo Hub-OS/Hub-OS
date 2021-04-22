@@ -33,7 +33,7 @@ void ShakingEffect::OnUpdate(double _elapsed)
     privOwner->setPosition(startPos + shakeOffset);
   }
   else {
-    bscene->Eject(GetID());
+    Eject();
   }
 }
 

@@ -49,7 +49,7 @@ void YoYoCardAction::OnExecute() {
 
     y->SetDirection(team == Team::red? Direction::right : Direction::left);
     auto props = y->GetHitboxProperties();
-    props.aggressor = owner;
+    props.aggressor = owner->GetID();
     y->SetHitboxProperties(props);
     yoyo = y;
 

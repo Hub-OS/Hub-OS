@@ -55,7 +55,7 @@ void AirHockeyCardAction::OnExecute() {
     if (tile) {
       AirHockey* b = new AirHockey(&field, owner->GetTeam(), this->damage, 10);
       auto props = b->GetHitboxProperties();
-      props.aggressor = &GetCharacter();
+      props.aggressor = GetCharacter().GetID();
       b->SetHitboxProperties(props);
 
       field.AddEntity(*b, tile->GetX(), tile->GetY());

@@ -512,16 +512,16 @@ void Field::SpawnPendingEntities()
 
 const bool Field::HasPendingEntities() const
 {
-    return pending.size();
+  return pending.size();
 }
 
 void Field::UpdateEntityOnce(Entity *entity, const double elapsed)
 {
-    if(entity == nullptr || updatedEntities.find(entity->GetID()) != updatedEntities.end())
-        return;
+  if(entity == nullptr || updatedEntities.find(entity->GetID()) != updatedEntities.end())
+      return;
 
-    entity->Update(elapsed);
-    updatedEntities.insert(std::make_pair(entity->GetID(), (void*)0));
+  entity->Update(elapsed);
+  updatedEntities.insert(std::make_pair(entity->GetID(), (void*)0));
 }
 
 void Field::ForgetEntity(Entity::ID_t ID)
@@ -544,6 +544,11 @@ void Field::DeallocEntity(Entity::ID_t ID)
 Entity * Field::GetEntity(Entity::ID_t ID)
 {
   return allEntityHash[ID];
+}
+
+Character* Field::GetCharacter(Entity::ID_t ID)
+{
+  return dynamic_cast<Character*>(GetEntity(ID));
 }
 
 void Field::RevealCounterFrames(bool enabled)

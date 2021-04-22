@@ -64,7 +64,7 @@ void LightningCardAction::OnExecute() {
       auto hitbox = new Hitbox(team, LightningCardAction::damage);
       hitbox->HighlightTile(Battle::Tile::Highlight::solid);
       auto props = hitbox->GetHitboxProperties();
-      props.aggressor = &owner;
+      props.aggressor = owner.GetID();
       props.damage = LightningCardAction::damage;
       props.element = Element::elec;
 

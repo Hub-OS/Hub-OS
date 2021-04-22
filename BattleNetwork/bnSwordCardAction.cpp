@@ -83,7 +83,7 @@ void SwordCardAction::OnSpawnHitbox()
 
     BasicSword* b = new BasicSword(GetCharacter().GetTeam(), damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = &GetCharacter();
+    props.aggressor = GetCharacter().GetID();
     b->SetHitboxProperties(props);
 
     // add the hitbox beneath the visual fx

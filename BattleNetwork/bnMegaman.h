@@ -16,6 +16,32 @@ public:
   CardAction* OnExecuteSpecialAction() override;
 };
 
+class ForteCross final : public PlayerForm {
+public:
+  ForteCross();
+  ~ForteCross();
+  void OnUpdate(double elapsed, Player&) override;
+  void OnActivate(Player& player) override;
+  void OnDeactivate(Player& player) override;
+  CardAction* OnChargedBusterAction(Player&) override;
+  CardAction* OnSpecialAction(Player&) override;
+  frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
+private:
+  std::shared_ptr<sf::Texture> prevTexture;
+  std::string prevAnimation, prevState;
+  /*class SpecialAction : public CardAction {
+  public:
+    SpecialAction(Character& owner);
+    ~SpecialAction();
+
+    // Inherited via CardAction
+    void OnExecute() override;
+    void OnEndAction() override;
+    void OnAnimationEnd() override;
+  };*/
+};
+
+
 class TenguCross final : public PlayerForm {
 public:
   TenguCross();
@@ -27,7 +53,6 @@ public:
   CardAction* OnSpecialAction(Player&) override;
   frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
 private:
-  bool loaded;
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation, fanAnimation;
   SpriteProxyNode* overlay{ nullptr };
@@ -56,7 +81,6 @@ public:
   CardAction* OnSpecialAction(Player&) override;
   frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
 private:
-  bool loaded;
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
   SpriteProxyNode* overlay{ nullptr };
@@ -77,7 +101,6 @@ public:
   frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
 private:
   DefenseRule* statusGuard{ nullptr };
-  bool loaded;
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
   SpriteProxyNode* overlay{ nullptr };
@@ -95,7 +118,6 @@ public:
   CardAction* OnSpecialAction(Player&) override;
   frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
 private:
-  bool loaded;
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
   SpriteProxyNode* overlay{ nullptr };

@@ -107,7 +107,7 @@ public:
    * existence.
    * 
    * Some components need to exist in the global update loop outside of the Entity's update loop,
-   * and injcting is a great way to ensure the component is updated with the scene.
+   * and injecting is a great way to ensure the component is updated with the scene.
    * 
    * @warning Components injected into the battle scene are updated and deleted. Free the owner if injecting.
    */

@@ -108,11 +108,20 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     auto onMoveBegin = [player = &player] {
       auto anim = player->GetFirstComponent<AnimationComponent>();
       std::string animationStr = anim->GetAnimationString();
-      Logger::Logf("move animation starting. previous animation: %s", animationStr.c_str());
+
       const std::string& move_anim = player->GetMoveAnimHash();
-      player->SetAnimation(move_anim, [player] {
-        player->SetAnimation("PLAYER_IDLE");
-        });
+
+      anim->CancelCallbacks();
+
+      auto idle_callback = [anim]() {
+        anim->SetAnimation("PLAYER_IDLE");
+      };
+
+      anim->SetAnimation(move_anim, [idle_callback] {
+        idle_callback();
+      });
+
+      anim->SetInterruptCallback(idle_callback);
     };
 
     if (player.playerControllerSlide) {

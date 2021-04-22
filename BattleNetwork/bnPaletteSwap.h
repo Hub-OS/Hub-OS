@@ -21,4 +21,6 @@ public:
   void SetTexture(const std::shared_ptr<sf::Texture>& texture);
   void Revert();
   void Enable(bool enabled = true);
+  void Apply();
+  const bool IsEnabled() const;
 };

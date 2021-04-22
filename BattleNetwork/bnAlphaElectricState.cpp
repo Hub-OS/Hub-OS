@@ -55,7 +55,7 @@ void AlphaElectricState::OnUpdate(double _elapsed, AlphaCore& a) {
   int count = a.GetRank() == AlphaCore::Rank::EX ? 10 : 7;
   current = new AlphaElectricCurrent(a.GetTeam(), count);
   auto props = current->GetHitboxProperties();
-  props.aggressor = &a;
+  props.aggressor = a.GetID();
   current->SetHitboxProperties(props);
 
   auto state = a.GetField()->AddEntity(*current, a.GetTile()->GetX(), a.GetTile()->GetY());

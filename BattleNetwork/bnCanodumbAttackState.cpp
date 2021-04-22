@@ -23,7 +23,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
         Spell* spell = new Cannon(can.team, 10);
         spell->SetDirection(Direction::left);
         auto props = spell->GetHitboxProperties();
-        props.aggressor = &can;
+        props.aggressor = can.GetID();
         spell->SetHitboxProperties(props);
 
         can.field->AddEntity(*spell, can.tile->GetX() - 1, can.tile->GetY());

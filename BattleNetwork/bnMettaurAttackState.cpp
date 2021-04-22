@@ -51,7 +51,7 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
     Wave* spell = new Wave(met.team, speed, damage);
 
     auto props = spell->GetHitboxProperties();
-    props.aggressor = &met;
+    props.aggressor = met.GetID();
     spell->SetHitboxProperties(props);
 
     if (met.GetRank() == Mettaur::Rank::SP) {

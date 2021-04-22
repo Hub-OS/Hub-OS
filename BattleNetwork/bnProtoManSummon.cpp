@@ -43,7 +43,7 @@ ProtoManSummon::ProtoManSummon(Character* user, int damage) :
   auto props = GetHitboxProperties();
   props.damage = damage;
   props.flags |= Hit::flinch;
-  props.aggressor = user;
+  props.aggressor = user->GetID();
   SetHitboxProperties(props);
 }
 
@@ -140,7 +140,7 @@ void ProtoManSummon::Attack(Character* _entity) {
 
   BasicSword* b = new BasicSword(GetTeam(), 0);
   auto props = this->GetHitboxProperties();
-  props.aggressor = user;
+  props.aggressor = user->GetID();
   b->SetHitboxProperties(props);
 
   Audio().Play(AudioType::SWORD_SWING);
@@ -148,13 +148,13 @@ void ProtoManSummon::Attack(Character* _entity) {
 
   b = new BasicSword(GetTeam(), 0);
   props = this->GetHitboxProperties();
-  props.aggressor = user;
+  props.aggressor = user->GetID();
   b->SetHitboxProperties(props);
   field->AddEntity(*b,tile->GetX(), tile->GetY() + 1);
 
   b = new BasicSword(GetTeam(), 0);
   props = this->GetHitboxProperties();
-  props.aggressor = user;
+  props.aggressor = user->GetID();
   field->AddEntity(*b, tile->GetX(), tile->GetY() - 1);
 
   Audio().Play(AudioType::SWORD_SWING);

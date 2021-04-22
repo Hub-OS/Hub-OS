@@ -50,7 +50,7 @@ private:
       auto props = GetHitboxProperties();
       props.damage = 30;
       props.flags = Hit::impact | Hit::breaking | Hit::recoil | Hit::flinch;
-      props.aggressor = base;
+      props.aggressor = base->GetID();
       SetHitboxProperties(props);
       SetName("M. Head");
       lastTile = nullptr;

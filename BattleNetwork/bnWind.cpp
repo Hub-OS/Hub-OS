@@ -15,7 +15,7 @@ Wind::Wind(Team _team) : Spell(_team) {
     0,
     Hit::drag,
     Element::wind,
-    nullptr,
+    0,
     { GetDirection(), 9 },
     true
   });
@@ -49,7 +49,7 @@ void Wind::OnUpdate(double _elapsed) {
     0,
     Hit::drag,
     Element::wind,
-    nullptr,
+    0,
     { GetDirection(), 9 },
     true
   });

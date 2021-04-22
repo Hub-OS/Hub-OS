@@ -49,7 +49,7 @@ void FireBurnCardAction::OnExecute() {
     Team team = owner->GetTeam();
     FireBurn* fb = new FireBurn(team, type, damage);
     auto props = fb->GetHitboxProperties();
-    props.aggressor = owner;
+    props.aggressor = owner->GetID();
     fb->SetHitboxProperties(props);
     fb->CrackTiles(crackTiles);
 

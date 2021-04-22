@@ -110,7 +110,7 @@ void BBS::PrependPosts(const std::string& id, const std::vector<BBS::Post>& newP
 
   auto insertIndex = iter - posts.begin();
 
-  if (insertIndex <= selectedIndex) {
+  if ((size_t)insertIndex <= selectedIndex) {
     selectedIndex += newPosts.size();
 
     if (posts.size() > 8) {
@@ -136,7 +136,7 @@ void BBS::AppendPosts(const std::string& id, const std::vector<BBS::Post>& newPo
 
   auto insertIndex = iter - posts.begin();
 
-  if (insertIndex <= selectedIndex) {
+  if ((size_t)insertIndex <= selectedIndex) {
     selectedIndex += newPosts.size();
 
     if (posts.size() > 8) {
@@ -165,7 +165,7 @@ void BBS::RemovePost(const std::string& id) {
 
   auto removeIndex = iter - posts.begin();
 
-  if (removeIndex <= selectedIndex && selectedIndex > 0) {
+  if ((size_t)removeIndex <= selectedIndex && selectedIndex > 0) {
     selectedIndex -= 1;
 
     if (topIndex > 0) {

@@ -24,7 +24,10 @@ void Component::Eject() {
   if (Injected()) {
     Scene()->Eject(GetID());
   }
-  GetOwner()->FreeComponentByID(GetID());
+  
+  if (owner) {
+    owner->FreeComponentByID(GetID());
+  }
 }
 
 void Component::Update(double elapsed) {

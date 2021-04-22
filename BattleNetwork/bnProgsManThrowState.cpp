@@ -25,7 +25,7 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
 
     // Assign progsman as the owner of this spell
     auto props = bomb->GetHitboxProperties();
-    props.aggressor = &progs;
+    props.aggressor = progs.GetID();
     bomb->SetHitboxProperties(props);
 
     // Place the bomb right on the tile

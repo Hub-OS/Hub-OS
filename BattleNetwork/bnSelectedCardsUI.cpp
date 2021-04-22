@@ -215,7 +215,10 @@ void SelectedCardsUI::UseNextCard() {
 
   auto card = selectedCards[curr];
 
-  card->MultiplyDamage(multiplierValue);
+  if (!card->IsSupport()) {
+    card->MultiplyDamage(multiplierValue);
+  }
+
   multiplierValue = 1; // reset 
 
   // add a peek event to the action queue

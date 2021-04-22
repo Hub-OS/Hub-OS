@@ -55,7 +55,7 @@ void ElecPulseCardAction::OnExecute() {
     Audio().Play(AudioType::ELECPULSE);
 
     auto props = elecpulse->GetHitboxProperties();
-    props.aggressor = &owner;
+    props.aggressor = owner.GetID();
     elecpulse->SetHitboxProperties(props);
 
     int step = 1;

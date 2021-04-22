@@ -110,20 +110,23 @@ public:
   }
 
   FrameList MakeNewFromOverrideData(const std::list<OverrideFrame>& data) {
-    auto iter = data.begin();
-
     FrameList res;
+    if (frames.empty()) return res;
 
+    auto iter = data.begin();
     while (iter != data.end() && data.size() > 0) {
       size_t index = static_cast<size_t>(iter->frameIndex) - 1;
-      if (index < frames.size()) {
-        auto copy = frames[index];
-        copy.duration = (float)iter->duration;
-        res.frames.push_back(copy);
-        res.totalDuration += copy.duration;
+
+      if (index >= frames.size()) {
+        index = frames.size() - 1u;
       }
 
-      iter++;
+      Frame copy = frames[index];
+      copy.duration = (float)iter->duration;
+      res.frames.push_back(copy);
+      res.totalDuration += copy.duration;
+
+      iter = std::next(iter);
     }
 
     return res;

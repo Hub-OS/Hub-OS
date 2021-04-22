@@ -85,7 +85,7 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 
 
 const bool Bubble::UnknownTeamResolveCollision(const Spell& other) const {
-  Entity* aggro = other.GetHitboxProperties().aggressor;
+  Entity* aggro = field->GetEntity(other.GetHitboxProperties().aggressor);
   bool is_aggro_team = aggro && Teammate(aggro->GetTeam());
   bool is_spell_team = Teammate(other.GetTeam());
   // don't pop if hit by other bubbles from the same character

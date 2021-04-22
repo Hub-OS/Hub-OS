@@ -48,7 +48,7 @@ void MetalManMissileState::OnUpdate(double _elapsed, MetalMan& metal) {
 
         auto missile = new Missile(metal.GetTeam(), tile, 0.4f);
         auto props = missile->GetHitboxProperties();
-        props.aggressor = &metal;
+        props.aggressor = metal.GetID();
         missile->SetHitboxProperties(props);
 
         missileIndex++;

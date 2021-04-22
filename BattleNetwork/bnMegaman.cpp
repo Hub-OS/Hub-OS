@@ -8,6 +8,7 @@
 #include "bnTornadoCardAction.h"
 #include "bnLightningCardAction.h"
 #include "bnTomahawkSwingCardAction.h"
+#include "bnMachGunCardAction.h"
 #include "bnDefenseStatusGuard.h"
 #include "bnCardAction.h"
 #include "bnSpriteProxyNode.h"
@@ -31,6 +32,7 @@ Megaman::Megaman() : Player() {
   AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
   AddForm<ElecCross>()->SetUIPath("resources/navis/megaman/forms/elec_entry.png");
   AddForm<TomahawkCross>()->SetUIPath("resources/navis/megaman/forms/hawk_entry.png");
+  AddForm<ForteCross>()->SetUIPath("resources/navis/megaman/forms/forte_entry.png");
 }
 
 Megaman::~Megaman()
@@ -69,11 +71,97 @@ CardAction* Megaman::OnExecuteSpecialAction() {
 //            CROSSES / FORMS                //
 ///////////////////////////////////////////////
 
+// class ForteCross
+
+ForteCross::ForteCross()
+{
+}
+
+ForteCross::~ForteCross()
+{
+}
+
+void ForteCross::OnActivate(Player& player)
+{
+  ResourceHandle handle;
+  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/forte_cross.png");
+
+  prevTexture = player.getTexture();
+  player.setTexture(cross);
+
+  if (auto* animComponent = player.GetFirstComponent<AnimationComponent>()) {
+    prevAnimation = animComponent->GetFilePath();
+    prevState = animComponent->GetAnimationString();
+    animComponent->SetPath("resources/navis/megaman/forms/forte_cross.animation");
+    animComponent->Reload();
+    animComponent->SetAnimation(prevState);
+  }
+
+  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
+    pswap->Enable(false);
+  }
+
+  player.SetAirShoe(true);
+}
+
+void ForteCross::OnDeactivate(Player& player)
+{
+  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
+    pswap->Enable(true);
+  }
+
+  if (auto* animComponent = player.GetFirstComponent<AnimationComponent>()) {
+    animComponent->SetPath(prevAnimation);
+    animComponent->Reload();
+    animComponent->SetAnimation(prevState);
+  }
+
+  player.setTexture(prevTexture);
+}
+
+void ForteCross::OnUpdate(double elapsed, Player& player)
+{
+}
+
+CardAction* ForteCross::OnChargedBusterAction(Player& player)
+{
+  return new MachGunCardAction(player, 10 * player.GetAttackLevel());
+}
+
+CardAction* ForteCross::OnSpecialAction(Player& player)
+{
+  // class ForteCross::SpecialAction is a CardAction implementation
+  return nullptr;
+}
+
+frame_time_t ForteCross::CalculateChargeTime(unsigned chargeLevel)
+{
+  /**
+  * These values include the 10i+ initial frames
+  * 1 - 100i
+  * 2 - 90i
+  * 3 - 80i
+  * 4 - 75i
+  * 5 - 70i
+  */
+  switch (chargeLevel) {
+  case 1:
+    return frames(90);
+  case 2:
+    return frames(80);
+  case 3:
+    return frames(70);
+  case 4:
+    return frames(65);
+  }
+
+  return frames(60);
+}
+
 // class TenguCross
 
 TenguCross::TenguCross()
 {
-  loaded = false;
 }
 
 TenguCross::~TenguCross()
@@ -98,13 +186,11 @@ void TenguCross::OnActivate(Player& player)
   overlay->EnableParentShader(false);
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
-  auto pswap = player.GetFirstComponent<PaletteSwap>();
-
-  pswap->LoadPaletteTexture("resources/navis/megaman/forms/tengu.palette.png");
-
-  loaded = true;
-
-  OnUpdate(0, player);
+  
+  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
+    pswap->LoadPaletteTexture("resources/navis/megaman/forms/tengu.palette.png");
+    pswap->Enable(true);
+  }
 
   player.AddNode(overlay);
   player.SetAirShoe(true);
@@ -127,7 +213,6 @@ void TenguCross::OnDeactivate(Player & player)
 
 void TenguCross::OnUpdate(double elapsed, Player& player)
 {
-  overlay->setColor(player.getColor());
 }
 
 CardAction* TenguCross::OnChargedBusterAction(Player& player)
@@ -173,7 +258,6 @@ frame_time_t TenguCross::CalculateChargeTime(unsigned chargeLevel)
 
 HeatCross::HeatCross()
 {
-  loaded = false;
 }
 
 HeatCross::~HeatCross()
@@ -194,15 +278,14 @@ void HeatCross::OnActivate(Player& player)
   overlay->EnableParentShader(false);
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
-  auto pswap = player.GetFirstComponent<PaletteSwap>();
-
-  pswap->LoadPaletteTexture("resources/navis/megaman/forms/heat.palette.png");
+  
+  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
+    pswap->LoadPaletteTexture("resources/navis/megaman/forms/heat.palette.png");
+    pswap->Enable(true);
+  }
 
   player.SetElement(Element::fire);
 
-  loaded = true;
-
-  OnUpdate(0, player);
   player.AddNode(overlay);
 
   sync.anim = &overlayAnimation;
@@ -215,18 +298,17 @@ void HeatCross::OnActivate(Player& player)
 void HeatCross::OnDeactivate(Player & player)
 {
   player.RemoveNode(overlay);
-  auto pswap = player.GetFirstComponent<PaletteSwap>();
-  pswap->Revert();
-
   player.SetElement(Element::none);
 
   parentAnim->RemoveFromSyncList(sync);
 
+  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
+    pswap->Revert();
+  }
 }
 
 void HeatCross::OnUpdate(double elapsed, Player& player)
 {
-  overlay->setColor(player.getColor());
 }
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
@@ -269,7 +351,6 @@ frame_time_t HeatCross::CalculateChargeTime(unsigned chargeLevel)
 
 TomahawkCross::TomahawkCross()
 {
-  loaded = false;
   statusGuard = new DefenseStatusGuard();
 }
 
@@ -292,13 +373,12 @@ void TomahawkCross::OnActivate(Player& player)
   overlay->EnableParentShader(false);
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
-  auto pswap = player.GetFirstComponent<PaletteSwap>();
 
-  pswap->LoadPaletteTexture("resources/navis/megaman/forms/hawk.palette.png");
+  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
+    pswap->LoadPaletteTexture("resources/navis/megaman/forms/hawk.palette.png");
+    pswap->Enable(true);
+  }
 
-  loaded = true;
-
-  OnUpdate(0, player);
   player.AddNode(overlay);
 
   sync.anim = &overlayAnimation;
@@ -324,7 +404,6 @@ void TomahawkCross::OnDeactivate(Player & player)
 
 void TomahawkCross::OnUpdate(double elapsed, Player& player)
 {
-  overlay->setColor(player.getColor());
 }
 
 CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
@@ -366,7 +445,6 @@ frame_time_t TomahawkCross::CalculateChargeTime(unsigned chargeLevel)
 
 ElecCross::ElecCross()
 {
-  loaded = false;
 }
 
 ElecCross::~ElecCross()
@@ -385,15 +463,13 @@ void ElecCross::OnActivate(Player& player)
   overlay->EnableParentShader(false);
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
-  auto pswap = player.GetFirstComponent<PaletteSwap>();
-
-  pswap->LoadPaletteTexture("resources/navis/megaman/forms/elec.palette.png");
+  
+  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
+    pswap->LoadPaletteTexture("resources/navis/megaman/forms/elec.palette.png");
+    pswap->Enable(true);
+  }
 
   player.SetElement(Element::elec);
-
-  loaded = true;
-
-  OnUpdate(0, player);
   player.AddNode(overlay);
 
   sync.anim = &overlayAnimation;
@@ -416,7 +492,6 @@ void ElecCross::OnDeactivate(Player& player)
 
 void ElecCross::OnUpdate(double elapsed, Player& player)
 {
-  overlay->setColor(player.getColor());
 }
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)

@@ -16,14 +16,14 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
      
     class AntiDamageTriggerAction : public CardAction {
     private:
-      Character* aggressor{ nullptr };
-      NinjaAntiDamage& anti;
+      Character& aggressor;
+      DefenseRule& defense;
 
     public:
-      AntiDamageTriggerAction(Character& owner, Character* aggressor, NinjaAntiDamage& anti) :
+      AntiDamageTriggerAction(Character& owner, Character& aggressor, DefenseRule& defense) :
         CardAction(owner, "PLAYER_IDLE"),
         aggressor(aggressor),
-        anti(anti) {}
+        defense(defense) {}
 
       ~AntiDamageTriggerAction() { }
 
@@ -33,28 +33,26 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
         Battle::Tile* tile = nullptr;
 
         // Add a HideTimer for the owner of anti damage
-        owner.RegisterComponent(new HideTimer(&owner, 1.0));
+        owner.CreateComponent<HideTimer>(&owner, 1.0);
 
         // Add a poof particle to denote owner dissapearing
         owner.GetField()->AddEntity(*new ParticlePoof(), *owner.GetTile());
 
-        if (aggressor) {
-          // If there's an aggressor, grab their tile and target it
-          if (auto tile = aggressor->GetTile()) {
-            // Add ninja star spell targetting the aggressor's tile
-            owner.GetField()->AddEntity(*new NinjaStar(owner.GetTeam(), 0.2f), *tile);
-          }
+        // If there's an aggressor, grab their tile and target it
+        if (auto tile = aggressor.GetTile()) {
+          // Add ninja star spell targetting the aggressor's tile
+          owner.GetField()->AddEntity(*new NinjaStar(owner.GetTeam(), 0.2f), *tile);
         }
 
         // Remove the anti damage rule from the owner
-        owner.RemoveDefenseRule(anti.defense);
-        anti.Eject();
+        owner.RemoveDefenseRule(&defense);
       }
       void OnAnimationEnd() override {}
       void OnEndAction() override {};
     };
 
-    auto* action = new AntiDamageTriggerAction(owner, in.GetHitboxProperties().aggressor, *this);
+    auto* character = owner.GetField()->GetCharacter(in.GetHitboxProperties().aggressor);
+    auto* action = new AntiDamageTriggerAction(owner, *character, *defense);
     owner.AddAction({ action }, ActionOrder::traps);
 
     this->Eject();

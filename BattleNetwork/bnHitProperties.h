@@ -1,8 +1,7 @@
 #pragma once
 #include "bnElements.h"
 #include "bnDirection.h"
-
-class Character;
+#include "bnEntity.h"
 
 namespace Hit {
   using Flags = uint16_t;
@@ -41,7 +40,7 @@ namespace Hit {
     int damage{};
     Flags flags{ Hit::none };
     Element element{ Element::none };
-    Character* aggressor{ nullptr };
+    Entity::ID_t aggressor{};
     Drag drag{ }; // Used by Hit::drag flag
     bool counters{ true };
   };
@@ -50,7 +49,7 @@ namespace Hit {
     0, 
     Flags(Hit::recoil | Hit::impact | Hit::flinch), 
     Element::none, 
-    nullptr, 
+    0, 
     Direction::none,
     true
   };

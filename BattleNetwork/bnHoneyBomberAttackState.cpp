@@ -62,7 +62,7 @@ void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
     }
 
     auto props = newBee->GetHitboxProperties();
-    props.aggressor = &honey;
+    props.aggressor = honey.GetID();
     newBee->SetHitboxProperties(props);
 
     const auto status = honey.GetField()->AddEntity(*newBee, honey.GetTile()->GetX() - 1, honey.GetTile()->GetY());

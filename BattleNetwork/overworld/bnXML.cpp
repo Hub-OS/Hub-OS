@@ -87,7 +87,7 @@ static XMLToken nextToken(const std::string& data, XMLTokenType lastType, size_t
   bool inElement = lastType == XMLTokenType::element || lastType == XMLTokenType::attributeName || lastType == XMLTokenType::attributeValue;
 
   while (index < len) {
-    char currentChar = data[index];
+    unsigned char currentChar = data[index];
 
     switch (currentChar)
     {

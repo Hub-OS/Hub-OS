@@ -17,7 +17,7 @@ using sf::Texture;
  *  Floatshoe is disabled to crack tiles
  *  Cube has 200 HP 
  */
-class Cube : public Obstacle, public InstanceCountingTrait<Cube> {
+class Cube final : public Obstacle, public InstanceCountingTrait<Cube> {
 public:
   Cube(Field* _field);
   ~Cube();
@@ -27,15 +27,14 @@ public:
    * @param _elapsed in seconds
    */
   void OnUpdate(double _elapsed) override;
-
   void OnDelete() override;
-  
+  void OnBattleStop() override;
+  void OnSpawn(Battle::Tile& start) override;
+
   const float GetHeight() const;
 
   void SetAnimation(std::string animation);
 
-  void OnSpawn(Battle::Tile& start) override;
-  
   /**
    * @brief Can move over any tile if it is not broken or empty or contains another cube
    * @param next tile to move to

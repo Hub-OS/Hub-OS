@@ -11,7 +11,6 @@
 #include "bnAnimationComponent.h"
 #include "bnCharacter.h"
 
-
 using namespace swoosh;
 
 class CardAction : public sf::Drawable, public ResourceHandle {

@@ -111,7 +111,7 @@ void MetridAttackState::DoAttack(Metrid& met) {
 
     auto meteor = new Meteor(met.GetTeam(), target, damage, 0.4f);
     auto props = meteor->GetHitboxProperties();
-    props.aggressor = &met;
+    props.aggressor = met.GetID();
     meteor->SetHitboxProperties(props);
 
     met.GetField()->AddEntity(*meteor, target->GetX(),target->GetY());

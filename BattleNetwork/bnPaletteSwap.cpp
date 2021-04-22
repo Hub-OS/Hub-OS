@@ -51,6 +51,19 @@ void PaletteSwap::Enable(bool enabled)
   // Don't wait for the next frame (update())
   // Otherwise blocky effects occur
   if (enabled) {
-    GetOwner()->SetShader(paletteSwap);
+    Apply();
   }
+  else {
+    GetOwner()->SetShader(nullptr);
+  }
+}
+
+void PaletteSwap::Apply()
+{
+  GetOwner()->SetShader(paletteSwap);
+}
+
+const bool PaletteSwap::IsEnabled() const
+{
+  return enabled;
 }

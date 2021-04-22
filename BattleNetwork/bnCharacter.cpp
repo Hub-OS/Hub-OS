@@ -412,7 +412,7 @@ void Character::ResolveFrameBattleDamage()
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
         if ((props.hitbox.flags & Hit::flinch) == Hit::flinch && props.filtered.aggressor && props.filtered.counters) {
-          frameCounterAggressor = props.filtered.aggressor;
+          frameCounterAggressor = field->GetCharacter(props.filtered.aggressor);
         }
 
         flagCheckThunk(Hit::impact);
@@ -421,12 +421,12 @@ void Character::ResolveFrameBattleDamage()
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.filtered.flags & Hit::drag) == Hit::drag) {
         if (IsSliding()) {
-          append.push({ props.hitbox, { 0, Hit::drag, Element::none, nullptr, props.filtered.drag } });
+          append.push({ props.hitbox, { 0, Hit::drag, Element::none, 0, props.filtered.drag } });
         }
         else {
           // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
           if (frameCounterAggressor) {
-            append.push({ props.hitbox, { 0, Hit::impact, Element::none, frameCounterAggressor } });
+            append.push({ props.hitbox, { 0, Hit::impact, Element::none, frameCounterAggressor->GetID() } });
             frameCounterAggressor = nullptr;
           }
 
@@ -559,7 +559,7 @@ void Character::ResolveFrameBattleDamage()
         actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
 
         // Re-queue the drag status to be re-considered in our next combat checks
-        statusQueue.push({ {}, { 0, Hit::drag, Element::none, nullptr, postDragEffect } });
+        statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
       }
 
       // cancel stun
@@ -581,6 +581,7 @@ void Character::ResolveFrameBattleDamage()
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
       counterSlideOffset = sf::Vector2f(50.f, 0.0f);
+      // TODO: STOP DYNA CASTING
       CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
     }
   } else if (frameCounterAggressor) {

@@ -340,10 +340,19 @@ namespace Battle {
     highlightMode = mode;
   }
 
-  bool Tile::IsReservedByCharacter()
+  bool Tile::IsReservedByCharacter(const std::initializer_list<Character*>& exclude)
   {
-    // TODO: character might be queued but not added so character.size() != 0 gives false values at intro time...
-    return (reserved.size() != 0) && (characters.size() != 0);
+    if (!reserved.empty()) return false;
+
+    if (exclude.size() == 0) {
+      return !characters.empty();
+    }
+
+    std::vector<Character*> diff;
+
+    std::set_difference(characters.begin(), characters.end(), exclude.begin(), exclude.end(), std::inserter(diff, diff.begin()));
+
+    return !diff.empty();
   }
 
   void Tile::AddEntity(Spell & _entity)
@@ -626,7 +635,7 @@ namespace Battle {
       if (!character->HasFloatShoe()) {
         if (GetState() == TileState::poison) {
           if (elapsedBurnTime <= 0) {
-            if (character->Hit(Hit::Properties({ 1, Hit::pierce, Element::none, nullptr, Direction::none }))) {
+            if (character->Hit(Hit::Properties({ 1, Hit::pierce, Element::none, 0, Direction::none }))) {
               elapsedBurnTime = burncycle;
             }
           }
@@ -636,7 +645,7 @@ namespace Battle {
         }
 
         if (GetState() == TileState::lava) {
-          if (character->Hit(Hit::Properties({ 50, Hit::flinch, Element::none, nullptr, Direction::none }))) {
+          if (character->Hit(Hit::Properties({ 50, Hit::flinch, Element::none, 0, Direction::none }))) {
             Artifact* explosion = new Explosion;
             field->AddEntity(*explosion, GetX(), GetY());
             SetState(TileState::normal);

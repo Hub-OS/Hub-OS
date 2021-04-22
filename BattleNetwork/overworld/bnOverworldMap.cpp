@@ -272,9 +272,9 @@ namespace Overworld {
 
     if (layerIndex >= totalLayers) {
       layerIndex = (int)totalLayers - 1;
-    } else if (layerIndex < 0) {
-      layerIndex = 0;
-    }
+    } 
+    
+    layerIndex = std::max(layerIndex, 0);
 
     auto& layer = layers[layerIndex];
     auto& tile = layer.GetTile(x, y);

@@ -218,10 +218,15 @@ string Animation::ValueOf(string _key, string _line) {
 
 void Animation::HandleInterrupted()
 {
+  if (handlingInterrupt) return;
+  handlingInterrupt = true;
+
   if (interruptCallback && progress < animations[currAnimation].GetTotalDuration()) {
     interruptCallback();
     interruptCallback = nullptr;
   }
+
+  handlingInterrupt = false;
 }
 
 void Animation::Refresh(sf::Sprite& target) {

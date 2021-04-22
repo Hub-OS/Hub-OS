@@ -146,6 +146,11 @@ void Cube::OnDelete() {
   Remove();
 }
 
+void Cube::OnBattleStop()
+{
+  Delete();
+}
+
 const float Cube::GetHeight() const
 {
   return 64.0f;
@@ -211,7 +216,7 @@ void Cube::OnSpawn(Battle::Tile & start)
     }
   };
 
-  if (!start.IsWalkable() || start.IsReservedByCharacter() || start.ContainsEntityType<Character>()) {
+  if (!start.IsWalkable() || start.IsReservedByCharacter({ this })) {
     animation->SetAnimation("APPEAR", 0, [this]() { finishedSpawn = true; });
     killLater = true;
   }

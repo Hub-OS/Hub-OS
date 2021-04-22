@@ -55,7 +55,7 @@ void CannonCardAction::OnExecute() {
     Team team = user.GetTeam();
     Cannon* cannon = new Cannon(team, damage);
     auto props = cannon->GetHitboxProperties();
-    props.aggressor = &user;
+    props.aggressor = user.GetID();
 
     cannon->SetHitboxProperties(props);
 

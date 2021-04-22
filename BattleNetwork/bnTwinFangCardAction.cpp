@@ -51,7 +51,7 @@ void TwinFangCardAction::OnExecute() {
     if (user.GetTile()->GetY() != 0) {
       TwinFang* twinfang = new TwinFang(user.GetTeam(), TwinFang::Type::ABOVE, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = &user;
+      props.aggressor = user.GetID();
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
@@ -61,7 +61,7 @@ void TwinFangCardAction::OnExecute() {
     if (user.GetTile()->GetY() != 4) {
       TwinFang* twinfang = new TwinFang(user.GetTeam(), TwinFang::Type::BELOW, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = &user;
+      props.aggressor = user.GetID();
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 

@@ -279,7 +279,7 @@ void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
 
 void BattleSceneBase::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
 {
-  HandleCounterLoss(user);
+  HandleCounterLoss(user, true);
 }
 
 void BattleSceneBase::LoadMob(Mob& mob)
@@ -296,14 +296,15 @@ void BattleSceneBase::LoadMob(Mob& mob)
   ProcessNewestComponents();
 }
 
-void BattleSceneBase::HandleCounterLoss(Character& subject)
+void BattleSceneBase::HandleCounterLoss(Character& subject, bool playsound)
 {
   if (&subject == player) {
     if (field->DoesRevealCounterFrames()) {
       player->RemoveNode(&counterReveal);
       player->RemoveDefenseRule(counterCombatRule);
       field->RevealCounterFrames(false);
-      Audio().Play(AudioType::COUNTER_BONUS, AudioPriority::highest);
+
+      playsound ? Audio().Play(AudioType::COUNTER_BONUS, AudioPriority::highest) : 0;
     }
     cardUI->SetMultiplier(1);
   }
@@ -730,7 +731,6 @@ void BattleSceneBase::Inject(MobHealthUI& other)
   components.push_back(&other);
 }
 
-
 // Default case: no special injection found for the type, just add it to our update loop
 void BattleSceneBase::Inject(Component* other)
 {
@@ -761,11 +761,9 @@ void BattleSceneBase::Eject(Component::ID_t ID)
       scenenodes.erase(iter2);
     }
 
-    // deleteComponentsList.push_back(*iter);
+    deleteComponentsList.push_back(*iter);
     components.erase(iter);
   }
-
-
 }
 
 const bool BattleSceneBase::IsCleared()

@@ -32,17 +32,16 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     player->Reveal(); // If flickering, stablizes the sprite for the animation
 
     // The list of nodes change when adding the shine overlay and new form overlay nodes
-    std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>());
-    std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>());
-
+    std::shared_ptr<std::vector<SceneNode*>> originals(new std::vector<SceneNode*>());
+    std::shared_ptr<std::vector<bool>> states(new std::vector<bool>());
+    SmartShader* originalShader = &player->GetShader();
     auto paletteSwap = player->GetFirstComponent<PaletteSwap>();
 
-    if (paletteSwap) paletteSwap->Enable(false);
-
+    // I found out structured bindings cannot be captured...
     auto playerPtr = player;
-    int index_ = index; // structured binding cannot be captured...
+    int index_ = index;
 
-    auto collectChildNodes = [this, playerPtr, index_, states = childShaderUseStates, originals = originalChildNodes]
+    auto collectChildNodes = [=]
     () {
       // collect ALL child nodes
       for (auto child : playerPtr->GetChildNodesWithTag({ Player::BASE_NODE_TAG, Player::FORM_NODE_TAG })) {
@@ -52,7 +51,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       }
     };
 
-    auto onTransform = [this, playerPtr, index_, states = childShaderUseStates, originals = originalChildNodes]
+    auto onTransform = [=]
     () {
       // The next form has a switch based on health
       // This way dying will cancel the form
@@ -72,24 +71,30 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
         auto& widget = GetScene().GetCardSelectWidget();
         widget.LockInPlayerFormSelection();
         widget.ErasePlayerFormOption(lastSelectedForm);
-        GetScene().HandleCounterLoss(*playerPtr);
+        GetScene().HandleCounterLoss(*playerPtr, false);
         Audio().Play(AudioType::SHINE);
       }
 
       // Activating the form will add NEW child nodes onto our character
       for (auto child : playerPtr->GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
-          states->push_back(child->IsUsingParentShader());
-          originals->push_back(child);
-          child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
+        states->push_back(child->IsUsingParentShader());
+        originals->push_back(child);
+        child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
       }
 
       playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
     };
 
     bool* completePtr = &complete;
-    auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes, completePtr ]
+    auto onFinish = [=]
     () {
-      if (paletteSwap) paletteSwap->Enable();
+      // the whiteout shader overwrote the pallette swap shader, apply it again
+      if (paletteSwap && paletteSwap->IsEnabled()) {
+        paletteSwap->Apply();
+      }
+      else {
+        playerPtr->SetShader(nullptr);
+      }
 
       unsigned idx = 0;
 

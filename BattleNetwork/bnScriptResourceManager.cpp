@@ -311,6 +311,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetTexture", &ScriptedPlayer::setTexture,
     "SetElement", &ScriptedPlayer::SetElement,
     "GetTile", &ScriptedPlayer::GetTile,
+    "Field", &ScriptedPlayer::GetField,
     "Tile", &ScriptedPlayer::GetCurrentTile,
     "SetHeight",  &ScriptedPlayer::SetHeight,
     "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
@@ -605,7 +606,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   state.set_function("MakeHitProps", 
-    [](int damage, Hit::Flags flags, Element element, Character* aggressor, Hit::Drag drag) {
+    [](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
       return Hit::Properties{
         damage, flags, element, aggressor, drag
       };

@@ -30,7 +30,7 @@ void ThunderCardAction::OnExecute() {
     auto* thunder = new Thunder(team);
     auto props = thunder->GetHitboxProperties();
     props.damage = damage;
-    props.aggressor = &owner;
+    props.aggressor = owner.GetID();
     thunder->SetHitboxProperties(props);
 
     int step = 1;

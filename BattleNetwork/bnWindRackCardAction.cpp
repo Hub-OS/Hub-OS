@@ -113,7 +113,7 @@ void WindRackCardAction::OnExecute()
 
     BasicSword* b = new BasicSword(owner->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = owner;
+    props.aggressor = owner->GetID();
     b->SetHitboxProperties(props);
 
     Audio().Play(AudioType::SWORD_SWING);

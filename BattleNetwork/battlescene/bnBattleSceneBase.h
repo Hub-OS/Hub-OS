@@ -261,7 +261,7 @@ public:
   const bool TripleDelete() const;
   const int ComboDeleteSize() const;
   const bool Countered() const;
-  void HandleCounterLoss(Character& subject);
+  void HandleCounterLoss(Character& subject, bool playsound);
   void HighlightTiles(bool enable);
 
   const double GetCustomBarProgress() const;

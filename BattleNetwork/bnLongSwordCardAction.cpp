@@ -36,7 +36,7 @@ void LongSwordCardAction::OnSpawnHitbox()
   BasicSword* b = new BasicSword(owner->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
   props.element = GetElement();
-  props.aggressor = owner;
+  props.aggressor = owner->GetID();
   b->SetHitboxProperties(props);
   field->AddEntity(*b, *tiles[0]);
 

@@ -96,9 +96,9 @@ private:
   std::vector<sf::Sprite> formUI;
   double formSelectQuitTimer;
   double frameElapsed; /*!< delta seconds since last frame */
-  Battle::Card** selectedCards; /*!< Pointer to a list of selected cards */
-  Bucket* queue; /*!< List of buckets */
-  Bucket** selectQueue, **newSelectQueue; /*!< List of selected buckets in order */
+  Battle::Card** selectedCards{ nullptr }; /*!< Pointer to a list of selected cards */
+  Bucket* queue{ nullptr }; /*!< List of buckets */
+  Bucket** selectQueue{ nullptr }, ** newSelectQueue{ nullptr }; /*!< List of selected buckets in order */
   Battle::TextBox textbox; /*!< Popups card descriptions */
   std::vector<PlayerFormMeta*> forms;
 

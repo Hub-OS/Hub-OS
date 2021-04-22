@@ -40,7 +40,7 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
       Hitbox* hitbox = new Hitbox(progs.GetTeam(), 100);
       auto props = hitbox->GetHitboxProperties();
       props.flags = props.flags | Hit::breaking | Hit::flinch;
-      props.aggressor = &progs;
+      props.aggressor = progs.GetID();
       props.flags |= Hit::drag;
       props.drag = { Direction::left, 2u };
       hitbox->SetHitboxProperties(props);

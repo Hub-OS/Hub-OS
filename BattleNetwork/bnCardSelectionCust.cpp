@@ -221,6 +221,8 @@ CardSelectionCust::~CardSelectionCust() {
     delete[] selectQueue;
   }
 
+  free(selectedCards);
+
   cardCount = 0;
 
   delete props._folder;
@@ -973,9 +975,7 @@ Battle::Card** CardSelectionCust::GetCards() {
     // Allocate selected cards list
     size_t sz = sizeof(Battle::Card*) * newSelectCount;
 
-    if (selectCount > 0) {
-      delete[] selectedCards;
-    }
+    free(selectedCards);
 
     selectedCards = (Battle::Card**)malloc(sz);
 

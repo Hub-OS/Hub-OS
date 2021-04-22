@@ -192,6 +192,11 @@ public:
   */
   Entity* GetEntity(Entity::ID_t ID);
 
+  /**
+  * @brief returns the entity from the allEntityHash otherwise nullptr 
+  */
+  Character* GetCharacter(Entity::ID_t ID);
+
   void RevealCounterFrames(bool enabled);
 
   const bool DoesRevealCounterFrames() const;

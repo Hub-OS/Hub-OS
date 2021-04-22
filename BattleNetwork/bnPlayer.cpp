@@ -283,6 +283,7 @@ void Player::DeactivateForm()
   if (activeForm) {
     activeForm->OnDeactivate(*this);
     RevertStats();
+    CreateMoveAnimHash();
   }
 }
 

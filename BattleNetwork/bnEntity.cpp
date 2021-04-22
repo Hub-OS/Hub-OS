@@ -274,7 +274,7 @@ void Entity::Update(double _elapsed) {
     if ((*iter)->Lifetime() == Component::lifetimes::local) {
       (*iter)->Update(_elapsed);
     }
-    iter++;
+    iter = std::next(iter);
   }
 
   ReleaseComponentsPendingRemoval();
@@ -602,11 +602,14 @@ void Entity::FreeComponentByID(Component::ID_t ID) {
       }
       else {
         components.erase(iter);
-        // delete component; // TODO: is this needed anymore or is this a mem leak?
+
+        if (component->Lifetime() == Component::lifetimes::local) {
+          delete component; // No one else will own this but us so we must cleanup here
+        }
         return;
       }
     }
-    iter++;
+    iter = std::next(iter);
   }
 }
 

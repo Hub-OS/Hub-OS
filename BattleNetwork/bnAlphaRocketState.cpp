@@ -26,7 +26,7 @@ void AlphaRocketState::OnEnter(AlphaCore& a) {
 
     AlphaRocket* rocket = new AlphaRocket(alpha->GetTeam());
     auto props = rocket->GetHitboxProperties();
-    props.aggressor = alpha;
+    props.aggressor = alpha->GetID();
     rocket->SetHitboxProperties(props);
 
     rocket->SetDirection(Direction::left);

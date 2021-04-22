@@ -211,6 +211,7 @@ private:
   void HandleInterrupted();
 protected:
   bool noAnim{ false }; /*!< If the requested state was not found, hide the sprite when updating */
+  bool handlingInterrupt{ false }; /*!< Whether or not the interupt handler is executing (for nested animations) */
   Animator animator; /*!< Internal animator to delegate most of the work to */
   string path; /*!< Path to the animation file */
   string currAnimation; /*!< Name of the current animation state */

@@ -42,7 +42,7 @@ void AirShotCardAction::OnExecute() {
     AirShot* airshot = new AirShot(user.GetTeam(), damage);
     airshot->SetDirection(Direction::right);
     auto props = airshot->GetHitboxProperties();
-    props.aggressor = &user;
+    props.aggressor = user.GetID();
     airshot->SetHitboxProperties(props);
 
     user.GetField()->AddEntity(*airshot, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
