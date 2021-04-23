@@ -600,14 +600,8 @@ void Entity::FreeComponentByID(Component::ID_t ID) {
     auto component = *iter;
 
     if (component->GetID() == ID) {
-      if (true || isUpdating) {
-        // Safely delete component by queueing it
-        queuedComponents.insert(queuedComponents.begin(), ComponentBucket{ component, ComponentBucket::Status::remove });
-      }
-      else {
-        components.erase(iter);
-        delete component;
-      }
+      // Safely delete component by queueing it
+      queuedComponents.insert(queuedComponents.begin(), ComponentBucket{ component, ComponentBucket::Status::remove });
       return; // found and handled, quit early.
     }
 
