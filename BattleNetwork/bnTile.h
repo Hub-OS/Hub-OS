@@ -123,7 +123,7 @@ namespace Battle {
      * @brief Get the number of entities occupying this tile
      * Size
      */
-    const size_t GetEntityCount() const { return entities.size(); }
+    const size_t GetEntityCount() const;
     
     /**
      * @brief Get the height of the tile sprite

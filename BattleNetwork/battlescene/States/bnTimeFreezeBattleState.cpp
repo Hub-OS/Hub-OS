@@ -98,19 +98,20 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     {
       bool updateAnim = false;
 
-      // update the action until it is is complete
-      switch(action->GetLockoutType()){
-      case CardAction::LockoutType::sequence:
-        updateAnim = !action->IsLockoutOver();
-        break;
-      default:
-        updateAnim = !action->IsAnimationOver();
-        break;
+      if (action) {
+        // update the action until it is is complete
+        switch (action->GetLockoutType()) {
+        case CardAction::LockoutType::sequence:
+          updateAnim = !action->IsLockoutOver();
+          break;
+        default:
+          updateAnim = !action->IsAnimationOver();
+          break;
+        }
       }
 
       if (updateAnim) {
         action->Update(elapsed);
-        GetScene().GetField()->Update(elapsed);
       }
       else{
         currState = state::fadeout;
@@ -121,6 +122,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     }
     break;
   }
+  GetScene().GetField()->Update(elapsed);
 }
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)

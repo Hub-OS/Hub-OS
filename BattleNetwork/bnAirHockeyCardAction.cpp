@@ -82,5 +82,5 @@ void AirHockeyCardAction::OnAnimationEnd()
 {
 }
 
-void AirHockeyCardAction::OnEndAction() {
+void AirHockeyCardAction::OnActionEnd() {
 }

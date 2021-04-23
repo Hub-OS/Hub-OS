@@ -108,7 +108,7 @@ void LightningCardAction::OnAnimationEnd()
   }
 }
 
-void LightningCardAction::OnEndAction()
+void LightningCardAction::OnActionEnd()
 {
   OnAnimationEnd();
 }

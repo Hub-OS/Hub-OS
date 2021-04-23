@@ -93,5 +93,5 @@ void ZetaCannonCardAction::OnAnimationEnd()
 {
 }
 
-void ZetaCannonCardAction::OnEndAction()
+void ZetaCannonCardAction::OnActionEnd()
 { }

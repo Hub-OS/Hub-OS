@@ -18,7 +18,7 @@ public:
   virtual ~SwordCardAction();
 
   void OnAnimationEnd() override;
-  void OnEndAction() override;
+  void OnActionEnd() override;
   void OnExecute(Character* user) override;
   virtual void OnSpawnHitbox(Entity::ID_t);
   void SetElement(Element elem);

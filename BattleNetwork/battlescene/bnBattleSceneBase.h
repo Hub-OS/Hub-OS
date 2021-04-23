@@ -97,10 +97,9 @@ private:
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   Font mobFont; /*!< Name of mob font */
-  std::vector<SceneNode*> scenenodes; /*!< Scene node system */
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
-  std::vector<Component*> components; /*!< Components injected into the scene */
-  std::vector<Component*> deleteComponentsList; /*!< Components to be deleted at the end of this frame */
+  std::vector<SceneNode*> scenenodes; /*!< ui components. DO NOT DELETE. */
+  std::vector<Component*> components; /*!< Components injected into the scene to track. DO NOT DELETE. */
     
   // counter stuff
   SpriteProxyNode counterReveal;
@@ -150,8 +149,7 @@ protected:
     BattleSceneState& state; //!< The battle scene state this node represents
     BattleSceneBase& owner; //!< The scene this state refers to
   public:
-    StateNode(BattleSceneBase& owner, BattleSceneState& state)
-      : state(state), owner(owner)
+    StateNode(BattleSceneBase& owner, BattleSceneState& state) : state(state), owner(owner)
     {
       state.scene = &owner;
       state.controller = &owner.getController();
@@ -339,12 +337,6 @@ public:
       \brief Forces the creation a fadeout state onto the state pointer and goes back to the last scene
   */
   void Quit(const FadeOut& mode);
-
-  /**
-  * @brief Inject uses double-visitor design pattern. Battle Scene subscribes to card pub components.
-  * @param pub CardUsePublisher component to subscribe to
-  */
-  void Inject(CardUsePublisher& pub);
 
   /**
     * @brief Inject uses double-visitor design pattern. BattleScene adds component to draw and update list.

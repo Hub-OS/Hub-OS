@@ -79,7 +79,7 @@ void YoYoCardAction::OnAnimationEnd()
 {
 }
 
-void YoYoCardAction::OnEndAction()
+void YoYoCardAction::OnActionEnd()
 {
   if (yoyo) {
     yoyo->Delete();

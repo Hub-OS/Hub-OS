@@ -47,6 +47,6 @@ void CubeCardAction::OnAnimationEnd()
 {
 }
 
-void CubeCardAction::OnEndAction()
+void CubeCardAction::OnActionEnd()
 {
 }

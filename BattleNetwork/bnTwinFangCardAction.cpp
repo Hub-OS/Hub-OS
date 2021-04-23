@@ -79,6 +79,6 @@ void TwinFangCardAction::OnAnimationEnd()
 {
 }
 
-void TwinFangCardAction::OnEndAction()
+void TwinFangCardAction::OnActionEnd()
 {
 }

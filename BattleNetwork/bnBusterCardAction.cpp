@@ -74,7 +74,7 @@ void BusterCardAction::Update(double _elapsed)
   CardAction::Update(_elapsed);
 }
 
-void BusterCardAction::OnEndAction()
+void BusterCardAction::OnActionEnd()
 {
 }
 

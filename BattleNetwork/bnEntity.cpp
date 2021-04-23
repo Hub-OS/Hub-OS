@@ -48,17 +48,19 @@ void Entity::ClearPendingComponents()
 
 void Entity::ReleaseComponentsPendingRemoval()
 {
-  for (auto&& bucket : queuedComponents) {
-    if (bucket.action == ComponentBucket::Status::remove) {
-      auto iter = std::find(components.begin(), components.end(), bucket.pending);
+  // `delete` may kick off deconstructors that Eject() other components
+  auto copy = queuedComponents;
 
-      if (iter != components.end()) {
-        Component* component = *iter;
-        components.erase(iter);
+  // Remove the component from our list
+  for (auto&& bucket : copy) {
+    if (bucket.action != ComponentBucket::Status::remove) continue;
 
-        component->FreeOwner();
-        delete component;
-      }
+    auto iter = std::find(components.begin(), components.end(), bucket.pending);
+
+    if (iter != components.end()) {
+      Component* component = *iter;
+      components.erase(iter);
+      delete component;
     }
   }
 }
@@ -256,9 +258,6 @@ void Entity::Update(double _elapsed) {
 
   UpdateMovement(_elapsed);
 
-  // Update all components
-  auto iter = components.begin();
-
   sf::Uint8 alpha = getSprite().getColor().a;
   for (auto* child : GetChildNodes()) {
     auto* sprite = dynamic_cast<SpriteProxyNode*>(child);
@@ -268,6 +267,8 @@ void Entity::Update(double _elapsed) {
     }
   }
 
+  // Update all components
+  auto iter = components.begin();
   while (iter != components.end()) {
     // respectfully only update local components
     // anything shared with the battle scene needs to update those components
@@ -583,6 +584,8 @@ void Entity::FreeAllComponents()
     components[i]->Eject();
   }
 
+  ReleaseComponentsPendingRemoval();
+
   components.clear();
 }
 
@@ -597,18 +600,17 @@ void Entity::FreeComponentByID(Component::ID_t ID) {
     auto component = *iter;
 
     if (component->GetID() == ID) {
-      if (isUpdating) {
+      if (true || isUpdating) {
+        // Safely delete component by queueing it
         queuedComponents.insert(queuedComponents.begin(), ComponentBucket{ component, ComponentBucket::Status::remove });
       }
       else {
         components.erase(iter);
-
-        if (component->Lifetime() == Component::lifetimes::local) {
-          delete component; // No one else will own this but us so we must cleanup here
-        }
-        return;
+        delete component;
       }
+      return; // found and handled, quit early.
     }
+
     iter = std::next(iter);
   }
 }

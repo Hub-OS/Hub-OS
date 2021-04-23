@@ -48,6 +48,6 @@ void ReflectCardAction::OnAnimationEnd()
 {
 }
 
-void ReflectCardAction::OnEndAction()
+void ReflectCardAction::OnActionEnd()
 {
 }

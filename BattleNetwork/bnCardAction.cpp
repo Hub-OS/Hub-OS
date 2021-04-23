@@ -133,15 +133,14 @@ void CardAction::Execute(Character* user)
 void CardAction::EndAction()
 {
   RecallPreviousState();
-  OnEndAction();
+  OnActionEnd();
 }
 
 CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
-  auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(node), std::ref(parent) }));
+  auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(parent), point, std::ref(node) }));
 
   if (started) {
     this->GetActor().AddNode(&node);
-
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;
   }
@@ -257,8 +256,8 @@ const bool CardAction::CanExecute() const
 //                Attachment Impl               //
 //////////////////////////////////////////////////
 
-CardAction::Attachment::Attachment(SpriteProxyNode& parentNode, Animation& parentAnim) :
-  spriteProxy(parentNode), parentAnim(parentAnim)
+CardAction::Attachment::Attachment(Animation& parentAnim, const std::string& point, SpriteProxyNode& parentNode) :
+  spriteProxy(parentNode), parentAnim(parentAnim), point(point)
 {
 }
 
@@ -268,7 +267,15 @@ CardAction::Attachment::~Attachment()
 
 CardAction::Attachment& CardAction::Attachment::UseAnimation(Animation& anim)
 {
-  this->myAnim = &anim;
+  myAnim = &anim;
+  anim.Refresh(spriteProxy.get().getSprite());
+
+  // update the node's position
+  auto baseOffset = GetParentAnim().GetPoint(point);
+  const auto& origin = spriteProxy.get().getSprite().getOrigin();
+  baseOffset = baseOffset - origin;
+  SetOffset(baseOffset);
+
   return *this;
 }
 
@@ -311,7 +318,7 @@ Animation& CardAction::Attachment::GetParentAnim()
 }
 
 CardAction::Attachment& CardAction::Attachment::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
-  auto iter = attachments.insert(std::make_pair(point, Attachment( std::ref(node), std::ref(parent) )));
+  auto iter = attachments.insert(std::make_pair(point, Attachment(std::ref(parent), point, std::ref(node) )));
 
   if (started) {
     this->spriteProxy.get().AddNode(&node);

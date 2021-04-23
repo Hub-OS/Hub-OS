@@ -33,11 +33,11 @@ bool Obstacle::CanMoveTo(Battle::Tile * next)
 
 void Obstacle::AdoptTile(Battle::Tile * tile)
 {
-  tile->AddEntity(*this);
-
   if (!IsMoving()) {
     setPosition(tile->getPosition());
   }
+
+  tile->AddEntity(*this);
 }
 
 void Obstacle::OnBattleStop()

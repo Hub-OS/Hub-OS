@@ -16,46 +16,48 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
      
     class AntiDamageTriggerAction : public CardAction {
     private:
-      Character& aggressor;
-      DefenseRule& defense;
+      Entity::ID_t aggroId;
+      NinjaAntiDamage& component;
 
     public:
-      AntiDamageTriggerAction(Character& actor, Character& aggressor, DefenseRule& defense) :
+      AntiDamageTriggerAction(Character& actor, Entity::ID_t aggroId, NinjaAntiDamage& component) :
         CardAction(actor, "PLAYER_IDLE"),
-        aggressor(aggressor),
-        defense(defense) {}
+        aggroId(aggroId),
+        component(component) {}
 
       ~AntiDamageTriggerAction() { }
 
       void Update(double elapsed) override {}
       void OnExecute(Character* user) override {
         auto& owner = GetActor();
+        auto* aggressor = owner.GetField()->GetCharacter(aggroId);
+
         Battle::Tile* tile = nullptr;
 
         // Add a HideTimer for the owner of anti damage
-        owner.CreateComponent<HideTimer>(&owner, 1.0);
+        user->CreateComponent<HideTimer>(user, 1.0);
 
         // Add a poof particle to denote owner dissapearing
-        owner.GetField()->AddEntity(*new ParticlePoof(), *owner.GetTile());
+        user->GetField()->AddEntity(*new ParticlePoof(), *user->GetTile());
 
         // If there's an aggressor, grab their tile and target it
-        if (auto tile = aggressor.GetTile()) {
-          // Add ninja star spell targetting the aggressor's tile
-          owner.GetField()->AddEntity(*new NinjaStar(owner.GetTeam(), 0.2f), *tile);
+        if (aggressor) {
+          if (auto tile = aggressor->GetTile()) {
+            // Add ninja star spell targetting the aggressor's tile
+            user->GetField()->AddEntity(*new NinjaStar(user->GetTeam(), 0.2f), *tile);
+          }
         }
 
         // Remove the anti damage rule from the owner
-        owner.RemoveDefenseRule(&defense);
+        user->RemoveDefenseRule(component.defense);
+        component.Eject();
       }
       void OnAnimationEnd() override {}
-      void OnEndAction() override {};
+      void OnActionEnd() override {};
     };
 
-    auto* character = owner.GetField()->GetCharacter(in.GetHitboxProperties().aggressor);
-    auto* action = new AntiDamageTriggerAction(owner, *character, *defense);
+    auto* action = new AntiDamageTriggerAction(owner, in.GetHitboxProperties().aggressor, *this);
     owner.AddAction({ action }, ActionOrder::traps);
-
-    this->Eject();
   }; // END callback 
 
 
@@ -65,7 +67,6 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
 }
 
 NinjaAntiDamage::~NinjaAntiDamage() {
-  // Delete the defense rule pointer we allocated
   delete defense;
 }
 

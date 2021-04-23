@@ -84,7 +84,7 @@ void DarkTornadoCardAction::OnAnimationEnd()
 {
 }
 
-void DarkTornadoCardAction::OnEndAction()
+void DarkTornadoCardAction::OnActionEnd()
 {
   GetActor().RemoveNode(attachment);
 }

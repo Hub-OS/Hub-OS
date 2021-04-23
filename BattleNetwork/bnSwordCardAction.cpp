@@ -107,6 +107,6 @@ void SwordCardAction::OnAnimationEnd()
 {
 }
 
-void SwordCardAction::OnEndAction()
+void SwordCardAction::OnActionEnd()
 {
 }

@@ -58,6 +58,6 @@ void ThunderCardAction::OnAnimationEnd()
 {
 }
 
-void ThunderCardAction::OnEndAction()
+void ThunderCardAction::OnActionEnd()
 {
 }

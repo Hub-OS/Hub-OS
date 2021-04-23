@@ -38,7 +38,7 @@ void TomahawkSwingCardAction::OnExecute(Character* user)
   AddAnimAction(4, spawn);
 }
 
-void TomahawkSwingCardAction::OnEndAction()
+void TomahawkSwingCardAction::OnActionEnd()
 {
 }
 

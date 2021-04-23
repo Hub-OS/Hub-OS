@@ -17,6 +17,6 @@ public:
   ~DarkTornadoCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
-  void OnEndAction() override;
+  void OnActionEnd() override;
   void OnExecute(Character* user) override;
 }; 

@@ -83,7 +83,7 @@ void TornadoCardAction::OnAnimationEnd()
 {
 }
 
-void TornadoCardAction::OnEndAction()
+void TornadoCardAction::OnActionEnd()
 {
   GetActor().RemoveNode(attachment);
 }

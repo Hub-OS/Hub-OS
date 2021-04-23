@@ -60,7 +60,7 @@ void BombCardAction::OnAnimationEnd()
 {
 }
 
-void BombCardAction::OnEndAction()
+void BombCardAction::OnActionEnd()
 {
   GetActor().RemoveNode(attachment);
 }

@@ -64,6 +64,6 @@ void AirShotCardAction::OnAnimationEnd()
 {
 }
 
-void AirShotCardAction::OnEndAction()
+void AirShotCardAction::OnActionEnd()
 {
 }

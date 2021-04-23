@@ -97,8 +97,6 @@ void Aura::OnUpdate(double _elapsed) {
   // If the aura has been replaced by another defense rule, remove all
   // associated components 
   if (defense->IsReplaced()) {
-    fx? fx->Eject() : 0;
-    GetOwner()->RemoveNode(fx);
     Eject();
     return;
   }

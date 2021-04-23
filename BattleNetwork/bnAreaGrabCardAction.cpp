@@ -81,6 +81,6 @@ void AreaGrabCardAction::OnAnimationEnd()
 {
 }
 
-void AreaGrabCardAction::OnEndAction()
+void AreaGrabCardAction::OnActionEnd()
 {
 }

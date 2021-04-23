@@ -5,17 +5,11 @@
 #include "bnAudioResourceManager.h"
 #include "bnParticleHeal.h"
 
-#define FRAME1 { 1, 0.1f }
-
-#define FRAMES FRAME1
-
-
 RecoverCardAction::RecoverCardAction(Character& actor, int heal) : 
   CardAction(actor, "PLAYER_IDLE") {
   RecoverCardAction::heal = heal;
 
-  // add override anims
-  OverrideAnimationFrames({ FRAMES });
+  this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
 RecoverCardAction::~RecoverCardAction()
@@ -30,18 +24,23 @@ void RecoverCardAction::OnExecute(Character* user) {
   Audio().Play(AudioType::RECOVER);
 
   // Add artifact on the same layer as player
-  Battle::Tile* tile = user->GetTile();
+  auto healfx = new ParticleHeal();
+  user->GetField()->AddEntity(*healfx, *user->GetTile());
 
-  if (tile) {
-    auto healfx = new ParticleHeal();
-    user->GetField()->AddEntity(*healfx, *tile);
-  }
+  CardAction::Step step;
+  step.updateFunc = [=](double elapsed, Step& self) {
+    if (healfx == nullptr || healfx->WillRemoveLater()) {
+      self.markDone();
+    }
+  };
+
+  AddStep(step);
 }
 
 void RecoverCardAction::OnAnimationEnd()
 {
 }
 
-void RecoverCardAction::OnEndAction()
+void RecoverCardAction::OnActionEnd()
 {
 }

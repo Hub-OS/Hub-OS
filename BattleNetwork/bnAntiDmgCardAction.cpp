@@ -13,23 +13,18 @@ AntiDmgCardAction::AntiDmgCardAction(Character& actor, int damage) :
 }
 
 void AntiDmgCardAction::OnExecute(Character* user) {
-  user->CreateComponent<NinjaAntiDamage>(user);
+  user->CreateComponent<NinjaAntiDamage>(user)->Update(0);
 }
 
 AntiDmgCardAction::~AntiDmgCardAction()
 {
 }
 
-void AntiDmgCardAction::Update(double _elapsed)
-{
-  CardAction::Update(_elapsed);
-}
-
 void AntiDmgCardAction::OnAnimationEnd()
 {
 }
 
-void AntiDmgCardAction::OnEndAction()
+void AntiDmgCardAction::OnActionEnd()
 {
 
 }

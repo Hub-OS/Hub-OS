@@ -81,6 +81,6 @@ void CannonCardAction::OnAnimationEnd()
 {
 }
 
-void CannonCardAction::OnEndAction()
+void CannonCardAction::OnActionEnd()
 {
 }

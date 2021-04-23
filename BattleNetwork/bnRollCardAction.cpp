@@ -63,6 +63,6 @@ void RollCardAction::OnAnimationEnd()
 {
 }
 
-void RollCardAction::OnEndAction()
+void RollCardAction::OnActionEnd()
 {
 }

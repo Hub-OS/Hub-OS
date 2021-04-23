@@ -38,6 +38,7 @@ public:
     using Attachments = std::multimap<std::string, Attachment>;
 
     bool started{ false };
+    std::string point;
     std::reference_wrapper<SpriteProxyNode> spriteProxy;
     std::reference_wrapper<Animation> parentAnim;
     Attachments attachments;
@@ -46,7 +47,7 @@ public:
   public:
     friend class CardAction; // Let CardAction inspect our member vars
 
-    Attachment(SpriteProxyNode& parentNode, Animation& parentAnim);
+    Attachment(Animation& parentAnim, const std::string& point, SpriteProxyNode& parentNode);
     ~Attachment();
 
     Attachment& UseAnimation(Animation&);
@@ -142,7 +143,7 @@ public:
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
 protected:
-  virtual void OnEndAction() = 0;
+  virtual void OnActionEnd() = 0;
   virtual void OnAnimationEnd() = 0;
   virtual void OnExecute(Character* user) = 0;
 };

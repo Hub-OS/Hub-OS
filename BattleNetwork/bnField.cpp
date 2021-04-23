@@ -343,13 +343,27 @@ void Field::Update(double _elapsed) {
     }
   }
 
-  // any columns with a character in them do not need to revert
+  // any columns with a character in them from a different team do not revert
   for (auto charIter = charCol.begin(); charIter != charCol.end(); charIter++) {
-    auto iter = restCol.find(*charIter);
+    for (size_t i = 1; i <= GetHeight(); i++) {
+      auto& t = tiles[i][*charIter];
 
-    if (iter != restCol.end()) {
-      restCol.erase(iter);
-    }
+      auto matchIter = std::find_if(t->characters.begin(), t->characters.end(), 
+        [team = t->GetTeam()](Character* in) { return !in->Teammate(team); });
+
+      // We found a character on a different team than us
+      if (matchIter != t->characters.end()) {
+        // erase this column from the revert bucket
+        // and break early
+        auto iter = restCol.find(*charIter);
+
+        if (iter != restCol.end()) {
+          restCol.erase(iter);
+          break;
+        }
+      }
+    } // end column
+    // begin the next column
   }
 
   // revert strategy for tiles:

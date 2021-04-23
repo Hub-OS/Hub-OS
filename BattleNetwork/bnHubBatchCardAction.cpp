@@ -40,7 +40,7 @@ void HubBatchCardAction::OnAnimationEnd()
 {
 }
 
-void HubBatchCardAction::OnEndAction()
+void HubBatchCardAction::OnActionEnd()
 {
 }
 

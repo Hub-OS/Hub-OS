@@ -54,6 +54,10 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
   dmg.SetString("");
   multiplier.SetString("");
 
+  //auto this_states = states;
+  //this_states.transform *= getTransform();
+  states.transform *= getTransform();
+
   if (player) {
     int cardOrder = 0;
 
@@ -106,12 +110,12 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         // 1px * 2 (scale) = 2px
         frame.setPosition(icon.getPosition());
         frame.setPosition(frame.getPosition() - sf::Vector2f(2.f, 2.f));
-        target.draw(frame);
+        target.draw(frame, states);
 
         // Grab the ID of the card and draw that icon from the spritesheet
         icon.setTexture(WEBCLIENT.GetIconForCard(selectedCards[drawOrderIndex]->GetUUID()));
 
-        target.draw(icon);
+        target.draw(icon, states);
       }
     }
 
@@ -242,7 +246,7 @@ std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek(
 }
 
 void SelectedCardsUI::Inject(BattleSceneBase& scene) {
-  scene.Inject(*this);
+  scene.Inject(this);
 }
 
 void SelectedCardsUI::SetMultiplier(unsigned mult)

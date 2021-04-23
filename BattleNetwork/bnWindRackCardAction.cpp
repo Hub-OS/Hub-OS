@@ -132,7 +132,7 @@ void WindRackCardAction::OnExecute(Character* user)
   AddAnimAction(2, onThrow);
 }
 
-void WindRackCardAction::OnEndAction()
+void WindRackCardAction::OnActionEnd()
 {
 }
 

@@ -13,6 +13,6 @@ public:
   ~RollCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
-  void OnEndAction();
+  void OnActionEnd();
   void OnExecute(Character* user);
 };

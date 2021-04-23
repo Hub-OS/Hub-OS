@@ -24,6 +24,6 @@ void AuraCardAction::OnAnimationEnd()
 {
 }
 
-void AuraCardAction::OnEndAction()
+void AuraCardAction::OnActionEnd()
 {
 }

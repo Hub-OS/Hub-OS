@@ -11,6 +11,6 @@ public:
   ~AuraCardAction();
   void Update(double _elapsed);
   void OnAnimationEnd() override;
-  void OnEndAction() override;
+  void OnActionEnd() override;
   void OnExecute(Character* user) override;
 };

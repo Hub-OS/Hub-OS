@@ -25,7 +25,7 @@ public:
   ~MachGunCardAction();
 
   void OnExecute(Character* user) override;
-  void OnEndAction() override;
+  void OnActionEnd() override;
   void OnAnimationEnd() override;
 };
 

@@ -155,11 +155,11 @@ BattleSceneBase::~BattleSceneBase() {
   // drop the camera from our event bus
   channel.Drop(&camera);
 
-  for (auto& elem : states) {
+  for (auto&& elem : states) {
     delete elem;
   }
 
-  for (auto& elem : nodeToEdges) {
+  for (auto&& elem : nodeToEdges) {
     delete elem.second;
   }
 }
@@ -505,13 +505,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
       }
     }
   }
-
-  // cleanup pending components
-  for (auto c : deleteComponentsList) {
-    delete c;
-  }
-
-  deleteComponentsList.clear();
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
@@ -557,6 +550,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     auto nodes = std::vector<SceneNode*>();
     nodes.insert(nodes.end(), allEntities.begin(), allEntities.end());
+    //nodes.insert(nodes.end(), scenenodes.begin(), scenenodes.end());
     std::sort(nodes.begin(), nodes.end(), [](SceneNode* A, SceneNode* B) { return A->GetLayer() > B->GetLayer(); });
 
     for (SceneNode* node : nodes) {
@@ -713,22 +707,12 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
 }
 
 
-// What to do if we inject a card publisher, subscribe it to the main listener
-void BattleSceneBase::Inject(CardUsePublisher& pub)
-{
-  //enemyCardListener.Subscribe(pub);
-  //SceneNode* node = dynamic_cast<SceneNode*>(&pub);
-  //scenenodes.push_back(node);
-  //Component* component = (Component*)&pub;
-  //component->scene = this;
-  //components.push_back(component);
-}
-
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
 void BattleSceneBase::Inject(MobHealthUI& other)
 {
   other.scene = this;
   components.push_back(&other);
+  scenenodes.push_back(&other);
 }
 
 // Default case: no special injection found for the type, just add it to our update loop
@@ -751,9 +735,10 @@ void BattleSceneBase::Eject(Component::ID_t ID)
 
   if (iter != components.end()) {
     Component* component = *iter;
+    // TODO: dynamic casting could be entirely avoided by hashing IDs
     auto iter2 = std::find_if(scenenodes.begin(), scenenodes.end(), 
       [component](SceneNode* in) { 
-        return reinterpret_cast<uintptr_t>(in) == reinterpret_cast<uintptr_t>(component); 
+        return in == dynamic_cast<SceneNode*>(component);
       }
     );
 
@@ -761,7 +746,6 @@ void BattleSceneBase::Eject(Component::ID_t ID)
       scenenodes.erase(iter2);
     }
 
-    deleteComponentsList.push_back(*iter);
     components.erase(iter);
   }
 }

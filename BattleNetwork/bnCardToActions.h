@@ -31,30 +31,20 @@
 #include "bnAuraCardAction.h"
 #include "bnAntiDmgCardAction.h"
 #include "bnAreaGrabCardAction.h"
-#include "bnBasicSword.h"
-#include "bnThunder.h"
-#include "bnInvis.h"
-#include "bnElecpulse.h"
-#include "bnParticlePoof.h"
-#include "bnHideUntil.h"
-
+#include "bnInvisCardAction.h"
+#include "bnInvalidCardAction.h"
 /***
  * all of this code will be tossed out when scripting cards is complete. 
  * This is for demonstration of the engine until we have scripting done
  */
 
 static CardAction* CardToAction(const Battle::Card& card, Character& character) {
-      // Identify the card by the name
+  // Identify the card by the name
   std::string name = card.GetShortName();
   CardAction* next{nullptr};
   
   if (name.substr(0, 4) == "Atk+") {
-    Battle::Tile* tile = character.GetTile();
-    ParticlePoof* poof = new ParticlePoof();
-    poof->SetHeight(character.GetHeight());
-    poof->SetLayer(-100); // in front of player and player widgets
-
-    character.GetField()->AddEntity(*poof, *tile);
+    next = new InvalidCardAction(character);
   }else if (name.substr(0, 5) == "Recov") {
     next = new RecoverCardAction(character, card.GetDamage());
   }
@@ -75,52 +65,13 @@ static CardAction* CardToAction(const Battle::Card& card, Character& character) 
     character.Audio().Play(AudioType::PANEL_CRACK);
   }
   else if (name == "YoYo") {
-     next = new YoYoCardAction(character, card.GetDamage());
+    next = new YoYoCardAction(character, card.GetDamage());
   }
   else if (name == "Invis") {
-    // Create an invisible component. This handles the logic for timed invis
-    Component* invis = new Invis(&character);
-
-    // Add the component to player
-    character.RegisterComponent(invis);
+    next = new InvisCardAction(character);
   }
   else if (name.substr(0, 7) == "Rflectr") {
     next = new ReflectCardAction(character, card.GetDamage(), ReflectShield::Type::yellow);
-  }
-  else if (name == "Fishy") {
-    /**
-      * Fishy is two pieces: the Fishy attack and a HideUntil component
-      *
-      * The fishy moves right
-      *
-      * HideUntil is a special component that removes entity from play
-      * until a condition is met. This condition is defined in a
-      * HideUntill::Callback query functor.
-      *
-      * In this case, we hide until the fishy is deleted whether by
-      * reaching the end of the field or by a successful attack. The
-      * query functor will then return true.
-      *
-      * When HideUntill condition is met, the component will add the entity back
-      * in its original place and then removes itself from the component
-      * owner
-      */
-    Fishy* fishy = new Fishy(character.GetTeam(), 1.0);
-    fishy->SetDirection(Direction::right);
-
-    // Condition to end hide
-    HideUntil::Callback until = [fishy]() { return fishy->IsDeleted(); };
-
-    // First argument is the entity to hide
-    // Second argument is the query functor
-    HideUntil* fishyStatus = new HideUntil(&character, until);
-    character.RegisterComponent(fishyStatus);
-
-    Battle::Tile* tile = character.GetTile();
-
-    if (tile) {
-      character.GetField()->AddEntity(*fishy, tile->GetX(), tile->GetY());
-    }
   }
   else if (name == "Zeta Cannon 1") {
     next = new ZetaCannonCardAction(character, card.GetDamage());

@@ -42,7 +42,7 @@ void ProtoManCardAction::OnAnimationEnd()
   // the animation does nothing special on end
 }
 
-void ProtoManCardAction::OnEndAction()
+void ProtoManCardAction::OnActionEnd()
 {
   GetActor().Reveal();
 }

@@ -87,7 +87,7 @@ void FireBurnCardAction::OnAnimationEnd()
   GetActor().RemoveNode(attachment);
 }
 
-void FireBurnCardAction::OnEndAction()
+void FireBurnCardAction::OnActionEnd()
 {
   OnAnimationEnd();
 }

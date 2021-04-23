@@ -238,6 +238,11 @@ namespace Battle {
     return width;
   }
 
+  const size_t Tile::GetEntityCount() const
+  {
+    return entities.size();
+  }
+
   float Tile::GetHeight() const {
     return height;
   }
@@ -396,6 +401,8 @@ namespace Battle {
     // First tile set means entity is live and ready to go
     _entity->Spawn(*this);
 
+    // Note: should be part of Entity::Spawn() 
+    //       but would require passing the facing direction
     if (_entity->GetFacing() == Direction::none) {
       _entity->SetFacing(this->facing);
     }
@@ -994,6 +1001,7 @@ namespace Battle {
   {
     vector<Artifact*> artifacts_copy = artifacts;
     for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
+      // artifacts are special effects and do not stop for TimeFreeze events
       field->UpdateEntityOnce(*entity, elapsed);
     }
   }

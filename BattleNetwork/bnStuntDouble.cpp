@@ -1,7 +1,7 @@
 #include "bnStuntDouble.h"
 #include "bnAnimationComponent.h"
 #include "bnPaletteSwap.h"
-StuntDouble::StuntDouble(Character& ref)
+StuntDouble::StuntDouble(Character& ref) : ref(ref)
 {
   // Copy attributes & stats
   setTexture(ref.getTexture());
@@ -9,6 +9,7 @@ StuntDouble::StuntDouble(Character& ref)
   SetTeam(ref.GetTeam());
   SetFacing(ref.GetFacing());
   SetHealth(ref.GetHealth());
+  defaultColor = ref.getColor();
 
   // copy nodes
   for (auto node : ref.GetChildNodes()) {
@@ -41,6 +42,7 @@ StuntDouble::StuntDouble(Character& ref)
 
 StuntDouble::~StuntDouble()
 {
+
 }
 
 void StuntDouble::OnDelete()
@@ -49,4 +51,9 @@ void StuntDouble::OnDelete()
 
 void StuntDouble::OnUpdate(double elapsed)
 {
+  // If, and only if, an action changes the user's colors (e.g. partially translucent)
+  // copy the user's new colors
+  // if (ref.getColor() != defaultColor) {
+    setColor(ref.getColor());
+  //}
 }

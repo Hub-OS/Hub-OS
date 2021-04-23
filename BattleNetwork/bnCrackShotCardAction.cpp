@@ -103,5 +103,5 @@ void CrackShotCardAction::OnAnimationEnd()
 {
 }
 
-void CrackShotCardAction::OnEndAction() {
+void CrackShotCardAction::OnActionEnd() {
 }

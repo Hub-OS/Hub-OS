@@ -582,7 +582,7 @@ void TenguCross::SpecialAction::OnExecute(Character* user)
   AddAnimAction(1, onTrigger);
 }
 
-void TenguCross::SpecialAction::OnEndAction()
+void TenguCross::SpecialAction::OnActionEnd()
 {
 }
 

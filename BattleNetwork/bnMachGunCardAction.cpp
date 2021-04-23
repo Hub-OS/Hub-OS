@@ -103,7 +103,7 @@ void MachGunCardAction::OnExecute(Character* user)
   }
 }
 
-void MachGunCardAction::OnEndAction()
+void MachGunCardAction::OnActionEnd()
 {
   for (auto&& callback : removeCallbacks) {
     callback.get().Reset();

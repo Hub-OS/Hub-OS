@@ -17,6 +17,6 @@ public:
     ~ElecPulseCardAction();
 
     void OnAnimationEnd() override;
-    void OnEndAction();
+    void OnActionEnd();
     void OnExecute(Character* user);
 };

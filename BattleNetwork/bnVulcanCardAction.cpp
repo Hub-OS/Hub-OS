@@ -78,6 +78,6 @@ void VulcanCardAction::OnAnimationEnd()
 {
 }
 
-void VulcanCardAction::OnEndAction()
+void VulcanCardAction::OnActionEnd()
 {
 }

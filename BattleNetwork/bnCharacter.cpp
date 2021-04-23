@@ -624,11 +624,11 @@ void Character::SetHealth(const int _health) {
 
 void Character::AdoptTile(Battle::Tile * tile)
 {
-  tile->AddEntity(*this);
-
   if (!IsMoving()) {
     setPosition(tile->getPosition());
   }
+
+  tile->AddEntity(*this);
 }
 
 void Character::ToggleCounter(bool on)
@@ -670,7 +670,7 @@ void Character::AddDefenseRule(DefenseRule * rule)
     (*iter)->replaced = true; // Flag that this defense rule may be valid ptr, but is no longer in use
     RemoveDefenseRule(*iter);
 
-    // call again, adding this time
+    // call again, adding new rule this time
     AddDefenseRule(rule);
   }
 }

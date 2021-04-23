@@ -15,6 +15,6 @@ public:
   ~VulcanCardAction();
   void Update(double _elapsed) override final;
   void OnAnimationEnd() override final;
-  void OnEndAction() override;
+  void OnActionEnd() override;
   void OnExecute(Character* user) override;
 };

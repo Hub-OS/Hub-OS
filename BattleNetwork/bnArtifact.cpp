@@ -16,16 +16,15 @@ Artifact::~Artifact() {
 }
 
 void Artifact::Update(double elapsed) {
-  if (IsTimeFrozen()) return;
   Entity::Update(elapsed);
   OnUpdate(elapsed);
 }
 
 void Artifact::AdoptTile(Battle::Tile * tile)
 {
-  tile->AddEntity(*this);
-
   if (!IsMoving()) {
     setPosition(tile->getPosition());
   }
+
+  tile->AddEntity(*this);
 }

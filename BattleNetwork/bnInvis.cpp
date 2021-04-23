@@ -24,13 +24,14 @@ Invis::~Invis()
 void Invis::OnUpdate(double _elapsed) {
   if (elapsed >= duration.asSeconds()) {
     GetOwner()->SetAlpha(255);
-    GetOwner()->SetPassthrough(false); 
+    GetOwner()->SetPassthrough(false);
 
     auto character = GetOwnerAs<Character>();
     if (character) {
       character->RemoveDefenseRule(defense);
     }
-    GetOwner()->FreeComponentByID(GetID());
+
+    this->Eject();
   }
   else {
     GetOwner()->SetAlpha(125);

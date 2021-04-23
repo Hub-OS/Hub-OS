@@ -31,53 +31,42 @@ PanelGrab::~PanelGrab() {
 
 void PanelGrab::OnSpawn(Battle::Tile& start)
 {
-  // TODO: tile movement AdoptTile() resets the position of this entity
-  // movement API should be more mature so until then, just hide the panel grab sprite
-  // so the Update() can move it above the grid appropriately
-  //auto startPos = sf::Vector2f(start.getPosition().x, 0);
-  //setPosition(startPos);
-  Hide();
+  auto startPos = sf::Vector2f(start.getPosition().x, 0);
+  setPosition(startPos);
 }
 
 void PanelGrab::OnUpdate(double _elapsed) {
-  if (GetTile()) {
-    if (IsHidden()) Reveal();
+  start = sf::Vector2f(tile->getPosition().x, 0);
 
-    start = sf::Vector2f(tile->getPosition().x, 0);
+  double beta = swoosh::ease::linear(progress, duration, 1.0);
 
-    double beta = swoosh::ease::linear(progress, duration, 1.0);
+  // interpolate linearly from the top down to the tile position
+  double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
+  double posY = (beta * tile->getPosition().y) + ((1.0f - beta)*start.y);
 
-    // interpolate linearly from the top down to the tile position
-    double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
-    double posY = (beta * tile->getPosition().y) + ((1.0f - beta)*start.y);
+  setPosition((float)posX, (float)posY);
 
-    setPosition((float)posX, (float)posY);
-
-    // When at the end of the line
-    if (progress >= duration) {
-      // Deal any damage
-      tile->AffectEntities(this);
+  // When at the end of the line
+  if (progress >= duration) {
+    // Deal any damage
+    tile->AffectEntities(this);
       
-      // Change the team
-      tile->SetTeam(GetTeam());
-      tile->SetFacing(GetFacing());
+    // Change the team
+    tile->SetTeam(GetTeam());
+    tile->SetFacing(GetFacing());
 
-      // Show the panel grab spread animation
-      if (animationComponent->GetAnimationString() != "HIT") {
-        Audio().Play(AudioType::AREA_GRAB_TOUCHDOWN, AudioPriority::lowest);
-        animationComponent->SetAnimation("HIT");
-      }
+    // Show the panel grab spread animation
+    if (animationComponent->GetAnimationString() != "HIT") {
+      Audio().Play(AudioType::AREA_GRAB_TOUCHDOWN, AudioPriority::lowest);
+      animationComponent->SetAnimation("HIT");
     }
-
-    if (progress > duration*2.0) {
-      Delete();
-    }
-
-    progress += _elapsed;
   }
-  else {
+
+  if (progress > duration*2.0) {
     Delete();
   }
+
+  progress += _elapsed;
 }
 
 void PanelGrab::Attack(Character* _entity) {

@@ -28,7 +28,7 @@ public:
 
   }
 
-  void OnEndAction()
+  void OnActionEnd()
   {
     // SCRIPTS.callback(card_name).onDestroy(this);
   }

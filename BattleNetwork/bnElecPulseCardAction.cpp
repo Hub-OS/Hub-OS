@@ -73,6 +73,6 @@ void ElecPulseCardAction::OnAnimationEnd()
 {
 }
 
-void ElecPulseCardAction::OnEndAction()
+void ElecPulseCardAction::OnActionEnd()
 {
 }
