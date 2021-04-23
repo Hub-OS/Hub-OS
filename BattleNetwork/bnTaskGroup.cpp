@@ -1,3 +1,4 @@
+#include <string>
 #include "bnTaskGroup.h"
 
 TaskGroup::TaskGroup(TaskGroup && other) noexcept
