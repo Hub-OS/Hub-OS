@@ -57,9 +57,9 @@ namespace Overworld {
 
     // aux functions
     void UpdateAnimationState(float elapsed);
-    std::string DirectionAnimStrSuffix(const Direction& dir);
-    std::string MovementAnimStrPrefix(const MovementState& state);
     std::string FindValidAnimState(const Direction& dir, const MovementState& state);
+    std::string MovementAnimStrPrefix(const MovementState& state);
+    std::string DirectionAnimStrSuffix(const Direction& dir);
   public:
     /**
     * @brief Construct a character with a name

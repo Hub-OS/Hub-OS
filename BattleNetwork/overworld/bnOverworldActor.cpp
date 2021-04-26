@@ -168,80 +168,6 @@ void Overworld::Actor::SetMissingTexture(std::shared_ptr<sf::Texture> texture)
   Actor::missing = texture;
 }
 
-void Overworld::Actor::UpdateAnimationState(float elapsed) {
-  std::string stateStr;
-
-  auto findValidAnimThunk = [this](const MovementState& state) {
-    return FindValidAnimState(this->heading, state);
-  };
-
-  auto state_list = { MovementState::running, MovementState::walking, MovementState::idle };
-
-  for (auto item : state_list) {
-    // begin with our desired state and work our way through the list...
-    // only look down in the state list for valid state alternatives
-    // i.e. no RUN animations but there are valid animations for WALK!
-    if (item <= this->state) {
-      stateStr = findValidAnimThunk(item);
-
-      // If we have something (non-empty string), exit the loop!
-      if (anim.HasAnimation(stateStr)) {
-        break;
-      }
-    }
-  }
-
-  // we may have exhausted the possible animations to substitute in the previous for-loop
-  // so we need to check again that the new state string is valid...
-  bool missingAnim = false;
-  if (!anim.HasAnimation(stateStr)) {
-    missingAnim = true;
-
-    // Do we have a valid 'missing' texture?
-    if (missing) {
-      // try and preserve what texture we currently have
-      auto texture = getTexture();
-
-      if (texture != Actor::missing) {
-        currTexture = texture;
-      }
-
-      sf::Vector2u origin = missing->getSize();
-      sf::Vector2f originf = sf::Vector2f((float)origin.x * 0.5f, (float)origin.y * 0.5f);
-      this->setTexture(missing, true);
-      this->getSprite().setOrigin(originf);
-    }
-  }
-  else {
-    auto texture = getTexture();
-
-    if (texture == Actor::missing && currTexture) {
-      this->setTexture(currTexture, true);
-    }
-
-    // we're going to be syncing the time so this is required if changing sprites
-    anim << stateStr << Animator::Mode::Loop;
-  }
-
-  if (!missingAnim) {
-    animProgress += elapsed;
-
-    if (!lastStateStr.empty()) {
-      anim.SyncTime(animProgress);
-      anim.Refresh(getSprite());
-    }
-
-    if (lastStateStr != stateStr) {
-      animProgress = 0; // reset animation
-      anim.SyncTime(animProgress);
-
-      // we have changed states
-      anim.Refresh(getSprite());
-      lastStateStr = stateStr;
-    }
-  }
-}
-
 void Overworld::Actor::CollideWithMap(bool collide)
 {
   collidesWithMap = collide;
@@ -520,18 +446,78 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
   return { true, newPos3D };
 }
 
-std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
-{
-  switch (state) {
-  case MovementState::idle:
-    return "IDLE";
-  case MovementState::running:
-    return "RUN";
-  case MovementState::walking:
-    return "WALK";
+void Overworld::Actor::UpdateAnimationState(float elapsed) {
+  std::string stateStr;
+
+  auto findValidAnimThunk = [this](const MovementState& state) {
+    return FindValidAnimState(this->heading, state);
+  };
+
+  auto state_list = { MovementState::running, MovementState::walking, MovementState::idle };
+
+  for (auto item : state_list) {
+    // begin with our desired state and work our way through the list...
+    // only look down in the state list for valid state alternatives
+    // i.e. no RUN animations but there are valid animations for WALK!
+    if (item <= this->state) {
+      stateStr = findValidAnimThunk(item);
+
+      // If we have something (non-empty string), exit the loop!
+      if (anim.HasAnimation(stateStr)) {
+        break;
+      }
+    }
   }
 
-  return "IDLE"; // default is IDLE
+  // we may have exhausted the possible animations to substitute in the previous for-loop
+  // so we need to check again that the new state string is valid...
+  bool missingAnim = false;
+  if (!anim.HasAnimation(stateStr)) {
+    missingAnim = true;
+
+    // Do we have a valid 'missing' texture?
+    if (missing) {
+      // try and preserve what texture we currently have
+      auto texture = getTexture();
+
+      if (texture != Actor::missing) {
+        currTexture = texture;
+      }
+
+      sf::Vector2u origin = missing->getSize();
+      sf::Vector2f originf = sf::Vector2f((float)origin.x * 0.5f, (float)origin.y * 0.5f);
+      this->setTexture(missing, true);
+      this->getSprite().setOrigin(originf);
+    }
+  }
+  else {
+    auto texture = getTexture();
+
+    if (texture == Actor::missing && currTexture) {
+      this->setTexture(currTexture, true);
+    }
+
+    // we're going to be syncing the time so this is required if changing sprites
+    anim << stateStr << Animator::Mode::Loop;
+  }
+
+  if (!missingAnim) {
+    animProgress += elapsed;
+
+    if (!lastStateStr.empty()) {
+      anim.SyncTime(animProgress);
+      anim.Refresh(getSprite());
+    }
+
+    if (lastStateStr != stateStr) {
+      animProgress = 0; // reset animation
+      anim.SyncTime(animProgress);
+
+      // we have changed states
+      anim.Refresh(getSprite());
+      lastStateStr = stateStr;
+    }
+  }
 }
 
 std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const MovementState& state)
@@ -644,6 +630,20 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
   }
 
   return str;
+}
+
+std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
+{
+  switch (state) {
+  case MovementState::idle:
+    return "IDLE";
+  case MovementState::running:
+    return "RUN";
+  case MovementState::walking:
+    return "WALK";
+  }
+
+  return "IDLE"; // default is IDLE
 }
 
 std::string Overworld::Actor::DirectionAnimStrSuffix(const Direction& dir)
