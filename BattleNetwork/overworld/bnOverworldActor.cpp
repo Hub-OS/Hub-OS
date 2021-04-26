@@ -2,7 +2,7 @@
 #include "bnOverworldMap.h"
 #include <cmath>
 
-std::shared_ptr<sf::Texture> Overworld::Actor::missing; 
+std::shared_ptr<sf::Texture> Overworld::Actor::missing;
 
 Overworld::Actor::Actor(const std::string& name) : name(name)
 {
@@ -96,6 +96,38 @@ void Overworld::Actor::LoadAnimations(const Animation& animation)
   }
 
   UpdateAnimationState(0);
+}
+
+void Overworld::Actor::PlayAnimation(const std::string& name, bool loop)
+{
+  if (!anim.HasAnimation(name)) {
+    return;
+  }
+
+  anim << name;
+
+  if (loop) {
+    anim << Animator::Mode::Loop;
+  }
+  else {
+    // after the animation completes, set playingCustomAnimation to false
+    auto frame = (int)anim.GetFrameList(name).GetFrameCount();
+
+    auto callback = [this] {
+      playingCustomAnimation = false;
+    };
+
+    anim.AddCallback(frame, callback, true);
+  }
+
+  // if the animation was forcefully changed
+  anim.SetInterruptCallback([this] {
+    playingCustomAnimation = false;
+  });
+
+  // must be set to true after `anim << name`
+  // otherwise an interrupt callback can set this to false
+  playingCustomAnimation = true;
 }
 
 void Overworld::Actor::SetWalkSpeed(float speed)
@@ -447,6 +479,15 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
 }
 
 void Overworld::Actor::UpdateAnimationState(float elapsed) {
+  if (this->state == MovementState::idle && playingCustomAnimation) {
+    if (getTexture() != Actor::missing) {
+      // update anim if the animation is valid
+      // if the texture is currently the missing texture, then we decided it's not valid at some earlier point
+      anim.Update(elapsed, getSprite());
+    }
+    return;
+  }
+
   std::string stateStr;
 
   auto findValidAnimThunk = [this](const MovementState& state) {
@@ -471,53 +512,54 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
 
   // we may have exhausted the possible animations to substitute in the previous for-loop
   // so we need to check again that the new state string is valid...
-  bool missingAnim = false;
   if (!anim.HasAnimation(stateStr)) {
-    missingAnim = true;
-
-    // Do we have a valid 'missing' texture?
-    if (missing) {
-      // try and preserve what texture we currently have
-      auto texture = getTexture();
-
-      if (texture != Actor::missing) {
-        currTexture = texture;
-      }
-
-      sf::Vector2u origin = missing->getSize();
-      sf::Vector2f originf = sf::Vector2f((float)origin.x * 0.5f, (float)origin.y * 0.5f);
-      this->setTexture(missing, true);
-      this->getSprite().setOrigin(originf);
-    }
-  }
-  else {
-    auto texture = getTexture();
-
-    if (texture == Actor::missing && currTexture) {
-      this->setTexture(currTexture, true);
-    }
-
-    // we're going to be syncing the time so this is required if changing sprites
-    anim << stateStr << Animator::Mode::Loop;
+    UseMissingTexture();
+    return;
   }
 
-  if (!missingAnim) {
-    animProgress += elapsed;
+  auto texture = getTexture();
 
-    if (!lastStateStr.empty()) {
-      anim.SyncTime(animProgress);
-      anim.Refresh(getSprite());
-    }
-
-    if (lastStateStr != stateStr) {
-      animProgress = 0; // reset animation
-      anim.SyncTime(animProgress);
-
-      // we have changed states
-      anim.Refresh(getSprite());
-      lastStateStr = stateStr;
-    }
+  if (texture == Actor::missing && currTexture) {
+    this->setTexture(currTexture, true);
   }
+
+  // we're going to be syncing the time so this is required if changing sprites
+  anim << stateStr << Animator::Mode::Loop;
+
+  animProgress += elapsed;
+
+  if (!lastStateStr.empty()) {
+    anim.SyncTime(animProgress);
+    anim.Refresh(getSprite());
+  }
+
+  if (lastStateStr != stateStr) {
+    animProgress = 0; // reset animation
+    anim.SyncTime(animProgress);
+
+    // we have changed states
+    anim.Refresh(getSprite());
+    lastStateStr = stateStr;
+  }
+}
+
+void Overworld::Actor::UseMissingTexture() {
+  // Do we have a valid 'missing' texture?
+  if (!Actor::missing) {
+    return;
+  }
+
+    // try and preserve what texture we currently have
+  auto texture = getTexture();
+
+  if (texture != Actor::missing) {
+    currTexture = texture;
+  }
+
+  sf::Vector2u size = missing->getSize();
+  sf::Vector2f originf = sf::Vector2f(size) * 0.5f;
+  this->setTexture(missing, true);
+  this->getSprite().setOrigin(originf);
 }
 
 std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const MovementState& state)

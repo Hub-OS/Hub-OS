@@ -38,6 +38,7 @@ namespace Overworld {
     float animProgress{}; //!< Used to sync movement animations
     float walkSpeed{ 80 }; //!< walk speed as pixels per second. Default 40px/s
     float runSpeed{ 140 }; //!< run speed as pixels per second. Default 70px/s
+    bool playingCustomAnimation{};
     bool onStairs{ false };
     bool moveThisFrame{ false }; //!< Tells actor to move in accordance with their states or remain stationairy
     Direction heading{ Direction::down }; //!< the character's current heading
@@ -58,6 +59,7 @@ namespace Overworld {
     // aux functions
     void UpdateAnimationState(float elapsed);
     std::string FindValidAnimState(const Direction& dir, const MovementState& state);
+    void UseMissingTexture();
     std::string MovementAnimStrPrefix(const MovementState& state);
     std::string DirectionAnimStrSuffix(const Direction& dir);
   public:
@@ -114,6 +116,12 @@ namespace Overworld {
     *      "RUN_D" would be "Run Down"
     */
     void LoadAnimations(const Animation& animation);
+
+    /**
+    * @brief Plays an animation while the actor is idle
+    * @param name name of the animation state
+    */
+    void PlayAnimation(const std::string& name, bool loop);
 
     /**
     * @brief Set the walk speed as pixels per second

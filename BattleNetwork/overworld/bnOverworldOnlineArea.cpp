@@ -523,6 +523,9 @@ void Overworld::OnlineArea::processIncomingPackets(double elapsed)
         case ServerEvents::actor_emote:
           receiveActorEmoteSignal(reader, data);
           break;
+        case ServerEvents::actor_animate:
+          receiveActorAnimateSignal(reader, data);
+          break;
         }
       }
     }
@@ -1767,8 +1770,12 @@ void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, cons
 {
   auto user = reader.ReadString(buffer);
   auto state = reader.ReadString(buffer);
+  auto loop = reader.Read<bool>(buffer);
 
-  if (user == ticket) return;
+  if (user == ticket) {
+    GetPlayer()->PlayAnimation(state, loop);
+    return;
+  }
 
   auto userIter = onlinePlayers.find(user);
 
@@ -1776,7 +1783,7 @@ void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, cons
 
   auto& onlinePlayer = userIter->second;
 
-  // stub
+  onlinePlayer.actor->PlayAnimation(state, loop);
 }
 
 void Overworld::OnlineArea::leave() {
