@@ -500,7 +500,7 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
       auto collision = CollidesWith(*actor, offset);
 
       if (collision) {
-        // push the ourselves out of the ohter actor
+        // push the ourselves out of the other actor
         // use current position to prevent sliding off map
         auto delta = currPos - actor->getPosition();
         float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
