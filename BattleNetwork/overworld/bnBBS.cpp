@@ -92,8 +92,8 @@ void BBS::SetColor(sf::Color color) {
   topicShadow.SetColor(lerp(sf::Color::Black, color, .7f));
 }
 
-void BBS::SetEndCallback(const std::function<void()>& callback) {
-  onEnd = callback;
+void BBS::SetLastPageCallback(const std::function<void()>& callback) {
+  onLastPage = callback;
 }
 
 void BBS::PrependPosts(const std::vector<BBS::Post>& newPosts) {
@@ -266,7 +266,7 @@ void BBS::HandleInput(InputManager& input) {
 
   if (!reachedEnd && selectedIndex + PAGE_SIZE >= posts.size()) {
     reachedEnd = true;
-    onEnd ? onEnd() : (void)0;
+    onLastPage ? onLastPage() : (void)0;
   }
 }
 

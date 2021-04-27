@@ -20,7 +20,7 @@ public:
 
   void SetTopic(const std::string& topic);
   void SetColor(sf::Color color);
-  void SetEndCallback(const std::function<void()>& callback);
+  void SetLastPageCallback(const std::function<void()>& callback);
 
   void PrependPosts(const std::vector<Post>& posts);
   void PrependPosts(const std::string& id, const std::vector<Post>& posts);
@@ -47,5 +47,5 @@ private:
   VerticalCursor cursor;
   std::function<void(const std::string&)> onSelect;
   std::function<void()> onClose;
-  std::function<void()> onEnd;
+  std::function<void()> onLastPage;
 };
