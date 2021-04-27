@@ -20,6 +20,7 @@ public:
 
   void SetTopic(const std::string& topic);
   void SetColor(sf::Color color);
+  void SetLastPageCallback(const std::function<void()>& callback);
 
   void PrependPosts(const std::vector<Post>& posts);
   void PrependPosts(const std::string& id, const std::vector<Post>& posts);
@@ -37,6 +38,7 @@ private:
   float nextCooldown{};
   size_t topIndex{};
   size_t selectedIndex{};
+  bool reachedEnd{};
   std::string topic;
   Text topicText, topicShadow;
   SpriteProxyNode shadows, frame, postbg, scrollbarThumb, newNode;
@@ -45,4 +47,5 @@ private:
   VerticalCursor cursor;
   std::function<void(const std::string&)> onSelect;
   std::function<void()> onClose;
+  std::function<void()> onLastPage;
 };

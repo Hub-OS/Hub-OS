@@ -6,6 +6,7 @@ float SCROLLBAR_X = 229;
 float SCROLLBAR_Y = 10;
 float SCROLLBAR_HEIGHT = 115;
 float POST_HEIGHT = 16;
+size_t PAGE_SIZE = 8;
 
 static sf::Color lerp(sf::Color colorA, sf::Color colorB, float strength) {
   return sf::Color(
@@ -21,11 +22,11 @@ static sf::Vector2f GetCursorTarget(size_t screenIndex) {
 }
 
 static float CalcScrollbarThumbY(size_t postCount, size_t topIndex) {
-  if (postCount <= 8) {
+  if (postCount <= PAGE_SIZE) {
     return SCROLLBAR_Y;
   }
 
-  auto scrollableCount = postCount - 8;
+  auto scrollableCount = postCount - PAGE_SIZE;
   auto progress = (float)topIndex / (float)scrollableCount;
   return SCROLLBAR_Y + progress * SCROLLBAR_HEIGHT;
 }
@@ -91,12 +92,16 @@ void BBS::SetColor(sf::Color color) {
   topicShadow.SetColor(lerp(sf::Color::Black, color, .7f));
 }
 
+void BBS::SetLastPageCallback(const std::function<void()>& callback) {
+  onLastPage = callback;
+}
+
 void BBS::PrependPosts(const std::vector<BBS::Post>& newPosts) {
   posts.insert(posts.begin(), newPosts.begin(), newPosts.end());
 
   selectedIndex += newPosts.size();
 
-  if (posts.size() > 8) {
+  if (posts.size() > PAGE_SIZE) {
     topIndex += newPosts.size();
   }
 
@@ -113,7 +118,7 @@ void BBS::PrependPosts(const std::string& id, const std::vector<BBS::Post>& newP
   if ((size_t)insertIndex <= selectedIndex) {
     selectedIndex += newPosts.size();
 
-    if (posts.size() > 8) {
+    if (posts.size() > PAGE_SIZE) {
       topIndex += newPosts.size();
     }
 
@@ -123,6 +128,7 @@ void BBS::PrependPosts(const std::string& id, const std::vector<BBS::Post>& newP
 
 void BBS::AppendPosts(const std::vector<BBS::Post>& newPosts) {
   posts.insert(posts.end(), newPosts.begin(), newPosts.end());
+  reachedEnd = false;
 }
 
 void BBS::AppendPosts(const std::string& id, const std::vector<BBS::Post>& newPosts) {
@@ -139,11 +145,14 @@ void BBS::AppendPosts(const std::string& id, const std::vector<BBS::Post>& newPo
   if ((size_t)insertIndex <= selectedIndex) {
     selectedIndex += newPosts.size();
 
-    if (posts.size() > 8) {
+    if (posts.size() > PAGE_SIZE) {
       topIndex += newPosts.size();
     }
 
     scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+  }
+  else {
+    reachedEnd = false;
   }
 }
 
@@ -217,15 +226,15 @@ void BBS::HandleInput(InputManager& input) {
   if (selectedIndex < topIndex) {
     topIndex = selectedIndex;
   }
-  else if (selectedIndex >= topIndex + 8) {
+  else if (selectedIndex >= topIndex + PAGE_SIZE) {
     topIndex += 1;
   }
 
   if (pageUp) {
     auto offsetIndex = selectedIndex - topIndex;
 
-    if (topIndex > 8) {
-      topIndex -= 8;
+    if (topIndex > PAGE_SIZE) {
+      topIndex -= PAGE_SIZE;
     }
     else {
       topIndex = 0;
@@ -234,11 +243,11 @@ void BBS::HandleInput(InputManager& input) {
     selectedIndex = topIndex + offsetIndex;
   }
 
-  if (pageDown && posts.size() > 8) {
+  if (pageDown && posts.size() > PAGE_SIZE) {
     auto offsetIndex = selectedIndex - topIndex;
 
-    if (topIndex < posts.size() - 15) {
-      topIndex += 8;
+    if (topIndex < posts.size() - (PAGE_SIZE * 2 - 1)) {
+      topIndex += PAGE_SIZE;
     }
     else {
       topIndex = posts.size() - 8;
@@ -253,6 +262,11 @@ void BBS::HandleInput(InputManager& input) {
     nextCooldown = 0.05f;
 
     scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+  }
+
+  if (!reachedEnd && selectedIndex + PAGE_SIZE >= posts.size()) {
+    reachedEnd = true;
+    onLastPage ? onLastPage() : (void)0;
   }
 }
 
@@ -284,7 +298,7 @@ void BBS::draw(sf::RenderTarget& surface, sf::RenderStates states) const {
   auto text = Text(Font::Style::thin);
   auto textColor = sf::Color(0x4A414AFF);
   auto shadowColor = sf::Color(0, 0, 0, 25);
-  auto endIndex = std::min(topIndex + 8, posts.size());
+  auto endIndex = std::min(topIndex + PAGE_SIZE, posts.size());
 
   auto newSprite = newNode.getSprite();
 
