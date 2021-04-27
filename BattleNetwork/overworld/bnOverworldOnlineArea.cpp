@@ -1438,6 +1438,8 @@ void Overworld::OnlineArea::receiveOpenBoardSignal(BufferReader& reader, const P
 
   auto& bbs = menuSystem.GetBBS()->get();
   bbs.AppendPosts(posts);
+
+  bbs.SetEndCallback([=] { sendPostRequestSignal(); });
 }
 
 void Overworld::OnlineArea::receivePrependPostsSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
