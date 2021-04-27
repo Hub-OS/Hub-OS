@@ -91,6 +91,10 @@ void BBS::SetColor(sf::Color color) {
   topicShadow.SetColor(lerp(sf::Color::Black, color, .7f));
 }
 
+void BBS::SetEndCallback(const std::function<void()>& callback) {
+  onEnd = callback;
+}
+
 void BBS::PrependPosts(const std::vector<BBS::Post>& newPosts) {
   posts.insert(posts.begin(), newPosts.begin(), newPosts.end());
 
@@ -123,6 +127,7 @@ void BBS::PrependPosts(const std::string& id, const std::vector<BBS::Post>& newP
 
 void BBS::AppendPosts(const std::vector<BBS::Post>& newPosts) {
   posts.insert(posts.end(), newPosts.begin(), newPosts.end());
+  reachedEnd = false;
 }
 
 void BBS::AppendPosts(const std::string& id, const std::vector<BBS::Post>& newPosts) {
@@ -144,6 +149,9 @@ void BBS::AppendPosts(const std::string& id, const std::vector<BBS::Post>& newPo
     }
 
     scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+  }
+  else {
+    reachedEnd = false;
   }
 }
 
@@ -253,6 +261,11 @@ void BBS::HandleInput(InputManager& input) {
     nextCooldown = 0.05f;
 
     scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+  }
+
+  if (!reachedEnd && selectedIndex + 8 >= posts.size()) {
+    reachedEnd = true;
+    onEnd ? onEnd() : (void)0;
   }
 }
 
