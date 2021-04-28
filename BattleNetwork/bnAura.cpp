@@ -122,7 +122,7 @@ void Aura::OnUpdate(double _elapsed) {
   }
 
  if (GetOwner()->GetTile() == nullptr) {
-   fx? fx->Hide() : 0;
+   fx? fx->Hide() : (void)0;
    return;
  }
 

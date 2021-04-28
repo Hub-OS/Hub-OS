@@ -12,7 +12,8 @@
 namespace Overworld {
   class Actor; // namespace Overworld::Actor;
 
-  class TeleportController : public ResourceHandle{
+  class TeleportController : public ResourceHandle {
+  public:
     struct Command {
       enum class state {
         teleport_in = 0,
@@ -22,6 +23,17 @@ namespace Overworld {
       Callback<void()> onFinish;
     };
 
+    TeleportController();
+    ~TeleportController() = default;
+
+    Command& TeleportOut(std::shared_ptr<Actor> actor);
+    Command& TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir, bool doSpin = false);
+    void Update(double elapsed);
+    const bool IsComplete() const;
+    std::shared_ptr<WorldSprite> GetBeam();
+    void EnableSound(bool enable);
+
+  private:
     std::queue<Command> sequence;
 
     bool animComplete{ true }, walkoutComplete{ true }, entered{ false }, spin{ false };
@@ -32,16 +44,5 @@ namespace Overworld {
     std::shared_ptr<WorldSprite> beam;
     Animation beamAnim;
     Direction startDir;
-
-  public:
-    TeleportController();
-    ~TeleportController() = default;
-
-    Command& TeleportOut(std::shared_ptr<Actor> actor);
-    Command& TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir, bool doSpin = false);
-    void Update(double elapsed);
-    const bool IsComplete() const;
-    std::shared_ptr<WorldSprite> GetBeam();
-    void EnableSound(bool enable);
   };
 }

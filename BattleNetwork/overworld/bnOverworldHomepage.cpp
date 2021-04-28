@@ -7,7 +7,7 @@
 
 using namespace swoosh::types;
 
-constexpr sf::Int32 PING_SERVER_MILI = 5;
+constexpr sf::Int32 PING_SERVER_MILI = 1000;
 
 Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guestAccount) :
   guest(guestAccount),
@@ -175,15 +175,11 @@ void Overworld::Homepage::PingRemoteAreaServer()
 
       try {
         remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
-        client.connect(remoteAddress);
         reconnecting = true;
-        doSendThunk();
-      }
-      catch (Poco::IOException&) {
-        reconnecting = false;
-      }
+      } catch(Poco::IOException&) {}
     }
-    else {
+
+    if (reconnecting) {
       doSendThunk();
     }
 
