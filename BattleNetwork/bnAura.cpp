@@ -11,7 +11,49 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/auras.animation"
 
-Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Component::lifetimes::battlestep)
+void Aura::OnHitCallback(Spell& in, Character& owner, bool windRemove) {
+  auto hitbox = in.GetHitboxProperties();
+  if (windRemove) {
+    if (fx && fx->flyStartTile == nullptr) {
+      // Attach visual fx node to the tile and make it fly up and away based on direction
+      auto direction = in.GetDirection();
+      if (direction == Direction::none) {
+        direction = owner.GetDirection();
+      }
+
+      if (direction == Direction::left) {
+        this->fx->flyAccel = { -5.f, -12.0f };
+      }
+      else {
+        this->fx->flyAccel = { 5.f, -12.0f };
+      }
+
+      owner.RemoveNode(this->fx);
+
+      this->fx->flyStartTile = owner.GetTile();
+      this->fx->flyStartTile->AddNode(this->fx);
+      this->fx->SetLayer(-1); // stay in front of the tile
+
+      // this will trigger the flicker-out animation as it flies away
+      // and at the end of the flicker-out animation, it will cleanup memory
+      this->health = this->fx->currHP = 0;
+      this->fx = nullptr;
+    }
+    else {
+      // We can no longer protect this user->..
+      owner.Hit(hitbox);
+    }
+  }
+  else {
+    TakeDamage(in.GetHitboxProperties().damage);
+  }
+};
+
+
+Aura::Aura(Aura::Type type, Character* owner) :
+  type(type),
+  Component(owner, Component::lifetimes::battlestep),
+  DefenseAura([this](Spell& s, Character& c, bool b) { OnHitCallback(s, c, b); })
 {
   timer = 50; // seconds
 
@@ -44,47 +86,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Com
 
   currHP = health;
 
-  DefenseAura::Callback onHit = [this](Spell& in, Character& owner, bool windRemove) { 
-    auto hitbox = in.GetHitboxProperties();
-    if (windRemove) {
-      if (fx && fx->flyStartTile == nullptr) {
-        // Attach visual fx node to the tile and make it fly up and away based on direction
-        auto direction = in.GetDirection();
-        if (direction == Direction::none) {
-          direction = owner.GetDirection();
-        }
-
-        if (direction == Direction::left) {
-          this->fx->flyAccel = { -5.f, -12.0f };
-        }
-        else {
-          this->fx->flyAccel = { 5.f, -12.0f };
-        }
-
-        owner.RemoveNode(this->fx);
-
-        this->fx->flyStartTile = owner.GetTile();
-        this->fx->flyStartTile->AddNode(this->fx);
-        this->fx->SetLayer(-1); // stay in front of the tile
-
-        // this will trigger the flicker-out animation as it flies away
-        // and at the end of the flicker-out animation, it will cleanup memory
-        this->health = this->fx->currHP = 0;
-        this->fx = nullptr;
-      }
-      else {
-        // We can no longer protect this user->..
-        owner.Hit(hitbox);
-      }
-    }
-    else {
-      TakeDamage(in.GetHitboxProperties().damage);
-    }
-  };
-  
-  defense = new DefenseAura(onHit);
-  
-  owner->AddDefenseRule(defense);
+  owner->AddDefenseRule(this);
   fx = owner->CreateComponent<Aura::VisualFX>(owner, type);
   fx->currHP = health;
   fx->timer = timer;
@@ -92,14 +94,8 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Com
 }
 
 void Aura::OnUpdate(double _elapsed) {
-  if (Injected() == false) return;
+  if (Injected() == false || IsReplaced()) return;
 
-  // If the aura has been replaced by another defense rule, remove all
-  // associated components 
-  if (defense->IsReplaced()) {
-    Eject();
-    return;
-  }
 
   currHP = health;
   
@@ -118,7 +114,7 @@ void Aura::OnUpdate(double _elapsed) {
   }
   else if (timer <= 0.0) {
     if (auto character = GetOwnerAs<Character>()) {
-      character->RemoveDefenseRule(defense);
+      character->RemoveDefenseRule(this);
     }
 
     Eject();
@@ -144,6 +140,16 @@ void Aura::OnUpdate(double _elapsed) {
 void Aura::Inject(BattleSceneBase& bs)
 {
   bs.Inject(this);
+}
+
+void Aura::OnReplace()
+{
+  if (fx) {
+    // Stop drawing the old aura
+    GetOwner()->RemoveNode(fx);
+  }
+
+  Eject();
 }
 
 const Aura::Type Aura::GetAuraType()
@@ -181,8 +187,6 @@ Aura::~Aura()
     GetOwner()->RemoveNode(fx);
     fx->Eject();
   }
-
-  delete defense;
 }
 
 //////////////////////////////////////////////////////
@@ -283,6 +287,7 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
       }
 
       auto font_states = this_states;
+      font_states.shader = nullptr; // don't allow shader passes to effect this font...
       font_states.transform *= font.getTransform();
 
       target.draw(font, font_states);

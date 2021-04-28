@@ -33,6 +33,7 @@ void PaletteSwap::LoadPaletteTexture(std::string path)
 
 void PaletteSwap::CopyFrom(PaletteSwap& other)
 {
+  enabled = other.enabled;
   base = other.base;
   palette = other.palette;
   Apply();

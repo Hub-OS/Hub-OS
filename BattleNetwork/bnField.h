@@ -103,11 +103,28 @@ public:
 
   /**
    * @brief Query for entities on the entire field
-   * @param e the query input function
+   * @param query. the query input function
    * @return list of Entity* that passed the input function's conditions
    */
   std::vector<Entity*> FindEntities(std::function<bool(Entity* e)> query);
   std::vector<const Entity*> FindEntities(std::function<bool(Entity* e)> query) const;
+
+  /**
+   * @brief Query for characters on the entire field
+   * @param query. the query input function
+   * @return list of Character* that passed the input function's conditions
+   */
+  std::vector<Character*> FindCharacters(std::function<bool(Character* e)> query);
+  std::vector<const Character*> FindCharacters(std::function<bool(Character* e)> query) const;
+
+  /**
+   * @brief Query for the closest characters on the entire field given an input character.
+   * @param test. The character to test distance againsr.
+   * @param query. the query input function
+   * @return list of Character* that passed the input function's conditions
+   */
+  std::vector<Character*> FindNearestCharacters(Character* test, std::function<bool(Character* e)> query);
+  std::vector<const Character*> FindNearestCharacters(const Character* test, std::function<bool(Character* e)> query) const;
 
   /**
    * @brief Set the tile at (x,y) team to _team

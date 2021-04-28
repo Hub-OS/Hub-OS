@@ -143,6 +143,8 @@ void ActionQueue::Pop() {
     poppers[queue](index);
     indices.erase(indices.begin());
 
+    if (actionableCallback) actionableCallback();
+
     // NOTE: I had this commented but don't know why
     // It might have something to do with directional tiles... idk
     /*
@@ -179,4 +181,11 @@ void ActionQueue::ClearQueue(ActionQueue::CleanupType cleanup)
 
   discardFilters.clear();
   priorityFilters.clear();
+
+  if (actionableCallback) actionableCallback();
+}
+
+void ActionQueue::SetActionableCallback(const std::function<void()>& callback)
+{
+  actionableCallback = callback;
 }

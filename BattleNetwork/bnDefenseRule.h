@@ -51,6 +51,11 @@ public:
   const bool IsReplaced() const;
 
   /**
+  * @brief Frame-perfect cleanup code after being replaced
+  */
+  virtual void OnReplace();
+
+  /**
   * @brief Deconstructor
   */
   virtual ~DefenseRule();

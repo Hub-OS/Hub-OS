@@ -668,7 +668,8 @@ void Character::AddDefenseRule(DefenseRule * rule)
   }
   else {
     (*iter)->replaced = true; // Flag that this defense rule may be valid ptr, but is no longer in use
-    RemoveDefenseRule(*iter);
+    (*iter)->OnReplace();
+    RemoveDefenseRule(*iter); // will invalidate the iterator
 
     // call again, adding new rule this time
     AddDefenseRule(rule);

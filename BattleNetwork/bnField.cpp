@@ -256,6 +256,74 @@ std::vector<const Entity*> Field::FindEntities(std::function<bool(Entity* e)> qu
   return res;
 }
 
+std::vector<Character*> Field::FindCharacters(std::function<bool(Character* e)> query)
+{
+  std::vector<Character*> res;
+
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      std::vector<Character*> found = tile->FindCharacters(query);
+      res.reserve(res.size() + found.size()); // preallocate memory
+      res.insert(res.end(), found.begin(), found.end());
+    }
+  }
+
+  return res;
+}
+
+std::vector<const Character*> Field::FindCharacters(std::function<bool(Character* e)> query) const
+{
+  std::vector<const Character*> res;
+
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      std::vector<Character*> found = tile->FindCharacters(query);
+      res.reserve(res.size() + found.size()); // preallocate memory
+      res.insert(res.end(), found.begin(), found.end());
+    }
+  }
+
+  return res;
+}
+
+std::vector<Character*> Field::FindNearestCharacters(Character* test, std::function<bool(Character* e)> filter)
+{
+  auto list = this->FindCharacters(filter);
+
+  std::sort(list.begin(), list.end(), [test](Character* first, Character* next) {
+    auto& t0 = *test->GetTile();
+    auto& t1 = *first->GetTile();
+    auto& t2 = *next->GetTile();
+
+    unsigned int t1_dist = std::abs(t0.Distance(t1));
+    unsigned int t2_dist = std::abs(t0.Distance(t2));
+    return (t1_dist < t2_dist);
+  });
+
+  return list;
+}
+
+std::vector<const Character*> Field::FindNearestCharacters(const Character* test, std::function<bool(Character* e)> filter) const
+{
+  auto list = this->FindCharacters(filter);
+
+  std::sort(list.begin(), list.end(), [test](const Character* first, const Character* next) {
+    auto& t0 = *test->GetTile();
+    auto& t1 = *first->GetTile();
+    auto& t2 = *next->GetTile();
+
+    unsigned int t1_dist = std::abs(t0.Distance(t1));
+    unsigned int t2_dist = std::abs(t0.Distance(t2));
+    return (t1_dist < t2_dist);
+  });
+
+  return list;
+}
+
 void Field::SetAt(int _x, int _y, Team _team) {
   if (_x < 0 || _x > 7) return;
   if (_y < 0 || _y > 4) return;
@@ -375,14 +443,14 @@ void Field::Update(double _elapsed) {
   //    d.otherwise, skip this tileand do not revert
 
   for (auto col : restCol) {
-    for (size_t i = 1; i <= GetHeight(); i++) {
+    for (size_t i = 1; i < GetHeight()+2; i++) {
       auto& t = tiles[i][col];
 
       if (t->GetTeam() != t->ogTeam) {
         if (auto* facing = t + t->facing) {
           bool canRevert = false;
 
-          for (size_t i2 = 1; i2 <= GetHeight(); i2++) {
+          for (size_t i2 = 1; i2 < GetHeight()+2; i2++) {
             auto& t2 = tiles[i2][facing->GetX()];
 
             if (t2->GetTeam() != t->GetTeam()) {
@@ -403,10 +471,10 @@ void Field::Update(double _elapsed) {
   // Finally, sync stolen tiles with their corresponding columns
   for (auto col : syncCol) {
     double maxTimer = 0.0;
-    for (size_t i = 1; i <= GetHeight(); i++) {
+    for (size_t i = 1; i < GetHeight()+2; i++) {
       maxTimer = std::max(maxTimer, tiles[i][col]->teamCooldown);
     }
-    for (size_t i = 1; i <= GetHeight(); i++) {
+    for (size_t i = 1; i < GetHeight()+2; i++) {
       auto& t = tiles[i][col];
 
       if (t->GetTeam() != t->ogTeam) {

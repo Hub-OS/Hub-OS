@@ -62,6 +62,11 @@ Player::Player() :
   actionQueue.RegisterType<BusterEvent, BusterActionDeleter>(ActionTypes::buster, handler);
 
   CreateMoveAnimHash();
+
+  // When we are actionable what should we be doing?
+  actionQueue.SetActionableCallback([this] {
+    SetAnimation("PLAYER_IDLE");
+  });
 }
 
 Player::~Player() {

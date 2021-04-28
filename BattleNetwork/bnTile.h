@@ -293,6 +293,15 @@ namespace Battle {
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
     /**
+     * @brief Query for multiple charactors using a functor
+     * This is useful for movement as well as card attacks
+     * to find specific enemy types under specific conditions
+     * @param e Functor that takes in an character and returns a boolean
+     * @return returns a list of characters that returned true in the functor `e`
+     */
+    std::vector<Character*> FindCharacters(std::function<bool(Character* e)> query);
+
+    /**
      * @brief Calculates and returns Manhattan-distance from this tile to the other
      */
     int Distance(Battle::Tile& other);

@@ -103,7 +103,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
       currState = state::select;
     }
 
-    if (Input().Has(InputEvents::pressed_shoulder_right) && cardCust.HasQuestion()) {
+    if (Input().Has(InputEvents::pressed_shoulder_right) && !cardCust.HasQuestion()) {
       if (cardCust.IsVisible()) {
         cardCust.Hide();
       }

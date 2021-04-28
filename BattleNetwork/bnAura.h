@@ -2,8 +2,7 @@
 #include "bnSceneNode.h"
 #include "bnUIComponent.h"
 #include "bnField.h"
-
-class DefenseAura;
+#include "bnDefenseAura.h"
 
 /**
  * @class Aura
@@ -18,7 +17,7 @@ class DefenseAura;
  * The other type of Aura is a Barrier. Barrier is similar but each damage recieved takes away from the
  * Barrier's internal HP. When the HP is below or at zero, the Barrier deletes itself.
  */
-class Aura : public Component
+class Aura : public DefenseAura, public Component
 {
 public:
   /**
@@ -66,7 +65,6 @@ public:
 private:
 
   Type type; /*!< Type of aura */
-  DefenseAura* defense{ nullptr }; /*!< Defense rule */
   double timer{ 0 }; /*!< Some aura types delete over time in seconds */
   int health{}; /*!< HP of aura */
   bool persist{ false }; /*!< Flag is Barrier goes away over time or if it lingers */
@@ -75,7 +73,11 @@ private:
   int currHP{}; /*!< HP this frame */
   int startHP{}; /*!< HP at creation */
 
+  void OnHitCallback(Spell& in, Character& owner, bool windRemove);
+
 public:
+
+
   /**
    * @brief Create an aura with type and a Character owner
    * @param type of aura
@@ -106,6 +108,7 @@ public:
   void OnUpdate(double _elapsed) override;
   
   void Inject(BattleSceneBase&) override;
+  void OnReplace() override;
 
   /**
    * @brief Query the type of aura

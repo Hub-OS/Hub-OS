@@ -704,6 +704,26 @@ namespace Battle {
     return res;
   }
 
+  std::vector<Character*> Tile::FindCharacters(std::function<bool(Character* e)> query)
+  {
+    std::vector<Character*> res;
+
+    for (auto iter = characters.begin(); iter != characters.end(); iter++) {
+      // skip obstacle types...
+      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](Spell* other) {
+        return other->GetID() == character->GetID();
+      });
+
+      if (spell_iter != spells.end()) continue;
+
+      if (query(*iter)) {
+        res.push_back(*iter);
+      }
+    }
+
+    return res;
+  }
+
   int Tile::Distance(Battle::Tile& other)
   {
       return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());

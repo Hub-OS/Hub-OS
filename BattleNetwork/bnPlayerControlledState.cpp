@@ -38,11 +38,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     return;
   }
 
-  // we are actionable
-  if (player.actionQueue.IsEmpty() && player.animationComponent->GetAnimationString() != "PLAYER_IDLE") {
-    player.SetAnimation("PLAYER_IDLE");
-  }
-
   bool missChargeKey = isChargeHeld && !Input().Has(InputEvents::held_shoot);
 
   // Are we creating an action this frame?

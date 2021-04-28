@@ -23,3 +23,8 @@ const bool DefenseRule::IsReplaced() const
 {
   return replaced;
 }
+
+void DefenseRule::OnReplace()
+{
+  // optional implementation
+}

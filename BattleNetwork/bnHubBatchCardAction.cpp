@@ -69,7 +69,6 @@ HubBatchProgram::HubBatchProgram(Character* owner) :
 HubBatchProgram::~HubBatchProgram()
 {
   GetOwner()->RemoveNode(&effect);
-  GetOwnerAs<Character>()->RemoveDefenseRule(superarmor);
   delete superarmor;
 }
 

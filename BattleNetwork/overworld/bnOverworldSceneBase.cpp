@@ -45,21 +45,23 @@ using sf::Event;
 using namespace swoosh::types;
 
 /// \brief Thunk to populate menu options to callbacks
-auto MakeOptions = [](Overworld::SceneBase* scene) -> Overworld::PersonalMenu::OptionsList {
-  return {
-    { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
-    { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
-    { "key_items",   std::bind(&Overworld::SceneBase::GotoKeyItems, scene) },
-    { "mob_select",  std::bind(&Overworld::SceneBase::GotoMobSelect, scene) },
-    { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) }
-    /*{ "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }*/
+namespace {
+  auto MakeOptions = [](Overworld::SceneBase* scene) -> Overworld::PersonalMenu::OptionsList {
+    return {
+      { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
+      { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
+      { "key_items",   std::bind(&Overworld::SceneBase::GotoKeyItems, scene) },
+      { "mob_select",  std::bind(&Overworld::SceneBase::GotoMobSelect, scene) },
+      { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) }
+      /*{ "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }*/
+    };
   };
-};
+}
 
 Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool guestAccount) :
   guestAccount(guestAccount),
   lastIsConnectedState(false),
-  personalMenu("Overworld", MakeOptions(this)),
+  personalMenu("Overworld", ::MakeOptions(this)),
   camera(controller.getWindow().getView()),
   Scene(controller),
   map(0, 0, 0, 0),

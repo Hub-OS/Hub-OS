@@ -16,13 +16,13 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
      
     class AntiDamageTriggerAction : public CardAction {
     private:
-      Entity::ID_t aggroId;
+      Team aggroTeam;
       NinjaAntiDamage& component;
 
     public:
-      AntiDamageTriggerAction(Character& actor, Entity::ID_t aggroId, NinjaAntiDamage& component) :
+      AntiDamageTriggerAction(Character& actor, Team aggroTeam, NinjaAntiDamage& component) :
         CardAction(actor, "PLAYER_IDLE"),
-        aggroId(aggroId),
+        aggroTeam(aggroTeam),
         component(component) {}
 
       ~AntiDamageTriggerAction() { }
@@ -30,22 +30,25 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       void Update(double elapsed) override {}
       void OnExecute(Character* user) override {
         auto& owner = GetActor();
-        auto* aggressor = owner.GetField()->GetCharacter(aggroId);
 
         Battle::Tile* tile = nullptr;
+        Field& field = *user->GetField();
 
         // Add a HideTimer for the owner of anti damage
         user->CreateComponent<HideTimer>(user, 1.0);
 
         // Add a poof particle to denote owner dissapearing
-        user->GetField()->AddEntity(*new ParticlePoof(), *user->GetTile());
+        field.AddEntity(*new ParticlePoof(), *user->GetTile());
+
+        // Find the nearest character on the other team to take a hit
+        auto nearest = field.FindNearestCharacters(user, [user](Entity* in) {
+          return !user->Teammate(in->GetTeam()); // get the opposition
+        });
 
         // If there's an aggressor, grab their tile and target it
-        if (aggressor) {
-          if (auto tile = aggressor->GetTile()) {
-            // Add ninja star spell targetting the aggressor's tile
-            user->GetField()->AddEntity(*new NinjaStar(user->GetTeam(), 0.2f), *tile);
-          }
+        if (nearest.size()) {
+          // Add ninja star spell targetting the tile
+          field.AddEntity(*new NinjaStar(user->GetTeam(), 0.2f), *nearest[0]->GetTile());
         }
 
         // Remove the anti damage rule from the owner
@@ -56,7 +59,13 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       void OnActionEnd() override {};
     };
 
-    auto* action = new AntiDamageTriggerAction(owner, in.GetHitboxProperties().aggressor, *this);
+    Team oppositeTeam = Team::blue;
+
+    if (owner.GetTeam() == Team::blue) {
+      oppositeTeam = Team::red;
+    }
+
+    auto* action = new AntiDamageTriggerAction(owner, oppositeTeam, *this);
     owner.AddAction({ action }, ActionOrder::traps);
   }; // END callback 
 
