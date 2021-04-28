@@ -25,7 +25,7 @@ AlphaRocket::AlphaRocket(Team _team) : Obstacle(_team)  {
   animation->SetPlaybackMode(Animator::Mode::Loop);
 
   auto props = Hit::DefaultProperties;
-  props.flags |= Hit::flinch | Hit::recoil | Hit::breaking | Hit::impact;
+  props.flags |= Hit::flash | Hit::flinch | Hit::breaking | Hit::impact;
   props.damage = 200;
   SetHitboxProperties(props);
 

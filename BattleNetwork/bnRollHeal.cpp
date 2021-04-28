@@ -36,7 +36,7 @@ RollHeal::RollHeal(Team team, Character* user, int _heal) :
 
   auto props = Hit::DefaultProperties;
   props.damage = heal;
-  props.flags |= Hit::recoil;
+  props.flags |= Hit::flinch;
   SetHitboxProperties(props);
 
   /**

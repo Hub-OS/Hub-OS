@@ -8,8 +8,8 @@ DefenseVirusBody::~DefenseVirusBody() { }
 Hit::Properties& DefenseVirusBody::FilterStatuses(Hit::Properties& statuses)
 {
   // This is all this defense rule does is filter out flinch and recoil flags
+  statuses.flags &= ~Hit::flash;
   statuses.flags &= ~Hit::flinch;
-  statuses.flags &= ~Hit::recoil;
 
   return statuses;
 }

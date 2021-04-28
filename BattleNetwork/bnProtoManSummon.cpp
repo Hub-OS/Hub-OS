@@ -42,7 +42,7 @@ ProtoManSummon::ProtoManSummon(Character* user, int damage) :
 
   auto props = GetHitboxProperties();
   props.damage = damage;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   props.aggressor = user->GetID();
   SetHitboxProperties(props);
 }

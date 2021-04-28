@@ -322,6 +322,10 @@ const bool Character::Hit(Hit::Properties props) {
 
   SetHealth(GetHealth() - props.damage);
 
+  if (IsTimeFrozen()) {
+    props.counters = false;
+  }
+
   // Add to status queue for state resolution
   statusQueue.push(CombatHitProps{ original, props });
 
@@ -411,7 +415,7 @@ void Character::ResolveFrameBattleDamage()
       // 5. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if ((props.hitbox.flags & Hit::flinch) == Hit::flinch && props.filtered.aggressor && props.filtered.counters) {
+        if ((props.hitbox.flags & Hit::flash) == Hit::flash && props.filtered.aggressor && props.filtered.counters) {
           frameCounterAggressor = field->GetCharacter(props.filtered.aggressor);
         }
 
@@ -465,7 +469,7 @@ void Character::ResolveFrameBattleDamage()
             hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
           }
 
-          if ((props.filtered.flags & Hit::flinch) == Hit::flinch && !hasSuperArmor) {
+          if ((props.filtered.flags & Hit::flash) == Hit::flash && !hasSuperArmor) {
             // cancel stun
             stunCooldown = 0.0;
             actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
@@ -483,19 +487,19 @@ void Character::ResolveFrameBattleDamage()
       props.filtered.flags &= ~Hit::stun;
 
       // Flinch can be queued if dragging this frame
-      if ((props.filtered.flags & Hit::flinch) == Hit::flinch) {
+      if ((props.filtered.flags & Hit::flash) == Hit::flash) {
         if (postDragEffect.dir != Direction::none) {
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
           actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
           invincibilityCooldown = 2.0; // used as a `flinch` status time
-          flagCheckThunk(Hit::flinch);
+          flagCheckThunk(Hit::flash);
         }
       }
 
       // exclude this from the next processing step
-      props.filtered.flags &= ~Hit::flinch;
+      props.filtered.flags &= ~Hit::flash;
 
       // Flinch is canceled if retangibility is applied
       if ((props.filtered.flags & Hit::retangible) == Hit::retangible) {
@@ -529,7 +533,7 @@ void Character::ResolveFrameBattleDamage()
       flagCheckThunk(Hit::freeze);
       flagCheckThunk(Hit::pierce);
       flagCheckThunk(Hit::shake);
-      flagCheckThunk(Hit::recoil);
+      flagCheckThunk(Hit::flinch);
 
       if (props.filtered.damage) {
         OnHit();
@@ -581,7 +585,6 @@ void Character::ResolveFrameBattleDamage()
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
       counterSlideOffset = sf::Vector2f(50.f, 0.0f);
-      // TODO: STOP DYNA CASTING
       CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
     }
   } else if (frameCounterAggressor) {

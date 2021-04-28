@@ -17,7 +17,7 @@ Tornado::Tornado(Team _team, int count, int damage) :
 
   //When the animation ends, delete this
   auto onFinish = [this]() {
-    if (this->count-- <= 0) {
+    if (this->count-- <= 1) {
       Delete();
     }
   };
@@ -28,9 +28,7 @@ Tornado::Tornado(Team _team, int count, int damage) :
     hitbox->SetHitboxProperties(props);
 
     auto onHit = [this](Character* entity) {
-      if (entity->Hit(GetHitboxProperties())) {
-        Audio().Play(AudioType::HURT);
-      }
+      Audio().Play(AudioType::HURT);
     };
 
     auto onCollision = [this](const Character* entity) {
@@ -49,7 +47,7 @@ Tornado::Tornado(Team _team, int count, int damage) :
   HighlightTile(Battle::Tile::Highlight::solid);
 
   auto props = GetHitboxProperties();
-  props.flags &= ~Hit::recoil;
+  props.flags &= ~Hit::flinch;
   props.flags |= Hit::impact;
   props.damage = damage;
   props.element = Element::wind;

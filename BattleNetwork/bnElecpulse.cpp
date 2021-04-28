@@ -97,7 +97,7 @@ void Elecpulse::Attack(Character* _entity) {
 
   Hit::Properties props;
   props.element = GetElement();
-  props.flags = Hit::recoil | Hit::stun | Hit::drag;
+  props.flags = Hit::flinch | Hit::stun | Hit::drag;
   props.drag = { (GetTeam() == Team::red) ? Direction::left : Direction::right, 1u };
   props.damage = damage;
 

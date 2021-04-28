@@ -8,8 +8,8 @@ DefenseObstacleBody::~DefenseObstacleBody() { }
 Hit::Properties& DefenseObstacleBody::FilterStatuses(Hit::Properties& statuses)
 {
   // obstacles are immune to most flags
+  statuses.flags &= ~Hit::flash;
   statuses.flags &= ~Hit::flinch;
-  statuses.flags &= ~Hit::recoil;
   statuses.flags &= ~Hit::stun;
   statuses.flags &= ~Hit::freeze;
 

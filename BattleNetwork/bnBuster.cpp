@@ -46,7 +46,7 @@ Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spe
   Audio().Play(AudioType::BUSTER_PEA, AudioPriority::high);
 
   auto props = Hit::DefaultProperties;
-  props.flags = props.flags & ~(Hit::recoil | Hit::flinch);
+  props.flags = props.flags & ~(Hit::flinch | Hit::flash);
 
   props.damage = damage;
   SetHitboxProperties(props);

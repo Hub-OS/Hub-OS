@@ -579,8 +579,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& hitbox_flags_record = state.new_enum("Hit",
     "None", Hit::none,
-    "Recoil", Hit::recoil,
     "Flinch", Hit::flinch,
+    "Flash", Hit::flash,
     "Stun", Hit::stun,
     "Impact", Hit::impact,
     "Shake", Hit::shake,

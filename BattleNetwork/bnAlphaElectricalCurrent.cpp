@@ -19,7 +19,7 @@ AlphaElectricCurrent::AlphaElectricCurrent(Team team, int count) :
   SetHeight(58);
 
   auto props = Hit::DefaultProperties;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   props.damage = 100;
   props.element = Element::elec;
   SetHitboxProperties(props);

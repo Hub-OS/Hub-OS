@@ -49,7 +49,7 @@ private:
       ShareTileSpace(true);
       auto props = GetHitboxProperties();
       props.damage = 30;
-      props.flags = Hit::impact | Hit::breaking | Hit::recoil | Hit::flinch;
+      props.flags = Hit::impact | Hit::breaking | Hit::flinch | Hit::flash;
       props.aggressor = base->GetID();
       SetHitboxProperties(props);
       SetName("M. Head");

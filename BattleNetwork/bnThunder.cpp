@@ -128,7 +128,7 @@ void Thunder::Attack(Character* _entity) {
     Hit::Properties props;
     
     // Thunder stuns and recoils
-    props.flags |= Hit::recoil | Hit::stun;
+    props.flags |= Hit::flinch | Hit::stun;
     
     // Thunder has electric properties
     props.element = Element::elec;

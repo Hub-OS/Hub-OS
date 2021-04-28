@@ -316,6 +316,9 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(Direction dir, M
   auto currPos = getPosition();
 
   auto offset = MakeVectorFromDirection(dir, px_per_s);
+  offset.x = std::round(offset.x);
+  offset.y = std::round(offset.y);
+
   const auto& [first, second] = Split(dir);
 
   // The referenced games did not use isometric coordinates

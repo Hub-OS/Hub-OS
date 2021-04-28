@@ -115,7 +115,7 @@ void MetalMan::OnUpdate(double _elapsed) {
 
   Hitbox* hitbox = new Hitbox(GetTeam(), 40);
   auto props = hitbox->GetHitboxProperties();
-  props.flags |= Hit::impact | Hit::recoil | Hit::flinch;
+  props.flags |= Hit::impact | Hit::flinch | Hit::flash;
   hitbox->SetHitboxProperties(props);
 
   field->AddEntity(*hitbox, tile->GetX(), tile->GetY());

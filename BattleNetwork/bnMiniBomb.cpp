@@ -23,7 +23,7 @@ MiniBomb::MiniBomb(Team _team,sf::Vector2f startPos, float _duration, int damage
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   SetHitboxProperties(props);
 
   arcDuration = _duration;

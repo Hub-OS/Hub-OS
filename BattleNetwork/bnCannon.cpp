@@ -29,7 +29,7 @@ Cannon::Cannon(Team _team,int _damage) : Spell(_team){
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   SetHitboxProperties(props);
 }
 

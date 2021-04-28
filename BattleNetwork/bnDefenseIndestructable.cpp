@@ -16,7 +16,7 @@ DefenseIndestructable::~DefenseIndestructable()
 
 Hit::Properties& DefenseIndestructable::FilterStatuses(Hit::Properties& statuses)
 {
-  statuses.flags &= ~(Hit::flinch|Hit::freeze|Hit::stun|Hit::recoil|Hit::pierce|Hit::shake);
+  statuses.flags &= ~(Hit::flash|Hit::freeze|Hit::stun|Hit::flinch|Hit::pierce|Hit::shake);
   return statuses;
 }
 

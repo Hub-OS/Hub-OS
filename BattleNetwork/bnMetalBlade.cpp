@@ -22,7 +22,7 @@ MetalBlade::MetalBlade(Team _team, double speed) : Spell(_team) {
 
   auto props = Hit::DefaultProperties;
   props.damage = 40;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   SetHitboxProperties(props);
 }
 

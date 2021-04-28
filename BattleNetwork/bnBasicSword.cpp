@@ -27,7 +27,7 @@ BasicSword::BasicSword(Team _team,int _damage) :
 
   auto  props = GetHitboxProperties();;
   props.damage = _damage;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   SetHitboxProperties(props);
 }
 

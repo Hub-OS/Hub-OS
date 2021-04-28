@@ -14,10 +14,10 @@ namespace Hit {
   const Flags retangible = 0x0001;
   const Flags freeze = 0x0002;
   const Flags pierce = 0x0004;
-  const Flags recoil = 0x0008;
+  const Flags flinch = 0x0008;
   const Flags shake = 0x0010;
   const Flags stun = 0x0020;
-  const Flags flinch = 0x0040;
+  const Flags flash = 0x0040;
   const Flags breaking = 0x0080;
   const Flags impact = 0x0100;
   const Flags drag = 0x0200;
@@ -47,7 +47,7 @@ namespace Hit {
 
   const constexpr Hit::Properties DefaultProperties = { 
     0, 
-    Flags(Hit::recoil | Hit::impact | Hit::flinch), 
+    Flags(Hit::flinch | Hit::impact | Hit::flash), 
     Element::none, 
     0, 
     Direction::none,

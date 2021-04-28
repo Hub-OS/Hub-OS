@@ -25,7 +25,7 @@ CrackShot::CrackShot(Team _team,Battle::Tile* tile) : Spell(_team) {
   }
 
   auto props = Hit::DefaultProperties;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   SetHitboxProperties(props);
 }
 

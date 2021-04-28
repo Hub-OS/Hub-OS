@@ -653,7 +653,7 @@ namespace Battle {
         }
 
         if (GetState() == TileState::lava) {
-          if (character->Hit(Hit::Properties({ 50, Hit::flinch, Element::none, 0, Direction::none }))) {
+          if (character->Hit(Hit::Properties({ 50, Hit::flash, Element::none, 0, Direction::none }))) {
             Artifact* explosion = new Explosion;
             field->AddEntity(*explosion, GetX(), GetY());
             SetState(TileState::normal);

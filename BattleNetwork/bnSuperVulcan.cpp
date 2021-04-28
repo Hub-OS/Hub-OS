@@ -24,7 +24,7 @@ SuperVulcan::SuperVulcan(Team _team, int damage) : Spell(_team) {
   Audio().Play(AudioType::GUN, AudioPriority::highest);
 
   auto props = GetHitboxProperties();
-  props.flags = props.flags & ~Hit::recoil;
+  props.flags = props.flags & ~Hit::flinch;
   props.damage = damage;
   SetHitboxProperties(props);
 }

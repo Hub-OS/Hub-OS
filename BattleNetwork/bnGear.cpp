@@ -32,7 +32,7 @@ Gear::Gear(Team _team,Direction startDir) :
   animation->OnUpdate(0);
 
   Hit::Properties props = Hit::DefaultProperties;
-  props.flags |= Hit::recoil | Hit::breaking;
+  props.flags |= Hit::flinch | Hit::breaking;
   SetHitboxProperties(props);
 
   tileStartTeam = Team::unknown;

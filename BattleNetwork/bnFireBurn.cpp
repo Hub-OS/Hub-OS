@@ -39,8 +39,8 @@ FireBurn::FireBurn(Team _team, Type type, int damage) : damage(damage), Spell(_t
   HighlightTile(Battle::Tile::Highlight::solid);
 
   auto props = GetHitboxProperties();
-  props.flags &= ~Hit::recoil;
-  props.flags |= Hit::breaking | Hit::flinch;
+  props.flags &= ~Hit::flinch;
+  props.flags |= Hit::breaking | Hit::flash;
   props.damage = damage;
   props.element = Element::fire;
   SetHitboxProperties(props);

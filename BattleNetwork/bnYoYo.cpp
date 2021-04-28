@@ -24,7 +24,7 @@ YoYo::YoYo(Team _team, int damage, double speed) : Spell(_team) {
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
-  props.flags |= Hit::recoil;
+  props.flags |= Hit::flinch;
   SetHitboxProperties(props);
 
   tileCount = hitCount = 0;

@@ -32,7 +32,7 @@ TwinFang::TwinFang(Team _team,Type _type, int damage) :
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   SetHitboxProperties(props);
 
   spreadOut = onEdgeOfMap = false;

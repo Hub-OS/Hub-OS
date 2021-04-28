@@ -54,7 +54,7 @@ ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank)
     InterruptState<ProgsManHitState>();
   };
 
-  RegisterStatusCallback(Hit::recoil, Callback<void()>{recoil});
+  RegisterStatusCallback(Hit::flinch, Callback<void()>{recoil});
   RegisterStatusCallback(Hit::stun, Callback<void()>{recoil}); // TODO: should stun auto trigger this?
 }
 

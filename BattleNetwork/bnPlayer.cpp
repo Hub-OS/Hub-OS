@@ -55,7 +55,7 @@ Player::Player() :
     ChangeState<PlayerHitState>();
   };
 
-  this->RegisterStatusCallback(Hit::recoil, Callback<void()>{ recoil });
+  this->RegisterStatusCallback(Hit::flinch, Callback<void()>{ recoil });
 
   using namespace std::placeholders;
   auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);

@@ -20,7 +20,7 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
   ShareTileSpace(true);
   SetName("AlphaArm");
   Hit::Properties props = Hit::DefaultProperties;
-  props.flags |= Hit::recoil | Hit::breaking;
+  props.flags |= Hit::flinch | Hit::breaking;
   props.damage = 120;
   SetHitboxProperties(props);
 

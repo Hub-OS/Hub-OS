@@ -19,7 +19,7 @@ Fishy::Fishy(Team _team, double speed) : Obstacle(team) {
 
   Hit::Properties props;
   props.damage = 80;
-  props.flags |= Hit::recoil | Hit::flinch;
+  props.flags |= Hit::flinch | Hit::flash;
   SetHitboxProperties(props);
 
   SetFloatShoe(true);

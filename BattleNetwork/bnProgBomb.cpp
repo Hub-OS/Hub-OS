@@ -20,7 +20,7 @@ ProgBomb::ProgBomb(Team _team, sf::Vector2f startPos, float _duration) : Spell(_
 
   auto props = Hit::DefaultProperties;
   props.damage = 40;
-  props.flags |= Hit::flinch;
+  props.flags |= Hit::flash;
   SetHitboxProperties(props);
 
   arcDuration = _duration;

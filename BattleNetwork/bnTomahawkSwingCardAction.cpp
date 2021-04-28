@@ -27,7 +27,7 @@ void TomahawkSwingCardAction::OnExecute(Character* user)
       for (auto row : { 1, 0, -1 }) {
         auto* hitbox = new Hitbox(user->GetTeam(), damage);
         auto props = hitbox->GetHitboxProperties();
-        props.flags |= Hit::flinch;
+        props.flags |= Hit::flash;
         props.aggressor = user->GetID();
         hitbox->SetHitboxProperties(props);
         field->AddEntity(*hitbox, tile->GetX() + col, tile->GetY() + row);

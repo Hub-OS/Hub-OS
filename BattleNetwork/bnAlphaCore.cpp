@@ -410,6 +410,6 @@ void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Sp
 
 Hit::Properties& AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties& statuses)
 {
-  statuses.flags &= ~(Hit::flinch | Hit::recoil | Hit::drag);
+  statuses.flags &= ~(Hit::flash | Hit::flinch | Hit::drag);
   return statuses;
 }
