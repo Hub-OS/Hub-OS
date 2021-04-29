@@ -16,7 +16,7 @@ BubbleTrap::BubbleTrap(Character* owner) :
   SpriteProxyNode(), Component(owner)
 {
   if (owner->IsDeleted()) {
-    GetOwner()->FreeComponentByID(Component::GetID());
+    this->Eject();
   }
   else {
     // Bubbles have to pop when hit
@@ -96,7 +96,7 @@ void BubbleTrap::Pop()
     if (auto character = GetOwnerAs<Character>()) {
       character->RemoveNode(this);
       character->RemoveDefenseRule(defense);
-      character->FreeComponentByID(Component::GetID());
+      this->Eject();
     }
     willDelete = true;
   };

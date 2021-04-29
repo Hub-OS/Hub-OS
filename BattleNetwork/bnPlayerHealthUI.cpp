@@ -33,6 +33,7 @@ PlayerHealthUI::PlayerHealthUI(Player* _player) :
 }
 
 PlayerHealthUI::~PlayerHealthUI() {
+  this->Eject();
 }
 
 void PlayerHealthUI::Inject(BattleSceneBase& scene)
@@ -66,7 +67,7 @@ void PlayerHealthUI::OnUpdate(double elapsed) {
 
   if (player) {
     if (player->WillRemoveLater()) {
-      player->FreeComponentByID(GetID());
+      this->Eject();
       player = nullptr;
       return;
     }

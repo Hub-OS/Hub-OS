@@ -435,12 +435,6 @@ public:
   * @return Returns the channel as const reference
   */
   const EventBus::Channel& EventBus() const;
-  
-  /**
-   * @brief Frees one component with the same ID
-   * @param ID ID of the component to remove
-   */
-  void FreeComponentByID(Component::ID_t ID);
 
   /**
    * @brief Hit height can be overwritten to deduce from sprite bounds
@@ -497,6 +491,12 @@ private:
    * @brief Used internally before moving and updates the start position
    */
   void UpdateMoveStartPosition();
+
+  /**
+   * @brief Frees one component with the same ID
+   * @param ID ID of the component to remove
+   */
+  void FreeComponentByID(Component::ID_t ID);
 };
 
 template<typename ComponentType>
