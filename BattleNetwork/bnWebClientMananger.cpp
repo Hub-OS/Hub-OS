@@ -32,9 +32,9 @@ void WebClientManager::QueuedTasksThreadHandler()
   std::unique_lock<std::mutex> lock(clientMutex);
 
   do {
-    //Wait until we have data
+    // wait until we have data or need to shut down
     taskQueueWakeup.wait(lock, [this] {
-        return (taskQueue.size());
+      return !taskQueue.empty() || shutdownSignal;
     });
 
     //after wait, we own the lock
@@ -779,6 +779,10 @@ WebClientManager::WebClientManager() {
 
 WebClientManager::~WebClientManager()
 {
+  if(shutdownSignal == false) {
+    ShutdownAllTasks();
+  }
+
   delete[] version;
 }
 
