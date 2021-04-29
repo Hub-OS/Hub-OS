@@ -1,6 +1,5 @@
 #pragma once
 #include <Swoosh/Activity.h>
-#include <Poco/Net/DatagramSocket.h>
 #include <Poco/Buffer.h>
 
 #include "../bnFont.h"
@@ -53,8 +52,6 @@ private:
   static std::string myIP;
   std::string theirIP;
   Text text, id;
-  Font font;
-  Poco::Net::DatagramSocket client; //!< us
 
   const std::string GetPublicIP(); // TODO: this should be a fetchable value in the web client manager
 

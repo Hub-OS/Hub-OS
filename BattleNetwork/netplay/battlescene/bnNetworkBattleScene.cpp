@@ -38,21 +38,15 @@ using namespace swoosh::types;
 using swoosh::ActivityController;
 
 NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props) : 
-  BattleSceneBase(controller, props.base) {
+  BattleSceneBase(controller, props.base),
+  remoteAddress(props.netconfig.remote) 
+{
   networkCardUseListener = new NetworkCardUseListener(*this, props.base.player);
   networkCardUseListener->Subscribe(this->GetSelectedCardsUI());
 
-  props.netconfig.myPort = getController().CommandLineValue<int>("port");
-  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), props.netconfig.myPort); 
-  client = Poco::Net::DatagramSocket(sa);
-  client.setBlocking(false);
-
-  props.netconfig.remotePort = getController().CommandLineValue<int>("remotePort");
-  remoteAddress = Poco::Net::SocketAddress(props.netconfig.remoteIP, props.netconfig.remotePort);
-  client.connect(remoteAddress);
+  remoteAddress = Poco::Net::SocketAddress(props.netconfig.remote);
 
   selectedNavi = props.netconfig.myNavi;
-
   props.base.player.CreateComponent<PlayerInputReplicator>(&props.base.player);
 
   // If playing co-op, add more players to track here
@@ -61,7 +55,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   // ptr to player, form select index (-1 none), if should transform
   // TODO: just make this a struct to use across all states that need it...
   trackedForms = {
-    std::make_shared<TrackedFormData>(TrackedFormData{&props.base.player, -1, false})
+    std::make_shared<TrackedFormData>(&props.base.player, -1, false)
   };
 
   // in seconds
@@ -151,7 +145,6 @@ NetworkBattleScene::~NetworkBattleScene()
   delete remotePlayer;
   delete remoteCardUsePublisher;
   delete networkCardUseListener;
-  client.close();
 }
 
 void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
@@ -210,7 +203,7 @@ void NetworkBattleScene::sendHandshakeSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::handshake };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendShootSignal()
@@ -218,7 +211,7 @@ void NetworkBattleScene::sendShootSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::shoot };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendUseSpecialSignal()
@@ -226,7 +219,7 @@ void NetworkBattleScene::sendUseSpecialSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::special };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendChargeSignal(const bool state)
@@ -235,7 +228,7 @@ void NetworkBattleScene::sendChargeSignal(const bool state)
   NetPlaySignals type{ NetPlaySignals::charge };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&state, sizeof(bool));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
@@ -244,7 +237,7 @@ void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
   NetPlaySignals type{ NetPlaySignals::connect };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&navi, sizeof(SelectedNavi));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendReadySignal()
@@ -252,7 +245,7 @@ void NetworkBattleScene::sendReadySignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::ready };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 
   /*if (remoteState.isRemoteReady) {
     this->isPreBattle = true;
@@ -268,7 +261,7 @@ void NetworkBattleScene::sendChangedFormSignal(const int form)
   NetPlaySignals type{ NetPlaySignals::form };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&form, sizeof(int));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendMoveSignal(const Direction dir)
@@ -279,7 +272,7 @@ void NetworkBattleScene::sendMoveSignal(const Direction dir)
   NetPlaySignals type{ NetPlaySignals::move };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&dir, sizeof(char));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendHPSignal(const int hp)
@@ -288,7 +281,7 @@ void NetworkBattleScene::sendHPSignal(const int hp)
   NetPlaySignals type{ NetPlaySignals::hp };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&hp, sizeof(int));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
@@ -298,7 +291,7 @@ void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&x, sizeof(int));
   buffer.append((char*)&y, sizeof(int));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendChipUseSignal(const std::string& used)
@@ -312,7 +305,7 @@ void NetworkBattleScene::sendChipUseSignal(const std::string& used)
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&timestamp, sizeof(uint64_t));
   buffer.append((char*)used.data(),used.length());
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::sendLoserSignal()
@@ -320,7 +313,7 @@ void NetworkBattleScene::sendLoserSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::loser };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void NetworkBattleScene::recieveHandshakeSignal()
@@ -376,17 +369,10 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   remotePlayer = NAVIS.At(navi).GetNavi();
   remotePlayer->SetTeam(Team::blue);
   remotePlayer->setScale(remotePlayer->getScale().x * -1.0f, remotePlayer->getScale().y);
-  remotePlayer->ChangeState<PlayerIdleState>();
-  remotePlayer->Character::Update(0);
 
-  FinishNotifier onFinish = [this]() {
-  };
-
-  remotePlayer->ChangeState<FadeInState<Player>>(onFinish);
+  remotePlayer->ChangeState<FadeInState<Player>>([]{});
   GetField()->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
   mob->Track(*remotePlayer);
-
-  remotePlayer->ToggleTimeFreeze(true);
 
   remoteState.remoteHP = remotePlayer->GetHealth();
 
@@ -400,7 +386,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   remotePlayer->CreateComponent<PlayerNetworkProxy>(remotePlayer, remoteState);
 
   players.push_back(remotePlayer);
-  trackedForms.push_back(std::make_shared<TrackedFormData>(TrackedFormData{ remotePlayer, -1, false }));
+  trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer, -1, false ));
 
   LoadMob(*mob);
 }
@@ -508,6 +494,8 @@ void NetworkBattleScene::recieveLoserSignal()
 
 void NetworkBattleScene::processIncomingPackets()
 {
+  auto& client = Net().GetSocket();
+
   if (!client.poll(Poco::Timespan{ 0 }, Poco::Net::Socket::SELECT_READ)) return;
 
   static int errorCount = 0;
@@ -524,7 +512,7 @@ void NetworkBattleScene::processIncomingPackets()
   static int read = 0;
 
   try {
-    read+= client.receiveBytes(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN-1);
+    read+= client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN-1, remoteAddress);
     if (read > 0) {
       rawBuffer[read] = '\0';
 

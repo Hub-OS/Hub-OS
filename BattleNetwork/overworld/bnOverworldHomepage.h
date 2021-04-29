@@ -15,7 +15,6 @@ namespace Overworld {
 
     bool scaledmap{ false }, clicked{ false };
     bool guest{ false }, infocus{ false };
-    Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
     uint16_t maxPayloadSize{};
     bool reconnecting{ false };

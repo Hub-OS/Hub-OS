@@ -71,7 +71,6 @@ private:
   CardUsePublisher* remoteCardUsePublisher{ nullptr };
   PlayerCardUseListener* remoteCardUseListener{ nullptr };
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
-  Poco::Net::DatagramSocket client; //!< us
   Poco::Net::SocketAddress remoteAddress; //!< them
   Player* remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP

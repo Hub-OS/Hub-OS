@@ -27,17 +27,10 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   selectedNavi(selected), 
   folder(folder), pa(pa),
   uiAnim("resources/ui/pvp_widget.animation"),
-  font(Font::Style::thick),
-  text(font),
-  id(font),
+  text(Font::Style::thick),
+  id(Font::Style::thick),
   Scene(controller)
 {
-  // network
-  netplayconfig.myPort = getController().CommandLineValue<int>("port");
-  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), netplayconfig.myPort);
-  client = Poco::Net::DatagramSocket(sa);
-  client.setBlocking(false);
-
   // Sprites
   ui.setTexture(Textures().LoadTextureFromFile("resources/ui/pvp_widget.png"));
   vs.setTexture(Textures().LoadTextureFromFile("resources/ui/vs_text.png"));
@@ -45,10 +38,6 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   greenBg.setTexture(Textures().GetTexture(TextureType::FOLDER_VIEW_BG));
 
   navigator.setTexture(Textures().GetTexture(TextureType::MUG_NAVIGATOR));
-  //navigator.setScale(2.f, 2.f);
-
-  // NOTE: ui sprites are already at 2x scale
-  // ui.setScale(2.f, 2.f);
 
   float w = static_cast<float>(controller.getVirtualWindowSize().x);
   float h = static_cast<float>(controller.getVirtualWindowSize().y);
@@ -76,7 +65,11 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   remotePreview.setScale(-2.f, 2.f);
 
   // text / font
-  text.setPosition(45.f, -5.f); // y starts above the visible screen because sfml fonts are weird
+  text.setPosition(45.f, 0.f); 
+
+  // upscale text
+  text.setScale(2.f, 2.f);
+  id.setScale(2.f, 2.f);
 
   // load animation files
   uiAnim.Load();
@@ -135,6 +128,7 @@ void PVPScene::HandleJoinMode()
 
 void PVPScene::HandleReady()
 {
+  Poco::Net::SocketAddress sa(theirIP);
   textbox.ClearAllMessages();
   Message* help = new Message("Waiting for " + theirIP);
   textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
@@ -210,21 +204,24 @@ void PVPScene::HandlePasteEvent()
 
 void PVPScene::ProcessIncomingPackets()
 {
+  auto& client = Net().GetSocket();
+
   if (!client.poll(Poco::Timespan{ 0 }, Poco::Net::Socket::SELECT_READ)) return;
   static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
   static int read = 0;
 
   try {
     // discover their IP
-    if (theirIP.empty()) {
+    /*if (theirIP.empty()) {
       Poco::Net::SocketAddress sender;
       read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1, sender);
       rawBuffer[read] = '\0';
 
       theirIP = std::string(rawBuffer, read);
-    }
+    }*/
 
-    read += client.receiveBytes(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1);
+    Poco::Net::SocketAddress sa(theirIP);
+    read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1, sa);
     if (read > 0) {
       rawBuffer[read] = '\0';
 
@@ -253,28 +250,34 @@ void PVPScene::ProcessIncomingPackets()
 
 void PVPScene::SendConnectSignal(const int navi)
 {
+  auto& client = Net().GetSocket();
+  Poco::Net::SocketAddress sa(theirIP);
+
   try {
     Poco::Buffer<char> buffer{ 0 };
     NetPlaySignals type{ NetPlaySignals::connect };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
     buffer.append((char*)&navi, sizeof(size_t));
-    client.sendBytes(buffer.begin(), (int)buffer.size());
+    client.sendTo(buffer.begin(), (int)buffer.size(), sa);
   }
-  catch (...) {
-    // bad IP?
+  catch (Poco::IOException& e) {
+    Logger::Logf("IOException when trying to connect to opponent: %s", e.what());
   }
 }
 
 void PVPScene::SendHandshakeSignal()
 {
+  auto& client = Net().GetSocket();
+  Poco::Net::SocketAddress sa(theirIP);
+
   try {
     Poco::Buffer<char> buffer{ 0 };
     NetPlaySignals type{ NetPlaySignals::handshake };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
-    client.sendBytes(buffer.begin(), (int)buffer.size());
+    client.sendTo(buffer.begin(), (int)buffer.size(), sa);
   }
-  catch (...) {
-    // bad IP?
+  catch (Poco::IOException& e) {
+    Logger::Logf("IOException when trying to connect to opponent: %s", e.what());
   }
 }
 
@@ -357,7 +360,8 @@ void PVPScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(100, 90);
 
-  Text widgetText(font);
+  Text widgetText(Font::Style::thick);
+  widgetText.setScale(2.f, 2.f);
 
   if (infoMode) {
     widgetText.SetString("Copy");
@@ -392,8 +396,9 @@ void PVPScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
 }
 
 const bool PVPScene::IsValidIPv4(const std::string& ip) const {
-  Poco::Net::IPAddress temp;
-  return Poco::Net::IPAddress::tryParse(ip, temp);
+  /*Poco::Net::IPAddress temp;
+  return Poco::Net::IPAddress::tryParse(ip, temp);*/
+  return true; // for debugging now...
 }
 
 void PVPScene::Reset()
@@ -445,14 +450,6 @@ void PVPScene::onUpdate(double elapsed) {
   gridBG->Update(double(elapsed));
   textbox.Update(double(elapsed));
 
-  // DEBUG SCENE STUFF
-  if (Input().Has(InputEvents::released_special)) {
-    clientIsReady = remoteIsReady = true;
-    remotePreview.setTexture(clientPreview.getTexture());
-    remotePreview.setOrigin(0, remotePreview.getLocalBounds().height);
-    theirIP = "127.0.0.1";
-  }
-
   if (!isScreenReady || leave) return; // don't update our scene if not fully in view from segue
 
   if (clientIsReady && remoteIsReady && !isInFlashyVSIntro) {
@@ -463,6 +460,10 @@ void PVPScene::onUpdate(double elapsed) {
     if (Input().Has(InputEvents::pressed_cancel)) {
       clientIsReady = false;
       HandleCancel();
+    }
+    else {
+      SendConnectSignal(selectedNavi);
+      ProcessIncomingPackets();
     }
   }
   else if (isInFlashyVSIntro && !isInBattleStartup) {
@@ -536,12 +537,12 @@ void PVPScene::onUpdate(double elapsed) {
     Audio().StopStream();
 
     // Configure the session
-    config.remoteIP = theirIP;
+    config.remote = theirIP;
+    config.myNavi = selectedNavi;
 
     Player* player = NAVIS.At(selectedNavi).GetNavi();
 
-    // TODO: reuse this connection
-    client.close();
+    // client.close();
 
     NetworkBattleSceneProps props = {
       { *player, pa, copy, new Field(6, 3), std::make_shared<SecretBackground>() },
@@ -550,21 +551,24 @@ void PVPScene::onUpdate(double elapsed) {
 
     getController().push<effect::to<NetworkBattleScene>>(props);
   } else {
-    ProcessIncomingPackets();
+    // TODO use states/switches this is getting out of hand...
+    if (clientIsReady && theirIP.size()) {
+      ProcessIncomingPackets();
 
-    if (!handshakeComplete && !theirIP.empty()) {
-      // Try reaching out to someone...
-      this->SendConnectSignal(selectedNavi);
-    }
+      if (!handshakeComplete && !theirIP.empty()) {
+        // Try reaching out to someone...
+        this->SendConnectSignal(selectedNavi);
+      }
 
-    if (remoteIsReady && !clientIsReady) {
-      this->SendHandshakeSignal();
+      if (remoteIsReady && !clientIsReady) {
+        this->SendHandshakeSignal();
+      }
     }
 
     if (Input().Has(InputEvents::pressed_cancel)) {
       leave = true;
       Audio().Play(AudioType::CHIP_CANCEL);
-      client.close();
+      // client.close();
       using effect = segue<PushIn<direction::up>, milliseconds<500>>;
       getController().pop<effect>();
     }
@@ -644,6 +648,4 @@ void PVPScene::onDraw(sf::RenderTexture& surface) {
     screen.setFillColor(sf::Color::White);
     surface.draw(screen);
   }
-
-  surface.draw(ui);
 }

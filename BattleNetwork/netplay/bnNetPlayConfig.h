@@ -8,8 +8,6 @@ struct NetPlayConfig {
   static constexpr const uint16_t OBN_PORT = 8765;
 
   // struct vars
-  uint16_t myPort{ OBN_PORT };
-  uint16_t remotePort{ OBN_PORT };
-  std::string remoteIP{};
+  std::string remote;
   uint16_t myNavi{ 0 };
 };

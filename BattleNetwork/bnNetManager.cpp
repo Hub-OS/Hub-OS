@@ -2,6 +2,7 @@
 
 NetManager::NetManager()
 {
+
 }
 
 NetManager::~NetManager()
@@ -40,4 +41,23 @@ void NetManager::DropHandlers(const Poco::Net::IPAddress& sender)
       iter = val.erase(iter);
     }
   }
+}
+
+const bool NetManager::BindPort(int port)
+{
+  try {
+    Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), port);
+    client = Poco::Net::DatagramSocket(sa);
+    client.setBlocking(false);
+  }
+  catch (...) {
+    return false;
+  }
+
+  return true;
+}
+
+Poco::Net::DatagramSocket& NetManager::GetSocket()
+{
+  return client;
 }

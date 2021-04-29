@@ -48,7 +48,6 @@ namespace Overworld {
     };
 
     std::string ticket; //!< How we are represented on the server
-    Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
     std::string connectData;
     uint16_t maxPayloadSize;

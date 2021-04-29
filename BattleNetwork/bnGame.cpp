@@ -83,6 +83,11 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
   for (auto&& kv : commandline) {
     Logger::Logf("%s : %s", kv.key().c_str(), kv.value().c_str());
   }
+
+  // Now that we have CLI values, we can configure 
+  // other subsystems that need to read from them...
+  int myPort = CommandLineValue<int>("port");
+  netManager.BindPort(myPort);
 }
 
 TaskGroup Game::Boot(const cxxopts::ParseResult& values)

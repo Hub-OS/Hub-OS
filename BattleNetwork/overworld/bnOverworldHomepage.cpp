@@ -88,7 +88,6 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       switch (cyberworldStatus) {
       case CyberworldStatus::online:
         message = "This is your homepage! Walk into the telepad to enter cyberspace!";
-        message = "This is the longest conversation that will act as a test. Something is happening. The textbox moves to the next conversation but it's several characters in. I thought I fixed this. But like everything something broke something and I'm about fed up with it. But this is how it is. I know how to debug so this is what I'll do... Ugh.";
         break;
       case CyberworldStatus::mismatched_version:
         message = "This is your homepage! But it looks like you need an update to connect to cyberspace...";
@@ -115,8 +114,10 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
 void Overworld::Homepage::PingRemoteAreaServer()
 {
+  auto& client = Net().GetSocket();
+
   if (pingServerTimer.getElapsed().asMilliseconds() == 0) {
-    auto doSendThunk = [=] {
+    auto doSendThunk = [=] () mutable {
       Poco::Buffer<char> buffer{ 0 };
       buffer.append((char)Reliability::Unreliable);
 
@@ -157,7 +158,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
       catch (Poco::IOException&) {
         cyberworldStatus = CyberworldStatus::offline;
         reconnecting = false;
-        client.close();
+        //client.close();
       }
 
       auto isOnline = cyberworldStatus == CyberworldStatus::online;
@@ -165,10 +166,10 @@ void Overworld::Homepage::PingRemoteAreaServer()
     };
 
     if (!reconnecting) {
-      int myPort = getController().CommandLineValue<int>("port");
+      /*int myPort = getController().CommandLineValue<int>("port");
       Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
       client = Poco::Net::DatagramSocket(sa);
-      client.setBlocking(false);
+      client.setBlocking(false);*/
 
       int remotePort = getController().CommandLineValue<int>("remotePort");
       std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
@@ -308,7 +309,7 @@ void Overworld::Homepage::onLeave()
 
   // repeat reconnection in case there was a fail that
   // forced us to return
-  client.close();
+  // Net().GetSocket().close();
   cyberworldStatus = CyberworldStatus::offline;
   reconnecting = false;
 }
@@ -345,7 +346,7 @@ void Overworld::Homepage::OnTileCollision()
 
     auto teleportToCyberworld = [=] {
       this->TeleportUponReturn(returnPoint);
-      client.close();
+      // Net().GetSocket().close();
       getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, "", maxPayloadSize, guest);
     };
 

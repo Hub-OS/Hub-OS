@@ -65,13 +65,8 @@ Overworld::OnlineArea::OnlineArea(
   lastFrameNavi = this->GetCurrentNavi();
   packetResendTimer = PACKET_RESEND_RATE;
 
-  int myPort = getController().CommandLineValue<int>("port");
-  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
-  client = Poco::Net::DatagramSocket(sa);
-  client.setBlocking(false);
-
   try {
-    client.connect(remoteAddress);
+    Net().GetSocket().connect(remoteAddress);
   }
   catch (Poco::IOException& e) {
     Logger::Log(e.message());
@@ -381,6 +376,8 @@ void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t 
 
 void Overworld::OnlineArea::processIncomingPackets(double elapsed)
 {
+  auto& client = Net().GetSocket();
+  
   packetResendTimer -= elapsed;
 
   if (packetResendTimer < 0) {
@@ -543,7 +540,7 @@ void Overworld::OnlineArea::sendAssetFoundSignal(const std::string& path, uint64
   buffer.append((char*)&event, sizeof(ClientEvents));
   buffer.append(path.c_str(), path.size() + 1);
   buffer.append((char*)&lastModified, sizeof(lastModified));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendAssetsFound() {
@@ -568,7 +565,7 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientAssetType assetType, uin
     buffer.append(assetType);
     buffer.append((char*)&size, sizeof(uint16_t));
     buffer.append(data, size);
-    packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+    packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 
     data += size;
   }
@@ -589,7 +586,7 @@ void Overworld::OnlineArea::sendLoginSignal()
   buffer.append(0);
   buffer.append(connectData.data(), connectData.length());
   buffer.append(0);
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendLogoutSignal()
@@ -597,7 +594,7 @@ void Overworld::OnlineArea::sendLogoutSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::logout };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendRequestJoinSignal()
@@ -605,7 +602,7 @@ void Overworld::OnlineArea::sendRequestJoinSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::request_join };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendReadySignal()
@@ -615,7 +612,7 @@ void Overworld::OnlineArea::sendReadySignal()
   Poco::Buffer<char> buffer{ 0 };
   buffer.append((char*)&type, sizeof(ClientEvents));
 
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPositionSignal()
@@ -640,7 +637,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   buffer.append((char*)&y, sizeof(float));
   buffer.append((char*)&z, sizeof(float));
   buffer.append((char*)&direction, sizeof(Direction));
-  packetShipper.Send(client, Reliability::UnreliableSequenced, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::UnreliableSequenced, buffer);
 }
 
 void Overworld::OnlineArea::sendAvatarChangeSignal()
@@ -651,7 +648,7 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::avatar_change };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 static std::vector<char> readBytes(std::string texturePath) {
@@ -713,7 +710,7 @@ void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&val, sizeof(uint8_t));
-  packetShipper.Send(client, Reliability::Reliable, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId)
@@ -723,7 +720,7 @@ void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectI
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&tileObjectId, sizeof(unsigned int));
-  packetShipper.Send(client, Reliability::Reliable, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
@@ -733,7 +730,7 @@ void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append(ticket.c_str(), ticket.length() + 1);
-  packetShipper.Send(client, Reliability::Reliable, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
@@ -745,7 +742,7 @@ void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
   buffer.append((char*)&x, sizeof(x));
   buffer.append((char*)&y, sizeof(y));
   buffer.append((char*)&z, sizeof(z));
-  packetShipper.Send(client, Reliability::Reliable, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendTextBoxResponseSignal(char response)
@@ -755,7 +752,7 @@ void Overworld::OnlineArea::sendTextBoxResponseSignal(char response)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&response, sizeof(response));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 
@@ -765,7 +762,7 @@ void Overworld::OnlineArea::sendBoardOpenSignal()
   ClientEvents type{ ClientEvents::board_open };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendBoardCloseSignal()
@@ -774,7 +771,7 @@ void Overworld::OnlineArea::sendBoardCloseSignal()
   ClientEvents type{ ClientEvents::board_close };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPostRequestSignal()
@@ -783,7 +780,7 @@ void Overworld::OnlineArea::sendPostRequestSignal()
   ClientEvents type{ ClientEvents::post_request };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
@@ -793,7 +790,7 @@ void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append(postId.c_str(), postId.length() + 1);
-  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
 }
 
 static bool PositionIsInWarp(Overworld::Map& map, sf::Vector3f position) {
