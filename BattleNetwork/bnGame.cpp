@@ -30,6 +30,7 @@ Game::Game(DrawWindow& window) :
   window(window), 
   reader("config.ini"),
   configSettings(),
+  netManager(),
   textureManager(),
   audioManager(),
   shaderManager(),
@@ -52,8 +53,11 @@ Game::Game(DrawWindow& window) :
   ResourceHandle::scripts  = &scriptManager;
 #endif
 
-  // Link i/o handle to use all the managers created by the game
+  // Link i/o handle to use the input manager created by the game
   InputHandle::input = &inputManager;
+
+  // Link net handle to use manager created by the game
+  NetHandle::net = &netManager;
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -180,6 +184,7 @@ void Game::Run()
     // Poll input
     inputManager.Update();
 
+    // unused images need to be free'd 
     textureManager.HandleExpiredTextureCache();
 
     double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
@@ -187,6 +192,9 @@ void Game::Run()
 
     bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame);
     bool resumeKey = inputManager.Has(InputEvents::pressed_resume_frames);
+
+    // Poll net code
+    netManager.Update(delta);
 
     if (nextFrameKey && isDebug && !frameByFrame) {
       frameByFrame = true;

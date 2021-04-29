@@ -52,8 +52,8 @@ namespace {
       { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
       { "key_items",   std::bind(&Overworld::SceneBase::GotoKeyItems, scene) },
       { "mob_select",  std::bind(&Overworld::SceneBase::GotoMobSelect, scene) },
-      { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) }
-      /*{ "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }*/
+      { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) },
+      { "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }
     };
   };
 }

@@ -8,6 +8,7 @@
 #include "bnConfigSettings.h"
 #include "bnSpriteProxyNode.h"
 #include "bnAnimation.h"
+#include "bnNetManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -58,6 +59,7 @@ private:
   ScriptResourceManager scriptManager; 
 #endif
   InputManager inputManager;
+  NetManager netManager;
 
   DrawWindow& window;
   ConfigReader reader;
