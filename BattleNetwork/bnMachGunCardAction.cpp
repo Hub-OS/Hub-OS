@@ -64,12 +64,12 @@ void MachGunCardAction::OnExecute(Character* user)
         }
 
         if (target) {
-          auto& removeCallback = target->CreateRemoveCallback();
-          removeCallback.Slot([this](Entity* in) {
+          auto* removeCallback = target->CreateRemoveCallback();
+          removeCallback->Slot([this](Entity* in) {
             this->target = nullptr;
           });
 
-          removeCallbacks.push_back(std::ref(removeCallback));
+          removeCallbacks.push_back(removeCallback);
         }
       }
     }
@@ -105,8 +105,8 @@ void MachGunCardAction::OnExecute(Character* user)
 
 void MachGunCardAction::OnActionEnd()
 {
-  for (auto&& callback : removeCallbacks) {
-    callback.get().Reset();
+  for (auto* callback : removeCallbacks) {
+    delete callback;
   }
 
   removeCallbacks.clear();

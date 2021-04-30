@@ -9,9 +9,9 @@ class Player;
     \brief This state will connect to the remote player before starting battle
 */
 struct ConnectRemoteBattleState final : public NetworkBattleSceneState {
-  Player** remotePlayer{ nullptr };
+  Player *&remotePlayer;
 
-  ConnectRemoteBattleState(Player** remotePlayer);
+  ConnectRemoteBattleState(Player*& remotePlayer);
   ~ConnectRemoteBattleState();
 
   void onStart(const BattleSceneState* next) override;

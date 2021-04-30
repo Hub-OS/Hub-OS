@@ -77,7 +77,8 @@ Overworld::OnlineArea::OnlineArea(
 
 Overworld::OnlineArea::~OnlineArea()
 {
-  sendLogoutSignal();
+  // TODO: network manager is deleted by the time this deconstructor is reached...
+  // sendLogoutSignal();
 }
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
@@ -212,8 +213,8 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   auto mousef = window.mapPixelToCoords(mousei);
 
   auto cameraView = GetCamera().GetView();
-  auto cameraCenter = cameraView.getCenter();
-  auto mapScale = GetMap().getScale();
+  sf::Vector2f cameraCenter = cameraView.getCenter();
+  sf::Vector2f mapScale = GetMap().getScale();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
   cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
   auto offset = cameraCenter - getView().getCenter();
@@ -289,11 +290,11 @@ void Overworld::OnlineArea::OnTileCollision()
     return;
   }
 
-  auto playerPos = player->getPosition();
-  auto tilePos = sf::Vector2i(map.WorldToTileSpace(playerPos));
-  auto hash = tilePos.x + map.GetCols() * tilePos.y;
+  sf::Vector2f playerPos = player->getPosition();
+  sf::Vector2i tilePos = sf::Vector2i(map.WorldToTileSpace(playerPos));
+  unsigned int hash = tilePos.x + map.GetCols() * tilePos.y;
 
-  auto tileTriggerLayer = tileTriggers[layer];
+  auto& tileTriggerLayer = tileTriggers[layer];
 
   if (tileTriggerLayer.find(hash) == tileTriggerLayer.end()) {
     return;
@@ -623,7 +624,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   auto tileSize = sf::Vector2f(map.GetTileSize());
 
   auto player = GetPlayer();
-  auto vec = player->getPosition();
+  sf::Vector2f vec = player->getPosition();
   float x = vec.x / tileSize.x * 2.0f;
   float y = vec.y / tileSize.y;
   float z = player->GetElevation();
@@ -990,7 +991,7 @@ void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const
 
   if (incomingAsset.buffer.size() < incomingAsset.size) return;
 
-  auto name = incomingAsset.name;
+  const std::string& name = incomingAsset.name;
   auto lastModified = incomingAsset.lastModified;
   auto cachable = incomingAsset.cachable;
 
@@ -1086,7 +1087,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
   for (auto i = 0; i < layerCount; i++) {
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
-      auto type = tileObject.type;
+      const std::string& type = tileObject.type;
 
       auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
 
@@ -1450,8 +1451,8 @@ void Overworld::OnlineArea::receivePrependPostsSignal(BufferReader& reader, cons
     return;
   }
 
-  auto hasReference = reader.Read<bool>(buffer);
-  auto reference = hasReference ? reader.ReadString(buffer) : "";
+  bool hasReference = reader.Read<bool>(buffer);
+  std::string reference = hasReference ? reader.ReadString(buffer) : "";
   auto posts = ReadPosts(reader, buffer);
 
   auto optionalBbs = menuSystem.GetBBS();

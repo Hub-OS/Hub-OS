@@ -14,7 +14,7 @@ private:
   int beeCount{};
   double attackCooldown{}, spawnCooldown{};
   Bees* lastBee{ nullptr };
-  std::vector<std::reference_wrapper<Entity::RemoveCallback>> mycallbacks;
+  std::vector<EntityRemoveCallback*> mycallbacks;
 public:
 
   /**

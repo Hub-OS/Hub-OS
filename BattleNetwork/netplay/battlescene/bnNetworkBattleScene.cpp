@@ -41,21 +41,21 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   BattleSceneBase(controller, props.base),
   remoteAddress(props.netconfig.remote) 
 {
-  networkCardUseListener = new NetworkCardUseListener(*this, props.base.player);
+  auto* clientPlayer = &props.base.player;
+
+  networkCardUseListener = new NetworkCardUseListener(*this, *clientPlayer);
   networkCardUseListener->Subscribe(this->GetSelectedCardsUI());
 
-  remoteAddress = Poco::Net::SocketAddress(props.netconfig.remote);
-
   selectedNavi = props.netconfig.myNavi;
-  props.base.player.CreateComponent<PlayerInputReplicator>(&props.base.player);
+  props.base.player.CreateComponent<PlayerInputReplicator>(clientPlayer);
 
   // If playing co-op, add more players to track here
-  players = { &props.base.player };
+  players = { clientPlayer };
 
   // ptr to player, form select index (-1 none), if should transform
   // TODO: just make this a struct to use across all states that need it...
   trackedForms = {
-    std::make_shared<TrackedFormData>(&props.base.player, -1, false)
+    std::make_shared<TrackedFormData>(clientPlayer, -1, false)
   };
 
   // in seconds
@@ -64,7 +64,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   mob = new Mob(props.base.field);
 
   // First, we create all of our scene states
-  auto intro = AddState<ConnectRemoteBattleState>(&remotePlayer);
+  auto intro = AddState<ConnectRemoteBattleState>(remotePlayer);
   auto cardSelect = AddState<CardSelectBattleState>(players, trackedForms);
   auto combat = AddState<CombatBattleState>(mob, players, battleDuration);
   auto combo = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
@@ -76,13 +76,18 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
 
   // Important! State transitions are added in order of priority!
   intro.ChangeOnEvent(cardSelect, [this] {
-    return isClientReady&& remoteState.isRemoteReady;
+    return isClientReady && remoteState.isRemoteReady;
   });
 
   cardSelect.ChangeOnEvent(combo, &CardSelectBattleState::OKIsPressed);
   combo.ChangeOnEvent(forms, [cardSelect, combo]() mutable {return combo->IsDone() && cardSelect->HasForm(); });
   combo.ChangeOnEvent(battlestart, [combo, this]() mutable {
-    bool change = combo->IsDone() && remoteState.isRemoteReady && isClientReady;
+    bool change = combo->IsDone();
+
+    if (change) {
+      remoteState.isRemoteReady = isClientReady = handshakeComplete = false; // force resync
+    }
+
     return change;
   });
 
@@ -90,7 +95,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
 
   battlestart.ChangeOnEvent(combat, [battlestart, this]() mutable {
-    if (battlestart->IsFinished()) {
+    if (battlestart->IsFinished() && remoteState.isRemoteReady && isClientReady) {
       remotePlayer->ChangeState<PlayerNetworkState>(remoteState);
       return true;
     }
@@ -128,6 +133,9 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   combat->Subscribe(ui);
   timeFreeze->Subscribe(ui);
 
+  // pvp cannot pause
+  combat->EnablePausing(false);
+
   // Some states are part of the combat routine and need to respect
   // the combat state's timers
   combat->subcombatStates.push_back(&timeFreeze.Unwrap());
@@ -143,8 +151,9 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
 NetworkBattleScene::~NetworkBattleScene()
 { 
   delete remotePlayer;
-  delete remoteCardUsePublisher;
-  delete networkCardUseListener;
+  if (remoteHand) delete[] remoteHand; // REMOVE THIS HACK
+  //delete remoteCardUsePublisher;
+  //delete networkCardUseListener;
 }
 
 void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
@@ -157,14 +166,17 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   if (!handshakeComplete) {
     sendHandshakeSignal();
-  } else if (!remoteState.isRemoteConnected) {
-    sendConnectSignal(this->selectedNavi);
   }
-  else if (!isClientReady) {
+  else {
+    sendConnectSignal(this->selectedNavi);
     sendReadySignal();
   }
 
-  BattleSceneBase::onUpdate(elapsed);
+  if (handshakeComplete && isClientReady && remoteState.isRemoteReady) {
+    BattleSceneBase::onUpdate(elapsed);
+  }
+
+  sendHPSignal(GetPlayer()->GetHealth());
   processIncomingPackets();
 }
 
@@ -346,7 +358,8 @@ void NetworkBattleScene::recieveChargeSignal(const Poco::Buffer<char>& buffer)
 {
   if (!remoteState.isRemoteConnected) return;
 
-  bool state = remoteState.remoteCharge; std::memcpy(&state, buffer.begin(), buffer.size());
+  bool state = remoteState.remoteCharge; 
+  std::memcpy(&state, buffer.begin(), sizeof(bool));
   remoteState.remoteCharge = state;
 
   Logger::Logf("recieved charge signal from remote: %i", state);
@@ -360,7 +373,16 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   remoteState.isRemoteConnected = true;
 
   SelectedNavi navi = SelectedNavi{ 0 }; 
-  std::memcpy(&navi, buffer.begin(), buffer.size());
+
+  if (buffer.size() >= sizeof(SelectedNavi)) {
+    std::memcpy(&navi, buffer.begin(), sizeof(SelectedNavi));
+  }
+  else {
+    std::string str_buffer(buffer.begin(), buffer.end());
+    Logger::Logf("Incoming connect signal was corrupted: %s", str_buffer.c_str());
+    return;
+  }
+
   remoteState.remoteNavi = navi;
 
   Logger::Logf("Recieved connect signal! Remote navi: %i", remoteState.remoteNavi);
@@ -370,7 +392,13 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   remotePlayer->SetTeam(Team::blue);
   remotePlayer->setScale(remotePlayer->getScale().x * -1.0f, remotePlayer->getScale().y);
 
+  remotePlayer->ChangeState<PlayerIdleState>();
+  if (auto anim = remotePlayer->GetFirstComponent<AnimationComponent>()) {
+    anim->Refresh();
+  }
+
   remotePlayer->ChangeState<FadeInState<Player>>([]{});
+
   GetField()->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
   mob->Track(*remotePlayer);
 
@@ -427,7 +455,7 @@ void NetworkBattleScene::recieveMoveSignal(const Poco::Buffer<char>& buffer)
   if (!remoteState.isRemoteConnected) return;
 
   Direction dir = remoteState.remoteDirection; 
-  std::memcpy(&dir, buffer.begin(), buffer.size());
+  std::memcpy(&dir, buffer.begin(), sizeof(Direction));
 
   if (!GetPlayer()->Teammate(remotePlayer->GetTeam())) {
     if (dir == Direction::left || dir == Direction::right) {
@@ -445,7 +473,7 @@ void NetworkBattleScene::recieveHPSignal(const Poco::Buffer<char>& buffer)
   if (!remoteState.isRemoteConnected) return;
 
   int hp = remoteState.remoteHP; 
-  std::memcpy(&hp, buffer.begin(), buffer.size());
+  std::memcpy(&hp, buffer.begin(), sizeof(int));
   
   remoteState.remoteHP = hp;
   remotePlayer->SetHealth(hp);
@@ -466,13 +494,6 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
 
   remoteState.remoteTileX = x;
   remoteState.remoteTileY = y;
-
-  Battle::Tile* t = GetField()->GetAt(x, y);
-
-  if (remotePlayer->GetTile() != t && !remotePlayer->IsSliding()) {
-    remotePlayer->GetTile()->RemoveEntityByID(remotePlayer->GetID());
-    remotePlayer->AdoptTile(t);
-  }
 }
 
 void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
@@ -483,7 +504,14 @@ void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
   std::string used = std::string(buffer.begin()+sizeof(uint64_t), buffer.size()-sizeof(uint64_t));
   remoteState.remoteChipUse = used;
   Battle::Card card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ used });
-  //remoteCardUsePublisher->Broadcast(card, *remotePlayer, timestamp);
+
+  if (remoteHand) delete[] remoteHand;
+
+  remoteHand = new Battle::Card * [1];
+  remoteHand[0] = new Battle::Card(card);
+
+  remoteCardUsePublisher->LoadCards(remoteHand, 1);
+  remoteCardUsePublisher->UseNextCard();
   Logger::Logf("remote used chip %s", used.c_str());
 }
 
@@ -512,52 +540,57 @@ void NetworkBattleScene::processIncomingPackets()
   static int read = 0;
 
   try {
-    read+= client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN-1, remoteAddress);
-    if (read > 0) {
-      rawBuffer[read] = '\0';
+    while (client.available()) {
+      Poco::Net::SocketAddress sender;
+      read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1, sender);
 
-      NetPlaySignals sig = *(NetPlaySignals*)rawBuffer;
-      size_t sigLen = sizeof(NetPlaySignals);
-      Poco::Buffer<char> data{ 0 };
-      data.append(rawBuffer + sigLen, size_t(read)-sigLen);
+      if (sender != remoteAddress)
+        break;
 
-      switch (sig) {
-      case NetPlaySignals::handshake:
-        recieveHandshakeSignal();
-        break;
-      case NetPlaySignals::connect:
-        recieveConnectSignal(data);
-        break;
-      case NetPlaySignals::chip:
-        recieveChipUseSignal(data);
-        break;
-      case NetPlaySignals::form:
-        recieveChangedFormSignal(data);
-        break;
-      case NetPlaySignals::hp:
-        recieveHPSignal(data);
-        break;
-      case NetPlaySignals::loser:
-        recieveLoserSignal();
-        break;
-      case NetPlaySignals::move:
-        recieveMoveSignal(data);
-        break;
-      case NetPlaySignals::ready:
-        recieveReadySignal();
-        break;
-      case NetPlaySignals::tile:
-        recieveTileCoordSignal(data);
-        break;
-      case NetPlaySignals::shoot:
-        recieveShootSignal();
-        break;
-      case NetPlaySignals::special:
-        recieveUseSpecialSignal();
-        break;
-      case NetPlaySignals::charge:
-        recieveChargeSignal(data);
-        break;
+      if (read > 0) {
+        NetPlaySignals sig = *(NetPlaySignals*)rawBuffer;
+        size_t sigLen = sizeof(NetPlaySignals);
+        Poco::Buffer<char> data{ 0 };
+        data.append(rawBuffer + sigLen, size_t(read) - sigLen);
+
+        switch (sig) {
+        case NetPlaySignals::handshake:
+          recieveHandshakeSignal();
+          break;
+        case NetPlaySignals::connect:
+          recieveConnectSignal(data);
+          break;
+        case NetPlaySignals::chip:
+          recieveChipUseSignal(data);
+          break;
+        case NetPlaySignals::form:
+          recieveChangedFormSignal(data);
+          break;
+        case NetPlaySignals::hp:
+          recieveHPSignal(data);
+          break;
+        case NetPlaySignals::loser:
+          recieveLoserSignal();
+          break;
+        case NetPlaySignals::move:
+          recieveMoveSignal(data);
+          break;
+        case NetPlaySignals::ready:
+          recieveReadySignal();
+          break;
+        case NetPlaySignals::tile:
+          recieveTileCoordSignal(data);
+          break;
+        case NetPlaySignals::shoot:
+          recieveShootSignal();
+          break;
+        case NetPlaySignals::special:
+          recieveUseSpecialSignal();
+          break;
+        case NetPlaySignals::charge:
+          recieveChargeSignal(data);
+          break;
+        }
       }
     }
 
@@ -565,10 +598,7 @@ void NetworkBattleScene::processIncomingPackets()
   }
   catch (std::exception& e) {
     Logger::Logf("PVP Network exception: %s", e.what());
-    
-    if (remoteState.isRemoteConnected) {
-      errorCount++;
-    }
+    errorCount++;
   }
 
   read = 0;

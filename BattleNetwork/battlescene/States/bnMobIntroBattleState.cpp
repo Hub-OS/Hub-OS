@@ -5,6 +5,11 @@
 #include "../../bnMob.h"
 #include "../../bnAgent.h"
 
+MobIntroBattleState::MobIntroBattleState(Mob* mob, std::vector<Player*> tracked)
+  : mob(mob), tracked(tracked)
+{
+}
+
 void MobIntroBattleState::onUpdate(double elapsed)
 {
   if (!GetScene().IsSceneInFocus()) return;
@@ -59,9 +64,4 @@ void MobIntroBattleState::onDraw(sf::RenderTexture& surface)
 
 const bool MobIntroBattleState::IsOver() {
   return mob->IsSpawningDone();
-}
-
-MobIntroBattleState::MobIntroBattleState(Mob* mob, std::vector<Player*> tracked) 
-  : mob(mob), tracked(tracked)
-{
 }

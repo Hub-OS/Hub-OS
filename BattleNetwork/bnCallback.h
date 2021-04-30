@@ -3,8 +3,13 @@
 
 template<typename FnSig>
 class Callback {
+private:
   std::function<FnSig> slot;
   bool use = false;
+protected:
+  const bool CanUse() const {
+    return use;
+  }
 public:
   Callback() {
   }
@@ -12,7 +17,7 @@ public:
   Callback(const decltype(slot)& slot) : slot(slot), use(true) 
   {}
 
-  ~Callback() = default;
+  virtual ~Callback() {}
 
   void Slot(decltype(slot) slot) {
     this->slot = slot;

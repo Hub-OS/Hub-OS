@@ -28,9 +28,9 @@ using std::string;
 #include "bnTextureType.h"
 #include "bnElements.h"
 #include "bnComponent.h"
-#include "bnCallback.h"
 #include "bnEventBus.h"
 #include "bnActionQueue.h"
+#include "bnEntityRemoveCallback.h"
 
 namespace Battle {
   class Tile;
@@ -100,9 +100,6 @@ private:
   void UpdateMovement(double elapsed);
   void SetFrame(unsigned frame);
 public:
-
-  using RemoveCallback = Callback<void(Entity*)>;
-
   Entity();
   virtual ~Entity();
 
@@ -305,10 +302,11 @@ public:
   void Remove();
 
   /**
-  * @brief Builds and returns a reference to a callback function of type void()
+  * @brief Builds and returns a pointer to a callback function of type void()
   * Useful for safely determining the lifetime of another entity in play
   */
-  RemoveCallback& CreateRemoveCallback();
+  EntityRemoveCallback* CreateRemoveCallback();
+  void ForgetRemoveCallback(EntityRemoveCallback& callback);
 
   /**
   * @brief Executes all pending callbacks for the entity's removal from battle
@@ -467,7 +465,7 @@ protected:
     Status action{ Status::add };
   };
   std::list<ComponentBucket> queuedComponents;
-  std::vector<RemoveCallback*> removeCallbacks;
+  std::vector<EntityRemoveCallback*> removeCallbacks;
 
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
   void SetMoveEndlag(const frame_time_t& frames);

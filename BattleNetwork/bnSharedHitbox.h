@@ -48,4 +48,5 @@ private:
   double cooldown; /*< When cooldown reaches zero, this hitbox removes */
   bool keepAlive; /*!< If duration is not set, the hitbox stays alive for long as the owner stays alive*/
   Spell* owner; /*!< When this hitbox is hit, the owner is hit */
+  EntityRemoveCallback* onOwnerDelete{ nullptr };
 };

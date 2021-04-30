@@ -7,7 +7,9 @@ class AlphaArm;
 class AlphaClawSwipeState : public AIState<AlphaCore>
 {
 private:
-  AlphaArm *leftArm, *rightArm;
+  AlphaArm* leftArm{ nullptr }, *rightArm{nullptr};
+  EntityRemoveCallback* onLeftArmRemove{ nullptr }, * onRightArmRemove{ nullptr };
+
   bool goldenArmState;
   Battle::Tile* last;
 

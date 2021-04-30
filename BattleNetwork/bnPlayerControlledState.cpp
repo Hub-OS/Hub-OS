@@ -99,8 +99,12 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   if(direction != Direction::none) {
-    replicator ? replicator->SendMoveSignal(direction) : (void(0));
-    auto onMoveBegin = [player = &player] {
+    auto next_tile = player.GetTile() + direction;
+    auto onMoveBegin = [player = &player, next_tile, this] {
+      if (replicator) {
+        replicator->SendTileSignal(next_tile->GetX(), next_tile->GetY());
+      }
+
       auto anim = player->GetFirstComponent<AnimationComponent>();
       std::string animationStr = anim->GetAnimationString();
 
@@ -120,10 +124,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     };
 
     if (player.playerControllerSlide) {
-      player.Slide(player.GetTile() + direction, player.slideFrames, frames(0), ActionOrder::voluntary);
+      player.Slide(next_tile, player.slideFrames, frames(0), ActionOrder::voluntary);
     }
     else {
-      player.Teleport(player.GetTile() + direction, ActionOrder::voluntary, onMoveBegin);
+      player.Teleport(next_tile, ActionOrder::voluntary, onMoveBegin);
     }
   } 
 }

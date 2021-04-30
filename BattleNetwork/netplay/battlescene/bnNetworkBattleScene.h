@@ -68,11 +68,12 @@ private:
   bool isClientReady{ false }; //!< Signal when the client is ready to begin the round
   SelectedNavi selectedNavi; //!< the type of navi we selected
   NetworkCardUseListener* networkCardUseListener{ nullptr };
-  CardUsePublisher* remoteCardUsePublisher{ nullptr };
+  SelectedCardsUI* remoteCardUsePublisher{ nullptr };
   PlayerCardUseListener* remoteCardUseListener{ nullptr };
+  Battle::Card** remoteHand{ nullptr }; // THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   Poco::Net::SocketAddress remoteAddress; //!< them
-  Player* remotePlayer{ nullptr }; //!< their player pawn
+  Player *remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
   std::vector<Player*> players; //!< Track all players
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;

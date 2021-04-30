@@ -1,4 +1,5 @@
 #include "bnEntity.h"
+#include "bnEntityRemoveCallback.h"
 #include "bnComponent.h"
 #include "bnTile.h"
 #include "bnField.h"
@@ -29,10 +30,6 @@ Entity::Entity() :
 
 Entity::~Entity() {
   this->FreeAllComponents();
-
-  for (RemoveCallback* callback : removeCallbacks) {
-    delete callback;
-  }
 }
 
 void Entity::SortComponents()
@@ -207,9 +204,9 @@ void Entity::SetFrame(unsigned frame)
 
 void Entity::ExecuteRemoveCallbacks()
 {
-  for (RemoveCallback* callback : removeCallbacks) {
+  for (EntityRemoveCallback* callback : removeCallbacks) {
     (*callback)(this);
-    delete callback;
+    callback->Reset();
   }
 
   removeCallbacks.clear();
@@ -521,10 +518,18 @@ void Entity::Remove()
   flagForRemove = true;
 }
 
-Entity::RemoveCallback& Entity::CreateRemoveCallback()
+EntityRemoveCallback* Entity::CreateRemoveCallback()
 {
-  removeCallbacks.push_back(new Entity::RemoveCallback());
-  return *removeCallbacks[removeCallbacks.size() - 1];
+  removeCallbacks.push_back(new EntityRemoveCallback(*this));
+  return removeCallbacks[removeCallbacks.size() - 1];
+}
+
+void Entity::ForgetRemoveCallback(EntityRemoveCallback& callback)
+{
+  auto iter = std::find(removeCallbacks.begin(), removeCallbacks.end(), &callback);
+  if (iter != removeCallbacks.end()) {
+    removeCallbacks.erase(iter);
+  }
 }
 
 bool Entity::IsDeleted() const {

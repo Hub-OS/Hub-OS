@@ -14,13 +14,14 @@ SharedHitbox::SharedHitbox(Spell* owner, float duration) :
   SetHitboxProperties(owner->GetHitboxProperties());
   keepAlive = (duration == 0.0f);
 
-  Entity::RemoveCallback& deleteHandler = owner->CreateRemoveCallback();
-  deleteHandler.Slot([this](Entity*) {
+  onOwnerDelete = owner->CreateRemoveCallback();
+  onOwnerDelete->Slot([this](Entity*) {
     SharedHitbox::owner = nullptr;
   });
 }
 
 SharedHitbox::~SharedHitbox() {
+  delete onOwnerDelete;
 }
 
 void SharedHitbox::OnUpdate(double _elapsed) {

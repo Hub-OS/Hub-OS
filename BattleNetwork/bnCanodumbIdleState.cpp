@@ -12,7 +12,7 @@ void CanodumbIdleState::Attack()
 
 void CanodumbIdleState::FreeCursor()
 {
-    freeCursorCallback(nullptr);
+  delete freeCursorCallback;
 }
 
 Character::Rank CanodumbIdleState::GetCanodumbRank()
@@ -26,7 +26,10 @@ Entity* CanodumbIdleState::GetCanodumbTarget()
 }
 
 CanodumbIdleState::CanodumbIdleState() : AIState<Canodumb>() { cursor = nullptr; can = nullptr; }
-CanodumbIdleState::~CanodumbIdleState() { ; }
+
+CanodumbIdleState::~CanodumbIdleState() { 
+  FreeCursor();
+}
 
 void CanodumbIdleState::OnEnter(Canodumb& can) {
   this->can = &can;
@@ -51,9 +54,11 @@ void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
       // Spawn tracking cursor object
       if (cursor == nullptr) {
         cursor = new CanodumbCursor(this);
+
+        delete freeCursorCallback;
         freeCursorCallback = cursor->CreateRemoveCallback();
 
-        freeCursorCallback.Slot([this](Entity*) {
+        freeCursorCallback->Slot([this](Entity*) {
             if (cursor) {
                 cursor->Delete();
             }

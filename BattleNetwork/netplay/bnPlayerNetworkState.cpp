@@ -25,6 +25,7 @@ void PlayerNetworkState::OnEnter(Player& player) {
 }
 
 void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
+  player.SetHealth(netflags.remoteHP);
 
   // Action controls take priority over movement
   if(!player.IsLockoutAnimationComplete()) return;
@@ -51,12 +52,6 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   if (player.state != PLAYER_IDLE)
     return;
 
-  static Direction direction = Direction::none;
-  if (!player.IsTimeFrozen()) {
-    direction = netflags.remoteDirection;
-    netflags.remoteDirection = Direction::none; // we're moving now
-  }
-
   bool shouldShoot = netflags.remoteCharge && isChargeHeld == false;
 
 #ifdef __ANDROID__
@@ -69,22 +64,40 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
     player.chargeEffect.SetCharging(true);
   }
 
-  if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
+  auto& tile = *player.GetTile();
 
-  if (player.Teleport(player.GetTile() + direction)) {
-    auto onFinish = [&]() {
-      player.SetAnimation("PLAYER_MOVED", [p = &player]() {
-        p->SetAnimation(PLAYER_IDLE);
+  if (tile.GetX() != netflags.remoteTileX || tile.GetY() != netflags.remoteTileY) {
+    auto onMoveBegin = [player = &player] {
+      auto anim = player->GetFirstComponent<AnimationComponent>();
+      std::string animationStr = anim->GetAnimationString();
+
+      const std::string& move_anim = player->GetMoveAnimHash();
+
+      anim->CancelCallbacks();
+
+      auto idle_callback = [anim]() {
+        anim->SetAnimation("PLAYER_IDLE");
+      };
+
+      anim->SetAnimation(move_anim, [idle_callback] {
+        idle_callback();
         });
 
-      direction = Direction::none;
-    }; // end lambda
-    player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
-    player.SetAnimation(PLAYER_MOVING, onFinish);
+      anim->SetInterruptCallback(idle_callback);
+    };
+
+    auto destTile = player.GetField()->GetAt(netflags.remoteTileX, netflags.remoteTileY);
+
+    if (player.playerControllerSlide) {
+      player.Slide(destTile, player.slideFrames, frames(0), ActionOrder::voluntary);
+    }
+    else {
+      player.Teleport(destTile, ActionOrder::voluntary, onMoveBegin);
+    }
   }
 }
 
 void PlayerNetworkState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
-  player.chargeEffect.SetCharging(false);
+  player.Charge(false);
 }

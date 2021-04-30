@@ -2,6 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include "bnUIComponent.h"
 #include "bnSpriteProxyNode.h"
+#include "bnEntityRemoveCallback.h"
+
+// forward delcare
 class Character;
 
 /*! \brief Similar to PlayerHealthUI but draws under the mob */
@@ -42,9 +45,10 @@ public:
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
-  Character * mob; /*!< Owner of health */
+  Character* mob{ nullptr }; /*!< Owner of health */
   sf::Color color; /*!< Color of the glyphs */
   mutable SpriteProxyNode glyphs; /*!< Drawable texture */
   int healthCounter; /*!< mob's current health */
   double cooldown; /*!< Time after dial to uncolorize */
+  EntityRemoveCallback* onMobDelete{ nullptr };
 };

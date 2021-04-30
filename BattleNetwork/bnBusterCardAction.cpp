@@ -48,7 +48,7 @@ void BusterCardAction::OnExecute(Character* user) {
       b->SetDirection(Direction::left);
     }
 
-    busterRemoved = &b->CreateRemoveCallback();
+    busterRemoved = b->CreateRemoveCallback();
     busterRemoved->Slot([this](Entity*) {
       EndAction();
       });
@@ -64,9 +64,7 @@ void BusterCardAction::OnExecute(Character* user) {
 
 BusterCardAction::~BusterCardAction()
 {
-  if (busterRemoved) {
-    busterRemoved->Reset();
-  }
+  delete busterRemoved;
 }
 
 void BusterCardAction::Update(double _elapsed)

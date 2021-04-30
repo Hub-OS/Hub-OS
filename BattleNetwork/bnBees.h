@@ -8,9 +8,6 @@ class Hitbox;
 
 class Bees : public Obstacle {
   class BeeDefenseRule : public DefenseRule {
-
-
-  public:
   public:
     BeeDefenseRule() : DefenseRule(Priority(4), DefenseOrder::always) {}
     ~BeeDefenseRule() {}
@@ -38,6 +35,8 @@ protected:
   SpriteProxyNode* shadow{ nullptr };
   Bees* leader{ nullptr };/*!< which bee to follow*/
   BeeDefenseRule* absorbDamage;
+
+  std::vector<EntityRemoveCallback*> removeCallbacks;
 public:
   Bees(Team _team,int damage);
   Bees(const Bees& leader);

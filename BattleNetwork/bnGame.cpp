@@ -182,7 +182,8 @@ void Game::Run()
     FPS = (float)(1.0 / (float)scope_elapsed);
     std::string fpsStr = std::to_string(FPS);
     fpsStr.resize(4);
-    getWindow().setTitle(sf::String(std::string("FPS: ") + fpsStr));
+    sf::String title = sf::String(std::string("FPS: ") + fpsStr);
+    getWindow().setTitle(title);
 
     clock.restart();
 

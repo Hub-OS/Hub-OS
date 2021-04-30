@@ -93,19 +93,22 @@ Bees::Bees(const Bees & leader) :
   AddNode(shadow);
 
   SetHitboxProperties(leader.GetHitboxProperties());
-  Entity::RemoveCallback& selfDeleteHandler = CreateRemoveCallback();
-  Entity::RemoveCallback& leaderDeleteHandler = this->leader->CreateRemoveCallback();
+  EntityRemoveCallback* selfDeleteHandler = CreateRemoveCallback();
+  EntityRemoveCallback* leaderDeleteHandler = this->leader->CreateRemoveCallback();
 
-  leaderDeleteHandler.Slot([this, s = &selfDeleteHandler](Entity*) {
+  leaderDeleteHandler->Slot([this, selfDeleteHandler](Entity*) {
     if (target == this->leader) target = nullptr;
     this->leader = nullptr;
 
-    s->Reset();
+    selfDeleteHandler->Reset();
   });
 
-  selfDeleteHandler.Slot([s = &leaderDeleteHandler](Entity*) {
-    s->Reset();
+  selfDeleteHandler->Slot([this, leaderDeleteHandler](Entity*) {
+    leaderDeleteHandler->Reset();
   });
+
+  removeCallbacks.push_back(leaderDeleteHandler);
+  removeCallbacks.push_back(selfDeleteHandler);
 
   if (GetTeam() == Team::red) {
     SetDirection(Direction::right);
@@ -123,6 +126,10 @@ Bees::Bees(const Bees & leader) :
 Bees::~Bees() {
   delete shadow;
   delete absorbDamage;
+  
+  for (auto* callbacks : removeCallbacks) {
+    delete callbacks;
+  }
 }
 
 void Bees::OnUpdate(double _elapsed) {
@@ -301,15 +308,18 @@ void Bees::OnUpdate(double _elapsed) {
     }
 
     if (GetField()->AddEntity(*hitbox, *GetTile()) != Field::AddEntityStatus::deleted) {
-      Entity::RemoveCallback& selfDeleteHandler = CreateRemoveCallback();
-      selfDeleteHandler.Slot([hitbox](Entity*) {
+      EntityRemoveCallback* selfDeleteHandler = CreateRemoveCallback();
+      selfDeleteHandler->Slot([hitbox](Entity*) {
         hitbox->Remove();
       });
 
-      Entity::RemoveCallback& hitboxDeleteHandler = hitbox->CreateRemoveCallback();
-      hitboxDeleteHandler.Slot([handler = &selfDeleteHandler](Entity*) {
-        handler->Reset();
-        });
+      EntityRemoveCallback* hitboxDeleteHandler = hitbox->CreateRemoveCallback();
+      hitboxDeleteHandler->Slot([selfDeleteHandler](Entity*) {
+        selfDeleteHandler->Reset();
+      });
+
+      removeCallbacks.push_back(hitboxDeleteHandler);
+      removeCallbacks.push_back(selfDeleteHandler);
     }
   }
 

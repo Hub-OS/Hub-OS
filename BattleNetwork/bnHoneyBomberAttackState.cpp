@@ -10,8 +10,8 @@ HoneyBomberAttackState::HoneyBomberAttackState()
 }
 
 HoneyBomberAttackState::~HoneyBomberAttackState() {
-  for (auto callback : mycallbacks) {
-    callback.get().Reset();
+  for (auto* callback : mycallbacks) {
+    delete callback;
   }
 }
 
@@ -69,14 +69,14 @@ void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
     if (status != Field::AddEntityStatus::deleted) {
       lastBee = newBee;
 
-      auto& onRemove = lastBee->CreateRemoveCallback();
-      onRemove.Slot([this](Entity* in) {
+      auto* onRemove = lastBee->CreateRemoveCallback();
+      onRemove->Slot([this](Entity* in) {
         if (this->lastBee == in) {
           this->lastBee = nullptr;
         }
       });
 
-      mycallbacks.push_back(std::ref(onRemove));
+      mycallbacks.push_back(onRemove);
     }
   }
 }

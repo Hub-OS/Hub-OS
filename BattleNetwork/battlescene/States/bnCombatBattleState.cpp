@@ -81,6 +81,11 @@ const bool CombatBattleState::PlayerRequestCardSelect()
   return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && Input().Has(InputEvents::pressed_cust_menu);
 }
 
+void CombatBattleState::EnablePausing(bool enable)
+{
+  canPause = enable;
+}
+
 void CombatBattleState::onStart(const BattleSceneState* last)
 {
   GetScene().HighlightTiles(true); // re-enable tile highlighting
@@ -129,8 +134,7 @@ void CombatBattleState::onUpdate(double elapsed)
     clearedMob = true;
   }
 
-  if (Input().Has(InputEvents::pressed_pause) && !mob->IsCleared()) {
-
+  if (canPause && Input().Has(InputEvents::pressed_pause) && !mob->IsCleared()) {
     if (isPaused) {
       // unpauses
       // Require to stop the battle step timer and all battle-related component updates

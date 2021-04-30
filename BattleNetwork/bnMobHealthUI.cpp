@@ -15,13 +15,14 @@ MobHealthUI::MobHealthUI(Character* _mob) : mob(_mob), UIComponent(_mob) {
   glyphs.setTexture(ResourceHandle().Textures().GetTexture(TextureType::ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 
-  Entity::RemoveCallback& onDelete = mob->CreateRemoveCallback();
-  onDelete.Slot([this](Entity*) {
+  onMobDelete = mob->CreateRemoveCallback();
+  onMobDelete->Slot([this](Entity*) {
       mob = nullptr;
   });
 }
 
 MobHealthUI::~MobHealthUI() {
+  delete onMobDelete;
 }
 
 /*

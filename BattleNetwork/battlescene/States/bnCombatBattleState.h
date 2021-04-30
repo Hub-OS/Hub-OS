@@ -18,6 +18,7 @@ namespace Battle {
     \brief This state will govern combat rules
 */
 struct CombatBattleState final : public BattleSceneState, public CardUseListener {
+  bool canPause{ true };
   bool isPaused{ false };
   bool isGaugeFull{ false };
   bool hasTimeFreeze{ false };
@@ -38,6 +39,7 @@ struct CombatBattleState final : public BattleSceneState, public CardUseListener
   const bool PlayerWon() const;
   const bool PlayerLost() const;
   const bool PlayerRequestCardSelect();
+  void EnablePausing(bool enable);
 
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;

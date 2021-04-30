@@ -19,10 +19,12 @@ void WideSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
   auto& actor = GetActor();
   auto field = actor.GetField();
 
+  int step = actor.GetFacing() == Direction::left ? -1 : 1;
+
   auto tiles = std::vector{
-    actor.GetTile()->Offset(1, 0),
-    actor.GetTile()->Offset(1, 1),
-    actor.GetTile()->Offset(1,-1)
+    actor.GetTile()->Offset(step, 0),
+    actor.GetTile()->Offset(step, 1),
+    actor.GetTile()->Offset(step,-1)
   };
 
   SwordEffect* e = new SwordEffect;

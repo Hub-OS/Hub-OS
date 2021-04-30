@@ -288,7 +288,7 @@ void PVPScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
   remoteIsReady = true;
 
   size_t navi = size_t{ 0 }; std::memcpy(&navi, buffer.begin(), buffer.size());
-  auto meta = NAVIS.At(static_cast<int>(navi));
+  auto& meta = NAVIS.At(static_cast<int>(navi));
   this->remotePreview.setTexture(meta.GetPreviewTexture());
   auto height = remotePreview.getSprite().getLocalBounds().height;
   remotePreview.setOrigin(sf::Vector2f(0, height));
