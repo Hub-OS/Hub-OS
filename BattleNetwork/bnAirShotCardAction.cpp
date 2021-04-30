@@ -40,12 +40,14 @@ void AirShotCardAction::OnExecute(Character* user) {
     Audio().Play(AudioType::SPREADER);
 
     AirShot* airshot = new AirShot(actor.GetTeam(), damage);
-    airshot->SetDirection(Direction::right);
+    airshot->SetDirection(actor.GetFacing());
     auto props = airshot->GetHitboxProperties();
     props.aggressor = user->GetID();
     airshot->SetHitboxProperties(props);
 
-    actor.GetField()->AddEntity(*airshot, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
+    int step = actor.GetFacing() == Direction::left ? -1 : 1;
+
+    actor.GetField()->AddEntity(*airshot, user->GetTile()->GetX() + step, user->GetTile()->GetY());
   };
 
   AddAnimAction(2, onFire);

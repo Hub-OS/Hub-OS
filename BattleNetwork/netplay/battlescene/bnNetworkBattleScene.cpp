@@ -64,7 +64,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   mob = new Mob(props.base.field);
 
   // First, we create all of our scene states
-  auto intro = AddState<ConnectRemoteBattleState>(remotePlayer);
+  auto intro = AddState<ConnectRemoteBattleState>(remotePlayer, &isClientReady);
   auto cardSelect = AddState<CardSelectBattleState>(players, trackedForms);
   auto combat = AddState<CombatBattleState>(mob, players, battleDuration);
   auto combo = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
@@ -75,28 +75,50 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   auto fadeout = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
 
   // Important! State transitions are added in order of priority!
-  intro.ChangeOnEvent(cardSelect, [this] {
-    return isClientReady && remoteState.isRemoteReady;
+  intro.ChangeOnEvent(cardSelect, [this, intro]() mutable {
+    if (intro->IsConnected()) {
+      resync = false;
+      return true;
+    }
+
+    return false;
   });
 
-  cardSelect.ChangeOnEvent(combo, &CardSelectBattleState::OKIsPressed);
-  combo.ChangeOnEvent(forms, [cardSelect, combo]() mutable {return combo->IsDone() && cardSelect->HasForm(); });
-  combo.ChangeOnEvent(battlestart, [combo, this]() mutable {
-    bool change = combo->IsDone();
+  cardSelect.ChangeOnEvent(combo, [this, cardSelect]() mutable {
+    if (cardSelect->OKIsPressed()) {
+      // force the player to resync right after cards are selected...
+      isClientReady = remoteState.isRemoteReady = false;
+      resync = true;
+      return true;
+    }
+
+    return false;
+  });
+
+  auto onSelectForm = [this, cardSelect, combo]() mutable {
+    bool change = combo->IsDone() && cardSelect->HasForm(); 
 
     if (change) {
-      remoteState.isRemoteReady = isClientReady = handshakeComplete = false; // force resync
+      // force the player to resync right after cards are selected...
+      isClientReady = remoteState.isRemoteReady = false;
+      resync = true;
+
+      // sound our current form data
+      this->sendChangedFormSignal(this->trackedForms[0]->selectedForm);
     }
 
     return change;
-  });
+  };
+
+  combo.ChangeOnEvent(forms, onSelectForm);
+  combo.ChangeOnEvent(battlestart, &CardComboBattleState::IsDone);
 
   //forms.ChangeOnEvent(combat, &CharacterTransformBattleState::Decrossed);
   forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
 
-  battlestart.ChangeOnEvent(combat, [battlestart, this]() mutable {
-    if (battlestart->IsFinished() && remoteState.isRemoteReady && isClientReady) {
-      remotePlayer->ChangeState<PlayerNetworkState>(remoteState);
+  battlestart.ChangeOnEvent(combat, [this, battlestart]() mutable {
+    if (battlestart->IsFinished()) {
+      resync = false; // stop establishing handshakes...
       return true;
     }
 
@@ -120,12 +142,27 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
     return changeState;
   };
 
+  // Lambda event callback that captures and handles network card select screen opening
+  auto onCardSelectEvent = [this]() mutable {
+    // NOTE: change `|| resync` to `|| this->selectWidgetRequested`. see notes below
+    if (combatPtr->PlayerRequestCardSelect() || resync) {
+      this->sendRequestedCardSelectSignal();
+
+      // NOTE: we need an extra state signal for if the card select widget was requested
+      //        e.g. this->selectWidgetRequested = false; here
+      this->resync = false;
+      return true;
+    }
+
+    return false;
+  };
+
   // combat has multiple state interruptions based on events
   // so we can chain them together
   combat.ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
     .ChangeOnEvent(forms, playerLosesInForm)
     .ChangeOnEvent(fadeout, &CombatBattleState::PlayerLost)
-    .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
+    .ChangeOnEvent(cardSelect, onCardSelectEvent)
     .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 
   // Some states need to know about card uses
@@ -164,12 +201,14 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   
   if (!IsSceneInFocus()) return;
 
-  if (!handshakeComplete) {
-    sendHandshakeSignal();
-  }
-  else {
-    sendConnectSignal(this->selectedNavi);
-    sendReadySignal();
+  if (resync) {
+    if (!handshakeComplete) {
+      sendHandshakeSignal();
+    }
+    else {
+      sendConnectSignal(this->selectedNavi);
+      sendReadySignal();
+    }
   }
 
   if (handshakeComplete && isClientReady && remoteState.isRemoteReady) {
@@ -320,6 +359,14 @@ void NetworkBattleScene::sendChipUseSignal(const std::string& used)
   Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
+void NetworkBattleScene::sendRequestedCardSelectSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  NetPlaySignals type{ NetPlaySignals::card_select };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
+  Net().GetSocket().sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+}
+
 void NetworkBattleScene::sendLoserSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
@@ -392,11 +439,6 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   remotePlayer->SetTeam(Team::blue);
   remotePlayer->setScale(remotePlayer->getScale().x * -1.0f, remotePlayer->getScale().y);
 
-  remotePlayer->ChangeState<PlayerIdleState>();
-  if (auto anim = remotePlayer->GetFirstComponent<AnimationComponent>()) {
-    anim->Refresh();
-  }
-
   remotePlayer->ChangeState<FadeInState<Player>>([]{});
 
   GetField()->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
@@ -422,19 +464,11 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 void NetworkBattleScene::recieveReadySignal()
 {
   if (!remoteState.isRemoteConnected) return;
-
-  if (this->isClientReady && !remoteState.isRemoteReady) {
-    //this->isPreBattle = true;
-    //this->battleStartTimer.reset();
-  }
-
   remoteState.isRemoteReady = true;
 }
 
 void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buffer)
 {
-  if (!remoteState.isRemoteConnected) return;
-
   int form = remoteState.remoteFormSelect;
   int prevForm = remoteState.remoteFormSelect;
   std::memcpy(&form, buffer.begin(), sizeof(int));
@@ -444,9 +478,13 @@ void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buff
     // going back to our base this time
     remoteState.remoteLastFormSelect = remoteState.remoteFormSelect;
     remoteState.remoteFormSelect = form;
-    remoteState.remoteIsFormChanging = true; // begins the routine
-    remoteState.remoteIsAnimatingFormChange = false; // state moment flags must be false to trigger
-    remoteState.remoteIsLeavingFormChange = false;   // ... after the backdrop turns dark
+    //remoteState.remoteIsFormChanging = true; // begins the routine
+    //remoteState.remoteIsAnimatingFormChange = false; // state moment flags must be false to trigger
+    //remoteState.remoteIsLeavingFormChange = false;   // ... after the backdrop turns dark
+
+    // TODO: hacky and ugly
+    this->trackedForms[1]->selectedForm = remoteState.remoteFormSelect;
+    this->trackedForms[1]->animationComplete = false; // kick-off animation
   }
 }
 
@@ -520,6 +558,11 @@ void NetworkBattleScene::recieveLoserSignal()
   remoteState.isRemotePlayerLoser = true;
 }
 
+void NetworkBattleScene::recieveRequestedCardSelectSignal()
+{
+  resync = true; // also going to trigger opening the card select widget
+}
+
 void NetworkBattleScene::processIncomingPackets()
 {
   auto& client = Net().GetSocket();
@@ -555,10 +598,10 @@ void NetworkBattleScene::processIncomingPackets()
 
         switch (sig) {
         case NetPlaySignals::handshake:
-          recieveHandshakeSignal();
+          resync ? recieveHandshakeSignal() : void(0);
           break;
         case NetPlaySignals::connect:
-          recieveConnectSignal(data);
+          resync ? recieveConnectSignal(data) : void(0);
           break;
         case NetPlaySignals::chip:
           recieveChipUseSignal(data);
@@ -576,7 +619,7 @@ void NetworkBattleScene::processIncomingPackets()
           recieveMoveSignal(data);
           break;
         case NetPlaySignals::ready:
-          recieveReadySignal();
+          resync ? recieveReadySignal() : void(0);
           break;
         case NetPlaySignals::tile:
           recieveTileCoordSignal(data);
@@ -589,6 +632,9 @@ void NetworkBattleScene::processIncomingPackets()
           break;
         case NetPlaySignals::charge:
           recieveChargeSignal(data);
+          break;
+        case NetPlaySignals::card_select:
+          recieveRequestedCardSelectSignal();
           break;
         }
       }

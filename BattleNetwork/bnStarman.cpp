@@ -30,6 +30,8 @@ Starman::Starman() : Player()
   SetFloatShoe(true);
 
   CreateMoveAnimHash();
+
+  SetAnimation("PLAYER_IDLE");
 }
 
 Starman::~Starman() {

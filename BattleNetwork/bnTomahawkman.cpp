@@ -45,6 +45,8 @@ Tomahawkman::Tomahawkman() : Player()
   chargeEffect.SetFullyChargedColor(sf::Color::Green);
 
   CreateMoveAnimHash();
+
+  SetAnimation("PLAYER_IDLE");
 }
 
 Tomahawkman::~Tomahawkman()

@@ -182,7 +182,15 @@ void ActionQueue::ClearQueue(ActionQueue::CleanupType cleanup)
   discardFilters.clear();
   priorityFilters.clear();
 
-  if (actionableCallback) actionableCallback();
+  if (cleanup == ActionQueue::CleanupType::clear_and_reset) {
+    // The only thing we need to reset at the moment is 
+    // the actionable callback as we may be in the deconstructor
+    // of an object that owns the callback functor
+    actionableCallback = nullptr;
+  }
+  else {
+    if (actionableCallback) actionableCallback();
+  }
 }
 
 void ActionQueue::SetActionableCallback(const std::function<void()>& callback)

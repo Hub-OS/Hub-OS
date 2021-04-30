@@ -70,6 +70,7 @@ Player::Player() :
 }
 
 Player::~Player() {
+  actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 }
 
 void Player::OnUpdate(double _elapsed) {

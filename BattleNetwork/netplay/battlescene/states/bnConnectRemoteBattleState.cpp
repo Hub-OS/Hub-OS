@@ -5,7 +5,8 @@
 #include "../../../bnPlayerControlledState.h"
 #include "../../../bnPlayer.h"
 
-ConnectRemoteBattleState::ConnectRemoteBattleState(Player*& remotePlayer) : 
+ConnectRemoteBattleState::ConnectRemoteBattleState(Player*& remotePlayer, bool* isClientReady) :
+  isClientReady(isClientReady),
   remotePlayer(remotePlayer),
   NetworkBattleSceneState()
 {
@@ -37,5 +38,5 @@ void ConnectRemoteBattleState::onDraw(sf::RenderTexture& surface)
 
 bool ConnectRemoteBattleState::IsConnected()
 {
-  return GetScene().GetRemoteStateFlags().isRemoteConnected;
+  return GetScene().GetRemoteStateFlags().isRemoteConnected && isClientReady;
 }

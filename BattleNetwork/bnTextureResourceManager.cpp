@@ -18,7 +18,7 @@ void TextureResourceManager::LoadAllTextures(std::atomic<int> &status) {
 
     //std::scoped_lock lock(mutex);
 
-    textures.insert(pair<TextureType, CachedResource<Texture*>>(textureType, texture));
+    textures.insert(pair<TextureType, CachedResource<Texture>>(textureType, texture));
     textureType = (TextureType)(static_cast<int>(textureType) + 1);
   }
 }
@@ -30,7 +30,7 @@ void TextureResourceManager::LoadImmediately(TextureType type)
   // don't fetch it from disk if we already have it
   if (textures.find(type) != textures.end()) return;
 
-  using CachedTexture = CachedResource<Texture*>;
+  using CachedTexture = CachedResource<Texture>;
 
   std::shared_ptr<Texture> texture = LoadTextureFromFile(paths[static_cast<int>(type)]);
   textures.insert(pair<TextureType, CachedTexture>(type, CachedTexture(texture, true)));

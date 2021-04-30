@@ -63,9 +63,9 @@ private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
 
-  int clientPrevHP{ 1 }; //!< we will send HP signals only when this changes
   bool handshakeComplete{ false }; //!< Establish a connection with remote player
   bool isClientReady{ false }; //!< Signal when the client is ready to begin the round
+  bool resync{ true }; //!< Try to restablish the handshake with your opponent
   SelectedNavi selectedNavi; //!< the type of navi we selected
   NetworkCardUseListener* networkCardUseListener{ nullptr };
   SelectedCardsUI* remoteCardUsePublisher{ nullptr };
@@ -91,6 +91,7 @@ private:
   void sendHPSignal(const int hp);
   void sendTileCoordSignal(const int x, const int y);
   void sendChipUseSignal(const std::string& used);
+  void sendRequestedCardSelectSignal(); 
   void sendLoserSignal(); // if we die, let them know
 
   void recieveHandshakeSignal();
@@ -105,7 +106,7 @@ private:
   void recieveTileCoordSignal(const Poco::Buffer<char>&);
   void recieveChipUseSignal(const Poco::Buffer<char>&);
   void recieveLoserSignal(); // if they die, update our state flags
-
+  void recieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
   void processIncomingPackets();
 
 public:

@@ -21,6 +21,9 @@ AirHockey::AirHockey(Field* field, Team team, int damage, int moveCount) :
     dir = Direction::down_right;
   }
 
+  launchSfx = Audio().LoadFromFile("resources/sfx/pucklaunch.ogg");
+  bounceSfx = Audio().LoadFromFile("resources/sfx/puckhit.ogg");
+
   auto props = GetHitboxProperties();
   props.damage = damage;
   props.flags |= Hit::flinch | Hit::shake | Hit::breaking;
@@ -53,6 +56,7 @@ void AirHockey::OnUpdate(double _elapsed)
       if (CanMoveTo(*GetTile() + dir)) {
         if (reflecting) {
           reflecting = false;
+          Audio().Play(bounceSfx, AudioPriority::low);
         }
         // the new dir was recalculated by 
         // CanMoveTo() and `reflecting`
@@ -100,6 +104,7 @@ void AirHockey::OnSpawn(Battle::Tile& start)
 {
   // Even on spawn, the hitbox is active
   start.AffectEntities(this);
+  Audio().Play(launchSfx, AudioPriority::low);
 }
 
 void AirHockey::OnDelete()

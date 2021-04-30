@@ -129,10 +129,10 @@ std::shared_ptr<sf::SoundBuffer> AudioResourceManager::LoadFromFile(const std::s
   if (iter == cached.end()) {
     loaded = std::make_shared<sf::SoundBuffer>();
     loaded->loadFromFile(path);
-    cached.insert(std::make_pair(path, loaded));
+    cached.insert(std::make_pair(path, CachedResource<sf::SoundBuffer>(loaded)));
   }
   else {
-    loaded = iter->second;
+    loaded = iter->second.GetResource();
   }
 
   return loaded;

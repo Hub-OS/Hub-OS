@@ -57,7 +57,8 @@ public:
 
   enum class CleanupType: short {
     allow_interrupts = 0,
-    no_interrupts
+    no_interrupts,
+    clear_and_reset
   };
 
 private:

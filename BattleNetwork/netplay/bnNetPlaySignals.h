@@ -13,5 +13,6 @@ enum class NetPlaySignals : unsigned int {
   loser,
   shoot,
   special,
-  charge
+  charge,
+  card_select,
 };

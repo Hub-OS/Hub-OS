@@ -6,6 +6,8 @@ class AirHockey : public Spell {
   int damage{};
   int moveCount{};
   bool reflecting{ false };
+  std::shared_ptr<sf::SoundBuffer> launchSfx, bounceSfx;
+
   const Direction Bounce(const Direction& dir, Battle::Tile& next);
 public:
   AirHockey(Field* field, Team team, int damage, int moveCount);

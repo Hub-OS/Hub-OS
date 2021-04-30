@@ -10,8 +10,9 @@ class Player;
 */
 struct ConnectRemoteBattleState final : public NetworkBattleSceneState {
   Player *&remotePlayer;
+  bool* isClientReady{ nullptr };
 
-  ConnectRemoteBattleState(Player*& remotePlayer);
+  ConnectRemoteBattleState(Player*& remotePlayer, bool* isClientReady);
   ~ConnectRemoteBattleState();
 
   void onStart(const BattleSceneState* next) override;

@@ -31,6 +31,9 @@ Roll::Roll() : Player()
   SetFloatShoe(true);  
   
   CreateMoveAnimHash();
+
+  // First sprite on the screen should be default player stance
+  SetAnimation("PLAYER_IDLE");
 }
 
 const float Roll::GetHeight() const

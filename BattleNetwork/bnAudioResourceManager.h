@@ -9,7 +9,7 @@
 #include <mutex>
 
 #include "bnAudioType.h"
-
+#include "bnCachedResource.h"
 
 // For more retro experience, decrease available channels.
 #define NUM_OF_CHANNELS 15
@@ -100,7 +100,7 @@ private:
   std::mutex mutex;
   Channel* channels;
   sf::SoundBuffer* sources;
-  std::map<std::string, std::shared_ptr<sf::SoundBuffer>> cached;
+  std::map<std::string, CachedResource<sf::SoundBuffer>> cached;
   sf::Music stream;
   std::string currStreamPath;
   float channelVolume{};
