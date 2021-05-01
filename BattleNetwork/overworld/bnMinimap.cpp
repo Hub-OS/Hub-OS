@@ -12,11 +12,6 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   Minimap minimap;
   minimap.name = name;
 
-  // save transforms to revert after drawing
-  sf::Vector2f oldscale = map.getScale();
-  sf::Vector2f oldposition = map.getPosition();
-  sf::Vector2f oldorigin = map.getOrigin();
-
   // prepare a render texture to write to
   sf::RenderTexture texture;
   sf::RenderStates states;
@@ -24,11 +19,15 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   const float maxTileHeight = 10.f;
   const float minTileHeight = 4.f;
   const auto screenSize = sf::Vector2i{ 240, 160 };
-  const auto gridSize = sf::Vector2i(int(maxTileHeight * map.GetCols()), int(maxTileHeight * map.GetRows()));
+  auto mapScreenUnitDimensions = sf::Vector2f(
+    map.WorldToScreen({ (float)map.GetCols(), 0.0f }).x - map.WorldToScreen({ 0.0f, (float)map.GetRows() }).x,
+    float(map.GetCols() + map.GetRows()) + (float(map.GetLayerCount()) - 1.0f) * 0.5f
+  );
+  const auto gridSize = mapScreenUnitDimensions * maxTileHeight;
 
   // how many times could this map fit into the screen? make that many.
   sf::Vector2f texsizef = { screenSize.x * (gridSize.x / float(screenSize.x)), screenSize.y * (gridSize.y / float(screenSize.y)) };
-  auto textureSize = sf::Vector2i((int)texsizef.x, (int)texsizef.y);
+  auto textureSize = sf::Vector2i(texsizef);
 
   textureSize.x = std::max(screenSize.x, textureSize.x);
   textureSize.y = std::max(screenSize.y, textureSize.y);
@@ -120,14 +119,16 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   // guestimate best fit "center" of the map
   auto tileSize = map.GetTileSize();
 
-  float tilex = tileSize.x * map.GetCols() * 0.5f;
-  float tiley = tileSize.y * map.GetRows() * 1.0f;
-  sf::Vector2f center = map.WorldToScreen({ tilex, tiley }) * 0.5f;
+  auto layerDimensions = map.TileToWorld({ (float)map.GetCols(), (float)map.GetRows() });
+  sf::Vector3f mapDimensions = {
+    layerDimensions.x, layerDimensions.y,
+    (float)map.GetLayerCount() - 1.0f
+  };
 
   // move the map to the center of the screen and fit
   // TODO: chunk the minimap for large map
-  float mapHeight = (map.GetRows() + map.GetCols()) * (tileSize.y * 0.5f);
-  auto targetTileHeight = maxTileHeight *std::min(1.0f, 160.f / (mapHeight * 0.30f));
+  auto targetTileHeight = std::min(160.f / (mapScreenUnitDimensions.y), 240.f / (mapScreenUnitDimensions.x * 2.0f) * 240.0f / 160.0f) * 2.0f;
+  targetTileHeight = std::clamp(targetTileHeight, minTileHeight, maxTileHeight);
 
   if (targetTileHeight <= minTileHeight) {
     targetTileHeight = minTileHeight;
@@ -135,16 +136,14 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   }
 
   minimap.scaling = (targetTileHeight / tileSize.y);
-  minimap.offset = center * minimap.scaling;
-  minimap.offset.y = minimap.offset.y + (map.GetLayerCount() * minimap.scaling);
-
-  // apply transforms
-  map.setScale(minimap.scaling, minimap.scaling);
-  map.setPosition((240.f*0.5f)-minimap.offset.x, (160.f*0.5f)-minimap.offset.y);
-
-  states.transform *= map.getTransform();
+  sf::Vector2f center = map.WorldToScreen(sf::Vector3f(mapDimensions. x, mapDimensions.y, -mapDimensions.z) * 0.5f) * minimap.scaling;
+  minimap.offset = center;
 
   const int maxLayerCount = (int)map.GetLayerCount();
+
+  // apply transforms
+  states.transform.translate((240.f * 0.5f) - center.x, (160.f * 0.5f) - center.y);
+  states.transform.scale(minimap.scaling, minimap.scaling);
 
   // draw. every layer passes through the shader
   for (auto i = 0; i < maxLayerCount; i++) {
@@ -189,11 +188,6 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   // set the final texture
   minimap.bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
 
-  // revert original settings
-  map.setScale(oldscale);
-  map.setPosition(oldposition);
-  map.setOrigin(oldorigin);
-
   return minimap;
 }
 
@@ -218,13 +212,6 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       if (tileMeta == nullptr) continue;
 
       if(index > 0 && map.IgnoreTileAbove((float)j, (float)i, (int)index - 1)) continue;
-
-      if (tileMeta->type == "Stairs") {
-        states.shader->setUniform("mask", false);
-      }
-      else {
-        states.shader->setUniform("mask", true);
-      }
 
       auto& tileSprite = tileMeta->sprite;
       const auto subRect = tileSprite.getTextureRect();
@@ -271,6 +258,7 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       sf::Vector2f sizeUv(tileSprite.getTexture()->getSize());
       shader.setUniform("center", sf::Glsl::Vec2(center.x / sizeUv.x, center.y / sizeUv.y));
       shader.setUniform("tileSize", sf::Glsl::Vec2((tileSize.x + 1) / sizeUv.x, (tileSize.y + 1) / sizeUv.y));
+      shader.setUniform("mask", tileMeta->type != "Stairs");
 
       // draw
       target.draw(tileSprite, states);

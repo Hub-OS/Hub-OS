@@ -3,6 +3,7 @@
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Buffer.h>
 #include "bnOverworldSceneBase.h"
+#include "bnOverworldPacketProcessor.h"
 
 namespace Overworld {
   class Homepage final : public SceneBase {
@@ -16,14 +17,15 @@ namespace Overworld {
     bool scaledmap{ false }, clicked{ false };
     bool guest{ false }, infocus{ false };
     Poco::Net::SocketAddress remoteAddress; //!< server
+    std::shared_ptr<PacketProcessor> packetProcessor;
     uint16_t maxPayloadSize{};
-    bool reconnecting{ false };
     swoosh::Timer pingServerTimer;
     sf::Vector3f netWarpTilePos;
     unsigned int netWarpObjectId{};
     CyberworldStatus cyberworldStatus{ CyberworldStatus::offline };
 
     void PingRemoteAreaServer();
+    void ProcessPacketBody(const Poco::Buffer<char>& buffer);
     void EnableNetWarps(bool enabled);
 
   public:
@@ -32,6 +34,7 @@ namespace Overworld {
      * @brief Loads the player's library data and loads graphics
      */
     Homepage(swoosh::ActivityController&, bool guestAccount);
+    ~Homepage();
 
     void onUpdate(double elapsed) override;
     void onDraw(sf::RenderTexture& surface) override;

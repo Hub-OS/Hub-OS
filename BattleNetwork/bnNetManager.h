@@ -7,16 +7,18 @@
 
 class NetManager {
 private:
-  std::map<IPacketProcessor*, std::vector<Poco::Net::IPAddress>> processors;
-  Poco::Net::DatagramSocket client; //!< us
+  std::map<Poco::Net::SocketAddress, std::vector<std::shared_ptr<IPacketProcessor>>> handlers;
+  std::map<std::shared_ptr<IPacketProcessor>, size_t> processorCounts;
+  std::shared_ptr<Poco::Net::DatagramSocket> client; //!< us
   int myPort{};
 public:
   NetManager();
   ~NetManager();
 
   void Update(double elapsed);
-  void AddHandler(IPacketProcessor* processor, const Poco::Net::IPAddress& sender);
-  void DropHandlers(const Poco::Net::IPAddress& sender);
+  void AddHandler(const Poco::Net::SocketAddress& sender, const std::shared_ptr<IPacketProcessor>& processor);
+  void DropHandlers(const Poco::Net::SocketAddress& sender);
+  void DropProcessor(const std::shared_ptr<IPacketProcessor>& processor);
   const bool BindPort(int port);
   Poco::Net::DatagramSocket& GetSocket();
 };
