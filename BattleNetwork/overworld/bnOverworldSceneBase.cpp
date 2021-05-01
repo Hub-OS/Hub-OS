@@ -401,7 +401,8 @@ void Overworld::SceneBase::HandleInput() {
   }
   else if (Input().Has(InputEvents::pressed_option)) {
     emote.Open();
-  } else if (Input().Has(InputEvents::pressed_map)) {
+  }
+  else if (Input().Has(InputEvents::pressed_map)) {
     showMinimap = true;
     minimap.ResetPanning();
   }
@@ -491,6 +492,9 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 }
 
 void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
+  // resize shadow grid
+  shadowMap.CalculateShadows(map);
+
   const auto& mapScale = GetMap().getScale();
   sf::Vector2f cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
@@ -514,12 +518,12 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
     // loop is based on expected sprite layers
     // make sure we dont try to draw an extra map layer and segfault
     if (i < mapLayerCount) {
-      DrawMapLayer(target, states, i, mapLayerCount, gridShadows);
+      DrawMapLayer(target, states, i, mapLayerCount);
     }
 
     // save from possible map layer count change after OverworldSceneBase::Update
     if (i < spriteLayers.size()) {
-      DrawSpriteLayer(target, states, i, gridShadows);
+      DrawSpriteLayer(target, states, i);
     }
 
     // translate next layer
@@ -527,8 +531,12 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
   }
 }
 
-void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index, size_t maxLayers, std::vector<short>& gridShadows) {
+void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index, size_t maxLayers) {
   auto& layer = map.GetLayer(index);
+
+  if (!layer.IsVisible()) {
+    return;
+  }
 
   auto rows = map.GetRows();
   auto cols = map.GetCols();
@@ -577,30 +585,9 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
         tileSprite.setColor({ color.r, color.b, color.g, 200 });
       }*/
 
-      bool localHasShadow = false;
-      size_t checkIndex = index + 1;
-
-      if (map.IgnoreTileAbove(float(j), float(i), int(index))) {
-        checkIndex++;
-      }
-
-      while (checkIndex < maxLayers) {
-        auto& layer = map.GetLayer(checkIndex);
-        auto& tile = layer.GetTile(j, i);
-
-        if (tile.gid != 0) {
-          localHasShadow = true;
-        }
-
-        checkIndex++;
-      }
-
-      size_t xyz = (index * rows * cols) + size_t(j) * size_t(cols) + size_t(i);
-      gridShadows[xyz] = localHasShadow;
-
-      if (/*cam && cam->IsInView(tileSprite)*/ true && layer.IsVisible()) {
+      if (/*cam && cam->IsInView(tileSprite)*/ true) {
         sf::Color originalColor = tileSprite.getColor();
-        if (localHasShadow) {
+        if (shadowMap.HasShadow(j, i, index)) {
           sf::Uint8 r, g, b;
           r = sf::Uint8(originalColor.r * 0.65);
           b = sf::Uint8(originalColor.b * 0.65);
@@ -618,7 +605,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
 }
 
 
-void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index, const std::vector<short>& gridShadows) {
+void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
   auto rows = map.GetRows();
   auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
@@ -648,19 +635,19 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
 
       // index == 0 will NEVER have sprites
       bool evaluate = (
-        gridPos.x >= 0 && gridPos.x < cols&&
-        gridPos.y >= 0 && gridPos.y < rows&&
+        gridPos.x >= 0 &&
+        gridPos.y >= 0 &&
         index > 0 && index < mapLayerCount + 1
         );
 
-      size_t xyz = ((index - 1) * rows * cols) + (size_t(gridPos.x) * size_t(cols) + size_t(gridPos.y));
-      if (evaluate && gridShadows[xyz] > 0) {
+      if (evaluate && shadowMap.HasShadow(gridPos.x, gridPos.y, index - 1)) {
         sf::Uint8 r, g, b;
         r = sf::Uint8(originalColor.r * 0.5);
         b = sf::Uint8(originalColor.b * 0.5);
         g = sf::Uint8(originalColor.g * 0.5);
         sprite->setColor(sf::Color(r, g, b, originalColor.a));
       }
+
       target.draw(*sprite, states);
       sprite->setColor(originalColor);
     }
@@ -1007,11 +994,6 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
   minimap.setScale(2.f, 2.f);
-
-  // resize shadow grid
-  size_t length = size_t(this->map.GetCols()) * this->map.GetLayerCount() * this->map.GetRows();
-  gridShadows.resize(length);
-  std::fill(gridShadows.begin(), gridShadows.end(), 0);
 }
 
 std::shared_ptr<Overworld::Tileset> Overworld::SceneBase::ParseTileset(const XMLElement& tilesetElement, unsigned int firstgid) {
