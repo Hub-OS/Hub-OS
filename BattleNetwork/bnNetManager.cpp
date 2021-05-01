@@ -3,7 +3,8 @@
 
 NetManager::NetManager()
 {
-
+  client = std::make_shared<Poco::Net::DatagramSocket>();
+  BindPort(0);
 }
 
 NetManager::~NetManager()
@@ -89,7 +90,7 @@ const bool NetManager::BindPort(int port)
 {
   try {
     Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), port);
-    client = std::make_shared<Poco::Net::DatagramSocket>(sa);
+    client->bind(sa);
     client->setBlocking(false);
   }
   catch (...) {
