@@ -13,6 +13,19 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   guest(guestAccount),
   SceneBase(controller, guestAccount)
 {
+  int remotePort = getController().CommandLineValue<int>("remotePort");
+  std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
+
+  try {
+    remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
+    packetProcessor = std::make_shared<Overworld::PacketProcessor>(
+      remoteAddress,
+      [this](auto& body) { ProcessPacketBody(body); }
+    );
+    Net().AddHandler(remoteAddress, packetProcessor);
+  }
+  catch (Poco::IOException&) {}
+
   pingServerTimer.reverse(true);
   pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
   pingServerTimer.start();
@@ -112,80 +125,57 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   });
 }
 
+Overworld::Homepage::~Homepage() {
+  if (packetProcessor) {
+    Net().DropProcessor(packetProcessor);
+  }
+}
+
 void Overworld::Homepage::PingRemoteAreaServer()
 {
-  auto& client = Net().GetSocket();
-
-  if (pingServerTimer.getElapsed().asMilliseconds() == 0) {
-    auto doSendThunk = [=] () mutable {
-      Poco::Buffer<char> buffer{ 0 };
-      buffer.append((char)Reliability::Unreliable);
-
-      auto clientEvent = ClientEvents::ping;
-      buffer.append((char*)&clientEvent, sizeof(uint16_t));
-
-      try {
-        client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
-
-        if (!client.available()) return;
-
-        char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
-
-        Poco::Net::SocketAddress sender;
-        int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
-
-        if (sender != remoteAddress || read == 0) return;
-
-        Poco::Buffer<char> packet{ 0 };
-        packet.append(rawBuffer, size_t(read));
-
-        BufferReader reader;
-        reader.Skip(1);
-        auto sig = reader.Read<ServerEvents>(packet);
-        auto version = reader.ReadString(packet);
-        auto iteration = reader.Read<uint64_t>(packet);
-        maxPayloadSize = reader.Read<uint16_t>(packet);
-
-        if (sig == ServerEvents::pong) {
-          if (version == VERSION_ID && iteration == VERSION_ITERATION) {
-            cyberworldStatus = CyberworldStatus::online;
-          }
-          else {
-            cyberworldStatus = CyberworldStatus::mismatched_version;
-          }
-        }
-      }
-      catch (Poco::IOException&) {
-        cyberworldStatus = CyberworldStatus::offline;
-        reconnecting = false;
-        //client.close();
-      }
-
-      auto isOnline = cyberworldStatus == CyberworldStatus::online;
-      EnableNetWarps(isOnline);
-    };
-
-    if (!reconnecting) {
-      /*int myPort = getController().CommandLineValue<int>("port");
-      Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
-      client = Poco::Net::DatagramSocket(sa);
-      client.setBlocking(false);*/
-
-      int remotePort = getController().CommandLineValue<int>("remotePort");
-      std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
-
-      try {
-        remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
-        reconnecting = true;
-      } catch(Poco::IOException&) {}
-    }
-
-    if (reconnecting) {
-      doSendThunk();
-    }
-
-    pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
+  if (!packetProcessor) {
+    return;
   }
+
+  if (pingServerTimer.getElapsed().asMilliseconds() != 0) {
+    return;
+  }
+
+  Poco::Buffer<char> buffer{ 0 };
+
+  auto clientEvent = ClientEvents::ping;
+  buffer.append((char*)&clientEvent, sizeof(uint16_t));
+
+  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+
+  pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
+
+}
+
+void Overworld::Homepage::ProcessPacketBody(const Poco::Buffer<char>& body) {
+  if (!infocus) {
+    return;
+  }
+
+  BufferReader reader;
+  auto sig = reader.Read<ServerEvents>(body);
+  auto version = reader.ReadString(body);
+  auto iteration = reader.Read<uint64_t>(body);
+  maxPayloadSize = reader.Read<uint16_t>(body);
+
+  if (sig != ServerEvents::pong) {
+    return;
+  }
+
+  if (version == VERSION_ID && iteration == VERSION_ITERATION) {
+    cyberworldStatus = CyberworldStatus::online;
+  }
+  else {
+    cyberworldStatus = CyberworldStatus::mismatched_version;
+  }
+
+  auto isOnline = cyberworldStatus == CyberworldStatus::online;
+  EnableNetWarps(isOnline);
 }
 
 void Overworld::Homepage::EnableNetWarps(bool enabled) {
@@ -309,9 +299,7 @@ void Overworld::Homepage::onLeave()
 
   // repeat reconnection in case there was a fail that
   // forced us to return
-  // Net().GetSocket().close();
   cyberworldStatus = CyberworldStatus::offline;
-  reconnecting = false;
 }
 
 void Overworld::Homepage::OnTileCollision()

@@ -14,7 +14,6 @@
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
-constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
 // hide util function in anon namespace exclusive to this file
 namespace {
@@ -53,41 +52,35 @@ Overworld::OnlineArea::OnlineArea(
   transitionText(Font::Style::small),
   nameText(Font::Style::small),
   remoteAddress(Poco::Net::SocketAddress(address, port)),
+  packetProcessor(
+    std::make_shared<Overworld::PacketProcessor>(
+      remoteAddress,
+      [this](auto& body) { processPacketBody(body); }
+      )
+  ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
-  packetShipper(remoteAddress),
-  packetSorter(remoteAddress),
   serverAssetManager("cache/" + ::sanitize_folder_name(remoteAddress.toString()))
 {
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
 
   lastFrameNavi = this->GetCurrentNavi();
-  packetResendTimer = PACKET_RESEND_RATE;
-
-  try {
-    Net().GetSocket().connect(remoteAddress);
-  }
-  catch (Poco::IOException& e) {
-    Logger::Log(e.message());
-  }
 
   SetBackground(std::make_shared<XmasBackground>());
+
+  Net().AddHandler(remoteAddress, packetProcessor);
 }
 
 Overworld::OnlineArea::~OnlineArea()
 {
-  // TODO: network manager is deleted by the time this deconstructor is reached...
-  // sendLogoutSignal();
+  sendLogoutSignal();
+  Net().DropProcessor(packetProcessor);
 }
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
-  auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
-    std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
-    );
-
-  if (timeDifference.count() > MAX_TIMEOUT_SECONDS) {
+  if (packetProcessor->TimedOut()) {
     leave();
     return;
   }
@@ -95,8 +88,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   if (kicked) {
     return;
   }
-
-  this->processIncomingPackets(elapsed);
 
   if (!isConnected) {
     return;
@@ -274,9 +265,16 @@ void Overworld::OnlineArea::onStart()
   sendRequestJoinSignal();
 }
 
+void Overworld::OnlineArea::onLeave()
+{
+  SceneBase::onLeave();
+  packetProcessor->SetBackground();
+}
+
 void Overworld::OnlineArea::onResume()
 {
   SceneBase::onResume();
+  packetProcessor->SetForeground();
 }
 
 void Overworld::OnlineArea::OnTileCollision()
@@ -375,157 +373,119 @@ void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t 
   transferringServers = true;
 }
 
-void Overworld::OnlineArea::processIncomingPackets(double elapsed)
+void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
 {
-  auto& client = Net().GetSocket();
-  
-  packetResendTimer -= elapsed;
-
-  if (packetResendTimer < 0) {
-    packetShipper.ResendBackedUpPackets(client);
-    packetResendTimer = PACKET_RESEND_RATE;
-  }
-
-  static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
+  BufferReader reader;
 
   try {
-    while (client.available()) {
-      Poco::Net::SocketAddress sender;
-      int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
+    auto sig = reader.Read<ServerEvents>(data);
 
-      if (sender != remoteAddress) {
-        continue;
+    switch (sig) {
+    case ServerEvents::login:
+      receiveLoginSignal(reader, data);
+      break;
+    case ServerEvents::transfer_start:
+      receiveTransferStartSignal(reader, data);
+      break;
+    case ServerEvents::transfer_complete:
+      receiveTransferCompleteSignal(reader, data);
+      break;
+    case ServerEvents::transfer_server:
+      receiveTransferServerSignal(reader, data);
+      break;
+    case ServerEvents::kick:
+      if (!transferringServers) {
+        // ignore kick signal if we're leaving anyway
+        receiveKickSignal(reader, data);
       }
-
-      if (read == 0) {
-        break;
-      }
-
-      Poco::Buffer<char> packet{ 0 };
-      packet.append(rawBuffer, size_t(read));
-
-      auto packetBodies = packetSorter.SortPacket(client, packet);
-
-      for (auto& data : packetBodies) {
-        BufferReader reader;
-
-        auto sig = reader.Read<ServerEvents>(data);
-
-        switch (sig) {
-        case ServerEvents::ack:
-        {
-          Reliability r = reader.Read<Reliability>(data);
-          uint64_t id = reader.Read<uint64_t>(data);
-          packetShipper.Acknowledged(r, id);
-          break;
-        }
-        case ServerEvents::login:
-          receiveLoginSignal(reader, data);
-          break;
-        case ServerEvents::transfer_start:
-          receiveTransferStartSignal(reader, data);
-          break;
-        case ServerEvents::transfer_complete:
-          receiveTransferCompleteSignal(reader, data);
-          break;
-        case ServerEvents::transfer_server:
-          receiveTransferServerSignal(reader, data);
-          break;
-        case ServerEvents::kick:
-          if (!transferringServers) {
-            // ignore kick signal if we're leaving anyway
-            receiveKickSignal(reader, data);
-          }
-          break;
-        case ServerEvents::remove_asset:
-          receiveAssetRemoveSignal(reader, data);
-          break;
-        case ServerEvents::asset_stream_start:
-          receiveAssetStreamStartSignal(reader, data);
-          break;
-        case ServerEvents::asset_stream:
-          receiveAssetStreamSignal(reader, data);
-          break;
-        case ServerEvents::preload:
-          receivePreloadSignal(reader, data);
-          break;
-        case ServerEvents::map:
-          receiveMapSignal(reader, data);
-          break;
-        case ServerEvents::play_sound:
-          receivePlaySoundSignal(reader, data);
-          break;
-        case ServerEvents::exclude_object:
-          receiveExcludeObjectSignal(reader, data);
-          break;
-        case ServerEvents::include_object:
-          receiveIncludeObjectSignal(reader, data);
-          break;
-        case ServerEvents::move_camera:
-          receiveMoveCameraSignal(reader, data);
-          break;
-        case ServerEvents::slide_camera:
-          receiveSlideCameraSignal(reader, data);
-          break;
-        case ServerEvents::unlock_camera:
-          QueueUnlockCamera();
-          break;
-        case ServerEvents::lock_input:
-          LockInput();
-          break;
-        case ServerEvents::unlock_input:
-          UnlockInput();
-          break;
-        case ServerEvents::teleport:
-          receiveTeleportSignal(reader, data);
-          break;
-        case ServerEvents::message:
-          receiveMessageSignal(reader, data);
-          break;
-        case ServerEvents::question:
-          receiveQuestionSignal(reader, data);
-          break;
-        case ServerEvents::quiz:
-          receiveQuizSignal(reader, data);
-          break;
-        case ServerEvents::open_board:
-          receiveOpenBoardSignal(reader, data);
-          break;
-        case ServerEvents::prepend_posts:
-          receivePrependPostsSignal(reader, data);
-          break;
-        case ServerEvents::append_posts:
-          receiveAppendPostsSignal(reader, data);
-          break;
-        case ServerEvents::remove_post:
-          receiveRemovePostSignal(reader, data);
-          break;
-        case ServerEvents::post_selection_ack:
-          receivePostSelectionAckSignal(reader, data);
-          break;
-        case ServerEvents::actor_connected:
-          receiveActorConnectedSignal(reader, data);
-          break;
-        case ServerEvents::actor_disconnect:
-          receiveActorDisconnectedSignal(reader, data);
-          break;
-        case ServerEvents::actor_set_name:
-          receiveActorSetNameSignal(reader, data);
-          break;
-        case ServerEvents::actor_move_to:
-          receiveActorMoveSignal(reader, data);
-          break;
-        case ServerEvents::actor_set_avatar:
-          receiveActorSetAvatarSignal(reader, data);
-          break;
-        case ServerEvents::actor_emote:
-          receiveActorEmoteSignal(reader, data);
-          break;
-        case ServerEvents::actor_animate:
-          receiveActorAnimateSignal(reader, data);
-          break;
-        }
-      }
+      break;
+    case ServerEvents::remove_asset:
+      receiveAssetRemoveSignal(reader, data);
+      break;
+    case ServerEvents::asset_stream_start:
+      receiveAssetStreamStartSignal(reader, data);
+      break;
+    case ServerEvents::asset_stream:
+      receiveAssetStreamSignal(reader, data);
+      break;
+    case ServerEvents::preload:
+      receivePreloadSignal(reader, data);
+      break;
+    case ServerEvents::map:
+      receiveMapSignal(reader, data);
+      break;
+    case ServerEvents::play_sound:
+      receivePlaySoundSignal(reader, data);
+      break;
+    case ServerEvents::exclude_object:
+      receiveExcludeObjectSignal(reader, data);
+      break;
+    case ServerEvents::include_object:
+      receiveIncludeObjectSignal(reader, data);
+      break;
+    case ServerEvents::move_camera:
+      receiveMoveCameraSignal(reader, data);
+      break;
+    case ServerEvents::slide_camera:
+      receiveSlideCameraSignal(reader, data);
+      break;
+    case ServerEvents::unlock_camera:
+      QueueUnlockCamera();
+      break;
+    case ServerEvents::lock_input:
+      LockInput();
+      break;
+    case ServerEvents::unlock_input:
+      UnlockInput();
+      break;
+    case ServerEvents::teleport:
+      receiveTeleportSignal(reader, data);
+      break;
+    case ServerEvents::message:
+      receiveMessageSignal(reader, data);
+      break;
+    case ServerEvents::question:
+      receiveQuestionSignal(reader, data);
+      break;
+    case ServerEvents::quiz:
+      receiveQuizSignal(reader, data);
+      break;
+    case ServerEvents::open_board:
+      receiveOpenBoardSignal(reader, data);
+      break;
+    case ServerEvents::prepend_posts:
+      receivePrependPostsSignal(reader, data);
+      break;
+    case ServerEvents::append_posts:
+      receiveAppendPostsSignal(reader, data);
+      break;
+    case ServerEvents::remove_post:
+      receiveRemovePostSignal(reader, data);
+      break;
+    case ServerEvents::post_selection_ack:
+      receivePostSelectionAckSignal(reader, data);
+      break;
+    case ServerEvents::actor_connected:
+      receiveActorConnectedSignal(reader, data);
+      break;
+    case ServerEvents::actor_disconnect:
+      receiveActorDisconnectedSignal(reader, data);
+      break;
+    case ServerEvents::actor_set_name:
+      receiveActorSetNameSignal(reader, data);
+      break;
+    case ServerEvents::actor_move_to:
+      receiveActorMoveSignal(reader, data);
+      break;
+    case ServerEvents::actor_set_avatar:
+      receiveActorSetAvatarSignal(reader, data);
+      break;
+    case ServerEvents::actor_emote:
+      receiveActorEmoteSignal(reader, data);
+      break;
+    case ServerEvents::actor_animate:
+      receiveActorAnimateSignal(reader, data);
+      break;
     }
   }
   catch (Poco::IOException& e) {
@@ -541,7 +501,7 @@ void Overworld::OnlineArea::sendAssetFoundSignal(const std::string& path, uint64
   buffer.append((char*)&event, sizeof(ClientEvents));
   buffer.append(path.c_str(), path.size() + 1);
   buffer.append((char*)&lastModified, sizeof(lastModified));
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendAssetsFound() {
@@ -566,7 +526,7 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientAssetType assetType, uin
     buffer.append(assetType);
     buffer.append((char*)&size, sizeof(uint16_t));
     buffer.append(data, size);
-    packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+    packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 
     data += size;
   }
@@ -587,7 +547,7 @@ void Overworld::OnlineArea::sendLoginSignal()
   buffer.append(0);
   buffer.append(connectData.data(), connectData.length());
   buffer.append(0);
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendLogoutSignal()
@@ -595,7 +555,7 @@ void Overworld::OnlineArea::sendLogoutSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::logout };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendRequestJoinSignal()
@@ -603,7 +563,7 @@ void Overworld::OnlineArea::sendRequestJoinSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::request_join };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendReadySignal()
@@ -613,7 +573,7 @@ void Overworld::OnlineArea::sendReadySignal()
   Poco::Buffer<char> buffer{ 0 };
   buffer.append((char*)&type, sizeof(ClientEvents));
 
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPositionSignal()
@@ -638,7 +598,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   buffer.append((char*)&y, sizeof(float));
   buffer.append((char*)&z, sizeof(float));
   buffer.append((char*)&direction, sizeof(Direction));
-  packetShipper.Send(Net().GetSocket(), Reliability::UnreliableSequenced, buffer);
+  packetProcessor->SendKeepAlivePacket(Reliability::UnreliableSequenced, buffer);
 }
 
 void Overworld::OnlineArea::sendAvatarChangeSignal()
@@ -649,7 +609,7 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::avatar_change };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 static std::vector<char> readBytes(std::string texturePath) {
@@ -711,7 +671,7 @@ void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&val, sizeof(uint8_t));
-  packetShipper.Send(Net().GetSocket(), Reliability::Reliable, buffer);
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId)
@@ -721,7 +681,7 @@ void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectI
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&tileObjectId, sizeof(unsigned int));
-  packetShipper.Send(Net().GetSocket(), Reliability::Reliable, buffer);
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
@@ -731,7 +691,7 @@ void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append(ticket.c_str(), ticket.length() + 1);
-  packetShipper.Send(Net().GetSocket(), Reliability::Reliable, buffer);
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
@@ -743,7 +703,7 @@ void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
   buffer.append((char*)&x, sizeof(x));
   buffer.append((char*)&y, sizeof(y));
   buffer.append((char*)&z, sizeof(z));
-  packetShipper.Send(Net().GetSocket(), Reliability::Reliable, buffer);
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendTextBoxResponseSignal(char response)
@@ -753,7 +713,7 @@ void Overworld::OnlineArea::sendTextBoxResponseSignal(char response)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&response, sizeof(response));
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 
@@ -763,7 +723,7 @@ void Overworld::OnlineArea::sendBoardOpenSignal()
   ClientEvents type{ ClientEvents::board_open };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendBoardCloseSignal()
@@ -772,7 +732,7 @@ void Overworld::OnlineArea::sendBoardCloseSignal()
   ClientEvents type{ ClientEvents::board_close };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPostRequestSignal()
@@ -781,7 +741,7 @@ void Overworld::OnlineArea::sendPostRequestSignal()
   ClientEvents type{ ClientEvents::post_request };
 
   buffer.append((char*)&type, sizeof(ClientEvents));
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
@@ -791,7 +751,7 @@ void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append(postId.c_str(), postId.length() + 1);
-  packetShipper.Send(Net().GetSocket(), Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 static bool PositionIsInWarp(Overworld::Map& map, sf::Vector3f position) {

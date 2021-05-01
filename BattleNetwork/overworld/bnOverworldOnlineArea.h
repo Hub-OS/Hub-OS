@@ -7,8 +7,8 @@
 #include <functional>
 
 #include "bnOverworldSceneBase.h"
-#include "bnPacketShipper.h"
-#include "bnPacketSorter.h"
+#include "bnOverworldPacketProcessor.h"
+#include "bnPacketHeaders.h"
 #include "bnBufferReader.h"
 #include "bnServerAssetManager.h"
 
@@ -49,13 +49,12 @@ namespace Overworld {
 
     std::string ticket; //!< How we are represented on the server
     Poco::Net::SocketAddress remoteAddress; //!< server
+    std::shared_ptr<PacketProcessor> packetProcessor;
     std::string connectData;
     uint16_t maxPayloadSize;
     bool isConnected{ false };
     bool transferringServers{ false };
     bool kicked{ false };
-    PacketShipper packetShipper;
-    PacketSorter packetSorter;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
     AssetMeta incomingAsset;
@@ -63,14 +62,13 @@ namespace Overworld {
     std::map<unsigned, ExcludedObjectData> excludedObjects;
     std::list<std::string> removePlayers;
     Timer movementTimer;
-    double packetResendTimer;
     Text transitionText;
     Text nameText;
     bool wasReadingTextBox{ false };
     std::vector<std::unordered_map<int, std::function<void()>>> tileTriggers;
 
 
-    void processIncomingPackets(double elapsed);
+    void processPacketBody(const Poco::Buffer<char>& data);
 
     void transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut);
 
@@ -156,6 +154,7 @@ namespace Overworld {
     void onUpdate(double elapsed) override;
     void onDraw(sf::RenderTexture& surface) override;
     void onStart() override;
+    void onLeave() override;
     void onResume() override;
 
     void OnTileCollision() override;
