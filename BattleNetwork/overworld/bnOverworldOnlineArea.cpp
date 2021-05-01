@@ -74,9 +74,6 @@ Overworld::OnlineArea::OnlineArea(
 
 Overworld::OnlineArea::~OnlineArea()
 {
-  // TODO: network manager is deleted by the time this deconstructor is reached...
-  sendLogoutSignal();
-  Net().DropProcessor(packetProcessor);
 }
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
@@ -264,6 +261,12 @@ void Overworld::OnlineArea::onStart()
   sendAssetsFound();
   sendAvatarChangeSignal();
   sendRequestJoinSignal();
+}
+
+void Overworld::OnlineArea::onEnd()
+{
+  sendLogoutSignal();
+  Net().DropProcessor(packetProcessor);
 }
 
 void Overworld::OnlineArea::onLeave()

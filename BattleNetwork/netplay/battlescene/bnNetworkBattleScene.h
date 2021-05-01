@@ -47,6 +47,7 @@ using sf::Event;
 
 struct CombatBattleState;
 struct TimeFreezeBattleState;
+struct NetworkSyncBattleState;
 
 class Mob;
 class Player;
@@ -58,14 +59,28 @@ struct NetworkBattleSceneProps {
   NetPlayConfig& netconfig;
 };
 
+struct Handshake {
+  // In order of priority!
+  enum class Type : char {
+    round_start = 0,
+    combo_check = 1,
+    forfeit = 2,
+    battle = 3,
+    form_change = 4
+  } type{};
+
+  bool established{}; //!< Establish a connection with remote player
+  bool isClientReady{}; //!< Signal when the client is ready to begin the round
+  bool isRemoteReady{}; //!< When both this flag and client are true, handshake is complete
+  bool resync{ true }; //!< Try to restablish the handshake with your opponent
+};
+
 class NetworkBattleScene final : public BattleSceneBase {
 private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
 
-  bool handshakeComplete{ false }; //!< Establish a connection with remote player
-  bool isClientReady{ false }; //!< Signal when the client is ready to begin the round
-  bool resync{ true }; //!< Try to restablish the handshake with your opponent
+  Handshake handshake{}; //!< typeful handshake values for different netplay states
   SelectedNavi selectedNavi; //!< the type of navi we selected
   NetworkCardUseListener* networkCardUseListener{ nullptr };
   SelectedCardsUI* remoteCardUsePublisher{ nullptr };
@@ -79,29 +94,28 @@ private:
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   CombatBattleState* combatPtr{ nullptr };
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
+  NetworkSyncBattleState* syncStatePtr{ nullptr };
 
-  void sendHandshakeSignal(); // sent until we recieve a handshake
+  void sendHandshakeSignal(Handshake::Type type); // sent until we recieve a handshake
   void sendShootSignal();
   void sendUseSpecialSignal();
   void sendChargeSignal(const bool);
   void sendConnectSignal(const SelectedNavi navi);
   void sendReadySignal();
   void sendChangedFormSignal(const int form);
-  void sendMoveSignal(const Direction dir);
   void sendHPSignal(const int hp);
   void sendTileCoordSignal(const int x, const int y);
   void sendChipUseSignal(const std::string& used);
   void sendRequestedCardSelectSignal(); 
   void sendLoserSignal(); // if we die, let them know
 
-  void recieveHandshakeSignal();
+  void recieveHandshakeSignal(const Poco::Buffer<char>& buffer);
   void recieveShootSignal();
   void recieveUseSpecialSignal();
   void recieveChargeSignal(const Poco::Buffer<char>&);
   void recieveConnectSignal(const Poco::Buffer<char>&);
   void recieveReadySignal();
   void recieveChangedFormSignal(const Poco::Buffer<char>&);
-  void recieveMoveSignal(const Poco::Buffer<char>&);
   void recieveHPSignal(const Poco::Buffer<char>&);
   void recieveTileCoordSignal(const Poco::Buffer<char>&);
   void recieveChipUseSignal(const Poco::Buffer<char>&);

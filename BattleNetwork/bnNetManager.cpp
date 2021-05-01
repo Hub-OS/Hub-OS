@@ -9,12 +9,16 @@ NetManager::NetManager()
 
 NetManager::~NetManager()
 {
+  // processors.clear() invoked by map dtor
 }
 
 constexpr int MAX_BUFFER_LEN = 65535;
 
 void NetManager::Update(double elapsed)
 {
+  // TODO: REMOVE AFTER DEBUGGING PVP
+  return;
+
   static char buffer[MAX_BUFFER_LEN] = { 0 };
 
   while (client->available()) {
@@ -90,7 +94,8 @@ const bool NetManager::BindPort(int port)
 {
   try {
     Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), port);
-    client->bind(sa);
+    client->close();
+    client->bind(sa, true);
     client->setBlocking(false);
   }
   catch (...) {

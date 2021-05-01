@@ -21,6 +21,7 @@ struct TrackedFormData {
     selectedForm(selectedForm),
     animationComplete(animationComplete)
   {}
+
 };
 /*
     \brief This state handles transformations

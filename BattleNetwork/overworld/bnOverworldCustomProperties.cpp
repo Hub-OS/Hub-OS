@@ -19,7 +19,7 @@ namespace Overworld {
     }
 
     try {
-      return stof(properties.at(name));
+      return stoi(properties.at(name));
     }
     catch (std::exception&) {
       // conversion failure, use default value (0)

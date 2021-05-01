@@ -7,6 +7,12 @@
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 
+CharacterTransformBattleState::CharacterTransformBattleState(std::vector<std::shared_ptr<TrackedFormData>>& tracking) : tracking(tracking)
+{
+  shine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
+  shine.setScale(2.f, 2.f);
+}
+
 const bool CharacterTransformBattleState::FadeInBackdrop()
 {
   return GetScene().FadeInBackdrop(backdropInc, 1.0, true);
@@ -56,13 +62,8 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       // The next form has a switch based on health
       // This way dying will cancel the form
       lastSelectedForm = playerPtr->GetHealth() == 0 ? -1 : index_;
+      playerPtr->ClearActionQueue();
       playerPtr->ActivateFormAt(lastSelectedForm);
-
-      // Reset the player state
-      playerPtr->ChangeState<PlayerControlledState>();
-
-      // Interrupt right away
-      playerPtr->Character::Update(0);
 
       if (lastSelectedForm == -1) {
         Audio().Play(AudioType::DEFORM);
@@ -214,10 +215,4 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
 
     count++;
   }
-}
-
-CharacterTransformBattleState::CharacterTransformBattleState(std::vector<std::shared_ptr<TrackedFormData>>& tracking) : tracking(tracking)
-{
-  shine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
-  shine.setScale(2.f, 2.f);
 }

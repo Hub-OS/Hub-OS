@@ -211,32 +211,28 @@ void PVPScene::ProcessIncomingPackets()
   static int read = 0;
 
   try {
-    // discover their IP
-    /*if (theirIP.empty()) {
+    while (client.available()) {
       Poco::Net::SocketAddress sender;
-      read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1, sender);
-      rawBuffer[read] = '\0';
+      Poco::Net::SocketAddress theirSA(theirIP);
+      read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1, sender);
 
-      theirIP = std::string(rawBuffer, read);
-    }*/
-
-    Poco::Net::SocketAddress sa(theirIP);
-    read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1, sa);
-    if (read > 0) {
-      rawBuffer[read] = '\0';
-
-      NetPlaySignals sig = *(NetPlaySignals*)rawBuffer;
-      size_t sigLen = sizeof(NetPlaySignals);
-      Poco::Buffer<char> data{ 0 };
-      data.append(rawBuffer + sigLen, size_t(read) - sigLen);
-
-      switch (sig) {
-      case NetPlaySignals::handshake:
-        RecieveHandshakeSignal();
+      if (sender != theirSA)
         break;
-      case NetPlaySignals::connect:
-        RecieveConnectSignal(data);
-        break;
+
+      if (read > 0) {
+        NetPlaySignals sig = *(NetPlaySignals*)rawBuffer;
+        size_t sigLen = sizeof(NetPlaySignals);
+        Poco::Buffer<char> data{ 0 };
+        data.append(rawBuffer + sigLen, size_t(read) - sigLen);
+
+        switch (sig) {
+        case NetPlaySignals::handshake:
+          RecieveHandshakeSignal();
+          break;
+        case NetPlaySignals::connect:
+          RecieveConnectSignal(data);
+          break;
+        }
       }
     }
   }
@@ -287,7 +283,8 @@ void PVPScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remoteIsReady = true;
 
-  size_t navi = size_t{ 0 }; std::memcpy(&navi, buffer.begin(), buffer.size());
+  size_t navi = size_t{ 0 }; 
+  std::memcpy(&navi, buffer.begin(), sizeof(size_t));
   auto& meta = NAVIS.At(static_cast<int>(navi));
   this->remotePreview.setTexture(meta.GetPreviewTexture());
   auto height = remotePreview.getSprite().getLocalBounds().height;

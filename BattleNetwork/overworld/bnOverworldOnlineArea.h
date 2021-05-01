@@ -125,7 +125,6 @@ namespace Overworld {
     void receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
-    void playSong(const std::string& name);
   protected:
     virtual std::string GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);
@@ -154,6 +153,7 @@ namespace Overworld {
     void onUpdate(double elapsed) override;
     void onDraw(sf::RenderTexture& surface) override;
     void onStart() override;
+    void onEnd() override;
     void onLeave() override;
     void onResume() override;
 

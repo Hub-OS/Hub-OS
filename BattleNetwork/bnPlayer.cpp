@@ -272,6 +272,7 @@ void Player::ActivateFormAt(int index)
       SaveStats();
       activeForm->OnActivate(*this);
       CreateMoveAnimHash();
+      animationComponent->Refresh();
     }
   }
 

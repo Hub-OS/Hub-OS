@@ -16,15 +16,17 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   int remotePort = getController().CommandLineValue<int>("remotePort");
   std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
 
-  try {
-    remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
-    packetProcessor = std::make_shared<Overworld::PacketProcessor>(
-      remoteAddress,
-      [this](auto& body) { ProcessPacketBody(body); }
-    );
-    Net().AddHandler(remoteAddress, packetProcessor);
+  if (remotePort > 0 && cyberworld.size()) {
+    try {
+      remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
+      packetProcessor = std::make_shared<Overworld::PacketProcessor>(
+        remoteAddress,
+        [this](auto& body) { ProcessPacketBody(body); }
+      );
+      Net().AddHandler(remoteAddress, packetProcessor);
+    }
+    catch (Poco::IOException&) {}
   }
-  catch (Poco::IOException&) {}
 
   pingServerTimer.reverse(true);
   pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
@@ -126,9 +128,6 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 }
 
 Overworld::Homepage::~Homepage() {
-  if (packetProcessor) {
-    Net().DropProcessor(packetProcessor);
-  }
 }
 
 void Overworld::Homepage::PingRemoteAreaServer()
@@ -341,6 +340,13 @@ void Overworld::Homepage::OnTileCollision()
     playerController.ReleaseActor();
     auto& command = teleportController.TeleportOut(playerActor);
     command.onFinish.Slot(teleportToCyberworld);
+  }
+}
+
+void Overworld::Homepage::onEnd()
+{
+  if (packetProcessor) {
+    Net().DropProcessor(packetProcessor);
   }
 }
 

@@ -30,11 +30,10 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   // Action controls take priority over movement
   if(!player.IsLockoutAnimationComplete()) return;
 
-  if (!netflags.isRemoteReady) {
+  /*if (!netflags.isRemoteReady) {
     netflags.remoteCharge = netflags.remoteShoot = netflags.remoteUseSpecial = false;
-    netflags.remoteDirection = Direction::none;
     return;
-  }
+  }*/
 
   if (netflags.remoteUseSpecial) {
     player.UseSpecial();

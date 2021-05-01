@@ -39,6 +39,7 @@ namespace Overworld {
     void onUpdate(double elapsed) override;
     void onDraw(sf::RenderTexture& surface) override;
     void onStart() override;
+    void onEnd() override;
     void onResume() override;
     void onLeave() override;
 

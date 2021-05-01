@@ -39,13 +39,6 @@ public:
     nbs->sendUseSpecialSignal();
   }
 
-  void SendMoveSignal(Direction dir) {
-    assert(nbs && "Component must be injected into NetworkBattleScene");
-
-    if (dir == Direction::none) return;
-    nbs->sendMoveSignal(dir);
-  }
-
   void SendTileSignal(const int x, const int y) {
     assert(nbs && "Component must be injected into NetworkBattleScene");
 

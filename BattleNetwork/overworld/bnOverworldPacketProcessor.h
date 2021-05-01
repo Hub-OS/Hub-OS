@@ -4,6 +4,7 @@
 #include "../bnIPacketProcessor.h"
 #include <Poco/Net/SocketAddress.h>
 #include <optional>
+#include <functional>
 
 namespace Overworld {
   class PacketProcessor : public IPacketProcessor {
@@ -25,9 +26,9 @@ namespace Overworld {
     PacketSorter packetSorter;
     Reliability keepAliveReliability;
     Poco::Buffer<char> keepAliveBody { 0 };
-    double keepAliveTimer;
-    double packetResendTimer;
-    bool background;
+    double keepAliveTimer{};
+    double packetResendTimer{};
+    bool background{};
     std::optional<Poco::Buffer<char>> latestMapBody;
   };
 }

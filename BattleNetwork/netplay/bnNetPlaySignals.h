@@ -6,7 +6,6 @@ enum class NetPlaySignals : unsigned int {
   handshake,
   ready,
   form,
-  move,
   hp,
   tile,
   chip,
