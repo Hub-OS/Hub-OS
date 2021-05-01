@@ -1,6 +1,8 @@
 #pragma once
+#include "bnCurrentTime.h"
 #include <Swoosh/Timer.h>
 #include <memory>
+
 /*! \brief Represents a cached resource of type T. It knows how frequently it is used.
 */
 template<typename T>
