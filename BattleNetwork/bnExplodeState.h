@@ -82,10 +82,6 @@ void ExplodeState<Any>::OnEnter(Any& e) {
     animation->SetPlaybackSpeed(0);
     animation->CancelCallbacks();
   }
-
-  e.Remove(); // mark this entity from removal of the field
-              // character type entities will be snatched by the battle field
-              // and placed in a separate update loop until the delete animation is completed
 }
 
 template<typename Any>

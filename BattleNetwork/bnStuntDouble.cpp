@@ -24,6 +24,9 @@ StuntDouble::StuntDouble(Character& ref) : ref(ref)
   if (auto otherPswap = ref.GetFirstComponent<PaletteSwap>()) {
     pswap->CopyFrom(*otherPswap);
   }
+  else {
+    pswap->Enable(false);
+  }
 
   // animation component if applicable
   if (auto otherAnim = ref.GetFirstComponent<AnimationComponent>()) {

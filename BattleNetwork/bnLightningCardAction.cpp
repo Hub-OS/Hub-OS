@@ -70,8 +70,9 @@ void LightningCardAction::OnExecute(Character* user) {
         props.flags |= Hit::stun;
       }
 
+      int flip = user->GetFacing() == Direction::right ? 1 : -1;
       hitbox->SetHitboxProperties(props);
-      field->AddEntity(*hitbox, col + i, row);
+      field->AddEntity(*hitbox, col + (flip*i), row);
     }
 
     Audio().Play(AudioType::THUNDER);

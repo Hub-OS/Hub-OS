@@ -36,7 +36,6 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   vs.setTexture(Textures().LoadTextureFromFile("resources/ui/vs_text.png"));
   vsFaded.setTexture(Textures().LoadTextureFromFile("resources/ui/vs_text.png"));
   greenBg.setTexture(Textures().GetTexture(TextureType::FOLDER_VIEW_BG));
-
   navigator.setTexture(Textures().GetTexture(TextureType::MUG_NAVIGATOR));
 
   float w = static_cast<float>(controller.getVirtualWindowSize().x);
@@ -65,7 +64,7 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   remotePreview.setScale(-2.f, 2.f);
 
   // text / font
-  text.setPosition(45.f, 0.f); 
+  text.setPosition(45.f, 4.f); 
 
   // upscale text
   text.setScale(2.f, 2.f);
@@ -310,10 +309,10 @@ void PVPScene::DrawIDInputWidget(sf::RenderTexture& surface)
   else {
     id.SetString(sf::String(theirIP));
   }
-  id.setPosition(145, 40);
+  id.setPosition(145, 48);
 
   // restrict the widget from collapsing at text length 0
-  float widgetWidth = std::fmax(id.GetLocalBounds().width+10.f, 50.f);
+  float widgetWidth = std::fmax(id.GetLocalBounds().width*2.f +10.f, 50.f);
 
   uiAnim.SetAnimation("ID_MID");
   uiAnim.Update(0, ui.getSprite());
@@ -356,6 +355,7 @@ void PVPScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
   uiAnim.SetAnimation(start);
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(100, 90);
+  surface.draw(ui);
 
   Text widgetText(Font::Style::thick);
   widgetText.setScale(2.f, 2.f);
@@ -374,9 +374,9 @@ void PVPScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
   ui.setPosition(102, 92); // offset by 2 pixels to fit inside the frame
   surface.draw(ui);
 
-  widgetText.setPosition(145, 83);
+  widgetText.setPosition(145, 94);
 
-  float widgetWidth = widgetText.GetLocalBounds().width + 10.f;
+  float widgetWidth = widgetText.GetLocalBounds().width*2.f + 10.f;
 
   uiAnim.SetAnimation(mid);
   uiAnim.Update(0, ui.getSprite());
@@ -411,6 +411,9 @@ void PVPScene::Reset()
   flashCooldown = 0;
 
   this->isScreenReady = true;
+  
+  // hide this until it is ready
+  vs.setScale(0.f, 0.f);
 
   // minor optimzation
   if (myIP.empty()) {
@@ -428,6 +431,10 @@ void PVPScene::Reset()
   }
 
   greenBg.setColor(sf::Color::White);
+  gridBG->setColor(sf::Color(0)); // hide until it is ready
+
+  clientPreview.setPosition(0, 0);
+  remotePreview.setPosition(0, 0);
 }
 
 void PVPScene::onStart() {
@@ -435,7 +442,6 @@ void PVPScene::onStart() {
 }
 
 void PVPScene::onResume() {
-  Reset();
 }
 
 void PVPScene::onExit()
@@ -449,12 +455,14 @@ void PVPScene::onUpdate(double elapsed) {
 
   if (!isScreenReady || leave) return; // don't update our scene if not fully in view from segue
 
+  bool systemEvent = Input().HasSystemCopyEvent() || Input().HasSystemPasteEvent();
+
   if (clientIsReady && remoteIsReady && !isInFlashyVSIntro) {
     isInFlashyVSIntro = true;
     Audio().StopStream();
   }
   else if (clientIsReady && !remoteIsReady) {
-    if (Input().Has(InputEvents::pressed_cancel)) {
+    if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
       clientIsReady = false;
       HandleCancel();
     }
@@ -562,7 +570,7 @@ void PVPScene::onUpdate(double elapsed) {
       }
     }
 
-    if (Input().Has(InputEvents::pressed_cancel)) {
+    if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
       leave = true;
       Audio().Play(AudioType::CHIP_CANCEL);
       // client.close();
@@ -575,22 +583,32 @@ void PVPScene::onUpdate(double elapsed) {
     else if (Input().HasSystemPasteEvent() && !infoMode) {
       HandlePasteEvent();
     }
-    else if (Input().Has(InputEvents::pressed_shoulder_left) && infoMode) {
+    else if (Input().Has(InputEvents::pressed_shoulder_left) && infoMode && !systemEvent) {
       infoMode = false;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       HandleJoinMode();
     }
-    else if (Input().Has(InputEvents::pressed_shoulder_right) && !infoMode) {
+    else if (Input().Has(InputEvents::pressed_shoulder_right) && !infoMode && !systemEvent) {
       infoMode = true;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       HandleInfoMode();
     } 
-    else if (Input().Has(InputEvents::pressed_confirm) && !infoMode && !theirIP.empty()) {
+    else if (Input().Has(InputEvents::pressed_confirm) && !infoMode && !theirIP.empty() && !systemEvent) {
       this->clientIsReady = true;
       HandleReady();
       Audio().Play(AudioType::CHIP_CHOOSE);
     }
   }
+}
+
+void PVPScene::onLeave()
+{
+
+}
+
+void PVPScene::onEnter()
+{
+  Reset();
 }
 
 void PVPScene::onDraw(sf::RenderTexture& surface) {

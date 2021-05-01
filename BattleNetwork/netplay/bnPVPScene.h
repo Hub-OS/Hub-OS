@@ -94,10 +94,8 @@ public:
    */
   void onUpdate(double elapsed);
   
-  void onLeave() { ; }
-
-  void onEnter() { ; }
-  
+  void onLeave();
+  void onEnter();
   void onResume();
   void onExit();
 

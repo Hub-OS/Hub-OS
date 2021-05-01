@@ -21,9 +21,18 @@ void TomahawkSwingCardAction::OnExecute(Character* user)
   auto spawn = [=] {
     auto* tile  = user->GetTile();
     auto* field = user->GetField();
-    field->AddEntity(*new TomahawkEffect, tile->GetX() + 1, tile->GetY());
 
-    for (auto col : { 1, 2 }) {
+    int step = 1;
+    auto fx = new TomahawkEffect();
+    
+    if (user->GetFacing() == Direction::left) {
+      step = -1;
+      fx->SetFacing(user->GetFacing());
+    }
+
+    field->AddEntity(*fx, tile->GetX() + step, tile->GetY());
+
+    for (auto col : { step, 2*step }) {
       for (auto row : { 1, 0, -1 }) {
         auto* hitbox = new Hitbox(user->GetTeam(), damage);
         auto props = hitbox->GetHitboxProperties();

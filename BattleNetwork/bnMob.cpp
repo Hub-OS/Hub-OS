@@ -151,13 +151,6 @@ const bool Mob::IsSpawningDone() {
 }
 
 const bool Mob::IsCleared() {
-  /*for (int i = 0; i < (int)spawn.size(); i++) {
-    auto mob = spawn[i]->mob;
-    if (!mob->WillRemoveLater()) {
-      return false;
-    }
-  }*/
-
   return tracked.empty();
 }
 

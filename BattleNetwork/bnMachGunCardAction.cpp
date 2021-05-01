@@ -53,11 +53,19 @@ void MachGunCardAction::OnExecute(Character* user)
       });
 
       if (!ents.empty()) {
-        auto filter = [actor = &actor](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); };
+        auto filter = [actor = &actor](Entity* A, Entity* B) { 
+          if (actor->GetFacing() == Direction::right) {
+            return A->GetTile()->GetX() < B->GetTile()->GetX();
+          }
+         
+          // else
+          return A->GetTile()->GetX() > B->GetTile()->GetX();
+        };
+
         std::sort(ents.begin(), ents.end(), filter);
 
         for (auto e : ents) {
-          if (e->GetTile()->GetX() > actor.GetTile()->GetX()) {
+          if (e->GetTile()->GetX() != actor.GetTile()->GetX()) {
             target = e;
             break;
           }
@@ -79,7 +87,12 @@ void MachGunCardAction::OnExecute(Character* user)
     }
     else if (!targetTile && !target) {
       // pick back col
-      targetTile = field->GetAt(6, 3);
+      if (actor.GetFacing() == Direction::right) {
+        targetTile = field->GetAt(6, 3);
+      }
+      else {
+        targetTile = field->GetAt(1, 3);
+      }
     }
 
     // We initially spawn the rectical where we want to start

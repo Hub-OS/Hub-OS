@@ -158,10 +158,12 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   // so we can chain them together
   combat
     .ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
-    .ChangeOnEvent(forms, playerLosesInForm)
+    //.ChangeOnEvent(forms, playerLosesInForm)
     .ChangeOnEvent(fadeout, &CombatBattleState::PlayerLost)
     .ChangeOnEvent(cardSelect, onCardSelectEvent)
     .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
+
+  battleover.ChangeOnEvent(fadeout, &BattleOverBattleState::IsFinished);
 
   // share some values between states
   combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
@@ -191,8 +193,6 @@ NetworkBattleScene::~NetworkBattleScene()
 { 
   delete remotePlayer;
   if (remoteHand) delete[] remoteHand; // REMOVE THIS HACK
-  //delete remoteCardUsePublisher;
-  //delete networkCardUseListener;
 }
 
 void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
@@ -214,7 +214,20 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   }
 
   BattleSceneBase::onUpdate(elapsed);
-  sendHPSignal(GetPlayer()->GetHealth());
+
+  if (!this->IsPlayerDeleted()) {
+    sendHPSignal(GetPlayer()->GetHealth());
+  }
+
+  if (remotePlayer && remotePlayer->WillRemoveLater()) {
+    auto iter = std::find(players.begin(), players.end(), remotePlayer);
+    if (iter != players.end()) {
+      players.erase(iter);
+    }
+    remoteState.isRemoteConnected = false;
+    remotePlayer = nullptr;
+  }
+
   processIncomingPackets();
 }
 

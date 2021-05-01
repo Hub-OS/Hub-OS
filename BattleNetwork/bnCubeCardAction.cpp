@@ -13,7 +13,8 @@ void CubeCardAction::OnExecute(Character* user) {
   
   auto* cube = new Cube(actor.GetField());
 
-  auto tile = actor.GetTile()->Offset(1, 0);
+  int step = user->GetFacing() == Direction::right ? 1 : -1;
+  auto tile = actor.GetTile()->Offset(step, 0);
 
   if (tile) {
     actor.GetField()->AddEntity(*cube, *tile);

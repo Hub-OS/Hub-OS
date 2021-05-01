@@ -855,24 +855,25 @@ namespace Battle {
       auto ptr = entities[i];
 
       Entity::ID_t ID = ptr->GetID();
+      // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
+      Character* character = dynamic_cast<Character*>(ptr);
+      Obstacle* obst = dynamic_cast<Obstacle*>(ptr);
+
+      if (ptr->IsDeleted()) {
+        if (character && deletingCharacters.find(character) == deletingCharacters.end()) {
+          field->CharacterDeletePublisher::Broadcast(*character);
+
+          // prevent this entity from being broadcast again while any deletion animations take place
+          // TODO: this could be written better
+          deletingCharacters.insert(character);
+        }
+      }
 
       // If the entity is marked for removal
       if (ptr->WillRemoveLater()) {
-        // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
-        Character* character = dynamic_cast<Character*>(ptr);
-        Obstacle* obst = dynamic_cast<Obstacle*>(ptr);
-
         ptr->ExecuteRemoveCallbacks();
 
-        // We only want to know about character deletions since they are the actors in the battle
-        if (character && !obst) {
-          if (deletingCharacters.find(character) == deletingCharacters.end()) {
-            field->CharacterDeletePublisher::Broadcast(*character);
-
-            // ignore this entity - it is dead to us
-            deletingCharacters.insert(character);
-          }
-        } else if (RemoveEntityByID(ID)) {
+        if (RemoveEntityByID(ID)) {
           // Don't track this entity anymore
           field->ForgetEntity(ID);
           delete ptr;

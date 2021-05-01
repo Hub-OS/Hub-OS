@@ -561,26 +561,28 @@ void TenguCross::SpecialAction::OnExecute(Character* user)
   auto field = user->GetField();
 
   auto onTrigger = [=]() -> void {
+    int startCol = 6;
     Direction direction{ Direction::left };
 
     if (team == Team::blue) {
       direction = Direction::right;
+      startCol = 1;
     }
 
     auto wind = new Wind(team);
     wind->SetDirection(direction);
     wind->DeleteOnTeamTile();
-    field->AddEntity(*wind, 6, 1);
+    field->AddEntity(*wind, startCol, 1);
 
     wind = new Wind(team);
     wind->SetDirection(direction);
     wind->DeleteOnTeamTile();
-    field->AddEntity(*wind, 6, 2);
+    field->AddEntity(*wind, startCol, 2);
 
     wind = new Wind(team);
     wind->SetDirection(direction);
     wind->DeleteOnTeamTile();
-    field->AddEntity(*wind, 6, 3);
+    field->AddEntity(*wind, startCol, 3);
   };
 
   AddAnimAction(1, onTrigger);

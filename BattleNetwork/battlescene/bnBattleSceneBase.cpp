@@ -433,7 +433,10 @@ void BattleSceneBase::onUpdate(double elapsed) {
   // Register and eject any applicable components
   ProcessNewestComponents();
 
-  cardUI->OnUpdate((float)elapsed);
+  if (!IsPlayerDeleted()) {
+    cardUI->OnUpdate((float)elapsed);
+  }
+
   cardCustGUI.Update((float)elapsed);
 
   newMobSize = mob? mob->GetMobCount() : 0;
