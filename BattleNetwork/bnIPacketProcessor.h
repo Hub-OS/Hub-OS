@@ -1,18 +1,20 @@
-#pragma once 
+#pragma once
+#include <Poco/Net/DatagramSocket.h>
 #include <Poco/Net/IPAddress.h>
 #include <Poco/Buffer.h>
+#include <memory>
 
 class IPacketProcessor {
+protected:
+  std::shared_ptr<Poco::Net::DatagramSocket> client;
 private:
-  Poco::Net::IPAddress watch;
+  void SetSocket(const std::shared_ptr<Poco::Net::DatagramSocket>& socket) {
+    client = socket;
+  }
 
+  friend class NetManager;
 public:
-  IPacketProcessor(const Poco::Net::IPAddress& watchFor) : watch(watchFor)
-  { }
-
   virtual ~IPacketProcessor() { }
-  virtual void OnPacket(const Poco::Buffer<char>& buffer) = 0;
+  virtual void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) = 0;
   virtual void Update(double elapsed) = 0;
-
-  Poco::Net::IPAddress& Watching() { return watch; }
 };
