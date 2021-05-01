@@ -78,16 +78,16 @@ Overworld::OnlineArea::~OnlineArea()
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
+  if (!packetProcessor) {
+    return;
+  }
+
   if (packetProcessor->TimedOut()) {
     leave();
     return;
   }
 
-  if (kicked) {
-    return;
-  }
-
-  if (!isConnected) {
+  if (!isConnected || kicked) {
     return;
   }
 
@@ -265,20 +265,28 @@ void Overworld::OnlineArea::onStart()
 
 void Overworld::OnlineArea::onEnd()
 {
-  sendLogoutSignal();
-  Net().DropProcessor(packetProcessor);
+  if (packetProcessor) {
+    sendLogoutSignal();
+    Net().DropProcessor(packetProcessor);
+  }
 }
 
 void Overworld::OnlineArea::onLeave()
 {
   SceneBase::onLeave();
-  packetProcessor->SetBackground();
+
+  if (packetProcessor) {
+    packetProcessor->SetBackground();
+  }
 }
 
 void Overworld::OnlineArea::onResume()
 {
   SceneBase::onResume();
-  packetProcessor->SetForeground();
+
+  if (packetProcessor) {
+    packetProcessor->SetForeground();
+  }
 }
 
 void Overworld::OnlineArea::OnTileCollision()
@@ -1751,6 +1759,11 @@ void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, cons
 }
 
 void Overworld::OnlineArea::leave() {
+  if (packetProcessor) {
+    Net().DropProcessor(packetProcessor);
+    packetProcessor = nullptr;
+  }
+
   using effect = segue<PixelateBlackWashFade>;
   getController().pop<effect>();
 }
