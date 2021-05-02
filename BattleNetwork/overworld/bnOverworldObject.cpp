@@ -49,6 +49,11 @@ namespace Overworld {
       ortho.y = std::sin(orthoRadians + rotationRadians) * magnitude;
     }
 
+    // scale
+    auto scale = sf::Vector2f(size.x / spriteBounds.width, size.y / spriteBounds.height);
+    ortho.x /= scale.x;
+    ortho.y /= scale.y;
+
     // calculate offset separately as we need to transform it separately
     auto orthoOffset = -tileset->alignmentOffset;
 
@@ -88,11 +93,6 @@ namespace Overworld {
 
     ortho += orthoOffset;
 
-    // scale
-    auto scale = sf::Vector2f(size.x / spriteBounds.width, size.y / spriteBounds.height);
-    ortho.x /= scale.x;
-    ortho.y /= scale.y;
-
     iso = map.OrthoToIsometric(ortho);
 
     return tile.Intersects(map, iso.x, iso.y);
@@ -119,16 +119,19 @@ namespace Overworld {
     auto horizontalMultiplier = tile.flippedHorizontal ? -1.0f : 1.0f;
     auto verticalMultiplier = tile.flippedVertical ? -1.0f : 1.0f;
     auto localBounds = worldSprite->getLocalBounds();
+    auto scale = sf::Vector2f(size.x / localBounds.width, size.y / localBounds.height);
 
     worldSprite->setPosition(position);
-    worldSprite->setScale(horizontalMultiplier * size.x / localBounds.width, verticalMultiplier * size.y / localBounds.height);
+    worldSprite->setScale(horizontalMultiplier * scale.x, verticalMultiplier * scale.y);
 
     auto ortho = map.WorldToScreen(position);
 
     sf::Transform preTransform;
     preTransform.translate(ortho);
     preTransform.rotate(rotation);
+    preTransform.scale(scale.x, scale.y);
     preTransform.translate(tileMeta->alignmentOffset + tileMeta->drawingOffset + origin);
+    preTransform.scale(1.0f / scale.x, 1.0f / scale.y);
     preTransform.translate(-ortho);
     worldSprite->SetPreTransform(preTransform);
   }
