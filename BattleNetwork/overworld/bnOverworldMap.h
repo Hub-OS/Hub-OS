@@ -9,6 +9,7 @@
 #include "bnOverworldSprite.h"
 #include "bnOverworldTile.h"
 #include "bnOverworldObject.h"
+#include "bnOverworldShadowMap.h"
 #include "../bnAnimation.h"
 
 namespace Overworld {
@@ -65,6 +66,7 @@ namespace Overworld {
       std::vector<ShapeObject> shapeObjects;
       std::vector<TileObject> tileObjects;
       std::vector<std::shared_ptr<WorldSprite>> spritesForAddition;
+      bool tilesModified{};
 
       friend class Map;
     };
@@ -154,6 +156,7 @@ namespace Overworld {
     bool CanMoveTo(float x, float y, float z, int layer); // todo: move to layer?
     float GetElevationAt(float x, float y, int layer);
     bool IgnoreTileAbove(float x, float y, int layer);
+    bool HasShadow(sf::Vector2i tilePos, int layer);
     void RemoveSprites(SceneBase& scene);
 
   protected:
@@ -161,10 +164,12 @@ namespace Overworld {
     int tileWidth{}, tileHeight{}; /*!< tile dimensions */
     std::string name, backgroundName, backgroundCustomTexturePath, backgroundCustomAnimationPath, songPath;
     sf::Vector2f backgroundCustomVelocity;
+    ShadowMap shadowMap;
     std::vector<Layer> layers;
     std::vector<std::shared_ptr<Tileset>> tileToTilesetMap;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> tilesets;
     std::vector<std::shared_ptr<TileMeta>> tileMetas;
+    bool tilesModified{};
 
     /**
      * @brief Transforms an iso vector into an orthographic vector

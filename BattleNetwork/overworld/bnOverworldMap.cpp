@@ -6,7 +6,9 @@
 
 
 namespace Overworld {
-  Map::Map(unsigned cols, unsigned rows, int tileWidth, int tileHeight) {
+  Map::Map(unsigned cols, unsigned rows, int tileWidth, int tileHeight) :
+    shadowMap(cols, rows)
+  {
     this->tileWidth = tileWidth;
     this->tileHeight = tileHeight;
     this->cols = cols;
@@ -25,6 +27,9 @@ namespace Overworld {
     for (int i = 0; i < layers.size(); i++) {
       auto& layer = layers[i];
 
+      tilesModified |= layer.tilesModified;
+      layer.tilesModified = false;
+
       for (auto& tileObject : layer.tileObjects) {
         tileObject.Update(*this);
       }
@@ -34,6 +39,11 @@ namespace Overworld {
       }
 
       layer.spritesForAddition.clear();
+    }
+
+    if (tilesModified) {
+      shadowMap.CalculateShadows(*this);
+      tilesModified = false;
     }
   }
 
@@ -197,6 +207,7 @@ namespace Overworld {
     tileMetas[tileGid] = tileMeta;
     tileToTilesetMap[tileGid] = tileset;
     tilesets[tileset->name] = tileset;
+    tilesModified = true;
   }
 
   std::size_t Map::GetLayerCount() const {
@@ -272,8 +283,8 @@ namespace Overworld {
 
     if (layerIndex >= totalLayers) {
       layerIndex = (int)totalLayers - 1;
-    } 
-    
+    }
+
     layerIndex = std::max(layerIndex, 0);
 
     auto& layer = layers[layerIndex];
@@ -335,6 +346,14 @@ namespace Overworld {
     return tileMeta && tileMeta->type == "Stairs";
   }
 
+  bool Map::HasShadow(sf::Vector2i tilePos, int layer) {
+    if (tilePos.x < 0 || tilePos.y < 0 || layer < 0) {
+      return false;
+    }
+
+    return shadowMap.HasShadow(tilePos.x, tilePos.y, layer);
+  }
+
   void Map::RemoveSprites(SceneBase& scene) {
     for (auto& layer : layers) {
       for (auto& tileObject : layer.tileObjects) {
@@ -378,6 +397,8 @@ namespace Overworld {
       nullTile = Tile(0);
       return nullTile;
     }
+
+    tilesModified = true;
 
     return tiles[y * cols + x] = tile;
   }

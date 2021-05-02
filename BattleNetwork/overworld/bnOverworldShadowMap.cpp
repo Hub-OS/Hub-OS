@@ -1,20 +1,25 @@
 #include "bnOverworldShadowMap.h"
 
+#include "bnOverworldMap.h"
+
 static inline size_t calculateIndex(size_t cols, size_t x, size_t y) {
   return y * cols + x;
 }
 
 namespace Overworld {
+  ShadowMap::ShadowMap(size_t cols, size_t rows) :
+    cols(cols),
+    rows(rows)
+  {
+    shadows.resize(cols * rows, 0);
+  }
+
   void ShadowMap::CalculateShadows(Map& map) {
-    cols = (size_t)map.GetCols();
-    rows = (size_t)map.GetRows();
-
-    shadows.resize(cols * rows);
-    std::fill(shadows.begin(), shadows.end(), 0);
-
-
     for (size_t x = 0; x < cols; x++) {
       for (size_t y = 0; y < rows; y++) {
+        auto shadowIndex = calculateIndex(cols, x, y);
+        shadows[shadowIndex] = 0;
+
         for (auto index = map.GetLayerCount() - 1; index >= 1; index--) {
           auto& layer = map.GetLayer(index);
           auto& tile = layer.GetTile((int)x, (int)y);
@@ -27,7 +32,6 @@ namespace Overworld {
             continue;
           }
 
-          auto shadowIndex = calculateIndex(cols, x, y);
           shadows[shadowIndex] = index;
           break;
         }

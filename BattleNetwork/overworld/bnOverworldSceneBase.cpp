@@ -492,9 +492,6 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 }
 
 void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
-  // resize shadow grid
-  shadowMap.CalculateShadows(map);
-
   const auto& mapScale = GetMap().getScale();
   sf::Vector2f cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
@@ -587,7 +584,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
 
       if (/*cam && cam->IsInView(tileSprite)*/ true) {
         sf::Color originalColor = tileSprite.getColor();
-        if (shadowMap.HasShadow(j, i, index)) {
+        if (map.HasShadow({ j, i }, index)) {
           sf::Uint8 r, g, b;
           r = sf::Uint8(originalColor.r * 0.65);
           b = sf::Uint8(originalColor.b * 0.65);
@@ -633,14 +630,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
         index = index >= 1 ? (index - 1) : 0;
       }
 
-      // index == 0 will NEVER have sprites
-      bool evaluate = (
-        gridPos.x >= 0 &&
-        gridPos.y >= 0 &&
-        index > 0 && index < mapLayerCount + 1
-        );
-
-      if (evaluate && shadowMap.HasShadow(gridPos.x, gridPos.y, index - 1)) {
+      if (map.HasShadow(gridPos, int(index) - 1)) {
         sf::Uint8 r, g, b;
         r = sf::Uint8(originalColor.r * 0.5);
         b = sf::Uint8(originalColor.b * 0.5);

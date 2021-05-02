@@ -25,7 +25,6 @@
 #include "bnOverworldPathController.h"
 #include "bnOverworldTeleportController.h"
 #include "bnOverworldSpatialMap.h"
-#include "bnOverworldShadowMap.h"
 #include "bnOverworldMap.h"
 #include "bnOverworldPersonalMenu.h"
 #include "bnOverworldMenuSystem.h"
@@ -80,7 +79,6 @@ namespace Overworld {
     Overworld::Map map; /*!< Overworld map */
     std::vector<std::shared_ptr<WorldSprite>> sprites;
     std::vector<std::vector<std::shared_ptr<WorldSprite>>> spriteLayers;
-    ShadowMap shadowMap;
     Overworld::MenuSystem menuSystem;
 
     /*!< Current navi selection index */
