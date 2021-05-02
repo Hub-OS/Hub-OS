@@ -25,7 +25,7 @@ namespace Overworld {
     PacketShipper packetShipper;
     PacketSorter packetSorter;
     Reliability keepAliveReliability;
-    Poco::Buffer<char> keepAliveBody { 0 };
+    Poco::Buffer<char> keepAliveBody{ 0 };
     double keepAliveTimer{};
     double packetResendTimer{};
     bool background{};
