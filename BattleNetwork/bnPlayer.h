@@ -58,8 +58,8 @@ private:
 public:
   using DefaultState = PlayerControlledState;
   static constexpr size_t MAX_FORM_SIZE = 5;
-  static constexpr char* BASE_NODE_TAG = "Base Node";
-  static constexpr char* FORM_NODE_TAG = "Form Node";
+  static constexpr const char* BASE_NODE_TAG = "Base Node";
+  static constexpr const char* FORM_NODE_TAG = "Form Node";
 
    /**
    * @brief Loads graphics and adds a charge component

@@ -163,7 +163,7 @@ namespace Overworld {
       return {};
     }
 
-    auto shapeObject = ShapeObject(id, std::move(shapePtr.value()));
+    auto shapeObject = ShapeObject(id, std::move(*shapePtr));
 
     AdoptAttributes(shapeObject, element);
 

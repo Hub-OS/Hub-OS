@@ -68,7 +68,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
     auto mrprog = std::make_shared<Overworld::Actor>("Mr. Prog");
     mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
     mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
-    mrprog->Set3DPosition(statusBotSpawnOptional.value());
+    mrprog->Set3DPosition(*statusBotSpawnOptional);
     mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
 

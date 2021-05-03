@@ -1,9 +1,18 @@
 #include <list>
-#include <any>
 #include <functional>
 #include <memory>
 #include <map>
 #include <algorithm>
+
+#ifndef __APPLE__
+#include <any>
+#define any_cast std::any_cast
+using any = std::any;
+#else
+#include "stx/any.h"
+#define any_cast stx::any_cast
+using any = stx::any;
+#endif
 
 class Scene; // forward decl
 
@@ -11,7 +20,7 @@ namespace {
   // utility function to compare the input type with std::any
   auto any_compare = [](auto&& i) {
     return [i](auto&& val) {
-      return typeid(i) == val.type() && std::any_cast<decltype(i)>(val) == i;
+      return typeid(i) == val.type() && any_cast<decltype(i)>(val) == i;
     };
   };
 }
@@ -45,7 +54,7 @@ namespace {
 
 class EventBus final {
   //!< Recievers represents all channels and objects lists that may recieve events
-  static inline std::map<const Scene*, std::map<std::string, std::vector<std::any>>> receivers;
+  static inline std::map<const Scene*, std::map<std::string, std::vector<any>>> receivers;
 
 public:
   class Channel {
@@ -64,7 +73,7 @@ public:
     * If the item is discovered in the list of objects, it will not be re-added
     */
     template<typename T>
-    void try_insert_item(std::map<std::string, std::vector<std::any>>& map,
+    void try_insert_item(std::map<std::string, std::vector<any>>& map,
       std::string typeStr, T* obj) {
       if (obj == nullptr) return;
 
@@ -87,13 +96,13 @@ public:
     * If the item is discovered in the list of objects, it is erased
     */
     template<typename T>
-    void try_remove_item(std::map<std::string, std::vector<std::any>>& map,
+    void try_remove_item(std::map<std::string, std::vector<any>>& map,
       std::string typeStr, T* obj) {
       if (obj == nullptr) return;
 
       auto& vec = map[typeStr];
 
-      auto vecIter = std::find_if(vec.begin(), vec.end(), any_compare(obj));
+      auto vecIter = std::find_if(vec.begin(), vec.end(), ::any_compare(obj));
 
       if (vecIter != vec.end()) {
         vec.erase(vecIter);
@@ -113,7 +122,7 @@ public:
       auto mapIter = receivers.find(scene);
 
       if (mapIter == receivers.end()) {
-        receivers.insert(std::make_pair(s, std::map<std::string, std::vector<std::any>>()));
+        receivers.insert(std::make_pair(s, std::map<std::string, std::vector<any>>()));
       }
     }
 
@@ -189,10 +198,12 @@ public:
 
         if (typenameIter != mapIter->second.end()) {
           for (auto any : typenameIter->second) {
-            (std::any_cast<Class*>(any)->*Func)(std::forward<decltype(args)>(args)...);
+            (any_cast<Class*>(any)->*Func)(std::forward<decltype(args)>(args)...);
           }
         }
       }
     }
   };
 };
+
+#undef any_cast
