@@ -971,7 +971,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
           auto shapeObject = ShapeObject::From(child);
 
           if (shapeObject) {
-            layer.AddShapeObject(std::move(shapeObject.value()));
+            layer.AddShapeObject(std::move(*shapeObject));
           }
         }
       }
@@ -1196,7 +1196,7 @@ Overworld::SceneBase::ParseTileMetas(const XMLElement& tilesetElement, const Ove
         auto shape = Overworld::Shape::From(objectElement);
 
         if (shape) {
-          collisionShapes.push_back(std::move(shape.value()));
+          collisionShapes.push_back(std::move(*shape));
         }
       }
     }

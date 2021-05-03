@@ -3,7 +3,12 @@
 #include <Segues/PixelateBlackWashFade.h>
 #include <Segues/BlackWashFade.h>
 #include <Poco/Net/NetException.h>
+
+// TODO: mac os < 10.5 file system support...
+#ifndef __APPLE__
 #include <filesystem>
+#endif 
+
 #include <fstream>
 
 #include "bnOverworldOnlineArea.h"
@@ -658,26 +663,28 @@ static std::vector<char> readBytes(std::string texturePath) {
   size_t textureLength;
   std::vector<char> textureData;
 
-  try {
-    textureLength = std::filesystem::file_size(texturePath);
-  }
-  catch (std::filesystem::filesystem_error& e) {
-    Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
-    return textureData;
-  }
+  #ifndef __APPLE__
+    try {
+      textureLength = std::filesystem::file_size(texturePath);
+    }
+    catch (std::filesystem::filesystem_error& e) {
+      Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+      return textureData;
+    }
 
-  try {
-    std::ifstream fin(texturePath, std::ios::binary);
+    try {
+      std::ifstream fin(texturePath, std::ios::binary);
 
-    // prevents newlines from being skipped
-    fin.unsetf(std::ios::skipws);
+      // prevents newlines from being skipped
+      fin.unsetf(std::ios::skipws);
 
-    textureData.reserve(textureLength);
-    textureData.insert(textureData.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
-  }
-  catch (std::ifstream::failure& e) {
-    Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
-  }
+      textureData.reserve(textureLength);
+      textureData.insert(textureData.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
+    }
+    catch (std::ifstream::failure& e) {
+      Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+    }
+  #endif
 
   return textureData;
 }
@@ -1067,7 +1074,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       auto optional_object_ref = layer.GetTileObject(objectId);
 
       if (optional_object_ref) {
-        auto object_ref = optional_object_ref.value();
+        auto object_ref = *optional_object_ref;
         auto& object = object_ref.get();
 
         excludedData.visible = object.visible;
@@ -1217,7 +1224,7 @@ void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, con
     auto optional_object_ref = layer.GetTileObject(objectId);
 
     if (optional_object_ref) {
-      auto object_ref = optional_object_ref.value();
+      auto object_ref = *optional_object_ref;
       auto& object = object_ref.get();
 
       ExcludedObjectData excludedData{};
@@ -1248,7 +1255,7 @@ void Overworld::OnlineArea::receiveIncludeObjectSignal(BufferReader& reader, con
     auto optional_object_ref = layer.GetTileObject(objectId);
 
     if (optional_object_ref) {
-      auto object_ref = optional_object_ref.value();
+      auto object_ref = *optional_object_ref;
       auto& object = object_ref.get();
 
       object.visible = true;
