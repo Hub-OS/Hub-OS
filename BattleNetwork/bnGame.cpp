@@ -87,9 +87,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
   isDebug = CommandLineValue<bool>("debug");
 
-  // Load font symbols for use across the entire engine...
-  textureManager.LoadImmediately(TextureType::FONT);
-
   // Initialize the engine and log the startup time
   const clock_t begin_time = clock();
 
@@ -128,11 +125,20 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   inputManager.SupportConfigSettings(reader);
 
   TaskGroup tasks;
-  tasks.AddTask("Init graphics", std::move(graphics));
-  tasks.AddTask("Init audio", std::move(audio));
-  tasks.AddTask("Load Navis", std::move(navis));
-  tasks.AddTask("Load mobs", std::move(mobs));
-  tasks.AddTask("Finishing", std::move(finish));
+  //tasks.AddTask("Init graphics", std::move(graphics));
+  //tasks.AddTask("Init audio", std::move(audio));
+  //tasks.AddTask("Load Navis", std::move(navis));
+  //tasks.AddTask("Load mobs", std::move(mobs));
+  //tasks.AddTask("Finishing", std::move(finish));
+
+  graphics();
+  audio();
+  navis();
+  mobs();
+  finish();
+
+    // Load font symbols for use across the entire engine...
+  textureManager.LoadImmediately(TextureType::FONT);
 
   if (configSettings.IsOK()) {
     // If the file is good, use the Audio() and 
@@ -180,7 +186,7 @@ void Game::Run()
     // Poll input
     inputManager.Update();
 
-    textureManager.HandleExpiredTextureCache();
+    //textureManager.HandleExpiredTextureCache();
 
     double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
     this->elapsed += from_seconds(delta);
@@ -198,13 +204,13 @@ void Game::Run()
     bool updateFrame = (frameByFrame && nextFrameKey) || !frameByFrame;
 
     if (updateFrame) {
+      // Prepare for draw calls
+      window.Clear();
+
       this->update(delta);
       this->draw();
 
       window.Display();
-
-      // Prepare for next draw calls
-      window.Clear();
     }
 
     scope_elapsed = clock.getElapsedTime().asSeconds();
