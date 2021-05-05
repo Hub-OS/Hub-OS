@@ -13,6 +13,7 @@ void CanodumbIdleState::Attack()
 void CanodumbIdleState::FreeCursor()
 {
   delete freeCursorCallback;
+  freeCursorCallback = nullptr;
 }
 
 Character::Rank CanodumbIdleState::GetCanodumbRank()
@@ -59,10 +60,6 @@ void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
         freeCursorCallback = cursor->CreateRemoveCallback();
 
         freeCursorCallback->Slot([this](Entity*) {
-            if (cursor) {
-                cursor->Delete();
-            }
-
             cursor = nullptr;
         });
 

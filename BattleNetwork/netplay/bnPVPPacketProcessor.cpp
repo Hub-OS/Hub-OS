@@ -28,6 +28,10 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
 }
 
 void PVP::PacketProcessor::Update(double elapsed) {
+  // All this update loop does is kick for silence
+  // If not enabled, return early
+  if (!checkForSilence) return;
+
   constexpr int64_t MAX_ERROR_COUNT = 20;
 
   if (TimedOut() || errorCount > MAX_ERROR_COUNT) {
@@ -42,7 +46,18 @@ void PVP::PacketProcessor::HandleError()
 
 void PVP::PacketProcessor::SendPacket(const Poco::Buffer<char>& data)
 {
-  client->sendTo(data.begin(), data.size(), remote);
+  client->sendTo(data.begin(), (int)data.size(), remote);
+}
+
+void PVP::PacketProcessor::EnableKickForSilence(bool enabled)
+{
+  if (enabled && !checkForSilence) {
+    // If we were not checking for silence before, then
+    // make the window of time begin now
+    lastPacketTime = std::chrono::steady_clock::now();
+  }
+
+  checkForSilence = enabled;
 }
 
 bool PVP::PacketProcessor::TimedOut() {

@@ -24,8 +24,13 @@ void NetworkSyncBattleState::onEnd(const BattleSceneState* last)
 {
   if (firstConnection) {
     GetScene().GetPlayer()->ChangeState<PlayerControlledState>();
-    auto remoteProxy = remotePlayer->GetFirstComponent<PlayerNetworkProxy>();
-    remotePlayer->ChangeState<PlayerNetworkState>(remoteProxy->GetNetPlayFlags());
+    
+    if (remotePlayer) {
+      if (auto remoteProxy = remotePlayer->GetFirstComponent<PlayerNetworkProxy>()) {
+        remotePlayer->ChangeState<PlayerNetworkState>(remoteProxy->GetNetPlayFlags());
+      }
+    }
+
     firstConnection = false;
   }
 }
@@ -49,14 +54,23 @@ void NetworkSyncBattleState::RemoteRequestState(Handshake::Type incoming)
     handshake->established = true;
   }
   else {
+    bool resync = false;
+
     // switch into the form change handshake state if the remote is and we are ready
     if (incoming == Handshake::Type::form_change && handshake->type == Handshake::Type::battle) {
       handshake->type = Handshake::Type::form_change;
+      resync = true;
+    }
+    else if (handshake->type > incoming) {
+      resync = true;
     }
 
-    handshake->established = false;
-    handshake->isClientReady = handshake->isRemoteReady = false;
-    handshake->resync = true;
+    if (resync) {
+      // We need to play catchup... don't flag out of sync yet
+      handshake->established = false;
+      handshake->isClientReady = handshake->isRemoteReady = false;
+      handshake->resync = true;
+    }
   }
 }
 

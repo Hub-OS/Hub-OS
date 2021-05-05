@@ -225,7 +225,7 @@ void MatchMakingScene::SendHandshakeSignal()
 
 void MatchMakingScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 {
-  if (remoteIsReady) return; // prevent multiple connection requests...
+  if (remoteIsReady || !clientIsReady) return; // prevent multiple connection requests...
 
   remoteIsReady = true;
 
@@ -239,6 +239,9 @@ void MatchMakingScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 
 void MatchMakingScene::RecieveHandshakeSignal()
 {
+  // only acknowledge handshakes if you have recieved the opponent's character data
+  if (!remoteIsReady || !clientIsReady) return;
+
   this->handshakeComplete = true;
   this->SendHandshakeSignal();
 }
@@ -404,7 +407,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
   bool systemEvent = Input().HasSystemCopyEvent() || Input().HasSystemPasteEvent();
 
-  if (clientIsReady && remoteIsReady && !isInFlashyVSIntro) {
+  if (handshakeComplete && !isInFlashyVSIntro) {
     isInFlashyVSIntro = true;
     Audio().StopStream();
   }
@@ -507,9 +510,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
       if (!handshakeComplete && !theirIP.empty()) {
         // Try reaching out to someone...
         this->SendConnectSignal(selectedNavi);
-      }
-
-      if (remoteIsReady && !clientIsReady) {
         this->SendHandshakeSignal();
       }
     }

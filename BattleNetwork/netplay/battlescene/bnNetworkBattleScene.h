@@ -134,6 +134,7 @@ public:
   void onDraw(sf::RenderTexture& surface) override final;
   void onExit() override;
   void onEnter() override;
+  void onStart() override;
   void onResume() override;
   void onEnd() override;
 

@@ -207,13 +207,12 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   if (!IsSceneInFocus()) return;
 
   if (!syncStatePtr->IsSyncronizedWithRemote()) {
-    if (!handshake.established) {
-      sendHandshakeSignal(handshake.type); // re-send whatever type was set
-    }
-    else {
-      sendConnectSignal(this->selectedNavi); // NOTE: this function only happens once at start
-      sendReadySignal();
-    }
+    sendHandshakeSignal(handshake.type); // re-send whatever type was set
+    sendConnectSignal(this->selectedNavi); // NOTE: this function only happens once at start    
+    
+    // constantly broadcast we are ready to avoid dropped packets
+    // TODO: make this a reliable packet so only send when we need to
+    sendReadySignal();
   }
 
   BattleSceneBase::onUpdate(elapsed);
@@ -242,6 +241,15 @@ void NetworkBattleScene::onExit()
 
 void NetworkBattleScene::onEnter()
 {
+}
+
+void NetworkBattleScene::onStart()
+{
+  BattleSceneBase::onStart();
+
+  // Once the transition completes, we begin handshakes
+  packetProcessor->EnableKickForSilence(true);
+
 }
 
 void NetworkBattleScene::onResume()
@@ -385,6 +393,8 @@ void NetworkBattleScene::sendLoserSignal()
 
 void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer)
 {
+  if (buffer.empty()) return;
+
   Handshake::Type incoming{};
   std::memcpy(&incoming, buffer.begin(), sizeof(Handshake::Type));
 
@@ -413,6 +423,7 @@ void NetworkBattleScene::recieveUseSpecialSignal()
 
 void NetworkBattleScene::recieveChargeSignal(const Poco::Buffer<char>& buffer)
 {
+  if (buffer.empty()) return;
   if (!remoteState.isRemoteConnected) return;
 
   bool state = remoteState.remoteCharge; 
@@ -478,6 +489,7 @@ void NetworkBattleScene::recieveReadySignal()
 
 void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buffer)
 {
+  if (buffer.empty()) return;
   int form = remoteState.remoteFormSelect;
   int prevForm = remoteState.remoteFormSelect;
   std::memcpy(&form, buffer.begin(), sizeof(int));
@@ -493,6 +505,7 @@ void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buff
 
 void NetworkBattleScene::recieveHPSignal(const Poco::Buffer<char>& buffer)
 {
+  if (buffer.empty()) return;
   if (!remoteState.isRemoteConnected) return;
 
   int hp = remotePlayer->GetHealth();
@@ -504,6 +517,7 @@ void NetworkBattleScene::recieveHPSignal(const Poco::Buffer<char>& buffer)
 
 void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer)
 {
+  if (buffer.empty()) return;
   if (!remoteState.isRemoteConnected) return;
 
   int x = remoteState.remoteTileX; 
@@ -521,6 +535,7 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
 
 void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
 {
+  if (buffer.empty()) return;
   if (!remoteState.isRemoteConnected) return;
 
   uint64_t timestamp = 0; std::memcpy(&timestamp, buffer.begin(), sizeof(uint64_t));
@@ -541,6 +556,7 @@ void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
 void NetworkBattleScene::recieveLoserSignal()
 {
   // TODO: replace this with PVP win information
+  packetProcessor->EnableKickForSilence(false);
   this->Quit(FadeOut::black);
 }
 

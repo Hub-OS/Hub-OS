@@ -20,16 +20,22 @@ void NetManager::Update(double elapsed)
 
   while (client->available()) {
     Poco::Net::SocketAddress sender;
-    int read = client->receiveFrom(buffer, MAX_BUFFER_LEN, sender);
 
-    auto it = handlers.find(sender);
+    try {
+      int read = client->receiveFrom(buffer, MAX_BUFFER_LEN, sender);
 
-    if (it == handlers.end()) {
-      continue;
+      auto it = handlers.find(sender);
+
+      if (it == handlers.end()) {
+        continue;
+      }
+
+      for (auto processor : handlers[sender]) {
+        processor->OnPacket(buffer, read, sender);
+      }
     }
-
-    for (auto processor : handlers[sender]) {
-      processor->OnPacket(buffer, read, sender);
+    catch (Poco::Exception& e) {
+      Logger::Logf("NetManager exception: %s", e.what());
     }
   }
 

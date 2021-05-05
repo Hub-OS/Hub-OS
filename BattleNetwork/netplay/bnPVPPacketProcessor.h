@@ -7,6 +7,7 @@ class NetworkBattleScene;
 namespace PVP {
   class PacketProcessor : public IPacketProcessor {
   private:
+    bool checkForSilence{}; //!< if true, processor kicks connection after lengthy silence
     unsigned errorCount{};
     std::chrono::time_point<std::chrono::steady_clock> lastPacketTime;
     NetworkBattleScene& scene;
@@ -18,6 +19,7 @@ namespace PVP {
     void Update(double elapsed) override;
     void HandleError();
     void SendPacket(const Poco::Buffer<char>& data);
+    void EnableKickForSilence(bool enabled);
     bool TimedOut();
   };
 }
