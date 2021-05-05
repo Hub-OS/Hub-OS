@@ -539,9 +539,25 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
   auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
 
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < cols; j++) {
-      auto& tile = layer.GetTile(j, i);
+  const auto TILE_PADDING = 3;
+  auto screenSize = sf::Vector2f(target.getSize()) / map.getScale().x;
+
+  auto verticalTileCount = (int)std::ceil((screenSize.y / (float)tileSize.y) * 2.0f);
+  auto horizontalTileCount = (int)std::ceil(screenSize.x / (float)tileSize.x);
+
+  auto screenTopLeft = camera.GetView().getCenter() - screenSize / 2.0f;
+  auto tileSpaceStart = sf::Vector2i(map.WorldToTileSpace(map.ScreenToWorld(screenTopLeft) * map.getScale().x));
+  auto verticalOffset = (int)index;
+
+  for (int i = -TILE_PADDING; i < verticalTileCount + TILE_PADDING; i++) {
+    auto verticalStart = (verticalOffset + i) / 2;
+    auto rowOffset = (verticalOffset + i) % 2;
+
+    for (int j = -TILE_PADDING; j < horizontalTileCount + rowOffset + TILE_PADDING; j++) {
+      int row = tileSpaceStart.y + verticalStart - j + rowOffset;
+      int col = tileSpaceStart.x + verticalStart + j;
+
+      auto& tile = layer.GetTile(col, row);
       if (tile.gid == 0) continue;
 
       auto tileMeta = map.GetTileMeta(tile.gid);
@@ -558,7 +574,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
         tileSize.y / 2
       )));
 
-      sf::Vector2i pos((j * tileSize.x) / 2, i * tileSize.y);
+      sf::Vector2i pos((col * tileSize.x) / 2, row * tileSize.y);
       auto ortho = map.WorldToScreen(sf::Vector2f(pos));
       auto tileOffset = sf::Vector2f(sf::Vector2i(
         -tileSize.x / 2 + (int)spriteBounds.width / 2,
@@ -572,29 +588,17 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
         tile.flippedVertical ? -1.0f : 1.0f
       );
 
-      /*auto color = tileSprite.getColor();
+      sf::Color originalColor = tileSprite.getColor();
+      if (map.HasShadow({ col, row }, index)) {
+        sf::Uint8 r, g, b;
+        r = sf::Uint8(originalColor.r * 0.65);
+        b = sf::Uint8(originalColor.b * 0.65);
+        g = sf::Uint8(originalColor.g * 0.65);
 
-      auto& [y, x] = PixelToRowCol(sf::Mouse::getPosition(*ENGINE.GetWindow()));
-
-      bool hover = (y == i && x == j);
-
-      if (hover) {
-        tileSprite.setColor({ color.r, color.b, color.g, 200 });
-      }*/
-
-      if (/*cam && cam->IsInView(tileSprite)*/ true) {
-        sf::Color originalColor = tileSprite.getColor();
-        if (map.HasShadow({ j, i }, index)) {
-          sf::Uint8 r, g, b;
-          r = sf::Uint8(originalColor.r * 0.65);
-          b = sf::Uint8(originalColor.b * 0.65);
-          g = sf::Uint8(originalColor.g * 0.65);
-
-          tileSprite.setColor(sf::Color(r, g, b, originalColor.a));
-        }
-        target.draw(tileSprite, states);
-        tileSprite.setColor(originalColor);
+        tileSprite.setColor(sf::Color(r, g, b, originalColor.a));
       }
+      target.draw(tileSprite, states);
+      tileSprite.setColor(originalColor);
 
       tileSprite.setOrigin(originalOrigin);
     }
