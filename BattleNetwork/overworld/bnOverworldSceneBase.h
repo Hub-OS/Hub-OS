@@ -79,7 +79,6 @@ namespace Overworld {
     Overworld::Map map; /*!< Overworld map */
     std::vector<std::shared_ptr<WorldSprite>> sprites;
     std::vector<std::vector<std::shared_ptr<WorldSprite>>> spriteLayers;
-    std::vector<short> gridShadows;
     Overworld::MenuSystem menuSystem;
 
     /*!< Current navi selection index */
@@ -99,8 +98,8 @@ namespace Overworld {
     void HandleInput();
     void LoadBackground(const Map& map, const std::string& value);
     void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
-    void DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer, size_t maxLayers, std::vector<short>&);
-    void DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer, const std::vector<short>&);
+    void DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer, size_t maxLayers);
+    void DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
     void PrintTime(sf::RenderTarget& target);
 
 #ifdef __ANDROID__

@@ -290,11 +290,19 @@ void Overworld::Homepage::onResume()
   SceneBase::onResume();
   Audio().Stream("resources/loops/loop_overworld.ogg", false);
   infocus = true;
+
+  if (packetProcessor) {
+    Net().AddHandler(remoteAddress, packetProcessor);
+  }
 }
 
 void Overworld::Homepage::onLeave()
 {
   infocus = false;
+
+  if (packetProcessor) {
+    Net().DropProcessor(packetProcessor);
+  }
 
   // repeat reconnection in case there was a fail that
   // forced us to return
