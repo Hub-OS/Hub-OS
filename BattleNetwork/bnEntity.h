@@ -139,7 +139,7 @@ public:
    * @brief Move to any tile on the field
    * @return true if the move action was queued. False if obstructed.
    * 
-   * NOTE: This doesn't mean that the entity will successfully move just that they could at the time
+   * @warning This doesn't mean that the entity will successfully move just that they could at the time
    */
   bool Teleport(Battle::Tile* dest, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});
   bool Slide(Battle::Tile* dest, const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order = ActionOrder::voluntary, std::function<void()> onBegin = [] {});

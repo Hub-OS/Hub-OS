@@ -8,6 +8,7 @@
 #include <Poco/Net/HTTPResponse.h>
 #include <Poco/Net/IPAddress.h>
 #include <Segues/PushIn.h>
+#include <Segues/WhiteWashFade.h>
 
 #include "bnPVPScene.h"
 #include "../bnGridBackground.h"

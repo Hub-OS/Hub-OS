@@ -1,6 +1,9 @@
 #include "bnBattleSceneBase.h"
 
 #include <assert.h>
+#include <Segues/WhiteWashFade.h>
+#include <Segues/BlackWashFade.h>
+#include <Segues/PixelateBlackWashFade.h>
 
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"
@@ -702,8 +705,12 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
   // visual appearance
   if(mode == FadeOut::white) {
     getController().pop<segue<WhiteWashFade>>();
-  } else {
+  } else if(mode == FadeOut::black) {
     getController().pop<segue<BlackWashFade>>();
+  }
+  else {
+    // mode == FadeOut::pixelate
+    getController().pop<segue<PixelateBlackWashFade>>();
   }
 
   quitting = true;

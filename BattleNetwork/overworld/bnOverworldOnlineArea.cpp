@@ -15,30 +15,28 @@
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 
-// hide util function in anon namespace exclusive to this file
-namespace {
-  const std::string sanitize_folder_name(std::string in) {
-    // todo: use regex for multiple erroneous folder names?
 
-    size_t pos = in.find('.');
+static const std::string sanitize_folder_name(std::string in) {
+  // todo: use regex for multiple erroneous folder names?
 
-    // Repeat till end is reached
-    while (pos != std::string::npos)
-    {
-      in.replace(pos, 1, "_");
-      pos = in.find('.', pos + 1);
-    }
+  size_t pos = in.find('.');
 
-    pos = in.find(':');
-
-    // find port
-    if (pos != std::string::npos)
-    {
-      in.replace(pos, 1, "_p");
-    }
-
-    return in;
+  // Repeat till end is reached
+  while (pos != std::string::npos)
+  {
+    in.replace(pos, 1, "_");
+    pos = in.find('.', pos + 1);
   }
+
+  pos = in.find(':');
+
+  // find port
+  if (pos != std::string::npos)
+  {
+    in.replace(pos, 1, "_p");
+  }
+
+  return in;
 }
 
 Overworld::OnlineArea::OnlineArea(
@@ -60,7 +58,7 @@ Overworld::OnlineArea::OnlineArea(
   ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
-  serverAssetManager("cache/" + ::sanitize_folder_name(remoteAddress.toString()))
+  serverAssetManager("cache/" + sanitize_folder_name(remoteAddress.toString()))
 {
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");

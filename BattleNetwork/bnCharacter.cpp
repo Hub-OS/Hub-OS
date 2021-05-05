@@ -263,14 +263,16 @@ void Character::Update(double _elapsed) {
     SetShader(whiteout);
   }
 
-  // Ensure health is zero if marked for immediate deletion
   if (health <= 0 || IsDeleted()) {
-    health = 0;
-  }
-
-  // Ensure entity is deleted if health is zero
-  if (health == 0) {
+    // Ensure entity is deleted if health is zero
     Delete();
+
+    // Ensure health is zero if marked for immediate deletion
+    health = 0;
+
+    // Ensure status effects do not play out
+    stunCooldown = 0;
+    invincibilityCooldown = 0;
   }
 
   // If drag status is over, reset the flag
@@ -493,7 +495,7 @@ void Character::ResolveFrameBattleDamage()
         }
         else {
           actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
-          invincibilityCooldown = 2.0; // used as a `flinch` status time
+          invincibilityCooldown = 2.0; // used as a `flash` status time
           flagCheckThunk(Hit::flash);
         }
       }
@@ -577,9 +579,6 @@ void Character::ResolveFrameBattleDamage()
       statusQueue.pop();
     }
 
-    stunCooldown = 0;
-    invincibilityCooldown = 0;
-
     //FinishMove(); // cancels slide. TODO: obstacles do not use this but characters do!
 
     if(frameCounterAggressor) {
@@ -596,6 +595,7 @@ void Character::ResolveFrameBattleDamage()
 
 void Character::OnUpdate(double elapsed)
 {
+  /* needed to be implemented for virtual inheritence */
 }
 
 const std::vector<const CardAction*> Character::AsyncActionList() const

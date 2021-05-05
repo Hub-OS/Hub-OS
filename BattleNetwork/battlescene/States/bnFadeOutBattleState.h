@@ -5,7 +5,8 @@
 // modes for fading out style
 enum class FadeOut : int {
     white = 0,
-    black
+    black,
+    pixelate
 };
 
 class Player;

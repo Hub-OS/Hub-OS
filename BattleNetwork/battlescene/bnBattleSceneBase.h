@@ -8,8 +8,6 @@
 #include <Swoosh/ActivityController.h>
 #include <Swoosh/Activity.h>
 #include <Swoosh/Timer.h>
-#include <Segues/WhiteWashFade.h>
-#include <Segues/BlackWashFade.h>
 
 #include "../bnScene.h"
 #include "../bnComponent.h"

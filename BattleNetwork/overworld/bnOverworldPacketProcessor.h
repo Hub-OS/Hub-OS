@@ -24,7 +24,7 @@ namespace Overworld {
     std::function<void(const Poco::Buffer<char>& data)> onPacketBody;
     PacketShipper packetShipper;
     PacketSorter packetSorter;
-    Reliability keepAliveReliability;
+    Reliability keepAliveReliability{};
     Poco::Buffer<char> keepAliveBody{ 0 };
     double keepAliveTimer{};
     double packetResendTimer{};

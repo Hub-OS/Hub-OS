@@ -39,6 +39,7 @@
 #include "../bnNetPlayFlags.h"
 #include "../bnNetPlayConfig.h"
 #include "../bnNetPlaySignals.h"
+#include "../bnPVPPacketProcessor.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -79,22 +80,24 @@ class NetworkBattleScene final : public BattleSceneBase {
 private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
+  friend class PVP::PacketProcessor;
 
   Handshake handshake{}; //!< typeful handshake values for different netplay states
   SelectedNavi selectedNavi; //!< the type of navi we selected
+  NetPlayFlags remoteState; //!< remote state flags to ensure stability
+  Poco::Net::SocketAddress remoteAddress;
+  std::vector<Player*> players; //!< Track all players
+  std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   NetworkCardUseListener* networkCardUseListener{ nullptr };
   SelectedCardsUI* remoteCardUsePublisher{ nullptr };
   PlayerCardUseListener* remoteCardUseListener{ nullptr };
-  Battle::Card** remoteHand{ nullptr }; // THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
-  NetPlayFlags remoteState; //!< remote state flags to ensure stability
-  Poco::Net::SocketAddress remoteAddress; //!< them
+  Battle::Card** remoteHand{ nullptr }; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
   Player *remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
-  std::vector<Player*> players; //!< Track all players
-  std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   CombatBattleState* combatPtr{ nullptr };
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
   NetworkSyncBattleState* syncStatePtr{ nullptr };
+  std::shared_ptr<PVP::PacketProcessor> packetProcessor;
 
   void sendHandshakeSignal(Handshake::Type type); // sent until we recieve a handshake
   void sendShootSignal();
@@ -121,7 +124,7 @@ private:
   void recieveChipUseSignal(const Poco::Buffer<char>&);
   void recieveLoserSignal(); // if they die, update our state flags
   void recieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
-  void processIncomingPackets();
+  void processPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
 
 public:
   using BattleSceneBase::ProcessNewestComponents;
