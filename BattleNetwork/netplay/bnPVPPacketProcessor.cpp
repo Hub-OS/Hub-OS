@@ -13,9 +13,6 @@ PVP::PacketProcessor::~PacketProcessor()
 }
 
 void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) {
-  if (sender != remote)
-    return;
-
   if (read == 0)
     return;
 

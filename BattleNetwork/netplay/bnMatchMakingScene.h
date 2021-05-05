@@ -15,13 +15,14 @@
 #include "../bnScene.h"
 
 #include "bnNetPlayConfig.h"
+#include "bnMatchMakingPacketProcessor.h"
 /**
- * @class PVPScene
+ * @class MatchMakingScene
  * @author mav
  * @date 08/22/2020
  * @brief Connect with a remote and battle eachother
  */
-class PVPScene : public Scene {
+class MatchMakingScene : public Scene {
 private:
   bool isScreenReady{ false };
   bool leave{ false }; /*!< Scene state coming/going flag */
@@ -36,6 +37,7 @@ private:
   double sequenceTimer{ 0.0 }; // in seconds
   double flashCooldown{ 0 };
   size_t selectionIndex{ 0 }; // 0 = text input field widget
+  std::string myIP, theirIP; // IP strings for textbox
   CardFolder& folder;
   PA& pa;
   NetPlayConfig netplayconfig;
@@ -48,12 +50,8 @@ private:
   SpriteProxyNode remotePreview;
   Animation uiAnim;
   AnimatedTextBox textbox;
-
-  static std::string myIP;
-  std::string theirIP;
   Text text, id;
-
-  const std::string GetPublicIP(); // TODO: this should be a fetchable value in the web client manager
+  std::shared_ptr<MatchMaking::PacketProcessor> packetProcessor;
 
   // event responses
   void HandleInfoMode();
@@ -65,7 +63,7 @@ private:
   void HandlePasteEvent();
 
   // netplay comm.
-  void ProcessIncomingPackets();
+  void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body);
   void SendConnectSignal(const int navi);
   void SendHandshakeSignal(); // sent until we recieve a handshake
   void RecieveConnectSignal(const Poco::Buffer<char>&);
@@ -80,8 +78,10 @@ private:
   void Reset();
 
 public:
-  PVPScene(swoosh::ActivityController&, int, CardFolder&, PA&);
-  ~PVPScene();
+  friend class MatchMaking::PacketProcessor;
+
+  MatchMakingScene(swoosh::ActivityController&, int, CardFolder&, PA&);
+  ~MatchMakingScene();
 
   /**
  * @brief

@@ -35,7 +35,7 @@
 #include "../bnUndernetBackground.h"
 #include "../bnWeatherBackground.h"
 
-#include "../netplay/bnPVPScene.h"
+#include "../netplay/bnMatchMakingScene.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -1356,7 +1356,7 @@ void Overworld::SceneBase::GotoPVP()
   if (folders.GetFolder(0, folder)) {
     Audio().Play(AudioType::CHIP_DESC);
     using effect = segue<PushIn<direction::down>, milliseconds<500>>;
-    getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
+    getController().push<effect::to<MatchMakingScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
   }
   else {
     Audio().Play(AudioType::CHIP_ERROR);

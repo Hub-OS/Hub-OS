@@ -3,27 +3,19 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 #include <SFML/Window/Clipboard.hpp>
-#include <Poco/Net/HTTPClientSession.h>
-#include <Poco/Net/HTTPRequest.h>
-#include <Poco/Net/HTTPResponse.h>
-#include <Poco/Net/IPAddress.h>
 #include <Segues/PushIn.h>
 #include <Segues/WhiteWashFade.h>
 
-#include "bnPVPScene.h"
+#include "bnMatchMakingScene.h"
 #include "../bnGridBackground.h"
 #include "../bnAudioResourceManager.h"
 #include "../bnSecretBackground.h"
 #include "../bnMessage.h"
 #include "battlescene/bnNetworkBattleScene.h"
 
-using namespace Poco;
-using namespace Net;
 using namespace swoosh::types;
 
-std::string PVPScene::myIP = "";
-
-PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFolder& folder, PA& pa) : 
+MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, int selected, CardFolder& folder, PA& pa) : 
   textbox(sf::Vector2f(4, 250)), 
   selectedNavi(selected), 
   folder(folder), pa(pa),
@@ -74,41 +66,16 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   // load animation files
   uiAnim.Load();
 
+  packetProcessor = std::make_shared<MatchMaking::PacketProcessor>(*this);
+
   setView(sf::Vector2u(480, 320));
 }
 
-PVPScene::~PVPScene() {
+MatchMakingScene::~MatchMakingScene() {
   delete gridBG;
 }
 
-const std::string PVPScene::GetPublicIP()
-{
-  std::string url = "checkip.amazonaws.com"; // send back public IP in plain text
-
-  try {
-    HTTPClientSession session(url);
-    HTTPRequest request(HTTPRequest::HTTP_GET, "/", HTTPMessage::HTTP_1_1);
-    HTTPResponse response;
-
-    session.sendRequest(request);
-    std::istream& rs = session.receiveResponse(response);
-
-    if (response.getStatus() != Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED)
-    {
-      std::string temp = std::string(std::istreambuf_iterator<char>(rs), {});
-      temp.erase(std::remove(temp.begin(), temp.end(), '\n'), temp.end());
-      return temp;
-    }
-  }
-  catch (std::exception& e) {
-    Logger::Logf("PVP Network Exception while obtaining IP: %s", e.what());
-  }
-
-  // failed 
-  return "";
-}
-
-void PVPScene::HandleInfoMode()
+void MatchMakingScene::HandleInfoMode()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("CTRL + C to copy your IP address");
@@ -117,7 +84,7 @@ void PVPScene::HandleInfoMode()
   textbox.CompleteCurrentBlock();
 }
 
-void PVPScene::HandleJoinMode()
+void MatchMakingScene::HandleJoinMode()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("Paste your opponent's IP address");
@@ -126,9 +93,8 @@ void PVPScene::HandleJoinMode()
   textbox.CompleteCurrentBlock();
 }
 
-void PVPScene::HandleReady()
+void MatchMakingScene::HandleReady()
 {
-  Poco::Net::SocketAddress sa(theirIP);
   textbox.ClearAllMessages();
   Message* help = new Message("Waiting for " + theirIP);
   textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
@@ -136,7 +102,7 @@ void PVPScene::HandleReady()
   textbox.CompleteCurrentBlock();
 }
 
-void PVPScene::HandleCancel()
+void MatchMakingScene::HandleCancel()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("Cancelled...");
@@ -146,7 +112,7 @@ void PVPScene::HandleCancel()
   Audio().Play(AudioType::CHIP_ERROR);
 }
 
-void PVPScene::HandleGetIPFailure()
+void MatchMakingScene::HandleGetIPFailure()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("Error obtaining your IP");
@@ -157,7 +123,7 @@ void PVPScene::HandleGetIPFailure()
   textbox.CompleteCurrentBlock();
 }
 
-void PVPScene::HandleCopyEvent()
+void MatchMakingScene::HandleCopyEvent()
 {
   std::string value = Input().GetClipboard();
 
@@ -179,19 +145,30 @@ void PVPScene::HandleCopyEvent()
   }
 }
 
-void PVPScene::HandlePasteEvent()
+void MatchMakingScene::HandlePasteEvent()
 {
   std::string value = Input().GetClipboard();
+
+  // assume true to avoid a series if-else scenarios
+  bool hasError = true;
 
   if (value != theirIP) {
     Message* help = nullptr;
 
     if (IsValidIPv4(value)) {
-      theirIP = value;
-      Audio().Play(AudioType::COUNTER_BONUS);
-      help = new Message("Pasted! Press start to connect.");
+      packetProcessor->SetNewRemote(value);
+
+      if (packetProcessor->RemoteAddrIsValid()) {
+        theirIP = value;
+        Audio().Play(AudioType::COUNTER_BONUS);
+        help = new Message("Pasted! Press start to connect.");
+
+        // If everything goes well, we have no error with the address...
+        hasError = false;
+      } 
     }
-    else {
+    
+    if(hasError) {
       Audio().Play(AudioType::CHIP_ERROR);
       help = new Message("Bad IP");
     }
@@ -202,82 +179,51 @@ void PVPScene::HandlePasteEvent()
   }
 }
 
-void PVPScene::ProcessIncomingPackets()
+void MatchMakingScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
-  auto& client = Net().GetSocket();
-
-  if (!client.poll(Poco::Timespan{ 0 }, Poco::Net::Socket::SELECT_READ)) return;
-  static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
-  static int read = 0;
-
   try {
-    while (client.available()) {
-      Poco::Net::SocketAddress sender;
-      Poco::Net::SocketAddress theirSA(theirIP);
-      read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1, sender);
-
-      if (sender != theirSA)
-        break;
-
-      if (read > 0) {
-        NetPlaySignals sig = *(NetPlaySignals*)rawBuffer;
-        size_t sigLen = sizeof(NetPlaySignals);
-        Poco::Buffer<char> data{ 0 };
-        data.append(rawBuffer + sigLen, size_t(read) - sigLen);
-
-        switch (sig) {
-        case NetPlaySignals::handshake:
-          RecieveHandshakeSignal();
-          break;
-        case NetPlaySignals::connect:
-          RecieveConnectSignal(data);
-          break;
-        }
-      }
+    switch (header) {
+    case NetPlaySignals::handshake:
+      RecieveHandshakeSignal();
+      break;
+    case NetPlaySignals::connect:
+      RecieveConnectSignal(body);
+      break;
     }
   }
   catch (std::exception& e) {
-    Logger::Logf("PVP Network exception: %s", e.what());
+    Logger::Logf("Match Making exception: %s", e.what());
   }
-
-  read = 0;
-  std::memset(rawBuffer, 0, NetPlayConfig::MAX_BUFFER_LEN);
 }
 
-void PVPScene::SendConnectSignal(const int navi)
+void MatchMakingScene::SendConnectSignal(const int navi)
 {
-  auto& client = Net().GetSocket();
-  Poco::Net::SocketAddress sa(theirIP);
-
   try {
     Poco::Buffer<char> buffer{ 0 };
     NetPlaySignals type{ NetPlaySignals::connect };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
     buffer.append((char*)&navi, sizeof(size_t));
-    client.sendTo(buffer.begin(), (int)buffer.size(), sa);
+    packetProcessor->SendPacket(buffer);
   }
   catch (Poco::IOException& e) {
     Logger::Logf("IOException when trying to connect to opponent: %s", e.what());
   }
 }
 
-void PVPScene::SendHandshakeSignal()
+void MatchMakingScene::SendHandshakeSignal()
 {
-  auto& client = Net().GetSocket();
-  Poco::Net::SocketAddress sa(theirIP);
-
   try {
     Poco::Buffer<char> buffer{ 0 };
     NetPlaySignals type{ NetPlaySignals::handshake };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
-    client.sendTo(buffer.begin(), (int)buffer.size(), sa);
+    packetProcessor->SendPacket(buffer);
   }
   catch (Poco::IOException& e) {
     Logger::Logf("IOException when trying to connect to opponent: %s", e.what());
   }
 }
 
-void PVPScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
+void MatchMakingScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 {
   if (remoteIsReady) return; // prevent multiple connection requests...
 
@@ -291,13 +237,13 @@ void PVPScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
   remotePreview.setOrigin(sf::Vector2f(0, height));
 }
 
-void PVPScene::RecieveHandshakeSignal()
+void MatchMakingScene::RecieveHandshakeSignal()
 {
   this->handshakeComplete = true;
   this->SendHandshakeSignal();
 }
 
-void PVPScene::DrawIDInputWidget(sf::RenderTexture& surface)
+void MatchMakingScene::DrawIDInputWidget(sf::RenderTexture& surface)
 {
   uiAnim.SetAnimation("ID_START");
   uiAnim.SetFrame(0, ui.getSprite());
@@ -329,7 +275,7 @@ void PVPScene::DrawIDInputWidget(sf::RenderTexture& surface)
   surface.draw(ui);
 }
 
-void PVPScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
+void MatchMakingScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
 {
   std::string state = "ENABLED";
   std::string clipboard = Input().GetClipboard();
@@ -393,13 +339,13 @@ void PVPScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
   surface.draw(ui);
 }
 
-const bool PVPScene::IsValidIPv4(const std::string& ip) const {
+const bool MatchMakingScene::IsValidIPv4(const std::string& ip) const {
   /*Poco::Net::IPAddress temp;
   return Poco::Net::IPAddress::tryParse(ip, temp);*/
   return true; // for debugging now...
 }
 
-void PVPScene::Reset()
+void MatchMakingScene::Reset()
 {
   leave = false; /*!< Scene state coming/going flag */
   remoteIsReady = false;
@@ -418,7 +364,7 @@ void PVPScene::Reset()
 
   // minor optimzation
   if (myIP.empty()) {
-    myIP = GetPublicIP();
+    myIP = packetProcessor->GetPublicIP();
   }
 
   if (myIP.empty()) {
@@ -438,19 +384,19 @@ void PVPScene::Reset()
   remotePreview.setPosition(0, 0);
 }
 
-void PVPScene::onStart() {
+void MatchMakingScene::onStart() {
   Reset();
 }
 
-void PVPScene::onResume() {
+void MatchMakingScene::onResume() {
 }
 
-void PVPScene::onExit()
+void MatchMakingScene::onExit()
 {
-
+  Net().DropProcessor(packetProcessor);
 }
 
-void PVPScene::onUpdate(double elapsed) {
+void MatchMakingScene::onUpdate(double elapsed) {
   gridBG->Update(double(elapsed));
   textbox.Update(double(elapsed));
 
@@ -465,11 +411,11 @@ void PVPScene::onUpdate(double elapsed) {
   else if (clientIsReady && !remoteIsReady) {
     if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
       clientIsReady = false;
+      Net().DropProcessor(packetProcessor);
       HandleCancel();
     }
     else {
       SendConnectSignal(selectedNavi);
-      ProcessIncomingPackets();
     }
   }
   else if (isInFlashyVSIntro && !isInBattleStartup) {
@@ -548,8 +494,6 @@ void PVPScene::onUpdate(double elapsed) {
 
     Player* player = NAVIS.At(selectedNavi).GetNavi();
 
-    // client.close();
-
     NetworkBattleSceneProps props = {
       { *player, pa, copy, new Field(6, 3), std::make_shared<SecretBackground>() },
       config
@@ -559,7 +503,6 @@ void PVPScene::onUpdate(double elapsed) {
   } else {
     // TODO use states/switches this is getting out of hand...
     if (clientIsReady && theirIP.size()) {
-      ProcessIncomingPackets();
 
       if (!handshakeComplete && !theirIP.empty()) {
         // Try reaching out to someone...
@@ -574,7 +517,6 @@ void PVPScene::onUpdate(double elapsed) {
     if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
       leave = true;
       Audio().Play(AudioType::CHIP_CANCEL);
-      // client.close();
       using effect = segue<PushIn<direction::up>, milliseconds<500>>;
       getController().pop<effect>();
     }
@@ -594,7 +536,9 @@ void PVPScene::onUpdate(double elapsed) {
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       HandleInfoMode();
     } 
-    else if (Input().Has(InputEvents::pressed_confirm) && !infoMode && !theirIP.empty() && !systemEvent) {
+    else if (Input().Has(InputEvents::pressed_confirm) && !infoMode && packetProcessor->RemoteAddrIsValid() && !systemEvent) {
+      Net().AddHandler(packetProcessor->GetRemoteAddr(), packetProcessor);
+
       this->clientIsReady = true;
       HandleReady();
       Audio().Play(AudioType::CHIP_CHOOSE);
@@ -602,23 +546,19 @@ void PVPScene::onUpdate(double elapsed) {
   }
 }
 
-void PVPScene::onLeave()
+void MatchMakingScene::onLeave()
 {
-
+  Net().DropProcessor(packetProcessor);
 }
 
-void PVPScene::onEnter()
+void MatchMakingScene::onEnter()
 {
   Reset();
 }
 
-void PVPScene::onDraw(sf::RenderTexture& surface) {
+void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
   surface.draw(greenBg);
   surface.draw(*gridBG);
-
-  // Draw the widget pieces
-  //surface.draw(ui);
-  //uiAnim.SetAnimation("...")
 
   if (!isInFlashyVSIntro) {
     surface.draw(textbox);

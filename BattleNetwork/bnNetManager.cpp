@@ -9,16 +9,13 @@ NetManager::NetManager()
 
 NetManager::~NetManager()
 {
-  // processors.clear() invoked by map dtor
+  // `processors.clear()` is invoked by map dtor
 }
 
 constexpr int MAX_BUFFER_LEN = 65535;
 
 void NetManager::Update(double elapsed)
 {
-  // TODO: REMOVE AFTER DEBUGGING PVP
-  return;
-
   static char buffer[MAX_BUFFER_LEN] = { 0 };
 
   while (client->available()) {
