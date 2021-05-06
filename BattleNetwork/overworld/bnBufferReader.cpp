@@ -1,21 +1,21 @@
 #include "bnBufferReader.h"
 
-Overworld::BufferReader::BufferReader()
+BufferReader::BufferReader()
 {
   offset = 0;
 }
 
-size_t Overworld::BufferReader::GetOffset()
+size_t BufferReader::GetOffset()
 {
   return offset;
 }
 
-void Overworld::BufferReader::Skip(size_t n)
+void BufferReader::Skip(size_t n)
 {
   offset += n;
 }
 
-std::string Overworld::BufferReader::ReadString(const Poco::Buffer<char>& buffer)
+std::string BufferReader::ReadString(const Poco::Buffer<char>& buffer)
 {
   auto iter = buffer.begin();
 

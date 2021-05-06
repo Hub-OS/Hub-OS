@@ -10,15 +10,6 @@ namespace Overworld
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
-  enum class Reliability : char
-  {
-    Unreliable = 0,
-    UnreliableSequenced,
-    Reliable,
-    ReliableSequenced,
-    ReliableOrdered,
-  };
-
   // server expects uint16_t codes
   enum class ClientEvents : uint16_t
   {

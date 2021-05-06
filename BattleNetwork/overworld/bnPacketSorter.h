@@ -1,36 +1,225 @@
 #pragma once
 
-#include "bnPacketHeaders.h"
+#include "bnPacketShipper.h"
+#include "bnBufferReader.h"
+#include "../bnLogger.h"
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Buffer.h>
 #include <chrono>
 #include <vector>
 
-namespace Overworld
+template<auto AckID>
+class PacketSorter
 {
-  class PacketSorter
+private:
+  struct BackedUpPacket
   {
-  private:
-    struct BackedUpPacket
-    {
-      uint64_t id{};
-      Poco::Buffer<char> data{ 0 };
-    };
-
-    Poco::Net::SocketAddress socketAddress;
-    uint64_t nextReliable{};
-    uint64_t nextUnreliableSequenced{};
-    uint64_t nextReliableOrdered{};
-    std::vector<uint64_t> missingReliable;
-    std::vector<BackedUpPacket> backedUpOrderedPackets;
-    std::chrono::time_point<std::chrono::steady_clock> lastMessageTime;
-
-    void sendAck(Poco::Net::DatagramSocket& socket, Reliability Reliability, uint64_t id);
-
-  public:
-    PacketSorter(const Poco::Net::SocketAddress& socketAddress);
-
-    std::chrono::time_point<std::chrono::steady_clock> GetLastMessageTime();
-    std::vector<Poco::Buffer<char>> SortPacket(Poco::Net::DatagramSocket& socket, Poco::Buffer<char> packet);
+    uint64_t id{};
+    Poco::Buffer<char> data{ 0 };
   };
-} // namespace Overworld
+
+  Poco::Net::SocketAddress socketAddress;
+  uint64_t nextReliable{};
+  uint64_t nextUnreliableSequenced{};
+  uint64_t nextReliableOrdered{};
+  std::vector<uint64_t> missingReliable;
+  std::vector<BackedUpPacket> backedUpOrderedPackets;
+  std::chrono::time_point<std::chrono::steady_clock> lastMessageTime;
+
+  void sendAck(Poco::Net::DatagramSocket& socket, Reliability reliability, uint64_t id);
+
+public:
+  PacketSorter(const Poco::Net::SocketAddress& socketAddress);
+
+  std::chrono::time_point<std::chrono::steady_clock> GetLastMessageTime();
+  std::vector<Poco::Buffer<char>> SortPacket(Poco::Net::DatagramSocket& socket, Poco::Buffer<char> packet);
+};
+
+
+template<auto AckID>
+PacketSorter<AckID>::PacketSorter(const Poco::Net::SocketAddress& socketAddress)
+{
+  this->socketAddress = socketAddress;
+  nextReliable = 0;
+  nextUnreliableSequenced = 0;
+  nextReliableOrdered = 0;
+  lastMessageTime = std::chrono::steady_clock::now();
+}
+
+template<auto AckID>
+std::chrono::time_point<std::chrono::steady_clock> PacketSorter<AckID>::GetLastMessageTime()
+{
+  return lastMessageTime;
+}
+
+template<auto AckID>
+std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
+  Poco::Net::DatagramSocket& socket,
+  Poco::Buffer<char> packet)
+{
+  lastMessageTime = std::chrono::steady_clock::now();
+
+  BufferReader reader;
+
+  Reliability reliability = reader.Read<Reliability>(packet);
+  auto isPureUnreliable = reliability == Reliability::Unreliable;
+  auto id = isPureUnreliable ? 0 : reader.Read<uint64_t>(packet);
+  auto dataOffset = reader.GetOffset();
+  auto data = Poco::Buffer<char>(packet.begin() + dataOffset, packet.size() - dataOffset);
+
+  switch (reliability)
+  {
+  case Reliability::Unreliable:
+    return { data };
+  case Reliability::UnreliableSequenced:
+    if (id < nextUnreliableSequenced)
+    {
+      // ignore old packets
+      return {};
+    }
+
+    nextUnreliableSequenced = id + 1;
+
+    return { data };
+  case Reliability::Reliable:
+    sendAck(socket, reliability, id);
+
+    if (id == nextReliable)
+    {
+      // expected
+      nextReliable += 1;
+
+      return { data };
+    }
+    else if (id > nextReliable)
+    {
+      // skipped expected
+      for (auto i = nextReliable; i < id; i++)
+      {
+        missingReliable.push_back(i);
+      }
+
+      nextReliable = id + 1;
+
+      return { data };
+    }
+    else
+    {
+      auto iterEnd = missingReliable.end();
+      auto iter = std::find(missingReliable.begin(), missingReliable.end(), id);
+
+      if (iter != iterEnd)
+      {
+        // one of the missing packets
+        missingReliable.erase(iter);
+
+        return { data };
+      }
+    }
+
+    // we already handled this packet
+    return {};
+  case Reliability::ReliableOrdered:
+    sendAck(socket, reliability, id);
+
+    if (id == nextReliableOrdered)
+    {
+      auto i = 0;
+
+      nextReliableOrdered += 1;
+
+      for (auto& backedUpPacket : backedUpOrderedPackets)
+      {
+        if (backedUpPacket.id != nextReliableOrdered)
+        {
+          break;
+        }
+
+        nextReliableOrdered += 1;
+        i += 1;
+      }
+
+      auto iterBegin = backedUpOrderedPackets.begin();
+
+      // split backed up packets, store newer packets
+      std::vector<BackedUpPacket> freedPackets(iterBegin, iterBegin + i);
+      std::vector<BackedUpPacket> backedUpPackets(iterBegin + i, backedUpOrderedPackets.end());
+
+      backedUpOrderedPackets = backedUpPackets;
+
+      std::vector<Poco::Buffer<char>> packets{ data };
+
+      for (auto& backedUpPacket : freedPackets)
+      {
+        packets.push_back(backedUpPacket.data);
+      }
+
+      return packets;
+    }
+    else if (id > nextReliableOrdered)
+    {
+      // sorted insert
+      auto i = 0;
+      auto shouldInsert = true;
+
+      for (auto& backedUpPacket : backedUpOrderedPackets)
+      {
+        if (backedUpPacket.id == id)
+        {
+          shouldInsert = false;
+          break;
+        }
+        if (backedUpPacket.id > id)
+        {
+          break;
+        }
+        i += 1;
+      }
+
+      if (shouldInsert)
+      {
+        backedUpOrderedPackets.emplace(
+          backedUpOrderedPackets.begin() + i,
+          BackedUpPacket{
+              id,
+              data,
+          });
+      }
+
+      // can't use this packet until we recieve earlier packets
+      // fall-through
+    }
+
+    // already handled
+    return {};
+  }
+
+  // unreachable, all cases should be covered above
+  Logger::Log("bnPacketSorter.cpp: How did we get here?");
+  return {};
+}
+
+template<auto AckID>
+void PacketSorter<AckID>::sendAck(Poco::Net::DatagramSocket& socket, Reliability reliability, uint64_t id)
+{
+  auto ackId = AckID;
+
+  Poco::Buffer<char> data{ 0 };
+  data.append((char)Reliability::Unreliable);
+  data.append((char*)&ackId, sizeof(ackId));
+  data.append((char)reliability);
+  data.append((char*)&id, sizeof(id));
+
+  try
+  {
+    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+  }
+  catch (Poco::IOException& e)
+  {
+    if (e.code() == POCO_EWOULDBLOCK) {
+      return;
+    }
+
+    Logger::Logf("Sorter Network exception: %s", e.displayText().c_str());
+  }
+}
