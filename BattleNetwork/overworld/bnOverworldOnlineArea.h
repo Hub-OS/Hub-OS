@@ -6,10 +6,10 @@
 #include <unordered_map>
 #include <functional>
 
+#include "../netplay/bnBufferReader.h"
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldPacketProcessor.h"
 #include "bnPacketHeaders.h"
-#include "bnBufferReader.h"
 #include "bnServerAssetManager.h"
 
 namespace Overworld {

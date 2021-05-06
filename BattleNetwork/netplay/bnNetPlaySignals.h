@@ -2,6 +2,7 @@
 
 enum class NetPlaySignals : unsigned int {
   none = 0,
+  ack,
   connect,
   handshake,
   ready,

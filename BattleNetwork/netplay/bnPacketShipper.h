@@ -1,6 +1,5 @@
 #pragma once
 
-#include "bnPacketHeaders.h"
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Buffer.h>
 #include <chrono>

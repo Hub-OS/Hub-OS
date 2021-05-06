@@ -1,7 +1,7 @@
 #pragma once
 #include "bnPacketHeaders.h"
-#include "bnPacketShipper.h"
-#include "bnPacketSorter.h"
+#include "../netplay/bnPacketShipper.h"
+#include "../netplay/bnPacketSorter.h"
 #include "../bnIPacketProcessor.h"
 #include <Poco/Net/SocketAddress.h>
 #include <optional>

@@ -2,8 +2,12 @@
 #include "bnNetPlaySignals.h"
 #include "battlescene/bnNetworkBattleScene.h"
 
+const float PACKET_RESEND_RATE = 1.0f / 20.f;
+
 PVP::PacketProcessor::PacketProcessor(Poco::Net::SocketAddress& remoteAddress, NetworkBattleScene& scene) :
   remote(remoteAddress),
+  packetShipper(remoteAddress),
+  packetSorter(remoteAddress),
   scene(scene)
 {
 }
@@ -21,13 +25,28 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
   Poco::Buffer<char> data{ 0 };
   data.append(buffer + sigLen, size_t(read) - sigLen);
 
-  scene.processPacketBody(sig, data);
+  if (sig == NetPlaySignals::ack) {
+    BufferReader reader;
+    Reliability r = reader.Read<Reliability>(data);
+    uint64_t id = reader.Read<uint64_t>(data);
+    packetShipper.Acknowledged(r, id);
+  }
+  else {
+    scene.processPacketBody(sig, data);
+  }
 
   lastPacketTime = std::chrono::steady_clock::now();
   errorCount = 0;
 }
 
 void PVP::PacketProcessor::Update(double elapsed) {
+  packetResendTimer -= elapsed;
+
+  if (packetResendTimer < 0) {
+    packetShipper.ResendBackedUpPackets(*client);
+    packetResendTimer = PACKET_RESEND_RATE;
+  }
+
   // All this update loop does is kick for silence
   // If not enabled, return early
   if (!checkForSilence) return;
@@ -44,9 +63,9 @@ void PVP::PacketProcessor::HandleError()
   errorCount++;
 }
 
-void PVP::PacketProcessor::SendPacket(const Poco::Buffer<char>& data)
+void PVP::PacketProcessor::SendPacket(Reliability reliability, const Poco::Buffer<char>& data)
 {
-  client->sendTo(data.begin(), (int)data.size(), remote);
+  packetShipper.Send(*client, reliability, data);
 }
 
 void PVP::PacketProcessor::EnableKickForSilence(bool enabled)
