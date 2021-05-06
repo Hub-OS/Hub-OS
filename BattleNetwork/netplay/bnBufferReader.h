@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Poco/Buffer.h>
+#include "../bnLogger.h"
 
 class BufferReader
 {
@@ -18,8 +19,15 @@ public:
   template <typename T>
   T Read(const Poco::Buffer<char>& buffer)
   {
-    T result;
+    T result = static_cast<T>(0);
     size_t size = sizeof(T);
+
+    if (offset + size > buffer.size()) {
+      Logger::Log("BufferReader read past end!");
+      offset = buffer.size();
+      return result;
+    }
+
     std::memcpy(&result, buffer.begin() + offset, size);
     offset += size;
     return result;
