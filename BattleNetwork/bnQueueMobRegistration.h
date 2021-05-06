@@ -123,6 +123,8 @@ static inline void QueueMobRegistration() {
 
 
 #ifdef BN_MOD_SUPPORT
+  ResourceHandle handle;
+
   // Script resource manager load scripts from designated folder "resources/mods/players"
   std::string path = "resources/mods/enemies";
   for (const auto& entry : std::filesystem::directory_iterator(path)) {

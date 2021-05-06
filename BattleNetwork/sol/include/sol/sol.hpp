@@ -20,8 +20,8 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // This file was generated with a script.
-// Generated 2021-02-03 06:42:02.965993 UTC
-// This header was generated with sol v3.2.3 (revision b77f1a21)
+// Generated 2021-05-06 18:05:38.387475 UTC
+// This header was generated with sol v4.0.0-alpha (revision f56b3c69)
 // https://github.com/ThePhD/sol2
 
 #ifndef SOL_SINGLE_INCLUDE_HPP
@@ -682,6 +682,41 @@
 	#else
 		#define SOL_CHAR8_T_I_ SOL_DEFAULT_OFF
 	#endif
+#endif
+
+#if SOL_IS_ON(SOL_USE_BOOST_I_)
+	#include <boost/version.hpp>
+
+	#if BOOST_VERSION >= 107500 // Since Boost 1.75.0 boost::none is constexpr
+		#define SOL_BOOST_NONE_CONSTEXPR_I_ constexpr
+	#else
+		#define SOL_BOOST_NONE_CONSTEXPR_I_ const
+	#endif // BOOST_VERSION
+#else
+	// assume boost isn't using a garbage version
+	#define SOL_BOOST_NONE_CONSTEXPR_I_ constexpr
+#endif
+
+#if defined(SOL2_CI)
+	#if (SOL2_CI != 0)
+		#define SOL2_CI_I_ SOL_ON
+	#else
+		#define SOL2_CI_I_ SOL_OFF
+	#endif
+#else
+	#define SOL2_CI_I_ SOL_OFF
+#endif
+
+#if defined(SOL_C_ASSERT)
+	#define SOL_USER_C_ASSERT_I_ SOL_ON
+#else
+	#define SOL_USER_C_ASSERT_I_ SOL_DEFAULT_OFF
+#endif
+
+#if defined(SOL_M_ASSERT)
+	#define SOL_USER_M_ASSERT_I_ SOL_ON
+#else
+	#define SOL_USER_M_ASSERT_I_ SOL_DEFAULT_OFF
 #endif
 
 // end of sol/version.hpp
@@ -2196,21 +2231,39 @@ namespace sol { namespace meta {
 		template <typename T, typename U>
 		class supports_op_less_test<T, U, void_t<decltype(std::declval<T&>() < std::declval<U&>())>>
 		: public std::integral_constant<bool,
-			  !is_specialization_of_v<unqualified_t<T>, std::variant> && !is_specialization_of_v<unqualified_t<U>, std::variant>> { };
+#if SOL_IS_ON(SOL_STD_VARIANT_I_)
+			  !is_specialization_of_v<unqualified_t<T>, std::variant> && !is_specialization_of_v<unqualified_t<U>, std::variant>
+#else
+			  true
+#endif
+			  > {
+		};
 
 		template <typename T, typename U, typename = void>
 		class supports_op_equal_test : public std::false_type { };
 		template <typename T, typename U>
 		class supports_op_equal_test<T, U, void_t<decltype(std::declval<T&>() == std::declval<U&>())>>
 		: public std::integral_constant<bool,
-			  !is_specialization_of_v<unqualified_t<T>, std::variant> && !is_specialization_of_v<unqualified_t<U>, std::variant>> { };
+#if SOL_IS_ON(SOL_STD_VARIANT_I_)
+			  !is_specialization_of_v<unqualified_t<T>, std::variant> && !is_specialization_of_v<unqualified_t<U>, std::variant>
+#else
+			  true
+#endif
+			  > {
+		};
 
 		template <typename T, typename U, typename = void>
 		class supports_op_less_equal_test : public std::false_type { };
 		template <typename T, typename U>
 		class supports_op_less_equal_test<T, U, void_t<decltype(std::declval<T&>() <= std::declval<U&>())>>
 		: public std::integral_constant<bool,
-			  !is_specialization_of_v<unqualified_t<T>, std::variant> && !is_specialization_of_v<unqualified_t<U>, std::variant>> { };
+#if SOL_IS_ON(SOL_STD_VARIANT_I_)
+			  !is_specialization_of_v<unqualified_t<T>, std::variant> && !is_specialization_of_v<unqualified_t<U>, std::variant>
+#else
+			  true
+#endif
+			  > {
+		};
 
 		template <typename T, typename U, typename = void>
 		class supports_op_left_shift_test : public std::false_type { };
@@ -2451,6 +2504,73 @@ namespace sol {
 
 #endif // SOL_FORWARD_DETAIL_HPP
 // end of sol/forward_detail.hpp
+
+// beginning of sol/assert.hpp
+
+#if SOL_IS_ON(SOL2_CI_I_)
+
+struct pre_main {
+	pre_main() {
+#ifdef _MSC_VER
+		_set_abort_behavior(0, _WRITE_ABORT_MSG);
+#endif
+	}
+} inline sol2_ci_dont_lock_ci_please = {};
+
+#endif // Prevent lockup when doing Continuous Integration
+
+#if SOL_IS_ON(SOL_USER_C_ASSERT_I_)
+	#define sol_c_assert(...) SOL_C_ASSERT(__VA_ARGS__)
+#else
+	#if SOL_IS_ON(SOL_DEBUG_BUILD_I_)
+		#include <exception>
+		#include <iostream>
+		#include <cstdlib>
+
+			#define sol_c_assert(...)                                                                                               \
+				do {                                                                                                               \
+					if (!(__VA_ARGS__)) {                                                                                           \
+						std::cerr << "Assertion `" #__VA_ARGS__ "` failed in " << __FILE__ << " line " << __LINE__ << std::endl; \
+						std::terminate();                                                                                        \
+					}                                                                                                             \
+				} while (false)
+	#else
+		#define sol_c_assert(...)           \
+			do {                           \
+				if (false) {              \
+					(void)(__VA_ARGS__); \
+				}                         \
+			} while (false)
+	#endif
+#endif
+
+#if SOL_IS_ON(SOL_USER_M_ASSERT_I_)
+	#define sol_m_assert(message, ...) SOL_M_ASSERT(message, __VA_ARGS__)
+#else
+	#if SOL_IS_ON(SOL_DEBUG_BUILD_I_)
+		#include <exception>
+		#include <iostream>
+		#include <cstdlib>
+
+		#define sol_m_assert(message, ...)                                                                                                         \
+			do {                                                                                                                                  \
+				if (!(__VA_ARGS__)) {                                                                                                              \
+					std::cerr << "Assertion `" #__VA_ARGS__ "` failed in " << __FILE__ << " line " << __LINE__ << ": " << message << std::endl; \
+					std::terminate();                                                                                                           \
+				}                                                                                                                                \
+			} while (false)
+	#else
+		#define sol_m_assert(message, ...)    \
+			do {                             \
+				if (false) {                \
+					(void)(__VA_ARGS__);   \
+					(void)sizeof(message); \
+				}                           \
+			} while (false)
+	#endif
+#endif
+
+// end of sol/assert.hpp
 
 // beginning of sol/bytecode.hpp
 
@@ -4726,9 +4846,12 @@ namespace sol {
 	/// ```
 	using std::nullopt;
 
+	/// @brief An exception for when an optional is accessed through specific methods while it is not engaged.
 	class bad_optional_access : public std::exception {
 	public:
+		/// @brief Default-constructs an optional exception.
 		bad_optional_access() = default;
+		/// @brief Returns a pointer to a null-terminated string containing the reason for the exception.
 		const char* what() const noexcept override {
 			return "Optional has no value";
 		}
@@ -4760,7 +4883,7 @@ namespace sol {
 		/// otherwise the return value of `std::invoke(std::forward<F>(f), value())`
 		/// is returned.
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) &;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) &;
 		template <class F>
 		SOL_TL_OPTIONAL_11_CONSTEXPR auto and_then(F&& f) & {
 			using result = detail::invoke_result_t<F, T&>;
@@ -4770,7 +4893,7 @@ namespace sol {
 		}
 
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) &&;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) &&;
 		template <class F>
 		SOL_TL_OPTIONAL_11_CONSTEXPR auto and_then(F&& f) && {
 			using result = detail::invoke_result_t<F, T&&>;
@@ -4780,7 +4903,7 @@ namespace sol {
 		}
 
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) const &;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) const &;
 		template <class F>
 		constexpr auto and_then(F&& f) const& {
 			using result = detail::invoke_result_t<F, const T&>;
@@ -4791,7 +4914,7 @@ namespace sol {
 
 #ifndef SOL_TL_OPTIONAL_NO_CONSTRR
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) const &&;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) const &&;
 		template <class F>
 		constexpr auto and_then(F&& f) const&& {
 			using result = detail::invoke_result_t<F, const T&&>;
@@ -4810,7 +4933,7 @@ namespace sol {
 		/// `*this` is empty, otherwise the return value of
 		/// `std::invoke(std::forward<F>(f), value())` is returned.
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) &;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) &;
 		template <class F>
 		SOL_TL_OPTIONAL_11_CONSTEXPR detail::invoke_result_t<F, T&> and_then(F&& f) & {
 			using result = detail::invoke_result_t<F, T&>;
@@ -4820,7 +4943,7 @@ namespace sol {
 		}
 
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) &&;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) &&;
 		template <class F>
 		SOL_TL_OPTIONAL_11_CONSTEXPR detail::invoke_result_t<F, T&&> and_then(F&& f) && {
 			using result = detail::invoke_result_t<F, T&&>;
@@ -4830,7 +4953,7 @@ namespace sol {
 		}
 
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) const &;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) const &;
 		template <class F>
 		constexpr detail::invoke_result_t<F, const T&> and_then(F&& f) const& {
 			using result = detail::invoke_result_t<F, const T&>;
@@ -4841,7 +4964,7 @@ namespace sol {
 
 #ifndef SOL_TL_OPTIONAL_NO_CONSTRR
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) const &&;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) const &&;
 		template <class F>
 		constexpr detail::invoke_result_t<F, const T&&> and_then(F&& f) const&& {
 			using result = detail::invoke_result_t<F, const T&&>;
@@ -5042,14 +5165,14 @@ namespace sol {
 		/// `std::forward<U>(u)()` is returned.
 		///
 		/// \group map_or_else
-		/// \synopsis template <class F, class U>\nauto map_or_else(F &&f, U &&u) &;
+		/// \synopsis template <class F, class U> \n auto map_or_else(F &&f, U &&u) &;
 		template <class F, class U>
 		detail::invoke_result_t<U> map_or_else(F&& f, U&& u) & {
 			return has_value() ? detail::invoke(std::forward<F>(f), **this) : std::forward<U>(u)();
 		}
 
 		/// \group map_or_else
-		/// \synopsis template <class F, class U>\nauto map_or_else(F &&f, U &&u)
+		/// \synopsis template <class F, class U> \n auto map_or_else(F &&f, U &&u)
 		/// &&;
 		template <class F, class U>
 		detail::invoke_result_t<U> map_or_else(F&& f, U&& u) && {
@@ -5057,7 +5180,7 @@ namespace sol {
 		}
 
 		/// \group map_or_else
-		/// \synopsis template <class F, class U>\nauto map_or_else(F &&f, U &&u)
+		/// \synopsis template <class F, class U> \n auto map_or_else(F &&f, U &&u)
 		/// const &;
 		template <class F, class U>
 		detail::invoke_result_t<U> map_or_else(F&& f, U&& u) const& {
@@ -5066,7 +5189,7 @@ namespace sol {
 
 #ifndef SOL_TL_OPTIONAL_NO_CONSTRR
 		/// \group map_or_else
-		/// \synopsis template <class F, class U>\nauto map_or_else(F &&f, U &&u)
+		/// \synopsis template <class F, class U> \n auto map_or_else(F &&f, U &&u)
 		/// const &&;
 		template <class F, class U>
 		detail::invoke_result_t<U> map_or_else(F&& f, U&& u) const&& {
@@ -5188,7 +5311,7 @@ namespace sol {
 		}
 
 		/// \group in_place
-		/// \synopsis template <class U, class... Args>\nconstexpr explicit optional(in_place_t, std::initializer_list<U>&, Args&&... args);
+		/// \synopsis template <class U, class... Args> \n constexpr explicit optional(in_place_t, std::initializer_list<U>&, Args&&... args);
 		template <class U, class... Args>
 		SOL_TL_OPTIONAL_11_CONSTEXPR explicit optional(detail::enable_if_t<std::is_constructible<T, std::initializer_list<U>&, Args&&...>::value, in_place_t>,
 		     std::initializer_list<U> il, Args&&... args) {
@@ -5215,7 +5338,7 @@ namespace sol {
 		/// \exclude
 		constexpr optional(const T& u) : base(in_place, u) {
 		}
-#endif // sol3 modification
+#endif // sol2 modification
 
 		/// Converting copy constructor.
 		/// \synopsis template <class U> optional(const optional<U> &rhs);
@@ -5351,7 +5474,7 @@ namespace sol {
 		}
 
 		/// \group emplace
-		/// \synopsis template <class U, class... Args>\nT& emplace(std::initializer_list<U> il, Args &&... args);
+		/// \synopsis template <class U, class... Args> \n T& emplace(std::initializer_list<U> il, Args &&... args);
 		template <class U, class... Args>
 		detail::enable_if_t<std::is_constructible<T, std::initializer_list<U>&, Args&&...>::value, T&> emplace(std::initializer_list<U> il, Args&&... args) {
 			*this = nullopt;
@@ -5669,7 +5792,7 @@ namespace sol {
 		return rhs.has_value() ? lhs >= *rhs : true;
 	}
 
-	/// \synopsis template <class T>\nvoid swap(optional<T> &lhs, optional<T> &rhs);
+	/// \synopsis template <class T>  \n  void swap(optional<T> &lhs, optional<T> &rhs);
 	template <class T, detail::enable_if_t<std::is_move_constructible<T>::value>* = nullptr, detail::enable_if_t<detail::is_swappable<T>::value>* = nullptr>
 	void swap(optional<T>& lhs, optional<T>& rhs) noexcept(noexcept(lhs.swap(rhs))) {
 		return lhs.swap(rhs);
@@ -5774,7 +5897,7 @@ namespace sol {
 		/// otherwise the return value of `std::invoke(std::forward<F>(f), value())`
 		/// is returned.
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) &;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) &;
 		template <class F>
 		SOL_TL_OPTIONAL_11_CONSTEXPR auto and_then(F&& f) & {
 			using result = detail::invoke_result_t<F, T&>;
@@ -5784,7 +5907,7 @@ namespace sol {
 		}
 
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) &&;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) &&;
 		template <class F>
 		SOL_TL_OPTIONAL_11_CONSTEXPR auto and_then(F&& f) && {
 			using result = detail::invoke_result_t<F, T&>;
@@ -5794,7 +5917,7 @@ namespace sol {
 		}
 
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) const &;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) const &;
 		template <class F>
 		constexpr auto and_then(F&& f) const& {
 			using result = detail::invoke_result_t<F, const T&>;
@@ -5805,7 +5928,7 @@ namespace sol {
 
 #ifndef SOL_TL_OPTIONAL_NO_CONSTRR
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) const &&;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) const &&;
 		template <class F>
 		constexpr auto and_then(F&& f) const&& {
 			using result = detail::invoke_result_t<F, const T&>;
@@ -5824,7 +5947,7 @@ namespace sol {
 		/// otherwise the return value of `std::invoke(std::forward<F>(f), value())`
 		/// is returned.
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) &;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) &;
 		template <class F>
 		SOL_TL_OPTIONAL_11_CONSTEXPR detail::invoke_result_t<F, T&> and_then(F&& f) & {
 			using result = detail::invoke_result_t<F, T&>;
@@ -5834,7 +5957,7 @@ namespace sol {
 		}
 
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) &&;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) &&;
 		template <class F>
 		SOL_TL_OPTIONAL_11_CONSTEXPR detail::invoke_result_t<F, T&> and_then(F&& f) && {
 			using result = detail::invoke_result_t<F, T&>;
@@ -5844,7 +5967,7 @@ namespace sol {
 		}
 
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) const &;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) const &;
 		template <class F>
 		constexpr detail::invoke_result_t<F, const T&> and_then(F&& f) const& {
 			using result = detail::invoke_result_t<F, const T&>;
@@ -5855,7 +5978,7 @@ namespace sol {
 
 #ifndef SOL_TL_OPTIONAL_NO_CONSTRR
 		/// \group and_then
-		/// \synopsis template <class F>\nconstexpr auto and_then(F &&f) const &&;
+		/// \synopsis template <class F> \n constexpr auto and_then(F &&f) const &&;
 		template <class F>
 		constexpr detail::invoke_result_t<F, const T&> and_then(F&& f) const&& {
 			using result = detail::invoke_result_t<F, const T&>;
@@ -6055,14 +6178,14 @@ namespace sol {
 		/// `std::forward<U>(u)()` is returned.
 		///
 		/// \group map_or_else
-		/// \synopsis template <class F, class U>\nauto map_or_else(F &&f, U &&u) &;
+		/// \synopsis template <class F, class U> \n auto map_or_else(F &&f, U &&u) &;
 		template <class F, class U>
 		detail::invoke_result_t<U> map_or_else(F&& f, U&& u) & {
 			return has_value() ? detail::invoke(std::forward<F>(f), **this) : std::forward<U>(u)();
 		}
 
 		/// \group map_or_else
-		/// \synopsis template <class F, class U>\nauto map_or_else(F &&f, U &&u)
+		/// \synopsis template <class F, class U> \n auto map_or_else(F &&f, U &&u)
 		/// &&;
 		template <class F, class U>
 		detail::invoke_result_t<U> map_or_else(F&& f, U&& u) && {
@@ -6070,7 +6193,7 @@ namespace sol {
 		}
 
 		/// \group map_or_else
-		/// \synopsis template <class F, class U>\nauto map_or_else(F &&f, U &&u)
+		/// \synopsis template <class F, class U> \n auto map_or_else(F &&f, U &&u)
 		/// const &;
 		template <class F, class U>
 		detail::invoke_result_t<U> map_or_else(F&& f, U&& u) const& {
@@ -6079,7 +6202,7 @@ namespace sol {
 
 #ifndef SOL_TL_OPTIONAL_NO_CONSTRR
 		/// \group map_or_else
-		/// \synopsis template <class F, class U>\nauto map_or_else(F &&f, U &&u)
+		/// \synopsis template <class F, class U> \n auto map_or_else(F &&f, U &&u)
 		/// const &&;
 		template <class F, class U>
 		detail::invoke_result_t<U> map_or_else(F&& f, U&& u) const&& {
@@ -6373,7 +6496,7 @@ namespace sol {
 	template <typename T>
 	using optional = boost::optional<T>;
 	using nullopt_t = boost::none_t;
-	const nullopt_t nullopt = boost::none;
+	SOL_BOOST_NONE_CONSTEXPR_I_ nullopt_t nullopt = boost::none;
 #endif // Boost vs. Better optional
 
 	namespace meta {
@@ -6393,19 +6516,23 @@ namespace sol {
 #if SOL_IS_ON(SOL_USE_BOOST_I_)
 		template <typename T>
 		struct associated_nullopt<boost::optional<T>> {
-			inline static const boost::none_t value = boost::none;
+			inline static SOL_BOOST_NONE_CONSTEXPR_I_ boost::none_t value = boost::none;
 		};
 #endif // Boost nullopt
 
 #if SOL_IS_ON(SOL_USE_BOOST_I_)
 		template <typename T>
-		inline const auto associated_nullopt_v = associated_nullopt<T>::value;
+		inline SOL_BOOST_NONE_CONSTEXPR_I_ auto associated_nullopt_v = associated_nullopt<T>::value;
 #else
 		template <typename T>
 		inline constexpr auto associated_nullopt_v = associated_nullopt<T>::value;
 #endif // Boost continues to lag behind, to not many people's surprise...
 	} // namespace detail
 } // namespace sol
+
+#if SOL_IS_ON(SOL_USE_BOOST_I_)
+#undef SOL_BOOST_NONE_CONSTEXPR_I_
+#endif
 
 // end of sol/optional.hpp
 
@@ -6645,8 +6772,9 @@ namespace sol { namespace detail {
 			return *this;
 		};
 		template <typename Arg, typename... Args,
-			typename = std::enable_if_t<!std::is_same_v<std::remove_reference_t<std::remove_cv_t<Arg>>,
-			                                 ebco> && !std::is_same_v<std::remove_reference_t<std::remove_cv_t<Arg>>, T> && (sizeof...(Args) > 0 || !std::is_convertible_v<Arg, T>)>>
+			typename = std::enable_if_t<
+			     !std::is_same_v<std::remove_reference_t<std::remove_cv_t<Arg>>,
+			          ebco> && !std::is_same_v<std::remove_reference_t<std::remove_cv_t<Arg>>, T> && (sizeof...(Args) > 0 || !std::is_convertible_v<Arg, T>)>>
 		ebco(Arg&& arg, Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Arg, Args...>)
 		: m_value(std::forward<Arg>(arg), std::forward<Args>(args)...) {
 		}
@@ -6672,8 +6800,9 @@ namespace sol { namespace detail {
 		ebco(const T& v) noexcept(std::is_nothrow_copy_constructible_v<T>) : T(v) {};
 		ebco(T&& v) noexcept(std::is_nothrow_move_constructible_v<T>) : T(std::move(v)) {};
 		template <typename Arg, typename... Args,
-			typename = std::enable_if_t<!std::is_same_v<std::remove_reference_t<std::remove_cv_t<Arg>>,
-			                                 ebco> && !std::is_same_v<std::remove_reference_t<std::remove_cv_t<Arg>>, T> && (sizeof...(Args) > 0 || !std::is_convertible_v<Arg, T>)>>
+			typename = std::enable_if_t<
+			     !std::is_same_v<std::remove_reference_t<std::remove_cv_t<Arg>>,
+			          ebco> && !std::is_same_v<std::remove_reference_t<std::remove_cv_t<Arg>>, T> && (sizeof...(Args) > 0 || !std::is_convertible_v<Arg, T>)>>
 		ebco(Arg&& arg, Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Arg, Args...>) : T(std::forward<Arg>(arg), std::forward<Args>(args)...) {
 		}
 
@@ -8208,7 +8337,7 @@ namespace sol {
 		// must push at least 1 object on the stack
 		inline int default_exception_handler(lua_State* L, optional<const std::exception&>, string_view what) {
 #if SOL_IS_ON(SOL_PRINT_ERRORS_I_)
-			std::cerr << "[sol3] An exception occurred: ";
+			std::cerr << "[sol2] An exception occurred: ";
 			std::cerr.write(what.data(), static_cast<std::streamsize>(what.size()));
 			std::cerr << std::endl;
 #endif
@@ -8722,7 +8851,8 @@ namespace sol {
 		template <typename T>
 		constexpr bool unique_is_null_noexcept() noexcept {
 			if constexpr (meta::meta_detail::unique_usertype_is_null_with_state_v<std::remove_cv_t<T>>) {
-				return noexcept(unique_usertype_traits<T>::is_null(static_cast<lua_State*>(nullptr), std::declval<unique_usertype_actual_t<std::remove_cv_t<T>>>()));
+				return noexcept(
+				     unique_usertype_traits<T>::is_null(static_cast<lua_State*>(nullptr), std::declval<unique_usertype_actual_t<std::remove_cv_t<T>>>()));
 			}
 			else {
 				return noexcept(unique_usertype_traits<T>::is_null(std::declval<unique_usertype_actual_t<std::remove_cv_t<T>>>()));
@@ -8743,7 +8873,8 @@ namespace sol {
 		template <typename T>
 		constexpr bool unique_get_noexcept() noexcept {
 			if constexpr (meta::meta_detail::unique_usertype_get_with_state_v<std::remove_cv_t<T>>) {
-				return noexcept(unique_usertype_traits<T>::get(static_cast<lua_State*>(nullptr), std::declval<unique_usertype_actual_t<std::remove_cv_t<T>>>()));
+				return noexcept(
+				     unique_usertype_traits<T>::get(static_cast<lua_State*>(nullptr), std::declval<unique_usertype_actual_t<std::remove_cv_t<T>>>()));
 			}
 			else {
 				return noexcept(unique_usertype_traits<T>::get(std::declval<unique_usertype_actual_t<std::remove_cv_t<T>>>()));
@@ -8974,7 +9105,7 @@ namespace sol {
 		constexpr const char* not_enough_stack_space_integral = "not enough space left on Lua stack for an integral number";
 		constexpr const char* not_enough_stack_space_string = "not enough space left on Lua stack for a string";
 		constexpr const char* not_enough_stack_space_meta_function_name = "not enough space left on Lua stack for the name of a meta_function";
-		constexpr const char* not_enough_stack_space_userdata = "not enough space left on Lua stack to create a sol3 userdata";
+		constexpr const char* not_enough_stack_space_userdata = "not enough space left on Lua stack to create a sol2 userdata";
 		constexpr const char* not_enough_stack_space_generic = "not enough space left on Lua stack to push valuees";
 		constexpr const char* not_enough_stack_space_environment = "not enough space left on Lua stack to retrieve environment";
 		constexpr const char* protected_function_error = "caught (...) unknown error during protected_function call";
@@ -10406,6 +10537,12 @@ namespace sol {
 		template <typename T>
 		struct as_table_tag { };
 
+		template <typename Tag>
+		inline constexpr bool is_tagged_v
+		     = meta::is_specialization_of_v<Tag,
+		            detail::
+		                 as_pointer_tag> || meta::is_specialization_of_v<Tag, as_value_tag> || meta::is_specialization_of_v<Tag, as_unique_tag> || meta::is_specialization_of_v<Tag, as_table_tag> || std::is_same_v<Tag, as_reference_tag> || std::is_same_v<Tag, with_function_tag>;
+
 		using lua_reg_table = luaL_Reg[64];
 
 		using unique_destructor = void (*)(void*);
@@ -11059,7 +11196,7 @@ namespace sol {
 			constexpr const char* not_enough_stack_space_integral = "not enough space left on Lua stack for an integral number";
 			constexpr const char* not_enough_stack_space_string = "not enough space left on Lua stack for a string";
 			constexpr const char* not_enough_stack_space_meta_function_name = "not enough space left on Lua stack for the name of a meta_function";
-			constexpr const char* not_enough_stack_space_userdata = "not enough space left on Lua stack to create a sol3 userdata";
+			constexpr const char* not_enough_stack_space_userdata = "not enough space left on Lua stack to create a sol2 userdata";
 			constexpr const char* not_enough_stack_space_generic = "not enough space left on Lua stack to push valuees";
 			constexpr const char* not_enough_stack_space_environment = "not enough space left on Lua stack to retrieve environment";
 
@@ -11284,7 +11421,7 @@ namespace sol {
 			else if constexpr (meta::meta_detail::is_adl_sol_lua_push_exact_v<Tu, Arg, Args...>) {
 				return sol_lua_push(types<Tu>(), L, std::forward<Arg>(arg), std::forward<Args>(args)...);
 			}
-			else if constexpr (meta::meta_detail::is_adl_sol_lua_push_v<Arg, Args...>) {
+			else if constexpr (meta::meta_detail::is_adl_sol_lua_push_v<Arg, Args...> && !detail::is_tagged_v<Tu>) {
 				return sol_lua_push(L, std::forward<Arg>(arg), std::forward<Args>(args)...);
 			}
 			else {
@@ -12639,8 +12776,10 @@ namespace sol {
 			}
 
 			static constexpr int sequence_length(unsigned char b) {
-				return (b & start_2byte_mask) == 0 ? 1
-				                                   : (b & start_3byte_mask) != start_3byte_mask ? 2 : (b & start_4byte_mask) != start_4byte_mask ? 3 : 4;
+				return (b & start_2byte_mask) == 0                ? 1
+				     : (b & start_3byte_mask) != start_3byte_mask ? 2
+				     : (b & start_4byte_mask) != start_4byte_mask ? 3
+				                                                  : 4;
 			}
 
 			static constexpr char32_t decode(unsigned char b0, unsigned char b1) {
@@ -15939,7 +16078,8 @@ namespace sol {
 			}
 
 			template <bool checked, typename Arg, typename... Args, std::size_t I, std::size_t... Is, typename Handler, typename Fx, typename... FxArgs>
-			static decltype(auto) eval(types<Arg, Args...>, std::index_sequence<I, Is...>, lua_State* L_, int start_index_, Handler&& handler_, record& tracking_, Fx&& fx_, FxArgs&&... fxargs_) {
+			static decltype(auto) eval(types<Arg, Args...>, std::index_sequence<I, Is...>, lua_State* L_, int start_index_, Handler&& handler_,
+			     record& tracking_, Fx&& fx_, FxArgs&&... fxargs_) {
 #if SOL_IS_ON(SOL_PROPAGATE_EXCEPTIONS_I_)
 				// We can save performance/time by letting errors unwind produced arguments
 				// rather than checking everything once, and then potentially re-doing work
@@ -15970,7 +16110,8 @@ namespace sol {
 			}
 
 			template <bool checkargs = detail::default_safe_function_calls, std::size_t... I, typename R, typename... Args, typename Fx, typename... FxArgs>
-			inline decltype(auto) call(types<R>, types<Args...> argument_types_, std::index_sequence<I...> argument_indices_, lua_State* L_, int start_index_, Fx&& fx_, FxArgs&&... args_) {
+			inline decltype(auto) call(types<R>, types<Args...> argument_types_, std::index_sequence<I...> argument_indices_, lua_State* L_,
+			     int start_index_, Fx&& fx_, FxArgs&&... args_) {
 				static_assert(meta::all_v<meta::is_not_move_only<Args>...>,
 				     "One of the arguments being bound is a move-only type, and it is not being taken by reference: this will break your code. Please take "
 				     "a reference and std::move it manually if this was your intention.");
@@ -15982,10 +16123,12 @@ namespace sol {
 				}
 #endif
 				if constexpr (std::is_void_v<R>) {
-					eval<checkargs>(argument_types_, argument_indices_, L_, start_index_, handler, tracking, std::forward<Fx>(fx_), std::forward<FxArgs>(args_)...);
+					eval<checkargs>(
+					     argument_types_, argument_indices_, L_, start_index_, handler, tracking, std::forward<Fx>(fx_), std::forward<FxArgs>(args_)...);
 				}
 				else {
-					return eval<checkargs>(argument_types_, argument_indices_, L_, start_index_, handler, tracking, std::forward<Fx>(fx_), std::forward<FxArgs>(args_)...);
+					return eval<checkargs>(
+					     argument_types_, argument_indices_, L_, start_index_, handler, tracking, std::forward<Fx>(fx_), std::forward<FxArgs>(args_)...);
 				}
 			}
 		} // namespace stack_detail
@@ -16387,25 +16530,6 @@ namespace sol {
 		     std::tuple<meta::conditional_t<std::is_array_v<meta::unqualified_t<T>>, std::remove_reference_t<T>&, meta::unqualified_t<T>>>>;
 	}
 
-#define SOL_PROXY_BASE_IMPL_MSVC_IS_TRASH_I_(Super)                                                                                                          \
-	operator std::string() const {                                                                                                                          \
-		const Super& super = *static_cast<const Super*>(static_cast<const void*>(this));                                                                   \
-		return super.template get<std::string>();                                                                                                          \
-	}                                                                                                                                                       \
-                                                                                                                                                             \
-	template <typename T, meta::enable<meta::neg<meta::is_string_constructible<T>>, is_proxy_primitive<meta::unqualified_t<T>>> = meta::enabler>            \
-	operator T() const {                                                                                                                                    \
-		const Super& super = *static_cast<const Super*>(static_cast<const void*>(this));                                                                   \
-		return super.template get<T>();                                                                                                                    \
-	}                                                                                                                                                       \
-                                                                                                                                                             \
-	template <typename T, meta::enable<meta::neg<meta::is_string_constructible<T>>, meta::neg<is_proxy_primitive<meta::unqualified_t<T>>>> = meta::enabler> \
-	operator T&() const {                                                                                                                                   \
-		const Super& super = *static_cast<const Super*>(static_cast<const void*>(this));                                                                   \
-		return super.template get<T&>();                                                                                                                   \
-	}                                                                                                                                                       \
-	static_assert(true, "This is ridiculous and I hate MSVC.")
-
 	template <typename Super>
 	struct proxy_base : public proxy_base_tag {
 		lua_State* lua_state() const {
@@ -16413,7 +16537,23 @@ namespace sol {
 			return super.lua_state();
 		}
 
-		SOL_PROXY_BASE_IMPL_MSVC_IS_TRASH_I_(Super);
+		operator std::string() const {
+			const Super& super = *static_cast<const Super*>(static_cast<const void*>(this));
+			return super.template get<std::string>();
+		}
+
+		template <typename T, meta::enable<meta::neg<meta::is_string_constructible<T>>, is_proxy_primitive<meta::unqualified_t<T>>> = meta::enabler>
+		operator T() const {
+			const Super& super = *static_cast<const Super*>(static_cast<const void*>(this));
+			return super.template get<T>();
+		}
+
+		template <typename T,
+		     meta::enable<meta::neg<meta::is_string_constructible<T>>, meta::neg<is_proxy_primitive<meta::unqualified_t<T>>>> = meta::enabler>
+		operator T&() const {
+			const Super& super = *static_cast<const Super*>(static_cast<const void*>(this));
+			return super.template get<T&>();
+		}
 	};
 
 } // namespace sol
@@ -17583,14 +17723,29 @@ namespace sol {
 		template <typename T, bool checked, bool clean_stack>
 		struct constructor_match {
 			T* obj_;
+			reference* obj_lua_ref_;
+			stack::stack_detail::undefined_metatable* p_umf_;
 
-			constructor_match(T* o) : obj_(o) {
+			constructor_match(T* obj_ptr, reference& obj_lua_ref, stack::stack_detail::undefined_metatable& umf)
+			: obj_(obj_ptr), obj_lua_ref_(&obj_lua_ref), p_umf_(&umf) {
 			}
 
 			template <typename Fx, std::size_t I, typename... R, typename... Args>
 			int operator()(types<Fx>, meta::index_value<I>, types<R...> r, types<Args...> a, lua_State* L, int, int start) const {
 				detail::default_construct func {};
-				return stack::call_into_lua<checked, clean_stack>(r, a, L, start, func, obj_);
+				int result = stack::call_into_lua<checked, clean_stack>(r, a, L, start, func, this->obj_);
+				// construct userdata table
+				// SPECIFICALLY, after we've created it successfully.
+				// If the constructor exits for any reason we have to break things down...
+				if constexpr (clean_stack) {
+					obj_lua_ref_->push();
+					(*this->p_umf_)();
+					obj_lua_ref_->pop();
+				}
+				else {
+					(*this->p_umf_)();
+				}
+				return result;
 			}
 		};
 
@@ -17775,11 +17930,10 @@ namespace sol {
 			T* obj = detail::usertype_allocate<T>(L);
 			reference userdataref(L, -1);
 			stack::stack_detail::undefined_metatable umf(L, &meta[0], &stack::stack_detail::set_undefined_methods_on<T>);
-			umf();
 
 			// put userdata at the first index
 			lua_insert(L, 1);
-			construct_match<T, TypeLists...>(constructor_match<T, checked, clean_stack>(obj), L, argcount, 1 + static_cast<int>(syntax));
+			construct_match<T, TypeLists...>(constructor_match<T, checked, clean_stack>(obj, userdataref, umf), L, argcount, 1 + static_cast<int>(syntax));
 
 			userdataref.push();
 			return 1;
@@ -18109,11 +18263,15 @@ namespace sol {
 				T* obj = detail::usertype_allocate<T>(L);
 				reference userdataref(L, -1);
 				stack::stack_detail::undefined_metatable umf(L, &meta[0], &stack::stack_detail::set_undefined_methods_on<T>);
-				umf();
 
 				// put userdata at the first index
 				lua_insert(L, 1);
-				construct_match<T, Args...>(constructor_match<T, checked, clean_stack>(obj), L, argcount, boost + 1 + 1 + static_cast<int>(syntax));
+				// Because of the way constructors work,
+				// we have to kill the data, but only if the cosntructor is successfulyl invoked...
+				// if it's not successfully invoked and we panic,
+				// we cannot actually deallcoate/delete the data.
+				construct_match<T, Args...>(
+				     constructor_match<T, checked, clean_stack>(obj, userdataref, umf), L, argcount, boost + 1 + 1 + static_cast<int>(syntax));
 
 				userdataref.push();
 				return 1;
@@ -18318,6 +18476,11 @@ namespace sol {
 		template <typename T, typename Sig, typename P, bool is_index, bool is_variable, bool checked, int boost, bool clean_stack, typename C>
 		struct lua_call_wrapper<T, function_arguments<Sig, P>, is_index, is_variable, checked, boost, clean_stack, C> {
 			static int call(lua_State* L, const function_arguments<Sig, P>& f) {
+				lua_call_wrapper<T, meta::unqualified_t<P>, is_index, is_variable, checked, boost, clean_stack> lcw {};
+				return lcw.call(L, std::get<0>(f.arguments));
+			}
+
+			static int call(lua_State* L, function_arguments<Sig, P>& f) {
 				lua_call_wrapper<T, meta::unqualified_t<P>, is_index, is_variable, checked, boost, clean_stack> lcw {};
 				return lcw.call(L, std::get<0>(f.arguments));
 			}
@@ -19059,7 +19222,7 @@ namespace sol {
 
 	namespace detail {
 		template <typename R, typename... Args, typename F, typename = std::invoke_result_t<meta::unqualified_t<F>, Args...>>
-		inline constexpr auto resolve_i(types<R(Args...)>, F &&) -> R (meta::unqualified_t<F>::*)(Args...) {
+		inline constexpr auto resolve_i(types<R(Args...)>, F&&) -> R (meta::unqualified_t<F>::*)(Args...) {
 			using Sig = R(Args...);
 			typedef meta::unqualified_t<F> Fu;
 			return static_cast<Sig Fu::*>(&Fu::operator());
@@ -19128,7 +19291,7 @@ namespace sol {
 
 	namespace detail {
 		template <typename R, typename... Args, typename F, typename = std::invoke_result_t<meta::unqualified_t<F>, Args...>>
-		inline auto resolve_i(types<R(Args...)>, F &&) -> R (meta::unqualified_t<F>::*)(Args...) {
+		inline auto resolve_i(types<R(Args...)>, F&&) -> R (meta::unqualified_t<F>::*)(Args...) {
 			using Sig = R(Args...);
 			typedef meta::unqualified_t<F> Fu;
 			return static_cast<Sig Fu::*>(&Fu::operator());
@@ -23748,7 +23911,7 @@ namespace sol { namespace u_detail {
 
 		// we then let typical definitions potentially override these intrinsics
 		// it's the user's fault if they override things or screw them up:
-		// these names have been reserved and documented since sol3
+		// these names have been reserved and documented since sol2
 
 		// STEP 0: tell the old usertype (if it exists)
 		// to fuck off
@@ -24460,12 +24623,8 @@ namespace sol {
 			return saved;
 		}
 
-		reference operator*() noexcept {
-			return kvp;
-		}
-
-		const_reference operator*() const noexcept {
-			return kvp;
+		reference operator*() const noexcept {
+			return const_cast<reference>(kvp);
 		}
 
 		bool operator==(const basic_table_iterator& right) const noexcept {
@@ -26016,11 +26175,11 @@ namespace sol {
 			return static_cast<bool>(env);
 		}
 
-		operator optional<environment> &() {
+		operator optional<environment>&() {
 			return env;
 		}
 
-		operator const optional<environment> &() const {
+		operator const optional<environment>&() const {
 			return env;
 		}
 
@@ -26366,7 +26525,7 @@ namespace sol {
 			std::string err(message, messagesize);
 			lua_settop(L, 0);
 #if SOL_IS_ON(SOL_PRINT_ERRORS_I_)
-			std::cerr << "[sol3] An error occurred and panic has been invoked: ";
+			std::cerr << "[sol2] An error occurred and panic has been invoked: ";
 			std::cerr << err;
 			std::cerr << std::endl;
 #endif
@@ -26391,7 +26550,7 @@ namespace sol {
 			msg.assign(traceback.data(), traceback.size());
 		}
 #if SOL_IS_ON(SOL_PRINT_ERRORS_I_)
-		// std::cerr << "[sol3] An error occurred and was caught in traceback: ";
+		// std::cerr << "[sol2] An error occurred and was caught in traceback: ";
 		// std::cerr << msg;
 		// std::cerr << std::endl;
 #endif // Printing
@@ -26455,7 +26614,7 @@ namespace sol {
 			err.append(serr.data(), serr.size());
 		}
 #if SOL_IS_ON(SOL_PRINT_ERRORS_I_)
-		std::cerr << "[sol3] An error occurred and has been passed to an error handler: ";
+		std::cerr << "[sol2] An error occurred and has been passed to an error handler: ";
 		std::cerr << err;
 		std::cerr << std::endl;
 #endif

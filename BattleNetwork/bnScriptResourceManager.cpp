@@ -408,6 +408,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Shaders", sol::property(sol::resolve<ShaderResourceManager& ()>(&ResourceHandle::Shaders))
   );
 
+  // make input handle metatable
+  const auto& input_record = engine_namespace.new_usertype<InputManager>("Input",
+    sol::factories([]() -> InputManager& {
+      static InputHandle handle;
+      return handle.Input();
+      }),
+    "Has", &InputManager::Has
+  );
+
   // make loading resources easier
   // DOESNT WORK??
   /*state.script(
@@ -575,6 +584,23 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Involuntary", ActionOrder::involuntary,
     "Voluntary", ActionOrder::voluntary,
     "Immediate", ActionOrder::immediate
+  );
+
+  const auto& input_event_record = state.new_enum("Event",
+    "pressed_move_up", InputEvents::pressed_move_up,
+    "pressed_move_left", InputEvents::pressed_move_left,
+    "pressed_move_right", InputEvents::pressed_move_right,
+    "pressed_move_down", InputEvents::pressed_move_down,
+    "pressed_use_chip", InputEvents::pressed_use_chip,
+    "pressed_special", InputEvents::pressed_special,
+    "pressed_shoot", InputEvents::pressed_shoot,
+    "released_move_up", InputEvents::released_move_up,
+    "released_move_left", InputEvents::released_move_left,
+    "released_move_right", InputEvents::released_move_right,
+    "released_move_down", InputEvents::released_move_down,
+    "released_use_chip", InputEvents::released_use_chip,
+    "released_special", InputEvents::released_special,
+    "released_shoot", InputEvents::released_shoot
   );
 
   const auto& hitbox_flags_record = state.new_enum("Hit",

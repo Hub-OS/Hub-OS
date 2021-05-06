@@ -492,13 +492,27 @@ void MatchMakingScene::onUpdate(double elapsed) {
     Audio().StopStream();
 
     // Configure the session
-    config.remote = theirIP;
-    config.myNavi = selectedNavi;
+    SelectedNavi compatibleNavi = 0;
 
-    Player* player = NAVIS.At(selectedNavi).GetNavi();
+    // Temporarily: 
+    // For Demo's prevent sending scripted navis over the network
+    if (selectedNavi < 6) {
+      compatibleNavi = selectedNavi;
+    }
+
+    config.remote = theirIP;
+    config.myNavi = compatibleNavi;
+
+    Player* player = NAVIS.At(compatibleNavi).GetNavi();
 
     NetworkBattleSceneProps props = {
-      { *player, pa, copy, new Field(6, 3), std::make_shared<SecretBackground>() },
+      BattleSceneBaseProps { 
+        *player, 
+        pa, 
+        copy, 
+        new Field(6, 3), 
+        std::make_shared<SecretBackground>() 
+      },
       config
     };
 
