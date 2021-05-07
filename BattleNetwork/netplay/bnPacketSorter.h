@@ -195,7 +195,7 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
   }
 
   // unreachable, all cases should be covered above
-  Logger::Log("bnPacketSorter.cpp: How did we get here?");
+  Logger::Log("bnPacketSorter.h: How did we get here?");
   return {};
 }
 

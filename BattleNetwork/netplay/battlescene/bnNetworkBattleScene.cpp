@@ -190,6 +190,8 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
 
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(syncState);
+
+  sendConnectSignal(this->selectedNavi); // NOTE: this function only happens once at start
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -207,11 +209,8 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   if (!IsSceneInFocus()) return;
 
   if (!syncStatePtr->IsSyncronizedWithRemote()) {
-    sendHandshakeSignal(handshake.type); // re-send whatever type was set
-    sendConnectSignal(this->selectedNavi); // NOTE: this function only happens once at start    
-    
-    // constantly broadcast we are ready to avoid dropped packets
-    // TODO: make this a reliable packet so only send when we need to
+    // TODO: these are reliable ordered, but idk where to put them - konst
+    sendHandshakeSignal(handshake.type);
     sendReadySignal();
   }
 
@@ -286,7 +285,7 @@ void NetworkBattleScene::sendHandshakeSignal(Handshake::Type type)
   NetPlaySignals signalType{ NetPlaySignals::handshake };
   buffer.append((char*)&signalType, sizeof(NetPlaySignals));
   buffer.append((char*)&handshake.type, sizeof(Handshake::Type));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendShootSignal()
@@ -294,7 +293,7 @@ void NetworkBattleScene::sendShootSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::shoot };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendUseSpecialSignal()
@@ -302,7 +301,7 @@ void NetworkBattleScene::sendUseSpecialSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::special };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendChargeSignal(const bool state)
@@ -311,7 +310,7 @@ void NetworkBattleScene::sendChargeSignal(const bool state)
   NetPlaySignals type{ NetPlaySignals::charge };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&state, sizeof(bool));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
@@ -320,7 +319,7 @@ void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
   NetPlaySignals type{ NetPlaySignals::connect };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&navi, sizeof(SelectedNavi));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendReadySignal()
@@ -328,7 +327,7 @@ void NetworkBattleScene::sendReadySignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::ready };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 
   this->handshake.isClientReady = true;
 }
@@ -339,7 +338,7 @@ void NetworkBattleScene::sendChangedFormSignal(const int form)
   NetPlaySignals type{ NetPlaySignals::form };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&form, sizeof(int));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendHPSignal(const int hp)
@@ -348,7 +347,7 @@ void NetworkBattleScene::sendHPSignal(const int hp)
   NetPlaySignals type{ NetPlaySignals::hp };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&hp, sizeof(int));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::UnreliableSequenced, buffer);
 }
 
 void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
@@ -358,7 +357,7 @@ void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&x, sizeof(int));
   buffer.append((char*)&y, sizeof(int));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::UnreliableSequenced, buffer);
 }
 
 void NetworkBattleScene::sendChipUseSignal(const std::string& used)
@@ -372,7 +371,7 @@ void NetworkBattleScene::sendChipUseSignal(const std::string& used)
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&timestamp, sizeof(uint64_t));
   buffer.append((char*)used.data(),used.length());
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendRequestedCardSelectSignal()
@@ -380,7 +379,7 @@ void NetworkBattleScene::sendRequestedCardSelectSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::card_select };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendLoserSignal()
@@ -388,7 +387,7 @@ void NetworkBattleScene::sendLoserSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::loser };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer)
@@ -571,7 +570,7 @@ void NetworkBattleScene::processPacketBody(NetPlaySignals header, const Poco::Bu
   try {
     switch (header) {
       case NetPlaySignals::handshake:
-        handshake.resync ? recieveHandshakeSignal(body) : void(0);
+        recieveHandshakeSignal(body);
         break;
       case NetPlaySignals::connect:
         handshake.resync ? recieveConnectSignal(body) : void(0);
@@ -589,7 +588,7 @@ void NetworkBattleScene::processPacketBody(NetPlaySignals header, const Poco::Bu
         recieveLoserSignal();
         break;
       case NetPlaySignals::ready:
-        handshake.resync ? recieveReadySignal() : void(0);
+        recieveReadySignal();
         break;
       case NetPlaySignals::tile:
         recieveTileCoordSignal(body);
