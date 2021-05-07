@@ -24,7 +24,7 @@ find_package(Lua REQUIRED)
 # find_package(sol2 REQUIRED) # commented out until sol2 vcpkg is up to date
 
 include_directories(extern/Swoosh/src)
-# include_directories(BattleNetwork/sol/include) # temporary sol2 bugfix
+include_directories(BattleNetwork/sol/include) # temporary sol2 bugfix
 add_subdirectory(extern/SFML)
 add_subdirectory(extern/WebAPI)
 
@@ -58,7 +58,7 @@ add_compile_definitions(NOMINMAX)
 # load mods during the boot step
 # WARNING: sol2 bindings increase compile times by 2-3x! 
 #          Uncomment this only if you're working with scripting!
-# add_compile_definitions(BN_MOD_SUPPORT)
+add_compile_definitions(BN_MOD_SUPPORT)
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
