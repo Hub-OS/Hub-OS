@@ -75,8 +75,8 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     player.Attack();
 
   } else if (Input().Has(InputEvents::held_shoot)) {
+    if (replicator && !isChargeHeld) replicator->SendChargeSignal(true);
     isChargeHeld = true;
-    if (replicator) replicator->SendChargeSignal(true);
     player.chargeEffect.SetCharging(true);
   }
 

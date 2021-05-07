@@ -628,13 +628,14 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
 
     if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
       sf::Color originalColor = sprite->getColor();
+      auto layer = int(index) - 1;
       // NOTE: we snap players so elevations with floating decimals, even if not precise, will 
       //       let us know if we're on the correct elevation or not
       if (sprite->GetElevation() != elevation - 1.f) {
-        index = index >= 1 ? (index - 1) : 0;
+        layer -= 1;
       }
 
-      if (map.HasShadow(gridPos, int(index) - 1)) {
+      if (map.HasShadow(gridPos, layer)) {
         sf::Uint8 r, g, b;
         r = sf::Uint8(originalColor.r * 0.5);
         b = sf::Uint8(originalColor.b * 0.5);

@@ -4,7 +4,7 @@
 #include <Poco/Net/NetException.h>
 #include <algorithm>
 
-Overworld::PacketShipper::PacketShipper(const Poco::Net::SocketAddress& socketAddress)
+PacketShipper::PacketShipper(const Poco::Net::SocketAddress& socketAddress)
 {
   this->socketAddress = socketAddress;
   nextUnreliableSequenced = 0;
@@ -13,11 +13,11 @@ Overworld::PacketShipper::PacketShipper(const Poco::Net::SocketAddress& socketAd
   failed = false;
 }
 
-bool Overworld::PacketShipper::HasFailed() {
+bool PacketShipper::HasFailed() {
   return failed;
 }
 
-void Overworld::PacketShipper::Send(
+void PacketShipper::Send(
   Poco::Net::DatagramSocket& socket,
   Reliability reliability,
   const Poco::Buffer<char>& body)
@@ -76,7 +76,7 @@ void Overworld::PacketShipper::Send(
   }
 }
 
-void Overworld::PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket& socket)
+void PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket& socket)
 {
   auto now = std::chrono::steady_clock::now();
   auto RETRY_DELAY = 1.0 / 20.0;
@@ -103,7 +103,7 @@ void Overworld::PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket& 
   }
 }
 
-void Overworld::PacketShipper::sendSafe(
+void PacketShipper::sendSafe(
   Poco::Net::DatagramSocket& socket,
   const Poco::Buffer<char>& data)
 {
@@ -122,7 +122,7 @@ void Overworld::PacketShipper::sendSafe(
   }
 }
 
-void Overworld::PacketShipper::Acknowledged(Reliability reliability, uint64_t id)
+void PacketShipper::Acknowledged(Reliability reliability, uint64_t id)
 {
   switch (reliability)
   {
@@ -139,7 +139,7 @@ void Overworld::PacketShipper::Acknowledged(Reliability reliability, uint64_t id
   }
 }
 
-void Overworld::PacketShipper::acknowledgedReliable(uint64_t id)
+void PacketShipper::acknowledgedReliable(uint64_t id)
 {
   auto iterEnd = backedUpReliable.end();
   auto iter = std::find_if(backedUpReliable.begin(), backedUpReliable.end(), [=](BackedUpPacket& packet) { return packet.id == id; });
@@ -151,7 +151,7 @@ void Overworld::PacketShipper::acknowledgedReliable(uint64_t id)
   backedUpReliable.erase(iter);
 }
 
-void Overworld::PacketShipper::acknowledgedReliableOrdered(uint64_t id)
+void PacketShipper::acknowledgedReliableOrdered(uint64_t id)
 {
   auto iterEnd = backedUpReliableOrdered.end();
   auto iter = std::find_if(backedUpReliableOrdered.begin(), iterEnd, [=](BackedUpPacket& packet) { return packet.id == id; });

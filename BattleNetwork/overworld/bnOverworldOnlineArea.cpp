@@ -1355,7 +1355,7 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
   );
 }
 
-static std::vector<BBS::Post> ReadPosts(Overworld::BufferReader& reader, const Poco::Buffer<char>& buffer) {
+static std::vector<BBS::Post> ReadPosts(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto total = reader.Read<uint16_t>(buffer);
 
   std::vector<BBS::Post> posts;

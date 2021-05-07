@@ -1,6 +1,7 @@
 #pragma once
-#include "bnPacketShipper.h"
-#include "bnPacketSorter.h"
+#include "bnPacketHeaders.h"
+#include "../netplay/bnPacketShipper.h"
+#include "../netplay/bnPacketSorter.h"
 #include "../bnIPacketProcessor.h"
 #include <Poco/Net/SocketAddress.h>
 #include <optional>
@@ -23,7 +24,7 @@ namespace Overworld {
   private:
     std::function<void(const Poco::Buffer<char>& data)> onPacketBody;
     PacketShipper packetShipper;
-    PacketSorter packetSorter;
+    PacketSorter<ClientEvents::ack> packetSorter;
     Reliability keepAliveReliability{};
     Poco::Buffer<char> keepAliveBody{ 0 };
     double keepAliveTimer{};

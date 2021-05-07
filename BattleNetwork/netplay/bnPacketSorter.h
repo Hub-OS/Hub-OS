@@ -1,9 +1,43 @@
-#include "bnPacketSorter.h"
+#pragma once
 
+#include "bnPacketShipper.h"
 #include "bnBufferReader.h"
 #include "../bnLogger.h"
+#include <Poco/Net/DatagramSocket.h>
+#include <Poco/Buffer.h>
+#include <chrono>
+#include <vector>
 
-Overworld::PacketSorter::PacketSorter(const Poco::Net::SocketAddress& socketAddress)
+template<auto AckID>
+class PacketSorter
+{
+private:
+  struct BackedUpPacket
+  {
+    uint64_t id{};
+    Poco::Buffer<char> data{ 0 };
+  };
+
+  Poco::Net::SocketAddress socketAddress;
+  uint64_t nextReliable{};
+  uint64_t nextUnreliableSequenced{};
+  uint64_t nextReliableOrdered{};
+  std::vector<uint64_t> missingReliable;
+  std::vector<BackedUpPacket> backedUpOrderedPackets;
+  std::chrono::time_point<std::chrono::steady_clock> lastMessageTime;
+
+  void sendAck(Poco::Net::DatagramSocket& socket, Reliability reliability, uint64_t id);
+
+public:
+  PacketSorter(const Poco::Net::SocketAddress& socketAddress);
+
+  std::chrono::time_point<std::chrono::steady_clock> GetLastMessageTime();
+  std::vector<Poco::Buffer<char>> SortPacket(Poco::Net::DatagramSocket& socket, Poco::Buffer<char> packet);
+};
+
+
+template<auto AckID>
+PacketSorter<AckID>::PacketSorter(const Poco::Net::SocketAddress& socketAddress)
 {
   this->socketAddress = socketAddress;
   nextReliable = 0;
@@ -12,12 +46,14 @@ Overworld::PacketSorter::PacketSorter(const Poco::Net::SocketAddress& socketAddr
   lastMessageTime = std::chrono::steady_clock::now();
 }
 
-std::chrono::time_point<std::chrono::steady_clock> Overworld::PacketSorter::GetLastMessageTime()
+template<auto AckID>
+std::chrono::time_point<std::chrono::steady_clock> PacketSorter<AckID>::GetLastMessageTime()
 {
   return lastMessageTime;
 }
 
-std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
+template<auto AckID>
+std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
   Poco::Net::DatagramSocket& socket,
   Poco::Buffer<char> packet)
 {
@@ -159,17 +195,18 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
   }
 
   // unreachable, all cases should be covered above
-  Logger::Log("bnPacketSorter.cpp: How did we get here?");
+  Logger::Log("bnPacketSorter.h: How did we get here?");
   return {};
 }
 
-void Overworld::PacketSorter::sendAck(Poco::Net::DatagramSocket& socket, Reliability reliability, uint64_t id)
+template<auto AckID>
+void PacketSorter<AckID>::sendAck(Poco::Net::DatagramSocket& socket, Reliability reliability, uint64_t id)
 {
+  auto ackId = AckID;
+
   Poco::Buffer<char> data{ 0 };
   data.append((char)Reliability::Unreliable);
-
-  ClientEvents clientEvent = ClientEvents::ack;
-  data.append((char*)&clientEvent, sizeof(uint16_t));
+  data.append((char*)&ackId, sizeof(ackId));
   data.append((char)reliability);
   data.append((char*)&id, sizeof(id));
 
@@ -179,7 +216,7 @@ void Overworld::PacketSorter::sendAck(Poco::Net::DatagramSocket& socket, Reliabi
   }
   catch (Poco::IOException& e)
   {
-    if(e.code() == POCO_EWOULDBLOCK) {
+    if (e.code() == POCO_EWOULDBLOCK) {
       return;
     }
 
