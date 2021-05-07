@@ -20,19 +20,29 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
   if (read == 0)
     return;
 
-  NetPlaySignals sig = *(NetPlaySignals*)buffer;
-  size_t sigLen = sizeof(NetPlaySignals);
-  Poco::Buffer<char> data{ 0 };
-  data.append(buffer + sigLen, size_t(read) - sigLen);
 
-  if (sig == NetPlaySignals::ack) {
+  Poco::Buffer<char> packet{ 0 };
+  packet.append(buffer, read);
+
+  auto packetBodies = packetSorter.SortPacket(*client, packet);
+
+  for (auto data : packetBodies) {
     BufferReader reader;
-    Reliability r = reader.Read<Reliability>(data);
-    uint64_t id = reader.Read<uint64_t>(data);
-    packetShipper.Acknowledged(r, id);
-  }
-  else {
-    scene.processPacketBody(sig, data);
+    NetPlaySignals sig = reader.Read<NetPlaySignals>(data);
+
+    if (sig == NetPlaySignals::ack) {
+      Reliability reliability = reader.Read<Reliability>(data);
+      uint64_t id = reader.Read<uint64_t>(data);
+      packetShipper.Acknowledged(reliability, id);
+    }
+    else {
+      constexpr auto sigSize = sizeof(NetPlaySignals);
+
+      Poco::Buffer<char> body{0};
+      body.append(data.begin() + sigSize, data.size() - sigSize);
+
+      scene.processPacketBody(sig, body);
+    }
   }
 
   lastPacketTime = std::chrono::steady_clock::now();
