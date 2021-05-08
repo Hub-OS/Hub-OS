@@ -1127,6 +1127,8 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
       const std::string& type = tileObject.type;
 
+      if (type == "") continue;
+
       auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
 
       if (!tileMeta) continue;
