@@ -15,6 +15,34 @@
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 
+static Direction resolveDirectionString(const std::string& direction) {
+  if (direction == "Left") {
+    return Direction::left;
+  }
+  else if (direction == "Right") {
+    return Direction::right;
+  }
+  else if (direction == "Up") {
+    return Direction::up;
+  }
+  else if (direction == "Down") {
+    return Direction::down;
+  }
+  else if (direction == "Up Left") {
+    return Direction::up_left;
+  }
+  else if (direction == "Up Right") {
+    return Direction::up_right;
+  }
+  else if (direction == "Down Left") {
+    return Direction::down_left;
+  }
+  else if (direction == "Down Right") {
+    return Direction::down_right;
+  }
+
+  return Direction::none;
+}
 
 static const std::string sanitize_folder_name(std::string in) {
   // todo: use regex for multiple erroneous folder names?
@@ -109,8 +137,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   removePlayers.clear();
 
-  SceneBase::onUpdate(elapsed);
-
+  if (!IsInputLocked()) {
+    detectWarp();
+  }
 
   if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && emote.IsClosed()) {
     auto& meta = NAVIS.At(currentNavi);
@@ -174,6 +203,84 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
     movementTimer.reset();
     sendPositionSignal();
+  }
+
+  lastPosition = GetPlayer()->Get3DPosition();
+  SceneBase::onUpdate(elapsed);
+}
+
+void Overworld::OnlineArea::detectWarp() {
+  auto& teleportController = GetTeleportController();
+
+  if (!teleportController.IsComplete()) {
+    return;
+  }
+
+  auto player = GetPlayer();
+  auto layerIndex = player->GetLayer();
+
+  auto& map = GetMap();
+
+  if (layerIndex < 0 || layerIndex >= warps.size()) {
+    return;
+  }
+
+  auto playerPos = player->getPosition();
+
+  if (playerPos.x == lastPosition.x && playerPos.y == lastPosition.y) {
+    // don't warp if the player hasn't moved
+    return;
+  }
+
+  for (auto* tileObjectPtr : warps[layerIndex]) {
+    auto& tileObject = *tileObjectPtr;
+
+    if (!tileObject.Intersects(map, playerPos.x, playerPos.y)) {
+      continue;
+    }
+
+    auto& command = teleportController.TeleportOut(player);
+    auto type = tileObject.type;
+
+    if (type == "Home Warp") {
+      command.onFinish.Slot([=] {
+        GetPlayerController().ReleaseActor();
+        TeleportUponReturn(player->Get3DPosition());
+        sendLogoutSignal();
+        getController().pop<segue<BlackWashFade>>();
+      });
+    }
+    else if (type == "Server Warp") {
+      auto address = tileObject.customProperties.GetProperty("Address");
+      auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("Port");
+      auto data = tileObject.customProperties.GetProperty("Data");
+
+      command.onFinish.Slot([=] {
+        GetPlayerController().ReleaseActor();
+        transferServer(address, port, data, false);
+      });
+    }
+    else if (type == "Position Warp") {
+      auto targetTilePos = sf::Vector2f(
+        tileObject.customProperties.GetPropertyFloat("X"),
+        tileObject.customProperties.GetPropertyFloat("Y")
+      );
+
+      auto targetWorldPos = map.TileToWorld(targetTilePos);
+      auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("Z"));
+      auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
+
+      command.onFinish.Slot([=] {
+        teleportIn(targetPosition, Orthographic(direction));
+      });
+    }
+    else if (type == "Custom Warp" || type == "Custom Server Warp") {
+      command.onFinish.Slot([=] {
+        sendCustomWarpSignal(tileObject.id);
+      });
+    }
+
+    break;
   }
 }
 
@@ -287,29 +394,7 @@ void Overworld::OnlineArea::onResume()
   }
 }
 
-void Overworld::OnlineArea::OnTileCollision()
-{
-  auto player = GetPlayer();
-  auto layer = player->GetLayer();
-
-  auto& map = GetMap();
-
-  if (layer < 0 || layer >= map.GetLayerCount()) {
-    return;
-  }
-
-  sf::Vector2f playerPos = player->getPosition();
-  sf::Vector2i tilePos = sf::Vector2i(map.WorldToTileSpace(playerPos));
-  unsigned int hash = tilePos.x + map.GetCols() * tilePos.y;
-
-  auto& tileTriggerLayer = tileTriggers[layer];
-
-  if (tileTriggerLayer.find(hash) == tileTriggerLayer.end()) {
-    return;
-  }
-
-  tileTriggerLayer[hash]();
-}
+void Overworld::OnlineArea::OnTileCollision() { }
 
 void Overworld::OnlineArea::OnInteract() {
   auto& map = GetMap();
@@ -364,6 +449,34 @@ void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
 {
   SceneBase::OnEmoteSelected(emote);
   sendEmoteSignal(emote);
+}
+
+bool Overworld::OnlineArea::positionIsInWarp(sf::Vector3f position) {
+  auto layerCount = map.GetLayerCount();
+
+  if (position.z < 0 || position.z >= layerCount) return false;
+
+  auto& warpLayer = warps[(size_t)position.z];
+
+  for (auto object : warpLayer) {
+    if (object->Intersects(map, position.x, position.y)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Vector3f position, Direction direction)
+{
+  auto actor = GetPlayer();
+
+  if (!positionIsInWarp(position)) {
+    actor->Face(direction);
+    direction = Direction::none;
+  }
+
+  return teleportController.TeleportIn(actor, position, direction);
 }
 
 void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut) {
@@ -599,6 +712,16 @@ void Overworld::OnlineArea::sendTransferredOutSignal()
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
+void Overworld::OnlineArea::sendCustomWarpSignal(unsigned int tileObjectId)
+{
+  auto type = ClientEvents::custom_warp;
+
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char*)&type, sizeof(type));
+  buffer.append((char*)&tileObjectId, sizeof(tileObjectId));
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
+}
+
 void Overworld::OnlineArea::sendPositionSignal()
 {
   uint64_t creationTime = CurrentTime::AsMilli();
@@ -777,50 +900,6 @@ void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
-static bool PositionIsInWarp(Overworld::Map& map, sf::Vector3f position) {
-  auto layerCount = map.GetLayerCount();
-
-  if (position.z < 0 || position.z >= layerCount) return false;
-
-  auto tilePos = sf::Vector2i(map.WorldToTileSpace({ position.x, position.y }));
-  auto& layer = map.GetLayer((size_t)position.z);
-
-  for (auto& object : layer.GetTileObjects()) {
-    auto& type = object.type;
-
-    bool isWarp =
-      type == "Home Warp" ||
-      type == "Server Warp" ||
-      type == "Custom Server Warp" ||
-      type == "Position Warp" ||
-      type == "Custom Warp";
-
-    if (!isWarp) continue;
-
-    auto objectTilePos = sf::Vector2i(map.WorldToTileSpace(object.position));
-
-    if (tilePos == objectTilePos) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-static Overworld::TeleportController::Command& TeleportIn(
-  Overworld::Map& map,
-  Overworld::TeleportController& teleportController,
-  const std::shared_ptr<Overworld::Actor>& actor,
-  sf::Vector3f position, Direction direction
-) {
-  if (!PositionIsInWarp(map, position)) {
-    actor->Face(direction);
-    direction = Direction::none;
-  }
-
-  return teleportController.TeleportIn(actor, position, direction);
-}
-
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto& map = GetMap();
@@ -838,7 +917,7 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   auto player = GetPlayer();
 
   if (warpIn) {
-    auto& command = TeleportIn(map, GetTeleportController(), player, spawnPos, Orthographic(direction));
+    auto& command = teleportIn(spawnPos, Orthographic(direction));
     command.onFinish.Slot([=] {
       GetPlayerController().ControlActor(player);
     });
@@ -884,7 +963,7 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
   player->Face(worldDirection);
 
   if (warpIn) {
-    TeleportIn(GetMap(), GetTeleportController(), player, player->Get3DPosition(), worldDirection);
+    teleportIn(player->Get3DPosition(), worldDirection);
   }
 
   isConnected = true;
@@ -1005,35 +1084,6 @@ void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poc
   serverAssetManager.Preload(name);
 }
 
-static Direction resolveDirectionString(const std::string& direction) {
-  if (direction == "Left") {
-    return Direction::left;
-  }
-  else if (direction == "Right") {
-    return Direction::right;
-  }
-  else if (direction == "Up") {
-    return Direction::up;
-  }
-  else if (direction == "Down") {
-    return Direction::down;
-  }
-  else if (direction == "Up Left") {
-    return Direction::up_left;
-  }
-  else if (direction == "Up Right") {
-    return Direction::up_right;
-  }
-  else if (direction == "Down Left") {
-    return Direction::down_left;
-  }
-  else if (direction == "Down Right") {
-    return Direction::down_right;
-  }
-
-  return Direction::none;
-}
-
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto path = reader.ReadString(buffer);
@@ -1064,14 +1114,16 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
     }
   }
 
-  tileTriggers.clear();
-  tileTriggers.resize(layerCount);
-
   auto& minimap = GetMinimap();
   minimap.ClearIcons();
+  warps.resize(layerCount);
+
   auto tileSize = map.GetTileSize();
 
   for (auto i = 0; i < layerCount; i++) {
+    auto& warpLayer = warps[i];
+    warpLayer.clear();
+
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
       const std::string& type = tileObject.type;
 
@@ -1083,91 +1135,32 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       screenOffset.y += tileObject.size.y / 2.0f;
 
       auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
-      auto objectTilePos = sf::Vector2i(map.WorldToTileSpace(objectCenterPos));
-      auto hash = objectTilePos.x + map.GetCols() * objectTilePos.y;
-
       auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
 
       if (type == "Home Warp") {
         minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset);
-
-        tileTriggers[i][hash] = [=]() {
-          auto player = GetPlayer();
-          auto& teleportController = GetTeleportController();
-
-          if (!teleportController.IsComplete()) {
-            return;
-          }
-
-          GetPlayerController().ReleaseActor();
-          auto& command = teleportController.TeleportOut(player);
-
-          auto teleportHome = [=] {
-            TeleportUponReturn(player->Get3DPosition());
-            sendLogoutSignal();
-            getController().pop<segue<BlackWashFade>>();
-          };
-
-          command.onFinish.Slot(teleportHome);
-        };
+        tileObject.solid = false;
+        warpLayer.push_back(&tileObject);
       }
       else if (type == "Server Warp") {
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
-
-        tileTriggers[i][hash] = [=]() {
-          auto player = GetPlayer();
-          auto& teleportController = GetTeleportController();
-
-          if (transferringServers || !teleportController.IsComplete()) {
-            return;
-          }
-
-          auto address = tileObject.customProperties.GetProperty("Address");
-          auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("Port");
-          auto data = tileObject.customProperties.GetProperty("Data");
-
-          transferServer(address, port, data, true);
-        };
+        tileObject.solid = false;
+        warpLayer.push_back(&tileObject);
       }
       else if (type == "Custom Server Warp") {
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
+        tileObject.solid = false;
+        warpLayer.push_back(&tileObject);
       }
       else if (type == "Position Warp") {
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
-
-        auto targetTilePos = sf::Vector2f(
-          tileObject.customProperties.GetPropertyFloat("X"),
-          tileObject.customProperties.GetPropertyFloat("Y")
-        );
-
-        auto targetWorldPos = map.TileToWorld(targetTilePos);
-        auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("Z"));
-        auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
-
-        tileTriggers[i][hash] = [=]() {
-          auto player = GetPlayer();
-          auto& teleportController = GetTeleportController();
-
-          if (!teleportController.IsComplete()) {
-            return;
-          }
-
-          auto& command = teleportController.TeleportOut(player);
-          LockInput();
-
-          auto teleport = [=] {
-            auto& command = TeleportIn(GetMap(), GetTeleportController(), player, targetPosition, Orthographic(direction));
-
-            command.onFinish.Slot([=]() {
-              UnlockInput();
-            });
-          };
-
-          command.onFinish.Slot(teleport);
-        };
+        tileObject.solid = false;
+        warpLayer.push_back(&tileObject);
       }
       else if (type == "Custom Warp") {
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
+        tileObject.solid = false;
+        warpLayer.push_back(&tileObject);
       }
       else if (type == "Board") {
         minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + zOffset, tileObject.tile.flippedHorizontal);
@@ -1303,7 +1296,7 @@ void Overworld::OnlineArea::receiveTeleportSignal(BufferReader& reader, const Po
   if (warp) {
     auto& action = GetTeleportController().TeleportOut(player);
     action.onFinish.Slot([this, player, position, direction] {
-      TeleportIn(map, GetTeleportController(), player, position, Orthographic(direction));
+      teleportIn(position, Orthographic(direction));
     });
   }
   else {

@@ -18,29 +18,36 @@ Overworld::TeleportController::TeleportController()
 Overworld::TeleportController::Command& Overworld::TeleportController::TeleportOut(std::shared_ptr<Actor> actor)
 {
   this->actor = actor;
-  this->actor->Hide();
 
-  auto onStart = [=] {
-    if (!mute) {
-      Audio().Play(AudioType::AREA_GRAB);
-    }
-  };
+  if (!teleportedOut) {
+    actor->Hide();
 
-  auto onFinish = [=] {
-    this->animComplete = true;
-  };
+    auto onStart = [=] {
+      if (!mute) {
+        Audio().Play(AudioType::AREA_GRAB);
+      }
+    };
 
-  this->animComplete = false;
-  this->beamAnim << "TELEPORT_OUT" << Animator::On(1, onStart) << onFinish;
-  this->beamAnim.Refresh(this->beam->getSprite());
-  this->beam->Set3DPosition(actor->Get3DPosition());
+    auto onFinish = [=] {
+      this->animComplete = true;
+    };
 
-  this->sequence.push(Command{ Command::state::teleport_out });
-  return this->sequence.back();
+    animComplete = false;
+    beamAnim << "TELEPORT_OUT" << Animator::On(1, onStart) << onFinish;
+    beamAnim.Refresh(beam->getSprite());
+    beam->Set3DPosition(actor->Get3DPosition());
+
+    teleportedOut = true;
+  }
+
+  sequence.push(Command{ Command::state::teleport_out });
+  return sequence.back();
 }
 
 Overworld::TeleportController::Command& Overworld::TeleportController::TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir, bool doSpin)
 {
+  teleportedOut = false;
+
   auto onStart = [=] {
     if (!mute) {
       Audio().Play(AudioType::AREA_GRAB);
@@ -125,6 +132,10 @@ void Overworld::TeleportController::Update(double elapsed)
       sequence.pop();
     }
   }
+}
+
+bool Overworld::TeleportController::TeleportedOut() const {
+  return teleportedOut;
 }
 
 const bool Overworld::TeleportController::IsComplete() const
