@@ -1144,22 +1144,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
       }
-      else if (type == "Server Warp") {
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
-        tileObject.solid = false;
-        warpLayer.push_back(&tileObject);
-      }
-      else if (type == "Custom Server Warp") {
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
-        tileObject.solid = false;
-        warpLayer.push_back(&tileObject);
-      }
-      else if (type == "Position Warp") {
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
-        tileObject.solid = false;
-        warpLayer.push_back(&tileObject);
-      }
-      else if (type == "Custom Warp") {
+      else if (type == "Server Warp" || type == "Custom Server Warp" || type == "Position Warp" || type == "Custom Warp") {
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
