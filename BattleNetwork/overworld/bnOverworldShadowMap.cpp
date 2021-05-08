@@ -15,12 +15,14 @@ namespace Overworld {
   }
 
   void ShadowMap::CalculateShadows(Map& map) {
-    for (size_t x = 0; x < cols; x++) {
-      for (size_t y = 0; y < rows; y++) {
+    auto layerCount = map.GetLayerCount();
+
+    for (size_t y = 0; y < rows; y++) {
+      for (size_t x = 0; x < cols; x++) {
         auto shadowIndex = calculateIndex(cols, x, y);
         shadows[shadowIndex] = 0;
 
-        for (auto index = map.GetLayerCount() - 1; index >= 1; index--) {
+        for (auto index = layerCount - 1; index >= 1; index--) {
           auto& layer = map.GetLayer(index);
           auto& tile = layer.GetTile((int)x, (int)y);
 
