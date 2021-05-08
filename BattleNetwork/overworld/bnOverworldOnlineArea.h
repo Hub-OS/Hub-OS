@@ -79,6 +79,7 @@ namespace Overworld {
     void sendLogoutSignal();
     void sendRequestJoinSignal();
     void sendReadySignal();
+    void sendTransferredOutSignal();
     void sendPositionSignal();
     void sendAvatarChangeSignal();
     void sendAvatarAssetStream();
@@ -93,6 +94,7 @@ namespace Overworld {
     void sendPostSelectSignal(const std::string& postId);
 
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferServerSignal(BufferReader& reader, const Poco::Buffer<char>&);

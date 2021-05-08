@@ -394,6 +394,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::login:
       receiveLoginSignal(reader, data);
       break;
+    case ServerEvents::transfer_warp:
+      receiveTransferWarpSignal(reader, data);
+      break;
     case ServerEvents::transfer_start:
       receiveTransferStartSignal(reader, data);
       break;
@@ -579,6 +582,16 @@ void Overworld::OnlineArea::sendRequestJoinSignal()
 void Overworld::OnlineArea::sendReadySignal()
 {
   ClientEvents type{ ClientEvents::ready };
+
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendTransferredOutSignal()
+{
+  auto type = ClientEvents::transferred_out;
 
   Poco::Buffer<char> buffer{ 0 };
   buffer.append((char*)&type, sizeof(ClientEvents));
@@ -840,10 +853,17 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   sendReadySignal();
 }
 
+void Overworld::OnlineArea::receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& command = GetTeleportController().TeleportOut(GetPlayer());
+
+  command.onFinish.Slot([this] {
+    sendTransferredOutSignal();
+  });
+}
+
 void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  bool warpOut = reader.Read<bool>(buffer);
-
   isConnected = false;
   transitionText.SetString("");
   excludedObjects.clear();
@@ -851,10 +871,6 @@ void Overworld::OnlineArea::receiveTransferStartSignal(BufferReader& reader, con
 
   for (auto& [key, _] : onlinePlayers) {
     removePlayers.push_back(key);
-  }
-
-  if (warpOut) {
-    GetTeleportController().TeleportOut(GetPlayer());
   }
 }
 

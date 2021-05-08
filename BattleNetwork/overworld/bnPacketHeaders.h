@@ -6,7 +6,7 @@
 namespace Overworld
 {
   const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
-  const uint64_t VERSION_ITERATION = 12;
+  const uint64_t VERSION_ITERATION = 13;
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
@@ -22,6 +22,7 @@ namespace Overworld
     logout,
     request_join,
     ready,
+    transferred_out,
     position,
     avatar_change,
     emote,
@@ -49,6 +50,7 @@ namespace Overworld
     pong = 0,
     ack,
     login,
+    transfer_warp,
     transfer_start,
     transfer_complete,
     transfer_server,
