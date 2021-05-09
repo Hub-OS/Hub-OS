@@ -49,7 +49,7 @@ namespace Overworld {
 
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(unsigned int id);
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(const std::string& name);
-      const std::vector<TileObject>& GetTileObjects();
+      std::vector<TileObject>& GetTileObjects(); // todo: make std::span
       void AddTileObject(TileObject tileObject);
 
       std::optional<std::reference_wrapper<ShapeObject>> GetShapeObject(unsigned int id);

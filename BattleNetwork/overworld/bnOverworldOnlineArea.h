@@ -60,17 +60,19 @@ namespace Overworld {
     AssetMeta incomingAsset;
     std::map<std::string, OnlinePlayer> onlinePlayers;
     std::map<unsigned, ExcludedObjectData> excludedObjects;
+    std::vector<std::vector<TileObject*>> warps;
     std::list<std::string> removePlayers;
+    sf::Vector3f lastPosition;
     Timer movementTimer;
     Text transitionText;
     Text nameText;
     bool wasReadingTextBox{ false };
-    std::vector<std::unordered_map<int, std::function<void()>>> tileTriggers;
 
-
-    void processPacketBody(const Poco::Buffer<char>& data);
-
+    void detectWarp();
+    bool positionIsInWarp(sf::Vector3f position);
+    Overworld::TeleportController::Command& teleportIn(sf::Vector3f position, Direction direction);
     void transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut);
+    void processPacketBody(const Poco::Buffer<char>& data);
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
     void sendAssetsFound();
@@ -79,6 +81,8 @@ namespace Overworld {
     void sendLogoutSignal();
     void sendRequestJoinSignal();
     void sendReadySignal();
+    void sendTransferredOutSignal();
+    void sendCustomWarpSignal(unsigned int tileObjectId);
     void sendPositionSignal();
     void sendAvatarChangeSignal();
     void sendAvatarAssetStream();
@@ -93,6 +97,7 @@ namespace Overworld {
     void sendPostSelectSignal(const std::string& postId);
 
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferServerSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -116,6 +121,7 @@ namespace Overworld {
     void receiveAppendPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveRemovePostSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePostSelectionAckSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);

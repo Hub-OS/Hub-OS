@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <time.h>
 #include <future>
+#include <optional>
 #include <Swoosh/Activity.h>
 #include <Swoosh/ActivityController.h>
 
@@ -283,6 +284,8 @@ namespace Overworld {
     SelectedNavi& GetCurrentNavi();
     EmoteNode& GetEmoteNode();
     std::shared_ptr<Background> GetBackground();
+    PA& GetProgramAdvance();
+    std::optional<CardFolder*> GetSelectedFolder();
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
     bool IsCameraLocked();

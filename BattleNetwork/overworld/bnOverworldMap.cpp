@@ -445,7 +445,7 @@ namespace Overworld {
     return *iter;
   }
 
-  const std::vector<TileObject>& Map::Layer::GetTileObjects() {
+  std::vector<TileObject>& Map::Layer::GetTileObjects() {
     return tileObjects;
   }
 

@@ -1242,7 +1242,11 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 }
 
 bool Overworld::SceneBase::IsInputLocked() {
-  return inputLocked || !personalMenu.IsClosed() || !menuSystem.IsClosed() || gotoNextScene || showMinimap || !teleportController.IsComplete();
+  return
+    inputLocked || gotoNextScene || showMinimap ||
+    !personalMenu.IsClosed() ||
+    !menuSystem.IsClosed() ||
+    !teleportController.IsComplete() || teleportController.TeleportedOut();
 }
 
 void Overworld::SceneBase::LockInput() {
@@ -1438,6 +1442,21 @@ Overworld::EmoteNode& Overworld::SceneBase::GetEmoteNode()
 std::shared_ptr<Background> Overworld::SceneBase::GetBackground()
 {
   return this->bg;
+}
+
+PA& Overworld::SceneBase::GetProgramAdvance() {
+  return programAdvance;
+}
+
+std::optional<CardFolder*> Overworld::SceneBase::GetSelectedFolder() {
+  CardFolder* folder;
+
+  if (folders.GetFolder(0, folder)) {
+    return folder;
+  }
+  else {
+    return {};
+  }
 }
 
 Overworld::MenuSystem& Overworld::SceneBase::GetMenuSystem()

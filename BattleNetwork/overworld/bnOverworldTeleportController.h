@@ -29,6 +29,7 @@ namespace Overworld {
     Command& TeleportOut(std::shared_ptr<Actor> actor);
     Command& TeleportIn(std::shared_ptr<Actor> actor, const sf::Vector3f& start, Direction dir, bool doSpin = false);
     void Update(double elapsed);
+    bool TeleportedOut() const;
     const bool IsComplete() const;
     std::shared_ptr<WorldSprite> GetBeam();
     void EnableSound(bool enable);
@@ -36,7 +37,7 @@ namespace Overworld {
   private:
     std::queue<Command> sequence;
 
-    bool animComplete{ true }, walkoutComplete{ true }, entered{ false }, spin{ false };
+    bool animComplete{ true }, walkoutComplete{ true }, entered{ false }, spin{ false }, teleportedOut{ false };
     bool mute{ false };
     float spinProgress{};
     frame_time_t walkFrames{};
