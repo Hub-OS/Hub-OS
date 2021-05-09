@@ -121,6 +121,7 @@ namespace Overworld {
     void receiveAppendPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveRemovePostSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePostSelectionAckSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);

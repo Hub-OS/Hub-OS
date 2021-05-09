@@ -2,6 +2,7 @@
 #include <Swoosh/ActivityController.h>
 #include <Segues/PixelateBlackWashFade.h>
 #include <Segues/BlackWashFade.h>
+#include <Segues/WhiteWashFade.h>
 #include <Poco/Net/NetException.h>
 #include <filesystem>
 #include <fstream>
@@ -9,6 +10,7 @@
 #include "bnOverworldOnlineArea.h"
 #include "../bnXmasBackground.h"
 #include "../bnNaviRegistration.h"
+#include "../netplay/battlescene/bnNetworkBattleScene.h"
 #include "../netplay/bnNetPlayConfig.h"
 #include "../bnMessageQuestion.h"
 
@@ -590,6 +592,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::post_selection_ack:
       receivePostSelectionAckSignal(reader, data);
+      break;
+    case ServerEvents::initiate_pvp:
+      receivePVPSignal(reader, data);
       break;
     case ServerEvents::actor_connected:
       receiveActorConnectedSignal(reader, data);
@@ -1495,6 +1500,47 @@ void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const 
 void Overworld::OnlineArea::receivePostSelectionAckSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   GetMenuSystem().AcknowledgeBBSSelection();
+}
+
+void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto addressString = reader.ReadString(buffer);
+
+  std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
+  CardFolder* folder;
+
+  if (selectedFolder) {
+    folder = (*selectedFolder)->Clone();
+
+    // Shuffle our folder
+    folder->Shuffle();
+  }
+  else {
+    // use a new blank folder if we dont have a folder selected
+    folder = new CardFolder();
+  }
+
+
+  NetPlayConfig config;
+
+  // Play the pre battle sound
+  Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
+
+  // Stop music and go to battle screen
+  Audio().StopStream();
+
+  // Configure the session
+  config.remote = addressString;
+  config.myNavi = GetCurrentNavi();
+
+  Player* player = NAVIS.At(config.myNavi).GetNavi();
+
+  NetworkBattleSceneProps props = {
+    { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
+    config
+  };
+
+  getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props);
 }
 
 void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

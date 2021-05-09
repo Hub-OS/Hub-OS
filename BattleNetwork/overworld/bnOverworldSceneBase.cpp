@@ -1444,6 +1444,21 @@ std::shared_ptr<Background> Overworld::SceneBase::GetBackground()
   return this->bg;
 }
 
+PA& Overworld::SceneBase::GetProgramAdvance() {
+  return programAdvance;
+}
+
+std::optional<CardFolder*> Overworld::SceneBase::GetSelectedFolder() {
+  CardFolder* folder;
+
+  if (folders.GetFolder(0, folder)) {
+    return folder;
+  }
+  else {
+    return {};
+  }
+}
+
 Overworld::MenuSystem& Overworld::SceneBase::GetMenuSystem()
 {
   return menuSystem;
