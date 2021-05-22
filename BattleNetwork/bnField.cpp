@@ -417,7 +417,7 @@ void Field::Update(double _elapsed) {
       auto& t = tiles[i][*charIter];
 
       auto matchIter = std::find_if(t->characters.begin(), t->characters.end(), 
-        [team = t->GetTeam()](Character* in) { return !in->Teammate(team); });
+        [team = t->ogTeam](Character* in) { return !in->Teammate(team); });
 
       // We found a character on a different team than us
       if (matchIter != t->characters.end()) {
@@ -427,54 +427,50 @@ void Field::Update(double _elapsed) {
 
         if (iter != restCol.end()) {
           restCol.erase(iter);
-          break;
         }
+
+        // Follow this column and prevent other columns that it points to from reverting
+        Battle::Tile* next = t + t->ogFacing;
+        Team tileTeam = t->ogTeam;
+
+        // Follow the facing directions to prevent all other teammate tiles
+        // from reverting since a character has made it further across our side
+        while (next && next->ogFacing != Direction::none) {
+          if (next->ogTeam != tileTeam)
+            break;
+
+          auto iter = restCol.find(next->GetX());
+
+          if (iter != restCol.end()) {
+            restCol.erase(iter);
+          }
+
+          next = next + next->ogFacing;
+        }
+
+        break;
       }
     } // end column
     // begin the next column
   }
 
   // revert strategy for tiles:
-  //  1. For each tile in the revertBucket column
-  //  2. if that tile is not it's original team then
-  //    a.check the current facing direction of the tile
-  //    b.move to that column's direction
-  //    c. if any of the tiles in that direction are not our team, then we can revert
-  //    d.otherwise, skip this tileand do not revert
-
   for (auto col : restCol) {
-    for (size_t i = 1; i < GetHeight()+2; i++) {
+    for (size_t i = 1; i <= GetHeight(); i++) {
       auto& t = tiles[i][col];
 
-      if (t->GetTeam() != t->ogTeam) {
-        if (auto* facing = t + t->facing) {
-          bool canRevert = false;
-
-          for (size_t i2 = 1; i2 < GetHeight()+2; i2++) {
-            auto& t2 = tiles[i2][facing->GetX()];
-
-            if (t2->GetTeam() != t->GetTeam()) {
-              canRevert = true;
-              break; // found a match, we can revert now
-            }
-          }
-
-          if (canRevert) {
-            t->SetTeam(t->ogTeam, true);
-            t->SetFacing(t->ogFacing);
-          }
-        }
-      }
+      t->SetTeam(t->ogTeam, true);
+      t->SetFacing(t->ogFacing);
     }
   }
 
   // Finally, sync stolen tiles with their corresponding columns
   for (auto col : syncCol) {
     double maxTimer = 0.0;
-    for (size_t i = 1; i < GetHeight()+2; i++) {
+    for (size_t i = 1; i <= GetHeight(); i++) {
       maxTimer = std::max(maxTimer, tiles[i][col]->teamCooldown);
     }
-    for (size_t i = 1; i < GetHeight()+2; i++) {
+    for (size_t i = 1; i <= GetHeight(); i++) {
       auto& t = tiles[i][col];
 
       if (t->GetTeam() != t->ogTeam) {

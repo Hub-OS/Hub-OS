@@ -50,7 +50,7 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
 }
 
 void PVP::PacketProcessor::Update(double elapsed) {
-  packetResendTimer -= elapsed;
+  packetResendTimer -= (float)elapsed;
 
   if (packetResendTimer < 0) {
     packetShipper.ResendBackedUpPackets(*client);

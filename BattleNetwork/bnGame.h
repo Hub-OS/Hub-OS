@@ -86,6 +86,7 @@ private:
   frame_time_t elapsed{};
 
   Endianness endian{ Endianness::big };
+  std::atomic<int> progress{ 0 };
 
 public:
   Game(DrawWindow& window);

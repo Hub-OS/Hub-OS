@@ -12,7 +12,19 @@ void CanodumbIdleState::Attack()
 
 void CanodumbIdleState::FreeCursor()
 {
-  delete freeCursorCallback;
+  bool isCursorValid = cursor;
+
+  if (freeCursorCallback) {
+    if (isCursorValid) {
+      cursor->ForgetRemoveCallback(*freeCursorCallback);
+    }
+    delete freeCursorCallback;
+  }
+
+  if (isCursorValid) {
+    cursor->Remove();
+    cursor = nullptr;
+  }
   freeCursorCallback = nullptr;
 }
 
@@ -26,7 +38,10 @@ Entity* CanodumbIdleState::GetCanodumbTarget()
   return can->GetTarget();
 }
 
-CanodumbIdleState::CanodumbIdleState() : AIState<Canodumb>() { cursor = nullptr; can = nullptr; }
+CanodumbIdleState::CanodumbIdleState() : AIState<Canodumb>() { 
+  cursor = nullptr; 
+  can = nullptr; 
+}
 
 CanodumbIdleState::~CanodumbIdleState() { 
   FreeCursor();
@@ -54,9 +69,8 @@ void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
     if (can.GetTarget()->GetTile()->GetY() == can.GetTile()->GetY() && !can.GetTarget()->IsPassthrough()) {
       // Spawn tracking cursor object
       if (cursor == nullptr) {
+        FreeCursor();
         cursor = new CanodumbCursor(this);
-
-        delete freeCursorCallback;
         freeCursorCallback = cursor->CreateRemoveCallback();
 
         freeCursorCallback->Slot([this](Entity*) {
@@ -69,7 +83,5 @@ void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
   }
 }
 
-void CanodumbIdleState::OnLeave(Canodumb& can) {
-  FreeCursor();
-}
+void CanodumbIdleState::OnLeave(Canodumb& can) { FreeCursor(); }
 

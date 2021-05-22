@@ -456,6 +456,8 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   assert(remotePlayer == nullptr && "remote player was already set!");
   remotePlayer = NAVIS.At(navi).GetNavi();
+
+  // TODO: manual flipping shouldn't be needed. The engine should flip based on team and direction...
   remotePlayer->SetTeam(Team::blue);
   remotePlayer->setScale(remotePlayer->getScale().x * -1.0f, remotePlayer->getScale().y);
 
@@ -465,6 +467,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   mob->Track(*remotePlayer);
 
   remoteCardUsePublisher = remotePlayer->CreateComponent<SelectedCardsUI>(remotePlayer);
+  remoteCardUsePublisher->Hide(); // do not reveal opponent's cards
   remoteCardUseListener = new PlayerCardUseListener(*remotePlayer);
   remoteCardUseListener->Subscribe(*remoteCardUsePublisher);
   combatPtr->Subscribe(*remoteCardUsePublisher);

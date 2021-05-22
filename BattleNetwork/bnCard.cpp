@@ -57,6 +57,11 @@ namespace Battle {
     return props.action;
   }
 
+  const bool Card::CanBoost() const
+  {
+    return props.canBoost;
+  }
+
   const std::string Card::GetUUID() const {
     return props.uuid;
   }
@@ -76,9 +81,9 @@ namespace Battle {
     return this->IsTaggedAs("navi");
   }
 
-  const bool Card::IsSupport() const
+  const bool Card::IsBooster() const
   {
-    return this->IsTaggedAs("support");
+    return this->IsTaggedAs("booster");
   }
 
   const bool Card::IsTimeFreeze() const

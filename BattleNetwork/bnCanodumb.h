@@ -18,8 +18,8 @@ class Canodumb : public Character, public AI<Canodumb> {
   friend class CanodumbCursor;
 
   float hitHeight;
-  DefenseRule* virusBody;
-  AnimationComponent* animation;
+  DefenseRule* virusBody{ nullptr };
+  AnimationComponent* animation{ nullptr };
 public:
   using DefaultState = CanodumbIdleState;
 

@@ -323,15 +323,16 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
 
   int j = 0;
   for (int i = 0; i < cardCount; ) {
-    if (cards[i]->IsSupport()) {
-      Logger::Logf("Support card %s detected", cards[i]->GetShortName().c_str());
+    if (cards[i]->IsBooster()) {
+      Logger::Logf("Booster card %s detected", cards[i]->GetShortName().c_str());
 
-      if (card) {
-        // support cards do not modify other support cards
-        if (!card->IsSupport()) {
+      //if (card) {
+        // booster cards do not modify other booster cards
+        if (!card->IsBooster()) {
           int lastDamage = card->GetDamage();
           int buff = 0;
 
+          // NOTE: hardcoded filter step for "Atk+X" cards
           if (cards[i]->GetShortName().substr(0, 3) == "Atk") {
             std::string substr = cards[i]->GetShortName().substr(4, cards[i]->GetShortName().size() - 4).c_str();
             buff = atoi(substr.c_str());
@@ -341,9 +342,9 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
         }
 
         i++;
-        continue;
+        continue; // skip the rest of the code below
       }
-    }
+    //}
 
     newCardList[j] = cards[i];
     card = cards[i];

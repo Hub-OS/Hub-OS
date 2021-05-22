@@ -44,7 +44,7 @@ void MatchMaking::PacketProcessor::SetNewRemote(const std::string& socketAddress
 
 void MatchMaking::PacketProcessor::SendPacket(const Poco::Buffer<char>& data)
 {
-  client->sendTo(data.begin(), data.size(), remoteAddr);
+  client->sendTo(data.begin(), (int)data.size(), remoteAddr);
 }
 
 const Poco::Net::SocketAddress& MatchMaking::PacketProcessor::GetRemoteAddr()

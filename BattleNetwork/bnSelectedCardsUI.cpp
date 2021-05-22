@@ -49,6 +49,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
   if (this->IsHidden()) return;
 
   const auto orange = sf::Color(225, 140, 0);
+  bool canBoost{};
 
   text.SetString("");
   dmg.SetString("");
@@ -124,6 +125,8 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     // If we have a valid card, update and draw the data
     if (cardCount > 0 && curr < cardCount && selectedCards[curr]) {
 
+      canBoost = selectedCards[curr]->CanBoost();
+
       // Text sits at the bottom-left of the screen
       text.SetString(selectedCards[curr]->GetShortName());
       text.setOrigin(0, 0);
@@ -166,19 +169,21 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
   text.SetColor(sf::Color::White);
   target.draw(text);
 
-  // our number font has shadow baked in
-  target.draw(dmg);
+  if (!canBoost) {
+    // our number font has shadow baked in
+    target.draw(dmg);
 
-  // shadow
-  auto multiPos = multiplier.getPosition();
-  multiplier.SetColor(sf::Color::Black);
-  multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
-  target.draw(multiplier);
+    // shadow
+    auto multiPos = multiplier.getPosition();
+    multiplier.SetColor(sf::Color::Black);
+    multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
+    target.draw(multiplier);
 
-  // font on top
-  multiplier.setPosition(multiPos);
-  multiplier.SetColor(sf::Color::White);
-  target.draw(multiplier);
+    // font on top
+    multiplier.setPosition(multiPos);
+    multiplier.SetColor(sf::Color::White);
+    target.draw(multiplier);
+  }
 
   UIComponent::draw(target, states);
 };
@@ -219,7 +224,7 @@ void SelectedCardsUI::UseNextCard() {
 
   auto card = selectedCards[curr];
 
-  if (!card->IsSupport()) {
+  if (!card->IsBooster()) {
     card->MultiplyDamage(multiplierValue);
   }
 

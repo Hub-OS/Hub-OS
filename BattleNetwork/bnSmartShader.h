@@ -20,11 +20,15 @@ private:
   std::map<std::string, double> duniforms; /*!< lookup of double uniforms */
   std::map<std::string, sf::Vector2f> vfuniforms; /*!< lookup of vector2f uniforms */
   std::map<std::string, sf::Color> coluniforms; /*!< lookup of sf::Color uniforms */
+  std::map<std::string, sf::Texture> texuniforms; /*! lookups of texture uniforms */
+  std::map<std::string, sf::Shader::CurrentTextureType> textypeuniforms;
 
   typedef std::map<std::string, int>::iterator iiter; 
   typedef std::map<std::string, float>::iterator fiter;
   typedef std::map<std::string, sf::Vector2f>::iterator vfiter;
   typedef std::map<std::string, sf::Color>::iterator coliter;
+  typedef std::map<std::string, sf::Texture>::iterator texiter;
+  typedef std::map<std::string, sf::Shader::CurrentTextureType>::iterator textypeiter;
 
   /**
    * @brief Applies all registered uniform values before drawing
@@ -85,18 +89,32 @@ public:
   void SetUniform(std::string uniform, int ivalue);
   
   /**
-   * @brief Set a vector2f uniform values
+   * @brief Set a vector2f uniform value
    * @param uniform the name of the uniform
    * @param vfvalue
    */
   void SetUniform(std::string uniform, const sf::Vector2f& vfvalue);
   
   /**
-   * @brief Set a color uniform values
+   * @brief Set a color uniform value
    * @param uniform the name of the uniform
    * @param colvalue
    */
   void SetUniform(std::string uniform, const sf::Color& colvalue);
+
+  /**
+   * @brief Set a texture uniform value
+   * @param uniform the name of the uniform
+   * @param texvalue
+   */
+  void SetUniform(std::string uniform, const sf::Texture& texvalue);
+
+  /**
+  * @brief Set a texture type uniform value
+  * @param uniform the name of the uniform
+  * @param value
+  */
+  void SetUniform(std::string uniform, const sf::Shader::CurrentTextureType& value);
 
   /**
    * @brief Sets all pre-existing uniforms to 0, empties the lookups, and frees ref

@@ -74,7 +74,15 @@ void SwordCardAction::OnExecute(Character* user) {
 void SwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
 {
   auto field = GetActor().GetField();
-  auto tile = GetActor().GetTile()->Offset(1, 0);
+  Battle::Tile* tile = nullptr;
+  
+  if (GetActor().GetFacing() == Direction::right) {
+    tile = GetActor().GetTile()->Offset(1, 0);
+  }
+  else {
+    // facing == Direction::left
+    tile = GetActor().GetTile()->Offset(-1, 0);
+  }
 
   if (tile) {
     // visual fx

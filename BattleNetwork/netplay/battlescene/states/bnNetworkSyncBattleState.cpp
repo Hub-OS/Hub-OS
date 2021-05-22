@@ -18,6 +18,7 @@ NetworkSyncBattleState::~NetworkSyncBattleState()
 
 void NetworkSyncBattleState::onStart(const BattleSceneState* next)
 {
+  adjustedForFormState = false;
 }
 
 void NetworkSyncBattleState::onEnd(const BattleSceneState* last)
@@ -58,8 +59,11 @@ void NetworkSyncBattleState::RemoteRequestState(Handshake::Type incoming)
 
     // switch into the form change handshake state if the remote is and we are ready
     if (incoming == Handshake::Type::form_change && handshake->type == Handshake::Type::battle) {
-      handshake->type = Handshake::Type::form_change;
-      resync = true;
+      if (!adjustedForFormState) {
+        handshake->type = Handshake::Type::form_change;
+        resync = true;
+        adjustedForFormState = true;
+      }
     }
     else if (handshake->type > incoming) {
       resync = true;

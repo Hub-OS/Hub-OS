@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <SFML/Graphics.hpp>
+#include "bnSmartShader.h"
 #include "bnComponent.h"
 
 class BattleSceneBase;
@@ -10,7 +11,7 @@ class PaletteSwap : public Component {
 private:
   std::shared_ptr<sf::Texture> palette;
   std::shared_ptr<sf::Texture> base;
-  sf::Shader* paletteSwap;
+  SmartShader paletteSwap;
   bool enabled; /*!< Turn this effect on/off */
 public:
   PaletteSwap(Entity* owner);

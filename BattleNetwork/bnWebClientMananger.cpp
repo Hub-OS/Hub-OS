@@ -974,6 +974,7 @@ const Battle::Card WebClientManager::MakeBattleCardFromWebCardData(const WebAcco
     props.timeFreeze = cardModel->timeFreeze;
     props.cardClass = static_cast<Battle::CardClass>(cardModel->classType);
     props.metaClasses = cardModel->metaClasses;
+    props.canBoost = cardModel->canBoost;
   }
 
   return Battle::Card(props);

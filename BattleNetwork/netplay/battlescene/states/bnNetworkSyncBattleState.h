@@ -11,6 +11,7 @@ struct Handshake;
 */
 struct NetworkSyncBattleState final : public NetworkBattleSceneState {
   bool firstConnection{ true }; //!< We need to do some extra setup for players if this is their first connection
+  bool adjustedForFormState{ false }; //!< Denotes whether we have forced a resync coming out of form state
   Player *&remotePlayer;
   Handshake* handshake{ nullptr };
   Handshake::Type remoteHandshakeRequest{};

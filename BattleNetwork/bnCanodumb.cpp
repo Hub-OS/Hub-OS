@@ -13,8 +13,7 @@
 #define RESOURCE_NAME "canodumb"
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-Canodumb::Canodumb(Rank _rank)
-  :  AI<Canodumb>(this), Character(_rank) {
+Canodumb::Canodumb(Rank _rank) : AI<Canodumb>(this), Character(_rank) {
   SetTeam(Team::blue);
   SetName("Canodumb");
   setTexture(Textures().GetTexture(TextureType::MOB_CANODUMB_ATLAS));
@@ -52,7 +51,6 @@ Canodumb::~Canodumb() {
     RemoveDefenseRule(virusBody);
     delete virusBody;
     virusBody = nullptr;
-
   }
 }
 

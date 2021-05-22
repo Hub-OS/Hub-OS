@@ -689,9 +689,11 @@ void Character::RemoveDefenseRule(DefenseRule * rule)
 
 void Character::DefenseCheck(DefenseFrameStateJudge& judge, Spell& in, const DefenseOrder& filter)
 {
-  for (int i = 0; i < defenses.size(); i++) {
-    if (defenses[i]->GetDefenseOrder() == filter) {
-      DefenseRule* defenseRule = defenses[i];
+  auto copy = defenses;
+
+  for (int i = 0; i < copy.size(); i++) {
+    if (copy[i]->GetDefenseOrder() == filter) {
+      DefenseRule* defenseRule = copy[i];
       judge.SetDefenseContext(defenseRule);
       defenseRule->CanBlock(judge, in, *this);
     }

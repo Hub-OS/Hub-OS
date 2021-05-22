@@ -111,8 +111,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
   Logger::Logf("Engine initialized: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 
-  atomic<int> progress(0);
-
   // does shaders too
   Callback<void()> graphics;
   graphics.Slot(std::bind(&Game::RunGraphicsInit, this, &progress));

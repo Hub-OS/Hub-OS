@@ -8,12 +8,14 @@
     funiforms = copy.funiforms;
     iuniforms = copy.iuniforms;
     vfuniforms = copy.vfuniforms;
+    coluniforms = copy.coluniforms;
+    texuniforms = copy.texuniforms;
+    textypeuniforms = copy.textypeuniforms;
+
     ref = copy.ref;
   }
 
   SmartShader::~SmartShader() {
-    iuniforms.clear();
-    funiforms.clear();
     ref = nullptr;
   }
 
@@ -41,6 +43,8 @@
     fiter fIter = funiforms.begin();
     vfiter vfIter = vfuniforms.begin();
     coliter colIter = coluniforms.begin();
+    texiter texIter = texuniforms.begin();
+    textypeiter texTypeIter = textypeuniforms.begin();
 
     for (; iIter != iuniforms.end(); iIter++) {
       ref->setUniform(iIter->first, iIter->second);
@@ -65,6 +69,15 @@
         }
       );
     }
+
+    for (; texIter != texuniforms.end(); texIter++) {
+      ref->setUniform(texIter->first, texIter->second);
+    }
+
+    for (; texTypeIter != textypeuniforms.end(); texTypeIter++) {
+      ref->setUniform(texTypeIter->first, texTypeIter->second);
+    }
+
   }
 
   void SmartShader::ResetUniforms() {
@@ -76,6 +89,8 @@
     fiter fIter = funiforms.begin();
     vfiter vfIter = vfuniforms.begin();
     coliter colIter = coluniforms.begin();
+    texiter texIter = texuniforms.begin();
+    textypeiter texTypeIter = textypeuniforms.begin();
 
     for (; iIter != iuniforms.end(); iIter++) {
       ref->setUniform(iIter->first, 0);
@@ -93,10 +108,20 @@
       ref->setUniform(colIter->first, 0.f);
     }
 
+    for (; texIter != texuniforms.end(); texIter++) {
+      ref->setUniform(texIter->first, sf::Shader::CurrentTexture);
+    }
+
+    for (; texTypeIter != textypeuniforms.end(); texTypeIter++) {
+      ref->setUniform(texTypeIter->first, sf::Shader::CurrentTexture);
+    }
+
     iuniforms.clear();
     funiforms.clear();
     vfuniforms.clear();
     coluniforms.clear();
+    texuniforms.clear();
+    textypeuniforms.clear();
   }
 
   void SmartShader::SetUniform(std::string uniform, float fvalue) {
@@ -114,6 +139,16 @@
   void SmartShader::SetUniform(std::string uniform, const sf::Color& colvalue)
   {
     coluniforms[uniform] = colvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, const sf::Texture& texvalue)
+  {
+    texuniforms[uniform] = texvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, const sf::Shader::CurrentTextureType& value)
+  {
+    textypeuniforms[uniform] = value;
   }
 
   void SmartShader::Reset() {

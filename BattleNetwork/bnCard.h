@@ -34,6 +34,7 @@ namespace Battle {
       unsigned damage{ 0 };
       unsigned limit{ 0 };
       char code{ '*' };
+      bool canBoost{ false }; /*!< Can this card be boosted by other cards? */
       bool timeFreeze{ false }; /*!< Does this card rely on action items to resolve before resuming the battle scene? */
       string shortname;
       string action; 
@@ -100,6 +101,8 @@ namespace Battle {
 
     const std::string GetAction() const;
 
+    const bool CanBoost() const;
+
     /**
       * @brief Card ID of card
       * @return string
@@ -127,10 +130,10 @@ namespace Battle {
     const bool IsNaviSummon() const;
 
     /**
-    * @brief Qeuery if card is tagged as a support card
-    * @returns true if flagged as a support card, false otherwise
+    * @brief Qeuery if card is tagged as a booster card (modifies other cards)
+    * @returns true if flagged as a booster card, false otherwise
     */
-    const bool IsSupport() const;
+    const bool IsBooster() const;
 
     /**
     * @brief Query if card should freeze time
@@ -173,7 +176,6 @@ namespace Battle {
     friend struct Compare;
 
   private:
-//    Properties props;
     Properties unmodded;
     unsigned int multiplier{ 0 };
   };
