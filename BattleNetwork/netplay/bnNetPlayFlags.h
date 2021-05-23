@@ -3,6 +3,7 @@
 #include "../bnDirection.h"
 
 struct NetPlayFlags {
+  bool openedCardWidget{ false };
   bool isRemoteConnected{ false };
   bool remoteShoot{ false };
   bool remoteUseSpecial{ false };

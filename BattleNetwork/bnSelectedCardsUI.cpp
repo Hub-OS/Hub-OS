@@ -250,6 +250,17 @@ std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek(
   return {};
 }
 
+std::vector<std::string> SelectedCardsUI::GetUUIDList()
+{
+  std::vector<std::string> res;
+
+  for (int i = 0; i < cardCount; i++) {
+    res.push_back(selectedCards[i]->GetUUID());
+  }
+
+  return res;
+}
+
 void SelectedCardsUI::Inject(BattleSceneBase& scene) {
   scene.Inject(this);
 }

@@ -51,7 +51,7 @@ public:
   PacketShipper(const Poco::Net::SocketAddress& socketAddress);
 
   bool HasFailed();
-  void Send(Poco::Net::DatagramSocket& socket, Reliability Reliability, const Poco::Buffer<char>& body);
+  std::pair<Reliability, uint64_t> Send(Poco::Net::DatagramSocket& socket, Reliability Reliability, const Poco::Buffer<char>& body);
   void ResendBackedUpPackets(Poco::Net::DatagramSocket& socket);
   void Acknowledged(Reliability reliability, uint64_t id);
   const std::chrono::microseconds GetAvgLatency() const;

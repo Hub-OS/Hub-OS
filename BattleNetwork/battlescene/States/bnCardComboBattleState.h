@@ -32,6 +32,10 @@ struct CardComboBattleState final : public BattleSceneState {
   Battle::Card*** cardsListPtr{ nullptr };
 
   CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance);
+
+  void Simulate(double elapsed, Battle::Card*** cardsPtr, int* listLengthPtr, bool playSound);
+  void Reset();
+
   void ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr);
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;

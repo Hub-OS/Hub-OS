@@ -64,19 +64,27 @@ public:
  * @param user using the card
  */
   void Broadcast(const Battle::Card& card, Character& user);
-  
+
   /**
-  * @brief return a const reference to the next card, if valid
+   * @brief Does nothing at this time
+   */
+  void Inject(BattleSceneBase&) override;
+
+  /**
+  * @brief Increases the next card's damage property
+  */
+  void SetMultiplier(unsigned mult);
+
+  /**
+  * @brief Return a const reference to the next card, if valid
   * @preconditions Assumes the card can be used and currCard < cardCount!
   */
   std::optional<std::reference_wrapper<const Battle::Card>> Peek();
 
   /**
-   * @brief nothing
-   */
-  void Inject(BattleSceneBase&) override;
-
-  void SetMultiplier(unsigned mult);
+  * @brief Returns the uuids of all the cards
+  */
+  std::vector<std::string> GetUUIDList();
 
 private:
   double elapsed{}; /*!< Used by draw function, delta time since last update frame */

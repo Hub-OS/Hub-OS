@@ -314,6 +314,7 @@ public:
   CardSelectionCust& GetCardSelectWidget();
   SelectedCardsUI& GetSelectedCardsUI();
   Camera& GetCamera();
+  PA& GetPA();
   void StartBattleStepTimer();
   void StopBattleStepTimer();
   void BroadcastBattleStart();

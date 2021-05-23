@@ -23,13 +23,106 @@ CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvan
 
 }
 
-void CardComboBattleState::ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr)
+void CardComboBattleState::Simulate(double elapsed, Battle::Card*** cardsPtr, int* listLengthPtr, bool playSound)
 {
-  this->cardsListPtr = cardsPtr;
-  this->cardCountPtr = listLengthPtr;
+  increment += 360.0 * elapsed;
+  PAStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
+
+  // we're leaving a state
+  // Start Program Advance checks
+  if (paChecked && hasPA == -1) {
+    // Filter and apply support cards
+    GetScene().FilterSupportCards(*cardsPtr, *listLengthPtr);
+    isPAComplete = true;
+  }
+  else if (!paChecked) {
+
+    hasPA = programAdvance.FindPA(*cardsPtr, *listLengthPtr);
+
+    if (hasPA > -1) {
+      paSteps = programAdvance.GetMatchingSteps();
+      PAStartTimer.reset();
+      PAStartTimer.start();
+    }
+
+    paChecked = true;
+  }
+  else if (PAStartTimer.getElapsed().asSeconds() > PAStartLength) {
+
+    if (listStepCounter > 0.f) {
+      listStepCounter -= (float)elapsed;
+    }
+    else {
+      // +2 = 1 step for showing PA label and 1 step for showing merged card
+      // That's the cards we want to show + 1 + 1 = cardCount + 2
+      if (paStepIndex == (*listLengthPtr) + 2) {
+
+        Battle::Card* paCard = programAdvance.GetAdvanceCard();
+
+        // Only remove the cards involved in the program advance. Replace them with the new PA card.
+        // PA card is dealloc by the class that created it so it must be removed before the library tries to dealloc
+        int newCardCount = (*listLengthPtr) - (int)paSteps.size() + 1; // Add the new one
+        int newCardStart = hasPA;
+
+        // Create a temp card list
+        Battle::Card** newCardList = new Battle::Card * [newCardCount] {nullptr};
+
+        int j = 0;
+        for (int i = 0; i < *listLengthPtr && j < newCardCount; ) {
+          if (i == hasPA) {
+            newCardList[j] = paCard;
+            i += (int)paSteps.size();
+            j++;
+            continue;
+          }
+
+          newCardList[j] = (*cardsPtr)[i];
+          i++;
+          j++;
+        }
+
+        // Set the new cards
+        for (int i = 0; i < newCardCount; i++) {
+          (*cardsPtr)[i] = newCardList[i];
+        }
+
+        // Delete the temp list space
+        // We are _not_ deleting the pointers in the list, just the list itself
+        delete[] newCardList;
+
+        *listLengthPtr = newCardCount;
+
+        hasPA = -1; // used as state reset flag
+      }
+      else {
+        if (paStepIndex == (*listLengthPtr) + 1) {
+          listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when showing the final PA
+
+          // play the sound
+          if (!advanceSoundPlay && playSound) {
+            Audio().Play(AudioType::PA_ADVANCE);
+            advanceSoundPlay = true;
+          }
+        }
+        else {
+          listStepCounter = listStepCooldown * 0.7f; // Quicker about non-PA cards
+        }
+
+        if (paStepIndex >= hasPA && paStepIndex <= hasPA + paSteps.size() - 1) {
+          listStepCounter = listStepCooldown; // Take our time with the PA cards
+          
+          if (playSound) {
+            Audio().Play(AudioType::POINT_SFX);
+          }
+        }
+
+        paStepIndex++;
+      }
+    }
+  }
 }
 
-void CardComboBattleState::onStart(const BattleSceneState*)
+void CardComboBattleState::Reset()
 {
   advanceSoundPlay = false;
   paChecked = false;
@@ -42,6 +135,17 @@ void CardComboBattleState::onStart(const BattleSceneState*)
   PAStartTimer.start();
 }
 
+void CardComboBattleState::ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr)
+{
+  this->cardsListPtr = cardsPtr;
+  this->cardCountPtr = listLengthPtr;
+}
+
+void CardComboBattleState::onStart(const BattleSceneState*)
+{
+  Reset();
+}
+
 void CardComboBattleState::onEnd(const BattleSceneState*)
 {
   advanceSoundPlay = false;
@@ -49,105 +153,8 @@ void CardComboBattleState::onEnd(const BattleSceneState*)
 
 void CardComboBattleState::onUpdate(double elapsed)
 {
-  increment += 360.0 * elapsed;
-  PAStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
-
   this->elapsed += elapsed;
-  CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
-
-  // we're leaving a state
-  // Start Program Advance checks
-  if (paChecked && hasPA == -1) {
-    // Filter and apply support cards
-    GetScene().FilterSupportCards(*cardsListPtr, *cardCountPtr);
-
-    // Return to game
-    ui.LoadCards(*cardsListPtr, *cardCountPtr);
-
-    isPAComplete = true;
-  }
-  else if (!paChecked) {
-
-    hasPA = programAdvance.FindPA(*cardsListPtr, *cardCountPtr);
-
-    if (hasPA > -1) {
-      paSteps = programAdvance.GetMatchingSteps();
-      PAStartTimer.reset();
-      PAStartTimer.start();
-    }
-
-    paChecked = true;
-  }
-  else if(PAStartTimer.getElapsed().asSeconds() > PAStartLength) {
-
-    if (listStepCounter > 0.f) {
-      listStepCounter -= (float)elapsed;
-    }
-    else {
-      // +2 = 1 step for showing PA label and 1 step for showing merged card
-      // That's the cards we want to show + 1 + 1 = cardCount + 2
-      if (paStepIndex == (*cardCountPtr) + 2) {
-
-        Battle::Card* paCard = programAdvance.GetAdvanceCard();
-
-        // Only remove the cards involved in the program advance. Replace them with the new PA card.
-        // PA card is dealloc by the class that created it so it must be removed before the library tries to dealloc
-        int newCardCount = (*cardCountPtr) - (int)paSteps.size() + 1; // Add the new one
-        int newCardStart = hasPA;
-
-        // Create a temp card list
-        Battle::Card** newCardList = new Battle::Card * [newCardCount] {nullptr};
-
-        int j = 0;
-        for (int i = 0; i < *cardCountPtr && j < newCardCount; ) {
-          if (i == hasPA) {
-            newCardList[j] = paCard;
-            i += (int)paSteps.size();
-            j++;
-            continue;
-          }
-
-          newCardList[j] = (*cardsListPtr)[i];
-          i++;
-          j++;
-        }
-
-        // Set the new cards
-        for (int i = 0; i < newCardCount; i++) {
-          (*cardsListPtr)[i] = newCardList[i];
-        }
-
-        // Delete the temp list space
-        // We are _not_ deleting the pointers in the list, just the list itself
-        delete[] newCardList;
-
-        *cardCountPtr = newCardCount;
-
-        hasPA = -1; // used as state reset flag
-      }
-      else {
-        if (paStepIndex == (*cardCountPtr) + 1) {
-          listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when showing the final PA
-          
-          // play the sound
-          if (!advanceSoundPlay) {
-            Audio().Play(AudioType::PA_ADVANCE);
-            advanceSoundPlay = true;
-          }
-        }
-        else {
-          listStepCounter = listStepCooldown * 0.7f; // Quicker about non-PA cards
-        }
-
-        if (paStepIndex >= hasPA && paStepIndex <= hasPA + paSteps.size() - 1) {
-          listStepCounter = listStepCooldown; // Take our time with the PA cards
-          Audio().Play(AudioType::POINT_SFX);
-        }
-
-        paStepIndex++;
-      }
-    }
-  }
+  Simulate(elapsed, cardsListPtr, cardCountPtr, true);
 }
 
 void CardComboBattleState::onDraw(sf::RenderTexture& surface)

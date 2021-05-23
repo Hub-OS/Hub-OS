@@ -637,6 +637,11 @@ Camera& BattleSceneBase::GetCamera()
   return camera;
 }
 
+PA& BattleSceneBase::GetPA()
+{
+  return programAdvance;
+}
+
 void BattleSceneBase::StartBattleStepTimer()
 {
   battleTimer.start();

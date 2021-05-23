@@ -49,6 +49,7 @@ using sf::Event;
 struct CombatBattleState;
 struct TimeFreezeBattleState;
 struct NetworkSyncBattleState;
+struct CardComboBattleState;
 
 class Mob;
 class Player;
@@ -66,6 +67,7 @@ private:
   friend class PlayerInputReplicator;
   friend class PVP::PacketProcessor;
 
+  long long roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
   SelectedNavi selectedNavi; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   Poco::Net::SocketAddress remoteAddress;
@@ -80,6 +82,7 @@ private:
   CombatBattleState* combatPtr{ nullptr };
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
   NetworkSyncBattleState* syncStatePtr{ nullptr };
+  CardComboBattleState* cardComboStatePtr{ nullptr };
   std::shared_ptr<PVP::PacketProcessor> packetProcessor;
 
   void sendHandshakeSignal(); // send player data to start the next round

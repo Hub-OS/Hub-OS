@@ -17,7 +17,7 @@ bool PacketShipper::HasFailed() {
   return failed;
 }
 
-void PacketShipper::Send(
+std::pair<Reliability, uint64_t> PacketShipper::Send(
   Poco::Net::DatagramSocket& socket,
   Reliability reliability,
   const Poco::Buffer<char>& body)
@@ -81,6 +81,8 @@ void PacketShipper::Send(
 
   size_t index = static_cast<size_t>(reliability);
   packetStart[index][newID] = std::chrono::steady_clock::now();
+
+  return { reliability, newID };
 }
 
 void PacketShipper::updateLagTime(Reliability type, uint64_t packetId)

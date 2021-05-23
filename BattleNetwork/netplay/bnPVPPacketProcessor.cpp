@@ -33,6 +33,10 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
       Reliability reliability = reader.Read<Reliability>(data);
       uint64_t id = reader.Read<uint64_t>(data);
       packetShipper.Acknowledged(reliability, id);
+
+      if (id == handshakeId) {
+        handshakeComplete = true;
+      }
     }
     else {
       constexpr auto sigSize = sizeof(NetPlaySignals);
@@ -67,14 +71,20 @@ void PVP::PacketProcessor::Update(double elapsed) {
   }
 }
 
+void PVP::PacketProcessor::UpdateHandshakeID(uint64_t id)
+{
+  handshakeId = id;
+  handshakeComplete = false;
+}
+
 void PVP::PacketProcessor::HandleError()
 {
   errorCount++;
 }
 
-void PVP::PacketProcessor::SendPacket(Reliability reliability, const Poco::Buffer<char>& data)
+std::pair<Reliability, uint64_t> PVP::PacketProcessor::SendPacket(Reliability reliability, const Poco::Buffer<char>& data)
 {
-  packetShipper.Send(*client, reliability, data);
+  return packetShipper.Send(*client, reliability, data);
 }
 
 void PVP::PacketProcessor::EnableKickForSilence(bool enabled)
@@ -86,6 +96,16 @@ void PVP::PacketProcessor::EnableKickForSilence(bool enabled)
   }
 
   checkForSilence = enabled;
+}
+
+bool PVP::PacketProcessor::IsHandshakeComplete()
+{
+  return handshakeComplete;
+}
+
+const std::chrono::microseconds PVP::PacketProcessor::GetAvgLatency() const
+{
+  return packetShipper.GetAvgLatency();
 }
 
 bool PVP::PacketProcessor::TimedOut() {
