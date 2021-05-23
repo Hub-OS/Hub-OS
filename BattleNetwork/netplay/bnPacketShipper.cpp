@@ -23,6 +23,7 @@ void PacketShipper::Send(
   const Poco::Buffer<char>& body)
 {
   Poco::Buffer<char> data(0);
+  uint64_t newID{};
 
   switch (reliability)
   {
@@ -40,6 +41,7 @@ void PacketShipper::Send(
 
     sendSafe(socket, data);
 
+    newID = nextUnreliableSequenced;
     nextUnreliableSequenced += 1;
     break;
   case Reliability::Reliable:
@@ -55,6 +57,7 @@ void PacketShipper::Send(
         data
       });
 
+    newID = nextReliable;
     nextReliable += 1;
     break;
   // stalls until packets arrive in order (if client gets packet 0 + 3 + 2, it processes 0, and waits for 1)
@@ -71,8 +74,37 @@ void PacketShipper::Send(
         data
       });
 
+    newID = nextReliableOrdered;
     nextReliableOrdered += 1;
     break;
+  }
+
+  size_t index = static_cast<size_t>(reliability);
+  packetStart[index][newID] = std::chrono::steady_clock::now();
+}
+
+void PacketShipper::updateLagTime(Reliability type, uint64_t packetId)
+{
+  size_t index = static_cast<size_t>(type);
+  auto iter = packetStart[index].find(packetId);
+
+  if (iter != packetStart[index].end()) {
+    auto start = iter->second;
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    lagTime.push(duration);
+  }
+
+  std::chrono::microseconds totalDuration{};
+  size_t lagWindowSize = lagTime.size();
+  if (lagWindowSize >= PacketShipper::PACKET_WINDOW_LEN) {
+    while (!lagTime.empty()) {
+      totalDuration += lagTime.front();
+      lagTime.pop();
+    }
+
+    totalDuration /= lagWindowSize;
+    avgLatency = totalDuration;
   }
 }
 
@@ -139,6 +171,11 @@ void PacketShipper::Acknowledged(Reliability reliability, uint64_t id)
   }
 }
 
+const std::chrono::microseconds PacketShipper::GetAvgLatency() const
+{
+  return avgLatency;
+}
+
 void PacketShipper::acknowledgedReliable(uint64_t id)
 {
   auto iterEnd = backedUpReliable.end();
@@ -148,6 +185,7 @@ void PacketShipper::acknowledgedReliable(uint64_t id)
     return;
   }
 
+  updateLagTime(Reliability::Reliable, id);
   backedUpReliable.erase(iter);
 }
 
@@ -160,5 +198,6 @@ void PacketShipper::acknowledgedReliableOrdered(uint64_t id)
     return;
   }
 
+  updateLagTime(Reliability::ReliableOrdered, id);
   backedUpReliableOrdered.erase(iter);
 }

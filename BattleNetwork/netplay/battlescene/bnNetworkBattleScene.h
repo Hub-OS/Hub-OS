@@ -60,29 +60,12 @@ struct NetworkBattleSceneProps {
   NetPlayConfig& netconfig;
 };
 
-struct Handshake {
-  // In order of priority!
-  enum class Type : char {
-    round_start = 0,
-    combo_check = 1,
-    forfeit = 2,
-    battle = 3,
-    form_change = 4
-  } type{};
-
-  bool established{}; //!< Establish a connection with remote player
-  bool isClientReady{}; //!< Signal when the client is ready to begin the round
-  bool isRemoteReady{}; //!< When both this flag and client are true, handshake is complete
-  bool resync{ true }; //!< Try to restablish the handshake with your opponent
-};
-
 class NetworkBattleScene final : public BattleSceneBase {
 private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
   friend class PVP::PacketProcessor;
 
-  Handshake handshake{}; //!< typeful handshake values for different netplay states
   SelectedNavi selectedNavi; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   Poco::Net::SocketAddress remoteAddress;
@@ -99,7 +82,7 @@ private:
   NetworkSyncBattleState* syncStatePtr{ nullptr };
   std::shared_ptr<PVP::PacketProcessor> packetProcessor;
 
-  void sendHandshakeSignal(Handshake::Type type); // sent until we recieve a handshake
+  void sendHandshakeSignal(); // send player data to start the next round
   void sendShootSignal();
   void sendUseSpecialSignal();
   void sendChargeSignal(const bool);

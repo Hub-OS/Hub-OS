@@ -20,7 +20,6 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
   if (read == 0)
     return;
 
-
   Poco::Buffer<char> packet{ 0 };
   packet.append(buffer, read);
 
