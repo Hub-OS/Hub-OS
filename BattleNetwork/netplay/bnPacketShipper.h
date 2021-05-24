@@ -20,9 +20,6 @@ enum class Reliability : char
 
 class PacketShipper
 {
-public:
-  static constexpr uint64_t PACKET_WINDOW_LEN = 100u;
-
 private:
   struct BackedUpPacket
   {
@@ -40,7 +37,7 @@ private:
   std::vector<BackedUpPacket> backedUpReliableOrdered;
   std::array<std::map<uint64_t, std::chrono::time_point<std::chrono::steady_clock>>, static_cast<size_t>(Reliability::size)> packetStart;
   std::queue<std::chrono::microseconds> lagTime;
-  std::chrono::microseconds avgLatency; // the average acknowledgement time
+  std::chrono::microseconds avgLatency{}; // the average acknowledgement time
 
   void updateLagTime(Reliability type, uint64_t packetId);
   void sendSafe(Poco::Net::DatagramSocket& socket, const Poco::Buffer<char>& data);

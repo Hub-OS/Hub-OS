@@ -11,7 +11,7 @@ namespace PVP {
   class PacketProcessor : public IPacketProcessor {
   private:
     bool checkForSilence{}; //!< if true, processor kicks connection after lengthy silence
-    bool handshakeComplete{};
+    bool handshakeAck{}, handshakeSent{};
     unsigned errorCount{};
     uint64_t handshakeId{}; //!< Latest handshake packet
     float packetResendTimer{};
@@ -30,7 +30,7 @@ namespace PVP {
     std::pair<Reliability, uint64_t> SendPacket(Reliability reliability, const Poco::Buffer<char>& data);
     void EnableKickForSilence(bool enabled);
     bool TimedOut();
-    bool IsHandshakeComplete();
+    bool IsHandshakeAck();
     const std::chrono::microseconds GetAvgLatency() const;
   };
 }

@@ -34,8 +34,8 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
       uint64_t id = reader.Read<uint64_t>(data);
       packetShipper.Acknowledged(reliability, id);
 
-      if (id == handshakeId) {
-        handshakeComplete = true;
+      if (id == handshakeId && handshakeSent) {
+        handshakeAck = true;
       }
     }
     else {
@@ -74,7 +74,8 @@ void PVP::PacketProcessor::Update(double elapsed) {
 void PVP::PacketProcessor::UpdateHandshakeID(uint64_t id)
 {
   handshakeId = id;
-  handshakeComplete = false;
+  handshakeAck = false;
+  handshakeSent = true;
 }
 
 void PVP::PacketProcessor::HandleError()
@@ -98,9 +99,9 @@ void PVP::PacketProcessor::EnableKickForSilence(bool enabled)
   checkForSilence = enabled;
 }
 
-bool PVP::PacketProcessor::IsHandshakeComplete()
+bool PVP::PacketProcessor::IsHandshakeAck()
 {
-  return handshakeComplete;
+  return handshakeAck;
 }
 
 const std::chrono::microseconds PVP::PacketProcessor::GetAvgLatency() const

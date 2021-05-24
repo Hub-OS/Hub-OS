@@ -4,7 +4,9 @@
 
 struct NetPlayFlags {
   bool openedCardWidget{ false };
-  bool isRemoteConnected{ false };
+  bool remoteHandshake{ false };
+  bool remoteChangeForm{ false };
+  bool remoteConnected{ false };
   bool remoteShoot{ false };
   bool remoteUseSpecial{ false };
   bool remoteCharge{ false };

@@ -3,22 +3,30 @@
 #include "../../battlescene/bnNetworkBattleSceneState.h"
 
 struct BattleSceneState;
+class CardSelectBattleState;
 class Player;
+class NetworkBattleScene;
 
 /*
     \brief This state will resync with the remote player before starting the next state
 */
 struct NetworkSyncBattleState final : public NetworkBattleSceneState {
   bool firstConnection{ true }; //!< We need to do some extra setup for players if this is their first connection
-  bool adjustedForFormState{ false }; //!< Denotes whether we have forced a resync coming out of form state
+  bool synchronized{ false }; 
   Player *&remotePlayer;
+  CardSelectBattleState*& cardSelectState;
+  NetworkBattleScene* scene{ nullptr };
 
-  NetworkSyncBattleState(Player*& remotePlayer);
+  NetworkSyncBattleState(Player*& remotePlayer, NetworkBattleScene* scene);
   ~NetworkSyncBattleState();
-
+  void Synchronize(); // mark this state for synchronization
+  const bool IsSynchronized() const;
   void onStart(const BattleSceneState* next) override;
   void onEnd(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
-  bool IsSyncronized();
+  bool IsRemoteConnected();
+  bool SelectedNewChips();
+  bool NoConditions(); //!< Used when the forms and combo conditions are not met
+  bool HasForm();
 };

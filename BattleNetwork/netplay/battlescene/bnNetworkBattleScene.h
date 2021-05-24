@@ -50,6 +50,8 @@ struct CombatBattleState;
 struct TimeFreezeBattleState;
 struct NetworkSyncBattleState;
 struct CardComboBattleState;
+struct BattleStartBattleState;
+class CardSelectBattleState;
 
 class Mob;
 class Player;
@@ -63,6 +65,7 @@ struct NetworkBattleSceneProps {
 
 class NetworkBattleScene final : public BattleSceneBase {
 private:
+  friend struct NetworkSyncBattleState;
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
   friend class PVP::PacketProcessor;
@@ -83,6 +86,8 @@ private:
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
   NetworkSyncBattleState* syncStatePtr{ nullptr };
   CardComboBattleState* cardComboStatePtr{ nullptr };
+  CardSelectBattleState* cardStatePtr{ nullptr };
+  BattleStartBattleState* startStatePtr{ nullptr };
   std::shared_ptr<PVP::PacketProcessor> packetProcessor;
 
   void sendHandshakeSignal(); // send player data to start the next round
@@ -90,7 +95,6 @@ private:
   void sendUseSpecialSignal();
   void sendChargeSignal(const bool);
   void sendConnectSignal(const SelectedNavi navi);
-  void sendReadySignal();
   void sendChangedFormSignal(const int form);
   void sendHPSignal(const int hp);
   void sendTileCoordSignal(const int x, const int y);
@@ -103,7 +107,6 @@ private:
   void recieveUseSpecialSignal();
   void recieveChargeSignal(const Poco::Buffer<char>&);
   void recieveConnectSignal(const Poco::Buffer<char>&);
-  void recieveReadySignal();
   void recieveChangedFormSignal(const Poco::Buffer<char>&);
   void recieveHPSignal(const Poco::Buffer<char>&);
   void recieveTileCoordSignal(const Poco::Buffer<char>&);

@@ -98,16 +98,17 @@ void PacketShipper::updateLagTime(Reliability type, uint64_t packetId)
   }
 
   std::chrono::microseconds totalDuration{};
-  size_t lagWindowSize = lagTime.size();
-  if (lagWindowSize >= PacketShipper::PACKET_WINDOW_LEN) {
-    while (!lagTime.empty()) {
-      totalDuration += lagTime.front();
-      lagTime.pop();
-    }
+  size_t lagWindowSize = 0;
 
-    totalDuration /= lagWindowSize;
-    avgLatency = totalDuration;
+  while (!lagTime.empty()) {
+    totalDuration += lagTime.front();
+    lagTime.pop();
+    lagWindowSize++;
   }
+
+  totalDuration /= lagWindowSize;
+  avgLatency = (avgLatency + totalDuration) / 2;
+ 
 }
 
 void PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket& socket)

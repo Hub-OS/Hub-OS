@@ -149,6 +149,7 @@ void CardComboBattleState::onStart(const BattleSceneState*)
 void CardComboBattleState::onEnd(const BattleSceneState*)
 {
   advanceSoundPlay = false;
+  ui.LoadCards(*cardsListPtr, *cardCountPtr);
 }
 
 void CardComboBattleState::onUpdate(double elapsed)
