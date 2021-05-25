@@ -6,7 +6,7 @@
 class PlayerNetworkState : public AIState<Player>
 {
 private:
-  bool isChargeHeld; /*!< Flag if player is holding down shoot button */
+  bool isChargeHeld{}; /*!< Flag if player is holding down shoot button */
   NetPlayFlags& netflags;
 public:
 

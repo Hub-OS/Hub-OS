@@ -81,8 +81,13 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   // Movement increments are restricted based on anim speed at this time
-  if (player.IsMoving())
+  if (player.IsMoving()) {
+    if (replicator) {
+      auto tile = player.GetTile();
+      replicator->SendTileSignal(tile->GetX(), tile->GetY());
+    }
     return;
+  }
 
   Direction direction = Direction::none;
   if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {

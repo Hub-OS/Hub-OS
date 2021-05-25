@@ -1,9 +1,5 @@
 #pragma once
 #include <chrono>
-#include <Poco/Net/HTTPClientSession.h>
-#include <Poco/Net/HTTPRequest.h>
-#include <Poco/Net/HTTPResponse.h>
-#include <Poco/Net/IPAddress.h>
 #include "../bnIPacketProcessor.h"
 #include "bnNetPlaySignals.h"
 
@@ -24,6 +20,5 @@ namespace MatchMaking {
     void SendPacket(const Poco::Buffer<char>& data);
     const Poco::Net::SocketAddress& GetRemoteAddr();
     const bool RemoteAddrIsValid() const;
-    const std::string GetPublicIP();
   };
 }

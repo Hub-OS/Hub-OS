@@ -274,7 +274,7 @@ void NetworkBattleScene::sendHandshakeSignal()
     buffer.append(id.c_str(), len);
   }
 
-  auto& [_, id] = packetProcessor->SendPacket(Reliability::Reliable, buffer);
+  auto& [_, id] = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
   packetProcessor->UpdateHandshakeID(id);
 }
 
@@ -327,7 +327,7 @@ void NetworkBattleScene::sendHPSignal(const int hp)
   NetPlaySignals type{ NetPlaySignals::hp };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&hp, sizeof(int));
-  packetProcessor->SendPacket(Reliability::UnreliableSequenced, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
@@ -337,7 +337,7 @@ void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&x, sizeof(int));
   buffer.append((char*)&y, sizeof(int));
-  packetProcessor->SendPacket(Reliability::UnreliableSequenced, buffer);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::sendChipUseSignal(const std::string& used)
@@ -403,7 +403,7 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   remoteState.remoteChangeForm = remoteState.remoteFormSelect != remoteForm;
   remoteState.remoteFormSelect = remoteForm;
   trackedForms[1]->selectedForm = remoteForm;
-  trackedForms[1]->animationComplete = false; // forces animation
+  trackedForms[1]->animationComplete = !remoteState.remoteChangeForm; // a value of false forces animation to play
 
   if (remoteHand) delete[] remoteHand;
 

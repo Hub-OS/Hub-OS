@@ -69,7 +69,7 @@ void ProtoManSummon::DoAttackStep() {
     });
 
     animationComponent->AddCallback(4,  [this]() {
-      for (auto entity : targets[0]->FindEntities([](Entity* e) { return dynamic_cast<Character*>(e); })) {
+      for (auto entity : targets[0]->FindCharacters([](Entity* e) { return true; })) {
         entity->GetTile()->AffectEntities(this);
       }
 
@@ -108,9 +108,7 @@ void ProtoManSummon::OnSpawn(Battle::Tile& start)
 
       Battle::Tile* prev = field->GetAt(next->GetX() + step, next->GetY());
 
-      auto characters = prev->FindEntities([this](Entity* in) {
-        return this->user != in && (dynamic_cast<Character*>(in) && in->GetTeam() != Team::unknown);
-        });
+      auto characters = prev->FindCharacters([this](Character* in) { return in->GetTeam() != Team::unknown; });
 
       bool blocked = (characters.size() > 0) || !prev->IsWalkable();
 

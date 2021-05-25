@@ -47,7 +47,7 @@ Tornado::Tornado(Team _team, int count, int damage) :
   HighlightTile(Battle::Tile::Highlight::solid);
 
   auto props = GetHitboxProperties();
-  props.flags &= ~Hit::flinch;
+  props.flags &= ~Hit::flash;
   props.flags |= Hit::impact;
   props.damage = damage;
   props.element = Element::wind;

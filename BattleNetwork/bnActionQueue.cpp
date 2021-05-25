@@ -52,8 +52,8 @@ void ActionQueue::ClearFilters() {
 }
 
 void ActionQueue::Sort() {
-// if toggleInterval is true, voluntary preceeds involuntary
-std::sort(indices.begin(), indices.end(),
+  // if toggleInterval is true, voluntary preceeds involuntary
+  std::sort(indices.begin(), indices.end(),
   [this](const ActionQueue::Index& first, const ActionQueue::Index& second) -> bool {
     ActionOrder first_order = ApplyPriorityFilter(first.order);
     ActionOrder second_order = ApplyPriorityFilter(second.order);
@@ -102,7 +102,10 @@ void ActionQueue::Process() {
 
   ActionTypes top = TopType();
 
-  if (top == ActionTypes::none) return; // nothing to process. abort
+  if (top == ActionTypes::none) {
+    if (actionableCallback) actionableCallback();
+    return; // nothing to process. abort
+  }
 
   handlers[top](ExecutionType::process); // invoke handler
 
@@ -142,8 +145,6 @@ void ActionQueue::Pop() {
 
     poppers[queue](index);
     indices.erase(indices.begin());
-
-    if (actionableCallback) actionableCallback();
 
     // NOTE: I had this commented but don't know why
     // It might have something to do with directional tiles... idk
@@ -187,9 +188,6 @@ void ActionQueue::ClearQueue(ActionQueue::CleanupType cleanup)
     // the actionable callback as we may be in the deconstructor
     // of an object that owns the callback functor
     actionableCallback = nullptr;
-  }
-  else {
-    if (actionableCallback) actionableCallback();
   }
 }
 

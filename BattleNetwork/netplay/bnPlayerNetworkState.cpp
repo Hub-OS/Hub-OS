@@ -48,8 +48,8 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   }
 
   // Movement increments are restricted based on anim speed at this time
-  if (player.state != PLAYER_IDLE)
-    return;
+  //if (player.state != PLAYER_IDLE)
+  // return;
 
   bool shouldShoot = netflags.remoteCharge && isChargeHeld == false;
 

@@ -45,7 +45,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     // I found out structured bindings cannot be captured...
     auto playerPtr = player;
-    int index_ = index;
+    int _index = index;
 
     auto collectChildNodes = [=]
     () {
@@ -61,17 +61,16 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     () {
       // The next form has a switch based on health
       // This way dying will cancel the form
-      lastSelectedForm = playerPtr->GetHealth() == 0 ? -1 : index_;
       playerPtr->ClearActionQueue();
-      playerPtr->ActivateFormAt(lastSelectedForm);
+      playerPtr->ActivateFormAt(_index);
 
-      if (lastSelectedForm == -1) {
+      if (playerPtr->GetHealth() == 0 && _index == -1) {
         Audio().Play(AudioType::DEFORM);
       }
       else {
         auto& widget = GetScene().GetCardSelectWidget();
         widget.LockInPlayerFormSelection();
-        widget.ErasePlayerFormOption(lastSelectedForm);
+        widget.ErasePlayerFormOption(_index);
         GetScene().HandleCounterLoss(*playerPtr, false);
         Audio().Play(AudioType::SHINE);
       }
@@ -89,7 +88,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     bool* completePtr = &complete;
     auto onFinish = [=]
     () {
-      // the whiteout shader overwrote the pallette swap shader, apply it again
+      // the whiteout shader overwrites the pallette swap shader, apply it again
       if (paletteSwap && paletteSwap->IsEnabled()) {
         paletteSwap->Apply();
       }
@@ -205,7 +204,7 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
     Animation& anim = shineAnimations[count];
     anim.Update(static_cast<float>(frameElapsed), shine);
 
-    if (index != -1) {
+    if (index != -1 && !complete) {
       // re-use the shine graphic for all animating player-types 
       auto pos = player->getPosition();
       shine.setPosition(pos.x, pos.y - (player->GetHeight() / 2.0f));

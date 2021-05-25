@@ -7,6 +7,9 @@
 #include "bnGame.h"
 #include "bnLogger.h"
 #include "bnAura.h"
+#include "netplay/bnPlayerNetworkState.h"
+#include "netplay/bnPlayerInputReplicator.h"
+#include "netplay/bnPlayerNetworkProxy.h"
 
 #include "bnBubbleTrap.h"
 #include "bnBubbleState.h"
@@ -51,11 +54,18 @@ Player::Player() :
   playerControllerSlide = false;
   activeForm = nullptr;
 
-  auto recoil = [this]() {
-    ChangeState<PlayerHitState>();
+  auto flinch = [this]() {
+    // OLD BAD CODE
+    // NOTE: ActionQueue + States + waiting on animations is a recipe for disaster!!!
+    //ChangeState<PlayerHitState>();
+    //AI<Player>::Update(0); // refresh for this frame
+    ClearActionQueue();
+
+    SetAnimation(PLAYER_HIT);
+    Audio().Play(AudioType::HURT, AudioPriority::lowest);
   };
 
-  this->RegisterStatusCallback(Hit::flinch, Callback<void()>{ recoil });
+  this->RegisterStatusCallback(Hit::flinch, Callback<void()>{ flinch });
 
   using namespace std::placeholders;
   auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
@@ -63,9 +73,15 @@ Player::Player() :
 
   CreateMoveAnimHash();
 
-  // When we are actionable what should we be doing?
+  // When we are actionable we should be in IDLE state
   actionQueue.SetActionableCallback([this] {
-    SetAnimation("PLAYER_IDLE");
+    if (animationComponent->GetAnimationString() != "PLAYER_IDLE") {
+      auto finish = [this] {
+        SetAnimation("PLAYER_IDLE");
+      };
+
+      animationComponent->OnFinish(finish);
+    }
   });
 }
 

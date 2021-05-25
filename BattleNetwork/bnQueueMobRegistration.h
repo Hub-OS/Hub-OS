@@ -97,21 +97,21 @@ static inline void QueueMobRegistration() {
   info->SetAttack(999);
   info->SetHP(999);*/
 
-  /*info = MOBS.AddClass<MetalManBossFight2>();  // Create and register mob info object
+  info = MOBS.AddClass<MetalManBossFight2>();  // Create and register mob info object
   info->SetDescription("MetalMan - On ice!"); // Set property
   info->SetName("Vengence Served Cold");
   info->SetPlaceholderTexturePath("resources/mobs/metalman/preview2.png");
   info->SetSpeed(6);
   info->SetAttack(20);
-  info->SetHP(1000);*/
+  info->SetHP(1000);
 
-  /*info = MOBS.AddClass<AlphaBossFight>();  // Create and register mob info object
+  info = MOBS.AddClass<AlphaBossFight>();  // Create and register mob info object
   info->SetDescription("Alpha is absorbing the net again!"); // Set property
   info->SetPlaceholderTexturePath("resources/mobs/alpha/preview.png");
   info->SetName("Alpha");
   info->SetSpeed(0);
   info->SetAttack(80);
-  info->SetHP(2000);*/
+  info->SetHP(2000);
 
   info = MOBS.AddClass<FalzarMob>(); // create and register object
   info->SetDescription("Cybeast Falzar is back and that's no good!");

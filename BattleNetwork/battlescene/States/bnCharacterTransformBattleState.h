@@ -35,7 +35,6 @@ public:
   } currState{ state::fadein };
 
 private:
-  int lastSelectedForm{ -1 };
   double backdropInc{ 4.25 }; //!< alpha increase per frame (max 255)
   double frameElapsed{ 0 };
   bool skipBackdrop{ false };

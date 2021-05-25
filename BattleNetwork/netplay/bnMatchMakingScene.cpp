@@ -343,6 +343,22 @@ void MatchMakingScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
 }
 
 const bool MatchMakingScene::IsValidIPv4(const std::string& ip) const {
+  std::string_view home = "127.0.0.1";
+  std::string_view local = "localhost";
+  std::string_view colon = ":";
+
+  if (ip.find(home) != std::string::npos || ip.find(local) != std::string::npos) {
+    size_t pos = ip.find(colon);
+    std::string port = ip.substr(pos);
+    
+    // Do not connect to ourselves...
+    // Note: bad things happen but really shouldn't here, why? 
+    //       you can connect fine in overworld...
+    if (atoi(port.c_str()) == Net().GetSocket().address().port()) {
+      return false;
+    }
+  }
+
   /*Poco::Net::IPAddress temp;
   return Poco::Net::IPAddress::tryParse(ip, temp);*/
   return true; // for debugging now...
@@ -367,7 +383,7 @@ void MatchMakingScene::Reset()
 
   // minor optimzation
   if (myIP.empty()) {
-    myIP = packetProcessor->GetPublicIP();
+    myIP = Net().GetPublicIP();
   }
 
   if (myIP.empty()) {

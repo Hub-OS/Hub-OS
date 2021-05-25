@@ -22,13 +22,12 @@ void BattleStartBattleState::onStart(const BattleSceneState*)
   battleStartTimer.reset();
   battleStartTimer.start();
 
-  /*for (Player* player : tracked) {
-    auto ui = player->GetFirstComponent<SelectedCardsUI>();
+  // only reveal first player's UI widget to them
+  auto ui = GetScene().GetPlayer()->GetFirstComponent<SelectedCardsUI>();
 
-    if (ui) {
-      ui->Reveal();
-    }
-  }*/
+  if (ui) {
+    ui->Reveal();
+  }
 }
 
 void BattleStartBattleState::onEnd(const BattleSceneState*)

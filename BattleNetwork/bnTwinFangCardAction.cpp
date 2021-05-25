@@ -44,6 +44,11 @@ void TwinFangCardAction::OnExecute(Character* user) {
       user->GetTile()->Offset(0, 1)
     };
 
+    Direction dir = Direction::right;
+    if (user->GetTeam() == Team::blue) {
+      dir = Direction::left;
+    }
+
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     if (user->GetTile()->GetY() != 0) {
@@ -51,7 +56,7 @@ void TwinFangCardAction::OnExecute(Character* user) {
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = user->GetID();
       twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(Direction::right);
+      twinfang->SetDirection(dir);
 
       user->GetField()->AddEntity(*twinfang, *tiles[0]);
     }
@@ -61,7 +66,7 @@ void TwinFangCardAction::OnExecute(Character* user) {
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = user->GetID();
       twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(Direction::right);
+      twinfang->SetDirection(dir);
 
       user->GetField()->AddEntity(*twinfang, *tiles[1]);
     }

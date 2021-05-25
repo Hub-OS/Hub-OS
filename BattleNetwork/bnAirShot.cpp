@@ -51,13 +51,6 @@ void AirShot::OnUpdate(double _elapsed) {
     auto facing = GetFacing();
     Battle::Tile* dest = GetTile() + GetFacing();
 
-    // TODO: Spells should auto-update drag flags based on direction?
-    auto props = Hit::DefaultProperties;
-    props.damage = damage;
-    props.flags |= Hit::drag;
-    props.drag = { facing, 9u };
-    SetHitboxProperties(props);
-
     if (CanMoveTo(dest)) {
       Teleport(dest);
     }
@@ -67,6 +60,13 @@ void AirShot::OnUpdate(double _elapsed) {
 }
 
 void AirShot::Attack(Character* _entity) {
+  // TODO: Spells should auto-update drag flags based on direction?
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  props.flags |= Hit::drag;
+  props.drag = { GetFacing(), 9u };
+  SetHitboxProperties(props);
+
   if(_entity->Hit(GetHitboxProperties())) {
     Remove();
   }

@@ -37,6 +37,10 @@ void Elecpulse::OnSpawn(Battle::Tile & start)
 
   if (GetTeam() == Team::blue) {
     step = -1;
+    
+    // TODO: remove when engine auto-flips sprites
+    sf::Vector2f s = getScale();
+    setScale(-s.x, s.y);
   }
 
   auto& tile = *GetTile();

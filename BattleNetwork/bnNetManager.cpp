@@ -1,6 +1,9 @@
 #include "bnNetManager.h"
 #include "bnLogger.h"
 
+using namespace Poco;
+using namespace Net;
+
 NetManager::NetManager()
 {
   client = std::make_shared<Poco::Net::DatagramSocket>();
@@ -124,4 +127,31 @@ const bool NetManager::BindPort(int port)
 Poco::Net::DatagramSocket& NetManager::GetSocket()
 {
   return *client;
+}
+
+const std::string NetManager::GetPublicIP()
+{
+  std::string url = "checkip.amazonaws.com"; // send back public IP in plain text
+
+  try {
+    HTTPClientSession session(url);
+    HTTPRequest request(HTTPRequest::HTTP_GET, "/", HTTPMessage::HTTP_1_1);
+    HTTPResponse response;
+
+    session.sendRequest(request);
+    std::istream& rs = session.receiveResponse(response);
+
+    if (response.getStatus() != Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED)
+    {
+      std::string temp = std::string(std::istreambuf_iterator<char>(rs), {});
+      temp.erase(std::remove(temp.begin(), temp.end(), '\n'), temp.end());
+      return temp;
+    }
+  }
+  catch (std::exception& e) {
+    Logger::Logf("PVP Network Exception while obtaining IP: %s", e.what());
+  }
+
+  // failed 
+  return "";
 }

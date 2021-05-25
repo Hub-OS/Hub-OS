@@ -1520,7 +1520,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     folder = new CardFolder();
   }
 
-
   NetPlayConfig config;
 
   // Play the pre battle sound

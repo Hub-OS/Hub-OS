@@ -1,8 +1,11 @@
 #pragma once
 #include <vector>
 #include <map>
-#include <Poco/Net/IPAddress.h>
 #include <Poco/Net/DatagramSocket.h>
+#include <Poco/Net/HTTPClientSession.h>
+#include <Poco/Net/HTTPRequest.h>
+#include <Poco/Net/HTTPResponse.h>
+#include <Poco/Net/IPAddress.h>
 #include "bnIPacketProcessor.h"
 
 class NetManager {
@@ -21,4 +24,5 @@ public:
   void DropProcessor(const std::shared_ptr<IPacketProcessor>& processor);
   const bool BindPort(int port);
   Poco::Net::DatagramSocket& GetSocket();
+  const std::string GetPublicIP();
 };

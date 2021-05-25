@@ -78,16 +78,18 @@ void WindRackCardAction::OnExecute(Character* user)
     }
 
     Direction direction{ Direction::right };
+    int step = 1;
 
     if (actor->GetTeam() == Team::blue) {
       direction = Direction::left;
+      step = -1;
     }
 
     // tiles
     auto tiles = std::vector{
-      actor->GetTile()->Offset(1, 0),
-      actor->GetTile()->Offset(1, 1),
-      actor->GetTile()->Offset(1,-1)
+      actor->GetTile()->Offset(step, 0),
+      actor->GetTile()->Offset(step, 1),
+      actor->GetTile()->Offset(step,-1)
     };
 
     // big push effect

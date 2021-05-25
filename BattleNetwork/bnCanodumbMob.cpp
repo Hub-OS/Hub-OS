@@ -35,6 +35,6 @@ Mob* CanodumbMob::Build() {
   spawner.SpawnAt<FadeInState>(5, 2)->Mutate(addAura);
   spawner.SpawnAt<FadeInState>(6, 1)->Mutate(addAura);
   spawner.SpawnAt<FadeInState>(6, 3)->Mutate(addAura);
-
+ 
   return mob;
 }

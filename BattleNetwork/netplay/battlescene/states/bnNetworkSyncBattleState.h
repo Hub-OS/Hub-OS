@@ -13,6 +13,7 @@ class NetworkBattleScene;
 struct NetworkSyncBattleState final : public NetworkBattleSceneState {
   bool firstConnection{ true }; //!< We need to do some extra setup for players if this is their first connection
   bool synchronized{ false }; 
+  frame_time_t flicker{};
   Player *&remotePlayer;
   CardSelectBattleState*& cardSelectState;
   NetworkBattleScene* scene{ nullptr };

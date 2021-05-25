@@ -4,51 +4,47 @@
 #include "battlescene/bnNetworkBattleScene.h"
 
 class PlayerInputReplicator final : public Component {
-  NetworkBattleScene* nbs{ nullptr };
+  NetworkBattleScene* networkbs{ nullptr };
 
 public:
   PlayerInputReplicator(Entity* owner) : Component(owner, Component::lifetimes::battlestep) {
 
   }
 
-  ~PlayerInputReplicator() {
-  }
+  ~PlayerInputReplicator() { }
 
   void OnUpdate(double) override { }
 
   NetPlayFlags& GetNetPlayFlags() { 
-    assert(nbs && "Component must be injected into NetworkBattleScene");
-    return nbs->remoteState; 
+    assert(networkbs && "Component must be injected into NetworkBattleScene");
+    return networkbs->remoteState;
   }
 
   void SendShootSignal() {
-    assert(nbs && "Component must be injected into NetworkBattleScene");
+    assert(networkbs && "Component must be injected into NetworkBattleScene");
 
-    nbs->sendShootSignal();
+    networkbs->sendShootSignal();
   }
 
   void SendChargeSignal(const bool state) {
-    assert(nbs && "Component must be injected into NetworkBattleScene");
+    assert(networkbs && "Component must be injected into NetworkBattleScene");
 
-    nbs->sendChargeSignal(state);
+    networkbs->sendChargeSignal(state);
   }
 
   void SendUseSpecialSignal() {
-    assert(nbs && "Component must be injected into NetworkBattleScene");
+    assert(networkbs && "Component must be injected into NetworkBattleScene");
 
-    nbs->sendUseSpecialSignal();
+    networkbs->sendUseSpecialSignal();
   }
 
   void SendTileSignal(const int x, const int y) {
-    assert(nbs && "Component must be injected into NetworkBattleScene");
+    assert(networkbs && "Component must be injected into NetworkBattleScene");
 
-    nbs->sendTileCoordSignal(x, y);
+    networkbs->sendTileCoordSignal(x, y);
   }
 
   void Inject(BattleSceneBase& bs) {
-    auto* networkedbs = dynamic_cast<NetworkBattleScene*>(&bs);
-    if (networkedbs) {
-      nbs = networkedbs;
-    }
+    networkbs = dynamic_cast<NetworkBattleScene*>(&bs);
   }
 };

@@ -28,6 +28,7 @@ void TomahawkSwingCardAction::OnExecute(Character* user)
     if (user->GetFacing() == Direction::left) {
       step = -1;
       fx->SetFacing(user->GetFacing());
+      fx->setScale(-2.f, 2.f); // flip for blue team
     }
 
     field->AddEntity(*fx, tile->GetX() + step, tile->GetY());
