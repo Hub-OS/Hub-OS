@@ -1762,11 +1762,17 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto emote = reader.Read<Emotes>(buffer);
+  auto custom = (bool)reader.Read<char>(buffer);
+  auto emote = reader.Read<uint8_t>(buffer);
   auto user = reader.ReadString(buffer);
 
   if (user == ticket) {
-    SceneBase::OnEmoteSelected(emote);
+    if (custom) {
+      SceneBase::OnCustomEmoteSelected(emote);
+    }
+    else {
+      SceneBase::OnEmoteSelected((Emotes)emote);
+    }
     return;
   }
 
@@ -1774,7 +1780,13 @@ void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const 
 
   if (userIter != onlinePlayers.end()) {
     auto& onlinePlayer = userIter->second;
-    onlinePlayer.emoteNode.Emote(emote);
+
+    if (custom) {
+      onlinePlayer.emoteNode.CustomEmote(emote);
+    }
+    else {
+      onlinePlayer.emoteNode.Emote((Emotes)emote);
+    }
   }
 }
 

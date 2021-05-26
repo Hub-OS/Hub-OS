@@ -1470,6 +1470,12 @@ void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
   emoteNode.Emote(emote);
 }
 
+void Overworld::SceneBase::OnCustomEmoteSelected(unsigned emote)
+{
+  emoteNode.CustomEmote(emote);
+}
+
+
 
 std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const
 {

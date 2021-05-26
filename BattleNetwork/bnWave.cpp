@@ -62,16 +62,19 @@ void Wave::OnUpdate(double _elapsed) {
   int lr = (GetDirection() == Direction::left) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
-  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
+  auto tile = GetTile();
+  setPosition(tile->getPosition().x, tile->getPosition().y);
 
-  GetTile()->AffectEntities(this);
+  tile->AffectEntities(this);
 
-  if (crackTiles) {
-    GetTile()->SetState(TileState::cracked);
-  }
+  if (tile->IsWalkable()) {
+    if (crackTiles) {
+      tile->SetState(TileState::cracked);
+    }
 
-  if (poisonTiles) {
-    GetTile()->SetState(TileState::poison);
+    if (poisonTiles) {
+      tile->SetState(TileState::poison);
+    }
   }
 }
 

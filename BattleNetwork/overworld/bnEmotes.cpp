@@ -8,7 +8,7 @@
 
 constexpr sf::Int32 EMOJI_DISPLAY_MILI = 5000;
 constexpr float NOT_SELECTED_RADIUS = 0.7f;
-constexpr float NOT_SELECTED_EMOJI_SCALE = 0.5f;
+constexpr float NOT_SELECTED_EMOJI_SCALE = 0.51f;
 constexpr float EMOJI_PX = 48.f;
 constexpr float SELECTED_RADIUS = 0.8f;
 constexpr float CIRCLE_RADIUS_PX = 100.0f; // in pixels
@@ -17,7 +17,8 @@ using namespace swoosh::ease;
 
 Overworld::EmoteNode::EmoteNode() : ResourceHandle()
 {
-  setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes_48x48.png"));
+  defaultEmotes = Textures().LoadTextureFromFile("resources/ow/emotes/emotes_48x48.png");
+  setTexture(defaultEmotes);
   setOrigin(EMOJI_PX*0.5f, EMOJI_PX*0.5f);
   Reset();
 }
@@ -38,6 +39,32 @@ void Overworld::EmoteNode::Emote(Overworld::Emotes type)
   size_t idx = std::min(static_cast<size_t>(type), static_cast<size_t>(Overworld::Emotes::size)-1);
 
   sf::IntRect rect = sf::IntRect(static_cast<int>(48 * idx), 0, 48, 48);
+
+  if (usingCustom) {
+    setTexture(defaultEmotes);
+    usingCustom = false;
+  }
+
+  setTextureRect(rect);
+  timer.set(sf::milliseconds(EMOJI_DISPLAY_MILI));
+  timer.start();
+  Reveal();
+}
+
+void Overworld::EmoteNode::LoadCustomEmotes(const std::shared_ptr<sf::Texture>& spritesheet)
+{
+  customEmotes = spritesheet;
+}
+
+void Overworld::EmoteNode::CustomEmote(uint8_t idx)
+{
+  sf::IntRect rect = sf::IntRect(static_cast<int>(48 * idx), 0, 48, 48);
+
+  if (!usingCustom) {
+    setTexture(customEmotes);
+    usingCustom = true;
+  }
+
   setTextureRect(rect);
   timer.set(sf::milliseconds(EMOJI_DISPLAY_MILI));
   timer.start();

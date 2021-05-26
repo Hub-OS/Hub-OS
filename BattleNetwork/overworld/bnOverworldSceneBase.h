@@ -299,6 +299,7 @@ namespace Overworld {
     // Optional events that can be decorated further
     //
     virtual void OnEmoteSelected(Emotes emote);
+    virtual void OnCustomEmoteSelected(unsigned emote);
 
     //
     // Required implementations

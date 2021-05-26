@@ -6,7 +6,7 @@
 #include "../bnCallback.h"
 
 namespace Overworld {
-  enum class Emotes : char {
+  enum class Emotes : uint8_t {
     happy = 0,
     blank,
     mad,
@@ -32,8 +32,10 @@ namespace Overworld {
   };
 
   class EmoteNode : public SpriteProxyNode, public ResourceHandle {
+    bool usingCustom{};
     Emotes currEmote{};
     swoosh::Timer timer{};
+    std::shared_ptr<sf::Texture> defaultEmotes, customEmotes;
   public:
 
     EmoteNode();
@@ -41,6 +43,8 @@ namespace Overworld {
 
     void Reset();
     void Emote(Emotes type);
+    void LoadCustomEmotes(const std::shared_ptr<sf::Texture>& spritesheet);
+    void CustomEmote(uint8_t idx);
     void Update(double elapsed);
   };
 
