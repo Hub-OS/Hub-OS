@@ -28,6 +28,11 @@ void WideSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
   };
 
   SwordEffect* e = new SwordEffect;
+
+  if (step == -1) {
+    e->setScale(-2.f, 2.f);
+  }
+
   e->SetAnimation("WIDE");
   field->AddEntity(*e, *tiles[0]);
 

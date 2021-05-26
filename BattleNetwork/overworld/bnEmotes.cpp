@@ -7,16 +7,18 @@
 #include "../bnShaderResourceManager.h"
 
 constexpr sf::Int32 EMOJI_DISPLAY_MILI = 5000;
-constexpr float NOT_SELECTED_RADIUS = 0.75f;
-constexpr float SELECTED_RADIUS = 1.0f;
-constexpr float CIRCLE_RADIUS_PX = 44.0f; // in pixels
+constexpr float NOT_SELECTED_RADIUS = 0.7f;
+constexpr float NOT_SELECTED_EMOJI_SCALE = 0.5f;
+constexpr float EMOJI_PX = 48.f;
+constexpr float SELECTED_RADIUS = 0.8f;
+constexpr float CIRCLE_RADIUS_PX = 100.0f; // in pixels
 
 using namespace swoosh::ease;
 
 Overworld::EmoteNode::EmoteNode() : ResourceHandle()
 {
-  setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes.png"));
-  setOrigin(5.5f, 5.5f);
+  setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes_48x48.png"));
+  setOrigin(EMOJI_PX*0.5f, EMOJI_PX*0.5f);
   Reset();
 }
 
@@ -35,7 +37,7 @@ void Overworld::EmoteNode::Emote(Overworld::Emotes type)
 {
   size_t idx = std::min(static_cast<size_t>(type), static_cast<size_t>(Overworld::Emotes::size)-1);
 
-  sf::IntRect rect = sf::IntRect(static_cast<int>(11 * idx), 0, 11, 11);
+  sf::IntRect rect = sf::IntRect(static_cast<int>(48 * idx), 0, 48, 48);
   setTextureRect(rect);
   timer.set(sf::milliseconds(EMOJI_DISPLAY_MILI));
   timer.start();
@@ -61,10 +63,10 @@ Overworld::EmoteWidget::EmoteWidget() :
 
   while (idx < max) {
     auto& e = emoteSprites[idx];
-    e.setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes.png"));
-    e.setOrigin(5.5f, 5.5f);
+    e.setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes_48x48.png"));
+    e.setOrigin(EMOJI_PX*0.5f, EMOJI_PX*0.5f);
 
-    sf::IntRect rect = sf::IntRect(static_cast<int>(idx * 11), 0, 11, 11);
+    sf::IntRect rect = sf::IntRect(static_cast<int>(idx * 48), 0, 48, 48);
     e.setTextureRect(rect);
 
     float alpha = radius * NOT_SELECTED_RADIUS;
@@ -72,6 +74,7 @@ Overworld::EmoteWidget::EmoteWidget() :
     float theta = idx * ((2.f * static_cast<float>(M_PI)) / static_cast<float>(max));
     sf::Vector2f pos = sf::Vector2f(cos(theta) * alpha, sin(theta) * alpha);
     emoteSprites[idx].setPosition(pos.x, pos.y);
+    emoteSprites[idx].setScale(NOT_SELECTED_EMOJI_SCALE, NOT_SELECTED_EMOJI_SCALE);
     idx++;
   }
 }
@@ -88,17 +91,21 @@ void Overworld::EmoteWidget::Update(double elapsed)
   while (idx < max) {
     emoteSprites[idx].SetShader(Shaders().GetShader(ShaderType::GREYSCALE));
     float alpha = radius * NOT_SELECTED_RADIUS;
+    float scale_dest = NOT_SELECTED_EMOJI_SCALE;
 
     if (static_cast<size_t>(currEmote) == idx && IsOpen()) {
       alpha = radius * SELECTED_RADIUS;
       emoteSprites[idx].SetShader(nullptr);
+      scale_dest = 1.f;
     }
     float theta = static_cast<float>(idx * ((2.f * M_PI) / static_cast<float>(max)));
     sf::Vector2f pos = sf::Vector2f(cos(theta) * alpha, sin(theta) * alpha);
     auto x = interpolate(0.5f, pos.x, emoteSprites[idx].getPosition().x);
     auto y = interpolate(0.5f, pos.y, emoteSprites[idx].getPosition().y);
+    auto s = interpolate(0.5f, scale_dest, emoteSprites[idx].getScale().x);
 
     emoteSprites[idx].setPosition(x, y);
+    emoteSprites[idx].setScale(s, s);
     idx++;
   }
 
@@ -142,8 +149,19 @@ void Overworld::EmoteWidget::draw(sf::RenderTarget& surface, sf::RenderStates st
 
   surface.draw(circle, states);
   
-  for (auto& e : emoteSprites) {
-    surface.draw(e, states);
+  const SpriteProxyNode* selected = nullptr;
+  for(size_t i = 0; i < static_cast<size_t>(Emotes::size); i++) {
+    if (static_cast<size_t>(currEmote) == i && IsOpen()) {
+      selected = &emoteSprites[i];
+    }
+    else {
+      surface.draw(emoteSprites[i], states);
+    }
+  }
+
+  // always draw the selected emoji on top
+  if (selected) {
+    surface.draw(*selected, states);
   }
 }
 
@@ -162,12 +180,12 @@ void Overworld::EmoteWidget::OnSelect(const std::function<void(Overworld::Emotes
   this->callback = callback;
 }
 
-const bool Overworld::EmoteWidget::IsOpen()
+const bool Overworld::EmoteWidget::IsOpen() const
 {
   return state == State::open;
 }
 
-const bool Overworld::EmoteWidget::IsClosed()
+const bool Overworld::EmoteWidget::IsClosed() const
 {
   return state == State::closed;
 }

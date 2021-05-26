@@ -251,6 +251,11 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
   auto this_states = states;
   this_states.transform *= getTransform();
 
+  const float* t = this_states.transform.getMatrix();
+
+  sf::Transform aura_transform = sf::Transform(2.f, t[4], t[12], t[1], 2.f, t[13], t[3], t[7], t[15]);
+  this_states.transform = aura_transform;
+
   UIComponent::draw(target, this_states);
 
   // Only draw HP font for Barriers. Auras are hidden.
@@ -263,8 +268,11 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
   if (currHP > 0) {
     int size = (int)(std::to_string(currHP).size());
     int hp = currHP;
-    float offsetx = -(((size) * 4.0f) / 2.0f) * font.getScale().x;
+    float offsetx = -size * 2.0f;
+    float flip = 1.f;
     int index = 0;
+    font.setScale(1.f, 1.f);
+
     while (index < size) {
       const char c = std::to_string(currHP)[index];
       int number = std::atoi(&c);
@@ -279,20 +287,13 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
       font.setTextureRect(sf::IntRect(col, rowstart, 8, 15));
       font.setPosition(sf::Vector2f(offsetx, 15.0f));
 
-      float fontScaleX = font.getScale().x;
-
-      // this is flipped, but we do not want to flip fonts
-      if (this_states.transform.getMatrix()[0] < 0.0f && fontScaleX > 0.f) {
-        font.setScale(-fontScaleX, font.getScale().y);
-      }
-
       auto font_states = this_states;
       font_states.shader = nullptr; // don't allow shader passes to effect this font...
       font_states.transform *= font.getTransform();
 
       target.draw(font, font_states);
 
-      offsetx += 4.0f * font.getScale().x;
+      offsetx += 4.0f;
 
       index++;
     }

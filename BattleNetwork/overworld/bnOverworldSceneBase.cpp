@@ -85,7 +85,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   Overworld::Actor::SetMissingTexture(missingTexture);
 
   personalMenu.setScale(2.f, 2.f);
-  emote.setScale(2.f, 2.f);
+  //emote.setScale(2.f, 2.f);
 
   auto windowSize = getController().getVirtualWindowSize();
   emote.setPosition(windowSize.x / 2.f, windowSize.y / 2.f);
@@ -143,6 +143,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   playerActor->AddNode(&emoteNode);
 
   emoteNode.SetLayer(-100);
+  emoteNode.setScale(0.5f, 0.5f);
 
   AddActor(playerActor);
   AddSprite(teleportController.GetBeam());
@@ -681,7 +682,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
     playerActor->LoadAnimations(owPath);
 
     // move the emote above the player's head
-    float emoteY = -playerActor->getSprite().getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+    float emoteY = -playerActor->getSprite().getOrigin().y - 10;
     emoteNode.setPosition(0, emoteY);
 
     auto iconTexture = meta.GetIconTexture();

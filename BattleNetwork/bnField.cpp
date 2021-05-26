@@ -391,7 +391,7 @@ void Field::Update(double _elapsed) {
         restCol.insert(restCol.begin(), j);
       }
 
-      if (t->characters.size()) {
+      if (t->characters.size() || t->reserved.size()) {
         charCol.insert(charCol.begin(), j);
       }
       

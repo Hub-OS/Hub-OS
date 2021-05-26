@@ -53,7 +53,13 @@ void YoYoCardAction::OnExecute(Character* user) {
     y->SetHitboxProperties(props);
     yoyo = y;
 
-    auto tile = actor->GetTile()->Offset(1, 0);
+    int step = 1;
+
+    if (user->GetFacing() == Direction::left) {
+      step = -1;
+    }
+
+    auto tile = actor->GetTile()->Offset(step, 0);
 
     if (tile) {
       actor->GetField()->AddEntity(*y, *tile);

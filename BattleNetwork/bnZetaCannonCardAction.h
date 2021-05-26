@@ -14,6 +14,7 @@ public:
   double timer{ 5.0 }; // 5 seconds
   Font font;
   mutable Text timerLabel; // on the screen somewhere
+  bool hide{};
   bool showTimerText{ false };
   DefenseRule* defense{ nullptr };
 public:

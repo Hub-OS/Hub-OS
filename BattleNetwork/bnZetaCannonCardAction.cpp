@@ -29,7 +29,7 @@ void ZetaCannonCardAction::OnExecute(Character*) {
 
 void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-  if (!showTimerText) return;
+  if (!showTimerText || hide) return;
 
   auto pos = timerLabel.getPosition();
   auto og = pos;
@@ -65,6 +65,10 @@ void ZetaCannonCardAction::Update(double _elapsed)
         Audio().Play(AudioType::COUNTER_BONUS);
         defense = new DefenseIndestructable(true);
         actor.AddDefenseRule(defense);
+
+        if (actor.GetTeam() == Team::blue) {
+          hide = true;
+        }
       }
     }
   }

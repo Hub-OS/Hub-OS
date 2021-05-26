@@ -27,6 +27,7 @@ namespace Overworld {
     vomit,
     cool,
     uncool,
+    spirit,
     size
   };
 
@@ -65,7 +66,7 @@ namespace Overworld {
     void Open();
     void Close();
     void OnSelect(const std::function<void(Emotes)>& callback);
-    const bool IsOpen();
-    const bool IsClosed();
+    const bool IsOpen() const;
+    const bool IsClosed() const;
   };
 }

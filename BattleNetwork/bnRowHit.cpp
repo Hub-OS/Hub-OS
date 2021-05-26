@@ -18,7 +18,11 @@ RowHit::RowHit(Team _team, int damage) :
   };
 
   auto onFrameTwo = [this]() {
-    field->AddEntity(*new RowHit(GetTeam(), RowHit::damage), tile->GetX() + 1, tile->GetY());
+    if (auto next_tile = tile + this->GetDirection()) {
+      auto rowHit = new RowHit(GetTeam(), RowHit::damage);
+      rowHit->SetDirection(GetDirection());
+      field->AddEntity(*rowHit, *next_tile);
+    }
   };
 
   animation = Animation("resources/spells/spell_charged_bullet_hit.animation");

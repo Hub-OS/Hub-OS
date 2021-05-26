@@ -83,5 +83,5 @@ void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
   }
 }
 
-void CanodumbIdleState::OnLeave(Canodumb& can) { FreeCursor(); }
+void CanodumbIdleState::OnLeave(Canodumb& can) { }
 

@@ -141,6 +141,8 @@ void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::Exec
 
 void Player::OnDelete() {
   chargeEffect.Hide();
+  actionQueue.ClearQueue(ActionQueue::CleanupType::no_interrupts);
+
   auto animationComponent = GetFirstComponent<AnimationComponent>();
 
   if (animationComponent) {

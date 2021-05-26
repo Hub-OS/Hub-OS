@@ -1588,8 +1588,9 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   actor->LoadAnimations(animation);
 
   auto& emoteNode = onlinePlayer.emoteNode;
-  float emoteY = -actor->getSprite().getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2 - 1;
+  float emoteY = -actor->getSprite().getOrigin().y - 10;
   emoteNode.setPosition(0, emoteY);
+  emoteNode.setScale(0.5f, 0.5f);
 
   auto& teleportController = onlinePlayer.teleportController;
 
