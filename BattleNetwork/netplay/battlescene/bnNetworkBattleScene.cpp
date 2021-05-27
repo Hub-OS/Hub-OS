@@ -320,7 +320,7 @@ void NetworkBattleScene::sendHandshakeSignal()
     buffer.append(id.c_str(), len);
   }
 
-  auto& [_, id] = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+  auto [_, id] = packetProcessor->SendPacket(Reliability::Reliable, buffer);
   packetProcessor->UpdateHandshakeID(id);
 }
 
