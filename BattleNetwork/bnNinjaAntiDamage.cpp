@@ -66,7 +66,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
     }
 
     auto* action = new AntiDamageTriggerAction(owner, oppositeTeam, *this);
-    owner.AddAction({ action }, ActionOrder::traps);
+    owner.AddAction({std::shared_ptr<CardAction>(action)}, ActionOrder::traps);
   }; // END callback 
 
 

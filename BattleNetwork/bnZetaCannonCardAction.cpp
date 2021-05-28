@@ -57,7 +57,7 @@ void ZetaCannonCardAction::Update(double _elapsed)
       actionProps.group = CardAction::LockoutGroup::card;
       newCannon->SetLockout(actionProps);
 
-      auto event = CardEvent{ newCannon };
+      auto event = CardEvent{ std::shared_ptr<CardAction>(newCannon) };
       actor.AddAction(event, ActionOrder::voluntary);
 
       if (!showTimerText) {

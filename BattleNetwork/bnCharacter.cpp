@@ -16,15 +16,6 @@
 #include "bnBubbleState.h"
 #include "bnPlayer.h"
 
-struct CardActionDeleter {
-  void operator()(CardEvent& in) {
-    // TODO: use shared_ptrs?
-    if (in.action->CanExecute()) {
-      delete in.action;
-    }
-  }
-};
-
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
 {
   statusCallbackHash[flag] = callback;
@@ -50,7 +41,8 @@ Character::Character(Rank _rank) :
 
   using namespace std::placeholders;
   auto cardHandler = std::bind(&Character::HandleCardEvent, this, _1, _2);
-  actionQueue.RegisterType<CardEvent, CardActionDeleter>(ActionTypes::card, cardHandler);
+  //actionQueue.RegisterType<CardEvent, CardActionDeleter>(ActionTypes::card, cardHandler);
+  actionQueue.RegisterType<CardEvent>(ActionTypes::card, cardHandler);
 
   auto peekHandler = std::bind(&Character::HandlePeekEvent, this, _1, _2);
   actionQueue.RegisterType<PeekCardEvent>(ActionTypes::peek_card, peekHandler);
@@ -70,9 +62,8 @@ Character::~Character() {
   // Defense items need to be manually deleted where they are created
   defenses.clear();
 
-  for (CardAction* action : asyncActions) {
+  for (auto action : asyncActions) {
     action->EndAction();
-    delete action;
   }
 
   asyncActions.clear();
@@ -84,10 +75,6 @@ void Character::OnHit()
 
 void Character::OnBattleStop()
 {
-  for (auto* action : asyncActions) {
-    delete action;
-  }
-
   asyncActions.clear();
 }
 
@@ -191,7 +178,7 @@ void Character::Update(double _elapsed) {
 
   // process async actions
   auto asyncCopy = asyncActions;
-  for (CardAction* action : asyncCopy) {
+  for (auto action : asyncCopy) {
     action->Update(_elapsed);
 
     if (action->IsLockoutOver()) {
@@ -199,7 +186,6 @@ void Character::Update(double _elapsed) {
       if (iter != asyncActions.end()) {
         asyncActions.erase(iter);
       }
-      delete action;
     }
   }
 
@@ -233,10 +219,7 @@ void Character::Update(double _elapsed) {
     if (currCardAction->IsAnimationOver()) {
       currCardAction->EndAction();
 
-      if (currCardAction->GetLockoutType() != CardAction::LockoutType::async) {
-        delete currCardAction; // TODO: will shared_ptrs solve the responsibility of deleting actions everywhere in our current design?
-      }
-      else {
+      if (currCardAction->GetLockoutType() == CardAction::LockoutType::async) {
         asyncActions.push_back(currCardAction);
       }
 
@@ -598,18 +581,12 @@ void Character::OnUpdate(double elapsed)
   /* needed to be implemented for virtual inheritence */
 }
 
-const std::vector<const CardAction*> Character::AsyncActionList() const
+const std::vector<std::shared_ptr<CardAction>> Character::AsyncActionList() const
 {
-  std::vector<const CardAction*> list;
-
-  for (const CardAction* action : asyncActions) {
-    list.push_back(action);
-  }
-
-  return list;
+  return asyncActions;
 }
 
-CardAction* Character::CurrentCardAction()
+std::shared_ptr<CardAction> Character::CurrentCardAction()
 {
   return currCardAction;
 }

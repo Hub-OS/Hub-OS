@@ -7,7 +7,7 @@ void PlayerCardUseListener::OnCardUse(const Battle::Card& card, Character& chara
 
   if (card.IsTimeFreeze() == false) {
     if (auto* nextAction = CardToAction(card, *player)) {
-      player->AddAction(CardEvent{ nextAction }, ActionOrder::voluntary);
+      player->AddAction(CardEvent{ std::shared_ptr<CardAction>(nextAction) }, ActionOrder::voluntary);
     }
   }
 }

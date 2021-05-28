@@ -16,14 +16,6 @@
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
-struct BusterActionDeleter {
-  void operator()(BusterEvent& in) {
-    if (in.action->CanExecute()) {
-      delete in.action;
-    }
-  }
-};
-
 Player::Player() :
   state(PLAYER_IDLE),
   chargeEffect(this),
@@ -69,7 +61,8 @@ Player::Player() :
 
   using namespace std::placeholders;
   auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
-  actionQueue.RegisterType<BusterEvent, BusterActionDeleter>(ActionTypes::buster, handler);
+
+  actionQueue.RegisterType<BusterEvent>(ActionTypes::buster, handler);
 
   CreateMoveAnimHash();
 
@@ -116,7 +109,7 @@ void Player::Attack() {
     if (action) {
       action->PreventCounters();
       action->SetLockoutGroup(CardAction::LockoutGroup::weapon);
-      BusterEvent event = { frames(0), frames(0), false, action };
+      BusterEvent event = { frames(0), frames(0), false, std::shared_ptr<CardAction>(action) };
       actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
     }
   }
@@ -128,7 +121,7 @@ void Player::UseSpecial()
     if (auto action = ExecuteSpecial()) {
       action->PreventCounters();
       action->SetLockoutGroup(CardAction::LockoutGroup::ability);
-      BusterEvent event = { frames(0), frames(0), false, action };
+      CardEvent event = { std::shared_ptr<CardAction>(action) };
       actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);
     }
   }
@@ -136,7 +129,7 @@ void Player::UseSpecial()
 
 void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::ExecutionType& exec)
 {
-  Character::HandleCardEvent({ event.action }, exec);
+  Character::HandleCardEvent({ std::shared_ptr<CardAction>(event.action) }, exec);
 }
 
 void Player::OnDelete() {

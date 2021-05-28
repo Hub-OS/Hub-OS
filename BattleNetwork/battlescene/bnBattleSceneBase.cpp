@@ -588,9 +588,9 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   for (Character* c : allCharacters) {
     auto actionList = c->AsyncActionList();
-    auto* currAction = c->CurrentCardAction();
+    auto currAction = c->CurrentCardAction();
 
-    for (auto* action : actionList) {
+    for (auto action : actionList) {
       surface.draw(*action);
     }
 

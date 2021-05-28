@@ -23,7 +23,7 @@ class CardAction;
 class SelectedCardsUI;
 
 struct CardEvent {
-  CardAction* action{ nullptr };
+  std::shared_ptr<CardAction> action;
 };
 
 struct PeekCardEvent {
@@ -68,7 +68,7 @@ private:
   bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
   std::vector<Character*> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
-  std::vector<CardAction*> asyncActions;
+  std::vector<std::shared_ptr<CardAction>> asyncActions;
   std::vector<Component::ID_t> attacks;
 
   // Statuses are resolved one property at a time
@@ -79,7 +79,7 @@ private:
 
   sf::Shader* whiteout{ nullptr }; /*!< Flash white when hit */
   sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
-  CardAction* currCardAction{ nullptr };
+  std::shared_ptr<CardAction> currCardAction{ nullptr };
   frame_time_t cardActionStartDelay{0};
 
   bool hit{}; /*!< Was hit this frame */
@@ -131,8 +131,8 @@ public:
 
   const bool IsLockoutAnimationComplete();
 
-  const std::vector<const CardAction*> AsyncActionList() const;
-  CardAction* CurrentCardAction();
+  const std::vector<std::shared_ptr<CardAction>> AsyncActionList() const;
+  std::shared_ptr<CardAction> CurrentCardAction();
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization
   void Update(double elapsed) override;

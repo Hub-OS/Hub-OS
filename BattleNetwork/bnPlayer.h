@@ -40,7 +40,7 @@ struct BusterEvent {
 
   // Default is false which is shoot-then-move
   bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
-  CardAction* action{ nullptr };
+  std::shared_ptr<CardAction> action{ nullptr };
 };
 
 class Player : public Character, public AI<Player> {
