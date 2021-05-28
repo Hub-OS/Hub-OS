@@ -72,7 +72,7 @@ void Entity::InsertComponentsPendingRegistration()
     }
   }
 
-  sort ? SortComponents() : 0;
+  sort ? SortComponents() : void(0);
 }
 
 void Entity::UpdateMovement(double elapsed)
