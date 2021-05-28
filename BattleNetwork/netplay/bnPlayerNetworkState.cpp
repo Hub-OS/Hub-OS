@@ -15,7 +15,6 @@ PlayerNetworkState::PlayerNetworkState(NetPlayFlags& netflags) :
 {
 }
 
-
 PlayerNetworkState::~PlayerNetworkState()
 {
 }
@@ -29,8 +28,6 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 
   // Actions with animation lockout controls take priority over movement
   bool canMove = player.IsLockoutAnimationComplete();
-
-  InputQueueCleanup();
 
   // One of our active actions are preventing us from moving
   if (!canMove) {
@@ -77,6 +74,7 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 
   // Movement increments are restricted based on anim speed at this time
   if (player.IsMoving()) {
+    InputQueueCleanup();
     return;
   }
 
@@ -85,13 +83,15 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
     direction = Direction::up;
   }
   else if (InputQueueHas(InputEvents::pressed_move_left) || InputQueueHas(InputEvents::held_move_left)) {
-    direction = Direction::left;
+    // reverse the input for network PVP
+    direction = Direction::right;
   }
   else if (InputQueueHas(InputEvents::pressed_move_down) || InputQueueHas(InputEvents::held_move_down)) {
     direction = Direction::down;
   }
   else if (InputQueueHas(InputEvents::pressed_move_right) || InputQueueHas(InputEvents::held_move_right)) {
-    direction = Direction::right;
+    // reverse the input for network PVP
+    direction = Direction::left;
   }
 
   if (direction != Direction::none) {
@@ -122,6 +122,8 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
       player.Teleport(next_tile, ActionOrder::voluntary, onMoveBegin);
     }
   }
+
+  InputQueueCleanup();
 }
 
 void PlayerNetworkState::OnLeave(Player& player) {

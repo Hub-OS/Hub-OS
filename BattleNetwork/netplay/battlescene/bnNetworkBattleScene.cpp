@@ -302,8 +302,6 @@ void NetworkBattleScene::sendInputEvent(const InputEvent& event)
   buffer.append(event.name.c_str(), len);
   buffer.append((char*)&event.state, sizeof(InputState));
 
-  long long ms = event.wait.asMilli().value;
-  buffer.append((char*)&ms, sizeof(long long));
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -448,14 +446,9 @@ void NetworkBattleScene::recieveInputEvent(const Poco::Buffer<char>& buffer)
   std::memcpy(&state, buffer.begin() + read, sizeof(InputState));
   read += sizeof(InputState);
 
-  long long ms{};
-  std::memcpy(&ms, buffer.begin() + read, sizeof(long long));
-  read += sizeof(long long);
-
   InputEvent event{};
   event.name = name;
   event.state = state;
-  event.wait.milli = frame_time_t::milliseconds{ ms };
 
   remoteState.remoteInputEvents.push_back(event);
 }
