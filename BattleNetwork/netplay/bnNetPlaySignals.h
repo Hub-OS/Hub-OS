@@ -10,8 +10,6 @@ enum class NetPlaySignals : unsigned int {
   tile, // emit our tile location 
   card, // emit our card data
   loser,
-  shoot,
-  special,
-  charge,
+  input_event,
   card_select // used when player opens card select widget
 };

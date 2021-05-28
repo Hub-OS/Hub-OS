@@ -983,14 +983,17 @@ namespace Battle {
           }
 
           spell->Attack(&character);
+
+          // we restore the hitbox properties
           spell->SetHitboxProperties(props);
         }
 
         judge.PrepareForNextAttack();
-    } // end each spell loop
+      } // end each spell loop
 
-    judge.ExecuteAllTriggers();
-    if (retangible) character.SetPassthrough(false);
+      judge.ExecuteAllTriggers();
+
+      if (retangible) character.SetPassthrough(false);
     } // end each character loop
 
     // empty previous frame queue to be used this current frame

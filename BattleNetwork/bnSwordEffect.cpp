@@ -13,6 +13,7 @@ SwordEffect::SwordEffect() : Artifact()
 {
   SetLayer(0);
   setTexture(Textures().GetTexture(TextureType::SPELL_SWORD));
+
   setScale(2.f, 2.f);
 
   //Components setup and load
@@ -43,18 +44,18 @@ void SwordEffect::OnDelete()
 
 void SwordEffect::SetAnimation(const std::string & animStr)
 {
-    auto animation = GetFirstComponent<AnimationComponent>();
-    // Create a callback
-    // When animation ends
-    // delete this effect
-    auto onEnd = [this]() {
-        Delete();
-    };
+  auto animation = GetFirstComponent<AnimationComponent>();
+  // Create a callback
+  // When animation ends
+  // delete this effect
+  auto onEnd = [this]() {
+      Delete();
+  };
 
-    animation->SetAnimation(animStr, onEnd);
+  animation->SetAnimation(animStr, onEnd);
 
-    // Use the first rect in the frame list
-    animation->SetFrame(0);
+  // Use the first rect in the frame list
+  animation->SetFrame(0);
 }
 
 SwordEffect::~SwordEffect()

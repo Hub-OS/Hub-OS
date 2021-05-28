@@ -3,6 +3,8 @@
 #pragma once
 #include "bnAIState.h"
 #include "bnInputHandle.h"
+#include <vector>
+#include <chrono>
 
 class Tile;
 class Player;
@@ -15,7 +17,9 @@ class PlayerControlledState : public AIState<Player>, public InputHandle
 private:  
   bool isChargeHeld{}; /*!< Flag if player is holding down shoot button */
   unsigned moveFrame{};
+  double currLag{};
   PlayerInputReplicator* replicator{ nullptr }; /*!< Pass actions onto a replicator to handle if requested */
+  std::vector<InputEvent> inputQueue;
 
 public:
 
@@ -47,5 +51,8 @@ public:
    * @param player player entity
    */
   void OnLeave(Player& player);
+
+  const bool InputQueueHas(const InputEvent& item);
+  void InputQueueCleanup();
 };
 

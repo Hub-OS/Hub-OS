@@ -133,6 +133,11 @@ void ProtoManSummon::Attack(Character* _entity) {
   auto tile = _entity->GetTile();
 
   SwordEffect* e = new SwordEffect;
+
+  if (_entity->GetFacing() == Direction::right) {
+    e->setScale(-2.f, 2.f);
+  }
+
   e->SetAnimation("WIDE");
   field->AddEntity(*e, tile->GetX(), tile->GetY());
 

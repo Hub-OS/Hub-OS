@@ -31,6 +31,6 @@ namespace PVP {
     void EnableKickForSilence(bool enabled);
     bool TimedOut();
     bool IsHandshakeAck();
-    const std::chrono::microseconds GetAvgLatency() const;
+    const double GetAvgLatency() const;
   };
 }

@@ -25,7 +25,7 @@ class DefenseRule {
 private:
   DefenseOrder order; /*!< Some defenses only check if there was a collision */
   Priority priorityLevel; /*!< Lowest priority goes first */
-  bool replaced; /*!< If this rule has been replaced by another one in the entity*/
+  bool replaced{}; /*!< If this rule has been replaced by another one in the entity*/
 
 public:
   friend class Character;

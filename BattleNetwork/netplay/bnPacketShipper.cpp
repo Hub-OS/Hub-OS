@@ -1,6 +1,7 @@
 #include "bnPacketShipper.h"
 
 #include "../bnLogger.h"
+#include "../bnNetManager.h"
 #include <Poco/Net/NetException.h>
 #include <algorithm>
 
@@ -94,21 +95,10 @@ void PacketShipper::updateLagTime(Reliability type, uint64_t packetId)
     auto start = iter->second;
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    lagTime.push(duration);
+    avgLatency = NetManager::CalculateLag(ackPackets, lagWindow, (double)(duration.count()));
+    ackPackets++;
+    lagWindow[ackPackets % NetManager::LAG_WINDOW_LEN] = (double)duration.count();
   }
-
-  std::chrono::microseconds totalDuration{};
-  size_t lagWindowSize = 0;
-
-  while (!lagTime.empty()) {
-    totalDuration += lagTime.front();
-    lagTime.pop();
-    lagWindowSize++;
-  }
-
-  totalDuration /= lagWindowSize;
-  avgLatency = (avgLatency + totalDuration) / 2;
- 
 }
 
 void PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket& socket)
@@ -174,9 +164,9 @@ void PacketShipper::Acknowledged(Reliability reliability, uint64_t id)
   }
 }
 
-const std::chrono::microseconds PacketShipper::GetAvgLatency() const
+const double PacketShipper::GetAvgLatency() const
 {
-  return avgLatency;
+  return avgLatency/2.f; // ack is a round trip, so we need half the time to arrive
 }
 
 void PacketShipper::acknowledgedReliable(uint64_t id)

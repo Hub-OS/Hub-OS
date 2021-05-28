@@ -38,12 +38,13 @@ using swoosh::ActivityController;
 
 NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props) : 
   BattleSceneBase(controller, props.base),
+  ping(Font::Style::wide),
   remoteAddress(props.netconfig.remote) 
 {
-  auto* clientPlayer = &props.base.player;
+  ping.setPosition(480, 20);
+  ping.SetColor(sf::Color::Red);
 
-  networkCardUseListener = new NetworkCardUseListener(*this, *clientPlayer);
-  networkCardUseListener->Subscribe(this->GetSelectedCardsUI());
+  auto* clientPlayer = &props.base.player;
 
   selectedNavi = props.netconfig.myNavi;
   props.base.player.CreateComponent<PlayerInputReplicator>(clientPlayer);
@@ -207,12 +208,19 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
 void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   BattleSceneBase::onDraw(surface);
+
+  // draw network ping
+  ping.SetString(std::to_string(GetAvgLatency()).substr(0, 5));
+  ping.setOrigin(ping.GetLocalBounds().width, 0.f);
+  surface.draw(ping);
 }
 
 void NetworkBattleScene::onExit()
 {
 }
-
+/*!
+ * @brief 
+*/
 void NetworkBattleScene::onEnter()
 {
 }
@@ -243,6 +251,11 @@ void NetworkBattleScene::Inject(PlayerInputReplicator& pub)
 const NetPlayFlags& NetworkBattleScene::GetRemoteStateFlags()
 {
   return remoteState; 
+}
+
+const double NetworkBattleScene::GetAvgLatency() const
+{
+  return packetProcessor->GetAvgLatency();
 }
 
 void NetworkBattleScene::sendHandshakeSignal()
@@ -278,28 +291,19 @@ void NetworkBattleScene::sendHandshakeSignal()
   packetProcessor->UpdateHandshakeID(id);
 }
 
-void NetworkBattleScene::sendShootSignal()
+void NetworkBattleScene::sendInputEvent(const InputEvent& event)
 {
   Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::shoot };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
-}
+  NetPlaySignals signalType{ NetPlaySignals::input_event };
+  buffer.append((char*)&signalType, sizeof(NetPlaySignals));
 
-void NetworkBattleScene::sendUseSpecialSignal()
-{
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::special };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
-}
+  size_t len = event.name.size();
+  buffer.append((char*)&len, sizeof(size_t));
+  buffer.append(event.name.c_str(), len);
+  buffer.append((char*)&event.state, sizeof(InputState));
 
-void NetworkBattleScene::sendChargeSignal(const bool state)
-{
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::charge };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)&state, sizeof(bool));
+  long long ms = event.wait.asMilli().value;
+  buffer.append((char*)&ms, sizeof(long long));
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -337,20 +341,6 @@ void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&x, sizeof(int));
   buffer.append((char*)&y, sizeof(int));
-  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
-}
-
-void NetworkBattleScene::sendChipUseSignal(const std::string& used)
-{
-  Logger::Logf("sending chip data over network for %s", used.data());
-
-  uint64_t timestamp = (uint64_t)CurrentTime::AsMilli();
-
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::card };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)&timestamp, sizeof(uint64_t));
-  buffer.append((char*)used.data(),used.length());
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -436,44 +426,38 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   remoteCardUsePublisher->LoadCards(remoteHand, remoteHandLen);
   
   // Convert to microseconds and use this as the round start delay
-  roundStartDelay = long long(duration*1000000.0) + packetProcessor->GetAvgLatency().count();
+  roundStartDelay = (long long)((duration*1000.0) + packetProcessor->GetAvgLatency());
 
   startStatePtr->SetStartupDelay(roundStartDelay);
 
   remoteState.remoteHandshake = true;
 }
 
-void NetworkBattleScene::recieveShootSignal()
+void NetworkBattleScene::recieveInputEvent(const Poco::Buffer<char>& buffer)
 {
-  if (!remoteState.remoteConnected) return;
+  std::string name;
+  size_t len{};
+  size_t read{};
+  std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
+  read += sizeof(size_t);
+  name.resize(len);
+  std::memcpy(name.data(), buffer.begin() + read, len);
+  read += len;
 
-  remotePlayer->Attack();
-  remoteState.remoteShoot = true;
-  Logger::Logf("recieved shoot signal from remote");
-}
+  InputState state{};
+  std::memcpy(&state, buffer.begin() + read, sizeof(InputState));
+  read += sizeof(InputState);
 
-void NetworkBattleScene::recieveUseSpecialSignal()
-{
-  if (!remoteState.remoteConnected) return;
+  long long ms{};
+  std::memcpy(&ms, buffer.begin() + read, sizeof(long long));
+  read += sizeof(long long);
 
-  remotePlayer->UseSpecial();
-  remoteState.remoteUseSpecial = true;
+  InputEvent event{};
+  event.name = name;
+  event.state = state;
+  event.wait.milli = frame_time_t::milliseconds{ ms };
 
-  Logger::Logf("recieved use special signal from remote");
-
-}
-
-void NetworkBattleScene::recieveChargeSignal(const Poco::Buffer<char>& buffer)
-{
-  if (buffer.empty()) return;
-  if (!remoteState.remoteConnected) return;
-
-  bool state = remoteState.remoteCharge; 
-  std::memcpy(&state, buffer.begin(), sizeof(bool));
-  remoteState.remoteCharge = state;
-
-  Logger::Logf("recieved charge signal from remote: %i", state);
-
+  remoteState.remoteInputEvents.push_back(event);
 }
 
 void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
@@ -572,18 +556,6 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
   remoteState.remoteTileY = y;
 }
 
-void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
-{
-  if (buffer.empty()) return;
-  if (!remoteState.remoteConnected) return;
-
-  uint64_t timestamp = 0; std::memcpy(&timestamp, buffer.begin(), sizeof(uint64_t));
-  std::string used = std::string(buffer.begin()+sizeof(uint64_t), buffer.size()-sizeof(uint64_t));
-  remoteState.remoteChipUse = used;
-  remoteCardUsePublisher->UseNextCard();
-  Logger::Logf("remote used chip %s", used.c_str());
-}
-
 void NetworkBattleScene::recieveLoserSignal()
 {
   // TODO: replace this with PVP win information
@@ -607,8 +579,8 @@ void NetworkBattleScene::processPacketBody(NetPlaySignals header, const Poco::Bu
       case NetPlaySignals::connect:
         recieveConnectSignal(body);
         break;
-      case NetPlaySignals::card:
-        recieveChipUseSignal(body);
+      case NetPlaySignals::input_event:
+        recieveInputEvent(body);
         break;
       case NetPlaySignals::form:
         recieveChangedFormSignal(body);
@@ -621,15 +593,6 @@ void NetworkBattleScene::processPacketBody(NetPlaySignals header, const Poco::Bu
         break;
       case NetPlaySignals::tile:
         recieveTileCoordSignal(body);
-        break;
-      case NetPlaySignals::shoot:
-        recieveShootSignal();
-        break;
-      case NetPlaySignals::special:
-        recieveUseSpecialSignal();
-        break;
-      case NetPlaySignals::charge:
-        recieveChargeSignal(body);
         break;
       case NetPlaySignals::card_select:
         recieveRequestedCardSelectSignal();

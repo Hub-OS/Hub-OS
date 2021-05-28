@@ -56,6 +56,7 @@ public:
   void SetClipboard(const std::string& data);
 
   Gamepad GetAnyGamepadButton() const;
+  const std::vector<InputEvent>& EventsThisFrame() const;
   
   const bool ConvertKeyToString(const sf::Keyboard::Key key, std::string& out) const;
 

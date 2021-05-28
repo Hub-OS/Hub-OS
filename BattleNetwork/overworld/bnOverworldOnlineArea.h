@@ -13,8 +13,6 @@
 #include "bnServerAssetManager.h"
 
 namespace Overworld {
-  constexpr size_t LAG_WINDOW_LEN = 300;
-
   struct OnlinePlayer {
     OnlinePlayer(std::string name) : actor(std::make_shared<Overworld::Actor>(name)) {}
 
@@ -26,7 +24,7 @@ namespace Overworld {
     sf::Vector3f startBroadcastPos{};
     sf::Vector3f endBroadcastPos{};
     long long timestamp{};
-    std::array<double, LAG_WINDOW_LEN> lagWindow{ 0 };
+    std::array<double, NetManager::LAG_WINDOW_LEN> lagWindow{ 0 };
     size_t packets{};
   };
 
@@ -130,7 +128,6 @@ namespace Overworld {
     void receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
-    const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
   protected:
     virtual std::string GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);

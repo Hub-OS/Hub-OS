@@ -38,4 +38,7 @@ public:
    * @param player player entity
    */
   void OnLeave(Player& player);
+
+  const bool InputQueueHas(const InputEvent& item);
+  void InputQueueCleanup();
 };

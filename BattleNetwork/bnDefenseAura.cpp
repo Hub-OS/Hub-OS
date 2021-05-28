@@ -32,7 +32,7 @@ void DefenseAura::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& 
   }
 
   // base case: impact-only hitboxes are processed further
-  if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return;
+  if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return; // no blocking happens
 
   // weak obstacles will break
   auto hitbox = new Hitbox(owner.GetTeam(), 0);

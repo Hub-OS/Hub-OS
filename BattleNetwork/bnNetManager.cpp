@@ -1,5 +1,6 @@
 #include "bnNetManager.h"
 #include "bnLogger.h"
+#include <array>
 
 using namespace Poco;
 using namespace Net;

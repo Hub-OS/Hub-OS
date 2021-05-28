@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <vector>
+#include "../bnInputEvent.h"
 #include "../bnDirection.h"
 
 struct NetPlayFlags {
@@ -7,12 +9,9 @@ struct NetPlayFlags {
   bool remoteHandshake{ false };
   bool remoteChangeForm{ false };
   bool remoteConnected{ false };
-  bool remoteShoot{ false };
-  bool remoteUseSpecial{ false };
-  bool remoteCharge{ false };
   int remoteTileX{ 5 }, remoteTileY{ 2 };
   int remoteFormSelect{ -1 };
   int remoteNavi{ 0 };
   int remoteHP{ 1 };
-  std::string remoteChipUse{ "" };
+  std::vector<InputEvent> remoteInputEvents;
 };

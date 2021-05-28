@@ -27,46 +27,74 @@ void PlayerNetworkState::OnEnter(Player& player) {
 void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   player.SetHealth(netflags.remoteHP);
 
-  // Action controls take priority over movement
-  if(!player.IsLockoutAnimationComplete()) return;
+  // Actions with animation lockout controls take priority over movement
+  bool canMove = player.IsLockoutAnimationComplete();
 
-  /*if (!netflags.isRemoteReady) {
-    netflags.remoteCharge = netflags.remoteShoot = netflags.remoteUseSpecial = false;
-    return;
-  }*/
-
-  if (netflags.remoteUseSpecial) {
-    player.UseSpecial();
-    netflags.remoteUseSpecial = false;
-  }    // queue attack based on input behavior (buster or charge?)
-  else if ((!netflags.remoteCharge && isChargeHeld) || netflags.remoteShoot == true ) {
-    // This routine is responsible for determining the outcome of the attack
-    player.Attack();
-    netflags.remoteShoot = false;
-    isChargeHeld = false;
+  // One of our active actions are preventing us from moving
+  if (!canMove) {
     player.chargeEffect.SetCharging(false);
+    isChargeHeld = false;
+    return;
   }
 
-  // Movement increments are restricted based on anim speed at this time
-  //if (player.state != PLAYER_IDLE)
-  // return;
+  bool missChargeKey = isChargeHeld && !InputQueueHas(InputEvents::held_shoot);
 
-  bool shouldShoot = netflags.remoteCharge && isChargeHeld == false;
+  // Are we creating an action this frame?
+  if (InputQueueHas(InputEvents::pressed_use_chip)) {
+    auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
+    if (cardsUI && player.CanAttack()) {
+      cardsUI->UseNextCard();
+      isChargeHeld = false;
+    }
+    // If the card used was successful, we may have a card in queue
+  }
+  else if (InputQueueHas(InputEvents::released_special)) {
+    const auto actions = player.AsyncActionList();
+    bool canUseSpecial = player.CanAttack();
 
-#ifdef __ANDROID__
-  shouldShoot = Input().Has(PRESSED_A);
-#endif
+    // Just make sure one of these actions are not from an ability
+    for (const CardAction* action : actions) {
+      canUseSpecial = canUseSpecial && action->GetLockoutGroup() != CardAction::LockoutGroup::ability;
+    }
 
-  if (shouldShoot) {
+    if (canUseSpecial) {
+      player.UseSpecial();
+    }
+  } // queue attack based on input behavior (buster or charge?)
+  else if (InputQueueHas(InputEvents::released_shoot) || missChargeKey) {
+    // This routine is responsible for determining the outcome of the attack
+    isChargeHeld = false;
+    player.chargeEffect.SetCharging(false);
+    player.Attack();
+
+  }
+  else if (InputQueueHas(InputEvents::held_shoot)) {
     isChargeHeld = true;
-
     player.chargeEffect.SetCharging(true);
   }
 
-  auto& tile = *player.GetTile();
+  // Movement increments are restricted based on anim speed at this time
+  if (player.IsMoving()) {
+    return;
+  }
 
-  if (tile.GetX() != netflags.remoteTileX || tile.GetY() != netflags.remoteTileY) {
-    auto onMoveBegin = [player = &player] {
+  Direction direction = Direction::none;
+  if (InputQueueHas(InputEvents::pressed_move_up) || InputQueueHas(InputEvents::held_move_up)) {
+    direction = Direction::up;
+  }
+  else if (InputQueueHas(InputEvents::pressed_move_left) || InputQueueHas(InputEvents::held_move_left)) {
+    direction = Direction::left;
+  }
+  else if (InputQueueHas(InputEvents::pressed_move_down) || InputQueueHas(InputEvents::held_move_down)) {
+    direction = Direction::down;
+  }
+  else if (InputQueueHas(InputEvents::pressed_move_right) || InputQueueHas(InputEvents::held_move_right)) {
+    direction = Direction::right;
+  }
+
+  if (direction != Direction::none) {
+    auto next_tile = player.GetTile() + direction;
+    auto onMoveBegin = [player = &player, next_tile, this] {
       auto anim = player->GetFirstComponent<AnimationComponent>();
       std::string animationStr = anim->GetAnimationString();
 
@@ -85,13 +113,11 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
       anim->SetInterruptCallback(idle_callback);
     };
 
-    auto destTile = player.GetField()->GetAt(netflags.remoteTileX, netflags.remoteTileY);
-
     if (player.playerControllerSlide) {
-      player.Slide(destTile, player.slideFrames, frames(0), ActionOrder::voluntary);
+      player.Slide(next_tile, player.slideFrames, frames(0), ActionOrder::voluntary);
     }
     else {
-      player.Teleport(destTile, ActionOrder::voluntary, onMoveBegin);
+      player.Teleport(next_tile, ActionOrder::voluntary, onMoveBegin);
     }
   }
 }
@@ -99,4 +125,14 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 void PlayerNetworkState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.Charge(false);
+}
+
+const bool PlayerNetworkState::InputQueueHas(const InputEvent& item)
+{
+  return netflags.remoteInputEvents.cend() != std::find(netflags.remoteInputEvents.cbegin(), netflags.remoteInputEvents.cend(), item);
+}
+
+void PlayerNetworkState::InputQueueCleanup()
+{
+  netflags.remoteInputEvents.clear();
 }

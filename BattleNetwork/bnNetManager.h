@@ -15,6 +15,8 @@ private:
   std::shared_ptr<Poco::Net::DatagramSocket> client; //!< us
   int myPort{};
 public:
+  static const size_t LAG_WINDOW_LEN = 300;
+
   NetManager();
   ~NetManager();
 
@@ -25,4 +27,23 @@ public:
   const bool BindPort(int port);
   Poco::Net::DatagramSocket& GetSocket();
   const std::string GetPublicIP();
+
+  template<typename T>
+  static const T CalculateLag(size_t packetCount, std::array<T, NetManager::LAG_WINDOW_LEN>& lagWindow, T next) {
+    size_t window_len = std::min(packetCount, lagWindow.size());
+
+    T avg{ 0 };
+    for (size_t i = 0; i < window_len; i++) {
+      avg = avg + lagWindow[i];
+    }
+
+    if (next != 0.0) {
+      avg = next + avg;
+      window_len++;
+    }
+
+    avg = avg / static_cast<T>(window_len);
+
+    return avg;
+  }
 };

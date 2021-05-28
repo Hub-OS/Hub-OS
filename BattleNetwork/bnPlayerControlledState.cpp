@@ -28,6 +28,28 @@ void PlayerControlledState::OnEnter(Player& player) {
 }
 
 void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
+  if (replicator) {
+    currLag = replicator->GetAvgLatency(); // NOTE: in milliseconds
+  }
+
+  // Drop inputs less than or equal to 0 frames left
+  InputQueueCleanup();
+
+  // For all inputs in the queue, reduce their wait time for this new frame
+  for (auto& item : inputQueue) {
+    item.wait -= from_seconds(_elapsed);
+  }
+
+  // For all new input events, set the wait time based on the network latency and append
+  for (InputEvent copy : Input().EventsThisFrame()) {
+    copy.wait = from_seconds(currLag/1000.0);
+    inputQueue.push_back(copy);
+    
+    if (replicator) {
+      replicator->SendInputEvent(copy);
+    }
+  }
+
   // Actions with animation lockout controls take priority over movement
   bool canMove = player.IsLockoutAnimationComplete();
 
@@ -38,10 +60,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     return;
   }
 
-  bool missChargeKey = isChargeHeld && !Input().Has(InputEvents::held_shoot);
+  bool missChargeKey = isChargeHeld && !InputQueueHas(InputEvents::held_shoot);
 
   // Are we creating an action this frame?
-  if (Input().Has(InputEvents::pressed_use_chip)) {
+  if (InputQueueHas(InputEvents::pressed_use_chip)) {
     auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
       cardsUI->UseNextCard();
@@ -49,7 +71,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     }
     // If the card used was successful, we may have a card in queue
   }
-  else if (Input().Has(InputEvents::released_special)) {
+  else if (InputQueueHas(InputEvents::released_special)) {
     const auto actions = player.AsyncActionList();
     bool canUseSpecial = player.CanAttack();
 
@@ -59,23 +81,16 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     }
 
     if (canUseSpecial) {
-      if (replicator) replicator->SendUseSpecialSignal();
       player.UseSpecial();
     }
   } // queue attack based on input behavior (buster or charge?)
-  else if (Input().Has(InputEvents::released_shoot) || missChargeKey) {
+  else if (InputQueueHas(InputEvents::released_shoot) || missChargeKey) {
     // This routine is responsible for determining the outcome of the attack
-    if (replicator) {
-      replicator->SendShootSignal();
-      replicator->SendChargeSignal(false);
-    }
-
     isChargeHeld = false;
     player.chargeEffect.SetCharging(false);
     player.Attack();
 
-  } else if (Input().Has(InputEvents::held_shoot)) {
-    if (replicator && !isChargeHeld) replicator->SendChargeSignal(true);
+  } else if (InputQueueHas(InputEvents::held_shoot)) {
     isChargeHeld = true;
     player.chargeEffect.SetCharging(true);
   }
@@ -90,16 +105,16 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   Direction direction = Direction::none;
-  if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {
+  if (InputQueueHas(InputEvents::pressed_move_up) || InputQueueHas(InputEvents::held_move_up)) {
     direction = Direction::up;
   }
-  else if (Input().Has(InputEvents::pressed_move_left) || Input().Has(InputEvents::held_move_left)) {
+  else if (InputQueueHas(InputEvents::pressed_move_left) || InputQueueHas(InputEvents::held_move_left)) {
     direction = Direction::left;
   }
-  else if (Input().Has(InputEvents::pressed_move_down) || Input().Has(InputEvents::held_move_down)) {
+  else if (InputQueueHas(InputEvents::pressed_move_down) || InputQueueHas(InputEvents::held_move_down)) {
     direction = Direction::down;
   }
-  else if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
+  else if (InputQueueHas(InputEvents::pressed_move_right) || InputQueueHas(InputEvents::held_move_right)) {
     direction = Direction::right;
   }
 
@@ -140,5 +155,29 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.Charge(false);
-  replicator? replicator->SendChargeSignal(false) : (void(0));
+}
+
+const bool PlayerControlledState::InputQueueHas(const InputEvent& item)
+{
+  auto iter = std::find(inputQueue.cbegin(), inputQueue.cend(), item);
+  
+  // An input is available for reads if its wait time is zero or less frames
+  if (iter != inputQueue.cend()) {
+    return iter->wait <= frames(0);
+  }
+
+  return false;
+}
+
+void PlayerControlledState::InputQueueCleanup()
+{
+  // Drop inputs that are already processed at the end of the last frame
+  for (auto iter = inputQueue.begin(); iter != inputQueue.end();) {
+    if (iter->wait <= frames(0)) {
+      iter = inputQueue.erase(iter);
+      continue;
+    }
+
+    iter++;
+  }
 }

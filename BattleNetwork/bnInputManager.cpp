@@ -457,6 +457,11 @@ Gamepad InputManager::GetAnyGamepadButton() const
   return lastButton;
 }
 
+const std::vector<InputEvent>& InputManager::EventsThisFrame() const
+{
+  return events;
+}
+
 const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::string & out) const
 {
   switch (key) {

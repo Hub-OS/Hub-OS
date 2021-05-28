@@ -27,6 +27,7 @@ AirHockey::AirHockey(Field* field, Team team, int damage, int moveCount) :
   auto props = GetHitboxProperties();
   props.damage = damage;
   props.flags |= Hit::flinch | Hit::shake | Hit::breaking;
+  props.flags &= ~Hit::flash;
   SetHitboxProperties(props);
 }
 

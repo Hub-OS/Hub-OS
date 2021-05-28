@@ -71,6 +71,7 @@ private:
   friend class PVP::PacketProcessor;
 
   long long roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
+  Text ping;
   SelectedNavi selectedNavi; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   Poco::Net::SocketAddress remoteAddress;
@@ -91,26 +92,20 @@ private:
   std::shared_ptr<PVP::PacketProcessor> packetProcessor;
 
   void sendHandshakeSignal(); // send player data to start the next round
-  void sendShootSignal();
-  void sendUseSpecialSignal();
-  void sendChargeSignal(const bool);
+  void sendInputEvent(const InputEvent& event); // send our key or gamepad events
   void sendConnectSignal(const SelectedNavi navi);
   void sendChangedFormSignal(const int form);
   void sendHPSignal(const int hp);
   void sendTileCoordSignal(const int x, const int y);
-  void sendChipUseSignal(const std::string& used);
   void sendRequestedCardSelectSignal(); 
   void sendLoserSignal(); // if we die, let them know
 
   void recieveHandshakeSignal(const Poco::Buffer<char>& buffer);
-  void recieveShootSignal();
-  void recieveUseSpecialSignal();
-  void recieveChargeSignal(const Poco::Buffer<char>&);
+  void recieveInputEvent(const Poco::Buffer<char>& buffer); 
   void recieveConnectSignal(const Poco::Buffer<char>&);
   void recieveChangedFormSignal(const Poco::Buffer<char>&);
   void recieveHPSignal(const Poco::Buffer<char>&);
   void recieveTileCoordSignal(const Poco::Buffer<char>&);
-  void recieveChipUseSignal(const Poco::Buffer<char>&);
   void recieveLoserSignal(); // if they die, update our state flags
   void recieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
   void processPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
@@ -130,7 +125,7 @@ public:
   void Inject(PlayerInputReplicator& pub);
 
   const NetPlayFlags& GetRemoteStateFlags();
-
+  const double GetAvgLatency() const;
 
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use
@@ -142,19 +137,4 @@ public:
    */
   ~NetworkBattleScene();
 
-};
-
-class NetworkCardUseListener final : public CardUseListener {
-  NetworkBattleScene& nbs;
-  Player& client;
-
-public:
-  NetworkCardUseListener(NetworkBattleScene& nbs, Player& client)
-    : nbs(nbs), client(client), CardUseListener() {
-
-  }
-
-  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override {
-    nbs.sendChipUseSignal(card.GetUUID());
-  }
 };

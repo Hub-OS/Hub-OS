@@ -177,7 +177,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double expectedTime = calculatePlayerLag(onlinePlayer);
+    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
     float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
     Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
 
@@ -1700,7 +1700,7 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     double incomingLag = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
     // Adjust the lag time by the lag of this incoming frame
-    double expectedTime = calculatePlayerLag(onlinePlayer, incomingLag);
+    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, incomingLag);
 
     auto teleportController = &onlinePlayer.teleportController;
     auto actor = onlinePlayer.actor;
@@ -1722,7 +1722,7 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     onlinePlayer.endBroadcastPos = newPos;
     onlinePlayer.timestamp = currentTime;
     onlinePlayer.packets++;
-    onlinePlayer.lagWindow[onlinePlayer.packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
+    onlinePlayer.lagWindow[onlinePlayer.packets % NetManager::LAG_WINDOW_LEN] = incomingLag;
     onlinePlayer.idleDirection = Orthographic(direction);
   }
 }
@@ -1818,25 +1818,6 @@ void Overworld::OnlineArea::leave() {
 
   using effect = segue<PixelateBlackWashFade>;
   getController().pop<effect>();
-}
-
-const double Overworld::OnlineArea::calculatePlayerLag(OnlinePlayer& player, double nextLag)
-{
-  size_t window_len = std::min(player.packets, player.lagWindow.size());
-
-  double avg{ 0 };
-  for (size_t i = 0; i < window_len; i++) {
-    avg = avg + player.lagWindow[i];
-  }
-
-  if (nextLag != 0.0) {
-    avg = nextLag + avg;
-    window_len++;
-  }
-
-  avg = avg / static_cast<double>(window_len);
-
-  return avg;
 }
 
 std::string Overworld::OnlineArea::GetText(const std::string& path) {

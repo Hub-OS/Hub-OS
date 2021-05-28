@@ -49,7 +49,7 @@ namespace Overworld {
 
   const sf::Vector2f Map::ScreenToWorld(sf::Vector2f screen) const
   {
-    auto scale = getScale();
+    sf::Vector2f scale = getScale();
     return OrthoToIsometric(sf::Vector2f{ screen.x / scale.x, screen.y / scale.y });
   }
 
@@ -235,8 +235,8 @@ namespace Overworld {
     auto& tile = layer.GetTile(x, y);
 
     // get decimal part
-    float tileX;
-    float tileY;
+    float tileX{};
+    float tileY{};
     auto testPosition = sf::Vector2f(
       std::modf(x, &tileX),
       std::modf(y, &tileY)

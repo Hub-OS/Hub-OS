@@ -104,7 +104,7 @@ bool PVP::PacketProcessor::IsHandshakeAck()
   return handshakeAck;
 }
 
-const std::chrono::microseconds PVP::PacketProcessor::GetAvgLatency() const
+const double PVP::PacketProcessor::GetAvgLatency() const
 {
   return packetShipper.GetAvgLatency();
 }

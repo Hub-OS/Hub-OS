@@ -28,21 +28,33 @@ void LongSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
  
   // this is the sword visual effect
 
-  SwordEffect* e = new SwordEffect;
-  e->SetAnimation("LONG");
-  field->AddEntity(*e, *tiles[0]);
+  if (tiles[0]) {
+    SwordEffect* e = new SwordEffect;
+    e->SetAnimation("LONG");
+    
+    if (owner->GetFacing() == Direction::right) {
+      e->setScale(-2.f, 2.f);
+    }
+    
+    field->AddEntity(*e, *tiles[0]);
+  }
 
   // Basic sword properties & hitbox
-  BasicSword* b = new BasicSword(owner->GetTeam(), damage);
-  auto props = b->GetHitboxProperties();
-  props.element = GetElement();
-  props.aggressor = userId;
-  b->SetHitboxProperties(props);
-  field->AddEntity(*b, *tiles[0]);
+  if (tiles[0]) {
+    BasicSword* b = new BasicSword(owner->GetTeam(), damage);
+    auto props = b->GetHitboxProperties();
+    props.element = GetElement();
+    props.aggressor = userId;
+    b->SetHitboxProperties(props);
+    field->AddEntity(*b, *tiles[0]);
+  }
 
-  // resuse props with new hitbox
-  b = new BasicSword(owner->GetTeam(), damage);
-  b->SetHitboxProperties(props);
+  if (tiles[1]) {
+    // resuse props with new hitbox
+    BasicSword* b = new BasicSword(owner->GetTeam(), damage);
+    auto props = b->GetHitboxProperties();
+    b->SetHitboxProperties(props);
 
-  field->AddEntity(*b, *tiles[1]);
+    field->AddEntity(*b, *tiles[1]);
+  }
 }

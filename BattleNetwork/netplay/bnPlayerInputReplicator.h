@@ -13,29 +13,22 @@ public:
 
   ~PlayerInputReplicator() { }
 
-  void OnUpdate(double) override { }
+  void OnUpdate(double) override {}
+
+  const double GetAvgLatency() const {
+    assert(networkbs && "Component must be injected into NetworkBattleScene");
+    return networkbs->GetAvgLatency();
+  }
 
   NetPlayFlags& GetNetPlayFlags() { 
     assert(networkbs && "Component must be injected into NetworkBattleScene");
     return networkbs->remoteState;
   }
 
-  void SendShootSignal() {
+  void SendInputEvent(const InputEvent& event) {
     assert(networkbs && "Component must be injected into NetworkBattleScene");
 
-    networkbs->sendShootSignal();
-  }
-
-  void SendChargeSignal(const bool state) {
-    assert(networkbs && "Component must be injected into NetworkBattleScene");
-
-    networkbs->sendChargeSignal(state);
-  }
-
-  void SendUseSpecialSignal() {
-    assert(networkbs && "Component must be injected into NetworkBattleScene");
-
-    networkbs->sendUseSpecialSignal();
+    networkbs->sendInputEvent(event);
   }
 
   void SendTileSignal(const int x, const int y) {

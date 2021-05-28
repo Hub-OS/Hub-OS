@@ -89,6 +89,10 @@ void SwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
     SwordEffect* e = new SwordEffect;
     field->AddEntity(*e, *tile);
 
+    if (GetActor().GetFacing() == Direction::right) {
+      e->setScale(-2.f, 2.f);
+    }
+
     BasicSword* b = new BasicSword(GetActor().GetTeam(), damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = userId;

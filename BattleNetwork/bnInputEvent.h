@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include "frame_time_t.h"
 
 enum class InputState : unsigned char {
   none = 0,
@@ -13,6 +14,7 @@ enum class InputState : unsigned char {
 struct InputEvent {
   std::string name;
   InputState state{};
+  frame_time_t wait{};
 
   const bool operator==(const InputEvent& rhs) const {
     return (rhs.name == name && rhs.state == state);

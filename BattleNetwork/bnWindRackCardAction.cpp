@@ -111,6 +111,11 @@ void WindRackCardAction::OnExecute(Character* user)
     // hitboxes
 
     SwordEffect* e = new SwordEffect;
+
+    if (actor->GetFacing() == Direction::right) {
+      e->setScale(-2.f, 2.f);
+    }
+
     e->SetAnimation("WIDE");
     field->AddEntity(*e, *tiles[0]);
 

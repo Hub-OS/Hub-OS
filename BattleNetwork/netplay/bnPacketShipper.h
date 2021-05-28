@@ -7,6 +7,7 @@
 #include <map>
 #include <array>
 #include <vector>
+#include "../bnNetManager.h"
 
 enum class Reliability : char
 {
@@ -21,6 +22,7 @@ enum class Reliability : char
 class PacketShipper
 {
 private:
+
   struct BackedUpPacket
   {
     uint64_t id{};
@@ -28,7 +30,11 @@ private:
     Poco::Buffer<char> data;
   };
 
+  std::array<double, NetManager::LAG_WINDOW_LEN> lagWindow;
+  size_t ackPackets{};
+
   bool failed{};
+  double avgLatency{};
   Poco::Net::SocketAddress socketAddress;
   uint64_t nextUnreliableSequenced{};
   uint64_t nextReliable{};
@@ -36,8 +42,6 @@ private:
   std::vector<BackedUpPacket> backedUpReliable;
   std::vector<BackedUpPacket> backedUpReliableOrdered;
   std::array<std::map<uint64_t, std::chrono::time_point<std::chrono::steady_clock>>, static_cast<size_t>(Reliability::size)> packetStart;
-  std::queue<std::chrono::microseconds> lagTime;
-  std::chrono::microseconds avgLatency{}; // the average acknowledgement time
 
   void updateLagTime(Reliability type, uint64_t packetId);
   void sendSafe(Poco::Net::DatagramSocket& socket, const Poco::Buffer<char>& data);
@@ -51,5 +55,5 @@ public:
   std::pair<Reliability, uint64_t> Send(Poco::Net::DatagramSocket& socket, Reliability Reliability, const Poco::Buffer<char>& body);
   void ResendBackedUpPackets(Poco::Net::DatagramSocket& socket);
   void Acknowledged(Reliability reliability, uint64_t id);
-  const std::chrono::microseconds GetAvgLatency() const;
+  const double GetAvgLatency() const;
 };
