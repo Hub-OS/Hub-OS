@@ -93,7 +93,7 @@ void ScriptedObstacle::SetTileOffset(float x, float y)
 
 Battle::Tile* ScriptedObstacle::GetCurrentTile() const
 {
-    return GetTile();
+  return GetTile();
 }
 
 void ScriptedObstacle::ShakeCamera(double power, float duration)

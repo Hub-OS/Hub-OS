@@ -17,7 +17,6 @@
 
 class ScriptResourceManager {
 public:
-
   struct LoadScriptResult {
     sol::protected_function_result result;
     sol::state* state{ nullptr };

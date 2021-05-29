@@ -575,7 +575,6 @@ void Character::ResolveFrameBattleDamage()
   }
 
   if (GetHealth() == 0) {
-
     while(statusQueue.size() > 0) {
       statusQueue.pop();
     }

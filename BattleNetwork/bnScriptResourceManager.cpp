@@ -48,12 +48,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   // global namespace
   const auto& color_record = state.new_usertype<sf::Color>("Color",
     sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>()
-  );
+    );
 
   const auto& vector_record = state.new_usertype<sf::Vector2f>("Vector2",
     "x", &sf::Vector2f::x,
     "y", &sf::Vector2f::y
-  );
+    );
 
   const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
     sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
@@ -64,11 +64,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "CopyFrom", &Animation::CopyFrom,
     "State", &Animation::GetAnimationString,
     "Point", &Animation::GetPoint,
-    "SetPlayback", sol::resolve<Animation&(char)>(&Animation::operator<<),
+    "SetPlayback", sol::resolve<Animation& (char)>(&Animation::operator<<),
     "OnComplete", sol::resolve<void(const FrameCallback&)>(&Animation::operator<<),
     "OnFrame", &Animation::AddCallback,
     "OnInterrupt", &Animation::SetInterruptCallback
-  );
+    );
 
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
@@ -81,7 +81,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Sprite", &SpriteProxyNode::getSprite,
     "EnableParentShader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
-  );
+    );
 
   const auto& defense_frame_state_judge_record = battle_namespace.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
     "BlockDamage", &DefenseFrameStateJudge::BlockDamage,
@@ -95,26 +95,26 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& defense_rule_record = battle_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
     sol::factories([](int priority, const DefenseOrder& order) -> std::unique_ptr<ScriptedDefenseRule> {
       return std::make_unique<ScriptedDefenseRule>(Priority(priority), order);
-    }),
+      }),
     "IsReplaced", &ScriptedDefenseRule::IsReplaced,
-    "canBlockFunc", &ScriptedDefenseRule::canBlockCallback,
-    "filterStatusesFunc", &ScriptedDefenseRule::filterStatusesCallback,
-    sol::base_classes, sol::bases<DefenseRule>()
-    );
+        "canBlockFunc", &ScriptedDefenseRule::canBlockCallback,
+        "filterStatusesFunc", &ScriptedDefenseRule::filterStatusesCallback,
+        sol::base_classes, sol::bases<DefenseRule>()
+        );
 
   const auto& defense_rule_nodrag = battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
     sol::factories([] {
       return std::make_unique<DefenseNodrag>();
-    }),
+      }),
     sol::base_classes, sol::bases<DefenseRule>()
-  );
+        );
 
   const auto& defense_rule_virus_body = battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
     sol::factories([] {
       return std::make_unique<DefenseVirusBody>();
-    }),
+      }),
     sol::base_classes, sol::bases<DefenseRule>()
-  );
+        );
 
   const auto& tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
     "X", &Battle::Tile::GetX,
@@ -130,7 +130,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "IsReserved", &Battle::Tile::IsReservedByCharacter,
     "Team", &Battle::Tile::GetTeam,
     "AttackEntities", &Battle::Tile::AffectEntities
-  );
+    );
 
   const auto& field_record = battle_namespace.new_usertype<Field>("Field",
     "TileAt", &Field::GetAt,
@@ -142,18 +142,18 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedSpell>&, int, int)>(&Field::AddEntity),
       sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedObstacle>&, int, int)>(&Field::AddEntity)
     )
-  );
+    );
 
   const auto& player_record = battle_namespace.new_usertype<Player>("Player",
     sol::base_classes, sol::bases<Character>()
-  );
+    );
 
   const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
     sol::factories([](int count, double speed) {
       return new Explosion(count, speed);
-    }),
+      }),
     sol::base_classes, sol::bases<Artifact>()
-  );
+        );
 
   // auto& frame_time_record = state.new_usertype<frame_time_t>("Frame");
   const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent");
@@ -161,104 +161,104 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>("Spell",
     sol::factories([](Team team) -> std::unique_ptr<ScriptedSpell> {
       return std::make_unique<ScriptedSpell>(team);
-    }),
+      }),
     sol::meta_function::index,
-    &dynamic_object::dynamic_get,
-    sol::meta_function::new_index,
-    &dynamic_object::dynamic_set,
-    sol::meta_function::length,
-    [](dynamic_object& d) { return d.entries.size(); },
-    "GetID", &ScriptedSpell::GetID,
-    "SetHeight", &ScriptedSpell::SetHeight,
-    "SetTexture", &ScriptedSpell::setTexture,
-    "SetLayer", &ScriptedSpell::SetLayer,
-    "GetAnimation", &ScriptedSpell::GetAnimationObject,
-    "GetTile", &ScriptedSpell::GetTile,
-    "Tile", &ScriptedSpell::GetCurrentTile,
-    "Field", &ScriptedSpell::GetField,
-    "Slide", &ScriptedSpell::Slide,
-    "Jump", &ScriptedSpell::Jump,
-    "Teleport", & ScriptedSpell::Teleport,
-    "RawMoveEvent", &ScriptedSpell::RawMoveEvent,
-    "IsSliding", &ScriptedSpell::IsSliding,
-    "IsJumping", &ScriptedSpell::IsJumping,
-    "IsTeleporting", &ScriptedSpell::IsTeleporting,
-    "IsMoving", &ScriptedSpell::IsMoving,
-    "SetPosition", &ScriptedSpell::SetTileOffset,
-    "GetPosition", &ScriptedSpell::GetTileOffset,
-    "ShowShadow", &ScriptedSpell::ShowShadow,
-    "Teammate", &ScriptedSpell::Teammate,
-    "AddNode", &ScriptedSpell::AddNode,
-    "Delete", &ScriptedSpell::Delete,
-    "HighlightTile", &ScriptedSpell::HighlightTile,
-    "GetHitProps", &ScriptedSpell::GetHitboxProperties,
-    "SetHitProps", &ScriptedSpell::SetHitboxProperties,
-    "GetTileOffset", &ScriptedSpell::GetTileOffset,
-    "ShakeCamera", &ScriptedSpell::ShakeCamera,
-    "Remove", &ScriptedSpell::Remove,
-    "Team", &ScriptedSpell::GetTeam,
-    "attackFunc", &ScriptedSpell::attackCallback,
-    "deleteFunc", &ScriptedSpell::deleteCallback,
-    "updateFunc", &ScriptedSpell::updateCallback,
-    "canMoveToFunc", &ScriptedSpell::canMoveToCallback,
-    "onSpawnFunc", &ScriptedSpell::spawnCallback,
-    sol::base_classes, sol::bases<Spell>()
-  );
+        &dynamic_object::dynamic_get,
+        sol::meta_function::new_index,
+        &dynamic_object::dynamic_set,
+        sol::meta_function::length,
+        [](dynamic_object& d) { return d.entries.size(); },
+        "GetID", &ScriptedSpell::GetID,
+        "SetHeight", &ScriptedSpell::SetHeight,
+        "SetTexture", &ScriptedSpell::setTexture,
+        "SetLayer", &ScriptedSpell::SetLayer,
+        "GetAnimation", &ScriptedSpell::GetAnimationObject,
+        "GetTile", &ScriptedSpell::GetTile,
+        "Tile", &ScriptedSpell::GetCurrentTile,
+        "Field", &ScriptedSpell::GetField,
+        "Slide", &ScriptedSpell::Slide,
+        "Jump", &ScriptedSpell::Jump,
+        "Teleport", &ScriptedSpell::Teleport,
+        "RawMoveEvent", &ScriptedSpell::RawMoveEvent,
+        "IsSliding", &ScriptedSpell::IsSliding,
+        "IsJumping", &ScriptedSpell::IsJumping,
+        "IsTeleporting", &ScriptedSpell::IsTeleporting,
+        "IsMoving", &ScriptedSpell::IsMoving,
+        "SetPosition", &ScriptedSpell::SetTileOffset,
+        "GetPosition", &ScriptedSpell::GetTileOffset,
+        "ShowShadow", &ScriptedSpell::ShowShadow,
+        "Teammate", &ScriptedSpell::Teammate,
+        "AddNode", &ScriptedSpell::AddNode,
+        "Delete", &ScriptedSpell::Delete,
+        "HighlightTile", &ScriptedSpell::HighlightTile,
+        "GetHitProps", &ScriptedSpell::GetHitboxProperties,
+        "SetHitProps", &ScriptedSpell::SetHitboxProperties,
+        "GetTileOffset", &ScriptedSpell::GetTileOffset,
+        "ShakeCamera", &ScriptedSpell::ShakeCamera,
+        "Remove", &ScriptedSpell::Remove,
+        "Team", &ScriptedSpell::GetTeam,
+        "attackFunc", &ScriptedSpell::attackCallback,
+        "deleteFunc", &ScriptedSpell::deleteCallback,
+        "updateFunc", &ScriptedSpell::updateCallback,
+        "canMoveToFunc", &ScriptedSpell::canMoveToCallback,
+        "onSpawnFunc", &ScriptedSpell::spawnCallback,
+        sol::base_classes, sol::bases<Spell>()
+        );
 
   const auto& scriptedobstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
     sol::factories([](Team team) -> std::unique_ptr<ScriptedObstacle> {
       return std::make_unique<ScriptedObstacle>(team);
-    }),
+      }),
     sol::meta_function::index,
-    &dynamic_object::dynamic_get,
-    sol::meta_function::new_index,
-    &dynamic_object::dynamic_set,
-    sol::meta_function::length,
-    [](dynamic_object& d) { return d.entries.size(); },
-    "GetID", &ScriptedObstacle::GetID,
-    "SetHeight", &ScriptedObstacle::SetHeight,
-    "SetTexture", &ScriptedObstacle::setTexture,
-    "GetName", &ScriptedObstacle::GetName,
-    "GetHealth", &ScriptedObstacle::GetHealth,
-    "GetMaxHealth", &ScriptedObstacle::GetMaxHealth,
-    "SetName", &ScriptedObstacle::SetName,
-    "SetHealth", &ScriptedObstacle::SetHealth,
-    "SetHeight", &ScriptedObstacle::SetHeight,
-    "SetLayer", &ScriptedObstacle::SetLayer,
-    "GetAnimation", &ScriptedObstacle::GetAnimationObject,
-    "SetPosition", &ScriptedObstacle::SetTileOffset,
-    "GetPosition", &ScriptedObstacle::GetTileOffset,
-    "GetTile", &ScriptedObstacle::GetTile,
-    "Tile", &ScriptedObstacle::GetCurrentTile,
-    "Field", &ScriptedObstacle::GetField,
-    "Slide", &ScriptedObstacle::Slide,
-    "Jump", &ScriptedObstacle::Jump,
-    "Teleport", &ScriptedObstacle::Teleport,
-    "RawMoveEvent", &ScriptedObstacle::RawMoveEvent,
-    "IsSliding", &ScriptedObstacle::IsSliding,
-    "IsJumping", &ScriptedObstacle::IsJumping,
-    "IsTeleporting", &ScriptedObstacle::IsTeleporting,
-    "IsMoving", &ScriptedObstacle::IsMoving,
-    "ShowShadow", &ScriptedObstacle::ShowShadow,
-    "Teammate", &ScriptedObstacle::Teammate,
-    "AddNode", &ScriptedObstacle::AddNode,
-    "Delete", &ScriptedObstacle::Delete,
-    "HighlightTile", &ScriptedObstacle::HighlightTile,
-    "GetHitProps", &ScriptedObstacle::GetHitboxProperties,
-    "SetHitProps", &ScriptedObstacle::SetHitboxProperties,
-    "IgnoreCommonAggressor", &ScriptedObstacle::IgnoreCommonAggressor,
-    "ShakeCamera", &ScriptedObstacle::ShakeCamera,
-    "Remove", &ScriptedObstacle::Remove,
-    "ShareTile", &ScriptedObstacle::ShareTileSpace,
-    "AddDefenseRule", &ScriptedObstacle::AddDefenseRule,
-    "Team", &ScriptedObstacle::GetTeam,
-    "attackFunc", &ScriptedObstacle::attackCallback,
-    "deleteFunc", &ScriptedObstacle::deleteCallback,
-    "updateFunc", &ScriptedObstacle::updateCallback,
-    "canMoveToFunc", &ScriptedObstacle::canMoveToCallback,
-    "onSpawnFunc", &ScriptedObstacle::spawnCallback,
-    sol::base_classes, sol::bases<Obstacle, Spell, Character>()
-  );
+        &dynamic_object::dynamic_get,
+        sol::meta_function::new_index,
+        &dynamic_object::dynamic_set,
+        sol::meta_function::length,
+        [](dynamic_object& d) { return d.entries.size(); },
+        "GetID", &ScriptedObstacle::GetID,
+        "SetHeight", &ScriptedObstacle::SetHeight,
+        "SetTexture", &ScriptedObstacle::setTexture,
+        "GetName", &ScriptedObstacle::GetName,
+        "GetHealth", &ScriptedObstacle::GetHealth,
+        "GetMaxHealth", &ScriptedObstacle::GetMaxHealth,
+        "SetName", &ScriptedObstacle::SetName,
+        "SetHealth", &ScriptedObstacle::SetHealth,
+        "SetHeight", &ScriptedObstacle::SetHeight,
+        "SetLayer", &ScriptedObstacle::SetLayer,
+        "GetAnimation", &ScriptedObstacle::GetAnimationObject,
+        "SetPosition", &ScriptedObstacle::SetTileOffset,
+        "GetPosition", &ScriptedObstacle::GetTileOffset,
+        "GetTile", &ScriptedObstacle::GetTile,
+        "Tile", &ScriptedObstacle::GetCurrentTile,
+        "Field", &ScriptedObstacle::GetField,
+        "Slide", &ScriptedObstacle::Slide,
+        "Jump", &ScriptedObstacle::Jump,
+        "Teleport", &ScriptedObstacle::Teleport,
+        "RawMoveEvent", &ScriptedObstacle::RawMoveEvent,
+        "IsSliding", &ScriptedObstacle::IsSliding,
+        "IsJumping", &ScriptedObstacle::IsJumping,
+        "IsTeleporting", &ScriptedObstacle::IsTeleporting,
+        "IsMoving", &ScriptedObstacle::IsMoving,
+        "ShowShadow", &ScriptedObstacle::ShowShadow,
+        "Teammate", &ScriptedObstacle::Teammate,
+        "AddNode", &ScriptedObstacle::AddNode,
+        "Delete", &ScriptedObstacle::Delete,
+        "HighlightTile", &ScriptedObstacle::HighlightTile,
+        "GetHitProps", &ScriptedObstacle::GetHitboxProperties,
+        "SetHitProps", &ScriptedObstacle::SetHitboxProperties,
+        "IgnoreCommonAggressor", &ScriptedObstacle::IgnoreCommonAggressor,
+        "ShakeCamera", &ScriptedObstacle::ShakeCamera,
+        "Remove", &ScriptedObstacle::Remove,
+        "ShareTile", &ScriptedObstacle::ShareTileSpace,
+        "AddDefenseRule", &ScriptedObstacle::AddDefenseRule,
+        "Team", &ScriptedObstacle::GetTeam,
+        "attackFunc", &ScriptedObstacle::attackCallback,
+        "deleteFunc", &ScriptedObstacle::deleteCallback,
+        "updateFunc", &ScriptedObstacle::updateCallback,
+        "canMoveToFunc", &ScriptedObstacle::canMoveToCallback,
+        "onSpawnFunc", &ScriptedObstacle::spawnCallback,
+        sol::base_classes, sol::bases<Obstacle, Spell, Character>()
+        );
 
   const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
     sol::meta_function::index,
@@ -299,7 +299,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "AddDefenseRule", &ScriptedCharacter::AddDefenseRule,
     "Team", &ScriptedCharacter::GetTeam,
     sol::base_classes, sol::bases<Character>()
-  );
+    );
 
   const auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
     "GetName", &ScriptedPlayer::GetName,
@@ -313,7 +313,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "GetTile", &ScriptedPlayer::GetTile,
     "Field", &ScriptedPlayer::GetField,
     "Tile", &ScriptedPlayer::GetCurrentTile,
-    "SetHeight",  &ScriptedPlayer::SetHeight,
+    "SetHeight", &ScriptedPlayer::SetHeight,
     "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
     "SetChargePosition", &ScriptedPlayer::SetChargePosition,
     "GetAnimation", &ScriptedPlayer::GetAnimationObject,
@@ -323,17 +323,51 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SlideWhenMoving", &ScriptedPlayer::SlideWhenMoving,
     "Team", &ScriptedPlayer::GetTeam,
     sol::base_classes, sol::bases<Player>()
-   );
+    );
+
+  const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
+    sol::factories([](Character& character, const std::string& state) -> CardAction* {
+      return new ScriptedCardAction(character, state);
+      }),
+    sol::meta_function::index,
+        &dynamic_object::dynamic_get,
+        sol::meta_function::new_index,
+        &dynamic_object::dynamic_set,
+        sol::meta_function::length,
+        [](dynamic_object& d) { return d.entries.size(); },
+        "SetLockout", &ScriptedCardAction::SetLockout,
+        "SetLockoutGroup", &ScriptedCardAction::SetLockoutGroup,
+        "OverrideAnimationFrames", &ScriptedCardAction::OverrideAnimationFrames,
+        "AddAttachment", sol::overload(
+          sol::resolve<CardAction::Attachment&(Character&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
+          sol::resolve<CardAction::Attachment&(Animation&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment)
+        ),
+        "AddAnimAction", &ScriptedCardAction::AddAnimAction,
+        "AddStep", &ScriptedCardAction::AddStep,
+        "EndAction", &ScriptedCardAction::EndAction,
+        "GetActor", &ScriptedCardAction::GetActor,
+        "actionEndFunc", &ScriptedCardAction::onActionEnd,
+        "animationEndFunc", &ScriptedCardAction::onAnimationEnd,
+        "executeFunc", &ScriptedCardAction::onExecute,
+        "updateFunc", &ScriptedCardAction::onUpdate
+        );
+
+  const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
+    sol::constructors<CardAction::Attachment(Animation&, const std::string&, SpriteProxyNode&)>(),
+    "UseAnimation", &CardAction::Attachment::UseAnimation,
+    "AddAttachment", &CardAction::Attachment::AddAttachment
+    );
+
 
   const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
     sol::factories([](Team team) {
       return new Hitbox(team);
       }),
     "OnAttack", &Hitbox::AddCallback,
-    "SetHitProps", &Hitbox::SetHitboxProperties,
-    "GetHitProps", &Hitbox::GetHitboxProperties,
-    sol::base_classes, sol::bases<Spell>()
-  );
+        "SetHitProps", &Hitbox::SetHitboxProperties,
+        "GetHitProps", &Hitbox::GetHitboxProperties,
+        sol::base_classes, sol::bases<Spell>()
+        );
 
   const auto& shared_hitbox_record = battle_namespace.new_usertype<SharedHitbox>("SharedHitbox",
     sol::constructors<SharedHitbox(Spell*, float)>(),
@@ -348,35 +382,35 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& particle_impact = battle_namespace.new_usertype<ParticleImpact>("ParticleImpact",
     sol::constructors<ParticleImpact(ParticleImpact::Type)>(),
     sol::base_classes, sol::bases<Artifact>()
-  );
+    );
 
   const auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories([](Character& character, bool charged, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<BusterCardAction>(character, charged, dmg);
-    }),
+      }),
     sol::base_classes, sol::bases<CardAction>()
-  );
+        );
 
   const auto& swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
     sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<SwordCardAction>(character, dmg);
-    }),
+      }),
     sol::base_classes, sol::bases<CardAction>()
-  );
+        );
 
   const auto& bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
     sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<BombCardAction>(character, dmg);
-    }),
+      }),
     sol::base_classes, sol::bases<CardAction>()
-  );
+        );
 
   const auto& fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
     sol::factories([](Character& character, FireBurn::Type type, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<FireBurnCardAction>(character, type, dmg);
-    }),
+      }),
     sol::base_classes, sol::bases<CardAction>()
-  );
+        );
 
 
   const auto& cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
@@ -384,21 +418,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       return std::make_unique<CannonCardAction>(character, type, dmg);
       }),
     sol::base_classes, sol::bases<CardAction>()
-  );
+        );
 
 
   const auto& textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
     "LoadFile", &TextureResourceManager::LoadTextureFromFile
-  );
+    );
 
   const auto& audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
     "LoadFile", &AudioResourceManager::LoadFromFile,
     "Stream", sol::resolve<int(std::string, bool)>(&AudioResourceManager::Stream)
-  );
+    );
 
   const auto& shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
     "LoadFile", &ShaderResourceManager::LoadShaderFromFile
-  );
+    );
 
   // make resource handle metatable
   const auto& resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
@@ -406,7 +440,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Textures", sol::property(sol::resolve<TextureResourceManager& ()>(&ResourceHandle::Textures)),
     "Audio", sol::property(sol::resolve<AudioResourceManager& ()>(&ResourceHandle::Audio)),
     "Shaders", sol::property(sol::resolve<ShaderResourceManager& ()>(&ResourceHandle::Shaders))
-  );
+    );
 
   // make input handle metatable
   const auto& input_record = engine_namespace.new_usertype<InputManager>("Input",
@@ -415,7 +449,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       return handle.Input();
       }),
     "Has", &InputManager::Has
-  );
+        );
 
   // make loading resources easier
   // DOESNT WORK??
@@ -450,7 +484,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetMugshotAnimationPath", &NaviRegistration::NaviMeta::SetMugshotAnimationPath,
     "SetPreviewTexture", &NaviRegistration::NaviMeta::SetPreviewTexture,
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
-  );
+    );
 
   const auto& mobmeta_table = engine_namespace.new_usertype<MobRegistration::MobMeta>("MobInfo",
     "SetDescription", &MobRegistration::MobMeta::SetDescription,
@@ -466,11 +500,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetBackground", &ScriptedMob::SetBackground,
     "StreamMusic", &ScriptedMob::StreamMusic,
     "Field", &ScriptedMob::GetField
-  );
+    );
 
   const auto& scriptedspawner_table = engine_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
     "SpawnAt", &ScriptedMob::ScriptedSpawner::SpawnAt
-  );
+    );
 
   engine_namespace.set_function("DefineCharacter",
     [this](const std::string& fqn, const std::string& path) {
@@ -621,7 +655,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
     "direction", &Hit::Drag::dir,
     "count", &Hit::Drag::count
-  );
+    );
 
   const auto& hitbox_props_record = state.new_usertype<Hit::Properties>("HitProps",
     "aggressor", &Hit::Properties::aggressor,
@@ -629,9 +663,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "drag", &Hit::Properties::drag,
     "element", &Hit::Properties::element,
     "flags", &Hit::Properties::flags
-  );
+    );
 
-  state.set_function("MakeHitProps", 
+  state.set_function("MakeHitProps",
     [](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
       return Hit::Properties{
         damage, flags, element, aggressor, drag
@@ -648,6 +682,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.set_function("frames",
     [](unsigned num) {
       return frames(num);
+    }
+  );
+
+  state.set_function("fdata",
+    [](unsigned index, double sec) {
+      return OverrideFrame{ index, sec };
     }
   );
 }

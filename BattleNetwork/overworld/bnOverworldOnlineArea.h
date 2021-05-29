@@ -53,6 +53,7 @@ namespace Overworld {
     bool isConnected{ false };
     bool transferringServers{ false };
     bool kicked{ false };
+    bool isEnteringBattle{ false };
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
     AssetMeta incomingAsset;

@@ -47,10 +47,6 @@ Player::Player() :
   activeForm = nullptr;
 
   auto flinch = [this]() {
-    // OLD BAD CODE
-    // NOTE: ActionQueue + States + waiting on animations is a recipe for disaster!!!
-    //ChangeState<PlayerHitState>();
-    //AI<Player>::Update(0); // refresh for this frame
     ClearActionQueue();
 
     SetAnimation(PLAYER_HIT);

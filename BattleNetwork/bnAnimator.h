@@ -18,8 +18,8 @@ using PointHash = std::map<std::string, sf::Vector2f>;
  * @struct OverrideFrame
  * @brief a struct to override animations with using brace initialization e.g. { 3, 5.0f } */
 struct OverrideFrame {
-  int frameIndex;
-  double duration;
+  unsigned frameIndex{};
+  double duration{};
 };
 
 /**

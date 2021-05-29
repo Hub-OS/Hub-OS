@@ -394,6 +394,8 @@ void Overworld::OnlineArea::onResume()
   if (packetProcessor) {
     packetProcessor->SetForeground();
   }
+
+  // isEnteringBattle = false;
 }
 
 void Overworld::OnlineArea::OnTileCollision() { }
@@ -1539,6 +1541,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     config
   };
 
+  // isEnteringBattle = true;
   getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props);
 }
 

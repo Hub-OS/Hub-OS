@@ -101,7 +101,12 @@ private:
   void RecallPreviousState();
   void FreeAttachedNodes();
 
-protected:
+public:
+  CardAction() = delete;
+  CardAction(const CardAction& rhs) = delete;
+  CardAction(Character& actor, const std::string& animation);
+  virtual ~CardAction();
+
   // Used by cards that use sequences (like most Time Freeze animations)
   void AddStep(Step step);
 
@@ -116,12 +121,6 @@ protected:
 
   // Calculate the offset for an attachment for a given point in the owner's animation set
   sf::Vector2f CalculatePointOffset(const std::string& point);
-
-public:
-  CardAction() = delete;
-  CardAction(const CardAction& rhs) = delete;
-  CardAction(Character& actor, const std::string& animation);
-  virtual ~CardAction();
 
   void PreventCounters();
   void SetLockout(const LockoutProperties& props);

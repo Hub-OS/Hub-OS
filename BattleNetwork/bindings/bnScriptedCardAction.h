@@ -1,39 +1,31 @@
 #pragma once
+#ifdef BN_MOD_SUPPORT
+
+#include <sol/sol.hpp>
+#include <functional>
+#include <SFML/Graphics.hpp>
+#include "dynamic_object.h"
 #include "../bnCardAction.h"
 #include "../bnAnimation.h"
-#include <SFML/Graphics.hpp>
 
 class SpriteProxyNode;
 class Character;
-class ScriptedCardAction : public CardAction {
+class ScriptedCardAction : public CardAction, public dynamic_object {
 public:
-  ScriptedCardAction(Character& actor, int damage) : 
-    CardAction(actor, "PLAYER_IDLE")
-  {
-    // SCRIPTS.callback(card_name).onCreate(this);
-  }
+  ScriptedCardAction(Character& actor, const std::string& state);
+  ~ScriptedCardAction();
 
-  ~ScriptedCardAction()
-  {
-  }
+  void Update(double elapsed) override;
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-  void Update(double _elapsed) override
-  {
-    CardAction::Update(_elapsed);
+  void OnAnimationEnd() override;
+  void OnActionEnd() override;
+  void OnExecute(Character* user) override;
 
-    // SCRIPTS.callback(card_name).OnUpdate(this);
-  }
-
-  void OnAnimationEnd() override {
-
-  }
-
-  void OnActionEnd()
-  {
-    // SCRIPTS.callback(card_name).onDestroy(this);
-  }
-
-  void OnExecute(Character* user) override {
-
-  }
+  std::function<void(ScriptedCardAction&, double)> onUpdate;
+  std::function<void(ScriptedCardAction&)> onAnimationEnd;
+  std::function<void(ScriptedCardAction&)> onActionEnd;
+  std::function<void(ScriptedCardAction&, Character*)> onExecute;
 };
+
+#endif
