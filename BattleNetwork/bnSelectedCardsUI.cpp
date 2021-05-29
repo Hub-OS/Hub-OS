@@ -73,7 +73,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         // If we spread the cards, this algorithm is simple:
         // x = (i_drawOrderIndex - curr ) * size of card) - spacing
         // y = Place -121 screen pixels above the user
-        sf::Vector2f flat = player->getPosition() + sf::Vector2f(((drawOrderIndex - curr) * 32.0f) - 4.f, -player->GetHeight() - 20.f);
+        sf::Vector2f flat = player->getPosition() + sf::Vector2f(((drawOrderIndex - curr) * 32.0f) - 4.f, -(player->GetHeight()*2.0f) - 20.f);
 
         // We want to smoothly move from above the head to the spread position
         double alpha = swoosh::ease::linear(interpolTimeFlat, (double)interpolDur.asSeconds(), 1.0);
@@ -88,7 +88,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         // If stacked, the algorithm makes a jagged pattern that goes up and to the left:
         // x = ( ( i - curr ) * spacing ) - spacing
         // y = -121.f - (i - curr) * (-spacing )
-        sf::Vector2f dest = player->getPosition() + sf::Vector2f(((i - curr) * 4.0f) - 4.f, -player->GetHeight() - 20.f - (i - curr) * -4.0f);
+        sf::Vector2f dest = player->getPosition() + sf::Vector2f(((i - curr) * 4.0f) - 4.f, -(player->GetHeight()*2.0f) - 20.f - (i - curr) * -4.0f);
 
         // We want to smoothly move from the spread position to the stacked position
         double alpha = swoosh::ease::linear(interpolTimeDest, (double)interpolDur.asSeconds(), 1.0);

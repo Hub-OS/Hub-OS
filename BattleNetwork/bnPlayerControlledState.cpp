@@ -53,12 +53,18 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Actions with animation lockout controls take priority over movement
   auto anim = player.GetFirstComponent<AnimationComponent>();
   std::string animationStr = anim->GetAnimationString();
-  bool canMove = player.IsLockoutAnimationComplete() && animationStr == "PLAYER_IDLE";
+  bool lockout = player.IsLockoutAnimationComplete();
+  bool actionable = animationStr == "PLAYER_IDLE";
 
-  // One of our active actions are preventing us from moving
-  if (!canMove) {
+  // One of our ongoing animations is preventing us from charging
+  if (!lockout) {
     player.chargeEffect.SetCharging(false);
     isChargeHeld = false;
+    return;
+  }
+
+  // We must be in an actionable state to do anything
+  if (!actionable) {
     return;
   }
 
