@@ -114,6 +114,16 @@ const WebServerInfo& ConfigSettings::GetWebServerInfo() const
   return webServer;
 }
 
+const ConfigSettings::KeyboardHash& ConfigSettings::GetKeyboardHash()
+{
+  return keyboard;
+}
+
+const ConfigSettings::GamepadHash& ConfigSettings::GetGamepadHash()
+{
+  return gamepad;
+}
+
 void ConfigSettings::SetKeyboardHash(const KeyboardHash key)
 {
   keyboard = key;

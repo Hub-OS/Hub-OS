@@ -88,6 +88,9 @@ public:
   const DiscordInfo& GetDiscordInfo() const;
   const WebServerInfo& GetWebServerInfo() const;
 
+  const KeyboardHash& GetKeyboardHash();
+  const GamepadHash& GetGamepadHash();
+
   void SetKeyboardHash(const KeyboardHash key);
   void SetGamepadHash(const GamepadHash gamepad);
 
