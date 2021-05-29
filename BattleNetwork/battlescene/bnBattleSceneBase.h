@@ -23,6 +23,7 @@
 #include "../bnPlayerCardUseListener.h"
 #include "../bnSelectedCardsUI.h"
 #include "../bnCardSelectionCust.h"
+#include "../bnPlayerEmotionUI.h"
 
 // Battle scene specific classes
 #include "bnBattleSceneState.h"
@@ -86,6 +87,7 @@ private:
   double backdropMaxOpacity{ 1.0 };
   PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
   SelectedCardsUI* cardUI{ nullptr }; /*!< Player's Card UI implementation */
+  PlayerEmotionUI* emotionUI{ nullptr }; /*!< Player's Emotion Window */
   Camera camera; /*!< Camera object - will shake screen */
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
@@ -313,6 +315,7 @@ public:
   const Field* GetField() const;
   CardSelectionCust& GetCardSelectWidget();
   SelectedCardsUI& GetSelectedCardsUI();
+  PlayerEmotionUI& GetEmotionWindow();
   Camera& GetCamera();
   PA& GetPA();
   void StartBattleStepTimer();

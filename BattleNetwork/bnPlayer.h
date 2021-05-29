@@ -9,6 +9,7 @@
 #pragma once
 
 #include "bnCharacter.h"
+#include "bnEmotions.h"
 #include "bnPlayerState.h"
 #include "bnTextureType.h"
 #include "bnChargeEffectSceneNode.h"
@@ -110,6 +111,11 @@ public:
 
   void SetChargeLevel(unsigned lvl);
   const unsigned GetChargeLevel();
+  
+  /** Sets the player's emotion. @note setting an emotion (e.g. full_synchro) does not trigger its effects, it merely
+   * tracks state */
+  void SetEmotion(Emotion emotion);
+  Emotion GetEmotion() const;
 
   /**
    * @brief Set the animation and on finish callback
@@ -158,6 +164,7 @@ protected:
 
   std::vector<PlayerFormMeta*> forms;
   PlayerForm* activeForm{ nullptr };
+  Emotion emotion{ Emotion::normal };
   PlayerStats stats{}, savedStats{};
   std::function<CardAction* ()> specialOverride{};
 };

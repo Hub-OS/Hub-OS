@@ -30,6 +30,7 @@ public:
     std::string overworldTexturePath; /*!< The path of the texture to load */
     std::string mugshotTexturePath;
     std::string mugshotAnimationPath;
+    std::string emotionsTexturePath; /*!< The path of the texture containing all possible emotions, ordered by emotion enum */
     std::string name; /*!< The net navi's name */
     std::shared_ptr<sf::Texture> iconTexture; /*!< Icon on the top of the screen */
     std::shared_ptr<sf::Texture> previewTexture; /*!< Roster profile picture */
@@ -113,6 +114,13 @@ public:
     NaviMeta& SetMugshotTexturePath(const std::string& texture);
 
     /**
+     * @brief Sets the emotions texture atlas
+     * @param texture
+     * @return NaviMeta& to chain
+     */
+    NaviMeta& SetEmotionsTexturePath(const std::string& texture);
+
+    /**
      * @brief Sets the overworld animation path used in menu screen
      * @return NaviMeta& to chain
      */
@@ -168,7 +176,13 @@ public:
    * @return const std::string&
    */
     const std::string& GetMugshotAnimationPath() const;
-    
+
+    /**
+   * @brief Gets the emotions texture path
+   * @return const std::string&
+   */
+    const std::string& GetEmotionsTexturePath() const;
+
     /**
      * @brief Gets the preview texture to draw
      * @return const sf::Texture&
