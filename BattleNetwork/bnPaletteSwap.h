@@ -6,13 +6,15 @@
 
 class BattleSceneBase;
 class Entity;
+class Character;
 
 class PaletteSwap : public Component {
 private:
+  bool enabled{}; /*!< Turn this effect on/off */
   std::shared_ptr<sf::Texture> palette;
   std::shared_ptr<sf::Texture> base;
   SmartShader paletteSwap;
-  bool enabled; /*!< Turn this effect on/off */
+  Character* asCharacter{ nullptr };
 public:
   PaletteSwap(Entity* owner);
   ~PaletteSwap();

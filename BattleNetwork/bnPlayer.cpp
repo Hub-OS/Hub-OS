@@ -134,7 +134,7 @@ void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::Exec
 
 void Player::OnDelete() {
   chargeEffect.Hide();
-  actionQueue.ClearQueue(ActionQueue::CleanupType::no_interrupts);
+  actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 
   auto animationComponent = GetFirstComponent<AnimationComponent>();
 
@@ -148,7 +148,7 @@ void Player::OnDelete() {
 
 const float Player::GetHeight() const
 {
-  return 101.0f;
+  return 50.0f;
 }
 
 int Player::GetMoveCount() const

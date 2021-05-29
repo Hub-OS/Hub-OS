@@ -89,7 +89,7 @@ void SwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
     SwordEffect* e = new SwordEffect;
     field->AddEntity(*e, *tile);
 
-    if (GetActor().GetFacing() == Direction::right) {
+    if (GetActor().GetFacing() == Direction::left) {
       e->setScale(-2.f, 2.f);
     }
 

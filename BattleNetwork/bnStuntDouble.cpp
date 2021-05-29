@@ -23,6 +23,7 @@ StuntDouble::StuntDouble(Character& ref) : ref(ref)
   // palette swap if applicable
   if (auto otherPswap = ref.GetFirstComponent<PaletteSwap>()) {
     pswap->CopyFrom(*otherPswap);
+    pswap->Apply();
   }
   else {
     pswap->Enable(false);

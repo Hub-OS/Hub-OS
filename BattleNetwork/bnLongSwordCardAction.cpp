@@ -21,9 +21,15 @@ void LongSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
   auto owner = &GetActor();
   auto field = owner->GetField();
 
+  int step = 1;
+  
+  if (owner->GetFacing() == Direction::left) {
+    step = -1;
+  }
+
   auto tiles = std::vector{
-    owner->GetTile()->Offset(1, 0),
-    owner->GetTile()->Offset(2, 0)
+    owner->GetTile()->Offset(1*step, 0),
+    owner->GetTile()->Offset(2*step, 0)
   };
  
   // this is the sword visual effect
@@ -32,7 +38,7 @@ void LongSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
     SwordEffect* e = new SwordEffect;
     e->SetAnimation("LONG");
     
-    if (owner->GetFacing() == Direction::right) {
+    if (owner->GetFacing() == Direction::left) {
       e->setScale(-2.f, 2.f);
     }
     

@@ -77,6 +77,7 @@ private:
   Poco::Net::SocketAddress remoteAddress;
   std::vector<Player*> players; //!< Track all players
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
+  SpriteProxyNode pingIndicator;
   NetworkCardUseListener* networkCardUseListener{ nullptr };
   SelectedCardsUI* remoteCardUsePublisher{ nullptr };
   PlayerCardUseListener* remoteCardUseListener{ nullptr };
@@ -109,6 +110,7 @@ private:
   void recieveLoserSignal(); // if they die, update our state flags
   void recieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
   void processPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
+  void UpdatePingIndicator(frame_time_t frames);
 
 public:
   using BattleSceneBase::ProcessNewestComponents;

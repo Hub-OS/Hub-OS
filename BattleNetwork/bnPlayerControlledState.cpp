@@ -51,7 +51,9 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   // Actions with animation lockout controls take priority over movement
-  bool canMove = player.IsLockoutAnimationComplete();
+  auto anim = player.GetFirstComponent<AnimationComponent>();
+  std::string animationStr = anim->GetAnimationString();
+  bool canMove = player.IsLockoutAnimationComplete() && animationStr == "PLAYER_IDLE";
 
   // One of our active actions are preventing us from moving
   if (!canMove) {
@@ -120,14 +122,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   if(direction != Direction::none) {
     auto next_tile = player.GetTile() + direction;
-    auto onMoveBegin = [player = &player, next_tile, this] {
+    auto onMoveBegin = [player = &player, next_tile, this, anim] {
       if (replicator) {
         replicator->SendTileSignal(next_tile->GetX(), next_tile->GetY());
       }
-
-      auto anim = player->GetFirstComponent<AnimationComponent>();
-      std::string animationStr = anim->GetAnimationString();
-
       const std::string& move_anim = player->GetMoveAnimHash();
 
       anim->CancelCallbacks();

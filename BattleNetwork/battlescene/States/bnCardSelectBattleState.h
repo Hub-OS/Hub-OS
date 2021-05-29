@@ -20,9 +20,9 @@ class CardSelectBattleState final : public BattleSceneState {
   } currState{};
 
   // Selection input delays
-  double maxCardSelectInputCooldown; /*!< When interacting with Card Cust GUI API, delay input */
-  double heldCardSelectInputCooldown; /*!< When holding the directional inputs, when does the sticky key effect trigger*/
-  double cardSelectInputCooldown; /*!< Time remaining with delayed input */
+  double maxCardSelectInputCooldown{}; /*!< When interacting with Card Cust GUI API, delay input */
+  double heldCardSelectInputCooldown{}; /*!< When holding the directional inputs, when does the sticky key effect trigger*/
+  double cardSelectInputCooldown{}; /*!< Time remaining with delayed input */
 
   bool pvpMode{ false };
   bool hasNewChips{ false }; 

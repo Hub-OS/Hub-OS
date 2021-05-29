@@ -254,7 +254,7 @@ std::vector<std::string> SelectedCardsUI::GetUUIDList()
 {
   std::vector<std::string> res;
 
-  for (int i = 0; i < cardCount; i++) {
+  for (int i = curr; i < cardCount; i++) {
     res.push_back(selectedCards[i]->GetUUID());
   }
 

@@ -110,8 +110,8 @@ void Animator::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
   auto& data = sequence.frames[frameIndex];
   currentPoints = data.points;
 
-  for (auto&& points : currentPoints) {
-    points.second = CalculatePointData(points.second, data);
+  for (auto& [key, point] : currentPoints) {
+    point = CalculatePointData(point, data);
   }
 }
 

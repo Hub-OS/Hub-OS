@@ -41,8 +41,14 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   ping(Font::Style::wide),
   remoteAddress(props.netconfig.remote) 
 {
-  ping.setPosition(480, 20);
+  ping.setPosition(480-16-4, 320-2.f); // screen w - 16px - 4px
   ping.SetColor(sf::Color::Red);
+
+  pingIndicator.setTexture(Textures().LoadTextureFromFile("resources/ui/ping.png"));
+  pingIndicator.getSprite().setOrigin(sf::Vector2f(16.f, 16.f));
+  pingIndicator.setPosition(480, 320);
+  pingIndicator.setScale(2.f, 2.f);
+  UpdatePingIndicator(frames(0));
 
   auto* clientPlayer = &props.base.player;
 
@@ -209,10 +215,25 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   BattleSceneBase::onDraw(surface);
 
+  auto lag = GetAvgLatency();
+
+  Logger::Logf("lag is: %f", lag);
+
   // draw network ping
-  ping.SetString(std::to_string(GetAvgLatency()).substr(0, 5));
-  ping.setOrigin(ping.GetLocalBounds().width, 0.f);
+  ping.SetString(std::to_string(lag).substr(0, 5));
+
+  //the bounds has been changed after changing the text
+  auto pbounds = ping.GetLocalBounds();
+  ping.setOrigin(pbounds.width, pbounds.height);
+
+  // draw
   surface.draw(ping);
+
+  // convert from ms to seconds to discrete frame count...
+  UpdatePingIndicator(frame_time_t{ (long long)(lag) });
+
+  //draw
+  surface.draw(pingIndicator);
 }
 
 void NetworkBattleScene::onExit()
@@ -395,22 +416,26 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
 
   if (remoteHand) delete[] remoteHand;
 
-  remoteHand = new Battle::Card * [remoteUUIDs.size()];
+  size_t handSize = remoteUUIDs.size();
+  int len = (int)handSize; // TODO: use size_t for card lengths...
 
-  for (size_t i = 0; i < remoteUUIDs.size(); i++) {
-    Battle::Card card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ remoteUUIDs[i] });
-    remoteHand[i] = new Battle::Card(card);
+  if (handSize) {
+    remoteHand = new Battle::Card * [handSize];
+
+    for (size_t i = 0; i < remoteUUIDs.size(); i++) {
+      Battle::Card card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ remoteUUIDs[i] });
+      remoteHand[i] = new Battle::Card(card);
+    }
   }
 
   // Prepare for simulation
   cardComboStatePtr->Reset();
   double duration{};
-  int remoteHandLen = int(remoteUUIDs.size());
 
   // simulate PA to calculate time required to animate
   while (!cardComboStatePtr->IsDone()) {
     constexpr double step = 1.0 / frame_time_t::frames_per_second;
-    cardComboStatePtr->Simulate(step, &remoteHand, &remoteHandLen, false);
+    cardComboStatePtr->Simulate(step, &remoteHand, &len, false);
     duration += step;
   }
 
@@ -418,10 +443,10 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   cardComboStatePtr->Reset();
 
   // Filter support cards
-  FilterSupportCards(remoteHand, remoteHandLen);
+  FilterSupportCards(remoteHand, len);
 
   // Supply the final hand info
-  remoteCardUsePublisher->LoadCards(remoteHand, remoteHandLen);
+  remoteCardUsePublisher->LoadCards(remoteHand, len);
   
   // Convert to microseconds and use this as the round start delay
   roundStartDelay = (long long)((duration*1000.0) + packetProcessor->GetAvgLatency());
@@ -596,4 +621,29 @@ void NetworkBattleScene::processPacketBody(NetPlaySignals header, const Poco::Bu
     Logger::Logf("PVP Network exception: %s", e.what());
     packetProcessor->HandleError();
   }
+}
+
+void NetworkBattleScene::UpdatePingIndicator(frame_time_t frames)
+{
+  unsigned int idx{};
+  const unsigned int count = frames.count();
+
+  if (count >= 60) {
+    // 1st frame is red - no connection for the whole frame
+    idx = 1;
+  }
+  else if (count >= 5) {
+    // 2nd frame is weak - not strong and prone to desync
+    idx = 2;
+  }
+  else if (count >= 3) {
+    // 3rd frame is average - ok but not best
+    idx = 3; 
+  }
+  else  {
+    // 4th frame is excellent or zero latency 
+    idx = 4;
+  }
+
+  pingIndicator.setTextureRect(sf::IntRect((idx-1u)*16, 0, 16, 16));
 }

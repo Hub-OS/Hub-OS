@@ -130,9 +130,21 @@ void Character::Update(double _elapsed) {
     unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
     if (stunCooldown && stunFrame < 2) {
       SetShader(stun);
+
+      for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
+        if (!child->IsUsingParentShader()) {
+          child->EnableParentShader(true);
+        }
+      }
     }
     else if(GetHealth() > 0) {
       SetShader(nullptr);
+
+      for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
+        if (child->IsUsingParentShader()) {
+          child->EnableParentShader(false);
+        }
+      }
 
       counterFrameFlag = counterFrameFlag % 4;
       counterFrameFlag++;
@@ -244,6 +256,12 @@ void Character::Update(double _elapsed) {
 
   if (hit) {
     SetShader(whiteout);
+
+    for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
+      if (!child->IsUsingParentShader()) {
+        child->EnableParentShader(true);
+      }
+    }
   }
 
   if (health <= 0 || IsDeleted()) {

@@ -12,6 +12,7 @@ PacketShipper::PacketShipper(const Poco::Net::SocketAddress& socketAddress)
   nextReliable = 0;
   nextReliableOrdered = 0;
   failed = false;
+  lagWindow.fill(0);
 }
 
 bool PacketShipper::HasFailed() {

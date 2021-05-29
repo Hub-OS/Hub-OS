@@ -8,11 +8,11 @@ class Character;
 
 class SwordCardAction : public CardAction {
 protected:
-  SpriteProxyNode* blade;
-  SpriteProxyNode* hilt;
-  Animation bladeAnim, hiltAnim;
-  int damage;
+  int damage{};
   Element element{ Element::none };
+  SpriteProxyNode* blade{ nullptr };
+  SpriteProxyNode* hilt{ nullptr };
+  Animation bladeAnim, hiltAnim;
 public:
   SwordCardAction(Character& actor, int damage);
   virtual ~SwordCardAction();

@@ -2,11 +2,13 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnEntity.h"
+#include "bnCharacter.h"
 
 PaletteSwap::PaletteSwap(Entity * owner) : Component(owner), enabled(true)
 {
   paletteSwap = ResourceHandle().Shaders().GetShader(ShaderType::PALETTE_SWAP);
   paletteSwap.SetUniform("texture", sf::Shader::CurrentTexture);
+  asCharacter = dynamic_cast<Character*>(owner);
 }
 
 PaletteSwap::~PaletteSwap()
@@ -17,6 +19,8 @@ void PaletteSwap::OnUpdate(double _elapsed)
 {
   if (!enabled) return;
   if (GetOwner()->GetShader().Get() == paletteSwap.Get()) return;
+  if (asCharacter && asCharacter->IsStunned()) return;
+  
   GetOwner()->SetShader(paletteSwap);
 }
 

@@ -326,7 +326,8 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
     if (cards[i]->IsBooster()) {
       Logger::Logf("Booster card %s detected", cards[i]->GetShortName().c_str());
 
-      //if (card) {
+      // check if we are tracking a non-booster card first
+      if (card) {
         // booster cards do not modify other booster cards
         if (!card->IsBooster()) {
           int lastDamage = card->GetDamage();
@@ -344,7 +345,7 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
         i++;
         continue; // skip the rest of the code below
       }
-    //}
+    }
 
     newCardList[j] = cards[i];
     card = cards[i];

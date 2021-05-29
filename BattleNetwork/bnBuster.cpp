@@ -86,7 +86,7 @@ void Buster::OnDelete()
 void Buster::OnCollision(const Character* entity)
 {
   random = entity->getLocalBounds().width / 2.0f;
-  hitHeight = (float)(entity->getLocalBounds().height + std::floor(entity->GetHeight()));
+  hitHeight = std::floor(entity->GetHeight());
 
   if (!isCharged) {
     random *= rand() % 2 == 0 ? -1.0f : 1.0f;
