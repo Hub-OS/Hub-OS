@@ -71,6 +71,7 @@ private:
   friend class PVP::PacketProcessor;
 
   long long roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
+  frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
   Text ping;
   SelectedNavi selectedNavi; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability

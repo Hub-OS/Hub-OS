@@ -41,7 +41,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   ping(Font::Style::wide),
   remoteAddress(props.netconfig.remote) 
 {
-  ping.setPosition(480-16-4, 320-2.f); // screen w - 16px - 4px
+  ping.setPosition(480-(2.f*16)-4, 320-2.f); // screen upscaled w - (16px*upscale scale) - (2px*upscale)
   ping.SetColor(sf::Color::Red);
 
   pingIndicator.setTexture(Textures().LoadTextureFromFile("resources/ui/ping.png"));
@@ -201,6 +201,9 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       syncStatePtr->Synchronize();
     }
   }
+  else {
+    packetTime += from_seconds(elapsed);
+  }
 
   if (remotePlayer && remotePlayer->WillRemoveLater()) {
     auto iter = std::find(players.begin(), players.end(), remotePlayer);
@@ -217,7 +220,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
 
   auto lag = GetAvgLatency();
 
-  Logger::Logf("lag is: %f", lag);
+  // Logger::Logf("lag is: %f", lag);
 
   // draw network ping
   ping.SetString(std::to_string(lag).substr(0, 5));
@@ -230,7 +233,16 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   surface.draw(ping);
 
   // convert from ms to seconds to discrete frame count...
-  UpdatePingIndicator(frame_time_t{ (long long)(lag) });
+  frame_time_t lagTime = frame_time_t{ (long long)(lag) };
+
+  if (remoteState.remoteHandshake) {
+    // factor in how long inputs are not being ack'd after sent
+    UpdatePingIndicator(std::max(packetTime, lagTime));
+  }
+  else {
+    // use ack to determine connectivity here
+    UpdatePingIndicator(lagTime);
+  }
 
   //draw
   surface.draw(pingIndicator);
@@ -324,6 +336,7 @@ void NetworkBattleScene::sendInputEvent(const InputEvent& event)
   buffer.append((char*)&event.state, sizeof(InputState));
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+  packetTime = frames(0);
 }
 
 void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
@@ -628,8 +641,9 @@ void NetworkBattleScene::UpdatePingIndicator(frame_time_t frames)
   unsigned int idx{};
   const unsigned int count = frames.count();
 
-  if (count >= 60) {
-    // 1st frame is red - no connection for the whole frame
+  if (count >= 20) {
+    // 1st frame is red - no connection for a significant fraction of the frame
+    // innevitable desync here
     idx = 1;
   }
   else if (count >= 5) {
