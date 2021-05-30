@@ -218,43 +218,57 @@ void InputManager::Update() {
           }
         }
 
-        state[name] = isActive ? InputState::pressed : InputState::released;
+        if(isActive) {
+          state[name] = InputState::pressed;
+        }
       }
     }
     else {
-      // Keyboard::Up
-      VirtualKeyEvent(keyboardState[Keyboard::Up] ? InputEvents::pressed_move_up : InputEvents::released_move_up);
-      VirtualKeyEvent(keyboardState[Keyboard::Up] ? InputEvents::pressed_ui_up : InputEvents::released_ui_up);
-      // Keyboard::Left
-      VirtualKeyEvent(keyboardState[Keyboard::Left] ? InputEvents::pressed_move_left : InputEvents::released_move_left);
-      VirtualKeyEvent(keyboardState[Keyboard::Left] ? InputEvents::pressed_ui_left : InputEvents::released_ui_left);
-      // Keyboard::Down
-      VirtualKeyEvent(keyboardState[Keyboard::Down] ? InputEvents::pressed_move_down : InputEvents::released_move_down);
-      VirtualKeyEvent(keyboardState[Keyboard::Down] ? InputEvents::pressed_ui_down : InputEvents::released_ui_down);
-      // Keyboard::Right
-      VirtualKeyEvent(keyboardState[Keyboard::Right] ? InputEvents::pressed_move_right : InputEvents::released_move_right);
-      VirtualKeyEvent(keyboardState[Keyboard::Right] ? InputEvents::pressed_ui_right : InputEvents::released_ui_right);
-      // Keyboard::X
-      VirtualKeyEvent(keyboardState[Keyboard::X] ? InputEvents::pressed_cancel : InputEvents::released_cancel);
-      VirtualKeyEvent(keyboardState[Keyboard::X] ? InputEvents::pressed_shoot : InputEvents::released_shoot);
-      VirtualKeyEvent(keyboardState[Keyboard::X] ? InputEvents::pressed_run : InputEvents::released_run);
-      // Keyboard::Z
-      VirtualKeyEvent(keyboardState[Keyboard::Z] ? InputEvents::pressed_confirm : InputEvents::released_confirm);
-      VirtualKeyEvent(keyboardState[Keyboard::Z] ? InputEvents::pressed_use_chip : InputEvents::released_use_chip);
-      VirtualKeyEvent(keyboardState[Keyboard::Z] ? InputEvents::pressed_interact : InputEvents::released_interact);
-      // Keyboard::Space
-      VirtualKeyEvent(keyboardState[Keyboard::Space] ? InputEvents::pressed_cust_menu : InputEvents::released_cust_menu);
-      VirtualKeyEvent(keyboardState[Keyboard::Space] ? InputEvents::pressed_option : InputEvents::released_option);
-      // Keyboard::P
-      VirtualKeyEvent(keyboardState[Keyboard::P] ? InputEvents::pressed_pause : InputEvents::released_pause);
-      // Keyboard::A
-      VirtualKeyEvent(keyboardState[Keyboard::A] ? InputEvents::pressed_cust_menu : InputEvents::released_cust_menu);
-      // Keyboard::S
-      VirtualKeyEvent(keyboardState[Keyboard::S] ? InputEvents::pressed_special : InputEvents::released_special);
-      // Keyboard::D
-      VirtualKeyEvent(keyboardState[Keyboard::D] ? InputEvents::pressed_shoulder_left : InputEvents::released_shoulder_left);
-      // Keyboard::F
-      VirtualKeyEvent(keyboardState[Keyboard::F] ? InputEvents::pressed_shoulder_right : InputEvents::released_shoulder_right);
+      if (keyboardState[Keyboard::Up]) {
+        VirtualKeyEvent(InputEvents::pressed_move_up);
+        VirtualKeyEvent(InputEvents::pressed_ui_up);
+      }
+      if (keyboardState[Keyboard::Left]) {
+        VirtualKeyEvent(InputEvents::pressed_move_left);
+        VirtualKeyEvent(InputEvents::pressed_ui_left);
+      }
+      if (keyboardState[Keyboard::Down]) {
+        VirtualKeyEvent(InputEvents::pressed_move_down);
+        VirtualKeyEvent(InputEvents::pressed_ui_down);
+      }
+      if (keyboardState[Keyboard::Right]) {
+        VirtualKeyEvent(InputEvents::pressed_move_right);
+        VirtualKeyEvent(InputEvents::pressed_ui_right);
+      }
+      if (keyboardState[Keyboard::X]) {
+        VirtualKeyEvent(InputEvents::pressed_cancel);
+        VirtualKeyEvent(InputEvents::pressed_shoot);
+        VirtualKeyEvent(InputEvents::pressed_run);
+      }
+      if (keyboardState[Keyboard::Z]) {
+        VirtualKeyEvent(InputEvents::pressed_confirm);
+        VirtualKeyEvent(InputEvents::pressed_use_chip);
+        VirtualKeyEvent(InputEvents::pressed_interact);
+      }
+      if (keyboardState[Keyboard::Space]) {
+        VirtualKeyEvent(InputEvents::pressed_cust_menu);
+        VirtualKeyEvent(InputEvents::pressed_option);
+      }
+      if (keyboardState[Keyboard::P]) {
+        VirtualKeyEvent(InputEvents::pressed_pause);
+      }
+      if (keyboardState[Keyboard::A]) {
+        VirtualKeyEvent(InputEvents::pressed_cust_menu);
+      }
+      if (keyboardState[Keyboard::S]) {
+        VirtualKeyEvent(InputEvents::pressed_special);
+      }
+      if (keyboardState[Keyboard::D]) {
+        VirtualKeyEvent(InputEvents::pressed_shoulder_left);
+      }
+      if (keyboardState[Keyboard::F]) {
+        VirtualKeyEvent(InputEvents::pressed_shoulder_right);
+      }
     }
   }
 
@@ -278,8 +292,6 @@ void InputManager::Update() {
 
   // Finally, merge the continuous InputState::held key events into the final event buffer
   for (auto& [name, previousState] : stateLastFrame) {
-    // Search for the InputState::held events to migrate into the current event frame
-    // Prevent further events if a key is InputState::held
     auto previouslyHeld = previousState == InputState::pressed || previousState == InputState::held;
 
     if (previouslyHeld) {
