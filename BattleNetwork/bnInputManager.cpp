@@ -31,6 +31,8 @@ void InputManager::SupportConfigSettings(ConfigReader& reader) {
   stateLastFrame.clear();
   bindings.clear();
 
+  std::unordered_map<std::string, std::vector<Binding>> intermediateBindings;
+
   // store keyboard bindings
   for (auto& [input, name] : settings.GetKeyboardHash()) {
     if (input < 0 || input >= keyboardState.size()) {
@@ -42,7 +44,7 @@ void InputManager::SupportConfigSettings(ConfigReader& reader) {
     binding.input = input;
     binding.isKeyboardBinding = true;
 
-    bindings[name].push_back(binding);
+    intermediateBindings[name].push_back(binding);
   }
 
   // store controller bindings
@@ -55,7 +57,11 @@ void InputManager::SupportConfigSettings(ConfigReader& reader) {
     Binding binding;
     binding.input = static_cast<unsigned int>(input);
 
-    bindings[name].push_back(binding);
+    intermediateBindings[name].push_back(binding);
+  }
+
+  for (auto& [name, actionBindings] : intermediateBindings) {
+    bindings.push_back({ name, actionBindings });
   }
 }
 

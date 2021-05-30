@@ -216,5 +216,5 @@ private:
     unsigned int input{};
   };
 
-  std::map<std::string, std::vector<Binding>> bindings;
+  std::vector<std::pair<std::string, std::vector<Binding>>> bindings;
 };
