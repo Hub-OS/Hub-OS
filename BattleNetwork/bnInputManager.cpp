@@ -427,12 +427,16 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
       out = std::string("TAB"); return true;
     case sf::Keyboard::Key::LControl:
       out = std::string("L CTRL"); return true;
+    case sf::Keyboard::Key::LShift:
+      out = std::string("L SHFT"); return true;
     case sf::Keyboard::Key::LAlt:
       out = std::string("L ALT"); return true;
     case sf::Keyboard::Key::RAlt:
       out = std::string("R ALT"); return true;
     case sf::Keyboard::Key::RControl:
       out = std::string("R CTRL"); return true;
+    case sf::Keyboard::Key::RShift:
+      out = std::string("R SHFT"); return true;
     case sf::Keyboard::Key::SemiColon:
       out = std::string(";"); return true;
     case sf::Keyboard::Key::Equal:
