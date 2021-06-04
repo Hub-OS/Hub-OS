@@ -224,49 +224,49 @@ void InputManager::Update() {
       }
     }
     else {
-      if (keyboardState[Keyboard::Up]) {
+      if (keyboardState[sf::Keyboard::Key::Up]) {
         VirtualKeyEvent(InputEvents::pressed_move_up);
         VirtualKeyEvent(InputEvents::pressed_ui_up);
       }
-      if (keyboardState[Keyboard::Left]) {
+      if (keyboardState[sf::Keyboard::Key::Left]) {
         VirtualKeyEvent(InputEvents::pressed_move_left);
         VirtualKeyEvent(InputEvents::pressed_ui_left);
       }
-      if (keyboardState[Keyboard::Down]) {
+      if (keyboardState[sf::Keyboard::Key::Down]) {
         VirtualKeyEvent(InputEvents::pressed_move_down);
         VirtualKeyEvent(InputEvents::pressed_ui_down);
       }
-      if (keyboardState[Keyboard::Right]) {
+      if (keyboardState[sf::Keyboard::Key::Right]) {
         VirtualKeyEvent(InputEvents::pressed_move_right);
         VirtualKeyEvent(InputEvents::pressed_ui_right);
       }
-      if (keyboardState[Keyboard::X]) {
+      if (keyboardState[sf::Keyboard::Key::X]) {
         VirtualKeyEvent(InputEvents::pressed_cancel);
         VirtualKeyEvent(InputEvents::pressed_shoot);
         VirtualKeyEvent(InputEvents::pressed_run);
       }
-      if (keyboardState[Keyboard::Z]) {
+      if (keyboardState[sf::Keyboard::Key::Z]) {
         VirtualKeyEvent(InputEvents::pressed_confirm);
         VirtualKeyEvent(InputEvents::pressed_use_chip);
         VirtualKeyEvent(InputEvents::pressed_interact);
       }
-      if (keyboardState[Keyboard::Space]) {
+      if (keyboardState[sf::Keyboard::Key::Space]) {
         VirtualKeyEvent(InputEvents::pressed_cust_menu);
         VirtualKeyEvent(InputEvents::pressed_option);
       }
-      if (keyboardState[Keyboard::P]) {
+      if (keyboardState[sf::Keyboard::Key::P]) {
         VirtualKeyEvent(InputEvents::pressed_pause);
       }
-      if (keyboardState[Keyboard::A]) {
+      if (keyboardState[sf::Keyboard::Key::A]) {
         VirtualKeyEvent(InputEvents::pressed_cust_menu);
       }
-      if (keyboardState[Keyboard::S]) {
+      if (keyboardState[sf::Keyboard::Key::S]) {
         VirtualKeyEvent(InputEvents::pressed_special);
       }
-      if (keyboardState[Keyboard::D]) {
+      if (keyboardState[sf::Keyboard::Key::D]) {
         VirtualKeyEvent(InputEvents::pressed_shoulder_left);
       }
-      if (keyboardState[Keyboard::F]) {
+      if (keyboardState[sf::Keyboard::Key::F]) {
         VirtualKeyEvent(InputEvents::pressed_shoulder_right);
       }
     }
