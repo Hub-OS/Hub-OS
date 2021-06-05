@@ -1,3 +1,8 @@
+# WARNING - THIS BRANCH IS OUTDATED
+Please `git checkout development` for the latest, greatest, and (maybe) unstable features
+This main branch is over a year old.
+New build steps are now in video form: [Watch on YouTube](https://www.youtube.com/watch?v=4yVbCUbl5Xk)
+
 
 # About This Project
 Follow this project on :bird: [Twitter](https://twitter.com/OpenNetBattle)!
