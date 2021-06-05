@@ -9,6 +9,7 @@
 #include "../netplay/bnBufferReader.h"
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldPacketProcessor.h"
+#include "bnOverworldActorPropertyAnimator.h"
 #include "bnPacketHeaders.h"
 #include "bnServerAssetManager.h"
 
@@ -25,6 +26,7 @@ namespace Overworld {
     sf::Vector3f endBroadcastPos{};
     long long timestamp{};
     std::array<double, NetManager::LAG_WINDOW_LEN> lagWindow{ 0 };
+    ActorPropertyAnimator propertyAnimator;
     size_t packets{};
   };
 
@@ -54,6 +56,7 @@ namespace Overworld {
     bool transferringServers{ false };
     bool kicked{ false };
     bool isEnteringBattle{ false };
+    ActorPropertyAnimator propertyAnimator;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
     AssetMeta incomingAsset;
@@ -128,6 +131,7 @@ namespace Overworld {
     void receiveActorSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
   protected:
     virtual std::string GetPath(const std::string& path);
