@@ -607,7 +607,10 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       receiveRemovePostSignal(reader, data);
       break;
     case ServerEvents::post_selection_ack:
-      receivePostSelectionAckSignal(reader, data);
+      GetMenuSystem().AcknowledgeBBSSelection();
+      break;
+    case ServerEvents::close_bbs:
+      receiveCloseBBSSignal(reader, data);
       break;
     case ServerEvents::initiate_pvp:
       receivePVPSignal(reader, data);
@@ -1516,9 +1519,9 @@ void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const 
   bbs.RemovePost(postId);
 }
 
-void Overworld::OnlineArea::receivePostSelectionAckSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void  Overworld::OnlineArea::receiveCloseBBSSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  GetMenuSystem().AcknowledgeBBSSelection();
+  GetMenuSystem().ClearBBS();
 }
 
 void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

@@ -185,6 +185,10 @@ void BBS::RemovePost(const std::string& id) {
   }
 }
 
+void BBS::Close() {
+  onClose();
+}
+
 void BBS::HandleInput(InputManager& input) {
   if (input.Has(InputEvents::pressed_confirm) && selectedIndex < posts.size()) {
     auto& post = posts[selectedIndex];
@@ -195,7 +199,7 @@ void BBS::HandleInput(InputManager& input) {
 
   if (input.Has(InputEvents::pressed_cancel)) {
     Audio().Play(AudioType::CHIP_DESC_CLOSE);
-    onClose();
+    Close();
     return;
   }
 

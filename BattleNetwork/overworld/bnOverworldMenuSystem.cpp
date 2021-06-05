@@ -24,6 +24,23 @@ namespace Overworld {
     return pendingBbs.size() + bbs.size();
   }
 
+  void MenuSystem::ClearBBS() {
+    while (!pendingBbs.empty()) {
+      // todo: should this pop from back instead of front?
+      pendingBbs.front().bbs->Close();
+      pendingBbs.pop();
+    }
+
+    for (auto it = bbs.rbegin(); it != bbs.rend(); it++) {
+      (*it)->Close();
+    }
+
+    bbs.clear();
+
+    totalRemainingMessagesForBBS = 0;
+    bbsNeedsAck = false;
+  }
+
   void MenuSystem::EnqueueBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose) {
     auto remainingMessages = textbox.GetRemainingMessages();
 

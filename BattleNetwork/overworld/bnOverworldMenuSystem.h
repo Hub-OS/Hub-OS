@@ -17,6 +17,7 @@ namespace Overworld {
     std::optional<std::reference_wrapper<BBS>> GetBBS();
     size_t CountBBS();
     void EnqueueBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose);
+    void ClearBBS();
     void AcknowledgeBBSSelection();
 
     void SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation);
