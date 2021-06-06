@@ -160,9 +160,14 @@ float Overworld::Actor::GetRunSpeed() const
   return runSpeed;
 }
 
-std::string Overworld::Actor::CurrentAnimStr()
+bool Overworld::Actor::IsPlayingCustomAnimation() const
 {
-  return MovementAnimStrPrefix(this->state) + "_" + DirectionAnimStrSuffix(Isometric(this->heading));
+  return playingCustomAnimation;
+}
+
+std::string Overworld::Actor::GetAnimationString() const
+{
+  return anim.GetAnimationString();
 }
 
 const Direction Overworld::Actor::GetHeading() const

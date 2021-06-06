@@ -89,7 +89,7 @@ namespace Overworld {
   void Polygon::AddPoint(float x, float y) {
     points.emplace_back(std::make_tuple(x, y));
 
-    if(points.size() == 1) {
+    if (points.size() == 1) {
       smallestX = x;
       smallestY = y;
       largestX = x;
@@ -149,7 +149,7 @@ namespace Overworld {
           intersections += 1;
         }
       }
-      else {
+      else if ((y >= Ay && y < By) || (y >= By && y < Ay)) { // make sure y is within the line excluding the top point (avoid colliding with vertex twice)
         // y = slope * x + yIntercept
         auto rise = By - Ay;
         auto slope = rise / run;
@@ -159,15 +159,14 @@ namespace Overworld {
         // algebra: x = (y - yIntercept) / slope
         auto intersectionX = (y - yIntercept) / slope;
 
-        // make sure x is between these points, y is implied through above calculation
-        auto xIsWithin = (intersectionX >= Ax && intersectionX < Bx) || (intersectionX >= Bx && intersectionX < Ax);
+        // make sure x is between these points
+        auto xIsWithin = (intersectionX >= Ax && intersectionX <= Bx) || (intersectionX >= Bx && intersectionX <= Ax);
 
         // make sure intersectionX is to the right
         if (xIsWithin && x <= intersectionX) {
           intersections += 1;
         }
       }
-
 
       lastPoint = point;
     }

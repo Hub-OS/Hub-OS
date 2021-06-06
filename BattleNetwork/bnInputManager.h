@@ -56,7 +56,7 @@ public:
   void SetClipboard(const std::string& data);
 
   Gamepad GetAnyGamepadButton() const;
-  const std::vector<InputEvent>& EventsThisFrame() const;
+  const std::unordered_map<std::string, InputState>& StateThisFrame() const;
   
   const bool ConvertKeyToString(const sf::Keyboard::Key key, std::string& out) const;
 
@@ -194,20 +194,27 @@ private:
 
   bool systemCopyEvent{ false }, systemPasteEvent{ false };
   bool hasFocus{ true };
-  bool useGamepadControls{ false };
-
-  float axisXPower{}, lastAxisXPower{};
-  float axisYPower{}, lastAxisYPower{};
+  bool useGamepadControls{ true };
+  bool useKeyboardControls{ true };
 
   std::vector<sf::Joystick::Identification> gamepads;
   unsigned int currGamepad{};
-  
-  vector<InputEvent> events; /*!< Current event list */
-  vector<InputEvent> eventsLastFrame; /*!< The even list prior to this update */
+
+  std::array<bool, sf::Keyboard::KeyCount> keyboardState;
+  std::unordered_map<unsigned int, bool> gamepadState;
+  std::unordered_map<std::string, InputState> state; /*!< Current state */
+  std::unordered_map<std::string, InputState> stateLastFrame; /*!< The state prior to this update */
   map<InputEvent, std::string> input; /*!< Maps controller events*/
   ConfigSettings settings; /*!< Settings object*/
 
   std::function<void()> onRegainFocus; /*!< How the application should respond to regaining focus */
   std::function<void()> onLoseFocus; /*!< How the application should respond to losing focus */
   std::function<void(int, int)> onResized; /*!< How the application should respond to resized */
+
+  struct Binding {
+    bool isKeyboardBinding{};
+    unsigned int input{};
+  };
+
+  std::vector<std::pair<std::string, std::vector<Binding>>> bindings;
 };

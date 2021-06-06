@@ -41,8 +41,12 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   // For all new input events, set the wait time based on the network latency and append
-  for (InputEvent copy : Input().EventsThisFrame()) {
+  for (auto& [name, state] : Input().StateThisFrame()) {
+    InputEvent copy;
+    copy.name = name;
+    copy.state = state;
     copy.wait = from_seconds(currLag/1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
+
     inputQueue.push_back(copy);
     
     if (replicator) {

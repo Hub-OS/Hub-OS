@@ -160,11 +160,18 @@ namespace Overworld {
     */
     float GetRunSpeed() const;
 
+
     /**
-    * @brief Fetch the current animation state as a string
-    * @return builds a string based off the movement and dir string aux functions
+    * @brief Fetch the current animation state
+    * @return the current animation state
     */
-    std::string CurrentAnimStr();
+    bool IsPlayingCustomAnimation() const;
+
+    /**
+    * @brief Fetch the current animation state
+    * @return the current animation state
+    */
+    std::string GetAnimationString() const;
 
     /**
     * @brief Fetch the actor's heading

@@ -18,7 +18,7 @@ InputManager::InputManager(sf::Window& win)  :
   settings() {
   lastkey = sf::Keyboard::Key::Unknown;
   lastButton = (decltype(lastButton))-1;
-  lastAxisXPower = axisXPower = lastAxisYPower = axisYPower = 0.f;
+  keyboardState.fill(false);
 }
 
 
@@ -27,13 +27,47 @@ InputManager::~InputManager() {
 
 void InputManager::SupportConfigSettings(ConfigReader& reader) {
   settings = reader.GetConfigSettings();
-  events.clear();
-  eventsLastFrame.clear();
+  state.clear();
+  stateLastFrame.clear();
+  bindings.clear();
+
+  std::unordered_map<std::string, std::vector<Binding>> intermediateBindings;
+
+  // store keyboard bindings
+  for (auto& [input, name] : settings.GetKeyboardHash()) {
+    if (input < 0 || input >= keyboardState.size()) {
+      // Key::Unknown (no binding), or invalid key
+      continue;
+    }
+
+    Binding binding;
+    binding.input = input;
+    binding.isKeyboardBinding = true;
+
+    intermediateBindings[name].push_back(binding);
+  }
+
+  // store controller bindings
+  for (auto& [input, name] : settings.GetGamepadHash()) {
+    if ((int)input < 0) {
+      // invalid/no binding
+      continue;
+    }
+
+    Binding binding;
+    binding.input = static_cast<unsigned int>(input);
+
+    intermediateBindings[name].push_back(binding);
+  }
+
+  for (auto& [name, actionBindings] : intermediateBindings) {
+    bindings.push_back({ name, actionBindings });
+  }
 }
 
 void InputManager::Update() {
-  eventsLastFrame = events;
-  events.clear();
+  std::swap(stateLastFrame, state); // (store state in stateLastFrame, without deep copy)
+  state.clear();
   systemCopyEvent = systemPasteEvent = false;
 
   Event event{};
@@ -94,179 +128,44 @@ void InputManager::Update() {
       }
     }
 
-    // keep the gamepad list up-to-date
-    gamepads.clear();
-
-    for (unsigned int i = 0; i < sf::Joystick::Count; i++) {
-      if (sf::Joystick::isConnected(i)) {
-        gamepads.push_back(sf::Joystick::Identification());
+    if (Event::EventType::KeyPressed == event.type) {
+      if(event.key.code != Keyboard::Unknown) {
+        keyboardState[event.key.code] = true;
       }
-    }
-
-    for (unsigned int i = 0; i < sf::Joystick::getButtonCount(currGamepad) && hasFocus && IsUsingGamepadControls(); i++) {
-      if (sf::Joystick::isButtonPressed(currGamepad, i)) {
-        lastButton = (decltype(lastButton))i;
-      }
-    }
-
-    if (sf::Joystick::isConnected(currGamepad) && settings.IsOK() && hasFocus && IsUsingGamepadControls()) {
-      for (unsigned int i = 0; i < sf::Joystick::getButtonCount(currGamepad); i++) {
-        if (sf::Joystick::isButtonPressed(currGamepad, i)) {
-          auto action1 = settings.GetPairedActions((Gamepad)i);
-
-          for (auto& a : action1) {
-            events.push_back({ a, InputState::pressed });
-          }
-          
-        } else {
-          /*
-          joysticks can only determine if the signal is on or off,
-          we must compare with the last frame to determine if this 
-          was a release event
-          */
-          auto action2 = settings.GetPairedActions((Gamepad)i);
-
-          for (auto& a : action2) {
-            bool canRelease = false;
-
-            InputEvent find1 = { a, InputState::held };
-            InputEvent find2 = { a, InputState::pressed };
-
-            if (find(eventsLastFrame.begin(), eventsLastFrame.end(), find1) != eventsLastFrame.end()) {
-              canRelease = true;
-            }
-            else if (find(eventsLastFrame.begin(), eventsLastFrame.end(), find2) != eventsLastFrame.end()) {
-              canRelease = true;
-            }       
-
-            if (canRelease) {
-              events.push_back({ a, InputState::released });
-            }
-          }
-        }
-      }
-    } else if (Event::EventType::KeyPressed == event.type && hasFocus && IsUsingKeyboardControls()) {
-      /* Gamepad not connected. Strictly use keyboard events. */
-      if (settings.IsOK() && settings.IsKeyboardOK()) {
-        auto action3 = settings.GetPairedActions(event.key.code);
-
-        for (auto& a : action3) {
-          events.push_back({ a, InputState::pressed });
-        }
-      } else {
-        if (Keyboard::Up == event.key.code) {
-          events.push_back(InputEvents::pressed_move_up);
-          events.push_back(InputEvents::pressed_ui_up);
-        }
-        else if (Keyboard::Left == event.key.code) {
-          events.push_back(InputEvents::pressed_move_left);
-          events.push_back(InputEvents::pressed_ui_left);
-        }
-        else if (Keyboard::Down == event.key.code) {
-          events.push_back(InputEvents::pressed_move_down);
-          events.push_back(InputEvents::pressed_ui_down);
-        }
-        else if (Keyboard::Right == event.key.code) {
-          events.push_back(InputEvents::pressed_move_right);
-          events.push_back(InputEvents::pressed_ui_right);
-        }
-        else if (Keyboard::X == event.key.code) {
-          events.push_back(InputEvents::pressed_cancel);
-          events.push_back(InputEvents::pressed_shoot);
-          events.push_back(InputEvents::pressed_run);
-        }
-        else if (Keyboard::Z == event.key.code) {
-          events.push_back(InputEvents::pressed_confirm);
-          events.push_back(InputEvents::pressed_use_chip);
-          events.push_back(InputEvents::pressed_interact);
-        }
-        else if (Keyboard::Space == event.key.code) {
-          events.push_back(InputEvents::pressed_cust_menu);
-          events.push_back(InputEvents::pressed_option);
-        }
-        else if (Keyboard::P == event.key.code) {
-          events.push_back(InputEvents::pressed_pause);
-        }
-        else if (Keyboard::A == event.key.code) {
-          events.push_back(InputEvents::pressed_cust_menu);
-        }
-        else if (Keyboard::S == event.key.code) {
-          events.push_back(InputEvents::pressed_special);
-        }
-        else if (Keyboard::D == event.key.code) {
-          events.push_back(InputEvents::pressed_shoulder_left);
-        }
-        else if (Keyboard::F == event.key.code) {
-          events.push_back(InputEvents::pressed_shoulder_right);
-        }
-      }
-    } else if (Event::KeyReleased == event.type && hasFocus && IsUsingKeyboardControls()) {
-      if (settings.IsOK() && settings.IsKeyboardOK()) {
-        auto action4 = settings.GetPairedActions(event.key.code);
-
-        for (auto& a : action4) {
-          events.push_back({ a, InputState::released });
-        }
-      }
-      else {
-        if (Keyboard::Up == event.key.code) {
-          events.push_back(InputEvents::released_move_up);
-          events.push_back(InputEvents::released_ui_up);
-        }
-        else if (Keyboard::Left == event.key.code) {
-          events.push_back(InputEvents::released_move_left);
-          events.push_back(InputEvents::released_ui_left);
-        }
-        else if (Keyboard::Down == event.key.code) {
-          events.push_back(InputEvents::released_move_down);
-          events.push_back(InputEvents::released_ui_down);
-        }
-        else if (Keyboard::Right == event.key.code) {
-          events.push_back(InputEvents::released_move_right);
-          events.push_back(InputEvents::released_ui_right);
-        }
-        else if (Keyboard::X == event.key.code) {
-          events.push_back(InputEvents::released_cancel);
-          events.push_back(InputEvents::released_shoot);
-          events.push_back(InputEvents::released_run);
-        }
-        else if (Keyboard::Z == event.key.code) {
-          events.push_back(InputEvents::released_confirm);
-          events.push_back(InputEvents::released_use_chip);
-          events.push_back(InputEvents::released_interact);
-        }
-        else if (Keyboard::Space == event.key.code) {
-          events.push_back(InputEvents::released_cust_menu);
-          events.push_back(InputEvents::released_option);
-        }
-        else if (Keyboard::P == event.key.code) {
-          events.push_back(InputEvents::released_pause);
-        }
-        else if (Keyboard::A == event.key.code) {
-          events.push_back(InputEvents::released_cust_menu);
-        }
-        else if (Keyboard::S == event.key.code) {
-          events.push_back(InputEvents::released_special);
-        }
-        else if (Keyboard::D == event.key.code) {
-          events.push_back(InputEvents::released_shoulder_left);
-        }
-        else if (Keyboard::F == event.key.code) {
-          events.push_back(InputEvents::released_shoulder_right);
-        }
+    } else if (Event::KeyReleased == event.type) {
+      if(event.key.code != Keyboard::Unknown) {
+        keyboardState[event.key.code] = false;
       }
     }
   } // end event poll
 
-  // Check these every frame regardless of input state...
+  // keep the gamepad list up-to-date
+  gamepads.clear();
 
-  lastAxisXPower = axisXPower;
-  lastAxisYPower = axisYPower;
+  for (unsigned int i = 0; i < sf::Joystick::Count; i++) {
+    if (sf::Joystick::isConnected(i)) {
+      gamepads.push_back(sf::Joystick::Identification());
+    }
+  }
 
-  axisXPower = 0.f;
-  axisYPower = 0.f;
+  // update gamepad inputs
+  if (sf::Joystick::isConnected(currGamepad)) {
+    gamepadState.clear();
 
-  if (sf::Joystick::isConnected(currGamepad) && hasFocus && IsUsingGamepadControls()) {
+    // track buttons
+    for (unsigned int i = 0; i < sf::Joystick::getButtonCount(currGamepad); i++) {
+      auto buttonPressed = sf::Joystick::isButtonPressed(currGamepad, i);
+
+      gamepadState[i] = buttonPressed;
+
+      if (buttonPressed) {
+        lastButton = (decltype(lastButton))i;
+      }
+    }
+
+    // track axes
+    float axisXPower = 0.f;
+    float axisYPower = 0.f;
 
     if (sf::Joystick::hasAxis(currGamepad, sf::Joystick::PovX)) {
       axisXPower = sf::Joystick::getAxisPosition(currGamepad, sf::Joystick::PovX);
@@ -285,154 +184,123 @@ void InputManager::Update() {
     }
 
     if (axisXPower <= -GAMEPAD_AXIS_SENSITIVITY) {
+      gamepadState[(unsigned int)Gamepad::LEFT] = true;
       lastButton = Gamepad::LEFT;
-
-      auto action5 = settings.GetPairedActions((Gamepad)lastButton);
-
-      for (auto& a : action5) {
-        events.push_back({ a, InputState::pressed });
-      }
     }
-    
-    if (axisXPower >= GAMEPAD_AXIS_SENSITIVITY) {
+    else if (axisXPower >= GAMEPAD_AXIS_SENSITIVITY) {
+      gamepadState[(unsigned int)Gamepad::RIGHT] = true;
       lastButton = Gamepad::RIGHT;
-
-      auto action6 = settings.GetPairedActions((Gamepad)lastButton);
-
-      for (auto& a : action6) {
-        events.push_back({ a, InputState::pressed });
-      }
     }
 
     if (axisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
+      gamepadState[(unsigned int)Gamepad::UP] = true;
       lastButton = Gamepad::UP;
-
-      auto action7 = settings.GetPairedActions((Gamepad)lastButton);
-
-      for (auto& a : action7) {
-        events.push_back({ a, InputState::pressed });
-      }
     }
-
-    if (axisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
+    else if (axisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
+      gamepadState[(unsigned int)Gamepad::DOWN] = true;
       lastButton = Gamepad::DOWN;
+    }
+  }
 
-      auto action8 = settings.GetPairedActions((Gamepad)lastButton);
+  if (hasFocus) {
+    if (settings.IsOK() && settings.IsKeyboardOK()) {
+      for (auto& [name, actionBindings] : bindings) {
+        bool isActive = false;
 
-      for (auto& a : action8) {
-        events.push_back({ a, InputState::pressed });
+        for (auto& binding : actionBindings) {
+          isActive |=
+            binding.isKeyboardBinding
+              ? useKeyboardControls && keyboardState[binding.input]
+              : useGamepadControls && gamepadState[binding.input];
+
+          if (isActive) {
+            break;
+          }
+        }
+
+        if(isActive) {
+          state[name] = InputState::pressed;
+        }
       }
     }
-
-    if (axisXPower - lastAxisXPower != 0.f) {
-      if (axisXPower > -GAMEPAD_AXIS_SENSITIVITY && lastAxisXPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-        auto action9 = settings.GetPairedActions(Gamepad::LEFT);
-
-        for (auto& a : action9) {
-          events.push_back({ a, InputState::released });
-        }
+    else {
+      if (keyboardState[sf::Keyboard::Key::Up]) {
+        VirtualKeyEvent(InputEvents::pressed_move_up);
+        VirtualKeyEvent(InputEvents::pressed_ui_up);
       }
-
-      if (axisXPower < GAMEPAD_AXIS_SENSITIVITY && lastAxisXPower >= GAMEPAD_AXIS_SENSITIVITY) {
-        auto action10 = settings.GetPairedActions(Gamepad::RIGHT);
-
-        for (auto& a : action10) {
-          events.push_back({ a, InputState::released });
-        }
+      if (keyboardState[sf::Keyboard::Key::Left]) {
+        VirtualKeyEvent(InputEvents::pressed_move_left);
+        VirtualKeyEvent(InputEvents::pressed_ui_left);
       }
-    }
-
-    if (axisYPower - lastAxisYPower != 0.f) {
-      if (axisYPower > -GAMEPAD_AXIS_SENSITIVITY && lastAxisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-        auto action11 = settings.GetPairedActions(Gamepad::DOWN);
-
-        for (auto& a : action11) {
-          events.push_back({ a, InputState::released });
-        }
+      if (keyboardState[sf::Keyboard::Key::Down]) {
+        VirtualKeyEvent(InputEvents::pressed_move_down);
+        VirtualKeyEvent(InputEvents::pressed_ui_down);
       }
-
-      if (axisYPower < GAMEPAD_AXIS_SENSITIVITY && lastAxisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
-        auto action12 = settings.GetPairedActions(Gamepad::UP);
-
-        for (auto& a : action12) {
-          events.push_back({ a, InputState::released });
-        }
+      if (keyboardState[sf::Keyboard::Key::Right]) {
+        VirtualKeyEvent(InputEvents::pressed_move_right);
+        VirtualKeyEvent(InputEvents::pressed_ui_right);
+      }
+      if (keyboardState[sf::Keyboard::Key::X]) {
+        VirtualKeyEvent(InputEvents::pressed_cancel);
+        VirtualKeyEvent(InputEvents::pressed_shoot);
+        VirtualKeyEvent(InputEvents::pressed_run);
+      }
+      if (keyboardState[sf::Keyboard::Key::Z]) {
+        VirtualKeyEvent(InputEvents::pressed_confirm);
+        VirtualKeyEvent(InputEvents::pressed_use_chip);
+        VirtualKeyEvent(InputEvents::pressed_interact);
+      }
+      if (keyboardState[sf::Keyboard::Key::Space]) {
+        VirtualKeyEvent(InputEvents::pressed_cust_menu);
+        VirtualKeyEvent(InputEvents::pressed_option);
+      }
+      if (keyboardState[sf::Keyboard::Key::P]) {
+        VirtualKeyEvent(InputEvents::pressed_pause);
+      }
+      if (keyboardState[sf::Keyboard::Key::A]) {
+        VirtualKeyEvent(InputEvents::pressed_cust_menu);
+      }
+      if (keyboardState[sf::Keyboard::Key::S]) {
+        VirtualKeyEvent(InputEvents::pressed_special);
+      }
+      if (keyboardState[sf::Keyboard::Key::D]) {
+        VirtualKeyEvent(InputEvents::pressed_shoulder_left);
+      }
+      if (keyboardState[sf::Keyboard::Key::F]) {
+        VirtualKeyEvent(InputEvents::pressed_shoulder_right);
       }
     }
   }
 
-  // First, we must see if any InputState::held keys from the last frame are released this frame
-  auto eventEraseThunk=[](std::vector<InputEvent>& container, InputState if_value, InputState erase_value) {
-    for (auto iter = container.begin(); iter != container.end();) {
-      InputEvent e = *iter;
-
-      if (e.state == if_value) {
-        auto trunc = std::remove(container.begin(), container.end(), InputEvent{ e.name, erase_value });
-        size_t sz = std::distance(trunc, container.end());
-        container.erase(trunc, container.end());
-
-        if (sz > 0) {
-          iter = container.begin(); // start over now that we changed the order of the container
-        }
-      }
-
-      iter++;
-    }
-  };
-
-  eventEraseThunk(eventsLastFrame, InputState::released, InputState::pressed);
-  eventEraseThunk(eventsLastFrame, InputState::released, InputState::held);
-  eventEraseThunk(events, InputState::released, InputState::pressed);
-  eventEraseThunk(events, InputState::released, InputState::held);
-
   // Uncomment for debugging
-  /*for (InputEvent e : eventsLastFrame) {
-    std::string state = "NONE";
+  /*for (auto& [name, state] : stateLastFrame) {
+    std::string stateName = "NONE";
 
-    switch (e.state) {
+    switch (state) {
     case InputState::held:
-      state = "InputState::held";
+      stateName = "InputState::held";
       break;
     case InputState::released:
-      state = "InputState::released";
+      stateName = "InputState::released";
       break;
     case InputState::pressed:
-      state = "InputState::pressed";
+      stateName = "InputState::pressed";
       break;
     }
-    Logger::Logf("input event %s, %s", e.name.c_str(), state.c_str());
+    Logger::Logf("input event %s, %s", name.c_str(), stateName.c_str());
   }*/
 
   // Finally, merge the continuous InputState::held key events into the final event buffer
-  for (InputEvent e : eventsLastFrame) {
-    InputEvent insert = InputEvents::none;
-    InputEvent erase  = InputEvents::none;
+  for (auto& [name, previousState] : stateLastFrame) {
+    auto previouslyHeld = previousState == InputState::pressed || previousState == InputState::held;
 
-      // Search for the InputState::held events to migrate into the current event frame
-      // Prevent further events if a key is InputState::held
-    if (e.state == InputState::held) {
-      insert = e;
-      erase = { e.name, InputState::pressed };
-    }
-   
-    // Search for press keys that have been InputState::held and transform them
-    if (e.state == InputState::pressed) {
-      insert = { e.name, InputState::held };
-      erase = e;
-    }
-   
-    auto trunc = std::remove(events.begin(), events.end(), erase);
-    events.erase(trunc, events.end());
-
-    if (insert != InputEvents::none && std::find(events.begin(), events.end(), insert) == events.end()) {
-      events.push_back(insert); // migrate this input
+    if (previouslyHeld) {
+      state[name] = state[name] == InputState::pressed ? InputState::held : InputState::released;
     }
   }
 
-  eventsLastFrame.clear();
-
 #ifdef __ANDROID__
-    events.clear(); // TODO: what inputs get stuck in the event list on droid?
+    state.clear(); // TODO: what inputs get stuck in the event list on droid?
     TouchArea::poll();
 #endif
 }
@@ -457,9 +325,9 @@ Gamepad InputManager::GetAnyGamepadButton() const
   return lastButton;
 }
 
-const std::vector<InputEvent>& InputManager::EventsThisFrame() const
+const std::unordered_map<std::string, InputState>& InputManager::StateThisFrame() const
 {
-  return events;
+  return state;
 }
 
 const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::string & out) const
@@ -559,12 +427,16 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
       out = std::string("TAB"); return true;
     case sf::Keyboard::Key::LControl:
       out = std::string("L CTRL"); return true;
+    case sf::Keyboard::Key::LShift:
+      out = std::string("L SHFT"); return true;
     case sf::Keyboard::Key::LAlt:
       out = std::string("L ALT"); return true;
     case sf::Keyboard::Key::RAlt:
       out = std::string("R ALT"); return true;
     case sf::Keyboard::Key::RControl:
       out = std::string("R CTRL"); return true;
+    case sf::Keyboard::Key::RShift:
+      out = std::string("R SHFT"); return true;
     case sf::Keyboard::Key::SemiColon:
       out = std::string(";"); return true;
     case sf::Keyboard::Key::Equal:
@@ -592,12 +464,18 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
   return false;
 }
 
-bool InputManager::Has(InputEvent _event) const {
-  return events.cend() != std::find(events.cbegin(), events.cend(), _event);
+bool InputManager::Has(InputEvent event) const {
+  auto it = state.find(event.name);
+
+  if (it == state.end()) {
+    return false;
+  }
+
+  return it->second == event.state;
 }
 
 void InputManager::VirtualKeyEvent(InputEvent event) {
-  events.push_back(event);
+  state[event.name] = event.state;
 }
 
 void InputManager::BindRegainFocusEvent(std::function<void()> callback)
@@ -640,7 +518,7 @@ const bool InputManager::IsUsingGamepadControls() const
 
 const bool InputManager::IsUsingKeyboardControls() const
 {
-  return !useGamepadControls;
+  return useKeyboardControls;
 }
 
 ConfigSettings InputManager::GetConfigSettings()
@@ -650,27 +528,18 @@ ConfigSettings InputManager::GetConfigSettings()
 
 void InputManager::FlushAllInputEvents()
 {
-  for (auto e : eventsLastFrame) {
-    InputEvent insert = InputEvents::none;
-    InputEvent erase = InputEvents::none;
-
+  for (auto& [name, previousState] : stateLastFrame) {
     // Search for press keys that have been InputState::held and transform them
-    if (e.state == InputState::pressed || e.state == InputState::held) {
-      insert = { e.name, InputState::released };
-      erase = e;
-    }
-
-    auto trunc = std::remove(events.begin(), events.end(), erase);
-    events.erase(trunc, events.end());
-
-    if (insert != InputEvents::none && std::find(events.begin(), events.end(), insert) == events.end()) {
-      events.push_back(insert); // migrate this release event
+    if (previousState == InputState::pressed || previousState == InputState::held) {
+      state[name] = InputState::released;
     }
   }
+
+  keyboardState.fill(false);
 }
 
 bool InputManager::Empty() const {
-  return events.empty();
+  return state.empty();
 }
 
 bool InputManager::IsConfigFileValid() const
@@ -691,7 +560,7 @@ void InputManager::EndCaptureInputBuffer()
 
 void InputManager::UseKeyboardControls()
 {
-  useGamepadControls = false;
+  useKeyboardControls = true;
 }
 
 void InputManager::UseGamepadControls()
