@@ -74,9 +74,11 @@ void Text::UpdateGeometry() const
       case L'\n': y += lineSpacing; x = 0;  break;
       }
 
+      auto height = letter == '\n' ? 0 : lineSpacing;
+
       // Update the current bounds (max coordinates)
       maxX = std::max(maxX, x);
-      maxY = std::max(maxY, y + lineSpacing);
+      maxY = std::max(maxY, y);
 
       // Next glyph, no need to create a quad for whitespace
       continue;
