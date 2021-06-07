@@ -98,6 +98,11 @@ Overworld::OnlineArea::OnlineArea(
   SetBackground(std::make_shared<XmasBackground>());
 
   Net().AddHandler(remoteAddress, packetProcessor);
+
+  propertyAnimator.OnComplete([this] {
+    // todo: this may cause issues when leaving the scene through Home and Server Warps
+    GetPlayerController().ControlActor(GetPlayer());
+  });
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -174,6 +179,15 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     auto& onlinePlayer = pair.second;
     auto& actor = onlinePlayer.actor;
 
+    onlinePlayer.teleportController.Update(elapsed);
+    onlinePlayer.emoteNode.Update(elapsed);
+
+    onlinePlayer.propertyAnimator.Update(*actor, elapsed);
+
+    if (onlinePlayer.propertyAnimator.IsAnimatingPosition()) {
+      continue;
+    }
+
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
@@ -195,9 +209,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
     auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
     actor->Set3DPosition(newPos);
-
-    onlinePlayer.teleportController.Update(elapsed);
-    onlinePlayer.emoteNode.Update(elapsed);
   }
 
   movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
@@ -208,6 +219,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   }
 
   lastPosition = GetPlayer()->Get3DPosition();
+
+  propertyAnimator.Update(*playerActor, elapsed);
+
   SceneBase::onUpdate(elapsed);
 }
 
@@ -580,6 +594,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::quiz:
       receiveQuizSignal(reader, data);
       break;
+    case ServerEvents::prompt:
+      receivePromptSignal(reader, data);
+      break;
     case ServerEvents::open_board:
       receiveOpenBoardSignal(reader, data);
       break;
@@ -593,7 +610,10 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       receiveRemovePostSignal(reader, data);
       break;
     case ServerEvents::post_selection_ack:
-      receivePostSelectionAckSignal(reader, data);
+      GetMenuSystem().AcknowledgeBBSSelection();
+      break;
+    case ServerEvents::close_bbs:
+      receiveCloseBBSSignal(reader, data);
       break;
     case ServerEvents::initiate_pvp:
       receivePVPSignal(reader, data);
@@ -618,6 +638,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::actor_animate:
       receiveActorAnimateSignal(reader, data);
+      break;
+    case ServerEvents::actor_keyframes:
+      receiveActorKeyFramesSignal(reader, data);
       break;
     }
   }
@@ -869,6 +892,15 @@ void Overworld::OnlineArea::sendTextBoxResponseSignal(char response)
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
+void Overworld::OnlineArea::sendPromptResponseSignal(const std::string& response)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::prompt_response };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append(response.c_str(), response.length() + 1);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
 
 void Overworld::OnlineArea::sendBoardOpenSignal()
 {
@@ -1358,6 +1390,19 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
   );
 }
 
+void Overworld::OnlineArea::receivePromptSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto characterLimit = reader.Read<uint16_t>(buffer);
+  auto defaultText = reader.ReadString(buffer);
+
+  auto& menuSystem = GetMenuSystem();
+  menuSystem.EnqueueTextInput(
+    defaultText,
+    characterLimit,
+    [=](auto& response) { sendPromptResponseSignal(response); }
+  );
+}
+
 static std::vector<BBS::Post> ReadPosts(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto total = reader.Read<uint16_t>(buffer);
 
@@ -1499,9 +1544,9 @@ void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const 
   bbs.RemovePost(postId);
 }
 
-void Overworld::OnlineArea::receivePostSelectionAckSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void  Overworld::OnlineArea::receiveCloseBBSSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  GetMenuSystem().AcknowledgeBBSSelection();
+  GetMenuSystem().ClearBBS();
 }
 
 void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1560,6 +1605,14 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   float z = reader.Read<float>(buffer);
   bool solid = reader.Read<bool>(buffer);
   bool warpIn = reader.Read<bool>(buffer);
+  float scaleX = reader.Read<float>(buffer);
+  float scaleY = reader.Read<float>(buffer);
+  float rotation = reader.Read<float>(buffer);
+  std::optional<std::string> current_animation;
+
+  if (reader.Read<bool>(buffer)) {
+    current_animation = reader.ReadString(buffer);
+  }
 
   auto pos = sf::Vector3f(x, y, z);
 
@@ -1585,10 +1638,16 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   actor->Set3DPosition(pos);
   actor->Face(direction);
   actor->setTexture(GetTexture(texturePath));
+  actor->scale(scaleX, scaleY);
+  actor->rotate(rotation);
 
   Animation animation;
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
+
+  if (current_animation) {
+    actor->PlayAnimation(*current_animation, true);
+  }
 
   auto& emoteNode = onlinePlayer.emoteNode;
   float emoteY = -actor->getSprite().getOrigin().y - 10;
@@ -1692,10 +1751,10 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
-
-    // Calculcate the NEXT  frame and see if we're moving too far
+    // Calculate the NEXT frame and see if we're moving too far
     auto& onlinePlayer = userIter->second;
     auto currentTime = CurrentTime::AsMilli();
+    bool animatingPos = onlinePlayer.propertyAnimator.IsAnimatingPosition();
     auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector3f(x, y, z);
     auto delta = endBroadcastPos - newPos;
@@ -1708,8 +1767,8 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     auto teleportController = &onlinePlayer.teleportController;
     auto actor = onlinePlayer.actor;
 
-    // Do not attempt to animate the teleport over quick movements if already teleporting
-    if (teleportController->IsComplete() && onlinePlayer.packets > 1) {
+    // Do not attempt to animate the teleport over quick movements if already teleporting or animating position
+    if (teleportController->IsComplete() && onlinePlayer.packets > 1 && !animatingPos) {
       // we can't possibly have moved this far away without teleporting
       if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2.f) * float(expectedTime)) {
         actor->Set3DPosition(endBroadcastPos);
@@ -1721,7 +1780,7 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     }
 
     // update our records
-    onlinePlayer.startBroadcastPos = endBroadcastPos;
+    onlinePlayer.startBroadcastPos = animatingPos ? actor->Get3DPosition() : endBroadcastPos;
     onlinePlayer.endBroadcastPos = newPos;
     onlinePlayer.timestamp = currentTime;
     onlinePlayer.packets++;
@@ -1811,6 +1870,80 @@ void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, cons
   auto& onlinePlayer = userIter->second;
 
   onlinePlayer.actor->PlayAnimation(state, loop);
+}
+
+void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString(buffer);
+
+  // resolve target
+  auto actor = playerActor;
+  auto propertyAnimator = &this->propertyAnimator;
+
+  if (user != ticket) {
+    auto userIter = onlinePlayers.find(user);
+
+    if (userIter == onlinePlayers.end()) return;
+
+    auto& onlinePlayer = userIter->second;
+
+    actor = onlinePlayer.actor;
+    propertyAnimator = &onlinePlayer.propertyAnimator;
+  }
+
+  // reading keyframes
+  auto tail = reader.Read<bool>(buffer);
+  auto keyframeCount = reader.Read<uint16_t>(buffer);
+
+  auto tileSize = GetMap().GetTileSize();
+  auto xScale = tileSize.x / 2.0f;
+  auto yScale = tileSize.y;
+
+  for (auto i = 0; i < keyframeCount; i++) {
+    ActorPropertyAnimator::KeyFrame keyframe;
+    keyframe.duration = reader.Read<float>(buffer);
+
+    auto propertyCount = reader.Read<uint16_t>(buffer);
+
+    // resolving properties for this keyframe
+    for (auto j = 0; j < propertyCount; j++) {
+      ActorPropertyAnimator::PropertyStep propertyStep;
+
+      propertyStep.ease = reader.Read<Ease>(buffer);
+      propertyStep.property = reader.Read<ActorProperty>(buffer);
+
+      switch (propertyStep.property) {
+      case ActorProperty::animation:
+        propertyStep.stringValue = reader.ReadString(buffer);
+        break;
+      case ActorProperty::x:
+        propertyStep.value = reader.Read<float>(buffer) * xScale;
+        break;
+      case ActorProperty::y:
+        propertyStep.value = reader.Read<float>(buffer) * yScale;
+        break;
+      case ActorProperty::direction:
+        propertyStep.value = (float)Orthographic(reader.Read<Direction>(buffer));
+        break;
+      default:
+        propertyStep.value = reader.Read<float>(buffer);
+        break;
+      }
+
+      keyframe.propertySteps.push_back(propertyStep);
+    }
+
+    propertyAnimator->AddKeyFrame(keyframe);
+  }
+
+  if (tail) {
+    propertyAnimator->UseKeyFrames(*actor);
+
+    if (actor == GetPlayer() && propertyAnimator->IsAnimatingPosition()) {
+      // release to block the controller from attempting to animate the player
+      GetPlayerController().ReleaseActor();
+    }
+  }
 }
 
 void Overworld::OnlineArea::leave() {

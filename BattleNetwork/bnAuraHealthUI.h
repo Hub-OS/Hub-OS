@@ -8,7 +8,6 @@
 class Entity;
 class Player;
 
-using sf::Font;
 using sf::Text;
 using sf::Sprite;
 using sf::Texture;

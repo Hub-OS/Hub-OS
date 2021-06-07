@@ -9,6 +9,7 @@ using std::map;
 using std::vector;
 
 #include "bnInputEvent.h"
+#include "bnInputTextBuffer.h"
 #include "bnConfigReader.h"
 #include "bnConfigWriter.h"
 #include "bnConfigSettings.h"
@@ -51,6 +52,8 @@ public:
    */
   void Update();
 
+  bool HasFocus() const;
+
   sf::Keyboard::Key GetAnyKey() const;
   
   std::string GetClipboard() const;
@@ -85,20 +88,6 @@ public:
    * @return 
    */
   bool IsConfigFileValid() const;
-  
-  /**
-   * @brief Begins capturing entered text instead of firing game input events
-   * 
-   * Used for name or text entry
-   */
-  void BeginCaptureInputBuffer();
-  
-  /**
-   * @brief Ends text capture state
-   * 
-   * Used when leaving input fields
-   */
-  void EndCaptureInputBuffer();
 
   /**
    * @brief Tells input manager to prioritize keyboard bindings
@@ -122,27 +111,12 @@ public:
    * @return size_t
    */
   const size_t GetGamepadCount() const;
-  
+
   /**
-   * @brief Returns the contents of the current captured text
-   * @return const std::string
+   * @brief Provides access to the InputTextBuffer
+   * @return InputTextBuffer&
    */
-  const std::string GetInputBuffer() const;
-  
-  /**
-   * @brief Transforms SFML keycodes into ASCII char texts and stores into input buffer
-   * @param e input keycode event
-   */
-  void HandleInputBuffer(sf::Event e);
-  
-  /**
-   * @brief Overloads the input buffer
-   * @param buff text to modify
-   * 
-   * Used when selecting existing input fields
-   * After being set, the buffer can be deleted with backspace or modified by typing
-   */
-  void SetInputBuffer(std::string buff);
+  InputTextBuffer& GetInputTextBuffer();
 
   /**
    * @brief fires a key press manually
@@ -190,8 +164,7 @@ private:
 
   Gamepad lastButton{};
 
-  bool captureInputBuffer{}; /*!< Flags input buffer capture state */
-  std::string inputBuffer; /*!< The internal input buffer data */
+  InputTextBuffer textBuffer;
 
   bool systemCopyEvent{ false }, systemPasteEvent{ false };
   bool hasFocus{ true };

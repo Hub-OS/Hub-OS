@@ -4,6 +4,7 @@
 #include "../bnMessage.h"
 #include "../bnMessageQuestion.h"
 #include "../bnMessageQuiz.h"
+#include "bnOverworldMessageInput.h"
 
 namespace Overworld {
   TextBox::TextBox(sf::Vector2f pos) : textbox(pos), ResourceHandle() {}
@@ -22,7 +23,7 @@ namespace Overworld {
     object->ShowEndMessageCursor(true);
     textbox.EnqueMessage(nextSpeaker, nextAnimation, object);
 
-    handlerQueue.push([=](InputManager& input) {
+    handlerQueue.push([=](InputManager& input, const sf::RenderWindow& window) {
       if (!input.Has(InputEvents::pressed_interact)) {
         return;
       }
@@ -52,7 +53,7 @@ namespace Overworld {
     textbox.EnqueMessage(nextSpeaker, nextAnimation, question);
 
 
-    handlerQueue.push([=](InputManager& input) {
+    handlerQueue.push([=](InputManager& input, const sf::RenderWindow& window) {
       bool left = input.Has(InputEvents::pressed_ui_left);
       bool right = input.Has(InputEvents::pressed_ui_right);
       bool confirm = input.Has(InputEvents::pressed_confirm);
@@ -92,14 +93,14 @@ namespace Overworld {
     auto quiz = new Quiz(optionA, optionB, optionC, onResponse);
     textbox.EnqueMessage(nextSpeaker, nextAnimation, quiz);
 
-    handlerQueue.push([=](InputManager& input) {
+    handlerQueue.push([=](InputManager& input, const sf::RenderWindow& window) {
       bool up = input.Has(InputEvents::pressed_ui_up);
       bool down = input.Has(InputEvents::pressed_ui_down);
       bool confirm = input.Has(InputEvents::pressed_confirm);
 
       if (up && down) { /* silence is golden */ }
       else if (up) {
-        quiz->SelectUp()? Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low) : 0;
+        quiz->SelectUp() ? Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low) : 0;
       }
       else if (down) {
         quiz->SelectDown() ? Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low) : 0;
@@ -113,6 +114,31 @@ namespace Overworld {
           quiz->ConfirmSelection();
           handlerQueue.pop();
         }
+      }
+    });
+  }
+
+  void TextBox::EnqueueTextInput(const std::string& initialText, size_t characterLimit, const std::function<void(const std::string&)>& onResponse) {
+    if (!textbox.HasMessage()) {
+      textbox.Open();
+    }
+
+    auto messageInput = new MessageInput(initialText, characterLimit);
+
+    sf::Sprite sprite;
+    Animation animation;
+    textbox.EnqueMessage(sprite, animation, messageInput);
+
+    handlerQueue.push([=](InputManager& input, const sf::RenderWindow& window) {
+      if (input.HasFocus() && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        auto mousei = sf::Mouse::getPosition(window);
+        auto mousef = window.mapPixelToCoords(mousei);
+        messageInput->HandleClick(mousef);
+      }
+
+      if (messageInput->IsDone()) {
+        onResponse(messageInput->Submit());
+        handlerQueue.pop();
       }
     });
   }
@@ -133,9 +159,9 @@ namespace Overworld {
     textbox.Update(elapsed);
   }
 
-  void TextBox::HandleInput(InputManager& input) {
+  void TextBox::HandleInput(InputManager& input, const sf::RenderWindow& window) {
     if (!handlerQueue.empty()) {
-      handlerQueue.front()(input);
+      handlerQueue.front()(input, window);
     }
 
     if (!textbox.HasMessage()) {

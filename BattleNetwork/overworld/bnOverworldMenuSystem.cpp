@@ -24,6 +24,23 @@ namespace Overworld {
     return pendingBbs.size() + bbs.size();
   }
 
+  void MenuSystem::ClearBBS() {
+    while (!pendingBbs.empty()) {
+      // todo: should this pop from back instead of front?
+      pendingBbs.front().bbs->Close();
+      pendingBbs.pop();
+    }
+
+    for (auto it = bbs.rbegin(); it != bbs.rend(); it++) {
+      (*it)->Close();
+    }
+
+    bbs.clear();
+
+    totalRemainingMessagesForBBS = 0;
+    bbsNeedsAck = false;
+  }
+
   void MenuSystem::EnqueueBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose) {
     auto remainingMessages = textbox.GetRemainingMessages();
 
@@ -103,6 +120,13 @@ namespace Overworld {
     });
   }
 
+  void MenuSystem::EnqueueTextInput(const std::string& initialText, size_t characterLimit, const std::function<void(const std::string&)>& onResponse) {
+    textbox.EnqueueTextInput(initialText, characterLimit, [=](const std::string& text) {
+      PopMessage();
+      onResponse(text);
+    });
+  }
+
   bool MenuSystem::IsOpen() {
     return textbox.IsOpen() || !bbs.empty();
   }
@@ -119,9 +143,9 @@ namespace Overworld {
     textbox.Update(elapsed);
   }
 
-  void MenuSystem::HandleInput(InputManager& input) {
+  void MenuSystem::HandleInput(InputManager& input, const sf::RenderWindow& window) {
     if (textbox.GetRemainingMessages() > 0) {
-      textbox.HandleInput(input);
+      textbox.HandleInput(input, window);
       return;
     }
 

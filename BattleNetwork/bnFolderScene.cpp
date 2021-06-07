@@ -199,15 +199,10 @@ void FolderScene::onUpdate(double elapsed) {
         folderNames[currFolderIndex] = collection.GetFolderNames()[currFolderIndex];
       }
 
-      Input().EndCaptureInputBuffer();
+      Input().GetInputTextBuffer().EndCapture();
     }
     else {
-      std::string buffer = Input().GetInputBuffer();
-
-      buffer = buffer.substr(0, 10);
-      folderNames[currFolderIndex] = buffer;
-
-      Input().SetInputBuffer(buffer); // shrink
+      folderNames[currFolderIndex] = Input().GetInputTextBuffer().ToString();
 
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(true);

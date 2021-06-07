@@ -15,7 +15,8 @@ using sf::Keyboard;
 
 InputManager::InputManager(sf::Window& win)  : 
   window(win),
-  settings() {
+  settings(),
+  textBuffer() {
   lastkey = sf::Keyboard::Key::Unknown;
   lastButton = (decltype(lastButton))-1;
   keyboardState.fill(false);
@@ -112,8 +113,8 @@ void InputManager::Update() {
 
       onResized? onResized(event.size.width, event.size.height) : (void)0;
       hasFocus = true;
-    } else if (event.type == sf::Event::TextEntered && captureInputBuffer) {
-      HandleInputBuffer(event);
+    } else if (event.type == sf::Event::TextEntered) {
+      textBuffer.HandleTextEntered(event);
     } else if(event.type == sf::Event::EventType::KeyPressed) {
       if (hasFocus) {
         lastkey = event.key.code;
@@ -125,6 +126,8 @@ void InputManager::Update() {
         if (event.key.control && event.key.code == sf::Keyboard::C)
           systemCopyEvent = true;
 #endif
+
+        textBuffer.HandleKeyPressed(event);
       }
     }
 
@@ -138,6 +141,12 @@ void InputManager::Update() {
       }
     }
   } // end event poll
+
+  if (systemPasteEvent) {
+    textBuffer.HandlePaste(GetClipboard());
+  }
+
+  textBuffer.HandleCompletedEventProcessing();
 
   // keep the gamepad list up-to-date
   gamepads.clear();
@@ -303,6 +312,11 @@ void InputManager::Update() {
     state.clear(); // TODO: what inputs get stuck in the event list on droid?
     TouchArea::poll();
 #endif
+}
+
+bool InputManager::HasFocus() const
+{
+  return hasFocus;
 }
 
 sf::Keyboard::Key InputManager::GetAnyKey() const
@@ -547,17 +561,6 @@ bool InputManager::IsConfigFileValid() const
   return settings.IsOK();
 }
 
-void InputManager::BeginCaptureInputBuffer()
-{
-  captureInputBuffer = true;
-}
-
-void InputManager::EndCaptureInputBuffer()
-{
-  inputBuffer.clear();
-  captureInputBuffer = false;
-}
-
 void InputManager::UseKeyboardControls()
 {
   useKeyboardControls = true;
@@ -578,29 +581,6 @@ const size_t InputManager::GetGamepadCount() const
   return gamepads.size();
 }
 
-const std::string InputManager::GetInputBuffer() const
-{
-  return inputBuffer;
-}
-
-void InputManager::HandleInputBuffer(sf::Event e) {
-  if ((e.type == e.KeyPressed && e.key.code == sf::Keyboard::BackSpace) || (e.text.unicode == 8 && inputBuffer.size() != 0)) {
-    inputBuffer.pop_back();
-  } else if(e.text.unicode < 128 && e.text.unicode != 8) {
-    //std::cout << e.text.unicode << std::endl;
-
-#ifdef __ANDROID__
-    if(e.text.unicode == 10) {
-      VirtualKeyEvent(InputEvent::RELEASED_B);
-      return;
-    }
-#endif
-
-    inputBuffer.push_back((char)e.text.unicode);
-  }
-}
-
-void InputManager::SetInputBuffer(std::string buff)
-{
-  inputBuffer = buff;
+InputTextBuffer& InputManager::GetInputTextBuffer() {
+  return textBuffer;
 }

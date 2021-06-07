@@ -32,6 +32,7 @@ private:
   int areaWidth, areaHeight;
   std::string message;
   std::vector<int> lines; /**< Precalculated. List of all line start places. */
+  std::vector<int> insertedNewLines; /**< Precalculated. List of all inserted new lines. */
   int lineIndex; /**< Index of the current line being typed. */
   int numberOfFittingLines; /**< Precalculated. Number of fitting lines in the area. */
   int charIndex; /**< The current character index in the entire message. */
@@ -44,8 +45,12 @@ private:
    * @brief Takes the input message and finds where the text breaks to form new lines
    */
   void FormatToFit();
+  void StoreCurrentBlock();
 
   const bool ProcessSpecialCharacters(int& pos);
+
+  std::pair<size_t, size_t> GetCurrentCharacterRangeRaw() const;
+  std::pair<size_t, size_t> GetBlockCharacterRangeRaw() const;
 
 public:
   /**
@@ -155,6 +160,24 @@ public:
    * @return char
    */
   const char GetCurrentCharacter() const;
+
+  /**
+   * @brief Returns the character range of the displayed text
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetCurrentCharacterRange() const;
+
+  /**
+   * @brief Returns the range of the displayed lines (not the range of the characters)
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetCurrentLineRange() const;
+
+  /**
+   * @brief Returns the character range of the completed displayed text
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetBlockCharacterRange() const;
 
   /**
    * @brief Returns the number of fitting lines

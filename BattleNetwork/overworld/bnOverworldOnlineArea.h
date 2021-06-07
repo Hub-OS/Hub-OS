@@ -9,6 +9,7 @@
 #include "../netplay/bnBufferReader.h"
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldPacketProcessor.h"
+#include "bnOverworldActorPropertyAnimator.h"
 #include "bnPacketHeaders.h"
 #include "bnServerAssetManager.h"
 
@@ -25,6 +26,7 @@ namespace Overworld {
     sf::Vector3f endBroadcastPos{};
     long long timestamp{};
     std::array<double, NetManager::LAG_WINDOW_LEN> lagWindow{ 0 };
+    ActorPropertyAnimator propertyAnimator;
     size_t packets{};
   };
 
@@ -54,6 +56,7 @@ namespace Overworld {
     bool transferringServers{ false };
     bool kicked{ false };
     bool isEnteringBattle{ false };
+    ActorPropertyAnimator propertyAnimator;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
     AssetMeta incomingAsset;
@@ -90,6 +93,7 @@ namespace Overworld {
     void sendNaviInteractionSignal(const std::string& ticket);
     void sendTileInteractionSignal(float x, float y, float z);
     void sendTextBoxResponseSignal(char response);
+    void sendPromptResponseSignal(const std::string& response);
     void sendBoardOpenSignal();
     void sendBoardCloseSignal();
     void sendPostRequestSignal();
@@ -115,11 +119,12 @@ namespace Overworld {
     void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receivePromptSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveOpenBoardSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePrependPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAppendPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveRemovePostSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receivePostSelectionAckSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveCloseBBSSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -128,6 +133,7 @@ namespace Overworld {
     void receiveActorSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
   protected:
     virtual std::string GetPath(const std::string& path);

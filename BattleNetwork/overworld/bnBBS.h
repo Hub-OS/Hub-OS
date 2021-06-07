@@ -28,6 +28,7 @@ public:
   void AppendPosts(const std::string& id, const std::vector<Post>& posts);
   void AppendPost(const std::string& id, bool read, const std::string& title, const std::string& author);
   void RemovePost(const std::string& id);
+  void Close();
 
   void HandleInput(InputManager& input);
 

@@ -17,6 +17,7 @@ namespace Overworld {
     std::optional<std::reference_wrapper<BBS>> GetBBS();
     size_t CountBBS();
     void EnqueueBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose);
+    void ClearBBS();
     void AcknowledgeBBSSelection();
 
     void SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation);
@@ -28,13 +29,14 @@ namespace Overworld {
       const std::string& optionC,
       const std::function<void(int)>& onResponse
     );
+    void EnqueueTextInput(const std::string& initialText, size_t characterLimit, const std::function<void(const std::string&)>& onResponse);
 
     bool IsOpen();
     bool IsClosed();
     bool IsFullscreen();
 
     void Update(float elapsed);
-    void HandleInput(InputManager& input);
+    void HandleInput(InputManager& input, const sf::RenderWindow& window);
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
