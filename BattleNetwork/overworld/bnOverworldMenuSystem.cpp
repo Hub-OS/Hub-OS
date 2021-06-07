@@ -120,6 +120,13 @@ namespace Overworld {
     });
   }
 
+  void MenuSystem::EnqueueTextInput(const std::string& initialText, size_t characterLimit, const std::function<void(const std::string&)>& onResponse) {
+    textbox.EnqueueTextInput(initialText, characterLimit, [=](const std::string& text) {
+      PopMessage();
+      onResponse(text);
+    });
+  }
+
   bool MenuSystem::IsOpen() {
     return textbox.IsOpen() || !bbs.empty();
   }
@@ -136,9 +143,9 @@ namespace Overworld {
     textbox.Update(elapsed);
   }
 
-  void MenuSystem::HandleInput(InputManager& input) {
+  void MenuSystem::HandleInput(InputManager& input, const sf::RenderWindow& window) {
     if (textbox.GetRemainingMessages() > 0) {
-      textbox.HandleInput(input);
+      textbox.HandleInput(input, window);
       return;
     }
 

@@ -380,7 +380,7 @@ void Overworld::SceneBase::HandleInput() {
   }
 
   if (!menuSystem.IsClosed()) {
-    menuSystem.HandleInput(Input());
+    menuSystem.HandleInput(Input(), getController().getWindow());
     return;
   }
 

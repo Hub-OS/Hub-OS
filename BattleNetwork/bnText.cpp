@@ -76,7 +76,7 @@ void Text::UpdateGeometry() const
 
       // Update the current bounds (max coordinates)
       maxX = std::max(maxX, x);
-      maxY = std::max(maxY, y);
+      maxY = std::max(maxY, y + lineSpacing);
 
       // Next glyph, no need to create a quad for whitespace
       continue;

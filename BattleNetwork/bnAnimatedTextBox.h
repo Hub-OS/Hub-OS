@@ -70,7 +70,7 @@ public:
    */
   void EnqueMessage(MessageInterface* message);
 
-  //void ReplaceText(std::string text);
+  void ReplaceText(std::string text);
 
   /**
    * @brief Begins closing the textbox
@@ -119,6 +119,8 @@ public:
    */
   void ShowNextLines();
 
+  void ShowPreviousLines();
+
   void CompleteCurrentBlock();
 
   /**
@@ -128,6 +130,24 @@ public:
 
   const float GetFrameWidth() const;
   const float GetFrameHeight() const;
+
+  /**
+   * @brief Returns the character range of the displayed text
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetCurrentCharacterRange() const;
+
+  /**
+   * @brief Returns the range of the displayed lines (not the range of the characters)
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetCurrentLineRange() const;
+
+  /**
+   * @brief Returns the character range of the completed text
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetBlockCharacterRange() const;
 
   /**
    * @brief Update the animated textbox
@@ -151,6 +171,9 @@ public:
   void DrawMessage(sf::RenderTarget& target, sf::RenderStates states) const;
 
   Text MakeTextObject(const std::string& data = std::string());
+
+  Font GetFont() const;
+  sf::Vector2f GetTextPosition() const;
 
   void Mute(bool enabled = true);
   void Unmute();

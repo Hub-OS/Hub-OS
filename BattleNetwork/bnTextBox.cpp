@@ -39,6 +39,7 @@ void TextBox::FormatToFit() {
   message = stx::replace(message, "\\x01", "\x01"); // replace ascii
   message = stx::replace(message, "\\x02", "\x02"); // replace ascii
 
+  insertedNewLines.clear();
   lines.push_back(0); // All text begins at pos 0
 
   text.SetString(message);
@@ -61,8 +62,7 @@ void TextBox::FormatToFit() {
       wordIndex = -1;
     }
 
-    std::string fitString = message.substr(lastRow, (size_t)index - (size_t)lastRow);
-    fitString = stx::replace(fitString, "\n", ""); // line breaks shouldn't increase real estate...
+    std::string fitString = message.substr(lastRow, (size_t)index - (size_t)lastRow + 1);
     fitString = stx::replace(fitString, std::string(1, ::nolip_token), ""); // fx sections shouldn't increase real estate...
     fitString = stx::replace(fitString, std::string(1, ::dramatic_token), ""); //fx sections shouldn't increase real estate...
     text.SetString(fitString);
@@ -89,12 +89,13 @@ void TextBox::FormatToFit() {
       wordIndex = -1;
 
     }
-    else if (width > areaWidth && wordIndex != -1 && wordIndex > 0 && index > 0) {
+    else if (width > areaWidth && wordIndex != -1 && wordIndex > lastRow + 1) {
       // Line break at the next word
       message.insert(wordIndex, "\n");
 
       lastRow = wordIndex + 1;
       lines.push_back(lastRow);
+      insertedNewLines.push_back(lastRow);
       index = lastRow;
       wordIndex = -1;
 
@@ -102,6 +103,19 @@ void TextBox::FormatToFit() {
         line++;
         fitHeight += height;
       }
+    }
+    else if (width > areaWidth) {
+      lastRow = index;
+      message.insert(lastRow, "\n");
+      lines.push_back(lastRow + 1);
+      insertedNewLines.push_back(lastRow + 1);
+
+      if (fitHeight <= areaHeight) {
+        line++;
+        fitHeight += height;
+      }
+
+      wordIndex = -1;
     }
     index++;
   }
@@ -230,14 +244,29 @@ void TextBox::CompleteCurrentBlock()
   charIndex = end;
   progress = simProgress;
 
-  dirty = true; // will try and pause once it completes, so we force it to update
+  StoreCurrentBlock();
 }
 
 void TextBox::CompleteAll()
 {
   charIndex = static_cast<int>(message.length());
 
-  dirty = true; // will try and pause once it completes, so we force it to update
+  dirty = true;
+  // below code can be used to resolve flickering, use instead of the dirty = true
+  // untested
+
+  // lineIndex = lines.size() - 3;
+
+  // StoreCurrentBlock();
+}
+
+void TextBox::StoreCurrentBlock() {
+  auto [begin, end] = GetCurrentCharacterRangeRaw();
+
+  text.SetString(message.substr(begin, end - begin));
+
+  play = false;
+  dirty = false;
 }
 
 void TextBox::SetCharactersPerSecond(const double cps) {
@@ -286,6 +315,64 @@ const bool TextBox::IsPlaying() const {
   return play;
 }
 
+std::pair<size_t, size_t> TextBox::GetCurrentCharacterRangeRaw() const {
+  int begin = lines[lineIndex];
+  int end = 0;
+
+  size_t pos = static_cast<size_t>(lineIndex + numberOfFittingLines);
+
+  if (pos < lines.size()) {
+    end = std::min(charIndex, lines[pos]);
+  }
+  else {
+    end = charIndex;
+  }
+
+  return { begin, end };
+}
+
+// adjusts for inserted newlines
+std::pair<size_t, size_t> TextBox::GetCurrentCharacterRange() const {
+  auto range = GetCurrentCharacterRangeRaw();
+
+  auto [begin, end] = range;
+
+  for (auto index : insertedNewLines) {
+    if (begin >= index) range.first -= 1;
+    if (end >= index) range.second -= 1;
+  }
+
+  return range;
+}
+
+std::pair<size_t, size_t> TextBox::GetCurrentLineRange() const {
+  return { lineIndex, lineIndex + numberOfFittingLines - 1 };
+}
+
+std::pair<size_t, size_t> TextBox::GetBlockCharacterRangeRaw() const {
+  int begin = lines[lineIndex];
+  int end = 0;
+
+  size_t pos = static_cast<size_t>(lineIndex + numberOfFittingLines);
+  end = pos < lines.size() ? lines[pos] : message.length();
+
+  return { begin, end };
+}
+
+// adjusts for inserted newlines
+std::pair<size_t, size_t> TextBox::GetBlockCharacterRange() const {
+  auto range = GetBlockCharacterRangeRaw();
+
+  auto [begin, end] = range;
+
+  for (auto index : insertedNewLines) {
+    if (begin >= index) range.first -= 1;
+    if (end >= index) range.second -= 1;
+  }
+
+  return range;
+}
+
 void TextBox::Update(const double elapsed) {
   // If the message is empty don't update
   if (message.empty()) return;
@@ -297,22 +384,7 @@ void TextBox::Update(const double elapsed) {
   // If we're at the end of the message, don't step  
   // through the words
   if (charIndex >= message.length()) {
-    int begin = lines[lineIndex];
-    int lastIndex = std::min((int)lines.size() - 1, lineIndex + numberOfFittingLines - 1);
-    int last = lines[lastIndex];
-    int len = 0;
-
-    size_t pos = static_cast<size_t>(lineIndex) + static_cast<size_t>(numberOfFittingLines);
-    if (pos < lines.size()) {
-      len = std::min(charIndex - begin, lines[pos] - begin);
-    }
-    else {
-      len = charIndex - begin;
-    }
-
-    text.SetString(message.substr(begin, len));
-
-    play = false;
+    StoreCurrentBlock();
 
     // We don't need to fill box
     return;

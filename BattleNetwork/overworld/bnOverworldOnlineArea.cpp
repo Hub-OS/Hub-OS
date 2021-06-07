@@ -594,6 +594,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::quiz:
       receiveQuizSignal(reader, data);
       break;
+    case ServerEvents::prompt:
+      receivePromptSignal(reader, data);
+      break;
     case ServerEvents::open_board:
       receiveOpenBoardSignal(reader, data);
       break;
@@ -889,6 +892,15 @@ void Overworld::OnlineArea::sendTextBoxResponseSignal(char response)
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
+void Overworld::OnlineArea::sendPromptResponseSignal(const std::string& response)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::prompt_response };
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append(response.c_str(), response.length() + 1);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
 
 void Overworld::OnlineArea::sendBoardOpenSignal()
 {
@@ -1375,6 +1387,19 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
   menuSystem.SetNextSpeaker(face, animation);
   menuSystem.EnqueueQuiz(optionA, optionB, optionC,
     [=](int response) { sendTextBoxResponseSignal((char)response); }
+  );
+}
+
+void Overworld::OnlineArea::receivePromptSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto characterLimit = reader.Read<uint16_t>(buffer);
+  auto defaultText = reader.ReadString(buffer);
+
+  auto& menuSystem = GetMenuSystem();
+  menuSystem.EnqueueTextInput(
+    defaultText,
+    characterLimit,
+    [=](auto& response) { sendPromptResponseSignal(response); }
   );
 }
 

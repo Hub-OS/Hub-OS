@@ -4,7 +4,7 @@
 AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) : 
   textArea(), 
   totalTime(0), 
-  textBox(280, 40) {
+  textBox(280, 45) {
   textureRef = LOAD_TEXTURE(ANIMATED_TEXT_BOX);
   frame = sf::Sprite(*textureRef);
 
@@ -82,6 +82,15 @@ const bool AnimatedTextBox::IsEndOfBlock()
   return textBox.IsEndOfBlock();
 }
 
+void AnimatedTextBox::ShowPreviousLines()
+{
+  for (int i = 0; i < textBox.GetNumberOfFittingLines(); i++) {
+    textBox.ShowPreviousLine();
+  }
+
+  isPaused = false;
+}
+
 void AnimatedTextBox::ShowNextLines()
 {
   for (int i = 0; i < textBox.GetNumberOfFittingLines(); i++) {
@@ -106,6 +115,21 @@ const float AnimatedTextBox::GetFrameHeight() const
   return frame.getLocalBounds().height;
 }
 
+std::pair<size_t, size_t> AnimatedTextBox::GetCurrentCharacterRange() const
+{
+  return textBox.GetCurrentCharacterRange();
+}
+
+std::pair<size_t, size_t> AnimatedTextBox::GetCurrentLineRange() const
+{
+  return textBox.GetCurrentLineRange();
+}
+
+std::pair<size_t, size_t> AnimatedTextBox::GetBlockCharacterRange() const
+{
+  return textBox.GetBlockCharacterRange();
+}
+
 void AnimatedTextBox::CompleteCurrentBlock() {
   textBox.CompleteCurrentBlock();
 
@@ -114,7 +138,7 @@ void AnimatedTextBox::CompleteCurrentBlock() {
     mugAnimator << Animator::Mode::Loop;
   }
 
-  isPaused = false;
+  isPaused = true;
 }
 
 void AnimatedTextBox::DequeMessage() {
@@ -167,11 +191,11 @@ void AnimatedTextBox::EnqueMessage(MessageInterface* message) {
   EnqueMessage(sf::Sprite{}, Animation{}, message);
 }
 
-/*void AnimatedTextBox::ReplaceText(std::string text)
+void AnimatedTextBox::ReplaceText(std::string text)
 {
-    textBox.SetText(text);
-    isPaused = false; // start over with new text
-}*/
+  textBox.SetText(text);
+  isPaused = false; // start over with new text
+}
 
 void AnimatedTextBox::Update(double elapsed) {
   float mugshotSpeed = 1.0f;
@@ -290,6 +314,14 @@ Text AnimatedTextBox::MakeTextObject(const std::string& data)
   obj.SetString(data);
   obj.setScale(2.f, 2.f);
   return obj;
+}
+
+Font AnimatedTextBox::GetFont() const {
+  return textBox.GetText().GetFont();
+}
+
+sf::Vector2f AnimatedTextBox::GetTextPosition() const {
+  return textBox.getPosition();
 }
 
 void AnimatedTextBox::Mute(bool enabled)

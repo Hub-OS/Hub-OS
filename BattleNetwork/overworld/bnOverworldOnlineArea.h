@@ -93,6 +93,7 @@ namespace Overworld {
     void sendNaviInteractionSignal(const std::string& ticket);
     void sendTileInteractionSignal(float x, float y, float z);
     void sendTextBoxResponseSignal(char response);
+    void sendPromptResponseSignal(const std::string& response);
     void sendBoardOpenSignal();
     void sendBoardCloseSignal();
     void sendPostRequestSignal();
@@ -118,6 +119,7 @@ namespace Overworld {
     void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receivePromptSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveOpenBoardSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePrependPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveAppendPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
