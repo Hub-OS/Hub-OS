@@ -105,6 +105,11 @@ void TextBox::FormatToFit() {
       }
     }
     else if (width > areaWidth) {
+      // if we're on a space place the new line after
+      if (message[index] == ' ') {
+        index++;
+      }
+
       lastRow = index;
       message.insert(lastRow, "\n");
       lines.push_back(lastRow + 1);
