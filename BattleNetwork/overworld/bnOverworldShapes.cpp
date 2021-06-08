@@ -1,7 +1,7 @@
 #include "bnOverworldShapes.h"
 #include <math.h>
 #include <Swoosh/Ease.h>
-#include "../bnLogger.h"
+
 // using pointers to make mutation clear
 static inline void rotateAround(float centerX, float centerY, float rotation, float* x, float* y) {
   if (rotation != 0.0f) {
@@ -135,21 +135,26 @@ namespace Overworld {
       auto Ay = std::get<1>(lastPoint) + this->y;
       auto Bx = std::get<0>(point) + this->x;
       auto By = std::get<1>(point) + this->y;
+      lastPoint = point;
 
       auto run = Bx - Ax;
 
+      // make sure y is between these points
+      // excluding the top point (avoid colliding with vertex twice)
+      auto yIsWithin = (y >= Ay && y < By) || (y >= By && y < Ay);
+
+      if (!yIsWithin) {
+        continue;
+      }
+
       if (run == 0) {
         // column line
-
-        // make sure y is between these points
-        auto yIsWithin = (y >= Ay && y <= By) || (y >= By && y <= Ay);
-
-        if (x < Ax && yIsWithin) {
+        if (x < Ax) {
           // column is to the right and y is within
           intersections += 1;
         }
       }
-      else if ((y >= Ay && y < By) || (y >= By && y < Ay)) { // make sure y is within the line excluding the top point (avoid colliding with vertex twice)
+      else {
         // y = slope * x + yIntercept
         auto rise = By - Ay;
         auto slope = rise / run;
@@ -167,8 +172,6 @@ namespace Overworld {
           intersections += 1;
         }
       }
-
-      lastPoint = point;
     }
 
     // odd = inside
