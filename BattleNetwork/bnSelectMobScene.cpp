@@ -392,7 +392,8 @@ void SelectMobScene::onUpdate(double elapsed) {
         { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
         MobBattleProperties::RewardBehavior::take,
         { mob },
-        sf::Sprite(*mugshot)
+        sf::Sprite(*mugshot),
+        mugshotAnim
       };
 
       using effect = segue<WhiteWashFade>;

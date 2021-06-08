@@ -892,7 +892,6 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   }
 }
 
-
 void CardSelectionCust::Update(double elapsed)
 {
   if (IsHidden()) {
