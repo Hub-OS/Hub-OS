@@ -346,7 +346,11 @@ void InputTextBuffer::HandleCompletedEventProcessing() {
         lineWidth = characterWidth;
         col = 0;
 
-        lineIndexes.push_back(c == '\n' ? i + 1 : i);
+        if (c == '\n' || c == ' ') {
+          i++;
+        }
+
+        lineIndexes.push_back(i);
       }
       else {
         // carried from word to next line

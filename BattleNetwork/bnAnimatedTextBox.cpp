@@ -138,7 +138,7 @@ void AnimatedTextBox::CompleteCurrentBlock() {
     mugAnimator << Animator::Mode::Loop;
   }
 
-  isPaused = true;
+  isPaused = false;
 }
 
 void AnimatedTextBox::DequeMessage() {
