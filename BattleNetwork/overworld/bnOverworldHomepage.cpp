@@ -37,7 +37,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
   auto& map = GetMap();
   sf::Vector3f spawnPos;
-  std::optional<sf::Vector3f> statusBotSpawnOptional;
+  std::optional<sf::Vector3f> statusBotSpawnOptional, destBotSpawnOptional;
 
   for (auto i = 0; i < map.GetLayerCount(); i++) {
     auto& layer = map.GetLayer(i);
@@ -50,6 +50,16 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       if (pointOptional) {
         auto& point = pointOptional->get();
         statusBotSpawnOptional = { point.position.x, point.position.y, z };
+      }
+    }
+
+    // search for destination bot while it hasn't been found
+    if (!destBotSpawnOptional) {
+      auto pointOptional = layer.GetShapeObject("Destination Bot");
+
+      if (pointOptional) {
+        auto& point = pointOptional->get();
+        destBotSpawnOptional = { point.position.x, point.position.y, z };
       }
     }
 
@@ -114,6 +124,52 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
       menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
       menuSystem.EnqueueMessage(message);
+    });
+
+    AddActor(mrprog);
+  }
+
+  if (destBotSpawnOptional) {
+    auto mrprog = std::make_shared<Overworld::Actor>("Mr. Prog");
+    mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
+    mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+    mrprog->Set3DPosition(destBotSpawnOptional.value());
+    mrprog->SetSolid(true);
+    mrprog->SetCollisionRadius(5);
+
+    mrprog->SetInteractCallback([mrprog = mrprog.get(), this](const std::shared_ptr<Overworld::Actor>& with) {
+      // Face them
+      mrprog->Face(*with);
+
+      // Play message
+      sf::Sprite face;
+      face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+
+      //std::string message = "The next server is " + remoteAddress.toString() + "\nChange it?";
+      std::string message = "Change your warp destination?";
+
+      menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+      menuSystem.EnqueueQuestion(message, [=](bool yes) {
+        if (yes) {
+          menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+          menuSystem.EnqueueTextInput(remoteAddress.toString(), 21, [=](const std::string& response) {
+
+            try {
+              Net().DropHandlers(remoteAddress);
+              remoteAddress = Poco::Net::SocketAddress(response);
+              packetProcessor = std::make_shared<Overworld::PacketProcessor>(
+                remoteAddress,
+                [this](auto& body) { ProcessPacketBody(body); }
+              );
+              Net().AddHandler(remoteAddress, packetProcessor);
+
+              menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+              menuSystem.EnqueueMessage("Changed to " + response + "!");
+            }
+            catch (Poco::IOException&) {}
+            });
+        } // else do nothing
+      });
     });
 
     AddActor(mrprog);
@@ -336,8 +392,8 @@ void Overworld::Homepage::OnTileCollision()
       netWarpTilePos.z
     );
 
-    auto address = getController().CommandLineValue<std::string>("cyberworld");
-    auto port = getController().CommandLineValue<uint16_t>("remotePort");
+    auto address = remoteAddress.host().toString();
+    auto port = remoteAddress.port();
 
     auto teleportToCyberworld = [=] {
       this->TeleportUponReturn(returnPoint);
