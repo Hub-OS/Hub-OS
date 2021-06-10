@@ -319,7 +319,7 @@ void InputTextBuffer::HandleCompletedEventProcessing() {
     lineWidth += characterWidth;
 
     // detect words
-    if (c == ' ' || c == '\t' || c == '\n') {
+    if (c == ' ' || c == '\n') {
       wordStart = 0;
       foundSpace = true;
     }
@@ -343,14 +343,16 @@ void InputTextBuffer::HandleCompletedEventProcessing() {
 
       if (wordStart == 0) {
         // no word to break on
-        lineWidth = characterWidth;
+        lineWidth = c == ' ' ? 0 : characterWidth;
         col = 0;
 
         if (c == '\n' || c == ' ') {
-          i++;
+          //   i++;
+          lineIndexes.push_back(i + 1);
         }
-
-        lineIndexes.push_back(i);
+        else {
+          lineIndexes.push_back(i);
+        }
       }
       else {
         // carried from word to next line
