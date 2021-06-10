@@ -149,14 +149,14 @@ void AnimatedTextBox::DequeMessage() {
   anims.erase(anims.begin());
   mugshots.erase(mugshots.begin());
 
+  isPaused = false; // Begin playing again
+
   if (messages.size() == 0) return;
 
   mugAnimator = Animation(anims[0]);
   mugAnimator.SetAnimation("TALK");
   mugAnimator << Animator::Mode::Loop;
   textBox.SetText(messages[0]->GetMessage());
-
-  isPaused = false; // Begin playing again
 }
 
 void AnimatedTextBox::ClearAllMessages()

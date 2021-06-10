@@ -351,7 +351,11 @@ std::pair<size_t, size_t> TextBox::GetCurrentCharacterRange() const {
 }
 
 std::pair<size_t, size_t> TextBox::GetCurrentLineRange() const {
-  return { lineIndex, lineIndex + numberOfFittingLines - 1 };
+  if (lines.size() == 0) {
+    return { 0, 0 };
+  }
+
+  return { lineIndex, std::min((size_t)(lineIndex + numberOfFittingLines - 1), lines.size() - 1) };
 }
 
 std::pair<size_t, size_t> TextBox::GetBlockCharacterRangeRaw() const {

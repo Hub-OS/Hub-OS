@@ -69,7 +69,12 @@ namespace Overworld {
 
       if (!textbox.IsEndOfMessage()) {
         if (confirm) {
-          textbox.CompleteCurrentBlock();
+          if (textbox.IsEndOfBlock()) {
+            textbox.ShowNextLines();
+          }
+          else {
+            textbox.CompleteCurrentBlock();
+          }
         }
       }
       else if (confirm && cancel) {}

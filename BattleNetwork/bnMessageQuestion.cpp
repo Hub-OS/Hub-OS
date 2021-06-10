@@ -13,7 +13,6 @@ Question::Question(std::string message, std::function<void()> onYes, std::functi
   selectCursor.scale(2.0f, 2.0f);
   elapsed = 0;
   yes = canceled = false;
-  ShowEndMessageCursor(false);
 }
 
 Question::~Question() {
@@ -65,27 +64,29 @@ void Question::OnUpdate(double elapsed) {
 }
 
 void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
-
-  // We added "YES NO" to the last row of the message box
-  // So it is visible when the message box is done printing.
-  // Find out how many rows there are and place arrows to fit the text.
-  int numOfFitLines = GetTextBox()->GetNumberOfFittingLines();
-  int cursorY = ((3 - numOfFitLines) * -30) - 15;
-  unsigned bob = from_seconds(this->totalElapsed*0.25).count() % 5; // 5 pixel bobs
-  float bobf = static_cast<float>(bob);
-
-  float textBoxBottom = GetTextBox()->getPosition().y + GetTextBox()->GetFrameHeight() / 2.0f;
-
-  if (yes) {
-      selectCursor.setPosition(180.0f + bobf, textBoxBottom + cursorY);
-  }
-  else {
-      selectCursor.setPosition(300.0f + bobf, textBoxBottom + cursorY);
-  }
+  ShowEndMessageCursor(!isQuestionReady);
 
   if (isQuestionReady) {
-      // Draw the Yes / No and a cursor
-      target.draw(selectCursor,states);
+    // We added "YES NO" to the last row of the message box
+    // So it is visible when the message box is done printing.
+    // Find out how many rows there are and place arrows to fit the text.
+    auto [lineStart, lineEnd] = GetTextBox()->GetCurrentLineRange();
+    int numOfLines = lineEnd - lineStart + 1;
+    int cursorY = ((3 - numOfLines) * -30) - 15;
+    unsigned bob = from_seconds(this->totalElapsed*0.25).count() % 5; // 5 pixel bobs
+    float bobf = static_cast<float>(bob);
+
+    float textBoxBottom = GetTextBox()->getPosition().y + GetTextBox()->GetFrameHeight() / 2.0f;
+
+    if (yes) {
+      selectCursor.setPosition(180.0f + bobf, textBoxBottom + cursorY);
+    }
+    else {
+      selectCursor.setPosition(300.0f + bobf, textBoxBottom + cursorY);
+    }
+
+    // Draw the Yes / No and a cursor
+    target.draw(selectCursor,states);
   }
 
   Message::OnDraw(target, states);
