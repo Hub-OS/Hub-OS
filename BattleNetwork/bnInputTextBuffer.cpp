@@ -347,7 +347,6 @@ void InputTextBuffer::HandleCompletedEventProcessing() {
         col = 0;
 
         if (c == '\n' || c == ' ') {
-          //   i++;
           lineIndexes.push_back(i + 1);
         }
         else {
