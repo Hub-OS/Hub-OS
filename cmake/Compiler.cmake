@@ -12,8 +12,3 @@ if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-value -Wno-inconsistent-missing-override -Wno-switch -g3")
 
 endif()
-
-
-if(BN_USE_SHARED_LIBS)
-  add_compile_definitions(BN_WEBCLIENT_EXPORTS)
-endif()
