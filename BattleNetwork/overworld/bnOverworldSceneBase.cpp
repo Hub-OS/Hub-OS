@@ -259,13 +259,16 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   for (auto i = 0; i < layerCount; i++) {
     auto& spriteLayer = spriteLayers[i];
     auto elevation = (float)i;
+    bool isTopLayer = elevation + 1 == layerCount;
+    bool isBottomLayer = elevation == 0;
 
     spriteLayer.clear();
 
     // match sprites to layer
     for (auto& sprite : sprites) {
       // use ceil(elevation) + 1 instead of GetLayer to prevent sorting issues with stairs
-      if (std::ceil(sprite->GetElevation()) + 1 == elevation) {
+      auto spriteElevation = std::ceil(sprite->GetElevation()) + 1;
+      if (spriteElevation == elevation || (isTopLayer && spriteElevation >= layerCount) || (isBottomLayer && spriteElevation < 0)) {
         spriteLayer.push_back(sprite);
       }
     }
