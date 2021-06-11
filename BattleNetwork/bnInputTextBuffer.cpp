@@ -49,7 +49,9 @@ void InputTextBuffer::SetText(const std::string& text)
 
 
 void InputTextBuffer::InsertCharacter(char c) {
-  if (buffer.size() < characterLimit) {
+  bool isValidChar = c >= 32 && c < 127 || c == 9;
+
+  if (buffer.size() < characterLimit && isValidChar) {
     buffer.insert(caretPos, 1, (char)c);
     caretPos += 1;
     MarkModified();
@@ -207,9 +209,7 @@ void InputTextBuffer::HandleTextEntered(sf::Event e) {
     carriageReturn = false;
     break;
   default:
-    if (c >= 32 && c < 127 || c == 9) {
-      InsertCharacter((char)c);
-    }
+    InsertCharacter((char)c);
   }
 }
 
@@ -278,22 +278,9 @@ void InputTextBuffer::HandleKeyPressed(sf::Event e) {
 }
 
 void InputTextBuffer::HandlePaste(const std::string& data) {
-  auto remainingSpace = characterLimit - buffer.size();
-
-  if (remainingSpace == 0) {
-    return;
+  for (char c : data) {
+    InsertCharacter(c);
   }
-
-  if (remainingSpace >= data.size()) {
-    buffer.insert(caretPos, data);
-    caretPos += data.length();
-  }
-  else {
-    buffer.insert(caretPos, data.substr(0, remainingSpace));
-    caretPos += remainingSpace;
-  }
-
-  modifiedThisRun = true;
 }
 
 void InputTextBuffer::HandleCompletedEventProcessing() {
