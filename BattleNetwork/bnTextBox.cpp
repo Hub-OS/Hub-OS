@@ -68,7 +68,6 @@ void TextBox::FormatToFit() {
     text.SetString(fitString);
 
     double width = text.GetWorldBounds().width;
-    double height = text.GetWorldBounds().height;
 
     if (message[index] == '\n') {
 
@@ -83,7 +82,7 @@ void TextBox::FormatToFit() {
 
       if (fitHeight <= areaHeight) {
         line++;
-        fitHeight += height;
+        fitHeight += font.GetLineHeight() * text.getScale().y;
       }
 
       wordIndex = -1;
@@ -101,7 +100,7 @@ void TextBox::FormatToFit() {
 
       if (fitHeight <= areaHeight) {
         line++;
-        fitHeight += height;
+        fitHeight += font.GetLineHeight() * text.getScale().y;
       }
     }
     else if (width > areaWidth) {
@@ -117,7 +116,7 @@ void TextBox::FormatToFit() {
 
       if (fitHeight <= areaHeight) {
         line++;
-        fitHeight += height;
+        fitHeight += font.GetLineHeight() * text.getScale().y;
       }
 
       wordIndex = -1;
