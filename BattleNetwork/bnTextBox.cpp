@@ -499,6 +499,10 @@ const bool TextBox::IsEndOfBlock() const
   return charIndex >= testCharIndex;
 }
 
+bool TextBox::IsFinalBlock() const {
+  return lines.size() == 0 || GetCurrentLineRange().second == lines.size() - 1;
+}
+
 void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
   if (message.empty())
