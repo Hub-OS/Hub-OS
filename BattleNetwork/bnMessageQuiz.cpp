@@ -78,15 +78,15 @@ void Quiz::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
 
   textbox->DrawMessage(target, states);
 
-  if (!textbox->IsEndOfMessage()) {
+  if (textbox->IsPlaying()) {
     return;
   }
 
   auto textboxPosition = textbox->getPosition();
-  auto textboxBottom = textboxPosition.y - 40 + 1;
+  auto textboxBottom = textboxPosition.y - 45;
 
   auto cursorX = textboxPosition.x + 100 + 1;
-  auto cursorY = textboxBottom + (float)selection * 12 * 2;
+  auto cursorY = textboxBottom + (float)selection * textbox->GetFont().GetLineHeight() * 2;
 
   selectCursor.setPosition(cursorX,  cursorY);
 
