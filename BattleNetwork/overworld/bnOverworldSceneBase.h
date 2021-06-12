@@ -37,7 +37,7 @@ class Background; // forward decl
 
 namespace Overworld {
   class SceneBase : public Scene {
-  public:
+  private:
     std::shared_ptr<Actor> playerActor;
     std::shared_ptr<sf::Texture> customEmotesTexture;
     Overworld::EmoteWidget emote;
@@ -281,12 +281,13 @@ namespace Overworld {
     std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
     Map& GetMap();
-    const std::shared_ptr<sf::Texture>& GetCustomEmotesTexture() const;
     std::shared_ptr<Actor> GetPlayer();
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
+    const std::shared_ptr<sf::Texture>& GetCustomEmotesTexture() const;
     EmoteNode& GetEmoteNode();
+    EmoteWidget& GetEmoteWidget();
     std::shared_ptr<Background> GetBackground();
     PA& GetProgramAdvance();
     std::optional<CardFolder*> GetSelectedFolder();

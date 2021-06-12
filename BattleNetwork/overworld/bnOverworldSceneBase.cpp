@@ -1443,6 +1443,11 @@ Overworld::EmoteNode& Overworld::SceneBase::GetEmoteNode()
   return emoteNode;
 }
 
+Overworld::EmoteWidget& Overworld::SceneBase::GetEmoteWidget()
+{
+  return emote;
+}
+
 std::shared_ptr<Background> Overworld::SceneBase::GetBackground()
 {
   return this->bg;

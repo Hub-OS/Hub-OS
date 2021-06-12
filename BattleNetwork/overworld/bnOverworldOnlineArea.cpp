@@ -148,23 +148,26 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     detectWarp();
   }
 
-  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && emote.IsClosed()) {
-    auto& meta = NAVIS.At(currentNavi);
+  auto player = GetPlayer();
+
+  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && GetEmoteWidget().IsClosed()) {
+    auto& meta = NAVIS.At(GetCurrentNavi());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
     auto mugshot = Textures().LoadTextureFromFile(image);
+    auto& menuSystem = GetMenuSystem();
     menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
 
     menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
       if (result) {
-        teleportController.TeleportOut(playerActor).onFinish.Slot([this] {
+        GetTeleportController().TeleportOut(GetPlayer()).onFinish.Slot([this] {
           this->sendLogoutSignal();
           this->leave();
         });
       }
     });
 
-    playerActor->Face(Direction::down_right);
+    player->Face(Direction::down_right);
   }
 
   auto currentNavi = GetCurrentNavi();
@@ -218,9 +221,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     sendPositionSignal();
   }
 
-  lastPosition = GetPlayer()->Get3DPosition();
+  lastPosition = player->Get3DPosition();
 
-  propertyAnimator.Update(*playerActor, elapsed);
+  propertyAnimator.Update(*player, elapsed);
 
   SceneBase::onUpdate(elapsed);
 }
@@ -314,7 +317,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   SceneBase::onDraw(surface);
 
-  if (menuSystem.IsFullscreen()) {
+  if (GetMenuSystem().IsFullscreen()) {
     return;
   }
 
@@ -365,7 +368,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     testActor(actor);
   }
 
-  testActor(*playerActor);
+  testActor(*GetPlayer());
 
   nameText.setPosition(mousef);
   nameText.SetString(topName);
@@ -470,6 +473,7 @@ void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
 }
 
 bool Overworld::OnlineArea::positionIsInWarp(sf::Vector3f position) {
+  auto& map = GetMap();
   auto layerCount = map.GetLayerCount();
 
   if (position.z < 0 || position.z >= layerCount) return false;
@@ -494,7 +498,7 @@ Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Ve
     direction = Direction::none;
   }
 
-  return teleportController.TeleportIn(actor, position, direction);
+  return GetTeleportController().TeleportIn(actor, position, direction);
 }
 
 void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut) {
@@ -504,7 +508,7 @@ void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t 
 
   if (warpOut) {
     GetPlayerController().ReleaseActor();
-    auto& command = teleportController.TeleportOut(GetPlayer());
+    auto& command = GetTeleportController().TeleportOut(GetPlayer());
     command.onFinish.Slot(transfer);
   }
   else {
@@ -1887,7 +1891,7 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
   auto user = reader.ReadString(buffer);
 
   // resolve target
-  auto actor = playerActor;
+  auto actor = GetPlayer();
   auto propertyAnimator = &this->propertyAnimator;
 
   if (user != ticket) {
