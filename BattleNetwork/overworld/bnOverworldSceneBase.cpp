@@ -1265,12 +1265,17 @@ bool Overworld::SceneBase::IsCameraLocked() {
   return cameraLocked;
 }
 
+bool Overworld::SceneBase::IsCameraQueueEmpty() {
+  return cameraQueue.empty();
+}
+
 void Overworld::SceneBase::LockCamera() {
   cameraLocked = true;
 }
 
 void Overworld::SceneBase::UnlockCamera() {
   cameraLocked = false;
+  cameraQueue = {};
 }
 
 void Overworld::SceneBase::QueuePlaceCamera(sf::Vector2f position, sf::Time holdTime) {
@@ -1307,6 +1312,12 @@ void Overworld::SceneBase::QueueUnlockCamera() {
   };
 
   cameraQueue.push(event);
+}
+
+void Overworld::SceneBase::MoveCamera(sf::Vector2f position) {
+  cameraLocked = true;
+  cameraQueue = {};
+  camera.PlaceCamera(position);
 }
 
 void Overworld::SceneBase::GotoChipFolder()

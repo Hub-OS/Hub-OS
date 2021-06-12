@@ -258,6 +258,12 @@ namespace Overworld {
     void QueueUnlockCamera();
 
     /**
+     * @brief Clears the camera queue, locks the camera, and moves the camera
+     * @param position
+     */
+    void MoveCamera(sf::Vector2f position);
+
+    /**
      * @brief Clears the camera queue and follow the player again
      */
     void UnlockCamera();
@@ -294,6 +300,7 @@ namespace Overworld {
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
     bool IsCameraLocked();
+    bool IsCameraQueueEmpty();
 
     //
     // Helpers

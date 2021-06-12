@@ -214,6 +214,18 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     actor->Set3DPosition(newPos);
   }
 
+  if (trackedPlayer && IsCameraQueueEmpty()) {
+    auto it = onlinePlayers.find(*trackedPlayer);
+
+    if (it == onlinePlayers.end()) {
+      trackedPlayer = {};
+    }
+    else {
+      auto position = it->second.actor->Get3DPosition();
+      MoveCamera(GetMap().WorldToScreen(position));
+    }
+  }
+
   movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
@@ -579,6 +591,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::slide_camera:
       receiveSlideCameraSignal(reader, data);
+      break;
+    case ServerEvents::track_with_camera:
+      receiveTrackWithCameraSignal(reader, data);
       break;
     case ServerEvents::unlock_camera:
       QueueUnlockCamera();
@@ -1310,6 +1325,18 @@ void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const
   auto duration = reader.Read<float>(buffer);
 
   QueueMoveCamera(screenPos, sf::seconds(duration));
+}
+
+void Overworld::OnlineArea::receiveTrackWithCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto some = reader.Read<bool>(buffer);
+
+  if (some) {
+    trackedPlayer = reader.ReadString(buffer);
+  }
+  else {
+    trackedPlayer = {};
+  }
 }
 
 void Overworld::OnlineArea::receiveTeleportSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

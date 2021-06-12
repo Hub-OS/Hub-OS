@@ -68,6 +68,7 @@ namespace Overworld {
     Timer movementTimer;
     Text transitionText;
     Text nameText;
+    std::optional<std::string> trackedPlayer;
     bool wasReadingTextBox{ false };
 
     void detectWarp();
@@ -116,6 +117,7 @@ namespace Overworld {
     void receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTrackWithCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer);
     void receiveTeleportSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);
