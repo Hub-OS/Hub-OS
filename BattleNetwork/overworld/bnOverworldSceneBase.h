@@ -39,6 +39,7 @@ namespace Overworld {
   class SceneBase : public Scene {
   public:
     std::shared_ptr<Actor> playerActor;
+    std::shared_ptr<sf::Texture> customEmotesTexture;
     Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
@@ -187,6 +188,8 @@ namespace Overworld {
 
     void SetBackground(const std::shared_ptr<Background>&);
 
+    void SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>&);
+
     /**
      * @brief Add a sprite
      * @param sprite
@@ -278,6 +281,7 @@ namespace Overworld {
     std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
     Map& GetMap();
+    const std::shared_ptr<sf::Texture>& GetCustomEmotesTexture() const;
     std::shared_ptr<Actor> GetPlayer();
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();

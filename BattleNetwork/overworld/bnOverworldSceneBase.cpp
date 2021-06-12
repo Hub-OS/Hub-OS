@@ -1468,6 +1468,14 @@ Overworld::MenuSystem& Overworld::SceneBase::GetMenuSystem()
   return menuSystem;
 }
 
+const std::shared_ptr<sf::Texture>& Overworld::SceneBase::GetCustomEmotesTexture() const {
+  return customEmotesTexture;
+}
+
+void Overworld::SceneBase::SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>& texture) {
+  emoteNode.LoadCustomEmotes(texture);
+}
+
 void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
 {
   emoteNode.Emote(emote);
@@ -1477,8 +1485,6 @@ void Overworld::SceneBase::OnCustomEmoteSelected(unsigned emote)
 {
   emoteNode.CustomEmote(emote);
 }
-
-
 
 std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const
 {

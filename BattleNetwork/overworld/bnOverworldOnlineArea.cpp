@@ -555,6 +555,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::preload:
       receivePreloadSignal(reader, data);
       break;
+    case ServerEvents::custom_emotes_path:
+      receiveCustomEmotesPathSignal(reader, data);
+      break;
     case ServerEvents::map:
       receiveMapSignal(reader, data);
       break;
@@ -1123,6 +1126,12 @@ void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poc
   serverAssetManager.Preload(name);
 }
 
+void Overworld::OnlineArea::receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto path = reader.ReadString(buffer);
+
+  SetCustomEmotesTexture(serverAssetManager.GetTexture(path));
+}
+
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto path = reader.ReadString(buffer);
@@ -1653,6 +1662,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   float emoteY = -actor->getSprite().getOrigin().y - 10;
   emoteNode.setPosition(0, emoteY);
   emoteNode.setScale(0.5f, 0.5f);
+  emoteNode.LoadCustomEmotes(GetCustomEmotesTexture());
 
   auto& teleportController = onlinePlayer.teleportController;
 
@@ -1824,8 +1834,8 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto emote = reader.Read<uint8_t>(buffer);
   auto user = reader.ReadString(buffer);
+  auto emote = reader.Read<uint8_t>(buffer);
   auto custom = reader.Read<bool>(buffer);
 
   if (user == ticket) {
