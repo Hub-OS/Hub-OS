@@ -1,6 +1,7 @@
 #include "bnOverworldShapes.h"
 #include <math.h>
 #include <Swoosh/Ease.h>
+#include "../bnLogger.h"
 
 // using pointers to make mutation clear
 static inline void rotateAround(float centerX, float centerY, float rotation, float* x, float* y) {
@@ -131,13 +132,14 @@ namespace Overworld {
     std::tuple<float, float> lastPoint = points[points.size() - 1];
 
     for (auto& point : points) {
-      auto Ax = std::get<0>(lastPoint) + this->x;
-      auto Ay = std::get<1>(lastPoint) + this->y;
-      auto Bx = std::get<0>(point) + this->x;
-      auto By = std::get<1>(point) + this->y;
+      // note: converting to doubles for math to avoid precision issues
+      double Ax = std::get<0>(lastPoint) + this->x;
+      double Ay = std::get<1>(lastPoint) + this->y;
+      double Bx = std::get<0>(point) + this->x;
+      double By = std::get<1>(point) + this->y;
       lastPoint = point;
 
-      auto run = Bx - Ax;
+      double run = Bx - Ax;
 
       // make sure y is between these points
       // excluding the top point (avoid colliding with vertex twice)
@@ -156,13 +158,14 @@ namespace Overworld {
       }
       else {
         // y = slope * x + yIntercept
-        auto rise = By - Ay;
-        auto slope = rise / run;
-        auto yIntercept = Ay - slope * Ax;
+        double rise = By - Ay;
+        double slope = rise / run;
+        double yIntercept = Ay - slope * Ax;
 
         // find an intersection at y
+        // converting back to float for final comparison
         // algebra: x = (y - yIntercept) / slope
-        auto intersectionX = (y - yIntercept) / slope;
+        float intersectionX = float((y - yIntercept) / slope);
 
         // make sure x is between these points
         auto xIsWithin = (intersectionX >= Ax && intersectionX <= Bx) || (intersectionX >= Bx && intersectionX <= Ax);
