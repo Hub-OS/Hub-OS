@@ -41,6 +41,7 @@ void Camera::Update(double elapsed) {
     // Otherwise calculate the delta
     sf::Vector2f delta = (dest - origin) * static_cast<float>(progress / dur.asMilliseconds()) + origin;
     focus.setCenter(delta);
+    init = focus;
   }
 
   if (isShaking) {

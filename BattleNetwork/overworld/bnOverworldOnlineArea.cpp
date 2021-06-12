@@ -592,6 +592,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::slide_camera:
       receiveSlideCameraSignal(reader, data);
       break;
+    case ServerEvents::shake_camera:
+      receiveShakeCameraSignal(reader, data);
+      break;
     case ServerEvents::track_with_camera:
       receiveTrackWithCameraSignal(reader, data);
       break;
@@ -1325,6 +1328,21 @@ void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const
   auto duration = reader.Read<float>(buffer);
 
   QueueMoveCamera(screenPos, sf::seconds(duration));
+}
+
+void Overworld::OnlineArea::receiveShakeCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto strength = reader.Read<float>(buffer);
+  auto duration = sf::seconds(reader.Read<float>(buffer));
+
+  if (IsCameraQueueEmpty()) {
+    // adding shake to the queue can break tracking players
+    // no need to add it to the queue if it's empty, just apply directly
+    GetCamera().ShakeCamera(strength, duration);
+  }
+  else {
+    QueueShakeCamera(strength, duration);
+  }
 }
 
 void Overworld::OnlineArea::receiveTrackWithCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

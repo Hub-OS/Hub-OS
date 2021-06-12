@@ -311,16 +311,16 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 }
 
 void Overworld::SceneBase::HandleCamera(float elapsed) {
-  camera.Update(elapsed);
-
   if (!cameraLocked) {
     // Follow the navi
     sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
     pos.y -= playerActor->GetElevation() * map.GetTileSize().y / 2.0f;
     camera.PlaceCamera(pos);
+    camera.Update(elapsed);
     return;
   }
 
+  camera.Update(elapsed);
   cameraTimer.update(sf::seconds(elapsed));
 
   if (cameraTimer.getElapsed().asMilliseconds() > 0 || cameraQueue.empty()) {
@@ -329,17 +329,21 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
 
   auto& event = cameraQueue.front();
 
-  if (event.unlock) {
-    UnlockCamera();
-    cameraQueue = {};
-    return;
-  }
-
-  if (event.slide) {
+  switch (event.type) {
+  case CameraEventType::Move:
     camera.MoveCamera(event.position, event.duration);
-  }
-  else {
+    break;
+  case CameraEventType::Place:
     camera.PlaceCamera(event.position);
+    break;
+  case CameraEventType::Shake:
+    camera.ShakeCamera(event.shakeStrength, event.duration);
+    // shake duration does not block queue (will still eat a frame, at least for now)
+    event.duration = sf::Time::Zero;
+    break;
+  case CameraEventType::Unlock:
+    UnlockCamera();
+    break;
   }
 
   cameraTimer.set(event.duration);
@@ -1282,8 +1286,7 @@ void Overworld::SceneBase::QueuePlaceCamera(sf::Vector2f position, sf::Time hold
   LockCamera();
 
   QueuedCameraEvent event{
-    false,
-    false,
+    CameraEventType::Place,
     position,
     holdTime
   };
@@ -1295,10 +1298,20 @@ void Overworld::SceneBase::QueueMoveCamera(sf::Vector2f position, sf::Time durat
   LockCamera();
 
   QueuedCameraEvent event{
-    false,
-    true,
+    CameraEventType::Move,
     position,
     duration
+  };
+
+  cameraQueue.push(event);
+}
+
+void Overworld::SceneBase::QueueShakeCamera(float stress, sf::Time duration) {
+  QueuedCameraEvent event{
+    CameraEventType::Shake,
+    sf::Vector2f(),
+    duration,
+    stress
   };
 
   cameraQueue.push(event);
@@ -1308,7 +1321,7 @@ void Overworld::SceneBase::QueueUnlockCamera() {
   LockCamera();
 
   QueuedCameraEvent event{
-    true // unlock
+    CameraEventType::Unlock,
   };
 
   cameraQueue.push(event);
