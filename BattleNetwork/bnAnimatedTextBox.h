@@ -115,6 +115,12 @@ public:
   const bool IsEndOfBlock();
 
   /**
+   * @brief Query if the current message has another block
+   * @return false if the textbox has more blocks, true otherwise
+   */
+  bool IsFinalBlock() const;
+
+  /**
    * @brief Will remove the first line and add the next line to ensure all text fits
    */
   void ShowNextLines();

@@ -1824,9 +1824,9 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto custom = (bool)reader.Read<char>(buffer);
   auto emote = reader.Read<uint8_t>(buffer);
   auto user = reader.ReadString(buffer);
+  auto custom = reader.Read<bool>(buffer);
 
   if (user == ticket) {
     if (custom) {

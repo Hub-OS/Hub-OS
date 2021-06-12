@@ -82,6 +82,10 @@ const bool AnimatedTextBox::IsEndOfBlock()
   return textBox.IsEndOfBlock();
 }
 
+bool AnimatedTextBox::IsFinalBlock() const {
+  return textBox.IsFinalBlock();
+}
+
 void AnimatedTextBox::ShowPreviousLines()
 {
   for (int i = 0; i < textBox.GetNumberOfFittingLines(); i++) {
