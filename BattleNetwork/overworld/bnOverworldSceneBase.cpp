@@ -354,7 +354,10 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
   }
 
   cameraTimer.set(event.duration);
-  cameraQueue.pop();
+
+  if (cameraQueue.size()) {
+    cameraQueue.pop();
+  }
 }
 
 void Overworld::SceneBase::HandleInput() {

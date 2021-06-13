@@ -46,7 +46,7 @@ void AlphaRocket::OnUpdate(double _elapsed) {
   }
 
   // Keep moving
-  Slide(GetTile() + GetDirection(), frames(3), frames(0));
+  Slide(GetTile() + GetDirection(), frames(20), frames(0));
 
   if (GetTile()->IsEdgeTile()) {
       Delete();

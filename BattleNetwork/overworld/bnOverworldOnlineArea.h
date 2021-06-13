@@ -56,6 +56,7 @@ namespace Overworld {
     bool transferringServers{ false };
     bool kicked{ false };
     bool isEnteringBattle{ false };
+    bool tryPopScene{ false };
     ActorPropertyAnimator propertyAnimator;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;

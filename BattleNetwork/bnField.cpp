@@ -548,7 +548,7 @@ void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, Entity::ID_t ID)
     if (q->x == tile->GetX() && q->y == tile->GetY()) {
       if (q->ID == ID) {
         q = pending.erase(q);
-        DeallocEntity(ID);
+        // DeallocEntity(ID); // TODO: Check if commenting this out is a problem. This is a nasty side effect and really oughtta not be here...
         break;
       }
     }

@@ -111,6 +111,13 @@ Overworld::OnlineArea::~OnlineArea()
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
+  if (tryPopScene) {
+    using effect = segue<PixelateBlackWashFade>;
+    if (getController().pop<effect>()) {
+      tryPopScene = false;
+    }
+  }
+
   if (!packetProcessor) {
     return;
   }
@@ -2030,8 +2037,7 @@ void Overworld::OnlineArea::leave() {
     packetProcessor = nullptr;
   }
 
-  using effect = segue<PixelateBlackWashFade>;
-  getController().pop<effect>();
+  tryPopScene = true;
 }
 
 std::string Overworld::OnlineArea::GetText(const std::string& path) {

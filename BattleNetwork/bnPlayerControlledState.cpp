@@ -45,7 +45,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     InputEvent copy;
     copy.name = name;
     copy.state = state;
-    copy.wait = from_seconds(currLag/1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
+    copy.wait = frames(0); // from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
 
     inputQueue.push_back(copy);
     
@@ -163,6 +163,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.Charge(false);
+  Logger::Logf("PlayerControlledState::OnLeave()");
 }
 
 const bool PlayerControlledState::InputQueueHas(const InputEvent& item)

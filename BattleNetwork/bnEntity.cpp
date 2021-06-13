@@ -174,9 +174,9 @@ void Entity::UpdateMovement(double elapsed)
             bool notIce = (next && tile->GetState() != TileState::ice);
             bool cannotMove = (next && !CanMoveTo(next));
             bool weAreIce = (GetElement() == Element::ice);
-            bool cancelSlide = !slidesOnTiles && (notIce || cannotMove || weAreIce);
+            bool cancelSlide = (notIce || cannotMove || weAreIce);
 
-            if (!cancelSlide) {
+            if (slidesOnTiles && !cancelSlide) {
               MoveEvent event = { frames(3), frames(0), frames(0), 0, tile + previousDirection };
               RawMoveEvent(event, ActionOrder::immediate);
             }

@@ -176,7 +176,7 @@ void CardAction::Update(double _elapsed)
   if (!started) return;
 
   if (lockoutProps.type == CardAction::LockoutType::sequence) {
-    sequence.update(_elapsed);
+    sequence.update(sf::seconds(_elapsed));
     if (sequence.isEmpty()) {
       animationIsOver = true; // animation for sequence is complete
       RecallPreviousState();

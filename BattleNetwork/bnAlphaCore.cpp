@@ -329,8 +329,8 @@ void AlphaCore::HideLeftArm()
 
   auto fx = new MobMoveEffect();
   GetField()->AddEntity(*fx, leftArm->GetTile()->GetX(), leftArm->GetTile()->GetY());
-  leftArm->GetTile()->ReserveEntityByID(leftArm->GetID());
   leftArm->GetTile()->RemoveEntityByID(leftArm->GetID());
+  leftArm->GetTile()->ReserveEntityByID(leftArm->GetID());
 }
 
 void AlphaCore::RevealLeftArm()
@@ -348,8 +348,8 @@ void AlphaCore::HideRightArm()
 
   auto fx = new MobMoveEffect();
   GetField()->AddEntity(*fx, rightArm->GetTile()->GetX(), rightArm->GetTile()->GetY());
-  rightArm->GetTile()->ReserveEntityByID(rightArm->GetID());
   rightArm->GetTile()->RemoveEntityByID(rightArm->GetID());
+  rightArm->GetTile()->ReserveEntityByID(rightArm->GetID());
 }
 
 void AlphaCore::RevealRightArm()

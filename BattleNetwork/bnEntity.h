@@ -484,7 +484,7 @@ private:
   bool passthrough{};
   bool floatShoe{};
   bool airShoe{};
-  bool slidesOnTiles{};
+  bool slidesOnTiles{true}; /* by default everything responds to tile push/slide events */
   bool deleted{}; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
   bool flagForRemove{}; /*!< Used to remove this entity from the field immediately */
   int moveCount{}; /*!< Used by battle results */

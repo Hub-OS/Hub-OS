@@ -16,7 +16,7 @@ AlphaElectricCurrent::AlphaElectricCurrent(Team team, int count) :
   anim->SetPath(RESOURCE_PATH);
   anim->Load();
   setScale(2.f, 2.f);
-  SetHeight(58);
+  SetHeight(29);
 
   auto props = Hit::DefaultProperties;
   props.flags |= Hit::flash;

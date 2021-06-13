@@ -121,7 +121,7 @@ void AlphaArm::OnUpdate(double _elapsed) {
 
     delta = GetTile()->GetHeight();
 
-    if (totalElapsed > 1.0f) {
+    if (totalElapsed > 0.7f) {
       if (!isSwiping) {
         isSwiping = true;
         Audio().Play(AudioType::SWORD_SWING);
@@ -129,10 +129,10 @@ void AlphaArm::OnUpdate(double _elapsed) {
 
       blueShadow->Reveal();
 
-      delta = (1.0f - swoosh::ease::linear(static_cast<float>(totalElapsed) - 1.0f, 0.12f, 1.0f));
+      delta = (1.0f - swoosh::ease::linear(static_cast<float>(totalElapsed) - 0.7f, 0.12f, 1.0f));
       delta *= GetTile()->GetHeight();
 
-      if (totalElapsed - 1.0f > 0.12f) {
+      if (totalElapsed - 0.7f > 0.12f) {
         // May have just finished moving
         if (!Teammate(GetTile()->GetTeam())) {
           if (canChangeTileState) {
@@ -146,7 +146,7 @@ void AlphaArm::OnUpdate(double _elapsed) {
             isFinished = true;
           }
           else {
-            Slide(GetTile() + GetDirection(), frames(8), frames(0));
+            Slide(GetTile() + GetDirection(), frames(6), frames(0));
           }
         }
       }
@@ -156,7 +156,7 @@ void AlphaArm::OnUpdate(double _elapsed) {
     delta = 0; // do not bob
 
       // May have just finished moving
-    if (totalElapsed > 1.2f) {
+    if (totalElapsed > 0.7f) {
       if (!isSwiping) {
         isSwiping = true;
         Audio().Play(AudioType::TOSS_ITEM_LITE);
@@ -174,7 +174,7 @@ void AlphaArm::OnUpdate(double _elapsed) {
           isFinished = true;
         }
         else {
-          Slide(GetTile() + GetDirection(), frames(8), frames(0));
+          Slide(GetTile() + GetDirection(), frames(6), frames(0));
         }
       }
     }
