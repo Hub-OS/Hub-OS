@@ -72,8 +72,8 @@ public:
       updateFunc(u), drawFunc(d) {}
 
     // inherited functions simply invoke the functors
-    void update(double elapsed) override {
-      if (updateFunc) updateFunc(elapsed, *this);
+    void update(sf::Time elapsed) override {
+      if (updateFunc) updateFunc(elapsed.asSeconds(), *this);
     }
     void draw(sf::RenderTexture& surface) override {
       if (drawFunc) drawFunc(surface, *this);
