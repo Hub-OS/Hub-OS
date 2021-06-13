@@ -519,7 +519,7 @@ void Overworld::OnlineArea::OnInteract() {
   sendTileInteractionSignal(
     frontPosition.x / (float)(tileSize.x / 2),
     frontPosition.y / tileSize.y,
-    0.0
+    playerActor->GetElevation()
   );
 }
 
