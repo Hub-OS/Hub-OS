@@ -148,23 +148,26 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     detectWarp();
   }
 
-  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && emote.IsClosed()) {
-    auto& meta = NAVIS.At(currentNavi);
+  auto player = GetPlayer();
+
+  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && GetEmoteWidget().IsClosed()) {
+    auto& meta = NAVIS.At(GetCurrentNavi());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
     auto mugshot = Textures().LoadTextureFromFile(image);
+    auto& menuSystem = GetMenuSystem();
     menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
 
     menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
       if (result) {
-        teleportController.TeleportOut(playerActor).onFinish.Slot([this] {
+        GetTeleportController().TeleportOut(GetPlayer()).onFinish.Slot([this] {
           this->sendLogoutSignal();
           this->leave();
         });
       }
     });
 
-    playerActor->Face(Direction::down_right);
+    player->Face(Direction::down_right);
   }
 
   auto currentNavi = GetCurrentNavi();
@@ -211,6 +214,18 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     actor->Set3DPosition(newPos);
   }
 
+  if (trackedPlayer && IsCameraQueueEmpty()) {
+    auto it = onlinePlayers.find(*trackedPlayer);
+
+    if (it == onlinePlayers.end()) {
+      trackedPlayer = {};
+    }
+    else {
+      auto position = it->second.actor->Get3DPosition();
+      MoveCamera(GetMap().WorldToScreen(position));
+    }
+  }
+
   movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
@@ -218,9 +233,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     sendPositionSignal();
   }
 
-  lastPosition = GetPlayer()->Get3DPosition();
+  lastPosition = player->Get3DPosition();
 
-  propertyAnimator.Update(*playerActor, elapsed);
+  propertyAnimator.Update(*player, elapsed);
 
   SceneBase::onUpdate(elapsed);
 }
@@ -314,7 +329,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   SceneBase::onDraw(surface);
 
-  if (menuSystem.IsFullscreen()) {
+  if (GetMenuSystem().IsFullscreen()) {
     return;
   }
 
@@ -365,7 +380,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     testActor(actor);
   }
 
-  testActor(*playerActor);
+  testActor(*GetPlayer());
 
   nameText.setPosition(mousef);
   nameText.SetString(topName);
@@ -470,6 +485,7 @@ void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
 }
 
 bool Overworld::OnlineArea::positionIsInWarp(sf::Vector3f position) {
+  auto& map = GetMap();
   auto layerCount = map.GetLayerCount();
 
   if (position.z < 0 || position.z >= layerCount) return false;
@@ -494,7 +510,7 @@ Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Ve
     direction = Direction::none;
   }
 
-  return teleportController.TeleportIn(actor, position, direction);
+  return GetTeleportController().TeleportIn(actor, position, direction);
 }
 
 void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut) {
@@ -504,7 +520,7 @@ void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t 
 
   if (warpOut) {
     GetPlayerController().ReleaseActor();
-    auto& command = teleportController.TeleportOut(GetPlayer());
+    auto& command = GetTeleportController().TeleportOut(GetPlayer());
     command.onFinish.Slot(transfer);
   }
   else {
@@ -555,6 +571,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::preload:
       receivePreloadSignal(reader, data);
       break;
+    case ServerEvents::custom_emotes_path:
+      receiveCustomEmotesPathSignal(reader, data);
+      break;
     case ServerEvents::map:
       receiveMapSignal(reader, data);
       break;
@@ -572,6 +591,12 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::slide_camera:
       receiveSlideCameraSignal(reader, data);
+      break;
+    case ServerEvents::shake_camera:
+      receiveShakeCameraSignal(reader, data);
+      break;
+    case ServerEvents::track_with_camera:
+      receiveTrackWithCameraSignal(reader, data);
       break;
     case ServerEvents::unlock_camera:
       QueueUnlockCamera();
@@ -1123,6 +1148,12 @@ void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poc
   serverAssetManager.Preload(name);
 }
 
+void Overworld::OnlineArea::receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto path = reader.ReadString(buffer);
+
+  SetCustomEmotesTexture(serverAssetManager.GetTexture(path));
+}
+
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto path = reader.ReadString(buffer);
@@ -1297,6 +1328,33 @@ void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const
   auto duration = reader.Read<float>(buffer);
 
   QueueMoveCamera(screenPos, sf::seconds(duration));
+}
+
+void Overworld::OnlineArea::receiveShakeCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto strength = reader.Read<float>(buffer);
+  auto duration = sf::seconds(reader.Read<float>(buffer));
+
+  if (IsCameraQueueEmpty()) {
+    // adding shake to the queue can break tracking players
+    // no need to add it to the queue if it's empty, just apply directly
+    GetCamera().ShakeCamera(strength, duration);
+  }
+  else {
+    QueueShakeCamera(strength, duration);
+  }
+}
+
+void Overworld::OnlineArea::receiveTrackWithCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto some = reader.Read<bool>(buffer);
+
+  if (some) {
+    trackedPlayer = reader.ReadString(buffer);
+  }
+  else {
+    trackedPlayer = {};
+  }
 }
 
 void Overworld::OnlineArea::receiveTeleportSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1653,6 +1711,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   float emoteY = -actor->getSprite().getOrigin().y - 10;
   emoteNode.setPosition(0, emoteY);
   emoteNode.setScale(0.5f, 0.5f);
+  emoteNode.LoadCustomEmotes(GetCustomEmotesTexture());
 
   auto& teleportController = onlinePlayer.teleportController;
 
@@ -1824,8 +1883,8 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto emote = reader.Read<uint8_t>(buffer);
   auto user = reader.ReadString(buffer);
+  auto emote = reader.Read<uint8_t>(buffer);
   auto custom = reader.Read<bool>(buffer);
 
   if (user == ticket) {
@@ -1877,7 +1936,7 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
   auto user = reader.ReadString(buffer);
 
   // resolve target
-  auto actor = playerActor;
+  auto actor = GetPlayer();
   auto propertyAnimator = &this->propertyAnimator;
 
   if (user != ticket) {
