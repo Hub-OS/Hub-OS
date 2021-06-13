@@ -319,10 +319,11 @@ void Overworld::OnlineArea::detectWarp() {
       sf::Vector2f player_pos = { player->getPosition().x, player->getPosition().y };
       float distance = std::powf(targetWorldPos.x - player_pos.x, 2.0f) + std::powf(targetWorldPos.y - player_pos.y, 2.0f);
 
-      // distance is ~ 30,000 and the rh expression is only 20,000...
-      //if (distance < 10 * map.GetTileSize().x * map.GetTileSize().y) {
-        QueueWaneCamera(map.WorldToScreen(targetPosition), interpolateTime, 0.8f);
-      //}
+      // this is a magic number - this is about as close to 2 warps that are 8 blocks away vertically 
+      // (expression is also squared)
+      if (distance < 40'000) {
+        QueueWaneCamera(map.WorldToScreen(targetPosition), interpolateTime, 0.55f);
+      }
 
       command.onFinish.Slot([=] {
         teleportIn(targetPosition, Orthographic(direction));

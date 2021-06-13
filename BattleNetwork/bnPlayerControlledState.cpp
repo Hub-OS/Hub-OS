@@ -67,11 +67,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     return;
   }
 
-  // We must be in an actionable state to do anything
-  if (!actionable) {
-    return;
-  }
-
   bool missChargeKey = isChargeHeld && !InputQueueHas(InputEvents::held_shoot);
 
   // Are we creating an action this frame?
@@ -130,7 +125,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     direction = Direction::right;
   }
 
-  if(direction != Direction::none) {
+  if(direction != Direction::none && actionable) {
     auto next_tile = player.GetTile() + direction;
     auto onMoveBegin = [player = &player, next_tile, this, anim] {
       if (replicator) {
