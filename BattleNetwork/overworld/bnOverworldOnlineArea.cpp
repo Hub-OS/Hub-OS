@@ -321,7 +321,7 @@ void Overworld::OnlineArea::detectWarp() {
 
       // distance is ~ 30,000 and the rh expression is only 20,000...
       //if (distance < 10 * map.GetTileSize().x * map.GetTileSize().y) {
-        QueueMoveCamera(map.WorldToScreen(targetPosition), interpolateTime);
+        QueueWaneCamera(map.WorldToScreen(targetPosition), interpolateTime, 0.8f);
       //}
 
       command.onFinish.Slot([=] {

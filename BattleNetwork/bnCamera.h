@@ -10,9 +10,11 @@
 class Camera
 {
   bool isShaking{ false }; /*!< Flag for shaking camera */
+  bool waning{ false }; /*!< Toggle how movement is interpolated */
   double progress{}; /*!< Progress of movement */
   double shakeProgress{}; /*!< Progress of shake effect */
   double stress{}; /*!< How much stress to apply to shake */
+  double waneFactor{};
   sf::Vector2f dest{}; /*!< Camera destination if moving */
   sf::Vector2f origin{}; /*!< Camera' origin */
   sf::Time dur; /*!< Duration of movement */
@@ -40,6 +42,14 @@ public:
    */
   void MoveCamera(sf::Vector2f destination, sf::Time duration);
   
+  /**
+   * @brief Burst of movement and then inches toward destination
+   * @param destination point in world space
+   * @param duration time
+   * @param factor waning factor. smaller (0.01 - 0.5) is snappier while (0.5-1.0) is smoother. anything past f > 1.0 becomes linear at the cost of a delay.
+   */
+  void WaneCamera(sf::Vector2f destination, sf::Time duration, float factor);
+
   /**
    * @brief Teleport camera to position
    * @param pos point in world space

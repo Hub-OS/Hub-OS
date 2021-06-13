@@ -1,6 +1,7 @@
 #include "bnCamera.h"
 #include <iostream>
 #include <cmath>
+#include <Swoosh/Ease.h>
 
 Camera::Camera(const sf::View& view) : focus(view)
 {
@@ -36,12 +37,24 @@ void Camera::Update(double elapsed) {
   // If progress is over, update position to the dest
   if (sf::Time(sf::milliseconds((sf::Int32)progress)) >= dur) {
     PlaceCamera(dest);
+
+    // reset wane params
+    waneFactor = 1.0f;
+    waning = false;
   }
   else {  
     // Otherwise calculate the delta
-    sf::Vector2f delta = (dest - origin) * static_cast<float>(progress / dur.asMilliseconds()) + origin;
-    focus.setCenter(delta);
-    init = focus;
+    if (waning) {
+      double x = swoosh::ease::wane(progress, (double)dur.asMilliseconds(), waneFactor);
+      sf::Vector2f delta = (dest - origin) * (float)x + origin;
+      focus.setCenter(delta);
+      init = focus;
+    }
+    else {
+      sf::Vector2f delta = (dest - origin) * static_cast<float>(progress / dur.asMilliseconds()) + origin;
+      focus.setCenter(delta);
+      init = focus;
+    }
   }
 
   if (isShaking) {
@@ -71,6 +84,16 @@ void Camera::MoveCamera(sf::Vector2f destination, sf::Time duration) {
   dest = destination;
   dur = duration;
 
+}
+
+void Camera::WaneCamera(sf::Vector2f destination, sf::Time duration, float factor)
+{
+  waneFactor = factor;
+  waning = true;
+  origin = focus.getCenter();
+  progress = 0;
+  dest = destination;
+  dur = duration;
 }
 
 void Camera::PlaceCamera(sf::Vector2f pos) {

@@ -47,12 +47,13 @@ namespace Overworld {
     Overworld::SpatialMap spatialMap{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
 
-    enum class CameraEventType { Place, Move, Shake, Unlock };
+    enum class CameraEventType { Place, Move, Shake, Unlock, Wane };
     struct QueuedCameraEvent {
       CameraEventType type;
       sf::Vector2f position;
       sf::Time duration;
-      double shakeStrength;
+      double shakeStrength{};
+      double waneFactor{};
     };
 
     double animElapsed{};
@@ -253,6 +254,14 @@ namespace Overworld {
      * @param duration
      */
     void QueueMoveCamera(sf::Vector2f position, sf::Time duration);
+
+    /**
+   * @brief Locks the camera and queues WaneCamera
+   * @param position
+   * @param duration
+   * @param waneFactor
+   */
+    void QueueWaneCamera(sf::Vector2f position, sf::Time duration, double waneFactor);
 
     /**
      * @brief Camera shakes

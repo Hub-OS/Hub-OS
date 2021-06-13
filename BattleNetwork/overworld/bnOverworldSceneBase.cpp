@@ -340,6 +340,9 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
   case CameraEventType::Move:
     camera.MoveCamera(event.position, event.duration);
     break;
+  case CameraEventType::Wane:
+    camera.WaneCamera(event.position, event.duration, event.waneFactor);
+    break;
   case CameraEventType::Place:
     camera.PlaceCamera(event.position);
     break;
@@ -1311,6 +1314,21 @@ void Overworld::SceneBase::QueueMoveCamera(sf::Vector2f position, sf::Time durat
     CameraEventType::Move,
     position,
     duration
+  };
+
+  cameraQueue.push(event);
+}
+
+void Overworld::SceneBase::QueueWaneCamera(sf::Vector2f position, sf::Time duration, double waneFactor)
+{
+  LockCamera();
+
+  QueuedCameraEvent event{
+    CameraEventType::Wane,
+    position,
+    duration,
+    0,
+    waneFactor
   };
 
   cameraQueue.push(event);
