@@ -71,6 +71,8 @@ namespace Overworld {
     Text nameText;
     std::optional<std::string> trackedPlayer;
     bool wasReadingTextBox{ false };
+    CameraController serverCameraController;
+    CameraController warpCameraController;
 
     void detectWarp();
     bool positionIsInWarp(sf::Vector3f position);

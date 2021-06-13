@@ -20,6 +20,7 @@
 #include "../bnCardFolderCollection.h"
 
 // overworld
+#include "bnOverworldCameraController.h"
 #include "bnOverworldSprite.h"
 #include "bnOverworldActor.h"
 #include "bnOverworldPlayerController.h"
@@ -47,15 +48,6 @@ namespace Overworld {
     Overworld::SpatialMap spatialMap{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
 
-    enum class CameraEventType { Place, Move, Shake, Unlock, Wane };
-    struct QueuedCameraEvent {
-      CameraEventType type;
-      sf::Vector2f position;
-      sf::Time duration;
-      double shakeStrength{};
-      double waneFactor{};
-    };
-
     double animElapsed{};
     bool showMinimap{ false };
     bool inputLocked{ false };
@@ -67,11 +59,10 @@ namespace Overworld {
     bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
     bool guestAccount{ false };
 
-    std::queue<QueuedCameraEvent> cameraQueue;
-    Camera camera; /*!< camera in scene follows player */
+    Camera camera;
+    CameraController cameraController; /*!< camera in scene follows player */
     Text time;
 
-    swoosh::Timer cameraTimer;
     sf::Vector3f returnPoint{};
     sf::Vector3f cameraTrackPoint{}; // used for smooth cameras
     PersonalMenu personalMenu;
@@ -232,57 +223,15 @@ namespace Overworld {
      */
     void UnlockInput();
 
-
     /**
-     * @brief Stops the camera from following the player
+     * @brief Stop the camera from following the player
      * @param actor
      */
     void LockCamera();
 
-
     /**
-     * @brief Locks the camera and queues PlaceCamera
-     * @param position
-     * @param holdTime
-     */
-    void QueuePlaceCamera(sf::Vector2f position, sf::Time holdTime = sf::Time::Zero);
-
-
-    /**
-     * @brief Locks the camera and queues MoveCamera
-     * @param position
-     * @param duration
-     */
-    void QueueMoveCamera(sf::Vector2f position, sf::Time duration);
-
-    /**
-   * @brief Locks the camera and queues WaneCamera
-   * @param position
-   * @param duration
-   * @param waneFactor
-   */
-    void QueueWaneCamera(sf::Vector2f position, sf::Time duration, double waneFactor);
-
-    /**
-     * @brief Camera shakes
-     * @param stress intensity of the shake effect
-     * @param duration duration of the effect, does not block the queue
-     */
-    void QueueShakeCamera(float stress, sf::Time duration);
-
-    /**
-     * @brief Unlocks the camera and clears the queue after completing previous camera events
-     */
-    void QueueUnlockCamera();
-
-    /**
-     * @brief Clears the camera queue, locks the camera, and moves the camera
-     * @param position
-     */
-    void MoveCamera(sf::Vector2f position);
-
-    /**
-     * @brief Clears the camera queue and follow the player again
+     * @brief Allow the camera to follow the player
+     * @param actor
      */
     void UnlockCamera();
 
@@ -317,8 +266,6 @@ namespace Overworld {
     std::optional<CardFolder*> GetSelectedFolder();
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
-    bool IsCameraLocked();
-    bool IsCameraQueueEmpty();
 
     //
     // Helpers

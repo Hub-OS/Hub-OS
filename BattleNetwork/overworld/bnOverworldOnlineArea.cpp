@@ -221,18 +221,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     actor->Set3DPosition(newPos);
   }
 
-  if (trackedPlayer && IsCameraQueueEmpty()) {
-    auto it = onlinePlayers.find(*trackedPlayer);
-
-    if (it == onlinePlayers.end()) {
-      trackedPlayer = {};
-    }
-    else {
-      auto position = it->second.actor->Get3DPosition();
-      MoveCamera(GetMap().WorldToScreen(position));
-    }
-  }
-
   movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
@@ -244,7 +232,36 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   propertyAnimator.Update(*player, elapsed);
 
+  // handle camera locking and player tracking
+  if (trackedPlayer && serverCameraController.IsQueueEmpty()) {
+    auto it = onlinePlayers.find(*trackedPlayer);
+
+    if (it == onlinePlayers.end()) {
+      trackedPlayer = {};
+    }
+    else {
+      auto position = it->second.actor->Get3DPosition();
+      serverCameraController.MoveCamera(GetMap().WorldToScreen(position));
+    }
+
+    // stop warp camera if tracking an actor
+    warpCameraController.UnlockCamera();
+  }
+
+  if (serverCameraController.IsQueueEmpty() || trackedPlayer) {
+    warpCameraController.UnlockCamera();
+  }
+
+  if (!serverCameraController.IsQueueEmpty() || trackedPlayer || !warpCameraController.IsQueueEmpty()) {
+    LockCamera();
+  }
+
   SceneBase::onUpdate(elapsed);
+
+  auto& camera = GetCamera();
+  warpCameraController.UpdateCamera(float(elapsed), camera);
+  serverCameraController.UpdateCamera(float(elapsed), camera);
+  UnlockCamera(); // reset lock, we'll lock it later if we need to
 }
 
 void Overworld::OnlineArea::detectWarp() {
@@ -283,7 +300,7 @@ void Overworld::OnlineArea::detectWarp() {
     auto interpolateTime = sf::seconds(0.5f);
 
     if (type == "Home Warp") {
-      QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
 
       command.onFinish.Slot([=] {
         GetPlayerController().ReleaseActor();
@@ -292,7 +309,7 @@ void Overworld::OnlineArea::detectWarp() {
         });
     }
     else if (type == "Server Warp") {
-      QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
 
       auto address = tileObject.customProperties.GetProperty("Address");
       auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("Port");
@@ -317,21 +334,22 @@ void Overworld::OnlineArea::detectWarp() {
       auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
 
       sf::Vector2f player_pos = { player->getPosition().x, player->getPosition().y };
-      float distance = std::powf(targetWorldPos.x - player_pos.x, 2.0f) + std::powf(targetWorldPos.y - player_pos.y, 2.0f);
+      float distance = std::pow(targetWorldPos.x - player_pos.x, 2.0f) + std::pow(targetWorldPos.y - player_pos.y, 2.0f);
 
       // this is a magic number - this is about as close to 2 warps that are 8 blocks away vertically 
       // (expression is also squared)
       if (distance < 40'000) {
         QueueWaneCamera(map.WorldToScreen(targetPosition), interpolateTime, 0.55f);
+        warpCameraController.QueueMoveCamera(map.WorldToScreen(targetPosition), interpolateTime);
       }
 
       command.onFinish.Slot([=] {
         teleportIn(targetPosition, Orthographic(direction));
-        QueueUnlockCamera();
+        warpCameraController.QueueUnlockCamera();
       });
     }
     else if (type == "Custom Warp" || type == "Custom Server Warp") {
-      QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
 
       command.onFinish.Slot([=] {
         sendCustomWarpSignal(tileObject.id);
@@ -626,7 +644,7 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       receiveTrackWithCameraSignal(reader, data);
       break;
     case ServerEvents::unlock_camera:
-      QueueUnlockCamera();
+      serverCameraController.QueueUnlockCamera();
       break;
     case ServerEvents::lock_input:
       LockInput();
@@ -1335,7 +1353,7 @@ void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const 
 
   auto duration = reader.Read<float>(buffer);
 
-  QueuePlaceCamera(screenPos, sf::seconds(duration));
+  serverCameraController.QueuePlaceCamera(screenPos, sf::seconds(duration));
 }
 
 void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1354,7 +1372,7 @@ void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const
 
   auto duration = reader.Read<float>(buffer);
 
-  QueueMoveCamera(screenPos, sf::seconds(duration));
+  serverCameraController.QueueMoveCamera(screenPos, sf::seconds(duration));
 }
 
 void Overworld::OnlineArea::receiveShakeCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1362,13 +1380,13 @@ void Overworld::OnlineArea::receiveShakeCameraSignal(BufferReader& reader, const
   auto strength = reader.Read<float>(buffer);
   auto duration = sf::seconds(reader.Read<float>(buffer));
 
-  if (IsCameraQueueEmpty()) {
+  if (serverCameraController.IsQueueEmpty()) {
     // adding shake to the queue can break tracking players
     // no need to add it to the queue if it's empty, just apply directly
     GetCamera().ShakeCamera(strength, duration);
   }
   else {
-    QueueShakeCamera(strength, duration);
+    serverCameraController.QueueShakeCamera(strength, duration);
   }
 }
 
