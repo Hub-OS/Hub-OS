@@ -14,7 +14,8 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
 
   DefenseRule* virusBody{ nullptr };
   AnimationComponent* animationComponent{ nullptr };
-  SpriteProxyNode *acid, *head, *side, *leftShoulder, *rightShoulder, *leftShoulderShoot, *rightShoulderShoot;
+  SpriteProxyNode* acid{ nullptr }, *head{ nullptr }, *side{ nullptr }, *leftShoulder{ nullptr }, 
+    *rightShoulder{ nullptr }, *leftShoulderShoot{ nullptr }, *rightShoulderShoot{ nullptr };
   Animation animation;
   double totalElapsed, coreRegen;
   float hitHeight;

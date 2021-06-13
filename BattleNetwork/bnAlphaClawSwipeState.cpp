@@ -46,9 +46,9 @@ void AlphaClawSwipeState::OnUpdate(double _elapsed, AlphaCore& a) {
 
   // right claw finished swiping, spawn left claw
   if (rightArm && rightArm->GetIsFinished()) {
-      SpawnLeftArm(a);
-      rightArm->GetTile()->RemoveEntityByID(rightArm->GetID());
-      rightArm->Delete();
+    rightArm->GetTile()->RemoveEntityByID(rightArm->GetID());
+    rightArm->Delete();
+    SpawnLeftArm(a);
   }
 
   if (leftArm && leftArm->GetIsFinished()) {

@@ -93,7 +93,7 @@ AlphaArm::~AlphaArm() {
 
 bool AlphaArm::CanMoveTo(Battle::Tile * next)
 {
-  return true;
+  return next;
 }
 
 void AlphaArm::OnUpdate(double _elapsed) {

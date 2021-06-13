@@ -58,6 +58,7 @@ namespace Overworld {
     bool inputLocked{ false };
     bool cameraLocked{ false };
     bool teleportedOut{ false }; /*!< We may return to this area*/
+    bool cameraSmooth{ false }; /*!< Used if camera should lerp to a destination (via warps) */
     bool clicked{ false }, scaledmap{ false };
     bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
     bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
@@ -69,7 +70,7 @@ namespace Overworld {
 
     swoosh::Timer cameraTimer;
     sf::Vector3f returnPoint{};
-
+    sf::Vector3f cameraTrackPoint{}; // used for smooth cameras
     PersonalMenu personalMenu;
     Minimap minimap;
     SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/

@@ -315,9 +315,18 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
 
   if (!cameraLocked) {
     // Follow the navi
-    sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
+    sf::Vector2f pos = playerActor->getPosition();
+    
+    if (teleportedOut) {
+      pos = { returnPoint.x, returnPoint.y };
+    }
+
+    pos = map.WorldToScreen(pos);
+
     pos.y -= playerActor->GetElevation() * map.GetTileSize().y / 2.0f;
-    camera.PlaceCamera(pos);
+
+    teleportedOut ? camera.MoveCamera(pos, sf::seconds(0.5)) : camera.PlaceCamera(pos);
+
     return;
   }
 
@@ -456,8 +465,8 @@ void Overworld::SceneBase::onResume() {
       Reverse(playerActor->GetHeading())
     );
 
+    teleportedOut = false;
     command.onFinish.Slot([=] {
-      teleportedOut = false;
       playerController.ControlActor(playerActor);
     });
   }

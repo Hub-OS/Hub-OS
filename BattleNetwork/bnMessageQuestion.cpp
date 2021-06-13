@@ -71,8 +71,8 @@ void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
     // So it is visible when the message box is done printing.
     // Find out how many rows there are and place arrows to fit the text.
     auto [lineStart, lineEnd] = GetTextBox()->GetCurrentLineRange();
-    int numOfLines = lineEnd - lineStart + 1;
-    int cursorY = ((3 - numOfLines) * -30) - 15;
+    unsigned int numOfLines = lineEnd - lineStart + 1u;
+    int cursorY = ((3 - (int)numOfLines) * -30) - 15;
     unsigned bob = from_seconds(this->totalElapsed*0.25).count() % 5; // 5 pixel bobs
     float bobf = static_cast<float>(bob);
 

@@ -256,25 +256,32 @@ void Overworld::OnlineArea::detectWarp() {
     }
 
     auto& command = teleportController.TeleportOut(player);
+
     auto type = tileObject.type;
+    auto interpolateTime = sf::seconds(0.5f);
 
     if (type == "Home Warp") {
+      QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+
       command.onFinish.Slot([=] {
         GetPlayerController().ReleaseActor();
-        TeleportUponReturn(player->Get3DPosition());
         sendLogoutSignal();
         getController().pop<segue<BlackWashFade>>();
-      });
+        });
     }
     else if (type == "Server Warp") {
+      QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+
       auto address = tileObject.customProperties.GetProperty("Address");
       auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("Port");
       auto data = tileObject.customProperties.GetProperty("Data");
 
       command.onFinish.Slot([=] {
+
+        //QueueUnlockCamera();
         GetPlayerController().ReleaseActor();
         transferServer(address, port, data, false);
-      });
+        });
     }
     else if (type == "Position Warp") {
       auto targetTilePos = sf::Vector2f(
@@ -283,14 +290,26 @@ void Overworld::OnlineArea::detectWarp() {
       );
 
       auto targetWorldPos = map.TileToWorld(targetTilePos);
+
       auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("Z"));
       auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
 
+      sf::Vector2f player_pos = { player->getPosition().x, player->getPosition().y };
+      float distance = std::powf(targetWorldPos.x - player_pos.x, 2.0f) + std::powf(targetWorldPos.y - player_pos.y, 2.0f);
+
+      // distance is ~ 30,000 and the rh expression is only 20,000...
+      //if (distance < 10 * map.GetTileSize().x * map.GetTileSize().y) {
+        QueueMoveCamera(map.WorldToScreen(targetPosition), interpolateTime);
+      //}
+
       command.onFinish.Slot([=] {
         teleportIn(targetPosition, Orthographic(direction));
+        QueueUnlockCamera();
       });
     }
     else if (type == "Custom Warp" || type == "Custom Server Warp") {
+      QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+
       command.onFinish.Slot([=] {
         sendCustomWarpSignal(tileObject.id);
       });

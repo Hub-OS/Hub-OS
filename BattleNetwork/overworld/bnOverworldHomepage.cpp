@@ -13,8 +13,22 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
   guest(guestAccount),
   SceneBase(controller, guestAccount)
 {
-  int remotePort = getController().CommandLineValue<int>("remotePort");
-  std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
+  std::string destination_ip = WEBCLIENT.GetValue("homepage_warp:0");
+  int remotePort = 0;
+  std::string cyberworld;
+
+  if (destination_ip.size()) {
+    size_t colon = destination_ip.find(':', 0);
+
+    if (colon > 0 && colon != std::string::npos) {
+      cyberworld = destination_ip.substr(0, colon);
+      remotePort = std::atoi(destination_ip.substr(colon + 1u).c_str());
+    }
+  }
+  else {
+    remotePort = getController().CommandLineValue<int>("remotePort");
+    cyberworld = getController().CommandLineValue<std::string>("cyberworld");
+  }
 
   if (remotePort > 0 && cyberworld.size()) {
     try {
@@ -145,7 +159,6 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       sf::Sprite face;
       face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
 
-      //std::string message = "The next server is " + remoteAddress.toString() + "\nChange it?";
       std::string message = "Change your warp destination?";
 
       menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
@@ -165,6 +178,14 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
               menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
               menuSystem.EnqueueMessage("Changed to " + response + "!");
+              WEBCLIENT.SetKey("homepage_warp:0", response);
+
+              if (WEBCLIENT.IsLoggedIn()) {
+                WEBCLIENT.SaveSession("profile.bin");
+              }
+              else {
+                WEBCLIENT.SaveSession("guest.bin");
+              }
             }
             catch (Poco::IOException&) {}
             });
@@ -396,11 +417,11 @@ void Overworld::Homepage::OnTileCollision()
     auto port = remoteAddress.port();
 
     auto teleportToCyberworld = [=] {
-      this->TeleportUponReturn(returnPoint);
       // Net().GetSocket().close();
       getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, "", maxPayloadSize, guest);
     };
 
+    this->TeleportUponReturn(returnPoint);
     playerController.ReleaseActor();
     auto& command = teleportController.TeleportOut(playerActor);
     command.onFinish.Slot(teleportToCyberworld);

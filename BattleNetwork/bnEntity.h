@@ -254,6 +254,11 @@ public:
    * @param state set true to enable, false to disable
    */
   void SetAirShoe(bool state);
+
+  /**
+  * @brief prevents tile slide events like ice
+  */
+  void SlidesOnTiles(bool state);
   
   /**
    * @brief Query if entity has FloatShoe enabled
@@ -266,6 +271,8 @@ public:
    * @return true if AirShoe is enabled, false otherwise
    */
   bool HasAirShoe();
+
+  bool WillSlideOnTiles();
 
   /**
    * @brief Directly modify the entity's current direction property. @see Entity::Move() 
@@ -477,6 +484,7 @@ private:
   bool passthrough{};
   bool floatShoe{};
   bool airShoe{};
+  bool slidesOnTiles{};
   bool deleted{}; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
   bool flagForRemove{}; /*!< Used to remove this entity from the field immediately */
   int moveCount{}; /*!< Used by battle results */

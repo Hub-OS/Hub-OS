@@ -11,8 +11,8 @@ AlphaRocketState::~AlphaRocketState() { ; }
 void AlphaRocketState::OnEnter(AlphaCore& a) {
   // skip unless at half health
   if (a.GetHealth() > a.GetMaxHealth() / 2) {
-    a.GoToNextState();
-    return;
+    //a.GoToNextState();
+    //return;
   }
 
   launched = false;

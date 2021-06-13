@@ -359,11 +359,11 @@ std::pair<size_t, size_t> TextBox::GetCurrentLineRange() const {
 }
 
 std::pair<size_t, size_t> TextBox::GetBlockCharacterRangeRaw() const {
-  int begin = lines[lineIndex];
-  int end = 0;
+  size_t begin = (size_t)lines[lineIndex];
+  size_t end = 0;
 
   size_t pos = static_cast<size_t>(lineIndex + numberOfFittingLines);
-  end = pos < lines.size() ? lines[pos] : message.length();
+  end = pos < lines.size() ? static_cast<size_t>(lines[pos]) : message.length();
 
   return { begin, end };
 }

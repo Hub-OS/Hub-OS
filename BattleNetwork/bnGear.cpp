@@ -13,6 +13,7 @@ Gear::Gear(Team _team,Direction startDir) :
   setTexture(LOAD_TEXTURE(MOB_METALMAN_ATLAS));
   setScale(2.f, 2.f);
   SetFloatShoe(false);
+  SlidesOnTiles(false);
   SetName("MetalGear");
   SetTeam(_team);
   SetDirection(startDir);

@@ -174,7 +174,7 @@ void Entity::UpdateMovement(double elapsed)
             bool notIce = (next && tile->GetState() != TileState::ice);
             bool cannotMove = (next && !CanMoveTo(next));
             bool weAreIce = (GetElement() == Element::ice);
-            bool cancelSlide = notIce || cannotMove || weAreIce;
+            bool cancelSlide = !slidesOnTiles && (notIce || cannotMove || weAreIce);
 
             if (!cancelSlide) {
               MoveEvent event = { frames(3), frames(0), frames(0), 0, tile + previousDirection };
@@ -471,6 +471,11 @@ void Entity::SetAirShoe(bool state) {
   airShoe = state;
 }
 
+void Entity::SlidesOnTiles(bool state)
+{
+  slidesOnTiles = state;
+}
+
 bool Entity::HasFloatShoe()
 {
   return floatShoe;
@@ -478,6 +483,11 @@ bool Entity::HasFloatShoe()
 
 bool Entity::HasAirShoe() {
   return airShoe;
+}
+
+bool Entity::WillSlideOnTiles()
+{
+  return slidesOnTiles;
 }
 
 void Entity::SetDirection(Direction dir) {

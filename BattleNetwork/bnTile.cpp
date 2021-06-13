@@ -616,10 +616,12 @@ namespace Battle {
       }
 
       if (directional != Direction::none) {
-        if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
-          if (!obst->IsSliding() && notMoving) {
-            MoveEvent event{ frames(3), frames(0), frames(0), 0, obst->GetTile() + directional };
-            obst->Entity::RawMoveEvent(event, ActionOrder::involuntary);
+        if (obst->WillSlideOnTiles()) {
+          if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
+            if (!obst->IsSliding() && notMoving) {
+              MoveEvent event{ frames(3), frames(0), frames(0), 0, obst->GetTile() + directional };
+              obst->Entity::RawMoveEvent(event, ActionOrder::involuntary);
+            }
           }
         }
       }
@@ -681,10 +683,12 @@ namespace Battle {
 
       if (directional != Direction::none) {
         auto notMoving = !character->IsMoving();
-        if (!character->HasAirShoe() && !character->HasFloatShoe()) {
-          if (notMoving && !character->IsSliding()) {
-            MoveEvent event{ frames(3), frames(0), frames(0), 0, character->GetTile() + directional };
-            character->RawMoveEvent(event, ActionOrder::involuntary);
+        if (character->WillSlideOnTiles()) {
+          if (!character->HasAirShoe() && !character->HasFloatShoe()) {
+            if (notMoving && !character->IsSliding()) {
+              MoveEvent event{ frames(3), frames(0), frames(0), 0, character->GetTile() + directional };
+              character->RawMoveEvent(event, ActionOrder::involuntary);
+            }
           }
         }
       }
