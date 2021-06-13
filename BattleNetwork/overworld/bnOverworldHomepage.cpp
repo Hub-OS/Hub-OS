@@ -136,6 +136,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         break;
       }
 
+      auto& menuSystem = GetMenuSystem();
       menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
       menuSystem.EnqueueMessage(message);
     });
@@ -161,9 +162,11 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
       std::string message = "Change your warp destination?";
 
+      auto& menuSystem = GetMenuSystem();
       menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
       menuSystem.EnqueueQuestion(message, [=](bool yes) {
         if (yes) {
+          auto& menuSystem = GetMenuSystem();
           menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
           menuSystem.EnqueueTextInput(remoteAddress.toString(), 21, [=](const std::string& response) {
 
@@ -176,6 +179,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
               );
               Net().AddHandler(remoteAddress, packetProcessor);
 
+              auto& menuSystem = GetMenuSystem();
               menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
               menuSystem.EnqueueMessage("Changed to " + response + "!");
               WEBCLIENT.SetKey("homepage_warp:0", response);
@@ -334,17 +338,18 @@ void Overworld::Homepage::onUpdate(double elapsed)
   // do default logic
   SceneBase::onUpdate(elapsed);
 
-  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && emote.IsClosed()) {
-    auto& meta = NAVIS.At(currentNavi);
+  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && GetEmoteWidget().IsClosed()) {
+    auto& meta = NAVIS.At(GetCurrentNavi());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
     auto mugshot = Textures().LoadTextureFromFile(image);
 
+    auto& menuSystem = GetMenuSystem();
     menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
     menuSystem.EnqueueMessage("This is your homepage.");
     menuSystem.EnqueueMessage("You can edit it anyway you like!");
 
-    playerActor->Face(Direction::down_right);
+    GetPlayer()->Face(Direction::down_right);
   }
 }
 

@@ -52,63 +52,36 @@ void Text::UpdateGeometry() const
   whitespaceWidth += letterSpacing;
   float lineSpacing = font.GetLineHeight() * Text::lineSpacing;
   float x = 0.f;
-  float y = 1.0f;
-
-  float minX = 1.0f;
-  float minY = 1.0f;
-  float maxX = 0.f;
-  float maxY = 0.f;
+  float y = 0.f;
+  float width = 0.f;
 
   for (char letter : message) {
     // Handle special characters
     if ((letter == L' ') || (letter == L'\n') || (letter == L'\t'))
     {
-      // Update the current bounds (min coordinates)
-      minX = std::min(minX, x);
-      minY = std::min(minY, y);
-
       switch (letter)
       {
       case L' ':  x += whitespaceWidth;     break;
       case L'\t': x += whitespaceWidth * 4; break;
       case L'\n': y += lineSpacing; x = 0;  break;
       }
+    } else {
+      // skip user-defined control codes
+      if (iscntrl(letter)) continue;
 
-      auto height = letter == '\n' ? 0 : lineSpacing;
+      AddLetterQuad(sf::Vector2f(x, y), color, letter);
 
-      // Update the current bounds (max coordinates)
-      maxX = std::max(maxX, x);
-      maxY = std::max(maxY, y);
-
-      // Next glyph, no need to create a quad for whitespace
-      continue;
+      x += font.GetLetterWidth() + letterSpacing;
     }
 
-    // skip user-defined control codes
-    if (iscntrl(letter)) continue;
-
-    AddLetterQuad(sf::Vector2f(x, y), color, letter);
-
-    x += font.GetLetterWidth() + letterSpacing;
-
-    // Update bound values
-    auto texcoords = font.GetTextureCoords();
-    float left = 0.0f;
-    float top = 0.0f; 
-    float right = static_cast<float>(texcoords.width); 
-    float bottom = static_cast<float>(texcoords.height); 
-
-    minX = std::min(minX, x + left * bottom);
-    maxX = std::max(maxX, x + right * top);
-    minY = std::min(minY, y + top);
-    maxY = std::max(maxY, y + bottom);
+    width = std::max(x, width);
   }
 
   // Update the bounding rectangle
-  bounds.left = minX;
-  bounds.top = minY;
-  bounds.width = maxX - minX;
-  bounds.height = maxY - minY;
+  bounds.left = 0;
+  bounds.top = 0;
+  bounds.width = width;
+  bounds.height = y + lineSpacing;
 
   geometryDirty = false;
 }

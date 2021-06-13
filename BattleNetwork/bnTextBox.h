@@ -213,6 +213,8 @@ public:
 
   const bool IsEndOfBlock() const;
 
+  bool IsFinalBlock() const;
+
   /**
    * @brief Draws the textbox with correct transformations
    * 

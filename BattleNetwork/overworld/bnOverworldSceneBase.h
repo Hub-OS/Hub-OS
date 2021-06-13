@@ -37,8 +37,9 @@ class Background; // forward decl
 
 namespace Overworld {
   class SceneBase : public Scene {
-  public:
+  private:
     std::shared_ptr<Actor> playerActor;
+    std::shared_ptr<sf::Texture> customEmotesTexture;
     Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
@@ -46,11 +47,12 @@ namespace Overworld {
     Overworld::SpatialMap spatialMap{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
 
+    enum class CameraEventType { Place, Move, Shake, Unlock };
     struct QueuedCameraEvent {
-      bool unlock;
-      bool slide;
+      CameraEventType type;
       sf::Vector2f position;
       sf::Time duration;
+      double shakeStrength;
     };
 
     double animElapsed{};
@@ -188,6 +190,8 @@ namespace Overworld {
 
     void SetBackground(const std::shared_ptr<Background>&);
 
+    void SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>&);
+
     /**
      * @brief Add a sprite
      * @param sprite
@@ -251,9 +255,22 @@ namespace Overworld {
     void QueueMoveCamera(sf::Vector2f position, sf::Time duration);
 
     /**
+     * @brief Camera shakes
+     * @param stress intensity of the shake effect
+     * @param duration duration of the effect, does not block the queue
+     */
+    void QueueShakeCamera(float stress, sf::Time duration);
+
+    /**
      * @brief Unlocks the camera and clears the queue after completing previous camera events
      */
     void QueueUnlockCamera();
+
+    /**
+     * @brief Clears the camera queue, locks the camera, and moves the camera
+     * @param position
+     */
+    void MoveCamera(sf::Vector2f position);
 
     /**
      * @brief Clears the camera queue and follow the player again
@@ -283,13 +300,16 @@ namespace Overworld {
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
+    const std::shared_ptr<sf::Texture>& GetCustomEmotesTexture() const;
     EmoteNode& GetEmoteNode();
+    EmoteWidget& GetEmoteWidget();
     std::shared_ptr<Background> GetBackground();
     PA& GetProgramAdvance();
     std::optional<CardFolder*> GetSelectedFolder();
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
     bool IsCameraLocked();
+    bool IsCameraQueueEmpty();
 
     //
     // Helpers

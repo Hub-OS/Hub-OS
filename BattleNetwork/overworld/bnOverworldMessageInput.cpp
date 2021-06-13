@@ -4,9 +4,9 @@ namespace Overworld {
   MessageInput::MessageInput(const std::string& initialText, size_t characterLimit) :
     MessageInterface("", nullptr),
     characterLimit(characterLimit),
-    latestCapture(initialText.substr(0, characterLimit)),
-    prevCaretPosition(latestCapture.size())
+    latestCapture(initialText.substr(0, characterLimit))
   {
+    prevCaretPosition = latestCapture.size();
   }
 
   MessageInput::~MessageInput() {
@@ -100,7 +100,7 @@ namespace Overworld {
       if (caretRow < rangeStart) {
         textbox->ShowPreviousLines();
       }
-      else if (caretRow > rangeEnd) {
+      else if (caretRow > rangeEnd && !textbox->IsFinalBlock()) {
         textbox->ShowNextLines();
       }
       else {
