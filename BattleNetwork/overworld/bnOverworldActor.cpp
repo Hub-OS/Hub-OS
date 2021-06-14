@@ -570,7 +570,7 @@ void Overworld::Actor::UseMissingTexture() {
   this->getSprite().setOrigin(originf);
 }
 
-std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const MovementState& state)
+std::string Overworld::Actor::FindValidAnimState(Direction dir, MovementState state)
 {
   // Some animations do not need to be provided (like cardinal-facing left or right)
   // when others can be substituted
@@ -580,7 +580,7 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
   // 2. Try using another horizontal direction
   // Else bail
 
-  auto hasAnimStateThunk = [this](const Direction& dir, const MovementState& state) {
+  auto hasAnimStateThunk = [this](Direction dir, MovementState state) {
     auto iter = std::find_if(validStates.begin(), validStates.end(),
       [dir, state](const AnimStatePair& pair) {
       return std::tie(dir, state) == std::tie(pair.dir, pair.movement);
@@ -589,7 +589,7 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
     return std::tuple{ iter != validStates.end(), dir, state };
   };
 
-  auto attemptThunk = [](const std::initializer_list<std::tuple<bool, Direction, MovementState>>& ts) {
+  auto attemptThunk = [](const std::vector<std::tuple<bool, Direction, MovementState>>& ts) {
     for (auto& item : ts) {
       if (std::get<0>(item)) {
         return AnimStatePair{ std::get<2>(item), std::get<1>(item) };
@@ -603,9 +603,9 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
   auto str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(Isometric(dir));
 
   if (anim.HasAnimation(str) == false) {
-    const auto& [ud, lr] = Split(Isometric(dir));
+    auto [ud, lr] = Split(Isometric(dir));
 
-    std::map<Direction, std::initializer_list<std::tuple<bool, Direction, MovementState>>> attempts = {
+    std::map<Direction, std::vector<std::tuple<bool, Direction, MovementState>>> attempts = {
       {
         Direction::left,
         {

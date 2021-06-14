@@ -58,7 +58,7 @@ namespace Overworld {
 
     // aux functions
     void UpdateAnimationState(float elapsed);
-    std::string FindValidAnimState(const Direction& dir, const MovementState& state);
+    std::string FindValidAnimState(Direction dir, MovementState state);
     void UseMissingTexture();
     std::string MovementAnimStrPrefix(const MovementState& state);
     std::string DirectionAnimStrSuffix(const Direction& dir);
