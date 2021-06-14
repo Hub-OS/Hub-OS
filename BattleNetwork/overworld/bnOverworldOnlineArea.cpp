@@ -585,6 +585,10 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::login:
       receiveLoginSignal(reader, data);
       break;
+    case ServerEvents::connection_complete:
+      isConnected = true;
+      sendReadySignal();
+      break;
     case ServerEvents::transfer_warp:
       receiveTransferWarpSignal(reader, data);
       break;
@@ -1038,9 +1042,6 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
     player->Face(Orthographic(direction));
     GetPlayerController().ControlActor(player);
   }
-
-  isConnected = true;
-  sendReadySignal();
 }
 
 void Overworld::OnlineArea::receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
