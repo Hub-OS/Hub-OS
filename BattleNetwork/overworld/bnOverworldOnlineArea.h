@@ -115,6 +115,7 @@ namespace Overworld {
     void receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveMoneySignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);

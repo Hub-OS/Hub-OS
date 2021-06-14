@@ -224,8 +224,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
       NaviEquipSelectedFolder();
 
-      personalMenu.SetMonies(webAccount.monies);
-
       // Replace
       WEBCLIENT.SaveSession("profile.bin");
     }
@@ -1332,6 +1330,11 @@ void Overworld::SceneBase::GotoKeyItems()
   }
 
   getController().push<effect::to<KeyItemScene>>(items);
+}
+
+Overworld::PersonalMenu& Overworld::SceneBase::GetPersonalMenu()
+{
+  return personalMenu;
 }
 
 Overworld::Minimap& Overworld::SceneBase::GetMinimap()

@@ -63,6 +63,7 @@ namespace Overworld
     preload,
     custom_emotes_path,
     map,
+    money,
     play_sound,
     exclude_object,
     include_object,

@@ -249,6 +249,7 @@ namespace Overworld {
     //
     // Getters
     //
+    PersonalMenu& GetPersonalMenu();
     Minimap& GetMinimap();
     SpatialMap& GetSpatialMap();
     std::vector<std::shared_ptr<Actor>>& GetActors();

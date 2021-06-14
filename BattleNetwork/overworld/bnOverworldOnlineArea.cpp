@@ -622,6 +622,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::map:
       receiveMapSignal(reader, data);
       break;
+    case ServerEvents::money:
+      receiveMoneySignal(reader, data);
+      break;
     case ServerEvents::play_sound:
       receivePlaySoundSignal(reader, data);
       break;
@@ -1272,6 +1275,12 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       }
     }
   }
+}
+
+void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto balance = reader.Read<int>(buffer);
+  GetPersonalMenu().SetMonies(balance);
 }
 
 void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
