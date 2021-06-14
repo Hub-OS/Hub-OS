@@ -252,7 +252,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     warpCameraController.UnlockCamera();
   }
 
-  if (!serverCameraController.IsQueueEmpty() || trackedPlayer || !warpCameraController.IsQueueEmpty()) {
+  if (serverCameraController.IsLocked() || warpCameraController.IsLocked() || trackedPlayer) {
     LockCamera();
   }
 
