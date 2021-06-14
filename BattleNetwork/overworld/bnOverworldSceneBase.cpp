@@ -156,9 +156,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   // clock
   time.setPosition(480 - 4.f, 4.f);
   time.setScale(2.f, 2.f);
-
-  cameraTimer.reverse(true);
-  cameraTimer.start();
 }
 
 void Overworld::SceneBase::onStart() {
@@ -226,8 +223,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
       programAdvance = PA::ReadFromWebAccount(webAccount);
 
       NaviEquipSelectedFolder();
-
-      personalMenu.SetMonies(webAccount.monies);
 
       // Replace
       WEBCLIENT.SaveSession("profile.bin");
@@ -328,39 +323,6 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
   }
 
   camera.Update(elapsed);
-  cameraTimer.update(sf::seconds(elapsed));
-
-  if (cameraTimer.getElapsed().asMilliseconds() > 0 || cameraQueue.empty()) {
-    return;
-  }
-
-  auto& event = cameraQueue.front();
-
-  switch (event.type) {
-  case CameraEventType::Move:
-    camera.MoveCamera(event.position, event.duration);
-    break;
-  case CameraEventType::Wane:
-    camera.WaneCamera(event.position, event.duration, event.waneFactor);
-    break;
-  case CameraEventType::Place:
-    camera.PlaceCamera(event.position);
-    break;
-  case CameraEventType::Shake:
-    camera.ShakeCamera(event.shakeStrength, event.duration);
-    // shake duration does not block queue (will still eat a frame, at least for now)
-    event.duration = sf::Time::Zero;
-    break;
-  case CameraEventType::Unlock:
-    UnlockCamera();
-    break;
-  }
-
-  cameraTimer.set(event.duration);
-
-  if (cameraQueue.size()) {
-    cameraQueue.pop();
-  }
 }
 
 void Overworld::SceneBase::HandleInput() {
@@ -1278,87 +1240,12 @@ void Overworld::SceneBase::UnlockInput() {
   inputLocked = false;
 }
 
-bool Overworld::SceneBase::IsCameraLocked() {
-  return cameraLocked;
-}
-
-bool Overworld::SceneBase::IsCameraQueueEmpty() {
-  return cameraQueue.empty();
-}
-
 void Overworld::SceneBase::LockCamera() {
   cameraLocked = true;
 }
 
 void Overworld::SceneBase::UnlockCamera() {
   cameraLocked = false;
-  cameraQueue = {};
-}
-
-void Overworld::SceneBase::QueuePlaceCamera(sf::Vector2f position, sf::Time holdTime) {
-  LockCamera();
-
-  QueuedCameraEvent event{
-    CameraEventType::Place,
-    position,
-    holdTime
-  };
-
-  cameraQueue.push(event);
-}
-
-void Overworld::SceneBase::QueueMoveCamera(sf::Vector2f position, sf::Time duration) {
-  LockCamera();
-
-  QueuedCameraEvent event{
-    CameraEventType::Move,
-    position,
-    duration
-  };
-
-  cameraQueue.push(event);
-}
-
-void Overworld::SceneBase::QueueWaneCamera(sf::Vector2f position, sf::Time duration, double waneFactor)
-{
-  LockCamera();
-
-  QueuedCameraEvent event{
-    CameraEventType::Wane,
-    position,
-    duration,
-    0,
-    waneFactor
-  };
-
-  cameraQueue.push(event);
-}
-
-void Overworld::SceneBase::QueueShakeCamera(float stress, sf::Time duration) {
-  QueuedCameraEvent event{
-    CameraEventType::Shake,
-    sf::Vector2f(),
-    duration,
-    stress
-  };
-
-  cameraQueue.push(event);
-}
-
-void Overworld::SceneBase::QueueUnlockCamera() {
-  LockCamera();
-
-  QueuedCameraEvent event{
-    CameraEventType::Unlock,
-  };
-
-  cameraQueue.push(event);
-}
-
-void Overworld::SceneBase::MoveCamera(sf::Vector2f position) {
-  cameraLocked = true;
-  cameraQueue = {};
-  camera.PlaceCamera(position);
 }
 
 void Overworld::SceneBase::GotoChipFolder()
@@ -1443,6 +1330,11 @@ void Overworld::SceneBase::GotoKeyItems()
   }
 
   getController().push<effect::to<KeyItemScene>>(items);
+}
+
+Overworld::PersonalMenu& Overworld::SceneBase::GetPersonalMenu()
+{
+  return personalMenu;
 }
 
 Overworld::Minimap& Overworld::SceneBase::GetMinimap()
