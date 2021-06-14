@@ -339,8 +339,7 @@ void Overworld::OnlineArea::detectWarp() {
       // this is a magic number - this is about as close to 2 warps that are 8 blocks away vertically 
       // (expression is also squared)
       if (distance < 40'000) {
-        QueueWaneCamera(map.WorldToScreen(targetPosition), interpolateTime, 0.55f);
-        warpCameraController.QueueMoveCamera(map.WorldToScreen(targetPosition), interpolateTime);
+        warpCameraController.QueueWaneCamera(map.WorldToScreen(targetPosition), interpolateTime, 0.55f);
       }
 
       command.onFinish.Slot([=] {
