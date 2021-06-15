@@ -49,7 +49,7 @@ void InputTextBuffer::SetText(const std::string& text)
 
 
 void InputTextBuffer::InsertCharacter(char c) {
-  bool isValidChar = c >= 32 && c < 127 || c == 9;
+  bool isValidChar = c >= 32 && c < 127 || c == '\t' || c == '\n';
 
   if (buffer.size() < characterLimit && isValidChar) {
     buffer.insert(caretPos, 1, (char)c);
