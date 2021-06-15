@@ -191,7 +191,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
                 auto addrList = Poco::Net::DNS::hostByName(dest).addresses();
 
                 if (addrList.empty()) {
-                  throw std::exception("Empty address list");
+                  throw std::runtime_error("Empty address list");
                 }
                 else {
                   dest = addrList.begin()->toString() + ":" + std::to_string(port);
