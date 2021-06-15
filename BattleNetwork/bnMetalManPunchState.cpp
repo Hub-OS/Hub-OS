@@ -20,25 +20,25 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
     return;
   }
 
-  metal.canEnterRedTeam = true;
-
   auto anim = metal.GetFirstComponent<AnimationComponent>();
 
-  auto nextTile = metal.GetField()->GetAt(tile->GetX() + 1, tile->GetY());
+  reserved = metal.GetField()->GetAt(tile->GetX() + 1, tile->GetY());
 
-  if (nextTile) {
+  if (reserved) {
+    metal.canEnterRedTeam = true;
+
     auto lastTile = metal.GetTile();
-    nextTile->ReserveEntityByID(metal.GetID());
+    reserved->ReserveEntityByID(metal.GetID());
     lastTile->ReserveEntityByID(metal.GetID());
 
-
-    auto onFinish = [metal = &metal, nextTile, lastTile, anim, this]() {
+    auto onFinish = [metal = &metal, lastTile, anim, this]() {
       Logger::Log("metalman move on finish called");
 
-      if (metal->Teleport(nextTile)) {
+      if (metal->Teleport(reserved)) {
 
         auto onFinishPunch = [m = metal, anim, lastTile]() {
           auto onFinishMove = [m, anim, lastTile] {
+            
             m->Teleport(lastTile, ActionOrder::immediate);
             m->GoToNextState();
           };
@@ -58,6 +58,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
     };
 
     anim->SetAnimation("MOVING", onFinish);
+    metal.canEnterRedTeam = true;
   }
   else {
     metal.GoToNextState();
@@ -66,9 +67,9 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
 }
 
 void MetalManPunchState::OnLeave(MetalMan& metal) {
+  reserved ? reserved->RemoveEntityByID(metal.GetID()) : 0;
   auto anim = metal.GetFirstComponent<AnimationComponent>();
   anim->SetAnimation("IDLE");
-  metal.canEnterRedTeam = false;
 }
 
 void MetalManPunchState::OnUpdate(double _elapsed, MetalMan& metal) {

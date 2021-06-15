@@ -105,17 +105,7 @@ void Entity::UpdateMovement(double elapsed)
         // conditions of the target tile may change, ensure by the time we switch
         if (CanMoveTo(next)) {
           if (tile != next) {
-            // Remove the entity from its previous tile pointer 
-            previous->RemoveEntityByID(GetID());
-
-            // If removing an entity and the tile was broken, crack the tile
-            previous->HandleMove(this);
-
-            // Previous tile is now the current tile
-            previous = tile;
-
-            // Curent tile is now the next tile
-            AdoptTile(next);
+            AdoptNextTile();
           }
 
           // Adjust for the new current tile, begin halfway approaching the current tile
@@ -143,29 +133,29 @@ void Entity::UpdateMovement(double elapsed)
         // Now that we have finished moving across panels, we must wait out endlag
         frame_time_t lastFrame = currMoveEvent.delayFrames + currMoveEvent.deltaFrames + currMoveEvent.endlagFrames;
         if (from_seconds(elapsedMoveTime) > lastFrame) {
-          FinishMove();
+          Battle::Tile* prevTile = previous;
+          FinishMove(); // mutates `previous` ptr
           previousDirection = direction;
-          Battle::Tile* prevTile = GetTile();
+          Battle::Tile* currTile = GetTile();
 
           // If we slide onto an ice block and we don't have float shoe enabled, slide
           if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
             // calculate our new entity's position
             UpdateMoveStartPosition();
 
-            // TODO: shorten with GetPreviousDirection() switch
-            if (previous->GetX() > prevTile->GetX()) {
+            if (prevTile->GetX() > currTile->GetX()) {
               next = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
               previousDirection = Direction::left;
             }
-            else if (previous->GetX() < prevTile->GetX()) {
+            else if (prevTile->GetX() < currTile->GetX()) {
               next = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
               previousDirection = Direction::right;
             }
-            else if (previous->GetY() < prevTile->GetY()) {
+            else if (prevTile->GetY() < currTile->GetY()) {
               next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() + 1);
               previousDirection = Direction::down;
             }
-            else if (previous->GetY() > prevTile->GetY()) {
+            else if (prevTile->GetY() > currTile->GetY()) {
               next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() - 1);
               previousDirection = Direction::up;
             }
@@ -568,8 +558,11 @@ void Entity::AdoptNextTile()
     return;
   }
 
-  if (previous != nullptr) {
+  if (previous != nullptr /*&& previous != tile*/) {
     previous->RemoveEntityByID(GetID());
+    // If removing an entity and the tile was broken, crack the tile
+    previous->HandleMove(this);
+    previous = tile;
   }
 
   AdoptTile(next);

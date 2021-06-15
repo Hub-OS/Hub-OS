@@ -576,6 +576,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   cursor.setPosition(2.0, y);
 
   if (!folder) return;
+
   if (folder->GetSize() != 0) {
     // Move the card library iterator to the current highlighted card
     CardFolder::Iter iter = folder->Begin();
@@ -651,6 +652,10 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     if (collection.DeleteFolder(folderNames[currFolderIndex])) {
       onSuccess();
       folderNames = collection.GetFolderNames();
+
+      if (folderNames.empty()) {
+        folder = nullptr;
+      }
     }
 
     textbox.Close();

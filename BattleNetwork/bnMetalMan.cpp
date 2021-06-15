@@ -43,6 +43,7 @@ MetalMan::MetalMan(Rank _rank)
     AddState<MetalManMoveState>();
     AddState<MetalManMoveState>();
     AddState<MetalManThrowState>();
+    AddState<MetalManMoveState>();
     AddState<MetalManPunchState>();
     AddState<MetalManMoveState>();
     AddState<MetalManPunchState>();
@@ -82,8 +83,7 @@ MetalMan::MetalMan(Rank _rank)
 
   auto stun = [this]() {
     if (!Teammate(GetTile()->GetTeam())) {
-      MoveEvent event = { 0, 0, frames(3), 0, GetField()->GetAt(6, 2) };
-      actionQueue.Add(event, ActionOrder::immediate, ActionDiscardOp::until_resolve);
+      AdoptTile(GetField()->GetAt(6, 2));
     }
   };
 
@@ -96,9 +96,9 @@ MetalMan::~MetalMan() {
 
 bool MetalMan::CanMoveTo(Battle::Tile * next)
 {
-  if (!next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && !next->IsEdgeTile()) {
+  if (!next->IsEdgeTile()) {
     if (next->GetTeam() != GetTeam() && canEnterRedTeam) {
-      return true;
+      return !next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>();
     }
     else {
       return next->GetTeam() == GetTeam();

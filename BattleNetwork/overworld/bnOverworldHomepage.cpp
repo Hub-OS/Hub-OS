@@ -1,4 +1,6 @@
 #include <Poco/Net/NetException.h>
+#include <Poco/Net/DNS.h>
+#include <Poco/Net/HostEntry.h>
 #include <Segues/BlackWashFade.h>
 #include "bnOverworldHomepage.h"
 #include "bnOverworldOnlineArea.h"
@@ -8,26 +10,24 @@
 using namespace swoosh::types;
 
 constexpr sf::Int32 PING_SERVER_MILI = 1000;
+constexpr size_t DEFAULT_PORT = 8765;
 
 Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guestAccount) :
   guest(guestAccount),
   SceneBase(controller, guestAccount)
 {
   std::string destination_ip = WEBCLIENT.GetValue("homepage_warp:0");
-  int remotePort = 0;
-  std::string cyberworld;
 
-  if (destination_ip.size()) {
+  int remotePort = getController().CommandLineValue<int>("remotePort");
+  std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
+
+  if (cyberworld.empty()) {
     size_t colon = destination_ip.find(':', 0);
 
     if (colon > 0 && colon != std::string::npos) {
       cyberworld = destination_ip.substr(0, colon);
       remotePort = std::atoi(destination_ip.substr(colon + 1u).c_str());
     }
-  }
-  else {
-    remotePort = getController().CommandLineValue<int>("remotePort");
-    cyberworld = getController().CommandLineValue<std::string>("cyberworld");
   }
 
   if (remotePort > 0 && cyberworld.size()) {
@@ -160,7 +160,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       sf::Sprite face;
       face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
 
-      std::string message = "Change your warp destination?";
+      std::string message = "CHANGE YOUR WARP DESTINATION?";
 
       auto& menuSystem = GetMenuSystem();
       menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
@@ -168,11 +168,37 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         if (yes) {
           auto& menuSystem = GetMenuSystem();
           menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
-          menuSystem.EnqueueTextInput(remoteAddress.toString(), 21, [=](const std::string& response) {
+          menuSystem.EnqueueTextInput(WEBCLIENT.GetValue("homepage_warp:0"), 128, [=](const std::string& response) {
+            std::string dest = response;
+            size_t port = DEFAULT_PORT;
 
             try {
               Net().DropHandlers(remoteAddress);
-              remoteAddress = Poco::Net::SocketAddress(response);
+              
+              // first check if this is an ip address
+              try {
+                dest = Poco::Net::IPAddress::parse(dest).toString();
+              }
+              catch (Poco::Net::InvalidAddressException&) {
+                // resolve domain name
+                size_t colon = response.find(':', 0);
+
+                if (colon > 0 && colon != std::string::npos) {
+                  dest = response.substr(0, colon);
+                  port = std::atoi(response.substr(colon + 1u).c_str());
+                }
+
+                auto addrList = Poco::Net::DNS::hostByName(dest).addresses();
+
+                if (addrList.empty()) {
+                  throw std::exception("Empty address list");
+                }
+                else {
+                  dest = addrList.begin()->toString() + ":" + std::to_string(port);
+                }
+              }
+
+              remoteAddress = Poco::Net::SocketAddress(dest);
               packetProcessor = std::make_shared<Overworld::PacketProcessor>(
                 remoteAddress,
                 [this](auto& body) { ProcessPacketBody(body); }
@@ -181,7 +207,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
               auto& menuSystem = GetMenuSystem();
               menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
-              menuSystem.EnqueueMessage("Changed to " + response + "!");
+              menuSystem.EnqueueMessage("CHANGED TO " + response + "!");
               WEBCLIENT.SetKey("homepage_warp:0", response);
 
               if (WEBCLIENT.IsLoggedIn()) {
@@ -191,8 +217,12 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
                 WEBCLIENT.SaveSession("guest.bin");
               }
             }
-            catch (Poco::IOException&) {}
-            });
+            catch (...) {
+              auto& menuSystem = GetMenuSystem();
+              menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+              menuSystem.EnqueueMessage("SORRY I COULDN'T SET IT TO " + response + "!");
+            }
+          });
         } // else do nothing
       });
     });

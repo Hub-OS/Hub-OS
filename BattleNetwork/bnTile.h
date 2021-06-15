@@ -190,7 +190,7 @@ namespace Battle {
      * 
      * @param exclude list. Optional parameter. Any character in this list are exluded from the final count and could change the result.
      */
-    bool IsReservedByCharacter(const std::initializer_list<Character*>& exclude = {});
+    bool IsReservedByCharacter(std::vector<Character*> exclude = {});
 
     /**
      * @brief Adds a spell to the spell bucket if it doesn't already exist

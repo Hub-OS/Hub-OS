@@ -8,6 +8,8 @@ class MetalMan;
 /*! \brief Metalman punches a tile, cracking or breaking it, and damages all entities on tile */
 class MetalManPunchState : public AIState<MetalMan>
 {
+  Battle::Tile* reserved{ nullptr };
+
 public:
   MetalManPunchState();
   ~MetalManPunchState();

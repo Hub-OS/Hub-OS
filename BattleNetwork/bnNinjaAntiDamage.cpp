@@ -72,10 +72,12 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
 
   // Construct a anti damage defense rule check with callback onHit
   defense = new DefenseAntiDamage(onHit);
-  GetOwnerAs<Character>()->AddDefenseRule(defense);
+  user = GetOwnerAs<Character>();
+  user->AddDefenseRule(defense);
 }
 
 NinjaAntiDamage::~NinjaAntiDamage() {
+  user->RemoveDefenseRule(defense);
   delete defense;
 }
 

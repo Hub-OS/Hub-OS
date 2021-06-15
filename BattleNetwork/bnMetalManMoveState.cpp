@@ -32,11 +32,16 @@ void MetalManMoveState::OnUpdate(double _elapsed, MetalMan& metal) {
 
   // Find a new spot that is on our team
   auto onBegin = [this, metalPtr = &metal] {
-    auto onFinish = [this, metalPtr]() {
-      metalPtr->GoToNextState();
+    auto onFinishMove = [this, metalPtr]() {
+      auto onFinish = [this, metalPtr]() {
+        metalPtr->GoToNextState();
+      };
+
+      metalPtr->GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", onFinish);
     };
 
-    metalPtr->GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
+
+    metalPtr->GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinishMove);
     this->isMoving = true;
   };
 

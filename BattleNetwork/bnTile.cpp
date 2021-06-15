@@ -345,7 +345,7 @@ namespace Battle {
     highlightMode = mode;
   }
 
-  bool Tile::IsReservedByCharacter(const std::initializer_list<Character*>& exclude)
+  bool Tile::IsReservedByCharacter(std::vector<Character*> exclude)
   {
     if (!reserved.empty()) return true;
 
@@ -354,6 +354,9 @@ namespace Battle {
     }
 
     std::vector<Character*> diff;
+
+    std::sort(characters.begin(), characters.end());
+    std::sort(exclude.begin(), exclude.end());
 
     std::set_difference(characters.begin(), characters.end(), exclude.begin(), exclude.end(), std::inserter(diff, diff.begin()));
 

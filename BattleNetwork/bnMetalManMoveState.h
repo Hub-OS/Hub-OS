@@ -10,8 +10,8 @@ class MetalMan;
 class MetalManMoveState : public AIState<MetalMan>
 {
 private:
-  Direction nextDirection;
-  bool isMoving; /*!< True if metalman's move animation is playing */
+  Direction nextDirection{ Direction::none };
+  bool isMoving{}; /*!< True if metalman's move animation is playing */
 public:
   MetalManMoveState();
   ~MetalManMoveState();
