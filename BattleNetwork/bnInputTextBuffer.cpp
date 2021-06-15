@@ -375,6 +375,7 @@ void InputTextBuffer::LineUp() {
   auto [row, initialCol] = GetRowCol();
 
   if (row == 0) {
+    // first row, just jump to the start
     caretPos = 0;
     return;
   }
@@ -394,15 +395,17 @@ void InputTextBuffer::LineDown() {
   auto [row, initialCol] = GetRowCol();
 
   if (row == lineIndexes.size() - 1) {
+    // last row, just jump to the end
     caretPos = buffer.size();
     return;
   }
 
+  auto nextRowCharEndIndex = row + 2 < lineIndexes.size() ? lineIndexes[row + 2] : buffer.size();
   auto nextRowCharIndex = lineIndexes[row + 1];
-  auto nextRowLen = nextRowCharIndex - lineIndexes[row];
+  auto nextRowLen = nextRowCharEndIndex - nextRowCharIndex;
 
   if (nextRowLen < initialCol) {
-    caretPos = nextRowCharIndex + nextRowLen - 1;
+    caretPos = nextRowCharIndex + nextRowLen;
     return;
   }
 
