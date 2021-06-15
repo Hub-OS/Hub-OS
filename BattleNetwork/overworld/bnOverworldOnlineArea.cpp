@@ -248,12 +248,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       auto position = it->second.actor->Get3DPosition();
       serverCameraController.MoveCamera(GetMap().WorldToScreen(position));
     }
-
-    // stop warp camera if tracking an actor
-    warpCameraController.UnlockCamera();
   }
 
-  if (serverCameraController.IsQueueEmpty() || trackedPlayer) {
+  if (serverCameraController.IsLocked() || trackedPlayer) {
     warpCameraController.UnlockCamera();
   }
 
