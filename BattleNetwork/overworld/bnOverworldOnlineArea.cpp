@@ -1272,7 +1272,18 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         warpLayer.push_back(&tileObject);
       }
       else if (type == "Board") {
-        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + zOffset, tileObject.tile.flippedHorizontal);
+        auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
+        sf::Vector2f bottomPosition;
+
+        if (tileMeta) {
+          bottomPosition = tileMeta->alignmentOffset + tileMeta->drawingOffset;
+        }
+
+        bottomPosition.x += tileObject.size.x / 2;
+        bottomPosition.y += tileObject.size.y;
+
+
+        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + bottomPosition + zOffset, tileObject.tile.flippedHorizontal);
       }
       else if (type == "Shop") {
         minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset);
