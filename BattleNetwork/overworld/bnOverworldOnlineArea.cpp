@@ -1300,7 +1300,7 @@ void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco:
 void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto name = reader.ReadString(buffer);
 
-  Audio().Play(GetAudio(name));
+  Audio().Play(GetAudio(name), AudioPriority::high);
 }
 
 void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
