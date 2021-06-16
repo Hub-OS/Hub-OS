@@ -300,29 +300,28 @@ void Overworld::OnlineArea::detectWarp() {
 
     auto type = tileObject.type;
     auto interpolateTime = sf::seconds(0.5f);
+    auto position3 = sf::Vector3f(tileObject.position.x, tileObject.position.y, float(layerIndex));
 
     if (type == "Home Warp") {
-      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
         GetPlayerController().ReleaseActor();
         sendLogoutSignal();
         getController().pop<segue<BlackWashFade>>();
-        });
+      });
     }
     else if (type == "Server Warp") {
-      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       auto address = tileObject.customProperties.GetProperty("Address");
       auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("Port");
       auto data = tileObject.customProperties.GetProperty("Data");
 
       command.onFinish.Slot([=] {
-
-        //QueueUnlockCamera();
         GetPlayerController().ReleaseActor();
         transferServer(address, port, data, false);
-        });
+      });
     }
     else if (type == "Position Warp") {
       auto targetTilePos = sf::Vector2f(
@@ -350,7 +349,7 @@ void Overworld::OnlineArea::detectWarp() {
       });
     }
     else if (type == "Custom Warp" || type == "Custom Server Warp") {
-      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
         sendCustomWarpSignal(tileObject.id);
