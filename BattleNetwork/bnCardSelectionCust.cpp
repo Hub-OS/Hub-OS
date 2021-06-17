@@ -956,7 +956,7 @@ void CardSelectionCust::Update(double elapsed)
   if (cardCount > 0) {
     // If OK button is highlighted, we are not selecting a dark card
     // If we are in form select, we are not selecting a dark card
-    if (cursorRow == 0 && cursorPos == 5 || isInFormSelect) {
+    if ((cursorRow == 0 && cursorPos == 5) || isInFormSelect) {
       isDarkCardSelected = false;
     }
     else {

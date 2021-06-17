@@ -3,8 +3,12 @@
 #include "../bnLogger.h"
 #include <fstream>
 #include <sstream>
-#include <filesystem>
 #include <iterator>
+
+#ifndef __APPLE__
+  // TODO: mac os < 10.15 file system support
+  #include<filesystem>
+#endif
 
 static char encodeHexChar(char c) {
   if (c < 10) {
@@ -99,34 +103,38 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) 
   // prefix with cached- to avoid reserved names such as COM
   cachePrefix = cachePath + "/cached-";
 
-  try {
-    // make sure this directory exists for caching
-    std::filesystem::create_directories(cachePath);
+  #ifndef __APPLE__
+    try {
+      // make sure this directory exists for caching
+      std::filesystem::create_directories(cachePath);
 
-    for (auto& entry : std::filesystem::directory_iterator(cachePath)) {
-      auto path = entry.path().string();
+      for (auto& entry : std::filesystem::directory_iterator(cachePath)) {
+        auto path = entry.path().string();
 
-      if (path.length() < cachePrefix.length()) {
-        // delete invalid file
-        std::filesystem::remove(path);
-        continue;
+        if (path.length() < cachePrefix.length()) {
+          // delete invalid file
+          std::filesystem::remove(path);
+          continue;
+        }
+
+        auto [name, lastModified] = decodeName(path.substr(cachePrefix.length()));
+
+        CacheMeta meta{
+          path,
+          lastModified,
+          entry.file_size()
+        };
+
+        cachedAssets.emplace(name, meta);
       }
-
-      auto [name, lastModified] = decodeName(path.substr(cachePrefix.length()));
-
-      CacheMeta meta{
-        path,
-        lastModified,
-        entry.file_size()
-      };
-
-      cachedAssets.emplace(name, meta);
     }
-  }
-  catch (std::filesystem::filesystem_error& err) {
-    Logger::Log("Error occured while reading assets");
-    Logger::Log(err.what());
-  }
+    catch (std::filesystem::filesystem_error& err) {
+      Logger::Log("Error occured while reading assets");
+      Logger::Log(err.what());
+    }
+  #else 
+    Logger::Log("std::filesystem not supported on Mac OSX at this time.");
+  #endif
 }
 
 std::string Overworld::ServerAssetManager::GetPath(const std::string& name) {
@@ -287,13 +295,16 @@ void Overworld::ServerAssetManager::SetAudio(const std::string& name, uint64_t l
 }
 
 void Overworld::ServerAssetManager::RemoveAsset(const std::string& name) {
-  try {
-    std::filesystem::remove(GetPath(name));
-  }
-  catch (std::filesystem::filesystem_error& err) {
-    Logger::Log("Error occured while removing asset");
-    Logger::Log(err.what());
-  }
+
+  #ifndef __APPLE__
+    try {
+      std::filesystem::remove(GetPath(name));
+    }
+    catch (std::filesystem::filesystem_error& err) {
+      Logger::Log("Error occured while removing asset");
+      Logger::Log(err.what());
+    }
+  #endif
   
   cachedAssets.erase(name);
 }

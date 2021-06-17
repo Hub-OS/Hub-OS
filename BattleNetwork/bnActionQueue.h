@@ -6,7 +6,18 @@
 #include <functional>
 #include <memory>
 #include <map>
+
+#ifndef __APPLE__
 #include <any>
+#define any_cast std::any_cast
+using any = std::any;
+using bad_any_cast = std::bad_any_cast;
+#else
+#include "stx/any.h"
+#define any_cast stx::any_cast
+using any = stx::any;
+using bad_any_cast = stx::bad_any_cast;
+#endif
 
 enum class ActionOrder : short {
   immediate = 0,
@@ -70,7 +81,7 @@ private:
   std::map<ActionTypes, std::function<void(const ExecutionType&)>> handlers;
   std::map<ActionTypes, std::function<void(size_t)>> poppers;
   std::map<std::string, ActionTypes> type2Action;
-  std::map<ActionTypes, std::any> types;
+  std::map<ActionTypes, any> types;
   std::map<ActionTypes, ActionDiscardOp> discardFilters;
   std::map<ActionOrder, ActionOrder> priorityFilters;
   std::vector<Index> indices;
@@ -114,34 +125,43 @@ void ActionQueue::RegisterType(ActionTypes type, const Func& func) {
   type2Action.insert(std::make_pair(typeid(Key).name(), type));
 
   auto invoker = [=](const ExecutionType& exec) {
-    // ExecutionType::reserve
-    auto queue = std::any_cast<std::shared_ptr<Queue<Key>>>(types[type]);
-    Index& idx = indices[0];
-    idx.processing = true;
+    try {
+      // ExecutionType::reserve
+      auto queue = any_cast<std::shared_ptr<Queue<Key>>>(types[type]);
+      Index& idx = indices[0];
+      idx.processing = true;
 
-    if (exec >= ExecutionType::process) {
-      func(queue->list[idx.index], exec);
+      if (exec >= ExecutionType::process) {
+        func(queue->list[idx.index], exec);
+      }
+    } catch (bad_any_cast&) {
+      std::cout << "Type " << typeid(Key).name() << " not registered" << std::endl;
     }
   };
 
   handlers.insert(std::make_pair(type, invoker));
 
   auto popper = [=](size_t index) {
-    auto queue = std::any_cast<std::shared_ptr<Queue<Key>>>(types[type]);
+    try {
+      auto queue = any_cast<std::shared_ptr<Queue<Key>>>(types[type]);
 
-    if (index < queue->list.size()) {
-      DeleterFunc deleter{};
-      deleter.operator()(queue->list[index]);
+      if (index < queue->list.size()) {
+        DeleterFunc deleter{};
+        deleter.operator()(queue->list[index]);
 
-      // update the index positions referring to this queue...
-      for (auto& idx : indices) {
-        size_t new_index = (idx.index==0)? 0 : idx.index-1;
-        if (idx.type == type && idx.index >= index) {
-          idx.index = new_index;
+        // update the index positions referring to this queue...
+        for (auto& idx : indices) {
+          size_t new_index = (idx.index==0)? 0 : idx.index-1;
+          if (idx.type == type && idx.index >= index) {
+            idx.index = new_index;
+          }
         }
-      }
 
-      queue->list.erase(queue->list.begin() + index);
+        queue->list.erase(queue->list.begin() + index);
+      }
+    }
+    catch (bad_any_cast&) {
+      std::cout << "Type " << typeid(Key).name() << " not registered" << std::endl;
     }
   };
 
@@ -152,7 +172,7 @@ template<typename Y>
 void ActionQueue::Add(const Y& in, ActionOrder priority, ActionDiscardOp discard) {
   try {
     ActionTypes key = type2Action[typeid(Y).name()];
-    auto queue = std::any_cast<std::shared_ptr<Queue<Y>>>(types[key]);
+    auto queue = any_cast<std::shared_ptr<Queue<Y>>>(types[key]);
 
     if (queue) {
       queue->list.push_back(in);
@@ -162,7 +182,7 @@ void ActionQueue::Add(const Y& in, ActionOrder priority, ActionDiscardOp discard
       Sort();
     }
   }
-  catch (std::bad_any_cast&) {
+  catch (bad_any_cast&) {
     std::cout << "Type " << typeid(Y).name() << " not registered" << std::endl;
   }
 }
@@ -204,3 +224,4 @@ inline std::ostream& operator<<(std::ostream& os, const ActionQueue& queue) {
   return os;
 }
 
+#undef any_cast

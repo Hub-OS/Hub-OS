@@ -244,7 +244,8 @@ void SelectedCardsUI::Broadcast(const Battle::Card& card, Character& user)
 std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek()
 {
   if (cardCount > 0) {
-    return { std::ref(*selectedCards[curr]) };
+    using RefType = std::reference_wrapper<const Battle::Card>;
+    return std::optional<RefType>(std::ref(*selectedCards[curr]));
   }
 
   return {};

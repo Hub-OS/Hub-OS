@@ -740,7 +740,7 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
     auto maybe_card = publisher->Peek();
 
     if (maybe_card.has_value()) {
-      const Battle::Card& card = maybe_card.value();
+      const Battle::Card& card = *maybe_card;
       publisher->Broadcast(card, *this);
     }
   }
