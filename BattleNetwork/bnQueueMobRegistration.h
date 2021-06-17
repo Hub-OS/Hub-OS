@@ -127,7 +127,7 @@ static inline void QueueMobRegistration() {
   info->SetHP(2000);
 
 
-#if defined(BN_MOD_SUPPORT) and not defined(__APPLE__)
+#if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   // Script resource manager load scripts from designated folder "resources/mods/players"
   std::string path = "resources/mods/enemies";
   for (const auto& entry : std::filesystem::directory_iterator(path)) {

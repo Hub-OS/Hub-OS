@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnScriptedCardAction.h"
 
 ScriptedCardAction::ScriptedCardAction(Character& actor, const std::string& state) :
@@ -38,3 +39,4 @@ void ScriptedCardAction::OnExecute(Character* user) {
     onExecute(*this, user);
   }
 }
+#endif

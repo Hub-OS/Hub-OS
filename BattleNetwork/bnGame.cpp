@@ -132,17 +132,11 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   inputManager.SupportConfigSettings(reader);
 
   TaskGroup tasks;
-  //tasks.AddTask("Init graphics", std::move(graphics));
-  //tasks.AddTask("Init audio", std::move(audio));
-  //tasks.AddTask("Load Navis", std::move(navis));
-  //tasks.AddTask("Load mobs", std::move(mobs));
-  //tasks.AddTask("Finishing", std::move(finish));
-
-  graphics();
-  audio();
-  navis();
-  mobs();
-  finish();
+  tasks.AddTask("Init graphics", std::move(graphics));
+  tasks.AddTask("Init audio", std::move(audio));
+  tasks.AddTask("Load Navis", std::move(navis));
+  tasks.AddTask("Load mobs", std::move(mobs));
+  tasks.AddTask("Finishing", std::move(finish));
 
     // Load font symbols for use across the entire engine...
   textureManager.LoadImmediately(TextureType::FONT);
