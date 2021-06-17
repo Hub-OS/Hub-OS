@@ -1254,8 +1254,8 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
       if (!tileMeta) continue;
 
-      auto screenOffset = tileMeta->drawingOffset;
-      screenOffset.y += tileObject.size.y / 2.0f;
+      auto screenOffset = tileMeta->alignmentOffset + tileMeta->drawingOffset;
+      screenOffset += tileObject.size / 2.0f;
 
       auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
       auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
@@ -1271,21 +1271,24 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         warpLayer.push_back(&tileObject);
       }
       else if (type == "Board") {
-        auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
-        sf::Vector2f bottomPosition;
+        sf::Vector2f bottomPosition = objectCenterPos;
+        bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
 
-        if (tileMeta) {
-          bottomPosition = tileMeta->alignmentOffset + tileMeta->drawingOffset;
-        }
-
-        bottomPosition.x += tileObject.size.x / 2;
-        bottomPosition.y += tileObject.size.y;
-
-
-        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + bottomPosition + zOffset, tileObject.tile.flippedHorizontal);
+        minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal);
       }
       else if (type == "Shop") {
         minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset);
+      }
+      else if (type == "Conveyor") {
+        auto tilePos = map.WorldToTileSpace(objectCenterPos);
+        tilePos.x = std::floor(tilePos.x) + 0.5f;
+        tilePos.y = std::floor(tilePos.y) + 0.5f;
+
+        auto minimapWorldPos = map.TileToWorld(tilePos);
+
+        auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
+
+        minimap.AddConveyorPosition(map.WorldToScreen(minimapWorldPos) + zOffset, direction);
       }
     }
   }

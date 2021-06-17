@@ -289,6 +289,7 @@ void Overworld::Minimap::EnforceTextureSizeLimits()
   warp.setTextureRect({ 0, 0, 8, 6 });
   board.setTextureRect({ 0, 0, 6, 7 });
   shop.setTextureRect({ 0, 0, 6, 7 });
+  conveyor.setTextureRect({ 0, 0, 6, 3 });
   overlay.setTextureRect({ 0, 0, 240, 160 });
 
   player.setOrigin({ 3, 8 });
@@ -296,6 +297,7 @@ void Overworld::Minimap::EnforceTextureSizeLimits()
   warp.setOrigin({ 4, 3 });
   board.setOrigin({ 3, 7 });
   shop.setOrigin({ 3, 7 });
+  conveyor.setOrigin({ 3, 1.5 });
 }
 
 Overworld::Minimap::Minimap()
@@ -307,6 +309,7 @@ Overworld::Minimap::Minimap()
   warp.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_warp.png"));
   board.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_board.png"));
   shop.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_shop.png"));
+  conveyor.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_conveyor.png"));
   EnforceTextureSizeLimits();
 
   // dark blueish
@@ -463,6 +466,31 @@ void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos)
   newShop->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   newShop->SetLayer(-1);
   markers.push_back(newShop);
+  bakedMap.AddNode(markers.back().get());
+}
+
+void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction direction)
+{
+  auto newpos = pos * this->scaling;
+  std::shared_ptr<SpriteProxyNode> newConveyor = std::make_shared<SpriteProxyNode>();
+  CopyTextureAndOrigin(*newConveyor, conveyor);
+  newConveyor->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  newConveyor->SetLayer(-1);
+
+  switch (direction)
+  {
+  case Direction::up_left:
+    newConveyor->setScale(-1, 1);
+    break;
+  case Direction::up_right:
+    newConveyor->setScale(1, -1);
+    break;
+  case Direction::down_left:
+    newConveyor->setScale(-1, 1);
+    break;
+  }
+
+  markers.push_back(newConveyor);
   bakedMap.AddNode(markers.back().get());
 }
 

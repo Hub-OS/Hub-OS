@@ -1,5 +1,6 @@
 #pragma once
 #include "../bnResourceHandle.h"
+#include "../bnDirection.h"
 #include "bnOverworldMap.h"
 #include <SFML/Graphics.hpp>
 #include <memory>
@@ -14,7 +15,7 @@ namespace Overworld {
     std::string name;
     sf::RectangleShape rectangle;
     sf::Color bgColor{};
-    SpriteProxyNode player, hp, warp, board, shop, overlay, arrows, bakedMap;
+    SpriteProxyNode player, hp, warp, board, shop, overlay, arrows, conveyor, bakedMap;
     std::vector<std::shared_ptr<SpriteProxyNode>> markers;
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
     void EnforceTextureSizeLimits();
@@ -34,6 +35,7 @@ namespace Overworld {
     void AddWarpPosition(const sf::Vector2f& pos);
     void AddShopPosition(const sf::Vector2f& pos);
     void AddBoardPosition(const sf::Vector2f& pos, bool flip);
+    void AddConveyorPosition(const sf::Vector2f& pos, Direction direction);
     void draw(sf::RenderTarget& surface, sf::RenderStates states) const override final;
   };
 }
