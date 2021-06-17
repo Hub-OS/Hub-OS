@@ -51,29 +51,6 @@ static Direction resolveDirectionString(const std::string& direction) {
   return Direction::none;
 }
 
-static const std::string sanitize_folder_name(std::string in) {
-  // todo: use regex for multiple erroneous folder names?
-
-  size_t pos = in.find('.');
-
-  // Repeat till end is reached
-  while (pos != std::string::npos)
-  {
-    in.replace(pos, 1, "_");
-    pos = in.find('.', pos + 1);
-  }
-
-  pos = in.find(':');
-
-  // find port
-  if (pos != std::string::npos)
-  {
-    in.replace(pos, 1, "_p");
-  }
-
-  return in;
-}
-
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
   const std::string& address,
@@ -93,7 +70,7 @@ Overworld::OnlineArea::OnlineArea(
   ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
-  serverAssetManager("cache/" + sanitize_folder_name(remoteAddress.toString()))
+  serverAssetManager("cache", address + "_p" + std::to_string(port))
 {
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
