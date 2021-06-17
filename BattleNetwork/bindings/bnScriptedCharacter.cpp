@@ -88,7 +88,7 @@ Battle::Tile* ScriptedCharacter::GetCurrentTile() const
 
 void ScriptedCharacter::ShakeCamera(double power, float duration)
 {
-  this->EventBus().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
+  this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
 
 Animation& ScriptedCharacter::GetAnimationObject() {

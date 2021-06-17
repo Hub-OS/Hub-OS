@@ -69,7 +69,7 @@ void Meteor::OnUpdate(double _elapsed) {
     tile->AffectEntities(this);
 
     if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
-      EventBus().Emit(&Camera::ShakeCamera, 5, sf::seconds(0.5));
+      EventChannel().Emit(&Camera::ShakeCamera, 5, sf::seconds(0.5));
 
       field->AddEntity(*(new RingExplosion), *GetTile());
     }

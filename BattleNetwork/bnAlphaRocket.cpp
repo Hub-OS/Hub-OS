@@ -107,7 +107,7 @@ void AlphaRocket::OnDelete()
     GetField()->AddEntity(*box, t->GetX(), t->GetY());
     GetField()->AddEntity(*exp, t->GetX(), t->GetY());
 
-    EventBus().Emit(&Camera::ShakeCamera, 10, sf::seconds(1));
+    EventChannel().Emit(&Camera::ShakeCamera, 10, sf::seconds(1));
   }
 
   Remove();

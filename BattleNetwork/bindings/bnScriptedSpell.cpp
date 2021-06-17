@@ -93,6 +93,6 @@ Battle::Tile* ScriptedSpell::GetCurrentTile() const
 
 void ScriptedSpell::ShakeCamera(double power, float duration)
 {
-  this->EventBus().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
+  this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
 #endif

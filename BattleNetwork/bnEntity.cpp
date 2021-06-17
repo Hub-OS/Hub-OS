@@ -597,7 +597,7 @@ void Entity::FreeAllComponents()
   components.clear();
 }
 
-const EventBus::Channel& Entity::EventBus() const
+const EventBus::Channel& Entity::EventChannel() const
 {
   return channel;
 }

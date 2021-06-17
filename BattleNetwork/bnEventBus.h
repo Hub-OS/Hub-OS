@@ -127,7 +127,7 @@ public:
     }
 
     /**
-    * @brief copy's a channel
+    * @brief copies a channel
     */
     Channel(const Channel& rhs) : scene(rhs.scene) { }
 

@@ -439,7 +439,7 @@ public:
   * @brief Returns a channel in the EventBus
   * @return Returns the channel as const reference
   */
-  const EventBus::Channel& EventBus() const;
+  const EventBus::Channel& EventChannel() const;
 
   /**
    * @brief Hit height can be overwritten to deduce from sprite bounds

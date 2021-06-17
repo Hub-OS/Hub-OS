@@ -91,7 +91,7 @@ void MetalManPunchState::Attack(MetalMan& metal) {
     metal.field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
 
     if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
-      metal.EventBus().Emit(&Camera::ShakeCamera, 5.0, sf::seconds(0.5));
+      metal.EventChannel().Emit(&Camera::ShakeCamera, 5.0, sf::seconds(0.5));
       metal.Audio().Play(AudioType::PANEL_CRACK);
 
       if (tile->GetState() == TileState::cracked) {
