@@ -1,10 +1,25 @@
 #include "bnMinimap.h"
 #include <Swoosh/EmbedGLSL.h>
+#include <cmath>
 #include "../bnTextureResourceManager.h"
 
 static void CopyTextureAndOrigin(SpriteProxyNode& dest, const SpriteProxyNode& source) {
   dest.setTexture(source.getTexture());
   dest.setOrigin(source.getOrigin());
+}
+
+const float MAX_TILE_HEIGHT = 10.f;
+const float MIN_TILE_HEIGHT = 4.f;
+
+static float resolveTileHeight(Overworld::Map& map, sf::Vector2f mapScreenUnitDimensions) {
+  auto targetTileHeight = std::min(160.f / (mapScreenUnitDimensions.y), 240.f / (mapScreenUnitDimensions.x * 2.0f) * 240.0f / 160.0f) * 2.0f;
+  targetTileHeight = std::clamp(targetTileHeight, MIN_TILE_HEIGHT, MAX_TILE_HEIGHT);
+
+  if (targetTileHeight <= MIN_TILE_HEIGHT) {
+    targetTileHeight = MIN_TILE_HEIGHT;
+  }
+
+  return targetTileHeight;
 }
 
 Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& map)
@@ -16,21 +31,30 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   sf::RenderTexture texture;
   sf::RenderStates states;
 
-  const float maxTileHeight = 10.f;
-  const float minTileHeight = 4.f;
   const auto screenSize = sf::Vector2i{ 240, 160 };
   auto mapScreenUnitDimensions = sf::Vector2f(
     map.WorldToScreen({ (float)map.GetCols(), 0.0f }).x - map.WorldToScreen({ 0.0f, (float)map.GetRows() }).x,
-    float(map.GetCols() + map.GetRows()) + (float(map.GetLayerCount()) - 1.0f) * 0.5f
+    float(map.GetCols() + map.GetRows()) + float(map.GetLayerCount()) + 1.0f
   );
-  const auto gridSize = mapScreenUnitDimensions * maxTileHeight;
+
+  auto tileSize = map.GetTileSize();
+  auto tileHeight = resolveTileHeight(map, mapScreenUnitDimensions);
+
+  minimap.scaling = tileHeight / tileSize.y;
 
   // how many times could this map fit into the screen? make that many.
-  sf::Vector2f texsizef = { screenSize.x * (gridSize.x / float(screenSize.x)), screenSize.y * (gridSize.y / float(screenSize.y)) };
+  sf::Vector2f texsizef = {
+    std::ceil(mapScreenUnitDimensions.x * tileSize.x * minimap.scaling * 0.5f),
+    std::ceil(mapScreenUnitDimensions.y * tileSize.y * minimap.scaling * 0.5f) + 1.0f
+  };
+
   auto textureSize = sf::Vector2i(texsizef);
 
   textureSize.x = std::max(screenSize.x, textureSize.x);
   textureSize.y = std::max(screenSize.y, textureSize.y);
+
+  // texture does not fit on screen, allow large map controls
+  minimap.largeMapControls = textureSize.x > screenSize.x || textureSize.y > screenSize.y;
 
   if (!texture.create(textureSize.x, textureSize.y)) return minimap;
 
@@ -117,8 +141,6 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   states.shader = &shader;
 
   // guestimate best fit "center" of the map
-  auto tileSize = map.GetTileSize();
-
   auto layerDimensions = map.TileToWorld({ (float)map.GetCols(), (float)map.GetRows() });
   sf::Vector3f mapDimensions = {
     layerDimensions.x, layerDimensions.y,
@@ -127,16 +149,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
 
   // move the map to the center of the screen and fit
   // TODO: chunk the minimap for large map
-  auto targetTileHeight = std::min(160.f / (mapScreenUnitDimensions.y), 240.f / (mapScreenUnitDimensions.x * 2.0f) * 240.0f / 160.0f) * 2.0f;
-  targetTileHeight = std::clamp(targetTileHeight, minTileHeight, maxTileHeight);
-
-  if (targetTileHeight <= minTileHeight) {
-    targetTileHeight = minTileHeight;
-    minimap.largeMapControls = true;
-  }
-
-  minimap.scaling = (targetTileHeight / tileSize.y);
-  sf::Vector2f center = map.WorldToScreen(sf::Vector3f(mapDimensions. x, mapDimensions.y, -mapDimensions.z) * 0.5f) * minimap.scaling;
+  sf::Vector2f center = map.WorldToScreen(sf::Vector3f(mapDimensions. x, mapDimensions.y, mapDimensions.z * 2.0f) * 0.5f) * minimap.scaling;
   minimap.offset = center;
 
   const int maxLayerCount = (int)map.GetLayerCount();
@@ -276,6 +289,7 @@ void Overworld::Minimap::EnforceTextureSizeLimits()
   warp.setTextureRect({ 0, 0, 8, 6 });
   board.setTextureRect({ 0, 0, 6, 7 });
   shop.setTextureRect({ 0, 0, 6, 7 });
+  conveyor.setTextureRect({ 0, 0, 6, 3 });
   overlay.setTextureRect({ 0, 0, 240, 160 });
 
   player.setOrigin({ 3, 8 });
@@ -283,6 +297,7 @@ void Overworld::Minimap::EnforceTextureSizeLimits()
   warp.setOrigin({ 4, 3 });
   board.setOrigin({ 3, 7 });
   shop.setOrigin({ 3, 7 });
+  conveyor.setOrigin({ 3, 1.5 });
 }
 
 Overworld::Minimap::Minimap()
@@ -294,6 +309,7 @@ Overworld::Minimap::Minimap()
   warp.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_warp.png"));
   board.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_board.png"));
   shop.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_shop.png"));
+  conveyor.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_conveyor.png"));
   EnforceTextureSizeLimits();
 
   // dark blueish
@@ -450,6 +466,31 @@ void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos)
   newShop->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   newShop->SetLayer(-1);
   markers.push_back(newShop);
+  bakedMap.AddNode(markers.back().get());
+}
+
+void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction direction)
+{
+  auto newpos = pos * this->scaling;
+  std::shared_ptr<SpriteProxyNode> newConveyor = std::make_shared<SpriteProxyNode>();
+  CopyTextureAndOrigin(*newConveyor, conveyor);
+  newConveyor->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  newConveyor->SetLayer(-1);
+
+  switch (direction)
+  {
+  case Direction::up_left:
+    newConveyor->setScale(-1, -1);
+    break;
+  case Direction::up_right:
+    newConveyor->setScale(1, -1);
+    break;
+  case Direction::down_left:
+    newConveyor->setScale(-1, 1);
+    break;
+  }
+
+  markers.push_back(newConveyor);
   bakedMap.AddNode(markers.back().get());
 }
 

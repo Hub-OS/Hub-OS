@@ -26,7 +26,7 @@ static std::string URIEncode(std::string name) {
   for (auto i = 0; i < name.length(); i++) {
     auto c = name[i];
 
-    if (std::isalpha(c) || std::isdigit(c) || c == '.' || c == ' ') {
+    if (std::isalpha(c) || std::isdigit(c) || c == '.' || c == ' ' || c == '-' || c == '_') {
       encodedName << c;
       continue;
     }
@@ -81,7 +81,7 @@ static std::string encodeName(const std::string& name, uint64_t lastModified) {
 static std::tuple<std::string, uint64_t> decodeName(const std::string& name) {
   auto dashIndex = name.find('-');
 
-  if(dashIndex == std::string::npos) {
+  if (dashIndex == std::string::npos) {
     return { URIDecode(name), 0 };
   }
 
@@ -89,7 +89,8 @@ static std::tuple<std::string, uint64_t> decodeName(const std::string& name) {
 
   try {
     lastModifiedTime = stoull(name);
-  } catch(std::exception&) {
+  }
+  catch (std::exception&) {
     lastModifiedTime = 0;
   }
 
@@ -97,8 +98,8 @@ static std::tuple<std::string, uint64_t> decodeName(const std::string& name) {
 }
 
 
-Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) :
-  cachePath(cachePath)
+Overworld::ServerAssetManager::ServerAssetManager(const std::string& parentFolder, const std::string& folderName) :
+  cachePath(parentFolder + '/' + URIEncode(folderName))
 {
   // prefix with cached- to avoid reserved names such as COM
   cachePrefix = cachePath + "/cached-";
@@ -140,7 +141,7 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& cachePath) 
 std::string Overworld::ServerAssetManager::GetPath(const std::string& name) {
   auto it = cachedAssets.find(name);
 
-  if(it == cachedAssets.end()) {
+  if (it == cachedAssets.end()) {
     // fallback
     return cachePrefix + URIEncode(name);
   }

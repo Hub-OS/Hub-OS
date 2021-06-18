@@ -45,7 +45,7 @@ namespace Overworld {
       Tile& SetTile(float x, float y, unsigned int gid);
 
       void SetVisible(bool enabled);
-      const bool IsVisible() const;
+      bool IsVisible() const;
 
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(unsigned int id);
       std::optional<std::reference_wrapper<TileObject>> GetTileObject(const std::string& name);
@@ -87,48 +87,50 @@ namespace Overworld {
      * @param screen vector from screen
      * @return world coordinates
      */
-    const sf::Vector2f ScreenToWorld(sf::Vector2f screen) const;
+    sf::Vector2f ScreenToWorld(sf::Vector2f screen) const;
 
      /**
      * @brief Transforms a point in-world (assuming layer 0) to screen cordinates
      * @param screen vector from world
      * @return screen coordinates
      */
-    const sf::Vector2f WorldToScreen(sf::Vector2f world) const;
+    sf::Vector2f WorldToScreen(sf::Vector2f world) const;
 
      /**
      * @brief Transforms a point in-world to screen cordinates
      * @param screen vector from world
      * @return screen coordinates
      */
-    const sf::Vector2f WorldToScreen(sf::Vector3f world) const;
+    sf::Vector2f WorldToScreen(sf::Vector3f world) const;
 
     /**
      * @brief Transforms a point in-world to tile cordinates
      * @param screen vector from world
      * @return screen coordinates
      */
-    const sf::Vector2f WorldToTileSpace(sf::Vector2f world) const;
+    sf::Vector2f WorldToTileSpace(sf::Vector2f world) const;
 
     /**
      * @brief Transforms a point in tile space to world cordinates
      * @param screen vector from world
      * @return screen coordinates
      */
-    const sf::Vector2f TileToWorld(sf::Vector2f world) const;
+    sf::Vector2f TileToWorld(sf::Vector2f world) const;
+
+    size_t HashTilePosition(sf::Vector2f position) const;
 
     /**
      * @brief Transforms an ortho vector into an isometric vector
      * @param ortho position in orthographic space
      * @return vector in isometric space
      */
-    const sf::Vector2f OrthoToIsometric(const sf::Vector2f& ortho) const;
+    sf::Vector2f OrthoToIsometric(const sf::Vector2f& ortho) const;
 
     /**
      * @brief Returns tile dimensions as a vector
      * @return const sf::Vector2i(tileWidth, tileHeight)
      */
-    const sf::Vector2i GetTileSize() const;
+    sf::Vector2i GetTileSize() const;
 
     const std::string& GetName() const;
     const std::string& GetBackgroundName() const;
@@ -143,8 +145,8 @@ namespace Overworld {
     void SetBackgroundCustomVelocity(float x, float y);
     void SetBackgroundCustomVelocity(sf::Vector2f velocity);
     void SetSongPath(const std::string& path);
-    const unsigned GetCols() const;
-    const unsigned GetRows() const;
+    unsigned GetCols() const;
+    unsigned GetRows() const;
     unsigned int GetTileCount();
     std::shared_ptr<TileMeta> GetTileMeta(unsigned int tileGid);
     std::shared_ptr<Tileset> GetTileset(const std::string& name);
@@ -176,6 +178,6 @@ namespace Overworld {
      * @param iso position in isometric space
      * @return vector in orthographic space
      */
-    const sf::Vector2f IsoToOrthogonal(const sf::Vector2f& iso) const;
+    sf::Vector2f IsoToOrthogonal(const sf::Vector2f& iso) const;
   };
 }

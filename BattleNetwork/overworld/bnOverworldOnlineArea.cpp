@@ -51,29 +51,6 @@ static Direction resolveDirectionString(const std::string& direction) {
   return Direction::none;
 }
 
-static const std::string sanitize_folder_name(std::string in) {
-  // todo: use regex for multiple erroneous folder names?
-
-  size_t pos = in.find('.');
-
-  // Repeat till end is reached
-  while (pos != std::string::npos)
-  {
-    in.replace(pos, 1, "_");
-    pos = in.find('.', pos + 1);
-  }
-
-  pos = in.find(':');
-
-  // find port
-  if (pos != std::string::npos)
-  {
-    in.replace(pos, 1, "_p");
-  }
-
-  return in;
-}
-
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
   const std::string& address,
@@ -93,7 +70,7 @@ Overworld::OnlineArea::OnlineArea(
   ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
-  serverAssetManager("cache/" + sanitize_folder_name(remoteAddress.toString()))
+  serverAssetManager("cache", address + "_p" + std::to_string(port))
 {
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
@@ -156,32 +133,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
   removePlayers.clear();
 
-  if (!IsInputLocked()) {
-    detectWarp();
-  }
-
-  auto player = GetPlayer();
-
-  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && GetEmoteWidget().IsClosed()) {
-    auto& meta = NAVIS.At(GetCurrentNavi());
-    const std::string& image = meta.GetMugshotTexturePath();
-    const std::string& anim = meta.GetMugshotAnimationPath();
-    auto mugshot = Textures().LoadTextureFromFile(image);
-    auto& menuSystem = GetMenuSystem();
-    menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
-
-    menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
-      if (result) {
-        GetTeleportController().TeleportOut(GetPlayer()).onFinish.Slot([this] {
-          this->sendLogoutSignal();
-          this->leave();
-        });
-      }
-    });
-
-    player->Face(Direction::down_right);
-  }
-
   auto currentNavi = GetCurrentNavi();
   if (lastFrameNavi != currentNavi) {
     sendAvatarChangeSignal();
@@ -233,9 +184,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     sendPositionSignal();
   }
 
-  lastPosition = player->Get3DPosition();
-
-  propertyAnimator.Update(*player, elapsed);
+  updatePlayer(elapsed);
 
   // handle camera locking and player tracking
   if (trackedPlayer && serverCameraController.IsQueueEmpty()) {
@@ -248,12 +197,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       auto position = it->second.actor->Get3DPosition();
       serverCameraController.MoveCamera(GetMap().WorldToScreen(position));
     }
-
-    // stop warp camera if tracking an actor
-    warpCameraController.UnlockCamera();
   }
 
-  if (serverCameraController.IsQueueEmpty() || trackedPlayer) {
+  if (serverCameraController.IsLocked() || trackedPlayer) {
     warpCameraController.UnlockCamera();
   }
 
@@ -269,14 +215,51 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   UnlockCamera(); // reset lock, we'll lock it later if we need to
 }
 
-void Overworld::OnlineArea::detectWarp() {
+void Overworld::OnlineArea::updatePlayer(double elapsed) {
+  auto player = GetPlayer();
+  auto playerPos = player->Get3DPosition();
+
+  propertyAnimator.Update(*player, elapsed);
+
+  if (!IsInputLocked()) {
+    if (Input().Has(InputEvents::pressed_shoulder_right) && GetEmoteWidget().IsClosed()) {
+      auto& meta = NAVIS.At(GetCurrentNavi());
+      const std::string& image = meta.GetMugshotTexturePath();
+      const std::string& anim = meta.GetMugshotAnimationPath();
+      auto mugshot = Textures().LoadTextureFromFile(image);
+      auto& menuSystem = GetMenuSystem();
+      menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
+
+      menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
+        if (result) {
+          GetTeleportController().TeleportOut(GetPlayer()).onFinish.Slot([this] {
+            this->sendLogoutSignal();
+            this->leave();
+          });
+        }
+      });
+
+      player->Face(Direction::down_right);
+    }
+
+    if (playerPos.x != lastPosition.x || playerPos.y != lastPosition.y) {
+      // only need to handle this if the player has moved
+      detectWarp(player);
+    }
+  }
+
+  detectConveyor(player);
+
+  lastPosition = playerPos;
+}
+
+void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player) {
   auto& teleportController = GetTeleportController();
 
   if (!teleportController.IsComplete()) {
     return;
   }
 
-  auto player = GetPlayer();
   auto layerIndex = player->GetLayer();
 
   auto& map = GetMap();
@@ -286,11 +269,6 @@ void Overworld::OnlineArea::detectWarp() {
   }
 
   auto playerPos = player->getPosition();
-
-  if (playerPos.x == lastPosition.x && playerPos.y == lastPosition.y) {
-    // don't warp if the player hasn't moved
-    return;
-  }
 
   for (auto* tileObjectPtr : warps[layerIndex]) {
     auto& tileObject = *tileObjectPtr;
@@ -303,29 +281,28 @@ void Overworld::OnlineArea::detectWarp() {
 
     auto type = tileObject.type;
     auto interpolateTime = sf::seconds(0.5f);
+    auto position3 = sf::Vector3f(tileObject.position.x, tileObject.position.y, float(layerIndex));
 
     if (type == "Home Warp") {
-      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
         GetPlayerController().ReleaseActor();
         sendLogoutSignal();
         getController().pop<segue<BlackWashFade>>();
-        });
+      });
     }
     else if (type == "Server Warp") {
-      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       auto address = tileObject.customProperties.GetProperty("Address");
       auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("Port");
       auto data = tileObject.customProperties.GetProperty("Data");
 
       command.onFinish.Slot([=] {
-
-        //QueueUnlockCamera();
         GetPlayerController().ReleaseActor();
         transferServer(address, port, data, false);
-        });
+      });
     }
     else if (type == "Position Warp") {
       auto targetTilePos = sf::Vector2f(
@@ -353,7 +330,7 @@ void Overworld::OnlineArea::detectWarp() {
       });
     }
     else if (type == "Custom Warp" || type == "Custom Server Warp") {
-      warpCameraController.QueueMoveCamera(map.WorldToScreen(tileObject.position), interpolateTime);
+      warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
         sendCustomWarpSignal(tileObject.id);
@@ -362,6 +339,150 @@ void Overworld::OnlineArea::detectWarp() {
 
     break;
   }
+}
+
+void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& player) {
+  if (propertyAnimator.IsAnimatingPosition()) {
+    // if the server is dragging the player around, ignore conveyors
+    return;
+  }
+
+  auto& map = GetMap();
+
+  auto layer = player->GetLayer();
+
+  if (layer < 0 || layer >= map.GetLayerCount()) {
+    return;
+  }
+
+  auto playerTilePos = map.WorldToTileSpace(player->getPosition());
+  auto hash = map.HashTilePosition(playerTilePos);
+
+  auto& conveyorLayer = conveyors[layer];
+  auto iter = conveyorLayer.find(hash);
+
+  if (iter == conveyorLayer.end()) {
+    // no conveyor
+    return;
+  }
+
+  auto direction = iter->second;
+  auto endTilePos = playerTilePos;
+  float tileDistance = 0.0f;
+
+  ActorPropertyAnimator::PropertyStep animationProperty;
+  animationProperty.property = ActorProperty::animation;
+
+  // resolve animation
+  switch (direction) {
+  case Direction::up_left:
+    animationProperty.stringValue = "IDLE_UL";
+    break;
+  case Direction::up_right:
+    animationProperty.stringValue = "IDLE_UR";
+    break;
+  case Direction::down_left:
+    animationProperty.stringValue = "IDLE_DL";
+    break;
+  case Direction::down_right:
+    animationProperty.stringValue = "IDLE_DR";
+    break;
+  }
+
+  ActorPropertyAnimator::PropertyStep axisProperty;
+  axisProperty.ease = Ease::linear;
+
+  auto isSameDirection = [&conveyorLayer, &map, direction](sf::Vector2f endTilePos) {
+    auto hash = map.HashTilePosition(endTilePos);
+    auto iter = conveyorLayer.find(hash);
+
+    if (iter == conveyorLayer.end()) {
+      return false;
+    }
+
+    return iter->second == direction;
+  };
+
+  auto isConveyor = [&conveyorLayer, &map](sf::Vector2f endTilePos) {
+    auto hash = map.HashTilePosition(endTilePos);
+    auto iter = conveyorLayer.find(hash);
+
+    return iter != conveyorLayer.end();
+  };
+
+  // resolve end position
+  switch (direction) {
+  case Direction::up_left:
+  case Direction::down_right:
+    endTilePos.x = std::floor(endTilePos.x);
+    axisProperty.property = ActorProperty::x;
+    break;
+  case Direction::up_right:
+  case Direction::down_left:
+    axisProperty.property = ActorProperty::y;
+    endTilePos.y = std::floor(endTilePos.y);
+    break;
+  }
+
+  auto unprojectedDirection = Orthographic(direction);
+  auto walkVector = UnitVector(unprojectedDirection);
+
+  do {
+    endTilePos += walkVector;
+  } while (isSameDirection(endTilePos));
+
+  if (isConveyor(endTilePos)) {
+    endTilePos += walkVector / 2.0f;
+  }
+
+  // fixing overshooting
+  switch (direction) {
+  case Direction::up_left:
+    endTilePos.x = std::nextafter(endTilePos.x + 1.0f, -INFINITY);
+    break;
+  case Direction::up_right:
+    endTilePos.y = std::nextafter(endTilePos.y + 1.0f, -INFINITY);
+    break;
+  }
+
+  auto endPos = map.TileToWorld(endTilePos);
+
+  switch (axisProperty.property) {
+  case ActorProperty::x:
+    axisProperty.value = endPos.x;
+    tileDistance = std::abs(endTilePos.x - playerTilePos.x);
+    break;
+  case ActorProperty::y:
+    axisProperty.value = endPos.y;
+    tileDistance = std::abs(endTilePos.y - playerTilePos.y);
+    break;
+  }
+
+  propertyAnimator.Reset();
+
+  const float TILES_PER_SECOND = 6.0f;
+  auto duration = tileDistance / TILES_PER_SECOND;
+
+  // todo: grab from custom property/server
+  ActorPropertyAnimator::PropertyStep sfxProperty;
+  sfxProperty.property = ActorProperty::sound_effect_loop;
+  sfxProperty.stringValue = "resources/sfx/dir_tile.ogg";
+
+  ActorPropertyAnimator::KeyFrame startKeyframe;
+  startKeyframe.propertySteps.push_back(animationProperty);
+  startKeyframe.propertySteps.push_back(sfxProperty);
+  propertyAnimator.AddKeyFrame(startKeyframe);
+
+  sfxProperty.stringValue = "";
+
+  ActorPropertyAnimator::KeyFrame endKeyframe;
+  endKeyframe.propertySteps.push_back(axisProperty);
+  endKeyframe.propertySteps.push_back(sfxProperty);
+  endKeyframe.duration = duration;
+  propertyAnimator.AddKeyFrame(endKeyframe);
+
+  propertyAnimator.UseKeyFrames(*player);
+  GetPlayerController().ReleaseActor();
 }
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
@@ -1239,15 +1360,20 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
     }
   }
 
+  // storing special tile objects in minimap and other variables
   auto& minimap = GetMinimap();
   minimap.ClearIcons();
   warps.resize(layerCount);
+  conveyors.resize(layerCount);
 
   auto tileSize = map.GetTileSize();
 
   for (auto i = 0; i < layerCount; i++) {
     auto& warpLayer = warps[i];
     warpLayer.clear();
+
+    auto& conveyorLayer = conveyors[i];
+    conveyorLayer.clear();
 
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
       const std::string& type = tileObject.type;
@@ -1258,8 +1384,8 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
       if (!tileMeta) continue;
 
-      auto screenOffset = tileMeta->drawingOffset;
-      screenOffset.y += tileObject.size.y / 2.0f;
+      auto screenOffset = tileMeta->alignmentOffset + tileMeta->drawingOffset;
+      screenOffset += tileObject.size / 2.0f;
 
       auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
       auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
@@ -1275,10 +1401,26 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         warpLayer.push_back(&tileObject);
       }
       else if (type == "Board") {
-        minimap.AddBoardPosition(map.WorldToScreen(tileObject.position) + zOffset, tileObject.tile.flippedHorizontal);
+        sf::Vector2f bottomPosition = objectCenterPos;
+        bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
+
+        minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal);
       }
       else if (type == "Shop") {
         minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset);
+      }
+      else if (type == "Conveyor") {
+        auto tilePos = map.WorldToTileSpace(objectCenterPos);
+        tilePos.x = std::floor(tilePos.x) + 0.5f;
+        tilePos.y = std::floor(tilePos.y) + 0.5f;
+
+        auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
+
+        auto minimapWorldPos = map.TileToWorld(tilePos);
+        minimap.AddConveyorPosition(map.WorldToScreen(minimapWorldPos) + zOffset, direction);
+
+        // may break on large maps, but everything could break on large maps
+        conveyorLayer[map.HashTilePosition(tilePos)] = direction;
       }
     }
   }
@@ -1293,7 +1435,7 @@ void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco:
 void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto name = reader.ReadString(buffer);
 
-  Audio().Play(GetAudio(name));
+  Audio().Play(GetAudio(name), AudioPriority::highest);
 }
 
 void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

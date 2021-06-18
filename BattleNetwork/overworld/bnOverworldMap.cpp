@@ -47,18 +47,18 @@ namespace Overworld {
     }
   }
 
-  const sf::Vector2f Map::ScreenToWorld(sf::Vector2f screen) const
+  sf::Vector2f Map::ScreenToWorld(sf::Vector2f screen) const
   {
     sf::Vector2f scale = getScale();
     return OrthoToIsometric(sf::Vector2f{ screen.x / scale.x, screen.y / scale.y });
   }
 
-  const sf::Vector2f Map::WorldToScreen(sf::Vector2f world) const
+  sf::Vector2f Map::WorldToScreen(sf::Vector2f world) const
   {
     return IsoToOrthogonal(world);
   }
 
-  const sf::Vector2f Map::WorldToScreen(sf::Vector3f world) const
+  sf::Vector2f Map::WorldToScreen(sf::Vector3f world) const
   {
     auto screenPos = IsoToOrthogonal({ world.x, world.y });
     screenPos.y -= world.z * tileHeight / 2.0f;
@@ -66,17 +66,21 @@ namespace Overworld {
     return screenPos;
   }
 
-  const sf::Vector2f Map::WorldToTileSpace(sf::Vector2f world) const
+  sf::Vector2f Map::WorldToTileSpace(sf::Vector2f world) const
   {
     return { world.x / (float)tileWidth * 2.0f, world.y / (float)tileHeight };
   }
 
-  const sf::Vector2f Map::TileToWorld(sf::Vector2f tileSpace) const
+  sf::Vector2f Map::TileToWorld(sf::Vector2f tileSpace) const
   {
     return { tileSpace.x * (float)tileWidth * 0.5f, tileSpace.y * (float)tileHeight };
   }
 
-  const sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
+  size_t Map::HashTilePosition(sf::Vector2f position) const {
+    return size_t(position.x) + size_t(cols) * size_t(position.y);
+  }
+
+  sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
     sf::Vector2f iso{};
     iso.x = (2.0f * ortho.y + ortho.x) * 0.5f;
     iso.y = (2.0f * ortho.y - ortho.x) * 0.5f;
@@ -84,7 +88,7 @@ namespace Overworld {
     return iso;
   }
 
-  const sf::Vector2f Map::IsoToOrthogonal(const sf::Vector2f& iso) const {
+  sf::Vector2f Map::IsoToOrthogonal(const sf::Vector2f& iso) const {
     sf::Vector2f ortho{};
     ortho.x = (iso.x - iso.y);
     ortho.y = (iso.x + iso.y) * 0.5f;
@@ -92,7 +96,7 @@ namespace Overworld {
     return ortho;
   }
 
-  const sf::Vector2i Map::GetTileSize() const {
+  sf::Vector2i Map::GetTileSize() const {
     return sf::Vector2i(tileWidth, tileHeight);
   }
 
@@ -158,12 +162,12 @@ namespace Overworld {
     songPath = path;
   }
 
-  const unsigned Map::GetCols() const
+  unsigned Map::GetCols() const
   {
     return cols;
   }
 
-  const unsigned Map::GetRows() const
+  unsigned Map::GetRows() const
   {
     return rows;
   }
@@ -418,7 +422,7 @@ namespace Overworld {
     visible = enabled;
   }
 
-  const bool Map::Layer::IsVisible() const
+  bool Map::Layer::IsVisible() const
   {
     return visible;
   }

@@ -2,6 +2,7 @@
 
 #include "bnOverworldActor.h"
 #include "../bnCallback.h"
+#include "../bnResourceHandle.h"
 
 namespace Overworld {
   enum class ActorProperty : uint8_t {
@@ -13,6 +14,8 @@ namespace Overworld {
     scale_y,
     rotation,
     direction,
+    sound_effect,
+    sound_effect_loop,
   };
 
   // based on https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function
@@ -24,7 +27,7 @@ namespace Overworld {
     floor // similar to steps
   };
 
-  class ActorPropertyAnimator {
+  class ActorPropertyAnimator : public ResourceHandle {
   public:
     struct PropertyStep {
       ActorProperty property;
@@ -35,7 +38,7 @@ namespace Overworld {
 
     struct KeyFrame {
       std::vector<PropertyStep> propertySteps;
-      double duration;
+      double duration{};
     };
 
     bool IsAnimating();

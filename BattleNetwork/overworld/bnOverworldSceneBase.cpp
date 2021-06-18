@@ -704,17 +704,7 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
 
 void Overworld::SceneBase::LoadBackground(const Map& map, const std::string& value)
 {
-  if (value == "custom") {
-    const auto& texture = GetTexture(map.GetBackgroundCustomTexturePath());
-    const auto& animationData = GetText(map.GetBackgroundCustomAnimationPath());
-    const auto& velocity = map.GetBackgroundCustomVelocity();
-
-    Animation animation;
-    animation.LoadWithData(animationData);
-
-    SetBackground(std::make_shared<CustomBackground>(texture, animation, velocity));
-  }
-  else if (value == "undernet") {
+  if (value == "undernet") {
     SetBackground(std::make_shared<UndernetBackground>());
   }
   else if (value == "robot") {
@@ -744,8 +734,18 @@ void Overworld::SceneBase::LoadBackground(const Map& map, const std::string& val
   else if (value == "secret") {
     SetBackground(std::make_shared<SecretBackground>());
   }
-  else {
+  else if (value == "lan") {
     SetBackground(std::make_shared<LanBackground>());
+  }
+  else {
+    const auto& texture = GetTexture(map.GetBackgroundCustomTexturePath());
+    const auto& animationData = GetText(map.GetBackgroundCustomAnimationPath());
+    const auto& velocity = map.GetBackgroundCustomVelocity();
+
+    Animation animation;
+    animation.LoadWithData(animationData);
+
+    SetBackground(std::make_shared<CustomBackground>(texture, animation, velocity));
   }
 }
 
