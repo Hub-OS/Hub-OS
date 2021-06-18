@@ -2,6 +2,8 @@
 
 #include "bnOverworldMap.h"
 
+#include <cstddef>
+
 static inline size_t calculateIndex(size_t cols, size_t x, size_t y) {
   return y * cols + x;
 }
