@@ -1,5 +1,7 @@
 #include "bnOverworldActorPropertyAnimator.h"
 
+#include "../bnAudioResourceManager.h"
+
 namespace Overworld {
   bool ActorPropertyAnimator::IsAnimating() {
     return animating;
@@ -121,6 +123,12 @@ namespace Overworld {
       case ActorProperty::direction:
         animatingDirection = true;
         break;
+      case ActorProperty::sound_effect:
+        if (firstFrame.timePoint == 0.0) {
+          auto clip = Audio().LoadFromFile(firstFrame.stringValue);
+          Audio().Play(clip, AudioPriority::high);
+        }
+        break;
       }
     }
   }
@@ -164,17 +172,18 @@ namespace Overworld {
 
     for (auto& [property, state] : propertyStates) {
       auto& keyFrame = state.keyFrames[state.currentKeyFrame];
+      bool swappedKeyFrame = false;
 
       // use the latest key frame
       while (keyFrame.timePoint < time && state.currentKeyFrame < state.keyFrames.size() - 1) {
         state.currentKeyFrame += 1;
         keyFrame = state.keyFrames[state.currentKeyFrame];
+        swappedKeyFrame = true;
       }
 
       // update property
-      if (property == ActorProperty::animation) {
-        auto& keyFrame = state.keyFrames[state.currentKeyFrame];
-
+      switch (property) {
+      case ActorProperty::animation: {
         // use previous animation string, we should only use an animation string if the time point has been passed
         auto animationName = time < keyFrame.timePoint ? keyFrame.previousStringValue : keyFrame.stringValue;
 
@@ -183,8 +192,21 @@ namespace Overworld {
           actor.Face(actor.GetHeading());
           actor.PlayAnimation(animationName, true);
         }
+        break;
       }
-      else {
+      case ActorProperty::sound_effect: {
+        if (swappedKeyFrame) {
+          auto clip = Audio().LoadFromFile(keyFrame.previousStringValue);
+          Audio().Play(clip, AudioPriority::high);
+        }
+        break;
+      }
+      case ActorProperty::sound_effect_loop: {
+        auto clip = Audio().LoadFromFile(keyFrame.previousStringValue);
+        Audio().Play(clip, AudioPriority::high);
+        break;
+      }
+      default: {
         auto timeSinceLastFrame = time - keyFrame.previousTimePoint;
         auto timeBetweenFrames = keyFrame.timePoint - keyFrame.previousTimePoint;
         auto progress = timeBetweenFrames == 0.0 ? 1.0 : float(timeSinceLastFrame / timeBetweenFrames);
@@ -197,6 +219,7 @@ namespace Overworld {
         );
 
         setProperty(actor, property, interpolatedValue);
+      }
       }
 
       // mark deletion for this tracker if it has completed

@@ -458,21 +458,30 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
     break;
   }
 
-  // todo: add + use sound property so conveyors can be noisy as they should
-  const float TILES_PER_SECOND = 5.0f;
+  propertyAnimator.Reset();
+
+  const float TILES_PER_SECOND = 6.0f;
+  auto duration = tileDistance / TILES_PER_SECOND;
+
+  // todo: grab from custom property/server
+  ActorPropertyAnimator::PropertyStep sfxProperty;
+  sfxProperty.property = ActorProperty::sound_effect_loop;
+  sfxProperty.stringValue = "resources/sfx/dir_tile.ogg";
 
   ActorPropertyAnimator::KeyFrame startKeyframe;
   startKeyframe.propertySteps.push_back(animationProperty);
+  startKeyframe.propertySteps.push_back(sfxProperty);
+  propertyAnimator.AddKeyFrame(startKeyframe);
+
+  sfxProperty.stringValue = "";
 
   ActorPropertyAnimator::KeyFrame endKeyframe;
   endKeyframe.propertySteps.push_back(axisProperty);
-  endKeyframe.duration = tileDistance / TILES_PER_SECOND;
-
-  propertyAnimator.Reset();
-  propertyAnimator.AddKeyFrame(startKeyframe);
+  endKeyframe.propertySteps.push_back(sfxProperty);
+  endKeyframe.duration = duration;
   propertyAnimator.AddKeyFrame(endKeyframe);
-  propertyAnimator.UseKeyFrames(*player);
 
+  propertyAnimator.UseKeyFrames(*player);
   GetPlayerController().ReleaseActor();
 }
 
@@ -1426,7 +1435,7 @@ void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco:
 void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto name = reader.ReadString(buffer);
 
-  Audio().Play(GetAudio(name), AudioPriority::high);
+  Audio().Play(GetAudio(name), AudioPriority::highest);
 }
 
 void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
