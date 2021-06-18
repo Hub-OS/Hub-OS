@@ -76,6 +76,10 @@ namespace Overworld {
     return { tileSpace.x * (float)tileWidth * 0.5f, tileSpace.y * (float)tileHeight };
   }
 
+  size_t Map::HashTilePosition(sf::Vector2f position) const {
+    return size_t(position.x) + size_t(cols) * size_t(position.y);
+  }
+
   sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
     sf::Vector2f iso{};
     iso.x = (2.0f * ortho.y + ortho.x) * 0.5f;

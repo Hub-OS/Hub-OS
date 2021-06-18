@@ -35,7 +35,7 @@ namespace Overworld {
 
     struct KeyFrame {
       std::vector<PropertyStep> propertySteps;
-      double duration;
+      double duration{};
     };
 
     bool IsAnimating();

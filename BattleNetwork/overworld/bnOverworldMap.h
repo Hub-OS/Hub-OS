@@ -117,6 +117,8 @@ namespace Overworld {
      */
     sf::Vector2f TileToWorld(sf::Vector2f world) const;
 
+    size_t HashTilePosition(sf::Vector2f position) const;
+
     /**
      * @brief Transforms an ortho vector into an isometric vector
      * @param ortho position in orthographic space
