@@ -480,7 +480,7 @@ void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction 
   switch (direction)
   {
   case Direction::up_left:
-    newConveyor->setScale(-1, 1);
+    newConveyor->setScale(-1, -1);
     break;
   case Direction::up_right:
     newConveyor->setScale(1, -1);
