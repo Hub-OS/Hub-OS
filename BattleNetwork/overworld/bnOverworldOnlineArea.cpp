@@ -403,6 +403,13 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
     return iter->second == direction;
   };
 
+  auto isConveyor = [&conveyorLayer, &map](sf::Vector2f endTilePos) {
+    auto hash = map.HashTilePosition(endTilePos);
+    auto iter = conveyorLayer.find(hash);
+
+    return iter != conveyorLayer.end();
+  };
+
   // resolve end position
   switch (direction) {
   case Direction::up_left:
@@ -417,22 +424,16 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
     break;
   }
 
+  auto unprojectedDirection = Orthographic(direction);
+  auto walkVector = UnitVector(unprojectedDirection);
+
   do {
-    switch (direction) {
-    case Direction::up_left:
-      endTilePos.x -= 1.0f;
-      break;
-    case Direction::up_right:
-      endTilePos.y -= 1.0f;
-      break;
-    case Direction::down_left:
-      endTilePos.y += 1.0f;
-      break;
-    case Direction::down_right:
-      endTilePos.x += 1.0f;
-      break;
-    }
+    endTilePos += walkVector;
   } while (isSameDirection(endTilePos));
+
+  if (isConveyor(endTilePos)) {
+    endTilePos += walkVector / 2.0f;
+  }
 
   // fixing overshooting
   switch (direction) {
