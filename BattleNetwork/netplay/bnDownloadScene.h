@@ -9,14 +9,13 @@
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Buffer.h>
 
+#include "bnNetplayPacketProcessor.h"
 #include "../bnScene.h"
 #include "../bnText.h"
 #include "../../bnInputManager.h"
 #include "../../bnDrawWindow.h"
 #include "../../bnSceneNode.h"
 #include "../../bnWebClientMananger.h"
-
-#include "bnDownloadPacketProcessor.h"
 
 struct DownloadSceneProps {
   bool& downloadSuccess;
@@ -26,8 +25,6 @@ struct DownloadSceneProps {
 };
 
 class DownloadScene final : public Scene {
-  friend class Download::PacketProcessor;
-
 private:
   bool& downloadSuccess;
   size_t tries{}; //!< After so many attempts, quit the download...
@@ -37,7 +34,7 @@ private:
   sf::Sprite bg; // background
   sf::RenderTexture surface;
   sf::Texture lastScreen;
-  std::shared_ptr<Download::PacketProcessor> packetProcessor;
+  std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   std::future<WebClientManager::CardListCommandResult> fetchCardsResult;
 
   void sendCardList(const std::vector<std::string> uuids);
@@ -48,7 +45,7 @@ private:
 
   void Abort(const std::vector<std::string>& failed);
   void FetchCardList(const std::vector<std::string>& cardList);
-  void ProcessPacketBody(Download::PacketType header, const Poco::Buffer<char>& body);
+  void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body);
 
 public:
   void onUpdate(double elapsed) override final;

@@ -6,14 +6,22 @@
 
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
-  label(Font::Style::thick),
+  label(Font::Style::wide),
   Scene(ac)
 {
   label.setScale(2.f, 2.f);
 
   downloadSuccess = false; 
 
-  packetProcessor = std::make_shared<Download::PacketProcessor>(props.remoteAddress, *this);
+  packetProcessor = std::make_shared<Netplay::PacketProcessor>(props.remoteAddress);
+  packetProcessor->SetKickCallback([this] {
+    this->Abort(retryCardList);
+  });
+
+  packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& body) {
+    this->ProcessPacketBody(header, body);
+  });
+
   Net().AddHandler(props.remoteAddress, packetProcessor);
 
   sendCardList(props.cardUUIDs);
@@ -32,8 +40,8 @@ void DownloadScene::sendCardList(const std::vector<std::string> uuids)
   size_t len = uuids.size();
 
   Poco::Buffer<char> buffer{ 0 };
-  Download::PacketType type{ Download::PacketType::card_list };
-  buffer.append((char*)&type, sizeof(Download::PacketType));
+  NetPlaySignals type{ NetPlaySignals::card_list_download };
+  buffer.append((char*)&type, sizeof(NetPlaySignals::card_list_download));
   buffer.append((char*)&len, sizeof(size_t));
 
   for (auto& id : uuids) {
@@ -102,13 +110,13 @@ void DownloadScene::FetchCardList(const std::vector<std::string>& cardList)
   }
 }
 
-void DownloadScene::ProcessPacketBody(Download::PacketType header, const Poco::Buffer<char>& body)
+void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
   switch (header) {
-  case Download::PacketType::card_list:
+  case NetPlaySignals::card_list_download:
     this->recieveCardList(body);
     break;
-  case Download::PacketType::custom_character:
+  case NetPlaySignals::custom_character_download:
     this->recieveCustomPlayerData(body);
     break;
   }
@@ -157,14 +165,14 @@ void DownloadScene::onUpdate(double elapsed)
 
 void DownloadScene::onDraw(sf::RenderTexture& surface)
 {
-  surface.draw(bg);
+  // surface.draw(bg);
 
   float h = static_cast<float>(getController().getVirtualWindowSize().y);
 
   for (auto& [key, value] : cardsToDownload) {
     label.SetString(key + " - " + value);
 
-    float ydiff = label.GetLocalBounds().height;
+    float ydiff = label.GetLocalBounds().height*label.getScale().y;
 
     if (value == "Downloading") {
       label.SetColor(sf::Color::White);

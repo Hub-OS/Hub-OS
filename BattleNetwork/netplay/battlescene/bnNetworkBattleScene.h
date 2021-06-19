@@ -39,7 +39,7 @@
 #include "../bnNetPlayFlags.h"
 #include "../bnNetPlayConfig.h"
 #include "../bnNetPlaySignals.h"
-#include "../bnPVPPacketProcessor.h"
+#include "../bnNetplayPacketProcessor.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -68,7 +68,6 @@ private:
   friend struct NetworkSyncBattleState;
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
-  friend class PVP::PacketProcessor;
   
   bool waitingForCardSelectScreen{}; //!< Flag to count down before changing states
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
@@ -93,7 +92,7 @@ private:
   CardComboBattleState* cardComboStatePtr{ nullptr };
   CardSelectBattleState* cardStatePtr{ nullptr };
   BattleStartBattleState* startStatePtr{ nullptr };
-  std::shared_ptr<PVP::PacketProcessor> packetProcessor;
+  std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
 
   void sendHandshakeSignal(); // send player data to start the next round
   void sendInputEvent(const InputEvent& event); // send our key or gamepad events

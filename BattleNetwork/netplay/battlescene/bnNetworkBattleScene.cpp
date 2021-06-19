@@ -36,12 +36,12 @@
 using namespace swoosh::types;
 using swoosh::ActivityController;
 
-NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props) : 
+NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props) :
   BattleSceneBase(controller, props.base),
   ping(Font::Style::wide),
-  remoteAddress(props.netconfig.remote) 
+  remoteAddress(props.netconfig.remote)
 {
-  ping.setPosition(480-(2.f*16)-4, 320-2.f); // screen upscaled w - (16px*upscale scale) - (2px*upscale)
+  ping.setPosition(480 - (2.f * 16) - 4, 320 - 2.f); // screen upscaled w - (16px*upscale scale) - (2px*upscale)
   ping.SetColor(sf::Color::Red);
 
   pingIndicator.setTexture(Textures().LoadTextureFromFile("resources/ui/ping.png"));
@@ -55,7 +55,15 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   selectedNavi = props.netconfig.myNavi;
   props.base.player.CreateComponent<PlayerInputReplicator>(clientPlayer);
 
-  packetProcessor = std::make_shared<PVP::PacketProcessor>(remoteAddress, *this);
+  packetProcessor = std::make_shared<Netplay::PacketProcessor>(remoteAddress);
+  packetProcessor->SetKickCallback([this] {
+    this->Quit(FadeOut::black);
+  });
+
+  packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& buffer) {
+    this->processPacketBody(header, buffer);
+  });
+
   Net().AddHandler(remoteAddress, packetProcessor);
 
   // If playing co-op, add more players to track here

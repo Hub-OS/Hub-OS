@@ -1,22 +1,20 @@
-#include "bnPVPPacketProcessor.h"
-#include "bnNetPlaySignals.h"
-#include "battlescene/bnNetworkBattleScene.h"
+#include "bnNetplayPacketProcessor.h"
 
 const float PACKET_RESEND_RATE = 1.0f / 20.f;
 
-PVP::PacketProcessor::PacketProcessor(Poco::Net::SocketAddress& remoteAddress, NetworkBattleScene& scene) :
+Netplay::PacketProcessor::PacketProcessor(const Poco::Net::SocketAddress& remoteAddress) :
   remote(remoteAddress),
   packetShipper(remoteAddress),
-  packetSorter(remoteAddress),
-  scene(scene)
+  packetSorter(remoteAddress)
+{
+
+}
+
+Netplay::PacketProcessor::~PacketProcessor()
 {
 }
 
-PVP::PacketProcessor::~PacketProcessor()
-{
-}
-
-void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) {
+void Netplay::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) {
   if (read == 0)
     return;
 
@@ -41,10 +39,10 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
     else {
       constexpr auto sigSize = sizeof(NetPlaySignals);
 
-      Poco::Buffer<char> body{0};
+      Poco::Buffer<char> body{ 0 };
       body.append(data.begin() + sigSize, data.size() - sigSize);
 
-      scene.processPacketBody(sig, body);
+      onPacketBodyCallback(sig, body);
     }
   }
 
@@ -52,7 +50,7 @@ void PVP::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::Soc
   errorCount = 0;
 }
 
-void PVP::PacketProcessor::Update(double elapsed) {
+void Netplay::PacketProcessor::Update(double elapsed) {
   packetResendTimer -= (float)elapsed;
 
   if (packetResendTimer < 0) {
@@ -66,29 +64,39 @@ void PVP::PacketProcessor::Update(double elapsed) {
 
   constexpr int64_t MAX_ERROR_COUNT = 20;
 
-  if (TimedOut() || errorCount > MAX_ERROR_COUNT) {
-    scene.Quit(FadeOut::pixelate);
+  if ((TimedOut() || errorCount > MAX_ERROR_COUNT) && onKickCallback) {
+    onKickCallback();
   }
 }
 
-void PVP::PacketProcessor::UpdateHandshakeID(uint64_t id)
+void Netplay::PacketProcessor::UpdateHandshakeID(uint64_t id)
 {
   handshakeId = id;
   handshakeAck = false;
   handshakeSent = true;
 }
 
-void PVP::PacketProcessor::HandleError()
+void Netplay::PacketProcessor::HandleError()
 {
   errorCount++;
 }
 
-std::pair<Reliability, uint64_t> PVP::PacketProcessor::SendPacket(Reliability reliability, const Poco::Buffer<char>& data)
+void Netplay::PacketProcessor::SetKickCallback(const decltype(onKickCallback)& callback)
+{
+  onKickCallback = callback;
+}
+
+void Netplay::PacketProcessor::SetPacketBodyCallback(const decltype(onPacketBodyCallback)& callback)
+{
+  onPacketBodyCallback = callback;
+}
+
+std::pair<Reliability, uint64_t> Netplay::PacketProcessor::SendPacket(Reliability reliability, const Poco::Buffer<char>& data)
 {
   return packetShipper.Send(*client, reliability, data);
 }
 
-void PVP::PacketProcessor::EnableKickForSilence(bool enabled)
+void Netplay::PacketProcessor::EnableKickForSilence(bool enabled)
 {
   if (enabled && !checkForSilence) {
     // If we were not checking for silence before, then
@@ -99,17 +107,17 @@ void PVP::PacketProcessor::EnableKickForSilence(bool enabled)
   checkForSilence = enabled;
 }
 
-bool PVP::PacketProcessor::IsHandshakeAck()
+bool Netplay::PacketProcessor::IsHandshakeAck()
 {
   return handshakeAck;
 }
 
-const double PVP::PacketProcessor::GetAvgLatency() const
+const double Netplay::PacketProcessor::GetAvgLatency() const
 {
   return packetShipper.GetAvgLatency();
 }
 
-bool PVP::PacketProcessor::TimedOut() {
+bool Netplay::PacketProcessor::TimedOut() {
   auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
     std::chrono::steady_clock::now() - lastPacketTime
     );
