@@ -7,6 +7,7 @@
 #include <Segues/WhiteWashFade.h>
 
 #include "bnMatchMakingScene.h"
+#include "bnDownloadScene.h"
 #include "../bnGridBackground.h"
 #include "../bnAudioResourceManager.h"
 #include "../bnSecretBackground.h"
@@ -372,6 +373,8 @@ void MatchMakingScene::Reset()
   isInFlashyVSIntro = false;
   isInBattleStartup = false;
   handshakeComplete = false;
+  hasProcessedCards = false;
+  canProceedToBattle = false;
   playVS = true;
   sequenceTimer = 0.0; // in seconds
   flashCooldown = 0;
@@ -490,49 +493,76 @@ void MatchMakingScene::onUpdate(double elapsed) {
     }
   }
   else if (isInBattleStartup) {
-    leave = true;
+    if (!hasProcessedCards) {
+      hasProcessedCards = true;
 
-    // Shuffle our folder
-    CardFolder* copy = folder.Clone();
-    copy->Shuffle();
+      std::vector<std::string> cardUUIDs;
 
-    // Queue screen transition to Battle Scene with a white fade effect
-    // just like the game
-    using effect = segue<WhiteWashFade>;
-    NetPlayConfig config;
+      CardFolder* copy = folder.Clone();
+      auto next = copy->Next();
 
-    // Play the pre battle sound
-    Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
+      while(next) {
+        cardUUIDs.push_back(next->GetUUID());
+        next = copy->Next();
+      }
 
-    // Stop music and go to battle screen 
-    Audio().StopStream();
+      delete copy;
+      copyScreen = true;
 
-    // Configure the session
-    SelectedNavi compatibleNavi = 0;
+      DownloadSceneProps props = {
+        canProceedToBattle,
+        cardUUIDs,
+        packetProcessor->GetRemoteAddr(),
+        screen
+      };
 
-    // Temporarily: 
-    // For Demo's prevent sending scripted navis over the network
-    if (selectedNavi < 6) {
-      compatibleNavi = selectedNavi;
+      getController().push<DownloadScene>(props);
     }
+    else if (canProceedToBattle) {
+      leave = true;
 
-    config.remote = theirIP;
-    config.myNavi = compatibleNavi;
+      // Shuffle our folder
+      CardFolder* copy = folder.Clone();
+      copy->Shuffle();
 
-    Player* player = NAVIS.At(compatibleNavi).GetNavi();
+      // Queue screen transition to Battle Scene with a white fade effect
+      // just like the game
+      using effect = segue<WhiteWashFade>;
+      NetPlayConfig config;
 
-    NetworkBattleSceneProps props = {
-      BattleSceneBaseProps { 
-        *player, 
-        pa, 
-        copy, 
-        new Field(6, 3), 
-        std::make_shared<SecretBackground>() 
-      },
-      config
-    };
+      // Play the pre battle sound
+      Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
-    getController().push<effect::to<NetworkBattleScene>>(props);
+      // Stop music and go to battle screen 
+      Audio().StopStream();
+
+      // Configure the session
+      SelectedNavi compatibleNavi = 0;
+
+      // Temporarily: 
+      // For Demo's prevent sending scripted navis over the network
+      if (selectedNavi < 6) {
+        compatibleNavi = selectedNavi;
+      }
+
+      config.remote = theirIP;
+      config.myNavi = compatibleNavi;
+
+      Player* player = NAVIS.At(compatibleNavi).GetNavi();
+
+      NetworkBattleSceneProps props = {
+        BattleSceneBaseProps {
+          *player,
+          pa,
+          copy,
+          new Field(6, 3),
+          std::make_shared<SecretBackground>()
+        },
+        config
+      };
+
+      getController().push<effect::to<NetworkBattleScene>>(props);
+    }
   } else {
     // TODO use states/switches this is getting out of hand...
     if (clientIsReady && theirIP.size()) {
@@ -578,12 +608,16 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
 void MatchMakingScene::onLeave()
 {
-  Net().DropProcessor(packetProcessor);
+  if (leave) {
+    Net().DropProcessor(packetProcessor);
+  }
 }
 
 void MatchMakingScene::onEnter()
 {
-  Reset();
+  if (leave || !canProceedToBattle) {
+    Reset();
+  }
 }
 
 void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
@@ -633,5 +667,11 @@ void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
     sf::RectangleShape screen(size);
     screen.setFillColor(sf::Color::White);
     surface.draw(screen);
+  }
+
+  if (copyScreen) {
+    surface.display();
+    screen = surface.getTexture();
+    copyScreen = false;
   }
 }

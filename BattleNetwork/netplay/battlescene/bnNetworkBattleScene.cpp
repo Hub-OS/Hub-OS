@@ -130,9 +130,18 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
 
   // Lambda event callback that captures and handles network card select screen opening
   auto onCardSelectEvent = [this]() mutable {
-    if (combatPtr->PlayerRequestCardSelect()) {
-      this->sendRequestedCardSelectSignal();
-      return true;
+    if (combatPtr->PlayerRequestCardSelect() || waitingForCardSelectScreen) {
+      if (!waitingForCardSelectScreen) {
+        cardStateDelay = from_milliseconds(packetProcessor->GetAvgLatency());
+        this->sendRequestedCardSelectSignal();
+        waitingForCardSelectScreen = true;
+      }
+
+      if (cardStateDelay == frames(0) && waitingForCardSelectScreen) {
+        waitingForCardSelectScreen = false;
+      }
+
+      return !waitingForCardSelectScreen;
     }
     else if (remoteState.openedCardWidget) {
       remoteState.openedCardWidget = false;
@@ -202,7 +211,12 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     }
   }
   else {
-    packetTime += from_seconds(elapsed);
+    frame_time_t elapsed_frames = from_seconds(elapsed);
+    packetTime += elapsed_frames;
+
+    if (cardStateDelay > frames(0)) {
+      cardStateDelay -= elapsed_frames;
+    }
   }
 
   if (remotePlayer && remotePlayer->WillRemoveLater()) {
@@ -462,7 +476,7 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   remoteCardUsePublisher->LoadCards(remoteHand, len);
   
   // Convert to microseconds and use this as the round start delay
-  roundStartDelay = (long long)((duration*1000.0) + packetProcessor->GetAvgLatency());
+  roundStartDelay = from_milliseconds((long long)((duration*1000.0) + packetProcessor->GetAvgLatency()));
 
   startStatePtr->SetStartupDelay(roundStartDelay);
 

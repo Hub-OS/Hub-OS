@@ -918,6 +918,40 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
   return promise->get_future();
 }
 
+std::future<WebClientManager::CardListCommandResult> WebClientManager::SendFetchCardListCommand(const std::vector<std::string>& cardList)
+{
+  auto promise = std::make_shared<std::promise<WebClientManager::CardListCommandResult>>();
+
+  auto task = [promise, this, cardList]() {
+    if (!client) {
+      // No valid client? Don't send invalid data. Throw.
+      promise->set_exception(std::make_exception_ptr(std::runtime_error("Could not get card data. Client object is invalid. Are you logged in?")));
+      return;
+    }
+
+    WebClientManager::CardListCommandResult result;
+    result.success = true; // assume we succeed
+
+    for (auto uuid : cardList) {
+      if (!client->FetchCard(uuid)) {
+        Logger::Logf("Could not fetch card %s", uuid.data());
+        result.failed.push_back(uuid);
+        result.success = false;
+      }
+    }
+
+    promise->set_value(result);
+  };
+
+  std::scoped_lock<std::mutex> lock(this->clientMutex);
+
+  taskQueue.emplace(task);
+
+  taskQueueWakeup.notify_all();
+
+  return promise->get_future();
+}
+
 std::shared_ptr<sf::Texture> WebClientManager::GetIconForCard(const std::string & uuid)
 {
   auto value = iconTextureCache[uuid];

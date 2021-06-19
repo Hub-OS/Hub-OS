@@ -24,12 +24,15 @@
  */
 class MatchMakingScene : public Scene {
 private:
+  bool copyScreen{ false }; //!< If true, copy the screen contents
   bool isScreenReady{ false };
   bool leave{ false }; /*!< Scene state coming/going flag */
   bool remoteIsReady{ false };
   bool clientIsReady{ false };
   bool isInFlashyVSIntro{ false };
   bool isInBattleStartup{ false };
+  bool hasProcessedCards{ false };
+  bool canProceedToBattle{ false };
   bool infoMode{ true }; // we start here and then allow the player to toggle
   bool handshakeComplete{ false };
   bool playVS{ true };
@@ -51,6 +54,7 @@ private:
   Animation uiAnim;
   AnimatedTextBox textbox;
   Text text, id;
+  sf::Texture screen;
   std::shared_ptr<MatchMaking::PacketProcessor> packetProcessor;
 
   // event responses

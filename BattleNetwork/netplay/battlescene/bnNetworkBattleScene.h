@@ -69,8 +69,10 @@ private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
   friend class PVP::PacketProcessor;
-
-  long long roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
+  
+  bool waitingForCardSelectScreen{}; //!< Flag to count down before changing states
+  frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
+  frame_time_t cardStateDelay{}; //!< Timer that counts down until the card select state opens up
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
   Text ping;
   SelectedNavi selectedNavi; //!< the type of navi we selected

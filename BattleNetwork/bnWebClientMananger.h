@@ -44,6 +44,10 @@ private:
   void InitDownloadImageHandler();
 
 public:
+  struct CardListCommandResult {
+    bool success{};
+    std::vector<std::string> failed;
+  };
 
   WebClientManager();
   ~WebClientManager();
@@ -58,6 +62,7 @@ public:
   std::future<bool> SendLoginCommand(const char* username, const char* password);
   std::future<bool> SendLogoutCommand();
   std::future<WebAccounts::AccountState> SendFetchAccountCommand();
+  std::future<CardListCommandResult> SendFetchCardListCommand(const std::vector<std::string>& cardList);
 
   std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
   std::shared_ptr<sf::Texture> GetImageForCard(const std::string& uuid);

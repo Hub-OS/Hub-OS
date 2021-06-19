@@ -1399,7 +1399,7 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         Conveyor conveyor;
         conveyor.direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
         conveyor.speed = tileObject.customProperties.GetPropertyFloat("Speed");
-        conveyor.soundEffect = tileObject.customProperties.GetPropertyFloat("Sound Effect");
+        conveyor.soundEffect = tileObject.customProperties.GetProperty("Sound Effect");
 
         if (conveyor.speed == 0.0f) {
           conveyor.speed = 6.0f;

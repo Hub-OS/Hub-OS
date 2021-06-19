@@ -12,9 +12,9 @@ BattleStartBattleState::BattleStartBattleState(std::vector<Player*>& tracked) : 
   battleStart.setScale(2.f, 2.f);
 }
 
-void BattleStartBattleState::SetStartupDelay(long long microseconds)
+void BattleStartBattleState::SetStartupDelay(frame_time_t frames)
 {
-  startupDelay = microseconds;
+  startupDelay = frames;
 }
 
 void BattleStartBattleState::onStart(const BattleSceneState*)
@@ -41,15 +41,14 @@ void BattleStartBattleState::onUpdate(double elapsed)
 
 void BattleStartBattleState::onDraw(sf::RenderTexture& surface)
 {
-  long long start = battleStartTimer.getElapsed().asMicroseconds();
+  frame_time_t start = from_milliseconds(battleStartTimer.getElapsed().asMilliseconds());
 
   if (start >= startupDelay) {
-    constexpr float micro2sec = 1000000.f;
-    float delta = (start - startupDelay) / micro2sec; // cast delta to seconds as floating point num
-    float length = preBattleLength / micro2sec;
+    double delta = (start - startupDelay).asSeconds().value;
+    double length = preBattleLength.asSeconds().value;
 
-    float scale = swoosh::ease::wideParabola(delta, length, 2.f);
-    battleStart.setScale(2.f, scale * 2.f);
+    double scale = swoosh::ease::wideParabola(delta, length, 2.0);
+    battleStart.setScale(2.f, static_cast<float>(scale * 2.0));
 
     surface.draw(GetScene().GetCardSelectWidget());
     surface.draw(battleStart);
@@ -57,5 +56,5 @@ void BattleStartBattleState::onDraw(sf::RenderTexture& surface)
 }
 
 bool BattleStartBattleState::IsFinished() {
-  return battleStartTimer.getElapsed().asMicroseconds() >= startupDelay + preBattleLength;
+  return battleStartTimer.getElapsed().asSeconds() >= (startupDelay + preBattleLength).asSeconds().value;
 }

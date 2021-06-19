@@ -102,6 +102,12 @@ static constexpr frame_time_t from_seconds(T sec) {
   return frame_time_t{ static_cast<decltype(frame_time_t::milliseconds::value)>(static_cast<double>(sec) * 1000.0) };
 }
 
+template<typename T>
+static constexpr frame_time_t from_milliseconds(T milli) {
+  // cast to high precision to type of milliseconds
+  return frame_time_t{ static_cast<decltype(frame_time_t::milliseconds::value)>(static_cast<double>(milli) ) };
+}
+
  //!< frames utility method transforms frames to engine time
 static constexpr frame_time_t frames(unsigned int frames) {
   return frame_time_t{ static_cast<long long>(1000 * (double(frames) / 60.0)) };
