@@ -19,6 +19,16 @@ enum class Reliability : char
   size
 };
 
+bool IsReliable(Reliability reliability) {
+  switch (reliability) {
+  case Reliability::Reliable:
+  case Reliability::ReliableSequenced:
+  case Reliability::ReliableOrdered:
+    return true;
+  }
+  return false;
+}
+
 class PacketShipper
 {
 private:
