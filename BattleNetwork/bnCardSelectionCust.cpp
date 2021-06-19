@@ -94,6 +94,15 @@ void CardSelectionCust::RefreshAvailableCards(int handSize)
   }
 }
 
+void CardSelectionCust::SetSelectedFormIndex(int index)
+{
+  if (selectedFormIndex != index)
+  {
+    selectedFormIndex = index;
+    Broadcast(index);
+  }
+}
+
 CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
   props(props),
   greyscale(*Shaders().GetShader(ShaderType::GREYSCALE)),
@@ -194,7 +203,8 @@ CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
   formCursorAnimator << Animator::Mode::Loop;
 
   formSelectQuitTimer = 0.f; // used to time out the activation
-  selectedFormIndex = selectedFormRow = lockedInFormIndex = -1;
+  selectedFormRow = lockedInFormIndex = -1;
+  SetSelectedFormIndex(selectedFormRow);
 
   formSelectQuitTimer = 0.f; // used to time out the activation
 
@@ -313,17 +323,17 @@ bool CardSelectionCust::CursorLeft() {
 
 bool CardSelectionCust::CursorAction() {
   if (isInFormSelect) {
-    selectedFormIndex = static_cast<int>(forms[formCursorRow]->GetFormIndex());
+    SetSelectedFormIndex(static_cast<int>(forms[formCursorRow]->GetFormIndex()));
 
     if (selectedFormRow != -1 && selectedFormIndex == forms[selectedFormRow]->GetFormIndex()) {
       selectedFormRow = -1; // de-select the form
 
       if (lockedInFormIndex == -1) {
         currentFormItem = sf::Sprite();
-        selectedFormIndex = -1;
+        SetSelectedFormIndex(-1);
       }
       else {
-        selectedFormIndex = lockedInFormIndex;
+        SetSelectedFormIndex(lockedInFormIndex);
         currentFormItem = lockedInFormItem;
       }
 
@@ -619,7 +629,8 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
 
 void CardSelectionCust::ResetPlayerFormSelection()
 {
-  lockedInFormIndex = selectedFormIndex = -1;
+  SetSelectedFormIndex(-1);
+  lockedInFormIndex = selectedFormIndex;
   lockedInFormItem = currentFormItem = sf::Sprite();
 }
 
@@ -1049,7 +1060,7 @@ void CardSelectionCust::ResetState() {
   areCardsReady = false;
   isInFormSelect = false;
   newHand = false;
-  selectedFormIndex = lockedInFormIndex;
+  SetSelectedFormIndex(lockedInFormIndex);
   textbox.Reset();
 }
 

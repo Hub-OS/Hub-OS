@@ -20,7 +20,8 @@ Player::Player() :
   state(PLAYER_IDLE),
   chargeEffect(this),
   AI<Player>(this),
-  Character(Rank::_1)
+  Character(Rank::_1),
+  emotion{Emotion::normal}
 {
   ChangeState<PlayerIdleState>();
   
@@ -183,6 +184,15 @@ const unsigned Player::GetChargeLevel()
   return stats.charge;
 }
 
+void Player::SetEmotion(Emotion emotion)
+{
+  this->emotion = emotion;
+}
+
+Emotion Player::GetEmotion() const
+{
+  return emotion;
+}
 
 void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;

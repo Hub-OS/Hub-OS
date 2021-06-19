@@ -11,6 +11,7 @@
 #include "../bnMob.h"
 #include "../bnCardAction.h"
 #include "../bnPlayerHealthUI.h"
+#include "../bnPlayerEmotionUI.h"
 #include "../bnUndernetBackground.h"
 #include "../bnWeatherBackground.h"
 #include "../bnRobotBackground.h"
@@ -102,6 +103,12 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   // Player UI 
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
   cardCustGUI.AddNode(healthUI);
+
+  // Player Emotion
+  this->emotionUI = player->CreateComponent<PlayerEmotionUI>(player);
+  cardCustGUI.AddNode(emotionUI);
+
+  emotionUI->Subscribe(cardCustGUI);
 
   /*
   Counter "reveal" ring
@@ -210,6 +217,8 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
 
       cardUI->SetMultiplier(2);
 
+      player->SetEmotion(Emotion::full_synchro);
+
       // when players get hit by impact, battle scene takes back counter blessings
       player->AddDefenseRule(counterCombatRule);
     }
@@ -305,6 +314,7 @@ void BattleSceneBase::HandleCounterLoss(Character& subject, bool playsound)
     if (field->DoesRevealCounterFrames()) {
       player->RemoveNode(&counterReveal);
       player->RemoveDefenseRule(counterCombatRule);
+      player->SetEmotion(Emotion::normal);
       field->RevealCounterFrames(false);
 
       playsound ? Audio().Play(AudioType::COUNTER_BONUS, AudioPriority::highest) : 0;
@@ -631,6 +641,11 @@ CardSelectionCust& BattleSceneBase::GetCardSelectWidget()
 
 SelectedCardsUI& BattleSceneBase::GetSelectedCardsUI() {
   return *cardUI;
+}
+
+PlayerEmotionUI& BattleSceneBase::GetEmotionWindow()
+{
+  return *emotionUI;
 }
 
 Camera& BattleSceneBase::GetCamera()

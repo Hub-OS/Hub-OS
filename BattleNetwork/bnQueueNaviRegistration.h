@@ -38,6 +38,7 @@ static inline void QueuNaviRegistration() {
   megamanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/megaman/preview.png"));
   megamanInfo->SetMugshotTexturePath("resources/navis/megaman/mug.png");
   megamanInfo->SetMugshotAnimationPath("resources/navis/megaman/mug.animation");
+  megamanInfo->SetEmotionsTexturePath("resources/navis/megaman/emotions.png");
   megamanInfo->SetOverworldTexturePath("resources/navis/megaman/overworld.png");
   megamanInfo->SetOverworldAnimationPath("resources/navis/megaman/overworld.animation");
   megamanInfo->SetSpeed(1);
@@ -51,6 +52,7 @@ static inline void QueuNaviRegistration() {
   rollInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/preview.png"));
   rollInfo->SetMugshotTexturePath("resources/navis/roll/mug.png");
   rollInfo->SetMugshotAnimationPath("resources/navis/roll/mug.animation");
+  rollInfo->SetEmotionsTexturePath("resources/navis/emotions.png");
   rollInfo->SetOverworldTexturePath("resources/navis/roll/overworld.png");
   rollInfo->SetOverworldAnimationPath("resources/navis/roll/overworld.animation");
   rollInfo->SetSpeed(2);
@@ -64,6 +66,7 @@ static inline void QueuNaviRegistration() {
   starmanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/starman/preview.png"));
   starmanInfo->SetMugshotTexturePath("resources/navis/starman/mug.png");
   starmanInfo->SetMugshotAnimationPath("resources/navis/starman/mug.animation");
+  starmanInfo->SetEmotionsTexturePath("resources/navis/emotions.png");
   starmanInfo->SetOverworldTexturePath("resources/navis/starman/starman_OW.png");
   starmanInfo->SetOverworldAnimationPath("resources/navis/starman/starman_OW.animation");
   starmanInfo->SetSpeed(3);
@@ -77,6 +80,7 @@ static inline void QueuNaviRegistration() {
   protomanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/protoman/preview.png"));
   protomanInfo->SetMugshotTexturePath("resources/navis/protoman/mug.png");
   protomanInfo->SetMugshotAnimationPath("resources/navis/protoman/mug.animation");
+  protomanInfo->SetEmotionsTexturePath("resources/navis/emotions.png");
   protomanInfo->SetOverworldTexturePath("resources/navis/protoman/protoman_OW.png");
   protomanInfo->SetOverworldAnimationPath("resources/navis/protoman/protoman_OW.animation");
   protomanInfo->SetSpeed(3);
@@ -91,6 +95,7 @@ static inline void QueuNaviRegistration() {
   thawkInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/tomahawk/preview.png"));
   thawkInfo->SetMugshotTexturePath("resources/navis/tomahawk/mug.png");
   thawkInfo->SetMugshotAnimationPath("resources/navis/tomahawk/mug.animation");
+  thawkInfo->SetEmotionsTexturePath("resources/navis/emotions.png");
   thawkInfo->SetOverworldTexturePath("resources/navis/tomahawk/tomahawk_OW.png");
   thawkInfo->SetOverworldAnimationPath("resources/navis/tomahawk/tomahawk_OW.animation");
   thawkInfo->SetSpeed(2);
@@ -104,6 +109,7 @@ static inline void QueuNaviRegistration() {
   forteInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/preview.png"));
   forteInfo->SetMugshotTexturePath("resources/navis/forte/mug.png");
   forteInfo->SetMugshotAnimationPath("resources/navis/forte/mug.animation");
+  forteInfo->SetEmotionsTexturePath("resources/navis/emotions.png");
   forteInfo->SetOverworldTexturePath("resources/navis/forte/forte_OW.png");
   forteInfo->SetOverworldAnimationPath("resources/navis/forte/forte_OW.animation");
   forteInfo->SetSpeed(2);
