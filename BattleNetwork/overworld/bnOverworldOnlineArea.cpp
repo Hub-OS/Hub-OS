@@ -994,28 +994,28 @@ static std::vector<char> readBytes(std::string texturePath) {
   size_t textureLength;
   std::vector<char> textureData;
 
-  #ifndef __APPLE__
-    try {
-      textureLength = std::filesystem::file_size(texturePath);
-    }
-    catch (std::filesystem::filesystem_error& e) {
-      Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
-      return textureData;
-    }
+#ifndef __APPLE__
+  try {
+    textureLength = std::filesystem::file_size(texturePath);
+  }
+  catch (std::filesystem::filesystem_error& e) {
+    Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+    return textureData;
+  }
 
-    try {
-      std::ifstream fin(texturePath, std::ios::binary);
+  try {
+    std::ifstream fin(texturePath, std::ios::binary);
 
-      // prevents newlines from being skipped
-      fin.unsetf(std::ios::skipws);
+    // prevents newlines from being skipped
+    fin.unsetf(std::ios::skipws);
 
-      textureData.reserve(textureLength);
-      textureData.insert(textureData.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
-    }
-    catch (std::ifstream::failure& e) {
-      Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
-    }
-  #endif
+    textureData.reserve(textureLength);
+    textureData.insert(textureData.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
+  }
+  catch (std::ifstream::failure& e) {
+    Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+  }
+#endif
 
   return textureData;
 }
