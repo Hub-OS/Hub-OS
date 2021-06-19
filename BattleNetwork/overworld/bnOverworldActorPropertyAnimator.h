@@ -44,6 +44,8 @@ namespace Overworld {
     bool IsAnimating();
     bool IsAnimatingPosition();
 
+    void ToggleAudio(bool);
+
     void Reset();
     void AddKeyFrame(KeyFrame keyframe);
     void UseKeyFrames(Actor& actor);
@@ -73,6 +75,7 @@ namespace Overworld {
     bool animating{};
     bool animatingPosition{};
     bool animatingDirection{};
+    bool audioEnabled = true;
     std::function<void()> onComplete;
   };
 }

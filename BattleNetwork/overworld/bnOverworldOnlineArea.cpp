@@ -1894,6 +1894,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
   onlinePlayer.idleDirection = Orthographic(direction);
+  onlinePlayer.propertyAnimator.ToggleAudio(false);
 
   auto actor = onlinePlayer.actor;
   actor->Set3DPosition(pos);
@@ -2186,6 +2187,12 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
         break;
       case ActorProperty::direction:
         propertyStep.value = (float)Orthographic(reader.Read<Direction>(buffer));
+        break;
+      case ActorProperty::sound_effect:
+        propertyStep.stringValue = GetPath(reader.ReadString(buffer));
+        break;
+      case ActorProperty::sound_effect_loop:
+        propertyStep.stringValue = GetPath(reader.ReadString(buffer));
         break;
       default:
         propertyStep.value = reader.Read<float>(buffer);
