@@ -820,29 +820,21 @@ const bool WebClientManager::IsWorking()
   return isWorking;
 }
 
-std::future<bool> WebClientManager::SendLoginCommand(const char * username, const char * password)
+std::future<bool> WebClientManager::SendLoginCommand(std::string username, std::string password)
 {
   auto promise = std::make_shared<std::promise<bool>>();
 
-  const char username_buffer[256]{ 0 };
-  const char password_buffer[256]{ 0 };
-  size_t username_len = strlen(username);
-  size_t password_len = strlen(password);
-
-  std::memcpy((void*)&username_buffer[0], username, username_len);
-  std::memcpy((void*)&password_buffer[0], password, password_len);
-
-  auto task = [promise, username_buffer, password_buffer, this]() {
+  auto task = [promise, username, password, this]() {
     if (!client) {
       // No valid client? Set to false immediately
       promise->set_value(false);
       return;
     }
 
-    bool result = client->Login(username_buffer, password_buffer);
+    bool result = client->Login(username.c_str(), password.c_str());
 
     if (result) {
-      WebClientManager::username = username_buffer;
+      WebClientManager::username = username.c_str();
     }
 
     promise->set_value(result);

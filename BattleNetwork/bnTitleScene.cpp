@@ -61,7 +61,7 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   ConfigSettings config = Input().GetConfigSettings();
   WebServerInfo web = config.GetWebServerInfo();
   WEBCLIENT.ConnectToWebServer(web.version.c_str(), web.URL.c_str(), web.port);
-  loginResult = WEBCLIENT.SendLoginCommand(web.user.c_str(), web.password.c_str());
+  loginResult = WEBCLIENT.SendLoginCommand(web.user, web.password);
 
   setView(sf::Vector2u(480, 320));
 }

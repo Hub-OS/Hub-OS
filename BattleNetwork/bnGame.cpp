@@ -274,8 +274,7 @@ void Game::LoadConfigSettings()
       Logger::Logf("Connecting to web server @ %s:%i (Version %s)", URL.data(), port, version.data());
 
       WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
-
-      auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
+      auto result = WEBCLIENT.SendLoginCommand(username, password);
 
       Logger::Logf("waiting for server...");
 
