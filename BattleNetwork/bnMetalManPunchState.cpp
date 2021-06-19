@@ -67,7 +67,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
 }
 
 void MetalManPunchState::OnLeave(MetalMan& metal) {
-  reserved ? reserved->RemoveEntityByID(metal.GetID()) : 0;
+  reserved && metal.GetTile() != reserved? reserved->RemoveEntityByID(metal.GetID()) : 0;
   auto anim = metal.GetFirstComponent<AnimationComponent>();
   anim->SetAnimation("IDLE");
 }
