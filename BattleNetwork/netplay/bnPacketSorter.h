@@ -223,6 +223,8 @@ uint64_t PacketSorter<AckId>::getExpectedId(Reliability reliability) {
   case Reliability::size:
     return 0;
   }
+
+  return 0;
 }
 
 template<auto AckID>

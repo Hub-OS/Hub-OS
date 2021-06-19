@@ -19,7 +19,7 @@ enum class Reliability : char
   size
 };
 
-bool IsReliable(Reliability reliability) {
+static bool IsReliable(Reliability reliability) {
   switch (reliability) {
   case Reliability::Reliable:
   case Reliability::ReliableSequenced:
