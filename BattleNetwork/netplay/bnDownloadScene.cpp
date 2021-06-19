@@ -1,5 +1,6 @@
 #include "bnDownloadScene.h"
 #include "../bnWebClientMananger.h"
+#include <Swoosh/EmbedGLSL.h>
 #include <Swoosh/Shaders.h>
 #include <Segues/PixelateBlackWashFade.h>
 
@@ -128,15 +129,17 @@ void DownloadScene::onUpdate(double elapsed)
 {
   try {
     if (fetchCardsResult.valid()) {
-      if (fetchCardsResult.get().success) {
+      auto res = fetchCardsResult.get();
+
+      if (res.success) {
         downloadSuccess = true;
         getController().pop();
       }
       else if (tries++ < 3) {
-        FetchCardList(fetchCardsResult.get().failed);
+        FetchCardList(res.failed);
       }
       else {
-        Abort(fetchCardsResult.get().failed);
+        Abort(res.failed);
       }
     }
   }

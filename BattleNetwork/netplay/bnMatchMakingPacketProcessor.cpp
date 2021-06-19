@@ -1,6 +1,7 @@
 #include "bnMatchMakingPacketProcessor.h"
 #include "bnMatchMakingScene.h"
 #include "bnNetPlaySignals.h"
+#include "bnBufferReader.h"
 
 using namespace Poco;
 using namespace Net;
@@ -18,10 +19,15 @@ void MatchMaking::PacketProcessor::OnPacket(char* buffer, int read, const Poco::
   if (read == 0)
     return;
 
-  NetPlaySignals sig = *(NetPlaySignals*)buffer;
-  size_t sigLen = sizeof(NetPlaySignals);
+  Poco::Buffer<char> packet{ 0 };
+  packet.append(buffer, read);
+
+  BufferReader reader;
+  reader.Read<char>(packet);
+  NetPlaySignals sig = reader.Read<NetPlaySignals>(packet);
+
   Poco::Buffer<char> data{ 0 };
-  data.append(buffer + sigLen, size_t(read) - sigLen);
+  data.append(buffer + reader.GetOffset(), packet.size() - reader.GetOffset());
 
   scene.ProcessPacketBody(sig, data);
 }

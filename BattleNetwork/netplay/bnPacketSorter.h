@@ -26,6 +26,7 @@ private:
   std::vector<BackedUpPacket> backedUpOrderedPackets;
   std::chrono::time_point<std::chrono::steady_clock> lastMessageTime;
 
+  uint64_t getExpectedId(Reliability reliability);
   void sendAck(Poco::Net::DatagramSocket& socket, Reliability reliability, uint64_t id);
 
 public:
@@ -57,15 +58,22 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
   Poco::Net::DatagramSocket& socket,
   Poco::Buffer<char> packet)
 {
-  lastMessageTime = std::chrono::steady_clock::now();
-
   BufferReader reader;
 
   Reliability reliability = reader.Read<Reliability>(packet);
   auto isPureUnreliable = reliability == Reliability::Unreliable;
   auto id = isPureUnreliable ? 0 : reader.Read<uint64_t>(packet);
+
+  if (IsReliable(reliability) && getExpectedId(reliability) == 0 && id != 0) {
+    // prevent trailing connections from leaking into new sorters
+    // just ignore this packet, TODO: Handle UnreliableSequenced? not handling can eat packets
+    return {};
+  }
+
   auto dataOffset = reader.GetOffset();
   auto data = Poco::Buffer<char>(packet.begin() + dataOffset, packet.size() - dataOffset);
+
+  lastMessageTime = std::chrono::steady_clock::now();
 
   switch (reliability)
   {
@@ -193,10 +201,28 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
     // already handled
     return {};
   }
-
+Logger::Logf("%d", (int)reliability);
   // unreachable, all cases should be covered above
   Logger::Log("bnPacketSorter.h: How did we get here?");
   return {};
+}
+
+template<auto AckId>
+uint64_t PacketSorter<AckId>::getExpectedId(Reliability reliability) {
+  switch (reliability) {
+  case Reliability::Unreliable:
+    return 0;
+  case Reliability::UnreliableSequenced:
+    return nextUnreliableSequenced;
+  case Reliability::Reliable:
+    return nextReliable;
+  case Reliability::ReliableSequenced:
+    return nextUnreliableSequenced;
+  case Reliability::ReliableOrdered:
+    return nextReliableOrdered;
+  case Reliability::size:
+    return 0;
+  }
 }
 
 template<auto AckID>
