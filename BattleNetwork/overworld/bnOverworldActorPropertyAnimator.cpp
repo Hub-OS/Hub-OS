@@ -11,6 +11,10 @@ namespace Overworld {
     return animatingPosition;
   }
 
+  void ActorPropertyAnimator::ToggleAudio(bool enable) {
+    audioEnabled = enable;
+  }
+
   void ActorPropertyAnimator::Reset() {
     propertyStates.clear();
     totalTime = 0.0;
@@ -114,6 +118,8 @@ namespace Overworld {
         keyFrame.previousTimePoint = previousKeyFrame.timePoint;
       }
 
+      auto& lastFrame = state.keyFrames[state.keyFrames.size() - 1];
+
       switch (property) {
       case ActorProperty::x:
       case ActorProperty::y:
@@ -127,6 +133,17 @@ namespace Overworld {
         if (firstFrame.timePoint == 0.0) {
           auto clip = Audio().LoadFromFile(firstFrame.stringValue);
           Audio().Play(clip, AudioPriority::high);
+        }
+        break;
+      case ActorProperty::sound_effect_loop:
+        if (lastFrame.timePoint < totalTime && !lastFrame.stringValue.empty()) {
+          // inject a KeyFrame to keep the last frame looping to the end of the animation
+          ActorPropertyAnimator::PropertyKeyFrame injectedFrame;
+          injectedFrame.previousTimePoint = lastFrame.timePoint;
+          injectedFrame.previousStringValue = lastFrame.stringValue;
+          injectedFrame.timePoint = totalTime;
+
+          state.keyFrames.push_back(injectedFrame);
         }
         break;
       }
@@ -181,29 +198,32 @@ namespace Overworld {
         swappedKeyFrame = true;
       }
 
+      // use previous string, we should only use a string if the time point has been passed
+      auto& activeStringValue = time < keyFrame.timePoint ? keyFrame.previousStringValue : keyFrame.stringValue;
+
       // update property
       switch (property) {
       case ActorProperty::animation: {
-        // use previous animation string, we should only use an animation string if the time point has been passed
-        auto animationName = time < keyFrame.timePoint ? keyFrame.previousStringValue : keyFrame.stringValue;
 
-        if (!animationName.empty() && !actor.IsPlayingCustomAnimation() || actor.GetAnimationString() != animationName) {
+        if (!activeStringValue.empty() && !actor.IsPlayingCustomAnimation() || actor.GetAnimationString() != activeStringValue) {
           // force an idle direction to prevent override
           actor.Face(actor.GetHeading());
-          actor.PlayAnimation(animationName, true);
+          actor.PlayAnimation(activeStringValue, true);
         }
         break;
       }
       case ActorProperty::sound_effect: {
-        if (swappedKeyFrame) {
-          auto clip = Audio().LoadFromFile(keyFrame.previousStringValue);
+        if (swappedKeyFrame || keyFrame.timePoint < time && !activeStringValue.empty()) {
+          auto clip = Audio().LoadFromFile(activeStringValue);
           Audio().Play(clip, AudioPriority::high);
         }
         break;
       }
       case ActorProperty::sound_effect_loop: {
-        auto clip = Audio().LoadFromFile(keyFrame.previousStringValue);
-        Audio().Play(clip, AudioPriority::high);
+        if (!activeStringValue.empty()) {
+          auto clip = Audio().LoadFromFile(activeStringValue);
+          Audio().Play(clip, AudioPriority::high);
+        }
         break;
       }
       default: {
