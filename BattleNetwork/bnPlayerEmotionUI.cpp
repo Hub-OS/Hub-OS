@@ -60,9 +60,9 @@ void PlayerEmotionUI::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
 void PlayerEmotionUI::OnUpdate(double elapsed)
 {
-  static_cast<void>(elapsed);
   if (!player) return;
   if (!texture) return;
+
   // previousEmotion diff is used to determine if the animation needs to play
   if (previousEmotion == player->GetEmotion()) return;
 

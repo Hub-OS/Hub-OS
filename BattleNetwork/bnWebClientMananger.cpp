@@ -824,8 +824,8 @@ std::future<bool> WebClientManager::SendLoginCommand(const char * username, cons
 {
   auto promise = std::make_shared<std::promise<bool>>();
 
-  const char username_buffer[256]{ 0 };
-  const char password_buffer[256]{ 0 };
+  char username_buffer[256]{ 0 };
+  char password_buffer[256]{ 0 };
   size_t username_len = strlen(username);
   size_t password_len = strlen(password);
 

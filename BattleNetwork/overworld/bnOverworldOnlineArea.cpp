@@ -66,7 +66,7 @@ Overworld::OnlineArea::OnlineArea(
     std::make_shared<Overworld::PacketProcessor>(
       remoteAddress,
       [this](auto& body) { processPacketBody(body); }
-      )
+    )
   ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
@@ -418,7 +418,8 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   endTilePos += walkVector;
 
-  if (isConveyor(endTilePos)) {
+  bool nextTileIsConveyor = isConveyor(endTilePos);
+  if (nextTileIsConveyor) {
     endTilePos += walkVector / 2.0f;
   }
 
@@ -462,6 +463,14 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   endKeyframe.propertySteps.push_back(axisProperty);
   endKeyframe.duration = duration;
   propertyAnimator.AddKeyFrame(endKeyframe);
+
+  if (!nextTileIsConveyor) {
+    ActorPropertyAnimator::KeyFrame waitKeyFrame;
+    // reuse last property to simulate idle
+    waitKeyFrame.propertySteps.push_back(axisProperty);
+    waitKeyFrame.duration = 0.25;
+    propertyAnimator.AddKeyFrame(waitKeyFrame);
+  }
 
   propertyAnimator.UseKeyFrames(*player);
   GetPlayerController().ReleaseActor();

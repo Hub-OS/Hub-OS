@@ -68,9 +68,14 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
         Audio().Play(AudioType::DEFORM);
       }
       else {
-        auto& widget = GetScene().GetCardSelectWidget();
-        widget.LockInPlayerFormSelection();
-        widget.ErasePlayerFormOption(_index);
+        if (count == 0) {
+          // if count == 0 then we know player index is 0 which is also client player
+          // only client player should remove their index information (e.g. PVP battles)
+          auto& widget = GetScene().GetCardSelectWidget();
+          widget.LockInPlayerFormSelection();
+          widget.ErasePlayerFormOption(_index);
+        }
+
         GetScene().HandleCounterLoss(*playerPtr, false);
         Audio().Play(AudioType::SHINE);
       }
