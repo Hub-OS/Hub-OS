@@ -375,7 +375,9 @@ void SelectMobScene::onUpdate(double elapsed) {
       auto& meta = NAVIS.At(selectedNavi);
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
+      const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
       auto mugshot = Textures().LoadTextureFromFile(image);
+      auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
       Player* player = meta.GetNavi();
 
       // Shuffle our new folder
@@ -393,7 +395,8 @@ void SelectMobScene::onUpdate(double elapsed) {
         MobBattleProperties::RewardBehavior::take,
         { mob },
         sf::Sprite(*mugshot),
-        mugshotAnim
+        mugshotAnim,
+        emotions,
       };
 
       using effect = segue<WhiteWashFade>;

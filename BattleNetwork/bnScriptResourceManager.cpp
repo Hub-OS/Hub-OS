@@ -482,6 +482,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetOverworldTexturePath", &NaviRegistration::NaviMeta::SetOverworldTexturePath,
     "SetMugshotTexturePath", &NaviRegistration::NaviMeta::SetMugshotTexturePath,
     "SetMugshotAnimationPath", &NaviRegistration::NaviMeta::SetMugshotAnimationPath,
+    "SetEmotionsTexturePath", &NaviRegistration::NaviMeta::SetEmotionsTexturePath,
     "SetPreviewTexture", &NaviRegistration::NaviMeta::SetPreviewTexture,
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
     );
