@@ -38,7 +38,7 @@ Roll::Roll() : Player()
 
 const float Roll::GetHeight() const
 {
-  return 140.0f;
+  return 70.0f;
 }
 
 CardAction * Roll::OnExecuteSpecialAction()

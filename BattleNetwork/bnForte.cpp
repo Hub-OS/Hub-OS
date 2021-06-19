@@ -65,7 +65,7 @@ Forte::~Forte()
 
 const float Forte::GetHeight() const
 {
-  return 160.0f;
+  return 80.0f;
 }
 
 void Forte::OnUpdate(double _elapsed)

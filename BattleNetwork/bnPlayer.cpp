@@ -94,6 +94,14 @@ void Player::OnUpdate(double _elapsed) {
   chargeEffect.Update(_elapsed);
 
   fullyCharged = chargeEffect.IsFullyCharged();
+
+  if (emotion == Emotion::angry) {
+    // Highlight when the character can be countered
+    setColor(sf::Color(155, 0, 0, getColor().a));
+
+    // TODO: how to interop with new shaders like pallete swap?
+    SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
+  }
 }
 
 void Player::Attack() {

@@ -64,7 +64,7 @@ Protoman::~Protoman()
 
 const float Protoman::GetHeight() const
 {
-  return 100.0f;
+  return 50.0f;
 }
 
 void Protoman::OnUpdate(double _elapsed)

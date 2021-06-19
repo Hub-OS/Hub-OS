@@ -48,7 +48,7 @@ static inline void QueuNaviRegistration() {
   // Register Roll
   auto rollInfo = NAVIS.AddClass<Roll>();
   rollInfo->SetSpecialDescription("High HP w/ FloatShoe enabled.");
-  // rollInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/roll_face.png"));
+  rollInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/roll_face.png"));
   rollInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/preview.png"));
   rollInfo->SetMugshotTexturePath("resources/navis/roll/mug.png");
   rollInfo->SetMugshotAnimationPath("resources/navis/roll/mug.animation");
@@ -62,7 +62,7 @@ static inline void QueuNaviRegistration() {
   // Register Starman
   auto starmanInfo = NAVIS.AddClass<Starman>();
   starmanInfo->SetSpecialDescription("Fastest navi w/ rapid fire");
-  // starmanInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/starman/starman_face.png"));
+  starmanInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/starman/star_face.png"));
   starmanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/starman/preview.png"));
   starmanInfo->SetMugshotTexturePath("resources/navis/starman/mug.png");
   starmanInfo->SetMugshotAnimationPath("resources/navis/starman/mug.animation");
@@ -105,7 +105,7 @@ static inline void QueuNaviRegistration() {
   // Register Forte
   auto forteInfo = NAVIS.AddClass<Forte>();
   forteInfo->SetSpecialDescription("Too angry to die. Spawns w/ aura");
-  //forteInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/forte_face.png"));
+  forteInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/forte_face.png"));
   forteInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/preview.png"));
   forteInfo->SetMugshotTexturePath("resources/navis/forte/mug.png");
   forteInfo->SetMugshotAnimationPath("resources/navis/forte/mug.animation");

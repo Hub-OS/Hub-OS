@@ -56,7 +56,7 @@ Tomahawkman::~Tomahawkman()
 const float Tomahawkman::GetHeight() const
 {
   ;
-  return 100.0f;
+  return 50.0f;
 }
 
 void Tomahawkman::OnUpdate(double _elapsed)

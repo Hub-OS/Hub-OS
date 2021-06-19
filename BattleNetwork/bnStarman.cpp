@@ -40,7 +40,7 @@ Starman::~Starman() {
 
 const float Starman::GetHeight() const
 {
-  return 140.0f;
+  return 70.0f;
 }
 
 CardAction* Starman::OnExecuteBusterAction()
