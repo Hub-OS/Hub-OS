@@ -18,6 +18,7 @@ struct MobBattleProperties {
   std::vector<Mob*> mobs;
   sf::Sprite mug; // speaker mugshot
   Animation anim; // mugshot animation
+  std::shared_ptr<sf::Texture> emotion; // emotion atlas image
 };
 
 /*

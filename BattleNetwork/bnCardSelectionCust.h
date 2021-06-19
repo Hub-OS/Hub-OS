@@ -10,6 +10,7 @@
 #include "bnCustEmblem.h"
 #include "bnSceneNode.h"
 #include "bnPlayerForm.h"
+#include "bnFormSelectionPublisher.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <Swoosh/Ease.h>
@@ -20,7 +21,7 @@
  * @date 05/05/19
  * @brief Cardcust widget used in battle. Can be interacted through public API.
  */
-class CardSelectionCust : public SceneNode, public ResourceHandle {
+class CardSelectionCust : public SceneNode, public ResourceHandle, public FormSelectionPublisher {
 public:
   /**
     @brief struct to hold class constructor properties
@@ -103,6 +104,9 @@ private:
   std::vector<PlayerFormMeta*> forms;
 
   void RefreshAvailableCards(int handSize);
+
+  /** @brief Sets the selected form index, notifying listeners on change. */
+  void SetSelectedFormIndex(int index);
 public:
   /**
    * @brief Constructs card select GUI. Creates a select queue of 8 buckets. Limits cap to 8.

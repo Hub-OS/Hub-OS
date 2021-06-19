@@ -33,6 +33,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   }
 
   GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
+  GetEmotionWindow().SetTexture(props.emotion);
 
   // If playing co-op, add more players to track here
   players = { &props.base.player };

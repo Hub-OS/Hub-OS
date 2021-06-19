@@ -78,6 +78,12 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetMugshotTexturePath(co
   return *this;
 }
 
+NaviRegistration::NaviMeta &NaviRegistration::NaviMeta::SetEmotionsTexturePath(const std::string& texture)
+{
+  emotionsTexturePath = texture;
+  return *this;
+}
+
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldAnimationPath(const std::string& path)
 {
   overworldAnimationPath = path;
@@ -119,6 +125,11 @@ const std::string& NaviRegistration::NaviMeta::GetMugshotTexturePath() const
 const std::string& NaviRegistration::NaviMeta::GetMugshotAnimationPath() const
 {
   return mugshotAnimationPath;
+}
+
+const std::string &NaviRegistration::NaviMeta::GetEmotionsTexturePath() const
+{
+  return emotionsTexturePath;
 }
 
 const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetPreviewTexture() const
