@@ -47,6 +47,12 @@ namespace Overworld {
       Poco::Buffer<char> buffer{ 0 };
     };
 
+    struct Conveyor {
+      std::string soundEffect;
+      Direction direction;
+      float speed;
+    };
+
     std::string ticket; //!< How we are represented on the server
     Poco::Net::SocketAddress remoteAddress; //!< server
     std::shared_ptr<PacketProcessor> packetProcessor;
@@ -64,7 +70,7 @@ namespace Overworld {
     std::map<std::string, OnlinePlayer> onlinePlayers;
     std::map<unsigned, ExcludedObjectData> excludedObjects;
     std::vector<std::vector<TileObject*>> warps;
-    std::vector<std::unordered_map<size_t, Direction>> conveyors;
+    std::vector<std::unordered_map<size_t, Conveyor>> conveyors;
     std::list<std::string> removePlayers;
     sf::Vector3f lastPosition;
     Timer movementTimer;

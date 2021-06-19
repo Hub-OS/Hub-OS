@@ -366,7 +366,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
     return;
   }
 
-  auto direction = iter->second;
+  auto& conveyor = iter->second;
   auto endTilePos = playerTilePos;
   float tileDistance = 0.0f;
 
@@ -374,7 +374,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   animationProperty.property = ActorProperty::animation;
 
   // resolve animation
-  switch (direction) {
+  switch (conveyor.direction) {
   case Direction::up_left:
     animationProperty.stringValue = "IDLE_UL";
     break;
@@ -392,17 +392,6 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   ActorPropertyAnimator::PropertyStep axisProperty;
   axisProperty.ease = Ease::linear;
 
-  auto isSameDirection = [&conveyorLayer, &map, direction](sf::Vector2f endTilePos) {
-    auto hash = map.HashTilePosition(endTilePos);
-    auto iter = conveyorLayer.find(hash);
-
-    if (iter == conveyorLayer.end()) {
-      return false;
-    }
-
-    return iter->second == direction;
-  };
-
   auto isConveyor = [&conveyorLayer, &map](sf::Vector2f endTilePos) {
     auto hash = map.HashTilePosition(endTilePos);
     auto iter = conveyorLayer.find(hash);
@@ -411,7 +400,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   };
 
   // resolve end position
-  switch (direction) {
+  switch (conveyor.direction) {
   case Direction::up_left:
   case Direction::down_right:
     endTilePos.x = std::floor(endTilePos.x);
@@ -424,19 +413,17 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
     break;
   }
 
-  auto unprojectedDirection = Orthographic(direction);
+  auto unprojectedDirection = Orthographic(conveyor.direction);
   auto walkVector = UnitVector(unprojectedDirection);
 
-  do {
-    endTilePos += walkVector;
-  } while (isSameDirection(endTilePos));
+  endTilePos += walkVector;
 
   if (isConveyor(endTilePos)) {
     endTilePos += walkVector / 2.0f;
   }
 
   // fixing overshooting
-  switch (direction) {
+  switch (conveyor.direction) {
   case Direction::up_left:
     endTilePos.x = std::nextafter(endTilePos.x + 1.0f, -INFINITY);
     break;
@@ -460,24 +447,19 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   propertyAnimator.Reset();
 
-  const float TILES_PER_SECOND = 6.0f;
-  auto duration = tileDistance / TILES_PER_SECOND;
+  auto duration = tileDistance / conveyor.speed;
 
-  // todo: grab from custom property/server
   ActorPropertyAnimator::PropertyStep sfxProperty;
   sfxProperty.property = ActorProperty::sound_effect_loop;
-  sfxProperty.stringValue = "resources/sfx/dir_tile.ogg";
+  sfxProperty.stringValue = conveyor.soundEffect;
 
   ActorPropertyAnimator::KeyFrame startKeyframe;
   startKeyframe.propertySteps.push_back(animationProperty);
   startKeyframe.propertySteps.push_back(sfxProperty);
   propertyAnimator.AddKeyFrame(startKeyframe);
 
-  sfxProperty.stringValue = "";
-
   ActorPropertyAnimator::KeyFrame endKeyframe;
   endKeyframe.propertySteps.push_back(axisProperty);
-  endKeyframe.propertySteps.push_back(sfxProperty);
   endKeyframe.duration = duration;
   propertyAnimator.AddKeyFrame(endKeyframe);
 
@@ -1414,13 +1396,20 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         tilePos.x = std::floor(tilePos.x) + 0.5f;
         tilePos.y = std::floor(tilePos.y) + 0.5f;
 
-        auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
+        Conveyor conveyor;
+        conveyor.direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
+        conveyor.speed = tileObject.customProperties.GetPropertyFloat("Speed");
+        conveyor.soundEffect = tileObject.customProperties.GetPropertyFloat("Sound Effect");
+
+        if (conveyor.speed == 0.0f) {
+          conveyor.speed = 6.0f;
+        }
 
         auto minimapWorldPos = map.TileToWorld(tilePos);
-        minimap.AddConveyorPosition(map.WorldToScreen(minimapWorldPos) + zOffset, direction);
+        minimap.AddConveyorPosition(map.WorldToScreen(minimapWorldPos) + zOffset, conveyor.direction);
 
         // may break on large maps, but everything could break on large maps
-        conveyorLayer[map.HashTilePosition(tilePos)] = direction;
+        conveyorLayer[map.HashTilePosition(tilePos)] = conveyor;
       }
     }
   }
