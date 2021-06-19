@@ -38,10 +38,8 @@ void Download::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net
       shipper.Acknowledged(reliability, id);
     }
     else {
-      constexpr auto sigSize = sizeof(Download::PacketType);
-
       Poco::Buffer<char> body{ 0 };
-      body.append(data.begin() + sigSize, data.size() - sigSize);
+      body.append(data.begin() + reader.GetOffset(), data.size() - reader.GetOffset());
 
       scene.ProcessPacketBody(sig, body);
     }

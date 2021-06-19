@@ -184,10 +184,10 @@ void MatchMakingScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buff
 {
   try {
     switch (header) {
-    case NetPlaySignals::handshake:
+    case NetPlaySignals::matchmaking_handshake:
       RecieveHandshakeSignal();
       break;
-    case NetPlaySignals::connect:
+    case NetPlaySignals::matchmaking_request:
       RecieveConnectSignal(body);
       break;
     }
@@ -197,11 +197,15 @@ void MatchMakingScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buff
   }
 }
 
-void MatchMakingScene::SendConnectSignal(const int navi)
+void MatchMakingScene::SendConnectSignal(size_t navi)
 {
   try {
     Poco::Buffer<char> buffer{ 0 };
-    NetPlaySignals type{ NetPlaySignals::connect };
+
+    // mark unreliable, in case we leak into the next scene
+    buffer.append(0);
+
+    NetPlaySignals type{ NetPlaySignals::matchmaking_request };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
     buffer.append((char*)&navi, sizeof(size_t));
     packetProcessor->SendPacket(buffer);
@@ -215,7 +219,11 @@ void MatchMakingScene::SendHandshakeSignal()
 {
   try {
     Poco::Buffer<char> buffer{ 0 };
-    NetPlaySignals type{ NetPlaySignals::handshake };
+
+    // mark unreliable, in case we leak into the next scene
+    buffer.append(0);
+
+    NetPlaySignals type{ NetPlaySignals::matchmaking_handshake };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
     packetProcessor->SendPacket(buffer);
   }

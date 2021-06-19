@@ -68,7 +68,7 @@ private:
 
   // netplay comm.
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body);
-  void SendConnectSignal(const int navi);
+  void SendConnectSignal(size_t navi);
   void SendHandshakeSignal(); // sent until we recieve a handshake
   void RecieveConnectSignal(const Poco::Buffer<char>&);
   void RecieveHandshakeSignal();

@@ -8,7 +8,7 @@ class DownloadScene;
 
 namespace Download {
   enum class PacketType : char {
-    card_list = 0,
+    card_list = 100, // set to 100+ to prevent overlap with NetPlay packets (maybe just use NetPlay packets?)
     custom_character,
     ack
   };

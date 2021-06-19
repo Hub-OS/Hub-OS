@@ -3,6 +3,8 @@
 enum class NetPlaySignals : unsigned int {
   none = 0,
   ack,
+  matchmaking_request,
+  matchmaking_handshake,
   connect,
   handshake, // send round information along with hand and form selections
   form, // used when we are de-formed from battle
