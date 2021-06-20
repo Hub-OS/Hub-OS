@@ -437,45 +437,33 @@ void Overworld::Minimap::ClearIcons()
 
 void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos)
 {
-  auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newWarp = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newWarp, warp);
-  newWarp->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
-  newWarp->SetLayer(-1);
-  markers.push_back(newWarp);
-  bakedMap.AddNode(markers.back().get());
+
+  AddMarker(newWarp, pos);
 }
 
 void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip)
 {
-  auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newBoard = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newBoard, board);
-  newBoard->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+
   newBoard->setScale(flip ? -1.f : 1.f, 1.f);
-  newBoard->SetLayer(-1);
-  markers.push_back(newBoard);
-  bakedMap.AddNode(markers.back().get());
+
+  AddMarker(newBoard, pos);
 }
 
 void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos)
 {
-  auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newShop = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newShop, shop);
-  newShop->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
-  newShop->SetLayer(-1);
-  markers.push_back(newShop);
-  bakedMap.AddNode(markers.back().get());
+  AddMarker(newShop, pos);
 }
 
 void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction direction)
 {
-  auto newpos = pos * this->scaling;
   std::shared_ptr<SpriteProxyNode> newConveyor = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newConveyor, conveyor);
-  newConveyor->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
-  newConveyor->SetLayer(-1);
 
   switch (direction)
   {
@@ -490,7 +478,14 @@ void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction 
     break;
   }
 
-  markers.push_back(newConveyor);
+  AddMarker(newConveyor, pos);
+}
+
+void Overworld::Minimap::AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos) {
+  auto newpos = pos * this->scaling;
+  marker->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  marker->SetLayer(-1);
+  markers.push_back(marker);
   bakedMap.AddNode(markers.back().get());
 }
 

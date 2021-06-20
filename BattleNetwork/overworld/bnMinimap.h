@@ -19,6 +19,7 @@ namespace Overworld {
     std::vector<std::shared_ptr<SpriteProxyNode>> markers;
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
     void EnforceTextureSizeLimits();
+    void AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos);
   public:
     static Minimap CreateFrom(const std::string& name, Map& map);
     Minimap();
