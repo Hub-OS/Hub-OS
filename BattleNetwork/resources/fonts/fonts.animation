@@ -1,4 +1,4 @@
-imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/fonts/fonts.png"
+imagePath="C:\Users\Proto\Code\OpenNetBattle\BattleNetwork\resources\fonts\fonts.png"
 
 animation state="SMALL_A"
 frame duration="0" x="4" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0" 
@@ -1055,7 +1055,7 @@ animation state="THIN_'"
 frame duration="0.05" x="1023" y="42" w="6" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_="
-frame duration="0.05" x="1043" y="42" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+frame duration="0.05" x="1043" y="40" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_0"
 frame duration="0.05" x="859" y="62" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
@@ -1166,7 +1166,7 @@ animation state="THIN_LOWER_Z"
 frame duration="0.05" x="959" y="122" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_-"
-frame duration="0.05" x="983" y="122" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+frame duration="0.05" x="983" y="121" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_!"
 frame duration="0.05" x="998" y="122" w="4" h="15" originx="0" originy="0" flipx="0" flipy="0" 
@@ -1355,40 +1355,55 @@ animation state="THIN__"
 frame duration="0.05" x="1077" y="42" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_$"
-frame duration="0.05" x="1074" y="24" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+frame duration="0.05" x="1074" y="21" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_("
-frame duration="0.05" x="1053" y="104" w="7" h="15" originx="-5" originy="-5" flipx="0" flipy="0" 
+frame duration="0.05" x="1053" y="103" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_)"
-frame duration="0.05" x="1065" y="104" w="7" h="15" originx="-25" originy="-25" flipx="0" flipy="0" 
+frame duration="0.05" x="1065" y="103" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_["
-frame duration="0.05" x="1074" y="104" w="7" h="15" originx="-203" originy="-203" flipx="0" flipy="0" 
+frame duration="0.05" x="1074" y="103" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_]"
-frame duration="0.05" x="1086" y="104" w="7" h="15" originx="-1627" originy="-1627" flipx="0" flipy="0" 
+frame duration="0.05" x="1086" y="103" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_*"
-frame duration="0.05" x="1081" y="83" w="7" h="15" originx="-13019" originy="-13019" flipx="0" flipy="0" 
+frame duration="0.05" x="1081" y="81" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_~"
-frame duration="0.05" x="1070" y="86" w="7" h="15" originx="-104155" originy="-104155" flipx="0" flipy="0" 
+frame duration="0.05" x="1070" y="84" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_`"
-frame duration="0.05" x="1062" y="63" w="7" h="15" originx="-833243" originy="-833243" flipx="0" flipy="0" 
+frame duration="0.05" x="1062" y="61" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_^"
-frame duration="0.05" x="1079" y="63" w="7" h="15" originx="-6665948" originy="-6665948" flipx="0" flipy="0" 
+frame duration="0.05" x="1079" y="61" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_+"
-frame duration="0.05" x="1053" y="63" w="7" h="15" originx="-53327587" originy="-53327587" flipx="0" flipy="0" 
+frame duration="0.05" x="1053" y="61" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_#"
-frame duration="0.05" x="1084" y="125" w="7" h="15" originx="-268435455" originy="-268435455" flipx="0" flipy="0" 
+frame duration="0.05" x="1084" y="123" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_%"
-frame duration="0.05" x="1072" y="125" w="7" h="15" originx="-268435455" originy="-268435455" flipx="0" flipy="0" 
+frame duration="0.05" x="1072" y="122" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THIN_@"
-frame duration="0.05" x="1053" y="85" w="7" h="15" originx="-268435455" originy="-268435455" flipx="0" flipy="0" 
+frame duration="0.05" x="1053" y="83" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="THIN_<"
+frame duration="0.05" x="1054" y="22" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="THIN_>"
+frame duration="0.05" x="1060" y="22" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="THIN_{"
+frame duration="0.05" x="1075" y="137" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="THIN_}"
+frame duration="0.05" x="1087" y="137" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="THIN_;"
+frame duration="0.05" x="1012" y="40" w="5" h="15" originx="0" originy="0" flipx="0" flipy="0" 

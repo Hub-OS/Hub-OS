@@ -111,7 +111,7 @@ void BBS::PrependPosts(const std::vector<BBS::Post>& newPosts) {
 void BBS::PrependPosts(const std::string& id, const std::vector<BBS::Post>& newPosts) {
   auto iter = std::find_if(posts.begin(), posts.end(), [&](auto& post) { return post.id == id; });
 
-  posts.insert(iter, newPosts.begin(), newPosts.end());
+  iter = posts.insert(iter, newPosts.begin(), newPosts.end());
 
   auto insertIndex = iter - posts.begin();
 
