@@ -115,7 +115,7 @@ namespace Overworld {
      * @param screen vector from world
      * @return screen coordinates
      */
-    sf::Vector2f TileToWorld(sf::Vector2f world) const;
+    sf::Vector2f TileToWorld(sf::Vector2f tile) const;
 
     size_t HashTilePosition(sf::Vector2f position) const;
 

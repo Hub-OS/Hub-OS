@@ -201,7 +201,51 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   // set the final texture
   minimap.bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
 
+  minimap.FindTileMarkers(map);
+
   return minimap;
+}
+
+void Overworld::Minimap::FindTileMarkers(Map& map) {
+  auto layerCount = map.GetLayerCount();
+  auto cols = map.GetCols();
+  auto rows = map.GetRows();
+
+  for (auto i = 0; i < layerCount; i++) {
+    auto& layer = map.GetLayer(i);
+
+    for (auto col = 0; col < cols; col++) {
+      for (auto row = 0; row < rows; row++) {
+        auto& tile = layer.GetTile(col, row);
+        auto tileMeta = map.GetTileMeta(tile.gid);
+
+        if (!tileMeta) {
+          continue;
+        }
+
+        if (tileMeta->type == "Conveyor") {
+          auto pos = sf::Vector2f(col, row);
+          pos.x += 0.5f;
+          pos.y += 0.5f;
+
+          auto worldPos = map.TileToWorld(pos);
+          auto direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
+
+          if (tile.flippedHorizontal) {
+            direction = FlipHorizontal(direction);
+          }
+
+          if (tile.flippedVertical) {
+            direction = FlipVertical(direction);
+          }
+
+          auto screenPos = map.WorldToScreen({ worldPos.x, worldPos.y, float(i) });
+
+          AddConveyorPosition(screenPos, direction);
+        }
+      }
+    }
+  }
 }
 
 void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Overworld::Map& map, size_t index) {
@@ -361,6 +405,7 @@ Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
   for (auto& rhsMarker : rhs.markers) {
     auto marker = std::make_shared<SpriteProxyNode>();
     CopyTextureAndOrigin(*marker, *rhsMarker);
+    marker->setScale(rhsMarker->getScale());
     marker->setPosition(rhsMarker->getPosition());
     marker->SetLayer(-1);
     bakedMap.AddNode(marker.get());

@@ -17,8 +17,9 @@ namespace Overworld {
     sf::Color bgColor{};
     SpriteProxyNode player, hp, warp, board, shop, overlay, arrows, conveyor, bakedMap;
     std::vector<std::shared_ptr<SpriteProxyNode>> markers;
-    void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
     void EnforceTextureSizeLimits();
+    void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
+    void FindTileMarkers(Map& map);
     void AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos);
   public:
     static Minimap CreateFrom(const std::string& name, Map& map);
