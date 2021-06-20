@@ -41,7 +41,7 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
       break;
     case Mettaur::Rank::Rare2: {
       speed = 1.6;
-      damage = 100;
+      damage = 301;
     }
       break;
     default:

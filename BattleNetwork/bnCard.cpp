@@ -106,8 +106,8 @@ namespace Battle {
 
   void Card::MultiplyDamage(unsigned int multiplier)
   {
-    this->multiplier = multiplier;
-    props.damage *= this->multiplier;
+    this->multiplier *= multiplier;
+    props.damage *= multiplier;
   }
 
   const unsigned Card::GetMultiplier() const

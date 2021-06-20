@@ -169,7 +169,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
   text.SetColor(sf::Color::White);
   target.draw(text);
 
-  if (!canBoost) {
+  if (canBoost) {
     // our number font has shadow baked in
     target.draw(dmg);
 
@@ -238,6 +238,11 @@ void SelectedCardsUI::UseNextCard() {
 void SelectedCardsUI::Broadcast(const Battle::Card& card, Character& user)
 {
   curr++;
+
+  if (player->GetEmotion() == Emotion::angry) {
+    player->SetEmotion(Emotion::normal);
+  }
+
   CardUsePublisher::Broadcast(card, user, CurrentTime::AsMilli());
 }
 

@@ -20,6 +20,7 @@
 #include "bnPlayerHitState.h"
 #include "bnPlayerChangeFormState.h"
 #include "bnPlayerForm.h"
+#include "bnDefenseSuperArmor.h"
 
 #include <array>
 
@@ -167,6 +168,7 @@ protected:
   Emotion emotion{ Emotion::normal };
   PlayerStats stats{}, savedStats{};
   std::function<CardAction* ()> specialOverride{};
+  DefenseSuperArmor* superArmor{ nullptr };
 };
 
 template<typename T>

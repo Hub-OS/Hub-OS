@@ -175,10 +175,16 @@ MobBattleScene::~MobBattleScene() {
 
 void MobBattleScene::OnHit(Character& victim, const Hit::Properties& props)
 {
-  if (GetPlayer() == &victim && props.damage > 0) {
+  auto player = GetPlayer();
+  if (player == &victim && props.damage > 0) {
     playerHitCount++;
 
-    if (GetPlayer()->IsSuperEffective(props.element)) {
+    if (props.damage >= 300) {
+      player->SetEmotion(Emotion::angry);
+      GetSelectedCardsUI().SetMultiplier(2);
+    }
+
+    if (player->IsSuperEffective(props.element)) {
       playerDecross = true;
     }
   }

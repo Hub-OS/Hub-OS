@@ -54,6 +54,8 @@ Player::Player() :
     Audio().Play(AudioType::HURT, AudioPriority::lowest);
   };
 
+  superArmor = new DefenseSuperArmor();
+
   this->RegisterStatusCallback(Hit::flinch, Callback<void()>{ flinch });
 
   using namespace std::placeholders;
@@ -76,12 +78,26 @@ Player::Player() :
 }
 
 Player::~Player() {
+  delete superArmor;
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 }
 
 void Player::OnUpdate(double _elapsed) {
   if (GetTile() != nullptr) {
     setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
+  }
+
+  if (emotion == Emotion::angry) {
+    setColor(sf::Color(155, 0, 0, getColor().a));
+    SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
+  }
+  else if (emotion == Emotion::full_synchro) {
+    setColor(sf::Color(55, 55, 155, getColor().a));
+    SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
+  }
+  else if (emotion == Emotion::evil) {
+    setColor(sf::Color(155, 100, 255, getColor().a));
+    SetShader(Shaders().GetShader(ShaderType::COLORIZE));
   }
 
   AI<Player>::Update(_elapsed);
@@ -94,14 +110,6 @@ void Player::OnUpdate(double _elapsed) {
   chargeEffect.Update(_elapsed);
 
   fullyCharged = chargeEffect.IsFullyCharged();
-
-  if (emotion == Emotion::angry) {
-    // Highlight when the character can be countered
-    setColor(sf::Color(155, 0, 0, getColor().a));
-
-    // TODO: how to interop with new shaders like pallete swap?
-    SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
-  }
 }
 
 void Player::Attack() {
@@ -195,6 +203,13 @@ const unsigned Player::GetChargeLevel()
 void Player::SetEmotion(Emotion emotion)
 {
   this->emotion = emotion;
+
+  if (this->emotion == Emotion::angry) {
+    this->AddDefenseRule(superArmor);
+  }
+  else {
+    this->RemoveDefenseRule(superArmor);
+  }
 }
 
 Emotion Player::GetEmotion() const

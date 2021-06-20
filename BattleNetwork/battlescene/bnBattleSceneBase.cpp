@@ -207,7 +207,7 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
     didCounterHit = true;
     comboInfoTimer.reset();
 
-    if (player->IsInForm() == false) {
+    if (player->IsInForm() == false && player->GetEmotion() != Emotion::evil) {
       field->RevealCounterFrames(true);
 
       // node positions are relative to the parent node's origin

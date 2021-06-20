@@ -18,6 +18,8 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
     this->Abort(retryCardList);
   });
 
+  packetProcessor->EnableKickForSilence(true);
+
   packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& body) {
     this->ProcessPacketBody(header, body);
   });
