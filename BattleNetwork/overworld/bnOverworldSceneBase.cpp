@@ -202,7 +202,9 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     screenPos.y = std::floor(screenPos.y);
 
     // update minimap
-    minimap.SetPlayerPosition(screenPos);
+    auto playerTilePos = map.WorldToTileSpace(playerActor->getPosition());
+    bool isConcealed = map.IsConcealed(sf::Vector2i(playerTilePos), playerActor->GetLayer());
+    minimap.SetPlayerPosition(screenPos, isConcealed);
   }
 
   for (auto& actor : actors) {
@@ -969,6 +971,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   // scale to the game resolution
   this->map.setScale(2.f, 2.f);
+
+  // update map to trigger recalculating shadows for minimap
+  this->map.Update(*this, 0.0f);
 
   minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
   minimap.setScale(2.f, 2.f);

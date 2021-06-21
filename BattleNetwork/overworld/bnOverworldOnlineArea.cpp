@@ -1361,12 +1361,14 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
 
       if (type == "Home Warp") {
-        minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset);
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
+        minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
       }
       else if (type == "Server Warp" || type == "Custom Server Warp" || type == "Position Warp" || type == "Custom Warp") {
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
+        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
       }
@@ -1374,10 +1376,12 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         sf::Vector2f bottomPosition = objectCenterPos;
         bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
 
-        minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal);
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(bottomPosition)), i);
+        minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal, isConcealed);
       }
       else if (type == "Shop") {
-        minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset);
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(tileObject.position)), i);
+        minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset, isConcealed);
       }
     }
   }

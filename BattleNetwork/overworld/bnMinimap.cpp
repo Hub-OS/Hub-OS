@@ -3,6 +3,8 @@
 #include <cmath>
 #include "../bnTextureResourceManager.h"
 
+const auto CONCEALED_COLOR = sf::Color(165, 165, 165, 165); // 65% transparency, similar to world sprite darkening
+
 static void CopyTextureAndOrigin(SpriteProxyNode& dest, const SpriteProxyNode& source) {
   dest.setTexture(source.getTexture());
   dest.setOrigin(source.getOrigin());
@@ -241,7 +243,8 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
 
           auto screenPos = map.WorldToScreen({ worldPos.x, worldPos.y, float(i) });
 
-          AddConveyorPosition(screenPos, direction);
+          bool isConcealed = map.IsConcealed(sf::Vector2i(col, row), i);
+          AddConveyorPosition(screenPos, direction, isConcealed);
         }
       }
     }
@@ -408,6 +411,7 @@ Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
     marker->setScale(rhsMarker->getScale());
     marker->setPosition(rhsMarker->getPosition());
     marker->SetLayer(-1);
+    marker->setColor(rhsMarker->getColor());
     bakedMap.AddNode(marker.get());
     markers.push_back(marker);
   }
@@ -446,8 +450,10 @@ void Overworld::Minimap::Pan(const sf::Vector2f& amount)
   }
 }
 
-void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos)
+void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos, bool isConcealed)
 {
+  player.setColor(isConcealed ? CONCEALED_COLOR : sf::Color::White);
+
   if (largeMapControls) {
     auto newpos = panning + (-pos * this->scaling);
     player.setPosition((240.f * 0.5f)+panning.x, (160.f * 0.5f)+panning.y);
@@ -460,10 +466,11 @@ void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos)
   }
 }
 
-void Overworld::Minimap::SetHomepagePosition(const sf::Vector2f& pos)
+void Overworld::Minimap::SetHomepagePosition(const sf::Vector2f& pos, bool isConcealed)
 {
   auto newpos = pos * this->scaling;
   hp.setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  hp.setColor(isConcealed ? CONCEALED_COLOR : sf::Color::White);
   bakedMap.RemoveNode(&hp);
   bakedMap.AddNode(&hp); // follow the map
   hp.SetLayer(-1); // on top of the map
@@ -480,32 +487,32 @@ void Overworld::Minimap::ClearIcons()
   markers.clear();
 }
 
-void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos)
+void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos, bool isConcealed)
 {
   std::shared_ptr<SpriteProxyNode> newWarp = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newWarp, warp);
 
-  AddMarker(newWarp, pos);
+  AddMarker(newWarp, pos, isConcealed);
 }
 
-void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip)
+void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip, bool isConcealed)
 {
   std::shared_ptr<SpriteProxyNode> newBoard = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newBoard, board);
 
   newBoard->setScale(flip ? -1.f : 1.f, 1.f);
 
-  AddMarker(newBoard, pos);
+  AddMarker(newBoard, pos, isConcealed);
 }
 
-void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos)
+void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos, bool isConcealed)
 {
   std::shared_ptr<SpriteProxyNode> newShop = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newShop, shop);
-  AddMarker(newShop, pos);
+  AddMarker(newShop, pos, isConcealed);
 }
 
-void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction direction)
+void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction direction, bool isConcealed)
 {
   std::shared_ptr<SpriteProxyNode> newConveyor = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newConveyor, conveyor);
@@ -523,10 +530,14 @@ void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction 
     break;
   }
 
-  AddMarker(newConveyor, pos);
+  AddMarker(newConveyor, pos, isConcealed);
 }
 
-void Overworld::Minimap::AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos) {
+void Overworld::Minimap::AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos, bool isConcealed) {
+  if (isConcealed) {
+    marker->setColor(CONCEALED_COLOR);
+  }
+
   auto newpos = pos * this->scaling;
   marker->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   marker->SetLayer(-1);
