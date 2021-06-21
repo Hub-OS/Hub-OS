@@ -5,6 +5,7 @@
 #include <mutex>
 #include <queue>
 #include <future>
+#include <string>
 
 #include <SFML/Graphics/Texture.hpp>
 #include "bnCard.h"
@@ -59,7 +60,7 @@ public:
   const bool IsLoggedIn();
   const bool IsWorking();
 
-  std::future<bool> SendLoginCommand(const char* username, const char* password);
+  std::future<bool> SendLoginCommand(std::string username, std::string password);
   std::future<bool> SendLogoutCommand();
   std::future<WebAccounts::AccountState> SendFetchAccountCommand();
   std::future<CardListCommandResult> SendFetchCardListCommand(const std::vector<std::string>& cardList);
