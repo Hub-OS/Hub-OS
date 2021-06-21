@@ -100,6 +100,18 @@ void WebClientManager::InitDownloadImageHandler()
   client->SetDownloadImageHandler(callback);
 }
 
+void WebClientManager::UploadCardData(const std::string& uuid, 
+  std::shared_ptr<sf::Texture> icon, 
+  std::shared_ptr<sf::Texture> image, 
+  std::shared_ptr<WebAccounts::Card> data, 
+  std::shared_ptr<WebAccounts::CardProperties> model)
+{
+  cardTextureCache.insert(std::pair(uuid, image));
+  iconTextureCache.insert(std::pair(uuid, icon));
+  account.cards[uuid] = data;
+  account.cardProperties[uuid] = model;
+}
+
 void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account)
 {
   // The client should be valid and non-null ptr
@@ -964,6 +976,16 @@ std::shared_ptr<sf::Texture> WebClientManager::GetImageForCard(const std::string
   }
 
   return value;
+}
+
+std::shared_ptr<WebAccounts::Card> WebClientManager::GetWebCard(const std::string& uuid)
+{
+  return account.cards[uuid];
+}
+
+std::shared_ptr<WebAccounts::CardProperties> WebClientManager::GetWebCardModel(const std::string& modelid)
+{
+  return account.cardProperties[modelid];
 }
 
 const Battle::Card WebClientManager::MakeBattleCardFromWebCardData(const WebAccounts::Card & card)

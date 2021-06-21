@@ -41,20 +41,11 @@ DownloadScene::~DownloadScene()
 
 }
 
-void DownloadScene::sendCardList(const std::vector<std::string> uuids)
+void DownloadScene::sendCardList(const std::vector<std::string>& uuids)
 {
   size_t len = uuids.size();
 
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::card_list_download };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)&len, sizeof(size_t));
-
-  for (auto& id : uuids) {
-    size_t len = id.size();
-    buffer.append((char*)&len, sizeof(size_t));
-    buffer.append(id.c_str(), len);
-  }
+  auto buffer = SerializeCards(uuids);
 
   packetProcessor->UpdateHandshakeID(packetProcessor->SendPacket(Reliability::Reliable, buffer).second);
 }
@@ -86,18 +77,160 @@ void DownloadScene::recieveCardList(const Poco::Buffer<char>& buffer)
   retryCardList.clear();
 
   while (cardLen > 0) {
-    std::string uuid;
-    size_t len{};
-    std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
+    // name
+    size_t id_len = 0;
+    std::memcpy((char*)&id_len, buffer.begin()+read, sizeof(size_t));
+    std::string id = std::string(buffer.begin()+read, id_len);
     read += sizeof(size_t);
-    uuid.resize(len);
-    std::memcpy(uuid.data(), buffer.begin() + read, len);
-    read += len;
-    cardList.push_back(uuid);
-    cardLen--;
 
-    cardsToDownload.insert(std::make_pair(uuid, ""));
-    Logger::Logf("chip: %s", uuid.c_str());
+    // image data
+    size_t image_len = 0;
+    std::memcpy((char*)&image_len, buffer.begin() + read, sizeof(size_t));
+    read += sizeof(size_t);
+
+    sf::Uint8* imageData = new  sf::Uint8[image_len]{ 0 };
+    std::memcpy(imageData, buffer.begin() + read, image_len);
+    read += sizeof(size_t);
+
+    sf::Image image;
+    image.create(56, 48, imageData);
+    auto textureObj = std::make_shared<sf::Texture>();
+    textureObj->loadFromImage(image);
+    delete[] imageData;
+
+    // icon data
+    size_t icon_len = 0;
+    std::memcpy((char*)&icon_len, buffer.begin() + read, sizeof(size_t));
+    read += sizeof(size_t);
+
+    sf::Uint8* iconData = new  sf::Uint8[icon_len]{ 0 };
+    std::memcpy(iconData, buffer.begin() + read, icon_len);
+    read += sizeof(size_t);
+
+    sf::Image icon;
+    icon.create(14, 14, iconData);
+    auto iconObj = std::make_shared<sf::Texture>();
+    iconObj->loadFromImage(icon);
+    delete[] iconData;
+    
+    ////////////////////
+    //   Card Model   //
+    ////////////////////
+    size_t model_id_len = 0;
+    std::string model_id;
+
+    std::memcpy((char*)&model_id_len, buffer.begin() + read, sizeof(size_t));
+    model_id = std::string(buffer.begin() + read, model_id_len);
+    read += sizeof(size_t);
+
+    size_t name_len = 0;
+    std::memcpy((char*)&name_len, buffer.begin() + read, sizeof(size_t));
+    std::string name = std::string(buffer.begin() + read, name_len);
+    read += sizeof(size_t);
+
+    size_t action_len = 0;
+    std::memcpy((char*)&action_len, buffer.begin() + read, sizeof(size_t));
+    std::string action = std::string(buffer.begin() + read, action_len);
+    read += sizeof(size_t);
+
+    size_t element_len = 0;
+    std::memcpy((char*)&element_len, buffer.begin() + read, sizeof(size_t));
+    std::string element = std::string(buffer.begin() + read, element_len);
+    read += sizeof(size_t);
+
+    size_t secondary_element_len = 0;
+    std::memcpy((char*)&secondary_element_len, buffer.begin() + read, sizeof(size_t));
+    std::string secondary_element = std::string(buffer.begin() + read, secondary_element_len);
+    read += sizeof(size_t);
+
+    auto props = std::make_shared<WebAccounts::CardProperties>();
+
+    std::memcpy((char*)&props->classType, buffer.begin() + read, sizeof(decltype(props->classType)));
+    read += sizeof(decltype(props->classType));
+
+    std::memcpy((char*)&props->damage, buffer.begin() + read, sizeof(decltype(props->damage)));
+    read += sizeof(decltype(props->damage));
+
+    std::memcpy((char*)&props->timeFreeze, buffer.begin() + read, sizeof(decltype(props->timeFreeze)));
+    read += sizeof(decltype(props->timeFreeze));
+
+    std::memcpy((char*)&props->limit, buffer.begin() + read, sizeof(decltype(props->limit)));
+    read += sizeof(decltype(props->limit));
+
+    props->id = id;
+    props->name = name;
+    props->action = action;
+    props->canBoost = props->damage > 0;
+    props->element = element;
+    props->secondaryElement = secondary_element;
+
+    // codes count
+    std::vector<char> codes;
+    size_t codes_len = 0;
+    std::memcpy((char*)&codes_len, buffer.begin() + read, sizeof(size_t));
+    read += sizeof(size_t);
+
+    while (codes_len-- > 0) {
+      char code = 0;
+      std::memcpy((char*)&code, buffer.begin() + read, 1);
+      read += 1;
+      codes.push_back(code);
+    }
+
+    props->codes = codes;
+
+    // meta classes count
+    std::vector<std::string> metaClasses;
+    size_t meta_len = 0;
+    std::memcpy((char*)&meta_len, buffer.begin() + read, sizeof(size_t));
+
+    while (meta_len-- > 0) {
+      size_t meta_i_len = 0;
+      std::memcpy((char*)&meta_i_len, buffer.begin() + read, sizeof(size_t));
+      read += sizeof(size_t);
+      std::string meta = std::string(buffer.begin() + read, meta_i_len);
+      metaClasses.push_back(meta);
+    }
+
+    props->metaClasses = metaClasses;
+
+    size_t desc_len = 0;
+    std::memcpy((char*)&desc_len, buffer.begin() + read, sizeof(size_t));
+    read += sizeof(size_t);
+    std::string description = std::string(buffer.begin() + read, desc_len);
+
+    size_t verbose_len = 0;
+    std::memcpy((char*)&verbose_len, buffer.begin() + read, sizeof(size_t));
+    read += sizeof(size_t);
+    std::string verboseDesc = std::string(buffer.begin() + read, verbose_len);
+
+    props->description = description;
+    props->verboseDescription = verboseDesc;
+
+    ////////////////////
+    //  Card Data     //
+    ////////////////////
+    char code = 0;
+
+    std::memcpy((char*)&code, buffer.begin() + read, 1);
+    read += 1;
+
+    std::memcpy((char*)&id_len, buffer.begin() + read, sizeof(size_t));
+    std::string card_id = std::string(buffer.begin() + read, id_len);
+    read += sizeof(size_t);
+
+    std::memcpy((char*)&model_id_len, buffer.begin() + read, sizeof(size_t));
+    std::string modelId = std::string(buffer.begin() + read, model_id_len);
+    read += sizeof(size_t);
+
+    auto cardData = std::make_shared<WebAccounts::Card>();
+    cardData->id = card_id;
+    cardData->code = code;
+    cardData->modelId = modelId;
+
+    // Upload
+    WEBCLIENT.UploadCardData(id, iconObj, textureObj, cardData, props);
+    cardsToDownload[id] = "Complete";
   }
 
   retryCardList = cardList;
@@ -118,26 +251,6 @@ void DownloadScene::recieveCustomPlayerData(const Poco::Buffer<char>& buffer)
   // TODO:
 }
 
-void DownloadScene::FetchCardList(const std::vector<std::string>& cardList)
-{
-  retryCardList = cardList;
-
-
-  // Pressumptiously set all cards to "Complete"
-  // if some are redownloading, only those will be
-  // set to "Downloading" in the following lines...
-
-  for (auto& [_, value] : cardsToDownload) {
-    value = "Complete";
-  }
-
-  fetchCardsResult = WEBCLIENT.SendFetchCardListCommand(cardList);
-
-  for (auto& uuid : cardList) {
-    cardsToDownload[uuid] = "Downloading";
-  }
-}
-
 void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
   Logger::Logf("recieved header: %d", (int)header);
@@ -153,6 +266,130 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     this->recieveCustomPlayerData(body);
     break;
   }
+}
+
+Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>& cardList)
+{
+  Poco::Buffer<char> data{ 0 };
+  size_t len = cardList.size();
+
+  // header
+  NetPlaySignals type{ NetPlaySignals::card_list_download };
+  data.append((char*)&type, sizeof(NetPlaySignals));
+
+  // number of cards
+  data.append((char*)&len, sizeof(len));
+
+  for (auto& card : cardList) {
+    // name
+    size_t sz = card.length();
+    data.append((char*)&sz, sizeof(size_t));
+    data.append(card.c_str(), card.length());
+
+    // image data
+    auto texture = WEBCLIENT.GetIconForCard(card);
+    auto image = texture->copyToImage();
+    size_t image_len = static_cast<size_t>(image.getSize().x * image.getSize().y * 4u);
+    data.append((char*)&image_len, sizeof(size_t));
+    data.append((char*)image.getPixelsPtr(), image_len);
+
+    // icon data
+    auto icon = WEBCLIENT.GetImageForCard(card);
+    image = icon->copyToImage();
+    image_len = static_cast<size_t>(image.getSize().x * image.getSize().y * 4u);
+    data.append((char*)&image_len, sizeof(size_t));
+    data.append((char*)image.getPixelsPtr(), image_len);
+
+    ////////////////////
+    // card meta data //
+    ////////////////////
+
+    auto cardData = WEBCLIENT.GetWebCard(card);
+    auto model = WEBCLIENT.GetWebCardModel(cardData->modelId);
+
+    std::string id = model->id;
+    size_t id_len = id.size();
+    data.append((char*)&id_len, sizeof(size_t));
+    data.append(id.c_str(), id_len);
+
+    std::string name = model->name;
+    size_t name_len = name.size();
+    data.append((char*)&name_len, sizeof(size_t));
+    data.append(name.c_str(), name_len);
+
+    std::string action = model->action;
+    size_t action_len = action.size();
+    data.append((char*)&action_len, sizeof(size_t));
+    data.append(action.c_str(), action_len);
+
+    std::string element = model->element;
+    size_t element_len = element.size();
+    data.append((char*)&element_len, sizeof(size_t));
+    data.append(element.c_str(), element_len);
+
+    std::string secondary = model->secondaryElement;
+    size_t secondary_len = secondary.size();
+    data.append((char*)&secondary_len, sizeof(size_t));
+    data.append(secondary.c_str(), secondary_len);
+
+    data.append((char*)&model->classType, sizeof(decltype(model->classType)));
+    data.append((char*)&model->damage, sizeof(decltype(model->damage)));
+    data.append((char*)&model->timeFreeze, sizeof(decltype(model->timeFreeze)));
+    data.append((char*)&model->limit, sizeof(decltype(model->limit)));
+
+    // codes count
+    auto codes = model->codes;
+    size_t codes_len = codes.size();
+    data.append((char*)&codes_len, sizeof(size_t));
+
+    for (auto&& code : codes) {
+      data.append((char*)&code, 1);
+    }
+
+    // meta classes count
+    auto metaClasses = model->metaClasses;
+    size_t meta_len = metaClasses.size();
+    data.append((char*)&meta_len, sizeof(size_t));
+
+    for (auto&& meta : metaClasses) {
+      size_t meta_i_len = meta.size();
+      data.append((char*)&meta_i_len, sizeof(size_t));
+      data.append(meta.c_str(), meta.size());
+    }
+
+    std::string description = model->description;
+    size_t desc_len = description.size();
+
+    data.append((char*)&desc_len, sizeof(size_t));
+    data.append(description.c_str(), description.size());
+
+    std::string verboseDesc = model->verboseDescription;
+    size_t verbose_len = verboseDesc.size();
+
+    data.append((char*)&verbose_len, sizeof(size_t));
+    data.append(verboseDesc.c_str(), verboseDesc.size());
+
+    ///////////////
+    // Card Data //
+    ///////////////
+    char code = cardData->code;
+
+    id = cardData->id;
+    id_len = id.size();
+
+    std::string modelId = cardData->modelId;
+    size_t modelId_len = modelId.size();
+
+    data.append((char*)&code, 1);
+
+    data.append((char*)&id_len, sizeof(size_t));
+    data.append((char*)id.c_str(), id_len);
+
+    data.append((char*)&modelId_len, sizeof(size_t));
+    data.append((char*)modelId.c_str(), modelId_len);
+  }
+
+  return data;
 }
 
 void DownloadScene::Complete()
@@ -178,11 +415,6 @@ void DownloadScene::onUpdate(double elapsed)
 {
   if (!packetProcessor->IsHandshakeAck() && !aborting) return;
 
-  if (!webRequestSent && recievedRemoteCards) {
-    FetchCardList(retryCardList);
-    webRequestSent = true;
-  }
-
   if (aborting) {
     abortingCountdown -= from_seconds(elapsed);
     if (abortingCountdown <= frames(0)) {
@@ -194,37 +426,7 @@ void DownloadScene::onUpdate(double elapsed)
     return;
   }
 
-  try {
-    if (webRequestSent && fetchCardsResult.valid() && is_ready(fetchCardsResult)) {
-      Logger::Logf("Trying to future::get() cards");
-      auto res = fetchCardsResult.get();
 
-      // if res.success == true the entire download is complete
-      if (res.success) {
-        Complete();
-      }
-      else if (tries++ < 3) {
-        // Otherwise retry the items that failed a few more times...
-        FetchCardList(res.failed);
-      }
-      else {
-        // Quit trying
-        Abort(res.failed);
-      }
-    }
-  }
-  catch (std::exception& err) {
-    Logger::Logf("Error downloading card data: %s", err.what());
-
-    // If we had cards to download, keep trying...
-    if (retryCardList.size() && tries++ < 3) {
-      FetchCardList(retryCardList);
-    }
-    else {
-      // Otherwise omething may have gone terribly wrong
-      Abort(retryCardList);
-    }
-  }
 }
 
 void DownloadScene::onDraw(sf::RenderTexture& surface)

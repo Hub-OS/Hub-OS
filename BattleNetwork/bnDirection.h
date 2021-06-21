@@ -1,6 +1,7 @@
 #pragma once
 #include <Swoosh/Ease.h>
 #include <math.h>
+#include <string>
 #include <tuple>
 #include <SFML/System/Vector2.hpp>
 

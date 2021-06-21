@@ -67,9 +67,17 @@ public:
 
   std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
   std::shared_ptr<sf::Texture> GetImageForCard(const std::string& uuid);
+  std::shared_ptr<WebAccounts::Card> GetWebCard(const std::string& uuid);
+  std::shared_ptr<WebAccounts::CardProperties> GetWebCardModel(const std::string& modelid);
   const Battle::Card MakeBattleCardFromWebCardData(const WebAccounts::Card& card);
   const Battle::Card MakeBattleCardFromWebComboData(const WebAccounts::CardCombo& combo);
   const std::string& GetUserName() const;
+
+  void UploadCardData(const std::string& uuid,
+    std::shared_ptr<sf::Texture> icon,
+    std::shared_ptr<sf::Texture> image,
+    std::shared_ptr<WebAccounts::Card> data,
+    std::shared_ptr<WebAccounts::CardProperties> model);
 
   void CacheTextureData(const WebAccounts::AccountState& account);
   void SaveSession(const std::string& inpath);

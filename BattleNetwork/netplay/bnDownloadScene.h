@@ -30,7 +30,7 @@ struct DownloadSceneProps {
 class DownloadScene final : public Scene {
 private:
   bool& downloadSuccess;
-  bool aborting{}, webRequestSent{}, recievedRemoteCards{};
+  bool aborting{}, recievedRemoteCards{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
@@ -41,19 +41,18 @@ private:
   sf::RenderTexture surface;
   sf::Texture lastScreen;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
-  std::future<WebClientManager::CardListCommandResult> fetchCardsResult{};
   swoosh::glsl::FastGaussianBlur blur{ 10 };
 
-  void sendCardList(const std::vector<std::string> uuids);
+  void sendCardList(const std::vector<std::string>& uuids);
   void sendCustomPlayerData();
   void sendPing(); //!< keep connections alive while clients download data
 
   void recieveCardList(const Poco::Buffer<char>& buffer);
   void recieveCustomPlayerData(const Poco::Buffer<char>& buffer);
  
+  Poco::Buffer<char> SerializeCards(const std::vector<std::string>& cardList);
   void Complete();
   void Abort(const std::vector<std::string>& failed);
-  void FetchCardList(const std::vector<std::string>& cardList);
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body);
 
 public:
