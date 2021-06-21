@@ -41,17 +41,22 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   // For all new input events, set the wait time based on the network latency and append
-  for (auto& [name, state] : Input().StateThisFrame()) {
+  const auto events_this_frame = Input().StateThisFrame();
+
+  std::vector<InputEvent> outEvents;
+  for (auto& [name, state] : events_this_frame) {
     InputEvent copy;
     copy.name = name;
     copy.state = state;
-    copy.wait = frames(0); // from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
 
+    outEvents.push_back(copy);
+
+    copy.wait = from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
     inputQueue.push_back(copy);
-    
-    if (replicator) {
-      replicator->SendInputEvent(copy);
-    }
+  }
+
+  if (replicator) {
+    replicator->SendInputEvents(outEvents);
   }
 
   // Actions with animation lockout controls take priority over movement
@@ -106,7 +111,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   if (player.IsMoving()) {
     if (replicator) {
       auto tile = player.GetTile();
-      replicator->SendTileSignal(tile->GetX(), tile->GetY());
     }
     return;
   }
@@ -128,9 +132,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   if(direction != Direction::none && actionable) {
     auto next_tile = player.GetTile() + direction;
     auto onMoveBegin = [player = &player, next_tile, this, anim] {
-      if (replicator) {
-        replicator->SendTileSignal(next_tile->GetX(), next_tile->GetY());
-      }
       const std::string& move_anim = player->GetMoveAnimHash();
 
       anim->CancelCallbacks();

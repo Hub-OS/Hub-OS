@@ -932,7 +932,7 @@ std::future<WebClientManager::CardListCommandResult> WebClientManager::SendFetch
     WebClientManager::CardListCommandResult result;
     result.success = true; // assume we succeed
 
-    for (auto uuid : cardList) {
+    for (const auto& uuid : cardList) {
       if (!client->FetchCard(uuid)) {
         Logger::Logf("Could not fetch card %s", uuid.data());
         result.failed.push_back(uuid);

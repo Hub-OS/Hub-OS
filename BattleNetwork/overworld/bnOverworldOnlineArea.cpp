@@ -1838,10 +1838,20 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   config.remote = addressString;
   config.myNavi = GetCurrentNavi();
 
-  Player* player = NAVIS.At(config.myNavi).GetNavi();
+  auto& meta = NAVIS.At(config.myNavi);
+  const std::string& image = meta.GetMugshotTexturePath();
+  const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
+  const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
+  auto mugshot = Textures().LoadTextureFromFile(image);
+  auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+  Player* player = meta.GetNavi();
+
 
   NetworkBattleSceneProps props = {
     { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
+    sf::Sprite(*mugshot),
+    mugshotAnim,
+    emotions,
     config
   };
 

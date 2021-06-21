@@ -8,6 +8,7 @@
 #include "../bnPlayerNetworkState.h"
 #include "../bnPlayerNetworkProxy.h"
 #include "../../bnFadeInState.h"
+#include "../../bnElementalDamage.h"
 
 // states 
 #include "states/bnNetworkSyncBattleState.h"
@@ -145,7 +146,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
         waitingForCardSelectScreen = true;
       }
 
-      if (cardStateDelay == frames(0) && waitingForCardSelectScreen) {
+      if (cardStateDelay <= frames(0) && waitingForCardSelectScreen) {
         waitingForCardSelectScreen = false;
       }
 
@@ -176,6 +177,9 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   // Some states need to know about card uses
   auto& ui = this->GetSelectedCardsUI();
   ui.Reveal();
+  
+  GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
+  GetEmotionWindow().SetTexture(props.emotion);
 
   combat->Subscribe(ui);
   timeFreeze->Subscribe(ui);
@@ -201,6 +205,26 @@ NetworkBattleScene::~NetworkBattleScene()
 
 void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
 {
+  auto player = GetPlayer();
+  if (player == &victim && props.damage > 0) {
+    if (props.damage >= 300) {
+      player->SetEmotion(Emotion::angry);
+      GetSelectedCardsUI().SetMultiplier(2);
+    }
+
+    if (player->IsSuperEffective(props.element)) {
+      // deform
+      trackedForms[0]->animationComplete = false;
+      trackedForms[0]->selectedForm = -1;
+    }
+  }
+
+  if (victim.IsSuperEffective(props.element) && props.damage > 0) {
+    Artifact* seSymbol = new ElementalDamage;
+    seSymbol->SetLayer(-100);
+    seSymbol->SetHeight(victim.GetHeight() + (victim.getLocalBounds().height * 0.5f)); // place it at sprite height
+    GetField()->AddEntity(*seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
+  }
 }
 
 void NetworkBattleScene::onUpdate(double elapsed) {
@@ -213,18 +237,19 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     sendHPSignal(GetPlayer()->GetHealth());
   }
 
+  frame_time_t elapsed_frames = from_seconds(elapsed);
+
+  if (cardStateDelay > frames(0)) {
+    cardStateDelay -= elapsed_frames;
+  }
+
   if (!syncStatePtr->IsSynchronized()) {
     if (packetProcessor->IsHandshakeAck() && remoteState.remoteHandshake) {
       syncStatePtr->Synchronize();
     }
   }
   else {
-    frame_time_t elapsed_frames = from_seconds(elapsed);
     packetTime += elapsed_frames;
-
-    if (cardStateDelay > frames(0)) {
-      cardStateDelay -= elapsed_frames;
-    }
   }
 
   if (remotePlayer && remotePlayer->WillRemoveLater()) {
@@ -346,16 +371,22 @@ void NetworkBattleScene::sendHandshakeSignal()
   packetProcessor->UpdateHandshakeID(id);
 }
 
-void NetworkBattleScene::sendInputEvent(const InputEvent& event)
+void NetworkBattleScene::sendInputEvents(const std::vector<InputEvent>& events)
 {
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals signalType{ NetPlaySignals::input_event };
   buffer.append((char*)&signalType, sizeof(NetPlaySignals));
 
-  size_t len = event.name.size();
-  buffer.append((char*)&len, sizeof(size_t));
-  buffer.append(event.name.c_str(), len);
-  buffer.append((char*)&event.state, sizeof(InputState));
+  size_t list_len = events.size();
+  buffer.append((char*)&list_len, sizeof(size_t));
+
+  while (list_len > 0) {
+    size_t len = events[list_len-1].name.size();
+    buffer.append((char*)&len, sizeof(size_t));
+    buffer.append(events[list_len-1].name.c_str(), len);
+    buffer.append((char*)&events[list_len-1].state, sizeof(InputState));
+    list_len--;
+  }
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
   packetTime = frames(0);
@@ -449,7 +480,10 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   trackedForms[1]->selectedForm = remoteForm;
   trackedForms[1]->animationComplete = !remoteState.remoteChangeForm; // a value of false forces animation to play
 
-  if (remoteHand) delete[] remoteHand;
+  if (remoteHand) {
+    delete[] remoteHand;
+    remoteHand = nullptr;
+  }
 
   size_t handSize = remoteUUIDs.size();
   int len = (int)handSize; // TODO: use size_t for card lengths...
@@ -493,24 +527,33 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
 
 void NetworkBattleScene::recieveInputEvent(const Poco::Buffer<char>& buffer)
 {
+  remoteState.remoteInputEvents.clear();
+
   std::string name;
-  size_t len{};
+  size_t len{}, list_len{};
   size_t read{};
-  std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
+  std::memcpy(&list_len, buffer.begin() + read, sizeof(size_t));
   read += sizeof(size_t);
-  name.resize(len);
-  std::memcpy(name.data(), buffer.begin() + read, len);
-  read += len;
 
-  InputState state{};
-  std::memcpy(&state, buffer.begin() + read, sizeof(InputState));
-  read += sizeof(InputState);
+  while (list_len-- > 0) {
+    std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
+    read += sizeof(size_t);
 
-  InputEvent event{};
-  event.name = name;
-  event.state = state;
+    name.clear();
+    name.resize(len);
+    std::memcpy(name.data(), buffer.begin() + read, len);
+    read += len;
 
-  remoteState.remoteInputEvents.push_back(event);
+    InputState state{};
+    std::memcpy(&state, buffer.begin() + read, sizeof(InputState));
+    read += sizeof(InputState);
+
+    InputEvent event{};
+    event.name = name;
+    event.state = state;
+    remoteState.remoteInputEvents.push_back(event);
+  }
+
 }
 
 void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)

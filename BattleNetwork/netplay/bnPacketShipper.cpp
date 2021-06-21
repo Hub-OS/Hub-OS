@@ -115,6 +115,7 @@ void PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket& socket)
     }
 
     auto data = backedUpPacket.data;
+    sendSafe(socket, data);
   }
 
   for (auto& backedUpPacket : backedUpReliableOrdered)

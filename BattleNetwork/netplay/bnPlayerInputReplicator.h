@@ -25,10 +25,10 @@ public:
     return networkbs->remoteState;
   }
 
-  void SendInputEvent(const InputEvent& event) {
+  void SendInputEvents(const std::vector<InputEvent>& events) {
     assert(networkbs && "Component must be injected into NetworkBattleScene");
 
-    networkbs->sendInputEvent(event);
+    networkbs->sendInputEvents(events);
   }
 
   void SendTileSignal(const int x, const int y) {

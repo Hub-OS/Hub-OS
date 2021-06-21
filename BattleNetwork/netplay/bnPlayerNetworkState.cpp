@@ -26,6 +26,9 @@ void PlayerNetworkState::OnEnter(Player& player) {
 void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   player.SetHealth(netflags.remoteHP);
 
+  auto anim = player.GetFirstComponent<AnimationComponent>();
+  bool actionable = anim->GetAnimationString() == "PLAYER_IDLE";
+
   // Actions with animation lockout controls take priority over movement
   bool canMove = player.IsLockoutAnimationComplete();
 
@@ -74,7 +77,6 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 
   // Movement increments are restricted based on anim speed at this time
   if (player.IsMoving()) {
-    InputQueueCleanup();
     return;
   }
 
@@ -94,12 +96,9 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
     direction = Direction::left;
   }
 
-  if (direction != Direction::none) {
+  if (direction != Direction::none && actionable) {
     auto next_tile = player.GetTile() + direction;
-    auto onMoveBegin = [player = &player, next_tile, this] {
-      auto anim = player->GetFirstComponent<AnimationComponent>();
-      std::string animationStr = anim->GetAnimationString();
-
+    auto onMoveBegin = [player = &player, next_tile, this, anim] {
       const std::string& move_anim = player->GetMoveAnimHash();
 
       anim->CancelCallbacks();
@@ -122,8 +121,6 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
       player.Teleport(next_tile, ActionOrder::voluntary, onMoveBegin);
     }
   }
-
-  InputQueueCleanup();
 }
 
 void PlayerNetworkState::OnLeave(Player& player) {
@@ -134,9 +131,4 @@ void PlayerNetworkState::OnLeave(Player& player) {
 const bool PlayerNetworkState::InputQueueHas(const InputEvent& item)
 {
   return netflags.remoteInputEvents.cend() != std::find(netflags.remoteInputEvents.cbegin(), netflags.remoteInputEvents.cend(), item);
-}
-
-void PlayerNetworkState::InputQueueCleanup()
-{
-  netflags.remoteInputEvents.clear();
 }

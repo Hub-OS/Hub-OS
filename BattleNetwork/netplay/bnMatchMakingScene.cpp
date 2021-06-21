@@ -419,6 +419,11 @@ void MatchMakingScene::onStart() {
 }
 
 void MatchMakingScene::onResume() {
+  if (!canProceedToBattle) {
+    // If this condition is false, we could not download assets we needed
+    // Reset for next match attempt
+    Reset();
+  }
 }
 
 void MatchMakingScene::onExit()
@@ -497,6 +502,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
     }
 
     if (this->sequenceTimer >= 3) {
+      copyScreen = true; // copy this cool preview for the D/L screen...
       isInBattleStartup = true;
     }
   }
@@ -515,7 +521,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
       }
 
       delete copy;
-      copyScreen = true;
 
       DownloadSceneProps props = {
         canProceedToBattle,
@@ -547,7 +552,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       // Configure the session
       SelectedNavi compatibleNavi = 0;
 
-      // Temporarily: 
+      // TODO: 
       // For Demo's prevent sending scripted navis over the network
       if (selectedNavi < 6) {
         compatibleNavi = selectedNavi;
@@ -556,16 +561,20 @@ void MatchMakingScene::onUpdate(double elapsed) {
       config.remote = theirIP;
       config.myNavi = compatibleNavi;
 
-      Player* player = NAVIS.At(compatibleNavi).GetNavi();
+      auto& meta = NAVIS.At(compatibleNavi);
+      const std::string& image = meta.GetMugshotTexturePath();
+      const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
+      const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
+      auto mugshot = Textures().LoadTextureFromFile(image);
+      auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+      Player* player = meta.GetNavi();
+
 
       NetworkBattleSceneProps props = {
-        BattleSceneBaseProps {
-          *player,
-          pa,
-          copy,
-          new Field(6, 3),
-          std::make_shared<SecretBackground>()
-        },
+        { *player, pa, copy, new Field(6, 3), std::make_shared<SecretBackground>() },
+        sf::Sprite(*mugshot),
+        mugshotAnim,
+        emotions,
         config
       };
 

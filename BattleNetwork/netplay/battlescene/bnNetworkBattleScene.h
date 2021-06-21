@@ -60,7 +60,11 @@ class NetworkCardUseListener;
 
 struct NetworkBattleSceneProps {
   BattleSceneBaseProps base;
+  sf::Sprite mug; // speaker mugshot
+  Animation anim; // mugshot animation
+  std::shared_ptr<sf::Texture> emotion; // emotion atlas image
   NetPlayConfig& netconfig;
+
 };
 
 class NetworkBattleScene final : public BattleSceneBase {
@@ -95,7 +99,7 @@ private:
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
 
   void sendHandshakeSignal(); // send player data to start the next round
-  void sendInputEvent(const InputEvent& event); // send our key or gamepad events
+  void sendInputEvents(const std::vector<InputEvent>& events); // send our key or gamepad events
   void sendConnectSignal(const SelectedNavi navi);
   void sendChangedFormSignal(const int form);
   void sendHPSignal(const int hp);

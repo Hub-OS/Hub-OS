@@ -15,5 +15,6 @@ enum class NetPlaySignals : unsigned int {
   input_event,
   card_select, // used when player opens card select widget
   card_list_download,
-  custom_character_download
+  custom_character_download,
+  ping // to keep from kicking 
 };

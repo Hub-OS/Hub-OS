@@ -1,17 +1,15 @@
 #include "bnDownloadScene.h"
 #include "../bnWebClientMananger.h"
-#include <Swoosh/EmbedGLSL.h>
-#include <Swoosh/Shaders.h>
 #include <Segues/PixelateBlackWashFade.h>
 
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
-  label(Font::Style::wide),
+  label(Font::Style::tiny),
   Scene(ac)
 {
-  label.setScale(2.f, 2.f);
-
   downloadSuccess = false; 
+
+  Logger::Logf("remote address is: %s", props.remoteAddress.toString().c_str());
 
   packetProcessor = std::make_shared<Netplay::PacketProcessor>(props.remoteAddress);
   packetProcessor->SetKickCallback([this] {
@@ -25,11 +23,17 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   });
 
   Net().AddHandler(props.remoteAddress, packetProcessor);
-
   sendCardList(props.cardUUIDs);
-  // TODO: sendCustomPlayerData();
+
   lastScreen = props.lastScreen;
+
+  blur.setPower(40);
+  blur.setTexture(&lastScreen);
+
   bg = sf::Sprite(lastScreen);
+  bg.setColor(sf::Color(255, 255, 255, 200));
+
+  setView(sf::Vector2u(480, 320));
 }
 
 DownloadScene::~DownloadScene()
@@ -43,7 +47,7 @@ void DownloadScene::sendCardList(const std::vector<std::string> uuids)
 
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::card_list_download };
-  buffer.append((char*)&type, sizeof(NetPlaySignals::card_list_download));
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&len, sizeof(size_t));
 
   for (auto& id : uuids) {
@@ -52,12 +56,21 @@ void DownloadScene::sendCardList(const std::vector<std::string> uuids)
     buffer.append(id.c_str(), len);
   }
 
-  packetProcessor->SendPacket(Reliability::Reliable, buffer);
+  packetProcessor->UpdateHandshakeID(packetProcessor->SendPacket(Reliability::Reliable, buffer).second);
 }
 
 void DownloadScene::sendCustomPlayerData()
 {
   // TODO:
+}
+
+void DownloadScene::sendPing()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  NetPlaySignals type{ NetPlaySignals::ping };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
+
+  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
 }
 
 void DownloadScene::recieveCardList(const Poco::Buffer<char>& buffer)
@@ -69,6 +82,8 @@ void DownloadScene::recieveCardList(const Poco::Buffer<char>& buffer)
 
   std::memcpy(&cardLen, buffer.begin() + read, sizeof(size_t));
   read += sizeof(size_t);
+
+  retryCardList.clear();
 
   while (cardLen > 0) {
     std::string uuid;
@@ -82,13 +97,19 @@ void DownloadScene::recieveCardList(const Poco::Buffer<char>& buffer)
     cardLen--;
 
     cardsToDownload.insert(std::make_pair(uuid, ""));
+    Logger::Logf("chip: %s", uuid.c_str());
   }
 
+  retryCardList = cardList;
+  
   if (cardList.empty()) {
-    downloadSuccess = true; // TODO: wait for other opponent to finish downloading
+    // Edge case
+    // Nothing to download = done
+    downloadSuccess = true; 
   }
-  else {
-    FetchCardList(cardList);
+
+  for (auto& uuid : cardList) {
+    cardsToDownload[uuid] = "Downloading";
   }
 }
 
@@ -100,6 +121,11 @@ void DownloadScene::recieveCustomPlayerData(const Poco::Buffer<char>& buffer)
 void DownloadScene::FetchCardList(const std::vector<std::string>& cardList)
 {
   retryCardList = cardList;
+
+
+  // Pressumptiously set all cards to "Complete"
+  // if some are redownloading, only those will be
+  // set to "Downloading" in the following lines...
 
   for (auto& [_, value] : cardsToDownload) {
     value = "Complete";
@@ -114,9 +140,14 @@ void DownloadScene::FetchCardList(const std::vector<std::string>& cardList)
 
 void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
+  Logger::Logf("recieved header: %d", (int)header);
+
   switch (header) {
   case NetPlaySignals::card_list_download:
-    this->recieveCardList(body);
+    if (!recievedRemoteCards) {
+      this->recieveCardList(body);
+      recievedRemoteCards = true;
+    }
     break;
   case NetPlaySignals::custom_character_download:
     this->recieveCustomPlayerData(body);
@@ -124,42 +155,73 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
   }
 }
 
+void DownloadScene::Complete()
+{
+  if (!downloadSuccess) {
+    downloadSuccess = true;
+    getController().pop();
+  }
+}
+
 void DownloadScene::Abort(const std::vector<std::string>& failed)
 {
-  for (auto& uuid : failed) {
-    cardsToDownload[uuid] = "Failed";
-  }
+  if (!aborting) {
+    for (auto& uuid : failed) {
+      cardsToDownload[uuid] = "Failed";
+    }
 
-  // abort match
-  using effect = swoosh::types::segue<PixelateBlackWashFade>;
-  getController().pop<effect>();
+    aborting = true;
+  }
 }
 
 void DownloadScene::onUpdate(double elapsed)
 {
+  if (!packetProcessor->IsHandshakeAck() && !aborting) return;
+
+  if (!webRequestSent && recievedRemoteCards) {
+    FetchCardList(retryCardList);
+    webRequestSent = true;
+  }
+
+  if (aborting) {
+    abortingCountdown -= from_seconds(elapsed);
+    if (abortingCountdown <= frames(0)) {
+      // abort match
+      using effect = swoosh::types::segue<PixelateBlackWashFade>;
+      getController().pop<effect>();
+    }
+
+    return;
+  }
+
   try {
-    if (fetchCardsResult.valid()) {
+    if (webRequestSent && fetchCardsResult.valid() && is_ready(fetchCardsResult)) {
+      Logger::Logf("Trying to future::get() cards");
       auto res = fetchCardsResult.get();
 
+      // if res.success == true the entire download is complete
       if (res.success) {
-        downloadSuccess = true;
-        getController().pop();
+        Complete();
       }
       else if (tries++ < 3) {
+        // Otherwise retry the items that failed a few more times...
         FetchCardList(res.failed);
       }
       else {
+        // Quit trying
         Abort(res.failed);
       }
     }
   }
-  catch (std::future_error& err) {
+  catch (std::exception& err) {
     Logger::Logf("Error downloading card data: %s", err.what());
 
-    if (tries++ < 3) {
+    // If we had cards to download, keep trying...
+    if (retryCardList.size() && tries++ < 3) {
       FetchCardList(retryCardList);
     }
     else {
+      // Otherwise omething may have gone terribly wrong
       Abort(retryCardList);
     }
   }
@@ -167,14 +229,18 @@ void DownloadScene::onUpdate(double elapsed)
 
 void DownloadScene::onDraw(sf::RenderTexture& surface)
 {
-  // surface.draw(bg);
+  surface.draw(bg);
+  blur.apply(surface);
 
   float h = static_cast<float>(getController().getVirtualWindowSize().y);
+
+  sf::Sprite icon;
 
   for (auto& [key, value] : cardsToDownload) {
     label.SetString(key + " - " + value);
 
-    float ydiff = label.GetLocalBounds().height*label.getScale().y;
+    auto bounds = label.GetLocalBounds();
+    float ydiff = bounds.height *label.getScale().y;
 
     if (value == "Downloading") {
       label.SetColor(sf::Color::White);
@@ -185,9 +251,17 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
       label.SetColor(sf::Color::Red);
     }
 
-    label.setOrigin(sf::Vector2f(0, ydiff));
+    if (auto iconTexture = WEBCLIENT.GetIconForCard(key)) {
+      icon.setTexture(*iconTexture);
+      float iconHeight = icon.getLocalBounds().height;
+      icon.setOrigin(0, iconHeight);
+    }
+
+    icon.setPosition(sf::Vector2f(bounds.width+5.0f, bounds.height));
+    label.setOrigin(sf::Vector2f(0, bounds.height));
     label.setPosition(0, h);
-    h -= ydiff;
+
+    h -= ydiff+5.0f;
 
     surface.draw(label);
   }
