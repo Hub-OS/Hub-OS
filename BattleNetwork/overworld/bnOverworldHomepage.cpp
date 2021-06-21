@@ -84,7 +84,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         spawnPos = { warpLayerPos.x, warpLayerPos.y, z };
 
         auto screenPos = GetMap().WorldToScreen(spawnPos);
-        GetMinimap().SetHomepagePosition(screenPos);
+        GetMinimap().SetHomepagePosition(screenPos, false);
       }
       else if (tileObject.name == "Net Warp") {
         auto centerPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
@@ -98,7 +98,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
         netWarpObjectId = tileObject.id;
 
         auto screenPos = GetMap().WorldToScreen({ centerPos.x, centerPos.y, z });
-        GetMinimap().AddWarpPosition(screenPos);
+        GetMinimap().AddWarpPosition(screenPos, false);
       }
     }
   }

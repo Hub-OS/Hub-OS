@@ -358,6 +358,41 @@ namespace Overworld {
     return shadowMap.HasShadow(tilePos.x, tilePos.y, layer);
   }
 
+  bool Map::IsConcealed(sf::Vector2i tilePos, int layer) {
+    auto col = tilePos.x;
+    auto row = tilePos.y;
+
+    for (auto i = layer + 1; col < cols && row < rows && i < layers.size(); i++) {
+      auto layerOffset = i - layer;
+      auto isOddLayer = layerOffset % 2 == 1;
+
+      if (!isOddLayer) {
+        // every two layers we move, we have a new tile that aligns with us
+        col += 1;
+        row += 1;
+      }
+
+      if (col < 0 || row < 0 || i < 0) {
+        continue;
+      }
+
+      auto& layer = layers[i];
+
+      if (layer.GetTile(col, row).gid != 0) {
+        return true;
+      }
+
+      if (isOddLayer) {
+        // odd layers have two tiles that may conceal us
+        if (layer.GetTile(col + 1, row + 1).gid != 0) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   void Map::RemoveSprites(SceneBase& scene) {
     for (auto& layer : layers) {
       for (auto& tileObject : layer.tileObjects) {

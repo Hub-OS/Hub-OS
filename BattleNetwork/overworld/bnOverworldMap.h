@@ -115,7 +115,7 @@ namespace Overworld {
      * @param screen vector from world
      * @return screen coordinates
      */
-    sf::Vector2f TileToWorld(sf::Vector2f world) const;
+    sf::Vector2f TileToWorld(sf::Vector2f tile) const;
 
     size_t HashTilePosition(sf::Vector2f position) const;
 
@@ -159,6 +159,7 @@ namespace Overworld {
     float GetElevationAt(float x, float y, int layer);
     bool IgnoreTileAbove(float x, float y, int layer);
     bool HasShadow(sf::Vector2i tilePos, int layer);
+    bool IsConcealed(sf::Vector2i tilePos, int layer);
     void RemoveSprites(SceneBase& scene);
 
   protected:

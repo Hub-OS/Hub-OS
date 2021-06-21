@@ -22,35 +22,6 @@
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 
-static Direction resolveDirectionString(const std::string& direction) {
-  if (direction == "Left") {
-    return Direction::left;
-  }
-  else if (direction == "Right") {
-    return Direction::right;
-  }
-  else if (direction == "Up") {
-    return Direction::up;
-  }
-  else if (direction == "Down") {
-    return Direction::down;
-  }
-  else if (direction == "Up Left") {
-    return Direction::up_left;
-  }
-  else if (direction == "Up Right") {
-    return Direction::up_right;
-  }
-  else if (direction == "Down Left") {
-    return Direction::down_left;
-  }
-  else if (direction == "Down Right") {
-    return Direction::down_right;
-  }
-
-  return Direction::none;
-}
-
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
   const std::string& address,
@@ -66,7 +37,7 @@ Overworld::OnlineArea::OnlineArea(
     std::make_shared<Overworld::PacketProcessor>(
       remoteAddress,
       [this](auto& body) { processPacketBody(body); }
-    )
+      )
   ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
@@ -313,7 +284,7 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
       auto targetWorldPos = map.TileToWorld(targetTilePos);
 
       auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("Z"));
-      auto direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
+      auto direction = FromString(tileObject.customProperties.GetProperty("Direction"));
 
       sf::Vector2f player_pos = { player->getPosition().x, player->getPosition().y };
       float distance = std::pow(targetWorldPos.x - player_pos.x, 2.0f) + std::pow(targetWorldPos.y - player_pos.y, 2.0f);
@@ -349,24 +320,31 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   auto& map = GetMap();
 
-  auto layer = player->GetLayer();
+  auto layerIndex = player->GetLayer();
 
-  if (layer < 0 || layer >= map.GetLayerCount()) {
+  if (layerIndex < 0 || layerIndex >= map.GetLayerCount()) {
     return;
   }
 
   auto playerTilePos = map.WorldToTileSpace(player->getPosition());
-  auto hash = map.HashTilePosition(playerTilePos);
+  auto& layer = map.GetLayer(layerIndex);
+  auto& tile = layer.GetTile(int(playerTilePos.x), int(playerTilePos.y));
+  auto tileMeta = map.GetTileMeta(tile.gid);
 
-  auto& conveyorLayer = conveyors[layer];
-  auto iter = conveyorLayer.find(hash);
-
-  if (iter == conveyorLayer.end()) {
-    // no conveyor
+  if (!tileMeta || tileMeta->type != "Conveyor") {
     return;
   }
 
-  auto& conveyor = iter->second;
+  auto direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
+
+  if (tile.flippedHorizontal) {
+    direction = FlipHorizontal(direction);
+  }
+
+  if (tile.flippedVertical) {
+    direction = FlipVertical(direction);
+  }
+
   auto endTilePos = playerTilePos;
   float tileDistance = 0.0f;
 
@@ -374,7 +352,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   animationProperty.property = ActorProperty::animation;
 
   // resolve animation
-  switch (conveyor.direction) {
+  switch (direction) {
   case Direction::up_left:
     animationProperty.stringValue = "IDLE_UL";
     break;
@@ -392,15 +370,15 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   ActorPropertyAnimator::PropertyStep axisProperty;
   axisProperty.ease = Ease::linear;
 
-  auto isConveyor = [&conveyorLayer, &map](sf::Vector2f endTilePos) {
-    auto hash = map.HashTilePosition(endTilePos);
-    auto iter = conveyorLayer.find(hash);
+  auto isConveyor = [&layer, &map](sf::Vector2f endTilePos) {
+    auto& tile = layer.GetTile(int(endTilePos.x), int(endTilePos.y));
+    auto tileMeta = map.GetTileMeta(tile.gid);
 
-    return iter != conveyorLayer.end();
+    return tileMeta && tileMeta->type == "Conveyor";
   };
 
   // resolve end position
-  switch (conveyor.direction) {
+  switch (direction) {
   case Direction::up_left:
   case Direction::down_right:
     endTilePos.x = std::floor(endTilePos.x);
@@ -413,7 +391,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
     break;
   }
 
-  auto unprojectedDirection = Orthographic(conveyor.direction);
+  auto unprojectedDirection = Orthographic(direction);
   auto walkVector = UnitVector(unprojectedDirection);
 
   endTilePos += walkVector;
@@ -424,7 +402,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   }
 
   // fixing overshooting
-  switch (conveyor.direction) {
+  switch (direction) {
   case Direction::up_left:
     endTilePos.x = std::nextafter(endTilePos.x + 1.0f, -INFINITY);
     break;
@@ -448,11 +426,17 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   propertyAnimator.Reset();
 
-  auto duration = tileDistance / conveyor.speed;
+  auto speed = tileMeta->customProperties.GetPropertyFloat("Speed");
+
+  if (speed == 0.0f) {
+    speed = 6.0f;
+  }
+
+  auto duration = tileDistance / speed;
 
   ActorPropertyAnimator::PropertyStep sfxProperty;
   sfxProperty.property = ActorProperty::sound_effect_loop;
-  sfxProperty.stringValue = conveyor.soundEffect;
+  sfxProperty.stringValue = GetPath(tileMeta->customProperties.GetProperty("Sound Effect"));
 
   ActorPropertyAnimator::KeyFrame startKeyframe;
   startKeyframe.propertySteps.push_back(animationProperty);
@@ -1353,18 +1337,13 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
   // storing special tile objects in minimap and other variables
   auto& minimap = GetMinimap();
-  minimap.ClearIcons();
   warps.resize(layerCount);
-  conveyors.resize(layerCount);
 
   auto tileSize = map.GetTileSize();
 
   for (auto i = 0; i < layerCount; i++) {
     auto& warpLayer = warps[i];
     warpLayer.clear();
-
-    auto& conveyorLayer = conveyors[i];
-    conveyorLayer.clear();
 
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
       const std::string& type = tileObject.type;
@@ -1382,12 +1361,14 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
 
       if (type == "Home Warp") {
-        minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset);
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
+        minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
       }
       else if (type == "Server Warp" || type == "Custom Server Warp" || type == "Position Warp" || type == "Custom Warp") {
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset);
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
+        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
       }
@@ -1395,30 +1376,12 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
         sf::Vector2f bottomPosition = objectCenterPos;
         bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
 
-        minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal);
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(bottomPosition)), i);
+        minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal, isConcealed);
       }
       else if (type == "Shop") {
-        minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset);
-      }
-      else if (type == "Conveyor") {
-        auto tilePos = map.WorldToTileSpace(objectCenterPos);
-        tilePos.x = std::floor(tilePos.x) + 0.5f;
-        tilePos.y = std::floor(tilePos.y) + 0.5f;
-
-        Conveyor conveyor;
-        conveyor.direction = resolveDirectionString(tileObject.customProperties.GetProperty("Direction"));
-        conveyor.speed = tileObject.customProperties.GetPropertyFloat("Speed");
-        conveyor.soundEffect = tileObject.customProperties.GetProperty("Sound Effect");
-
-        if (conveyor.speed == 0.0f) {
-          conveyor.speed = 6.0f;
-        }
-
-        auto minimapWorldPos = map.TileToWorld(tilePos);
-        minimap.AddConveyorPosition(map.WorldToScreen(minimapWorldPos) + zOffset, conveyor.direction);
-
-        // may break on large maps, but everything could break on large maps
-        conveyorLayer[map.HashTilePosition(tilePos)] = conveyor;
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(tileObject.position)), i);
+        minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset, isConcealed);
       }
     }
   }

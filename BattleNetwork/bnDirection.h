@@ -52,6 +52,58 @@ inline Direction Reverse(Direction in) {
 }
 
 /**
+* @brief Flips the direction horizontally
+*/
+inline Direction FlipHorizontal(Direction in) {
+  switch (in) {
+  case Direction::up:
+  case Direction::down:
+    // no change
+    return in;
+  case Direction::left:
+    return Direction::right;
+  case Direction::right:
+    return Direction::left;
+  case Direction::up_left:
+    return Direction::up_right;
+  case Direction::up_right:
+    return Direction::up_left;
+  case Direction::down_left:
+    return Direction::down_right;
+  case Direction::down_right:
+    return Direction::down_left;
+  }
+
+  return Direction::none;
+}
+
+/**
+* @brief Flips the direction vertically
+*/
+inline Direction FlipVertical(Direction in) {
+  switch (in) {
+  case Direction::left:
+  case Direction::right:
+    // no change
+    return in;
+  case Direction::up:
+    return Direction::down;
+  case Direction::down:
+    return Direction::up;
+  case Direction::up_left:
+    return Direction::down_left;
+  case Direction::up_right:
+    return Direction::down_right;
+  case Direction::down_left:
+    return Direction::up_left;
+  case Direction::down_right:
+    return Direction::up_right;
+  }
+
+  return Direction::none;
+}
+
+/**
 * @brief Splits 2-dimensional direction values into a 1-dimensional direction pair
 */
 inline std::pair<Direction, Direction> Split(const Direction dir) {
@@ -245,4 +297,33 @@ inline sf::Vector2f UnitVector(Direction dir) {
   }
 
   return sf::Vector2f();
+}
+
+inline Direction FromString(const std::string& direction) {
+  if (direction == "Left") {
+    return Direction::left;
+  }
+  else if (direction == "Right") {
+    return Direction::right;
+  }
+  else if (direction == "Up") {
+    return Direction::up;
+  }
+  else if (direction == "Down") {
+    return Direction::down;
+  }
+  else if (direction == "Up Left") {
+    return Direction::up_left;
+  }
+  else if (direction == "Up Right") {
+    return Direction::up_right;
+  }
+  else if (direction == "Down Left") {
+    return Direction::down_left;
+  }
+  else if (direction == "Down Right") {
+    return Direction::down_right;
+  }
+
+  return Direction::none;
 }
