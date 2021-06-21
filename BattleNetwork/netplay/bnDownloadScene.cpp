@@ -338,7 +338,7 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
     data.append((char*)&model->limit, sizeof(decltype(model->limit)));
 
     // codes count
-    auto codes = model->codes;
+    std::vector<char> codes = model->codes;
     size_t codes_len = codes.size();
     data.append((char*)&codes_len, sizeof(size_t));
 

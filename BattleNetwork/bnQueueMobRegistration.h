@@ -38,6 +38,8 @@
 ************************************************************************/
 
 static inline void QueueMobRegistration() {
+  ResourceHandle handle;
+
   auto info = MOBS.AddClass<TwoMettaurMob>();  // Create and register mob info object
   info->SetDescription("Tutorial ranked mettaurs, you got this!"); // Set property
   info->SetPlaceholderTexturePath("resources/mobs/mettaur/preview.png");
