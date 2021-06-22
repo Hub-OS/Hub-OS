@@ -29,12 +29,18 @@ struct DownloadSceneProps {
 
 class DownloadScene final : public Scene {
 private:
+  enum class state : char {
+    trade,
+    download,
+    complete
+  } currState{ state::trade };
+
   bool& downloadSuccess;
-  bool aborting{}, recievedRemoteCards{};
+  bool aborting{}, remoteSuccess{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
-  std::vector<std::string> retryCardList;
+  std::vector<std::string> ourCardList, retryCardList;
   std::map<std::string, std::string> cardsToDownload;
   Text label;
   sf::Sprite bg; // background
@@ -43,13 +49,21 @@ private:
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   swoosh::glsl::FastGaussianBlur blur{ 10 };
 
-  void sendCardList(const std::vector<std::string>& uuids);
-  void sendCustomPlayerData();
-  void sendPing(); //!< keep connections alive while clients download data
+  void TradeCardList(const std::vector<std::string>& uuids);
+  void RequestCardList(const std::vector<std::string>& uuids);
 
-  void recieveCardList(const Poco::Buffer<char>& buffer);
-  void recieveCustomPlayerData(const Poco::Buffer<char>& buffer);
+  void SendCustomPlayerData();
+  void SendDownloadComplete(bool success);
+  void SendPing(); //!< keep connections alive while clients download data
+
+  void RecieveTradeCardList(const Poco::Buffer<char>& buffer);
+  void RecieveRequestCardList(const Poco::Buffer<char>& buffer);
+  void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
+  void DownloadCardList(const Poco::Buffer<char>& buffer);
+  void RecieveCustomPlayerData(const Poco::Buffer<char>& buffer);
  
+  std::vector<std::string> DeserializeUUIDs(const Poco::Buffer<char>& buffer);
+  Poco::Buffer<char> SerializeUUIDs(NetPlaySignals header, const std::vector<std::string>& uuids);
   Poco::Buffer<char> SerializeCards(const std::vector<std::string>& cardList);
   void Complete();
   void Abort(const std::vector<std::string>& failed);
