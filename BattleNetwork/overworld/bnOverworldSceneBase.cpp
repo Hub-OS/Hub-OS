@@ -923,7 +923,6 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     // add objects to layer
     if (objectLayerElements.size() > i) {
       auto& objectLayerElement = objectLayerElements[i];
-      float elevation = (float)i;
 
       for (auto& child : objectLayerElement.children) {
         if (child.name != "object") {
@@ -932,6 +931,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
         if (child.HasAttribute("gid")) {
           auto tileObject = TileObject::From(child);
+          auto tilePosition = map.WorldToTileSpace(tileObject.position);
+          auto elevation = map.GetElevationAt(tilePosition.x, tilePosition.y, i);
+
           tileObject.GetWorldSprite()->SetElevation(elevation);
           layer.AddTileObject(tileObject);
         }
