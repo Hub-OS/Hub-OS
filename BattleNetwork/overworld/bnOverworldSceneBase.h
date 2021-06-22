@@ -37,8 +37,14 @@
 class Background; // forward decl
 
 namespace Overworld {
+  struct PlayerSession {
+    int health{};
+    Emotion emotion{};
+  };
+
   class SceneBase : public Scene {
   private:
+    PlayerSession playerSession;
     std::shared_ptr<Actor> playerActor;
     std::shared_ptr<sf::Texture> customEmotesTexture;
     Overworld::EmoteWidget emote;
@@ -255,6 +261,7 @@ namespace Overworld {
     std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
     Map& GetMap();
+    PlayerSession& GetPlayerSession();
     std::shared_ptr<Actor> GetPlayer();
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();

@@ -653,6 +653,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
 
   // refresh menu widget too
   int hp = std::atoi(meta.GetHPString().c_str());
+  GetPlayerSession().health = hp;
   personalMenu.SetHealth(hp);
   personalMenu.SetMaxHealth(hp);
 
@@ -1365,6 +1366,11 @@ Camera& Overworld::SceneBase::GetCamera()
 Overworld::Map& Overworld::SceneBase::GetMap()
 {
   return map;
+}
+
+Overworld::PlayerSession& Overworld::SceneBase::GetPlayerSession()
+{
+  return playerSession;
 }
 
 std::shared_ptr<Overworld::Actor> Overworld::SceneBase::GetPlayer()

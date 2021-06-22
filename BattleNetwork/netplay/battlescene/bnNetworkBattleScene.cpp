@@ -260,6 +260,10 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     remoteState.remoteConnected = false;
     remotePlayer = nullptr;
   }
+
+  if (auto player = GetPlayer()) {
+    BattleResultsObj().finalEmotion = player->GetEmotion();
+  }
 }
 
 void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {

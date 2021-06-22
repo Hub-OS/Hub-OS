@@ -16,7 +16,6 @@
 namespace Overworld {
   struct OnlinePlayer {
     OnlinePlayer(std::string name) : actor(std::make_shared<Overworld::Actor>(name)) {}
-
     std::shared_ptr<Overworld::Actor> actor;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};

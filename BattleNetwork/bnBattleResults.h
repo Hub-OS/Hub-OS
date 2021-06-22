@@ -8,21 +8,23 @@
 #include "bnResourceHandle.h"
 #include "bnText.h"
 #include "bnFont.h"
+#include "bnEmotions.h"
 
 class Mob;
 class BattleItem;
 
 struct BattleResults {
-  sf::Time battleLength;
   int moveCount{};
   int hitCount{};
   int counterCount{};
+  int score{};
+  int playerHealth{};
   bool doubleDelete{};
   bool tripleDelete{};
   bool runaway{};
-  int score{};
-  int playerHealth{};
-  
+  bool synchro{};
+  Emotion finalEmotion{};
+  sf::Time battleLength;
   static BattleResults& CalculateScore(BattleResults& results, Mob* mob);
 };
 

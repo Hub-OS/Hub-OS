@@ -84,6 +84,8 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     return;
   }
 
+  GetPersonalMenu().SetHealth(GetPlayerSession().health);
+
   // remove players before update, to prevent removed players from being added to sprite layers
   // players do not have a shared pointer to the emoteNode
   // a segfault would occur if this loop is placed after onUpdate due to emoteNode being deleted
@@ -1809,6 +1811,9 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
   Player* player = meta.GetNavi();
 
+  int fullHealth = player->GetHealth();
+  player->SetHealth(GetPlayerSession().health);
+  player->SetEmotion(GetPlayerSession().emotion);
 
   NetworkBattleSceneProps props = {
     { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
@@ -1819,8 +1824,19 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   };
 
   // isEnteringBattle = true;
-  BattleResultsFunc callback = [this](const BattleResults& results) {
-    // ui->SetHealth(results.playerHealth);
+  // 
+  // EXAMPLE AND TEMP DEMO PURPOSES BELOW:
+  BattleResultsFunc callback = [this, fullHealth](const BattleResults& results) {
+    int health = results.playerHealth;
+
+    if (health > 0) {
+      GetPlayerSession().health = health;
+      GetPlayerSession().emotion = results.finalEmotion;
+    }
+    else {
+      GetPlayerSession().health = fullHealth;
+      GetPlayerSession().emotion = Emotion::normal;
+    }
   };
 
   getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
