@@ -311,7 +311,7 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
   if (!cameraLocked) {
     // Follow the navi
     sf::Vector2f pos = playerActor->getPosition();
-    
+
     if (teleportedOut) {
       pos = { returnPoint.x, returnPoint.y };
     }
@@ -946,13 +946,10 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     }
   }
 
-  bool backgroundDiffers = map.GetBackgroundName() != this->map.GetBackgroundName() || (
-    map.GetBackgroundName() == "custom" && (
-      map.GetBackgroundCustomTexturePath() != this->map.GetBackgroundCustomTexturePath() ||
-      map.GetBackgroundCustomAnimationPath() != this->map.GetBackgroundCustomAnimationPath() ||
-      map.GetBackgroundCustomVelocity() != this->map.GetBackgroundCustomVelocity()
-      )
-    );
+  bool backgroundDiffers = map.GetBackgroundName() != this->map.GetBackgroundName() ||
+    map.GetBackgroundCustomTexturePath() != this->map.GetBackgroundCustomTexturePath() ||
+    map.GetBackgroundCustomAnimationPath() != this->map.GetBackgroundCustomAnimationPath() ||
+    map.GetBackgroundCustomVelocity() != this->map.GetBackgroundCustomVelocity();
 
   if (backgroundDiffers) {
     LoadBackground(map, map.GetBackgroundName());
