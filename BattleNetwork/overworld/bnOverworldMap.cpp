@@ -294,17 +294,16 @@ namespace Overworld {
     }
 
     layerIndex = std::max(layerIndex, 0);
+    auto layerElevation = (float)layerIndex;
 
     auto& layer = layers[layerIndex];
     auto tile = layer.GetTile(x, y);
 
     if (!tile) {
-      return 0.0f;
+      return layerElevation;
     }
 
     auto& tileMeta = tileMetas[tile->gid];
-
-    auto layerElevation = (float)layerIndex;
 
     if (!tileMeta || tileMeta->type != "Stairs") {
       return layerElevation;
