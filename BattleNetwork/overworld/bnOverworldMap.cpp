@@ -236,7 +236,11 @@ namespace Overworld {
     }
 
     auto& layer = GetLayer(layerIndex);
-    auto& tile = layer.GetTile(x, y);
+    auto tile = layer.GetTile(x, y);
+
+    if (!tile) {
+      return false;
+    }
 
     // get decimal part
     float tileX{};
@@ -265,7 +269,7 @@ namespace Overworld {
       testPosition.y - layerRelativeZ * tileHeight
     );
 
-    if (tile.Intersects(*this, tileTestPos.x, tileTestPos.y)) {
+    if (tile->Intersects(*this, tileTestPos.x, tileTestPos.y)) {
       return false;
     }
 
@@ -292,8 +296,13 @@ namespace Overworld {
     layerIndex = std::max(layerIndex, 0);
 
     auto& layer = layers[layerIndex];
-    auto& tile = layer.GetTile(x, y);
-    auto& tileMeta = tileMetas[tile.gid];
+    auto tile = layer.GetTile(x, y);
+
+    if (!tile) {
+      return 0.0f;
+    }
+
+    auto& tileMeta = tileMetas[tile->gid];
 
     auto layerElevation = (float)layerIndex;
 
@@ -310,16 +319,16 @@ namespace Overworld {
     Direction direction;
 
     if (directionString == "Up Left") {
-      direction = tile.flippedHorizontal ? Direction::up_right : Direction::up_left;
+      direction = tile->flippedHorizontal ? Direction::up_right : Direction::up_left;
     }
     else if (directionString == "Up Right") {
-      direction = tile.flippedHorizontal ? Direction::up_left : Direction::up_right;
+      direction = tile->flippedHorizontal ? Direction::up_left : Direction::up_right;
     }
     if (directionString == "Down Left") {
-      direction = tile.flippedHorizontal ? Direction::down_right : Direction::down_left;
+      direction = tile->flippedHorizontal ? Direction::down_right : Direction::down_left;
     }
     else if (directionString == "Down Right") {
-      direction = tile.flippedHorizontal ? Direction::down_left : Direction::down_right;
+      direction = tile->flippedHorizontal ? Direction::down_left : Direction::down_right;
     }
 
     switch (direction) {
@@ -344,8 +353,13 @@ namespace Overworld {
 
   bool Map::IgnoreTileAbove(float x, float y, int layerIndex) {
     auto& layer = layers[layerIndex];
-    auto& tile = layer.GetTile(x, y);
-    auto& tileMeta = tileMetas[tile.gid];
+    auto tile = layer.GetTile(x, y);
+
+    if (!tile) {
+      return false;
+    }
+
+    auto& tileMeta = tileMetas[tile->gid];
 
     return tileMeta && tileMeta->type == "Stairs";
   }
@@ -362,7 +376,7 @@ namespace Overworld {
     auto col = tilePos.x;
     auto row = tilePos.y;
 
-    for (auto i = layer + 1; col < cols && row < rows && i < layers.size(); i++) {
+    for (auto i = layer + 1; i < layers.size(); i++) {
       auto layerOffset = i - layer;
       auto isOddLayer = layerOffset % 2 == 1;
 
@@ -372,19 +386,22 @@ namespace Overworld {
         row += 1;
       }
 
-      if (col < 0 || row < 0 || i < 0) {
+      if (col < 0 || row < 0 || col >= cols || row >= rows || i < 0) {
         continue;
       }
 
       auto& layer = layers[i];
 
-      if (layer.GetTile(col, row).gid != 0) {
+      if (layer.GetTile(col, row)->gid != 0) {
         return true;
       }
 
       if (isOddLayer) {
+        // need to check for nullptr
+        auto tile = layer.GetTile(col + 1, row + 1);
+
         // odd layers have two tiles that may conceal us
-        if (layer.GetTile(col + 1, row + 1).gid != 0) {
+        if (tile && tile->gid != 0) {
           return true;
         }
       }
@@ -405,49 +422,43 @@ namespace Overworld {
     }
   }
 
-  static Tile nullTile = Tile(0);
-
   Map::Layer::Layer(unsigned cols, unsigned rows) {
     this->cols = cols;
     this->rows = rows;
-    tiles.resize(cols * rows, nullTile);
+    tiles.resize(cols * rows, Tile(0));
   }
 
-  Tile& Map::Layer::GetTile(int x, int y)
+  Tile* Map::Layer::GetTile(int x, int y)
   {
     if (x < 0 || y < 0 || x >= (int)cols || y >= (int)rows) {
-      // reset nullTile as it may have been mutated
-      nullTile = Tile(0);
-      return nullTile;
+      return nullptr;
     }
 
-    return tiles[y * cols + x];
+    return &tiles[y * cols + x];
   }
 
-  Tile& Map::Layer::GetTile(float x, float y)
+  Tile* Map::Layer::GetTile(float x, float y)
   {
     return GetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)));
   }
 
-  Tile& Map::Layer::SetTile(int x, int y, Tile tile)
+  Tile* Map::Layer::SetTile(int x, int y, Tile tile)
   {
-    if (x < 0 || y < 0 || x >= (int)cols || y >= (int)rows) {
-      // reset nullTile as it may have been mutated
-      nullTile = Tile(0);
-      return nullTile;
+    auto storedTile = GetTile(x, y);
+
+    if (storedTile) {
+      *storedTile = tile;
     }
 
-    tilesModified = true;
-
-    return tiles[y * cols + x] = tile;
+    return storedTile;
   }
 
-  Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
+  Tile* Map::Layer::SetTile(int x, int y, unsigned int gid)
   {
     return SetTile(x, y, Tile(gid));
   }
 
-  Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
+  Tile* Map::Layer::SetTile(float x, float y, unsigned int gid)
   {
     return SetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)), gid);
   }

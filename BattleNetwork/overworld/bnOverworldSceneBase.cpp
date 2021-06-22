@@ -542,10 +542,10 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       int row = tileSpaceStart.y + verticalStart - j + rowOffset;
       int col = tileSpaceStart.x + verticalStart + j;
 
-      auto& tile = layer.GetTile(col, row);
-      if (tile.gid == 0) continue;
+      auto tile = layer.GetTile(col, row);
+      if (!tile || tile->gid == 0) continue;
 
-      auto tileMeta = map.GetTileMeta(tile.gid);
+      auto tileMeta = map.GetTileMeta(tile->gid);
 
       // failed to load tile
       if (tileMeta == nullptr) continue;
@@ -567,10 +567,10 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       ));
 
       tileSprite.setPosition(ortho + tileMeta->drawingOffset + tileOffset);
-      tileSprite.setRotation(tile.rotated ? 90.0f : 0.0f);
+      tileSprite.setRotation(tile->rotated ? 90.0f : 0.0f);
       tileSprite.setScale(
-        tile.flippedHorizontal ? -1.0f : 1.0f,
-        tile.flippedVertical ? -1.0f : 1.0f
+        tile->flippedHorizontal ? -1.0f : 1.0f,
+        tile->flippedVertical ? -1.0f : 1.0f
       );
 
       sf::Color originalColor = tileSprite.getColor();

@@ -38,11 +38,11 @@ namespace Overworld {
       Layer(const Layer&) = delete;
       Layer(Layer&&) = default;
 
-      Tile& GetTile(int x, int y);
-      Tile& GetTile(float x, float y);
-      Tile& SetTile(int x, int y, Tile tile);
-      Tile& SetTile(int x, int y, unsigned int gid);
-      Tile& SetTile(float x, float y, unsigned int gid);
+      Tile* GetTile(int x, int y);
+      Tile* GetTile(float x, float y);
+      Tile* SetTile(int x, int y, Tile tile);
+      Tile* SetTile(int x, int y, unsigned int gid);
+      Tile* SetTile(float x, float y, unsigned int gid);
 
       void SetVisible(bool enabled);
       bool IsVisible() const;

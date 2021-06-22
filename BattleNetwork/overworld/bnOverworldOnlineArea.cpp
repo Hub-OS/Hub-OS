@@ -336,8 +336,13 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   auto playerTilePos = map.WorldToTileSpace(player->getPosition());
   auto& layer = map.GetLayer(layerIndex);
-  auto& tile = layer.GetTile(int(playerTilePos.x), int(playerTilePos.y));
-  auto tileMeta = map.GetTileMeta(tile.gid);
+  auto tile = layer.GetTile(int(playerTilePos.x), int(playerTilePos.y));
+
+  if (!tile) {
+    return;
+  }
+
+  auto tileMeta = map.GetTileMeta(tile->gid);
 
   if (!tileMeta || tileMeta->type != "Conveyor") {
     return;
@@ -345,11 +350,11 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   auto direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
 
-  if (tile.flippedHorizontal) {
+  if (tile->flippedHorizontal) {
     direction = FlipHorizontal(direction);
   }
 
-  if (tile.flippedVertical) {
+  if (tile->flippedVertical) {
     direction = FlipVertical(direction);
   }
 
@@ -379,8 +384,13 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   axisProperty.ease = Ease::linear;
 
   auto isConveyor = [&layer, &map](sf::Vector2f endTilePos) {
-    auto& tile = layer.GetTile(int(endTilePos.x), int(endTilePos.y));
-    auto tileMeta = map.GetTileMeta(tile.gid);
+    auto tile = layer.GetTile(int(endTilePos.x), int(endTilePos.y));
+
+    if (!tile) {
+      return false;
+    }
+
+    auto tileMeta = map.GetTileMeta(tile->gid);
 
     return tileMeta && tileMeta->type == "Conveyor";
   };

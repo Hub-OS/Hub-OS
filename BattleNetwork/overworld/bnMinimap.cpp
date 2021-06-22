@@ -218,8 +218,8 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
 
     for (auto col = 0; col < cols; col++) {
       for (auto row = 0; row < rows; row++) {
-        auto& tile = layer.GetTile(col, row);
-        auto tileMeta = map.GetTileMeta(tile.gid);
+        auto tile = layer.GetTile(col, row);
+        auto tileMeta = map.GetTileMeta(tile->gid);
 
         if (!tileMeta) {
           continue;
@@ -233,11 +233,11 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
           auto worldPos = map.TileToWorld(pos);
           auto direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
 
-          if (tile.flippedHorizontal) {
+          if (tile->flippedHorizontal) {
             direction = FlipHorizontal(direction);
           }
 
-          if (tile.flippedVertical) {
+          if (tile->flippedVertical) {
             direction = FlipVertical(direction);
           }
 
@@ -263,10 +263,10 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
 
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
-      auto& tile = layer.GetTile(j, i);
-      if (tile.gid == 0) continue;
+      auto tile = layer.GetTile(j, i);
+      if (tile->gid == 0) continue;
 
-      auto tileMeta = map.GetTileMeta(tile.gid);
+      auto tileMeta = map.GetTileMeta(tile->gid);
 
       // failed to load tile
       if (tileMeta == nullptr) continue;
@@ -290,16 +290,16 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       ));
 
       tileSprite.setPosition(ortho + tileMeta->drawingOffset + tileOffset);
-      tileSprite.setRotation(tile.rotated ? 90.0f : 0.0f);
+      tileSprite.setRotation(tile->rotated ? 90.0f : 0.0f);
       tileSprite.setScale(
-        tile.flippedHorizontal ? -1.0f : 1.0f,
-        tile.flippedVertical ? -1.0f : 1.0f
+        tile->flippedHorizontal ? -1.0f : 1.0f,
+        tile->flippedVertical ? -1.0f : 1.0f
       );
 
       // pass info to shader
       auto center = sf::Vector2f(float(subRect.left), float(subRect.top));
 
-      if(tile.flippedHorizontal) {
+      if(tile->flippedHorizontal) {
         center.x += float(subRect.width) - (tileSize.x / 2.0f);
         center.x += tileMeta->drawingOffset.x;
       } else {
@@ -307,7 +307,7 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
         center.x += -tileMeta->drawingOffset.x;
       }
 
-      if (tile.flippedVertical) {
+      if (tile->flippedVertical) {
         center.y += tileSize.y / 2.0f;
         center.y += tileMeta->drawingOffset.y;
       } else {
