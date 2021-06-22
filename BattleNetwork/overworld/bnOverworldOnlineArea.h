@@ -73,6 +73,7 @@ namespace Overworld {
     CameraController serverCameraController;
     CameraController warpCameraController;
 
+    void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
     void detectWarp(std::shared_ptr<Actor>& player);
     void detectConveyor(std::shared_ptr<Actor>& player);

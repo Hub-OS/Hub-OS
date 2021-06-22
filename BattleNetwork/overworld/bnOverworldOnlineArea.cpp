@@ -113,48 +113,8 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     lastFrameNavi = currentNavi;
   }
 
-  auto currentTime = CurrentTime::AsMilli();
-
-  // update other players
-  for (auto& pair : onlinePlayers) {
-    auto& onlinePlayer = pair.second;
-    auto& actor = onlinePlayer.actor;
-
-    onlinePlayer.teleportController.Update(elapsed);
-    onlinePlayer.emoteNode.Update(elapsed);
-
-    onlinePlayer.propertyAnimator.Update(*actor, elapsed);
-
-    if (onlinePlayer.propertyAnimator.IsAnimatingPosition()) {
-      continue;
-    }
-
-    auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
-    auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
-    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
-    float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
-
-    if (!(onlinePlayer.propertyAnimator.IsAnimating() && actor->IsPlayingCustomAnimation())) {
-      // animate the player if they're not being animated by the property animator
-
-      Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
-      auto oldHeading = actor->GetHeading();
-
-      if (distance == 0.0) {
-        actor->Face(onlinePlayer.idleDirection);
-      }
-      else if (distance <= actor->GetWalkSpeed() * expectedTime) {
-        actor->Walk(newHeading, false); // Don't actually move or collide, but animate
-      }
-      else {
-        actor->Run(newHeading, false);
-      }
-    }
-
-    auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
-    actor->Set3DPosition(newPos);
-  }
+  updateOtherPlayers(elapsed);
+  updatePlayer(elapsed);
 
   movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
@@ -162,8 +122,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     movementTimer.reset();
     sendPositionSignal();
   }
-
-  updatePlayer(elapsed);
 
   // handle camera locking and player tracking
   if (trackedPlayer && serverCameraController.IsQueueEmpty()) {
@@ -192,6 +150,53 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   warpCameraController.UpdateCamera(float(elapsed), camera);
   serverCameraController.UpdateCamera(float(elapsed), camera);
   UnlockCamera(); // reset lock, we'll lock it later if we need to
+}
+
+void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
+  auto currentTime = CurrentTime::AsMilli();
+  auto& map = GetMap();
+
+  // update other players
+  for (auto& pair : onlinePlayers) {
+    auto& onlinePlayer = pair.second;
+    auto& actor = onlinePlayer.actor;
+
+    onlinePlayer.teleportController.Update(elapsed);
+    onlinePlayer.emoteNode.Update(elapsed);
+
+    onlinePlayer.propertyAnimator.Update(*actor, elapsed);
+
+    if (onlinePlayer.propertyAnimator.IsAnimatingPosition()) {
+      continue;
+    }
+
+    auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
+    auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
+    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
+    float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
+
+    auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
+    actor->Set3DPosition(newPos);
+
+    if (!(onlinePlayer.propertyAnimator.IsAnimating() && actor->IsPlayingCustomAnimation())) {
+      // animate the player if they're not being animated by the property animator
+
+      Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
+      auto oldHeading = actor->GetHeading();
+
+
+      if (distance == 0.0) {
+        actor->Face(onlinePlayer.idleDirection);
+      }
+      else if (distance <= actor->GetWalkSpeed() * expectedTime) {
+        actor->Walk(newHeading, false); // Don't actually move or collide, but animate
+      }
+      else {
+        actor->Run(newHeading, false);
+      }
+    }
+  }
 }
 
 void Overworld::OnlineArea::updatePlayer(double elapsed) {
