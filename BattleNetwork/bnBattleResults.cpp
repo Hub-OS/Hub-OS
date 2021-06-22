@@ -10,59 +10,16 @@
 #include <algorithm>
 #include <random>
 
-/*
-  Calculate score and rank
-  Calculations are based off http ://megaman.wikia.com/wiki/Virus_Busting
-
-  Delete Time
-    0.00~5.00 = 7
-    5.01~12.00 = 6
-    12.01~36.00 = 5
-    36.01 and up = 4
-
-    Boss Delete Time
-    0.00~30.00 = 10
-    30.01~40.00 = 8
-    40.01~50.00 = 6
-    50.01 and up = 4
-
-    Number of Hits(received by MegaMan)
-    0 = +1
-    1 = 0
-    2 = -1
-    3 = -2
-    4 or more = -3
-
-    Movement Number of Steps
-    0~2 = +1
-    3 or more = +0
-
-    Multiple Deletion
-    Double Delete = +2
-    Triple Delete = +4
-
-    Counter Hits
-    0 = +0
-    1 = +1
-    2 = +2
-    3 = +3
-    */
-
-BattleResults::BattleResults(sf::Time battleLength, 
-  int moveCount,
-  int hitCount, 
-  int counterCount, 
-  bool doubleDelete, 
-  bool tripleDelete,
-  Mob *mob) : 
+BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob) :
   cardMatrixIndex(0), 
   isRevealed(false),
   playSoundOnce(false),
   rewardIsCard(false), 
+  finalHealth(results.playerHealth),
   item(nullptr), 
-  score(0), 
-  counterCount(0),
-  totalElapsed(0),
+  score(results.score), 
+  counterCount(results.counterCount),
+  totalElapsed(),
   time(Font::Style::gradient_tall), 
   rank(Font::Style::gradient_tall), 
   reward(Font::Style::thick), 
@@ -82,39 +39,6 @@ BattleResults::BattleResults(sf::Time battleLength,
   std::shuffle(hideCardMatrix.begin(), hideCardMatrix.end(), g);
 
   cardMatrixIndex = 0;
-
-  if(!mob->IsBoss()) {
-    if (battleLength.asSeconds() > 36.1) score += 4;
-    else if (battleLength.asSeconds() > 12.01) score += 5;
-    else if (battleLength.asSeconds() > 5.01) score += 6;
-    else score += 7;
-  }
-  else {
-    if (battleLength.asSeconds() > 50.01) score += 4;
-    else if (battleLength.asSeconds() > 40.01) score += 6;
-    else if (battleLength.asSeconds() > 30.01) score += 8;
-    else score += 10;
-  }
-
-  switch (hitCount) {
-    case 0: score += 1; break;
-    case 1: score += 0; break;
-    case 2: score -= 1; break;
-    case 3: score -= 2; break;
-    default: score -= 3; break;
-  }
-
-  if (moveCount >= 0 && moveCount <= 2) {
-    score += 1;
-  }
-
-  if (doubleDelete) score += 2;
-  if (tripleDelete) score += 4;
-
-  score += counterCount;
-
-  // No score of zero or below. Min score of 1
-  score = std::max(1, score);
 
   // Get reward based on score
   item = mob->GetRankedReward(score);
@@ -152,7 +76,7 @@ BattleResults::BattleResults(sf::Time battleLength,
   rewardCard.setPosition(274.0f, 180.f);
 
   time.setPosition(2.f*192.f, 87.f);
-  time.SetString(FormatString(battleLength));
+  time.SetString(FormatString(results.battleLength));
   time.setOrigin(time.GetLocalBounds().width, 0);
   time.setScale(2.f, 2.f);
 
@@ -181,11 +105,11 @@ BattleResults::BattleResults(sf::Time battleLength,
   playSoundOnce = false;
 }
 
-BattleResults::~BattleResults() {
+BattleResultsWidget::~BattleResultsWidget() {
 
 }
 
-std::string BattleResults::FormatString(sf::Time time)
+std::string BattleResultsWidget::FormatString(sf::Time time)
 {
   double totalMS = time.asMilliseconds();
   
@@ -213,7 +137,7 @@ std::string BattleResults::FormatString(sf::Time time)
 }
 
 // GUI ops
-bool BattleResults::CursorAction() {
+bool BattleResultsWidget::CursorAction() {
   bool prevStatus = isRevealed;
 
   if (!isRevealed) {
@@ -229,7 +153,7 @@ bool BattleResults::CursorAction() {
   return prevStatus;
 }
 
-bool BattleResults::IsOutOfView() {
+bool BattleResultsWidget::IsOutOfView() {
   float bounds = -resultsSprite.getTextureRect().width*2.f;
 
   if (resultsSprite.getPosition().x <= bounds) {
@@ -239,7 +163,7 @@ bool BattleResults::IsOutOfView() {
   return (resultsSprite.getPosition().x == bounds);
 }
 
-bool BattleResults::IsInView() {
+bool BattleResultsWidget::IsInView() {
   float bounds = 50.f;
 
   if (resultsSprite.getPosition().x >= bounds) {
@@ -249,12 +173,12 @@ bool BattleResults::IsInView() {
   return (resultsSprite.getPosition().x == bounds);
 }
 
-void BattleResults::Move(sf::Vector2f delta) {
+void BattleResultsWidget::Move(sf::Vector2f delta) {
   resultsSprite.setPosition(resultsSprite.getPosition() + delta);
   IsInView();
 }
 
-void BattleResults::Update(double elapsed)
+void BattleResultsWidget::Update(double elapsed)
 {
   totalElapsed += elapsed;
 
@@ -282,7 +206,7 @@ void BattleResults::Update(double elapsed)
   }
 }
 
-void BattleResults::Draw(sf::RenderTarget& surface) {
+void BattleResultsWidget::Draw(sf::RenderTarget& surface) {
   surface.draw(resultsSprite);
 
   // moves over when there's counter stars
@@ -355,14 +279,94 @@ void BattleResults::Draw(sf::RenderTarget& surface) {
 }
 
 // Card ops
-bool BattleResults::IsFinished() {
+bool BattleResultsWidget::IsFinished() {
   return isRevealed && hideCardMatrix.size() == cardMatrixIndex;
 }
 
-BattleItem* BattleResults::GetReward()
+BattleItem* BattleResultsWidget::GetReward()
 {
   // pass ownership off
   BattleItem* reward = item;
   item = nullptr;
   return reward;
+}
+
+/*
+  Calculate score and rank
+  Calculations are based off http ://megaman.wikia.com/wiki/Virus_Busting
+
+  Delete Time
+    0.00~5.00 = 7
+    5.01~12.00 = 6
+    12.01~36.00 = 5
+    36.01 and up = 4
+
+    Boss Delete Time
+    0.00~30.00 = 10
+    30.01~40.00 = 8
+    40.01~50.00 = 6
+    50.01 and up = 4
+
+    Number of Hits(received by MegaMan)
+    0 = +1
+    1 = 0
+    2 = -1
+    3 = -2
+    4 or more = -3
+
+    Movement Number of Steps
+    0~2 = +1
+    3 or more = +0
+
+    Multiple Deletion
+    Double Delete = +2
+    Triple Delete = +4
+
+    Counter Hits
+    0 = +0
+    1 = +1
+    2 = +2
+    3 = +3
+    */
+
+BattleResults& BattleResults::CalculateScore(BattleResults& results, Mob* mob)
+{
+  int score = 0;
+
+  if (!mob->IsBoss()) {
+    if (results.battleLength.asSeconds() > 36.1) score += 4;
+    else if (results.battleLength.asSeconds() > 12.01) score += 5;
+    else if (results.battleLength.asSeconds() > 5.01) score += 6;
+    else score += 7;
+  }
+  else {
+    if (results.battleLength.asSeconds() > 50.01) score += 4;
+    else if (results.battleLength.asSeconds() > 40.01) score += 6;
+    else if (results.battleLength.asSeconds() > 30.01) score += 8;
+    else score += 10;
+  }
+
+  switch (results.hitCount) {
+  case 0: score += 1; break;
+  case 1: score += 0; break;
+  case 2: score -= 1; break;
+  case 3: score -= 2; break;
+  default: score -= 3; break;
+  }
+
+  if (results.moveCount >= 0 && results.moveCount <= 2) {
+    score += 1;
+  }
+
+  if (results.doubleDelete) score += 2;
+  if (results.tripleDelete) score += 4;
+
+  score += results.counterCount;
+
+  // No score of zero or below. Min score of 1
+  score = std::max(1, score);
+
+  results.score = score;
+
+  return results;
 }

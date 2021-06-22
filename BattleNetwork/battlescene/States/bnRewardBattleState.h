@@ -2,7 +2,7 @@
 
 #include "../bnBattleSceneState.h"
 
-class BattleResults;
+class BattleResultsWidget;
 class Player;
 class Mob;
 
@@ -11,7 +11,7 @@ class Mob;
 */
 struct RewardBattleState final : public BattleSceneState {
 
-  BattleResults* battleResults{ nullptr }; /*!< modal that pops up when player wins */
+  BattleResultsWidget* battleResultsWidget{ nullptr }; /*!< modal that pops up when player wins */
   Player* player{ nullptr };
   Mob* mob{ nullptr };
   int* hitCount{ nullptr };

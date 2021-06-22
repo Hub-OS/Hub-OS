@@ -37,8 +37,8 @@
 using namespace swoosh::types;
 using swoosh::ActivityController;
 
-NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props) :
-  BattleSceneBase(controller, props.base),
+NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props, BattleResultsFunc onEnd) :
+  BattleSceneBase(controller, props.base, onEnd),
   ping(Font::Style::wide),
   remoteAddress(props.netconfig.remote)
 {
@@ -320,6 +320,7 @@ void NetworkBattleScene::onResume()
 
 void NetworkBattleScene::onEnd()
 {
+  BattleSceneBase::onEnd();
   Net().DropHandlers(remoteAddress);
 }
 

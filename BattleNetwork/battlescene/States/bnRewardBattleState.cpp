@@ -24,21 +24,25 @@ RewardBattleState::RewardBattleState(Mob* mob, Player* player, int* hitCount) :
 
 RewardBattleState::~RewardBattleState()
 {
-  delete battleResults;
+  delete battleResultsWidget;
 }
 
 void RewardBattleState::onStart(const BattleSceneState*)
 {
-  auto battleTime = GetScene().GetElapsedBattleTime();
-  int moveCount = player->GetMoveCount();
-  int counterCount = GetScene().GetCounterCount();
-  bool doubleDelete = GetScene().DoubleDelete();
-  bool tripleDelete = GetScene().TripleDelete();
   player->ChangeState<PlayerIdleState>();
   GetScene().GetField()->RequestBattleStop();
 
-  battleResults = new BattleResults(GetScene().GetElapsedBattleTime(), 
-    moveCount, *hitCount, counterCount, doubleDelete, tripleDelete, mob);
+  auto& results = GetScene().BattleResultsObj();
+  results.battleLength = GetScene().GetElapsedBattleTime();
+  results.moveCount = player->GetMoveCount();
+  results.hitCount = *hitCount;
+  results.counterCount = GetScene().GetCounterCount();
+  results.doubleDelete = GetScene().DoubleDelete();
+  results.tripleDelete = GetScene().TripleDelete();
+
+  battleResultsWidget = new BattleResultsWidget(
+    BattleResults::CalculateScore(results, mob), 
+    mob);
 }
 
 void RewardBattleState::onEnd(const BattleSceneState*)
@@ -48,23 +52,23 @@ void RewardBattleState::onEnd(const BattleSceneState*)
 void RewardBattleState::onUpdate(double elapsed)
 {
   this->elapsed = elapsed;
-  battleResults->Update(elapsed);
+  battleResultsWidget->Update(elapsed);
   GetScene().GetField()->Update(elapsed); 
 }
 
 void RewardBattleState::onDraw(sf::RenderTexture& surface)
 {
-  battleResults->Draw(surface);
+  battleResultsWidget->Draw(surface);
 
-  if (!battleResults->IsInView()) {
+  if (!battleResultsWidget->IsInView()) {
     float amount = MODAL_SLIDE_PX_PER_SEC * (float)elapsed;
-    battleResults->Move(sf::Vector2f(amount, 0));
+    battleResultsWidget->Move(sf::Vector2f(amount, 0));
   }
   else {
     if (Input().Has(InputEvents::pressed_confirm)) {
       // Have to hit twice
-      if (battleResults->IsFinished()) {
-        BattleItem* reward = battleResults->GetReward();
+      if (battleResultsWidget->IsFinished()) {
+        BattleItem* reward = battleResultsWidget->GetReward();
 
         if (reward != nullptr) {
           if (reward->IsCard()) {
@@ -78,7 +82,7 @@ void RewardBattleState::onDraw(sf::RenderTexture& surface)
         GetScene().Quit(FadeOut::black);
       }
       else {
-        battleResults->CursorAction();
+        battleResultsWidget->CursorAction();
       }
     }
   }

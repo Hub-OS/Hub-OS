@@ -25,6 +25,8 @@ void RetreatBattleState::onStart(const BattleSceneState*)
   }
   currState = RetreatBattleState::state::pending;
   textbox.Open();
+
+  GetScene().BattleResultsObj().runaway = true;
 }
 
 void RetreatBattleState::onUpdate(double elapsed)

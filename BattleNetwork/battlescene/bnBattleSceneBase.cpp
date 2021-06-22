@@ -33,7 +33,7 @@ using swoosh::types::segue;
 using swoosh::Activity;
 using swoosh::ActivityController;
 
-BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) :
+BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
   player(&props.player),
   programAdvance(props.programAdvance),
@@ -50,6 +50,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   cardCustGUI({ props.folder, 8, 8 }),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
+  onEndCallback(onEnd),
   channel(this)
 {
   /*
@@ -523,6 +524,10 @@ void BattleSceneBase::onUpdate(double elapsed) {
       }
     }
   }
+
+  if (player) {
+    battleResults.playerHealth = player->GetHealth();
+  }
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
@@ -614,6 +619,13 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   if (current) current->onDraw(surface);
 }
 
+void BattleSceneBase::onEnd()
+{
+  if (this->onEndCallback) {
+    this->onEndCallback(battleResults);
+  }
+}
+
 bool BattleSceneBase::IsPlayerDeleted() const
 {
   return isPlayerDeleted;
@@ -656,6 +668,11 @@ Camera& BattleSceneBase::GetCamera()
 PA& BattleSceneBase::GetPA()
 {
   return programAdvance;
+}
+
+BattleResults& BattleSceneBase::BattleResultsObj()
+{
+  return battleResults;
 }
 
 void BattleSceneBase::StartBattleStepTimer()

@@ -12,15 +12,29 @@
 class Mob;
 class BattleItem;
 
+struct BattleResults {
+  sf::Time battleLength;
+  int moveCount{};
+  int hitCount{};
+  int counterCount{};
+  bool doubleDelete{};
+  bool tripleDelete{};
+  bool runaway{};
+  int score{};
+  int playerHealth{};
+  
+  static BattleResults& CalculateScore(BattleResults& results, Mob* mob);
+};
+
 /**
- * @class BattleResults
+ * @class BattleResultsWidget
  * @author mav
  * @date 13/05/19
- * @brief BattleResults modal that appears at the end of the BattleScene when Player wins
+ * @brief BattleResultsWidget is a modal that appears at the end of the BattleScene when Player wins
  *
  * Exposes an API to interact with the modal
  */
-class BattleResults : public ResourceHandle {
+class BattleResultsWidget : public ResourceHandle {
 private:
   sf::Sprite resultsSprite; /*!< This modals graphic */
   sf::Sprite rewardCard; /*!< Reward card graphics */
@@ -31,18 +45,18 @@ private:
   Text reward; /*!< Name of reward */
   Text cardCode; /*!< Code for cards */
 
-  bool isRevealed; /*!< Flag if modal is revealed */
-  bool playSoundOnce; /*!< Flag to play sounds once */
-  bool rewardIsCard; /*!< Is current reward a card */
+  bool isRevealed{}; /*!< Flag if modal is revealed */
+  bool playSoundOnce{}; /*!< Flag to play sounds once */
+  bool rewardIsCard{}; /*!< Is current reward a card */
 
-  BattleItem* item; /*!< The item stored in this modal */
-  int score; /*!< 1-10 or 11+ as S rank */
-  int counterCount; /*!< How many times player countered */
-
-  double totalElapsed; /*!< delta time this frame */
+  BattleItem* item{ nullptr }; /*!< The item stored in this modal */
+  int score{}; /*!< 1-10 or 11+ as S rank */
+  int counterCount{}; /*!< How many times player countered */
+  int finalHealth{}; /*!< Player's health at EOB*/
+  double totalElapsed{}; /*!< delta time this frame */
 
   std::array<int, 7*6> hideCardMatrix; /*~< blocks are 7x6 block space to uncover at 8x8 pixels*/
-  int cardMatrixIndex;
+  int cardMatrixIndex{};
 
   /**
    * @brief Format the time to look like BN time stamp
@@ -57,13 +71,15 @@ public:
    * @param battleLength duration of the battle
    * @param moveCount how many times player moved
    * @param hitCount how many times player got hit
+   * @param playerHealth final health for player at EOB
    * @param counterCount how many time player countered enemies
    * @param doubleDelete if player double deleted enemies
    * @param tripleDelete if player triple deleted enemies
+   * @param runaway if player fled from battle
    * @param mob extra mob information e.g. if considered boss mob or common mob
    */
-  BattleResults(sf::Time battleLength, int moveCount, int hitCount, int counterCount, bool doubleDelete, bool tripleDelete, Mob* mob);
-  ~BattleResults();
+  BattleResultsWidget(const BattleResults& results, Mob* mob);
+  ~BattleResultsWidget();
 
   /**
    * @brief Confirms actions

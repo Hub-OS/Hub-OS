@@ -24,6 +24,7 @@
 #include "../bnSelectedCardsUI.h"
 #include "../bnCardSelectionCust.h"
 #include "../bnPlayerEmotionUI.h"
+#include "../bnBattleResults.h"
 
 // Battle scene specific classes
 #include "bnBattleSceneState.h"
@@ -44,6 +45,8 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
+
+using BattleResultsFunc = std::function<void(const BattleResults& results)>;
 
 struct BattleSceneBaseProps {
   Player& player;
@@ -100,7 +103,9 @@ private:
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
   std::vector<SceneNode*> scenenodes; /*!< ui components. DO NOT DELETE. */
   std::vector<Component*> components; /*!< Components injected into the scene to track. DO NOT DELETE. */
-    
+  BattleResults battleResults{};
+  BattleResultsFunc onEndCallback;
+
   // counter stuff
   SpriteProxyNode counterReveal;
   Animation counterRevealAnim;
@@ -252,7 +257,7 @@ public:
 
   BattleSceneBase() = delete;
   BattleSceneBase(const BattleSceneBase&) = delete;
-  BattleSceneBase(swoosh::ActivityController& controller, const BattleSceneBaseProps& props);
+  BattleSceneBase(swoosh::ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd = nullptr);
   virtual ~BattleSceneBase();
 
   const bool DoubleDelete() const;
@@ -307,6 +312,7 @@ public:
   virtual void onLeave() override;
   virtual void onUpdate(double elapsed) override;
   virtual void onDraw(sf::RenderTexture& surface) override;
+  virtual void onEnd() override;
 
   bool IsPlayerDeleted() const;
 
@@ -318,6 +324,7 @@ public:
   PlayerEmotionUI& GetEmotionWindow();
   Camera& GetCamera();
   PA& GetPA();
+  BattleResults& BattleResultsObj();
   void StartBattleStepTimer();
   void StopBattleStepTimer();
   void BroadcastBattleStart();

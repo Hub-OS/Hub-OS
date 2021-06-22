@@ -1819,7 +1819,11 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   };
 
   // isEnteringBattle = true;
-  getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props);
+  BattleResultsFunc callback = [this](const BattleResults& results) {
+    // ui->SetHealth(results.playerHealth);
+  };
+
+  getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
 }
 
 void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
