@@ -64,7 +64,7 @@ struct NetworkBattleSceneProps {
   Animation anim; // mugshot animation
   std::shared_ptr<sf::Texture> emotion; // emotion atlas image
   NetPlayConfig& netconfig;
-
+  std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
 };
 
 class NetworkBattleScene final : public BattleSceneBase {

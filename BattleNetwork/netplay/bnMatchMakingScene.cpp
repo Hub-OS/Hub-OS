@@ -426,7 +426,9 @@ void MatchMakingScene::onResume() {
 
 void MatchMakingScene::onExit()
 {
-  Net().DropProcessor(packetProcessor);
+  if (closing) {
+    Net().DropProcessor(packetProcessor);
+  }
 }
 
 void MatchMakingScene::onUpdate(double elapsed) {
@@ -528,8 +530,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
         screen
       };
 
-      Net().DropProcessor(packetProcessor);
-
       using effect = swoosh::types::segue<WhiteWashFade>;
       getController().push<effect::to<DownloadScene>>(props);
     }
@@ -577,7 +577,8 @@ void MatchMakingScene::onUpdate(double elapsed) {
         sf::Sprite(*mugshot),
         mugshotAnim,
         emotions,
-        config
+        config,
+        packetProcessor->GetProxy()
       };
 
       getController().push<effect::to<NetworkBattleScene>>(props);
@@ -595,6 +596,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
     if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
       leave = true;
+      closing = true;
       Audio().Play(AudioType::CHIP_CANCEL);
       using effect = segue<PushIn<direction::up>, milliseconds<500>>;
       getController().pop<effect>();

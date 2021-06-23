@@ -23,8 +23,6 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
     this->ProcessPacketBody(header, body);
   });
 
-  Net().AddHandler(props.remoteAddress, packetProcessor);
-
   lastScreen = props.lastScreen;
 
   blur.setPower(40);
@@ -86,9 +84,6 @@ void DownloadScene::RecieveCustomPlayerData(const Poco::Buffer<char>& buffer)
 
 void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
-  if(header != NetPlaySignals::ping) {
-    Logger::Logf("Received packet id: %d", (int)header);
-  }
   switch (header) {
   case NetPlaySignals::trade_card_list: 
     Logger::Logf("Recieved trade list download signal");
@@ -584,5 +579,4 @@ void DownloadScene::onResume()
 
 void DownloadScene::onEnd()
 {
-  Net().DropProcessor(packetProcessor);
 }
