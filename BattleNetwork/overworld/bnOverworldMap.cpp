@@ -314,7 +314,7 @@ namespace Overworld {
     relativeY = std::modf(y, &_);
 
     float layerRelativeElevation = 0.0;
-    Direction direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
+    Direction direction = FromString(tileMeta->customProperties.GetProperty("direction"));
 
     if (tile->flippedHorizontal) {
       direction = FlipHorizontal(direction);

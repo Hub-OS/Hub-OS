@@ -7,6 +7,7 @@
 namespace Overworld {
   class CustomProperties {
   public:
+    // property names will be converted to lower case!
     static CustomProperties From(const XMLElement& propertiesElement);
 
     bool HasProperty(const std::string& name) const;

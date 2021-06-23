@@ -281,9 +281,9 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
     else if (type == TileType::server_warp) {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
-      auto address = tileObject.customProperties.GetProperty("Address");
-      auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("Port");
-      auto data = tileObject.customProperties.GetProperty("Data");
+      auto address = tileObject.customProperties.GetProperty("address");
+      auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("port");
+      auto data = tileObject.customProperties.GetProperty("data");
 
       command.onFinish.Slot([=] {
         GetPlayerController().ReleaseActor();
@@ -292,14 +292,14 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
     }
     else if (type == TileType::position_warp) {
       auto targetTilePos = sf::Vector2f(
-        tileObject.customProperties.GetPropertyFloat("X"),
-        tileObject.customProperties.GetPropertyFloat("Y")
+        tileObject.customProperties.GetPropertyFloat("x"),
+        tileObject.customProperties.GetPropertyFloat("y")
       );
 
       auto targetWorldPos = map.TileToWorld(targetTilePos);
 
-      auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("Z"));
-      auto direction = FromString(tileObject.customProperties.GetProperty("Direction"));
+      auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("z"));
+      auto direction = FromString(tileObject.customProperties.GetProperty("direction"));
 
       sf::Vector2f player_pos = { player->getPosition().x, player->getPosition().y };
       float distance = std::pow(targetWorldPos.x - player_pos.x, 2.0f) + std::pow(targetWorldPos.y - player_pos.y, 2.0f);
@@ -355,7 +355,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
     return;
   }
 
-  auto direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
+  auto direction = FromString(tileMeta->customProperties.GetProperty("direction"));
 
   if (tile->flippedHorizontal) {
     direction = FlipHorizontal(direction);
@@ -451,7 +451,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   propertyAnimator.Reset();
 
-  auto speed = tileMeta->customProperties.GetPropertyFloat("Speed");
+  auto speed = tileMeta->customProperties.GetPropertyFloat("speed");
 
   if (speed == 0.0f) {
     speed = DEFAULT_CONVEYOR_SPEED;
@@ -461,7 +461,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   ActorPropertyAnimator::PropertyStep sfxProperty;
   sfxProperty.property = ActorProperty::sound_effect_loop;
-  sfxProperty.stringValue = GetPath(tileMeta->customProperties.GetProperty("Sound Effect"));
+  sfxProperty.stringValue = GetPath(tileMeta->customProperties.GetProperty("sound effect"));
 
   ActorPropertyAnimator::KeyFrame startKeyframe;
   startKeyframe.propertySteps.push_back(animationProperty);

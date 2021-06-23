@@ -1,5 +1,7 @@
 #include "bnOverworldCustomProperties.h"
 
+#include <algorithm>
+
 namespace Overworld {
   bool CustomProperties::HasProperty(const std::string& name) const {
     return properties.find(name) != properties.end();
@@ -53,7 +55,11 @@ namespace Overworld {
         continue;
       }
 
-      properties.properties[child.GetAttribute("name")] = child.GetAttribute("value");
+      auto name = child.GetAttribute("name");
+
+      std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+      properties.properties[name] = child.GetAttribute("value");
     }
 
     return properties;

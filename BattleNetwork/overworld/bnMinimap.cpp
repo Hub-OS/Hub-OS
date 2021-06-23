@@ -234,7 +234,7 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
           pos.y += 0.5f;
 
           auto worldPos = map.TileToWorld(pos);
-          auto direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
+          auto direction = FromString(tileMeta->customProperties.GetProperty("direction"));
 
           if (tile->flippedHorizontal) {
             direction = FlipHorizontal(direction);
