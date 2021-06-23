@@ -66,12 +66,15 @@ void NetManager::AddHandler(const Poco::Net::SocketAddress& sender, const std::s
   } else {
     processorCounts[processor] += 1;
   }
+
+  processor->OnListen(sender);
 }
 
 void NetManager::DropHandlers(const Poco::Net::SocketAddress& sender)
 {
   for(auto& processor : handlers[sender]) {
     auto& count = processorCounts[processor];
+    processor->OnDrop(sender);
 
     count -= 1;
 
@@ -95,10 +98,11 @@ void NetManager::DropProcessor(const std::shared_ptr<IPacketProcessor>& processo
 
   auto& count = processorCounts[processor];
 
-  for (auto& [_, processors] : handlers) {
+  for (auto& [sender, processors] : handlers) {
     auto iter = std::find(processors.begin(), processors.end(), processor);
 
     if (iter != processors.end()) {
+      (*iter)->OnDrop(sender);
       iter = processors.erase(iter);
       count -= 1;
     }

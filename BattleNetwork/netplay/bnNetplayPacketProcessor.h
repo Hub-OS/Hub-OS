@@ -8,6 +8,10 @@
 
 namespace Netplay {
   class PacketProcessor : public IPacketProcessor {
+  public:
+    using KickFunc = std::function<void()>;
+    using PacketbodyFunc = std::function<void(NetPlaySignals, const Poco::Buffer<char>&)>;
+
   private:
     bool checkForSilence{}; //!< if true, processor kicks connection after lengthy silence
     bool handshakeAck{}, handshakeSent{};
@@ -18,13 +22,13 @@ namespace Netplay {
     Poco::Net::SocketAddress remote;
     PacketShipper packetShipper;
     PacketSorter<NetPlaySignals::ack> packetSorter;
-    std::function<void()> onKickCallback;
-    std::function<void(NetPlaySignals header, const Poco::Buffer<char>&)> onPacketBodyCallback;
+    KickFunc onKickCallback;
+    PacketbodyFunc onPacketBodyCallback;
   public:
     PacketProcessor(const Poco::Net::SocketAddress& remoteAddress);
-    ~PacketProcessor();
+    virtual ~PacketProcessor();
 
-    void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) override;
+    void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) override final;
     void Update(double elapsed) override;
     void UpdateHandshakeID(uint64_t id);
     void HandleError();

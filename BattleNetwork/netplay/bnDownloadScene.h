@@ -65,7 +65,6 @@ private:
   std::vector<std::string> DeserializeUUIDs(const Poco::Buffer<char>& buffer);
   Poco::Buffer<char> SerializeUUIDs(NetPlaySignals header, const std::vector<std::string>& uuids);
   Poco::Buffer<char> SerializeCards(const std::vector<std::string>& cardList);
-  void Complete();
   void Abort(const std::vector<std::string>& failed);
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body);
 

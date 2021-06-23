@@ -8,6 +8,7 @@
 #include <array>
 #include <vector>
 #include "../bnNetManager.h"
+#include "bnPacketAssembler.h"
 
 enum class Reliability : char
 {
@@ -16,6 +17,7 @@ enum class Reliability : char
   Reliable,
   ReliableSequenced,
   ReliableOrdered,
+  BigData,
   size
 };
 
@@ -24,6 +26,7 @@ static bool IsReliable(Reliability reliability) {
   case Reliability::Reliable:
   case Reliability::ReliableSequenced:
   case Reliability::ReliableOrdered:
+  case Reliability::BigData:
     return true;
   }
   return false;

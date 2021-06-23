@@ -67,7 +67,9 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, int s
   // load animation files
   uiAnim.Load();
 
-  packetProcessor = std::make_shared<MatchMaking::PacketProcessor>(*this);
+  using namespace std::placeholders;
+  packetProcessor = std::make_shared<MatchMaking::PacketProcessor>();
+  packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
 
   setView(sf::Vector2u(480, 320));
 }
@@ -202,13 +204,11 @@ void MatchMakingScene::SendConnectSignal(size_t navi)
   try {
     Poco::Buffer<char> buffer{ 0 };
 
-    // mark unreliable, in case we leak into the next scene
-    buffer.append(0);
 
     NetPlaySignals type{ NetPlaySignals::matchmaking_request };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
     buffer.append((char*)&navi, sizeof(size_t));
-    packetProcessor->SendPacket(buffer);
+    packetProcessor->SendPacket(Reliability::Unreliable, buffer);
   }
   catch (Poco::IOException& e) {
     Logger::Logf("IOException when trying to connect to opponent: %s", e.what());
@@ -221,11 +221,9 @@ void MatchMakingScene::SendHandshakeSignal()
     Poco::Buffer<char> buffer{ 0 };
 
     // mark unreliable, in case we leak into the next scene
-    buffer.append(0);
-
     NetPlaySignals type{ NetPlaySignals::matchmaking_handshake };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
-    packetProcessor->SendPacket(buffer);
+    packetProcessor->SendPacket(Reliability::Unreliable, buffer);
   }
   catch (Poco::IOException& e) {
     Logger::Logf("IOException when trying to connect to opponent: %s", e.what());

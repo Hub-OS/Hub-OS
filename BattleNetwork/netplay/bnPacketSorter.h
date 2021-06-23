@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bnPacketShipper.h"
+#include "bnPacketAssembler.h"
 #include "bnBufferReader.h"
 #include "../bnLogger.h"
 #include <Poco/Net/DatagramSocket.h>
@@ -25,6 +26,7 @@ private:
   std::vector<uint64_t> missingReliable;
   std::vector<BackedUpPacket> backedUpOrderedPackets;
   std::chrono::time_point<std::chrono::steady_clock> lastMessageTime;
+  PacketAssembler packetAssembler; //!< builds BigData packets
 
   uint64_t getExpectedId(Reliability reliability);
   void sendAck(Poco::Net::DatagramSocket& socket, Reliability reliability, uint64_t id);
@@ -74,6 +76,7 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
   auto data = Poco::Buffer<char>(packet.begin() + dataOffset, packet.size() - dataOffset);
 
   lastMessageTime = std::chrono::steady_clock::now();
+  std::vector<Poco::Buffer<char>> newPackets;
 
   switch (reliability)
   {
@@ -90,14 +93,33 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
 
     return { data };
   case Reliability::Reliable:
+  case Reliability::BigData:
     sendAck(socket, reliability, id);
+
+    if (reliability == Reliability::BigData) {
+      size_t start_id{};
+      size_t end_id{};
+      size_t read{};
+
+      std::memcpy(&start_id, data.begin(), sizeof(size_t));
+      read += sizeof(size_t);
+
+      std::memcpy(&end_id, data.begin() + read, sizeof(size_t));
+      read += sizeof(size_t);
+
+      Poco::Buffer<char> bigData(data.begin() + read, data.size() - read);
+
+      packetAssembler.Process(start_id, end_id, id, bigData);
+      newPackets = packetAssembler.Assemble();
+    }
 
     if (id == nextReliable)
     {
       // expected
       nextReliable += 1;
 
-      return { data };
+      newPackets.push_back(data);
+      return newPackets;
     }
     else if (id > nextReliable)
     {
@@ -109,7 +131,8 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
 
       nextReliable = id + 1;
 
-      return { data };
+      newPackets.push_back(data);
+      return newPackets;
     }
     else
     {
@@ -121,7 +144,8 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
         // one of the missing packets
         missingReliable.erase(iter);
 
-        return { data };
+        newPackets.push_back(data);
+        return newPackets;
       }
     }
 
@@ -200,8 +224,9 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
 
     // already handled
     return {};
-  }
-Logger::Logf("%d", (int)reliability);
+  } // case ends
+
+  Logger::Logf("%d", (int)reliability);
   // unreachable, all cases should be covered above
   Logger::Log("bnPacketSorter.h: How did we get here?");
   return {};
@@ -220,6 +245,8 @@ uint64_t PacketSorter<AckId>::getExpectedId(Reliability reliability) {
     return nextUnreliableSequenced;
   case Reliability::ReliableOrdered:
     return nextReliableOrdered;
+  case Reliability::BigData:
+    return nextReliable;
   case Reliability::size:
     return 0;
   }

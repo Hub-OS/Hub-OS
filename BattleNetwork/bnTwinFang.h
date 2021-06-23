@@ -48,4 +48,6 @@ public:
   * Does nothing
   */
   void OnDelete() override;
+
+  void OnSpawn(Battle::Tile& startTile) override;
 };

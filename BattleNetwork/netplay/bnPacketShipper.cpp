@@ -30,14 +30,14 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
   switch (reliability)
   {
   case Reliability::Unreliable:
-    data.append(0);
+    data.append((int)Reliability::Unreliable);
     data.append(body);
 
     sendSafe(socket, data);
     break;
   // ignore old packets
   case Reliability::UnreliableSequenced:
-    data.append(1);
+    data.append((int)Reliability::UnreliableSequenced);
     data.append((char*)&nextUnreliableSequenced, sizeof(nextUnreliableSequenced));
     data.append(body);
 
@@ -47,7 +47,7 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
     nextUnreliableSequenced += 1;
     break;
   case Reliability::Reliable:
-    data.append(2);
+    data.append((int)Reliability::Reliable);
     data.append((char*)&nextReliable, sizeof(nextReliable));
     data.append(body);
 
@@ -64,7 +64,7 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
     break;
   // stalls until packets arrive in order (if client gets packet 0 + 3 + 2, it processes 0, and waits for 1)
   case Reliability::ReliableOrdered:
-    data.append(4);
+    data.append((int)Reliability::ReliableOrdered);
     data.append((char*)&nextReliableOrdered, sizeof(nextReliableOrdered));
     data.append(body);
 
@@ -78,6 +78,80 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
 
     newID = nextReliableOrdered;
     nextReliableOrdered += 1;
+    break;
+  // (Specialized Reliability::Reliable) handles chunking big packets
+  case Reliability::BigData:
+    size_t max_buffer_size = (socket.getSendBufferSize() / sizeof(char)) / 2; // bytes len -> list len
+    size_t body_size = body.size();
+    size_t header_size = sizeof(nextReliable) + sizeof(size_t)*2 + sizeof(int); // headers 1-4 below
+
+    size_t expected_chunks = body_size / max_buffer_size;
+    size_t remainder = body_size % max_buffer_size;
+
+    if (remainder > 0)
+      expected_chunks++;
+
+    size_t overhead = header_size * expected_chunks;
+
+    size_t new_body_size = body_size + overhead;
+
+    expected_chunks = new_body_size / max_buffer_size;
+    remainder = new_body_size % max_buffer_size;
+
+    if (remainder > 0)
+      expected_chunks++;
+
+    size_t written = 0;
+    size_t start_id = nextReliable;
+    size_t end_id = start_id + expected_chunks;
+    newID = start_id;
+
+    if (expected_chunks == 0) {
+      Poco::Buffer<char> chunk{ 0 };
+      chunk.append((int)Reliability::BigData); // header 1
+      chunk.append((char*)&start_id, sizeof(size_t)); // header 2
+      chunk.append((char*)&end_id, sizeof(size_t)); // header 3
+      chunk.append((char*)&nextReliable, sizeof(nextReliable)); // header 4
+      chunk.append(body.begin(), body.size());
+
+      sendSafe(socket, chunk);
+
+      backedUpReliable.push_back(BackedUpPacket{
+        nextReliable,
+        std::chrono::steady_clock::now(),
+        chunk
+        });
+
+      nextReliable += 1;
+    }
+    else {
+      for (size_t i = 0; i < expected_chunks; i++) {
+        size_t chunk_len = max_buffer_size - header_size;
+
+        if (remainder > 0 && i == expected_chunks - 1) {
+          chunk_len = remainder;
+        }
+
+        Poco::Buffer<char> chunk{ 0 };
+        chunk.append((int)Reliability::BigData); // header 1
+        chunk.append((char*)&start_id, sizeof(size_t)); // header 2
+        chunk.append((char*)&end_id, sizeof(size_t)); // header 3
+        chunk.append((char*)&nextReliable, sizeof(nextReliable)); // header 4
+        chunk.append(body.begin() + written, chunk_len);
+        written += chunk_len;
+
+        sendSafe(socket, chunk);
+
+        backedUpReliable.push_back(BackedUpPacket{
+          nextReliable,
+          std::chrono::steady_clock::now(),
+          chunk
+          });
+
+        nextReliable += 1;
+      }
+    }
+    // end case
     break;
   }
 

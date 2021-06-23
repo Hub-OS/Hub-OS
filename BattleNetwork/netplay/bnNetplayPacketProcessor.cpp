@@ -23,7 +23,7 @@ void Netplay::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net:
 
   auto packetBodies = packetSorter.SortPacket(*client, packet);
 
-  for (auto data : packetBodies) {
+  for (auto& data : packetBodies) {
     BufferReader reader;
     NetPlaySignals sig = reader.Read<NetPlaySignals>(data);
 

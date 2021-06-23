@@ -1,24 +1,28 @@
 #pragma once
 #include <chrono>
 #include "../bnIPacketProcessor.h"
-#include "bnNetPlaySignals.h"
+#include "bnNetPlayPacketProcessor.h"
 
 class MatchMakingScene;
 
 namespace MatchMaking {
   class PacketProcessor : public IPacketProcessor {
   private:
-    MatchMakingScene& scene;
-    Poco::Net::SocketAddress remoteAddr;
-    bool validRemote{};
+    bool validRemote{false};
+    Poco::Net::SocketAddress remote;
+    std::shared_ptr<Netplay::PacketProcessor> proxy;
+    Netplay::PacketProcessor::PacketbodyFunc callback;
   public:
-    PacketProcessor(MatchMakingScene& scene);
+    PacketProcessor();
     ~PacketProcessor();
-    void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) override;
-    void Update(double elapsed) override;
+    void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) override final;
+    void OnListen(const Poco::Net::SocketAddress& sender) override final;
+    void Update(double elapsed) override final;
     void SetNewRemote(const std::string& socketAddressStr);
-    void SendPacket(const Poco::Buffer<char>& data);
     const Poco::Net::SocketAddress& GetRemoteAddr();
     const bool RemoteAddrIsValid() const;
+    void SendPacket(Reliability reliability, const Poco::Buffer<char>& data);
+    void SetKickCallback(const Netplay::PacketProcessor::KickFunc& callback);
+    void SetPacketBodyCallback(const Netplay::PacketProcessor::PacketbodyFunc& callback);
   };
 }

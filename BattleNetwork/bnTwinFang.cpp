@@ -97,7 +97,7 @@ void TwinFang::OnUpdate(double _elapsed) {
 
 // This attack flies through the air
 bool TwinFang::CanMoveTo(Battle::Tile* tile) {
-  return true;
+  return (bool)tile;
 }
 
 void TwinFang::Attack(Character* _entity) {
@@ -107,4 +107,11 @@ void TwinFang::Attack(Character* _entity) {
 void TwinFang::OnDelete()
 {
   Remove();
+}
+
+void TwinFang::OnSpawn(Battle::Tile& startTile)
+{
+  if (GetDirection() == Direction::left) {
+    setScale(-1.f, 1.0);
+  }
 }

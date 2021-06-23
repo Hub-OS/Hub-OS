@@ -13,6 +13,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   packetProcessor = std::make_shared<Netplay::PacketProcessor>(props.remoteAddress);
   packetProcessor->SetKickCallback([this] {
+    Logger::Logf("Kicked for silence!");
     this->Abort(retryCardList);
   });
 
@@ -88,7 +89,9 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
 {
   switch (header) {
   case NetPlaySignals::trade_card_list: 
+    Logger::Logf("Recieved trade list download signal");
     if (currState == state::trade) {
+      Logger::Logf("Processing trade list");
       this->RecieveTradeCardList(body);
     }
     break;
@@ -96,7 +99,9 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     this->RecieveRequestCardList(body);
     break;
   case NetPlaySignals::card_list_download:
+    Logger::Logf("Recieved card list download signal");
     if (currState == state::download) {
+      Logger::Logf("Downloading card list...");
       this->DownloadCardList(body);
     }
     break;
@@ -112,24 +117,36 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
 void DownloadScene::RecieveTradeCardList(const Poco::Buffer<char>& buffer)
 {
   retryCardList.clear();
+  auto remote = DeserializeUUIDs(buffer);
 
-  for (auto& remoteUUID : DeserializeUUIDs(buffer)) {
-   
-
+  for (auto& remoteUUID : remote) {
     if (auto ptr = WEBCLIENT.GetWebCard(remoteUUID); !ptr) {
       retryCardList.push_back(remoteUUID);
       cardsToDownload[remoteUUID] = "Downloading";
     }
   }
 
+  Logger::Logf("Recieved remote's list size: %d", remote.size());
+
   // move to the next state
-  currState = state::download;
-  RequestCardList(retryCardList);
+  if (retryCardList.empty()) {
+    Logger::Logf("Nothing to download.");
+    currState = state::complete;
+    SendDownloadComplete(true);
+  }
+  else {
+    Logger::Logf("Need to download %d cards", retryCardList.size());
+    currState = state::download;
+    RequestCardList(retryCardList);
+  }
 }
 
 void DownloadScene::RecieveRequestCardList(const Poco::Buffer<char>& buffer)
 {
-  packetProcessor->SendPacket(Reliability::Reliable, SerializeCards(DeserializeUUIDs(buffer)));
+  auto uuids = DeserializeUUIDs(buffer);
+
+  Logger::Logf("Recieved download request for %d items", uuids.size());
+  packetProcessor->SendPacket(Reliability::BigData, SerializeCards(uuids));
 }
 
 void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
@@ -144,6 +161,8 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
     // downloadSuccess ref will tell matchmaking scene we failed
     Abort(retryCardList);
   }
+
+  Logger::Logf("Remote says download complete. Result: %s", result ? "Success" : "Fail");
 }
 
 void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
@@ -489,6 +508,8 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
 
 void DownloadScene::Abort(const std::vector<std::string>& failed)
 {
+  Logger::Logf("Aborting");
+
   if (!aborting) {
     for (auto& uuid : failed) {
       cardsToDownload[uuid] = "Failed";
@@ -502,6 +523,8 @@ void DownloadScene::Abort(const std::vector<std::string>& failed)
 void DownloadScene::onUpdate(double elapsed)
 {
   if (!packetProcessor->IsHandshakeAck() && !aborting) return;
+
+  SendPing();
 
   if (aborting) {
     abortingCountdown -= from_seconds(elapsed);
@@ -529,13 +552,13 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
   // 1. Draw the state status info
   switch (currState) {
   case state::trade:
-    label.SetString("Requesting download");
+    label.SetString("Connecting to other player...");
     break;
   case state::download:
     label.SetString("Downloading, please wait...");
     break;
   case state::complete:
-    label.SetString("Complete, waiting for player 2");
+    label.SetString("Complete, waiting...");
     break;
   }
 

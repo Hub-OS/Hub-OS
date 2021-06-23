@@ -49,7 +49,7 @@ Player::Player() :
 
   auto flinch = [this]() {
     ClearActionQueue();
-
+    Charge(false);
     SetAnimation(PLAYER_HIT);
     Audio().Play(AudioType::HURT, AudioPriority::lowest);
   };
@@ -148,6 +148,18 @@ void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::Exec
 void Player::OnDelete() {
   chargeEffect.Hide();
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
+
+  // Cleanup child nodes
+  // TODO: this should have been cleaned up automatically by card actions...
+  auto ourNodes = GetChildNodesWithTag({ Player::BASE_NODE_TAG, Player::FORM_NODE_TAG });
+  auto allNodes = GetChildNodes();
+
+  for (auto node : allNodes) {
+    auto iter = ourNodes.find(node);
+    if (iter == ourNodes.end()) {
+      RemoveNode(node);
+    }
+  }
 
   auto animationComponent = GetFirstComponent<AnimationComponent>();
 
