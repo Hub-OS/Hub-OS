@@ -34,6 +34,7 @@ void Netplay::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net:
 
       if (id == handshakeId && handshakeSent) {
         handshakeAck = true;
+        Logger::Logf("Handshake acknowledge with reliability type %d", (int)reliability);
       }
     }
     else {

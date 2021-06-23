@@ -232,6 +232,7 @@ void PacketShipper::Acknowledged(Reliability reliability, uint64_t id)
     Logger::Logf("Server is acknowledging unreliable packets? ID: %i", id);
     break;
   case Reliability::Reliable:
+  case Reliability::BigData:
     acknowledgedReliable(id);
     break;
   case Reliability::ReliableOrdered:

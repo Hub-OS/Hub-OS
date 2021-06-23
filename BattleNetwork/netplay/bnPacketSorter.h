@@ -96,7 +96,44 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
   case Reliability::BigData:
     sendAck(socket, reliability, id);
 
-    if (reliability == Reliability::BigData) {
+    if (id == nextReliable)
+    {
+      // expected
+      nextReliable += 1;
+
+      newPackets.push_back(data);
+    }
+    else if (id > nextReliable)
+    {
+      // skipped expected
+      for (auto i = nextReliable; i < id; i++)
+      {
+        missingReliable.push_back(i);
+      }
+
+      nextReliable = id + 1;
+
+      newPackets.push_back(data);
+    }
+    else
+    {
+      auto iterEnd = missingReliable.end();
+      auto iter = std::find(missingReliable.begin(), missingReliable.end(), id);
+
+      if (iter != iterEnd)
+      {
+        // one of the missing packets
+        missingReliable.erase(iter);
+
+        newPackets.push_back(data);
+      }
+    }
+
+    if (reliability == Reliability::BigData && newPackets.size()) {
+      // Prior `reliable` code checks for duplicates, so if we
+      // arrive here, we have new data to read
+      data = newPackets[0];
+
       size_t start_id{};
       size_t end_id{};
       size_t read{};
@@ -113,44 +150,8 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
       newPackets = packetAssembler.Assemble();
     }
 
-    if (id == nextReliable)
-    {
-      // expected
-      nextReliable += 1;
-
-      newPackets.push_back(data);
-      return newPackets;
-    }
-    else if (id > nextReliable)
-    {
-      // skipped expected
-      for (auto i = nextReliable; i < id; i++)
-      {
-        missingReliable.push_back(i);
-      }
-
-      nextReliable = id + 1;
-
-      newPackets.push_back(data);
-      return newPackets;
-    }
-    else
-    {
-      auto iterEnd = missingReliable.end();
-      auto iter = std::find(missingReliable.begin(), missingReliable.end(), id);
-
-      if (iter != iterEnd)
-      {
-        // one of the missing packets
-        missingReliable.erase(iter);
-
-        newPackets.push_back(data);
-        return newPackets;
-      }
-    }
-
     // we already handled this packet
-    return {};
+    return newPackets;
   case Reliability::ReliableOrdered:
     sendAck(socket, reliability, id);
 

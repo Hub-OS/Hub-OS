@@ -24,5 +24,6 @@ namespace MatchMaking {
     void SendPacket(Reliability reliability, const Poco::Buffer<char>& data);
     void SetKickCallback(const Netplay::PacketProcessor::KickFunc& callback);
     void SetPacketBodyCallback(const Netplay::PacketProcessor::PacketbodyFunc& callback);
+    std::shared_ptr<Netplay::PacketProcessor> GetProxy();
   };
 }

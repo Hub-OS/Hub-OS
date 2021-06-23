@@ -71,3 +71,8 @@ void MatchMaking::PacketProcessor::SetPacketBodyCallback(const Netplay::PacketPr
 {
   this->callback = callback;
 }
+
+std::shared_ptr<Netplay::PacketProcessor> MatchMaking::PacketProcessor::GetProxy()
+{
+  return proxy;
+}

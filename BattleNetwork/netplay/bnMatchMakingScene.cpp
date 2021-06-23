@@ -524,10 +524,14 @@ void MatchMakingScene::onUpdate(double elapsed) {
         canProceedToBattle,
         cardUUIDs,
         packetProcessor->GetRemoteAddr(),
+        packetProcessor->GetProxy(),
         screen
       };
 
-      getController().push<DownloadScene>(props);
+      Net().DropProcessor(packetProcessor);
+
+      using effect = swoosh::types::segue<WhiteWashFade>;
+      getController().push<effect::to<DownloadScene>>(props);
     }
     else if (canProceedToBattle) {
       leave = true;
@@ -623,9 +627,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
 void MatchMakingScene::onLeave()
 {
-  if (leave) {
-    Net().DropProcessor(packetProcessor);
-  }
 }
 
 void MatchMakingScene::onEnter()

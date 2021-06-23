@@ -7,11 +7,10 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   label(Font::Style::tiny),
   Scene(ac)
 {
+  ourCardList = props.cardUUIDs;
   downloadSuccess = false; 
 
-  Logger::Logf("remote address is: %s", props.remoteAddress.toString().c_str());
-
-  packetProcessor = std::make_shared<Netplay::PacketProcessor>(props.remoteAddress);
+  packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
     Logger::Logf("Kicked for silence!");
     this->Abort(retryCardList);
@@ -24,7 +23,6 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   });
 
   Net().AddHandler(props.remoteAddress, packetProcessor);
-  TradeCardList(props.cardUUIDs);
 
   lastScreen = props.lastScreen;
 
@@ -635,6 +633,7 @@ void DownloadScene::onEnter()
 
 void DownloadScene::onStart()
 {
+  TradeCardList(ourCardList);
 }
 
 void DownloadScene::onResume()
