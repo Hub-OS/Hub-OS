@@ -34,4 +34,5 @@ public:
   }
 
   std::string ReadTerminatedString(const Poco::Buffer<char>& buffer);
+  std::string ReadString(const Poco::Buffer<char>& buffer);
 };

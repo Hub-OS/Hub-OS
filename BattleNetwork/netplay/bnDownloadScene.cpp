@@ -1,4 +1,5 @@
 #include "bnDownloadScene.h"
+#include "bnBufferReader.h"
 #include "../bnWebClientMananger.h"
 #include <Segues/PixelateBlackWashFade.h>
 
@@ -168,29 +169,21 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
 
 void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
 {
+  BufferReader reader;
   // Tell web client to fetch and download these cards
   std::vector<std::string> cardList;
-  size_t cardLen{};
-  size_t read{};
+  size_t cardLen = reader.Read<size_t>(buffer);
 
-  std::memcpy(&cardLen, buffer.begin() + read, sizeof(size_t));
-  read += sizeof(size_t);
-
-  while (cardLen > 0) {
+  while (cardLen-- > 0) {
     // name
-    size_t id_len = 0;
-    std::memcpy((char*)&id_len, buffer.begin() + read, sizeof(size_t));
-    std::string id = std::string(buffer.begin() + read, id_len);
-    read += sizeof(size_t);
+    std::string id = reader.ReadString(buffer);
 
     // image data
-    size_t image_len = 0;
-    std::memcpy((char*)&image_len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
+    size_t image_len = reader.Read<size_t>(buffer);
 
-    sf::Uint8* imageData = new  sf::Uint8[image_len]{ 0 };
-    std::memcpy(imageData, buffer.begin() + read, image_len);
-    read += sizeof(size_t);
+    sf::Uint8* imageData = new sf::Uint8[image_len]{ 0 };
+    std::memcpy(imageData, buffer.begin() + reader.GetOffset(), image_len);
+    reader.Skip(image_len);
 
     sf::Image image;
     image.create(56, 48, imageData);
@@ -199,13 +192,11 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
     delete[] imageData;
 
     // icon data
-    size_t icon_len = 0;
-    std::memcpy((char*)&icon_len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
+    size_t icon_len = reader.Read<size_t>(buffer);
 
     sf::Uint8* iconData = new  sf::Uint8[icon_len]{ 0 };
-    std::memcpy(iconData, buffer.begin() + read, icon_len);
-    read += sizeof(size_t);
+    std::memcpy(iconData, buffer.begin() + reader.GetOffset(), icon_len);
+    reader.Skip(icon_len);
 
     sf::Image icon;
     icon.create(14, 14, iconData);
@@ -216,46 +207,18 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
     ////////////////////
     //   Card Model   //
     ////////////////////
-    size_t model_id_len = 0;
-    std::string model_id;
-
-    std::memcpy((char*)&model_id_len, buffer.begin() + read, sizeof(size_t));
-    model_id = std::string(buffer.begin() + read, model_id_len);
-    read += sizeof(size_t);
-
-    size_t name_len = 0;
-    std::memcpy((char*)&name_len, buffer.begin() + read, sizeof(size_t));
-    std::string name = std::string(buffer.begin() + read, name_len);
-    read += sizeof(size_t);
-
-    size_t action_len = 0;
-    std::memcpy((char*)&action_len, buffer.begin() + read, sizeof(size_t));
-    std::string action = std::string(buffer.begin() + read, action_len);
-    read += sizeof(size_t);
-
-    size_t element_len = 0;
-    std::memcpy((char*)&element_len, buffer.begin() + read, sizeof(size_t));
-    std::string element = std::string(buffer.begin() + read, element_len);
-    read += sizeof(size_t);
-
-    size_t secondary_element_len = 0;
-    std::memcpy((char*)&secondary_element_len, buffer.begin() + read, sizeof(size_t));
-    std::string secondary_element = std::string(buffer.begin() + read, secondary_element_len);
-    read += sizeof(size_t);
+    std::string model_id = reader.ReadString(buffer);
+    std::string name = reader.ReadString(buffer);
+    std::string action = reader.ReadString(buffer);
+    std::string element = reader.ReadString(buffer);
+    std::string secondary_element = reader.ReadString(buffer);
 
     auto props = std::make_shared<WebAccounts::CardProperties>();
 
-    std::memcpy((char*)&props->classType, buffer.begin() + read, sizeof(decltype(props->classType)));
-    read += sizeof(decltype(props->classType));
-
-    std::memcpy((char*)&props->damage, buffer.begin() + read, sizeof(decltype(props->damage)));
-    read += sizeof(decltype(props->damage));
-
-    std::memcpy((char*)&props->timeFreeze, buffer.begin() + read, sizeof(decltype(props->timeFreeze)));
-    read += sizeof(decltype(props->timeFreeze));
-
-    std::memcpy((char*)&props->limit, buffer.begin() + read, sizeof(decltype(props->limit)));
-    read += sizeof(decltype(props->limit));
+    props->classType = reader.Read<decltype(props->classType)>(buffer);
+    props->damage = reader.Read<decltype(props->damage)>(buffer);
+    props->timeFreeze = reader.Read<decltype(props->timeFreeze)>(buffer);
+    props->limit = reader.Read<decltype(props->limit)>(buffer);
 
     props->id = id;
     props->name = name;
@@ -266,14 +229,10 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
 
     // codes count
     std::vector<char> codes;
-    size_t codes_len = 0;
-    std::memcpy((char*)&codes_len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
+    size_t codes_len = reader.Read<size_t>(buffer);
 
     while (codes_len-- > 0) {
-      char code = 0;
-      std::memcpy((char*)&code, buffer.begin() + read, 1);
-      read += 1;
+      char code = reader.Read<char>(buffer);
       codes.push_back(code);
     }
 
@@ -281,28 +240,17 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
 
     // meta classes count
     std::vector<std::string> metaClasses;
-    size_t meta_len = 0;
-    std::memcpy((char*)&meta_len, buffer.begin() + read, sizeof(size_t));
+    size_t meta_len = reader.Read<size_t>(buffer);
 
     while (meta_len-- > 0) {
-      size_t meta_i_len = 0;
-      std::memcpy((char*)&meta_i_len, buffer.begin() + read, sizeof(size_t));
-      read += sizeof(size_t);
-      std::string meta = std::string(buffer.begin() + read, meta_i_len);
+      std::string meta = reader.ReadString(buffer);
       metaClasses.push_back(meta);
     }
 
     props->metaClasses = metaClasses;
 
-    size_t desc_len = 0;
-    std::memcpy((char*)&desc_len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
-    std::string description = std::string(buffer.begin() + read, desc_len);
-
-    size_t verbose_len = 0;
-    std::memcpy((char*)&verbose_len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
-    std::string verboseDesc = std::string(buffer.begin() + read, verbose_len);
+    std::string description = reader.ReadString(buffer);
+    std::string verboseDesc = reader.ReadString(buffer);
 
     props->description = description;
     props->verboseDescription = verboseDesc;
@@ -310,18 +258,9 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
     ////////////////////
     //  Card Data     //
     ////////////////////
-    char code = 0;
-
-    std::memcpy((char*)&code, buffer.begin() + read, 1);
-    read += 1;
-
-    std::memcpy((char*)&id_len, buffer.begin() + read, sizeof(size_t));
-    std::string card_id = std::string(buffer.begin() + read, id_len);
-    read += sizeof(size_t);
-
-    std::memcpy((char*)&model_id_len, buffer.begin() + read, sizeof(size_t));
-    std::string modelId = std::string(buffer.begin() + read, model_id_len);
-    read += sizeof(size_t);
+    char code = reader.Read<char>(buffer);
+    std::string card_id = reader.ReadString(buffer);
+    std::string modelId = reader.ReadString(buffer);
 
     auto cardData = std::make_shared<WebAccounts::Card>();
     cardData->id = card_id;
@@ -402,14 +341,14 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
     data.append(card.c_str(), card.length());
 
     // image data
-    auto texture = WEBCLIENT.GetIconForCard(card);
+    auto texture = WEBCLIENT.GetImageForCard(card);
     auto image = texture->copyToImage();
     size_t image_len = static_cast<size_t>(image.getSize().x * image.getSize().y * 4u);
     data.append((char*)&image_len, sizeof(size_t));
     data.append((char*)image.getPixelsPtr(), image_len);
 
     // icon data
-    auto icon = WEBCLIENT.GetImageForCard(card);
+    auto icon = WEBCLIENT.GetIconForCard(card);
     image = icon->copyToImage();
     image_len = static_cast<size_t>(image.getSize().x * image.getSize().y * 4u);
     data.append((char*)&image_len, sizeof(size_t));
@@ -458,7 +397,7 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
     data.append((char*)&codes_len, sizeof(size_t));
 
     for (auto&& code : codes) {
-      data.append((char*)&code, 1);
+      data.append(code);
     }
 
     // meta classes count
