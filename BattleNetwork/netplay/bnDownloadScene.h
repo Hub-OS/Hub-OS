@@ -12,7 +12,7 @@
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Buffer.h>
 
-#include "bnNetplayPacketProcessor.h"
+#include "bnNetPlayPacketProcessor.h"
 #include "../bnScene.h"
 #include "../bnText.h"
 #include "../../bnInputManager.h"

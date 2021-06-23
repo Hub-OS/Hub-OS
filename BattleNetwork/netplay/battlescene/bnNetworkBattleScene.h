@@ -39,7 +39,7 @@
 #include "../bnNetPlayFlags.h"
 #include "../bnNetPlayConfig.h"
 #include "../bnNetPlaySignals.h"
-#include "../bnNetplayPacketProcessor.h"
+#include "../bnNetPlayPacketProcessor.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;

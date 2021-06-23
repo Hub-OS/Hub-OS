@@ -1,4 +1,4 @@
-#include "bnNetplayPacketProcessor.h"
+#include "bnNetPlayPacketProcessor.h"
 
 const float PACKET_RESEND_RATE = 1.0f / 20.f;
 
