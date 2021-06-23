@@ -4,118 +4,44 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <optional>
 #include <assert.h>
 #include "../bnLogger.h"
 
 class PacketAssembler {
-public:
-    static const size_t hash(size_t start, size_t len) { return 2 * (start + len); }
-
 private:
-
-  class range {
-    size_t m_start{}, m_end{}, m_size{};
-
-  public:
-    range(size_t start, size_t end) {
-      m_start = start;
-      m_end = end;
-      m_size = (end - start)+1;
-    }
-
-    const size_t start() const { return m_start; }
-    const size_t end() const { return m_end; }
-    const size_t size() const { return m_size; }
-    const bool find(size_t elem) { return elem <= m_end && elem >= m_start; }
-  };
-
-  struct chunk {
-    size_t id{};
-    Poco::Buffer<char> data;
-  };
-
-  struct chunk_group {
-    range m_range;
-    std::vector<chunk> m_chunks;
-
-    chunk_group(const range& range) : m_range(range) {}
-
-    const size_t id() const { return m_range.start(); }
-
-    const bool corrupt() const {
-      return m_chunks.size() > m_range.size();
-    }
-
-    const bool full() const {
-      return m_chunks.size() == m_range.size(); 
-    }
-
-    Poco::Buffer<char> assemble() {
-      Poco::Buffer<char> data{ 0 };
-
-      if (m_chunks.size() != m_range.size()) {
-        Logger::Logf("Packet chunk assembly failed! Recieved: %d Expected: %d", m_chunks.size(), m_range.size());
-        return data;
-      }
-
-      std::sort(m_chunks.begin(), m_chunks.end(), [](const chunk& first, const chunk& second) {
-        return first.id < second.id;
-        });
-
-      for (auto& chunk : m_chunks) {
-        data.append(chunk.data);
-      }
-
-      return data;
-    }
-
-    void insert(const chunk& chunk) {
-      m_chunks.push_back(chunk);
-    }
-  };
-
-  std::map<size_t, chunk_group> processing; //!< Key: hash, value: chunks 
+  std::unordered_map<size_t, std::map<size_t, std::vector<char>>> processing; //!< Key: start, value: chunk map
 
 public:
-  std::vector<Poco::Buffer<char>> Assemble() {
-    std::vector<Poco::Buffer<char>> packets;
+  std::optional<Poco::Buffer<char>> Process(size_t start, size_t end, size_t id, const Poco::Buffer<char>& body) {
+    auto iter = processing.find(start);
 
-    auto iter = processing.begin();
-
-    while(iter != processing.end()) {
-      auto& chunks = iter->second;
-
-      bool full = chunks.full();
-      bool corrupt = chunks.corrupt();
-
-      if (full) {
-        packets.push_back(chunks.assemble());
-      }
-
-      if (full || corrupt) {
-        if (corrupt) {
-          Logger::Logf("Dropping corrupt BigData packet %d", chunks.id());
-        }
-        iter = processing.erase(iter);
-        continue;
-      }
-
-      iter++;
-    }
-
-    return packets;
-  }
-
-  void Process(size_t start, size_t end, size_t id, const Poco::Buffer<char> body) {
-    size_t hash = PacketAssembler::hash(start, end - start + 1);
-
-    auto iter = processing.find(hash);
     if (iter == processing.end()) {
-      auto res = processing.insert(std::make_pair(hash, chunk_group(range(start, end))));
+      // create a new chunk map
+      auto res = processing.emplace(start, std::map<size_t, std::vector<char>>());
 
       iter = res.first;
     }
 
-    iter->second.insert(chunk{ id, body });
+    auto& chunkMap = iter->second;
+
+    // store the latest chunk
+    chunkMap.emplace(id, std::vector<char>(body.begin(), body.end()));
+
+    auto totalChunks = end - start + 1;
+
+    if (chunkMap.size() < totalChunks) {
+      // not enough stored chunks
+      return {};
+    }
+
+    Poco::Buffer<char> data{ 0 };
+
+    // maps are sorted
+    for (auto& [_, chunk] : chunkMap) {
+      data.append(chunk.data(), chunk.size());
+    }
+
+    return data;
   }
 };

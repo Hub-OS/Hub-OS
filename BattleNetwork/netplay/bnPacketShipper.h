@@ -10,6 +10,8 @@
 #include "../bnNetManager.h"
 #include "bnPacketAssembler.h"
 
+constexpr uint16_t DEFAULT_MAX_PAYLOAD_SIZE = 1300;
+
 enum class Reliability : char
 {
   Unreliable = 0,
@@ -49,6 +51,7 @@ private:
   bool failed{};
   double avgLatency{};
   Poco::Net::SocketAddress socketAddress;
+  uint16_t maxPayloadSize{};
   uint64_t nextUnreliableSequenced{};
   uint64_t nextReliable{};
   uint64_t nextReliableOrdered{};
@@ -62,7 +65,7 @@ private:
   void acknowledgedReliableOrdered(uint64_t id);
 
 public:
-  PacketShipper(const Poco::Net::SocketAddress& socketAddress);
+  PacketShipper(const Poco::Net::SocketAddress& socketAddress, uint16_t maxPayloadSize);
 
   bool HasFailed();
   std::pair<Reliability, uint64_t> Send(Poco::Net::DatagramSocket& socket, Reliability Reliability, const Poco::Buffer<char>& body);

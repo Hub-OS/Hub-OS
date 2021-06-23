@@ -5,8 +5,8 @@
 constexpr double KEEP_ALIVE_RATE = 1.0f;
 
 namespace Overworld {
-  PacketProcessor::PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, std::function<void(const Poco::Buffer<char>& data)> onPacketBody) :
-    packetShipper(remoteAddress),
+  PacketProcessor::PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, std::function<void(const Poco::Buffer<char>& data)> onPacketBody) :
+    packetShipper(remoteAddress, maxPayloadSize),
     packetSorter(remoteAddress),
     onPacketBody(onPacketBody)
   {

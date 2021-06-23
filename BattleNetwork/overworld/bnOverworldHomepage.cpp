@@ -35,6 +35,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
       remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
       packetProcessor = std::make_shared<Overworld::PacketProcessor>(
         remoteAddress,
+        DEFAULT_MAX_PAYLOAD_SIZE,
         [this](auto& body) { ProcessPacketBody(body); }
       );
       Net().AddHandler(remoteAddress, packetProcessor);
@@ -201,6 +202,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
               remoteAddress = Poco::Net::SocketAddress(dest);
               packetProcessor = std::make_shared<Overworld::PacketProcessor>(
                 remoteAddress,
+                DEFAULT_MAX_PAYLOAD_SIZE,
                 [this](auto& body) { ProcessPacketBody(body); }
               );
               Net().AddHandler(remoteAddress, packetProcessor);

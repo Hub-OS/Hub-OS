@@ -129,28 +129,26 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
       }
     }
 
-    if (reliability == Reliability::BigData && newPackets.size()) {
+    if (reliability == Reliability::BigData && !newPackets.empty()) {
       // Prior `reliable` code checks for duplicates, so if we
       // arrive here, we have new data to read
-      data = newPackets[0];
+      auto& data = newPackets[0];
 
-      size_t start_id{};
-      size_t end_id{};
-      size_t read{};
+      BufferReader reader;
+      size_t startId = reader.Read<size_t>(data);
+      size_t endId = reader.Read<size_t>(data);
+      size_t offset = reader.GetOffset();
 
-      std::memcpy(&start_id, data.begin(), sizeof(size_t));
-      read += sizeof(size_t);
+      Poco::Buffer<char> chunk(data.begin() + offset, data.size() - offset);
 
-      std::memcpy(&end_id, data.begin() + read, sizeof(size_t));
-      read += sizeof(size_t);
+      auto possibleBigPacket = packetAssembler.Process(startId, endId, id, chunk);
+      newPackets = {};
 
-      Poco::Buffer<char> bigData(data.begin() + read, data.size() - read);
-
-      packetAssembler.Process(start_id, end_id, id, bigData);
-      newPackets = packetAssembler.Assemble();
+      if (possibleBigPacket) {
+        newPackets.push_back(*possibleBigPacket);
+      }
     }
 
-    // we already handled this packet
     return newPackets;
   case Reliability::ReliableOrdered:
     sendAck(socket, reliability, id);

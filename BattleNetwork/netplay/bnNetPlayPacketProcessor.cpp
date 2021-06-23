@@ -4,7 +4,7 @@ const float PACKET_RESEND_RATE = 1.0f / 20.f;
 
 Netplay::PacketProcessor::PacketProcessor(const Poco::Net::SocketAddress& remoteAddress) :
   remote(remoteAddress),
-  packetShipper(remoteAddress),
+  packetShipper(remoteAddress, DEFAULT_MAX_PAYLOAD_SIZE),
   packetSorter(remoteAddress)
 {
 

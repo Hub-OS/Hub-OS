@@ -10,7 +10,7 @@
 namespace Overworld {
   class PacketProcessor : public IPacketProcessor {
   public:
-    PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, std::function<void(const Poco::Buffer<char>& data)> onPacketBody);
+    PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, std::function<void(const Poco::Buffer<char>& data)> onPacketBody);
 
     bool TimedOut();
     void SetBackground();

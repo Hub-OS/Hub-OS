@@ -5,9 +5,10 @@
 #include <Poco/Net/NetException.h>
 #include <algorithm>
 
-PacketShipper::PacketShipper(const Poco::Net::SocketAddress& socketAddress)
+PacketShipper::PacketShipper(const Poco::Net::SocketAddress& socketAddress, uint16_t maxPayloadSize)
 {
   this->socketAddress = socketAddress;
+  this->maxPayloadSize = maxPayloadSize;
   nextUnreliableSequenced = 0;
   nextReliable = 0;
   nextReliableOrdered = 0;
@@ -81,37 +82,26 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
     break;
   // (Specialized Reliability::Reliable) handles chunking big packets
   case Reliability::BigData:
-    size_t max_buffer_size = (socket.getSendBufferSize() / sizeof(char)) / 2; // bytes len -> list len
-    size_t body_size = body.size();
-    size_t header_size = sizeof(nextReliable) + sizeof(size_t)*2 + sizeof(int); // headers 1-4 below
+    size_t bodySize = body.size();
+    size_t headerSize = 1 + sizeof(nextReliable) + sizeof(size_t) * 2; // headers 1-4 below
+    size_t maxChunkSize = maxPayloadSize - headerSize;
 
-    size_t expected_chunks = body_size / max_buffer_size;
-    size_t remainder = body_size % max_buffer_size;
-
-    if (remainder > 0)
-      expected_chunks++;
-
-    size_t overhead = header_size * expected_chunks;
-
-    size_t new_body_size = body_size + overhead;
-
-    expected_chunks = new_body_size / max_buffer_size;
-    remainder = new_body_size % max_buffer_size;
+    size_t expectedChunks = bodySize / maxChunkSize;
+    size_t remainder = bodySize % maxChunkSize;
 
     if (remainder > 0)
-      expected_chunks++;
+      expectedChunks++;
 
-    size_t written = 0;
-    size_t start_id = nextReliable;
-    size_t end_id = start_id + expected_chunks;
-    newID = start_id;
+    uint64_t startId = nextReliable;
+    uint64_t endId = startId + expectedChunks - 1;
+    newID = startId;
 
-    if (expected_chunks == 0) {
+    if (expectedChunks == 0) {
       Poco::Buffer<char> chunk{ 0 };
-      chunk.append((int)Reliability::BigData); // header 1
-      chunk.append((char*)&start_id, sizeof(size_t)); // header 2
-      chunk.append((char*)&end_id, sizeof(size_t)); // header 3
-      chunk.append((char*)&nextReliable, sizeof(nextReliable)); // header 4
+      chunk.append((char)Reliability::BigData); // header 1
+      chunk.append((char*)&nextReliable, sizeof(nextReliable)); // header 2
+      chunk.append((char*)&startId, sizeof(uint64_t)); // header 3
+      chunk.append((char*)&endId, sizeof(uint64_t)); // header 4
       chunk.append(body.begin(), body.size());
 
       sendSafe(socket, chunk);
@@ -125,20 +115,22 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
       nextReliable += 1;
     }
     else {
-      for (size_t i = 0; i < expected_chunks; i++) {
-        size_t chunk_len = max_buffer_size - header_size;
+      size_t written = 0;
 
-        if (remainder > 0 && i == expected_chunks - 1) {
-          chunk_len = remainder;
+      for (size_t i = 0; i < expectedChunks; i++) {
+        size_t chunkLength = maxChunkSize;
+
+        if (remainder > 0 && i == expectedChunks - 1) {
+          chunkLength = remainder;
         }
 
         Poco::Buffer<char> chunk{ 0 };
         chunk.append((int)Reliability::BigData); // header 1
-        chunk.append((char*)&start_id, sizeof(size_t)); // header 2
-        chunk.append((char*)&end_id, sizeof(size_t)); // header 3
-        chunk.append((char*)&nextReliable, sizeof(nextReliable)); // header 4
-        chunk.append(body.begin() + written, chunk_len);
-        written += chunk_len;
+        chunk.append((char*)&nextReliable, sizeof(nextReliable)); // header 2
+        chunk.append((char*)&startId, sizeof(uint64_t)); // header 3
+        chunk.append((char*)&endId, sizeof(uint64_t)); // header 4
+        chunk.append(body.begin() + written, chunkLength);
+        written += chunkLength;
 
         sendSafe(socket, chunk);
 
@@ -243,7 +235,7 @@ void PacketShipper::Acknowledged(Reliability reliability, uint64_t id)
 
 const double PacketShipper::GetAvgLatency() const
 {
-  return avgLatency/2.f; // ack is a round trip, so we need half the time to arrive
+  return avgLatency / 2.f; // ack is a round trip, so we need half the time to arrive
 }
 
 void PacketShipper::acknowledgedReliable(uint64_t id)

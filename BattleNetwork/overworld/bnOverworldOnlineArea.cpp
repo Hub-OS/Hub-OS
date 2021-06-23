@@ -36,6 +36,7 @@ Overworld::OnlineArea::OnlineArea(
   packetProcessor(
     std::make_shared<Overworld::PacketProcessor>(
       remoteAddress,
+      maxPayloadSize,
       [this](auto& body) { processPacketBody(body); }
       )
   ),
