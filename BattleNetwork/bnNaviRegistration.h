@@ -196,6 +196,12 @@ public:
     const std::string GetName() const;
     
     /**
+     * @brief Gets the navi HP
+     * @return int
+     */
+    int GetHP() const;
+    
+    /**
      * @brief Gets the navi HP as a string to display
      * @return const std::string
      */

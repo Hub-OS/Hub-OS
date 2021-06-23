@@ -751,6 +751,12 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::map:
       receiveMapSignal(reader, data);
       break;
+    case ServerEvents::health:
+      receiveHealthSignal(reader, data);
+      break;
+    case ServerEvents::emotion:
+      receiveEmotionSignal(reader, data);
+      break;
     case ServerEvents::money:
       receiveMoneySignal(reader, data);
       break;
@@ -983,10 +989,16 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
 {
   sendAvatarAssetStream();
 
+  auto& naviMeta = NAVIS.At(GetCurrentNavi());
+  auto naviName = naviMeta.GetName();
+  auto maxHP = naviMeta.GetHP();
+
   // mark completion
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::avatar_change };
   buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append(naviName.c_str(), naviName.size() + 1);
+  buffer.append((char*)&maxHP, sizeof(maxHP));
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -1140,6 +1152,20 @@ void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append(postId.c_str(), postId.length() + 1);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendBattleResultsSignal(const BattleResults& battleResults) {
+  auto time = battleResults.battleLength.asSeconds();
+
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::battle_results };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&battleResults.playerHealth, sizeof(int));
+  buffer.append((char*)&battleResults.score, sizeof(int));
+  buffer.append((char*)&time, sizeof(float));
+  buffer.append(battleResults.runaway);
+  buffer.append((char)battleResults.finalEmotion);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -1410,6 +1436,27 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       }
     }
   }
+}
+
+void Overworld::OnlineArea::receiveHealthSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto health = reader.Read<int>(buffer);
+  auto maxHealth = reader.Read<int>(buffer);
+
+  GetPlayerSession().health = health;
+  GetPersonalMenu().SetHealth(health);
+  GetPersonalMenu().SetMaxHealth(maxHealth);
+}
+
+void Overworld::OnlineArea::receiveEmotionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto emotion = reader.Read<Emotion>(buffer);
+
+  if (emotion >= Emotion::COUNT) {
+    emotion = Emotion::normal;
+  }
+
+  GetPlayerSession().emotion = emotion;
 }
 
 void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1849,17 +1896,8 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   // isEnteringBattle = true;
   // 
   // EXAMPLE AND TEMP DEMO PURPOSES BELOW:
-  BattleResultsFunc callback = [this, fullHealth](const BattleResults& results) {
-    int health = results.playerHealth;
-
-    if (health > 0) {
-      GetPlayerSession().health = health;
-      GetPlayerSession().emotion = results.finalEmotion;
-    }
-    else {
-      GetPlayerSession().health = fullHealth;
-      GetPlayerSession().emotion = Emotion::normal;
-    }
+  BattleResultsFunc callback = [this](const BattleResults& results) {
+    sendBattleResultsSignal(results);
   };
 
   getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <functional>
 
+#include "../bnBattleResults.h"
 #include "../netplay/bnBufferReader.h"
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldPacketProcessor.h"
@@ -104,6 +105,7 @@ namespace Overworld {
     void sendBoardCloseSignal();
     void sendPostRequestSignal();
     void sendPostSelectSignal(const std::string& postId);
+    void sendBattleResultsSignal(const BattleResults& results);
 
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -117,6 +119,8 @@ namespace Overworld {
     void receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveHealthSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveEmotionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoneySignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
