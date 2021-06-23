@@ -271,7 +271,7 @@ void Overworld::Homepage::ProcessPacketBody(const Poco::Buffer<char>& body) {
 
   BufferReader reader;
   auto sig = reader.Read<ServerEvents>(body);
-  auto version = reader.ReadString(body);
+  auto version = reader.ReadTerminatedString(body);
   auto iteration = reader.Read<uint64_t>(body);
   maxPayloadSize = reader.Read<uint16_t>(body);
 

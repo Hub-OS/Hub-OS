@@ -15,7 +15,7 @@ void BufferReader::Skip(size_t n)
   offset += n;
 }
 
-std::string BufferReader::ReadString(const Poco::Buffer<char>& buffer)
+std::string BufferReader::ReadTerminatedString(const Poco::Buffer<char>& buffer)
 {
   auto iter = buffer.begin();
 
