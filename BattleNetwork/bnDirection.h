@@ -2,8 +2,10 @@
 #include <Swoosh/Ease.h>
 #include <math.h>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <SFML/System/Vector2.hpp>
+#include "stx/string.h"
 
 /**
 * @brief Used by entity movement
@@ -300,29 +302,38 @@ inline sf::Vector2f UnitVector(Direction dir) {
   return sf::Vector2f();
 }
 
-inline Direction FromString(const std::string& direction) {
-  if (direction == "Left") {
+inline Direction FromString(const std::string_view& direction) {
+  constexpr std::string_view left = "Left";
+  constexpr std::string_view right = "Right";
+  constexpr std::string_view up = "Up";
+  constexpr std::string_view down = "Down";
+  constexpr std::string_view up_left = "Up Left";
+  constexpr std::string_view up_right = "Up Right";
+  constexpr std::string_view down_left = "Down Left";
+  constexpr std::string_view down_right = "Down Right";
+
+  if (stx::insensitive_equals(direction, left)) {
     return Direction::left;
   }
-  else if (direction == "Right") {
+  else if (stx::insensitive_equals(direction, right)) {
     return Direction::right;
   }
-  else if (direction == "Up") {
+  else if (stx::insensitive_equals(direction, up)) {
     return Direction::up;
   }
-  else if (direction == "Down") {
+  else if (stx::insensitive_equals(direction, down)) {
     return Direction::down;
   }
-  else if (direction == "Up Left") {
+  else if (stx::insensitive_equals(direction, up_left)) {
     return Direction::up_left;
   }
-  else if (direction == "Up Right") {
+  else if (stx::insensitive_equals(direction, up_right)) {
     return Direction::up_right;
   }
-  else if (direction == "Down Left") {
+  else if (stx::insensitive_equals(direction, down_left)) {
     return Direction::down_left;
   }
-  else if (direction == "Down Right") {
+  else if (stx::insensitive_equals(direction, down_right)) {
     return Direction::down_right;
   }
 
