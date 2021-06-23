@@ -21,6 +21,7 @@
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
+constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
 
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
@@ -452,7 +453,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   auto speed = tileMeta->customProperties.GetPropertyFloat("Speed");
 
   if (speed == 0.0f) {
-    speed = 6.0f;
+    speed = DEFAULT_CONVEYOR_SPEED;
   }
 
   auto duration = tileDistance / speed;
