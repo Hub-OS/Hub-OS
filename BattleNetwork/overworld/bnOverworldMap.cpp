@@ -314,20 +314,14 @@ namespace Overworld {
     relativeY = std::modf(y, &_);
 
     float layerRelativeElevation = 0.0;
-    auto directionString = tileMeta->customProperties.GetProperty("Direction");
-    Direction direction;
+    Direction direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
 
-    if (directionString == "Up Left") {
-      direction = tile->flippedHorizontal ? Direction::up_right : Direction::up_left;
+    if (tile->flippedHorizontal) {
+      direction = FlipHorizontal(direction);
     }
-    else if (directionString == "Up Right") {
-      direction = tile->flippedHorizontal ? Direction::up_left : Direction::up_right;
-    }
-    if (directionString == "Down Left") {
-      direction = tile->flippedHorizontal ? Direction::down_right : Direction::down_left;
-    }
-    else if (directionString == "Down Right") {
-      direction = tile->flippedHorizontal ? Direction::down_left : Direction::down_right;
+
+    if (tile->flippedVertical) {
+      direction = FlipVertical(direction);
     }
 
     switch (direction) {
