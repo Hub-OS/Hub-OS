@@ -42,6 +42,9 @@ public:
       data.append(chunk.data(), chunk.size());
     }
 
+    // no longer needed
+    processing.erase(iter);
+
     return data;
   }
 };
