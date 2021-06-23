@@ -1,7 +1,10 @@
 #include "bnMinimap.h"
+
+#include "bnOverworldTileType.h"
+#include "../bnTextureResourceManager.h"
+#include "../stx/string.h"
 #include <Swoosh/EmbedGLSL.h>
 #include <cmath>
-#include "../bnTextureResourceManager.h"
 
 const auto CONCEALED_COLOR = sf::Color(165, 165, 165, 165); // 65% transparency, similar to world sprite darkening
 
@@ -225,7 +228,7 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
           continue;
         }
 
-        if (tileMeta->type == "Conveyor") {
+        if (TileType::FromString(tileMeta->type) == TileType::conveyor) {
           auto pos = sf::Vector2f(col, row);
           pos.x += 0.5f;
           pos.y += 0.5f;
@@ -318,7 +321,7 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       sf::Vector2f sizeUv(tileSprite.getTexture()->getSize());
       shader.setUniform("center", sf::Glsl::Vec2(center.x / sizeUv.x, center.y / sizeUv.y));
       shader.setUniform("tileSize", sf::Glsl::Vec2((tileSize.x + 1) / sizeUv.x, (tileSize.y + 1) / sizeUv.y));
-      shader.setUniform("mask", tileMeta->type != "Stairs");
+      shader.setUniform("mask", TileType::FromString(tileMeta->type) != TileType::stairs);
 
       // draw
       target.draw(tileSprite, states);

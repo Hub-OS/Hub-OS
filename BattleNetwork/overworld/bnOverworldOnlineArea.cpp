@@ -13,6 +13,7 @@
 #include <fstream>
 
 #include "bnOverworldOnlineArea.h"
+#include "bnOverworldTileType.h"
 #include "../bnXmasBackground.h"
 #include "../bnNaviRegistration.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
@@ -264,11 +265,11 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
 
     auto& command = teleportController.TeleportOut(player);
 
-    auto type = tileObject.type;
+    auto type = TileType::FromString(tileObject.type);
     auto interpolateTime = sf::seconds(0.5f);
     auto position3 = sf::Vector3f(tileObject.position.x, tileObject.position.y, float(layerIndex));
 
-    if (type == "Home Warp") {
+    if (type == TileType::home_warp) {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
@@ -277,7 +278,7 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
         getController().pop<segue<BlackWashFade>>();
       });
     }
-    else if (type == "Server Warp") {
+    else if (type == TileType::server_warp) {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       auto address = tileObject.customProperties.GetProperty("Address");
@@ -289,7 +290,7 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
         transferServer(address, port, data, false);
       });
     }
-    else if (type == "Position Warp") {
+    else if (type == TileType::position_warp) {
       auto targetTilePos = sf::Vector2f(
         tileObject.customProperties.GetPropertyFloat("X"),
         tileObject.customProperties.GetPropertyFloat("Y")
@@ -314,7 +315,7 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
         warpCameraController.QueueUnlockCamera();
       });
     }
-    else if (type == "Custom Warp" || type == "Custom Server Warp") {
+    else if (IsCustomWarp(type)) {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
@@ -1370,9 +1371,9 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
     warpLayer.clear();
 
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
-      const std::string& type = tileObject.type;
+      if (tileObject.type == "") continue;
 
-      if (type == "") continue;
+      auto type = TileType::FromString(tileObject.type);
 
       auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
 
@@ -1384,26 +1385,26 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
       auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
       auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
 
-      if (type == "Home Warp") {
+      if (type == TileType::home_warp) {
         bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
         minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
       }
-      else if (type == "Server Warp" || type == "Custom Server Warp" || type == "Position Warp" || type == "Custom Warp") {
+      else if (TileType::IsWarp(type)) {
         bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
         minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
       }
-      else if (type == "Board") {
+      else if (type == TileType::board) {
         sf::Vector2f bottomPosition = objectCenterPos;
         bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
 
         bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(bottomPosition)), i);
         minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal, isConcealed);
       }
-      else if (type == "Shop") {
+      else if (type == TileType::shop) {
         bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(tileObject.position)), i);
         minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset, isConcealed);
       }
