@@ -27,6 +27,7 @@ private:
   bool copyScreen{ false }; //!< If true, copy the screen contents
   bool isScreenReady{ false };
   bool leave{ false }; /*!< Scene state coming/going flag */
+  bool closing{ false };
   bool remoteIsReady{ false };
   bool clientIsReady{ false };
   bool isInFlashyVSIntro{ false };

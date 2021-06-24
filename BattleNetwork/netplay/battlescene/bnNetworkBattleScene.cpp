@@ -56,7 +56,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   selectedNavi = props.netconfig.myNavi;
   props.base.player.CreateComponent<PlayerInputReplicator>(clientPlayer);
 
-  packetProcessor = std::make_shared<Netplay::PacketProcessor>(remoteAddress);
+  packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
     this->Quit(FadeOut::black);
   });
