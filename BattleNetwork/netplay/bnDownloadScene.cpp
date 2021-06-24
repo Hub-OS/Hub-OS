@@ -215,7 +215,7 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
     props->timeFreeze = reader.Read<decltype(props->timeFreeze)>(buffer);
     props->limit = reader.Read<decltype(props->limit)>(buffer);
 
-    props->id = id;
+    props->id = model_id;
     props->name = name;
     props->action = action;
     props->canBoost = props->damage > 0;

@@ -109,7 +109,7 @@ void WebClientManager::UploadCardData(const std::string& uuid,
   cardTextureCache.insert(std::pair(uuid, image));
   iconTextureCache.insert(std::pair(uuid, icon));
   account.cards[uuid] = data;
-  account.cardProperties[uuid] = model;
+  account.cardProperties[model->id] = model;
 }
 
 void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account)
