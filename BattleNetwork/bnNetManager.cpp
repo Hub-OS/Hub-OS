@@ -114,7 +114,17 @@ void NetManager::DropProcessor(const std::shared_ptr<IPacketProcessor>& processo
   }
 }
 
-const bool NetManager::BindPort(int port)
+void NetManager::SetMaxPayloadSize(uint16_t bytes)
+{
+  maxPayloadSize = bytes;
+}
+
+const uint16_t NetManager::GetMaxPayloadSize() const
+{
+  return maxPayloadSize;
+}
+
+const bool NetManager::BindPort(unsigned int port)
 {
   try {
     Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), port);

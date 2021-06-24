@@ -10,8 +10,6 @@
 #include "../bnNetManager.h"
 #include "bnPacketAssembler.h"
 
-constexpr uint16_t DEFAULT_MAX_PAYLOAD_SIZE = 1300;
-
 enum class Reliability : char
 {
   Unreliable = 0,

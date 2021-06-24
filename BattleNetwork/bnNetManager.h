@@ -8,14 +8,17 @@
 #include <Poco/Net/IPAddress.h>
 #include "bnIPacketProcessor.h"
 
+
 class NetManager {
 private:
   std::map<Poco::Net::SocketAddress, std::vector<std::shared_ptr<IPacketProcessor>>> handlers;
   std::map<std::shared_ptr<IPacketProcessor>, size_t> processorCounts;
   std::shared_ptr<Poco::Net::DatagramSocket> client; //!< us
-  int myPort{};
+  unsigned int myPort{};
+  uint16_t maxPayloadSize{ DEFAULT_MAX_PAYLOAD_SIZE };
 public:
   static const size_t LAG_WINDOW_LEN = 300;
+  static const uint16_t DEFAULT_MAX_PAYLOAD_SIZE = 1300;
 
   NetManager();
   ~NetManager();
@@ -24,7 +27,9 @@ public:
   void AddHandler(const Poco::Net::SocketAddress& sender, const std::shared_ptr<IPacketProcessor>& processor);
   void DropHandlers(const Poco::Net::SocketAddress& sender);
   void DropProcessor(const std::shared_ptr<IPacketProcessor>& processor);
-  const bool BindPort(int port);
+  void SetMaxPayloadSize(uint16_t bytes);
+  const uint16_t GetMaxPayloadSize() const;
+  const bool BindPort(unsigned int port);
   Poco::Net::DatagramSocket& GetSocket();
   const std::string GetPublicIP();
 

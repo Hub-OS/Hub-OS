@@ -159,7 +159,7 @@ void MatchMakingScene::HandlePasteEvent()
     Message* help = nullptr;
 
     if (IsValidIPv4(value)) {
-      packetProcessor->SetNewRemote(value);
+      packetProcessor->SetNewRemote(value, Net().GetMaxPayloadSize());
 
       if (packetProcessor->RemoteAddrIsValid()) {
         theirIP = value;

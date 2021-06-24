@@ -25,7 +25,7 @@ namespace Netplay {
     KickFunc onKickCallback;
     PacketbodyFunc onPacketBodyCallback;
   public:
-    PacketProcessor(const Poco::Net::SocketAddress& remoteAddress);
+    PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxBytes);
     virtual ~PacketProcessor();
 
     void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) override final;

@@ -18,7 +18,7 @@ namespace MatchMaking {
     void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) override final;
     void OnListen(const Poco::Net::SocketAddress& sender) override final;
     void Update(double elapsed) override final;
-    void SetNewRemote(const std::string& socketAddressStr);
+    void SetNewRemote(const std::string& socketAddressStr, uint16_t maxBytes);
     const Poco::Net::SocketAddress& GetRemoteAddr();
     const bool RemoteAddrIsValid() const;
     void SendPacket(Reliability reliability, const Poco::Buffer<char>& data);

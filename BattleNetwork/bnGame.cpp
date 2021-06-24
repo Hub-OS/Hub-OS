@@ -86,8 +86,10 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
 
   // Now that we have CLI values, we can configure 
   // other subsystems that need to read from them...
-  int myPort = CommandLineValue<int>("port");
+  unsigned int myPort = CommandLineValue<unsigned int>("port");
+  uint16_t maxPayloadSize = CommandLineValue<uint16_t>("mtu");
   netManager.BindPort(myPort);
+  netManager.SetMaxPayloadSize(maxPayloadSize);
 }
 
 TaskGroup Game::Boot(const cxxopts::ParseResult& values)

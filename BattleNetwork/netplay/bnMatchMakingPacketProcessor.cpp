@@ -33,13 +33,13 @@ void MatchMaking::PacketProcessor::Update(double elapsed) {
   }
 }
 
-void MatchMaking::PacketProcessor::SetNewRemote(const std::string& socketAddressStr)
+void MatchMaking::PacketProcessor::SetNewRemote(const std::string& socketAddressStr, uint16_t maxBytes)
 {
   validRemote = true;
 
   try {
     remote = Poco::Net::SocketAddress(socketAddressStr);
-    proxy = std::make_shared<Netplay::PacketProcessor>(remote);
+    proxy = std::make_shared<Netplay::PacketProcessor>(remote, maxBytes);
     proxy->SetPacketBodyCallback(callback);
   }
   catch (...) {
