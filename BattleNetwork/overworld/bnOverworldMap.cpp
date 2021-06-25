@@ -76,6 +76,23 @@ namespace Overworld {
     return { tileSpace.x * (float)tileWidth * 0.5f, tileSpace.y * (float)tileHeight };
   }
 
+  Tile* Map::GetTileFromWorld(sf::Vector3f worldPos) {
+    if(worldPos.z < 0) {
+      return nullptr;
+    }
+
+    auto layerIndex = size_t(worldPos.z);
+    auto tilePos = sf::Vector2i(WorldToTileSpace({ worldPos.x, worldPos.y }));
+
+    if (layerIndex >= layers.size()) {
+      return nullptr;
+    }
+
+    auto& layer = layers[layerIndex];
+
+    return layer.GetTile(tilePos.x, tilePos.y);
+  }
+
   size_t Map::HashTilePosition(sf::Vector2f position) const {
     return size_t(position.x) + size_t(cols) * size_t(position.y);
   }

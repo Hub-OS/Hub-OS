@@ -117,6 +117,8 @@ namespace Overworld {
      */
     sf::Vector2f TileToWorld(sf::Vector2f tile) const;
 
+    Tile* GetTileFromWorld(sf::Vector3f);
+
     size_t HashTilePosition(sf::Vector2f position) const;
 
     /**
