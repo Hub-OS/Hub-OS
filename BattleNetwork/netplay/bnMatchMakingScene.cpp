@@ -417,6 +417,8 @@ void MatchMakingScene::onStart() {
 }
 
 void MatchMakingScene::onResume() {
+  isScreenReady = true;
+
   if (!canProceedToBattle) {
     // If this condition is false, we could not download assets we needed
     // Reset for next match attempt
@@ -629,6 +631,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
 void MatchMakingScene::onLeave()
 {
+  isScreenReady = false;
 }
 
 void MatchMakingScene::onEnter()
