@@ -18,6 +18,7 @@
 #include "../bnDrawWindow.h"
 #include "../bnAnimation.h"
 #include "../bnCardFolderCollection.h"
+#include "../bnKeyItemScene.h"
 
 // overworld
 #include "bnOverworldCameraController.h"
@@ -53,6 +54,7 @@ namespace Overworld {
     Overworld::PlayerController playerController{};
     Overworld::SpatialMap spatialMap{};
     std::vector<std::shared_ptr<Overworld::Actor>> actors;
+    std::vector<KeyItemScene::Item> items;
 
     double animElapsed{};
     bool showMinimap{ false };
@@ -189,6 +191,9 @@ namespace Overworld {
     void SetBackground(const std::shared_ptr<Background>&);
 
     void SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>&);
+
+    void AddItem(const std::string& name, const std::string& description);
+    void RemoveItem(const std::string& name);
 
     /**
      * @brief Add a sprite

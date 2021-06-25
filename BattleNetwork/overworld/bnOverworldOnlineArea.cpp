@@ -776,6 +776,12 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::money:
       receiveMoneySignal(reader, data);
       break;
+    case ServerEvents::add_item:
+      receiveItemSignal(reader, data);
+      break;
+    case ServerEvents::remove_item:
+      receiveRemoveItemSignal(reader, data);
+      break;
     case ServerEvents::play_sound:
       receivePlaySoundSignal(reader, data);
       break;
@@ -1428,6 +1434,21 @@ void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco:
 {
   auto balance = reader.Read<int>(buffer);
   GetPersonalMenu().SetMonies(balance);
+}
+
+void Overworld::OnlineArea::receiveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto name = reader.ReadString<uint8_t>(buffer);
+  auto description = reader.ReadString<uint16_t>(buffer);
+
+  AddItem(name, description);
+}
+
+void Overworld::OnlineArea::receiveRemoveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto name = reader.ReadString<uint8_t>(buffer);
+
+  RemoveItem(name);
 }
 
 void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {

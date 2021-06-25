@@ -19,7 +19,6 @@
 #include "../bnLibraryScene.h"
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
-#include "../bnKeyItemScene.h"
 #include "../bnVendorScene.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnCustomBackground.h"
@@ -1326,14 +1325,6 @@ void Overworld::SceneBase::GotoKeyItems()
 
   using effect = segue<BlackWashFade, milliseconds<500>>;
 
-  std::vector<KeyItemScene::Item> items;
-  for (auto& item : webAccount.keyItems) {
-    items.push_back(KeyItemScene::Item{
-      item.name,
-      item.description
-      });
-  }
-
   getController().push<effect::to<KeyItemScene>>(items);
 }
 
@@ -1443,6 +1434,20 @@ void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
 void Overworld::SceneBase::OnCustomEmoteSelected(unsigned emote)
 {
   emoteNode.CustomEmote(emote);
+}
+
+void Overworld::SceneBase::AddItem(const std::string& name, const std::string& description)
+{
+  items.push_back({ name, description });
+}
+
+void Overworld::SceneBase::RemoveItem(const std::string& name)
+{
+  auto iter = std::find_if(items.begin(), items.end(), [&name](auto& item) { return item.name == name; });
+
+  if (iter != items.end()) {
+    items.erase(iter);
+  }
 }
 
 std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const
