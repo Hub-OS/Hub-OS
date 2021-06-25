@@ -139,7 +139,8 @@ namespace Overworld {
 
   static void AdoptAttributes(MapObject& object, const XMLElement& element) {
     object.name = element.GetAttribute("name");
-    object.type = element.GetAttribute("type");
+    object.typeString = element.GetAttribute("type");
+    object.type = ObjectType::FromString(object.typeString);
     object.position = sf::Vector2f(
       element.GetAttributeFloat("x"),
       element.GetAttributeFloat("y")

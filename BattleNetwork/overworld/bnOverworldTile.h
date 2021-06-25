@@ -4,8 +4,10 @@
 #include <vector>
 #include <memory>
 
+#include "bnOverworldTileType.h"
 #include "bnOverworldCustomProperties.h"
 #include "bnOverworldShapes.h"
+#include "../bnDirection.h"
 #include "../bnAnimation.h"
 
 namespace Overworld
@@ -31,7 +33,9 @@ namespace Overworld
     const unsigned int gid;
     const sf::Vector2f drawingOffset;
     const sf::Vector2f alignmentOffset;
-    const std::string type;
+    const std::string typeString;
+    const TileType::TileType type;
+    const Direction direction;
     const CustomProperties customProperties;
     const std::vector<std::unique_ptr<Shape>> collisionShapes;
     Animation animation;

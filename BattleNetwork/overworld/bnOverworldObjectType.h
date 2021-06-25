@@ -50,11 +50,16 @@ namespace Overworld {
     }
 
     inline bool IsWarp(ObjectType type) {
-      return type == custom_warp ||
-        type == server_warp ||
-        type == position_warp ||
-        type == custom_server_warp ||
-        type == home_warp;
+      switch (type) {
+      case custom_warp:
+      case server_warp:
+      case position_warp:
+      case custom_server_warp:
+      case home_warp:
+        return true;
+      default:
+        return false;
+      }
     }
 
     inline bool IsCustomWarp(ObjectType type) {

@@ -322,7 +322,7 @@ namespace Overworld {
 
     auto& tileMeta = tileMetas[tile->gid];
 
-    if (!tileMeta || tileMeta->type != "Stairs") {
+    if (!tileMeta || tileMeta->type != TileType::stairs) {
       return layerElevation;
     }
 
@@ -371,7 +371,7 @@ namespace Overworld {
 
     auto& tileMeta = tileMetas[tile->gid];
 
-    return tileMeta && tileMeta->type == "Stairs";
+    return tileMeta && tileMeta->type == TileType::stairs;
   }
 
   bool Map::HasShadow(sf::Vector2i tilePos, int layer) {

@@ -190,7 +190,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
 
     auto tile = map.GetTileFromWorld(newPos);
 
-    if(tile && TileType::FromString(map.GetTileMeta(tile->gid)->type) == TileType::conveyor) {
+    if (tile && map.GetTileMeta(tile->gid)->type == TileType::conveyor) {
       continue;
     }
 
@@ -273,11 +273,11 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
 
     auto& command = teleportController.TeleportOut(player);
 
-    auto type = ObjectType::FromString(tileObject.type);
     auto interpolateTime = sf::seconds(0.5f);
     auto position3 = sf::Vector3f(tileObject.position.x, tileObject.position.y, float(layerIndex));
 
-    if (type == ObjectType::home_warp) {
+    switch (tileObject.type) {
+    case ObjectType::home_warp: {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
@@ -285,8 +285,9 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
         sendLogoutSignal();
         getController().pop<segue<BlackWashFade>>();
       });
+      break;
     }
-    else if (type == ObjectType::server_warp) {
+    case ObjectType::server_warp: {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       auto address = tileObject.customProperties.GetProperty("address");
@@ -297,8 +298,9 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
         GetPlayerController().ReleaseActor();
         transferServer(address, port, data, false);
       });
+      break;
     }
-    else if (type == ObjectType::position_warp) {
+    case ObjectType::position_warp: {
       auto targetTilePos = sf::Vector2f(
         tileObject.customProperties.GetPropertyFloat("x"),
         tileObject.customProperties.GetPropertyFloat("y")
@@ -322,8 +324,9 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
         teleportIn(targetPosition, Orthographic(direction));
         warpCameraController.QueueUnlockCamera();
       });
+      break;
     }
-    else if (IsCustomWarp(type)) {
+    default:
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
@@ -359,11 +362,11 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   auto tileMeta = map.GetTileMeta(tile->gid);
 
-  if (!tileMeta || tileMeta->type != "Conveyor") {
+  if (!tileMeta || tileMeta->type != TileType::conveyor) {
     return;
   }
 
-  auto direction = FromString(tileMeta->customProperties.GetProperty("direction"));
+  auto direction = tileMeta->direction;
 
   if (tile->flippedHorizontal) {
     direction = FlipHorizontal(direction);
@@ -407,7 +410,7 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
     auto tileMeta = map.GetTileMeta(tile->gid);
 
-    return tileMeta && tileMeta->type == "Conveyor";
+    return tileMeta && tileMeta->type == TileType::conveyor;
   };
 
   // resolve end position
@@ -1392,42 +1395,9 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
     warpLayer.clear();
 
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
-      if (tileObject.type == "") continue;
-
-      auto type = ObjectType::FromString(tileObject.type);
-
-      auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
-
-      if (!tileMeta) continue;
-
-      auto screenOffset = tileMeta->alignmentOffset + tileMeta->drawingOffset;
-      screenOffset += tileObject.size / 2.0f;
-
-      auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
-      auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
-
-      if (type == ObjectType::home_warp) {
-        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
-        minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
+      if (ObjectType::IsWarp(tileObject.type)) {
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
-      }
-      else if (ObjectType::IsWarp(type)) {
-        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
-        tileObject.solid = false;
-        warpLayer.push_back(&tileObject);
-      }
-      else if (type == ObjectType::board) {
-        sf::Vector2f bottomPosition = objectCenterPos;
-        bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
-
-        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(bottomPosition)), i);
-        minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal, isConcealed);
-      }
-      else if (type == ObjectType::shop) {
-        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(tileObject.position)), i);
-        minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset, isConcealed);
       }
     }
   }

@@ -207,6 +207,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   minimap.bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
 
   minimap.FindTileMarkers(map);
+  minimap.FindObjectMarkers(map);
 
   return minimap;
 }
@@ -228,13 +229,13 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
           continue;
         }
 
-        if (TileType::FromString(tileMeta->type) == TileType::conveyor) {
+        if (tileMeta->type == TileType::conveyor) {
           auto pos = sf::Vector2f(col, row);
           pos.x += 0.5f;
           pos.y += 0.5f;
 
           auto worldPos = map.TileToWorld(pos);
-          auto direction = FromString(tileMeta->customProperties.GetProperty("direction"));
+          auto direction = tileMeta->direction;
 
           if (tile->flippedHorizontal) {
             direction = FlipHorizontal(direction);
@@ -249,6 +250,45 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
           bool isConcealed = map.IsConcealed(sf::Vector2i(col, row), i);
           AddConveyorPosition(screenPos, direction, isConcealed);
         }
+      }
+    }
+  }
+}
+
+void Overworld::Minimap::FindObjectMarkers(Map& map) {
+  auto layerCount = map.GetLayerCount();
+  auto tileSize = map.GetTileSize();
+
+  for (auto i = 0; i < layerCount; i++) {
+    for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
+      auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
+
+      if (!tileMeta) continue;
+
+      auto screenOffset = tileMeta->alignmentOffset + tileMeta->drawingOffset;
+      screenOffset += tileObject.size / 2.0f;
+
+      auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
+      auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
+
+      if (tileObject.type == ObjectType::home_warp) {
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
+        SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
+      }
+      else if (ObjectType::IsWarp(tileObject.type)) {
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
+        AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
+      }
+      else if (tileObject.type == ObjectType::board) {
+        sf::Vector2f bottomPosition = objectCenterPos;
+        bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
+
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(bottomPosition)), i);
+        AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal, isConcealed);
+      }
+      else if (tileObject.type == ObjectType::shop) {
+        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(tileObject.position)), i);
+        AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset, isConcealed);
       }
     }
   }
@@ -321,7 +361,7 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       sf::Vector2f sizeUv(tileSprite.getTexture()->getSize());
       shader.setUniform("center", sf::Glsl::Vec2(center.x / sizeUv.x, center.y / sizeUv.y));
       shader.setUniform("tileSize", sf::Glsl::Vec2((tileSize.x + 1) / sizeUv.x, (tileSize.y + 1) / sizeUv.y));
-      shader.setUniform("mask", TileType::FromString(tileMeta->type) != TileType::stairs);
+      shader.setUniform("mask", tileMeta->type != TileType::stairs);
 
       // draw
       target.draw(tileSprite, states);

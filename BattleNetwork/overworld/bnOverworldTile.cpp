@@ -10,7 +10,7 @@ namespace Overworld {
     unsigned int gid,
     sf::Vector2f drawingOffset,
     sf::Vector2f alignmentOffset,
-    const std::string& type,
+    const std::string& typeString,
     const CustomProperties& customProperties,
     std::vector<std::unique_ptr<Shape>> collisionShapes
   ) :
@@ -18,7 +18,9 @@ namespace Overworld {
     gid(gid),
     drawingOffset(drawingOffset),
     alignmentOffset(alignmentOffset),
-    type(type),
+    typeString(typeString),
+    type(TileType::FromString(typeString)),
+    direction(FromString(customProperties.GetProperty("direction"))),
     customProperties(customProperties),
     collisionShapes(std::move(collisionShapes))
   {

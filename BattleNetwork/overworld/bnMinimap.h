@@ -20,6 +20,7 @@ namespace Overworld {
     void EnforceTextureSizeLimits();
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
     void FindTileMarkers(Map& map);
+    void FindObjectMarkers(Map& map);
     void AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos, bool inShadow);
   public:
     static Minimap CreateFrom(const std::string& name, Map& map);
