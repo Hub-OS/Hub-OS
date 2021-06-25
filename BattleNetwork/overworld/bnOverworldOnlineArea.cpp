@@ -1874,7 +1874,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   player->SetEmotion(GetPlayerSession().emotion);
 
   try {
-    Logger::Log(addressString.c_str());
     auto remote = Poco::Net::SocketAddress(addressString);
     netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
     Net().AddHandler(remote, netBattleProcessor);
