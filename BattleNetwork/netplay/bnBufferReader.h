@@ -37,9 +37,16 @@ public:
   std::string ReadString(const Poco::Buffer<char>& buffer)
   {
     auto length = Read<Size>(buffer);
+
+    return ReadString(buffer, length);
+  }
+
+  std::string ReadString(const Poco::Buffer<char>& buffer, size_t length)
+  {
     auto remainingBytes = buffer.size() - offset;
 
     if (remainingBytes < length) {
+      Logger::Log("BufferReader read past end!");
       return "";
     }
 

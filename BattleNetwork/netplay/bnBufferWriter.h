@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Poco/Buffer.h>
 #include "../bnLogger.h"
+#include <Poco/Buffer.h>
+#include <limits>
 
 class BufferWriter
 {
@@ -25,6 +26,13 @@ public:
   void WriteString(Poco::Buffer<char>& buffer, const std::string& text)
   {
     auto len = (Size)text.size();
+
+    if(text.size() > std::numeric_limits<Size>::max()) {
+      // prevent corruption by capping len at sizeof(Size)
+      len = std::numeric_limits<Size>::max();
+      Logger::Log("String length longer than Size, truncating...");
+    }
+
     Write<Size>(buffer, len);
     buffer.append(text.c_str(), len);
   }
