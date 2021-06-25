@@ -33,6 +33,21 @@ public:
     return result;
   }
 
+  template <typename Size>
+  std::string ReadString(const Poco::Buffer<char>& buffer)
+  {
+    auto length = Read<Size>(buffer);
+    auto remainingBytes = buffer.size() - offset;
+
+    if (remainingBytes < length) {
+      return "";
+    }
+
+    auto result = std::string(buffer.begin() + offset, length);
+    offset += length;
+
+    return result;
+  }
+
   std::string ReadTerminatedString(const Poco::Buffer<char>& buffer);
-  std::string ReadString(const Poco::Buffer<char>& buffer);
 };
