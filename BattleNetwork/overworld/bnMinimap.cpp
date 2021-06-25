@@ -386,6 +386,8 @@ Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
   warp.setTexture(rhs.warp.getTexture(), false);
   player.setPosition(rhs.player.getPosition());
   hp.setPosition(rhs.hp.getPosition());
+  hp.setColor(rhs.hp.getColor());
+  hp.SetLayer(rhs.hp.GetLayer());
   bakedMap.setPosition(rhs.bakedMap.getPosition());
   EnforceTextureSizeLimits();
 
