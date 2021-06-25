@@ -80,7 +80,6 @@ private:
   Text ping;
   SelectedNavi selectedNavi; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
-  Poco::Net::SocketAddress remoteAddress;
   std::vector<Player*> players; //!< Track all players
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   SpriteProxyNode pingIndicator;

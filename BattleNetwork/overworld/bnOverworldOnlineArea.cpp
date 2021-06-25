@@ -596,6 +596,11 @@ void Overworld::OnlineArea::onResume()
     packetProcessor->SetForeground();
   }
 
+  if (netBattleProcessor) {
+    Net().DropProcessor(netBattleProcessor);
+    netBattleProcessor = nullptr;
+  }
+
   // isEnteringBattle = false;
 }
 
@@ -1854,7 +1859,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   Audio().StopStream();
 
   // Configure the session
-  config.remote = addressString;
   config.myNavi = GetCurrentNavi();
 
   auto& meta = NAVIS.At(config.myNavi);
@@ -1869,12 +1873,23 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   player->SetHealth(GetPlayerSession().health);
   player->SetEmotion(GetPlayerSession().emotion);
 
+  try {
+    Logger::Log(addressString.c_str());
+    auto remote = Poco::Net::SocketAddress(addressString);
+    netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
+    Net().AddHandler(remote, netBattleProcessor);
+  }
+  catch (...) {
+    return;
+  }
+
   NetworkBattleSceneProps props = {
     { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
     sf::Sprite(*mugshot),
     mugshotAnim,
     emotions,
-    config
+    config,
+    netBattleProcessor
   };
 
   // isEnteringBattle = true;

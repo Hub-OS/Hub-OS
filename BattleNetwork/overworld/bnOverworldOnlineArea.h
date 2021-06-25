@@ -8,6 +8,7 @@
 
 #include "../bnBattleResults.h"
 #include "../netplay/bnBufferReader.h"
+#include "../netplay/bnNetPlayPacketProcessor.h"
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldPacketProcessor.h"
 #include "bnOverworldActorPropertyAnimator.h"
@@ -50,6 +51,7 @@ namespace Overworld {
     std::string ticket; //!< How we are represented on the server
     Poco::Net::SocketAddress remoteAddress; //!< server
     std::shared_ptr<PacketProcessor> packetProcessor;
+    std::shared_ptr<Netplay::PacketProcessor> netBattleProcessor;
     std::string connectData;
     uint16_t maxPayloadSize;
     bool isConnected{ false };

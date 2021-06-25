@@ -562,7 +562,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
         compatibleNavi = selectedNavi;
       }
 
-      config.remote = theirIP;
       config.myNavi = compatibleNavi;
 
       auto& meta = NAVIS.At(compatibleNavi);
