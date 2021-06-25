@@ -183,22 +183,22 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
     auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
     actor->Set3DPosition(newPos);
 
-    if (!(onlinePlayer.propertyAnimator.IsAnimating() && actor->IsPlayingCustomAnimation())) {
-      // animate the player if they're not being animated by the property animator
+    if (onlinePlayer.propertyAnimator.IsAnimating() && actor->IsPlayingCustomAnimation()) {
+      // skip animating the player if they're being animated by the property animator
+      continue;
+    }
 
-      Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
-      auto oldHeading = actor->GetHeading();
+    Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
+    auto oldHeading = actor->GetHeading();
 
-
-      if (distance == 0.0) {
-        actor->Face(onlinePlayer.idleDirection);
-      }
-      else if (distance <= actor->GetWalkSpeed() * expectedTime) {
-        actor->Walk(newHeading, false); // Don't actually move or collide, but animate
-      }
-      else {
-        actor->Run(newHeading, false);
-      }
+    if (distance == 0.0) {
+      actor->Face(onlinePlayer.idleDirection);
+    }
+    else if (distance <= actor->GetWalkSpeed() * expectedTime) {
+      actor->Walk(newHeading, false); // Don't actually move or collide, but animate
+    }
+    else {
+      actor->Run(newHeading, false);
     }
   }
 }
