@@ -46,7 +46,7 @@ Overworld::OnlineArea::OnlineArea(
   ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
-  serverAssetManager("cache", address + "_p" + std::to_string(port))
+  serverAssetManager(address, port)
 {
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");

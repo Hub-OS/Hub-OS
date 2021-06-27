@@ -3,12 +3,15 @@
 #include "../bnLogger.h"
 #include <fstream>
 #include <sstream>
+#include <string_view>
 #include <iterator>
 
 #ifndef __APPLE__
   // TODO: mac os < 10.15 file system support
   #include<filesystem>
 #endif
+
+constexpr std::string_view CACHE_FOLDER = "cache";
 
 static char encodeHexChar(char c) {
   if (c < 10) {
@@ -98,8 +101,8 @@ static std::tuple<std::string, uint64_t> decodeName(const std::string& name) {
 }
 
 
-Overworld::ServerAssetManager::ServerAssetManager(const std::string& parentFolder, const std::string& folderName) :
-  cachePath(parentFolder + '/' + URIEncode(folderName))
+Overworld::ServerAssetManager::ServerAssetManager(const std::string& address, uint16_t port) :
+  cachePath(std::string(CACHE_FOLDER) + '/' + URIEncode(address + "_p" + std::to_string(port)))
 {
   // prefix with cached- to avoid reserved names such as COM
   cachePrefix = cachePath + "/cached-";
