@@ -7,6 +7,8 @@
 #include <unordered_map>
 
 namespace Overworld {
+  std::string URIEncode(const std::string& name);
+
   class ServerAssetManager {
   private:
     struct CacheMeta {

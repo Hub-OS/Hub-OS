@@ -14,6 +14,7 @@
 #include "bnOverworldActorPropertyAnimator.h"
 #include "bnPacketHeaders.h"
 #include "bnServerAssetManager.h"
+#include "bnIdentityManager.h"
 
 namespace Overworld {
   struct OnlinePlayer {
@@ -62,6 +63,7 @@ namespace Overworld {
     ActorPropertyAnimator propertyAnimator;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
+    IdentityManager identityManager;
     AssetMeta incomingAsset;
     std::map<std::string, OnlinePlayer> onlinePlayers;
     std::map<unsigned, ExcludedObjectData> excludedObjects;

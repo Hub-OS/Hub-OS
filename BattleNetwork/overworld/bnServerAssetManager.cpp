@@ -8,7 +8,7 @@
 
 #ifndef __APPLE__
   // TODO: mac os < 10.15 file system support
-  #include<filesystem>
+  #include <filesystem>
 #endif
 
 constexpr std::string_view CACHE_FOLDER = "cache";
@@ -23,7 +23,7 @@ static char encodeHexChar(char c) {
 
 // prevents a server from doing something dangerous by abusing special characters that we may be unaware of
 // also allows us to have a flat file structure for easy reading
-static std::string URIEncode(std::string name) {
+std::string Overworld::URIEncode(const std::string& name) {
   std::stringstream encodedName;
 
   for (auto i = 0; i < name.length(); i++) {
@@ -78,7 +78,7 @@ static std::string URIDecode(std::string encodedName) {
 }
 
 static std::string encodeName(const std::string& name, uint64_t lastModified) {
-  return std::to_string(lastModified) + "-" + URIEncode(name);
+  return std::to_string(lastModified) + "-" + Overworld::URIEncode(name);
 }
 
 static std::tuple<std::string, uint64_t> decodeName(const std::string& name) {

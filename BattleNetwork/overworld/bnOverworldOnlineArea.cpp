@@ -46,7 +46,8 @@ Overworld::OnlineArea::OnlineArea(
   ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
-  serverAssetManager(address, port)
+  serverAssetManager(address, port),
+  identityManager(address, port)
 {
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
@@ -930,7 +931,8 @@ void Overworld::OnlineArea::sendLoginSignal()
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::login);
-  writer.WriteString<uint16_t>(buffer, username);
+  writer.WriteString<uint8_t>(buffer, username);
+  writer.WriteString<uint8_t>(buffer, identityManager.GetIdentity());
   writer.WriteString<uint16_t>(buffer, connectData);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }

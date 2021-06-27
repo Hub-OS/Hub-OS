@@ -92,11 +92,10 @@ public:
 
     if (in.open(_path) && in.getSize() > 0) {
       sf::Int64 size = in.getSize();
-      char* buffer = new char[size + 1];
+      char* buffer = new char[size];
       in.read(buffer, size);
-      buffer[size] = '\0';
 
-      std::string strbuff(buffer);
+      std::string strbuff(buffer, size);
 
       delete[] buffer;
 
