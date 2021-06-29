@@ -20,6 +20,7 @@
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
 #include "../bnKeyItemScene.h"
+#include "../bnMailScene.h"
 #include "../bnVendorScene.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnCustomBackground.h"
@@ -50,6 +51,7 @@ namespace {
     return {
       { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
       { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
+      { "mail",        std::bind(&Overworld::SceneBase::GotoMail, scene) },
       { "key_items",   std::bind(&Overworld::SceneBase::GotoKeyItems, scene) },
       { "mob_select",  std::bind(&Overworld::SceneBase::GotoMobSelect, scene) },
       { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) },
@@ -1317,6 +1319,21 @@ void Overworld::SceneBase::GotoPVP()
     Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
     gotoNextScene = false;
   }
+}
+
+void Overworld::SceneBase::GotoMail()
+{
+  gotoNextScene = true;
+  Audio().Play(AudioType::CHIP_DESC);
+
+  using effect = segue<BlackWashFade, milliseconds<500>>;
+
+  Mail& inbox = playerSession.inbox;
+  inbox.Clear();
+
+  inbox.push_back(Mail::Message{Mail::Icons::announcement, "Welcome", "NO-TITLE", "This is your first email!"});
+
+  getController().push<effect::to<MailScene>>(inbox);
 }
 
 void Overworld::SceneBase::GotoKeyItems()

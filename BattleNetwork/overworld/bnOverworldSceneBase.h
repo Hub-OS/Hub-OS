@@ -31,6 +31,7 @@
 #include "bnOverworldPersonalMenu.h"
 #include "bnOverworldMenuSystem.h"
 #include "bnEmotes.h"
+#include "bnMail.h"
 #include "bnXML.h"
 #include "bnMinimap.h"
 
@@ -40,6 +41,7 @@ namespace Overworld {
   struct PlayerSession {
     int health{};
     Emotion emotion{};
+    Mail inbox;
   };
 
   class SceneBase : public Scene {
@@ -250,6 +252,7 @@ namespace Overworld {
     void GotoConfig();
     void GotoMobSelect();
     void GotoPVP();
+    void GotoMail();
     void GotoKeyItems();
 
     //
