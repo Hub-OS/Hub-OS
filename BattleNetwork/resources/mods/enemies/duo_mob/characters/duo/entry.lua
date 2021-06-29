@@ -33,9 +33,9 @@ function UpwardFist(duo)
 
     fist:SetHitProps(MakeHitProps(
         50, 
-        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Hit.Impact | Hit.Flash | Hit.Flinch, 
         Element.None, 
-        duo, 
+        duo:GetID(), 
         Drag(Direction.None, 0)
         )
     )
@@ -92,9 +92,9 @@ function DownwardFist(duo)
 
     fist:SetHitProps(MakeHitProps(
         50, 
-        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Hit.Impact | Hit.Flash | Hit.Flinch, 
         Element.None, 
-        duo, 
+        duo:GetID(), 
         Drag(Direction.None, 0)
         )
     )
@@ -151,9 +151,9 @@ function Mine(duo)
     mine:ShareTile(true)
     mine:SetHitProps(MakeHitProps(
         20, 
-        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Hit.Impact | Hit.Flash | Hit.Flinch, 
         Element.None, 
-        duo, 
+        duo:GetID(), 
         Drag(Direction.None, 0)
         )
     )
@@ -175,7 +175,7 @@ function Mine(duo)
     miscAnim:Refresh(mine.node:Sprite())
 
     mine.updateFunc = function(self, dt) 
-        print("updating mine")
+        --print("updating mine")
         local tile = self:Tile()
 
         -- every frame try to attack shared tile
@@ -260,9 +260,9 @@ function LaserBeam(duo)
 
     laser:SetHitProps(MakeHitProps(
         100, 
-        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Hit.Impact | Hit.Flash | Hit.Flinch, 
         Element.None, 
-        duo, 
+        duo:GetID(), 
         Drag(Direction.None, 0 )
         )
     )
@@ -343,9 +343,9 @@ function Missile(duo)
 
     missile:SetHitProps(MakeHitProps(
         30, 
-        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Hit.Impact | Hit.Flash | Hit.Flinch, 
         Element.None, 
-        duo, 
+        duo:GetID(), 
         Drag(Direction.None, 0)
         )
     )
@@ -356,7 +356,7 @@ function Missile(duo)
     missileAnim:SetPlayback(Playback.Loop)
 
     missile.updateFunc = function(self, dt) 
-        print("updating missile")
+        --print("updating missile")
 
         self.waitTimer = self.waitTimer - dt
         if(self.waitTimer > 0) then 
@@ -393,7 +393,7 @@ function Missile(duo)
     end
 
     missile.canMoveToFunc = function(tile)
-        -- missiles fly over any tiles
+        -- missiles fly over any tile
         return true
     end
 
