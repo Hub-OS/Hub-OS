@@ -136,11 +136,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "TileAt", &Field::GetAt,
     "Width", &Field::GetWidth,
     "Height", &Field::GetHeight,
+        // The source of the double-delete bug.
+        // sol::resolve doesn't actually check for BEST fit, only FIRST fit
+        // List most-derived types first to avoid this happening
     "Spawn", sol::overload(
-      sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity),
-      sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity),
-      sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedSpell>&, int, int)>(&Field::AddEntity),
-      sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedObstacle>&, int, int)>(&Field::AddEntity)
+        sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedObstacle>&, int, int)>(&Field::AddEntity),
+        sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedSpell>&, int, int)>(&Field::AddEntity),
+        sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity),
+        sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity)
     )
     );
 
