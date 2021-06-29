@@ -31,10 +31,11 @@ struct DownloadSceneProps {
 class DownloadScene final : public Scene {
 private:
   enum class state : char {
-    trade,
-    download,
+    trade_cards,
+    download_cards,
+    download_combos,
     complete
-  } currState{ state::trade };
+  } currState{ state::trade_cards };
 
   bool& downloadSuccess;
   bool aborting{}, remoteSuccess{};
@@ -59,8 +60,10 @@ private:
 
   void RecieveTradeCardList(const Poco::Buffer<char>& buffer);
   void RecieveRequestCardList(const Poco::Buffer<char>& buffer);
+  void RecieveRequestComboList(const Poco::Buffer<char>& buffer);
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
   void DownloadCardList(const Poco::Buffer<char>& buffer);
+  void DownloadComboList(const Poco::Buffer<char>& buffer);
   void RecieveCustomPlayerData(const Poco::Buffer<char>& buffer);
  
   std::vector<std::string> DeserializeUUIDs(const Poco::Buffer<char>& buffer);

@@ -21,6 +21,7 @@ public:
   void OnAnimationEnd() override;
   void OnActionEnd() override;
   void OnExecute(Character* user) override;
+  CardAction::Attachment& AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node);
 
   std::function<void(ScriptedCardAction&, double)> onUpdate;
   std::function<void(ScriptedCardAction&)> onAnimationEnd;

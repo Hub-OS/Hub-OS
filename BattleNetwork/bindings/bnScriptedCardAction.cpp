@@ -11,7 +11,13 @@ ScriptedCardAction::~ScriptedCardAction() {
 
 }
 
+CardAction::Attachment& ScriptedCardAction::AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node) {
+  return CardAction::AddAttachment(*character, point, node);
+}
+
 void ScriptedCardAction::Update(double elapsed) {
+  CardAction::Update(elapsed);
+
   if (onUpdate) {
     onUpdate(*this, elapsed);
   }

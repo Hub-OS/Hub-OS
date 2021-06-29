@@ -326,31 +326,36 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     );
 
   const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
-    sol::factories([](Character& character, const std::string& state) -> CardAction* {
-      return new ScriptedCardAction(character, state);
+    sol::factories([](Character* character, const std::string& state) -> CardAction* {
+      return new ScriptedCardAction(*character, state);
       }),
     sol::meta_function::index,
-        &dynamic_object::dynamic_get,
-        sol::meta_function::new_index,
-        &dynamic_object::dynamic_set,
-        sol::meta_function::length,
-        [](dynamic_object& d) { return d.entries.size(); },
-        "SetLockout", &ScriptedCardAction::SetLockout,
-        "SetLockoutGroup", &ScriptedCardAction::SetLockoutGroup,
-        "OverrideAnimationFrames", &ScriptedCardAction::OverrideAnimationFrames,
-        "AddAttachment", sol::overload(
-          sol::resolve<CardAction::Attachment&(Character&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
-          sol::resolve<CardAction::Attachment&(Animation&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment)
-        ),
-        "AddAnimAction", &ScriptedCardAction::AddAnimAction,
-        "AddStep", &ScriptedCardAction::AddStep,
-        "EndAction", &ScriptedCardAction::EndAction,
-        "GetActor", &ScriptedCardAction::GetActor,
-        "actionEndFunc", &ScriptedCardAction::onActionEnd,
-        "animationEndFunc", &ScriptedCardAction::onAnimationEnd,
-        "executeFunc", &ScriptedCardAction::onExecute,
-        "updateFunc", &ScriptedCardAction::onUpdate
-        );
+    &dynamic_object::dynamic_get,
+    sol::meta_function::new_index,
+    &dynamic_object::dynamic_set,
+    sol::meta_function::length,
+    [](dynamic_object& d) { return d.entries.size(); },
+    "SetLockout", &ScriptedCardAction::SetLockout,
+    "OverrideAnimationFrames", &ScriptedCardAction::OverrideAnimationFrames,
+    "AddAttachment", sol::overload(
+      sol::resolve<CardAction::Attachment&(Character*, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
+      sol::resolve<CardAction::Attachment&(Animation&, const std::string&, SpriteProxyNode&)>(&CardAction::AddAttachment)
+    ),
+    "AddAnimAction", &ScriptedCardAction::AddAnimAction,
+    "AddStep", &ScriptedCardAction::AddStep,
+    "EndAction", &ScriptedCardAction::EndAction,
+    "GetActor", &ScriptedCardAction::GetActor,
+    "actionEndFunc", &ScriptedCardAction::onActionEnd,
+    "animationEndFunc", &ScriptedCardAction::onAnimationEnd,
+    "executeFunc", &ScriptedCardAction::onExecute,
+    "updateFunc", &ScriptedCardAction::onUpdate
+    );
+
+  const auto& card_action_step_record = battle_namespace.new_usertype<CardAction::Step>("Step",
+    "drawFunc", &CardAction::Step::drawFunc,
+    "updateFunc", &CardAction::Step::updateFunc,
+    "markDone", &CardAction::Step::markDone
+  );
 
   const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
     sol::constructors<CardAction::Attachment(Animation&, const std::string&, SpriteProxyNode&)>(),
