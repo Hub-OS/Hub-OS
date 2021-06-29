@@ -18,6 +18,7 @@
 #include "../bnDrawWindow.h"
 #include "../bnAnimation.h"
 #include "../bnCardFolderCollection.h"
+#include "../bnInbox.h"
 
 // overworld
 #include "bnOverworldCameraController.h"
@@ -31,7 +32,6 @@
 #include "bnOverworldPersonalMenu.h"
 #include "bnOverworldMenuSystem.h"
 #include "bnEmotes.h"
-#include "bnMail.h"
 #include "bnXML.h"
 #include "bnMinimap.h"
 
@@ -41,7 +41,7 @@ namespace Overworld {
   struct PlayerSession {
     int health{};
     Emotion emotion{};
-    Mail inbox;
+    Inbox inbox;
   };
 
   class SceneBase : public Scene {

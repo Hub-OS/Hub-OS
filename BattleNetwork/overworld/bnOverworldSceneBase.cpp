@@ -1328,10 +1328,16 @@ void Overworld::SceneBase::GotoMail()
 
   using effect = segue<BlackWashFade, milliseconds<500>>;
 
-  Mail& inbox = playerSession.inbox;
+  Inbox& inbox = playerSession.inbox;
   inbox.Clear();
 
-  inbox.push_back(Mail::Message{Mail::Icons::announcement, "Welcome", "NO-TITLE", "This is your first email!"});
+  sf::Texture mugshot = *Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png");
+  inbox.AddMail(Inbox::Mail{ Inbox::Icons::announcement, "Welcome", "NO-TITLE", "This is your first email!", mugshot} );
+  inbox.AddMail(Inbox::Mail{ Inbox::Icons::dm, "HELLO", "KERISTERO", "try gravy" });
+  inbox.AddMail(Inbox::Mail{ Inbox::Icons::dm_w_attachment, "ELLO", "DESTROYED", "ello govna" });
+  inbox.AddMail(Inbox::Mail{ Inbox::Icons::important, "FIRE", "NO-TITLE", "There's a fire in the undernet!", mugshot });
+  inbox.AddMail(Inbox::Mail{ Inbox::Icons::mission, "MISSING", "ANON", "Can you find my missing data? It would really help me out right now... Or don't if it's too hard, I understand..." });
+  inbox.AddMail(Inbox::Mail{ Inbox::Icons::dm, "Test", "NO-TITLE", "Just another test.", mugshot });
 
   getController().push<effect::to<MailScene>>(inbox);
 }

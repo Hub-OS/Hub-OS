@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 
-class Mail {
+class Inbox {
 public:
   enum class Icons : char {
     announcement = 0,
@@ -15,7 +15,7 @@ public:
     size // For counting only!
   };
 
-  struct Message {
+  struct Mail {
     Icons icon{};
     std::string title;
     std::string from;
@@ -24,13 +24,13 @@ public:
     bool read{};
   };
 
-  void AddMessage(const Message& msg);
-  void RemoveMessage(size_t index);
-  void ReadMessage(size_t index, std::function<void(const Message& msg)> onRead);
-  const Message& GetAt(size_t index) const;
+  void AddMail(const Mail& msg);
+  void RemoveMail(size_t index);
+  void ReadMail(size_t index, std::function<void(const Mail& msg)> onRead);
+  const Mail& GetAt(size_t index) const;
   void Clear();
   size_t Size() const;
   bool Empty() const;
 private:
-  std::vector<Message> inbox;
+  std::vector<Mail> mailList;
 };
