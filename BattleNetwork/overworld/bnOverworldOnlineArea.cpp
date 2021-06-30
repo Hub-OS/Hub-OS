@@ -194,8 +194,12 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
 
     auto tile = map.GetTileFromWorld(newPos);
 
-    if (tile && map.GetTileMeta(tile->gid)->type == TileType::conveyor) {
-      continue;
+    if (tile) {
+      auto metaPtr = map.GetTileMeta(tile->gid);
+
+      if (metaPtr && metaPtr->type == TileType::conveyor) {
+        continue;
+      }
     }
 
     Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
