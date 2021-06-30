@@ -4,6 +4,7 @@
 using std::map;
 using std::vector;
 
+#include "bindings/bnScriptedArtifact.h"
 #include "bindings/bnScriptedSpell.h"
 #include "bindings/bnScriptedObstacle.h"
 #include "bnEntity.h"
@@ -219,6 +220,7 @@ public:
   const bool DoesRevealCounterFrames() const;
 
 #ifdef BN_MOD_SUPPORT
+  AddEntityStatus AddEntity(std::unique_ptr<ScriptedArtifact>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
   AddEntityStatus AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
   AddEntityStatus AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
 #endif

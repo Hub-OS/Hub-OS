@@ -19,6 +19,7 @@
 
 #include "bnNaviRegistration.h"
 #include "bnMobRegistration.h"
+#include "bindings/bnScriptedArtifact.h"
 #include "bindings/bnScriptedCardAction.h"
 #include "bindings/bnScriptedCharacter.h"
 #include "bindings/bnScriptedSpell.h"
@@ -51,6 +52,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
     const auto& audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
         "LoadFile", &AudioResourceManager::LoadFromFile,
+        "Play", sol::overload(
+            sol::resolve<int(AudioType, AudioPriority)>(&AudioResourceManager::Play),
+            sol::resolve<int(std::shared_ptr<sf::SoundBuffer>, AudioPriority)>(&AudioResourceManager::Play)
+        ),
         "Stream", sol::resolve<int(std::string, bool)>(&AudioResourceManager::Stream)
         );
 
@@ -78,7 +83,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
     // TODO: Perhaps see if there's a way to get /readonly/ access to the X/Y value?
     // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
-    const auto& tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
+    const auto& tile_record = state.new_usertype<Battle::Tile>("Tile",
         "X", &Battle::Tile::GetX,
         "Y", &Battle::Tile::GetY,
         "Width", &Battle::Tile::GetWidth,
@@ -103,6 +108,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Height", &Field::GetHeight,
         "Spawn", sol::overload(
             sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedObstacle>&, int, int)>(&Field::AddEntity),
+            sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedArtifact>&, int, int)>(&Field::AddEntity),
             sol::resolve<Field::AddEntityStatus(std::unique_ptr<ScriptedSpell>&, int, int)>(&Field::AddEntity),
             sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity),
             sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity)
@@ -329,6 +335,20 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Team", &ScriptedPlayer::GetTeam
     );
 
+    const auto& scripted_artifact_record = engine_namespace.new_usertype<ScriptedArtifact>("Artifact",
+        sol::factories([]() -> std::unique_ptr<ScriptedArtifact> {
+            return std::make_unique<ScriptedArtifact>();
+            }),
+        sol::meta_function::index, &dynamic_object::dynamic_get,
+        sol::meta_function::new_index, &dynamic_object::dynamic_set,
+        sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
+        "Flip", &ScriptedArtifact::Flip,
+        "SetAnimation", &ScriptedArtifact::SetAnimation,
+        "SetLayer", &ScriptedArtifact::SetLayer,
+        "SetPath", &ScriptedArtifact::SetPath,
+        "SetTexture", &ScriptedArtifact::setTexture,
+        "updateFunc", &ScriptedArtifact::onUpdate);
+
     // Had it crash when using ScriptedPlayer* values so had to expose other versions for it to cooperate.
     // Keep an eye on this
     const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
@@ -393,7 +413,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Abilities", CardAction::LockoutGroup::ability
     );
 
-    const auto& defense_frame_state_judge_record = battle_namespace.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
+    const auto& defense_frame_state_judge_record = state.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
         "BlockDamage", &DefenseFrameStateJudge::BlockDamage,
         "BlockImpact", &DefenseFrameStateJudge::BlockImpact,
         "IsDamageBlocked", &DefenseFrameStateJudge::IsDamageBlocked,
@@ -599,7 +619,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         }
     );
 
-    const auto& tile_state_table = battle_namespace.new_enum("TileState",
+    const auto& tile_state_table = state.new_enum("TileState",
         "Broken", TileState::broken,
         "Cracked", TileState::cracked,
         "DirectionDown", TileState::directionDown,
@@ -617,7 +637,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Volcano", TileState::volcano
     );
 
-    const auto& defense_order_table = battle_namespace.new_enum("DefenseOrder",
+    const auto& defense_order_table = state.new_enum("DefenseOrder",
         "Always", DefenseOrder::always,
         "CollisionOnly", DefenseOrder::collisionOnly
     );
@@ -723,21 +743,64 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Drag", Hit::drag
     );
 
-    state.set_function("Drag",
-        [](Direction dir, unsigned count)
-            { return Hit::Drag{ dir, count }; }
-    );
+    const auto& audio_type_record = state.new_enum("AudioType", 
+        "CounterBonus", AudioType::COUNTER_BONUS,
+        "DirTile", AudioType::DIR_TILE,
+        "Fanfare", AudioType::FANFARE,
+        "Appear", AudioType::APPEAR,
+        "AreaGrab", AudioType::AREA_GRAB,
+        "AreaGrabTouchdown", AudioType::AREA_GRAB_TOUCHDOWN,
+        "BusterPea", AudioType::BUSTER_PEA,
+        "BusterCharged", AudioType::BUSTER_CHARGED,
+        "BusterCharging", AudioType::BUSTER_CHARGING,
+        "BubblePop", AudioType::BUBBLE_POP,
+        "BubbleSpawn", AudioType::BUBBLE_SPAWN,
+        "GuardHit", AudioType::GUARD_HIT,
+        "Cannon", AudioType::CANNON,
+        "Counter", AudioType::COUNTER,
+        "Wind", AudioType::WIND,
+        "ChipCancel", AudioType::CHIP_CANCEL,
+        "ChipChoose", AudioType::CHIP_CHOOSE,
+        "ChipConfirm", AudioType::CHIP_CONFIRM,
+        "ChipDesc", AudioType::CHIP_DESC,
+        "ChipDescClose", AudioType::CHIP_DESC_CLOSE,
+        "ChipError", AudioType::CHIP_ERROR,
+        "CustomBarFull", AudioType::CUSTOM_BAR_FULL,
+        "CustomScreenOpen", AudioType::CUSTOM_SCREEN_OPEN,
+        "ItemGet", AudioType::ITEM_GET,
+        "Deleted", AudioType::DELETED,
+        "Explode", AudioType::EXPLODE,
+        "Gun", AudioType::GUN,
+        "Hurt", AudioType::HURT,
+        "PanelCrack", AudioType::PANEL_CRACK,
+        "PanelReturn", AudioType::PANEL_RETURN,
+        "Pause", AudioType::PAUSE,
+        "PreBattle", AudioType::PRE_BATTLE,
+        "Recover", AudioType::RECOVER,
+        "Spreader", AudioType::SPREADER,
+        "SwordSwing", AudioType::SWORD_SWING,
+        "TossItem", AudioType::TOSS_ITEM,
+        "TossItemLite", AudioType::TOSS_ITEM_LITE,
+        "Wave", AudioType::WAVE,
+        "Thunder", AudioType::THUNDER,
+        "ElecPulse", AudioType::ELECPULSE,
+        "Invisible", AudioType::INVISIBLE,
+        "ProgramAdvance", AudioType::PA_ADVANCE,
+        "LowHP", AudioType::LOW_HP,
+        "DarkCard", AudioType::DARK_CARD,
+        "PointSFX", AudioType::POINT_SFX,
+        "NewGame", AudioType::NEW_GAME,
+        "Text", AudioType::TEXT,
+        "Shine", AudioType::SHINE,
+        "TimeFreeze", AudioType::TIME_FREEZE,
+        "Meteor", AudioType::METEOR,
+        "Deform", AudioType::DEFORM );
 
-    const auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
-        "direction", &Hit::Drag::dir,
-        "count", &Hit::Drag::count
-    );
-
-    state.set_function("MakeHitProps",
-        [](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
-            return Hit::Properties{ damage, flags, element, aggressor, drag };
-        }
-    );
+    const auto& audio_priority_record = state.new_enum("AudioPriority",
+        "Lowest", AudioPriority::lowest,
+        "Low", AudioPriority::low,
+        "High", AudioPriority::high,
+        "Highest", AudioPriority::highest);
 
     const auto& hitbox_props_record = state.new_usertype<Hit::Properties>("HitProps",
         "aggressor", &Hit::Properties::aggressor,
@@ -745,6 +808,22 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "drag", &Hit::Properties::drag,
         "element", &Hit::Properties::element,
         "flags", &Hit::Properties::flags
+    );
+
+    const auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
+        "direction", &Hit::Drag::dir,
+        "count", &Hit::Drag::count
+        );
+
+    state.set_function("Drag",
+        [](Direction dir, unsigned count)
+        { return Hit::Drag{ dir, count }; }
+    );
+
+    state.set_function("MakeHitProps",
+        [](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
+            return Hit::Properties{ damage, flags, element, aggressor, drag };
+        }
     );
 
     // auto& frame_time_record = state.new_usertype<frame_time_t>("Frame");
