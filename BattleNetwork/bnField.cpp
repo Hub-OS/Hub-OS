@@ -109,9 +109,6 @@ std::vector<Battle::Tile*> Field::FindTiles(std::function<bool(Battle::Tile* t)>
 
 Field::AddEntityStatus Field::AddEntity(Character & character, int x, int y)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity(Character, Battle::Tile)");
-#endif
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, character ));
     return Field::AddEntityStatus::queued;
@@ -135,19 +132,12 @@ Field::AddEntityStatus Field::AddEntity(Character & character, int x, int y)
 
 Field::AddEntityStatus Field::AddEntity(Character & character, Battle::Tile & dest)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity(Character, Battle::Tile)");
-#endif
   return AddEntity(character, dest.GetX(), dest.GetY());
 }
 
 
 Field::AddEntityStatus Field::AddEntity(Spell & spell, int x, int y)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity(Spell, int, int)");
-#endif
-
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, spell ));
     return Field::AddEntityStatus::queued;
@@ -171,17 +161,11 @@ Field::AddEntityStatus Field::AddEntity(Spell & spell, int x, int y)
 
 Field::AddEntityStatus Field::AddEntity(Spell & spell, Battle::Tile & dest)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity(Spell, Battle::Tile)");
-#endif
   return AddEntity(spell, dest.GetX(), dest.GetY());
 }
 
 Field::AddEntityStatus Field::AddEntity(Obstacle & obst, int x, int y)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity<Obstacle>(Obstacle, int, int)");
-#endif
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, obst));
     return Field::AddEntityStatus::queued;
@@ -207,17 +191,11 @@ Field::AddEntityStatus Field::AddEntity(Obstacle & obst, int x, int y)
 
 Field::AddEntityStatus Field::AddEntity(Obstacle & obst, Battle::Tile & dest)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity(Obstacle, Battle::Tile)");
-#endif
   return AddEntity(obst, dest.GetX(), dest.GetY());
 }
 
 Field::AddEntityStatus Field::AddEntity(Artifact & art, int x, int y)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity(Artifact, int, int)");
-#endif
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, art ));
     return Field::AddEntityStatus::queued;
@@ -241,9 +219,6 @@ Field::AddEntityStatus Field::AddEntity(Artifact & art, int x, int y)
 
 Field::AddEntityStatus Field::AddEntity(Artifact & art, Battle::Tile & dest)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity<Spell>(Artifact, Battle::Tile)");
-#endif
   return AddEntity(art, dest.GetX(), dest.GetY());
 }
 
@@ -689,22 +664,20 @@ Field::queueBucket::queueBucket(int x, int y, Spell& d) : x(x), y(y), entity_typ
 }
 
 #ifdef BN_MOD_SUPPORT
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedArtifact>& arti, int x, int y)
+{
+    Artifact* ptr = arti.release();
+    return AddEntity(*ptr, x, y);
+}
+
 Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity(ScriptedSpell, int, int)");
-#endif
-
-  Spell* ptr = spell.release();
-  return AddEntity(*ptr, x, y);
+    Spell* ptr = spell.release();
+    return AddEntity(*ptr, x, y);
 }
 
 Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y)
 {
-#ifdef _DEBUG
-    Logger::Log("Field::AddEntity(ScriptedObstacle, int, int)");
-#endif
-
   Obstacle* ptr = obst.release();
   return AddEntity(*ptr, x, y);
 }

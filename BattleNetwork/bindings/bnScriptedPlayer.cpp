@@ -1,7 +1,6 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedPlayer.h"
 #include "../bnCardAction.h"
-#include "bnScriptedCardAction.h"
 
 ScriptedPlayer::ScriptedPlayer(sol::state& script) : 
   script(script),
