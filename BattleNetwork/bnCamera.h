@@ -9,19 +9,31 @@
  */
 class Camera
 {
+public:
+  enum class Fade : char {
+    none = 0,
+    out,
+    in
+  };
+
+private:
   bool isShaking{ false }; /*!< Flag for shaking camera */
   bool waning{ false }; /*!< Toggle how movement is interpolated */
   double progress{}; /*!< Progress of movement */
   double shakeProgress{}; /*!< Progress of shake effect */
   double stress{}; /*!< How much stress to apply to shake */
   double waneFactor{};
+  double fadeProgress{}; /*!< progress in fade effect*/
   sf::Vector2f dest{}; /*!< Camera destination if moving */
   sf::Vector2f origin{}; /*!< Camera' origin */
   sf::Time dur; /*!< Duration of movement */
   sf::Time shakeDur; /*!< Duration of shake effect */
   sf::View focus; /*!< SFML view of camera center */
   sf::View init; /*!< Initial view */
-
+  Fade fadeState{}; /*!< State of camera fade*/
+  sf::Color fadeColor{}; /*!< Color of the fade*/
+  sf::Time fadeDur; /*! duration of the fade effect*/
+  sf::RectangleShape rect; /*! Covers the screen */
 public:
   /**
     * @brief Constructs a camera from a view */
@@ -84,5 +96,15 @@ public:
    * @return const sf::View
    */
   const sf::View GetView() const;
+
+  /**
+   * @brief Cinematic fade out controlled by the camera
+   * @param type. Could be out, in, or none to cancel the effect
+   * @param color. Color to fade out or in with
+   * @param time. The duration of the effect.
+   */
+  void FadeCamera(Fade type, const sf::Color& color, sf::Time duration);
+
+  const sf::RectangleShape& GetLens();
 };
 

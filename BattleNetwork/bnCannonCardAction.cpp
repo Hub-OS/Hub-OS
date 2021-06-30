@@ -66,7 +66,7 @@ void CannonCardAction::OnExecute(Character* user) {
       cannon->SetDirection(Direction::left);
     }
 
-    user->GetField()->AddEntity(*cannon, user->GetCurrentTile()->GetX() + 1, user->GetTile()->GetY());
+    user->GetField()->AddEntity(*cannon, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
   };
 
   AddAnimAction(6, onFire);

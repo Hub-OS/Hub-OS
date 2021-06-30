@@ -49,6 +49,14 @@ namespace Overworld {
     void QueueShakeCamera(float stress, sf::Time duration);
 
     /**
+     * @brief Cinematic fade out controlled by the camera
+     * @param type. Could be out, in, or none to cancel the effect
+     * @param color. Color to fade out or in with
+     * @param time. The duration of the effect.
+     */
+    void QueueFadeCamera(Camera::Fade type, const sf::Color& color, sf::Time duration);
+
+    /**
      * @brief Unlocks the camera and clears the queue after completing previous camera events
      */
     void QueueUnlockCamera();
@@ -67,12 +75,14 @@ namespace Overworld {
     void UpdateCamera(float elapsed, Camera& camera);
 
   private:
-    enum class CameraEventType { Place, Move, Wane, Shake, Unlock };
+    enum class CameraEventType { Place, Move, Wane, Shake, Unlock, Fade };
     struct CameraEvent {
-      CameraEventType type;
+      CameraEventType type{};
       sf::Vector2f position;
       sf::Time duration;
-      double intensity;
+      double intensity{};
+      sf::Color fadeColor{};
+      Camera::Fade fadeType{};
     };
 
     swoosh::Timer cameraTimer;

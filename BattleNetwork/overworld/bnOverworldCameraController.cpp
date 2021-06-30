@@ -72,6 +72,19 @@ namespace Overworld {
     queue.push(event);
   }
 
+  void CameraController::QueueFadeCamera(Camera::Fade type, const sf::Color& color, sf::Time duration)
+  {
+    CameraEvent event{
+      CameraEventType::Fade
+    };
+
+    event.duration = duration;
+    event.fadeColor = color;
+    event.fadeType = type;
+
+    queue.push(event);
+  }
+
   void CameraController::QueueUnlockCamera() {
     LockCamera();
 
@@ -101,18 +114,23 @@ namespace Overworld {
       camera.MoveCamera(event.position, event.duration);
       break;
     case CameraEventType::Wane:
-      camera.WaneCamera(event.position, event.duration, event.intensity);
+      camera.WaneCamera(event.position, event.duration, static_cast<float>(event.intensity));
       break;
     case CameraEventType::Place:
       camera.PlaceCamera(event.position);
       break;
     case CameraEventType::Shake:
       camera.ShakeCamera(event.intensity, event.duration);
-      // shake duration does not block queue (will still eat a frame, at least for now)
+      // shake duration does not block queue (will still eat a frame, at least for now) ?
       event.duration = sf::Time::Zero;
       break;
     case CameraEventType::Unlock:
       cameraLocked = false;
+      break;
+    case CameraEventType::Fade:
+      camera.FadeCamera(event.fadeType, event.fadeColor, event.duration);
+      // Fade duration does not block queue (will still eat a frame, at least for now) ?
+      event.duration = sf::Time::Zero;
       break;
     }
 

@@ -76,6 +76,7 @@ namespace Overworld
     move_camera,
     slide_camera,
     shake_camera,
+    fade_camera,
     track_with_camera,
     unlock_camera,
     lock_input,

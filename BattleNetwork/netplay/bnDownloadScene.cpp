@@ -78,17 +78,12 @@ void DownloadScene::SendPing()
   packetProcessor->SendPacket(Reliability::Unreliable, buffer);
 }
 
-void DownloadScene::RecieveCustomPlayerData(const Poco::Buffer<char>& buffer)
-{
-  // TODO:
-}
-
 void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
   switch (header) {
   case NetPlaySignals::trade_card_list: 
     Logger::Logf("Recieved trade list download signal");
-    if (currState == state::trade_cards) {
+    if (currState == state::trade) {
       Logger::Logf("Processing trade list");
       this->RecieveTradeCardList(body);
     }
@@ -98,13 +93,10 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     break;
   case NetPlaySignals::card_list_download:
     Logger::Logf("Recieved card list download signal");
-    if (currState == state::download_cards) {
+    if (currState == state::download) {
       Logger::Logf("Downloading card list...");
       this->DownloadCardList(body);
     }
-    break;
-  case NetPlaySignals::custom_character_download:
-    this->RecieveCustomPlayerData(body);
     break;
   case NetPlaySignals::downloads_complete:
     this->RecieveDownloadComplete(body);
@@ -134,7 +126,7 @@ void DownloadScene::RecieveTradeCardList(const Poco::Buffer<char>& buffer)
   }
   else {
     Logger::Logf("Need to download %d cards", retryCardList.size());
-    currState = state::download_cards;
+    currState = state::download;
     RequestCardList(retryCardList);
   }
 }
@@ -145,10 +137,6 @@ void DownloadScene::RecieveRequestCardList(const Poco::Buffer<char>& buffer)
 
   Logger::Logf("Recieved download request for %d items", uuids.size());
   packetProcessor->SendPacket(Reliability::BigData, SerializeCards(uuids));
-}
-
-void DownloadScene::RecieveRequestComboList(const Poco::Buffer<char>& buffer)
-{
 }
 
 void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
@@ -268,10 +256,6 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
   SendDownloadComplete(true);
   // move to the next state
   currState = state::complete;
-}
-
-void DownloadScene::DownloadComboList(const Poco::Buffer<char>& buffer)
-{
 }
 
 std::vector<std::string> DownloadScene::DeserializeUUIDs(const Poco::Buffer<char>& buffer)

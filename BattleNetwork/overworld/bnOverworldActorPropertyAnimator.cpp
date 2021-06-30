@@ -235,7 +235,7 @@ namespace Overworld {
           keyFrame.ease,
           keyFrame.previousValue,
           keyFrame.value,
-          progress
+          static_cast<float>(progress)
         );
 
         setProperty(actor, property, interpolatedValue);

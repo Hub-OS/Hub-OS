@@ -485,9 +485,13 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   // Add the web account connection symbol
   surface.draw(webAccountIcon);
 
-  surface.draw(menuSystem);
-
   PrintTime(surface);
+
+  // This will mask everything before this line with camera fx
+  surface.draw(camera.GetLens());
+
+  // always see menus
+  surface.draw(menuSystem);
 }
 
 void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {

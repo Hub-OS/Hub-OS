@@ -3,7 +3,7 @@
 #include <cmath>
 #include <Swoosh/Ease.h>
 
-Camera::Camera(const sf::View& view) : focus(view)
+Camera::Camera(const sf::View& view) : focus(view), rect(view.getSize())
 {
   progress = 1.f;
   dest = origin = focus.getCenter();
@@ -31,8 +31,24 @@ Camera::~Camera()
 
 void Camera::Update(double elapsed) {
   // Compare as milliseconds
-  progress += elapsed*1000;
-  shakeProgress += elapsed*1000;
+  double asMilli = elapsed * 1000;
+  progress += asMilli;
+  shakeProgress += asMilli;
+  fadeProgress += asMilli;
+
+  double x = swoosh::ease::linear(fadeProgress, (double)fadeDur.asMilliseconds(), 1.0);
+
+  if (fadeState == Fade::out) {
+    x = 1.0 - x;
+  }
+  else if (fadeState == Fade::none) {
+    x = 0;
+  }
+
+  sf::Color fcolor(fadeColor);
+  fcolor.a = x * fadeColor.a;
+  rect.setFillColor(fcolor);
+  rect.setOutlineColor(fcolor);
 
   // If progress is over, update position to the dest
   if (sf::Time(sf::milliseconds((sf::Int32)progress)) >= dur) {
@@ -137,4 +153,17 @@ void Camera::ShakeCamera(double stress, sf::Time duration)
 const sf::View Camera::GetView() const
 {
   return focus;
+}
+
+void Camera::FadeCamera(Fade type, const sf::Color& color, sf::Time duration)
+{
+  fadeProgress = 0;
+  fadeState = type;
+  fadeColor = color;
+  fadeDur = duration;
+}
+
+const sf::RectangleShape& Camera::GetLens()
+{
+  return rect;
 }

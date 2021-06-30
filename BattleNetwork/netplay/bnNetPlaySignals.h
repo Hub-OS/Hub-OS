@@ -32,7 +32,6 @@ enum class NetPlaySignals : unsigned int {
   trade_card_list, // Swap list data with opponent
   card_list_request, // Ask to download only specific cards
   card_list_download, // Download and deserialize card data
-  custom_character_download,
   downloads_complete,
 
   ///////////////////////
