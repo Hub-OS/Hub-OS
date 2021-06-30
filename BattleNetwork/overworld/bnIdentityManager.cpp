@@ -6,6 +6,7 @@
 #include <filesystem>
 
 constexpr std::string_view IDENTITY_FOLDER = "identity";
+constexpr std::streamsize IDENTITY_LENGTH = 32;
 
 namespace Overworld {
   IdentityManager::IdentityManager(const std::string& address, uint16_t port)
@@ -24,10 +25,10 @@ namespace Overworld {
       // make sure the identity folder exists
       std::filesystem::create_directories(IDENTITY_FOLDER);
 
-      char buffer[255];
+      char buffer[IDENTITY_LENGTH];
 
       Poco::RandomBuf randomBuf;
-      int read = randomBuf.readFromDevice(buffer, 255);
+      int read = randomBuf.readFromDevice(buffer, IDENTITY_LENGTH);
 
       identity = std::string(buffer, read);
 
