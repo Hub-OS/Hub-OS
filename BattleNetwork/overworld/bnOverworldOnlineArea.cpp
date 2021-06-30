@@ -61,8 +61,6 @@ Overworld::OnlineArea::OnlineArea(
 
   lastFrameNavi = this->GetCurrentNavi();
 
-  SetBackground(std::make_shared<XmasBackground>());
-
   propertyAnimator.OnComplete([this] {
     // todo: this may cause issues when leaving the scene through Home and Server Warps
     GetPlayerController().ControlActor(GetPlayer());

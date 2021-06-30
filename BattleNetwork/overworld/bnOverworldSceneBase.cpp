@@ -460,7 +460,9 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
     return;
   }
 
-  surface.draw(*bg);
+  if (bg) {
+    surface.draw(*bg);
+  }
 
   DrawWorld(surface, sf::RenderStates::Default);
 
