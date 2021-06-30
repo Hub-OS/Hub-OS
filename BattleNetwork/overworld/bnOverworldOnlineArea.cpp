@@ -36,27 +36,32 @@ Overworld::OnlineArea::OnlineArea(
   SceneBase(controller, guestAccount),
   transitionText(Font::Style::small),
   nameText(Font::Style::small),
-  remoteAddress(Poco::Net::SocketAddress(address, port)),
-  packetProcessor(
-    std::make_shared<Overworld::PacketProcessor>(
-      remoteAddress,
-      maxPayloadSize,
-      [this](auto& body) { processPacketBody(body); }
-      )
-  ),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
   serverAssetManager(address, port),
   identityManager(address, port)
 {
+  try {
+    remoteAddress = Poco::Net::SocketAddress(address, port);
+    packetProcessor = std::make_shared<Overworld::PacketProcessor>(
+      remoteAddress,
+      maxPayloadSize,
+      [this](auto& body) { processPacketBody(body); }
+    );
+
+    Net().AddHandler(remoteAddress, packetProcessor);
+  }
+  catch (...) {
+    // invalid remote address
+    leave();
+  }
+
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
 
   lastFrameNavi = this->GetCurrentNavi();
 
   SetBackground(std::make_shared<XmasBackground>());
-
-  Net().AddHandler(remoteAddress, packetProcessor);
 
   propertyAnimator.OnComplete([this] {
     // todo: this may cause issues when leaving the scene through Home and Server Warps
