@@ -51,7 +51,7 @@ void GameOverScene::onUpdate(double elapsed) {
       leave = false;
 
       using effect = segue<WhiteWashFade, milliseconds<500>>;
-      getController().push<effect::to<Overworld::Homepage>>(!WEBCLIENT.IsLoggedIn());
+      getController().push<effect::to<Overworld::Homepage>>();
     }
   }
 }

@@ -9,7 +9,6 @@
 
 using namespace swoosh::types;
 
-constexpr sf::Int32 PING_SERVER_MILI = 1000;
 constexpr size_t DEFAULT_PORT = 8765;
 
 Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
@@ -32,20 +31,17 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
   if (remotePort > 0 && cyberworld.size()) {
     try {
       remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
-      packetProcessor = std::make_shared<Overworld::PacketProcessor>(
+
+      packetProcessor = std::make_shared<Overworld::PollingPacketProcessor>(
         remoteAddress,
         Net().GetMaxPayloadSize(),
-        [this](auto& body) { ProcessPacketBody(body); }
+        [this](auto status, auto maxPayloadSize) { UpdateServerStatus(status, maxPayloadSize); }
       );
+
       Net().AddHandler(remoteAddress, packetProcessor);
     }
     catch (Poco::IOException&) {}
   }
-
-  pingServerTimer.reverse(true);
-  pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
-  pingServerTimer.start();
-
 
   LoadMap(FileUtil::Read("resources/ow/maps/homepage.tmx"));
 
@@ -124,14 +120,17 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
       std::string message = "If you're seeing this message, something has gone horribly wrong with the next area.";
       message += "For your safety you cannot enter the next area!";
 
-      switch (cyberworldStatus) {
-      case CyberworldStatus::online:
+      switch (serverStatus) {
+      case ServerStatus::online:
         message = "This is your homepage! Walk into the telepad to enter cyberspace!";
         break;
-      case CyberworldStatus::mismatched_version:
+      case ServerStatus::older_version:
+        message = "This is your homepage! But it looks like you need to downgrade to connect to cyberspace...";
+        break;
+      case ServerStatus::newer_version:
         message = "This is your homepage! But it looks like you need an update to connect to cyberspace...";
         break;
-      case CyberworldStatus::offline:
+      case ServerStatus::offline:
         message = "This is your homepage! But it looks like the next area is offline...";
         break;
       }
@@ -174,7 +173,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
 
             try {
               Net().DropHandlers(remoteAddress);
-              
+
               // first check if this is an ip address
               try {
                 dest = Poco::Net::IPAddress::parse(dest).toString();
@@ -199,10 +198,10 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
               }
 
               remoteAddress = Poco::Net::SocketAddress(dest);
-              packetProcessor = std::make_shared<Overworld::PacketProcessor>(
+              packetProcessor = std::make_shared<Overworld::PollingPacketProcessor>(
                 remoteAddress,
                 Net().GetMaxPayloadSize(),
-                [this](auto& body) { ProcessPacketBody(body); }
+                [this](auto status, auto maxPayloadSize) { UpdateServerStatus(status, maxPayloadSize); }
               );
               Net().AddHandler(remoteAddress, packetProcessor);
 
@@ -242,51 +241,11 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
 Overworld::Homepage::~Homepage() {
 }
 
-void Overworld::Homepage::PingRemoteAreaServer()
-{
-  if (!packetProcessor) {
-    return;
-  }
+void Overworld::Homepage::UpdateServerStatus(ServerStatus status, uint16_t serverMaxPayloadSize) {
+  serverStatus = status;
+  maxPayloadSize = serverMaxPayloadSize;
 
-  if (pingServerTimer.getElapsed().asMilliseconds() != 0) {
-    return;
-  }
-
-  Poco::Buffer<char> buffer{ 0 };
-
-  auto clientEvent = ClientEvents::ping;
-  buffer.append((char*)&clientEvent, sizeof(uint16_t));
-
-  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
-
-  pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
-
-}
-
-void Overworld::Homepage::ProcessPacketBody(const Poco::Buffer<char>& body) {
-  if (!infocus) {
-    return;
-  }
-
-  BufferReader reader;
-  auto sig = reader.Read<ServerEvents>(body);
-  auto version = reader.ReadString<uint16_t>(body);
-  auto iteration = reader.Read<uint64_t>(body);
-  maxPayloadSize = reader.Read<uint16_t>(body);
-
-  if (sig != ServerEvents::pong) {
-    return;
-  }
-
-  if (version == VERSION_ID && iteration == VERSION_ITERATION) {
-    cyberworldStatus = CyberworldStatus::online;
-  }
-  else {
-    cyberworldStatus = CyberworldStatus::mismatched_version;
-  }
-
-  auto isOnline = cyberworldStatus == CyberworldStatus::online;
-  EnableNetWarps(isOnline);
+  EnableNetWarps(status == ServerStatus::online);
 }
 
 void Overworld::Homepage::EnableNetWarps(bool enabled) {
@@ -306,12 +265,6 @@ void Overworld::Homepage::EnableNetWarps(bool enabled) {
 
 void Overworld::Homepage::onUpdate(double elapsed)
 {
-  if (infocus)
-  {
-    pingServerTimer.update(sf::seconds(static_cast<float>(elapsed)));
-    PingRemoteAreaServer();
-  }
-
   // Update our logic
   auto& map = GetMap();
   auto& window = getController().getWindow();
@@ -416,10 +369,6 @@ void Overworld::Homepage::onLeave()
   if (packetProcessor) {
     Net().DropProcessor(packetProcessor);
   }
-
-  // repeat reconnection in case there was a fail that
-  // forced us to return
-  cyberworldStatus = CyberworldStatus::offline;
 }
 
 void Overworld::Homepage::OnTileCollision()
@@ -438,7 +387,7 @@ void Overworld::Homepage::OnTileCollision()
 
   auto& teleportController = GetTeleportController();
 
-  if (netWarpTilePos == tilePos && teleportController.IsComplete() && cyberworldStatus == CyberworldStatus::online) {
+  if (netWarpTilePos == tilePos && teleportController.IsComplete() && serverStatus == ServerStatus::online) {
     auto& playerController = GetPlayerController();
 
     // Calculate the origin by grabbing this tile's grid Y/X values
