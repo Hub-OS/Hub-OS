@@ -12,9 +12,8 @@ using namespace swoosh::types;
 constexpr sf::Int32 PING_SERVER_MILI = 1000;
 constexpr size_t DEFAULT_PORT = 8765;
 
-Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guestAccount) :
-  guest(guestAccount),
-  SceneBase(controller, guestAccount)
+Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
+  SceneBase(controller)
 {
   std::string destination_ip = WEBCLIENT.GetValue("homepage_warp:0");
 
@@ -454,8 +453,7 @@ void Overworld::Homepage::OnTileCollision()
     auto port = remoteAddress.port();
 
     auto teleportToCyberworld = [=] {
-      // Net().GetSocket().close();
-      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, "", maxPayloadSize, guest);
+      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, "", maxPayloadSize);
     };
 
     this->TeleportUponReturn(returnPoint);

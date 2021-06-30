@@ -61,11 +61,8 @@ namespace Overworld {
     bool inputLocked{ false };
     bool cameraLocked{ false };
     bool teleportedOut{ false }; /*!< We may return to this area*/
-    bool cameraSmooth{ false }; /*!< Used if camera should lerp to a destination (via warps) */
-    bool clicked{ false }, scaledmap{ false };
     bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
     bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
-    bool guestAccount{ false };
 
     Camera camera;
     CameraController cameraController; /*!< camera in scene follows player */
@@ -126,7 +123,7 @@ namespace Overworld {
     /**
      * @brief Loads the player's library data and loads graphics
      */
-    SceneBase(swoosh::ActivityController&, bool guestAccount);
+    SceneBase(swoosh::ActivityController&);
 
     /**
      * @brief Checks input events and listens for select buttons. Segues to new screens.

@@ -57,8 +57,7 @@ namespace {
   };
 }
 
-Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool guestAccount) :
-  guestAccount(guestAccount),
+Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   lastIsConnectedState(false),
   personalMenu("Overworld", ::MakeOptions(this)),
   camera(controller.getWindow().getView()),
@@ -410,7 +409,7 @@ void Overworld::SceneBase::onEnter()
 
 void Overworld::SceneBase::onResume() {
 
-  guestAccount = !WEBCLIENT.IsLoggedIn();
+  auto guestAccount = !WEBCLIENT.IsLoggedIn();
 
   if (!guestAccount) {
     accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();

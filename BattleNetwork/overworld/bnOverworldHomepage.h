@@ -15,7 +15,7 @@ namespace Overworld {
     };
 
     bool scaledmap{ false }, clicked{ false };
-    bool guest{ false }, infocus{ false };
+    bool infocus{ false };
     Poco::Net::SocketAddress remoteAddress; //!< server
     std::shared_ptr<PacketProcessor> packetProcessor;
     uint16_t maxPayloadSize{};
@@ -33,7 +33,7 @@ namespace Overworld {
     /**
      * @brief Loads the player's library data and loads graphics
      */
-    Homepage(swoosh::ActivityController&, bool guestAccount);
+    Homepage(swoosh::ActivityController&);
     ~Homepage();
 
     void onUpdate(double elapsed) override;

@@ -31,9 +31,9 @@ Overworld::OnlineArea::OnlineArea(
   const std::string& address,
   uint16_t port,
   const std::string& connectData,
-  uint16_t maxPayloadSize,
-  bool guestAccount) :
-  SceneBase(controller, guestAccount),
+  uint16_t maxPayloadSize
+) :
+  SceneBase(controller),
   transitionText(Font::Style::small),
   nameText(Font::Style::small),
   connectData(connectData),
@@ -42,7 +42,7 @@ Overworld::OnlineArea::OnlineArea(
   identityManager(address, port)
 {
   try {
-    remoteAddress = Poco::Net::SocketAddress(address, port);
+    auto remoteAddress = Poco::Net::SocketAddress(address, port);
     packetProcessor = std::make_shared<Overworld::PacketProcessor>(
       remoteAddress,
       maxPayloadSize,
@@ -613,8 +613,6 @@ void Overworld::OnlineArea::onResume()
     Net().DropProcessor(netBattleProcessor);
     netBattleProcessor = nullptr;
   }
-
-  // isEnteringBattle = false;
 }
 
 void Overworld::OnlineArea::OnTileCollision() { }
@@ -705,7 +703,7 @@ Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Ve
 
 void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut) {
   auto transfer = [=] {
-    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, data, maxPayloadSize, !WEBCLIENT.IsLoggedIn());
+    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, data, maxPayloadSize);
   };
 
   if (warpOut) {
@@ -1893,9 +1891,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     netBattleProcessor
   };
 
-  // isEnteringBattle = true;
-  // 
-  // EXAMPLE AND TEMP DEMO PURPOSES BELOW:
   BattleResultsFunc callback = [this](const BattleResults& results) {
     sendBattleResultsSignal(results);
   };
