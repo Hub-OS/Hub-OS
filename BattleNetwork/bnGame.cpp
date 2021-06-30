@@ -89,7 +89,10 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
   unsigned int myPort = CommandLineValue<unsigned int>("port");
   uint16_t maxPayloadSize = CommandLineValue<uint16_t>("mtu");
   netManager.BindPort(myPort);
-  netManager.SetMaxPayloadSize(maxPayloadSize);
+
+  if (maxPayloadSize != 0) {
+    netManager.SetMaxPayloadSize(maxPayloadSize);
+  }
 }
 
 TaskGroup Game::Boot(const cxxopts::ParseResult& values)

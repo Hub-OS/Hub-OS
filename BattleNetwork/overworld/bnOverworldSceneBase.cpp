@@ -19,7 +19,6 @@
 #include "../bnLibraryScene.h"
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
-#include "../bnKeyItemScene.h"
 #include "../bnVendorScene.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnCustomBackground.h"
@@ -58,8 +57,7 @@ namespace {
   };
 }
 
-Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool guestAccount) :
-  guestAccount(guestAccount),
+Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   lastIsConnectedState(false),
   personalMenu("Overworld", ::MakeOptions(this)),
   camera(controller.getWindow().getView()),
@@ -311,7 +309,7 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
   if (!cameraLocked) {
     // Follow the navi
     sf::Vector2f pos = playerActor->getPosition();
-    
+
     if (teleportedOut) {
       pos = { returnPoint.x, returnPoint.y };
     }
@@ -411,7 +409,7 @@ void Overworld::SceneBase::onEnter()
 
 void Overworld::SceneBase::onResume() {
 
-  guestAccount = !WEBCLIENT.IsLoggedIn();
+  auto guestAccount = !WEBCLIENT.IsLoggedIn();
 
   if (!guestAccount) {
     accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
@@ -461,7 +459,9 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
     return;
   }
 
-  surface.draw(*bg);
+  if (bg) {
+    surface.draw(*bg);
+  }
 
   DrawWorld(surface, sf::RenderStates::Default);
 
@@ -542,10 +542,10 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       int row = tileSpaceStart.y + verticalStart - j + rowOffset;
       int col = tileSpaceStart.x + verticalStart + j;
 
-      auto& tile = layer.GetTile(col, row);
-      if (tile.gid == 0) continue;
+      auto tile = layer.GetTile(col, row);
+      if (!tile || tile->gid == 0) continue;
 
-      auto tileMeta = map.GetTileMeta(tile.gid);
+      auto tileMeta = map.GetTileMeta(tile->gid);
 
       // failed to load tile
       if (tileMeta == nullptr) continue;
@@ -567,10 +567,10 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       ));
 
       tileSprite.setPosition(ortho + tileMeta->drawingOffset + tileOffset);
-      tileSprite.setRotation(tile.rotated ? 90.0f : 0.0f);
+      tileSprite.setRotation(tile->rotated ? 90.0f : 0.0f);
       tileSprite.setScale(
-        tile.flippedHorizontal ? -1.0f : 1.0f,
-        tile.flippedVertical ? -1.0f : 1.0f
+        tile->flippedHorizontal ? -1.0f : 1.0f,
+        tile->flippedVertical ? -1.0f : 1.0f
       );
 
       sf::Color originalColor = tileSprite.getColor();
@@ -923,7 +923,6 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     // add objects to layer
     if (objectLayerElements.size() > i) {
       auto& objectLayerElement = objectLayerElements[i];
-      float elevation = (float)i;
 
       for (auto& child : objectLayerElement.children) {
         if (child.name != "object") {
@@ -932,6 +931,9 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
         if (child.HasAttribute("gid")) {
           auto tileObject = TileObject::From(child);
+          auto tilePosition = map.WorldToTileSpace(tileObject.position);
+          auto elevation = map.GetElevationAt(tilePosition.x, tilePosition.y, i);
+
           tileObject.GetWorldSprite()->SetElevation(elevation);
           layer.AddTileObject(tileObject);
         }
@@ -946,13 +948,10 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     }
   }
 
-  bool backgroundDiffers = map.GetBackgroundName() != this->map.GetBackgroundName() || (
-    map.GetBackgroundName() == "custom" && (
-      map.GetBackgroundCustomTexturePath() != this->map.GetBackgroundCustomTexturePath() ||
-      map.GetBackgroundCustomAnimationPath() != this->map.GetBackgroundCustomAnimationPath() ||
-      map.GetBackgroundCustomVelocity() != this->map.GetBackgroundCustomVelocity()
-      )
-    );
+  bool backgroundDiffers = map.GetBackgroundName() != this->map.GetBackgroundName() ||
+    map.GetBackgroundCustomTexturePath() != this->map.GetBackgroundCustomTexturePath() ||
+    map.GetBackgroundCustomAnimationPath() != this->map.GetBackgroundCustomAnimationPath() ||
+    map.GetBackgroundCustomVelocity() != this->map.GetBackgroundCustomVelocity();
 
   if (backgroundDiffers) {
     LoadBackground(map, map.GetBackgroundName());
@@ -1327,14 +1326,6 @@ void Overworld::SceneBase::GotoKeyItems()
 
   using effect = segue<BlackWashFade, milliseconds<500>>;
 
-  std::vector<KeyItemScene::Item> items;
-  for (auto& item : webAccount.keyItems) {
-    items.push_back(KeyItemScene::Item{
-      item.name,
-      item.description
-      });
-  }
-
   getController().push<effect::to<KeyItemScene>>(items);
 }
 
@@ -1444,6 +1435,20 @@ void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
 void Overworld::SceneBase::OnCustomEmoteSelected(unsigned emote)
 {
   emoteNode.CustomEmote(emote);
+}
+
+void Overworld::SceneBase::AddItem(const std::string& name, const std::string& description)
+{
+  items.push_back({ name, description });
+}
+
+void Overworld::SceneBase::RemoveItem(const std::string& name)
+{
+  auto iter = std::find_if(items.begin(), items.end(), [&name](auto& item) { return item.name == name; });
+
+  if (iter != items.end()) {
+    items.erase(iter);
+  }
 }
 
 std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const

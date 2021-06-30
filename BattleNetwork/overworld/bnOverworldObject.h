@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <memory>
 
+#include "bnOverworldObjectType.h"
 #include "bnOverworldSprite.h"
 #include "bnOverworldCustomProperties.h"
 #include "bnOverworldShapes.h"
@@ -21,7 +22,8 @@ namespace Overworld {
   public:
     unsigned int id;
     std::string name;
-    std::string type;
+    std::string typeString;
+    ObjectType::ObjectType type;
     bool visible{ true };
     bool solid{};
     sf::Vector2f position;

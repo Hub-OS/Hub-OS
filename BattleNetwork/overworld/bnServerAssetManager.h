@@ -7,6 +7,8 @@
 #include <unordered_map>
 
 namespace Overworld {
+  std::string URIEncode(const std::string& name);
+
   class ServerAssetManager {
   private:
     struct CacheMeta {
@@ -25,7 +27,7 @@ namespace Overworld {
     void CacheAsset(const std::string& name, uint64_t lastModified, const char* data, size_t size);
     std::vector<char> LoadFromCache(const std::string& name);
   public:
-    ServerAssetManager(const std::string& parentFolder, const std::string& folderName);
+    ServerAssetManager(const std::string& address, uint16_t port);
 
     std::string GetPath(const std::string& name);
     const std::unordered_map<std::string, CacheMeta>& GetCachedAssetList();

@@ -39,8 +39,7 @@ using swoosh::ActivityController;
 
 NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props, BattleResultsFunc onEnd) :
   BattleSceneBase(controller, props.base, onEnd),
-  ping(Font::Style::wide),
-  remoteAddress(props.netconfig.remote)
+  ping(Font::Style::wide)
 {
   ping.setPosition(480 - (2.f * 16) - 4, 320 - 2.f); // screen upscaled w - (16px*upscale scale) - (2px*upscale)
   ping.SetColor(sf::Color::Red);
@@ -64,8 +63,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& buffer) {
     this->processPacketBody(header, buffer);
   });
-
-  Net().AddHandler(remoteAddress, packetProcessor);
 
   // If playing co-op, add more players to track here
   players = { clientPlayer };
@@ -325,7 +322,6 @@ void NetworkBattleScene::onResume()
 void NetworkBattleScene::onEnd()
 {
   BattleSceneBase::onEnd();
-  Net().DropHandlers(remoteAddress);
 }
 
 void NetworkBattleScene::Inject(PlayerInputReplicator& pub)

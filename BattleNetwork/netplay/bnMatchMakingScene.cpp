@@ -417,6 +417,8 @@ void MatchMakingScene::onStart() {
 }
 
 void MatchMakingScene::onResume() {
+  isScreenReady = true;
+
   if (!canProceedToBattle) {
     // If this condition is false, we could not download assets we needed
     // Reset for next match attempt
@@ -560,7 +562,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
         compatibleNavi = selectedNavi;
       }
 
-      config.remote = theirIP;
       config.myNavi = compatibleNavi;
 
       auto& meta = NAVIS.At(compatibleNavi);
@@ -629,6 +630,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
 void MatchMakingScene::onLeave()
 {
+  isScreenReady = false;
 }
 
 void MatchMakingScene::onEnter()

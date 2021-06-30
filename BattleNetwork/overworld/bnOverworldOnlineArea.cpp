@@ -13,45 +13,53 @@
 #include <fstream>
 
 #include "bnOverworldOnlineArea.h"
+#include "bnOverworldTileType.h"
+#include "bnOverworldObjectType.h"
 #include "../bnXmasBackground.h"
 #include "../bnNaviRegistration.h"
+#include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
 #include "../netplay/bnNetPlayConfig.h"
 #include "../bnMessageQuestion.h"
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
+constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
 
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
   const std::string& address,
   uint16_t port,
   const std::string& connectData,
-  uint16_t maxPayloadSize,
-  bool guestAccount) :
-  SceneBase(controller, guestAccount),
+  uint16_t maxPayloadSize
+) :
+  SceneBase(controller),
   transitionText(Font::Style::small),
   nameText(Font::Style::small),
-  remoteAddress(Poco::Net::SocketAddress(address, port)),
-  packetProcessor(
-    std::make_shared<Overworld::PacketProcessor>(
+  connectData(connectData),
+  maxPayloadSize(maxPayloadSize),
+  serverAssetManager(address, port),
+  identityManager(address, port)
+{
+  try {
+    auto remoteAddress = Poco::Net::SocketAddress(address, port);
+    packetProcessor = std::make_shared<Overworld::PacketProcessor>(
       remoteAddress,
       maxPayloadSize,
       [this](auto& body) { processPacketBody(body); }
-      )
-  ),
-  connectData(connectData),
-  maxPayloadSize(maxPayloadSize),
-  serverAssetManager("cache", address + "_p" + std::to_string(port))
-{
+    );
+
+    Net().AddHandler(remoteAddress, packetProcessor);
+  }
+  catch (...) {
+    // invalid remote address
+    leave();
+  }
+
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
 
   lastFrameNavi = this->GetCurrentNavi();
-
-  SetBackground(std::make_shared<XmasBackground>());
-
-  Net().AddHandler(remoteAddress, packetProcessor);
 
   propertyAnimator.OnComplete([this] {
     // todo: this may cause issues when leaving the scene through Home and Server Warps
@@ -113,43 +121,8 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     lastFrameNavi = currentNavi;
   }
 
-  auto currentTime = CurrentTime::AsMilli();
-
-  for (auto& pair : onlinePlayers) {
-    auto& onlinePlayer = pair.second;
-    auto& actor = onlinePlayer.actor;
-
-    onlinePlayer.teleportController.Update(elapsed);
-    onlinePlayer.emoteNode.Update(elapsed);
-
-    onlinePlayer.propertyAnimator.Update(*actor, elapsed);
-
-    if (onlinePlayer.propertyAnimator.IsAnimatingPosition()) {
-      continue;
-    }
-
-    auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
-    auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
-    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
-    float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
-    Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
-
-    auto oldHeading = actor->GetHeading();
-
-    if (distance == 0.0) {
-      actor->Face(onlinePlayer.idleDirection);
-    }
-    else if (distance <= actor->GetWalkSpeed() * expectedTime) {
-      actor->Walk(newHeading, false); // Don't actually move or collide, but animate
-    }
-    else {
-      actor->Run(newHeading, false);
-    }
-
-    auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
-    actor->Set3DPosition(newPos);
-  }
+  updateOtherPlayers(elapsed);
+  updatePlayer(elapsed);
 
   movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
@@ -157,8 +130,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     movementTimer.reset();
     sendPositionSignal();
   }
-
-  updatePlayer(elapsed);
 
   // handle camera locking and player tracking
   if (trackedPlayer && serverCameraController.IsQueueEmpty()) {
@@ -187,6 +158,59 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   warpCameraController.UpdateCamera(float(elapsed), camera);
   serverCameraController.UpdateCamera(float(elapsed), camera);
   UnlockCamera(); // reset lock, we'll lock it later if we need to
+}
+
+void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
+  auto currentTime = CurrentTime::AsMilli();
+  auto& map = GetMap();
+
+  // update other players
+  for (auto& pair : onlinePlayers) {
+    auto& onlinePlayer = pair.second;
+    auto& actor = onlinePlayer.actor;
+
+    onlinePlayer.teleportController.Update(elapsed);
+    onlinePlayer.emoteNode.Update(elapsed);
+
+    onlinePlayer.propertyAnimator.Update(*actor, elapsed);
+
+    if (onlinePlayer.propertyAnimator.IsAnimatingPosition()) {
+      continue;
+    }
+
+    auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
+    auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
+    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
+    float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
+
+    auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
+    actor->Set3DPosition(newPos);
+
+    if (onlinePlayer.propertyAnimator.IsAnimating() && actor->IsPlayingCustomAnimation()) {
+      // skip animating the player if they're being animated by the property animator
+      continue;
+    }
+
+    auto tile = map.GetTileFromWorld(newPos);
+
+    if (tile && map.GetTileMeta(tile->gid)->type == TileType::conveyor) {
+      continue;
+    }
+
+    Direction newHeading = Actor::MakeDirectionFromVector({ delta.x, delta.y });
+    auto oldHeading = actor->GetHeading();
+
+    if (distance == 0.0) {
+      actor->Face(onlinePlayer.idleDirection);
+    }
+    else if (distance <= actor->GetWalkSpeed() * expectedTime) {
+      actor->Walk(newHeading, false); // Don't actually move or collide, but animate
+    }
+    else {
+      actor->Run(newHeading, false);
+    }
+  }
 }
 
 void Overworld::OnlineArea::updatePlayer(double elapsed) {
@@ -253,11 +277,11 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
 
     auto& command = teleportController.TeleportOut(player);
 
-    auto type = tileObject.type;
     auto interpolateTime = sf::seconds(0.5f);
     auto position3 = sf::Vector3f(tileObject.position.x, tileObject.position.y, float(layerIndex));
 
-    if (type == "Home Warp") {
+    switch (tileObject.type) {
+    case ObjectType::home_warp: {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
@@ -265,29 +289,31 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
         sendLogoutSignal();
         getController().pop<segue<BlackWashFade>>();
       });
+      break;
     }
-    else if (type == "Server Warp") {
+    case ObjectType::server_warp: {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
-      auto address = tileObject.customProperties.GetProperty("Address");
-      auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("Port");
-      auto data = tileObject.customProperties.GetProperty("Data");
+      auto address = tileObject.customProperties.GetProperty("address");
+      auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("port");
+      auto data = tileObject.customProperties.GetProperty("data");
 
       command.onFinish.Slot([=] {
         GetPlayerController().ReleaseActor();
         transferServer(address, port, data, false);
       });
+      break;
     }
-    else if (type == "Position Warp") {
+    case ObjectType::position_warp: {
       auto targetTilePos = sf::Vector2f(
-        tileObject.customProperties.GetPropertyFloat("X"),
-        tileObject.customProperties.GetPropertyFloat("Y")
+        tileObject.customProperties.GetPropertyFloat("x"),
+        tileObject.customProperties.GetPropertyFloat("y")
       );
 
       auto targetWorldPos = map.TileToWorld(targetTilePos);
 
-      auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("Z"));
-      auto direction = FromString(tileObject.customProperties.GetProperty("Direction"));
+      auto targetPosition = sf::Vector3f(targetWorldPos.x, targetWorldPos.y, tileObject.customProperties.GetPropertyFloat("z"));
+      auto direction = FromString(tileObject.customProperties.GetProperty("direction"));
 
       sf::Vector2f player_pos = { player->getPosition().x, player->getPosition().y };
       float distance = std::pow(targetWorldPos.x - player_pos.x, 2.0f) + std::pow(targetWorldPos.y - player_pos.y, 2.0f);
@@ -302,8 +328,9 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
         teleportIn(targetPosition, Orthographic(direction));
         warpCameraController.QueueUnlockCamera();
       });
+      break;
     }
-    else if (type == "Custom Warp" || type == "Custom Server Warp") {
+    default:
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
@@ -331,20 +358,25 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   auto playerTilePos = map.WorldToTileSpace(player->getPosition());
   auto& layer = map.GetLayer(layerIndex);
-  auto& tile = layer.GetTile(int(playerTilePos.x), int(playerTilePos.y));
-  auto tileMeta = map.GetTileMeta(tile.gid);
+  auto tile = layer.GetTile(int(playerTilePos.x), int(playerTilePos.y));
 
-  if (!tileMeta || tileMeta->type != "Conveyor") {
+  if (!tile) {
     return;
   }
 
-  auto direction = FromString(tileMeta->customProperties.GetProperty("Direction"));
+  auto tileMeta = map.GetTileMeta(tile->gid);
 
-  if (tile.flippedHorizontal) {
+  if (!tileMeta || tileMeta->type != TileType::conveyor) {
+    return;
+  }
+
+  auto direction = tileMeta->direction;
+
+  if (tile->flippedHorizontal) {
     direction = FlipHorizontal(direction);
   }
 
-  if (tile.flippedVertical) {
+  if (tile->flippedVertical) {
     direction = FlipVertical(direction);
   }
 
@@ -374,10 +406,15 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   axisProperty.ease = Ease::linear;
 
   auto isConveyor = [&layer, &map](sf::Vector2f endTilePos) {
-    auto& tile = layer.GetTile(int(endTilePos.x), int(endTilePos.y));
-    auto tileMeta = map.GetTileMeta(tile.gid);
+    auto tile = layer.GetTile(int(endTilePos.x), int(endTilePos.y));
 
-    return tileMeta && tileMeta->type == "Conveyor";
+    if (!tile) {
+      return false;
+    }
+
+    auto tileMeta = map.GetTileMeta(tile->gid);
+
+    return tileMeta && tileMeta->type == TileType::conveyor;
   };
 
   // resolve end position
@@ -429,17 +466,17 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
 
   propertyAnimator.Reset();
 
-  auto speed = tileMeta->customProperties.GetPropertyFloat("Speed");
+  auto speed = tileMeta->customProperties.GetPropertyFloat("speed");
 
   if (speed == 0.0f) {
-    speed = 6.0f;
+    speed = DEFAULT_CONVEYOR_SPEED;
   }
 
   auto duration = tileDistance / speed;
 
   ActorPropertyAnimator::PropertyStep sfxProperty;
   sfxProperty.property = ActorProperty::sound_effect_loop;
-  sfxProperty.stringValue = GetPath(tileMeta->customProperties.GetProperty("Sound Effect"));
+  sfxProperty.stringValue = GetPath(tileMeta->customProperties.GetProperty("sound effect"));
 
   ActorPropertyAnimator::KeyFrame startKeyframe;
   startKeyframe.propertySteps.push_back(animationProperty);
@@ -572,7 +609,10 @@ void Overworld::OnlineArea::onResume()
     packetProcessor->SetForeground();
   }
 
-  // isEnteringBattle = false;
+  if (netBattleProcessor) {
+    Net().DropProcessor(netBattleProcessor);
+    netBattleProcessor = nullptr;
+  }
 }
 
 void Overworld::OnlineArea::OnTileCollision() { }
@@ -663,7 +703,7 @@ Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Ve
 
 void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut) {
   auto transfer = [=] {
-    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, data, maxPayloadSize, !WEBCLIENT.IsLoggedIn());
+    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, data, maxPayloadSize);
   };
 
   if (warpOut) {
@@ -729,8 +769,20 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::map:
       receiveMapSignal(reader, data);
       break;
+    case ServerEvents::health:
+      receiveHealthSignal(reader, data);
+      break;
+    case ServerEvents::emotion:
+      receiveEmotionSignal(reader, data);
+      break;
     case ServerEvents::money:
       receiveMoneySignal(reader, data);
+      break;
+    case ServerEvents::add_item:
+      receiveItemSignal(reader, data);
+      break;
+    case ServerEvents::remove_item:
+      receiveRemoveItemSignal(reader, data);
       break;
     case ServerEvents::play_sound:
       receivePlaySoundSignal(reader, data);
@@ -833,10 +885,11 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
 void Overworld::OnlineArea::sendAssetFoundSignal(const std::string& path, uint64_t lastModified) {
   ClientEvents event{ ClientEvents::asset_found };
 
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char*)&event, sizeof(ClientEvents));
-  buffer.append(path.c_str(), path.size() + 1);
-  buffer.append((char*)&lastModified, sizeof(lastModified));
+  writer.Write(buffer, ClientEvents::asset_found);
+  writer.WriteString<uint16_t>(buffer, path);
+  writer.Write(buffer, lastModified);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -848,7 +901,6 @@ void Overworld::OnlineArea::sendAssetsFound() {
 
 void Overworld::OnlineArea::sendAssetStreamSignal(ClientAssetType assetType, uint16_t headerSize, const char* data, size_t size) {
   size_t remainingBytes = size;
-  auto event = ClientEvents::asset_stream;
 
   // - 1 for asset type, - 2 for size
   const uint16_t availableRoom = maxPayloadSize - headerSize - 3;
@@ -857,11 +909,12 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientAssetType assetType, uin
     uint16_t size = remainingBytes < availableRoom ? (uint16_t)remainingBytes : availableRoom;
     remainingBytes -= size;
 
+    BufferWriter writer;
     Poco::Buffer<char> buffer{ 0 };
-    buffer.append((char*)&event, sizeof(ClientEvents));
-    buffer.append(assetType);
-    buffer.append((char*)&size, sizeof(uint16_t));
-    buffer.append(data, size);
+    writer.Write(buffer, ClientEvents::asset_stream);
+    writer.Write(buffer, assetType);
+    writer.Write(buffer, size);
+    writer.WriteBytes(buffer, data, size);
     packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 
     data += size;
@@ -876,59 +929,53 @@ void Overworld::OnlineArea::sendLoginSignal()
     username = "Anon";
   }
 
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::login };
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append(username.data(), username.length());
-  buffer.append(0);
-  buffer.append(connectData.data(), connectData.length());
-  buffer.append(0);
+  writer.Write(buffer, ClientEvents::login);
+  writer.WriteString<uint8_t>(buffer, username);
+  writer.WriteString<uint8_t>(buffer, identityManager.GetIdentity());
+  writer.WriteString<uint16_t>(buffer, connectData);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendLogoutSignal()
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::logout };
-  buffer.append((char*)&type, sizeof(ClientEvents));
+  writer.Write(buffer, ClientEvents::logout);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendRequestJoinSignal()
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::request_join };
-  buffer.append((char*)&type, sizeof(ClientEvents));
+  writer.Write(buffer, ClientEvents::request_join);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendReadySignal()
 {
-  ClientEvents type{ ClientEvents::ready };
-
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char*)&type, sizeof(ClientEvents));
-
+  writer.Write(buffer, ClientEvents::ready);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendTransferredOutSignal()
 {
-  auto type = ClientEvents::transferred_out;
-
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char*)&type, sizeof(ClientEvents));
-
+  writer.Write(buffer, ClientEvents::transferred_out);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendCustomWarpSignal(unsigned int tileObjectId)
 {
-  auto type = ClientEvents::custom_warp;
-
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char*)&type, sizeof(type));
-  buffer.append((char*)&tileObjectId, sizeof(tileObjectId));
+  writer.Write(buffer, ClientEvents::custom_warp);
+  writer.Write(buffer, tileObjectId);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
@@ -946,14 +993,14 @@ void Overworld::OnlineArea::sendPositionSignal()
   float z = player->GetElevation();
   auto direction = Isometric(player->GetHeading());
 
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::position };
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&creationTime, sizeof(creationTime));
-  buffer.append((char*)&x, sizeof(float));
-  buffer.append((char*)&y, sizeof(float));
-  buffer.append((char*)&z, sizeof(float));
-  buffer.append((char*)&direction, sizeof(Direction));
+  writer.Write(buffer, ClientEvents::position);
+  writer.Write(buffer, creationTime);
+  writer.Write(buffer, x);
+  writer.Write(buffer, y);
+  writer.Write(buffer, z);
+  writer.Write(buffer, direction);
   packetProcessor->SendKeepAlivePacket(Reliability::UnreliableSequenced, buffer);
 }
 
@@ -961,10 +1008,16 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
 {
   sendAvatarAssetStream();
 
+  auto& naviMeta = NAVIS.At(GetCurrentNavi());
+  auto naviName = naviMeta.GetName();
+  auto maxHP = naviMeta.GetHP();
+
   // mark completion
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::avatar_change };
-  buffer.append((char*)&type, sizeof(ClientEvents));
+  writer.Write(buffer, ClientEvents::avatar_change);
+  writer.WriteString<uint16_t>(buffer, naviName);
+  writer.Write(buffer, maxHP);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -1023,101 +1076,104 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
 
 void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::emote };
-  uint8_t val = static_cast<uint8_t>(emote);
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&val, sizeof(uint8_t));
+  writer.Write(buffer, ClientEvents::emote);
+  writer.Write(buffer, emote);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId)
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::object_interaction };
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&tileObjectId, sizeof(unsigned int));
+  writer.Write(buffer, ClientEvents::object_interaction);
+  writer.Write(buffer, tileObjectId);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::actor_interaction };
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append(ticket.c_str(), ticket.length() + 1);
+  writer.Write(buffer, ClientEvents::actor_interaction);
+  writer.WriteString<uint16_t>(buffer, ticket);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::tile_interaction };
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&x, sizeof(x));
-  buffer.append((char*)&y, sizeof(y));
-  buffer.append((char*)&z, sizeof(z));
+  writer.Write(buffer, ClientEvents::tile_interaction);
+  writer.Write(buffer, x);
+  writer.Write(buffer, y);
+  writer.Write(buffer, z);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendTextBoxResponseSignal(char response)
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::textbox_response };
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&response, sizeof(response));
+  writer.Write(buffer, ClientEvents::textbox_response);
+  writer.Write(buffer, response);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPromptResponseSignal(const std::string& response)
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::prompt_response };
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append(response.c_str(), response.length() + 1);
+  writer.Write(buffer, ClientEvents::prompt_response);
+  writer.WriteString<uint16_t>(buffer, response);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendBoardOpenSignal()
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::board_open };
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
+  writer.Write(buffer, ClientEvents::board_open);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendBoardCloseSignal()
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::board_close };
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
+  writer.Write(buffer, ClientEvents::board_close);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPostRequestSignal()
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::post_request };
-
-  buffer.append((char*)&type, sizeof(ClientEvents));
+  writer.Write(buffer, ClientEvents::post_request);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
 {
+  BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::post_selection };
+  writer.Write(buffer, ClientEvents::post_selection);
+  writer.WriteString<uint16_t>(buffer, postId);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
 
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append(postId.c_str(), postId.length() + 1);
+void Overworld::OnlineArea::sendBattleResultsSignal(const BattleResults& battleResults) {
+  auto time = battleResults.battleLength.asSeconds();
+
+  BufferWriter writer;
+  Poco::Buffer<char> buffer{ 0 };
+  writer.Write(buffer, ClientEvents::battle_results);
+  writer.Write(buffer, (int)battleResults.playerHealth);
+  writer.Write(buffer, (int)battleResults.score);
+  writer.Write(buffer, time);
+  writer.Write(buffer, battleResults.runaway);
+  writer.Write(buffer, battleResults.finalEmotion);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -1126,7 +1182,7 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   auto& map = GetMap();
   auto tileSize = map.GetTileSize();
 
-  this->ticket = reader.ReadTerminatedString(buffer);
+  this->ticket = reader.ReadString<uint16_t>(buffer);
   auto warpIn = reader.Read<bool>(buffer);
   auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
   auto y = reader.Read<float>(buffer) * tileSize.y;
@@ -1190,9 +1246,9 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
 
 void Overworld::OnlineArea::receiveTransferServerSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto address = reader.ReadTerminatedString(buffer);
+  auto address = reader.ReadString<uint16_t>(buffer);
   auto port = reader.Read<uint16_t>(buffer);
-  auto data = reader.ReadTerminatedString(buffer);
+  auto data = reader.ReadString<uint16_t>(buffer);
   auto warpOut = reader.Read<bool>(buffer);
 
   transferServer(address, port, data, warpOut);
@@ -1200,7 +1256,7 @@ void Overworld::OnlineArea::receiveTransferServerSignal(BufferReader& reader, co
 
 void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  std::string kickReason = reader.ReadTerminatedString(buffer);
+  std::string kickReason = reader.ReadString<uint16_t>(buffer);
   std::string kickText = "kicked for";
 
   // insert padding to center the text
@@ -1221,13 +1277,13 @@ void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::
 }
 
 void Overworld::OnlineArea::receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
-  auto path = reader.ReadTerminatedString(buffer);
+  auto path = reader.ReadString<uint16_t>(buffer);
 
   serverAssetManager.RemoveAsset(path);
 }
 
 void Overworld::OnlineArea::receiveAssetStreamStartSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
-  auto name = reader.ReadTerminatedString(buffer);
+  auto name = reader.ReadString<uint16_t>(buffer);
   auto lastModified = reader.Read<uint64_t>(buffer);
   auto cachable = reader.Read<bool>(buffer);
   auto type = reader.Read<AssetType>(buffer);
@@ -1282,8 +1338,7 @@ void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const
 
   switch (incomingAsset.type) {
   case AssetType::text:
-    incomingAsset.buffer.append(0);
-    serverAssetManager.SetText(name, lastModified, assetReader.ReadTerminatedString(incomingAsset.buffer), cachable);
+    serverAssetManager.SetText(name, lastModified, assetReader.ReadString(incomingAsset.buffer, incomingAsset.buffer.size()), cachable);
     break;
   case AssetType::texture:
     serverAssetManager.SetTexture(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
@@ -1297,20 +1352,20 @@ void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const
 }
 
 void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
-  auto name = reader.ReadTerminatedString(buffer);
+  auto name = reader.ReadString<uint16_t>(buffer);
 
   serverAssetManager.Preload(name);
 }
 
 void Overworld::OnlineArea::receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
-  auto path = reader.ReadTerminatedString(buffer);
+  auto path = reader.ReadString<uint16_t>(buffer);
 
   SetCustomEmotesTexture(serverAssetManager.GetTexture(path));
 }
 
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto path = reader.ReadTerminatedString(buffer);
+  auto path = reader.ReadString<uint16_t>(buffer);
   auto mapBuffer = GetText(path);
 
   LoadMap(mapBuffer);
@@ -1349,45 +1404,33 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
     warpLayer.clear();
 
     for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
-      const std::string& type = tileObject.type;
-
-      if (type == "") continue;
-
-      auto tileMeta = map.GetTileMeta(tileObject.tile.gid);
-
-      if (!tileMeta) continue;
-
-      auto screenOffset = tileMeta->alignmentOffset + tileMeta->drawingOffset;
-      screenOffset += tileObject.size / 2.0f;
-
-      auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
-      auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
-
-      if (type == "Home Warp") {
-        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
-        minimap.SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
+      if (ObjectType::IsWarp(tileObject.type)) {
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
-      }
-      else if (type == "Server Warp" || type == "Custom Server Warp" || type == "Position Warp" || type == "Custom Warp") {
-        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
-        minimap.AddWarpPosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
-        tileObject.solid = false;
-        warpLayer.push_back(&tileObject);
-      }
-      else if (type == "Board") {
-        sf::Vector2f bottomPosition = objectCenterPos;
-        bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
-
-        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(bottomPosition)), i);
-        minimap.AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal, isConcealed);
-      }
-      else if (type == "Shop") {
-        bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(tileObject.position)), i);
-        minimap.AddShopPosition(map.WorldToScreen(tileObject.position) + zOffset, isConcealed);
       }
     }
   }
+}
+
+void Overworld::OnlineArea::receiveHealthSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto health = reader.Read<int>(buffer);
+  auto maxHealth = reader.Read<int>(buffer);
+
+  GetPlayerSession().health = health;
+  GetPersonalMenu().SetHealth(health);
+  GetPersonalMenu().SetMaxHealth(maxHealth);
+}
+
+void Overworld::OnlineArea::receiveEmotionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto emotion = reader.Read<Emotion>(buffer);
+
+  if (emotion >= Emotion::COUNT) {
+    emotion = Emotion::normal;
+  }
+
+  GetPlayerSession().emotion = emotion;
 }
 
 void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1396,8 +1439,23 @@ void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco:
   GetPersonalMenu().SetMonies(balance);
 }
 
+void Overworld::OnlineArea::receiveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto name = reader.ReadString<uint8_t>(buffer);
+  auto description = reader.ReadString<uint16_t>(buffer);
+
+  AddItem(name, description);
+}
+
+void Overworld::OnlineArea::receiveRemoveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto name = reader.ReadString<uint8_t>(buffer);
+
+  RemoveItem(name);
+}
+
 void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
-  auto name = reader.ReadTerminatedString(buffer);
+  auto name = reader.ReadString<uint16_t>(buffer);
 
   Audio().Play(GetAudio(name), AudioPriority::highest);
 }
@@ -1517,7 +1575,7 @@ void Overworld::OnlineArea::receiveTrackWithCameraSignal(BufferReader& reader, c
   auto some = reader.Read<bool>(buffer);
 
   if (some) {
-    trackedPlayer = reader.ReadTerminatedString(buffer);
+    trackedPlayer = reader.ReadString<uint16_t>(buffer);
   }
   else {
     trackedPlayer = {};
@@ -1558,9 +1616,9 @@ void Overworld::OnlineArea::receiveTeleportSignal(BufferReader& reader, const Po
 
 void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto message = reader.ReadTerminatedString(buffer);
-  auto mugTexturePath = reader.ReadTerminatedString(buffer);
-  auto mugAnimationPath = reader.ReadTerminatedString(buffer);
+  auto message = reader.ReadString<uint16_t>(buffer);
+  auto mugTexturePath = reader.ReadString<uint16_t>(buffer);
+  auto mugAnimationPath = reader.ReadString<uint16_t>(buffer);
 
   sf::Sprite face;
   face.setTexture(*GetTexture(mugTexturePath));
@@ -1577,9 +1635,9 @@ void Overworld::OnlineArea::receiveMessageSignal(BufferReader& reader, const Poc
 
 void Overworld::OnlineArea::receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto message = reader.ReadTerminatedString(buffer);
-  auto mugTexturePath = reader.ReadTerminatedString(buffer);
-  auto mugAnimationPath = reader.ReadTerminatedString(buffer);
+  auto message = reader.ReadString<uint16_t>(buffer);
+  auto mugTexturePath = reader.ReadString<uint16_t>(buffer);
+  auto mugAnimationPath = reader.ReadString<uint16_t>(buffer);
 
   sf::Sprite face;
   face.setTexture(*GetTexture(mugTexturePath));
@@ -1596,11 +1654,11 @@ void Overworld::OnlineArea::receiveQuestionSignal(BufferReader& reader, const Po
 
 void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto optionA = reader.ReadTerminatedString(buffer);
-  auto optionB = reader.ReadTerminatedString(buffer);
-  auto optionC = reader.ReadTerminatedString(buffer);
-  auto mugTexturePath = reader.ReadTerminatedString(buffer);
-  auto mugAnimationPath = reader.ReadTerminatedString(buffer);
+  auto optionA = reader.ReadString<uint16_t>(buffer);
+  auto optionB = reader.ReadString<uint16_t>(buffer);
+  auto optionC = reader.ReadString<uint16_t>(buffer);
+  auto mugTexturePath = reader.ReadString<uint16_t>(buffer);
+  auto mugAnimationPath = reader.ReadString<uint16_t>(buffer);
 
   sf::Sprite face;
   face.setTexture(*GetTexture(mugTexturePath));
@@ -1618,7 +1676,7 @@ void Overworld::OnlineArea::receiveQuizSignal(BufferReader& reader, const Poco::
 void Overworld::OnlineArea::receivePromptSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto characterLimit = reader.Read<uint16_t>(buffer);
-  auto defaultText = reader.ReadTerminatedString(buffer);
+  auto defaultText = reader.ReadString<uint16_t>(buffer);
 
   auto& menuSystem = GetMenuSystem();
   menuSystem.EnqueueTextInput(
@@ -1635,10 +1693,10 @@ static std::vector<BBS::Post> ReadPosts(BufferReader& reader, const Poco::Buffer
   posts.reserve(total);
 
   for (auto i = 0; i < total; i++) {
-    auto id = reader.ReadTerminatedString(buffer);
+    auto id = reader.ReadString<uint16_t>(buffer);
     auto read = reader.Read<bool>(buffer);
-    auto title = reader.ReadTerminatedString(buffer);
-    auto author = reader.ReadTerminatedString(buffer);
+    auto title = reader.ReadString<uint16_t>(buffer);
+    auto author = reader.ReadString<uint16_t>(buffer);
 
     posts.push_back({
       id,
@@ -1664,7 +1722,7 @@ void Overworld::OnlineArea::receiveOpenBoardSignal(BufferReader& reader, const P
     return;
   }
 
-  auto topic = reader.ReadTerminatedString(buffer);
+  auto topic = reader.ReadString<uint16_t>(buffer);
   auto r = reader.Read<unsigned char>(buffer);
   auto g = reader.Read<unsigned char>(buffer);
   auto b = reader.Read<unsigned char>(buffer);
@@ -1695,7 +1753,7 @@ void Overworld::OnlineArea::receivePrependPostsSignal(BufferReader& reader, cons
   }
 
   bool hasReference = reader.Read<bool>(buffer);
-  std::string reference = hasReference ? reader.ReadTerminatedString(buffer) : "";
+  std::string reference = hasReference ? reader.ReadString<uint16_t>(buffer) : "";
   auto posts = ReadPosts(reader, buffer);
 
   auto optionalBbs = menuSystem.GetBBS();
@@ -1726,7 +1784,7 @@ void Overworld::OnlineArea::receiveAppendPostsSignal(BufferReader& reader, const
   }
 
   auto hasReference = reader.Read<bool>(buffer);
-  auto reference = hasReference ? reader.ReadTerminatedString(buffer) : "";
+  auto reference = hasReference ? reader.ReadString<uint16_t>(buffer) : "";
   auto posts = ReadPosts(reader, buffer);
 
   auto optionalBbs = menuSystem.GetBBS();
@@ -1756,7 +1814,7 @@ void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const 
     return;
   }
 
-  auto postId = reader.ReadTerminatedString(buffer);
+  auto postId = reader.ReadString<uint16_t>(buffer);
 
   auto optionalBbs = menuSystem.GetBBS();
 
@@ -1776,7 +1834,7 @@ void  Overworld::OnlineArea::receiveCloseBBSSignal(BufferReader& reader, const P
 
 void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto addressString = reader.ReadTerminatedString(buffer);
+  auto addressString = reader.ReadString<uint16_t>(buffer);
 
   std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
   CardFolder* folder;
@@ -1801,7 +1859,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   Audio().StopStream();
 
   // Configure the session
-  config.remote = addressString;
   config.myNavi = GetCurrentNavi();
 
   auto& meta = NAVIS.At(config.myNavi);
@@ -1816,28 +1873,26 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   player->SetHealth(GetPlayerSession().health);
   player->SetEmotion(GetPlayerSession().emotion);
 
+  try {
+    auto remote = Poco::Net::SocketAddress(addressString);
+    netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
+    Net().AddHandler(remote, netBattleProcessor);
+  }
+  catch (...) {
+    return;
+  }
+
   NetworkBattleSceneProps props = {
     { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
     sf::Sprite(*mugshot),
     mugshotAnim,
     emotions,
-    config
+    config,
+    netBattleProcessor
   };
 
-  // isEnteringBattle = true;
-  // 
-  // EXAMPLE AND TEMP DEMO PURPOSES BELOW:
-  BattleResultsFunc callback = [this, fullHealth](const BattleResults& results) {
-    int health = results.playerHealth;
-
-    if (health > 0) {
-      GetPlayerSession().health = health;
-      GetPlayerSession().emotion = results.finalEmotion;
-    }
-    else {
-      GetPlayerSession().health = fullHealth;
-      GetPlayerSession().emotion = Emotion::normal;
-    }
+  BattleResultsFunc callback = [this](const BattleResults& results) {
+    sendBattleResultsSignal(results);
   };
 
   getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
@@ -1848,10 +1903,10 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   auto& map = GetMap();
   auto tileSize = sf::Vector2f(map.GetTileSize());
 
-  std::string user = reader.ReadTerminatedString(buffer);
-  std::string name = reader.ReadTerminatedString(buffer);
-  std::string texturePath = reader.ReadTerminatedString(buffer);
-  std::string animationPath = reader.ReadTerminatedString(buffer);
+  std::string user = reader.ReadString<uint16_t>(buffer);
+  std::string name = reader.ReadString<uint16_t>(buffer);
+  std::string texturePath = reader.ReadString<uint16_t>(buffer);
+  std::string animationPath = reader.ReadString<uint16_t>(buffer);
   auto direction = reader.Read<Direction>(buffer);
   float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
   float y = reader.Read<float>(buffer) * tileSize.y;
@@ -1864,7 +1919,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   std::optional<std::string> current_animation;
 
   if (reader.Read<bool>(buffer)) {
-    current_animation = reader.ReadTerminatedString(buffer);
+    current_animation = reader.ReadString<uint16_t>(buffer);
   }
 
   auto pos = sf::Vector3f(x, y, z);
@@ -1934,7 +1989,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
 void Overworld::OnlineArea::receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  std::string user = reader.ReadTerminatedString(buffer);
+  std::string user = reader.ReadString<uint16_t>(buffer);
   bool warpOut = reader.Read<bool>(buffer);
 
   auto userIter = onlinePlayers.find(user);
@@ -1975,8 +2030,8 @@ void Overworld::OnlineArea::receiveActorDisconnectedSignal(BufferReader& reader,
 
 void Overworld::OnlineArea::receiveActorSetNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  std::string user = reader.ReadTerminatedString(buffer);
-  std::string name = reader.ReadTerminatedString(buffer);
+  std::string user = reader.ReadString<uint16_t>(buffer);
+  std::string name = reader.ReadString<uint16_t>(buffer);
 
   auto userIter = onlinePlayers.find(user);
 
@@ -1987,7 +2042,7 @@ void Overworld::OnlineArea::receiveActorSetNameSignal(BufferReader& reader, cons
 
 void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  std::string user = reader.ReadTerminatedString(buffer);
+  std::string user = reader.ReadString<uint16_t>(buffer);
 
   // ignore our ip update
   if (user == ticket) {
@@ -2046,9 +2101,9 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
 
 void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  std::string user = reader.ReadTerminatedString(buffer);
-  std::string texturePath = reader.ReadTerminatedString(buffer);
-  std::string animationPath = reader.ReadTerminatedString(buffer);
+  std::string user = reader.ReadString<uint16_t>(buffer);
+  std::string texturePath = reader.ReadString<uint16_t>(buffer);
+  std::string animationPath = reader.ReadString<uint16_t>(buffer);
 
   EmoteNode* emoteNode;
   std::shared_ptr<Actor> actor;
@@ -2079,7 +2134,7 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto user = reader.ReadTerminatedString(buffer);
+  auto user = reader.ReadString<uint16_t>(buffer);
   auto emote = reader.Read<uint8_t>(buffer);
   auto custom = reader.Read<bool>(buffer);
 
@@ -2109,8 +2164,8 @@ void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const 
 
 void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto user = reader.ReadTerminatedString(buffer);
-  auto state = reader.ReadTerminatedString(buffer);
+  auto user = reader.ReadString<uint16_t>(buffer);
+  auto state = reader.ReadString<uint16_t>(buffer);
   auto loop = reader.Read<bool>(buffer);
 
   if (user == ticket) {
@@ -2129,7 +2184,7 @@ void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, cons
 
 void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto user = reader.ReadTerminatedString(buffer);
+  auto user = reader.ReadString<uint16_t>(buffer);
 
   // resolve target
   auto actor = GetPlayer();
@@ -2169,7 +2224,7 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
 
       switch (propertyStep.property) {
       case ActorProperty::animation:
-        propertyStep.stringValue = reader.ReadTerminatedString(buffer);
+        propertyStep.stringValue = reader.ReadString<uint16_t>(buffer);
         break;
       case ActorProperty::x:
         propertyStep.value = reader.Read<float>(buffer) * xScale;
@@ -2181,10 +2236,10 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
         propertyStep.value = (float)Orthographic(reader.Read<Direction>(buffer));
         break;
       case ActorProperty::sound_effect:
-        propertyStep.stringValue = GetPath(reader.ReadTerminatedString(buffer));
+        propertyStep.stringValue = GetPath(reader.ReadString<uint16_t>(buffer));
         break;
       case ActorProperty::sound_effect_loop:
-        propertyStep.stringValue = GetPath(reader.ReadTerminatedString(buffer));
+        propertyStep.stringValue = GetPath(reader.ReadString<uint16_t>(buffer));
         break;
       default:
         propertyStep.value = reader.Read<float>(buffer);

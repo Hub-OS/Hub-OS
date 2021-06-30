@@ -76,6 +76,23 @@ namespace Overworld {
     return { tileSpace.x * (float)tileWidth * 0.5f, tileSpace.y * (float)tileHeight };
   }
 
+  Tile* Map::GetTileFromWorld(sf::Vector3f worldPos) {
+    if(worldPos.z < 0) {
+      return nullptr;
+    }
+
+    auto layerIndex = size_t(worldPos.z);
+    auto tilePos = sf::Vector2i(WorldToTileSpace({ worldPos.x, worldPos.y }));
+
+    if (layerIndex >= layers.size()) {
+      return nullptr;
+    }
+
+    auto& layer = layers[layerIndex];
+
+    return layer.GetTile(tilePos.x, tilePos.y);
+  }
+
   size_t Map::HashTilePosition(sf::Vector2f position) const {
     return size_t(position.x) + size_t(cols) * size_t(position.y);
   }
@@ -236,7 +253,11 @@ namespace Overworld {
     }
 
     auto& layer = GetLayer(layerIndex);
-    auto& tile = layer.GetTile(x, y);
+    auto tile = layer.GetTile(x, y);
+
+    if (!tile) {
+      return false;
+    }
 
     // get decimal part
     float tileX{};
@@ -265,7 +286,7 @@ namespace Overworld {
       testPosition.y - layerRelativeZ * tileHeight
     );
 
-    if (tile.Intersects(*this, tileTestPos.x, tileTestPos.y)) {
+    if (tile->Intersects(*this, tileTestPos.x, tileTestPos.y)) {
       return false;
     }
 
@@ -290,14 +311,18 @@ namespace Overworld {
     }
 
     layerIndex = std::max(layerIndex, 0);
-
-    auto& layer = layers[layerIndex];
-    auto& tile = layer.GetTile(x, y);
-    auto& tileMeta = tileMetas[tile.gid];
-
     auto layerElevation = (float)layerIndex;
 
-    if (!tileMeta || tileMeta->type != "Stairs") {
+    auto& layer = layers[layerIndex];
+    auto tile = layer.GetTile(x, y);
+
+    if (!tile) {
+      return layerElevation;
+    }
+
+    auto& tileMeta = tileMetas[tile->gid];
+
+    if (!tileMeta || tileMeta->type != TileType::stairs) {
       return layerElevation;
     }
 
@@ -306,20 +331,14 @@ namespace Overworld {
     relativeY = std::modf(y, &_);
 
     float layerRelativeElevation = 0.0;
-    auto directionString = tileMeta->customProperties.GetProperty("Direction");
-    Direction direction;
+    Direction direction = FromString(tileMeta->customProperties.GetProperty("direction"));
 
-    if (directionString == "Up Left") {
-      direction = tile.flippedHorizontal ? Direction::up_right : Direction::up_left;
+    if (tile->flippedHorizontal) {
+      direction = FlipHorizontal(direction);
     }
-    else if (directionString == "Up Right") {
-      direction = tile.flippedHorizontal ? Direction::up_left : Direction::up_right;
-    }
-    if (directionString == "Down Left") {
-      direction = tile.flippedHorizontal ? Direction::down_right : Direction::down_left;
-    }
-    else if (directionString == "Down Right") {
-      direction = tile.flippedHorizontal ? Direction::down_left : Direction::down_right;
+
+    if (tile->flippedVertical) {
+      direction = FlipVertical(direction);
     }
 
     switch (direction) {
@@ -344,10 +363,15 @@ namespace Overworld {
 
   bool Map::IgnoreTileAbove(float x, float y, int layerIndex) {
     auto& layer = layers[layerIndex];
-    auto& tile = layer.GetTile(x, y);
-    auto& tileMeta = tileMetas[tile.gid];
+    auto tile = layer.GetTile(x, y);
 
-    return tileMeta && tileMeta->type == "Stairs";
+    if (!tile) {
+      return false;
+    }
+
+    auto& tileMeta = tileMetas[tile->gid];
+
+    return tileMeta && tileMeta->type == TileType::stairs;
   }
 
   bool Map::HasShadow(sf::Vector2i tilePos, int layer) {
@@ -362,7 +386,7 @@ namespace Overworld {
     auto col = tilePos.x;
     auto row = tilePos.y;
 
-    for (auto i = layer + 1; col < cols && row < rows && i < layers.size(); i++) {
+    for (auto i = layer + 1; i < layers.size(); i++) {
       auto layerOffset = i - layer;
       auto isOddLayer = layerOffset % 2 == 1;
 
@@ -372,19 +396,22 @@ namespace Overworld {
         row += 1;
       }
 
-      if (col < 0 || row < 0 || i < 0) {
+      if (col < 0 || row < 0 || col >= cols || row >= rows || i < 0) {
         continue;
       }
 
       auto& layer = layers[i];
 
-      if (layer.GetTile(col, row).gid != 0) {
+      if (layer.GetTile(col, row)->gid != 0) {
         return true;
       }
 
       if (isOddLayer) {
+        // need to check for nullptr
+        auto tile = layer.GetTile(col + 1, row + 1);
+
         // odd layers have two tiles that may conceal us
-        if (layer.GetTile(col + 1, row + 1).gid != 0) {
+        if (tile && tile->gid != 0) {
           return true;
         }
       }
@@ -405,49 +432,43 @@ namespace Overworld {
     }
   }
 
-  static Tile nullTile = Tile(0);
-
   Map::Layer::Layer(unsigned cols, unsigned rows) {
     this->cols = cols;
     this->rows = rows;
-    tiles.resize(cols * rows, nullTile);
+    tiles.resize(cols * rows, Tile(0));
   }
 
-  Tile& Map::Layer::GetTile(int x, int y)
+  Tile* Map::Layer::GetTile(int x, int y)
   {
     if (x < 0 || y < 0 || x >= (int)cols || y >= (int)rows) {
-      // reset nullTile as it may have been mutated
-      nullTile = Tile(0);
-      return nullTile;
+      return nullptr;
     }
 
-    return tiles[y * cols + x];
+    return &tiles[y * cols + x];
   }
 
-  Tile& Map::Layer::GetTile(float x, float y)
+  Tile* Map::Layer::GetTile(float x, float y)
   {
     return GetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)));
   }
 
-  Tile& Map::Layer::SetTile(int x, int y, Tile tile)
+  Tile* Map::Layer::SetTile(int x, int y, Tile tile)
   {
-    if (x < 0 || y < 0 || x >= (int)cols || y >= (int)rows) {
-      // reset nullTile as it may have been mutated
-      nullTile = Tile(0);
-      return nullTile;
+    auto storedTile = GetTile(x, y);
+
+    if (storedTile) {
+      *storedTile = tile;
     }
 
-    tilesModified = true;
-
-    return tiles[y * cols + x] = tile;
+    return storedTile;
   }
 
-  Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
+  Tile* Map::Layer::SetTile(int x, int y, unsigned int gid)
   {
     return SetTile(x, y, Tile(gid));
   }
 
-  Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
+  Tile* Map::Layer::SetTile(float x, float y, unsigned int gid)
   {
     return SetTile(static_cast<int>(std::floor(x)), static_cast<int>(std::floor(y)), gid);
   }

@@ -33,20 +33,9 @@ std::string BufferReader::ReadTerminatedString(const Poco::Buffer<char>& buffer)
     }
   }
 
+  Logger::Log("BufferReader read past end!");
+  offset = buffer.size();
+
   return "";
 }
 
-std::string BufferReader::ReadString(const Poco::Buffer<char>& buffer)
-{
-  auto length = Read<uint64_t>(buffer);
-  auto remainingBytes = buffer.size() - offset;
-
-  if (remainingBytes < length) {
-    return "";
-  }
-
-  auto result = std::string(buffer.begin() + offset, length);
-  offset += length;
-
-  return result;
-}

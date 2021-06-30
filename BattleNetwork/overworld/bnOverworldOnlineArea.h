@@ -6,12 +6,15 @@
 #include <unordered_map>
 #include <functional>
 
+#include "../bnBattleResults.h"
 #include "../netplay/bnBufferReader.h"
+#include "../netplay/bnNetPlayPacketProcessor.h"
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldPacketProcessor.h"
 #include "bnOverworldActorPropertyAnimator.h"
 #include "bnPacketHeaders.h"
 #include "bnServerAssetManager.h"
+#include "bnIdentityManager.h"
 
 namespace Overworld {
   struct OnlinePlayer {
@@ -47,18 +50,18 @@ namespace Overworld {
     };
 
     std::string ticket; //!< How we are represented on the server
-    Poco::Net::SocketAddress remoteAddress; //!< server
     std::shared_ptr<PacketProcessor> packetProcessor;
+    std::shared_ptr<Netplay::PacketProcessor> netBattleProcessor;
     std::string connectData;
     uint16_t maxPayloadSize;
     bool isConnected{ false };
     bool transferringServers{ false };
     bool kicked{ false };
-    bool isEnteringBattle{ false };
     bool tryPopScene{ false };
     ActorPropertyAnimator propertyAnimator;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
+    IdentityManager identityManager;
     AssetMeta incomingAsset;
     std::map<std::string, OnlinePlayer> onlinePlayers;
     std::map<unsigned, ExcludedObjectData> excludedObjects;
@@ -69,10 +72,10 @@ namespace Overworld {
     Text transitionText;
     Text nameText;
     std::optional<std::string> trackedPlayer;
-    bool wasReadingTextBox{ false };
     CameraController serverCameraController;
     CameraController warpCameraController;
 
+    void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
     void detectWarp(std::shared_ptr<Actor>& player);
     void detectConveyor(std::shared_ptr<Actor>& player);
@@ -103,6 +106,7 @@ namespace Overworld {
     void sendBoardCloseSignal();
     void sendPostRequestSignal();
     void sendPostSelectSignal(const std::string& postId);
+    void sendBattleResultsSignal(const BattleResults& results);
 
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -116,7 +120,11 @@ namespace Overworld {
     void receivePreloadSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveHealthSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveEmotionSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoneySignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveItemSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveRemoveItemSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -160,8 +168,7 @@ namespace Overworld {
       const std::string& address,
       uint16_t port,
       const std::string& connectData,
-      uint16_t maxPayloadSize,
-      bool guestAccount
+      uint16_t maxPayloadSize
     );
 
     /**

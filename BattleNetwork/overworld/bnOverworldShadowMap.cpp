@@ -26,9 +26,9 @@ namespace Overworld {
 
         for (auto index = layerCount - 1; index >= 1; index--) {
           auto& layer = map.GetLayer(index);
-          auto& tile = layer.GetTile((int)x, (int)y);
+          auto tile = layer.GetTile((int)x, (int)y);
 
-          if (tile.gid == 0) {
+          if (tile->gid == 0) {
             continue;
           }
 

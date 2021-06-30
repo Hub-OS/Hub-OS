@@ -1,5 +1,6 @@
 #include "bnDownloadScene.h"
 #include "bnBufferReader.h"
+#include "bnBufferWriter.h"
 #include "../bnWebClientMananger.h"
 #include <Segues/PixelateBlackWashFade.h>
 
@@ -171,14 +172,14 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
   BufferReader reader;
   // Tell web client to fetch and download these cards
   std::vector<std::string> cardList;
-  size_t cardLen = reader.Read<size_t>(buffer);
+  auto cardLen = reader.Read<uint16_t>(buffer);
 
   while (cardLen-- > 0) {
     // name
-    std::string id = reader.ReadString(buffer);
+    std::string id = reader.ReadString<uint16_t>(buffer);
 
     // image data
-    size_t image_len = reader.Read<size_t>(buffer);
+    auto image_len = reader.Read<uint64_t>(buffer);
 
     sf::Uint8* imageData = new sf::Uint8[image_len]{ 0 };
     std::memcpy(imageData, buffer.begin() + reader.GetOffset(), image_len);
@@ -191,7 +192,7 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
     delete[] imageData;
 
     // icon data
-    size_t icon_len = reader.Read<size_t>(buffer);
+    auto icon_len = reader.Read<uint64_t>(buffer);
 
     sf::Uint8* iconData = new  sf::Uint8[icon_len]{ 0 };
     std::memcpy(iconData, buffer.begin() + reader.GetOffset(), icon_len);
@@ -206,11 +207,11 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
     ////////////////////
     //   Card Model   //
     ////////////////////
-    std::string model_id = reader.ReadString(buffer);
-    std::string name = reader.ReadString(buffer);
-    std::string action = reader.ReadString(buffer);
-    std::string element = reader.ReadString(buffer);
-    std::string secondary_element = reader.ReadString(buffer);
+    std::string model_id = reader.ReadString<uint16_t>(buffer);
+    std::string name = reader.ReadString<uint16_t>(buffer);
+    std::string action = reader.ReadString<uint16_t>(buffer);
+    std::string element = reader.ReadString<uint16_t>(buffer);
+    std::string secondary_element = reader.ReadString<uint16_t>(buffer);
 
     auto props = std::make_shared<WebAccounts::CardProperties>();
 
@@ -228,7 +229,7 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
 
     // codes count
     std::vector<char> codes;
-    size_t codes_len = reader.Read<size_t>(buffer);
+    auto codes_len = reader.Read<uint16_t>(buffer);
 
     while (codes_len-- > 0) {
       char code = reader.Read<char>(buffer);
@@ -239,32 +240,25 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
 
     // meta classes count
     std::vector<std::string> metaClasses;
-    size_t meta_len = reader.Read<size_t>(buffer);
+    auto meta_len = reader.Read<uint16_t>(buffer);
 
     while (meta_len-- > 0) {
-      std::string meta = reader.ReadString(buffer);
+      std::string meta = reader.ReadString<uint16_t>(buffer);
       metaClasses.push_back(meta);
     }
 
     props->metaClasses = metaClasses;
 
-    std::string description = reader.ReadString(buffer);
-    std::string verboseDesc = reader.ReadString(buffer);
-
-    props->description = description;
-    props->verboseDescription = verboseDesc;
+    props->description = reader.ReadString<uint16_t>(buffer);
+    props->verboseDescription = reader.ReadString<uint16_t>(buffer);
 
     ////////////////////
     //  Card Data     //
     ////////////////////
-    char code = reader.Read<char>(buffer);
-    std::string card_id = reader.ReadString(buffer);
-    std::string modelId = reader.ReadString(buffer);
-
     auto cardData = std::make_shared<WebAccounts::Card>();
-    cardData->id = card_id;
-    cardData->code = code;
-    cardData->modelId = modelId;
+    cardData->code = reader.Read<char>(buffer);
+    cardData->id = reader.ReadString<uint16_t>(buffer);
+    cardData->modelId = reader.ReadString<uint16_t>(buffer);
 
     // Upload
     WEBCLIENT.UploadCardData(id, iconObj, textureObj, cardData, props);
@@ -327,35 +321,33 @@ Poco::Buffer<char> DownloadScene::SerializeUUIDs(NetPlaySignals header, const st
 
 Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>& cardList)
 {
+  BufferWriter writer;
   Poco::Buffer<char> data{ 0 };
   size_t len = cardList.size();
 
   // header
-  NetPlaySignals type{ NetPlaySignals::card_list_download };
-  data.append((char*)&type, sizeof(NetPlaySignals));
+  writer.Write(data, NetPlaySignals::card_list_download);
 
   // number of cards
-  data.append((char*)&len, sizeof(len));
+  writer.Write(data, (uint16_t)cardList.size());
 
   for (auto& card : cardList) {
     // name
-    size_t sz = card.length();
-    data.append((char*)&sz, sizeof(size_t));
-    data.append(card.c_str(), card.length());
+    writer.WriteString<uint16_t>(data, card);
 
     // image data
     auto texture = WEBCLIENT.GetImageForCard(card);
     auto image = texture->copyToImage();
-    size_t image_len = static_cast<size_t>(image.getSize().x * image.getSize().y * 4u);
-    data.append((char*)&image_len, sizeof(size_t));
-    data.append((char*)image.getPixelsPtr(), image_len);
+    auto image_len = static_cast<uint64_t>(image.getSize().x * image.getSize().y * 4u);
+    writer.Write(data, image_len);
+    writer.WriteBytes(data, image.getPixelsPtr(), image_len);
 
     // icon data
     auto icon = WEBCLIENT.GetIconForCard(card);
     image = icon->copyToImage();
-    image_len = static_cast<size_t>(image.getSize().x * image.getSize().y * 4u);
-    data.append((char*)&image_len, sizeof(size_t));
-    data.append((char*)image.getPixelsPtr(), image_len);
+    image_len = static_cast<uint64_t>(image.getSize().x * image.getSize().y * 4u);
+    writer.Write(data, image_len);
+    writer.WriteBytes(data, image.getPixelsPtr(), image_len);
 
     ////////////////////
     // card meta data //
@@ -364,40 +356,21 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
     auto cardData = WEBCLIENT.GetWebCard(card);
     auto model = WEBCLIENT.GetWebCardModel(cardData->modelId);
 
-    std::string id = model->id;
-    size_t id_len = id.size();
-    data.append((char*)&id_len, sizeof(size_t));
-    data.append(id.c_str(), id_len);
+    writer.WriteString<uint16_t>(data, model->id);
+    writer.WriteString<uint16_t>(data, model->name);
+    writer.WriteString<uint16_t>(data, model->action);
+    writer.WriteString<uint16_t>(data, model->element);
+    writer.WriteString<uint16_t>(data, model->secondaryElement);
 
-    std::string name = model->name;
-    size_t name_len = name.size();
-    data.append((char*)&name_len, sizeof(size_t));
-    data.append(name.c_str(), name_len);
-
-    std::string action = model->action;
-    size_t action_len = action.size();
-    data.append((char*)&action_len, sizeof(size_t));
-    data.append(action.c_str(), action_len);
-
-    std::string element = model->element;
-    size_t element_len = element.size();
-    data.append((char*)&element_len, sizeof(size_t));
-    data.append(element.c_str(), element_len);
-
-    std::string secondary = model->secondaryElement;
-    size_t secondary_len = secondary.size();
-    data.append((char*)&secondary_len, sizeof(size_t));
-    data.append(secondary.c_str(), secondary_len);
-
-    data.append((char*)&model->classType, sizeof(decltype(model->classType)));
-    data.append((char*)&model->damage, sizeof(decltype(model->damage)));
-    data.append((char*)&model->timeFreeze, sizeof(decltype(model->timeFreeze)));
-    data.append((char*)&model->limit, sizeof(decltype(model->limit)));
+    writer.Write(data, model->classType);
+    writer.Write(data, model->damage);
+    writer.Write(data, model->timeFreeze);
+    writer.Write(data, model->limit);
 
     // codes count
     std::vector<char> codes = model->codes;
-    size_t codes_len = codes.size();
-    data.append((char*)&codes_len, sizeof(size_t));
+    auto codes_len = (uint16_t)codes.size();
+    writer.Write(data, codes_len);
 
     for (auto&& code : codes) {
       data.append(code);
@@ -405,45 +378,22 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
 
     // meta classes count
     auto metaClasses = model->metaClasses;
-    size_t meta_len = metaClasses.size();
-    data.append((char*)&meta_len, sizeof(size_t));
+    auto meta_len = (uint16_t)metaClasses.size();
+    writer.Write(data, meta_len);
 
     for (auto&& meta : metaClasses) {
-      size_t meta_i_len = meta.size();
-      data.append((char*)&meta_i_len, sizeof(size_t));
-      data.append(meta.c_str(), meta.size());
+      writer.WriteString<uint16_t>(data, meta);
     }
 
-    std::string description = model->description;
-    size_t desc_len = description.size();
-
-    data.append((char*)&desc_len, sizeof(size_t));
-    data.append(description.c_str(), description.size());
-
-    std::string verboseDesc = model->verboseDescription;
-    size_t verbose_len = verboseDesc.size();
-
-    data.append((char*)&verbose_len, sizeof(size_t));
-    data.append(verboseDesc.c_str(), verboseDesc.size());
+    writer.WriteString<uint16_t>(data, model->description);
+    writer.WriteString<uint16_t>(data, model->verboseDescription);
 
     ///////////////
     // Card Data //
     ///////////////
-    char code = cardData->code;
-
-    id = cardData->id;
-    id_len = id.size();
-
-    std::string modelId = cardData->modelId;
-    size_t modelId_len = modelId.size();
-
-    data.append((char*)&code, 1);
-
-    data.append((char*)&id_len, sizeof(size_t));
-    data.append((char*)id.c_str(), id_len);
-
-    data.append((char*)&modelId_len, sizeof(size_t));
-    data.append((char*)modelId.c_str(), modelId_len);
+    data.append(cardData->code);
+    writer.WriteString<uint16_t>(data, cardData->id);
+    writer.WriteString<uint16_t>(data, cardData->modelId);
   }
 
   return data;

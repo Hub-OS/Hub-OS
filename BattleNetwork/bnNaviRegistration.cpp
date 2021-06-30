@@ -142,6 +142,11 @@ const std::string NaviRegistration::NaviMeta::GetName() const
   return navi->GetName();
 }
 
+int NaviRegistration::NaviMeta::GetHP() const
+{
+  return hp;
+}
+
 const std::string NaviRegistration::NaviMeta::GetHPString() const
 {
   return std::to_string(hp);
