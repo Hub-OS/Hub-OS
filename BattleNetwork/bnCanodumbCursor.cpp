@@ -15,7 +15,7 @@ using sf::IntRect;
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
 CanodumbCursor::CanodumbCursor(CanodumbIdleState* _parentState) :
-  Artifact(), 
+  Spell(Team::unknown), 
   target(nullptr) {
   SetFloatShoe(true);
 
@@ -62,25 +62,26 @@ void CanodumbCursor::OnUpdate(double _elapsed) {
   float delta = swoosh::ease::bezierPopIn(static_cast<float>(elapsedTime), .125f);
   setScale(delta*2.f, delta*2.f);
 
-  if (movecooldown <= 0) {
+  if (movecooldown <= 0.5*maxcooldown) {
     if (GetTile() == target->GetTile() && !target->IsPassthrough()) {
       Delete();
-
       parentState->Attack();
     }
+  }
+
+  if (movecooldown <= 0) {
+    elapsedTime = 0.f;
+    movecooldown = maxcooldown;
+
+    Field* f = GetField();
+    Battle::Tile* t = f->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
+
+    if (t != nullptr) {
+      GetTile()->RemoveEntityByID(GetID());
+      t->AddEntity(*this);
+    }
     else {
-      movecooldown = maxcooldown;
-
-      Field* f = GetField();
-      Battle::Tile* t = f->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
-
-      if (t != nullptr) {
-        GetTile()->RemoveEntityByID(GetID());
-        t->AddEntity(*this);
-      }
-      else {
-        parentState->FreeCursor();
-      }
+      Delete();
     }
   }
 }

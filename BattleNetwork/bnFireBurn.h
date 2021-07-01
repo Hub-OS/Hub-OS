@@ -28,6 +28,8 @@ public:
    */
   void OnUpdate(double _elapsed) override;
 
+  void OnSpawn(Battle::Tile& start) override;
+
   /**
    * @brief Deals damage with default hit props
    * @param _entity

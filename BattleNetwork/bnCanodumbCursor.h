@@ -12,15 +12,17 @@ class CanodumbIdleState;
  * @brief Spawned by ConodumbAttackState. Collides with player and makes cannon attack.
  * @warning Legacy code. Some code should be updated and utlize new behavior methods.
  */
-class CanodumbCursor : public Artifact
+class CanodumbCursor : public Spell
 {
+  friend class CanodumbIdleState;
+
 private:
-  CanodumbIdleState* parentState; /*!< The context of the Canodumb who spawned it */
-  Entity* target; /*!< The enemy to track */
-  double elapsedTime;
-  double movecooldown; /*!< Time remaining between movement */
-  double maxcooldown; /*!< Total time between movement */
-  Direction direction; /*!< Direction to move */
+  CanodumbIdleState* parentState{ nullptr }; /*!< The context of the Canodumb who spawned it */
+  Entity* target{ nullptr }; /*!< The enemy to track */
+  double elapsedTime{};
+  double movecooldown{}; /*!< Time remaining between movement */
+  double maxcooldown{}; /*!< Total time between movement */
+  Direction direction{}; /*!< Direction to move */
 
   // Frame select through animation system
   AnimationComponent* animationComponent;
@@ -33,6 +35,8 @@ public:
    * @param _elapsed
    */
   void OnUpdate(double _elapsed) override;
+
+  void Attack(Character*) override {};
 
   /**
   * @brief Removes cursor from play

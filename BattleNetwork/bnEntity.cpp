@@ -528,6 +528,7 @@ void Entity::ForgetRemoveCallback(EntityRemoveCallback& callback)
 {
   auto iter = std::find(removeCallbacks.begin(), removeCallbacks.end(), &callback);
   if (iter != removeCallbacks.end()) {
+    callback.Reset();
     removeCallbacks.erase(iter);
   }
 }

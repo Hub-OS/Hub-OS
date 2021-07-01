@@ -4,7 +4,7 @@
 #include "../bnMessage.h"
 #include "../bnMessageQuestion.h"
 #include "../bnMessageQuiz.h"
-#include "bnOverworldMessageInput.h"
+#include "../bnMessageInput.h"
 
 namespace Overworld {
   TextBox::TextBox(sf::Vector2f pos) : textbox(pos), ResourceHandle() {}

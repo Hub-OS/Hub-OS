@@ -55,12 +55,22 @@ void FireBurn::OnUpdate(double _elapsed) {
 
   animation.Update(_elapsed, getSprite());
 
+  tile->AffectEntities(this);
+}
+
+void FireBurn::OnSpawn(Battle::Tile& start)
+{
   // crack the tile it is on
   if (crackTiles) {
-    GetTile()->SetState(TileState::cracked);
-  }
+    auto state = start.GetState();
 
-  tile->AffectEntities(this);
+    if (state == TileState::cracked) {
+      start.SetState(TileState::broken);
+    }
+    else if (state != TileState::broken && state != TileState::empty) {
+      start.SetState(TileState::cracked);
+    }
+  }
 }
 
 void FireBurn::Attack(Character* _entity) {

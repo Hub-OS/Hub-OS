@@ -34,6 +34,7 @@ void InputTextBuffer::Reset() {
   modified = false;
   modifiedThisRun = false;
   carriageReturn = false;
+  password = false;
 }
 
 bool InputTextBuffer::IsModified() {
@@ -93,7 +94,7 @@ void InputTextBuffer::MoveCaretToCursor(const sf::Vector2f& pos) {
   float width{};
 
   while (caretPos < rowEnd) {
-    auto characterWidth = GetCharacterWidth(font, 1, buffer[caretPos]);
+    auto characterWidth = GetCharacterWidth(font, 1, password? '*' : buffer[caretPos]);
 
     if (width + characterWidth / 2.0f > pos.x) {
       break;
@@ -122,6 +123,11 @@ void InputTextBuffer::SetCharacterLimit(size_t limit) {
 
 void InputTextBuffer::SetIgnoreNewLine(bool ignore) {
   ignoreNewLine = ignore;
+}
+
+void InputTextBuffer::ProtectPassword(bool isPassword)
+{
+  password = isPassword;
 }
 
 static bool isHoldingControl() {
@@ -302,7 +308,7 @@ void InputTextBuffer::HandleCompletedEventProcessing() {
   // calculate line indexes
   for (auto i = 0; i < buffer.size(); i++) {
     char c = buffer[i];
-    float characterWidth = GetCharacterWidth(font, 1, c);
+    float characterWidth = GetCharacterWidth(font, 1, password? '*' : c);
     lineWidth += characterWidth;
 
     // detect words

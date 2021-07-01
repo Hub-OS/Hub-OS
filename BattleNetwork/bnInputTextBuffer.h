@@ -103,6 +103,9 @@ public:
   void SetCharacterLimit(size_t limit);
 
   void SetIgnoreNewLine(bool ignoreNewLine);
+
+  void ProtectPassword(bool isPassword);
+
 private:
   bool captureInput{};
   std::vector<size_t> lineIndexes;
@@ -115,6 +118,7 @@ private:
   bool modified{};
   bool modifiedThisRun{};
   bool carriageReturn{};
+  bool password{};
 
   /**
    * @brief Transforms SFML keycodes into ASCII char texts and stores into input buffer

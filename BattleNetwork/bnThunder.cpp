@@ -29,7 +29,14 @@ Thunder::Thunder(Team _team) : Spell(_team) {
   animation.Update(0, getSprite());
 }
 
-Thunder::~Thunder(void) {
+Thunder::~Thunder() {
+  if (target) {
+    target->ForgetRemoveCallback(*targetRemoveCallback);
+  }
+
+  if (targetRemoveCallback) {
+    delete targetRemoveCallback;
+  }
 }
 
 void Thunder::OnUpdate(double _elapsed) {
@@ -64,6 +71,11 @@ void Thunder::OnUpdate(double _elapsed) {
 
         if (currentDist < targetDist) {
           target = l;
+
+          targetRemoveCallback = target->CreateRemoveCallback();
+          targetRemoveCallback->Slot([this](Entity*) {
+            target = nullptr;
+          });
         }
       }
     }

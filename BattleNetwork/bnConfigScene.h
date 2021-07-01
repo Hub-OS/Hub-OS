@@ -11,6 +11,7 @@
 #include "bnConfigWriter.h"
 #include "bnAnimatedTextBox.h"
 #include "bnMessageQuestion.h"
+#include "bnMessageInput.h"
 #include <SFML/Graphics.hpp>
 #include <time.h>
 
@@ -69,13 +70,26 @@ private:
     ~uiData() = default;
   };
 
+  struct UserInfo {
+    std::string username;
+    std::string password;
+    std::future<bool> result;
+    enum class states : char {
+      entering_username,
+      entering_password,
+      pending,
+      complete
+    } currState{states::complete};
+  } user;
+
   int menuDivideIndex;
 
   std::vector<uiData> uiList[3], boundKeys, boundGamepadButtons;
 
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
 
-  Question* questionInterface;
+  Question* questionInterface{ nullptr };
+  MessageInput* inputInterface{ nullptr };
 
 #ifdef __ANDROID__
   void StartupTouchControls();
@@ -83,6 +97,8 @@ private:
 #endif
   void DrawMenuOptions(sf::RenderTexture& surface);
   void DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTexture& surface);
+  void LoginStep(UserInfo::states next);
+
 public:
 
   /**

@@ -15,6 +15,7 @@ protected:
   double elapsed;
   sf::Time timeout; /**< When time is up, thunder is removed from play */
   Entity* target; /**< The current enemy to approach */
+  EntityRemoveCallback* targetRemoveCallback{ nullptr };
 
 public:
   Thunder(Team _team);

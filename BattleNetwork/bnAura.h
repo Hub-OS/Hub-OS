@@ -3,6 +3,7 @@
 #include "bnUIComponent.h"
 #include "bnField.h"
 #include "bnDefenseAura.h"
+#include "bnInputHandle.h"
 
 /**
  * @class Aura
@@ -17,7 +18,7 @@
  * The other type of Aura is a Barrier. Barrier is similar but each damage recieved takes away from the
  * Barrier's internal HP. When the HP is below or at zero, the Barrier deletes itself.
  */
-class Aura : public DefenseAura, public Component
+class Aura : public DefenseAura, public Component, public InputHandle
 {
 public:
   /**
@@ -34,14 +35,15 @@ public:
   // The Aura draws a barrier or aura graphic and text on the UI pass
   class VisualFX : public UIComponent {
     friend class Aura;
-    Type type;
+    bool showHP{ false };
     int currHP{};
+    double timer{ 0 };
+    Type type;
     Animation animation; /*!< Animation object */
     SpriteProxyNode* aura{ nullptr }; /*!< The scene node to attach to the entity's scene node */
     sf::Sprite auraSprite; /*!< the sprite drawn by SpriteSceneNode* aura */
     mutable Sprite font; /*!< Aura HP glyphs */
     std::shared_ptr<sf::Texture> fontTextureRef; /*!< reference to the texture set used */
-    double timer{ 0 };
     sf::Vector2f flySpeed{}, flyAccel{};
     Battle::Tile* flyStartTile{ nullptr };
   public:
@@ -55,12 +57,15 @@ public:
 
     void OnUpdate(double _elapsed) override;
 
+    void ShowHP(bool visible);
+
    /**
    * @brief Draws health using glyphs with correct margins
    * @param target
    * @param states
    */
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+
   } *fx{ nullptr };
 private:
 
@@ -118,9 +123,9 @@ public:
   
   /**
    * @brief Take damage 
-   * @param damage amount of HP to lose
+   * @param hitbox properties
    */
-  void TakeDamage(int damage);
+  void TakeDamage(Character& owner, const Hit::Properties& props);
   
   /**
    * @brief Get remaining HP

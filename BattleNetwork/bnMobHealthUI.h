@@ -3,12 +3,13 @@
 #include "bnUIComponent.h"
 #include "bnSpriteProxyNode.h"
 #include "bnEntityRemoveCallback.h"
+#include "bnInputHandle.h"
 
 // forward delcare
 class Character;
 
 /*! \brief Similar to PlayerHealthUI but draws under the mob */
-class MobHealthUI : public UIComponent {
+class MobHealthUI : public UIComponent, InputHandle {
 public:
   MobHealthUI() = delete;
   

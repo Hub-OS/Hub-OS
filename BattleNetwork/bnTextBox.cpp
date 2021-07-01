@@ -218,6 +218,8 @@ void TextBox::ShowPreviousLine() {
 
 void TextBox::CompleteCurrentBlock()
 {
+  if (lineIndex >= lines.size()) return;
+
   // simulate the end of the text block starting from the beginning 
   // and compile a list of flags and set as complete
   int start = lines[lineIndex];

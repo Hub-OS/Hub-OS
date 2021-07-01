@@ -40,12 +40,12 @@ void Aura::OnHitCallback(Spell& in, Character& owner, bool windRemove) {
       this->fx = nullptr;
     }
     else {
-      // We can no longer protect this user->..
+      // We can no longer protect this user..
       owner.Hit(hitbox);
     }
   }
   else {
-    TakeDamage(in.GetHitboxProperties().damage);
+    TakeDamage(owner, in.GetHitboxProperties());
   }
 };
 
@@ -91,11 +91,21 @@ Aura::Aura(Aura::Type type, Character* owner) :
   fx->currHP = health;
   fx->timer = timer;
   owner->AddNode(fx);
+
+  fx->ShowHP(owner->GetTeam() == Team::red); // red team sees their aura hp at all times
 }
 
 void Aura::OnUpdate(double _elapsed) {
   if (Injected() == false || IsReplaced()) return;
 
+  if (fx && GetOwner()->GetTeam() == Team::blue) {
+    if (Input().Has(InputEvents::held_option)) {
+      fx->ShowHP(true);
+    }
+    else {
+      fx->ShowHP(false);
+    }
+  }
 
   currHP = health;
   
@@ -169,16 +179,22 @@ const int Aura::GetHealth() const {
   return health;
 }
 
-void Aura::TakeDamage(int damage)
+void Aura::TakeDamage(Character& owner, const Hit::Properties& props)
 {
-  if (type >= Aura::Type::BARRIER_10) {
-    health = health - damage;
-  }
-  else if (health <= damage) {
-    health = 0;
-  }
+  if (health > 0) {
+    if (type >= Aura::Type::BARRIER_10) {
+      health = health - props.damage;
+    }
+    else if (health <= props.damage) {
+      health = 0;
+    }
 
-  health = std::max(0, health);
+    health = std::max(0, health);
+  }
+  else {
+    // barrier cannot protect player, propagate hit to player
+    owner.Hit(props);
+  }
 }
 
 Aura::~Aura()
@@ -259,7 +275,7 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
   UIComponent::draw(target, this_states);
 
   // Only draw HP font for Barriers. Auras are hidden.
-  if (type <= Type::AURA_1000) return;
+  if (type <= Type::AURA_1000 || !showHP) return;
 
   // 0 - 5 are on first row
   // Glyphs are 8x15 
@@ -285,7 +301,7 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
       int col = 8 * (number % 5);
 
       font.setTextureRect(sf::IntRect(col, rowstart, 8, 15));
-      font.setPosition(sf::Vector2f(offsetx, 15.0f));
+      font.setPosition(sf::Vector2f(offsetx, 7.0f));
 
       auto font_states = this_states;
       font_states.shader = nullptr; // don't allow shader passes to effect this font...
@@ -340,4 +356,9 @@ void Aura::VisualFX::OnUpdate(double _elapsed)
   }
 
   animation.Update(_elapsed, aura->getSprite());
+}
+
+void Aura::VisualFX::ShowHP(bool visible)
+{
+  showHP = visible;
 }

@@ -32,6 +32,13 @@ HP drop is not 1 unit per frame. It is:
 -3 per frame for anything lower
 */
 void MobHealthUI::OnUpdate(double elapsed) {
+  if (Input().Has(InputEvents::held_option)) {
+    this->Hide();
+  }
+  else {
+    this->Reveal();
+  }
+
   if (mob) {
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }

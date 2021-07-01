@@ -165,6 +165,23 @@ void ConfigScene::onUpdate(double elapsed)
   textbox.Update(elapsed);
   bg->Update((float)elapsed);
 
+  if (user.currState == UserInfo::states::pending) {
+    if (is_ready(user.result)) {
+      if (user.result.get()) {
+        LoginStep(UserInfo::states::complete);
+      }
+      else {
+        user.currState = UserInfo::states::entering_username;
+        user.password.clear();
+        user.username.clear();
+
+        Audio().Play(AudioType::CHIP_ERROR);
+      }
+    }
+
+    return;
+  }
+
   if (!WEBCLIENT.IsLoggedIn()) {
     uiList[0][uiList[0].size() - 1].label = "LOGIN";
   }
@@ -181,6 +198,7 @@ void ConfigScene::onUpdate(double elapsed)
         // Save before leaving
         configSettings.SetKeyboardHash(keyHash);
         configSettings.SetGamepadHash(gamepadHash);
+
         ConfigWriter writer(configSettings);
         writer.Write("config.ini");
         ConfigReader reader("config.ini");
@@ -223,26 +241,48 @@ void ConfigScene::onUpdate(double elapsed)
     bool hasRight = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_ui_right) : false) || Input().GetAnyKey() == sf::Keyboard::Right;
 
     if (textbox.IsOpen()) {
-      if (textbox.IsEndOfMessage()) {
-        if (hasLeft) {
-          questionInterface->SelectYes();
-        }
-        else if (hasRight) {
-          questionInterface->SelectNo();
-        }
-        else if (hasCanceled) {
-          questionInterface->Cancel();
+      if (questionInterface) {
+        if (textbox.IsEndOfMessage()) {
+          if (hasLeft) {
+            questionInterface->SelectYes();
+          }
+          else if (hasRight) {
+            questionInterface->SelectNo();
+          }
+          else if (hasCanceled) {
+            questionInterface->Cancel();
+          }
+          else if (hasConfirmed) {
+            questionInterface->ConfirmSelection();
+          }
         }
         else if (hasConfirmed) {
-          questionInterface->ConfirmSelection();
+          if (!textbox.IsPlaying()) {
+            questionInterface->Continue();
+          }
+          else {
+            textbox.CompleteCurrentBlock();
+          }
         }
       }
-      else if (hasConfirmed) {
-        if (!textbox.IsPlaying()) {
-          questionInterface->Continue();
-        }
-        else {
-          textbox.CompleteCurrentBlock();
+      else if (inputInterface) {
+        if (inputInterface->IsDone()) {
+          std::string entry = inputInterface->Submit();
+          textbox.Close();
+
+          inputInterface = nullptr;
+
+          switch (user.currState) {
+          case UserInfo::states::entering_username:
+            user.username = entry;
+            LoginStep(UserInfo::states::entering_password);
+            break;
+          case UserInfo::states::entering_password:
+            user.password = entry;
+            user.result = WEBCLIENT.SendLoginCommand(user.username, user.password);
+            LoginStep(UserInfo::states::pending);
+            break;
+          }
         }
       }
     }
@@ -421,18 +461,13 @@ void ConfigScene::onUpdate(double elapsed)
               Audio().Play(AudioType::CHIP_DESC_CLOSE);
             };
             questionInterface = new Question("Are you sure you want to logout?", onYes, onNo);
-            textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
+            textbox.EnqueMessage(questionInterface);
             textbox.Open();
             Audio().Play(AudioType::CHIP_DESC);
           }
         }
         else {
-          // TODO: Show the login prompt
-          inLoginMenu = true;
-          inGamepadList = false;
-          inKeyboardList = false;
-          colIndex = 0;
-          menuSelectionIndex = 0;
+          LoginStep(UserInfo::states::entering_username);
         }
       }
       else if (!awaitingKey) {
@@ -664,6 +699,39 @@ void ConfigScene::DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTe
 
     surface.draw(label);
   }
+}
+
+void ConfigScene::LoginStep(UserInfo::states next)
+{
+  if (next == UserInfo::states::pending) return;
+
+  if (next == UserInfo::states::complete) {
+    Audio().Play(AudioType::NEW_GAME);
+
+    return;
+  }
+
+  user.currState = next;
+
+  std::string dummy;
+  if (next == UserInfo::states::entering_username) {
+    dummy = "Enter Username";
+  }
+
+  inputInterface = new MessageInput(dummy, 20);
+
+  if (next == UserInfo::states::entering_password) {
+    inputInterface->ProtectPassword(true);
+  }
+
+  textbox.EnqueMessage(inputInterface);
+  textbox.Open();
+  Audio().Play(AudioType::CHIP_DESC);
+  inLoginMenu = true;
+  inGamepadList = false;
+  inKeyboardList = false;
+  colIndex = 0;
+  menuSelectionIndex = 0;
 }
 
 void ConfigScene::onStart()
