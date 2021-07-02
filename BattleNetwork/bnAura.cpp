@@ -282,7 +282,7 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
   // 2nd row starts +1 pixel down
 
   if (currHP > 0) {
-    int size = (int)(std::to_string(currHP).size());
+    int size = static_cast<int>(std::log10(currHP))+1;
     int hp = currHP;
     float offsetx = -size * 2.0f;
     float flip = 1.f;
@@ -290,8 +290,7 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
     font.setScale(1.f, 1.f);
 
     while (index < size) {
-      const char c = std::to_string(currHP)[index];
-      int number = std::atoi(&c);
+      int number = static_cast<int>(currHP / std::pow(10, size - index - 1)) % 10;
       int rowstart = 0;
 
       if (number > 4) {
