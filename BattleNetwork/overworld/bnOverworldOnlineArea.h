@@ -61,6 +61,7 @@ namespace Overworld {
     bool tryPopScene{ false };
     bool isPreparingForBattle{ false };
     bool canProceedToBattle{ false };
+    bool leftForBattle{ false };
     bool copyScreen{ false };
     ActorPropertyAnimator propertyAnimator;
     SelectedNavi lastFrameNavi{};

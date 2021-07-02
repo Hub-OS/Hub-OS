@@ -409,6 +409,8 @@ void Overworld::SceneBase::onLeave() {
 #ifdef __ANDROID__
   ShutdownTouchControls();
 #endif
+
+  gotoNextScene = true;
 }
 
 void Overworld::SceneBase::onExit()
@@ -418,6 +420,7 @@ void Overworld::SceneBase::onExit()
 
 void Overworld::SceneBase::onEnter()
 {
+  gotoNextScene = true;
   RefreshNaviSprite();
 }
 

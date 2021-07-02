@@ -263,6 +263,7 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
       sendBattleResultsSignal(results);
     };
 
+    leftForBattle = true;
     getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
   }
 }
@@ -274,7 +275,7 @@ void Overworld::OnlineArea::ResetPVPStep()
     netBattleProcessor = nullptr;
   }
 
-  canProceedToBattle = isPreparingForBattle = false;
+  canProceedToBattle = isPreparingForBattle = leftForBattle = false;
   pvpRemoteAddress.clear();
 }
 
@@ -743,7 +744,7 @@ void Overworld::OnlineArea::onResume()
     when we return to this screen (due to the download scene ending)
     then we know we cannot continue with PVP
   */
-  if (isPreparingForBattle && !canProceedToBattle) {
+  if (isPreparingForBattle && !canProceedToBattle || leftForBattle) {
     ResetPVPStep();
   }
 }
