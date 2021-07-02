@@ -227,10 +227,13 @@ void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
 void NetworkBattleScene::onUpdate(double elapsed) {
   
   if (!IsSceneInFocus()) {
-    // net play packet processor is shared with other scenes
-    // we don't want to delete it, we just want to ignore packets coming in
-    // so we don't point to a dead scene
-    ResetPacketProcessor();
+    if (IsQuitting()) {
+      // net play packet processor is shared with other scenes
+      // we don't want to delete it, we just want to ignore packets coming in
+      // so we don't point to a dead scene
+      ResetPacketProcessor();
+    }
+
     return;
   }
 

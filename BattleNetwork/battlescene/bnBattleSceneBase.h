@@ -289,6 +289,11 @@ public:
     */
   const bool IsSceneInFocus() const;
 
+  /**
+  * Returns true if the battle scene is quitting (leaving) to the previous scene
+  */
+  const bool IsQuitting() const;
+
   /*
       \brief Use class type T as the state and perfect-forward arguments to the class 
       \return StateNodeWrapper<T> structure for easy programming

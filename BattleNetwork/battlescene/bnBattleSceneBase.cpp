@@ -194,6 +194,11 @@ const bool BattleSceneBase::IsSceneInFocus() const
   return isSceneInFocus;
 }
 
+const bool BattleSceneBase::IsQuitting() const
+{
+    return this->quitting;
+}
+
 void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
 {
   Audio().Play(AudioType::COUNTER, AudioPriority::highest);
