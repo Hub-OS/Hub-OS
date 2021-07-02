@@ -171,7 +171,7 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
 {
   pvpRemoteAddress = remoteAddress;
 
-  if (!IsInFocus()) return;
+  if (!IsInFocus() || copyScreen) return;
 
   // The two steps needed to be in for pvp
   if (isPreparingForBattle && !canProceedToBattle) return;
