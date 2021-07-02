@@ -36,6 +36,7 @@ private:
   bool canProceedToBattle{ false };
   bool infoMode{ true }; // we start here and then allow the player to toggle
   bool handshakeComplete{ false };
+  bool leftForBattle{ false };
   bool playVS{ true };
   int selectedNavi{};
   double sequenceTimer{ 0.0 }; // in seconds

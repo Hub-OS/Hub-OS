@@ -3,6 +3,7 @@
 #include <Segues/PixelateBlackWashFade.h>
 #include <Segues/BlackWashFade.h>
 #include <Segues/WhiteWashFade.h>
+#include <Segues/BlendFadeIn.h>
 #include <Poco/Net/NetException.h>
 
 // TODO: mac os < 10.5 file system support...
@@ -21,6 +22,7 @@
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
 #include "../netplay/bnNetPlayConfig.h"
 #include "../bnMessageQuestion.h"
+#include "../netplay/bnDownloadScene.h"
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
@@ -93,6 +95,11 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     return;
   }
 
+  if (this->pvpRemoteAddress.size()) {
+    HandlePVPStep(pvpRemoteAddress);
+    return;
+  }
+
   GetPersonalMenu().SetHealth(GetPlayerSession().health);
 
   // remove players before update, to prevent removed players from being added to sprite layers
@@ -158,6 +165,117 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   warpCameraController.UpdateCamera(float(elapsed), camera);
   serverCameraController.UpdateCamera(float(elapsed), camera);
   UnlockCamera(); // reset lock, we'll lock it later if we need to
+}
+
+void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
+{
+  pvpRemoteAddress = remoteAddress;
+
+  if (!IsInFocus()) return;
+
+  // The two steps needed to be in for pvp
+  if (isPreparingForBattle && !canProceedToBattle) return;
+
+  auto remote = Poco::Net::SocketAddress(remoteAddress);
+
+  std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
+  CardFolder* folder;
+
+  if (selectedFolder) {
+    folder = (*selectedFolder)->Clone();
+  }
+  else {
+    // use a new blank folder if we dont have a folder selected
+    folder = new CardFolder();
+  }
+
+  if (!isPreparingForBattle) {
+    isPreparingForBattle = true;
+
+    try {
+      netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
+      Net().AddHandler(remote, netBattleProcessor);
+    }
+    catch (...) {
+      delete folder;
+      ResetPVPStep();
+      return;
+    }
+
+    std::vector<std::string> cardUUIDs;
+    auto next = folder->Next();
+
+    while (next) {
+      cardUUIDs.push_back(next->GetUUID());
+      next = folder->Next();
+    }
+
+    delete folder;
+
+    DownloadSceneProps props = {
+      canProceedToBattle,
+      cardUUIDs,
+      remote,
+      netBattleProcessor,
+      screen
+    };
+
+    using effect = swoosh::types::segue<BlendFadeIn>;
+    getController().push<effect::to<DownloadScene>>(props);
+    return;
+  }else if (canProceedToBattle) {
+    // Shuffle our folder
+    folder->Shuffle();
+
+    NetPlayConfig config;
+
+    // Play the pre battle sound
+    Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
+
+    // Stop music and go to battle screen
+    Audio().StopStream();
+
+    // Configure the session
+    config.myNavi = GetCurrentNavi();
+
+    auto& meta = NAVIS.At(config.myNavi);
+    const std::string& image = meta.GetMugshotTexturePath();
+    const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
+    const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
+    auto mugshot = Textures().LoadTextureFromFile(image);
+    auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+    Player* player = meta.GetNavi();
+
+    int fullHealth = player->GetHealth();
+    player->SetHealth(GetPlayerSession().health);
+    player->SetEmotion(GetPlayerSession().emotion);
+
+    NetworkBattleSceneProps props = {
+      { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
+      sf::Sprite(*mugshot),
+      mugshotAnim,
+      emotions,
+      config,
+      netBattleProcessor
+    };
+
+    BattleResultsFunc callback = [this](const BattleResults& results) {
+      sendBattleResultsSignal(results);
+    };
+
+    getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
+  }
+}
+
+void Overworld::OnlineArea::ResetPVPStep()
+{
+  if (netBattleProcessor) {
+    Net().DropProcessor(netBattleProcessor);
+    netBattleProcessor = nullptr;
+  }
+
+  canProceedToBattle = isPreparingForBattle = false;
+  pvpRemoteAddress.clear();
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
@@ -518,6 +636,13 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   SceneBase::onDraw(surface);
 
+  // Copy the contents if requested this frame
+  if (copyScreen) {
+    surface.display();
+    screen = surface.getTexture();
+    copyScreen = false;
+  }
+
   if (GetMenuSystem().IsFullscreen()) {
     return;
   }
@@ -613,9 +738,13 @@ void Overworld::OnlineArea::onResume()
     packetProcessor->SetForeground();
   }
 
-  if (netBattleProcessor) {
-    Net().DropProcessor(netBattleProcessor);
-    netBattleProcessor = nullptr;
+  /**
+    If we were preparing for battle but we cannot proceed to battle
+    when we return to this screen (due to the download scene ending)
+    then we know we cannot continue with PVP
+  */
+  if (isPreparingForBattle && !canProceedToBattle) {
+    ResetPVPStep();
   }
 }
 
@@ -1861,68 +1990,12 @@ void  Overworld::OnlineArea::receiveCloseBBSSignal(BufferReader& reader, const P
 
 void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto addressString = reader.ReadString<uint16_t>(buffer);
+  if (pvpRemoteAddress.empty()) {
+    pvpRemoteAddress = reader.ReadString<uint16_t>(buffer);
+    Logger::Logf("Trying to net battle with %s", pvpRemoteAddress.c_str());
 
-  std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
-  CardFolder* folder;
-
-  if (selectedFolder) {
-    folder = (*selectedFolder)->Clone();
-
-    // Shuffle our folder
-    folder->Shuffle();
+    copyScreen = true; // copy screen contents for download screen fx
   }
-  else {
-    // use a new blank folder if we dont have a folder selected
-    folder = new CardFolder();
-  }
-
-  NetPlayConfig config;
-
-  // Play the pre battle sound
-  Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
-
-  // Stop music and go to battle screen
-  Audio().StopStream();
-
-  // Configure the session
-  config.myNavi = GetCurrentNavi();
-
-  auto& meta = NAVIS.At(config.myNavi);
-  const std::string& image = meta.GetMugshotTexturePath();
-  const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
-  const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
-  auto mugshot = Textures().LoadTextureFromFile(image);
-  auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-  Player* player = meta.GetNavi();
-
-  int fullHealth = player->GetHealth();
-  player->SetHealth(GetPlayerSession().health);
-  player->SetEmotion(GetPlayerSession().emotion);
-
-  try {
-    auto remote = Poco::Net::SocketAddress(addressString);
-    netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
-    Net().AddHandler(remote, netBattleProcessor);
-  }
-  catch (...) {
-    return;
-  }
-
-  NetworkBattleSceneProps props = {
-    { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
-    sf::Sprite(*mugshot),
-    mugshotAnim,
-    emotions,
-    config,
-    netBattleProcessor
-  };
-
-  BattleResultsFunc callback = [this](const BattleResults& results) {
-    sendBattleResultsSignal(results);
-  };
-
-  getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
 }
 
 void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

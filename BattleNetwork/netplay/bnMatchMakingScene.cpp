@@ -5,6 +5,7 @@
 #include <SFML/Window/Clipboard.hpp>
 #include <Segues/PushIn.h>
 #include <Segues/WhiteWashFade.h>
+#include <Segues/BlendFadeIn.h>
 
 #include "bnMatchMakingScene.h"
 #include "bnDownloadScene.h"
@@ -381,6 +382,7 @@ void MatchMakingScene::Reset()
   handshakeComplete = false;
   hasProcessedCards = false;
   canProceedToBattle = false;
+  leftForBattle = false;
   playVS = true;
   sequenceTimer = 0.0; // in seconds
   flashCooldown = 0;
@@ -423,6 +425,9 @@ void MatchMakingScene::onResume() {
     // If this condition is false, we could not download assets we needed
     // Reset for next match attempt
     Reset();
+  }
+  else if(leftForBattle) {
+    packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
   }
 }
 
@@ -532,11 +537,11 @@ void MatchMakingScene::onUpdate(double elapsed) {
         screen
       };
 
-      using effect = swoosh::types::segue<WhiteWashFade>;
+      using effect = swoosh::types::segue<BlendFadeIn>;
       getController().push<effect::to<DownloadScene>>(props);
     }
     else if (canProceedToBattle) {
-      leave = true;
+      leave = leftForBattle = true;
 
       // Shuffle our folder
       CardFolder* copy = folder.Clone();
@@ -590,6 +595,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
       if (!handshakeComplete && !theirIP.empty()) {
         // Try reaching out to someone...
+        this->SendConnectSignal(selectedNavi);
         this->SendConnectSignal(selectedNavi);
         this->SendHandshakeSignal();
       }

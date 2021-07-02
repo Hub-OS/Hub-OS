@@ -6,6 +6,7 @@
 
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
+  lastScreen(props.lastScreen),
   label(Font::Style::tiny),
   Scene(ac)
 {
@@ -14,7 +15,13 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
-    Logger::Logf("Kicked for silence!");
+    static bool once = false;
+
+    if (!once) {
+      Logger::Logf("Kicked for silence!");
+      once = true;
+    }
+
     this->Abort(retryCardList);
   });
 
@@ -23,8 +30,6 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& body) {
     this->ProcessPacketBody(header, body);
   });
-
-  lastScreen = props.lastScreen;
 
   blur.setPower(40);
   blur.setTexture(&lastScreen);
@@ -385,13 +390,11 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
 
 void DownloadScene::Abort(const std::vector<std::string>& failed)
 {
-  Logger::Logf("Aborting");
-
   if (!aborting) {
     for (auto& uuid : failed) {
       cardsToDownload[uuid] = "Failed";
     }
-
+    Logger::Logf("Aborting");
     SendDownloadComplete(false);
     aborting = true;
   }
@@ -512,6 +515,7 @@ void DownloadScene::onEnter()
 
 void DownloadScene::onStart()
 {
+  Logger::Logf("onStart() trying to trade card data");
   TradeCardList(ourCardList);
 }
 

@@ -25,7 +25,7 @@ struct DownloadSceneProps {
   std::vector<std::string> cardUUIDs;
   Poco::Net::SocketAddress remoteAddress;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
-  sf::Texture& lastScreen;
+  sf::Texture lastScreen;
 };
 
 class DownloadScene final : public Scene {

@@ -279,6 +279,7 @@ namespace Overworld {
     std::optional<CardFolder*> GetSelectedFolder();
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
+    bool IsInFocus() const;
 
     //
     // Helpers

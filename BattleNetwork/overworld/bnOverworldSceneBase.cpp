@@ -1478,6 +1478,11 @@ void Overworld::SceneBase::RemoveItem(const std::string& name)
   }
 }
 
+bool Overworld::SceneBase::IsInFocus() const
+{
+    return this->gotoNextScene == false;
+}
+
 std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const
 {
   sf::Vector2f ortho = window.mapPixelToCoords(px);

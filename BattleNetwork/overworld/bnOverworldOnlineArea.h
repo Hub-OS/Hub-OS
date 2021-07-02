@@ -49,6 +49,7 @@ namespace Overworld {
       Poco::Buffer<char> buffer{ 0 };
     };
 
+    std::string pvpRemoteAddress; // remember who we want to connect to after download scene
     std::string ticket; //!< How we are represented on the server
     std::shared_ptr<PacketProcessor> packetProcessor;
     std::shared_ptr<Netplay::PacketProcessor> netBattleProcessor;
@@ -58,6 +59,9 @@ namespace Overworld {
     bool transferringServers{ false };
     bool kicked{ false };
     bool tryPopScene{ false };
+    bool isPreparingForBattle{ false };
+    bool canProceedToBattle{ false };
+    bool copyScreen{ false };
     ActorPropertyAnimator propertyAnimator;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
@@ -68,12 +72,16 @@ namespace Overworld {
     std::vector<std::vector<TileObject*>> warps;
     std::list<std::string> removePlayers;
     sf::Vector3f lastPosition;
+    sf::Texture screen;
     Timer movementTimer;
     Text transitionText;
     Text nameText;
     std::optional<std::string> trackedPlayer;
     CameraController serverCameraController;
     CameraController warpCameraController;
+
+    void HandlePVPStep(const std::string& remoteAddress);
+    void ResetPVPStep();
 
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);

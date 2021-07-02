@@ -226,7 +226,13 @@ void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
 
 void NetworkBattleScene::onUpdate(double elapsed) {
   
-  if (!IsSceneInFocus()) return;
+  if (!IsSceneInFocus()) {
+    // net play packet processor is shared with other scenes
+    // we don't want to delete it, we just want to ignore packets coming in
+    // so we don't point to a dead scene
+    ResetPacketProcessor();
+    return;
+  }
 
   BattleSceneBase::onUpdate(elapsed);
 
@@ -298,6 +304,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
 
 void NetworkBattleScene::onExit()
 {
+  
 }
 /*!
  * @brief 
@@ -726,4 +733,11 @@ void NetworkBattleScene::UpdatePingIndicator(frame_time_t frames)
   }
 
   pingIndicator.setTextureRect(sf::IntRect((idx-1u)*16, 0, 16, 16));
+}
+
+void NetworkBattleScene::ResetPacketProcessor()
+{
+  packetProcessor->EnableKickForSilence(false);
+  packetProcessor->SetKickCallback(Netplay::PacketProcessor::KickFunc{});
+  packetProcessor->SetPacketBodyCallback(Netplay::PacketProcessor::PacketbodyFunc{});
 }
