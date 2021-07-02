@@ -176,7 +176,6 @@ void Cube::Attack(Character* other) {
 
   if (isCharacter && isCharacter != this) {
     killLater = true;
-    auto props = GetHitboxProperties();
     isCharacter->Hit(GetHitboxProperties());
   }
 }

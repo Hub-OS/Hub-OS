@@ -33,7 +33,6 @@ Character::Character(Rank _rank) :
   counterSlideDelta(0),
   name("unnamed"),
   rank(_rank),
-  hit(false),
   CounterHitPublisher(), Entity() {
 
   whiteout = Shaders().GetShader(ShaderType::WHITE);

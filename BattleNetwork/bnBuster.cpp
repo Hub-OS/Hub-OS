@@ -109,5 +109,5 @@ void Buster::OnCollision(const Character* entity)
 }
 
 void Buster::Attack(Character* _entity) {
-  if (!_entity->Hit(GetHitboxProperties())) return;
+  _entity->Hit(GetHitboxProperties());
 }
