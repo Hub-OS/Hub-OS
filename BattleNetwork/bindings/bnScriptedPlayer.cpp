@@ -15,7 +15,7 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   script["battle_init"](this);
 
   animationComponent->Reload();
-  CreateMoveAnimHash();
+  FinishConstructor();
 }
 
 void ScriptedPlayer::SetChargePosition(const float x, const float y)

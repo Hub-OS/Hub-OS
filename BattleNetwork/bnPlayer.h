@@ -56,6 +56,8 @@ private:
 
   void SaveStats();
   void RevertStats();
+  void CreateMoveAnimHash();
+  void TagBaseNodes();
 
 public:
   using DefaultState = PlayerControlledState;
@@ -148,7 +150,7 @@ public:
 
 protected:
   // functions
-  void CreateMoveAnimHash();
+  void FinishConstructor();
   bool RegisterForm(PlayerFormMeta* info);
 
   template<typename T>

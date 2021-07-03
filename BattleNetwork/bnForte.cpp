@@ -54,9 +54,8 @@ Forte::Forte() : Player()
 
   chargeEffect.SetFullyChargedColor(sf::Color::Magenta);
 
-  CreateMoveAnimHash();
-
   SetAnimation("PLAYER_IDLE");
+  FinishConstructor();
 }
 
 Forte::~Forte()

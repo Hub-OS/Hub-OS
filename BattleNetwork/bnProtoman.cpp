@@ -53,9 +53,9 @@ Protoman::Protoman() : Player()
 
   chargeEffect.SetFullyChargedColor(sf::Color::White);
 
-  CreateMoveAnimHash();
-
   SetAnimation("PLAYER_IDLE");
+
+  FinishConstructor();
 }
 
 Protoman::~Protoman()

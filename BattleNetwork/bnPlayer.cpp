@@ -63,7 +63,7 @@ Player::Player() :
 
   actionQueue.RegisterType<BusterEvent>(ActionTypes::buster, handler);
 
-  CreateMoveAnimHash();
+  FinishConstructor();
 
   // When we are actionable we should be in IDLE state
   actionQueue.SetActionableCallback([this] {
@@ -312,10 +312,6 @@ void Player::ActivateFormAt(int index)
     RevertStats();
   }
 
-  for (auto& node : GetChildNodes()) {
-    node->AddTags({ Player::BASE_NODE_TAG });
-  }
-
   if (index >= 0 || index < forms.size()) {
     auto meta = forms[index];
     activeForm = meta->BuildForm();
@@ -406,6 +402,19 @@ void Player::CreateMoveAnimHash()
 
   // creates and stores the new state in variable `moveAnimHash`
   animationComponent->OverrideAnimationFrames("PLAYER_MOVE", frame_data, moveAnimHash);
+}
+
+void Player::TagBaseNodes()
+{
+  for (auto& node : GetChildNodes()) {
+    node->AddTags({ Player::BASE_NODE_TAG });
+  }
+}
+
+void Player::FinishConstructor()
+{
+  CreateMoveAnimHash();
+  TagBaseNodes();
 }
 
 bool Player::RegisterForm(PlayerFormMeta * info)
