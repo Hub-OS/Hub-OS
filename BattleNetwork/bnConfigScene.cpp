@@ -649,7 +649,7 @@ void ConfigScene::onUpdate(double elapsed)
     else if (hasUp && textbox.IsClosed()) {
       auto& activeIndex = GetActiveIndex();
 
-      if (primaryIndex == 0 && !isSelectingTopMenu) {
+      if (activeIndex == 0 && !isSelectingTopMenu) {
         isSelectingTopMenu = true;
       }
       else {
@@ -720,6 +720,10 @@ void ConfigScene::onUpdate(double elapsed)
 }
 
 void ConfigScene::UpdateMenu(Menu& menu, bool menuHasFocus, int selectionIndex, float offsetX, float elapsed) {
+  if (isSelectingTopMenu && GetActiveMenu() == menu) {
+    selectionIndex = -1;
+  }
+
   for (int index = 0; index < menu.size(); index++) {
     auto& menuItem = *menu[index];
     auto w = 0.3f;
