@@ -265,7 +265,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
       value,
       gamepadCallback,
       gamepadSecondaryCallback
-    ));
+      ));
   }
 
   setView(sf::Vector2u(480, 320));
@@ -291,11 +291,13 @@ void ConfigScene::ToggleShaders() {
 
 void ConfigScene::ShowKeyboardMenu() {
   inKeyboardList = true;
+  activeSubmenu = keyboardMenu;
   Audio().Play(AudioType::CHIP_SELECT);
 }
 
 void ConfigScene::ShowGamepadMenu() {
   inGamepadList = true;
+  activeSubmenu = gamepadMenu;
   Audio().Play(AudioType::CHIP_SELECT);
 }
 
@@ -362,7 +364,15 @@ void ConfigScene::UnsetGamepadBinding(BindingItem& item) {
 }
 
 bool ConfigScene::IsInSubmenu() {
-  return inKeyboardList || inGamepadList;
+  return activeSubmenu.has_value();
+}
+
+ConfigScene::Menu& ConfigScene::GetActiveMenu() {
+  return IsInSubmenu() ? activeSubmenu->get() : primaryMenu;
+}
+
+int& ConfigScene::GetActiveIndex() {
+  return IsInSubmenu() ? submenuIndex : primaryIndex;
 }
 
 void ConfigScene::onUpdate(double elapsed)
@@ -556,37 +566,32 @@ void ConfigScene::onUpdate(double elapsed)
       }
       else {
         inGamepadList = inKeyboardList = false;
+        activeSubmenu = {};
         submenuIndex = 0;
 
         Audio().Play(AudioType::CHIP_DESC_CLOSE);
       }
     }
     else if (hasUp && textbox.IsClosed()) {
-      if (IsInSubmenu()) {
-        submenuIndex--;
+      auto& activeIndex = GetActiveIndex();
+
+      if (primaryIndex == 0 && !isSelectingTopMenu) {
+        isSelectingTopMenu = true;
       }
       else {
-        if (primaryIndex == 0 && !isSelectingTopMenu) {
-          isSelectingTopMenu = true;
-        }
-        else {
-          primaryIndex--;
-        }
+        activeIndex--;
       }
 
       Audio().Play(AudioType::CHIP_SELECT);
     }
     else if (hasDown && textbox.IsClosed()) {
-      if (IsInSubmenu()) {
-        submenuIndex++;
+      auto& activeIndex = GetActiveIndex();
+
+      if (isSelectingTopMenu) {
+        isSelectingTopMenu = false;
       }
       else {
-        if (isSelectingTopMenu) {
-          isSelectingTopMenu = false;
-        }
-        else {
-          primaryIndex++;
-        }
+        activeIndex++;
       }
 
       Audio().Play(AudioType::CHIP_SELECT);
@@ -598,38 +603,26 @@ void ConfigScene::onUpdate(double elapsed)
       // unused
     }
     else if (hasConfirmed && !isSelectingTopMenu) {
-      if (IsInSubmenu()) {
-        auto& submenu = inKeyboardList ? keyboardMenu : gamepadMenu;
-        submenu[submenuIndex]->Select();
-      }
-      else {
-        primaryMenu[primaryIndex]->Select();
-      }
-    } else if (hasSecondary && !isSelectingTopMenu) {
-      if (IsInSubmenu()) {
-        auto& submenu = inKeyboardList ? keyboardMenu : gamepadMenu;
-        submenu[submenuIndex]->SecondarySelect();
-      }
-      else {
-        primaryMenu[primaryIndex]->SecondarySelect();
-      }
+      auto& activeMenu = GetActiveMenu();
+      activeMenu[GetActiveIndex()]->Select();
+    }
+    else if (hasSecondary && !isSelectingTopMenu) {
+      auto& activeMenu = GetActiveMenu();
+      activeMenu[GetActiveIndex()]->Select();
     }
   }
 
   primaryIndex = std::clamp(primaryIndex, 0, int(primaryMenu.size()) - 1);
 
-  for (int i = 0; i < primaryMenu.size(); i++) {
-    UpdateMenuItem(*primaryMenu[i], !IsInSubmenu(), i, primaryIndex, 0, float(elapsed));
-  }
+
+  UpdateMenu(primaryMenu, !IsInSubmenu(), primaryIndex, 0, float(elapsed));
 
   // display submenu, currently just keyboard/gamepad binding
   if (IsInSubmenu()) {
-    auto& submenu = inKeyboardList ? keyboardMenu : gamepadMenu;
+    auto& submenu = activeSubmenu->get();
     submenuIndex = std::clamp(submenuIndex, 0, int(submenu.size()) - 1);
 
-    for (int i = 0; i < submenu.size(); i++) {
-      UpdateMenuItem(*submenu[i], true, i, submenuIndex, SUBMENU_SPAN, float(elapsed));
-    }
+    UpdateMenu(submenu, true, submenuIndex, SUBMENU_SPAN, float(elapsed));
   }
 
   // Make endBtn stick at the top of the screen
@@ -643,14 +636,8 @@ void ConfigScene::onUpdate(double elapsed)
   }
 
   // move view based on selection (keep selection in view)
-  auto menuSize = primaryMenu.size();
-  auto selectionIndex = primaryIndex;
-
-  if (IsInSubmenu()) {
-    auto& submenu = inKeyboardList ? keyboardMenu : gamepadMenu;
-    menuSize = submenu.size();
-    selectionIndex = submenuIndex;
-  }
+  auto menuSize = GetActiveMenu().size();
+  auto selectionIndex = GetActiveIndex();
 
   auto scrollEnd = std::max(0.0f, float(menuSize + 1) * LINE_SPAN - getView().getSize().y / 2.0f + MENU_START_Y);
   auto scrollIncrement = scrollEnd / float(menuSize);
@@ -658,40 +645,43 @@ void ConfigScene::onUpdate(double elapsed)
   scrollOffset = swoosh::ease::interpolate(float(elapsed) * SCROLL_INTERPOLATION_MULTIPLIER, scrollOffset, newScrollOffset);
 }
 
-void ConfigScene::UpdateMenuItem(MenuItem& menuItem, bool menuHasFocus, int index, int selectionIndex, float offsetX, float elapsed) {
-  auto w = 0.3f;
-  auto diff = index - selectionIndex;
-  float scale = 1.0f - (w * abs(diff));
-  scale = std::max(scale, 0.8f);
-  scale = std::min(scale, 1.0f);
+void ConfigScene::UpdateMenu(Menu& menu, bool menuHasFocus, int selectionIndex, float offsetX, float elapsed) {
+  for (int index = 0; index < menu.size(); index++) {
+    auto& menuItem = *menu[index];
+    auto w = 0.3f;
+    auto diff = index - selectionIndex;
+    float scale = 1.0f - (w * abs(diff));
+    scale = std::max(scale, 0.8f);
+    scale = std::min(scale, 1.0f);
 
-  auto delta = 48.0f * elapsed;
+    auto delta = 48.0f * elapsed;
 
-  auto s = sf::Vector2f(2.f * scale, 2.f * scale);
-  auto menuItemScale = menuItem.getScale().x;
-  auto slerp = sf::Vector2f(
-    swoosh::ease::interpolate(delta, s.x, menuItemScale),
-    swoosh::ease::interpolate(delta, s.y, menuItemScale)
-  );
-  menuItem.setScale(slerp);
+    auto s = sf::Vector2f(2.f * scale, 2.f * scale);
+    auto menuItemScale = menuItem.getScale().x;
+    auto slerp = sf::Vector2f(
+      swoosh::ease::interpolate(delta, s.x, menuItemScale),
+      swoosh::ease::interpolate(delta, s.y, menuItemScale)
+    );
+    menuItem.setScale(slerp);
 
-  menuItem.setPosition(COL_PADDING + 2.f * offsetX, 2.f * (MENU_START_Y + (index * LINE_SPAN)));
+    menuItem.setPosition(COL_PADDING + 2.f * offsetX, 2.f * (MENU_START_Y + (index * LINE_SPAN)));
 
-  bool awaitingBinding = pendingKeyBinding || pendingGamepadBinding;
+    bool awaitingBinding = pendingKeyBinding || pendingGamepadBinding;
 
-  if (menuHasFocus) {
-    if (index == selectionIndex) {
-      menuItem.SetAlpha(255);
+    if (menuHasFocus) {
+      if (index == selectionIndex) {
+        menuItem.SetAlpha(255);
+      }
+      else {
+        menuItem.SetAlpha(awaitingBinding ? 50 : 150);
+      }
     }
     else {
-      menuItem.SetAlpha(awaitingBinding ? 50 : 150);
+      menuItem.SetAlpha(awaitingBinding ? 50 : 100);
     }
-  }
-  else {
-    menuItem.SetAlpha(awaitingBinding ? 50 : 100);
-  }
 
-  menuItem.Update();
+    menuItem.Update();
+  }
 }
 
 void ConfigScene::onDraw(sf::RenderTexture& surface)
@@ -704,21 +694,13 @@ void ConfigScene::onDraw(sf::RenderTexture& surface)
 
   surface.draw(endBtn, states);
 
-  // Draw options
   for (auto& menuItem : primaryMenu) {
     surface.draw(*menuItem, states);
   }
 
-  if (inKeyboardList) {
-    // Keyboard keys
-    for (auto& menuItem : keyboardMenu) {
-      surface.draw(*menuItem, states);
-    }
-  }
-
-  if (inGamepadList) {
-    // Gamepad keys
-    for (auto& menuItem : gamepadMenu) {
+  if(activeSubmenu) {
+    auto& submenu = activeSubmenu->get();
+    for (auto& menuItem : submenu) {
       surface.draw(*menuItem, states);
     }
   }

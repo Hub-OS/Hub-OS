@@ -42,6 +42,7 @@ private:
   bool inGamepadList{};
   bool inKeyboardList{};
   bool inLoginMenu{};
+  bool gamepadWasActive{};
 
   Background* bg{ nullptr };
 
@@ -127,7 +128,10 @@ private:
 
   int menuDivideIndex;
 
-  std::vector<std::unique_ptr<MenuItem>> primaryMenu, keyboardMenu, gamepadMenu;
+  using Menu = std::vector<std::unique_ptr<MenuItem>>;
+
+  Menu primaryMenu, keyboardMenu, gamepadMenu;
+  std::optional<std::reference_wrapper<Menu>> activeSubmenu;
 
   std::optional<std::reference_wrapper<BindingItem>> pendingKeyBinding;
   std::optional<std::reference_wrapper<BindingItem>> pendingGamepadBinding;
@@ -152,7 +156,9 @@ private:
   void UnsetGamepadBinding(BindingItem&);
 
   bool IsInSubmenu();
-  void UpdateMenuItem(MenuItem&, bool menuHasFocus, int index, int selectionIndex, float colSpan, float elapsed);
+  Menu& GetActiveMenu();
+  int& GetActiveIndex();
+  void UpdateMenu(Menu&, bool menuHasFocus, int selectionIndex, float colSpan, float elapsed);
 
 public:
 
