@@ -11,6 +11,8 @@ constexpr float BINDED_VALUE_OFFSET = 240.0f - SUBMENU_SPAN - COL_PADDING;
 constexpr float MENU_START_Y = 40.0f;
 constexpr float LINE_SPAN = 15.0f;
 constexpr float SCROLL_INTERPOLATION_MULTIPLIER = 6.0f;
+constexpr float INITIAL_SCROLL_COOLDOWN = 0.5f;
+constexpr float SCROLL_COOLDOWN = 0.05f;
 
 const sf::Color DEFAULT_TEXT_COLOR = sf::Color(255, 165, 0);
 const sf::Color DISABLED_TEXT_COLOR = sf::Color(255, 0, 0);
@@ -279,6 +281,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
       ));
   }
 
+  nextScrollCooldown = INITIAL_SCROLL_COOLDOWN;
   setView(sf::Vector2u(480, 320));
 }
 
@@ -491,13 +494,21 @@ void ConfigScene::onUpdate(double elapsed)
     }
   }
 
+  auto& activeIndex = GetActiveIndex();
+  auto initialIndex = activeIndex;
+
   if (!leave) {
     bool hasCanceled = Input().Has(InputEvents::pressed_cancel);
 
-    bool hasUp = Input().Has(InputEvents::pressed_ui_up);
-    bool hasDown = Input().Has(InputEvents::pressed_ui_down);
+    bool hasUp = Input().Has(InputEvents::held_ui_up);
+    bool hasDown = Input().Has(InputEvents::held_ui_down);
     bool hasLeft = Input().Has(InputEvents::pressed_ui_left);
     bool hasRight = Input().Has(InputEvents::pressed_ui_right);
+
+    if (!hasUp && !hasDown) {
+      nextScrollCooldown = INITIAL_SCROLL_COOLDOWN;
+      scrollCooldown = 0.0f;
+    }
 
     if (textbox.IsOpen()) {
       if (messageInterface) {
@@ -637,55 +648,42 @@ void ConfigScene::onUpdate(double elapsed)
         }
       }
     }
-    else if (hasCanceled) {
-      if (!IsInSubmenu()) {
-        Audio().Play(AudioType::CHIP_DESC_CLOSE);
-      }
-      else {
+    else if (hasCanceled || (IsInSubmenu() && hasLeft)) {
+      if (IsInSubmenu()) {
         activeSubmenu = {};
         submenuIndex = 0;
-
-        Audio().Play(AudioType::CHIP_DESC_CLOSE);
       }
-    }
-    else if (hasUp && textbox.IsClosed()) {
-      auto& activeIndex = GetActiveIndex();
 
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
+    }
+    else if (hasUp && scrollCooldown <= 0.0f) {
       if (activeIndex == 0 && !isSelectingTopMenu) {
         isSelectingTopMenu = true;
       }
       else {
         activeIndex--;
       }
-
-      Audio().Play(AudioType::CHIP_SELECT);
     }
-    else if (hasDown && textbox.IsClosed()) {
-      auto& activeIndex = GetActiveIndex();
-
+    else if (hasDown && scrollCooldown <= 0.0f) {
       if (isSelectingTopMenu) {
         isSelectingTopMenu = false;
       }
       else {
         activeIndex++;
       }
-
-      Audio().Play(AudioType::CHIP_SELECT);
     }
-    else if (hasLeft) {
-      // unused
-    }
-    else if (hasRight) {
-      // unused
-    }
-    else if (hasConfirmed && !isSelectingTopMenu) {
+    else if ((hasConfirmed || (!IsInSubmenu() && hasRight)) && !isSelectingTopMenu) {
       auto& activeMenu = GetActiveMenu();
       activeMenu[GetActiveIndex()]->Select();
     }
-    else if (hasSecondary && !isSelectingTopMenu) {
+    else if ((hasSecondary || (!IsInSubmenu() && hasLeft)) && !isSelectingTopMenu) {
       auto& activeMenu = GetActiveMenu();
       activeMenu[GetActiveIndex()]->SecondarySelect();
     }
+  }
+
+  if (scrollCooldown > 0.0f) {
+    scrollCooldown -= float(elapsed);
   }
 
   primaryIndex = std::clamp(primaryIndex, 0, int(primaryMenu.size()) - 1);
@@ -699,6 +697,12 @@ void ConfigScene::onUpdate(double elapsed)
     submenuIndex = std::clamp(submenuIndex, 0, int(submenu.size()) - 1);
 
     UpdateMenu(submenu, true, submenuIndex, SUBMENU_SPAN, float(elapsed));
+  }
+
+  if (activeIndex != initialIndex) {
+    scrollCooldown = nextScrollCooldown;
+    nextScrollCooldown = SCROLL_COOLDOWN;
+    Audio().Play(AudioType::CHIP_SELECT);
   }
 
   // Make endBtn stick at the top of the screen

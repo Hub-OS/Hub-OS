@@ -33,7 +33,9 @@ private:
   Animation endBtnAnimator;
   int primaryIndex{}; /*!< Current selection */
   int submenuIndex{};
-  float scrollOffset;
+  float scrollOffset{};
+  float scrollCooldown{};
+  float nextScrollCooldown{};
 
   sf::Sprite endBtn;
 
