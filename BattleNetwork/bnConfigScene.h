@@ -63,7 +63,7 @@ private:
   };
 
   class TextItem : public MenuItem {
-  private:
+  protected:
     inline static const std::function<void(TextItem&)>& defaultSecondaryCallback = [](auto&) {};
     Text label;
     sf::Color color;
@@ -101,16 +101,15 @@ private:
     void Update() override;
   };
 
-  class VolumeItem : public MenuItem, ResourceHandle {
+  class VolumeItem : public TextItem, ResourceHandle {
   private:
     SpriteProxyNode icon;
     Animation animator;
-    sf::Color color;
     int volumeLevel{};
-    std::function<void()> createCallback(const std::function<void(int)>&);
-    std::function<void()> createSecondaryCallback(const std::function<void(int)>&);
+    std::function<void(TextItem&)> createCallback(const std::function<void(int)>&);
+    std::function<void(TextItem&)> createSecondaryCallback(const std::function<void(int)>&);
   public:
-    VolumeItem(sf::Color color, int volumeLevel, const std::function<void(int)>& callback);
+    VolumeItem(const std::string& text, sf::Color color, int volumeLevel, const std::function<void(int)>& callback);
     void SetAlpha(sf::Uint8 alpha) override;
   };
 

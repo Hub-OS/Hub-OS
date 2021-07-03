@@ -106,13 +106,23 @@ void ConfigScene::BindingItem::Update() {
   value.setPosition((BINDED_VALUE_OFFSET * 2.0f) / getScale().x - value.GetLocalBounds().width, 0.0f);
 }
 
-ConfigScene::VolumeItem::VolumeItem(sf::Color color, int volumeLevel, const std::function<void(int)>& callback) :
-  MenuItem(createCallback(callback), createSecondaryCallback(callback)),
-  color(color),
+ConfigScene::VolumeItem::VolumeItem(
+  const std::string& text,
+  sf::Color color,
+  int volumeLevel,
+  const std::function<void(int)>& callback
+) :
+  TextItem(text, createCallback(callback), createSecondaryCallback(callback)),
   volumeLevel(volumeLevel)
 {
+  this->color = color;
+
   AddNode(&icon);
   icon.setTexture(Textures().LoadTextureFromFile("resources/ui/config/audio.png"));
+  icon.setPosition(
+    label.GetLocalBounds().width + COL_PADDING,
+    label.GetLocalBounds().height / 2.0f - icon.getLocalBounds().height / 2.0f
+  );
 
   animator = Animation("resources/ui/config/audio.animation");
   animator.Load();
@@ -121,18 +131,18 @@ ConfigScene::VolumeItem::VolumeItem(sf::Color color, int volumeLevel, const std:
   animator.Update(0, icon.getSprite());
 }
 
-std::function<void()> ConfigScene::VolumeItem::createCallback(const std::function<void(int)>& callback) {
+std::function<void(ConfigScene::TextItem&)> ConfigScene::VolumeItem::createCallback(const std::function<void(int)>& callback) {
   // raise volume
-  return [this, callback] {
+  return [this, callback](auto&) {
     volumeLevel = (volumeLevel + 1) % 4;
     animator.SetFrame(volumeLevel + 1, icon.getSprite());
     callback(volumeLevel);
   };
 }
 
-std::function<void()> ConfigScene::VolumeItem::createSecondaryCallback(const std::function<void(int)>& callback) {
+std::function<void(ConfigScene::TextItem&)> ConfigScene::VolumeItem::createSecondaryCallback(const std::function<void(int)>& callback) {
   // lower volume
-  return [this, callback] {
+  return [this, callback](auto&) {
     volumeLevel = volumeLevel - 1;
 
     if (volumeLevel < 0) {
@@ -145,7 +155,7 @@ std::function<void()> ConfigScene::VolumeItem::createSecondaryCallback(const std
 }
 
 void ConfigScene::VolumeItem::SetAlpha(sf::Uint8 alpha) {
-  color.a = alpha;
+  TextItem::SetAlpha(alpha);
   icon.setColor(color);
 }
 
@@ -176,12 +186,14 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   // ascii 58 - 96
   // BGM
   primaryMenu.push_back(std::make_unique<VolumeItem>(
+    "BGM",
     sf::Color(255, 0, 255),
     configSettings.GetMusicLevel(),
     [this](int volumeLevel) { UpdateBgmVolume(volumeLevel); })
   );
   // SFX
   primaryMenu.push_back(std::make_unique<VolumeItem>(
+    "SFX",
     sf::Color(10, 165, 255),
     configSettings.GetSFXLevel(),
     [this](int volumeLevel) { UpdateSfxVolume(volumeLevel); })
