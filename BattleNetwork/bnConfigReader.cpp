@@ -216,7 +216,7 @@ ConfigReader::ConfigReader(std::string filepath) {
 
   // We need SOME values
   // Provide default layout
-  if (!settings.keyboard.size() || !settings.isOK) {
+  if (!settings.isOK || !settings.TestKeyboard()) {
     Logger::Log("config settings was not OK. Will use internal default key layout.");
     settings.sfxLevel = settings.musicLevel = 3;
     settings.isOK = false; // This can be used as a flag that we're using default controls

@@ -212,7 +212,7 @@ void InputManager::Update() {
   }
 
   if (hasFocus) {
-    if (settings.IsOK() && settings.IsKeyboardOK()) {
+    if (settings.IsOK()) {
       for (auto& [name, actionBindings] : bindings) {
         bool isActive = false;
 
@@ -261,21 +261,18 @@ void InputManager::Update() {
       }
       if (keyboardState[sf::Keyboard::Key::Space]) {
         VirtualKeyEvent(InputEvents::pressed_cust_menu);
-        VirtualKeyEvent(InputEvents::pressed_option);
       }
-      if (keyboardState[sf::Keyboard::Key::P]) {
+      if (keyboardState[sf::Keyboard::Key::Enter]) {
         VirtualKeyEvent(InputEvents::pressed_pause);
       }
-      if (keyboardState[sf::Keyboard::Key::A]) {
-        VirtualKeyEvent(InputEvents::pressed_cust_menu);
-      }
-      if (keyboardState[sf::Keyboard::Key::S]) {
+      if (keyboardState[sf::Keyboard::Key::X]) {
         VirtualKeyEvent(InputEvents::pressed_special);
+        VirtualKeyEvent(InputEvents::pressed_option);
       }
-      if (keyboardState[sf::Keyboard::Key::D]) {
+      if (keyboardState[sf::Keyboard::Key::A]) {
         VirtualKeyEvent(InputEvents::pressed_shoulder_left);
       }
-      if (keyboardState[sf::Keyboard::Key::F]) {
+      if (keyboardState[sf::Keyboard::Key::S]) {
         VirtualKeyEvent(InputEvents::pressed_shoulder_right);
       }
     }

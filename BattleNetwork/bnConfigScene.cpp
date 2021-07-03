@@ -308,11 +308,9 @@ void ConfigScene::ToggleLogin() {
       auto onYes = [this]() {
         Logger::Log("SendLogoutCommand");
         WEBCLIENT.SendLogoutCommand();
-        textbox.Close();
       };
 
       auto onNo = [this]() {
-        textbox.Close();
         Audio().Play(AudioType::CHIP_DESC_CLOSE);
       };
       questionInterface = new Question("Are you sure you want to logout?", onYes, onNo);
@@ -408,15 +406,28 @@ void ConfigScene::onUpdate(double elapsed)
   if (hasConfirmed && isSelectingTopMenu && !leave) {
     if (textbox.IsClosed()) {
       auto onYes = [this]() {
+        auto oldKeyboardHash = configSettings.GetKeyboardHash();
+
         // Save before leaving
         configSettings.SetKeyboardHash(keyHash);
+
+        if (!configSettings.TestKeyboard()) {
+          // revert
+          configSettings.SetKeyboardHash(oldKeyboardHash);
+
+          // block exit with warning
+          messageInterface = new Message("Keyboard has overlapping or unset bindings.");
+          textbox.EnqueMessage(sf::Sprite(), "", messageInterface);
+          Audio().Play(AudioType::CHIP_ERROR, AudioPriority::high);
+          return;
+        }
+
         configSettings.SetGamepadHash(gamepadHash);
 
         ConfigWriter writer(configSettings);
         writer.Write("config.ini");
         ConfigReader reader("config.ini");
         Input().SupportConfigSettings(reader);
-        textbox.Close();
 
         // transition to the next screen
         using namespace swoosh::types;
@@ -433,10 +444,8 @@ void ConfigScene::onUpdate(double elapsed)
         using effect = segue<WhiteWashFade, milliseconds<300>>;
         getController().pop<effect>();
         leave = true;
-
-        textbox.Close();
       };
-      questionInterface = new Question("Overwite your config settings?", onYes, onNo);
+      questionInterface = new Question("Overwrite your config settings?", onYes, onNo);
       textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
       textbox.Open();
       Audio().Play(AudioType::CHIP_DESC);
@@ -452,7 +461,22 @@ void ConfigScene::onUpdate(double elapsed)
     bool hasRight = Input().Has(InputEvents::pressed_ui_right);
 
     if (textbox.IsOpen()) {
-      if (questionInterface) {
+      if (messageInterface) {
+        if(hasConfirmed) {
+          // continue the conversation if the text is complete
+          if (textbox.IsEndOfMessage()) {
+            textbox.DequeMessage();
+            messageInterface = nullptr;
+          }
+          else if (textbox.IsEndOfBlock()) {
+            textbox.ShowNextLines();
+          }
+          else {
+            // double tapping talk will complete the block
+            textbox.CompleteCurrentBlock();
+          }
+        }
+      } else if (questionInterface) {
         if (textbox.IsEndOfMessage()) {
           if (hasLeft) {
             questionInterface->SelectYes();
@@ -462,9 +486,11 @@ void ConfigScene::onUpdate(double elapsed)
           }
           else if (hasCanceled) {
             questionInterface->Cancel();
+            questionInterface = nullptr;
           }
           else if (hasConfirmed) {
             questionInterface->ConfirmSelection();
+            questionInterface = nullptr;
           }
         }
         else if (hasConfirmed) {
@@ -479,7 +505,6 @@ void ConfigScene::onUpdate(double elapsed)
       else if (inputInterface) {
         if (inputInterface->IsDone()) {
           std::string entry = inputInterface->Submit();
-          textbox.Close();
 
           inputInterface = nullptr;
 
@@ -495,6 +520,10 @@ void ConfigScene::onUpdate(double elapsed)
             break;
           }
         }
+      }
+
+      if(textbox.IsEndOfMessage() && !textbox.HasMessage()) {
+        textbox.Close();
       }
     }
     else if (pendingKeyBinding || pendingGamepadBinding) {

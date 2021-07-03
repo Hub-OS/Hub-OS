@@ -138,6 +138,7 @@ private:
 
   Question* questionInterface{ nullptr };
   MessageInput* inputInterface{ nullptr };
+  Message* messageInterface{ nullptr };
 
 #ifdef __ANDROID__
   void StartupTouchControls();

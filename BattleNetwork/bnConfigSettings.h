@@ -35,10 +35,10 @@ public:
   const bool IsOK() const;
 
   /**
-* @brief If config file has empty keyboard mappings
-* @return true if all keyboard mappings are NO KEY
-*/
-  const bool IsKeyboardOK() const;
+  * @brief Tests keyboard mappings for issues
+  * @return true if keyboard mapping are usable
+  */
+  const bool TestKeyboard() const;
 
   /**
    * @brief Check if Audio() is on or off based on ini file
@@ -107,6 +107,7 @@ private:
 
   int musicLevel{3};
   int sfxLevel{3};
+  int gamepadIndex{};
 
   bool fullscreen{};
 
