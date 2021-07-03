@@ -24,9 +24,13 @@ void ConfigScene::MenuItem::draw(sf::RenderTarget& target, sf::RenderStates stat
 
 ConfigScene::TextItem::TextItem(
   const std::string& text,
-  const std::function<void(TextItem&)>& callback
+  const std::function<void(TextItem&)>& callback,
+  const std::function<void(TextItem&)>& secondaryCallback
 ) :
-  MenuItem([this, callback] { callback(*this); }),
+  MenuItem(
+    [this, callback] { callback(*this); },
+    [this, secondaryCallback] { secondaryCallback(*this); }
+  ),
   label(text, Font::Style::wide),
   color(DEFAULT_TEXT_COLOR)
 {
@@ -65,9 +69,14 @@ void ConfigScene::LoginItem::Update() {
 ConfigScene::BindingItem::BindingItem(
   const std::string& inputName,
   std::optional<std::reference_wrapper<std::string>> valueName,
-  const std::function<void(BindingItem&)>& callback
+  const std::function<void(BindingItem&)>& callback,
+  const std::function<void(BindingItem&)>& secondaryCallback
 ) :
-  TextItem(inputName, [this, callback](auto&) { callback(*this); }),
+  TextItem(
+    inputName,
+    [this, callback](auto&) { callback(*this); },
+    [this, secondaryCallback](auto&) { secondaryCallback(*this); }
+  ),
   value(Font::Style::wide)
 {
   SetValue(valueName);
@@ -96,7 +105,7 @@ void ConfigScene::BindingItem::Update() {
 }
 
 ConfigScene::VolumeItem::VolumeItem(sf::Color color, int volumeLevel, const std::function<void(int)>& callback) :
-  MenuItem(createCallback(callback)),
+  MenuItem(createCallback(callback), createSecondaryCallback(callback)),
   color(color),
   volumeLevel(volumeLevel)
 {
@@ -111,8 +120,23 @@ ConfigScene::VolumeItem::VolumeItem(sf::Color color, int volumeLevel, const std:
 }
 
 std::function<void()> ConfigScene::VolumeItem::createCallback(const std::function<void(int)>& callback) {
+  // raise volume
   return [this, callback] {
     volumeLevel = (volumeLevel + 1) % 4;
+    animator.SetFrame(volumeLevel + 1, icon.getSprite());
+    callback(volumeLevel);
+  };
+}
+
+std::function<void()> ConfigScene::VolumeItem::createSecondaryCallback(const std::function<void(int)>& callback) {
+  // lower volume
+  return [this, callback] {
+    volumeLevel = volumeLevel - 1;
+
+    if (volumeLevel < 0) {
+      volumeLevel = 3;
+    }
+
     animator.SetFrame(volumeLevel + 1, icon.getSprite());
     callback(volumeLevel);
   };
@@ -182,8 +206,10 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   configSettings = Input().GetConfigSettings();
 
   // For keyboard keys 
+  auto keyCallback = [this](BindingItem& item) { AwaitKeyBinding(item); };
+  auto keySecondaryCallback = [this](BindingItem& item) { UnsetKeyBinding(item); };
+
   for (auto eventName : InputEvents::KEYS) {
-    auto callback = [this](BindingItem& item) { AwaitKeyBinding(item); };
 
     if (configSettings.IsOK()) {
       std::optional<std::reference_wrapper<std::string>> value;
@@ -194,11 +220,13 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
         value = keyStr;
       }
 
-      keyboardMenu.push_back(std::make_unique<BindingItem>(eventName, value, callback));
+      keyboardMenu.push_back(std::make_unique<BindingItem>(eventName, value, keyCallback, keySecondaryCallback));
     }
   }
 
   // For gamepad keys
+  auto gamepadCallback = [this](BindingItem& item) { AwaitGamepadBinding(item); };
+  auto gamepadSecondaryCallback = [this](BindingItem& item) { UnsetGamepadBinding(item); };
 
   for (auto eventName : InputEvents::KEYS) {
     std::optional<std::reference_wrapper<std::string>> value;
@@ -232,8 +260,12 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
       }
     }
 
-    auto callback = [this](BindingItem& item) { AwaitGamepadBinding(item); };
-    gamepadMenu.push_back(std::make_unique<BindingItem>(eventName, value, callback));
+    gamepadMenu.push_back(std::make_unique<BindingItem>(
+      eventName,
+      value,
+      gamepadCallback,
+      gamepadSecondaryCallback
+    ));
   }
 
   setView(sf::Vector2u(480, 320));
@@ -295,8 +327,38 @@ void ConfigScene::AwaitKeyBinding(BindingItem& item) {
   pendingKeyBinding = item;
 }
 
+void ConfigScene::UnsetKeyBinding(BindingItem& item) {
+  auto& eventName = item.GetString();
+  auto iter = keyHash.begin();
+
+  while (iter != keyHash.end()) {
+    if (iter->second == eventName) break;
+    iter++;
+  }
+
+  if (iter != keyHash.end()) {
+    keyHash.erase(iter);
+  }
+
+  item.SetValue({});
+}
+
 void ConfigScene::AwaitGamepadBinding(BindingItem& item) {
   pendingGamepadBinding = item;
+}
+
+void ConfigScene::UnsetGamepadBinding(BindingItem& item) {
+  auto& eventName = item.GetString();
+  auto iter = gamepadHash.begin();
+
+  while (iter != gamepadHash.end()) {
+    if (iter->second == eventName) break;
+    iter++;
+  }
+
+  if (iter != gamepadHash.end()) {
+    gamepadHash.erase(iter);
+  }
 }
 
 bool ConfigScene::IsInSubmenu() {
@@ -326,6 +388,7 @@ void ConfigScene::onUpdate(double elapsed)
   }
 
   bool hasConfirmed = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_confirm) : false) || Input().GetAnyKey() == sf::Keyboard::Enter;
+  bool hasSecondary = Input().Has(InputEvents::pressed_option);
 
   if (hasConfirmed && isSelectingTopMenu && !leave) {
     if (textbox.IsClosed()) {
@@ -432,16 +495,7 @@ void ConfigScene::onUpdate(double elapsed)
             auto& menuItem = pendingKeyBinding->get();
             auto& eventName = menuItem.GetString();
 
-            auto iter = keyHash.begin();
-
-            while (iter != keyHash.end()) {
-              if (iter->second == eventName) break;
-              iter++;
-            }
-
-            if (iter != keyHash.end()) {
-              keyHash.erase(iter);
-            }
+            UnsetKeyBinding(menuItem);
 
             keyHash.insert(std::make_pair(key, eventName));
 
@@ -464,16 +518,7 @@ void ConfigScene::onUpdate(double elapsed)
           auto& menuItem = pendingKeyBinding->get();
           auto& eventName = menuItem.GetString();
 
-          auto iter = gamepadHash.begin();
-
-          while (iter != gamepadHash.end()) {
-            if (iter->second == eventName) break;
-            iter++;
-          }
-
-          if (iter != gamepadHash.end()) {
-            gamepadHash.erase(iter);
-          }
+          UnsetGamepadBinding(menuItem);
 
           gamepadHash.insert(std::make_pair(gamepad, eventName));
 
@@ -559,6 +604,14 @@ void ConfigScene::onUpdate(double elapsed)
       }
       else {
         primaryMenu[primaryIndex]->Select();
+      }
+    } else if (hasSecondary && !isSelectingTopMenu) {
+      if (IsInSubmenu()) {
+        auto& submenu = inKeyboardList ? keyboardMenu : gamepadMenu;
+        submenu[submenuIndex]->SecondarySelect();
+      }
+      else {
+        primaryMenu[primaryIndex]->SecondarySelect();
       }
     }
   }

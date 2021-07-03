@@ -47,21 +47,31 @@ private:
 
   class MenuItem : public SceneNode {
   private:
-    std::function<void()> action;
+    std::function<void()> action, secondaryAction;
   public:
-    MenuItem(const std::function<void()>& callback) { action = callback; }
+    MenuItem(const std::function<void()>& callback, const std::function<void()>& secondaryCallback) {
+      action = callback;
+      secondaryAction = secondaryCallback;
+    }
+
     virtual void SetAlpha(sf::Uint8) = 0;
     void Select() { action(); };
+    void SecondarySelect() { secondaryAction(); };
     virtual void Update() {};
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   };
 
   class TextItem : public MenuItem {
   private:
+    inline static const std::function<void(TextItem&)>& defaultSecondaryCallback = [](auto&) {};
     Text label;
     sf::Color color;
   public:
-    TextItem(const std::string& text, const std::function<void(TextItem&)>& callback);
+    TextItem(
+      const std::string& text,
+      const std::function<void(TextItem&)>& callback,
+      const std::function<void(TextItem&)>& secondaryCallback = defaultSecondaryCallback
+    );
     const std::string& GetString();
     void SetString(const std::string& text);
     void SetColor(sf::Color);
@@ -82,7 +92,8 @@ private:
     BindingItem(
       const std::string& inputName,
       std::optional<std::reference_wrapper<std::string>> valueName,
-      const std::function<void(BindingItem&)>& callback
+      const std::function<void(BindingItem&)>& callback,
+      const std::function<void(BindingItem&)>& secondaryCallback
     );
     void SetValue(std::optional<std::reference_wrapper<std::string>> valueName);
     void SetAlpha(sf::Uint8 alpha) override;
@@ -96,6 +107,7 @@ private:
     sf::Color color;
     int volumeLevel{};
     std::function<void()> createCallback(const std::function<void(int)>&);
+    std::function<void()> createSecondaryCallback(const std::function<void(int)>&);
   public:
     VolumeItem(sf::Color color, int volumeLevel, const std::function<void(int)>& callback);
     void SetAlpha(sf::Uint8 alpha) override;
@@ -115,8 +127,7 @@ private:
 
   int menuDivideIndex;
 
-  std::vector<std::unique_ptr<MenuItem>> primaryMenu;
-  std::vector<std::unique_ptr<BindingItem>> keyboardMenu, gamepadMenu;
+  std::vector<std::unique_ptr<MenuItem>> primaryMenu, keyboardMenu, gamepadMenu;
 
   std::optional<std::reference_wrapper<BindingItem>> pendingKeyBinding;
   std::optional<std::reference_wrapper<BindingItem>> pendingGamepadBinding;
@@ -136,7 +147,9 @@ private:
   void ToggleLogin();
   void LoginStep(UserInfo::states next);
   void AwaitKeyBinding(BindingItem&);
+  void UnsetKeyBinding(BindingItem&);
   void AwaitGamepadBinding(BindingItem&);
+  void UnsetGamepadBinding(BindingItem&);
 
   bool IsInSubmenu();
   void UpdateMenuItem(MenuItem&, bool menuHasFocus, int index, int selectionIndex, float colSpan, float elapsed);
