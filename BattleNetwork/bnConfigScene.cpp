@@ -381,6 +381,9 @@ void ConfigScene::IncrementGamepadIndex(BindingItem& item) {
     gamepadIndex = 0;
   }
 
+  // set gamepad now to allow binding it's input
+  Input().UseGamepad(gamepadIndex);
+
   auto indexString = std::to_string(gamepadIndex);
   item.SetValue(indexString);
 }
@@ -389,6 +392,9 @@ void ConfigScene::DecrementGamepadIndex(BindingItem& item) {
   if (--gamepadIndex < 0) {
     gamepadIndex = Input().GetGamepadCount() > 0 ? int(Input().GetGamepadCount()) - 1 : 0;
   }
+
+  // set gamepad now to allow binding it's input
+  Input().UseGamepad(gamepadIndex);
 
   auto indexString = std::to_string(gamepadIndex);
   item.SetValue(indexString);
@@ -469,6 +475,9 @@ void ConfigScene::onUpdate(double elapsed)
       };
 
       auto onNo = [this]() {
+        // Use config stored gamepad index in case we were messing with another controller here
+        Input().UseGamepad(configSettings.GetGamepadIndex());
+
         // Just close and leave
         using namespace swoosh::types;
         using effect = segue<WhiteWashFade, milliseconds<300>>;
