@@ -615,7 +615,7 @@ void ConfigScene::onUpdate(double elapsed)
     }
     else if (hasSecondary && !isSelectingTopMenu) {
       auto& activeMenu = GetActiveMenu();
-      activeMenu[GetActiveIndex()]->Select();
+      activeMenu[GetActiveIndex()]->SecondarySelect();
     }
   }
 
