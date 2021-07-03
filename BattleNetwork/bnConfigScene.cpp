@@ -24,9 +24,9 @@ void ConfigScene::MenuItem::draw(sf::RenderTarget& target, sf::RenderStates stat
 
 ConfigScene::TextItem::TextItem(
   const std::string& text,
-  const std::function<void()>& callback
+  const std::function<void(TextItem&)>& callback
 ) :
-  MenuItem(callback),
+  MenuItem([this, callback] { callback(*this); }),
   label(text, Font::Style::wide),
   color(DEFAULT_TEXT_COLOR)
 {
@@ -51,7 +51,7 @@ void ConfigScene::TextItem::SetAlpha(sf::Uint8 alpha) {
   label.SetColor(color);
 }
 
-ConfigScene::LoginItem::LoginItem(const std::function<void()>& callback) : TextItem("Login", callback) {}
+ConfigScene::LoginItem::LoginItem(const std::function<void()>& callback) : TextItem("Login", [callback](auto&) { callback(); }) {}
 
 void ConfigScene::LoginItem::Update() {
   if (!WEBCLIENT.IsLoggedIn()) {
@@ -67,7 +67,7 @@ ConfigScene::BindingItem::BindingItem(
   std::optional<std::reference_wrapper<std::string>> valueName,
   const std::function<void(BindingItem&)>& callback
 ) :
-  TextItem(inputName, [this, callback] { callback(*this); }),
+  TextItem(inputName, [this, callback](auto&) { callback(*this); }),
   value(Font::Style::wide)
 {
   SetValue(valueName);
@@ -148,16 +148,36 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
 
   // ui sprite maps
   // ascii 58 - 96
-  primaryMenu.push_back(std::make_unique<VolumeItem>(sf::Color(255, 0, 255), configSettings.GetMusicLevel(), [this](int volumeLevel) { UpdateBgmVolume(volumeLevel); }));
-  primaryMenu.push_back(std::make_unique<VolumeItem>(sf::Color(10, 165, 255), configSettings.GetSFXLevel(), [this](int volumeLevel) { UpdateSfxVolume(volumeLevel); }));
-
-  auto shadersItem = std::make_unique<TextItem>("SHADERS: ON", [this] { ToggleShaders(); });
+  // BGM
+  primaryMenu.push_back(std::make_unique<VolumeItem>(
+    sf::Color(255, 0, 255),
+    configSettings.GetMusicLevel(),
+    [this](int volumeLevel) { UpdateBgmVolume(volumeLevel); })
+  );
+  // SFX
+  primaryMenu.push_back(std::make_unique<VolumeItem>(
+    sf::Color(10, 165, 255),
+    configSettings.GetSFXLevel(),
+    [this](int volumeLevel) { UpdateSfxVolume(volumeLevel); })
+  );
+  // Shaders
+  auto shadersItem = std::make_unique<TextItem>("SHADERS: ON", [this](auto&) { ToggleShaders(); });
   shadersItem->SetColor(DISABLED_TEXT_COLOR);
   primaryMenu.push_back(std::move(shadersItem));
-
-  primaryMenu.push_back(std::make_unique<TextItem>("MY KEYBOARD", [this] { ShowKeyboardMenu(); }));
-  primaryMenu.push_back(std::make_unique<TextItem>("MY GAMEPAD", [this] { ShowGamepadMenu(); }));
-  primaryMenu.push_back(std::make_unique<LoginItem>([this] { ToggleLogin(); }));
+  // Keyboard
+  primaryMenu.push_back(std::make_unique<TextItem>(
+    "MY KEYBOARD",
+    [this](auto&) { ShowKeyboardMenu(); })
+  );
+  // Gamepad
+  primaryMenu.push_back(std::make_unique<TextItem>(
+    "MY GAMEPAD",
+    [this](auto&) { ShowGamepadMenu(); })
+  );
+  // Login
+  primaryMenu.push_back(std::make_unique<LoginItem>(
+    [this] { ToggleLogin(); })
+  );
 
   configSettings = Input().GetConfigSettings();
 
@@ -272,11 +292,11 @@ void ConfigScene::ToggleLogin() {
 }
 
 void ConfigScene::AwaitKeyBinding(BindingItem& item) {
-  awaitingKey = true;
+  pendingKeyBinding = item;
 }
 
 void ConfigScene::AwaitGamepadBinding(BindingItem& item) {
-  awaitingKey = true;
+  pendingGamepadBinding = item;
 }
 
 bool ConfigScene::IsInSubmenu() {
@@ -401,18 +421,7 @@ void ConfigScene::onUpdate(double elapsed)
         }
       }
     }
-    else if (hasCanceled && !awaitingKey) {
-      if (!IsInSubmenu()) {
-        Audio().Play(AudioType::CHIP_DESC_CLOSE);
-      }
-      else {
-        inGamepadList = inKeyboardList = false;
-        submenuIndex = 0;
-
-        Audio().Play(AudioType::CHIP_DESC_CLOSE);
-      }
-    }
-    else if (awaitingKey) {
+    else if (pendingKeyBinding || pendingGamepadBinding) {
       if (inKeyboardList) {
         auto key = Input().GetAnyKey();
 
@@ -420,10 +429,13 @@ void ConfigScene::onUpdate(double elapsed)
           std::string boundKey = "";
 
           if (Input().ConvertKeyToString(key, boundKey)) {
+            auto& menuItem = pendingKeyBinding->get();
+            auto& eventName = menuItem.GetString();
+
             auto iter = keyHash.begin();
 
             while (iter != keyHash.end()) {
-              if (iter->second == InputEvents::KEYS[submenuIndex]) break;
+              if (iter->second == eventName) break;
               iter++;
             }
 
@@ -431,13 +443,15 @@ void ConfigScene::onUpdate(double elapsed)
               keyHash.erase(iter);
             }
 
-            keyHash.insert(std::make_pair(key, InputEvents::KEYS[submenuIndex]));
+            keyHash.insert(std::make_pair(key, eventName));
 
             std::transform(boundKey.begin(), boundKey.end(), boundKey.begin(), ::toupper);
-            keyboardMenu[submenuIndex]->SetValue(boundKey);
+
+            menuItem.SetValue(boundKey);
+
             Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
-            awaitingKey = false;
+            pendingKeyBinding = {};
           }
         }
       }
@@ -447,10 +461,13 @@ void ConfigScene::onUpdate(double elapsed)
         auto gamepad = Input().GetAnyGamepadButton();
 
         if (gamepad != (Gamepad)-1) {
+          auto& menuItem = pendingKeyBinding->get();
+          auto& eventName = menuItem.GetString();
+
           auto iter = gamepadHash.begin();
 
           while (iter != gamepadHash.end()) {
-            if (iter->second == InputEvents::KEYS[submenuIndex]) break;
+            if (iter->second == eventName) break;
             iter++;
           }
 
@@ -458,7 +475,7 @@ void ConfigScene::onUpdate(double elapsed)
             gamepadHash.erase(iter);
           }
 
-          gamepadHash.insert(std::make_pair(gamepad, InputEvents::KEYS[submenuIndex]));
+          gamepadHash.insert(std::make_pair(gamepad, eventName));
 
           std::string label = "BTN " + std::to_string((int)gamepad);
 
@@ -480,12 +497,23 @@ void ConfigScene::onUpdate(double elapsed)
             break;
           }
 
-          gamepadMenu[submenuIndex]->SetValue(label);
+          menuItem.SetValue(label);
 
           Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
-          awaitingKey = false;
+          pendingGamepadBinding = {};
         }
+      }
+    }
+    else if (hasCanceled) {
+      if (!IsInSubmenu()) {
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
+      }
+      else {
+        inGamepadList = inKeyboardList = false;
+        submenuIndex = 0;
+
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
       }
     }
     else if (hasUp && textbox.IsClosed()) {
@@ -596,16 +624,18 @@ void ConfigScene::UpdateMenuItem(MenuItem& menuItem, bool menuHasFocus, int inde
 
   menuItem.setPosition(COL_PADDING + 2.f * offsetX, 2.f * (MENU_START_Y + (index * LINE_SPAN)));
 
+  bool awaitingBinding = pendingKeyBinding || pendingGamepadBinding;
+
   if (menuHasFocus) {
     if (index == selectionIndex) {
       menuItem.SetAlpha(255);
     }
     else {
-      menuItem.SetAlpha(awaitingKey ? 50 : 150);
+      menuItem.SetAlpha(awaitingBinding ? 50 : 150);
     }
   }
   else {
-    menuItem.SetAlpha(awaitingKey ? 50 : 100);
+    menuItem.SetAlpha(awaitingBinding ? 50 : 100);
   }
 
   menuItem.Update();

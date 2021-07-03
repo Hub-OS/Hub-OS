@@ -38,7 +38,6 @@ private:
   sf::Sprite endBtn;
 
   bool leave{}; // ?
-  bool awaitingKey{};
   bool isSelectingTopMenu{};
   bool inGamepadList{};
   bool inKeyboardList{};
@@ -62,7 +61,7 @@ private:
     Text label;
     sf::Color color;
   public:
-    TextItem(const std::string& text, const std::function<void()>& callback);
+    TextItem(const std::string& text, const std::function<void(TextItem&)>& callback);
     const std::string& GetString();
     void SetString(const std::string& text);
     void SetColor(sf::Color);
@@ -118,6 +117,9 @@ private:
 
   std::vector<std::unique_ptr<MenuItem>> primaryMenu;
   std::vector<std::unique_ptr<BindingItem>> keyboardMenu, gamepadMenu;
+
+  std::optional<std::reference_wrapper<BindingItem>> pendingKeyBinding;
+  std::optional<std::reference_wrapper<BindingItem>> pendingGamepadBinding;
 
   Question* questionInterface{ nullptr };
   MessageInput* inputInterface{ nullptr };
