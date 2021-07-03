@@ -31,6 +31,7 @@ const bool ConfigSettings::TestKeyboard() const {
     InputEvents::pressed_ui_right,
     InputEvents::pressed_confirm,
     InputEvents::pressed_cancel,
+    InputEvents::pressed_pause,
   };
 
   std::vector<sf::Keyboard::Key> bindedKeys;
