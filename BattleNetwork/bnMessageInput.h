@@ -25,6 +25,7 @@ private:
   bool done{};
   bool enteredView{};
   bool capturingText{};
+  bool blockSubmission{};
   size_t characterLimit{};
   size_t prevCaretPosition{};
   std::string latestCapture;

@@ -33,6 +33,9 @@ void MessageInput::OnUpdate(double elapsed) {
   auto textbox = GetTextBox();
 
   if (!enteredView) {
+    // prevent submission if we've started updating holding enter
+    blockSubmission = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter);
+
     textbox->ReplaceText(latestCapture + ' ');
     textBuffer.BeginCapture();
     textBuffer.Reset();
@@ -90,7 +93,12 @@ void MessageInput::OnUpdate(double elapsed) {
       textBuffer.SetCaretPosition(end);
     }
 
-    if (!holdingShift && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter)) {
+
+    if (blockSubmission) {
+      // keep blocking submission until enter is released
+      blockSubmission = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter);
+    }
+    else if (!holdingShift && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter)) {
       // submit if shift is not held while pressing enter
       done = true;
     }
@@ -117,7 +125,6 @@ void MessageInput::OnUpdate(double elapsed) {
   if (textbox->IsPlaying()) {
     textbox->CompleteCurrentBlock();
   }
-
 
   time += elapsed;
 }
