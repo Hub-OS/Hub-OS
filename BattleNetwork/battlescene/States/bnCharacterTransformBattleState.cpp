@@ -80,10 +80,19 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       }
 
       // Activating the form will add NEW child nodes onto our character
-      for (auto child : playerPtr->GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
-        states->push_back(child->IsUsingParentShader());
-        originals->push_back(child);
-        child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
+      for (auto child : playerPtr->GetChildNodesWithTag({ Player::BASE_NODE_TAG, Player::FORM_NODE_TAG })) {
+        auto iter = std::find(originals->begin(), originals->end(), child);
+
+        if (iter == originals->end()) {
+          states->push_back(child->IsUsingParentShader());
+          originals->push_back(child);
+          child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
+        }
+        else {
+          ptrdiff_t idx = iter - originals->begin();
+          originals->erase(iter);
+          states->erase(states->begin() + idx);
+        }
       }
 
       playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
