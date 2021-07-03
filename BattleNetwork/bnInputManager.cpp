@@ -367,6 +367,8 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
       out = std::string("9"); return true;
     case sf::Keyboard::Key::Num0:
       out = std::string("0"); return true;
+    case sf::Keyboard::Key::Escape:
+      out = std::string("Escape"); return true;
     case sf::Keyboard::Key::Return:
       out = std::string("Enter"); return true;
     case sf::Keyboard::Key::BackSpace:

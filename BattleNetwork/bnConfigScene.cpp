@@ -413,17 +413,13 @@ void ConfigScene::onUpdate(double elapsed)
       }
     }
     else if (awaitingKey) {
-      if (hasCanceled) {
-        awaitingKey = false;
-      }
-      else if (inKeyboardList) {
+      if (inKeyboardList) {
         auto key = Input().GetAnyKey();
 
         if (key != sf::Keyboard::Unknown) {
           std::string boundKey = "";
 
           if (Input().ConvertKeyToString(key, boundKey)) {
-
             auto iter = keyHash.begin();
 
             while (iter != keyHash.end()) {
