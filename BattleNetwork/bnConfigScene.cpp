@@ -230,13 +230,14 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
 
   for (auto eventName : InputEvents::KEYS) {
     std::optional<std::reference_wrapper<std::string>> value;
+    std::string valueString;
 
     if (configSettings.IsOK()) {
       auto gamepadCode = configSettings.GetPairedGamepadButton(eventName);
       gamepadHash.insert(std::make_pair(gamepadCode, eventName));
 
       if (gamepadCode != Gamepad::BAD_CODE) {
-        std::string valueString = "BTN " + std::to_string((int)gamepadCode);
+        valueString = "BTN " + std::to_string((int)gamepadCode);
 
         switch (gamepadCode) {
         case Gamepad::DOWN:
