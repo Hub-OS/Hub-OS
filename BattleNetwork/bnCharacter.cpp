@@ -543,7 +543,7 @@ void Character::ResolveFrameBattleDamage()
         if (GetHealth() == 0) {
           postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up
         }
-        this->OnUpdate(0);
+        // this->OnUpdate(0);
         HitPublisher::Broadcast(*this, props.filtered);
       }
     }

@@ -50,6 +50,11 @@ void LongSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
     BasicSword* b = new BasicSword(owner->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
     props.element = GetElement();
+
+    if (props.element == Element::elec) {
+      props.flags |= Hit::stun;
+    }
+
     props.aggressor = userId;
     b->SetHitboxProperties(props);
     field->AddEntity(*b, *tiles[0]);
@@ -59,8 +64,14 @@ void LongSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
     // resuse props with new hitbox
     BasicSword* b = new BasicSword(owner->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
-    b->SetHitboxProperties(props);
+    props.element = GetElement();
 
+    if (props.element == Element::elec) {
+      props.flags |= Hit::stun;
+    }
+
+    props.aggressor = userId;
+    b->SetHitboxProperties(props);
     field->AddEntity(*b, *tiles[1]);
   }
 }
