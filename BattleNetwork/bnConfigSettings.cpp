@@ -16,21 +16,21 @@ const bool ConfigSettings::IsAudioEnabled() const { return (musicLevel || sfxLev
 
 const bool ConfigSettings::IsFullscreen() const
 {
-    return fullscreen;
+  return fullscreen;
 }
 
 const int ConfigSettings::GetMusicLevel() const { return musicLevel; }
 
 const int ConfigSettings::GetSFXLevel() const { return sfxLevel; }
 
-const bool ConfigSettings::IsKeyboardOK() const { 
-    bool hasUp      = GetPairedInput(InputEvents::pressed_ui_up.name) != sf::Keyboard::Unknown;
-    bool hasDown    = GetPairedInput(InputEvents::pressed_ui_down.name) != sf::Keyboard::Unknown;
-    bool hasLeft    = GetPairedInput(InputEvents::pressed_ui_left.name) != sf::Keyboard::Unknown;
-    bool hasRight   = GetPairedInput(InputEvents::pressed_ui_right.name) != sf::Keyboard::Unknown;
-    bool hasConfirm = GetPairedInput(InputEvents::pressed_confirm.name) != sf::Keyboard::Unknown;
+const bool ConfigSettings::IsKeyboardOK() const {
+  bool hasUp = GetPairedInput(InputEvents::pressed_ui_up.name) != sf::Keyboard::Unknown;
+  bool hasDown = GetPairedInput(InputEvents::pressed_ui_down.name) != sf::Keyboard::Unknown;
+  bool hasLeft = GetPairedInput(InputEvents::pressed_ui_left.name) != sf::Keyboard::Unknown;
+  bool hasRight = GetPairedInput(InputEvents::pressed_ui_right.name) != sf::Keyboard::Unknown;
+  bool hasConfirm = GetPairedInput(InputEvents::pressed_confirm.name) != sf::Keyboard::Unknown;
 
-    return hasUp && hasDown && hasLeft && hasRight && hasConfirm;
+  return hasUp && hasDown && hasLeft && hasRight && hasConfirm;
 }
 
 void ConfigSettings::SetMusicLevel(int level) { musicLevel = level; }
@@ -91,7 +91,7 @@ const std::list<std::string> ConfigSettings::GetPairedActions(const Gamepad& eve
   return list;
 }
 
-ConfigSettings & ConfigSettings::operator=(const ConfigSettings& rhs)
+ConfigSettings& ConfigSettings::operator=(const ConfigSettings& rhs)
 {
   discord = rhs.discord;
   webServer = rhs.webServer;
@@ -134,7 +134,7 @@ void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
   ConfigSettings::gamepad = gamepad;
 }
 
-ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
+ConfigSettings::ConfigSettings(const ConfigSettings& rhs)
 {
   this->operator=(rhs);
 }
