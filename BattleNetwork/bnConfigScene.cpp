@@ -224,6 +224,16 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
     }
   }
 
+  // Adjusting gamepad index (abusing BindingItem for alignment)
+  gamepadIndex = configSettings.GetGamepadIndex();
+  auto gamepadIndexString = std::to_string(gamepadIndex);
+  gamepadMenu.push_back(std::make_unique<BindingItem>(
+    "Gamepad Index",
+    gamepadIndexString,
+    [this](BindingItem& item) { IncrementGamepadIndex(item); },
+    [this](BindingItem& item) { DecrementGamepadIndex(item); }
+  ));
+
   // For gamepad keys
   auto gamepadCallback = [this](BindingItem& item) { AwaitGamepadBinding(item); };
   auto gamepadSecondaryCallback = [this](BindingItem& item) { UnsetGamepadBinding(item); };
@@ -366,6 +376,24 @@ void ConfigScene::UnsetGamepadBinding(BindingItem& item) {
   }
 }
 
+void ConfigScene::IncrementGamepadIndex(BindingItem& item) {
+  if (++gamepadIndex >= Input().GetGamepadCount()) {
+    gamepadIndex = 0;
+  }
+
+  auto indexString = std::to_string(gamepadIndex);
+  item.SetValue(indexString);
+}
+
+void ConfigScene::DecrementGamepadIndex(BindingItem& item) {
+  if (--gamepadIndex < 0) {
+    gamepadIndex = Input().GetGamepadCount() > 0 ? int(Input().GetGamepadCount()) - 1 : 0;
+  }
+
+  auto indexString = std::to_string(gamepadIndex);
+  item.SetValue(indexString);
+}
+
 bool ConfigScene::IsInSubmenu() {
   return activeSubmenu.has_value();
 }
@@ -406,6 +434,7 @@ void ConfigScene::onUpdate(double elapsed)
   if (hasConfirmed && isSelectingTopMenu && !leave) {
     if (textbox.IsClosed()) {
       auto onYes = [this]() {
+        // backup keyboard hash in case the current hash is invalid
         auto oldKeyboardHash = configSettings.GetKeyboardHash();
 
         // Save before leaving
@@ -422,6 +451,7 @@ void ConfigScene::onUpdate(double elapsed)
           return;
         }
 
+        configSettings.SetGamepadIndex(gamepadIndex);
         configSettings.SetGamepadHash(gamepadHash);
 
         ConfigWriter writer(configSettings);
@@ -462,7 +492,7 @@ void ConfigScene::onUpdate(double elapsed)
 
     if (textbox.IsOpen()) {
       if (messageInterface) {
-        if(hasConfirmed) {
+        if (hasConfirmed) {
           // continue the conversation if the text is complete
           if (textbox.IsEndOfMessage()) {
             textbox.DequeMessage();
@@ -476,7 +506,8 @@ void ConfigScene::onUpdate(double elapsed)
             textbox.CompleteCurrentBlock();
           }
         }
-      } else if (questionInterface) {
+      }
+      else if (questionInterface) {
         if (textbox.IsEndOfMessage()) {
           if (hasLeft) {
             questionInterface->SelectYes();
@@ -522,7 +553,7 @@ void ConfigScene::onUpdate(double elapsed)
         }
       }
 
-      if(textbox.IsEndOfMessage() && !textbox.HasMessage()) {
+      if (textbox.IsEndOfMessage() && !textbox.HasMessage()) {
         textbox.Close();
       }
     }

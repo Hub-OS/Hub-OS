@@ -196,6 +196,11 @@ const bool ConfigReader::ParseGamepad(std::string buffer) {
 
     Trim(line);
 
+    if (line.find("Gamepad Index") != std::string::npos) {
+      std::string value = ValueOf("Gamepad Index", line);
+      settings.gamepadIndex = std::atoi(value.c_str());
+    }
+
     for (auto key : InputEvents::KEYS) {
       if (line.find(key) != std::string::npos) {
         std::string value = ValueOf(key, line);

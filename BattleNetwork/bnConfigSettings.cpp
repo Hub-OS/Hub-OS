@@ -55,6 +55,10 @@ void ConfigSettings::SetMusicLevel(int level) { musicLevel = level; }
 
 void ConfigSettings::SetSFXLevel(int level) { sfxLevel = level; }
 
+int ConfigSettings::GetGamepadIndex() const { return gamepadIndex; }
+
+void ConfigSettings::SetGamepadIndex(int index) { gamepadIndex = index; }
+
 const std::list<std::string> ConfigSettings::GetPairedActions(const sf::Keyboard::Key& event) const {
   std::list<std::string> list;
 

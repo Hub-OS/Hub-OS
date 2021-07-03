@@ -57,6 +57,16 @@ public:
   void SetSFXLevel(int level);
 
   /**
+   * @brief Get the active gamepad index
+   */
+  int GetGamepadIndex() const;
+
+  /**
+   * @brief Set the active gamepad index
+   */
+  void SetGamepadIndex(int index);
+
+  /**
    * @brief For a keyboard event, return the action string
    * @param event sfml keyboard key
    * @return the mapped input event

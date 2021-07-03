@@ -64,6 +64,8 @@ void InputManager::SupportConfigSettings(ConfigReader& reader) {
   for (auto& [name, actionBindings] : intermediateBindings) {
     bindings.push_back({ name, actionBindings });
   }
+Logger::Logf("currGamepad %d", currGamepad);
+  currGamepad = settings.GetGamepadIndex();
 }
 
 void InputManager::Update() {

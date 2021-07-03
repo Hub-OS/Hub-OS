@@ -25,6 +25,7 @@ private:
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
   ConfigSettings::GamepadHash gamepadHash;
+  int gamepadIndex;
 
   AnimatedTextBox textbox;
 
@@ -32,7 +33,6 @@ private:
   Animation endBtnAnimator;
   int primaryIndex{}; /*!< Current selection */
   int submenuIndex{};
-  int lastMenuSelectionIndex;
   float scrollOffset;
 
   sf::Sprite endBtn;
@@ -126,8 +126,6 @@ private:
     } currState{ states::complete };
   } user;
 
-  int menuDivideIndex;
-
   using Menu = std::vector<std::unique_ptr<MenuItem>>;
 
   Menu primaryMenu, keyboardMenu, gamepadMenu;
@@ -155,6 +153,8 @@ private:
   void UnsetKeyBinding(BindingItem&);
   void AwaitGamepadBinding(BindingItem&);
   void UnsetGamepadBinding(BindingItem&);
+  void IncrementGamepadIndex(BindingItem&);
+  void DecrementGamepadIndex(BindingItem&);
 
   bool IsInSubmenu();
   Menu& GetActiveMenu();
