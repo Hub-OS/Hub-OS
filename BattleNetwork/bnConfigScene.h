@@ -39,8 +39,6 @@ private:
 
   bool leave{}; // ?
   bool isSelectingTopMenu{};
-  bool inGamepadList{};
-  bool inKeyboardList{};
   bool inLoginMenu{};
   bool gamepadWasActive{};
 

@@ -152,7 +152,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   Scene(controller)
 {
   textbox.SetTextSpeed(2.0);
-  isSelectingTopMenu = inGamepadList = inKeyboardList = false;
+  isSelectingTopMenu = false;
 
   // Draws the scrolling background
   bg = new RobotBackground();
@@ -301,13 +301,11 @@ void ConfigScene::ToggleShaders() {
 }
 
 void ConfigScene::ShowKeyboardMenu() {
-  inKeyboardList = true;
   activeSubmenu = keyboardMenu;
   Audio().Play(AudioType::CHIP_SELECT);
 }
 
 void ConfigScene::ShowGamepadMenu() {
-  inGamepadList = true;
   activeSubmenu = gamepadMenu;
   Audio().Play(AudioType::CHIP_SELECT);
 }
@@ -567,7 +565,7 @@ void ConfigScene::onUpdate(double elapsed)
       }
     }
     else if (pendingKeyBinding || pendingGamepadBinding) {
-      if (inKeyboardList) {
+      if (pendingKeyBinding) {
         auto key = Input().GetAnyKey();
 
         if (key != sf::Keyboard::Unknown) {
@@ -597,12 +595,12 @@ void ConfigScene::onUpdate(double elapsed)
 
         // re-enable gamepad if it was on
         Input().UseGamepadControls(gamepadWasActive);
-      } if (inGamepadList) {
+      } if (pendingGamepadBinding) {
         // GAMEPAD
         auto gamepad = Input().GetAnyGamepadButton();
 
         if (gamepad != (Gamepad)-1) {
-          auto& menuItem = pendingKeyBinding->get();
+          auto& menuItem = pendingGamepadBinding->get();
           auto& eventName = menuItem.GetString();
 
           UnsetGamepadBinding(menuItem);
@@ -642,7 +640,6 @@ void ConfigScene::onUpdate(double elapsed)
         Audio().Play(AudioType::CHIP_DESC_CLOSE);
       }
       else {
-        inGamepadList = inKeyboardList = false;
         activeSubmenu = {};
         submenuIndex = 0;
 
