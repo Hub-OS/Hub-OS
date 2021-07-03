@@ -1,7 +1,7 @@
 #include "bnConfigWriter.h"
 #include "bnFileUtil.h"
 #include "bnInputManager.h"
-ConfigWriter::ConfigWriter(ConfigSettings & settings) : settings(settings)
+ConfigWriter::ConfigWriter(ConfigSettings& settings) : settings(settings)
 {
 }
 
@@ -39,9 +39,9 @@ void ConfigWriter::Write(std::string path)
   }
 }
 
-const std::string ConfigWriter::quote(const std::string & str)
+const std::string ConfigWriter::quote(const std::string& str)
 {
-    return std::string() + "\"" + str + "\"";
+  return std::string() + "\"" + str + "\"";
 }
 
 int ConfigWriter::GetAsciiFromGamepad(Gamepad code)

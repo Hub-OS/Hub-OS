@@ -66,7 +66,7 @@ private:
   std::string ValueOf(std::string _key, std::string _line);
 
   /**
-   * @brief Deprecated. 
+   * @brief Deprecated.
    * @param key
    * @return Gamepad button
    */
@@ -79,7 +79,7 @@ private:
   sf::Keyboard::Key GetKeyCodeFromAscii(int ascii);
 
   // Parsing
-  
+
   /**
    * @brief Parse entire file contents
    * @param buffer file contents
@@ -91,16 +91,16 @@ private:
    * @brief File begins with [Discord] and settings
    * @param buffer file contents
    * @return true if rest of contents are good, false if malformed
-   * 
+   *
    * Expects [Audio()] to be next
    */
   const bool ParseDiscord(std::string buffer);
 
   /**
-   * @brief Parse [Audio()] 
+   * @brief Parse [Audio()]
    * @param buffer file contents
    * @return true if file is good, false if malformed
-   * 
+   *
    * expects [Net] to be next
    */
   const bool ParseAudio(std::string buffer);
@@ -109,7 +109,7 @@ private:
    * @brief Parse [Net] and settings
    * @param buffer file contents
    * @return true if file is good, false if malformed
-   * 
+   *
    * Expects [Video] to be next
    */
   const bool ParseNet(std::string buffer);
@@ -118,7 +118,7 @@ private:
    * @brief Parses [Video] and settings
    * @param buffer file contents
    * @return true if good, false if malformed
-   * 
+   *
    * expects [Keyboard] to be next
    */
   const bool ParseVideo(std::string buffer);
@@ -127,7 +127,7 @@ private:
    * @brief Parse [Keyboard] and settings
    * @param buffer file contents
    * @return true if the file is ok, false otherwise
-   * 
+   *
    * expects [Gamepad] next
    */
   const bool ParseKeyboard(std::string buffer);

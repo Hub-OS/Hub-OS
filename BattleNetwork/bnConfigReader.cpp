@@ -26,11 +26,11 @@ sf::Keyboard::Key ConfigReader::GetKeyCodeFromAscii(int ascii) {
 // Parsing
 
 const bool ConfigReader::Parse(std::string buffer) {
-    // WARNING: this parser is janky. It expects every category to be in order otherwise it fails
-    // This is because it was written earlier to read tokens in a single pass
-    // This should be re-written to seek categories and _then_ parse
-    // This way every ParseX() step won't need to fail if the next category is not in order
-    return ParseDiscord(buffer);
+  // WARNING: this parser is janky. It expects every category to be in order otherwise it fails
+  // This is because it was written earlier to read tokens in a single pass
+  // This should be re-written to seek categories and _then_ parse
+  // This way every ParseX() step won't need to fail if the next category is not in order
+  return ParseDiscord(buffer);
 }
 
 const bool ConfigReader::ParseDiscord(std::string buffer) {
@@ -44,7 +44,7 @@ const bool ConfigReader::ParseDiscord(std::string buffer) {
 
 
     if (line.find("[Audio]") != std::string::npos) {
-        return ParseAudio(buffer);
+      return ParseAudio(buffer);
     }
 
     if (line.find("User") != std::string::npos) {
@@ -102,27 +102,27 @@ const bool ConfigReader::ParseNet(std::string buffer) {
     Trim(line);
 
     if (line.find("[Video]") != std::string::npos) {
-        return ParseVideo(buffer);
+      return ParseVideo(buffer);
     }
     else if (line.find("WebServer") != std::string::npos) {
-        std::string value = ValueOf("WebServer", line);
-        settings.webServer.URL = value;
+      std::string value = ValueOf("WebServer", line);
+      settings.webServer.URL = value;
     }
     else if (line.find("Version") != std::string::npos) {
-        std::string value = ValueOf("Version", line);
-        settings.webServer.version = value;
+      std::string value = ValueOf("Version", line);
+      settings.webServer.version = value;
     }
     else if (line.find("Port") != std::string::npos) {
-        std::string value = ValueOf("Port", line);
-        settings.webServer.port = std::atoi(value.c_str());
+      std::string value = ValueOf("Port", line);
+      settings.webServer.port = std::atoi(value.c_str());
     }
     else if (line.find("Username") != std::string::npos) {
-        std::string value = ValueOf("Username", line);
-        settings.webServer.user = value;
+      std::string value = ValueOf("Username", line);
+      settings.webServer.user = value;
     }
     else if (line.find("Password") != std::string::npos) {
-        std::string value = ValueOf("Password", line);
-        settings.webServer.password = value;
+      std::string value = ValueOf("Password", line);
+      settings.webServer.password = value;
     }
 
     // Read next line...
@@ -146,8 +146,8 @@ const bool ConfigReader::ParseVideo(std::string buffer) {
     }
 
     if (line.find("Fullscreen") != std::string::npos) {
-        std::string value = ValueOf("Fullscreen", line);
-        settings.fullscreen = value=="1"? true : false;
+      std::string value = ValueOf("Fullscreen", line);
+      settings.fullscreen = value == "1" ? true : false;
     }
 
     // Read next line...

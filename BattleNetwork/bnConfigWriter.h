@@ -62,7 +62,7 @@ private:
    * @param Gamepad event code
    * @return int ascii
    */
-   int GetAsciiFromGamepad(Gamepad code);
+  int GetAsciiFromGamepad(Gamepad code);
   /**
    * @brief Transform SFML events to ascii
    * @param sf::Keyboard::Key
