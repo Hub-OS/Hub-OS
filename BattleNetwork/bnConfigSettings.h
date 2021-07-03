@@ -105,8 +105,8 @@ private:
   DiscordInfo discord; /*!< account info to allow alerts on discord channel */
   WebServerInfo webServer; /*!< account info that hosts cards and folders */
 
-  int musicLevel{};
-  int sfxLevel{};
+  int musicLevel{3};
+  int sfxLevel{3};
 
   bool fullscreen{};
 
