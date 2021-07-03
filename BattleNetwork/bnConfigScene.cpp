@@ -466,7 +466,7 @@ void ConfigScene::onUpdate(double elapsed)
           configSettings.SetKeyboardHash(oldKeyboardHash);
 
           // block exit with warning
-          messageInterface = new Message("Keyboard has overlapping or unset bindings.");
+          messageInterface = new Message("Keyboard has overlapping or unset UI bindings.");
           textbox.EnqueMessage(sf::Sprite(), "", messageInterface);
           Audio().Play(AudioType::CHIP_ERROR, AudioPriority::high);
           return;
