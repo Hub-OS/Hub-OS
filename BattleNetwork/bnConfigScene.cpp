@@ -372,6 +372,8 @@ void ConfigScene::UnsetGamepadBinding(BindingItem& item) {
   if (iter != gamepadHash.end()) {
     gamepadHash.erase(iter);
   }
+
+  item.SetValue({});
 }
 
 void ConfigScene::IncrementGamepadIndex(BindingItem& item) {
