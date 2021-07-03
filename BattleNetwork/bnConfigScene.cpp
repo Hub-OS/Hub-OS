@@ -401,7 +401,7 @@ void ConfigScene::onUpdate(double elapsed)
     return;
   }
 
-  bool hasConfirmed = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_confirm) : false) || Input().GetAnyKey() == sf::Keyboard::Enter;
+  bool hasConfirmed = Input().Has(InputEvents::pressed_confirm);
   bool hasSecondary = Input().Has(InputEvents::pressed_option);
 
   if (hasConfirmed && isSelectingTopMenu && !leave) {
@@ -443,14 +443,12 @@ void ConfigScene::onUpdate(double elapsed)
   }
 
   if (!leave) {
-    bool hasConfirmed = Input().GetAnyKey() == sf::Keyboard::Return;
+    bool hasCanceled = Input().Has(InputEvents::pressed_cancel);
 
-    bool hasCanceled = (Input().GetAnyKey() == sf::Keyboard::BackSpace || Input().GetAnyKey() == sf::Keyboard::Escape);
-
-    bool hasUp = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_ui_up) : false) || Input().GetAnyKey() == sf::Keyboard::Up;
-    bool hasDown = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_ui_down) : false) || Input().GetAnyKey() == sf::Keyboard::Down;
-    bool hasLeft = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_ui_left) : false) || Input().GetAnyKey() == sf::Keyboard::Left;
-    bool hasRight = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_ui_right) : false) || Input().GetAnyKey() == sf::Keyboard::Right;
+    bool hasUp = Input().Has(InputEvents::pressed_ui_up);
+    bool hasDown = Input().Has(InputEvents::pressed_ui_down);
+    bool hasLeft = Input().Has(InputEvents::pressed_ui_left);
+    bool hasRight = Input().Has(InputEvents::pressed_ui_right);
 
     if (textbox.IsOpen()) {
       if (questionInterface) {
