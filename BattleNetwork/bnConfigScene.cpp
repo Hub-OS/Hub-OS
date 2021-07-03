@@ -347,6 +347,10 @@ void ConfigScene::UnsetKeyBinding(BindingItem& item) {
 
 void ConfigScene::AwaitGamepadBinding(BindingItem& item) {
   pendingGamepadBinding = item;
+
+  // disable gamepad so we can escape binding in case the gamepad is not working or not plugged in
+  gamepadWasActive = Input().IsUsingGamepadControls();
+  Input().UseGamepadControls(false);
 }
 
 void ConfigScene::UnsetGamepadBinding(BindingItem& item) {
@@ -520,7 +524,12 @@ void ConfigScene::onUpdate(double elapsed)
         }
       }
 
-      if (inGamepadList) {
+      if (hasCanceled) {
+        pendingGamepadBinding = {};
+
+        // re-enable gamepad if it was on
+        Input().UseGamepadControls(gamepadWasActive);
+      } if (inGamepadList) {
         // GAMEPAD
         auto gamepad = Input().GetAnyGamepadButton();
 
@@ -698,7 +707,7 @@ void ConfigScene::onDraw(sf::RenderTexture& surface)
     surface.draw(*menuItem, states);
   }
 
-  if(activeSubmenu) {
+  if (activeSubmenu) {
     auto& submenu = activeSubmenu->get();
     for (auto& menuItem : submenu) {
       surface.draw(*menuItem, states);

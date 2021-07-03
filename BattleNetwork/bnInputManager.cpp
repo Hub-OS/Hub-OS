@@ -563,14 +563,14 @@ bool InputManager::IsConfigFileValid() const
   return settings.IsOK();
 }
 
-void InputManager::UseKeyboardControls()
+void InputManager::UseKeyboardControls(bool enable)
 {
-  useKeyboardControls = true;
+  useKeyboardControls = enable;
 }
 
-void InputManager::UseGamepadControls()
+void InputManager::UseGamepadControls(bool enable)
 {
-  useGamepadControls = true;
+  useGamepadControls = enable;
 }
 
 void InputManager::UseGamepad(size_t index)

@@ -90,14 +90,14 @@ public:
   bool IsConfigFileValid() const;
 
   /**
-   * @brief Tells input manager to prioritize keyboard bindings
+   * @brief Tells input manager to enable keyboard bindings
    */
-  void UseKeyboardControls();
+  void UseKeyboardControls(bool enable = true);
 
   /**
-  * @brief Tells input manager to prioritize gamepad bindings
+  * @brief Tells input manager to enable gamepad bindings
   */
-  void UseGamepadControls();
+  void UseGamepadControls(bool enable = true);
 
   /**
   * @brief Tells input manager to use the gamepad at `index` in the list of gamepads
