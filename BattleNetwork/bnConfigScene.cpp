@@ -163,6 +163,8 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   textbox(sf::Vector2f(4, 250)),
   Scene(controller)
 {
+  configSettings = Input().GetConfigSettings();
+  gamepadWasActive = Input().IsUsingGamepadControls();
   textbox.SetTextSpeed(2.0);
   isSelectingTopMenu = false;
 
@@ -185,17 +187,19 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   // ui sprite maps
   // ascii 58 - 96
   // BGM
+  musicLevel = configSettings.GetMusicLevel();
   primaryMenu.push_back(std::make_unique<VolumeItem>(
     "BGM",
     sf::Color(255, 0, 255),
-    configSettings.GetMusicLevel(),
+    musicLevel,
     [this](int volumeLevel) { UpdateBgmVolume(volumeLevel); })
   );
   // SFX
+  sfxLevel = configSettings.GetSFXLevel();
   primaryMenu.push_back(std::make_unique<VolumeItem>(
     "SFX",
     sf::Color(10, 165, 255),
-    configSettings.GetSFXLevel(),
+    sfxLevel,
     [this](int volumeLevel) { UpdateSfxVolume(volumeLevel); })
   );
   // Shaders
@@ -216,8 +220,6 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   primaryMenu.push_back(std::make_unique<LoginItem>(
     [this] { ToggleLogin(); })
   );
-
-  configSettings = Input().GetConfigSettings();
 
   // For keyboard keys 
   auto keyCallback = [this](BindingItem& item) { AwaitKeyBinding(item); };
@@ -300,14 +302,14 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
 ConfigScene::~ConfigScene() { }
 
 void ConfigScene::UpdateBgmVolume(int volumeLevel) {
+  musicLevel = volumeLevel;
   Audio().SetStreamVolume((volumeLevel / 3.0f) * 100.0f);
-  configSettings.SetMusicLevel(volumeLevel);
 }
 
 void ConfigScene::UpdateSfxVolume(int volumeLevel) {
+  sfxLevel = volumeLevel;
   Audio().SetChannelVolume((volumeLevel / 3.0f) * 100.0f);
   Audio().Play(AudioType::BUSTER_PEA);
-  configSettings.SetSFXLevel(volumeLevel);
 }
 
 void ConfigScene::ToggleShaders() {
@@ -371,7 +373,6 @@ void ConfigScene::AwaitGamepadBinding(BindingItem& item) {
   pendingGamepadBinding = item;
 
   // disable gamepad so we can escape binding in case the gamepad is not working or not plugged in
-  gamepadWasActive = Input().IsUsingGamepadControls();
   Input().UseGamepadControls(false);
 }
 
@@ -474,6 +475,8 @@ void ConfigScene::onUpdate(double elapsed)
 
         configSettings.SetGamepadIndex(gamepadIndex);
         configSettings.SetGamepadHash(gamepadHash);
+        configSettings.SetMusicLevel(musicLevel);
+        configSettings.SetSFXLevel(sfxLevel);
 
         ConfigWriter writer(configSettings);
         writer.Write("config.ini");
@@ -520,6 +523,12 @@ void ConfigScene::onUpdate(double elapsed)
     if (!hasUp && !hasDown) {
       nextScrollCooldown = INITIAL_SCROLL_COOLDOWN;
       scrollCooldown = 0.0f;
+    }
+
+    if (!pendingGamepadBinding && !gamepadButtonHeld) {
+      // re-enable gamepad if it was on, and only if the gamepad does not have a button held down
+      // this is to prevent effecting the ui the frame after binding a previous ui binding
+      Input().UseGamepadControls(gamepadWasActive);
     }
 
     if (textbox.IsOpen()) {
@@ -616,15 +625,14 @@ void ConfigScene::onUpdate(double elapsed)
       }
 
       if (hasCanceled) {
+        // gamepad input is off, this runs if you hit the keyboard binded cancel button
         pendingGamepadBinding = {};
-
-        // re-enable gamepad if it was on
-        Input().UseGamepadControls(gamepadWasActive);
-      } if (pendingGamepadBinding) {
+      }
+      else if (pendingGamepadBinding) {
         // GAMEPAD
         auto gamepad = Input().GetAnyGamepadButton();
 
-        if (gamepad != (Gamepad)-1) {
+        if (gamepad != (Gamepad)-1 && !gamepadButtonHeld) {
           auto& menuItem = pendingGamepadBinding->get();
           auto& eventName = menuItem.GetString();
 
@@ -735,6 +743,8 @@ void ConfigScene::onUpdate(double elapsed)
   auto scrollIncrement = scrollEnd / float(menuSize);
   auto newScrollOffset = -float(selectionIndex) * scrollIncrement;
   scrollOffset = swoosh::ease::interpolate(float(elapsed) * SCROLL_INTERPOLATION_MULTIPLIER, scrollOffset, newScrollOffset);
+
+  gamepadButtonHeld = Input().GetAnyGamepadButton() != (Gamepad)-1;
 }
 
 void ConfigScene::UpdateMenu(Menu& menu, bool menuHasFocus, int selectionIndex, float offsetX, float elapsed) {

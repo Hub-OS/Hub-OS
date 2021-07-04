@@ -25,7 +25,7 @@ private:
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
   ConfigSettings::GamepadHash gamepadHash;
-  int gamepadIndex;
+  int gamepadIndex, musicLevel, sfxLevel;
 
   AnimatedTextBox textbox;
 
@@ -43,6 +43,7 @@ private:
   bool isSelectingTopMenu{};
   bool inLoginMenu{};
   bool gamepadWasActive{};
+  bool gamepadButtonHeld{};
 
   Background* bg{ nullptr };
 
