@@ -129,7 +129,7 @@ void TitleScene::onUpdate(double elapsed)
       }
     }
 
-    if (Input().GetAnyKey() == sf::Keyboard::Enter && !pressedStart) {
+    if (Input().Has(InputEvents::pressed_pause) && !pressedStart) {
       pressedStart = true;
 
       // We want the next screen to be the main menu screen

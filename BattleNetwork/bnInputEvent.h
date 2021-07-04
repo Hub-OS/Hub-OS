@@ -100,9 +100,13 @@ namespace InputEvents {
   static const InputEvent held_advance_frame  = { "Advance Frame", InputState::held };
   static const InputEvent held_resume_frames  = { "Resume Frames", InputState::held };
 
-  static const std::string KEYS[] = { "Move Up",  "Move Down",     "Move Left", "Move Right", "Shoot",
-                                      "Use Card", "Special",       "Cust Menu", "Pause",      "UI Up", 
-                                      "UI Left",  "UI Right",      "UI Down",   "Confirm",    "Cancel",    
-                                      "Option",   "Run",           "Interact",  "Shoulder L", "Shoulder R", 
-                                      "Minimap",  "Advance Frame", "Resume Frames" };
+  static const std::string KEYS[] = {
+    "Move Up", "Move Down", "Move Left", "Move Right",
+    "Shoot", "Use Card", "Special", "Cust Menu", "Pause",
+    "UI Up", "UI Down", "UI Left", "UI Right",
+    "Confirm", "Cancel", "Option",
+    "Run", "Interact", "Shoulder L", "Shoulder R",
+    "Minimap",
+    "Advance Frame", "Resume Frames"
+  };
 };

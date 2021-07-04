@@ -90,14 +90,14 @@ public:
   bool IsConfigFileValid() const;
 
   /**
-   * @brief Tells input manager to prioritize keyboard bindings
+   * @brief Tells input manager to enable keyboard bindings
    */
-  void UseKeyboardControls();
+  void UseKeyboardControls(bool enable = true);
 
   /**
-  * @brief Tells input manager to prioritize gamepad bindings
+  * @brief Tells input manager to enable gamepad bindings
   */
-  void UseGamepadControls();
+  void UseGamepadControls(bool enable = true);
 
   /**
   * @brief Tells input manager to use the gamepad at `index` in the list of gamepads
@@ -105,6 +105,11 @@ public:
   * index must be >= 0 and < numOfGamepads
   */
   void UseGamepad(size_t index);
+
+  /**
+  * @brief Tells input manager to invert the y axis when reading from a gamepad
+  */
+  void SetInvertThumbstick(bool invert);
 
   /**
    * @brief Returns number of available gamepads
@@ -150,7 +155,7 @@ public:
   const bool IsUsingGamepadControls() const;
   const bool IsUsingKeyboardControls() const;
 
-  ConfigSettings GetConfigSettings();
+  ConfigSettings& GetConfigSettings();
 
   /**
   * @brief if any buttons are held ore pressed, fire release events for all
@@ -173,6 +178,7 @@ private:
 
   std::vector<sf::Joystick::Identification> gamepads;
   unsigned int currGamepad{};
+  bool invertThumbstick{};
 
   std::array<bool, sf::Keyboard::KeyCount> keyboardState;
   std::unordered_map<unsigned int, bool> gamepadState;

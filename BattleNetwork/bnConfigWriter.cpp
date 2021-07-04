@@ -1,7 +1,7 @@
 #include "bnConfigWriter.h"
 #include "bnFileUtil.h"
 #include "bnInputManager.h"
-ConfigWriter::ConfigWriter(ConfigSettings & settings) : settings(settings)
+ConfigWriter::ConfigWriter(ConfigSettings& settings) : settings(settings)
 {
 }
 
@@ -26,6 +26,8 @@ void ConfigWriter::Write(std::string path)
   w << "Password=" << quote(settings.GetWebServerInfo().password) << w.endl();
   w << "[Video]" << w.endl();
   w << "Fullscreen=" << quote("0") << w.endl();
+  w << "[General]" << w.endl();
+  w << "Invert Minimap=" << quote(std::to_string(settings.GetInvertMinimap())) << w.endl();
   w << "[Keyboard]" << w.endl();
 
   for (auto&& a : InputEvents::KEYS) {
@@ -33,15 +35,17 @@ void ConfigWriter::Write(std::string path)
   }
 
   w << "[Gamepad]" << w.endl();
+  w << "Gamepad Index=" << quote(std::to_string(settings.GetGamepadIndex())) << w.endl();
+  w << "Invert Thumbstick=" << quote(std::to_string(settings.GetInvertThumbstick())) << w.endl();
 
   for (auto&& a : InputEvents::KEYS) {
     w << a << "=" << quote(std::to_string(GetAsciiFromGamepad(settings.GetPairedGamepadButton(a)))) << w.endl();
   }
 }
 
-const std::string ConfigWriter::quote(const std::string & str)
+const std::string ConfigWriter::quote(const std::string& str)
 {
-    return std::string() + "\"" + str + "\"";
+  return std::string() + "\"" + str + "\"";
 }
 
 int ConfigWriter::GetAsciiFromGamepad(Gamepad code)

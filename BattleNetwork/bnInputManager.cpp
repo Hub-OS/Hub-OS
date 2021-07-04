@@ -64,6 +64,9 @@ void InputManager::SupportConfigSettings(ConfigReader& reader) {
   for (auto& [name, actionBindings] : intermediateBindings) {
     bindings.push_back({ name, actionBindings });
   }
+
+  currGamepad = settings.GetGamepadIndex();
+  invertThumbstick = settings.GetInvertThumbstick();
 }
 
 void InputManager::Update() {
@@ -202,17 +205,17 @@ void InputManager::Update() {
     }
 
     if (axisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
-      gamepadState[(unsigned int)Gamepad::UP] = true;
-      lastButton = Gamepad::UP;
+      lastButton = invertThumbstick ? Gamepad::UP : Gamepad::DOWN;
+      gamepadState[(unsigned int)lastButton] = true;
     }
     else if (axisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-      gamepadState[(unsigned int)Gamepad::DOWN] = true;
-      lastButton = Gamepad::DOWN;
+      lastButton = invertThumbstick ? Gamepad::DOWN : Gamepad::UP;
+      gamepadState[(unsigned int)lastButton] = true;
     }
   }
 
   if (hasFocus) {
-    if (settings.IsOK() && settings.IsKeyboardOK()) {
+    if (settings.IsOK()) {
       for (auto& [name, actionBindings] : bindings) {
         bool isActive = false;
 
@@ -261,21 +264,18 @@ void InputManager::Update() {
       }
       if (keyboardState[sf::Keyboard::Key::Space]) {
         VirtualKeyEvent(InputEvents::pressed_cust_menu);
-        VirtualKeyEvent(InputEvents::pressed_option);
       }
-      if (keyboardState[sf::Keyboard::Key::P]) {
+      if (keyboardState[sf::Keyboard::Key::Enter]) {
         VirtualKeyEvent(InputEvents::pressed_pause);
       }
-      if (keyboardState[sf::Keyboard::Key::A]) {
-        VirtualKeyEvent(InputEvents::pressed_cust_menu);
-      }
-      if (keyboardState[sf::Keyboard::Key::S]) {
+      if (keyboardState[sf::Keyboard::Key::X]) {
         VirtualKeyEvent(InputEvents::pressed_special);
+        VirtualKeyEvent(InputEvents::pressed_option);
       }
-      if (keyboardState[sf::Keyboard::Key::D]) {
+      if (keyboardState[sf::Keyboard::Key::A]) {
         VirtualKeyEvent(InputEvents::pressed_shoulder_left);
       }
-      if (keyboardState[sf::Keyboard::Key::F]) {
+      if (keyboardState[sf::Keyboard::Key::S]) {
         VirtualKeyEvent(InputEvents::pressed_shoulder_right);
       }
     }
@@ -367,6 +367,8 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
       out = std::string("9"); return true;
     case sf::Keyboard::Key::Num0:
       out = std::string("0"); return true;
+    case sf::Keyboard::Key::Escape:
+      out = std::string("Escape"); return true;
     case sf::Keyboard::Key::Return:
       out = std::string("Enter"); return true;
     case sf::Keyboard::Key::BackSpace:
@@ -535,7 +537,7 @@ const bool InputManager::IsUsingKeyboardControls() const
   return useKeyboardControls;
 }
 
-ConfigSettings InputManager::GetConfigSettings()
+ConfigSettings& InputManager::GetConfigSettings()
 {
   return settings;
 }
@@ -561,19 +563,24 @@ bool InputManager::IsConfigFileValid() const
   return settings.IsOK();
 }
 
-void InputManager::UseKeyboardControls()
+void InputManager::UseKeyboardControls(bool enable)
 {
-  useKeyboardControls = true;
+  useKeyboardControls = enable;
 }
 
-void InputManager::UseGamepadControls()
+void InputManager::UseGamepadControls(bool enable)
 {
-  useGamepadControls = true;
+  useGamepadControls = enable;
 }
 
 void InputManager::UseGamepad(size_t index)
 {
   currGamepad = static_cast<unsigned int>(index);
+}
+
+void InputManager::SetInvertThumbstick(bool invert)
+{
+  invertThumbstick = invert;
 }
 
 const size_t InputManager::GetGamepadCount() const

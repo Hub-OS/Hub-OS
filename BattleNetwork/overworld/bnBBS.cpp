@@ -2,11 +2,13 @@
 #include "../bnTextureResourceManager.h"
 #include "../bnAudioResourceManager.h"
 
-float SCROLLBAR_X = 229;
-float SCROLLBAR_Y = 10;
-float SCROLLBAR_HEIGHT = 115;
-float POST_HEIGHT = 16;
-size_t PAGE_SIZE = 8;
+constexpr float SCROLLBAR_X = 229;
+constexpr float SCROLLBAR_Y = 10;
+constexpr float SCROLLBAR_HEIGHT = 115;
+constexpr float INITIAL_SCROLL_COOLDOWN = 0.2f;
+constexpr float SCROLL_COOLDOWN = 0.05f;
+constexpr float POST_HEIGHT = 16;
+constexpr size_t PAGE_SIZE = 8;
 
 static sf::Color lerp(sf::Color colorA, sf::Color colorB, float strength) {
   return sf::Color(
@@ -209,7 +211,7 @@ void BBS::HandleInput(InputManager& input) {
   auto pageDown = input.Has(InputEvents::held_shoulder_right);
 
   if (!up & !down & !pageUp && !pageDown) {
-    nextCooldown = 0.2f;
+    nextCooldown = INITIAL_SCROLL_COOLDOWN;
     cooldown = 0;
     return;
   }
@@ -263,7 +265,7 @@ void BBS::HandleInput(InputManager& input) {
   if (oldIndex != selectedIndex) {
     Audio().Play(AudioType::CHIP_SELECT);
     cooldown = nextCooldown;
-    nextCooldown = 0.05f;
+    nextCooldown = SCROLL_COOLDOWN;
 
     scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
   }

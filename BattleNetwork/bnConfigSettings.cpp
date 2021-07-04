@@ -16,26 +16,57 @@ const bool ConfigSettings::IsAudioEnabled() const { return (musicLevel || sfxLev
 
 const bool ConfigSettings::IsFullscreen() const
 {
-    return fullscreen;
+  return fullscreen;
 }
 
 const int ConfigSettings::GetMusicLevel() const { return musicLevel; }
 
 const int ConfigSettings::GetSFXLevel() const { return sfxLevel; }
 
-const bool ConfigSettings::IsKeyboardOK() const { 
-    bool hasUp      = GetPairedInput(InputEvents::pressed_ui_up.name) != sf::Keyboard::Unknown;
-    bool hasDown    = GetPairedInput(InputEvents::pressed_ui_down.name) != sf::Keyboard::Unknown;
-    bool hasLeft    = GetPairedInput(InputEvents::pressed_ui_left.name) != sf::Keyboard::Unknown;
-    bool hasRight   = GetPairedInput(InputEvents::pressed_ui_right.name) != sf::Keyboard::Unknown;
-    bool hasConfirm = GetPairedInput(InputEvents::pressed_confirm.name) != sf::Keyboard::Unknown;
+const bool ConfigSettings::TestKeyboard() const {
+  static auto exclusiveEvents = std::vector{
+    InputEvents::pressed_ui_up,
+    InputEvents::pressed_ui_down,
+    InputEvents::pressed_ui_left,
+    InputEvents::pressed_ui_right,
+    InputEvents::pressed_confirm,
+    InputEvents::pressed_cancel,
+    InputEvents::pressed_pause,
+  };
 
-    return hasUp && hasDown && hasLeft && hasRight && hasConfirm;
+  std::vector<sf::Keyboard::Key> bindedKeys;
+
+  for (auto& event : exclusiveEvents) {
+    auto key = GetPairedInput(event.name);
+
+    auto isUnset = key == sf::Keyboard::Unknown;
+    auto isDuplicate = std::find(bindedKeys.begin(), bindedKeys.end(), key) != bindedKeys.end();
+
+    if (isUnset || isDuplicate) {
+      return false;
+    }
+
+    bindedKeys.push_back(key);
+  };
+
+  return true;
 }
 
 void ConfigSettings::SetMusicLevel(int level) { musicLevel = level; }
 
 void ConfigSettings::SetSFXLevel(int level) { sfxLevel = level; }
+
+int ConfigSettings::GetGamepadIndex() const { return gamepadIndex; }
+
+void ConfigSettings::SetGamepadIndex(int index) { gamepadIndex = index; }
+
+bool ConfigSettings::GetInvertThumbstick() const { return invertThumbstick; }
+
+void ConfigSettings::SetInvertThumbstick(bool invert) { invertThumbstick = invert; }
+
+bool ConfigSettings::GetInvertMinimap() const { return invertMinimap; }
+
+void ConfigSettings::SetInvertMinimap(bool invert) { invertMinimap = invert; }
 
 const std::list<std::string> ConfigSettings::GetPairedActions(const sf::Keyboard::Key& event) const {
   std::list<std::string> list;
@@ -91,16 +122,19 @@ const std::list<std::string> ConfigSettings::GetPairedActions(const Gamepad& eve
   return list;
 }
 
-ConfigSettings & ConfigSettings::operator=(const ConfigSettings& rhs)
+ConfigSettings& ConfigSettings::operator=(const ConfigSettings& rhs)
 {
   discord = rhs.discord;
   webServer = rhs.webServer;
   gamepad = rhs.gamepad;
+  gamepadIndex = rhs.gamepadIndex;
+  invertThumbstick = rhs.invertThumbstick;
   musicLevel = rhs.musicLevel;
   sfxLevel = rhs.sfxLevel;
   isOK = rhs.isOK;
   keyboard = rhs.keyboard;
   fullscreen = rhs.fullscreen;
+  invertMinimap = rhs.invertMinimap;
   return *this;
 }
 
@@ -134,7 +168,7 @@ void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
   ConfigSettings::gamepad = gamepad;
 }
 
-ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
+ConfigSettings::ConfigSettings(const ConfigSettings& rhs)
 {
   this->operator=(rhs);
 }

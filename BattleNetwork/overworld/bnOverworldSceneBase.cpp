@@ -359,6 +359,11 @@ void Overworld::SceneBase::HandleInput() {
       panning.y += 1.f;
     }
 
+    if (Input().GetConfigSettings().GetInvertMinimap()) {
+      panning.x *= -1.f;
+      panning.y *= -1.f;
+    }
+
     if (Input().Has(InputEvents::pressed_map)) {
       showMinimap = false;
       minimap.ResetPanning();
@@ -1483,7 +1488,7 @@ void Overworld::SceneBase::RemoveItem(const std::string& name)
 
 bool Overworld::SceneBase::IsInFocus() const
 {
-    return this->gotoNextScene == false;
+  return this->gotoNextScene == false;
 }
 
 std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const

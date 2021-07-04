@@ -26,11 +26,11 @@ sf::Keyboard::Key ConfigReader::GetKeyCodeFromAscii(int ascii) {
 // Parsing
 
 const bool ConfigReader::Parse(std::string buffer) {
-    // WARNING: this parser is janky. It expects every category to be in order otherwise it fails
-    // This is because it was written earlier to read tokens in a single pass
-    // This should be re-written to seek categories and _then_ parse
-    // This way every ParseX() step won't need to fail if the next category is not in order
-    return ParseDiscord(buffer);
+  // WARNING: this parser is janky. It expects every category to be in order otherwise it fails
+  // This is because it was written earlier to read tokens in a single pass
+  // This should be re-written to seek categories and _then_ parse
+  // This way every ParseX() step won't need to fail if the next category is not in order
+  return ParseDiscord(buffer);
 }
 
 const bool ConfigReader::ParseDiscord(std::string buffer) {
@@ -44,7 +44,7 @@ const bool ConfigReader::ParseDiscord(std::string buffer) {
 
 
     if (line.find("[Audio]") != std::string::npos) {
-        return ParseAudio(buffer);
+      return ParseAudio(buffer);
     }
 
     if (line.find("User") != std::string::npos) {
@@ -102,27 +102,27 @@ const bool ConfigReader::ParseNet(std::string buffer) {
     Trim(line);
 
     if (line.find("[Video]") != std::string::npos) {
-        return ParseVideo(buffer);
+      return ParseVideo(buffer);
     }
     else if (line.find("WebServer") != std::string::npos) {
-        std::string value = ValueOf("WebServer", line);
-        settings.webServer.URL = value;
+      std::string value = ValueOf("WebServer", line);
+      settings.webServer.URL = value;
     }
     else if (line.find("Version") != std::string::npos) {
-        std::string value = ValueOf("Version", line);
-        settings.webServer.version = value;
+      std::string value = ValueOf("Version", line);
+      settings.webServer.version = value;
     }
     else if (line.find("Port") != std::string::npos) {
-        std::string value = ValueOf("Port", line);
-        settings.webServer.port = std::atoi(value.c_str());
+      std::string value = ValueOf("Port", line);
+      settings.webServer.port = std::atoi(value.c_str());
     }
     else if (line.find("Username") != std::string::npos) {
-        std::string value = ValueOf("Username", line);
-        settings.webServer.user = value;
+      std::string value = ValueOf("Username", line);
+      settings.webServer.user = value;
     }
     else if (line.find("Password") != std::string::npos) {
-        std::string value = ValueOf("Password", line);
-        settings.webServer.password = value;
+      std::string value = ValueOf("Password", line);
+      settings.webServer.password = value;
     }
 
     // Read next line...
@@ -141,13 +141,38 @@ const bool ConfigReader::ParseVideo(std::string buffer) {
 
     Trim(line);
 
+    if (line.find("[General]") != std::string::npos) {
+      return ParseGeneral(buffer);
+    }
+
+    if (line.find("Fullscreen") != std::string::npos) {
+      std::string value = ValueOf("Fullscreen", line);
+      settings.fullscreen = value == "1" ? true : false;
+    }
+
+    // Read next line...
+    buffer = buffer.substr(endline + 1);
+  } while (endline > -1);
+
+  return false;
+}
+
+const bool ConfigReader::ParseGeneral(std::string buffer) {
+  int endline = 0;
+
+  do {
+    endline = (int)buffer.find("\n");
+    std::string line = buffer.substr(0, endline);
+
+    Trim(line);
+
     if (line.find("[Keyboard]") != std::string::npos) {
       return ParseKeyboard(buffer);
     }
 
-    if (line.find("Fullscreen") != std::string::npos) {
-        std::string value = ValueOf("Fullscreen", line);
-        settings.fullscreen = value=="1"? true : false;
+    if (line.find("Invert Minimap") != std::string::npos) {
+      std::string value = ValueOf("Invert Minimap", line);
+      settings.invertMinimap = std::atoi(value.c_str()) == 1;
     }
 
     // Read next line...
@@ -186,7 +211,6 @@ const bool ConfigReader::ParseKeyboard(std::string buffer) {
   return false;
 }
 
-
 const bool ConfigReader::ParseGamepad(std::string buffer) {
   int endline = 0;
 
@@ -195,6 +219,16 @@ const bool ConfigReader::ParseGamepad(std::string buffer) {
     std::string line = buffer.substr(0, endline);
 
     Trim(line);
+
+    if (line.find("Gamepad Index") != std::string::npos) {
+      std::string value = ValueOf("Gamepad Index", line);
+      settings.gamepadIndex = std::atoi(value.c_str());
+    }
+
+    if (line.find("Invert Thumbstick") != std::string::npos) {
+      std::string value = ValueOf("Invert Thumbstick", line);
+      settings.invertThumbstick = std::atoi(value.c_str()) == 1;
+    }
 
     for (auto key : InputEvents::KEYS) {
       if (line.find(key) != std::string::npos) {
@@ -216,7 +250,7 @@ ConfigReader::ConfigReader(std::string filepath) {
 
   // We need SOME values
   // Provide default layout
-  if (!settings.keyboard.size() || !settings.isOK) {
+  if (!settings.isOK || !settings.TestKeyboard()) {
     Logger::Log("config settings was not OK. Will use internal default key layout.");
     settings.sfxLevel = settings.musicLevel = 3;
     settings.isOK = false; // This can be used as a flag that we're using default controls

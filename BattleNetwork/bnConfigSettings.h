@@ -11,11 +11,11 @@ struct DiscordInfo {
 };
 
 struct WebServerInfo {
-    std::string user;
-    std::string password;
-    std::string URL;
-    std::string version;
-    int port{};
+  std::string user;
+  std::string password;
+  std::string URL;
+  std::string version;
+  int port{};
 };
 
 /*! \brief easy to cast in with some special codes for joystick x/y axis */
@@ -29,16 +29,16 @@ public:
   typedef std::multimap<Gamepad, std::string> GamepadHash;
 
   /**
- * @brief If config file is ok
- * @return true if wellformed, false otherwise
- */
+   * @brief If config file is ok
+   * @return true if wellformed, false otherwise
+   */
   const bool IsOK() const;
 
   /**
-* @brief If config file has empty keyboard mappings
-* @return true if all keyboard mappings are NO KEY
-*/
-  const bool IsKeyboardOK() const;
+   * @brief Tests keyboard mappings for issues
+   * @return true if keyboard mapping are usable
+   */
+  const bool TestKeyboard() const;
 
   /**
    * @brief Check if Audio() is on or off based on ini file
@@ -46,15 +46,46 @@ public:
    */
   const bool IsAudioEnabled() const;
 
-  /** 
-  * @brief Get fullscreen mode 
-  */
+  /**
+   * @brief Get fullscreen mode
+   */
   const bool IsFullscreen() const;
 
   const int GetMusicLevel() const;
   const int GetSFXLevel() const;
   void SetMusicLevel(int level);
   void SetSFXLevel(int level);
+
+  /**
+   * @brief Get the active gamepad index
+   */
+  int GetGamepadIndex() const;
+
+  /**
+   * @brief Set the active gamepad index
+   */
+  void SetGamepadIndex(int index);
+
+  /**
+   * @brief Get inverted thumbstick setting
+   */
+  bool GetInvertThumbstick() const;
+
+  /**
+   * @brief Set inverted thumbstick setting
+   */
+  void SetInvertThumbstick(bool invert);
+
+  /**
+   * @brief Get inverted minimap setting
+   */
+  bool GetInvertMinimap() const;
+
+  /**
+   * @brief Set inverted minimap setting
+   */
+  void SetInvertMinimap(bool invert);
+
   /**
    * @brief For a keyboard event, return the action string
    * @param event sfml keyboard key
@@ -63,17 +94,17 @@ public:
   const std::list<std::string> GetPairedActions(const sf::Keyboard::Key& event) const;
 
   /**
- * @brief For an action string, return the bound keyboard key
- * @param action name
- * @return the bound key
- */
+   * @brief For an action string, return the bound keyboard key
+   * @param action name
+   * @return the bound key
+   */
   const sf::Keyboard::Key GetPairedInput(std::string action) const;
 
   /**
-* @brief For an action string, return the bound gamepad event
-* @param action name
-* @return the bound gamepad event
-*/
+   * @brief For an action string, return the bound gamepad event
+   * @param action name
+   * @return the bound gamepad event
+   */
   const Gamepad GetPairedGamepadButton(std::string action) const;
 
   /**
@@ -105,10 +136,14 @@ private:
   DiscordInfo discord; /*!< account info to allow alerts on discord channel */
   WebServerInfo webServer; /*!< account info that hosts cards and folders */
 
-  int musicLevel{};
-  int sfxLevel{};
+  int musicLevel{ 3 };
+  int sfxLevel{ 3 };
+  int gamepadIndex{};
+  bool invertThumbstick{};
 
   bool fullscreen{};
+
+  bool invertMinimap{};
 
   // State flags
   bool isOK{}; /*!< true if the file was ok */
