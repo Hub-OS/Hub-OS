@@ -704,6 +704,10 @@ void ConfigScene::onUpdate(double elapsed)
         activeSubmenu = {};
         submenuIndex = 0;
       }
+      else {
+        isSelectingTopMenu = true;
+        primaryIndex = 0;
+      }
 
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
     }
