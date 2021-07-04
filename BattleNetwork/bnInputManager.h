@@ -107,6 +107,11 @@ public:
   void UseGamepad(size_t index);
 
   /**
+  * @brief Tells input manager to invert the y axis when reading from a gamepad
+  */
+  void SetInvertThumbstick(bool invert);
+
+  /**
    * @brief Returns number of available gamepads
    * @return size_t
    */
@@ -173,6 +178,7 @@ private:
 
   std::vector<sf::Joystick::Identification> gamepads;
   unsigned int currGamepad{};
+  bool invertThumbstick{};
 
   std::array<bool, sf::Keyboard::KeyCount> keyboardState;
   std::unordered_map<unsigned int, bool> gamepadState;

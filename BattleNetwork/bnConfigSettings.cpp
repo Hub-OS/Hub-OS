@@ -60,6 +60,10 @@ int ConfigSettings::GetGamepadIndex() const { return gamepadIndex; }
 
 void ConfigSettings::SetGamepadIndex(int index) { gamepadIndex = index; }
 
+bool ConfigSettings::GetInvertThumbstick() const { return invertThumbstick; }
+
+void ConfigSettings::SetInvertThumbstick(bool invert) { invertThumbstick = invert; }
+
 const std::list<std::string> ConfigSettings::GetPairedActions(const sf::Keyboard::Key& event) const {
   std::list<std::string> list;
 
@@ -119,6 +123,8 @@ ConfigSettings& ConfigSettings::operator=(const ConfigSettings& rhs)
   discord = rhs.discord;
   webServer = rhs.webServer;
   gamepad = rhs.gamepad;
+  gamepadIndex = rhs.gamepadIndex;
+  invertThumbstick = rhs.invertThumbstick;
   musicLevel = rhs.musicLevel;
   sfxLevel = rhs.sfxLevel;
   isOK = rhs.isOK;

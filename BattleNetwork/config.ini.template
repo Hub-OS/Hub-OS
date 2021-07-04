@@ -13,6 +13,8 @@ Password=""
 [Video]
 Fullscreen="0"
 [Keyboard]
+Gamepad Index="0"
+Invert Thumbstick="0"
 Move Up="73"
 Move Down="74"
 Move Left="71"

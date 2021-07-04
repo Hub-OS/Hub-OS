@@ -64,8 +64,9 @@ void InputManager::SupportConfigSettings(ConfigReader& reader) {
   for (auto& [name, actionBindings] : intermediateBindings) {
     bindings.push_back({ name, actionBindings });
   }
-Logger::Logf("currGamepad %d", currGamepad);
+
   currGamepad = settings.GetGamepadIndex();
+  invertThumbstick = settings.GetInvertThumbstick();
 }
 
 void InputManager::Update() {
@@ -204,12 +205,12 @@ void InputManager::Update() {
     }
 
     if (axisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
-      gamepadState[(unsigned int)Gamepad::UP] = true;
-      lastButton = Gamepad::UP;
+      lastButton = invertThumbstick ? Gamepad::UP : Gamepad::DOWN;
+      gamepadState[(unsigned int)lastButton] = true;
     }
     else if (axisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-      gamepadState[(unsigned int)Gamepad::DOWN] = true;
-      lastButton = Gamepad::DOWN;
+      lastButton = invertThumbstick ? Gamepad::DOWN : Gamepad::UP;
+      gamepadState[(unsigned int)lastButton] = true;
     }
   }
 
@@ -575,6 +576,11 @@ void InputManager::UseGamepadControls(bool enable)
 void InputManager::UseGamepad(size_t index)
 {
   currGamepad = static_cast<unsigned int>(index);
+}
+
+void InputManager::SetInvertThumbstick(bool invert)
+{
+  invertThumbstick = invert;
 }
 
 const size_t InputManager::GetGamepadCount() const

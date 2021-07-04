@@ -67,6 +67,16 @@ public:
   void SetGamepadIndex(int index);
 
   /**
+   * @brief Get inverted thumbstick setting
+   */
+  bool GetInvertThumbstick() const;
+
+  /**
+   * @brief Set inverted thumbstick setting
+   */
+  void SetInvertThumbstick(bool invert);
+
+  /**
    * @brief For a keyboard event, return the action string
    * @param event sfml keyboard key
    * @return the mapped input event
@@ -119,6 +129,7 @@ private:
   int musicLevel{ 3 };
   int sfxLevel{ 3 };
   int gamepadIndex{};
+  bool invertThumbstick{};
 
   bool fullscreen{};
 

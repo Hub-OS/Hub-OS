@@ -33,8 +33,8 @@ void ConfigWriter::Write(std::string path)
   }
 
   w << "[Gamepad]" << w.endl();
-
   w << "Gamepad Index=" << quote(std::to_string(settings.GetGamepadIndex())) << w.endl();
+  w << "Invert Thumbstick=" << quote(std::to_string(settings.GetInvertThumbstick())) << w.endl();
 
   for (auto&& a : InputEvents::KEYS) {
     w << a << "=" << quote(std::to_string(GetAsciiFromGamepad(settings.GetPairedGamepadButton(a)))) << w.endl();

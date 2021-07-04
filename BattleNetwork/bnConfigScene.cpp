@@ -250,6 +250,15 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
     [this](BindingItem& item) { DecrementGamepadIndex(item); }
   ));
 
+  invertThumbstick = configSettings.GetInvertThumbstick();
+  std::string invertThumbstickString = invertThumbstick ? "yes" : "no";
+  gamepadMenu.push_back(std::make_unique<BindingItem>(
+    "Invert Thumbstick",
+    invertThumbstickString,
+    [this](BindingItem& item) { InvertThumbstick(item); },
+    [this](BindingItem& item) { InvertThumbstick(item); }
+  ));
+
   // For gamepad keys
   auto gamepadCallback = [this](BindingItem& item) { AwaitGamepadBinding(item); };
   auto gamepadSecondaryCallback = [this](BindingItem& item) { UnsetGamepadBinding(item); };
@@ -416,6 +425,13 @@ void ConfigScene::DecrementGamepadIndex(BindingItem& item) {
   item.SetValue(indexString);
 }
 
+void ConfigScene::InvertThumbstick(BindingItem& item) {
+  invertThumbstick = !invertThumbstick;
+  Input().SetInvertThumbstick(invertThumbstick);
+  std::string valueText = invertThumbstick ? "yes" : "no";
+  item.SetValue(valueText);
+}
+
 bool ConfigScene::IsInSubmenu() {
   return activeSubmenu.has_value();
 }
@@ -475,6 +491,7 @@ void ConfigScene::onUpdate(double elapsed)
 
         configSettings.SetGamepadIndex(gamepadIndex);
         configSettings.SetGamepadHash(gamepadHash);
+        configSettings.SetInvertThumbstick(invertThumbstick);
         configSettings.SetMusicLevel(musicLevel);
         configSettings.SetSFXLevel(sfxLevel);
 
@@ -493,8 +510,9 @@ void ConfigScene::onUpdate(double elapsed)
       };
 
       auto onNo = [this]() {
-        // Use config stored gamepad index in case we were messing with another controller here
+        // Revert gamepad settings
         Input().UseGamepad(configSettings.GetGamepadIndex());
+        Input().SetInvertThumbstick(configSettings.GetInvertThumbstick());
 
         // Just close and leave
         using namespace swoosh::types;

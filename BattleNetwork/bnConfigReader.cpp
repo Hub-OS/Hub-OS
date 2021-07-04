@@ -201,6 +201,11 @@ const bool ConfigReader::ParseGamepad(std::string buffer) {
       settings.gamepadIndex = std::atoi(value.c_str());
     }
 
+    if (line.find("Invert Thumbstick") != std::string::npos) {
+      std::string value = ValueOf("Invert Thumbstick", line);
+      settings.invertThumbstick = std::atoi(value.c_str()) == 1;
+    }
+
     for (auto key : InputEvents::KEYS) {
       if (line.find(key) != std::string::npos) {
         std::string value = ValueOf(key, line);
