@@ -155,7 +155,7 @@ public:
   const bool IsUsingGamepadControls() const;
   const bool IsUsingKeyboardControls() const;
 
-  ConfigSettings GetConfigSettings();
+  ConfigSettings& GetConfigSettings();
 
   /**
   * @brief if any buttons are held ore pressed, fire release events for all

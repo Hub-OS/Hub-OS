@@ -141,13 +141,38 @@ const bool ConfigReader::ParseVideo(std::string buffer) {
 
     Trim(line);
 
-    if (line.find("[Keyboard]") != std::string::npos) {
-      return ParseKeyboard(buffer);
+    if (line.find("[General]") != std::string::npos) {
+      return ParseGeneral(buffer);
     }
 
     if (line.find("Fullscreen") != std::string::npos) {
       std::string value = ValueOf("Fullscreen", line);
       settings.fullscreen = value == "1" ? true : false;
+    }
+
+    // Read next line...
+    buffer = buffer.substr(endline + 1);
+  } while (endline > -1);
+
+  return false;
+}
+
+const bool ConfigReader::ParseGeneral(std::string buffer) {
+  int endline = 0;
+
+  do {
+    endline = (int)buffer.find("\n");
+    std::string line = buffer.substr(0, endline);
+
+    Trim(line);
+
+    if (line.find("[Keyboard]") != std::string::npos) {
+      return ParseKeyboard(buffer);
+    }
+
+    if (line.find("Invert Minimap") != std::string::npos) {
+      std::string value = ValueOf("Invert Minimap", line);
+      settings.invertMinimap = std::atoi(value.c_str()) == 1;
     }
 
     // Read next line...
@@ -185,7 +210,6 @@ const bool ConfigReader::ParseKeyboard(std::string buffer) {
 
   return false;
 }
-
 
 const bool ConfigReader::ParseGamepad(std::string buffer) {
   int endline = 0;

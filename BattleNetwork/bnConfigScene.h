@@ -26,7 +26,7 @@ private:
   ConfigSettings::KeyboardHash keyHash;
   ConfigSettings::GamepadHash gamepadHash;
   int gamepadIndex, musicLevel, sfxLevel;
-  bool invertThumbstick;
+  bool invertThumbstick, invertMinimap;
 
   AnimatedTextBox textbox;
 
@@ -157,6 +157,7 @@ private:
   void IncrementGamepadIndex(BindingItem&);
   void DecrementGamepadIndex(BindingItem&);
   void InvertThumbstick(BindingItem&);
+  void InvertMinimap(TextItem&);
 
   bool IsInSubmenu();
   Menu& GetActiveMenu();

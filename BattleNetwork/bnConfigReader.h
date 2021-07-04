@@ -124,6 +124,13 @@ private:
   const bool ParseVideo(std::string buffer);
 
   /**
+   * @brief Parses [General] and settings
+   * @param buffer file contents
+   * @return true and denotes end of file
+   */
+  const bool ParseGeneral(std::string buffer);
+
+  /**
    * @brief Parse [Keyboard] and settings
    * @param buffer file contents
    * @return true if the file is ok, false otherwise

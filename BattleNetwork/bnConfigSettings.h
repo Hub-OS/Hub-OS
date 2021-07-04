@@ -77,6 +77,16 @@ public:
   void SetInvertThumbstick(bool invert);
 
   /**
+   * @brief Get inverted minimap setting
+   */
+  bool GetInvertMinimap() const;
+
+  /**
+   * @brief Set inverted minimap setting
+   */
+  void SetInvertMinimap(bool invert);
+
+  /**
    * @brief For a keyboard event, return the action string
    * @param event sfml keyboard key
    * @return the mapped input event
@@ -132,6 +142,8 @@ private:
   bool invertThumbstick{};
 
   bool fullscreen{};
+
+  bool invertMinimap{};
 
   // State flags
   bool isOK{}; /*!< true if the file was ok */

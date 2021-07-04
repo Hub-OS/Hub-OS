@@ -216,6 +216,13 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
     "MY GAMEPAD",
     [this](auto&) { ShowGamepadMenu(); })
   );
+  // Minimap
+  invertMinimap = configSettings.GetInvertMinimap();
+  primaryMenu.push_back(std::make_unique<TextItem>(
+    invertMinimap ? "INVRT MAP: yes" : "INVRT MAP: no",
+    [this](TextItem& item) { InvertMinimap(item); },
+    [this](TextItem& item) { InvertMinimap(item); }
+  ));
   // Login
   primaryMenu.push_back(std::make_unique<LoginItem>(
     [this] { ToggleLogin(); })
@@ -432,6 +439,11 @@ void ConfigScene::InvertThumbstick(BindingItem& item) {
   item.SetValue(valueText);
 }
 
+void ConfigScene::InvertMinimap(TextItem& item) {
+  invertMinimap = !invertMinimap;
+  item.SetString(invertMinimap ? "INVRT MAP: yes" : "INVRT MAP: no");
+}
+
 bool ConfigScene::IsInSubmenu() {
   return activeSubmenu.has_value();
 }
@@ -494,6 +506,7 @@ void ConfigScene::onUpdate(double elapsed)
         configSettings.SetInvertThumbstick(invertThumbstick);
         configSettings.SetMusicLevel(musicLevel);
         configSettings.SetSFXLevel(sfxLevel);
+        configSettings.SetInvertMinimap(invertMinimap);
 
         ConfigWriter writer(configSettings);
         writer.Write("config.ini");

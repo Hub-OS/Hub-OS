@@ -64,6 +64,10 @@ bool ConfigSettings::GetInvertThumbstick() const { return invertThumbstick; }
 
 void ConfigSettings::SetInvertThumbstick(bool invert) { invertThumbstick = invert; }
 
+bool ConfigSettings::GetInvertMinimap() const { return invertMinimap; }
+
+void ConfigSettings::SetInvertMinimap(bool invert) { invertMinimap = invert; }
+
 const std::list<std::string> ConfigSettings::GetPairedActions(const sf::Keyboard::Key& event) const {
   std::list<std::string> list;
 
@@ -130,6 +134,7 @@ ConfigSettings& ConfigSettings::operator=(const ConfigSettings& rhs)
   isOK = rhs.isOK;
   keyboard = rhs.keyboard;
   fullscreen = rhs.fullscreen;
+  invertMinimap = rhs.invertMinimap;
   return *this;
 }
 

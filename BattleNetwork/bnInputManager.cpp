@@ -537,7 +537,7 @@ const bool InputManager::IsUsingKeyboardControls() const
   return useKeyboardControls;
 }
 
-ConfigSettings InputManager::GetConfigSettings()
+ConfigSettings& InputManager::GetConfigSettings()
 {
   return settings;
 }
