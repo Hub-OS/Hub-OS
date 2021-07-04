@@ -297,5 +297,6 @@ namespace Overworld {
     //
     virtual void OnTileCollision() = 0;
     virtual void OnInteract() = 0;
+    virtual void OnInspect() = 0;
   };
 }

@@ -84,6 +84,7 @@ namespace Overworld {
     void HandlePVPStep(const std::string& remoteAddress);
     void ResetPVPStep();
 
+    void onInteract(uint8_t button);
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
     void detectWarp(std::shared_ptr<Actor>& player);
@@ -106,9 +107,9 @@ namespace Overworld {
     void sendAvatarChangeSignal();
     void sendAvatarAssetStream();
     void sendEmoteSignal(const Overworld::Emotes emote);
-    void sendObjectInteractionSignal(unsigned int tileObjectId);
-    void sendNaviInteractionSignal(const std::string& ticket);
-    void sendTileInteractionSignal(float x, float y, float z);
+    void sendObjectInteractionSignal(unsigned int tileObjectId, uint8_t button);
+    void sendNaviInteractionSignal(const std::string& ticket, uint8_t button);
+    void sendTileInteractionSignal(float x, float y, float z, uint8_t button);
     void sendTextBoxResponseSignal(char response);
     void sendPromptResponseSignal(const std::string& response);
     void sendBoardOpenSignal();
@@ -195,6 +196,7 @@ namespace Overworld {
 
     void OnTileCollision() override;
     void OnInteract() override;
+    void OnInspect() override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
   };
 }

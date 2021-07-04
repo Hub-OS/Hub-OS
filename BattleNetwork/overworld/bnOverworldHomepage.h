@@ -36,5 +36,6 @@ namespace Overworld {
 
     void OnTileCollision() override;
     void OnInteract() override;
+    void OnInspect() override;
   };
 }

@@ -279,10 +279,22 @@ void Overworld::Actor::SetInteractCallback(const std::function<void(std::shared_
   this->onInteractFunc = func;
 }
 
+void Overworld::Actor::SetInspectCallback(const std::function<void(std::shared_ptr<Actor>)>& func)
+{
+  this->onInspectFunc = func;
+}
+
 void Overworld::Actor::Interact(const std::shared_ptr<Actor>& with)
 {
   if (this->onInteractFunc) {
     this->onInteractFunc(with);
+  }
+}
+
+void Overworld::Actor::Inspect(const std::shared_ptr<Actor>& with)
+{
+  if (this->onInspectFunc) {
+    this->onInspectFunc(with);
   }
 }
 

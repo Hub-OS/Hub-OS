@@ -395,6 +395,9 @@ void Overworld::SceneBase::HandleInput() {
     if (Input().Has(InputEvents::pressed_interact)) {
       OnInteract();
     }
+    if (Input().Has(InputEvents::pressed_shoulder_left)) {
+      OnInspect();
+    }
   }
 
   if (Input().Has(InputEvents::pressed_pause) && !Input().Has(InputEvents::pressed_cancel)) {

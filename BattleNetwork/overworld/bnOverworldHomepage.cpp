@@ -435,3 +435,6 @@ void Overworld::Homepage::OnInteract() {
     }
   }
 }
+
+void Overworld::Homepage::OnInspect() {
+}
