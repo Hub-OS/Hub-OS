@@ -394,6 +394,10 @@ Battle::Tile* Entity::GetTile(Direction dir, unsigned count) const {
   return next;
 }
 
+Battle::Tile* Entity::GetCurrentTile() const {
+    return GetTile();
+}
+
 const sf::Vector2f Entity::GetTileOffset() const
 {
   return this->tileOffset;

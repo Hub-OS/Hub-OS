@@ -185,11 +185,20 @@ public:
   void SetTile(Battle::Tile* _tile);
   
   /**
-   * @brief Get the current tile pointer
-   * The tile pointer refers to the tile the entity is currently standing in
+   * @brief Get a pointer to a tile based upon the Entity's position.
+   * If no arguments are provided, it will return a pointer to the tile they are currently on.
+   * If arguments are provided, it will attempt to return a pointer to a tile offset by a specified amount in a specified direction.
+   * @param dir The direction you want to pick the tile from
+   * @param count How many tiles away that tile is
    * @return Tile pointer
    */
   Battle::Tile* GetTile(Direction dir = Direction::none, unsigned count = 0) const;
+  /**
+   * @brief Get a pointer to the tile the Entity is currently located on
+   * Overloaded function as sol docs say there isn't any support for default arguments in Lua
+   * Without this, scripts would need to specify direction and offset every time
+   */
+  Battle::Tile* GetCurrentTile() const;
   const sf::Vector2f GetTileOffset() const;
 
   /**

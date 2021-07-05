@@ -86,11 +86,6 @@ void ScriptedSpell::SetTileOffset(float x, float y)
   ScriptedSpell::scriptedOffset = { x, y };
 }
 
-Battle::Tile* ScriptedSpell::GetCurrentTile() const
-{
-  return GetTile();
-}
-
 void ScriptedSpell::ShakeCamera(double power, float duration)
 {
   this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));

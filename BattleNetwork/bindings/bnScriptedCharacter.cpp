@@ -81,11 +81,6 @@ void ScriptedCharacter::SetTileOffset(float x, float y)
   ScriptedCharacter::scriptedOffset = { x, y };
 }
 
-Battle::Tile* ScriptedCharacter::GetCurrentTile() const
-{
-  return GetTile();
-}
-
 void ScriptedCharacter::ShakeCamera(double power, float duration)
 {
   this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));

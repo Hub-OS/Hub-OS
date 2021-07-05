@@ -12,6 +12,7 @@ ScriptedCardAction::~ScriptedCardAction() {
 }
 
 void ScriptedCardAction::Update(double elapsed) {
+    CardAction::Update(elapsed);
   if (onUpdate) {
     onUpdate(*this, elapsed);
   }
