@@ -251,13 +251,34 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "onSpawnFunc", &ScriptedObstacle::spawnCallback
         );
 
+    // Adding in bindings for Character* type objects to sol.
+    // Without adding these in, it has no idea what to do with Character* objects passed up to it,
+    // even though there's bindings for ScriptedCharacter already done.
+    const auto& basic_character_record = battle_namespace.new_usertype<Character>( "BasicCharacter",
+        "GetID", &Character::GetID,
+        "GetElement", &Character::GetElement,
+        "GetTile", &Character::GetTile,
+        "CurrentTile", &Character::GetCurrentTile,
+        "Field", &Character::GetField,
+        "Facing", &Character::GetFacing,
+        "IsSliding", &Character::IsSliding,
+        "IsJumping", &Character::IsJumping,
+        "IsTeleporting", &Character::IsTeleporting,
+        "IsMoving", &Character::IsMoving,
+        "IsTeammate", &Character::Teammate,
+        "Team", &Character::GetTeam,
+
+        "GetName", &Character::GetName,
+        "GetRank", &Character::GetRank,
+        "GetHealth", &Character::GetHealth,
+        "GetMaxHealth", &Character::GetMaxHealth,
+        "SetHealth", &Character::SetHealth
+    );
+
     const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
-        sol::meta_function::index,
-		&dynamic_object::dynamic_get,
-        sol::meta_function::new_index,
-		&dynamic_object::dynamic_set,
-        sol::meta_function::length,
-		[](dynamic_object& d) { return d.entries.size(); },
+        sol::meta_function::index, &dynamic_object::dynamic_get,
+        sol::meta_function::new_index, &dynamic_object::dynamic_set,
+        sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
         sol::base_classes, sol::bases<Character>(),
         "GetID", &ScriptedCharacter::GetID,
         "GetElement", &ScriptedCharacter::GetElement,
@@ -297,31 +318,25 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "GetAnimation", &ScriptedCharacter::GetAnimationObject,
         "ShakeCamera", &ScriptedCharacter::ShakeCamera
     );
-	
-    // Adding in bindings for Character* type objects to sol.
-    // Without adding these in, it has no idea what to do with Character* objects passed up to it,
-    // even though there's bindings for ScriptedCharacter already done.
-    const auto& basic_character_record = battle_namespace.new_usertype<Character>( "BasicCharacter",
-        "GetID", &Character::GetID,
-        "GetElement", &Character::GetElement,
-        "GetTile", &Character::GetTile,
-        "CurrentTile", &Character::GetCurrentTile,
-        "Field", &Character::GetField,
-        "Facing", &Character::GetFacing,
-        "IsSliding", &Character::IsSliding,
-        "IsJumping", &Character::IsJumping,
-        "IsTeleporting", &Character::IsTeleporting,
-        "IsMoving", &Character::IsMoving,
-        "IsTeammate", &Character::Teammate,
-        "Team", &Character::GetTeam,
 
-        "GetName", &Character::GetName,
-        "GetRank", &Character::GetRank,
-        "GetHealth", &Character::GetHealth,
-        "GetMaxHealth", &Character::GetMaxHealth,
-        "SetHealth", &Character::SetHealth
+    const auto& player_record = battle_namespace.new_usertype<Player>("BasicPlayer",
+        sol::base_classes, sol::bases<Character>(),
+        "GetID", &Player::GetID,
+        "GetTile", &Player::GetTile,
+        "CurrentTile", &Player::GetCurrentTile,
+        "Field", &Player::GetField,
+        "Facing", &Player::GetFacing,
+        "IsSliding", &Player::IsSliding,
+        "IsJumping", &Player::IsJumping,
+        "IsTeleporting", &Player::IsTeleporting,
+        "IsMoving", &Player::IsMoving,
+        "Team", &Player::GetTeam,
+
+        "GetName", &Player::GetName,
+        "GetHealth", &Player::GetHealth,
+        "GetMaxHealth", &Player::GetMaxHealth
     );
-	
+
     const auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
         sol::base_classes, sol::bases<Player>(),
         "GetID", &ScriptedPlayer::GetID,
@@ -358,23 +373,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "SlideWhenMoving", &ScriptedPlayer::SlideWhenMoving
     );
 
-  const auto& player_record = battle_namespace.new_usertype<Player>("BasicPlayer",
-        sol::base_classes, sol::bases<Character>(),
-        "GetID", &Player::GetID,
-        "GetTile", &Player::GetTile,
-        "CurrentTile", &Player::GetCurrentTile,
-        "Field", &Player::GetField,
-        "Facing", &Player::GetFacing,
-        "IsSliding", &Player::IsSliding,
-        "IsJumping", &Player::IsJumping,
-        "IsTeleporting", &Player::IsTeleporting,
-        "IsMoving", &Player::IsMoving,
-        "Team", &Player::GetTeam,
-
-        "GetName", &Player::GetName,
-        "GetHealth", &Player::GetHealth,
-        "GetMaxHealth", &Player::GetMaxHealth
-    );
     const auto& scripted_artifact_record = engine_namespace.new_usertype<ScriptedArtifact>("Artifact",
         sol::factories([]() -> std::unique_ptr<ScriptedArtifact> {
             return std::make_unique<ScriptedArtifact>();
@@ -397,7 +395,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "updateFunc", &ScriptedArtifact::onUpdate
     );
 
-    // Most things use Character* references but we will maybe have to consolidate all the interfaces for characters into one type.
+    // Had it crash when using ScriptedPlayer* values so had to expose other versions for it to cooperate.
+    // Many things use Character* references but we will maybe have to consolidate all the interfaces for characters into one type.
     const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
         sol::factories(
         [](Character* character, const std::string& state)-> std::unique_ptr<ScriptedCardAction> {
@@ -410,39 +409,28 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
             return std::make_unique<ScriptedCardAction>(*character, state);
         }
         ),
-    sol::meta_function::index,
-    &dynamic_object::dynamic_get,
-    sol::meta_function::new_index,
-    &dynamic_object::dynamic_set,
-    sol::meta_function::length,
-    [](dynamic_object& d) { return d.entries.size(); },
-    "SetLockout", &ScriptedCardAction::SetLockout,
-    "OverrideAnimationFrames", &ScriptedCardAction::OverrideAnimationFrames,
-    "AddAttachment", sol::overload(
-      sol::resolve<CardAction::Attachment&(Character*, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
-      sol::resolve<CardAction::Attachment&(Animation&, const std::string&, SpriteProxyNode&)>(&CardAction::AddAttachment)
-    ),
-    "AddAnimAction", &ScriptedCardAction::AddAnimAction,
-    "AddStep", &ScriptedCardAction::AddStep,
-    "EndAction", &ScriptedCardAction::EndAction,
+        sol::meta_function::index,
+        &dynamic_object::dynamic_get,
+        sol::meta_function::new_index,
+        &dynamic_object::dynamic_set,
+        sol::meta_function::length,
+        [](dynamic_object& d) { return d.entries.size(); },
+        "SetLockout", &ScriptedCardAction::SetLockout,
         "SetLockoutGroup", &ScriptedCardAction::SetLockoutGroup,
-    "GetActor", &ScriptedCardAction::GetActor,
-    "actionEndFunc", &ScriptedCardAction::onActionEnd,
-    "animationEndFunc", &ScriptedCardAction::onAnimationEnd,
-    "executeFunc", &ScriptedCardAction::onExecute,
-    "updateFunc", &ScriptedCardAction::onUpdate
-    );
-
-  const auto& card_action_step_record = battle_namespace.new_usertype<CardAction::Step>("Step",
-    "drawFunc", &CardAction::Step::drawFunc,
-    "updateFunc", &CardAction::Step::updateFunc,
-    "markDone", &CardAction::Step::markDone
-  );
-
-  const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
-    sol::constructors<CardAction::Attachment(Animation&, const std::string&, SpriteProxyNode&)>(),
-    "UseAnimation", &CardAction::Attachment::UseAnimation,
-    "AddAttachment", &CardAction::Attachment::AddAttachment
+        "OverrideAnimationFrames", &ScriptedCardAction::OverrideAnimationFrames,
+        "AddAttachment", sol::overload(
+            sol::resolve<CardAction::Attachment&(Character&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
+            sol::resolve<CardAction::Attachment&(Animation&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment)
+        ),
+        "AddAnimAction", &ScriptedCardAction::AddAnimAction,
+        "AddStep", &ScriptedCardAction::AddStep,
+        "EndAction", &ScriptedCardAction::EndAction,
+        "GetActor", &ScriptedCardAction::GetActor,
+        "actionEndFunc", &ScriptedCardAction::onActionEnd,
+        "animationEndFunc", &ScriptedCardAction::onAnimationEnd,
+        "executeFunc", &ScriptedCardAction::onExecute,
+        "updateFunc", &ScriptedCardAction::onUpdate,
+        sol::base_classes, sol::bases<CardAction>()
     );
 
     state.set_function("MakeActionLockout",
@@ -501,6 +489,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         ),
         sol::base_classes, sol::bases<DefenseRule>()
         );
+
+    const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
+        sol::constructors<CardAction::Attachment(Animation&, const std::string&, SpriteProxyNode&)>(),
+        "UseAnimation", &CardAction::Attachment::UseAnimation,
+        "AddAttachment", &CardAction::Attachment::AddAttachment
+    );
 
     const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
         sol::factories([](Team team)
