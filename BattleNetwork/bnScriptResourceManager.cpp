@@ -502,12 +502,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         sol::base_classes, sol::bases<DefenseRule>()
         );
 
-    const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
-        sol::constructors<CardAction::Attachment(Animation&, const std::string&, SpriteProxyNode&)>(),
-        "UseAnimation", &CardAction::Attachment::UseAnimation,
-        "AddAttachment", &CardAction::Attachment::AddAttachment
-    );
-
     const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
         sol::factories([](Team team)
             { return new Hitbox(team); }
