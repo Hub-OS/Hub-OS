@@ -419,8 +419,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "SetLockoutGroup", &ScriptedCardAction::SetLockoutGroup,
         "OverrideAnimationFrames", &ScriptedCardAction::OverrideAnimationFrames,
         "AddAttachment", sol::overload(
-            sol::resolve<CardAction::Attachment&(Character&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
-            sol::resolve<CardAction::Attachment&(Animation&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment)
+            sol::resolve<CardAction::Attachment & (Character*, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
+            sol::resolve<CardAction::Attachment & (Animation&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::CardAction::AddAttachment)
         ),
         "AddAnimAction", &ScriptedCardAction::AddAnimAction,
         "AddStep", &ScriptedCardAction::AddStep,
