@@ -20,7 +20,7 @@ ScriptedArtifact::~ScriptedArtifact() { }
 
 void ScriptedArtifact::OnUpdate(double _elapsed)
 {
-	setPosition( GetTile()->getPosition() );
+	setPosition( GetTile()->getPosition() + tileOffset + scriptedOffset );
 
 	if (onUpdate)
 		onUpdate(*this, _elapsed);
@@ -57,6 +57,15 @@ void ScriptedArtifact::Flip()
 	auto scale = getScale();
 
 	setScale( scale.x * -1, scale.y );
+}
+
+void ScriptedArtifact::SetTileOffset(float x, float y)
+{
+	scriptedOffset = { x, y };
+}
+const sf::Vector2f& ScriptedArtifact::GetTileOffset() const
+{
+	return ScriptedArtifact::scriptedOffset;
 }
 
 #endif

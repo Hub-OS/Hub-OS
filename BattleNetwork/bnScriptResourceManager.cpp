@@ -100,7 +100,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         );
 
     // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
-    // If you hold onto their ID instead you will get passed a nullptr/nil in Lua after they've been effectively removed,
+    // If you hold onto their ID, and use that through Field::GetCharacter,
+    // instead you will get passed a nullptr/nil in Lua after they've been effectively removed,
     // rather than potentially holding onto a hanging pointer to deleted data.
     const auto& field_record = battle_namespace.new_usertype<Field>("Field",
         "TileAt", &Field::GetAt,
@@ -113,7 +114,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
             sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity),
             sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity)
         ),
-        "GetCharacter", &Field::GetCharacter
+        "GetCharacter", &Field::GetCharacter,
+        "GetEntity", &Field::GetEntity
         );
 
     const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
@@ -152,34 +154,36 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
             sol::meta_function::new_index, &dynamic_object::dynamic_set,
             sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
             "GetID", &ScriptedSpell::GetID,
-            "SetHeight", &ScriptedSpell::SetHeight,
+            "GetTile", & ScriptedSpell::GetTile,
+            "CurrentTile", & ScriptedSpell::GetCurrentTile,
+            "Field", & ScriptedSpell::GetField,
+            "Slide", & ScriptedSpell::Slide,
+            "Jump", & ScriptedSpell::Jump,
+            "Teleport", & ScriptedSpell::Teleport,
+            "RawMoveEvent", & ScriptedSpell::RawMoveEvent,
+            "IsSliding", & ScriptedSpell::IsSliding,
+            "IsJumping", & ScriptedSpell::IsJumping,
+            "IsTeleporting", & ScriptedSpell::IsTeleporting,
+            "IsMoving", & ScriptedSpell::IsMoving,
+            "Team", & ScriptedSpell::GetTeam,
+            "IsTeammate", & ScriptedSpell::Teammate,
+            "Remove", & ScriptedSpell::Remove,
+            "Delete", & ScriptedSpell::Delete,
+
             "SetTexture", &ScriptedSpell::setTexture,
             "SetLayer", &ScriptedSpell::SetLayer,
-            "GetAnimation", &ScriptedSpell::GetAnimationObject,
-            "GetTile", &ScriptedSpell::GetTile,
-            "Tile", &ScriptedSpell::GetCurrentTile,
-            "Field", &ScriptedSpell::GetField,
-            "Slide", &ScriptedSpell::Slide,
-            "Jump", &ScriptedSpell::Jump,
-            "Teleport", &ScriptedSpell::Teleport,
-            "RawMoveEvent", &ScriptedSpell::RawMoveEvent,
-            "IsSliding", &ScriptedSpell::IsSliding,
-            "IsJumping", &ScriptedSpell::IsJumping,
-            "IsTeleporting", &ScriptedSpell::IsTeleporting,
-            "IsMoving", &ScriptedSpell::IsMoving,
-            "SetPosition", &ScriptedSpell::SetTileOffset,
-            "GetPosition", &ScriptedSpell::GetTileOffset,
-            "ShowShadow", &ScriptedSpell::ShowShadow,
-            "Teammate", &ScriptedSpell::Teammate,
             "AddNode", &ScriptedSpell::AddNode,
-            "Delete", &ScriptedSpell::Delete,
+
             "HighlightTile", &ScriptedSpell::HighlightTile,
             "GetHitProps", &ScriptedSpell::GetHitboxProperties,
             "SetHitProps", &ScriptedSpell::SetHitboxProperties,
-            "GetTileOffset", &ScriptedSpell::GetTileOffset,
+
+            "GetAnimation", &ScriptedSpell::GetAnimationObject,
             "ShakeCamera", &ScriptedSpell::ShakeCamera,
-            "Remove", &ScriptedSpell::Remove,
-            "Team", &ScriptedSpell::GetTeam,
+            "SetHeight", & ScriptedSpell::SetHeight,
+            "SetPosition", &ScriptedSpell::SetTileOffset,
+            "GetPosition", &ScriptedSpell::GetTileOffset,
+            "ShowShadow", & ScriptedSpell::ShowShadow,
             "attackFunc", &ScriptedSpell::attackCallback,
             "deleteFunc", &ScriptedSpell::deleteCallback,
             "updateFunc", &ScriptedSpell::updateCallback,
@@ -197,42 +201,49 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         sol::meta_function::new_index, &dynamic_object::dynamic_set,
         sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
         "GetID", &ScriptedObstacle::GetID,
-        "SetHeight", &ScriptedObstacle::SetHeight,
-        "SetTexture", &ScriptedObstacle::setTexture,
+        "GetElement", &ScriptedObstacle::GetElement,
+        "SetElement", &ScriptedObstacle::SetElement,
+        "GetTile", & ScriptedObstacle::GetTile,
+        "CurrentTile", & ScriptedObstacle::GetCurrentTile,
+        "Field", & ScriptedObstacle::GetField,
+        "Facing", &ScriptedObstacle::GetFacing,
+        "Slide", & ScriptedObstacle::Slide,
+        "Jump", & ScriptedObstacle::Jump,
+        "Teleport", & ScriptedObstacle::Teleport,
+        "RawMoveEvent", & ScriptedObstacle::RawMoveEvent,
+        "IsSliding", & ScriptedObstacle::IsSliding,
+        "IsJumping", & ScriptedObstacle::IsJumping,
+        "IsTeleporting", & ScriptedObstacle::IsTeleporting,
+        "IsMoving", & ScriptedObstacle::IsMoving,
+        "IsTeammate", & ScriptedObstacle::Teammate,
+        "Team", & ScriptedObstacle::GetTeam,
+        "Remove", & ScriptedObstacle::Remove,
+        "Delete", & ScriptedObstacle::Delete,
+
         "GetName", &ScriptedObstacle::GetName,
         "GetHealth", &ScriptedObstacle::GetHealth,
         "GetMaxHealth", &ScriptedObstacle::GetMaxHealth,
         "SetName", &ScriptedObstacle::SetName,
         "SetHealth", &ScriptedObstacle::SetHealth,
-        "SetHeight", &ScriptedObstacle::SetHeight,
+        "ShareTile", & ScriptedObstacle::ShareTileSpace,
+        "AddDefenseRule", & ScriptedObstacle::AddDefenseRule,
+
+        "SetTexture", & ScriptedObstacle::setTexture,
         "SetLayer", &ScriptedObstacle::SetLayer,
         "GetAnimation", &ScriptedObstacle::GetAnimationObject,
-        "SetPosition", &ScriptedObstacle::SetTileOffset,
-        "GetPosition", &ScriptedObstacle::GetTileOffset,
-        "GetTile", &ScriptedObstacle::GetTile,
-        "Tile", &ScriptedObstacle::GetCurrentTile,
-        "Field", &ScriptedObstacle::GetField,
-        "Slide", &ScriptedObstacle::Slide,
-        "Jump", &ScriptedObstacle::Jump,
-        "Teleport", &ScriptedObstacle::Teleport,
-        "RawMoveEvent", &ScriptedObstacle::RawMoveEvent,
-        "IsSliding", &ScriptedObstacle::IsSliding,
-        "IsJumping", &ScriptedObstacle::IsJumping,
-        "IsTeleporting", &ScriptedObstacle::IsTeleporting,
-        "IsMoving", &ScriptedObstacle::IsMoving,
-        "ShowShadow", &ScriptedObstacle::ShowShadow,
-        "Teammate", &ScriptedObstacle::Teammate,
         "AddNode", &ScriptedObstacle::AddNode,
-        "Delete", &ScriptedObstacle::Delete,
+
         "HighlightTile", &ScriptedObstacle::HighlightTile,
         "GetHitProps", &ScriptedObstacle::GetHitboxProperties,
         "SetHitProps", &ScriptedObstacle::SetHitboxProperties,
+
         "IgnoreCommonAggressor", &ScriptedObstacle::IgnoreCommonAggressor,
+
+        "SetHeight", & ScriptedObstacle::SetHeight,
+        "ShowShadow", & ScriptedObstacle::ShowShadow,
         "ShakeCamera", &ScriptedObstacle::ShakeCamera,
-        "Remove", &ScriptedObstacle::Remove,
-        "ShareTile", &ScriptedObstacle::ShareTileSpace,
-        "AddDefenseRule", &ScriptedObstacle::AddDefenseRule,
-        "Team", &ScriptedObstacle::GetTeam,
+        "SetPosition", & ScriptedObstacle::SetTileOffset,
+        "GetPosition", & ScriptedObstacle::GetTileOffset,
         "attackFunc", &ScriptedObstacle::attackCallback,
         "deleteFunc", &ScriptedObstacle::deleteCallback,
         "updateFunc", &ScriptedObstacle::updateCallback,
@@ -240,104 +251,130 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "onSpawnFunc", &ScriptedObstacle::spawnCallback
         );
 
-  const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
-    sol::meta_function::index,
-    &dynamic_object::dynamic_get,
-    sol::meta_function::new_index,
-    &dynamic_object::dynamic_set,
-    sol::meta_function::length,
-    [](dynamic_object& d) { return d.entries.size(); },
-    "GetName", &ScriptedCharacter::GetName,
-    "GetID", &ScriptedCharacter::GetID,
-    "GetRank", &ScriptedCharacter::GetRank,
-    "SetRank", &ScriptedCharacter::SetRank,
-    "GetHealth", &ScriptedCharacter::GetHealth,
-    "GetMaxHealth", &ScriptedCharacter::GetMaxHealth,
-    "SetPosition", &ScriptedCharacter::SetTileOffset,
-    "GetPosition", &ScriptedCharacter::GetTileOffset,
-    "SetName", &ScriptedCharacter::SetName,
-    "SetHealth", &ScriptedCharacter::SetHealth,
-    "SetHeight", &ScriptedCharacter::SetHeight,
-    "SetTexture", &ScriptedCharacter::setTexture,
-    "GetAnimation", &ScriptedCharacter::GetAnimationObject,
-    "GetTile", &ScriptedCharacter::GetTile,
-    "Tile", &ScriptedCharacter::GetCurrentTile,
-    "Field", &ScriptedCharacter::GetField,
-	"Facing", &ScriptedCharacter::GetFacing,
-    "Target", &ScriptedCharacter::GetTarget,
-    "Slide", &ScriptedCharacter::Slide,
-    "Jump", &ScriptedCharacter::Jump,
-    "Teleport", &ScriptedCharacter::Teleport,
-    "RawMoveEvent", &ScriptedCharacter::RawMoveEvent,
-    "IsSliding", &ScriptedCharacter::IsSliding,
-    "IsJumping", &ScriptedCharacter::IsJumping,
-    "IsTeleporting", &ScriptedCharacter::IsTeleporting,
-    "IsMoving", &ScriptedCharacter::IsMoving,
-    "ShareTile", &ScriptedCharacter::ShareTileSpace,
-    "Teammate", &ScriptedCharacter::Teammate,
-    "AddNode", &ScriptedCharacter::AddNode,
-    "ShakeCamera", &ScriptedCharacter::ShakeCamera,
-    "AddDefenseRule", &ScriptedCharacter::AddDefenseRule,
-    "Team", &ScriptedCharacter::GetTeam,
-    sol::base_classes, sol::bases<Character>()
+    const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
+        sol::meta_function::index,
+		&dynamic_object::dynamic_get,
+        sol::meta_function::new_index,
+		&dynamic_object::dynamic_set,
+        sol::meta_function::length,
+		[](dynamic_object& d) { return d.entries.size(); },
+        sol::base_classes, sol::bases<Character>(),
+        "GetID", &ScriptedCharacter::GetID,
+        "GetElement", &ScriptedCharacter::GetElement,
+        "SetElement", &ScriptedCharacter::SetElement,
+        "GetTile", &ScriptedCharacter::GetTile,
+        "CurrentTile", &ScriptedCharacter::GetCurrentTile,
+        "Field", &ScriptedCharacter::GetField,
+        "Facing", &ScriptedCharacter::GetFacing,
+        "Target", &ScriptedCharacter::GetTarget,
+        "Slide", &ScriptedCharacter::Slide,
+        "Jump", &ScriptedCharacter::Jump,
+        "Teleport", &ScriptedCharacter::Teleport,
+        "RawMoveEvent", &ScriptedCharacter::RawMoveEvent,
+        "IsSliding", &ScriptedCharacter::IsSliding,
+        "IsJumping", &ScriptedCharacter::IsJumping,
+        "IsTeleporting", &ScriptedCharacter::IsTeleporting,
+        "IsMoving", &ScriptedCharacter::IsMoving,
+        "Team", &ScriptedCharacter::GetTeam,
+        "IsTeammate", &ScriptedCharacter::Teammate,
+
+        "SetTexture", &ScriptedCharacter::setTexture,
+        "AddNode", &ScriptedCharacter::AddNode,
+
+        "GetName", &ScriptedCharacter::GetName,
+        "GetHealth", &ScriptedCharacter::GetHealth,
+        "GetMaxHealth", &ScriptedCharacter::GetMaxHealth,
+        "SetName", &ScriptedCharacter::SetName,
+        "SetHealth", &ScriptedCharacter::SetHealth,
+        "GetRank", &ScriptedCharacter::GetRank,
+        "SetRank", &ScriptedCharacter::SetRank,
+        "ShareTile", &ScriptedCharacter::ShareTileSpace,
+        "AddDefenseRule", &ScriptedCharacter::AddDefenseRule,
+
+        "SetPosition", &ScriptedCharacter::SetTileOffset,
+        "GetPosition", &ScriptedCharacter::GetTileOffset,
+        "SetHeight", &ScriptedCharacter::SetHeight,
+        "GetAnimation", &ScriptedCharacter::GetAnimationObject,
+        "ShakeCamera", &ScriptedCharacter::ShakeCamera
     );
 	
     // Adding in bindings for Character* type objects to sol.
     // Without adding these in, it has no idea what to do with Character* objects passed up to it,
     // even though there's bindings for ScriptedCharacter already done.
     const auto& basic_character_record = battle_namespace.new_usertype<Character>( "BasicCharacter",
-        "GetName", &Character::GetName,
         "GetID", &Character::GetID,
-        "GetRank", &Character::GetRank,
-        "GetHealth", &Character::GetHealth,
-        "GetMaxHealth", &Character::GetMaxHealth,
-        "SetHealth", &Character::SetHealth,
-        "Facing", &Character::GetFacing,
+        "GetElement", &Character::GetElement,
+        "GetTile", &Character::GetTile,
+        "CurrentTile", &Character::GetCurrentTile,
         "Field", &Character::GetField,
-        "Team", &Character::GetTeam,
-        "Tile", &Character::GetTile,
+        "Facing", &Character::GetFacing,
         "IsSliding", &Character::IsSliding,
         "IsJumping", &Character::IsJumping,
         "IsTeleporting", &Character::IsTeleporting,
         "IsMoving", &Character::IsMoving,
-        "Teammate", &Character::Teammate
-    );
+        "IsTeammate", &Character::Teammate,
+        "Team", &Character::GetTeam,
 
-  const auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
-	"GetName", &ScriptedPlayer::GetName,
-	"GetID", &ScriptedPlayer::GetID,
-	"GetHealth", &ScriptedPlayer::GetHealth,
-	"GetMaxHealth", &ScriptedPlayer::GetMaxHealth,
-	"SetName", &ScriptedPlayer::SetName,
-	"SetHealth", &ScriptedPlayer::SetHealth,
-	"SetTexture", &ScriptedPlayer::setTexture,
-	"SetElement", &ScriptedPlayer::SetElement,
-	"GetTile", &ScriptedPlayer::GetTile,
-	"Field", &ScriptedPlayer::GetField,
-	"Tile", &ScriptedPlayer::GetCurrentTile,
-	"SetHeight", &ScriptedPlayer::SetHeight,
-	"SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
-	"SetChargePosition", &ScriptedPlayer::SetChargePosition,
-	"GetAnimation", &ScriptedPlayer::GetAnimationObject,
-	"SetAnimation", &ScriptedPlayer::SetAnimation,
-	"SetFloatShoe", &ScriptedPlayer::SetFloatShoe,
-	"SetAirShoe", &ScriptedPlayer::SetAirShoe,
-	"SlideWhenMoving", &ScriptedPlayer::SlideWhenMoving,
-	"Team", &ScriptedPlayer::GetTeam,
-	sol::base_classes, sol::bases<Player>()
+        "GetName", &Character::GetName,
+        "GetRank", &Character::GetRank,
+        "GetHealth", &Character::GetHealth,
+        "GetMaxHealth", &Character::GetMaxHealth,
+        "SetHealth", &Character::SetHealth
+    );
+	
+    const auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
+        sol::base_classes, sol::bases<Player>(),
+        "GetID", &ScriptedPlayer::GetID,
+        "GetElement", &ScriptedPlayer::GetElement,
+        "SetElement", &ScriptedPlayer::SetElement,
+        "GetTile", &ScriptedPlayer::GetTile,
+        "CurrentTile", &ScriptedPlayer::GetCurrentTile,
+        "Field", &ScriptedPlayer::GetField,
+        "Facing", &ScriptedPlayer::GetFacing,
+        "Slide", &ScriptedPlayer::Slide,
+        "Jump", &ScriptedPlayer::Jump,
+        "Teleport", &ScriptedPlayer::Teleport,
+        "RawMoveEvent", &ScriptedPlayer::RawMoveEvent,
+        "IsSliding", &ScriptedPlayer::IsSliding,
+        "IsJumping", &ScriptedPlayer::IsJumping,
+        "IsTeleporting", &ScriptedPlayer::IsTeleporting,
+        "IsMoving", &ScriptedPlayer::IsMoving,
+        "Team", &ScriptedPlayer::GetTeam,
+
+        "GetName", &ScriptedPlayer::GetName,
+        "GetHealth", &ScriptedPlayer::GetHealth,
+        "GetMaxHealth", &ScriptedPlayer::GetMaxHealth,
+        "SetName", &ScriptedPlayer::SetName,
+        "SetHealth", &ScriptedPlayer::SetHealth,
+        "SetTexture", &ScriptedPlayer::setTexture,
+
+        "SetAnimation", & ScriptedPlayer::SetAnimation,
+        "SetHeight", &ScriptedPlayer::SetHeight,
+        "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
+        "SetChargePosition", &ScriptedPlayer::SetChargePosition,
+        "GetAnimation", &ScriptedPlayer::GetAnimationObject,
+        "SetFloatShoe", &ScriptedPlayer::SetFloatShoe,
+        "SetAirShoe", &ScriptedPlayer::SetAirShoe,
+        "SlideWhenMoving", &ScriptedPlayer::SlideWhenMoving
     );
 
   const auto& player_record = battle_namespace.new_usertype<Player>("BasicPlayer",
-	sol::base_classes, sol::bases<Character>(),
-	"GetName", &Player::GetName,
-	"GetID", &Player::GetID,
-	"GetHealth", &Player::GetHealth,
-	"GetMaxHealth", &Player::GetMaxHealth,
-	"GetTile", &Player::GetTile,
-	"Field", &Player::GetField,
-	"Team", &Player::GetTeam
+        sol::base_classes, sol::bases<Character>(),
+        "GetID", &Player::GetID,
+        "GetTile", &Player::GetTile,
+        "CurrentTile", &Player::GetCurrentTile,
+        "Field", &Player::GetField,
+        "Facing", &Player::GetFacing,
+        "IsSliding", &Player::IsSliding,
+        "IsJumping", &Player::IsJumping,
+        "IsTeleporting", &Player::IsTeleporting,
+        "IsMoving", &Player::IsMoving,
+        "Team", &Player::GetTeam,
+
+        "GetName", &Player::GetName,
+        "GetHealth", &Player::GetHealth,
+        "GetMaxHealth", &Player::GetMaxHealth
     );
-	
     const auto& scripted_artifact_record = engine_namespace.new_usertype<ScriptedArtifact>("Artifact",
         sol::factories([]() -> std::unique_ptr<ScriptedArtifact> {
             return std::make_unique<ScriptedArtifact>();
@@ -345,27 +382,32 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         sol::meta_function::index, &dynamic_object::dynamic_get,
         sol::meta_function::new_index, &dynamic_object::dynamic_set,
         sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-        "Flip", &ScriptedArtifact::Flip,
-        "SetAnimation", &ScriptedArtifact::SetAnimation,
-        "SetLayer", &ScriptedArtifact::SetLayer,
-        "SetPath", &ScriptedArtifact::SetPath,
-        "SetTexture", &ScriptedArtifact::setTexture,
-        "updateFunc", &ScriptedArtifact::onUpdate);
+        "GetID", &ScriptedArtifact::GetID,
+        "GetTile", &ScriptedArtifact::GetTile,
+        "Field", &ScriptedArtifact::GetField,
+        "Slide", &ScriptedArtifact::Slide,
+        "Teleport", &ScriptedArtifact::Teleport,
 
-    // Had it crash when using ScriptedPlayer* values so had to expose other versions for it to cooperate.
-  const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
-    sol::factories(
-        [](Character* character, const std::string& state)-> ScriptedCardAction * { //std::unique_ptr<ScriptedCardAction> {
-            return new ScriptedCardAction(*character, state);
-            // return std::make_unique<ScriptedCardAction>(*character, state);
+        "SetTexture", & ScriptedArtifact::setTexture,
+        "SetLayer", &ScriptedArtifact::SetLayer,
+
+        "SetAnimation", &ScriptedArtifact::SetAnimation,
+        "SetPath", &ScriptedArtifact::SetPath,
+        "Flip", & ScriptedArtifact::Flip,
+        "updateFunc", &ScriptedArtifact::onUpdate
+    );
+
+    // Most things use Character* references but we will maybe have to consolidate all the interfaces for characters into one type.
+    const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
+        sol::factories(
+        [](Character* character, const std::string& state)-> std::unique_ptr<ScriptedCardAction> {
+                return std::make_unique<ScriptedCardAction>(*character, state);
         },
-        [](ScriptedPlayer* character, const std::string& state) -> ScriptedCardAction* { //std::unique_ptr<ScriptedCardAction> {
-            return new ScriptedCardAction(*character, state);
-            // return std::make_unique<ScriptedCardAction>(*character, state);
+        [](ScriptedPlayer* character, const std::string& state) -> std::unique_ptr<ScriptedCardAction> {
+            return std::make_unique<ScriptedCardAction>(*character, state);
         }, 
-        [](ScriptedCharacter* character, const std::string& state) -> ScriptedCardAction* { //std::unique_ptr<ScriptedCardAction> {
-            return new ScriptedCardAction(*character, state);
-            // return std::make_unique<ScriptedCardAction>(*character, state);
+        [](ScriptedCharacter* character, const std::string& state) -> std::unique_ptr<ScriptedCardAction> {
+            return std::make_unique<ScriptedCardAction>(*character, state);
         }
         ),
     sol::meta_function::index,
@@ -754,6 +796,16 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Bubble", Hit::bubble,
         "Freeze", Hit::freeze,
         "Drag", Hit::drag
+    );
+
+    const auto& character_rank_record = state.new_enum("Rank",
+        "V1", Character::Rank::_1,
+        "V2", Character::Rank::_2,
+        "V3", Character::Rank::_3,
+        "SP", Character::Rank::SP,
+        "EX", Character::Rank::EX,
+        "Rare1", Character::Rank::Rare1,
+        "Rare2", Character::Rank::Rare2
     );
 
     const auto& audio_type_record = state.new_enum("AudioType", 

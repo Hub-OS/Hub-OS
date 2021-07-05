@@ -17,7 +17,6 @@ CardAction::Attachment& ScriptedCardAction::AddAttachment(Character* character, 
 
 void ScriptedCardAction::Update(double elapsed) {
   CardAction::Update(elapsed);
-
   if (onUpdate) {
     onUpdate(*this, elapsed);
   }
