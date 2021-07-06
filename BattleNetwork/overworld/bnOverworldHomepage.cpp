@@ -419,8 +419,8 @@ void Overworld::Homepage::onEnd()
   }
 }
 
-void Overworld::Homepage::OnInteract(const InputEvent& event) {
-  if(event != InputEvents::pressed_interact) {
+void Overworld::Homepage::OnInteract(Interaction type) {
+  if(type != Interaction::action) {
     return;
   }
 
@@ -434,7 +434,7 @@ void Overworld::Homepage::OnInteract(const InputEvent& event) {
     auto collision = player->CollidesWith(*other, targetOffset);
 
     if (collision) {
-      other->Interact(player, event);
+      other->Interact(player, type);
       break;
     }
   }

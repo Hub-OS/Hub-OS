@@ -22,6 +22,7 @@
 #include "../bnInbox.h"
 
 // overworld
+#include "bnOverworldInteraction.h"
 #include "bnOverworldCameraController.h"
 #include "bnOverworldSprite.h"
 #include "bnOverworldActor.h"
@@ -296,6 +297,6 @@ namespace Overworld {
     // Required implementations
     //
     virtual void OnTileCollision() = 0;
-    virtual void OnInteract(const InputEvent& event) = 0;
+    virtual void OnInteract(Interaction type) = 0;
   };
 }
