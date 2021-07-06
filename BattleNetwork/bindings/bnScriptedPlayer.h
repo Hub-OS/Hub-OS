@@ -30,6 +30,7 @@ public:
   void SetFullyChargeColor(const sf::Color& color);
   void SetHeight(const float height);
   void SetAnimation(const std::string& path);
+  void OnUpdate(double _elapsed) override;
   const float GetHeight() const;
   Animation& GetAnimationObject();
   Battle::Tile* GetCurrentTile() const;
