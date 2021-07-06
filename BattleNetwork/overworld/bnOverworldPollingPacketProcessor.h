@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bnPacketHeaders.h"
+#include "bnOverworldPacketHeaders.h"
 #include "../netplay/bnPacketShipper.h"
 #include "../bnIPacketProcessor.h"
 #include <Swoosh/Timer.h>

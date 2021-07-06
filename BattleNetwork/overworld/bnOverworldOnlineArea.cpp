@@ -751,15 +751,7 @@ void Overworld::OnlineArea::onResume()
 
 void Overworld::OnlineArea::OnTileCollision() { }
 
-void Overworld::OnlineArea::OnInteract() {
-  onInteract(0);
-}
-
-void Overworld::OnlineArea::OnInspect() {
-  onInteract(1);
-}
-
-void Overworld::OnlineArea::onInteract(uint8_t button) {
+void Overworld::OnlineArea::OnInteract(const InputEvent& event) {
   auto& map = GetMap();
   auto playerActor = GetPlayer();
 
@@ -774,7 +766,7 @@ void Overworld::OnlineArea::onInteract(uint8_t button) {
     auto interactable = tileObject.visible || tileObject.solid;
 
     if (interactable && tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
-      sendObjectInteractionSignal(tileObject.id, button);
+      sendObjectInteractionSignal(tileObject.id, event);
 
       // block other interactions with return
       return;
@@ -794,12 +786,7 @@ void Overworld::OnlineArea::onInteract(uint8_t button) {
     auto collision = playerActor->CollidesWith(*other, positionInFrontOffset);
 
     if (collision) {
-      if (button == 0) {
-        other->Interact(playerActor);
-      }
-      else {
-        other->Inspect(playerActor);
-      }
+      other->Interact(playerActor, event);
 
       // block other interactions with return
       return;
@@ -810,7 +797,7 @@ void Overworld::OnlineArea::onInteract(uint8_t button) {
     frontPosition.x / (float)(tileSize.x / 2),
     frontPosition.y / tileSize.y,
     playerActor->GetElevation(),
-    button
+    event
   );
 }
 
@@ -1234,27 +1221,27 @@ void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId, uint8_t button)
+void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId, const InputEvent& event)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::object_interaction);
   writer.Write(buffer, tileObjectId);
-  writer.Write(buffer, button);
+  writer.Write(buffer, InputToServerButton(event));
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket, uint8_t button)
+void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket, const InputEvent& event)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::actor_interaction);
   writer.WriteString<uint16_t>(buffer, ticket);
-  writer.Write(buffer, button);
+  writer.Write(buffer, InputToServerButton(event));
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z, uint8_t button)
+void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z, const InputEvent& event)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
@@ -1262,7 +1249,7 @@ void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z,
   writer.Write(buffer, x);
   writer.Write(buffer, y);
   writer.Write(buffer, z);
-  writer.Write(buffer, button);
+  writer.Write(buffer, InputToServerButton(event));
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
@@ -2093,11 +2080,8 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     actor->SetSolid(solid);
     actor->CollideWithMap(false);
     actor->SetCollisionRadius(6);
-    actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with) {
-      sendNaviInteractionSignal(ticket, 0);
-    });
-    actor->SetInspectCallback([=](const std::shared_ptr<Actor>& with) {
-      sendNaviInteractionSignal(ticket, 1);
+    actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with, const InputEvent& event) {
+      sendNaviInteractionSignal(ticket, event);
     });
 
     AddActor(actor);

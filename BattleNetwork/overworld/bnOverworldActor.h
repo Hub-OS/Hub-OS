@@ -7,6 +7,7 @@
 #include "../bnDirection.h"
 #include "../bnAnimation.h"
 #include "../bnDrawWindow.h"
+#include "../bnInputEvent.h"
 
 #include <map>
 #include <optional>
@@ -48,8 +49,7 @@ namespace Overworld {
     sf::Vector2f pos{}; //!< 2d position in cartesian coordinates
     std::string name{}; //!< name of this character
     std::string lastStateStr{}; //!< String representing the last frame's state name
-    std::function<void(std::shared_ptr<Actor> with)> onInteractFunc; //!< What happens if an actor interacts with the other
-    std::function<void(std::shared_ptr<Actor> with)> onInspectFunc; //!< What happens if an actor inspectss the other
+    std::function<void(std::shared_ptr<Actor> with, const InputEvent& event)> onInteractFunc; //!< What happens if an actor interacts with the other
     float collisionRadius{ 1.0 }; //px
     bool solid{ true };
     bool collidesWithMap{ true };
@@ -224,10 +224,8 @@ namespace Overworld {
     void SetSolid(bool solid);
     float GetCollisionRadius();
     void SetCollisionRadius(float radius);
-    void SetInteractCallback(const std::function<void(std::shared_ptr<Actor>)>& func);
-    void SetInspectCallback(const std::function<void(std::shared_ptr<Actor>)>& func);
-    void Interact(const std::shared_ptr<Actor>& with);
-    void Inspect(const std::shared_ptr<Actor>& with);
+    void SetInteractCallback(const std::function<void(std::shared_ptr<Actor>, const InputEvent&)>& func);
+    void Interact(const std::shared_ptr<Actor>& with, const InputEvent& event);
 
     const std::optional<sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
     const std::pair<bool, sf::Vector3f> CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap);

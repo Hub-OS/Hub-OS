@@ -35,7 +35,6 @@ namespace Overworld {
     void onLeave() override;
 
     void OnTileCollision() override;
-    void OnInteract() override;
-    void OnInspect() override;
+    void OnInteract(const InputEvent& event) override;
   };
 }

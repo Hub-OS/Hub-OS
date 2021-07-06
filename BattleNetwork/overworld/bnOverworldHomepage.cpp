@@ -109,7 +109,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
 
     // we ensure pointer to mrprog is alive because when we interact, 
     // mrprog must've been alive to interact in the first place...
-    mrprog->SetInteractCallback([mrprog = mrprog.get(), this](const std::shared_ptr<Overworld::Actor>& with) {
+    mrprog->SetInteractCallback([mrprog = mrprog.get(), this](const auto& with, const auto& event) {
       // Face them
       mrprog->Face(*with);
 
@@ -151,7 +151,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
     mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
 
-    mrprog->SetInteractCallback([mrprog = mrprog.get(), this](const std::shared_ptr<Overworld::Actor>& with) {
+    mrprog->SetInteractCallback([mrprog = mrprog.get(), this](const auto& with, const auto& event) {
       // Face them
       mrprog->Face(*with);
 
@@ -419,7 +419,11 @@ void Overworld::Homepage::onEnd()
   }
 }
 
-void Overworld::Homepage::OnInteract() {
+void Overworld::Homepage::OnInteract(const InputEvent& event) {
+  if(event != InputEvents::pressed_interact) {
+    return;
+  }
+
   auto player = GetPlayer();
   auto targetPos = player->PositionInFrontOf();
   auto targetOffset = targetPos - player->getPosition();
@@ -430,11 +434,8 @@ void Overworld::Homepage::OnInteract() {
     auto collision = player->CollidesWith(*other, targetOffset);
 
     if (collision) {
-      other->Interact(player);
+      other->Interact(player, event);
       break;
     }
   }
-}
-
-void Overworld::Homepage::OnInspect() {
 }

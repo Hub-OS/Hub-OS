@@ -12,7 +12,7 @@
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldPacketProcessor.h"
 #include "bnOverworldActorPropertyAnimator.h"
-#include "bnPacketHeaders.h"
+#include "bnOverworldPacketHeaders.h"
 #include "bnServerAssetManager.h"
 #include "bnIdentityManager.h"
 
@@ -107,9 +107,9 @@ namespace Overworld {
     void sendAvatarChangeSignal();
     void sendAvatarAssetStream();
     void sendEmoteSignal(const Overworld::Emotes emote);
-    void sendObjectInteractionSignal(unsigned int tileObjectId, uint8_t button);
-    void sendNaviInteractionSignal(const std::string& ticket, uint8_t button);
-    void sendTileInteractionSignal(float x, float y, float z, uint8_t button);
+    void sendObjectInteractionSignal(unsigned int tileObjectId, const InputEvent& event);
+    void sendNaviInteractionSignal(const std::string& ticket, const InputEvent& event);
+    void sendTileInteractionSignal(float x, float y, float z, const InputEvent& event);
     void sendTextBoxResponseSignal(char response);
     void sendPromptResponseSignal(const std::string& response);
     void sendBoardOpenSignal();
@@ -195,8 +195,7 @@ namespace Overworld {
     void onResume() override;
 
     void OnTileCollision() override;
-    void OnInteract() override;
-    void OnInspect() override;
+    void OnInteract(const InputEvent& event) override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
   };
 }

@@ -1,5 +1,5 @@
 #include "bnOverworldPacketProcessor.h"
-#include "bnPacketHeaders.h"
+#include "bnOverworldPacketHeaders.h"
 #include "../netplay/bnBufferReader.h"
 
 constexpr double KEEP_ALIVE_RATE = 1.0f;

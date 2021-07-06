@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string>
+#include "../bnInputEvent.h"
 
 namespace Overworld
 {
@@ -110,4 +111,12 @@ namespace Overworld
     texture,
     audio
   };
+
+  inline uint8_t InputToServerButton(const InputEvent& event) {
+    if (event == InputEvents::pressed_shoulder_left) {
+      return 1;
+    }
+
+    return 0;
+  }
 } // namespace Overworld
