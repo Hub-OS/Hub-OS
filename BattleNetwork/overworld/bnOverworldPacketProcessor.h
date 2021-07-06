@@ -1,5 +1,5 @@
 #pragma once
-#include "bnPacketHeaders.h"
+#include "bnOverworldPacketHeaders.h"
 #include "../netplay/bnPacketShipper.h"
 #include "../netplay/bnPacketSorter.h"
 #include "../bnIPacketProcessor.h"

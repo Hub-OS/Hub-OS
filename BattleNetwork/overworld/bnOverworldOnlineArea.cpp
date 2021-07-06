@@ -223,8 +223,9 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     using effect = swoosh::types::segue<BlendFadeIn>;
     getController().push<effect::to<DownloadScene>>(props);
     return;
-  }else if (canProceedToBattle) {
-    // Shuffle our folder
+  }  
+else if (canProceedToBattle) {
+   // Shuffle our folder
     folder->Shuffle();
 
     NetPlayConfig config;
@@ -750,7 +751,7 @@ void Overworld::OnlineArea::onResume()
 
 void Overworld::OnlineArea::OnTileCollision() { }
 
-void Overworld::OnlineArea::OnInteract() {
+void Overworld::OnlineArea::OnInteract(Interaction type) {
   auto& map = GetMap();
   auto playerActor = GetPlayer();
 
@@ -765,7 +766,7 @@ void Overworld::OnlineArea::OnInteract() {
     auto interactable = tileObject.visible || tileObject.solid;
 
     if (interactable && tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
-      sendObjectInteractionSignal(tileObject.id);
+      sendObjectInteractionSignal(tileObject.id, type);
 
       // block other interactions with return
       return;
@@ -785,7 +786,7 @@ void Overworld::OnlineArea::OnInteract() {
     auto collision = playerActor->CollidesWith(*other, positionInFrontOffset);
 
     if (collision) {
-      other->Interact(playerActor);
+      other->Interact(playerActor, type);
 
       // block other interactions with return
       return;
@@ -795,7 +796,8 @@ void Overworld::OnlineArea::OnInteract() {
   sendTileInteractionSignal(
     frontPosition.x / (float)(tileSize.x / 2),
     frontPosition.y / tileSize.y,
-    playerActor->GetElevation()
+    playerActor->GetElevation(),
+    type
   );
 }
 
@@ -1219,25 +1221,27 @@ void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId)
+void Overworld::OnlineArea::sendObjectInteractionSignal(unsigned int tileObjectId, Interaction type)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::object_interaction);
   writer.Write(buffer, tileObjectId);
+  writer.Write(buffer, type);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket)
+void Overworld::OnlineArea::sendNaviInteractionSignal(const std::string& ticket, Interaction type)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::actor_interaction);
   writer.WriteString<uint16_t>(buffer, ticket);
+  writer.Write(buffer, type);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
+void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z, Interaction type)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
@@ -1245,6 +1249,7 @@ void Overworld::OnlineArea::sendTileInteractionSignal(float x, float y, float z)
   writer.Write(buffer, x);
   writer.Write(buffer, y);
   writer.Write(buffer, z);
+  writer.Write(buffer, type);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
@@ -1712,7 +1717,7 @@ void Overworld::OnlineArea::receiveFadeCameraSignal(BufferReader& reader, const 
   auto duration = sf::seconds(reader.Read<float>(buffer));
 
   uint8_t rgba[4];
-  
+
   rgba[0] = reader.Read<uint8_t>(buffer);
   rgba[1] = reader.Read<uint8_t>(buffer);
   rgba[2] = reader.Read<uint8_t>(buffer);
@@ -2075,8 +2080,8 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     actor->SetSolid(solid);
     actor->CollideWithMap(false);
     actor->SetCollisionRadius(6);
-    actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with) {
-      sendNaviInteractionSignal(ticket);
+    actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with, Interaction type) {
+      sendNaviInteractionSignal(ticket, type);
     });
 
     AddActor(actor);

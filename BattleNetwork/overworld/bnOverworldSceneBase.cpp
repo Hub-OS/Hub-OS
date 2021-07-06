@@ -393,7 +393,10 @@ void Overworld::SceneBase::HandleInput() {
   // check to see if talk button was pressed
   if (!IsInputLocked()) {
     if (Input().Has(InputEvents::pressed_interact)) {
-      OnInteract();
+      OnInteract(Interaction::action);
+    }
+    if (Input().Has(InputEvents::pressed_shoulder_left)) {
+      OnInteract(Interaction::inspect);
     }
   }
 

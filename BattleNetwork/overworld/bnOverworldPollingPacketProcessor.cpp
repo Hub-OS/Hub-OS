@@ -1,6 +1,6 @@
 #include "bnOverworldPollingPacketProcessor.h"
 
-#include "bnPacketHeaders.h"
+#include "bnOverworldPacketHeaders.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/bnBufferReader.h"
 #include <optional>

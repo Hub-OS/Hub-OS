@@ -12,7 +12,7 @@
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldPacketProcessor.h"
 #include "bnOverworldActorPropertyAnimator.h"
-#include "bnPacketHeaders.h"
+#include "bnOverworldPacketHeaders.h"
 #include "bnServerAssetManager.h"
 #include "bnIdentityManager.h"
 
@@ -84,6 +84,7 @@ namespace Overworld {
     void HandlePVPStep(const std::string& remoteAddress);
     void ResetPVPStep();
 
+    void onInteract(Interaction type);
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
     void detectWarp(std::shared_ptr<Actor>& player);
@@ -106,9 +107,9 @@ namespace Overworld {
     void sendAvatarChangeSignal();
     void sendAvatarAssetStream();
     void sendEmoteSignal(const Overworld::Emotes emote);
-    void sendObjectInteractionSignal(unsigned int tileObjectId);
-    void sendNaviInteractionSignal(const std::string& ticket);
-    void sendTileInteractionSignal(float x, float y, float z);
+    void sendObjectInteractionSignal(unsigned int tileObjectId, Interaction type);
+    void sendNaviInteractionSignal(const std::string& ticket, Interaction type);
+    void sendTileInteractionSignal(float x, float y, float z, Interaction type);
     void sendTextBoxResponseSignal(char response);
     void sendPromptResponseSignal(const std::string& response);
     void sendBoardOpenSignal();
@@ -194,7 +195,7 @@ namespace Overworld {
     void onResume() override;
 
     void OnTileCollision() override;
-    void OnInteract() override;
+    void OnInteract(Interaction type) override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
   };
 }
