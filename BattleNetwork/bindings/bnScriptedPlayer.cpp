@@ -1,6 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedPlayer.h"
 #include "../bnCardAction.h"
+#include "bnScriptedCardAction.h"
 
 ScriptedPlayer::ScriptedPlayer(sol::state& script) : 
   script(script),
@@ -12,8 +13,8 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   SetLayer(0);
   SetTeam(Team::red);
 
-  script["battle_init"](this);
-
+  script["battle_init"](*this);
+    
   animationComponent->Reload();
   FinishConstructor();
 }
@@ -55,12 +56,22 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
 
 CardAction * ScriptedPlayer::OnExecuteSpecialAction()
 {
-  Character& character = *this;
-  sol::object obj = script["execute_special_attack"](character);
+  sol::object obj = script["execute_special_attack"](*this);
 
   if (obj.valid()) {
-    auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-    return ptr.release();
+      if (obj.is<std::unique_ptr<CardAction>>())
+      {
+          auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
+          return ptr.release();
+      }
+
+      if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+      {
+          auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
+          return ptr.release();
+      }
+
+      Logger::Log("Lua function \"execute_special_attack\" didn't return a CardAction.");
   }
 
   return nullptr;
@@ -68,12 +79,22 @@ CardAction * ScriptedPlayer::OnExecuteSpecialAction()
 
 CardAction* ScriptedPlayer::OnExecuteBusterAction()
 {
-  Character& character = *this;
-  sol::object obj = script["execute_buster_attack"](character);
+  sol::object obj = script["execute_buster_attack"](*this);
 
   if (obj.valid()) {
-    auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-    return ptr.release();
+      if (obj.is<std::unique_ptr<CardAction>>())
+      {
+          auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
+          return ptr.release();
+      }
+
+      if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+      {
+          auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
+          return ptr.release();
+      }
+
+      Logger::Log("Lua function \"execute_buster_attack\" didn't return a CardAction.");
   }
 
   return nullptr;
@@ -81,15 +102,33 @@ CardAction* ScriptedPlayer::OnExecuteBusterAction()
 
 CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
 {
-  Character& character = *this;
-  sol::object obj = script["execute_charged_attack"](character);
+    // Pass along the ScriptedPlayer* reference so that 
+  sol::object obj = script["execute_charged_attack"](*this);
 
   if (obj.valid()) {
-    auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-    return ptr.release();
+      if (obj.is<std::unique_ptr<CardAction>>())
+      {
+          auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
+          return ptr.release();
+      }
+
+      if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+      {
+          auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
+          return ptr.release();
+      }
+
+      Logger::Log("Lua function \"execute_charged_attack\" didn't return a CardAction.");
   }
 
   return nullptr;
+}
+
+void ScriptedPlayer::OnUpdate(double _elapsed)
+{
+    Player::OnUpdate( _elapsed );
+
+    script["on_update"](*this, _elapsed);
 }
 
 #endif

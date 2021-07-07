@@ -664,10 +664,16 @@ Field::queueBucket::queueBucket(int x, int y, Spell& d) : x(x), y(y), entity_typ
 }
 
 #ifdef BN_MOD_SUPPORT
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedArtifact>& arti, int x, int y)
+{
+    Artifact* ptr = arti.release();
+    return AddEntity(*ptr, x, y);
+}
+
 Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y)
 {
-  Spell* ptr = spell.release();
-  return AddEntity(*ptr, x, y);
+    Spell* ptr = spell.release();
+    return AddEntity(*ptr, x, y);
 }
 
 Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y)

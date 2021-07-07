@@ -58,10 +58,10 @@ function UpwardFist(duo)
     fistAnim:OnFrame(2, closure(), true)
 
     fist.updateFunc = function(self, dt) 
-        self:Tile():AttackEntities(self)
+        self:CurrentTile():AttackEntities(self)
 
         if self:IsSliding() == false then 
-            if self:Tile():IsEdge() then 
+            if self:CurrentTile():IsEdge() then 
                 self:Delete()
             end 
 
@@ -117,10 +117,10 @@ function DownwardFist(duo)
     fistAnim:OnFrame(2, closure(), true)
 
     fist.updateFunc = function(self, dt) 
-        self:Tile():AttackEntities(self)
+        self:CurrentTile():AttackEntities(self)
 
         if self:IsSliding() == false then 
-            if self:Tile():Y() == 4 then 
+            if self:CurrentTile():Y() == 4 then 
                 self:Delete()
             end 
 
@@ -176,7 +176,7 @@ function Mine(duo)
 
     mine.updateFunc = function(self, dt) 
         --print("updating mine")
-        local tile = self:Tile()
+        local tile = self:CurrentTile()
 
         -- every frame try to attack shared tile
         tile:AttackEntities(self)
@@ -239,7 +239,7 @@ function Mine(duo)
 
     mine.deleteFunc = function(self) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():Spawn(explosion, self:Tile():X(), self:Tile():Y())
+        self:Field():Spawn(explosion, self:CurrentTile():X(), self:CurrentTile():Y())
         self:Remove()
     end
 
@@ -301,7 +301,7 @@ function LaserBeam(duo)
     laserAnim:OnComplete(onComplete())
 
     laser.updateFunc = function(self, dt) 
-        self:Tile():AttackEntities(self)
+        self:CurrentTile():AttackEntities(self)
     end
 
     laser.attackFunc = function(self, other) 
@@ -364,7 +364,7 @@ function Missile(duo)
         end
 
         if self:IsSliding() == false then
-            if self:Tile():IsEdge() then 
+            if self:CurrentTile():IsEdge() then 
                 self:Remove()
             end
 
@@ -373,23 +373,23 @@ function Missile(duo)
             self:Slide(dest, frames(20), frames(0), ActionOrder.Voluntary, nonce)
         end 
 
-        if self:Tile():IsHole() == false then 
+        if self:CurrentTile():IsHole() == false then 
             missile:ShowShadow(true)
         end
 
         -- every frame try to attack shared tile
-        self:Tile():AttackEntities(self)
+        self:CurrentTile():AttackEntities(self)
     end
 
     missile.attackFunc = function(self, other) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():Spawn(explosion, self:Tile():X(), self:Tile():Y())
+        self:Field():Spawn(explosion, self:CurrentTile():X(), self:CurrentTile():Y())
         self:Delete()
     end
 
     missile.deleteFunc = function(self) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():Spawn(explosion, self:Tile():X(), self:Tile():Y())
+        self:Field():Spawn(explosion, self:CurrentTile():X(), self:CurrentTile():Y())
     end
 
     missile.canMoveToFunc = function(tile)
@@ -451,7 +451,7 @@ function ShootLaserState(self, dt)
             local duoRef = self 
             return function() 
                 -- laserComplete gets toggled to false when a laser beam is created
-                duoRef:Field():Spawn(LaserBeam(duoRef), duoRef:Tile():X()-1, duoRef:Tile():Y())
+                duoRef:Field():Spawn(LaserBeam(duoRef), duoRef:CurrentTile():X()-1, duoRef:CurrentTile():Y())
                 NextState()
             end 
         end
@@ -466,13 +466,13 @@ end
 
 function ShootMissileState(self, dt)
     middle:Hide() -- reveal red center
-    self:Field():Spawn(Missile(self), self:Tile():X()-1, self:Tile():Y())
+    self:Field():Spawn(Missile(self), self:CurrentTile():X()-1, self:CurrentTile():Y())
     NextState()
 end 
 
 function ShootMineState(self, dt) 
     middle:Hide() -- reveal red center
-    self:Field():Spawn(Mine(self), self:Tile():X()-1, self:Tile():Y())
+    self:Field():Spawn(Mine(self), self:CurrentTile():X()-1, self:CurrentTile():Y())
     NextState()
 end 
 
@@ -555,13 +555,13 @@ function MoveState(self, dt)
         -- pause before moving again
         if waitTime <= 0 then
             if dir == Direction.Up then 
-                tile = self:Field():TileAt(self:Tile():X(), self:Tile():Y()-1)
+                tile = self:Field():TileAt(self:CurrentTile():X(), self:CurrentTile():Y()-1)
 
                 if can_move_to(tile) == false then 
                     dir = Direction.Down
                 end
             elseif dir == Direction.Down then
-                tile = self:Field():TileAt(self:Tile():X(), self:Tile():Y()+1)
+                tile = self:Field():TileAt(self:CurrentTile():X(), self:CurrentTile():Y()+1)
 
                 if can_move_to(tile) == false then
                     dir = Direction.Up
