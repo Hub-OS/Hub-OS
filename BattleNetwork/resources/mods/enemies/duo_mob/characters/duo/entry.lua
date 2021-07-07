@@ -662,6 +662,11 @@ function battle_init(self)
         if props.flags & Hit.Flinch == Hit.Flinch then
             props.flags = props.flags~Hit.Flinch
         end
+
+        if props.flags & Hit.Drag == Hit.Drag then
+            props.flags = props.flags~Hit.Drag
+        end
+
         return props
     end
 
