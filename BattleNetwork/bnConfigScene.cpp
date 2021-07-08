@@ -233,18 +233,17 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   auto keySecondaryCallback = [this](BindingItem& item) { UnsetKeyBinding(item); };
 
   for (auto eventName : InputEvents::KEYS) {
+    std::optional<std::reference_wrapper<std::string>> value;
+    std::string keyStr;
 
-    if (configSettings.IsOK()) {
-      std::optional<std::reference_wrapper<std::string>> value;
-      std::string keyStr;
+    auto key = configSettings.GetPairedInput(eventName);
 
-      if (Input().ConvertKeyToString(configSettings.GetPairedInput(eventName), keyStr)) {
-        keyHash.insert(std::make_pair(configSettings.GetPairedInput(eventName), eventName));
-        value = keyStr;
-      }
-
-      keyboardMenu.push_back(std::make_unique<BindingItem>(eventName, value, keyCallback, keySecondaryCallback));
+    if (Input().ConvertKeyToString(key, keyStr)) {
+      keyHash.insert(std::make_pair(key, eventName));
+      value = keyStr;
     }
+
+    keyboardMenu.push_back(std::make_unique<BindingItem>(eventName, value, keyCallback, keySecondaryCallback));
   }
 
   // Adjusting gamepad index (abusing BindingItem for alignment)
@@ -274,33 +273,31 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
     std::optional<std::reference_wrapper<std::string>> value;
     std::string valueString;
 
-    if (configSettings.IsOK()) {
-      auto gamepadCode = configSettings.GetPairedGamepadButton(eventName);
-      gamepadHash.insert(std::make_pair(gamepadCode, eventName));
+    auto gamepadCode = configSettings.GetPairedGamepadButton(eventName);
+    gamepadHash.insert(std::make_pair(gamepadCode, eventName));
 
-      if (gamepadCode != Gamepad::BAD_CODE) {
-        valueString = "BTN " + std::to_string((int)gamepadCode);
+    if (gamepadCode != Gamepad::BAD_CODE) {
+      valueString = "BTN " + std::to_string((int)gamepadCode);
 
-        switch (gamepadCode) {
-        case Gamepad::DOWN:
-          valueString = "-Y AXIS";
-          break;
-        case Gamepad::UP:
-          valueString = "+Y AXIS";
-          break;
-        case Gamepad::LEFT:
-          valueString = "-X AXIS";
-          break;
-        case Gamepad::RIGHT:
-          valueString = "+X AXIS";
-          break;
-        case Gamepad::BAD_CODE:
-          valueString = "BAD_CODE";
-          break;
-        }
-
-        value = valueString;
+      switch (gamepadCode) {
+      case Gamepad::DOWN:
+        valueString = "-Y AXIS";
+        break;
+      case Gamepad::UP:
+        valueString = "+Y AXIS";
+        break;
+      case Gamepad::LEFT:
+        valueString = "-X AXIS";
+        break;
+      case Gamepad::RIGHT:
+        valueString = "+X AXIS";
+        break;
+      case Gamepad::BAD_CODE:
+        valueString = "BAD_CODE";
+        break;
       }
+
+      value = valueString;
     }
 
     gamepadMenu.push_back(std::make_unique<BindingItem>(
