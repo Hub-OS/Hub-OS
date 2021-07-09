@@ -180,13 +180,11 @@ void AnimatedTextBox::EnqueMessage(const sf::Sprite& speaker, const Animation& a
 
   if (messages.size() == 1) {
     mugAnimator = mugAnim;
+    textBox.SetText(message->GetMessage());
   }
 
   mugshots.push_back(speaker);
   mugshots[mugshots.size() - 1].setScale(2.f, 2.f);
-
-  std::string strMessage = messages[0]->GetMessage();
-  textBox.SetText(strMessage);
 
   message->SetTextBox(this);
 }
