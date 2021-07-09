@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <string_view>
 #include "bnInputEvent.h"
 #include "bnFileUtil.h"
 #include "bnConfigSettings.h"
@@ -49,21 +50,45 @@ Up="32781"
  */
 class ConfigReader {
 private:
+  enum class Section {
+    discord,
+    audio,
+    net,
+    video,
+    general,
+    keyboard,
+    gamepad,
+    none,
+  };
+
   ConfigSettings settings;
 
   /**
    * @brief Aux function. Trim leading and trailing whitespaces
    * @param line string to modifiy
    */
-  void Trim(std::string& line);
+  std::string_view Trim(std::string_view line);
 
   /**
-   * @brief Aux function. Given a key in a line, find the value.
-   * @param _key
-   * @param _line
+   * @brief Aux function. Find the key stored in a line.
+   * @param line expected format: `Key="value"`
+   * @return Key
+   */
+  std::string_view ResolveKey(std::string_view line);
+
+  /**
+   * @brief Aux function. Find the value stored in a line.
+   * @param line expected format: `Key="value"`
    * @return value
    */
-  std::string ValueOf(std::string _key, std::string _line);
+  std::string_view ResolveValue(std::string_view line);
+
+  /**
+   * @brief Resolves a line (such as [General]) into a section.
+   * @param line
+   * @return value
+   */
+  Section ResolveSection(std::string_view line);
 
   /**
    * @brief Deprecated.
@@ -85,66 +110,64 @@ private:
    * @param buffer file contents
    * @return true if entire file is good
    */
-  const bool Parse(std::string buffer);
+  bool Parse(std::string_view buffer);
 
   /**
-   * @brief File begins with [Discord] and settings
-   * @param buffer file contents
-   * @return true if rest of contents are good, false if malformed
-   *
-   * Expects [Audio()] to be next
+   * @brief Parse a line containing a key and value in the format `Key="value"`
+   * @param section
+   * @param line
+   * @return true if property is good, false if malformed
    */
-  const bool ParseDiscord(std::string buffer);
+  bool ParseProperty(Section section, std::string_view line);
 
   /**
-   * @brief Parse [Audio()]
-   * @param buffer file contents
-   * @return true if file is good, false if malformed
-   *
-   * expects [Net] to be next
+   * @brief Parse a property from the Discord section
+   * @param line
+   * @return true if property is good, false if malformed
    */
-  const bool ParseAudio(std::string buffer);
+  bool ParseDiscordProperty(std::string_view line);
 
   /**
-   * @brief Parse [Net] and settings
-   * @param buffer file contents
-   * @return true if file is good, false if malformed
-   *
-   * Expects [Video] to be next
+   * @brief Parse a property from the Audio section
+   * @param line
+   * @return true if property is good, false if malformed
    */
-  const bool ParseNet(std::string buffer);
+  bool ParseAudioProperty(std::string_view line);
 
   /**
-   * @brief Parses [Video] and settings
-   * @param buffer file contents
-   * @return true if good, false if malformed
-   *
-   * expects [Keyboard] to be next
+   * @brief Parse a property from the Net section
+   * @param line
+   * @return true if property is good, false if malformed
    */
-  const bool ParseVideo(std::string buffer);
+  bool ParseNetProperty(std::string_view line);
 
   /**
-   * @brief Parses [General] and settings
-   * @param buffer file contents
-   * @return true and denotes end of file
+   * @brief Parse a property from the Video section
+   * @param line
+   * @return true if property is good, false if malformed
    */
-  const bool ParseGeneral(std::string buffer);
+  bool ParseVideoProperty(std::string_view line);
 
   /**
-   * @brief Parse [Keyboard] and settings
-   * @param buffer file contents
-   * @return true if the file is ok, false otherwise
-   *
-   * expects [Gamepad] next
+   * @brief Parse a property from the General section
+   * @param line
+   * @return true if property is good, false if malformed
    */
-  const bool ParseKeyboard(std::string buffer);
+  bool ParseGeneralProperty(std::string_view line);
 
   /**
-   * @brief Parses [Gamepad] and settings
-   * @param buffer file contents
-   * @return true and denotes end of file
+   * @brief Parse a property from the Keyboard section
+   * @param line
+   * @return true if property is good, false if malformed
    */
-  const bool ParseGamepad(std::string buffer);
+  bool ParseKeyboardProperty(std::string_view line);
+
+  /**
+   * @brief Parse a property from the Gamepad section
+   * @param line
+   * @return true if property is good, false if malformed
+   */
+  bool ParseGamepadProperty(std::string_view line);
 
 public:
 
@@ -152,7 +175,7 @@ public:
    * @brief Parses config ini file at filepath
    * @param filepath path to ini file
    */
-  ConfigReader(std::string filepath);
+  ConfigReader(const std::string& filepath);
 
   ~ConfigReader();
 

@@ -15,8 +15,6 @@ Fullscreen="0"
 [General]
 Invert Minimap="0"
 [Keyboard]
-Gamepad Index="0"
-Invert Thumbstick="0"
 Move Up="73"
 Move Down="74"
 Move Left="71"
@@ -39,6 +37,8 @@ Shoulder L="0"
 Shoulder R="18"
 Minimap="12"
 [Gamepad]
+Gamepad Index="0"
+Invert Thumbstick="0"
 Move Up="-1"
 Move Down="-1"
 Move Left="-1"
