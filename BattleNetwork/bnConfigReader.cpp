@@ -83,6 +83,11 @@ bool ConfigReader::Parse(std::string_view view) {
     // push view to the next line
     view = view.substr(endline + 1);
 
+    if (line == "") {
+      // skip blank lines
+      continue;
+    }
+
     if (line[0] == '[') {
       section = ResolveSection(line);
       continue;
