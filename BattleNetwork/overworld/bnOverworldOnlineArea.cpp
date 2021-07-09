@@ -223,9 +223,9 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     using effect = swoosh::types::segue<BlendFadeIn>;
     getController().push<effect::to<DownloadScene>>(props);
     return;
-  }  
-else if (canProceedToBattle) {
-   // Shuffle our folder
+  }
+  else if (canProceedToBattle) {
+     // Shuffle our folder
     folder->Shuffle();
 
     NetPlayConfig config;
@@ -1376,6 +1376,8 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
 
   auto player = GetPlayer();
   player->Face(worldDirection);
+
+  warpCameraController.UnlockCamera();
 
   if (warpIn) {
     teleportIn(player->Get3DPosition(), worldDirection);
