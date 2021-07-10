@@ -2052,7 +2052,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
   auto actor = onlinePlayer.actor;
   actor->Set3DPosition(pos);
-  actor->Face(direction);
+  actor->Face(onlinePlayer.idleDirection);
   actor->setTexture(GetTexture(texturePath));
   actor->scale(scaleX, scaleY);
   actor->rotate(rotation);
