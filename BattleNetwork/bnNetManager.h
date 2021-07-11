@@ -37,6 +37,10 @@ public:
   static const T CalculateLag(size_t packetCount, std::array<T, NetManager::LAG_WINDOW_LEN>& lagWindow, T next) {
     size_t window_len = std::min(packetCount, lagWindow.size());
 
+    if (window_len == 0) {
+      return T{ 0 };
+    }
+
     T avg{ 0 };
     for (size_t i = 0; i < window_len; i++) {
       avg = avg + lagWindow[i];
