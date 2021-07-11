@@ -1094,9 +1094,12 @@ void Overworld::OnlineArea::sendRequestJoinSignal()
 
 void Overworld::OnlineArea::sendReadySignal()
 {
+  uint64_t currentTime = CurrentTime::AsMilli();
+
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::ready);
+  writer.Write(buffer, currentTime);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
