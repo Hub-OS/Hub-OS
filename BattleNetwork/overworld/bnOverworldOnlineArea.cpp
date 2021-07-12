@@ -16,7 +16,6 @@
 #include "bnOverworldOnlineArea.h"
 #include "bnOverworldTileType.h"
 #include "bnOverworldObjectType.h"
-#include "../bnXmasBackground.h"
 #include "../bnNaviRegistration.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
@@ -27,6 +26,11 @@
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
+
+static long long GetSteadyTime() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>
+    (std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
@@ -281,7 +285,7 @@ void Overworld::OnlineArea::ResetPVPStep()
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
-  auto currentTime = CurrentTime::AsMilli();
+  auto currentTime = GetSteadyTime();
   auto& map = GetMap();
 
   // update other players
@@ -1094,7 +1098,7 @@ void Overworld::OnlineArea::sendRequestJoinSignal()
 
 void Overworld::OnlineArea::sendReadySignal()
 {
-  uint64_t currentTime = CurrentTime::AsMilli();
+  uint64_t currentTime = GetSteadyTime();
 
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
@@ -1122,7 +1126,7 @@ void Overworld::OnlineArea::sendCustomWarpSignal(unsigned int tileObjectId)
 
 void Overworld::OnlineArea::sendPositionSignal()
 {
-  uint64_t creationTime = CurrentTime::AsMilli();
+  uint64_t creationTime = GetSteadyTime();
 
   auto& map = GetMap();
   auto tileSize = sf::Vector2f(map.GetTileSize());
@@ -2047,7 +2051,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   onlinePlayer.disconnecting = false;
 
   // update
-  onlinePlayer.timestamp = CurrentTime::AsMilli();
+  onlinePlayer.timestamp = GetSteadyTime();
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
   onlinePlayer.idleDirection = Orthographic(direction);
@@ -2173,7 +2177,7 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
   if (userIter != onlinePlayers.end()) {
     // Calculate the NEXT frame and see if we're moving too far
     auto& onlinePlayer = userIter->second;
-    auto currentTime = CurrentTime::AsMilli();
+    auto currentTime = GetSteadyTime();
     bool animatingPos = onlinePlayer.propertyAnimator.IsAnimatingPosition();
     auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector3f(x, y, z);
