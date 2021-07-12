@@ -16,6 +16,7 @@
 #include "bnOverworldOnlineArea.h"
 #include "bnOverworldTileType.h"
 #include "bnOverworldObjectType.h"
+#include "../bnMath.h"
 #include "../bnNaviRegistration.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
@@ -27,6 +28,7 @@ using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
 constexpr long long MAX_IDLE_MS = 1000;
+constexpr float MIN_IDLE_MOVEMENT = 1.f;
 
 static long long GetSteadyTime() {
   return std::chrono::duration_cast<std::chrono::milliseconds>
@@ -329,7 +331,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
       }
     }
 
-    if (distance == 0.0) {
+    if (distance <= MIN_IDLE_MOVEMENT) {
       actor->Face(onlinePlayer.idleDirection);
     }
     else if (distance <= actor->GetWalkSpeed() * expectedTime) {
@@ -2216,8 +2218,13 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
       onlinePlayer.lastMovementTime = currentTime;
     }
 
-    onlinePlayer.startBroadcastPos = animatingPos ? actor->Get3DPosition() : endBroadcastPos;
+    auto currentDistanceToEnd = Distance(actor->getPosition(), ToVector2f(newPos));
+    auto likelyIdle = currentDistanceToEnd < MIN_IDLE_MOVEMENT;
+
+    // use the newPos for both positions if the player is likely idle
+    onlinePlayer.startBroadcastPos = likelyIdle ? newPos : actor->Get3DPosition();
     onlinePlayer.endBroadcastPos = newPos;
+
     onlinePlayer.timestamp = currentTime;
     onlinePlayer.idleDirection = Orthographic(direction);
   }
