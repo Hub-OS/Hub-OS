@@ -26,6 +26,7 @@
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
+constexpr long long MAX_IDLE_MS = 1000;
 
 static long long GetSteadyTime() {
   return std::chrono::duration_cast<std::chrono::milliseconds>
@@ -2052,6 +2053,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
   // update
   onlinePlayer.timestamp = GetSteadyTime();
+  onlinePlayer.lastMovementTime = GetSteadyTime();
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
   onlinePlayer.idleDirection = Orthographic(direction);
@@ -2183,10 +2185,10 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     auto newPos = sf::Vector3f(x, y, z);
     auto delta = endBroadcastPos - newPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double incomingLag = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
+    double timeDifference = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
     // Adjust the lag time by the lag of this incoming frame
-    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, incomingLag);
+    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, timeDifference);
 
     auto teleportController = &onlinePlayer.teleportController;
     auto actor = onlinePlayer.actor;
@@ -2204,11 +2206,19 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     }
 
     // update our records
+    if (currentTime - onlinePlayer.lastMovementTime < MAX_IDLE_MS) {
+      // dont include the time difference if this player was idling longer than the server rebroadcasts for
+      onlinePlayer.packets++;
+      onlinePlayer.lagWindow[onlinePlayer.packets % NetManager::LAG_WINDOW_LEN] = timeDifference;
+    }
+
+    if (newPos != endBroadcastPos) {
+      onlinePlayer.lastMovementTime = currentTime;
+    }
+
     onlinePlayer.startBroadcastPos = animatingPos ? actor->Get3DPosition() : endBroadcastPos;
     onlinePlayer.endBroadcastPos = newPos;
     onlinePlayer.timestamp = currentTime;
-    onlinePlayer.packets++;
-    onlinePlayer.lagWindow[onlinePlayer.packets % NetManager::LAG_WINDOW_LEN] = incomingLag;
     onlinePlayer.idleDirection = Orthographic(direction);
   }
 }

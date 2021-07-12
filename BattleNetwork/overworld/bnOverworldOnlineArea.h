@@ -27,6 +27,7 @@ namespace Overworld {
     sf::Vector3f startBroadcastPos{};
     sf::Vector3f endBroadcastPos{};
     long long timestamp{};
+    long long lastMovementTime{};
     std::array<double, NetManager::LAG_WINDOW_LEN> lagWindow{ 0 };
     ActorPropertyAnimator propertyAnimator;
     size_t packets{};
