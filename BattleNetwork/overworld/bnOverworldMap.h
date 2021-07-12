@@ -150,7 +150,7 @@ namespace Overworld {
     unsigned GetCols() const;
     unsigned GetRows() const;
     unsigned int GetTileCount();
-    std::shared_ptr<TileMeta> GetTileMeta(unsigned int tileGid);
+    std::shared_ptr<TileMeta>& GetTileMeta(unsigned int tileGid);
     std::shared_ptr<Tileset> GetTileset(const std::string& name);
     std::shared_ptr<Tileset> GetTileset(unsigned int tileGid);
     void SetTileset(const std::shared_ptr<Tileset>& tileset, const std::shared_ptr<TileMeta>& tileMeta);
