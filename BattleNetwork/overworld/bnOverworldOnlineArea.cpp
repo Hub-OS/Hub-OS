@@ -307,7 +307,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
 
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
-    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+    float distance = Hypotenuse({ delta.x, delta.y });
     double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
     float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
 
@@ -2186,7 +2186,7 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector3f(x, y, z);
     auto delta = endBroadcastPos - newPos;
-    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+    float distance = Hypotenuse({ delta.x, delta.y });
     double timeDifference = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
     // Adjust the lag time by the lag of this incoming frame

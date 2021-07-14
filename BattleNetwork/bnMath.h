@@ -3,9 +3,13 @@
 #include <SFML/System.hpp>
 #include <cmath>
 
+inline float Hypotenuse(sf::Vector2f a) {
+  return std::sqrt(a.x * a.x + a.y * a.y);
+}
+
 inline float Distance(sf::Vector2f a, sf::Vector2f b) {
   auto delta = a - b;
-  return std::sqrt(delta.x * delta.x + delta.y * delta.y);
+  return Hypotenuse(delta);
 }
 
 inline sf::Vector2f Floor(sf::Vector2f a) {
