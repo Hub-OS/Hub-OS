@@ -96,8 +96,6 @@ namespace Overworld {
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
     WebAccounts::AccountState webAccount;
 
-    std::shared_ptr<Tileset> ParseTileset(const XMLElement& element, unsigned int firstgid);
-    std::vector<std::shared_ptr<Overworld::TileMeta>> ParseTileMetas(const XMLElement& tilesetElement, const Overworld::Tileset& tileset);
     void HandleCamera(float elapsed);
     void HandleInput();
     void LoadBackground(const Map& map, const std::string& value);
@@ -112,10 +110,6 @@ namespace Overworld {
 #endif
 
   protected:
-    virtual std::string GetPath(const std::string& path);
-    virtual std::string GetText(const std::string& path);
-    virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
-    virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
     const bool IsMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src);
 
   public:
@@ -281,6 +275,10 @@ namespace Overworld {
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
     bool IsInFocus() const;
+    virtual std::string GetPath(const std::string& path);
+    virtual std::string GetText(const std::string& path);
+    virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
+    virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
 
     //
     // Helpers
