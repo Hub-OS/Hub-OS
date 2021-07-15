@@ -27,6 +27,37 @@ inline sf::Vector3f Floor(sf::Vector3f a) {
   };
 }
 
+inline sf::Vector3f FloorXY(sf::Vector3f a) {
+  return {
+    std::floor(a.x),
+    std::floor(a.y),
+    a.z
+  };
+}
+
+inline sf::Vector2f Round(sf::Vector2f a) {
+  return {
+    std::round(a.x),
+    std::round(a.y)
+  };
+}
+
+inline sf::Vector3f Round(sf::Vector3f a) {
+  return {
+    std::round(a.x),
+    std::round(a.y),
+    std::round(a.z)
+  };
+}
+
+inline sf::Vector3f RoundXY(sf::Vector3f a) {
+  return {
+    std::round(a.x),
+    std::round(a.y),
+    a.z
+  };
+}
+
 inline sf::Vector2f ToVector2f(sf::Vector3f a) {
   return { a.x, a.y };
 }

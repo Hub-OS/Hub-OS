@@ -311,7 +311,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
     double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
     float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
 
-    auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
+    auto newPos = RoundXY(onlinePlayer.startBroadcastPos + delta * alpha);
     actor->Set3DPosition(newPos);
 
     if (onlinePlayer.propertyAnimator.IsAnimating() && actor->IsPlayingCustomAnimation()) {
