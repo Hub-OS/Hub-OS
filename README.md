@@ -6,6 +6,9 @@ This aims to be an accurate mmbn6 battle engine that can be used to program cust
 
 This was originally started to kill some time one summer and I got a little carried away. It's been fun and I hope you have fun with it as I have had making it.
 
+## Update 7/17/2021
+[New Build Instructions On YouTube!](https://www.youtube.com/watch?v=5T_kS7DYbvw)
+
 ## Update 12/27/2019
 [![forte-thumbnail.png](https://i.postimg.cc/bNvt3xP3/forte-thumbnail.png)](https://streamable.com/cxp7l#)
 [![thumbnail.png](https://i.postimg.cc/dVNffmg6/thumbnail.png)](https://streamable.com/pmy2d)
