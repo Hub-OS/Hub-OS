@@ -14,6 +14,7 @@ namespace Overworld {
     this->cols = cols;
     this->rows = rows;
     this->tileToTilesetMap.push_back(nullptr);
+    this->tileMetas.resize(1);
   }
 
   void Map::Update(SceneBase& scene, double time) {
@@ -193,7 +194,7 @@ namespace Overworld {
     return static_cast<unsigned int>(tileMetas.size());
   }
 
-  std::shared_ptr<TileMeta> Map::GetTileMeta(unsigned int tileGid) {
+  std::shared_ptr<TileMeta>& Map::GetTileMeta(unsigned int tileGid) {
     if (tileGid < 0 || tileGid >= tileMetas.size()) {
       return tileMetas[0];
     }
@@ -320,7 +321,7 @@ namespace Overworld {
       return layerElevation;
     }
 
-    auto& tileMeta = tileMetas[tile->gid];
+    auto& tileMeta = GetTileMeta(tile->gid);
 
     if (!tileMeta || tileMeta->type != TileType::stairs) {
       return layerElevation;
@@ -369,7 +370,7 @@ namespace Overworld {
       return false;
     }
 
-    auto& tileMeta = tileMetas[tile->gid];
+    auto& tileMeta = GetTileMeta(tile->gid);
 
     return tileMeta && tileMeta->type == TileType::stairs;
   }

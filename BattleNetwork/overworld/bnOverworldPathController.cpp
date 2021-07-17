@@ -1,5 +1,6 @@
 #include "bnOverworldPathController.h"
 #include "bnOverworldActor.h"
+#include "../bnMath.h"
 #include <cmath>
 
 void Overworld::PathController::ControlActor(std::shared_ptr<Actor> actor)
@@ -27,7 +28,7 @@ void Overworld::PathController::AddPoint(sf::Vector2f dest)
 {
   auto closure = [=](float elapsed, Map& map, SpatialMap& spatialMap) {
     auto vec = dest - actor->getPosition();
-    float mag = std::sqrt((vec.x * vec.x) + (vec.y * vec.y));
+    float mag = Hypotenuse(vec);
 
     if (mag <= 1.f) {
       return true;

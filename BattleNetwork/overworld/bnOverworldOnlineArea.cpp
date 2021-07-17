@@ -16,7 +16,7 @@
 #include "bnOverworldOnlineArea.h"
 #include "bnOverworldTileType.h"
 #include "bnOverworldObjectType.h"
-#include "../bnXmasBackground.h"
+#include "../bnMath.h"
 #include "../bnNaviRegistration.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
@@ -27,6 +27,13 @@
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
+constexpr long long MAX_IDLE_MS = 1000;
+constexpr float MIN_IDLE_MOVEMENT = 1.f;
+
+static long long GetSteadyTime() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>
+    (std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
@@ -281,7 +288,7 @@ void Overworld::OnlineArea::ResetPVPStep()
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
-  auto currentTime = CurrentTime::AsMilli();
+  auto currentTime = GetSteadyTime();
   auto& map = GetMap();
 
   // update other players
@@ -300,11 +307,11 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
 
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
-    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+    float distance = Hypotenuse({ delta.x, delta.y });
     double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
     float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
 
-    auto newPos = onlinePlayer.startBroadcastPos + delta * alpha;
+    auto newPos = RoundXY(onlinePlayer.startBroadcastPos + delta * alpha);
     actor->Set3DPosition(newPos);
 
     if (onlinePlayer.propertyAnimator.IsAnimating() && actor->IsPlayingCustomAnimation()) {
@@ -324,7 +331,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
       }
     }
 
-    if (distance == 0.0) {
+    if (distance <= MIN_IDLE_MOVEMENT) {
       actor->Face(onlinePlayer.idleDirection);
     }
     else if (distance <= actor->GetWalkSpeed() * expectedTime) {
@@ -1094,9 +1101,12 @@ void Overworld::OnlineArea::sendRequestJoinSignal()
 
 void Overworld::OnlineArea::sendReadySignal()
 {
+  uint64_t currentTime = GetSteadyTime();
+
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::ready);
+  writer.Write(buffer, currentTime);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -1119,7 +1129,7 @@ void Overworld::OnlineArea::sendCustomWarpSignal(unsigned int tileObjectId)
 
 void Overworld::OnlineArea::sendPositionSignal()
 {
-  uint64_t creationTime = CurrentTime::AsMilli();
+  uint64_t creationTime = GetSteadyTime();
 
   auto& map = GetMap();
   auto tileSize = sf::Vector2f(map.GetTileSize());
@@ -2044,7 +2054,8 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   onlinePlayer.disconnecting = false;
 
   // update
-  onlinePlayer.timestamp = CurrentTime::AsMilli();
+  onlinePlayer.timestamp = GetSteadyTime();
+  onlinePlayer.lastMovementTime = GetSteadyTime();
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
   onlinePlayer.idleDirection = Orthographic(direction);
@@ -2052,7 +2063,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
   auto actor = onlinePlayer.actor;
   actor->Set3DPosition(pos);
-  actor->Face(direction);
+  actor->Face(onlinePlayer.idleDirection);
   actor->setTexture(GetTexture(texturePath));
   actor->scale(scaleX, scaleY);
   actor->rotate(rotation);
@@ -2170,16 +2181,16 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
   if (userIter != onlinePlayers.end()) {
     // Calculate the NEXT frame and see if we're moving too far
     auto& onlinePlayer = userIter->second;
-    auto currentTime = CurrentTime::AsMilli();
+    auto currentTime = GetSteadyTime();
     bool animatingPos = onlinePlayer.propertyAnimator.IsAnimatingPosition();
     auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector3f(x, y, z);
     auto delta = endBroadcastPos - newPos;
-    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double incomingLag = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
+    float distance = Hypotenuse({ delta.x, delta.y });
+    double timeDifference = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
     // Adjust the lag time by the lag of this incoming frame
-    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, incomingLag);
+    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, timeDifference);
 
     auto teleportController = &onlinePlayer.teleportController;
     auto actor = onlinePlayer.actor;
@@ -2197,11 +2208,24 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     }
 
     // update our records
-    onlinePlayer.startBroadcastPos = animatingPos ? actor->Get3DPosition() : endBroadcastPos;
+    if (currentTime - onlinePlayer.lastMovementTime < MAX_IDLE_MS) {
+      // dont include the time difference if this player was idling longer than the server rebroadcasts for
+      onlinePlayer.packets++;
+      onlinePlayer.lagWindow[onlinePlayer.packets % NetManager::LAG_WINDOW_LEN] = timeDifference;
+    }
+
+    if (newPos != endBroadcastPos) {
+      onlinePlayer.lastMovementTime = currentTime;
+    }
+
+    auto currentDistanceToEnd = Distance(actor->getPosition(), ToVector2f(newPos));
+    auto likelyIdle = currentDistanceToEnd < MIN_IDLE_MOVEMENT;
+
+    // use the newPos for both positions if the player is likely idle
+    onlinePlayer.startBroadcastPos = likelyIdle ? newPos : actor->Get3DPosition();
     onlinePlayer.endBroadcastPos = newPos;
+
     onlinePlayer.timestamp = currentTime;
-    onlinePlayer.packets++;
-    onlinePlayer.lagWindow[onlinePlayer.packets % NetManager::LAG_WINDOW_LEN] = incomingLag;
     onlinePlayer.idleDirection = Orthographic(direction);
   }
 }

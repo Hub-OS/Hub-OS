@@ -1,5 +1,6 @@
 #include "bnOverworldActor.h"
 #include "bnOverworldMap.h"
+#include "../bnMath.h"
 #include <cmath>
 
 std::shared_ptr<sf::Texture> Overworld::Actor::missing;
@@ -289,7 +290,7 @@ void Overworld::Actor::Interact(const std::shared_ptr<Actor>& with, Interaction 
 const std::optional<sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
 {
   auto delta = (getPosition() + offset) - actor.getPosition();
-  float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+  float distance = Hypotenuse(delta);
   float sumOfRadii = actor.collisionRadius + collisionRadius;
 
   if (distance > sumOfRadii) {
@@ -469,7 +470,7 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
         // push the ourselves out of the other actor
         // use current position to prevent sliding off map
         auto delta = currPos - actor->getPosition();
-        float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+        float distance = Hypotenuse(delta);
         auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
         auto sumOfRadii = collisionRadius + actor->GetCollisionRadius();
         auto outPos = actor->getPosition() + (delta_unit * sumOfRadii);

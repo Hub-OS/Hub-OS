@@ -1,6 +1,7 @@
 #include "bnOverworldActorPropertyAnimator.h"
 
 #include "../bnAudioResourceManager.h"
+#include "../bnMath.h"
 
 namespace Overworld {
   bool ActorPropertyAnimator::IsAnimating() {
@@ -257,7 +258,7 @@ namespace Overworld {
     if (animatingPosition && !actor.IsPlayingCustomAnimation()) {
       // resolve direction and player animation
       if (positionDifference.x != 0.0f || positionDifference.y != 0.0f) {
-        float distance = std::sqrt(positionDifference.x * positionDifference.x + positionDifference.y * positionDifference.y);
+        float distance = Hypotenuse(positionDifference);
         auto newHeading = animatingDirection ? actor.GetHeading() : Actor::MakeDirectionFromVector(positionDifference);
 
         if (distance <= actor.GetWalkSpeed() * float(elapsed)) {

@@ -27,7 +27,7 @@ std::string_view ConfigReader::ResolveValue(std::string_view line) {
     return line.substr(0, 0);
   }
 
-  return line.substr(start, end);
+  return line.substr(start, end - start);
 }
 
 ConfigReader::Section ConfigReader::ResolveSection(std::string_view line) {
@@ -171,7 +171,7 @@ bool ConfigReader::ParseNetProperty(std::string_view line) {
     return true;
   }
   if (key == "Port") {
-    auto valueCopy = std::string(line);
+    auto valueCopy = std::string(value);
     settings.webServer.port = std::atoi(valueCopy.c_str());
     return true;
   }
