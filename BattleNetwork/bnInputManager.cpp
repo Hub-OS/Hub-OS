@@ -192,7 +192,7 @@ void InputManager::Update() {
     }
 
     if (sf::Joystick::hasAxis(currGamepad, sf::Joystick::Axis::Y)) {
-      axisYPower += -sf::Joystick::getAxisPosition(currGamepad, sf::Joystick::Axis::Y);
+      axisYPower += sf::Joystick::getAxisPosition(currGamepad, sf::Joystick::Axis::Y) * (invertThumbstick ? -1 : 1);
     }
 
     if (axisXPower <= -GAMEPAD_AXIS_SENSITIVITY) {
@@ -205,11 +205,11 @@ void InputManager::Update() {
     }
 
     if (axisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
-      lastButton = invertThumbstick ? Gamepad::UP : Gamepad::DOWN;
+      lastButton = Gamepad::UP;
       gamepadState[(unsigned int)lastButton] = true;
     }
     else if (axisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-      lastButton = invertThumbstick ? Gamepad::DOWN : Gamepad::UP;
+      lastButton = Gamepad::DOWN;
       gamepadState[(unsigned int)lastButton] = true;
     }
   }
