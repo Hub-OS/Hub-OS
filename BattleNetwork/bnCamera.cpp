@@ -12,6 +12,8 @@ Camera::Camera(const sf::View& view) : focus(view), rect(view.getSize())
   shakeDur = dur;
   init = focus = view;
   isShaking = false;
+  startColor = sf::Color(0,0,0,0);
+  fadeColor = sf::Color(0,0,0,0);
 }
 
 void Camera::operator=(const Camera& rhs) {
@@ -37,16 +39,14 @@ void Camera::Update(double elapsed) {
   fadeProgress += asMilli;
 
   double x = swoosh::ease::linear(fadeProgress, (double)fadeDur.asMilliseconds(), 1.0);
-
-  if (fadeState == Fade::out) {
-    x = 1.0 - x;
-  }
-  else if (fadeState == Fade::none) {
-    x = 0;
-  }
-
+  
   sf::Color fcolor(fadeColor);
-  fcolor.a = x * fadeColor.a;
+  
+  fcolor.r = ((1 - x) * startColor.r) + (x * fadeColor.r);
+  fcolor.g = ((1 - x) * startColor.g) + (x * fadeColor.g);
+  fcolor.b = ((1 - x) * startColor.b) + (x * fadeColor.b);
+  fcolor.a = ((1 - x) * startColor.a) + (x * fadeColor.a);
+
   rect.setFillColor(fcolor);
   rect.setOutlineColor(fcolor);
 
@@ -155,10 +155,10 @@ const sf::View Camera::GetView() const
   return focus;
 }
 
-void Camera::FadeCamera(Fade type, const sf::Color& color, sf::Time duration)
+void Camera::FadeCamera(const sf::Color& color, sf::Time duration)
 {
+  startColor = rect.getFillColor();
   fadeProgress = 0;
-  fadeState = type;
   fadeColor = color;
   fadeDur = duration;
 }

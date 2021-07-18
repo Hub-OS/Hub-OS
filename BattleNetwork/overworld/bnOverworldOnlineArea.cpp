@@ -1725,7 +1725,6 @@ void Overworld::OnlineArea::receiveShakeCameraSignal(BufferReader& reader, const
 
 void Overworld::OnlineArea::receiveFadeCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto fadeType = reader.Read<Camera::Fade>(buffer);
   auto duration = sf::seconds(reader.Read<float>(buffer));
 
   uint8_t rgba[4];
@@ -1736,10 +1735,10 @@ void Overworld::OnlineArea::receiveFadeCameraSignal(BufferReader& reader, const 
   rgba[3] = reader.Read<uint8_t>(buffer);
 
   if (serverCameraController.IsQueueEmpty()) {
-    GetCamera().FadeCamera(fadeType, sf::Color(rgba[0], rgba[1], rgba[2], rgba[3]), duration);
+    GetCamera().FadeCamera(sf::Color(rgba[0], rgba[1], rgba[2], rgba[3]), duration);
   }
   else {
-    serverCameraController.QueueFadeCamera(fadeType, sf::Color(rgba[0], rgba[1], rgba[2], rgba[3]), duration);
+    serverCameraController.QueueFadeCamera(sf::Color(rgba[0], rgba[1], rgba[2], rgba[3]), duration);
   }
 }
 
