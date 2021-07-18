@@ -344,11 +344,23 @@ public:
 
     // Set name special font based on rank
     switch(data->character->GetRank()) {
-    case typename ClassType::Rank::SP:
-      data->character->SetName(data->character->GetName() + "µ");
+    case ClassType::Rank::_2:
+      data->character->SetName(data->character->GetName() + "2");
       break;
-    case typename ClassType::Rank::EX:
-      data->character->SetName(data->character->GetName() + "¶");
+    case ClassType::Rank::_3:
+      data->character->SetName(data->character->GetName() + "3");
+      break;
+    case ClassType::Rank::Rare1:
+      data->character->SetName(data->character->GetName() + "R1");
+      break;
+    case ClassType::Rank::Rare2:
+      data->character->SetName(data->character->GetName() + "R2");
+      break;
+    case ClassType::Rank::SP:
+      data->character->SetName(data->character->GetName() + char(-1));
+      break;
+    case ClassType::Rank::EX:
+      data->character->SetName(data->character->GetName() + char(-2));
       break;
     } 
 

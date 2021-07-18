@@ -133,8 +133,8 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
     inputManager.BindResizedEvent(std::bind(&Game::Resize, this, std::placeholders::_1, std::placeholders::_2));
 
-    Font::specialCharLookup.insert(std::make_pair('µ', "THICK_SP"));
-    Font::specialCharLookup.insert(std::make_pair('¶', "THICK_EX"));
+    Font::specialCharLookup.insert(std::make_pair(char(-1), "THICK_SP"));
+    Font::specialCharLookup.insert(std::make_pair(char(-2), "THICK_EX"));
   });
 
   inputManager.SupportConfigSettings(reader);

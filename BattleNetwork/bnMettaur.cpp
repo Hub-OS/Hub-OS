@@ -38,7 +38,6 @@ Mettaur::Mettaur(Rank _rank) :
     setTexture(Textures().LoadTextureFromFile("resources/mobs/mettaur/mettaur5.png"));
   }
   else if (GetRank() == Rank::Rare2) {
-    name = "MettaurR2";
     SetHealth(500);
     setTexture(Textures().LoadTextureFromFile("resources/mobs/mettaur/mettaur6.png"));
   }
