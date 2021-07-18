@@ -1,6 +1,10 @@
 #include "bnConfigReader.h"
 #include "bnInputManager.h"
 
+namespace {
+  const auto LINE_BREAKS = { '\r', '\n' };
+}
+
 std::string_view ConfigReader::Trim(std::string_view line) {
   while (line.compare(0, 1, " ") == 0)
     line = line.substr(1); // remove leading whitespaces
@@ -71,11 +75,13 @@ bool ConfigReader::Parse(std::string_view view) {
   auto isOk = true;
 
   while (true) {
-    size_t endline = view.find("\n");
+    auto iter = std::find_first_of(view.begin(), view.end(), ::LINE_BREAKS.begin(), ::LINE_BREAKS.end());
 
-    if (endline == std::string_view::npos) {
+    if (iter == view.end()) {
       break;
     }
+
+    size_t endline = size_t(iter - view.begin());
 
     // get a view of the line
     std::string_view line = Trim(view.substr(0, endline));
@@ -83,7 +89,7 @@ bool ConfigReader::Parse(std::string_view view) {
     // push view to the next line
     view = view.substr(endline + 1);
 
-    if (line == "") {
+    if (line.empty()) {
       // skip blank lines
       continue;
     }
