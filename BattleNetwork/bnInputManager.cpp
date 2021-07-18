@@ -268,7 +268,7 @@ void InputManager::Update() {
       if (keyboardState[sf::Keyboard::Key::Enter]) {
         VirtualKeyEvent(InputEvents::pressed_pause);
       }
-      if (keyboardState[sf::Keyboard::Key::X]) {
+      if (keyboardState[sf::Keyboard::Key::C]) {
         VirtualKeyEvent(InputEvents::pressed_special);
         VirtualKeyEvent(InputEvents::pressed_option);
       }
