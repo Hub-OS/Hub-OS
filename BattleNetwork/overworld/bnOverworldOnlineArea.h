@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "../bnBattleResults.h"
+#include "../netplay/bnRollingWindow.h"
 #include "../netplay/bnBufferReader.h"
 #include "../netplay/bnNetPlayPacketProcessor.h"
 #include "bnOverworldSceneBase.h"
@@ -28,9 +29,8 @@ namespace Overworld {
     sf::Vector3f endBroadcastPos{};
     long long timestamp{};
     long long lastMovementTime{};
-    std::array<double, NetManager::LAG_WINDOW_LEN> lagWindow{ 0 };
     ActorPropertyAnimator propertyAnimator;
-    size_t packets{};
+    RollingWindow<float, 40> lagWindow;
   };
 
   class OnlineArea final : public SceneBase {

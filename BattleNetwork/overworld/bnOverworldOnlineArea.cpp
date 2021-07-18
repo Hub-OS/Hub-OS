@@ -25,6 +25,7 @@
 #include "../netplay/bnDownloadScene.h"
 
 using namespace swoosh::types;
+constexpr float ROLLING_WINDOW_SMOOTHING = 3.0f;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
 constexpr long long MAX_IDLE_MS = 1000;
@@ -308,7 +309,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
     float distance = Hypotenuse({ delta.x, delta.y });
-    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, 0.0);
+    double expectedTime = onlinePlayer.lagWindow.GetEMA();
     float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
 
     auto newPos = RoundXY(onlinePlayer.startBroadcastPos + delta * alpha);
@@ -2054,7 +2055,8 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
   // update
   onlinePlayer.timestamp = GetSteadyTime();
-  onlinePlayer.lastMovementTime = GetSteadyTime();
+  onlinePlayer.lagWindow.SetSmoothing(ROLLING_WINDOW_SMOOTHING);
+  onlinePlayer.lagWindow.Push(SECONDS_PER_MOVEMENT); // initialize the average to the expected spacing
   onlinePlayer.startBroadcastPos = pos;
   onlinePlayer.endBroadcastPos = pos;
   onlinePlayer.idleDirection = Orthographic(direction);
@@ -2188,16 +2190,13 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     float distance = Hypotenuse({ delta.x, delta.y });
     double timeDifference = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
-    // Adjust the lag time by the lag of this incoming frame
-    double expectedTime = Net().CalculateLag(onlinePlayer.packets, onlinePlayer.lagWindow, timeDifference);
-
     auto teleportController = &onlinePlayer.teleportController;
     auto actor = onlinePlayer.actor;
 
     // Do not attempt to animate the teleport over quick movements if already teleporting or animating position
-    if (teleportController->IsComplete() && onlinePlayer.packets > 1 && !animatingPos) {
+    if (teleportController->IsComplete() && !animatingPos) {
       // we can't possibly have moved this far away without teleporting
-      if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2.f) * float(expectedTime)) {
+      if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2.f) * float(timeDifference)) {
         actor->Set3DPosition(endBroadcastPos);
         auto& action = teleportController->TeleportOut(actor);
         action.onFinish.Slot([=] {
@@ -2209,8 +2208,7 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     // update our records
     if (currentTime - onlinePlayer.lastMovementTime < MAX_IDLE_MS) {
       // dont include the time difference if this player was idling longer than the server rebroadcasts for
-      onlinePlayer.packets++;
-      onlinePlayer.lagWindow[onlinePlayer.packets % NetManager::LAG_WINDOW_LEN] = timeDifference;
+      onlinePlayer.lagWindow.Push(timeDifference);
     }
 
     if (newPos != endBroadcastPos) {
