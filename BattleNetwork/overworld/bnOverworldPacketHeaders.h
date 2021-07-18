@@ -6,7 +6,7 @@
 namespace Overworld
 {
   constexpr std::string_view VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
-  const uint64_t VERSION_ITERATION = 29;
+  const uint64_t VERSION_ITERATION = 30;
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
@@ -16,6 +16,7 @@ namespace Overworld
     ping = 0,
     ack,
     server_message, // not used by clients
+    heartbeat,
     asset_found,
     asset_stream,
     login,
@@ -52,6 +53,7 @@ namespace Overworld
   {
     pong = 0,
     ack,
+    heartbeat,
     login,
     connection_complete,
     transfer_warp,

@@ -1,6 +1,7 @@
 #include "bnOverworldPacketProcessor.h"
 #include "bnOverworldPacketHeaders.h"
 #include "../netplay/bnBufferReader.h"
+#include "../netplay/bnBufferWriter.h"
 
 constexpr double KEEP_ALIVE_RATE = 1.0f;
 
@@ -11,7 +12,7 @@ namespace Overworld {
     onPacketBody(onPacketBody)
   {
     packetResendTimer = PACKET_RESEND_RATE;
-    keepAliveTimer = KEEP_ALIVE_RATE;
+    heartbeatTimer = KEEP_ALIVE_RATE;
   }
 
   bool PacketProcessor::TimedOut() {
@@ -41,14 +42,6 @@ namespace Overworld {
     packetShipper.Send(*client, reliability, body);
   }
 
-  void PacketProcessor::SendKeepAlivePacket(Reliability reliability, Poco::Buffer<char> body) {
-    packetShipper.Send(*client, reliability, body);
-
-    // store packet to send when in background
-    keepAliveBody = body;
-    keepAliveReliability = reliability;
-  }
-
   void PacketProcessor::Update(double elapsed) {
     packetResendTimer -= elapsed;
 
@@ -58,11 +51,16 @@ namespace Overworld {
     }
 
     if (background) {
-      keepAliveTimer -= elapsed;
+      // only sending heartbeat in the background as we're constantly sending position in foreground
+      heartbeatTimer -= elapsed;
 
-      if (keepAliveTimer < 0) {
-        packetShipper.Send(*client, keepAliveReliability, keepAliveBody);
-        keepAliveTimer = PACKET_RESEND_RATE;
+      if (heartbeatTimer < 0) {
+        BufferWriter writer;
+        Poco::Buffer<char> buffer{ 0 };
+        writer.Write(buffer, ClientEvents::heartbeat);
+
+        packetShipper.Send(*client, heartbeatReliability, buffer);
+        heartbeatTimer = PACKET_RESEND_RATE;
       }
     }
   }
