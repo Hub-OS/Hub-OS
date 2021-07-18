@@ -171,19 +171,19 @@ void BBS::RemovePost(const std::string& id) {
   auto iter = std::find_if(posts.begin(), posts.end(), [&](auto& post) { return post.id == id; });
 
   if (iter != posts.end()) {
+    ptrdiff_t removeIndex = iter - posts.begin();
+
     posts.erase(iter);
-  }
 
-  auto removeIndex = iter - posts.begin();
+    if ((size_t)removeIndex <= selectedIndex && selectedIndex > 0) {
+      selectedIndex -= 1;
 
-  if ((size_t)removeIndex <= selectedIndex && selectedIndex > 0) {
-    selectedIndex -= 1;
+      if (topIndex > 0) {
+        topIndex -= 1;
+      }
 
-    if (topIndex > 0) {
-      topIndex -= 1;
+      scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
     }
-
-    scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
   }
 }
 

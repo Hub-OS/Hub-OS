@@ -715,7 +715,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       target.draw(icon, states);
     }
 
-    smCodeLabel.setPosition(offset + 2.f*(13.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
+    smCodeLabel.setPosition(offset + 2.f*(13.0f + ((i % 5)*16.0f)), 2.f*(122.f + (row*24.0f)));
 
     char code = queue[i].data->GetCode();
     smCodeLabel.SetString(code);

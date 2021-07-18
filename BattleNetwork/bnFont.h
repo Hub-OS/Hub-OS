@@ -24,10 +24,12 @@ public:
     size // don't use!
   } style;
 
+  static std::map<char, std::string> specialCharLookup;
+
 private:
   static constexpr size_t style_sz = static_cast<size_t>(Style::size);
-  static std::array<Animation, style_sz> animationArray;
   static bool animationsLoaded;
+  static std::array<Animation, style_sz> animationArray;
 
   char letter{ 'A' };
   sf::IntRect texcoords{};

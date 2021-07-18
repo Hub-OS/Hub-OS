@@ -11,7 +11,7 @@ class BBS : public ResourceHandle, public SceneNode {
 public:
   struct Post {
     std::string id;
-    bool read;
+    bool read{};
     std::string title;
     std::string author;
   };

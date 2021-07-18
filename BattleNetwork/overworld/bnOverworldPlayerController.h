@@ -12,7 +12,7 @@ namespace Overworld {
 
     struct {
       frame_time_t up{}, left{}, right{}, down{};
-    } frameDelay{};
+    } frameDelay{}, releaseFrameDelay{};
 
   public:
     void ControlActor(std::shared_ptr<Actor> actor);

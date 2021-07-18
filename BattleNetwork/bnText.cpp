@@ -67,7 +67,7 @@ void Text::UpdateGeometry() const
       }
     } else {
       // skip user-defined control codes
-      if (iscntrl(letter)) continue;
+      if (letter > 0 && iscntrl(letter)) continue;
 
       AddLetterQuad(sf::Vector2f(x, y), color, letter);
 

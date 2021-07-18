@@ -3,6 +3,11 @@
 #include "../bnInputManager.h"
 #include "bnOverworldActor.h"
 
+namespace {
+  constexpr frame_time_t START_DELAY = frames(4);
+  constexpr frame_time_t END_DELAY = frames(3);
+}
+
 void Overworld::PlayerController::ControlActor(std::shared_ptr<Actor> actor)
 {
   this->actor = actor;
@@ -27,47 +32,106 @@ void Overworld::PlayerController::Update(double elapsed)
   std::vector<Direction> inputs;
 
   if (listen) {
+    auto prevDelay = frameDelay;
+
     if (Input().Has(InputEvents::pressed_move_left) || Input().Has(InputEvents::held_move_left)) {
       frameDelay.left += from_seconds(elapsed);
     }
-    else {
-      frameDelay.left = frames(0);
+    else if(Input().Has(InputEvents::released_move_left)) {
+      releaseFrameDelay.left = ::END_DELAY;
     }
 
     if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
       frameDelay.right += from_seconds(elapsed);
     }
-    else {
-      frameDelay.right = frames(0);
+    else if (Input().Has(InputEvents::released_move_right)) {
+      releaseFrameDelay.right = ::END_DELAY;
     }
 
     if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {
       frameDelay.up += from_seconds(elapsed);
     }
-    else {
-      frameDelay.up = frames(0);
+    else if (Input().Has(InputEvents::released_move_up)) {
+      releaseFrameDelay.up = ::END_DELAY;
     }
 
     if (Input().Has(InputEvents::pressed_move_down) || Input().Has(InputEvents::held_move_down)) {
       frameDelay.down += from_seconds(elapsed);
     }
-    else {
-      frameDelay.down = frames(0);
+    else if (Input().Has(InputEvents::released_move_down)) {
+      releaseFrameDelay.down = ::END_DELAY;
     }
 
-    if (frameDelay.left >= frames(5)) {
+    bool directionEnded = false;
+
+    if (releaseFrameDelay.up > frames(0)) {
+      releaseFrameDelay.up -= from_seconds(elapsed);
+
+      if (releaseFrameDelay.up <= frames(0)) {
+        frameDelay.up = frames(0);
+        directionEnded = true;
+      }
+    }
+
+    if (releaseFrameDelay.down > frames(0)) {
+      releaseFrameDelay.down -= from_seconds(elapsed);
+
+      if (releaseFrameDelay.down <= frames(0)) {
+        frameDelay.down = frames(0);
+        directionEnded = true;
+      }
+    }
+
+    if (releaseFrameDelay.left > frames(0)) {
+      releaseFrameDelay.left -= from_seconds(elapsed);
+
+      if (releaseFrameDelay.left <= frames(0)) {
+        frameDelay.left = frames(0);
+        directionEnded = true;
+      }
+    }
+
+    if (releaseFrameDelay.right > frames(0)) {
+      releaseFrameDelay.right -= from_seconds(elapsed);
+
+      if (releaseFrameDelay.right <= frames(0)) {
+        frameDelay.right = frames(0);
+        directionEnded = true;
+      }
+    }
+
+    if (directionEnded) {
+      // Look for other directions sub 5 frames and terminate them as well
+      if (releaseFrameDelay.up > frames(0) && releaseFrameDelay.up <= ::END_DELAY) {
+        frameDelay.up = frames(0);
+      }
+
+      if (releaseFrameDelay.down > frames(0) && releaseFrameDelay.down <= ::END_DELAY) {
+        frameDelay.down = frames(0);
+      }
+
+      if (releaseFrameDelay.left > frames(0) && releaseFrameDelay.left <= ::END_DELAY) {
+        frameDelay.left = frames(0);
+      }
+
+      if (releaseFrameDelay.right > frames(0) && releaseFrameDelay.right <= ::END_DELAY) {
+        frameDelay.right = frames(0);
+      }
+    }
+
+    if (frameDelay.left >= ::START_DELAY) {
       inputs.push_back(Direction::down_left);
     }
 
-    if (frameDelay.right >= frames(5)) {
+    if (frameDelay.right >= ::START_DELAY) {
       inputs.push_back(Direction::up_right);
     }
 
-    if (frameDelay.up >= frames(5)) {
+    if (frameDelay.up >= ::START_DELAY) {
       inputs.push_back(Direction::up_left);
     }
 
-    if (frameDelay.down >= frames(5)) {
+    if (frameDelay.down >= ::START_DELAY) {
       inputs.push_back(Direction::down_right);
     }
   }

@@ -156,7 +156,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
 
   // clock
-  time.setPosition(480 - 4.f, 4.f);
+  time.setPosition(480 - 4.f, 6.f);
   time.setScale(2.f, 2.f);
 }
 
@@ -944,17 +944,14 @@ void Overworld::SceneBase::GotoMobSelect()
 
   CardFolder* folder = nullptr;
 
-  if (folders.GetFolder(0, folder)) {
-    SelectMobScene::Properties props{ currentNavi, *folder, programAdvance, bg };
-    using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
-    Audio().Play(AudioType::CHIP_DESC);
-    getController().push<effect::to<SelectMobScene>>(props);
+  if (!folders.GetFolder(0, folder)) {
+    folder = new CardFolder();
   }
-  else {
-    Audio().Play(AudioType::CHIP_ERROR);
-    Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
-    gotoNextScene = false;
-  }
+
+  SelectMobScene::Properties props{ currentNavi, *folder, programAdvance, bg };
+  using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
+  Audio().Play(AudioType::CHIP_DESC);
+  getController().push<effect::to<SelectMobScene>>(props);
 }
 
 void Overworld::SceneBase::GotoPVP()
@@ -962,16 +959,13 @@ void Overworld::SceneBase::GotoPVP()
   gotoNextScene = true;
   CardFolder* folder = nullptr;
 
-  if (folders.GetFolder(0, folder)) {
-    Audio().Play(AudioType::CHIP_DESC);
-    using effect = segue<PushIn<direction::down>, milliseconds<500>>;
-    getController().push<effect::to<MatchMakingScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
+  if (!folders.GetFolder(0, folder)) {
+    folder = new CardFolder();
   }
-  else {
-    Audio().Play(AudioType::CHIP_ERROR);
-    Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
-    gotoNextScene = false;
-  }
+
+  Audio().Play(AudioType::CHIP_DESC);
+  using effect = segue<PushIn<direction::down>, milliseconds<500>>;
+  getController().push<effect::to<MatchMakingScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
 }
 
 void Overworld::SceneBase::GotoMail()

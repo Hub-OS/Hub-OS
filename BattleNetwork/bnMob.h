@@ -56,7 +56,7 @@ private:
   std::string music; /*!< Override with custom music */
   std::vector<Component*> components; /*!< Components to inject into the battle scene */
   std::vector<Mutator*> spawn; /*!< The enemies to spawn and manage */
-  std::vector<Character*> tracked; /*! Enemies that are not spawned through the mob class but need to be considered */
+  std::vector<Character*> tracked; /*! Enemies that may or may not be spawned through the mob class but need to be considered */
   std::vector<std::function<void(Character*)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
   std::vector<std::function<void(Character*)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
   std::multimap<int, BattleItem> rewards; /*!< All possible rewards for this mob by rank */
@@ -341,6 +341,16 @@ public:
 
     mob->pixelStateInvokers.push_back(pixelStateInvoker);
     mob->defaultStateInvokers.push_back(defaultStateInvoker);
+
+    // Set name special font based on rank
+    switch(data->character->GetRank()) {
+    case typename ClassType::Rank::SP:
+      data->character->SetName(data->character->GetName() + "µ");
+      break;
+    case typename ClassType::Rank::EX:
+      data->character->SetName(data->character->GetName() + "¶");
+      break;
+    } 
 
     // Add the mob spawn data to our list of enemies to spawn
     mob->spawn.push_back(mutator);

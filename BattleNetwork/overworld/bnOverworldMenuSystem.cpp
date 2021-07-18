@@ -31,8 +31,8 @@ namespace Overworld {
       pendingBbs.pop();
     }
 
-    for (auto it = bbs.rbegin(); it != bbs.rend(); it++) {
-      (*it)->Close();
+    while(!bbs.empty()) {
+      bbs.back()->Close();
     }
 
     bbs.clear();

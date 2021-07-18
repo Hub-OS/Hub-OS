@@ -1,5 +1,6 @@
 #include "bnFont.h"
 
+std::map<char, std::string> Font::specialCharLookup;
 std::array<Animation, Font::style_sz> Font::animationArray{};
 bool Font::animationsLoaded = false;
 
@@ -66,24 +67,33 @@ void Font::ApplyStyle()
     break;
   }
 
-  std::string letterStr(1, letter);
-  std::transform(letterStr.begin(), letterStr.end(), letterStr.begin(), ::toupper);
-
-  if (letter != '"') {
-    // some font cannot be lower-cased
-    if (::islower(letter) && HasLowerCase(style)) {
-      letterStr = "LOWER_" + letterStr;
-    }
-
-    animName = animName + letterStr;
+  // prioritize special char lookup for special font letters (e.g. buttons, symbols, multichar letters)
+  if (auto iter = Font::specialCharLookup.find(letter); iter != Font::specialCharLookup.end()) {
+    animName = iter->second;
   }
   else {
-    animName = animName + "QUOTE";
+    // otherwise, compose the font lookup name
+    std::string letterStr(1, letter);
+    std::transform(letterStr.begin(), letterStr.end(), letterStr.begin(), ::toupper);
+
+    if (letter != '"') {
+      // some font cannot be lower-cased
+      if (::islower(letter) && HasLowerCase(style)) {
+        letterStr = "LOWER_" + letterStr;
+      }
+
+      animName = animName + letterStr;
+    }
+    else {
+      animName = animName + "QUOTE";
+    }
   }
 
+  // Get the frame (list of size 1) of the font
   FrameList list = animation.GetFrameList(animName);
   
   if (list.IsEmpty()) {
+    // If the list is empty (font support not existing), use small letter 'A'
     list = animation.GetFrameList("SMALL_A");
   }
   
