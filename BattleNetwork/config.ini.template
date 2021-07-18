@@ -38,7 +38,7 @@ Shoulder R="18"
 Minimap="12"
 [Gamepad]
 Gamepad Index="0"
-Invert Thumbstick="0"
+Invert Thumbstick="1"
 Move Up="-1"
 Move Down="-1"
 Move Left="-1"

@@ -648,6 +648,9 @@ void ConfigScene::onUpdate(double elapsed)
             Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
             pendingKeyBinding = {};
+
+            // add a scroll cooldown to prevent the ui from moving next frame
+            scrollCooldown = INITIAL_SCROLL_COOLDOWN;
           }
         }
       }
@@ -693,6 +696,8 @@ void ConfigScene::onUpdate(double elapsed)
           Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
           pendingGamepadBinding = {};
+          // we dont need a scroll cooldown
+          // the gamepad will be disabled until we release all buttons
         }
       }
     }
