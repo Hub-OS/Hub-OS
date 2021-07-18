@@ -21,6 +21,9 @@ void Overworld::PlayerController::ReleaseActor()
 
     // set to nullptr
     this->actor = nullptr;
+
+    frameDelay.reset();
+    releaseFrameDelay.reset();
   }
 }
 
@@ -64,6 +67,8 @@ void Overworld::PlayerController::Update(double elapsed)
 
     bool directionEnded = false;
 
+    // If one of the direction delays for release key hits EXACTLY ZERO, then
+    // we terminate that direction and flag the boolean
     if (releaseFrameDelay.up > frames(0)) {
       releaseFrameDelay.up -= from_seconds(elapsed);
 
@@ -101,7 +106,9 @@ void Overworld::PlayerController::Update(double elapsed)
     }
 
     if (directionEnded) {
-      // Look for other directions sub 5 frames and terminate them as well
+      // ONLY look for other directions < `END_DELAY` frames that are also ABOVE zero, otherwise
+      // this will terminate directions that have not been released in the window of time and create
+      // stiff, undesireable movement
       if (releaseFrameDelay.up > frames(0) && releaseFrameDelay.up <= ::END_DELAY) {
         frameDelay.up = frames(0);
       }
@@ -158,4 +165,9 @@ void Overworld::PlayerController::Update(double elapsed)
 void Overworld::PlayerController::ListenToInputEvents(const bool listen)
 {
   this->listen = listen;
+
+  if (this->listen == false) {
+    frameDelay.reset();
+    releaseFrameDelay.reset();
+  }
 }

@@ -12,6 +12,10 @@ namespace Overworld {
 
     struct {
       frame_time_t up{}, left{}, right{}, down{};
+
+      void reset() {
+        up = left = right = down = frame_time_t{};
+      }
     } frameDelay{}, releaseFrameDelay{};
 
   public:
