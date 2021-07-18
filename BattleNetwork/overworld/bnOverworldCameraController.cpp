@@ -72,7 +72,7 @@ namespace Overworld {
     queue.push(event);
   }
 
-  void CameraController::QueueFadeCamera(Camera::Fade type, const sf::Color& color, sf::Time duration)
+  void CameraController::QueueFadeCamera(const sf::Color& color, sf::Time duration)
   {
     CameraEvent event{
       CameraEventType::Fade
@@ -80,7 +80,6 @@ namespace Overworld {
 
     event.duration = duration;
     event.fadeColor = color;
-    event.fadeType = type;
 
     queue.push(event);
   }
@@ -128,7 +127,7 @@ namespace Overworld {
       cameraLocked = false;
       break;
     case CameraEventType::Fade:
-      camera.FadeCamera(event.fadeType, event.fadeColor, event.duration);
+      camera.FadeCamera(event.fadeColor, event.duration);
       // Fade duration does not block queue (will still eat a frame, at least for now) ?
       event.duration = sf::Time::Zero;
       break;
