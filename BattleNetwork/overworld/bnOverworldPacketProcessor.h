@@ -16,7 +16,6 @@ namespace Overworld {
     void SetBackground();
     void SetForeground();
     void SendPacket(Reliability reliability, Poco::Buffer<char> body);
-    void SendKeepAlivePacket(Reliability reliability, Poco::Buffer<char> body);
 
     void Update(double elapsed) override;
     void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) override;
@@ -25,9 +24,8 @@ namespace Overworld {
     std::function<void(const Poco::Buffer<char>& data)> onPacketBody;
     PacketShipper packetShipper;
     PacketSorter<ClientEvents::ack> packetSorter;
-    Reliability keepAliveReliability{};
-    Poco::Buffer<char> keepAliveBody{ 0 };
-    double keepAliveTimer{};
+    Reliability heartbeatReliability{};
+    double heartbeatTimer{};
     double packetResendTimer{};
     bool background{};
     std::optional<Poco::Buffer<char>> latestMapBody;

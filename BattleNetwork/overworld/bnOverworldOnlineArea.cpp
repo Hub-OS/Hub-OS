@@ -1150,7 +1150,7 @@ void Overworld::OnlineArea::sendPositionSignal()
   writer.Write(buffer, y);
   writer.Write(buffer, z);
   writer.Write(buffer, direction);
-  packetProcessor->SendKeepAlivePacket(Reliability::UnreliableSequenced, buffer);
+  packetProcessor->SendPacket(Reliability::UnreliableSequenced, buffer);
 }
 
 void Overworld::OnlineArea::sendAvatarChangeSignal()
