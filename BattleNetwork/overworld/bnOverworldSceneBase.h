@@ -186,8 +186,8 @@ namespace Overworld {
 
     void SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>&);
 
-    void AddItem(const std::string& name, const std::string& description);
-    void RemoveItem(const std::string& name);
+    void AddItem(const std::string& id, const std::string& name, const std::string& description);
+    void RemoveItem(const std::string& id);
 
     /**
      * @brief Add a sprite

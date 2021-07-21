@@ -1595,17 +1595,18 @@ void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco:
 
 void Overworld::OnlineArea::receiveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  auto id = reader.ReadString<uint8_t>(buffer);
   auto name = reader.ReadString<uint8_t>(buffer);
   auto description = reader.ReadString<uint16_t>(buffer);
 
-  AddItem(name, description);
+  AddItem(id, name, description);
 }
 
 void Overworld::OnlineArea::receiveRemoveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto name = reader.ReadString<uint8_t>(buffer);
+  auto id = reader.ReadString<uint8_t>(buffer);
 
-  RemoveItem(name);
+  RemoveItem(id);
 }
 
 void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {

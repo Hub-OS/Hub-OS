@@ -1096,14 +1096,14 @@ void Overworld::SceneBase::OnCustomEmoteSelected(unsigned emote)
   emoteNode.CustomEmote(emote);
 }
 
-void Overworld::SceneBase::AddItem(const std::string& name, const std::string& description)
+void Overworld::SceneBase::AddItem(const std::string& id, const std::string& name, const std::string& description)
 {
-  items.push_back({ name, description });
+  items.push_back({ id, name, description });
 }
 
-void Overworld::SceneBase::RemoveItem(const std::string& name)
+void Overworld::SceneBase::RemoveItem(const std::string& id)
 {
-  auto iter = std::find_if(items.begin(), items.end(), [&name](auto& item) { return item.name == name; });
+  auto iter = std::find_if(items.begin(), items.end(), [&id](auto& item) { return item.id == id; });
 
   if (iter != items.end()) {
     items.erase(iter);
