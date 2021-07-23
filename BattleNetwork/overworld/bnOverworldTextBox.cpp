@@ -7,7 +7,9 @@
 #include "../bnMessageInput.h"
 
 namespace Overworld {
-  TextBox::TextBox(sf::Vector2f pos) : textbox(pos), ResourceHandle() {}
+  TextBox::TextBox(sf::Vector2f pos) : textbox(pos), ResourceHandle() {
+      turboScroll = false;
+  }
 
   void TextBox::SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation) {
     nextSpeaker = speaker;
@@ -24,22 +26,41 @@ namespace Overworld {
     textbox.EnqueMessage(nextSpeaker, nextAnimation, object);
 
     handlerQueue.push([=](InputManager& input, const sf::RenderWindow& window) {
+      if (input.Has(InputEvents::pressed_run)) {
+          turboScroll = true;
+          turboTimer = 0;
+      }
       if (!input.Has(InputEvents::pressed_interact)) {
-        return;
+          if (!turboScroll || !input.Has(InputEvents::held_run)) {
+              return;
+          }
+      }
+
+      //only advance to next text window if interact is pressed, run is pressed, or run has been held for enough frames
+      bool advance = false;
+      turboTimer++;
+      if (input.Has(InputEvents::pressed_interact) || input.Has(InputEvents::pressed_run) || turboTimer > 44)
+      {
+          advance = true;
+          turboTimer = 0;
       }
 
       // continue the conversation if the text is complete
       if (textbox.IsEndOfMessage()) {
-        onComplete();
-        textbox.DequeMessage();
-        handlerQueue.pop();
+          if (advance) {
+              onComplete();
+              textbox.DequeMessage();
+              handlerQueue.pop();
+          }
       }
       else if (textbox.IsEndOfBlock()) {
-        textbox.ShowNextLines();
+          if (advance) {
+              textbox.ShowNextLines();
+          }
       }
       else {
-        // double tapping talk will complete the block
-        textbox.CompleteCurrentBlock();
+          // double tapping talk or holding run will complete the block
+          textbox.CompleteCurrentBlock();
       }
     });
   }
@@ -68,13 +89,11 @@ namespace Overworld {
       }
 
       if (!textbox.IsEndOfMessage()) {
-        if (confirm) {
-          if (textbox.IsEndOfBlock()) {
+        if (confirm && textbox.IsEndOfBlock()) {
             textbox.ShowNextLines();
-          }
-          else {
+        }
+        else if ((confirm || cancel) && !textbox.IsEndOfBlock()) {
             textbox.CompleteCurrentBlock();
-          }
         }
       }
       else if (confirm && cancel) {}
@@ -102,6 +121,7 @@ namespace Overworld {
       bool up = input.Has(InputEvents::pressed_ui_up);
       bool down = input.Has(InputEvents::pressed_ui_down);
       bool confirm = input.Has(InputEvents::pressed_confirm);
+      bool cancel = input.Has(InputEvents::pressed_cancel);
 
       if (up && down) { /* silence is golden */ }
       else if (up) {
@@ -119,6 +139,10 @@ namespace Overworld {
           quiz->ConfirmSelection();
           handlerQueue.pop();
         }
+      }
+
+      if (cancel && !textbox.IsEndOfMessage()) {
+          textbox.CompleteCurrentBlock();
       }
     });
   }
@@ -171,6 +195,7 @@ namespace Overworld {
 
     if (!textbox.HasMessage()) {
       // if there are no more messages, close
+      turboScroll = false;
       textbox.Close();
     }
   }
