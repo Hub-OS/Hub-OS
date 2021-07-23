@@ -38,5 +38,7 @@ namespace Overworld {
     sf::Sprite nextSpeaker;
     Animation nextAnimation;
     std::queue<std::function<void(InputManager& input, const sf::RenderWindow&)>> handlerQueue;
+    bool turboScroll;
+    int turboTimer;
   };
 }
