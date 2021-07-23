@@ -126,12 +126,12 @@ void PlayerHealthUI::OnUpdate(double elapsed) {
       isPoisoned = player->GetTile()->GetState() == TileState::poison;
     }
 
-    if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.5) {
+    if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.25) {
       glyphs.SetFont(Font::Style::gradient_gold);
 
 
       // If HP is low, play beep with high priority
-      if (player->GetHealth() <= startHP * 0.5 && !isBattleOver) {
+      if (player->GetHealth() <= startHP * 0.25 && !isBattleOver) {
         ResourceHandle().Audio().Play(AudioType::LOW_HP, AudioPriority::high);
       }
     } else if (currHP < player->GetHealth()) {
