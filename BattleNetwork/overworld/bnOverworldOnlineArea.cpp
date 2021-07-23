@@ -60,6 +60,11 @@ Overworld::OnlineArea::OnlineArea(
     );
 
     Net().AddHandler(remoteAddress, packetProcessor);
+
+    sendLoginSignal();
+    sendAssetsFound();
+    sendAvatarChangeSignal();
+    sendRequestJoinSignal();
   }
   catch (...) {
     // invalid remote address
@@ -715,11 +720,6 @@ void Overworld::OnlineArea::onStart()
 {
   SceneBase::onStart();
   movementTimer.start();
-
-  sendLoginSignal();
-  sendAssetsFound();
-  sendAvatarChangeSignal();
-  sendRequestJoinSignal();
 }
 
 void Overworld::OnlineArea::onEnd()
