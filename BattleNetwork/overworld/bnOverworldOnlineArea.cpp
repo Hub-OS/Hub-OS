@@ -2196,8 +2196,10 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
 
     // Do not attempt to animate the teleport over quick movements if already teleporting or animating position
     if (teleportController->IsComplete() && !animatingPos) {
+      auto expectedTime = onlinePlayer.lagWindow.GetEMA();
+
       // we can't possibly have moved this far away without teleporting
-      if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2.f) * float(timeDifference)) {
+      if (distance >= (onlinePlayer.actor->GetRunSpeed() * 2.f) * expectedTime) {
         actor->Set3DPosition(endBroadcastPos);
         auto& action = teleportController->TeleportOut(actor);
         action.onFinish.Slot([=] {
