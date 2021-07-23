@@ -24,7 +24,7 @@ namespace Overworld {
     textbox.EnqueMessage(nextSpeaker, nextAnimation, object);
 
     handlerQueue.push([=](InputManager& input, const sf::RenderWindow& window) {
-      if (!input.Has(InputEvents::pressed_interact)) {
+      if ((!input.Has(InputEvents::pressed_interact))&& (!input.Has(InputEvents::pressed_run))) {
         return;
       }
 
