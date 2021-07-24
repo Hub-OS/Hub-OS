@@ -113,8 +113,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     return;
   }
 
-  GetPersonalMenu().SetHealth(GetPlayerSession().health);
-
   // remove players before update, to prevent removed players from being added to sprite layers
   // players do not have a shared pointer to the emoteNode
   // a segfault would occur if this loop is placed after onUpdate due to emoteNode being deleted
@@ -261,8 +259,8 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     Player* player = meta.GetNavi();
 
     int fullHealth = player->GetHealth();
-    player->SetHealth(GetPlayerSession().health);
-    player->SetEmotion(GetPlayerSession().emotion);
+    player->SetHealth(GetPlayerSession()->health);
+    player->SetEmotion(GetPlayerSession()->emotion);
 
     NetworkBattleSceneProps props = {
       { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
@@ -1571,9 +1569,8 @@ void Overworld::OnlineArea::receiveHealthSignal(BufferReader& reader, const Poco
   auto health = reader.Read<int>(buffer);
   auto maxHealth = reader.Read<int>(buffer);
 
-  GetPlayerSession().health = health;
-  GetPersonalMenu().SetHealth(health);
-  GetPersonalMenu().SetMaxHealth(maxHealth);
+  GetPlayerSession()->health = health;
+  GetPlayerSession()->maxHealth = maxHealth;
 }
 
 void Overworld::OnlineArea::receiveEmotionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1584,13 +1581,13 @@ void Overworld::OnlineArea::receiveEmotionSignal(BufferReader& reader, const Poc
     emotion = Emotion::normal;
   }
 
-  GetPlayerSession().emotion = emotion;
+  GetPlayerSession()->emotion = emotion;
 }
 
 void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto balance = reader.Read<int>(buffer);
-  GetPersonalMenu().SetMonies(balance);
+  GetPlayerSession()->money = balance;
 }
 
 void Overworld::OnlineArea::receiveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

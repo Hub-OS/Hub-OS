@@ -2,6 +2,7 @@
 #include <Swoosh/Timer.h>
 #include <Swoosh/Ease.h>
 
+#include "bnOverworldPlayerSession.h"
 #include "../bnInputManager.h"
 #include "../bnSceneNode.h"
 #include "../bnSpriteProxyNode.h"
@@ -34,9 +35,8 @@ namespace Overworld {
     using OptionsList = std::vector<Options>;
 
   private:
+    std::shared_ptr<PlayerSession> session;
     int row{ 0 }; //!< Current row index
-    int health{}, maxHealth{}; //!< Health displayed by main character
-    int monies{}; //!< monies held by main character
     float opacity{}; //!< Background darkens
     double elapsedThisFrame{};
     bool selectExit{ false }; //!< If exit option is selected
@@ -74,7 +74,7 @@ namespace Overworld {
     /**
      * @brief Constructs main menu widget UI. The programmer must set info params using the public API
      */
-    PersonalMenu(const std::string& area, const OptionsList& options);
+    PersonalMenu(const std::shared_ptr<PlayerSession>& session, const std::string& area, const OptionsList& options);
 
     /**
      * @brief Deconstructor
@@ -107,26 +107,6 @@ namespace Overworld {
     * @param name String of the area name (limited to 12 chars)
     */
     void SetArea(const std::string& name);
-
-    /**
-    * @brief Set the numer of coins to display
-    * @param coins Positive integer of coins.
-    *
-    * If not positive, will cap at zero.
-    */
-    void SetMonies(int amt);
-
-    /**
-    * @brief Set the health to display e.g. (health / 100)
-    * @param health Integer of health
-    */
-    void SetHealth(int health);
-
-    /**
-    * @brief Set the max health to display e.g. ( 100 / maxHealth )
-    * @param maxHealth Integer of max health to display
-    */
-    void SetMaxHealth(int maxHealth);
 
     void UseIconTexture(const std::shared_ptr<sf::Texture> icon);
 
