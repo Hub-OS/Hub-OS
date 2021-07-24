@@ -81,6 +81,11 @@ void ScriptedCharacter::SetTileOffset(float x, float y)
   ScriptedCharacter::scriptedOffset = { x, y };
 }
 
+void ScriptedCharacter::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback)
+{
+  Character::RegisterStatusCallback(flag, callback);
+}
+
 void ScriptedCharacter::ShakeCamera(double power, float duration)
 {
   this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));

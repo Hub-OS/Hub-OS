@@ -317,7 +317,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "SetHeight", &ScriptedCharacter::SetHeight,
         "GetAnimation", &ScriptedCharacter::GetAnimationObject,
         "ShakeCamera", &ScriptedCharacter::ShakeCamera,
-        "ToggleCounter", &ScriptedCharacter::ToggleCounter
+        "ToggleCounter", &ScriptedCharacter::ToggleCounter,
+        "RegisterStatusCallback", &ScriptedCharacter::RegisterStatusCallback
     );
 
     const auto& player_record = battle_namespace.new_usertype<Player>("BasicPlayer",

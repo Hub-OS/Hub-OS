@@ -39,6 +39,7 @@ public:
   bool CanMoveTo(Battle::Tile * next) override;
   const sf::Vector2f& GetTileOffset() const;
   void SetTileOffset(float x, float y);
+  void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 
   // duration in seconds
   void ShakeCamera(double power, float duration);
