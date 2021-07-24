@@ -9,11 +9,7 @@ HoneyBomberAttackState::HoneyBomberAttackState()
 : beeCount(3), attackCooldown(0.4), spawnCooldown(0.4), lastBee(nullptr), AIState<HoneyBomber>() { 
 }
 
-HoneyBomberAttackState::~HoneyBomberAttackState() {
-  for (auto* callback : mycallbacks) {
-    delete callback;
-  }
-}
+HoneyBomberAttackState::~HoneyBomberAttackState() {}
 
 void HoneyBomberAttackState::OnEnter(HoneyBomber& honey) {
   auto animation = honey.GetFirstComponent<AnimationComponent>();
@@ -69,14 +65,13 @@ void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
     if (status != Field::AddEntityStatus::deleted) {
       lastBee = newBee;
 
-      auto* onRemove = lastBee->CreateRemoveCallback();
-      onRemove->Slot([this](Entity* in) {
-        if (this->lastBee == in) {
+      auto onRemove = [this](Entity& target, Entity& observer) {
+        if (this->lastBee == &target) {
           this->lastBee = nullptr;
         }
-      });
+      };
 
-      mycallbacks.push_back(onRemove);
+      honey.GetField()->NotifyOnDelete(lastBee->GetID(), honey.GetID(), onRemove);
     }
   }
 }

@@ -14,8 +14,7 @@ protected:
   Animation animation;
   double elapsed;
   sf::Time timeout; /**< When time is up, thunder is removed from play */
-  Entity* target; /**< The current enemy to approach */
-  EntityRemoveCallback* targetRemoveCallback{ nullptr };
+  Entity* target{ nullptr }; /**< The current enemy to approach */
 
 public:
   Thunder(Team _team);

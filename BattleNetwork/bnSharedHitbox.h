@@ -39,14 +39,12 @@ public:
    * @param _entity the character to attack that is not the same as the owner
    */
   void Attack(Character* _entity) override;
-  
   void OnDelete() override;
-
+  void OnSpawn(Battle::Tile& start) override;
   const float GetHeight() const override;
   
 private:
-  double cooldown; /*< When cooldown reaches zero, this hitbox removes */
-  bool keepAlive; /*!< If duration is not set, the hitbox stays alive for long as the owner stays alive*/
-  Spell* owner; /*!< When this hitbox is hit, the owner is hit */
-  EntityRemoveCallback* onOwnerDelete{ nullptr };
+  double cooldown{}; /*< When cooldown reaches zero, this hitbox removes */
+  bool keepAlive{}; /*!< If duration is not set, the hitbox stays alive for long as the owner stays alive*/
+  Spell* owner{ nullptr }; /*!< When this hitbox is hit, the owner is hit */
 };

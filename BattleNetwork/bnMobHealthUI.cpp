@@ -7,6 +7,7 @@ using std::to_string;
 #include "bnCharacter.h"
 #include "bnTextureResourceManager.h"
 #include "bnLogger.h"
+#include "bnField.h"
 
 MobHealthUI::MobHealthUI(Character* _mob) : mob(_mob), UIComponent(_mob) {
   healthCounter = mob->GetHealth();
@@ -15,14 +16,15 @@ MobHealthUI::MobHealthUI(Character* _mob) : mob(_mob), UIComponent(_mob) {
   glyphs.setTexture(ResourceHandle().Textures().GetTexture(TextureType::ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 
-  onMobDelete = mob->CreateRemoveCallback();
-  onMobDelete->Slot([this](Entity*) {
-      mob = nullptr;
-  });
+  auto onMobDelete = [this](Entity& target) {
+    mob = nullptr;
+  };
+
+  mob->GetField()->CallbackOnDelete(mob->GetID(), onMobDelete);
 }
 
 MobHealthUI::~MobHealthUI() {
-  delete onMobDelete;
+  // delete onMobDelete;
 }
 
 /*
@@ -113,7 +115,6 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
       glyphs.setColor(color);
 
       target.draw(glyphs, this_states);
-      //ENGINE.Draw(font);
 
       offsetx += 8.0f*glyphs.getScale().x;
       index++;

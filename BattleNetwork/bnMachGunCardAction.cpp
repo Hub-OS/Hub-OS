@@ -72,12 +72,11 @@ void MachGunCardAction::OnExecute(Character* user)
         }
 
         if (target) {
-          auto* removeCallback = target->CreateRemoveCallback();
-          removeCallback->Slot([this](Entity* in) {
+          auto removeCallback = [this](Entity& target, Entity& observer) {
             this->target = nullptr;
-          });
+          };
 
-          removeCallbacks.push_back(removeCallback);
+          actor.GetField()->NotifyOnDelete(target->GetID(), actor.GetID(), removeCallback);
         }
       }
     }
@@ -118,11 +117,6 @@ void MachGunCardAction::OnExecute(Character* user)
 
 void MachGunCardAction::OnActionEnd()
 {
-  for (auto* callback : removeCallbacks) {
-    delete callback;
-  }
-
-  removeCallbacks.clear();
 }
 
 void MachGunCardAction::OnAnimationEnd()

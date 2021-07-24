@@ -23,6 +23,8 @@ class Bees : public Obstacle {
       }
     }
   };
+
+  void MonitorTarget(Entity* target);
 protected:
   int damage{}, hitCount{}, turnCount{};
   bool madeContact{}; /*!< if a bee hits something, it stays on top of it else it moves*/
@@ -36,7 +38,6 @@ protected:
   Bees* leader{ nullptr };/*!< which bee to follow*/
   BeeDefenseRule* absorbDamage;
 
-  std::vector<EntityRemoveCallback*> removeCallbacks;
 public:
   Bees(Team _team,int damage);
   Bees(const Bees& leader);
@@ -44,6 +45,7 @@ public:
 
   bool CanMoveTo(Battle::Tile* tile) override;
   void OnUpdate(double _elapsed) override;
+  void OnSpawn(Battle::Tile& start) override;
   void OnBattleStop() override;
   void Attack(Character* _entity);
   void OnDelete() override;

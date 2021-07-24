@@ -7,6 +7,20 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
+void Bees::MonitorTarget(Entity* target)
+{
+  if (target) {
+    auto leaderDeleteHandler = [](Entity& target, Entity& observer) {
+      Bees& bees = dynamic_cast<Bees&>(observer);
+
+      if (bees.target == bees.leader) bees.target = nullptr;
+      bees.leader = nullptr;
+    };
+
+    field->NotifyOnDelete(this->target->GetID(), this->GetID(), leaderDeleteHandler);
+  }
+}
+
 Bees::Bees(Team _team,int damage) :
   damage(damage),
   Obstacle(_team) {
@@ -93,22 +107,6 @@ Bees::Bees(const Bees & leader) :
   AddNode(shadow);
 
   SetHitboxProperties(leader.GetHitboxProperties());
-  EntityRemoveCallback* selfDeleteHandler = CreateRemoveCallback();
-  EntityRemoveCallback* leaderDeleteHandler = this->leader->CreateRemoveCallback();
-
-  leaderDeleteHandler->Slot([this, selfDeleteHandler](Entity*) {
-    if (target == this->leader) target = nullptr;
-    this->leader = nullptr;
-
-    selfDeleteHandler->Reset();
-  });
-
-  selfDeleteHandler->Slot([this, leaderDeleteHandler](Entity*) {
-    leaderDeleteHandler->Reset();
-  });
-
-  removeCallbacks.push_back(leaderDeleteHandler);
-  removeCallbacks.push_back(selfDeleteHandler);
 
   if (GetTeam() == Team::red) {
     SetDirection(Direction::right);
@@ -126,10 +124,6 @@ Bees::Bees(const Bees & leader) :
 Bees::~Bees() {
   delete shadow;
   delete absorbDamage;
-  
-  for (auto* callbacks : removeCallbacks) {
-    delete callbacks;
-  }
 }
 
 void Bees::OnUpdate(double _elapsed) {
@@ -308,18 +302,12 @@ void Bees::OnUpdate(double _elapsed) {
     }
 
     if (GetField()->AddEntity(*hitbox, *GetTile()) != Field::AddEntityStatus::deleted) {
-      EntityRemoveCallback* selfDeleteHandler = CreateRemoveCallback();
-      selfDeleteHandler->Slot([hitbox](Entity*) {
-        hitbox->Remove();
-      });
+      auto hitboxRemoveCallback = [](Entity& target, Entity& observer) {
+        Hitbox& hitbox = dynamic_cast<Hitbox&>(observer);
+        hitbox.Remove();
+      };
 
-      EntityRemoveCallback* hitboxDeleteHandler = hitbox->CreateRemoveCallback();
-      hitboxDeleteHandler->Slot([selfDeleteHandler](Entity*) {
-        selfDeleteHandler->Reset();
-      });
-
-      removeCallbacks.push_back(hitboxDeleteHandler);
-      removeCallbacks.push_back(selfDeleteHandler);
+      field->NotifyOnDelete(this->GetID(), hitbox->GetID(), hitboxRemoveCallback);
     }
   }
 
@@ -329,6 +317,11 @@ void Bees::OnUpdate(double _elapsed) {
     // Mark us for deletion
     Delete();
   }
+}
+
+void Bees::OnSpawn(Battle::Tile& start)
+{
+  MonitorTarget(this->leader);
 }
 
 void Bees::OnBattleStop()

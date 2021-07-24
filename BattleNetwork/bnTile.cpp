@@ -878,8 +878,6 @@ namespace Battle {
 
       // If the entity is marked for removal
       if (ptr->WillRemoveLater()) {
-        ptr->ExecuteRemoveCallbacks();
-
         if (RemoveEntityByID(ID)) {
           // Don't track this entity anymore
           field->ForgetEntity(ID);

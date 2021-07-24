@@ -92,6 +92,49 @@ int Field::GetHeight() const {
   return height;
 }
 
+void Field::CallbackOnDelete(Entity::ID_t target, const std::function<void(Entity&)>& callback)
+{
+  auto iter = entityDeleteObservers.find(target);
+
+  if (iter != entityDeleteObservers.end()) {
+    DeleteObserver dobs;
+    dobs.callback1 = callback;
+    iter->second.emplace_back(std::move(dobs));
+  }
+  else {
+    // We do not have a bucket for this target entity
+    entityDeleteObservers.insert(std::make_pair(target, std::vector<DeleteObserver>()));
+
+    DeleteObserver dobs;
+    dobs.callback1 = callback;
+    entityDeleteObservers[target].emplace_back(std::move(dobs));
+  }
+}
+
+void Field::NotifyOnDelete(Entity::ID_t target, Entity::ID_t observer, const std::function<void(Entity&, Entity&)>& callback)
+{
+  auto iter = entityDeleteObservers.find(target);
+
+  if (iter != entityDeleteObservers.end()) {
+    bool found = false;
+    for (auto& elem : iter->second) {
+      if (iter->first == observer) {
+        found = true;
+        break;
+      }
+    }
+  }
+  else {
+    // We do not have a bucket for this target entity
+    entityDeleteObservers.insert(std::make_pair(target, std::vector<DeleteObserver>()));
+
+    DeleteObserver dobs;
+    dobs.observer = observer;
+    dobs.callback2 = callback;
+    entityDeleteObservers[target].emplace_back(std::move(dobs));
+  }
+}
+
 std::vector<Battle::Tile*> Field::FindTiles(std::function<bool(Battle::Tile* t)> query)
 {
   std::vector<Battle::Tile*> res;
@@ -604,7 +647,30 @@ void Field::UpdateEntityOnce(Entity *entity, const double elapsed)
 
 void Field::ForgetEntity(Entity::ID_t ID)
 {
+  auto entityIter = allEntityHash.find(ID);
+  if (entityIter != allEntityHash.end()) {
+    Entity* target = entityIter->second;
+
+    auto deleteIter = entityDeleteObservers.find(ID);
+
+    if (deleteIter != entityDeleteObservers.end()) {
+      auto& deleteObservers = deleteIter->second;
+
+      for (auto& d : deleteObservers) {
+        if (d.observer.has_value()) {
+          if (Entity* observer = this->GetEntity(d.observer.value())) {
+            d.callback2(*target, *observer);
+          }
+        }
+        else {
+          d.callback1(*target);
+        }
+      }
+    }
+  }
+
   allEntityHash.erase(ID);
+  entityDeleteObservers.erase(ID);
 }
 
 void Field::DeallocEntity(Entity::ID_t ID)

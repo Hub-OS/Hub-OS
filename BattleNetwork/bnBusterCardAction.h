@@ -11,7 +11,6 @@ private:
   SpriteProxyNode* buster{ nullptr }, * flare{ nullptr };
   Attachment* busterAttachment{ nullptr };
   Animation busterAnim, flareAnim;
-  EntityRemoveCallback* busterRemoved{ nullptr };
   bool charged{};
   int damage{};
 public:

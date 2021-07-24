@@ -2,7 +2,6 @@
 #include <SFML/Graphics.hpp>
 #include "bnUIComponent.h"
 #include "bnSpriteProxyNode.h"
-#include "bnEntityRemoveCallback.h"
 #include "bnInputHandle.h"
 
 // forward delcare
@@ -51,5 +50,4 @@ private:
   mutable SpriteProxyNode glyphs; /*!< Drawable texture */
   int healthCounter; /*!< mob's current health */
   double cooldown; /*!< Time after dial to uncolorize */
-  EntityRemoveCallback* onMobDelete{ nullptr };
 };

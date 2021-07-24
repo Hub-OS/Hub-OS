@@ -13,15 +13,9 @@ SharedHitbox::SharedHitbox(Spell* owner, float duration) :
   cooldown = duration;
   SetHitboxProperties(owner->GetHitboxProperties());
   keepAlive = (duration == 0.0f);
-
-  onOwnerDelete = owner->CreateRemoveCallback();
-  onOwnerDelete->Slot([this](Entity*) {
-    SharedHitbox::owner = nullptr;
-  });
 }
 
 SharedHitbox::~SharedHitbox() {
-  delete onOwnerDelete;
 }
 
 void SharedHitbox::OnUpdate(double _elapsed) {
@@ -58,6 +52,16 @@ void SharedHitbox::Attack(Character* _entity) {
 void SharedHitbox::OnDelete()
 {
   Remove();
+}
+
+void SharedHitbox::OnSpawn(Battle::Tile& start)
+{
+  auto onOwnerDelete = [](Entity& target, Entity& observer) {
+    SharedHitbox& hitbox = dynamic_cast<SharedHitbox&>(observer);
+    hitbox.owner = nullptr;
+  };
+
+  field->NotifyOnDelete(owner->GetID(), this->GetID(), onOwnerDelete);
 }
 
 const float SharedHitbox::GetHeight() const {

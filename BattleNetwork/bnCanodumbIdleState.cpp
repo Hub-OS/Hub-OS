@@ -12,20 +12,10 @@ void CanodumbIdleState::Attack()
 
 void CanodumbIdleState::FreeCursor()
 {
-  bool isCursorValid = cursor;
-
-  if (freeCursorCallback) {
-    if (isCursorValid) {
-      cursor->ForgetRemoveCallback(*freeCursorCallback);
-    }
-    delete freeCursorCallback;
-  }
-
-  if (isCursorValid) {
+  if (cursor) {
     cursor->Remove();
     cursor = nullptr;
   }
-  freeCursorCallback = nullptr;
 }
 
 Character::Rank CanodumbIdleState::GetCanodumbRank()
@@ -71,12 +61,12 @@ void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
       if (cursor == nullptr) {
         FreeCursor();
         cursor = new CanodumbCursor(this);
-        freeCursorCallback = cursor->CreateRemoveCallback();
 
-        freeCursorCallback->Slot([this](Entity*) {
-            cursor = nullptr;
-        });
+        auto freeCursorCallback = [this](Entity& target, Entity& observer) {
+          cursor = nullptr;
+        };
 
+        can.GetField()->NotifyOnDelete(cursor->GetID(), can.GetID(), freeCursorCallback);
         can.GetField()->AddEntity(*cursor, can.GetTile()->GetX() - 1, can.GetTile()->GetY());
       }
     }

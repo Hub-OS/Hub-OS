@@ -8,10 +8,7 @@ AlphaClawSwipeState::AlphaClawSwipeState(bool goldenArmState) : AIState<AlphaCor
   last = nullptr;
 }
 
-AlphaClawSwipeState::~AlphaClawSwipeState() {
-  delete onLeftArmRemove;
-  delete onRightArmRemove;
-}
+AlphaClawSwipeState::~AlphaClawSwipeState() {}
 
 void AlphaClawSwipeState::OnEnter(AlphaCore& a) {
   a.HideRightArm();
@@ -64,12 +61,10 @@ void AlphaClawSwipeState::OnLeave(AlphaCore& a) {
   a.RevealRightArm();
 
   if (leftArm) {
-    leftArm->ForgetRemoveCallback(*onLeftArmRemove);
     leftArm->Delete();
   }
 
   if (rightArm) {
-    rightArm->ForgetRemoveCallback(*onRightArmRemove);
     rightArm->Delete();
   }
 
@@ -77,54 +72,53 @@ void AlphaClawSwipeState::OnLeave(AlphaCore& a) {
 }
 
 void AlphaClawSwipeState::SpawnLeftArm(AlphaCore& a) {
-    a.HideLeftArm();
+  a.HideLeftArm();
 
-    leftArm = new AlphaArm(a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
+  leftArm = new AlphaArm(a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
 
-    delete onLeftArmRemove;
-    onLeftArmRemove = leftArm->CreateRemoveCallback();
-    onLeftArmRemove->Slot([this, alphaCore = &a](Entity*) {
-        leftArm = nullptr;
-        alphaCore->GoToNextState();
-    });
+  auto leftArmDeleteCallback = [this](Entity& target, Entity& observer) {
+    leftArm = nullptr;
+    dynamic_cast<AlphaCore&>(observer).GoToNextState();
+  };
 
-    auto props = leftArm->GetHitboxProperties();
-    props.aggressor = a.GetID();
-    leftArm->SetHitboxProperties(props);
+  a.GetField()->NotifyOnDelete(leftArm->GetID(), a.GetID(), leftArmDeleteCallback);
 
-    Field* field = a.GetField();
-    field->AddEntity(*leftArm, 4, last->GetY());
+  auto props = leftArm->GetHitboxProperties();
+  props.aggressor = a.GetID();
+  leftArm->SetHitboxProperties(props);
 
-    if (goldenArmState) {
-        leftArm->LeftArmChangesTileState();
-    }
+  Field* field = a.GetField();
+  field->AddEntity(*leftArm, 4, last->GetY());
 
-    rightArm = nullptr;
+  if (goldenArmState) {
+    leftArm->LeftArmChangesTileState();
+  }
+
+  rightArm = nullptr;
 }
 
 void AlphaClawSwipeState::SpawnRightArm(AlphaCore& a) {
+  // spawn right claw
+  rightArm = new AlphaArm(a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
 
-    // spawn right claw
-    rightArm = new AlphaArm(a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
+  auto rightArmDeleteCallback = [this](Entity& target, Entity& observer) {
+    rightArm = nullptr;
+    SpawnLeftArm(dynamic_cast<AlphaCore&>(observer));
+  };
 
-    delete onRightArmRemove;
-    onRightArmRemove = rightArm->CreateRemoveCallback();
-    onRightArmRemove->Slot([this, alphaCore=&a](Entity*) {
-        rightArm = nullptr;
-        SpawnLeftArm(*alphaCore);
-    });
+  a.GetField()->NotifyOnDelete(rightArm->GetID(), a.GetID(), rightArmDeleteCallback);
 
-    auto props = rightArm->GetHitboxProperties();
-    props.aggressor = a.GetID();
-    rightArm->SetHitboxProperties(props);
+  auto props = rightArm->GetHitboxProperties();
+  props.aggressor = a.GetID();
+  rightArm->SetHitboxProperties(props);
 
-    Field* field = a.GetField();
+  Field* field = a.GetField();
 
-    if (goldenArmState) {
-        rightArm->RightArmChangesTileTeam();
-        field->AddEntity(*rightArm, 3, 1);
-    }
-    else {
-        field->AddEntity(*rightArm, last->GetX(), 1);
-    }
+  if (goldenArmState) {
+    rightArm->RightArmChangesTileTeam();
+    field->AddEntity(*rightArm, 3, 1);
+  }
+  else {
+    field->AddEntity(*rightArm, last->GetX(), 1);
+  }
 }

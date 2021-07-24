@@ -22,21 +22,12 @@ Thunder::Thunder(Team _team) : Spell(_team) {
   animation.SetAnimation("DEFAULT");
   animation << Animator::Mode::Loop;
 
-  target = nullptr;
-
   Audio().Play(AudioType::THUNDER);
 
   animation.Update(0, getSprite());
 }
 
 Thunder::~Thunder() {
-  if (target) {
-    target->ForgetRemoveCallback(*targetRemoveCallback);
-  }
-
-  if (targetRemoveCallback) {
-    delete targetRemoveCallback;
-  }
 }
 
 void Thunder::OnUpdate(double _elapsed) {
@@ -72,10 +63,12 @@ void Thunder::OnUpdate(double _elapsed) {
         if (currentDist < targetDist) {
           target = l;
 
-          targetRemoveCallback = target->CreateRemoveCallback();
-          targetRemoveCallback->Slot([this](Entity*) {
-            target = nullptr;
-          });
+          auto targetRemoveCallback = [](Entity& target, Entity& observer) {
+            Thunder& self = dynamic_cast<Thunder&>(observer);
+            self.target = nullptr;
+          };
+
+          field->NotifyOnDelete(target->GetID(), this->GetID(), targetRemoveCallback);
         }
       }
     }

@@ -59,6 +59,9 @@ public:
    */
   int GetHeight() const;
 
+  void CallbackOnDelete(Entity::ID_t target, const std::function<void(Entity&)>& callback);
+  void NotifyOnDelete(Entity::ID_t target, Entity::ID_t observer, const std::function<void(Entity&, Entity&)>& callback);
+
   /**
    * @brief Query for tiles that pass the input function
    * @param query input function, returns true or false based on conditions
@@ -238,9 +241,9 @@ private:
   // we create a pending queue of entities and tag them by type so later
   // we can add them into play
   struct queueBucket {
-    int x;
-    int y;
-    Entity::ID_t ID;
+    int x{};
+    int y{};
+    Entity::ID_t ID{};
 
     enum class type : int {
       character,
@@ -262,8 +265,16 @@ private:
     queueBucket(int x, int y, Spell& d);
     queueBucket(const queueBucket& rhs) = default;
   };
+
+  struct DeleteObserver {
+    std::optional<Entity::ID_t> observer;
+    std::function<void(Entity&)> callback1; // target only variant
+    std::function<void(Entity&, Entity&)> callback2; // target-observer variant
+  };
+
   map<Entity::ID_t, Entity*> allEntityHash; /*!< Quick lookup of entities on the field */
   map<Entity::ID_t, void*> updatedEntities; /*!< Since entities can be shared across tiles, prevent multiple updates*/
+  map<Entity::ID_t, std::vector<DeleteObserver>> entityDeleteObservers; /*!< List of callback functions for when an entity is deleted*/
   vector<queueBucket> pending;
   vector<Entity*> dueForDeallocation; /*!< Entities to be deallocated via the `delete` keyword */
   vector<vector<Battle::Tile*>> tiles; /*!< Nested vector to make calls via tiles[x][y] */

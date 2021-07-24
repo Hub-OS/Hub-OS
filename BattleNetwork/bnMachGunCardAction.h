@@ -15,7 +15,6 @@ class MachGunCardAction : public CardAction {
   Animation machgunAnim;
   Entity* target{ nullptr };
   Battle::Tile* targetTile{ nullptr };
-  std::vector<EntityRemoveCallback*> removeCallbacks;
 
   void FreeTarget();
   Battle::Tile* MoveRectical(Field*, bool columnMove);

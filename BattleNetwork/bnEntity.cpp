@@ -1,5 +1,4 @@
 #include "bnEntity.h"
-#include "bnEntityRemoveCallback.h"
 #include "bnComponent.h"
 #include "bnTile.h"
 #include "bnField.h"
@@ -190,16 +189,6 @@ void Entity::UpdateMovement(double elapsed)
 void Entity::SetFrame(unsigned frame)
 {
   this->frame = frame;
-}
-
-void Entity::ExecuteRemoveCallbacks()
-{
-  for (EntityRemoveCallback* callback : removeCallbacks) {
-    (*callback)(this);
-    callback->Reset();
-  }
-
-  removeCallbacks.clear();
 }
 
 void Entity::Spawn(Battle::Tile & start)
@@ -520,21 +509,6 @@ void Entity::Delete()
 void Entity::Remove()
 {
   flagForRemove = true;
-}
-
-EntityRemoveCallback* Entity::CreateRemoveCallback()
-{
-  removeCallbacks.push_back(new EntityRemoveCallback(*this));
-  return removeCallbacks[removeCallbacks.size() - 1];
-}
-
-void Entity::ForgetRemoveCallback(EntityRemoveCallback& callback)
-{
-  auto iter = std::find(removeCallbacks.begin(), removeCallbacks.end(), &callback);
-  if (iter != removeCallbacks.end()) {
-    callback.Reset();
-    removeCallbacks.erase(iter);
-  }
 }
 
 bool Entity::IsDeleted() const {

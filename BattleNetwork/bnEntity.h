@@ -30,7 +30,6 @@ using std::string;
 #include "bnComponent.h"
 #include "bnEventBus.h"
 #include "bnActionQueue.h"
-#include "bnEntityRemoveCallback.h"
 
 namespace Battle {
   class Tile;
@@ -316,21 +315,6 @@ public:
   * @brief Flags the entity to be pruned from the field 
   */
   void Remove();
-
-  /**
-  * @brief Builds and returns a pointer to a callback function of type void()
-  * Useful for safely determining the lifetime of another entity in play
-  */
-  EntityRemoveCallback* CreateRemoveCallback();
-  void ForgetRemoveCallback(EntityRemoveCallback& callback);
-
-  /**
-  * @brief Executes all pending callbacks for the entity's removal from battle
-  * 
-  * note: this will be called at the End Of Frame when something is removed or deleted
-  * @see bnTile.cpp `void CleanupEntities()`
-  */
-  void ExecuteRemoveCallbacks();
   
   /**
    * @brief Query if an entity has been deleted but not removed this frame
@@ -481,7 +465,6 @@ protected:
     Status action{ Status::add };
   };
   std::list<ComponentBucket> queuedComponents;
-  std::vector<EntityRemoveCallback*> removeCallbacks;
 
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
   void SetMoveEndlag(const frame_time_t& frames);

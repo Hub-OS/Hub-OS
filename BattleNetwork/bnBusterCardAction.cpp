@@ -48,10 +48,11 @@ void BusterCardAction::OnExecute(Character* user) {
       b->SetDirection(Direction::left);
     }
 
-    busterRemoved = b->CreateRemoveCallback();
-    busterRemoved->Slot([this](Entity*) {
+    auto busterRemoved = [this](Entity& target) {
       EndAction();
-      });
+    };
+
+    user->GetField()->CallbackOnDelete(b->GetID(), busterRemoved);
 
     user->GetField()->AddEntity(*b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
@@ -62,10 +63,7 @@ void BusterCardAction::OnExecute(Character* user) {
   AddAnimAction(2, onFire);
 }
 
-BusterCardAction::~BusterCardAction()
-{
-  delete busterRemoved;
-}
+BusterCardAction::~BusterCardAction(){ }
 
 void BusterCardAction::Update(double _elapsed)
 {
