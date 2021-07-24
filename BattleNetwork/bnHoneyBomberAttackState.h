@@ -1,6 +1,7 @@
 #pragma once
 #include "bnAIState.h"
 #include "bnHoneyBomber.h"
+#include "bnField.h"
 
 namespace Battle {
   class Tile;
@@ -14,6 +15,7 @@ private:
   int beeCount{};
   double attackCooldown{}, spawnCooldown{};
   Bees* lastBee{ nullptr };
+  Field::NotifyID_t notifier{-1};
 public:
 
   /**

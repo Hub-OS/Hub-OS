@@ -40,6 +40,7 @@ void BusterCardAction::OnExecute(Character* user) {
   auto onFire = [this, user]() -> void {
     Team team = user->GetTeam();
     Buster* b = new Buster(team, charged, damage);
+    field = user->GetField();
 
     if (team == Team::red) {
       b->SetDirection(Direction::right);
@@ -52,7 +53,7 @@ void BusterCardAction::OnExecute(Character* user) {
       EndAction();
     };
 
-    user->GetField()->CallbackOnDelete(b->GetID(), busterRemoved);
+    notifier = field->CallbackOnDelete(b->GetID(), busterRemoved);
 
     user->GetField()->AddEntity(*b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
@@ -72,6 +73,9 @@ void BusterCardAction::Update(double _elapsed)
 
 void BusterCardAction::OnActionEnd()
 {
+  if (field) {
+    field->DropNotifier(this->notifier);
+  }
 }
 
 void BusterCardAction::OnAnimationEnd()

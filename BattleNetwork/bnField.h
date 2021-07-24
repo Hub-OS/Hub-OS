@@ -24,6 +24,8 @@ namespace Battle {
 
 class Field : public CharacterDeletePublisher{
 public:
+  using NotifyID_t = long long; // for lifetime notifiers
+
   friend class Entity;
 
   enum class AddEntityStatus {
@@ -59,8 +61,9 @@ public:
    */
   int GetHeight() const;
 
-  void CallbackOnDelete(Entity::ID_t target, const std::function<void(Entity&)>& callback);
-  void NotifyOnDelete(Entity::ID_t target, Entity::ID_t observer, const std::function<void(Entity&, Entity&)>& callback);
+  NotifyID_t CallbackOnDelete(Entity::ID_t target, const std::function<void(Entity&)>& callback);
+  NotifyID_t NotifyOnDelete(Entity::ID_t target, Entity::ID_t observer, const std::function<void(Entity&, Entity&)>& callback);
+  void DropNotifier(NotifyID_t notifier);
 
   /**
    * @brief Query for tiles that pass the input function
@@ -267,14 +270,18 @@ private:
   };
 
   struct DeleteObserver {
+    NotifyID_t ID{};
     std::optional<Entity::ID_t> observer;
     std::function<void(Entity&)> callback1; // target only variant
     std::function<void(Entity&, Entity&)> callback2; // target-observer variant
   };
 
+  NotifyID_t nextID{};
+
   map<Entity::ID_t, Entity*> allEntityHash; /*!< Quick lookup of entities on the field */
   map<Entity::ID_t, void*> updatedEntities; /*!< Since entities can be shared across tiles, prevent multiple updates*/
   map<Entity::ID_t, std::vector<DeleteObserver>> entityDeleteObservers; /*!< List of callback functions for when an entity is deleted*/
+  map<NotifyID_t, Entity::ID_t> notify2TargetHash; /*!< Convert from target entity to its delete observer key*/
   vector<queueBucket> pending;
   vector<Entity*> dueForDeallocation; /*!< Entities to be deallocated via the `delete` keyword */
   vector<vector<Battle::Tile*>> tiles; /*!< Nested vector to make calls via tiles[x][y] */

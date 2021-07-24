@@ -24,6 +24,7 @@ class Bees : public Obstacle {
     }
   };
 
+  Field::NotifyID_t notifier{ -1 };
   void MonitorTarget(Entity* target);
 protected:
   int damage{}, hitCount{}, turnCount{};

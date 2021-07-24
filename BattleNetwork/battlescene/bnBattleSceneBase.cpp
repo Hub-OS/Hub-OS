@@ -252,7 +252,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
     return false;
   });
 
-  Logger::Logf("Removing %s from battle", pending.GetName().c_str());
+  Logger::Logf("Removing %s from battle (ID: %d)", pending.GetName().c_str(), pending.GetID());
   mob->Forget(pending);
 
   if (mob->IsCleared()) {

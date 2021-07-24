@@ -16,11 +16,11 @@ MobHealthUI::MobHealthUI(Character* _mob) : mob(_mob), UIComponent(_mob) {
   glyphs.setTexture(ResourceHandle().Textures().GetTexture(TextureType::ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 
-  auto onMobDelete = [this](Entity& target) {
+  /*auto onMobDelete = [this](Entity& target) {
     mob = nullptr;
   };
 
-  mob->GetField()->CallbackOnDelete(mob->GetID(), onMobDelete);
+  mob->GetField()->CallbackOnDelete(mob->GetID(), onMobDelete);*/
 }
 
 MobHealthUI::~MobHealthUI() {

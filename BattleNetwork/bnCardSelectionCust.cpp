@@ -299,7 +299,8 @@ bool CardSelectionCust::CursorRight() {
   if (isInFormSelect) return false;
 
   if (++cursorPos > 2 && cursorRow == 1) {
-    cursorPos = 0;
+    cursorPos = 5;
+    cursorRow = 0;
   }
   else if (cursorPos > 5 && cursorRow == 0) {
     cursorPos = 0;
@@ -312,7 +313,8 @@ bool CardSelectionCust::CursorLeft() {
   if (isInFormSelect) return false;
 
   if (--cursorPos < 0 && cursorRow == 1) {
-    cursorPos = 2;
+    cursorPos = 5;
+    cursorRow = 0;
   }
   else if (cursorPos < 0 && cursorRow == 0) {
     cursorPos = 5;
@@ -715,7 +717,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       target.draw(icon, states);
     }
 
-    smCodeLabel.setPosition(offset + 2.f*(13.0f + ((i % 5)*16.0f)), 2.f*(122.f + (row*24.0f)));
+    smCodeLabel.setPosition(offset + 2.f*(13.0f + ((i % 5)*16.0f)), 2.f*(121.f + (row*24.0f)));
 
     char code = queue[i].data->GetCode();
     smCodeLabel.SetString(code);
@@ -774,7 +776,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
         label.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
         label.setOrigin(label.GetLocalBounds().width+label.GetLocalBounds().left, 0);
-        label.setPosition((offset + 2.f*(70.f))+2.f, 150.f);
+        label.setPosition((offset + 2.f*(70.f))+2.f, 152.f);
         target.draw(label, states);
       }
 

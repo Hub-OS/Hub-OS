@@ -92,12 +92,15 @@ int Field::GetHeight() const {
   return height;
 }
 
-void Field::CallbackOnDelete(Entity::ID_t target, const std::function<void(Entity&)>& callback)
+Field::NotifyID_t Field::CallbackOnDelete(Entity::ID_t target, const std::function<void(Entity&)>& callback)
 {
   auto iter = entityDeleteObservers.find(target);
+  Field::NotifyID_t ID = nextID;
+  nextID++;
 
   if (iter != entityDeleteObservers.end()) {
     DeleteObserver dobs;
+    dobs.ID = ID;
     dobs.callback1 = callback;
     iter->second.emplace_back(std::move(dobs));
   }
@@ -106,32 +109,77 @@ void Field::CallbackOnDelete(Entity::ID_t target, const std::function<void(Entit
     entityDeleteObservers.insert(std::make_pair(target, std::vector<DeleteObserver>()));
 
     DeleteObserver dobs;
+    dobs.ID = ID;
     dobs.callback1 = callback;
     entityDeleteObservers[target].emplace_back(std::move(dobs));
   }
+
+  notify2TargetHash.insert(std::make_pair(ID, target));
+  return ID;
 }
 
-void Field::NotifyOnDelete(Entity::ID_t target, Entity::ID_t observer, const std::function<void(Entity&, Entity&)>& callback)
+Field::NotifyID_t Field::NotifyOnDelete(Entity::ID_t target, Entity::ID_t observer, const std::function<void(Entity&, Entity&)>& callback)
 {
   auto iter = entityDeleteObservers.find(target);
+  NotifyID_t ID = {};
 
   if (iter != entityDeleteObservers.end()) {
-    bool found = false;
     for (auto& elem : iter->second) {
-      if (iter->first == observer) {
-        found = true;
+      if (elem.observer == observer) {
+        ID = elem.ID;
         break;
       }
     }
+
+    // If we reached this line, we did not find a matching observer
+    // Add one
+    ID = nextID;
+    nextID++;
+    DeleteObserver dobs;
+    dobs.ID = ID;
+    dobs.observer = observer;
+    dobs.callback2 = callback;
+    iter->second.emplace_back(std::move(dobs));
   }
   else {
     // We do not have a bucket for this target entity
     entityDeleteObservers.insert(std::make_pair(target, std::vector<DeleteObserver>()));
 
     DeleteObserver dobs;
+    dobs.ID = nextID;
     dobs.observer = observer;
     dobs.callback2 = callback;
     entityDeleteObservers[target].emplace_back(std::move(dobs));
+    ID = nextID;
+    nextID++;
+
+    // add notify ID lookup for this target
+    notify2TargetHash.insert(std::make_pair(ID, target));
+  }
+
+  return ID;
+}
+
+void Field::DropNotifier(NotifyID_t notifier)
+{
+  auto iter = notify2TargetHash.find(notifier);
+  if (iter != notify2TargetHash.end()) {
+    Entity::ID_t targetID = iter->second;
+    auto listIter = entityDeleteObservers.find(targetID);
+
+    if (listIter != entityDeleteObservers.end()) {
+      for (auto deleteIter = listIter->second.begin(); deleteIter != listIter->second.end(); deleteIter++) {
+        if (deleteIter->ID == notifier) {
+          listIter->second.erase(deleteIter);
+
+          if (listIter->second.empty()) {
+            entityDeleteObservers.erase(listIter);
+            notify2TargetHash.erase(notifier);
+          }
+          return;
+        }
+      }
+    }
   }
 }
 

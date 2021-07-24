@@ -402,9 +402,14 @@ void MatchMakingScene::Reset()
     HandleGetIPFailure();
   }
   else {
-    Logger::Logf("My IP came back as %s", myIP.c_str());
-    // start on info mode first
-    HandleInfoMode();
+    if (theirIP.empty()) {
+      Logger::Logf("My IP came back as %s", myIP.c_str());
+      // start on info mode first
+      HandleInfoMode();
+    }
+    else {
+      HandleJoinMode();
+    }
   }
 
   greenBg.setColor(sf::Color::White);

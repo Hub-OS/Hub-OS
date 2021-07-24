@@ -33,6 +33,7 @@ void HoneyBomberAttackState::OnUpdate(double _elapsed, HoneyBomber& honey) {
 void HoneyBomberAttackState::OnLeave(HoneyBomber& honey) {
   honey.EndMyTurn(); // Let the next begin attacking too
   honey.GetFirstComponent<AnimationComponent>()->SetPlaybackSpeed(1.0);
+  honey.GetField()->DropNotifier(notifier);
 }
 
 void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
@@ -71,7 +72,8 @@ void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
         }
       };
 
-      honey.GetField()->NotifyOnDelete(lastBee->GetID(), honey.GetID(), onRemove);
+      honey.GetField()->DropNotifier(notifier);
+      notifier = honey.GetField()->NotifyOnDelete(lastBee->GetID(), honey.GetID(), onRemove);
     }
   }
 }

@@ -13,11 +13,13 @@ void Bees::MonitorTarget(Entity* target)
     auto leaderDeleteHandler = [](Entity& target, Entity& observer) {
       Bees& bees = dynamic_cast<Bees&>(observer);
 
-      if (bees.target == bees.leader) bees.target = nullptr;
-      bees.leader = nullptr;
+      if (&target == bees.leader) bees.leader = nullptr;
+      bees.target = nullptr;
     };
 
-    field->NotifyOnDelete(this->target->GetID(), this->GetID(), leaderDeleteHandler);
+    field->DropNotifier(notifier);
+    notifier = field->NotifyOnDelete(target->GetID(), this->GetID(), leaderDeleteHandler);
+    this->target = target;
   }
 }
 
@@ -170,10 +172,16 @@ void Bees::OnUpdate(double _elapsed) {
         }
       }
     }
+
+    MonitorTarget(target);
+    Logger::Logf("Bee %d monitoring target %d", GetID(), target->GetID());
   }
-  else if (leader) {
+  else if (leader && !target) {
     // Follow the leader
     target = leader;
+
+    MonitorTarget(target);
+    Logger::Logf("Bee %d following leader %d", GetID(), target->GetID());
   }
 
   // If sliding is flagged to false, we know we've ended a move
