@@ -76,7 +76,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   // Are we creating an action this frame?
   if (InputQueueHas(InputEvents::pressed_use_chip)) {
-    auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
+    auto cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
       cardsUI->UseNextCard();
       isChargeHeld = false;

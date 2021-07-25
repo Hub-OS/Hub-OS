@@ -16,11 +16,6 @@
 #include "bnBubbleState.h"
 #include "bnPlayer.h"
 
-void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
-{
-  statusCallbackHash[flag] = callback;
-}
-
 Character::Character(Rank _rank) :
   health(0),
   maxHealth(0),
@@ -40,7 +35,6 @@ Character::Character(Rank _rank) :
 
   using namespace std::placeholders;
   auto cardHandler = std::bind(&Character::HandleCardEvent, this, _1, _2);
-  //actionQueue.RegisterType<CardEvent, CardActionDeleter>(ActionTypes::card, cardHandler);
   actionQueue.RegisterType<CardEvent>(ActionTypes::card, cardHandler);
 
   auto peekHandler = std::bind(&Character::HandlePeekEvent, this, _1, _2);
@@ -50,7 +44,7 @@ Character::Character(Rank _rank) :
     actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
     CreateComponent<BubbleTrap>(this);
     
-    // TODO: this is an ugly hack
+    // TODO: take out this ugly hack
     if (auto ai = dynamic_cast<Player*>(this)) {
       ai->ChangeState<BubbleState<Player>>();
     }
@@ -204,20 +198,17 @@ void Character::Update(double _elapsed) {
   if (currCardAction) {
 
     // if we have yet to invoke this attack...
-    if (currCardAction->CanExecute()) {
+    if (currCardAction->CanExecute() && IsActionable()) {
 
       // reduce the artificial delay
       cardActionStartDelay -= from_seconds(_elapsed);
 
       // execute when delay is over
       if (this->cardActionStartDelay <= frames(0)) {
-        // TODO: have an `IsActionable()` function that can be implemented for characters with animations?
-        // note: move animations need to cancel their callbacks when attacking
         for(auto anim : this->GetComponents<AnimationComponent>()) {
-          anim->SetAnimation("PLAYER_IDLE");
           anim->CancelCallbacks();
         }
-
+        MakeActionable();
         currCardAction->Execute(this);
       }
     }
@@ -336,6 +327,11 @@ const bool Character::Hit(Hit::Properties props) {
   }
 
   return true;
+}
+
+void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback)
+{
+  statusCallbackHash[flag] = callback;
 }
 
 const bool Character::UnknownTeamResolveCollision(const Spell& other) const
@@ -595,6 +591,16 @@ void Character::ResolveFrameBattleDamage()
 void Character::OnUpdate(double elapsed)
 {
   /* needed to be implemented for virtual inheritence */
+}
+
+void Character::MakeActionable()
+{
+  // impl. defined
+}
+
+bool Character::IsActionable() const
+{
+  return true; // impl. defined
 }
 
 const std::vector<std::shared_ptr<CardAction>> Character::AsyncActionList() const
