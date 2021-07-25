@@ -746,6 +746,7 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
 
     if (maybe_card.has_value()) {
       const Battle::Card& card = *maybe_card;
+      MakeActionable();
       publisher->Broadcast(card, *this);
     }
   }
