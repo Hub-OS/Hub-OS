@@ -51,13 +51,21 @@ void VendorScene::ShowDefaultMessage()
   this->showDescription = false;
 }
 
-VendorScene::VendorScene(swoosh::ActivityController& controller, const std::vector<VendorScene::Item>& items, uint32_t& monies, 
-  const sf::Sprite& mugshot, const Animation& anim) :
+VendorScene::VendorScene(
+  swoosh::ActivityController& controller,
+  const std::vector<VendorScene::Item>& items,
+  uint32_t monies,
+  const std::shared_ptr<sf::Texture>& mugshotTexture,
+  const Animation& anim,
+  const VendorScene::PurchaseCallback& callback
+) :
+  callback(callback),
   monies(monies),
   items(items),
   label(Font::Style::thin),
   textbox({ 4, 255 }),
-  mugshot(mugshot),
+  mugshotTexture(mugshotTexture),
+  mugshot(*mugshotTexture),
   anim(anim),
   Scene(controller)
 {
@@ -215,6 +223,7 @@ void VendorScene::onUpdate(double elapsed)
                 Audio().Play(AudioType::ITEM_GET);
 
                 ShowDefaultMessage(); //enqueues default message
+                callback(itemName);
               }
               else {
                 message = new Message("Not enough monies!");

@@ -18,10 +18,10 @@
 #include "bnOverworldObjectType.h"
 #include "../bnMath.h"
 #include "../bnNaviRegistration.h"
+#include "../bnMessageQuestion.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
 #include "../netplay/bnNetPlayConfig.h"
-#include "../bnMessageQuestion.h"
 #include "../netplay/bnDownloadScene.h"
 
 using namespace swoosh::types;
@@ -231,6 +231,7 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
       screen
     };
 
+    returningFrom = ReturningScene::DownloadScene;
     using effect = swoosh::types::segue<BlendFadeIn>;
     getController().push<effect::to<DownloadScene>>(props);
     return;
@@ -275,7 +276,7 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
       sendBattleResultsSignal(results);
     };
 
-    leftForBattle = true;
+    returningFrom = ReturningScene::BattleScene;
     getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
   }
 }
@@ -287,7 +288,7 @@ void Overworld::OnlineArea::ResetPVPStep()
     netBattleProcessor = nullptr;
   }
 
-  canProceedToBattle = isPreparingForBattle = leftForBattle = false;
+  canProceedToBattle = isPreparingForBattle = false;
   pvpRemoteAddress.clear();
 }
 
@@ -745,14 +746,22 @@ void Overworld::OnlineArea::onResume()
     packetProcessor->SetForeground();
   }
 
-  /**
-    If we were preparing for battle but we cannot proceed to battle
-    when we return to this screen (due to the download scene ending)
-    then we know we cannot continue with PVP
-  */
-  if (isPreparingForBattle && !canProceedToBattle || leftForBattle) {
+  switch (returningFrom) {
+  case ReturningScene::DownloadScene:
+    if (!canProceedToBattle) {
+      // download scene failed, give up on pvp
+      ResetPVPStep();
+    }
+    break;
+  case ReturningScene::BattleScene:
     ResetPVPStep();
+    break;
+  case ReturningScene::VendorScene:
+    sendShopCloseSignal();
+    break;
   }
+
+  returningFrom = ReturningScene::Null;
 }
 
 void Overworld::OnlineArea::OnTileCollision() { }
@@ -990,6 +999,12 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::close_bbs:
       receiveCloseBBSSignal(reader, data);
+      break;
+    case ServerEvents::shop_inventory:
+      receiveShopInventorySignal(reader, data);
+      break;
+    case ServerEvents::open_shop:
+      receiveOpenShopSignal(reader, data);
       break;
     case ServerEvents::initiate_pvp:
       receivePVPSignal(reader, data);
@@ -1310,6 +1325,23 @@ void Overworld::OnlineArea::sendPostSelectSignal(const std::string& postId)
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::post_selection);
   writer.WriteString<uint16_t>(buffer, postId);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendShopCloseSignal()
+{
+  BufferWriter writer;
+  Poco::Buffer<char> buffer{ 0 };
+  writer.Write(buffer, ClientEvents::shop_close);
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendShopPurchaseSignal(const std::string& itemName)
+{
+  BufferWriter writer;
+  Poco::Buffer<char> buffer{ 0 };
+  writer.Write(buffer, ClientEvents::shop_purchase);
+  writer.WriteString<uint8_t>(buffer, itemName);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -2001,6 +2033,41 @@ void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const 
 void  Overworld::OnlineArea::receiveCloseBBSSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   GetMenuSystem().ClearBBS();
+}
+
+void Overworld::OnlineArea::receiveShopInventorySignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto itemCount = reader.Read<uint16_t>(buffer);
+
+  for (auto i = 0; i < itemCount; i++) {
+    VendorScene::Item item;
+    item.name = reader.ReadString<uint8_t>(buffer);
+    item.desc = reader.ReadString<uint8_t>(buffer);
+    item.cost = reader.Read<uint32_t>(buffer);
+
+    shopItems.push_back(item);
+  }
+}
+
+void Overworld::OnlineArea::receiveOpenShopSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  uint32_t money = GetPlayerSession()->money;
+
+  auto mugTexturePath = reader.ReadString<uint16_t>(buffer);
+  auto mugAnimationPath = reader.ReadString<uint16_t>(buffer);
+
+  auto mugTexture = GetTexture(mugTexturePath);
+
+  Animation mugAnimation;
+  mugAnimation.LoadWithData(GetText(mugAnimationPath));
+
+  auto callback = [this](const std::string& itemName) {
+    sendShopPurchaseSignal(itemName);
+  };
+
+  returningFrom = ReturningScene::VendorScene;
+  getController().push<segue<BlackWashFade>::to<VendorScene>>(shopItems, money, mugTexture, mugAnimation, callback);
+  shopItems.clear();
 }
 
 void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
