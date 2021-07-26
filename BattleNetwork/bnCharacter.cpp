@@ -680,7 +680,7 @@ void Character::AddDefenseRule(DefenseRule * rule)
 
 void Character::RemoveDefenseRule(DefenseRule * rule)
 {
-  auto iter = std::remove_if(defenses.begin(), defenses.end(), [&rule](DefenseRule * in) { return in == rule; });
+  auto iter = std::find_if(defenses.begin(), defenses.end(), [&rule](DefenseRule * in) { return in == rule; });
 
   if(iter != defenses.end())
     defenses.erase(iter);

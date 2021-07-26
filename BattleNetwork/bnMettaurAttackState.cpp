@@ -13,7 +13,7 @@ void MettaurAttackState::OnEnter(Mettaur& met) {
   int r = rand() % 10;
 
   // proof of concept using cards
-  if (SelectedCardsUI* ui = met.GetFirstComponent<OwnedCardsUI>(); ui && r > 1) {
+  if (SelectedCardsUI* ui = met.GetFirstComponent<OwnedCardsUI>(); ui && ui->Peek().has_value() && r > 1) {
     ui->UseNextCard();
     this->usingCard = true;
   }
