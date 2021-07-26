@@ -8,6 +8,7 @@
 class KeyItemScene : public Scene {
 public:
   struct Item {
+    std::string id;
     std::string name;
     std::string desc;
   };

@@ -63,7 +63,8 @@ namespace {
 
 Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   lastIsConnectedState(false),
-  personalMenu("Overworld", ::MakeOptions(this)),
+  playerSession(std::make_shared<PlayerSession>()),
+  personalMenu(playerSession, "Overworld", ::MakeOptions(this)),
   camera(controller.getWindow().getView()),
   Scene(controller),
   map(0, 0, 0, 0),
@@ -168,7 +169,7 @@ void Overworld::SceneBase::onStart() {
   gotoNextScene = false;
 
   // TODO: Take out after endpoints are added to server @Konst
-  Inbox& inbox = playerSession.inbox;
+  Inbox& inbox = playerSession->inbox;
 
   sf::Texture mugshot = *Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png");
   inbox.AddMail(Inbox::Mail{ Inbox::Icons::announcement, "Welcome", "NO-TITLE", "This is your first email!", mugshot });
@@ -682,10 +683,8 @@ void Overworld::SceneBase::RefreshNaviSprite()
   auto& meta = NAVIS.At(currentNavi);
 
   // refresh menu widget too
-  int hp = std::atoi(meta.GetHPString().c_str());
-  GetPlayerSession().health = hp;
-  personalMenu.SetHealth(hp);
-  personalMenu.SetMaxHealth(hp);
+  playerSession->health = meta.GetHP();
+  playerSession->maxHealth = meta.GetHP();
 
   // If coming back from navi select, the navi has changed, update it
   const auto& owPath = meta.GetOverworldAnimationPath();
@@ -974,7 +973,7 @@ void Overworld::SceneBase::GotoMail()
   Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<BlackWashFade, milliseconds<500>>;
-  getController().push<effect::to<MailScene>>(playerSession.inbox);
+  getController().push<effect::to<MailScene>>(playerSession->inbox);
 }
 
 void Overworld::SceneBase::GotoKeyItems()
@@ -1018,7 +1017,7 @@ Overworld::Map& Overworld::SceneBase::GetMap()
   return map;
 }
 
-Overworld::PlayerSession& Overworld::SceneBase::GetPlayerSession()
+std::shared_ptr<Overworld::PlayerSession>& Overworld::SceneBase::GetPlayerSession()
 {
   return playerSession;
 }
@@ -1096,14 +1095,14 @@ void Overworld::SceneBase::OnCustomEmoteSelected(unsigned emote)
   emoteNode.CustomEmote(emote);
 }
 
-void Overworld::SceneBase::AddItem(const std::string& name, const std::string& description)
+void Overworld::SceneBase::AddItem(const std::string& id, const std::string& name, const std::string& description)
 {
-  items.push_back({ name, description });
+  items.push_back({ id, name, description });
 }
 
-void Overworld::SceneBase::RemoveItem(const std::string& name)
+void Overworld::SceneBase::RemoveItem(const std::string& id)
 {
-  auto iter = std::find_if(items.begin(), items.end(), [&name](auto& item) { return item.name == name; });
+  auto iter = std::find_if(items.begin(), items.end(), [&id](auto& item) { return item.id == id; });
 
   if (iter != items.end()) {
     items.erase(iter);

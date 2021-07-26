@@ -5,7 +5,8 @@
 #include "../bnAudioResourceManager.h"
 
 namespace Overworld {
-  PersonalMenu::PersonalMenu(const std::string& area, const PersonalMenu::OptionsList& options) :
+  PersonalMenu::PersonalMenu(const std::shared_ptr<PlayerSession>& session, const std::string& area, const PersonalMenu::OptionsList& options) :
+    session(session),
     optionsList(options),
     infoText(Font::Style::thin),
     areaLabel(Font::Style::thin),
@@ -439,7 +440,7 @@ namespace Overworld {
 
       if (IsOpen()) {
         // hp shadow
-        infoText.SetString(std::to_string(health));
+        infoText.SetString(std::to_string(session->health));
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
         infoText.SetColor(shadowColor);
         infoText.setPosition(174 + 1, 33 + 1);
@@ -463,7 +464,7 @@ namespace Overworld {
         target.draw(infoText, states);
 
         // max hp shadow
-        infoText.SetString(std::to_string(maxHealth));
+        infoText.SetString(std::to_string(session->maxHealth));
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
         infoText.SetColor(shadowColor);
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
@@ -477,7 +478,7 @@ namespace Overworld {
 
         // coins shadow
         infoText.SetColor(shadowColor);
-        infoText.SetString(std::to_string(monies) + "$");
+        infoText.SetString(std::to_string(session->money) + "$");
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
         infoText.setPosition(214 + 1, 57 + 1);
         target.draw(infoText, states);
@@ -503,21 +504,6 @@ namespace Overworld {
     areaLabelThick.SetString(printName);
     areaLabelThick.setOrigin(bounds.width, bounds.height);
     areaLabelThick.setPosition(240 - 1.f, 160 - 2.f);
-  }
-
-  void PersonalMenu::SetMonies(int amt)
-  {
-    PersonalMenu::monies = std::max(0, amt);
-  }
-
-  void PersonalMenu::SetHealth(int health)
-  {
-    PersonalMenu::health = health;
-  }
-
-  void PersonalMenu::SetMaxHealth(int maxHealth)
-  {
-    PersonalMenu::maxHealth = maxHealth;
   }
 
   void PersonalMenu::UseIconTexture(const std::shared_ptr<sf::Texture> iconTexture)

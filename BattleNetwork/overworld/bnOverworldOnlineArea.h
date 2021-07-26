@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "../bnBattleResults.h"
+#include "../bnVendorScene.h"
 #include "../netplay/bnRollingWindow.h"
 #include "../netplay/bnBufferReader.h"
 #include "../netplay/bnNetPlayPacketProcessor.h"
@@ -35,6 +36,13 @@ namespace Overworld {
 
   class OnlineArea final : public SceneBase {
   private:
+    enum class ReturningScene {
+      DownloadScene,
+      BattleScene,
+      VendorScene,
+      Null
+    };
+
     struct ExcludedObjectData {
       bool visible;
       bool solid;
@@ -62,8 +70,8 @@ namespace Overworld {
     bool tryPopScene{ false };
     bool isPreparingForBattle{ false };
     bool canProceedToBattle{ false };
-    bool leftForBattle{ false };
     bool copyScreen{ false };
+    ReturningScene returningFrom{ ReturningScene::Null };
     ActorPropertyAnimator propertyAnimator;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
@@ -81,6 +89,7 @@ namespace Overworld {
     std::optional<std::string> trackedPlayer;
     CameraController serverCameraController;
     CameraController warpCameraController;
+    std::vector<VendorScene::Item> shopItems;
 
     void HandlePVPStep(const std::string& remoteAddress);
     void ResetPVPStep();
@@ -117,6 +126,8 @@ namespace Overworld {
     void sendBoardCloseSignal();
     void sendPostRequestSignal();
     void sendPostSelectSignal(const std::string& postId);
+    void sendShopCloseSignal();
+    void sendShopPurchaseSignal(const std::string& itemName);
     void sendBattleResultsSignal(const BattleResults& results);
 
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -154,6 +165,8 @@ namespace Overworld {
     void receiveAppendPostsSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveRemovePostSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveCloseBBSSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveShopInventorySignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveOpenShopSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);

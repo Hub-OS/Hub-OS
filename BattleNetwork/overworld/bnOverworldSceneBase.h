@@ -22,6 +22,7 @@
 #include "../bnInbox.h"
 
 // overworld
+#include "bnOverworldPlayerSession.h"
 #include "bnOverworldInteraction.h"
 #include "bnOverworldCameraController.h"
 #include "bnOverworldSprite.h"
@@ -40,15 +41,9 @@
 class Background; // forward decl
 
 namespace Overworld {
-  struct PlayerSession {
-    int health{};
-    Emotion emotion{};
-    Inbox inbox;
-  };
-
   class SceneBase : public Scene {
   private:
-    PlayerSession playerSession;
+    std::shared_ptr<PlayerSession> playerSession;
     std::shared_ptr<Actor> playerActor;
     std::shared_ptr<sf::Texture> customEmotesTexture;
     Overworld::EmoteWidget emote;
@@ -186,8 +181,8 @@ namespace Overworld {
 
     void SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>&);
 
-    void AddItem(const std::string& name, const std::string& description);
-    void RemoveItem(const std::string& name);
+    void AddItem(const std::string& id, const std::string& name, const std::string& description);
+    void RemoveItem(const std::string& id);
 
     /**
      * @brief Add a sprite
@@ -261,7 +256,7 @@ namespace Overworld {
     std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
     Map& GetMap();
-    PlayerSession& GetPlayerSession();
+    std::shared_ptr<PlayerSession>& GetPlayerSession();
     std::shared_ptr<Actor> GetPlayer();
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();

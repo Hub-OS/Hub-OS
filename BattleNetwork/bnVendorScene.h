@@ -8,6 +8,8 @@
 
 class VendorScene : public Scene {
 public:
+  typedef std::function<void(const std::string&)> PurchaseCallback;
+
   struct Item {
     std::string name;
     std::string desc;
@@ -34,7 +36,7 @@ private:
     sf::Sprite dummy;
   }*bg{ nullptr };
 
-  uint32_t& monies;
+  uint32_t monies;
   double totalElapsed{};
 
   std::vector<Item> items;
@@ -45,6 +47,7 @@ private:
   sf::Sprite cursor;
   sf::Sprite list;
   std::string defaultMessage;
+  std::shared_ptr<sf::Texture> mugshotTexture;
   sf::Sprite mugshot;
   Animation anim;
   AnimatedTextBox textbox;
@@ -53,14 +56,21 @@ private:
   float heldCooldown{};
   signed row{}, rowOffset{};
   bool showDescription{ false }; 
+  PurchaseCallback callback;
 
   const signed maxRows = 5;
 
   void ShowDefaultMessage();
 
 public:
-  VendorScene(swoosh::ActivityController& controller, const std::vector<VendorScene::Item>& items, uint32_t& monies, 
-    const sf::Sprite& mugshot, const Animation& anim);
+  VendorScene(
+    swoosh::ActivityController& controller,
+    const std::vector<VendorScene::Item>& items,
+    uint32_t monies, 
+    const std::shared_ptr<sf::Texture>& mugshotTexture,
+    const Animation& anim,
+    const PurchaseCallback& callback
+  );
 
   ~VendorScene();
 
