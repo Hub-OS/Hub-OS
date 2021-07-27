@@ -86,6 +86,33 @@ Overworld::OnlineArea::~OnlineArea()
 {
 }
 
+std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbstractUser(const std::string& id)
+{
+  if (id == ticket) {
+    return AbstractUser {
+      GetPlayer(),
+      GetEmoteNode(),
+      GetTeleportController(),
+      propertyAnimator
+    };
+  }
+
+  auto iter = onlinePlayers.find(id);
+
+  if (iter != onlinePlayers.end()) {
+    auto& onlinePlayer = iter->second;
+
+    return AbstractUser {
+      onlinePlayer.actor,
+      onlinePlayer.emoteNode,
+      onlinePlayer.teleportController,
+      onlinePlayer.propertyAnimator
+    };
+  }
+
+  return {};
+}
+
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
   if (tryPopScene) {
@@ -701,6 +728,13 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   };
 
   for (auto& pair : onlinePlayers) {
+    auto id = pair.first;
+
+    if(excludedActors.find(id) != excludedActors.end()) {
+      // actor is excluded, do not display on hover
+      continue;
+    }
+
     auto& onlinePlayer = pair.second;
     auto& actor = *onlinePlayer.actor;
 
@@ -942,6 +976,12 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::include_object:
       receiveIncludeObjectSignal(reader, data);
+      break;
+    case ServerEvents::exclude_actor:
+      receiveExcludeActorSignal(reader, data);
+      break;
+    case ServerEvents::include_actor:
+      receiveIncludeActorSignal(reader, data);
       break;
     case ServerEvents::move_camera:
       receiveMoveCameraSignal(reader, data);
@@ -1703,6 +1743,50 @@ void Overworld::OnlineArea::receiveIncludeObjectSignal(BufferReader& reader, con
   }
 }
 
+void Overworld::OnlineArea::receiveExcludeActorSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString<uint16_t>(buffer);
+
+  // store this user id in case their actor is added after this signal
+  // or the actor leaves the area and returns
+  excludedActors.emplace(user);
+
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
+    return;
+  }
+
+  auto abstractUser = *optionalAbstractUser;
+
+  // removing the sprite instead of hiding it, to avoid teleport controller revealing the actor on us
+  this->RemoveSprite(abstractUser.actor);
+  this->RemoveSprite(abstractUser.teleportController.GetBeam());
+}
+
+void Overworld::OnlineArea::receiveIncludeActorSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString<uint16_t>(buffer);
+
+  excludedActors.erase(user);
+
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
+    return;
+  }
+
+  auto abstractUser = *optionalAbstractUser;
+
+  // remove this actor to make sure they're not added more than once (server script issue)
+  this->RemoveSprite(abstractUser.actor);
+  this->RemoveSprite(abstractUser.teleportController.GetBeam());
+
+  // include the actor again
+  this->AddSprite(abstractUser.actor);
+  this->AddSprite(abstractUser.teleportController.GetBeam());
+}
+
 void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto& map = GetMap();
@@ -2155,7 +2239,6 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   if (isNew) {
     // add nodes to the scene base
     teleportController.EnableSound(false);
-    AddSprite(teleportController.GetBeam());
 
     actor->AddNode(&emoteNode);
     actor->SetSolid(solid);
@@ -2166,6 +2249,16 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     });
 
     AddActor(actor);
+
+    auto isExcluded = excludedActors.find(user) != excludedActors.end();
+
+    if (isExcluded) {
+      // remove the actor if they are marked as hidden by the server
+      RemoveSprite(actor);
+    } else {
+      // add the teleport beam if the actor is not marked as hidden by the server
+      AddSprite(teleportController.GetBeam());
+    }
   }
 
   if (warpIn) {
