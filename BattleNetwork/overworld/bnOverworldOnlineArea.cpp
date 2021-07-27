@@ -1173,12 +1173,14 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
   auto& naviMeta = NAVIS.At(GetCurrentNavi());
   auto naviName = naviMeta.GetName();
   auto maxHP = naviMeta.GetHP();
+  auto element = GetStrFromElement(naviMeta.GetElement());
 
   // mark completion
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::avatar_change);
-  writer.WriteString<uint16_t>(buffer, naviName);
+  writer.WriteString<uint8_t>(buffer, naviName);
+  writer.WriteString<uint8_t>(buffer, element);
   writer.Write(buffer, maxHP);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
