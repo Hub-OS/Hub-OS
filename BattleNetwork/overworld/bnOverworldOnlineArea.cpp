@@ -86,6 +86,33 @@ Overworld::OnlineArea::~OnlineArea()
 {
 }
 
+std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbstractUser(const std::string& id)
+{
+  if (id == ticket) {
+    return AbstractUser {
+      GetPlayer(),
+      GetEmoteNode(),
+      GetTeleportController(),
+      propertyAnimator
+    };
+  }
+
+  auto iter = onlinePlayers.find(id);
+
+  if (iter != onlinePlayers.end()) {
+    auto& onlinePlayer = iter->second;
+
+    return AbstractUser {
+      onlinePlayer.actor,
+      onlinePlayer.emoteNode,
+      onlinePlayer.teleportController,
+      onlinePlayer.propertyAnimator
+    };
+  }
+
+  return {};
+}
+
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
   if (tryPopScene) {
@@ -701,6 +728,13 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   };
 
   for (auto& pair : onlinePlayers) {
+    auto id = pair.first;
+
+    if(excludedActors.find(id) != excludedActors.end()) {
+      // actor is excluded, do not display on hover
+      continue;
+    }
+
     auto& onlinePlayer = pair.second;
     auto& actor = *onlinePlayer.actor;
 
@@ -943,6 +977,12 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::include_object:
       receiveIncludeObjectSignal(reader, data);
       break;
+    case ServerEvents::exclude_actor:
+      receiveExcludeActorSignal(reader, data);
+      break;
+    case ServerEvents::include_actor:
+      receiveIncludeActorSignal(reader, data);
+      break;
     case ServerEvents::move_camera:
       receiveMoveCameraSignal(reader, data);
       break;
@@ -1173,12 +1213,14 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
   auto& naviMeta = NAVIS.At(GetCurrentNavi());
   auto naviName = naviMeta.GetName();
   auto maxHP = naviMeta.GetHP();
+  auto element = GetStrFromElement(naviMeta.GetElement());
 
   // mark completion
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write(buffer, ClientEvents::avatar_change);
-  writer.WriteString<uint16_t>(buffer, naviName);
+  writer.WriteString<uint8_t>(buffer, naviName);
+  writer.WriteString<uint8_t>(buffer, element);
   writer.Write(buffer, maxHP);
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
@@ -1701,6 +1743,50 @@ void Overworld::OnlineArea::receiveIncludeObjectSignal(BufferReader& reader, con
   }
 }
 
+void Overworld::OnlineArea::receiveExcludeActorSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString<uint16_t>(buffer);
+
+  // store this user id in case their actor is added after this signal
+  // or the actor leaves the area and returns
+  excludedActors.emplace(user);
+
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
+    return;
+  }
+
+  auto abstractUser = *optionalAbstractUser;
+
+  // removing the sprite instead of hiding it, to avoid teleport controller revealing the actor on us
+  this->RemoveSprite(abstractUser.actor);
+  this->RemoveSprite(abstractUser.teleportController.GetBeam());
+}
+
+void Overworld::OnlineArea::receiveIncludeActorSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString<uint16_t>(buffer);
+
+  excludedActors.erase(user);
+
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
+    return;
+  }
+
+  auto abstractUser = *optionalAbstractUser;
+
+  // remove this actor to make sure they're not added more than once (server script issue)
+  this->RemoveSprite(abstractUser.actor);
+  this->RemoveSprite(abstractUser.teleportController.GetBeam());
+
+  // include the actor again
+  this->AddSprite(abstractUser.actor);
+  this->AddSprite(abstractUser.teleportController.GetBeam());
+}
+
 void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto& map = GetMap();
@@ -2153,7 +2239,6 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   if (isNew) {
     // add nodes to the scene base
     teleportController.EnableSound(false);
-    AddSprite(teleportController.GetBeam());
 
     actor->AddNode(&emoteNode);
     actor->SetSolid(solid);
@@ -2164,6 +2249,16 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     });
 
     AddActor(actor);
+
+    auto isExcluded = excludedActors.find(user) != excludedActors.end();
+
+    if (isExcluded) {
+      // remove the actor if they are marked as hidden by the server
+      RemoveSprite(actor);
+    } else {
+      // add the teleport beam if the actor is not marked as hidden by the server
+      AddSprite(teleportController.GetBeam());
+    }
   }
 
   if (warpIn) {
@@ -2300,22 +2395,15 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   std::string texturePath = reader.ReadString<uint16_t>(buffer);
   std::string animationPath = reader.ReadString<uint16_t>(buffer);
 
-  EmoteNode* emoteNode;
-  std::shared_ptr<Actor> actor;
+  auto optionalAbstractUser = GetAbstractUser(user);
 
-  if (user == ticket) {
-    actor = GetPlayer();
-    emoteNode = &GetEmoteNode();
+  if (!optionalAbstractUser) {
+    return;
   }
-  else {
-    auto userIter = onlinePlayers.find(user);
 
-    if (userIter == onlinePlayers.end()) return;
-
-    auto& onlinePlayer = userIter->second;
-    actor = onlinePlayer.actor;
-    emoteNode = &onlinePlayer.emoteNode;
-  }
+  auto abstractUser = *optionalAbstractUser;
+  auto& actor = abstractUser.actor;
+  auto& emoteNode = abstractUser.emoteNode;
 
   actor->setTexture(GetTexture(texturePath));
 
@@ -2323,8 +2411,8 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
 
-  float emoteY = -actor->getSprite().getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
-  emoteNode->setPosition(0, emoteY);
+  float emoteY = -actor->getSprite().getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+  emoteNode.setPosition(0, emoteY);
 }
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2363,18 +2451,14 @@ void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, cons
   auto state = reader.ReadString<uint16_t>(buffer);
   auto loop = reader.Read<bool>(buffer);
 
-  if (user == ticket) {
-    GetPlayer()->PlayAnimation(state, loop);
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
     return;
   }
 
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter == onlinePlayers.end()) return;
-
-  auto& onlinePlayer = userIter->second;
-
-  onlinePlayer.actor->PlayAnimation(state, loop);
+  auto abstractUser = *optionalAbstractUser;
+  abstractUser.actor->PlayAnimation(state, loop);
 }
 
 void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

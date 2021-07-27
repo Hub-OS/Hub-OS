@@ -36,6 +36,13 @@ namespace Overworld {
 
   class OnlineArea final : public SceneBase {
   private:
+    struct AbstractUser {
+      std::shared_ptr<Overworld::Actor> actor;
+      Overworld::EmoteNode& emoteNode;
+      Overworld::TeleportController& teleportController;
+      ActorPropertyAnimator& propertyAnimator;
+    };
+
     enum class ReturningScene {
       DownloadScene,
       BattleScene,
@@ -79,6 +86,7 @@ namespace Overworld {
     AssetMeta incomingAsset;
     std::map<std::string, OnlinePlayer> onlinePlayers;
     std::map<unsigned, ExcludedObjectData> excludedObjects;
+    std::unordered_set<std::string> excludedActors;
     std::vector<std::vector<TileObject*>> warps;
     std::list<std::string> removePlayers;
     sf::Vector3f lastPosition;
@@ -94,6 +102,7 @@ namespace Overworld {
     void HandlePVPStep(const std::string& remoteAddress);
     void ResetPVPStep();
 
+    std::optional<AbstractUser> GetAbstractUser(const std::string& id);
     void onInteract(Interaction type);
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
@@ -150,6 +159,8 @@ namespace Overworld {
     void receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveExcludeActorSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveIncludeActorSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveShakeCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
