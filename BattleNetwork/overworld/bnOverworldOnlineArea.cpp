@@ -2395,22 +2395,15 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   std::string texturePath = reader.ReadString<uint16_t>(buffer);
   std::string animationPath = reader.ReadString<uint16_t>(buffer);
 
-  EmoteNode* emoteNode;
-  std::shared_ptr<Actor> actor;
+  auto optionalAbstractUser = GetAbstractUser(user);
 
-  if (user == ticket) {
-    actor = GetPlayer();
-    emoteNode = &GetEmoteNode();
+  if (!optionalAbstractUser) {
+    return;
   }
-  else {
-    auto userIter = onlinePlayers.find(user);
 
-    if (userIter == onlinePlayers.end()) return;
-
-    auto& onlinePlayer = userIter->second;
-    actor = onlinePlayer.actor;
-    emoteNode = &onlinePlayer.emoteNode;
-  }
+  auto abstractUser = *optionalAbstractUser;
+  auto& actor = abstractUser.actor;
+  auto& emoteNode = abstractUser.emoteNode;
 
   actor->setTexture(GetTexture(texturePath));
 
@@ -2418,8 +2411,8 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
 
-  float emoteY = -actor->getSprite().getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
-  emoteNode->setPosition(0, emoteY);
+  float emoteY = -actor->getSprite().getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+  emoteNode.setPosition(0, emoteY);
 }
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2458,18 +2451,14 @@ void Overworld::OnlineArea::receiveActorAnimateSignal(BufferReader& reader, cons
   auto state = reader.ReadString<uint16_t>(buffer);
   auto loop = reader.Read<bool>(buffer);
 
-  if (user == ticket) {
-    GetPlayer()->PlayAnimation(state, loop);
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
     return;
   }
 
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter == onlinePlayers.end()) return;
-
-  auto& onlinePlayer = userIter->second;
-
-  onlinePlayer.actor->PlayAnimation(state, loop);
+  auto abstractUser = *optionalAbstractUser;
+  abstractUser.actor->PlayAnimation(state, loop);
 }
 
 void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
