@@ -427,7 +427,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   auto playerPos = player->Get3DPosition();
 
   propertyAnimator.Update(*player, elapsed);
-
+  GetEmoteWidget().Update(elapsed);
   if (!IsInputLocked()) {
     if (Input().Has(InputEvents::pressed_shoulder_right) && GetEmoteWidget().IsClosed()) {
       auto& meta = NAVIS.At(GetCurrentNavi());
