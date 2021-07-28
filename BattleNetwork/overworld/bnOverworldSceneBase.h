@@ -34,7 +34,6 @@
 #include "bnOverworldMap.h"
 #include "bnOverworldPersonalMenu.h"
 #include "bnOverworldMenuSystem.h"
-#include "bnEmotes.h"
 #include "bnXML.h"
 #include "bnMinimap.h"
 
@@ -45,9 +44,6 @@ namespace Overworld {
   private:
     std::shared_ptr<PlayerSession> playerSession;
     std::shared_ptr<Actor> playerActor;
-    std::shared_ptr<sf::Texture> customEmotesTexture;
-    Overworld::EmoteWidget emote;
-    Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
     Overworld::PlayerController playerController{};
     Overworld::SpatialMap spatialMap{};
@@ -179,8 +175,6 @@ namespace Overworld {
 
     void SetBackground(const std::shared_ptr<Background>&);
 
-    void SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>&);
-
     void AddItem(const std::string& id, const std::string& name, const std::string& description);
     void RemoveItem(const std::string& id);
 
@@ -261,9 +255,6 @@ namespace Overworld {
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
-    const std::shared_ptr<sf::Texture>& GetCustomEmotesTexture() const;
-    EmoteNode& GetEmoteNode();
-    EmoteWidget& GetEmoteWidget();
     std::shared_ptr<Background> GetBackground();
     PA& GetProgramAdvance();
     std::optional<CardFolder*> GetSelectedFolder();
@@ -279,12 +270,6 @@ namespace Overworld {
     // Helpers
     //
     std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const;
-
-    //
-    // Optional events that can be decorated further
-    //
-    virtual void OnEmoteSelected(Emotes emote);
-    virtual void OnCustomEmoteSelected(unsigned emote);
 
     //
     // Required implementations

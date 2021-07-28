@@ -17,6 +17,7 @@
 #include "bnOverworldPacketHeaders.h"
 #include "bnServerAssetManager.h"
 #include "bnIdentityManager.h"
+#include "bnEmotes.h"
 
 namespace Overworld {
   struct OnlinePlayer {
@@ -65,6 +66,9 @@ namespace Overworld {
       Poco::Buffer<char> buffer{ 0 };
     };
 
+    Overworld::EmoteWidget emote;
+    Overworld::EmoteNode emoteNode;
+    std::shared_ptr<sf::Texture> customEmotesTexture;
     std::string pvpRemoteAddress; // remember who we want to connect to after download scene
     std::string ticket; //!< How we are represented on the server
     std::shared_ptr<PacketProcessor> packetProcessor;
@@ -101,6 +105,16 @@ namespace Overworld {
 
     void HandlePVPStep(const std::string& remoteAddress);
     void ResetPVPStep();
+
+
+    //emote additions, from SceneBase.
+    void SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>&);
+    const std::shared_ptr<sf::Texture>& GetCustomEmotesTexture() const;
+    EmoteNode& GetEmoteNode();
+    EmoteWidget& GetEmoteWidget();
+    virtual void OnEmoteSelected(Emotes emote);
+    virtual void OnEmoteSelectedCL(Emotes emote);
+    virtual void OnCustomEmoteSelected(unsigned emote);
 
     std::optional<AbstractUser> GetAbstractUser(const std::string& id);
     void onInteract(Interaction type);
@@ -221,6 +235,5 @@ namespace Overworld {
 
     void OnTileCollision() override;
     void OnInteract(Interaction type) override;
-    void OnEmoteSelected(Overworld::Emotes emote) override;
   };
 }

@@ -75,11 +75,46 @@ Overworld::OnlineArea::OnlineArea(
   transitionText.SetString("Connecting...");
 
   lastFrameNavi = this->GetCurrentNavi();
-
+  
+  auto windowSize = getController().getVirtualWindowSize();
+  emote.setPosition(windowSize.x / 2.f, windowSize.y / 2.f);
+  // emotes
+  GetPlayer()->AddNode(&emoteNode);
+  emoteNode.SetLayer(-100);
+  emoteNode.setScale(0.5f, 0.5f);
+  emote.OnSelect(std::bind(&Overworld::OnlineArea::OnEmoteSelected, this, std::placeholders::_1));
   propertyAnimator.OnComplete([this] {
     // todo: this may cause issues when leaving the scene through Home and Server Warps
     GetPlayerController().ControlActor(GetPlayer());
   });
+}
+
+const std::shared_ptr<sf::Texture>& Overworld::OnlineArea::GetCustomEmotesTexture() const {
+    return customEmotesTexture;
+}
+
+void Overworld::OnlineArea::SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>& texture) {
+    emoteNode.LoadCustomEmotes(texture);
+}
+
+void Overworld::OnlineArea::OnEmoteSelectedCL(Emotes emote)
+{
+    emoteNode.Emote(emote);
+}
+
+void Overworld::OnlineArea::OnCustomEmoteSelected(unsigned emote)
+{
+    emoteNode.CustomEmote(emote);
+}
+
+Overworld::EmoteNode& Overworld::OnlineArea::GetEmoteNode()
+{
+    return emoteNode;
+}
+
+Overworld::EmoteWidget& Overworld::OnlineArea::GetEmoteWidget()
+{
+    return emote;
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -136,9 +171,11 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   }
 
   if (this->pvpRemoteAddress.size()) {
-    HandlePVPStep(pvpRemoteAddress);
-    return;
+      HandlePVPStep(pvpRemoteAddress);
+      return;
   }
+
+
 
   // remove players before update, to prevent removed players from being added to sprite layers
   // players do not have a shared pointer to the emoteNode
@@ -203,6 +240,16 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   warpCameraController.UpdateCamera(float(elapsed), camera);
   serverCameraController.UpdateCamera(float(elapsed), camera);
   UnlockCamera(); // reset lock, we'll lock it later if we need to
+
+  if (!emote.IsClosed()) {
+      if (Input().Has(InputEvents::pressed_option)) {
+          emote.Close();
+      }
+      return;
+  }
+  else if (Input().Has(InputEvents::pressed_option)) {
+      emote.Open();
+  }
 }
 
 void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
@@ -380,7 +427,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   auto playerPos = player->Get3DPosition();
 
   propertyAnimator.Update(*player, elapsed);
-
+  GetEmoteWidget().Update(elapsed);
   if (!IsInputLocked()) {
     if (Input().Has(InputEvents::pressed_shoulder_right) && GetEmoteWidget().IsClosed()) {
       auto& meta = NAVIS.At(GetCurrentNavi());
@@ -411,6 +458,10 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   detectConveyor(player);
 
   lastPosition = playerPos;
+
+  // move the emote above the player's head
+  float emoteY = -player->getSprite().getOrigin().y - 10;
+  emoteNode.setPosition(0, emoteY);
 }
 
 void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player) {
@@ -747,6 +798,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   nameText.SetString(topName);
   nameText.setOrigin(-10.0f, 0);
   surface.draw(nameText);
+  surface.draw(emote);
 }
 
 void Overworld::OnlineArea::onStart()
@@ -852,7 +904,7 @@ void Overworld::OnlineArea::OnInteract(Interaction type) {
 
 void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
 {
-  SceneBase::OnEmoteSelected(emote);
+  OnlineArea::OnEmoteSelectedCL(emote);
   sendEmoteSignal(emote);
 }
 
@@ -2423,10 +2475,10 @@ void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const 
 
   if (user == ticket) {
     if (custom) {
-      SceneBase::OnCustomEmoteSelected(emote);
+      OnlineArea::OnCustomEmoteSelected(emote);
     }
     else {
-      SceneBase::OnEmoteSelected((Emotes)emote);
+      OnlineArea::OnEmoteSelected((Emotes)emote);
     }
     return;
   }
