@@ -1348,6 +1348,9 @@ frame duration="0.05" x="298" y="66" w="6" h="11" originx="0" originy="0" flipx=
 animation state="THICK_EX"
 frame duration="0.05" x="314" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0" 
 
+animation state="THICK_NM"
+frame duration="0.05" x="330" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
 animation state="THIN_QUOTE"
 frame duration="0.05" x="1060" y="44" w="7" h="15" originx="0" originy="0" flipx="0" flipy="0" 
 
