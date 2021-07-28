@@ -90,9 +90,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   personalMenu.setScale(2.f, 2.f);
   //emote.setScale(2.f, 2.f);
 
-  auto windowSize = getController().getVirtualWindowSize();
-  emote.setPosition(windowSize.x / 2.f, windowSize.y / 2.f);
-
   gotoNextScene = true;
 
   /// WEB ACCOUNT LOADING
@@ -143,18 +140,11 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   // Spawn overworld player
   playerActor->setPosition(200, 20);
   playerActor->SetCollisionRadius(4);
-  playerActor->AddNode(&emoteNode);
-
-  emoteNode.SetLayer(-100);
-  emoteNode.setScale(0.5f, 0.5f);
 
   AddActor(playerActor);
   AddSprite(teleportController.GetBeam());
 
   map.setScale(2.f, 2.f);
-
-  // emotes
-  emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
 
   // clock
   time.setPosition(480 - 4.f, 6.f);
@@ -302,12 +292,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // Update the widget
   personalMenu.Update((float)elapsed);
 
-  // Update the emote widget
-  emote.Update(elapsed);
-
-  // Update the active emote
-  emoteNode.Update(elapsed);
-
   // Update the textbox
   menuSystem.Update((float)elapsed);
 
@@ -375,13 +359,6 @@ void Overworld::SceneBase::HandleInput() {
     return;
   }
 
-  if (!emote.IsClosed()) {
-    if (Input().Has(InputEvents::pressed_option)) {
-      emote.Close();
-    }
-    return;
-  }
-
   if (!menuSystem.IsClosed()) {
     menuSystem.HandleInput(Input(), getController().getWindow());
     return;
@@ -406,9 +383,6 @@ void Overworld::SceneBase::HandleInput() {
     personalMenu.Open();
     Audio().Play(AudioType::CHIP_DESC);
   }
-  else if (Input().Has(InputEvents::pressed_option)) {
-    emote.Open();
-  }
   else if (Input().Has(InputEvents::pressed_map)) {
     showMinimap = true;
     minimap.ResetPanning();
@@ -425,7 +399,6 @@ void Overworld::SceneBase::onLeave() {
 
 void Overworld::SceneBase::onExit()
 {
-  emoteNode.Reset();
 }
 
 void Overworld::SceneBase::onEnter()
@@ -492,7 +465,6 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 
   DrawWorld(surface, sf::RenderStates::Default);
 
-  surface.draw(emote);
   surface.draw(personalMenu);
 
   // Add the web account connection symbol
@@ -694,10 +666,6 @@ void Overworld::SceneBase::RefreshNaviSprite()
       playerActor->setTexture(tex);
     }
     playerActor->LoadAnimations(owPath);
-
-    // move the emote above the player's head
-    float emoteY = -playerActor->getSprite().getOrigin().y - 10;
-    emoteNode.setPosition(0, emoteY);
 
     auto iconTexture = meta.GetIconTexture();
 
@@ -1042,16 +1010,6 @@ SelectedNavi& Overworld::SceneBase::GetCurrentNavi()
   return currentNavi;
 }
 
-Overworld::EmoteNode& Overworld::SceneBase::GetEmoteNode()
-{
-  return emoteNode;
-}
-
-Overworld::EmoteWidget& Overworld::SceneBase::GetEmoteWidget()
-{
-  return emote;
-}
-
 std::shared_ptr<Background> Overworld::SceneBase::GetBackground()
 {
   return this->bg;
@@ -1075,24 +1033,6 @@ std::optional<CardFolder*> Overworld::SceneBase::GetSelectedFolder() {
 Overworld::MenuSystem& Overworld::SceneBase::GetMenuSystem()
 {
   return menuSystem;
-}
-
-const std::shared_ptr<sf::Texture>& Overworld::SceneBase::GetCustomEmotesTexture() const {
-  return customEmotesTexture;
-}
-
-void Overworld::SceneBase::SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>& texture) {
-  emoteNode.LoadCustomEmotes(texture);
-}
-
-void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
-{
-  emoteNode.Emote(emote);
-}
-
-void Overworld::SceneBase::OnCustomEmoteSelected(unsigned emote)
-{
-  emoteNode.CustomEmote(emote);
 }
 
 void Overworld::SceneBase::AddItem(const std::string& id, const std::string& name, const std::string& description)

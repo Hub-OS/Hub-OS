@@ -322,7 +322,7 @@ void Overworld::Homepage::onUpdate(double elapsed)
   // do default logic
   SceneBase::onUpdate(elapsed);
 
-  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked() && GetEmoteWidget().IsClosed()) {
+  if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked()) {
     auto& meta = NAVIS.At(GetCurrentNavi());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
