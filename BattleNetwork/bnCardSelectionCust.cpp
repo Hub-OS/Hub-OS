@@ -98,6 +98,7 @@ void CardSelectionCust::SetSelectedFormIndex(int index)
 {
   if (selectedFormIndex != index)
   {
+    previousFormIndex = selectedFormIndex;
     selectedFormIndex = index;
     Broadcast(index);
   }
@@ -399,12 +400,13 @@ bool CardSelectionCust::CursorCancel() {
   }
 
   // Unqueue all cards buckets
-  if (newSelectCount <= 0) {
-    newSelectCount = 0;
-    return false;// nothing happened
+  if (newSelectCount > 0) {
+    newSelectQueue[--newSelectCount]->state = Bucket::state::staged;
   }
-
-  newSelectQueue[--newSelectCount]->state = Bucket::state::staged;
+  else if (newSelectCount < 0) {
+    newSelectCount = 0;
+  }
+  
 
   // Everything is selectable again
   for (int i = 0; i < cardCount; i++) {
@@ -417,7 +419,9 @@ bool CardSelectionCust::CursorCancel() {
 
   if (newSelectCount == 0) {
     newHand = false;
-
+    if (GetSelectedFormIndex() != -1 && currentFormItem.getTexture() != lockedInFormItem.getTexture()) {
+        ResetPlayerFormSelection();
+    }
     // This is also where beastout card would be removed from queue
     // when beastout is available
 
@@ -632,6 +636,7 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
 void CardSelectionCust::ResetPlayerFormSelection()
 {
   SetSelectedFormIndex(-1);
+  selectedFormRow = -1;
   lockedInFormIndex = selectedFormIndex;
   lockedInFormItem = currentFormItem = sf::Sprite();
 }
