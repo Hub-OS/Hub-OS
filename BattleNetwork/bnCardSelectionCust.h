@@ -60,6 +60,7 @@ private:
   mutable sf::Sprite formItemBG;
   mutable sf::Sprite currentFormItem;
   mutable sf::Sprite lockedInFormItem;
+  mutable sf::Sprite previousFormItem;
   Animation cursorSmallAnimator;
   Animation cursorBigAnimator;
   Animation formSelectAnimator;
