@@ -2435,27 +2435,20 @@ void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const 
   auto emote = reader.Read<uint8_t>(buffer);
   auto custom = reader.Read<bool>(buffer);
 
-  if (user == ticket) {
-    if (custom) {
-      emoteNode.CustomEmote(emote);
-    }
-    else {
-      emoteNode.Emote((Emotes)emote);
-    }
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
     return;
   }
 
-  auto userIter = onlinePlayers.find(user);
+  auto abstractUser = *optionalAbstractUser;
+  auto& emoteNode = abstractUser.emoteNode;
 
-  if (userIter != onlinePlayers.end()) {
-    auto& onlinePlayer = userIter->second;
-
-    if (custom) {
-      onlinePlayer.emoteNode.CustomEmote(emote);
-    }
-    else {
-      onlinePlayer.emoteNode.Emote((Emotes)emote);
-    }
+  if (custom) {
+    emoteNode.CustomEmote(emote);
+  }
+  else {
+    emoteNode.Emote((Emotes)emote);
   }
 }
 
