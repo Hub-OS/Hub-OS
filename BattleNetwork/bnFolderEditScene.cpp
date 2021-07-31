@@ -364,10 +364,27 @@ void FolderEditScene::onUpdate(double elapsed) {
             if (currViewMode == ViewMode::folder) {
                 if (folderView.swapCardIndex != -1) {
                     if (folderView.swapCardIndex == folderView.currCardIndex) {
+                        Battle::Card copy;
+                        bool found = false;
+                        for (auto i = 0; i < poolCardBuckets.size(); i++) {
+                            if (poolCardBuckets[i].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
+                                poolCardBuckets[i].AddCard();
+                                folderCardSlots[folderView.currCardIndex].GetCard(copy);
+                                found = true;
+                                break;
+                            };
+                        }
+                        if (found == false) {
+                            folderCardSlots[folderView.currCardIndex].GetCard(copy);
+                            auto slot = PoolBucket(1, copy);
+                            poolCardBuckets.push_back(slot);
+                            packView.numOfCards++;
+                            CHIPLIB.AddCard(copy);
+                            bool gotCard = true;
+                        }
                         // Unselect the card
                         folderView.swapCardIndex = -1;
                         Audio().Play(AudioType::CHIP_CANCEL);
-
                     }
                     else {
                         // swap the card
@@ -439,9 +456,29 @@ void FolderEditScene::onUpdate(double elapsed) {
             else if (currViewMode == ViewMode::pool) {
                 if (packView.swapCardIndex != -1) {
                     if (packView.swapCardIndex == packView.currCardIndex) {
-                        // Unselect the card
-                        packView.swapCardIndex = -1;
-                        Audio().Play(AudioType::CHIP_CANCEL);
+                        if (folder.GetSize() < 30) {
+                            int found = -1;
+                            for (auto i = 0; i < 30; i++) {
+                                if (found == -1 && folderCardSlots[i].IsEmpty() == true) {
+                                    found = i;
+                                }
+                            }
+                            Battle::Card copy;
+                            if (found != -1 && poolCardBuckets[packView.currCardIndex].GetCard(copy)) {
+                                folderCardSlots[found].AddCard(copy);
+                                bool gotCard = true;
+                                packView.swapCardIndex = -1;
+                                folderView.swapCardIndex = -1;
+                                hasFolderChanged = true;
+                                Audio().Play(AudioType::CHIP_CONFIRM);
+                            }
+                        }
+                        else {
+                            // Unselect the card
+                            packView.swapCardIndex = -1;
+                            Audio().Play(AudioType::CHIP_CANCEL);
+                        }
+
 
                     }
                     else {
@@ -702,7 +739,6 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
         if (!iter->IsEmpty()) {
             float cardIconY = 66.0f + (32.f * i);
-
             cardIcon.setTexture(*WEBCLIENT.GetIconForCard(copy.GetUUID()));
             cardIcon.setPosition(2.f * 104.f, cardIconY);
             surface.draw(cardIcon);
@@ -858,14 +894,14 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
                 cardLabel.SetColor(sf::Color::White);
                 cardLabel.SetString(std::to_string(copy.GetDamage()));
                 cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
-                cardLabel.setPosition(2.f * (223.f) + 480.f, 135.f);
+                cardLabel.setPosition(2.f * (223.f) + 480.f, 145.f);
 
                 surface.draw(cardLabel);
             }
 
             cardLabel.setOrigin(0, 0);
             cardLabel.SetColor(sf::Color::Yellow);
-            cardLabel.setPosition(2.f * 167.f + 480.f, 135.f);
+            cardLabel.setPosition(2.f * 167.f + 480.f, 145.f);
             cardLabel.SetString(std::string() + copy.GetCode());
             surface.draw(cardLabel);
 
