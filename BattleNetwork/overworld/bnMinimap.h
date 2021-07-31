@@ -2,11 +2,12 @@
 #include "../bnResourceHandle.h"
 #include "../bnDirection.h"
 #include "bnOverworldMap.h"
+#include "bnOverworldMenu.h"
 #include <SFML/Graphics.hpp>
 #include <memory>
 
 namespace Overworld {
-  class Minimap : public ResourceHandle, public sf::Transformable, public sf::Drawable {
+  class Minimap : public Menu, public sf::Transformable, public ResourceHandle {
   private:
     bool largeMapControls{};
     float scaling{}; //!< scaling used to fit everything on the screen
@@ -39,6 +40,9 @@ namespace Overworld {
     void AddShopPosition(const sf::Vector2f& pos, bool isConcealed);
     void AddBoardPosition(const sf::Vector2f& pos, bool flip, bool isConcealed);
     void AddConveyorPosition(const sf::Vector2f& pos, Direction direction, bool isConcealed);
+    bool IsFullscreen() override { return true; };
+    void Open() override;
+    void HandleInput(InputManager& input, sf::Vector2f mousePos) override;
     void draw(sf::RenderTarget& surface, sf::RenderStates states) const override final;
   };
 }

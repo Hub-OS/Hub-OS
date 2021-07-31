@@ -66,7 +66,6 @@ namespace Overworld {
       Poco::Buffer<char> buffer{ 0 };
     };
 
-    Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
     std::shared_ptr<sf::Texture> customEmotesTexture;
     std::string pvpRemoteAddress; // remember who we want to connect to after download scene
@@ -105,16 +104,6 @@ namespace Overworld {
 
     void HandlePVPStep(const std::string& remoteAddress);
     void ResetPVPStep();
-
-
-    //emote additions, from SceneBase.
-    void SetCustomEmotesTexture(const std::shared_ptr<sf::Texture>&);
-    const std::shared_ptr<sf::Texture>& GetCustomEmotesTexture() const;
-    EmoteNode& GetEmoteNode();
-    EmoteWidget& GetEmoteWidget();
-    virtual void OnEmoteSelected(Emotes emote);
-    virtual void OnEmoteSelectedCL(Emotes emote);
-    virtual void OnCustomEmoteSelected(unsigned emote);
 
     std::optional<AbstractUser> GetAbstractUser(const std::string& id);
     void onInteract(Interaction type);

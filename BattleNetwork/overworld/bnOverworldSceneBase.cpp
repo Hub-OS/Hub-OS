@@ -64,11 +64,11 @@ namespace {
 Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   lastIsConnectedState(false),
   playerSession(std::make_shared<PlayerSession>()),
-  personalMenu(playerSession, "Overworld", ::MakeOptions(this)),
+  personalMenu(std::make_shared<PersonalMenu>(playerSession, "Overworld", ::MakeOptions(this))),
+  minimap(std::make_shared<Minimap>()),
   camera(controller.getWindow().getView()),
   Scene(controller),
   map(0, 0, 0, 0),
-  time(Font::Style::thick),
   playerActor(std::make_shared<Overworld::Actor>("You"))
 {
   // When we reach the menu scene we need to load the player information
@@ -87,8 +87,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   auto missingTexture = Textures().LoadTextureFromFile("resources/ow/missing.png");
   Overworld::Actor::SetMissingTexture(missingTexture);
 
-  personalMenu.setScale(2.f, 2.f);
-  //emote.setScale(2.f, 2.f);
+  personalMenu->setScale(2.f, 2.f);
 
   gotoNextScene = true;
 
@@ -146,9 +145,8 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
 
   map.setScale(2.f, 2.f);
 
-  // clock
-  time.setPosition(480 - 4.f, 6.f);
-  time.setScale(2.f, 2.f);
+  menuSystem.BindMenu(InputEvents::pressed_pause, personalMenu);
+  menuSystem.BindMenu(InputEvents::pressed_map, minimap);
 }
 
 void Overworld::SceneBase::onStart() {
@@ -208,7 +206,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     // update minimap
     auto playerTilePos = map.WorldToTileSpace(playerActor->getPosition());
     bool isConcealed = map.IsConcealed(sf::Vector2i(playerTilePos), playerActor->GetLayer());
-    minimap.SetPlayerPosition(screenPos, isConcealed);
+    minimap->SetPlayerPosition(screenPos, isConcealed);
   }
 
   for (auto& actor : actors) {
@@ -289,9 +287,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // Loop the bg
   bg->Update((float)elapsed);
 
-  // Update the widget
-  personalMenu.Update((float)elapsed);
-
   // Update the textbox
   menuSystem.Update((float)elapsed);
 
@@ -326,46 +321,13 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
 }
 
 void Overworld::SceneBase::HandleInput() {
-  if (showMinimap) {
-    sf::Vector2f panning = {};
+  auto& window = getController().getWindow();
+  auto mousei = sf::Mouse::getPosition(window);
+  auto mousef = window.mapPixelToCoords(mousei);
 
-    if (Input().Has(InputEvents::held_ui_left)) {
-      panning.x -= 1.f;
-    }
-
-    if (Input().Has(InputEvents::held_ui_right)) {
-      panning.x += 1.f;
-    }
-
-    if (Input().Has(InputEvents::held_ui_up)) {
-      panning.y -= 1.f;
-    }
-
-    if (Input().Has(InputEvents::held_ui_down)) {
-      panning.y += 1.f;
-    }
-
-    if (Input().GetConfigSettings().GetInvertMinimap()) {
-      panning.x *= -1.f;
-      panning.y *= -1.f;
-    }
-
-    if (Input().Has(InputEvents::pressed_map)) {
-      showMinimap = false;
-      minimap.ResetPanning();
-    }
-
-    minimap.Pan(panning);
-    return;
-  }
+  menuSystem.HandleInput(Input(), mousef);
 
   if (!menuSystem.IsClosed()) {
-    menuSystem.HandleInput(Input(), getController().getWindow());
-    return;
-  }
-
-  if (!personalMenu.IsClosed()) {
-    personalMenu.HandleInput(Input(), Audio());
     return;
   }
 
@@ -377,15 +339,6 @@ void Overworld::SceneBase::HandleInput() {
     if (Input().Has(InputEvents::pressed_shoulder_left)) {
       OnInteract(Interaction::inspect);
     }
-  }
-
-  if (Input().Has(InputEvents::pressed_pause) && !Input().Has(InputEvents::pressed_cancel)) {
-    personalMenu.Open();
-    Audio().Play(AudioType::CHIP_DESC);
-  }
-  else if (Input().Has(InputEvents::pressed_map)) {
-    showMinimap = true;
-    minimap.ResetPanning();
   }
 }
 
@@ -449,11 +402,6 @@ void Overworld::SceneBase::onResume() {
 }
 
 void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
-  if (showMinimap) {
-    surface.draw(minimap);
-    return;
-  }
-
   if (menuSystem.IsFullscreen()) {
     surface.draw(menuSystem);
     return;
@@ -465,12 +413,14 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 
   DrawWorld(surface, sf::RenderStates::Default);
 
-  surface.draw(personalMenu);
+  if (personalMenu->IsClosed()) {
+    // menuSystem will not draw personal menu if it's closed
+    // might make sense to extract some parts of menu system as the closed UI has different requirements
+    personalMenu->draw(surface, sf::RenderStates::Default);
+  }
 
   // Add the web account connection symbol
   surface.draw(webAccountIcon);
-
-  PrintTime(surface);
 
   // This will mask everything before this line with camera fx
   surface.draw(camera.GetLens());
@@ -670,10 +620,10 @@ void Overworld::SceneBase::RefreshNaviSprite()
     auto iconTexture = meta.GetIconTexture();
 
     if (iconTexture) {
-      personalMenu.UseIconTexture(iconTexture);
+      personalMenu->UseIconTexture(iconTexture);
     }
     else {
-      personalMenu.ResetIconTexture();
+      personalMenu->ResetIconTexture();
     }
   }
   else {
@@ -790,7 +740,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     Audio().Stream(GetPath(map.GetSongPath()), true);
   }
 
-  personalMenu.SetArea(map.GetName());
+  personalMenu->SetArea(map.GetName());
 
   // cleanup data from the previous map
   this->map.RemoveSprites(*this);
@@ -804,8 +754,8 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   // update map to trigger recalculating shadows for minimap
   this->map.Update(*this, 0.0f);
 
-  minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
-  minimap.setScale(2.f, 2.f);
+  *minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
+  minimap->setScale(2.f, 2.f);
 }
 
 void Overworld::SceneBase::TeleportUponReturn(const sf::Vector3f& position)
@@ -854,9 +804,8 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 
 bool Overworld::SceneBase::IsInputLocked() {
   return
-    inputLocked || gotoNextScene || showMinimap ||
-    !personalMenu.IsClosed() ||
-    !menuSystem.IsClosed() ||
+    inputLocked || gotoNextScene ||
+    menuSystem.ShouldLockInput() ||
     !teleportController.IsComplete() || teleportController.TeleportedOut();
 }
 
@@ -957,12 +906,12 @@ void Overworld::SceneBase::GotoKeyItems()
 
 Overworld::PersonalMenu& Overworld::SceneBase::GetPersonalMenu()
 {
-  return personalMenu;
+  return *personalMenu;
 }
 
 Overworld::Minimap& Overworld::SceneBase::GetMinimap()
 {
-  return minimap;
+  return *minimap;
 }
 
 Overworld::SpatialMap& Overworld::SceneBase::GetSpatialMap()
@@ -1092,37 +1041,6 @@ const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, cons
   );
 
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
-}
-
-void Overworld::SceneBase::PrintTime(sf::RenderTarget& target)
-{
-  auto shadowColor = sf::Color(105, 105, 105);
-  std::string timeStr = CurrentTime::AsFormattedString("%OI:%OM %p");
-  time.SetString(timeStr);
-  time.setOrigin(time.GetLocalBounds().width, 0.f);
-  auto origin = time.GetLocalBounds().width;
-
-  auto pos = time.getPosition();
-  time.SetColor(shadowColor);
-  time.setPosition(pos.x + 2.f, pos.y + 2.f);
-  target.draw(time);
-
-  time.SetString(timeStr.substr(0, 5));
-  time.setPosition(pos);
-  time.SetColor(sf::Color::White);
-  target.draw(time);
-
-  auto pColor = sf::Color::Red;
-  time.SetString("AM");
-
-  if (timeStr[6] != 'A') {
-    pColor = sf::Color::Green;
-    time.SetString("PM");
-  }
-
-  time.setOrigin(time.GetLocalBounds().width, 0.f);
-  time.SetColor(pColor);
-  target.draw(time);
 }
 
 #ifdef __ANDROID__

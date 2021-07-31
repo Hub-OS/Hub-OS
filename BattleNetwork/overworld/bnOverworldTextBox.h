@@ -29,7 +29,7 @@ namespace Overworld {
     size_t GetRemainingMessages();
 
     void Update(float elapsed);
-    void HandleInput(InputManager& input, const sf::RenderWindow& window);
+    void HandleInput(InputManager& input, sf::Vector2f mousePos);
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
@@ -37,7 +37,7 @@ namespace Overworld {
     AnimatedTextBox textbox;
     sf::Sprite nextSpeaker;
     Animation nextAnimation;
-    std::queue<std::function<void(InputManager& input, const sf::RenderWindow&)>> handlerQueue;
+    std::queue<std::function<void(InputManager& input, sf::Vector2f mousePos)>> handlerQueue;
     bool turboScroll;
     int turboTimer;
   };

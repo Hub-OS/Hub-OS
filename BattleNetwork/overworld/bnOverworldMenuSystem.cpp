@@ -8,6 +8,10 @@
 namespace Overworld {
   MenuSystem::MenuSystem() : textbox({ 4, 255 }), ResourceHandle() {}
 
+  void MenuSystem::BindMenu(InputEvent event, std::shared_ptr<Menu> menu) {
+    bindedMenus.push_back({ event, menu });
+  }
+
   std::optional<std::reference_wrapper<BBS>> MenuSystem::GetBBS() {
     if (!pendingBbs.empty()) {
       return *pendingBbs.back().bbs;
@@ -31,7 +35,7 @@ namespace Overworld {
       pendingBbs.pop();
     }
 
-    while(!bbs.empty()) {
+    while (!bbs.empty()) {
       bbs.back()->Close();
     }
 
@@ -128,14 +132,26 @@ namespace Overworld {
   }
 
   bool MenuSystem::IsOpen() {
-    return textbox.IsOpen() || !bbs.empty();
+    return activeBindedMenu || textbox.IsOpen() || !bbs.empty();
   }
 
   bool MenuSystem::IsClosed() {
-    return textbox.IsClosed() && bbs.empty();
+    return !activeBindedMenu && textbox.IsClosed() && bbs.empty();
+  }
+
+  bool MenuSystem::IsFullscreen() {
+    return (activeBindedMenu && activeBindedMenu->IsFullscreen()) || GetBBS().has_value();
+  }
+
+  bool MenuSystem::ShouldLockInput() {
+    return (activeBindedMenu && activeBindedMenu->LocksInput()) || textbox.IsOpen() || !bbs.empty();
   }
 
   void MenuSystem::Update(float elapsed) {
+    if (activeBindedMenu) {
+      activeBindedMenu->Update(elapsed);
+    }
+
     if (!bbs.empty()) {
       bbs.back()->Update(elapsed);
     }
@@ -143,19 +159,38 @@ namespace Overworld {
     textbox.Update(elapsed);
   }
 
-  void MenuSystem::HandleInput(InputManager& input, const sf::RenderWindow& window) {
+  void MenuSystem::HandleInput(InputManager& input, sf::Vector2f mousePos) {
+    if (activeBindedMenu) {
+      // test to see if the menu closed itself or was closed externally
+      if (activeBindedMenu->IsOpen()) {
+        activeBindedMenu->HandleInput(input, mousePos);
+        return;
+      }
+      else {
+        activeBindedMenu = nullptr;
+      }
+    }
+
     if (textbox.GetRemainingMessages() > 0) {
-      textbox.HandleInput(input, window);
+      textbox.HandleInput(input, mousePos);
       return;
     }
 
-    if (!bbs.empty() && !bbsNeedsAck) {
-      bbs.back()->HandleInput(input);
+    if (!bbs.empty()) {
+      if (!bbsNeedsAck) {
+        bbs.back()->HandleInput(input);
+      }
+      return;
     }
-  }
 
-  bool MenuSystem::IsFullscreen() {
-    return GetBBS().has_value();
+    // nothing else open, see if we should open a menu
+    for (auto& [binding, menu] : bindedMenus) {
+      if (input.Has(binding)) {
+        menu->Open();
+        activeBindedMenu = menu;
+        return;
+      }
+    }
   }
 
   void MenuSystem::draw(sf::RenderTarget& target, sf::RenderStates states) const {
@@ -164,5 +199,9 @@ namespace Overworld {
     }
 
     textbox.draw(target, states);
+
+    if (activeBindedMenu) {
+      activeBindedMenu->draw(target, states);
+    }
   }
 }

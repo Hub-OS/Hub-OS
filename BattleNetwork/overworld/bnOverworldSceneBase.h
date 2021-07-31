@@ -51,7 +51,6 @@ namespace Overworld {
     std::vector<KeyItemScene::Item> items;
 
     double animElapsed{};
-    bool showMinimap{ false };
     bool inputLocked{ false };
     bool cameraLocked{ false };
     bool teleportedOut{ false }; /*!< We may return to this area*/
@@ -60,12 +59,11 @@ namespace Overworld {
 
     Camera camera;
     CameraController cameraController; /*!< camera in scene follows player */
-    Text time;
 
     sf::Vector3f returnPoint{};
     sf::Vector3f cameraTrackPoint{}; // used for smooth cameras
-    PersonalMenu personalMenu;
-    Minimap minimap;
+    std::shared_ptr<PersonalMenu> personalMenu;
+    std::shared_ptr<Minimap> minimap;
     SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
     Animation webAccountAnimator; /*!< Use animator to represent different statuses */
 
