@@ -60,6 +60,7 @@ private:
   mutable sf::Sprite formItemBG;
   mutable sf::Sprite currentFormItem;
   mutable sf::Sprite lockedInFormItem;
+  mutable sf::Sprite previousFormItem;
   Animation cursorSmallAnimator;
   Animation cursorBigAnimator;
   Animation formSelectAnimator;
@@ -80,6 +81,7 @@ private:
 
   int formCursorRow; //!< Cursor row
   int selectedFormRow; //!< selected form row
+  int previousFormIndex = -1; //!< for checking the previous form against the current form. Default to -1, or no form.
   int selectedFormIndex; //!< Form Index of selection 
   int lockedInFormIndex; //!< What the card cust has locked our selection in as
   int cardCount; /*!< How many cards are listed in the GUI */
