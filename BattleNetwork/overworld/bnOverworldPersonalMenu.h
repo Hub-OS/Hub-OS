@@ -1,15 +1,15 @@
 #pragma once
-#include <Swoosh/Timer.h>
-#include <Swoosh/Ease.h>
 
+#include "bnOverworldMenu.h"
 #include "bnOverworldPlayerSession.h"
 #include "../bnInputManager.h"
-#include "../bnSceneNode.h"
 #include "../bnSpriteProxyNode.h"
 #include "../bnAnimation.h"
 #include "../bnResourceHandle.h"
 #include "../bnFont.h"
 #include "../bnText.h"
+#include <Swoosh/Timer.h>
+#include <Swoosh/Ease.h>
 
 namespace Overworld {
   /**
@@ -18,7 +18,7 @@ namespace Overworld {
    * @date 11/04/20
    * @brief PersonalMenu used in over-world hub. Can be interacted through public API.
    */
-  class PersonalMenu : public SceneNode, public ResourceHandle {
+  class PersonalMenu : public Menu, public SceneNode, public ResourceHandle {
   public:
     enum class state : unsigned {
       closed = 0,
@@ -48,6 +48,7 @@ namespace Overworld {
     Text areaLabel; //!< Area name displayed by widget
     mutable Text areaLabelThick; //!< Thick area name displayed outside of widget
     mutable Text infoText; //!< Text obj used for all other info
+    mutable Text time; //!< Text obj displaying the time both inside and outside of the widget
     swoosh::Timer easeInTimer; //!< Timer used for animations
     SpriteProxyNode banner;
     SpriteProxyNode symbol;
@@ -69,6 +70,7 @@ namespace Overworld {
 
     void QueueAnimTasks(const state& state);
     void CreateOptions();
+    void DrawTime(sf::RenderTarget& target) const;
 
   public:
     /**
@@ -85,20 +87,20 @@ namespace Overworld {
     * @brief Animators cursors and all animations
     * @param elapsed in seconds
     */
-    void Update(double elapsed);
+    void Update(double elapsed) override;
 
     /**
     * @brief handles specific key presses to interact with this widget
     * @param 
     */
-    void HandleInput(InputManager&, AudioResourceManager&);
+    void HandleInput(InputManager&, sf::Vector2f mousePos) override;
 
     /**
      * @brief Draws GUI and all child graphics on it
      * @param target
      * @param states
      */
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
     /// Set data
 
@@ -148,26 +150,12 @@ namespace Overworld {
 
     /**
     * @brief Open the widget and begin the open animations
-    * @return true if the widget has beguin opening, false if already opening or opened
     */
-    bool Open();
+    virtual void Open();
 
     /**
     * @brief Close the widget and begin the close animations
-    * @return true if the widget has beguin closing, false if already closing or closed
     */
-    bool Close();
-
-    /**
-    * @brief Query if the widget is fully opened
-    * @return true if the widget is fully opened, false if any other state
-    */
-    bool IsOpen() const;
-
-    /**
-    * @brief Query if the widget is fully closed
-    * @return true if the widget is fully closed, false if any other state
-    */
-    bool IsClosed() const;
+    virtual void Close();
   };
 }

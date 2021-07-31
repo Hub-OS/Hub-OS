@@ -2,6 +2,7 @@
 
 #include "../bnResourceHandle.h"
 #include "../bnInputManager.h"
+#include "bnOverworldMenu.h"
 #include "bnOverworldTextBox.h"
 #include "bnBBS.h"
 #include <SFML/Graphics/Drawable.hpp>
@@ -12,6 +13,11 @@ namespace Overworld {
   class MenuSystem : public sf::Drawable, ResourceHandle {
   public:
     MenuSystem();
+
+    /**
+     * @brief Binds an input event to open a menu, avoids opening menus while other menus are open
+     */
+    void BindMenu(InputEvent event, std::shared_ptr<Menu> menu);
 
     // grabs the latest BBS
     std::optional<std::reference_wrapper<BBS>> GetBBS();
@@ -34,9 +40,10 @@ namespace Overworld {
     bool IsOpen();
     bool IsClosed();
     bool IsFullscreen();
+    bool ShouldLockInput();
 
     void Update(float elapsed);
-    void HandleInput(InputManager& input, const sf::RenderWindow& window);
+    void HandleInput(InputManager& input, sf::Vector2f mousePos);
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
@@ -46,6 +53,8 @@ namespace Overworld {
       size_t remainingMessages{};
     };
 
+    std::vector<std::pair<InputEvent, std::shared_ptr<Menu>>> bindedMenus;
+    std::shared_ptr<Menu> activeBindedMenu;
     std::queue<PendingBBS> pendingBbs;
     size_t totalRemainingMessagesForBBS{};
     std::vector<std::unique_ptr<BBS>> bbs;

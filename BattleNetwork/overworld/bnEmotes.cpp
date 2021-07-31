@@ -19,7 +19,7 @@ Overworld::EmoteNode::EmoteNode() : ResourceHandle()
 {
   defaultEmotes = Textures().LoadTextureFromFile("resources/ow/emotes/emotes_48x48.png");
   setTexture(defaultEmotes);
-  setOrigin(EMOJI_PX*0.5f, EMOJI_PX*0.5f);
+  setOrigin(EMOJI_PX * 0.5f, EMOJI_PX * 0.5f);
   Reset();
 }
 
@@ -36,7 +36,7 @@ void Overworld::EmoteNode::Reset()
 
 void Overworld::EmoteNode::Emote(Overworld::Emotes type)
 {
-  size_t idx = std::min(static_cast<size_t>(type), static_cast<size_t>(Overworld::Emotes::size)-1);
+  size_t idx = std::min(static_cast<size_t>(type), static_cast<size_t>(Overworld::Emotes::size) - 1);
 
   sf::IntRect rect = sf::IntRect(static_cast<int>(48 * idx), 0, 48, 48);
 
@@ -80,10 +80,8 @@ void Overworld::EmoteNode::Update(double elapsed)
   }
 }
 
-Overworld::EmoteWidget::EmoteWidget() : 
-  radius(CIRCLE_RADIUS_PX),
-  sf::Drawable(), 
-  sf::Transformable()
+Overworld::EmoteWidget::EmoteWidget() :
+  radius(CIRCLE_RADIUS_PX)
 {
   size_t idx = 0;
   size_t max = static_cast<size_t>(Emotes::size);
@@ -91,7 +89,7 @@ Overworld::EmoteWidget::EmoteWidget() :
   while (idx < max) {
     auto& e = emoteSprites[idx];
     e.setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes_48x48.png"));
-    e.setOrigin(EMOJI_PX*0.5f, EMOJI_PX*0.5f);
+    e.setOrigin(EMOJI_PX * 0.5f, EMOJI_PX * 0.5f);
 
     sf::IntRect rect = sf::IntRect(static_cast<int>(idx * 48), 0, 48, 48);
     e.setTextureRect(rect);
@@ -135,12 +133,12 @@ void Overworld::EmoteWidget::Update(double elapsed)
     emoteSprites[idx].setScale(s, s);
     idx++;
   }
+}
 
-  if (IsClosed()) return;
-
+void Overworld::EmoteWidget::HandleInput(InputManager& input, sf::Vector2f mousePos) {
   Emotes end = static_cast<Emotes>(static_cast<size_t>(Emotes::size) - 1);
 
-  if (Input().Has(InputEvents::pressed_shoulder_left)) {
+  if (input.Has(InputEvents::pressed_shoulder_left)) {
     if (currEmote == Emotes{ 0 }) {
       currEmote = end;
     }
@@ -149,7 +147,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
     }
   }
 
-  if (Input().Has(InputEvents::pressed_shoulder_right)) {
+  if (input.Has(InputEvents::pressed_shoulder_right)) {
     if (currEmote == end) {
       currEmote = Emotes{ 0 };
     }
@@ -158,15 +156,17 @@ void Overworld::EmoteWidget::Update(double elapsed)
     }
   }
 
-  if (Input().Has(InputEvents::pressed_confirm)) {
+  if (input.Has(InputEvents::pressed_confirm)) {
     callback ? callback(currEmote) : void(0);
+  }
+
+  if (input.Has(InputEvents::pressed_option)) {
+    Close();
   }
 }
 
 void Overworld::EmoteWidget::draw(sf::RenderTarget& surface, sf::RenderStates states) const
 {
-  if (state == State::closed) return;
-
   states.transform *= getTransform();
 
   sf::CircleShape circle = sf::CircleShape(this->radius, static_cast<size_t>(Emotes::size));
@@ -175,9 +175,9 @@ void Overworld::EmoteWidget::draw(sf::RenderTarget& surface, sf::RenderStates st
   circle.setOrigin(this->radius, this->radius);
 
   surface.draw(circle, states);
-  
+
   const SpriteProxyNode* selected = nullptr;
-  for(size_t i = 0; i < static_cast<size_t>(Emotes::size); i++) {
+  for (size_t i = 0; i < static_cast<size_t>(Emotes::size); i++) {
     if (static_cast<size_t>(currEmote) == i && IsOpen()) {
       selected = &emoteSprites[i];
     }
@@ -192,27 +192,7 @@ void Overworld::EmoteWidget::draw(sf::RenderTarget& surface, sf::RenderStates st
   }
 }
 
-void Overworld::EmoteWidget::Open()
-{
-  state = State::open;
-}
-
-void Overworld::EmoteWidget::Close()
-{
-  state = State::closed;
-}
-
 void Overworld::EmoteWidget::OnSelect(const std::function<void(Overworld::Emotes)>& callback)
 {
   this->callback = callback;
-}
-
-const bool Overworld::EmoteWidget::IsOpen() const
-{
-  return state == State::open;
-}
-
-const bool Overworld::EmoteWidget::IsClosed() const
-{
-  return state == State::closed;
 }

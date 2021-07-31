@@ -10,11 +10,16 @@ namespace Overworld {
     optionsList(options),
     infoText(Font::Style::thin),
     areaLabel(Font::Style::thin),
-    areaLabelThick(Font::Style::thick)
+    areaLabelThick(Font::Style::thick),
+    time(Font::Style::thick)
   {
     // Load resources
     areaLabel.setPosition(127, 119);
     infoText = areaLabel;
+
+    // clock
+    time.setPosition(480 - 4.f, 6.f);
+    time.setScale(2.f, 2.f);
 
     widgetTexture = Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png");
 
@@ -133,6 +138,7 @@ namespace Overworld {
     if (state == PersonalMenu::state::closing) {
       t0f.doTask([=](sf::Time elapsed) {
         currState = state::closed;
+        Menu::Close();
       });
 
       t0f.doTask([=](sf::Time elapsed) {
@@ -321,15 +327,14 @@ namespace Overworld {
     }
   }
 
-  void PersonalMenu::HandleInput(InputManager& input, AudioResourceManager& audio) {
-    // menu widget
-    if (input.Has(InputEvents::pressed_pause) && !input.Has(InputEvents::pressed_cancel)) {
-      if (Close()) {
-        audio.Play(AudioType::CHIP_DESC_CLOSE);
-      }
+  void PersonalMenu::HandleInput(InputManager& input, sf::Vector2f mousePos) {
+    if (currState != state::opened) {
+      // ignore input unless the menu is fully open
+      return;
     }
 
-    if (!IsOpen()) {
+    if (input.Has(InputEvents::pressed_pause) && !input.Has(InputEvents::pressed_cancel)) {
+      Close();
       return;
     }
 
@@ -345,7 +350,7 @@ namespace Overworld {
           selectInputCooldown = maxSelectInputCooldown / 4.0;
         }
 
-        CursorMoveUp() ? audio.Play(AudioType::CHIP_SELECT) : 0;
+        CursorMoveUp() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
       }
     }
     else if (input.Has(InputEvents::pressed_ui_down) || input.Has(InputEvents::held_ui_down)) {
@@ -358,15 +363,11 @@ namespace Overworld {
           selectInputCooldown = maxSelectInputCooldown / 4.0;
         }
 
-        CursorMoveDown() ? audio.Play(AudioType::CHIP_SELECT) : 0;
+        CursorMoveDown() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
       }
     }
     else if (input.Has(InputEvents::pressed_confirm)) {
-      bool result = ExecuteSelection();
-
-      if (result && IsOpen() == false) {
-        audio.Play(AudioType::CHIP_DESC_CLOSE);
-      }
+      ExecuteSelection();
     }
     else if (input.Has(InputEvents::pressed_ui_right) || input.Has(InputEvents::pressed_cancel)) {
       extendedHold = false;
@@ -375,11 +376,7 @@ namespace Overworld {
 
       if (exitSelected) {
         if (input.Has(InputEvents::pressed_cancel)) {
-          bool result = ExecuteSelection();
-
-          if (result && IsOpen() == false) {
-            audio.Play(AudioType::CHIP_DESC_CLOSE);
-          }
+          ExecuteSelection();
         }
         else {
           // already selected, switch to options
@@ -387,10 +384,10 @@ namespace Overworld {
         }
       }
 
-      audio.Play(AudioType::CHIP_SELECT);
+      Audio().Play(AudioType::CHIP_SELECT);
     }
     else if (input.Has(InputEvents::pressed_ui_left)) {
-      SelectOptions() ? audio.Play(AudioType::CHIP_SELECT) : 0;
+      SelectOptions() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
       extendedHold = false;
     }
     else {
@@ -438,7 +435,7 @@ namespace Overworld {
       target.draw(copyAreaLabel, states);
       target.draw(areaLabel, states);
 
-      if (IsOpen()) {
+      if (currState == state::opened) {
         // hp shadow
         infoText.SetString(std::to_string(session->health));
         infoText.setOrigin(infoText.GetLocalBounds().width, 0);
@@ -489,6 +486,39 @@ namespace Overworld {
         target.draw(infoText, states);
       }
     }
+
+    DrawTime(target);
+  }
+
+  void PersonalMenu::DrawTime(sf::RenderTarget& target) const
+  {
+    auto shadowColor = sf::Color(105, 105, 105);
+    std::string timeStr = CurrentTime::AsFormattedString("%OI:%OM %p");
+    time.SetString(timeStr);
+    time.setOrigin(time.GetLocalBounds().width, 0.f);
+    auto origin = time.GetLocalBounds().width;
+
+    auto pos = time.getPosition();
+    time.SetColor(shadowColor);
+    time.setPosition(pos.x + 2.f, pos.y + 2.f);
+    target.draw(time);
+
+    time.SetString(timeStr.substr(0, 5));
+    time.setPosition(pos);
+    time.SetColor(sf::Color::White);
+    target.draw(time);
+
+    auto pColor = sf::Color::Red;
+    time.SetString("AM");
+
+    if (timeStr[6] != 'A') {
+      pColor = sf::Color::Green;
+      time.SetString("PM");
+    }
+
+    time.setOrigin(time.GetLocalBounds().width, 0.f);
+    time.SetColor(pColor);
+    target.draw(time);
   }
 
   void PersonalMenu::SetArea(const std::string& name)
@@ -524,7 +554,10 @@ namespace Overworld {
   bool PersonalMenu::ExecuteSelection()
   {
     if (selectExit) {
-      return Close();
+      if (currState == state::opened) {
+        Close();
+        return true;
+      }
     }
     else {
       auto& func = optionsList[row].onSelectFunc;
@@ -597,37 +630,24 @@ namespace Overworld {
     return false;
   }
 
-  bool PersonalMenu::Open()
+  void PersonalMenu::Open()
   {
     if (currState == state::closed) {
+      Audio().Play(AudioType::CHIP_DESC);
       currState = state::opening;
       QueueAnimTasks(currState);
       easeInTimer.start();
-      return true;
+      Menu::Open();
     }
-
-    return false;
   }
 
-  bool PersonalMenu::Close()
+  void PersonalMenu::Close()
   {
     if (currState == state::opened) {
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       currState = state::closing;
       QueueAnimTasks(currState);
       easeInTimer.start();
-      return true;
     }
-
-    return false;
-  }
-
-  bool PersonalMenu::IsOpen() const
-  {
-    return currState == state::opened;
-  }
-
-  bool PersonalMenu::IsClosed() const
-  {
-    return currState == state::closed;
   }
 }
