@@ -24,6 +24,8 @@ PanelGrab::PanelGrab(Team _team, Direction facing, float _duration) : duration(_
   props.damage = 10;
 
   SetHitboxProperties(props);
+
+  Entity::drawOffset = {0, -480};
 }
 
 PanelGrab::~PanelGrab() {
@@ -36,15 +38,15 @@ void PanelGrab::OnSpawn(Battle::Tile& start)
 }
 
 void PanelGrab::OnUpdate(double _elapsed) {
-  start = sf::Vector2f(tile->getPosition().x, 0);
+  start = sf::Vector2f(0, -480);
 
   double beta = swoosh::ease::linear(progress, duration, 1.0);
 
   // interpolate linearly from the top down to the tile position
-  double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
-  double posY = (beta * tile->getPosition().y) + ((1.0f - beta)*start.y);
+  double posX = (1.0f - beta)*start.x;
+  double posY = (1.0f - beta)*start.y;
 
-  setPosition((float)posX, (float)posY);
+  Entity::drawOffset = { (float)posX, (float)posY };
 
   // When at the end of the line
   if (progress >= duration) {

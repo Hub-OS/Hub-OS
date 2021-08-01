@@ -122,7 +122,12 @@ void Character::Update(double _elapsed) {
   if (!hit) {
     unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
     if (stunCooldown && stunFrame < 2) {
-      SetShader(stun);
+      if (stun) {
+        SetShader(stun);
+      }
+      else {
+        setColor(sf::Color::Yellow);
+      }
 
       for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
         if (!child->IsUsingParentShader()) {
@@ -316,7 +321,7 @@ const bool Character::Hit(Hit::Properties props) {
   SetHealth(GetHealth() - props.damage);
 
   if (IsTimeFrozen()) {
-    props.counters = false;
+    props.flags |= Hit::no_counter;
   }
 
   // Add to status queue for state resolution
@@ -407,13 +412,13 @@ void Character::ResolveFrameBattleDamage()
     {
       // Only register counter if:
       // 1. Hit type is impact
-      // 2. Hit original hit type is also flinch
+      // 2. Hit original hit type is also flash
       // 3. The hitbox is allowed to counter
       // 4. The character is on a counter frame
       // 5. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if ((props.hitbox.flags & Hit::flash) == Hit::flash && props.filtered.aggressor && props.filtered.counters) {
+        if ((props.hitbox.flags & Hit::flash) == Hit::flash && (props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
           frameCounterAggressor = field->GetCharacter(props.filtered.aggressor);
         }
 
@@ -460,24 +465,25 @@ void Character::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          bool hasSuperArmor = false;
-          
           // TODO: this is a specific (and expensive) check. Is there a way to prioritize this defense rule?
-          for (auto&& d : this->defenses) {
+          /*for (auto&& d : this->defenses) {
             hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
-          }
+          }*/
 
-          if ((props.filtered.flags & Hit::flash) == Hit::flash && !hasSuperArmor) {
+          // assume some defense rule strips out flinch, prevent abuse of stun
+          bool cancelsStun = (props.filtered.flags & Hit::flinch) == 0 && (props.hitbox.flags & Hit::flinch) == Hit::flinch;
+
+          if ((props.filtered.flags & Hit::flash) == Hit::flash && cancelsStun) {
             // cancel stun
             stunCooldown = 0.0;
-            actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
           }
           else {
             // refresh stun
             stunCooldown = 3.0;
+            flagCheckThunk(Hit::stun);
           }
 
-          flagCheckThunk(Hit::stun);
+          actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
         }
       }
 

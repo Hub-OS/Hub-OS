@@ -47,7 +47,7 @@ void WideSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
   b = new BasicSword(actor.GetTeam(), damage);
   b->SetHitboxProperties(props);
   field->AddEntity(*b, *tiles[1]);
-  
+ 
   b = new BasicSword(actor.GetTeam(), damage);
   b->SetHitboxProperties(props);
   field->AddEntity(*b, *tiles[2]);

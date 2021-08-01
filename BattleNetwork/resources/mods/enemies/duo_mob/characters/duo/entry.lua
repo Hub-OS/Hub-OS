@@ -4,10 +4,6 @@ function LoadTexture(path)
     return Engine.ResourceHandle.new().Textures:LoadFile(path)
 end
 
-function StreamMusic(path, loop)
-    return Engine.ResourceHandle.new().Audio:Stream(path, loop)
-end
-
 local MINE_SLIDE_FRAMES = 30 -- frames
 local IDLE_TIME = 1 -- seconds inbetween moves 
 local texture = nil
@@ -617,11 +613,15 @@ function battle_init(self)
 
     print("modpath: ".._modpath)
     self:SetName("Duo")
+    self:SetRank(Rank.EX)
     self:SetHealth(3000)
     self:SetTexture(texture, true)
     self:SetHeight(60)
     self:ShareTile(true)
+
+    print("before set position")
     self:SetPosition(idleDuoPos.x, idleDuoPos.y)
+    print("after set position")
 
     anim = self:GetAnimation()
     anim:Load(_modpath.."duo_compressed.animation")
@@ -661,6 +661,10 @@ function battle_init(self)
         print("inside filterStatusesFunc")
         if props.flags & Hit.Flinch == Hit.Flinch then
             props.flags = props.flags~Hit.Flinch
+        end
+
+        if props.flags & Hit.Flash == Hit.Flash then
+            props.flags = props.flags~Hit.Flash
         end
 
         if props.flags & Hit.Drag == Hit.Drag then

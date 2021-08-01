@@ -57,7 +57,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
             sol::resolve<int(AudioType, AudioPriority)>(&AudioResourceManager::Play),
             sol::resolve<int(std::shared_ptr<sf::SoundBuffer>, AudioPriority)>(&AudioResourceManager::Play)
         ),
-        "Stream", sol::resolve<int(std::string, bool)>(&AudioResourceManager::Stream)
+        "Stream", sol::resolve<int(std::string, bool, long long, long long)>(&AudioResourceManager::Stream)
         );
 
     const auto& shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
@@ -184,8 +184,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
             "GetAnimation", &ScriptedSpell::GetAnimationObject,
             "ShakeCamera", &ScriptedSpell::ShakeCamera,
             "SetHeight", &ScriptedSpell::SetHeight,
-            "SetPosition", &ScriptedSpell::SetTileOffset,
-            "GetPosition", &ScriptedSpell::GetTileOffset,
+            "SetPosition", sol::overload(
+              sol::resolve<void(float, float)>(&ScriptedSpell::SetDrawOffset)
+            ),
+            "GetPosition", &ScriptedSpell::GetDrawOffset,
             "ShowShadow", & ScriptedSpell::ShowShadow,
             "attackFunc", &ScriptedSpell::attackCallback,
             "deleteFunc", &ScriptedSpell::deleteCallback,
@@ -207,32 +209,32 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "GetID", &ScriptedObstacle::GetID,
         "GetElement", &ScriptedObstacle::GetElement,
         "SetElement", &ScriptedObstacle::SetElement,
-        "GetTile", & ScriptedObstacle::GetTile,
-        "CurrentTile", & ScriptedObstacle::GetCurrentTile,
-        "Field", & ScriptedObstacle::GetField,
+        "GetTile", &ScriptedObstacle::GetTile,
+        "CurrentTile", &ScriptedObstacle::GetCurrentTile,
+        "Field", &ScriptedObstacle::GetField,
         "Facing", &ScriptedObstacle::GetFacing,
-        "Slide", & ScriptedObstacle::Slide,
-        "Jump", & ScriptedObstacle::Jump,
-        "Teleport", & ScriptedObstacle::Teleport,
-        "RawMoveEvent", & ScriptedObstacle::RawMoveEvent,
-        "IsSliding", & ScriptedObstacle::IsSliding,
-        "IsJumping", & ScriptedObstacle::IsJumping,
-        "IsTeleporting", & ScriptedObstacle::IsTeleporting,
-        "IsMoving", & ScriptedObstacle::IsMoving,
-        "IsTeammate", & ScriptedObstacle::Teammate,
-        "Team", & ScriptedObstacle::GetTeam,
-        "Remove", & ScriptedObstacle::Remove,
-        "Delete", & ScriptedObstacle::Delete,
+        "Slide", &ScriptedObstacle::Slide,
+        "Jump", &ScriptedObstacle::Jump,
+        "Teleport", &ScriptedObstacle::Teleport,
+        "RawMoveEvent", &ScriptedObstacle::RawMoveEvent,
+        "IsSliding", &ScriptedObstacle::IsSliding,
+        "IsJumping", &ScriptedObstacle::IsJumping,
+        "IsTeleporting", &ScriptedObstacle::IsTeleporting,
+        "IsMoving", &ScriptedObstacle::IsMoving,
+        "IsTeammate", &ScriptedObstacle::Teammate,
+        "Team", &ScriptedObstacle::GetTeam,
+        "Remove", &ScriptedObstacle::Remove,
+        "Delete", &ScriptedObstacle::Delete,
 
         "GetName", &ScriptedObstacle::GetName,
         "GetHealth", &ScriptedObstacle::GetHealth,
         "GetMaxHealth", &ScriptedObstacle::GetMaxHealth,
         "SetName", &ScriptedObstacle::SetName,
         "SetHealth", &ScriptedObstacle::SetHealth,
-        "ShareTile", & ScriptedObstacle::ShareTileSpace,
-        "AddDefenseRule", & ScriptedObstacle::AddDefenseRule,
+        "ShareTile", &ScriptedObstacle::ShareTileSpace,
+        "AddDefenseRule", &ScriptedObstacle::AddDefenseRule,
 
-        "SetTexture", & ScriptedObstacle::setTexture,
+        "SetTexture", &ScriptedObstacle::setTexture,
         "SetLayer", &ScriptedObstacle::SetLayer,
         "GetAnimation", &ScriptedObstacle::GetAnimationObject,
         "AddNode", &ScriptedObstacle::AddNode,
@@ -243,11 +245,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
         "IgnoreCommonAggressor", &ScriptedObstacle::IgnoreCommonAggressor,
 
-        "SetHeight", & ScriptedObstacle::SetHeight,
-        "ShowShadow", & ScriptedObstacle::ShowShadow,
+        "SetHeight", &ScriptedObstacle::SetHeight,
+        "ShowShadow", &ScriptedObstacle::ShowShadow,
         "ShakeCamera", &ScriptedObstacle::ShakeCamera,
-        "SetPosition", & ScriptedObstacle::SetTileOffset,
-        "GetPosition", & ScriptedObstacle::GetTileOffset,
+        "SetPosition", sol::overload(
+          sol::resolve<void(float, float)>(&ScriptedObstacle::SetDrawOffset)
+        ),
+        "GetPosition", &ScriptedObstacle::GetDrawOffset,
         "attackFunc", &ScriptedObstacle::attackCallback,
         "deleteFunc", &ScriptedObstacle::deleteCallback,
         "updateFunc", &ScriptedObstacle::updateCallback,
@@ -316,9 +320,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "SetRank", &ScriptedCharacter::SetRank,
         "ShareTile", &ScriptedCharacter::ShareTileSpace,
         "AddDefenseRule", &ScriptedCharacter::AddDefenseRule,
-
-        "SetPosition", &ScriptedCharacter::SetTileOffset,
-        "GetPosition", &ScriptedCharacter::GetTileOffset,
+        "SetPosition", sol::overload(
+          sol::resolve<void(float, float)>(&ScriptedCharacter::SetDrawOffset)
+        ),
+        "GetPosition", &ScriptedCharacter::GetDrawOffset,
         "SetHeight", &ScriptedCharacter::SetHeight,
         "GetAnimation", &ScriptedCharacter::GetAnimationObject,
         "ShakeCamera", &ScriptedCharacter::ShakeCamera,
@@ -392,13 +397,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Field", &ScriptedArtifact::GetField,
         "Slide", &ScriptedArtifact::Slide,
         "Teleport", &ScriptedArtifact::Teleport,
-
-        "SetTexture", & ScriptedArtifact::setTexture,
+        "SetTexture", &ScriptedArtifact::setTexture,
         "SetLayer", &ScriptedArtifact::SetLayer,
-
+        "SetPosition", sol::overload(
+          sol::resolve<void(float, float)>(&ScriptedArtifact::SetDrawOffset)
+        ),
+        "GetPosition", &ScriptedArtifact::GetDrawOffset,
         "SetAnimation", &ScriptedArtifact::SetAnimation,
         "SetPath", &ScriptedArtifact::SetPath,
-        "Flip", & ScriptedArtifact::Flip,
+        "Flip", &ScriptedArtifact::Flip,
         "updateFunc", &ScriptedArtifact::onUpdate
     );
 
@@ -800,7 +807,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "SP", Character::Rank::SP,
         "EX", Character::Rank::EX,
         "Rare1", Character::Rank::Rare1,
-        "Rare2", Character::Rank::Rare2
+        "Rare2", Character::Rank::Rare2,
+        "NM", Character::Rank::NM
     );
 
     const auto& audio_type_record = state.new_enum("AudioType", 

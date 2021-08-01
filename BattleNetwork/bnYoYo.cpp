@@ -48,8 +48,6 @@ void YoYo::OnSpawn(Battle::Tile& start) {
 }
 
 void YoYo::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
-
   // When moving, attack tiles normally
   // When stationary, our anim callbacks are
   // designed to hit exactly 3 times

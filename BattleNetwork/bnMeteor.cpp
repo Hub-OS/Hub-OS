@@ -8,7 +8,7 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-Meteor::Meteor(Team _team, Battle::Tile* target, int damage, float _duration) : 
+Meteor::Meteor(Team _team, int damage, float _duration) : 
   target(target), 
   duration(_duration), 
   Spell(_team) {
@@ -25,10 +25,10 @@ Meteor::Meteor(Team _team, Battle::Tile* target, int damage, float _duration) :
   if(target) {
     // Which direction to come down from
     if (GetTeam() == Team::blue) {
-      start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y - 480.0f);
+      start = sf::Vector2f(480, - 480.0f);
     }
     else if (GetTeam() == Team::red) {
-      start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y - 480.0f);
+      start = sf::Vector2f(0, - 480.0f);
     }
     else {
       Delete();
@@ -56,12 +56,11 @@ void Meteor::OnUpdate(double _elapsed) {
     swoosh::game::setOrigin(getSprite(), 0.0, 1.0);
   }
 
-  double beta = swoosh::ease::linear(progress, duration, 1.0);
+  float beta = swoosh::ease::linear(progress, duration, 1.0);
+  float posX = (beta * 0) + ((1.0f - beta) * start.x);
+  float posY = (beta * 0) + ((1.0f - beta) * start.y);
 
-  double posX = (beta * tile->getPosition().x) + ((1.0f - beta) * start.x);
-  double posY = (beta * tile->getPosition().y) + ((1.0f - beta) * start.y);
-
-  setPosition((float)posX, (float)posY);
+  Entity::drawOffset = { posX, posY };
 
   // When at the end of the arc
   if (beta >= 1.0f) {

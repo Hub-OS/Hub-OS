@@ -62,6 +62,8 @@ void Elecpulse::OnSpawn(Battle::Tile & start)
     auto shared = new SharedHitbox(this);
     field->AddEntity(*shared, *bottom);
   }
+
+  Entity::drawOffset = sf::Vector2f(70.0f * step, -60.0f);
 }
 
 void Elecpulse::OnUpdate(double _elapsed) {
@@ -84,10 +86,6 @@ void Elecpulse::OnUpdate(double _elapsed) {
     forward ? forward->RequestHighlight(flashMode) : (void)0;
     bottom ? bottom->RequestHighlight(flashMode) : (void)0;
   }
-
-  float flip = 1.0;
-
-  setPosition(tile->getPosition()+sf::Vector2f(70.0f*step, -60.0f));
 }
 
 void Elecpulse::OnDelete()

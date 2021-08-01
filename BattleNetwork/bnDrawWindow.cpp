@@ -42,7 +42,7 @@ void DrawWindow::Initialize(DrawWindow::WindowMode mode) {
 void DrawWindow::Draw(Drawable& _drawable, bool applyShaders) {
   if (!HasRenderSurface()) return;
 
-  if (applyShaders) {
+  if (applyShaders && supportShaders) {
     auto stateCopy = state;
 
 #ifdef __ANDROID__
@@ -66,7 +66,7 @@ void DrawWindow::Draw(SpriteProxyNode& _drawable) {
   SpriteProxyNode* context = &_drawable;
   SmartShader* shader = &context->GetShader();
 
-  if (shader && shader->Get()) {
+  if (shader && shader->Get() && supportShaders) {
     shader->ApplyUniforms();
 
     sf::RenderStates newState = state;
@@ -115,7 +115,7 @@ void DrawWindow::Draw(vector<SpriteProxyNode*> _drawable) {
 
     SpriteProxyNode* context = *it;
     SmartShader& shader = context->GetShader();
-    if (shader.Get() != nullptr) {
+    if (shader.Get() != nullptr && supportShaders) {
       shader.ApplyUniforms();
 
       sf::RenderStates newState = state;
@@ -164,6 +164,11 @@ RenderWindow* DrawWindow::GetRenderWindow() const {
   return window;
 }
 
+void DrawWindow::SupportShaders(bool support)
+{
+  this->supportShaders = support;
+}
+
 DrawWindow::DrawWindow()
 {
   Initialize(WindowMode::window);
@@ -178,6 +183,8 @@ const sf::Vector2f DrawWindow::GetViewOffset() {
 }
 
 void DrawWindow::SetShader(sf::Shader* shader) {
+  if (!supportShaders) return;
+
 #ifdef __ANDROID__
   if (shader == nullptr) {
     state.shader = SHADERS.GetShader(ShaderType::DEFAULT);

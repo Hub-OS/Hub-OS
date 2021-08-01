@@ -45,8 +45,7 @@ TwinFang::~TwinFang() {
 
 void TwinFang::OnUpdate(double _elapsed) {
   auto height = 50.0f;
-
-  setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y - height + spreadOffset);
+  Entity::drawOffset.y = - height + spreadOffset;
 
   if (!spreadOut) {
     // quickly spread out before firing across the map
@@ -111,6 +110,9 @@ void TwinFang::OnDelete()
 
 void TwinFang::OnSpawn(Battle::Tile& startTile)
 {
+  auto height = 50.0f;
+  Entity::drawOffset.y = -height + spreadOffset;
+
   if (GetDirection() == Direction::left) {
     setScale(-1.f, 1.0);
   }

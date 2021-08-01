@@ -105,7 +105,7 @@ void ParticleImpact::OnUpdate(double _elapsed) {
   animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 
-  setPosition(GetTile()->getPosition() + tileOffset + randOffset + offset);
+ Entity::drawOffset = randOffset + offset;
 }
 
 void ParticleImpact::OnDelete()

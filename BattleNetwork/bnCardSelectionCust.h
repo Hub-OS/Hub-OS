@@ -72,7 +72,7 @@ private:
   mutable SpriteProxyNode element;
   mutable SpriteProxyNode formSelect;
   mutable SpriteProxyNode formCursor;
-  sf::Shader& greyscale;
+  sf::Shader* greyscale;
   Font labelFont;
   Font codeFont, codeFont2;
   mutable Text smCodeLabel;

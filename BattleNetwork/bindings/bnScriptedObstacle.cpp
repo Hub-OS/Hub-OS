@@ -36,9 +36,6 @@ void ScriptedObstacle::OnCollision(const Character* other)
 }
 
 void ScriptedObstacle::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + Entity::tileOffset.x + ScriptedObstacle::scriptedOffset.x,
-    tile->getPosition().y - this->height + Entity::tileOffset.y + ScriptedObstacle::scriptedOffset.y);
-
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
   ScriptedObstacle& so = *this;
@@ -87,16 +84,6 @@ void ScriptedObstacle::ShowShadow(const bool show)
 Animation& ScriptedObstacle::GetAnimationObject()
 {
   return animComponent->GetAnimationObject();
-}
-
-const sf::Vector2f& ScriptedObstacle::GetTileOffset() const
-{
-  return ScriptedObstacle::scriptedOffset;
-}
-
-void ScriptedObstacle::SetTileOffset(float x, float y)
-{
-  ScriptedObstacle::scriptedOffset = { x, y };
 }
 
 Battle::Tile* ScriptedObstacle::GetCurrentTile() const

@@ -57,9 +57,6 @@ public:
 	 * Specific names are up to the user, recommend "on_update" or some variation for parity with other Lua scripts to avoid confusion.
 	 */
 	std::function<void(ScriptedArtifact&, double)> onUpdate;
-
-	void SetTileOffset(float x, float y);
-	const sf::Vector2f& GetTileOffset() const;
 };
 
 #endif

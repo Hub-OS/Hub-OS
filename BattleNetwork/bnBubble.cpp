@@ -47,8 +47,6 @@ Bubble::~Bubble() {
 }
 
 void Bubble::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
-
   animation.Update(_elapsed*(float)speed, getSprite());
 
   // Keep moving

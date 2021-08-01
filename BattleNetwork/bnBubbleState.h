@@ -70,7 +70,7 @@ void BubbleState<Any>::OnUpdate(double _elapsed, Any& e) {
     progress = bubbleTrap->GetDuration();
 
     sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));
-    e.setPosition(e.getPosition() - offset);
+    e.SetDrawOffset(-offset);
     e.SetAnimation("PLAYER_HIT"); // playing over and over from the start creates a freeze frame effect
   }
 }
@@ -78,6 +78,6 @@ void BubbleState<Any>::OnUpdate(double _elapsed, Any& e) {
 template<typename Any>
 void BubbleState<Any>::OnLeave(Any& e) {
   //std::cout << "left bubblestate" << std::endl;
-
+  e.SetDrawOffset(sf::Vector2f{});
   ResourceHandle().Audio().Play(AudioType::BUBBLE_POP);
 }

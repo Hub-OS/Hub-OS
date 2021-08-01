@@ -36,7 +36,7 @@ const Battle::Tile::Highlight Spell::GetTileHighlightMode() const {
 void Spell::AdoptTile(Battle::Tile * tile)
 {
   if (!IsMoving()) {
-    setPosition(tile->getPosition());
+    setPosition(tile->getPosition() + Entity::drawOffset);
   }
 
   tile->AddEntity(*this);

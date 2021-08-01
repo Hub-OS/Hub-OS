@@ -115,7 +115,6 @@ void Cube::OnUpdate(double _elapsed) {
     Delete();
   }
 
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   timer -= _elapsed;
 }
 

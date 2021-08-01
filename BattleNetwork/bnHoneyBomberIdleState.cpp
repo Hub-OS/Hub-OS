@@ -11,7 +11,6 @@ void HoneyBomberIdleState::OnEnter(HoneyBomber& honey) {
   auto animation = honey.GetFirstComponent<AnimationComponent>();
 
   animation->SetAnimation("IDLE");
-
   animation->SetPlaybackMode(Animator::Mode::Loop);
 }
 

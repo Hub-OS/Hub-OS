@@ -260,7 +260,6 @@ void SelectNaviScene::onUpdate(double elapsed) {
   SelectNaviScene::elapsed = elapsed;
 
   textbox.Update((float)elapsed);
-
   bg->Update((float)elapsed);
 
   SelectedNavi prevSelect = currentChosen;

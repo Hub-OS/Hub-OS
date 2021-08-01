@@ -17,7 +17,6 @@ Wind::Wind(Team _team) : Spell(_team) {
     Element::wind,
     0,
     { GetDirection(), 9 },
-    true
   });
 }
 
@@ -25,8 +24,6 @@ Wind::~Wind() {
 }
 
 void Wind::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition() + tileOffset);
-
   // Wind is active on the opposing team's area
   // Once we enter our team area, we're useless
   bool opposingTeamOnly = deleteOnTeam && Teammate(GetTile()->GetTeam());
@@ -50,8 +47,7 @@ void Wind::OnUpdate(double _elapsed) {
     Hit::drag,
     Element::wind,
     0,
-    { GetDirection(), 9 },
-    true
+    { GetDirection(), 9 }
   });
 }
 

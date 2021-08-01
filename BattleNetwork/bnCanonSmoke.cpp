@@ -24,10 +24,11 @@ CanonSmoke::CanonSmoke(): Artifact()
   animationComponent->SetAnimation("SMOKE", onFinish);
   animationComponent->OnUpdate(0);
 
+  Entity::drawOffset = { 14.0f, -65.0f };
 }
 
 void CanonSmoke::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x + 14.0f, tile->getPosition().y + tileOffset.y - 65.0f);
+
 }
 
 void CanonSmoke::OnDelete()

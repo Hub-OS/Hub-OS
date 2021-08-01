@@ -30,8 +30,6 @@ MetalBlade::~MetalBlade() {
 }
 
 void MetalBlade::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
-
   animation->SetPlaybackSpeed(speed);
 
   // Keep moving. When we reach the end, go up or down the column, and U-turn

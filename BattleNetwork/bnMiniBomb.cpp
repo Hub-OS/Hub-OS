@@ -30,6 +30,7 @@ MiniBomb::MiniBomb(Team _team,sf::Vector2f startPos, float _duration, int damage
   arcProgress = 0;
 
   start = startPos;
+  Entity::drawOffset = start;
 
   swoosh::game::setOrigin(getSprite(), 0.5, 0.5);
   
@@ -42,14 +43,14 @@ MiniBomb::~MiniBomb(void) {
 void MiniBomb::OnUpdate(double _elapsed) {
   arcProgress += _elapsed;
 
-  double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0));
-  double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0));
+  float alpha = (float)swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0);
+  float beta = (float)swoosh::ease::linear(arcProgress, arcDuration, 1.0);
 
-  double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
-  double height = -(alpha * 120.0);
-  double posY = height + (beta * tile->getPosition().y) + ((1.0f - beta)*start.y);
+  float posX = (1.0f - beta)*start.x;
+  float height = -(alpha * 120.0);
+  float posY = height + ((1.0f - beta)*start.y);
 
-  setPosition((float)posX, (float)posY);
+  Entity::drawOffset = { posX, posY };
   setRotation(-static_cast<float>(arcProgress / arcDuration)*90.0f);
 
   // When at the end of the arc

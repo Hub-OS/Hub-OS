@@ -146,8 +146,4 @@ void ProtoManSummon::DropHitboxes(Battle::Tile& tile)
   Audio().Play(AudioType::SWORD_SWING);
 }
 
-void ProtoManSummon::OnUpdate(double _elapsed) {
-  if (tile != nullptr) {
-    setPosition(tile->getPosition());
-  }
-}
+void ProtoManSummon::OnUpdate(double _elapsed) { }

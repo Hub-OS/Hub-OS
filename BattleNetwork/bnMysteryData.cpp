@@ -32,8 +32,6 @@ void MysteryData::OnUpdate(double _elapsed) {
     Delete();
     field->AddEntity(*new Explosion, *GetTile());
   }
-
-  setPosition(tile->getPosition().x, tile->getPosition().y);
 }
 
 void MysteryData::RewardPlayer()

@@ -82,7 +82,6 @@ TomahawkEffect::TomahawkEffect() : Artifact()
 }
 
 void TomahawkEffect::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition());
 }
 
 void TomahawkEffect::OnDelete()

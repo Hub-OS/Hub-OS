@@ -44,15 +44,15 @@ FireBurn::FireBurn(Team _team, Type type, int damage) : damage(damage), Spell(_t
   props.damage = damage;
   props.element = Element::fire;
   SetHitboxProperties(props);
+
+  auto xoffset = 38.0f; // the flames come out a little from the origin
+  Entity::drawOffset = { xoffset, 0.f };
 }
 
 FireBurn::~FireBurn() {
 }
 
 void FireBurn::OnUpdate(double _elapsed) {
-  auto xoffset = 38.0f; // the flames come out a little from the origin
-  setPosition(tile->getPosition().x + xoffset, tile->getPosition().y);
-
   animation.Update(_elapsed, getSprite());
 
   tile->AffectEntities(this);

@@ -53,9 +53,6 @@ void Megalian::OnUpdate(double _elapsed) {
     GetField()->AddEntity(*head, tile->GetX(), tile->GetY());
   }
 
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-  setPosition(getPosition() + tileOffset);
-
   AI<Megalian>::Update(_elapsed);
 }
 

@@ -180,7 +180,7 @@ void AlphaArm::OnUpdate(double _elapsed) {
     }
   }
 
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHeight() - delta);
+  Entity::drawOffset.y = -delta;
 
   shadow->setPosition(-13, -4 + delta / 2.0f); // counter offset the shadow node
 

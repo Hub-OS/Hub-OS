@@ -135,6 +135,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
     Font::specialCharLookup.insert(std::make_pair(char(-1), "THICK_SP"));
     Font::specialCharLookup.insert(std::make_pair(char(-2), "THICK_EX"));
+    Font::specialCharLookup.insert(std::make_pair(char(-3), "THICK_NM"));
   });
 
   inputManager.SupportConfigSettings(reader);
@@ -310,6 +311,20 @@ void Game::LoadConfigSettings()
   }
 }
 
+void Game::UpdateConfigSettings(const ConfigSettings& new_settings)
+{
+  configSettings = new_settings;
+
+  if (configSettings.GetShaderLevel() > 0) {
+    window.SupportShaders(true);
+    ActivityController::optimizeForPerformance(swoosh::quality::realtime);
+  }
+  else {
+    window.SupportShaders(false);
+    ActivityController::optimizeForPerformance(swoosh::quality::mobile);
+  }
+}
+
 void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
   QueuNaviRegistration(); // Queues navis to be loaded later
@@ -334,10 +349,18 @@ void Game::RunGraphicsInit(std::atomic<int> * progress) {
 
   Logger::Logf("Loaded textures: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 
-  begin_time = clock();
-  shaderManager.LoadAllShaders(*progress);
+  if (reader.GetConfigSettings().GetShaderLevel() > 0) {
+    ActivityController::optimizeForPerformance(swoosh::quality::realtime);
+    begin_time = clock();
+    shaderManager.LoadAllShaders(*progress);
 
-  Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+    Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  }
+  else {
+    // todo: swoosh::quality::no_shaders
+    ActivityController::optimizeForPerformance(swoosh::quality::mobile);
+    Logger::Log("Shader support is disabled");
+  }
 }
 
 void Game::RunAudioInit(std::atomic<int> * progress) {

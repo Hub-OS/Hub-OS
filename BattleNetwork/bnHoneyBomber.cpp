@@ -38,6 +38,8 @@ HoneyBomber::HoneyBomber(Rank _rank) :
 
   virusBody = new DefenseVirusBody();
   AddDefenseRule(virusBody);
+
+  Entity::drawOffset = { 0, -GetHeight() };
 }
 
 HoneyBomber::~HoneyBomber() {
@@ -55,9 +57,6 @@ void HoneyBomber::OnDelete() {
 }
 
 void HoneyBomber::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x, tile->getPosition().y - GetHeight());
-  setPosition(getPosition() + tileOffset);
-
   AI<HoneyBomber>::Update(_elapsed);
 }
 

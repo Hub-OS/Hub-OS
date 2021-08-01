@@ -81,7 +81,7 @@ public:
   int Play(std::shared_ptr<sf::SoundBuffer> resource, AudioPriority priority = AudioPriority::low);
 
   int Stream(std::string path, bool loop = false);
-  int Stream(std::string path, bool loop, sf::Music::TimeSpan span);
+  int Stream(std::string path, bool loop, long long startMs, long long endMs);
   void StopStream();
   void SetStreamVolume(float volume);
   void SetChannelVolume(float volume);

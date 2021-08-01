@@ -43,30 +43,25 @@ void RockDebris::OnUpdate(double _elapsed) {
 
   // Alpha is a path along a parabola 
   // This represents an object going up and then coming back down
-  double alpha = swoosh::ease::wideParabola(progress, duration, 1.0);
+  float alpha = swoosh::ease::wideParabola(progress, duration, 1.0);
   
   // Beta is a path along a line
   // This represents the horizontal distance away from the origin
-  double beta = swoosh::ease::linear(progress, duration, 1.0);
+  float beta = swoosh::ease::linear(progress, duration, 1.0);
  
   // Interpolate the position 
-  double posX = (beta * (GetTile()->getPosition().x-(10.0*intensity))) + ((1.0 - beta)*GetTile()->getPosition().x);
+  float posX = (beta * (-(10.0*intensity)));
   
   // If intensity is 1.0, the peak will be -60.0 and the bottom will be 0
-  double height = -(alpha * 60.0 * intensity);
-  double posY = height + (beta * GetTile()->getPosition().y) + ((1.0f - beta)*GetTile()->getPosition().y);
-
-  // Set the position of the left debris
-  if (type == RockDebris::Type::LEFT || type == RockDebris::Type::LEFT_ICE) {
-    setPosition((float)posX, (float)posY);
-  }
-
-  // Same as before but in the opposite direction for right pieces
-  posX = (beta * (GetTile()->getPosition().x + (10.0*intensity))) + ((1.0 - beta)*GetTile()->getPosition().x);
+  float height = -(alpha * 60.0 * intensity);
+  float posY = height;
 
   if (type == RockDebris::Type::RIGHT || type == RockDebris::Type::RIGHT_ICE) {
-    setPosition((float)posX, (float)posY);
+    // Same as before but in the opposite direction for right pieces
+    posX = (beta * (10.0 * intensity));
   }
+
+  Entity::drawOffset = { posX, posY };
 
   if (progress >= duration) {
       Delete();

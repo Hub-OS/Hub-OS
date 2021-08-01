@@ -23,6 +23,11 @@ const int ConfigSettings::GetMusicLevel() const { return musicLevel; }
 
 const int ConfigSettings::GetSFXLevel() const { return sfxLevel; }
 
+const int ConfigSettings::GetShaderLevel() const
+{
+  return shaderLevel;
+}
+
 const bool ConfigSettings::TestKeyboard() const {
   static auto exclusiveEvents = std::vector{
     InputEvents::pressed_ui_up,
@@ -55,6 +60,11 @@ const bool ConfigSettings::TestKeyboard() const {
 void ConfigSettings::SetMusicLevel(int level) { musicLevel = level; }
 
 void ConfigSettings::SetSFXLevel(int level) { sfxLevel = level; }
+
+void ConfigSettings::SetShaderLevel(int level)
+{
+  shaderLevel = level;
+}
 
 int ConfigSettings::GetGamepadIndex() const { return gamepadIndex; }
 
@@ -131,6 +141,7 @@ ConfigSettings& ConfigSettings::operator=(const ConfigSettings& rhs)
   invertThumbstick = rhs.invertThumbstick;
   musicLevel = rhs.musicLevel;
   sfxLevel = rhs.sfxLevel;
+  shaderLevel = rhs.shaderLevel;
   isOK = rhs.isOK;
   keyboard = rhs.keyboard;
   fullscreen = rhs.fullscreen;

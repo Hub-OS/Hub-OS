@@ -122,11 +122,11 @@ private:
 
   // shader fx
   double shaderCooldown;
-  sf::Shader& whiteShader; /*!< Fade out white */
-  sf::Shader& yellowShader; /*!< Turn tiles yellow */
-  sf::Shader& heatShader; /*!< Heat waves and red hue */
-  sf::Shader& iceShader; /*!< Reflection in the ice */
-  sf::Shader& backdropShader;
+  sf::Shader* whiteShader; /*!< Fade out white */
+  sf::Shader* yellowShader; /*!< Turn tiles yellow */
+  sf::Shader* heatShader; /*!< Heat waves and red hue */
+  sf::Shader* iceShader; /*!< Reflection in the ice */
+  sf::Shader* backdropShader;
   sf::Vector2u textureSize; /*!< Size of distorton effect */
 
   // backdrop status enum

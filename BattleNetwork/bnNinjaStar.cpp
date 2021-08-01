@@ -23,11 +23,11 @@ NinjaStar::NinjaStar(Team _team, float _duration) : duration(_duration), Spell(_
 
   // Blue team starts from the right side of the screen
   if (GetTeam() == Team::blue) {
-    start = sf::Vector2f(480.0f, 0.0f);
+    start = sf::Vector2f(480.0f, -480.0f);
   }
   // Red ream starts from the left side of the screen
   else if (GetTeam() == Team::red) {
-    start = sf::Vector2f(0.0f, 0.0f);
+    start = sf::Vector2f(0.0f, -480.0f);
   }
   // Otherwise, unsupported
   else {
@@ -48,13 +48,13 @@ NinjaStar::~NinjaStar() {
 }
 
 void NinjaStar::OnUpdate(double _elapsed) {
-  double beta = swoosh::ease::linear(progress, duration, 1.0);
+  float beta = swoosh::ease::linear(progress, duration, 1.0);
 
   // interpolate from top of screen to the target tile spot
-  double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
-  double posY = (beta * tile->getPosition().y) + ((1.0f - beta)*start.y);
+  float posX = (1.0f - beta)*start.x;
+  float posY = (1.0f - beta)*start.y;
 
-  setPosition((float)posX, (float)posY);
+  Entity::drawOffset = { posX, posY };
 
   // When at the end of the line
   if (progress >= duration) {

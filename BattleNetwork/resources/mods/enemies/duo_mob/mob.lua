@@ -23,7 +23,7 @@ function build(mob)
     local texPath = _modpath.."background.png"
     local animPath = _modpath.."background.animation"
     mob:SetBackground(texPath, animPath, -1.4, 0.0)
-    mob:StreamMusic(_modpath.."music.ogg")
+    mob:StreamMusic(_modpath.."music.ogg", 6579, 76000)
 
     for i=1,3 do
         mob:Field():TileAt(5, i):SetState(TileState.Hidden)

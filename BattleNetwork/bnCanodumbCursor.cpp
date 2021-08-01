@@ -54,8 +54,6 @@ CanodumbCursor::CanodumbCursor(CanodumbIdleState* _parentState) :
 }
 
 void CanodumbCursor::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-
   movecooldown -= _elapsed;
   elapsedTime += _elapsed;
 

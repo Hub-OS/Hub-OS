@@ -33,7 +33,7 @@ MobMoveEffect::MobMoveEffect() :
 }
 
 void MobMoveEffect::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition() + offset);
+  Entity::drawOffset = offset;
 
   animation.Update(_elapsed, getSprite());
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "bnCard.h"
 
 #define MAKE_ID(name, code, uuid) static const std::string name ##_ ##code = #uuid
 #define DECLARE_ID_LIST(...) const std::initializer_list<std::string> AsList { __VA_ARGS__ };
@@ -18,13 +19,13 @@ namespace BuiltInCards {
     MAKE_ID(ElecPulse, B, 5e0247641cd1b708dd08d7be);
     MAKE_ID(ElecPulse, WILD, 5e0247641cd1b708dd08d7c0);
     MAKE_ID(Tornado, T, 5e0247b11cd1b708dd08d7c2);
-    MAKE_ID(Recov3000, WILD, 5e126ef61cd1b708dd08d7f4);
+    MAKE_ID(Recov300, WILD, 5e126ef61cd1b708dd08d7f4);
     MAKE_ID(Protoman, B, 5e024bc61cd1b708dd08d7e5);
 
     DECLARE_ID_LIST(
       Cannon_A, Cannon_WILD, Reflect_A, Invis_WILD,
       YoYo_L, YoYo_M, ElecPulse_B, ElecPulse_WILD,
-      Tornado_T, Recov3000_WILD, Protoman_B
+      Tornado_T, Recov300_WILD, Protoman_B
     );
 }
 

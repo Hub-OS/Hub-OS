@@ -98,6 +98,7 @@ public:
     EX,
     Rare1,
     Rare2,
+    NM,
     SIZE
   };
 

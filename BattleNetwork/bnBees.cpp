@@ -147,7 +147,7 @@ void Bees::OnUpdate(double _elapsed) {
     }
   }
 
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHeight());
+  Entity::drawOffset.y = -GetHeight();
 
   animation.Update(_elapsed, getSprite());
 

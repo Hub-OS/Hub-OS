@@ -21,16 +21,15 @@ Fishy::Fishy(Team _team, double speed) : Obstacle(team) {
   props.damage = 80;
   props.flags |= Hit::flinch | Hit::flash;
   SetHitboxProperties(props);
-
   SetFloatShoe(true);
+
+  Entity::drawOffset = { -40.0f, -120.0f };
 }
 
 Fishy::~Fishy() {
 }
 
 void Fishy::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x - 40.0f, tile->getPosition().y + tileOffset.y - 120.0f);
-
   if (GetTile()->GetX() == 6) {
     Delete();
   }

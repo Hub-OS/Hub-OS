@@ -32,10 +32,7 @@ ParticleHeal::ParticleHeal() : Artifact()
 }
 
 void ParticleHeal::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition());
-
   animation.Update(_elapsed, getSprite());
-  Entity::Update(_elapsed);
 }
 
 void ParticleHeal::OnDelete()

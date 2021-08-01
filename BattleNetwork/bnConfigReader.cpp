@@ -198,10 +198,15 @@ bool ConfigReader::ParseNetProperty(std::string_view line) {
 
 bool ConfigReader::ParseVideoProperty(std::string_view line) {
   auto key = ResolveKey(line);
-  auto value = ResolveValue(line);
+  auto value = std::string(ResolveValue(line));
 
   if (key == "Fullscreen") {
     settings.fullscreen = value == "1" ? true : false;
+    return true;
+  }
+
+  if (key == "Shader") {
+    settings.shaderLevel = std::atoi(value.c_str());
     return true;
   }
 
@@ -277,7 +282,9 @@ bool ConfigReader::ParseGamepadProperty(std::string_view line) {
   return true;
 }
 
-ConfigReader::ConfigReader(const std::string& filepath) {
+ConfigReader::ConfigReader(const std::string& filepath):
+  filepath(filepath)
+{
   settings.isOK = Parse(FileUtil::Read(filepath));
 
   // We need SOME values
@@ -296,4 +303,9 @@ ConfigReader::~ConfigReader() { ; }
 ConfigSettings ConfigReader::GetConfigSettings()
 {
   return settings;
+}
+
+const std::string ConfigReader::GetPath() const
+{
+  return filepath;
 }

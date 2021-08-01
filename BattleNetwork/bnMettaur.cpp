@@ -73,9 +73,6 @@ void Mettaur::OnDelete() {
 }
 
 void Mettaur::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-  setPosition(getPosition() + tileOffset);
-
   AI<Mettaur>::Update(_elapsed);
 }
 

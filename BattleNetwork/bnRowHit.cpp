@@ -35,7 +35,7 @@ RowHit::~RowHit() {
 }
 
 void RowHit::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
+  Entity::drawOffset.y = -20.0f;
 
   animation.Update(_elapsed, getSprite());
 

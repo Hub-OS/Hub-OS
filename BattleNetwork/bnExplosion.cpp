@@ -105,10 +105,8 @@ void Explosion::OnUpdate(double _elapsed) {
 
   // The first explosion spawns inside of the entity 
   // all other explosions use the offset to explode around the entity
-  if(numOfExplosions != 1) {
-    setPosition((GetTile()->getPosition().x + offset.x), (GetTile()->getPosition().y + offset.y));
-  } else {
-    setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
+  if (numOfExplosions != 1) {
+    Entity::drawOffset += {offset.x, offset.y};
   }
 }
 

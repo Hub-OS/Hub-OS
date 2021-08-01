@@ -63,8 +63,6 @@ void Wave::OnUpdate(double _elapsed) {
   setScale(2.f*(float)lr, 2.f);
 
   auto tile = GetTile();
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-
   tile->AffectEntities(this);
 
   if (tile->IsWalkable()) {

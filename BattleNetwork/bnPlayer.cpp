@@ -83,10 +83,6 @@ Player::~Player() {
 }
 
 void Player::OnUpdate(double _elapsed) {
-  if (GetTile() != nullptr) {
-    setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
-  }
-
   if (emotion == Emotion::angry) {
     setColor(sf::Color(155, 0, 0, getColor().a));
     SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
@@ -397,12 +393,13 @@ void Player::CreateMoveAnimHash()
 {
   const auto i4_frames = frames(4);
   const auto i4_seconds = seconds_cast<float>(i4_frames);
+  const auto i5_seconds = seconds_cast<float>(frames(5));
   const auto i1_seconds = seconds_cast<float>(frames(1));
 
-  this->moveStartupDelay = i4_frames;
-  this->moveEndlagDelay = i4_frames;
+  this->moveStartupDelay = frames(6);
+  this->moveEndlagDelay = frames(7);
   auto frame_data = std::initializer_list<OverrideFrame>{
-    { 1, i4_seconds },
+    { 1, i5_seconds },
     { 2, i1_seconds },
     { 3, i1_seconds },
     { 4, i1_seconds },

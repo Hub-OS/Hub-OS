@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "bnSpell.h"
 
-DefenseNodrag::DefenseNodrag() : DefenseRule(Priority(1), DefenseOrder::always)
+DefenseNodrag::DefenseNodrag() : DefenseRule(Priority(2), DefenseOrder::always)
 {
 }
 

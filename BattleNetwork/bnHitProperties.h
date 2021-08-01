@@ -22,7 +22,8 @@ namespace Hit {
   const Flags impact = 0x0100;
   const Flags drag = 0x0200;
   const Flags bubble = 0x0400;
-  // 0x0800 - 0x8000 remaining = 5 remaining
+  const Flags no_counter = 0x0800;
+  // 0x1000 - 0x8000 remaining = 4 remaining
 
 
   struct Drag {
@@ -42,7 +43,6 @@ namespace Hit {
     Element element{ Element::none };
     Entity::ID_t aggressor{};
     Drag drag{ }; // Used by Hit::drag flag
-    bool counters{ true };
   };
 
   const constexpr Hit::Properties DefaultProperties = { 

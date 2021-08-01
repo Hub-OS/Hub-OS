@@ -25,10 +25,7 @@ ProgBomb::ProgBomb(Team _team, sf::Vector2f startPos, float _duration) : Spell(_
 
   arcDuration = _duration;
   arcProgress = 0;
-
-  start = startPos;
   
-
   setOrigin(sf::Vector2f(19, 24) / 2.f);
   Audio().Play(AudioType::TOSS_ITEM);
 
@@ -38,17 +35,22 @@ ProgBomb::ProgBomb(Team _team, sf::Vector2f startPos, float _duration) : Spell(_
 ProgBomb::~ProgBomb(void) {
 }
 
+void ProgBomb::OnSpawn(Battle::Tile& tile)
+{
+  start = tile.getPosition() - start;
+}
+
 void ProgBomb::OnUpdate(double _elapsed) {
   arcProgress += _elapsed;
 
-  double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0));
-  double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0));
+  float alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0));
+  float beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0));
 
-  double posX = (beta * tile->getPosition().x) + ((1.0 - beta)*start.x);
-  double height = -(alpha * 120.0);
-  double posY = height + (beta * tile->getPosition().y) + ((1.0 - beta)*start.y);
+  float posX = (1.0 - beta)*start.x;
+  float height = -(alpha * 120.0);
+  float posY = height  + ((1.0 - beta)*start.y);
 
-  setPosition(static_cast<float>(posX), static_cast<float>(posY));
+  Entity::drawOffset = { posX, posY };
   setRotation(-static_cast<float>(arcProgress / arcDuration)*90.0f);
   Reveal();
 

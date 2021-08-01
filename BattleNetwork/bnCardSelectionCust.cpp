@@ -107,7 +107,7 @@ void CardSelectionCust::SetSelectedFormIndex(int index)
 
 CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
   props(props),
-  greyscale(*Shaders().GetShader(ShaderType::GREYSCALE)),
+  greyscale(Shaders().GetShader(ShaderType::GREYSCALE)),
   textbox({ 4, 255 }),
   isInView(false),
   isInFormSelect(false),
@@ -400,6 +400,19 @@ bool CardSelectionCust::CursorCancel() {
     return true;
   }
 
+  if (newSelectCount == 0) {
+    newHand = false;
+    if (lockedInFormIndex != GetSelectedFormIndex()) {
+      currentFormItem.setTexture(*previousFormItem.getTexture());
+      SetSelectedFormIndex(previousFormIndex);
+      selectedFormRow = -1;
+
+      // This is also where beastout card would be removed from queue
+      // when beastout is available
+      return true;
+    }
+  }
+
   // Unqueue all cards buckets
   if (newSelectCount > 0) {
     newSelectQueue[--newSelectCount]->state = Bucket::state::staged;
@@ -408,7 +421,6 @@ bool CardSelectionCust::CursorCancel() {
     newSelectCount = 0;
   }
   
-
   // Everything is selectable again
   for (int i = 0; i < cardCount; i++) {
     queue[i].state = Bucket::state::staged;
@@ -416,20 +428,6 @@ bool CardSelectionCust::CursorCancel() {
 
   for (int i = 0; i < newSelectCount; i++) {
     newSelectQueue[i]->state = Bucket::state::queued;
-  }
-
-  if (newSelectCount == 0) {
-    newHand = false;
-    if (lockedInFormIndex != GetSelectedFormIndex()) {
-        currentFormItem.setTexture(*previousFormItem.getTexture());
-        SetSelectedFormIndex(previousFormIndex);
-        selectedFormRow = -1;
-    }
-    // This is also where beastout card would be removed from queue
-    // when beastout is available
-
-    emblem.UndoWireEffect();
-    return true;
   }
 
   /*
@@ -589,6 +587,7 @@ bool CardSelectionCust::TextBoxConfirmQuestion() {
 }
 
 void CardSelectionCust::GetNextCards() {
+  emblem.Reset();
 
   bool selectFirstDarkCard = true;
 
@@ -715,9 +714,9 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     icon.SetShader(nullptr);
 
     if (queue[i].state == Bucket::state::voided) {
-      icon.SetShader(&greyscale);
+      icon.SetShader(greyscale);
       auto statesCopy = states;
-        statesCopy.shader = &greyscale;
+      statesCopy.shader = greyscale;
 
       target.draw(icon,statesCopy);
 
@@ -754,10 +753,10 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       cardCard.SetShader(nullptr);
 
       if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::voided) {
-        cardCard.SetShader(&greyscale);
+        cardCard.SetShader(greyscale);
 
         auto statesCopy = states;
-        statesCopy.shader = &greyscale;
+        statesCopy.shader = greyscale;
 
         target.draw(cardCard, statesCopy);
 

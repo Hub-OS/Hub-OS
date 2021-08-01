@@ -88,8 +88,6 @@ void Gear::OnUpdate(double _elapsed) {
     tileStartTeam = tile->GetTeam();
   }
 
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
-
   if (stopMoving) return;
 
   // May have just finished moving

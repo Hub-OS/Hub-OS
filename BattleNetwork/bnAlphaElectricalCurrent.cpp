@@ -89,7 +89,7 @@ void AlphaElectricCurrent::OnUpdate(double _elapsed)
 {
   // In order to lay ontop of alpha's layer, we keep the spell on top of his position
   // but offset the sprite to be 2 tiles to the left...
-  setPosition(tile->getPosition().x + tileOffset.x - (tile->GetWidth()*2.0f), tile->getPosition().y + tileOffset.y - GetHeight());
+  Entity::drawOffset = { -(tile->GetWidth() * 2.0f), -GetHeight() };
 }
 
 void AlphaElectricCurrent::Attack(Character * _entity)

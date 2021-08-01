@@ -39,6 +39,8 @@
  }
 
   void SmartShader::ApplyUniforms() {
+    if (!ref) return;
+
     iiter iIter = iuniforms.begin();
     fiter fIter = funiforms.begin();
     vfiter vfIter = vfuniforms.begin();

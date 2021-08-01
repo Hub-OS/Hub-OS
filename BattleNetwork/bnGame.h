@@ -106,6 +106,7 @@ public:
   const sf::Vector2f CameraViewOffset(Camera& camera);
   unsigned FrameNumber() const;
   const Endianness GetEndianness();
+  void UpdateConfigSettings(const ConfigSettings& new_settings);
 
   /**
    * @brief Store parsed command line values into the engine for easy access

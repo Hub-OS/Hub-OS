@@ -31,7 +31,6 @@ Thunder::~Thunder() {
 }
 
 void Thunder::OnUpdate(double _elapsed) {
-
   if (elapsed > timeout.asSeconds()) {
     Delete();
   }
@@ -40,7 +39,7 @@ void Thunder::OnUpdate(double _elapsed) {
   
   // The origin is the center of the sprite. Raise thunder upwards 15 pixels 
   // (keep in mind scale is 2, e.g. 15 * 2 = 30)
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 30.0f);
+  Entity::drawOffset.y = -30.0f;
 
   animation.Update(_elapsed, getSprite());
 

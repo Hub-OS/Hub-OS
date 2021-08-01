@@ -38,6 +38,8 @@ GuardHit::GuardHit(Character* hit, bool center)
     h = (float)(std::floor(hit->GetHeight()/2.0f));
   }
 
+  Entity::drawOffset = { w, -h };
+
   setTexture(Textures().GetTexture(TextureType::SPELL_GUARD_HIT));
   setScale(2.f, 2.f);
 
@@ -54,7 +56,7 @@ GuardHit::GuardHit(Character* hit, bool center)
 }
 
 void GuardHit::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x + w, (tile->getPosition().y + tileOffset.y) - h);
+
 }
 
 void GuardHit::OnDelete()

@@ -51,6 +51,7 @@ public:
 
 private:
   size_t spawnIndex{}; /*!< Current character to spawn in the spawn loop*/
+  long long startMs{-1}, endMs{-1};
   bool nextReady{ true }; /*!< Signal if mob is ready to spawn the next character */
   bool isBoss{ false }; /*!< Flag to change rank and music */
   std::string music; /*!< Override with custom music */
@@ -161,7 +162,7 @@ public:
    * @brief The battle scene will load this custom music
    * @param path path relative to the app 
    */
-  void StreamCustomMusic(const std::string& path);
+  void StreamCustomMusic(const std::string& path, long long startMs = -1LL, long long endMs = -1LL);
 
   /**
    * @brief Checks if custom music path was set
@@ -174,6 +175,12 @@ public:
    * @return const std::string
    */
   const std::string GetCustomMusicPath() const;
+
+  /**
+  * @brief Gets the music loop points
+  * @return const std::array<long long, 2>. the loop start and end points in milliseconds
+  */
+  const std::array<long long, 2> GetLoopPoints() const;
 
   /**
    * @brief Gets the mob at spawn index
@@ -356,6 +363,8 @@ public:
     case ClassType::Rank::EX:
       data->character->SetName(data->character->GetName() + char(-2));
       break;
+    case ClassType::Rank::NM:
+      data->character->SetName(data->character->GetName() + char(-3));
     } 
 
     // Add the mob spawn data to our list of enemies to spawn

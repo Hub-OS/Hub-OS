@@ -26,10 +26,10 @@ Missile::Missile(Team _team,Battle::Tile* target, float _duration) : duration(_d
 
     // Which direction to come down from
     if (GetTeam() == Team::blue) {
-        start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y -480.0f);
+        start = sf::Vector2f(480, -480.0f);
     }
     else if (GetTeam() == Team::red) {
-        start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y -480.0f);
+        start = sf::Vector2f(0, -480.0f);
     }
     else {
         Delete();
@@ -43,6 +43,7 @@ Missile::Missile(Team _team,Battle::Tile* target, float _duration) : duration(_d
     SetHitboxProperties(props);
 
     anim->OnUpdate(0);
+    Entity::drawOffset = { 0, -480.0f };
 }
 
 Missile::~Missile() {
@@ -53,12 +54,12 @@ void Missile::OnUpdate(double _elapsed) {
 
     if(!goingUp) {
         if(progress > 1.0f) {
-            double beta = swoosh::ease::linear(progress-1.0f, duration, 1.0);
+            float beta = swoosh::ease::linear(progress-1.00, duration, 1.0);
 
-            double posX = (beta * tile->getPosition().x) + ((1.0f - beta) * start.x);
-            double posY = (beta * tile->getPosition().y) + ((1.0f - beta) * start.y);
+            float posX = (1.0f - beta) * start.x;
+            float posY = (1.0f - beta) * start.y;
 
-            setPosition((float) posX, (float) posY);
+            Entity::drawOffset = { posX, posY };
 
             // When at the end of the arc
             if (beta >= 1.0f) {
@@ -80,13 +81,12 @@ void Missile::OnUpdate(double _elapsed) {
     } else {
         HighlightTile(Battle::Tile::Highlight::none);
 
-        double beta = swoosh::ease::linear(progress, duration, 1.0);
+        float beta = swoosh::ease::linear(progress, duration, 1.0);
 
-        double posX = tile->getPosition().x + 16.0f;
+        float posX = 16.0f;
+        float posY = (beta * (-480.0f)) + ((1.0f - beta) * (-128));
 
-        double posY = (beta * (-128.0f)) + ((1.0f - beta) * (tile->getPosition().y - 128.0f));
-
-        setPosition((float) posX, (float) posY);
+        Entity::drawOffset = { posX, posY };
 
         // When at the end of the arc
         if (progress >= duration * 5) {
@@ -95,14 +95,12 @@ void Missile::OnUpdate(double _elapsed) {
             progress = 0;
             anim->SetAnimation("MISSILE_DOWN", Animator::Mode::Loop);
 
+            Entity::drawOffset = { 0, -480.f };
+
             if(GetTile() != target) {
-                auto pos = getPosition();
                 tile->RemoveEntityByID(GetID());
                 AdoptTile(target);
-                setPosition(pos);
             }
-
-            setPosition(start.x, start.y);
         }
 
         progress += _elapsed;

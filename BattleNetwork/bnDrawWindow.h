@@ -94,6 +94,8 @@ public:
    */
   RenderWindow* GetRenderWindow() const;
 
+  void SupportShaders(bool support);
+
   /**
    * @brief Sets a post processing effect to be used on the screen
    * @param _shader
@@ -166,6 +168,7 @@ public:
   // TODO: make this private again
   const sf::Vector2f GetViewOffset(); // for drawing 
 private:
+  bool supportShaders{ true };
   RenderWindow* window{ nullptr }; /*!< Window created when app launches */
   sf::View view; /*!< Default view created when window launches */
   sf::View original; /*!< Default view created when window launches */

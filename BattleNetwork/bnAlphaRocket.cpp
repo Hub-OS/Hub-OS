@@ -36,8 +36,6 @@ AlphaRocket::~AlphaRocket() {
 }
 
 void AlphaRocket::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
-
   if (GetDirection() == Direction::left) {
     setScale(2.f, 2.f);
   }

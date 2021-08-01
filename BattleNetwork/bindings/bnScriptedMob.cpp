@@ -149,8 +149,8 @@ void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::str
   mob->SetBackground(background);
 }
 
-void ScriptedMob::StreamMusic(const std::string& path)
+void ScriptedMob::StreamMusic(const std::string& path, long long startMs, long long endMs)
 {
-  mob->StreamCustomMusic(path);
+  mob->StreamCustomMusic(path, startMs, endMs);
 }
 #endif

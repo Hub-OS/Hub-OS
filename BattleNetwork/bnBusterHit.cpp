@@ -35,7 +35,6 @@ BusterHit::BusterHit(Type type) : Artifact()
 }
 
 void BusterHit::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition() + offset);
 }
 
 void BusterHit::OnDelete()
@@ -50,4 +49,5 @@ BusterHit::~BusterHit()
 void BusterHit::SetOffset(const sf::Vector2f offset)
 {
   this->offset = { offset.x, offset.y };
+  Entity::drawOffset = this->offset;
 }

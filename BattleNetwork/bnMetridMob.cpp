@@ -25,7 +25,7 @@ Mob* MetridMob::Build() {
   Mob* mob = new Mob(field);
 
   mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::ElecPulse_B)));
-  mob->RegisterRankedReward(5, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Recov3000_WILD)));
+  mob->RegisterRankedReward(5, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Recov300_WILD)));
 
   if (mobType == 0) {
 

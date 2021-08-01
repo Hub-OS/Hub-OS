@@ -74,7 +74,6 @@ void AirHockey::OnUpdate(double _elapsed)
   }
 
   HighlightTile(Battle::Tile::Highlight::solid);
-  setPosition(tileOffset + GetTile()->getPosition());
 }
 
 void AirHockey::Attack(Character* _entity)

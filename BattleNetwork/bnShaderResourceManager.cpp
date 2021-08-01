@@ -61,7 +61,10 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
 
 sf::Shader* ShaderResourceManager::GetShader(ShaderType _stype) {
   std::scoped_lock lock(mutex);
-  return shaders.at(_stype);
+  
+  if (shaders.size()) {
+    return shaders.at(_stype);
+  }
 }
 
 ShaderResourceManager::ShaderResourceManager() {

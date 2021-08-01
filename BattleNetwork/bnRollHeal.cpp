@@ -112,11 +112,7 @@ RollHeal::RollHeal(Team team, Character* user, int _heal) :
 RollHeal::~RollHeal() {
 }
 
-void RollHeal::OnUpdate(double _elapsed) {
-  if (tile != nullptr) {
-    setPosition(tile->getPosition());
-  }
-}
+void RollHeal::OnUpdate(double _elapsed) { }
 
 void RollHeal::Attack(Character* _entity) {
     // Old code went here

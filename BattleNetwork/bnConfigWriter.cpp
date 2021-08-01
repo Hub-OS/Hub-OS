@@ -26,6 +26,7 @@ void ConfigWriter::Write(std::string path)
   w << "Password=" << quote(settings.GetWebServerInfo().password) << w.endl();
   w << "[Video]" << w.endl();
   w << "Fullscreen=" << quote("0") << w.endl();
+  w << "Shader=" << quote(std::to_string(settings.GetShaderLevel())) << w.endl();
   w << "[General]" << w.endl();
   w << "Invert Minimap=" << quote(std::to_string(settings.GetInvertMinimap())) << w.endl();
   w << "[Keyboard]" << w.endl();

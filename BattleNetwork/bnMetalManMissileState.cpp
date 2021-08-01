@@ -30,11 +30,6 @@ void MetalManMissileState::OnEnter(MetalMan& metal) {
 }
 
 void MetalManMissileState::OnUpdate(double _elapsed, MetalMan& metal) {
-  //if (metal.GetHealth() > metal.GetMaxHealth() / 2) {
-  //  metal.GoToNextState();
-  //  return;
-  //}
-
   cooldown -= _elapsed;
 
   if(lastMissileTimestamp - cooldown > 0.4f) {

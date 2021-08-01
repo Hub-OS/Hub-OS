@@ -35,10 +35,7 @@ RingExplosion::RingExplosion() :
 }
 
 void RingExplosion::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition());
-
   animation.Update(_elapsed, getSprite());
-  Entity::Update(_elapsed);
 }
 
 void RingExplosion::OnDelete()

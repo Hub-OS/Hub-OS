@@ -225,7 +225,6 @@ void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
 }
 
 void NetworkBattleScene::onUpdate(double elapsed) {
-  
   if (!IsSceneInFocus()) {
     if (IsQuitting()) {
       // net play packet processor is shared with other scenes

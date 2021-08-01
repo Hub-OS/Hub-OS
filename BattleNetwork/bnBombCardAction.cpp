@@ -31,20 +31,26 @@ void BombCardAction::OnExecute(Character* user) {
   auto onThrow = [=]() -> void {
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
 
-    auto team = user->GetTeam();
-    auto duration = 0.5f; // seconds
-    MiniBomb* b = new MiniBomb(team, user->getPosition() + attachment->getPosition(), duration, damage);
-    auto props = b->GetHitboxProperties();
-    props.aggressor = user->GetID();
-    b->SetHitboxProperties(props);
-
     int step = 3;
 
+    Direction dir = Direction::right;
+    auto team = user->GetTeam();
     if (team == Team::blue) {
       step = -3;
+      dir = Direction::left;
     }
 
-    user->GetField()->AddEntity(*b, user->GetTile()->GetX() + step, user->GetTile()->GetY());
+    auto duration = 0.5f; // seconds
+    
+    if (auto target = user->GetTile(dir, step)) {
+      auto offset = (user->GetTile()->getPosition() + attachment->getPosition()) - target->getPosition();
+      MiniBomb* b = new MiniBomb(team, offset, duration, damage);
+      auto props = b->GetHitboxProperties();
+      props.aggressor = user->GetID();
+      b->SetHitboxProperties(props);
+
+      user->GetField()->AddEntity(*b, *target);
+    }
   };
 
 

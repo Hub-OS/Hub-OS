@@ -30,7 +30,7 @@ void ElementalDamage::OnUpdate(double _elapsed) {
   }
 
   setScale(2.f*alpha, 2.f*alpha);
-  setPosition((GetTile()->getPosition().x - 30.0f), (GetTile()->getPosition().y - 30.0f));
+  Entity::drawOffset = {-30.0f, -30.0f };
 }
 
 void ElementalDamage::OnDelete()

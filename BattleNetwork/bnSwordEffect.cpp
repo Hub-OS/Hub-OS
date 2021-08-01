@@ -34,7 +34,6 @@ SwordEffect::SwordEffect() : Artifact()
 }
 
 void SwordEffect::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition());
 }
 
 void SwordEffect::OnDelete()

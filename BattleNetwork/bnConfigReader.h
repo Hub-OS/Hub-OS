@@ -62,6 +62,7 @@ private:
   };
 
   ConfigSettings settings;
+  std::string filepath;
 
   /**
    * @brief Aux function. Trim leading and trailing whitespaces
@@ -180,4 +181,5 @@ public:
   ~ConfigReader();
 
   ConfigSettings GetConfigSettings();
+  const std::string GetPath() const;
 };

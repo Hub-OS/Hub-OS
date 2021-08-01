@@ -207,7 +207,6 @@ void AlphaCore::OnUpdate(double _elapsed) {
 
   prevCoreHP = coreHP;
 
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   hitHeight = getLocalBounds().height;
 
   animation.SetAnimation("ACID");

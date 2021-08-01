@@ -22,7 +22,6 @@ class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, 
   sol::state& script;
   float height{};
   AnimationComponent* animation{ nullptr };
-  sf::Vector2f scriptedOffset{};
 public:
   using DefaultState = ScriptedCharacterState;
 
@@ -37,8 +36,6 @@ public:
   void SetHeight(const float height);
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile * next) override;
-  const sf::Vector2f& GetTileOffset() const;
-  void SetTileOffset(float x, float y);
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 
   // duration in seconds

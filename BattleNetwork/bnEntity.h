@@ -81,7 +81,7 @@ private:
   int alpha{ 255 }; /*!< Control the transparency of an entity. */
   Component::ID_t lastComponentID{}; /*!< Entities keep track of new components to run through scene injection later. */
   bool hasSpawned{ false }; /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
-  float height{0}; /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
+  float height{}; /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
   bool isUpdating{ false }; /*!< If an entity has updated once this frame, skip some update routines */
   EventBus::Channel channel; /*!< Our event bus channel to emit events */
   MoveEvent currMoveEvent{};
@@ -206,6 +206,9 @@ public:
    */
   Battle::Tile* GetCurrentTile() const;
   const sf::Vector2f GetTileOffset() const;
+  void SetDrawOffset(const sf::Vector2f& offset);
+  void SetDrawOffset(float x, float y);
+  const sf::Vector2f GetDrawOffset() const;
 
   /**
    * @brief Checks if entity is moving
@@ -449,10 +452,11 @@ public:
   virtual void SetHeight(const float height);
 
 protected:
-  Battle::Tile* tile{ nullptr }; /**< Current tile pointer */
-  Battle::Tile* previous{ nullptr }; /**< Entities retain a previous pointer in case they need to be moved back */
-  sf::Vector2f tileOffset{ 0,0 }; /**< complete motion is captured by `tile_pos + tileOffset`*/
-  sf::Vector2f moveStartPosition{ 0,0 }; /**< Used internally when moving*/
+  Battle::Tile* tile{ nullptr }; /*!< Current tile pointer */
+  Battle::Tile* previous{ nullptr }; /*!< Entities retain a previous pointer in case they need to be moved back */
+  sf::Vector2f tileOffset{ 0,0 }; /*!< complete motion is captured by `tile_pos + tileOffset`*/
+  sf::Vector2f moveStartPosition{ 0,0 }; /*!< Used internally when moving*/
+  sf::Vector2f drawOffset{ 0,0 }; /*!< extra draw offset added by the programmer */
   Field* field{ nullptr };
   Team team{};
   Element element{Element::none};

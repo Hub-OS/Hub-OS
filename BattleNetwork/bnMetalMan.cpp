@@ -109,8 +109,6 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
 }
 
 void MetalMan::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
-
   BossPatternAI<MetalMan>::Update(_elapsed);
 
   Hitbox* hitbox = new Hitbox(GetTeam(), 40);

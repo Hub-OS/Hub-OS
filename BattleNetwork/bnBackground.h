@@ -150,12 +150,14 @@ public:
 
     sf::Vector2u size = texture->getSize();
 
-    textureWrap->setUniform("x", (float)textureRect.left / (float)size.x);
-    textureWrap->setUniform("y", (float)textureRect.top / (float)size.y);
-    textureWrap->setUniform("w", (float)textureRect.width / (float)size.x);
-    textureWrap->setUniform("h", (float)textureRect.height / (float)size.y);
-    textureWrap->setUniform("offsetx", (float)(offset.x));
-    textureWrap->setUniform("offsety", (float)(offset.y));
+    if (textureWrap) {
+      textureWrap->setUniform("x", (float)textureRect.left / (float)size.x);
+      textureWrap->setUniform("y", (float)textureRect.top / (float)size.y);
+      textureWrap->setUniform("w", (float)textureRect.width / (float)size.x);
+      textureWrap->setUniform("h", (float)textureRect.height / (float)size.y);
+      textureWrap->setUniform("offsetx", (float)(offset.x));
+      textureWrap->setUniform("offsety", (float)(offset.y));
+    }
 
     states.shader = textureWrap;
 

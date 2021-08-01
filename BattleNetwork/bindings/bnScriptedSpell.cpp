@@ -25,9 +25,6 @@ bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 }
 
 void ScriptedSpell::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + Entity::tileOffset.x + ScriptedSpell::scriptedOffset.x,
-    tile->getPosition().y - this->height + Entity::tileOffset.y + ScriptedSpell::scriptedOffset.y);
-
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
   ScriptedSpell& ss = *this;
@@ -67,6 +64,7 @@ const float ScriptedSpell::GetHeight() const
 void ScriptedSpell::SetHeight(const float height)
 {
   this->height = height;
+  Entity::drawOffset.y = -this->height;
 }
 
 void ScriptedSpell::ShowShadow(const bool show)
@@ -82,16 +80,6 @@ void ScriptedSpell::ShowShadow(const bool show)
 Animation& ScriptedSpell::GetAnimationObject()
 {
   return animComponent->GetAnimationObject();
-}
-
-const sf::Vector2f& ScriptedSpell::GetTileOffset() const
-{
-  return ScriptedSpell::scriptedOffset;
-}
-
-void ScriptedSpell::SetTileOffset(float x, float y)
-{
-  ScriptedSpell::scriptedOffset = { x, y };
 }
 
 void ScriptedSpell::ShakeCamera(double power, float duration)

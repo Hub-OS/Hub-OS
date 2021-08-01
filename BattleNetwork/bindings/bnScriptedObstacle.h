@@ -27,8 +27,6 @@ public:
   void ShowShadow(const bool shadow);
 
   Animation& GetAnimationObject();
-  const sf::Vector2f& GetTileOffset() const;
-  void SetTileOffset(float x, float y);
   Battle::Tile* GetCurrentTile() const;
 
   // duration in seconds

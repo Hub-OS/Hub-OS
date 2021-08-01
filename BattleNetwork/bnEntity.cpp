@@ -131,6 +131,7 @@ void Entity::UpdateMovement(double elapsed)
         tileOffset = { 0, 0 };
 
         // Now that we have finished moving across panels, we must wait out endlag
+        auto copyMoveEvent = currMoveEvent;
         frame_time_t lastFrame = currMoveEvent.delayFrames + currMoveEvent.deltaFrames + currMoveEvent.endlagFrames;
         if (from_seconds(elapsedMoveTime) > lastFrame) {
           Battle::Tile* prevTile = previous;
@@ -167,8 +168,9 @@ void Entity::UpdateMovement(double elapsed)
             bool cancelSlide = (notIce || cannotMove || weAreIce);
 
             if (slidesOnTiles && !cancelSlide) {
-              MoveEvent event = { frames(3), frames(0), frames(0), 0, tile + previousDirection };
+              MoveEvent event = { frames(4), frames(0), frames(0), 0, tile + previousDirection };
               RawMoveEvent(event, ActionOrder::immediate);
+              copyMoveEvent = {};
             }
           }
           else {
@@ -184,6 +186,10 @@ void Entity::UpdateMovement(double elapsed)
     // Keep centered in the current tile with no offset
     tileOffset = sf::Vector2f(0, 0);
     elapsedMoveTime = 0;
+  }
+
+  if (tile) {
+    setPosition(tile->getPosition() + Entity::tileOffset + drawOffset);
   }
 }
 
@@ -391,6 +397,21 @@ Battle::Tile* Entity::GetCurrentTile() const {
 const sf::Vector2f Entity::GetTileOffset() const
 {
   return this->tileOffset;
+}
+
+void Entity::SetDrawOffset(const sf::Vector2f& offset)
+{
+  drawOffset = offset;
+}
+
+void Entity::SetDrawOffset(float x, float y)
+{
+  drawOffset = { x, y };
+}
+
+const sf::Vector2f Entity::GetDrawOffset() const
+{
+  return drawOffset;
 }
 
 const bool Entity::IsSliding() const

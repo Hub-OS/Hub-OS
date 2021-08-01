@@ -34,9 +34,6 @@ void ScriptedCharacter::SetRank(Character::Rank rank)
 }
 
 void ScriptedCharacter::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + Entity::tileOffset.x + scriptedOffset.x,
-    tile->getPosition().y + Entity::tileOffset.y + scriptedOffset.y);
-
   AI<ScriptedCharacter>::Update(_elapsed);
 }
 
@@ -69,16 +66,6 @@ void ScriptedCharacter::OnBattleStop() {
 
 bool ScriptedCharacter::CanMoveTo(Battle::Tile * next) {
   return script["can_move_to"](*next);
-}
-
-const sf::Vector2f& ScriptedCharacter::GetTileOffset() const
-{
-  return ScriptedCharacter::scriptedOffset;
-}
-
-void ScriptedCharacter::SetTileOffset(float x, float y)
-{
-  ScriptedCharacter::scriptedOffset = { x, y };
 }
 
 void ScriptedCharacter::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback)

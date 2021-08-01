@@ -18,8 +18,8 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, do
   mob(mob), 
   tracked(tracked), 
   customDuration(customDuration),
-  customBarShader(*Shaders().GetShader(ShaderType::CUSTOM_BAR)),
-  pauseShader(*Shaders().GetShader(ShaderType::BLACK_FADE))
+  customBarShader(Shaders().GetShader(ShaderType::CUSTOM_BAR)),
+  pauseShader(Shaders().GetShader(ShaderType::BLACK_FADE))
 {
   // PAUSE
   pause.setTexture(*Textures().LoadTextureFromFile("resources/ui/pause.png"));
@@ -35,12 +35,16 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, do
   customBar.setPosition(customBarPos);
   customBar.setScale(2.f, 2.f);
 
-  pauseShader.setUniform("texture", sf::Shader::CurrentTexture);
-  pauseShader.setUniform("opacity", 0.25f);
+  if (pauseShader) {
+    pauseShader->setUniform("texture", sf::Shader::CurrentTexture);
+    pauseShader->setUniform("opacity", 0.25f);
+  }
 
-  customBarShader.setUniform("texture", sf::Shader::CurrentTexture);
-  customBarShader.setUniform("factor", 0);
-  customBar.SetShader(&customBarShader);
+  if (customBarShader) {
+    customBarShader->setUniform("texture", sf::Shader::CurrentTexture);
+    customBarShader->setUniform("factor", 0);
+    customBar.SetShader(customBarShader);
+  }
 
   // COMBO DELETE AND COUNTER LABELS
   auto labelPosition = sf::Vector2f(240.0f, 50.f);
@@ -101,7 +105,11 @@ void CombatBattleState::onStart(const BattleSceneState* last)
 
     // reset bar and related flags
     customProgress = 0;
-    customBarShader.setUniform("factor", 0);
+
+    if (customBarShader) {
+      customBarShader->setUniform("factor", 0);
+    }
+
     isGaugeFull = false;
   }
 }
@@ -115,7 +123,10 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
 
     // reset bar 
     customProgress = 0;
-    customBarShader.setUniform("factor", 0);
+
+    if (customBarShader) {
+      customBarShader->setUniform("factor", 0);
+    }
   }
 
   GetScene().HighlightTiles(false);
@@ -167,7 +178,9 @@ void CombatBattleState::onUpdate(double elapsed)
     Audio().Play(AudioType::CUSTOM_BAR_FULL);
   }
 
-  customBarShader.setUniform("factor", (float)(customProgress / customDuration));
+  if (customBarShader) {
+    customBarShader->setUniform("factor", (float)(customProgress / customDuration));
+  }
 }
 
 void CombatBattleState::onDraw(sf::RenderTexture& surface)

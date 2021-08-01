@@ -33,10 +33,7 @@ SuperVulcan::~SuperVulcan() {
 }
 
 void SuperVulcan::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-
   animation.Update(_elapsed, getSprite());
-
   tile->AffectEntities(this);
 }
 

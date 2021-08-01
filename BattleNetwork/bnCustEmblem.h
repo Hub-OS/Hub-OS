@@ -53,6 +53,11 @@ public:
    * @brief Places the last wire effect from coming into leaving 
    */
   void UndoWireEffect();
+
+  /**
+  * @brief Empty both queues
+  */
+  void Reset();
   
   /**
    * @brief When the wire is leaving and reaches total progress, remove the effect

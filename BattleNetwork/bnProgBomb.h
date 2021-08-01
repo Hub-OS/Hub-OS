@@ -11,6 +11,7 @@ public:
   ProgBomb(Team _team,sf::Vector2f startPos, float _duration);
   ~ProgBomb();
 
+  void OnSpawn(Battle::Tile& tile) override;
   void OnUpdate(double _elapsed) override;
   void Attack(Character* _entity) override;
   void OnDelete() override;

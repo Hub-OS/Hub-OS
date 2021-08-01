@@ -38,11 +38,7 @@ RollHeart::~RollHeart() {
 }
 
 void RollHeart::OnUpdate(double _elapsed) {
-
-  if (tile != nullptr) {
-    setPosition(tile->getPosition().x, tile->getPosition().y - height - 10.0f);
-  }
-
+  Entity::drawOffset.y = -height - 10.0f;
   height -= static_cast<float>(_elapsed * 300.0);
   
   if (height <= 0) height = 0;

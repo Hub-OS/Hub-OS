@@ -20,7 +20,7 @@ ShineExplosion::ShineExplosion() : Artifact()
 }
 
 void ShineExplosion::OnUpdate(double _elapsed) {
-  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y - this->GetHeight());
+  Entity::drawOffset.y= -this->GetHeight();
 }
 
 void ShineExplosion::OnDelete()

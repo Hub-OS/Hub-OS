@@ -53,8 +53,11 @@ public:
 
   const int GetMusicLevel() const;
   const int GetSFXLevel() const;
+  const int GetShaderLevel() const;
+
   void SetMusicLevel(int level);
   void SetSFXLevel(int level);
+  void SetShaderLevel(int level);
 
   /**
    * @brief Get the active gamepad index
@@ -150,6 +153,7 @@ private:
 
   int musicLevel{ 3 };
   int sfxLevel{ 3 };
+  int shaderLevel{ 2 };
   int gamepadIndex{};
   bool invertThumbstick{};
 

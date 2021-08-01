@@ -31,8 +31,8 @@ struct CombatBattleState final : public BattleSceneState, public CardUseListener
   sf::Sprite tripleDelete;
   sf::Sprite counterHit;
   SpriteProxyNode customBar;
-  sf::Shader& customBarShader; /*!< Cust gauge shaders */
-  sf::Shader& pauseShader; /*!< Dim screen */
+  sf::Shader* customBarShader; /*!< Cust gauge shaders */
+  sf::Shader* pauseShader; /*!< Dim screen */
   std::vector<Player*>& tracked;
   std::vector<const BattleSceneState*> subcombatStates;
   const bool HasTimeFreeze() const;

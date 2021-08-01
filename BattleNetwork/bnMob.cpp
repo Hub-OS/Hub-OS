@@ -123,8 +123,10 @@ std::shared_ptr<Background> Mob::GetBackground() {
   return background;
 }
 
-void Mob::StreamCustomMusic(const std::string& path) {
+void Mob::StreamCustomMusic(const std::string& path, long long startMs, long long endMs) {
   music = path;
+  this->startMs = startMs;
+  this->endMs = endMs;
 }
 
 bool Mob::HasCustomMusicPath() {
@@ -133,6 +135,11 @@ bool Mob::HasCustomMusicPath() {
 
 const std::string Mob::GetCustomMusicPath() const {
   return music;
+}
+
+const std::array<long long, 2> Mob::GetLoopPoints() const
+{
+  return { startMs, endMs };
 }
 
 const Character& Mob::GetMobAt(int index) {

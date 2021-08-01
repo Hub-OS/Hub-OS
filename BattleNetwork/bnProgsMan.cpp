@@ -62,8 +62,6 @@ ProgsMan::~ProgsMan() {
 }
 
 void ProgsMan::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
-
   BossPatternAI<ProgsMan>::Update(_elapsed);
 }
 

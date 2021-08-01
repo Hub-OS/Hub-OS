@@ -106,57 +106,74 @@ void ConfigScene::BindingItem::Update() {
   value.setPosition((BINDED_VALUE_OFFSET * 2.0f) / getScale().x - value.GetLocalBounds().width, 0.0f);
 }
 
-ConfigScene::VolumeItem::VolumeItem(
+ConfigScene::NumberItem::NumberItem(
   const std::string& text,
   sf::Color color,
-  int volumeLevel,
-  const std::function<void(int)>& callback
-) :
+  int value,
+  const std::function<void(int, NumberItem&)>& callback) :
   TextItem(text, createCallback(callback), createSecondaryCallback(callback)),
-  volumeLevel(volumeLevel)
+  refreshCallback(callback),
+  value(value)
 {
   this->color = color;
+}
 
+std::function<void(ConfigScene::TextItem&)> ConfigScene::NumberItem::createCallback(const std::function<void(int, NumberItem&)>& callback) {
+  // increase number
+  return [this, callback](auto&) {
+    value = value + 1;
+
+    if (value > maxValue) {
+      value = minValue;
+    }
+
+    animator.SetFrame(value, icon.getSprite());
+    callback(value, *this);
+  };
+}
+
+std::function<void(ConfigScene::TextItem&)> ConfigScene::NumberItem::createSecondaryCallback(const std::function<void(int, NumberItem&)>& callback) {
+  // lower number
+  return [this, callback](auto&) {
+    value = value - 1;
+
+    if (value < minValue) {
+      value = maxValue;
+    }
+
+    animator.SetFrame(value, icon.getSprite());
+    callback(value, *this);
+  };
+}
+
+void ConfigScene::NumberItem::SetAlpha(sf::Uint8 alpha) {
+  TextItem::SetAlpha(alpha);
+  icon.setColor(color);
+}
+
+void ConfigScene::NumberItem::UseIcon(const std::string& image_path, const std::string& animation_path, const std::string& state)
+{
   AddNode(&icon);
-  icon.setTexture(Textures().LoadTextureFromFile("resources/ui/config/audio.png"));
+  icon.setTexture(Textures().LoadTextureFromFile(image_path));
   icon.setPosition(
     label.GetLocalBounds().width + COL_PADDING,
     label.GetLocalBounds().height / 2.0f - icon.getLocalBounds().height / 2.0f
   );
 
-  animator = Animation("resources/ui/config/audio.animation");
+  animator = Animation(animation_path);
   animator.Load();
-  animator.SetAnimation("DEFAULT");
-  animator.SetFrame(volumeLevel + 1, icon.getSprite());
+  animator.SetAnimation(state);
+  animator.SetFrame(value, icon.getSprite());
   animator.Update(0, icon.getSprite());
 }
 
-std::function<void(ConfigScene::TextItem&)> ConfigScene::VolumeItem::createCallback(const std::function<void(int)>& callback) {
-  // raise volume
-  return [this, callback](auto&) {
-    volumeLevel = (volumeLevel + 1) % 4;
-    animator.SetFrame(volumeLevel + 1, icon.getSprite());
-    callback(volumeLevel);
-  };
-}
+void ConfigScene::NumberItem::SetValueRange(int min, int max)
+{
+  minValue = min;
+  maxValue = max;
 
-std::function<void(ConfigScene::TextItem&)> ConfigScene::VolumeItem::createSecondaryCallback(const std::function<void(int)>& callback) {
-  // lower volume
-  return [this, callback](auto&) {
-    volumeLevel = volumeLevel - 1;
-
-    if (volumeLevel < 0) {
-      volumeLevel = 3;
-    }
-
-    animator.SetFrame(volumeLevel + 1, icon.getSprite());
-    callback(volumeLevel);
-  };
-}
-
-void ConfigScene::VolumeItem::SetAlpha(sf::Uint8 alpha) {
-  TextItem::SetAlpha(alpha);
-  icon.setColor(color);
+  value = std::min(max, std::max(min, value));
+  refreshCallback(value, *this);
 }
 
 ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
@@ -187,25 +204,43 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   // ui sprite maps
   // ascii 58 - 96
   // BGM
+  const std::string audio_img = "resources/ui/config/audio.png";
+  const std::string audio_ani = "resources/ui/config/audio.animation";
+
   musicLevel = configSettings.GetMusicLevel();
-  primaryMenu.push_back(std::make_unique<VolumeItem>(
+  auto bgMusicItem = std::make_unique<NumberItem>(
     "BGM",
     sf::Color(255, 0, 255),
     musicLevel,
-    [this](int volumeLevel) { UpdateBgmVolume(volumeLevel); })
-  );
+    [this](int volumeLevel, NumberItem& item) { UpdateBgmVolume(volumeLevel); });
+
+  bgMusicItem->UseIcon(audio_img, audio_ani);
+  bgMusicItem->SetValueRange(1, 4);
+  primaryMenu.push_back(std::move(bgMusicItem));
+
   // SFX
   sfxLevel = configSettings.GetSFXLevel();
-  primaryMenu.push_back(std::make_unique<VolumeItem>(
+  auto sfxItem = std::make_unique<NumberItem>(
     "SFX",
     sf::Color(10, 165, 255),
     sfxLevel,
-    [this](int volumeLevel) { UpdateSfxVolume(volumeLevel); })
-  );
+    [this](int volumeLevel, NumberItem& item) { UpdateSfxVolume(volumeLevel); });
+
+  sfxItem->UseIcon(audio_img, audio_ani);
+  sfxItem->SetValueRange(1, 4);
+  primaryMenu.push_back(std::move(sfxItem));
+
   // Shaders
-  auto shadersItem = std::make_unique<TextItem>("SHADERS: ON", [this](auto&) { ToggleShaders(); });
-  shadersItem->SetColor(DISABLED_TEXT_COLOR);
+  shaderLevel = configSettings.GetShaderLevel();
+  auto shadersItem = std::make_unique<NumberItem>(
+    "Shaders",
+    sf::Color(10, 165, 255),
+    shaderLevel,
+    [this](int shaderLevel, NumberItem& item) { UpdateShaderLevel(shaderLevel, item); });
+  shadersItem->SetValueRange(0, 1);
+  //shadersItem->SetColor(DISABLED_TEXT_COLOR);
   primaryMenu.push_back(std::move(shadersItem));
+
   // Keyboard
   primaryMenu.push_back(std::make_unique<TextItem>(
     "MY KEYBOARD",
@@ -316,18 +351,28 @@ ConfigScene::~ConfigScene() { }
 
 void ConfigScene::UpdateBgmVolume(int volumeLevel) {
   musicLevel = volumeLevel;
-  Audio().SetStreamVolume((volumeLevel / 3.0f) * 100.0f);
+  Audio().SetStreamVolume(((musicLevel-1) / 3.0f) * 100.0f);
 }
 
 void ConfigScene::UpdateSfxVolume(int volumeLevel) {
   sfxLevel = volumeLevel;
-  Audio().SetChannelVolume((volumeLevel / 3.0f) * 100.0f);
+  Audio().SetChannelVolume(((sfxLevel-1) / 3.0f) * 100.0f);
   Audio().Play(AudioType::BUSTER_PEA);
 }
 
-void ConfigScene::ToggleShaders() {
-  // TODO: Shader Toggle
-  Audio().Play(AudioType::CHIP_ERROR);
+void ConfigScene::UpdateShaderLevel(int shaderLevel, NumberItem& item) {
+  this->shaderLevel = shaderLevel;
+
+  if (shaderLevel == 0) {
+    item.SetString("Shaders: OFF");
+    item.SetColor(sf::Color::Red);
+  }
+  else {
+    item.SetString("Shaders: ON");
+    item.SetColor(sf::Color(10, 165, 255));
+  }
+
+  Audio().Play(AudioType::CHIP_SELECT);
 }
 
 void ConfigScene::ShowKeyboardMenu() {
@@ -504,6 +549,7 @@ void ConfigScene::onUpdate(double elapsed)
         configSettings.SetInvertThumbstick(invertThumbstick);
         configSettings.SetMusicLevel(musicLevel);
         configSettings.SetSFXLevel(sfxLevel);
+        configSettings.SetShaderLevel(shaderLevel);
         configSettings.SetInvertMinimap(invertMinimap);
         configSettings.SetWebServerInfo(user.server_url, user.port, user.version);
 
@@ -511,6 +557,7 @@ void ConfigScene::onUpdate(double elapsed)
         writer.Write("config.ini");
         ConfigReader reader("config.ini");
         Input().SupportConfigSettings(reader);
+        getController().UpdateConfigSettings(Input().GetConfigSettings());
 
         // transition to the next screen
         using namespace swoosh::types;

@@ -342,7 +342,7 @@ int AudioResourceManager::Play(std::shared_ptr<sf::SoundBuffer> resource, AudioP
   return -1;
 }
 
-int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpan span) {
+int AudioResourceManager::Stream(std::string path, bool loop, long long startMs, long long endMs) {
   if (!isEnabled) { return -1; }
 
   if (path == currStreamPath) { return -1; };
@@ -358,8 +358,8 @@ int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpa
   stream.play();
   stream.setLoop(loop);
 
-  if(loop) {
-    stream.setLoopPoints(span);
+  if(loop && startMs > 0 && endMs > startMs) {
+    stream.setLoopPoints({ sf::milliseconds(startMs), sf::milliseconds(endMs) });
   }
 
   currStreamPath = path;
@@ -368,7 +368,7 @@ int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpa
 }
 
 int AudioResourceManager::Stream(std::string path, bool loop) {
-  return Stream(path, loop, {});
+  return Stream(path, loop, -1, -1);
 }
 
 void AudioResourceManager::StopStream() {

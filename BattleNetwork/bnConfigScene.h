@@ -25,7 +25,7 @@ private:
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
   ConfigSettings::GamepadHash gamepadHash;
-  int gamepadIndex, musicLevel, sfxLevel;
+  int gamepadIndex, musicLevel, sfxLevel, shaderLevel;
   bool invertThumbstick, invertMinimap;
 
   AnimatedTextBox textbox;
@@ -103,16 +103,19 @@ private:
     void Update() override;
   };
 
-  class VolumeItem : public TextItem, ResourceHandle {
+  class NumberItem : public TextItem, ResourceHandle {
   private:
     SpriteProxyNode icon;
     Animation animator;
-    int volumeLevel{};
-    std::function<void(TextItem&)> createCallback(const std::function<void(int)>&);
-    std::function<void(TextItem&)> createSecondaryCallback(const std::function<void(int)>&);
+    int value{}, maxValue{}, minValue{};
+    std::function<void(int, NumberItem&)> refreshCallback;
+    std::function<void(TextItem&)> createCallback(const std::function<void(int, NumberItem&)>&);
+    std::function<void(TextItem&)> createSecondaryCallback(const std::function<void(int, NumberItem&)>&);
   public:
-    VolumeItem(const std::string& text, sf::Color color, int volumeLevel, const std::function<void(int)>& callback);
+    NumberItem(const std::string& text, sf::Color color, int value, const std::function<void(int, NumberItem&)>& callback);
     void SetAlpha(sf::Uint8 alpha) override;
+    void UseIcon(const std::string& image_path, const std::string& animation_path, const std::string& state = "DEFAULT");
+    void SetValueRange(int min, int max);
   };
 
   struct UserInfo {
@@ -151,7 +154,7 @@ private:
 #endif
   void UpdateBgmVolume(int volumeLevel);
   void UpdateSfxVolume(int volumeLevel);
-  void ToggleShaders();
+  void UpdateShaderLevel(int shaderLevel,NumberItem& item);
   void ShowKeyboardMenu();
   void ShowGamepadMenu();
   void ToggleLogin();

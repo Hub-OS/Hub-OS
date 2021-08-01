@@ -40,11 +40,11 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   comboDeleteCounter(0),
   totalCounterMoves(0),
   totalCounterDeletions(0),
-  whiteShader(*Shaders().GetShader(ShaderType::WHITE_FADE)),
-  backdropShader(*Shaders().GetShader(ShaderType::BLACK_FADE)),
-  yellowShader(*Shaders().GetShader(ShaderType::YELLOW)),
-  heatShader(*Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
-  iceShader(*Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
+  whiteShader(Shaders().GetShader(ShaderType::WHITE_FADE)),
+  backdropShader(Shaders().GetShader(ShaderType::BLACK_FADE)),
+  yellowShader(Shaders().GetShader(ShaderType::YELLOW)),
+  heatShader(Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
+  iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   cardListener(),
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI({ props.folder, 8, 8 }),
@@ -138,16 +138,20 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   // TODO: Load shaders if supported
   shaderCooldown = 0;
 
-  whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
-  whiteShader.setUniform("opacity", 0.5f);
-  whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
+  if (whiteShader) {
+    whiteShader->setUniform("texture", sf::Shader::CurrentTexture);
+    whiteShader->setUniform("opacity", 0.5f);
+    whiteShader->setUniform("texture", sf::Shader::CurrentTexture);
+  }
 
   textureSize = getController().getVirtualWindowSize();
 
-  iceShader.setUniform("texture", sf::Shader::CurrentTexture);
-  iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
-  iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
-  iceShader.setUniform("shine", 0.2f);
+  if (iceShader) {
+    iceShader->setUniform("texture", sf::Shader::CurrentTexture);
+    iceShader->setUniform("sceneTexture", sf::Shader::CurrentTexture);
+    iceShader->setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
+    iceShader->setUniform("shine", 0.2f);
+  }
 
   isSceneInFocus = false;
 
@@ -418,15 +422,12 @@ void BattleSceneBase::onStart()
 
   // Stream battle music
   if (mob && mob->HasCustomMusicPath()) {
-    Audio().Stream(mob->GetCustomMusicPath(), true);
+    auto points = mob->GetLoopPoints();
+    Audio().Stream(mob->GetCustomMusicPath(), true, points[0], points[1]);
   }
   else {
     if (mob == nullptr || !mob->IsBoss()) {
-      sf::Music::TimeSpan span;
-      span.offset = sf::milliseconds(84);
-      span.length = sf::seconds(120.0f * 1.20668f);
-
-      Audio().Stream("resources/loops/loop_battle.ogg", true, span);
+      Audio().Stream("resources/loops/loop_battle.ogg", true);
     }
     else {
       Audio().Stream("resources/loops/loop_boss_battle.ogg", true);
@@ -440,7 +441,9 @@ void BattleSceneBase::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   background->Update((float)elapsed);
 
-  backdropShader.setUniform("opacity", (float)backdropOpacity);
+  if (backdropShader) {
+    backdropShader->setUniform("opacity", (float)backdropOpacity);
+  }
 
   counterRevealAnim.Update((float)elapsed, counterReveal.getSprite());
   comboInfoTimer.update(sf::seconds(static_cast<float>(elapsed)));
@@ -562,17 +565,36 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   for (Battle::Tile* tile : allTiles) {
     if (tile->IsEdgeTile()) continue;
 
+    bool yellowBlock = false;
+
     if (tile->IsHighlighted() && !this->IsCleared()) {
-      tile->SetShader(&yellowShader);
+      if (!yellowShader) {
+        yellowBlock = true;
+      }
+      else {
+        tile->SetShader(yellowShader);
+      }
     }
     else {
       tile->RevokeShader();
+      tile->setColor(sf::Color::White);
     }
 
     tile->move(viewOffset);
     tile->setColor(sf::Color(tint, tint, tint, 255));
     surface.draw(*tile);
     tile->setColor(sf::Color::White);
+
+    if (yellowBlock) {
+      sf::RectangleShape block;
+      block.setSize({40, 30});
+      block.setScale(2.f, 2.f);
+      block.setOrigin(20, 15);
+      block.setFillColor(sf::Color::Yellow);
+      block.setPosition(tile->getPosition());
+      surface.draw(block);
+    }
+
     tile->move(-viewOffset);
   }
 

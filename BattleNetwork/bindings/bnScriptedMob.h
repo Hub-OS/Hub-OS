@@ -23,11 +23,10 @@ public:
     Mob::Spawner<ScriptedCharacter>* scriptedSpawner{ nullptr };
     std::function<Character* ()> constructor;
     std::function<void(Character*)> pixelStateInvoker, defaultStateInvoker;
+
   public:
     ScriptedSpawner() = default;
-
     ScriptedSpawner(sol::state& script, const std::string& path);
-
     ~ScriptedSpawner();
 
     template<typename BuiltInCharacter>
@@ -55,7 +54,7 @@ public:
   ScriptedSpawner CreateSpawner(const std::string& fqn);
 
   void SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely);
-  void StreamMusic(const std::string& path);
+  void StreamMusic(const std::string& path, long long startMs, long long endMs);
 };
 
 template<typename BuiltInCharacter>
