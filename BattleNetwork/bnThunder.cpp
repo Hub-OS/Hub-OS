@@ -25,6 +25,19 @@ Thunder::Thunder(Team _team) : Spell(_team) {
   Audio().Play(AudioType::THUNDER);
 
   animation.Update(0, getSprite());
+
+  Hit::Properties props;
+
+  // Thunder stuns and recoils
+  props.flags |= Hit::flinch | Hit::stun;
+
+  // Thunder has electric properties
+  props.element = Element::elec;
+
+  // Attack does 40 units of damage
+  props.damage = 40;
+
+  SetHitboxProperties(props);
 }
 
 Thunder::~Thunder() {
@@ -135,19 +148,8 @@ bool Thunder::CanMoveTo(Battle::Tile* tile) {
 void Thunder::Attack(Character* _entity) {
   // Only attack entities on this tile that are not on our team
   if (_entity && _entity->GetTeam() != GetTeam()) {
-    Hit::Properties props;
-    
-    // Thunder stuns and recoils
-    props.flags |= Hit::flinch | Hit::stun;
-    
-    // Thunder has electric properties
-    props.element = Element::elec;
-    
-    // Attack does 40 units of damage
-    props.damage = 40;
-
     // If entity was successfully hit
-    if (_entity->Hit(props)) {
+    if (_entity->Hit(GetHitboxProperties())) {
       // Mark us for deletion
       Delete();
     }

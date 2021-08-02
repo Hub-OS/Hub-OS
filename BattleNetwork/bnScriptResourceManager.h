@@ -23,6 +23,7 @@ public:
   };
 
 private:
+  unsigned int randSeed{};
   std::vector<sol::state*> states;
   std::map<std::string, LoadScriptResult> scriptTableHash; /*!< Script path to sol table hash */
   std::map<std::string, std::string> characterFQN; /*! character FQN to script path */
@@ -38,6 +39,7 @@ public:
   void DefineCharacter(const std::string& fqn, const std::string& path) /* throw std::exception */;
   sol::state* FetchCharacter(const std::string& fqn);
   const std::string& CharacterToModpath(const std::string& fqn);
+  void SeedRand(unsigned int seed);
 };
 
 #endif

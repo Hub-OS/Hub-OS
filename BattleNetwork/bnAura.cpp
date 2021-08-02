@@ -39,16 +39,23 @@ void Aura::OnHitCallback(Spell& in, Character& owner, bool windRemove) {
       this->health = this->fx->currHP = 0;
       this->fx = nullptr;
     }
-    else {
-      // We can no longer protect this user..
-      owner.Hit(hitbox);
-    }
+
+    RemoveDefenseRule();
   }
   else {
     TakeDamage(owner, in.GetHitboxProperties());
   }
-};
+}
+void Aura::RemoveDefenseRule()
+{
+  if (!defenseRuleRemoved) {
+    if (auto character = GetOwnerAs<Character>()) {
+      character->RemoveDefenseRule(this);
+    }
 
+    defenseRuleRemoved = true;
+  }
+}
 
 Aura::Aura(Aura::Type type, Character* owner) :
   type(type),
@@ -118,15 +125,13 @@ void Aura::OnUpdate(double _elapsed) {
 
   if (!isOver) {
     if (health == 0 || timer <= 0.0) {
+      RemoveDefenseRule();
+
       isOver = true;
       timer = 2;
     }
   }
   else if (timer <= 0.0) {
-    if (auto character = GetOwnerAs<Character>()) {
-      character->RemoveDefenseRule(this);
-    }
-
     Eject();
     return;
   }
@@ -158,6 +163,8 @@ void Aura::OnReplace()
     // Stop drawing the old aura
     GetOwner()->RemoveNode(fx);
   }
+
+  RemoveDefenseRule();
 
   Eject();
 }

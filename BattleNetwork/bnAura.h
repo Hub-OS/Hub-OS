@@ -74,12 +74,13 @@ private:
   int health{}; /*!< HP of aura */
   bool persist{ false }; /*!< Flag is Barrier goes away over time or if it lingers */
   bool isOver{ false }; /*!< Flag if the aura is fading out */
+  bool defenseRuleRemoved{};
   int lastHP{}; /*!< HP last frame */
   int currHP{}; /*!< HP this frame */
   int startHP{}; /*!< HP at creation */
 
   void OnHitCallback(Spell& in, Character& owner, bool windRemove);
-
+  void RemoveDefenseRule();
 public:
 
 

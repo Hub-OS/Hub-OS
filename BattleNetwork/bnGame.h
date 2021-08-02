@@ -49,6 +49,7 @@ enum class Endianness : short {
 
 class Game final : public ActivityController {
 private:
+  unsigned int randSeed{};
   double mouseAlpha{};
   bool showScreenBars{};
   bool frameByFrame{}, isDebug{};
@@ -107,6 +108,8 @@ public:
   unsigned FrameNumber() const;
   const Endianness GetEndianness();
   void UpdateConfigSettings(const ConfigSettings& new_settings);
+  void SeedRand(unsigned int seed);
+  const unsigned int GetRandSeed() const;
 
   /**
    * @brief Store parsed command line values into the engine for easy access

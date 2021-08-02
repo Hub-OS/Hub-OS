@@ -82,6 +82,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Has", &InputManager::Has
     );
 
+    engine_namespace.set_function("GetRandSeed",
+      [this]() -> unsigned int { return randSeed;  }
+    );
+
     // TODO: Perhaps see if there's a way to get /readonly/ access to the X/Y value?
     // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
     const auto& tile_record = state.new_usertype<Battle::Tile>("Tile",
@@ -999,5 +1003,9 @@ sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)
 
 const std::string& ScriptResourceManager::CharacterToModpath(const std::string& fqn) {
   return characterFQN[fqn];
+}
+void ScriptResourceManager::SeedRand(unsigned int seed)
+{
+  randSeed = seed;
 }
 #endif

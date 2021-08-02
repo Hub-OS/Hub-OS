@@ -34,9 +34,6 @@ void DrawWindow::Initialize(DrawWindow::WindowMode mode) {
 
   window->setFramerateLimit(frame_time_t::frames_per_second);
   window->setIcon(sfml_icon.width, sfml_icon.height, sfml_icon.pixel_data);
-
-  // See the random generator with current time
-  srand((unsigned int)time(0));
 }
 
 void DrawWindow::Draw(Drawable& _drawable, bool applyShaders) {

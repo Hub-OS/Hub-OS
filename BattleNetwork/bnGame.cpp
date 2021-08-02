@@ -97,6 +97,7 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
 
 TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 {
+  SeedRand((unsigned int)time(0));
   SetCommandLineValues(values);
 
   isDebug = CommandLineValue<bool>("debug");
@@ -323,6 +324,20 @@ void Game::UpdateConfigSettings(const ConfigSettings& new_settings)
     window.SupportShaders(false);
     ActivityController::optimizeForPerformance(swoosh::quality::mobile);
   }
+}
+
+void Game::SeedRand(unsigned int seed)
+{
+  randSeed = seed;
+  scriptManager.SeedRand(seed);
+
+  // See the random generator with current time
+  srand(randSeed);
+}
+
+const unsigned int Game::GetRandSeed() const
+{
+  return randSeed;
 }
 
 void Game::RunNaviInit(std::atomic<int>* progress) {
