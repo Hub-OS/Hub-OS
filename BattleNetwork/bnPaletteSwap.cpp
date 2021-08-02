@@ -43,9 +43,9 @@ void PaletteSwap::CopyFrom(PaletteSwap& other)
   Apply();
 }
 
-void PaletteSwap::SetTexture(const std::shared_ptr<sf::Texture>& texture)
+void PaletteSwap::SetPalette(const std::shared_ptr<sf::Texture>& palette)
 {
-  palette = texture;
+  this->palette = palette;
   paletteSwap.SetUniform("palette", *palette);
 }
 
@@ -57,7 +57,7 @@ void PaletteSwap::SetBase(const std::shared_ptr<sf::Texture>& base)
 
 void PaletteSwap::Revert()
 {
-  SetTexture(base);
+  SetPalette(base);
 }
 
 void PaletteSwap::Enable(bool enabled)

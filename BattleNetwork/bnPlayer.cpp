@@ -83,17 +83,19 @@ Player::~Player() {
 }
 
 void Player::OnUpdate(double _elapsed) {
-  if (emotion == Emotion::angry) {
-    setColor(sf::Color(155, 0, 0, getColor().a));
-    SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
-  }
-  else if (emotion == Emotion::full_synchro) {
-    setColor(sf::Color(55, 55, 155, getColor().a));
-    SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
-  }
-  else if (emotion == Emotion::evil) {
-    setColor(sf::Color(155, 100, 255, getColor().a));
-    SetShader(Shaders().GetShader(ShaderType::COLORIZE));
+  if (!this->IsInForm()) {
+    if (emotion == Emotion::angry) {
+      setColor(sf::Color(155, 0, 0, getColor().a));
+      SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
+    }
+    else if (emotion == Emotion::full_synchro) {
+      setColor(sf::Color(55, 55, 155, getColor().a));
+      SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
+    }
+    else if (emotion == Emotion::evil) {
+      setColor(sf::Color(155, 100, 255, getColor().a));
+      SetShader(Shaders().GetShader(ShaderType::COLORIZE));
+    }
   }
 
   AI<Player>::Update(_elapsed);

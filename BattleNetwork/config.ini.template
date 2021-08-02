@@ -12,6 +12,7 @@ Username=""
 Password=""
 [Video]
 Fullscreen="0"
+Shader="1"
 [General]
 Invert Minimap="0"
 [Keyboard]

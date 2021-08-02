@@ -47,10 +47,13 @@ public:
    */
   sf::Shader* GetShader(ShaderType _ttype);
 
+  const bool IsEnabled() const;
+
   ShaderResourceManager();
   ~ShaderResourceManager();
 private:
   std::mutex mutex;
   vector<string> paths;  /*!< Paths to all shaders. Must be in order of ShaderType @see ShaderType */
+  bool isEnabled{};
   map<ShaderType, sf::Shader*> shaders; /*!< cache */
 };

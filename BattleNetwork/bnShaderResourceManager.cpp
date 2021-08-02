@@ -22,6 +22,8 @@ void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
     }
     shaderType = (ShaderType)(static_cast<int>(shaderType) + 1);
   }
+
+  isEnabled = true;
 }
 
 sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
@@ -65,6 +67,11 @@ sf::Shader* ShaderResourceManager::GetShader(ShaderType _stype) {
   if (shaders.size()) {
     return shaders.at(_stype);
   }
+}
+
+const bool ShaderResourceManager::IsEnabled() const
+{
+  return isEnabled;
 }
 
 ShaderResourceManager::ShaderResourceManager() {

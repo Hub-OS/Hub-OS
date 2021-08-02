@@ -12,7 +12,7 @@ class PaletteSwap : public Component {
 private:
   bool enabled{}; /*!< Turn this effect on/off */
   std::shared_ptr<sf::Texture> palette;
-  std::shared_ptr<sf::Texture> base;
+  std::shared_ptr<sf::Texture> base, alt;
   SmartShader paletteSwap;
   Character* asCharacter{ nullptr };
 public:
@@ -22,7 +22,7 @@ public:
   void Inject(BattleSceneBase&) override;
   void LoadPaletteTexture(std::string);
   void CopyFrom(PaletteSwap& other);
-  void SetTexture(const std::shared_ptr<sf::Texture>& texture);
+  void SetPalette(const std::shared_ptr<sf::Texture>& palette);
   void SetBase(const std::shared_ptr<sf::Texture>& base);
   void Revert();
   void Enable(bool enabled = true);

@@ -27,7 +27,13 @@ Megaman::Megaman() : Player() {
   SetName("Megaman");
   SetHeight(48.f);
 
-  setTexture(Textures().GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
+  std::string path = "resources/navis/megaman/navi_megaman_atlas.png";
+
+  if (!ResourceHandle::Shaders().IsEnabled()) {
+    path = "resources/navis/megaman/navi_megaman_atlas.og.png";
+  }
+
+  setTexture(Textures().LoadTextureFromFile(path));
 
   AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");
   AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
