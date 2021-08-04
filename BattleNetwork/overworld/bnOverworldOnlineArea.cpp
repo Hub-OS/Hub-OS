@@ -402,12 +402,13 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   }
 
   if (!IsInputLocked()) {
-    if (Input().Has(InputEvents::pressed_shoulder_right)) {
+    auto& menuSystem = GetMenuSystem();
+
+    if (menuSystem.IsClosed() && Input().Has(InputEvents::pressed_shoulder_right)) {
       auto& meta = NAVIS.At(GetCurrentNavi());
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& anim = meta.GetMugshotAnimationPath();
       auto mugshot = Textures().LoadTextureFromFile(image);
-      auto& menuSystem = GetMenuSystem();
       menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
 
       menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
