@@ -596,32 +596,34 @@ void Overworld::Minimap::Open() {
 }
 
 void Overworld::Minimap::HandleInput(InputManager& input, sf::Vector2f mousePos) {
+  sf::Vector2f panningOffset;
+
   if (input.Has(InputEvents::held_ui_left)) {
-    panning.x -= 1.f;
+    panningOffset.x -= 1.f;
   }
 
   if (input.Has(InputEvents::held_ui_right)) {
-    panning.x += 1.f;
+    panningOffset.x += 1.f;
   }
 
   if (input.Has(InputEvents::held_ui_up)) {
-    panning.y -= 1.f;
+    panningOffset.y -= 1.f;
   }
 
   if (input.Has(InputEvents::held_ui_down)) {
-    panning.y += 1.f;
+    panningOffset.y += 1.f;
   }
 
   if (input.GetConfigSettings().GetInvertMinimap()) {
-    panning.x *= -1.f;
-    panning.y *= -1.f;
+    panningOffset.x *= -1.f;
+    panningOffset.y *= -1.f;
   }
 
   if (input.Has(InputEvents::pressed_map)) {
     Close();
   }
 
-  Pan(panning);
+  Pan(panningOffset);
 }
 
 void Overworld::Minimap::draw(sf::RenderTarget& surface, sf::RenderStates states) const
