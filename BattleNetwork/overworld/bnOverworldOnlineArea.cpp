@@ -75,7 +75,7 @@ Overworld::OnlineArea::OnlineArea(
   transitionText.SetString("Connecting...");
 
   lastFrameNavi = this->GetCurrentNavi();
-  
+
   // emotes
   auto windowSize = getController().getVirtualWindowSize();
   auto emoteWidget = std::make_shared<EmoteWidget>();
@@ -99,7 +99,7 @@ Overworld::OnlineArea::~OnlineArea()
 std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbstractUser(const std::string& id)
 {
   if (id == ticket) {
-    return AbstractUser {
+    return AbstractUser{
       GetPlayer(),
       emoteNode,
       GetTeleportController(),
@@ -112,7 +112,7 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
   if (iter != onlinePlayers.end()) {
     auto& onlinePlayer = iter->second;
 
-    return AbstractUser {
+    return AbstractUser{
       onlinePlayer.actor,
       onlinePlayer.emoteNode,
       onlinePlayer.teleportController,
@@ -386,9 +386,10 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   propertyAnimator.Update(*player, elapsed);
   emoteNode.Update(elapsed);
 
-  if(serverLockedInput || propertyAnimator.IsAnimatingPosition()) {
+  if (serverLockedInput || propertyAnimator.IsAnimatingPosition()) {
     LockInput();
-  } else {
+  }
+  else {
     UnlockInput();
   }
 
@@ -426,7 +427,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
 
     if (playerPos.x != lastPosition.x || playerPos.y != lastPosition.y) {
       // only need to handle this if the player has moved
-      detectWarp(player);
+      detectWarp();
     }
   }
 
@@ -435,7 +436,8 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   lastPosition = playerPos;
 }
 
-void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player) {
+void Overworld::OnlineArea::detectWarp() {
+  auto player = GetPlayer();
   auto& teleportController = GetTeleportController();
 
   if (!teleportController.IsComplete()) {
@@ -592,7 +594,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   for (auto& pair : onlinePlayers) {
     auto id = pair.first;
 
-    if(excludedActors.find(id) != excludedActors.end()) {
+    if (excludedActors.find(id) != excludedActors.end()) {
       // actor is excluded, do not display on hover
       continue;
     }
@@ -2110,8 +2112,9 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     if (isExcluded) {
       // remove the actor if they are marked as hidden by the server
       RemoveSprite(actor);
-    } else {
-      // add the teleport beam if the actor is not marked as hidden by the server
+    }
+    else {
+   // add the teleport beam if the actor is not marked as hidden by the server
       AddSprite(teleportController.GetBeam());
     }
   }
