@@ -90,11 +90,6 @@ Overworld::OnlineArea::OnlineArea(
   emoteNode.SetLayer(-100);
   emoteNode.setScale(0.5f, 0.5f);
   player->AddNode(&emoteNode);
-
-  propertyAnimator.OnComplete([this] {
-    // todo: this may cause issues when leaving the scene through Home and Server Warps
-    GetPlayerController().ControlActor(GetPlayer());
-  });
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -391,6 +386,12 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   propertyAnimator.Update(*player, elapsed);
   emoteNode.Update(elapsed);
 
+  if(serverLockedInput || propertyAnimator.IsAnimatingPosition()) {
+    LockInput();
+  } else {
+    UnlockInput();
+  }
+
   auto currentNavi = GetCurrentNavi();
   if (lastFrameNavi != currentNavi) {
     sendAvatarChangeSignal();
@@ -468,7 +469,6 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
-        GetPlayerController().ReleaseActor();
         sendLogoutSignal();
         getController().pop<segue<BlackWashFade>>();
       });
@@ -482,7 +482,6 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
       auto data = tileObject.customProperties.GetProperty("data");
 
       command.onFinish.Slot([=] {
-        GetPlayerController().ReleaseActor();
         transferServer(address, port, data, false);
       });
       break;
@@ -680,7 +679,6 @@ void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& pl
   }
 
   propertyAnimator.UseKeyFrames(*player);
-  GetPlayerController().ReleaseActor();
 }
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
@@ -906,7 +904,6 @@ void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t 
   };
 
   if (warpOut) {
-    GetPlayerController().ReleaseActor();
     auto& command = GetTeleportController().TeleportOut(GetPlayer());
     command.onFinish.Slot(transfer);
   }
@@ -1017,10 +1014,10 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       serverCameraController.QueueUnlockCamera();
       break;
     case ServerEvents::lock_input:
-      LockInput();
+      serverLockedInput = true;
       break;
     case ServerEvents::unlock_input:
-      UnlockInput();
+      serverLockedInput = false;
       break;
     case ServerEvents::teleport:
       receiveTeleportSignal(reader, data);
@@ -2541,11 +2538,6 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
 
   if (tail) {
     propertyAnimator->UseKeyFrames(*actor);
-
-    if (actor == GetPlayer() && propertyAnimator->IsAnimatingPosition()) {
-      // release to block the controller from attempting to animate the player
-      GetPlayerController().ReleaseActor();
-    }
   }
 }
 

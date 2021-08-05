@@ -75,6 +75,7 @@ namespace Overworld {
     std::string connectData;
     uint16_t maxPayloadSize;
     bool isConnected{ false };
+    bool serverLockedInput{ false };
     bool transferringServers{ false };
     bool kicked{ false };
     bool tryPopScene{ false };
