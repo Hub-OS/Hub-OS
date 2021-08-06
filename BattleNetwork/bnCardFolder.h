@@ -69,11 +69,6 @@ public:
    * @return int
    */
   const int GetSize() const;
-
-  /**
-   * @brief Reduce the remaining size of the folder.
-   */
-  void ReduceSize() { this->folderSize--; };
   
   /**
    * @brief Copies error messages into the folder

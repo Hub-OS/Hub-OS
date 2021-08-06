@@ -371,7 +371,6 @@ void FolderEditScene::onUpdate(double elapsed) {
                                 poolCardBuckets[i].AddCard();
                                 folderCardSlots[folderView.currCardIndex].GetCard(copy);
                                 found = true;
-                                folder.ReduceSize();
                                 break;
                             };
                         }
