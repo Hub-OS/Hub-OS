@@ -65,10 +65,15 @@ public:
   Battle::Card* Next();
   
   /**
-   * @brief The remaining size of the folder 
+   * @brief The remaining size of the folder
    * @return int
    */
   const int GetSize() const;
+
+  /**
+   * @brief Reduce the remaining size of the folder.
+   */
+  void ReduceSize() { this->folderSize--; };
   
   /**
    * @brief Copies error messages into the folder

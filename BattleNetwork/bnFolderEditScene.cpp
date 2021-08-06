@@ -371,6 +371,7 @@ void FolderEditScene::onUpdate(double elapsed) {
                                 poolCardBuckets[i].AddCard();
                                 folderCardSlots[folderView.currCardIndex].GetCard(copy);
                                 found = true;
+                                folder.ReduceSize();
                                 break;
                             };
                         }
@@ -456,10 +457,10 @@ void FolderEditScene::onUpdate(double elapsed) {
             else if (currViewMode == ViewMode::pool) {
                 if (packView.swapCardIndex != -1) {
                     if (packView.swapCardIndex == packView.currCardIndex) {
-                        if (folder.GetSize() < 30) {
+                        if (folder.GetSize() <= 30) {
                             int found = -1;
                             for (auto i = 0; i < 30; i++) {
-                                if (found == -1 && folderCardSlots[i].IsEmpty() == true) {
+                                if (found == -1 && folderCardSlots[i].IsEmpty()) {
                                     found = i;
                                 }
                             }
