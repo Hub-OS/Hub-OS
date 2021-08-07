@@ -1,11 +1,11 @@
-#include "bnOverworldTileBehaviours.h"
+#include "bnOverworldTileBehaviors.h"
 
 #include "bnOverworldActor.h"
 #include "bnOverworldActorPropertyAnimator.h"
 
 constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
 
-void Overworld::TileBehaviours::UpdateActor(SceneBase& scene, Actor& actor, ActorPropertyAnimator& propertyAnimator) {
+void Overworld::TileBehaviors::UpdateActor(SceneBase& scene, Actor& actor, ActorPropertyAnimator& propertyAnimator) {
   if (propertyAnimator.IsAnimatingPosition()) {
     // if the something else is dragging the player around, ignore tiles
     return;
@@ -39,7 +39,7 @@ void Overworld::TileBehaviours::UpdateActor(SceneBase& scene, Actor& actor, Acto
   }
 }
 
-void Overworld::TileBehaviours::HandleConveyor(SceneBase& scene, Actor& actor, ActorPropertyAnimator& propertyAnimator, TileMeta& tileMeta, Tile& tile) {
+void Overworld::TileBehaviors::HandleConveyor(SceneBase& scene, Actor& actor, ActorPropertyAnimator& propertyAnimator, TileMeta& tileMeta, Tile& tile) {
   auto& map = scene.GetMap();
   auto& layer = map.GetLayer(actor.GetLayer());
   auto direction = tileMeta.direction;

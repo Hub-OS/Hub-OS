@@ -4,7 +4,7 @@
 #include "bnOverworldActorPropertyAnimator.h"
 
 namespace Overworld {
-  namespace TileBehaviours {
+  namespace TileBehaviors {
     void UpdateActor(SceneBase&, Actor&, ActorPropertyAnimator&);
     void HandleConveyor(SceneBase&, Actor&, ActorPropertyAnimator&, TileMeta&, Tile&);
   };
