@@ -383,14 +383,22 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   auto player = GetPlayer();
   auto playerPos = player->Get3DPosition();
 
+  TileBehaviours::UpdateActor(*this, *player, propertyAnimator);
+
   propertyAnimator.Update(*player, elapsed);
   emoteNode.Update(elapsed);
 
   if (serverLockedInput || propertyAnimator.IsAnimatingPosition()) {
     LockInput();
+
+    if (propertyAnimator.IsAnimatingPosition()) {
+      // release actor to prevent animation override
+      GetPlayerController().ReleaseActor();
+    }
   }
   else {
     UnlockInput();
+    GetPlayerController().ControlActor(player);
   }
 
   auto currentNavi = GetCurrentNavi();
@@ -430,8 +438,6 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
       detectWarp();
     }
   }
-
-  TileBehaviours::UpdateActor(*this, *player, propertyAnimator);
 
   lastPosition = playerPos;
 }
