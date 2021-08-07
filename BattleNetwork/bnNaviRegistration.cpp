@@ -35,9 +35,21 @@ const std::string& NaviRegistration::NaviMeta::GetPackageID() const
   return packageId;
 }
 
+const std::string& NaviRegistration::NaviMeta::GetFilePath() const
+{
+  return filepath;
+}
+
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetPackageID(const std::string& id)
 {
   NaviMeta::packageId = id;
+
+  return *this;
+}
+
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetFilePath(const std::string& filepath)
+{
+  NaviMeta::filepath = filepath;
 
   return *this;
 }
@@ -228,7 +240,7 @@ stx::result_t<bool> NaviRegistration::Commit(NaviMeta * info)
     return stx::error<bool>(std::string("info object was nullptr or package ID was not set"));
   }
 
-  return stx::ok(true);
+  return stx::ok();
 }
 
 NaviRegistration::NaviMeta & NaviRegistration::FindByPackageID(const std::string& id)
@@ -297,6 +309,11 @@ const std::string NaviRegistration::GetPackageAfter(const std::string& id)
   }
 
   return previous_key;
+}
+
+const std::string NaviRegistration::GetPackageFilePath()
+{
+  return std::string();
 }
 
 const unsigned NaviRegistration::Size()

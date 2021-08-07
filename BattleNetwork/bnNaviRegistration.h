@@ -25,6 +25,7 @@ public:
 
     Player* navi; /*!< The net navi to construct */
     std::string packageId; /*!< Reverse domain name (reverse-DNS) identifier */
+    std::string filepath; /*!< Package file path (optional field) */
     std::string special; /*!< The net navi's special description */
     std::string overworldAnimationPath; /*!< The net navi's overworld animation */
     std::string overworldTexturePath; /*!< The path of the texture to load */
@@ -65,6 +66,12 @@ public:
     * @return NaviMeta& to chain
     */
     NaviMeta& SetPackageID(const std::string& id);
+
+    /**
+     * @brief Sets the filepath associated with this navi meta data
+     * @return NaviMeta& to chain
+     */
+    NaviMeta& SetFilePath(const std::string& filepath);
 
     /**
      * @brief Sets special description information of the navi
@@ -155,10 +162,16 @@ public:
     NaviMeta& SetIconTexture(const std::shared_ptr<sf::Texture> icon);
 
     /**
-   * @brief Gets the package identifier
-   * @return const std::string&
-   */
+    * @brief Gets the package identifier
+    * @return const std::string&
+    */
     const std::string& GetPackageID() const;
+
+    /**
+    * @brief Gets the package file path, if supplied
+    * @return const std::string&
+    */
+    const std::string& GetFilePath() const;
 
     /**
      * @brief Gets the icon texture to draw
@@ -296,6 +309,7 @@ public:
   const std::string FirstValidPackage();
   const std::string GetPackageBefore(const std::string& id);
   const std::string GetPackageAfter(const std::string& id);
+  const std::string GetPackageFilePath();
   
   /**
    * @brief Get the size of the navi roster

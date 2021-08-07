@@ -32,7 +32,8 @@ class DownloadScene final : public Scene {
 private:
   enum class state : char {
     trade = 0,
-    download,
+    download_cards,
+    download_player,
     complete
   } currState{};
 
@@ -50,6 +51,8 @@ private:
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   swoosh::glsl::FastGaussianBlur blur{ 10 };
 
+  state Next(const state& curr);
+
   void TradeCardList(const std::vector<std::string>& uuids);
   void RequestCardList(const std::vector<std::string>& uuids);
 
@@ -57,10 +60,12 @@ private:
   void SendDownloadComplete(bool success);
   void SendPing(); //!< keep connections alive while clients download data
 
+  void DownloadCustomPlayerData(const Poco::Buffer<char>& buffer);
+  void DownloadCardList(const Poco::Buffer<char>& buffer);
+
   void RecieveTradeCardList(const Poco::Buffer<char>& buffer);
   void RecieveRequestCardList(const Poco::Buffer<char>& buffer);
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
-  void DownloadCardList(const Poco::Buffer<char>& buffer);
  
   std::vector<std::string> DeserializeUUIDs(const Poco::Buffer<char>& buffer);
   Poco::Buffer<char> SerializeUUIDs(NetPlaySignals header, const std::vector<std::string>& uuids);

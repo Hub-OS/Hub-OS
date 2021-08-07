@@ -7,12 +7,12 @@ namespace stx {
     class result_t;
 
     template<typename T>
-    result_t<T> ok(const T& value) {
+    static result_t<T> ok(const T& value) {
       return result_t<T>(value);
     }
 
     template<typename T>
-    result_t<T> error(const std::string& reason) {
+    static result_t<T> error(const std::string& reason) {
       return result_t<T>(std::nullptr_t{}, reason);
     }
 
@@ -48,4 +48,41 @@ namespace stx {
             return this->m_error.c_str();
         }
     };
+
+    // special implementations
+    template<>
+    class result_t<bool> {
+      bool m_value;
+      std::string m_error;
+      bool m_is_error{};
+
+    public:
+      result_t(const std::nullptr_t&, const std::string& reason) :
+        m_is_error(true),
+        m_value(false),
+        m_error(reason)
+      {
+
+      }
+
+      result_t() : m_value(true)
+      {
+      }
+
+      bool is_error() {
+        return this->m_is_error;
+      }
+
+      bool value() {
+        return this->m_value;
+      }
+
+      const char* error_cstr() {
+        return this->m_error.c_str();
+      }
+    };
+
+    static result_t<bool> ok() {
+      return result_t<bool>();
+    }
 }

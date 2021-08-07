@@ -21,6 +21,7 @@
 #include "bnTomahawkman.h"
 #include "bnRoll.h"
 #include "bnForte.h"
+#include "stx/zip_utils.h"
 
 #ifdef BN_MOD_SUPPORT
 #include "bindings/bnScriptedPlayer.h"
@@ -130,9 +131,10 @@ static inline void QueuNaviRegistration() {
 
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   // Script resource manager load scripts from designated folder "resources/mods/players"
-  std::string path = "resources/mods/players";
-  for (const auto& entry : std::filesystem::directory_iterator(path)) {
+  std::string path_str = "resources/mods/players";
+  for (const auto& entry : std::filesystem::directory_iterator(path_str)) {
     const auto& path = entry.path();
+    const auto& absolute = std::filesystem::absolute(path);
     std::string characterName = path.filename().string();
     std::string modpath = path.string() + "/";
     auto& res = handle.Scripts().LoadScript(modpath + "entry.lua");
@@ -147,11 +149,16 @@ static inline void QueuNaviRegistration() {
       // run script on meta info object
       state["roster_init"](customInfo);
 
+      customInfo->SetFilePath(absolute.string());
       auto result = NAVIS.Commit(customInfo);
 
       if (result.is_error()) {
         Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), result.error_cstr());
       }
+
+      // debugging
+      // stx::zip(customInfo->GetFilePath(), customInfo->GetFilePath() + ".zip");
+      // stx::unzip(customInfo->GetFilePath() + ".zip",  std::filesystem::absolute(std::filesystem::path(path_str + "/../test/")).string());
     }
     else {
       sol::error error = res.result;

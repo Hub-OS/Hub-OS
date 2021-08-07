@@ -45,6 +45,25 @@ DownloadScene::~DownloadScene()
 
 }
 
+DownloadScene::state DownloadScene::Next(const DownloadScene::state& curr)
+{
+  switch (curr) {
+  case DownloadScene::state::trade: 
+    return DownloadScene::state::download_cards;
+    break;
+  case DownloadScene::state::download_cards:
+    return DownloadScene::state::download_player;
+    break;
+  case DownloadScene::state::download_player:
+    return DownloadScene::state::complete;
+    break;
+  default:
+    break;
+  }
+
+  return DownloadScene::state::complete;
+}
+
 void DownloadScene::TradeCardList(const std::vector<std::string>& uuids)
 {
   // Upload card list to remote. Track as the handshake.
@@ -98,15 +117,23 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     break;
   case NetPlaySignals::card_list_download:
     Logger::Logf("Recieved card list download signal");
-    if (currState == state::download) {
+    if (currState == state::download_cards) {
       Logger::Logf("Downloading card list...");
       this->DownloadCardList(body);
     }
+    break;
+  case NetPlaySignals::player_package_download:
+    Logger::Logf("Recieved player package download signal");
+    if (currState == state::download_player) {
+      Logger::Logf("Downloading player package...");
+      this->DownloadCustomPlayerData(body);    }
     break;
   case NetPlaySignals::downloads_complete:
     this->RecieveDownloadComplete(body);
     break;
   }
+
+  currState = Next(currState);
 }
 
 void DownloadScene::RecieveTradeCardList(const Poco::Buffer<char>& buffer)
@@ -126,12 +153,9 @@ void DownloadScene::RecieveTradeCardList(const Poco::Buffer<char>& buffer)
   // move to the next state
   if (retryCardList.empty()) {
     Logger::Logf("Nothing to download.");
-    currState = state::complete;
-    SendDownloadComplete(true);
   }
   else {
     Logger::Logf("Need to download %d cards", retryCardList.size());
-    currState = state::download;
     RequestCardList(retryCardList);
   }
 }
@@ -158,6 +182,10 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
   }
 
   Logger::Logf("Remote says download complete. Result: %s", result ? "Success" : "Fail");
+}
+
+void DownloadScene::DownloadCustomPlayerData(const Poco::Buffer<char>& buffer)
+{
 }
 
 void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
@@ -366,7 +394,7 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
     }
 
     // meta classes count
-    auto metaClasses = model->metaClasses;
+    auto& metaClasses = model->metaClasses;
     auto meta_len = (uint16_t)metaClasses.size();
     writer.Write(data, meta_len);
 
@@ -434,7 +462,8 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
   case state::trade:
     label.SetString("Connecting to other player...");
     break;
-  case state::download:
+  case state::download_cards:
+  case state::download_player:
     label.SetString("Downloading, please wait...");
     break;
   case state::complete:
@@ -448,7 +477,7 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
   label.SetColor(sf::Color::White);
   surface.draw(label);
 
-  if (currState < state::download) {
+  if (currState == state::download_cards || currState == state::download_player) {
     label.SetString("Request download, please wait...");
     auto bounds = label.GetLocalBounds();
     label.SetColor(sf::Color::White);
