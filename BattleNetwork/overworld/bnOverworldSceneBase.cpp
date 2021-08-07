@@ -325,9 +325,11 @@ void Overworld::SceneBase::HandleInput() {
   auto mousei = sf::Mouse::getPosition(window);
   auto mousef = window.mapPixelToCoords(mousei);
 
+  auto menuSystemOpen = !menuSystem.IsClosed();
+
   menuSystem.HandleInput(Input(), mousef);
 
-  if (!menuSystem.IsClosed()) {
+  if (menuSystemOpen) {
     return;
   }
 
