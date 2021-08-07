@@ -15,7 +15,7 @@
 
 #include "bnOverworldOnlineArea.h"
 #include "bnOverworldTileType.h"
-#include "bnOverworldTileBehaviours.h"
+#include "bnOverworldTileBehaviors.h"
 #include "bnOverworldObjectType.h"
 #include "../bnMath.h"
 #include "../bnNaviRegistration.h"
@@ -383,7 +383,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   auto player = GetPlayer();
   auto playerPos = player->Get3DPosition();
 
-  TileBehaviours::UpdateActor(*this, *player, propertyAnimator);
+  TileBehaviors::UpdateActor(*this, *player, propertyAnimator);
 
   propertyAnimator.Update(*player, elapsed);
   emoteNode.Update(elapsed);
