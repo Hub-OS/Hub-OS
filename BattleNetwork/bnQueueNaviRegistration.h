@@ -133,37 +133,7 @@ static inline void QueuNaviRegistration() {
   // Script resource manager load scripts from designated folder "resources/mods/players"
   std::string path_str = "resources/mods/players";
   for (const auto& entry : std::filesystem::directory_iterator(path_str)) {
-    const auto& path = entry.path();
-    const auto& absolute = std::filesystem::absolute(path);
-    std::string characterName = path.filename().string();
-    std::string modpath = path.string() + "/";
-    auto& res = handle.Scripts().LoadScript(modpath + "entry.lua");
-
-    if (res.result.valid()) {
-      sol::state& state = *res.state;
-      auto customInfo = NAVIS.AddClass<ScriptedPlayer>(std::ref(state));
-
-      // Sets the predefined _modpath variable
-      state["_modpath"] = modpath;
-
-      // run script on meta info object
-      state["roster_init"](customInfo);
-
-      customInfo->SetFilePath(absolute.string());
-      auto result = NAVIS.Commit(customInfo);
-
-      if (result.is_error()) {
-        Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), result.error_cstr());
-      }
-
-      // debugging
-      // stx::zip(customInfo->GetFilePath(), customInfo->GetFilePath() + ".zip");
-      // stx::unzip(customInfo->GetFilePath() + ".zip",  std::filesystem::absolute(std::filesystem::path(path_str + "/../test/")).string());
-    }
-    else {
-      sol::error error = res.result;
-      Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), error.what());
-    }
+    NAVIS.LoadNaviFromPackage(std::filesystem::absolute(entry).string());
   }
 #endif
 }

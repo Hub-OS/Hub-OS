@@ -323,6 +323,8 @@ public:
    */
   void LoadAllNavis(std::atomic<int>& progress);
   
+  void LoadNaviFromPackage(const std::string& path);
+  void LoadNaviFromZip(const std::string& path);
 };
 
 /*! \brief Shorthand for grabbing resource instance */

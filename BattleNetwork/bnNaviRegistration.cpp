@@ -1,9 +1,14 @@
 #include "bnNaviRegistration.h"
 #include "bnPlayer.h"
 #include "bnLogger.h"
+#include "stx/zip_utils.h"
 #include <exception>
 #include <atomic>
 #include <thread>
+
+#ifdef BN_MOD_SUPPORT
+#include "bindings/bnScriptedPlayer.h"
+#endif
 
 NaviRegistration::NaviMeta::NaviMeta() : iconTexture(), previewTexture()
 {
@@ -330,4 +335,63 @@ void NaviRegistration::LoadAllNavis(std::atomic<int>& progress)
 
     progress++;
   }
+}
+
+void NaviRegistration::LoadNaviFromPackage(const std::string& path)
+{
+#if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
+  ResourceHandle handle;
+
+  const auto& modpath = std::filesystem::absolute(path);
+  auto entrypath = modpath / "entry.lua";
+  std::string characterName = modpath.filename().string();
+  auto& res = handle.Scripts().LoadScript(entrypath.string());
+
+  if (res.result.valid()) {
+    sol::state& state = *res.state;
+    auto customInfo = NAVIS.AddClass<ScriptedPlayer>(std::ref(state));
+
+    // Sets the predefined _modpath variable
+    state["_modpath"] = modpath.string() + "/";
+
+    // run script on meta info object
+    state["roster_init"](customInfo);
+
+    customInfo->SetFilePath(modpath.string());
+    auto result = NAVIS.Commit(customInfo);
+
+    if (result.is_error()) {
+      Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), result.error_cstr());
+    }
+
+    // debugging
+    // stx::zip(customInfo->GetFilePath(), customInfo->GetFilePath() + ".zip");
+    // stx::unzip(customInfo->GetFilePath() + ".zip",  std::filesystem::absolute(std::filesystem::path(path_str + "/../test/")).string());
+  }
+  else {
+    sol::error error = res.result;
+    Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), error.what());
+  }
+#endif
+}
+
+void NaviRegistration::LoadNaviFromZip(const std::string& path)
+{
+#if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
+  auto absolute = std::filesystem::absolute(path);
+  auto file = absolute.filename();
+  std::string file_str = file.string();
+  size_t pos = file_str.find_first_of(".zip", 0);
+
+  if (pos == std::string::npos) return;
+
+  file_str = file_str.substr(pos);
+
+  absolute = absolute.remove_filename();
+  std::string extracted_path = (absolute / std::filesystem::path(file_str)).string();
+
+  if (auto result = stx::unzip(path, extracted_path); result.value()) {
+    LoadNaviFromPackage(extracted_path);
+  }
+#endif
 }
