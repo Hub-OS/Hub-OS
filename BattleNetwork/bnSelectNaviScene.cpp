@@ -7,9 +7,9 @@
 
 using namespace swoosh::types;
 
-SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
-  naviSelectionIndex(currentNavi),
-  currentChosen(currentNavi),
+SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::string& currentNaviId) :
+  naviSelectionId(currentNaviId),
+  currentChosenId(currentNaviId),
   font(Font::Style::small),
   textbox(140, 20, font),
   naviFont(Font::Style::thick),
@@ -44,7 +44,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   maxNumberCooldown = 0.5;
   numberCooldown = maxNumberCooldown; // half a second
 
-  prevChosen = currentNavi;
+  prevChosenId = currentNaviId;
   // select menu graphic
   bg = new GridBackground();
 
@@ -79,14 +79,15 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   navi.setOrigin(navi.getLocalBounds().width / 2.f, navi.getLocalBounds().height / 2.f);
   navi.setPosition(100.f, 150.f);
 
-  if (auto tex = NAVIS.At(currentChosen).GetPreviewTexture()) {
+
+  if (auto tex = NAVIS.FindByPackageID(currentChosenId).GetPreviewTexture()) {
     navi.setTexture(tex);
   }
 
-  naviLabel.SetString(sf::String(NAVIS.At(currentChosen).GetName().c_str()));
-  speedLabel.SetString(sf::String(NAVIS.At(currentChosen).GetSpeedString().c_str()));
-  attackLabel.SetString(sf::String(NAVIS.At(currentChosen).GetAttackString().c_str()));
-  hpLabel.SetString(sf::String(NAVIS.At(currentChosen).GetHPString().c_str()));
+  naviLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetName().c_str()));
+  speedLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetSpeedString().c_str()));
+  attackLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetAttackString().c_str()));
+  hpLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetHPString().c_str()));
   
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
@@ -262,7 +263,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   textbox.Update((float)elapsed);
   bg->Update((float)elapsed);
 
-  SelectedNavi prevSelect = currentChosen;
+  std::string prevSelectId = currentChosenId;
 
   // Scene keyboard controls
   if (!gotoNextScene) {
@@ -272,7 +273,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to previous mob
         selectInputCooldown = maxSelectInputCooldown;
-        currentChosen = static_cast<SelectedNavi>((int)currentChosen - 1);
+        currentChosenId = NAVIS.GetPackageBefore(currentChosenId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -284,7 +285,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to next mob
         selectInputCooldown = maxSelectInputCooldown;
-        currentChosen = static_cast<SelectedNavi>((int)currentChosen + 1);
+        currentChosenId = NAVIS.GetPackageAfter(currentChosenId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -303,30 +304,27 @@ void SelectNaviScene::onUpdate(double elapsed) {
     }
   }
 
-  currentChosen = (SelectedNavi)std::max(0, (int)currentChosen);
-  currentChosen = (SelectedNavi)std::min((int)NAVIS.Size() - 1, (int)currentChosen);
-
   // Reset the factor/slide in effects if a new selection was made
-  if (currentChosen != prevSelect || !loadNavi) {
+  if (currentChosenId != prevSelectId || !loadNavi) {
     factor = 125;
 
-    int offset = (int)(NAVIS.At(currentChosen).GetElement());
+    int offset = (int)(NAVIS.FindByPackageID(currentChosenId).GetElement());
     auto iconRect = sf::IntRect(14 * offset, 0, 14, 14);
     element.setTextureRect(iconRect);
 
-    if (auto tex = NAVIS.At(currentChosen).GetPreviewTexture()) {
+    if (auto tex = NAVIS.FindByPackageID(currentChosenId).GetPreviewTexture()) {
       navi.setTexture(tex, true);
     }
 
-    textbox.SetText(NAVIS.At(currentChosen).GetSpecialDescriptionString());
+    textbox.SetText(NAVIS.FindByPackageID(currentChosenId).GetSpecialDescriptionString());
     loadNavi = true;
   }
 
   // This goes here because the jumbling effect may finish and we need to see proper values
-  naviLabel.SetString(sf::String(NAVIS.At(currentChosen).GetName()));
-  speedLabel.SetString(sf::String(NAVIS.At(currentChosen).GetSpeedString()));
-  attackLabel.SetString(sf::String(NAVIS.At(currentChosen).GetAttackString()));
-  hpLabel.SetString(sf::String(NAVIS.At(currentChosen).GetHPString()));
+  naviLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetName()));
+  speedLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetSpeedString()));
+  attackLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetAttackString()));
+  hpLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetHPString()));
 
   // This just scrambles the letters
   if (numberCooldown > 0) {
@@ -366,7 +364,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   if (progress > 1.f) progress = 1.f;
 
   // Darken the unselected navis
-  if (prevChosen != currentChosen) {
+  if (prevChosenId != currentChosenId) {
     navi.setColor(sf::Color(200, 200, 200, 188));
   }
   else {
@@ -389,10 +387,10 @@ void SelectNaviScene::onUpdate(double elapsed) {
   navi.setOrigin(float(navi.getTextureRect().width)*0.5f, float(navi.getTextureRect().height));
 
   // Make a selection
-  if (Input().Has(InputEvents::pressed_confirm) && currentChosen != naviSelectionIndex) {
+  if (Input().Has(InputEvents::pressed_confirm) && currentChosenId != naviSelectionId) {
     Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
-    prevChosen = currentChosen;
-    naviSelectionIndex = currentChosen;
-    WEBCLIENT.SetKey("SelectedNavi", std::to_string(naviSelectionIndex));
+    prevChosenId = currentChosenId;
+    naviSelectionId = currentChosenId;
+    WEBCLIENT.SetKey("SelectedNavi", naviSelectionId);
   }
 }

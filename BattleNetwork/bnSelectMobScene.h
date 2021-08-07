@@ -47,7 +47,7 @@ class SelectMobScene : public Scene
 {
 public:
   struct Properties {
-    SelectedNavi navi;
+    std::string naviId;
     CardFolder& folder;
     PA& pa;
     std::shared_ptr<Background> background{ nullptr };
@@ -55,7 +55,7 @@ public:
 
 private:
   Properties props;
-  SelectedNavi selectedNavi; /*!< The selected navi */
+  std::string selectedNaviId; /*!< The selected navi */
 
   PA& programAdvance;
   

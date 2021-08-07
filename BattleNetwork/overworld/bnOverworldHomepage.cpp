@@ -323,7 +323,7 @@ void Overworld::Homepage::onUpdate(double elapsed)
   SceneBase::onUpdate(elapsed);
 
   if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked()) {
-    auto& meta = NAVIS.At(GetCurrentNavi());
+    auto& meta = NAVIS.FindByPackageID(GetCurrentNaviID());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
     auto mugshot = Textures().LoadTextureFromFile(image);

@@ -598,11 +598,15 @@ void Overworld::SceneBase::onEnd() {
 void Overworld::SceneBase::RefreshNaviSprite()
 {
   // Only refresh all data and graphics if this is a new navi
-  if (lastSelectedNavi == currentNavi) return;
+  if (lastSelectedNaviId == currentNaviId && !lastSelectedNaviId.empty()) return;
 
-  lastSelectedNavi = currentNavi;
+  if (!NAVIS.HasPackage(currentNaviId)) {
+    currentNaviId = NAVIS.FirstValidPackage();
+  }
 
-  auto& meta = NAVIS.At(currentNavi);
+  lastSelectedNaviId = currentNaviId;
+
+  auto& meta = NAVIS.FindByPackageID(currentNaviId);
 
   // refresh menu widget too
   playerSession->health = meta.GetHP();
@@ -627,18 +631,18 @@ void Overworld::SceneBase::RefreshNaviSprite()
     }
   }
   else {
-    Logger::Logf("Overworld animation not found for navi at index %i", currentNavi);
+    Logger::Logf("Overworld animation not found for navi package %s", currentNaviId.c_str());
   }
 }
 
 void Overworld::SceneBase::NaviEquipSelectedFolder()
 {
-  auto naviStr = WEBCLIENT.GetValue("SelectedNavi");
-  if (!naviStr.empty()) {
-    currentNavi = SelectedNavi(atoi(naviStr.c_str()));
+  auto naviId = WEBCLIENT.GetValue("SelectedNavi");
+  if (!naviId.empty()) {
+    currentNaviId = naviId;
     RefreshNaviSprite();
 
-    auto folderStr = WEBCLIENT.GetValue("FolderFor:" + naviStr);
+    auto folderStr = WEBCLIENT.GetValue("FolderFor:" + naviId);
     if (!folderStr.empty()) {
       // preserve our selected folder
       if (int index = folders.FindFolder(folderStr); index >= 0) {
@@ -647,8 +651,8 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
     }
   }
   else {
-    currentNavi = SelectedNavi(0);
-    WEBCLIENT.SetKey("SelectedNavi", std::to_string(0));
+    currentNaviId = NAVIS.FirstValidPackage();
+    WEBCLIENT.SetKey("SelectedNavi", currentNaviId);
   }
 }
 
@@ -841,7 +845,7 @@ void Overworld::SceneBase::GotoNaviSelect()
   Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<Checkerboard, milliseconds<250>>;
-  getController().push<effect::to<SelectNaviScene>>(currentNavi);
+  getController().push<effect::to<SelectNaviScene>>(currentNaviId);
 }
 
 void Overworld::SceneBase::GotoConfig()
@@ -864,7 +868,7 @@ void Overworld::SceneBase::GotoMobSelect()
     folder = new CardFolder();
   }
 
-  SelectMobScene::Properties props{ currentNavi, *folder, programAdvance, bg };
+  SelectMobScene::Properties props{ currentNaviId, *folder, programAdvance, bg };
   using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
   Audio().Play(AudioType::CHIP_DESC);
   getController().push<effect::to<SelectMobScene>>(props);
@@ -881,7 +885,7 @@ void Overworld::SceneBase::GotoPVP()
 
   Audio().Play(AudioType::CHIP_DESC);
   using effect = segue<PushIn<direction::down>, milliseconds<500>>;
-  getController().push<effect::to<MatchMakingScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
+  getController().push<effect::to<MatchMakingScene>>(currentNaviId, *folder, programAdvance);
 }
 
 void Overworld::SceneBase::GotoMail()
@@ -954,9 +958,9 @@ Overworld::TeleportController& Overworld::SceneBase::GetTeleportController()
   return teleportController;
 }
 
-SelectedNavi& Overworld::SceneBase::GetCurrentNavi()
+std::string& Overworld::SceneBase::GetCurrentNaviID()
 {
-  return currentNavi;
+  return currentNaviId;
 }
 
 std::shared_ptr<Background> Overworld::SceneBase::GetBackground()

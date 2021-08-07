@@ -634,7 +634,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "SetMugshotAnimationPath", &NaviRegistration::NaviMeta::SetMugshotAnimationPath,
         "SetEmotionsTexturePath", &NaviRegistration::NaviMeta::SetEmotionsTexturePath,
         "SetPreviewTexture", &NaviRegistration::NaviMeta::SetPreviewTexture,
-        "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
+        "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture,
+        "DeclarePackage", &NaviRegistration::NaviMeta::SetPackageID
     );
 
     const auto& mobmeta_table = engine_namespace.new_usertype<MobRegistration::MobMeta>("MobInfo",

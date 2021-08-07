@@ -74,9 +74,8 @@ namespace Overworld {
     std::vector<std::vector<std::shared_ptr<WorldSprite>>> spriteLayers;
     Overworld::MenuSystem menuSystem;
 
-    /*!< Current navi selection index */
-    SelectedNavi currentNavi{},
-      lastSelectedNavi{ std::numeric_limits<SelectedNavi>::max() };
+    /*!< Current player package selection */
+    std::string currentNaviId, lastSelectedNaviId;
 
 
     CardFolderCollection folders; /*!< Collection of folders */
@@ -252,7 +251,7 @@ namespace Overworld {
     std::shared_ptr<Actor> GetPlayer();
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();
-    SelectedNavi& GetCurrentNavi();
+    std::string& GetCurrentNaviID();
     std::shared_ptr<Background> GetBackground();
     PA& GetProgramAdvance();
     std::optional<CardFolder*> GetSelectedFolder();

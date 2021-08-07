@@ -37,9 +37,9 @@ constexpr float MAX_PIXEL_FACTOR = 125.f;
 class SelectNaviScene : public Scene
 {
 private:
-  SelectedNavi& naviSelectionIndex; /*!< SelectedNavi reference. Will change when user selects new navi */
-  SelectedNavi prevChosen; /*!< The previous selected navi. Used to start effects. */
-  SelectedNavi currentChosen; /*!< The value of naviSelectionIndex if no change, otherwise the user's selection*/
+  std::string& naviSelectionId; /*!< SelectedNavi reference. Will change when user selects new navi */
+  std::string prevChosenId; /*!< The previous selected navi. Used to start effects. */
+  std::string currentChosenId; /*!< The value of naviSelectionIndex if no change, otherwise the user's selection*/
 
   double maxSelectInputCooldown; /*!< half of a second input delay */
   double selectInputCooldown;    /*!< count down before registering input */
@@ -86,7 +86,7 @@ public:
    *
    * Loads and positions all graphics
    */
-  SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& navi);
+  SelectNaviScene(swoosh::ActivityController& controller, std::string& naviId);
   
   /**
    * @brief Cleanup all allocated memory

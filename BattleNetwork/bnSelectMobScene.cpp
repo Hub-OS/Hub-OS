@@ -11,7 +11,7 @@ using namespace swoosh::types;
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const SelectMobScene::Properties& props) :
   elapsed(0),
   selectedFolder(props.folder),
-  selectedNavi(props.navi),
+  selectedNaviId(props.naviId),
   programAdvance(props.pa),
   font(Font::Style::wide),
   menuLabel("BATTLE SELECT", font),
@@ -372,7 +372,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       Audio().StopStream();
 
       // Get the navi we selected
-      auto& meta = NAVIS.At(selectedNavi);
+      auto& meta = NAVIS.FindByPackageID(selectedNaviId);
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();

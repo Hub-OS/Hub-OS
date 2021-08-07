@@ -77,7 +77,7 @@ private:
   frame_time_t cardStateDelay{}; //!< Timer that counts down until the card select state opens up
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
   Text ping;
-  SelectedNavi selectedNavi; //!< the type of navi we selected
+  std::string selectedNaviId; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   std::vector<Player*> players; //!< Track all players
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
@@ -96,7 +96,7 @@ private:
 
   void sendHandshakeSignal(); // send player data to start the next round
   void sendInputEvents(const std::vector<InputEvent>& events); // send our key or gamepad events
-  void sendConnectSignal(const SelectedNavi navi);
+  void sendConnectSignal(const std::string& naviId);
   void sendChangedFormSignal(const int form);
   void sendHPSignal(const int hp);
   void sendTileCoordSignal(const int x, const int y);

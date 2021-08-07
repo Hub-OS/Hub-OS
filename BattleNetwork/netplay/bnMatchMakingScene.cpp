@@ -17,9 +17,9 @@
 
 using namespace swoosh::types;
 
-MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, int selected, CardFolder& folder, PA& pa) : 
+MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const std::string& naviId, CardFolder& folder, PA& pa) : 
   textbox(sf::Vector2f(4, 250)), 
-  selectedNavi(selected), 
+  selectedNaviId(naviId), 
   folder(folder), pa(pa),
   uiAnim("resources/ui/pvp_widget.animation"),
   text(Font::Style::thick),
@@ -51,7 +51,7 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, int s
   this->gridBG = new GridBackground();
   gridBG->setColor(sf::Color(0)); // hide until it is ready
 
-  clientPreview.setTexture(NAVIS.At(selectedNavi).GetPreviewTexture());
+  clientPreview.setTexture(NAVIS.FindByPackageID(selectedNaviId).GetPreviewTexture());
   clientPreview.setScale(2.f, 2.f);
   clientPreview.setOrigin(clientPreview.getLocalBounds().width, clientPreview.getLocalBounds().height);
   
@@ -237,9 +237,9 @@ void MatchMakingScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remoteIsReady = true;
 
-  size_t navi = size_t{ 0 }; 
-  std::memcpy(&navi, buffer.begin(), sizeof(size_t));
-  auto& meta = NAVIS.At(static_cast<int>(navi));
+  size_t len = size_t{}; 
+  std::memcpy(&len, buffer.begin(), sizeof(size_t));
+  auto& meta = NAVIS.FindByPackageID(std::string(buffer.begin()+sizeof(size_t), len));
   this->remotePreview.setTexture(meta.GetPreviewTexture());
   auto height = remotePreview.getSprite().getLocalBounds().height;
   remotePreview.setOrigin(sf::Vector2f(0, height));
@@ -462,7 +462,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       HandleCancel();
     }
     else {
-      SendConnectSignal(selectedNavi);
+      // SendConnectSignal(selectedNaviId);
     }
   }
   else if (isInFlashyVSIntro && !isInBattleStartup) {
@@ -564,17 +564,8 @@ void MatchMakingScene::onUpdate(double elapsed) {
       Audio().StopStream();
 
       // Configure the session
-      SelectedNavi compatibleNavi = 0;
-
-      // TODO: 
-      // For Demo's prevent sending scripted navis over the network
-      if (selectedNavi < 6) {
-        compatibleNavi = selectedNavi;
-      }
-
-      config.myNavi = compatibleNavi;
-
-      auto& meta = NAVIS.At(compatibleNavi);
+      config.myNaviId = selectedNaviId;
+      auto& meta = NAVIS.FindByPackageID(config.myNaviId);
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
@@ -600,8 +591,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
       if (!handshakeComplete && !theirIP.empty()) {
         // Try reaching out to someone...
-        this->SendConnectSignal(selectedNavi);
-        this->SendConnectSignal(selectedNavi);
+        //this->SendConnectSignal(selectedNaviId);
         this->SendHandshakeSignal();
       }
     }

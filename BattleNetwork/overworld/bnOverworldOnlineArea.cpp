@@ -74,7 +74,7 @@ Overworld::OnlineArea::OnlineArea(
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
 
-  lastFrameNavi = this->GetCurrentNavi();
+  lastFrameNaviId = this->GetCurrentNaviID();
   
   // emotes
   auto windowSize = getController().getVirtualWindowSize();
@@ -285,9 +285,9 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     Audio().StopStream();
 
     // Configure the session
-    config.myNavi = GetCurrentNavi();
+    config.myNaviId = GetCurrentNaviID();
 
-    auto& meta = NAVIS.At(config.myNavi);
+    auto& meta = NAVIS.FindByPackageID(config.myNaviId);
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
     const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
@@ -391,10 +391,10 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   propertyAnimator.Update(*player, elapsed);
   emoteNode.Update(elapsed);
 
-  auto currentNavi = GetCurrentNavi();
-  if (lastFrameNavi != currentNavi) {
+  auto currentNaviId = GetCurrentNaviID();
+  if (lastFrameNaviId != currentNaviId) {
     sendAvatarChangeSignal();
-    lastFrameNavi = currentNavi;
+    lastFrameNaviId = currentNaviId;
 
     // move the emote above the player's head
     float emoteY = -GetPlayer()->getSprite().getOrigin().y - 10;
@@ -403,7 +403,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
 
   if (!IsInputLocked()) {
     if (Input().Has(InputEvents::pressed_shoulder_right)) {
-      auto& meta = NAVIS.At(GetCurrentNavi());
+      auto& meta = NAVIS.FindByPackageID(GetCurrentNaviID());
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& anim = meta.GetMugshotAnimationPath();
       auto mugshot = Textures().LoadTextureFromFile(image);
@@ -1224,7 +1224,7 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
 {
   sendAvatarAssetStream();
 
-  auto& naviMeta = NAVIS.At(GetCurrentNavi());
+  auto& naviMeta = NAVIS.FindByPackageID(GetCurrentNaviID());
   auto naviName = naviMeta.GetName();
   auto maxHP = naviMeta.GetHP();
   auto element = GetStrFromElement(naviMeta.GetElement());
@@ -1273,7 +1273,7 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
   // + reliability type + id + packet type
   auto packetHeaderSize = 1 + 8 + 2;
 
-  auto& naviMeta = NAVIS.At(GetCurrentNavi());
+  auto& naviMeta = NAVIS.FindByPackageID(GetCurrentNaviID());
 
   auto texturePath = naviMeta.GetOverworldTexturePath();
   auto textureData = readBytes(texturePath);
@@ -2384,7 +2384,7 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     // update our records
     if (currentTime - onlinePlayer.lastMovementTime < MAX_IDLE_MS) {
       // dont include the time difference if this player was idling longer than the server rebroadcasts for
-      onlinePlayer.lagWindow.Push(timeDifference);
+      onlinePlayer.lagWindow.Push((float)timeDifference);
     }
 
     if (newPos != endBroadcastPos) {

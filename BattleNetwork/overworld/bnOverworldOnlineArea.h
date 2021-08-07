@@ -73,6 +73,7 @@ namespace Overworld {
     std::shared_ptr<PacketProcessor> packetProcessor;
     std::shared_ptr<Netplay::PacketProcessor> netBattleProcessor;
     std::string connectData;
+    std::string lastFrameNaviId{};
     uint16_t maxPayloadSize;
     bool isConnected{ false };
     bool transferringServers{ false };
@@ -83,7 +84,6 @@ namespace Overworld {
     bool copyScreen{ false };
     ReturningScene returningFrom{ ReturningScene::Null };
     ActorPropertyAnimator propertyAnimator;
-    SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
     IdentityManager identityManager;
     AssetMeta incomingAsset;

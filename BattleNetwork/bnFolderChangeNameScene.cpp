@@ -2,6 +2,7 @@
 #include "bnInputManager.h"
 #include "bnWebClientMananger.h"
 #include "Segues/BlackWashFade.h"
+#include "bnNaviRegistration.h"
 
 #include <Swoosh/ActivityController.h>
 
@@ -135,7 +136,7 @@ void FolderChangeNameScene::DoOK()
 
   // Save this session data new folder name
   auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
-  if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
+  if (naviSelectedStr.empty()) naviSelectedStr = NAVIS.FirstValidPackage(); // We must have a key for the selected navi
   WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderName);
 
   // Set original variable to new results

@@ -4,6 +4,7 @@ end
 
 function roster_init(info) 
     print("modpath: ".._modpath)
+    info:DeclarePackage("com.example.player.Eraseman")
     info:SetSpecialDescription("Scripted net navi!")
     info:SetSpeed(2.0)
     info:SetAttack(2)

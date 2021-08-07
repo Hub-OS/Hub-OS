@@ -38,11 +38,11 @@ private:
   bool handshakeComplete{ false };
   bool leftForBattle{ false };
   bool playVS{ true };
-  int selectedNavi{};
   double sequenceTimer{ 0.0 }; // in seconds
   double flashCooldown{ 0 };
   size_t selectionIndex{ 0 }; // 0 = text input field widget
   std::string myIP, theirIP; // IP strings for textbox
+  std::string selectedNaviId{};
   CardFolder& folder;
   PA& pa;
   NetPlayConfig netplayconfig;
@@ -86,7 +86,7 @@ private:
 public:
   friend class MatchMaking::PacketProcessor;
 
-  MatchMakingScene(swoosh::ActivityController&, int, CardFolder&, PA&);
+  MatchMakingScene(swoosh::ActivityController&, const std::string& naviId, CardFolder&, PA&);
   ~MatchMakingScene();
 
   /**

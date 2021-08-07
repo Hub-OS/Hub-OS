@@ -9,11 +9,10 @@
 #include <SFML/Graphics.hpp>
 #include "bnElements.h"
 #include "bnPlayer.h"
+#include "stx/result.h"
 #include "stx/tuple.h"
 
 class Player; // forward decl
-
-typedef int SelectedNavi;
 
 /*! \brief Use this singleton to register custom navis and have them automatically appear on the select, overworld, and battle scenes
 */
@@ -25,6 +24,7 @@ public:
     friend class NaviRegistration;
 
     Player* navi; /*!< The net navi to construct */
+    std::string packageId; /*!< Reverse domain name (reverse-DNS) identifier */
     std::string special; /*!< The net navi's special description */
     std::string overworldAnimationPath; /*!< The net navi's overworld animation */
     std::string overworldTexturePath; /*!< The path of the texture to load */
@@ -59,6 +59,13 @@ public:
      */
     template<class T, typename... Args> NaviMeta& SetNaviClass(Args&&...);
    
+    /**
+    * @brief Sets an identifier for this package in the engine
+    * @param Reverse-DNS identifier
+    * @return NaviMeta& to chain
+    */
+    NaviMeta& SetPackageID(const std::string& id);
+
     /**
      * @brief Sets special description information of the navi
      * @return NaviMeta& to chain
@@ -148,6 +155,12 @@ public:
     NaviMeta& SetIconTexture(const std::shared_ptr<sf::Texture> icon);
 
     /**
+   * @brief Gets the package identifier
+   * @return const std::string&
+   */
+    const std::string& GetPackageID() const;
+
+    /**
      * @brief Gets the icon texture to draw
      * @return const sf::Texture&
      */
@@ -157,7 +170,7 @@ public:
      * @brief Gets the overworld texture path to load
      * @return const std::string&
      */
-    const std::string GetOverworldTexturePath() const;
+    const std::string& GetOverworldTexturePath() const;
     
     /**
      * @brief Gets the overworld animation path
@@ -191,7 +204,7 @@ public:
     
     /**
      * @brief Gets the net navi name
-     * @return const std::string
+     * @return const std::string (copy)
      */
     const std::string GetName() const;
     
@@ -203,19 +216,19 @@ public:
     
     /**
      * @brief Gets the navi HP as a string to display
-     * @return const std::string
+     * @return const std::string (copy)
      */
     const std::string GetHPString() const;
     
     /**
      * @brief Gets the navi speed as a string to display
-     * @return const std::string
+     * @return const std::string (copy)
      */
     const std::string GetSpeedString() const;
     
     /**
      * @brief Get the attack strength as string to display
-     * @return const std::string
+     * @return const std::string (copy)
      */
     const std::string GetAttackString() const;
     
@@ -223,7 +236,7 @@ public:
      * @brief Get the special description string to display
      * @return const std::string
      */
-    const std::string GetSpecialDescriptionString() const;
+    const std::string& GetSpecialDescriptionString() const;
     
     /**
      * @brief Gets the element of the navi
@@ -239,13 +252,7 @@ public:
   };
 
 private:
-  std::vector<NaviMeta*> roster; /*!< Complete roster of net navis to load */
- 
-  /**
-   * @brief Registers a navi through a NaviMeta data object
-   * @param info
-   */
-  void Register(NaviMeta* info);
+  std::map<std::string, NaviMeta*> roster; /*!< Complete roster of net navis to load */
   
 public:
   /**
@@ -260,6 +267,13 @@ public:
   ~NaviRegistration(); 
 
   /**
+ * @brief Registers a navi through a NaviMeta data object
+ * @param info
+ * @return if info was able to commit or not
+ */
+  stx::result_t<bool> Commit(NaviMeta* info);
+
+  /**
    * @brief Creates a navi roster entry and sets the deffered navi loader for navi type T
    * @return NaviMeta* roster data object
    */
@@ -267,18 +281,21 @@ public:
   NaviMeta* AddClass(Args&&... args) {
     NaviRegistration::NaviMeta* info = new NaviRegistration::NaviMeta();
     info->SetNaviClass<T>(std::forward<decltype(args)>(args)...);
-    Register(info);
-
     return info;
   }
 
   /**
-   * @brief Get the navi info entry at roster index 
-   * @param index roster index
+   * @brief Get the navi info entry by package identifier 
+   * @param id package reverse-DNS identifier
    * @return NaviMeta& of navi entry
-   * @throws std::runtime_error if index is greater than number of entries or less than zero
+   * @throws std::runtime_error if not found
    */
-  NaviMeta& At(int index);
+  NaviMeta& FindByPackageID(const std::string& id);
+
+  bool HasPackage(const std::string& id);
+  const std::string FirstValidPackage();
+  const std::string GetPackageBefore(const std::string& id);
+  const std::string GetPackageAfter(const std::string& id);
   
   /**
    * @brief Get the size of the navi roster

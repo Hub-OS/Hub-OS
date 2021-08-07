@@ -52,7 +52,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
 
   auto* clientPlayer = &props.base.player;
 
-  selectedNavi = props.netconfig.myNavi;
+  selectedNaviId = props.netconfig.myNaviId;
   props.base.player.CreateComponent<PlayerInputReplicator>(clientPlayer);
 
   packetProcessor = props.packetProcessor;
@@ -191,7 +191,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(syncState);
 
-  sendConnectSignal(this->selectedNavi); // NOTE: this function only happens once at start
+  sendConnectSignal(this->selectedNaviId); // NOTE: this function only happens once at start
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -402,12 +402,15 @@ void NetworkBattleScene::sendInputEvents(const std::vector<InputEvent>& events)
   packetTime = frames(0);
 }
 
-void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
+void NetworkBattleScene::sendConnectSignal(const std::string& naviId)
 {
+  size_t len = naviId.length();
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::connect };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)&navi, sizeof(SelectedNavi));
+  buffer.append((char*)&len, sizeof(size_t));
+  buffer.append(naviId.data(), sizeof(char)*len);
+
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -572,23 +575,18 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remoteState.remoteConnected = true;
 
-  SelectedNavi navi = SelectedNavi{ 0 }; 
+  size_t len{};
+  std::memcpy(&len, buffer.begin(), sizeof(size_t));
+  size_t read = sizeof(size_t);
 
-  if (buffer.size() >= sizeof(SelectedNavi)) {
-    std::memcpy(&navi, buffer.begin(), sizeof(SelectedNavi));
-  }
-  else {
-    std::string str_buffer(buffer.begin(), buffer.end());
-    Logger::Logf("Incoming connect signal was corrupted: %s", str_buffer.c_str());
-    return;
-  }
+  std::string remoteNaviId(buffer.begin() + read, len);
 
-  remoteState.remoteNavi = navi;
+  remoteState.remoteNaviId = remoteNaviId;
 
-  Logger::Logf("Recieved connect signal! Remote navi: %i", remoteState.remoteNavi);
+  Logger::Logf("Recieved connect signal! Remote navi: %s", remoteState.remoteNaviId);
 
   assert(remotePlayer == nullptr && "remote player was already set!");
-  remotePlayer = NAVIS.At(navi).GetNavi();
+  remotePlayer = NAVIS.FindByPackageID(remoteNaviId).GetNavi();
 
   // TODO: manual flipping shouldn't be needed. The engine should flip based on team and direction...
   remotePlayer->SetTeam(Team::blue);

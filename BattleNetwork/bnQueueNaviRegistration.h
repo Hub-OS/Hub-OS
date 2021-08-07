@@ -44,6 +44,8 @@ static inline void QueuNaviRegistration() {
   megamanInfo->SetSpeed(1);
   megamanInfo->SetAttack(1);
   megamanInfo->SetChargedAttack(10);
+  megamanInfo->SetPackageID("com.builtins.engine.hero1");
+  NAVIS.Commit(megamanInfo);
 
   // Register Roll
   auto rollInfo = NAVIS.AddClass<Roll>();
@@ -58,6 +60,8 @@ static inline void QueuNaviRegistration() {
   rollInfo->SetSpeed(2);
   rollInfo->SetAttack(2);
   rollInfo->SetChargedAttack(10);
+  rollInfo->SetPackageID("com.builtins.engine.hero2");
+  NAVIS.Commit(rollInfo);
 
   // Register Starman
   auto starmanInfo = NAVIS.AddClass<Starman>();
@@ -72,6 +76,8 @@ static inline void QueuNaviRegistration() {
   starmanInfo->SetSpeed(3);
   starmanInfo->SetAttack(2);
   starmanInfo->SetChargedAttack(10);
+  starmanInfo->SetPackageID("com.builtins.engine.hero3");
+  NAVIS.Commit(starmanInfo);
 
   // Register Protoman
   auto protomanInfo = NAVIS.AddClass<Protoman>();
@@ -87,6 +93,8 @@ static inline void QueuNaviRegistration() {
   protomanInfo->SetAttack(1);
   protomanInfo->SetChargedAttack(20);
   protomanInfo->SetIsSword(true);
+  protomanInfo->SetPackageID("com.builtins.engine.hero4");
+  NAVIS.Commit(protomanInfo);
 
   // Register Tomahawkman
   auto thawkInfo = NAVIS.AddClass<Tomahawkman>();
@@ -101,6 +109,8 @@ static inline void QueuNaviRegistration() {
   thawkInfo->SetSpeed(2);
   thawkInfo->SetAttack(1);
   thawkInfo->SetChargedAttack(20);
+  thawkInfo->SetPackageID("com.builtins.engine.hero5");
+  NAVIS.Commit(thawkInfo);
 
   // Register Forte
   auto forteInfo = NAVIS.AddClass<Forte>();
@@ -115,6 +125,8 @@ static inline void QueuNaviRegistration() {
   forteInfo->SetSpeed(2);
   forteInfo->SetAttack(2);
   forteInfo->SetChargedAttack(20);
+  forteInfo->SetPackageID("com.builtins.engine.antihero1");
+  NAVIS.Commit(forteInfo);
 
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   // Script resource manager load scripts from designated folder "resources/mods/players"
@@ -134,6 +146,12 @@ static inline void QueuNaviRegistration() {
 
       // run script on meta info object
       state["roster_init"](customInfo);
+
+      auto result = NAVIS.Commit(customInfo);
+
+      if (result.is_error()) {
+        Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), result.error_cstr());
+      }
     }
     else {
       sol::error error = res.result;

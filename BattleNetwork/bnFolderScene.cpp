@@ -11,6 +11,7 @@
 #include "Segues/BlackWashFade.h"
 #include "bnCardLibrary.h"
 #include "bnCardFolder.h"
+#include "bnNaviRegistration.h"
 #include "Android/bnTouchArea.h"
 #include "bnMessageQuestion.h"
 
@@ -366,7 +367,7 @@ void FolderScene::onUpdate(double elapsed) {
             // Save this session data
             auto folderStr = collection.GetFolderNames()[0];
             auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
-            if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
+            if (naviSelectedStr.empty()) naviSelectedStr = NAVIS.FirstValidPackage(); // We must have a key for the selected navi
             WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
 
             Audio().Play(AudioType::PA_ADVANCE);

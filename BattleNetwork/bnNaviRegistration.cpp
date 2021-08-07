@@ -30,6 +30,18 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetIconTexture(const std
   return *this;
 }
 
+const std::string& NaviRegistration::NaviMeta::GetPackageID() const
+{
+  return packageId;
+}
+
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetPackageID(const std::string& id)
+{
+  NaviMeta::packageId = id;
+
+  return *this;
+}
+
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSpecialDescription(const std::string && special)
 {
   NaviMeta::special = special;
@@ -107,12 +119,12 @@ const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetIconTexture() cons
   return iconTexture;
 }
 
-const std::string NaviRegistration::NaviMeta::GetOverworldTexturePath() const
+const std::string& NaviRegistration::NaviMeta::GetOverworldTexturePath() const
 {
   return overworldTexturePath;
 }
 
-const std::string & NaviRegistration::NaviMeta::GetOverworldAnimationPath() const 
+const std::string& NaviRegistration::NaviMeta::GetOverworldAnimationPath() const 
 {
   return overworldAnimationPath;
 }
@@ -170,7 +182,7 @@ const std::string NaviRegistration::NaviMeta::GetAttackString() const
   return std::to_string(atk) + "-" + std::to_string(chargedAtk) + " charged";
 }
 
-const std::string NaviRegistration::NaviMeta::GetSpecialDescriptionString() const
+const std::string& NaviRegistration::NaviMeta::GetSpecialDescriptionString() const
 {
   return special;
 }
@@ -194,26 +206,97 @@ NaviRegistration & NaviRegistration::GetInstance()
 
 NaviRegistration::~NaviRegistration()
 {
-  for (int i = 0; i < (int)Size(); i++) {
-    delete roster[i];
+  for (auto& [_, entry] : roster) {
+    delete entry;
   }
 
   roster.clear();
 }
 
-void NaviRegistration::Register(NaviMeta * info)
+stx::result_t<bool> NaviRegistration::Commit(NaviMeta * info)
 {
-  roster.push_back(info);
-}
-
-NaviRegistration::NaviMeta & NaviRegistration::At(int index)
-{
-  if (index < 0 || index >= (int)Size()) {
-    Logger::Logf("Roster index out of bounds. Reverting to index #0");
-    index = 0;
+  std::string packageId = info->GetPackageID();
+  if (info && !packageId.empty()) {
+    if (roster.find(packageId) == roster.end()) {
+      roster.insert(std::make_pair(packageId, info));
+    }
+    else {
+      return stx::error<bool>(std::string("There is already a package in the player roster with id of ") + packageId);
+    }
+  }
+  else {
+    return stx::error<bool>(std::string("info object was nullptr or package ID was not set"));
   }
 
-  return *(roster.at(index));
+  return stx::ok(true);
+}
+
+NaviRegistration::NaviMeta & NaviRegistration::FindByPackageID(const std::string& id)
+{
+  auto iter = roster.find(id);
+
+  if(iter == roster.end()) {
+    std::string error = "Roster could not find package ID " + id;
+    throw std::runtime_error(error);
+  }
+
+  return *(iter->second);
+}
+
+bool NaviRegistration::HasPackage(const std::string& id)
+{
+  return roster.find(id) != roster.end();
+}
+
+const std::string NaviRegistration::FirstValidPackage()
+{
+  if (roster.empty()) {
+    throw std::runtime_error("Player package list is empty!");
+  }
+
+  return roster.begin()->first;
+}
+
+const std::string NaviRegistration::GetPackageBefore(const std::string& id)
+{
+  std::string previous_key;
+
+  for (auto iter = roster.begin(); iter != roster.end(); iter = std::next(iter)) {
+    std::string key = iter->first;
+
+    if (key == id) {
+      if (previous_key.empty()) {
+        previous_key = roster.rbegin()->first;
+      }
+
+      break;
+    }
+
+    previous_key = key;
+  }
+
+  return previous_key;
+}
+
+const std::string NaviRegistration::GetPackageAfter(const std::string& id)
+{
+  std::string previous_key;
+
+  for (auto iter = roster.rbegin(); iter != roster.rend(); iter = std::next(iter)) {
+    std::string key = iter->first;
+
+    if (key == id) {
+      if (previous_key.empty()) {
+        previous_key = roster.begin()->first;
+      }
+
+      break;
+    }
+
+    previous_key = key;
+  }
+
+  return previous_key;
 }
 
 const unsigned NaviRegistration::Size()
@@ -223,10 +306,10 @@ const unsigned NaviRegistration::Size()
 
 void NaviRegistration::LoadAllNavis(std::atomic<int>& progress)
 {
-  for (int i = 0; i < (int)Size(); i++) {
-    roster[i]->loadNaviClass();
+  for (auto& [key, entry]: roster) {
+    entry->loadNaviClass();
 
-    Logger::Logf("Loaded navi: %s", roster[i]->navi->GetName().c_str());
+    Logger::Logf("Loaded player package: %s", entry->navi->GetName().c_str());
 
     progress++;
   }
