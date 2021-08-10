@@ -29,7 +29,7 @@ Thunder::Thunder(Team _team) : Spell(_team) {
   Hit::Properties props;
 
   // Thunder stuns and recoils
-  props.flags |= Hit::flinch | Hit::stun;
+  props.flags |= Hit::flinch | Hit::stun | Hit::impact;
 
   // Thunder has electric properties
   props.element = Element::elec;
@@ -145,18 +145,14 @@ bool Thunder::CanMoveTo(Battle::Tile* tile) {
   return true;
 }
 
-void Thunder::Attack(Character* _entity) {
-  // Only attack entities on this tile that are not on our team
-  if (_entity && _entity->GetTeam() != GetTeam()) {
-    // If entity was successfully hit
-    if (_entity->Hit(GetHitboxProperties())) {
-      // Mark us for deletion
-      Delete();
-    }
-  }
+void Thunder::OnCollision(const Character*) {
+  Delete();
 }
 
-void Thunder::OnDelete()
-{
+void Thunder::OnDelete() {
   Remove();
+}
+
+void Thunder::Attack(Character* _entity) {
+  _entity->Hit(GetHitboxProperties());
 }
