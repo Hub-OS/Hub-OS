@@ -45,7 +45,8 @@ public:
   void OnDelete() override;
 
   /**
-  * @brief Does nothing
+  * @brief Attacks entity
+  * @param what's getting attacked
   */
   void Attack(Character* _entity) override;
 }; 
