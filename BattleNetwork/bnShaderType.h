@@ -43,6 +43,7 @@
         WHITE,
         WHITE_FADE,
         YELLOW,
+        BLACK,
         DISTORTION,
         SPOT_DISTORTION,
         SPOT_REFLECTION,

@@ -79,6 +79,7 @@ private:
 
   sf::Shader* whiteout{ nullptr }; /*!< Flash white when hit */
   sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
+  sf::Shader* root{ nullptr };     /*!< Flicker black with luminance values when root */
   std::shared_ptr<CardAction> currCardAction{ nullptr };
   frame_time_t cardActionStartDelay{0};
 
@@ -191,6 +192,12 @@ public:
   bool IsStunned();
 
   /**
+   * @brief Query the character's state is Rooted
+   * @return true if character is currently rooted, false otherwise
+   */
+  bool IsRooted();
+
+  /**
    * @brief Get the rank of this character
    * @return const Rank
    */
@@ -290,6 +297,14 @@ protected:
   void Stun(double maxCooldown);
 
   /**
+  * @brief Stop a character from moving for maxCooldown seconds
+  * @param maxCooldown
+  * Used internally by class
+  *
+  */
+  void Root(double maxCooldown);
+
+  /**
   * @brief Query if an attack successfully countered a Character
   * @return true if character is currently countered, false otherwise
   * Used internally by class
@@ -302,6 +317,7 @@ protected:
   bool canTilePush{};
   std::string name;
   double stunCooldown{ 0 }; /*!< Timer until stun is over */
+  double rootCooldown{ 0 }; /*!< Timer until root is over */
   double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   Character::Rank rank;
 };

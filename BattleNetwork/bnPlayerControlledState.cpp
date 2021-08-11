@@ -128,7 +128,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     direction = Direction::right;
   }
 
-  if(direction != Direction::none && actionable) {
+  if(direction != Direction::none && actionable && !player.IsRooted()) {
     auto next_tile = player.GetTile() + direction;
     auto anim = player.GetFirstComponent<AnimationComponent>();
 

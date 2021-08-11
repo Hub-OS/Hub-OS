@@ -794,6 +794,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "Flinch", Hit::flinch,
         "Flash", Hit::flash,
         "Stun", Hit::stun,
+        "Root", Hit::root,
         "Impact", Hit::impact,
         "Shake", Hit::shake,
         "Pierce", Hit::pierce,
