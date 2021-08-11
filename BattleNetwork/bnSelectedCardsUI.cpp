@@ -88,10 +88,10 @@ void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
   curr = 0;
 }
 
-void SelectedCardsUI::UseNextCard() {
+bool SelectedCardsUI::UseNextCard() {
   Character* owner = this->GetOwnerAs<Character>();
 
-  if (!owner) return;
+  if (!owner) return false;
 
   const auto actions = owner->AsyncActionList();
   bool hasNextCard = curr < cardCount;
@@ -106,7 +106,7 @@ void SelectedCardsUI::UseNextCard() {
   canUseCard = canUseCard && hasNextCard;
 
   if (!canUseCard) {
-    return;
+    return false;
   }
 
   auto card = selectedCards[curr];
@@ -119,6 +119,7 @@ void SelectedCardsUI::UseNextCard() {
 
   // add a peek event to the action queue
   owner->AddAction(PeekCardEvent{ this }, ActionOrder::voluntary);
+  return true;
 }
 
 void SelectedCardsUI::Broadcast(const Battle::Card& card, Character& user)

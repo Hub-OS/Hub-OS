@@ -38,7 +38,7 @@ public:
   /**
    * @brief Must implement
    */
-  virtual void UseNextCard() = 0;
+  virtual bool UseNextCard() = 0;
 
   void DropSubscribers();
 };
