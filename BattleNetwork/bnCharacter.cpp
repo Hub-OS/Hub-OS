@@ -24,6 +24,7 @@ Character::Character(Rank _rank) :
   slideFromDrag(false),
   canShareTile(false),
   stunCooldown(0),
+  rootCooldown(0),
   invincibilityCooldown(0),
   counterSlideDelta(0),
   name("unnamed"),
@@ -32,6 +33,7 @@ Character::Character(Rank _rank) :
 
   whiteout = Shaders().GetShader(ShaderType::WHITE);
   stun = Shaders().GetShader(ShaderType::YELLOW);
+  root = Shaders().GetShader(ShaderType::BLACK);
 
   using namespace std::placeholders;
   auto cardHandler = std::bind(&Character::HandleCardEvent, this, _1, _2);
@@ -76,6 +78,11 @@ bool Character::IsStunned()
   return stunCooldown > 0;
 }
 
+bool Character::IsRooted()
+{
+    return rootCooldown > 0;
+}
+
 const Character::Rank Character::GetRank() const {
   return rank;
 }
@@ -118,15 +125,31 @@ void Character::Update(double _elapsed) {
   sf::Vector2f shakeOffset;
 
   double prevThisFrameStun = stunCooldown;
+  double prevThisFrameRoot = rootCooldown;
 
   if (!hit) {
     unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
+    unsigned rootFrame = from_seconds(rootCooldown).count() % 4;
     if (stunCooldown && stunFrame < 2) {
       if (stun) {
         SetShader(stun);
       }
       else {
         setColor(sf::Color::Yellow);
+      }
+
+      for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
+        if (!child->IsUsingParentShader()) {
+          child->EnableParentShader(true);
+        }
+      }
+    }
+    else if (rootCooldown && rootFrame < 2) {
+      if (root) {
+        SetShader(root);
+      }
+      else {
+        setColor(sf::Color::Black);
       }
 
       for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
@@ -173,7 +196,15 @@ void Character::Update(double _elapsed) {
     }
   }
 
-  if(stunCooldown > 0.0 && !IsTimeFrozen()) {
+  if(rootCooldown > 0.0) {
+    rootCooldown -= _elapsed;
+
+    if (rootCooldown <= 0.0 || invincibilityCooldown > 0 || IsPassthrough()) {
+      rootCooldown = 0.0;
+    }
+  }
+
+  if(stunCooldown > 0.0) {
     stunCooldown -= _elapsed;
 
     if (stunCooldown <= 0.0) {
@@ -268,6 +299,7 @@ void Character::Update(double _elapsed) {
 
     // Ensure status effects do not play out
     stunCooldown = 0;
+    rootCooldown = 0;
     invincibilityCooldown = 0;
   }
 
@@ -518,6 +550,14 @@ void Character::ResolveFrameBattleDamage()
       // exclude this from the next processing step 
       props.filtered.flags &= ~Hit::bubble;
 
+      if ((props.filtered.flags & Hit::root) == Hit::root) {
+          rootCooldown = 2.0;
+          flagCheckThunk(Hit::root);
+      }
+
+      // exclude this from the next processing step 
+      props.filtered.flags &= ~Hit::root;
+
       /*
       flags already accounted for:
       - impact
@@ -525,6 +565,7 @@ void Character::ResolveFrameBattleDamage()
       - flinch
       - drag
       - retangible
+      - root
 
       Now check if the rest were triggered and invoke the
       corresponding status callbacks
@@ -643,6 +684,11 @@ void Character::ToggleCounter(bool on)
 void Character::Stun(double maxCooldown)
 {
   stunCooldown = maxCooldown;
+}
+
+void Character::Root(double maxCooldown)
+{
+    rootCooldown = maxCooldown;
 }
 
 bool Character::IsCountered()

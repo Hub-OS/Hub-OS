@@ -12,6 +12,7 @@ Hit::Properties& DefenseObstacleBody::FilterStatuses(Hit::Properties& statuses)
   statuses.flags &= ~Hit::flinch;
   statuses.flags &= ~Hit::stun;
   statuses.flags &= ~Hit::freeze;
+  statuses.flags &= ~Hit::root;
 
   return statuses;
 }
