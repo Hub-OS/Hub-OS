@@ -397,28 +397,24 @@ void Character::ResolveFrameBattleDamage()
 
     // Calculate elemental damage if the tile the character is on is super effective to it
     if (props.filtered.element == Element::fire
-      && GetTile()->GetState() == TileState::grass
-      && !(HasAirShoe() || HasFloatShoe())) {
+      && GetTile()->GetState() == TileState::grass) {
       tileDamage = props.filtered.damage;
       GetTile()->SetState(TileState::normal);
     }
     else if (props.filtered.element == Element::elec
-      && GetTile()->GetState() == TileState::ice
-      && !(HasAirShoe() || HasFloatShoe())) {
+      && GetTile()->GetState() == TileState::ice) {
       tileDamage = props.filtered.damage;
-      GetTile()->SetState(TileState::normal);
     }
 
     {
       // Only register counter if:
       // 1. Hit type is impact
-      // 2. Hit original hit type is also flash
-      // 3. The hitbox is allowed to counter
-      // 4. The character is on a counter frame
-      // 5. Hit properties has an aggressor
+      // 2. The hitbox is allowed to counter
+      // 3. The character is on a counter frame
+      // 4. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if ((props.hitbox.flags & Hit::flash) == Hit::flash && (props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
+        if ((props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
           frameCounterAggressor = field->GetCharacter(props.filtered.aggressor);
         }
 
