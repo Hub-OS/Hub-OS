@@ -345,7 +345,8 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
 
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
-    float distance = Hypotenuse({ delta.x, delta.y });
+    auto screenDelta = map.WorldToScreen(delta);
+    float distance = Hypotenuse({ screenDelta.x, screenDelta.y });
     double expectedTime = onlinePlayer.lagWindow.GetEMA();
     float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
 
@@ -2209,14 +2210,14 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     // Calculate the NEXT frame and see if we're moving too far
     auto& onlinePlayer = userIter->second;
     auto currentTime = GetSteadyTime();
-    bool animatingPos = onlinePlayer.propertyAnimator.IsAnimatingPosition();
     auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector3f(x, y, z);
-    auto delta = endBroadcastPos - newPos;
-    float distance = Hypotenuse({ delta.x, delta.y });
+    auto screenDelta = map.WorldToScreen(endBroadcastPos - newPos);
+    float distance = Hypotenuse({ screenDelta.x, screenDelta.y });
     double timeDifference = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
     auto teleportController = &onlinePlayer.teleportController;
+    bool animatingPos = onlinePlayer.propertyAnimator.IsAnimatingPosition();
     auto actor = onlinePlayer.actor;
 
     // Do not attempt to animate the teleport over quick movements if already teleporting or animating position
