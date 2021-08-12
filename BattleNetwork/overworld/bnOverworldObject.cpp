@@ -93,7 +93,7 @@ namespace Overworld {
 
     ortho += orthoOffset;
 
-    iso = map.OrthoToIsometric(ortho);
+    iso = map.ScreenToWorld(ortho);
 
     return tile.Intersects(map, iso.x, iso.y);
   }

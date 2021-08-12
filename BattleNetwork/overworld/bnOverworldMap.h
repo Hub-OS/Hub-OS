@@ -28,7 +28,7 @@ namespace Overworld {
    * The map also supports psuedo lighting by multiplying sprites
    * by the light color. Limit light sources because this is slow.
    */
-  class Map : public sf::Transformable
+  class Map
   {
   public:
     class Layer {
@@ -122,13 +122,6 @@ namespace Overworld {
     size_t HashTilePosition(sf::Vector2f position) const;
 
     /**
-     * @brief Transforms an ortho vector into an isometric vector
-     * @param ortho position in orthographic space
-     * @return vector in isometric space
-     */
-    sf::Vector2f OrthoToIsometric(const sf::Vector2f& ortho) const;
-
-    /**
      * @brief Returns tile dimensions as a vector
      * @return const sf::Vector2i(tileWidth, tileHeight)
      */
@@ -175,12 +168,5 @@ namespace Overworld {
     std::unordered_map<std::string, std::shared_ptr<Tileset>> tilesets;
     std::vector<std::shared_ptr<TileMeta>> tileMetas;
     bool tilesModified{};
-
-    /**
-     * @brief Transforms an iso vector into an orthographic vector
-     * @param iso position in isometric space
-     * @return vector in orthographic space
-     */
-    sf::Vector2f IsoToOrthogonal(const sf::Vector2f& iso) const;
   };
 }

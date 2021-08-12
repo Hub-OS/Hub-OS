@@ -268,7 +268,7 @@ void Overworld::Minimap::FindObjectMarkers(Map& map) {
       auto screenOffset = tileMeta->alignmentOffset + tileMeta->drawingOffset;
       screenOffset += tileObject.size / 2.0f;
 
-      auto objectCenterPos = tileObject.position + map.OrthoToIsometric(screenOffset);
+      auto objectCenterPos = tileObject.position + map.ScreenToWorld(screenOffset);
       auto zOffset = sf::Vector2f(0, (float)(-i * tileSize.y / 2));
 
       if (tileObject.type == ObjectType::home_warp) {
@@ -281,7 +281,7 @@ void Overworld::Minimap::FindObjectMarkers(Map& map) {
       }
       else if (tileObject.type == ObjectType::board) {
         sf::Vector2f bottomPosition = objectCenterPos;
-        bottomPosition += map.OrthoToIsometric({ 0.0f, tileObject.size.y / 2.0f });
+        bottomPosition += map.ScreenToWorld({ 0.0f, tileObject.size.y / 2.0f });
 
         bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(bottomPosition)), i);
         AddBoardPosition(map.WorldToScreen(bottomPosition) + zOffset, tileObject.tile.flippedHorizontal, isConcealed);

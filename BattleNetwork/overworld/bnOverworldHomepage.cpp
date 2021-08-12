@@ -76,14 +76,14 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
     // search for warps
     for (auto& tileObject : layer.GetTileObjects()) {
       if (tileObject.name == "Home Warp") {
-        auto warpLayerPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+        auto warpLayerPos = tileObject.position + map.ScreenToWorld(sf::Vector2f(0, tileObject.size.y / 2.0f));
         spawnPos = { warpLayerPos.x, warpLayerPos.y, z };
 
         auto screenPos = GetMap().WorldToScreen(spawnPos);
         GetMinimap().SetHomepagePosition(screenPos, false);
       }
       else if (tileObject.name == "Net Warp") {
-        auto centerPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+        auto centerPos = tileObject.position + map.ScreenToWorld(sf::Vector2f(0, tileObject.size.y / 2.0f));
         auto tileSize = map.GetTileSize();
 
         netWarpTilePos = sf::Vector3f(
@@ -272,15 +272,17 @@ void Overworld::Homepage::onUpdate(double elapsed)
   const auto& [row, col] = PixelToRowCol(mousei, window);
   sf::Vector2f click = { (float)col * map.GetTileSize().x, (float)row * map.GetTileSize().y };
 
+  auto& worldTransform = GetWorldTransform();
+
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
-    map.setScale(2.f, 2.f);
+    worldTransform.setScale(2.f, 2.f);
   }
   else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp) && !scaledmap) {
-    map.setScale(map.getScale() * 2.f);
+    worldTransform.setScale(worldTransform.getScale() * 2.f);
     scaledmap = true;
   }
   else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown) && !scaledmap) {
-    map.setScale(map.getScale() * 0.5f);
+    worldTransform.setScale(worldTransform.getScale() * 0.5f);
     scaledmap = true;
   }
 

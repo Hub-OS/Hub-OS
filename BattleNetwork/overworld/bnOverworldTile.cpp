@@ -73,7 +73,7 @@ namespace Overworld {
     }
     else {
       // isometric orientation
-      testPosition = map.OrthoToIsometric(testPosition);
+      testPosition = map.ScreenToWorld(testPosition);
     }
 
     for (auto& shape : tileMeta->collisionShapes) {

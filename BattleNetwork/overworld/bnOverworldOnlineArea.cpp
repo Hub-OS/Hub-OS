@@ -565,7 +565,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   auto cameraView = GetCamera().GetView();
   sf::Vector2f cameraCenter = cameraView.getCenter();
-  sf::Vector2f mapScale = GetMap().getScale();
+  sf::Vector2f mapScale = GetWorldTransform().getScale();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
   cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
   auto offset = cameraCenter - getView().getCenter();
