@@ -76,6 +76,7 @@ namespace Overworld {
     std::string lastFrameNaviId{};
     uint16_t maxPayloadSize;
     bool isConnected{ false };
+    bool serverLockedInput{ false };
     bool transferringServers{ false };
     bool kicked{ false };
     bool tryPopScene{ false };
@@ -109,8 +110,7 @@ namespace Overworld {
     void onInteract(Interaction type);
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
-    void detectWarp(std::shared_ptr<Actor>& player);
-    void detectConveyor(std::shared_ptr<Actor>& player);
+    void detectWarp();
     bool positionIsInWarp(sf::Vector3f position);
     Overworld::TeleportController::Command& teleportIn(sf::Vector3f position, Direction direction);
     void transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut);

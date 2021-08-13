@@ -15,7 +15,7 @@ DefenseStatusGuard::~DefenseStatusGuard()
 
 Hit::Properties& DefenseStatusGuard::FilterStatuses(Hit::Properties& statuses)
 {
-  statuses.flags &= ~(Hit::bubble | Hit::freeze | Hit::stun);
+  statuses.flags &= ~(Hit::bubble | Hit::freeze | Hit::stun | Hit::root);
   return statuses;
 }
 

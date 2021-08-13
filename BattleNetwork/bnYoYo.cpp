@@ -24,7 +24,7 @@ YoYo::YoYo(Team _team, int damage, double speed) : Spell(_team) {
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
-  props.flags |= Hit::flinch;
+  props.flags = Hit::flinch | Hit::impact;
   SetHitboxProperties(props);
 
   tileCount = hitCount = 0;
@@ -71,11 +71,7 @@ void YoYo::OnUpdate(double _elapsed) {
         animation->AddCallback(3, [this, direction]() {
           // First, let the slide finish for this final tile...
           if (!IsSliding()) {
-            auto hitbox = new Hitbox(GetTeam());
-            hitbox->SetHitboxProperties(GetHitboxProperties());
-            GetField()->AddEntity(*hitbox, *GetTile());
-
-            // After we hit 2 more times, reverse the direction
+            // After we slide in place two more times, change direction
             if (++hitCount == 2) {
               SetDirection(Reverse(direction));
               animation->CancelCallbacks();
@@ -85,17 +81,13 @@ void YoYo::OnUpdate(double _elapsed) {
       }
     }
     else {
-      // Keep moving
+      // Keep moving OR slide in place
       Slide(GetTile() + GetDirection(), frames(7), frames(0));
     }
 
-  }else if (tileCount != 3) {
-    // The tile counter updates when it has reached
-    // center tile, when count == 2, we were spinning in place
-    // So we want to skip count == 3 because it will have only
-    // begun moving to the previous tile. This avoids a duplicate hit
-    // caused by the animation callback when it drops 3 hitboxes.
-
+  }else {
+    // Hit once per tile; because we slide in place twice on 
+    // the final tile, it will be hit three times.
     tile->AffectEntities(this);
   }
 }

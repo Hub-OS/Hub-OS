@@ -20,6 +20,7 @@ public:
 
 private:
   Callback callback; /*!< Runs when the antidefense is triggered */
+  bool triggering{ false };
 
 public:
   /**

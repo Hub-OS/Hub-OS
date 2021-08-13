@@ -65,7 +65,7 @@ public:
   Battle::Card* Next();
   
   /**
-   * @brief The remaining size of the folder 
+   * @brief The remaining size of the folder
    * @return int
    */
   const int GetSize() const;

@@ -164,7 +164,7 @@ void Aura::OnReplace()
     GetOwner()->RemoveNode(fx);
   }
 
-  RemoveDefenseRule();
+  defenseRuleRemoved = true;
 
   Eject();
 }

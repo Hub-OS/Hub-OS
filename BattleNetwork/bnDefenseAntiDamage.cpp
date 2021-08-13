@@ -21,9 +21,12 @@ void DefenseAntiDamage::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Chara
   } else if ((props.flags & Hit::impact) == Hit::impact && props.damage >= 10
     && !judge.IsDamageBlocked() && !judge.IsImpactBlocked()) {
 
-    owner.GetField()->AddEntity(*new Hitbox(owner.GetTeam(), 0), *owner.GetTile());
+    if (!triggering) {
+        owner.GetField()->AddEntity(*new Hitbox(owner.GetTeam(), 0), *owner.GetTile());
+        judge.AddTrigger(callback, std::ref(in), std::ref(owner));
+    }
 
-    judge.AddTrigger(callback, std::ref(in), std::ref(owner));
     judge.BlockDamage();
+    triggering = true;
   }
 }

@@ -34,13 +34,19 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief Attacks enemy entities. If succesful, thunder is deleted.
-   * @param _entity character to attack
+   * @brief Collides with entities. Thunder is deleted.
+   * @param what was collided with
    */
-  void Attack(Character* _entity) override;
+  void OnCollision(const Character* _entity) override;
 
   /** 
   * @brief Does nothing
   */
   void OnDelete() override;
+
+  /**
+  * @brief Attacks entity
+  * @param what's getting attacked
+  */
+  void Attack(Character* _entity) override;
 }; 
