@@ -173,7 +173,7 @@ void Character::Update(double _elapsed) {
     }
   }
 
-  if(stunCooldown > 0.0 && !IsTimeFrozen()) {
+  if(stunCooldown > 0.0 /*&& !IsTimeFrozen()*/) {
     stunCooldown -= _elapsed;
 
     if (stunCooldown <= 0.0) {
@@ -490,7 +490,7 @@ void Character::ResolveFrameBattleDamage()
       // exclude this from the next processing step
       props.filtered.flags &= ~Hit::stun;
 
-      // Flinch can be queued if dragging this frame
+      // Flash can be queued if dragging this frame
       if ((props.filtered.flags & Hit::flash) == Hit::flash) {
         if (postDragEffect.dir != Direction::none) {
           append.push({ props.hitbox, { 0, props.filtered.flags } });
@@ -526,9 +526,10 @@ void Character::ResolveFrameBattleDamage()
       flags already accounted for:
       - impact
       - stun
-      - flinch
+      - flash
       - drag
       - retangible
+      - bubble
 
       Now check if the rest were triggered and invoke the
       corresponding status callbacks
@@ -539,13 +540,13 @@ void Character::ResolveFrameBattleDamage()
       flagCheckThunk(Hit::shake);
       flagCheckThunk(Hit::flinch);
 
+
       if (props.filtered.damage) {
         OnHit();
         SetHealth(GetHealth() - tileDamage);
         if (GetHealth() == 0) {
           postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up
         }
-        // this->OnUpdate(0);
         HitPublisher::Broadcast(*this, props.filtered);
       }
     }

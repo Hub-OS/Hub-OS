@@ -43,5 +43,43 @@ end
 
 function execute_charged_attack(player)
     print("charged attack")
-    return Battle.Bomb.new(player, 40)
+    return special_card_action(player)
+end
+
+function spawn_attack(user, tile)
+    local spell = Battle.Spell.new(user:GetTeam())
+
+    spell:SetHitProps(MakeHitProps(
+        50, 
+        Hit.Impact | Hit.Drag | Hit.Flinch, 
+        Element.Cursor, 
+        user:GetID(), 
+        Drag(Direction.Right, 1)
+        )
+    )
+
+    user:GetField():Spawn(spell, tile:X(), tileY())
+
+    return spell
+end
+
+function special_card_action(user) 
+    local action = Battle.CardAction(user, "PLAYER_SPECIAL")
+    action:SetLockout(LockType.Animation)
+
+    action.executeFunc = function(self, actor)
+        local do_attack = function()
+            local t1 = user:GetTile(Direction.Right, 1)
+            local t2 = user:GetTile(Direction.Right, 2)
+
+            spawn_attack(user, t1:X(), t1:Y())
+            spawn_attack(user, t2:X(), t2:Y())
+            spawn_attack(user, t2:X(), t2:Y()-1)
+            spawn_attack(user, t2:X(), t2:Y()+1)
+        end
+
+        self:AddAnimAction(3, do_attack)
+    end
+
+    return action
 end
