@@ -8,8 +8,10 @@ using namespace swoosh::types;
 
 GameOverScene::GameOverScene(swoosh::ActivityController& controller) : Scene(controller) {
   fadeInCooldown = 2.0f;
-
-  gameOver.setTexture(*Textures().GetTexture(TextureType::GAME_OVER));
+  gameOverTexture = *Textures().LoadTextureFromFile("resources/scenes/game_over/game_over.png");
+  //Separating the texture into its own member allows the texture to live long enough to be drawn
+  //within the next function.
+  gameOver.setTexture(gameOverTexture);
   gameOver.setScale(2.f, 2.f);
   gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
 
@@ -59,6 +61,7 @@ void GameOverScene::onUpdate(double elapsed) {
 void GameOverScene::onDraw(sf::RenderTexture& surface) {
   sf::Vector2f logoPos = (sf::Vector2f)((sf::Vector2i)getController().getVirtualWindowSize() / 2);
   gameOver.setPosition(logoPos);
-  gameOver.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255 * (1.0f-(fadeInCooldown / 2.f)))));
+  //gameOver.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255 * (1.0f-(fadeInCooldown / 2.f)))));
+  //Commented out because it fades in just fine without it. This causes it to flicker once.
   surface.draw(gameOver);
 }

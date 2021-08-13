@@ -15,6 +15,7 @@
 
 #include "bnOverworldOnlineArea.h"
 #include "bnOverworldTileType.h"
+#include "bnOverworldTileBehaviors.h"
 #include "bnOverworldObjectType.h"
 #include "../bnMath.h"
 #include "../bnNaviRegistration.h"
@@ -27,7 +28,6 @@
 using namespace swoosh::types;
 constexpr float ROLLING_WINDOW_SMOOTHING = 3.0f;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
-constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
 constexpr long long MAX_IDLE_MS = 1000;
 constexpr float MIN_IDLE_MOVEMENT = 1.f;
 
@@ -74,8 +74,8 @@ Overworld::OnlineArea::OnlineArea(
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
 
-  lastFrameNaviId = this->GetCurrentNaviID();
-  
+  lastFrameNavi = this->GetCurrentNavi();
+
   // emotes
   auto windowSize = getController().getVirtualWindowSize();
   auto emoteWidget = std::make_shared<EmoteWidget>();
@@ -90,11 +90,6 @@ Overworld::OnlineArea::OnlineArea(
   emoteNode.SetLayer(-100);
   emoteNode.setScale(0.5f, 0.5f);
   player->AddNode(&emoteNode);
-
-  propertyAnimator.OnComplete([this] {
-    // todo: this may cause issues when leaving the scene through Home and Server Warps
-    GetPlayerController().ControlActor(GetPlayer());
-  });
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -104,7 +99,7 @@ Overworld::OnlineArea::~OnlineArea()
 std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbstractUser(const std::string& id)
 {
   if (id == ticket) {
-    return AbstractUser {
+    return AbstractUser{
       GetPlayer(),
       emoteNode,
       GetTeleportController(),
@@ -117,7 +112,7 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
   if (iter != onlinePlayers.end()) {
     auto& onlinePlayer = iter->second;
 
-    return AbstractUser {
+    return AbstractUser{
       onlinePlayer.actor,
       onlinePlayer.emoteNode,
       onlinePlayer.teleportController,
@@ -388,11 +383,26 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   auto player = GetPlayer();
   auto playerPos = player->Get3DPosition();
 
+  TileBehaviors::UpdateActor(*this, *player, propertyAnimator);
+
   propertyAnimator.Update(*player, elapsed);
   emoteNode.Update(elapsed);
 
-  auto currentNaviId = GetCurrentNaviID();
-  if (lastFrameNaviId != currentNaviId) {
+  if (serverLockedInput || propertyAnimator.IsAnimatingPosition()) {
+    LockInput();
+
+    if (propertyAnimator.IsAnimatingPosition()) {
+      // release actor to prevent animation override
+      GetPlayerController().ReleaseActor();
+    }
+  }
+  else {
+    UnlockInput();
+    GetPlayerController().ControlActor(player);
+  }
+
+  auto currentNavi = GetCurrentNavi();
+  if (lastFrameNavi != currentNavi) {
     sendAvatarChangeSignal();
     lastFrameNaviId = currentNaviId;
 
@@ -402,12 +412,13 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   }
 
   if (!IsInputLocked()) {
-    if (Input().Has(InputEvents::pressed_shoulder_right)) {
+    auto& menuSystem = GetMenuSystem();
+
+    if (menuSystem.IsClosed() && Input().Has(InputEvents::pressed_shoulder_right)) {
       auto& meta = NAVIS.FindByPackageID(GetCurrentNaviID());
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& anim = meta.GetMugshotAnimationPath();
       auto mugshot = Textures().LoadTextureFromFile(image);
-      auto& menuSystem = GetMenuSystem();
       menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
 
       menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
@@ -424,16 +435,15 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
 
     if (playerPos.x != lastPosition.x || playerPos.y != lastPosition.y) {
       // only need to handle this if the player has moved
-      detectWarp(player);
+      detectWarp();
     }
   }
-
-  detectConveyor(player);
 
   lastPosition = playerPos;
 }
 
-void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player) {
+void Overworld::OnlineArea::detectWarp() {
+  auto player = GetPlayer();
   auto& teleportController = GetTeleportController();
 
   if (!teleportController.IsComplete()) {
@@ -467,7 +477,6 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
-        GetPlayerController().ReleaseActor();
         sendLogoutSignal();
         getController().pop<segue<BlackWashFade>>();
       });
@@ -481,7 +490,6 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
       auto data = tileObject.customProperties.GetProperty("data");
 
       command.onFinish.Slot([=] {
-        GetPlayerController().ReleaseActor();
         transferServer(address, port, data, false);
       });
       break;
@@ -522,164 +530,6 @@ void Overworld::OnlineArea::detectWarp(std::shared_ptr<Overworld::Actor>& player
 
     break;
   }
-}
-
-void Overworld::OnlineArea::detectConveyor(std::shared_ptr<Overworld::Actor>& player) {
-  if (propertyAnimator.IsAnimatingPosition()) {
-    // if the server is dragging the player around, ignore conveyors
-    return;
-  }
-
-  auto& map = GetMap();
-
-  auto layerIndex = player->GetLayer();
-
-  if (layerIndex < 0 || layerIndex >= map.GetLayerCount()) {
-    return;
-  }
-
-  auto playerTilePos = map.WorldToTileSpace(player->getPosition());
-  auto& layer = map.GetLayer(layerIndex);
-  auto tile = layer.GetTile(int(playerTilePos.x), int(playerTilePos.y));
-
-  if (!tile) {
-    return;
-  }
-
-  auto tileMeta = map.GetTileMeta(tile->gid);
-
-  if (!tileMeta || tileMeta->type != TileType::conveyor) {
-    return;
-  }
-
-  auto direction = tileMeta->direction;
-
-  if (tile->flippedHorizontal) {
-    direction = FlipHorizontal(direction);
-  }
-
-  if (tile->flippedVertical) {
-    direction = FlipVertical(direction);
-  }
-
-  auto endTilePos = playerTilePos;
-  float tileDistance = 0.0f;
-
-  ActorPropertyAnimator::PropertyStep animationProperty;
-  animationProperty.property = ActorProperty::animation;
-
-  // resolve animation
-  switch (direction) {
-  case Direction::up_left:
-    animationProperty.stringValue = "IDLE_UL";
-    break;
-  case Direction::up_right:
-    animationProperty.stringValue = "IDLE_UR";
-    break;
-  case Direction::down_left:
-    animationProperty.stringValue = "IDLE_DL";
-    break;
-  case Direction::down_right:
-    animationProperty.stringValue = "IDLE_DR";
-    break;
-  }
-
-  ActorPropertyAnimator::PropertyStep axisProperty;
-  axisProperty.ease = Ease::linear;
-
-  auto isConveyor = [&layer, &map](sf::Vector2f endTilePos) {
-    auto tile = layer.GetTile(int(endTilePos.x), int(endTilePos.y));
-
-    if (!tile) {
-      return false;
-    }
-
-    auto tileMeta = map.GetTileMeta(tile->gid);
-
-    return tileMeta && tileMeta->type == TileType::conveyor;
-  };
-
-  // resolve end position
-  switch (direction) {
-  case Direction::up_left:
-  case Direction::down_right:
-    endTilePos.x = std::floor(endTilePos.x);
-    axisProperty.property = ActorProperty::x;
-    break;
-  case Direction::up_right:
-  case Direction::down_left:
-    axisProperty.property = ActorProperty::y;
-    endTilePos.y = std::floor(endTilePos.y);
-    break;
-  }
-
-  auto unprojectedDirection = Orthographic(direction);
-  auto walkVector = UnitVector(unprojectedDirection);
-
-  endTilePos += walkVector;
-
-  bool nextTileIsConveyor = isConveyor(endTilePos);
-  if (nextTileIsConveyor) {
-    endTilePos += walkVector / 2.0f;
-  }
-
-  // fixing overshooting
-  switch (direction) {
-  case Direction::up_left:
-    endTilePos.x = std::nextafter(endTilePos.x + 1.0f, -INFINITY);
-    break;
-  case Direction::up_right:
-    endTilePos.y = std::nextafter(endTilePos.y + 1.0f, -INFINITY);
-    break;
-  }
-
-  auto endPos = map.TileToWorld(endTilePos);
-
-  switch (axisProperty.property) {
-  case ActorProperty::x:
-    axisProperty.value = endPos.x;
-    tileDistance = std::abs(endTilePos.x - playerTilePos.x);
-    break;
-  case ActorProperty::y:
-    axisProperty.value = endPos.y;
-    tileDistance = std::abs(endTilePos.y - playerTilePos.y);
-    break;
-  }
-
-  propertyAnimator.Reset();
-
-  auto speed = tileMeta->customProperties.GetPropertyFloat("speed");
-
-  if (speed == 0.0f) {
-    speed = DEFAULT_CONVEYOR_SPEED;
-  }
-
-  auto duration = tileDistance / speed;
-
-  ActorPropertyAnimator::PropertyStep sfxProperty;
-  sfxProperty.property = ActorProperty::sound_effect_loop;
-  sfxProperty.stringValue = GetPath(tileMeta->customProperties.GetProperty("sound effect"));
-
-  ActorPropertyAnimator::KeyFrame startKeyframe;
-  startKeyframe.propertySteps.push_back(animationProperty);
-  startKeyframe.propertySteps.push_back(sfxProperty);
-  propertyAnimator.AddKeyFrame(startKeyframe);
-
-  ActorPropertyAnimator::KeyFrame endKeyframe;
-  endKeyframe.propertySteps.push_back(axisProperty);
-  endKeyframe.duration = duration;
-  propertyAnimator.AddKeyFrame(endKeyframe);
-
-  if (!nextTileIsConveyor) {
-    ActorPropertyAnimator::KeyFrame waitKeyFrame;
-    // reuse last property to simulate idle
-    waitKeyFrame.propertySteps.push_back(axisProperty);
-    waitKeyFrame.duration = 0.25;
-    propertyAnimator.AddKeyFrame(waitKeyFrame);
-  }
-
-  propertyAnimator.UseKeyFrames(*player);
-  GetPlayerController().ReleaseActor();
 }
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
@@ -750,7 +600,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   for (auto& pair : onlinePlayers) {
     auto id = pair.first;
 
-    if(excludedActors.find(id) != excludedActors.end()) {
+    if (excludedActors.find(id) != excludedActors.end()) {
       // actor is excluded, do not display on hover
       continue;
     }
@@ -905,7 +755,6 @@ void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t 
   };
 
   if (warpOut) {
-    GetPlayerController().ReleaseActor();
     auto& command = GetTeleportController().TeleportOut(GetPlayer());
     command.onFinish.Slot(transfer);
   }
@@ -1016,10 +865,10 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       serverCameraController.QueueUnlockCamera();
       break;
     case ServerEvents::lock_input:
-      LockInput();
+      serverLockedInput = true;
       break;
     case ServerEvents::unlock_input:
-      UnlockInput();
+      serverLockedInput = false;
       break;
     case ServerEvents::teleport:
       receiveTeleportSignal(reader, data);
@@ -2269,8 +2118,9 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     if (isExcluded) {
       // remove the actor if they are marked as hidden by the server
       RemoveSprite(actor);
-    } else {
-      // add the teleport beam if the actor is not marked as hidden by the server
+    }
+    else {
+   // add the teleport beam if the actor is not marked as hidden by the server
       AddSprite(teleportController.GetBeam());
     }
   }
@@ -2540,11 +2390,6 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
 
   if (tail) {
     propertyAnimator->UseKeyFrames(*actor);
-
-    if (actor == GetPlayer() && propertyAnimator->IsAnimatingPosition()) {
-      // release to block the controller from attempting to animate the player
-      GetPlayerController().ReleaseActor();
-    }
   }
 }
 

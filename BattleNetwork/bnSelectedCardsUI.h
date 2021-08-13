@@ -50,7 +50,7 @@ public:
    * @brief Broadcasts the card at the cursor curr. Increases curr.
    * @return True if there was a card to use
    */
-  void UseNextCard() override;
+  bool UseNextCard() override;
 
   /**
  * @brief Broadcasts the card information to all listeners

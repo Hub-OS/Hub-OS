@@ -4,26 +4,26 @@
 #include "bnEntity.h"
 
 namespace Hit {
-  using Flags = uint16_t;
+  using Flags = uint32_t;
 
   // These are in order!
   // Hitboxes properties will be inserted in queue
   // based on priority (A < B) where the highest priority
   // is the lowest value
-  const Flags none = 0x0000;
-  const Flags retangible = 0x0001;
-  const Flags freeze = 0x0002;
-  const Flags pierce = 0x0004;
-  const Flags flinch = 0x0008;
-  const Flags shake = 0x0010;
-  const Flags stun = 0x0020;
-  const Flags flash = 0x0040;
-  const Flags breaking = 0x0080;
-  const Flags impact = 0x0100;
-  const Flags drag = 0x0200;
-  const Flags bubble = 0x0400;
-  const Flags no_counter = 0x0800;
-  // 0x1000 - 0x8000 remaining = 4 remaining
+  const Flags none = 0x00000000;
+  const Flags retangible = 0x00000001;
+  const Flags freeze = 0x00000002;
+  const Flags pierce = 0x00000004;
+  const Flags flinch = 0x00000008;
+  const Flags shake = 0x00000010;
+  const Flags stun = 0x00000020;
+  const Flags flash = 0x00000040;
+  const Flags breaking = 0x00000080;
+  const Flags impact = 0x00000100;
+  const Flags drag = 0x00000200;
+  const Flags bubble = 0x00000400;
+  const Flags no_counter = 0x00000800;
+  const Flags root = 0x00001000;
 
 
   struct Drag {

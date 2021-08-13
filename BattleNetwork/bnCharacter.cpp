@@ -24,6 +24,7 @@ Character::Character(Rank _rank) :
   slideFromDrag(false),
   canShareTile(false),
   stunCooldown(0),
+  rootCooldown(0),
   invincibilityCooldown(0),
   counterSlideDelta(0),
   name("unnamed"),
@@ -32,6 +33,7 @@ Character::Character(Rank _rank) :
 
   whiteout = Shaders().GetShader(ShaderType::WHITE);
   stun = Shaders().GetShader(ShaderType::YELLOW);
+  root = Shaders().GetShader(ShaderType::BLACK);
 
   using namespace std::placeholders;
   auto cardHandler = std::bind(&Character::HandleCardEvent, this, _1, _2);
@@ -76,6 +78,11 @@ bool Character::IsStunned()
   return stunCooldown > 0;
 }
 
+bool Character::IsRooted()
+{
+    return rootCooldown > 0;
+}
+
 const Character::Rank Character::GetRank() const {
   return rank;
 }
@@ -118,15 +125,31 @@ void Character::Update(double _elapsed) {
   sf::Vector2f shakeOffset;
 
   double prevThisFrameStun = stunCooldown;
+  double prevThisFrameRoot = rootCooldown;
 
   if (!hit) {
     unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
+    unsigned rootFrame = from_seconds(rootCooldown).count() % 4;
     if (stunCooldown && stunFrame < 2) {
       if (stun) {
         SetShader(stun);
       }
       else {
         setColor(sf::Color::Yellow);
+      }
+
+      for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
+        if (!child->IsUsingParentShader()) {
+          child->EnableParentShader(true);
+        }
+      }
+    }
+    else if (rootCooldown && rootFrame < 2) {
+      if (root) {
+        SetShader(root);
+      }
+      else {
+        setColor(sf::Color::Black);
       }
 
       for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
@@ -173,7 +196,15 @@ void Character::Update(double _elapsed) {
     }
   }
 
-  if(stunCooldown > 0.0 /*&& !IsTimeFrozen()*/) {
+  if(rootCooldown > 0.0) {
+    rootCooldown -= _elapsed;
+
+    if (rootCooldown <= 0.0 || invincibilityCooldown > 0 || IsPassthrough()) {
+      rootCooldown = 0.0;
+    }
+  }
+
+  if(stunCooldown > 0.0) {
     stunCooldown -= _elapsed;
 
     if (stunCooldown <= 0.0) {
@@ -268,6 +299,7 @@ void Character::Update(double _elapsed) {
 
     // Ensure status effects do not play out
     stunCooldown = 0;
+    rootCooldown = 0;
     invincibilityCooldown = 0;
   }
 
@@ -397,28 +429,24 @@ void Character::ResolveFrameBattleDamage()
 
     // Calculate elemental damage if the tile the character is on is super effective to it
     if (props.filtered.element == Element::fire
-      && GetTile()->GetState() == TileState::grass
-      && !(HasAirShoe() || HasFloatShoe())) {
+      && GetTile()->GetState() == TileState::grass) {
       tileDamage = props.filtered.damage;
       GetTile()->SetState(TileState::normal);
     }
     else if (props.filtered.element == Element::elec
-      && GetTile()->GetState() == TileState::ice
-      && !(HasAirShoe() || HasFloatShoe())) {
+      && GetTile()->GetState() == TileState::ice) {
       tileDamage = props.filtered.damage;
-      GetTile()->SetState(TileState::normal);
     }
 
     {
       // Only register counter if:
       // 1. Hit type is impact
-      // 2. Hit original hit type is also flash
-      // 3. The hitbox is allowed to counter
-      // 4. The character is on a counter frame
-      // 5. Hit properties has an aggressor
+      // 2. The hitbox is allowed to counter
+      // 3. The character is on a counter frame
+      // 4. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if ((props.hitbox.flags & Hit::flash) == Hit::flash && (props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
+        if ((props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
           frameCounterAggressor = field->GetCharacter(props.filtered.aggressor);
         }
 
@@ -522,6 +550,14 @@ void Character::ResolveFrameBattleDamage()
       // exclude this from the next processing step 
       props.filtered.flags &= ~Hit::bubble;
 
+      if ((props.filtered.flags & Hit::root) == Hit::root) {
+          rootCooldown = 2.0;
+          flagCheckThunk(Hit::root);
+      }
+
+      // exclude this from the next processing step 
+      props.filtered.flags &= ~Hit::root;
+
       /*
       flags already accounted for:
       - impact
@@ -530,6 +566,7 @@ void Character::ResolveFrameBattleDamage()
       - drag
       - retangible
       - bubble
+      - root
 
       Now check if the rest were triggered and invoke the
       corresponding status callbacks
@@ -648,6 +685,11 @@ void Character::ToggleCounter(bool on)
 void Character::Stun(double maxCooldown)
 {
   stunCooldown = maxCooldown;
+}
+
+void Character::Root(double maxCooldown)
+{
+    rootCooldown = maxCooldown;
 }
 
 bool Character::IsCountered()

@@ -76,9 +76,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   if (InputQueueHas(InputEvents::pressed_use_chip)) {
     auto cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
-      cardsUI->UseNextCard();
-      player.chargeEffect.SetCharging(false);
-      isChargeHeld = false;
+      if (cardsUI->UseNextCard()) {
+        player.chargeEffect.SetCharging(false);
+        isChargeHeld = false;
+      }
     }
     // If the card used was successful, we may have a card in queue
   }
@@ -128,7 +129,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     direction = Direction::right;
   }
 
-  if(direction != Direction::none && actionable) {
+  if(direction != Direction::none && actionable && !player.IsRooted()) {
     auto next_tile = player.GetTile() + direction;
     auto anim = player.GetFirstComponent<AnimationComponent>();
 

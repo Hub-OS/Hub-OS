@@ -16,6 +16,7 @@ class GameOverScene : public Scene {
 private:
   float fadeInCooldown; /*!< Fade in time */
   sf::Sprite gameOver; /*!< GAME OVER */
+  sf::Texture gameOverTexture; /*< GAME OVER TEXTURE */
   bool leave; /*!< Scene state coming/going flag */
 
 public:
