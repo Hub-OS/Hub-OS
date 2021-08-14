@@ -200,15 +200,14 @@ void MatchMakingScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buff
   }
 }
 
-void MatchMakingScene::SendConnectSignal(size_t navi)
+void MatchMakingScene::SendConnectSignal()
 {
+  // mark unreliable, in case we leak into the next scene
+
   try {
     Poco::Buffer<char> buffer{ 0 };
-
-
     NetPlaySignals type{ NetPlaySignals::matchmaking_request };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
-    buffer.append((char*)&navi, sizeof(size_t));
     packetProcessor->SendPacket(Reliability::Unreliable, buffer);
   }
   catch (Poco::IOException& e) {
@@ -218,10 +217,10 @@ void MatchMakingScene::SendConnectSignal(size_t navi)
 
 void MatchMakingScene::SendHandshakeSignal()
 {
+  // mark unreliable, in case we leak into the next scene
+
   try {
     Poco::Buffer<char> buffer{ 0 };
-
-    // mark unreliable, in case we leak into the next scene
     NetPlaySignals type{ NetPlaySignals::matchmaking_handshake };
     buffer.append((char*)&type, sizeof(NetPlaySignals));
     packetProcessor->SendPacket(Reliability::Unreliable, buffer);
@@ -233,23 +232,16 @@ void MatchMakingScene::SendHandshakeSignal()
 
 void MatchMakingScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 {
-  if (remoteIsReady || !clientIsReady) return; // prevent multiple connection requests...
-
+  if (!clientIsReady) return;
   remoteIsReady = true;
-
-  size_t len = size_t{}; 
-  std::memcpy(&len, buffer.begin(), sizeof(size_t));
-  auto& meta = NAVIS.FindByPackageID(std::string(buffer.begin()+sizeof(size_t), len));
-  this->remotePreview.setTexture(meta.GetPreviewTexture());
-  auto height = remotePreview.getSprite().getLocalBounds().height;
-  remotePreview.setOrigin(sf::Vector2f(0, height));
 }
 
 void MatchMakingScene::RecieveHandshakeSignal()
 {
-  // only acknowledge handshakes if you have recieved the opponent's character data
+  // only acknowledge handshakes if you have recieved the cnnect signal
   if (!remoteIsReady || !clientIsReady) return;
 
+  copyScreen = true;
   this->handshakeComplete = true;
   this->SendHandshakeSignal();
 }
@@ -386,6 +378,7 @@ void MatchMakingScene::Reset()
   playVS = true;
   sequenceTimer = 0.0; // in seconds
   flashCooldown = 0;
+  remoteNaviId = "";
 
   this->isScreenReady = true;
   
@@ -425,14 +418,24 @@ void MatchMakingScene::onStart() {
 
 void MatchMakingScene::onResume() {
   isScreenReady = true;
+  leave = false;
+
+  Logger::Logf("remote navi ID is: %s", remoteNaviId.c_str());
+  Logger::Logf("canProceedToBattle: %d", canProceedToBattle? 1 : 0);
 
   if (!canProceedToBattle) {
     // If this condition is false, we could not download assets we needed
     // Reset for next match attempt
     Reset();
   }
-  else if(leftForBattle) {
+  else if (leftForBattle) {
     packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
+  }
+  else if(remoteNaviId.size()) {
+    auto& meta = NAVIS.FindByPackageID(this->remoteNaviId);
+    this->remotePreview.setTexture(meta.GetPreviewTexture());
+    auto height = remotePreview.getSprite().getLocalBounds().height;
+    remotePreview.setOrigin(sf::Vector2f(0, height));
   }
 }
 
@@ -451,18 +454,48 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
   bool systemEvent = Input().HasSystemCopyEvent() || Input().HasSystemPasteEvent();
 
-  if (handshakeComplete && !isInFlashyVSIntro) {
+  if (clientIsReady) {
+    SendConnectSignal();
+  }
+
+  if (handshakeComplete && hasProcessedCards && !isInFlashyVSIntro) {
     isInFlashyVSIntro = true;
     Audio().StopStream();
+  }
+  else if (handshakeComplete && !hasProcessedCards) {
+    hasProcessedCards = true;
+
+    std::vector<std::string> cardUUIDs;
+
+    CardFolder* copy = folder.Clone();
+    auto next = copy->Next();
+
+    while (next) {
+      cardUUIDs.push_back(next->GetUUID());
+      next = copy->Next();
+    }
+
+    delete copy;
+
+    DownloadSceneProps props = {
+      canProceedToBattle,
+      cardUUIDs,
+      selectedNaviId,
+      remoteNaviId,
+      packetProcessor->GetRemoteAddr(),
+      packetProcessor->GetProxy(),
+      screen
+    };
+
+    using effect = swoosh::types::segue<BlendFadeIn>;
+    getController().push<effect::to<DownloadScene>>(props);
   }
   else if (clientIsReady && !remoteIsReady) {
     if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
       clientIsReady = false;
       Net().DropProcessor(packetProcessor);
       HandleCancel();
-    }
-    else {
-      // SendConnectSignal(selectedNaviId);
+      return;
     }
   }
   else if (isInFlashyVSIntro && !isInBattleStartup) {
@@ -514,38 +547,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
     }
 
     if (this->sequenceTimer >= 3) {
-      copyScreen = true; // copy this cool preview for the D/L screen...
-      isInBattleStartup = true;
-    }
-  }
-  else if (isInBattleStartup) {
-    if (!hasProcessedCards) {
-      hasProcessedCards = true;
-
-      std::vector<std::string> cardUUIDs;
-
-      CardFolder* copy = folder.Clone();
-      auto next = copy->Next();
-
-      while(next) {
-        cardUUIDs.push_back(next->GetUUID());
-        next = copy->Next();
-      }
-
-      delete copy;
-
-      DownloadSceneProps props = {
-        canProceedToBattle,
-        cardUUIDs,
-        packetProcessor->GetRemoteAddr(),
-        packetProcessor->GetProxy(),
-        screen
-      };
-
-      using effect = swoosh::types::segue<BlendFadeIn>;
-      getController().push<effect::to<DownloadScene>>(props);
-    }
-    else if (canProceedToBattle) {
       leave = leftForBattle = true;
 
       // Shuffle our folder
@@ -587,11 +588,8 @@ void MatchMakingScene::onUpdate(double elapsed) {
     }
   } else {
     // TODO use states/switches this is getting out of hand...
-    if (clientIsReady && theirIP.size()) {
-
-      if (!handshakeComplete && !theirIP.empty()) {
-        // Try reaching out to someone...
-        //this->SendConnectSignal(selectedNaviId);
+    if (clientIsReady && remoteIsReady) {
+      if (!handshakeComplete) {
         this->SendHandshakeSignal();
       }
     }
@@ -636,9 +634,9 @@ void MatchMakingScene::onLeave()
 
 void MatchMakingScene::onEnter()
 {
-  if (leave || !canProceedToBattle) {
-    Reset();
-  }
+  //if (!canProceedToBattle) {
+  //  Reset();
+ // }
 }
 
 void MatchMakingScene::onDraw(sf::RenderTexture& surface) {

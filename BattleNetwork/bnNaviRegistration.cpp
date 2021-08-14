@@ -245,6 +245,8 @@ stx::result_t<bool> NaviRegistration::Commit(NaviMeta * info)
     return stx::error<bool>(std::string("info object was nullptr or package ID was not set"));
   }
 
+  info->loadNaviClass();
+
   return stx::ok();
 }
 
@@ -316,9 +318,14 @@ const std::string NaviRegistration::GetPackageAfter(const std::string& id)
   return previous_key;
 }
 
-const std::string NaviRegistration::GetPackageFilePath()
+stx::result_t<std::string> NaviRegistration::GetPackageFilePath(const std::string& id)
 {
-  return std::string();
+  if (this->HasPackage(id)) {
+    auto& meta = this->FindByPackageID(id);
+    return stx::ok(meta.GetFilePath());
+  }
+
+  return stx::error<std::string>("No package found");
 }
 
 const unsigned NaviRegistration::Size()
@@ -337,7 +344,7 @@ void NaviRegistration::LoadAllNavis(std::atomic<int>& progress)
   }
 }
 
-void NaviRegistration::LoadNaviFromPackage(const std::string& path)
+stx::result_t<bool> NaviRegistration::LoadNaviFromPackage(const std::string& path)
 {
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   ResourceHandle handle;
@@ -358,40 +365,45 @@ void NaviRegistration::LoadNaviFromPackage(const std::string& path)
     state["roster_init"](customInfo);
 
     customInfo->SetFilePath(modpath.string());
-    auto result = NAVIS.Commit(customInfo);
-
-    if (result.is_error()) {
-      Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), result.error_cstr());
-    }
+    return NAVIS.Commit(customInfo);
 
     // debugging
     // stx::zip(customInfo->GetFilePath(), customInfo->GetFilePath() + ".zip");
     // stx::unzip(customInfo->GetFilePath() + ".zip",  std::filesystem::absolute(std::filesystem::path(path_str + "/../test/")).string());
   }
   else {
-    sol::error error = res.result;
-    Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), error.what());
+    sol::error sol_error = res.result;
+    std::string msg = std::string("Failed to load player mod ") + characterName + ". Reason: " + sol_error.what();
+    return stx::error<bool>(msg);
   }
 #endif
+
+  return stx::ok();
 }
 
-void NaviRegistration::LoadNaviFromZip(const std::string& path)
+stx::result_t<bool> NaviRegistration::LoadNaviFromZip(const std::string& path)
 {
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   auto absolute = std::filesystem::absolute(path);
   auto file = absolute.filename();
   std::string file_str = file.string();
-  size_t pos = file_str.find_first_of(".zip", 0);
+  size_t pos = file_str.find(".zip", 0);
 
-  if (pos == std::string::npos) return;
+  if (pos == std::string::npos) stx::error<bool>("Invalid zip file");
 
-  file_str = file_str.substr(pos);
+  file_str = file_str.substr(0, pos);
 
   absolute = absolute.remove_filename();
   std::string extracted_path = (absolute / std::filesystem::path(file_str)).string();
 
-  if (auto result = stx::unzip(path, extracted_path); result.value()) {
-    LoadNaviFromPackage(extracted_path);
+  auto result = stx::unzip(path, extracted_path);
+
+  if (result.value()) {
+    return LoadNaviFromPackage(extracted_path);
   }
+
+  return result;
+#elif
+  return stx::error<bool>("std::filesystem not supported");
 #endif
 }

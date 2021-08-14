@@ -23,6 +23,8 @@
 struct DownloadSceneProps {
   bool& downloadSuccess;
   std::vector<std::string> cardUUIDs;
+  std::string playerHash;
+  std::string& remotePlayerHash;
   Poco::Net::SocketAddress remoteAddress;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   sf::Texture lastScreen;
@@ -31,8 +33,9 @@ struct DownloadSceneProps {
 class DownloadScene final : public Scene {
 private:
   enum class state : char {
-    trade = 0,
+    trade_cards = 0,
     download_cards,
+    trade_player,
     download_player,
     complete
   } currState{};
@@ -42,6 +45,8 @@ private:
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
+  std::string playerHash;
+  std::string& remotePlayerHash;
   std::vector<std::string> ourCardList, retryCardList;
   std::map<std::string, std::string> cardsToDownload;
   Text label;
@@ -51,25 +56,30 @@ private:
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   swoosh::glsl::FastGaussianBlur blur{ 10 };
 
-  state Next(const state& curr);
+  void Next();
+  void SkipTo(const state& curr);
 
   void TradeCardList(const std::vector<std::string>& uuids);
+  void TradePlayerData(const std::string& hash);
   void RequestCardList(const std::vector<std::string>& uuids);
+  void RequestPlayerData(const std::string& hash);
 
-  void SendCustomPlayerData();
   void SendDownloadComplete(bool success);
   void SendPing(); //!< keep connections alive while clients download data
 
-  void DownloadCustomPlayerData(const Poco::Buffer<char>& buffer);
+  void DownloadPlayerData(const Poco::Buffer<char>& buffer);
   void DownloadCardList(const Poco::Buffer<char>& buffer);
 
   void RecieveTradeCardList(const Poco::Buffer<char>& buffer);
   void RecieveRequestCardList(const Poco::Buffer<char>& buffer);
+  void RecieveTradePlayerData(const Poco::Buffer<char>& buffer);
+  void RecieveRequestPlayerData(const Poco::Buffer<char>& buffer);
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
  
   std::vector<std::string> DeserializeUUIDs(const Poco::Buffer<char>& buffer);
   Poco::Buffer<char> SerializeUUIDs(NetPlaySignals header, const std::vector<std::string>& uuids);
   Poco::Buffer<char> SerializeCards(const std::vector<std::string>& cardList);
+  Poco::Buffer<char> SerializePlayerData(const std::string& hash);
   void Abort(const std::vector<std::string>& failed);
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body);
 

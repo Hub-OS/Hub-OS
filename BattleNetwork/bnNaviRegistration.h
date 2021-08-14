@@ -309,7 +309,7 @@ public:
   const std::string FirstValidPackage();
   const std::string GetPackageBefore(const std::string& id);
   const std::string GetPackageAfter(const std::string& id);
-  const std::string GetPackageFilePath();
+  stx::result_t<std::string>GetPackageFilePath(const std::string& id);
   
   /**
    * @brief Get the size of the navi roster
@@ -323,8 +323,8 @@ public:
    */
   void LoadAllNavis(std::atomic<int>& progress);
   
-  void LoadNaviFromPackage(const std::string& path);
-  void LoadNaviFromZip(const std::string& path);
+  stx::result_t<bool>  LoadNaviFromPackage(const std::string& path);
+  stx::result_t<bool>  LoadNaviFromZip(const std::string& path);
 };
 
 /*! \brief Shorthand for grabbing resource instance */

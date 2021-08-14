@@ -42,7 +42,8 @@ private:
   double flashCooldown{ 0 };
   size_t selectionIndex{ 0 }; // 0 = text input field widget
   std::string myIP, theirIP; // IP strings for textbox
-  std::string selectedNaviId{};
+  std::string selectedNaviId;
+  std::string remoteNaviId;
   CardFolder& folder;
   PA& pa;
   NetPlayConfig netplayconfig;
@@ -70,7 +71,7 @@ private:
 
   // netplay comm.
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body);
-  void SendConnectSignal(size_t navi);
+  void SendConnectSignal();
   void SendHandshakeSignal(); // sent until we recieve a handshake
   void RecieveConnectSignal(const Poco::Buffer<char>&);
   void RecieveHandshakeSignal();

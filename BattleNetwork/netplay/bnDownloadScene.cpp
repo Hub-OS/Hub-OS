@@ -1,12 +1,17 @@
 #include "bnDownloadScene.h"
 #include "bnBufferReader.h"
 #include "bnBufferWriter.h"
+#include "../stx/string.h"
+#include "../stx/zip_utils.h"
+#include "../bnNaviRegistration.h"
 #include "../bnWebClientMananger.h"
 #include <Segues/PixelateBlackWashFade.h>
 
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
   lastScreen(props.lastScreen),
+  playerHash(props.playerHash),
+  remotePlayerHash(props.remotePlayerHash),
   label(Font::Style::tiny),
   Scene(ac)
 {
@@ -45,23 +50,40 @@ DownloadScene::~DownloadScene()
 
 }
 
-DownloadScene::state DownloadScene::Next(const DownloadScene::state& curr)
+void DownloadScene::Next()
 {
-  switch (curr) {
-  case DownloadScene::state::trade: 
-    return DownloadScene::state::download_cards;
+  switch (currState) {
+  case DownloadScene::state::trade_cards:
+    currState = DownloadScene::state::download_cards;
     break;
   case DownloadScene::state::download_cards:
-    return DownloadScene::state::download_player;
+    currState = DownloadScene::state::trade_player;
+    break;
+  case DownloadScene::state::trade_player:
+    currState = DownloadScene::state::download_player;
     break;
   case DownloadScene::state::download_player:
-    return DownloadScene::state::complete;
+    currState = DownloadScene::state::complete;
     break;
   default:
     break;
   }
+}
 
-  return DownloadScene::state::complete;
+void DownloadScene::SkipTo(const state& curr)
+{
+  currState = curr;
+
+  switch (currState) {
+  case DownloadScene::state::trade_player:
+    this->TradePlayerData(this->playerHash);
+    break;
+  case DownloadScene::state::complete:
+    this->SendDownloadComplete(true);
+    break;
+  default:
+    break;
+  }
 }
 
 void DownloadScene::TradeCardList(const std::vector<std::string>& uuids)
@@ -71,14 +93,27 @@ void DownloadScene::TradeCardList(const std::vector<std::string>& uuids)
   packetProcessor->UpdateHandshakeID(packetProcessor->SendPacket(Reliability::Reliable, SerializeUUIDs(NetPlaySignals::trade_card_list, uuids)).second);
 }
 
+void DownloadScene::TradePlayerData(const std::string& hash)
+{
+  BufferWriter writer;
+  Poco::Buffer<char> buffer{ 0 };
+  writer.Write<NetPlaySignals>(buffer, NetPlaySignals::trade_player_package);
+  writer.WriteTerminatedString(buffer, hash);
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
+}
+
 void DownloadScene::RequestCardList(const std::vector<std::string>& uuids)
 {
   packetProcessor->SendPacket(Reliability::Reliable, SerializeUUIDs(NetPlaySignals::card_list_request, uuids));
 }
 
-void DownloadScene::SendCustomPlayerData()
+void DownloadScene::RequestPlayerData(const std::string& hash)
 {
-  // TODO:
+  BufferWriter writer;
+  Poco::Buffer<char> buffer{ 0 };
+  writer.Write<NetPlaySignals>(buffer, NetPlaySignals::player_package_request);
+  writer.WriteTerminatedString(buffer, hash);
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
 void DownloadScene::SendDownloadComplete(bool success)
@@ -106,34 +141,32 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
 {
   switch (header) {
   case NetPlaySignals::trade_card_list: 
-    Logger::Logf("Recieved trade list download signal");
-    if (currState == state::trade) {
-      Logger::Logf("Processing trade list");
-      this->RecieveTradeCardList(body);
-    }
+    Logger::Logf("Processing trade list");
+    this->RecieveTradeCardList(body);
     break;
   case NetPlaySignals::card_list_request:
     this->RecieveRequestCardList(body);
     break;
   case NetPlaySignals::card_list_download:
-    Logger::Logf("Recieved card list download signal");
-    if (currState == state::download_cards) {
-      Logger::Logf("Downloading card list...");
-      this->DownloadCardList(body);
-    }
+    Logger::Logf("Downloading card list...");
+    this->DownloadCardList(body);
+    break;
+  case NetPlaySignals::trade_player_package:
+    Logger::Logf("Trading player package data");
+    this->RecieveTradePlayerData(body);
+    break;
+  case NetPlaySignals::player_package_request:
+    Logger::Logf("Recieved player package request signal");
+    this->RecieveRequestPlayerData(body);
     break;
   case NetPlaySignals::player_package_download:
-    Logger::Logf("Recieved player package download signal");
-    if (currState == state::download_player) {
-      Logger::Logf("Downloading player package...");
-      this->DownloadCustomPlayerData(body);    }
+    Logger::Logf("Downloading player package...");
+    this->DownloadPlayerData(body); 
     break;
   case NetPlaySignals::downloads_complete:
     this->RecieveDownloadComplete(body);
     break;
   }
-
-  currState = Next(currState);
 }
 
 void DownloadScene::RecieveTradeCardList(const Poco::Buffer<char>& buffer)
@@ -151,13 +184,16 @@ void DownloadScene::RecieveTradeCardList(const Poco::Buffer<char>& buffer)
   Logger::Logf("Recieved remote's list size: %d", remote.size());
 
   // move to the next state
-  if (retryCardList.empty()) {
-    Logger::Logf("Nothing to download.");
-  }
-  else {
+  if (retryCardList.size()) {
     Logger::Logf("Need to download %d cards", retryCardList.size());
     RequestCardList(retryCardList);
+    Next();
+    return;
   }
+
+  // else 
+  Logger::Logf("Nothing to download.");
+  SkipTo(DownloadScene::state::trade_player);
 }
 
 void DownloadScene::RecieveRequestCardList(const Poco::Buffer<char>& buffer)
@@ -166,6 +202,34 @@ void DownloadScene::RecieveRequestCardList(const Poco::Buffer<char>& buffer)
 
   Logger::Logf("Recieved download request for %d items", uuids.size());
   packetProcessor->SendPacket(Reliability::BigData, SerializeCards(uuids));
+
+  Next();
+}
+
+void DownloadScene::RecieveTradePlayerData(const Poco::Buffer<char>& buffer)
+{
+  BufferReader reader;
+  std::string hash = reader.ReadTerminatedString(buffer);
+
+  if (NAVIS.HasPackage(hash)) {
+    remotePlayerHash = hash;
+    SkipTo(DownloadScene::state::complete);
+    return;
+  }
+
+  RequestPlayerData(hash);
+  Next();
+}
+
+void DownloadScene::RecieveRequestPlayerData(const Poco::Buffer<char>& buffer)
+{
+  BufferReader reader;
+  std::string hash = reader.ReadTerminatedString(buffer);
+
+  Logger::Logf("Recieved download request for player hash %s", hash.c_str());
+  packetProcessor->SendPacket(Reliability::BigData, SerializePlayerData(hash));
+
+  Next();
 }
 
 void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
@@ -184,8 +248,36 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
   Logger::Logf("Remote says download complete. Result: %s", result ? "Success" : "Fail");
 }
 
-void DownloadScene::DownloadCustomPlayerData(const Poco::Buffer<char>& buffer)
+void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 {
+  BufferReader reader;
+  std::string hash = reader.ReadTerminatedString(buffer);
+  size_t file_len = reader.Read<size_t>(buffer);
+  std::string path = "cache/" + stx::rand_alphanum(12) + ".zip";
+
+  std::fstream file;
+  file.open(path, std::ios::out | std::ios::binary);
+
+  if (file.is_open()) {
+    while (file_len > 0) {
+      char byte = reader.Read<char>(buffer);
+      file << byte;
+      file_len--;
+    }
+
+    file.close();
+
+    if (auto result = NAVIS.LoadNaviFromZip(path); result.value()) {
+      remotePlayerHash = hash;
+      SkipTo(DownloadScene::state::complete);
+      return;
+    }
+  }
+  
+  Logger::Logf("Failed to download custom navi with hash %s", hash.c_str());
+
+  // There was a problem creating the file
+  SendDownloadComplete(false);
 }
 
 void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
@@ -193,7 +285,7 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
   BufferReader reader;
   // Tell web client to fetch and download these cards
   std::vector<std::string> cardList;
-  auto cardLen = reader.Read<uint16_t>(buffer);
+  size_t cardLen = reader.Read<uint16_t>(buffer);
 
   while (cardLen-- > 0) {
     // name
@@ -286,9 +378,7 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
     cardsToDownload[id] = "Complete";
   }
 
-  SendDownloadComplete(true);
-  // move to the next state
-  currState = state::complete;
+  Next();
 }
 
 std::vector<std::string> DownloadScene::DeserializeUUIDs(const Poco::Buffer<char>& buffer)
@@ -416,6 +506,51 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
   return data;
 }
 
+Poco::Buffer<char> DownloadScene::SerializePlayerData(const std::string& hash)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  std::vector<char> fileBuffer;
+
+  BufferWriter writer;
+  size_t len = 0;
+  
+  auto result = NAVIS.GetPackageFilePath(hash);
+  if (result.is_error()) {
+    Logger::Logf("Could not serialize package: %s", result.error_cstr());
+
+    // Give the remote client a headsup abort
+    SendDownloadComplete(false);
+  }
+  else {
+    std::string path = result.value();
+    
+    if (auto result = stx::zip(path, path + ".zip"); result.value()) {
+      path = path + ".zip";
+
+      std::ifstream fs(path, std::ios::binary | std::ios::ate);
+      std::ifstream::pos_type pos = fs.tellg();
+      len = pos;
+      fileBuffer.resize(len);
+      fs.seekg(0, std::ios::beg);
+      fs.read(&fileBuffer[0], pos);
+    }
+  }
+
+  // header
+  writer.Write(buffer, NetPlaySignals::player_package_download);
+
+  // hash name
+  writer.WriteTerminatedString(buffer, hash);
+
+  // file size
+  writer.Write<size_t>(buffer, len);
+
+  // file contents
+  writer.WriteBytes<char>(buffer, fileBuffer.data(), fileBuffer.size());
+
+  return buffer;
+}
+
 void DownloadScene::Abort(const std::vector<std::string>& failed)
 {
   if (!aborting) {
@@ -459,12 +594,17 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
 
   // 1. Draw the state status info
   switch (currState) {
-  case state::trade:
+  case state::trade_cards:
     label.SetString("Connecting to other player...");
     break;
   case state::download_cards:
+    label.SetString("Downloading cards, please wait...");
+    break;
+  case state::trade_player:
+    label.SetString("Fetching other player package...");
+    break;
   case state::download_player:
-    label.SetString("Downloading, please wait...");
+    label.SetString("Downloading player package, please wait...");
     break;
   case state::complete:
     label.SetString("Complete, waiting...");
@@ -554,4 +694,5 @@ void DownloadScene::onResume()
 
 void DownloadScene::onEnd()
 {
+  packetProcessor->SetKickCallback(nullptr);
 }

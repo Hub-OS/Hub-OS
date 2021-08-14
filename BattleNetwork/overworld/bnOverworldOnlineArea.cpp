@@ -74,7 +74,7 @@ Overworld::OnlineArea::OnlineArea(
   transitionText.setScale(2, 2);
   transitionText.SetString("Connecting...");
 
-  lastFrameNavi = this->GetCurrentNavi();
+  lastFrameNaviId = this->GetCurrentNaviID();
 
   // emotes
   auto windowSize = getController().getVirtualWindowSize();
@@ -257,6 +257,8 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     DownloadSceneProps props = {
       canProceedToBattle,
       cardUUIDs,
+      GetCurrentNaviID(),
+      remoteNaviId,
       remote,
       netBattleProcessor,
       screen
@@ -401,8 +403,8 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
     GetPlayerController().ControlActor(player);
   }
 
-  auto currentNavi = GetCurrentNavi();
-  if (lastFrameNavi != currentNavi) {
+  std::string currentNaviId = GetCurrentNaviID();
+  if (lastFrameNaviId != currentNaviId) {
     sendAvatarChangeSignal();
     lastFrameNaviId = currentNaviId;
 

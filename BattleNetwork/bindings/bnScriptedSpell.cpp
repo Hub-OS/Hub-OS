@@ -13,6 +13,8 @@ ScriptedSpell::ScriptedSpell(Team _team) :
   AddNode(shadow);
 
   animComponent = CreateComponent<AnimationComponent>(this);
+  animComponent->Load();
+  animComponent->Refresh();
 }
 
 ScriptedSpell::~ScriptedSpell() {

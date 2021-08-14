@@ -23,4 +23,20 @@ namespace stx {
 
     return true;
   }
+
+  std::string rand_alphanum(size_t n)
+  {
+    std::vector<char> letters = {
+      'a','b','c','d','e','f','g','h','i','j', 'k','l','m',
+      'n','o','p','q', 'r','s','t','u','v','w','x', 'y','z',
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+    };
+
+    std::string str;
+    for (size_t i = 0; i < n; i++) {
+      str += letters[rand() % letters.size()];
+    }
+
+    return str;
+  }
 }

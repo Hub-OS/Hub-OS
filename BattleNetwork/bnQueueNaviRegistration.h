@@ -133,7 +133,11 @@ static inline void QueuNaviRegistration() {
   // Script resource manager load scripts from designated folder "resources/mods/players"
   std::string path_str = "resources/mods/players";
   for (const auto& entry : std::filesystem::directory_iterator(path_str)) {
-    NAVIS.LoadNaviFromPackage(std::filesystem::absolute(entry).string());
+    auto full_path = std::filesystem::absolute(entry).string();
+
+    if (full_path.find(".zip") == std::string::npos) {
+      NAVIS.LoadNaviFromPackage(full_path);
+    }
   }
 #endif
 }

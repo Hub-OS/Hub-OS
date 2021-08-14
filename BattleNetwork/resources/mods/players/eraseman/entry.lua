@@ -64,7 +64,7 @@ function spawn_attack(user, tile)
 end
 
 function special_card_action(user) 
-    local action = Battle.CardAction(user, "PLAYER_SPECIAL")
+    local action = Battle.CardAction.new(user, "PLAYER_SPECIAL")
     action:SetLockout(LockType.Animation)
 
     action.executeFunc = function(self, actor)

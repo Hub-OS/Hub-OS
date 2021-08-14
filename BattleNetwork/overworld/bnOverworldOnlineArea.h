@@ -73,7 +73,8 @@ namespace Overworld {
     std::shared_ptr<PacketProcessor> packetProcessor;
     std::shared_ptr<Netplay::PacketProcessor> netBattleProcessor;
     std::string connectData;
-    std::string lastFrameNaviId{};
+    std::string lastFrameNaviId;
+    std::string remoteNaviId;
     uint16_t maxPayloadSize;
     bool isConnected{ false };
     bool serverLockedInput{ false };

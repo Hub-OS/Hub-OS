@@ -14,6 +14,8 @@ ScriptedObstacle::ScriptedObstacle(Team _team) :
   AddNode(shadow);
 
   animComponent = CreateComponent<AnimationComponent>(this);
+  animComponent->Load();
+  animComponent->Refresh();
 
   obstacleBody = new DefenseObstacleBody();
   this->AddDefenseRule(obstacleBody);

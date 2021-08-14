@@ -192,6 +192,8 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   this->StartStateGraph(syncState);
 
   sendConnectSignal(this->selectedNaviId); // NOTE: this function only happens once at start
+
+  LoadMob(*mob);
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -609,8 +611,6 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   players.push_back(remotePlayer);
   trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer, -1, false ));
   //trackedForms.back()->SetReadyState<PlayerNetworkState>(netProxy);
-
-  LoadMob(*mob);
 }
 
 void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buffer)

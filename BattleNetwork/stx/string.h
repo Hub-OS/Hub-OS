@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <string>
 #include <string_view>
 
@@ -19,4 +20,9 @@ namespace stx {
    * @return
    */
   bool insensitive_equals(const std::string_view& a, const std::string_view& b);
+
+  /**
+  * @brief Generates a random alpha numeric string of length `n`
+  */
+  std::string rand_alphanum(size_t n);
 }
