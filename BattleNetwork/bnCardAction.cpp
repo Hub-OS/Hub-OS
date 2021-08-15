@@ -183,17 +183,6 @@ void CardAction::Update(double _elapsed)
     baseOffset = baseOffset - origin;
 
     node.SetOffset(baseOffset);
-
-    /*
-      NOTE: (7/25/2021)
-      This is hacky. Should have a standard that everything faces right per default
-      and engine flips everything based on Team and Facing direction.
-      May come to haunt me later so here's a reminder to take this out.
-    */
-    if (this->actor.GetFacing() == Direction::left) {
-      auto scale = sf::Vector2f{ -1.0, 1.0 };
-      node.SetScale(scale);
-    }
   }
 
   if (!started) return;

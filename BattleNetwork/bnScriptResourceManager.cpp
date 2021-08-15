@@ -74,11 +74,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   // make input handle metatable
   const auto& input_record = engine_namespace.new_usertype<InputManager>("Input",
-    sol::factories([]() -> InputManager&
-      {
-        static InputHandle handle;
-        return handle.Input();
-      }),
+    sol::factories([]() -> InputManager& { static InputHandle handle; return handle.Input(); }),
     "has", &InputManager::Has
   );
 
@@ -162,6 +158,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_tile", &ScriptedSpell::GetTile,
     "get_current_tile", &ScriptedSpell::GetCurrentTile,
     "get_field", &ScriptedSpell::GetField,
+    "sprite", &ScriptedSpell::getSprite,
     "slide", &ScriptedSpell::Slide,
     "jump", &ScriptedSpell::Jump,
     "teleport", &ScriptedSpell::Teleport,
@@ -215,6 +212,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_tile", &ScriptedObstacle::GetTile,
     "get_current_tile", &ScriptedObstacle::GetCurrentTile,
     "get_field", &ScriptedObstacle::GetField,
+    "sprite", &ScriptedObstacle::getSprite,
     "slide", &ScriptedObstacle::Slide,
     "jump", &ScriptedObstacle::Jump,
     "teleport", &ScriptedObstacle::Teleport,
@@ -299,6 +297,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_field", &ScriptedCharacter::GetField,
     "get_facing", &ScriptedCharacter::GetFacing,
     "get_target", &ScriptedCharacter::GetTarget,
+    "sprite", &ScriptedCharacter::getSprite,
     "slide", &ScriptedCharacter::Slide,
     "jump", &ScriptedCharacter::Jump,
     "teleport", &ScriptedCharacter::Teleport,
@@ -359,6 +358,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_current_tile", &ScriptedPlayer::GetCurrentTile,
     "get_field", &ScriptedPlayer::GetField,
     "get_facing", &ScriptedPlayer::GetFacing,
+    "sprite", &ScriptedPlayer::getSprite,
     "slide", &ScriptedPlayer::Slide,
     "jump", &ScriptedPlayer::Jump,
     "teleport", &ScriptedPlayer::Teleport,
@@ -404,6 +404,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_position", &ScriptedArtifact::GetDrawOffset,
     "set_animation", &ScriptedArtifact::SetAnimation,
     "set_path", &ScriptedArtifact::SetPath,
+    "sprite", &ScriptedArtifact::getSprite,
     "flip", &ScriptedArtifact::Flip,
     "update_func", &ScriptedArtifact::onUpdate
   );
@@ -412,15 +413,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   // Many things use Character* references but we will maybe have to consolidate all the interfaces for characters into one type.
   const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
     sol::factories(
-    [](Character* character, const std::string& state)-> std::unique_ptr<ScriptedCardAction> {
-            return std::make_unique<ScriptedCardAction>(*character, state);
-    },
-    [](ScriptedPlayer* character, const std::string& state) -> std::unique_ptr<ScriptedCardAction> {
+      [](Character* character, const std::string& state)-> std::unique_ptr<ScriptedCardAction> {
         return std::make_unique<ScriptedCardAction>(*character, state);
-    }, 
-    [](ScriptedCharacter* character, const std::string& state) -> std::unique_ptr<ScriptedCardAction> {
+      },
+      [](ScriptedPlayer* character, const std::string& state) -> std::unique_ptr<ScriptedCardAction> {
         return std::make_unique<ScriptedCardAction>(*character, state);
-    }
+      }, 
+      [](ScriptedCharacter* character, const std::string& state) -> std::unique_ptr<ScriptedCardAction> {
+        return std::make_unique<ScriptedCardAction>(*character, state);
+      }
     ),
     sol::meta_function::index,
     &dynamic_object::dynamic_get,
@@ -432,8 +433,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_lockout_group", &ScriptedCardAction::SetLockoutGroup,
     "override_animation_frames", &ScriptedCardAction::OverrideAnimationFrames,
     "add_attachment", sol::overload(
-        sol::resolve<CardAction::Attachment & (Character*, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
-        sol::resolve<CardAction::Attachment & (Animation&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::CardAction::AddAttachment)
+      sol::resolve<CardAction::Attachment&(Character*, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
+      sol::resolve<CardAction::Attachment&(Animation&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::CardAction::AddAttachment)
     ),
     "add_anim_action", &ScriptedCardAction::AddAnimAction,
     "add_step", &ScriptedCardAction::AddStep,
@@ -446,15 +447,16 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<CardAction>()
   );
 
-  state.set_function("make_action_lockout",
-    [](CardAction::LockoutType type, double cooldown, CardAction::LockoutGroup group)
-        { return CardAction::LockoutProperties{ type, cooldown, group }; }
+  state.set_function("make_animation_lockout",
+    []() { return CardAction::LockoutProperties{ CardAction::LockoutType::animation }; }
   );
 
-  const auto& lockout_record = state.new_usertype<CardAction::LockoutProperties>("LockoutProps",
-    "Type", &CardAction::LockoutProperties::type,
-    "Cooldown", &CardAction::LockoutProperties::cooldown,
-    "Group", &CardAction::LockoutProperties::group
+  state.set_function("make_async_lockout",
+    [](double cooldown){ return CardAction::LockoutProperties{ CardAction::LockoutType::async, cooldown }; }
+  );
+
+  state.set_function("make_sequence_lockout",
+    [](){ return CardAction::LockoutProperties{ CardAction::LockoutType::sequence }; }
   );
 
   const auto& lockout_type_record = state.new_enum("LockType",
