@@ -118,7 +118,7 @@ function create_downward_fist(duo)
         self:get_current_tile():attack_entities(self)
 
         if self:is_sliding() == false then 
-            if self:get_current_tile():Y() == 4 then 
+            if self:get_current_tile():y() == 4 then 
                 self:delete()
             end 
 
@@ -303,7 +303,16 @@ function create_laser_beam(duo)
     laserAnim:on_complete(closure())
 
     laser.update_func = function(self, dt) 
-        self:get_current_tile():attack_entities(self)
+        local count = 1
+        local dest = self:get_tile(Direction.Left, 1)
+ 
+        while dest ~= nil do
+             count = count + 1
+             local hitbox = Battle.Hitbox.new(self:get_team())
+             hitbox:set_hit_props(self:get_hit_props())
+             self:get_field():spawn(hitbox, dest:x(), dest:y())
+             dest = self:get_tile(Direction.Left, count)
+        end
     end
 
     laser.attack_func = function(self, other) 
@@ -318,16 +327,7 @@ function create_laser_beam(duo)
     end
 
     laser.on_spawn_func = function(self, tile) 
-       local count = 1
-       local dest = self:get_tile(Direction.Left, 1)
-
-       while dest ~= nil do
-            count = count + 1
-            local hitbox = Battle.Hitbox.new(self:get_team())
-            hitbox:set_hit_props(self:get_hit_props())
-            self:get_field():spawn(hitbox, dest:x(), dest:y())
-            dest = self:get_tile(Direction.Left, count)
-       end
+        -- nothing special on spawn
     end
 
     return laser
@@ -367,7 +367,7 @@ function create_missile(duo)
         end
 
         if self:is_sliding() == false then
-            if self:current_tile():is_edge() then 
+            if self:get_current_tile():is_edge() then 
                 self:remove()
             end
 
@@ -386,14 +386,14 @@ function create_missile(duo)
 
     missile.attack_func = function(self, other) 
         local explosion = Battle.Explosion.new(1, 1)
-        local dest = self:current_tile()
+        local dest = self:get_current_tile()
         self:get_field():spawn(explosion, dest:x(), dest:y())
         self:delete()
     end
 
     missile.delete_func = function(self) 
         local explosion = Battle.Explosion.new(1, 1)
-        local dest = self:current_tile()
+        local dest = self:get_current_tile()
         self:get_field():spawn(explosion, dest:x(), dest:y())
     end
 
@@ -448,13 +448,12 @@ function move_hand_away(self, dt)
 end
 
 function shoot_laser_state(self, dt)
-    if miscAnim:state() ~= "CHEST_GUN" then
+    if miscAnim:get_state() ~= "CHEST_GUN" then
         laserOpening = true
         laserComplete = false
         function closure() 
             local duoRef = self 
             return function() 
-                -- laserComplete gets toggled to false when a laser beam is created
                 local laser = create_laser_beam(duoRef)
                 local x = duoRef:get_current_tile():x()-1
                 local y = duoRef:get_current_tile():y()
@@ -473,27 +472,27 @@ end
 
 function shoot_missile_state(self, dt)
     middle:hide() -- reveal red center
-    local tile = self:current_tile()
+    local tile = self:get_current_tile()
     self:get_field():spawn(create_missile(self), tile:x()-1, tile:y())
     next_state()
 end 
 
 function shoot_mine_state(self, dt) 
     middle:hide() -- reveal red center
-    local tile = self:current_tile()
-    self:get_field():spawn(create_missile(self), tile:x()-1, tile:y())
+    local tile = self:get_current_tile()
+    self:get_field():spawn(create_mine(self), tile:x()-1, tile:y())
     next_state()
 end 
 
-function DownwardFistState(self, dt)
+function downward_fist_state(self, dt)
     self:get_field():spawn(create_downward_fist(self), 2, 0)
     next_state()
 end
 
-function UpwardFistState(self, dt)
+function upward_fist_state(self, dt)
     -- back-left corner
     self:get_field():spawn(create_upward_fist(self), 1, 3)
-    NextState()
+    next_state()
 end
 
 function laser_state(self, dt)
@@ -524,9 +523,7 @@ function wait_laser_state(self, dt)
                 miscAnim:set_state("NO_SHOOT")
                 miscAnim:set_playback(Playback.Once)
                 miscAnim:refresh(middle:sprite())
-                miscAnim:on_complete(function() 
-                    next_state()
-                end)
+                miscAnim:on_complete(next_state)
             end)
             
         laserOpening = false

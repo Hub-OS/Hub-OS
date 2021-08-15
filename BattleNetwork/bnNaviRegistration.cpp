@@ -245,7 +245,8 @@ stx::result_t<bool> NaviRegistration::Commit(NaviMeta * info)
     return stx::error<bool>(std::string("info object was nullptr or package ID was not set"));
   }
 
-  info->loadNaviClass();;
+  info->loadNaviClass();
+
   return stx::ok();
 }
 

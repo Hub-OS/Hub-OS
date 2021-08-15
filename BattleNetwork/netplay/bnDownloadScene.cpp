@@ -251,6 +251,7 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
 void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 {
   if (downloading_player_data) return;
+
   downloading_player_data = true;
 
   BufferReader reader;

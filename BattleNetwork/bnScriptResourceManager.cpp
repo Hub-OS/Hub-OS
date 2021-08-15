@@ -67,9 +67,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   // make resource handle metatable
   const auto& resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
     sol::constructors<ResourceHandle()>(),
-    "textures", sol::property(sol::resolve<TextureResourceManager & ()>(&ResourceHandle::Textures)),
-    "audio", sol::property(sol::resolve<AudioResourceManager & ()>(&ResourceHandle::Audio)),
-    "shaders", sol::property(sol::resolve<ShaderResourceManager & ()>(&ResourceHandle::Shaders))
+    "textures", sol::property(sol::resolve<TextureResourceManager&()>(&ResourceHandle::Textures)),
+    "audio", sol::property(sol::resolve<AudioResourceManager&()>(&ResourceHandle::Audio)),
+    "shaders", sol::property(sol::resolve<ShaderResourceManager&()>(&ResourceHandle::Shaders))
   );
 
   // make input handle metatable
@@ -510,10 +510,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
-    sol::factories([](Team team)
-        { return new Hitbox(team); }
-    ),
-    "on_attack", &Hitbox::AddCallback,
+    sol::factories([](Team team) { return new Hitbox(team); } ),
+    "set_callbacks", &Hitbox::AddCallback,
     "set_hit_props", &Hitbox::SetHitboxProperties,
     "get_hit_props", &Hitbox::GetHitboxProperties,
     sol::base_classes, sol::bases<Spell>()
@@ -905,7 +903,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     }
   );
 
-  // auto& frame_time_record = state.new_usertype<frame_time_t>("Frame");
   const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent");
 
   const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
