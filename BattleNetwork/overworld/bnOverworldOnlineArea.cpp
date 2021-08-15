@@ -345,7 +345,8 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
 
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
-    float distance = Hypotenuse({ delta.x, delta.y });
+    auto screenDelta = map.WorldToScreen(delta);
+    float distance = Hypotenuse({ screenDelta.x, screenDelta.y });
     double expectedTime = onlinePlayer.lagWindow.GetEMA();
     float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
 
@@ -565,7 +566,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   auto cameraView = GetCamera().GetView();
   sf::Vector2f cameraCenter = cameraView.getCenter();
-  sf::Vector2f mapScale = GetMap().getScale();
+  sf::Vector2f mapScale = GetWorldTransform().getScale();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
   cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
   auto offset = cameraCenter - getView().getCenter();
@@ -1437,6 +1438,9 @@ void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const
   case AssetType::audio:
     serverAssetManager.SetAudio(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
     break;
+  case AssetType::data:
+    serverAssetManager.SetData(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
+    break;
   }
 
   incomingAsset.buffer.setCapacity(0);
@@ -2209,14 +2213,14 @@ void Overworld::OnlineArea::receiveActorMoveSignal(BufferReader& reader, const P
     // Calculate the NEXT frame and see if we're moving too far
     auto& onlinePlayer = userIter->second;
     auto currentTime = GetSteadyTime();
-    bool animatingPos = onlinePlayer.propertyAnimator.IsAnimatingPosition();
     auto endBroadcastPos = onlinePlayer.endBroadcastPos;
     auto newPos = sf::Vector3f(x, y, z);
-    auto delta = endBroadcastPos - newPos;
-    float distance = Hypotenuse({ delta.x, delta.y });
+    auto screenDelta = map.WorldToScreen(endBroadcastPos - newPos);
+    float distance = Hypotenuse({ screenDelta.x, screenDelta.y });
     double timeDifference = (currentTime - static_cast<double>(onlinePlayer.timestamp)) / 1000.0;
 
     auto teleportController = &onlinePlayer.teleportController;
+    bool animatingPos = onlinePlayer.propertyAnimator.IsAnimatingPosition();
     auto actor = onlinePlayer.actor;
 
     // Do not attempt to animate the teleport over quick movements if already teleporting or animating position

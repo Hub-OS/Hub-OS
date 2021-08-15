@@ -59,6 +59,7 @@ namespace Overworld {
 
     Camera camera;
     CameraController cameraController; /*!< camera in scene follows player */
+    sf::Transformable worldTransform;
 
     sf::Vector3f returnPoint{};
     sf::Vector3f cameraTrackPoint{}; // used for smooth cameras
@@ -246,6 +247,7 @@ namespace Overworld {
     SpatialMap& GetSpatialMap();
     std::vector<std::shared_ptr<Actor>>& GetActors();
     Camera& GetCamera();
+    sf::Transformable& GetWorldTransform();
     Map& GetMap();
     std::shared_ptr<PlayerSession>& GetPlayerSession();
     std::shared_ptr<Actor> GetPlayer();

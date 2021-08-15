@@ -242,6 +242,15 @@ std::shared_ptr<sf::SoundBuffer> Overworld::ServerAssetManager::GetAudio(const s
   return audioAssets[name];
 }
 
+std::vector<char> Overworld::ServerAssetManager::GetData(const std::string& name) {
+  if (textAssets.find(name) == textAssets.end()) {
+    // load from storage but don't cache in memory
+    return LoadFromCache(name);
+  }
+
+  return dataAssets[name];
+}
+
 void Overworld::ServerAssetManager::CacheAsset(const std::string& name, uint64_t lastModified, const char* data, size_t size) {
   auto path = cachePrefix + encodeName(name, lastModified);
 
@@ -296,6 +305,17 @@ void Overworld::ServerAssetManager::SetAudio(const std::string& name, uint64_t l
 
   audioAssets.erase(name);
   audioAssets.emplace(name, audio);
+}
+
+void Overworld::ServerAssetManager::SetData(const std::string& name, uint64_t lastModified, const char* data, size_t length, bool cache) {
+  dataAssets.erase(name);
+
+  if (cache) {
+    CacheAsset(name, lastModified, data, length);
+  } else {
+    // only store in memory if it's not saved to disk
+    dataAssets.emplace(name, std::vector(data, data + length));
+  }
 }
 
 void Overworld::ServerAssetManager::RemoveAsset(const std::string& name) {

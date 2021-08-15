@@ -143,7 +143,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   AddActor(playerActor);
   AddSprite(teleportController.GetBeam());
 
-  map.setScale(2.f, 2.f);
+  worldTransform.setScale(2.f, 2.f);
 
   menuSystem.BindMenu(InputEvents::pressed_pause, personalMenu);
   menuSystem.BindMenu(InputEvents::pressed_map, minimap);
@@ -432,7 +432,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 }
 
 void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
-  const auto& mapScale = GetMap().getScale();
+  const auto& mapScale = worldTransform.getScale();
   sf::Vector2f cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
   cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
@@ -444,7 +444,7 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
   offset.y = std::floor(offset.y);
 
   states.transform.translate(offset);
-  states.transform *= map.getTransform();
+  states.transform *= worldTransform.getTransform();
 
   auto tileSize = map.GetTileSize();
   auto mapLayerCount = map.GetLayerCount();
@@ -480,13 +480,13 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
   auto tileSize = map.GetTileSize();
 
   const auto TILE_PADDING = 3;
-  auto screenSize = sf::Vector2f(target.getSize()) / map.getScale().x;
+  auto screenSize = sf::Vector2f(target.getSize()) / worldTransform.getScale().x;
 
   auto verticalTileCount = (int)std::ceil((screenSize.y / (float)tileSize.y) * 2.0f);
   auto horizontalTileCount = (int)std::ceil(screenSize.x / (float)tileSize.x);
 
   auto screenTopLeft = camera.GetView().getCenter() - screenSize / 2.0f;
-  auto tileSpaceStart = sf::Vector2i(map.WorldToTileSpace(map.ScreenToWorld(screenTopLeft) * map.getScale().x));
+  auto tileSpaceStart = sf::Vector2i(map.WorldToTileSpace(map.ScreenToWorld(screenTopLeft)));
   auto verticalOffset = (int)index;
 
   for (int i = -TILE_PADDING; i < verticalTileCount + TILE_PADDING; i++) {
@@ -754,9 +754,6 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   // replace the previous map
   this->map = std::move(map);
 
-  // scale to the game resolution
-  this->map.setScale(2.f, 2.f);
-
   // update map to trigger recalculating shadows for minimap
   this->map.Update(*this, 0.0f);
 
@@ -935,6 +932,11 @@ Camera& Overworld::SceneBase::GetCamera()
   return camera;
 }
 
+sf::Transformable& Overworld::SceneBase::GetWorldTransform()
+{
+  return worldTransform;
+}
+
 Overworld::Map& Overworld::SceneBase::GetMap()
 {
   return map;
@@ -1015,7 +1017,11 @@ std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vect
 
   // consider the point on screen relative to the camera focus
   auto pos = ortho - window.getView().getCenter() - camera.GetView().getCenter();
+
+  auto& scale = worldTransform.getScale();
   auto iso = map.ScreenToWorld(pos);
+  iso.x /= scale.x;
+  iso.y /= scale.y;
 
   auto tileSize = map.GetTileSize();
 
@@ -1033,7 +1039,7 @@ const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, cons
 
   auto& map = GetMap();
   auto tileSize = map.GetTileSize();
-  auto& scale = map.getScale();
+  auto& scale = worldTransform.getScale();
 
   auto position = src.getPosition();
   auto screenPosition = map.WorldToScreen(position);
