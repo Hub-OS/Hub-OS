@@ -15,8 +15,8 @@ function roster_init(info)
 end
 
 function build(mob) 
-  --local duo_spawner = mob:create_spawner("Example.Duo")
-  --duo_spawner:spawn_at(5, 2)
+  local duo_spawner = mob:create_spawner("Example.Duo")
+  duo_spawner:spawn_at(5, 2)
   
   local met_spawner = mob:create_spawner("BuiltIns.Canodumb")
   met_spawner:spawn_at(4, 1)

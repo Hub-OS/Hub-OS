@@ -118,7 +118,7 @@ void KeyItemScene::onUpdate(double elapsed)
     row++;
   }
 
-  signed maxRowOffset = static_cast<signed>(items.size() / maxCols);
+  signed maxRowOffset = static_cast<signed>(std::ceil((double)items.size() / (double)maxCols));
 
   row = std::max(0, row);
 

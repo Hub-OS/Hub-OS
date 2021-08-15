@@ -56,72 +56,88 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
 
 CardAction* ScriptedPlayer::OnExecuteSpecialAction()
 {
+  CardAction* result{ nullptr };
+
   sol::object obj = script["execute_special_attack"](*this);
 
   if (obj.valid()) {
     if (obj.is<std::unique_ptr<CardAction>>())
     {
       auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      return ptr.release();
-    }
-
-    if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+      result = ptr.release();
+    }else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
     {
       auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      return ptr.release();
+      result = ptr.release();
     }
-
-    Logger::Log("Lua function \"execute_special_attack\" didn't return a CardAction.");
+    else {
+      Logger::Log("Lua function \"execute_special_attack\" didn't return a CardAction.");
+    }
   }
 
-  return nullptr;
+  if (result) {
+    result->SetLockoutGroup(CardAction::LockoutGroup::ability);
+  }
+
+  return result;
 }
 
 CardAction* ScriptedPlayer::OnExecuteBusterAction()
 {
+  CardAction* result{ nullptr };
+
   sol::object obj = script["execute_buster_attack"](*this);
 
   if (obj.valid()) {
     if (obj.is<std::unique_ptr<CardAction>>())
     {
       auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      return ptr.release();
+      result = ptr.release();
     }
-
-    if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
     {
       auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      return ptr.release();
+      result = ptr.release();
     }
-
-    Logger::Log("Lua function \"execute_buster_attack\" didn't return a CardAction.");
+    else {
+      Logger::Log("Lua function \"execute_buster_attack\" didn't return a CardAction.");
+    }
   }
 
-  return nullptr;
+  if (result) {
+    result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
+  }
+
+  return result;
 }
 
 CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
 {
-  // Pass along the ScriptedPlayer* reference so that 
+  CardAction* result{ nullptr };
+
   sol::object obj = script["execute_charged_attack"](*this);
 
   if (obj.valid()) {
     if (obj.is<std::unique_ptr<CardAction>>())
     {
       auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      return ptr.release();
+      result = ptr.release();
     }
-
-    if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
     {
       auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      return ptr.release();
+      result = ptr.release();
     }
-
-    Logger::Log("Lua function \"execute_charged_attack\" didn't return a CardAction.");
+    else {
+      Logger::Log("Lua function \"execute_charged_attack\" didn't return a CardAction.");
+    }
   }
 
-  return nullptr;
+  if (result) {
+    result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
+  }
+
+  return result;
 }
 
 void ScriptedPlayer::OnUpdate(double _elapsed)

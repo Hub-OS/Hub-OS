@@ -75,7 +75,7 @@ end
 
 function special_card_action(user) 
     local action = Battle.CardAction.new(user, "PLAYER_SPECIAL")
-    action:set_lockout(make_action_lockout(LockType.Animation, 0, Lockout.Weapons))
+    action:set_lockout(make_animation_lockout())
 
     action.execute_func = function(self, actor)
         local do_attack = function()
