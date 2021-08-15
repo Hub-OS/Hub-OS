@@ -1438,6 +1438,9 @@ void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const
   case AssetType::audio:
     serverAssetManager.SetAudio(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
     break;
+  case AssetType::data:
+    serverAssetManager.SetData(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
+    break;
   }
 
   incomingAsset.buffer.setCapacity(0);
