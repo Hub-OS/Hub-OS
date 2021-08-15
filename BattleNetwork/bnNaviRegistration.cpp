@@ -245,8 +245,7 @@ stx::result_t<bool> NaviRegistration::Commit(NaviMeta * info)
     return stx::error<bool>(std::string("info object was nullptr or package ID was not set"));
   }
 
-  info->loadNaviClass();
-
+  info->loadNaviClass();;
   return stx::ok();
 }
 
@@ -260,6 +259,17 @@ NaviRegistration::NaviMeta & NaviRegistration::FindByPackageID(const std::string
   }
 
   return *(iter->second);
+}
+
+stx::result_t<std::string> NaviRegistration::RemovePackageByID(const std::string& id)
+{
+  if (auto iter = roster.find(id); iter != roster.end()) {
+    std::string path = iter->second->filepath;
+    roster.erase(iter);
+    return stx::ok(path);
+  }
+  
+  return stx::error<std::string>("No package with that ID");
 }
 
 bool NaviRegistration::HasPackage(const std::string& id)

@@ -15,6 +15,7 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
 
   script["battle_init"](*this);
 
+  animationComponent->Reload();
   FinishConstructor();
 }
 

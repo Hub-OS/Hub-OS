@@ -250,6 +250,9 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
 
 void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 {
+  if (downloading_player_data) return;
+  downloading_player_data = true;
+
   BufferReader reader;
   std::string hash = reader.ReadTerminatedString(buffer);
   size_t file_len = reader.Read<size_t>(buffer);

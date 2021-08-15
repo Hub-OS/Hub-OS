@@ -113,8 +113,11 @@ void Player::OnUpdate(double _elapsed) {
 void Player::MakeActionable()
 {
   animationComponent->CancelCallbacks();
-  animationComponent->SetAnimation("PLAYER_IDLE");
-  animationComponent->SetPlaybackMode(Animator::Mode::Loop);
+
+  if (!IsActionable()) {
+    animationComponent->SetAnimation("PLAYER_IDLE");
+    animationComponent->SetPlaybackMode(Animator::Mode::Loop);
+  }
 }
 
 bool Player::IsActionable() const
@@ -427,7 +430,6 @@ void Player::FinishConstructor()
   CreateMoveAnimHash();
   TagBaseNodes();
 
-  animationComponent->Reload();
   animationComponent->SetAnimation("PLAYER_IDLE");
   animationComponent->Refresh();
 }

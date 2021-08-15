@@ -41,6 +41,7 @@ private:
   } currState{};
 
   bool& downloadSuccess;
+  bool downloading_player_data{ false };
   bool aborting{}, remoteSuccess{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...

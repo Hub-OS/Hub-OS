@@ -34,7 +34,6 @@ CanodumbIdleState::CanodumbIdleState() : AIState<Canodumb>() {
 }
 
 CanodumbIdleState::~CanodumbIdleState() { 
-  FreeCursor();
 }
 
 void CanodumbIdleState::OnEnter(Canodumb& can) {
@@ -73,5 +72,7 @@ void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
   }
 }
 
-void CanodumbIdleState::OnLeave(Canodumb& can) { }
+void CanodumbIdleState::OnLeave(Canodumb& can) {
+  FreeCursor();
+}
 

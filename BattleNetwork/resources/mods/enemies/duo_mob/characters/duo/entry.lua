@@ -1,7 +1,7 @@
 nonce = function() end 
 
-function LoadTexture(path)
-    return Engine.ResourceHandle.new().Textures:LoadFile(path)
+function load_texture(path)
+    return Engine.ResourceHandle.new().textures:load_file(path)
 end
 
 local MINE_SLIDE_FRAMES = 30 -- frames
@@ -22,135 +22,138 @@ local aiState = {} -- setup in the battle_init function
 local idleHandPos = {x=0, y=15.0}
 local idleDuoPos = {x=-15.0, y=0}
 
-function UpwardFist(duo) 
+function create_upward_fist(duo) 
     local fist = Battle.Spell.new(Team.Blue)
-    fist:SetTexture(texture, true)
-    fist:HighlightTile(Highlight.Flash)
+    fist:set_texture(texture, true)
+    fist:highlight_tile(Highlight.Flash)
 
-    fist:SetHitProps(MakeHitProps(
-        50, 
-        Hit.Impact | Hit.Flash | Hit.Flinch, 
-        Element.None, 
-        duo:GetID(), 
-        Drag(Direction.None, 0)
+    fist:set_hit_props(
+        make_hit_props(
+            50, 
+            Hit.Impact | Hit.Flash | Hit.Flinch, 
+            Element.None, 
+            duo:get_id(), 
+            no_drag()
         )
     )
 
-    local fistAnim = fist:GetAnimation()
+    local fistAnim = fist:get_animation()
     fist.startSwinging = false
 
-    fistAnim:CopyFrom(anim)
-    fistAnim:SetState("HAND_SWIPE_BOTTOM_UP")
-    fistAnim:SetPlayback(Playback.Once)
+    fistAnim:copy_from(anim)
+    fistAnim:set_state("HAND_SWIPE_BOTTOM_UP")
+    fistAnim:set_playback(Playback.Once)
 
     local closure = function() 
         local fistRef = fist
         return function()
-            fistRef:HighlightTile(Highlight.Solid)
+            fistRef:highlight_tile(Highlight.Solid)
             fistRef.startSwinging = true
         end 
     end 
 
-    fistAnim:OnFrame(2, closure(), true)
+    fistAnim:on_frame(2, closure(), true)
 
-    fist.updateFunc = function(self, dt) 
-        self:CurrentTile():AttackEntities(self)
+    fist.update_func = function(self, dt) 
+        self:get_current_tile():attack_entities(self)
 
-        if self:IsSliding() == false then 
-            if self:CurrentTile():IsEdge() then 
-                self:Delete()
+        if self:is_sliding() == false then 
+            if self:get_current_tile():is_edge() then 
+                self:delete()
             end 
 
             if self.startSwinging == true then
-                local dest = self:GetTile(Direction.Up, 1)
-                self:Slide(dest, frames(4), frames(0), ActionOrder.Voluntary, nonce)
+                local dest = self:get_tile(Direction.Up, 1)
+                self:slide(dest, frames(4), frames(0), ActionOrder.Voluntary, nonce)
             end
         end
     end
 
-    fist.attackFunc = function(self, other) 
+    fist.attack_func = function(self, other) 
         -- nothing
     end
 
-    fist.deleteFunc = function(self) 
+    fist.delete_func = function(self) 
     end
 
-    fist.canMoveToFunc = function(tile)
+    fist.can_move_to_func = function(tile)
         return true
     end
 
     return fist
 end 
 
-function DownwardFist(duo) 
+function create_downward_fist(duo) 
     local fist = Battle.Spell.new(Team.Blue)
-    fist:SetTexture(texture, true)
+    fist:set_texture(texture, true)
 
-    fist:SetHitProps(MakeHitProps(
-        50, 
-        Hit.Impact | Hit.Flash | Hit.Flinch, 
-        Element.None, 
-        duo:GetID(), 
-        Drag(Direction.None, 0)
+    fist:set_hit_props(
+        make_hit_props(
+            50, 
+            Hit.Impact | Hit.Flash | Hit.Flinch, 
+            Element.None, 
+            duo:get_id(), 
+            no_drag()
         )
     )
 
-    local fistAnim = fist:GetAnimation()
+    local fistAnim = fist:get_animation()
     fist.startSwinging = false
 
-    fistAnim:CopyFrom(anim)
-    fistAnim:SetState("HAND_SWIPE_TOP_DOWN")
-    fistAnim:SetPlayback(Playback.Once)
+    fistAnim:copy_from(anim)
+    fistAnim:set_state("HAND_SWIPE_TOP_DOWN")
+    fistAnim:set_playback(Playback.Once)
 
     local closure = function() 
         local fistRef = fist
         return function()
             fistRef.startSwinging = true
-            fistRef:HighlightTile(Highlight.Solid)
+            fistRef:highlight_tile(Highlight.Solid)
         end 
     end 
 
-    fistAnim:OnFrame(2, closure(), true)
+    fistAnim:on_frame(2, closure(), true)
 
-    fist.updateFunc = function(self, dt) 
-        self:CurrentTile():AttackEntities(self)
+    fist.update_func = function(self, dt) 
+        self:get_current_tile():attack_entities(self)
 
-        if self:IsSliding() == false then 
-            if self:CurrentTile():Y() == 4 then 
-                self:Delete()
+        if self:is_sliding() == false then 
+            if self:get_current_tile():Y() == 4 then 
+                self:delete()
             end 
 
             if self.startSwinging == true then
-                local dest = self:GetTile(Direction.Down, 1)
-                self:Slide(dest, frames(4), frames(0), ActionOrder.Voluntary, nonce)
+                local dest = self:get_tile(Direction.Down, 1)
+                self:slide(dest, frames(4), frames(0), ActionOrder.Voluntary, nonce)
             end
         end
     end
 
-    fist.attackFunc = function(self, other) 
+    fist.attack_func = function(self, other) 
         -- nothing
     end
 
-    fist.deleteFunc = function(self) 
+    fist.delete_func = function(self) 
     end
 
-    fist.canMoveToFunc = function(tile)
+    fist.can_move_to_func = function(tile)
         return true
     end
 
     return fist
 end 
 
-function Mine(duo) 
+function create_mine(duo) 
     local mine = Battle.Obstacle.new(Team.Blue)
-    mine:SetHealth(20)
-    mine:ShareTile(true)
-    mine:SetHitProps(MakeHitProps(
-        20, 
-        Hit.Impact | Hit.Flash | Hit.Flinch, 
-        Element.None, 
-        duo:GetID(), 
-        Drag(Direction.None, 0)
+    mine:set_health(20)
+    mine:share_tile(true)
+    mine:set_hit_props(
+        make_hit_props(
+            20, 
+            Hit.Impact | Hit.Flash | Hit.Flinch, 
+            Element.None, 
+            duo:get_id(), 
+            no_drag()
         )
     )
 
@@ -162,29 +165,29 @@ function Mine(duo)
     mine.slideFrames = MINE_SLIDE_FRAMES
     mine.moveStart = true -- first time starts
     mine.node = Engine.SpriteNode.new()
-    mine.node:SetTexture(texture, true)
-    mine.node:SetPosition(0,0)
-    mine:AddNode(mine.node)
+    mine.node:set_texture(texture, true)
+    mine.node:set_position(0,0)
+    mine:add_node(mine.node)
 
-    miscAnim:SetState("MINE")
-    miscAnim:SetPlayback(Playback.Once)
-    miscAnim:Refresh(mine.node:Sprite())
+    miscAnim:set_state("MINE")
+    miscAnim:set_playback(Playback.Once)
+    miscAnim:refresh(mine.node:sprite())
 
-    mine.updateFunc = function(self, dt) 
+    mine.update_func = function(self, dt) 
         --print("updating mine")
-        local tile = self:CurrentTile()
+        local tile = self:get_current_tile()
 
         -- every frame try to attack shared tile
-        tile:AttackEntities(self)
-        self:HighlightTile(Highlight.Solid)
+        tile:attack_entities(self)
+        self:highlight_tile(Highlight.Solid)
 
-        local tileW = tile:Width()/2.0 -- downscale 2x
-        local tileH = tile:Height()/2.0 
+        local tileW = tile:width()/2.0 -- downscale 2x
+        local tileH = tile:height()/2.0 
         local offset = -self.timer*(1.0/(mine.slideFrames/60.0))*0.5
         -- local x = (-offset*tileW)+(tileW/2.0)
         -- local x = math.cos(offset*2.0*math.pi)*tileW/2.0
         local y = math.sin(offset*2.0*math.pi)*tileH/2.0
-        self.node:SetPosition(0, y)
+        self.node:set_position(0, y)
 
         if self.moveStart then
             self.waitTimer = self.waitTimer - dt
@@ -196,7 +199,7 @@ function Mine(duo)
             self.timer = self.timer + dt
         end 
 
-        if self:IsSliding() == false then
+        if self:is_sliding() == false then
 
             if self.moveOneColumn == false then
                 if self.verticalDir == Direction.Up then
@@ -210,8 +213,8 @@ function Mine(duo)
 
             -- otherwise keep sliding
             local ref = self
-            local dest = self:GetTile(self.dir, 1)
-            local slide = self:Slide(dest, frames(MINE_SLIDE_FRAMES), frames(0), ActionOrder.Voluntary, 
+            local dest = self:get_tile(self.dir, 1)
+            local slide = self:slide(dest, frames(MINE_SLIDE_FRAMES), frames(0), ActionOrder.Voluntary, 
                 function() 
                     ref.moveStart = true
 
@@ -224,22 +227,24 @@ function Mine(duo)
                 end)
 
             if not slide then 
-                self:Remove()
+                self:remove()
             end
         end 
     end
 
-    mine.attackFunc = function(self, other) 
-        self:Delete()
+    mine.attack_func = function(self, other) 
+        self:delete()
     end
 
-    mine.deleteFunc = function(self) 
+    mine.delete_func = function(self) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():Spawn(explosion, self:CurrentTile():X(), self:CurrentTile():Y())
-        self:Remove()
+        local x = self:get_current_tile():x()
+        local y = self:get_current_tile():y()
+        self:get_field():spawn(explosion, x, y)
+        self:remove()
     end
 
-    mine.canMoveToFunc = function(tile)
+    mine.can_move_to_func = function(tile)
         -- mines fly over any tiles
         return true
     end
@@ -247,111 +252,113 @@ function Mine(duo)
     return mine
 end
 
-function LaserBeam(duo)
+function create_laser_beam(duo)
     laserComplete = false
     local laser = Battle.Spell.new(Team.Blue) 
 
-    laser:SetTexture(texture, true)
-    laser:SetLayer(-2)
+    laser:set_texture(texture, true)
+    laser:set_layer(-2)
 
-    laser:SetHitProps(MakeHitProps(
-        100, 
-        Hit.Impact | Hit.Flash | Hit.Flinch, 
-        Element.None, 
-        duo:GetID(), 
-        Drag(Direction.None, 0 )
+    laser:set_hit_props(
+        make_hit_props(
+            100, 
+            Hit.Impact | Hit.Flash | Hit.Flinch, 
+            Element.None, 
+            duo:get_id(), 
+            no_drag()
         )
     )
 
-    local origin = duo:GetAnimation():Point("origin")
-    local point  = duo:GetAnimation():Point("NO_SHOOT")
-    laser:SetPosition(point.x - origin.x + 20, point.y - origin.y)
+    local origin = duo:get_animation():point("origin")
+    local point  = duo:get_animation():point("NO_SHOOT")
+    laser:set_position(point.x - origin.x + 20, point.y - origin.y)
 
-    local laserAnim = laser:GetAnimation()
-    laserAnim:CopyFrom(anim)
+    local laserAnim = laser:get_animation()
+    laserAnim:copy_from(anim)
 
-    local onComplete = function() 
+    local closure = function() 
         local laserRef = laser
         local animRef = laserAnim
         return function()
             laserRef.laserCount = 0
-            animRef:SetState("LASER_BEAM")
-            animRef:SetPlayback(Playback.Loop)
-            animRef:OnComplete(function() 
+            animRef:set_state("LASER_BEAM")
+            animRef:set_playback(Playback.Loop)
+            animRef:on_complete(function() 
                 laserRef.laserCount = laserRef.laserCount + 1
 
                 if laserRef.laserCount > 40 then
-                    animRef:SetState("LASER_BEAM_OPEN")
-                    animRef:SetPlayback(Playback.Reverse)
-                    animRef:OnComplete(function()
+                    animRef:set_state("LASER_BEAM_OPEN")
+                    animRef:set_playback(Playback.Reverse)
+                    animRef:on_complete(function()
                         laserComplete = true
-                        laserRef:Delete()
+                        laserRef:delete()
                     end)
                 end
             end)
         end 
     end 
 
-    laserAnim:SetState("LASER_BEAM_OPEN")
-    laserAnim:SetPlayback(Playback.Once)
-    laserAnim:OnComplete(onComplete())
+    laserAnim:set_state("LASER_BEAM_OPEN")
+    laserAnim:set_playback(Playback.Once)
+    laserAnim:on_complete(closure())
 
-    laser.updateFunc = function(self, dt) 
-        self:CurrentTile():AttackEntities(self)
+    laser.update_func = function(self, dt) 
+        self:get_current_tile():attack_entities(self)
     end
 
-    laser.attackFunc = function(self, other) 
+    laser.attack_func = function(self, other) 
         -- nothing
     end
 
-    laser.deleteFunc = function(self) 
+    laser.delete_func = function(self) 
     end
 
-    laser.canMoveToFunc = function(tile)
+    laser.can_move_to_func = function(tile)
         return false
     end
 
-    laser.onSpawnFunc = function(self, tile) 
+    laser.on_spawn_func = function(self, tile) 
        local count = 1
-       local dest = self:GetTile(Direction.Left, 1)
+       local dest = self:get_tile(Direction.Left, 1)
 
        while dest ~= nil do
             count = count + 1
-            local hitbox = Battle.Hitbox.new(self:Team())
-            hitbox:SetHitProps(self:GetHitProps())
-            self:Field():Spawn(hitbox, dest:X(), dest:Y())
-            dest = self:GetTile(Direction.Left, count)
+            local hitbox = Battle.Hitbox.new(self:get_team())
+            hitbox:set_hit_props(self:get_hit_props())
+            self:get_field():spawn(hitbox, dest:x(), dest:y())
+            dest = self:get_tile(Direction.Left, count)
        end
     end
 
     return laser
 end
 
-function Missile(duo)
+function create_missile(duo)
     local missile = Battle.Obstacle.new(Team.Blue)
-    missile:SetHealth(20)
-    missile:SetTexture(texture, true)
-    missile:SetHeight(20.0)
-    missile:SetLayer(-2)
-    missile:ShowShadow(false)
-    missile:ShareTile(true)
+    missile:set_health(20)
+    missile:set_texture(texture, true)
+    missile:set_height(20.0)
+    missile:set_layer(-2)
+    missile:show_shadow(false)
+    missile:share_tile(true)
     missile.waitTimer = 1 -- second
 
-    missile:SetHitProps(MakeHitProps(
-        30, 
-        Hit.Impact | Hit.Flash | Hit.Flinch, 
-        Element.None, 
-        duo:GetID(), 
-        Drag(Direction.None, 0)
+    missile:set_hit_props(
+        make_hit_props(
+            30, 
+            Hit.Impact | Hit.Flash | Hit.Flinch, 
+            Element.None, 
+            duo:get_id(), 
+            no_drag()
         )
     )
 
-    local missileAnim = missile:GetAnimation()
-    missileAnim:CopyFrom(anim)
-    missileAnim:SetState("MISSILE")
-    missileAnim:SetPlayback(Playback.Loop)
+    local missileAnim = missile:get_animation()
+    missileAnim:copy_from(anim)
+    missileAnim:set_state("MISSILE")
+    missileAnim:set_playback(Playback.Loop)
 
-    missile.updateFunc = function(self, dt) 
+    missile.update_func = function(self, dt) 
         --print("updating missile")
 
         self.waitTimer = self.waitTimer - dt
@@ -359,36 +366,38 @@ function Missile(duo)
             return 
         end
 
-        if self:IsSliding() == false then
-            if self:CurrentTile():IsEdge() then 
-                self:Remove()
+        if self:is_sliding() == false then
+            if self:current_tile():is_edge() then 
+                self:remove()
             end
 
             -- otherwise keep sliding
-            local dest = self:GetTile(Direction.Left, 1)
-            self:Slide(dest, frames(20), frames(0), ActionOrder.Voluntary, nonce)
+            local dest = self:get_tile(Direction.Left, 1)
+            self:slide(dest, frames(20), frames(0), ActionOrder.Voluntary, nonce)
         end 
 
-        if self:CurrentTile():IsHole() == false then 
-            missile:ShowShadow(true)
+        if self:get_current_tile():is_hole() == false then 
+            missile:show_shadow(true)
         end
 
         -- every frame try to attack shared tile
-        self:CurrentTile():AttackEntities(self)
+        self:get_current_tile():attack_entities(self)
     end
 
-    missile.attackFunc = function(self, other) 
+    missile.attack_func = function(self, other) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():Spawn(explosion, self:CurrentTile():X(), self:CurrentTile():Y())
-        self:Delete()
+        local dest = self:current_tile()
+        self:get_field():spawn(explosion, dest:x(), dest:y())
+        self:delete()
     end
 
-    missile.deleteFunc = function(self) 
+    missile.delete_func = function(self) 
         local explosion = Battle.Explosion.new(1, 1)
-        self:Field():Spawn(explosion, self:CurrentTile():X(), self:CurrentTile():Y())
+        local dest = self:current_tile()
+        self:get_field():spawn(explosion, dest:x(), dest:y())
     end
 
-    missile.canMoveToFunc = function(tile)
+    missile.can_move_to_func = function(tile)
         -- missiles fly over any tile
         return true
     end
@@ -396,7 +405,7 @@ function Missile(duo)
     return missile
 end
 
-function NextState()
+function next_state()
     -- increment our AI state counter
     aiStateIndex = aiStateIndex + 1
     if aiStateIndex > #aiState then 
@@ -404,117 +413,119 @@ function NextState()
     end
 end
 
-function RestoreHand(self, dt) 
-    hand:Show()
+function restore_hand(self, dt) 
+    hand:show()
 
-    pos = hand:GetPosition()
+    pos = hand:get_position()
 
     -- slide in
-    hand:SetPosition(pos.x - (dt*5*60), pos.y + (dt*2*60))
+    hand:set_position(pos.x - (dt*5*60), pos.y + (dt*2*60))
 
-    pos = self:GetPosition()
+    pos = self:get_position()
+    self:set_position(pos.x - (dt*40), pos.y)
 
-    self:SetPosition(pos.x - (dt*40), pos.y)
-
-    if hand:GetPosition().x <= 0 then
-        self:SetPosition(idleDuoPos.x, idleDuoPos.y)
-        hand:SetPosition(idleHandPos.x, idleHandPos.y)
-        NextState()
+    if hand:get_position().x <= 0 then
+        self:set_position(idleDuoPos.x, idleDuoPos.y)
+        hand:set_position(idleHandPos.x, idleHandPos.y)
+        next_state()
     end
 end
 
-function MoveHandAway(self, dt) 
-    local pos = hand:GetPosition()
+function move_hand_away(self, dt) 
+    local pos = hand:get_position()
 
     -- slide out and up 5px a frame
-    hand:SetPosition(pos.x + (dt*5*60), pos.y - (dt*2*60))
+    hand:set_position(pos.x + (dt*5*60), pos.y - (dt*2*60))
 
-    pos = self:GetPosition()
+    pos = self:get_position()
 
-    self:SetPosition(pos.x + (dt*40), pos.y)
+    self:set_position(pos.x + (dt*40), pos.y)
 
-    if hand:GetPosition().x > 92 then
-        hand:Hide()
-        NextState()
+    if hand:get_position().x > 92 then
+        hand:hide()
+        next_state()
     end
 end
 
-function ShootLaserState(self, dt)
-    if miscAnim:State() ~= "CHEST_GUN" then
+function shoot_laser_state(self, dt)
+    if miscAnim:state() ~= "CHEST_GUN" then
         laserOpening = true
         laserComplete = false
-        function onComplete() 
+        function closure() 
             local duoRef = self 
             return function() 
                 -- laserComplete gets toggled to false when a laser beam is created
-                duoRef:Field():Spawn(LaserBeam(duoRef), duoRef:CurrentTile():X()-1, duoRef:CurrentTile():Y())
-                NextState()
+                local laser = create_laser_beam(duoRef)
+                local x = duoRef:get_current_tile():x()-1
+                local y = duoRef:get_current_tile():y()
+                duoRef:get_field():spawn(laser, x, y)
+                next_state()
             end 
         end
 
-        miscAnim:SetState("CHEST_GUN")
-        miscAnim:SetPlayback(Playback.Once)
-        miscAnim:OnComplete(onComplete())
+        miscAnim:set_state("CHEST_GUN")
+        miscAnim:set_playback(Playback.Once)
+        miscAnim:on_complete(closure())
     end
 
-    miscAnim:Update(dt, middle:Sprite(), 1.0)
+    miscAnim:update(dt, middle:sprite(), 1.0)
 end
 
-function ShootMissileState(self, dt)
-    middle:Hide() -- reveal red center
-    self:Field():Spawn(Missile(self), self:CurrentTile():X()-1, self:CurrentTile():Y())
-    NextState()
+function shoot_missile_state(self, dt)
+    middle:hide() -- reveal red center
+    local tile = self:current_tile()
+    self:get_field():spawn(create_missile(self), tile:x()-1, tile:y())
+    next_state()
 end 
 
-function ShootMineState(self, dt) 
-    middle:Hide() -- reveal red center
-    self:Field():Spawn(Mine(self), self:CurrentTile():X()-1, self:CurrentTile():Y())
-    NextState()
+function shoot_mine_state(self, dt) 
+    middle:hide() -- reveal red center
+    local tile = self:current_tile()
+    self:get_field():spawn(create_missile(self), tile:x()-1, tile:y())
+    next_state()
 end 
 
 function DownwardFistState(self, dt)
-    self:Field():Spawn(DownwardFist(self), 2, 0)
-
-    NextState()
+    self:get_field():spawn(create_downward_fist(self), 2, 0)
+    next_state()
 end
 
 function UpwardFistState(self, dt)
     -- back-left corner
-    self:Field():Spawn(UpwardFist(self), 1, 3)
-
+    self:get_field():spawn(create_upward_fist(self), 1, 3)
     NextState()
 end
 
-function LaserState(self, dt)
-    NextState()
+function laser_state(self, dt)
+    next_state()
 end
 
-function FaceAttackState(self, dt) 
-    NextState()
+function face_attack_state(self, dt) 
+    next_state()
 end
 
-function SetWaitTimer(seconds) 
+function set_wait_timer(seconds) 
     return function(self, dt) 
         waitTime = seconds
-        NextState()
+        next_state()
     end 
 end 
 
-function WaitLaserState(self, dt)
-    miscAnim:Update(dt, middle:Sprite(), 1.0) 
+function wait_laser_state(self, dt)
+    miscAnim:update(dt, middle:sprite(), 1.0) 
 
     -- also wait for laser to complete
     if laserComplete == true then 
-        middle:Show()
+        middle:show()
 
-        miscAnim:SetState("CHEST_GUN")
-        miscAnim:SetPlayback(Playback.Reverse)
-        miscAnim:OnComplete(function()
-                miscAnim:SetState("NO_SHOOT")
-                miscAnim:SetPlayback(Playback.Once)
-                miscAnim:Refresh(middle:Sprite())
-                miscAnim:OnComplete(function() 
-                    NextState()
+        miscAnim:set_state("CHEST_GUN")
+        miscAnim:set_playback(Playback.Reverse)
+        miscAnim:on_complete(function()
+                miscAnim:set_state("NO_SHOOT")
+                miscAnim:set_playback(Playback.Once)
+                miscAnim:refresh(middle:sprite())
+                miscAnim:on_complete(function() 
+                    next_state()
                 end)
             end)
             
@@ -524,23 +535,23 @@ function WaitLaserState(self, dt)
     end 
 end
 
-function WaitState(self, dt)
-    if not self:IsJumping() then
+function wait_state(self, dt)
+    if not self:is_jumping() then
         waitTime = waitTime - dt 
     end
 
     if waitTime <= 0 then
-        NextState()
+        next_state()
     end
 end
 
-function MoveState(self, dt) 
-    if self:IsJumping() == false then      
+function move_state(self, dt) 
+    if self:is_jumping() == false then      
         -- we arrive, shake the ground
         if shake then
-            self:ShakeCamera(3.0, 1.0)
+            self:shake_camera(3.0, 1.0)
             shake = false
-            NextState()
+            next_state()
             return
         end
 
@@ -551,22 +562,24 @@ function MoveState(self, dt)
         -- pause before moving again
         if waitTime <= 0 then
             if dir == Direction.Up then 
-                tile = self:Field():TileAt(self:CurrentTile():X(), self:CurrentTile():Y()-1)
+                local tile = self:get_current_tile()
+                tile = self:get_field():tile_at(tile:x(), tile:y()-1)
 
                 if can_move_to(tile) == false then 
                     dir = Direction.Down
                 end
             elseif dir == Direction.Down then
-                tile = self:Field():TileAt(self:CurrentTile():X(), self:CurrentTile():Y()+1)
+                local tile = self:get_current_tile()
+                tile = self:get_field():tile_at(tile:x(), tile:y()+1)
 
                 if can_move_to(tile) == false then
                     dir = Direction.Up
                 end
             end
 
-            middle:Show() -- coverup red center
-            local dest = self:GetTile(dir, 1)
-            self:Jump(dest, 40.0, frames(60), frames(60), ActionOrder.Voluntary, 
+            middle:show() -- coverup red center
+            local dest = self:get_tile(dir, 1)
+            self:jump(dest, 40.0, frames(60), frames(60), ActionOrder.Voluntary, 
                 function() 
                     print("jumping started")
                     shake = true 
@@ -578,78 +591,78 @@ end
 function battle_init(self)
     aiStateIndex = 1
     aiState = { 
-        SetWaitTimer(IDLE_TIME),
-        MoveState,
-        ShootMissileState,
-        SetWaitTimer(IDLE_TIME),
-        MoveState,
-        ShootMineState,
-        SetWaitTimer(IDLE_TIME),
-        MoveState,
-        ShootMissileState,
-        SetWaitTimer(IDLE_TIME),
-        MoveState,
-        SetWaitTimer(IDLE_TIME),
-        WaitState,
-        MoveHandAway,
-        SetWaitTimer(IDLE_TIME*0.5),
-        WaitState,
-        UpwardFistState,
-        SetWaitTimer(IDLE_TIME),
-        WaitState,
-        DownwardFistState,
-        SetWaitTimer(IDLE_TIME),
-        WaitState,
-        RestoreHand,
-        SetWaitTimer(IDLE_TIME*0.5),
-        WaitState,
-        ShootLaserState,
-        WaitLaserState,
-        SetWaitTimer(IDLE_TIME),
-        WaitState,
+        set_wait_timer(IDLE_TIME),
+        move_state,
+        shoot_missile_state,
+        set_wait_timer(IDLE_TIME),
+        move_state,
+        shoot_mine_state,
+        set_wait_timer(IDLE_TIME),
+        move_state,
+        shoot_missile_state,
+        set_wait_timer(IDLE_TIME),
+        move_state,
+        set_wait_timer(IDLE_TIME),
+        wait_state,
+        move_hand_away,
+        set_wait_timer(IDLE_TIME*0.5),
+        wait_state,
+        upward_fist_state,
+        set_wait_timer(IDLE_TIME),
+        wait_state,
+        downward_fist_state,
+        set_wait_timer(IDLE_TIME),
+        wait_state,
+        restore_hand,
+        set_wait_timer(IDLE_TIME*0.5),
+        wait_state,
+        shoot_laser_state,
+        wait_laser_state,
+        set_wait_timer(IDLE_TIME),
+        wait_state,
     }
 
-    texture = LoadTexture(_modpath.."duo_compressed.png")
+    texture = load_texture(_modpath.."duo_compressed.png")
 
     print("modpath: ".._modpath)
-    self:SetName("Duo")
-    self:SetRank(Rank.EX)
-    self:SetHealth(3000)
-    self:SetTexture(texture, true)
-    self:SetHeight(60)
-    self:ShareTile(true)
+    self:set_name("Duo")
+    self:set_rank(Rank.EX)
+    self:set_health(3000)
+    self:set_texture(texture, true)
+    self:set_height(60)
+    self:share_tile(true)
 
     print("before set position")
-    self:SetPosition(idleDuoPos.x, idleDuoPos.y)
+    self:set_position(idleDuoPos.x, idleDuoPos.y)
     print("after set position")
 
-    anim = self:GetAnimation()
-    anim:Load(_modpath.."duo_compressed.animation")
-    anim:SetState("BODY")
-    anim:SetPlayback(Playback.Once)
+    anim = self:get_animation()
+    anim:load(_modpath.."duo_compressed.animation")
+    anim:set_state("BODY")
+    anim:set_playback(Playback.Once)
 
     hand = Engine.SpriteNode.new()
-    hand:SetTexture(texture, true)
-    hand:SetPosition(idleHandPos.x, idleHandPos.y)
-    hand:SetLayer(-2) -- put it in front at all times
-    hand:EnableParentShader(true)
-    self:AddNode(hand)
+    hand:set_texture(texture, true)
+    hand:set_position(idleHandPos.x, idleHandPos.y)
+    hand:set_layer(-2) -- put it in front at all times
+    hand:enable_parent_shader(true)
+    self:add_node(hand)
 
     miscAnim = Engine.Animation.new(anim)
-    miscAnim:SetState("HAND_IDLE")
-    miscAnim:Refresh(hand:Sprite())
+    miscAnim:set_state("HAND_IDLE")
+    miscAnim:refresh(hand:sprite())
 
     middle = Engine.SpriteNode.new()
-    middle:SetTexture(texture, true)
-    middle:SetLayer(-1)
+    middle:set_texture(texture, true)
+    middle:set_layer(-1)
 
-    miscAnim:SetState("NO_SHOOT")
-    miscAnim:Refresh(middle:Sprite())
+    miscAnim:set_state("NO_SHOOT")
+    miscAnim:refresh(middle:sprite())
 
-    local origin = anim:Point("origin")
-    local point  = anim:Point("NO_SHOOT")
-    middle:SetPosition(point.x - origin.x, point.y - origin.y)
-    self:AddNode(middle)
+    local origin = anim:point("origin")
+    local point  = anim:point("NO_SHOOT")
+    middle:set_position(point.x - origin.x, point.y - origin.y)
+    self:add_node(middle)
 
     print("right before self.defense")
 
@@ -657,8 +670,8 @@ function battle_init(self)
 
     print("defense was created")
 
-    self.defense.filterStatusesFunc = function(props) 
-        print("inside filterStatusesFunc")
+    self.defense.filter_statuses_func = function(props) 
+        print("inside filter_statuses_func")
         if props.flags & Hit.Flinch == Hit.Flinch then
             props.flags = props.flags~Hit.Flinch
         end
@@ -674,7 +687,7 @@ function battle_init(self)
         return props
     end
 
-    self:AddDefenseRule(self.defense)
+    self:add_defense_rule(self.defense)
 
     print("done")
 end
@@ -700,7 +713,7 @@ function on_spawn(self, tile)
 end
 
 function can_move_to(tile) 
-    if tile:IsEdge() then
+    if tile:is_edge() then
         return false
     end
 

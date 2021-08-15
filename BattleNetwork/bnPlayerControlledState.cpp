@@ -142,9 +142,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
         player->MakeActionable();
       };
 
-      anim->SetAnimation(move_anim, [idle_callback] {
-        idle_callback();
-      });
+      anim->SetAnimation(move_anim, idle_callback);
 
       anim->SetInterruptCallback(idle_callback);
     };

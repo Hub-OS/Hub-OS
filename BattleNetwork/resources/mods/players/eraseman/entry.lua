@@ -1,33 +1,33 @@
-function LoadTexture(path)
-    return Engine.ResourceHandle.new().Textures:LoadFile(path)
+function load_texture(path)
+    return Engine.ResourceHandle.new().textures:load_file(path)
 end
 
 function roster_init(info) 
     print("modpath: ".._modpath)
-    info:DeclarePackage("com.example.player.Eraseman")
-    info:SetSpecialDescription("Scripted net navi!")
-    info:SetSpeed(2.0)
-    info:SetAttack(2)
-    info:SetChargedAttack(20)
-    info:SetIconTexture(LoadTexture(_modpath.."eraseman_face.png"))
-    info:SetPreviewTexture(LoadTexture(_modpath.."preview.png"))
-    info:SetOverworldAnimationPath(_modpath.."erase_OW.animation")
-    info:SetOverworldTexturePath(_modpath.."erase_OW.png")
-    info:SetMugshotTexturePath(_modpath.."mug.png")
-    info:SetMugshotAnimationPath(_modpath.."mug.animation")
+    info:declare_package_id("com.example.player.Eraseman")
+    info:set_special_description("Scripted net navi!")
+    info:set_speed(2.0)
+    info:set_attack(2)
+    info:set_charged_attack(20)
+    info:set_icon_texture(load_texture(_modpath.."eraseman_face.png"))
+    info:set_preview_texture(load_texture(_modpath.."preview.png"))
+    info:set_overworld_animation_path(_modpath.."erase_OW.animation")
+    info:set_overworld_texture_path(_modpath.."erase_OW.png")
+    info:set_mugshot_texture_path(_modpath.."mug.png")
+    info:set_mugshot_animation_path(_modpath.."mug.animation")
 end
 
 function battle_init(player)
-    player:SetName("Eraseman")
-    player:SetHealth(1100)
-    player:SetElement(Element.Cursor)
-    player:SetHeight(100.0)
+    player:set_name("Eraseman")
+    player:set_health(1100)
+    player:set_element(Element.Cursor)
+    player:set_height(100.0)
     print("here 1")
-    player:SetAnimation(_modpath.."eraseman.animation")
+    player:set_animation(_modpath.."eraseman.animation")
     print("here 2")
-    player:SetTexture(LoadTexture(_modpath.."navi_eraseman_atlas.png"), true)
+    player:set_texture(load_texture(_modpath.."navi_eraseman_atlas.png"), true)
     print("here 3")
-    player:SetFullyChargeColor(Color.new(255,0,0,255))
+    player:set_fully_charged_color(Color.new(255,0,0,255))
     print("here 4")
 end
 
@@ -46,39 +46,49 @@ function execute_charged_attack(player)
     return special_card_action(player)
 end
 
-function spawn_attack(user, tile)
-    local spell = Battle.Spell.new(user:GetTeam())
+function spawn_attack(user, x, y)
+    local spell = Battle.Spell.new(user:get_team())
 
-    spell:SetHitProps(MakeHitProps(
-        50, 
-        Hit.Impact | Hit.Drag | Hit.Flinch, 
-        Element.Cursor, 
-        user:GetID(), 
-        Drag(Direction.Right, 1)
+    spell:set_hit_props(
+        make_hit_props(
+            50, 
+            Hit.Impact | Hit.Drag | Hit.Flinch, 
+            Element.Cursor, 
+            user:get_id(), 
+            drag(Direction.Right, 1)
         )
     )
 
-    user:GetField():Spawn(spell, tile:X(), tileY())
+    spell.update_func = function(self, dt) 
+        self:get_current_tile():attack_entities(self)
+        self:delete()
+    end
 
-    return spell
+    spell.attack_func = function(self, other) 
+        -- on hit does nothing
+    end
+
+    spell:highlight_tile(Highlight.Flash)
+
+    user:get_field():spawn(spell, x, y)
 end
 
 function special_card_action(user) 
     local action = Battle.CardAction.new(user, "PLAYER_SPECIAL")
-    action:SetLockout(LockType.Animation)
+    action:set_lockout(make_action_lockout(LockType.Animation, 0, Lockout.Weapons))
 
-    action.executeFunc = function(self, actor)
+    action.execute_func = function(self, actor)
         local do_attack = function()
-            local t1 = user:GetTile(Direction.Right, 1)
-            local t2 = user:GetTile(Direction.Right, 2)
+            local t1 = user:get_tile(Direction.Right, 1)
+            local t2 = user:get_tile(Direction.Right, 2)
 
-            spawn_attack(user, t1:X(), t1:Y())
-            spawn_attack(user, t2:X(), t2:Y())
-            spawn_attack(user, t2:X(), t2:Y()-1)
-            spawn_attack(user, t2:X(), t2:Y()+1)
+            spawn_attack(actor, t1:x(), t1:y())
+            spawn_attack(actor, t2:x(), t2:y())
+            spawn_attack(actor, t2:x(), t2:y()-1)
+            spawn_attack(actor, t2:y(), t2:y()+1)
         end
 
-        self:AddAnimAction(3, do_attack)
+        self:add_anim_action(3, do_attack)
     end
 
     return action
