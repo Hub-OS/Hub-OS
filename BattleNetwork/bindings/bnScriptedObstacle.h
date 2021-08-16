@@ -26,6 +26,7 @@ public:
   void SetHeight(const float height);
   void ShowShadow(const bool shadow);
 
+  void SetAnimation(const std::string& path);
   Animation& GetAnimationObject();
   Battle::Tile* GetCurrentTile() const;
 

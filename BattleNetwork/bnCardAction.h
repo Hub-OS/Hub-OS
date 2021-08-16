@@ -60,11 +60,11 @@ public:
   };
 
   struct Step : public swoosh::BlockingActionItem {
-    using UpdateFunc_t = std::function<void(double, Step&)>;
-    using DrawFunc_t = std::function<void(sf::RenderTexture&, Step&)>;
+    using UpdateFunc_t = std::function<void(Step&, double)>;
+    using DrawFunc_t = std::function<void(Step&, sf::RenderTexture&)>;
     
-    constexpr static auto NoUpdateFunc = [](double, Step&) -> void {};
-    constexpr static auto NoDrawFunc = [](sf::RenderTexture&, Step&) -> void {};
+    constexpr static auto NoUpdateFunc = [](Step&, double) -> void {};
+    constexpr static auto NoDrawFunc = [](Step&, sf::RenderTexture&) -> void {};
 
     UpdateFunc_t updateFunc;
     DrawFunc_t drawFunc;
@@ -74,10 +74,10 @@ public:
 
     // inherited functions simply invoke the functors
     void update(sf::Time elapsed) override {
-      if (updateFunc) updateFunc(elapsed.asSeconds(), *this);
+      if (updateFunc) updateFunc(*this, elapsed.asSeconds());
     }
     void draw(sf::RenderTexture& surface) override {
-      if (drawFunc) drawFunc(surface, *this);
+      if (drawFunc) drawFunc(*this, surface);
     }
   };
 

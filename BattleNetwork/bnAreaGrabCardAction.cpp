@@ -59,7 +59,7 @@ void AreaGrabCardAction::OnExecute(Character* user) {
   }
 
   CardAction::Step step;
-  step.updateFunc = [this](double elapsed, Step& self) {
+  step.updateFunc = [this](Step& self, double elapsed) {
     if (panelPtr == nullptr || panelPtr->WillRemoveLater()) {
       self.markDone();
     }

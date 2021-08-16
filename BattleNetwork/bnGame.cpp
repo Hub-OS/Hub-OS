@@ -21,6 +21,7 @@
 #include "bnText.h"
 #include "bnQueueMobRegistration.h"
 #include "bnQueueNaviRegistration.h"
+#include "bnQueueCardRegistration.h"
 #include "bnResourceHandle.h"
 #include "bnInputHandle.h"
 #include "overworld/bnOverworldHomepage.h"
@@ -127,6 +128,9 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   Callback<void()> mobs;
   mobs.Slot(std::bind(&Game::RunMobInit, this, &progress));
 
+  Callback<void()> cards;
+  cards.Slot(std::bind(&Game::RunCardInit, this, &progress));
+
   Callback<void()> finish;
   finish.Slot([this] {
     // Tell the input event loop how to behave when the app loses and regains focus
@@ -146,6 +150,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   tasks.AddTask("Init audio", std::move(audio));
   tasks.AddTask("Load Navis", std::move(navis));
   tasks.AddTask("Load mobs", std::move(mobs));
+  tasks.AddTask("Load cards", std::move(cards));
   tasks.AddTask("Finishing", std::move(finish));
 
     // Load font symbols for use across the entire engine...
@@ -340,6 +345,11 @@ const unsigned int Game::GetRandSeed() const
   return randSeed;
 }
 
+CardRegistration& Game::GetCardRegistration()
+{
+  return cardRegistration;
+}
+
 void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
   QueuNaviRegistration(); // Queues navis to be loaded later
@@ -356,6 +366,15 @@ void Game::RunMobInit(std::atomic<int>* progress) {
   MOBS.LoadAllMobs(*progress);
 
   Logger::Logf("Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+}
+
+void Game::RunCardInit(std::atomic<int>* progress) {
+  clock_t begin_time = clock();
+  QueueCardRegistration(cardRegistration);
+
+  cardRegistration.LoadAllCards(*progress);
+
+  Logger::Logf("Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::RunGraphicsInit(std::atomic<int> * progress) {

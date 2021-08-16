@@ -15,6 +15,8 @@
 #include <SFML/Graphics.hpp>
 #include <Swoosh/Ease.h>
 
+class CardRegistration;
+
 /**
  * @class CardSelectionCust
  * @author mav
@@ -29,6 +31,7 @@ public:
   **/
   struct Props {
     CardFolder* _folder{ nullptr };
+    CardRegistration* roster{ nullptr };
     int cap{};
     int perTurn{ 5 };
   };

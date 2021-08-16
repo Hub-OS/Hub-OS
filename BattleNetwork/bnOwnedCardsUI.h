@@ -9,7 +9,7 @@ public:
   /**
    * \param character Character to attach to
    */
-  OwnedCardsUI(Character* owner);
+  OwnedCardsUI(Character* owner, CardRegistration* roster);
 
   /**
    * @brief destructor

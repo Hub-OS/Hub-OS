@@ -83,6 +83,12 @@ void ScriptedObstacle::ShowShadow(const bool show)
   }
 }
 
+void ScriptedObstacle::SetAnimation(const std::string& path)
+{
+  animComponent->SetPath(path);
+  animComponent->Load();
+}
+
 Animation& ScriptedObstacle::GetAnimationObject()
 {
   return animComponent->GetAnimationObject();

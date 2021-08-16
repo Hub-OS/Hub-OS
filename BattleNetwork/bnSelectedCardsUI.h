@@ -17,6 +17,7 @@ using sf::Texture;
 using sf::Drawable;
 
 class Card;
+class CardRegistration;
 class BattleSceneBase;
 
 class SelectedCardsUI : public CardUsePublisher, public UIComponent {
@@ -24,14 +25,14 @@ public:
   /**
    * \param character Character to attach to
    */
-  SelectedCardsUI(Character* owner);
+  SelectedCardsUI(Character* owner, CardRegistration* roster);
   
   /**
    * @brief destructor
    */
   virtual ~SelectedCardsUI();
 
-  void draw(sf::RenderTarget & target, sf::RenderStates states) const override;
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
   /**
    * @brief Hold START to spread the cards out
@@ -81,12 +82,14 @@ public:
   std::vector<std::string> GetUUIDList();
 
 protected:
+
   const int GetCardCount() const;
   const int GetCurrentCardIndex() const;
   const unsigned GetMultiplier() const;
   Battle::Card** SelectedCardsPtrArray() const;
   SpriteProxyNode& IconNode() const;
   SpriteProxyNode& FrameNode() const;
+  CardRegistration* roster{ nullptr };
 
 private:
   double elapsed{}; /*!< Used by draw function, delta time since last update frame */

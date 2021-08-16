@@ -28,6 +28,7 @@
 #include "bindings/bnScriptedPlayer.h"
 #include "bindings/bnScriptedDefenseRule.h"
 #include "bindings/bnScriptedMob.h"
+#include "bindings/bnScriptedCard.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -80,7 +81,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int { return randSeed; });
 
-  // TODO: Perhaps see if there's a way to get /readonly/ access to the X/Y value?
   // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
   const auto& tile_record = state.new_usertype<Battle::Tile>("Tile",
     "x", &Battle::Tile::GetX,
@@ -162,11 +162,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "slide", &ScriptedSpell::Slide,
     "jump", &ScriptedSpell::Jump,
     "teleport", &ScriptedSpell::Teleport,
+    "hide", &ScriptedSpell::Hide,
+    "reveal", &ScriptedSpell::Reveal,
     "raw_move_event", &ScriptedSpell::RawMoveEvent,
     "is_sliding", &ScriptedSpell::IsSliding,
     "is_jumping", &ScriptedSpell::IsJumping,
     "is_teleporting", &ScriptedSpell::IsTeleporting,
     "is_moving", &ScriptedSpell::IsMoving,
+    "is_deleted", &ScriptedSpell::IsDeleted,
+    "will_remove_eof", &ScriptedSpell::WillRemoveLater,
     "get_team", &ScriptedSpell::GetTeam,
     "is_team", &ScriptedSpell::Teammate,
     "remove", &ScriptedSpell::Remove,
@@ -181,6 +185,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_hit_props", &ScriptedSpell::SetHitboxProperties,
 
     "get_animation", &ScriptedSpell::GetAnimationObject,
+    "set_animation", &ScriptedSpell::SetAnimation,
     "shake_camera", &ScriptedSpell::ShakeCamera,
     "set_height", &ScriptedSpell::SetHeight,
     "set_position", sol::overload(
@@ -213,6 +218,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_current_tile", &ScriptedObstacle::GetCurrentTile,
     "get_field", &ScriptedObstacle::GetField,
     "sprite", &ScriptedObstacle::getSprite,
+    "hide", &ScriptedObstacle::Hide,
+    "reveal", &ScriptedObstacle::Reveal,
     "slide", &ScriptedObstacle::Slide,
     "jump", &ScriptedObstacle::Jump,
     "teleport", &ScriptedObstacle::Teleport,
@@ -222,6 +229,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_teleporting", &ScriptedObstacle::IsTeleporting,
     "is_moving", &ScriptedObstacle::IsMoving,
     "is_team", &ScriptedObstacle::Teammate,
+    "is_deleted", &ScriptedObstacle::IsDeleted,
+    "will_remove_eof", &ScriptedObstacle::WillRemoveLater,
     "get_team", &ScriptedObstacle::GetTeam,
     "remove", &ScriptedObstacle::Remove,
     "delete", &ScriptedObstacle::Delete,
@@ -237,6 +246,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_texture", &ScriptedObstacle::setTexture,
     "set_layer", &ScriptedObstacle::SetLayer,
     "get_animation", &ScriptedObstacle::GetAnimationObject,
+    "set_animation", &ScriptedObstacle::SetAnimation,
     "add_node", &ScriptedObstacle::AddNode,
 
     "highlight_tile", &ScriptedObstacle::HighlightTile,
@@ -266,22 +276,43 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& basic_character_record = battle_namespace.new_usertype<Character>( "BasicCharacter",
     "get_id", &Character::GetID,
     "get_element", &Character::GetElement,
+    "set_element", &Character::SetElement,
     "get_tile", &Character::GetTile,
     "get_current_tile", &Character::GetCurrentTile,
     "get_field", &Character::GetField,
     "get_facing", &Character::GetFacing,
+    "sprite", &Character::getSprite,
+    "slide", &Character::Slide,
+    "jump", &Character::Jump,
+    "teleport", &Character::Teleport,
+    "raw_move_event", &Character::RawMoveEvent,
     "is_sliding", &Character::IsSliding,
     "is_jumping", &Character::IsJumping,
     "is_teleporting", &Character::IsTeleporting,
     "is_moving", &Character::IsMoving,
-    "is_team", &Character::Teammate,
+    "is_deleted", &Character::IsDeleted,
+    "will_remove_eof", &Character::WillRemoveLater,
     "get_team", &Character::GetTeam,
+    "is_team", &Character::Teammate,
+    "hide", &Character::Hide,
+    "reveal", &Character::Reveal,
+    "set_texture", &Character::setTexture,
+    "add_node", &Character::AddNode,
 
     "get_name", &Character::GetName,
-    "get_rank", &Character::GetRank,
     "get_health", &Character::GetHealth,
     "get_max_health", &Character::GetMaxHealth,
-    "set_health", &Character::SetHealth
+    "set_name", &Character::SetName,
+    "set_health", &Character::SetHealth,
+    "get_rank", &Character::GetRank,
+    "share_tile", &Character::ShareTileSpace,
+    "add_defense_rule", &Character::AddDefenseRule,
+    "set_position", sol::overload(
+      sol::resolve<void(float, float)>(&Character::SetDrawOffset)
+    ),
+    "get_position", &Character::GetDrawOffset,
+    "set_height", &Character::SetHeight,
+    "toggle_counter", &Character::ToggleCounter
   );
 
   const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
@@ -306,9 +337,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_jumping", &ScriptedCharacter::IsJumping,
     "is_teleporting", &ScriptedCharacter::IsTeleporting,
     "is_moving", &ScriptedCharacter::IsMoving,
+    "is_deleted", &ScriptedCharacter::IsDeleted,
+    "will_remove_eof", &ScriptedCharacter::WillRemoveLater,
     "get_team", &ScriptedCharacter::GetTeam,
     "is_team", &ScriptedCharacter::Teammate,
-
+    "hide", &ScriptedCharacter::Hide,
+    "reveal", &ScriptedCharacter::Reveal,
+    "remove", &ScriptedCharacter::Remove,
+    "delete", &ScriptedCharacter::Delete,
     "set_texture", &ScriptedCharacter::setTexture,
     "add_node", &ScriptedCharacter::AddNode,
 
@@ -343,6 +379,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_jumping", &Player::IsJumping,
     "is_teleporting", &Player::IsTeleporting,
     "is_moving", &Player::IsMoving,
+    "is_deleted", &Player::IsDeleted,
+    "remove", &Player::Remove,
+    "delete", &Player::Delete,
+    "hide", &Player::Hide,
+    "reveal", &Player::Reveal,
+    "will_remove_eof", &Player::WillRemoveLater,
     "get_team", &Player::GetTeam,
     "get_name", &Player::GetName,
     "get_health", &Player::GetHealth,
@@ -362,11 +404,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "slide", &ScriptedPlayer::Slide,
     "jump", &ScriptedPlayer::Jump,
     "teleport", &ScriptedPlayer::Teleport,
+    "hide", &ScriptedPlayer::Hide,
+    "reveal", &ScriptedPlayer::Reveal,
     "raw_move_event", &ScriptedPlayer::RawMoveEvent,
     "is_sliding", &ScriptedPlayer::IsSliding,
     "is_jumping", &ScriptedPlayer::IsJumping,
     "is_teleporting", &ScriptedPlayer::IsTeleporting,
     "is_moving", &ScriptedPlayer::IsMoving,
+    "is_deleted", &ScriptedPlayer::IsDeleted,
+    "will_remove_eof", &ScriptedPlayer::WillRemoveLater,
     "get_team", &ScriptedPlayer::GetTeam,
     "get_name", &ScriptedPlayer::GetName,
     "get_health", &ScriptedPlayer::GetHealth,
@@ -381,10 +427,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_animation", &ScriptedPlayer::GetAnimationObject,
     "set_float_shoe", &ScriptedPlayer::SetFloatShoe,
     "set_air_shoe", &ScriptedPlayer::SetAirShoe,
-    "slide_when_moving", &ScriptedPlayer::SlideWhenMoving
+    "slide_when_moving", &ScriptedPlayer::SlideWhenMoving,
+    "delete", &ScriptedPlayer::Delete
   );
 
-  const auto& scripted_artifact_record = engine_namespace.new_usertype<ScriptedArtifact>("Artifact",
+  const auto& scripted_artifact_record = battle_namespace.new_usertype<ScriptedArtifact>("Artifact",
     sol::factories([]() -> std::unique_ptr<ScriptedArtifact> {
       return std::make_unique<ScriptedArtifact>();
     }),
@@ -393,23 +440,32 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
     "get_id", &ScriptedArtifact::GetID,
     "get_tile", &ScriptedArtifact::GetTile,
+    "get_current_tile", &ScriptedArtifact::GetCurrentTile,
     "get_field", &ScriptedArtifact::GetField,
-    "slide", &ScriptedArtifact::Slide,
-    "teleport", &ScriptedArtifact::Teleport,
-    "set_texture", &ScriptedArtifact::setTexture,
-    "set_layer", &ScriptedArtifact::SetLayer,
-    "set_position", sol::overload(
-      sol::resolve<void(float, float)>(&ScriptedArtifact::SetDrawOffset)
-    ),
-    "get_position", &ScriptedArtifact::GetDrawOffset,
-    "set_animation", &ScriptedArtifact::SetAnimation,
-    "set_path", &ScriptedArtifact::SetPath,
+    "get_facing", &ScriptedArtifact::GetFacing,
     "sprite", &ScriptedArtifact::getSprite,
-    "flip", &ScriptedArtifact::Flip,
-    "update_func", &ScriptedArtifact::onUpdate
+    "slide", &ScriptedArtifact::Slide,
+    "jump", &ScriptedArtifact::Jump,
+    "teleport", &ScriptedArtifact::Teleport,
+    "hide", &ScriptedArtifact::Hide,
+    "reveal", &ScriptedArtifact::Reveal,
+    "remove", &ScriptedArtifact::Remove,
+    "delete", &ScriptedArtifact::Delete,
+    "raw_move_event", &ScriptedArtifact::RawMoveEvent,
+    "is_sliding", &ScriptedArtifact::IsSliding,
+    "is_jumping", &ScriptedArtifact::IsJumping,
+    "is_teleporting", &ScriptedArtifact::IsTeleporting,
+    "is_moving", &ScriptedArtifact::IsMoving,
+    "is_deleted", &ScriptedArtifact::IsDeleted,
+    "will_remove_eof", &ScriptedArtifact::WillRemoveLater,
+    "get_team", &ScriptedArtifact::GetTeam,
+    "set_animation", &ScriptedArtifact::SetAnimation,
+    "set_texture", &ScriptedArtifact::setTexture,
+    "set_height", &ScriptedArtifact::SetHeight,
+    "get_animation", &ScriptedArtifact::GetAnimationObject
   );
 
-  // Had it crash when using ScriptedPlayer* values so had to expose other versions for it to cooperate.
+  // Game would crash when using ScriptedPlayer* values so had to expose other versions for it to cooperate.
   // Many things use Character* references but we will maybe have to consolidate all the interfaces for characters into one type.
   const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
     sol::factories(
@@ -445,6 +501,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "execute_func", &ScriptedCardAction::onExecute,
     "update_func", &ScriptedCardAction::onUpdate,
     sol::base_classes, sol::bases<CardAction>()
+  );
+
+  const auto& step_record = battle_namespace.new_usertype<CardAction::Step>("Step",
+    sol::factories([]() -> std::unique_ptr<CardAction::Step> {
+      return std::make_unique<CardAction::Step>();
+    }),
+    "update_func", &CardAction::Step::updateFunc,
+    "draw_func", &CardAction::Step::drawFunc,
+    "complete_step", &CardAction::Step::markDone
   );
 
   state.set_function("make_animation_lockout",
@@ -631,6 +696,29 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_preview_texture", &NaviRegistration::NaviMeta::SetPreviewTexture,
     "set_icon_texture", &NaviRegistration::NaviMeta::SetIconTexture,
     "declare_package_id", &NaviRegistration::NaviMeta::SetPackageID
+  );
+
+  const auto& cardpropsmeta_table = engine_namespace.new_usertype<Battle::Card::Properties>("CardProperties",
+    "action", &Battle::Card::Properties::action,
+    "can_boost", &Battle::Card::Properties::canBoost,
+    "card_class", &Battle::Card::Properties::cardClass,
+    "code", &Battle::Card::Properties::code,
+    "damage", &Battle::Card::Properties::damage,
+    "description", &Battle::Card::Properties::description,
+    "element", &Battle::Card::Properties::element,
+    "limit", &Battle::Card::Properties::limit,
+    "meta_classes", &Battle::Card::Properties::metaClasses,
+    "secondary_element", &Battle::Card::Properties::secondaryElement,
+    "shortname", &Battle::Card::Properties::shortname,
+    "time_freeze", &Battle::Card::Properties::timeFreeze,
+    "long_description", &Battle::Card::Properties::verboseDescription
+  );
+
+  const auto& cardmeta_table = engine_namespace.new_usertype<CardRegistration::CardMeta>("CardMeta",
+    "get_props", &CardRegistration::CardMeta::GetCardProperties,
+    "set_preview_texture", &CardRegistration::CardMeta::SetPreviewTexture,
+    "set_icon_texture", &CardRegistration::CardMeta::SetIconTexture,
+    "declare_package_id", &CardRegistration::CardMeta::SetPackageID
   );
 
   const auto& mobmeta_table = engine_namespace.new_usertype<MobRegistration::MobMeta>("MobInfo",

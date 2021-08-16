@@ -35,6 +35,7 @@ using swoosh::ActivityController;
 
 BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
+  cardListener(this->getController().GetCardRegistration()),
   player(&props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -45,9 +46,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   yellowShader(Shaders().GetShader(ShaderType::YELLOW)),
   heatShader(Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
-  cardListener(),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI({ props.folder, 8, 8 }),
+  cardCustGUI({ props.folder, &getController().GetCardRegistration(), 8, 8 }),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
   onEndCallback(onEnd),
@@ -97,7 +97,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   }
 
   // Card UI for player
-  cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player);
+  cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().GetCardRegistration());
   // cardListener.Subscribe(*cardUI);
   this->CardUseListener::Subscribe(*cardUI);
 

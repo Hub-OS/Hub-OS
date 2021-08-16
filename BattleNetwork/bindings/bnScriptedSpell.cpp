@@ -13,8 +13,6 @@ ScriptedSpell::ScriptedSpell(Team _team) :
   AddNode(shadow);
 
   animComponent = CreateComponent<AnimationComponent>(this);
-  animComponent->Load();
-  animComponent->Refresh();
 }
 
 ScriptedSpell::~ScriptedSpell() {
@@ -77,6 +75,12 @@ void ScriptedSpell::ShowShadow(const bool show)
   else {
     this->shadow->Reveal();
   }
+}
+
+void ScriptedSpell::SetAnimation(const std::string& path)
+{
+  animComponent->SetPath(path);
+  animComponent->Load();
 }
 
 Animation& ScriptedSpell::GetAnimationObject()

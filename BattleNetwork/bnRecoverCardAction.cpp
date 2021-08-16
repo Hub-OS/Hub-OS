@@ -28,7 +28,7 @@ void RecoverCardAction::OnExecute(Character* user) {
   user->GetField()->AddEntity(*healfx, *user->GetTile());
 
   CardAction::Step step;
-  step.updateFunc = [=](double elapsed, Step& self) {
+  step.updateFunc = [=](Step& self, double elapsed) {
     if (healfx == nullptr || healfx->WillRemoveLater()) {
       self.markDone();
     }

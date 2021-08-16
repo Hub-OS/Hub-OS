@@ -9,11 +9,13 @@
 #include "bnCurrentTime.h"
 #include "bnCard.h"
 #include "bnCardAction.h"
+#include "bnCardRegistration.h"
 #include "battlescene/bnBattleSceneBase.h"
 
 using std::to_string;
 
-SelectedCardsUI::SelectedCardsUI(Character* owner) :
+SelectedCardsUI::SelectedCardsUI(Character* owner, CardRegistration* roster) :
+  roster(roster),
   CardUsePublisher(), 
   UIComponent(owner)
 {
@@ -64,7 +66,16 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     target.draw(frame, states);
 
     // Grab the ID of the card and draw that icon from the spritesheet
-    icon.setTexture(WEBCLIENT.GetIconForCard(selectedCards[drawOrderIndex]->GetUUID()));
+    std::shared_ptr<sf::Texture> texture;
+    std::string id = selectedCards[drawOrderIndex]->GetUUID();
+    if (roster && roster->HasPackage(id)) {
+      texture = roster->FindByPackageID(id).GetIconTexture();
+    }
+    else {
+      texture = WEBCLIENT.GetIconForCard(id);
+    }
+
+    icon.setTexture(texture);
 
     target.draw(icon, states);
   }

@@ -22,7 +22,7 @@ void CubeCardAction::OnExecute(Character* user) {
     // On start of idle frame, spawn
     AddStep({
       // update step
-      [cube](double elapsed, Step& self) {
+      [cube](Step& self, double elapsed) {
         if (cube->IsFinishedSpawning()) {
           if (cube->DidSpawnCorrectly() == false) {
             cube->Remove();

@@ -9,11 +9,6 @@ ScriptedArtifact::ScriptedArtifact() :
 	RegisterComponent(animationComponent);
 
 	setScale(2.f, 2.f);
-
-	auto onEnd = [this]() {
-		Delete();
-	};
-	animationComponent->SetAnimation("DEFAULT", onEnd);
 }
 
 ScriptedArtifact::~ScriptedArtifact() { }
@@ -29,32 +24,28 @@ void ScriptedArtifact::OnDelete()
 	Remove();
 }
 
-void ScriptedArtifact::SetPath(const std::string& filePath)
-{
-	animationComponent->SetPath(filePath);
-	animationComponent->Reload();
-
-	auto onEnd = [this]() { Delete(); };
-
-	animationComponent->SetAnimation("DEFAULT", onEnd);
-	animationComponent->SetFrame(0);
-}
-
-void ScriptedArtifact::SetAnimation(const std::string& animName)
-{
-	auto onEnd = [this]() {
-		Delete();
-	};
-
-	animationComponent->SetAnimation(animName, onEnd);
-	animationComponent->SetFrame(0);
-}
-
 void ScriptedArtifact::Flip()
 {
 	auto scale = getScale();
 
 	setScale( scale.x * -1, scale.y );
+}
+
+void ScriptedArtifact::SetAnimation(const std::string& path)
+{
+	animationComponent->SetPath(path);
+	animationComponent->Load();
+
+}
+
+Animation& ScriptedArtifact::GetAnimationObject()
+{
+	return animationComponent->GetAnimationObject();
+}
+
+Battle::Tile* ScriptedArtifact::GetCurrentTile() const
+{
+	return GetTile();
 }
 
 #endif

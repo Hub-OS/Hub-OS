@@ -15,8 +15,8 @@
 
 using std::to_string;
 
-PlayerSelectedCardsUI::PlayerSelectedCardsUI(Player* _player) :
-  SelectedCardsUI(_player),
+PlayerSelectedCardsUI::PlayerSelectedCardsUI(Player* _player, CardRegistration* roster) :
+  SelectedCardsUI(_player, roster),
   player(_player),
   text(Font::Style::thick),
   dmg(Font::Style::gradient_orange),
@@ -112,7 +112,16 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         target.draw(frame, states);
 
         // Grab the ID of the card and draw that icon from the spritesheet
-        icon.setTexture(WEBCLIENT.GetIconForCard(selectedCards[drawOrderIndex]->GetUUID()));
+        std::shared_ptr<sf::Texture> texture;
+        std::string id = selectedCards[drawOrderIndex]->GetUUID();
+        if (SelectedCardsUI::roster && SelectedCardsUI::roster->HasPackage(id)) {
+          texture = SelectedCardsUI::roster->FindByPackageID(id).GetIconTexture();
+        }
+        else {
+          texture = WEBCLIENT.GetIconForCard(id);
+        }
+
+        icon.setTexture(texture);
 
         target.draw(icon, states);
       }

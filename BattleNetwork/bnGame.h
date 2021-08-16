@@ -13,6 +13,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnScriptResourceManager.h"
+#include "bnCardRegistration.h"
 #include "bnInputManager.h"
 #include "cxxopts/cxxopts.hpp"
 
@@ -62,6 +63,8 @@ private:
   InputManager inputManager;
   NetManager netManager;
 
+  CardRegistration cardRegistration;
+
   DrawWindow& window;
   ConfigReader reader;
   ConfigSettings configSettings;
@@ -110,6 +113,7 @@ public:
   void UpdateConfigSettings(const ConfigSettings& new_settings);
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
+  CardRegistration& GetCardRegistration();
 
   /**
    * @brief Store parsed command line values into the engine for easy access
@@ -150,6 +154,20 @@ private:
   * battle.
   */
   void RunNaviInit(std::atomic<int>* progress);
+
+  /*! \brief This thread initializes all cards
+  *
+  * Uses an std::atomic<int> pointer
+  * to keep track of all successfully loaded
+  * objects.
+  *
+  * After the media resources are loaded we
+  * safely load all registered cards.
+  * Loaded cards will show up in available library
+  * screen and can be chosen to play with in
+  * battle.
+  */
+  void RunCardInit(std::atomic<int>* progress);
 
   /*! \brief This thread tnitializes all mobs
   *

@@ -19,7 +19,7 @@ void ProtoManCardAction::OnExecute(Character* user) {
   actor.GetField()->AddEntity(*proto, *actor.GetTile());
 
   CardAction::Step protoman;
-  protoman.updateFunc = [proto](double elapsed, Step& step) {
+  protoman.updateFunc = [proto](Step& step, double elapsed) {
     if (proto->WillRemoveLater()) {
       step.markDone();
     }

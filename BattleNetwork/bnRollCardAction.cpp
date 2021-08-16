@@ -23,7 +23,7 @@ void RollCardAction::OnExecute(Character* user) {
   // step 1 wait for her animation to end
   CardAction::Step step1;
 
-  step1.updateFunc = [roll](double elapsed, Step& self) {
+  step1.updateFunc = [roll](Step& self, double elapsed) {
     if (roll->WillRemoveLater()) {
       self.markDone();
     }
@@ -34,7 +34,7 @@ void RollCardAction::OnExecute(Character* user) {
   // step 2 spawn the heart
   CardAction::Step step2;
 
-  step2.updateFunc = [=](double elapsed, Step& self) {
+  step2.updateFunc = [=](Step& self, double elapsed) {
     if (!heart) {
       auto actor = &GetActor();
       heart = new RollHeart(user, damage * 3);

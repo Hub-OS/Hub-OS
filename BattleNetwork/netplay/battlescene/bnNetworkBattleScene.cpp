@@ -599,7 +599,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   GetField()->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
   mob->Track(*remotePlayer);
 
-  remoteCardUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer);
+  remoteCardUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().GetCardRegistration());
   remoteCardUsePublisher->Hide(); // do not reveal opponent's cards
   combatPtr->Subscribe(*remoteCardUsePublisher);
   timeFreezePtr->Subscribe(*remoteCardUsePublisher);

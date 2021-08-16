@@ -65,7 +65,7 @@ Mob* TwoMettaurMob::Build() {
             // provided from our available built-in card list
             if (rand() % 50 > 25) {
               mutator->Mutate([mob](Character& in) {
-                OwnedCardsUI* ui = in.CreateComponent<OwnedCardsUI>(&in);
+                OwnedCardsUI* ui = in.CreateComponent<OwnedCardsUI>(&in, nullptr);
                 ui->AddCards(::GenCards());
                 ui->setPosition(0, -in.GetHeight());
                 });
