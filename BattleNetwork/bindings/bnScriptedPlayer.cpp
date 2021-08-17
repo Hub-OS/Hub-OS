@@ -13,7 +13,7 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   SetLayer(0);
   SetTeam(Team::red);
 
-  script["battle_init"](*this);
+  script["player_init"](*this);
 
   animationComponent->Reload();
   FinishConstructor();
@@ -58,7 +58,7 @@ CardAction* ScriptedPlayer::OnExecuteSpecialAction()
 {
   CardAction* result{ nullptr };
 
-  sol::object obj = script["execute_special_attack"](*this);
+  sol::object obj = script["create_special_attack"](*this);
 
   if (obj.valid()) {
     if (obj.is<std::unique_ptr<CardAction>>())
@@ -71,7 +71,7 @@ CardAction* ScriptedPlayer::OnExecuteSpecialAction()
       result = ptr.release();
     }
     else {
-      Logger::Log("Lua function \"execute_special_attack\" didn't return a CardAction.");
+      Logger::Log("Lua function \"create_special_attack\" didn't return a CardAction.");
     }
   }
 
@@ -86,7 +86,7 @@ CardAction* ScriptedPlayer::OnExecuteBusterAction()
 {
   CardAction* result{ nullptr };
 
-  sol::object obj = script["execute_buster_attack"](*this);
+  sol::object obj = script["create_normal_attack"](*this);
 
   if (obj.valid()) {
     if (obj.is<std::unique_ptr<CardAction>>())
@@ -100,7 +100,7 @@ CardAction* ScriptedPlayer::OnExecuteBusterAction()
       result = ptr.release();
     }
     else {
-      Logger::Log("Lua function \"execute_buster_attack\" didn't return a CardAction.");
+      Logger::Log("Lua function \"create_normal_attack\" didn't return a CardAction.");
     }
   }
 
@@ -115,7 +115,7 @@ CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
 {
   CardAction* result{ nullptr };
 
-  sol::object obj = script["execute_charged_attack"](*this);
+  sol::object obj = script["create_charged_attack"](*this);
 
   if (obj.valid()) {
     if (obj.is<std::unique_ptr<CardAction>>())
@@ -129,7 +129,7 @@ CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
       result = ptr.release();
     }
     else {
-      Logger::Log("Lua function \"execute_charged_attack\" didn't return a CardAction.");
+      Logger::Log("Lua function \"create_charged_attack\" didn't return a CardAction.");
     }
   }
 
@@ -144,7 +144,9 @@ void ScriptedPlayer::OnUpdate(double _elapsed)
 {
   Player::OnUpdate(_elapsed);
 
-  script["on_update"](*this, _elapsed);
+  if (on_update_func) {
+    on_update_func(*this, _elapsed);
+  }
 }
 
 #endif

@@ -38,6 +38,7 @@ public:
   CardAction* OnExecuteSpecialAction() override final;
   CardAction* OnExecuteBusterAction() override final;
   CardAction* OnExecuteChargedBusterAction() override final;
+  std::function<void(Character&, double)> on_update_func;
 };
 
 #endif

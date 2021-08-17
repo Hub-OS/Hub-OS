@@ -261,6 +261,8 @@ public:
    */
   void SetAlpha(int value);
 
+  int GetAlpha();
+
   /**
    * @brief Enable or disable FloatShoe
    * @param state set true to enable, false to disable

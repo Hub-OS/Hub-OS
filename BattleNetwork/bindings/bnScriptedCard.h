@@ -20,7 +20,7 @@ public:
   CardAction* BuildCardAction(Character* user, Battle::Card::Properties& props) override {
     CardAction* result{ nullptr };
 
-    sol::object obj = script["create_card_action"](*user, props);
+    sol::object obj = script["card_create_action"](*user, props);
 
     if (obj.valid()) {
       if (obj.is<std::unique_ptr<ScriptedCardAction>>())
@@ -29,7 +29,7 @@ public:
         result = ptr.release();
       }
       else {
-        Logger::Log("Lua function \"create_card_action\" didn't return a CardAction.");
+        Logger::Log("Lua function \"card_create_action\" didn't return a CardAction.");
       }
     }
 

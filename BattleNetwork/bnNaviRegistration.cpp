@@ -373,7 +373,7 @@ stx::result_t<bool> NaviRegistration::LoadNaviFromPackage(const std::string& pat
     state["_modpath"] = modpath.string() + "/";
 
     // run script on meta info object
-    state["roster_init"](customInfo);
+    state["package_init"](customInfo);
 
     customInfo->SetFilePath(modpath.string());
     return NAVIS.Commit(customInfo);

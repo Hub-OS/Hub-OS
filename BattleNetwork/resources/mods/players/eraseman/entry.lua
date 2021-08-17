@@ -1,49 +1,62 @@
-function load_texture(path)
-    return Engine.ResourceHandle.new().textures:load_file(path)
+function package_init(package) 
+    package:declare_package_id("com.example.player.Eraseman")
+    package:set_special_description("Scripted net navi!")
+    package:set_speed(2.0)
+    package:set_attack(2)
+    package:set_charged_attack(20)
+    package:set_icon_texture(Engine.load_texture(_modpath.."eraseman_face.png"))
+    package:set_preview_texture(Engine.load_texture(_modpath.."preview.png"))
+    package:set_overworld_animation_path(_modpath.."erase_OW.animation")
+    package:set_overworld_texture_path(_modpath.."erase_OW.png")
+    package:set_mugshot_texture_path(_modpath.."mug.png")
+    package:set_mugshot_animation_path(_modpath.."mug.animation")
 end
 
-function roster_init(info) 
-    print("modpath: ".._modpath)
-    info:declare_package_id("com.example.player.Eraseman")
-    info:set_special_description("Scripted net navi!")
-    info:set_speed(2.0)
-    info:set_attack(2)
-    info:set_charged_attack(20)
-    info:set_icon_texture(load_texture(_modpath.."eraseman_face.png"))
-    info:set_preview_texture(load_texture(_modpath.."preview.png"))
-    info:set_overworld_animation_path(_modpath.."erase_OW.animation")
-    info:set_overworld_texture_path(_modpath.."erase_OW.png")
-    info:set_mugshot_texture_path(_modpath.."mug.png")
-    info:set_mugshot_animation_path(_modpath.."mug.animation")
-end
-
-function battle_init(player)
+function player_init(player)
     player:set_name("Eraseman")
     player:set_health(1100)
     player:set_element(Element.Cursor)
     player:set_height(55.0)
-    print("here 1")
     player:set_animation(_modpath.."eraseman.animation")
-    print("here 2")
-    player:set_texture(load_texture(_modpath.."navi_eraseman_atlas.png"), true)
-    print("here 3")
+    player:set_texture(Engine.load_texture(_modpath.."navi_eraseman_atlas.png"), true)
     player:set_fully_charged_color(Color.new(255,0,0,255))
-    print("here 4")
+
+    player.update_func = function(self, dt) 
+        -- nothing in particular
+    end
 end
 
-function execute_special_attack(player)
-    print("execute special")
-    return nil
-end
-
-function execute_buster_attack(player)
+function create_normal_attack(player)
     print("buster attack")
     return Battle.Buster.new(player, false, 10)
 end
 
-function execute_charged_attack(player)
+function create_charged_attack(player)
     print("charged attack")
-    return special_card_action(player)
+
+    local action = Battle.CardAction.new(player, "PLAYER_SPECIAL")
+    action:set_lockout(make_animation_lockout())
+
+    action.execute_func = function(self, player)
+        local do_attack = function()
+            local t1 = player:get_tile(Direction.Right, 1)
+            local t2 = player:get_tile(Direction.Right, 2)
+
+            spawn_attack(player, t1:x(), t1:y())
+            spawn_attack(player, t2:x(), t2:y())
+            spawn_attack(player, t2:x(), t2:y()-1)
+            spawn_attack(player, t2:y(), t2:y()+1)
+        end
+
+        self:add_anim_action(3, do_attack)
+    end
+
+    return action
+end
+
+function create_special_attack(player)
+    print("execute special")
+    return nil
 end
 
 function spawn_attack(user, x, y)
@@ -71,25 +84,4 @@ function spawn_attack(user, x, y)
     spell:highlight_tile(Highlight.Flash)
 
     user:get_field():spawn(spell, x, y)
-end
-
-function special_card_action(user) 
-    local action = Battle.CardAction.new(user, "PLAYER_SPECIAL")
-    action:set_lockout(make_animation_lockout())
-
-    action.execute_func = function(self, actor)
-        local do_attack = function()
-            local t1 = user:get_tile(Direction.Right, 1)
-            local t2 = user:get_tile(Direction.Right, 2)
-
-            spawn_attack(actor, t1:x(), t1:y())
-            spawn_attack(actor, t2:x(), t2:y())
-            spawn_attack(actor, t2:x(), t2:y()-1)
-            spawn_attack(actor, t2:y(), t2:y()+1)
-        end
-
-        self:add_anim_action(3, do_attack)
-    end
-
-    return action
 end

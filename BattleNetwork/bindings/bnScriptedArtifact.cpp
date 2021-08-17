@@ -15,8 +15,8 @@ ScriptedArtifact::~ScriptedArtifact() { }
 
 void ScriptedArtifact::OnUpdate(double _elapsed)
 {
-	if (onUpdate)
-		onUpdate(*this, _elapsed);
+	if (update_func)
+		update_func(*this, _elapsed);
 }
 
 void ScriptedArtifact::OnDelete()

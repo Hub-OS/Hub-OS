@@ -277,6 +277,11 @@ void Entity::SetAlpha(int value)
   setColor(c);
 }
 
+int Entity::GetAlpha()
+{
+  return getColor().a;
+}
+
 bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void()> onBegin) {
   if (dest && CanMoveTo(dest)) {
     MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };

@@ -236,7 +236,7 @@ stx::result_t<bool> CardRegistration::LoadCardFromPackage(const std::string& pat
     state["_modpath"] = modpath.string() + "/";
 
     // run script on meta info object
-    state["roster_init"](customInfo);
+    state["package_init"](customInfo);
 
     customInfo->GetCardProperties().uuid = customInfo->GetPackageID();
     customInfo->SetFilePath(modpath.string());

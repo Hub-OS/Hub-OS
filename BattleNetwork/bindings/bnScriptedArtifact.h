@@ -42,9 +42,8 @@ public:
 
 	/**
 	 * \brief Callback function that, when registered, is called on every frame.
-	 * Specific names are up to the user, recommend "on_update" or some variation for parity with other Lua scripts to avoid confusion.
 	 */
-	std::function<void(ScriptedArtifact&, double)> onUpdate;
+	std::function<void(ScriptedArtifact&, double)> update_func;
 };
 
 #endif

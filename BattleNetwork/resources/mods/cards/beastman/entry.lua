@@ -1,28 +1,25 @@
-function load_texture(path)
-    return Engine.ResourceHandle.new().textures:load_file(path)
-end
-
 nonce = function() end
 
 DAMAGE = 40
 TEXTURE = nil
+AUDIO = nil
 
-function roster_init(info) 
-    print("modpath: ".._modpath)
-    info:declare_package_id("com.example.card.Beastman")
-    info:set_icon_texture(load_texture(_modpath.."icon.png"))
-    info:set_preview_texture(load_texture(_modpath.."preview.png"))
+function package_init(package) 
+    package:declare_package_id("com.example.card.Beastman")
+    package:set_icon_texture(Engine.load_texture(_modpath.."icon.png"))
+    package:set_preview_texture(Engine.load_texture(_modpath.."preview.png"))
 
-    -- assign the global texture
-    TEXTURE = load_texture(_modpath.."beastman.png")
-
-    local props = info:get_props()
+    local props = package:get_card_props()
     props.shortname = "BeastMan"
     props.code = 'B'
     props.damage = DAMAGE
     props.time_freeze = true
     props.element = Element.None
     props.description = "Claw atk 3 squares ahead!"
+
+    -- assign the global resources
+    TEXTURE = Engine.load_texture(_modpath.."beastman.png")
+	AUDIO = Engine.load_audio(_modpath.."swipe.ogg")
 end
 
 --[[
@@ -39,7 +36,7 @@ end
     10. after up_right claw reaches 2nd tile, head is spawned on the last col, row as user
     11. after all elements are off-screen and deleted, megaman is returned and time freeze ends
 --]]
-function create_card_action(actor, props)
+function card_create_action(actor, props)
     print("in create_card_action()!")
     local action = Battle.CardAction.new(actor, "PLAYER_IDLE")
 
@@ -76,22 +73,34 @@ function create_card_action(actor, props)
         step2.update_func = function(self, dt)
             if ref.down_right_claw == nil then
                 ref.down_right_claw = create_spell("claw_down_right", Direction.DownRight, actor)
-                actor:get_field():spawn(ref.down_right_claw, ref.tile:x(), ref.tile:y()-1)
+                actor:get_field():spawn(ref.down_right_claw, ref.tile:x()+1, ref.tile:y()-2)
             end
 
             if ref.down_right_claw:will_remove_eof() then
                 self:complete_step()
+            elseif Engine.input_has(Input.Pressed.Use) then 
+                local props = ref.down_right_claw:copy_hit_props()
+                local tile = ref.down_right_claw:get_current_tile()
+                local hitbox = Battle.Hitbox.new(actor:get_team())
+                hitbox:set_hit_props(props)
+                actor:get_field():spawn(hitbox, tile:x(), tile:y())
             end
         end
 
         step3.update_func = function(self, dt) 
             if ref.up_right_claw == nil then
                 ref.up_right_claw = create_spell("claw_up_right", Direction.UpRight, actor)
-                actor:get_field():spawn(ref.up_right_claw, ref.tile:x(), 4)
+                actor:get_field():spawn(ref.up_right_claw, ref.tile:x()+1, 4)
             end
 
             if ref.up_right_claw:will_remove_eof() then
                 self:complete_step()
+            elseif Engine.input_has(Input.Pressed.Use) then 
+                local props = ref.up_right_claw:copy_hit_props()
+                local tile = ref.up_right_claw:get_current_tile()
+                local hitbox = Battle.Hitbox.new(actor:get_team())
+                hitbox:set_hit_props(props)
+                actor:get_field():spawn(hitbox, tile:x(), tile:y())
             end
         end
 
@@ -103,6 +112,12 @@ function create_card_action(actor, props)
 
             if ref.head:will_remove_eof() then
                 self:complete_step()
+            elseif Engine.input_has(Input.Pressed.Use) then 
+                local props = ref.head:copy_hit_props()
+                local tile = ref.head:get_current_tile()
+                local hitbox = Battle.Hitbox.new(actor:get_team())
+                hitbox:set_hit_props(props)
+                actor:get_field():spawn(hitbox, tile:x(), tile:y())
             end
         end
 
@@ -160,6 +175,7 @@ function create_spell(animation_state, direction, user)
             local ref = self
             self:slide(dest, frames(4), frames(0), ActionOrder.Voluntary, 
                 function()
+                    drop_trace_fx(ref)
                     ref.slide_started = true 
                 end
             )
@@ -177,5 +193,27 @@ function create_spell(animation_state, direction, user)
         return true
     end
 
+	Engine.play_audio(AUDIO, AudioPriority.High)
+
     return spell
+end
+
+function drop_trace_fx(obj)
+    local fx = Battle.Artifact.new()
+    local anim = obj:get_animation()
+    fx:set_texture(TEXTURE, true)
+    fx:get_animation():copy_from(anim)
+    fx:get_animation():set_state(anim:get_state().."_dark")
+
+    fx.update_func = function(self, dt)
+        local a = math.max(0, self:get_alpha()-math.floor(dt*2000))
+        self:set_alpha(a)
+
+        if a == 0 then 
+            self:remove()
+        end
+    end
+
+	local tile = obj:get_current_tile()
+    obj:get_field():spawn(fx, tile:x(), tile:y())
 end

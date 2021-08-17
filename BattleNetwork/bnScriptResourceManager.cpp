@@ -48,37 +48,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   sol::table overworld_namespace = state.create_table("Overworld");
   sol::table engine_namespace = state.create_table("Engine");
 
-  const auto& textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
-    "load_file", &TextureResourceManager::LoadTextureFromFile
-  );
-
-  const auto& audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
-    "load_file", &AudioResourceManager::LoadFromFile,
-    "play", sol::overload(
-      sol::resolve<int(AudioType, AudioPriority)>(&AudioResourceManager::Play),
-      sol::resolve<int(std::shared_ptr<sf::SoundBuffer>, AudioPriority)>(&AudioResourceManager::Play)
-    ),
-    "stream", sol::resolve<int(std::string, bool, long long, long long)>(&AudioResourceManager::Stream)
-  );
-
-  const auto& shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
-    "load_file", &ShaderResourceManager::LoadShaderFromFile
-  );
-
-  // make resource handle metatable
-  const auto& resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
-    sol::constructors<ResourceHandle()>(),
-    "textures", sol::property(sol::resolve<TextureResourceManager&()>(&ResourceHandle::Textures)),
-    "audio", sol::property(sol::resolve<AudioResourceManager&()>(&ResourceHandle::Audio)),
-    "shaders", sol::property(sol::resolve<ShaderResourceManager&()>(&ResourceHandle::Shaders))
-  );
-
-  // make input handle metatable
-  const auto& input_record = engine_namespace.new_usertype<InputManager>("Input",
-    sol::factories([]() -> InputManager& { static InputHandle handle; return handle.Input(); }),
-    "has", &InputManager::Has
-  );
-
   engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int { return randSeed; });
 
   // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
@@ -142,6 +111,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "hide", &SpriteProxyNode::Hide,
     "set_position", sol::resolve<void(float, float)>(&SpriteProxyNode::setPosition),
     "get_position", &SpriteProxyNode::getPosition,
+    "get_color", &SpriteProxyNode::getColor,
+    "set_color", &SpriteProxyNode::setColor,
     "sprite", &SpriteProxyNode::getSprite,
     "enable_parent_shader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
@@ -159,6 +130,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_current_tile", &ScriptedSpell::GetCurrentTile,
     "get_field", &ScriptedSpell::GetField,
     "sprite", &ScriptedSpell::getSprite,
+    "get_alpha", &ScriptedSpell::GetAlpha,
+    "set_alpha", &ScriptedSpell::SetAlpha,
+    "get_color", &ScriptedSpell::getColor,
+    "set_color", &ScriptedSpell::setColor,
     "slide", &ScriptedSpell::Slide,
     "jump", &ScriptedSpell::Jump,
     "teleport", &ScriptedSpell::Teleport,
@@ -175,15 +150,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_team", &ScriptedSpell::Teammate,
     "remove", &ScriptedSpell::Remove,
     "delete", &ScriptedSpell::Delete,
-
     "set_texture", &ScriptedSpell::setTexture,
     "set_layer", &ScriptedSpell::SetLayer,
     "add_node", &ScriptedSpell::AddNode,
-
     "highlight_tile", &ScriptedSpell::HighlightTile,
-    "get_hit_props", &ScriptedSpell::GetHitboxProperties,
+    "copy_hit_props", &ScriptedSpell::GetHitboxProperties,
     "set_hit_props", &ScriptedSpell::SetHitboxProperties,
-
     "get_animation", &ScriptedSpell::GetAnimationObject,
     "set_animation", &ScriptedSpell::SetAnimation,
     "shake_camera", &ScriptedSpell::ShakeCamera,
@@ -216,6 +188,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_facing", & ScriptedObstacle::GetFacing,
     "get_tile", &ScriptedObstacle::GetTile,
     "get_current_tile", &ScriptedObstacle::GetCurrentTile,
+    "get_alpha", &ScriptedObstacle::GetAlpha,
+    "set_alpha", &ScriptedObstacle::SetAlpha,
+    "get_color", &ScriptedObstacle::getColor,
+    "set_color", &ScriptedObstacle::setColor,
     "get_field", &ScriptedObstacle::GetField,
     "sprite", &ScriptedObstacle::getSprite,
     "hide", &ScriptedObstacle::Hide,
@@ -234,7 +210,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_team", &ScriptedObstacle::GetTeam,
     "remove", &ScriptedObstacle::Remove,
     "delete", &ScriptedObstacle::Delete,
-
     "get_name", &ScriptedObstacle::GetName,
     "get_health", &ScriptedObstacle::GetHealth,
     "get_max_health", &ScriptedObstacle::GetMaxHealth,
@@ -242,17 +217,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_health", &ScriptedObstacle::SetHealth,
     "share_tile", &ScriptedObstacle::ShareTileSpace,
     "add_defense_rule", &ScriptedObstacle::AddDefenseRule,
-
     "set_texture", &ScriptedObstacle::setTexture,
     "set_layer", &ScriptedObstacle::SetLayer,
     "get_animation", &ScriptedObstacle::GetAnimationObject,
     "set_animation", &ScriptedObstacle::SetAnimation,
     "add_node", &ScriptedObstacle::AddNode,
-
     "highlight_tile", &ScriptedObstacle::HighlightTile,
     "get_hit_props", &ScriptedObstacle::GetHitboxProperties,
     "set_hit_props", &ScriptedObstacle::SetHitboxProperties,
-
     "ignore_common_aggressor", &ScriptedObstacle::IgnoreCommonAggressor,
 
     "set_height", &ScriptedObstacle::SetHeight,
@@ -281,6 +253,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_current_tile", &Character::GetCurrentTile,
     "get_field", &Character::GetField,
     "get_facing", &Character::GetFacing,
+    "get_alpha", &Character::GetAlpha,
+    "set_alpha", &Character::SetAlpha,
+    "get_color", &Character::getColor,
+    "set_color", &Character::setColor,
     "sprite", &Character::getSprite,
     "slide", &Character::Slide,
     "jump", &Character::Jump,
@@ -328,6 +304,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_field", &ScriptedCharacter::GetField,
     "get_facing", &ScriptedCharacter::GetFacing,
     "get_target", &ScriptedCharacter::GetTarget,
+    "get_alpha", &ScriptedCharacter::GetAlpha,
+    "set_alpha", &ScriptedCharacter::SetAlpha,
+    "get_color", &ScriptedCharacter::getColor,
+    "set_color", &ScriptedCharacter::setColor,
     "sprite", &ScriptedCharacter::getSprite,
     "slide", &ScriptedCharacter::Slide,
     "jump", &ScriptedCharacter::Jump,
@@ -380,6 +360,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_teleporting", &Player::IsTeleporting,
     "is_moving", &Player::IsMoving,
     "is_deleted", &Player::IsDeleted,
+    "get_alpha", &Player::GetAlpha,
+    "set_alpha", &Player::SetAlpha,
+    "get_color", &Player::getColor,
+    "set_color", &Player::setColor,
     "remove", &Player::Remove,
     "delete", &Player::Delete,
     "hide", &Player::Hide,
@@ -400,6 +384,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_current_tile", &ScriptedPlayer::GetCurrentTile,
     "get_field", &ScriptedPlayer::GetField,
     "get_facing", &ScriptedPlayer::GetFacing,
+    "get_alpha", &ScriptedPlayer::GetAlpha,
+    "set_alpha", &ScriptedPlayer::SetAlpha,
+    "get_color", &ScriptedPlayer::getColor,
+    "set_color", &ScriptedPlayer::setColor,
     "sprite", &ScriptedPlayer::getSprite,
     "slide", &ScriptedPlayer::Slide,
     "jump", &ScriptedPlayer::Jump,
@@ -428,7 +416,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_float_shoe", &ScriptedPlayer::SetFloatShoe,
     "set_air_shoe", &ScriptedPlayer::SetAirShoe,
     "slide_when_moving", &ScriptedPlayer::SlideWhenMoving,
-    "delete", &ScriptedPlayer::Delete
+    "delete", &ScriptedPlayer::Delete,
+    "update_func", &ScriptedPlayer::on_update_func
   );
 
   const auto& scripted_artifact_record = battle_namespace.new_usertype<ScriptedArtifact>("Artifact",
@@ -443,6 +432,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_current_tile", &ScriptedArtifact::GetCurrentTile,
     "get_field", &ScriptedArtifact::GetField,
     "get_facing", &ScriptedArtifact::GetFacing,
+    "get_alpha", &ScriptedArtifact::GetAlpha,
+    "set_alpha", &ScriptedArtifact::SetAlpha,
+    "get_color", &ScriptedArtifact::getColor,
+    "set_color", &ScriptedArtifact::setColor,
     "sprite", &ScriptedArtifact::getSprite,
     "slide", &ScriptedArtifact::Slide,
     "jump", &ScriptedArtifact::Jump,
@@ -462,7 +455,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_animation", &ScriptedArtifact::SetAnimation,
     "set_texture", &ScriptedArtifact::setTexture,
     "set_height", &ScriptedArtifact::SetHeight,
-    "get_animation", &ScriptedArtifact::GetAnimationObject
+    "get_animation", &ScriptedArtifact::GetAnimationObject,
+    "update_func", &ScriptedArtifact::update_func
   );
 
   // Game would crash when using ScriptedPlayer* values so had to expose other versions for it to cooperate.
@@ -661,25 +655,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Red", CannonCardAction::Type::red
   );
 
-  // make loading resources easier
-  // DOESNT WORK??
-  /*state.script(
-    "-- Shorthand load texture"
-    "function LoadTexture(path)"
-    "  return Engine.ResourceHandle.new().Textures:LoadFile(path)"
-    "end"
-
-    "-- Shorthand load audio"
-    "function LoadAudio(path)"
-    "  return Engine.ResourceHandle.new().Audio:LoadFile(path)"
-    "end"
-
-    "-- Shorthand load shader"
-    "function LoadShader(path)"
-    "  return Engine.ResourceHandle.new().Shaders:LoadFile(path)"
-    "end"
-  );*/
-
   // make meta object info metatable
   const auto& navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
     "set_special_description", &NaviRegistration::NaviMeta::SetSpecialDescription,
@@ -715,7 +690,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& cardmeta_table = engine_namespace.new_usertype<CardRegistration::CardMeta>("CardMeta",
-    "get_props", &CardRegistration::CardMeta::GetCardProperties,
+    "get_card_props", &CardRegistration::CardMeta::GetCardProperties,
     "set_preview_texture", &CardRegistration::CardMeta::SetPreviewTexture,
     "set_icon_texture", &CardRegistration::CardMeta::SetIconTexture,
     "declare_package_id", &CardRegistration::CardMeta::SetPackageID
@@ -739,6 +714,46 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& scriptedspawner_table = engine_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
     "spawn_at", &ScriptedMob::ScriptedSpawner::SpawnAt
+  );
+
+  engine_namespace.set_function("load_texture",
+    [](const std::string& path) {
+      static ResourceHandle handle;
+      return handle.Textures().LoadTextureFromFile(path);
+    }
+  );
+
+  engine_namespace.set_function("load_shader",
+    [](const std::string& path) {
+      static ResourceHandle handle;
+      return handle.Shaders().LoadShaderFromFile(path);
+    }
+  );
+
+  engine_namespace.set_function("load_audio",
+    [](const std::string& path) {
+      static ResourceHandle handle;
+      return handle.Audio().LoadFromFile(path);
+    }
+  );
+
+  engine_namespace.set_function("play_audio",
+    sol::factories(
+      [](std::shared_ptr<sf::SoundBuffer> buffer, AudioPriority priority) {
+      static ResourceHandle handle;
+      return handle.Audio().Play(buffer, priority);
+    },
+    [](AudioType type, AudioPriority priority) {
+      static ResourceHandle handle;
+      return handle.Audio().Play(type, priority);
+    })
+  );
+
+  engine_namespace.set_function("input_has",
+    [](const InputEvent& event) {
+      static InputHandle handle;
+      return handle.Input().Has(event);
+    }
   );
 
   engine_namespace.set_function("define_character",
@@ -856,7 +871,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Immediate", ActionOrder::immediate
   );
 
-  auto& input_event_record = state.create_table("InputEvent");
+  auto& input_event_record = state.create_table("Input");
 
   const auto& pressed_input_event_record = input_event_record.new_enum("Pressed",
     "Up", InputEvents::pressed_move_up,
@@ -956,7 +971,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Shine", AudioType::SHINE,
     "TimeFreeze", AudioType::TIME_FREEZE,
     "Meteor", AudioType::METEOR,
-    "Deform", AudioType::DEFORM 
+    "Deform", AudioType::DEFORM
   );
 
   const auto& audio_priority_record = state.new_enum("AudioPriority",
@@ -994,6 +1009,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent");
+  const auto& card_event_record = state.new_usertype<CardEvent>("CardEvent");
 
   const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
     sol::factories([](int count, double speed) { return new Explosion(count, speed); }),
@@ -1011,7 +1027,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& color_record = state.new_usertype<sf::Color>("Color",
-    sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>()
+    sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>(),
+    "r", &sf::Color::r,
+    "g", &sf::Color::g,
+    "b", &sf::Color::b,
+    "a", &sf::Color::a
   );
 
   const auto& vector_record = state.new_usertype<sf::Vector2f>("Vector2",
