@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "bindings/bnScriptedCard.h"
+
  // TODO: mac os < 10.5 file system support...
 #ifndef __APPLE__
 #include <filesystem>
@@ -18,7 +20,7 @@ static inline void QueueCardRegistration(CardRegistration& roster) {
     auto full_path = std::filesystem::absolute(entry).string();
 
     if (full_path.find(".zip") == std::string::npos) {
-      roster.LoadCardFromPackage(full_path);
+      roster.LoadPackageFromDisc<ScriptedCard>(full_path);
     }
   }
 #endif

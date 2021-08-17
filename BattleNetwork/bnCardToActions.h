@@ -45,8 +45,8 @@ static CardAction* CardToAction(const Battle::Card& card, Character& character, 
   CardAction* next{nullptr};
 
   if (roster.HasPackage(card.GetUUID())) {
-    auto& meta = roster.FindByPackageID(card.GetUUID());
-    return meta.GetCard()->BuildCardAction(&character, meta.GetCardProperties());
+    auto& meta = roster.FindPackageByID(card.GetUUID());
+    return meta.GetData()->BuildCardAction(&character, meta.GetCardProperties());
   }
   
   if (name.substr(0, 4) == "Atk+") {

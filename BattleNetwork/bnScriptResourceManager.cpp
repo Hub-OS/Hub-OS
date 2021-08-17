@@ -689,11 +689,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "long_description", &Battle::Card::Properties::verboseDescription
   );
 
-  const auto& cardmeta_table = engine_namespace.new_usertype<CardRegistration::CardMeta>("CardMeta",
-    "get_card_props", &CardRegistration::CardMeta::GetCardProperties,
-    "set_preview_texture", &CardRegistration::CardMeta::SetPreviewTexture,
-    "set_icon_texture", &CardRegistration::CardMeta::SetIconTexture,
-    "declare_package_id", &CardRegistration::CardMeta::SetPackageID
+  const auto& cardmeta_table = engine_namespace.new_usertype<CardMeta>("CardMeta",
+    "get_card_props", &CardMeta::GetCardProperties,
+    "set_preview_texture", &CardMeta::SetPreviewTexture,
+    "set_icon_texture", &CardMeta::SetIconTexture,
+    "declare_package_id", &CardMeta::SetPackageID
   );
 
   const auto& mobmeta_table = engine_namespace.new_usertype<MobRegistration::MobMeta>("MobInfo",

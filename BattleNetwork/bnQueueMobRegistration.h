@@ -37,7 +37,7 @@
 ************    Register your custom mobs here    *********************
 ************************************************************************/
 
-static inline void QueueMobRegistration() {
+static inline void QueueMobRegistration(/*MobRegistration& roster*/) {
   ResourceHandle handle;
 
   auto info = MOBS.AddClass<TwoMettaurMob>();  // Create and register mob info object
@@ -80,7 +80,7 @@ static inline void QueueMobRegistration() {
   info->SetAttack(120);
   info->SetHP(250);
 
-  /*info = MOBS.AddClass<ProgsManBossFight>();  // Create and register mob info object
+  /*info = roster.AddClass<ProgsManBossFight>();  // Create and register mob info object
   info->SetDescription("A rogue Mr.Prog! Can you stop it?"); // Set property
   info->SetName("Enter ProgsMan");
   info->SetPlaceholderTexturePath("resources/mobs/progsman/preview.png");
@@ -128,41 +128,16 @@ static inline void QueueMobRegistration() {
   info->SetAttack(100);
   info->SetHP(2000);
 
-
+  /*
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
-  // Script resource manager load scripts from designated folder "resources/mods/players"
-  std::string path = "resources/mods/enemies";
-  for (const auto& entry : std::filesystem::directory_iterator(path)) {
-    try {
-      const auto& path = entry.path();
-      std::string mobName = path.filename().string();
-      std::string modpath = path.string() + "/";
-      auto& res = handle.Scripts().LoadScript(modpath + "mob.lua");
+  // Script resource manager load scripts from designated folder "resources/mods/enemies"
+  std::string path_str = "resources/mods/enemies";
+  for (const auto& entry : std::filesystem::directory_iterator(path_str)) {
+    auto full_path = std::filesystem::absolute(entry).string();
 
-      if (res.result.valid()) {
-        sol::state& state = *res.state;
-
-        // run script on meta info object
-        state["_modpath"] = modpath;
-
-        // load any required mods for these scripts
-        auto function_result = state["load_scripts"]();
-
-        if (function_result.valid()) {
-          // set roster properties for this mob
-          auto customInfo = MOBS.AddClass<ScriptedMob>(std::ref(state));  // Create and register mob info object
-          state["roster_init"](customInfo);
-        }
-      }
-      else {
-        sol::error error = res.result;
-        Logger::Logf("Failed to load mob mod %s. Reason: %s", mobName.c_str(), error.what());
-      }
-    }
-    catch (std::exception& stderror) {
-      Logger::Logf("Failed to load mob at %s. Reason: %s", entry.path().c_str(), stderror.what());
-      continue;
+    if (full_path.find(".zip") == std::string::npos) {
+      roster.LoadFromPackage(full_path);
     }
   }
-#endif
+#endif*/
 }

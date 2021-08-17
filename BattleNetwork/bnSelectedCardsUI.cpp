@@ -69,7 +69,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     std::shared_ptr<sf::Texture> texture;
     std::string id = selectedCards[drawOrderIndex]->GetUUID();
     if (roster && roster->HasPackage(id)) {
-      texture = roster->FindByPackageID(id).GetIconTexture();
+      texture = roster->FindPackageByID(id).GetIconTexture();
     }
     else {
       texture = WEBCLIENT.GetIconForCard(id);

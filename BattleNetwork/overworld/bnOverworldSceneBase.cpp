@@ -870,7 +870,7 @@ void Overworld::SceneBase::GotoMobSelect()
   auto& cardRoster = getController().GetCardRegistration();
 
   if (auto id = cardRoster.FirstValidPackage(); id.size()) {
-    auto& meta = cardRoster.FindByPackageID(id);
+    auto& meta = cardRoster.FindPackageByID(id);
     folder->AddCard(meta.GetCardProperties());
   }
 

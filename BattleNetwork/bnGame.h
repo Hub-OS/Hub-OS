@@ -64,6 +64,8 @@ private:
   NetManager netManager;
 
   CardRegistration cardRegistration;
+  //NaviRegistration naviRegistration;
+  //MobRegistration mobRegistration;
 
   DrawWindow& window;
   ConfigReader reader;
@@ -114,6 +116,8 @@ public:
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
   CardRegistration& GetCardRegistration();
+  //NaviRegistration& GetNaviRegistration();
+  //MobRegistration& GetMobRegistration();
 
   /**
    * @brief Store parsed command line values into the engine for easy access

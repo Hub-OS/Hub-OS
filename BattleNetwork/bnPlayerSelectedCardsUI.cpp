@@ -115,7 +115,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         std::shared_ptr<sf::Texture> texture;
         std::string id = selectedCards[drawOrderIndex]->GetUUID();
         if (SelectedCardsUI::roster && SelectedCardsUI::roster->HasPackage(id)) {
-          texture = SelectedCardsUI::roster->FindByPackageID(id).GetIconTexture();
+          texture = SelectedCardsUI::roster->FindPackageByID(id).GetIconTexture();
         }
         else {
           texture = WEBCLIENT.GetIconForCard(id);

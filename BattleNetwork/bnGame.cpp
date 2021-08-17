@@ -350,6 +350,18 @@ CardRegistration& Game::GetCardRegistration()
   return cardRegistration;
 }
 
+
+/*NaviRegistration& Game::GetNaviRegistration()
+{
+  return naviRegistration;
+}
+
+
+MobRegistration& Game::GetMobRegistration()
+{
+  return mobRegistration;
+}*/
+
 void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
   QueuNaviRegistration(); // Queues navis to be loaded later
@@ -372,7 +384,7 @@ void Game::RunCardInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
   QueueCardRegistration(cardRegistration);
 
-  cardRegistration.LoadAllCards(*progress);
+  cardRegistration.LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }

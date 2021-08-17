@@ -716,7 +716,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     std::string id = queue[i].data->GetUUID();
 
     if (props.roster->HasPackage(id)) {
-      texture = props.roster->FindByPackageID(id).GetIconTexture();
+      texture = props.roster->FindPackageByID(id).GetIconTexture();
     }
     else {
       texture = WEBCLIENT.GetIconForCard(id);
@@ -753,7 +753,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     std::string id = (*newSelectQueue[i]).data->GetUUID();
 
     if (props.roster->HasPackage(id)) {
-      texture = props.roster->FindByPackageID(id).GetIconTexture();
+      texture = props.roster->FindPackageByID(id).GetIconTexture();
     }
     else {
       texture = WEBCLIENT.GetIconForCard(id);
@@ -774,7 +774,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       std::string id = queue[cursorPos + (5 * cursorRow)].data->GetUUID();
 
       if(props.roster->HasPackage(id)) {
-        texture = props.roster->FindByPackageID(id).GetPreviewTexture();
+        texture = props.roster->FindPackageByID(id).GetPreviewTexture();
       }
       else {
        texture = WEBCLIENT.GetImageForCard(id);

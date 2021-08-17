@@ -27,7 +27,7 @@
 #include "bindings/bnScriptedPlayer.h"
 #endif
 
-static inline void QueuNaviRegistration() {
+static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
   ResourceHandle handle;
 
   /*********************************************************************
