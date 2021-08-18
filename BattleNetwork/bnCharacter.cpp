@@ -534,7 +534,6 @@ void Character::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
           invincibilityCooldown = 2.0; // used as a `flash` status time
           flagCheckThunk(Hit::flash);
         }

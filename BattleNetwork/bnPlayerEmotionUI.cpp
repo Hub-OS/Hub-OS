@@ -64,11 +64,13 @@ void PlayerEmotionUI::OnUpdate(double elapsed)
   if (!texture) return;
 
   // previousEmotion diff is used to determine if the animation needs to play
-  if (previousEmotion == player->GetEmotion()) return;
+  if (previousEmotion == player->GetEmotion() && !isChangingEmotion) return;
 
   // If the player's emotion has changed, prepare the flicker animation
   if (emotion != player->GetEmotion())
   {
+    isChangingEmotion = true;
+    previousEmotion = emotion;
     emotion = player->GetEmotion();
     emotionChangeFrame = {0};
   }
@@ -88,6 +90,7 @@ void PlayerEmotionUI::OnUpdate(double elapsed)
   {
     // Once we have completed the animation, set previousEmotion to signal the animation is complete
     previousEmotion = emotion;
+    isChangingEmotion = false;
   }
 }
 

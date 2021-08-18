@@ -54,6 +54,7 @@ private:
   /** Sets the emotion visible in the Emotion Window */
   void SetDisplayedEmotion(Emotion emotion);
 
+  bool isChangingEmotion{};
   Player* player;
   std::shared_ptr<sf::Texture> texture;
   SpriteProxyNode emotionWindow;

@@ -46,6 +46,7 @@ Player::Player() :
   previous = nullptr;
   playerControllerSlide = false;
   activeForm = nullptr;
+  superArmor = new DefenseSuperArmor();
 
   auto flinch = [this]() {
     ClearActionQueue();
@@ -53,8 +54,6 @@ Player::Player() :
     SetAnimation(PLAYER_HIT);
     Audio().Play(AudioType::HURT, AudioPriority::lowest);
   };
-
-  superArmor = new DefenseSuperArmor();
 
   this->RegisterStatusCallback(Hit::flinch, Callback<void()>{ flinch });
 
