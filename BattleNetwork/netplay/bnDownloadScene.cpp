@@ -3,8 +3,11 @@
 #include "bnBufferWriter.h"
 #include "../stx/string.h"
 #include "../stx/zip_utils.h"
-#include "../bnNaviRegistration.h"
 #include "../bnWebClientMananger.h"
+#include "../bnPlayer.h"
+#include "../bindings/bnScriptedPlayer.h"
+#include "../bnNaviRegistration.h"
+
 #include <Segues/PixelateBlackWashFade.h>
 
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
@@ -211,7 +214,7 @@ void DownloadScene::RecieveTradePlayerData(const Poco::Buffer<char>& buffer)
   BufferReader reader;
   std::string hash = reader.ReadTerminatedString(buffer);
 
-  if (NAVIS.HasPackage(hash)) {
+  if (getController().PlayerPackageManager().HasPackage(hash)) {
     remotePlayerHash = hash;
     SkipTo(DownloadScene::state::complete);
     return;
@@ -271,7 +274,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 
     file.close();
 
-    if (auto result = NAVIS.LoadNaviFromZip(path); result.value()) {
+    if (auto result = getController().PlayerPackageManager().LoadPackageFromZip<ScriptedPlayer>(path); result.value()) {
       remotePlayerHash = hash;
       SkipTo(DownloadScene::state::complete);
       return;
@@ -518,7 +521,7 @@ Poco::Buffer<char> DownloadScene::SerializePlayerData(const std::string& hash)
   BufferWriter writer;
   size_t len = 0;
   
-  auto result = NAVIS.GetPackageFilePath(hash);
+  auto result = getController().PlayerPackageManager().GetPackageFilePath(hash);
   if (result.is_error()) {
     Logger::Logf("Could not serialize package: %s", result.error_cstr());
 

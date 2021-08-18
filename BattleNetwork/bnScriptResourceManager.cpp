@@ -1,10 +1,12 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptResourceManager.h"
-#include "bnAnimator.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnResourceHandle.h"
+#include "bnCardRegistration.h"
+#include "bnNaviRegistration.h"
+#include "bnAnimator.h"
 #include "bnEntity.h"
 #include "bnSpell.h"
 #include "bnCharacter.h"
@@ -656,21 +658,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   // make meta object info metatable
-  const auto& navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
-    "set_special_description", &NaviRegistration::NaviMeta::SetSpecialDescription,
-    "set_attack", &NaviRegistration::NaviMeta::SetAttack,
-    "set_charged_attack", &NaviRegistration::NaviMeta::SetChargedAttack,
-    "set_speed", &NaviRegistration::NaviMeta::SetSpeed,
-    "set_health", &NaviRegistration::NaviMeta::SetHP,
-    "set_uses_sword", &NaviRegistration::NaviMeta::SetIsSword,
-    "set_overworld_animation_path", &NaviRegistration::NaviMeta::SetOverworldAnimationPath,
-    "set_overworld_texture_path", &NaviRegistration::NaviMeta::SetOverworldTexturePath,
-    "set_mugshot_animation_path", &NaviRegistration::NaviMeta::SetMugshotAnimationPath,
-    "set_mugshot_texture_path", &NaviRegistration::NaviMeta::SetMugshotTexturePath,
-    "set_emotions_texture_path", &NaviRegistration::NaviMeta::SetEmotionsTexturePath,
-    "set_preview_texture", &NaviRegistration::NaviMeta::SetPreviewTexture,
-    "set_icon_texture", &NaviRegistration::NaviMeta::SetIconTexture,
-    "declare_package_id", &NaviRegistration::NaviMeta::SetPackageID
+  const auto& navimeta_table = engine_namespace.new_usertype<NaviMeta>("NaviMeta",
+    "set_special_description", &NaviMeta::SetSpecialDescription,
+    "set_attack", &NaviMeta::SetAttack,
+    "set_charged_attack", &NaviMeta::SetChargedAttack,
+    "set_speed", &NaviMeta::SetSpeed,
+    "set_health", &NaviMeta::SetHP,
+    "set_uses_sword", &NaviMeta::SetIsSword,
+    "set_overworld_animation_path", &NaviMeta::SetOverworldAnimationPath,
+    "set_overworld_texture_path", &NaviMeta::SetOverworldTexturePath,
+    "set_mugshot_animation_path", &NaviMeta::SetMugshotAnimationPath,
+    "set_mugshot_texture_path", &NaviMeta::SetMugshotTexturePath,
+    "set_emotions_texture_path", &NaviMeta::SetEmotionsTexturePath,
+    "set_preview_texture", &NaviMeta::SetPreviewTexture,
+    "set_icon_texture", &NaviMeta::SetIconTexture,
+    "declare_package_id", &NaviMeta::SetPackageID
   );
 
   const auto& cardpropsmeta_table = engine_namespace.new_usertype<Battle::Card::Properties>("CardProperties",

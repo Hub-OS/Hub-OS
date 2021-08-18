@@ -602,13 +602,13 @@ void Overworld::SceneBase::RefreshNaviSprite()
   // Only refresh all data and graphics if this is a new navi
   if (lastSelectedNaviId == currentNaviId && !lastSelectedNaviId.empty()) return;
 
-  if (!NAVIS.HasPackage(currentNaviId)) {
-    currentNaviId = NAVIS.FirstValidPackage();
+  if (!getController().PlayerPackageManager().HasPackage(currentNaviId)) {
+    currentNaviId = getController().PlayerPackageManager().FirstValidPackage();
   }
 
   lastSelectedNaviId = currentNaviId;
 
-  auto& meta = NAVIS.FindByPackageID(currentNaviId);
+  auto& meta = getController().PlayerPackageManager().FindPackageByID(currentNaviId);
 
   // refresh menu widget too
   playerSession->health = meta.GetHP();
@@ -653,7 +653,7 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
     }
   }
   else {
-    currentNaviId = NAVIS.FirstValidPackage();
+    currentNaviId = getController().PlayerPackageManager().FirstValidPackage();
     WEBCLIENT.SetKey("SelectedNavi", currentNaviId);
   }
 }
@@ -867,7 +867,7 @@ void Overworld::SceneBase::GotoMobSelect()
     folder = new CardFolder();
   }
 
-  auto& cardRoster = getController().GetCardRegistration();
+  auto& cardRoster = getController().CardPackageManager();
 
   if (auto id = cardRoster.FirstValidPackage(); id.size()) {
     auto& meta = cardRoster.FindPackageByID(id);

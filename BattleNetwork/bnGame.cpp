@@ -19,6 +19,8 @@
 #include "bnConfigScene.h"
 #include "bnFont.h"
 #include "bnText.h"
+#include "bnCardRegistration.h"
+#include "bnNaviRegistration.h"
 #include "bnQueueMobRegistration.h"
 #include "bnQueueNaviRegistration.h"
 #include "bnQueueCardRegistration.h"
@@ -59,6 +61,10 @@ Game::Game(DrawWindow& window) :
 
   // Link net handle to use manager created by the game
   NetHandle::net = &netManager;
+
+  // Create package managers for rest of game to utilize
+  cardRegistration = new CardRegistration;
+  naviRegistration = new NaviRegistration;
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -345,28 +351,28 @@ const unsigned int Game::GetRandSeed() const
   return randSeed;
 }
 
-CardRegistration& Game::GetCardRegistration()
+CardRegistration& Game::CardPackageManager()
 {
-  return cardRegistration;
+  return *cardRegistration;
 }
 
 
-/*NaviRegistration& Game::GetNaviRegistration()
+NaviRegistration& Game::PlayerPackageManager()
 {
-  return naviRegistration;
+  return *naviRegistration;
 }
 
 
-MobRegistration& Game::GetMobRegistration()
+/*MobRegistration& Game::GetMobRegistration()
 {
   return mobRegistration;
 }*/
 
 void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueuNaviRegistration(); // Queues navis to be loaded later
+  QueuNaviRegistration(*naviRegistration); // Queues navis to be loaded later
 
-  NAVIS.LoadAllNavis(*progress);
+  naviRegistration->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
@@ -382,9 +388,9 @@ void Game::RunMobInit(std::atomic<int>* progress) {
 
 void Game::RunCardInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueueCardRegistration(cardRegistration);
+  QueueCardRegistration(*cardRegistration);
 
-  cardRegistration.LoadAllPackages(*progress);
+  cardRegistration->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }

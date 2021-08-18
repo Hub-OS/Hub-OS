@@ -20,7 +20,7 @@ static inline void QueueCardRegistration(CardRegistration& roster) {
     auto full_path = std::filesystem::absolute(entry).string();
 
     if (full_path.find(".zip") == std::string::npos) {
-      roster.LoadPackageFromDisc<ScriptedCard>(full_path);
+      roster.LoadPackageFromDisk<ScriptedCard>(full_path);
     }
   }
 #endif

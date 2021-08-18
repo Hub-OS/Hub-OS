@@ -12,7 +12,7 @@
 #include <filesystem>
 #endif 
 
-// Register these navis
+#include "bnNaviRegistration.h"
 #include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 #include "bnMegaman.h"
@@ -27,13 +27,13 @@
 #include "bindings/bnScriptedPlayer.h"
 #endif
 
-static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
+static inline void QueuNaviRegistration(NaviRegistration& packageManager) {
   ResourceHandle handle;
 
   /*********************************************************************
   **********            Register megaman            ********************
   **********************************************************************/
-  auto megamanInfo = NAVIS.AddClass<Megaman>();  // Create and register navi info object
+  auto megamanInfo = packageManager.CreatePackage<Megaman>();  // Create and register navi info object
   megamanInfo->SetSpecialDescription("Well rounded stats"); // Set property
   megamanInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/megaman/mega_face.png"));
   megamanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/megaman/preview.png"));
@@ -46,10 +46,10 @@ static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
   megamanInfo->SetAttack(1);
   megamanInfo->SetChargedAttack(10);
   megamanInfo->SetPackageID("com.builtins.engine.hero1");
-  NAVIS.Commit(megamanInfo);
+  packageManager.Commit(megamanInfo);
 
   // Register Roll
-  auto rollInfo = NAVIS.AddClass<Roll>();
+  auto rollInfo = packageManager.CreatePackage<Roll>();
   rollInfo->SetSpecialDescription("High HP w/ FloatShoe enabled.");
   rollInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/roll_face.png"));
   rollInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/preview.png"));
@@ -62,10 +62,10 @@ static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
   rollInfo->SetAttack(2);
   rollInfo->SetChargedAttack(10);
   rollInfo->SetPackageID("com.builtins.engine.hero2");
-  NAVIS.Commit(rollInfo);
+  packageManager.Commit(rollInfo);
 
   // Register Starman
-  auto starmanInfo = NAVIS.AddClass<Starman>();
+  auto starmanInfo = packageManager.CreatePackage<Starman>();
   starmanInfo->SetSpecialDescription("Fastest navi w/ rapid fire");
   starmanInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/starman/star_face.png"));
   starmanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/starman/preview.png"));
@@ -78,10 +78,10 @@ static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
   starmanInfo->SetAttack(2);
   starmanInfo->SetChargedAttack(10);
   starmanInfo->SetPackageID("com.builtins.engine.hero3");
-  NAVIS.Commit(starmanInfo);
+  packageManager.Commit(starmanInfo);
 
   // Register Protoman
-  auto protomanInfo = NAVIS.AddClass<Protoman>();
+  auto protomanInfo = packageManager.CreatePackage<Protoman>();
   protomanInfo->SetSpecialDescription("Elite class navi w/ sword");
   protomanInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/protoman/protoman_face.png"));
   protomanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/protoman/preview.png"));
@@ -95,10 +95,10 @@ static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
   protomanInfo->SetChargedAttack(20);
   protomanInfo->SetIsSword(true);
   protomanInfo->SetPackageID("com.builtins.engine.hero4");
-  NAVIS.Commit(protomanInfo);
+  packageManager.Commit(protomanInfo);
 
   // Register Tomahawkman
-  auto thawkInfo = NAVIS.AddClass<Tomahawkman>();
+  auto thawkInfo = packageManager.CreatePackage<Tomahawkman>();
   thawkInfo->SetSpecialDescription("Spec. Axe ability!");
   thawkInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/tomahawk/tomahawk_face.png"));
   thawkInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/tomahawk/preview.png"));
@@ -111,10 +111,10 @@ static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
   thawkInfo->SetAttack(1);
   thawkInfo->SetChargedAttack(20);
   thawkInfo->SetPackageID("com.builtins.engine.hero5");
-  NAVIS.Commit(thawkInfo);
+  packageManager.Commit(thawkInfo);
 
   // Register Forte
-  auto forteInfo = NAVIS.AddClass<Forte>();
+  auto forteInfo = packageManager.CreatePackage<Forte>();
   forteInfo->SetSpecialDescription("Too angry to die. Spawns w/ aura");
   forteInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/forte_face.png"));
   forteInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/preview.png"));
@@ -127,7 +127,7 @@ static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
   forteInfo->SetAttack(2);
   forteInfo->SetChargedAttack(20);
   forteInfo->SetPackageID("com.builtins.engine.antihero1");
-  NAVIS.Commit(forteInfo);
+  packageManager.Commit(forteInfo);
 
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   // Script resource manager load scripts from designated folder "resources/mods/players"
@@ -136,7 +136,7 @@ static inline void QueuNaviRegistration(/*NaviRegistration& roster*/) {
     auto full_path = std::filesystem::absolute(entry).string();
 
     if (full_path.find(".zip") == std::string::npos) {
-      NAVIS.LoadNaviFromPackage(full_path);
+      packageManager.LoadPackageFromDisk<ScriptedPlayer>(full_path);
     }
   }
 #endif

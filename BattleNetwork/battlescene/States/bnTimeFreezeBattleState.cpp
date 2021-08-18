@@ -179,7 +179,7 @@ void TimeFreezeBattleState::OnCardUse(const Battle::Card& card, Character& user,
 
     stuntDouble = CreateStuntDouble(this->user);
 
-    auto& cardRoster = this->GetScene().getController().GetCardRegistration();
+    auto& cardRoster = this->GetScene().getController().CardPackageManager();
     action = CardToAction(card, *stuntDouble, cardRoster);
   }
 }

@@ -19,7 +19,8 @@ class PackageManager {
         template<typename SuperDataType, typename... Args> MetaClass& SetClass(Args&&...);
 
         /*Implementation defined Post Parse-ops */
-        virtual void OnMetaConfigured() {}
+        virtual void OnMetaConfigured() {} // After meta data is parsed
+        virtual void OnPreGetData() {} // Before returning the allocated object
 
         MetaClass& SetPackageID(const std::string& id) {
           packageId = id;
@@ -35,11 +36,13 @@ class PackageManager {
           return packageId;
         }
 
-        const std::string& GetFIlePath() const {
+        const std::string& GetFilePath() const {
           return filepath;
         }
 
         DataType* GetData() {
+          this->OnPreGetData();
+
           DataType* out = data;
           data = nullptr;
             
@@ -69,13 +72,14 @@ class PackageManager {
     }
 
     MetaClass& FindPackageByID(const std::string& id);
+    const MetaClass& FindPackageByID(const std::string& id) const;
     stx::result_t<std::string> RemovePackageByID(const std::string& id);
 
-    bool HasPackage(const std::string& id);
-    const std::string FirstValidPackage();
-    const std::string GetPackageBefore(const std::string& id);
-    const std::string GetPackageAfter(const std::string& id);
-    stx::result_t<std::string> GetPackageFilePath(const std::string& id);
+    bool HasPackage(const std::string& id) const;
+    const std::string FirstValidPackage() const;
+    const std::string GetPackageBefore(const std::string& id) const;
+    const std::string GetPackageAfter(const std::string& id) const;
+    stx::result_t<std::string> GetPackageFilePath(const std::string& id) const;
 
     /**
     * @brief Used at startup, loads every package queued by commits
@@ -84,7 +88,7 @@ class PackageManager {
     void LoadAllPackages(std::atomic<int>& progress);
 
     template<typename ScriptedDataType>
-    stx::result_t<bool> LoadPackageFromDisc(const std::string& path);
+    stx::result_t<bool> LoadPackageFromDisk(const std::string& path);
 
     template<typename ScriptedDataType>
     stx::result_t<bool> LoadPackageFromZip(const std::string& path);
@@ -93,7 +97,7 @@ class PackageManager {
     * @brief Get the size of the package list
     * @return const unsigned size
     */
-    const unsigned Size();
+    const unsigned Size() const;
 
     private:
     std::map<std::string, MetaClass*> packages;
@@ -114,7 +118,7 @@ void PackageManager<MetaClass>::LoadAllPackages(std::atomic<int>& progress)
 
 template<typename MetaClass>
 template<typename ScriptedDataType>
-stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisc(const std::string& path)
+stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::string& path)
 {
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   ResourceHandle handle;
@@ -175,7 +179,7 @@ stx::result_t<bool> PackageManager<typename MetaClass>::LoadPackageFromZip(const
   auto result = stx::unzip(path, extracted_path);
 
   if (result.value()) {
-    return this->LoadPackageFromDisc<ScriptedDataType>(extracted_path);
+    return this->LoadPackageFromDisk<ScriptedDataType>(extracted_path);
   }
 
   return result;
@@ -206,6 +210,18 @@ inline MetaClass& PackageManager<typename MetaClass>::Meta<DataType>::SetClass(A
 template<typename MetaClass>
 inline MetaClass& PackageManager<MetaClass>::FindPackageByID(const std::string& id)
 {
+  auto iter = packages.find(id);
+
+  if (iter == packages.end()) {
+    std::string error = "Package manager could not find package ID " + id;
+    throw std::runtime_error(error);
+  }
+
+  return *(iter->second);
+}
+
+template<typename MetaClass>
+inline const MetaClass& PackageManager<MetaClass>::FindPackageByID(const std::string& id) const {
   auto iter = packages.find(id);
 
   if (iter == packages.end()) {
@@ -259,13 +275,13 @@ stx::result_t<std::string> PackageManager<MetaClass>::RemovePackageByID(const st
 }
 
 template<typename MetaClass>
-bool PackageManager<MetaClass>::HasPackage(const std::string& id)
+bool PackageManager<MetaClass>::HasPackage(const std::string& id) const
 {
   return packages.find(id) != packages.end();
 }
 
 template<typename MetaClass>
-const std::string PackageManager<MetaClass>::FirstValidPackage()
+const std::string PackageManager<MetaClass>::FirstValidPackage() const
 {
   if (packages.empty()) {
     throw std::runtime_error("package list is empty!");
@@ -275,7 +291,7 @@ const std::string PackageManager<MetaClass>::FirstValidPackage()
 }
 
 template<typename MetaClass>
-const std::string PackageManager<MetaClass>::GetPackageBefore(const std::string& id)
+const std::string PackageManager<MetaClass>::GetPackageBefore(const std::string& id) const
 {
   std::string previous_key;
 
@@ -297,7 +313,7 @@ const std::string PackageManager<MetaClass>::GetPackageBefore(const std::string&
 }
 
 template<typename MetaClass>
-const std::string PackageManager<MetaClass>::GetPackageAfter(const std::string& id)
+const std::string PackageManager<MetaClass>::GetPackageAfter(const std::string& id) const
 {
   std::string previous_key;
 
@@ -319,10 +335,10 @@ const std::string PackageManager<MetaClass>::GetPackageAfter(const std::string& 
 }
 
 template<typename MetaClass>
-stx::result_t<std::string> PackageManager<MetaClass>::GetPackageFilePath(const std::string& id)
+stx::result_t<std::string> PackageManager<MetaClass>::GetPackageFilePath(const std::string& id) const
 {
   if (this->HasPackage(id)) {
-    auto& meta = this->FindByPackageID(id);
+    const MetaClass& meta = this->FindPackageByID(id);
     return stx::ok(meta.GetFilePath());
   }
 
@@ -330,7 +346,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::GetPackageFilePath(const s
 }
 
 template<typename MetaClass>
-const unsigned PackageManager<MetaClass>::Size()
+const unsigned PackageManager<MetaClass>::Size() const
 {
   return (unsigned)packages.size();
 }

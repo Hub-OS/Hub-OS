@@ -79,15 +79,15 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   navi.setOrigin(navi.getLocalBounds().width / 2.f, navi.getLocalBounds().height / 2.f);
   navi.setPosition(100.f, 150.f);
 
-
-  if (auto tex = NAVIS.FindByPackageID(currentChosenId).GetPreviewTexture()) {
+  auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(currentChosenId);
+  if (auto tex = playerPkg.GetPreviewTexture()) {
     navi.setTexture(tex);
   }
 
-  naviLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetName().c_str()));
-  speedLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetSpeedString().c_str()));
-  attackLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetAttackString().c_str()));
-  hpLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetHPString().c_str()));
+  naviLabel.SetString(sf::String(playerPkg.GetName().c_str()));
+  speedLabel.SetString(sf::String(playerPkg.GetSpeedString().c_str()));
+  attackLabel.SetString(sf::String(playerPkg.GetAttackString().c_str()));
+  hpLabel.SetString(sf::String(playerPkg.GetHPString().c_str()));
   
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
@@ -273,7 +273,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to previous mob
         selectInputCooldown = maxSelectInputCooldown;
-        currentChosenId = NAVIS.GetPackageBefore(currentChosenId);
+        currentChosenId = getController().PlayerPackageManager().GetPackageBefore(currentChosenId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -285,7 +285,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to next mob
         selectInputCooldown = maxSelectInputCooldown;
-        currentChosenId = NAVIS.GetPackageAfter(currentChosenId);
+        currentChosenId = getController().PlayerPackageManager().GetPackageAfter(currentChosenId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -304,27 +304,29 @@ void SelectNaviScene::onUpdate(double elapsed) {
     }
   }
 
+  auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(currentChosenId);
+
   // Reset the factor/slide in effects if a new selection was made
   if (currentChosenId != prevSelectId || !loadNavi) {
     factor = 125;
 
-    int offset = (int)(NAVIS.FindByPackageID(currentChosenId).GetElement());
+    int offset = (int)(playerPkg.GetElement());
     auto iconRect = sf::IntRect(14 * offset, 0, 14, 14);
     element.setTextureRect(iconRect);
 
-    if (auto tex = NAVIS.FindByPackageID(currentChosenId).GetPreviewTexture()) {
+    if (auto tex = playerPkg.GetPreviewTexture()) {
       navi.setTexture(tex, true);
     }
 
-    textbox.SetText(NAVIS.FindByPackageID(currentChosenId).GetSpecialDescriptionString());
+    textbox.SetText(playerPkg.GetSpecialDescriptionString());
     loadNavi = true;
   }
 
   // This goes here because the jumbling effect may finish and we need to see proper values
-  naviLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetName()));
-  speedLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetSpeedString()));
-  attackLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetAttackString()));
-  hpLabel.SetString(sf::String(NAVIS.FindByPackageID(currentChosenId).GetHPString()));
+  naviLabel.SetString(sf::String(playerPkg.GetName()));
+  speedLabel.SetString(sf::String(playerPkg.GetSpeedString()));
+  attackLabel.SetString(sf::String(playerPkg.GetAttackString()));
+  hpLabel.SetString(sf::String(playerPkg.GetHPString()));
 
   // This just scrambles the letters
   if (numberCooldown > 0) {

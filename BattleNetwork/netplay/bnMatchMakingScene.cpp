@@ -51,7 +51,8 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   this->gridBG = new GridBackground();
   gridBG->setColor(sf::Color(0)); // hide until it is ready
 
-  clientPreview.setTexture(NAVIS.FindByPackageID(selectedNaviId).GetPreviewTexture());
+  auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(selectedNaviId);
+  clientPreview.setTexture(playerPkg.GetPreviewTexture());
   clientPreview.setScale(2.f, 2.f);
   clientPreview.setOrigin(clientPreview.getLocalBounds().width, clientPreview.getLocalBounds().height);
   
@@ -432,8 +433,8 @@ void MatchMakingScene::onResume() {
     packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
   }
   else if(remoteNaviId.size()) {
-    auto& meta = NAVIS.FindByPackageID(this->remoteNaviId);
-    this->remotePreview.setTexture(meta.GetPreviewTexture());
+    auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
+    this->remotePreview.setTexture(playerPkg.GetPreviewTexture());
     auto height = remotePreview.getSprite().getLocalBounds().height;
     remotePreview.setOrigin(sf::Vector2f(0, height));
   }
@@ -566,13 +567,13 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
       // Configure the session
       config.myNaviId = selectedNaviId;
-      auto& meta = NAVIS.FindByPackageID(config.myNaviId);
+      auto& meta = getController().PlayerPackageManager().FindPackageByID(config.myNaviId);
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
       auto mugshot = Textures().LoadTextureFromFile(image);
       auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-      Player* player = meta.GetNavi();
+      Player* player = meta.GetData();
 
 
       NetworkBattleSceneProps props = {

@@ -134,9 +134,12 @@ void FolderChangeNameScene::DoOK()
   // Prompt question
   // TODO
 
-  // Save this session data new folder name
+  // We must have a key for the selected navi
   auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
-  if (naviSelectedStr.empty()) naviSelectedStr = NAVIS.FirstValidPackage(); // We must have a key for the selected navi
+  if (naviSelectedStr.empty()) 
+    naviSelectedStr = getController().PlayerPackageManager().FirstValidPackage(); 
+
+  // Save this session data new folder name
   WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderName);
 
   // Set original variable to new results

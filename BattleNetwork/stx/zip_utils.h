@@ -37,7 +37,7 @@ namespace stx {
     }
 
     static void unzip_walk(struct zip_t* zip, const char* target_path) {
-      int i, n = zip_entries_total(zip);
+      int i, n = static_cast<int>(zip_entries_total(zip));
       for (i = 0; i < n; ++i) {
         zip_entry_openbyindex(zip, i);
         {

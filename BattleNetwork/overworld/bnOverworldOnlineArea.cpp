@@ -284,13 +284,13 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     // Configure the session
     config.myNaviId = GetCurrentNaviID();
 
-    auto& meta = NAVIS.FindByPackageID(config.myNaviId);
+    auto& meta = getController().PlayerPackageManager().FindPackageByID(config.myNaviId);
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
     const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
     auto mugshot = Textures().LoadTextureFromFile(image);
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-    Player* player = meta.GetNavi();
+    Player* player = meta.GetData();
 
     int fullHealth = player->GetHealth();
     player->SetHealth(GetPlayerSession()->health);
@@ -418,7 +418,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
     auto& menuSystem = GetMenuSystem();
 
     if (menuSystem.IsClosed() && Input().Has(InputEvents::pressed_shoulder_right)) {
-      auto& meta = NAVIS.FindByPackageID(GetCurrentNaviID());
+      auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& anim = meta.GetMugshotAnimationPath();
       auto mugshot = Textures().LoadTextureFromFile(image);
@@ -1076,7 +1076,7 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
 {
   sendAvatarAssetStream();
 
-  auto& naviMeta = NAVIS.FindByPackageID(GetCurrentNaviID());
+  auto& naviMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
   auto naviName = naviMeta.GetName();
   auto maxHP = naviMeta.GetHP();
   auto element = GetStrFromElement(naviMeta.GetElement());
@@ -1125,7 +1125,7 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
   // + reliability type + id + packet type
   auto packetHeaderSize = 1 + 8 + 2;
 
-  auto& naviMeta = NAVIS.FindByPackageID(GetCurrentNaviID());
+  auto& naviMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
 
   auto texturePath = naviMeta.GetOverworldTexturePath();
   auto textureData = readBytes(texturePath);

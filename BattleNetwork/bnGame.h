@@ -13,7 +13,6 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnScriptResourceManager.h"
-#include "bnCardRegistration.h"
 #include "bnInputManager.h"
 #include "cxxopts/cxxopts.hpp"
 
@@ -43,6 +42,9 @@
 
 using swoosh::ActivityController;
 
+class NaviRegistration;
+class CardRegistration;
+
 enum class Endianness : short {
   big = 0,
   little
@@ -63,8 +65,8 @@ private:
   InputManager inputManager;
   NetManager netManager;
 
-  CardRegistration cardRegistration;
-  //NaviRegistration naviRegistration;
+  CardRegistration* cardRegistration;
+  NaviRegistration* naviRegistration;
   //MobRegistration mobRegistration;
 
   DrawWindow& window;
@@ -115,8 +117,8 @@ public:
   void UpdateConfigSettings(const ConfigSettings& new_settings);
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
-  CardRegistration& GetCardRegistration();
-  //NaviRegistration& GetNaviRegistration();
+  CardRegistration& CardPackageManager();
+  NaviRegistration& PlayerPackageManager();
   //MobRegistration& GetMobRegistration();
 
   /**

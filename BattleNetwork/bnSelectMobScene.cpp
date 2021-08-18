@@ -372,13 +372,13 @@ void SelectMobScene::onUpdate(double elapsed) {
       Audio().StopStream();
 
       // Get the navi we selected
-      auto& meta = NAVIS.FindByPackageID(selectedNaviId);
+      auto& meta = getController().PlayerPackageManager().FindPackageByID(selectedNaviId);
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
       auto mugshot = Textures().LoadTextureFromFile(image);
       auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-      Player* player = meta.GetNavi();
+      Player* player = meta.GetData();
 
       // Shuffle our new folder
       CardFolder* newFolder = selectedFolder.Clone();

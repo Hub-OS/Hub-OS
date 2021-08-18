@@ -35,7 +35,7 @@ using swoosh::ActivityController;
 
 BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
-  cardListener(this->getController().GetCardRegistration()),
+  cardListener(this->getController().CardPackageManager()),
   player(&props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -47,7 +47,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   heatShader(Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI({ props.folder, &getController().GetCardRegistration(), 8, 8 }),
+  cardCustGUI({ props.folder, &getController().CardPackageManager(), 8, 8 }),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
   onEndCallback(onEnd),
@@ -97,7 +97,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   }
 
   // Card UI for player
-  cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().GetCardRegistration());
+  cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackageManager());
   // cardListener.Subscribe(*cardUI);
   this->CardUseListener::Subscribe(*cardUI);
 
@@ -641,7 +641,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     auto actionList = c->AsyncActionList();
     auto currAction = c->CurrentCardAction();
 
-    for (auto action : actionList) {
+    for (auto& action : actionList) {
       surface.draw(*action);
     }
 
