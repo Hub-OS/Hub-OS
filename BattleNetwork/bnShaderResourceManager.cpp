@@ -2,9 +2,9 @@
 #include "bnShaderType.h"
 #include <stdlib.h>
 #include <sstream>
-using std::stringstream;
 #include <fstream>
 using std::ifstream;
+using std::stringstream;
 
 void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
   ShaderType shaderType = static_cast<ShaderType>(0);
@@ -79,7 +79,7 @@ ShaderResourceManager::ShaderResourceManager() {
 #ifdef SFML_SYSTEM_ANDROID
   std::string version = "glsl_150";
 #else
-  std::string version = "glsl_110";
+  std::string version = "glsl_120";
 #endif
 
   paths.resize((size_t)ShaderType::SHADER_TYPE_SIZE);
@@ -108,6 +108,9 @@ ShaderResourceManager::ShaderResourceManager() {
   paths[(int)ShaderType::PALETTE_SWAP] = std::string() + "resources/shaders/" + version + "/palette_swap";
   paths[(int)ShaderType::GRADIENT] = std::string() + "resources/shaders/" + version + "/color_oscillate";
   paths[(int)ShaderType::BLACK] = std::string() + "resources/shaders/" + version + "/black";
+  paths[(int)ShaderType::MINIMAP_COLOR] = std::string() + "resources/shaders/" + version + "/minimap_color";
+  paths[(int)ShaderType::MINIMAP_EDGE] = std::string() + "resources/shaders/" + version + "/minimap_edge";
+
 }
 
 ShaderResourceManager::~ShaderResourceManager() {

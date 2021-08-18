@@ -2,6 +2,7 @@
 
 #include "bnOverworldTileType.h"
 #include "../bnTextureResourceManager.h"
+#include "../bnShaderResourceManager.h"
 #include "../stx/string.h"
 #include <Swoosh/EmbedGLSL.h>
 #include <cmath>
@@ -66,65 +67,6 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   // fill with background color
   texture.clear(sf::Color(0,0,0,0));
 
-  // shader pass transforms opaque pixels into purple hues
-  std::string recolor = GLSL(
-    110,
-    uniform sampler2D texture;
-    uniform vec2 center;
-    uniform vec2 tileSize;
-    uniform vec4 finalColor;
-    uniform int mask;
-
-    void main() {
-
-      vec2 pos = gl_TexCoord[0].xy; // pos is the uv coord (subrect)
-      vec4 incolor = texture2D(texture, pos).rgba;
-      vec4 outcolor;
-
-      pos.x = center.x - pos.x;
-      pos.y = center.y - pos.y;
-
-      if (mask == 0) {
-        outcolor = vec4(finalColor.r*0.60, finalColor.g*1.20, finalColor.b*0.60, ceil(incolor.a));
-      }
-      else {
-        outcolor = finalColor * ceil(incolor.a);
-      }
-
-      if (mask > 0 && abs(2.0 * pos.x / tileSize.x) + abs(2.0 * pos.y / tileSize.y) > 1.0)
-       discard;
-
-      gl_FragColor = outcolor;
-    }
-  );
-
-  std::string edgeDetection = GLSL(
-    110,
-    uniform sampler2D texture;
-    uniform float resolutionW;
-    uniform float resolutionH;
-
-    void main(void)
-    {
-      float dx = 1.0 / resolutionW;
-      float dy = 1.0 / resolutionH;
-
-      vec2 pos = gl_TexCoord[0].xy;
-      vec4 incolor = texture2D(texture, pos).rgba;
-
-      // this just checks for alpha
-      vec4 top = texture2D(texture, vec2(pos.x, pos.y - dy));
-      vec4 left = texture2D(texture, vec2(pos.x - dx, pos.y));
-      vec4 right = texture2D(texture, vec2(pos.x + dx, pos.y));
-      vec4 down = texture2D(texture, vec2(pos.x, pos.y + dy));
-
-      vec4 n = max(down, max(top, max(left, right)));
-      float m = n.a*(1.0 - incolor.a);
-
-      gl_FragColor = m * (n * 0.90);
-    }
-  );
-
   /**
   layer1= 152 144 224
   layer2= 176 168 240 diff = 24 24 16
@@ -141,9 +83,9 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   sf::Color edge1Color = sf::Color(120, 112, 192);
   sf::Color edgeMaxColor = sf::Color(160, 152, 224); // sf::Color(168, 160, 240);
 
-  sf::Shader shader;
-  shader.loadFromMemory(recolor, sf::Shader::Type::Fragment);
-  states.shader = &shader;
+    // shader pass transforms opaque pixels into purple hues
+  static ResourceHandle handle;
+  states.shader = handle.Shaders().GetShader(ShaderType::MINIMAP_COLOR);
 
   // guestimate best fit "center" of the map
   auto layerDimensions = map.TileToWorld({ (float)map.GetCols(), (float)map.GetRows() });
@@ -179,10 +121,10 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
       return sf::Glsl::Vec4(r / 255.f, g / 255.f, b / 255.f, 1.f);
     };
 
-    shader.setUniform("finalColor", lerpColor(i, maxLayerCount, layer1Color, layerMaxColor));
+    states.shader->setUniform("finalColor", lerpColor(i, maxLayerCount, layer1Color, layerMaxColor));
 
     // draw layer (Applies masking)
-    minimap.DrawLayer(texture, shader, states, map, i);
+    minimap.DrawLayer(texture, *states.shader, states, map, i);
 
     // iso layers are offset (prepare for the next layer)
     states.transform.translate(0.f, -tileSize.y * 0.5f);
@@ -195,10 +137,10 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   sf::Sprite temp(tempTex);
 
   // do a second pass for edge detection
+  states.shader = handle.Shaders().GetShader(ShaderType::MINIMAP_EDGE);
   states.transform = sf::Transform::Identity;
-  shader.loadFromMemory(edgeDetection, sf::Shader::Type::Fragment);
-  shader.setUniform("resolutionW", (float)textureSize.x);
-  shader.setUniform("resolutionH", (float)textureSize.y);
+  states.shader->setUniform("resolutionW", (float)textureSize.x);
+  states.shader->setUniform("resolutionH", (float)textureSize.y);
   texture.draw(temp, states);
 
   texture.display();

@@ -30,5 +30,6 @@ void main()
         pixel.rgb = vec3(0.0, 0.0, 0.0);
     else
         pixel.a = edge_threshold;
+        
     gl_FragColor = pixel;
 }

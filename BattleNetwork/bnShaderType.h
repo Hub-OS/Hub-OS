@@ -54,6 +54,8 @@
         ADDITIVE,
         PALETTE_SWAP,
         GRADIENT,
+        MINIMAP_COLOR,
+        MINIMAP_EDGE,
         SHADER_TYPE_SIZE
     };
 #endif
