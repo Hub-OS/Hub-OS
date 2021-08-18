@@ -42,8 +42,8 @@
 
 using swoosh::ActivityController;
 
-class NaviRegistration;
-class CardRegistration;
+class PlayerPackageManager;
+class CardPackageManager;
 
 enum class Endianness : short {
   big = 0,
@@ -65,9 +65,9 @@ private:
   InputManager inputManager;
   NetManager netManager;
 
-  CardRegistration* cardRegistration;
-  NaviRegistration* naviRegistration;
-  //MobRegistration mobRegistration;
+  CardPackageManager* cardPackageManager;
+  PlayerPackageManager* playerPackageManager;
+  //MobPackageManager mobPackageManager;
 
   DrawWindow& window;
   ConfigReader reader;
@@ -117,8 +117,8 @@ public:
   void UpdateConfigSettings(const ConfigSettings& new_settings);
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
-  CardRegistration& CardPackageManager();
-  NaviRegistration& PlayerPackageManager();
+  CardPackageManager& CardPackageManager();
+  PlayerPackageManager& PlayerPackageManager();
   //MobRegistration& GetMobRegistration();
 
   /**

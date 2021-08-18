@@ -6,21 +6,14 @@
 #include <Swoosh/Ease.h>
 
 #include "bnGame.h"
-#include "bnTextureResourceManager.h"
-#include "bnAudioResourceManager.h"
-#include "bnShaderResourceManager.h"
-#include "bnInputManager.h"
 #include "bnWebClientMananger.h"
-#include "bnNaviRegistration.h"
-#include "bnInputManager.h"
+#include "bnPlayerPackageManager.h"
+#include "bnCardPackageManager.h"
 #include "bnGameOverScene.h"
 #include "bnFakeScene.h"
 #include "bnConfigReader.h"
-#include "bnConfigScene.h"
 #include "bnFont.h"
 #include "bnText.h"
-#include "bnCardRegistration.h"
-#include "bnNaviRegistration.h"
 #include "bnQueueMobRegistration.h"
 #include "bnQueueNaviRegistration.h"
 #include "bnQueueCardRegistration.h"
@@ -63,8 +56,8 @@ Game::Game(DrawWindow& window) :
   NetHandle::net = &netManager;
 
   // Create package managers for rest of game to utilize
-  cardRegistration = new CardRegistration;
-  naviRegistration = new NaviRegistration;
+  cardPackageManager = new class CardPackageManager;
+  playerPackageManager = new class PlayerPackageManager;
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -78,7 +71,8 @@ Game::Game(DrawWindow& window) :
 }
 
 Game::~Game() {
-
+  delete cardPackageManager;
+  delete playerPackageManager;
 }
 
 void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
@@ -351,15 +345,15 @@ const unsigned int Game::GetRandSeed() const
   return randSeed;
 }
 
-CardRegistration& Game::CardPackageManager()
+CardPackageManager& Game::CardPackageManager()
 {
-  return *cardRegistration;
+  return *cardPackageManager;
 }
 
 
-NaviRegistration& Game::PlayerPackageManager()
+PlayerPackageManager& Game::PlayerPackageManager()
 {
-  return *naviRegistration;
+  return *playerPackageManager;
 }
 
 
@@ -370,9 +364,9 @@ NaviRegistration& Game::PlayerPackageManager()
 
 void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueuNaviRegistration(*naviRegistration); // Queues navis to be loaded later
+  QueuNaviRegistration(*playerPackageManager); // Queues navis to be loaded later
 
-  naviRegistration->LoadAllPackages(*progress);
+  playerPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
@@ -388,9 +382,9 @@ void Game::RunMobInit(std::atomic<int>* progress) {
 
 void Game::RunCardInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueueCardRegistration(*cardRegistration);
+  QueueCardRegistration(*cardPackageManager);
 
-  cardRegistration->LoadAllPackages(*progress);
+  cardPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }

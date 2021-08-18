@@ -1,4 +1,4 @@
-/*! \file bnCardRegistration.h */
+/*! \file bnCardPackageManager.h */
 
 #pragma once
 
@@ -60,4 +60,4 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
   Battle::Card::Properties& GetCardProperties();
 };
 
-class CardRegistration : public PackageManager<CardMeta> {};
+class CardPackageManager : public PackageManager<CardMeta> {};

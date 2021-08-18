@@ -13,7 +13,6 @@
 #include "bnPlayerControlledState.h"
 #include "bnPlayerIdleState.h"
 #include "bnPlayerHitState.h"
-#include "bnNaviRegistration.h"
 
 using sf::IntRect;
 

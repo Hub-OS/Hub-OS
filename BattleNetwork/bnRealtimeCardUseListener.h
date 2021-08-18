@@ -4,15 +4,15 @@
 
 #include "bnAudioResourceManager.h"
 #include "bnCardUseListener.h"
-#include "bnCardRegistration.h"
+#include "bnCardPackageManager.h"
 #include "bnCard.h"
 
 class RealtimeCardUseListener : public CardUseListener {
 private:
-  CardRegistration& roster;
+  CardPackageManager& packageManager;
 
 public:
-  RealtimeCardUseListener(CardRegistration& roster) : CardUseListener(), roster(roster) {}
+  RealtimeCardUseListener(CardPackageManager& packageManager) : CardUseListener(), packageManager(packageManager) {}
   
   /**
    * @brief What happens when a card is used

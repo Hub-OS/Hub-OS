@@ -32,7 +32,7 @@
 #include "../../bnSelectedCardsUI.h"
 #include "../../bnCounterHitListener.h"
 #include "../../bnCharacterDeleteListener.h"
-#include "../../bnNaviRegistration.h"
+#include "../../bnPlayerPackageManager.h"
 #include "../../battlescene/States/bnCharacterTransformBattleState.h"
 
 #include "../bnNetPlayFlags.h"

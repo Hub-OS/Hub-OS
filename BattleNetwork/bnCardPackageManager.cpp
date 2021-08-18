@@ -1,4 +1,4 @@
-#include "bnCardRegistration.h"
+#include "bnCardPackageManager.h"
 #include "bnPlayer.h"
 #include "bnLogger.h"
 #include "stx/zip_utils.h"

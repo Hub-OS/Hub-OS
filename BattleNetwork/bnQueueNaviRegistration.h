@@ -12,7 +12,7 @@
 #include <filesystem>
 #endif 
 
-#include "bnNaviRegistration.h"
+#include "bnPlayerPackageManager.h"
 #include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 #include "bnMegaman.h"
@@ -27,7 +27,7 @@
 #include "bindings/bnScriptedPlayer.h"
 #endif
 
-static inline void QueuNaviRegistration(NaviRegistration& packageManager) {
+static inline void QueuNaviRegistration(PlayerPackageManager& packageManager) {
   ResourceHandle handle;
 
   /*********************************************************************

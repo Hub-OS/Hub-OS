@@ -17,7 +17,7 @@ using sf::Texture;
 using sf::Drawable;
 
 class Card;
-class CardRegistration;
+class CardPackageManager;
 class BattleSceneBase;
 
 class SelectedCardsUI : public CardUsePublisher, public UIComponent {
@@ -25,7 +25,7 @@ public:
   /**
    * \param character Character to attach to
    */
-  SelectedCardsUI(Character* owner, CardRegistration* roster);
+  SelectedCardsUI(Character* owner, CardPackageManager* packageManager);
   
   /**
    * @brief destructor
@@ -89,7 +89,7 @@ protected:
   Battle::Card** SelectedCardsPtrArray() const;
   SpriteProxyNode& IconNode() const;
   SpriteProxyNode& FrameNode() const;
-  CardRegistration* roster{ nullptr };
+  CardPackageManager* packageManager{ nullptr };
 
 private:
   double elapsed{}; /*!< Used by draw function, delta time since last update frame */

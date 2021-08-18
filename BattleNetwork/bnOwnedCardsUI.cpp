@@ -2,8 +2,8 @@
 
 using std::to_string;
 
-OwnedCardsUI::OwnedCardsUI(Character* owner, CardRegistration* roster) :
-  SelectedCardsUI(owner, roster)
+OwnedCardsUI::OwnedCardsUI(Character* owner, CardPackageManager* packageManager) :
+  SelectedCardsUI(owner, packageManager)
 {
 }
 

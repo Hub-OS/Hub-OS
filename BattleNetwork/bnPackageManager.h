@@ -20,7 +20,7 @@ class PackageManager {
 
         /*Implementation defined Post Parse-ops */
         virtual void OnMetaConfigured() {} // After meta data is parsed
-        virtual void OnPreGetData() {} // Before returning the allocated object
+        virtual void PreGetData() {} // Before returning the allocated object
 
         MetaClass& SetPackageID(const std::string& id) {
           packageId = id;
@@ -41,7 +41,7 @@ class PackageManager {
         }
 
         DataType* GetData() {
-          this->OnPreGetData();
+          this->PreGetData();
 
           DataType* out = data;
           data = nullptr;

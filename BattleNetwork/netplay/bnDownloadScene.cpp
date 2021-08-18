@@ -6,7 +6,7 @@
 #include "../bnWebClientMananger.h"
 #include "../bnPlayer.h"
 #include "../bindings/bnScriptedPlayer.h"
-#include "../bnNaviRegistration.h"
+#include "../bnPlayerPackageManager.h"
 
 #include <Segues/PixelateBlackWashFade.h>
 

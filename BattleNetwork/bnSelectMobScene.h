@@ -13,7 +13,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "bnMobRegistration.h"
-#include "bnNaviRegistration.h"
+#include "bnPlayerPackageManager.h"
 #include "bnTextBox.h"
 #include "bnTile.h"
 #include "bnField.h"

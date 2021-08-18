@@ -4,8 +4,10 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnResourceHandle.h"
-#include "bnCardRegistration.h"
-#include "bnNaviRegistration.h"
+#include "bnCardPackageManager.h"
+#include "bnPlayerPackageManager.h"
+#include "bnMobRegistration.h"
+
 #include "bnAnimator.h"
 #include "bnEntity.h"
 #include "bnSpell.h"
@@ -20,8 +22,6 @@
 #include "bnParticlePoof.h"
 #include "bnParticleImpact.h"
 
-#include "bnNaviRegistration.h"
-#include "bnMobRegistration.h"
 #include "bindings/bnScriptedArtifact.h"
 #include "bindings/bnScriptedCardAction.h"
 #include "bindings/bnScriptedCharacter.h"
@@ -658,21 +658,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   // make meta object info metatable
-  const auto& navimeta_table = engine_namespace.new_usertype<NaviMeta>("NaviMeta",
-    "set_special_description", &NaviMeta::SetSpecialDescription,
-    "set_attack", &NaviMeta::SetAttack,
-    "set_charged_attack", &NaviMeta::SetChargedAttack,
-    "set_speed", &NaviMeta::SetSpeed,
-    "set_health", &NaviMeta::SetHP,
-    "set_uses_sword", &NaviMeta::SetIsSword,
-    "set_overworld_animation_path", &NaviMeta::SetOverworldAnimationPath,
-    "set_overworld_texture_path", &NaviMeta::SetOverworldTexturePath,
-    "set_mugshot_animation_path", &NaviMeta::SetMugshotAnimationPath,
-    "set_mugshot_texture_path", &NaviMeta::SetMugshotTexturePath,
-    "set_emotions_texture_path", &NaviMeta::SetEmotionsTexturePath,
-    "set_preview_texture", &NaviMeta::SetPreviewTexture,
-    "set_icon_texture", &NaviMeta::SetIconTexture,
-    "declare_package_id", &NaviMeta::SetPackageID
+  const auto& playermeta_table = engine_namespace.new_usertype<PlayerMeta>("PlayerMeta",
+    "set_special_description", &PlayerMeta::SetSpecialDescription,
+    "set_attack", &PlayerMeta::SetAttack,
+    "set_charged_attack", &PlayerMeta::SetChargedAttack,
+    "set_speed", &PlayerMeta::SetSpeed,
+    "set_health", &PlayerMeta::SetHP,
+    "set_uses_sword", &PlayerMeta::SetIsSword,
+    "set_overworld_animation_path", &PlayerMeta::SetOverworldAnimationPath,
+    "set_overworld_texture_path", &PlayerMeta::SetOverworldTexturePath,
+    "set_mugshot_animation_path", &PlayerMeta::SetMugshotAnimationPath,
+    "set_mugshot_texture_path", &PlayerMeta::SetMugshotTexturePath,
+    "set_emotions_texture_path", &PlayerMeta::SetEmotionsTexturePath,
+    "set_preview_texture", &PlayerMeta::SetPreviewTexture,
+    "set_icon_texture", &PlayerMeta::SetIconTexture,
+    "declare_package_id", &PlayerMeta::SetPackageID
   );
 
   const auto& cardpropsmeta_table = engine_namespace.new_usertype<Battle::Card::Properties>("CardProperties",

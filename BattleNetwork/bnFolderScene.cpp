@@ -11,7 +11,7 @@
 #include "Segues/BlackWashFade.h"
 #include "bnCardLibrary.h"
 #include "bnCardFolder.h"
-#include "bnNaviRegistration.h"
+#include "bnPlayerPackageManager.h"
 #include "Android/bnTouchArea.h"
 #include "bnMessageQuestion.h"
 

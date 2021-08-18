@@ -5,7 +5,7 @@
 #include "bnInputManager.h"
 #include "bnWebClientMananger.h"
 #include "bnCardLibrary.h"
-#include "bnCardRegistration.h"
+#include "bnCardPackageManager.h"
 
 #define WILDCARD '*'
 

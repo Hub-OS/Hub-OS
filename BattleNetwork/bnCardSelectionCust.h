@@ -15,7 +15,7 @@
 #include <SFML/Graphics.hpp>
 #include <Swoosh/Ease.h>
 
-class CardRegistration;
+class CardPackageManager;
 
 /**
  * @class CardSelectionCust
@@ -31,7 +31,7 @@ public:
   **/
   struct Props {
     CardFolder* _folder{ nullptr };
-    CardRegistration* roster{ nullptr };
+    CardPackageManager* roster{ nullptr };
     int cap{};
     int perTurn{ 5 };
   };

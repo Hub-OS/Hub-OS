@@ -14,7 +14,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "bnSelectMobScene.h"
-#include "bnNaviRegistration.h"
+#include "bnPlayerPackageManager.h"
 #include "bnGridBackground.h"
 #include "bnCamera.h"
 #include "bnAnimation.h"

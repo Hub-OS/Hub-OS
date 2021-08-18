@@ -18,7 +18,7 @@
 #include "bnOverworldTileBehaviors.h"
 #include "bnOverworldObjectType.h"
 #include "../bnMath.h"
-#include "../bnNaviRegistration.h"
+#include "../bnPlayerPackageManager.h"
 #include "../bnMessageQuestion.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"

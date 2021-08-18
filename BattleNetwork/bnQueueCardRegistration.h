@@ -10,7 +10,7 @@
 #include <filesystem>
 #endif 
 
-static inline void QueueCardRegistration(CardRegistration& roster) {
+static inline void QueueCardRegistration(CardPackageManager& packageManager) {
   // ResourceHandle handle;
 
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
@@ -20,7 +20,7 @@ static inline void QueueCardRegistration(CardRegistration& roster) {
     auto full_path = std::filesystem::absolute(entry).string();
 
     if (full_path.find(".zip") == std::string::npos) {
-      roster.LoadPackageFromDisk<ScriptedCard>(full_path);
+      packageManager.LoadPackageFromDisk<ScriptedCard>(full_path);
     }
   }
 #endif

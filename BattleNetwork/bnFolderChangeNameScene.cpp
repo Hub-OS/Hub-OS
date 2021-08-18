@@ -2,7 +2,7 @@
 #include "bnInputManager.h"
 #include "bnWebClientMananger.h"
 #include "Segues/BlackWashFade.h"
-#include "bnNaviRegistration.h"
+#include "bnPlayerPackageManager.h"
 
 #include <Swoosh/ActivityController.h>
 

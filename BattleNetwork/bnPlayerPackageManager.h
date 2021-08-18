@@ -1,4 +1,4 @@
-/*! \file bnNaviRegistration.h */
+/*! \file bnPlayerPackageManager.h */
 #pragma once
 
 #include <map>
@@ -15,7 +15,7 @@
 class Player; // forward decl
 
 /*! \brief Player package entry detail. Assign details to display them in specific screens. */
-struct NaviMeta final : public PackageManager<NaviMeta>::Meta<Player>{
+struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
   std::string special; /*!< The net navi's special description */
   std::string overworldAnimationPath; /*!< The net navi's overworld animation */
   std::string overworldTexturePath; /*!< The path of the texture to load */
@@ -34,102 +34,102 @@ struct NaviMeta final : public PackageManager<NaviMeta>::Meta<Player>{
   /**
    * @brief Sets every number to 1 and string to "None"
    */
-  NaviMeta();
+  PlayerMeta();
 
   /**
    * @brief Delete navi pointer
    */
-  ~NaviMeta();
+  ~PlayerMeta();
 
-  void OnPreGetData() override;
+  void PreGetData() override;
 
   /**
    * @brief Sets special description information of the navi
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetSpecialDescription(const std::string&& special);
+  PlayerMeta& SetSpecialDescription(const std::string&& special);
 
   /**
    * @brief Sets attack level to display
    * @param atk attack strength
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetAttack(const unsigned atk);
+  PlayerMeta& SetAttack(const unsigned atk);
 
   /**
    * @brief Sets charged attack level to display
    * @param atk charge attack strength
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetChargedAttack(const int atk);
+  PlayerMeta& SetChargedAttack(const int atk);
 
   /**
    * @brief Sets speed level to display
    * @param speed how fast the navi is expected to be
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetSpeed(const double speed);
+  PlayerMeta& SetSpeed(const double speed);
 
   /**
    * @brief Sets the health to display
    * @param HP health
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetHP(const int HP);
+  PlayerMeta& SetHP(const int HP);
 
   /**
    * @brief Toggles if a sword based navi or buster
    * @param enabled true if sword, default is false
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetIsSword(const bool enabled);
+  PlayerMeta& SetIsSword(const bool enabled);
 
   /**
  * @brief Sets the mugshot animation path used in textboxes
- * @return NaviMeta& to chain
+ * @return PlayerMeta& to chain
  */
-  NaviMeta& SetMugshotAnimationPath(const std::string& path);
+  PlayerMeta& SetMugshotAnimationPath(const std::string& path);
 
   /**
    * @brief Sets the texture of the mugshot animation
    * @param texture
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetMugshotTexturePath(const std::string& texture);
+  PlayerMeta& SetMugshotTexturePath(const std::string& texture);
 
   /**
    * @brief Sets the emotions texture atlas
    * @param texture
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetEmotionsTexturePath(const std::string& texture);
+  PlayerMeta& SetEmotionsTexturePath(const std::string& texture);
 
   /**
    * @brief Sets the overworld animation path used in menu screen
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetOverworldAnimationPath(const std::string& path);
+  PlayerMeta& SetOverworldAnimationPath(const std::string& path);
 
   /**
    * @brief Sets the texture of the overworld animation
    * @param texture
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetOverworldTexturePath(const std::string& texture);
+  PlayerMeta& SetOverworldTexturePath(const std::string& texture);
 
   /**
    * @brief Sets the texture of the preview used in select screen
    * @param texture
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetPreviewTexture(const std::shared_ptr<Texture> texture);
+  PlayerMeta& SetPreviewTexture(const std::shared_ptr<Texture> texture);
 
   /**
    * @brief Device and face generally of the navi
    * @param icon texture
-   * @return NaviMeta& to chain
+   * @return PlayerMeta& to chain
    */
-  NaviMeta& SetIconTexture(const std::shared_ptr<sf::Texture> icon);
+  PlayerMeta& SetIconTexture(const std::shared_ptr<sf::Texture> icon);
 
   /**
    * @brief Gets the icon texture to draw
@@ -216,4 +216,4 @@ struct NaviMeta final : public PackageManager<NaviMeta>::Meta<Player>{
   const Element GetElement() const;
 };
 
-class NaviRegistration : public PackageManager<NaviMeta> {};
+class PlayerPackageManager : public PackageManager<PlayerMeta> {};

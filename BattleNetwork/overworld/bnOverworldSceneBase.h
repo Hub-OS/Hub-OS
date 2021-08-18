@@ -13,7 +13,7 @@
 #include "../bnAudioResourceManager.h"
 #include "../bnShaderResourceManager.h"
 #include "../bnTextureResourceManager.h"
-#include "../bnNaviRegistration.h"
+#include "../bnPlayerPackageManager.h"
 #include "../bnPA.h"
 #include "../bnDrawWindow.h"
 #include "../bnAnimation.h"

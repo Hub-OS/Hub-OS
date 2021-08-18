@@ -2,7 +2,7 @@
 #include "bnFishy.h"
 #include "bnTile.h"
 #include "bnAura.h"
-#include "bnCardRegistration.h"
+#include "bnCardPackageManager.h"
 #include "bnWindRackCardAction.h"
 #include "bnAirHockeyCardAction.h"
 #include "bnHubBatchCardAction.h"
@@ -39,13 +39,13 @@
  * This is for demonstration of the engine until we have scripting done
  */
 
-static CardAction* CardToAction(const Battle::Card& card, Character& character, CardRegistration& roster) {
+static CardAction* CardToAction(const Battle::Card& card, Character& character, CardPackageManager& packageManager) {
   // Identify the card by the name
   std::string name = card.GetShortName();
   CardAction* next{nullptr};
 
-  if (roster.HasPackage(card.GetUUID())) {
-    auto& meta = roster.FindPackageByID(card.GetUUID());
+  if (packageManager.HasPackage(card.GetUUID())) {
+    auto& meta = packageManager.FindPackageByID(card.GetUUID());
     return meta.GetData()->BuildCardAction(&character, meta.GetCardProperties());
   }
   
