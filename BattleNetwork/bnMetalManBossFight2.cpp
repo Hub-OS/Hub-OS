@@ -9,16 +9,7 @@
 #include "bnFadeInState.h"
 #include "bnUndernetBackground.h"
 
-MetalManBossFight2::MetalManBossFight2(Field* field) : MobFactory(field)
-{
-}
-
-
-MetalManBossFight2::~MetalManBossFight2()
-{
-}
-
-Mob* MetalManBossFight2::Build() {
+Mob* MetalManBossFight2::Build(Field* field) {
   Mob* mob = new Mob(field);
   mob->SetBackground(std::shared_ptr<UndernetBackground>());
   mob->StreamCustomMusic("resources/loops/loop_boss_battle2.ogg");

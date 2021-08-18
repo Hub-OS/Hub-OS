@@ -24,11 +24,9 @@ PlayerMeta::PlayerMeta():
 
 PlayerMeta::~PlayerMeta()
 {
-
 }
 
 void PlayerMeta::PreGetData() {
-  hp = data->GetHealth();
   data->SetAttackLevel(atk);
 }
 
@@ -153,7 +151,10 @@ const std::string PlayerMeta::GetName() const
 
 int PlayerMeta::GetHP() const
 {
-  return hp;
+  if (!data) {
+    loadClass();
+  }
+  return data->GetHealth();
 }
 
 const std::string PlayerMeta::GetHPString() const

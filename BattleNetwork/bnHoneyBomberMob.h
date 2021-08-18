@@ -11,12 +11,9 @@ class HoneyBomberMob :
   public MobFactory
 {
 public:
-  HoneyBomberMob(Field* field);
-  ~HoneyBomberMob();
-
   /**
    * @brief Builds and returns the mob
    * @return Mob pointer. must be deleted manually.
    */
-  Mob* Build();
+  Mob* Build(Field* field);
 };

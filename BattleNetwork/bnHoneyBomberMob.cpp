@@ -5,16 +5,7 @@
 #include "bnCardUUIDs.h"
 #include "bnFadeInState.h"
 
-HoneyBomberMob::HoneyBomberMob(Field* field) : MobFactory(field)
-{
-}
-
-
-HoneyBomberMob::~HoneyBomberMob()
-{
-}
-
-Mob* HoneyBomberMob::Build() {
+Mob* HoneyBomberMob::Build(Field* field) {
   Mob* mob = new Mob(field);
 
   mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Reflect_A)));

@@ -9,16 +9,7 @@
 #include "bnFadeInState.h"
 #include "bnVirusBackground.h"
 
-AlphaBossFight::AlphaBossFight(Field* field) : MobFactory(field)
-{
-}
-
-
-AlphaBossFight::~AlphaBossFight()
-{
-}
-
-Mob* AlphaBossFight::Build() {
+Mob* AlphaBossFight::Build(Field* field) {
   Mob* mob = new Mob(field);
   auto bg = std::make_shared<VirusBackground>();
   bg->SetScrollSpeed(2.f);

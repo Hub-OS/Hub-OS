@@ -4,13 +4,10 @@
 class AlphaBossFight : public MobFactory
 {
 public:
-  AlphaBossFight(Field* field);
-  ~AlphaBossFight();
-
   /**
    * @brief Builds and returns the mob pointer
    * @return Mob*
    */
-  Mob* Build();
+  Mob* Build(Field* field);
 };
 

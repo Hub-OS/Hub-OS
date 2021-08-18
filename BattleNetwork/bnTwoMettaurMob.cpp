@@ -23,16 +23,7 @@ namespace {
   }
 }
 
-TwoMettaurMob::TwoMettaurMob(Field* field) : MobFactory(field)
-{
-}
-
-
-TwoMettaurMob::~TwoMettaurMob()
-{
-}
-
-Mob* TwoMettaurMob::Build() {
+Mob* TwoMettaurMob::Build(Field* field) {
   // Construct a new mob 
   Mob* mob = new Mob(field);
 

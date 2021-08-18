@@ -5,16 +5,7 @@
 #include "bnCardUUIDs.h"
 #include "bnFadeInState.h"
 
-StarfishMob::StarfishMob(Field* field) : MobFactory(field)
-{
-}
-
-
-StarfishMob::~StarfishMob()
-{
-}
-
-Mob* StarfishMob::Build() {
+Mob* StarfishMob::Build(Field* field) {
   Mob* mob = new Mob(field);
   mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::YoYo_M)));
 

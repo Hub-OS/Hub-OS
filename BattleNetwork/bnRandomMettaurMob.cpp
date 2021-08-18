@@ -17,18 +17,7 @@
 #include "bnMetrid.h"
 #include "bnFadeInState.h"
 
-RandomMettaurMob::RandomMettaurMob(Field* field) : MobFactory(field)
-{
-
-
-}
-
-
-RandomMettaurMob::~RandomMettaurMob()
-{
-}
-
-Mob* RandomMettaurMob::Build() {
+Mob* RandomMettaurMob::Build(Field* field) {
   // Build a mob around the field input
   Mob* mob = new Mob(field);
 

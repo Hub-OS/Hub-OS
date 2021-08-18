@@ -12,7 +12,6 @@
 #include <time.h>
 #include <SFML/Graphics.hpp>
 
-#include "bnMobRegistration.h"
 #include "bnPlayerPackageManager.h"
 #include "bnTextBox.h"
 #include "bnTile.h"
@@ -109,7 +108,7 @@ private:
   
   float factor; /*!< Pixelate factor amount */
 
-  int mobSelectionIndex; /*!< Mob selected */
+  std::string mobSelectionId; /*!< Mob selected */
 
   TextBox textbox; /*!< textbox message */
 

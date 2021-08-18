@@ -34,7 +34,7 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
    */
   ~CardMeta();
 
-  void OnMetaConfigured() override;
+  void OnMetaParsed() override;
 
   CardMeta& SetPreviewTexture(const std::shared_ptr<sf::Texture> texture);
 

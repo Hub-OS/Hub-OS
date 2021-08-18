@@ -11,6 +11,7 @@
 #include "Segues/BlackWashFade.h"
 #include "bnCardLibrary.h"
 #include "bnCardFolder.h"
+#include "bnCardPackageManager.h"
 #include "Android/bnTouchArea.h"
 
 #include <SFML/Graphics.hpp>
@@ -118,8 +119,7 @@ std::string FolderEditScene::FormatCardDesc(const std::string&& desc)
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFolder& folder) :
     Scene(controller),
-    camera(sf::View(sf::Vector2f(240, 160),
-        sf::Vector2f(480, 320))),
+    camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))),
     folder(folder),
     hasFolderChanged(false),
     card(),
@@ -974,6 +974,19 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
         auto bucket = PoolBucket(count, Battle::Card(*iter));
         poolCardBuckets.push_back(bucket);
         iter++;
+    }
+
+    auto& packageManager = getController().CardPackageManager();
+    std::string packageId = packageManager.GetPackageAfter(packageManager.FirstValidPackage());
+
+    while(packageId.size()) {
+      auto& meta = packageManager.FindPackageByID(packageId);
+      auto bucket = PoolBucket(5, Battle::Card(meta.GetCardProperties()));
+      poolCardBuckets.push_back(bucket);
+      packageId = packageManager.GetPackageAfter(packageId);
+
+      if (packageId == packageManager.FirstValidPackage())
+        break;
     }
 }
 

@@ -3,15 +3,7 @@
 #include "bnFadeInState.h"
 #include "bnFalzar.h"
 
-FalzarMob::FalzarMob(Field* field) : MobFactory(field) {
-
-}
-
-FalzarMob::~FalzarMob() {
-
-}
-
-Mob* FalzarMob::Build() {
+Mob* FalzarMob::Build(Field* field) {
     Mob* mob = new Mob(field);
     mob->ToggleBossFlag();
     mob->StreamCustomMusic("resources/loops/loop_falzar.ogg");

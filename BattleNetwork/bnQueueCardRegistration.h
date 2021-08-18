@@ -20,7 +20,15 @@ static inline void QueueCardRegistration(CardPackageManager& packageManager) {
     auto full_path = std::filesystem::absolute(entry).string();
 
     if (full_path.find(".zip") == std::string::npos) {
-      packageManager.LoadPackageFromDisk<ScriptedCard>(full_path);
+      // TODO: check paths first to get rid of try-catches
+      try {
+        if (auto res = packageManager.LoadPackageFromDisk<ScriptedCard>(full_path); res.is_error()) {
+          Logger::Logf("%s", res.error_cstr());
+        }
+      }
+      catch (std::runtime_error& e) {
+        Logger::Logf("Card package unknown error: %s", e.what());
+      }
     }
   }
 #endif

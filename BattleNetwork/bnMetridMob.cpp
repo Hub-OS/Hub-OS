@@ -7,16 +7,7 @@
 #include "bnCardUUIDs.h"
 #include "bnFadeInState.h"
 
-MetridMob::MetridMob(Field* field) : MobFactory(field)
-{
-}
-
-
-MetridMob::~MetridMob()
-{
-}
-
-Mob* MetridMob::Build() {
+Mob* MetridMob::Build(Field* field) {
   int mobType = rand() % 3; 
 
   // 0 - metrid and cannodumb

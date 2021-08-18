@@ -10,12 +10,9 @@ class StarfishMob :
   public MobFactory
 {
 public:
-  StarfishMob(Field* field);
-  ~StarfishMob();
-
   /**
    * @brief Builds and returns the mob
    * @return Mob pointer. must be deleted manually.
    */
-  Mob* Build();
+  Mob* Build(Field* field);
 };

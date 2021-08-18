@@ -1,6 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedCharacter.h"
 #include "../bnExplodeState.h"
+#include "../bnNaviExplodeState.h"
 #include "../bnTile.h"
 #include "../bnField.h"
 #include "../bnTextureResourceManager.h"
@@ -20,7 +21,7 @@ ScriptedCharacter::ScriptedCharacter(sol::state& script) :
   //Components setup and load
   animation = CreateComponent<AnimationComponent>(this);
 
-  script["battle_init"](this);
+  script["package_init"](this);
 
   animation->Refresh();
 }
@@ -47,25 +48,44 @@ const float ScriptedCharacter::GetHeight() const {
 
 void ScriptedCharacter::OnDelete() {
   // Explode if health depleted
-  int num_of_explosions = script["num_of_explosions"]();
-  ChangeState<ExplodeState<ScriptedCharacter>>(num_of_explosions);
+  if (bossExplosion) {
+    ChangeState<NaviExplodeState<ScriptedCharacter>>(numOfExplosions, explosionPlayback);
+  }
+  else {
+    ChangeState<ExplodeState<ScriptedCharacter>>(numOfExplosions, explosionPlayback);
+  }
+
+  if (deleteCallback) {
+    deleteCallback(*this);
+  }
 }
 
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
-  script["on_spawn"](this, start);
+  if (spawnCallback) {
+    spawnCallback(*this, start);
+  }
 }
 
 void ScriptedCharacter::OnBattleStart() {
-  script["on_battle_start"]();
+  if (onBattleStartCallback) {
+    onBattleStartCallback(*this);
+  }
 }
 
 void ScriptedCharacter::OnBattleStop() {
   Character::OnBattleStop();
-  script["on_battle_stop"]();
+
+  if (onBattleEndCallback) {
+    onBattleEndCallback(*this);
+  }
 }
 
 bool ScriptedCharacter::CanMoveTo(Battle::Tile * next) {
-  return script["can_move_to"](*next);
+  if (canMoveToCallback) {
+    return canMoveToCallback(*next);
+  }
+
+  return Character::CanMoveTo(next);
 }
 
 void ScriptedCharacter::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback)
@@ -80,5 +100,11 @@ void ScriptedCharacter::ShakeCamera(double power, float duration)
 
 Animation& ScriptedCharacter::GetAnimationObject() {
   return animation->GetAnimationObject();
+}
+void ScriptedCharacter::SetExplosionBehavior(int num, double speed, bool isBoss)
+{
+  numOfExplosions = num;
+  explosionPlayback = speed;
+  bossExplosion = isBoss;
 }
 #endif

@@ -23,7 +23,6 @@ Starfish::Starfish(Rank _rank) : AI<Starfish>(this), Character(_rank) {
   switch (_rank) {
   case Starfish::Rank::SP:
   {
-    SetName("StarfishSP");
     animation->SetPath(RESOURCE_PATH"2.animation");
     setTexture(Textures().LoadTextureFromFile(RESOURCE_PATH"2_atlas.png"));
     SetHealth(200);

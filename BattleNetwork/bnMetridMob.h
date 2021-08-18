@@ -12,12 +12,9 @@ class MetridMob :
   public MobFactory
 {
 public:
-  MetridMob(Field* field);
-  ~MetridMob();
-
   /**
    * @brief Build the mob
    * @return Mob*
    */
-  Mob* Build();
+  Mob* Build(Field* field);
 };

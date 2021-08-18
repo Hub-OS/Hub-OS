@@ -2,9 +2,5 @@
 
 class FalzarMob : public MobFactory {
 public:
-  FalzarMob(Field* field);
-
-  ~FalzarMob();
-
-  Mob* Build();
+  Mob* Build(Field* field);
 };

@@ -867,13 +867,6 @@ void Overworld::SceneBase::GotoMobSelect()
     folder = new CardFolder();
   }
 
-  auto& cardRoster = getController().CardPackageManager();
-
-  if (auto id = cardRoster.FirstValidPackage(); id.size()) {
-    auto& meta = cardRoster.FindPackageByID(id);
-    folder->AddCard(meta.GetCardProperties());
-  }
-
   SelectMobScene::Properties props{ currentNaviId, *folder, programAdvance, bg };
   using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
   Audio().Play(AudioType::CHIP_DESC);

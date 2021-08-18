@@ -6,9 +6,6 @@ class MetalManBossFight :
   public MobFactory
 {
 public:
-  MetalManBossFight(Field* field);
-  ~MetalManBossFight();
-
-  Mob* Build();
+  Mob* Build(Field* field);
 };
 

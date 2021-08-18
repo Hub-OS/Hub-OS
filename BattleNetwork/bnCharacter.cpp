@@ -327,7 +327,13 @@ const bool Character::Hit(Hit::Properties props) {
 
   const auto original = props;
 
-  if (GetHealth() <= 0 || IsJumping()) return false;
+  if (GetHealth() <= 0) {
+    return false;
+  }
+
+  if (IsJumping()) {
+    return false;
+  }
 
   if ((props.flags & Hit::shake) == Hit::shake) {
     CreateComponent<ShakingEffect>(this);
@@ -354,6 +360,10 @@ const bool Character::Hit(Hit::Properties props) {
 
   if (IsTimeFrozen()) {
     props.flags |= Hit::no_counter;
+  }
+
+  if (GetHealth() <= 0) {
+    SetShader(whiteout);
   }
 
   // Add to status queue for state resolution

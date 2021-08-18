@@ -6,7 +6,7 @@
 #include "bnResourceHandle.h"
 #include "bnCardPackageManager.h"
 #include "bnPlayerPackageManager.h"
-#include "bnMobRegistration.h"
+#include "bnMobPackageManager.h"
 
 #include "bnAnimator.h"
 #include "bnEntity.h"
@@ -347,7 +347,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_animation", &ScriptedCharacter::GetAnimationObject,
     "shake_camera", &ScriptedCharacter::ShakeCamera,
     "toggle_counter", &ScriptedCharacter::ToggleCounter,
-    "register_status_callback", &ScriptedCharacter::RegisterStatusCallback
+    "register_status_callback", &ScriptedCharacter::RegisterStatusCallback,
+    "delete_func", &ScriptedCharacter::deleteCallback,
+    "update_func", &ScriptedCharacter::updateCallback,
+    "can_move_to_func", &ScriptedCharacter::canMoveToCallback,
+    "on_spawn_func", &ScriptedCharacter::spawnCallback,
+    "battle_start_func", &ScriptedCharacter::onBattleStartCallback,
+    "battle_end_func", &ScriptedCharacter::onBattleEndCallback,
+    "set_explosion_behavior", &ScriptedCharacter::SetExplosionBehavior
   );
 
   const auto& player_record = battle_namespace.new_usertype<Player>("BasicPlayer",
@@ -698,13 +705,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "declare_package_id", &CardMeta::SetPackageID
   );
 
-  const auto& mobmeta_table = engine_namespace.new_usertype<MobRegistration::MobMeta>("MobInfo",
-    "set_description", &MobRegistration::MobMeta::SetDescription,
-    "set_name", &MobRegistration::MobMeta::SetName,
-    "set_preview_texture_path", &MobRegistration::MobMeta::SetPlaceholderTexturePath,
-    "set_speed", &MobRegistration::MobMeta::SetSpeed,
-    "set_attack", &MobRegistration::MobMeta::SetAttack,
-    "set_health", &MobRegistration::MobMeta::SetHP
+  const auto& mobmeta_table = engine_namespace.new_usertype<MobMeta>("MobMeta",
+    "set_description", &MobMeta::SetDescription,
+    "set_name", &MobMeta::SetName,
+    "set_preview_texture_path", &MobMeta::SetPlaceholderTexturePath,
+    "set_speed", &MobMeta::SetSpeed,
+    "set_attack", &MobMeta::SetAttack,
+    "set_health", &MobMeta::SetHP,
+    "declare_package_id", &MobMeta::SetPackageID
   );
 
   const auto& scriptedmob_table = engine_namespace.new_usertype<ScriptedMob>("Mob",
@@ -768,7 +776,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     [this](const std::string& fqn)
     {
       // Handle built-ins...
-      auto builtins = { "BuiltIns.Canodumb", "BuiltIns.Mettaur" };
+      auto builtins = { "com.builtins.char.canodumb", "com.builtins.char.mettaur" };
       for (auto&& match : builtins) {
           if (fqn == match) return;
       }

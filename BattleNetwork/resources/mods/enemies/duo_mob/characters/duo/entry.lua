@@ -1,9 +1,5 @@
 nonce = function() end 
 
-function load_texture(path)
-    return Engine.ResourceHandle.new().textures:load_file(path)
-end
-
 local MINE_SLIDE_FRAMES = 30 -- frames
 local IDLE_TIME = 1 -- seconds inbetween moves 
 local texture = nil
@@ -309,7 +305,7 @@ function create_laser_beam(duo)
         while dest ~= nil do
              count = count + 1
              local hitbox = Battle.Hitbox.new(self:get_team())
-             hitbox:set_hit_props(self:get_hit_props())
+             hitbox:set_hit_props(self:copy_hit_props())
              self:get_field():spawn(hitbox, dest:x(), dest:y())
              dest = self:get_tile(Direction.Left, count)
         end
@@ -585,7 +581,7 @@ function move_state(self, dt)
     end 
 end
 
-function battle_init(self)
+function package_init(self)
     aiStateIndex = 1
     aiState = { 
         set_wait_timer(IDLE_TIME),
@@ -619,19 +615,17 @@ function battle_init(self)
         wait_state,
     }
 
-    texture = load_texture(_modpath.."duo_compressed.png")
+    texture = Engine.load_texture(_modpath.."duo_compressed.png")
 
-    print("modpath: ".._modpath)
     self:set_name("Duo")
     self:set_rank(Rank.EX)
     self:set_health(3000)
     self:set_texture(texture, true)
     self:set_height(60)
     self:share_tile(true)
+    self:set_explosion_behavior(12, 1.0, true)
 
-    print("before set position")
     self:set_position(idleDuoPos.x, idleDuoPos.y)
-    print("after set position")
 
     anim = self:get_animation()
     anim:load(_modpath.."duo_compressed.animation")
@@ -661,8 +655,6 @@ function battle_init(self)
     middle:set_position(point.x - origin.x, point.y - origin.y)
     self:add_node(middle)
 
-    print("right before self.defense")
-
     self.defense = Battle.DefenseRule.new(0, DefenseOrder.Always)
 
     print("defense was created")
@@ -686,11 +678,14 @@ function battle_init(self)
 
     self:add_defense_rule(self.defense)
 
+    self.update_func = on_update
+    self.battle_start_func = on_battle_start
+    self.battle_end_func = on_battle_end
+    self.on_spawn_func = on_spawn
+    self.can_move_to_func = can_move_to
+    self.delete_func = on_delete
+    
     print("done")
-end
-
-function num_of_explosions()
-    return 12
 end
 
 function on_update(self, dt)
@@ -715,4 +710,8 @@ function can_move_to(tile)
     end
 
     return true
+end
+
+function on_delete(self)
+    print("on_delete called")
 end

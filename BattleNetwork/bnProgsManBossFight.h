@@ -5,13 +5,10 @@
 class ProgsManBossFight : public MobFactory
 {
 public:
-  ProgsManBossFight(Field* field);
-  ~ProgsManBossFight();
-
   /**
    * @brief Builds and returns the mob pointer
    * @return Mob*
    */
-  Mob* Build();
+  Mob* Build(Field* field);
 };
 

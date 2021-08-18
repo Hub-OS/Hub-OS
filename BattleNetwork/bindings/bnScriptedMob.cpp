@@ -85,10 +85,13 @@ void ScriptedMob::ScriptedSpawner::SetMob(Mob* mob)
 //
 // class ScriptedMob : public Mob
 // 
-ScriptedMob::ScriptedMob(Field* field, sol::state& script) : 
-  MobFactory(field), 
+ScriptedMob::ScriptedMob(sol::state& script) : 
+  MobFactory(), 
   script(script)
 {
+  script.script("package_requires_scripts()", sol::script_throw_on_error);
+
+  field = new Field(6, 3);
 }
 
 
@@ -96,21 +99,22 @@ ScriptedMob::~ScriptedMob()
 {
 }
 
-Mob* ScriptedMob::Build() {
+Mob* ScriptedMob::Build(Field* field) {
   // Build a mob around the field input
+  this->field = field;
   this->mob = new Mob(field);
-  script["build"](this);
+  script["package_build"](this);
   return mob;
 }
 
 Field* ScriptedMob::GetField()
 {
-  return this->field;
+  return field;
 }
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn)
 {
-  std::string_view prefix = "BuiltIns.";
+  std::string_view prefix = "com.builtins.char.";
   size_t builtin = fqn.find(prefix);
 
   if (builtin == std::string::npos) {
@@ -128,11 +132,10 @@ ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn)
   auto obj = ScriptedMob::ScriptedSpawner();
   obj.SetMob(this->mob);
 
-  if (name == "Canodumb") {
+  if (name == "canodumb") {
     obj.UseBuiltInType<Canodumb>();
   }
-  else /* if (name == "BuiltIns.Mettaur") */ {
-    // else, none of the above? TODO: throw?
+  else /* if (name == "mettaur") */ {
     // for now spawn metts if nothing matches...
     obj.UseBuiltInType<Mettaur>();
   }

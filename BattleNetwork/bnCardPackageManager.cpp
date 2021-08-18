@@ -26,7 +26,7 @@ CardMeta& CardMeta::SetIconTexture(const std::shared_ptr<sf::Texture> icon)
   return *this;
 }
 
-void CardMeta::OnMetaConfigured()
+void CardMeta::OnMetaParsed()
 {
   this->properties.uuid = this->GetPackageID();
 }

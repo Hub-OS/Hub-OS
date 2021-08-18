@@ -22,6 +22,9 @@ class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, 
   sol::state& script;
   float height{};
   AnimationComponent* animation{ nullptr };
+  bool bossExplosion{ false };
+  double explosionPlayback{ 1.0 };
+  int numOfExplosions{ 2 };
 public:
   using DefaultState = ScriptedCharacterState;
 
@@ -37,11 +40,16 @@ public:
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile * next) override;
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
-
-  // duration in seconds
   void ShakeCamera(double power, float duration);
-
   Animation& GetAnimationObject();
+  void SetExplosionBehavior(int num, double speed, bool isBoss);
+
+  std::function<void(ScriptedCharacter&, Battle::Tile&)> spawnCallback;
+  std::function<bool(Battle::Tile&)> canMoveToCallback;
+  std::function<void(ScriptedCharacter&)> deleteCallback;
+  std::function<void(ScriptedCharacter&)> onBattleStartCallback;
+  std::function<void(ScriptedCharacter&)> onBattleEndCallback;
+  std::function<void(ScriptedCharacter&, double)> updateCallback;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {
@@ -50,7 +58,7 @@ public:
   }
 
   void OnUpdate(double elapsed, ScriptedCharacter& s) override {
-    s.script["on_update"](s, elapsed);
+    s.updateCallback(s, elapsed);
   }
 
   void OnLeave(ScriptedCharacter& s) override {

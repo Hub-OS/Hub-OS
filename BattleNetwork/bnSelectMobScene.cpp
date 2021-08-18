@@ -1,5 +1,6 @@
 #include <Swoosh/ActivityController.h>
 #include "bnSelectMobScene.h"
+#include "bnMobPackageManager.h"
 #include "battlescene/bnMobBattleScene.h"
 #include "Android/bnTouchArea.h"
 
@@ -66,7 +67,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const Sel
   shader = Shaders().GetShader(ShaderType::TEXEL_PIXEL_BLUR);
 
   // Current selection index
-  mobSelectionIndex = 0;
+  mobSelectionId = getController().MobPackageManager().FirstValidPackage();
 
   // Text box navigator
   textbox.Stop();
@@ -99,7 +100,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   textbox.Update((float)elapsed);
 
-  int prevSelect = mobSelectionIndex;
+  std::string prevSelectId = mobSelectionId;
 
 #ifndef __ANDROID__
   // Scene keyboard controls
@@ -110,7 +111,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to previous mob 
         selectInputCooldown = maxSelectInputCooldown;
-        mobSelectionIndex--;
+        mobSelectionId = getController().MobPackageManager().GetPackageBefore(mobSelectionId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -122,7 +123,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to next mob 
         selectInputCooldown = maxSelectInputCooldown;
-        mobSelectionIndex++;
+        mobSelectionId = getController().MobPackageManager().GetPackageAfter(mobSelectionId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -175,12 +176,8 @@ void SelectMobScene::onUpdate(double elapsed) {
     }
 #endif
 
-  // Keep our mob index in range
-  mobSelectionIndex = std::max(0, mobSelectionIndex);
-  mobSelectionIndex = std::min((int)MOBS.Size()-1, mobSelectionIndex);
-
   // Grab the mob info object from this index
-  auto& mobinfo = MOBS.At(mobSelectionIndex);
+  auto& mobinfo = getController().MobPackageManager().FindPackageByID(mobSelectionId);
 
   mobLabel.SetString(mobinfo.GetName());
   hpLabel.SetString(mobinfo.GetHPString());
@@ -234,7 +231,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   mobSpr.setPosition(110.0f, 130.f);
 #endif
 
-  if (prevSelect != mobSelectionIndex || doOnce) {
+  if (prevSelectId != mobSelectionId || doOnce) {
     doOnce = false;
     factor = PIXEL_MAX;
 
@@ -245,8 +242,6 @@ void SelectMobScene::onUpdate(double elapsed) {
 
     textbox.SetText(mobinfo.GetDescriptionString());
     textbox.Stop();
-  
-    prevSelect = mobSelectionIndex;
   }
 
   /**
@@ -346,9 +341,9 @@ void SelectMobScene::onUpdate(double elapsed) {
   if (Input().Has(InputEvents::pressed_confirm) && !gotoNextScene) {
     Mob* mob = nullptr;
 
-    if (MOBS.Size() != 0) {
+    if (getController().MobPackageManager().Size() != 0) {
       try {
-        mob = MOBS.At(mobSelectionIndex).GetMob();
+        mob = getController().MobPackageManager().FindPackageByID(mobSelectionId).GetData()->Build(new Field(6,3));
       }
       catch (...) {
         mob = nullptr;
@@ -480,13 +475,13 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   surface.draw(navigator);
 
   // Draw the LEFT cursor
-  if (mobSelectionIndex > 0) {
+  // if (mobSelectionIndex > 0) {
     cursor.setColor(sf::Color::White);
-  }
-  else {
+  // }
+  // else {
     // If there are no more items to the left, fade the cursor
-    cursor.setColor(sf::Color(255, 255, 255, 100));
-  }
+  //  cursor.setColor(sf::Color(255, 255, 255, 100));
+  //}
      
   // Add sine offset to create a bob effect
   auto offset = std::sin(elapsed*10.0) * 5;
@@ -501,12 +496,12 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   surface.draw(cursor);
 
   // Draw the RIGHT cursor
-  if (mobSelectionIndex < (int)(MOBS.Size() - 1)) {
+  // if (mobSelectionIndex < (int)(getController().MobPackageManager().Size() - 1)) {
     cursor.setColor(sf::Color::White);
-  } else {
+  // } else {
     // If there are no more items to the right, fade the cursor
-    cursor.setColor(sf::Color(255, 255, 255, 100));
-  }
+    // cursor.setColor(sf::Color(255, 255, 255, 100));
+  // }
 
   // Add sine offset to create a bob effect
   offset = -std::sin(elapsed*10.0) * 5;

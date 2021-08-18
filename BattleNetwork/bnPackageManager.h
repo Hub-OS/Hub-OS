@@ -19,7 +19,7 @@ class PackageManager {
         template<typename SuperDataType, typename... Args> MetaClass& SetClass(Args&&...);
 
         /*Implementation defined Post Parse-ops */
-        virtual void OnMetaConfigured() {} // After meta data is parsed
+        virtual void OnMetaParsed() {} // After meta data is parsed
         virtual void PreGetData() {} // Before returning the allocated object
 
         MetaClass& SetPackageID(const std::string& id) {
@@ -108,7 +108,7 @@ void PackageManager<MetaClass>::LoadAllPackages(std::atomic<int>& progress)
 {
   for (auto& [key, entry] : packages) {
     entry->loadClass();
-    entry->OnMetaConfigured();
+    entry->OnMetaParsed();
 
     Logger::Logf("Loaded package: %s", entry->packageId.c_str());
 
@@ -130,19 +130,23 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
 
   if (res.result.valid()) {
     sol::state& state = *res.state;
-    auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
     // Sets the predefined _modpath variable
     state["_modpath"] = modpath.string() + "/";
 
+    auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
+
     // run script on meta info object
     state["package_init"](packageClass);
 
-    packageClass->OnMetaConfigured();
+    packageClass->OnMetaParsed();
 
     packageClass->SetFilePath(modpath.string());
-    return this->Commit(packageClass);
-
+    
+    if (auto result = this->Commit(packageClass); result.is_error()) {
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + result.error_cstr();
+      return stx::error<bool>(msg);
+    }
   }
   else {
     sol::error sol_error = res.result;
@@ -246,10 +250,7 @@ stx::result_t<bool> PackageManager<MetaClass>::Commit(MetaClass* package)
 {
   std::string packageId = package->GetPackageID();
   if (package && !packageId.empty()) {
-    if (packages.find(packageId) == packages.end()) {
-      packages.insert(std::make_pair(packageId, package));
-    }
-    else {
+    if (packages.find(packageId) != packages.end()) {
       return stx::error<bool>(std::string("There is already a package in the package manager with id of ") + packageId);
     }
   }
@@ -257,7 +258,14 @@ stx::result_t<bool> PackageManager<MetaClass>::Commit(MetaClass* package)
     return stx::error<bool>(std::string("package object was nullptr or package ID was not set"));
   }
 
-  package->loadClass();
+  try {
+    package->loadClass();
+  }
+  catch (std::runtime_error& e) {
+    return stx::error<bool>(e.what());
+  }
+
+  packages.insert(std::make_pair(packageId, package));
 
   return stx::ok();
 }
@@ -284,7 +292,7 @@ template<typename MetaClass>
 const std::string PackageManager<MetaClass>::FirstValidPackage() const
 {
   if (packages.empty()) {
-    throw std::runtime_error("package list is empty!");
+    return std::string();
   }
 
   return packages.begin()->first;

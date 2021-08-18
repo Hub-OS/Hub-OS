@@ -9,6 +9,7 @@
 #include "bnWebClientMananger.h"
 #include "bnPlayerPackageManager.h"
 #include "bnCardPackageManager.h"
+#include "bnMobPackageManager.h"
 #include "bnGameOverScene.h"
 #include "bnFakeScene.h"
 #include "bnConfigReader.h"
@@ -58,6 +59,7 @@ Game::Game(DrawWindow& window) :
   // Create package managers for rest of game to utilize
   cardPackageManager = new class CardPackageManager;
   playerPackageManager = new class PlayerPackageManager;
+  mobPackageManager = new class MobPackageManager;
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -73,6 +75,7 @@ Game::Game(DrawWindow& window) :
 Game::~Game() {
   delete cardPackageManager;
   delete playerPackageManager;
+  delete mobPackageManager;
 }
 
 void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
@@ -350,17 +353,15 @@ CardPackageManager& Game::CardPackageManager()
   return *cardPackageManager;
 }
 
-
 PlayerPackageManager& Game::PlayerPackageManager()
 {
   return *playerPackageManager;
 }
 
-
-/*MobRegistration& Game::GetMobRegistration()
+MobPackageManager& Game::MobPackageManager()
 {
-  return mobRegistration;
-}*/
+  return *mobPackageManager;
+}
 
 void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
@@ -373,9 +374,9 @@ void Game::RunNaviInit(std::atomic<int>* progress) {
 
 void Game::RunMobInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueueMobRegistration(); // Queues mobs to be loaded later
+  QueueMobRegistration(*mobPackageManager); // Queues mobs to be loaded later
 
-  MOBS.LoadAllMobs(*progress);
+  mobPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }

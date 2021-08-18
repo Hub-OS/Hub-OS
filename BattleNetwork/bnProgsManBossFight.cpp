@@ -7,16 +7,7 @@
 #include "bnField.h"
 #include "bnFadeInState.h"
 
-ProgsManBossFight::ProgsManBossFight(Field* field) : MobFactory(field)
-{
-}
-
-
-ProgsManBossFight::~ProgsManBossFight()
-{
-}
-
-Mob* ProgsManBossFight::Build() {
+Mob* ProgsManBossFight::Build(Field* field) {
   Mob* mob = new Mob(field);
   
   // Changes music and ranking algorithm

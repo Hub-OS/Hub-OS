@@ -15,7 +15,7 @@ class ScriptedMob : public MobFactory, public ResourceHandle
 private:
   sol::state& script;
   Mob* mob{ nullptr }; //!< ptr for scripts to access
-
+  Field* field{ nullptr };
 public:
   // ScriptedSpawner wrapper for scripted mobs...
   class ScriptedSpawner  {
@@ -36,14 +36,14 @@ public:
     void SetMob(Mob* mob);
   };
 
-  ScriptedMob(Field* field, sol::state& script);
+  ScriptedMob(sol::state& script);
   ~ScriptedMob();
 
   /**
    * @brief Builds and returns the generated mob
    * @return Mob*
    */
-  Mob* Build();
+  Mob* Build(Field* field);
   Field* GetField();
 
   /**

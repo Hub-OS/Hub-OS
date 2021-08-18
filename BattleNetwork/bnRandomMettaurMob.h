@@ -9,13 +9,10 @@ class RandomMettaurMob :
   public MobFactory
 {
 public:
-  RandomMettaurMob(Field* field);
-  ~RandomMettaurMob();
-
   /**
    * @brief Builds and returns the generated mob
    * @return Mob*
    */
-  Mob* Build();
+  Mob* Build(Field* field);
 };
 

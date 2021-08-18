@@ -44,6 +44,7 @@ using swoosh::ActivityController;
 
 class PlayerPackageManager;
 class CardPackageManager;
+class MobPackageManager;
 
 enum class Endianness : short {
   big = 0,
@@ -67,7 +68,7 @@ private:
 
   CardPackageManager* cardPackageManager;
   PlayerPackageManager* playerPackageManager;
-  //MobPackageManager mobPackageManager;
+  MobPackageManager* mobPackageManager;
 
   DrawWindow& window;
   ConfigReader reader;
@@ -119,7 +120,7 @@ public:
   const unsigned int GetRandSeed() const;
   CardPackageManager& CardPackageManager();
   PlayerPackageManager& PlayerPackageManager();
-  //MobRegistration& GetMobRegistration();
+  MobPackageManager& MobPackageManager();
 
   /**
    * @brief Store parsed command line values into the engine for easy access

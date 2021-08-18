@@ -7,16 +7,7 @@
 
 #include "bnAura.h"
 
-CanodumbMob::CanodumbMob(Field* field) : MobFactory(field)
-{
-}
-
-
-CanodumbMob::~CanodumbMob()
-{
-}
-
-Mob* CanodumbMob::Build() {
+Mob* CanodumbMob::Build(Field* field) {
   Mob* mob = new Mob(field);
 
   // Assign rewards based on rank

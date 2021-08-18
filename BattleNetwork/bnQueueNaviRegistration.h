@@ -45,7 +45,7 @@ static inline void QueuNaviRegistration(PlayerPackageManager& packageManager) {
   megamanInfo->SetSpeed(1);
   megamanInfo->SetAttack(1);
   megamanInfo->SetChargedAttack(10);
-  megamanInfo->SetPackageID("com.builtins.engine.hero1");
+  megamanInfo->SetPackageID("com.builtins.player.hero1");
   packageManager.Commit(megamanInfo);
 
   // Register Roll
@@ -61,7 +61,7 @@ static inline void QueuNaviRegistration(PlayerPackageManager& packageManager) {
   rollInfo->SetSpeed(2);
   rollInfo->SetAttack(2);
   rollInfo->SetChargedAttack(10);
-  rollInfo->SetPackageID("com.builtins.engine.hero2");
+  rollInfo->SetPackageID("com.builtins.player.hero2");
   packageManager.Commit(rollInfo);
 
   // Register Starman
@@ -77,7 +77,7 @@ static inline void QueuNaviRegistration(PlayerPackageManager& packageManager) {
   starmanInfo->SetSpeed(3);
   starmanInfo->SetAttack(2);
   starmanInfo->SetChargedAttack(10);
-  starmanInfo->SetPackageID("com.builtins.engine.hero3");
+  starmanInfo->SetPackageID("com.builtins.player.hero3");
   packageManager.Commit(starmanInfo);
 
   // Register Protoman
@@ -94,7 +94,7 @@ static inline void QueuNaviRegistration(PlayerPackageManager& packageManager) {
   protomanInfo->SetAttack(1);
   protomanInfo->SetChargedAttack(20);
   protomanInfo->SetIsSword(true);
-  protomanInfo->SetPackageID("com.builtins.engine.hero4");
+  protomanInfo->SetPackageID("com.builtins.player.hero4");
   packageManager.Commit(protomanInfo);
 
   // Register Tomahawkman
@@ -110,7 +110,7 @@ static inline void QueuNaviRegistration(PlayerPackageManager& packageManager) {
   thawkInfo->SetSpeed(2);
   thawkInfo->SetAttack(1);
   thawkInfo->SetChargedAttack(20);
-  thawkInfo->SetPackageID("com.builtins.engine.hero5");
+  thawkInfo->SetPackageID("com.builtins.player.hero5");
   packageManager.Commit(thawkInfo);
 
   // Register Forte
@@ -126,7 +126,7 @@ static inline void QueuNaviRegistration(PlayerPackageManager& packageManager) {
   forteInfo->SetSpeed(2);
   forteInfo->SetAttack(2);
   forteInfo->SetChargedAttack(20);
-  forteInfo->SetPackageID("com.builtins.engine.antihero1");
+  forteInfo->SetPackageID("com.builtins.player.hero6");
   packageManager.Commit(forteInfo);
 
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
@@ -136,7 +136,14 @@ static inline void QueuNaviRegistration(PlayerPackageManager& packageManager) {
     auto full_path = std::filesystem::absolute(entry).string();
 
     if (full_path.find(".zip") == std::string::npos) {
-      packageManager.LoadPackageFromDisk<ScriptedPlayer>(full_path);
+      try {
+        if (auto res = packageManager.LoadPackageFromDisk<ScriptedPlayer>(full_path); res.is_error()) {
+          Logger::Logf("%s", res.error_cstr());
+        }
+      }
+      catch (std::runtime_error& e) {
+        Logger::Logf("Player package unknown error: %s", e.what());
+      }
     }
   }
 #endif

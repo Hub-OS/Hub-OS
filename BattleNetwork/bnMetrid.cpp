@@ -25,12 +25,12 @@ Metrid::Metrid(Rank _rank)
 
   if (GetRank() == Rank::_2) {
     SetHealth(200);
-    SetName("Metrod");
+    // TODO: overwrite with SetName("Metrod");
     animationComponent->SetPlaybackSpeed(1.2);
     animationComponent->SetAnimation("MOB_IDLE_2");
   }
   else if (GetRank() == Rank::_3) {
-    SetName("Metrodo");
+    // TODO: overwrite with SetName("Metrodo");
     SetHealth(250);
     animationComponent->SetPlaybackSpeed(1.4);
     animationComponent->SetAnimation("MOB_IDLE_3");

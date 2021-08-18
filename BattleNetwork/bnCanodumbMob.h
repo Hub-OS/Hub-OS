@@ -12,13 +12,9 @@
 class CanodumbMob :
   public MobFactory
 {
-public:
-  CanodumbMob(Field* field);
-  ~CanodumbMob();
-  
   /**
    * @brief Build the mob 
    * @return Mob*
    */
-  Mob* Build();
+  Mob* Build(Field* field);
 };
