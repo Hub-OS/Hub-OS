@@ -3,26 +3,25 @@
 #include <list>
 #include <optional>
 
-#include "bnComponent.h"
 #include "bnCard.h"
 
-class Character;
-class CardUseListener;
+class CardAction;
+class CardActionUseListener;
 
 /**
- * @class CardUsePublisher
+ * @class CardActionUsePublisher
  * @author mav
  * @date 05/05/19
  * @brief Emits card use information to all subscribers
- * @see CardUsePublisher
+ * @see CardActionUsePublisher
  */
-class CardUsePublisher {
+class CardActionUsePublisher {
 private:
-  friend class CardUseListener;
+  friend class CardActionUseListener;
 
-  std::list<CardUseListener*> listeners; /*!< All subscribers */
+  std::list<CardActionUseListener*> listeners; /*!< All subscribers */
 
-  void AddListener(CardUseListener* listener);
+  void AddListener(CardActionUseListener* listener);
 
 protected:
   /**
@@ -30,15 +29,10 @@ protected:
  * @param card being used
  * @param user using the card
  */
-  void Broadcast(const Battle::Card& card, Character& user, uint64_t timestamp = 0);
+  void Broadcast(const CardAction* action, uint64_t timestamp = 0);
 
 public:
-  virtual ~CardUsePublisher();
-  
-  /**
-   * @brief Must implement
-   */
-  virtual bool UseNextCard() = 0;
+  virtual ~CardActionUsePublisher();
 
   void DropSubscribers();
 };

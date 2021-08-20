@@ -7,6 +7,7 @@
 #include "bnHitProperties.h"
 #include "bnTile.h"
 #include "bnActionQueue.h"
+#include "bnCardUsePublisher.h"
 
 #include <string>
 #include <functional>
@@ -21,6 +22,7 @@ class DefenseRule;
 class Spell;
 class CardAction;
 class SelectedCardsUI;
+class CardPackageManager;
 
 struct CardEvent {
   std::shared_ptr<CardAction> action;
@@ -28,6 +30,7 @@ struct CardEvent {
 
 struct PeekCardEvent {
   SelectedCardsUI* publisher{ nullptr };
+  CardPackageManager* packageManager{ nullptr };
 };
 
 struct CombatHitProps {
@@ -57,7 +60,12 @@ constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
  * @date 05/05/19
  * @brief Characters are mobs, enemies, and players. They have health and can take hits.
  */
-class Character : public virtual Entity, public CounterHitPublisher, public HitPublisher {
+class Character: 
+  public virtual Entity, 
+  public CounterHitPublisher, 
+  public HitPublisher, 
+  public CardActionUsePublisher
+{
   friend class Field;
   friend class AnimationComponent;
 protected:

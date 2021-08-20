@@ -530,7 +530,7 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   FilterSupportCards(remoteHand, len);
 
   // Supply the final hand info
-  remoteCardUsePublisher->LoadCards(remoteHand, len);
+  remoteCardActionUsePublisher->LoadCards(remoteHand, len);
   
   // Convert to microseconds and use this as the round start delay
   roundStartDelay = from_milliseconds((long long)((duration*1000.0) + packetProcessor->GetAvgLatency()));
@@ -599,11 +599,11 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   GetField()->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
   mob->Track(*remotePlayer);
 
-  remoteCardUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().CardPackageManager());
-  remoteCardUsePublisher->Hide(); // do not reveal opponent's cards
-  combatPtr->Subscribe(*remoteCardUsePublisher);
-  timeFreezePtr->Subscribe(*remoteCardUsePublisher);
-  this->SubscribeToCardEvents(*remoteCardUsePublisher);
+  remoteCardActionUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().CardPackageManager());
+  remoteCardActionUsePublisher->Hide(); // do not reveal opponent's cards
+  combatPtr->Subscribe(*remoteCardActionUsePublisher);
+  timeFreezePtr->Subscribe(*remoteCardActionUsePublisher);
+  this->SubscribeToCardActions(*remoteCardActionUsePublisher);
 
   remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);
   auto netProxy = remotePlayer->CreateComponent<PlayerNetworkProxy>(remotePlayer, remoteState);

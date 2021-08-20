@@ -10,6 +10,7 @@
 #include "bnResourceHandle.h"
 #include "bnAnimationComponent.h"
 #include "bnCharacter.h"
+#include "bnCard.h"
 
 using namespace swoosh;
 
@@ -94,9 +95,10 @@ private:
   std::function<void()> prepareActionDelegate;
   ActionList sequence;
   std::list<Step*> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
-  Character& actor;
+  Character* actor{ nullptr };
   Attachments attachments;
   AnimationComponent* anim{ nullptr };
+  Battle::Card::Properties meta;
 
   // Used internally
   void RecallPreviousState();
@@ -127,17 +129,20 @@ public:
   void SetLockout(const LockoutProperties& props);
   void SetLockoutGroup(const LockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
+  void SetMetaData(const Battle::Card::Properties& props);
   void Execute(Character* user);
   void EndAction();
+  void UseStuntDouble(Character& stuntDouble);
 
   const LockoutGroup GetLockoutGroup() const;
   const LockoutType GetLockoutType() const;
   const std::string& GetAnimState() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
+  const Battle::Card::Properties& GetMetaData() const;
   const bool CanExecute() const;
-  
   Character& GetActor();
+  const Character& GetActor() const;
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;

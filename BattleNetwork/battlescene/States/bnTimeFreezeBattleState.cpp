@@ -55,6 +55,10 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = startState;
+
+  if (action->GetMetaData().skipTimeFreezeIntro) {
+    SkipToAnimateState();
+  }
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -160,8 +164,13 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (action && action->CanExecute()) {
     user->Hide();
-    GetScene().GetField()->AddEntity(*stuntDouble, *user->GetTile());
-    action->Execute(user);
+    if (GetScene().GetField()->AddEntity(*stuntDouble, *user->GetTile()) != Field::AddEntityStatus::deleted) {
+      // action->UseStuntDouble(*stuntDouble);
+      action->Execute(user);
+    }
+    else {
+      currState = state::fadeout;
+    }
   }
 }
 
@@ -169,17 +178,18 @@ bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
-void TimeFreezeBattleState::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
+void TimeFreezeBattleState::OnCardActionUsed(const CardAction* action, uint64_t timestamp)
 {
-  if (card.IsTimeFreeze() && timestamp < lockedTimestamp) {
-    this->name = card.GetShortName();
-    this->team = user.GetTeam();
-    this->user = &user;
+  if (!action)
+    return;
+
+  if (action->GetMetaData().timeFreeze && timestamp < lockedTimestamp) {
+    this->name = action->GetMetaData().shortname;
+    this->team = action->GetActor().GetTeam();
+    this->user = const_cast<Character*>(&action->GetActor());
     lockedTimestamp = timestamp;
 
+    this->action = const_cast<CardAction*>(action);
     stuntDouble = CreateStuntDouble(this->user);
-
-    auto& cardRoster = this->GetScene().getController().CardPackageManager();
-    action = CardToAction(card, *stuntDouble, cardRoster);
   }
 }

@@ -206,11 +206,11 @@ void PlayerSelectedCardsUI::OnUpdate(double _elapsed) {
   elapsed = _elapsed;
 }
 
-void PlayerSelectedCardsUI::Broadcast(const Battle::Card& card, Character& user)
+void PlayerSelectedCardsUI::Broadcast(const CardAction* action)
 {
   if (player->GetEmotion() == Emotion::angry) {
     player->SetEmotion(Emotion::normal);
   }
 
-  SelectedCardsUI::Broadcast(card, user);
+  SelectedCardsUI::Broadcast(action);
 }

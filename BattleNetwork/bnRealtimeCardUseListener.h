@@ -7,17 +7,17 @@
 #include "bnCardPackageManager.h"
 #include "bnCard.h"
 
-class RealtimeCardUseListener : public CardUseListener {
+class RealtimeCardActionUseListener : public CardActionUseListener {
 private:
   CardPackageManager& packageManager;
 
 public:
-  RealtimeCardUseListener(CardPackageManager& packageManager) : CardUseListener(), packageManager(packageManager) {}
+  RealtimeCardActionUseListener(CardPackageManager& packageManager) : CardActionUseListener(), packageManager(packageManager) {}
   
   /**
    * @brief What happens when a card is used
    * @param card Card used
    * @param character Character using card
    */
-  void OnCardUse(const Battle::Card& card, Character& character, long long timestamp);
+  void OnCardActionUsed(const CardAction* action, uint64_t timestamp);
 };

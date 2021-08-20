@@ -72,7 +72,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
       // Mob's mutated at spawn may have card use publishers.
       // Share the scene's subscriptions at this point in time with
       // those substates.
-      for (auto& publisher : this->GetCardUseSubscriptions()) {
+      for (auto& publisher : this->GetCardActionSubscriptions()) {
         timeFreeze->Subscribe(publisher);
         combat->Subscribe(publisher);
       }
@@ -171,7 +171,9 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   // Some states need to know about card uses
   auto& ui = this->GetSelectedCardsUI();
   combat->Subscribe(ui);
+  combat->Subscribe(*GetPlayer());
   timeFreeze->Subscribe(ui);
+  timeFreeze->Subscribe(*GetPlayer());
   
   // Some states are part of the combat routine and need to respect
   // the combat state's timers

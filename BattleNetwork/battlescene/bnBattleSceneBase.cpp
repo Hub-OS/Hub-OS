@@ -35,7 +35,7 @@ using swoosh::ActivityController;
 
 BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
-  cardListener(this->getController().CardPackageManager()),
+  cardActionListener(this->getController().CardPackageManager()),
   player(&props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -61,6 +61,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   player->ChangeState<PlayerIdleState>();
   player->ToggleTimeFreeze(false);
+  CardActionUseListener::Subscribe(*player);
+
   field->AddEntity(*player, 2, 2);
 
   /*
@@ -99,7 +101,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   // Card UI for player
   cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackageManager());
   // cardListener.Subscribe(*cardUI);
-  this->CardUseListener::Subscribe(*cardUI);
+  this->CardActionUseListener::Subscribe(*cardUI);
 
   // Player UI 
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
@@ -299,26 +301,26 @@ void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
   this->customDuration = maxTimeSeconds;
 }
 
-void BattleSceneBase::SubscribeToCardEvents(CardUsePublisher& publisher)
+void BattleSceneBase::SubscribeToCardActions(CardActionUsePublisher& publisher)
 {
-  cardListener.Subscribe(publisher);
-  this->CardUseListener::Subscribe(publisher);
+  cardActionListener.Subscribe(publisher);
+  this->CardActionUseListener::Subscribe(publisher);
   cardUseSubscriptions.push_back(std::ref(publisher));
 }
 
-void BattleSceneBase::UnsubscribeFromCardEvents(CardUsePublisher& publisher)
+void BattleSceneBase::UnsubscribeFromCardActions(CardActionUsePublisher& publisher)
 {
   // todo: cardListener.Unsubscribe(publisher);
 }
 
-const std::vector<std::reference_wrapper<CardUsePublisher>>& BattleSceneBase::GetCardUseSubscriptions() const
+const std::vector<std::reference_wrapper<CardActionUsePublisher>>& BattleSceneBase::GetCardActionSubscriptions() const
 {
   return cardUseSubscriptions;
 }
 
-void BattleSceneBase::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
+void BattleSceneBase::OnCardActionUsed(const CardAction* action, uint64_t timestamp)
 {
-  HandleCounterLoss(user, true);
+  HandleCounterLoss(const_cast<Character&>(action->GetActor()), true);
 }
 
 void BattleSceneBase::LoadMob(Mob& mob)
@@ -801,7 +803,7 @@ void BattleSceneBase::Inject(MobHealthUI& other)
 
 void BattleSceneBase::Inject(SelectedCardsUI& cardUI)
 {
-  this->SubscribeToCardEvents(cardUI);
+  this->SubscribeToCardActions(cardUI);
 }
 
 // Default case: no special injection found for the type, just add it to our update loop

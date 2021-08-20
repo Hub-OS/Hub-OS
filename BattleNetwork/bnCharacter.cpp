@@ -15,6 +15,7 @@
 #include "bnBubbleTrap.h"
 #include "bnBubbleState.h"
 #include "bnPlayer.h"
+#include "bnCardToActions.h"
 
 Character::Character(Rank _rank) :
   health(0),
@@ -29,7 +30,9 @@ Character::Character(Rank _rank) :
   counterSlideDelta(0),
   name("unnamed"),
   rank(_rank),
-  CounterHitPublisher(), Entity() {
+  CounterHitPublisher(), 
+  CardActionUsePublisher(),
+  Entity() {
 
   whiteout = Shaders().GetShader(ShaderType::WHITE);
   stun = Shaders().GetShader(ShaderType::YELLOW);
@@ -787,7 +790,12 @@ void Character::AddAction(const PeekCardEvent& event, const ActionOrder& order)
 void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec)
 {
   if (currCardAction == nullptr) {
-    currCardAction = event.action;
+    if (event.action->GetMetaData().timeFreeze) {
+      CardActionUsePublisher::Broadcast(event.action.get(), CurrentTime::AsMilli());
+    }
+    else {
+      currCardAction = event.action;
+    }
   }
 
   if (exec == ActionQueue::ExecutionType::interrupt) {
@@ -803,9 +811,14 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
     auto maybe_card = publisher->Peek();
 
     if (maybe_card.has_value()) {
+      // convert meta data into a useable action object
       const Battle::Card& card = *maybe_card;
+      CardAction* action = CardToAction(card, *this, *event.packageManager);
+      action->SetMetaData(card.props); // associate the meta with this action object
+
+      // prepare for this frame's action animation (we must be actionable)
       MakeActionable();
-      publisher->Broadcast(card, *this);
+      publisher->Broadcast(action); // tell the rest of the subsystems
     }
   }
 

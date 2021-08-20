@@ -64,7 +64,7 @@ class BattleSceneBase :
   public HitListener,
   public CounterHitListener, 
   public CharacterDeleteListener, 
-  public CardUseListener {
+  public CardActionUseListener {
 private:
   // general stuff
   bool quitting{ false }; //!< Determine if we are leaving the battle scene
@@ -88,7 +88,7 @@ private:
   double backdropOpacity{ 1.0 };
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
-  RealtimeCardUseListener cardListener; /*!< Card use listener handles one card at a time */
+  RealtimeCardActionUseListener cardActionListener; /*!< Card use listener handles one card at a time */
   PlayerSelectedCardsUI* cardUI{ nullptr }; /*!< Player's Card UI implementation */
   PlayerEmotionUI* emotionUI{ nullptr }; /*!< Player's Emotion Window */
   Camera camera; /*!< Camera object - will shake screen */
@@ -103,7 +103,7 @@ private:
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
   std::vector<SceneNode*> scenenodes; /*!< ui components. DO NOT DELETE. */
   std::vector<Component*> components; /*!< Components injected into the scene to track. DO NOT DELETE. */
-  std::vector<std::reference_wrapper<CardUsePublisher>> cardUseSubscriptions; /*!< Share subscriptions with other CardListeners states*/
+  std::vector<std::reference_wrapper<CardActionUsePublisher>> cardUseSubscriptions; /*!< Share subscriptions with other CardListeners states*/
   BattleResults battleResults{};
   BattleResultsFunc onEndCallback;
 
@@ -242,7 +242,7 @@ protected:
   */
   void ProcessNewestComponents();
 
-  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override final;
+  void OnCardActionUsed(const CardAction* action, uint64_t timestamp) override final;
   void OnCounter(Character& victim, Character& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
 
@@ -273,9 +273,9 @@ public:
   void SetCustomBarProgress(double percentage);
   void SetCustomBarDuration(double maxTimeSeconds);
 
-  void SubscribeToCardEvents(CardUsePublisher& publisher);
-  void UnsubscribeFromCardEvents(CardUsePublisher& publisher);
-  const std::vector<std::reference_wrapper<CardUsePublisher>>& GetCardUseSubscriptions() const;
+  void SubscribeToCardActions(CardActionUsePublisher& publisher);
+  void UnsubscribeFromCardActions(CardActionUsePublisher& publisher);
+  const std::vector<std::reference_wrapper<CardActionUsePublisher>>& GetCardActionSubscriptions() const;
 
   /**
     * @brief State boolean for BattleScene. Query if the battle is over.

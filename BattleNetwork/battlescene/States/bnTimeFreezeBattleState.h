@@ -16,7 +16,7 @@ namespace Battle { class Card; }
 /* 
     \brief This state governs transitions and combat rules while in TF
 */
-struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
+struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListener {
   enum class state : int {
     fadein = 0,
     display_name,
@@ -37,7 +37,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   TimeFreezeBattleState();
   ~TimeFreezeBattleState();
 
-  void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) override;
+  void OnCardActionUsed(const CardAction* action, uint64_t timestamp) override;
   void CleanupStuntDouble();
   void SkipToAnimateState();
   void onStart(const BattleSceneState* last) override;

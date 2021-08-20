@@ -133,6 +133,11 @@ void Player::Attack() {
     
     if (action) {
       action->PreventCounters();
+
+      Battle::Card::Properties props;
+      props.shortname = "Buster";
+      props.timeFreeze = true;
+      action->SetMetaData(props);
       action->SetLockoutGroup(CardAction::LockoutGroup::weapon);
       BusterEvent event = { frames(0), frames(0), false, std::shared_ptr<CardAction>(action) };
       actionQueue.Add(std::move(event), ActionOrder::voluntary, ActionDiscardOp::until_eof);

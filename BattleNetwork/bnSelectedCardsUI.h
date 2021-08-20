@@ -17,10 +17,11 @@ using sf::Texture;
 using sf::Drawable;
 
 class Card;
+class Character;
 class CardPackageManager;
 class BattleSceneBase;
 
-class SelectedCardsUI : public CardUsePublisher, public UIComponent {
+class SelectedCardsUI : public CardActionUsePublisher, public UIComponent {
 public:
   /**
    * \param character Character to attach to
@@ -51,14 +52,14 @@ public:
    * @brief Broadcasts the card at the cursor curr. Increases curr.
    * @return True if there was a card to use
    */
-  bool UseNextCard() override;
+  virtual bool UseNextCard();
 
   /**
  * @brief Broadcasts the card information to all listeners
  * @param card being used
  * @param user using the card
  */
-  virtual void Broadcast(const Battle::Card& card, Character& user);
+  virtual void Broadcast(const CardAction* action);
 
   /**
    * @brief Does nothing at this time

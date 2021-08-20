@@ -40,7 +40,7 @@ public:
  * @param card being used
  * @param user using the card
  */
-  void Broadcast(const Battle::Card& card, Character& user) override final;
+  void Broadcast(const CardAction* card) override final;
 
 private:
   double elapsed{}; /*!< Used by draw function, delta time since last update frame */

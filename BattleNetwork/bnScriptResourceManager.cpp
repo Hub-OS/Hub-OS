@@ -498,11 +498,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "add_anim_action", &ScriptedCardAction::AddAnimAction,
     "add_step", &ScriptedCardAction::AddStep,
     "end_action", &ScriptedCardAction::EndAction,
-    "get_actor", &ScriptedCardAction::GetActor,
+    "get_actor", sol::overload(
+      sol::resolve<Character&()>(&ScriptedCardAction::GetActor)
+    ),
     "action_end_func", &ScriptedCardAction::onActionEnd,
     "animation_end_func", &ScriptedCardAction::onAnimationEnd,
     "execute_func", &ScriptedCardAction::onExecute,
     "update_func", &ScriptedCardAction::onUpdate,
+    "set_metadata", &ScriptedCardAction::SetMetaData,
+    "get_metadata", &ScriptedCardAction::GetMetaData,
     sol::base_classes, sol::bases<CardAction>()
   );
 
@@ -665,7 +669,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   // make meta object info metatable
-  const auto& playermeta_table = engine_namespace.new_usertype<PlayerMeta>("PlayerMeta",
+  const auto& playermeta_table = battle_namespace.new_usertype<PlayerMeta>("PlayerMeta",
     "set_special_description", &PlayerMeta::SetSpecialDescription,
     "set_attack", &PlayerMeta::SetAttack,
     "set_charged_attack", &PlayerMeta::SetChargedAttack,
@@ -682,7 +686,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "declare_package_id", &PlayerMeta::SetPackageID
   );
 
-  const auto& cardpropsmeta_table = engine_namespace.new_usertype<Battle::Card::Properties>("CardProperties",
+  const auto& cardpropsmeta_table = battle_namespace.new_usertype<Battle::Card::Properties>("CardProperties",
+    sol::factories(
+      [this]() -> Battle::Card::Properties { return {};  }
+    ),
     "action", &Battle::Card::Properties::action,
     "can_boost", &Battle::Card::Properties::canBoost,
     "card_class", &Battle::Card::Properties::cardClass,
@@ -695,17 +702,18 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "secondary_element", &Battle::Card::Properties::secondaryElement,
     "shortname", &Battle::Card::Properties::shortname,
     "time_freeze", &Battle::Card::Properties::timeFreeze,
+    "skip_time_freeze_intro", &Battle::Card::Properties::skipTimeFreezeIntro,
     "long_description", &Battle::Card::Properties::verboseDescription
   );
 
-  const auto& cardmeta_table = engine_namespace.new_usertype<CardMeta>("CardMeta",
+  const auto& cardmeta_table = battle_namespace.new_usertype<CardMeta>("CardMeta",
     "get_card_props", &CardMeta::GetCardProperties,
     "set_preview_texture", &CardMeta::SetPreviewTexture,
     "set_icon_texture", &CardMeta::SetIconTexture,
     "declare_package_id", &CardMeta::SetPackageID
   );
 
-  const auto& mobmeta_table = engine_namespace.new_usertype<MobMeta>("MobMeta",
+  const auto& mobmeta_table = battle_namespace.new_usertype<MobMeta>("MobMeta",
     "set_description", &MobMeta::SetDescription,
     "set_name", &MobMeta::SetName,
     "set_preview_texture_path", &MobMeta::SetPlaceholderTexturePath,
@@ -715,14 +723,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "declare_package_id", &MobMeta::SetPackageID
   );
 
-  const auto& scriptedmob_table = engine_namespace.new_usertype<ScriptedMob>("Mob",
+  const auto& scriptedmob_table = battle_namespace.new_usertype<ScriptedMob>("Mob",
     "create_spawner", &ScriptedMob::CreateSpawner,
     "set_background", &ScriptedMob::SetBackground,
     "stream_music", &ScriptedMob::StreamMusic,
     "get_field", &ScriptedMob::GetField
   );
 
-  const auto& scriptedspawner_table = engine_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
+  const auto& scriptedspawner_table = battle_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
     "spawn_at", &ScriptedMob::ScriptedSpawner::SpawnAt
   );
 
@@ -786,6 +794,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
           Logger::Log(msg);
           throw std::runtime_error(msg);
       }
+    }
+  );
+
+  engine_namespace.set_function("action_from_card",
+    [this](const std::string& fqn)
+    {
+
     }
   );
 

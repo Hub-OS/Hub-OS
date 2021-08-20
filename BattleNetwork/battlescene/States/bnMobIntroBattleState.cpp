@@ -5,8 +5,8 @@
 #include "../../bnMob.h"
 #include "../../bnAgent.h"
 
-MobIntroBattleState::MobIntroBattleState(Mob* mob, std::vector<Player*> tracked)
-  : mob(mob), tracked(tracked)
+MobIntroBattleState::MobIntroBattleState(Mob* mob, std::vector<Player*> tracked): 
+  mob(mob), tracked(tracked)
 {
 }
 
@@ -36,6 +36,7 @@ void MobIntroBattleState::onUpdate(double elapsed)
     // Listen for events
     GetScene().CounterHitListener::Subscribe(*enemy);
     GetScene().HitListener::Subscribe(*enemy);
+    GetScene().SubscribeToCardActions(*enemy);
   }
 
   GetScene().GetField()->Update((float)elapsed);

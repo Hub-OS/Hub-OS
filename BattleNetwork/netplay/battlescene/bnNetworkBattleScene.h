@@ -82,7 +82,7 @@ private:
   std::vector<Player*> players; //!< Track all players
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   SpriteProxyNode pingIndicator;
-  SelectedCardsUI* remoteCardUsePublisher{ nullptr };
+  SelectedCardsUI* remoteCardActionUsePublisher{ nullptr };
   Battle::Card** remoteHand{ nullptr }; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
   Player *remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP

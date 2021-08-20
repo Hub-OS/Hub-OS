@@ -9,6 +9,7 @@
 #include "bnCurrentTime.h"
 #include "bnCard.h"
 #include "bnCardAction.h"
+#include "bnCardToActions.h"
 #include "bnCardPackageManager.h"
 #include "battlescene/bnBattleSceneBase.h"
 
@@ -16,7 +17,7 @@ using std::to_string;
 
 SelectedCardsUI::SelectedCardsUI(Character* owner, CardPackageManager* packageManager) :
   packageManager(packageManager),
-  CardUsePublisher(), 
+  CardActionUsePublisher(), 
   UIComponent(owner)
 {
   cardCount = curr = 0;
@@ -129,14 +130,14 @@ bool SelectedCardsUI::UseNextCard() {
   multiplierValue = 1; // reset 
 
   // add a peek event to the action queue
-  owner->AddAction(PeekCardEvent{ this }, ActionOrder::voluntary);
+  owner->AddAction(PeekCardEvent{ this, packageManager }, ActionOrder::voluntary);
   return true;
 }
 
-void SelectedCardsUI::Broadcast(const Battle::Card& card, Character& user)
+void SelectedCardsUI::Broadcast(const CardAction* action)
 {
   curr++;
-  CardUsePublisher::Broadcast(card, user, CurrentTime::AsMilli());
+  CardActionUsePublisher::Broadcast(action, CurrentTime::AsMilli());
 }
 
 std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek()

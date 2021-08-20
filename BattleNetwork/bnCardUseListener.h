@@ -1,33 +1,33 @@
 #pragma once
 #include "bnCard.h"
 
-class CardUsePublisher;
-class Character;
+class CardAction;
+class CardActionUsePublisher;
 
 /**
- * @class CardUseListener
+ * @class CardActionUseListener
  * @author mav
  * @date 05/05/19
- * @brief Listens for card use events emitted by CardUsePublishers
+ * @brief Listens for card use events emitted by CardActionUsePublishers
  */
-class CardUseListener {
+class CardActionUseListener {
 public:
-  CardUseListener() = default;
-  ~CardUseListener() = default;
+  CardActionUseListener() = default;
+  ~CardActionUseListener() = default;
 
-  CardUseListener(const CardUseListener& rhs) = delete;
-  CardUseListener(CardUseListener&& rhs) = delete;
+  CardActionUseListener(const CardActionUseListener& rhs) = delete;
+  CardActionUseListener(CardActionUseListener&& rhs) = delete;
 
   /**
    * @brief What happens when we recieve the card event
    * @param card
    * @param user
    */
-  virtual void OnCardUse(const Battle::Card& card, Character& user, long long timestamp) = 0;
+  virtual void OnCardActionUsed(const CardAction* action, uint64_t timestamp) = 0;
   
   /**
    * @brief Subscribe this listener to a publisher objects
    * @param publisher
    */
-  void Subscribe(CardUsePublisher& publisher);
+  void Subscribe(CardActionUsePublisher& publisher);
 };

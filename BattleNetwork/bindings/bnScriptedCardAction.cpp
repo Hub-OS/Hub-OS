@@ -44,4 +44,5 @@ void ScriptedCardAction::OnExecute(Character* user) {
     onExecute(*this, user);
   }
 }
+
 #endif

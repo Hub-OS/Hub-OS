@@ -1,26 +1,26 @@
 #include "bnCardUsePublisher.h"
 #include "bnCardUseListener.h"
 
-void CardUsePublisher::AddListener(CardUseListener* listener)
+void CardActionUsePublisher::AddListener(CardActionUseListener* listener)
 {
   listeners.push_back(listener);
 }
 
-void CardUsePublisher::DropSubscribers()
+void CardActionUsePublisher::DropSubscribers()
 {
   listeners.clear();
 }
 
-CardUsePublisher::~CardUsePublisher()
+CardActionUsePublisher::~CardActionUsePublisher()
 {
 }
 
-void CardUsePublisher::Broadcast(const Battle::Card& card, Character& user, uint64_t timestamp)
+void CardActionUsePublisher::Broadcast(const CardAction* action, uint64_t timestamp)
 {
-  std::list<CardUseListener*>::iterator iter = listeners.begin();
+  std::list<CardActionUseListener*>::iterator iter = listeners.begin();
 
   while (iter != listeners.end()) {
-    (*iter)->OnCardUse(card, user, timestamp);
+    (*iter)->OnCardActionUsed(action, timestamp);
     iter++;
   }
 }

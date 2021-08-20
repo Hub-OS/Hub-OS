@@ -1,6 +1,6 @@
 #include "bnCardUseListener.h"
 #include "bnCardUsePublisher.h"
 
-void CardUseListener::Subscribe(CardUsePublisher& publisher) {
+void CardActionUseListener::Subscribe(CardActionUsePublisher& publisher) {
   publisher.AddListener(this);
 }

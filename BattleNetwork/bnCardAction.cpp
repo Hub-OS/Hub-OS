@@ -2,7 +2,7 @@
 #include "battlescene/bnBattleSceneBase.h"
 
 CardAction::CardAction(Character& actor, const std::string& animation) : 
-  actor(actor),
+  actor(&actor),
   animation(animation), 
   anim(actor.GetFirstComponent<AnimationComponent>()),
   uuid(), 
@@ -13,7 +13,7 @@ CardAction::CardAction(Character& actor, const std::string& animation) :
   if (anim) {
     prepareActionDelegate = [this] {
       for (auto& [nodeName, node] : attachments) {
-        this->actor.AddNode(&node.spriteProxy.get());
+        this->actor->AddNode(&node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
@@ -26,7 +26,7 @@ CardAction::CardAction(Character& actor, const std::string& animation) :
 
       if (!anim->GetAnimationObject().HasAnimation(this->animation)) {
         this->animation = prevState;
-        Logger::Logf("Character %s did not have animation %s, reverting to last anim", this->actor.GetName().c_str(), this->animation.c_str());
+        Logger::Logf("Character %s did not have animation %s, reverting to last anim", this->actor->GetName().c_str(), this->animation.c_str());
       }
 
       anim->SetAnimation(this->animation, [this]() {
@@ -92,7 +92,17 @@ void CardAction::RecallPreviousState()
 
 Character& CardAction::GetActor()
 {
-  return actor;
+  return *actor;
+}
+
+const Character& CardAction::GetActor() const
+{
+  return *actor;
+}
+
+const Battle::Card::Properties& CardAction::GetMetaData() const
+{
+  return meta;
 }
 
 void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
@@ -111,7 +121,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
 
       if (!anim->GetAnimationObject().HasAnimation(this->animation)) {
         this->animation = prevState;
-        Logger::Logf("(override animation) Character %s did not have animation %s, reverting to last anim", this->actor.GetName().c_str(), this->animation.c_str());
+        Logger::Logf("(override animation) Character %s did not have animation %s, reverting to last anim", this->actor->GetName().c_str(), this->animation.c_str());
       }
 
       anim->OverrideAnimationFrames(this->animation, frameData, uuid);
@@ -129,6 +139,11 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   }
 }
 
+void CardAction::SetMetaData(const Battle::Card::Properties& props)
+{
+  meta = props;
+}
+
 void CardAction::Execute(Character* user)
 {
   // prepare the animation behavior
@@ -144,6 +159,11 @@ void CardAction::EndAction()
 {
   RecallPreviousState();
   OnActionEnd();
+}
+
+void CardAction::UseStuntDouble(Character& stuntDouble)
+{
+  actor = &stuntDouble;
 }
 
 CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
@@ -179,7 +199,7 @@ void CardAction::Update(double _elapsed)
 
     // update the node's position
     auto baseOffset = node.GetParentAnim().GetPoint(nodeName);
-    const auto& origin = actor.getSprite().getOrigin();
+    const auto& origin = actor->getSprite().getOrigin();
     baseOffset = baseOffset - origin;
 
     node.SetOffset(baseOffset);

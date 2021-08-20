@@ -210,10 +210,10 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
   }
 }
 
-void CombatBattleState::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
+void CombatBattleState::OnCardActionUsed(const CardAction* action, uint64_t timestamp)
 {
   if (!mob->IsCleared()) {
-    hasTimeFreeze = card.IsTimeFreeze();
+    hasTimeFreeze = action->GetMetaData().timeFreeze;
   }
 }
 
