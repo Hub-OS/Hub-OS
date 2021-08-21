@@ -318,7 +318,7 @@ const std::vector<std::reference_wrapper<CardActionUsePublisher>>& BattleSceneBa
   return cardUseSubscriptions;
 }
 
-void BattleSceneBase::OnCardActionUsed(const CardAction* action, uint64_t timestamp)
+void BattleSceneBase::OnCardActionUsed(CardAction* action, uint64_t timestamp)
 {
   HandleCounterLoss(const_cast<Character&>(action->GetActor()), true);
 }

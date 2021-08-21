@@ -56,7 +56,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = startState;
 
-  if (action->GetMetaData().skipTimeFreezeIntro) {
+  if (action && action->GetMetaData().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
 }
@@ -166,6 +166,7 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
     user->Hide();
     if (GetScene().GetField()->AddEntity(*stuntDouble, *user->GetTile()) != Field::AddEntityStatus::deleted) {
       // action->UseStuntDouble(*stuntDouble);
+      user->ToggleTimeFreeze(false);
       action->Execute(user);
     }
     else {
@@ -178,7 +179,7 @@ bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
-void TimeFreezeBattleState::OnCardActionUsed(const CardAction* action, uint64_t timestamp)
+void TimeFreezeBattleState::OnCardActionUsed(CardAction* action, uint64_t timestamp)
 {
   if (!action)
     return;
@@ -189,7 +190,7 @@ void TimeFreezeBattleState::OnCardActionUsed(const CardAction* action, uint64_t 
     this->user = const_cast<Character*>(&action->GetActor());
     lockedTimestamp = timestamp;
 
-    this->action = const_cast<CardAction*>(action);
+    this->action = (action);
     stuntDouble = CreateStuntDouble(this->user);
   }
 }

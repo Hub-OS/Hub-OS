@@ -19,5 +19,5 @@ public:
    * @param card Card used
    * @param character Character using card
    */
-  void OnCardActionUsed(const CardAction* action, uint64_t timestamp);
+  void OnCardActionUsed(CardAction* action, uint64_t timestamp);
 };

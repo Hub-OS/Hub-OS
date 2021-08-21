@@ -242,7 +242,7 @@ protected:
   */
   void ProcessNewestComponents();
 
-  void OnCardActionUsed(const CardAction* action, uint64_t timestamp) override final;
+  void OnCardActionUsed(CardAction* action, uint64_t timestamp) override final;
   void OnCounter(Character& victim, Character& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
 

@@ -29,7 +29,7 @@ protected:
  * @param card being used
  * @param user using the card
  */
-  void Broadcast(const CardAction* action, uint64_t timestamp = 0);
+  void Broadcast(CardAction* action, uint64_t timestamp = 0);
 
 public:
   virtual ~CardActionUsePublisher();

@@ -23,7 +23,7 @@ public:
    * @param card
    * @param user
    */
-  virtual void OnCardActionUsed(const CardAction* action, uint64_t timestamp) = 0;
+  virtual void OnCardActionUsed(CardAction* action, uint64_t timestamp) = 0;
   
   /**
    * @brief Subscribe this listener to a publisher objects
