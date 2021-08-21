@@ -2103,10 +2103,16 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   CardFolder* newFolder = nullptr;
 
-  // Shuffle our new folder
-  if (auto folder = GetSelectedFolder().value(); GetSelectedFolder().has_value()) {
-    newFolder = folder->Clone();
-    newFolder->Shuffle();
+  std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
+  CardFolder* folder;
+
+  if (selectedFolder) {
+    folder = (*selectedFolder)->Clone();
+    folder->Shuffle();
+  }
+  else {
+    // use a new blank folder if we dont have a folder selected
+    folder = new CardFolder();
   }
 
   // Queue screen transition to Battle Scene with a white fade effect
@@ -2116,7 +2122,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
   }
 
   MobBattleProperties props{
-    { *player, GetProgramAdvance(), newFolder, mob->GetField(), mob->GetBackground() },
+    { *player, GetProgramAdvance(), folder, mob->GetField(), mob->GetBackground() },
     MobBattleProperties::RewardBehavior::take,
     { mob },
     sf::Sprite(*mugshot),
