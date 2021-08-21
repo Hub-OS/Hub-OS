@@ -41,7 +41,7 @@ static long long GetSteadyTime() {
 
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
-  const std::string& address,
+  const std::string& host,
   uint16_t port,
   const std::string& connectData,
   uint16_t maxPayloadSize
@@ -51,11 +51,11 @@ Overworld::OnlineArea::OnlineArea(
   nameText(Font::Style::small),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
-  serverAssetManager(address, port),
-  identityManager(address, port)
+  serverAssetManager(host, port),
+  identityManager(host, port)
 {
   try {
-    auto remoteAddress = Poco::Net::SocketAddress(address, port);
+    auto remoteAddress = Poco::Net::SocketAddress(host, port);
     packetProcessor = std::make_shared<Overworld::PacketProcessor>(
       remoteAddress,
       maxPayloadSize,
@@ -243,7 +243,7 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     }
     catch (...) {
       delete folder;
-      ResetPVPStep();
+      ResetPVPStep(true);
       return;
     }
 
@@ -317,8 +317,12 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
   }
 }
 
-void Overworld::OnlineArea::ResetPVPStep()
+void Overworld::OnlineArea::ResetPVPStep(bool failed)
 {
+  if (failed) {
+    sendBattleResultsSignal(BattleResults{});
+  }
+
   if (netBattleProcessor) {
     Net().DropProcessor(netBattleProcessor);
     netBattleProcessor = nullptr;
@@ -491,12 +495,12 @@ void Overworld::OnlineArea::detectWarp() {
     case ObjectType::server_warp: {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
-      auto address = tileObject.customProperties.GetProperty("address");
+      auto host = tileObject.customProperties.GetProperty("address");
       auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("port");
       auto data = tileObject.customProperties.GetProperty("data");
 
       command.onFinish.Slot([=] {
-        transferServer(address, port, data, false);
+        transferServer(host, port, data, false);
       });
       break;
     }
@@ -660,7 +664,7 @@ void Overworld::OnlineArea::onResume()
   case ReturningScene::DownloadScene:
     if (!canProceedToBattle) {
       // download scene failed, give up on pvp
-      ResetPVPStep();
+      ResetPVPStep(true);
     }
     break;
   case ReturningScene::BattleScene:
@@ -755,9 +759,9 @@ Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Ve
   return GetTeleportController().TeleportIn(actor, position, direction);
 }
 
-void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut) {
+void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t port, const std::string& data, bool warpOut) {
   auto transfer = [=] {
-    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, data, maxPayloadSize);
+    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
   };
 
   if (warpOut) {
@@ -1347,12 +1351,12 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
 
 void Overworld::OnlineArea::receiveTransferServerSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto address = reader.ReadString<uint16_t>(buffer);
+  auto host = reader.ReadString<uint16_t>(buffer);
   auto port = reader.Read<uint16_t>(buffer);
   auto data = reader.ReadString<uint16_t>(buffer);
   auto warpOut = reader.Read<bool>(buffer);
 
-  transferServer(address, port, data, warpOut);
+  transferServer(host, port, data, warpOut);
 }
 
 void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2099,10 +2103,16 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   CardFolder* newFolder = nullptr;
 
-  // Shuffle our new folder
-  if (auto folder = GetSelectedFolder().value(); GetSelectedFolder().has_value()) {
-    newFolder = folder->Clone();
-    newFolder->Shuffle();
+  std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
+  CardFolder* folder;
+
+  if (selectedFolder) {
+    folder = (*selectedFolder)->Clone();
+    folder->Shuffle();
+  }
+  else {
+    // use a new blank folder if we dont have a folder selected
+    folder = new CardFolder();
   }
 
   // Queue screen transition to Battle Scene with a white fade effect
@@ -2112,7 +2122,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
   }
 
   MobBattleProperties props{
-    { *player, GetProgramAdvance(), newFolder, mob->GetField(), mob->GetBackground() },
+    { *player, GetProgramAdvance(), folder, mob->GetField(), mob->GetBackground() },
     MobBattleProperties::RewardBehavior::take,
     { mob },
     sf::Sprite(*mugshot),

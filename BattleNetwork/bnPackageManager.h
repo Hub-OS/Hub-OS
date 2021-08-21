@@ -1,11 +1,16 @@
 #pragma once
 
+#include "bnLogger.h"
+#include "bnResourceHandle.h"
+#include "bnScriptResourceManager.h"
 #include "stx/result.h"
+#include "stx/tuple.h"
 #include "stx/zip_utils.h"
 #include <vector>
 #include <map>
 #include <string>
 #include <functional>
+#include <atomic>
 
 template<typename MetaClass>
 class PackageManager {
@@ -68,7 +73,7 @@ class PackageManager {
     template<class SuperDataType, typename... Args>
     MetaClass* CreatePackage(Args&&... args) {
         MetaClass* package = new MetaClass();
-        package->SetClass<SuperDataType>(std::forward<decltype(args)>(args)...);
+        package->template SetClass<SuperDataType>(std::forward<decltype(args)>(args)...);
         return package;
     }
 
@@ -172,7 +177,7 @@ TODO: Take ScriptedDataType out. Package manager should be used for scripted or 
 **/
 template<typename MetaClass>
 template<typename ScriptedDataType>
-stx::result_t<bool> PackageManager<typename MetaClass>::LoadPackageFromZip(const std::string& path)
+stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromZip(const std::string& path)
 {
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   auto absolute = std::filesystem::absolute(path);
@@ -208,7 +213,7 @@ stx::result_t<bool> PackageManager<typename MetaClass>::LoadPackageFromZip(const
 template<typename MetaClass>
 template<typename DataType>
 template<typename SuperDataType, typename... Args>
-inline MetaClass& PackageManager<typename MetaClass>::Meta<DataType>::SetClass(Args&&... args)
+inline MetaClass& PackageManager<MetaClass>::Meta<DataType>::SetClass(Args&&... args)
 {
   loadClass = [this, tuple_args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable {
     using TupleArgsType = decltype(tuple_args);

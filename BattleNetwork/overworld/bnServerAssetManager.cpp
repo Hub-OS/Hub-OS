@@ -101,8 +101,8 @@ static std::tuple<std::string, uint64_t> decodeName(const std::string& name) {
 }
 
 
-Overworld::ServerAssetManager::ServerAssetManager(const std::string& address, uint16_t port) :
-  cachePath(std::string(CACHE_FOLDER) + '/' + URIEncode(address + "_p" + std::to_string(port)))
+Overworld::ServerAssetManager::ServerAssetManager(const std::string& host, uint16_t port) :
+  cachePath(std::string(CACHE_FOLDER) + '/' + URIEncode(host + "_p" + std::to_string(port)))
 {
   // prefix with cached- to avoid reserved names such as COM
   cachePrefix = cachePath + "/cached-";

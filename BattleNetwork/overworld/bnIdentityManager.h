@@ -6,7 +6,7 @@ namespace Overworld {
    */
   class IdentityManager {
     public:
-      IdentityManager(const std::string& address, uint16_t port);
+      IdentityManager(const std::string& host, uint16_t port);
 
       std::string GetIdentity();
     private:

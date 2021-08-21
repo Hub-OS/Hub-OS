@@ -585,7 +585,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remoteState.remoteNaviId = remoteNaviId;
 
-  Logger::Logf("Recieved connect signal! Remote navi: %s", remoteState.remoteNaviId);
+  Logger::Logf("Recieved connect signal! Remote navi: %s", remoteState.remoteNaviId.c_str());
 
   assert(remotePlayer == nullptr && "remote player was already set!");
   remotePlayer = getController().PlayerPackageManager().FindPackageByID(remoteNaviId).GetData();

@@ -895,7 +895,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Immediate", ActionOrder::immediate
   );
 
-  auto& input_event_record = state.create_table("Input");
+  auto input_event_record = state.create_table("Input");
 
   const auto& pressed_input_event_record = input_event_record.new_enum("Pressed",
     "Up", InputEvents::pressed_move_up,
