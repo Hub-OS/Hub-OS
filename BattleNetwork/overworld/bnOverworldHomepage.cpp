@@ -17,20 +17,20 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
   std::string destination_ip = WEBCLIENT.GetValue("homepage_warp:0");
 
   int remotePort = getController().CommandLineValue<int>("remotePort");
-  std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
+  host = getController().CommandLineValue<std::string>("cyberworld");
 
-  if (cyberworld.empty()) {
+  if (host.empty()) {
     size_t colon = destination_ip.find(':', 0);
 
     if (colon > 0 && colon != std::string::npos) {
-      cyberworld = destination_ip.substr(0, colon);
+      host = destination_ip.substr(0, colon);
       remotePort = std::atoi(destination_ip.substr(colon + 1u).c_str());
     }
   }
 
-  if (remotePort > 0 && cyberworld.size()) {
+  if (remotePort > 0 && host.size()) {
     try {
-      remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
+      remoteAddress = Poco::Net::SocketAddress(host, remotePort);
 
       packetProcessor = std::make_shared<Overworld::PollingPacketProcessor>(
         remoteAddress,
@@ -196,6 +196,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
                 throw std::runtime_error("Empty address list");
               }
               else {
+                host = dest;
                 dest = addrList.begin()->toString() + ":" + std::to_string(port);
               }
             }
@@ -402,11 +403,10 @@ void Overworld::Homepage::OnTileCollision()
       netWarpTilePos.z
     );
 
-    auto address = remoteAddress.host().toString();
     auto port = remoteAddress.port();
 
     auto teleportToCyberworld = [=] {
-      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, "", maxPayloadSize);
+      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, "", maxPayloadSize);
     };
 
     this->TeleportUponReturn(returnPoint);
