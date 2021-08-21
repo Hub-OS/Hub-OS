@@ -105,7 +105,7 @@ namespace Overworld {
     std::vector<VendorScene::Item> shopItems;
 
     void HandlePVPStep(const std::string& remoteAddress);
-    void ResetPVPStep();
+    void ResetPVPStep(bool failed = false);
 
     std::optional<AbstractUser> GetAbstractUser(const std::string& id);
     void onInteract(Interaction type);

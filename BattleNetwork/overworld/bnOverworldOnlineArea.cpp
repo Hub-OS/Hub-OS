@@ -243,7 +243,7 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     }
     catch (...) {
       delete folder;
-      ResetPVPStep();
+      ResetPVPStep(true);
       return;
     }
 
@@ -317,8 +317,12 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
   }
 }
 
-void Overworld::OnlineArea::ResetPVPStep()
+void Overworld::OnlineArea::ResetPVPStep(bool failed)
 {
+  if (failed) {
+    sendBattleResultsSignal(BattleResults{});
+  }
+
   if (netBattleProcessor) {
     Net().DropProcessor(netBattleProcessor);
     netBattleProcessor = nullptr;
@@ -660,7 +664,7 @@ void Overworld::OnlineArea::onResume()
   case ReturningScene::DownloadScene:
     if (!canProceedToBattle) {
       // download scene failed, give up on pvp
-      ResetPVPStep();
+      ResetPVPStep(true);
     }
     break;
   case ReturningScene::BattleScene:
