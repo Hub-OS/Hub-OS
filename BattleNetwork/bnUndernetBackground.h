@@ -12,7 +12,7 @@ using std::vector;
 
 #include "bnBackground.h"
 
-class UndernetBackground final : public IBackground<UndernetBackground>
+class UndernetBackground final : public Background
 {
 public:
   UndernetBackground();

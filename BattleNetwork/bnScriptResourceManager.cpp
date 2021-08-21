@@ -45,7 +45,6 @@
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.open_libraries(sol::lib::base, sol::lib::math);
 
-  // create_table returns non reference to global table? internal tracking?
   sol::table battle_namespace = state.create_table("Battle");
   sol::table overworld_namespace = state.create_table("Overworld");
   sol::table engine_namespace = state.create_table("Engine");

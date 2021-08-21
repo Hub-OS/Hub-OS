@@ -24,7 +24,7 @@ private:
   } currState{};
   swoosh::Timer stateTimer{};
 
-  class VendorBackground : public IBackground<VendorBackground> {
+  class VendorBackground : public Background {
   public:
     VendorBackground();
     ~VendorBackground();

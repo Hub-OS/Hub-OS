@@ -18,8 +18,10 @@
 #include "bnOverworldTileBehaviors.h"
 #include "bnOverworldObjectType.h"
 #include "../bnMath.h"
+#include "../bnMobPackageManager.h"
 #include "../bnPlayerPackageManager.h"
 #include "../bnMessageQuestion.h"
+#include "../battlescene/bnMobBattleScene.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
 #include "../netplay/bnNetPlayConfig.h"
@@ -914,6 +916,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::initiate_pvp:
       receivePVPSignal(reader, data);
+      break;
+    case ServerEvents::initiate_mob:
+      receiveMobSignal(reader, data);
       break;
     case ServerEvents::actor_connected:
       receiveActorConnectedSignal(reader, data);
@@ -2032,6 +2037,69 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     Logger::Logf("Trying to net battle with %s", pvpRemoteAddress.c_str());
 
     copyScreen = true; // copy screen contents for download screen fx
+  }
+}
+
+void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto& packageManager = getController().MobPackageManager();
+  std::string packageId = reader.ReadTerminatedString(buffer);
+
+  if (packageManager.HasPackage(packageId)) {
+    Logger::Logf("Trying to battle remote mob %s", packageId.c_str());
+    auto& mobMeta = packageManager.FindPackageByID(packageId);
+
+    auto* mob = mobMeta.GetData()->Build(new Field(6, 3));
+
+    // Play the pre battle rumble sound
+    Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
+
+    // Stop music and go to battle screen 
+    Audio().StopStream();
+
+    // Get the navi we selected
+    auto& playerMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+    const std::string& image = playerMeta.GetMugshotTexturePath();
+    const std::string& mugshotAnim = playerMeta.GetMugshotAnimationPath();
+    const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
+    auto mugshot = Textures().LoadTextureFromFile(image);
+    auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+    Player* player = playerMeta.GetData();
+
+    CardFolder* newFolder = nullptr;
+
+    // Shuffle our new folder
+    if (auto folder = GetSelectedFolder().value(); GetSelectedFolder().has_value()) {
+      newFolder = folder->Clone();
+      newFolder->Shuffle();
+    }
+
+    // Queue screen transition to Battle Scene with a white fade effect
+    // just like the game
+    if (!mob->GetBackground()) {
+      mob->SetBackground(GetBackground());
+    }
+
+    MobBattleProperties props{
+      { *player, GetProgramAdvance(), newFolder, mob->GetField(), mob->GetBackground() },
+      MobBattleProperties::RewardBehavior::take,
+      { mob },
+      sf::Sprite(*mugshot),
+      mugshotAnim,
+      emotions,
+    };
+
+    BattleResultsFunc callback = [this](const BattleResults& results) {
+      sendBattleResultsSignal(results);
+    };
+
+    using effect = segue<WhiteWashFade>;
+    getController().push<effect::to<MobBattleScene>>(props, callback);
+
+    returningFrom = ReturningScene::BattleScene;
+  }
+  else {
+    Logger::Logf("Failed to find remote mob package %s", packageId.c_str());
   }
 }
 

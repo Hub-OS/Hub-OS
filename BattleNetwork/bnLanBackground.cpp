@@ -16,7 +16,7 @@ LanBackground::LanBackground() :
   x(0.0f), 
   y(0.0f), 
   progress(0.0f), 
-  IBackground<LanBackground>(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) 
+  Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180)
 {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 

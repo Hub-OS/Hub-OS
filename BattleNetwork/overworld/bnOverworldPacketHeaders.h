@@ -101,6 +101,7 @@ namespace Overworld
     shop_inventory,
     open_shop,
     initiate_pvp,
+    initiate_mob,
     actor_connected,
     actor_disconnect,
     actor_set_name,

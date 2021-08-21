@@ -15,7 +15,7 @@ using std::vector;
  * @date 01/05/19
  * @brief Simple wire background that animates and doesn't move
  */
-class GridBackground final : public IBackground<GridBackground>
+class GridBackground final : public Background
 {
 public:
   /**
