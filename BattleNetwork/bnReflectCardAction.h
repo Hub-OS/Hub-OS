@@ -11,7 +11,7 @@ class ReflectCardAction : public CardAction {
   int damage;
   ReflectShield::Type type;
 public:
-  ReflectCardAction(Character& actor, int damage, ReflectShield::Type type);
+  ReflectCardAction(Character* actor, int damage, ReflectShield::Type type);
   ~ReflectCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;

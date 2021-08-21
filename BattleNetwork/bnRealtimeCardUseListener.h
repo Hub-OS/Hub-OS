@@ -19,5 +19,5 @@ public:
    * @param card Card used
    * @param character Character using card
    */
-  void OnCardActionUsed(CardAction* action, uint64_t timestamp);
+  void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp);
 };

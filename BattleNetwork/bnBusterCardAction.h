@@ -17,7 +17,7 @@ private:
   int damage{};
   Field::NotifyID_t notifier{ -1 };
 public:
-  BusterCardAction(Character& user, bool charged, int damage);
+  BusterCardAction(Character* user, bool charged, int damage);
   ~BusterCardAction();
 
   void Update(double _elapsed) override;

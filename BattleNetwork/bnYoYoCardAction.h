@@ -12,7 +12,7 @@ private:
   Entity* yoyo;
   int damage;
 public:
-  YoYoCardAction(Character& actor, int damage);
+  YoYoCardAction(Character* actor, int damage);
   ~YoYoCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;

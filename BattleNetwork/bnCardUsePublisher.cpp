@@ -15,7 +15,7 @@ CardActionUsePublisher::~CardActionUsePublisher()
 {
 }
 
-void CardActionUsePublisher::Broadcast(CardAction* action, uint64_t timestamp)
+void CardActionUsePublisher::Broadcast(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
   std::list<CardActionUseListener*>::iterator iter = listeners.begin();
 

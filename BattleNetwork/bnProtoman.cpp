@@ -17,16 +17,16 @@ const std::string RESOURCE_PATH = "resources/navis/protoman/protoman.animation";
 
 CardAction* Protoman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(*this, false, 1*GetAttackLevel());
+  return new BusterCardAction(this, false, 1*GetAttackLevel());
 }
 
 CardAction* Protoman::OnExecuteChargedBusterAction()
 {
-  return new WideSwordCardAction(*this, 20*GetAttackLevel());
+  return new WideSwordCardAction(this, 20*GetAttackLevel());
 }
 
 CardAction* Protoman::OnExecuteSpecialAction() {
-  auto* action = new ReflectCardAction(*this, 20, ReflectShield::Type::red);
+  auto* action = new ReflectCardAction(this, 20, ReflectShield::Type::red);
   action->SetLockout({
     CardAction::LockoutType::async,
     seconds_cast<double>(frames(80))

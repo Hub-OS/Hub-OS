@@ -13,7 +13,7 @@ private:
   bool armIsOut;
   int damage;
 public:
-  TornadoCardAction(Character& actor, int damage);
+  TornadoCardAction(Character* actor, int damage);
   ~TornadoCardAction();
   void Update(double _elapsed) override;
   void OnActionEnd() override;

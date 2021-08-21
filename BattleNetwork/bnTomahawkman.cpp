@@ -15,16 +15,16 @@ const std::string RESOURCE_PATH = "resources/navis/tomahawk/tomahawk.animation";
 
 CardAction* Tomahawkman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(*this, false, 1*GetAttackLevel());
+  return new BusterCardAction(this, false, 1*GetAttackLevel());
 }
 
 CardAction* Tomahawkman::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(*this, true, 10*GetAttackLevel());
+  return new BusterCardAction(this, true, 10*GetAttackLevel());
 }
 
 CardAction* Tomahawkman::OnExecuteSpecialAction() {
-  return new TomahawkSwingCardAction(*this, 10*GetAttackLevel() + 10);
+  return new TomahawkSwingCardAction(this, 10*GetAttackLevel() + 10);
 }
 
 Tomahawkman::Tomahawkman() : Player()

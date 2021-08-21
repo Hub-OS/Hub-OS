@@ -8,7 +8,7 @@ class Character;
 class RecoverCardAction : public CardAction {
   int heal;
 public:
-  RecoverCardAction(Character& actor, int heal);
+  RecoverCardAction(Character* actor, int heal);
   ~RecoverCardAction();
 
   void OnAnimationEnd() override;

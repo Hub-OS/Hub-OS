@@ -1,10 +1,11 @@
+#include "bnCharacter.h"
 #include "bnCardAction.h"
 #include "battlescene/bnBattleSceneBase.h"
 
-CardAction::CardAction(Character& actor, const std::string& animation) : 
-  actor(&actor),
+CardAction::CardAction(Character* actor, const std::string& animation) : 
+  actor(actor),
   animation(animation), 
-  anim(actor.GetFirstComponent<AnimationComponent>()),
+  anim(actor->GetFirstComponent<AnimationComponent>()),
   uuid(), 
   prevState(), 
   attachments(),
@@ -90,14 +91,14 @@ void CardAction::RecallPreviousState()
   }
 }
 
-Character& CardAction::GetActor()
+Character* CardAction::GetActor()
 {
-  return *actor;
+  return actor;
 }
 
-const Character& CardAction::GetActor() const
+const Character* CardAction::GetActor() const
 {
-  return *actor;
+  return actor;
 }
 
 const Battle::Card::Properties& CardAction::GetMetaData() const
@@ -110,7 +111,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   if (anim) {
     prepareActionDelegate = [this, frameData]() {
       for (auto& [nodeName, node] : attachments) {
-        this->GetActor().AddNode(&node.spriteProxy.get());
+        this->GetActor()->AddNode(&node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
@@ -170,8 +171,8 @@ CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::
   auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(parent), point, std::ref(node) }));
 
   if (started) {
-    auto& actor = this->GetActor();
-    actor.AddNode(&node);
+    auto* actor = this->GetActor();
+    actor->AddNode(&node);
     
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;
@@ -180,12 +181,12 @@ CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::
   return iter->second;
 }
 
-CardAction::Attachment& CardAction::AddAttachment(Character& character, const std::string& point, SpriteProxyNode& node) {
-  auto animComp = character.GetFirstComponent<AnimationComponent>();
+CardAction::Attachment& CardAction::AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node) {
+  auto animComp = character->GetFirstComponent<AnimationComponent>();
   assert(animComp && "character must have an animation component");
 
   if (started) {
-    this->GetActor().AddNode(&node);
+    this->GetActor()->AddNode(&node);
   }
 
   return AddAttachment(animComp->GetAnimationObject(), point, node);
@@ -244,7 +245,7 @@ void CardAction::SetLockoutGroup(const CardAction::LockoutGroup& group)
 
 void CardAction::FreeAttachedNodes() {
   for (auto& [nodeName, node] : attachments) {
-    this->GetActor().RemoveNode(&node.spriteProxy.get());
+    this->GetActor()->RemoveNode(&node.spriteProxy.get());
   }
 
   attachments.clear();

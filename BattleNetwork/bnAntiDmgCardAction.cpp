@@ -2,7 +2,7 @@
 #include "bnCharacter.h"
 #include "bnNinjaAntiDamage.h"
 
-AntiDmgCardAction::AntiDmgCardAction(Character& actor, int damage) : 
+AntiDmgCardAction::AntiDmgCardAction(Character* actor, int damage) : 
   damage(damage),
   CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout(CardAction::LockoutProperties{

@@ -13,18 +13,18 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-AirHockeyCardAction::AirHockeyCardAction(Character& actor, int damage) :
+AirHockeyCardAction::AirHockeyCardAction(Character* actor, int damage) :
   CardAction(actor, "PLAYER_SWORD") {
   AirHockeyCardAction::damage = damage;
 
-  overlay.setTexture(*actor.getTexture());
+  overlay.setTexture(*actor->getTexture());
   attachment = new SpriteProxyNode(overlay);
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("HAND");
 }
@@ -34,10 +34,10 @@ AirHockeyCardAction::~AirHockeyCardAction()
 }
 
 void AirHockeyCardAction::OnExecute(Character* user) {
-  auto* actor = &GetActor();
+  auto* actor = GetActor();
 
   auto onHand = [=] {
-    AddAttachment(*actor, "hilt", *attachment).UseAnimation(attachmentAnim);
+    AddAttachment(actor, "hilt", *attachment).UseAnimation(attachmentAnim);
   };
 
   // On throw frame, spawn projectile

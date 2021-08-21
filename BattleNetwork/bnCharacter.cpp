@@ -4,7 +4,6 @@
 #include "bnSelectedCardsUI.h"
 #include "bnDefenseRule.h"
 #include "bnDefenseSuperArmor.h"
-#include "bnCardAction.h"
 #include "bnSpell.h"
 #include "bnTile.h"
 #include "bnField.h"
@@ -15,6 +14,7 @@
 #include "bnBubbleTrap.h"
 #include "bnBubbleState.h"
 #include "bnPlayer.h"
+#include "bnCardAction.h"
 #include "bnCardToActions.h"
 
 Character::Character(Rank _rank) :
@@ -60,7 +60,7 @@ Character::~Character() {
   // Defense items need to be manually deleted where they are created
   defenses.clear();
 
-  for (auto action : asyncActions) {
+  for (std::shared_ptr<CardAction> action : asyncActions) {
     action->EndAction();
   }
 
@@ -221,8 +221,8 @@ void Character::Update(double _elapsed) {
   Entity::Update(_elapsed);
 
   // process async actions
-  auto asyncCopy = asyncActions;
-  for (auto action : asyncCopy) {
+  std::vector<std::shared_ptr<CardAction>> asyncCopy = asyncActions;
+  for (std::shared_ptr<CardAction> action : asyncCopy) {
     action->Update(_elapsed);
 
     if (action->IsLockoutOver()) {
@@ -749,7 +749,7 @@ void Character::RemoveDefenseRule(DefenseRule * rule)
 
 void Character::DefenseCheck(DefenseFrameStateJudge& judge, Spell& in, const DefenseOrder& filter)
 {
-  auto copy = defenses;
+  std::vector<DefenseRule*> copy = defenses;
 
   for (int i = 0; i < copy.size(); i++) {
     if (copy[i]->GetDefenseOrder() == filter) {
@@ -791,7 +791,8 @@ void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::Execu
 {
   if (currCardAction == nullptr) {
     if (event.action->GetMetaData().timeFreeze) {
-      CardActionUsePublisher::Broadcast(event.action.get(), CurrentTime::AsMilli());
+      CardActionUsePublisher::Broadcast(event.action, CurrentTime::AsMilli());
+      actionQueue.Pop();
     }
     else {
       currCardAction = event.action;
@@ -813,7 +814,7 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
     if (maybe_card.has_value()) {
       // convert meta data into a useable action object
       const Battle::Card& card = *maybe_card;
-      CardAction* action = CardToAction(card, *this, *event.packageManager);
+      std::shared_ptr<CardAction> action = std::make_shared<CardAction>(CardToAction(card, this, event.packageManager));
       action->SetMetaData(card.props); // associate the meta with this action object
 
       // prepare for this frame's action animation (we must be actionable)

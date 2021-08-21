@@ -14,7 +14,7 @@ private:
   bool fired{ false };
   bool stun{ true };
 public:
-  LightningCardAction(Character& actor, int damage);
+  LightningCardAction(Character* actor, int damage);
   ~LightningCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd();

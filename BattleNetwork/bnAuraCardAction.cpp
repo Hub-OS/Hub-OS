@@ -1,7 +1,7 @@
 #include "bnAuraCardAction.h"
 #include "bnCharacter.h"
 
-AuraCardAction::AuraCardAction(Character& actor, Aura::Type type) : 
+AuraCardAction::AuraCardAction(Character* actor, Aura::Type type) : 
   type(type),
   CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout({CardAction::LockoutType::animation,3});

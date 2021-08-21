@@ -9,16 +9,16 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(Character& actor, bool charged, int damage) : CardAction(actor, "PLAYER_SHOOTING")
+BusterCardAction::BusterCardAction(Character* actor, bool charged, int damage) : CardAction(actor, "PLAYER_SHOOTING")
 {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
   buster = new SpriteProxyNode();
-  buster->setTexture(actor.getTexture());
+  buster->setTexture(actor->getTexture());
   buster->SetLayer(-1);
 
-  busterAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  busterAnim = Animation(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
   busterAnim.SetAnimation("BUSTER");
 
   flare = new SpriteProxyNode();

@@ -1,7 +1,7 @@
 #include "bnInvalidCardAction.h"
 #include "bnParticlePoof.h"
 
-InvalidCardAction::InvalidCardAction(Character& actor) : CardAction(actor, "PLAYER_IDLE")
+InvalidCardAction::InvalidCardAction(Character* actor) : CardAction(actor, "PLAYER_IDLE")
 {
 }
 

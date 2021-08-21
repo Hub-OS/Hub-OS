@@ -18,7 +18,7 @@
                 FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2
 
-ElecPulseCardAction::ElecPulseCardAction(Character& actor, int damage) : 
+ElecPulseCardAction::ElecPulseCardAction(Character* actor, int damage) : 
   CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(ANIM) {
   ElecPulseCardAction::damage = damage;
@@ -30,7 +30,7 @@ ElecPulseCardAction::ElecPulseCardAction(Character& actor, int damage) :
   attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("BUSTER");
 
-  auto anim = actor.GetFirstComponent<AnimationComponent>();
+  auto anim = actor->GetFirstComponent<AnimationComponent>();
 
   if (anim) {
     AddAttachment(anim->GetAnimationObject(), "buster", *attachment).UseAnimation(attachmentAnim);

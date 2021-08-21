@@ -20,7 +20,7 @@ private:
   Type type;
 public:
 
-  CannonCardAction(Character& user, Type type, int damage);
+  CannonCardAction(Character* user, Type type, int damage);
   ~CannonCardAction();
 
   void Update(double _elapsed) override;

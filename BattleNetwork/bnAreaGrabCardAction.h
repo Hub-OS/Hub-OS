@@ -8,7 +8,7 @@ private:
   int damage;
   PanelGrab* panelPtr{ nullptr };
 public:
-  AreaGrabCardAction(Character& actor, int damage);
+  AreaGrabCardAction(Character* actor, int damage);
   ~AreaGrabCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;

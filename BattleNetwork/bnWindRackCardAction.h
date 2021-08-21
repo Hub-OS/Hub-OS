@@ -7,7 +7,7 @@ class WindRackCardAction : public CardAction {
   int damage{};
   std::string newDefault, newHilt; // hacky test
 public:
-  WindRackCardAction(Character& actor, int damage);
+  WindRackCardAction(Character* actor, int damage);
   ~WindRackCardAction();
 
   void ReplaceRack(SpriteProxyNode* node, const Animation& newAnim);

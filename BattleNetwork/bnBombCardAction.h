@@ -11,7 +11,7 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  BombCardAction(Character& actor, int damage);
+  BombCardAction(Character* actor, int damage);
   ~BombCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;

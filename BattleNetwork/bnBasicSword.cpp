@@ -5,8 +5,6 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
-#include "bnProgsMan.h"
-#include "bnMettaur.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 

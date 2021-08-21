@@ -12,7 +12,7 @@ class SpriteProxyNode;
 class Character;
 class ScriptedCardAction : public CardAction, public dynamic_object {
 public:
-  ScriptedCardAction(Character& actor, const std::string& state);
+  ScriptedCardAction(Character* actor, const std::string& state);
   ~ScriptedCardAction();
 
   void Update(double elapsed) override;

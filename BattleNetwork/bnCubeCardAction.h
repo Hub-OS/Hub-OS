@@ -4,7 +4,7 @@ class Character;
 
 class CubeCardAction : public CardAction {
 public:
-  CubeCardAction(Character& actor);
+  CubeCardAction(Character* actor);
   ~CubeCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;

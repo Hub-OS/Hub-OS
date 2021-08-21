@@ -15,7 +15,7 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
-CannonCardAction::CannonCardAction(Character& actor, CannonCardAction::Type type, int damage) :
+CannonCardAction::CannonCardAction(Character* actor, CannonCardAction::Type type, int damage) :
   CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(CANNON_ANIM),  
   type(type) {

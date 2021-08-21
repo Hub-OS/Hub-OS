@@ -4,8 +4,10 @@
 #include "bnAudioResourceManager.h"
 #include "bnDefenseIndestructable.h"
 #include "bnInputManager.h"
+#include "bnCharacter.h"
+#include "bnDefenseRule.h"
 
-ZetaCannonCardAction::ZetaCannonCardAction(Character& actor, int damage)  : 
+ZetaCannonCardAction::ZetaCannonCardAction(Character* actor, int damage)  : 
   CardAction(actor, "PLAYER_IDLE"), 
   InputHandle(),
   damage(damage), 
@@ -20,7 +22,7 @@ ZetaCannonCardAction::ZetaCannonCardAction(Character& actor, int damage)  :
 
 ZetaCannonCardAction::~ZetaCannonCardAction()
 { 
-  GetActor().RemoveDefenseRule(defense);
+  GetActor()->RemoveDefenseRule(defense);
   delete defense;
 }
 
@@ -44,10 +46,10 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
 void ZetaCannonCardAction::Update(double _elapsed)
 {
   if (timer > 0) {
-    auto& actor = this->GetActor();
+    auto* actor = this->GetActor();
 
     // TODO: change the "PLAYER_IDLE" check to a `IsActionable()` function per mars' notes...
-    bool canShoot = actor.GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !actor.IsMoving();
+    bool canShoot = actor->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !actor->IsMoving();
 
     if (canShoot && Input().Has(InputEvents::pressed_use_chip)) {
 
@@ -58,15 +60,15 @@ void ZetaCannonCardAction::Update(double _elapsed)
       newCannon->SetLockout(actionProps);
 
       auto event = CardEvent{ std::shared_ptr<CardAction>(newCannon) };
-      actor.AddAction(event, ActionOrder::voluntary);
+      actor->AddAction(event, ActionOrder::voluntary);
 
       if (!showTimerText) {
         showTimerText = true;
         Audio().Play(AudioType::COUNTER_BONUS);
         defense = new DefenseIndestructable(true);
-        actor.AddDefenseRule(defense);
+        actor->AddDefenseRule(defense);
 
-        if (actor.GetTeam() == Team::blue) {
+        if (actor->GetTeam() == Team::blue) {
           hide = true;
         }
       }

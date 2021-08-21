@@ -31,7 +31,7 @@ private:
   std::string prevAnimation, prevState;
   /*class SpecialAction : public CardAction {
   public:
-    SpecialAction(Character& actor);
+    SpecialAction(Character* actor);
     ~SpecialAction();
 
     // Inherited via CardAction
@@ -60,7 +60,7 @@ private:
 
   class SpecialAction : public CardAction {
   public:
-    SpecialAction(Character& actor);
+    SpecialAction(Character* actor);
     ~SpecialAction();
 
     // Inherited via CardAction

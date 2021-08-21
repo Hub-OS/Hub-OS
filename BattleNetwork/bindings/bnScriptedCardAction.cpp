@@ -1,7 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedCardAction.h"
-
-ScriptedCardAction::ScriptedCardAction(Character& actor, const std::string& state) :
+#include "../bnCharacter.h"
+ScriptedCardAction::ScriptedCardAction(Character* actor, const std::string& state) :
   CardAction(actor, state)
 {
 
@@ -12,7 +12,7 @@ ScriptedCardAction::~ScriptedCardAction() {
 }
 
 CardAction::Attachment& ScriptedCardAction::AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node) {
-  return CardAction::AddAttachment(*character, point, node);
+  return CardAction::AddAttachment(character, point, node);
 }
 
 void ScriptedCardAction::Update(double elapsed) {

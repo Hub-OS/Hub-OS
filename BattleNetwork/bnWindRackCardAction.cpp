@@ -11,15 +11,15 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-WindRackCardAction::WindRackCardAction(Character& actor, int damage) :
+WindRackCardAction::WindRackCardAction(Character* actor, int damage) :
   damage(damage),
   CardAction(actor, "PLAYER_SWORD") {
   hilt = new SpriteProxyNode();
-  hilt->setTexture(actor.getTexture());
+  hilt->setTexture(actor->getTexture());
   hilt->SetLayer(-1);
   hilt->EnableParentShader(true);
 
-  auto userAnim = GetActor().GetFirstComponent<AnimationComponent>();
+  auto userAnim = GetActor()->GetFirstComponent<AnimationComponent>();
   hiltAnim = Animation(userAnim->GetFilePath());
   hiltAnim.Reload();
 
@@ -63,14 +63,14 @@ void WindRackCardAction::ReplaceRack(SpriteProxyNode* node, const Animation& new
 
 void WindRackCardAction::OnExecute(Character* user)
 {
-  auto actor = &GetActor();
+  auto* actor = GetActor();
   auto team = actor->GetTeam();
   auto field = actor->GetField();
   Entity::ID_t userId{ user->GetID() };
 
   // On throw frame, spawn projectile
   auto onThrow = [=]() -> void {
-    auto userAnim = GetActor().GetFirstComponent<AnimationComponent>();
+    auto userAnim = GetActor()->GetFirstComponent<AnimationComponent>();
     auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObject(), "HILT", *hilt).UseAnimation(hiltAnim);
 
     if (attachment) {

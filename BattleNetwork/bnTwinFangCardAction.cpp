@@ -12,16 +12,16 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME2, FRAME1, FRAME1
 
-TwinFangCardAction::TwinFangCardAction(Character& actor, int damage) : 
+TwinFangCardAction::TwinFangCardAction(Character* actor, int damage) : 
   CardAction(actor, "PLAYER_SHOOTING") {
   TwinFangCardAction::damage = damage;
 
   buster = new SpriteProxyNode();
-  buster->setTexture(actor.getTexture());
+  buster->setTexture(actor->getTexture());
   buster->SetLayer(-1);
   buster->EnableParentShader(true);
 
-  busterAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  busterAnim = Animation(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
 
   std::string newAnimState;
   busterAnim.OverrideAnimationFrames("BUSTER", { FRAMES }, newAnimState);

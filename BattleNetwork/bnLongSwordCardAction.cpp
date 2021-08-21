@@ -5,8 +5,8 @@
 #include "bnAudioResourceManager.h"
 #include "bnBasicSword.h"
 #include "bnSwordEffect.h"
-
-LongSwordCardAction::LongSwordCardAction(Character& actor, int damage) : 
+#
+LongSwordCardAction::LongSwordCardAction(Character* actor, int damage) : 
   SwordCardAction(actor, damage) {
   LongSwordCardAction::damage = damage;
 }
@@ -18,7 +18,7 @@ LongSwordCardAction::~LongSwordCardAction()
 void LongSwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
 {
   Audio().Play(AudioType::SWORD_SWING);
-  auto owner = &GetActor();
+  auto* owner = GetActor();
   auto field = owner->GetField();
 
   int step = 1;

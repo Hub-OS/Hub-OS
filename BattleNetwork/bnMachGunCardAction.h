@@ -20,7 +20,7 @@ class MachGunCardAction : public CardAction {
   Battle::Tile* MoveRectical(Field*, bool columnMove);
 
 public:
-  MachGunCardAction(Character& actor, int damage);
+  MachGunCardAction(Character* actor, int damage);
   ~MachGunCardAction();
 
   void OnExecute(Character* user) override;

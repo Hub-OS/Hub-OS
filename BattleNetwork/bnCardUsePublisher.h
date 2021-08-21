@@ -1,11 +1,9 @@
 #pragma once
 
 #include <list>
-#include <optional>
+#include <memory>
+#include "bnCardAction.h"
 
-#include "bnCard.h"
-
-class CardAction;
 class CardActionUseListener;
 
 /**
@@ -29,7 +27,7 @@ protected:
  * @param card being used
  * @param user using the card
  */
-  void Broadcast(CardAction* action, uint64_t timestamp = 0);
+  void Broadcast(std::shared_ptr<CardAction> action, uint64_t timestamp = 0);
 
 public:
   virtual ~CardActionUsePublisher();

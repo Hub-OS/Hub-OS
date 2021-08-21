@@ -5,7 +5,7 @@
 #include "bnHitbox.h"
 #include "bnField.h"
 
-TomahawkSwingCardAction::TomahawkSwingCardAction(Character& actor, int damage) :
+TomahawkSwingCardAction::TomahawkSwingCardAction(Character* actor, int damage) :
   CardAction(actor, "PLAYER_CHOP"),
   damage(damage)
 {

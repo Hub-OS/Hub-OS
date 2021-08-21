@@ -7,7 +7,7 @@ class SpriteProxyNode;
 class Character;
 class WideSwordCardAction : public SwordCardAction {
 public:
-  WideSwordCardAction(Character& actor, int damage);
+  WideSwordCardAction(Character* actor, int damage);
   ~WideSwordCardAction();
   void OnSpawnHitbox(Entity::ID_t userId) override;
 };

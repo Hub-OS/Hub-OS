@@ -5,7 +5,7 @@ class TomahawkSwingCardAction : public CardAction {
   int damage{};
 
 public:
-  TomahawkSwingCardAction(Character& actor, int damage);
+  TomahawkSwingCardAction(Character* actor, int damage);
   ~TomahawkSwingCardAction();
 
   void OnExecute(Character* user) override;

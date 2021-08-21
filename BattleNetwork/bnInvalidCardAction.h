@@ -3,7 +3,7 @@
 
 class InvalidCardAction : public CardAction {
 public:
-  InvalidCardAction(Character& actor);
+  InvalidCardAction(Character* actor);
   ~InvalidCardAction();
 
   void OnExecute(Character* user) override;

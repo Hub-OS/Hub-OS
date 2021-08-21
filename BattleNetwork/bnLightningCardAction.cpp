@@ -15,16 +15,16 @@
 #define LIGHTNING_IMG "resources/spells/spell_lightning.png"
 #define LIGHTNING_ANI "resources/spells/spell_lightning.animation"
 
-LightningCardAction::LightningCardAction(Character& actor, int damage) :
+LightningCardAction::LightningCardAction(Character* actor, int damage) :
   CardAction(actor, "PLAYER_SHOOTING")
 {
   LightningCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(actor.getTexture());
+  attachment->setTexture(actor->getTexture());
   attachment->SetLayer(-1);
 
-  attachmentAnim = Animation(actor.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("BUSTER");
 

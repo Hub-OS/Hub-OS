@@ -3,7 +3,7 @@
 #include "bnPanelGrab.h"
 #include "bnField.h"
 
-AreaGrabCardAction::AreaGrabCardAction(Character& actor, int damage) : 
+AreaGrabCardAction::AreaGrabCardAction(Character* actor, int damage) : 
   damage(damage),
   CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout({ CardAction::LockoutType::sequence });

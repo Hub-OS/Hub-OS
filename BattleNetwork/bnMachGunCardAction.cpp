@@ -18,7 +18,7 @@
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, 
 
-MachGunCardAction::MachGunCardAction(Character& actor, int damage) :
+MachGunCardAction::MachGunCardAction(Character* actor, int damage) :
   CardAction(actor, "PLAYER_SHOOTING"),
   damage(damage)
 {
@@ -39,12 +39,12 @@ MachGunCardAction::~MachGunCardAction()
 void MachGunCardAction::OnExecute(Character* user)
 {
   auto shoot = [this]() {
-    auto& actor = GetActor();
-    auto* field = actor.GetField();
+    auto* actor = this->GetActor();
+    auto* field = actor->GetField();
 
     if (target == nullptr || target->WillRemoveLater()) {
       // find the closest
-      auto ents = field->FindEntities([actor = &actor](Entity* e) {
+      auto ents = field->FindEntities([actor](Entity* e) {
         Team team = e->GetTeam();
         Character* character = dynamic_cast<Character*>(e);
         Obstacle* obst = dynamic_cast<Obstacle*>(e);
@@ -53,7 +53,7 @@ void MachGunCardAction::OnExecute(Character* user)
       });
 
       if (!ents.empty()) {
-        auto filter = [actor = &actor](Entity* A, Entity* B) { 
+        auto filter = [actor](Entity* A, Entity* B) { 
           if (actor->GetFacing() == Direction::right) {
             return A->GetTile()->GetX() < B->GetTile()->GetX();
           }
@@ -65,7 +65,7 @@ void MachGunCardAction::OnExecute(Character* user)
         std::sort(ents.begin(), ents.end(), filter);
 
         for (auto e : ents) {
-          if (e->GetTile()->GetX() != actor.GetTile()->GetX()) {
+          if (e->GetTile()->GetX() != actor->GetTile()->GetX()) {
             target = e;
             break;
           }
@@ -76,7 +76,7 @@ void MachGunCardAction::OnExecute(Character* user)
             this->target = nullptr;
           };
 
-          actor.GetField()->NotifyOnDelete(target->GetID(), actor.GetID(), removeCallback);
+          actor->GetField()->NotifyOnDelete(target->GetID(), actor->GetID(), removeCallback);
         }
       }
     }
@@ -86,7 +86,7 @@ void MachGunCardAction::OnExecute(Character* user)
     }
     else if (!targetTile && !target) {
       // pick back col
-      if (actor.GetFacing() == Direction::right) {
+      if (actor->GetFacing() == Direction::right) {
         targetTile = field->GetAt(6, 3);
       }
       else {

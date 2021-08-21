@@ -16,7 +16,7 @@
 // TODO: check frame-by-frame anim
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-VulcanCardAction::VulcanCardAction(Character& actor, int damage) : 
+VulcanCardAction::VulcanCardAction(Character* actor, int damage) : 
   CardAction(actor, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
   VulcanCardAction::damage = damage;
   attachment = new SpriteProxyNode();
@@ -26,7 +26,7 @@ VulcanCardAction::VulcanCardAction(Character& actor, int damage) :
   attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
 
-  Animation& userAnim = actor.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  Animation& userAnim = actor->GetFirstComponent<AnimationComponent>()->GetAnimationObject();
   AddAttachment(userAnim, "BUSTER", *attachment).UseAnimation(attachmentAnim);
 
   // add override anims
@@ -59,7 +59,7 @@ void VulcanCardAction::OnExecute(Character* user) {
     }
 
     if (auto tile = user->GetTile()->Offset(step, 0)) {
-      GetActor().GetField()->AddEntity(*b, *tile);
+      GetActor()->GetField()->AddEntity(*b, *tile);
     }
   };
 

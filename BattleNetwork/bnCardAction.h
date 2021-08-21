@@ -5,12 +5,13 @@
 #include <functional>
 #include <map>
 
-#include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
 #include "bnResourceHandle.h"
 #include "bnAnimationComponent.h"
-#include "bnCharacter.h"
 #include "bnCard.h"
+#include "bnEntity.h"
+
+class Character;
 
 using namespace swoosh;
 
@@ -107,7 +108,7 @@ private:
 public:
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
-  CardAction(Character& actor, const std::string& animation);
+  CardAction(Character* actor, const std::string& animation);
   virtual ~CardAction();
 
   // Used by cards that use sequences (like most Time Freeze animations)
@@ -120,7 +121,7 @@ public:
   Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);
 
   // Shortcut to add an attachment to a character via their animation component
-  Attachment& AddAttachment(Character& character, const std::string& point, SpriteProxyNode& node);
+  Attachment& AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node);
 
   // Calculate the offset for an attachment for a given point in the owner's animation set
   sf::Vector2f CalculatePointOffset(const std::string& point);
@@ -141,8 +142,8 @@ public:
   const bool IsLockoutOver() const;
   const Battle::Card::Properties& GetMetaData() const;
   const bool CanExecute() const;
-  Character& GetActor();
-  const Character& GetActor() const;
+  Character* GetActor();
+  const Character* GetActor() const;
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;

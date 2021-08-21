@@ -10,7 +10,7 @@
 
 #define PATH "resources/spells/spell_bomb.png"
 
-BombCardAction::BombCardAction(Character& actor, int damage) : 
+BombCardAction::BombCardAction(Character* actor, int damage) : 
   CardAction(actor, "PLAYER_THROW") {
   BombCardAction::damage = damage;
 
@@ -68,5 +68,5 @@ void BombCardAction::OnAnimationEnd()
 
 void BombCardAction::OnActionEnd()
 {
-  GetActor().RemoveNode(attachment);
+  GetActor()->RemoveNode(attachment);
 }

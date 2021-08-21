@@ -40,7 +40,7 @@ public:
  * @param card being used
  * @param user using the card
  */
-  void Broadcast(CardAction* card) override final;
+  void Broadcast(std::shared_ptr<CardAction> card) override final;
 
 private:
   double elapsed{}; /*!< Used by draw function, delta time since last update frame */

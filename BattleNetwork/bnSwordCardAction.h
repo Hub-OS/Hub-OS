@@ -14,7 +14,7 @@ protected:
   SpriteProxyNode* hilt{ nullptr };
   Animation bladeAnim, hiltAnim;
 public:
-  SwordCardAction(Character& actor, int damage);
+  SwordCardAction(Character* actor, int damage);
   virtual ~SwordCardAction();
 
   void OnAnimationEnd() override;

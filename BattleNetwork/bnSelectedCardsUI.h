@@ -59,7 +59,7 @@ public:
  * @param card being used
  * @param user using the card
  */
-  virtual void Broadcast(CardAction* action);
+  virtual void Broadcast(std::shared_ptr<CardAction> action);
 
   /**
    * @brief Does nothing at this time

@@ -5,6 +5,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnBasicSword.h"
 #include "bnSwordEffect.h"
+#include "bnCharacter.h"
 
 #define PATH "resources/spells/spell_sword_blades.png"
 #define ANIM "resources/spells/spell_sword_blades.animation"
@@ -16,7 +17,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-SwordCardAction::SwordCardAction(Character& actor, int damage) : 
+SwordCardAction::SwordCardAction(Character* actor, int damage) : 
 CardAction(actor, "PLAYER_SWORD") {
   SwordCardAction::damage = damage;
 
@@ -25,14 +26,14 @@ CardAction(actor, "PLAYER_SWORD") {
   blade->SetLayer(-2);
 
   hilt = new SpriteProxyNode();
-  hilt->setTexture(actor.getTexture());
+  hilt->setTexture(actor->getTexture());
   hilt->SetLayer(-1);
   hilt->EnableParentShader(true);
 
   bladeAnim = Animation(ANIM);
   bladeAnim.SetAnimation("DEFAULT");
 
-  auto userAnim = GetActor().GetFirstComponent<AnimationComponent>();
+  auto userAnim = GetActor()->GetFirstComponent<AnimationComponent>();
   hiltAnim = Animation(userAnim->GetFilePath());
   hiltAnim.Reload();
   hiltAnim.SetAnimation("HILT");
@@ -53,7 +54,7 @@ void SwordCardAction::OnExecute(Character* user) {
   auto onTrigger = [=]() -> void {
     OnSpawnHitbox(user->GetID());
 
-    auto userAnim = GetActor().GetFirstComponent<AnimationComponent>();
+    auto userAnim = GetActor()->GetFirstComponent<AnimationComponent>();
 
     auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObject(), "HILT", *hilt).UseAnimation(hiltAnim);
     hiltAttachment.AddAttachment(hiltAnim, "ENDPOINT", *blade).UseAnimation(bladeAnim);
@@ -73,15 +74,15 @@ void SwordCardAction::OnExecute(Character* user) {
 
 void SwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
 {
-  auto field = GetActor().GetField();
+  auto field = GetActor()->GetField();
   Battle::Tile* tile = nullptr;
   
-  if (GetActor().GetFacing() == Direction::right) {
-    tile = GetActor().GetTile()->Offset(1, 0);
+  if (GetActor()->GetFacing() == Direction::right) {
+    tile = GetActor()->GetTile()->Offset(1, 0);
   }
   else {
     // facing == Direction::left
-    tile = GetActor().GetTile()->Offset(-1, 0);
+    tile = GetActor()->GetTile()->Offset(-1, 0);
   }
 
   if (tile) {
@@ -89,11 +90,11 @@ void SwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
     SwordEffect* e = new SwordEffect;
     field->AddEntity(*e, *tile);
 
-    if (GetActor().GetFacing() == Direction::left) {
+    if (GetActor()->GetFacing() == Direction::left) {
       e->setScale(-2.f, 2.f);
     }
 
-    BasicSword* b = new BasicSword(GetActor().GetTeam(), damage);
+    BasicSword* b = new BasicSword(GetActor()->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = userId;
     b->SetHitboxProperties(props);

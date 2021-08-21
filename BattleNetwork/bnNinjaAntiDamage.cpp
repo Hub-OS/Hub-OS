@@ -20,7 +20,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       NinjaAntiDamage& component;
 
     public:
-      AntiDamageTriggerAction(Character& actor, Team aggroTeam, NinjaAntiDamage& component) :
+      AntiDamageTriggerAction(Character* actor, Team aggroTeam, NinjaAntiDamage& component) :
         CardAction(actor, "PLAYER_IDLE"),
         aggroTeam(aggroTeam),
         component(component) {}
@@ -29,7 +29,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
 
       void Update(double elapsed) override {}
       void OnExecute(Character* user) override {
-        auto& owner = GetActor();
+        auto* owner = GetActor();
 
         Battle::Tile* tile = nullptr;
         Field& field = *user->GetField();
@@ -65,7 +65,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       oppositeTeam = Team::red;
     }
 
-    auto* action = new AntiDamageTriggerAction(owner, oppositeTeam, *this);
+    auto* action = new AntiDamageTriggerAction(&owner, oppositeTeam, *this);
     owner.AddAction({std::shared_ptr<CardAction>(action)}, ActionOrder::traps);
   }; // END callback 
 

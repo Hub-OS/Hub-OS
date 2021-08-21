@@ -12,7 +12,7 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  ThunderCardAction(Character& actor, int damage);
+  ThunderCardAction(Character* actor, int damage);
   ~ThunderCardAction();
 
   void OnAnimationEnd() override;

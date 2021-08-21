@@ -1,7 +1,7 @@
 #pragma once
-#include "bnCard.h"
+#include <memory>
+#include "bnCardAction.h"
 
-class CardAction;
 class CardActionUsePublisher;
 
 /**
@@ -23,7 +23,7 @@ public:
    * @param card
    * @param user
    */
-  virtual void OnCardActionUsed(CardAction* action, uint64_t timestamp) = 0;
+  virtual void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) = 0;
   
   /**
    * @brief Subscribe this listener to a publisher objects

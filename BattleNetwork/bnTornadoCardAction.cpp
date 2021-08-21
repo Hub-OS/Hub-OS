@@ -17,7 +17,7 @@
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, \
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
-TornadoCardAction::TornadoCardAction(Character& actor, int damage) : CardAction(actor, "PLAYER_SHOOTING"),
+TornadoCardAction::TornadoCardAction(Character* actor, int damage) : CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(FAN_ANIM), armIsOut(false), damage(damage) {
   fan.setTexture(*Textures().LoadTextureFromFile(FAN_PATH));
   attachment = new SpriteProxyNode(fan);
@@ -36,15 +36,15 @@ TornadoCardAction::~TornadoCardAction()
 }
 
 void TornadoCardAction::OnExecute(Character* user) {
-  auto& actor = GetActor();
+  auto* actor = this->GetActor();
 
   attachmentAnim.Update(0, attachment->getSprite());
 
-  actor.AddNode(attachment);
+  actor->AddNode(attachment);
 
-  auto team = actor.GetTeam();
-  auto tile = actor.GetTile();
-  auto field = actor.GetField();
+  auto team = actor->GetTeam();
+  auto tile = actor->GetTile();
+  auto field = actor->GetField();
 
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
@@ -85,5 +85,5 @@ void TornadoCardAction::OnAnimationEnd()
 
 void TornadoCardAction::OnActionEnd()
 {
-  GetActor().RemoveNode(attachment);
+  GetActor()->RemoveNode(attachment);
 }

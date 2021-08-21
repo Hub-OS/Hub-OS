@@ -48,10 +48,10 @@ CardAction * Roll::OnExecuteSpecialAction()
 
 CardAction* Roll::OnExecuteBusterAction()
 {
-  return new BusterCardAction(*this, false, 1*GetAttackLevel());
+  return new BusterCardAction(this, false, 1*GetAttackLevel());
 }
 
 CardAction* Roll::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(*this, true, 10*GetAttackLevel());
+  return new BusterCardAction(this, true, 10*GetAttackLevel());
 }

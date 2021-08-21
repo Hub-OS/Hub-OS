@@ -472,13 +472,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
     sol::factories(
       [](Character* character, const std::string& state)-> std::unique_ptr<ScriptedCardAction> {
-        return std::make_unique<ScriptedCardAction>(*character, state);
+        return std::make_unique<ScriptedCardAction>(character, state);
       },
       [](ScriptedPlayer* character, const std::string& state) -> std::unique_ptr<ScriptedCardAction> {
-        return std::make_unique<ScriptedCardAction>(*character, state);
+        return std::make_unique<ScriptedCardAction>(character, state);
       }, 
       [](ScriptedCharacter* character, const std::string& state) -> std::unique_ptr<ScriptedCardAction> {
-        return std::make_unique<ScriptedCardAction>(*character, state);
+        return std::make_unique<ScriptedCardAction>(character, state);
       }
     ),
     sol::meta_function::index,
@@ -498,7 +498,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "add_step", &ScriptedCardAction::AddStep,
     "end_action", &ScriptedCardAction::EndAction,
     "get_actor", sol::overload(
-      sol::resolve<Character&()>(&ScriptedCardAction::GetActor)
+      sol::resolve<Character*()>(&ScriptedCardAction::GetActor)
     ),
     "action_end_func", &ScriptedCardAction::onActionEnd,
     "animation_end_func", &ScriptedCardAction::onAnimationEnd,
@@ -598,11 +598,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories(
       [](Character* character, bool charged, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<BusterCardAction>(*character, charged, dmg); },
+          { return std::make_unique<BusterCardAction>(character, charged, dmg); },
       [](ScriptedPlayer* character, bool charged, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<BusterCardAction>(*character, charged, dmg); },
+          { return std::make_unique<BusterCardAction>(character, charged, dmg); },
       [](ScriptedCharacter* character, bool charged, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<BusterCardAction>(*character, charged, dmg); }
+          { return std::make_unique<BusterCardAction>(character, charged, dmg); }
     ),
     sol::base_classes, sol::bases<CardAction>()
   );
@@ -610,11 +610,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
     sol::factories(
       [](Character* character, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<SwordCardAction>(*character, dmg); },
+          { return std::make_unique<SwordCardAction>(character, dmg); },
       [](ScriptedPlayer* character, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<SwordCardAction>(*character, dmg); },
+          { return std::make_unique<SwordCardAction>(character, dmg); },
       [](ScriptedCharacter* character, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<SwordCardAction>(*character, dmg); }
+          { return std::make_unique<SwordCardAction>(character, dmg); }
     ),
     sol::base_classes, sol::bases<CardAction>()
   );
@@ -622,11 +622,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
     sol::factories(
       [](Character* character, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<BombCardAction>(*character, dmg); },
+          { return std::make_unique<BombCardAction>(character, dmg); },
       [](ScriptedPlayer* character, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<BombCardAction>(*character, dmg); },
+          { return std::make_unique<BombCardAction>(character, dmg); },
       [](ScriptedCharacter* character, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<BombCardAction>(*character, dmg); }
+          { return std::make_unique<BombCardAction>(character, dmg); }
     ),
     sol::base_classes, sol::bases<CardAction>()
   );
@@ -634,11 +634,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
     sol::factories(
       [](Character* character, FireBurn::Type type, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<FireBurnCardAction>(*character, type, dmg); },
+          { return std::make_unique<FireBurnCardAction>(character, type, dmg); },
       [](ScriptedPlayer* character, FireBurn::Type type, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<FireBurnCardAction>(*character, type, dmg); },
+          { return std::make_unique<FireBurnCardAction>(character, type, dmg); },
       [](ScriptedCharacter* character, FireBurn::Type type, int dmg) -> std::unique_ptr<CardAction>
-          { return std::make_unique<FireBurnCardAction>(*character, type, dmg); }
+          { return std::make_unique<FireBurnCardAction>(character, type, dmg); }
     ),
     sol::base_classes, sol::bases<CardAction>()
   );
@@ -652,11 +652,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
     sol::factories(
       [](Character* character, CannonCardAction::Type type, int dmg) -> std::unique_ptr<CardAction> {
-          return std::make_unique<CannonCardAction>(*character, type, dmg); }, 
+          return std::make_unique<CannonCardAction>(character, type, dmg); }, 
       [](ScriptedPlayer* character, CannonCardAction::Type type, int dmg) -> std::unique_ptr<CardAction> {
-          return std::make_unique<CannonCardAction>(*character, type, dmg); }, 
+          return std::make_unique<CannonCardAction>(character, type, dmg); }, 
       [](ScriptedCharacter* character, CannonCardAction::Type type, int dmg) -> std::unique_ptr<CardAction> {
-          return std::make_unique<CannonCardAction>(*character, type, dmg); }
+          return std::make_unique<CannonCardAction>(character, type, dmg); }
     ),
     sol::base_classes, sol::bases<CardAction>()
   );

@@ -3,7 +3,7 @@
 
 class InvisCardAction : public CardAction {
 public:
-  InvisCardAction(Character& actor);
+  InvisCardAction(Character* actor);
   ~InvisCardAction();
 
   void OnExecute(Character* user) override;

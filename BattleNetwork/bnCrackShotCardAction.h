@@ -13,7 +13,7 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  CrackShotCardAction(Character& actor, int damage);
+  CrackShotCardAction(Character* actor, int damage);
   ~CrackShotCardAction();
 
   void Update(double _elapsed) override;

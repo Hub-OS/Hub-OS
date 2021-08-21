@@ -8,6 +8,8 @@
 
 class SpriteProxyNode;
 class Character;
+class DefenseRule;
+
 class ZetaCannonCardAction : public CardAction, public InputHandle {
 public:
   int damage{ 0 };
@@ -19,7 +21,7 @@ public:
   DefenseRule* defense{ nullptr };
 public:
 
-  ZetaCannonCardAction(Character& actor, int damage);
+  ZetaCannonCardAction(Character* actor, int damage);
   ~ZetaCannonCardAction();
   void Update(double _elapsed) override final;
   void OnAnimationEnd() override final;

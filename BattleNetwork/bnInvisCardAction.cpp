@@ -1,7 +1,8 @@
 #include "bnInvisCardAction.h"
 #include "bnInvis.h"
+#include "bnCharacter.h"
 
-InvisCardAction::InvisCardAction(Character& actor) : CardAction(actor, "PLAYER_IDLE")
+InvisCardAction::InvisCardAction(Character* actor) : CardAction(actor, "PLAYER_IDLE")
 {
 }
 

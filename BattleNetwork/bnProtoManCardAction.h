@@ -6,7 +6,7 @@ class ProtoManCardAction : public CardAction {
 private:
   int damage;
 public:
-  ProtoManCardAction(Character& actor, int damage);
+  ProtoManCardAction(Character* actor, int damage);
   ~ProtoManCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;

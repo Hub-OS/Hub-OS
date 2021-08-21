@@ -14,7 +14,7 @@
 
 #define FRAMES FRAME1, FRAME3
 
-YoYoCardAction::YoYoCardAction(Character& actor, int damage) :
+YoYoCardAction::YoYoCardAction(Character* actor, int damage) :
   attachmentAnim(NODE_ANIM), yoyo(nullptr),
   CardAction(actor, "PLAYER_SHOOTING") {
   YoYoCardAction::damage = damage;
@@ -40,7 +40,7 @@ YoYoCardAction::~YoYoCardAction()
 void YoYoCardAction::OnExecute(Character* user) {
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
-    auto actor = &GetActor();
+    auto* actor = GetActor();
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
@@ -76,7 +76,7 @@ void YoYoCardAction::Update(double _elapsed)
   if (yoyo && yoyo->WillRemoveLater()) {
     yoyo = nullptr;
 
-    //GetActor().GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
+    //GetActor()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
     EndAction();
   }
 }

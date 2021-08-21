@@ -8,7 +8,7 @@
 
 #define FRAMES FRAME1
 
-ReflectCardAction::ReflectCardAction(Character& actor, int damage, ReflectShield::Type type) :
+ReflectCardAction::ReflectCardAction(Character* actor, int damage, ReflectShield::Type type) :
   CardAction(actor, "PLAYER_IDLE"),
   type(type) 
 {

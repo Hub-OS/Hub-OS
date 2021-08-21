@@ -13,18 +13,18 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-CrackShotCardAction::CrackShotCardAction(Character& actor, int damage) : 
+CrackShotCardAction::CrackShotCardAction(Character* actor, int damage) : 
 CardAction(actor, "PLAYER_SWORD") {
   CrackShotCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(actor.getTexture());
+  attachment->setTexture(actor->getTexture());
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  auto* anim = actor.GetFirstComponent<AnimationComponent>();
+  auto* anim = actor->GetFirstComponent<AnimationComponent>();
 
   if (anim) {
     attachmentAnim = Animation(anim->GetFilePath());
@@ -38,7 +38,7 @@ CrackShotCardAction::~CrackShotCardAction()
 }
 
 void CrackShotCardAction::OnExecute(Character* user) {
-  auto actor = &GetActor();
+  auto actor = GetActor();
 
   // On throw frame, spawn projectile
   auto onThrow = [=]() -> void {
@@ -81,13 +81,13 @@ void CrackShotCardAction::OnExecute(Character* user) {
   };
 
   auto addHand = [this] {
-    auto owner = &GetActor();
+    auto owner = GetActor();
     overlay.setTexture(*owner->getTexture());
     attachment = new SpriteProxyNode(overlay);
     attachment->SetLayer(-1);
     attachment->EnableParentShader(true);
 
-    AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
+    AddAttachment(owner, "hilt", *attachment).UseAnimation(attachmentAnim);
   };
 
   AddAnimAction(2, addHand);

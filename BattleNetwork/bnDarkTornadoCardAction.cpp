@@ -17,7 +17,7 @@
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, \
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
-DarkTornadoCardAction::DarkTornadoCardAction(Character& actor, int damage) 
+DarkTornadoCardAction::DarkTornadoCardAction(Character* actor, int damage) 
 : CardAction(actor, "PLAYER_SHOOTING"), 
   attachmentAnim(FAN_ANIM), armIsOut(false), damage(damage) {
   fan.setTexture(*Textures().LoadTextureFromFile(FAN_PATH));
@@ -37,15 +37,15 @@ DarkTornadoCardAction::~DarkTornadoCardAction()
 }
 
 void DarkTornadoCardAction::OnExecute(Character* user) {
-  auto& actor = GetActor();
+  auto* actor = this->GetActor();
 
   attachmentAnim.Update(0, attachment->getSprite());
 
-  actor.AddNode(attachment);
+  actor->AddNode(attachment);
 
-  auto team = actor.GetTeam();
-  auto tile = actor.GetTile();
-  auto field = actor.GetField();
+  auto team = actor->GetTeam();
+  auto tile = actor->GetTile();
+  auto field = actor->GetField();
 
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
@@ -86,5 +86,5 @@ void DarkTornadoCardAction::OnAnimationEnd()
 
 void DarkTornadoCardAction::OnActionEnd()
 {
-  GetActor().RemoveNode(attachment);
+  GetActor()->RemoveNode(attachment);
 }

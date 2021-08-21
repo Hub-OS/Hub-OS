@@ -179,18 +179,18 @@ bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
-void TimeFreezeBattleState::OnCardActionUsed(CardAction* action, uint64_t timestamp)
+void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
   if (!action)
     return;
 
   if (action->GetMetaData().timeFreeze && timestamp < lockedTimestamp) {
     this->name = action->GetMetaData().shortname;
-    this->team = action->GetActor().GetTeam();
-    this->user = const_cast<Character*>(&action->GetActor());
+    this->team = action->GetActor()->GetTeam();
+    this->user = const_cast<Character*>(action->GetActor());
     lockedTimestamp = timestamp;
 
-    this->action = (action);
+    this->action = action.get();
     stuntDouble = CreateStuntDouble(this->user);
   }
 }

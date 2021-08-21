@@ -134,7 +134,7 @@ bool SelectedCardsUI::UseNextCard() {
   return true;
 }
 
-void SelectedCardsUI::Broadcast(CardAction* action)
+void SelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 {
   curr++;
   CardActionUsePublisher::Broadcast(action, CurrentTime::AsMilli());

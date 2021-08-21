@@ -11,7 +11,7 @@ class DefenseRule;
 
 class HubBatchCardAction : public CardAction {
 public:
-  HubBatchCardAction(Character& actor);
+  HubBatchCardAction(Character* actor);
   ~HubBatchCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;

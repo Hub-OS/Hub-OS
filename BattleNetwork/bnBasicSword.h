@@ -9,6 +9,7 @@
  * 
  * @warnig We already have a Hitbox class now and makes this code obsolete
  */
+
 class BasicSword : public Spell {
 public:
   BasicSword(Team _team,int damage);

@@ -14,7 +14,7 @@ private:
   int damage;
   bool crackTiles{ true };
 public:
-  FireBurnCardAction(Character& actor, FireBurn::Type type, int damage);
+  FireBurnCardAction(Character* actor, FireBurn::Type type, int damage);
   ~FireBurnCardAction();
 
   void Update(double _elapsed) override;

@@ -12,7 +12,7 @@
 #define FRAMES FRAME1
 
 
-HubBatchCardAction::HubBatchCardAction(Character& actor) :
+HubBatchCardAction::HubBatchCardAction(Character* actor) :
   CardAction(actor, "PLAYER_IDLE") {
 
   // add override anims
@@ -80,7 +80,7 @@ void HubBatchProgram::OnUpdate(double elapsed)
   
   if (player) {
     player->SetAttackLevel(PlayerStats::MAX_ATTACK_LEVEL); // max
-    player->OverrideSpecialAbility([player]{ return new ReflectCardAction(*player, 10, ReflectShield::Type::yellow); });
+    player->OverrideSpecialAbility([player]{ return new ReflectCardAction(player, 10, ReflectShield::Type::yellow); });
     
     if (Injected()) {
       // Scene()->GetCardSelectWidget().SetMaxCardDraw(10);

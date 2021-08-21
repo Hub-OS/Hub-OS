@@ -5,7 +5,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnParticleHeal.h"
 
-RecoverCardAction::RecoverCardAction(Character& actor, int heal) : 
+RecoverCardAction::RecoverCardAction(Character* actor, int heal) : 
   CardAction(actor, "PLAYER_IDLE") {
   RecoverCardAction::heal = heal;
 

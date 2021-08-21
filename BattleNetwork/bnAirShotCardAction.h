@@ -11,7 +11,7 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  AirShotCardAction(Character& actor, int damage);
+  AirShotCardAction(Character* actor, int damage);
   ~AirShotCardAction();
 
   void Update(double _elapsed) override;

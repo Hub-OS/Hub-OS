@@ -18,7 +18,7 @@
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-FireBurnCardAction::FireBurnCardAction(Character& actor, FireBurn::Type type, int damage) : 
+FireBurnCardAction::FireBurnCardAction(Character* actor, FireBurn::Type type, int damage) : 
   CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(ANIM) {
   FireBurnCardAction::damage = damage;
@@ -41,7 +41,7 @@ FireBurnCardAction::~FireBurnCardAction()
 {
 }
 void FireBurnCardAction::OnExecute(Character* user) {
-  auto actor = &GetActor();
+  auto* actor = GetActor();
 
   // On shoot frame, drop projectile
   auto onFire = [=](int offset) -> void {
@@ -84,7 +84,7 @@ void FireBurnCardAction::Update(double _elapsed)
 
 void FireBurnCardAction::OnAnimationEnd()
 {
-  GetActor().RemoveNode(attachment);
+  GetActor()->RemoveNode(attachment);
 }
 
 void FireBurnCardAction::OnActionEnd()

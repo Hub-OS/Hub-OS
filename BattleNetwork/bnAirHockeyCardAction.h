@@ -13,7 +13,7 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  AirHockeyCardAction(Character& actor, int damage);
+  AirHockeyCardAction(Character* actor, int damage);
   ~AirHockeyCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd();
