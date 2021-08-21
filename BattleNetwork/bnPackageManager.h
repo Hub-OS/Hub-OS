@@ -1,10 +1,16 @@
 #pragma once
 
+#include "bnLogger.h"
+#include "bnResourceHandle.h"
+#include "bnScriptResourceManager.h"
 #include "stx/result.h"
+#include "stx/tuple.h"
+#include "stx/zip_utils.h"
 #include <vector>
 #include <map>
 #include <string>
 #include <functional>
+#include <atomic>
 
 template<typename MetaClass>
 class PackageManager {
@@ -67,12 +73,14 @@ class PackageManager {
     template<class SuperDataType, typename... Args>
     MetaClass* CreatePackage(Args&&... args) {
         MetaClass* package = new MetaClass();
-        package->SetClass<SuperDataType>(std::forward<decltype(args)>(args)...);
+        package->template SetClass<SuperDataType>(std::forward<decltype(args)>(args)...);
         return package;
     }
 
     MetaClass& FindPackageByID(const std::string& id);
+    std::string FilepathToPackageID(const std::string& id);
     const MetaClass& FindPackageByID(const std::string& id) const;
+    const std::string FilepathToPackageID(const std::string& id) const;
     stx::result_t<std::string> RemovePackageByID(const std::string& id);
 
     bool HasPackage(const std::string& id) const;
@@ -101,6 +109,8 @@ class PackageManager {
 
     private:
     std::map<std::string, MetaClass*> packages;
+    std::map<std::string, std::string> filepathToPackageId;
+    std::map<std::string, std::string> zipFilepathToPackageId;
 };
 
 template<typename MetaClass>
@@ -123,16 +133,18 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   ResourceHandle handle;
 
-  const auto& modpath = std::filesystem::absolute(path);
+  auto modpath = std::filesystem::absolute(path);
+  modpath.make_preferred();
+
   auto entrypath = modpath / "entry.lua";
-  std::string packageName = modpath.filename().string();
-  auto& res = handle.Scripts().LoadScript(entrypath.string());
+  std::string packageName = modpath.filename().generic_string();
+  auto& res = handle.Scripts().LoadScript(entrypath.generic_string());
 
   if (res.result.valid()) {
     sol::state& state = *res.state;
 
     // Sets the predefined _modpath variable
-    state["_modpath"] = modpath.string() + "/";
+    state["_modpath"] = modpath.generic_string() + "/";
 
     auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
@@ -141,7 +153,7 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
 
     packageClass->OnMetaParsed();
 
-    packageClass->SetFilePath(modpath.string());
+    packageClass->SetFilePath(modpath.generic_string());
     
     if (auto result = this->Commit(packageClass); result.is_error()) {
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + result.error_cstr();
@@ -165,12 +177,13 @@ TODO: Take ScriptedDataType out. Package manager should be used for scripted or 
 **/
 template<typename MetaClass>
 template<typename ScriptedDataType>
-stx::result_t<bool> PackageManager<typename MetaClass>::LoadPackageFromZip(const std::string& path)
+stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromZip(const std::string& path)
 {
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   auto absolute = std::filesystem::absolute(path);
+  absolute = absolute.make_preferred();
   auto file = absolute.filename();
-  std::string file_str = file.string();
+  std::string file_str = file.generic_string();
   size_t pos = file_str.find(".zip", 0);
 
   if (pos == std::string::npos) stx::error<bool>("Invalid zip file");
@@ -178,7 +191,7 @@ stx::result_t<bool> PackageManager<typename MetaClass>::LoadPackageFromZip(const
   file_str = file_str.substr(0, pos);
 
   absolute = absolute.remove_filename();
-  std::string extracted_path = (absolute / std::filesystem::path(file_str)).string();
+  std::string extracted_path = (absolute / std::filesystem::path(file_str)).generic_string();
 
   auto result = stx::unzip(path, extracted_path);
 
@@ -200,7 +213,7 @@ stx::result_t<bool> PackageManager<typename MetaClass>::LoadPackageFromZip(const
 template<typename MetaClass>
 template<typename DataType>
 template<typename SuperDataType, typename... Args>
-inline MetaClass& PackageManager<typename MetaClass>::Meta<DataType>::SetClass(Args&&... args)
+inline MetaClass& PackageManager<MetaClass>::Meta<DataType>::SetClass(Args&&... args)
 {
   loadClass = [this, tuple_args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable {
     using TupleArgsType = decltype(tuple_args);
@@ -225,6 +238,29 @@ inline MetaClass& PackageManager<MetaClass>::FindPackageByID(const std::string& 
 }
 
 template<typename MetaClass>
+inline std::string PackageManager<MetaClass>::FilepathToPackageID(const std::string& file_path) {
+  auto absolute = std::filesystem::absolute(file_path);
+  absolute = absolute.make_preferred();
+
+  std::string full_path = absolute.generic_string();
+  auto iter = filepathToPackageId.find(full_path);
+
+  if (iter == filepathToPackageId.end()) {
+
+    auto iter = zipFilepathToPackageId.find(full_path);
+    if (iter == zipFilepathToPackageId.end()) {
+      Logger::Logf("Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
+      return "";
+    }
+    else {
+      return iter->second;
+    }
+  }
+
+  return iter->second;
+}
+
+template<typename MetaClass>
 inline const MetaClass& PackageManager<MetaClass>::FindPackageByID(const std::string& id) const {
   auto iter = packages.find(id);
 
@@ -234,6 +270,26 @@ inline const MetaClass& PackageManager<MetaClass>::FindPackageByID(const std::st
   }
 
   return *(iter->second);
+}
+
+template<typename MetaClass>
+inline const std::string PackageManager<MetaClass>::FilepathToPackageID(const std::string& file_path) const {
+  auto absolute = std::filesystem::absolute(file_path);
+  absolute = absolute.make_preferred();
+  std::string full_path = absolute.string();
+  auto iter = filepathToPackageId.find(full_path);
+
+  if (iter == filepathToPackageId.end()) {
+
+    auto iter = zipFilepathToPackageId.find(full_path);
+    if (iter == zipFilepathToPackageId.end()) {
+      Logger::Logf("Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
+    }
+
+    return "";
+  }
+
+  return iter->second;
 }
 
 template<typename MetaClass>
@@ -266,7 +322,8 @@ stx::result_t<bool> PackageManager<MetaClass>::Commit(MetaClass* package)
   }
 
   packages.insert(std::make_pair(packageId, package));
-
+  filepathToPackageId.insert(std::make_pair(package->GetFilePath(), packageId));
+  zipFilepathToPackageId.insert(std::make_pair(package->GetFilePath() + ".zip", packageId));
   return stx::ok();
 }
 
@@ -274,8 +331,11 @@ template<typename MetaClass>
 stx::result_t<std::string> PackageManager<MetaClass>::RemovePackageByID(const std::string& id)
 {
   if (auto iter = packages.find(id); iter != packages.end()) {
-    std::string path = iter->second->filepath;
     packages.erase(iter);
+
+    std::string path = iter->second->filepath;
+    filepathToPackageId.erase(path);
+    zipFilepathToPackageId.erase(path + ".zip");
     return stx::ok(path);
   }
 

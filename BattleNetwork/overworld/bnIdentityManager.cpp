@@ -9,9 +9,9 @@ constexpr std::string_view IDENTITY_FOLDER = "identity";
 constexpr std::streamsize IDENTITY_LENGTH = 32;
 
 namespace Overworld {
-  IdentityManager::IdentityManager(const std::string& address, uint16_t port)
+  IdentityManager::IdentityManager(const std::string& host, uint16_t port)
   {
-    path = std::string(IDENTITY_FOLDER) + "/" + URIEncode(address + "_p" + std::to_string(port));
+    path = std::string(IDENTITY_FOLDER) + "/" + URIEncode(host + "_p" + std::to_string(port));
   }
 
   std::string IdentityManager::GetIdentity() {

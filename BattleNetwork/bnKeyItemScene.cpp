@@ -40,10 +40,16 @@ KeyItemScene::KeyItemScene(swoosh::ActivityController& controller, const std::ve
     {"MCode", "Security code for MarsComp server"}
   };*/
 
-  if (items.size()) {
-    textbox.SetText(items[0].desc);
+  if (this->items.size()) {
+    textbox.SetText(this->items[0].desc);
     textbox.CompleteAll();
+
+    for (auto& item : this->items) {
+      item.name = item.name.substr(0, 10);
+    }
   }
+
+
 
   scroll.setPosition(450.f, 40.f);
   setView(sf::Vector2u(480, 320));

@@ -15,7 +15,7 @@
 VendorScene::VendorBackground::VendorBackground() :
   x(0.0f),
   y(0.0f),
-  IBackground<VendorBackground>(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180)
+  Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180)
 {
   FillScreen(sf::Vector2u(TILEW, TILEH));
 }

@@ -5,7 +5,7 @@ CustomBackground::CustomBackground(const std::shared_ptr<Texture>& texture, cons
   animation(animation),
   velocity(velocity),
   progress(0.0f),
-  IBackground<CustomBackground>(texture, 240, 180)
+  Background(texture, 240, 180)
 {
   this->animation.SetAnimation("BG");
   this->animation << Animator::Mode::Loop;

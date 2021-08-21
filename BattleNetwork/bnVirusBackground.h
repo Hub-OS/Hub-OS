@@ -12,7 +12,7 @@ using std::vector;
 
 #include "bnBackground.h"
 
-class VirusBackground final : public IBackground<VirusBackground>
+class VirusBackground final : public Background
 {
 public:
   VirusBackground();

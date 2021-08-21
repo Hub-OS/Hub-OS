@@ -144,6 +144,10 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     Font::specialCharLookup.insert(std::make_pair(char(-1), "THICK_SP"));
     Font::specialCharLookup.insert(std::make_pair(char(-2), "THICK_EX"));
     Font::specialCharLookup.insert(std::make_pair(char(-3), "THICK_NM"));
+
+    // See the random generator with current time
+    srand(time(0));
+    this->SeedRand(time(0));
   });
 
   inputManager.SupportConfigSettings(reader);
@@ -193,6 +197,8 @@ void Game::Run()
   bool inMessageState = true;
 
   while (window.Running()) {
+    this->SeedRand(time(0));
+
     float FPS = 0.f;
 
     FPS = (float)(1.0 / (float)scope_elapsed);
@@ -338,9 +344,6 @@ void Game::SeedRand(unsigned int seed)
 {
   randSeed = seed;
   scriptManager.SeedRand(seed);
-
-  // See the random generator with current time
-  srand(randSeed);
 }
 
 const unsigned int Game::GetRandSeed() const

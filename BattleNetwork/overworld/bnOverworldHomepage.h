@@ -10,6 +10,7 @@ namespace Overworld {
     bool scaledmap{ false }, clicked{ false };
     bool infocus{ false };
     Poco::Net::SocketAddress remoteAddress; //!< server
+    std::string host; // need to store host string to retain domain names
     std::shared_ptr<PollingPacketProcessor> packetProcessor;
     uint16_t maxPayloadSize{};
     sf::Vector3f netWarpTilePos;

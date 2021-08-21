@@ -21,7 +21,7 @@ struct BattleResults {
   int playerHealth{};
   bool doubleDelete{};
   bool tripleDelete{};
-  bool runaway{};
+  bool runaway{true};
   bool synchro{};
   Emotion finalEmotion{};
   sf::Time battleLength;
