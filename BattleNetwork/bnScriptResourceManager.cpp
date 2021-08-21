@@ -1099,7 +1099,7 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   ConfigureEnvironment(*lua);
   states.push_back(lua);
 
-  auto load_result = lua->safe_script_file(path, sol::script_throw_on_error);
+  auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
   auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }

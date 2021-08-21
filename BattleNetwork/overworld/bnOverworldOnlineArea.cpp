@@ -26,6 +26,7 @@
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
 #include "../netplay/bnNetPlayConfig.h"
 #include "../netplay/bnDownloadScene.h"
+#include "../bindings/bnScriptedMob.h"
 
 using namespace swoosh::types;
 constexpr float ROLLING_WINDOW_SMOOTHING = 3.0f;
@@ -1259,6 +1260,8 @@ void Overworld::OnlineArea::sendShopPurchaseSignal(const std::string& itemName)
 }
 
 void Overworld::OnlineArea::sendBattleResultsSignal(const BattleResults& battleResults) {
+  if (!packetProcessor) return;
+
   auto time = battleResults.battleLength.asSeconds();
 
   BufferWriter writer;
@@ -1269,6 +1272,7 @@ void Overworld::OnlineArea::sendBattleResultsSignal(const BattleResults& battleR
   writer.Write(buffer, time);
   writer.Write(buffer, battleResults.runaway);
   writer.Write(buffer, battleResults.finalEmotion);
+
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -2042,65 +2046,88 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  std::string asset_path = reader.ReadString<uint16_t>(buffer);
+
+  std::string file_path = serverAssetManager.GetPath(asset_path);
+
+  if (file_path.empty()) {
+    Logger::Logf("Failed to find remote mob asset %s", file_path.c_str());
+    return;
+  }
+
   auto& packageManager = getController().MobPackageManager();
-  std::string packageId = reader.ReadTerminatedString(buffer);
 
-  if (packageManager.HasPackage(packageId)) {
-    Logger::Logf("Trying to battle remote mob %s", packageId.c_str());
-    auto& mobMeta = packageManager.FindPackageByID(packageId);
+  std::string packageId = packageManager.FilepathToPackageID(file_path);
 
-    auto* mob = mobMeta.GetData()->Build(new Field(6, 3));
-
-    // Play the pre battle rumble sound
-    Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
-
-    // Stop music and go to battle screen 
-    Audio().StopStream();
-
-    // Get the navi we selected
-    auto& playerMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
-    const std::string& image = playerMeta.GetMugshotTexturePath();
-    const std::string& mugshotAnim = playerMeta.GetMugshotAnimationPath();
-    const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
-    auto mugshot = Textures().LoadTextureFromFile(image);
-    auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-    Player* player = playerMeta.GetData();
-
-    CardFolder* newFolder = nullptr;
-
-    // Shuffle our new folder
-    if (auto folder = GetSelectedFolder().value(); GetSelectedFolder().has_value()) {
-      newFolder = folder->Clone();
-      newFolder->Shuffle();
+  if (!packageManager.HasPackage(packageId)) {
+    // install for the first time
+    if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
+      Logger::Logf("Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
+      return;
     }
-
-    // Queue screen transition to Battle Scene with a white fade effect
-    // just like the game
-    if (!mob->GetBackground()) {
-      mob->SetBackground(GetBackground());
+    else {
+      packageId = packageManager.FilepathToPackageID(file_path);
     }
-
-    MobBattleProperties props{
-      { *player, GetProgramAdvance(), newFolder, mob->GetField(), mob->GetBackground() },
-      MobBattleProperties::RewardBehavior::take,
-      { mob },
-      sf::Sprite(*mugshot),
-      mugshotAnim,
-      emotions,
-    };
-
-    BattleResultsFunc callback = [this](const BattleResults& results) {
-      sendBattleResultsSignal(results);
-    };
-
-    using effect = segue<WhiteWashFade>;
-    getController().push<effect::to<MobBattleScene>>(props, callback);
-
-    returningFrom = ReturningScene::BattleScene;
   }
-  else {
-    Logger::Logf("Failed to find remote mob package %s", packageId.c_str());
+
+  if (!packageManager.HasPackage(packageId)) {
+    // If we don't have it by now something went terribly wrong
+    Logger::Logf("Failed to battle remote mob package %s", file_path.c_str());
+    return;
   }
+
+  Logger::Logf("Battling remote mob %s", packageId.c_str());
+
+  auto& mobMeta = packageManager.FindPackageByID(packageId);
+
+  auto* mob = mobMeta.GetData()->Build(new Field(6, 3));
+
+  // Play the pre battle rumble sound
+  Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
+
+  // Stop music and go to battle screen 
+  Audio().StopStream();
+
+  // Get the navi we selected
+  auto& playerMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+  const std::string& image = playerMeta.GetMugshotTexturePath();
+  const std::string& mugshotAnim = playerMeta.GetMugshotAnimationPath();
+  const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
+  auto mugshot = Textures().LoadTextureFromFile(image);
+  auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+  Player* player = playerMeta.GetData();
+
+  CardFolder* newFolder = nullptr;
+
+  // Shuffle our new folder
+  if (auto folder = GetSelectedFolder().value(); GetSelectedFolder().has_value()) {
+    newFolder = folder->Clone();
+    newFolder->Shuffle();
+  }
+
+  // Queue screen transition to Battle Scene with a white fade effect
+  // just like the game
+  if (!mob->GetBackground()) {
+    mob->SetBackground(GetBackground());
+  }
+
+  MobBattleProperties props{
+    { *player, GetProgramAdvance(), newFolder, mob->GetField(), mob->GetBackground() },
+    MobBattleProperties::RewardBehavior::take,
+    { mob },
+    sf::Sprite(*mugshot),
+    mugshotAnim,
+    emotions,
+  };
+
+  BattleResultsFunc callback = [this](const BattleResults& results) {
+    sendBattleResultsSignal(results);
+  };
+
+  using effect = segue<WhiteWashFade>;
+  getController().push<effect::to<MobBattleScene>>(props, callback);
+  GetPlayer()->Face(GetPlayer()->GetHeading());
+  returningFrom = ReturningScene::BattleScene;
 }
 
 void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
