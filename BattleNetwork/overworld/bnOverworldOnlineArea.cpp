@@ -41,7 +41,7 @@ static long long GetSteadyTime() {
 
 Overworld::OnlineArea::OnlineArea(
   swoosh::ActivityController& controller,
-  const std::string& address,
+  const std::string& host,
   uint16_t port,
   const std::string& connectData,
   uint16_t maxPayloadSize
@@ -51,11 +51,11 @@ Overworld::OnlineArea::OnlineArea(
   nameText(Font::Style::small),
   connectData(connectData),
   maxPayloadSize(maxPayloadSize),
-  serverAssetManager(address, port),
-  identityManager(address, port)
+  serverAssetManager(host, port),
+  identityManager(host, port)
 {
   try {
-    auto remoteAddress = Poco::Net::SocketAddress(address, port);
+    auto remoteAddress = Poco::Net::SocketAddress(host, port);
     packetProcessor = std::make_shared<Overworld::PacketProcessor>(
       remoteAddress,
       maxPayloadSize,
@@ -491,12 +491,12 @@ void Overworld::OnlineArea::detectWarp() {
     case ObjectType::server_warp: {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
-      auto address = tileObject.customProperties.GetProperty("address");
+      auto host = tileObject.customProperties.GetProperty("address");
       auto port = (uint16_t)tileObject.customProperties.GetPropertyInt("port");
       auto data = tileObject.customProperties.GetProperty("data");
 
       command.onFinish.Slot([=] {
-        transferServer(address, port, data, false);
+        transferServer(host, port, data, false);
       });
       break;
     }
@@ -755,9 +755,9 @@ Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Ve
   return GetTeleportController().TeleportIn(actor, position, direction);
 }
 
-void Overworld::OnlineArea::transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut) {
+void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t port, const std::string& data, bool warpOut) {
   auto transfer = [=] {
-    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(address, port, data, maxPayloadSize);
+    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
   };
 
   if (warpOut) {
@@ -1347,12 +1347,12 @@ void Overworld::OnlineArea::receiveTransferCompleteSignal(BufferReader& reader, 
 
 void Overworld::OnlineArea::receiveTransferServerSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto address = reader.ReadString<uint16_t>(buffer);
+  auto host = reader.ReadString<uint16_t>(buffer);
   auto port = reader.Read<uint16_t>(buffer);
   auto data = reader.ReadString<uint16_t>(buffer);
   auto warpOut = reader.Read<bool>(buffer);
 
-  transferServer(address, port, data, warpOut);
+  transferServer(host, port, data, warpOut);
 }
 
 void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

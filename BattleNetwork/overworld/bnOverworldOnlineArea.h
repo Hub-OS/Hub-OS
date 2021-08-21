@@ -114,7 +114,7 @@ namespace Overworld {
     void detectWarp();
     bool positionIsInWarp(sf::Vector3f position);
     Overworld::TeleportController::Command& teleportIn(sf::Vector3f position, Direction direction);
-    void transferServer(const std::string& address, uint16_t port, const std::string& data, bool warpOut);
+    void transferServer(const std::string& host, uint16_t port, const std::string& data, bool warpOut);
     void processPacketBody(const Poco::Buffer<char>& data);
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
@@ -206,7 +206,7 @@ namespace Overworld {
      */
     OnlineArea(
       swoosh::ActivityController&,
-      const std::string& address,
+      const std::string& host,
       uint16_t port,
       const std::string& connectData,
       uint16_t maxPayloadSize
