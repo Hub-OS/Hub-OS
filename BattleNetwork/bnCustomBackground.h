@@ -7,7 +7,7 @@
 #include "bnAnimation.h"
 
 /*! \brief Simple scrolling animated background */
-class CustomBackground final : public IBackground<CustomBackground> {
+class CustomBackground final : public Background {
 public:
   CustomBackground(const std::shared_ptr<sf::Texture>& texture, const Animation& animation, sf::Vector2f velocity);
 

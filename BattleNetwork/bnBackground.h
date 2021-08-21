@@ -16,24 +16,7 @@
  * the screen
  */
 
-class Background : public sf::Drawable, public sf::Transformable, public ResourceHandle {
-public:
-  /**
-  * @brief uses CRTP to implement this function in the child class IBackground
-  */
-  virtual void setColor(sf::Color color) = 0;
-  
-  /**
-  * @brief Implement for custom animated backgrounds
-  * @param _elapsed in seconds
-  */
-  virtual void Update(double _elapsed) = 0;
-
-  virtual ~Background() {};
-};
-
-template<typename T>
-class IBackground : public Background
+class Background : public sf::Drawable, public sf::Transformable, public ResourceHandle
 {
 protected:
   /**
@@ -113,13 +96,12 @@ public:
    * @param width of screen
    * @param height of screen
    */
-  IBackground(const std::shared_ptr<sf::Texture>& ref, int width, int height) : 
+  Background(const std::shared_ptr<sf::Texture>& ref, int width, int height) : 
     offset(0,0), 
     textureRect(0, 0, width, height), 
     width(width), 
     height(height), 
-    texture(ref),
-    Background() 
+    texture(ref)
   {
       texture = ref;
       texture->setRepeated(true);
@@ -133,7 +115,9 @@ public:
       textureWrap = Shaders().GetShader(ShaderType::TEXEL_TEXTURE_WRAP);
   }
 
-  virtual ~IBackground() { ;  }
+  virtual ~Background() { ;  }
+
+  virtual void Update(double _elapsed) = 0;
 
   /**
    * @brief Draw the animated background with applied values
@@ -170,7 +154,7 @@ public:
    * @see bnUndernetBackground.h
    * @param color
    */
-  void setColor(sf::Color color) override final {
+  void setColor(sf::Color color) {
     for (int i = 0; i < vertices.getVertexCount(); i++) {
       vertices[i].color = color;
     }

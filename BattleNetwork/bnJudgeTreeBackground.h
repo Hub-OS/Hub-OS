@@ -16,7 +16,7 @@ using std::vector;
  * @date 09/21/19
  * @brief background scrolls and animates
  */
-class JudgeTreeBackground final : public IBackground<JudgeTreeBackground>
+class JudgeTreeBackground final : public Background
 {
 public:
   JudgeTreeBackground();

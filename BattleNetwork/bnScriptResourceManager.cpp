@@ -45,7 +45,6 @@
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.open_libraries(sol::lib::base, sol::lib::math);
 
-  // create_table returns non reference to global table? internal tracking?
   sol::table battle_namespace = state.create_table("Battle");
   sol::table overworld_namespace = state.create_table("Overworld");
   sol::table engine_namespace = state.create_table("Engine");
@@ -1100,7 +1099,7 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   ConfigureEnvironment(*lua);
   states.push_back(lua);
 
-  auto load_result = lua->safe_script_file(path, sol::script_throw_on_error);
+  auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
   auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }
