@@ -164,66 +164,68 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
       auto& menuSystem = GetMenuSystem();
       menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
       menuSystem.EnqueueQuestion(message, [=](bool yes) {
-        if (yes) {
-          auto& menuSystem = GetMenuSystem();
-          menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
-          menuSystem.EnqueueTextInput(WEBCLIENT.GetValue("homepage_warp:0"), 128, [=](const std::string& response) {
-            std::string dest = response;
-            size_t port = DEFAULT_PORT;
+        if (!yes) {
+          return;
+        }
 
+        auto& menuSystem = GetMenuSystem();
+        menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+        menuSystem.EnqueueTextInput(WEBCLIENT.GetValue("homepage_warp:0"), 128, [=](const std::string& response) {
+          std::string dest = response;
+          size_t port = DEFAULT_PORT;
+
+          try {
+            Net().DropHandlers(remoteAddress);
+
+            // first check if this is an ip address
             try {
-              Net().DropHandlers(remoteAddress);
+              dest = Poco::Net::IPAddress::parse(dest).toString();
+            }
+            catch (Poco::Net::InvalidAddressException&) {
+              // resolve domain name
+              size_t colon = response.find(':', 0);
 
-              // first check if this is an ip address
-              try {
-                dest = Poco::Net::IPAddress::parse(dest).toString();
-              }
-              catch (Poco::Net::InvalidAddressException&) {
-                // resolve domain name
-                size_t colon = response.find(':', 0);
-
-                if (colon > 0 && colon != std::string::npos) {
-                  dest = response.substr(0, colon);
-                  port = std::atoi(response.substr(colon + 1u).c_str());
-                }
-
-                auto addrList = Poco::Net::DNS::hostByName(dest).addresses();
-
-                if (addrList.empty()) {
-                  throw std::runtime_error("Empty address list");
-                }
-                else {
-                  dest = addrList.begin()->toString() + ":" + std::to_string(port);
-                }
+              if (colon > 0 && colon != std::string::npos) {
+                dest = response.substr(0, colon);
+                port = std::atoi(response.substr(colon + 1u).c_str());
               }
 
-              remoteAddress = Poco::Net::SocketAddress(dest);
-              packetProcessor = std::make_shared<Overworld::PollingPacketProcessor>(
-                remoteAddress,
-                Net().GetMaxPayloadSize(),
-                [this](auto status, auto maxPayloadSize) { UpdateServerStatus(status, maxPayloadSize); }
-              );
-              Net().AddHandler(remoteAddress, packetProcessor);
+              auto addrList = Poco::Net::DNS::hostByName(dest).addresses();
 
-              auto& menuSystem = GetMenuSystem();
-              menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
-              menuSystem.EnqueueMessage("CHANGED TO " + response + "!");
-              WEBCLIENT.SetKey("homepage_warp:0", response);
-
-              if (WEBCLIENT.IsLoggedIn()) {
-                WEBCLIENT.SaveSession("profile.bin");
+              if (addrList.empty()) {
+                throw std::runtime_error("Empty address list");
               }
               else {
-                WEBCLIENT.SaveSession("guest.bin");
+                dest = addrList.begin()->toString() + ":" + std::to_string(port);
               }
             }
-            catch (...) {
-              auto& menuSystem = GetMenuSystem();
-              menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
-              menuSystem.EnqueueMessage("SORRY I COULDN'T SET IT TO " + response + "!");
+
+            remoteAddress = Poco::Net::SocketAddress(dest);
+            packetProcessor = std::make_shared<Overworld::PollingPacketProcessor>(
+              remoteAddress,
+              Net().GetMaxPayloadSize(),
+              [this](auto status, auto maxPayloadSize) { UpdateServerStatus(status, maxPayloadSize); }
+            );
+            Net().AddHandler(remoteAddress, packetProcessor);
+
+            auto& menuSystem = GetMenuSystem();
+            menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+            menuSystem.EnqueueMessage("CHANGED TO " + response + "!");
+            WEBCLIENT.SetKey("homepage_warp:0", response);
+
+            if (WEBCLIENT.IsLoggedIn()) {
+              WEBCLIENT.SaveSession("profile.bin");
             }
-          });
-        } // else do nothing
+            else {
+              WEBCLIENT.SaveSession("guest.bin");
+            }
+          }
+          catch (...) {
+            auto& menuSystem = GetMenuSystem();
+            menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
+            menuSystem.EnqueueMessage("SORRY I COULDN'T SET IT TO " + response + "!");
+          }
+        });
       });
     });
 
