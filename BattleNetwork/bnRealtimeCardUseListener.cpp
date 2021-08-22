@@ -4,6 +4,6 @@
 
 void RealtimeCardActionUseListener::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) {
   if (action->GetMetaData().timeFreeze == false) {
-    action->GetActor()->AddAction(CardEvent{ std::shared_ptr<CardAction>(action) }, ActionOrder::voluntary);
+    action->GetActor()->AddAction(CardEvent{ action }, ActionOrder::voluntary);
   }
 }

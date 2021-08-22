@@ -67,9 +67,11 @@ void CardAction::AddAnimAction(int frame, const FrameCallback& action) {
 }
 
 sf::Vector2f CardAction::CalculatePointOffset(const std::string& point) {
-  assert(this->anim && "Character must have an animation component");
+  if (!this->anim) {
+    Logger::Logf("Character %s must have an animation component", this->actor->GetName().c_str());
+  }
 
-  return  this->anim->GetPoint(point) - this->anim->GetPoint("origin");
+  return this->anim->GetPoint(point) - this->anim->GetPoint("origin");
 }
 
 void CardAction::RecallPreviousState()
@@ -165,6 +167,14 @@ void CardAction::EndAction()
 void CardAction::UseStuntDouble(Character& stuntDouble)
 {
   actor = &stuntDouble;
+  
+  if (auto* stuntDoubleAnim = stuntDouble.GetFirstComponent<AnimationComponent>()) {
+    for (auto& [nodeName, node] : attachments) {
+      node.parentAnim = stuntDoubleAnim->GetAnimationObject();
+    }
+
+    this->anim = stuntDoubleAnim;
+  }
 }
 
 CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {

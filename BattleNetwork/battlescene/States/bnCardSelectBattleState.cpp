@@ -276,7 +276,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
     float labelHeight = mobLabel.GetWorldBounds().height;
 
     mobEdgeSprite.setPosition(470.0f - (labelWidth + 10), nextLabelHeight-2.0);
-    auto edgePos = mobEdgeSprite.getPosition();
+    const sf::Vector2f edgePos = mobEdgeSprite.getPosition();
 
     mobBackdropSprite.setPosition(edgePos.x + mobEdgeSprite.getGlobalBounds().width, edgePos.y);
 

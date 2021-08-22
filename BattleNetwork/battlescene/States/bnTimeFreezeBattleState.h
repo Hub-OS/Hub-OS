@@ -2,15 +2,14 @@
 
 #include <Swoosh/Timer.h>
 #include <SFML/Graphics/Font.hpp>
-
 #include <memory>
 #include "../bnBattleSceneState.h"
 #include "../../bnTeam.h"
-#include "../../bnCardUseListener.h"
 #include "../../bnFont.h"
+#include "../../bnCardAction.h"
+#include "../../bnCardUseListener.h"
 
 class Character;
-class CardAction;
 namespace Battle { class Card; }
 
 /* 
@@ -32,7 +31,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   Team team{ Team::unknown };
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
   Character* user{ nullptr }, *stuntDouble{ nullptr };
-  CardAction* action{ nullptr };
+  std::shared_ptr<CardAction> action;
 
   TimeFreezeBattleState();
   ~TimeFreezeBattleState();

@@ -4,6 +4,11 @@
 void CardActionUsePublisher::AddListener(CardActionUseListener* listener)
 {
   listeners.push_back(listener);
+
+  if (listeners.size() == 6) {
+    volatile int z = 0;
+    z++;
+  }
 }
 
 void CardActionUsePublisher::DropSubscribers()

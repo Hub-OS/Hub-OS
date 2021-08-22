@@ -98,12 +98,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
     }
   }
 
-  // Card UI for player
+  // Player UI
   cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackageManager());
-  // cardListener.Subscribe(*cardUI);
-  this->CardActionUseListener::Subscribe(*cardUI);
-
-  // Player UI 
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
   cardCustGUI.AddNode(healthUI);
 
@@ -320,7 +316,7 @@ const std::vector<std::reference_wrapper<CardActionUsePublisher>>& BattleSceneBa
 
 void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  HandleCounterLoss(*const_cast<Character*>(action->GetActor()), true);
+  HandleCounterLoss(*action->GetActor(), true);
 }
 
 void BattleSceneBase::LoadMob(Mob& mob)

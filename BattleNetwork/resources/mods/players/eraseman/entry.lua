@@ -28,6 +28,7 @@ end
 
 function create_normal_attack(player)
     print("buster attack")
+    
     return Battle.Buster.new(player, false, 10)
 end
 
@@ -50,6 +51,11 @@ function create_charged_attack(player)
 
         self:add_anim_action(3, do_attack)
     end
+
+    local meta = action:copy_metadata()
+    meta.time_freeze = true
+    meta.shortname = "Decapitation"
+    action:set_metadata(meta)
 
     return action
 end

@@ -1,4 +1,5 @@
 #include <string>
+#include <memory>
 #include <Swoosh/Ease.h>
 
 #include "bnField.h"
@@ -105,13 +106,13 @@ bool SelectedCardsUI::UseNextCard() {
 
   if (!owner) return false;
 
-  const auto actions = owner->AsyncActionList();
+  const std::vector<std::shared_ptr<CardAction>> actions = owner->AsyncActionList();
   bool hasNextCard = curr < cardCount;
   bool canUseCard = true;
 
   // We could be using an ability, just make sure one of these actions are not from a card
   // Cards cannot be used if another card is still active
-  for (auto action : actions) {
+  for (std::shared_ptr<CardAction> action : actions) {
     canUseCard = canUseCard && (action->GetLockoutGroup() != CardAction::LockoutGroup::card);
   }
 
@@ -148,6 +149,27 @@ std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek(
   }
 
   return {};
+}
+
+void SelectedCardsUI::HandlePeekEvent(Character* from)
+{
+  auto maybe_card = this->Peek();
+
+  if (maybe_card.has_value()) {
+    // convert meta data into a useable action object
+    const Battle::Card& card = *maybe_card;
+
+    // could act on metadata later:
+    // from->OnCard(card)
+
+    std::shared_ptr<CardAction> action;
+    action.reset(CardToAction(card, from, packageManager));
+    action->SetMetaData(card.props); // associate the meta with this action object
+
+    // prepare for this frame's action animation (we must be actionable)
+    from->MakeActionable();
+    this->Broadcast(action); // tell the rest of the subsystems
+  }
 }
 
 std::vector<std::string> SelectedCardsUI::GetUUIDList()

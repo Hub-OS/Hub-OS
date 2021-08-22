@@ -46,6 +46,7 @@ Character* TimeFreezeBattleState::CreateStuntDouble(Character* from)
 void TimeFreezeBattleState::SkipToAnimateState()
 {
   startState = state::animate;
+  ExecuteTimeFreeze();
 }
 
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
@@ -165,8 +166,6 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
   if (action && action->CanExecute()) {
     user->Hide();
     if (GetScene().GetField()->AddEntity(*stuntDouble, *user->GetTile()) != Field::AddEntityStatus::deleted) {
-      // action->UseStuntDouble(*stuntDouble);
-      user->ToggleTimeFreeze(false);
       action->Execute(user);
     }
     else {
@@ -187,10 +186,11 @@ void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action,
   if (action->GetMetaData().timeFreeze && timestamp < lockedTimestamp) {
     this->name = action->GetMetaData().shortname;
     this->team = action->GetActor()->GetTeam();
-    this->user = const_cast<Character*>(action->GetActor());
+    this->user = action->GetActor();
     lockedTimestamp = timestamp;
 
-    this->action = action.get();
+    this->action = action;
     stuntDouble = CreateStuntDouble(this->user);
+    action->UseStuntDouble(*stuntDouble);
   }
 }

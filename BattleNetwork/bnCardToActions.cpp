@@ -46,7 +46,7 @@ CardAction* CardToAction(const Battle::Card& card, Character* character, CardPac
   std::string name = card.GetShortName();
   CardAction* next{nullptr};
 
-  if (packageManager->HasPackage(card.GetUUID())) {
+  if (packageManager && packageManager->HasPackage(card.GetUUID())) {
     auto& meta = packageManager->FindPackageByID(card.GetUUID());
     return meta.GetData()->BuildCardAction(character, meta.GetCardProperties());
   }

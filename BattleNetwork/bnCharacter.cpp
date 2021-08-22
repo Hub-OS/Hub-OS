@@ -809,18 +809,7 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
 {
   SelectedCardsUI* publisher = event.publisher;
   if (publisher) {
-    auto maybe_card = publisher->Peek();
-
-    if (maybe_card.has_value()) {
-      // convert meta data into a useable action object
-      const Battle::Card& card = *maybe_card;
-      std::shared_ptr<CardAction> action = std::make_shared<CardAction>(CardToAction(card, this, event.packageManager));
-      action->SetMetaData(card.props); // associate the meta with this action object
-
-      // prepare for this frame's action animation (we must be actionable)
-      MakeActionable();
-      publisher->Broadcast(action); // tell the rest of the subsystems
-    }
+    publisher->HandlePeekEvent(this);
   }
 
   actionQueue.Pop();

@@ -134,9 +134,13 @@ void Player::Attack() {
     if (action) {
       action->PreventCounters();
 
-      Battle::Card::Properties props;
-      props.shortname = "Buster";
-      props.timeFreeze = true;
+      Battle::Card::Properties props = action->GetMetaData();
+
+      if (!fullyCharged) {
+        props.timeFreeze = false;
+        props.shortname = "Buster";
+      }
+
       action->SetMetaData(props);
       action->SetLockoutGroup(CardAction::LockoutGroup::weapon);
       BusterEvent event = { frames(0), frames(0), false, std::shared_ptr<CardAction>(action) };

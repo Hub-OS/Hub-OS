@@ -9,4 +9,4 @@ class CardPackageManager;
  * This is for demonstration of the engine until we have scripting done
  */
 
-static CardAction* CardToAction(const Battle::Card& card, Character* character, CardPackageManager* packageManager);
+CardAction* CardToAction(const Battle::Card& card, Character* character, CardPackageManager* packageManager);

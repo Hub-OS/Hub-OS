@@ -467,6 +467,24 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "update_func", &ScriptedArtifact::update_func
   );
 
+  const auto& card_action_record = battle_namespace.new_usertype<CardAction>("BaseCardAction",
+    "set_lockout", &CardAction::SetLockout,
+    "set_lockout_group", &CardAction::SetLockoutGroup,
+    "override_animation_frames", &CardAction::OverrideAnimationFrames,
+    "add_attachment", sol::overload(
+      sol::resolve<CardAction::Attachment& (Character*, const std::string&, SpriteProxyNode&)>(&CardAction::AddAttachment),
+      sol::resolve<CardAction::Attachment& (Animation&, const std::string&, SpriteProxyNode&)>(&CardAction::CardAction::AddAttachment)
+    ),
+    "add_anim_action", &CardAction::AddAnimAction,
+    "add_step", &CardAction::AddStep,
+    "end_action", &CardAction::EndAction,
+    "get_actor", sol::overload(
+      sol::resolve<Character* ()>(&CardAction::GetActor)
+    ),
+    "set_metadata", &CardAction::SetMetaData,
+    "copy_metadata", &CardAction::GetMetaData
+  );
+
   // Game would crash when using ScriptedPlayer* values so had to expose other versions for it to cooperate.
   // Many things use Character* references but we will maybe have to consolidate all the interfaces for characters into one type.
   const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
@@ -487,25 +505,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     &dynamic_object::dynamic_set,
     sol::meta_function::length,
     [](dynamic_object& d) { return d.entries.size(); },
-    "set_lockout", &ScriptedCardAction::SetLockout,
-    "set_lockout_group", &ScriptedCardAction::SetLockoutGroup,
-    "override_animation_frames", &ScriptedCardAction::OverrideAnimationFrames,
-    "add_attachment", sol::overload(
-      sol::resolve<CardAction::Attachment&(Character*, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::AddAttachment),
-      sol::resolve<CardAction::Attachment&(Animation&, const std::string&, SpriteProxyNode&)>(&ScriptedCardAction::CardAction::AddAttachment)
-    ),
-    "add_anim_action", &ScriptedCardAction::AddAnimAction,
-    "add_step", &ScriptedCardAction::AddStep,
-    "end_action", &ScriptedCardAction::EndAction,
-    "get_actor", sol::overload(
-      sol::resolve<Character*()>(&ScriptedCardAction::GetActor)
-    ),
     "action_end_func", &ScriptedCardAction::onActionEnd,
     "animation_end_func", &ScriptedCardAction::onAnimationEnd,
     "execute_func", &ScriptedCardAction::onExecute,
     "update_func", &ScriptedCardAction::onUpdate,
-    "set_metadata", &ScriptedCardAction::SetMetaData,
-    "get_metadata", &ScriptedCardAction::GetMetaData,
     sol::base_classes, sol::bases<CardAction>()
   );
 

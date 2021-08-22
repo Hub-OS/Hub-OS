@@ -77,6 +77,8 @@ public:
   */
   std::optional<std::reference_wrapper<const Battle::Card>> Peek();
 
+  void HandlePeekEvent(Character* from);
+
   /**
   * @brief Returns the uuids of all the cards
   */
