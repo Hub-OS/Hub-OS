@@ -430,6 +430,11 @@ void MatchMakingScene::onResume() {
     Reset();
   }
   else if (leftForBattle) {
+    // don't use the last scene to process packets, this scene should process them now
+    using namespace std::placeholders;
+    packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
+    packetProcessor->SetKickCallback([] {});
+
     packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
   }
   else if(remoteNaviId.size()) {
@@ -440,11 +445,15 @@ void MatchMakingScene::onResume() {
   }
 }
 
-void MatchMakingScene::onExit()
-{
-  if (closing) {
-    Net().DropProcessor(packetProcessor);
+void MatchMakingScene::onExit() {
+  if (leftForBattle) {
+    Reset();
   }
+}
+
+void MatchMakingScene::onEnd()
+{
+  Net().DropProcessor(packetProcessor);
 }
 
 void MatchMakingScene::onUpdate(double elapsed) {
@@ -455,7 +464,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
   bool systemEvent = Input().HasSystemCopyEvent() || Input().HasSystemPasteEvent();
 
-  if (clientIsReady) {
+  if (clientIsReady && !leftForBattle) {
     SendConnectSignal();
   }
 

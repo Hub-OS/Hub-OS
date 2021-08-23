@@ -112,5 +112,5 @@ public:
    */
   void onDraw(sf::RenderTexture& surface);
   
-  void onEnd() { ; }
+  void onEnd();
 };

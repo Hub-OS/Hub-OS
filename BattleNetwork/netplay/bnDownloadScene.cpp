@@ -18,7 +18,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   label(Font::Style::tiny),
   Scene(ac)
 {
-  ourCardList = props.cardUUIDs;
+  playerCardList = props.cardUUIDs;
   downloadSuccess = false; 
 
   packetProcessor = props.packetProcessor;
@@ -45,6 +45,9 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   bg = sf::Sprite(lastScreen);
   bg.setColor(sf::Color(255, 255, 255, 200));
 
+  taskQueue.push(TaskTypes::trade_cards);
+  taskQueue.push(TaskTypes::trade_player);
+
   setView(sf::Vector2u(480, 320));
 }
 
@@ -53,47 +56,52 @@ DownloadScene::~DownloadScene()
 
 }
 
-void DownloadScene::Next()
+void DownloadScene::SendHandshakeAck()
 {
-  switch (currState) {
-  case DownloadScene::state::trade_cards:
-    currState = DownloadScene::state::download_cards;
-    break;
-  case DownloadScene::state::download_cards:
-    currState = DownloadScene::state::trade_player;
-    break;
-  case DownloadScene::state::trade_player:
-    currState = DownloadScene::state::download_player;
-    break;
-  case DownloadScene::state::download_player:
-    currState = DownloadScene::state::complete;
-    break;
-  default:
-    break;
-  }
+  Poco::Buffer<char> buffer(0);
+  std::string payload = "download_handshake";
+  buffer.append(payload.c_str(), payload.size());
+  auto id = packetProcessor->SendPacket(Reliability::Reliable, buffer).second;
+  packetProcessor->UpdateHandshakeID(id);
 }
 
-void DownloadScene::SkipTo(const state& curr)
+bool DownloadScene::ProcessTaskQueue()
 {
-  currState = curr;
+  if (taskQueue.empty()) return false;
 
-  switch (currState) {
-  case DownloadScene::state::trade_player:
-    this->TradePlayerData(this->playerHash);
+  auto taskType = taskQueue.front();
+
+  switch (taskType) {
+  case TaskTypes::trade_cards:
+    this->TradeCardList(playerCardList);
     break;
-  case DownloadScene::state::complete:
-    this->SendDownloadComplete(true);
-    break;
-  default:
+  case TaskTypes::trade_player:
+    this->TradePlayerData(playerHash);
     break;
   }
+
+  if (auto iter = taskComplete.find(taskType); iter == taskComplete.end()) {
+    taskComplete[taskType] = false;
+  }
+  
+  taskQueue.pop();
+  return true;
+}
+
+bool DownloadScene::AllTasksComplete()
+{
+  for (auto& [key, result] : taskComplete) {
+    if (!result) return false;
+  }
+
+  return true;
 }
 
 void DownloadScene::TradeCardList(const std::vector<std::string>& uuids)
 {
   // Upload card list to remote. Track as the handshake.
-  ourCardList = uuids;
-  packetProcessor->UpdateHandshakeID(packetProcessor->SendPacket(Reliability::Reliable, SerializeUUIDs(NetPlaySignals::trade_card_list, uuids)).second);
+  playerCardList = uuids;
+  packetProcessor->SendPacket(Reliability::Reliable, SerializeUUIDs(NetPlaySignals::trade_card_list, uuids));
 }
 
 void DownloadScene::TradePlayerData(const std::string& hash)
@@ -143,28 +151,31 @@ void DownloadScene::SendPing()
 void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
   switch (header) {
-  case NetPlaySignals::trade_card_list: 
-    Logger::Logf("Processing trade list");
+  case NetPlaySignals::trade_card_list:
+    Logger::Logf("Remote is requesting to compare the card list...");
     this->RecieveTradeCardList(body);
     break;
+  case NetPlaySignals::trade_player_package:
+    Logger::Logf("Remote is requesting to identify the player package...");
+    this->RecieveTradePlayerData(body);
+    break;
   case NetPlaySignals::card_list_request:
+    Logger::Logf("Remote is requesting to download the card list...");
     this->RecieveRequestCardList(body);
+    break;
+  case NetPlaySignals::player_package_request:
+    Logger::Logf("Remote is requesting to download the player package...");
+    this->RecieveRequestPlayerData(body);
     break;
   case NetPlaySignals::card_list_download:
     Logger::Logf("Downloading card list...");
     this->DownloadCardList(body);
-    break;
-  case NetPlaySignals::trade_player_package:
-    Logger::Logf("Trading player package data");
-    this->RecieveTradePlayerData(body);
-    break;
-  case NetPlaySignals::player_package_request:
-    Logger::Logf("Recieved player package request signal");
-    this->RecieveRequestPlayerData(body);
+    taskComplete[TaskTypes::trade_cards] = true;
     break;
   case NetPlaySignals::player_package_download:
     Logger::Logf("Downloading player package...");
-    this->DownloadPlayerData(body); 
+    this->DownloadPlayerData(body);
+    taskComplete[TaskTypes::trade_player] = true;
     break;
   case NetPlaySignals::downloads_complete:
     this->RecieveDownloadComplete(body);
@@ -190,13 +201,12 @@ void DownloadScene::RecieveTradeCardList(const Poco::Buffer<char>& buffer)
   if (retryCardList.size()) {
     Logger::Logf("Need to download %d cards", retryCardList.size());
     RequestCardList(retryCardList);
-    Next();
     return;
   }
 
   // else 
   Logger::Logf("Nothing to download.");
-  SkipTo(DownloadScene::state::trade_player);
+  taskComplete[TaskTypes::trade_cards] = true;
 }
 
 void DownloadScene::RecieveRequestCardList(const Poco::Buffer<char>& buffer)
@@ -205,8 +215,6 @@ void DownloadScene::RecieveRequestCardList(const Poco::Buffer<char>& buffer)
 
   Logger::Logf("Recieved download request for %d items", uuids.size());
   packetProcessor->SendPacket(Reliability::BigData, SerializeCards(uuids));
-
-  Next();
 }
 
 void DownloadScene::RecieveTradePlayerData(const Poco::Buffer<char>& buffer)
@@ -216,12 +224,12 @@ void DownloadScene::RecieveTradePlayerData(const Poco::Buffer<char>& buffer)
 
   if (getController().PlayerPackageManager().HasPackage(hash)) {
     remotePlayerHash = hash;
-    SkipTo(DownloadScene::state::complete);
+    taskComplete[TaskTypes::trade_player] = true;
     return;
   }
 
+  // This will download the player data and also set the remotePlayerHash when completed successfully
   RequestPlayerData(hash);
-  Next();
 }
 
 void DownloadScene::RecieveRequestPlayerData(const Poco::Buffer<char>& buffer)
@@ -231,8 +239,6 @@ void DownloadScene::RecieveRequestPlayerData(const Poco::Buffer<char>& buffer)
 
   Logger::Logf("Recieved download request for player hash %s", hash.c_str());
   packetProcessor->SendPacket(Reliability::BigData, SerializePlayerData(hash));
-
-  Next();
 }
 
 void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
@@ -276,7 +282,6 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 
     if (auto result = getController().PlayerPackageManager().LoadPackageFromZip<ScriptedPlayer>(path); result.value()) {
       remotePlayerHash = hash;
-      SkipTo(DownloadScene::state::complete);
       return;
     }
   }
@@ -384,8 +389,6 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
     WEBCLIENT.UploadCardData(id, iconObj, textureObj, cardData, props);
     cardsToDownload[id] = "Complete";
   }
-
-  Next();
 }
 
 std::vector<std::string> DownloadScene::DeserializeUUIDs(const Poco::Buffer<char>& buffer)
@@ -589,6 +592,11 @@ void DownloadScene::onUpdate(double elapsed)
   else if (downloadSuccess && remoteSuccess) {
     getController().pop();
   }
+  else {
+    if (!ProcessTaskQueue() && AllTasksComplete()) {
+      SendDownloadComplete(true);
+    }
+  }
 }
 
 void DownloadScene::onDraw(sf::RenderTexture& surface)
@@ -600,21 +608,27 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
   float h = static_cast<float>(getController().getVirtualWindowSize().y);
 
   // 1. Draw the state status info
-  switch (currState) {
-  case state::trade_cards:
+  label.SetString("Complete, waiting...");
+
+  if (taskQueue.empty()) {
+    auto bounds = label.GetLocalBounds();
+    label.setOrigin(sf::Vector2f(bounds.width * label.getScale().x, 0));
+    label.setPosition(w, 0);
+    label.SetColor(sf::Color::Green);
+    surface.draw(label);
+    return;
+  }
+
+  auto currTask = taskQueue.front();
+
+  switch (currTask) {
+  case TaskTypes::trade_cards:
     label.SetString("Connecting to other player...");
     break;
-  case state::download_cards:
-    label.SetString("Downloading cards, please wait...");
-    break;
-  case state::trade_player:
+  case TaskTypes::trade_player:
     label.SetString("Fetching other player package...");
     break;
-  case state::download_player:
-    label.SetString("Downloading player package, please wait...");
-    break;
-  case state::complete:
-    label.SetString("Complete, waiting...");
+  default:
     break;
   }
 
@@ -624,56 +638,46 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
   label.SetColor(sf::Color::White);
   surface.draw(label);
 
-  if (currState == state::download_cards || currState == state::download_player) {
-    label.SetString("Request download, please wait...");
+  sf::Sprite icon;
+
+  if (cardsToDownload.empty()) {
+    label.SetString("Nothing to download.");
     auto bounds = label.GetLocalBounds();
     label.SetColor(sf::Color::White);
     label.setOrigin(sf::Vector2f(0, bounds.height));
     label.setPosition(0, h);
     surface.draw(label);
   }
-  else {
-    sf::Sprite icon;
 
-    if (cardsToDownload.empty()) {
-      label.SetString("Nothing to download.");
-      auto bounds = label.GetLocalBounds();
+  for (auto& [key, value] : cardsToDownload) {
+    label.SetString(key + " - " + value);
+
+    auto bounds = label.GetLocalBounds();
+    float ydiff = bounds.height * label.getScale().y;
+
+    if (value == "Downloading") {
       label.SetColor(sf::Color::White);
-      label.setOrigin(sf::Vector2f(0, bounds.height));
-      label.setPosition(0, h);
-      surface.draw(label);
+    }
+    else if (value == "Complete") {
+      label.SetColor(sf::Color::Green);
+    }
+    else {
+      label.SetColor(sf::Color::Red);
     }
 
-    for (auto& [key, value] : cardsToDownload) {
-      label.SetString(key + " - " + value);
-
-      auto bounds = label.GetLocalBounds();
-      float ydiff = bounds.height * label.getScale().y;
-
-      if (value == "Downloading") {
-        label.SetColor(sf::Color::White);
-      }
-      else if (value == "Complete") {
-        label.SetColor(sf::Color::Green);
-      }
-      else {
-        label.SetColor(sf::Color::Red);
-      }
-
-      if (auto iconTexture = WEBCLIENT.GetIconForCard(key)) {
-        icon.setTexture(*iconTexture);
-        float iconHeight = icon.getLocalBounds().height;
-        icon.setOrigin(0, iconHeight);
-      }
-
-      icon.setPosition(sf::Vector2f(bounds.width + 5.0f, bounds.height));
-      label.setOrigin(sf::Vector2f(0, bounds.height));
-      label.setPosition(0, h);
-
-      h -= ydiff + 5.0f;
-
-      surface.draw(label);
+    if (auto iconTexture = WEBCLIENT.GetIconForCard(key)) {
+      icon.setTexture(*iconTexture);
+      float iconHeight = icon.getLocalBounds().height;
+      icon.setOrigin(0, iconHeight);
     }
+
+    icon.setPosition(sf::Vector2f(bounds.width + 5.0f, bounds.height));
+    label.setOrigin(sf::Vector2f(0, bounds.height));
+    label.setPosition(0, h);
+
+    h -= ydiff + 5.0f;
+
+    surface.draw(label);
   }
 }
 
@@ -692,7 +696,7 @@ void DownloadScene::onEnter()
 void DownloadScene::onStart()
 {
   Logger::Logf("onStart() trying to trade card data");
-  TradeCardList(ourCardList);
+  SendHandshakeAck();
 }
 
 void DownloadScene::onResume()

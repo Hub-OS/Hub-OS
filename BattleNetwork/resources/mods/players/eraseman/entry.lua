@@ -40,8 +40,8 @@ function create_charged_attack(player)
 
     action.execute_func = function(self, player)
         local do_attack = function()
-            local t1 = player:get_tile(Direction.Right, 1)
-            local t2 = player:get_tile(Direction.Right, 2)
+            local t1 = player:get_tile(player:get_facing(), 1)
+            local t2 = player:get_tile(player:get_facing(), 2)
 
             spawn_attack(player, t1:x(), t1:y())
             spawn_attack(player, t2:x(), t2:y())
@@ -74,7 +74,7 @@ function spawn_attack(user, x, y)
             Hit.Impact | Hit.Drag | Hit.Flinch, 
             Element.Cursor, 
             user:get_id(), 
-            drag(Direction.Right, 1)
+            drag(user:get_facing(), 1)
         )
     )
 

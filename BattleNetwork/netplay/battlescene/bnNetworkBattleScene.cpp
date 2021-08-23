@@ -308,7 +308,6 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
 
 void NetworkBattleScene::onExit()
 {
-  
 }
 /*!
  * @brief 
@@ -601,8 +600,14 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remoteCardActionUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().CardPackageManager());
   remoteCardActionUsePublisher->Hide(); // do not reveal opponent's cards
+
+  combatPtr->Subscribe(*GetPlayer());
+  combatPtr->Subscribe(*remotePlayer);
   combatPtr->Subscribe(*remoteCardActionUsePublisher);
+  timeFreezePtr->Subscribe(*GetPlayer());
+  timeFreezePtr->Subscribe(*remotePlayer);
   timeFreezePtr->Subscribe(*remoteCardActionUsePublisher);
+
   this->SubscribeToCardActions(*remoteCardActionUsePublisher);
 
   remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);

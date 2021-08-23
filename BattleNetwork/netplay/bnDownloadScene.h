@@ -7,6 +7,7 @@
 #include <Swoosh/Shaders.h>
 
 #include <time.h>
+#include <queue>
 #include <typeinfo>
 #include <SFML/Graphics.hpp>
 #include <Poco/Net/DatagramSocket.h>
@@ -32,13 +33,10 @@ struct DownloadSceneProps {
 
 class DownloadScene final : public Scene {
 private:
-  enum class state : char {
+  enum class TaskTypes : char {
     trade_cards = 0,
-    download_cards,
-    trade_player,
-    download_player,
-    complete
-  } currState{};
+    trade_player
+  } type;
 
   bool& downloadSuccess;
   bool downloading_player_data{ false };
@@ -48,7 +46,9 @@ private:
   size_t packetAckId{};
   std::string playerHash;
   std::string& remotePlayerHash;
-  std::vector<std::string> ourCardList, retryCardList;
+  std::vector<std::string> playerCardList, retryCardList;
+  std::queue<TaskTypes> taskQueue;
+  std::map<TaskTypes, bool> taskComplete;
   std::map<std::string, std::string> cardsToDownload;
   Text label;
   sf::Sprite bg; // background
@@ -57,9 +57,9 @@ private:
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   swoosh::glsl::FastGaussianBlur blur{ 10 };
 
-  void Next();
-  void SkipTo(const state& curr);
-
+  void SendHandshakeAck();
+  bool ProcessTaskQueue();
+  bool AllTasksComplete();
   void TradeCardList(const std::vector<std::string>& uuids);
   void TradePlayerData(const std::string& hash);
   void RequestCardList(const std::vector<std::string>& uuids);
