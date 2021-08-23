@@ -113,7 +113,6 @@ private:
   void recieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
   void processPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
   void UpdatePingIndicator(frame_time_t frames);
-  void ResetPacketProcessor();
 public:
   using BattleSceneBase::ProcessNewestComponents;
 

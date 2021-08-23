@@ -24,9 +24,15 @@
  */
 class MatchMakingScene : public Scene {
 private:
+  enum class ReturningScene {
+    DownloadScene,
+    BattleScene,
+    Null
+  };
+
+  ReturningScene returningFrom{ ReturningScene::Null };
   bool copyScreen{ false }; //!< If true, copy the screen contents
   bool isScreenReady{ false };
-  bool leave{ false }; /*!< Scene state coming/going flag */
   bool closing{ false };
   bool remoteIsReady{ false };
   bool clientIsReady{ false };
@@ -36,7 +42,6 @@ private:
   bool canProceedToBattle{ false };
   bool infoMode{ true }; // we start here and then allow the player to toggle
   bool handshakeComplete{ false };
-  bool leftForBattle{ false };
   bool playVS{ true };
   double sequenceTimer{ 0.0 }; // in seconds
   double flashCooldown{ 0 };
