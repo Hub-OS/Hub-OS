@@ -41,6 +41,7 @@ void MatchMaking::PacketProcessor::SetNewRemote(const std::string& socketAddress
     remote = Poco::Net::SocketAddress(socketAddressStr);
     proxy = std::make_shared<Netplay::PacketProcessor>(remote, maxBytes);
     proxy->SetPacketBodyCallback(callback);
+    proxy->ShareSocket(this);
   }
   catch (...) {
     validRemote = false;

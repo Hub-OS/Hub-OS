@@ -228,13 +228,6 @@ void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
 
 void NetworkBattleScene::onUpdate(double elapsed) {
   if (!IsSceneInFocus()) {
-    if (IsQuitting()) {
-      // net play packet processor is shared with other scenes
-      // we don't want to delete it, we just want to ignore packets coming in
-      // so we don't point to a dead scene
-      ResetPacketProcessor();
-    }
-
     return;
   }
 
@@ -737,11 +730,4 @@ void NetworkBattleScene::UpdatePingIndicator(frame_time_t frames)
   }
 
   pingIndicator.setTextureRect(sf::IntRect((idx-1u)*16, 0, 16, 16));
-}
-
-void NetworkBattleScene::ResetPacketProcessor()
-{
-  packetProcessor->EnableKickForSilence(false);
-  packetProcessor->SetKickCallback(Netplay::PacketProcessor::KickFunc{});
-  packetProcessor->SetPacketBodyCallback(Netplay::PacketProcessor::PacketbodyFunc{});
 }

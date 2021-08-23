@@ -367,7 +367,6 @@ const bool MatchMakingScene::IsValidIPv4(const std::string& ip) const {
 
 void MatchMakingScene::Reset()
 {
-  leave = false; /*!< Scene state coming/going flag */
   remoteIsReady = false;
   clientIsReady = false;
   isInFlashyVSIntro = false;
@@ -375,7 +374,6 @@ void MatchMakingScene::Reset()
   handshakeComplete = false;
   hasProcessedCards = false;
   canProceedToBattle = false;
-  leftForBattle = false;
   playVS = true;
   sequenceTimer = 0.0; // in seconds
   flashCooldown = 0;
@@ -419,36 +417,40 @@ void MatchMakingScene::onStart() {
 
 void MatchMakingScene::onResume() {
   isScreenReady = true;
-  leave = false;
 
   Logger::Logf("remote navi ID is: %s", remoteNaviId.c_str());
   Logger::Logf("canProceedToBattle: %d", canProceedToBattle? 1 : 0);
 
-  if (!canProceedToBattle) {
-    // If this condition is false, we could not download assets we needed
-    // Reset for next match attempt
-    Reset();
-  }
-  else if (leftForBattle) {
+  switch (returningFrom) {
+  case ReturningScene::BattleScene:
     // don't use the last scene to process packets, this scene should process them now
     using namespace std::placeholders;
     packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
     packetProcessor->SetKickCallback([] {});
 
     packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
+    break;
+  case ReturningScene::DownloadScene:
+    if (!canProceedToBattle) {
+      // If this condition is false, we could not download assets we needed
+      // Reset for next match attempt
+      Reset();
+    }
+    else if(remoteNaviId.size()) {
+      auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
+      this->remotePreview.setTexture(playerPkg.GetPreviewTexture());
+      auto height = remotePreview.getSprite().getLocalBounds().height;
+      remotePreview.setOrigin(sf::Vector2f(0, height));
+    }
+    break;
+  case ReturningScene::Null:
+    Logger::Log("`returningFrom` has not been set for the scene you returned from");
   }
-  else if(remoteNaviId.size()) {
-    auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
-    this->remotePreview.setTexture(playerPkg.GetPreviewTexture());
-    auto height = remotePreview.getSprite().getLocalBounds().height;
-    remotePreview.setOrigin(sf::Vector2f(0, height));
-  }
+
+  returningFrom = ReturningScene::Null;
 }
 
 void MatchMakingScene::onExit() {
-  if (leftForBattle) {
-    Reset();
-  }
 }
 
 void MatchMakingScene::onEnd()
@@ -460,11 +462,11 @@ void MatchMakingScene::onUpdate(double elapsed) {
   gridBG->Update(double(elapsed));
   textbox.Update(double(elapsed));
 
-  if (!isScreenReady || leave) return; // don't update our scene if not fully in view from segue
+  if (!isScreenReady || closing || returningFrom != ReturningScene::Null) return; // don't update our scene if not fully in view from segue
 
   bool systemEvent = Input().HasSystemCopyEvent() || Input().HasSystemPasteEvent();
 
-  if (clientIsReady && !leftForBattle) {
+  if (clientIsReady) {
     SendConnectSignal();
   }
 
@@ -499,6 +501,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
     using effect = swoosh::types::segue<BlendFadeIn>;
     getController().push<effect::to<DownloadScene>>(props);
+    returningFrom = ReturningScene::DownloadScene;
   }
   else if (clientIsReady && !remoteIsReady) {
     if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
@@ -557,8 +560,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
     }
 
     if (this->sequenceTimer >= 3) {
-      leave = leftForBattle = true;
-
       // Shuffle our folder
       CardFolder* copy = folder.Clone();
       copy->Shuffle();
@@ -595,6 +596,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       };
 
       getController().push<effect::to<NetworkBattleScene>>(props);
+      returningFrom = ReturningScene::BattleScene;
     }
   } else {
     // TODO use states/switches this is getting out of hand...
@@ -605,7 +607,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
     }
 
     if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
-      leave = true;
       closing = true;
       Audio().Play(AudioType::CHIP_CANCEL);
       using effect = segue<PushIn<direction::up>, milliseconds<500>>;
@@ -644,9 +645,9 @@ void MatchMakingScene::onLeave()
 
 void MatchMakingScene::onEnter()
 {
-  //if (!canProceedToBattle) {
-  //  Reset();
- // }
+  if (returningFrom == ReturningScene::BattleScene) {
+    Reset();
+  }
 }
 
 void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
