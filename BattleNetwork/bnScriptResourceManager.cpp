@@ -1,4 +1,5 @@
 #ifdef BN_MOD_SUPPORT
+#include <memory>
 #include "bnScriptResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -314,6 +315,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "jump", &ScriptedCharacter::Jump,
     "teleport", &ScriptedCharacter::Teleport,
     "raw_move_event", &ScriptedCharacter::RawMoveEvent,
+    "card_action_event", sol::overload(
+      sol::resolve<void(std::unique_ptr<ScriptedCardAction>&, ActionOrder)>(&ScriptedCharacter::SimpleCardActionEvent),
+      sol::resolve<void(std::unique_ptr<CardAction>&, ActionOrder)>(&ScriptedCharacter::SimpleCardActionEvent)
+    ),
     "is_sliding", &ScriptedCharacter::IsSliding,
     "is_jumping", &ScriptedCharacter::IsJumping,
     "is_teleporting", &ScriptedCharacter::IsTeleporting,
@@ -328,7 +333,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "delete", &ScriptedCharacter::Delete,
     "set_texture", &ScriptedCharacter::setTexture,
     "add_node", &ScriptedCharacter::AddNode,
-
     "get_name", &ScriptedCharacter::GetName,
     "get_health", &ScriptedCharacter::GetHealth,
     "get_max_health", &ScriptedCharacter::GetMaxHealth,

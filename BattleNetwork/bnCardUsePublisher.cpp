@@ -3,12 +3,8 @@
 
 void CardActionUsePublisher::AddListener(CardActionUseListener* listener)
 {
+  if(auto iter = std::find(listeners.begin(), listeners.end(), listener); iter == listeners.end())
   listeners.push_back(listener);
-
-  if (listeners.size() == 6) {
-    volatile int z = 0;
-    z++;
-  }
 }
 
 void CardActionUsePublisher::DropSubscribers()
@@ -22,7 +18,7 @@ CardActionUsePublisher::~CardActionUsePublisher()
 
 void CardActionUsePublisher::Broadcast(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  std::list<CardActionUseListener*>::iterator iter = listeners.begin();
+  std::vector<CardActionUseListener*>::iterator iter = listeners.begin();
 
   while (iter != listeners.end()) {
     (*iter)->OnCardActionUsed(action, timestamp);

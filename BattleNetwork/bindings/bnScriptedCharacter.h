@@ -5,6 +5,7 @@
 #include "dynamic_object.h"
 #include "../bnCharacter.h"
 #include "../bnAI.h"
+#include "bnScriptedCardAction.h"
 
 class AnimationComponent;
 class ScriptedCharacterState;
@@ -43,6 +44,8 @@ public:
   void ShakeCamera(double power, float duration);
   Animation& GetAnimationObject();
   void SetExplosionBehavior(int num, double speed, bool isBoss);
+  void SimpleCardActionEvent(std::unique_ptr<ScriptedCardAction>& action, ActionOrder order);
+  void SimpleCardActionEvent(std::unique_ptr<CardAction>& action, ActionOrder order);
 
   std::function<void(ScriptedCharacter&, Battle::Tile&)> spawnCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;

@@ -74,8 +74,10 @@ void TitleScene::onStart()
   Audio().SetChannelVolume(((float)config.GetSFXLevel()/3.f)*100.f);
   Audio().SetStreamVolume(((float)config.GetMusicLevel() / 3.f) * 100.f);
 
-  // stream some music while we wait
-  Audio().Stream("resources/loops/loop_theme.ogg");
+  if (config.IsAudioEnabled() && config.GetMusicLevel() > 0) {
+    // stream some music while we wait
+    Audio().Stream("resources/loops/loop_theme.ogg");
+  }
 
   // Begin performing tasks in the background
   LaunchTasks();

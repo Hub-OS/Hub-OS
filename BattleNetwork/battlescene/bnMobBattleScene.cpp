@@ -65,7 +65,24 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   //////////////////////////////////////////////////////////////////
   // Important! State transitions are added in order of priority! //
   //////////////////////////////////////////////////////////////////
-  intro.ChangeOnEvent(cardSelect, &MobIntroBattleState::IsOver);
+
+
+  auto isIntroOver = [this, intro, timeFreeze, combat]() mutable {
+    if (intro->IsOver()) {
+      // Mob's mutated at spawn may have card use publishers.
+      // Share the scene's subscriptions at this point in time with
+      // those substates.
+      for (auto& publisher : this->GetCardActionSubscriptions()) {
+        timeFreeze->Subscribe(publisher);
+        combat->Subscribe(publisher);
+      }
+      return true;
+    }
+
+    return false;
+  };
+
+  intro.ChangeOnEvent(cardSelect, isIntroOver);
 
   // Prevent all other conditions if the player tried to retreat
   cardSelect.ChangeOnEvent(retreat, &CardSelectBattleState::RequestedRetreat);

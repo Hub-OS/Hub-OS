@@ -1,6 +1,6 @@
 #pragma once
 
-#include <list>
+#include <vector>
 #include <memory>
 #include "bnCardAction.h"
 
@@ -17,7 +17,7 @@ class CardActionUsePublisher {
 private:
   friend class CardActionUseListener;
 
-  std::list<CardActionUseListener*> listeners; /*!< All subscribers */
+  std::vector<CardActionUseListener*> listeners; /*!< All subscribers */
 
   void AddListener(CardActionUseListener* listener);
 

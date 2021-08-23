@@ -61,8 +61,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   player->ChangeState<PlayerIdleState>();
   player->ToggleTimeFreeze(false);
-  CardActionUseListener::Subscribe(*player);
-
   field->AddEntity(*player, 2, 2);
 
   /*
@@ -100,6 +98,9 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   // Player UI
   cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackageManager());
+  CardActionUseListener::Subscribe(*player);
+  CardActionUseListener::Subscribe(*cardUI);
+
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
   cardCustGUI.AddNode(healthUI);
 

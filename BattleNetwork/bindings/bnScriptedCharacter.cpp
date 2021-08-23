@@ -107,4 +107,24 @@ void ScriptedCharacter::SetExplosionBehavior(int num, double speed, bool isBoss)
   explosionPlayback = speed;
   bossExplosion = isBoss;
 }
+
+void ScriptedCharacter::SimpleCardActionEvent(std::unique_ptr<ScriptedCardAction>& action, ActionOrder order)
+{
+  // getting around sol limitations:
+  // using unique_ptr to allow sol to manage memory
+  // but we need to share this with the subsystems...
+  std::unique_ptr uniqueAction = std::move(action);
+  std::shared_ptr<CardAction> sharedAction;
+  sharedAction.reset(uniqueAction.release());
+  Character::AddAction(CardEvent{ sharedAction }, order);
+}
+
+void ScriptedCharacter::SimpleCardActionEvent(std::unique_ptr<CardAction>& action, ActionOrder order)
+{
+  // see previous function for explanation
+  std::unique_ptr uniqueAction = std::move(action);
+  std::shared_ptr<CardAction> sharedAction;
+  sharedAction.reset(uniqueAction.release());
+  Character::AddAction(CardEvent{ sharedAction }, order);
+}
 #endif
