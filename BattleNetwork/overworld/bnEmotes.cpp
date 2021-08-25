@@ -58,6 +58,11 @@ void Overworld::EmoteNode::LoadCustomEmotes(const std::shared_ptr<sf::Texture>& 
 
 void Overworld::EmoteNode::CustomEmote(uint8_t idx)
 {
+  if (!customEmotes) {
+    Logger::Log("Custom emotes have not been loaded!");
+    return;
+  }
+
   sf::IntRect rect = sf::IntRect(static_cast<int>(48 * idx), 0, 48, 48);
 
   if (!usingCustom) {
