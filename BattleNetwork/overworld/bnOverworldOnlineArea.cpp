@@ -1468,7 +1468,13 @@ void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poc
 void Overworld::OnlineArea::receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto path = reader.ReadString<uint16_t>(buffer);
 
-  emoteNode.LoadCustomEmotes(serverAssetManager.GetTexture(path));
+  customEmotesTexture = serverAssetManager.GetTexture(path);
+  emoteNode.LoadCustomEmotes(customEmotesTexture);
+
+  for (auto& pair : onlinePlayers) {
+    auto& otherEmoteNode = pair.second.emoteNode;
+    otherEmoteNode.LoadCustomEmotes(customEmotesTexture);
+  }
 }
 
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
