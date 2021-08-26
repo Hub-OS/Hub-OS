@@ -295,7 +295,6 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
     Player* player = meta.GetData();
 
-    int fullHealth = player->GetHealth();
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
 
@@ -2106,6 +2105,9 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
   auto mugshot = Textures().LoadTextureFromFile(image);
   auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
   Player* player = playerMeta.GetData();
+
+  player->SetHealth(GetPlayerSession()->health);
+  player->SetEmotion(GetPlayerSession()->emotion);
 
   CardFolder* newFolder = nullptr;
 
