@@ -238,6 +238,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
 {
   // Track if player is being deleted
   if (!isPlayerDeleted && player == &pending) {
+    battleResults.runaway = false;
     isPlayerDeleted = true;
     player = nullptr;
   }
