@@ -209,6 +209,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   auto& camera = GetCamera();
   warpCameraController.UpdateCamera(float(elapsed), camera);
   serverCameraController.UpdateCamera(float(elapsed), camera);
+  camera.Update(0);
   UnlockCamera(); // reset lock, we'll lock it later if we need to
 }
 
