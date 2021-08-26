@@ -36,9 +36,9 @@ end
     10. after up_right claw reaches 2nd tile, head is spawned on the last col, row as user
     11. after all elements are off-screen and deleted, megaman is returned and time freeze ends
 --]]
-function card_create_action(actor, props)
+function card_create_action(user, props)
     print("in create_card_action()!")
-    local action = Battle.CardAction.new(actor, "PLAYER_IDLE")
+    local action = Battle.CardAction.new(user, "PLAYER_IDLE")
 
     action:set_lockout(make_sequence_lockout())
 
@@ -54,9 +54,10 @@ function card_create_action(actor, props)
         self.up_right_claw   = nil
         self.head            = nil
         self.beastman        = nil
-        self.tile            = actor:get_current_tile()
+        self.tile            = user:get_current_tile()
 
         local ref = self
+        local actor = self:get_actor()
 
         step1.update_func = function(self, dt) 
             if ref.beastman == nil then
