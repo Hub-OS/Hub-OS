@@ -1,5 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include <memory>
+#include <vector>
+#include <functional>
 #include "bnScriptResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -64,9 +66,22 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_cracked", &Battle::Tile::IsCracked,
     "is_hole", &Battle::Tile::IsHole,
     "is_walkable", &Battle::Tile::IsWalkable,
+    "is_hidden", &Battle::Tile::IsHidden,
     "is_reserved", &Battle::Tile::IsReservedByCharacter,
-    "team", &Battle::Tile::GetTeam,
-    "attack_entities", &Battle::Tile::AffectEntities
+    "get_team", &Battle::Tile::GetTeam,
+    "attack_entities", &Battle::Tile::AffectEntities,
+    "get_distance_to_tile", &Battle::Tile::Distance,
+    "find_characters", &Battle::Tile::FindCharacters,
+    "get_tile", &Battle::Tile::GetTile,
+    "contains_entity", &Battle::Tile::ContainsEntity,
+    "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
+    "add_entity", sol::overload(
+      sol::resolve<void(Artifact&)>(&Battle::Tile::AddEntity),
+      sol::resolve<void(Spell&)>(&Battle::Tile::AddEntity),
+      sol::resolve<void(Obstacle&)>(&Battle::Tile::AddEntity),
+      sol::resolve<void(Character&)>(&Battle::Tile::AddEntity)
+    ),
+    "reserve_entity_by_id", &Battle::Tile::ReserveEntityByID
   );
 
   // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
@@ -86,6 +101,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     ),
     "get_character", &Field::GetCharacter,
     "get_entity", &Field::GetEntity,
+    "find_characters", sol::overload(
+      sol::resolve<std::vector<Character*>(std::function<bool(Character*)>)>(&Field::FindCharacters)
+    ),
+    "find_nearest_characters", sol::overload(
+      sol::resolve<std::vector<Character*>(Character*, std::function<bool(Character*)>)>(&Field::FindNearestCharacters)
+    ),
+    "find_tiles", &Field::FindTiles,
     "notify_on_delete", &Field::NotifyOnDelete,
     "callback_on_delete", &Field::CallbackOnDelete
   );
@@ -290,7 +312,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     ),
     "get_position", &Character::GetDrawOffset,
     "set_height", &Character::SetHeight,
-    "toggle_counter", &Character::ToggleCounter
+    "toggle_counter", &Character::ToggleCounter,
+    "get_animation", &Character::GetAnimationFromComponent // I don't want to do this, but sol2 makes me...
   );
 
   const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
@@ -1076,6 +1099,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   state.set_function("fdata",
     [](unsigned index, double sec) { return OverrideFrame{ index, sec };  }
+  );
+
+  state.set_function("reverse_dir",
+    [](Direction dir) { return Reverse(dir); }
   );
 }
 

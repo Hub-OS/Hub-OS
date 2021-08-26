@@ -61,3 +61,8 @@ void StuntDouble::OnUpdate(double elapsed)
     setColor(ref.getColor());
   //}
 }
+
+bool StuntDouble::CanMoveTo(Battle::Tile*)
+{
+  return true;
+}

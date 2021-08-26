@@ -178,6 +178,18 @@ namespace Battle {
     return y;
   }
 
+  Tile* Tile::GetTile(Direction dir, unsigned count)
+  {
+    auto next = this;
+
+    while (count > 0) {
+      next = next + dir;
+      count--;
+    }
+
+    return next;
+  }
+
   const Team Tile::GetTeam() const {
     return team;
   }

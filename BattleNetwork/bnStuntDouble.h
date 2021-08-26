@@ -10,4 +10,5 @@ public:
 
   void OnDelete();
   void OnUpdate(double elapsed);
+  bool CanMoveTo(Battle::Tile*) override;
 };
