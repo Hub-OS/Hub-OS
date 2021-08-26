@@ -13,7 +13,7 @@ namespace Overworld
   // server expects uint16_t codes
   enum class ClientEvents : uint16_t
   {
-    ping = 0,
+    version_request = 0,
     ack,
     server_message, // not used by clients
     heartbeat,
@@ -53,7 +53,7 @@ namespace Overworld
 
   enum class ServerEvents : uint16_t
   {
-    pong = 0,
+    version_info = 0,
     ack,
     heartbeat,
     login,
