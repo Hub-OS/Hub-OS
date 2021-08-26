@@ -295,7 +295,6 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
     Player* player = meta.GetData();
 
-    int fullHealth = player->GetHealth();
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
 
@@ -1468,7 +1467,13 @@ void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poc
 void Overworld::OnlineArea::receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto path = reader.ReadString<uint16_t>(buffer);
 
-  emoteNode.LoadCustomEmotes(serverAssetManager.GetTexture(path));
+  customEmotesTexture = serverAssetManager.GetTexture(path);
+  emoteNode.LoadCustomEmotes(customEmotesTexture);
+
+  for (auto& pair : onlinePlayers) {
+    auto& otherEmoteNode = pair.second.emoteNode;
+    otherEmoteNode.LoadCustomEmotes(customEmotesTexture);
+  }
 }
 
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2100,6 +2105,9 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
   auto mugshot = Textures().LoadTextureFromFile(image);
   auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
   Player* player = playerMeta.GetData();
+
+  player->SetHealth(GetPlayerSession()->health);
+  player->SetEmotion(GetPlayerSession()->emotion);
 
   CardFolder* newFolder = nullptr;
 
