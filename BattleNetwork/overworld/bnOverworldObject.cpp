@@ -9,10 +9,7 @@ namespace Overworld {
   }
 
   bool ShapeObject::Intersects(Map& map, float x, float y) const {
-    auto relativePosition = sf::Vector2f(x, y) - this->position;
-    auto relativeOrtho = map.WorldToScreen(relativePosition);
-
-    return shape->Intersects(relativeOrtho.x, relativeOrtho.y);
+    return shape->Intersects(x, y);
   }
 
   TileObject::TileObject(unsigned int id, Tile tile) : tile(tile) {
@@ -60,10 +57,6 @@ namespace Overworld {
     // not sure why this is needed
     // something to do with being centered at tileSize.x / 2
     orthoOffset.x -= tileSize.x / 2;
-
-    // not sure where this offset comes from
-    orthoOffset.x += 1;
-    orthoOffset.y -= 1;
 
     // flip
     if (tile.flippedHorizontal) {

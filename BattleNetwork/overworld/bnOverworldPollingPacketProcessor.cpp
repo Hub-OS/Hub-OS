@@ -33,7 +33,7 @@ namespace Overworld {
     if (pingServerTimer.getElapsed().asSeconds() == 0.0f) {
       Poco::Buffer<char> buffer{ 0 };
       BufferWriter writer;
-      writer.Write(buffer, ClientEvents::ping);
+      writer.Write(buffer, ClientEvents::version_request);
 
       packetShipper.Send(*client, Reliability::Unreliable, buffer);
 
@@ -57,7 +57,7 @@ namespace Overworld {
       return;
     }
 
-    if (reader.Read<ServerEvents>(data) != ServerEvents::pong) {
+    if (reader.Read<ServerEvents>(data) != ServerEvents::version_info) {
       // ignoring, might be for a previous processor
       return;
     }
