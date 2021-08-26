@@ -924,6 +924,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::initiate_pvp:
       receivePVPSignal(reader, data);
       break;
+    case ServerEvents::load_mob:
+      receiveLoadMobSignal(reader, data);
+      break;
     case ServerEvents::initiate_mob:
       receiveMobSignal(reader, data);
       break;
@@ -2056,7 +2059,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   }
 }
 
-void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
 
@@ -2071,16 +2074,30 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   std::string packageId = packageManager.FilepathToPackageID(file_path);
 
-  if (!packageManager.HasPackage(packageId)) {
-    // install for the first time
-    if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
-      Logger::Logf("Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
-      return;
-    }
-    else {
-      packageId = packageManager.FilepathToPackageID(file_path);
-    }
+  if (packageManager.HasPackage(packageId)) {
+    return;
   }
+
+  // install for the first time
+  if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
+    Logger::Logf("Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
+  }
+}
+
+void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string asset_path = reader.ReadString<uint16_t>(buffer);
+
+  std::string file_path = serverAssetManager.GetPath(asset_path);
+
+  if (file_path.empty()) {
+    Logger::Logf("Failed to find remote mob asset %s", file_path.c_str());
+    return;
+  }
+
+  auto& packageManager = getController().MobPackageManager();
+
+  std::string packageId = packageManager.FilepathToPackageID(file_path);
 
   if (!packageManager.HasPackage(packageId)) {
     // If we don't have it by now something went terribly wrong
