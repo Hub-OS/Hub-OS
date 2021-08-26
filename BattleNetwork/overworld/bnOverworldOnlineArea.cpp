@@ -377,7 +377,9 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
       }
     }
 
-    if (distance <= MIN_IDLE_MOVEMENT) {
+    auto shouldIdle = distance <= MIN_IDLE_MOVEMENT || currentTime - onlinePlayer.lastMovementTime > MAX_IDLE_MS;
+
+    if (shouldIdle) {
       actor->Face(onlinePlayer.idleDirection);
     }
     else if (distance <= actor->GetWalkSpeed() * expectedTime) {
