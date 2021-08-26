@@ -58,10 +58,6 @@ namespace Overworld {
     // something to do with being centered at tileSize.x / 2
     orthoOffset.x -= tileSize.x / 2;
 
-    // not sure where this offset comes from
-    orthoOffset.x += 1;
-    orthoOffset.y -= 1;
-
     // flip
     if (tile.flippedHorizontal) {
       orthoOffset.x *= -1;
