@@ -15,6 +15,8 @@ class ScriptedArtifact final : public Artifact, public dynamic_object
 {
 	AnimationComponent* animationComponent{ nullptr };
 	sf::Vector2f scriptedOffset{ };
+	bool flip{true};
+
 public:
 	ScriptedArtifact();
 	~ScriptedArtifact();
@@ -23,18 +25,11 @@ public:
 	 * Centers the animation on the tile, offsets it by its internal offsets, then invokes the function assigned to onUpdate if present.
 	 * @param _elapsed: The amount of elapsed time since the last frame.
 	 */
-	void OnUpdate(double _elapsed);
-
-	/**
-	 *
-	 */
-	void OnDelete();
-
-	/**
-	 * \brief Causes the visuals of the effect to flip horizontally.
-	 * Most often used to mirror graphics between sides.
-	 */
-	void Flip();
+	void OnUpdate(double _elapsed) override;
+	void OnDelete() override;
+	bool CanMoveTo(Battle::Tile* next) override;
+	void OnSpawn(Battle::Tile& spawn) override;
+	void NeverFlip(bool enabled);
 
 	void SetAnimation(const std::string& path);
 	Animation& GetAnimationObject();
@@ -43,7 +38,10 @@ public:
 	/**
 	 * \brief Callback function that, when registered, is called on every frame.
 	 */
-	std::function<void(ScriptedArtifact&, double)> update_func;
+	std::function<void(ScriptedArtifact&, double)> updateCallback;
+	std::function<void(ScriptedArtifact&, Battle::Tile&)> spawnCallback;
+	std::function<bool(Battle::Tile&)> canMoveToCallback;
+	std::function<void(ScriptedArtifact&)> deleteCallback;
 };
 
 #endif

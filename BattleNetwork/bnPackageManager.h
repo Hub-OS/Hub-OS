@@ -65,7 +65,9 @@ class PackageManager {
     //
     // member methods
     //
-
+    PackageManager() {}
+    PackageManager(const PackageManager&) = delete;
+    PackageManager(PackageManager&&) = delete;
     virtual ~PackageManager();
 
     stx::result_t<bool> Commit(MetaClass* entry);

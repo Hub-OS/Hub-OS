@@ -248,11 +248,18 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
       return;
     }
 
-    std::vector<std::string> cardUUIDs;
+    std::vector<std::string> cardUUIDs, cardPackages;
     auto next = folder->Next();
 
     while (next) {
-      cardUUIDs.push_back(next->GetUUID());
+      // NOTE TO SELF: assume if it's not a package, it's from the web for now
+      //               until we phase out the web stuff entirely.
+      if (!getController().CardPackageManager().HasPackage(next->GetUUID())) {
+        cardUUIDs.push_back(next->GetUUID());
+      }
+      else {
+        cardPackages.push_back(next->GetUUID());
+      }
       next = folder->Next();
     }
 
@@ -261,6 +268,7 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     DownloadSceneProps props = {
       canProceedToBattle,
       cardUUIDs,
+      cardPackages,
       GetCurrentNaviID(),
       remoteNaviId,
       remote,

@@ -20,6 +20,7 @@ local idleDuoPos = {x=-15.0, y=0}
 
 function create_upward_fist(duo) 
     local fist = Battle.Spell.new(Team.Blue)
+    fist:never_flip(true)
     fist:set_texture(texture, true)
     fist:highlight_tile(Highlight.Flash)
 
@@ -82,6 +83,7 @@ end
 function create_downward_fist(duo) 
     local fist = Battle.Spell.new(Team.Blue)
     fist:set_texture(texture, true)
+    fist:never_flip(true)
 
     fist:set_hit_props(
         make_hit_props(
@@ -143,6 +145,8 @@ function create_mine(duo)
     local mine = Battle.Obstacle.new(Team.Blue)
     mine:set_health(20)
     mine:share_tile(true)
+    mine:never_flip(true)
+
     mine:set_hit_props(
         make_hit_props(
             20, 
@@ -252,6 +256,7 @@ function create_laser_beam(duo)
     laserComplete = false
     local laser = Battle.Spell.new(Team.Blue) 
 
+    laser:never_flip(true)
     laser:set_texture(texture, true)
     laser:set_layer(-2)
 
@@ -337,6 +342,7 @@ function create_missile(duo)
     missile:set_layer(-2)
     missile:show_shadow(false)
     missile:share_tile(true)
+    missile:never_flip(true)
     missile.waitTimer = 1 -- second
 
     missile:set_hit_props(

@@ -23,7 +23,7 @@
 
 struct DownloadSceneProps {
   bool& downloadSuccess;
-  std::vector<std::string> cardUUIDs;
+  std::vector<std::string> webCardsUUIDs, cardPackageHashes;
   std::string playerHash;
   std::string& remotePlayerHash;
   Poco::Net::SocketAddress remoteAddress;
@@ -34,8 +34,9 @@ struct DownloadSceneProps {
 class DownloadScene final : public Scene {
 private:
   enum class TaskTypes : char {
-    trade_cards = 0,
-    trade_player
+    trade_web_cards = 0,
+    trade_card_packages,
+    trade_player_package
   } type;
 
   bool& downloadSuccess;
@@ -46,9 +47,9 @@ private:
   size_t packetAckId{};
   std::string playerHash;
   std::string& remotePlayerHash;
-  std::vector<std::string> playerCardList, retryCardList;
+  std::vector<std::string> playerWebCardList, playerCardPackageList;
   std::queue<TaskTypes> taskQueue;
-  std::map<TaskTypes, bool> taskComplete;
+  std::map<std::string, bool> taskComplete;
   std::map<std::string, std::string> cardsToDownload;
   Text label;
   sf::Sprite bg; // background
@@ -60,28 +61,47 @@ private:
   void SendHandshakeAck();
   bool ProcessTaskQueue();
   bool AllTasksComplete();
-  void TradeCardList(const std::vector<std::string>& uuids);
-  void TradePlayerData(const std::string& hash);
-  void RequestCardList(const std::vector<std::string>& uuids);
-  void RequestPlayerData(const std::string& hash);
-
-  void SendDownloadComplete(bool success);
   void SendPing(); //!< keep connections alive while clients download data
 
-  void DownloadPlayerData(const Poco::Buffer<char>& buffer);
-  void DownloadCardList(const Poco::Buffer<char>& buffer);
+  // Notify remote of health
+  void SendDownloadComplete(bool success);
 
-  void RecieveTradeCardList(const Poco::Buffer<char>& buffer);
-  void RecieveRequestCardList(const Poco::Buffer<char>& buffer);
-  void RecieveTradePlayerData(const Poco::Buffer<char>& buffer);
-  void RecieveRequestPlayerData(const Poco::Buffer<char>& buffer);
+  // Initiate trades
+  void TradeWebCardList(const std::vector<std::string>& uuids);
+  void TradePlayerPackageData(const std::string& hash);
+  void TradeCardPackageData(const std::vector<std::string>& hashes);
+
+  // Initiate requests
+  void RequestWebCardList(const std::vector<std::string>& uuids);
+  void RequestPlayerPackageData(const std::string& hash);
+  void RequestCardPackageList(const std::vector<std::string>& hash);
+
+  // Handle recieve 
+  void RecieveTradeWebCardList(const Poco::Buffer<char>& buffer);
+  void RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer);
+  void RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer);
+  void RecieveRequestWebCardList(const Poco::Buffer<char>& buffer);
+  void RecieveRequestPlayerPackageData(const Poco::Buffer<char>& buffer);
+  void RecieveRequestCardPackageData(const Poco::Buffer<char>& buffer);
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
- 
-  std::vector<std::string> DeserializeUUIDs(const Poco::Buffer<char>& buffer);
-  Poco::Buffer<char> SerializeUUIDs(NetPlaySignals header, const std::vector<std::string>& uuids);
+
+  // Downloads
+  void DownloadCardList(const Poco::Buffer<char>& buffer);
+  void DownloadPlayerData(const Poco::Buffer<char>& buffer);
+
+  template<typename PackageManagerType, typename ScriptedDataType>
+  void DownloadPackageData(const Poco::Buffer<char>& buffer, PackageManagerType& pm);
+
+  // Serializers
+  std::vector<std::string> DeserializeListOfStrings(const Poco::Buffer<char>& buffer);
+  Poco::Buffer<char> SerializeListOfStrings(NetPlaySignals header, const std::vector<std::string>& list);
   Poco::Buffer<char> SerializeCards(const std::vector<std::string>& cardList);
-  Poco::Buffer<char> SerializePlayerData(const std::string& hash);
-  void Abort(const std::vector<std::string>& failed);
+
+  template<typename PackageManagerType>
+  Poco::Buffer<char> SerializePackageData(const std::string& hash, NetPlaySignals header, PackageManagerType& pm);
+
+  // Aux
+  void Abort();
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body);
 
 public:

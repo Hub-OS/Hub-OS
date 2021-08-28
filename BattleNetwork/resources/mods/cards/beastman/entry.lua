@@ -61,7 +61,7 @@ function card_create_action(user, props)
 
         step1.update_func = function(self, dt) 
             if ref.beastman == nil then
-                ref.beastman = create_beast_intro()
+                ref.beastman = create_beast_intro(actor)
                 actor:hide()
                 actor:get_field():spawn(ref.beastman, ref.tile:x(), ref.tile:y())
             end
@@ -73,8 +73,16 @@ function card_create_action(user, props)
 
         step2.update_func = function(self, dt)
             if ref.down_right_claw == nil then
-                ref.down_right_claw = create_spell("claw_down_right", Direction.DownRight, actor)
-                actor:get_field():spawn(ref.down_right_claw, ref.tile:x()+1, ref.tile:y()-2)
+                local dir = Direction.DownRight
+                local step = {x = 1, y = -2}
+
+                if actor:get_team() == Team.Blue then 
+                    dir = flip_x_dir(dir)
+                    step.x = -1
+                end
+
+                ref.down_right_claw = create_spell("claw_down_right", dir, actor)
+                actor:get_field():spawn(ref.down_right_claw, ref.tile:x()+step.x, ref.tile:y()+step.y)
             end
 
             if ref.down_right_claw:will_remove_eof() then
@@ -90,8 +98,16 @@ function card_create_action(user, props)
 
         step3.update_func = function(self, dt) 
             if ref.up_right_claw == nil then
-                ref.up_right_claw = create_spell("claw_up_right", Direction.UpRight, actor)
-                actor:get_field():spawn(ref.up_right_claw, ref.tile:x()+1, 4)
+                local dir = Direction.UpRight
+                local step = {x = 1, y = 4}
+
+                if actor:get_team() == Team.Blue then 
+                    dir = flip_x_dir(dir)
+                    step.x = -1
+                end
+
+                ref.up_right_claw = create_spell("claw_up_right", dir, actor)
+                actor:get_field():spawn(ref.up_right_claw, ref.tile:x()+step.x, step.y)
             end
 
             if ref.up_right_claw:will_remove_eof() then
@@ -107,8 +123,17 @@ function card_create_action(user, props)
 
         step4.update_func = function(self, dt) 
             if ref.head == nil then
-                ref.head = create_spell("head", Direction.Right, actor)
-                actor:get_field():spawn(ref.head, 0, ref.tile:y())
+                local dir = Direction.Right
+
+                local x = 0
+
+                if actor:get_team() == Team.Blue then 
+                    dir = flip_x_dir(dir)
+                    x = 7
+                end
+
+                ref.head = create_spell("head", dir, actor)
+                actor:get_field():spawn(ref.head, x, ref.tile:y())
             end
 
             if ref.head:will_remove_eof() then
@@ -131,8 +156,8 @@ function card_create_action(user, props)
     return action
 end
 
-function create_beast_intro() 
-    local fx = Battle.Artifact.new()
+function create_beast_intro(user) 
+    local fx = Battle.Artifact.new(user:get_team())
     fx:set_texture(TEXTURE, true)
     fx:get_animation():load(_modpath.."beastman.animation")
     fx:get_animation():set_state("INTRO")
@@ -200,7 +225,7 @@ function create_spell(animation_state, direction, user)
 end
 
 function drop_trace_fx(obj)
-    local fx = Battle.Artifact.new()
+    local fx = Battle.Artifact.new(obj:get_team())
     local anim = obj:get_animation()
     fx:set_texture(TEXTURE, true)
     fx:get_animation():copy_from(anim)

@@ -30,6 +30,7 @@ public:
   Animation& GetAnimationObject();
   // duration in seconds
   void ShakeCamera(double power, float duration);
+  void NeverFlip(bool enabled);
 
   std::function<void(ScriptedSpell&, Battle::Tile&)> spawnCallback;
   std::function<void(ScriptedSpell&, Character&)> attackCallback;
@@ -38,6 +39,7 @@ public:
   std::function<void(ScriptedSpell&)> deleteCallback;
   std::function<void(ScriptedSpell&, double)> updateCallback;
 private:
+  bool flip{true};
   float height{};
   sf::Vector2f scriptedOffset{};
   SpriteProxyNode* shadow{ nullptr };
