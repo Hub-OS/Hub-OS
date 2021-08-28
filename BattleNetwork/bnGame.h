@@ -154,6 +154,11 @@ public:
 
     return T{};
   }
+
+  // todo: remove when this is public from swoosh
+  const swoosh::Activity* getCurrentActivity() const {
+    return ActivityController::getCurrentActivity();
+  }
 private:
   DrawWindow::WindowMode windowMode{};
 
