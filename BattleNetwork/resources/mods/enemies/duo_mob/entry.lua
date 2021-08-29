@@ -30,7 +30,7 @@ function package_build(mob)
         mob:get_field():tile_at(6, i):set_state(TileState.Hidden)
     end
 
-    local duo_spawner = mob:create_spawner("com.example.char.Duo")
+    local duo_spawner = mob:create_spawner("com.example.char.Duo", Rank.V1)
     -- duo_ex_spawner = mob:create_spawner("com.example.char.Duo", Rank.EX)
     -- duo_spawner:spawn_at(5,2,Duo.custom_intro)
     duo_spawner:spawn_at(5, 2)

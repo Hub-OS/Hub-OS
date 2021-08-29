@@ -1,5 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include <memory>
+#include <vector>
+#include <functional>
 #include "bnScriptResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -43,6 +45,21 @@
 #include "bnFireBurnCardAction.h"
 #include "bnCannonCardAction.h"
 
+namespace {
+  int exception_handler(lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description) {
+    if (maybe_exception) {
+      const std::exception& ex = *maybe_exception;
+      Logger::Log(ex.what());
+    }
+    else {
+      std::string message(description.data(), description.size());
+      Logger::Log(message.c_str());
+    }
+
+    return sol::stack::push(L, description);
+  }
+}
+
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.open_libraries(sol::lib::base, sol::lib::math);
 
@@ -64,9 +81,22 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_cracked", &Battle::Tile::IsCracked,
     "is_hole", &Battle::Tile::IsHole,
     "is_walkable", &Battle::Tile::IsWalkable,
+    "is_hidden", &Battle::Tile::IsHidden,
     "is_reserved", &Battle::Tile::IsReservedByCharacter,
-    "team", &Battle::Tile::GetTeam,
-    "attack_entities", &Battle::Tile::AffectEntities
+    "get_team", &Battle::Tile::GetTeam,
+    "attack_entities", &Battle::Tile::AffectEntities,
+    "get_distance_to_tile", &Battle::Tile::Distance,
+    "find_characters", &Battle::Tile::FindCharacters,
+    "get_tile", &Battle::Tile::GetTile,
+    "contains_entity", &Battle::Tile::ContainsEntity,
+    "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
+    "add_entity", sol::overload(
+      sol::resolve<void(Artifact&)>(&Battle::Tile::AddEntity),
+      sol::resolve<void(Spell&)>(&Battle::Tile::AddEntity),
+      sol::resolve<void(Obstacle&)>(&Battle::Tile::AddEntity),
+      sol::resolve<void(Character&)>(&Battle::Tile::AddEntity)
+    ),
+    "reserve_entity_by_id", &Battle::Tile::ReserveEntityByID
   );
 
   // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
@@ -86,6 +116,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     ),
     "get_character", &Field::GetCharacter,
     "get_entity", &Field::GetEntity,
+    "find_characters", sol::overload(
+      sol::resolve<std::vector<Character*>(std::function<bool(Character*)>)>(&Field::FindCharacters)
+    ),
+    "find_nearest_characters", sol::overload(
+      sol::resolve<std::vector<Character*>(Character*, std::function<bool(Character*)>)>(&Field::FindNearestCharacters)
+    ),
+    "find_tiles", &Field::FindTiles,
     "notify_on_delete", &Field::NotifyOnDelete,
     "callback_on_delete", &Field::CallbackOnDelete
   );
@@ -131,6 +168,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_tile", &ScriptedSpell::GetTile,
     "get_current_tile", &ScriptedSpell::GetCurrentTile,
     "get_field", &ScriptedSpell::GetField,
+    "get_facing", &ScriptedSpell::GetFacing,
+    "set_facing", &ScriptedSpell::SetFacing,
     "sprite", &ScriptedSpell::getSprite,
     "get_alpha", &ScriptedSpell::GetAlpha,
     "set_alpha", &ScriptedSpell::SetAlpha,
@@ -166,7 +205,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       sol::resolve<void(float, float)>(&ScriptedSpell::SetDrawOffset)
     ),
     "get_position", &ScriptedSpell::GetDrawOffset,
-    "show_shadow", & ScriptedSpell::ShowShadow,
+    "show_shadow", &ScriptedSpell::ShowShadow,
+    "never_flip", &ScriptedSpell::NeverFlip,
     "attack_func", &ScriptedSpell::attackCallback,
     "delete_func", &ScriptedSpell::deleteCallback,
     "update_func", &ScriptedSpell::updateCallback,
@@ -187,7 +227,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_id", &ScriptedObstacle::GetID,
     "get_element", &ScriptedObstacle::GetElement,
     "set_element", &ScriptedObstacle::SetElement,
-    "get_facing", & ScriptedObstacle::GetFacing,
+    "get_facing", &ScriptedObstacle::GetFacing,
+    "set_facing", &ScriptedObstacle::SetFacing,
     "get_tile", &ScriptedObstacle::GetTile,
     "get_current_tile", &ScriptedObstacle::GetCurrentTile,
     "get_alpha", &ScriptedObstacle::GetAlpha,
@@ -208,6 +249,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_moving", &ScriptedObstacle::IsMoving,
     "is_team", &ScriptedObstacle::Teammate,
     "is_deleted", &ScriptedObstacle::IsDeleted,
+    "is_passthrough", &ScriptedObstacle::IsPassthrough,
     "will_remove_eof", &ScriptedObstacle::WillRemoveLater,
     "get_team", &ScriptedObstacle::GetTeam,
     "remove", &ScriptedObstacle::Remove,
@@ -236,6 +278,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       sol::resolve<void(float, float)>(&ScriptedObstacle::SetDrawOffset)
     ),
     "get_position", &ScriptedObstacle::GetDrawOffset,
+    "never_flip", &ScriptedObstacle::NeverFlip,
     "attack_func", &ScriptedObstacle::attackCallback,
     "delete_func", &ScriptedObstacle::deleteCallback,
     "update_func", &ScriptedObstacle::updateCallback,
@@ -267,6 +310,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_sliding", &Character::IsSliding,
     "is_jumping", &Character::IsJumping,
     "is_teleporting", &Character::IsTeleporting,
+    "is_passthrough", &Character::IsPassthrough,
     "is_moving", &Character::IsMoving,
     "is_deleted", &Character::IsDeleted,
     "will_remove_eof", &Character::WillRemoveLater,
@@ -290,7 +334,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     ),
     "get_position", &Character::GetDrawOffset,
     "set_height", &Character::SetHeight,
-    "toggle_counter", &Character::ToggleCounter
+    "toggle_counter", &Character::ToggleCounter,
+    "get_animation", &Character::GetAnimationFromComponent // I don't want to do this, but sol2 makes me...
   );
 
   const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
@@ -323,6 +368,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_jumping", &ScriptedCharacter::IsJumping,
     "is_teleporting", &ScriptedCharacter::IsTeleporting,
     "is_moving", &ScriptedCharacter::IsMoving,
+    "is_passthrough", &ScriptedCharacter::IsPassthrough,
     "is_deleted", &ScriptedCharacter::IsDeleted,
     "will_remove_eof", &ScriptedCharacter::WillRemoveLater,
     "get_team", &ScriptedCharacter::GetTeam,
@@ -339,7 +385,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_name", &ScriptedCharacter::SetName,
     "set_health", &ScriptedCharacter::SetHealth,
     "get_rank", &ScriptedCharacter::GetRank,
-    "set_rank", &ScriptedCharacter::SetRank,
     "share_tile", &ScriptedCharacter::ShareTileSpace,
     "add_defense_rule", &ScriptedCharacter::AddDefenseRule,
     "set_position", sol::overload(
@@ -372,6 +417,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_teleporting", &Player::IsTeleporting,
     "is_moving", &Player::IsMoving,
     "is_deleted", &Player::IsDeleted,
+    "is_passthrough", &Player::IsPassthrough,
     "get_alpha", &Player::GetAlpha,
     "set_alpha", &Player::SetAlpha,
     "get_color", &Player::getColor,
@@ -412,6 +458,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_teleporting", &ScriptedPlayer::IsTeleporting,
     "is_moving", &ScriptedPlayer::IsMoving,
     "is_deleted", &ScriptedPlayer::IsDeleted,
+    "is_passthrough", &ScriptedPlayer::IsPassthrough,
     "will_remove_eof", &ScriptedPlayer::WillRemoveLater,
     "get_team", &ScriptedPlayer::GetTeam,
     "get_name", &ScriptedPlayer::GetName,
@@ -433,8 +480,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& scripted_artifact_record = battle_namespace.new_usertype<ScriptedArtifact>("Artifact",
-    sol::factories([]() -> std::unique_ptr<ScriptedArtifact> {
-      return std::make_unique<ScriptedArtifact>();
+    sol::factories([](Team team) -> std::unique_ptr<ScriptedArtifact> {
+      auto ptr = std::make_unique<ScriptedArtifact>();
+      ptr->SetTeam(team);
+      return ptr;
     }),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
@@ -468,7 +517,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_texture", &ScriptedArtifact::setTexture,
     "set_height", &ScriptedArtifact::SetHeight,
     "get_animation", &ScriptedArtifact::GetAnimationObject,
-    "update_func", &ScriptedArtifact::update_func
+    "never_flip", &ScriptedArtifact::NeverFlip,
+    "delete_func", &ScriptedArtifact::deleteCallback,
+    "update_func", &ScriptedArtifact::updateCallback,
+    "can_move_to_func", &ScriptedArtifact::canMoveToCallback,
+    "on_spawn_func", &ScriptedArtifact::spawnCallback
   );
 
   const auto& card_action_record = battle_namespace.new_usertype<CardAction>("BaseCardAction",
@@ -699,7 +752,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "action", &Battle::Card::Properties::action,
     "can_boost", &Battle::Card::Properties::canBoost,
     "card_class", &Battle::Card::Properties::cardClass,
-    "code", &Battle::Card::Properties::code,
     "damage", &Battle::Card::Properties::damage,
     "description", &Battle::Card::Properties::description,
     "element", &Battle::Card::Properties::element,
@@ -716,6 +768,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_card_props", &CardMeta::GetCardProperties,
     "set_preview_texture", &CardMeta::SetPreviewTexture,
     "set_icon_texture", &CardMeta::SetIconTexture,
+    "set_codes", &CardMeta::SetCodes,
     "declare_package_id", &CardMeta::SetPackageID
   );
 
@@ -1025,6 +1078,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "count", &Hit::Drag::count
   );
 
+  const auto& card_class_record = state.new_enum("CardClass",
+    "Standard", Battle::CardClass::standard,
+    "Mega", Battle::CardClass::mega,
+    "Giga", Battle::CardClass::giga,
+    "Dark", Battle::CardClass::dark
+  );
+
   state.set_function("drag",
     [](Direction dir, unsigned count) { return Hit::Drag{ dir, count }; }
   );
@@ -1077,6 +1137,18 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.set_function("fdata",
     [](unsigned index, double sec) { return OverrideFrame{ index, sec };  }
   );
+
+  state.set_function("reverse_dir",
+    [](Direction dir) { return Reverse(dir); }
+  );
+
+  state.set_function("flip_x_dir",
+    [](Direction dir) { return FlipHorizontal(dir);  }
+  );
+
+  state.set_function("flip_y_dir",
+    [](Direction dir) { return FlipVertical(dir);  }
+  );
 }
 
 ScriptResourceManager& ScriptResourceManager::GetInstance()
@@ -1104,6 +1176,7 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
 
   sol::state* lua = new sol::state;
   ConfigureEnvironment(*lua);
+  lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
 
   auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);

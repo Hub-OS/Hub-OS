@@ -30,6 +30,8 @@ void BattleStartBattleState::onStart(const BattleSceneState*)
   if (ui) {
     ui->Reveal();
   }
+
+  GetScene().IncrementTurnCount();
 }
 
 void BattleStartBattleState::onEnd(const BattleSceneState*)

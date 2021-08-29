@@ -37,7 +37,7 @@ void Netplay::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net:
         Logger::Logf("Handshake acknowledge with reliability type %d", (int)reliability);
       }
     }
-    else {
+    else if(onPacketBodyCallback) {
       constexpr auto sigSize = sizeof(NetPlaySignals);
 
       Poco::Buffer<char> body{ 0 };

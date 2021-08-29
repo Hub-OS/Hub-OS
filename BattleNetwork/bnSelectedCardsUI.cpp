@@ -161,14 +161,16 @@ void SelectedCardsUI::HandlePeekEvent(Character* from)
 
     // could act on metadata later:
     // from->OnCard(card)
-
-    std::shared_ptr<CardAction> action;
-    action.reset(CardToAction(card, from, packageManager));
-    action->SetMetaData(card.props); // associate the meta with this action object
-
+     
     // prepare for this frame's action animation (we must be actionable)
     from->MakeActionable();
-    this->Broadcast(action); // tell the rest of the subsystems
+
+    if (CardAction* newActionPtr = CardToAction(card, from, packageManager)) {
+      std::shared_ptr<CardAction> action;
+      action.reset(newActionPtr);
+      action->SetMetaData(card.props); // associate the meta with this action object
+      this->Broadcast(action); // tell the rest of the subsystems
+    }
   }
 }
 

@@ -54,6 +54,10 @@ void ScriptedSpell::OnSpawn(Battle::Tile& spawn)
 {
   ScriptedSpell& ss = *this;
   spawnCallback ? spawnCallback(ss, spawn) : (void)0;
+
+  if (GetTeam() == Team::blue && flip) {
+    setScale(-2.f, 2.f);
+  }
 }
 
 const float ScriptedSpell::GetHeight() const
@@ -91,5 +95,9 @@ Animation& ScriptedSpell::GetAnimationObject()
 void ScriptedSpell::ShakeCamera(double power, float duration)
 {
   this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
+}
+void ScriptedSpell::NeverFlip (bool enabled)
+{
+  flip = !enabled;
 }
 #endif

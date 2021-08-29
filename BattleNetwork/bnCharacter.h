@@ -288,6 +288,10 @@ public:
   void AddAction(const PeekCardEvent& event, const ActionOrder& order);
   void HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec);
   void HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::ExecutionType& exec);
+
+  // NOTE: I do not want this but Sol2 is type strict and actor objects for card actions
+  //       do not have a way to get animations even if their super class does...
+  Animation* GetAnimationFromComponent();
 private:
   int maxHealth{ std::numeric_limits<int>::max() };
   sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */

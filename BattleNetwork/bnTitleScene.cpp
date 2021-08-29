@@ -44,6 +44,12 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   sf::Vector2f logoPos = sf::Vector2f(240.f, 160.f);
   logoSprite.setPosition(logoPos);
 
+  progSprite.setTexture(Textures().LoadTextureFromFile("resources/scenes/title/prog-pulse.png"));
+  progSprite.setPosition(sf::Vector2f(380.f, 210.f));
+  progSprite.setScale(2.f, 2.f);
+  anim = Animation("resources/scenes/title/default.animation");
+  anim << "default" << Animator::Mode::Loop;
+
   // Log output text
   font = Font(Font::Style::small);
   logLabel.setOrigin(0.f, logLabel.GetLocalBounds().height);
@@ -58,7 +64,7 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   startLabel.SetString("Loading, Please Wait");
   CenterLabel();
 
-  ConfigSettings config = Input().GetConfigSettings();
+  ConfigSettings config = getController().ConfigSettings();
   WebServerInfo web = config.GetWebServerInfo();
   WEBCLIENT.ConnectToWebServer(web.version.c_str(), web.URL.c_str(), web.port);
   loginResult = WEBCLIENT.SendLoginCommand(web.user, web.password);
@@ -68,16 +74,8 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
 
 void TitleScene::onStart()
 {
-  ConfigSettings config = Input().GetConfigSettings();
-
-  // TODO: sfx and music level should already be in 0-100 values imo...
-  Audio().SetChannelVolume(((float)config.GetSFXLevel()/3.f)*100.f);
-  Audio().SetStreamVolume(((float)config.GetMusicLevel() / 3.f) * 100.f);
-
-  if (config.IsAudioEnabled() && config.GetMusicLevel() > 0) {
-    // stream some music while we wait
-    Audio().Stream("resources/loops/loop_theme.ogg");
-  }
+  // stream some music while we wait
+  Audio().Stream("resources/loops/loop_theme.ogg");
 
   // Begin performing tasks in the background
   LaunchTasks();
@@ -85,6 +83,8 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
+  anim.Update(elapsed, progSprite.getSprite());
+
   try {
     // If not ready, do no proceed past this point!
     if (IsComplete() == false || progress < 100) {
@@ -172,6 +172,7 @@ void TitleScene::onResume()
 void TitleScene::onDraw(sf::RenderTexture & surface)
 {
   surface.draw(bgSprite);
+  surface.draw(progSprite);
   surface.draw(logoSprite);
   surface.draw(startLabel);
 }

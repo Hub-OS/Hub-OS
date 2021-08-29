@@ -6,6 +6,7 @@
 #include "stx/result.h"
 #include "stx/tuple.h"
 #include "stx/zip_utils.h"
+#include "stx/crypto_utils.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -20,6 +21,8 @@ class PackageManager {
         std::function<void()> loadClass;
         std::string filepath;
         std::string packageId;
+        std::string fingerprint;
+
         DataType* data{nullptr};
 
         template<typename SuperDataType, typename... Args> MetaClass& SetClass(Args&&...);
@@ -38,12 +41,21 @@ class PackageManager {
           return *(static_cast<MetaClass*>(this));
         }
 
+        MetaClass& SetPackageFingerprint(const std::string& hash) {
+          this->fingerprint = hash;
+          return *(static_cast<MetaClass*>(this));
+        }
+
         const std::string& GetPackageID() const {
           return packageId;
         }
 
         const std::string& GetFilePath() const {
           return filepath;
+        }
+
+        const std::string& GetPackageFingerprint() const {
+          return fingerprint;
         }
 
         DataType* GetData() {
@@ -65,7 +77,9 @@ class PackageManager {
     //
     // member methods
     //
-
+    PackageManager() {}
+    PackageManager(const PackageManager&) = delete;
+    PackageManager(PackageManager&&) = delete;
     virtual ~PackageManager();
 
     stx::result_t<bool> Commit(MetaClass* entry);
@@ -154,6 +168,14 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
     packageClass->OnMetaParsed();
 
     packageClass->SetFilePath(modpath.generic_string());
+
+    if (auto result = stx::generate_md5_from_file(modpath.generic_string() + ".zip"); result.is_error()) {
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + result.error_cstr();
+      return stx::error<bool>(msg);
+    }
+    else {
+      packageClass->SetPackageFingerprint(result.value());
+    }
     
     if (auto result = this->Commit(packageClass); result.is_error()) {
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + result.error_cstr();

@@ -23,6 +23,7 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
   Battle::Card::Properties properties;
   std::shared_ptr<sf::Texture> iconTexture; /*!< Icon used in hand */
   std::shared_ptr<sf::Texture> previewTexture; /*!< Picture used in select widget */
+  std::vector<char> codes;
 
   /**
   * @brief
@@ -45,6 +46,8 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
    */
   CardMeta& SetIconTexture(const std::shared_ptr<sf::Texture> icon);
 
+  CardMeta& SetCodes(const std::vector<char> codes);
+
   /**
    * @brief Gets the icon texture to draw
    * @return const sf::Texture&
@@ -57,7 +60,10 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
    */
   const std::shared_ptr<sf::Texture> GetPreviewTexture() const;
 
+  // mutable to allow scripting to modify this
   Battle::Card::Properties& GetCardProperties();
+
+  const std::vector<char> GetCodes() const;
 };
 
 class CardPackageManager : public PackageManager<CardMeta> {};

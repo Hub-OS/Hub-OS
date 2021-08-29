@@ -12,10 +12,10 @@
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
 //
-ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path)
+ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank)
 { 
-  scriptedSpawner = new Mob::Spawner <ScriptedCharacter>(std::ref(script));
-  auto lambda = scriptedSpawner->constructor;
+  scriptedSpawner = new Mob::Spawner <ScriptedCharacter>(std::ref(script), rank);
+  std::function<ScriptedCharacter*()> lambda = scriptedSpawner->constructor;
 
   scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> ScriptedCharacter* {
     (*scriptPtr)["_modpath"] = path+"/";
@@ -65,6 +65,30 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
 
   mob->defaultStateInvokers.push_back(defaultStateWrapper);
 
+  // Set name special font based on rank
+  switch (data->character->GetRank()) {
+  case Character::Rank::_2:
+    data->character->SetName(data->character->GetName() + "2");
+    break;
+  case Character::Rank::_3:
+    data->character->SetName(data->character->GetName() + "3");
+    break;
+  case Character::Rank::Rare1:
+    data->character->SetName(data->character->GetName() + "R1");
+    break;
+  case Character::Rank::Rare2:
+    data->character->SetName(data->character->GetName() + "R2");
+    break;
+  case Character::Rank::SP:
+    data->character->SetName(data->character->GetName() + char(-1));
+    break;
+  case Character::Rank::EX:
+    data->character->SetName(data->character->GetName() + char(-2));
+    break;
+  case Character::Rank::NM:
+    data->character->SetName(data->character->GetName() + char(-3));
+  }
+
   // Add the mob spawn data to our list of enemies to spawn
   mob->spawn.push_back(mutator);
   mob->tracked.push_back(data->character);
@@ -112,13 +136,13 @@ Field* ScriptedMob::GetField()
   return field;
 }
 
-ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn)
+ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn, Character::Rank rank)
 {
   std::string_view prefix = "com.builtins.char.";
   size_t builtin = fqn.find(prefix);
 
   if (builtin == std::string::npos) {
-    auto obj = ScriptedMob::ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn));
+    auto obj = ScriptedMob::ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn), rank);
     obj.SetMob(this->mob);
     return obj;
   }
@@ -133,11 +157,11 @@ ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn)
   obj.SetMob(this->mob);
 
   if (name == "canodumb") {
-    obj.UseBuiltInType<Canodumb>();
+    obj.UseBuiltInType<Canodumb>(rank);
   }
   else /* if (name == "mettaur") */ {
     // for now spawn metts if nothing matches...
-    obj.UseBuiltInType<Mettaur>();
+    obj.UseBuiltInType<Mettaur>(rank);
   }
 
   return obj;

@@ -93,6 +93,8 @@ namespace Battle {
      */
     const int GetY() const;
 
+    Tile* GetTile(Direction dir, unsigned count);
+
     /**
      * @brief Query the tile's team
      * @return Team

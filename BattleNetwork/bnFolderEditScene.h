@@ -168,6 +168,9 @@ private:
   void ShutdownTouchControls();
 #endif
 
+  std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
+  std::shared_ptr<sf::Texture> GetPreviewForCard(const std::string& uuid);
+
   void DrawFolder(sf::RenderTarget& surface);
   void DrawPool(sf::RenderTarget& surface);
   void ExcludeFolderDataFromPool();

@@ -115,12 +115,13 @@ public:
   const sf::Vector2f CameraViewOffset(Camera& camera);
   unsigned FrameNumber() const;
   const Endianness GetEndianness();
-  void UpdateConfigSettings(const ConfigSettings& new_settings);
+  void UpdateConfigSettings(const struct ConfigSettings& new_settings);
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
   CardPackageManager& CardPackageManager();
   PlayerPackageManager& PlayerPackageManager();
   MobPackageManager& MobPackageManager();
+  ConfigSettings& ConfigSettings();
 
   /**
    * @brief Store parsed command line values into the engine for easy access

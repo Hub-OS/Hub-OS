@@ -61,6 +61,10 @@ void ScriptedObstacle::OnSpawn(Battle::Tile& spawn)
 {
   ScriptedObstacle& so = *this;
   spawnCallback ? spawnCallback(so, spawn) : (void)0;
+
+  if (GetTeam() == Team::blue && flip) {
+    setScale(-2.f, 2.f);
+  }
 }
 
 const float ScriptedObstacle::GetHeight() const
@@ -101,5 +105,9 @@ Battle::Tile* ScriptedObstacle::GetCurrentTile() const
 
 void ScriptedObstacle::ShakeCamera(double power, float duration)
 {
+}
+void ScriptedObstacle::NeverFlip(bool enabled)
+{
+  flip = !enabled;
 }
 #endif

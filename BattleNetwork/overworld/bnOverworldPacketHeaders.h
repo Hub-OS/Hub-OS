@@ -6,14 +6,14 @@
 namespace Overworld
 {
   constexpr std::string_view VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
-  const uint64_t VERSION_ITERATION = 35;
+  const uint64_t VERSION_ITERATION = 36;
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
   // server expects uint16_t codes
   enum class ClientEvents : uint16_t
   {
-    ping = 0,
+    version_request = 0,
     ack,
     server_message, // not used by clients
     heartbeat,
@@ -53,7 +53,7 @@ namespace Overworld
 
   enum class ServerEvents : uint16_t
   {
-    pong = 0,
+    version_info = 0,
     ack,
     heartbeat,
     login,
@@ -101,6 +101,7 @@ namespace Overworld
     shop_inventory,
     open_shop,
     initiate_pvp,
+    load_mob,
     initiate_mob,
     actor_connected,
     actor_disconnect,

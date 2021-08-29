@@ -36,10 +36,12 @@ void RewardBattleState::onStart(const BattleSceneState*)
   results.battleLength = GetScene().GetElapsedBattleTime();
   results.moveCount = player->GetMoveCount();
   results.hitCount = *hitCount;
+  results.turns = GetScene().GetTurnCount();
   results.counterCount = GetScene().GetCounterCount();
   results.doubleDelete = GetScene().DoubleDelete();
   results.tripleDelete = GetScene().TripleDelete();
   results.finalEmotion = player->GetEmotion();
+  results.runaway = false;
 
   battleResultsWidget = new BattleResultsWidget(
     BattleResults::CalculateScore(results, mob), 

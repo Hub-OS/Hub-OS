@@ -739,7 +739,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
         if (!iter->IsEmpty()) {
             float cardIconY = 66.0f + (32.f * i);
-            cardIcon.setTexture(*WEBCLIENT.GetIconForCard(copy.GetUUID()));
+            cardIcon.setTexture(*GetIconForCard(copy.GetUUID()));
             cardIcon.setPosition(2.f * 104.f, cardIconY);
             surface.draw(cardIcon);
 
@@ -773,7 +773,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
             if (!iter->IsEmpty()) {
 
-                card.setTexture(*WEBCLIENT.GetImageForCard(copy.GetUUID()));
+                card.setTexture(*GetPreviewForCard(copy.GetUUID()));
                 card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f) * 2.0f, 2.0f);
                 surface.draw(card);
 
@@ -847,7 +847,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
         int count = iter->GetCount();
         const Battle::Card& copy = iter->ViewCard();
 
-        cardIcon.setTexture(*WEBCLIENT.GetIconForCard(copy.GetUUID()));
+        cardIcon.setTexture(*GetIconForCard(copy.GetUUID()));
         cardIcon.setPosition(16.f + 480.f, 65.0f + (32.f * i));
         surface.draw(cardIcon);
 
@@ -884,7 +884,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
             packCursor.setPosition(bounce + 480.f + 2.f, y);
             surface.draw(packCursor);
 
-            card.setTexture(*WEBCLIENT.GetImageForCard(poolCardBuckets[packView.currCardIndex].ViewCard().GetUUID()));
+            card.setTexture(*GetPreviewForCard(poolCardBuckets[packView.currCardIndex].ViewCard().GetUUID()));
             card.setTextureRect(sf::IntRect{ 0,0,56,48 });
             card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f) * 2.0f, 2.0f);
             surface.draw(card);
@@ -981,8 +981,14 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
 
     while(packageId.size()) {
       auto& meta = packageManager.FindPackageByID(packageId);
-      auto bucket = PoolBucket(5, Battle::Card(meta.GetCardProperties()));
-      poolCardBuckets.push_back(bucket);
+
+      for (auto& code : meta.GetCodes()) {
+        Battle::Card::Properties props = meta.GetCardProperties();
+        props.code = code;
+        auto bucket = PoolBucket(5, Battle::Card(props));
+        poolCardBuckets.push_back(bucket);
+      }
+
       packageId = packageManager.GetPackageAfter(packageId);
 
       if (packageId == packageManager.FirstValidPackage())
@@ -999,6 +1005,29 @@ void FolderEditScene::WriteNewFolderData()
 
         folder.AddCard((*iter).ViewCard());
     }
+}
+
+std::shared_ptr<sf::Texture> FolderEditScene::GetIconForCard(const std::string& uuid)
+{
+  auto& packageManager = getController().CardPackageManager();
+
+  if (packageManager.HasPackage(uuid)) {
+    auto& meta = packageManager.FindPackageByID(uuid);
+    return meta.GetIconTexture();
+  }
+
+  return WEBCLIENT.GetIconForCard(uuid);
+}
+std::shared_ptr<sf::Texture> FolderEditScene::GetPreviewForCard(const std::string& uuid)
+{
+  auto& packageManager = getController().CardPackageManager();
+
+  if (packageManager.HasPackage(uuid)) {
+    auto& meta = packageManager.FindPackageByID(uuid);
+    return meta.GetPreviewTexture();
+  }
+
+  return WEBCLIENT.GetImageForCard(uuid);
 }
 
 #ifdef __ANDROID__

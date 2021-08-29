@@ -180,7 +180,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   textbox(sf::Vector2f(4, 250)),
   Scene(controller)
 {
-  configSettings = Input().GetConfigSettings();
+  configSettings = getController().ConfigSettings();
   gamepadWasActive = Input().IsUsingGamepadControls();
   textbox.SetTextSpeed(2.0);
   isSelectingTopMenu = false;
@@ -556,8 +556,7 @@ void ConfigScene::onUpdate(double elapsed)
         ConfigWriter writer(configSettings);
         writer.Write("config.ini");
         ConfigReader reader("config.ini");
-        Input().SupportConfigSettings(reader);
-        getController().UpdateConfigSettings(Input().GetConfigSettings());
+        getController().UpdateConfigSettings(reader.GetConfigSettings());
 
         // transition to the next screen
         using namespace swoosh::types;

@@ -33,6 +33,8 @@ public:
   // duration in seconds
   void ShakeCamera(double power, float duration);
 
+  void NeverFlip(bool enabled);
+
   std::function<void(ScriptedObstacle&, Battle::Tile&)> spawnCallback;
   std::function<void(ScriptedObstacle&, Character&)> attackCallback;
   std::function<void(ScriptedObstacle&, Character&)> collisionCallback;
@@ -40,6 +42,7 @@ public:
   std::function<void(ScriptedObstacle&)> deleteCallback;
   std::function<void(ScriptedObstacle&, double)> updateCallback;
 private:
+  bool flip{ true };
   sf::Vector2f scriptedOffset{};
   float height{};
   SpriteProxyNode* shadow{ nullptr };

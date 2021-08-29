@@ -23,14 +23,15 @@ public:
     Mob::Spawner<ScriptedCharacter>* scriptedSpawner{ nullptr };
     std::function<Character* ()> constructor;
     std::function<void(Character*)> pixelStateInvoker, defaultStateInvoker;
+    Character::Rank rank{};
 
   public:
     ScriptedSpawner() = default;
-    ScriptedSpawner(sol::state& script, const std::string& path);
+    ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank);
     ~ScriptedSpawner();
 
     template<typename BuiltInCharacter>
-    void UseBuiltInType();
+    void UseBuiltInType(Character::Rank rank);
 
     Mob::Mutator* SpawnAt(int x, int y);
     void SetMob(Mob* mob);
@@ -51,16 +52,16 @@ public:
   * @param fqn String. The name of the character stored in script cache. Use `BuiltIns.NAME` prefix for built-in characters.
   * @preconditions The mob `load_script` function should never throw an exception prior to using this function.
   */
-  ScriptedSpawner CreateSpawner(const std::string& fqn);
+  ScriptedSpawner CreateSpawner(const std::string& fqn, Character::Rank rank);
 
   void SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely);
   void StreamMusic(const std::string& path, long long startMs, long long endMs);
 };
 
 template<typename BuiltInCharacter>
-void ScriptedMob::ScriptedSpawner::UseBuiltInType() {
-  this->constructor = [] {
-    return new BuiltInCharacter();
+void ScriptedMob::ScriptedSpawner::UseBuiltInType(Character::Rank rank) {
+  this->constructor = [rank] {
+    return new BuiltInCharacter(rank);
   };
 
   // NOTE: the difference between this invoker and the purely C++ one

@@ -90,6 +90,11 @@ void Animation::LoadWithData(const string& data)
         legacySupport = true;
       }
     }
+    else if (line.find("imagePath") != string::npos) {
+      // no-op 
+      // editor only at this time
+      continue;
+    }
     else if (line.find("animation") != string::npos) {
       if (!frameLists.empty()) {
         //std::cout << "animation total seconds: " << sf::seconds(currentAnimationDuration).asSeconds() << "\n";

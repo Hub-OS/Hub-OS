@@ -209,6 +209,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   auto& camera = GetCamera();
   warpCameraController.UpdateCamera(float(elapsed), camera);
   serverCameraController.UpdateCamera(float(elapsed), camera);
+  camera.Update(0);
   UnlockCamera(); // reset lock, we'll lock it later if we need to
 }
 
@@ -247,11 +248,18 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
       return;
     }
 
-    std::vector<std::string> cardUUIDs;
+    std::vector<std::string> cardUUIDs, cardPackages;
     auto next = folder->Next();
 
     while (next) {
-      cardUUIDs.push_back(next->GetUUID());
+      // NOTE TO SELF: assume if it's not a package, it's from the web for now
+      //               until we phase out the web stuff entirely.
+      if (!getController().CardPackageManager().HasPackage(next->GetUUID())) {
+        cardUUIDs.push_back(next->GetUUID());
+      }
+      else {
+        cardPackages.push_back(next->GetUUID());
+      }
       next = folder->Next();
     }
 
@@ -260,6 +268,7 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     DownloadSceneProps props = {
       canProceedToBattle,
       cardUUIDs,
+      cardPackages,
       GetCurrentNaviID(),
       remoteNaviId,
       remote,
@@ -295,7 +304,6 @@ void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
     Player* player = meta.GetData();
 
-    int fullHealth = player->GetHealth();
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
 
@@ -377,7 +385,9 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
       }
     }
 
-    if (distance <= MIN_IDLE_MOVEMENT) {
+    auto shouldIdle = distance <= MIN_IDLE_MOVEMENT || currentTime - onlinePlayer.lastMovementTime > MAX_IDLE_MS;
+
+    if (shouldIdle) {
       actor->Face(onlinePlayer.idleDirection);
     }
     else if (distance <= actor->GetWalkSpeed() * expectedTime) {
@@ -921,6 +931,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::initiate_pvp:
       receivePVPSignal(reader, data);
+      break;
+    case ServerEvents::load_mob:
+      receiveLoadMobSignal(reader, data);
       break;
     case ServerEvents::initiate_mob:
       receiveMobSignal(reader, data);
@@ -1468,7 +1481,13 @@ void Overworld::OnlineArea::receivePreloadSignal(BufferReader& reader, const Poc
 void Overworld::OnlineArea::receiveCustomEmotesPathSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
   auto path = reader.ReadString<uint16_t>(buffer);
 
-  emoteNode.LoadCustomEmotes(serverAssetManager.GetTexture(path));
+  customEmotesTexture = serverAssetManager.GetTexture(path);
+  emoteNode.LoadCustomEmotes(customEmotesTexture);
+
+  for (auto& pair : onlinePlayers) {
+    auto& otherEmoteNode = pair.second.emoteNode;
+    otherEmoteNode.LoadCustomEmotes(customEmotesTexture);
+  }
 }
 
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2048,7 +2067,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   }
 }
 
-void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
 
@@ -2063,16 +2082,30 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   std::string packageId = packageManager.FilepathToPackageID(file_path);
 
-  if (!packageManager.HasPackage(packageId)) {
-    // install for the first time
-    if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
-      Logger::Logf("Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
-      return;
-    }
-    else {
-      packageId = packageManager.FilepathToPackageID(file_path);
-    }
+  if (packageManager.HasPackage(packageId)) {
+    return;
   }
+
+  // install for the first time
+  if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
+    Logger::Logf("Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
+  }
+}
+
+void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string asset_path = reader.ReadString<uint16_t>(buffer);
+
+  std::string file_path = serverAssetManager.GetPath(asset_path);
+
+  if (file_path.empty()) {
+    Logger::Logf("Failed to find remote mob asset %s", file_path.c_str());
+    return;
+  }
+
+  auto& packageManager = getController().MobPackageManager();
+
+  std::string packageId = packageManager.FilepathToPackageID(file_path);
 
   if (!packageManager.HasPackage(packageId)) {
     // If we don't have it by now something went terribly wrong
@@ -2100,6 +2133,9 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
   auto mugshot = Textures().LoadTextureFromFile(image);
   auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
   Player* player = playerMeta.GetData();
+
+  player->SetHealth(GetPlayerSession()->health);
+  player->SetEmotion(GetPlayerSession()->emotion);
 
   CardFolder* newFolder = nullptr;
 

@@ -6,9 +6,13 @@
 #include "../bnWebClientMananger.h"
 #include "../bnPlayer.h"
 #include "../bindings/bnScriptedPlayer.h"
+#include "../bnPackageManager.h"
 #include "../bnPlayerPackageManager.h"
-
+#include "../bnCardPackageManager.h"
+#include "../bindings/bnScriptedCard.h"
 #include <Segues/PixelateBlackWashFade.h>
+
+constexpr std::string_view CACHE_FOLDER = "cache";
 
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
@@ -18,7 +22,15 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   label(Font::Style::tiny),
   Scene(ac)
 {
-  playerCardList = props.cardUUIDs;
+  playerWebCardList = props.webCardsUUIDs;
+  playerCardPackageList = props.cardPackageHashes;
+
+  std::sort(playerWebCardList.begin(), playerWebCardList.end());
+  playerWebCardList.erase(std::unique(playerWebCardList.begin(), playerWebCardList.end()), playerWebCardList.end());
+
+  std::sort(playerCardPackageList.begin(), playerCardPackageList.end());
+  playerCardPackageList.erase(std::unique(playerCardPackageList.begin(), playerCardPackageList.end()), playerCardPackageList.end());
+
   downloadSuccess = false; 
 
   packetProcessor = props.packetProcessor;
@@ -30,7 +42,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
       once = true;
     }
 
-    this->Abort(retryCardList);
+    this->Abort();
   });
 
   packetProcessor->EnableKickForSilence(true);
@@ -45,10 +57,16 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   bg = sf::Sprite(lastScreen);
   bg.setColor(sf::Color(255, 255, 255, 200));
 
-  taskQueue.push(TaskTypes::trade_cards);
-  taskQueue.push(TaskTypes::trade_player);
+  taskQueue.push(TaskTypes::trade_web_cards);
+  taskComplete[typeid(TaskTypes::trade_web_cards).name()] = false;
+  taskQueue.push(TaskTypes::trade_player_package);
+  taskComplete[typeid(TaskTypes::trade_player_package).name()] = false;
+  taskQueue.push(TaskTypes::trade_card_packages);
+  taskComplete[typeid(TaskTypes::trade_card_packages).name()] = false;
 
   setView(sf::Vector2u(480, 320));
+
+  std::filesystem::create_directories(CACHE_FOLDER);
 }
 
 DownloadScene::~DownloadScene()
@@ -72,16 +90,15 @@ bool DownloadScene::ProcessTaskQueue()
   auto taskType = taskQueue.front();
 
   switch (taskType) {
-  case TaskTypes::trade_cards:
-    this->TradeCardList(playerCardList);
+  case TaskTypes::trade_web_cards:
+    this->TradeWebCardList(playerWebCardList);
     break;
-  case TaskTypes::trade_player:
-    this->TradePlayerData(playerHash);
+  case TaskTypes::trade_player_package:
+    this->TradePlayerPackageData(playerHash);
     break;
-  }
-
-  if (auto iter = taskComplete.find(taskType); iter == taskComplete.end()) {
-    taskComplete[taskType] = false;
+  case TaskTypes::trade_card_packages:
+    this->TradeCardPackageData(playerCardPackageList);
+    break;
   }
   
   taskQueue.pop();
@@ -97,14 +114,13 @@ bool DownloadScene::AllTasksComplete()
   return true;
 }
 
-void DownloadScene::TradeCardList(const std::vector<std::string>& uuids)
+void DownloadScene::TradeWebCardList(const std::vector<std::string>& uuids)
 {
   // Upload card list to remote. Track as the handshake.
-  playerCardList = uuids;
-  packetProcessor->SendPacket(Reliability::Reliable, SerializeUUIDs(NetPlaySignals::trade_card_list, uuids));
+  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::trade_web_card_list, uuids));
 }
 
-void DownloadScene::TradePlayerData(const std::string& hash)
+void DownloadScene::TradePlayerPackageData(const std::string& hash)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
@@ -113,18 +129,48 @@ void DownloadScene::TradePlayerData(const std::string& hash)
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void DownloadScene::RequestCardList(const std::vector<std::string>& uuids)
+void DownloadScene::TradeCardPackageData(const std::vector<std::string>& hashes)
 {
-  packetProcessor->SendPacket(Reliability::Reliable, SerializeUUIDs(NetPlaySignals::card_list_request, uuids));
+  // Upload card list to remote. Track as the handshake.
+  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::trade_card_package_list, hashes));
 }
 
-void DownloadScene::RequestPlayerData(const std::string& hash)
+void DownloadScene::RequestWebCardList(const std::vector<std::string>& uuids)
+{
+  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::web_card_list_request, uuids));
+
+  if (uuids.size()) {
+    std::string task_name = typeid(TaskTypes::download_web_cards).name();
+    taskComplete[task_name] = false;
+  }
+}
+
+void DownloadScene::RequestPlayerPackageData(const std::string& hash)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write<NetPlaySignals>(buffer, NetPlaySignals::player_package_request);
   writer.WriteTerminatedString(buffer, hash);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
+
+  if (hash.size()) {
+    std::string task_name = typeid(TaskTypes::download_player_package).name();
+    taskComplete[task_name] = false;
+  }
+}
+
+void DownloadScene::RequestCardPackageList(const std::vector<std::string>& hashes)
+{
+  for (auto& hash : hashes) {
+    BufferWriter writer;
+    Poco::Buffer<char> buffer{ 0 };
+    writer.Write<NetPlaySignals>(buffer, NetPlaySignals::card_package_request);
+    writer.WriteTerminatedString(buffer, hash);
+    packetProcessor->SendPacket(Reliability::Reliable, buffer);
+
+    cardsToDownload[hash] = "Downloading";
+    taskComplete[hash] = false;
+  }
 }
 
 void DownloadScene::SendDownloadComplete(bool success)
@@ -151,31 +197,46 @@ void DownloadScene::SendPing()
 void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
   switch (header) {
-  case NetPlaySignals::trade_card_list:
+  case NetPlaySignals::trade_web_card_list:
     Logger::Logf("Remote is requesting to compare the card list...");
-    this->RecieveTradeCardList(body);
+    this->RecieveTradeWebCardList(body);
     break;
   case NetPlaySignals::trade_player_package:
-    Logger::Logf("Remote is requesting to identify the player package...");
-    this->RecieveTradePlayerData(body);
+    Logger::Logf("Remote is requesting to compare the player packages...");
+    this->RecieveTradePlayerPackageData(body);
     break;
-  case NetPlaySignals::card_list_request:
+  case NetPlaySignals::trade_card_package_list:
+    Logger::Logf("Remote is requesting to compare the card packages...");
+    this->RecieveTradeCardPackageData(body);
+    break;
+  case NetPlaySignals::web_card_list_request:
     Logger::Logf("Remote is requesting to download the card list...");
-    this->RecieveRequestCardList(body);
+    this->RecieveRequestWebCardList(body);
+    taskComplete[typeid(TaskTypes::trade_web_cards).name()] = true;
     break;
   case NetPlaySignals::player_package_request:
     Logger::Logf("Remote is requesting to download the player package...");
-    this->RecieveRequestPlayerData(body);
+    this->RecieveRequestPlayerPackageData(body);
+    taskComplete[typeid(TaskTypes::trade_player_package).name()] = true;
     break;
-  case NetPlaySignals::card_list_download:
+  case NetPlaySignals::card_package_request:
+    Logger::Logf("Remote is requesting to download a card package...");
+    this->RecieveRequestCardPackageData(body);
+    taskComplete[typeid(TaskTypes::trade_card_packages).name()] = true;
+    break;
+  case NetPlaySignals::web_card_list_download:
     Logger::Logf("Downloading card list...");
     this->DownloadCardList(body);
-    taskComplete[TaskTypes::trade_cards] = true;
+    taskComplete[typeid(TaskTypes::download_web_cards).name()] = true;
     break;
   case NetPlaySignals::player_package_download:
     Logger::Logf("Downloading player package...");
     this->DownloadPlayerData(body);
-    taskComplete[TaskTypes::trade_player] = true;
+    taskComplete[typeid(TaskTypes::download_player_package).name()] = true;
+    break;
+  case NetPlaySignals::card_package_download:
+    Logger::Logf("Downloading card package...");
+    this->DownloadPackageData<CardPackageManager, ScriptedCard>(body, getController().CardPackageManager());
     break;
   case NetPlaySignals::downloads_complete:
     this->RecieveDownloadComplete(body);
@@ -183,62 +244,114 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
   }
 }
 
-void DownloadScene::RecieveTradeCardList(const Poco::Buffer<char>& buffer)
+void DownloadScene::RecieveTradeWebCardList(const Poco::Buffer<char>& buffer)
 {
-  retryCardList.clear();
-  auto remote = DeserializeUUIDs(buffer);
+  auto cardList = DeserializeListOfStrings(buffer);
+  std::vector<std::string> retryCardList;
 
-  for (auto& remoteUUID : remote) {
+  for (auto& remoteUUID : cardList) {
     if (auto ptr = WEBCLIENT.GetWebCard(remoteUUID); !ptr) {
       retryCardList.push_back(remoteUUID);
       cardsToDownload[remoteUUID] = "Downloading";
     }
   }
 
-  Logger::Logf("Recieved remote's list size: %d", remote.size());
-
   // move to the next state
   if (retryCardList.size()) {
     Logger::Logf("Need to download %d cards", retryCardList.size());
-    RequestCardList(retryCardList);
-    return;
+  }
+  else {
+    Logger::Logf("Nothing to download.");
   }
 
-  // else 
-  Logger::Logf("Nothing to download.");
-  taskComplete[TaskTypes::trade_cards] = true;
+  RequestWebCardList(retryCardList);
 }
 
-void DownloadScene::RecieveRequestCardList(const Poco::Buffer<char>& buffer)
+void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer)
 {
-  auto uuids = DeserializeUUIDs(buffer);
+  auto packageCardList = DeserializeListOfStrings(buffer);
 
-  Logger::Logf("Recieved download request for %d items", uuids.size());
-  packetProcessor->SendPacket(Reliability::BigData, SerializeCards(uuids));
+  std::vector<std::string> retryList;
+
+  auto& packageManager = getController().CardPackageManager();
+  for (auto& remoteHash : packageCardList) {
+    if (!packageManager.HasPackage(remoteHash)) {
+      retryList.push_back(remoteHash);
+    }
+  }
+
+  Logger::Logf("Recieved remote's card package list size: %d", packageCardList.size());
+
+  // move to the next state
+  if (retryList.size()) {
+    Logger::Logf("Need to download %d card packages", packageCardList.size());
+  }
+  else {
+    Logger::Logf("Nothing to download.");
+  }
+
+  RequestCardPackageList(retryList);
 }
 
-void DownloadScene::RecieveTradePlayerData(const Poco::Buffer<char>& buffer)
+void DownloadScene::RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
   std::string hash = reader.ReadTerminatedString(buffer);
 
   if (getController().PlayerPackageManager().HasPackage(hash)) {
     remotePlayerHash = hash;
-    taskComplete[TaskTypes::trade_player] = true;
-    return;
+    hash = "";
   }
 
   // This will download the player data and also set the remotePlayerHash when completed successfully
-  RequestPlayerData(hash);
+  RequestPlayerPackageData(hash);
 }
 
-void DownloadScene::RecieveRequestPlayerData(const Poco::Buffer<char>& buffer)
+void DownloadScene::RecieveRequestWebCardList(const Poco::Buffer<char>& buffer)
+{
+  auto uuids = DeserializeListOfStrings(buffer);
+
+  Logger::Logf("Recieved download request for %d items", uuids.size());
+  packetProcessor->SendPacket(Reliability::BigData, SerializeCards(uuids));
+
+  if (uuids.size()) {
+    taskComplete[typeid(TaskTypes::download_web_cards).name()] = false;
+  }
+}
+
+void DownloadScene::RecieveRequestPlayerPackageData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
   std::string hash = reader.ReadTerminatedString(buffer);
 
-  Logger::Logf("Recieved download request for player hash %s", hash.c_str());
-  packetProcessor->SendPacket(Reliability::BigData, SerializePlayerData(hash));
+  if (hash.size()) {
+    Logger::Logf("Recieved download request for player hash %s", hash.c_str());
+    packetProcessor->SendPacket(Reliability::BigData,
+      SerializePackageData(
+        hash,
+        NetPlaySignals::player_package_download,
+        getController().PlayerPackageManager()
+      )
+    );
+  }
+}
+
+void DownloadScene::RecieveRequestCardPackageData(const Poco::Buffer<char>& buffer)
+{
+  BufferReader reader;
+  std::string hash = reader.ReadTerminatedString(buffer);
+
+  if (!hash.empty()) {
+    Logger::Logf("Recieved download request for %s card package", hash.c_str());
+
+    packetProcessor->SendPacket(Reliability::BigData,
+      SerializePackageData<CardPackageManager>(
+        hash,
+        NetPlaySignals::card_package_download,
+        getController().CardPackageManager()
+        )
+    );
+  }
 }
 
 void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
@@ -251,7 +364,7 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
   }
   else {
     // downloadSuccess ref will tell matchmaking scene we failed
-    Abort(retryCardList);
+    Abort();
   }
 
   Logger::Logf("Remote says download complete. Result: %s", result ? "Success" : "Fail");
@@ -265,6 +378,9 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 
   BufferReader reader;
   std::string hash = reader.ReadTerminatedString(buffer);
+
+  if (hash.empty()) return;
+
   size_t file_len = reader.Read<size_t>(buffer);
   std::string path = "cache/" + stx::rand_alphanum(12) + ".zip";
 
@@ -281,6 +397,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
     file.close();
 
     if (auto result = getController().PlayerPackageManager().LoadPackageFromZip<ScriptedPlayer>(path); result.value()) {
+      Logger::Logf("Successesfully downloaded custom navi with hash %s", hash.c_str());
       remotePlayerHash = hash;
       return;
     }
@@ -391,11 +508,11 @@ void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
   }
 }
 
-std::vector<std::string> DownloadScene::DeserializeUUIDs(const Poco::Buffer<char>& buffer)
+std::vector<std::string> DownloadScene::DeserializeListOfStrings(const Poco::Buffer<char>& buffer)
 {
   size_t len{};
   size_t read{};
-  std::vector<std::string> uuids;
+  std::vector<std::string> list;
 
   // list length
   std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
@@ -406,16 +523,16 @@ std::vector<std::string> DownloadScene::DeserializeUUIDs(const Poco::Buffer<char
     std::memcpy(&id_len, buffer.begin() + read, sizeof(size_t));
     read += sizeof(size_t);
 
-    uuids.emplace_back(buffer.begin() + read, id_len);
+    list.emplace_back(buffer.begin() + read, id_len);
     read += id_len;
 
     len--;
   }
 
-  return uuids;
+  return list;
 }
 
-Poco::Buffer<char> DownloadScene::SerializeUUIDs(NetPlaySignals header, const std::vector<std::string>& uuids)
+Poco::Buffer<char> DownloadScene::SerializeListOfStrings(NetPlaySignals header, const std::vector<std::string>& list)
 {
   Poco::Buffer<char> data{ 0 };
 
@@ -423,10 +540,10 @@ Poco::Buffer<char> DownloadScene::SerializeUUIDs(NetPlaySignals header, const st
   data.append((char*)&header, sizeof(NetPlaySignals));
 
   // list length
-  size_t len = uuids.size();
+  size_t len = list.size();
   data.append((char*)&len, sizeof(size_t));
 
-  for(auto & id : uuids) {
+  for(auto & id : list) {
     // name
     size_t sz = id.length();
     data.append((char*)&sz, sizeof(size_t));
@@ -443,7 +560,7 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
   size_t len = cardList.size();
 
   // header
-  writer.Write(data, NetPlaySignals::card_list_download);
+  writer.Write(data, NetPlaySignals::web_card_list_download);
 
   // number of cards
   writer.Write(data, (uint16_t)cardList.size());
@@ -516,7 +633,45 @@ Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>&
   return data;
 }
 
-Poco::Buffer<char> DownloadScene::SerializePlayerData(const std::string& hash)
+template<typename PackageManagerType, typename ScriptedDataType>
+void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, PackageManagerType& pm)
+{
+  BufferReader reader;
+  std::string hash = reader.ReadTerminatedString(buffer);
+
+  if (taskComplete[hash]) return;
+
+  size_t file_len = reader.Read<size_t>(buffer);
+  std::string path = "cache/" + stx::rand_alphanum(12) + ".zip";
+
+  std::fstream file;
+  file.open(path, std::ios::out | std::ios::binary);
+
+  if (file.is_open()) {
+    while (file_len > 0) {
+      char byte = reader.Read<char>(buffer);
+      file << byte;
+      file_len--;
+    }
+
+    file.close();
+
+    auto result = pm.LoadPackageFromZip<ScriptedDataType>(path);
+
+    if (!result.is_error()) {
+      taskComplete[hash] = true;
+      return;
+    }
+  }
+
+  Logger::Logf("Failed to download card package with hash %s", hash.c_str());
+
+  // There was a problem creating the file
+  SendDownloadComplete(false);
+}
+
+template<typename PackageManagerType>
+Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& hash, NetPlaySignals header, PackageManagerType& packageManager)
 {
   Poco::Buffer<char> buffer{ 0 };
   std::vector<char> fileBuffer;
@@ -524,7 +679,7 @@ Poco::Buffer<char> DownloadScene::SerializePlayerData(const std::string& hash)
   BufferWriter writer;
   size_t len = 0;
   
-  auto result = getController().PlayerPackageManager().GetPackageFilePath(hash);
+  auto result = packageManager.GetPackageFilePath(hash);
   if (result.is_error()) {
     Logger::Logf("Could not serialize package: %s", result.error_cstr());
 
@@ -547,7 +702,7 @@ Poco::Buffer<char> DownloadScene::SerializePlayerData(const std::string& hash)
   }
 
   // header
-  writer.Write(buffer, NetPlaySignals::player_package_download);
+  writer.Write(buffer, header);
 
   // hash name
   writer.WriteTerminatedString(buffer, hash);
@@ -561,11 +716,11 @@ Poco::Buffer<char> DownloadScene::SerializePlayerData(const std::string& hash)
   return buffer;
 }
 
-void DownloadScene::Abort(const std::vector<std::string>& failed)
+void DownloadScene::Abort()
 {
   if (!aborting) {
-    for (auto& uuid : failed) {
-      cardsToDownload[uuid] = "Failed";
+    for (auto& [key, value] : cardsToDownload) {
+      value = "Failed";
     }
     Logger::Logf("Aborting");
     SendDownloadComplete(false);
@@ -622,11 +777,14 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
   auto currTask = taskQueue.front();
 
   switch (currTask) {
-  case TaskTypes::trade_cards:
-    label.SetString("Connecting to other player...");
+  case TaskTypes::trade_web_cards:
+    label.SetString("Fetching remote web cards...");
     break;
-  case TaskTypes::trade_player:
+  case TaskTypes::trade_player_package:
     label.SetString("Fetching other player package...");
+    break;
+  case TaskTypes::trade_card_packages:
+    label.SetString("Fetching remote card packages...");
     break;
   default:
     break;
@@ -705,5 +863,6 @@ void DownloadScene::onResume()
 
 void DownloadScene::onEnd()
 {
+  packetProcessor->SetPacketBodyCallback(nullptr);
   packetProcessor->SetKickCallback(nullptr);
 }

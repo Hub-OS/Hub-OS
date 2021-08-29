@@ -814,3 +814,12 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
 
   actionQueue.Pop();
 }
+
+Animation* Character::GetAnimationFromComponent()
+{
+  if (auto anim = GetFirstComponent<AnimationComponent>()) {
+    return &anim->GetAnimationObject();
+  }
+
+  return nullptr;
+}

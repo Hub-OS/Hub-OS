@@ -26,6 +26,12 @@ CardMeta& CardMeta::SetIconTexture(const std::shared_ptr<sf::Texture> icon)
   return *this;
 }
 
+CardMeta& CardMeta::SetCodes(const std::vector<char> codes)
+{
+  this->codes = codes;
+  return *this;
+}
+
 void CardMeta::OnMetaParsed()
 {
   this->properties.uuid = this->GetPackageID();
@@ -50,4 +56,9 @@ const std::shared_ptr<Texture> CardMeta::GetPreviewTexture() const
 Battle::Card::Properties& CardMeta::GetCardProperties()
 {
   return properties;
+}
+
+const std::vector<char> CardMeta::GetCodes() const
+{
+  return codes;
 }
