@@ -90,7 +90,7 @@ void Animation::LoadWithData(const string& data)
         legacySupport = true;
       }
     }
-    else if (line.find("imagePath")) {
+    else if (line.find("imagePath") != string::npos) {
       // no-op 
       // editor only at this time
       continue;
