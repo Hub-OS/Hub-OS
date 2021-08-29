@@ -1,0 +1,6 @@
+imagePath="C:/Users/Owner/Desktop/ONB Dev/OpenNetBattle-Singleplayer/BattleNetwork/resources/spells/spell_zapring.png"
+
+animation state="DEFAULT"
+frame duration="0.075" x="4" y="28" w="34" h="39" originx="17" originy="27"
+frame duration="0.075" x="52" y="28" w="42" h="39" originx="17" originy="27"
+frame duration="0.075" x="101" y="28" w="40" h="40" originx="18" originy="27"

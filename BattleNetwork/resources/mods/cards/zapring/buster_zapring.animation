@@ -1,0 +1,4 @@
+imagePath="C:/Users/Owner/Desktop/ONB Dev/OpenNetBattle-Singleplayer/BattleNetwork/resources/spells/buster_zapring.png"
+
+animation state="DEFAULT"
+frame duration="1.25" x="7" y="7" w="25" h="11" originx="0" originy="5"

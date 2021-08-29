@@ -116,7 +116,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   counterRevealAnim = Animation("resources/navis/counter_reveal.animation");
   counterRevealAnim << "DEFAULT" << Animator::Mode::Loop;
-
+  
   counterReveal.setTexture(LOAD_TEXTURE(MISC_COUNTER_REVEAL), true);
   counterReveal.EnableParentShader(false);
   counterReveal.SetLayer(-100);
