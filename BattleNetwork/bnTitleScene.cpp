@@ -58,7 +58,7 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   startLabel.SetString("Loading, Please Wait");
   CenterLabel();
 
-  ConfigSettings config = Input().GetConfigSettings();
+  ConfigSettings config = getController().ConfigSettings();
   WebServerInfo web = config.GetWebServerInfo();
   WEBCLIENT.ConnectToWebServer(web.version.c_str(), web.URL.c_str(), web.port);
   loginResult = WEBCLIENT.SendLoginCommand(web.user, web.password);
@@ -68,16 +68,8 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
 
 void TitleScene::onStart()
 {
-  ConfigSettings config = Input().GetConfigSettings();
-
-  // TODO: sfx and music level should already be in 0-100 values imo...
-  Audio().SetChannelVolume(((float)config.GetSFXLevel()/3.f)*100.f);
-  Audio().SetStreamVolume(((float)config.GetMusicLevel() / 3.f) * 100.f);
-
-  if (config.IsAudioEnabled() && config.GetMusicLevel() > 0) {
-    // stream some music while we wait
-    Audio().Stream("resources/loops/loop_theme.ogg");
-  }
+  // stream some music while we wait
+  Audio().Stream("resources/loops/loop_theme.ogg");
 
   // Begin performing tasks in the background
   LaunchTasks();

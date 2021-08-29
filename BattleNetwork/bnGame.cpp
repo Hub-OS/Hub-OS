@@ -150,7 +150,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     this->SeedRand(time(0));
   });
 
-  inputManager.SupportConfigSettings(reader);
+  this->UpdateConfigSettings(reader.GetConfigSettings());
 
   TaskGroup tasks;
   tasks.AddTask("Init graphics", std::move(graphics));
@@ -162,14 +162,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
     // Load font symbols for use across the entire engine...
   textureManager.LoadImmediately(TextureType::FONT);
-
-  if (configSettings.IsOK()) {
-    // If the file is good, use the Audio() and 
-    // controller settings from the config
-    audioManager.EnableAudio(reader.GetConfigSettings().IsAudioEnabled());
-    audioManager.SetStreamVolume(((reader.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
-    audioManager.SetChannelVolume(((reader.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
-  }
 
   mouse.setTexture(textureManager.LoadTextureFromFile("resources/ui/mouse.png"));
   mouse.setScale(2.f, 2.f);
@@ -326,8 +318,11 @@ void Game::LoadConfigSettings()
   }
 }
 
-void Game::UpdateConfigSettings(const ConfigSettings& new_settings)
+void Game::UpdateConfigSettings(const struct ConfigSettings& new_settings)
 {
+  if (!new_settings.IsOK())
+    return;
+
   configSettings = new_settings;
 
   if (configSettings.GetShaderLevel() > 0) {
@@ -340,6 +335,14 @@ void Game::UpdateConfigSettings(const ConfigSettings& new_settings)
     ActivityController::optimizeForPerformance(swoosh::quality::mobile);
     ActivityController::enableShaders(false);
   }
+
+  // If the file is good, use the Audio() and 
+  // controller settings from the config
+  audioManager.EnableAudio(configSettings.IsAudioEnabled());
+  audioManager.SetStreamVolume(((configSettings.GetMusicLevel()-1) / 3.0f) * 100.0f);
+  audioManager.SetChannelVolume(((configSettings.GetSFXLevel()-1) / 3.0f) * 100.0f);
+
+  inputManager.SupportConfigSettings(configSettings);
 }
 
 void Game::SeedRand(unsigned int seed)
@@ -366,6 +369,11 @@ PlayerPackageManager& Game::PlayerPackageManager()
 MobPackageManager& Game::MobPackageManager()
 {
   return *mobPackageManager;
+}
+
+ConfigSettings& Game::ConfigSettings()
+{
+  return configSettings;
 }
 
 void Game::RunNaviInit(std::atomic<int>* progress) {

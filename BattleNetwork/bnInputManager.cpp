@@ -26,8 +26,8 @@ InputManager::InputManager(sf::Window& win)  :
 InputManager::~InputManager() {
 }
 
-void InputManager::SupportConfigSettings(ConfigReader& reader) {
-  settings = reader.GetConfigSettings();
+void InputManager::SupportConfigSettings(ConfigSettings& settings) {
+  this->settings = settings;
   state.clear();
   stateLastFrame.clear();
   bindings.clear();

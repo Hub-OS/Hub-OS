@@ -78,10 +78,10 @@ public:
   bool Empty() const;
   
   /**
-   * @brief Creates a reference to the config reader object
-   * @param config reader
+   * @brief Copies the config settings
+   * @param config
    */
-  void SupportConfigSettings(ConfigReader& reader);
+  void SupportConfigSettings(ConfigSettings& settings);
   
   /**
    * @brief Returns true if the config reader is set and config file is valid
