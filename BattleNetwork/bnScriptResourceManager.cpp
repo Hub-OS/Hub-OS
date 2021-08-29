@@ -753,7 +753,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "action", &Battle::Card::Properties::action,
     "can_boost", &Battle::Card::Properties::canBoost,
     "card_class", &Battle::Card::Properties::cardClass,
-    "code", &Battle::Card::Properties::code,
     "damage", &Battle::Card::Properties::damage,
     "description", &Battle::Card::Properties::description,
     "element", &Battle::Card::Properties::element,
@@ -770,6 +769,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_card_props", &CardMeta::GetCardProperties,
     "set_preview_texture", &CardMeta::SetPreviewTexture,
     "set_icon_texture", &CardMeta::SetIconTexture,
+    "set_codes", &CardMeta::SetCodes,
     "declare_package_id", &CardMeta::SetPackageID
   );
 
