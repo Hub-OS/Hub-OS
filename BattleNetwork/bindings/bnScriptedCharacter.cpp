@@ -10,10 +10,10 @@
 #include "../bnDefenseVirusBody.h"
 #include "../bnUIComponent.h"
 
-ScriptedCharacter::ScriptedCharacter(sol::state& script) : 
+ScriptedCharacter::ScriptedCharacter(sol::state& script, Character::Rank rank) :
   script(script),
   AI<ScriptedCharacter>(this), 
-  Character() {
+  Character(rank) {
   SetElement(Element::none);
   SetTeam(Team::blue);
   setScale(2.f, 2.f);
@@ -27,11 +27,6 @@ ScriptedCharacter::ScriptedCharacter(sol::state& script) :
 }
 
 ScriptedCharacter::~ScriptedCharacter() {
-}
-
-void ScriptedCharacter::SetRank(Character::Rank rank)
-{
-  this->rank = rank;
 }
 
 void ScriptedCharacter::OnUpdate(double _elapsed) {

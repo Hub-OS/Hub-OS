@@ -624,7 +624,6 @@ function package_init(self)
     texture = Engine.load_texture(_modpath.."duo_compressed.png")
 
     self:set_name("Duo")
-    self:set_rank(Rank.EX)
     self:set_health(3000)
     self:set_texture(texture, true)
     self:set_height(60)

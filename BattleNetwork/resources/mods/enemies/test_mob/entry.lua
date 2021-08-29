@@ -18,10 +18,10 @@ function package_init(package)
 end
 
 function package_build(mob) 
-  local duo_spawner = mob:create_spawner("com.example.char.Duo")
+  local duo_spawner = mob:create_spawner("com.example.char.Duo", Rank.V1)
   duo_spawner:spawn_at(5, 2)
   
-  local met_spawner = mob:create_spawner("com.builtins.char.mettaur")
+  local met_spawner = mob:create_spawner("com.builtins.char.mettaur", Rank.SP)
   met_spawner:spawn_at(4, 1)
   met_spawner:spawn_at(4, 3)
 end

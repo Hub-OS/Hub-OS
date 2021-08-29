@@ -285,8 +285,8 @@ public:
   Spawner(const Spawner& rhs) : constructor(rhs.constructor), mob(rhs.mob) {}
 
   // c-tors with arguments (std::enable_if_t prevents matching with the copy ctor)
-  template<typename... Args, typename std::enable_if_t<!std::is_convertible<Args&&..., const Spawner&>::value>* = nullptr>
-  Spawner(Args&&... args) {
+  template<typename... Args, typename std::enable_if_t<!std::is_constructible<Args&&..., const Spawner&>::value>* = nullptr>
+  explicit Spawner(Args&&... args) {
     constructor = [tuple_args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable->ClassType* {
       return stx::make_ptr_from_tuple<ClassType>(tuple_args);
     };

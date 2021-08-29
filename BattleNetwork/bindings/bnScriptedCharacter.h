@@ -29,9 +29,8 @@ class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, 
 public:
   using DefaultState = ScriptedCharacterState;
 
-  ScriptedCharacter(sol::state& script);
+  ScriptedCharacter(sol::state& script, Character::Rank rank);
   ~ScriptedCharacter();
-  void SetRank(Character::Rank rank);
   void OnSpawn(Battle::Tile& start) override;
   void OnBattleStart() override;
   void OnBattleStop() override;

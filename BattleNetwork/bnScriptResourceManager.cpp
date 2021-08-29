@@ -385,7 +385,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_name", &ScriptedCharacter::SetName,
     "set_health", &ScriptedCharacter::SetHealth,
     "get_rank", &ScriptedCharacter::GetRank,
-    "set_rank", &ScriptedCharacter::SetRank,
     "share_tile", &ScriptedCharacter::ShareTileSpace,
     "add_defense_rule", &ScriptedCharacter::AddDefenseRule,
     "set_position", sol::overload(
