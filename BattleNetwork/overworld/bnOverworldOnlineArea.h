@@ -82,7 +82,6 @@ namespace Overworld {
     bool transferringServers{ false };
     bool kicked{ false };
     bool tryPopScene{ false };
-    bool isPreparingForBattle{ false };
     bool canProceedToBattle{ false };
     bool copyScreen{ false };
     ReturningScene returningFrom{ ReturningScene::Null };
@@ -104,9 +103,11 @@ namespace Overworld {
     CameraController serverCameraController;
     CameraController warpCameraController;
     std::vector<VendorScene::Item> shopItems;
+    std::vector<std::string> downloadedMobPackages;
     std::queue<std::function<void()>> sceneChangeTasks;
 
     void ResetPVPStep(bool failed = false);
+    void RemovePackages();
 
     std::optional<AbstractUser> GetAbstractUser(const std::string& id);
     void AddSceneChangeTask(const std::function<void()>& task);

@@ -224,6 +224,16 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
   canProceedToBattle = false;
 }
 
+void Overworld::OnlineArea::RemovePackages() {
+  auto& packageManager = getController().MobPackageManager();
+
+  for (auto& packageId : downloadedMobPackages) {
+    packageManager.RemovePackageByID(packageId);
+  }
+
+  downloadedMobPackages.clear();
+}
+
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
   // remove players before update, to prevent removed players from being added to sprite layers
   // players do not have a shared pointer to the emoteNode
@@ -703,6 +713,8 @@ void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t por
     else {
       reportFailure();
     }
+
+    transferringServers = false;
   };
 
   auto attemptTransfer = [=] {
@@ -726,6 +738,7 @@ void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t por
 
       if (status == ServerStatus::online) {
         AddSceneChangeTask([=] {
+          RemovePackages();
           getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
         });
       }
@@ -2176,11 +2189,21 @@ void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poc
   // install for the first time
   if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
     Logger::Logf("Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
+    return;
   }
+
+  packageId = packageManager.FilepathToPackageID(file_path);
+  downloadedMobPackages.push_back(packageId);
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  if (transferringServers) {
+    sendBattleResultsSignal(BattleResults{});
+    // ignore encounters if we're leaving
+    return;
+  }
+
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
 
   std::string file_path = serverAssetManager.GetPath(asset_path);
@@ -2663,6 +2686,7 @@ void Overworld::OnlineArea::leave() {
     packetProcessor = nullptr;
   }
 
+  RemovePackages();
   tryPopScene = true;
 }
 
