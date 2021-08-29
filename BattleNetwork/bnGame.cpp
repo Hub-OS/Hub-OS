@@ -333,10 +333,12 @@ void Game::UpdateConfigSettings(const ConfigSettings& new_settings)
   if (configSettings.GetShaderLevel() > 0) {
     window.SupportShaders(true);
     ActivityController::optimizeForPerformance(swoosh::quality::realtime);
+    ActivityController::enableShaders(true);
   }
   else {
     window.SupportShaders(false);
     ActivityController::optimizeForPerformance(swoosh::quality::mobile);
+    ActivityController::enableShaders(false);
   }
 }
 
