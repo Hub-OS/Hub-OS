@@ -70,7 +70,6 @@ namespace Overworld {
 
     Overworld::EmoteNode emoteNode;
     std::shared_ptr<sf::Texture> customEmotesTexture;
-    std::string pvpRemoteAddress; // remember who we want to connect to after download scene
     std::string ticket; //!< How we are represented on the server
     std::shared_ptr<PacketProcessor> packetProcessor;
     std::shared_ptr<Netplay::PacketProcessor> netBattleProcessor;
@@ -105,11 +104,12 @@ namespace Overworld {
     CameraController serverCameraController;
     CameraController warpCameraController;
     std::vector<VendorScene::Item> shopItems;
+    std::queue<std::function<void()>> sceneChangeTasks;
 
-    void HandlePVPStep(const std::string& remoteAddress);
     void ResetPVPStep(bool failed = false);
 
     std::optional<AbstractUser> GetAbstractUser(const std::string& id);
+    void AddSceneChangeTask(const std::function<void()>& task);
     void onInteract(Interaction type);
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
