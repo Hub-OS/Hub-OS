@@ -110,13 +110,14 @@ namespace Overworld {
 
     std::optional<AbstractUser> GetAbstractUser(const std::string& id);
     void AddSceneChangeTask(const std::function<void()>& task);
+    void SetAvatarAsSpeaker();
     void onInteract(Interaction type);
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
     void detectWarp();
     bool positionIsInWarp(sf::Vector3f position);
     Overworld::TeleportController::Command& teleportIn(sf::Vector3f position, Direction direction);
-    void transferServer(const std::string& host, uint16_t port, const std::string& data, bool warpOut);
+    void transferServer(const std::string& host, uint16_t port, std::string data, bool warpOut);
     void processPacketBody(const Poco::Buffer<char>& data);
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);

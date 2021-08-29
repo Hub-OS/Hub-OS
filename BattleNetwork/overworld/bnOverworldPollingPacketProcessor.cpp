@@ -8,13 +8,17 @@
 constexpr sf::Int32 PING_SERVER_MILI = 1000;
 
 namespace Overworld {
-  PollingPacketProcessor::PollingPacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, std::function<void(ServerStatus, uint16_t)> onResolve) :
+  PollingPacketProcessor::PollingPacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, const std::function<void(ServerStatus, uint16_t)>& onResolve) :
     packetShipper(remoteAddress, maxPayloadSize),
     onResolve(onResolve)
   {
     pingServerTimer.reverse(true);
     pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
     pingServerTimer.start();
+  }
+
+  void PollingPacketProcessor::SetStatusHandler(const std::function<void(ServerStatus, uint16_t)>& onResolve) {
+    this->onResolve = onResolve;
   }
 
   bool PollingPacketProcessor::TimedOut() {
@@ -45,6 +49,10 @@ namespace Overworld {
       lastMessageTime = std::chrono::steady_clock::now();
       onResolve(ServerStatus::offline, 0);
     }
+  }
+
+  void PollingPacketProcessor::OnListen(const Poco::Net::SocketAddress& sender) {
+    lastMessageTime = std::chrono::steady_clock::now();
   }
 
   void PollingPacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) {

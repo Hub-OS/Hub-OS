@@ -17,6 +17,7 @@
 #include "bnOverworldTileType.h"
 #include "bnOverworldTileBehaviors.h"
 #include "bnOverworldObjectType.h"
+#include "bnOverworldPollingPacketProcessor.h"
 #include "../bnMath.h"
 #include "../bnMobPackageManager.h"
 #include "../bnPlayerPackageManager.h"
@@ -132,6 +133,14 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
 void Overworld::OnlineArea::AddSceneChangeTask(const std::function<void()>& task) {
   // we could check if we're in focus here, but we push some tasks that try to block changes for a frame (copyScreen)
   sceneChangeTasks.push(task);
+}
+
+void Overworld::OnlineArea::SetAvatarAsSpeaker() {
+  auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+  const std::string& image = meta.GetMugshotTexturePath();
+  const std::string& anim = meta.GetMugshotAnimationPath();
+  auto mugshot = Textures().LoadTextureFromFile(image);
+  GetMenuSystem().SetNextSpeaker(sf::Sprite(*mugshot), anim);
 }
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
@@ -345,11 +354,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
     auto& menuSystem = GetMenuSystem();
 
     if (menuSystem.IsClosed() && Input().Has(InputEvents::pressed_shoulder_right)) {
-      auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
-      const std::string& image = meta.GetMugshotTexturePath();
-      const std::string& anim = meta.GetMugshotAnimationPath();
-      auto mugshot = Textures().LoadTextureFromFile(image);
-      menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
+      SetAvatarAsSpeaker();
 
       menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
         if (result) {
@@ -679,17 +684,65 @@ Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Ve
   return GetTeleportController().TeleportIn(actor, position, direction);
 }
 
-void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t port, const std::string& data, bool warpOut) {
-  auto transfer = [=] {
-    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
+void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t port, std::string data, bool warpOut) {
+  auto reportFailure = [=] {
+    SetAvatarAsSpeaker();
+    GetMenuSystem().EnqueueMessage("Looks like the next area is offline...");
+  };
+
+  auto handleFail = [=] {
+    if (warpOut) {
+      auto player = GetPlayer();
+      auto position = player->Get3DPosition();
+      auto direction = Reverse(player->GetHeading());
+      auto& command = GetTeleportController().TeleportIn(player, position, direction);
+      warpCameraController.UnlockCamera();
+
+      command.onFinish.Slot(reportFailure);
+    }
+    else {
+      reportFailure();
+    }
+  };
+
+  auto attemptTransfer = [=] {
+    Poco::Net::SocketAddress remoteAddress;
+
+    try {
+      remoteAddress = Poco::Net::SocketAddress(host, port);
+    }
+    catch (Poco::IOException&) {
+      handleFail();
+      return;
+    }
+
+    auto packetProcessor = std::make_shared<Overworld::PollingPacketProcessor>(
+      remoteAddress,
+      Net().GetMaxPayloadSize()
+      );
+
+    packetProcessor->SetStatusHandler([=](auto status, auto maxPayloadSize) {
+      Net().DropProcessor(packetProcessor);
+
+      if (status == ServerStatus::online) {
+        AddSceneChangeTask([=] {
+          getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
+        });
+      }
+      else {
+        handleFail();
+      }
+    });
+
+    Net().AddHandler(remoteAddress, packetProcessor);
   };
 
   if (warpOut) {
     auto& command = GetTeleportController().TeleportOut(GetPlayer());
-    command.onFinish.Slot([=] { AddSceneChangeTask(transfer); });
+    command.onFinish.Slot(attemptTransfer);
   }
   else {
-    AddSceneChangeTask(transfer);
+    attemptTransfer();
   }
 
   transferringServers = true;
