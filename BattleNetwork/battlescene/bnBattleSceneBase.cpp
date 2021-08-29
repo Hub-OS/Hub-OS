@@ -710,6 +710,16 @@ BattleResults& BattleSceneBase::BattleResultsObj()
   return battleResults;
 }
 
+const int BattleSceneBase::GetTurnCount()
+{
+  return turn;
+}
+
+const int BattleSceneBase::GetRoundCount()
+{
+  return round;
+}
+
 void BattleSceneBase::StartBattleStepTimer()
 {
   battleTimer.start();
@@ -728,6 +738,16 @@ void BattleSceneBase::BroadcastBattleStart()
 void BattleSceneBase::BroadcastBattleStop()
 {
   field->RequestBattleStop();
+}
+
+void BattleSceneBase::IncrementTurnCount()
+{
+  turn++;
+}
+
+void BattleSceneBase::IncrementRoundCount()
+{
+  round++;
 }
 
 const sf::Time BattleSceneBase::GetElapsedBattleTime() {

@@ -11,7 +11,33 @@ void FadeOutBattleState::onStart(const BattleSceneState*) {
     p->ChangeState<PlayerIdleState>();
   }
 
-  GetScene().GetField()->RequestBattleStop();
+  auto* field = GetScene().GetField();
+  field->RequestBattleStop();
+
+  auto& mobList = GetScene().MobList();
+
+  if (mobList.empty())
+    return;
+
+  auto& results = GetScene().BattleResultsObj();
+  results.turns = GetScene().GetTurnCount();
+
+  Entity::ID_t next_id{mobList.front().get().GetID()};
+
+  for (auto& enemy : mobList) {
+    BattleResults::MobData mob;
+    mob.health = enemy.get().GetHealth();
+    mob.id = enemy.get().GetName();
+
+    // track deleted enemies from this mob by returning empty values where they would be
+    while (enemy.get().GetID() != next_id) {
+      results.mobStatus.push_back(BattleResults::MobData{});
+      next_id++;
+    }
+
+    results.mobStatus.push_back(mob);
+    next_id++;
+  }
 }
 
 void FadeOutBattleState::onEnd(const BattleSceneState*)

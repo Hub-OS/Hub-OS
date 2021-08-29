@@ -76,6 +76,7 @@ private:
   bool highlightTiles{ true };
   bool backdropAffectBG{ false };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
+  int turn{ 0 }; //!< How many turns per round (inbetween card selection)
   int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
   int totalCounterDeletions{ 0 }; /*!< Track player's counter-deletions. Used for ranking. */
   int comboDeleteCounter{ 0 }; /*!< Deletions within 12 frames triggers double or triple deletes. */
@@ -335,10 +336,14 @@ public:
   Camera& GetCamera();
   PA& GetPA();
   BattleResults& BattleResultsObj();
+  const int GetTurnCount();
+  const int GetRoundCount();
   void StartBattleStepTimer();
   void StopBattleStepTimer();
   void BroadcastBattleStart();
   void BroadcastBattleStop();
+  void IncrementTurnCount();
+  void IncrementRoundCount();
 
   const sf::Time GetElapsedBattleTime();
 

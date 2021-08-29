@@ -398,6 +398,7 @@ void TomahawkCross::OnActivate(Player& player)
 
   parentAnim->AddToSyncList(sync);
 
+  player.SetAirShoe(true);
   player.AddDefenseRule(statusGuard);
 }
 

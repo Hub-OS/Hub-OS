@@ -14,8 +14,14 @@ class Mob;
 class BattleItem;
 
 struct BattleResults {
+  struct MobData {
+    std::string id;
+    int health{};
+  };
+
   int moveCount{};
   int hitCount{};
+  int turns{};
   int counterCount{};
   int score{};
   int playerHealth{};
@@ -25,6 +31,7 @@ struct BattleResults {
   bool synchro{};
   Emotion finalEmotion{};
   sf::Time battleLength;
+  std::vector<MobData> mobStatus;
   static BattleResults& CalculateScore(BattleResults& results, Mob* mob);
 };
 
