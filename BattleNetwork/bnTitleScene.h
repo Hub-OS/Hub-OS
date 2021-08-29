@@ -14,6 +14,7 @@ private:
   SpriteProxyNode cursorSprite;
   Font font, startFont;
   Text logLabel, startLabel;
+  Animation anim;
   std::vector<std::string> logs;
   unsigned progress{}, total {};
   unsigned ellipsis{};

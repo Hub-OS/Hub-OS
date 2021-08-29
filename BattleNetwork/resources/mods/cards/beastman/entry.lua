@@ -16,6 +16,7 @@ function package_init(package)
     props.time_freeze = true
     props.element = Element.None
     props.description = "Claw atk 3 squares ahead!"
+    props.card_class = CardClass.Mega
 
     -- assign the global resources
     TEXTURE = Engine.load_texture(_modpath.."beastman.png")

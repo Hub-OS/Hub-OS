@@ -44,6 +44,12 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   sf::Vector2f logoPos = sf::Vector2f(240.f, 160.f);
   logoSprite.setPosition(logoPos);
 
+  progSprite.setTexture(Textures().LoadTextureFromFile("resources/scenes/title/prog-pulse.png"));
+  progSprite.setPosition(sf::Vector2f(380.f, 210.f));
+  progSprite.setScale(2.f, 2.f);
+  anim = Animation("resources/scenes/title/default.animation");
+  anim << "default" << Animator::Mode::Loop;
+
   // Log output text
   font = Font(Font::Style::small);
   logLabel.setOrigin(0.f, logLabel.GetLocalBounds().height);
@@ -77,6 +83,8 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
+  anim.Update(elapsed, progSprite.getSprite());
+
   try {
     // If not ready, do no proceed past this point!
     if (IsComplete() == false || progress < 100) {
@@ -164,6 +172,7 @@ void TitleScene::onResume()
 void TitleScene::onDraw(sf::RenderTexture & surface)
 {
   surface.draw(bgSprite);
+  surface.draw(progSprite);
   surface.draw(logoSprite);
   surface.draw(startLabel);
 }

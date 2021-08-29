@@ -1079,6 +1079,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "count", &Hit::Drag::count
   );
 
+  const auto& card_class_record = state.new_enum("CardClass",
+    "Standard", Battle::CardClass::standard,
+    "Mega", Battle::CardClass::mega,
+    "Giga", Battle::CardClass::giga,
+    "Dark", Battle::CardClass::dark
+  );
+
   state.set_function("drag",
     [](Direction dir, unsigned count) { return Hit::Drag{ dir, count }; }
   );
