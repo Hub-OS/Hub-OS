@@ -36,7 +36,9 @@ private:
   enum class TaskTypes : char {
     trade_web_cards = 0,
     trade_card_packages,
-    trade_player_package
+    trade_player_package,
+    download_player_package,
+    download_web_cards
   } type;
 
   bool& downloadSuccess;
