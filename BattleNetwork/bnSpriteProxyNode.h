@@ -146,4 +146,7 @@ public:
    * we sort by Z and if this sprite node is to be drawn, drawns the proxy sprite
    */
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+
+  // For scripting bindings, this function makes it easier to return an underlining type shared by all super classes
+  SpriteProxyNode& AsSpriteProxyNode();
 };

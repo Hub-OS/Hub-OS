@@ -145,3 +145,8 @@ void SpriteProxyNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
     }
   }
 }
+
+SpriteProxyNode& SpriteProxyNode::AsSpriteProxyNode()
+{
+  return *this;
+}

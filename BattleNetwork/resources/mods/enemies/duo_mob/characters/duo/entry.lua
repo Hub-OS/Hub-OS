@@ -171,7 +171,7 @@ function create_mine(duo)
 
     miscAnim:set_state("MINE")
     miscAnim:set_playback(Playback.Once)
-    miscAnim:refresh(mine.node:sprite())
+    miscAnim:refresh(mine.node:unwrap())
 
     mine.update_func = function(self, dt) 
         --print("updating mine")
@@ -258,7 +258,7 @@ function create_laser_beam(duo)
 
     laser:never_flip(true)
     laser:set_texture(texture, true)
-    laser:set_layer(-2)
+    laser:sprite():set_layer(-2)
 
     laser:set_hit_props(
         make_hit_props(
@@ -339,7 +339,7 @@ function create_missile(duo)
     missile:set_health(20)
     missile:set_texture(texture, true)
     missile:set_height(20.0)
-    missile:set_layer(-2)
+    missile:sprite():set_layer(-2)
     missile:show_shadow(false)
     missile:share_tile(true)
     missile:never_flip(true)
@@ -469,7 +469,7 @@ function shoot_laser_state(self, dt)
         miscAnim:on_complete(closure())
     end
 
-    miscAnim:update(dt, middle:sprite(), 1.0)
+    miscAnim:update(dt, middle:unwrap(), 1.0)
 end
 
 function shoot_missile_state(self, dt)
@@ -513,7 +513,7 @@ function set_wait_timer(seconds)
 end 
 
 function wait_laser_state(self, dt)
-    miscAnim:update(dt, middle:sprite(), 1.0) 
+    miscAnim:update(dt, middle:unwrap(), 1.0) 
 
     -- also wait for laser to complete
     if laserComplete == true then 
@@ -524,7 +524,7 @@ function wait_laser_state(self, dt)
         miscAnim:on_complete(function()
                 miscAnim:set_state("NO_SHOOT")
                 miscAnim:set_playback(Playback.Once)
-                miscAnim:refresh(middle:sprite())
+                miscAnim:refresh(middle:unwrap())
                 miscAnim:on_complete(next_state)
             end)
             
@@ -646,14 +646,14 @@ function package_init(self)
 
     miscAnim = Engine.Animation.new(anim)
     miscAnim:set_state("HAND_IDLE")
-    miscAnim:refresh(hand:sprite())
+    miscAnim:refresh(hand:unwrap())
 
     middle = Engine.SpriteNode.new()
     middle:set_texture(texture, true)
     middle:set_layer(-1)
 
     miscAnim:set_state("NO_SHOOT")
-    miscAnim:refresh(middle:sprite())
+    miscAnim:refresh(middle:unwrap())
 
     local origin = anim:point("origin")
     local point  = anim:point("NO_SHOOT")

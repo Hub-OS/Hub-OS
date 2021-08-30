@@ -112,7 +112,7 @@ public:
   
   SceneNode* GetParent();
 
-  void AddTags(const std::initializer_list<std::string>& tags);
-  void RemoveTags(const std::initializer_list<std::string>& tags);
+  void AddTags(const std::initializer_list<std::string> tags);
+  void RemoveTags(const std::initializer_list<std::string> tags);
   const bool HasTag(const std::string& name);
 };
