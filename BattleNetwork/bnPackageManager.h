@@ -166,19 +166,27 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
     state["package_init"](packageClass);
 
     packageClass->OnMetaParsed();
+   
+    std::string file_path = modpath.generic_string();
+    packageClass->SetFilePath(file_path);
 
-    packageClass->SetFilePath(modpath.generic_string());
+    auto zip_result = stx::zip(file_path, file_path + ".zip");
+    if (zip_result.is_error()) {
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + zip_result.error_cstr();
+      return stx::error<bool>(msg);
+    }
 
-    if (auto result = stx::generate_md5_from_file(modpath.generic_string() + ".zip"); result.is_error()) {
-      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + result.error_cstr();
+    auto md5_result = stx::generate_md5_from_file(file_path + ".zip");
+    if (md5_result.is_error()) {
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + md5_result.error_cstr();
       return stx::error<bool>(msg);
     }
     else {
-      packageClass->SetPackageFingerprint(result.value());
+      packageClass->SetPackageFingerprint(md5_result.value());
     }
     
-    if (auto result = this->Commit(packageClass); result.is_error()) {
-      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + result.error_cstr();
+    if (auto commit_result = this->Commit(packageClass); commit_result.is_error()) {
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + commit_result.error_cstr();
       return stx::error<bool>(msg);
     }
   }
