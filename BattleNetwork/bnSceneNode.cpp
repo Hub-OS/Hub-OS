@@ -99,14 +99,14 @@ SceneNode* SceneNode::GetParent() {
   return parent;
 }
 
-void SceneNode::AddTags(const std::initializer_list<std::string>& tags)
+void SceneNode::AddTags(const std::initializer_list<std::string> tags)
 {
   for (auto& t : tags) {
     this->tags.insert(t);
   }
 }
 
-void SceneNode::RemoveTags(const std::initializer_list<std::string>& tags)
+void SceneNode::RemoveTags(const std::initializer_list<std::string> tags)
 {
   for (auto& t : tags) {
     this->tags.insert(t);

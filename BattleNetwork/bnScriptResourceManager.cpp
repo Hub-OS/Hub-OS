@@ -145,14 +145,22 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
     "set_texture", &SpriteProxyNode::setTexture,
-    "set_layer", &SpriteProxyNode::SetLayer,
     "show", &SpriteProxyNode::Reveal,
     "hide", &SpriteProxyNode::Hide,
+    "set_layer", &SpriteProxyNode::SetLayer,
+    "get_layer", &SpriteProxyNode::GetLayer,
+    "add_node", &SpriteProxyNode::AddNode,
+    "remove_node", &SpriteProxyNode::RemoveNode,
+    "add_tag", &SpriteProxyNode::AddTags,
+    "remove_tags", &SpriteProxyNode::RemoveTags,
+    "has_tag", &SpriteProxyNode::HasTag,
+    "find_child_nodes_with_tags", &SpriteProxyNode::GetChildNodesWithTag,
+    "get_layer", &SpriteProxyNode::GetLayer,
     "set_position", sol::resolve<void(float, float)>(&SpriteProxyNode::setPosition),
     "get_position", &SpriteProxyNode::getPosition,
     "get_color", &SpriteProxyNode::getColor,
     "set_color", &SpriteProxyNode::setColor,
-    "sprite", &SpriteProxyNode::getSprite,
+    "unwrap", &SpriteProxyNode::getSprite,
     "enable_parent_shader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
   );
@@ -170,7 +178,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_field", &ScriptedSpell::GetField,
     "get_facing", &ScriptedSpell::GetFacing,
     "set_facing", &ScriptedSpell::SetFacing,
-    "sprite", &ScriptedSpell::getSprite,
+    "sprite", &ScriptedSpell::AsSpriteProxyNode,
     "get_alpha", &ScriptedSpell::GetAlpha,
     "set_alpha", &ScriptedSpell::SetAlpha,
     "get_color", &ScriptedSpell::getColor,
@@ -192,7 +200,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "remove", &ScriptedSpell::Remove,
     "delete", &ScriptedSpell::Delete,
     "set_texture", &ScriptedSpell::setTexture,
-    "set_layer", &ScriptedSpell::SetLayer,
     "add_node", &ScriptedSpell::AddNode,
     "highlight_tile", &ScriptedSpell::HighlightTile,
     "copy_hit_props", &ScriptedSpell::GetHitboxProperties,
@@ -236,7 +243,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_color", &ScriptedObstacle::getColor,
     "set_color", &ScriptedObstacle::setColor,
     "get_field", &ScriptedObstacle::GetField,
-    "sprite", &ScriptedObstacle::getSprite,
+    "sprite", &ScriptedObstacle::AsSpriteProxyNode,
     "hide", &ScriptedObstacle::Hide,
     "reveal", &ScriptedObstacle::Reveal,
     "slide", &ScriptedObstacle::Slide,
@@ -262,7 +269,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "share_tile", &ScriptedObstacle::ShareTileSpace,
     "add_defense_rule", &ScriptedObstacle::AddDefenseRule,
     "set_texture", &ScriptedObstacle::setTexture,
-    "set_layer", &ScriptedObstacle::SetLayer,
     "get_animation", &ScriptedObstacle::GetAnimationObject,
     "set_animation", &ScriptedObstacle::SetAnimation,
     "add_node", &ScriptedObstacle::AddNode,
@@ -302,7 +308,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_alpha", &Character::SetAlpha,
     "get_color", &Character::getColor,
     "set_color", &Character::setColor,
-    "sprite", &Character::getSprite,
+    "sprite", &Character::AsSpriteProxyNode,
     "slide", &Character::Slide,
     "jump", &Character::Jump,
     "teleport", &Character::Teleport,
@@ -355,7 +361,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_alpha", &ScriptedCharacter::SetAlpha,
     "get_color", &ScriptedCharacter::getColor,
     "set_color", &ScriptedCharacter::setColor,
-    "sprite", &ScriptedCharacter::getSprite,
+    "sprite", &ScriptedCharacter::AsSpriteProxyNode,
     "slide", &ScriptedCharacter::Slide,
     "jump", &ScriptedCharacter::Jump,
     "teleport", &ScriptedCharacter::Teleport,
@@ -446,7 +452,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_alpha", &ScriptedPlayer::SetAlpha,
     "get_color", &ScriptedPlayer::getColor,
     "set_color", &ScriptedPlayer::setColor,
-    "sprite", &ScriptedPlayer::getSprite,
+    "sprite", &ScriptedPlayer::AsSpriteProxyNode,
     "slide", &ScriptedPlayer::Slide,
     "jump", &ScriptedPlayer::Jump,
     "teleport", &ScriptedPlayer::Teleport,
@@ -497,7 +503,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_alpha", &ScriptedArtifact::SetAlpha,
     "get_color", &ScriptedArtifact::getColor,
     "set_color", &ScriptedArtifact::setColor,
-    "sprite", &ScriptedArtifact::getSprite,
+    "sprite", &ScriptedArtifact::AsSpriteProxyNode,
     "slide", &ScriptedArtifact::Slide,
     "jump", &ScriptedArtifact::Jump,
     "teleport", &ScriptedArtifact::Teleport,
@@ -1099,7 +1105,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     }
   );
 
-  const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent");
+  state.set_function("create_move_event", []() { return MoveEvent{}; } );
+
+  const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent",
+    "delta_frames", &MoveEvent::deltaFrames,
+    "delay_frames", &MoveEvent::delayFrames,
+    "endlag_frames",&MoveEvent::endlagFrames,
+    "height", &MoveEvent::height,
+    "dest_tile", &MoveEvent::dest,
+    "on_begin_func", &MoveEvent::onBegin
+  );
+
   const auto& card_event_record = state.new_usertype<CardEvent>("CardEvent");
 
   const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
