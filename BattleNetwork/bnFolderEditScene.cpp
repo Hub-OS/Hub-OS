@@ -977,9 +977,9 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
     }
 
     auto& packageManager = getController().CardPackageManager();
-    std::string packageId = packageManager.GetPackageAfter(packageManager.FirstValidPackage());
+    std::string packageId = packageManager.FirstValidPackage();
 
-    while(packageId.size()) {
+    do {
       auto& meta = packageManager.FindPackageByID(packageId);
 
       for (auto& code : meta.GetCodes()) {
@@ -991,9 +991,7 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
 
       packageId = packageManager.GetPackageAfter(packageId);
 
-      if (packageId == packageManager.FirstValidPackage())
-        break;
-    }
+    } while (packageId != packageManager.FirstValidPackage());
 }
 
 void FolderEditScene::WriteNewFolderData()
