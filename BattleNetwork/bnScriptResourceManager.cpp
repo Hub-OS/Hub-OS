@@ -546,6 +546,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_animation", &ScriptedArtifact::SetAnimation,
     "set_texture", &ScriptedArtifact::setTexture,
     "set_height", &ScriptedArtifact::SetHeight,
+    "set_position", sol::overload(
+      sol::resolve<void(float, float)>(&ScriptedArtifact::SetDrawOffset)
+    ),
     "get_animation", &ScriptedArtifact::GetAnimationObject,
     "never_flip", &ScriptedArtifact::NeverFlip,
     "delete_func", &ScriptedArtifact::deleteCallback,
