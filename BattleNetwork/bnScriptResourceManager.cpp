@@ -285,6 +285,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_health", &ScriptedObstacle::SetHealth,
     "share_tile", &ScriptedObstacle::ShareTileSpace,
     "add_defense_rule", &ScriptedObstacle::AddDefenseRule,
+    "remove_defense_rule", &ScriptedObstacle::RemoveDefenseRule,
     "set_texture", &ScriptedObstacle::setTexture,
     "get_animation", &ScriptedObstacle::GetAnimationObject,
     "set_animation", &ScriptedObstacle::SetAnimation,
@@ -353,6 +354,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "share_tile", &Character::ShareTileSpace,
     "add_defense_rule", &Character::AddDefenseRule,
     "register_component", &Character::RegisterComponent,
+    "remove_defense_rule", &Character::RemoveDefenseRule,
     "set_position", sol::overload(
       sol::resolve<void(float, float)>(&Character::SetDrawOffset)
     ),
@@ -412,6 +414,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "share_tile", &ScriptedCharacter::ShareTileSpace,
     "add_defense_rule", &ScriptedCharacter::AddDefenseRule,
     "register_component", &ScriptedCharacter::RegisterComponent,
+    "remove_defense_rule", &ScriptedCharacter::RemoveDefenseRule,
     "set_position", sol::overload(
       sol::resolve<void(float, float)>(&ScriptedCharacter::SetDrawOffset)
     ),
