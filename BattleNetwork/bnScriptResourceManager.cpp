@@ -178,7 +178,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_injected", &ScriptedComponent::Injected,
     "get_owner", &ScriptedComponent::GetOwnerAsCharacter,
     "scene_inject_func", &ScriptedComponent::scene_inject_func,
-    "update_func", &ScriptedComponent::update_func
+    "update_func", &ScriptedComponent::update_func,
+    sol::base_classes, sol::bases<Component>()
   );
 
   const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>( "Spell",
