@@ -170,6 +170,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::factories([](Character* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
       return std::make_unique<ScriptedComponent>(owner, lifetime);
     }),
+    sol::meta_function::index, &dynamic_object::dynamic_get,
+    sol::meta_function::new_index, &dynamic_object::dynamic_set,
+    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
     "eject", &ScriptedComponent::Eject,
     "get_id", &ScriptedComponent::GetID,
     "is_injected", &ScriptedComponent::Injected,
