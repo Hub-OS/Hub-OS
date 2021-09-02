@@ -62,7 +62,7 @@ namespace {
 }
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
-  state.open_libraries(sol::lib::base, sol::lib::math);
+  state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
   sol::table battle_namespace = state.create_table("Battle");
   sol::table overworld_namespace = state.create_table("Overworld");
