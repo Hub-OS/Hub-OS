@@ -1,4 +1,5 @@
 #pragma once
+#include <sol/sol.hpp>
 
 /**
  * @class dynamic_object
