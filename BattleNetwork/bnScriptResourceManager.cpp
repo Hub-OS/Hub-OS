@@ -62,7 +62,7 @@ namespace {
 }
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
-  state.open_libraries(sol::lib::base, sol::lib::math);
+  state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
   sol::table battle_namespace = state.create_table("Battle");
   sol::table overworld_namespace = state.create_table("Overworld");
@@ -145,6 +145,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
+    "get_texture", &SpriteProxyNode::getTexture,
     "set_texture", &SpriteProxyNode::setTexture,
     "show", &SpriteProxyNode::Reveal,
     "hide", &SpriteProxyNode::Hide,
@@ -216,6 +217,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_team", &ScriptedSpell::Teammate,
     "remove", &ScriptedSpell::Remove,
     "delete", &ScriptedSpell::Delete,
+    "get_texture", &ScriptedSpell::getTexture,
     "set_texture", &ScriptedSpell::setTexture,
     "add_node", &ScriptedSpell::AddNode,
     "highlight_tile", &ScriptedSpell::HighlightTile,
@@ -285,6 +287,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_health", &ScriptedObstacle::SetHealth,
     "share_tile", &ScriptedObstacle::ShareTileSpace,
     "add_defense_rule", &ScriptedObstacle::AddDefenseRule,
+    "remove_defense_rule", &ScriptedObstacle::RemoveDefenseRule,
+    "get_texture", &ScriptedObstacle::getTexture,
     "set_texture", &ScriptedObstacle::setTexture,
     "get_animation", &ScriptedObstacle::GetAnimationObject,
     "set_animation", &ScriptedObstacle::SetAnimation,
@@ -341,6 +345,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_team", &Character::Teammate,
     "hide", &Character::Hide,
     "reveal", &Character::Reveal,
+    "get_texture", &Character::getTexture,
     "set_texture", &Character::setTexture,
     "add_node", &Character::AddNode,
 
@@ -353,6 +358,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "share_tile", &Character::ShareTileSpace,
     "add_defense_rule", &Character::AddDefenseRule,
     "register_component", &Character::RegisterComponent,
+    "remove_defense_rule", &Character::RemoveDefenseRule,
     "set_position", sol::overload(
       sol::resolve<void(float, float)>(&Character::SetDrawOffset)
     ),
@@ -401,6 +407,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "reveal", &ScriptedCharacter::Reveal,
     "remove", &ScriptedCharacter::Remove,
     "delete", &ScriptedCharacter::Delete,
+    "get_texture", &ScriptedCharacter::getTexture,
     "set_texture", &ScriptedCharacter::setTexture,
     "add_node", &ScriptedCharacter::AddNode,
     "get_name", &ScriptedCharacter::GetName,
@@ -412,6 +419,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "share_tile", &ScriptedCharacter::ShareTileSpace,
     "add_defense_rule", &ScriptedCharacter::AddDefenseRule,
     "register_component", &ScriptedCharacter::RegisterComponent,
+    "remove_defense_rule", &ScriptedCharacter::RemoveDefenseRule,
     "set_position", sol::overload(
       sol::resolve<void(float, float)>(&ScriptedCharacter::SetDrawOffset)
     ),
@@ -492,6 +500,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_max_health", &ScriptedPlayer::GetMaxHealth,
     "set_name", &ScriptedPlayer::SetName,
     "set_health", &ScriptedPlayer::SetHealth,
+    "get_texture", &ScriptedPlayer::getTexture,
     "set_texture", &ScriptedPlayer::setTexture,
     "set_animation", &ScriptedPlayer::SetAnimation,
     "set_height", &ScriptedPlayer::SetHeight,
@@ -541,8 +550,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "will_remove_eof", &ScriptedArtifact::WillRemoveLater,
     "get_team", &ScriptedArtifact::GetTeam,
     "set_animation", &ScriptedArtifact::SetAnimation,
+    "get_texture", &ScriptedArtifact::getTexture,
     "set_texture", &ScriptedArtifact::setTexture,
     "set_height", &ScriptedArtifact::SetHeight,
+    "set_position", sol::overload(
+      sol::resolve<void(float, float)>(&ScriptedArtifact::SetDrawOffset)
+    ),
     "get_animation", &ScriptedArtifact::GetAnimationObject,
     "never_flip", &ScriptedArtifact::NeverFlip,
     "delete_func", &ScriptedArtifact::deleteCallback,

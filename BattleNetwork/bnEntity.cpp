@@ -333,11 +333,15 @@ void Entity::FinishMove()
   }
 }
 
-void Entity::RawMoveEvent(const MoveEvent& event, ActionOrder order)
+bool Entity::RawMoveEvent(const MoveEvent& event, ActionOrder order)
 {
   if (event.dest && CanMoveTo(event.dest)) {
     actionQueue.Add(event, order, ActionDiscardOp::until_eof);
+
+    return true;
   }
+
+  return false;
 }
 
 void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec)
