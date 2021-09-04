@@ -99,6 +99,7 @@ private:
   bool playFormSound;
   bool newHand{};
   float darkCardShadowAlpha;
+  bool retreatAllowed{true};
   std::vector<sf::Sprite> formUI;
   double formSelectQuitTimer;
   double frameElapsed; /*!< delta seconds since last frame */
@@ -314,6 +315,8 @@ public:
    * @brief Calls ClearCards(), resets cursor, and sets AreCardsReady are false
    */
   void ResetState();
+
+  void PreventRetreat();
   
   /**
    * @brief Query status if cards are selected to be used

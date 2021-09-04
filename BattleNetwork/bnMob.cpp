@@ -115,6 +115,16 @@ bool Mob::IsBoss() {
   return isBoss;
 }
 
+bool Mob::IsFreedomMission()
+{
+  return isFreedomMission;
+}
+
+uint8_t Mob::GetTurnLimit()
+{
+  return turnLimit;
+}
+
 void Mob::SetBackground(const std::shared_ptr<Background> background) {
   Mob::background = background;
 }
@@ -185,4 +195,14 @@ Mob::MobData* Mob::GetNextMob() {
 void Mob::Track(Character& character)
 {
   tracked.push_back(&character);
+}
+
+void Mob::EnableFreedomMission(bool enabled)
+{
+  isFreedomMission = enabled;
+}
+
+void Mob::LimitTurnCount(uint8_t turnLimit)
+{
+  Mob::turnLimit = turnLimit;
 }

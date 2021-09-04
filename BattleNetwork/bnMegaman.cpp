@@ -23,7 +23,7 @@ Megaman::Megaman() : Player() {
   PaletteSwap* pswap = CreateComponent<PaletteSwap>(this);
   pswap->SetBase(basePallete);
 
-  SetHealth(900);
+  SetHealth(200);
   SetName("Megaman");
   SetHeight(48.f);
 

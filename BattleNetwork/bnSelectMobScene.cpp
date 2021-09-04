@@ -2,6 +2,7 @@
 #include "bnSelectMobScene.h"
 #include "bnMobPackageManager.h"
 #include "battlescene/bnMobBattleScene.h"
+#include "battlescene/bnFreedomMissionMobScene.h"
 #include "Android/bnTouchArea.h"
 
 constexpr float PIXEL_MAX = 50.0f;
@@ -385,17 +386,32 @@ void SelectMobScene::onUpdate(double elapsed) {
         mob->SetBackground(props.background);
       }
 
-      MobBattleProperties props{ 
-        { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
-        MobBattleProperties::RewardBehavior::take,
-        { mob },
-        sf::Sprite(*mugshot),
-        mugshotAnim,
-        emotions,
-      };
-
       using effect = segue<WhiteWashFade>;
-      getController().push<effect::to<MobBattleScene>>(props);
+
+      if (mob->IsFreedomMission()) {
+        FreedomMissionProps props{
+          { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
+          { mob },
+          mob->GetTurnLimit(),
+          sf::Sprite(*mugshot),
+          mugshotAnim,
+          emotions,
+        };
+
+        getController().push<effect::to<FreedomMissionMobScene>>(props);
+      }
+      else {
+        MobBattleProperties props{
+          { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
+          MobBattleProperties::RewardBehavior::take,
+          { mob },
+          sf::Sprite(*mugshot),
+          mugshotAnim,
+          emotions,
+        };
+
+        getController().push<effect::to<MobBattleScene>>(props);
+      }
     }
   }
 

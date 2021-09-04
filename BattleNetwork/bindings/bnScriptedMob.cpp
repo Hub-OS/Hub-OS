@@ -136,6 +136,14 @@ Field* ScriptedMob::GetField()
   return field;
 }
 
+void ScriptedMob::EnableFreedomMission(uint8_t turnCount)
+{
+  if (this->mob) {
+    this->mob->EnableFreedomMission(true);
+    this->mob->LimitTurnCount(turnCount);
+  }
+}
+
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn, Character::Rank rank)
 {
   std::string_view prefix = "com.builtins.char.";

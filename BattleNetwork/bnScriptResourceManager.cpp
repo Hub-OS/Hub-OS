@@ -813,7 +813,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "create_spawner", &ScriptedMob::CreateSpawner,
     "set_background", &ScriptedMob::SetBackground,
     "stream_music", &ScriptedMob::StreamMusic,
-    "get_field", &ScriptedMob::GetField
+    "get_field", &ScriptedMob::GetField,
+    "enable_freedom_mission", &ScriptedMob::EnableFreedomMission
   );
 
   const auto& scriptedspawner_table = battle_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",

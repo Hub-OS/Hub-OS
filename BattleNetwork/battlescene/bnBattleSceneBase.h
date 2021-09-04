@@ -342,8 +342,8 @@ public:
   void StopBattleStepTimer();
   void BroadcastBattleStart();
   void BroadcastBattleStop();
-  void IncrementTurnCount();
-  void IncrementRoundCount();
+  virtual void IncrementTurnCount();
+  virtual void IncrementRoundCount();
 
   const sf::Time GetElapsedBattleTime();
 
