@@ -656,7 +656,7 @@ void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, Packag
 
     file.close();
 
-    auto result = pm.LoadPackageFromZip<ScriptedDataType>(path);
+    auto result = pm.template LoadPackageFromZip<ScriptedDataType>(path);
 
     if (!result.is_error()) {
       taskComplete[hash] = true;
