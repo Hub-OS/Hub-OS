@@ -118,9 +118,9 @@ ScriptedMob::ScriptedMob(sol::state& script) :
   field = new Field(6, 3);
 }
 
-
 ScriptedMob::~ScriptedMob()
 {
+  delete field;
 }
 
 Mob* ScriptedMob::Build(Field* field) {

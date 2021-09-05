@@ -49,7 +49,8 @@ void WebClientManager::QueuedTasksThreadHandler()
 
       char* error;
       while (client && client->GetNextError(&error)) {
-          Logger::Logf("Web Client encountered an error: %s", error);
+        Logger::Logf("Web Client encountered an error: %s", error);
+        delete[] error;
       }
 
       lock.lock();
