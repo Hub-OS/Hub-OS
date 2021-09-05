@@ -13,10 +13,10 @@ private:
   bool armIsOut;
   int damage;
 public:
-  DarkTornadoCardAction(Character* actor, int damage);
+  DarkTornadoCardAction(std::shared_ptr<Character> actor, int damage);
   ~DarkTornadoCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
 }; 

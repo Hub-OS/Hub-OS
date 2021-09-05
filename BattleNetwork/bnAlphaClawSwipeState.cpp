@@ -74,11 +74,11 @@ void AlphaClawSwipeState::OnLeave(AlphaCore& a) {
 void AlphaClawSwipeState::SpawnLeftArm(AlphaCore& a) {
   a.HideLeftArm();
 
-  leftArm = new AlphaArm(a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
+  leftArm = std::make_shared<AlphaArm>(a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
 
-  auto leftArmDeleteCallback = [this](Entity& target, Entity& observer) {
+  auto leftArmDeleteCallback = [this](auto target, auto observer) {
     leftArm = nullptr;
-    dynamic_cast<AlphaCore&>(observer).GoToNextState();
+    dynamic_cast<AlphaCore&>(*observer).GoToNextState();
   };
 
   a.GetField()->NotifyOnDelete(leftArm->GetID(), a.GetID(), leftArmDeleteCallback);
@@ -88,7 +88,7 @@ void AlphaClawSwipeState::SpawnLeftArm(AlphaCore& a) {
   leftArm->SetHitboxProperties(props);
 
   Field* field = a.GetField();
-  field->AddEntity(*leftArm, 4, last->GetY());
+  field->AddEntity(leftArm, 4, last->GetY());
 
   if (goldenArmState) {
     leftArm->LeftArmChangesTileState();
@@ -99,11 +99,11 @@ void AlphaClawSwipeState::SpawnLeftArm(AlphaCore& a) {
 
 void AlphaClawSwipeState::SpawnRightArm(AlphaCore& a) {
   // spawn right claw
-  rightArm = new AlphaArm(a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
+  rightArm = std::make_shared<AlphaArm>(a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
 
-  auto rightArmDeleteCallback = [this](Entity& target, Entity& observer) {
+  auto rightArmDeleteCallback = [this](auto target, auto observer) {
     rightArm = nullptr;
-    SpawnLeftArm(dynamic_cast<AlphaCore&>(observer));
+    SpawnLeftArm(dynamic_cast<AlphaCore&>(*observer));
   };
 
   a.GetField()->NotifyOnDelete(rightArm->GetID(), a.GetID(), rightArmDeleteCallback);
@@ -116,9 +116,9 @@ void AlphaClawSwipeState::SpawnRightArm(AlphaCore& a) {
 
   if (goldenArmState) {
     rightArm->RightArmChangesTileTeam();
-    field->AddEntity(*rightArm, 3, 1);
+    field->AddEntity(rightArm, 3, 1);
   }
   else {
-    field->AddEntity(*rightArm, last->GetX(), 1);
+    field->AddEntity(rightArm, last->GetX(), 1);
   }
 }

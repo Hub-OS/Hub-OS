@@ -14,7 +14,7 @@
 
 #define FRAMES FRAME1, FRAME3
 
-YoYoCardAction::YoYoCardAction(Character* actor, int damage) :
+YoYoCardAction::YoYoCardAction(std::shared_ptr<Character> actor, int damage) :
   attachmentAnim(NODE_ANIM), yoyo(nullptr),
   CardAction(actor, "PLAYER_SHOOTING") {
   YoYoCardAction::damage = damage;
@@ -37,15 +37,15 @@ YoYoCardAction::~YoYoCardAction()
 {
 }
 
-void YoYoCardAction::OnExecute(Character* user) {
+void YoYoCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
-    auto* actor = GetActor();
+    auto actor = GetActor();
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     Team team = actor->GetTeam();
-    YoYo* y = new YoYo(team, damage);
+    auto y = std::make_shared<YoYo>(team, damage);
 
     y->SetDirection(team == Team::red? Direction::right : Direction::left);
     auto props = y->GetHitboxProperties();
@@ -62,7 +62,7 @@ void YoYoCardAction::OnExecute(Character* user) {
     auto tile = actor->GetTile()->Offset(step, 0);
 
     if (tile) {
-      actor->GetField()->AddEntity(*y, *tile);
+      actor->GetField()->AddEntity(y, *tile);
     }
   };
 

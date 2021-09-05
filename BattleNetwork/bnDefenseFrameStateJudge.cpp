@@ -38,7 +38,7 @@ void DefenseFrameStateJudge::SignalDefenseWasPierced()
   }
 }
 
-void DefenseFrameStateJudge::SetDefenseContext(DefenseRule* ptr)
+void DefenseFrameStateJudge::SetDefenseContext(std::shared_ptr<DefenseRule> ptr)
 {
   context = ptr;
 }

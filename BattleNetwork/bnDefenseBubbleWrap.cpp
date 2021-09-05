@@ -24,18 +24,18 @@ Hit::Properties& DefenseBubbleWrap::FilterStatuses(Hit::Properties& statuses) {
   return statuses;
 }
 
-void DefenseBubbleWrap::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
+void DefenseBubbleWrap::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)
 {
-  if ((in.GetHitboxProperties().flags & Hit::impact) == 0) return;
+  if ((in->GetHitboxProperties().flags & Hit::impact) == 0) return;
 
   // weak obstacles will break like other bubbles
-  auto hitbox = new Hitbox(owner.GetTeam(), 0);
-  owner.GetField()->AddEntity(*hitbox, *owner.GetTile());
+  auto hitbox = std::make_shared<Hitbox>(owner->GetTeam(), 0);
+  owner->GetField()->AddEntity(hitbox, *owner->GetTile());
 
-  auto props = in.GetHitboxProperties();
+  auto props = in->GetHitboxProperties();
   if ((props.flags & Hit::impact) == Hit::impact) {
 
-    if (in.GetElement() != Element::elec) {
+    if (in->GetElement() != Element::elec) {
       judge.BlockDamage();
     }
     else {

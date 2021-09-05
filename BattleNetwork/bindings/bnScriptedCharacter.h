@@ -22,7 +22,7 @@ class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, 
   friend class ScriptedIntroState;
   sol::state& script;
   float height{};
-  AnimationComponent* animation{ nullptr };
+  std::shared_ptr<AnimationComponent> animation{ nullptr };
   bool bossExplosion{ false };
   double explosionPlayback{ 1.0 };
   int numOfExplosions{ 2 };
@@ -43,8 +43,8 @@ public:
   void ShakeCamera(double power, float duration);
   Animation& GetAnimationObject();
   void SetExplosionBehavior(int num, double speed, bool isBoss);
-  void SimpleCardActionEvent(std::unique_ptr<ScriptedCardAction>& action, ActionOrder order);
-  void SimpleCardActionEvent(std::unique_ptr<CardAction>& action, ActionOrder order);
+  void SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order);
+  void SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order);
 
   std::function<void(ScriptedCharacter&, Battle::Tile&)> spawnCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;

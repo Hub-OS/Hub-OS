@@ -42,6 +42,6 @@ public:
 
 private:
   TextureType textureType;
-  AnimationComponent* animation;
-  DefenseRule* virusBody;
+  std::shared_ptr<AnimationComponent> animation;
+  std::shared_ptr<DefenseRule> virusBody;
 };

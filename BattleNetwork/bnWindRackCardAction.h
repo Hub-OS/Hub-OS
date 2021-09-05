@@ -7,13 +7,13 @@ class WindRackCardAction : public CardAction {
   int damage{};
   std::string newDefault, newHilt; // hacky test
 public:
-  WindRackCardAction(Character* actor, int damage);
+  WindRackCardAction(std::shared_ptr<Character> actor, int damage);
   ~WindRackCardAction();
 
   void ReplaceRack(SpriteProxyNode* node, const Animation& newAnim);
 
   // Inherited via CardAction
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
   void OnActionEnd() override;
   void OnAnimationEnd() override;
 };

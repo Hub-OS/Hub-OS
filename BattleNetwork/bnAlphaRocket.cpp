@@ -18,7 +18,7 @@ AlphaRocket::AlphaRocket(Team _team) : Obstacle(_team)  {
   setTexture(texture);
   setScale(2.f, 2.f);
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/spells/spell_alpha_rocket.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT");
@@ -50,7 +50,7 @@ void AlphaRocket::OnUpdate(double _elapsed) {
       Delete();
   }
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
 // Nothing prevents AlphaRocket from moving over it
@@ -58,7 +58,7 @@ bool AlphaRocket::CanMoveTo(Battle::Tile* tile) {
   return true;
 }
 
-void AlphaRocket::Attack(Character* _entity) {
+void AlphaRocket::Attack(std::shared_ptr<Character> _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     SetHealth(0);
     Delete();
@@ -97,13 +97,13 @@ void AlphaRocket::OnDelete()
   });
 
   for (auto t : adj) {
-    Hitbox* box = new Hitbox(GetTeam(), 200);
-    Explosion* exp = new Explosion();
+    auto box = std::make_shared<Hitbox>(GetTeam(), 200);
+    auto exp = std::make_shared<Explosion>();
 
     box->SetHitboxProperties(GetHitboxProperties());
 
-    GetField()->AddEntity(*box, t->GetX(), t->GetY());
-    GetField()->AddEntity(*exp, t->GetX(), t->GetY());
+    GetField()->AddEntity(box, t->GetX(), t->GetY());
+    GetField()->AddEntity(exp, t->GetX(), t->GetY());
 
     EventChannel().Emit(&Camera::ShakeCamera, 10, sf::seconds(1));
   }

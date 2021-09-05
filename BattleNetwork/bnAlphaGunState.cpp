@@ -22,9 +22,9 @@ void AlphaGunState::OnUpdate(double _elapsed, AlphaCore& a) {
     a.ShootSuperVulcans();
 
     if (last) {
-      auto v = new SuperVulcan(a.GetTeam(), 40);
-      auto d = new DelayedAttack(v, Battle::Tile::Highlight::flash, 0.25);
-      a.GetField()->AddEntity(*d, last->GetX(), last->GetY());
+      auto v = std::make_shared<SuperVulcan>(a.GetTeam(), 40);
+      auto d = std::make_shared<DelayedAttack>(v, Battle::Tile::Highlight::flash, 0.25);
+      a.GetField()->AddEntity(d, last->GetX(), last->GetY());
     }
 
     if (a.GetTarget()) {

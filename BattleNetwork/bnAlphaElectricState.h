@@ -13,7 +13,7 @@ private:
   float cooldown;
   int count; // Repeats 7 times
   bool ready;
-  AlphaElectricCurrent* current;
+  std::shared_ptr<AlphaElectricCurrent> current;
 public:
   AlphaElectricState();
   ~AlphaElectricState();

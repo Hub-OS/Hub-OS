@@ -59,8 +59,8 @@ void Thunder::OnUpdate(double _elapsed) {
   // Find target if we don't have one
   if (!target) {
     // Find all characters that are not on our team and not an obstacle
-    auto query = [&](Entity* e) {
-        return (e->GetTeam() != team && dynamic_cast<Character*>(e) && !dynamic_cast<Obstacle*>(e));
+    auto query = [&](std::shared_ptr<Entity> e) {
+        return (e->GetTeam() != team && dynamic_cast<Character*>(e.get()) && !dynamic_cast<Obstacle*>(e.get()));
     };
 
     auto list = field->FindEntities(query);
@@ -83,8 +83,8 @@ void Thunder::OnUpdate(double _elapsed) {
     // We have found a target
     // Create a notifier so we can null the target when they are deleted
     if (target) {
-      auto targetRemoveCallback = [](Entity& target, Entity& observer) {
-        Thunder& self = dynamic_cast<Thunder&>(observer);
+      auto targetRemoveCallback = [](auto target, auto observer) {
+        Thunder& self = dynamic_cast<Thunder&>(*observer);
         self.target = nullptr;
       };
 
@@ -138,14 +138,14 @@ void Thunder::OnUpdate(double _elapsed) {
   }
 
   // Always affect the tile we're occupying
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
 bool Thunder::CanMoveTo(Battle::Tile* tile) {
   return true;
 }
 
-void Thunder::OnCollision(const Character*) {
+void Thunder::OnCollision(const std::shared_ptr<Character>) {
   Delete();
 }
 
@@ -153,6 +153,6 @@ void Thunder::OnDelete() {
   Remove();
 }
 
-void Thunder::Attack(Character* _entity) {
+void Thunder::Attack(std::shared_ptr<Character> _entity) {
   _entity->Hit(GetHitboxProperties());
 }

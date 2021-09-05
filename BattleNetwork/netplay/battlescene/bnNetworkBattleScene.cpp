@@ -50,10 +50,10 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   pingIndicator.setScale(2.f, 2.f);
   UpdatePingIndicator(frames(0));
 
-  auto* clientPlayer = &props.base.player;
+  auto clientPlayer = props.base.player;
 
   selectedNaviId = props.netconfig.myNaviId;
-  props.base.player.CreateComponent<PlayerInputReplicator>(clientPlayer);
+  clientPlayer->CreateComponent<PlayerInputReplicator>(clientPlayer);
 
   packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
@@ -72,7 +72,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   // ptr to player, form select index (-1 none), if should transform
   // TODO: just make this a struct to use across all states that need it...
   trackedForms = {
-    std::make_shared<TrackedFormData>(clientPlayer, -1, false)
+    std::make_shared<TrackedFormData>(clientPlayer.get(), -1, false)
   };
 
   // trackedForms[0]->SetReadyState<PlayerControlledState>();
@@ -200,14 +200,13 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
 
 NetworkBattleScene::~NetworkBattleScene()
 { 
-  delete remotePlayer;
   if (remoteHand) delete[] remoteHand;
 }
 
 void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
 {
   auto player = GetPlayer();
-  if (player == &victim && props.damage > 0) {
+  if (player.get() == &victim && props.damage > 0) {
     if (props.damage >= 300) {
       player->SetEmotion(Emotion::angry);
       GetSelectedCardsUI().SetMultiplier(2);
@@ -221,10 +220,10 @@ void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
   }
 
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
-    Artifact* seSymbol = new ElementalDamage;
+    auto seSymbol = std::make_shared<ElementalDamage>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight() + (victim.getLocalBounds().height * 0.5f)); // place it at sprite height
-    GetField()->AddEntity(*seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
+    GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
   }
 }
 
@@ -592,7 +591,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   Logger::Logf("Recieved connect signal! Remote navi: %s", remoteState.remoteNaviId.c_str());
 
   assert(remotePlayer == nullptr && "remote player was already set!");
-  remotePlayer = getController().PlayerPackageManager().FindPackageByID(remoteNaviId).GetData();
+  remotePlayer = std::shared_ptr<Player>(getController().PlayerPackageManager().FindPackageByID(remoteNaviId).GetData());
 
   // TODO: manual flipping shouldn't be needed. The engine should flip based on team and direction...
   remotePlayer->SetTeam(Team::blue);
@@ -600,8 +599,8 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remotePlayer->ChangeState<FadeInState<Player>>([]{});
 
-  GetField()->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
-  mob->Track(*remotePlayer);
+  GetField()->AddEntity(remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
+  mob->Track(remotePlayer);
 
   remoteCardActionUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().CardPackageManager());
   remoteCardActionUsePublisher->Hide(); // do not reveal opponent's cards
@@ -619,7 +618,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   auto netProxy = remotePlayer->CreateComponent<PlayerNetworkProxy>(remotePlayer, remoteState);
 
   players.push_back(remotePlayer);
-  trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer, -1, false ));
+  trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer.get(), -1, false ));
   //trackedForms.back()->SetReadyState<PlayerNetworkState>(netProxy);
 }
 

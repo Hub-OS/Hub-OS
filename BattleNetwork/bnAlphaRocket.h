@@ -4,7 +4,7 @@
 
 class AlphaRocket : public Obstacle {
 protected:
-  AnimationComponent* animation;
+  std::shared_ptr<AnimationComponent> animation;
   double speed;
 public:
 
@@ -32,7 +32,7 @@ public:
    * @brief Deals hitbox damage, exploding, and dropping hitboxes on 3 rows and columns adjacent
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  virtual void Attack(std::shared_ptr<Character> _entity);
 
   virtual void OnDelete();
 

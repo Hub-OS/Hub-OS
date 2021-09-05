@@ -17,7 +17,7 @@ using std::ostringstream;
 
 class AuraHealthUI :  public UIComponent {
 public:
-  AuraHealthUI(Character* owner);
+  AuraHealthUI(std::weak_ptr<Character> owner);
   ~AuraHealthUI();
 
   virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
@@ -30,5 +30,4 @@ private:
   int currHP;
   int startHP;
   mutable Sprite font;
-  Character* owner;
 };

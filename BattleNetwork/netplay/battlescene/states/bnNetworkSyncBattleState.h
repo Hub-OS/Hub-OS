@@ -14,11 +14,11 @@ struct NetworkSyncBattleState final : public NetworkBattleSceneState {
   bool firstConnection{ true }; //!< We need to do some extra setup for players if this is their first connection
   bool synchronized{ false }; 
   frame_time_t flicker{};
-  Player *&remotePlayer;
+  std::shared_ptr<Player>& remotePlayer;
   CardSelectBattleState*& cardSelectState;
   NetworkBattleScene* scene{ nullptr };
 
-  NetworkSyncBattleState(Player*& remotePlayer, NetworkBattleScene* scene);
+  NetworkSyncBattleState(std::shared_ptr<Player>& remotePlayer, NetworkBattleScene* scene);
   ~NetworkSyncBattleState();
   void Synchronize(); // mark this state for synchronization
   const bool IsSynchronized() const;

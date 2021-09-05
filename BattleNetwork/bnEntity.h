@@ -78,10 +78,10 @@ static sf::Color NoopCompositeColor(ColorMode mode) {
 }
 
 struct EntityComparitor {
-  bool operator()(Entity* f, Entity* s) const;
+  bool operator()(std::shared_ptr<Entity> f, std::shared_ptr<Entity> s) const;
 };
 
-class Entity : public SpriteProxyNode, public ResourceHandle {
+class Entity : public std::enable_shared_from_this<Entity>, public SpriteProxyNode, public ResourceHandle {
 public:
   using ID_t = long;
 
@@ -386,7 +386,7 @@ public:
    * @brief Pure virtual. Must be defined by super classes of Entity.
    * 
    * This is a visitor design pattern with double distpatching
-   * The super class must call tile->AddEntity(*this) to force the overloaded type
+   * The super class must call tile->AddEntity(shared_from_this()) to force the overloaded type
    * in the Tile class so that the entity is added to the correct type bucket @see Tile
    * @param tile to adopt
    */
@@ -411,21 +411,21 @@ public:
    * @return null if no component is found, otherwise returns the component
    */
   template<typename ComponentType>
-  ComponentType* GetFirstComponent() const;
+  std::shared_ptr<ComponentType> GetFirstComponent() const;
 
    /**
    * @brief Get all components that matches the exact Type
    * @return vector of specified components
    */
   template<typename ComponentType>
-  std::vector<ComponentType*> GetComponents() const;
+  std::vector<std::shared_ptr<ComponentType>> GetComponents() const;
 
   /**
 * @brief Get all components that inherit BaseType
 * @return vector of related components
 */
   template<typename BaseType>
-  std::vector<BaseType*> GetComponentsDerivedFrom() const;
+  std::vector<std::shared_ptr<BaseType>> GetComponentsDerivedFrom() const;
 
   /**
   * @brief Check if entity is a specialized type
@@ -441,14 +441,14 @@ public:
    * @return Returns the component as a pointer of the same type as ComponentT
    */
   template<typename ComponentType, typename... Args>
-  ComponentType* CreateComponent(Args&&...);
+  std::shared_ptr<ComponentType> CreateComponent(Args&&...);
 
   /**
   * @brief Attaches a component to an entity
   * @param c the component to add
   * @return Returns the component as a pointer of the common base class type
   */
-  Component* RegisterComponent(Component* c);
+  std::shared_ptr<Component> RegisterComponent(std::shared_ptr<Component> c);
   
   /**
    * @brief Frees all attached components from an owner
@@ -500,10 +500,10 @@ protected:
   frame_time_t moveStartupDelay{};
   frame_time_t moveEndlagDelay{};
 
-  std::vector<Component*> components; /*!< List of all components attached to this entity*/
+  std::vector<std::shared_ptr<Component>> components; /*!< List of all components attached to this entity*/
 
   struct ComponentBucket {
-    Component* pending{ nullptr };
+    std::shared_ptr<Component> pending{ nullptr };
     enum class Status : unsigned {
       add,
       remove
@@ -516,6 +516,11 @@ protected:
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
   void SetMoveEndlag(const frame_time_t& frames);
   void SetMoveStartupDelay(const frame_time_t& frames);
+
+  template <typename Derived>
+  inline std::shared_ptr<Derived> shared_from_base();
+  template <typename Derived>
+  inline std::weak_ptr<Derived> weak_from_base();
 
 private:
   bool isTimeFrozen{};
@@ -545,11 +550,11 @@ private:
 };
 
 template<typename ComponentType>
-inline ComponentType* Entity::GetFirstComponent() const
+inline std::shared_ptr<ComponentType> Entity::GetFirstComponent() const
 {
-  for (vector<Component*>::const_iterator it = components.begin(); it != components.end(); ++it) {
+  for (vector<std::shared_ptr<Component>>::const_iterator it = components.begin(); it != components.end(); ++it) {
     if (typeid(*(*it)) == typeid(ComponentType)) {
-      return dynamic_cast<ComponentType*>(*it);
+      return std::reinterpret_pointer_cast<ComponentType>(*it);
     }
   }
 
@@ -557,13 +562,13 @@ inline ComponentType* Entity::GetFirstComponent() const
 }
 
 template<typename ComponentType>
-inline std::vector<ComponentType*> Entity::GetComponents() const
+inline std::vector<std::shared_ptr<ComponentType>> Entity::GetComponents() const
 {
-  auto res = std::vector<ComponentType*>();
+  auto res = std::vector<std::shared_ptr<ComponentType>>();
 
-  for (vector<Component*>::const_iterator it = components.begin(); it != components.end(); ++it) {
+  for (vector<std::shared_ptr<Component>>::const_iterator it = components.begin(); it != components.end(); ++it) {
     if (typeid(*(*it)) == typeid(ComponentType)) {
-      res.push_back(static_cast<ComponentType*>(*it));
+      res.push_back(std::reinterpret_pointer_cast<ComponentType>(*it));
     }
   }
 
@@ -572,12 +577,12 @@ inline std::vector<ComponentType*> Entity::GetComponents() const
 
 
 template<typename BaseType>
-inline std::vector<BaseType*> Entity::GetComponentsDerivedFrom() const
+inline std::vector<std::shared_ptr<BaseType>> Entity::GetComponentsDerivedFrom() const
 {
-  auto res = std::vector<BaseType*>();
+  auto res = std::vector<std::shared_ptr<BaseType>>();
 
-  for (vector<Component*>::const_iterator it = components.begin(); it != components.end(); ++it) {
-    BaseType* cast = dynamic_cast<BaseType*>(*it);
+  for (vector<std::shared_ptr<Component>>::const_iterator it = components.begin(); it != components.end(); ++it) {
+    auto cast = std::dynamic_pointer_cast<BaseType>(*it);
 
     if (cast) {
       res.push_back(cast);
@@ -593,10 +598,27 @@ inline bool Entity::IsA() {
 }
 
 template<typename ComponentType, typename... Args>
-inline ComponentType* Entity::CreateComponent(Args&& ...args) {
-  ComponentType* c = new ComponentType(std::forward<decltype(args)>(args)...);
+inline std::shared_ptr<ComponentType> Entity::CreateComponent(Args&& ...args) {
+  std::shared_ptr<ComponentType> c = std::make_shared<ComponentType>(std::forward<decltype(args)>(args)...);
 
   RegisterComponent(c);
 
   return c;
+}
+
+// modified from https://stackoverflow.com/a/32172486
+template <typename Derived>
+inline std::shared_ptr<Derived> Entity::shared_from_base()
+{
+  // todo: typecheck
+  return std::reinterpret_pointer_cast<Derived>(shared_from_this());
+}
+
+
+// modified from https://stackoverflow.com/a/32172486
+template <typename Derived>
+inline std::weak_ptr<Derived> Entity::weak_from_base()
+{
+  // todo: typecheck
+  return std::reinterpret_pointer_cast<Derived>(weak_from_this());
 }

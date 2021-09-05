@@ -22,8 +22,8 @@ public:
   class ScriptedSpawner  {
     Mob* mob{ nullptr };
     Mob::Spawner<ScriptedCharacter>* scriptedSpawner{ nullptr };
-    std::function<Character* ()> constructor;
-    std::function<void(Character*)> pixelStateInvoker, defaultStateInvoker;
+    std::function<std::shared_ptr<Character>()> constructor;
+    std::function<void(std::shared_ptr<Character>)> pixelStateInvoker, defaultStateInvoker;
     Character::Rank rank{};
 
   public:
@@ -62,17 +62,17 @@ public:
 template<typename BuiltInCharacter>
 void ScriptedMob::ScriptedSpawner::UseBuiltInType(Character::Rank rank) {
   this->constructor = [rank] {
-    return new BuiltInCharacter(rank);
+    return std::make_shared<BuiltInCharacter>(rank);
   };
 
   // NOTE: the difference between this invoker and the purely C++ one
   //       is we do not have the choice to change our intro state
   //       when using built-in characters from Lua
   Mob* mob = this->mob;
-  this->pixelStateInvoker = [mob](Character* character) {
+  this->pixelStateInvoker = [mob](std::shared_ptr<Character> character) {
     auto onFinish = [mob]() { mob->FlagNextReady(); };
 
-    BuiltInCharacter* enemy = static_cast<BuiltInCharacter*>(character);
+    BuiltInCharacter* enemy = static_cast<BuiltInCharacter*>(character.get());
 
     if (enemy) {
       if constexpr (std::is_base_of<AI<BuiltInCharacter>, BuiltInCharacter>::value) {
@@ -84,8 +84,8 @@ void ScriptedMob::ScriptedSpawner::UseBuiltInType(Character::Rank rank) {
     }
   };
 
-  this->defaultStateInvoker = [](Character * character) {
-    BuiltInCharacter* enemy = static_cast<BuiltInCharacter*>(character);
+  this->defaultStateInvoker = [](std::shared_ptr<Character> character) {
+    auto enemy = static_cast<BuiltInCharacter*>(character.get());
     if (enemy) { enemy->InvokeDefaultState(); }
   };
 }

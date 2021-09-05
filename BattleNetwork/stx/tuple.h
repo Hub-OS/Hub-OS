@@ -15,7 +15,13 @@ namespace stx {
     template <class T, class Tuple>
     constexpr T* make_ptr_from_tuple(Tuple&& t)
     {
-    return detail::make_from_tuple_impl<T>(std::forward<Tuple>(t),
-        std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
+        return detail::make_from_tuple_impl<T>(std::forward<Tuple>(t),
+            std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
+    }
+
+    template <class T, class Tuple>
+    constexpr std::shared_ptr<T> make_shared_from_tuple(Tuple&& t)
+    {
+        return std::shared_ptr<T>(make_ptr_from_tuple<T, Tuple>(t));
     }
 }

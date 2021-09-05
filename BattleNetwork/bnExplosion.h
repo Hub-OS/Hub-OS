@@ -16,7 +16,7 @@
 class Explosion : public Artifact
 {
 private:
-  AnimationComponent* animationComponent; /*!< Animator the explosion */
+  std::shared_ptr<AnimationComponent> animationComponent; /*!< Animator the explosion */
   int numOfExplosions; /*!< Once the count reaches this number, the effect is over */
   sf::Vector2f offset{}; /*!< Explosion children are placed randomly around the spawn area */
   sf::Vector2f offsetArea{}; /*!< Screen space relative to origin to randomly pick from*/

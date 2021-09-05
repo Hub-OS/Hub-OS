@@ -39,7 +39,7 @@ void Fishy::OnUpdate(double _elapsed) {
     Slide(GetTile() + GetDirection(), frames(8), frames(0));
   }
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
 bool Fishy::CanMoveTo(Battle::Tile* tile) {
@@ -51,7 +51,7 @@ void Fishy::OnDelete()
     Remove();
 }
 
-void Fishy::Attack(Character* _entity) {
+void Fishy::Attack(std::shared_ptr<Character> _entity) {
   if (!hit) {
 
     hit = _entity->Hit(GetHitboxProperties());

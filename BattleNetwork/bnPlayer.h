@@ -131,14 +131,14 @@ public:
 
   void SlideWhenMoving(bool enable = true, const frame_time_t& = frames(1));
 
-  virtual CardAction* OnExecuteBusterAction() = 0;
-  virtual CardAction* OnExecuteChargedBusterAction() = 0;
-  virtual CardAction* OnExecuteSpecialAction();
+  virtual std::shared_ptr<CardAction> OnExecuteBusterAction() = 0;
+  virtual std::shared_ptr<CardAction> OnExecuteChargedBusterAction() = 0;
+  virtual std::shared_ptr<CardAction> OnExecuteSpecialAction();
   virtual frame_time_t CalculateChargeTime(const unsigned changeLevel);
 
-  CardAction* ExecuteBuster();
-  CardAction* ExecuteChargedBuster();
-  CardAction* ExecuteSpecial();
+  std::shared_ptr<CardAction> ExecuteBuster();
+  std::shared_ptr<CardAction> ExecuteChargedBuster();
+  std::shared_ptr<CardAction> ExecuteSpecial();
 
   void ActivateFormAt(int index); 
   void DeactivateForm();
@@ -148,7 +148,7 @@ public:
 
   ChargeEffectSceneNode& GetChargeComponent();
 
-  void OverrideSpecialAbility(const std::function<CardAction* ()>& func);
+  void OverrideSpecialAbility(const std::function<std::shared_ptr<CardAction> ()>& func);
 
 protected:
   // functions
@@ -164,15 +164,15 @@ protected:
   frame_time_t slideFrames{ frames(1) };
   bool playerControllerSlide{};
   bool fullyCharged{}; //!< Per-frame value of the charge
-  AnimationComponent* animationComponent;
+  std::shared_ptr<AnimationComponent> animationComponent;
   ChargeEffectSceneNode chargeEffect; /*!< Handles charge effect */
 
   std::vector<PlayerFormMeta*> forms;
   PlayerForm* activeForm{ nullptr };
   Emotion emotion{ Emotion::normal };
   PlayerStats stats{}, savedStats{};
-  std::function<CardAction* ()> specialOverride{};
-  DefenseSuperArmor* superArmor{ nullptr };
+  std::function<std::shared_ptr<CardAction>()> specialOverride{};
+  std::shared_ptr<DefenseSuperArmor> superArmor{ nullptr };
 };
 
 template<typename T>

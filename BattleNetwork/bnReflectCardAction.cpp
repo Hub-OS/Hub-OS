@@ -8,7 +8,7 @@
 
 #define FRAMES FRAME1
 
-ReflectCardAction::ReflectCardAction(Character* actor, int damage, ReflectShield::Type type) :
+ReflectCardAction::ReflectCardAction(std::shared_ptr<Character> actor, int damage, ReflectShield::Type type) :
   CardAction(actor, "PLAYER_IDLE"),
   type(type) 
 {
@@ -22,11 +22,11 @@ ReflectCardAction::~ReflectCardAction()
 {
 }
 
-void ReflectCardAction::OnExecute(Character* user) {
+void ReflectCardAction::OnExecute(std::shared_ptr<Character> user) {
   // Create a new reflect shield component. This handles the logic for shields.
-  ReflectShield* reflect = new ReflectShield(user, damage, type);
+  auto reflect = std::make_shared<ReflectShield>(user, damage, type);
   reflect->SetDuration(this->duration);
-  user->GetField()->AddEntity(*reflect, *user->GetTile());
+  user->GetField()->AddEntity(reflect, *user->GetTile());
 }
 
 void ReflectCardAction::SetDuration(const frame_time_t& duration)

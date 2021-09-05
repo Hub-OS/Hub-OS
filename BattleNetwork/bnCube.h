@@ -46,7 +46,7 @@ public:
    * @brief Deals 200 units of damage to enemies occupying the tile and then breaks
    * @param e
    */
-  void Attack(Character* e) override;
+  void Attack(std::shared_ptr<Character> e) override;
 
   const bool DidSpawnCorrectly() const;
 
@@ -60,6 +60,6 @@ protected:
   bool pushedByDrag{ false }; /*!< Whether or not to keep momentum going*/
   double timer{};
   Direction previousDirection;
-  DefenseRule* defense;
-  AnimationComponent* animation;
+  std::shared_ptr<DefenseRule> defense;
+  std::shared_ptr<AnimationComponent> animation;
 };

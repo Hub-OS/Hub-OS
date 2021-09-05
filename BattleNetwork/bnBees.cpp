@@ -10,10 +10,10 @@
 void Bees::MonitorTarget(Entity* target)
 {
   if (target) {
-    auto leaderDeleteHandler = [](Entity& target, Entity& observer) {
-      Bees& bees = dynamic_cast<Bees&>(observer);
+    auto leaderDeleteHandler = [](auto target, auto observer) {
+      Bees& bees = dynamic_cast<Bees&>(*observer);
 
-      if (&target == bees.leader) bees.leader = nullptr;
+      if (target.get() == bees.leader) bees.leader = nullptr;
       bees.target = nullptr;
     };
 
@@ -70,7 +70,7 @@ Bees::Bees(Team _team,int damage) :
     SetDirection(Direction::left);
   }
 
-  absorbDamage = new BeeDefenseRule();
+  absorbDamage = std::make_shared<BeeDefenseRule>();
   AddDefenseRule(absorbDamage);
 
   flickerCooldown = frames(3 * 60);
@@ -117,7 +117,7 @@ Bees::Bees(const Bees & leader) :
     SetDirection(Direction::left);
   }
 
-  absorbDamage = new BeeDefenseRule();
+  absorbDamage = std::make_shared<BeeDefenseRule>();
   AddDefenseRule(absorbDamage);
 
   flickerCooldown = frames(3 * 60);
@@ -125,7 +125,6 @@ Bees::Bees(const Bees & leader) :
 
 Bees::~Bees() {
   delete shadow;
-  delete absorbDamage;
 }
 
 void Bees::OnUpdate(double _elapsed) {
@@ -154,21 +153,21 @@ void Bees::OnUpdate(double _elapsed) {
   // Find target if we don't have one
   if (!leader && !target) {
     // Find all characters that are not on our team and not an obstacle
-    auto query = [&](Entity* e) {
-      return (e->GetTeam() != team && dynamic_cast<Character*>(e) && !dynamic_cast<Obstacle*>(e));
+    auto query = [&](std::shared_ptr<Entity> e) {
+      return (e->GetTeam() != team && dynamic_cast<Character*>(e.get()) && !dynamic_cast<Obstacle*>(e.get()));
     };
 
     auto list = field->FindEntities(query);
 
     for (auto l : list) {
-      if (!target) { target = l; }
+      if (!target) { target = l.get(); }
       else {
         // If the distance to one enemy is shorter than the other, target the shortest enemy path
         int currentDist = abs(tile->GetX() - l->GetTile()->GetX()) + abs(tile->GetY() - l->GetTile()->GetY());
         int targetDist = abs(tile->GetX() - target->GetTile()->GetX()) + abs(tile->GetY() - target->GetTile()->GetY());
 
         if (currentDist < targetDist) {
-          target = l;
+          target = l.get();
         }
       }
     }
@@ -285,33 +284,33 @@ void Bees::OnUpdate(double _elapsed) {
   }
 
   // Always affect the tile we're occupying
-  GetTile()->AffectEntities(this);
+  GetTile()->AffectEntities(*this);
 
   if (target && GetTile() == target->GetTile() && attackCooldown == 0) {
     // Try to attack 5 times
     attackCooldown = 1.80f; // est 3 frames
-    auto hitbox = new Hitbox(GetTeam());
+    auto hitbox = std::make_shared<Hitbox>(GetTeam());
     hitbox->SetHitboxProperties(GetHitboxProperties());
 
     // all other hitbox events will be ignored after 5 hits
     if (hitCount < 5) {
-      hitbox->AddCallback([this](Character* entity) {
+      hitbox->AddCallback([this](std::shared_ptr<Character> entity) {
         this->madeContact = true; // we hit something!
-        this->target = entity;
+        this->target = entity.get();
         this->hitCount++;
         Audio().Play(AudioType::HURT, AudioPriority::high);
-        }, [](const Character* entity) {
-          auto fx = new ParticleImpact(ParticleImpact::Type::green);
+        }, [](const std::shared_ptr<Character> entity) {
+          auto fx = std::make_shared<ParticleImpact>(ParticleImpact::Type::green);
           fx->SetHeight(entity->GetHeight());
-          entity->GetField()->AddEntity(*fx, *entity->GetTile());
+          entity->GetField()->AddEntity(fx, *entity->GetTile());
           fx->SetHeight(entity->GetHeight());
         });
 
     }
 
-    if (GetField()->AddEntity(*hitbox, *GetTile()) != Field::AddEntityStatus::deleted) {
-      auto hitboxRemoveCallback = [](Entity& target, Entity& observer) {
-        Hitbox& hitbox = dynamic_cast<Hitbox&>(observer);
+    if (GetField()->AddEntity(hitbox, *GetTile()) != Field::AddEntityStatus::deleted) {
+      auto hitboxRemoveCallback = [](auto target, auto observer) {
+        Hitbox& hitbox = dynamic_cast<Hitbox&>(*observer);
         hitbox.Remove();
       };
 
@@ -342,12 +341,12 @@ bool Bees::CanMoveTo(Battle::Tile* tile) {
   return true;
 }
 
-void Bees::Attack(Character* _entity) {
+void Bees::Attack(std::shared_ptr<Character> _entity) {
   // Bees doesn't directly attack, they drop 5 hitboxes
   // and we track that...
 
   // However, if Bee's attack an object, they are removed by end of frame
-  if (dynamic_cast<Obstacle*>(_entity)) {
+  if (dynamic_cast<Obstacle*>(_entity.get())) {
     this->Delete();
   }
 }

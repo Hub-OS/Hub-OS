@@ -79,12 +79,12 @@ private:
   Text ping;
   std::string selectedNaviId; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
-  std::vector<Player*> players; //!< Track all players
+  std::vector<std::shared_ptr<Player>> players; //!< Track all players
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   SpriteProxyNode pingIndicator;
-  SelectedCardsUI* remoteCardActionUsePublisher{ nullptr };
+  std::shared_ptr<SelectedCardsUI> remoteCardActionUsePublisher{ nullptr };
   Battle::Card** remoteHand{ nullptr }; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
-  Player *remotePlayer{ nullptr }; //!< their player pawn
+  std::shared_ptr<Player> remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
   CombatBattleState* combatPtr{ nullptr };
   TimeFreezeBattleState* timeFreezePtr{ nullptr };

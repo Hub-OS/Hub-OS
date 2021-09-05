@@ -13,10 +13,10 @@ private:
   bool armIsOut;
   int damage;
 public:
-  TornadoCardAction(Character* actor, int damage);
+  TornadoCardAction(std::shared_ptr<Character> actor, int damage);
   ~TornadoCardAction();
   void Update(double _elapsed) override;
   void OnActionEnd() override;
-  void OnExecute(Character*) override;
+  void OnExecute(std::shared_ptr<Character>) override;
   void OnAnimationEnd() override;
 }; 

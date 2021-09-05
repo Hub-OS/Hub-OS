@@ -35,9 +35,9 @@ public:
   Animation& GetAnimationObject();
   Battle::Tile* GetCurrentTile() const;
 
-  CardAction* OnExecuteSpecialAction() override final;
-  CardAction* OnExecuteBusterAction() override final;
-  CardAction* OnExecuteChargedBusterAction() override final;
+  std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
+  std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
+  std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
   std::function<void(Character&, double)> on_update_func;
 };
 

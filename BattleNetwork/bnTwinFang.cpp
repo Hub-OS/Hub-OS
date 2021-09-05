@@ -25,7 +25,7 @@ TwinFang::TwinFang(Team _team,Type _type, int damage) :
   setTexture(Textures().GetTexture(TextureType::SPELL_TWIN_FANG));
   setScale(2.f, 2.f);
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/spells/twin_fang.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT");
@@ -91,7 +91,7 @@ void TwinFang::OnUpdate(double _elapsed) {
     }
   }
   
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
 // This attack flies through the air
@@ -99,7 +99,7 @@ bool TwinFang::CanMoveTo(Battle::Tile* tile) {
   return (bool)tile;
 }
 
-void TwinFang::Attack(Character* _entity) {
+void TwinFang::Attack(std::shared_ptr<Character> _entity) {
   _entity->Hit(GetHitboxProperties());
 }
 

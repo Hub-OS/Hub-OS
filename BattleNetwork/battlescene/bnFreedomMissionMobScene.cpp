@@ -37,11 +37,11 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, c
   GetEmotionWindow().SetTexture(props.emotion);
 
   // If playing co-op, add more players to track here
-  players = { &props.base.player };
+  players = { props.base.player };
 
   // ptr to player, form select index (-1 none), if should transform
   trackedForms = { 
-    std::make_shared<TrackedFormData>(&props.base.player, -1, false)
+    std::make_shared<TrackedFormData>(props.base.player.get(), -1, false)
   }; 
 
   // in seconds
@@ -189,7 +189,7 @@ FreedomMissionMobScene::~FreedomMissionMobScene() {
 void FreedomMissionMobScene::OnHit(Character& victim, const Hit::Properties& props)
 {
   auto player = GetPlayer();
-  if (player == &victim && props.damage > 0) {
+  if (player.get() == &victim && props.damage > 0) {
     playerHitCount++;
 
     if (props.damage >= 300) {
@@ -203,10 +203,10 @@ void FreedomMissionMobScene::OnHit(Character& victim, const Hit::Properties& pro
   }
 
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
-    Artifact* seSymbol = new ElementalDamage;
+    auto seSymbol = std::make_shared<ElementalDamage>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
-    GetField()->AddEntity(*seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
+    GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
   }
 }
 

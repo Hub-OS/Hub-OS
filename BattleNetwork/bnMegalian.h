@@ -23,13 +23,13 @@ private:
     Battle::Tile* lastTile;
     friend class Megalian;
     double progress;
-    DefenseRule* copout;
+    std::shared_ptr<DefenseRule> copout;
   public:
     Head(Megalian* belongsTo) : base(belongsTo), Obstacle(belongsTo->GetTeam()) {
       SetFloatShoe(true);
       SetTeam(base->GetTeam());
-      SharedHitboxDamage(base);
-      animation = CreateComponent<AnimationComponent>(this);
+      SharedHitboxDamage(shared_from_base<Character>());
+      animation = CreateComponent<AnimationComponent>(weak_from_this());
       auto baseAnimation = belongsTo->GetFirstComponent<AnimationComponent>();
       auto str = baseAnimation->GetFilePath();
       animation->SetPath(str);
@@ -55,11 +55,9 @@ private:
       SetName("M. Head");
       lastTile = nullptr;
 
-      DefenseAura::Callback nothing = [](Spell& in, Character& protect, bool) {};
-      copout = new DefenseAura(nothing);
+      DefenseAura::Callback nothing = [](auto in, auto protect, bool) {};
+      copout = std::make_shared<DefenseAura>(nothing);
     }
-
-    virtual ~Head() { delete copout;  }
 
     virtual void OnUpdate(double _elapsed) { 
       progress += _elapsed;
@@ -103,7 +101,7 @@ private:
       setPosition(tile->getPosition().x, tile->getPosition().y);
       setPosition(getPosition() + baseOffset + tileOffset);
 
-      tile->AffectEntities(this);
+      tile->AffectEntities(*this);
 
       if (!IsSliding()) {
         timer += _elapsed;
@@ -174,12 +172,12 @@ private:
     virtual const float GetHeight() const { return 15; }
     virtual bool CanMoveTo(Battle::Tile * next) { return true;  }
 
-    virtual void Attack(Character* e) {
+    virtual void Attack(std::shared_ptr<Character> e) {
       e->Hit(GetHitboxProperties());
     }
 
   protected:
-    AnimationComponent* animation;
+    std::shared_ptr<AnimationComponent> animation;
     Megalian* base;
     double timer;
 
@@ -218,8 +216,8 @@ public:
 
 private:
 
-  AnimationComponent* animationComponent;
+  std::shared_ptr<AnimationComponent> animationComponent;
   float hitHeight; /*!< hit height */
   TextureType textureType;
-  Head* head;
+  std::shared_ptr<Head> head;
 };

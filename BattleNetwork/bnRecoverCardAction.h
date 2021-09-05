@@ -8,10 +8,10 @@ class Character;
 class RecoverCardAction : public CardAction {
   int heal;
 public:
-  RecoverCardAction(Character* actor, int heal);
+  RecoverCardAction(std::shared_ptr<Character> actor, int heal);
   ~RecoverCardAction();
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
 };

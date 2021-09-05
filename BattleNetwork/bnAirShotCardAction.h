@@ -11,11 +11,11 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  AirShotCardAction(Character* actor, int damage);
+  AirShotCardAction(std::shared_ptr<Character> actor, int damage);
   ~AirShotCardAction();
 
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
 };

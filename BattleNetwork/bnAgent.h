@@ -11,9 +11,9 @@ class Character;
  */
 class Agent {
 private:
-  Character* target;
+  std::shared_ptr<Character> target;
 public:
-  void SetTarget(Character* _target) {
+  void SetTarget(std::shared_ptr<Character> _target) {
     target = _target;
   }
 
@@ -21,5 +21,5 @@ public:
     SetTarget(nullptr);
   }
 
-  Character* GetTarget() const { return target; }
+  std::shared_ptr<Character> GetTarget() const { return target; }
 };

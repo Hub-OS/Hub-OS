@@ -18,7 +18,7 @@ void MettaurMoveState::OnUpdate(double _elapsed, Mettaur& met) {
   Battle::Tile* temp = met.tile;
   Battle::Tile* next = nullptr;
 
-  Entity* target = met.GetTarget();
+  std::shared_ptr<Entity> target = met.GetTarget();
 
   Direction nextDirection = Direction::none;
 

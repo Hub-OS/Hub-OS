@@ -61,9 +61,9 @@ constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
  * @brief Characters are mobs, enemies, and players. They have health and can take hits.
  */
 class Character: 
-  public virtual Entity, 
-  public CounterHitPublisher, 
-  public HitPublisher, 
+  public virtual Entity,
+  public CounterHitPublisher,
+  public HitPublisher,
   public CardActionUsePublisher
 {
   friend class Field;
@@ -74,8 +74,8 @@ protected:
 private:
   bool canShareTile{}; /*!< Some characters can share tiles with others */
   bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
-  std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
-  std::vector<Character*> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
+  std::vector<std::shared_ptr<DefenseRule>> defenses; /*<! All defense rules sorted by the lowest priority level */
+  std::vector<std::shared_ptr<Character>> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
   std::vector<std::shared_ptr<CardAction>> asyncActions;
   std::vector<Component::ID_t> attacks;
 
@@ -254,8 +254,14 @@ public:
    * @brief Add defense rule for combat resolution
    * @param rule
    */
-  void AddDefenseRule(DefenseRule* rule);
-  
+  void AddDefenseRule(std::shared_ptr<DefenseRule> rule);
+
+  /**
+   * @brief Removes the defense rule from this character's defense checks
+   * @param rule
+   */
+  void RemoveDefenseRule(std::shared_ptr<DefenseRule> rule);
+
   /**
    * @brief Removes the defense rule from this character's defense checks
    * @param rule
@@ -269,7 +275,7 @@ public:
    * @param in. The attack to test defenses against.
    * @param filter. Filter which types of defenses to check against by DefenseOrder value
    */
-  void DefenseCheck(DefenseFrameStateJudge& judge, Spell& in, const DefenseOrder& filter);
+  void DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, const DefenseOrder& filter);
 
   /**
   * @brief Create a combat link between other characters
@@ -277,7 +283,7 @@ public:
   *
   * When this entity gets hit, it will propagate the hit to this parameter Character ptr
   */
-  void SharedHitboxDamage(Character* to);
+  void SharedHitboxDamage(std::shared_ptr<Character> to);
 
   /**
   * @brief Sever a combat link from other character 
@@ -285,7 +291,7 @@ public:
   *
   * If the character exists in this entity's shared hit-list, it will remove it
   */
-  void CancelSharedHitboxDamage(Character* to);
+  void CancelSharedHitboxDamage(std::shared_ptr<Character> to);
 
   void AddAction(const CardEvent& event, const ActionOrder& order);
   void AddAction(const PeekCardEvent& event, const ActionOrder& order);

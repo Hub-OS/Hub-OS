@@ -17,7 +17,7 @@ SwordEffect::SwordEffect() : Artifact()
   setScale(2.f, 2.f);
 
   //Components setup and load
-  auto animation = CreateComponent<AnimationComponent>(this);
+  auto animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath(RESOURCE_PATH);
   animation->Reload();
 

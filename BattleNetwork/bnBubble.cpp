@@ -74,7 +74,7 @@ void Bubble::OnUpdate(double _elapsed) {
     }
   }
 
-  GetTile()->AffectEntities(this);
+  GetTile()->AffectEntities(*this);
 }
 
 bool Bubble::CanMoveTo(Battle::Tile* tile) {
@@ -83,14 +83,14 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 
 
 const bool Bubble::UnknownTeamResolveCollision(const Spell& other) const {
-  Entity* aggro = field->GetEntity(other.GetHitboxProperties().aggressor);
+  std::shared_ptr<Entity> aggro = field->GetEntity(other.GetHitboxProperties().aggressor);
   bool is_aggro_team = aggro && Teammate(aggro->GetTeam());
   bool is_spell_team = Teammate(other.GetTeam());
   // don't pop if hit by other bubbles from the same character
   return !(is_aggro_team || is_spell_team);
 }
 
-void Bubble::OnCollision(const Character*) {
+void Bubble::OnCollision(const std::shared_ptr<Character>) {
   Delete();
 }
 
@@ -106,12 +106,12 @@ const float Bubble::GetHeight() const
   return 80.0f;
 }
 
-void Bubble::Attack(Character* _entity) {
+void Bubble::Attack(std::shared_ptr<Character> _entity) {
   // thsi code looks like it can be rewritten
 
   if(popping) return;
 
-  Obstacle* other = dynamic_cast<Obstacle*>(_entity);
+  auto other = dynamic_cast<Obstacle*>(_entity.get());
 
   if (other) {
     if (other->GetHitboxProperties().aggressor != GetHitboxProperties().aggressor) {

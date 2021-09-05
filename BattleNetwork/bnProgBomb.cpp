@@ -57,14 +57,14 @@ void ProgBomb::OnUpdate(double _elapsed) {
   // When at the end of the arc
   if (arcProgress >= arcDuration) {
     // update tile to target tile 
-    tile->AffectEntities(this);
-    Artifact* explosion = new Explosion();
-    GetField()->AddEntity(*explosion, tile->GetX(), tile->GetY());
+    tile->AffectEntities(*this);
+    auto explosion = std::make_shared<Explosion>();
+    GetField()->AddEntity(explosion, tile->GetX(), tile->GetY());
     Delete();
   }
 }
 
-void ProgBomb::Attack(Character* _entity) {
+void ProgBomb::Attack(std::shared_ptr<Character> _entity) {
   _entity->Hit(GetHitboxProperties());
   Delete();
 }

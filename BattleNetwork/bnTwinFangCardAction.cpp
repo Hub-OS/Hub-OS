@@ -12,7 +12,7 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME2, FRAME1, FRAME1
 
-TwinFangCardAction::TwinFangCardAction(Character* actor, int damage) : 
+TwinFangCardAction::TwinFangCardAction(std::shared_ptr<Character> actor, int damage) : 
   CardAction(actor, "PLAYER_SHOOTING") {
   TwinFangCardAction::damage = damage;
 
@@ -36,7 +36,7 @@ TwinFangCardAction::~TwinFangCardAction()
 {
 }
 
-void TwinFangCardAction::OnExecute(Character* user) {
+void TwinFangCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
     auto tiles = std::vector{
@@ -52,23 +52,23 @@ void TwinFangCardAction::OnExecute(Character* user) {
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     if (user->GetTile()->GetY() != 0) {
-      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::ABOVE, damage);
+      auto twinfang = std::make_shared<TwinFang>(user->GetTeam(), TwinFang::Type::ABOVE, damage);
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = user->GetID();
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(dir);
 
-      user->GetField()->AddEntity(*twinfang, *tiles[0]);
+      user->GetField()->AddEntity(twinfang, *tiles[0]);
     }
 
     if (user->GetTile()->GetY() != 4) {
-      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::BELOW, damage);
+      auto twinfang = std::make_shared<TwinFang>(user->GetTeam(), TwinFang::Type::BELOW, damage);
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = user->GetID();
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(dir);
 
-      user->GetField()->AddEntity(*twinfang, *tiles[1]);
+      user->GetField()->AddEntity(twinfang, *tiles[1]);
     }
   };
 

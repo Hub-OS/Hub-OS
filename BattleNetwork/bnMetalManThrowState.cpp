@@ -31,13 +31,13 @@ void MetalManThrowState::OnUpdate(double _elapsed, MetalMan& metal) {
 }
 
 void MetalManThrowState::Attack(MetalMan& metal) {
-  Spell* blade = new MetalBlade(metal.GetTeam(), 1.0);
+  auto blade = std::make_shared<MetalBlade>(metal.GetTeam(), 1.0);
   auto props = blade->GetHitboxProperties();
   props.aggressor = metal.GetID();
   blade->SetHitboxProperties(props);
 
   blade->SetDirection(Direction::left);
 
-  metal.GetField()->AddEntity(*blade, metal.GetTile()->GetX()-1, metal.GetTile()->GetY());
+  metal.GetField()->AddEntity(blade, metal.GetTile()->GetX()-1, metal.GetTile()->GetY());
   metal.Audio().Play(AudioType::SWORD_SWING);
 }

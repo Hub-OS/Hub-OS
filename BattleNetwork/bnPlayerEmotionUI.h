@@ -16,7 +16,7 @@ class BattleSceneBase;
 /** \brief Tracks the player's emotion per-frame. */
 class PlayerEmotionUI : public UIComponent, public FormSelectionListener {
 public:
-  PlayerEmotionUI(Player* player);
+  PlayerEmotionUI(std::weak_ptr<Player> player);
   ~PlayerEmotionUI();
 
   /** \brief Sets the texture used for emotions.
@@ -55,7 +55,6 @@ private:
   void SetDisplayedEmotion(Emotion emotion);
 
   bool isChangingEmotion{};
-  Player* player;
   std::shared_ptr<sf::Texture> texture;
   SpriteProxyNode emotionWindow;
   Emotion emotion; /**< Tracks the current player emotion */

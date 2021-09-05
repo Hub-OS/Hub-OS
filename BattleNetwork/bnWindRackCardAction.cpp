@@ -11,7 +11,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-WindRackCardAction::WindRackCardAction(Character* actor, int damage) :
+WindRackCardAction::WindRackCardAction(std::shared_ptr<Character> actor, int damage) :
   damage(damage),
   CardAction(actor, "PLAYER_SWORD") {
   hilt = new SpriteProxyNode();
@@ -61,9 +61,9 @@ void WindRackCardAction::ReplaceRack(SpriteProxyNode* node, const Animation& new
   hiltAnim = newAnim;
 }
 
-void WindRackCardAction::OnExecute(Character* user)
+void WindRackCardAction::OnExecute(std::shared_ptr<Character> user)
 {
-  auto* actor = GetActor();
+  auto actor = GetActor();
   auto team = actor->GetTeam();
   auto field = actor->GetField();
   Entity::ID_t userId{ user->GetID() };
@@ -93,47 +93,47 @@ void WindRackCardAction::OnExecute(Character* user)
     };
 
     // big push effect
-    auto wind = new Wind(team);
+    auto wind = std::make_shared<Wind>(team);
     wind->Hide();
     wind->SetDirection(direction);
-    field->AddEntity(*wind, *tiles[0]);
+    field->AddEntity(wind, *tiles[0]);
 
-    wind = new Wind(team);
+    wind = std::make_shared<Wind>(team);
     wind->Hide();
     wind->SetDirection(direction);
-    field->AddEntity(*wind, *tiles[1]);
+    field->AddEntity(wind, *tiles[1]);
 
-    wind = new Wind(team);
+    wind = std::make_shared<Wind>(team);
     wind->Hide();
     wind->SetDirection(direction);
-    field->AddEntity(*wind, *tiles[2]);
+    field->AddEntity(wind, *tiles[2]);
 
     // hitboxes
 
-    SwordEffect* e = new SwordEffect;
+    auto e = std::make_shared<SwordEffect>();
 
     if (actor->GetFacing() == Direction::left) {
       e->setScale(-2.f, 2.f);
     }
 
     e->SetAnimation("WIDE");
-    field->AddEntity(*e, *tiles[0]);
+    field->AddEntity(e, *tiles[0]);
 
-    BasicSword* b = new BasicSword(actor->GetTeam(), damage);
+    auto b = std::make_shared<BasicSword>(actor->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = userId;
     b->SetHitboxProperties(props);
 
     Audio().Play(AudioType::SWORD_SWING);
-    field->AddEntity(*b, *tiles[0]);
+    field->AddEntity(b, *tiles[0]);
 
-    b = new BasicSword(actor->GetTeam(), damage);
+    b = std::make_shared<BasicSword>(actor->GetTeam(), damage);
     b->SetHitboxProperties(props);
-    field->AddEntity(*b, *tiles[1]);
+    field->AddEntity(b, *tiles[1]);
 
-    b = new BasicSword(actor->GetTeam(), damage);
+    b = std::make_shared<BasicSword>(actor->GetTeam(), damage);
     b->SetHitboxProperties(props);
-    field->AddEntity(*b, *tiles[2]);
+    field->AddEntity(b, *tiles[2]);
   };
 
   AddAnimAction(2, onThrow);

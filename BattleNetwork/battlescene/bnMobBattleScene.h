@@ -26,7 +26,7 @@ struct MobBattleProperties {
 */
 class MobBattleScene final : public BattleSceneBase {
   MobBattleProperties props;
-  std::vector<Player*> players;
+  std::vector<std::shared_ptr<Player>> players;
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   bool playerDecross{ false };
   int playerHitCount{};

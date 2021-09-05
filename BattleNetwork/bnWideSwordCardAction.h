@@ -7,7 +7,7 @@ class SpriteProxyNode;
 class Character;
 class WideSwordCardAction : public SwordCardAction {
 public:
-  WideSwordCardAction(Character* actor, int damage);
+  WideSwordCardAction(std::shared_ptr<Character> actor, int damage);
   ~WideSwordCardAction();
   void OnSpawnHitbox(Entity::ID_t userId) override;
 };

@@ -14,7 +14,7 @@ BusterHit::BusterHit(Type type) : Artifact()
 
   //Components setup and load
   auto onFinish = [&]() { Delete();  };
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
 
   if (type == Type::CHARGED) {
     setTexture(Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));

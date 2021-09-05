@@ -3,13 +3,13 @@
 #include "bnPanelGrab.h"
 #include "bnField.h"
 
-AreaGrabCardAction::AreaGrabCardAction(Character* actor, int damage) : 
+AreaGrabCardAction::AreaGrabCardAction(std::shared_ptr<Character> actor, int damage) : 
   damage(damage),
   CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
-void AreaGrabCardAction::OnExecute(Character* user) {
+void AreaGrabCardAction::OnExecute(std::shared_ptr<Character> user) {
   Field* f = user->GetField();
 
   // Strategy: 1. Scanning will happen tile-by-tile from the direction the user is facing
@@ -46,8 +46,8 @@ void AreaGrabCardAction::OnExecute(Character* user) {
     // steal this column
     if (!allSameTeam) {
       for (int j = 1; j <= 3; j++) {
-        auto panelGrab = new PanelGrab(user->GetTeam(), user->GetFacing(), 0.25);
-        auto result = f->AddEntity(*panelGrab, i, j);
+        auto panelGrab = std::make_shared<PanelGrab>(user->GetTeam(), user->GetFacing(), 0.25);
+        auto result = f->AddEntity(panelGrab, i, j);
 
         if (result != Field::AddEntityStatus::deleted && !panelPtr) {
           panelPtr = panelGrab;

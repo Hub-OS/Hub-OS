@@ -5,7 +5,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnParticleHeal.h"
 
-RecoverCardAction::RecoverCardAction(Character* actor, int heal) : 
+RecoverCardAction::RecoverCardAction(std::shared_ptr<Character> actor, int heal) : 
   CardAction(actor, "PLAYER_IDLE") {
   RecoverCardAction::heal = heal;
 
@@ -16,7 +16,7 @@ RecoverCardAction::~RecoverCardAction()
 {
 }
 
-void RecoverCardAction::OnExecute(Character* user) {
+void RecoverCardAction::OnExecute(std::shared_ptr<Character> user) {
   // Increase player health
   user->SetHealth(user->GetHealth() + heal);
 
@@ -24,8 +24,8 @@ void RecoverCardAction::OnExecute(Character* user) {
   Audio().Play(AudioType::RECOVER);
 
   // Add artifact on the same layer as player
-  auto healfx = new ParticleHeal();
-  user->GetField()->AddEntity(*healfx, *user->GetTile());
+  auto healfx = std::make_shared<ParticleHeal>();
+  user->GetField()->AddEntity(healfx, *user->GetTile());
 
   CardAction::Step step;
   step.updateFunc = [=](Step& self, double elapsed) {

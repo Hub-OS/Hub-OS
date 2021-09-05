@@ -1,6 +1,7 @@
 #pragma once
 #include "bnHitProperties.h"
 #include "bnDefenseFrameStateJudge.h"
+#include <memory>
 
 class Spell;
 class Character;
@@ -21,7 +22,7 @@ enum class DefenseOrder : int {
  * Build custom defense rules for special cards using this class
  * and then add them to entities
  */
-class DefenseRule {
+class DefenseRule: public std::enable_shared_from_this<DefenseRule> {
 private:
   DefenseOrder order; /*!< Some defenses only check if there was a collision */
   Priority priorityLevel; /*!< Lowest priority goes first */
@@ -69,5 +70,5 @@ public:
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
-  virtual void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) = 0;
+  virtual void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) = 0;
 };

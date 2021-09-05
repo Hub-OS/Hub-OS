@@ -3,9 +3,9 @@
 
 class StuntDouble : public Character {
   sf::Color defaultColor;
-  Character& ref;
+  std::shared_ptr<Character> ref;
 public:
-  StuntDouble(Character& ref);
+  StuntDouble(std::shared_ptr<Character> ref);
   ~StuntDouble();
 
   void OnDelete();

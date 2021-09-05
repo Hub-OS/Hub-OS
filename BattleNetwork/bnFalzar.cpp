@@ -30,7 +30,7 @@ Falzar::Falzar(Falzar::Rank rank) :
 
   setScale(2.f, 2.f);
 
-  bossBody = new DefenseSuperArmor();
+  bossBody = std::make_shared<DefenseSuperArmor>();
   AddDefenseRule(bossBody);
 
   // load spritesheet
@@ -62,11 +62,6 @@ Falzar::Falzar(Falzar::Rank rank) :
   //AddState<FalzarMoveState>(3);
   //AddState<FalzarRoarState>();
   //AddState<FalzarSpinState>(4);
-}
-
-Falzar::~Falzar()
-{
-  delete bossBody;
 }
 
 

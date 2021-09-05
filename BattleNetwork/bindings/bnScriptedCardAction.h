@@ -12,7 +12,7 @@ class SpriteProxyNode;
 class Character;
 class ScriptedCardAction : public CardAction, public dynamic_object {
 public:
-  ScriptedCardAction(Character* actor, const std::string& state);
+  ScriptedCardAction(std::shared_ptr<Character> actor, const std::string& state);
   ~ScriptedCardAction();
 
   void Update(double elapsed) override;
@@ -20,13 +20,13 @@ public:
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
-  CardAction::Attachment& AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node);
+  void OnExecute(std::shared_ptr<Character> user) override;
+  CardAction::Attachment& AddAttachment(std::shared_ptr<Character> character, const std::string& point, SpriteProxyNode& node);
 
   std::function<void(ScriptedCardAction&, double)> onUpdate;
   std::function<void(ScriptedCardAction&)> onAnimationEnd;
   std::function<void(ScriptedCardAction&)> onActionEnd;
-  std::function<void(ScriptedCardAction&, Character*)> onExecute;
+  std::function<void(ScriptedCardAction&, std::shared_ptr<Character>)> onExecute;
 };
 
 #endif

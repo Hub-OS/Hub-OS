@@ -14,7 +14,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-ElecSwordCardAction::ElecSwordCardAction(Character* actor, int damage) : 
+ElecSwordCardAction::ElecSwordCardAction(std::shared_ptr<Character> actor, int damage) : 
   LongSwordCardAction(actor, damage) {
   ElecSwordCardAction::damage = damage;
   this->SetElement(Element::elec);

@@ -26,7 +26,7 @@ public:
   /**
    * @brief Registers the owner and sets the time in seconds
    */
-  HideTimer(Character* owner, double secs);
+  HideTimer(std::weak_ptr<Character> owner, double secs);
 
   /**
    * @brief When time is up, eject component from battle scene loop and add entity back

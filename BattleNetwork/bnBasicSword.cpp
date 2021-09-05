@@ -38,12 +38,12 @@ void BasicSword::OnUpdate(double _elapsed) {
     return;
   }
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 
   cooldown += _elapsed;
 }
 
-void BasicSword::Attack(Character* _entity) {
+void BasicSword::Attack(std::shared_ptr<Character> _entity) {
   hit = hit || _entity->Hit(GetHitboxProperties());
   hitHeight = _entity->GetHeight();
 }

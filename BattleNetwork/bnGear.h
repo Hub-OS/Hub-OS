@@ -43,7 +43,7 @@ public:
    * @brief Gears deal damage to entities without guard protection. Gears always destroy obstacles.
    * @param e
    */
-  void Attack(Character* e);
+  void Attack(std::shared_ptr<Character> e);
 
   const float GetHeight() const { return 0; }
 
@@ -51,11 +51,11 @@ public:
   void OnBattleStop() override;
 
 private:
-  DefenseRule* nodrag{ nullptr }, *indestructable{ nullptr };
+  std::shared_ptr<DefenseRule> nodrag{ nullptr }, indestructable{ nullptr };
   Direction startDir;
   Team tileStartTeam; // only move around on the origin team's area
   Texture* texture;
-  AnimationComponent* animation;
+  std::shared_ptr<AnimationComponent> animation;
   bool hit;
   bool stopMoving;
 };

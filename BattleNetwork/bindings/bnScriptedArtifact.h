@@ -13,7 +13,7 @@
 	 */
 class ScriptedArtifact final : public Artifact, public dynamic_object
 {
-	AnimationComponent* animationComponent{ nullptr };
+	std::shared_ptr<AnimationComponent> animationComponent{ nullptr };
 	sf::Vector2f scriptedOffset{ };
 	bool flip{true};
 

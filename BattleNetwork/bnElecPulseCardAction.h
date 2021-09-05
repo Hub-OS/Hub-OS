@@ -10,13 +10,13 @@ class ElecPulseCardAction : public CardAction {
 private:
     SpriteProxyNode* attachment;
     Animation attachmentAnim;
-    Spell* elecpulse;
+    std::shared_ptr<Spell> elecpulse;
     int damage;
 public:
-    ElecPulseCardAction(Character* actor, int damage);
+    ElecPulseCardAction(std::shared_ptr<Character> actor, int damage);
     ~ElecPulseCardAction();
 
     void OnAnimationEnd() override;
     void OnActionEnd();
-    void OnExecute(Character* user);
+    void OnExecute(std::shared_ptr<Character> user);
 };

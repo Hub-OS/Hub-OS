@@ -6,7 +6,7 @@
 #include "bnAnimationComponent.h"
 
 HoneyBomberAttackState::HoneyBomberAttackState() 
-: beeCount(3), attackCooldown(0.4), spawnCooldown(0.4), lastBee(nullptr), AIState<HoneyBomber>() { 
+: beeCount(3), attackCooldown(0.4), spawnCooldown(0.4), AIState<HoneyBomber>() { 
 }
 
 HoneyBomberAttackState::~HoneyBomberAttackState() {}
@@ -51,29 +51,29 @@ void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
   else {
     int damage = 5; // 5 bees per hit = 25 units of damage total
 
-    Bees* newBee{ nullptr };
-    if (lastBee) {
-      newBee = new Bees(*lastBee);
+    std::shared_ptr<Bees> newBee{ nullptr };
+    if (auto lastBeePtr = lastBee.lock()) {
+      newBee = std::make_shared<Bees>(*lastBeePtr);
     } else {
-      newBee = new Bees(honey.GetTeam(), damage);
+      newBee = std::make_shared<Bees>(honey.GetTeam(), damage);
     }
 
     auto props = newBee->GetHitboxProperties();
     props.aggressor = honey.GetID();
     newBee->SetHitboxProperties(props);
 
-    const auto status = honey.GetField()->AddEntity(*newBee, honey.GetTile()->GetX() - 1, honey.GetTile()->GetY());
+    const auto status = honey.GetField()->AddEntity(newBee, honey.GetTile()->GetX() - 1, honey.GetTile()->GetY());
     if (status != Field::AddEntityStatus::deleted) {
       lastBee = newBee;
 
-      auto onRemove = [this](Entity& target, Entity& observer) {
-        if (this->lastBee == &target) {
-          this->lastBee = nullptr;
+      auto onRemove = [this](auto target, auto observer) {
+        if (this->lastBee.lock() == target) {
+          this->lastBee.reset();
         }
       };
 
       honey.GetField()->DropNotifier(notifier);
-      notifier = honey.GetField()->NotifyOnDelete(lastBee->GetID(), honey.GetID(), onRemove);
+      notifier = honey.GetField()->NotifyOnDelete(newBee->GetID(), honey.GetID(), onRemove);
     }
   }
 }

@@ -12,7 +12,7 @@
 #define FRAMES FRAME1
 
 
-HubBatchCardAction::HubBatchCardAction(Character* actor) :
+HubBatchCardAction::HubBatchCardAction(std::shared_ptr<Character> actor) :
   CardAction(actor, "PLAYER_IDLE") {
 
   // add override anims
@@ -23,7 +23,7 @@ HubBatchCardAction::~HubBatchCardAction()
 {
 }
 
-void HubBatchCardAction::OnExecute(Character* user) {
+void HubBatchCardAction::OnExecute(std::shared_ptr<Character> user) {
   // Play sound
   Audio().Play(AudioType::RECOVER);
 
@@ -46,9 +46,11 @@ void HubBatchCardAction::OnActionEnd()
 
 // class HubBatchProgram : public Component
 
-HubBatchProgram::HubBatchProgram(Character* owner) :
-  Component(owner, Component::lifetimes::battlestep)
+HubBatchProgram::HubBatchProgram(std::weak_ptr<Character> _owner) :
+  Component(_owner, Component::lifetimes::battlestep)
 {
+  auto owner = _owner.lock();
+
   anim = Animation("resources/spells/hub_batch.animation");
   effect.setTexture(owner->Textures().LoadTextureFromFile("resources/spells/hub_batch.png"));
 
@@ -62,25 +64,28 @@ HubBatchProgram::HubBatchProgram(Character* owner) :
   effect.SetLayer(-5);
   effect.setPosition(0, -owner->GetHeight() / 2.f / 2.f);
 
-  superarmor = new DefenseSuperArmor();
+  superarmor = std::make_shared<DefenseSuperArmor>();
   owner->AddDefenseRule(superarmor);
 }
 
 HubBatchProgram::~HubBatchProgram()
 {
-  GetOwner()->RemoveNode(&effect);
-  delete superarmor;
+  auto owner = GetOwner();
+
+  if (owner) {
+    owner->RemoveNode(&effect);
+  }
 }
 
 void HubBatchProgram::OnUpdate(double elapsed)
 {
-  GetOwner()->SetFloatShoe(true);
-  Player* player = GetOwnerAs<Player>();
-
+  if (auto owner = GetOwner()) {
+    owner->SetFloatShoe(true);
+  }
   
-  if (player) {
+  if (auto player = GetOwnerAs<Player>()) {
     player->SetAttackLevel(PlayerStats::MAX_ATTACK_LEVEL); // max
-    player->OverrideSpecialAbility([player]{ return new ReflectCardAction(player, 10, ReflectShield::Type::yellow); });
+    player->OverrideSpecialAbility([player]{ return std::make_shared<ReflectCardAction>(player, 10, ReflectShield::Type::yellow); });
     
     if (Injected()) {
       // Scene()->GetCardSelectWidget().SetMaxCardDraw(10);

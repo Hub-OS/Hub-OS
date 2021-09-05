@@ -28,16 +28,16 @@ Wave::Wave(Team _team, double speed, int damage) : Spell(_team) {
     }
 
     if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
-      auto* wave = new Wave(GetTeam(), Wave::speed);
+      auto wave = std::make_shared<Wave>(GetTeam(), Wave::speed);
       wave->SetDirection(dir);
       wave->SetHitboxProperties(GetHitboxProperties());
       wave->CrackTiles(this->crackTiles);
       wave->PoisonTiles(this->poisonTiles);
-      GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
+      GetField()->AddEntity(wave, nextTile->GetX(), nextTile->GetY());
     }
   };
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/spells/spell_wave.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT", Animator::Mode::NoEffect, [this]() { Delete(); });
@@ -63,7 +63,7 @@ void Wave::OnUpdate(double _elapsed) {
   setScale(2.f*(float)lr, 2.f);
 
   auto tile = GetTile();
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 
   if (tile->IsWalkable()) {
     if (crackTiles) {
@@ -76,7 +76,7 @@ void Wave::OnUpdate(double _elapsed) {
   }
 }
 
-void Wave::Attack(Character* _entity) {
+void Wave::Attack(std::shared_ptr<Character> _entity) {
   _entity->Hit(GetHitboxProperties());
 }
 

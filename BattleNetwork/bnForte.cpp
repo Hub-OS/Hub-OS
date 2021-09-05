@@ -14,17 +14,17 @@ const float COPY_DROP_COOLDOWN = 0.15f; // in seconds
 
 const std::string RESOURCE_PATH = "resources/navis/forte/forte.animation";
 
-CardAction* Forte::OnExecuteBusterAction()
+std::shared_ptr<CardAction> Forte::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return std::make_shared<BusterCardAction>(shared_from_base<Character>(), false, 1*GetAttackLevel());
 }
 
-CardAction* Forte::OnExecuteChargedBusterAction()
+std::shared_ptr<CardAction> Forte::OnExecuteChargedBusterAction()
 {
-  return new VulcanCardAction(this, 10*GetAttackLevel());
+  return std::make_shared<VulcanCardAction>(shared_from_base<Character>(), 10*GetAttackLevel());
 }
 
-CardAction* Forte::OnExecuteSpecialAction() {
+std::shared_ptr<CardAction> Forte::OnExecuteSpecialAction() {
   return Player::OnExecuteSpecialAction();
 }
 
@@ -77,14 +77,14 @@ void Forte::OnUpdate(double _elapsed)
   // We are moving
   if (IsMoving()) {
     if (dropCooldown <= 0) {
-      auto fx = new MoveEffect(field);
+      auto fx = std::make_shared<MoveEffect>(field);
 
       if (GetTeam() == Team::blue) {
         const auto& scale = fx->getScale();
         fx->setScale(-scale.x, scale.y);
       }
 
-      field->AddEntity(*fx, *GetTile());
+      field->AddEntity(fx, *GetTile());
     }
     else {
       dropCooldown = COPY_DROP_COOLDOWN;
@@ -99,7 +99,7 @@ void Forte::OnDelete()
 
 void Forte::OnSpawn(Battle::Tile& start)
 {
-  CreateComponent<Aura>(Aura::Type::AURA_100, this)->Persist(false);
+  CreateComponent<Aura>(Aura::Type::AURA_100, shared_from_base<Character>())->Persist(false);
 }
 
 int Forte::MoveEffect::counter = 0;
@@ -115,7 +115,7 @@ Forte::MoveEffect::MoveEffect(Field* field) :
 
   setScale(2.f, 2.f);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("COPY");

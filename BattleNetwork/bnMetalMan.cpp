@@ -60,8 +60,6 @@ MetalMan::MetalMan(Rank _rank)
 
   SetHeight(96.f);
 
-  healthUI = new MobHealthUI(this);
-
   setTexture(Textures().GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
   setScale(2.f, 2.f);
@@ -70,7 +68,7 @@ MetalMan::MetalMan(Rank _rank)
   SetFloatShoe(true);
 
   //Components setup and load
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("IDLE");
@@ -78,7 +76,7 @@ MetalMan::MetalMan(Rank _rank)
 
   animationComponent->OnUpdate(0);
 
-  virusBody = new DefenseVirusBody();
+  virusBody = std::make_shared<DefenseVirusBody>();
   AddDefenseRule(virusBody);
 
   auto stun = [this]() {
@@ -88,10 +86,6 @@ MetalMan::MetalMan(Rank _rank)
   };
 
   RegisterStatusCallback(Hit::stun, stun);
-}
-
-MetalMan::~MetalMan() {
-  delete virusBody;
 }
 
 bool MetalMan::CanMoveTo(Battle::Tile * next)
@@ -111,12 +105,12 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
 void MetalMan::OnUpdate(double _elapsed) {
   BossPatternAI<MetalMan>::Update(_elapsed);
 
-  Hitbox* hitbox = new Hitbox(GetTeam(), 40);
+  auto hitbox = std::make_shared<Hitbox>(GetTeam(), 40);
   auto props = hitbox->GetHitboxProperties();
   props.flags |= Hit::impact | Hit::flinch | Hit::flash;
   hitbox->SetHitboxProperties(props);
 
-  field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
+  field->AddEntity(hitbox, tile->GetX(), tile->GetY());
 }
 
 void MetalMan::OnDelete() {

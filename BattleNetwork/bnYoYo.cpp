@@ -17,7 +17,7 @@ YoYo::YoYo(Team _team, int damage, double speed) : Spell(_team) {
 
   YoYo::speed = speed;
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/spells/spell_yoyo.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT", Animator::Mode::Loop);
@@ -38,7 +38,7 @@ YoYo::~YoYo() {
 
 void YoYo::OnDelete() {
   if (startTile && startTile != GetTile()) {
-    GetField()->AddEntity(*new Explosion, *GetTile());
+    GetField()->AddEntity(std::make_shared<Explosion>(), *GetTile());
   }
   Remove();
 }
@@ -88,7 +88,7 @@ void YoYo::OnUpdate(double _elapsed) {
   }else {
     // Hit once per tile; because we slide in place twice on 
     // the final tile, it will be hit three times.
-    tile->AffectEntities(this);
+    tile->AffectEntities(*this);
   }
 }
 
@@ -97,7 +97,7 @@ bool YoYo::CanMoveTo(Battle::Tile* tile) {
   return true;
 }
 
-void YoYo::Attack(Character* _entity) {
+void YoYo::Attack(std::shared_ptr<Character> _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     Audio().Play(AudioType::HURT, AudioPriority::highest);
   }

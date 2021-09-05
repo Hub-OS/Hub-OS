@@ -37,7 +37,7 @@ AlphaCore::AlphaCore(Rank _rank) :
   shootSuperVulcans = false;
 
   //Components setup and load
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
   animationComponent->SetAnimation("CORE_FULL");
@@ -96,15 +96,15 @@ AlphaCore::AlphaCore(Rank _rank) :
   leftShoulderShoot->Hide();
   rightShoulderShoot->Hide();
 
-  virusBody = new DefenseVirusBody();
+  virusBody = std::make_shared<DefenseVirusBody>();
   AddDefenseRule(virusBody);
 
-  defense = new AlphaCoreDefenseRule(coreHP);
+  defense = std::make_shared<AlphaCoreDefenseRule>(coreHP);
   AddDefenseRule(defense);
 
   // arms
-  rightArm = new AlphaArm(GetTeam(), AlphaArm::Type::RIGHT_IDLE);
-  leftArm = new AlphaArm(GetTeam(), AlphaArm::Type::LEFT_IDLE);
+  rightArm = std::make_shared<AlphaArm>(GetTeam(), AlphaArm::Type::RIGHT_IDLE);
+  leftArm = std::make_shared<AlphaArm>(GetTeam(), AlphaArm::Type::LEFT_IDLE);
 
   // Setup AI pattern
   AddState<AlphaIdleState>();
@@ -128,8 +128,6 @@ AlphaCore::AlphaCore(Rank _rank) :
 AlphaCore::~AlphaCore() {
   RemoveDefenseRule(defense);
   RemoveDefenseRule(virusBody);
-  delete defense;
-  delete virusBody;
   delete head;
   delete acid;
   delete side;
@@ -257,7 +255,6 @@ void AlphaCore::OnSpawn(Battle::Tile & start)
 void AlphaCore::OnDelete() {
   if (virusBody) {
     RemoveDefenseRule(virusBody);
-    delete virusBody;
     virusBody = nullptr;
   }
 
@@ -326,8 +323,8 @@ void AlphaCore::HideLeftArm()
 {
   if (!leftArm) return;
 
-  auto fx = new MobMoveEffect();
-  GetField()->AddEntity(*fx, leftArm->GetTile()->GetX(), leftArm->GetTile()->GetY());
+  auto fx = std::make_shared<MobMoveEffect>();
+  GetField()->AddEntity(fx, leftArm->GetTile()->GetX(), leftArm->GetTile()->GetY());
   leftArm->GetTile()->RemoveEntityByID(leftArm->GetID());
   leftArm->GetTile()->ReserveEntityByID(leftArm->GetID());
 }
@@ -336,17 +333,17 @@ void AlphaCore::RevealLeftArm()
 {
   if (!leftArm) return;
 
-  GetField()->AddEntity((*leftArm), GetTile()->GetX(), GetTile()->GetY() + 1);
-  auto fx = new MobMoveEffect();
-  GetField()->AddEntity(*fx, GetTile()->GetX(), GetTile()->GetY() + 1);
+  GetField()->AddEntity(leftArm, GetTile()->GetX(), GetTile()->GetY() + 1);
+  auto fx = std::make_shared<MobMoveEffect>();
+  GetField()->AddEntity(fx, GetTile()->GetX(), GetTile()->GetY() + 1);
 }
 
 void AlphaCore::HideRightArm()
 {
   if (!rightArm) return;
 
-  auto fx = new MobMoveEffect();
-  GetField()->AddEntity(*fx, rightArm->GetTile()->GetX(), rightArm->GetTile()->GetY());
+  auto fx = std::make_shared<MobMoveEffect>();
+  GetField()->AddEntity(fx, rightArm->GetTile()->GetX(), rightArm->GetTile()->GetY());
   rightArm->GetTile()->RemoveEntityByID(rightArm->GetID());
   rightArm->GetTile()->ReserveEntityByID(rightArm->GetID());
 }
@@ -355,9 +352,9 @@ void AlphaCore::RevealRightArm()
 {
   if (!rightArm) return;
 
-  GetField()->AddEntity((*rightArm), GetTile()->GetX() - 1, GetTile()->GetY() - 1);
-  auto fx = new MobMoveEffect();
-  GetField()->AddEntity(*fx, GetTile()->GetX() - 1, GetTile()->GetY() - 1);
+  GetField()->AddEntity(rightArm, GetTile()->GetX() - 1, GetTile()->GetY() - 1);
+  auto fx = std::make_shared<MobMoveEffect>();
+  GetField()->AddEntity(fx, GetTile()->GetX() - 1, GetTile()->GetY() - 1);
 }
 
 void AlphaCore::EnableImpervious(bool impervious)
@@ -379,8 +376,8 @@ AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) :
 
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 
-void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
-  AlphaCore* alpha = static_cast<AlphaCore*>(&owner);
+void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) {
+  auto alpha = static_cast<AlphaCore*>(owner.get());
   if (alpha->impervious) {
     judge.BlockDamage();
     judge.BlockImpact();
@@ -389,7 +386,7 @@ void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Sp
   int prevCoreHP = alphaCoreHP;
 
   // alpha core requires multiple hits to expose
-  alphaCoreHP -= std::min(in.GetHitboxProperties().damage, 20);
+  alphaCoreHP -= std::min(in->GetHitboxProperties().damage, 20);
  
   // keep alphaCoreHP value at non-negative values
   alphaCoreHP = std::max(0, alphaCoreHP);

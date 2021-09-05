@@ -19,7 +19,7 @@ ScriptedCharacter::ScriptedCharacter(sol::state& script, Character::Rank rank) :
   setScale(2.f, 2.f);
 
   //Components setup and load
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
 
   script["package_init"](this);
 
@@ -103,23 +103,13 @@ void ScriptedCharacter::SetExplosionBehavior(int num, double speed, bool isBoss)
   bossExplosion = isBoss;
 }
 
-void ScriptedCharacter::SimpleCardActionEvent(std::unique_ptr<ScriptedCardAction>& action, ActionOrder order)
+void ScriptedCharacter::SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order)
 {
-  // getting around sol limitations:
-  // using unique_ptr to allow sol to manage memory
-  // but we need to share this with the subsystems...
-  std::unique_ptr uniqueAction = std::move(action);
-  std::shared_ptr<CardAction> sharedAction;
-  sharedAction.reset(uniqueAction.release());
-  Character::AddAction(CardEvent{ sharedAction }, order);
+  Character::AddAction(CardEvent{ action }, order);
 }
 
-void ScriptedCharacter::SimpleCardActionEvent(std::unique_ptr<CardAction>& action, ActionOrder order)
+void ScriptedCharacter::SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order)
 {
-  // see previous function for explanation
-  std::unique_ptr uniqueAction = std::move(action);
-  std::shared_ptr<CardAction> sharedAction;
-  sharedAction.reset(uniqueAction.release());
-  Character::AddAction(CardEvent{ sharedAction }, order);
+  Character::AddAction(CardEvent{ action }, order);
 }
 #endif

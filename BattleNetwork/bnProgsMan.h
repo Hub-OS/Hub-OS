@@ -53,6 +53,6 @@ public:
    */
   const float GetHeight() const;
 private:
-  AnimationComponent* animationComponent; /*!< component animates entities*/
+  std::shared_ptr<AnimationComponent> animationComponent; /*!< component animates entities*/
 
 };

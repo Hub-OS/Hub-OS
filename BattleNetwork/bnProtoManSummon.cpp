@@ -14,7 +14,7 @@
 
 #define RESOURCE_PATH "resources/spells/protoman_summon.animation"
 
-ProtoManSummon::ProtoManSummon(Character* user, int damage) : 
+ProtoManSummon::ProtoManSummon(std::shared_ptr<Character> user, int damage) : 
   damage(damage),
   user(user),
   Artifact()
@@ -27,7 +27,7 @@ ProtoManSummon::ProtoManSummon(Character* user, int damage) :
 
   setTexture(Textures().LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
 
@@ -53,7 +53,7 @@ void ProtoManSummon::DoAttackStep() {
 
     Battle::Tile* prev = field->GetAt(targets[0]->GetX() + step, targets[0]->GetY());
     GetTile()->RemoveEntityByID(GetID());
-    prev->AddEntity(*this);
+    prev->AddEntity(shared_from_this());
 
     animationComponent->SetAnimation("ATTACK", [this, prev] {
       animationComponent->SetAnimation("MOVE", [this, prev] {
@@ -98,7 +98,7 @@ void ProtoManSummon::OnSpawn(Battle::Tile& start)
 
       Battle::Tile* prev = field->GetAt(next->GetX() + step, next->GetY());
 
-      auto characters = prev->FindCharacters([this](Character* in) { return in->GetTeam() != Team::unknown; });
+      auto characters = prev->FindCharacters([this](std::shared_ptr<Character> in) { return in->GetTeam() != Team::unknown; });
 
       bool blocked = (characters.size() > 0) || !prev->IsWalkable();
 
@@ -115,33 +115,31 @@ void ProtoManSummon::DropHitboxes(Battle::Tile& tile)
 {
   auto field = GetField();
 
-  SwordEffect* e = new SwordEffect;
+  auto e = std::make_shared<SwordEffect>();
 
   if (GetTeam() == Team::blue) {
     e->setScale(-2.f, 2.f);
   }
 
   e->SetAnimation("WIDE");
-  field->AddEntity(*e, tile.GetX(), tile.GetY());
+  field->AddEntity(e, tile.GetX(), tile.GetY());
 
   auto hitboxProps = Hit::DefaultProperties;
   hitboxProps.damage = damage;
   hitboxProps.flags |= Hit::flash;
   hitboxProps.aggressor = user->GetID();
-
-  BasicSword* b;
   
-  b = new BasicSword(GetTeam(), 0);
+  auto b = std::make_shared<BasicSword>(GetTeam(), 0);
   b->SetHitboxProperties(hitboxProps);
-  field->AddEntity(*b, tile.GetX(), tile.GetY());
+  field->AddEntity(b, tile.GetX(), tile.GetY());
 
-  b = new BasicSword(GetTeam(), 0);
+  b = std::make_shared<BasicSword>(GetTeam(), 0);
   b->SetHitboxProperties(hitboxProps);
-  field->AddEntity(*b, tile.GetX(), tile.GetY() + 1);
+  field->AddEntity(b, tile.GetX(), tile.GetY() + 1);
 
-  b = new BasicSword(GetTeam(), 0);
+  b = std::make_shared<BasicSword>(GetTeam(), 0);
   b->SetHitboxProperties(hitboxProps);
-  field->AddEntity(*b, tile.GetX(), tile.GetY() - 1);
+  field->AddEntity(b, tile.GetX(), tile.GetY() - 1);
 
   Audio().Play(AudioType::SWORD_SWING);
 }

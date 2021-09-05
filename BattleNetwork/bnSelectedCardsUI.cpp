@@ -16,7 +16,7 @@
 
 using std::to_string;
 
-SelectedCardsUI::SelectedCardsUI(Character* owner, CardPackageManager* packageManager) :
+SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackageManager* packageManager) :
   packageManager(packageManager),
   CardActionUsePublisher(), 
   UIComponent(owner)
@@ -38,7 +38,7 @@ SelectedCardsUI::~SelectedCardsUI() {
 void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if (this->IsHidden()) return;
 
-  const Entity* owner = GetOwner();
+  auto owner = GetOwner();
 
   //auto this_states = states;
   //this_states.transform *= getTransform();
@@ -102,7 +102,7 @@ void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
 }
 
 bool SelectedCardsUI::UseNextCard() {
-  Character* owner = this->GetOwnerAs<Character>();
+  auto owner = this->GetOwnerAs<Character>();
 
   if (!owner) return false;
 
@@ -151,7 +151,7 @@ std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek(
   return {};
 }
 
-void SelectedCardsUI::HandlePeekEvent(Character* from)
+void SelectedCardsUI::HandlePeekEvent(std::shared_ptr<Character> from)
 {
   auto maybe_card = this->Peek();
 
@@ -165,9 +165,7 @@ void SelectedCardsUI::HandlePeekEvent(Character* from)
     // prepare for this frame's action animation (we must be actionable)
     from->MakeActionable();
 
-    if (CardAction* newActionPtr = CardToAction(card, from, packageManager)) {
-      std::shared_ptr<CardAction> action;
-      action.reset(newActionPtr);
+    if (auto action = CardToAction(card, from, packageManager)) {
       action->SetMetaData(card.props); // associate the meta with this action object
       this->Broadcast(action); // tell the rest of the subsystems
     }

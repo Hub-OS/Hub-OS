@@ -13,7 +13,7 @@ private:
     double progress;
     double duration;
     bool goingUp;
-    AnimationComponent* anim;
+    std::shared_ptr<AnimationComponent> anim;
 
 public:
     Missile(Team _team,Battle::Tile* target, float _duration);
@@ -21,5 +21,5 @@ public:
 
     void OnUpdate(double _elapsed) override;
     void OnDelete() override;
-    void Attack(Character* _entity) override;
+    void Attack(std::shared_ptr<Character> _entity) override;
 }; 

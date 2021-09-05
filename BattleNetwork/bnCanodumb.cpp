@@ -21,7 +21,7 @@ Canodumb::Canodumb(Rank _rank) : AI<Canodumb>(this), Character(_rank) {
   SetHealth(health);
 
   //Components setup and load
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath(RESOURCE_PATH);
   animation->Load();
 
@@ -40,7 +40,7 @@ Canodumb::Canodumb(Rank _rank) : AI<Canodumb>(this), Character(_rank) {
     break;
   }
 
-  virusBody = new DefenseVirusBody();
+  virusBody = std::make_shared<DefenseVirusBody>();
   AddDefenseRule(virusBody);
 
   hitHeight = 60;
@@ -49,7 +49,6 @@ Canodumb::Canodumb(Rank _rank) : AI<Canodumb>(this), Character(_rank) {
 Canodumb::~Canodumb() {
   if (virusBody) {
     RemoveDefenseRule(virusBody);
-    delete virusBody;
     virusBody = nullptr;
   }
 }

@@ -55,7 +55,7 @@ FireBurn::~FireBurn() {
 void FireBurn::OnUpdate(double _elapsed) {
   animation.Update(_elapsed, getSprite());
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
 void FireBurn::OnSpawn(Battle::Tile& start)
@@ -73,12 +73,12 @@ void FireBurn::OnSpawn(Battle::Tile& start)
   }
 }
 
-void FireBurn::Attack(Character* _entity) {
+void FireBurn::Attack(std::shared_ptr<Character> _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     // X hit effect when hit by fire
-    auto fx = new ParticleImpact(ParticleImpact::Type::volcano);
+    auto fx = std::make_shared<ParticleImpact>(ParticleImpact::Type::volcano);
     fx->SetOffset({ _entity->GetTileOffset().x, -_entity->GetHeight() });
-    GetField()->AddEntity(*fx, *GetTile());
+    GetField()->AddEntity(fx, *GetTile());
 
     Audio().Play(AudioType::HURT);
   }

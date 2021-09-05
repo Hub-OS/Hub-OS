@@ -19,9 +19,9 @@ RowHit::RowHit(Team _team, int damage) :
 
   auto onFrameTwo = [this]() {
     if (auto next_tile = tile + this->GetDirection()) {
-      auto rowHit = new RowHit(GetTeam(), RowHit::damage);
+      auto rowHit = std::make_shared<RowHit>(GetTeam(), RowHit::damage);
       rowHit->SetDirection(GetDirection());
-      field->AddEntity(*rowHit, *next_tile);
+      field->AddEntity(rowHit, *next_tile);
     }
   };
 
@@ -39,10 +39,10 @@ void RowHit::OnUpdate(double _elapsed) {
 
   animation.Update(_elapsed, getSprite());
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
-void RowHit::Attack(Character* _entity) {
+void RowHit::Attack(std::shared_ptr<Character> _entity) {
   if (_entity && _entity->GetTeam() != GetTeam()) {
     auto props = Hit::DefaultProperties;
     props.damage = damage;

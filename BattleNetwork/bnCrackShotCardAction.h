@@ -13,11 +13,11 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  CrackShotCardAction(Character* actor, int damage);
+  CrackShotCardAction(std::shared_ptr<Character> actor, int damage);
   ~CrackShotCardAction();
 
   void Update(double _elapsed) override;
   void OnAnimationEnd();
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
 };

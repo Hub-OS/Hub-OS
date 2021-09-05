@@ -14,7 +14,7 @@ class HoneyBomberAttackState : public AIState<HoneyBomber>
 private:
   int beeCount{};
   double attackCooldown{}, spawnCooldown{};
-  Bees* lastBee{ nullptr };
+  std::weak_ptr<Bees> lastBee;
   Field::NotifyID_t notifier{-1};
 public:
 

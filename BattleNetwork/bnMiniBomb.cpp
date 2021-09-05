@@ -57,20 +57,20 @@ void MiniBomb::OnUpdate(double _elapsed) {
   if (arcProgress >= arcDuration) {
     // update tile to target tile 
     if (tile->IsWalkable()) {
-      tile->AffectEntities(this);
-      Artifact* explosion = new Explosion();
-      GetField()->AddEntity(*explosion, tile->GetX(), tile->GetY());
+      tile->AffectEntities(*this);
+      auto explosion = std::make_shared<Explosion>();
+      GetField()->AddEntity(explosion, tile->GetX(), tile->GetY());
       Delete();
     }
     else {
-      auto fx = new MobMoveEffect();
-      GetField()->AddEntity(*fx, *GetTile());
+      auto fx = std::make_shared<MobMoveEffect>();
+      GetField()->AddEntity(fx, *GetTile());
       Delete();
     }
   }
 }
 
-void MiniBomb::Attack(Character* _entity) {
+void MiniBomb::Attack(std::shared_ptr<Character> _entity) {
   _entity->Hit(GetHitboxProperties());
   Delete();
 }

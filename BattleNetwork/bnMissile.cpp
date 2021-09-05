@@ -15,7 +15,7 @@ Missile::Missile(Team _team,Battle::Tile* target, float _duration) : duration(_d
     goingUp = true;
     setTexture(Textures().GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
-    anim = CreateComponent<AnimationComponent>(this);
+    anim = CreateComponent<AnimationComponent>(weak_from_this());
     anim->SetPath("resources/mobs/metalman/metalman.animation");
     anim->Load();
     anim->SetAnimation("MISSILE_UP", Animator::Mode::Loop);
@@ -64,10 +64,10 @@ void Missile::OnUpdate(double _elapsed) {
             // When at the end of the arc
             if (beta >= 1.0f) {
                 // update tile to target tile
-                tile->AffectEntities(this);
+                tile->AffectEntities(*this);
 
                 if(tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
-                    field->AddEntity(*(new RingExplosion), *GetTile());
+                    field->AddEntity(std::make_shared<RingExplosion>(), *GetTile());
                 }
 
                 Delete();
@@ -112,6 +112,6 @@ void Missile::OnDelete()
   Remove();
 }
 
-void Missile::Attack(Character* _entity) {
+void Missile::Attack(std::shared_ptr<Character> _entity) {
     _entity->Hit(GetHitboxProperties());
 }

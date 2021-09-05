@@ -61,8 +61,17 @@ public:
    */
   int GetHeight() const;
 
-  NotifyID_t CallbackOnDelete(Entity::ID_t target, const std::function<void(Entity&)>& callback);
-  NotifyID_t NotifyOnDelete(Entity::ID_t target, Entity::ID_t observer, const std::function<void(Entity&, Entity&)>& callback);
+  NotifyID_t CallbackOnDelete(
+    Entity::ID_t target,
+    const std::function<void(std::shared_ptr<Entity>)>& callback
+  );
+
+  NotifyID_t NotifyOnDelete(
+    Entity::ID_t target,
+    Entity::ID_t observer,
+    const std::function<void(std::shared_ptr<Entity>, std::shared_ptr<Entity>)>& callback
+  );
+
   void DropNotifier(NotifyID_t notifier);
 
   /**
@@ -73,65 +82,35 @@ public:
   std::vector<Battle::Tile*> FindTiles(std::function<bool(Battle::Tile* t)> query);
 
   /**
-   * @brief Adds a character using the character's AdoptTile() routine
-   * @param character
+   * @brief Adds an entity using the entity's AdoptTile() routine
+   * @param entity
    * @param x col
    * @param y row
    */
-  AddEntityStatus AddEntity(Character& character, int x, int y);
-  AddEntityStatus AddEntity(Character& character, Battle::Tile& dest);
-
-  /**
-   * @brief Adds a spell using the spell's AdoptTile() routine
-   * @param spell
-   * @param x col
-   * @param y row
-   */
-  AddEntityStatus AddEntity(Spell& spell, int x, int y);
-  AddEntityStatus AddEntity(Spell& spell, Battle::Tile& dest);
-
-  /**
-   * @brief Adds an obstacle using the obstacle's AdoptTile() routine
-   * @param obst
-   * @param x col
-   * @param y row
-   */
-  AddEntityStatus AddEntity(Obstacle& obst, int x, int y);
-  AddEntityStatus AddEntity(Obstacle& obst, Battle::Tile& dest);
-
-  /**
-   * @brief Adds an artifact using the artifact's AdoptTile() routine
-   * @param art
-   * @param x col
-   * @param y row
-   */
-  AddEntityStatus AddEntity(Artifact& art, int x, int y);
-  AddEntityStatus AddEntity(Artifact& art, Battle::Tile& dest);
+  AddEntityStatus AddEntity(std::shared_ptr<Entity> entity, int x, int y);
+  AddEntityStatus AddEntity(std::shared_ptr<Entity> entity, Battle::Tile& dest);
 
   /**
    * @brief Query for entities on the entire field
    * @param query. the query input function
-   * @return list of Entity* that passed the input function's conditions
+   * @return list of std::shared_ptr<Entity> that passed the input function's conditions
    */
-  std::vector<Entity*> FindEntities(std::function<bool(Entity* e)> query);
-  std::vector<const Entity*> FindEntities(std::function<bool(Entity* e)> query) const;
+  std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity> e)> query) const;
 
   /**
    * @brief Query for characters on the entire field
    * @param query. the query input function
-   * @return list of Character* that passed the input function's conditions
+   * @return list of std::shared_ptr<Character> that passed the input function's conditions
    */
-  std::vector<Character*> FindCharacters(std::function<bool(Character* e)> query);
-  std::vector<const Character*> FindCharacters(std::function<bool(Character* e)> query) const;
+  std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character> e)> query) const;
 
   /**
    * @brief Query for the closest characters on the entire field given an input character.
    * @param test. The character to test distance againsr.
    * @param query. the query input function
-   * @return list of Character* that passed the input function's conditions
+   * @return list of std::shared_ptr<Character> that passed the input function's conditions
    */
-  std::vector<Character*> FindNearestCharacters(Character* test, std::function<bool(Character* e)> query);
-  std::vector<const Character*> FindNearestCharacters(const Character* test, std::function<bool(Character* e)> query) const;
+  std::vector<std::shared_ptr<Character>> FindNearestCharacters(const std::shared_ptr<Character> test, std::function<bool(std::shared_ptr<Character> e)> query) const;
 
   /**
    * @brief Set the tile at (x,y) team to _team
@@ -199,7 +178,7 @@ public:
   * Because entities update on a per-tile basis, we need to ensure an entity spanning multiple tiles
   * Is only ever updated once.
   */
-  void UpdateEntityOnce(Entity* entity, const double elapsed);
+  void UpdateEntityOnce(std::shared_ptr<Entity> entity, const double elapsed);
 
   /**
   * @brief removes the ID from allEntityHash
@@ -214,22 +193,16 @@ public:
   /**
   * @brief returns the entity from the allEntityHash otherwise nullptr
   */
-  Entity* GetEntity(Entity::ID_t ID);
+  std::shared_ptr<Entity> GetEntity(Entity::ID_t ID);
 
   /**
   * @brief returns the entity from the allEntityHash otherwise nullptr 
   */
-  Character* GetCharacter(Entity::ID_t ID);
+  std::shared_ptr<Character> GetCharacter(Entity::ID_t ID);
 
   void RevealCounterFrames(bool enabled);
 
   const bool DoesRevealCounterFrames() const;
-
-#ifdef BN_MOD_SUPPORT
-  AddEntityStatus AddEntity(std::unique_ptr<ScriptedArtifact>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
-  AddEntityStatus AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
-  AddEntityStatus AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
-#endif
 
 private:
   bool isTimeFrozen; 
@@ -247,42 +220,25 @@ private:
     int x{};
     int y{};
     Entity::ID_t ID{};
+    std::shared_ptr<Entity> entity;
 
-    enum class type : int {
-      character,
-      spell,
-      obstacle,
-      artifact
-    } entity_type;
-
-    union type_data {
-      Character* character;
-      Spell* spell;
-      Obstacle* obstacle;
-      Artifact* artifact;
-    } data;
-
-    queueBucket(int x, int y, Character& d);
-    queueBucket(int x, int y, Obstacle& d);
-    queueBucket(int x, int y, Artifact& d);
-    queueBucket(int x, int y, Spell& d);
+    queueBucket(int x, int y, std::shared_ptr<Entity> d);
     queueBucket(const queueBucket& rhs) = default;
   };
 
   struct DeleteObserver {
     NotifyID_t ID{};
     std::optional<Entity::ID_t> observer;
-    std::function<void(Entity&)> callback1; // target only variant
-    std::function<void(Entity&, Entity&)> callback2; // target-observer variant
+    std::function<void(std::shared_ptr<Entity>)> callback1; // target only variant
+    std::function<void(std::shared_ptr<Entity>, std::shared_ptr<Entity>)> callback2; // target-observer variant
   };
 
   NotifyID_t nextID{};
 
-  map<Entity::ID_t, Entity*> allEntityHash; /*!< Quick lookup of entities on the field */
+  map<Entity::ID_t, std::shared_ptr<Entity>> allEntityHash; /*!< Quick lookup of entities on the field */
   map<Entity::ID_t, void*> updatedEntities; /*!< Since entities can be shared across tiles, prevent multiple updates*/
   map<Entity::ID_t, std::vector<DeleteObserver>> entityDeleteObservers; /*!< List of callback functions for when an entity is deleted*/
   map<NotifyID_t, Entity::ID_t> notify2TargetHash; /*!< Convert from target entity to its delete observer key*/
   vector<queueBucket> pending;
-  vector<Entity*> dueForDeallocation; /*!< Entities to be deallocated via the `delete` keyword */
   vector<vector<Battle::Tile*>> tiles; /*!< Nested vector to make calls via tiles[x][y] */
 };

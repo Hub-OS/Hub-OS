@@ -16,11 +16,11 @@ Megalian::Megalian(Rank _rank)
   name = "Megalian";
   SetTeam(Team::blue);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
 
-  auto aura = new Aura(Aura::Type::AURA_100, this);
+  auto aura = std::make_shared<Aura>(Aura::Type::AURA_100, shared_from_base<Character>());
   aura->Persist(true);
 
   SetHealth(100);
@@ -49,8 +49,8 @@ void Megalian::OnDelete() {
 
 void Megalian::OnUpdate(double _elapsed) {
   if (!head) {
-    head = new Head(this);
-    GetField()->AddEntity(*head, tile->GetX(), tile->GetY());
+    head = std::make_shared<Head>(this);
+    GetField()->AddEntity(head, tile->GetX(), tile->GetY());
   }
 
   AI<Megalian>::Update(_elapsed);
@@ -62,7 +62,7 @@ const float Megalian::GetHeight() const {
 
 const bool Megalian::HasAura()
 {
-  return GetFirstComponent<Aura>();
+  return GetFirstComponent<Aura>() != nullptr;
 }
 
 bool Megalian::CanMoveTo(Battle::Tile * next)

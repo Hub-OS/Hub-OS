@@ -14,7 +14,7 @@ protected:
   Animation animation;
   double elapsed;
   sf::Time timeout; /**< When time is up, thunder is removed from play */
-  Entity* target{ nullptr }; /**< The current enemy to approach */
+  std::shared_ptr<Entity> target{ nullptr }; /**< The current enemy to approach */
 
 public:
   Thunder(Team _team);
@@ -37,7 +37,7 @@ public:
    * @brief Collides with entities. Thunder is deleted.
    * @param what was collided with
    */
-  void OnCollision(const Character* _entity) override;
+  void OnCollision(const std::shared_ptr<Character> _entity) override;
 
   /** 
   * @brief Does nothing
@@ -48,5 +48,5 @@ public:
   * @brief Attacks entity
   * @param what's getting attacked
   */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 }; 

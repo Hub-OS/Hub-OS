@@ -18,7 +18,7 @@ template<typename Any>
 class NaviExplodeState : public ExplodeState<Any>
 {
 protected:
-  ShineExplosion* shine{ nullptr }; /*!< Shine X that appears over navi ranked enemies */
+  std::shared_ptr<ShineExplosion> shine{ nullptr }; /*!< Shine X that appears over navi ranked enemies */
 
 public:
   inline static const int PriorityLevel = 0; // Highest
@@ -76,9 +76,9 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
   /* Spawn shine artifact */
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
-  shine = new ShineExplosion();
+  shine = std::make_shared<ShineExplosion>();
   shine->SetHeight(e.GetHeight() * 0.5f);
-  field->AddEntity(*shine, tile->GetX(), tile->GetY());
+  field->AddEntity(shine, tile->GetX(), tile->GetY());
 
   auto animation = e.template GetFirstComponent<AnimationComponent>();
 

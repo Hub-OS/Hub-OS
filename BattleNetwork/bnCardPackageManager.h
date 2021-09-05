@@ -17,7 +17,7 @@ class CardAction;
 class CardImpl {
 public:
   virtual ~CardImpl() {};
-  virtual CardAction* BuildCardAction(Character* user, Battle::Card::Properties& props) = 0;
+  virtual std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, Battle::Card::Properties& props) = 0;
 };
 
 struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {

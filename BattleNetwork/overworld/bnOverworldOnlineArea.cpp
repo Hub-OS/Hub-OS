@@ -2256,7 +2256,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
     auto mugshot = Textures().LoadTextureFromFile(image);
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-    Player* player = playerMeta.GetData();
+    auto player = std::shared_ptr<Player>(playerMeta.GetData());
 
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
@@ -2282,7 +2282,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     }
 
     MobBattleProperties props{
-      { *player, GetProgramAdvance(), folder, mob->GetField(), mob->GetBackground() },
+      { player, GetProgramAdvance(), folder, mob->GetField(), mob->GetBackground() },
       MobBattleProperties::RewardBehavior::take,
       { mob },
       sf::Sprite(*mugshot),

@@ -23,5 +23,5 @@ public:
    * @param in the attack
    * @param owner the character this is attached to
    */
-  void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) override;
 };

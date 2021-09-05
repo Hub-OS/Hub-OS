@@ -17,8 +17,8 @@ Mob* CanodumbMob::Build(Field* field) {
   Battle::Tile* tile = field->GetAt(4, 2);
   if (!tile->IsWalkable()) { tile->SetState(TileState::normal); }
 
-  auto addAura = [](Character& in) {
-    auto* aura = in.CreateComponent<Aura>(Aura::Type::BARRIER_200, &in);
+  auto addAura = [](std::shared_ptr<Character> in) {
+    auto aura = in->CreateComponent<Aura>(Aura::Type::BARRIER_200, in);
     aura->Persist(true);
   };
 

@@ -15,9 +15,8 @@
 
 using std::to_string;
 
-PlayerSelectedCardsUI::PlayerSelectedCardsUI(Player* _player, CardPackageManager* packageManager) :
+PlayerSelectedCardsUI::PlayerSelectedCardsUI(std::weak_ptr<Player> _player, CardPackageManager* packageManager) :
   SelectedCardsUI(_player, packageManager),
-  player(_player),
   text(Font::Style::thick),
   dmg(Font::Style::gradient_orange),
   multiplier(Font::Style::thick)
@@ -50,7 +49,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
   //this_states.transform *= getTransform();
   states.transform *= getTransform();
 
-  if (player) {
+  if (auto player = GetOwnerAs<Player>()) {
     int cardOrder = 0;
 
     // i = curr so we only see the cards that are left
@@ -208,7 +207,9 @@ void PlayerSelectedCardsUI::OnUpdate(double _elapsed) {
 
 void PlayerSelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 {
-  if (player->GetEmotion() == Emotion::angry) {
+  auto player = GetOwnerAs<Player>();
+
+  if (player && player->GetEmotion() == Emotion::angry) {
     player->SetEmotion(Emotion::normal);
   }
 

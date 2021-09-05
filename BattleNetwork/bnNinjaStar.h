@@ -11,7 +11,7 @@ private:
   double progress; /*!< Progress of the animation */
   double duration; /*!< How quickly the animation plays */
   bool changed{ false };
-  AnimationComponent* animation{ nullptr };
+  std::shared_ptr<AnimationComponent> animation{ nullptr };
 public:
 
   /**
@@ -36,7 +36,7 @@ public:
    * @brief Attacks entity
    * @param _entity to deal hitbox damage to
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
   /**
   * @brief Does nothing

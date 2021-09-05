@@ -12,7 +12,7 @@ NinjaStar::NinjaStar(Team _team, float _duration) : duration(_duration), Spell(_
   
   setTexture(Textures().GetTexture(TextureType::SPELL_NINJA_STAR));
   
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/spells/ninja_star.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT");
@@ -59,7 +59,7 @@ void NinjaStar::OnUpdate(double _elapsed) {
   // When at the end of the line
   if (progress >= duration) {
     // deal damage
-    tile->AffectEntities(this);
+    tile->AffectEntities(*this);
 
     if (!changed) {
       changed = true;
@@ -75,7 +75,7 @@ void NinjaStar::OnUpdate(double _elapsed) {
   progress += _elapsed;
 }
 
-void NinjaStar::Attack(Character* _entity) {
+void NinjaStar::Attack(std::shared_ptr<Character> _entity) {
     _entity->Hit(GetHitboxProperties());
 }
 

@@ -10,7 +10,7 @@
 
 #define PATH "resources/spells/spell_bomb.png"
 
-BombCardAction::BombCardAction(Character* actor, int damage) : 
+BombCardAction::BombCardAction(std::shared_ptr<Character> actor, int damage) : 
   CardAction(actor, "PLAYER_THROW") {
   BombCardAction::damage = damage;
 
@@ -26,7 +26,7 @@ BombCardAction::~BombCardAction()
 {
 }
 
-void BombCardAction::OnExecute(Character* user) {
+void BombCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On throw frame, spawn projectile
   auto onThrow = [=]() -> void {
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
@@ -44,12 +44,12 @@ void BombCardAction::OnExecute(Character* user) {
     
     if (auto target = user->GetTile(dir, step)) {
       auto offset = (user->GetTile()->getPosition() + attachment->getPosition()) - target->getPosition();
-      MiniBomb* b = new MiniBomb(team, offset, duration, damage);
+      auto b = std::make_shared<MiniBomb>(team, offset, duration, damage);
       auto props = b->GetHitboxProperties();
       props.aggressor = user->GetID();
       b->SetHitboxProperties(props);
 
-      user->GetField()->AddEntity(*b, *target);
+      user->GetField()->AddEntity(b, *target);
     }
   };
 

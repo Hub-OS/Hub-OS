@@ -8,7 +8,7 @@ MysteryData::MysteryData(Field* _field, Team _team) : Character() {
   setScale(2.f, 2.f);
   SetFloatShoe(true);
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/mobs/mystery_data/mystery_data.animation");
   animation->Reload();
   animation->SetAnimation("SPIN", Animator::Mode::Loop);
@@ -30,7 +30,7 @@ void MysteryData::OnUpdate(double _elapsed) {
 
   if (GetHealth() == 0) {
     Delete();
-    field->AddEntity(*new Explosion, *GetTile());
+    field->AddEntity(std::make_shared<Explosion>(), *GetTile());
   }
 }
 

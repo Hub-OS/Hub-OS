@@ -22,7 +22,7 @@ public:
 
   bool CanMoveTo(Battle::Tile * next) override;
 
-  void Attack(Character* e) override;
+  void Attack(std::shared_ptr<Character> e) override;
 
   const float GetHeight() const;
 

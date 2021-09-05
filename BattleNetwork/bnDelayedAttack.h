@@ -5,16 +5,16 @@
 class DelayedAttack : public Spell {
 private:
   double duration;
-  Spell* next;
+  std::shared_ptr<Spell> next;
 
 public:
-  DelayedAttack(Spell* next, Battle::Tile::Highlight highlightMode, double seconds);
+  DelayedAttack(std::shared_ptr<Spell> next, Battle::Tile::Highlight highlightMode, double seconds);
 
   ~DelayedAttack();
 
   void OnUpdate(double elapsed) override;
 
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
   void OnDelete() override;
 };

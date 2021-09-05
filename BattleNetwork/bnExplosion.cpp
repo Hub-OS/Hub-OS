@@ -16,7 +16,7 @@ Explosion::Explosion(int _numOfExplosions, double _playbackSpeed) :
   count = 0;
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
-  animationComponent = new AnimationComponent(this);
+  animationComponent = std::make_shared<AnimationComponent>(weak_from_this());
   animationComponent->SetPath("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
 
@@ -39,7 +39,7 @@ Explosion::Explosion(int _numOfExplosions, double _playbackSpeed) :
 
   if (_numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this, _numOfExplosions]() {
-      GetField()->AddEntity(*new Explosion(*this), *GetTile());
+      GetField()->AddEntity(std::shared_ptr<Explosion>(new Explosion(*this)), *GetTile());
     }, true);
   }
 
@@ -59,7 +59,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact()
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
 
@@ -83,7 +83,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact()
 
   if (numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this]() {
-      GetField()->AddEntity(*new Explosion(*this), *GetTile());
+      GetField()->AddEntity(std::shared_ptr<Explosion>(new Explosion(*this)), *GetTile());
     }, true);
   }
   else {

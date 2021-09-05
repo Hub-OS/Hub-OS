@@ -13,14 +13,12 @@ class Invis : public Component {
 private:
   sf::Time duration; /*!< Set to 15 seconds */
   double elapsed; /*!< Time passed in seconds */
-  DefenseInvis* defense;
+  std::shared_ptr<DefenseInvis> defense;
 public:
   /**
    * @brief attach to an entity 
    */
-  Invis(Entity* owner);
-
-  ~Invis();
+  Invis(std::weak_ptr<Entity> owner);
 
   /**
    * @brief When under time, set opacity to 50% and pasthrough. Otherwise, restore character.

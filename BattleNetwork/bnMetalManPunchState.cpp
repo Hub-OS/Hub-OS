@@ -77,15 +77,15 @@ void MetalManPunchState::Attack(MetalMan& metal) {
   Battle::Tile* tile = metal.GetField()->GetAt(metal.GetTile()->GetX()-1, metal.GetTile()->GetY());
 
   if (tile) {
-    Entity* next = nullptr;
+    std::shared_ptr<Entity> next = nullptr;
 
-    Hitbox* hitbox = new Hitbox(metal.GetTeam(), 100);
+    auto hitbox = std::make_shared<Hitbox>(metal.GetTeam(), 100);
     auto props = hitbox->GetHitboxProperties();
     props.flags |= Hit::flash;
     props.aggressor = metal.GetID();
     hitbox->SetHitboxProperties(props);
 
-    metal.field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
+    metal.field->AddEntity(hitbox, tile->GetX(), tile->GetY());
 
     if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
       metal.EventChannel().Emit(&Camera::ShakeCamera, 5.0, sf::seconds(0.5));

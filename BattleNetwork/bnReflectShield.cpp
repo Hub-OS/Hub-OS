@@ -9,7 +9,7 @@ using sf::IntRect;
 
 const std::string RESOURCE_PATH = "resources/spells/reflect_shield.animation";
 
-ReflectShield::ReflectShield(Character* owner, int damage, Type type) : 
+ReflectShield::ReflectShield(std::shared_ptr<Character> owner, int damage, Type type) : 
   damage(damage), 
   owner(owner),
   type(type),
@@ -37,12 +37,12 @@ ReflectShield::ReflectShield(Character* owner, int damage, Type type) :
   animation.Update(0, getSprite());
 
   // Specify the guard callback when it fails
-  DefenseGuard::Callback callback = [this](Spell& in, Character& owner) {
-    DoReflect(in, owner);
+  DefenseGuard::Callback callback = [this](auto in, auto owner) {
+    DoReflect(*in, *owner);
   };
 
   // Build a basic guard rule
-  guard = new DefenseGuard(callback);
+  guard = std::make_shared<DefenseGuard>(callback);
 
 
   // Add the defense rule to the owner
@@ -98,10 +98,10 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 
     Field* field = owner.GetField();
 
-    Spell* rowhit = new RowHit(owner.GetTeam(), damage);
+    auto rowhit = std::make_shared<RowHit>(owner.GetTeam(), damage);
     rowhit->SetDirection(direction);
 
-    field->AddEntity(*rowhit, owner.GetTile()->GetX() + 1, owner.GetTile()->GetY());
+    field->AddEntity(rowhit, owner.GetTile()->GetX() + 1, owner.GetTile()->GetY());
 
     // Only emit a row hit once
     activated = true;
@@ -115,5 +115,5 @@ void ReflectShield::SetDuration(const frame_time_t& frames)
 
 ReflectShield::~ReflectShield()
 {
-  delete guard;
+  
 }

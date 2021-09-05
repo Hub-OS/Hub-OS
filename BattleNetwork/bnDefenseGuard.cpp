@@ -14,18 +14,18 @@ DefenseGuard::~DefenseGuard()
 {
 }
 
-void DefenseGuard::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
+void DefenseGuard::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)
 {
-  auto props = in.GetHitboxProperties();
+  auto props = in->GetHitboxProperties();
 
   if ((props.flags & Hit::breaking) == 0) {
     judge.BlockDamage();
 
     if ((props.flags & Hit::impact) == Hit::impact) {
-      judge.AddTrigger(callback, std::ref(in), std::ref(owner));
+      judge.AddTrigger(callback, in, owner);
       judge.BlockImpact();
-      owner.GetField()->AddEntity(*new GuardHit(&owner, true), *owner.GetTile());
-      owner.GetField()->AddEntity(*new Hitbox(owner.GetTeam(), 0), *owner.GetTile());
+      owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
+      owner->GetField()->AddEntity(std::make_shared<Hitbox>(owner->GetTeam(), 0), *owner->GetTile());
     }
   }
   else if((props.flags & Hit::impact) == Hit::impact){

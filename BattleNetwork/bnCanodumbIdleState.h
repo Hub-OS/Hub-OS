@@ -14,7 +14,7 @@ class Canodumb;
 class CanodumbIdleState final : public AIState<Canodumb>
 {
 private:
-  CanodumbCursor* cursor{ nullptr }; /*!< Spawned to find enemies to attack */
+  std::shared_ptr<CanodumbCursor> cursor{ nullptr }; /*!< Spawned to find enemies to attack */
   Canodumb* can{ nullptr };
   friend void CanodumbCursor::OnUpdate(double _elapsed);
   friend CanodumbCursor::CanodumbCursor(CanodumbIdleState* _parent);
@@ -22,7 +22,7 @@ private:
   void Attack();
   void FreeCursor();
   Character::Rank GetCanodumbRank();
-  Entity* GetCanodumbTarget();
+  std::shared_ptr<Entity> GetCanodumbTarget();
 public:
   CanodumbIdleState();
   ~CanodumbIdleState();

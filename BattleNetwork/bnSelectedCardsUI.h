@@ -26,7 +26,7 @@ public:
   /**
    * \param character Character to attach to
    */
-  SelectedCardsUI(Character* owner, CardPackageManager* packageManager);
+  SelectedCardsUI(std::weak_ptr<Character> owner, CardPackageManager* packageManager);
   
   /**
    * @brief destructor
@@ -77,7 +77,7 @@ public:
   */
   std::optional<std::reference_wrapper<const Battle::Card>> Peek();
 
-  void HandlePeekEvent(Character* from);
+  void HandlePeekEvent(std::shared_ptr<Character> from);
 
   /**
   * @brief Returns the uuids of all the cards

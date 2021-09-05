@@ -18,8 +18,8 @@ class Canodumb : public Character, public AI<Canodumb> {
   friend class CanodumbCursor;
 
   float hitHeight;
-  DefenseRule* virusBody{ nullptr };
-  AnimationComponent* animation{ nullptr };
+  std::shared_ptr<DefenseRule> virusBody{ nullptr };
+  std::shared_ptr<AnimationComponent> animation{ nullptr };
 public:
   using DefaultState = CanodumbIdleState;
 

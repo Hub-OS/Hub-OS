@@ -18,7 +18,7 @@ public:
    * Prepares animations callbacks
    * @param heal how much to heal the player with
    */
-  RollHeal(Team team, Character* user, int heal);
+  RollHeal(Team team, std::shared_ptr<Character> user, int heal);
   
   /**
    * @brief Deconstructor
@@ -35,7 +35,7 @@ public:
    * @brief Deals damage to enemy
    * @param _entity
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
   void OnDelete() override;
 
@@ -44,6 +44,6 @@ public:
 private:
   int heal;
   int random;
-  AnimationComponent* animationComponent;
-  Character* user{ nullptr };
+  std::shared_ptr<AnimationComponent> animationComponent;
+  std::shared_ptr<Character> user{ nullptr };
 };

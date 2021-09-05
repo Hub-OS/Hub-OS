@@ -23,7 +23,7 @@ Character::Rank CanodumbIdleState::GetCanodumbRank()
   return can->GetRank();
 }
 
-Entity* CanodumbIdleState::GetCanodumbTarget()
+std::shared_ptr<Entity> CanodumbIdleState::GetCanodumbTarget()
 {
   return can->GetTarget();
 }
@@ -59,14 +59,14 @@ void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
       // Spawn tracking cursor object
       if (cursor == nullptr) {
         FreeCursor();
-        cursor = new CanodumbCursor(this);
+        cursor = std::make_shared<CanodumbCursor>(this);
 
-        auto freeCursorCallback = [this](Entity& target, Entity& observer) {
+        auto freeCursorCallback = [this](auto target, auto observer) {
           cursor = nullptr;
         };
 
         can.GetField()->NotifyOnDelete(cursor->GetID(), can.GetID(), freeCursorCallback);
-        can.GetField()->AddEntity(*cursor, can.GetTile()->GetX() - 1, can.GetTile()->GetY());
+        can.GetField()->AddEntity(cursor, can.GetTile()->GetX() - 1, can.GetTile()->GetY());
       }
     }
   }

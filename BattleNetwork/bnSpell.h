@@ -45,7 +45,7 @@ public:
    * if there are special conditions. Call Hit() on the entity
    * to deal damage.
    */
-  virtual void Attack(Character* _entity) = 0;
+  virtual void Attack(std::shared_ptr<Character> _entity) = 0;
   
   /**
   * @brief Describes what happens when this attack collides with a character, regardless of defenses
@@ -53,7 +53,7 @@ public:
   * If this function is called it does not gaurantee the attack will do damage to the character
   * Use this for visual effects like bubble pop
   */
-  virtual void OnCollision(const Character* _entity) { };
+  virtual void OnCollision(const std::shared_ptr<Character> _entity) { };
 
   /**
    * @brief Uses visitor double-dispatch pattern to add to the spell bucket 

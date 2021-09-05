@@ -18,13 +18,13 @@ void AlphaRocketState::OnEnter(AlphaCore& a) {
   launched = false;
 
   a.EnableImpervious();
-  AnimationComponent* anim = a.GetFirstComponent<AnimationComponent>();
+  auto anim = a.GetFirstComponent<AnimationComponent>();
 
   auto onFinish = [alpha = &a, anim, this]() {
     alpha->EnableImpervious(false);
     alpha->GoToNextState();
 
-    AlphaRocket* rocket = new AlphaRocket(alpha->GetTeam());
+    auto rocket = std::make_shared<AlphaRocket>(alpha->GetTeam());
     auto props = rocket->GetHitboxProperties();
     props.aggressor = alpha->GetID();
     rocket->SetHitboxProperties(props);
@@ -37,7 +37,7 @@ void AlphaRocketState::OnEnter(AlphaCore& a) {
 
     launched = true;
 
-    alpha->GetField()->AddEntity(*rocket, alpha->GetTile()->GetX() - 1, alpha->GetTile()->GetY());
+    alpha->GetField()->AddEntity(rocket, alpha->GetTile()->GetX() - 1, alpha->GetTile()->GetY());
   };
 
   anim->SetAnimation("CORE_ATTACK2", onFinish);

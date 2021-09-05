@@ -25,11 +25,11 @@ public:
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
-  void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) override;
 
   // configurable callback functions from Lua
-  std::function<Hit::Properties&(Hit::Properties*)> filterStatusesCallback;
-  std::function<void(DefenseFrameStateJudge*, Spell*, Character*)> canBlockCallback;
+  std::function<Hit::Properties&(Hit::Properties&)> filterStatusesCallback;
+  std::function<void(DefenseFrameStateJudge&, std::shared_ptr<Spell>, std::shared_ptr<Character>)> canBlockCallback;
 };
 
 #endif

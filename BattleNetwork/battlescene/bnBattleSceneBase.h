@@ -49,7 +49,7 @@ using sf::Event;
 using BattleResultsFunc = std::function<void(const BattleResults& results)>;
 
 struct BattleSceneBaseProps {
-  Player& player;
+  std::shared_ptr<Player> player;
   PA& programAdvance;
   CardFolder* folder{ nullptr };
   Field* field{ nullptr };
@@ -90,13 +90,13 @@ private:
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
   RealtimeCardActionUseListener cardActionListener; /*!< Card use listener handles one card at a time */
-  PlayerSelectedCardsUI* cardUI{ nullptr }; /*!< Player's Card UI implementation */
-  PlayerEmotionUI* emotionUI{ nullptr }; /*!< Player's Emotion Window */
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI{ nullptr }; /*!< Player's Card UI implementation */
+  std::shared_ptr<PlayerEmotionUI> emotionUI{ nullptr }; /*!< Player's Emotion Window */
   Camera camera; /*!< Camera object - will shake screen */
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
   Field* field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
-  Player* player{ nullptr }; /*!< Pointer to player's selected character */
+  std::shared_ptr<Player> player{ nullptr }; /*!< Pointer to player's selected character */
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
@@ -111,7 +111,7 @@ private:
   // counter stuff
   SpriteProxyNode counterReveal;
   Animation counterRevealAnim;
-  CounterCombatRule* counterCombatRule{ nullptr };
+  std::shared_ptr<CounterCombatRule> counterCombatRule{ nullptr };
 
   // card stuff
   CardSelectionCust cardCustGUI; /*!< Card selection GUI that has an API to interact with */
@@ -327,7 +327,7 @@ public:
 
   bool IsPlayerDeleted() const;
 
-  Player* GetPlayer();
+  std::shared_ptr<Player> GetPlayer();
   Field* GetField();
   const Field* GetField() const;
   CardSelectionCust& GetCardSelectWidget();

@@ -6,7 +6,7 @@
 #include "bnThunder.h"
 #include "bnField.h"
 
-ThunderCardAction::ThunderCardAction(Character* actor, int damage) :
+ThunderCardAction::ThunderCardAction(std::shared_ptr<Character> actor, int damage) :
   CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(actor->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   ThunderCardAction::damage = damage;
@@ -22,12 +22,12 @@ ThunderCardAction::ThunderCardAction(Character* actor, int damage) :
   AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
-void ThunderCardAction::OnExecute(Character* user) {
+void ThunderCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
-    auto* owner = GetActor();
+    auto owner = GetActor();
     Team team = owner->GetTeam();
-    auto* thunder = new Thunder(team);
+    auto thunder = std::make_shared<Thunder>(team);
     auto props = thunder->GetHitboxProperties();
     props.damage = damage;
     props.aggressor = user->GetID();
@@ -40,7 +40,7 @@ void ThunderCardAction::OnExecute(Character* user) {
     }
 
     if (auto tile = owner->GetTile()->Offset(step, 0)) {
-      owner->GetField()->AddEntity(*thunder, *tile);
+      owner->GetField()->AddEntity(thunder, *tile);
     }
   };
 

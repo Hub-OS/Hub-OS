@@ -17,16 +17,15 @@ public:
 
   }
 
-  CardAction* BuildCardAction(Character* user, Battle::Card::Properties& props) override {
-    CardAction* result{ nullptr };
+  std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, Battle::Card::Properties& props) override {
+    std::shared_ptr<CardAction> result{ nullptr };
 
     sol::object obj = script["card_create_action"](*user, props);
 
     if (obj.valid()) {
-      if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+      if (obj.is<std::shared_ptr<ScriptedCardAction>>())
       {
-        auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-        result = ptr.release();
+        result = obj.as<std::shared_ptr<ScriptedCardAction>>();
       }
       else {
         Logger::Log("Lua function \"card_create_action\" didn't return a CardAction.");

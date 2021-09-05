@@ -1,7 +1,7 @@
 #include "bnScriptedComponent.h"
 #include "../bnCharacter.h"
 
-ScriptedComponent::ScriptedComponent(Character* owner, Component::lifetimes lifetime) :
+ScriptedComponent::ScriptedComponent(std::weak_ptr<Character> owner, Component::lifetimes lifetime) :
     Component(owner, lifetime)
 {
 }
@@ -13,14 +13,14 @@ ScriptedComponent::~ScriptedComponent()
 void ScriptedComponent::OnUpdate(double dt)
 {
   if (update_func) {
-    update_func(this, dt);
+    update_func(shared_from_this(), dt);
   }
 }
 
 void ScriptedComponent::Inject(BattleSceneBase& scene)
 {
   if (scene_inject_func) {
-    scene_inject_func(this);
+    scene_inject_func(shared_from_this());
   }
 
   // the component is now injected into the scene's update loop
@@ -30,7 +30,7 @@ void ScriptedComponent::Inject(BattleSceneBase& scene)
   scene.Inject(this);
 }
 
-Character* ScriptedComponent::GetOwnerAsCharacter()
+std::shared_ptr<Character> ScriptedComponent::GetOwnerAsCharacter()
 {
   return this->GetOwnerAs<Character>();
 }

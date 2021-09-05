@@ -15,7 +15,7 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
-CannonCardAction::CannonCardAction(Character* actor, CannonCardAction::Type type, int damage) :
+CannonCardAction::CannonCardAction(std::shared_ptr<Character> actor, CannonCardAction::Type type, int damage) :
   CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(CANNON_ANIM),  
   type(type) {
@@ -46,12 +46,12 @@ CannonCardAction::~CannonCardAction()
 {
 }
 
-void CannonCardAction::OnExecute(Character* user) {
+void CannonCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
     // Spawn a single cannon instance on the tile in front of the player
     Team team = user->GetTeam();
-    Cannon* cannon = new Cannon(team, damage);
+    auto cannon = std::make_shared<Cannon>(team, damage);
     auto props = cannon->GetHitboxProperties();
     props.aggressor = user->GetID();
 
@@ -66,7 +66,7 @@ void CannonCardAction::OnExecute(Character* user) {
       cannon->SetDirection(Direction::left);
     }
 
-    user->GetField()->AddEntity(*cannon, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
+    user->GetField()->AddEntity(cannon, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
   };
 
   AddAnimAction(6, onFire);

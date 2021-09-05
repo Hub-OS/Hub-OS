@@ -17,7 +17,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-SwordCardAction::SwordCardAction(Character* actor, int damage) : 
+SwordCardAction::SwordCardAction(std::shared_ptr<Character> actor, int damage) : 
 CardAction(actor, "PLAYER_SWORD") {
   SwordCardAction::damage = damage;
 
@@ -49,7 +49,7 @@ SwordCardAction::~SwordCardAction()
   delete hilt;
 }
 
-void SwordCardAction::OnExecute(Character* user) {
+void SwordCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On attack frame, drop sword hitbox
   auto onTrigger = [=]() -> void {
     OnSpawnHitbox(user->GetID());
@@ -87,20 +87,20 @@ void SwordCardAction::OnSpawnHitbox(Entity::ID_t userId)
 
   if (tile) {
     // visual fx
-    SwordEffect* e = new SwordEffect;
-    field->AddEntity(*e, *tile);
+    auto e = std::make_shared<SwordEffect>();
+    field->AddEntity(e, *tile);
 
     if (GetActor()->GetFacing() == Direction::left) {
       e->setScale(-2.f, 2.f);
     }
 
-    BasicSword* b = new BasicSword(GetActor()->GetTeam(), damage);
+    auto b = std::make_shared<BasicSword>(GetActor()->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = userId;
     b->SetHitboxProperties(props);
 
     // add the hitbox beneath the visual fx
-    field->AddEntity(*b, *tile);
+    field->AddEntity(b, *tile);
   }
 
   Audio().Play(AudioType::SWORD_SWING);

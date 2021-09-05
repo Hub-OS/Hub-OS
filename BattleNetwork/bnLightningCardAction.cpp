@@ -16,7 +16,7 @@
 #define LIGHTNING_IMG "resources/spells/spell_lightning.png"
 #define LIGHTNING_ANI "resources/spells/spell_lightning.animation"
 
-LightningCardAction::LightningCardAction(Character* actor, int damage) :
+LightningCardAction::LightningCardAction(std::shared_ptr<Character> actor, int damage) :
   CardAction(actor, "PLAYER_SHOOTING")
 {
   LightningCardAction::damage = damage;
@@ -42,7 +42,7 @@ LightningCardAction::LightningCardAction(Character* actor, int damage) :
   OverrideAnimationFrames({ FRAMES });
 }
 
-void LightningCardAction::OnExecute(Character* user) {
+void LightningCardAction::OnExecute(std::shared_ptr<Character> user) {
   attachment->setColor(user->getColor());
   attachment->EnableParentShader(true);
   attachment->AddTags({ Player::BASE_NODE_TAG });
@@ -62,7 +62,7 @@ void LightningCardAction::OnExecute(Character* user) {
     int row = user->GetTile()->GetY();
 
     for (int i = 1; i < 6; i++) {
-      auto hitbox = new Hitbox(team, LightningCardAction::damage);
+      auto hitbox = std::make_shared<Hitbox>(team, LightningCardAction::damage);
       hitbox->HighlightTile(Battle::Tile::Highlight::solid);
       auto props = hitbox->GetHitboxProperties();
       props.aggressor = user->GetID();
@@ -75,7 +75,7 @@ void LightningCardAction::OnExecute(Character* user) {
 
       int flip = user->GetFacing() == Direction::right ? 1 : -1;
       hitbox->SetHitboxProperties(props);
-      field->AddEntity(*hitbox, col + (flip*i), row);
+      field->AddEntity(hitbox, col + (flip*i), row);
     }
 
     Audio().Play(AudioType::THUNDER);

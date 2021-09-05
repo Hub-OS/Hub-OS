@@ -14,12 +14,12 @@ private:
   int damage;
   bool crackTiles{ true };
 public:
-  FireBurnCardAction(Character* actor, FireBurn::Type type, int damage);
+  FireBurnCardAction(std::shared_ptr<Character> actor, FireBurn::Type type, int damage);
   ~FireBurnCardAction();
 
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
   void CrackTiles(bool state);
 };

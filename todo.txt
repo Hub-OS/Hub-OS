@@ -1,0 +1,22 @@
+Look for circular references:
+ - BattleSceneBase
+ - Player
+ - CardActions seem circular with actor/owner
+ - shareHit in bnCharacter seems sus, prob circular, maybe use weak_ptr
+ - More
+ - Components seem fine as they're using weak pointers now
+ - CardActions have a reference to their owner, does the owner have one back?
+ - Check spells like SharedHitbox -> just recently switched to a weak_ptr
+
+CardAction Step as shared_ptr
+SpriteProxy as shared_ptr
+
+// todo: break entity shared_ptr cycles
+// also call this->FreeAllComponents();
+// should the field and tiles be shared_ptr? as sprite proxy node???
+// what about animations
+// is Animation& safe? GetAnimationFromComponent?
+// maybe return something that wraps the AnimationComponent like an animation component user type with the same exports
+
+
+Battle::Tile& // check out stuff like scripted spells

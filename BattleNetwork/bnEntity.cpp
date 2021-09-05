@@ -7,7 +7,7 @@
 
 long Entity::numOfIDs = 0;
 
-bool EntityComparitor::operator()(Entity* f, Entity* s) const
+bool EntityComparitor::operator()(std::shared_ptr<Entity> f, std::shared_ptr<Entity> s) const
 {
   return f->GetID() < s->GetID();
 }
@@ -34,7 +34,7 @@ Entity::~Entity() {
 void Entity::SortComponents()
 {
   // Newest components appear first in the list for easy referencing
-  std::sort(components.begin(), components.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
+  std::sort(components.begin(), components.end(), [](auto& a, auto& b) { return a->GetID() > b->GetID(); });
 }
 
 void Entity::ClearPendingComponents()
@@ -54,9 +54,7 @@ void Entity::ReleaseComponentsPendingRemoval()
     auto iter = std::find(components.begin(), components.end(), bucket.pending);
 
     if (iter != components.end()) {
-      Component* component = *iter;
       components.erase(iter);
-      delete component;
     }
   }
 }
@@ -587,7 +585,7 @@ void Entity::AdoptNextTile()
   if (previous != nullptr /*&& previous != tile*/) {
     previous->RemoveEntityByID(GetID());
     // If removing an entity and the tile was broken, crack the tile
-    previous->HandleMove(this);
+    previous->HandleMove(shared_from_this());
     previous = tile;
   }
 
@@ -643,7 +641,7 @@ void Entity::FreeComponentByID(Component::ID_t ID) {
   }
 }
 
-Component* Entity::RegisterComponent(Component* c) {
+std::shared_ptr<Component> Entity::RegisterComponent(std::shared_ptr<Component> c) {
   if (c == nullptr) return nullptr;
 
   auto iter = std::find(components.begin(), components.end(), c);

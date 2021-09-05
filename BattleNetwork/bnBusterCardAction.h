@@ -17,11 +17,11 @@ private:
   int damage{};
   Field::NotifyID_t notifier{ -1 };
 public:
-  BusterCardAction(Character* user, bool charged, int damage);
+  BusterCardAction(std::shared_ptr<Character> user, bool charged, int damage);
   ~BusterCardAction();
 
   void Update(double _elapsed) override;
   void OnAnimationEnd();
   void OnActionEnd();
-  void OnExecute(Character* user);
+  void OnExecute(std::shared_ptr<Character> user);
 };

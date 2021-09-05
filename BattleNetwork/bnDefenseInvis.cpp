@@ -12,9 +12,9 @@ DefenseInvis::~DefenseInvis()
 {
 }
 
-void DefenseInvis::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
+void DefenseInvis::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)
 {
-  if ((in.GetHitboxProperties().flags & Hit::pierce) != Hit::pierce) {
+  if ((in->GetHitboxProperties().flags & Hit::pierce) != Hit::pierce) {
     judge.BlockDamage();
     judge.BlockImpact();
   }

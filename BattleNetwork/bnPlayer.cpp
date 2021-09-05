@@ -39,14 +39,14 @@ Player::Player() :
 
   setScale(2.0f, 2.0f);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
   previous = nullptr;
   playerControllerSlide = false;
   activeForm = nullptr;
-  superArmor = new DefenseSuperArmor();
+  superArmor = std::make_shared<DefenseSuperArmor>();
 
   auto flinch = [this]() {
     ClearActionQueue();
@@ -81,7 +81,6 @@ Player::~Player() {
     delete form;
   }
 
-  delete superArmor;
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 }
 
@@ -101,7 +100,7 @@ void Player::OnUpdate(double _elapsed) {
   AI<Player>::Update(_elapsed);
 
   if (activeForm) {
-    activeForm->OnUpdate(_elapsed, *this);
+    activeForm->OnUpdate(_elapsed, shared_from_base<Player>());
   }
 
   //Node updates
@@ -126,7 +125,7 @@ bool Player::IsActionable() const
 }
 
 void Player::Attack() {
-  CardAction* action = nullptr;
+  std::shared_ptr<CardAction> action = nullptr;
 
   // Queue an action for the controller to fire at the right frame
   if (tile) {
@@ -275,7 +274,7 @@ void Player::SlideWhenMoving(bool enable, const frame_time_t& frames)
   playerControllerSlide = enable;
 }
 
-CardAction* Player::OnExecuteSpecialAction()
+std::shared_ptr<CardAction> Player::OnExecuteSpecialAction()
 {
   if (specialOverride) {
     return specialOverride();
@@ -308,17 +307,17 @@ frame_time_t Player::CalculateChargeTime(const unsigned chargeLevel)
   return frames(50);
 }
 
-CardAction* Player::ExecuteBuster()
+std::shared_ptr<CardAction> Player::ExecuteBuster()
 {
    return OnExecuteBusterAction();
 }
 
-CardAction* Player::ExecuteChargedBuster()
+std::shared_ptr<CardAction> Player::ExecuteChargedBuster()
 {
    return OnExecuteChargedBusterAction();
 }
 
-CardAction* Player::ExecuteSpecial()
+std::shared_ptr<CardAction> Player::ExecuteSpecial()
 {
   return OnExecuteSpecialAction();
 }
@@ -328,7 +327,7 @@ void Player::ActivateFormAt(int index)
   index = index - 1; // base 1 to base 0
 
   if (activeForm) {
-    activeForm->OnDeactivate(*this);
+    activeForm->OnDeactivate(shared_from_base<Player>());
     delete activeForm;
     activeForm = nullptr;
     RevertStats();
@@ -340,7 +339,7 @@ void Player::ActivateFormAt(int index)
 
     if (activeForm) {
       SaveStats();
-      activeForm->OnActivate(*this);
+      activeForm->OnActivate(shared_from_base<Player>());
       CreateMoveAnimHash();
       animationComponent->Refresh();
     }
@@ -360,7 +359,7 @@ void Player::ActivateFormAt(int index)
 void Player::DeactivateForm()
 {
   if (activeForm) {
-    activeForm->OnDeactivate(*this);
+    activeForm->OnDeactivate(shared_from_base<Player>());
     RevertStats();
     CreateMoveAnimHash();
   }
@@ -387,7 +386,7 @@ ChargeEffectSceneNode& Player::GetChargeComponent()
   return chargeEffect;
 }
 
-void Player::OverrideSpecialAbility(const std::function<CardAction* ()>& func)
+void Player::OverrideSpecialAbility(const std::function<std::shared_ptr<CardAction> ()>& func)
 {
   specialOverride = func;
 }

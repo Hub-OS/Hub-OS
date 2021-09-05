@@ -15,7 +15,7 @@ MetalBlade::MetalBlade(Team _team, double speed) : Spell(_team) {
 
   MetalBlade::speed = speed;
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/mobs/metalman/metalman.animation");
   animation->Load();
   animation->SetAnimation("BLADE",Animator::Mode::Loop);
@@ -97,7 +97,7 @@ void MetalBlade::OnUpdate(double _elapsed) {
     }
   }
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
 // Nothing prevents blade from cutting through
@@ -105,7 +105,7 @@ bool MetalBlade::CanMoveTo(Battle::Tile* tile) {
   return !tile->IsEdgeTile();
 }
 
-void MetalBlade::Attack(Character* _entity) {
+void MetalBlade::Attack(std::shared_ptr<Character> _entity) {
    _entity->Hit(GetHitboxProperties());
 }
 

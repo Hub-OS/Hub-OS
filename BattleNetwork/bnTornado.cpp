@@ -23,21 +23,21 @@ Tornado::Tornado(Team _team, int count, int damage) :
   };
 
   auto firstFrame = [this]() {
-    Hitbox* hitbox = new Hitbox(GetTeam(), this->damage);
+    auto hitbox = std::make_shared<Hitbox>(GetTeam(), this->damage);
     auto props = GetHitboxProperties();
     hitbox->SetHitboxProperties(props);
 
-    auto onHit = [this](Character* entity) {
+    auto onHit = [this](std::shared_ptr<Character> entity) {
       Audio().Play(AudioType::HURT);
     };
 
-    auto onCollision = [this](const Character* entity) {
-      Artifact* hitfx = new BusterHit(BusterHit::Type::CHARGED);
-      GetField()->AddEntity(*hitfx, entity->GetTile()->GetX(), entity->GetTile()->GetY());
+    auto onCollision = [this](const std::shared_ptr<Character> entity) {
+      auto hitfx = std::make_shared<BusterHit>(BusterHit::Type::CHARGED);
+      GetField()->AddEntity(hitfx, entity->GetTile()->GetX(), entity->GetTile()->GetY());
     };
 
     hitbox->AddCallback(onHit, onCollision);
-    GetField()->AddEntity(*hitbox, *GetTile());
+    GetField()->AddEntity(hitbox, *GetTile());
   };
 
   animation = Animation("resources/spells/spell_tornado.animation");
@@ -63,7 +63,7 @@ void Tornado::OnUpdate(double _elapsed) {
   animation.Update(_elapsed, getSprite());
 }
 
-void Tornado::Attack(Character* _entity) {
+void Tornado::Attack(std::shared_ptr<Character> _entity) {
 
 }
 

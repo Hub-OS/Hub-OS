@@ -46,5 +46,5 @@ public:
   virtual bool Move(Direction _direction) { return false; }
 
 protected:
-  AnimationComponent* animation; /*!< Animation component for mystery data */
+  std::shared_ptr<AnimationComponent> animation; /*!< Animation component for mystery data */
 };

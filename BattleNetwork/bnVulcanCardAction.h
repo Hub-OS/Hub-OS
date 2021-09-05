@@ -11,10 +11,10 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  VulcanCardAction(Character* actor, int damage);
+  VulcanCardAction(std::shared_ptr<Character> actor, int damage);
   ~VulcanCardAction();
   void Update(double _elapsed) override final;
   void OnAnimationEnd() override final;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
 };

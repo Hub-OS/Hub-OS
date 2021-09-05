@@ -19,7 +19,7 @@ Elecpulse::Elecpulse(Team _team, int _damage) : Spell(_team) {
 
   setTexture(Textures().GetTexture(TextureType::SPELL_ELEC_PULSE));
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/spells/elecpulse.animation");
   animation->Reload();
 
@@ -48,19 +48,21 @@ void Elecpulse::OnSpawn(Battle::Tile & start)
   auto forward = tile.Offset(step, 0);
   auto bottom = tile.Offset(step, 1);
 
+  auto spellPtr = shared_from_base<Spell>();
+
   if (forward) {
-    auto shared = new SharedHitbox(this);
-    field->AddEntity(*shared, *forward);
+    auto shared = std::make_shared<SharedHitbox>(spellPtr);
+    field->AddEntity(shared, *forward);
   }
 
   if (top) {
-    auto shared = new SharedHitbox(this);
-    field->AddEntity(*shared, *top);
+    auto shared = std::make_shared<SharedHitbox>(spellPtr);
+    field->AddEntity(shared, *top);
   }
 
   if (bottom) {
-    auto shared = new SharedHitbox(this);
-    field->AddEntity(*shared, *bottom);
+    auto shared = std::make_shared<SharedHitbox>(spellPtr);
+    field->AddEntity(shared, *bottom);
   }
 
   Entity::drawOffset = sf::Vector2f(70.0f * step, -60.0f);
@@ -73,7 +75,7 @@ void Elecpulse::OnUpdate(double _elapsed) {
   }
 
   if (hasHitbox) {
-    GetTile()->AffectEntities(this);
+    GetTile()->AffectEntities(*this);
 
     auto& tile = *GetTile();
     auto top = tile.Offset(step, -1);
@@ -93,7 +95,7 @@ void Elecpulse::OnDelete()
   hasHitbox = false;
 }
 
-void Elecpulse::Attack(Character* _entity) {
+void Elecpulse::Attack(std::shared_ptr<Character> _entity) {
   long ID = _entity->GetID();
 
   if (std::find(taggedCharacters.begin(), taggedCharacters.end(), ID) != taggedCharacters.end())

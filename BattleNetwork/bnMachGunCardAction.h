@@ -13,17 +13,17 @@ class MachGunCardAction : public CardAction {
   bool moveUp{ true }, firstSpawn{ true };
   SpriteProxyNode machgun;
   Animation machgunAnim;
-  Entity* target{ nullptr };
+  std::shared_ptr<Entity> target{ nullptr };
   Battle::Tile* targetTile{ nullptr };
 
   void FreeTarget();
   Battle::Tile* MoveRectical(Field*, bool columnMove);
 
 public:
-  MachGunCardAction(Character* actor, int damage);
+  MachGunCardAction(std::shared_ptr<Character> actor, int damage);
   ~MachGunCardAction();
 
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
   void OnActionEnd() override;
   void OnAnimationEnd() override;
 };

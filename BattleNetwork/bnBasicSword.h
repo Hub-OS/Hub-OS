@@ -16,7 +16,7 @@ public:
   virtual ~BasicSword();
 
   virtual void OnUpdate(double _elapsed) override;
-  virtual void Attack(Character* _entity) override;
+  virtual void Attack(std::shared_ptr<Character> _entity) override;
   virtual void OnDelete() override;
 private:
   int damage;

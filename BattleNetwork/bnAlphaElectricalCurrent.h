@@ -10,7 +10,7 @@
 class AnimationComponent;
 
 class AlphaElectricCurrent : public Spell {
-  AnimationComponent* anim;
+  std::shared_ptr<AnimationComponent> anim;
   int count;
   int countMax;
 public:
@@ -20,6 +20,6 @@ public:
   // Inherited via Spell
   void OnSpawn(Battle::Tile& start) override;
   void OnUpdate(double _elapsed) override;
-  void Attack(Character * _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
   void OnDelete() override;
 };

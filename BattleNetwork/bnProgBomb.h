@@ -13,6 +13,6 @@ public:
 
   void OnSpawn(Battle::Tile& tile) override;
   void OnUpdate(double _elapsed) override;
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
   void OnDelete() override;
 };

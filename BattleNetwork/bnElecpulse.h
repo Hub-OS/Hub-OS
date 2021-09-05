@@ -16,13 +16,13 @@ public:
   void OnSpawn(Battle::Tile& start) override;
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
 private:
   int damage{};
   int random{};
   float cooldown{}, progress{};
   bool hasHitbox{true};
-  AnimationComponent* animation{ nullptr };
+  std::shared_ptr<AnimationComponent> animation{ nullptr };
   std::list<int> taggedCharacters; //< We share a hit box, don't attack these
 };

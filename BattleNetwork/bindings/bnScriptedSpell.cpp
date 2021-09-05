@@ -12,7 +12,7 @@ ScriptedSpell::ScriptedSpell(Team _team) :
   shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
   AddNode(shadow);
 
-  animComponent = CreateComponent<AnimationComponent>(this);
+  animComponent = CreateComponent<AnimationComponent>(weak_from_this());
 }
 
 ScriptedSpell::~ScriptedSpell() {
@@ -27,32 +27,32 @@ bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 void ScriptedSpell::OnUpdate(double _elapsed) {
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
-  ScriptedSpell& ss = *this;
+  auto ss = shared_from_base<ScriptedSpell>();
   updateCallback ? updateCallback(ss, _elapsed) : (void)0;
 
 }
 
 void ScriptedSpell::OnDelete() {
-  ScriptedSpell& ss = *this;
+  auto ss = shared_from_base<ScriptedSpell>();
   deleteCallback ? deleteCallback(ss) : (void)0;
   Remove();
 }
 
-void ScriptedSpell::OnCollision(const Character* other)
+void ScriptedSpell::OnCollision(const std::shared_ptr<Character> other)
 {
-  ScriptedSpell& ss = *this;
-  collisionCallback ? collisionCallback(ss, const_cast<Character&>(*other)) : (void)0;
+  auto ss = shared_from_base<ScriptedSpell>();
+  collisionCallback ? collisionCallback(ss, other) : (void)0;
 }
 
-void ScriptedSpell::Attack(Character* other) {
+void ScriptedSpell::Attack(std::shared_ptr<Character> other) {
   other->Hit(GetHitboxProperties());
-  ScriptedSpell& ss = *this;
-  attackCallback ? attackCallback(ss, *other) : (void)0;
+  auto ss = shared_from_base<ScriptedSpell>();
+  attackCallback ? attackCallback(ss, other) : (void)0;
 }
 
 void ScriptedSpell::OnSpawn(Battle::Tile& spawn)
 {
-  ScriptedSpell& ss = *this;
+  auto ss = shared_from_base<ScriptedSpell>();
   spawnCallback ? spawnCallback(ss, spawn) : (void)0;
 
   if (GetTeam() == Team::blue && flip) {

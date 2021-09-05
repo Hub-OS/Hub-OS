@@ -6,12 +6,12 @@ class PanelGrab;
 class AreaGrabCardAction : public CardAction {
 private:
   int damage;
-  PanelGrab* panelPtr{ nullptr };
+  std::shared_ptr<PanelGrab> panelPtr{ nullptr };
 public:
-  AreaGrabCardAction(Character* actor, int damage);
+  AreaGrabCardAction(std::shared_ptr<Character> actor, int damage);
   ~AreaGrabCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
 };

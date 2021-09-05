@@ -36,7 +36,7 @@ using swoosh::ActivityController;
 BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
   cardActionListener(this->getController().CardPackageManager()),
-  player(&props.player),
+  player(props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
   totalCounterMoves(0),
@@ -61,7 +61,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   player->ChangeState<PlayerIdleState>();
   player->ToggleTimeFreeze(false);
-  field->AddEntity(*player, 2, 2);
+  field->AddEntity(player, 2, 2);
 
   /*
   Background for scene*/
@@ -102,11 +102,11 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   CardActionUseListener::Subscribe(*cardUI);
 
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
-  cardCustGUI.AddNode(healthUI);
+  cardCustGUI.AddNode(healthUI.get());
 
   // Player Emotion
   this->emotionUI = player->CreateComponent<PlayerEmotionUI>(player);
-  cardCustGUI.AddNode(emotionUI);
+  cardCustGUI.AddNode(emotionUI.get());
 
   emotionUI->Subscribe(cardCustGUI);
 
@@ -121,7 +121,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   counterReveal.EnableParentShader(false);
   counterReveal.SetLayer(-100);
 
-  counterCombatRule = new CounterCombatRule(this);
+  counterCombatRule = std::make_shared<CounterCombatRule>(this);
 
   // Load forms
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
@@ -206,7 +206,7 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
 {
   Audio().Play(AudioType::COUNTER, AudioPriority::highest);
 
-  if (&aggressor == player) {
+  if (&aggressor == player.get()) {
     totalCounterMoves++;
 
     if (victim.IsDeleted()) {
@@ -237,7 +237,7 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
 void BattleSceneBase::OnDeleteEvent(Character& pending)
 {
   // Track if player is being deleted
-  if (!isPlayerDeleted && player == &pending) {
+  if (!isPlayerDeleted && player.get() == &pending) {
     battleResults.runaway = false;
     isPlayerDeleted = true;
     player = nullptr;
@@ -246,10 +246,10 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   auto pendingPtr = &pending;
 
   // Find any AI using this character as a target and free that pointer  
-  field->FindEntities([pendingPtr](Entity* in) {
-    auto agent = dynamic_cast<Agent*>(in);
+  field->FindEntities([pendingPtr](std::shared_ptr<Entity> in) {
+    auto agent = dynamic_cast<Agent*>(in.get());
 
-    if (agent && agent->GetTarget() == pendingPtr) {
+    if (agent && agent->GetTarget().get() == pendingPtr) {
       agent->FreeTarget();
     }
 
@@ -328,7 +328,7 @@ void BattleSceneBase::LoadMob(Mob& mob)
 
 void BattleSceneBase::HandleCounterLoss(Character& subject, bool playsound)
 {
-  if (&subject == player) {
+  if (&subject == player.get()) {
     if (field->DoesRevealCounterFrames()) {
       player->RemoveNode(&counterReveal);
       player->RemoveDefenseRule(counterCombatRule);
@@ -557,7 +557,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   surface.draw(*background);
 
-  auto uis = std::vector<UIComponent*>();
+  auto uis = std::vector<std::shared_ptr<UIComponent>>();
 
   auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
   auto viewOffset = getController().CameraViewOffset(camera);
@@ -599,16 +599,20 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   }
 
   for (Battle::Tile* tile : allTiles) {
-    auto allEntities = tile->FindEntities([](Entity* ent) { return true; });
+    auto allEntities = tile->FindEntities([](std::shared_ptr<Entity> ent) { return true; });
 
-    for (Entity* ent : allEntities) {
+    for (auto ent : allEntities) {
       auto uic = ent->GetComponentsDerivedFrom<UIComponent>();
       uis.insert(uis.begin(), uic.begin(), uic.end());
     }
 
     auto nodes = std::vector<SceneNode*>();
-    nodes.insert(nodes.end(), allEntities.begin(), allEntities.end());
-    //nodes.insert(nodes.end(), scenenodes.begin(), scenenodes.end());
+    nodes.reserve(allEntities.size());
+
+    for(auto& entity : allEntities) {
+      nodes.push_back(entity.get());
+    }
+
     std::sort(nodes.begin(), nodes.end(), [](SceneNode* A, SceneNode* B) { return A->GetLayer() > B->GetLayer(); });
 
     for (SceneNode* node : nodes) {
@@ -619,7 +623,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   }
 
   // draw ui on top
-  for (UIComponent* ui : uis) {
+  for (auto ui : uis) {
     if (ui->DrawOnUIPass()) {
       ui->move(viewOffset);
       surface.draw(*ui);
@@ -628,16 +632,16 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   }
 
   // draw extra card action graphics
-  std::vector<Character*> allCharacters;
-  field->FindEntities([&allCharacters](Entity* e) mutable {
-    if (auto* character = dynamic_cast<Character*>(e)) {
+  std::vector<std::shared_ptr<Character>> allCharacters;
+  field->FindEntities([&allCharacters](std::shared_ptr<Entity> e) mutable {
+    if (auto character = std::dynamic_pointer_cast<Character>(e)) {
       allCharacters.push_back(character);
     }
 
     return false;
   });
 
-  for (Character* c : allCharacters) {
+  for (std::shared_ptr<Character> c : allCharacters) {
     auto actionList = c->AsyncActionList();
     auto currAction = c->CurrentCardAction();
 
@@ -666,7 +670,7 @@ bool BattleSceneBase::IsPlayerDeleted() const
   return isPlayerDeleted;
 }
 
-Player* BattleSceneBase::GetPlayer()
+std::shared_ptr<Player> BattleSceneBase::GetPlayer()
 {
   return player;
 }
@@ -872,7 +876,7 @@ void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {
 void BattleSceneBase::ProcessNewestComponents()
 {
   // effectively returns all of them
-  auto entities = field->FindEntities([](Entity* e) { return true; });
+  auto entities = field->FindEntities([](std::shared_ptr<Entity> e) { return true; });
 
   for (auto e : entities) {
     if (e->components.size() > 0) {

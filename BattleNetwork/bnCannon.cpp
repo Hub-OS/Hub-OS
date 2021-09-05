@@ -42,7 +42,7 @@ void Cannon::OnUpdate(double _elapsed) {
     return;
   }
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
@@ -58,7 +58,7 @@ bool Cannon::CanMoveTo(Battle::Tile * next)
   return true;
 }
 
-void Cannon::Attack(Character* _entity) {
+void Cannon::Attack(std::shared_ptr<Character> _entity) {
   if (hit) {
     return;
   }

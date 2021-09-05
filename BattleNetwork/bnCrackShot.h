@@ -4,7 +4,7 @@
 
 class CrackShot : public Spell {
 protected:
-  AnimationComponent* animation; 
+  std::shared_ptr<AnimationComponent> animation; 
   double speed; 
 public:
 
@@ -32,7 +32,7 @@ public:
    * @brief Deals hitbox damage
    * @param _entity
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
   /**
   * @brief Does nothing */

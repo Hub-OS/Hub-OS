@@ -109,11 +109,11 @@ void MetridAttackState::DoAttack(Metrid& met) {
       meteorCooldown = 0.4f;
     }
 
-    auto meteor = new Meteor(met.GetTeam(), damage, 0.4f);
+    auto meteor = std::make_shared<Meteor>(met.GetTeam(), damage, 0.4f);
     auto props = meteor->GetHitboxProperties();
     props.aggressor = met.GetID();
     meteor->SetHitboxProperties(props);
 
-    met.GetField()->AddEntity(*meteor, target->GetX(),target->GetY());
+    met.GetField()->AddEntity(meteor, target->GetX(),target->GetY());
   }
 }

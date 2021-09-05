@@ -11,7 +11,7 @@
 
 #define RESOURCE_PATH "resources/spells/spell_heart.animation"
 
-RollHeart::RollHeart(Character* user, int _heal) : 
+RollHeart::RollHeart(std::shared_ptr<Character> user, int _heal) : 
   heal(_heal), 
   user(user),
   Spell(user->GetTeam())
@@ -27,7 +27,7 @@ RollHeart::RollHeart(Character* user, int _heal) :
 
   setTexture(Textures().LoadTextureFromFile("resources/spells/spell_heart.png"), true);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("HEART");
@@ -50,8 +50,8 @@ void RollHeart::OnUpdate(double _elapsed) {
     this->Hide();
     user->SetHealth(user->GetHealth() + heal);
     
-    healFX = new ParticleHeal();
-    user->GetField()->AddEntity(*healFX, tile->GetX(), tile->GetY());
+    healFX = std::make_shared<ParticleHeal>();
+    user->GetField()->AddEntity(healFX, tile->GetX(), tile->GetY());
   }
   else if (spawnFX) {
     if (healFX->WillRemoveLater()) {
@@ -60,7 +60,7 @@ void RollHeart::OnUpdate(double _elapsed) {
   }
 }
 
-void RollHeart::Attack(Character* _entity) {
+void RollHeart::Attack(std::shared_ptr<Character> _entity) {
 }
 
 void RollHeart::OnDelete()

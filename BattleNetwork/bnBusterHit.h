@@ -14,7 +14,7 @@ class Field;
 class BusterHit : public Artifact
 {
 private:
-  AnimationComponent* animationComponent;
+  std::shared_ptr<AnimationComponent> animationComponent;
   sf::Vector2f offset;
 public:
   enum class Type : int {

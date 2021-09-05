@@ -20,7 +20,7 @@ Mettaur::Mettaur(Rank _rank) :
   name = "Mettaur";
   SetTeam(Team::blue);
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
 
   if (GetRank() == Rank::_2) {
     SetHealth(80);
@@ -58,13 +58,12 @@ Mettaur::Mettaur(Rank _rank) :
 
   animation->OnUpdate(0);
 
-  virusBody = new DefenseVirusBody();
+  virusBody = std::make_shared<DefenseVirusBody>();
   AddDefenseRule(virusBody);
   SetHeight(getSprite().getGlobalBounds().height);
 }
 
 Mettaur::~Mettaur() {
-  delete virusBody;
 }
 
 void Mettaur::OnDelete() {

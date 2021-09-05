@@ -16,13 +16,12 @@ class NinjaAntiDamage : public Component {
   friend class AntiDamageTriggerAction;
 
 private:
-  DefenseRule* defense{ nullptr }; /*!< Adds defense rule to the owner */
-  Character* user{ nullptr };
+  std::shared_ptr<DefenseRule> defense{ nullptr }; /*!< Adds defense rule to the owner */
 public:
   /**
    * @brief Builds a defense rule for anti damage with a callback to spawn ninja stars
    */
-  NinjaAntiDamage(Entity* owner);
+  NinjaAntiDamage(std::weak_ptr<Entity> owner);
   
   /**
    * @brief delete defense rule pointer

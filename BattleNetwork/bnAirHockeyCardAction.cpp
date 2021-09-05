@@ -13,7 +13,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-AirHockeyCardAction::AirHockeyCardAction(Character* actor, int damage) :
+AirHockeyCardAction::AirHockeyCardAction(std::shared_ptr<Character> actor, int damage) :
   CardAction(actor, "PLAYER_SWORD") {
   AirHockeyCardAction::damage = damage;
 
@@ -33,8 +33,8 @@ AirHockeyCardAction::~AirHockeyCardAction()
 {
 }
 
-void AirHockeyCardAction::OnExecute(Character* user) {
-  auto* actor = GetActor();
+void AirHockeyCardAction::OnExecute(std::shared_ptr<Character> user) {
+  auto actor = GetActor();
 
   auto onHand = [=] {
     AddAttachment(actor, "hilt", *attachment).UseAnimation(attachmentAnim);
@@ -53,17 +53,17 @@ void AirHockeyCardAction::OnExecute(Character* user) {
     auto tile = actor->GetTile()->Offset(step, 0);
 
     if (tile) {
-      AirHockey* b = new AirHockey(&field, actor->GetTeam(), this->damage, 10);
+      auto b = std::make_shared<AirHockey>(&field, actor->GetTeam(), this->damage, 10);
       auto props = b->GetHitboxProperties();
       props.aggressor = user->GetID();
       b->SetHitboxProperties(props);
 
-      field.AddEntity(*b, tile->GetX(), tile->GetY());
+      field.AddEntity(b, tile->GetX(), tile->GetY());
     }
 
     if (tile == nullptr) {
-      auto* fx = new MobMoveEffect();
-      field.AddEntity(*fx, *actor->GetTile());
+      auto fx = std::make_shared<MobMoveEffect>();
+      field.AddEntity(fx, *actor->GetTile());
     }
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);

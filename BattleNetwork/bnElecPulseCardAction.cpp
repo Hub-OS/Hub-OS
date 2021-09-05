@@ -18,7 +18,7 @@
                 FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2
 
-ElecPulseCardAction::ElecPulseCardAction(Character* actor, int damage) : 
+ElecPulseCardAction::ElecPulseCardAction(std::shared_ptr<Character> actor, int damage) : 
   CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(ANIM) {
   ElecPulseCardAction::damage = damage;
@@ -45,12 +45,12 @@ ElecPulseCardAction::~ElecPulseCardAction()
 {
 }
 
-void ElecPulseCardAction::OnExecute(Character* user) {
+void ElecPulseCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
     auto field = user->GetField();
     Team team = user->GetTeam();
-    elecpulse = new Elecpulse(team, damage);
+    elecpulse = std::make_shared<Elecpulse>(team, damage);
     Audio().Play(AudioType::ELECPULSE);
 
     auto props = elecpulse->GetHitboxProperties();
@@ -63,7 +63,7 @@ void ElecPulseCardAction::OnExecute(Character* user) {
     }
 
     auto tile = user->GetTile()->Offset(step, 0);
-    field->AddEntity(*elecpulse, *tile);
+    field->AddEntity(elecpulse, *tile);
   };
 
   AddAnimAction(2, onFire);

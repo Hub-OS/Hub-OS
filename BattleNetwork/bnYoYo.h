@@ -6,7 +6,7 @@
 /*! \brief YoYo moves 3 spaces forward, if able, hits 3 times, and then returns to their starting tile*/
 class YoYo : public Spell {
 protected:
-  AnimationComponent* animation; /*!< YoYo spinning animation */
+  std::shared_ptr<AnimationComponent> animation; /*!< YoYo spinning animation */
   double speed; /*!< Faster spinning */
   int tileCount, hitCount;
   bool reversed;
@@ -43,7 +43,7 @@ public:
    * @brief Deals hitbox damage
    * @param _entity
    */
-  void Attack(Character* _entity);
+  void Attack(std::shared_ptr<Character> _entity);
 
   /**
   * @brief If not on the return tile, spawn an explosion

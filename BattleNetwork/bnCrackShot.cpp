@@ -13,7 +13,7 @@ CrackShot::CrackShot(Team _team,Battle::Tile* tile) : Spell(_team) {
   setTexture(Textures().GetTexture(TextureType::SPELL_CRACKSHOT));
   setScale(2.f, 2.f);
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/spells/spell_panel_shot.animation");
   animation->Load();
 
@@ -50,7 +50,7 @@ void CrackShot::OnUpdate(double _elapsed) {
     }
   }
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
 // Nothing prevents blade from cutting through
@@ -58,7 +58,7 @@ bool CrackShot::CanMoveTo(Battle::Tile* tile) {
   return true;
 }
 
-void CrackShot::Attack(Character* _entity) {
+void CrackShot::Attack(std::shared_ptr<Character> _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     Delete();
   }

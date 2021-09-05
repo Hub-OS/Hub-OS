@@ -7,12 +7,12 @@ class RollHeart;
 class RollCardAction : public CardAction {
 private:
   int damage;
-  RollHeart* heart{ nullptr };
+  std::shared_ptr<RollHeart> heart{ nullptr };
 public:
-  RollCardAction(Character* actor, int damage);
+  RollCardAction(std::shared_ptr<Character> actor, int damage);
   ~RollCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnActionEnd();
-  void OnExecute(Character* user);
+  void OnExecute(std::shared_ptr<Character> user);
 };

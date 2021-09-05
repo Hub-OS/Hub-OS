@@ -45,5 +45,5 @@ private:
 
   float hitHeight; /*!< hit height of this entity */
   SpriteProxyNode* shadow;
-  DefenseRule* virusBody;
+  std::shared_ptr<DefenseRule> virusBody;
 };

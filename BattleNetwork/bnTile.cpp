@@ -45,7 +45,7 @@ namespace Battle {
       state = TileState::normal;
     }
 
-    entities = vector<Entity*>();
+    entities = vector<std::shared_ptr<Entity>>();
     setScale(2.f, 2.f);
     width = TILE_WIDTH * getScale().x;
     height = TILE_HEIGHT * getScale().y;
@@ -71,7 +71,7 @@ namespace Battle {
         volcanoEruptTimer = seconds;
         
         if (field && state == TileState::volcano) {
-          field->AddEntity(*new VolcanoErupt, *this);
+          field->AddEntity(std::make_shared<VolcanoErupt>(), *this);
         }
       }
       else {
@@ -152,14 +152,6 @@ namespace Battle {
   }
 
   Tile::~Tile() {
-    // Free memory
-    auto iter = entities.begin();
-
-    while (iter != entities.end()) {
-      delete (*iter);
-      iter++;
-    }
-
     entities.clear();
     spells.clear();
     artifacts.clear();
@@ -194,10 +186,10 @@ namespace Battle {
     return team;
   }
 
-  void Tile::HandleMove(Entity* entity)
+  void Tile::HandleMove(std::shared_ptr<Entity> entity)
   {
     // If removing an entity and the tile was broken, crack the tile
-    if (reserved.size() == 0 && dynamic_cast<Character*>(entity) != nullptr && (IsCracked() && !(entity->HasFloatShoe() || entity->HasAirShoe()))) {
+    if (reserved.size() == 0 && dynamic_cast<Character*>(entity.get()) != nullptr && (IsCracked() && !(entity->HasFloatShoe() || entity->HasAirShoe()))) {
       SetState(TileState::broken);
       Audio().Play(AudioType::PANEL_CRACK);
     }
@@ -216,8 +208,8 @@ namespace Battle {
 
     // Check if no characters on the opposing team are on this tile
     if (GetTeam() == Team::unknown || GetTeam() != _team) {
-      size_t size = FindEntities([this, _team](Entity* in) {
-        auto* isCharacter = dynamic_cast<Character*>(in);
+      size_t size = FindEntities([this, _team](std::shared_ptr<Entity> in) {
+        auto isCharacter = dynamic_cast<Character*>(in.get());
         return isCharacter && in->GetTeam() != _team;
       }).size();
 
@@ -365,56 +357,37 @@ namespace Battle {
       return !characters.empty();
     }
 
-    std::vector<Character*> diff, char_exclude;
-    for (Entity::ID_t id : exclude) {
-      if (Character* c = field->GetCharacter(id)) {
-        char_exclude.push_back(c);
+    for (auto& character: characters) {
+      bool excluded = false;
+
+      for (auto id : exclude) {
+        if (character->GetID() == id) {
+          excluded = true;
+          break;
+        }
+      }
+
+      if (!excluded) {
+        return true;
       }
     }
 
-    std::sort(characters.begin(), characters.end());
-    std::sort(char_exclude.begin(), char_exclude.end());
-
-    std::set_difference(characters.begin(), characters.end(), char_exclude.begin(), char_exclude.end(), std::inserter(diff, diff.begin()));
-
-    return !diff.empty();
+    return false;
   }
 
-  void Tile::AddEntity(Spell & _entity)
-  {
-    if (!ContainsEntity(&_entity)) {
-      spells.push_back(&_entity);
-      AddEntity(&_entity);
+  void Tile::AddEntity(std::shared_ptr<Entity> _entity) {
+    if (!_entity || ContainsEntity(_entity)) {
+      return;
     }
-  }
 
-  void Tile::AddEntity(Character & _entity)
-  {
-    if (!ContainsEntity(&_entity)) {
-      characters.push_back(&_entity);
-      AddEntity(&_entity);
+    if (auto spell = std::dynamic_pointer_cast<Spell>(_entity)) {
+      spells.push_back(spell);
+    } else if(auto artifact = std::dynamic_pointer_cast<Artifact>(_entity)) {
+      artifacts.push_back(artifact);
+    } else if(auto character = std::dynamic_pointer_cast<Character>(_entity)) {
+      characters.push_back(character);
     }
-  }
 
-  void Tile::AddEntity(Obstacle & _entity)
-  {
-    if (!ContainsEntity(&_entity)) {
-      characters.push_back(&_entity);
-      spells.push_back(&_entity);
-      AddEntity(&_entity);
-    }
-  }
-
-  void Tile::AddEntity(Artifact & _entity)
-  {
-    if (!ContainsEntity(&_entity)) {
-      artifacts.push_back(&_entity);
-      AddEntity(&_entity);
-    }
-  }
-
-  // Aux function that all AddX() functions call
-  void Tile::AddEntity(Entity* _entity) {
     _entity->SetTile(this);
 
     // May be part of the spawn routine
@@ -444,11 +417,11 @@ namespace Battle {
     auto reservedIter = reserved.find(ID);
     if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
-    auto itEnt    = find_if(entities.begin(), entities.end(), [ID](Entity* in) { return in->GetID() == ID; });
-    auto itSpell  = find_if(spells.begin(), spells.end(), [ID](Entity* in) { return in->GetID() == ID; });
-    auto itChar   = find_if(characters.begin(), characters.end(), [ID](Entity* in) { return in->GetID() == ID; });
-    auto itArt    = find_if(artifacts.begin(), artifacts.end(), [ID](Entity* in) { return in->GetID() == ID; });
-    auto itDelete = find_if(deletingCharacters.begin(), deletingCharacters.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itEnt    = find_if(entities.begin(), entities.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
+    auto itSpell  = find_if(spells.begin(), spells.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
+    auto itChar   = find_if(characters.begin(), characters.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
+    auto itArt    = find_if(artifacts.begin(), artifacts.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
+    auto itDelete = find_if(deletingCharacters.begin(), deletingCharacters.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
     
     if (itDelete != deletingCharacters.end()) {
       deletingCharacters.erase(itDelete);
@@ -479,8 +452,8 @@ namespace Battle {
     return modified;
   }
 
-  bool Tile::ContainsEntity(const Entity* _entity) const {
-    vector<Entity*> copy = entities;
+  bool Tile::ContainsEntity(const std::shared_ptr<Entity> _entity) const {
+    vector<std::shared_ptr<Entity>> copy = entities;
     return find(copy.begin(), copy.end(), _entity) != copy.end();
   }
 
@@ -489,12 +462,12 @@ namespace Battle {
     reserved.insert(ID);
   }
 
-  void Tile::AffectEntities(Spell* caller) {
-    if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
+  void Tile::AffectEntities(Spell& caller) {
+    if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller.GetID(); }) != taggedSpells.end())
       return;
-    if (std::find_if(queuedSpells.begin(), queuedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != queuedSpells.end())
+    if (std::find_if(queuedSpells.begin(), queuedSpells.end(), [&caller](int ID) { return ID == caller.GetID(); }) != queuedSpells.end())
       return;
-    queuedSpells.push_back(caller->GetID());
+    queuedSpells.push_back(caller.GetID());
   }
 
   void Tile::Update(double _elapsed) {
@@ -517,8 +490,8 @@ namespace Battle {
     }
 
     // We need a copy because we WILL invalidate the iterator
-    const std::set<Character*, EntityComparitor> deletingCharsCopy = deletingCharacters;
-    for (auto* chars : deletingCharsCopy) {
+    const std::set<std::shared_ptr<Character>, EntityComparitor> deletingCharsCopy = deletingCharacters;
+    for (auto chars : deletingCharsCopy) {
       // Can remove the character from the tile's deleting queue
       field->UpdateEntityOnce(chars, _elapsed);
     }
@@ -566,8 +539,8 @@ namespace Battle {
     highlightMode = Highlight::none;
 
     // Process tile behaviors
-    vector<Character*> characters_copy = characters;
-    for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
+    vector<std::shared_ptr<Character>> characters_copy = characters;
+    for (vector<std::shared_ptr<Character>>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
       if (!(*entity)->IsTimeFrozen()) {
         HandleTileBehaviors(*entity);
       }
@@ -613,7 +586,7 @@ namespace Battle {
     useParentShader = true;
   }
 
-  void Tile::HandleTileBehaviors(Obstacle* obst) {
+  void Tile::HandleTileBehaviors(std::shared_ptr<Obstacle> obst) {
     if (!isTimeFrozen || !isBattleOver || !(state == TileState::hidden)) {
 
       // DIRECTIONAL TILES
@@ -648,10 +621,10 @@ namespace Battle {
     }
   }
 
-  void Tile::HandleTileBehaviors(Character* character)
+  void Tile::HandleTileBehaviors(std::shared_ptr<Character> character)
   {
     // Obstacles cannot be considered
-    if (!character || dynamic_cast<Obstacle*>(character)) return;
+    if (!character || dynamic_cast<Obstacle*>(character.get())) return;
     if (isTimeFrozen || state == TileState::hidden) return; 
 
     /*
@@ -676,8 +649,7 @@ namespace Battle {
 
         if (GetState() == TileState::lava) {
           if (character->Hit(Hit::Properties({ 50, Hit::flash, Element::none, 0, Direction::none }))) {
-            Artifact* explosion = new Explosion;
-            field->AddEntity(*explosion, GetX(), GetY());
+            field->AddEntity(std::make_shared<Explosion>(), GetX(), GetY());
             SetState(TileState::normal);
           }
         }
@@ -715,9 +687,9 @@ namespace Battle {
     }
   }
 
-  std::vector<Entity*> Tile::FindEntities(std::function<bool(Entity* e)> query)
+  std::vector<std::shared_ptr<Entity>> Tile::FindEntities(std::function<bool(std::shared_ptr<Entity> e)> query)
   {
-    std::vector<Entity*> res;
+    std::vector<std::shared_ptr<Entity>> res;
 
     for(auto iter = entities.begin(); iter != entities.end(); iter++ ) {
       if (query(*iter)) {
@@ -728,13 +700,13 @@ namespace Battle {
     return res;
   }
 
-  std::vector<Character*> Tile::FindCharacters(std::function<bool(Character* e)> query)
+  std::vector<std::shared_ptr<Character>> Tile::FindCharacters(std::function<bool(std::shared_ptr<Character> e)> query)
   {
-    std::vector<Character*> res;
+    std::vector<std::shared_ptr<Character>> res;
 
     for (auto iter = characters.begin(); iter != characters.end(); iter++) {
       // skip obstacle types...
-      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](Spell* other) {
+      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](std::shared_ptr<Spell> other) {
         return other->GetID() == character->GetID();
       });
 
@@ -880,8 +852,7 @@ namespace Battle {
 
       Entity::ID_t ID = ptr->GetID();
       // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
-      Character* character = dynamic_cast<Character*>(ptr);
-      Obstacle* obst = dynamic_cast<Obstacle*>(ptr);
+      auto character = std::dynamic_pointer_cast<Character>(ptr);
 
       if (ptr->IsDeleted()) {
         if (character && deletingCharacters.find(character) == deletingCharacters.end()) {
@@ -898,7 +869,7 @@ namespace Battle {
         if (RemoveEntityByID(ID)) {
           // Don't track this entity anymore
           field->ForgetEntity(ID);
-          delete ptr;
+          // todo: break entity shared_ptr cycles
           continue;
         }
       }  
@@ -919,30 +890,30 @@ namespace Battle {
       // the entity is a character (can be hit) and the team isn't the same
       // we see if it passes defense checks, then call attack
 
-      Character& character = *(*it);
+      auto character = *it;
       bool retangible = false;
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
       for (Entity::ID_t ID : queuedSpells) {
-        Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
+        auto spell = dynamic_pointer_cast<Spell>(field->GetEntity(ID));
 
         // this shouldn't happen but it does sometimes... 
         // TODO: we need to be sure it's always right to perform static casting
         if (!spell) continue;
 
-        if (character.GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
+        if (character->GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
           continue;
 
-        bool unknownTeams = character.GetTeam() == Team::unknown;
+        bool unknownTeams = character->GetTeam() == Team::unknown;
         unknownTeams = unknownTeams && (spell->GetTeam() == Team::unknown);
 
-        if (character.GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
+        if (character->GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
           continue;
 
-        if (unknownTeams && !character.UnknownTeamResolveCollision(*spell)) // Case: unknown vs unknown need further inspection
+        if (unknownTeams && !character->UnknownTeamResolveCollision(*spell)) // Case: unknown vs unknown need further inspection
           continue;
 
-        character.DefenseCheck(judge, *spell, DefenseOrder::always);
+        character->DefenseCheck(judge, spell, DefenseOrder::always);
 
         bool alreadyTagged = false;
 
@@ -957,14 +928,14 @@ namespace Battle {
         // Collision here means "we are able to hit" 
         // either with a hitbox that can pierce a defense or by tangibility
         auto props = spell->GetHitboxProperties();
-        if (!character.HasCollision(props)) continue;
+        if (!character->HasCollision(props)) continue;
 
         // There was a collision (not necessarilly implies damage will be done)
-        Obstacle* obst = dynamic_cast<Obstacle*>(&character); 
+        auto obst = dynamic_cast<Obstacle*>(character.get()); 
           
         // If colliding with a character, always do collision effect
         if (!obst) {
-          spell->OnCollision(&character);
+          spell->OnCollision(character);
         } else if(obst) {
           // Obstacles can hit eachother, even on the same team
           // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
@@ -972,7 +943,7 @@ namespace Battle {
             
           // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
           if (!(sharesCommonAggressor && obst->WillIgnoreCommonAggressor())) {
-            spell->OnCollision(&character);
+            spell->OnCollision(character);
           }
         }
 
@@ -986,7 +957,7 @@ namespace Battle {
         retangible = retangible || ((props.flags & Hit::retangible) == Hit::retangible);
 
         // The spell passed at least one defense check
-        character.DefenseCheck(judge, *spell, DefenseOrder::collisionOnly);
+        character->DefenseCheck(judge, spell, DefenseOrder::collisionOnly);
 
         if (!judge.IsDamageBlocked()) {
 
@@ -1004,7 +975,7 @@ namespace Battle {
             spell->SetHitboxProperties(props);
           }
 
-          spell->Attack(&character);
+          spell->Attack(character);
 
           // we restore the hitbox properties
           spell->SetHitboxProperties(props);
@@ -1015,7 +986,7 @@ namespace Battle {
 
       judge.ExecuteAllTriggers();
 
-      if (retangible) character.SetPassthrough(false);
+      if (retangible) character->SetPassthrough(false);
     } // end each character loop
 
     // empty previous frame queue to be used this current frame
@@ -1024,8 +995,8 @@ namespace Battle {
 
   void Tile::UpdateSpells(const double elapsed)
   {
-    vector<Spell*> spells_copy = spells;
-    for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
+    vector<std::shared_ptr<Spell>> spells_copy = spells;
+    for (vector<std::shared_ptr<Spell>>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
       int request = (int)(*entity)->GetTileHighlightMode();
 
       if (!(*entity)->IsTimeFrozen()) {
@@ -1045,8 +1016,8 @@ namespace Battle {
 
   void Tile::UpdateArtifacts(const double elapsed)
   {
-    vector<Artifact*> artifacts_copy = artifacts;
-    for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
+    vector<std::shared_ptr<Artifact>> artifacts_copy = artifacts;
+    for (vector<std::shared_ptr<Artifact>>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
       // artifacts are special effects and do not stop for TimeFreeze events
       field->UpdateEntityOnce(*entity, elapsed);
     }
@@ -1054,8 +1025,8 @@ namespace Battle {
 
   void Tile::UpdateCharacters(const double elapsed)
   {
-    vector<Character*> characters_copy = characters;
-    for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
+    vector<std::shared_ptr<Character>> characters_copy = characters;
+    for (vector<std::shared_ptr<Character>>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
       if (!(*entity)->IsTimeFrozen()) {
         // Allow user input to move them out of tiles if they are frame perfect
         field->UpdateEntityOnce(*entity, elapsed);

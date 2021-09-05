@@ -31,7 +31,7 @@ void ProgsManMoveState::OnUpdate(double _elapsed, ProgsMan& progs) {
     return progs.GoToNextState();
   } else if (random > 15) {
     // Hunt the player
-    Entity* target = progs.GetTarget();
+    std::shared_ptr<Entity> target = progs.GetTarget();
 
     if (target && target->GetTile()) {
       if (target->GetTile()->GetY() == progs.GetTile()->GetY()) {

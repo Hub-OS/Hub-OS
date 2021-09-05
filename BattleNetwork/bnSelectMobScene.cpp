@@ -366,7 +366,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
       auto mugshot = Textures().LoadTextureFromFile(image);
       auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-      Player* player = meta.GetData();
+      auto player = std::shared_ptr<Player>(meta.GetData());
 
       // Shuffle our new folder
       CardFolder* newFolder = selectedFolder.Clone();
@@ -382,7 +382,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 
       if (mob->IsFreedomMission()) {
         FreedomMissionProps props{
-          { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
+          { player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
           { mob },
           mob->GetTurnLimit(),
           sf::Sprite(*mugshot),
@@ -393,8 +393,8 @@ void SelectMobScene::onUpdate(double elapsed) {
         getController().push<effect::to<FreedomMissionMobScene>>(props);
       }
       else {
-        MobBattleProperties props{
-          { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
+        MobBattleProperties props{ 
+          { player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
           MobBattleProperties::RewardBehavior::take,
           { mob },
           sf::Sprite(*mugshot),

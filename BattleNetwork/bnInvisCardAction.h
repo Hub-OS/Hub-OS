@@ -3,10 +3,10 @@
 
 class InvisCardAction : public CardAction {
 public:
-  InvisCardAction(Character* actor);
+  InvisCardAction(std::shared_ptr<Character> actor);
   ~InvisCardAction();
 
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
   void OnActionEnd() override;
   void OnAnimationEnd() override;
 };

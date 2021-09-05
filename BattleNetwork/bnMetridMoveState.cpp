@@ -28,7 +28,7 @@ void MetridMoveState::OnUpdate(double _elapsed, Metrid& met) {
   Battle::Tile* temp = met.tile;
   Battle::Tile* next = nullptr;
 
-  Entity* target = met.GetTarget();
+  std::shared_ptr<Entity> target = met.GetTarget();
 
   if (target && target->GetTile() && moveCount <= 0 && met.IsMyTurn()) {
     // Try attacking
@@ -56,8 +56,8 @@ void MetridMoveState::OnUpdate(double _elapsed, Metrid& met) {
 
   if (moved) {
 
-    auto fx = new MobMoveEffect();
-    met.GetField()->AddEntity(*fx, met.GetTile()->GetX(), met.GetTile()->GetY());
+    auto fx = std::make_shared<MobMoveEffect>();
+    met.GetField()->AddEntity(fx, met.GetTile()->GetX(), met.GetTile()->GetY());
 
     //isMoving = true;
     moveCount--;

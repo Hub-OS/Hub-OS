@@ -19,7 +19,10 @@ using sf::Texture;
     to entities occupying the same tile.
 */
 
-class Obstacle : public Character, public Spell {
+class Obstacle : 
+  public Character,
+  public Spell
+{
 private:
   bool ignoreCommonAggressor{};
 

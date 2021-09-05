@@ -36,10 +36,10 @@ void TimeFreezeBattleState::CleanupStuntDouble()
   stuntDouble = nullptr;
 }
 
-Character* TimeFreezeBattleState::CreateStuntDouble(Character* from)
+std::shared_ptr<Character> TimeFreezeBattleState::CreateStuntDouble(std::shared_ptr<Character> from)
 {
   CleanupStuntDouble();
-  stuntDouble = new StuntDouble(*from);
+  stuntDouble = std::make_shared<StuntDouble>(from);
   return stuntDouble;
 }
 
@@ -165,7 +165,7 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (action && action->CanExecute()) {
     user->Hide();
-    if (GetScene().GetField()->AddEntity(*stuntDouble, *user->GetTile()) != Field::AddEntityStatus::deleted) {
+    if (GetScene().GetField()->AddEntity(stuntDouble, *user->GetTile()) != Field::AddEntityStatus::deleted) {
       action->Execute(user);
     }
     else {
@@ -191,6 +191,6 @@ void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action,
 
     this->action = action;
     stuntDouble = CreateStuntDouble(this->user);
-    action->UseStuntDouble(*stuntDouble);
+    action->UseStuntDouble(stuntDouble);
   }
 }

@@ -25,7 +25,7 @@ public:
   ~Starman();
 
   const float GetHeight() const;
-  CardAction* OnExecuteBusterAction() override final;
-  CardAction* OnExecuteChargedBusterAction() override final;
-  CardAction* OnExecuteSpecialAction() override final;
+  std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
+  std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
+  std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
 };

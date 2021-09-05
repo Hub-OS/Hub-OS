@@ -14,7 +14,7 @@ PanelGrab::PanelGrab(Team _team, Direction facing, float _duration) : duration(_
   progress = 0.0f;
 
   Audio().Play(AudioType::AREA_GRAB, AudioPriority::lowest);
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath("resources/spells/areagrab.animation");
   animationComponent->Reload();
   animationComponent->SetAnimation("FALLING", Animator::Mode::Loop);
@@ -51,7 +51,7 @@ void PanelGrab::OnUpdate(double _elapsed) {
   // When at the end of the line
   if (progress >= duration) {
     // Deal any damage
-    tile->AffectEntities(this);
+    tile->AffectEntities(*this);
       
     // Change the team
     tile->SetTeam(GetTeam());
@@ -71,7 +71,7 @@ void PanelGrab::OnUpdate(double _elapsed) {
   progress += _elapsed;
 }
 
-void PanelGrab::Attack(Character* _entity) {
+void PanelGrab::Attack(std::shared_ptr<Character> _entity) {
   _entity->Hit(GetHitboxProperties());
 }
 

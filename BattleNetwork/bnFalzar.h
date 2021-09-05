@@ -10,7 +10,6 @@
 class Falzar : public Character, public BossPatternAI<Falzar> {
 public:
   Falzar(Rank rank = Rank::_1);
-  ~Falzar();
 
   friend class FalzarIdleState;
   friend class FalzarMoveState;
@@ -37,7 +36,7 @@ public:
 private:
   double animProgress{};
   Animation animation;
-  DefenseRule* bossBody;
+  std::shared_ptr<DefenseRule> bossBody;
   SpriteProxyNode
     head, body, guardLeft, guardRight,
     wingLeft, wingRight, tail, legLeft, legRight,

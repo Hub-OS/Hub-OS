@@ -13,7 +13,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-CrackShotCardAction::CrackShotCardAction(Character* actor, int damage) : 
+CrackShotCardAction::CrackShotCardAction(std::shared_ptr<Character> actor, int damage) : 
 CardAction(actor, "PLAYER_SWORD") {
   CrackShotCardAction::damage = damage;
 
@@ -24,7 +24,7 @@ CardAction(actor, "PLAYER_SWORD") {
 
   OverrideAnimationFrames({ FRAMES });
 
-  auto* anim = actor->GetFirstComponent<AnimationComponent>();
+  auto anim = actor->GetFirstComponent<AnimationComponent>();
 
   if (anim) {
     attachmentAnim = Animation(anim->GetFilePath());
@@ -37,7 +37,7 @@ CrackShotCardAction::~CrackShotCardAction()
 {
 }
 
-void CrackShotCardAction::OnExecute(Character* user) {
+void CrackShotCardAction::OnExecute(std::shared_ptr<Character> user) {
   auto actor = GetActor();
 
   // On throw frame, spawn projectile
@@ -53,7 +53,7 @@ void CrackShotCardAction::OnExecute(Character* user) {
 
     if (tile && tile->IsWalkable()) {
       if (!tile->IsReservedByCharacter()) {
-        CrackShot* b = new CrackShot(actor->GetTeam(), tile);
+        auto b = std::make_shared<CrackShot>(actor->GetTeam(), tile);
         auto props = b->GetHitboxProperties();
         props.damage = damage;
         props.aggressor = user->GetID();
@@ -62,9 +62,9 @@ void CrackShotCardAction::OnExecute(Character* user) {
         auto direction = (actor->GetTeam() == Team::red) ? Direction::right : Direction::left;
         b->SetDirection(direction);
 
-        actor->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
+        actor->GetField()->AddEntity(b, tile->GetX(), tile->GetY());
 
-        field->AddEntity(*b, *tile);
+        field->AddEntity(b, *tile);
         Audio().Play(AudioType::TOSS_ITEM_LITE);
 
         tile->SetState(TileState::broken);
@@ -73,8 +73,8 @@ void CrackShotCardAction::OnExecute(Character* user) {
         tile->SetState(TileState::cracked);
       }
 
-      auto* fx = new ParticleImpact(ParticleImpact::Type::wind);
-      field->AddEntity(*fx, *tile);
+      auto fx = std::make_shared<ParticleImpact>(ParticleImpact::Type::wind);
+      field->AddEntity(fx, *tile);
     }
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);

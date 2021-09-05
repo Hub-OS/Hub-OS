@@ -41,17 +41,19 @@ const float Roll::GetHeight() const
   return 70.0f;
 }
 
-CardAction * Roll::OnExecuteSpecialAction()
+std::shared_ptr<CardAction> Roll::OnExecuteSpecialAction()
 {
   return Player::OnExecuteSpecialAction();
 }
 
-CardAction* Roll::OnExecuteBusterAction()
+std::shared_ptr<CardAction> Roll::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  auto character = shared_from_base<Character>();
+  return std::make_shared<BusterCardAction>(character, false, 1*GetAttackLevel());
 }
 
-CardAction* Roll::OnExecuteChargedBusterAction()
+std::shared_ptr<CardAction> Roll::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 10*GetAttackLevel());
+  auto character = shared_from_base<Character>();
+  return std::make_shared<BusterCardAction>(character, true, 10*GetAttackLevel());
 }

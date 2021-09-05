@@ -18,9 +18,9 @@ public:
   
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
-  void OnCollision(const Character* other) override;
+  void OnCollision(const std::shared_ptr<Character> other) override;
   bool CanMoveTo(Battle::Tile * next) override;
-  void Attack(Character* e) override;
+  void Attack(std::shared_ptr<Character> e) override;
   void OnSpawn(Battle::Tile& spawn) override;
   const float GetHeight() const;
   void SetHeight(const float height);
@@ -32,17 +32,17 @@ public:
   void ShakeCamera(double power, float duration);
   void NeverFlip(bool enabled);
 
-  std::function<void(ScriptedSpell&, Battle::Tile&)> spawnCallback;
-  std::function<void(ScriptedSpell&, Character&)> attackCallback;
-  std::function<void(ScriptedSpell&, Character&)> collisionCallback;
+  std::function<void(std::shared_ptr<ScriptedSpell>, Battle::Tile&)> spawnCallback;
+  std::function<void(std::shared_ptr<ScriptedSpell>, std::shared_ptr<Character>)> attackCallback;
+  std::function<void(std::shared_ptr<ScriptedSpell>, std::shared_ptr<Character>)> collisionCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(ScriptedSpell&)> deleteCallback;
-  std::function<void(ScriptedSpell&, double)> updateCallback;
+  std::function<void(std::shared_ptr<ScriptedSpell>)> deleteCallback;
+  std::function<void(std::shared_ptr<ScriptedSpell>, double)> updateCallback;
 private:
   bool flip{true};
   float height{};
   sf::Vector2f scriptedOffset{};
   SpriteProxyNode* shadow{ nullptr };
-  AnimationComponent* animComponent{ nullptr };
+  std::shared_ptr<AnimationComponent> animComponent{ nullptr };
 };
 #endif

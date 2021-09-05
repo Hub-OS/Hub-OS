@@ -18,14 +18,14 @@ class CanodumbCursor : public Spell
 
 private:
   CanodumbIdleState* parentState{ nullptr }; /*!< The context of the Canodumb who spawned it */
-  Entity* target{ nullptr }; /*!< The enemy to track */
+  std::shared_ptr<Entity> target{ nullptr }; /*!< The enemy to track */
   double elapsedTime{};
   double movecooldown{}; /*!< Time remaining between movement */
   double maxcooldown{}; /*!< Total time between movement */
   Direction direction{}; /*!< Direction to move */
 
   // Frame select through animation system
-  AnimationComponent* animationComponent;
+  std::shared_ptr<AnimationComponent> animationComponent;
 public:
   CanodumbCursor(CanodumbIdleState* _parentState);
   ~CanodumbCursor();
@@ -36,7 +36,7 @@ public:
    */
   void OnUpdate(double _elapsed) override;
 
-  void Attack(Character*) override {};
+  void Attack(std::shared_ptr<Character>) override {};
 
   /**
   * @brief Removes cursor from play

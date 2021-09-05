@@ -41,14 +41,14 @@ void MetalManMissileState::OnUpdate(double _elapsed, MetalMan& metal) {
             tile = metal.GetField()->GetAt(1 + (rand() % 3), 1 + (rand() % 3));
         }
 
-        auto missile = new Missile(metal.GetTeam(), tile, 0.4f);
+        auto missile = std::make_shared<Missile>(metal.GetTeam(), tile, 0.4f);
         auto props = missile->GetHitboxProperties();
         props.aggressor = metal.GetID();
         missile->SetHitboxProperties(props);
 
         missileIndex++;
 
-        metal.GetField()->AddEntity(*missile, metal.GetTile()->GetX(), metal.GetTile()->GetY());
+        metal.GetField()->AddEntity(missile, metal.GetTile()->GetX(), metal.GetTile()->GetY());
     }
   }
 

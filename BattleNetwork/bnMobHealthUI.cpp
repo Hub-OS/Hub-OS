@@ -9,14 +9,14 @@ using std::to_string;
 #include "bnLogger.h"
 #include "bnField.h"
 
-MobHealthUI::MobHealthUI(Character* _mob) : mob(_mob), UIComponent(_mob) {
-  healthCounter = mob->GetHealth();
+MobHealthUI::MobHealthUI(std::weak_ptr<Character> mob) : UIComponent(mob) {
+  healthCounter = mob.lock()->GetHealth();
   cooldown = 0;
   color = sf::Color::White;
   glyphs.setTexture(ResourceHandle().Textures().GetTexture(TextureType::ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 
-  /*auto onMobDelete = [this](Entity& target) {
+  /*auto onMobDelete = [this](auto target) {
     mob = nullptr;
   };
 
@@ -41,7 +41,7 @@ void MobHealthUI::OnUpdate(double elapsed) {
     this->Reveal();
   }
 
-  if (mob) {
+  if (auto mob = GetOwnerAs<Character>()) {
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
 
@@ -94,6 +94,8 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
   // Glyphs are 8x10
   // First glyph is 9 the last is 0
   // There's 1px space between the glyphs
+
+  auto mob = GetOwnerAs<Character>();
 
   if (healthCounter > 0 && mob && mob->GetTile()) {
     int size = (int)(std::to_string(healthCounter).size());

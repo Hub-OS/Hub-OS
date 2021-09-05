@@ -15,7 +15,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME3, FRAME3
 
-AirShotCardAction::AirShotCardAction(Character* actor, int damage) : CardAction(actor, "PLAYER_SHOOTING") {
+AirShotCardAction::AirShotCardAction(std::shared_ptr<Character> actor, int damage) : CardAction(actor, "PLAYER_SHOOTING") {
   AirShotCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
@@ -31,15 +31,15 @@ AirShotCardAction::AirShotCardAction(Character* actor, int damage) : CardAction(
   AddAttachment(actor, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
-void AirShotCardAction::OnExecute(Character* user) {
+void AirShotCardAction::OnExecute(std::shared_ptr<Character> user) {
 
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
-    auto* actor = this->GetActor();
+    auto actor = this->GetActor();
 
     Audio().Play(AudioType::SPREADER);
 
-    AirShot* airshot = new AirShot(actor->GetTeam(), damage);
+    auto airshot = std::make_shared<AirShot>(actor->GetTeam(), damage);
     airshot->SetFacing(actor->GetFacing());
     auto props = airshot->GetHitboxProperties();
     props.aggressor = user->GetID();
@@ -47,7 +47,7 @@ void AirShotCardAction::OnExecute(Character* user) {
 
     int step = actor->GetFacing() == Direction::left ? -1 : 1;
 
-    actor->GetField()->AddEntity(*airshot, user->GetTile()->GetX() + step, user->GetTile()->GetY());
+    actor->GetField()->AddEntity(airshot, user->GetTile()->GetX() + step, user->GetTile()->GetY());
   };
 
   AddAnimAction(2, onFire);

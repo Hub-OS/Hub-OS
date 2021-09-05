@@ -55,24 +55,24 @@ void Megaman::OnSpawn(Battle::Tile& start)
   setTexture(Textures().LoadTextureFromFile(path));
 }
 
-CardAction* Megaman::OnExecuteBusterAction()
+std::shared_ptr<CardAction> Megaman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return std::make_shared<BusterCardAction>(shared_from_base<Character>(), false, 1*GetAttackLevel());
 }
 
-CardAction* Megaman::OnExecuteChargedBusterAction()
+std::shared_ptr<CardAction> Megaman::OnExecuteChargedBusterAction()
 {
   if (activeForm) {
-    return activeForm->OnChargedBusterAction(*this);
+    return activeForm->OnChargedBusterAction(shared_from_base<Player>());
   }
   else {
-    return new BusterCardAction(this, true, 10*GetAttackLevel());
+    return std::make_shared<BusterCardAction>(shared_from_base<Character>(), true, 10*GetAttackLevel());
   }
 }
 
-CardAction* Megaman::OnExecuteSpecialAction() {
+std::shared_ptr<CardAction> Megaman::OnExecuteSpecialAction() {
   if (activeForm) {
-    return activeForm->OnSpecialAction(*this);
+    return activeForm->OnSpecialAction(shared_from_base<Player>());
   }
 
   return Player::OnExecuteSpecialAction();
@@ -92,14 +92,14 @@ ForteCross::~ForteCross()
 {
 }
 
-void ForteCross::OnActivate(Player& player)
+void ForteCross::OnActivate(std::shared_ptr<Player> player)
 {
   auto cross = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/forte_cross.png");
 
-  prevTexture = player.getTexture();
-  player.setTexture(cross);
+  prevTexture = player->getTexture();
+  player->setTexture(cross);
 
-  if (auto* animComponent = player.GetFirstComponent<AnimationComponent>()) {
+  if (auto animComponent = player->GetFirstComponent<AnimationComponent>()) {
     prevAnimation = animComponent->GetFilePath();
     prevState = animComponent->GetAnimationString();
     animComponent->SetPath("resources/navis/megaman/forms/forte_cross.animation");
@@ -111,7 +111,7 @@ void ForteCross::OnActivate(Player& player)
   player.SetAirShoe(true);
 }
 
-void ForteCross::OnDeactivate(Player& player)
+void ForteCross::OnDeactivate(std::shared_ptr<Player> player)
 {
   if (auto* animComponent = player.GetFirstComponent<AnimationComponent>()) {
     animComponent->SetPath(prevAnimation);
@@ -123,16 +123,16 @@ void ForteCross::OnDeactivate(Player& player)
   player.SetPalette(player.GetBasePalette());
 }
 
-void ForteCross::OnUpdate(double elapsed, Player& player)
+void ForteCross::OnUpdate(double elapsed, std::shared_ptr<Player> player)
 {
 }
 
-CardAction* ForteCross::OnChargedBusterAction(Player& player)
+std::shared_ptr<CardAction> ForteCross::OnChargedBusterAction(std::shared_ptr<Player> player)
 {
-  return new MachGunCardAction(&player, 10 * player.GetAttackLevel());
+  return std::make_shared<MachGunCardAction>(player, 10 * player->GetAttackLevel());
 }
 
-CardAction* ForteCross::OnSpecialAction(Player& player)
+std::shared_ptr<CardAction> ForteCross::OnSpecialAction(std::shared_ptr<Player> player)
 {
   // class ForteCross::SpecialAction is a CardAction implementation
   return nullptr;
@@ -173,7 +173,7 @@ TenguCross::~TenguCross()
   delete overlay;
 }
 
-void TenguCross::OnActivate(Player& player)
+void TenguCross::OnActivate(std::shared_ptr<Player> player)
 {
   overlayAnimation = Animation("resources/navis/megaman/forms/tengu_cross.animation");
   overlayAnimation.Load();
@@ -187,13 +187,13 @@ void TenguCross::OnActivate(Player& player)
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
 
-  parentAnim = player.GetFirstComponent<AnimationComponent>();
+  parentAnim = player->GetFirstComponent<AnimationComponent>();
   
   auto palette = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/tengu.palette.png");
   player.SetPalette(palette);
 
-  player.AddNode(overlay);
-  player.SetAirShoe(true);
+  player->AddNode(overlay);
+  player->SetAirShoe(true);
 
   sync.anim = &overlayAnimation;
   sync.node = overlay;
@@ -202,30 +202,30 @@ void TenguCross::OnActivate(Player& player)
   parentAnim->AddToSyncList(sync);
 }
 
-void TenguCross::OnDeactivate(Player & player)
+void TenguCross::OnDeactivate(std::shared_ptr<Player> player)
 {
   player.RemoveNode(overlay);
   player.SetPalette(player.GetBasePalette());
   parentAnim->RemoveFromSyncList(sync);
 }
 
-void TenguCross::OnUpdate(double elapsed, Player& player)
+void TenguCross::OnUpdate(double elapsed, std::shared_ptr<Player> player)
 {
 }
 
-CardAction* TenguCross::OnChargedBusterAction(Player& player)
+std::shared_ptr<CardAction> TenguCross::OnChargedBusterAction(std::shared_ptr<Player> player)
 {
-  auto* action = new WindRackCardAction(&player, 20 * player.GetAttackLevel() + 40);
+  auto action = std::make_shared<WindRackCardAction>(player, 20 * player->GetAttackLevel() + 40);
   auto fan = new SpriteProxyNode();
   fan->setTexture(overlay->getTexture());
   action->ReplaceRack(fan, fanAnimation);
   return action;
 }
 
-CardAction* TenguCross::OnSpecialAction(Player& player)
+std::shared_ptr<CardAction> TenguCross::OnSpecialAction(std::shared_ptr<Player> player)
 {
   // class TenguCross::SpecialAction is a CardAction implementation
-  return new TenguCross::SpecialAction(&player);
+  return std::make_shared<TenguCross::SpecialAction>(player);
 }
 
 frame_time_t TenguCross::CalculateChargeTime(unsigned chargeLevel)
@@ -263,7 +263,7 @@ HeatCross::~HeatCross()
   delete overlay;
 }
 
-void HeatCross::OnActivate(Player& player)
+void HeatCross::OnActivate(std::shared_ptr<Player> player)
 {
   overlayAnimation = Animation("resources/navis/megaman/forms/heat_cross.animation");
   overlayAnimation.Load();
@@ -287,7 +287,7 @@ void HeatCross::OnActivate(Player& player)
   parentAnim->AddToSyncList(sync);
 }
 
-void HeatCross::OnDeactivate(Player & player)
+void HeatCross::OnDeactivate(std::shared_ptr<Player> player)
 {
   player.RemoveNode(overlay);
   player.SetElement(Element::none);
@@ -295,20 +295,20 @@ void HeatCross::OnDeactivate(Player & player)
   parentAnim->RemoveFromSyncList(sync);
 }
 
-void HeatCross::OnUpdate(double elapsed, Player& player)
+void HeatCross::OnUpdate(double elapsed, std::shared_ptr<Player> player)
 {
 }
 
-CardAction* HeatCross::OnChargedBusterAction(Player& player)
+std::shared_ptr<CardAction> HeatCross::OnChargedBusterAction(std::shared_ptr<Player> player)
 {
-  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 20 * player.GetAttackLevel() + 30);
+  auto action = std::make_shared<FireBurnCardAction>(player, FireBurn::Type::_2, 20 * player->GetAttackLevel() + 30);
   action->CrackTiles(false);
   return action;
 }
 
-CardAction* HeatCross::OnSpecialAction(Player& player)
+std::shared_ptr<CardAction> HeatCross::OnSpecialAction(std::shared_ptr<Player> player)
 {
-  return player.Player::OnExecuteSpecialAction();
+  return player->Player::OnExecuteSpecialAction();
 }
 
 frame_time_t HeatCross::CalculateChargeTime(unsigned chargeLevel)
@@ -339,16 +339,15 @@ frame_time_t HeatCross::CalculateChargeTime(unsigned chargeLevel)
 
 TomahawkCross::TomahawkCross()
 {
-  statusGuard = new DefenseStatusGuard();
+  statusGuard = std::make_shared<DefenseStatusGuard>();
 }
 
 TomahawkCross::~TomahawkCross()
 {
   delete overlay;
-  delete statusGuard;
 }
 
-void TomahawkCross::OnActivate(Player& player)
+void TomahawkCross::OnActivate(std::shared_ptr<Player> player)
 {
   overlayAnimation = Animation("resources/navis/megaman/forms/hawk_cross.animation");
   overlayAnimation.Load();
@@ -358,12 +357,12 @@ void TomahawkCross::OnActivate(Player& player)
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
 
-  parentAnim = player.GetFirstComponent<AnimationComponent>();
+  parentAnim = player->GetFirstComponent<AnimationComponent>();
 
   auto palette = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/hawk.palette.png");
   player.SetPalette(palette);
 
-  player.AddNode(overlay);
+  player->AddNode(overlay);
 
   sync.anim = &overlayAnimation;
   sync.node = overlay;
@@ -371,11 +370,11 @@ void TomahawkCross::OnActivate(Player& player)
 
   parentAnim->AddToSyncList(sync);
 
-  player.SetAirShoe(true);
-  player.AddDefenseRule(statusGuard);
+  player->SetAirShoe(true);
+  player->AddDefenseRule(statusGuard);
 }
 
-void TomahawkCross::OnDeactivate(Player & player)
+void TomahawkCross::OnDeactivate(std::shared_ptr<Player> player)
 {
   player.RemoveNode(overlay);
   player.SetAirShoe(false);
@@ -384,18 +383,18 @@ void TomahawkCross::OnDeactivate(Player & player)
   parentAnim->RemoveFromSyncList(sync);
 }
 
-void TomahawkCross::OnUpdate(double elapsed, Player& player)
+void TomahawkCross::OnUpdate(double elapsed, std::shared_ptr<Player> player)
 {
 }
 
-CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
+std::shared_ptr<CardAction> TomahawkCross::OnChargedBusterAction(std::shared_ptr<Player> player)
 {
-  return new TomahawkSwingCardAction(&player, 20 * player.GetAttackLevel() + 40);
+  return std::make_shared<TomahawkSwingCardAction>(player, 20 * player->GetAttackLevel() + 40);
 }
 
-CardAction* TomahawkCross::OnSpecialAction(Player& player)
+std::shared_ptr<CardAction> TomahawkCross::OnSpecialAction(std::shared_ptr<Player> player)
 {
-  return player.Player::OnExecuteSpecialAction();
+  return player->Player::OnExecuteSpecialAction();
 }
 
 frame_time_t TomahawkCross::CalculateChargeTime(unsigned chargeLevel)
@@ -434,23 +433,23 @@ ElecCross::~ElecCross()
   delete overlay;
 }
 
-void ElecCross::OnActivate(Player& player)
+void ElecCross::OnActivate(std::shared_ptr<Player> player)
 {
   overlayAnimation = Animation("resources/navis/megaman/forms/elec_cross.animation");
   overlayAnimation.Load();
-  auto cross = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/elec_cross.png");
+  auto cross = player->Textures().LoadTextureFromFile("resources/navis/megaman/forms/elec_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
 
-  parentAnim = player.GetFirstComponent<AnimationComponent>();
+  parentAnim = player->GetFirstComponent<AnimationComponent>();
   
   auto palette = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/elec.palette.png");
   player.SetPalette(palette);
 
-  player.SetElement(Element::elec);
-  player.AddNode(overlay);
+  player->SetElement(Element::elec);
+  player->AddNode(overlay);
 
   sync.anim = &overlayAnimation;
   sync.node = overlay;
@@ -459,7 +458,7 @@ void ElecCross::OnActivate(Player& player)
   parentAnim->AddToSyncList(sync);
 }
 
-void ElecCross::OnDeactivate(Player& player)
+void ElecCross::OnDeactivate(std::shared_ptr<Player> player)
 {
   player.RemoveNode(overlay);
   player.SetElement(Element::none);
@@ -467,20 +466,20 @@ void ElecCross::OnDeactivate(Player& player)
   parentAnim->RemoveFromSyncList(sync);
 }
 
-void ElecCross::OnUpdate(double elapsed, Player& player)
+void ElecCross::OnUpdate(double elapsed, std::shared_ptr<Player> player)
 {
 }
 
-CardAction* ElecCross::OnChargedBusterAction(Player& player)
+std::shared_ptr<CardAction> ElecCross::OnChargedBusterAction(std::shared_ptr<Player> player)
 {
-  auto* action = new LightningCardAction(&player, 20 * player.GetAttackLevel() + 40);
+  auto action = std::make_shared<LightningCardAction>(player, 20 * player->GetAttackLevel() + 40);
   action->SetStun(false);
   return action;
 }
 
-CardAction* ElecCross::OnSpecialAction(Player& player)
+std::shared_ptr<CardAction> ElecCross::OnSpecialAction(std::shared_ptr<Player> player)
 {
-  return player.Player::OnExecuteSpecialAction();
+  return player->Player::OnExecuteSpecialAction();
 }
 
 frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
@@ -517,7 +516,7 @@ frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
 #define FRAMES FRAME1
 
 // class TenguCross
-TenguCross::SpecialAction::SpecialAction(Character* actor) : 
+TenguCross::SpecialAction::SpecialAction(std::shared_ptr<Character> actor) : 
   CardAction(actor, "PLAYER_IDLE") {
   OverrideAnimationFrames({ FRAMES });
 }
@@ -526,7 +525,7 @@ TenguCross::SpecialAction::~SpecialAction()
 {
 }
 
-void TenguCross::SpecialAction::OnExecute(Character* user)
+void TenguCross::SpecialAction::OnExecute(std::shared_ptr<Character> user)
 {
   auto team = user->GetTeam();
   auto field = user->GetField();
@@ -540,20 +539,20 @@ void TenguCross::SpecialAction::OnExecute(Character* user)
       startCol = 1;
     }
 
-    auto wind = new Wind(team);
+    auto wind = std::make_shared<Wind>(team);
     wind->SetDirection(direction);
     wind->DeleteOnTeamTile();
-    field->AddEntity(*wind, startCol, 1);
+    field->AddEntity(wind, startCol, 1);
 
-    wind = new Wind(team);
+    wind = std::make_shared<Wind>(team);
     wind->SetDirection(direction);
     wind->DeleteOnTeamTile();
-    field->AddEntity(*wind, startCol, 2);
+    field->AddEntity(wind, startCol, 2);
 
-    wind = new Wind(team);
+    wind = std::make_shared<Wind>(team);
     wind->SetDirection(direction);
     wind->DeleteOnTeamTile();
-    field->AddEntity(*wind, startCol, 3);
+    field->AddEntity(wind, startCol, 3);
   };
 
   AddAnimAction(1, onTrigger);

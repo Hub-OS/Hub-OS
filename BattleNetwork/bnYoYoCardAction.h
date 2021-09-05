@@ -9,13 +9,13 @@ class YoYoCardAction : public CardAction {
 private:
   SpriteProxyNode* attachment;
   Animation attachmentAnim;
-  Entity* yoyo;
+  std::shared_ptr<Entity> yoyo;
   int damage;
 public:
-  YoYoCardAction(Character* actor, int damage);
+  YoYoCardAction(std::shared_ptr<Character> actor, int damage);
   ~YoYoCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
 };

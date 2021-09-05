@@ -19,7 +19,7 @@ Gear::Gear(Team _team,Direction startDir) :
   SetDirection(startDir);
   HighlightTile(Battle::Tile::Highlight::solid);
 
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_base<Character>());
   animation->SetPath("resources/mobs/metalman/metalman.animation");
   animation->Load();
   animation->SetAnimation("GEAR", Animator::Mode::Loop);
@@ -38,8 +38,8 @@ Gear::Gear(Team _team,Direction startDir) :
 
   tileStartTeam = Team::unknown;
 
-  AddDefenseRule((indestructable = new DefenseIndestructable(true)));
-  AddDefenseRule((nodrag = new DefenseNodrag()));
+  AddDefenseRule((indestructable = std::make_shared<DefenseIndestructable>(true)));
+  AddDefenseRule((nodrag = std::make_shared<DefenseNodrag>()));
 
   stopMoving = true;
 }
@@ -47,8 +47,6 @@ Gear::Gear(Team _team,Direction startDir) :
 Gear::~Gear() {
   RemoveDefenseRule(indestructable);
   RemoveDefenseRule(nodrag);
-  delete indestructable;
-  delete nodrag;
 }
 
 bool Gear::CanMoveTo(Battle::Tile * next)
@@ -91,7 +89,7 @@ void Gear::OnUpdate(double _elapsed) {
   if (stopMoving) return;
 
   // May have just finished moving
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 
   // Keep moving
   if (!IsSliding()) {
@@ -113,8 +111,8 @@ void Gear::OnDelete() {
     Remove();
 }
 
-void Gear::Attack(Character* other) {
-  Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
+void Gear::Attack(std::shared_ptr<Character> other) {
+  auto isObstacle = dynamic_cast<Obstacle*>(other.get());
 
   if (isObstacle) {
     auto props = Hit::DefaultProperties;
@@ -124,7 +122,7 @@ void Gear::Attack(Character* other) {
     return;
   }
 
-  Character* isCharacter = dynamic_cast<Character*>(other);
+  auto isCharacter = dynamic_cast<Character*>(other.get());
 
   if (isCharacter && isCharacter != this) {
     auto props = Hit::DefaultProperties;

@@ -9,9 +9,8 @@ using sf::IntRect;
 #include "bnEntity.h"
 #include "bnCharacter.h"
 
-AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
+AnimationComponent::AnimationComponent(std::weak_ptr<Entity> _entity) : Component(_entity) {
   speed = 1.0;
-  character = GetOwnerAs<Character>();
 }
 
 AnimationComponent::~AnimationComponent() {
@@ -19,16 +18,19 @@ AnimationComponent::~AnimationComponent() {
 
 void AnimationComponent::OnUpdate(double _elapsed)
 {
+  auto owner = GetOwner();
+  auto character = GetOwnerAs<Character>();
+
   // Since animations can be used on non-characters
   // we check if the owning entity is non-null 
   // we also check if it is a character, because stunned
   // characters do not update
-  if (!GetOwner() || (character && character->IsStunned() && stunnedLastFrame)) {
+  if (!owner || (character && character->IsStunned() && stunnedLastFrame)) {
     return;
   }
 
   stunnedLastFrame = (character && character->IsStunned());
-  animation.Update(_elapsed, GetOwner()->getSprite(), speed);
+  animation.Update(_elapsed, owner->getSprite(), speed);
 
   for (auto& s : syncList) {
     animation.SyncAnimation(*s.anim);
@@ -88,7 +90,10 @@ void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish
   }
 
   animation << onFinish;
-  animation.Refresh(GetOwner()->getSprite());
+
+  if (auto owner = GetOwner()) {
+    animation.Refresh(owner->getSprite());
+  }
 }
 
 void AnimationComponent::SetAnimation(string state, char playbackMode, FrameFinishCallback onFinish)
@@ -103,7 +108,9 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, FrameFini
 
   animation << playbackMode << onFinish;
 
-  animation.Refresh(GetOwner()->getSprite());
+  if (auto owner = GetOwner()) {
+    animation.Refresh(owner->getSprite());
+  }
 }
 
 void AnimationComponent::SetPlaybackMode(char playbackMode)
@@ -179,7 +186,7 @@ void AnimationComponent::SyncAnimation(Animation & other)
   animation.SyncAnimation(other);
 }
 
-void AnimationComponent::SyncAnimation(AnimationComponent * other)
+void AnimationComponent::SyncAnimation(std::shared_ptr<AnimationComponent> other)
 {
   animation.SyncAnimation(other->animation);
   other->OnUpdate(0);
@@ -219,7 +226,8 @@ void AnimationComponent::SetInterruptCallback(const FrameFinishCallback& onInter
 
 void AnimationComponent::SetFrame(const int index)
 {
-  animation.SetFrame(index, GetOwner()->getSprite());
+  if (auto owner = GetOwner())
+  animation.SetFrame(index, owner->getSprite());
 
   for (auto& s : syncList) {
     s.anim->SetFrame(index, s.node->getSprite());
@@ -234,6 +242,12 @@ void AnimationComponent::Refresh()
 
 void AnimationComponent::RefreshSyncItem(AnimationComponent::SyncItem& item)
 {
+  auto character = GetOwnerAs<Character>();
+
+  if (!character) {
+    return;
+  }
+
   // update node position in the animation
   auto baseOffset = GetPoint(item.point);
   auto& origin = character->getSprite().getOrigin();

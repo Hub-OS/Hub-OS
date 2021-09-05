@@ -5,7 +5,7 @@
 /*! \brief metal blade attack U-turns at end of field */
 class MetalBlade : public Spell {
 protected:
-  AnimationComponent* animation; /*!< Blade spinnig animation */
+  std::shared_ptr<AnimationComponent> animation; /*!< Blade spinnig animation */
   double speed; /*!< Faster spinning blades */
 
 public:
@@ -40,7 +40,7 @@ public:
    * @brief Deals hitbox damage
    * @param _entity
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
   /**
   * @brief Does nothing

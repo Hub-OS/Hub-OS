@@ -17,8 +17,8 @@ Mob* MetalManBossFight::Build(Field* field) {
   //mob->RegisterRankedReward(1, BattleItem(Battle::Card(100, 139, 'Y', 0, Element::none, "YoYo", "", "", 0)));
   //mob->RegisterRankedReward(4, BattleItem(Battle::Card(100, 139, '*', 0, Element::none, "YoYo", "", "", 0)));
 
-  field->AddEntity(*new Gear(Team::blue, Direction::left), 3, 2);
-  field->AddEntity(*new Gear(Team::blue, Direction::right), 4, 2);
+  field->AddEntity(std::make_shared<Gear>(Team::blue, Direction::left), 3, 2);
+  field->AddEntity(std::make_shared<Gear>(Team::blue, Direction::right), 4, 2);
 
   auto spawner = mob->CreateSpawner<MetalMan>();
   spawner.SpawnAt<FadeInState>(6, 2);

@@ -2,7 +2,7 @@
 #include "bnCardAction.h"
 #include "battlescene/bnBattleSceneBase.h"
 
-CardAction::CardAction(Character* actor, const std::string& animation) : 
+CardAction::CardAction(std::shared_ptr<Character> actor, const std::string& animation) : 
   actor(actor),
   animation(animation), 
   anim(actor->GetFirstComponent<AnimationComponent>()),
@@ -93,12 +93,12 @@ void CardAction::RecallPreviousState()
   }
 }
 
-Character* CardAction::GetActor()
+std::shared_ptr<Character> CardAction::GetActor()
 {
   return actor;
 }
 
-const Character* CardAction::GetActor() const
+const std::shared_ptr<Character> CardAction::GetActor() const
 {
   return actor;
 }
@@ -147,7 +147,7 @@ void CardAction::SetMetaData(const Battle::Card::Properties& props)
   meta = props;
 }
 
-void CardAction::Execute(Character* user)
+void CardAction::Execute(std::shared_ptr<Character> user)
 {
   // prepare the animation behavior
   prepareActionDelegate();
@@ -164,11 +164,11 @@ void CardAction::EndAction()
   OnActionEnd();
 }
 
-void CardAction::UseStuntDouble(Character& stuntDouble)
+void CardAction::UseStuntDouble(std::shared_ptr<Character> stuntDouble)
 {
-  actor = &stuntDouble;
+  actor = stuntDouble;
   
-  if (auto* stuntDoubleAnim = stuntDouble.GetFirstComponent<AnimationComponent>()) {
+  if (auto stuntDoubleAnim = stuntDouble->GetFirstComponent<AnimationComponent>()) {
     for (auto& [nodeName, node] : attachments) {
       node.parentAnim = stuntDoubleAnim->GetAnimationObject();
     }
@@ -181,7 +181,7 @@ CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::
   auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(parent), point, std::ref(node) }));
 
   if (started) {
-    auto* actor = this->GetActor();
+    auto actor = this->GetActor();
     actor->AddNode(&node);
     
     // inform any new attachments they can and should attach immediately
@@ -191,7 +191,7 @@ CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::
   return iter->second;
 }
 
-CardAction::Attachment& CardAction::AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node) {
+CardAction::Attachment& CardAction::AddAttachment(std::shared_ptr<Character> character, const std::string& point, SpriteProxyNode& node) {
   auto animComp = character->GetFirstComponent<AnimationComponent>();
   assert(animComp && "character must have an animation component");
 

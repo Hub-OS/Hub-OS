@@ -24,7 +24,7 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
   props.damage = 120;
   SetHitboxProperties(props);
 
-  AddDefenseRule(new DefenseIndestructable(true));
+  AddDefenseRule(std::make_shared<DefenseIndestructable>(true));
 
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
@@ -33,7 +33,7 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
   totalElapsed = 0;
 
   setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
-  auto animComponent = CreateComponent<AnimationComponent>(this);
+  auto animComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animComponent->SetPath(RESOURCE_PATH);
   animComponent->Load();
 
@@ -185,8 +185,8 @@ void AlphaArm::OnUpdate(double _elapsed) {
   shadow->setPosition(-13, -4 + delta / 2.0f); // counter offset the shadow node
 
   if (isSwiping) {
-      auto res = GetTile()->FindEntities([this](Entity* in) -> bool {
-        if (dynamic_cast<Obstacle*>(in) && in != this) {
+      auto res = GetTile()->FindEntities([this](std::shared_ptr<Entity> in) -> bool {
+        if (dynamic_cast<Obstacle*>(in.get()) && in.get() != this) {
           Delete();
           return true;
         }
@@ -196,22 +196,22 @@ void AlphaArm::OnUpdate(double _elapsed) {
 
       // Only if we are not blocked by an obstacle, can we proceed and attack
       if (res.size() == 0) {
-        GetTile()->AffectEntities(this);
+        GetTile()->AffectEntities(*this);
       }
   }
 }
 
 void AlphaArm::OnDelete() {
   if (GetTile()) {
-    auto fx = new MobMoveEffect();
-    GetField()->AddEntity(*fx, *GetTile());
+    auto fx = std::make_shared<MobMoveEffect>();
+    GetField()->AddEntity(fx, *GetTile());
   }
 
   Remove();
 }
 
-void AlphaArm::Attack(Character* other) {
-  Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
+void AlphaArm::Attack(std::shared_ptr<Character> other) {
+  auto isObstacle = dynamic_cast<Obstacle*>(other.get());
 
   if (isObstacle) {
     Delete(); // cannot pass through obstacles like Cube

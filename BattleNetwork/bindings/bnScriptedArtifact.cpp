@@ -5,7 +5,7 @@
 ScriptedArtifact::ScriptedArtifact() :
 	Artifact()
 {
-	animationComponent = new AnimationComponent(this);
+	animationComponent = std::make_shared<AnimationComponent>(weak_from_this());
 	RegisterComponent(animationComponent);
 
 	setScale(2.f, 2.f);

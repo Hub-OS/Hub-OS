@@ -19,7 +19,7 @@ Metrid::Metrid(Rank _rank)
 
   SetElement(Element::fire);
 
-  auto animationComponent = CreateComponent<AnimationComponent>(this);
+  auto animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
@@ -48,7 +48,7 @@ Metrid::Metrid(Rank _rank)
 
   animationComponent->OnUpdate(0);
 
-  virusBody = new DefenseVirusBody();
+  virusBody = std::make_shared<DefenseVirusBody>();
   AddDefenseRule(virusBody);
 }
 
@@ -57,7 +57,6 @@ Metrid::~Metrid() {
 
 void Metrid::OnDelete() {
   RemoveDefenseRule(virusBody);
-  delete virusBody;
 
   ChangeState<ExplodeState<Metrid>>();
 

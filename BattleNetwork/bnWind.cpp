@@ -37,7 +37,7 @@ void Wind::OnUpdate(double _elapsed) {
   }
   else {
     // Strike panel and leave
-    GetTile()->AffectEntities(this);
+    GetTile()->AffectEntities(*this);
   }
 
   Slide(GetTile() + GetDirection(), frames(4), frames(0));
@@ -60,7 +60,7 @@ void Wind::DeleteOnTeamTile()
   deleteOnTeam = true;
 }
 
-void Wind::Attack(Character* _entity) {
+void Wind::Attack(std::shared_ptr<Character> _entity) {
   _entity->Hit(GetHitboxProperties());
 }
 

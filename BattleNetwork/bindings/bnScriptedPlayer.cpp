@@ -54,21 +54,18 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
   return GetTile();
 }
 
-CardAction* ScriptedPlayer::OnExecuteSpecialAction()
+std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
 {
-  CardAction* result{ nullptr };
+  std::shared_ptr<CardAction> result{ nullptr };
 
   sol::object obj = script["create_special_attack"](*this);
 
   if (obj.valid()) {
-    if (obj.is<std::unique_ptr<CardAction>>())
-    {
-      auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      result = ptr.release();
-    }else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
-    {
-      auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      result = ptr.release();
+    if (obj.is<std::shared_ptr<CardAction>>()) {
+      result = obj.as<std::shared_ptr<CardAction>>();
+    }
+    else if (obj.is<std::shared_ptr<ScriptedCardAction>>()) {
+      result = obj.as<std::shared_ptr<ScriptedCardAction>>();
     }
     else {
       Logger::Log("Lua function \"create_special_attack\" didn't return a CardAction.");
@@ -82,22 +79,20 @@ CardAction* ScriptedPlayer::OnExecuteSpecialAction()
   return result;
 }
 
-CardAction* ScriptedPlayer::OnExecuteBusterAction()
+std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteBusterAction()
 {
-  CardAction* result{ nullptr };
+  std::shared_ptr<CardAction> result{ nullptr };
 
   sol::object obj = script["create_normal_attack"](*this);
 
   if (obj.valid()) {
-    if (obj.is<std::unique_ptr<CardAction>>())
+    if (obj.is<std::shared_ptr<CardAction>>())
     {
-      auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      result = ptr.release();
+      result = obj.as<std::shared_ptr<CardAction>>();
     }
-    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+    else if (obj.is<std::shared_ptr<ScriptedCardAction>>())
     {
-      auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      result = ptr.release();
+      result = obj.as<std::shared_ptr<ScriptedCardAction>>();
     }
     else {
       Logger::Log("Lua function \"create_normal_attack\" didn't return a CardAction.");
@@ -111,22 +106,20 @@ CardAction* ScriptedPlayer::OnExecuteBusterAction()
   return result;
 }
 
-CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
+std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteChargedBusterAction()
 {
-  CardAction* result{ nullptr };
+  std::shared_ptr<CardAction> result{ nullptr };
 
   sol::object obj = script["create_charged_attack"](*this);
 
   if (obj.valid()) {
-    if (obj.is<std::unique_ptr<CardAction>>())
+    if (obj.is<std::shared_ptr<CardAction>>())
     {
-      auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      result = ptr.release();
+      result = obj.as<std::shared_ptr<CardAction>>();
     }
-    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+    else if (obj.is<std::shared_ptr<ScriptedCardAction>>())
     {
-      auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      result = ptr.release();
+      result = obj.as<std::shared_ptr<ScriptedCardAction>>();
     }
     else {
       Logger::Log("Lua function \"create_charged_attack\" didn't return a CardAction.");

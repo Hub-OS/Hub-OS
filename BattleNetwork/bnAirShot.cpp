@@ -43,7 +43,7 @@ AirShot::~AirShot() {
 }
 
 void AirShot::OnUpdate(double _elapsed) {
-  GetTile()->AffectEntities(this);
+  GetTile()->AffectEntities(*this);
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
@@ -60,7 +60,7 @@ void AirShot::OnUpdate(double _elapsed) {
   }
 }
 
-void AirShot::Attack(Character* _entity) {
+void AirShot::Attack(std::shared_ptr<Character> _entity) {
   // TODO: Spells should auto-update drag flags based on direction?
   auto props = Hit::DefaultProperties;
   props.damage = damage;

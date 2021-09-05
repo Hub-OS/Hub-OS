@@ -9,7 +9,6 @@
 #include <Swoosh/Game.h>
 
 Meteor::Meteor(Team _team, int damage, float _duration) : 
-  target(target), 
   duration(_duration), 
   Spell(_team) {
   SetLayer(1);
@@ -65,12 +64,12 @@ void Meteor::OnUpdate(double _elapsed) {
   // When at the end of the arc
   if (beta >= 1.0f) {
     // update tile to target tile
-    tile->AffectEntities(this);
+    tile->AffectEntities(*this);
 
     if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
       EventChannel().Emit(&Camera::ShakeCamera, 5, sf::seconds(0.5));
 
-      field->AddEntity(*(new RingExplosion), *GetTile());
+      field->AddEntity(std::make_shared<RingExplosion>(), *GetTile());
     }
 
     Delete();
@@ -79,7 +78,7 @@ void Meteor::OnUpdate(double _elapsed) {
   progress += _elapsed;
 }
 
-void Meteor::Attack(Character* _entity) {
+void Meteor::Attack(std::shared_ptr<Character> _entity) {
   _entity->Hit(GetHitboxProperties());
 }
 

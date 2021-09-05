@@ -10,19 +10,21 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : 
+BubbleTrap::BubbleTrap(std::weak_ptr<Entity> owner) : 
   willDelete(false), defense(nullptr), duration(3), 
   ResourceHandle(), InputHandle(),
   SpriteProxyNode(), Component(owner)
 {
-  if (owner->IsDeleted()) {
+  auto asCharacter = GetOwnerAs<Character>();
+
+  if (!asCharacter || asCharacter->IsDeleted()) {
     this->Eject();
   }
   else {
     // Bubbles have to pop when hit
-    defense = new DefenseBubbleWrap();
-    owner->AddDefenseRule(defense);
-    owner->AddNode(this);
+    defense = std::make_shared<DefenseBubbleWrap>();
+    asCharacter->AddDefenseRule(defense);
+    asCharacter->AddNode(this);
   }
 
   SetLayer(1);
@@ -107,9 +109,4 @@ void BubbleTrap::Pop()
 const double BubbleTrap::GetDuration() const
 {
   return duration;
-}
-
-BubbleTrap::~BubbleTrap()
-{
-  delete defense;
 }

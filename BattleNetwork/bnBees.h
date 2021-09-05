@@ -12,10 +12,10 @@ class Bees : public Obstacle {
     BeeDefenseRule() : DefenseRule(Priority(4), DefenseOrder::always) {}
     ~BeeDefenseRule() {}
 
-    void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override {
-      if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return;
+    void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) override {
+      if ((in->GetHitboxProperties().flags & Hit::impact) != Hit::impact) return;
 
-      if (in.GetHitboxProperties().element == Element::fire) {
+      if (in->GetHitboxProperties().element == Element::fire) {
         judge.SignalDefenseWasPierced();
       }
       else {
@@ -37,7 +37,7 @@ protected:
   Entity* target{ nullptr }; /**< The current enemy to approach */
   SpriteProxyNode* shadow{ nullptr };
   Bees* leader{ nullptr };/*!< which bee to follow*/
-  BeeDefenseRule* absorbDamage;
+  std::shared_ptr<BeeDefenseRule> absorbDamage;
 
 public:
   Bees(Team _team,int damage);
@@ -48,6 +48,6 @@ public:
   void OnUpdate(double _elapsed) override;
   void OnSpawn(Battle::Tile& start) override;
   void OnBattleStop() override;
-  void Attack(Character* _entity);
+  void Attack(std::shared_ptr<Character> _entity);
   void OnDelete() override;
 };

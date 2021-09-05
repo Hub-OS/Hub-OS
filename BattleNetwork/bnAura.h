@@ -47,7 +47,7 @@ public:
     sf::Vector2f flySpeed{}, flyAccel{};
     Battle::Tile* flyStartTile{ nullptr };
   public:
-    VisualFX(Entity* owner, Aura::Type type);
+    VisualFX(std::weak_ptr<Entity> owner, Aura::Type type);
     ~VisualFX();
 
   /**
@@ -66,7 +66,9 @@ public:
    */
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-  } *fx{ nullptr };
+  };
+  
+  std::shared_ptr<VisualFX> fx{ nullptr };
 private:
 
   Type type; /*!< Type of aura */
@@ -87,9 +89,9 @@ public:
   /**
    * @brief Create an aura with type and a Character owner
    * @param type of aura
-   * @param Character ptr instead of Entity* ptr
+   * @param Character ptr instead of std::shared_ptr<Entity> ptr
    */
-  Aura(Type type, Character* owner);
+  Aura(Type type, std::weak_ptr<Character> owner);
   
   /**
    * @brief Dtor. Deletes aura SceneNodeSprite and defense rule.

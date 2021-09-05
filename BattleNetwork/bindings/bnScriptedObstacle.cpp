@@ -13,17 +13,16 @@ ScriptedObstacle::ScriptedObstacle(Team _team) :
   shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
   AddNode(shadow);
 
-  animComponent = CreateComponent<AnimationComponent>(this);
+  animComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animComponent->Load();
   animComponent->Refresh();
 
-  obstacleBody = new DefenseObstacleBody();
+  obstacleBody = std::make_shared<DefenseObstacleBody>();
   this->AddDefenseRule(obstacleBody);
 }
 
 ScriptedObstacle::~ScriptedObstacle() {
   delete shadow;
-  delete obstacleBody;
 }
 
 bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
@@ -31,7 +30,7 @@ bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
   return canMoveToCallback? canMoveToCallback(*next) : false;
 }
 
-void ScriptedObstacle::OnCollision(const Character* other)
+void ScriptedObstacle::OnCollision(const std::shared_ptr<Character> other)
 {
   ScriptedObstacle& so = *this;
   collisionCallback ? collisionCallback(so, const_cast<Character&>(*other)) : (void)0;
@@ -51,7 +50,7 @@ void ScriptedObstacle::OnDelete() {
   Remove();
 }
 
-void ScriptedObstacle::Attack(Character* other) {
+void ScriptedObstacle::Attack(std::shared_ptr<Character> other) {
   other->Hit(GetHitboxProperties());
   ScriptedObstacle& so = *this;
   attackCallback ? attackCallback(so, *other) : (void)0;

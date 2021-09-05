@@ -18,7 +18,7 @@
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, 
 
-MachGunCardAction::MachGunCardAction(Character* actor, int damage) :
+MachGunCardAction::MachGunCardAction(std::shared_ptr<Character> actor, int damage) :
   CardAction(actor, "PLAYER_SHOOTING"),
   damage(damage)
 {
@@ -36,24 +36,24 @@ MachGunCardAction::~MachGunCardAction()
 {
 }
 
-void MachGunCardAction::OnExecute(Character* user)
+void MachGunCardAction::OnExecute(std::shared_ptr<Character> user)
 {
   auto shoot = [this]() {
-    auto* actor = this->GetActor();
+    auto actor = this->GetActor();
     auto* field = actor->GetField();
 
     if (target == nullptr || target->WillRemoveLater()) {
       // find the closest
-      auto ents = field->FindEntities([actor](Entity* e) {
+      auto ents = field->FindEntities([actor](std::shared_ptr<Entity> e) {
         Team team = e->GetTeam();
-        Character* character = dynamic_cast<Character*>(e);
-        Obstacle* obst = dynamic_cast<Obstacle*>(e);
+        auto character = dynamic_cast<Character*>(e.get());
+        auto obst = dynamic_cast<Obstacle*>(e.get());
         return character && !obst && !e->WillRemoveLater()
                && team != actor->GetTeam() && team != Team::unknown;
       });
 
       if (!ents.empty()) {
-        auto filter = [actor](Entity* A, Entity* B) { 
+        auto filter = [actor](std::shared_ptr<Entity> A, std::shared_ptr<Entity> B) { 
           if (actor->GetFacing() == Direction::right) {
             return A->GetTile()->GetX() < B->GetTile()->GetX();
           }
@@ -72,7 +72,7 @@ void MachGunCardAction::OnExecute(Character* user)
         }
 
         if (target) {
-          auto removeCallback = [this](Entity& target, Entity& observer) {
+          auto removeCallback = [this](auto target, auto observer) {
             this->target = nullptr;
           };
 
@@ -105,7 +105,7 @@ void MachGunCardAction::OnExecute(Character* user)
 
     // Spawn rectical where the targetTile is positioned which will attack for us
     if (targetTile) {
-      field->AddEntity(*new Target(this->damage), *targetTile);
+      field->AddEntity(std::make_shared<Target>(this->damage), *targetTile);
     }
   };
 
@@ -205,8 +205,8 @@ void Target::OnUpdate(double elapsed)
   GetTile()->RequestHighlight(Battle::Tile::Highlight::flash);
 
   if (attack <= 0) {
-    auto* vulcan = new SuperVulcan(GetTeam(), damage);
-    GetField()->AddEntity(*vulcan, *GetTile());
+    auto vulcan = std::make_shared<SuperVulcan>(GetTeam(), damage);
+    GetField()->AddEntity(vulcan, *GetTile());
     this->Remove();
   }
 }

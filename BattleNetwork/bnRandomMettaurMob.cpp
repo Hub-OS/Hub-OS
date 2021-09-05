@@ -55,8 +55,8 @@ Mob* RandomMettaurMob::Build(Field* field) {
         if (tile->GetTeam() == Team::blue && !tile->ContainsEntityType<Character>() && !tile->ContainsEntityType<MysteryData>()) {
           if (rand() % 50 > 30) {
             if (rand() % 100 > 90 && mysterycount < 3) {
-              MysteryData* mystery = new MysteryData(mob->GetField(), Team::unknown);
-              field->AddEntity(*mystery, tile->GetX(), tile->GetY());
+              auto mystery = std::make_shared<MysteryData>(mob->GetField(), Team::unknown);
+              field->AddEntity(mystery, tile->GetX(), tile->GetY());
 
               // Callback for the battle over trigger
               auto callback = [](BattleSceneBase& b, MysteryData& m) {

@@ -24,7 +24,7 @@ struct FreedomMissionProps {
 class FreedomMissionMobScene final : public BattleSceneBase {
   FreedomMissionOverState* overStatePtr{ nullptr };
   FreedomMissionProps props;
-  std::vector<Player*> players;
+  std::vector<std::shared_ptr<Player>> players;
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   bool playerDecross{ false };
   int playerHitCount{};

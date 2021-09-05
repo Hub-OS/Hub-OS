@@ -11,7 +11,7 @@ using sf::IntRect;
 
 ElementalDamage::ElementalDamage() : 
   Artifact(), 
-  animationComponent(this)
+  animationComponent(shared_from_this())
 {
   SetLayer(0);
   setTexture(LOAD_TEXTURE(ELEMENT_ALERT));

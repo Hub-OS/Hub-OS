@@ -12,8 +12,8 @@ class Hitbox : public Spell {
 private:
   int damage; /*!< how many units of damage to deal */
   bool hit; /*!< Flag if hit last frame */
-  std::function<void(Character*)> attackCallback{}; /*!< Optional callback when Attack() is triggered*/
-  std::function<void(const Character*)> collisionCallback{};
+  std::function<void(std::shared_ptr<Character>)> attackCallback{}; /*!< Optional callback when Attack() is triggered*/
+  std::function<void(const std::shared_ptr<Character>)> collisionCallback{};
 public:
   /**
    * @brief disables tile highlighting by default
@@ -37,14 +37,14 @@ public:
    * @brief Deals hitbox property damage and then deletes itself
    * @param _entity entity to attack
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
-  void OnCollision(const Character* entity) override;
+  void OnCollision(const std::shared_ptr<Character> entity) override;
 
   /**
   * @brief Some hitboxes perform actions on hit and this is the best place to add them
   */
-  void AddCallback(std::function<void(Character*)> attackCallback, std::function<void(const Character*)> collisionCallback = [](const Character*) {});
+  void AddCallback(std::function<void(std::shared_ptr<Character>)> attackCallback, std::function<void(const std::shared_ptr<Character>)> collisionCallback = [](const std::shared_ptr<Character>) {});
 
   void OnDelete() override;
 };

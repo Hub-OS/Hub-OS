@@ -7,7 +7,7 @@
 #include "bnCharacter.h"
 #include "bnDefenseRule.h"
 
-ZetaCannonCardAction::ZetaCannonCardAction(Character* actor, int damage)  : 
+ZetaCannonCardAction::ZetaCannonCardAction(std::shared_ptr<Character> actor, int damage)  : 
   CardAction(actor, "PLAYER_IDLE"), 
   InputHandle(),
   damage(damage), 
@@ -23,10 +23,9 @@ ZetaCannonCardAction::ZetaCannonCardAction(Character* actor, int damage)  :
 ZetaCannonCardAction::~ZetaCannonCardAction()
 { 
   GetActor()->RemoveDefenseRule(defense);
-  delete defense;
 }
 
-void ZetaCannonCardAction::OnExecute(Character*) {
+void ZetaCannonCardAction::OnExecute(std::shared_ptr<Character>) {
 }
 
 void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -46,14 +45,14 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
 void ZetaCannonCardAction::Update(double _elapsed)
 {
   if (timer > 0) {
-    auto* actor = this->GetActor();
+    auto actor = this->GetActor();
 
     // TODO: change the "PLAYER_IDLE" check to a `IsActionable()` function per mars' notes...
     bool canShoot = actor->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !actor->IsMoving();
 
     if (canShoot && Input().Has(InputEvents::pressed_use_chip)) {
 
-      auto* newCannon = new CannonCardAction(actor, CannonCardAction::Type::red, damage);
+      auto newCannon = std::make_shared<CannonCardAction>(actor, CannonCardAction::Type::red, damage);
       auto actionProps = CardAction::LockoutProperties();
       actionProps.type = CardAction::LockoutType::animation;
       actionProps.group = CardAction::LockoutGroup::card;
@@ -65,7 +64,7 @@ void ZetaCannonCardAction::Update(double _elapsed)
       if (!showTimerText) {
         showTimerText = true;
         Audio().Play(AudioType::COUNTER_BONUS);
-        defense = new DefenseIndestructable(true);
+        defense = std::make_shared<DefenseIndestructable>(true);
         actor->AddDefenseRule(defense);
 
         if (actor->GetTeam() == Team::blue) {

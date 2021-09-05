@@ -39,7 +39,7 @@ void Spell::AdoptTile(Battle::Tile * tile)
     setPosition(tile->getPosition() + Entity::drawOffset);
   }
 
-  tile->AddEntity(*this);
+  tile->AddEntity(shared_from_this());
 }
 
 void Spell::HighlightTile(Battle::Tile::Highlight mode)

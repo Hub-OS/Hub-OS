@@ -82,7 +82,7 @@ Character::Character(Rank _rank) :
 
   RegisterStatusCallback(Hit::bubble, [this] {
     actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
-    CreateComponent<BubbleTrap>(this);
+    CreateComponent<BubbleTrap>(weak_from_this());
     
     // TODO: take out this ugly hack
     if (auto ai = dynamic_cast<Player*>(this)) {
@@ -228,7 +228,8 @@ void Character::Update(double _elapsed) {
           anim->CancelCallbacks();
         }
         MakeActionable();
-        currCardAction->Execute(this);
+        auto characterPtr = shared_from_base<Character>();
+        currCardAction->Execute(characterPtr);
       }
     }
 
@@ -350,8 +351,8 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 bool Character::CanMoveTo(Battle::Tile * next)
 {
-  auto occupied = [this](Entity* in) {
-    Character* c = dynamic_cast<Character*>(in);
+  auto occupied = [this](std::shared_ptr<Entity> in) {
+    auto c = dynamic_cast<Character*>(in.get());
 
     return c && c != this && !c->CanShareTileSpace();
   };
@@ -375,7 +376,7 @@ const bool Character::Hit(Hit::Properties props) {
   }
 
   if ((props.flags & Hit::shake) == Hit::shake) {
-    CreateComponent<ShakingEffect>(this);
+    CreateComponent<ShakingEffect>(weak_from_this());
   }
   
   for (auto&& defense : defenses) {
@@ -451,7 +452,7 @@ void Character::ResolveFrameBattleDamage()
 {
   if(statusQueue.empty()) return;
 
-  Character* frameCounterAggressor = nullptr;
+  std::shared_ptr<Character> frameCounterAggressor = nullptr;
   bool frameStunCancel = false;
   Hit::Drag postDragEffect{};
 
@@ -718,7 +719,7 @@ void Character::AdoptTile(Battle::Tile * tile)
     setPosition(tile->getPosition());
   }
 
-  tile->AddEntity(*this);
+  tile->AddEntity(shared_from_this());
 }
 
 void Character::ToggleCounter(bool on)
@@ -751,15 +752,15 @@ const std::string Character::GetName() const
   return name;
 }
 
-void Character::AddDefenseRule(DefenseRule * rule)
+void Character::AddDefenseRule(std::shared_ptr<DefenseRule> rule)
 {
   if (!rule) return;
 
-  auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](DefenseRule* other) { return rule->GetPriorityLevel() == other->GetPriorityLevel(); });
+  auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](auto other) { return rule->GetPriorityLevel() == other->GetPriorityLevel(); });
 
   if (rule && iter == defenses.end()) {
     defenses.push_back(rule);
-    std::sort(defenses.begin(), defenses.end(), [](DefenseRule* first, DefenseRule* second) { return first->GetPriorityLevel() < second->GetPriorityLevel(); });
+    std::sort(defenses.begin(), defenses.end(), [](std::shared_ptr<DefenseRule> first,std::shared_ptr<DefenseRule> second) { return first->GetPriorityLevel() < second->GetPriorityLevel(); });
   }
   else {
     (*iter)->replaced = true; // Flag that this defense rule may be valid ptr, but is no longer in use
@@ -771,28 +772,35 @@ void Character::AddDefenseRule(DefenseRule * rule)
   }
 }
 
-void Character::RemoveDefenseRule(DefenseRule * rule)
+void Character::RemoveDefenseRule(std::shared_ptr<DefenseRule> rule)
 {
-  auto iter = std::find_if(defenses.begin(), defenses.end(), [&rule](DefenseRule * in) { return in == rule; });
+  RemoveDefenseRule(rule.get());
+}
+
+void Character::RemoveDefenseRule(DefenseRule* rule)
+{
+  auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](auto in) { return in.get() == rule; });
 
   if(iter != defenses.end())
     defenses.erase(iter);
 }
 
-void Character::DefenseCheck(DefenseFrameStateJudge& judge, Spell& in, const DefenseOrder& filter)
+void Character::DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, const DefenseOrder& filter)
 {
-  std::vector<DefenseRule*> copy = defenses;
+  std::vector<std::shared_ptr<DefenseRule>> copy = defenses;
+
+  auto characterPtr = shared_from_base<Character>();
 
   for (int i = 0; i < copy.size(); i++) {
     if (copy[i]->GetDefenseOrder() == filter) {
-      DefenseRule* defenseRule = copy[i];
+      auto defenseRule = copy[i];
       judge.SetDefenseContext(defenseRule);
-      defenseRule->CanBlock(judge, in, *this);
+      defenseRule->CanBlock(judge, in, characterPtr);
     }
   }
 }
 
-void Character::SharedHitboxDamage(Character * to)
+void Character::SharedHitboxDamage(std::shared_ptr<Character> to)
 {
   auto iter = std::find(shareHit.begin(), shareHit.end(), to);
 
@@ -801,9 +809,9 @@ void Character::SharedHitboxDamage(Character * to)
   }
 }
 
-void Character::CancelSharedHitboxDamage(Character * to)
+void Character::CancelSharedHitboxDamage(std::shared_ptr<Character> to)
 {
-  auto iter = std::remove_if(shareHit.begin(), shareHit.end(), [&to](Character * in) { return in == to; });
+  auto iter = std::remove_if(shareHit.begin(), shareHit.end(), [&to](auto in) { return in == to; });
 
   if(iter != shareHit.end())
     shareHit.erase(iter);
@@ -841,7 +849,8 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
 {
   SelectedCardsUI* publisher = event.publisher;
   if (publisher) {
-    publisher->HandlePeekEvent(this);
+    auto characterPtr = shared_from_base<Character>();
+    publisher->HandlePeekEvent(characterPtr);
   }
 
   actionQueue.Pop();

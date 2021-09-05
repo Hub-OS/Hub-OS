@@ -5,7 +5,7 @@
 #include "bnHitbox.h"
 #include "bnField.h"
 
-TomahawkSwingCardAction::TomahawkSwingCardAction(Character* actor, int damage) :
+TomahawkSwingCardAction::TomahawkSwingCardAction(std::shared_ptr<Character> actor, int damage) :
   CardAction(actor, "PLAYER_CHOP"),
   damage(damage)
 {
@@ -16,14 +16,14 @@ TomahawkSwingCardAction::~TomahawkSwingCardAction()
 {
 }
 
-void TomahawkSwingCardAction::OnExecute(Character* user)
+void TomahawkSwingCardAction::OnExecute(std::shared_ptr<Character> user)
 {
   auto spawn = [=] {
     auto* tile  = user->GetTile();
     auto* field = user->GetField();
 
     int step = 1;
-    auto fx = new TomahawkEffect();
+    auto fx = std::make_shared<TomahawkEffect>();
     
     if (user->GetFacing() == Direction::left) {
       step = -1;
@@ -31,16 +31,16 @@ void TomahawkSwingCardAction::OnExecute(Character* user)
       fx->setScale(-2.f, 2.f); // flip for blue team
     }
 
-    field->AddEntity(*fx, tile->GetX() + step, tile->GetY());
+    field->AddEntity(fx, tile->GetX() + step, tile->GetY());
 
     for (auto col : { step, 2*step }) {
       for (auto row : { 1, 0, -1 }) {
-        auto* hitbox = new Hitbox(user->GetTeam(), damage);
+        auto hitbox = std::make_shared<Hitbox>(user->GetTeam(), damage);
         auto props = hitbox->GetHitboxProperties();
         props.flags |= Hit::flash;
         props.aggressor = user->GetID();
         hitbox->SetHitboxProperties(props);
-        field->AddEntity(*hitbox, tile->GetX() + col, tile->GetY() + row);
+        field->AddEntity(hitbox, tile->GetX() + col, tile->GetY() + row);
       }
     }
   };
@@ -65,7 +65,7 @@ TomahawkEffect::TomahawkEffect() : Artifact()
   setScale(2.f, 2.f);
 
   //Components setup and load
-  auto animation = CreateComponent<AnimationComponent>(this);
+  auto animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/navis/megaman/forms/tomahawk_swing.animation");
   animation->Reload();
 

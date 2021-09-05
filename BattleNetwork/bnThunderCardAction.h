@@ -12,10 +12,10 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  ThunderCardAction(Character* actor, int damage);
+  ThunderCardAction(std::shared_ptr<Character> actor, int damage);
   ~ThunderCardAction();
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
 };

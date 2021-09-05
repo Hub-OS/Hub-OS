@@ -14,11 +14,11 @@ private:
   bool fired{ false };
   bool stun{ true };
 public:
-  LightningCardAction(Character* actor, int damage);
+  LightningCardAction(std::shared_ptr<Character> actor, int damage);
   ~LightningCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd();
   void OnActionEnd();
-  void OnExecute(Character* user);
+  void OnExecute(std::shared_ptr<Character> user);
   void SetStun(bool stun);
 };

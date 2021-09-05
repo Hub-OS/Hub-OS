@@ -11,7 +11,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/guard_hit.animation"
 
-GuardHit::GuardHit(Character* hit, bool center) 
+GuardHit::GuardHit(std::shared_ptr<Character> hit, bool center) 
   : 
   w(0), 
   h(0), 
@@ -46,7 +46,7 @@ GuardHit::GuardHit(Character* hit, bool center)
   //Components setup and load
   auto onFinish = [&]() { Delete();  };
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("DEFAULT", onFinish);

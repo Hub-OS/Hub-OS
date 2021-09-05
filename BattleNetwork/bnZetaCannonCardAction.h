@@ -18,14 +18,14 @@ public:
   mutable Text timerLabel; // on the screen somewhere
   bool hide{};
   bool showTimerText{ false };
-  DefenseRule* defense{ nullptr };
+  std::shared_ptr<DefenseRule> defense{ nullptr };
 public:
 
-  ZetaCannonCardAction(Character* actor, int damage);
+  ZetaCannonCardAction(std::shared_ptr<Character> actor, int damage);
   ~ZetaCannonCardAction();
   void Update(double _elapsed) override final;
   void OnAnimationEnd() override final;
   void OnActionEnd() override final;
-  void OnExecute(Character*) override final;
+  void OnExecute(std::shared_ptr<Character>) override final;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
 };

@@ -18,7 +18,7 @@ Starfish::Starfish(Rank _rank) : AI<Starfish>(this), Character(_rank) {
   team = Team::blue;
 
   SetElement(Element::aqua);
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
 
   switch (_rank) {
   case Starfish::Rank::SP:
@@ -50,7 +50,7 @@ Starfish::Starfish(Rank _rank) : AI<Starfish>(this), Character(_rank) {
 
   animation->OnUpdate(0);
 
-  virusBody = new DefenseVirusBody();
+  virusBody = std::make_shared<DefenseVirusBody>();
   AddDefenseRule(virusBody);
 }
 
@@ -69,7 +69,6 @@ const float Starfish::GetHeight() const {
 void Starfish::OnDelete() {
   if (virusBody) {
     RemoveDefenseRule(virusBody);
-    delete virusBody;
     virusBody = nullptr;
   }
 

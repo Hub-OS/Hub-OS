@@ -34,6 +34,6 @@ public:
 private:
   float hitHeight;
   TextureType textureType;
-  DefenseRule* virusBody;
-  AnimationComponent* animation;
+  std::shared_ptr<DefenseRule> virusBody;
+  std::shared_ptr<AnimationComponent> animation;
 };

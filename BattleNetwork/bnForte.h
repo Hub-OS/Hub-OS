@@ -23,7 +23,7 @@ private:
     double elapsed;
     static int counter;
     int index;
-    AnimationComponent* animationComponent;
+    std::shared_ptr<AnimationComponent> animationComponent;
 
   public:
     MoveEffect(Field* field);
@@ -33,9 +33,9 @@ private:
     void OnDelete() override;
   };
   
-  CardAction* OnExecuteBusterAction() override final;
-  CardAction* OnExecuteChargedBusterAction() override final;
-  CardAction* OnExecuteSpecialAction() override final;
+  std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
+  std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
+  std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
 public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;

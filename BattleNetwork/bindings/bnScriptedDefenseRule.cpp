@@ -17,7 +17,7 @@ Hit::Properties& ScriptedDefenseRule::FilterStatuses(Hit::Properties& statuses)
   return statuses;
 }
 
-void ScriptedDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
+void ScriptedDefenseRule::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) {
     if(canBlockCallback) {
         canBlockCallback(&judge, &in, &owner);
     }

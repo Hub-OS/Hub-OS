@@ -11,7 +11,7 @@ private:
   sf::Vector2f start; /*!< Where the orb starts */
   double progress;    /*!< Progress from the start to the tile */
   double duration;    /*!< How long the animation should last in seconds */
-  AnimationComponent* animationComponent{ nullptr };
+  std::shared_ptr<AnimationComponent> animationComponent{ nullptr };
 public:
   /**
    * @brief sets the team it will change the tile to and duration of animation 
@@ -42,7 +42,7 @@ public:
    * @brief Deals 10 damage
    * @param _entity to hit
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
   /** 
   * @brief Does nothing

@@ -19,5 +19,5 @@ Hit::Properties& DefenseStatusGuard::FilterStatuses(Hit::Properties& statuses)
   return statuses;
 }
 
-void DefenseStatusGuard::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
+void DefenseStatusGuard::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)
 { }

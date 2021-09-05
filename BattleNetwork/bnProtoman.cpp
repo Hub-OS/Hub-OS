@@ -15,18 +15,21 @@ const float COPY_DROP_COOLDOWN = 0.15f; // in seconds
 
 const std::string RESOURCE_PATH = "resources/navis/protoman/protoman.animation";
 
-CardAction* Protoman::OnExecuteBusterAction()
+std::shared_ptr<CardAction> Protoman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  auto character = shared_from_base<Character>();
+  return std::make_shared<BusterCardAction>(character, false, 1*GetAttackLevel());
 }
 
-CardAction* Protoman::OnExecuteChargedBusterAction()
+std::shared_ptr<CardAction> Protoman::OnExecuteChargedBusterAction()
 {
-  return new WideSwordCardAction(this, 20*GetAttackLevel());
+  auto character = shared_from_base<Character>();
+  return std::make_shared<WideSwordCardAction>(character, 20*GetAttackLevel());
 }
 
-CardAction* Protoman::OnExecuteSpecialAction() {
-  auto* action = new ReflectCardAction(this, 20, ReflectShield::Type::red);
+std::shared_ptr<CardAction> Protoman::OnExecuteSpecialAction() {
+  auto character = shared_from_base<Character>();
+  auto action = std::make_shared<ReflectCardAction>(character, 20, ReflectShield::Type::red);
   action->SetLockout({
     CardAction::LockoutType::async,
     seconds_cast<double>(frames(80))

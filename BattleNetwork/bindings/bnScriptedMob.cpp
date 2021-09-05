@@ -15,9 +15,9 @@
 ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank)
 { 
   scriptedSpawner = new Mob::Spawner <ScriptedCharacter>(std::ref(script), rank);
-  std::function<ScriptedCharacter*()> lambda = scriptedSpawner->constructor;
+  std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
 
-  scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> ScriptedCharacter* {
+  scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> std::shared_ptr<ScriptedCharacter> {
     (*scriptPtr)["_modpath"] = path+"/";
 
     return lambda();
@@ -40,7 +40,7 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
 
   // Create a new enemy spawn data object
   Mob::MobData* data = new Mob::MobData();
-  Character* character = constructor();
+  std::shared_ptr<Character> character = constructor();
 
   auto ui = character->CreateComponent<MobHealthUI>(character);
   ui->Hide(); // let default state invocation reveal health
@@ -58,7 +58,7 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
   mob->pixelStateInvokers.push_back(this->pixelStateInvoker);
 
   auto next = this->defaultStateInvoker;
-  auto defaultStateWrapper = [ui, next](Character* in) {
+  auto defaultStateWrapper = [ui, next](std::shared_ptr<Character> in) {
     ui->Reveal();
     next(in);
   };

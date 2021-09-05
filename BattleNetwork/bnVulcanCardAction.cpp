@@ -16,7 +16,7 @@
 // TODO: check frame-by-frame anim
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-VulcanCardAction::VulcanCardAction(Character* actor, int damage) : 
+VulcanCardAction::VulcanCardAction(std::shared_ptr<Character> actor, int damage) : 
   CardAction(actor, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
   VulcanCardAction::damage = damage;
   attachment = new SpriteProxyNode();
@@ -38,12 +38,12 @@ VulcanCardAction::VulcanCardAction(Character* actor, int damage) :
 VulcanCardAction::~VulcanCardAction()
 {
 }
-void VulcanCardAction::OnExecute(Character* user) {
+void VulcanCardAction::OnExecute(std::shared_ptr<Character> user) {
 
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
     Team team = user->GetTeam();
-    Vulcan* b = new Vulcan(team, damage);
+    auto b = std::make_shared<Vulcan>(team, damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = user->GetID();
     b->SetHitboxProperties(props);
@@ -59,7 +59,7 @@ void VulcanCardAction::OnExecute(Character* user) {
     }
 
     if (auto tile = user->GetTile()->Offset(step, 0)) {
-      GetActor()->GetField()->AddEntity(*b, *tile);
+      GetActor()->GetField()->AddEntity(b, *tile);
     }
   };
 

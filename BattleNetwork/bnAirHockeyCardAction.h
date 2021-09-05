@@ -13,10 +13,10 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  AirHockeyCardAction(Character* actor, int damage);
+  AirHockeyCardAction(std::shared_ptr<Character> actor, int damage);
   ~AirHockeyCardAction();
   void Update(double _elapsed) override;
   void OnAnimationEnd();
   void OnActionEnd();
-  void OnExecute(Character* user);
+  void OnExecute(std::shared_ptr<Character> user);
 };

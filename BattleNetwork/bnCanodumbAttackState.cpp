@@ -16,17 +16,17 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   auto onFinish = [&can]() { can.ChangeState<CanodumbIdleState>(); };
 
   auto onAttack = [&can]() { 
-    CanonSmoke* smoke = new CanonSmoke;
-    can.GetField()->AddEntity(*smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
+    auto smoke = std::make_shared<CanonSmoke>();
+    can.GetField()->AddEntity(smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
 
     if (can.GetField()->GetAt(can.tile->GetX() - 1, can.tile->GetY())) {
-        Spell* spell = new Cannon(can.team, 10);
+        auto spell = std::make_shared<Cannon>(can.team, 10);
         spell->SetDirection(Direction::left);
         auto props = spell->GetHitboxProperties();
         props.aggressor = can.GetID();
         spell->SetHitboxProperties(props);
 
-        can.field->AddEntity(*spell, can.tile->GetX() - 1, can.tile->GetY());
+        can.field->AddEntity(spell, can.tile->GetX() - 1, can.tile->GetY());
 
         can.Audio().Play(AudioType::CANNON);
     }

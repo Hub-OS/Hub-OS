@@ -20,11 +20,6 @@ public:
     using DefaultState = MetalManIdleState;
 
     MetalMan(Rank _rank = Rank::_1);
-  
-  /**
-   * @brief deconstructor
-   */
-  ~MetalMan();
 
   /**
    * @brief Forces a move on metalman if he was stunned. Updates AI. Explodes when health is zero.
@@ -44,10 +39,9 @@ public:
   void OnDelete();
  
 private:
-  AnimationComponent* animationComponent; /*!< animates this sprite scene node */
-  DefenseRule* virusBody;
+  std::shared_ptr<AnimationComponent> animationComponent; /*!< animates this sprite scene node */
+  std::shared_ptr<DefenseRule> virusBody;
   float hitHeight; /*!< Hit height of metalman */
   string state; /*!< current animation name */
-  MobHealthUI* healthUI; /*!< Health ui component */
   bool canEnterRedTeam{};
 };

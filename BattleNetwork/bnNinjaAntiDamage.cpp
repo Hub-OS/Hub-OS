@@ -10,9 +10,9 @@
 #include "bnParticlePoof.h"
 #include "bnSpell.h"
 
-NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
+NinjaAntiDamage::NinjaAntiDamage(std::weak_ptr<Entity> owner) : Component(owner) {
   // Construct a callback when anti damage is triggered
-  DefenseAntiDamage::Callback onHit = [this](Spell& in, Character& owner) {
+  DefenseAntiDamage::Callback onHit = [this](auto in, auto owner) {
      
     class AntiDamageTriggerAction : public CardAction {
     private:
@@ -20,7 +20,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       NinjaAntiDamage& component;
 
     public:
-      AntiDamageTriggerAction(Character* actor, Team aggroTeam, NinjaAntiDamage& component) :
+      AntiDamageTriggerAction(std::shared_ptr<Character> actor, Team aggroTeam, NinjaAntiDamage& component) :
         CardAction(actor, "PLAYER_IDLE"),
         aggroTeam(aggroTeam),
         component(component) {}
@@ -28,8 +28,8 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       ~AntiDamageTriggerAction() { }
 
       void Update(double elapsed) override {}
-      void OnExecute(Character* user) override {
-        auto* owner = GetActor();
+      void OnExecute(std::shared_ptr<Character> user) override {
+        auto owner = GetActor();
 
         Battle::Tile* tile = nullptr;
         Field& field = *user->GetField();
@@ -38,21 +38,22 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
         user->CreateComponent<HideTimer>(user, 1.0);
 
         // Add a poof particle to denote owner dissapearing
-        field.AddEntity(*new ParticlePoof(), *user->GetTile());
+        field.AddEntity(std::make_shared<ParticlePoof>(), *user->GetTile());
 
         // Find the nearest character on the other team to take a hit
-        auto nearest = field.FindNearestCharacters(user, [user](Entity* in) {
+        auto nearest = field.FindNearestCharacters(user, [user](std::shared_ptr<Entity> in) {
           return !user->Teammate(in->GetTeam()); // get the opposition
         });
 
         // If there's an aggressor, grab their tile and target it
         if (nearest.size()) {
           // Add ninja star spell targetting the tile
-          field.AddEntity(*new NinjaStar(user->GetTeam(), 0.2f), *nearest[0]->GetTile());
+          field.AddEntity(std::make_shared<NinjaStar>(user->GetTeam(), 0.2f), *nearest[0]->GetTile());
         }
 
         // Remove the anti damage rule from the owner
         user->RemoveDefenseRule(component.defense);
+
         component.Eject();
       }
       void OnAnimationEnd() override {}
@@ -61,24 +62,29 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
 
     Team oppositeTeam = Team::blue;
 
-    if (owner.GetTeam() == Team::blue) {
+    if (owner->GetTeam() == Team::blue) {
       oppositeTeam = Team::red;
     }
 
-    auto* action = new AntiDamageTriggerAction(&owner, oppositeTeam, *this);
-    owner.AddAction({std::shared_ptr<CardAction>(action)}, ActionOrder::traps);
+    auto action = std::make_shared<AntiDamageTriggerAction>(owner, oppositeTeam, *this);
+    owner->AddAction({action}, ActionOrder::traps);
   }; // END callback 
 
 
   // Construct a anti damage defense rule check with callback onHit
-  defense = new DefenseAntiDamage(onHit);
-  user = GetOwnerAs<Character>();
-  user->AddDefenseRule(defense);
+  defense = std::make_shared<DefenseAntiDamage>(onHit);
+
+  if (auto ownerAsCharacter = GetOwnerAs<Character>()) {
+    ownerAsCharacter->AddDefenseRule(defense);
+  }
 }
 
 NinjaAntiDamage::~NinjaAntiDamage() {
-  user->RemoveDefenseRule(defense);
-  delete defense;
+  auto owner = GetOwnerAs<Character>();
+  
+  if (owner) {
+    owner->RemoveDefenseRule(defense);
+  }
 }
 
 void NinjaAntiDamage::OnUpdate(double _elapsed) {

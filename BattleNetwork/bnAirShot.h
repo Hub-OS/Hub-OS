@@ -13,7 +13,7 @@ public:
   AirShot(Team _team,int damage);
   ~AirShot();
   void OnUpdate(double _elapsed) override;
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
   bool CanMoveTo(Battle::Tile* next) override;
   void OnDelete() override;
 private:

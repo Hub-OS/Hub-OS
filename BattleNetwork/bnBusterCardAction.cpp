@@ -10,7 +10,7 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(Character* actor, bool charged, int damage) : CardAction(actor, "PLAYER_SHOOTING")
+BusterCardAction::BusterCardAction(std::shared_ptr<Character> actor, bool charged, int damage) : CardAction(actor, "PLAYER_SHOOTING")
 {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
@@ -35,7 +35,7 @@ BusterCardAction::BusterCardAction(Character* actor, bool charged, int damage) :
   this->SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
 
-void BusterCardAction::OnExecute(Character* user) {
+void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
   buster->setColor(user->getColor());
   buster->EnableParentShader(true);
   buster->AddTags({Player::BASE_NODE_TAG});
@@ -43,7 +43,7 @@ void BusterCardAction::OnExecute(Character* user) {
   // On shoot frame, drop projectile
   auto onFire = [this, user]() -> void {
     Team team = user->GetTeam();
-    Buster* b = new Buster(team, charged, damage);
+    auto b = std::make_shared<Buster>(team, charged, damage);
     field = user->GetField();
 
     if (team == Team::red) {
@@ -53,13 +53,13 @@ void BusterCardAction::OnExecute(Character* user) {
       b->SetDirection(Direction::left);
     }
 
-    auto busterRemoved = [this](Entity& target) {
+    auto busterRemoved = [this](auto target) {
       EndAction();
     };
 
     notifier = field->CallbackOnDelete(b->GetID(), busterRemoved);
 
-    user->GetField()->AddEntity(*b, *user->GetTile());
+    user->GetField()->AddEntity(b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
 
     busterAttachment->AddAttachment(busterAnim, "endpoint", *flare).UseAnimation(flareAnim);

@@ -17,7 +17,7 @@ HoneyBomber::HoneyBomber(Rank _rank) :
   SetElement(Element::wood);
   SetFloatShoe(true);
 
-  auto animationComponent = CreateComponent<AnimationComponent>(this);
+  auto animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
@@ -36,7 +36,7 @@ HoneyBomber::HoneyBomber(Rank _rank) :
   shadow->setPosition(-12.0f, 6.0f);
   AddNode(shadow);
 
-  virusBody = new DefenseVirusBody();
+  virusBody = std::make_shared<DefenseVirusBody>();
   AddDefenseRule(virusBody);
 
   Entity::drawOffset = { 0, -GetHeight() };
@@ -49,7 +49,6 @@ HoneyBomber::~HoneyBomber() {
 void HoneyBomber::OnDelete() {
   if (virusBody) {
     RemoveDefenseRule(virusBody);
-    delete virusBody;
     virusBody = nullptr;
   }
 

@@ -13,7 +13,7 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
-CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms) : 
+CardSelectBattleState::CardSelectBattleState(std::vector<std::shared_ptr<Player>>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms) : 
   tracked(tracked), 
   forms(forms),
   font(Font::Style::thick)
@@ -194,8 +194,8 @@ void CardSelectBattleState::onUpdate(double elapsed)
           bool hasNewHand = cardCust.HasNewHand();
           auto newCards = cardCust.GetCards();
 
-          Player* player = tracked[0];
-          SelectedCardsUI* ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
+          auto& player = tracked[0];
+          auto ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
 
           if (ui && hasNewHand) {
             cards = newCards;

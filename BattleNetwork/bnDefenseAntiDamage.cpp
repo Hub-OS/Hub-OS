@@ -12,9 +12,9 @@ DefenseAntiDamage::~DefenseAntiDamage()
 {
 }
 
-void DefenseAntiDamage::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
+void DefenseAntiDamage::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)
 {
-  auto props = in.GetHitboxProperties();
+  auto props = in->GetHitboxProperties();
 
   if (props.element == Element::cursor) {
     judge.SignalDefenseWasPierced();
@@ -22,8 +22,8 @@ void DefenseAntiDamage::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Chara
     && !judge.IsDamageBlocked() && !judge.IsImpactBlocked()) {
 
     if (!triggering) {
-        owner.GetField()->AddEntity(*new Hitbox(owner.GetTeam(), 0), *owner.GetTile());
-        judge.AddTrigger(callback, std::ref(in), std::ref(owner));
+        owner->GetField()->AddEntity(std::make_shared<Hitbox>(owner->GetTeam(), 0), *owner->GetTile());
+        judge.AddTrigger(callback, in, owner);
     }
 
     judge.BlockDamage();

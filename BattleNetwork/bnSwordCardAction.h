@@ -14,12 +14,12 @@ protected:
   SpriteProxyNode* hilt{ nullptr };
   Animation bladeAnim, hiltAnim;
 public:
-  SwordCardAction(Character* actor, int damage);
+  SwordCardAction(std::shared_ptr<Character> actor, int damage);
   virtual ~SwordCardAction();
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
   virtual void OnSpawnHitbox(Entity::ID_t);
   void SetElement(Element elem);
   const Element GetElement() const;

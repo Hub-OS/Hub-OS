@@ -19,8 +19,8 @@ public:
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile * next) override;
-  void OnCollision(const Character* other) override;
-  void Attack(Character* e) override;
+  void OnCollision(const std::shared_ptr<Character> other) override;
+  void Attack(std::shared_ptr<Character> e) override;
   void OnSpawn(Battle::Tile& spawn) override;
   const float GetHeight() const;
   void SetHeight(const float height);
@@ -46,7 +46,7 @@ private:
   sf::Vector2f scriptedOffset{};
   float height{};
   SpriteProxyNode* shadow{ nullptr };
-  AnimationComponent* animComponent{ nullptr };
-  DefenseRule* obstacleBody{ nullptr };
+  std::shared_ptr<AnimationComponent> animComponent{ nullptr };
+  std::shared_ptr<DefenseRule> obstacleBody{ nullptr };
 };
 #endif

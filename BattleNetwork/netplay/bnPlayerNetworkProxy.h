@@ -5,7 +5,7 @@ class PlayerNetworkProxy final : public Component {
   NetPlayFlags& npf;
 
 public:
-  PlayerNetworkProxy(Entity* owner, NetPlayFlags& flags) : Component(owner), npf(flags) {
+  PlayerNetworkProxy(std::weak_ptr<Entity> owner, NetPlayFlags& flags) : Component(owner), npf(flags) {
 
   }
 

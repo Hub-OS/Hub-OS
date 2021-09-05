@@ -62,7 +62,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
         Audio().Play(AudioType::DEFORM);
       }
       else {
-        if (playerPtr == GetScene().GetPlayer()) {
+        if (playerPtr == GetScene().GetPlayer().get()) {
           // only client player should remove their index information (e.g. PVP battles)
           auto& widget = GetScene().GetCardSelectWidget();
           widget.LockInPlayerFormSelection();

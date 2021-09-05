@@ -21,7 +21,7 @@ void AlphaElectricState::OnEnter(AlphaCore& a) {
   }
 
   a.EnableImpervious();
-  AnimationComponent* anim = a.GetFirstComponent<AnimationComponent>();
+  std::shared_ptr<AnimationComponent> anim = a.GetFirstComponent<AnimationComponent>();
 
   auto onFinish = [alpha = &a, anim, this]() {
     ready = true;
@@ -33,7 +33,7 @@ void AlphaElectricState::OnEnter(AlphaCore& a) {
 void AlphaElectricState::OnUpdate(double _elapsed, AlphaCore& a) {
   if (current) {
     if (current->WillRemoveLater()) {
-      AnimationComponent* anim = a.GetFirstComponent<AnimationComponent>();
+      std::shared_ptr<AnimationComponent> anim = a.GetFirstComponent<AnimationComponent>();
       auto onFinish = [alpha = &a, anim, this]() {
         // This will happen on the core's tick step but we want it to happen immediately after too.
         anim->SetAnimation("CORE_FULL");
@@ -53,12 +53,12 @@ void AlphaElectricState::OnUpdate(double _elapsed, AlphaCore& a) {
   if (!ready) return;
 
   int count = a.GetRank() == AlphaCore::Rank::EX ? 10 : 7;
-  current = new AlphaElectricCurrent(a.GetTeam(), count);
+  current = std::make_shared<AlphaElectricCurrent>(a.GetTeam(), count);
   auto props = current->GetHitboxProperties();
   props.aggressor = a.GetID();
   current->SetHitboxProperties(props);
 
-  auto state = a.GetField()->AddEntity(*current, a.GetTile()->GetX(), a.GetTile()->GetY());
+  auto state = a.GetField()->AddEntity(current, a.GetTile()->GetX(), a.GetTile()->GetY());
   if (state == Field::AddEntityStatus::deleted) {
     current = nullptr;
   }

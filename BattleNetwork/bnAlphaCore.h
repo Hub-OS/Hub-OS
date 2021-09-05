@@ -12,8 +12,8 @@ class AlphaArm;
 class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   friend class AlphaIdleState;
 
-  DefenseRule* virusBody{ nullptr };
-  AnimationComponent* animationComponent{ nullptr };
+  std::shared_ptr<DefenseRule> virusBody{ nullptr };
+  std::shared_ptr<AnimationComponent> animationComponent{ nullptr };
   SpriteProxyNode* acid{ nullptr }, *head{ nullptr }, *side{ nullptr }, *leftShoulder{ nullptr }, 
     *rightShoulder{ nullptr }, *leftShoulderShoot{ nullptr }, *rightShoulderShoot{ nullptr };
   Animation animation;
@@ -21,8 +21,8 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   float hitHeight;
   int coreHP, prevCoreHP;
 
-  AlphaArm* leftArm{ nullptr };
-  AlphaArm* rightArm{ nullptr };
+  std::shared_ptr<AlphaArm> leftArm{ nullptr };
+  std::shared_ptr<AlphaArm> rightArm{ nullptr };
 
   bool impervious;
   bool shootSuperVulcans;
@@ -36,9 +36,11 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   public:
     AlphaCoreDefenseRule(int& alphaCoreHP);
     ~AlphaCoreDefenseRule();
-    void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
+    void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) override;
     Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
-  } *defense{ nullptr };
+  };
+  
+  std::shared_ptr<AlphaCoreDefenseRule> defense{ nullptr };
 public:
   using DefaultState = AlphaIdleState;
 

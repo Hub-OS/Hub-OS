@@ -55,11 +55,11 @@ Mob* TwoMettaurMob::Build(Field* field) {
             // randomly spawn met with random card list
             // provided from our available built-in card list
             if (rand() % 50 > 25) {
-              mutator->Mutate([mob](Character& in) {
-                OwnedCardsUI* ui = in.CreateComponent<OwnedCardsUI>(&in, nullptr);
+              mutator->Mutate([mob](auto in) {
+                auto ui = in->template CreateComponent<OwnedCardsUI>(in, nullptr);
                 ui->AddCards(::GenCards());
-                ui->setPosition(0, -in.GetHeight());
-                });
+                ui->setPosition(0, -in->GetHeight());
+              });
             }
           }
         }

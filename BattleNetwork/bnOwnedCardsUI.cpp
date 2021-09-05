@@ -2,7 +2,7 @@
 
 using std::to_string;
 
-OwnedCardsUI::OwnedCardsUI(Character* owner, CardPackageManager* packageManager) :
+OwnedCardsUI::OwnedCardsUI(std::shared_ptr<Character> owner, CardPackageManager* packageManager) :
   SelectedCardsUI(owner, packageManager)
 {
 }

@@ -25,7 +25,7 @@ public:
    * @brief Deals damage with default hit props
    * @param _entity
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
   /**
   * @brief does nothing

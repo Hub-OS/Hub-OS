@@ -21,15 +21,13 @@ private:
   Animation animation;
   sf::Sprite bubble;
   double duration; /*!< when this reaches zero, pops */
-  DefenseBubbleWrap* defense; /*!< Add BubbleWrapTrap defense rule */
+  std::shared_ptr<DefenseBubbleWrap> defense; /*!< Add BubbleWrapTrap defense rule */
   bool willDelete;
   std::vector<InputEvent> lastFrameStates;
 public:
   /**
    * @brief Attaches to the owner, sets the animation */
-  BubbleTrap(Character* owner);
-  
-  ~BubbleTrap();
+  BubbleTrap(std::weak_ptr<Entity> owner);
   
   /**
    * @brief Does not inject into the battle scene

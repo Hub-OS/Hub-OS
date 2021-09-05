@@ -19,7 +19,7 @@ public:
   ~Meteor();
 
   void OnUpdate(double _elapsed) override;
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
   void OnSpawn(Battle::Tile& start) override;
   void OnDelete() override;
 };

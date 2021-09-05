@@ -35,7 +35,7 @@ public:
   /**
    @param _entity Owner of this component
     */
-  AnimationComponent(Entity* _entity);
+  AnimationComponent(std::weak_ptr<Entity> _entity);
   ~AnimationComponent();
 
   /**
@@ -151,7 +151,7 @@ public:
   void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string& uuid);
 
   void SyncAnimation(Animation& other);
-  void SyncAnimation(AnimationComponent* other);
+  void SyncAnimation(std::shared_ptr<AnimationComponent> other);
 
   void AddToSyncList(const AnimationComponent::SyncItem& item);
   void RemoveFromSyncList(const AnimationComponent::SyncItem& item);
@@ -171,7 +171,6 @@ private:
   Animation animation; /*!< Animation object */
   double speed; /*!< Playback speed */
   bool stunnedLastFrame{ false };
-  Character* character; /*!< Owner already casted as Character*/
   std::vector<SyncItem> syncList;
 
   void RefreshSyncItem(SyncItem& item);

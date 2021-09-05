@@ -10,7 +10,7 @@
 #include "bnAnimationComponent.h"
 class Wave : public Spell {
 protected:
-  AnimationComponent* animation;
+  std::shared_ptr<AnimationComponent> animation;
   double speed;
   bool crackTiles{ false };
   bool poisonTiles{ false };
@@ -19,7 +19,7 @@ public:
   ~Wave();
 
   void OnUpdate(double _elapsed) override;
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
   void OnDelete() override;
   void PoisonTiles(bool state);
   void CrackTiles(bool state);

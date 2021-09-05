@@ -37,9 +37,9 @@ public:
    * @brief If an obstacle, deals damage and pops. If character, tries adding a bubble trap component and pops.
    * @param _entity
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
 
-  void OnCollision(const Character*) override;
+  void OnCollision(const std::shared_ptr<Character>) override;
 
   const bool UnknownTeamResolveCollision(const Spell& other) const override final;
 

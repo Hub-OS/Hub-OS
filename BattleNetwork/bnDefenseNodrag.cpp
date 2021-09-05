@@ -17,7 +17,7 @@ Hit::Properties& DefenseNodrag::FilterStatuses(Hit::Properties& statuses)
   return statuses;
 }
 
-void DefenseNodrag::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
+void DefenseNodrag::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)
 {
   // does nothing
 }

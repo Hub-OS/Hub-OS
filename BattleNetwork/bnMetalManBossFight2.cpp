@@ -16,8 +16,8 @@ Mob* MetalManBossFight2::Build(Field* field) {
 
   //mob->RegisterRankedReward(1, BattleItem(Battle::Card(139, 0, '*', 120, Element::none, "ProtoMan", "Slices all enmy on field", "ProtoMan appears, stopping time, and teleports to each enemy striking once.", 5)));
 
-  field->AddEntity(*new Gear(Team::blue, Direction::left), 3, 2);
-  field->AddEntity(*new Gear(Team::blue, Direction::right), 4, 2);
+  field->AddEntity(std::make_shared<Gear>(Team::blue, Direction::left), 3, 2);
+  field->AddEntity(std::make_shared<Gear>(Team::blue, Direction::right), 4, 2);
 
 
   auto spawner = mob->CreateSpawner<MetalMan>(MetalMan::Rank::EX);

@@ -7,7 +7,7 @@ class AlphaArm;
 class AlphaClawSwipeState : public AIState<AlphaCore>
 {
 private:
-  AlphaArm* leftArm{ nullptr }, *rightArm{nullptr};
+  std::shared_ptr<AlphaArm> leftArm{ nullptr }, rightArm{nullptr};
 
   bool goldenArmState;
   Battle::Tile* last;

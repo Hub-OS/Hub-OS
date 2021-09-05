@@ -28,10 +28,10 @@ void Aura::OnHitCallback(Spell& in, Character& owner, bool windRemove) {
         this->fx->flyAccel = { 5.f, -12.0f };
       }
 
-      owner.RemoveNode(this->fx);
+      owner.RemoveNode(this->fx.get());
 
       this->fx->flyStartTile = owner.GetTile();
-      this->fx->flyStartTile->AddNode(this->fx);
+      this->fx->flyStartTile->AddNode(this->fx.get());
       this->fx->SetLayer(-1); // stay in front of the tile
 
       // this will trigger the flicker-out animation as it flies away
@@ -57,10 +57,10 @@ void Aura::RemoveDefenseRule()
   }
 }
 
-Aura::Aura(Aura::Type type, Character* owner) :
+Aura::Aura(Aura::Type type, std::weak_ptr<Character> ownerWeak) :
   type(type),
-  Component(owner, Component::lifetimes::battlestep),
-  DefenseAura([this](Spell& s, Character& c, bool b) { OnHitCallback(s, c, b); })
+  Component(ownerWeak, Component::lifetimes::battlestep),
+  DefenseAura([this](auto s, auto c, bool b) { OnHitCallback(*s, *c, b); })
 {
   timer = 50; // seconds
 
@@ -93,11 +93,12 @@ Aura::Aura(Aura::Type type, Character* owner) :
 
   currHP = health;
 
-  owner->AddDefenseRule(this);
+  auto owner = ownerWeak.lock();
+  owner->AddDefenseRule(shared_from_this());
   fx = owner->CreateComponent<Aura::VisualFX>(owner, type);
   fx->currHP = health;
   fx->timer = timer;
-  owner->AddNode(fx);
+  owner->AddNode(fx.get());
 
   fx->ShowHP(owner->GetTeam() == Team::red); // red team sees their aura hp at all times
 }
@@ -105,7 +106,14 @@ Aura::Aura(Aura::Type type, Character* owner) :
 void Aura::OnUpdate(double _elapsed) {
   if (Injected() == false || IsReplaced()) return;
 
-  if (fx && GetOwner()->GetTeam() == Team::blue) {
+  auto owner = GetOwner();
+
+  if(!owner) {
+    Eject();
+    return;
+  }
+
+  if (fx && owner->GetTeam() == Team::blue) {
     if (Input().Has(InputEvents::held_option)) {
       fx->ShowHP(true);
     }
@@ -136,12 +144,12 @@ void Aura::OnUpdate(double _elapsed) {
     return;
   }
 
- if (GetOwner()->GetTile() == nullptr) {
+ if (owner->GetTile() == nullptr) {
    fx? fx->Hide() : (void)0;
    return;
  }
 
- if (GetOwner()->WillRemoveLater()) {
+ if (owner->WillRemoveLater()) {
    timer = 0;
    Eject();
  }
@@ -159,9 +167,10 @@ void Aura::Inject(BattleSceneBase& bs)
 
 void Aura::OnReplace()
 {
-  if (fx) {
+  auto owner = GetOwner();
+  if (owner && fx) {
     // Stop drawing the old aura
-    GetOwner()->RemoveNode(fx);
+    owner->RemoveNode(fx.get());
   }
 
   defenseRuleRemoved = true;
@@ -206,8 +215,10 @@ void Aura::TakeDamage(Character& owner, const Hit::Properties& props)
 
 Aura::~Aura()
 {
-  if(fx) {
-    GetOwner()->RemoveNode(fx);
+  auto owner = GetOwner();
+
+  if(owner && fx) {
+    owner->RemoveNode(fx.get());
     fx->Eject();
   }
 }
@@ -215,7 +226,7 @@ Aura::~Aura()
 //////////////////////////////////////////////////////
 //                Visual FX object                  //
 //////////////////////////////////////////////////////
-Aura::VisualFX::VisualFX(Entity* owner, Aura::Type type) : 
+Aura::VisualFX::VisualFX(std::weak_ptr<Entity> owner, Aura::Type type) : 
   type(type),
   UIComponent(owner) {
     
@@ -256,7 +267,7 @@ Aura::VisualFX::VisualFX(Entity* owner, Aura::Type type) :
   animation.Update(0, aura->getSprite());
 
   AddNode(aura);
-  this->setPosition(0, -owner->GetHeight() / 2.f / 2.f); // descale from 2.0x upscale and then get the half of the height
+  this->setPosition(0, -owner.lock()->GetHeight() / 2.f / 2.f); // descale from 2.0x upscale and then get the half of the height
 
   // we want to draw relative to the component's owner
   SetDrawOnUIPass(false);

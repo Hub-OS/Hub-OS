@@ -17,7 +17,7 @@
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, \
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
-DarkTornadoCardAction::DarkTornadoCardAction(Character* actor, int damage) 
+DarkTornadoCardAction::DarkTornadoCardAction(std::shared_ptr<Character> actor, int damage) 
 : CardAction(actor, "PLAYER_SHOOTING"), 
   attachmentAnim(FAN_ANIM), armIsOut(false), damage(damage) {
   fan.setTexture(*Textures().LoadTextureFromFile(FAN_PATH));
@@ -36,8 +36,8 @@ DarkTornadoCardAction::~DarkTornadoCardAction()
 {
 }
 
-void DarkTornadoCardAction::OnExecute(Character* user) {
-  auto* actor = this->GetActor();
+void DarkTornadoCardAction::OnExecute(std::shared_ptr<Character> user) {
+  auto actor = this->GetActor();
 
   attachmentAnim.Update(0, attachment->getSprite());
 
@@ -49,7 +49,7 @@ void DarkTornadoCardAction::OnExecute(Character* user) {
 
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {
-    Tornado* tornado = new Tornado(team, 8, damage);
+    auto tornado = std::make_shared<Tornado>(team, 8, damage);
     tornado->setTexture(Textures().LoadTextureFromFile("resources/spells/spell_tornado_dark.png"));
 
     auto props = tornado->GetHitboxProperties();
@@ -57,7 +57,7 @@ void DarkTornadoCardAction::OnExecute(Character* user) {
     tornado->SetHitboxProperties(props);
 
     int step = team == Team::red ? 2 : -2;
-    field->AddEntity(*tornado, tile->GetX() + step, tile->GetY());
+    field->AddEntity(tornado, tile->GetX() + step, tile->GetY());
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times

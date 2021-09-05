@@ -25,7 +25,7 @@ public:
    * @param owner the original spell source
    * @param duration how long the hitbox should linger in seconds
    */
-  SharedHitbox(Spell* owner, float duration = 0.0f);
+  SharedHitbox(std::weak_ptr<Spell> owner, float duration = 0.0f);
    ~SharedHitbox();
 
   /**
@@ -38,7 +38,7 @@ public:
    * @brief owner->Attack(_entity) is called 
    * @param _entity the character to attack that is not the same as the owner
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Character> _entity) override;
   void OnDelete() override;
   void OnSpawn(Battle::Tile& start) override;
   const float GetHeight() const override;
@@ -46,5 +46,5 @@ public:
 private:
   double cooldown{}; /*< When cooldown reaches zero, this hitbox removes */
   bool keepAlive{}; /*!< If duration is not set, the hitbox stays alive for long as the owner stays alive*/
-  Spell* owner{ nullptr }; /*!< When this hitbox is hit, the owner is hit */
+  std::weak_ptr<Spell> owner; /*!< When this hitbox is hit, the owner is hit */
 };

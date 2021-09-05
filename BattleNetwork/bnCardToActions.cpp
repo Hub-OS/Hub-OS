@@ -39,12 +39,12 @@
  * This is for demonstration of the engine until we have scripting done
  */
 
-CardAction* CardToAction(const Battle::Card& card, Character* character, CardPackageManager* packageManager) {
+std::shared_ptr<CardAction> CardToAction(const Battle::Card& card, std::shared_ptr<Character> character, CardPackageManager* packageManager) {
   if (!character) return nullptr;
 
   // Identify the card by the name
   std::string name = card.GetShortName();
-  CardAction* next{nullptr};
+  std::shared_ptr<CardAction> next{nullptr};
 
   if (packageManager && packageManager->HasPackage(card.GetUUID())) {
     auto& meta = packageManager->FindPackageByID(card.GetUUID());
@@ -52,9 +52,9 @@ CardAction* CardToAction(const Battle::Card& card, Character* character, CardPac
   }
   
   if (name.substr(0, 4) == "Atk+") {
-    next = new InvalidCardAction(character);
+    next = std::make_shared<InvalidCardAction>(character);
   }else if (name.substr(0, 5) == "Recov") {
-    next = new RecoverCardAction(character, card.GetDamage());
+    next = std::make_shared<RecoverCardAction>(character, card.GetDamage());
   }
   else if (name == "CrckPanel") {
     // Crack the top, middle, and bottom row in front of player
@@ -73,103 +73,103 @@ CardAction* CardToAction(const Battle::Card& card, Character* character, CardPac
     character->Audio().Play(AudioType::PANEL_CRACK);
   }
   else if (name == "YoYo") {
-    next = new YoYoCardAction(character, card.GetDamage());
+    next = std::make_shared<YoYoCardAction>(character, card.GetDamage());
   }
   else if (name == "Invis") {
-    next = new InvisCardAction(character);
+    next = std::make_shared<InvisCardAction>(character);
   }
   else if (name.substr(0, 7) == "Rflectr") {
-    next = new ReflectCardAction(character, card.GetDamage(), ReflectShield::Type::yellow);
+    next = std::make_shared<ReflectCardAction>(character, card.GetDamage(), ReflectShield::Type::yellow);
   }
   else if (name == "Zeta Cannon 1") {
-    next = new ZetaCannonCardAction(character, card.GetDamage());
+    next = std::make_shared<ZetaCannonCardAction>(character, card.GetDamage());
   }
   else if (name == "TwinFang") {
-    next = new TwinFangCardAction(character, card.GetDamage());
+    next = std::make_shared<TwinFangCardAction>(character, card.GetDamage());
   }
   else if (name == "Tornado") {
-    next = new TornadoCardAction(character, card.GetDamage());
+    next = std::make_shared<TornadoCardAction>(character, card.GetDamage());
   }
   else if (name == "DarkTorn") {
-    next = new DarkTornadoCardAction(character, card.GetDamage());
+    next = std::make_shared<DarkTornadoCardAction>(character, card.GetDamage());
   }
   else if (name == "ElecSwrd") {
-    next = new ElecSwordCardAction(character, card.GetDamage());
+    next = std::make_shared<ElecSwordCardAction>(character, card.GetDamage());
   }
   else if (name.substr(0, 7) == "FireBrn") {
     auto type = FireBurn::Type(std::atoi(name.substr(7, 1).c_str()));
-    next = new FireBurnCardAction(character, type, card.GetDamage());
+    next = std::make_shared<FireBurnCardAction>(character, type, card.GetDamage());
   }
   else if (name.substr(0, 6) == "Vulcan") {
-    next = new VulcanCardAction(character, card.GetDamage());
+    next = std::make_shared<VulcanCardAction>(character, card.GetDamage());
   }
   else if (name.size() >= 6 && name.substr(0, 6) == "Cannon") {
-    next = new CannonCardAction(character, CannonCardAction::Type::green, card.GetDamage());
+    next = std::make_shared<CannonCardAction>(character, CannonCardAction::Type::green, card.GetDamage());
   }
   else if (name == "HiCannon") {
-    next = new CannonCardAction(character, CannonCardAction::Type::blue, card.GetDamage());
+    next = std::make_shared<CannonCardAction>(character, CannonCardAction::Type::blue, card.GetDamage());
   }
   else if (name == "M-Cannon") {
-    next = new CannonCardAction(character, CannonCardAction::Type::red, card.GetDamage());
+    next = std::make_shared<CannonCardAction>(character, CannonCardAction::Type::red, card.GetDamage());
   }
   else if (name == "MiniBomb") {
-    next = new BombCardAction(character, card.GetDamage());
+    next = std::make_shared<BombCardAction>(character, card.GetDamage());
   }
   else if (name == "CrakShot") {
-    next = new CrackShotCardAction(character, card.GetDamage());
+    next = std::make_shared<CrackShotCardAction>(character, card.GetDamage());
   }
   else if (name == "Sword") {
-    next = new SwordCardAction(character, card.GetDamage());
+    next = std::make_shared<SwordCardAction>(character, card.GetDamage());
   }
   else if (name == "ElcPuls1") {
-    next = new ElecPulseCardAction(character, card.GetDamage());
+    next = std::make_shared<ElecPulseCardAction>(character, card.GetDamage());
   }
   else if (name == "LongSwrd") {
-    next = new LongSwordCardAction(character, card.GetDamage());
+    next = std::make_shared<LongSwordCardAction>(character, card.GetDamage());
   }
   else if (name == "WideSwrd") {
-    next = new WideSwordCardAction(character, card.GetDamage());
+    next = std::make_shared<WideSwordCardAction>(character, card.GetDamage());
   }
   else if (name == "FireSwrd") {
-    auto action = new LongSwordCardAction(character, card.GetDamage());
+    auto action = std::make_shared<LongSwordCardAction>(character, card.GetDamage());
     action->SetElement(Element::fire);
     next = action;
   }
   else if (name == "AirShot") {
-    next = new AirShotCardAction(character, card.GetDamage());
+    next = std::make_shared<AirShotCardAction>(character, card.GetDamage());
   }
   else if (name == "Thunder") {
-    next = new ThunderCardAction(character, card.GetDamage());
+    next = std::make_shared<ThunderCardAction>(character, card.GetDamage());
   }
   else if (name.substr(0, 4) == "Roll") {
-    next = new RollCardAction(character, card.GetDamage());
+    next = std::make_shared<RollCardAction>(character, card.GetDamage());
   }
   else if (name == "ProtoMan") {
-    next = new ProtoManCardAction(character, card.GetDamage());
+    next = std::make_shared<ProtoManCardAction>(character, card.GetDamage());
   }
   else if (name == "RockCube") {
-    next = new CubeCardAction(character);
+    next = std::make_shared<CubeCardAction>(character);
   }
   else if (name == "AreaGrab") {
-    next = new AreaGrabCardAction(character, 10);
+    next = std::make_shared<AreaGrabCardAction>(character, 10);
   }
   else if (name == "AntiDmg") {
-    next = new AntiDmgCardAction(character, card.GetDamage());
+    next = std::make_shared<AntiDmgCardAction>(character, card.GetDamage());
   }
   else if (name == "Barrier") {
-    next = new AuraCardAction(character, Aura::Type::BARRIER_10);
+    next = std::make_shared<AuraCardAction>(character, Aura::Type::BARRIER_10);
   }
   else if (name.substr(0, 7) == "MachGun") {
-    next = new MachGunCardAction(character, card.GetDamage());
+    next = std::make_shared<MachGunCardAction>(character, card.GetDamage());
   }
   else if (name == "HubBatch") {
-    next = new HubBatchCardAction(character);
+    next = std::make_shared<HubBatchCardAction>(character);
   }
   else if (name == "AirHocky") {
-    next = new AirHockeyCardAction(character, card.GetDamage());
+    next = std::make_shared<AirHockeyCardAction>(character, card.GetDamage());
   }
   else if (name == "WindRack") {
-    next = new WindRackCardAction(character, card.GetDamage());
+    next = std::make_shared<WindRackCardAction>(character, card.GetDamage());
   }
 
   return next;

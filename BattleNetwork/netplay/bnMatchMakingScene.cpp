@@ -590,11 +590,11 @@ void MatchMakingScene::onUpdate(double elapsed) {
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
       auto mugshot = Textures().LoadTextureFromFile(image);
       auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-      Player* player = meta.GetData();
+      auto player = std::shared_ptr<Player>(meta.GetData());
 
 
       NetworkBattleSceneProps props = {
-        { *player, pa, copy, new Field(6, 3), std::make_shared<SecretBackground>() },
+        { player, pa, copy, new Field(6, 3), std::make_shared<SecretBackground>() },
         sf::Sprite(*mugshot),
         mugshotAnim,
         emotions,

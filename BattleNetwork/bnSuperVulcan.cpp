@@ -34,10 +34,10 @@ SuperVulcan::~SuperVulcan() {
 
 void SuperVulcan::OnUpdate(double _elapsed) {
   animation.Update(_elapsed, getSprite());
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 }
 
-void SuperVulcan::Attack(Character* _entity) {
+void SuperVulcan::Attack(std::shared_ptr<Character> _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     Audio().Play(AudioType::HURT);
   }

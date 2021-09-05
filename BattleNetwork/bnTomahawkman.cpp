@@ -13,18 +13,21 @@ const float COPY_DROP_COOLDOWN = 0.15f; // in seconds
 
 const std::string RESOURCE_PATH = "resources/navis/tomahawk/tomahawk.animation";
 
-CardAction* Tomahawkman::OnExecuteBusterAction()
+std::shared_ptr<CardAction> Tomahawkman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  auto character = shared_from_base<Character>();
+  return std::make_shared<BusterCardAction>(character, false, 1*GetAttackLevel());
 }
 
-CardAction* Tomahawkman::OnExecuteChargedBusterAction()
+std::shared_ptr<CardAction> Tomahawkman::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 10*GetAttackLevel());
+  auto character = shared_from_base<Character>();
+  return std::make_shared<BusterCardAction>(character, true, 10*GetAttackLevel());
 }
 
-CardAction* Tomahawkman::OnExecuteSpecialAction() {
-  return new TomahawkSwingCardAction(this, 10*GetAttackLevel() + 10);
+std::shared_ptr<CardAction> Tomahawkman::OnExecuteSpecialAction() {
+  auto character = shared_from_base<Character>();
+  return std::make_shared<TomahawkSwingCardAction>(character, 10*GetAttackLevel() + 10);
 }
 
 Tomahawkman::Tomahawkman() : Player()

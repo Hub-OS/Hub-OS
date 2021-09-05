@@ -33,7 +33,7 @@ Vulcan::~Vulcan() {
 
 void Vulcan::OnUpdate(double _elapsed) {
   // Strike panel and leave
-  GetTile()->AffectEntities(this);
+  GetTile()->AffectEntities(*this);
 
   Teleport(GetTile() + GetDirection());
 
@@ -51,21 +51,21 @@ void Vulcan::OnDelete()
   Remove();
 }
 
-void Vulcan::Attack(Character* _entity) {
+void Vulcan::Attack(std::shared_ptr<Character> _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     Audio().Play(AudioType::HURT);
-    auto impact = new ParticleImpact(ParticleImpact::Type::vulcan);
+    auto impact = std::make_shared<ParticleImpact>(ParticleImpact::Type::vulcan);
     impact->SetHeight(_entity->GetHeight());
-    field->AddEntity(*impact, *_entity->GetTile());
+    field->AddEntity(impact, *_entity->GetTile());
 
     auto tile = _entity->GetTile();
 
     auto next = GetField()->GetAt(tile->GetX() + 1, tile->GetY());
 
     if (next) {
-      Spell* hitbox = new Hitbox(GetTeam(), 0);
+      auto hitbox = std::make_shared<Hitbox>(GetTeam(), 0);
       hitbox->SetHitboxProperties(GetHitboxProperties());
-      field->AddEntity(*hitbox, *next);
+      field->AddEntity(hitbox, *next);
     }
     Delete();
   }

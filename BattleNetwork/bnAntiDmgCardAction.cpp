@@ -2,7 +2,7 @@
 #include "bnCharacter.h"
 #include "bnNinjaAntiDamage.h"
 
-AntiDmgCardAction::AntiDmgCardAction(Character* actor, int damage) : 
+AntiDmgCardAction::AntiDmgCardAction(std::shared_ptr<Character> actor, int damage) : 
   damage(damage),
   CardAction(actor, "PLAYER_IDLE"){
   this->SetLockout(CardAction::LockoutProperties{
@@ -12,7 +12,7 @@ AntiDmgCardAction::AntiDmgCardAction(Character* actor, int damage) :
   });
 }
 
-void AntiDmgCardAction::OnExecute(Character* user) {
+void AntiDmgCardAction::OnExecute(std::shared_ptr<Character> user) {
   user->CreateComponent<NinjaAntiDamage>(user)->Update(0);
 }
 

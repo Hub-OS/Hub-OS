@@ -30,7 +30,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   std::string name;
   Team team{ Team::unknown };
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
-  Character* user{ nullptr }, *stuntDouble{ nullptr };
+  std::shared_ptr<Character> user{ nullptr }, stuntDouble{ nullptr };
   std::shared_ptr<CardAction> action;
 
   TimeFreezeBattleState();
@@ -48,5 +48,5 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   const bool FadeInBackdrop();
   bool IsOver();
 
-  Character* CreateStuntDouble(Character* from);
+  std::shared_ptr<Character> CreateStuntDouble(std::shared_ptr<Character> from);
 };

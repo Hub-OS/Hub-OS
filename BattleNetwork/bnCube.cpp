@@ -26,7 +26,7 @@ Cube::Cube(Field* _field) :
 
   previousDirection = Direction::none;
 
-  defense = new DefenseObstacleBody();
+  defense = std::make_shared<DefenseObstacleBody>();
   AddDefenseRule(defense);
 
   auto props = GetHitboxProperties();
@@ -62,10 +62,10 @@ bool Cube::CanMoveTo(Battle::Tile * next)
     if (next->ContainsEntityType<Obstacle>()) {
       bool stop = false;
 
-      auto allEntities = next->FindEntities([&stop, this](Entity* e) -> bool {
-        if (this == e) return false;
+      auto allEntities = next->FindEntities([&stop, this](std::shared_ptr<Entity> e) -> bool {
+        if (this == e.get()) return false;
 
-        Cube* isCube = dynamic_cast<Cube*>(e);
+        Cube* isCube = dynamic_cast<Cube*>(e.get());
 
         if (isCube && isCube->GetElement() == Element::ice && GetElement() == Element::ice) {
           Direction dir = GetDirection();
@@ -104,7 +104,7 @@ void Cube::OnUpdate(double _elapsed) {
   }
 
   // May have just finished sliding
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 
   // Keep momentum
   if (!IsSliding() && pushedByDrag) {
@@ -121,23 +121,22 @@ void Cube::OnUpdate(double _elapsed) {
 // Triggered by health == 0
 void Cube::OnDelete() {
   RemoveDefenseRule(defense);
-  delete defense;
 
   if (animation->GetAnimationString() != "APPEAR") {
     int intensity = rand() % 2;
     intensity += 1;
 
     auto left = (GetElement() == Element::ice) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
-    GetField()->AddEntity(*new RockDebris(left, (double)intensity), *GetTile());
+    GetField()->AddEntity(std::make_shared<RockDebris>(left, (double)intensity), *GetTile());
 
 
     intensity = rand() % 3;
     intensity += 1;
     auto right = (GetElement() == Element::ice) ? RockDebris::Type::RIGHT_ICE : RockDebris::Type::RIGHT;
-    GetField()->AddEntity(*new RockDebris(right, (double)intensity), *GetTile());
+    GetField()->AddEntity(std::make_shared<RockDebris>(right, (double)intensity), *GetTile());
 
-    auto poof = new ParticlePoof();
-    GetField()->AddEntity(*poof, *GetTile());
+    auto poof = std::make_shared<ParticlePoof>();
+    GetField()->AddEntity(poof, *GetTile());
 
     Audio().Play(AudioType::PANEL_CRACK);
   }
@@ -155,10 +154,10 @@ const float Cube::GetHeight() const
   return 64.0f;
 }
 
-void Cube::Attack(Character* other) {
+void Cube::Attack(std::shared_ptr<Character> other) {
   if (animation->GetAnimationString() == "APPEAR") return;
 
-  Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
+  auto isObstacle = dynamic_cast<Obstacle*>(other.get());
 
   if (isObstacle) {
     // breaking prop is insta-kill
@@ -171,7 +170,7 @@ void Cube::Attack(Character* other) {
     return;
   }
 
-  Character* isCharacter = dynamic_cast<Character*>(other);
+  auto isCharacter = dynamic_cast<Character*>(other.get());
 
   if (isCharacter && isCharacter != this) {
     killLater = true;
@@ -196,7 +195,7 @@ void Cube::SetAnimation(std::string animation)
 
 void Cube::OnSpawn(Battle::Tile & start)
 {
-  animation = CreateComponent<AnimationComponent>(this);
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
   animation->SetPath("resources/mobs/cube/cube.animation");
   animation->Load();
 
@@ -224,8 +223,8 @@ void Cube::OnSpawn(Battle::Tile & start)
     // delete other cubes present
     std::vector<Cube*> otherCubes;
 
-    field->FindEntities([&otherCubes](Entity* in) mutable {
-      if (Cube* o = dynamic_cast<Cube*>(in)) {
+    field->FindEntities([&otherCubes](std::shared_ptr<Entity> in) mutable {
+      if (auto o = dynamic_cast<Cube*>(in.get())) {
         otherCubes.push_back(o);
       }
       return false;

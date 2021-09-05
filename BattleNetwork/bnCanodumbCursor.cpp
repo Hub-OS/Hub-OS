@@ -19,7 +19,7 @@ CanodumbCursor::CanodumbCursor(CanodumbIdleState* _parentState) :
   target(nullptr) {
   SetFloatShoe(true);
 
-  animationComponent = new AnimationComponent(this);
+  animationComponent = std::make_shared<AnimationComponent>(weak_from_this());
   RegisterComponent(animationComponent);
 
   parentState = _parentState;
@@ -76,7 +76,7 @@ void CanodumbCursor::OnUpdate(double _elapsed) {
 
     if (t != nullptr) {
       GetTile()->RemoveEntityByID(GetID());
-      t->AddEntity(*this);
+      t->AddEntity(shared_from_this());
     }
     else {
       Delete();

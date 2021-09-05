@@ -37,7 +37,7 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
 
     if (next) {
       // Spawn a hurt box
-      Hitbox* hitbox = new Hitbox(progs.GetTeam(), 100);
+      auto hitbox = std::make_shared<Hitbox>(progs.GetTeam(), 100);
       auto props = hitbox->GetHitboxProperties();
       props.flags = props.flags | Hit::breaking | Hit::flash;
       props.aggressor = progs.GetID();
@@ -45,7 +45,7 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
       props.drag = { Direction::left, 2u };
       hitbox->SetHitboxProperties(props);
 
-      progs.GetField()->AddEntity(*hitbox, next->GetX(), next->GetY());
+      progs.GetField()->AddEntity(hitbox, next->GetX(), next->GetY());
     }
   }
 

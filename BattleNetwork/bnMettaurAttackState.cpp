@@ -13,7 +13,7 @@ void MettaurAttackState::OnEnter(Mettaur& met) {
   int r = rand() % 10;
 
   // proof of concept using cards
-  if (SelectedCardsUI* ui = met.GetFirstComponent<OwnedCardsUI>(); ui && ui->Peek().has_value() && r > 1) {
+  if (auto ui = met.GetFirstComponent<OwnedCardsUI>(); ui && ui->Peek().has_value() && r > 1) {
     ui->UseNextCard();
     this->usingCard = true;
   }
@@ -61,7 +61,7 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
       break;
     }
 
-    Wave* spell = new Wave(met.team, speed, damage);
+    auto spell = std::make_shared<Wave>(met.team, speed, damage);
 
     auto props = spell->GetHitboxProperties();
     props.aggressor = met.GetID();
@@ -75,6 +75,6 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
     }
 
     spell->SetDirection(Direction::left);
-    met.field->AddEntity(*spell, met.tile->GetX() - 1, met.tile->GetY());
+    met.field->AddEntity(spell, met.tile->GetX() - 1, met.tile->GetY());
   }
 }

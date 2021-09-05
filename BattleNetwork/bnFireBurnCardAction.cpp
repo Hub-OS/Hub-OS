@@ -18,7 +18,7 @@
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-FireBurnCardAction::FireBurnCardAction(Character* actor, FireBurn::Type type, int damage) : 
+FireBurnCardAction::FireBurnCardAction(std::shared_ptr<Character> actor, FireBurn::Type type, int damage) : 
   CardAction(actor, "PLAYER_SHOOTING"),
   attachmentAnim(ANIM) {
   FireBurnCardAction::damage = damage;
@@ -40,13 +40,12 @@ FireBurnCardAction::FireBurnCardAction(Character* actor, FireBurn::Type type, in
 FireBurnCardAction::~FireBurnCardAction()
 {
 }
-void FireBurnCardAction::OnExecute(Character* user) {
-  auto* actor = GetActor();
-
+void FireBurnCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On shoot frame, drop projectile
   auto onFire = [=](int offset) -> void {
+    auto actor = GetActor();
     Team team = actor->GetTeam();
-    FireBurn* fb = new FireBurn(team, type, damage);
+    auto fb = std::make_shared<FireBurn>(team, type, damage);
     auto props = fb->GetHitboxProperties();
     props.aggressor = user->GetID();
     fb->SetHitboxProperties(props);
@@ -62,7 +61,7 @@ void FireBurnCardAction::OnExecute(Character* user) {
     auto tile = actor->GetTile()->Offset(((1 + offset) * dir), 0);
 
     if (tile) {
-      actor->GetField()->AddEntity(*fb, *tile);
+      actor->GetField()->AddEntity(fb, *tile);
     }
   };
 

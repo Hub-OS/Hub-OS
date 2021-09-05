@@ -5,20 +5,20 @@
 #include "bnRollHeart.h"
 #include "bnField.h"
 
-RollCardAction::RollCardAction(Character* actor, int damage) :
+RollCardAction::RollCardAction(std::shared_ptr<Character> actor, int damage) :
   CardAction(actor, "PLAYER_IDLE"), damage(damage)
 {
   this->SetLockout({ CardAction::LockoutType::sequence });
 }
 
-void RollCardAction::OnExecute(Character* user) {
-  auto* actor = this->GetActor();
+void RollCardAction::OnExecute(std::shared_ptr<Character> user) {
+  auto actor = this->GetActor();
 
   // On start of idle frame, spawn roll
   actor->Hide();
-  auto* roll = new RollHeal(actor->GetTeam(), actor, damage);
+  auto roll = std::make_shared<RollHeal>(actor->GetTeam(), actor, damage);
 
-  actor->GetField()->AddEntity(*roll, *actor->GetTile());
+  actor->GetField()->AddEntity(roll, *actor->GetTile());
 
   // step 1 wait for her animation to end
   CardAction::Step step1;
@@ -36,9 +36,9 @@ void RollCardAction::OnExecute(Character* user) {
 
   step2.updateFunc = [=](Step& self, double elapsed) {
     if (!heart) {
-      auto* actor = GetActor();
-      heart = new RollHeart(user, damage * 3);
-      actor->GetField()->AddEntity(*heart, *actor->GetTile());
+      auto actor = GetActor();
+      heart = std::make_shared<RollHeart>(user, damage * 3);
+      actor->GetField()->AddEntity(heart, *actor->GetTile());
     }
     else if (heart->WillRemoveLater()) {
       self.markDone();

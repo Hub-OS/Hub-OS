@@ -33,11 +33,11 @@ private:
 
   double duration{};
   Type type{};
-  DefenseRule* guard; /*!< Adds defense rule to attached entity */
+  std::shared_ptr<DefenseRule> guard; /*!< Adds defense rule to attached entity */
   Animation animation; /*!< Shield animation */
   bool activated; /*!< Flag if effect is active */
   int damage; /*!< Damage the reflect trail deals */
-  Character* owner{ nullptr };
+  std::shared_ptr<Character> owner{ nullptr };
 public:
   /**
    * @brief Adds a guard rule to the attached entity for a short time *
@@ -48,7 +48,7 @@ public:
    * At the end of the shield animation the rule is dropped and this 
    * component is removed from the owner and then deleted.
    */
-  ReflectShield(Character* owner, int damage, Type type);
+  ReflectShield(std::shared_ptr<Character> owner, int damage, Type type);
   
   /**
    * @brief Delete guard pointer

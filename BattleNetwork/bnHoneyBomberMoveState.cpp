@@ -23,7 +23,7 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
   Battle::Tile* temp = honey.tile;
   Battle::Tile* next = nullptr;
 
-  Entity* target = honey.GetTarget();
+  std::shared_ptr<Entity> target = honey.GetTarget();
 
   bool isAggro = honey.GetFirstComponent<AnimationComponent>()->GetPlaybackSpeed() != 1.0;
   if (target && target->GetTile() && isAggro)
@@ -47,8 +47,8 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
 
   auto onMove = [honeyPtr = &honey, this] {
     this->isMoving = true;
-    auto fx = new MobMoveEffect();
-    honeyPtr->GetField()->AddEntity(*fx, *honeyPtr->GetTile());
+    auto fx = std::make_shared<MobMoveEffect>();
+    honeyPtr->GetField()->AddEntity(fx, *honeyPtr->GetTile());
     return honeyPtr->ChangeState<HoneyBomberIdleState>();
   };
 

@@ -5,10 +5,10 @@ class TomahawkSwingCardAction : public CardAction {
   int damage{};
 
 public:
-  TomahawkSwingCardAction(Character* actor, int damage);
+  TomahawkSwingCardAction(std::shared_ptr<Character> actor, int damage);
   ~TomahawkSwingCardAction();
 
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
   void OnActionEnd() override;
   void OnAnimationEnd() override;
 };

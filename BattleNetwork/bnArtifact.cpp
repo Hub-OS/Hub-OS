@@ -26,5 +26,5 @@ void Artifact::AdoptTile(Battle::Tile * tile)
     setPosition(tile->getPosition());
   }
 
-  tile->AddEntity(*this);
+  tile->AddEntity(shared_from_this());
 }

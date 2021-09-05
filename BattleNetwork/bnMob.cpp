@@ -95,7 +95,7 @@ void Mob::Forget(Character& character) {
 
   auto forgetIter = tracked.begin();
   while(forgetIter != tracked.end()) {
-    if ((*forgetIter) == &character) {
+    if ((*forgetIter).get() == &character) {
       tracked.erase(forgetIter);
       break; // done
     }
@@ -192,9 +192,9 @@ Mob::MobData* Mob::GetNextMob() {
   return data;
 }
 
-void Mob::Track(Character& character)
+void Mob::Track(std::shared_ptr<Character> character)
 {
-  tracked.push_back(&character);
+  tracked.push_back(character);
 }
 
 void Mob::EnableFreedomMission(bool enabled)

@@ -18,5 +18,5 @@ public:
    * @brief Deal impact damage
    * @param _entity
    */
-  void Attack(Character* _entity);
+  void Attack(std::shared_ptr<Character> _entity);
 };

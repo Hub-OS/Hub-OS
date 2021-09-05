@@ -41,7 +41,7 @@ void AirHockey::OnUpdate(double _elapsed)
   bool isOverHole = GetTile()->IsHole();
 
   if (!isOverHole) {
-    GetTile()->AffectEntities(this);
+    GetTile()->AffectEntities(*this);
   }
   else {
     Delete();
@@ -76,7 +76,7 @@ void AirHockey::OnUpdate(double _elapsed)
   HighlightTile(Battle::Tile::Highlight::solid);
 }
 
-void AirHockey::Attack(Character* _entity)
+void AirHockey::Attack(std::shared_ptr<Character> _entity)
 {
   if (_entity->Hit(GetHitboxProperties())) {
     Audio().Play(AudioType::HURT);
@@ -103,14 +103,14 @@ bool AirHockey::CanMoveTo(Battle::Tile* next)
 void AirHockey::OnSpawn(Battle::Tile& start)
 {
   // Even on spawn, the hitbox is active
-  start.AffectEntities(this);
+  start.AffectEntities(*this);
   Audio().Play(launchSfx, AudioPriority::low);
 }
 
 void AirHockey::OnDelete()
 {
-  auto* fx = new MobMoveEffect();
-  auto result = GetField()->AddEntity(*fx, *GetTile());
+  auto fx = std::make_shared<MobMoveEffect>();
+  auto result = GetField()->AddEntity(fx, *GetTile());
 
   if (result != Field::AddEntityStatus::deleted) {
     fx->SetOffset(tileOffset);
@@ -119,12 +119,12 @@ void AirHockey::OnDelete()
   Remove();
 }
 
-void AirHockey::OnCollision(const Character*)
+void AirHockey::OnCollision(const std::shared_ptr<Character>)
 {
-  auto* particle = new ParticleImpact(ParticleImpact::Type::blue);
+  auto particle = std::make_shared<ParticleImpact>(ParticleImpact::Type::blue);
   particle->SetOffset(tileOffset);
 
-  GetField()->AddEntity(*particle, *GetTile());
+  GetField()->AddEntity(particle, *GetTile());
 }
 
 // Bounce flips x directional value and tests, then y, then both. If all 3 fail, do not bounce

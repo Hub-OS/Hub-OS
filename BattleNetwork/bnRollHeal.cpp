@@ -13,7 +13,7 @@
 
 #define RESOURCE_PATH "resources/spells/spell_roll.animation"
 
-RollHeal::RollHeal(Team team, Character* user, int _heal) : 
+RollHeal::RollHeal(Team team, std::shared_ptr<Character> user, int _heal) : 
   Spell(team), 
   user(user)
 {
@@ -30,7 +30,7 @@ RollHeal::RollHeal(Team team, Character* user, int _heal) :
 
   setTexture(Textures().LoadTextureFromFile("resources/spells/spell_roll.png"), true);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
@@ -114,7 +114,7 @@ RollHeal::~RollHeal() {
 
 void RollHeal::OnUpdate(double _elapsed) { }
 
-void RollHeal::Attack(Character* _entity) {
+void RollHeal::Attack(std::shared_ptr<Character> _entity) {
     // Old code went here
 }
 
@@ -125,11 +125,11 @@ void RollHeal::OnDelete()
 
 void RollHeal::DropHitbox(Battle::Tile* target)
 {
-    auto hitbox = new Hitbox(GetTeam());
+    auto hitbox = std::make_shared<Hitbox>(GetTeam());
     hitbox->HighlightTile(Battle::Tile::Highlight::solid);
     hitbox->SetHitboxProperties(GetHitboxProperties());
-    hitbox->AddCallback([](Character* hit) {
+    hitbox->AddCallback([](std::shared_ptr<Character> hit) {
         ResourceHandle().Audio().Play(AudioType::HURT);
     });
-    GetField()->AddEntity(*hitbox, *target);
+    GetField()->AddEntity(hitbox, *target);
 }

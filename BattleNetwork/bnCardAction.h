@@ -96,9 +96,9 @@ private:
   std::function<void()> prepareActionDelegate;
   ActionList sequence;
   std::list<Step*> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
-  Character* actor{ nullptr };
+  std::shared_ptr<Character> actor{ nullptr };
   Attachments attachments;
-  AnimationComponent* anim{ nullptr };
+  std::shared_ptr<AnimationComponent> anim{ nullptr };
   Battle::Card::Properties meta;
 
   // Used internally
@@ -108,7 +108,7 @@ private:
 public:
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
-  CardAction(Character* actor, const std::string& animation);
+  CardAction(std::shared_ptr<Character> actor, const std::string& animation);
   virtual ~CardAction();
 
   // Used by cards that use sequences (like most Time Freeze animations)
@@ -121,7 +121,7 @@ public:
   Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);
 
   // Shortcut to add an attachment to a character via their animation component
-  Attachment& AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node);
+  Attachment& AddAttachment(std::shared_ptr<Character> character, const std::string& point, SpriteProxyNode& node);
 
   // Calculate the offset for an attachment for a given point in the owner's animation set
   sf::Vector2f CalculatePointOffset(const std::string& point);
@@ -131,9 +131,9 @@ public:
   void SetLockoutGroup(const LockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
   void SetMetaData(const Battle::Card::Properties& props);
-  void Execute(Character* user);
+  void Execute(std::shared_ptr<Character> user);
   void EndAction();
-  void UseStuntDouble(Character& stuntDouble);
+  void UseStuntDouble(std::shared_ptr<Character> stuntDouble);
 
   const LockoutGroup GetLockoutGroup() const;
   const LockoutType GetLockoutType() const;
@@ -142,8 +142,8 @@ public:
   const bool IsLockoutOver() const;
   const Battle::Card::Properties& GetMetaData() const;
   const bool CanExecute() const;
-  Character* GetActor();
-  const Character* GetActor() const;
+  std::shared_ptr<Character> GetActor();
+  const std::shared_ptr<Character> GetActor() const;
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -151,5 +151,5 @@ public:
 protected:
   virtual void OnActionEnd() = 0;
   virtual void OnAnimationEnd() = 0;
-  virtual void OnExecute(Character* user) = 0;
+  virtual void OnExecute(std::shared_ptr<Character> user) = 0;
 };

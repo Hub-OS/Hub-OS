@@ -20,15 +20,15 @@ Hit::Properties& DefenseIndestructable::FilterStatuses(Hit::Properties& statuses
   return statuses;
 }
 
-void DefenseIndestructable::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
+void DefenseIndestructable::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)
 {
   judge.BlockImpact();
 
   // Only drop gaurd effect as a response to attacks that can do impact damage > 0
-  if (in.GetHitboxProperties().damage > 0 && (in.GetHitboxProperties().flags & Hit::impact) != 0) {
-    owner.GetField()->AddEntity(*new GuardHit(&owner, true), *owner.GetTile());
+  if (in->GetHitboxProperties().damage > 0 && (in->GetHitboxProperties().flags & Hit::impact) != 0) {
+    owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
     judge.BlockDamage();
   }
 
-  if (breakCollidingObjectOnHit) in.Delete();
+  if (breakCollidingObjectOnHit) in->Delete();
 }

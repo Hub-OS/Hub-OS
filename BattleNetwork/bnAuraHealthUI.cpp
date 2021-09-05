@@ -7,9 +7,8 @@ using std::to_string;
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-AuraHealthUI::AuraHealthUI(Character* owner) : UIComponent(owner) {
-   currHP = owner->GetHealth();
-   this->owner = owner;
+AuraHealthUI::AuraHealthUI(std::weak_ptr<Character> owner) : UIComponent(owner) {
+   currHP = owner.lock()->GetHealth();
    font.setTexture(*LOAD_TEXTURE(AURA_NUMSET));
    font.setScale(2.f, 2.f);
 }
@@ -25,7 +24,9 @@ void AuraHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const
   // Glyphs are 8x15 
   // 2nd row starts +1 pixel down
 
-  if (currHP > 0) {
+  auto owner = GetOwnerAs<Character>();
+
+  if (owner && currHP > 0) {
     int size = (int)(std::to_string(currHP).size());
     int hp = currHP;
     float offsetx = -(((size)*8.0f) / 2.0f)*font.getScale().x;
@@ -56,8 +57,7 @@ void AuraHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const
 }
 
 void AuraHealthUI::Update(double elapsed) {
-
-  if (GetOwner()) {
-    currHP = GetOwnerAs<Character>()->GetHealth();
+  if (auto owner = GetOwnerAs<Character>()) {
+    currHP = owner->GetHealth();
   }
 }

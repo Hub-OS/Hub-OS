@@ -15,7 +15,7 @@ public:
    * \brief Scans for enemies. Checks to see if protoman can
    * spawn in front of them. If so, the tile is stored
    * as targets.*/
-  ProtoManSummon(Character* user, int damage);
+  ProtoManSummon(std::shared_ptr<Character> user, int damage);
   
   /**
    * @brief deconstructor
@@ -50,6 +50,6 @@ public:
 private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */
   int damage{};
-  Character* user{ nullptr };
-  AnimationComponent* animationComponent;
+  std::shared_ptr<Character> user{ nullptr };
+  std::shared_ptr<AnimationComponent> animationComponent;
 };

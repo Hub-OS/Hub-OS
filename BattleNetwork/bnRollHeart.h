@@ -15,7 +15,7 @@ class ParticleHeal;
 
 class RollHeart : public Spell {
 public:
-  RollHeart(Character* user, int _heal);
+  RollHeart(std::shared_ptr<Character> user, int _heal);
   ~RollHeart();
 
   /**
@@ -28,7 +28,7 @@ public:
    * @brief Does nothing
    * @param _entity
    */
-  void Attack(Character* _entity) override; 
+  void Attack(std::shared_ptr<Character> _entity) override; 
 
   /** 
   * @brief Does nothing/
@@ -38,8 +38,8 @@ public:
 private:
   int heal; /*!< How much to heal */
   float height; /*!< The start height of the heart */
-  Character* user; /*!< The character that used the card */
-  AnimationComponent* animationComponent;
+  std::shared_ptr<Character> user; /*!< The character that used the card */
+  std::shared_ptr<AnimationComponent> animationComponent;
   bool spawnFX{ false }; /*!< Flag to restore health once */
-  ParticleHeal* healFX{ nullptr }; /*!< Heal animation effect*/
+  std::shared_ptr<ParticleHeal> healFX{ nullptr }; /*!< Heal animation effect*/
 };

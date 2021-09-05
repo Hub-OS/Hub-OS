@@ -12,7 +12,7 @@ CanonSmoke::CanonSmoke(): Artifact()
 {
   SetLayer(0);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
 
   setTexture(Textures().GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);

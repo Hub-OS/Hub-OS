@@ -21,7 +21,7 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
     // Spawn the bomb with the sprite position where Progsman is
     auto startPos = progs.GetTile()->getPosition();
     startPos.y -= 60.0f;
-    ProgBomb* bomb = new ProgBomb(progs.GetTeam(), startPos, 1);
+    auto bomb = std::make_shared<ProgBomb>(progs.GetTeam(), startPos, 1);
 
     // Assign progsman as the owner of this spell
     auto props = bomb->GetHitboxProperties();
@@ -33,7 +33,7 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
     
     // Add the entity into the field
     // NOTE: Is this necessary? 
-    progs.GetField()->AddEntity(*bomb, progs.GetTarget()->GetTile()->GetX(), progs.GetTarget()->GetTile()->GetY());
+    progs.GetField()->AddEntity(bomb, progs.GetTarget()->GetTile()->GetX(), progs.GetTarget()->GetTile()->GetY());
   };
 
   auto onFinish  = [this, p = &progs]() { p->GoToNextState(); };

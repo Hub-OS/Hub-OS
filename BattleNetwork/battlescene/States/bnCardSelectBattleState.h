@@ -30,7 +30,7 @@ class CardSelectBattleState final : public BattleSceneState {
   int currForm{ -1 };
   int cardCount{ 0 }; /*!< Length of card list */
   float streamVolume{ -1.f };
-  std::vector<Player*>& tracked;
+  std::vector<std::shared_ptr<Player>>& tracked;
   std::vector<std::shared_ptr<TrackedFormData>>& forms;
   Font font;
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
@@ -39,7 +39,7 @@ class CardSelectBattleState final : public BattleSceneState {
   // Check if a form change was properly triggered
   void CheckFormChanges();
 public:
-  CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
+  CardSelectBattleState(std::vector<std::shared_ptr<Player>>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
 
   Battle::Card**& GetCardPtrList();
   int& GetCardListLengthAddr();

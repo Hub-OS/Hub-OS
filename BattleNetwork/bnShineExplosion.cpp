@@ -12,7 +12,7 @@ ShineExplosion::ShineExplosion() : Artifact()
   setTexture(LOAD_TEXTURE(MOB_BOSS_SHINE));
   setScale(2.f, 2.f);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath("resources/mobs/boss_shine.animation");
   animationComponent->Load();
   animationComponent->SetAnimation("SHINE", Animator::Mode::Loop);

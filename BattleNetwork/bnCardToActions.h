@@ -9,4 +9,4 @@ class CardPackageManager;
  * This is for demonstration of the engine until we have scripting done
  */
 
-CardAction* CardToAction(const Battle::Card& card, Character* character, CardPackageManager* packageManager);
+std::shared_ptr<CardAction> CardToAction(const Battle::Card& card, std::shared_ptr<Character> character, CardPackageManager* packageManager);

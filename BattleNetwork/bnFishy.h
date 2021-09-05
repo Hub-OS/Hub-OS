@@ -37,7 +37,7 @@ public:
    * @brief Deal flinch and recoil damage
    * @param _entity the character to attack
    */
-  virtual void Attack(Character* _entity);
+  virtual void Attack(std::shared_ptr<Character> _entity);
   virtual void OnDelete();
   virtual const float GetHeight() const { return 0; }
 };

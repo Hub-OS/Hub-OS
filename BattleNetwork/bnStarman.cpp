@@ -42,17 +42,19 @@ const float Starman::GetHeight() const
   return 70.0f;
 }
 
-CardAction* Starman::OnExecuteBusterAction()
+std::shared_ptr<CardAction> Starman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  auto character = shared_from_base<Character>();
+  return std::make_shared<BusterCardAction>(character, false, 1*GetAttackLevel());
 }
 
-CardAction* Starman::OnExecuteChargedBusterAction()
+std::shared_ptr<CardAction> Starman::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 10*GetAttackLevel());
+  auto character = shared_from_base<Character>();
+  return std::make_shared<BusterCardAction>(character, true, 10*GetAttackLevel());
 }
 
-CardAction* Starman::OnExecuteSpecialAction()
+std::shared_ptr<CardAction> Starman::OnExecuteSpecialAction()
 {
   return Player::OnExecuteSpecialAction();
 }
