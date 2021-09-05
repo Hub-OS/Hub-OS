@@ -9,8 +9,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-#include "bnGear.h" 
-
 Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_team) {
   SetPassthrough(true);
   SetLayer(-100);
