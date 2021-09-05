@@ -45,10 +45,6 @@
 
 // temporary proof of concept includes...
 #include "bnBusterCardAction.h"
-#include "bnSwordCardAction.h"
-#include "bnBombCardAction.h"
-#include "bnFireBurnCardAction.h"
-#include "bnCannonCardAction.h"
 
 namespace {
   int exception_handler(lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description) {
@@ -980,58 +976,6 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
           { return std::make_shared<BusterCardAction>(character, charged, dmg); }
     ),
     sol::base_classes, sol::bases<CardAction>()
-  );
-
-  const auto& swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
-    sol::factories(
-      [](std::shared_ptr<Character> character, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<SwordCardAction>(character, dmg); },
-      [](std::shared_ptr<ScriptedCharacter> character, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<SwordCardAction>(character, dmg); }
-    ),
-    sol::base_classes, sol::bases<CardAction>()
-  );
-
-  const auto& bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
-    sol::factories(
-      [](std::shared_ptr<Character> character, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BombCardAction>(character, dmg); },
-      [](std::shared_ptr<ScriptedCharacter> character, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BombCardAction>(character, dmg); }
-    ),
-    sol::base_classes, sol::bases<CardAction>()
-  );
-
-  const auto& fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
-    sol::factories(
-      [](std::shared_ptr<Character> character, FireBurn::Type type, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<FireBurnCardAction>(character, type, dmg); },
-      [](std::shared_ptr<ScriptedCharacter> character, FireBurn::Type type, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<FireBurnCardAction>(character, type, dmg); }
-    ),
-    sol::base_classes, sol::bases<CardAction>()
-  );
-
-  const auto& flame_cannon_type_record = battle_namespace.new_enum("FlameCannon",
-    "_1", FireBurn::Type::_1,
-    "_2", FireBurn::Type::_2,
-    "_3", FireBurn::Type::_3
-  );
-
-  const auto& cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
-    sol::factories(
-      [](std::shared_ptr<Character> character, CannonCardAction::Type type, int dmg) -> std::shared_ptr<CardAction> {
-          return std::make_shared<CannonCardAction>(character, type, dmg); }, 
-      [](std::shared_ptr<ScriptedCharacter> character, CannonCardAction::Type type, int dmg) -> std::shared_ptr<CardAction> {
-          return std::make_shared<CannonCardAction>(character, type, dmg); }
-    ),
-    sol::base_classes, sol::bases<CardAction>()
-  );
-
-  const auto& cannon_type_record = battle_namespace.new_enum("CannonType",
-    "Green", CannonCardAction::Type::green,
-    "Blue", CannonCardAction::Type::blue,
-    "Red", CannonCardAction::Type::red
   );
 
   // make meta object info metatable

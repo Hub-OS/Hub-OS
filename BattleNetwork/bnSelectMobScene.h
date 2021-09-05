@@ -17,7 +17,6 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
-#include "bnStarman.h"
 #include "bnMob.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
@@ -27,10 +26,6 @@
 #include "bnDrawWindow.h"
 #include "battlescene/bnBattleSceneBase.h"
 #include "bnMobFactory.h"
-#include "bnRandomMettaurMob.h"
-#include "bnProgsManBossFight.h"
-#include "bnTwoMettaurMob.h"
-#include "bnCanodumbMob.h"
 #include "bnScene.h"
 
 #include "Segues/CrossZoom.h" // <-- GPU intensive and runs slowly on old hardware

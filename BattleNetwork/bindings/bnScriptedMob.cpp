@@ -5,10 +5,6 @@
 #include "../bnScriptResourceManager.h"
 #include "../bnCustomBackground.h"
 
-// Builtins
-#include "../bnMettaur.h"
-#include "../bnCanodumb.h"
-
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
 //
@@ -144,32 +140,8 @@ void ScriptedMob::EnableFreedomMission(uint8_t turnCount)
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn, Character::Rank rank)
 {
-  std::string_view prefix = "com.builtins.char.";
-  size_t builtin = fqn.find(prefix);
-
-  if (builtin == std::string::npos) {
-    auto obj = ScriptedMob::ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn), rank);
-    obj.SetMob(this->mob);
-    return obj;
-  }
-
-  std::string name = fqn.substr(builtin+prefix.size());
-
-  //
-  // else we are built in
-  //
-
-  auto obj = ScriptedMob::ScriptedSpawner();
+  auto obj = ScriptedMob::ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn), rank);
   obj.SetMob(this->mob);
-
-  if (name == "canodumb") {
-    obj.UseBuiltInType<Canodumb>(rank);
-  }
-  else /* if (name == "mettaur") */ {
-    // for now spawn metts if nothing matches...
-    obj.UseBuiltInType<Mettaur>(rank);
-  }
-
   return obj;
 }
 
