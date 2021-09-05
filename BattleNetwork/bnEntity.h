@@ -620,5 +620,5 @@ template <typename Derived>
 inline std::weak_ptr<Derived> Entity::weak_from_base()
 {
   // todo: typecheck
-  return std::reinterpret_pointer_cast<Derived>(weak_from_this());
+  return std::reinterpret_pointer_cast<Derived>(shared_from_this());
 }
