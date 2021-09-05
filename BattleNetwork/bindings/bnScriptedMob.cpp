@@ -118,9 +118,9 @@ ScriptedMob::ScriptedMob(sol::state& script) :
   field = new Field(6, 3);
 }
 
-
 ScriptedMob::~ScriptedMob()
 {
+  delete field;
 }
 
 Mob* ScriptedMob::Build(Field* field) {
@@ -134,6 +134,14 @@ Mob* ScriptedMob::Build(Field* field) {
 Field* ScriptedMob::GetField()
 {
   return field;
+}
+
+void ScriptedMob::EnableFreedomMission(uint8_t turnCount)
+{
+  if (this->mob) {
+    this->mob->EnableFreedomMission(true);
+    this->mob->LimitTurnCount(turnCount);
+  }
 }
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn, Character::Rank rank)

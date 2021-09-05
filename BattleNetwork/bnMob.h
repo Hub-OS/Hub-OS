@@ -50,10 +50,12 @@ public:
   };
 
 private:
+  uint8_t turnLimit{};
   size_t spawnIndex{}; /*!< Current character to spawn in the spawn loop*/
   long long startMs{-1}, endMs{-1};
   bool nextReady{ true }; /*!< Signal if mob is ready to spawn the next character */
   bool isBoss{ false }; /*!< Flag to change rank and music */
+  bool isFreedomMission{ false };
   std::string music; /*!< Override with custom music */
   std::vector<Mutator*> spawn; /*!< The enemies to spawn and manage */
   std::vector<Character*> tracked; /*! Enemies that may or may not be spawned through the mob class but need to be considered */
@@ -145,6 +147,16 @@ public:
    * @return true if isBoss is true, otherwise false
    */
   bool IsBoss();
+
+  /**
+  * @brief Query if freedom mission requested
+  */
+  bool IsFreedomMission();
+
+  /*
+  * @brief Query the number of allowed turns. Zero means no limit.
+  */
+  uint8_t GetTurnLimit();
 
   /**
    * @brief Set a custom background
@@ -242,6 +254,10 @@ public:
   Spawner<ClassType> CreateSpawner(Args&&...);
 
   void Track(Character& character);
+
+  void EnableFreedomMission(bool enabled);
+  void LimitTurnCount(uint8_t turnLimit);
+
 };
 
 //

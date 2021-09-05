@@ -560,7 +560,7 @@ void CardSelectionCust::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
 
 void CardSelectionCust::PromptRetreat()
 {
-  if (!IsInView() || textbox.IsOpen() || isInFormSelect) return;
+  if (!IsInView() || textbox.IsOpen() || isInFormSelect || !retreatAllowed) return;
 
   textbox.PromptRetreat();
 }
@@ -1105,6 +1105,11 @@ void CardSelectionCust::ResetState() {
   newHand = false;
   SetSelectedFormIndex(lockedInFormIndex);
   textbox.Reset();
+}
+
+void CardSelectionCust::PreventRetreat()
+{
+  retreatAllowed = false;
 }
 
 bool CardSelectionCust::AreCardsReady() {

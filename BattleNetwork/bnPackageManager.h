@@ -86,9 +86,9 @@ class PackageManager {
 
     template<class SuperDataType, typename... Args>
     MetaClass* CreatePackage(Args&&... args) {
-        MetaClass* package = new MetaClass();
-        package->template SetClass<SuperDataType>(std::forward<decltype(args)>(args)...);
-        return package;
+      MetaClass* package = new MetaClass();
+      package->template SetClass<SuperDataType>(std::forward<decltype(args)>(args)...);
+      return package;
     }
 
     MetaClass& FindPackageByID(const std::string& id);
@@ -131,7 +131,6 @@ template<typename MetaClass>
 void PackageManager<MetaClass>::LoadAllPackages(std::atomic<int>& progress)
 {
   for (auto& [key, entry] : packages) {
-    entry->loadClass();
     entry->OnMetaParsed();
 
     Logger::Logf("Loaded package: %s", entry->packageId.c_str());
@@ -172,12 +171,14 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
 
     auto zip_result = stx::zip(file_path, file_path + ".zip");
     if (zip_result.is_error()) {
+      delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + zip_result.error_cstr();
       return stx::error<bool>(msg);
     }
 
     auto md5_result = stx::generate_md5_from_file(file_path + ".zip");
     if (md5_result.is_error()) {
+      delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + md5_result.error_cstr();
       return stx::error<bool>(msg);
     }
@@ -186,6 +187,7 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
     }
     
     if (auto commit_result = this->Commit(packageClass); commit_result.is_error()) {
+      delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + commit_result.error_cstr();
       return stx::error<bool>(msg);
     }
@@ -324,24 +326,30 @@ inline const std::string PackageManager<MetaClass>::FilepathToPackageID(const st
 
 template<typename MetaClass>
 PackageManager<MetaClass>::~PackageManager<MetaClass>() {
-    for (auto& [_, p] : packages) {
-        delete p;
-    }
+  for (auto& [_, p] : packages) {
+    delete p;
+  }
 
-    packages.clear();
+  packages.clear();
 }
 
 template<typename MetaClass>
 stx::result_t<bool> PackageManager<MetaClass>::Commit(MetaClass* package)
 {
   std::string packageId = package->GetPackageID();
-  if (package && !packageId.empty()) {
-    if (packages.find(packageId) != packages.end()) {
-      return stx::error<bool>(std::string("There is already a package in the package manager with id of ") + packageId);
-    }
+
+  if (!package) {
+    return stx::error<bool>(std::string("package object was nullptr"));
   }
-  else {
-    return stx::error<bool>(std::string("package object was nullptr or package ID was not set"));
+
+  if (packageId.empty()) {
+    delete package;
+    return stx::error<bool>(std::string("package ID was not set"));
+  }
+
+  if (packages.find(packageId) != packages.end()) {
+    delete package;
+    return stx::error<bool>(std::string("There is already a package in the package manager with id of ") + packageId);
   }
 
   try {

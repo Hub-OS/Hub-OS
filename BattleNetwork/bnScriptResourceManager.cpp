@@ -34,6 +34,7 @@
 #include "bindings/bnScriptedDefenseRule.h"
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedCard.h"
+#include "bindings/bnScriptedComponent.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -61,7 +62,7 @@ namespace {
 }
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
-  state.open_libraries(sol::lib::base, sol::lib::math);
+  state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
   sol::table battle_namespace = state.create_table("Battle");
   sol::table overworld_namespace = state.create_table("Overworld");
@@ -90,13 +91,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_tile", &Battle::Tile::GetTile,
     "contains_entity", &Battle::Tile::ContainsEntity,
     "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
+    "reserve_entity_by_id", &Battle::Tile::ReserveEntityByID,
     "add_entity", sol::overload(
       sol::resolve<void(Artifact&)>(&Battle::Tile::AddEntity),
       sol::resolve<void(Spell&)>(&Battle::Tile::AddEntity),
       sol::resolve<void(Obstacle&)>(&Battle::Tile::AddEntity),
       sol::resolve<void(Character&)>(&Battle::Tile::AddEntity)
-    ),
-    "reserve_entity_by_id", &Battle::Tile::ReserveEntityByID
+    )
   );
 
   // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
@@ -144,6 +145,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
+    "get_texture", &SpriteProxyNode::getTexture,
     "set_texture", &SpriteProxyNode::setTexture,
     "show", &SpriteProxyNode::Reveal,
     "hide", &SpriteProxyNode::Hide,
@@ -163,6 +165,22 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "unwrap", &SpriteProxyNode::getSprite,
     "enable_parent_shader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
+  );
+
+  const auto& component_record = battle_namespace.new_usertype<ScriptedComponent>("Component",
+    sol::factories([](Character* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+      return std::make_unique<ScriptedComponent>(owner, lifetime);
+    }),
+    sol::meta_function::index, &dynamic_object::dynamic_get,
+    sol::meta_function::new_index, &dynamic_object::dynamic_set,
+    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
+    "eject", &ScriptedComponent::Eject,
+    "get_id", &ScriptedComponent::GetID,
+    "is_injected", &ScriptedComponent::Injected,
+    "get_owner", &ScriptedComponent::GetOwnerAsCharacter,
+    "scene_inject_func", &ScriptedComponent::scene_inject_func,
+    "update_func", &ScriptedComponent::update_func,
+    sol::base_classes, sol::bases<Component>()
   );
 
   const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>( "Spell",
@@ -199,6 +217,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_team", &ScriptedSpell::Teammate,
     "remove", &ScriptedSpell::Remove,
     "delete", &ScriptedSpell::Delete,
+    "get_texture", &ScriptedSpell::getTexture,
     "set_texture", &ScriptedSpell::setTexture,
     "add_node", &ScriptedSpell::AddNode,
     "highlight_tile", &ScriptedSpell::HighlightTile,
@@ -268,6 +287,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_health", &ScriptedObstacle::SetHealth,
     "share_tile", &ScriptedObstacle::ShareTileSpace,
     "add_defense_rule", &ScriptedObstacle::AddDefenseRule,
+    "remove_defense_rule", &ScriptedObstacle::RemoveDefenseRule,
+    "get_texture", &ScriptedObstacle::getTexture,
     "set_texture", &ScriptedObstacle::setTexture,
     "get_animation", &ScriptedObstacle::GetAnimationObject,
     "set_animation", &ScriptedObstacle::SetAnimation,
@@ -276,10 +297,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_hit_props", &ScriptedObstacle::GetHitboxProperties,
     "set_hit_props", &ScriptedObstacle::SetHitboxProperties,
     "ignore_common_aggressor", &ScriptedObstacle::IgnoreCommonAggressor,
-
     "set_height", &ScriptedObstacle::SetHeight,
     "show_shadow", &ScriptedObstacle::ShowShadow,
     "shake_camera", &ScriptedObstacle::ShakeCamera,
+    "register_component", &ScriptedObstacle::RegisterComponent,
     "set_position", sol::overload(
       sol::resolve<void(float, float)>(&ScriptedObstacle::SetDrawOffset)
     ),
@@ -324,6 +345,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_team", &Character::Teammate,
     "hide", &Character::Hide,
     "reveal", &Character::Reveal,
+    "get_texture", &Character::getTexture,
     "set_texture", &Character::setTexture,
     "add_node", &Character::AddNode,
 
@@ -335,6 +357,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_rank", &Character::GetRank,
     "share_tile", &Character::ShareTileSpace,
     "add_defense_rule", &Character::AddDefenseRule,
+    "register_component", &Character::RegisterComponent,
+    "remove_defense_rule", &Character::RemoveDefenseRule,
     "set_position", sol::overload(
       sol::resolve<void(float, float)>(&Character::SetDrawOffset)
     ),
@@ -383,6 +407,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "reveal", &ScriptedCharacter::Reveal,
     "remove", &ScriptedCharacter::Remove,
     "delete", &ScriptedCharacter::Delete,
+    "get_texture", &ScriptedCharacter::getTexture,
     "set_texture", &ScriptedCharacter::setTexture,
     "add_node", &ScriptedCharacter::AddNode,
     "get_name", &ScriptedCharacter::GetName,
@@ -393,6 +418,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_rank", &ScriptedCharacter::GetRank,
     "share_tile", &ScriptedCharacter::ShareTileSpace,
     "add_defense_rule", &ScriptedCharacter::AddDefenseRule,
+    "register_component", &ScriptedCharacter::RegisterComponent,
+    "remove_defense_rule", &ScriptedCharacter::RemoveDefenseRule,
     "set_position", sol::overload(
       sol::resolve<void(float, float)>(&ScriptedCharacter::SetDrawOffset)
     ),
@@ -428,6 +455,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_alpha", &Player::SetAlpha,
     "get_color", &Player::getColor,
     "set_color", &Player::setColor,
+    "register_component", &Player::RegisterComponent,
     "remove", &Player::Remove,
     "delete", &Player::Delete,
     "hide", &Player::Hide,
@@ -472,6 +500,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_max_health", &ScriptedPlayer::GetMaxHealth,
     "set_name", &ScriptedPlayer::SetName,
     "set_health", &ScriptedPlayer::SetHealth,
+    "get_texture", &ScriptedPlayer::getTexture,
     "set_texture", &ScriptedPlayer::setTexture,
     "set_animation", &ScriptedPlayer::SetAnimation,
     "set_height", &ScriptedPlayer::SetHeight,
@@ -482,6 +511,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_air_shoe", &ScriptedPlayer::SetAirShoe,
     "slide_when_moving", &ScriptedPlayer::SlideWhenMoving,
     "delete", &ScriptedPlayer::Delete,
+    "register_component", &ScriptedPlayer::RegisterComponent,
     "update_func", &ScriptedPlayer::on_update_func
   );
 
@@ -520,8 +550,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "will_remove_eof", &ScriptedArtifact::WillRemoveLater,
     "get_team", &ScriptedArtifact::GetTeam,
     "set_animation", &ScriptedArtifact::SetAnimation,
+    "get_texture", &ScriptedArtifact::getTexture,
     "set_texture", &ScriptedArtifact::setTexture,
     "set_height", &ScriptedArtifact::SetHeight,
+    "set_position", sol::overload(
+      sol::resolve<void(float, float)>(&ScriptedArtifact::SetDrawOffset)
+    ),
     "get_animation", &ScriptedArtifact::GetAnimationObject,
     "never_flip", &ScriptedArtifact::NeverFlip,
     "delete_func", &ScriptedArtifact::deleteCallback,
@@ -792,7 +826,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "create_spawner", &ScriptedMob::CreateSpawner,
     "set_background", &ScriptedMob::SetBackground,
     "stream_music", &ScriptedMob::StreamMusic,
-    "get_field", &ScriptedMob::GetField
+    "get_field", &ScriptedMob::GetField,
+    "enable_freedom_mission", &ScriptedMob::EnableFreedomMission
   );
 
   const auto& scriptedspawner_table = battle_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
@@ -1089,6 +1124,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Mega", Battle::CardClass::mega,
     "Giga", Battle::CardClass::giga,
     "Dark", Battle::CardClass::dark
+  );
+
+  const auto& component_lifetimes_record = state.new_enum("Lifetimes",
+    "Local", Component::lifetimes::local,
+    "Battlestep", Component::lifetimes::battlestep,
+    "Scene", Component::lifetimes::ui
   );
 
   state.set_function("drag",

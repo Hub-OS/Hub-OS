@@ -16,6 +16,7 @@ private:
   sol::state& script;
   Mob* mob{ nullptr }; //!< ptr for scripts to access
   Field* field{ nullptr };
+
 public:
   // ScriptedSpawner wrapper for scripted mobs...
   class ScriptedSpawner  {
@@ -46,7 +47,7 @@ public:
    */
   Mob* Build(Field* field);
   Field* GetField();
-
+  void EnableFreedomMission(uint8_t turnCount);
   /**
   * @brief Creates a spawner object that loads a scripted or built-in character by its Fully Qualified Names (FQN) 
   * @param fqn String. The name of the character stored in script cache. Use `BuiltIns.NAME` prefix for built-in characters.

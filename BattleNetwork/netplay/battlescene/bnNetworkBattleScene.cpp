@@ -64,6 +64,8 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
     this->processPacketBody(header, buffer);
   });
 
+  GetCardSelectWidget().PreventRetreat();
+
   // If playing co-op, add more players to track here
   players = { clientPlayer };
 

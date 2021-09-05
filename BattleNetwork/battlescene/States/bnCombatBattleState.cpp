@@ -94,6 +94,7 @@ void CombatBattleState::EnablePausing(bool enable)
 
 void CombatBattleState::onStart(const BattleSceneState* last)
 {
+  GetScene().SetCustomBarProgress(customDuration);
   GetScene().HighlightTiles(true); // re-enable tile highlighting
 
   // tracked[0] should be the client player
@@ -168,6 +169,7 @@ void CombatBattleState::onUpdate(double elapsed)
   if (isPaused) return; // do not update anything else
 
   customProgress += elapsed;
+  GetScene().SetCustomBarProgress(customProgress/customDuration);
 
   // Update the field. This includes the player.
   // After this function, the player may have used a card.

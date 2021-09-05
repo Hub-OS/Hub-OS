@@ -77,6 +77,10 @@ Player::Player() :
 }
 
 Player::~Player() {
+  for (auto form : forms) {
+    delete form;
+  }
+
   delete superArmor;
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 }
