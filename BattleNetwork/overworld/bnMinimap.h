@@ -17,23 +17,34 @@ namespace Overworld {
     sf::RectangleShape rectangle;
     sf::Color bgColor{};
     SpriteProxyNode player, hp, warp, board, shop, overlay, arrows, conveyor, bakedMap;
-    std::vector<std::shared_ptr<SpriteProxyNode>> markers;
+    std::vector<std::shared_ptr<SpriteProxyNode>> playerMarkers;
+    std::vector<std::shared_ptr<SpriteProxyNode>> mapMarkers;
     void EnforceTextureSizeLimits();
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
+    void FindMapMarkers(Map& map);
     void FindTileMarkers(Map& map);
     void FindObjectMarkers(Map& map);
     void AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos, bool inShadow);
   public:
-    static Minimap CreateFrom(const std::string& name, Map& map);
+    class PlayerMarker : public SpriteProxyNode {
+    private:
+      sf::Color color;
+      friend class Minimap;
+    public:
+      PlayerMarker(sf::Color color) : color(color) {};
+    };
+
     Minimap();
-    Minimap(const Minimap& rhs);
+    Minimap(const Minimap& rhs) = delete;
     ~Minimap();
 
-    Minimap& operator=(const Minimap& rhs);
-
+    void Update(const std::string& name, Map& map);
     void ResetPanning();
     void Pan(const sf::Vector2f& amount);
     void SetPlayerPosition(const sf::Vector2f& pos, bool isConcealed);
+    void AddPlayerMarker(std::shared_ptr<PlayerMarker> marker);
+    void UpdatePlayerMarker(PlayerMarker& playerMarker, sf::Vector2f pos, bool isConcealed);
+    void RemovePlayerMarker(std::shared_ptr<PlayerMarker> playerMarker);
     void SetHomepagePosition(const sf::Vector2f& pos, bool isConcealed);
     void ClearIcons();
     void AddWarpPosition(const sf::Vector2f& pos, bool isConcealed);

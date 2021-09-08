@@ -7,6 +7,7 @@
 #include <Swoosh/EmbedGLSL.h>
 #include <cmath>
 
+const auto PLAYER_COLOR = sf::Color(0, 248, 248, 255);
 const auto CONCEALED_COLOR = sf::Color(165, 165, 165, 165); // 65% transparency, similar to world sprite darkening
 
 static void CopyTextureAndOrigin(SpriteProxyNode& dest, const SpriteProxyNode& source) {
@@ -28,10 +29,9 @@ static float resolveTileHeight(Overworld::Map& map, sf::Vector2f mapScreenUnitDi
   return targetTileHeight;
 }
 
-Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& map)
+void Overworld::Minimap::Update(const std::string& name, Map& map)
 {
-  Minimap minimap;
-  minimap.name = name;
+  this->name = name;
 
   // prepare a render texture to write to
   sf::RenderTexture texture;
@@ -46,12 +46,12 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   auto tileSize = map.GetTileSize();
   auto tileHeight = resolveTileHeight(map, mapScreenUnitDimensions);
 
-  minimap.scaling = tileHeight / tileSize.y;
+  scaling = tileHeight / tileSize.y;
 
   // how many times could this map fit into the screen? make that many.
   sf::Vector2f texsizef = {
-    std::ceil(mapScreenUnitDimensions.x * tileSize.x * minimap.scaling * 0.5f),
-    std::ceil(mapScreenUnitDimensions.y * tileSize.y * minimap.scaling * 0.5f) + 1.0f
+    std::ceil(mapScreenUnitDimensions.x * tileSize.x * scaling * 0.5f),
+    std::ceil(mapScreenUnitDimensions.y * tileSize.y * scaling * 0.5f) + 1.0f
   };
 
   auto textureSize = sf::Vector2i(texsizef);
@@ -60,9 +60,9 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   textureSize.y = std::max(screenSize.y, textureSize.y);
 
   // texture does not fit on screen, allow large map controls
-  minimap.largeMapControls = textureSize.x > screenSize.x || textureSize.y > screenSize.y;
+  largeMapControls = textureSize.x > screenSize.x || textureSize.y > screenSize.y;
 
-  if (!texture.create(textureSize.x, textureSize.y)) return minimap;
+  if (!texture.create(textureSize.x, textureSize.y)) return;
 
   // fill with background color
   texture.clear(sf::Color(0,0,0,0));
@@ -96,14 +96,14 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
 
   // move the map to the center of the screen and fit
   // TODO: chunk the minimap for large map
-  sf::Vector2f center = map.WorldToScreen(sf::Vector3f(mapDimensions. x, mapDimensions.y, mapDimensions.z * 2.0f) * 0.5f) * minimap.scaling;
-  minimap.offset = center;
+  sf::Vector2f center = map.WorldToScreen(sf::Vector3f(mapDimensions. x, mapDimensions.y, mapDimensions.z * 2.0f) * 0.5f) * scaling;
+  offset = center;
 
   const int maxLayerCount = (int)map.GetLayerCount();
 
   // apply transforms
   states.transform.translate((240.f * 0.5f) - center.x, (160.f * 0.5f) - center.y);
-  states.transform.scale(minimap.scaling, minimap.scaling);
+  states.transform.scale(scaling, scaling);
 
   // draw. every layer passes through the shader
   for (auto i = 0; i < maxLayerCount; i++) {
@@ -124,7 +124,7 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
     states.shader->setUniform("finalColor", lerpColor(i, maxLayerCount, layer1Color, layerMaxColor));
 
     // draw layer (Applies masking)
-    minimap.DrawLayer(texture, *states.shader, states, map, i);
+    DrawLayer(texture, *states.shader, states, map, i);
 
     // iso layers are offset (prepare for the next layer)
     states.transform.translate(0.f, -tileSize.y * 0.5f);
@@ -146,12 +146,22 @@ Overworld::Minimap Overworld::Minimap::CreateFrom(const std::string& name, Map& 
   texture.display();
 
   // set the final texture
-  minimap.bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
+  bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
 
-  minimap.FindTileMarkers(map);
-  minimap.FindObjectMarkers(map);
+  FindMapMarkers(map);
+}
 
-  return minimap;
+void Overworld::Minimap::FindMapMarkers(Map& map) {
+  // remove old map markers
+  for(auto& marker : mapMarkers) {
+    bakedMap.RemoveNode(marker.get());
+  }
+
+  mapMarkers.clear();
+
+  // add new markers
+  FindTileMarkers(map);
+  FindObjectMarkers(map);
 }
 
 void Overworld::Minimap::FindTileMarkers(Map& map) {
@@ -198,6 +208,8 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
 }
 
 void Overworld::Minimap::FindObjectMarkers(Map& map) {
+  hp.Hide();
+
   auto layerCount = map.GetLayerCount();
   auto tileSize = map.GetTileSize();
 
@@ -348,62 +360,14 @@ Overworld::Minimap::Minimap()
   bgColor = sf::Color(24, 56, 104, 255);
   rectangle = sf::RectangleShape({ 240,160 });
   rectangle.setFillColor(bgColor);
-}
 
-Overworld::Minimap::Minimap(const Minimap& rhs)
-{
-  this->operator=(rhs);
+  // add the homepage marker but hide it
+  bakedMap.AddNode(&hp);
+  hp.Hide();
 }
 
 Overworld::Minimap::~Minimap()
 {
-}
-
-Overworld::Minimap& Overworld::Minimap::operator=(const Minimap& rhs)
-{
-  player.setTexture(rhs.player.getTexture(), false);
-  hp.setTexture(rhs.hp.getTexture(), false);
-  bakedMap.setTexture(rhs.bakedMap.getTexture(), false);
-  arrows.setTexture(rhs.arrows.getTexture(), false);
-  warp.setTexture(rhs.warp.getTexture(), false);
-  player.setPosition(rhs.player.getPosition());
-  hp.setPosition(rhs.hp.getPosition());
-  hp.setColor(rhs.hp.getColor());
-  hp.SetLayer(rhs.hp.GetLayer());
-  bakedMap.setPosition(rhs.bakedMap.getPosition());
-  EnforceTextureSizeLimits();
-
-  bgColor = rhs.bgColor;
-  scaling = rhs.scaling;
-  offset = rhs.offset;
-  name = rhs.name;
-  rectangle = rhs.rectangle;
-  largeMapControls = rhs.largeMapControls;
-
-  std::vector<SceneNode*> oldNodes = bakedMap.GetChildNodes();
-  for (auto old : oldNodes) {
-    bakedMap.RemoveNode(old);
-  }
-
-  auto& rhsNodes = rhs.bakedMap.GetChildNodes();
-  auto hpIter = std::find(rhsNodes.begin(), rhsNodes.end(), &rhs.hp);
-
-  if (hpIter != rhsNodes.end()) {
-    bakedMap.AddNode(&hp);
-  }
-
-  for (auto& rhsMarker : rhs.markers) {
-    auto marker = std::make_shared<SpriteProxyNode>();
-    CopyTextureAndOrigin(*marker, *rhsMarker);
-    marker->setScale(rhsMarker->getScale());
-    marker->setPosition(rhsMarker->getPosition());
-    marker->SetLayer(-1);
-    marker->setColor(rhsMarker->getColor());
-    bakedMap.AddNode(marker.get());
-    markers.push_back(marker);
-  }
-
-  return *this;
 }
 
 void Overworld::Minimap::ResetPanning()
@@ -439,7 +403,7 @@ void Overworld::Minimap::Pan(const sf::Vector2f& amount)
 
 void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos, bool isConcealed)
 {
-  player.setColor(isConcealed ? CONCEALED_COLOR : sf::Color::White);
+  player.setColor(isConcealed ? PLAYER_COLOR * CONCEALED_COLOR : PLAYER_COLOR);
 
   if (largeMapControls) {
     auto newpos = panning + (-pos * this->scaling);
@@ -453,25 +417,48 @@ void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos, bool isConce
   }
 }
 
+void Overworld::Minimap::AddPlayerMarker(std::shared_ptr<Overworld::Minimap::PlayerMarker> marker) {
+  CopyTextureAndOrigin(*marker, player);
+  marker->SetLayer(-1);
+  bakedMap.AddNode(marker.get());
+  playerMarkers.push_back(marker);
+}
+
+void Overworld::Minimap::UpdatePlayerMarker(Overworld::Minimap::PlayerMarker& playerMarker, sf::Vector2f pos, bool isConcealed)
+{
+  playerMarker.setColor(isConcealed ? playerMarker.color * CONCEALED_COLOR : playerMarker.color);
+  pos *= this->scaling;
+  playerMarker.setPosition(pos.x + (240.f * 0.5f) - offset.x, pos.y + (160.f * 0.5f) - offset.y);
+}
+
+void Overworld::Minimap::RemovePlayerMarker(std::shared_ptr<Overworld::Minimap::PlayerMarker> playerMarker) {
+  auto it = std::find(playerMarkers.begin(), playerMarkers.end(), playerMarker);
+
+  if (it != playerMarkers.end()) {
+    playerMarkers.erase(it);
+  }
+
+  bakedMap.RemoveNode(playerMarker.get());
+}
+
 void Overworld::Minimap::SetHomepagePosition(const sf::Vector2f& pos, bool isConcealed)
 {
   auto newpos = pos * this->scaling;
   hp.setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   hp.setColor(isConcealed ? CONCEALED_COLOR : sf::Color::White);
-  bakedMap.RemoveNode(&hp);
-  bakedMap.AddNode(&hp); // follow the map
   hp.SetLayer(-1); // on top of the map
+  hp.Reveal();
 }
 
 void Overworld::Minimap::ClearIcons()
 {
   bakedMap.RemoveNode(&hp);
 
-  for(auto& marker : markers) {
+  for(auto& marker : mapMarkers) {
     bakedMap.RemoveNode(marker.get());
   }
 
-  markers.clear();
+  mapMarkers.clear();
 }
 
 void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos, bool isConcealed)
@@ -480,6 +467,7 @@ void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos, bool isConceal
   CopyTextureAndOrigin(*newWarp, warp);
 
   AddMarker(newWarp, pos, isConcealed);
+  mapMarkers.push_back(newWarp);
 }
 
 void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip, bool isConcealed)
@@ -490,6 +478,7 @@ void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip, bo
   newBoard->setScale(flip ? -1.f : 1.f, 1.f);
 
   AddMarker(newBoard, pos, isConcealed);
+  mapMarkers.push_back(newBoard);
 }
 
 void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos, bool isConcealed)
@@ -497,6 +486,7 @@ void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos, bool isConceal
   std::shared_ptr<SpriteProxyNode> newShop = std::make_shared<SpriteProxyNode>();
   CopyTextureAndOrigin(*newShop, shop);
   AddMarker(newShop, pos, isConcealed);
+  mapMarkers.push_back(newShop);
 }
 
 void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction direction, bool isConcealed)
@@ -518,6 +508,7 @@ void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction 
   }
 
   AddMarker(newConveyor, pos, isConcealed);
+  mapMarkers.push_back(newConveyor);
 }
 
 void Overworld::Minimap::AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos, bool isConcealed) {
@@ -528,8 +519,7 @@ void Overworld::Minimap::AddMarker(const std::shared_ptr<SpriteProxyNode>& marke
   auto newpos = pos * this->scaling;
   marker->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   marker->SetLayer(-1);
-  markers.push_back(marker);
-  bakedMap.AddNode(markers.back().get());
+  bakedMap.AddNode(marker.get());
 }
 
 void Overworld::Minimap::Open() {
