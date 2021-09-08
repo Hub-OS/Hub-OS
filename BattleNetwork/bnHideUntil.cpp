@@ -19,7 +19,7 @@ void HideUntil::OnUpdate(double _elapsed) {
 }
 
 void HideUntil::Inject(BattleSceneBase& scene) {
-  scene.Inject(this);
+  scene.Inject(shared_from_base<HideUntil>());
   this->scene = &scene;
 
   // it is safe now to temporarily remove from character from play

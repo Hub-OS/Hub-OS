@@ -2157,7 +2157,8 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
     auto mugshot = Textures().LoadTextureFromFile(image);
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-    Player* player = meta.GetData();
+    auto player = std::shared_ptr<Player>(meta.GetData());
+    player->Init();
 
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
@@ -2257,6 +2258,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     auto mugshot = Textures().LoadTextureFromFile(image);
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
     auto player = std::shared_ptr<Player>(playerMeta.GetData());
+    player->Init();
 
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);

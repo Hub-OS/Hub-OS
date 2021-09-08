@@ -11,6 +11,10 @@ ShineExplosion::ShineExplosion() : Artifact()
   SetLayer(0);
   setTexture(LOAD_TEXTURE(MOB_BOSS_SHINE));
   setScale(2.f, 2.f);
+}
+
+void ShineExplosion::Init() {
+  Artifact::Init();
 
   animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath("resources/mobs/boss_shine.animation");

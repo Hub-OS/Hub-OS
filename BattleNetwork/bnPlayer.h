@@ -74,6 +74,8 @@ public:
    */
   virtual ~Player();
 
+  void Init() override;
+
   /**
    * @brief Polls for interrupted states and fires delete state when deleted
    * @param _elapsed for secs

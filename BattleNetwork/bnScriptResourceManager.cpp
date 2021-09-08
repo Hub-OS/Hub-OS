@@ -284,10 +284,18 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "find_characters", &Battle::Tile::FindCharacters,
     "highlight", &Battle::Tile::RequestHighlight,
     "get_tile", &Battle::Tile::GetTile,
-    "contains_entity", &Battle::Tile::ContainsEntity,
+    "contains_entity", sol::overload(
+      [] (Battle::Tile& tile, Spell* e) { return tile.ContainsEntity(e->shared_from_this()); },
+      [] (Battle::Tile& tile, Character* e) { return tile.ContainsEntity(e->shared_from_this()); },
+      [] (Battle::Tile& tile, Artifact* e) { return tile.ContainsEntity(e->shared_from_this()); }
+    ),
     "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
     "reserve_entity_by_id", &Battle::Tile::ReserveEntityByID,
-    "add_entity", &Battle::Tile::AddEntity
+    "add_entity", sol::overload(
+      [] (Battle::Tile& tile, Character* e) { return tile.AddEntity(e->shared_from_this()); },
+      [] (Battle::Tile& tile, Spell* e) { return tile.AddEntity(e->shared_from_this()); },
+      [] (Battle::Tile& tile, Artifact* e) { return tile.AddEntity(e->shared_from_this()); }
+    )
   );
 
   // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
@@ -305,8 +313,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "width", &Field::GetWidth,
     "height", &Field::GetHeight,
     "spawn", sol::overload(
-      sol::resolve<Field::AddEntityStatus(std::shared_ptr<Entity>, int, int)>(&Field::AddEntity),
-      sol::resolve<Field::AddEntityStatus(std::shared_ptr<Entity>, Battle::Tile&)>(&Field::AddEntity)
+      [](Field& field, Character* e, int x, int y) { return field.AddEntity(e->shared_from_this(), x, y); },
+      [](Field& field, Spell* e, int x, int y) { return field.AddEntity(e->shared_from_this(), x, y); },
+      [](Field& field, Artifact* e, int x, int y) { return field.AddEntity(e->shared_from_this(), x, y); },
+      [](Field& field, Character* e, Battle::Tile& tile) { return field.AddEntity(e->shared_from_this(), tile); },
+      [](Field& field, Spell* e, Battle::Tile& tile) { return field.AddEntity(e->shared_from_this(), tile); },
+      [](Field& field, Artifact* e, Battle::Tile& tile) { return field.AddEntity(e->shared_from_this(), tile); }
     ),
     "get_character", &Field::GetCharacter,
     "get_entity", &Field::GetEntity,
@@ -369,8 +381,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& component_record = battle_namespace.new_usertype<ScriptedComponent>("Component",
-    sol::factories([](std::shared_ptr<Character> owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
-      return std::make_shared<ScriptedComponent>(owner, lifetime);
+    sol::factories([](Character* owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
+      return std::make_shared<ScriptedComponent>(owner->weak_from_this(), lifetime);
     }),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
@@ -426,8 +438,11 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
 
   const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>( "Spell",
     sol::factories([](Team team) -> std::shared_ptr<ScriptedSpell> {
-        return std::make_shared<ScriptedSpell>(team);
+      auto spell = std::make_shared<ScriptedSpell>(team);
+      spell->Init();
+      return spell;
     }),
+    sol::base_classes, sol::bases<Spell, Entity>(),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
@@ -479,13 +494,14 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "update_func", &ScriptedSpell::updateCallback,
     "collision_func", &ScriptedSpell::collisionCallback,
     "can_move_to_func", &ScriptedSpell::canMoveToCallback,
-    "on_spawn_func", &ScriptedSpell::spawnCallback,
-    sol::base_classes, sol::bases<Spell>()
+    "on_spawn_func", &ScriptedSpell::spawnCallback
   );
 
   const auto& scriptedobstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
     sol::factories([](Team team) -> std::shared_ptr<ScriptedObstacle> {
-        return std::make_shared<ScriptedObstacle>(team);
+      auto obstacle = std::make_shared<ScriptedObstacle>(team);
+      obstacle->Init();
+      return obstacle;
     }),
     sol::base_classes, sol::bases<Obstacle, Spell, Character>(),
     sol::meta_function::index, &dynamic_object::dynamic_get,
@@ -527,7 +543,9 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_name", &ScriptedObstacle::SetName,
     "set_health", &ScriptedObstacle::SetHealth,
     "share_tile", &ScriptedObstacle::ShareTileSpace,
-    "add_defense_rule", &ScriptedObstacle::AddDefenseRule,
+    "add_defense_rule", sol::overload(
+      [](ScriptedObstacle& o, DefenseRule* d) { o.AddDefenseRule(d->shared_from_this()); }
+    ),
     "remove_defense_rule", sol::overload(
       sol::resolve<void(DefenseRule*)>(&ScriptedObstacle::RemoveDefenseRule)
     ),
@@ -543,7 +561,9 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_height", &ScriptedObstacle::SetHeight,
     "show_shadow", &ScriptedObstacle::ShowShadow,
     "shake_camera", &ScriptedObstacle::ShakeCamera,
-    "register_component", &ScriptedObstacle::RegisterComponent,
+    "register_component", sol::overload(
+      [](ScriptedObstacle& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
+    ),
     "set_position", sol::overload(
       sol::resolve<void(float, float)>(&ScriptedObstacle::SetDrawOffset)
     ),
@@ -561,6 +581,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   // Without adding these in, it has no idea what to do with std::shared_ptr<Character> objects passed up to it,
   // even though there's bindings for ScriptedCharacter already done.
   const auto& basic_character_record = battle_namespace.new_usertype<Character>( "BasicCharacter",
+    sol::base_classes, sol::bases<Entity>(),
     "get_id", &Character::GetID,
     "get_element", &Character::GetElement,
     "set_element", &Character::SetElement,
@@ -599,8 +620,12 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_health", &Character::SetHealth,
     "get_rank", &Character::GetRank,
     "share_tile", &Character::ShareTileSpace,
-    "add_defense_rule", &Character::AddDefenseRule,
-    "register_component", &Character::RegisterComponent,
+    "add_defense_rule", sol::overload(
+      [](Character& c, DefenseRule* d) { c.AddDefenseRule(d->shared_from_this()); }
+    ),
+    "register_component", sol::overload(
+      [](Character& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
+    ),
     "remove_defense_rule", sol::overload(
       sol::resolve<void(DefenseRule*)>(&Character::RemoveDefenseRule)
     ),
@@ -617,7 +642,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    sol::base_classes, sol::bases<Character>(),
+    sol::base_classes, sol::bases<Character, Entity>(),
     "get_id", &ScriptedCharacter::GetID,
     "get_element", &ScriptedCharacter::GetElement,
     "set_element", &ScriptedCharacter::SetElement,
@@ -662,8 +687,12 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_health", &ScriptedCharacter::SetHealth,
     "get_rank", &ScriptedCharacter::GetRank,
     "share_tile", &ScriptedCharacter::ShareTileSpace,
-    "add_defense_rule", &ScriptedCharacter::AddDefenseRule,
-    "register_component", &ScriptedCharacter::RegisterComponent,
+    "add_defense_rule", sol::overload(
+      [](ScriptedCharacter& c, DefenseRule* d) { c.AddDefenseRule(d->shared_from_this()); }
+    ),
+    "register_component", sol::overload(
+      [](ScriptedCharacter& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
+    ),
     "remove_defense_rule", sol::overload(
       sol::resolve<void(DefenseRule*)>(&ScriptedCharacter::RemoveDefenseRule)
     ),
@@ -686,7 +715,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   );
 
   const auto& player_record = battle_namespace.new_usertype<Player>("BasicPlayer",
-    sol::base_classes, sol::bases<Character>(),
+    sol::base_classes, sol::bases<Character, Entity>(),
     "get_id", &Player::GetID,
     "get_tile", &Player::GetTile,
     "get_current_tile", &Player::GetCurrentTile,
@@ -702,7 +731,9 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_alpha", &Player::SetAlpha,
     "get_color", &Player::getColor,
     "set_color", &Player::setColor,
-    "register_component", &Player::RegisterComponent,
+    "register_component", sol::overload(
+      [](Player& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
+    ),
     "remove", &Player::Remove,
     "delete", &Player::Delete,
     "hide", &Player::Hide,
@@ -715,7 +746,6 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   );
 
   const auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
-    sol::base_classes, sol::bases<Player>(),
     "get_id", &ScriptedPlayer::GetID,
     "get_element", &ScriptedPlayer::GetElement,
     "set_element", &ScriptedPlayer::SetElement,
@@ -760,16 +790,21 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "slide_when_moving", &ScriptedPlayer::SlideWhenMoving,
     "add_defense_rule", &ScriptedPlayer::AddDefenseRule,
     "delete", &ScriptedPlayer::Delete,
-    "register_component", &ScriptedPlayer::RegisterComponent,
-    "update_func", &ScriptedPlayer::on_update_func
+    "register_component", sol::overload(
+      [](ScriptedPlayer& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
+    ),
+    "update_func", &ScriptedPlayer::on_update_func,
+    sol::base_classes, sol::bases<Player, Character, Entity>()
   );
 
   const auto& scripted_artifact_record = battle_namespace.new_usertype<ScriptedArtifact>("Artifact",
     sol::factories([](Team team) -> std::shared_ptr<ScriptedArtifact> {
       auto ptr = std::make_shared<ScriptedArtifact>();
+      ptr->Init();
       ptr->SetTeam(team);
       return ptr;
     }),
+    sol::base_classes, sol::bases<Artifact, Entity>(),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
@@ -818,7 +853,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_lockout_group", &CardAction::SetLockoutGroup,
     "override_animation_frames", &CardAction::OverrideAnimationFrames,
     "add_attachment", sol::overload(
-      sol::resolve<CardAction::Attachment& (std::shared_ptr<Character>, const std::string&, SpriteProxyNode&)>(&CardAction::AddAttachment),
+      [](CardAction& a, Character* c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c->shared_from_this(), s, n); },
       sol::resolve<CardAction::Attachment& (Animation&, const std::string&, SpriteProxyNode&)>(&CardAction::CardAction::AddAttachment)
     ),
     "add_anim_action", &CardAction::AddAnimAction,
@@ -835,11 +870,8 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   // Many things use std::shared_ptr<Character> references but we will maybe have to consolidate all the interfaces for characters into one type.
   const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
     sol::factories(
-      [](std::shared_ptr<Character> character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
-        return std::make_shared<ScriptedCardAction>(character, state);
-      }, 
-      [](std::shared_ptr<ScriptedCharacter> character, const std::string& state) -> std::shared_ptr<ScriptedCardAction> {
-        return std::make_shared<ScriptedCardAction>(character, state);
+      [](Character* character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
+        return std::make_shared<ScriptedCardAction>(character->shared_from_this(), state);
       }
     ),
     sol::meta_function::index, &dynamic_object::dynamic_get,
@@ -925,16 +957,15 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
 
   const auto& defense_rule_nodrag = battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
     sol::factories(
-        [] { return std::make_unique<DefenseNodrag>(); }
+      [] () -> std::shared_ptr<DefenseRule> { return std::make_shared<DefenseNodrag>(); }
     ),
     sol::base_classes, sol::bases<DefenseRule>()
   );
 
   const auto& defense_rule_virus_body = battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
     sol::factories(
-        [] { return std::make_unique<DefenseVirusBody>(); }
-    ),
-    sol::base_classes, sol::bases<DefenseRule>()
+      [] () -> std::shared_ptr<DefenseRule> { return std::make_shared<DefenseVirusBody>(); }
+    )
   );
 
   const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
@@ -950,7 +981,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   );
 
   const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
-    sol::factories([](Team team) { return new Hitbox(team); } ),
+    sol::factories([](Team team) { return std::make_shared<Hitbox>(team); } ),
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
       ScriptResourceManager::PrintInvalidAccessMessage( table, "Hitbox", key );
     },
@@ -960,22 +991,21 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_callbacks", &Hitbox::AddCallback,
     "set_hit_props", &Hitbox::SetHitboxProperties,
     "get_hit_props", &Hitbox::GetHitboxProperties,
-    sol::base_classes, sol::bases<Spell>()
+    sol::base_classes, sol::bases<Spell, Entity>()
   );
 
   const auto& shared_hitbox_record = battle_namespace.new_usertype<SharedHitbox>("SharedHitbox",
-    sol::constructors<SharedHitbox(std::shared_ptr<Spell>, float)>(),
-    sol::base_classes, sol::bases<Spell>()
+    sol::factories(
+      [](Spell* spell, float f) -> std::shared_ptr<Spell>
+          { return std::make_shared<SharedHitbox>(spell->shared_from_this(), f); }
+    )
   );
 
   const auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories(
-      [](std::shared_ptr<Character> character, bool charged, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BusterCardAction>(character, charged, dmg); },
-      [](std::shared_ptr<ScriptedCharacter> character, bool charged, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BusterCardAction>(character, charged, dmg); }
-    ),
-    sol::base_classes, sol::bases<CardAction>()
+      [](Character* character, bool charged, int dmg) -> std::shared_ptr<CardAction>
+          { return std::make_shared<BusterCardAction>(character->shared_from_this(), charged, dmg); }
+    )
   );
 
   // make meta object info metatable
@@ -1423,17 +1453,19 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
 
   const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
     sol::factories([](int count, double speed) { return new Explosion(count, speed); }),
-    sol::base_classes, sol::bases<Artifact>()
+    sol::base_classes, sol::bases<Artifact, Entity>()
   );
 
   const auto& particle_poof = battle_namespace.new_usertype<ParticlePoof>("ParticlePoof",
-    sol::constructors<ParticlePoof()>(),
-    sol::base_classes, sol::bases<Artifact>()
+    sol::factories([]() -> std::shared_ptr<Artifact> {
+      return std::make_shared<ParticlePoof>();
+    })
   );
 
   const auto& particle_impact = battle_namespace.new_usertype<ParticleImpact>("ParticleImpact",
-    sol::constructors<ParticleImpact(ParticleImpact::Type) >(),
-    sol::base_classes, sol::bases<Artifact>()
+    sol::factories([](ParticleImpact::Type type) -> std::shared_ptr<Artifact> {
+      return std::make_shared<ParticleImpact>(type);
+    })
   );
 
   const auto& color_record = state.new_usertype<sf::Color>("Color",

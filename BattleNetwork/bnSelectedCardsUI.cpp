@@ -214,7 +214,7 @@ SpriteProxyNode& SelectedCardsUI::FrameNode() const
 }
 
 void SelectedCardsUI::Inject(BattleSceneBase& scene) {
-  scene.Inject(*this);
+  scene.Inject(shared_from_base<SelectedCardsUI>());
 }
 
 void SelectedCardsUI::SetMultiplier(unsigned mult)

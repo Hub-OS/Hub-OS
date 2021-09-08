@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <map>
+#include "stx/memory.h"
 
 #include "bnSpriteProxyNode.h"
 #include "bnResourceHandle.h"
@@ -15,7 +16,7 @@ class Character;
 
 using namespace swoosh;
 
-class CardAction : public sf::Drawable, public ResourceHandle {
+class CardAction : public stx::enable_shared_from_base<CardAction>, public sf::Drawable, public ResourceHandle {
 public:
   enum class LockoutType : unsigned {
     animation = 0,

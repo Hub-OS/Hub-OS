@@ -247,6 +247,14 @@ const bool Entity::IsSuperEffective(Element _other) const {
   return false;
 }
 
+bool Entity::HasInit() {
+  return hasInit;
+}
+
+void Entity::Init() {
+  hasInit = true;
+}
+
 void Entity::Update(double _elapsed) {
   isUpdating = true;
 
@@ -585,7 +593,7 @@ void Entity::AdoptNextTile()
   if (previous != nullptr /*&& previous != tile*/) {
     previous->RemoveEntityByID(GetID());
     // If removing an entity and the tile was broken, crack the tile
-    previous->HandleMove(shared_from_this());
+    // previous->HandleMove(shared_from_this());
     previous = tile;
   }
 

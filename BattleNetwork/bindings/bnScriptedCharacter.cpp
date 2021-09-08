@@ -9,24 +9,33 @@
 #include "../bnGame.h"
 #include "../bnDefenseVirusBody.h"
 #include "../bnUIComponent.h"
+#include "../bnSolHelpers.h"
 
 ScriptedCharacter::ScriptedCharacter(sol::state& script, Character::Rank rank) :
   script(script),
   AI<ScriptedCharacter>(this), 
-  Character(rank) {
+  Character(rank)
+{
   SetElement(Element::none);
   SetTeam(Team::blue);
   setScale(2.f, 2.f);
-
-  //Components setup and load
-  animation = CreateComponent<AnimationComponent>(weak_from_this());
-
-  script["package_init"](this);
-
-  animation->Refresh();
 }
 
 ScriptedCharacter::~ScriptedCharacter() {
+}
+
+void ScriptedCharacter::Init() {
+  Character::Init();
+
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
+
+  auto initResult = CallLuaFunction(script, "package_init", shared_from_base<ScriptedCharacter>());
+
+  if (initResult.is_error()) {
+    Logger::Log(initResult.error_cstr());
+  }
+
+  animation->Refresh();
 }
 
 void ScriptedCharacter::OnUpdate(double _elapsed) {
@@ -51,19 +60,19 @@ void ScriptedCharacter::OnDelete() {
   }
 
   if (deleteCallback) {
-    deleteCallback(*this);
+    deleteCallback(shared_from_base<ScriptedCharacter>());
   }
 }
 
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
   if (spawnCallback) {
-    spawnCallback(*this, start);
+    spawnCallback(shared_from_base<ScriptedCharacter>(), start);
   }
 }
 
 void ScriptedCharacter::OnBattleStart() {
   if (onBattleStartCallback) {
-    onBattleStartCallback(*this);
+    onBattleStartCallback(shared_from_base<ScriptedCharacter>());
   }
 }
 
@@ -71,7 +80,7 @@ void ScriptedCharacter::OnBattleStop() {
   Character::OnBattleStop();
 
   if (onBattleEndCallback) {
-    onBattleEndCallback(*this);
+    onBattleEndCallback(shared_from_base<ScriptedCharacter>());
   }
 }
 

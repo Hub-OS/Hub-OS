@@ -75,6 +75,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     Battle::Tile* tile = e.GetTile();
     Field* field = e.GetField();
     shine = std::make_shared<ShineExplosion>();
+    shine->Init();
 
     // ShineExplosion loops, we just want to play once and delete
     auto animComponent = shine->GetFirstComponent<AnimationComponent>();

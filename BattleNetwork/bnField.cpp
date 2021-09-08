@@ -203,6 +203,10 @@ std::vector<Battle::Tile*> Field::FindTiles(std::function<bool(Battle::Tile* t)>
 
 Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, int x, int y)
 {
+  if (!entity->HasInit()) {
+    entity->Init();
+  }
+
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, entity));
     return Field::AddEntityStatus::queued;
@@ -508,11 +512,12 @@ void Field::SpawnPendingEntities()
 {
   while (pending.size()) {
     auto& next = pending.back();
-    pending.pop_back();
 
     if (AddEntity(next.entity, next.x, next.y) == Field::AddEntityStatus::added) {
       next.entity->Update(0);
     }
+
+    pending.pop_back();
   }
 }
 

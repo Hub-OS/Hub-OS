@@ -11,6 +11,7 @@
 
 #include <string>
 #include <functional>
+#include "stx/memory.h"
 
 using std::string;
 
@@ -64,7 +65,8 @@ class Character:
   public virtual Entity,
   public CounterHitPublisher,
   public HitPublisher,
-  public CardActionUsePublisher
+  public CardActionUsePublisher,
+  public stx::enable_shared_from_base<Character>
 {
   friend class Field;
   friend class AnimationComponent;

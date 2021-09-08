@@ -40,6 +40,7 @@ std::shared_ptr<Character> TimeFreezeBattleState::CreateStuntDouble(std::shared_
 {
   CleanupStuntDouble();
   stuntDouble = std::make_shared<StuntDouble>(from);
+  stuntDouble->Init();
   return stuntDouble;
 }
 

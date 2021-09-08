@@ -37,7 +37,7 @@ PlayerHealthUI::~PlayerHealthUI() {
 
 void PlayerHealthUI::Inject(BattleSceneBase& scene)
 {
-  scene.Inject(this);
+  scene.Inject(shared_from_base<PlayerHealthUI>());
 }
 
 void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {

@@ -21,6 +21,8 @@ public:
 	ScriptedArtifact();
 	~ScriptedArtifact();
 
+	void Init() override;
+
 	/**
 	 * Centers the animation on the tile, offsets it by its internal offsets, then invokes the function assigned to onUpdate if present.
 	 * @param _elapsed: The amount of elapsed time since the last frame.
@@ -38,10 +40,10 @@ public:
 	/**
 	 * \brief Callback function that, when registered, is called on every frame.
 	 */
-	std::function<void(ScriptedArtifact&, double)> updateCallback;
-	std::function<void(ScriptedArtifact&, Battle::Tile&)> spawnCallback;
+	std::function<void(std::shared_ptr<ScriptedArtifact>, double)> updateCallback;
+	std::function<void(std::shared_ptr<ScriptedArtifact>, Battle::Tile&)> spawnCallback;
 	std::function<bool(Battle::Tile&)> canMoveToCallback;
-	std::function<void(ScriptedArtifact&)> deleteCallback;
+	std::function<void(std::shared_ptr<ScriptedArtifact>)> deleteCallback;
 };
 
 #endif

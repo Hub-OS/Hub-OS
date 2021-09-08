@@ -40,6 +40,6 @@ void ShakingEffect::OnUpdate(double _elapsed)
 
 void ShakingEffect::Inject(BattleSceneBase&bscene)
 {
-  bscene.Inject(this);
+  bscene.Inject(shared_from_base<ShakingEffect>());
   ShakingEffect::bscene = &bscene;
 }

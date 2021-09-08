@@ -23,10 +23,10 @@ public:
   void OnExecute(std::shared_ptr<Character> user) override;
   CardAction::Attachment& AddAttachment(std::shared_ptr<Character> character, const std::string& point, SpriteProxyNode& node);
 
-  std::function<void(ScriptedCardAction&, double)> onUpdate;
-  std::function<void(ScriptedCardAction&)> onAnimationEnd;
-  std::function<void(ScriptedCardAction&)> onActionEnd;
-  std::function<void(ScriptedCardAction&, std::shared_ptr<Character>)> onExecute;
+  std::function<void(std::shared_ptr<ScriptedCardAction>, double)> onUpdate;
+  std::function<void(std::shared_ptr<ScriptedCardAction>)> onAnimationEnd;
+  std::function<void(std::shared_ptr<ScriptedCardAction>)> onActionEnd;
+  std::function<void(std::shared_ptr<ScriptedCardAction>, std::shared_ptr<Character>)> onExecute;
 };
 
 #endif

@@ -11,8 +11,11 @@ ScriptedSpell::ScriptedSpell(Team _team) :
   shadow->Hide(); // default: hidden
   shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
   AddNode(shadow);
+}
 
-  animComponent = CreateComponent<AnimationComponent>(weak_from_this());
+void ScriptedSpell::Init() {
+  Spell::Init();
+  animComponent = CreateComponent<AnimationComponent>(weak_from_base<Entity>());
 }
 
 ScriptedSpell::~ScriptedSpell() {

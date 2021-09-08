@@ -15,6 +15,10 @@ StuntDouble::StuntDouble(std::shared_ptr<Character> ref) : ref(ref)
   for (auto node : ref->GetChildNodes()) {
     AddNode(node);
   }
+}
+
+void StuntDouble::Init() {
+  Character::Init();
 
   // add common components and copy
   auto anim = CreateComponent<AnimationComponent>(weak_from_this());

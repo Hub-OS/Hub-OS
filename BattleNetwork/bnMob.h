@@ -304,7 +304,9 @@ public:
   template<typename... Args, typename std::enable_if_t<!std::is_constructible<Args&&..., const Spawner&>::value>* = nullptr>
   explicit Spawner(Args&&... args) {
     constructor = [tuple_args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable->std::shared_ptr<ClassType> {
-      return stx::make_shared_from_tuple<ClassType>(tuple_args);
+      auto character = stx::make_shared_from_tuple<ClassType>(tuple_args);
+      character->Init();
+      return character;
     };
   }
 

@@ -43,6 +43,12 @@ GuardHit::GuardHit(std::shared_ptr<Character> hit, bool center)
   setTexture(Textures().GetTexture(TextureType::SPELL_GUARD_HIT));
   setScale(2.f, 2.f);
 
+  Audio().Play(AudioType::GUARD_HIT);
+}
+
+void GuardHit::Init() {
+  Artifact::Init();
+
   //Components setup and load
   auto onFinish = [&]() { Delete();  };
 
@@ -51,8 +57,6 @@ GuardHit::GuardHit(std::shared_ptr<Character> hit, bool center)
   animationComponent->Reload();
   animationComponent->SetAnimation("DEFAULT", onFinish);
   animationComponent->OnUpdate(0);
-
-  Audio().Play(AudioType::GUARD_HIT);
 }
 
 void GuardHit::OnUpdate(double _elapsed) {

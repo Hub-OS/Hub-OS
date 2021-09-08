@@ -15,7 +15,8 @@ class ScriptedObstacle final : public Obstacle, public dynamic_object {
 public:
   ScriptedObstacle(Team _team);
   ~ScriptedObstacle();
-  
+
+  void Init() override;
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile * next) override;
@@ -35,12 +36,12 @@ public:
 
   void NeverFlip(bool enabled);
 
-  std::function<void(ScriptedObstacle&, Battle::Tile&)> spawnCallback;
-  std::function<void(ScriptedObstacle&, Character&)> attackCallback;
-  std::function<void(ScriptedObstacle&, Character&)> collisionCallback;
+  std::function<void(std::shared_ptr<ScriptedObstacle>, Battle::Tile&)> spawnCallback;
+  std::function<void(std::shared_ptr<ScriptedObstacle>, std::shared_ptr<Character>)> attackCallback;
+  std::function<void(std::shared_ptr<ScriptedObstacle>, std::shared_ptr<Character>)> collisionCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(ScriptedObstacle&)> deleteCallback;
-  std::function<void(ScriptedObstacle&, double)> updateCallback;
+  std::function<void(std::shared_ptr<ScriptedObstacle>)> deleteCallback;
+  std::function<void(std::shared_ptr<ScriptedObstacle>, double)> updateCallback;
 private:
   bool flip{ true };
   sf::Vector2f scriptedOffset{};

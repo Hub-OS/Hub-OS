@@ -24,6 +24,8 @@ public:
   GuardHit(std::shared_ptr<Character> hit, bool center = false);
   ~GuardHit();
 
+  void Init() override;
+
   /**
    * @brief When the animation ends, it deletes itself
    * @param _elapsed in seconds

@@ -1,7 +1,8 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedPlayer.h"
-#include "../bnCardAction.h"
 #include "bnScriptedCardAction.h"
+#include "../bnCardAction.h"
+#include "../bnSolHelpers.h"
 
 ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   script(script),
@@ -12,8 +13,16 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
 
   SetLayer(0);
   SetTeam(Team::red);
+}
 
-  script["player_init"](*this);
+void ScriptedPlayer::Init() {
+  Player::Init();
+
+  auto initResult = CallLuaFunction(script, "player_init", shared_from_base<ScriptedPlayer>());
+
+  if (initResult.is_error()) {
+    Logger::Log(initResult.error_cstr());
+  }
 
   animationComponent->Reload();
   FinishConstructor();
@@ -54,23 +63,37 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
   return GetTile();
 }
 
-std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
-{
-  std::shared_ptr<CardAction> result{ nullptr };
+std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(const std::string& functionName) {
 
-  sol::object obj = script["create_special_attack"](*this);
+  auto result = CallLuaFunction(script, functionName, shared_from_base<ScriptedPlayer>());
+
+  if(result.is_error()) {
+    Logger::Log(result.error_cstr());
+    return nullptr;
+  }
+
+  auto obj = result.value();
 
   if (obj.valid()) {
-    if (obj.is<std::shared_ptr<CardAction>>()) {
-      result = obj.as<std::shared_ptr<CardAction>>();
+    if (obj.is<std::shared_ptr<CardAction>>())
+    {
+      return obj.as<std::shared_ptr<CardAction>>();
     }
-    else if (obj.is<std::shared_ptr<ScriptedCardAction>>()) {
-      result = obj.as<std::shared_ptr<ScriptedCardAction>>();
+    else if (obj.is<std::shared_ptr<ScriptedCardAction>>())
+    {
+      return obj.as<std::shared_ptr<ScriptedCardAction>>();
     }
     else {
-      Logger::Log("Lua function \"create_special_attack\" didn't return a CardAction.");
+      Logger::Logf("Lua function \"%s\" didn't return a CardAction.", functionName.c_str());
     }
   }
+
+  return nullptr;
+}
+
+std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
+{
+  std::shared_ptr<CardAction> result = GenerateCardAction("create_special_attack");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::ability);
@@ -81,23 +104,7 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
 
 std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteBusterAction()
 {
-  std::shared_ptr<CardAction> result{ nullptr };
-
-  sol::object obj = script["create_normal_attack"](*this);
-
-  if (obj.valid()) {
-    if (obj.is<std::shared_ptr<CardAction>>())
-    {
-      result = obj.as<std::shared_ptr<CardAction>>();
-    }
-    else if (obj.is<std::shared_ptr<ScriptedCardAction>>())
-    {
-      result = obj.as<std::shared_ptr<ScriptedCardAction>>();
-    }
-    else {
-      Logger::Log("Lua function \"create_normal_attack\" didn't return a CardAction.");
-    }
-  }
+  std::shared_ptr<CardAction> result = GenerateCardAction("create_normal_attack");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -108,23 +115,7 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteBusterAction()
 
 std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteChargedBusterAction()
 {
-  std::shared_ptr<CardAction> result{ nullptr };
-
-  sol::object obj = script["create_charged_attack"](*this);
-
-  if (obj.valid()) {
-    if (obj.is<std::shared_ptr<CardAction>>())
-    {
-      result = obj.as<std::shared_ptr<CardAction>>();
-    }
-    else if (obj.is<std::shared_ptr<ScriptedCardAction>>())
-    {
-      result = obj.as<std::shared_ptr<ScriptedCardAction>>();
-    }
-    else {
-      Logger::Log("Lua function \"create_charged_attack\" didn't return a CardAction.");
-    }
-  }
+  std::shared_ptr<CardAction> result = GenerateCardAction("create_charged_attack");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -138,7 +129,7 @@ void ScriptedPlayer::OnUpdate(double _elapsed)
   Player::OnUpdate(_elapsed);
 
   if (on_update_func) {
-    on_update_func(*this, _elapsed);
+    on_update_func(shared_from_base<ScriptedPlayer>(), _elapsed);
   }
 }
 

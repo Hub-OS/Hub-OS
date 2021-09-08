@@ -81,7 +81,7 @@ void MobHealthUI::OnUpdate(double elapsed) {
 
 void MobHealthUI::Inject(BattleSceneBase& scene)
 {
-  scene.Inject(*this);
+  scene.Inject(shared_from_base<MobHealthUI>());
 }
 
 void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const

@@ -16,6 +16,8 @@ public:
   ShineExplosion();
   ~ShineExplosion();
 
+  void Init() override;
+
   /**
    * @brief Loops animations
    * @param _elapsed in seconds

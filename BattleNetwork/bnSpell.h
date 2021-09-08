@@ -11,10 +11,11 @@
 #include "bnTile.h"
 #include "bnCharacter.h"
 #include "bnAnimationComponent.h"
+#include "stx/memory.h"
 
 using sf::Texture;
 
-class Spell : public virtual Entity {
+class Spell : public virtual Entity, public stx::enable_shared_from_base<Spell> {
 public:
 
   /**

@@ -44,7 +44,7 @@ void PlayerEmotionUI::SetTexture(std::shared_ptr<sf::Texture> texture)
 
 void PlayerEmotionUI::Inject(BattleSceneBase& scene)
 {
-  scene.Inject(this);
+  scene.Inject(shared_from_base<PlayerEmotionUI>());
 }
 
 void PlayerEmotionUI::draw(sf::RenderTarget& target, sf::RenderStates states) const

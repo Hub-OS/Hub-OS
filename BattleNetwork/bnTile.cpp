@@ -895,7 +895,7 @@ namespace Battle {
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
       for (Entity::ID_t ID : queuedSpells) {
-        auto spell = dynamic_pointer_cast<Spell>(field->GetEntity(ID));
+        auto spell = std::dynamic_pointer_cast<Spell>(field->GetEntity(ID));
 
         // this shouldn't happen but it does sometimes... 
         // TODO: we need to be sure it's always right to perform static casting

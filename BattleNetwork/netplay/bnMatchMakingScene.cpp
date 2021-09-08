@@ -591,6 +591,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       auto mugshot = Textures().LoadTextureFromFile(image);
       auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
       auto player = std::shared_ptr<Player>(meta.GetData());
+      player->Init();
 
 
       NetworkBattleSceneProps props = {

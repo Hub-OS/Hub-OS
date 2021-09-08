@@ -40,5 +40,5 @@ void HideTimer::Inject(BattleSceneBase& scene) {
   // the component is now injected into the scene's update loop
   // because the character's update loop is only called when they are on the field
   // this way the timer can keep ticking
-  scene.Inject(this);
+  scene.Inject(shared_from_base<HideTimer>());
 }

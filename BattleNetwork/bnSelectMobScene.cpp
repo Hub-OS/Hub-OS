@@ -367,6 +367,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       auto mugshot = Textures().LoadTextureFromFile(image);
       auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
       auto player = std::shared_ptr<Player>(meta.GetData());
+      player->Init();
 
       // Shuffle our new folder
       CardFolder* newFolder = selectedFolder.Clone();

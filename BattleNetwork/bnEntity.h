@@ -81,7 +81,7 @@ struct EntityComparitor {
   bool operator()(std::shared_ptr<Entity> f, std::shared_ptr<Entity> s) const;
 };
 
-class Entity : public std::enable_shared_from_this<Entity>, public SpriteProxyNode, public ResourceHandle {
+class Entity : public SpriteProxyNode, public ResourceHandle {
 public:
   using ID_t = long;
 
@@ -145,6 +145,16 @@ public:
   * @example See bnGears.h for an entity that only stops in place when the round is over
   */
   virtual void OnBattleStop() { };
+
+  /**
+   * @brief TODO
+   */
+  bool HasInit();
+
+  /**
+   * @brief TODO
+   */
+  virtual void Init();
 
   /**
    * @brief TODO
@@ -517,12 +527,8 @@ protected:
   void SetMoveEndlag(const frame_time_t& frames);
   void SetMoveStartupDelay(const frame_time_t& frames);
 
-  template <typename Derived>
-  inline std::shared_ptr<Derived> shared_from_base();
-  template <typename Derived>
-  inline std::weak_ptr<Derived> weak_from_base();
-
 private:
+  bool hasInit{};
   bool isTimeFrozen{};
   bool ownedByField{}; /*!< Must delete the entity manual if not owned by the field. */
   bool passthrough{};
@@ -604,21 +610,4 @@ inline std::shared_ptr<ComponentType> Entity::CreateComponent(Args&& ...args) {
   RegisterComponent(c);
 
   return c;
-}
-
-// modified from https://stackoverflow.com/a/32172486
-template <typename Derived>
-inline std::shared_ptr<Derived> Entity::shared_from_base()
-{
-  // todo: typecheck
-  return std::reinterpret_pointer_cast<Derived>(shared_from_this());
-}
-
-
-// modified from https://stackoverflow.com/a/32172486
-template <typename Derived>
-inline std::weak_ptr<Derived> Entity::weak_from_base()
-{
-  // todo: typecheck
-  return std::reinterpret_pointer_cast<Derived>(shared_from_this());
 }

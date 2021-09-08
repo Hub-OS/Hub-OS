@@ -38,6 +38,8 @@ public:
   
   ~Explosion();
 
+  void Init() override;
+
   /**
    * @brief If root increment count is size of numOfExplosions, delete and stop the chain 
    * @param _elapsed in seconds

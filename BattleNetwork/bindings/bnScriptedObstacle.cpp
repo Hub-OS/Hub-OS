@@ -12,8 +12,12 @@ ScriptedObstacle::ScriptedObstacle(Team _team) :
   shadow->Hide(); // default: hidden
   shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
   AddNode(shadow);
+}
 
-  animComponent = CreateComponent<AnimationComponent>(weak_from_this());
+void ScriptedObstacle::Init() {
+  Obstacle::Init();
+
+  animComponent = CreateComponent<AnimationComponent>(Spell::weak_from_this());
   animComponent->Load();
   animComponent->Refresh();
 
@@ -32,33 +36,33 @@ bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
 
 void ScriptedObstacle::OnCollision(const std::shared_ptr<Character> other)
 {
-  ScriptedObstacle& so = *this;
-  collisionCallback ? collisionCallback(so, const_cast<Character&>(*other)) : (void)0;
+  auto so = Spell::shared_from_base<ScriptedObstacle>();
+  collisionCallback ? collisionCallback(so, other) : (void)0;
 }
 
 void ScriptedObstacle::OnUpdate(double _elapsed) {
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
-  ScriptedObstacle& so = *this;
+  auto so = Spell::shared_from_base<ScriptedObstacle>();
   updateCallback ? updateCallback(so, _elapsed) : (void)0;
 
 }
 
 void ScriptedObstacle::OnDelete() {
-  ScriptedObstacle& so = *this;
+  auto so = Spell::shared_from_base<ScriptedObstacle>();
   deleteCallback ? deleteCallback(so) : (void)0;
   Remove();
 }
 
 void ScriptedObstacle::Attack(std::shared_ptr<Character> other) {
   other->Hit(GetHitboxProperties());
-  ScriptedObstacle& so = *this;
-  attackCallback ? attackCallback(so, *other) : (void)0;
+  auto so = Spell::shared_from_base<ScriptedObstacle>();
+  attackCallback ? attackCallback(so, other) : (void)0;
 }
 
 void ScriptedObstacle::OnSpawn(Battle::Tile& spawn)
 {
-  ScriptedObstacle& so = *this;
+  auto so = Spell::shared_from_base<ScriptedObstacle>();
   spawnCallback ? spawnCallback(so, spawn) : (void)0;
 
   if (GetTeam() == Team::blue && flip) {

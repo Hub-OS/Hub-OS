@@ -13,7 +13,6 @@
 class Character;
 
 class ScriptedComponent final :
-  public std::enable_shared_from_this<ScriptedComponent>,
   public Component,
   public dynamic_object
 {

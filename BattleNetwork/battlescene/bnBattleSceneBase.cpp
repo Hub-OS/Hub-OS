@@ -176,6 +176,10 @@ BattleSceneBase::~BattleSceneBase() {
   for (auto&& elem : nodeToEdges) {
     delete elem.second;
   }
+
+  for (auto& c : components) {
+    c->scene = nullptr;
+  }
 }
 
 const bool BattleSceneBase::DoubleDelete() const
@@ -483,8 +487,10 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   current->onUpdate(elapsed);
 
+  auto componentsCopy = components;
+
   // Update components
-  for (auto c : components) {
+  for (auto& c : componentsCopy) {
     if (c->Lifetime() == Component::lifetimes::ui && battleTimer.getElapsed().asMilliseconds() > 0) {
       c->Update((float)elapsed);
     }
@@ -816,24 +822,24 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
 
 
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
-void BattleSceneBase::Inject(MobHealthUI& other)
+void BattleSceneBase::Inject(std::shared_ptr<MobHealthUI> other)
 {
-  other.scene = this;
-  components.push_back(&other);
-  scenenodes.push_back(&other);
+  other->scene = this;
+  components.push_back(other);
+  scenenodes.push_back(other);
 }
 
-void BattleSceneBase::Inject(SelectedCardsUI& cardUI)
+void BattleSceneBase::Inject(std::shared_ptr<SelectedCardsUI> cardUI)
 {
-  this->SubscribeToCardActions(cardUI);
+  this->SubscribeToCardActions(*cardUI);
 }
 
 // Default case: no special injection found for the type, just add it to our update loop
-void BattleSceneBase::Inject(Component* other)
+void BattleSceneBase::Inject(std::shared_ptr<Component> other)
 {
   assert(other && "Component injected was nullptr");
 
-  SceneNode* node = dynamic_cast<SceneNode*>(other);
+  auto node = std::dynamic_pointer_cast<SceneNode>(other);
   if (node) { scenenodes.push_back(node); }
 
   other->scene = this;
@@ -843,15 +849,17 @@ void BattleSceneBase::Inject(Component* other)
 void BattleSceneBase::Eject(Component::ID_t ID)
 {
   auto iter = std::find_if(components.begin(), components.end(), 
-    [ID](Component* in) { return in->GetID() == ID; }
+    [ID](auto& in) { return in->GetID() == ID; }
   );
 
   if (iter != components.end()) {
-    Component* component = *iter;
+    auto& component = **iter;
+
+    auto node = dynamic_cast<SceneNode*>(&component);
     // TODO: dynamic casting could be entirely avoided by hashing IDs
     auto iter2 = std::find_if(scenenodes.begin(), scenenodes.end(), 
-      [component](SceneNode* in) { 
-        return in == dynamic_cast<SceneNode*>(component);
+      [node](auto& in) { 
+        return in.get() == node;
       }
     );
 
@@ -859,6 +867,7 @@ void BattleSceneBase::Eject(Component::ID_t ID)
       scenenodes.erase(iter2);
     }
 
+    component.scene = nullptr;
     components.erase(iter);
   }
 }
@@ -887,7 +896,7 @@ void BattleSceneBase::ProcessNewestComponents()
       if (e->lastComponentID < latestID) {
         //std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
 
-        for (auto c : e->components) {
+        for (auto& c : e->components) {
           if (!c) continue;
 
           // Older components are last in order, we're done

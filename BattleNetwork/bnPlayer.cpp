@@ -38,10 +38,6 @@ Player::Player() :
 
   setScale(2.0f, 2.0f);
 
-  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
-  animationComponent->SetPath(RESOURCE_PATH);
-  animationComponent->Reload();
-
   previous = nullptr;
   playerControllerSlide = false;
   activeForm = nullptr;
@@ -61,8 +57,6 @@ Player::Player() :
 
   actionQueue.RegisterType<BusterEvent>(ActionTypes::buster, handler);
 
-  FinishConstructor();
-
   // When we have no upcoming actions we should be in IDLE state
   actionQueue.SetIdleCallback([this] {
     if (!IsActionable()) {
@@ -73,6 +67,16 @@ Player::Player() :
       animationComponent->OnFinish(finish);
     }
   });
+}
+
+void Player::Init() {
+  Character::Init();
+
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
+  animationComponent->SetPath(RESOURCE_PATH);
+  animationComponent->Reload();
+
+  FinishConstructor();
 }
 
 Player::~Player() {

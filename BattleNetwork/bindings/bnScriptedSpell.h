@@ -16,6 +16,7 @@ public:
   ScriptedSpell(Team _team);
   ~ScriptedSpell();
   
+  void Init() override;
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
   void OnCollision(const std::shared_ptr<Character> other) override;

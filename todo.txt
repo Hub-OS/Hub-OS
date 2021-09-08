@@ -10,13 +10,17 @@ Look for circular references:
 
 CardAction Step as shared_ptr
 SpriteProxy as shared_ptr
+Attachement as shared_ptr?
 
 // todo: break entity shared_ptr cycles
 // also call this->FreeAllComponents();
 // should the field and tiles be shared_ptr? as sprite proxy node???
 // what about animations
-// is Animation& safe? GetAnimationFromComponent?
+// is Animation& safe? GetAnimationFromComponent? - no references are not safe
 // maybe return something that wraps the AnimationComponent like an animation component user type with the same exports
 
 
 Battle::Tile& // check out stuff like scripted spells
+
+check phone -> remove Spell from Obstacle
+add a CallbackSafe function to sol helpers that wraps an std::function call with a try catch and checks to see if the callback is set

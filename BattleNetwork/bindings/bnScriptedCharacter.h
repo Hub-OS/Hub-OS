@@ -31,6 +31,7 @@ public:
 
   ScriptedCharacter(sol::state& script, Character::Rank rank);
   ~ScriptedCharacter();
+  void Init();
   void OnSpawn(Battle::Tile& start) override;
   void OnBattleStart() override;
   void OnBattleStop() override;
@@ -46,12 +47,12 @@ public:
   void SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order);
   void SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order);
 
-  std::function<void(ScriptedCharacter&, Battle::Tile&)> spawnCallback;
+  std::function<void(std::shared_ptr<ScriptedCharacter>, Battle::Tile&)> spawnCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(ScriptedCharacter&)> deleteCallback;
-  std::function<void(ScriptedCharacter&)> onBattleStartCallback;
-  std::function<void(ScriptedCharacter&)> onBattleEndCallback;
-  std::function<void(ScriptedCharacter&, double)> updateCallback;
+  std::function<void(std::shared_ptr<ScriptedCharacter>)> deleteCallback;
+  std::function<void(std::shared_ptr<ScriptedCharacter>)> onBattleStartCallback;
+  std::function<void(std::shared_ptr<ScriptedCharacter>)> onBattleEndCallback;
+  std::function<void(std::shared_ptr<ScriptedCharacter>, double)> updateCallback;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {
@@ -60,7 +61,9 @@ public:
   }
 
   void OnUpdate(double elapsed, ScriptedCharacter& s) override {
-    s.updateCallback(s, elapsed);
+    if (s.updateCallback) {
+      s.updateCallback(s.shared_from_base<ScriptedCharacter>(), elapsed);
+    }
   }
 
   void OnLeave(ScriptedCharacter& s) override {

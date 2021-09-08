@@ -18,6 +18,8 @@ public:
   Buster(Team _team,bool _charged, int damage);
   ~Buster() override;
 
+  void Init() override;
+
   void OnUpdate(double _elapsed) override;
   
   bool CanMoveTo(Battle::Tile* next) override;

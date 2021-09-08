@@ -102,8 +102,8 @@ private:
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   Font mobFont; /*!< Name of mob font */
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
-  std::vector<SceneNode*> scenenodes; /*!< ui components. DO NOT DELETE. */
-  std::vector<Component*> components; /*!< Components injected into the scene to track. DO NOT DELETE. */
+  std::vector<std::shared_ptr<SceneNode>> scenenodes; /*!< ui components. */
+  std::vector<std::shared_ptr<Component>> components; /*!< Components injected into the scene to track. */
   std::vector<std::reference_wrapper<CardActionUsePublisher>> cardUseSubscriptions; /*!< Share subscriptions with other CardListeners states*/
   BattleResults battleResults{};
   BattleResultsFunc onEndCallback;
@@ -366,19 +366,19 @@ public:
     * @brief Inject uses double-visitor design pattern. BattleScene adds component to draw and update list.
     * @param other
     */
-  void Inject(MobHealthUI& other);
+  void Inject(std::shared_ptr<MobHealthUI> other);
 
   /**
   * @brief Inject uses double-visitor design pattern. BattleScene subscribes to the selected card ui.
   * @param cardUI
   */
-  void Inject(SelectedCardsUI& cardUI);
+  void Inject(std::shared_ptr<SelectedCardsUI> cardUI);
 
   /**
     * @brief Inject uses double-visitor design pattern. This is default case.
     * @param other Adds component "other" to component update list.
     */
-  void Inject(Component* other);
+  void Inject(std::shared_ptr<Component> other);
 
   /**
     * @brief When ejecting component from scene, removes it from update list

@@ -26,19 +26,6 @@ Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spe
 
   random = 0;
 
-  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
-
-  if (_charged) {
-    texture = Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
-    animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
-    animationComponent->Reload();
-    animationComponent->SetAnimation("HIT");
-  } else {
-    texture = Textures().GetTexture(TextureType::SPELL_BULLET_HIT);
-    animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
-    animationComponent->Reload();
-    animationComponent->SetAnimation("HIT");
-  }
   setScale(2.f, 2.f);
 
   Audio().Play(AudioType::BUSTER_PEA, AudioPriority::high);
@@ -51,6 +38,24 @@ Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spe
 
   contact = nullptr;
   spawnGuard = false;
+}
+
+void Buster::Init()
+{
+  Spell::Init();
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
+
+  if (isCharged) {
+    texture = Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+    animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
+  } else {
+    texture = Textures().GetTexture(TextureType::SPELL_BULLET_HIT);
+    animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
+  }
 }
 
 Buster::~Buster() {

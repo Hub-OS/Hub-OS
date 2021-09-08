@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include "stx/memory.h"
 
 class Entity;
 class BattleSceneBase;
@@ -14,7 +14,7 @@ class BattleSceneBase;
  * Components can be attached to (and owned by) any Entity in the game
  * This allows for custom behavior on pre-existing effects, characters, and attacks
  */
-class Component {
+class Component : public stx::enable_shared_from_base<Component> {
 public:
   friend class BattleSceneBase;
 

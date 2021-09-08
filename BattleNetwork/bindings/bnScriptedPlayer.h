@@ -11,6 +11,7 @@
 #include "../bnPlayerControlledState.h"
 #include "../bnPlayerIdleState.h"
 #include "../bnPlayerHitState.h"
+#include "../stx/result.h"
 
 /*! \brief scriptable navi
  *
@@ -20,12 +21,15 @@
 class ScriptedPlayer : public Player {
   sol::state& script;
   float height{};
+
+  std::shared_ptr<CardAction> GenerateCardAction(const std::string& functionName);
 public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;
 
   ScriptedPlayer(sol::state& script);
 
+  void Init() override;
   void SetChargePosition(const float x, const float y);
   void SetFullyChargeColor(const sf::Color& color);
   void SetHeight(const float height);
@@ -38,7 +42,7 @@ public:
   std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
   std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
   std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
-  std::function<void(Character&, double)> on_update_func;
+  std::function<void(std::shared_ptr<ScriptedPlayer>, double)> on_update_func;
 };
 
 #endif

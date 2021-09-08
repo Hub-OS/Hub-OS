@@ -4,6 +4,7 @@
 #include "../bnFadeInState.h"
 #include "../bnScriptResourceManager.h"
 #include "../bnCustomBackground.h"
+#include "../bnSolHelpers.h"
 
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
@@ -121,7 +122,13 @@ Mob* ScriptedMob::Build(Field* field) {
   // Build a mob around the field input
   this->field = field;
   this->mob = new Mob(field);
-  script["package_build"](this);
+
+  auto initResult = CallLuaFunction(script, "package_build", this);
+
+  if (initResult.is_error()) {
+    Logger::Log(initResult.error_cstr());
+  }
+
   return mob;
 }
 
