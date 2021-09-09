@@ -1,7 +1,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Window/Clipboard.hpp>
-using sf::Event;
-using sf::Keyboard;
+#include <mutex>
+
 #include "bnGame.h"
 #include "bnInputManager.h"
 
@@ -9,7 +9,8 @@ using sf::Keyboard;
 #include "Android/bnTouchArea.h"
 #endif
 
-// #include <iostream>
+using sf::Event;
+using sf::Keyboard;
 
 #define GAMEPAD_AXIS_SENSITIVITY 30.f
 
@@ -21,7 +22,6 @@ InputManager::InputManager(sf::Window& win)  :
   lastButton = (decltype(lastButton))-1;
   keyboardState.fill(false);
 }
-
 
 InputManager::~InputManager() {
 }
@@ -70,6 +70,8 @@ void InputManager::SupportConfigSettings(ConfigSettings& settings) {
 }
 
 void InputManager::Update() {
+  this->mutex.lock();
+
   std::swap(stateLastFrame, state); // (store state in stateLastFrame, without deep copy)
   state.clear();
   systemCopyEvent = systemPasteEvent = false;
@@ -81,39 +83,27 @@ void InputManager::Update() {
 
   while (window.pollEvent(event)) {
     if (event.type == Event::Closed) {
-      {
-        std::lock_guard lock(mutex);
-        onLoseFocus ? onLoseFocus() : (void)0;
-      }
-
+      onLoseFocus ? onLoseFocus() : (void)0;
       window.close();
       hasFocus = false;
     } else if (event.type == Event::LostFocus) {
-      {
-        std::lock_guard lock(mutex);
-
-        onLoseFocus ? onLoseFocus() : (void)0;
-      }
-
+      onLoseFocus ? onLoseFocus() : (void)0;
       hasFocus = false;
 
+      this->mutex.unlock();
       FlushAllInputEvents();
+      this->mutex.lock();
     }
     else if (event.type == Event::GainedFocus) {
-      {
-        std::lock_guard lock(mutex);
-
-        onRegainFocus ? onRegainFocus() : (void)0;
-      }
-
+      onRegainFocus ? onRegainFocus() : (void)0;
       hasFocus = true;
 
       // we have re-entered, do not let keys be held down
+      this->mutex.unlock();
       FlushAllInputEvents();
+      this->mutex.lock();
     }
     else if (event.type == Event::Resized) {
-      std::lock_guard lock(mutex);
-
       onResized? onResized(event.size.width, event.size.height) : (void)0;
       hasFocus = true;
     } else if (event.type == sf::Event::TextEntered) {
@@ -312,6 +302,8 @@ void InputManager::Update() {
     state.clear(); // TODO: what inputs get stuck in the event list on droid?
     TouchArea::poll();
 #endif
+
+    this->mutex.unlock();
 }
 
 bool InputManager::HasFocus() const
@@ -339,7 +331,7 @@ Gamepad InputManager::GetAnyGamepadButton() const
   return lastButton;
 }
 
-const std::unordered_map<std::string, InputState>& InputManager::StateThisFrame() const
+const std::unordered_map<std::string, InputState> InputManager::StateThisFrame() const
 {
   return state;
 }
@@ -481,9 +473,11 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
 }
 
 bool InputManager::Has(InputEvent event) const {
-  auto it = state.find(event.name);
+  std::unordered_map<std::string, InputState> state_copy = state;
 
-  if (it == state.end()) {
+  auto it = state_copy.find(event.name);
+
+  if (it == state_copy.end()) {
     return false;
   }
 
@@ -496,19 +490,19 @@ void InputManager::VirtualKeyEvent(InputEvent event) {
 
 void InputManager::BindRegainFocusEvent(std::function<void()> callback)
 {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(this->mutex);
   onRegainFocus = callback;
 }
 
 void InputManager::BindResizedEvent(std::function<void(int, int)> callback)
 {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(this->mutex);
   onResized = callback;
 }
 
 void InputManager::BindLoseFocusEvent(std::function<void()> callback)
 {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(this->mutex);
   onLoseFocus = callback;;
 }
 
@@ -544,6 +538,8 @@ ConfigSettings& InputManager::GetConfigSettings()
 
 void InputManager::FlushAllInputEvents()
 {
+  std::lock_guard lock(this->mutex);
+
   for (auto& [name, previousState] : stateLastFrame) {
     // Search for press keys that have been InputState::held and transform them
     if (previousState == InputState::pressed || previousState == InputState::held) {

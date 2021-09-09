@@ -23,7 +23,7 @@
 #include "overworld/bnOverworldHomepage.h"
 #include "SFML/System.hpp"
 
-Game::Game(DrawWindow& window) : 
+Game::Game(DrawWindow& window) :
   window(window), 
   reader("config.ini"),
   configSettings(),
@@ -70,9 +70,14 @@ Game::Game(DrawWindow& window) :
 
   // Use our external render surface as the game's screen
   window.SetRenderSurface(renderSurface);
+  window.GetRenderWindow()->setActive(false);
 }
 
 Game::~Game() {
+  if (renderThread.joinable()) {
+    renderThread.join();
+  }
+
   delete cardPackageManager;
   delete playerPackageManager;
   delete mobPackageManager;
@@ -147,7 +152,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
     // See the random generator with current time
     srand(time(0));
-    this->SeedRand(time(0));
   });
 
   this->UpdateConfigSettings(reader.GetConfigSettings());
@@ -176,66 +180,62 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
   spinnerAnimator = Animation("resources/ui/spinner.animation") << "SPIN" << Animator::Mode::Loop;
 
+  renderThread = std::thread(&Game::ProcessFrame, this);
+
   return tasks;
 }
 
-void Game::Run()
+void Game::ProcessFrame()
 {
   sf::Clock clock;
   float scope_elapsed = 0.0f;
-  float speed = 1.0f;
-  float messageCooldown = 3;
-
-  bool inMessageState = true;
-
+  window.GetRenderWindow()->setActive(true);
   while (window.Running()) {
-    this->SeedRand(time(0));
-
-    float FPS = 0.f;
-
-    FPS = (float)(1.0 / (float)scope_elapsed);
-    std::string fpsStr = std::to_string(FPS);
-    fpsStr.resize(4);
-    sf::String title = sf::String(std::string("FPS: ") + fpsStr);
-    getWindow().setTitle(title);
-
     clock.restart();
-
-    // Poll input
-    inputManager.Update();
-
-    // unused images need to be free'd 
-    textureManager.HandleExpiredTextureCache();
 
     double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
     this->elapsed += from_seconds(delta);
 
-    bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame);
-    bool resumeKey = inputManager.Has(InputEvents::pressed_resume_frames);
-
     // Poll net code
     netManager.Update(delta);
 
-    if (nextFrameKey && isDebug && !frameByFrame) {
-      frameByFrame = true;
-    }
-    else if (resumeKey && frameByFrame) {
-      frameByFrame = false;
-    }
+    //bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame);
+    //bool resumeKey = inputManager.Has(InputEvents::pressed_resume_frames);
 
-    bool updateFrame = (frameByFrame && nextFrameKey) || !frameByFrame;
+    //if (nextFrameKey && isDebug && !frameByFrame) {
+      //frameByFrame = true;
+   // }
+    //else if (resumeKey && frameByFrame) {
+    //  frameByFrame = false;
+   // }
+
+    bool updateFrame = true; // (frameByFrame && nextFrameKey) || !frameByFrame;
 
     if (updateFrame) {
       // Prepare for draw calls
       window.Clear();
 
       this->update(delta);
+      Logger::Logf("after update(delta)");
       this->draw();
 
       window.Display();
     }
 
     scope_elapsed = clock.getElapsedTime().asSeconds();
+  }
+}
+
+void Game::Run()
+{
+  while (window.Running()) {
+    this->SeedRand(time(0));
+
+    // Poll input
+    inputManager.Update();
+
+    // unused images need to be free'd 
+    textureManager.HandleExpiredTextureCache();
   }
 }
 
@@ -417,7 +417,6 @@ void Game::RunGraphicsInit(std::atomic<int> * progress) {
     Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
   }
   else {
-    // todo: swoosh::quality::no_shaders
     ActivityController::optimizeForPerformance(swoosh::quality::mobile);
     Logger::Log("Shader support is disabled");
   }

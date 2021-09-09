@@ -96,6 +96,10 @@ private:
 
   Endianness endian{ Endianness::big };
   std::atomic<int> progress{ 0 };
+  std::mutex windowMutex;
+  std::thread renderThread;
+
+  void ProcessFrame();
 
 public:
   Game(DrawWindow& window);

@@ -60,8 +60,7 @@ public:
   void SetClipboard(const std::string& data);
 
   Gamepad GetAnyGamepadButton() const;
-  const std::unordered_map<std::string, InputState>& StateThisFrame() const;
-  
+  const std::unordered_map<std::string, InputState> StateThisFrame() const;
   const bool ConvertKeyToString(const sf::Keyboard::Key key, std::string& out) const;
 
   /**
@@ -163,7 +162,7 @@ public:
   void FlushAllInputEvents();
 
 private:
-  std::mutex mutex;
+  mutable std::mutex mutex;
   sf::Keyboard::Key lastkey{};
   sf::Window& window;
 
