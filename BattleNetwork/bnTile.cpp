@@ -357,7 +357,7 @@ namespace Battle {
     highlightMode = mode;
   }
 
-  bool Tile::IsReservedByCharacter(std::vector<Character*> exclude)
+  bool Tile::IsReservedByCharacter(std::vector<Entity::ID_t> exclude)
   {
     if (!reserved.empty()) return true;
 
@@ -365,12 +365,17 @@ namespace Battle {
       return !characters.empty();
     }
 
-    std::vector<Character*> diff;
+    std::vector<Character*> diff, char_exclude;
+    for (Entity::ID_t id : exclude) {
+      if (Character* c = field->GetCharacter(id)) {
+        char_exclude.push_back(c);
+      }
+    }
 
     std::sort(characters.begin(), characters.end());
-    std::sort(exclude.begin(), exclude.end());
+    std::sort(char_exclude.begin(), char_exclude.end());
 
-    std::set_difference(characters.begin(), characters.end(), exclude.begin(), exclude.end(), std::inserter(diff, diff.begin()));
+    std::set_difference(characters.begin(), characters.end(), char_exclude.begin(), char_exclude.end(), std::inserter(diff, diff.begin()));
 
     return !diff.empty();
   }

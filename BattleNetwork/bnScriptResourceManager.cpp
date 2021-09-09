@@ -88,6 +88,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "attack_entities", &Battle::Tile::AffectEntities,
     "get_distance_to_tile", &Battle::Tile::Distance,
     "find_characters", &Battle::Tile::FindCharacters,
+    "highlight", &Battle::Tile::RequestHighlight,
     "get_tile", &Battle::Tile::GetTile,
     "contains_entity", &Battle::Tile::ContainsEntity,
     "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
