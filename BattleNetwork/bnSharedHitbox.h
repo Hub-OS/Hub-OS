@@ -36,9 +36,9 @@ public:
   
   /**
    * @brief owner->Attack(_entity) is called 
-   * @param _entity the character to attack that is not the same as the owner
+   * @param _entity the entity to attack that is not the same as the owner
    */
-  void Attack(std::shared_ptr<Character> _entity) override;
+  void Attack(std::shared_ptr<Entity> _entity) override;
   void OnDelete() override;
   void OnSpawn(Battle::Tile& start) override;
   const float GetHeight() const override;

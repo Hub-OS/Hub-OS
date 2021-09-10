@@ -217,7 +217,11 @@ Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, int x, i
   Battle::Tile* tile = GetAt(x, y);
 
   if (tile) {
-    entity->AdoptTile(tile);
+    if (!entity->IsMoving()) {
+      entity->setPosition(tile->getPosition());
+    }
+
+    tile->AddEntity(entity);
     allEntityHash.insert(std::make_pair(entity->GetID(), entity));
     return Field::AddEntityStatus::added;
   }
@@ -311,7 +315,7 @@ void Field::Update(double _elapsed) {
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->ExecuteAllSpellAttacks();
+      tiles[i][j]->ExecuteAllAttacks();
     }
   }
 
@@ -447,7 +451,7 @@ void Field::Update(double _elapsed) {
     // Apply new spells into this frame's combat resolution
     for (int i = 0; i < tiles.size(); i++) {
       for (int j = 0; j < tiles[i].size(); j++) {
-        tiles[i][j]->ExecuteAllSpellAttacks();
+        tiles[i][j]->ExecuteAllAttacks();
       }
     }
 

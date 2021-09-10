@@ -2,7 +2,6 @@
 #include "bnAudioResourceManager.h"
 #include "bnInputManager.h"
 #include "bnField.h"
-#include "bnRowHit.h"
 #include "bnDefenseBubbleWrap.h"
 #include "bnBubbleTrap.h"
 

@@ -13,6 +13,6 @@ Hit::Properties& DefenseSuperArmor::FilterStatuses(Hit::Properties& statuses)
   return statuses;
 }
 
-void DefenseSuperArmor::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) {
+void DefenseSuperArmor::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) {
   // doesn't block anything
 }

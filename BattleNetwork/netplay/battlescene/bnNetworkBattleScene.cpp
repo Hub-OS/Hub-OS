@@ -203,7 +203,7 @@ NetworkBattleScene::~NetworkBattleScene()
   if (remoteHand) delete[] remoteHand;
 }
 
-void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
+void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
   auto player = GetPlayer();
   if (player.get() == &victim && props.damage > 0) {

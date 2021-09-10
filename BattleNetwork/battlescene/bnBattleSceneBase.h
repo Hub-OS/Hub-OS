@@ -25,6 +25,7 @@
 #include "../bnCardSelectionCust.h"
 #include "../bnPlayerEmotionUI.h"
 #include "../bnBattleResults.h"
+#include "../bnEventBus.h"
 
 // Battle scene specific classes
 #include "bnBattleSceneState.h"
@@ -244,7 +245,7 @@ protected:
   void ProcessNewestComponents();
 
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
-  void OnCounter(Character& victim, Character& aggressor) override final;
+  void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
 
 #ifdef __ANDROID__
@@ -266,7 +267,7 @@ public:
   const bool TripleDelete() const;
   const int ComboDeleteSize() const;
   const bool Countered() const;
-  void HandleCounterLoss(Character& subject, bool playsound);
+  void HandleCounterLoss(Entity& subject, bool playsound);
   void HighlightTiles(bool enable);
 
   const double GetCustomBarProgress() const;

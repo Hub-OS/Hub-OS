@@ -4,14 +4,14 @@
 #include "bnHitPublisher.h"
 #include "bnHitProperties.h"
 
-class Character;
+class Entity;
 class HitListener;
 
 /**
  * @class HitPublisher
  * @author mav
  * @date 11/11/2020
- * @brief Emit a hit event. Primarily used by Characters during battle.
+ * @brief Emit a hit event. Primarily used by Entities during battle.
  */
 class HitPublisher {
   friend class HitListener;
@@ -36,5 +36,5 @@ public:
    * @param aggressor who hit the victim to trigger this event
    * @param props the hitbox properties used to hit the victim with
    */
-  void Broadcast(Character& victim, const Hit::Properties& props);
+  void Broadcast(Entity& victim, const Hit::Properties& props);
 };

@@ -31,9 +31,16 @@ using std::string;
 #include "bnEventBus.h"
 #include "bnActionQueue.h"
 #include "bnVirtualInputState.h"
+#include "bnCounterHitPublisher.h"
+#include "bnHitPublisher.h"
+#include "bnDefenseFrameStateJudge.h"
+#include "bnDefenseRule.h"
+#include "bnHitProperties.h"
+#include "stx/memory.h"
 
 namespace Battle {
   class Tile;
+  enum class TileHighlight : int;
 }
 
 class Field;
@@ -77,11 +84,36 @@ static sf::Color NoopCompositeColor(ColorMode mode) {
   return sf::Color::White;
 }
 
+struct CombatHitProps {
+  Hit::Properties hitbox; // original hitbox data
+  Hit::Properties filtered; // statuses after defense rules pass
+
+  CombatHitProps(const Hit::Properties& original, const Hit::Properties& props) : 
+    hitbox(original), filtered(props)
+  {}
+
+  CombatHitProps(const CombatHitProps& rhs) {
+    this->operator=(rhs);
+  }
+
+  CombatHitProps& operator=(const CombatHitProps& rhs) {
+    hitbox = rhs.hitbox;
+    filtered = rhs.filtered;
+    return *this;
+  }
+};
+
 struct EntityComparitor {
   bool operator()(std::shared_ptr<Entity> f, std::shared_ptr<Entity> s) const;
 };
 
-class Entity : public SpriteProxyNode, public ResourceHandle {
+class Entity :
+  public SpriteProxyNode,
+  public ResourceHandle,
+  public CounterHitPublisher,
+  public HitPublisher,
+  public stx::enable_shared_from_base<Entity>
+{
 public:
   using ID_t = long;
 
@@ -125,7 +157,7 @@ public:
   * Deleted entities are excluded from all battle attack steps however they 
   * will be visually present and must be removed from field by calling Remove()
   */
-  virtual void OnDelete() = 0;
+  virtual void OnDelete() { };
 
   /**
   * @brief Sets the tile for this entity and invokes OnSpawn() if this is the first time
@@ -160,6 +192,11 @@ public:
    * @brief TODO
    */
   virtual void Update(double _elapsed);
+
+  /**
+   * @brief TODO
+   */
+  virtual void OnUpdate(double _elapsed) {};
   
   /**
    * @brief Move to any tile on the field
@@ -391,16 +428,6 @@ public:
    * @brief Forces the entity to adopt the next tile pointer 
    */
   void AdoptNextTile();
-  
-  /**
-   * @brief Pure virtual. Must be defined by super classes of Entity.
-   * 
-   * This is a visitor design pattern with double distpatching
-   * The super class must call tile->AddEntity(shared_from_this()) to force the overloaded type
-   * in the Tile class so that the entity is added to the correct type bucket @see Tile
-   * @param tile to adopt
-   */
-  virtual void AdoptTile(Battle::Tile* tile) = 0;
 
   /**
    * @brief Sets the entity's TFC flag
@@ -497,7 +524,195 @@ public:
   */
   VirtualInputState& InputState();
 
+  /**
+   * @brief Describe what happens to this character when they are hit by any attack
+   * @note for specific responses to status effects from hitboxes, use RegisterStatusCallback(...)
+   * @see Character::RegisterStatusCallback
+   */
+  virtual void OnHit();
+
+  /**
+  * The hit routine that happens for every character. Queues status properties and damage
+  * to resolve at the end of the battle step.
+  * @param props
+  * @return Returns false  if IsPassthrough() is true (i-frames), otherwise true
+  */
+  const bool Hit(Hit::Properties props = Hit::DefaultProperties);
+
+  virtual const bool UnknownTeamResolveCollision(const Entity& other) const;
+
+  const bool HasCollision(const Hit::Properties& props);
+
+  void ResolveFrameBattleDamage();
+
+  /**
+   * @brief Get the character's current health
+   * @return 
+   */
+  virtual int GetHealth() const;
+  
+  /**
+   * @brief Get the character's max (init) health
+   * @return 
+   */
+  const int GetMaxHealth() const;
+
+  const bool CanAttack() const;
+
+  /**
+   * @brief Set the health of the character
+   * @param _health
+   */
+  void SetHealth(int _health);
+  
+  /**
+   * @brief Sets counter flag on
+   * @param on
+   * 
+   * Used by counter frames. 
+   * 
+   * NOTE: Should be changed to protected or private access
+   */
+  void ToggleCounter(bool on = true);
+  
+  /**
+   * @brief Query the character's state is Stunned
+   * @return true if character is currently stunned, false otherwise
+   */
+  bool IsStunned();
+
+  /**
+   * @brief Query the character's state is Rooted
+   * @return true if character is currently rooted, false otherwise
+   */
+  bool IsRooted();
+
+  /**
+   * @brief Some characters allow others to move on top of them
+   * @param enabled true, characters can share space, false otherwise
+   */
+  void ShareTileSpace(bool enabled);
+  
+  /**
+   * @brief Query if entity can share space
+   * @return true if shareTilespace is enabled, false otherwise
+   */
+  const bool CanShareTileSpace() const;
+
+  /**
+  * @brief Query if entity is pushable by tiles
+  * @return true if canTilePush is enabled, false otherwise
+  */
+  const bool CanTilePush() const;
+
+  /**
+   * @brief Some characters can be moved around on the field by tiles
+   * @param enabled
+   */
+  void EnableTilePush(bool enabled);
+
+  /**
+   * @brief Characters can have names
+   * @param name
+   */
+  void SetName(std::string name);
+  
+  /**
+   * @brief Get name of character
+   * @return const std::string
+   */
+  const std::string GetName() const;
+
+  /**
+   * @brief Add defense rule for combat resolution
+   * @param rule
+   */
+  void AddDefenseRule(std::shared_ptr<DefenseRule> rule);
+
+  /**
+   * @brief Removes the defense rule from this character's defense checks
+   * @param rule
+   */
+  void RemoveDefenseRule(std::shared_ptr<DefenseRule> rule);
+
+  /**
+   * @brief Removes the defense rule from this character's defense checks
+   * @param rule
+   */
+  void RemoveDefenseRule(DefenseRule* rule);
+
+  /**
+   * @brief Check if spell passes all defense checks. Updates the DefenseFrameStateJudge.
+   * @param in attack
+   * @param judge. The frame's current defense object with triggers and block statuses
+   * @param in. The attack to test defenses against.
+   * @param filter. Filter which types of defenses to check against by DefenseOrder value
+   */
+  void DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> in, const DefenseOrder& filter);
+
+  // NOTE: I do not want this but Sol2 is type strict and actor objects for card actions
+  //       do not have a way to get animations even if their super class does...
+  Animation* GetAnimationFromComponent();
+
+  /**
+   * @brief Queried by Tile to highlight or not
+   * @return Highlight mode
+   */
+  const Battle::TileHighlight GetTileHighlightMode() const;
+
+  /**
+   * @brief Describes how the spell attacks characters
+   * @param _entity
+   * 
+   * This is where you would check for specific character types
+   * if there are special conditions. Call Hit() on the entity
+   * to deal damage.
+   */
+  virtual void Attack(std::shared_ptr<Entity> _entity) { };
+  
+  /**
+  * @brief Describes what happens when this attack collides with a character, regardless of defenses
+  *
+  * If this function is called it does not gaurantee the attack will do damage to the character
+  * Use this for visual effects like bubble pop
+  */
+  virtual void OnCollision(const std::shared_ptr<Entity> _entity) { };
+
+  /**
+   * @brief Toggle whether or not to highlight a tile
+   * @param mode
+   * 
+   * FLASH - flicker every other frame
+   * SOLID - Stay yellow
+   * NONE  - this is the default. No effects are applied.
+   */
+  void HighlightTile(Battle::TileHighlight mode);
+
+  /**
+   * @brief When an entity is hit, these are the hit properties it will use
+   * @param props
+   */
+  void SetHitboxProperties(Hit::Properties props);
+  
+  /**
+   * @brief Get the hitbox properties of this spell
+   * @return const Hit::Properties
+   */
+  const Hit::Properties GetHitboxProperties() const;
+
+  /**
+  * @brief if true, other entities from the same aggressor cannot hit eachother
+  */
+  void IgnoreCommonAggressor(bool enable);
+
+  /**
+  * @brief Query if ICA is enabled or not
+  */
+  const bool WillIgnoreCommonAggressor() const;
+
 protected:
+  using StatusCallback = std::function<void()>;
+
   Battle::Tile* tile{ nullptr }; /*!< Current tile pointer */
   Battle::Tile* previous{ nullptr }; /*!< Entities retain a previous pointer in case they need to be moved back */
   sf::Vector2f tileOffset{ 0,0 }; /*!< complete motion is captured by `tile_pos + tileOffset`*/
@@ -527,7 +742,35 @@ protected:
   void SetMoveEndlag(const frame_time_t& frames);
   void SetMoveStartupDelay(const frame_time_t& frames);
 
+  void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
+
+  /**
+  * @brief Stun a character for maxCooldown seconds
+  * @param maxCooldown
+  * Used internally by class
+  *
+  */
+  void Stun(double maxCooldown);
+
+  /**
+  * @brief Stop a character from moving for maxCooldown seconds
+  * @param maxCooldown
+  * Used internally by class
+  *
+  */
+  void Root(double maxCooldown);
+
+  /**
+  * @brief Query if an attack successfully countered a Character
+  * @return true if character is currently countered, false otherwise
+  * Used internally by class
+  */
+  bool IsCountered();
+
 private:
+  bool ignoreCommonAggressor{};
+  Battle::TileHighlight mode; /*!< Highlight occupying tile */
+  Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
   bool hasInit{};
   bool isTimeFrozen{};
   bool ownedByField{}; /*!< Must delete the entity manual if not owned by the field. */
@@ -542,6 +785,32 @@ private:
   Direction direction{};
   Direction previousDirection{};
   Direction facing{};
+  int health{ std::numeric_limits<int>::max() };
+  int maxHealth{ std::numeric_limits<int>::max() };
+  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
+  float counterSlideDelta{};
+  bool counterable{};
+  int counterFrameFlag{ 0 };
+  bool canTilePush{};
+  double stunCooldown{ 0 }; /*!< Timer until stun is over */
+  double rootCooldown{ 0 }; /*!< Timer until root is over */
+  double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
+  bool canShareTile{}; /*!< Some characters can share tiles with others */
+  bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
+  std::vector<std::shared_ptr<DefenseRule>> defenses; /*<! All defense rules sorted by the lowest priority level */
+
+  // Statuses are resolved one property at a time
+  // until the entire Flag object is equal to 0x00 None
+  // Then we process the next status
+  // This continues until all statuses are processed
+  std::queue<CombatHitProps> statusQueue;
+
+  sf::Shader* whiteout{ nullptr }; /*!< Flash white when hit */
+  sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
+  sf::Shader* root{ nullptr };     /*!< Flicker black with luminance values when root */
+
+  bool hit{}; /*!< Was hit this frame */
+  std::map<Hit::Flags, StatusCallback> statusCallbackHash;
 
     /**
    * @brief Used internally before moving and updates the start position
@@ -558,9 +827,9 @@ private:
 template<typename ComponentType>
 inline std::shared_ptr<ComponentType> Entity::GetFirstComponent() const
 {
-  for (vector<std::shared_ptr<Component>>::const_iterator it = components.begin(); it != components.end(); ++it) {
-    if (typeid(*(*it)) == typeid(ComponentType)) {
-      return std::reinterpret_pointer_cast<ComponentType>(*it);
+  for (auto& component : components) {
+    if (typeid(*component) == typeid(ComponentType)) {
+      return std::reinterpret_pointer_cast<ComponentType>(component);
     }
   }
 
@@ -572,9 +841,9 @@ inline std::vector<std::shared_ptr<ComponentType>> Entity::GetComponents() const
 {
   auto res = std::vector<std::shared_ptr<ComponentType>>();
 
-  for (vector<std::shared_ptr<Component>>::const_iterator it = components.begin(); it != components.end(); ++it) {
-    if (typeid(*(*it)) == typeid(ComponentType)) {
-      res.push_back(std::reinterpret_pointer_cast<ComponentType>(*it));
+  for (auto& component : components) {
+    if (typeid(*component) == typeid(ComponentType)) {
+      res.push_back(std::reinterpret_pointer_cast<ComponentType>(component));
     }
   }
 

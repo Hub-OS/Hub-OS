@@ -11,7 +11,7 @@
  */
 class DefenseGuard : public DefenseRule {
 public:
-  typedef std::function<void(std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)> Callback;
+  typedef std::function<void(std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)> Callback;
 
 private:
   Callback callback;
@@ -25,5 +25,5 @@ public:
    * @param in the attack
    * @param owner the character this is attached to
    */
-  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner);
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner);
 };

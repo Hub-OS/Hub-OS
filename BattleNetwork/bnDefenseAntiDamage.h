@@ -16,7 +16,7 @@
  */
 class DefenseAntiDamage : public DefenseRule {
 public:
-  typedef std::function<void(std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)> Callback;
+  typedef std::function<void(std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)> Callback;
 
 private:
   Callback callback; /*!< Runs when the antidefense is triggered */
@@ -36,5 +36,5 @@ public:
    * @param in attack spell
    * @param owner the character with antidamage defense (this) added 
    */
-  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) override;
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 };

@@ -61,7 +61,7 @@ namespace Battle {
     burncycle = 0.12; // milliseconds
     elapsedBurnTime = burncycle;
 
-    highlightMode = Highlight::none;
+    highlightMode = TileHighlight::none;
 
     volcanoErupt = Animation("resources/tiles/volcano.animation");
 
@@ -344,7 +344,7 @@ namespace Battle {
     return willHighlight;
   }
 
-  void Tile::RequestHighlight(Highlight mode)
+  void Tile::RequestHighlight(TileHighlight mode)
   {
     highlightMode = mode;
   }
@@ -435,9 +435,9 @@ namespace Battle {
     if (itSpell != spells.end()) {
       spells.erase(itSpell);
 
-      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [ID](Entity::ID_t in) { return ID == in; });
-      if (tagged != taggedSpells.end()) {
-        taggedSpells.erase(tagged);
+      auto tagged = std::find_if(taggedAttackers.begin(), taggedAttackers.end(), [ID](Entity::ID_t in) { return ID == in; });
+      if (tagged != taggedAttackers.end()) {
+        taggedAttackers.erase(tagged);
       }
     }
 
@@ -462,12 +462,12 @@ namespace Battle {
     reserved.insert(ID);
   }
 
-  void Tile::AffectEntities(Spell& caller) {
-    if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller.GetID(); }) != taggedSpells.end())
+  void Tile::AffectEntities(Entity& attacker) {
+    if (std::find_if(taggedAttackers.begin(), taggedAttackers.end(), [&attacker](int ID) { return ID == attacker.GetID(); }) != taggedAttackers.end())
       return;
-    if (std::find_if(queuedSpells.begin(), queuedSpells.end(), [&caller](int ID) { return ID == caller.GetID(); }) != queuedSpells.end())
+    if (std::find_if(queuedAttackers.begin(), queuedAttackers.end(), [&attacker](int ID) { return ID == attacker.GetID(); }) != queuedAttackers.end())
       return;
-    queuedSpells.push_back(caller.GetID());
+    queuedAttackers.push_back(attacker.GetID());
   }
 
   void Tile::Update(double _elapsed) {
@@ -520,10 +520,10 @@ namespace Battle {
     animation.Refresh(this->getSprite());
 
     switch (highlightMode) {
-    case Highlight::solid:
+    case TileHighlight::solid:
       willHighlight = true;
       break;
-    case Highlight::flash:
+    case TileHighlight::flash:
       willHighlight = (int)(totalElapsed * 15) % 2 == 0;
       break;
     default:
@@ -536,7 +536,7 @@ namespace Battle {
 
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
-    highlightMode = Highlight::none;
+    highlightMode = TileHighlight::none;
 
     // Process tile behaviors
     vector<std::shared_ptr<Character>> characters_copy = characters;
@@ -878,7 +878,7 @@ namespace Battle {
     }
   }
 
-  void Tile::ExecuteAllSpellAttacks()
+  void Tile::ExecuteAllAttacks()
   {
     // Spells dont cause damage when the battle is over
     if (isBattleOver) return;
@@ -894,91 +894,79 @@ namespace Battle {
       bool retangible = false;
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
-      for (Entity::ID_t ID : queuedSpells) {
-        auto spell = std::dynamic_pointer_cast<Spell>(field->GetEntity(ID));
+      for (Entity::ID_t ID : queuedAttackers) {
+        auto attacker = field->GetEntity(ID);
 
-        // this shouldn't happen but it does sometimes... 
-        // TODO: we need to be sure it's always right to perform static casting
-        if (!spell) continue;
-
-        if (character->GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
+        if (character->GetID() == attacker->GetID()) // Case: prevent attackers from attacking themselves
           continue;
 
         bool unknownTeams = character->GetTeam() == Team::unknown;
-        unknownTeams = unknownTeams && (spell->GetTeam() == Team::unknown);
+        unknownTeams = unknownTeams && (attacker->GetTeam() == Team::unknown);
 
-        if (character->GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
+        if (character->GetTeam() == attacker->GetTeam() && !unknownTeams) // Case: prevent friendly fire
           continue;
 
-        if (unknownTeams && !character->UnknownTeamResolveCollision(*spell)) // Case: unknown vs unknown need further inspection
+        if (unknownTeams && !character->UnknownTeamResolveCollision(*attacker)) // Case: unknown vs unknown need further inspection
           continue;
 
-        character->DefenseCheck(judge, spell, DefenseOrder::always);
+        character->DefenseCheck(judge, attacker, DefenseOrder::always);
 
         bool alreadyTagged = false;
 
         if (judge.IsDamageBlocked()) {
           alreadyTagged = true;
-          // Tag the spell
-          // only ignore spells that have already hit something on a tile
+          // Tag the attacker
+          // only ignore attackers that have already hit something on a tile
           // this is similar to the hitbox being removed in mmbn mechanics
-          taggedSpells.push_back(spell->GetID());
+          taggedAttackers.push_back(attacker->GetID());
         }
 
         // Collision here means "we are able to hit" 
         // either with a hitbox that can pierce a defense or by tangibility
-        auto props = spell->GetHitboxProperties();
+        auto props = attacker->GetHitboxProperties();
         if (!character->HasCollision(props)) continue;
 
-        // There was a collision (not necessarilly implies damage will be done)
-        auto obst = dynamic_cast<Obstacle*>(character.get()); 
+        // Obstacles can hit eachother, even on the same team
+        // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
+        bool sharesCommonAggressor = attacker->GetHitboxProperties().aggressor == character->GetHitboxProperties().aggressor;
           
-        // If colliding with a character, always do collision effect
-        if (!obst) {
-          spell->OnCollision(character);
-        } else if(obst) {
-          // Obstacles can hit eachother, even on the same team
-          // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
-          bool sharesCommonAggressor = spell->GetHitboxProperties().aggressor == obst->GetHitboxProperties().aggressor;
-            
-          // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
-          if (!(sharesCommonAggressor && obst->WillIgnoreCommonAggressor())) {
-            spell->OnCollision(character);
-          }
+        // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
+        if (!(sharesCommonAggressor && character->WillIgnoreCommonAggressor())) {
+          attacker->OnCollision(character);
         }
 
         if (!alreadyTagged) {
           // If not collided by the earlier defense types, tag it now
           // since we have a definite collision
-          taggedSpells.push_back(spell->GetID());
+          taggedAttackers.push_back(attacker->GetID());
         }
 
         // Retangible flag takes characters out of passthrough status
         retangible = retangible || ((props.flags & Hit::retangible) == Hit::retangible);
 
-        // The spell passed at least one defense check
-        character->DefenseCheck(judge, spell, DefenseOrder::collisionOnly);
+        // The attacker passed at least one defense check
+        character->DefenseCheck(judge, attacker, DefenseOrder::collisionOnly);
 
         if (!judge.IsDamageBlocked()) {
 
           // We make sure to apply any tile bonuses at this stage
           if (GetState() == TileState::holy) {
-            auto props = spell->GetHitboxProperties();
+            auto props = attacker->GetHitboxProperties();
             props.damage /= 2;
-            spell->SetHitboxProperties(props);
+            attacker->SetHitboxProperties(props);
           }
 
           // Attack() routine has Hit() which immediately subtracts HP
           if (isTimeFrozen) {
-            auto props = spell->GetHitboxProperties();
+            auto props = attacker->GetHitboxProperties();
             props.flags |= Hit::shake;
-            spell->SetHitboxProperties(props);
+            attacker->SetHitboxProperties(props);
           }
 
-          spell->Attack(character);
+          attacker->Attack(character);
 
           // we restore the hitbox properties
-          spell->SetHitboxProperties(props);
+          attacker->SetHitboxProperties(props);
         }
 
         judge.PrepareForNextAttack();
@@ -990,7 +978,8 @@ namespace Battle {
     } // end each character loop
 
     // empty previous frame queue to be used this current frame
-    queuedSpells.clear();
+    queuedAttackers.clear();
+    // taggedAttackers.clear();
   }
 
   void Tile::UpdateSpells(const double elapsed)
@@ -1001,7 +990,7 @@ namespace Battle {
 
       if (!(*entity)->IsTimeFrozen()) {
         if (request > (int)highlightMode) {
-          highlightMode = (Highlight)request;
+          highlightMode = (TileHighlight)request;
         }
 
         Element hitboxElement = (*entity)->GetElement();

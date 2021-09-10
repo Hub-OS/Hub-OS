@@ -206,7 +206,7 @@ const bool BattleSceneBase::IsQuitting() const
     return this->quitting;
 }
 
-void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
+void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
 {
   Audio().Play(AudioType::COUNTER, AudioPriority::highest);
 
@@ -330,7 +330,7 @@ void BattleSceneBase::LoadMob(Mob& mob)
   this->mob = &mob;
 }
 
-void BattleSceneBase::HandleCounterLoss(Character& subject, bool playsound)
+void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
 {
   if (&subject == player.get()) {
     if (field->DoesRevealCounterFrames()) {

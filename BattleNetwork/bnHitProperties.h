@@ -1,7 +1,9 @@
 #pragma once
 #include "bnElements.h"
 #include "bnDirection.h"
-#include "bnEntity.h"
+
+// forward declare
+using EntityID_t = long;
 
 namespace Hit {
   using Flags = uint32_t;
@@ -41,7 +43,7 @@ namespace Hit {
     int damage{};
     Flags flags{ Hit::none };
     Element element{ Element::none };
-    Entity::ID_t aggressor{};
+    EntityID_t aggressor{};
     Drag drag{ }; // Used by Hit::drag flag
   };
 

@@ -27,7 +27,6 @@ using std::vector;
 using std::find;
 using std::set;
 
-class Entity;
 class Spell;
 class Character;
 class Obstacle;
@@ -46,14 +45,14 @@ class Artifact;
 class Field;
 
 namespace Battle {
+  enum class TileHighlight : int {
+    none = 0,
+    flash = 1,
+    solid = 2,
+  };
+
   class Tile : public SpriteProxyNode, public ResourceHandle {
   public:
-
-    enum class Highlight : int {
-      none = 0,
-      flash = 1,
-      solid = 2,
-    };
 
     friend Field;
 
@@ -183,7 +182,7 @@ namespace Battle {
     /**
      * @brief will request a highlight style for one frame
      */
-    void RequestHighlight(Highlight mode);
+    void RequestHighlight(TileHighlight mode);
 
     /**
      * @brief Returns true if a character is standing on or has reserved this tile 
@@ -232,10 +231,10 @@ namespace Battle {
     template<class Type> bool ContainsEntityType();
     
     /**
-     * @brief Queues spell to all entities occupying this tile with spell 
-     * @param caller must be valid non-null spell
+     * @brief Queues an entity to attack to all other entities occupying this tile 
+     * @param caller must be valid non-null entity
      */
-    void AffectEntities(Spell& caller);
+    void AffectEntities(Entity& attacker);
 
     /**
      * @brief Updates all entities occupying this tile
@@ -305,7 +304,7 @@ namespace Battle {
     std::string GetAnimState(const TileState state);
 
     void CleanupEntities();
-    void ExecuteAllSpellAttacks();
+    void ExecuteAllAttacks();
     void UpdateSpells(const double elapsed);
     void UpdateArtifacts(const double elapsed);
     void UpdateCharacters(const double elapsed);
@@ -332,7 +331,7 @@ namespace Battle {
     static double flickerTeamCooldownLength;
     double totalElapsed;
     bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
-    Highlight highlightMode;
+    TileHighlight highlightMode;
     bool isTimeFrozen;
     bool isBattleOver;
     bool isBattleStarted{ false };
@@ -349,8 +348,8 @@ namespace Battle {
     vector<std::shared_ptr<Entity>> entities; /**< Entity bucket for looping over all entities **/
 
     set<Entity::ID_t> reserved; /**< IDs of entities reserving this tile*/
-    vector<Entity::ID_t> queuedSpells; /**< IDs of occupying spells that have signaled they are to attack this frame */
-    vector<Entity::ID_t> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
+    vector<Entity::ID_t> queuedAttackers; /**< IDs of occupying attackers that have signaled they are to attack this frame */
+    vector<Entity::ID_t> taggedAttackers; /**< IDs of occupying attackers that have already attacked this frame*/
 
     Animation animation;
     Animation volcanoErupt;

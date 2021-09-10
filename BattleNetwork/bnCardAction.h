@@ -10,7 +10,6 @@
 #include "bnResourceHandle.h"
 #include "bnAnimationComponent.h"
 #include "bnCard.h"
-#include "bnEntity.h"
 
 class Character;
 

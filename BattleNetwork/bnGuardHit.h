@@ -21,7 +21,7 @@ public:
   /**
    * @brief Load the animation and set position
    */
-  GuardHit(std::shared_ptr<Character> hit, bool center = false);
+  GuardHit(std::shared_ptr<Entity> hit, bool center = false);
   ~GuardHit();
 
   void Init() override;

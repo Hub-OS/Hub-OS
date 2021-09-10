@@ -192,7 +192,7 @@ MobBattleScene::~MobBattleScene() {
   props.mobs.clear();
 }
 
-void MobBattleScene::OnHit(Character& victim, const Hit::Properties& props)
+void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
   auto player = GetPlayer();
   if (player.get() == &victim && props.damage > 0) {

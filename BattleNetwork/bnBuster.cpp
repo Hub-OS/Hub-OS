@@ -86,7 +86,7 @@ void Buster::OnDelete()
   Remove();
 }
 
-void Buster::OnCollision(const std::shared_ptr<Character> entity)
+void Buster::OnCollision(const std::shared_ptr<Entity> entity)
 {
   random = entity->getLocalBounds().width / 2.0f;
   hitHeight = std::floor(entity->GetHeight());
@@ -111,6 +111,6 @@ void Buster::OnCollision(const std::shared_ptr<Character> entity)
   Audio().Play(AudioType::HURT);
 }
 
-void Buster::Attack(std::shared_ptr<Character> _entity) {
+void Buster::Attack(std::shared_ptr<Entity> _entity) {
   _entity->Hit(GetHitboxProperties());
 }

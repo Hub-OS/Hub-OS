@@ -20,7 +20,7 @@
 #include "bnElements.h"
 #include "bnField.h"
 #include "bnTile.h"
-#include "bnHitbox.h"
+#include "bnHitboxSpell.h"
 #include "bnSharedHitbox.h"
 #include "bnDefenseNodrag.h"
 #include "bnDefenseVirusBody.h"
@@ -285,16 +285,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "highlight", &Battle::Tile::RequestHighlight,
     "get_tile", &Battle::Tile::GetTile,
     "contains_entity", sol::overload(
-      [] (Battle::Tile& tile, Spell* e) { return tile.ContainsEntity(e->shared_from_this()); },
-      [] (Battle::Tile& tile, Character* e) { return tile.ContainsEntity(e->shared_from_this()); },
-      [] (Battle::Tile& tile, Artifact* e) { return tile.ContainsEntity(e->shared_from_this()); }
+      [] (Battle::Tile& tile, Entity* e) { return tile.ContainsEntity(e->shared_from_this()); }
     ),
     "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
     "reserve_entity_by_id", &Battle::Tile::ReserveEntityByID,
     "add_entity", sol::overload(
-      [] (Battle::Tile& tile, Character* e) { return tile.AddEntity(e->shared_from_this()); },
-      [] (Battle::Tile& tile, Spell* e) { return tile.AddEntity(e->shared_from_this()); },
-      [] (Battle::Tile& tile, Artifact* e) { return tile.AddEntity(e->shared_from_this()); }
+      [] (Battle::Tile& tile, Entity* e) { return tile.AddEntity(e->shared_from_this()); }
     )
   );
 
@@ -313,12 +309,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "width", &Field::GetWidth,
     "height", &Field::GetHeight,
     "spawn", sol::overload(
-      [](Field& field, Character* e, int x, int y) { return field.AddEntity(e->shared_from_this(), x, y); },
-      [](Field& field, Spell* e, int x, int y) { return field.AddEntity(e->shared_from_this(), x, y); },
-      [](Field& field, Artifact* e, int x, int y) { return field.AddEntity(e->shared_from_this(), x, y); },
-      [](Field& field, Character* e, Battle::Tile& tile) { return field.AddEntity(e->shared_from_this(), tile); },
-      [](Field& field, Spell* e, Battle::Tile& tile) { return field.AddEntity(e->shared_from_this(), tile); },
-      [](Field& field, Artifact* e, Battle::Tile& tile) { return field.AddEntity(e->shared_from_this(), tile); }
+      [](Field& field, Entity* e, int x, int y) { return field.AddEntity(e->shared_from_this(), x, y); },
+      [](Field& field, Entity* e, Battle::Tile& tile) { return field.AddEntity(e->shared_from_this(), tile); }
     ),
     "get_character", &Field::GetCharacter,
     "get_entity", &Field::GetEntity,
@@ -382,7 +374,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& component_record = battle_namespace.new_usertype<ScriptedComponent>("Component",
     sol::factories([](Character* owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
-      return std::make_shared<ScriptedComponent>(owner->weak_from_this(), lifetime);
+      return std::make_shared<ScriptedComponent>(owner->weak_from_base<Character>(), lifetime);
     }),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
@@ -503,7 +495,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
       obstacle->Init();
       return obstacle;
     }),
-    sol::base_classes, sol::bases<Obstacle, Spell, Character>(),
+    sol::base_classes, sol::bases<Obstacle, Character, Entity>(),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
@@ -853,7 +845,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_lockout_group", &CardAction::SetLockoutGroup,
     "override_animation_frames", &CardAction::OverrideAnimationFrames,
     "add_attachment", sol::overload(
-      [](CardAction& a, Character* c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c->shared_from_this(), s, n); },
+      [](CardAction& a, Character* c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c->shared_from_base<Character>(), s, n); },
       sol::resolve<CardAction::Attachment& (Animation&, const std::string&, SpriteProxyNode&)>(&CardAction::CardAction::AddAttachment)
     ),
     "add_anim_action", &CardAction::AddAnimAction,
@@ -871,7 +863,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
     sol::factories(
       [](Character* character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
-        return std::make_shared<ScriptedCardAction>(character->shared_from_this(), state);
+        return std::make_shared<ScriptedCardAction>(character->shared_from_base<Character>(), state);
       }
     ),
     sol::meta_function::index, &dynamic_object::dynamic_get,
@@ -980,31 +972,31 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "add_attachment", &CardAction::Attachment::AddAttachment
   );
 
-  const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
-    sol::factories([](Team team) { return std::make_shared<Hitbox>(team); } ),
+  const auto& hitbox_record = battle_namespace.new_usertype<HitboxSpell>("Hitbox",
+    sol::factories([](Team team) { return std::make_shared<HitboxSpell>(team); } ),
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
       ScriptResourceManager::PrintInvalidAccessMessage( table, "Hitbox", key );
     },
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Hitbox", key );
     },
-    "set_callbacks", &Hitbox::AddCallback,
-    "set_hit_props", &Hitbox::SetHitboxProperties,
-    "get_hit_props", &Hitbox::GetHitboxProperties,
+    "set_callbacks", &HitboxSpell::AddCallback,
+    "set_hit_props", &HitboxSpell::SetHitboxProperties,
+    "get_hit_props", &HitboxSpell::GetHitboxProperties,
     sol::base_classes, sol::bases<Spell, Entity>()
   );
 
   const auto& shared_hitbox_record = battle_namespace.new_usertype<SharedHitbox>("SharedHitbox",
     sol::factories(
       [](Spell* spell, float f) -> std::shared_ptr<Spell>
-          { return std::make_shared<SharedHitbox>(spell->shared_from_this(), f); }
+          { return std::make_shared<SharedHitbox>(spell->shared_from_base<Spell>(), f); }
     )
   );
 
   const auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories(
       [](Character* character, bool charged, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BusterCardAction>(character->shared_from_this(), charged, dmg); }
+          { return std::make_shared<BusterCardAction>(character->shared_from_base<Character>(), charged, dmg); }
     )
   );
 
@@ -1265,9 +1257,9 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   );
 
   const auto& highlight_record = state.new_enum("Highlight",
-    "Solid", Battle::Tile::Highlight::solid,
-    "Flash", Battle::Tile::Highlight::flash,
-    "None", Battle::Tile::Highlight::none
+    "Solid", Battle::TileHighlight::solid,
+    "Flash", Battle::TileHighlight::flash,
+    "None", Battle::TileHighlight::none
   );
 
   const auto& add_status_record = state.new_enum("EntityStatus",
@@ -1452,8 +1444,9 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   const auto& card_event_record = state.new_usertype<CardEvent>("CardEvent");
 
   const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
-    sol::factories([](int count, double speed) { return new Explosion(count, speed); }),
-    sol::base_classes, sol::bases<Artifact, Entity>()
+    sol::factories([](int count, double speed) -> std::shared_ptr<Artifact> {
+      return std::make_shared<Explosion>(count, speed);
+    })
   );
 
   const auto& particle_poof = battle_namespace.new_usertype<ParticlePoof>("ParticlePoof",

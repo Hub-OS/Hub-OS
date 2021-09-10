@@ -1,8 +1,6 @@
 #include "bnDefenseIndestructable.h"
 #include "bnEntity.h"
 #include "bnField.h"
-#include "bnSpell.h"
-#include "bnHitbox.h"
 #include "bnGuardHit.h"
 
 DefenseIndestructable::DefenseIndestructable(bool breakCollidingObjectOnHit)
@@ -20,15 +18,15 @@ Hit::Properties& DefenseIndestructable::FilterStatuses(Hit::Properties& statuses
   return statuses;
 }
 
-void DefenseIndestructable::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner)
+void DefenseIndestructable::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)
 {
   judge.BlockImpact();
 
   // Only drop gaurd effect as a response to attacks that can do impact damage > 0
-  if (in->GetHitboxProperties().damage > 0 && (in->GetHitboxProperties().flags & Hit::impact) != 0) {
+  if (attacker->GetHitboxProperties().damage > 0 && (attacker->GetHitboxProperties().flags & Hit::impact) != 0) {
     owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
     judge.BlockDamage();
   }
 
-  if (breakCollidingObjectOnHit) in->Delete();
+  if (breakCollidingObjectOnHit) attacker->Delete();
 }

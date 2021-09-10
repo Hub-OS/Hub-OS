@@ -37,7 +37,7 @@ void SharedHitbox::OnUpdate(double _elapsed) {
   }
 }
 
-void SharedHitbox::Attack(std::shared_ptr<Character> _entity) {
+void SharedHitbox::Attack(std::shared_ptr<Entity> _entity) {
   if(auto owner = this->owner.lock()) {
     if (_entity->GetID() == owner->GetID()) return;
     owner->Attack(_entity);

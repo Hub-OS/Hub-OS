@@ -6,6 +6,7 @@
 #include "bnBackground.h"
 #include "bnField.h"
 #include "bnMobHealthUI.h"
+#include "bnTile.h"
 #include "stx/tuple.h"
 
 #include <vector>

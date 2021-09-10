@@ -1,12 +1,13 @@
 #include "bnDelayedAttack.h"
 #include "bnField.h"
 
-DelayedAttack::DelayedAttack(std::shared_ptr<Spell> next, Battle::Tile::Highlight highlightMode, double seconds) : 
+DelayedAttack::DelayedAttack(std::shared_ptr<Entity> next, Battle::TileHighlight highlightMode, double seconds) : 
   duration(seconds),
-  Spell(next->GetTeam()) {
-    HighlightTile(highlightMode);
-    SetFloatShoe(true);
-    DelayedAttack::next = next;
+  Spell(next->GetTeam())
+{
+  HighlightTile(highlightMode);
+  SetFloatShoe(true);
+  DelayedAttack::next = next;
 }
 
 DelayedAttack::~DelayedAttack()
@@ -24,7 +25,7 @@ void DelayedAttack::OnUpdate(double elapsed)
     }
 }
 
-void DelayedAttack::Attack(std::shared_ptr<Character> _entity)
+void DelayedAttack::Attack(std::shared_ptr<Entity> _entity)
 {
 }
 

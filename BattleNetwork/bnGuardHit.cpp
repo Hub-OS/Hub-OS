@@ -11,7 +11,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/guard_hit.animation"
 
-GuardHit::GuardHit(std::shared_ptr<Character> hit, bool center) 
+GuardHit::GuardHit(std::shared_ptr<Entity> hit, bool center) 
   : 
   w(0), 
   h(0), 

@@ -20,8 +20,8 @@ public:
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile * next) override;
-  void OnCollision(const std::shared_ptr<Character> other) override;
-  void Attack(std::shared_ptr<Character> e) override;
+  void OnCollision(const std::shared_ptr<Entity> other) override;
+  void Attack(std::shared_ptr<Entity> e) override;
   void OnSpawn(Battle::Tile& spawn) override;
   const float GetHeight() const;
   void SetHeight(const float height);
@@ -37,8 +37,8 @@ public:
   void NeverFlip(bool enabled);
 
   std::function<void(std::shared_ptr<ScriptedObstacle>, Battle::Tile&)> spawnCallback;
-  std::function<void(std::shared_ptr<ScriptedObstacle>, std::shared_ptr<Character>)> attackCallback;
-  std::function<void(std::shared_ptr<ScriptedObstacle>, std::shared_ptr<Character>)> collisionCallback;
+  std::function<void(std::shared_ptr<ScriptedObstacle>, std::shared_ptr<Entity>)> attackCallback;
+  std::function<void(std::shared_ptr<ScriptedObstacle>, std::shared_ptr<Entity>)> collisionCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
   std::function<void(std::shared_ptr<ScriptedObstacle>)> deleteCallback;
   std::function<void(std::shared_ptr<ScriptedObstacle>, double)> updateCallback;

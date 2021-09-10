@@ -7,5 +7,5 @@ class CounterCombatRule final : public DefenseRule {
 public:
   CounterCombatRule(BattleSceneBase* battleScene);
   ~CounterCombatRule();
-  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) override final;
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override final;
 };

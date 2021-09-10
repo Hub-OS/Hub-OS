@@ -1,7 +1,8 @@
 #pragma once
-class Character;
-class HitPublisher;
 #include "bnHitProperties.h"
+
+class Entity;
+class HitPublisher;
 
 /**
  * @class HitListener
@@ -24,7 +25,7 @@ public:
    * @param victim who was countered
    * @param hitbox properties that harmed the victim
    */
-  virtual void OnHit(Character& victim, const Hit::Properties& props) = 0;
+  virtual void OnHit(Entity& victim, const Hit::Properties& props) = 0;
 
   /**
    * @brief Subscribe to a potential publisher

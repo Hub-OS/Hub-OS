@@ -1,8 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedSpell.h"
 
-ScriptedSpell::ScriptedSpell(Team _team) : 
-  Spell(_team) {
+ScriptedSpell::ScriptedSpell(Team team) : Spell(team) {
   setScale(2.f, 2.f);
 
   shadow = new SpriteProxyNode();
@@ -32,7 +31,6 @@ void ScriptedSpell::OnUpdate(double _elapsed) {
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
   auto ss = shared_from_base<ScriptedSpell>();
   updateCallback ? updateCallback(ss, _elapsed) : (void)0;
-
 }
 
 void ScriptedSpell::OnDelete() {
@@ -41,13 +39,13 @@ void ScriptedSpell::OnDelete() {
   Remove();
 }
 
-void ScriptedSpell::OnCollision(const std::shared_ptr<Character> other)
+void ScriptedSpell::OnCollision(const std::shared_ptr<Entity> other)
 {
   auto ss = shared_from_base<ScriptedSpell>();
   collisionCallback ? collisionCallback(ss, other) : (void)0;
 }
 
-void ScriptedSpell::Attack(std::shared_ptr<Character> other) {
+void ScriptedSpell::Attack(std::shared_ptr<Entity> other) {
   other->Hit(GetHitboxProperties());
   auto ss = shared_from_base<ScriptedSpell>();
   attackCallback ? attackCallback(ss, other) : (void)0;
@@ -99,8 +97,10 @@ void ScriptedSpell::ShakeCamera(double power, float duration)
 {
   this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
+
 void ScriptedSpell::NeverFlip (bool enabled)
 {
   flip = !enabled;
 }
+
 #endif

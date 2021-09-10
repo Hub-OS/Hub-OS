@@ -3,8 +3,7 @@
 #include "bnDefenseFrameStateJudge.h"
 #include <memory>
 
-class Spell;
-class Character;
+class Entity;
 
 typedef int Priority;
 
@@ -29,7 +28,7 @@ private:
   bool replaced{}; /*!< If this rule has been replaced by another one in the entity*/
 
 public:
-  friend class Character;
+  friend class Entity;
 
   /**
   * @brief Constructs a defense rule with a priority level
@@ -68,7 +67,7 @@ public:
   virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses);
   
   /**
-    * @brief Returns false if spell passes through this defense, true if defense prevents it
+    * @brief Returns false if the attacker passes through this defense, true if defense prevents it
     */
-  virtual void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Spell> in, std::shared_ptr<Character> owner) = 0;
+  virtual void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) = 0;
 };

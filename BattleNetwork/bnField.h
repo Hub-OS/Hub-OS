@@ -82,7 +82,7 @@ public:
   std::vector<Battle::Tile*> FindTiles(std::function<bool(Battle::Tile* t)> query);
 
   /**
-   * @brief Adds an entity using the entity's AdoptTile() routine
+   * @brief Adds an entity
    * @param entity
    * @param x col
    * @param y row

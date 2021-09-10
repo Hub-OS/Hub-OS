@@ -1,4 +1,5 @@
 #include "bnComponent.h"
+#include "bnEntity.h"
 #include "battlescene/bnBattleSceneBase.h"
 
 long Component::numOfComponents = 0;

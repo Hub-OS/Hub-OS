@@ -26,13 +26,13 @@ public:
 
   void OnDelete() override;
 
-  void OnCollision(const std::shared_ptr<Character>) override;
+  void OnCollision(const std::shared_ptr<Entity>) override;
 
   /**
    * @brief Deal impact damage
    * @param _entity
    */
-  void Attack(std::shared_ptr<Character> _entity) override;
+  void Attack(std::shared_ptr<Entity> _entity) override;
 
 private:
   bool isCharged;
