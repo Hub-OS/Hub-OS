@@ -343,12 +343,10 @@ stx::result_t<bool> PackageManager<MetaClass>::Commit(MetaClass* package)
   }
 
   if (packageId.empty()) {
-    delete package;
     return stx::error<bool>(std::string("package ID was not set"));
   }
 
   if (packages.find(packageId) != packages.end()) {
-    delete package;
     return stx::error<bool>(std::string("There is already a package in the package manager with id of ") + packageId);
   }
 

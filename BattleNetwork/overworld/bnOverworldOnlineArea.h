@@ -22,6 +22,7 @@
 namespace Overworld {
   struct OnlinePlayer {
     OnlinePlayer(std::string name) : actor(std::make_shared<Overworld::Actor>(name)) {}
+    std::shared_ptr<Minimap::PlayerMarker> marker;
     std::shared_ptr<Overworld::Actor> actor;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
@@ -39,6 +40,7 @@ namespace Overworld {
   private:
     struct AbstractUser {
       std::shared_ptr<Overworld::Actor> actor;
+      std::shared_ptr<Minimap::PlayerMarker> marker;
       Overworld::EmoteNode& emoteNode;
       Overworld::TeleportController& teleportController;
       ActorPropertyAnimator& propertyAnimator;
@@ -193,6 +195,7 @@ namespace Overworld {
     void receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorMinimapColorSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
   protected:
     virtual std::string GetPath(const std::string& path);

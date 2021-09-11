@@ -147,6 +147,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
 
   menuSystem.BindMenu(InputEvents::pressed_pause, personalMenu);
   menuSystem.BindMenu(InputEvents::pressed_map, minimap);
+  minimap->setScale(2.f, 2.f);
 }
 
 void Overworld::SceneBase::onStart() {
@@ -756,9 +757,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   // update map to trigger recalculating shadows for minimap
   this->map.Update(*this, 0.0f);
-
-  *minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
-  minimap->setScale(2.f, 2.f);
+  minimap->Update(this->map.GetName(), this->map);
 }
 
 void Overworld::SceneBase::TeleportUponReturn(const sf::Vector3f& position)
