@@ -195,6 +195,7 @@ namespace Overworld {
     void receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveActorMinimapColorSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
   protected:
     virtual std::string GetPath(const std::string& path);

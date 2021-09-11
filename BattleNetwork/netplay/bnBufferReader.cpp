@@ -39,3 +39,13 @@ std::string BufferReader::ReadTerminatedString(const Poco::Buffer<char>& buffer)
   return "";
 }
 
+sf::Color BufferReader::ReadRGBA(const Poco::Buffer<char>& buffer) {
+  auto colorBytes = Read<uint32_t>(buffer);
+
+  return sf::Color(
+    colorBytes & 255,
+    (colorBytes >> 8) & 255,
+    (colorBytes >> 16) & 255,
+    (colorBytes >> 24) & 255
+  );
+}

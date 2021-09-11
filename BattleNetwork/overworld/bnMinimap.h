@@ -28,10 +28,12 @@ namespace Overworld {
   public:
     class PlayerMarker : public SpriteProxyNode {
     private:
-      sf::Color color;
-      friend class Minimap;
+      sf::Color markerColor;
     public:
-      PlayerMarker(sf::Color color) : color(color) {};
+      PlayerMarker(sf::Color color) : markerColor(color) {};
+
+      sf::Color GetMarkerColor();
+      void SetMarkerColor(sf::Color);
     };
 
     Minimap();

@@ -33,7 +33,6 @@ constexpr float ROLLING_WINDOW_SMOOTHING = 3.0f;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr long long MAX_IDLE_MS = 1000;
 constexpr float MIN_IDLE_MOVEMENT = 1.f;
-const auto OTHER_PLAYER_MINIMAP_COLOR = sf::Color(248, 248, 0, 255);
 
 static long long GetSteadyTime() {
   return std::chrono::duration_cast<std::chrono::milliseconds>
@@ -980,6 +979,8 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::actor_keyframes:
       receiveActorKeyFramesSignal(reader, data);
       break;
+    case ServerEvents::actor_minimap_color:
+      receiveActorMinimapColorSignal(reader, data);
     }
   }
   catch (Poco::IOException& e) {
@@ -2220,6 +2221,8 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   float scaleX = reader.Read<float>(buffer);
   float scaleY = reader.Read<float>(buffer);
   float rotation = reader.Read<float>(buffer);
+  sf::Color minimapColor = reader.ReadRGBA(buffer);
+
   std::optional<std::string> current_animation;
 
   if (reader.Read<bool>(buffer)) {
@@ -2288,7 +2291,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
     AddActor(actor);
 
-    auto marker = std::make_shared<Minimap::PlayerMarker>(OTHER_PLAYER_MINIMAP_COLOR);
+    auto marker = std::make_shared<Minimap::PlayerMarker>(minimapColor);
     auto isConcealed = map.IsConcealed(sf::Vector2i(x, y), (int)z);
     auto& minimap = GetMinimap();
     minimap.AddPlayerMarker(marker);
@@ -2571,6 +2574,24 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
 
   if (tail) {
     propertyAnimator->UseKeyFrames(*actor);
+  }
+}
+
+void Overworld::OnlineArea::receiveActorMinimapColorSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString<uint16_t>(buffer);
+  auto color = reader.ReadRGBA(buffer);
+
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
+    return;
+  }
+
+  auto abstractUser = *optionalAbstractUser;
+
+  if (abstractUser.marker) {
+    abstractUser.marker->SetMarkerColor(color);
   }
 }
 

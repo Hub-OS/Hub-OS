@@ -426,7 +426,8 @@ void Overworld::Minimap::AddPlayerMarker(std::shared_ptr<Overworld::Minimap::Pla
 
 void Overworld::Minimap::UpdatePlayerMarker(Overworld::Minimap::PlayerMarker& playerMarker, sf::Vector2f pos, bool isConcealed)
 {
-  playerMarker.setColor(isConcealed ? playerMarker.color * CONCEALED_COLOR : playerMarker.color);
+  auto markerColor = playerMarker.GetMarkerColor();
+  playerMarker.setColor(isConcealed ? markerColor * CONCEALED_COLOR : markerColor);
   pos *= this->scaling;
   playerMarker.setPosition(pos.x + (240.f * 0.5f) - offset.x, pos.y + (160.f * 0.5f) - offset.y);
 }
@@ -568,4 +569,12 @@ void Overworld::Minimap::draw(sf::RenderTarget& surface, sf::RenderStates states
 
   if (!largeMapControls) return;
   surface.draw(this->arrows, states);
+}
+
+sf::Color Overworld::Minimap::PlayerMarker::GetMarkerColor() {
+  return markerColor;
+}
+
+void Overworld::Minimap::PlayerMarker::SetMarkerColor(sf::Color color) {
+  markerColor = color;
 }

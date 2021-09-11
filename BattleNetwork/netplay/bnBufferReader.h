@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Poco/Buffer.h>
+#include <SFML/Graphics/Color.hpp>
 #include "../bnLogger.h"
 
 class BufferReader
@@ -57,4 +58,6 @@ public:
   }
 
   std::string ReadTerminatedString(const Poco::Buffer<char>& buffer);
+
+  sf::Color ReadRGBA(const Poco::Buffer<char>& buffer);
 };
