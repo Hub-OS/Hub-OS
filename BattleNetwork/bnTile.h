@@ -190,9 +190,9 @@ namespace Battle {
      * 
      * Only checks for character entity types
      * 
-     * @param exclude list. Optional parameter. Any character in this list are exluded from the final count and could change the result.
+     * @param exclude list. Optional parameter. Any character matching the ID in this list are exluded from the final count and could change the result.
      */
-    bool IsReservedByCharacter(std::vector<Character*> exclude = {});
+    bool IsReservedByCharacter(std::vector<Entity::ID_t> exclude = {});
 
     /**
      * @brief Adds a spell to the spell bucket if it doesn't already exist

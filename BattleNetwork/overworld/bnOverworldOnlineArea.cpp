@@ -104,6 +104,7 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
   if (id == ticket) {
     return AbstractUser{
       GetPlayer(),
+      nullptr,
       emoteNode,
       GetTeleportController(),
       propertyAnimator
@@ -117,6 +118,7 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
 
     return AbstractUser{
       onlinePlayer.actor,
+      onlinePlayer.marker,
       onlinePlayer.emoteNode,
       onlinePlayer.teleportController,
       onlinePlayer.propertyAnimator
@@ -152,26 +154,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     HandlePVPStep(pvpRemoteAddress);
     return;
   }
-
-  // remove players before update, to prevent removed players from being added to sprite layers
-  // players do not have a shared pointer to the emoteNode
-  // a segfault would occur if this loop is placed after onUpdate due to emoteNode being deleted
-  for (const auto& remove : removePlayers) {
-    auto it = onlinePlayers.find(remove);
-
-    if (it == onlinePlayers.end()) {
-      Logger::Logf("Removed non existent Player %s", remove.c_str());
-      continue;
-    }
-
-    auto& player = it->second;
-    RemoveActor(player.actor);
-    RemoveSprite(player.teleportController.GetBeam());
-
-    onlinePlayers.erase(remove);
-  }
-
-  removePlayers.clear();
 
   updateOtherPlayers(elapsed);
   updatePlayer(elapsed);
@@ -341,6 +323,27 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
+  // remove players before update, to prevent removed players from being added to sprite layers
+  // players do not have a shared pointer to the emoteNode
+  // a segfault would occur if this loop is placed after Scene::onUpdate due to emoteNode being deleted
+  for (const auto& remove : removePlayers) {
+    auto it = onlinePlayers.find(remove);
+
+    if (it == onlinePlayers.end()) {
+      Logger::Logf("Removed non existent Player %s", remove.c_str());
+      continue;
+    }
+
+    auto& player = it->second;
+    RemoveActor(player.actor);
+    RemoveSprite(player.teleportController.GetBeam());
+    GetMinimap().RemovePlayerMarker(player.marker);
+
+    onlinePlayers.erase(remove);
+  }
+
+  removePlayers.clear();
+
   auto currentTime = GetSteadyTime();
   auto& map = GetMap();
 
@@ -396,6 +399,20 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
     else {
       actor->Run(newHeading, false);
     }
+  }
+
+  auto& minimap = GetMinimap();
+
+  // update minimap markers
+  for (auto& pair : onlinePlayers) {
+    auto& onlinePlayer = pair.second;
+    auto pos = onlinePlayer.actor->Get3DPosition();
+
+    minimap.UpdatePlayerMarker(
+      *onlinePlayer.marker,
+      map.WorldToScreen(pos),
+      map.IsConcealed(sf::Vector2i(pos.x, pos.y), (int) pos.z)
+    );
   }
 }
 
@@ -962,6 +979,8 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::actor_keyframes:
       receiveActorKeyFramesSignal(reader, data);
       break;
+    case ServerEvents::actor_minimap_color:
+      receiveActorMinimapColorSignal(reader, data);
     }
   }
   catch (Poco::IOException& e) {
@@ -1663,6 +1682,10 @@ void Overworld::OnlineArea::receiveExcludeActorSignal(BufferReader& reader, cons
   // removing the sprite instead of hiding it, to avoid teleport controller revealing the actor on us
   this->RemoveSprite(abstractUser.actor);
   this->RemoveSprite(abstractUser.teleportController.GetBeam());
+
+  if (abstractUser.marker) {
+    abstractUser.marker->Hide();
+  }
 }
 
 void Overworld::OnlineArea::receiveIncludeActorSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -1686,6 +1709,10 @@ void Overworld::OnlineArea::receiveIncludeActorSignal(BufferReader& reader, cons
   // include the actor again
   this->AddSprite(abstractUser.actor);
   this->AddSprite(abstractUser.teleportController.GetBeam());
+
+  if (abstractUser.marker) {
+    abstractUser.marker->Reveal();
+  }
 }
 
 void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2194,6 +2221,8 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   float scaleX = reader.Read<float>(buffer);
   float scaleY = reader.Read<float>(buffer);
   float rotation = reader.Read<float>(buffer);
+  sf::Color minimapColor = reader.ReadRGBA(buffer);
+
   std::optional<std::string> current_animation;
 
   if (reader.Read<bool>(buffer)) {
@@ -2246,6 +2275,8 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
   auto& teleportController = onlinePlayer.teleportController;
 
+  auto isExcluded = excludedActors.find(user) != excludedActors.end();
+
   if (isNew) {
     // add nodes to the scene base
     teleportController.EnableSound(false);
@@ -2260,14 +2291,20 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
     AddActor(actor);
 
-    auto isExcluded = excludedActors.find(user) != excludedActors.end();
+    auto marker = std::make_shared<Minimap::PlayerMarker>(minimapColor);
+    auto isConcealed = map.IsConcealed(sf::Vector2i(x, y), (int)z);
+    auto& minimap = GetMinimap();
+    minimap.AddPlayerMarker(marker);
+    minimap.UpdatePlayerMarker(*marker, map.WorldToScreen(pos), isConcealed);
+    onlinePlayer.marker = marker;
 
     if (isExcluded) {
       // remove the actor if they are marked as hidden by the server
       RemoveSprite(actor);
+      marker->Hide();
     }
     else {
-   // add the teleport beam if the actor is not marked as hidden by the server
+      // add the teleport beam if the actor is not marked as hidden by the server
       AddSprite(teleportController.GetBeam());
     }
   }
@@ -2537,6 +2574,24 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
 
   if (tail) {
     propertyAnimator->UseKeyFrames(*actor);
+  }
+}
+
+void Overworld::OnlineArea::receiveActorMinimapColorSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto user = reader.ReadString<uint16_t>(buffer);
+  auto color = reader.ReadRGBA(buffer);
+
+  auto optionalAbstractUser = GetAbstractUser(user);
+
+  if (!optionalAbstractUser) {
+    return;
+  }
+
+  auto abstractUser = *optionalAbstractUser;
+
+  if (abstractUser.marker) {
+    abstractUser.marker->SetMarkerColor(color);
   }
 }
 

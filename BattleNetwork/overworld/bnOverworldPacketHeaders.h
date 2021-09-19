@@ -6,7 +6,7 @@
 namespace Overworld
 {
   constexpr std::string_view VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
-  const uint64_t VERSION_ITERATION = 36;
+  const uint64_t VERSION_ITERATION = 37;
 
   constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
@@ -111,6 +111,7 @@ namespace Overworld
     actor_emote,
     actor_animate,
     actor_keyframes,
+    actor_minimap_color,
     size,
     unknown = size
   };
