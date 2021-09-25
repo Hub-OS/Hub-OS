@@ -23,6 +23,7 @@
 #include "../bnKeyItemScene.h"
 #include "../bnMailScene.h"
 #include "../bnVendorScene.h"
+#include "../bnPlayerCustScene.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnCustomBackground.h"
 #include "../bnLanBackground.h"
@@ -341,6 +342,9 @@ void Overworld::SceneBase::HandleInput() {
     }
     if (Input().Has(InputEvents::pressed_shoulder_left)) {
       OnInteract(Interaction::inspect);
+    }
+    if (Input().GetAnyKey() == sf::Keyboard::F9) {
+      GotoPlayerCust();
     }
   }
 }
@@ -904,6 +908,17 @@ void Overworld::SceneBase::GotoKeyItems()
   using effect = segue<BlackWashFade, milliseconds<500>>;
 
   getController().push<effect::to<KeyItemScene>>(items);
+}
+
+void Overworld::SceneBase::GotoPlayerCust()
+{
+  // Config Select on PC
+  gotoNextScene = true;
+  Audio().Play(AudioType::CHIP_DESC);
+
+  using effect = segue<BlackWashFade, milliseconds<500>>;
+
+  getController().push<effect::to<PlayerCustScene>>();
 }
 
 Overworld::PersonalMenu& Overworld::SceneBase::GetPersonalMenu()
