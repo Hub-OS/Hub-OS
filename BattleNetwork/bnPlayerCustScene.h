@@ -15,12 +15,39 @@
 class PlayerCustScene : public Scene {
 public:
   struct Piece {
+    static constexpr size_t BLOCK_SIZE = 5u;
     size_t typeIndex{};
     size_t maxWidth{}, maxHeight{};
+    size_t startX{}, startY{}; // index where the first entry for the shape is
     bool specialType{};
-    std::array<uint8_t, 25> shape{}; // 5x5
+    std::array<uint8_t, BLOCK_SIZE*BLOCK_SIZE> shape{}; // 5x5
+
+    void rotateLeft() {
+      auto newShape = shape;
+      size_t idx = 0u;
+      for (size_t i = 0; i < BLOCK_SIZE; i++) {
+        for (size_t j = BLOCK_SIZE; j > 0u; j--) {
+          newShape[idx++] = shape[((j-1u) * BLOCK_SIZE) + i];
+        }
+      }
+
+      std::swap(newShape, shape);
+    }
+
+    void rotateRight() {
+      auto newShape = shape;
+      size_t idx = 0u;
+      for (size_t i = 0; i < BLOCK_SIZE; i++) {
+        for (size_t j = BLOCK_SIZE; j > 0u; j--) {
+          newShape[idx++] = shape[(i * BLOCK_SIZE) + j];
+        }
+      }
+
+      std::swap(newShape, shape);
+    }
   };
 private:
+  static constexpr size_t GRID_SIZE = 7u;
 
   // Menu name font
   Font font; /*!< Font of the  menu name label*/
@@ -37,11 +64,16 @@ private:
   sf::Sprite claw;
   sf::Sprite sceneLabel;
   sf::Sprite gridSprite;
+  sf::Sprite greenButtonSprite;
+  sf::Sprite blueButtonSprite;
+  sf::Sprite infoBox;
+  sf::Sprite progressBar;
+  sf::IntRect progressBarUVs;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
-  std::map<size_t, bool> blockInUseTable;
-
+  std::vector<Piece*> pieces;
   std::map<Piece*, size_t> centerHash;
-  std::array<Piece*, 49> grid{ nullptr }; // 7x7
+  std::map<size_t, size_t> blockTypeInUseTable;
+  std::array<Piece*, GRID_SIZE*GRID_SIZE> grid{ nullptr }; // 7x7
   Piece* grabbedPiece{ nullptr }; // when moving from the grid to another location
   Piece* insertingPiece{ nullptr }; // when moving from the list to the grid
   size_t cursorLocation{}; // in grid-space
@@ -56,13 +88,22 @@ private:
   double frameElapsed{};
 
   bool gotoNextScene{}; /*!< If true, user cannot interact */
+  bool itemListSelected{}; // If the item list if not selected, it implies the grid area is
 
   void removePiece(Piece* piece);
   bool canPieceFit(Piece* piece, size_t loc);
   bool doesPieceOverlap(Piece* piece, size_t loc);
   bool insertPiece(Piece* piece, size_t loc);
+  bool isGridEdge(size_t y, size_t x);
   size_t getPieceCenter(Piece* piece);
+  sf::Vector2f gridCursorToScreen();
   void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& cursorPos);
+  void consolePrintGrid();
+  void executeLeftKey();
+  void executeRightKey();
+  void executeUpKey();
+  void executeDownKey();
+  void handleInputDelay(double elapsed, void(PlayerCustScene::*executeFunc)());
 public:
 
   void onLeave() override;
