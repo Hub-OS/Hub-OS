@@ -186,7 +186,7 @@ FreedomMissionMobScene::~FreedomMissionMobScene() {
   props.mobs.clear();
 }
 
-void FreedomMissionMobScene::OnHit(Character& victim, const Hit::Properties& props)
+void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
   auto player = GetPlayer();
   if (player.get() == &victim && props.damage > 0) {

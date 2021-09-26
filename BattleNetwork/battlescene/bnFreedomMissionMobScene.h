@@ -33,7 +33,7 @@ class FreedomMissionMobScene final : public BattleSceneBase {
   FreedomMissionMobScene(swoosh::ActivityController& controller, const FreedomMissionProps& props, BattleResultsFunc onEnd=nullptr);
   ~FreedomMissionMobScene();
 
-  void OnHit(Character& victim, const Hit::Properties& props) override final;
+  void OnHit(Entity& victim, const Hit::Properties& props) override final;
   void onStart() override final;
   void onExit() override;
   void onEnter() override;
