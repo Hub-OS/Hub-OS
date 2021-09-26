@@ -15,6 +15,8 @@
 class PlayerCustScene : public Scene {
 public:
   struct Piece {
+    std::string name = "Unnamed";
+    std::string description = "N/A";
     static constexpr size_t BLOCK_SIZE = 5u;
     size_t typeIndex{};
     size_t maxWidth{}, maxHeight{};
@@ -27,7 +29,7 @@ public:
       size_t idx = 0u;
       for (size_t i = 0; i < BLOCK_SIZE; i++) {
         for (size_t j = BLOCK_SIZE; j > 0u; j--) {
-          newShape[idx++] = shape[((j-1u) * BLOCK_SIZE) + i];
+          newShape[idx++] = shape[((j - 1u) * BLOCK_SIZE) + i];
         }
       }
 
@@ -35,40 +37,38 @@ public:
     }
 
     void rotateRight() {
-      auto newShape = shape;
-      size_t idx = 0u;
-      for (size_t i = 0; i < BLOCK_SIZE; i++) {
-        for (size_t j = BLOCK_SIZE; j > 0u; j--) {
-          newShape[idx++] = shape[(i * BLOCK_SIZE) + j];
-        }
-      }
-
-      std::swap(newShape, shape);
+      rotateLeft();
+      rotateLeft();
+      rotateLeft();
     }
   };
 private:
   static constexpr size_t GRID_SIZE = 7u;
 
   // Menu name font
-  Font font; /*!< Font of the  menu name label*/
-  Text text;
+  Text infoText, itemText, hoverText;
 
   // Selection input delays
   bool extendedHold{ false }; /*!< 2nd delay pass makes scrolling quicker */
   double maxSelectInputCooldown{}; /*!< Set to fraction of a second */
   double selectInputCooldown{}; /*!< The delay between reading user input */
 
+  // progress bar
+  double progress{}, maxProgressTime{ 3. };
+
   // folder menu graphics
   sf::Sprite bg;
-  sf::Sprite cursor;
+  sf::Sprite cursor, itemArrowCursor;
   sf::Sprite claw;
   sf::Sprite sceneLabel;
   sf::Sprite gridSprite;
   sf::Sprite greenButtonSprite;
   sf::Sprite blueButtonSprite;
   sf::Sprite infoBox;
+  sf::Sprite track;
   sf::Sprite progressBar;
   sf::IntRect progressBarUVs;
+  std::shared_ptr<sf::Texture> cursorTexture;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
   std::vector<Piece*> pieces;
   std::map<Piece*, size_t> centerHash;
@@ -78,6 +78,7 @@ private:
   Piece* insertingPiece{ nullptr }; // when moving from the list to the grid
   size_t cursorLocation{}; // in grid-space
   size_t grabStartLocation{}; // in grid-space
+  size_t listStart{};
   AnimatedTextBox textbox;
   Question* questionInterface{ nullptr };
 
@@ -87,10 +88,18 @@ private:
 
   double frameElapsed{};
 
+  bool isCompiling{};
   bool gotoNextScene{}; /*!< If true, user cannot interact */
   bool itemListSelected{}; // If the item list if not selected, it implies the grid area is
 
+  void startCompile();
+  bool isCompileFinished();
+
   void removePiece(Piece* piece);
+  bool hasLeftInput();
+  bool hasRightInput();
+  bool hasUpInput();
+  bool hasDownInput();
   bool canPieceFit(Piece* piece, size_t loc);
   bool doesPieceOverlap(Piece* piece, size_t loc);
   bool insertPiece(Piece* piece, size_t loc);
@@ -99,11 +108,15 @@ private:
   sf::Vector2f gridCursorToScreen();
   void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& cursorPos);
   void consolePrintGrid();
+  bool handleSelectItemFromList();
   void executeLeftKey();
   void executeRightKey();
   void executeUpKey();
   void executeDownKey();
+  bool handleArrowKeys(double elapsed);
   void handleInputDelay(double elapsed, void(PlayerCustScene::*executeFunc)());
+  void updateCursorHoverInfo();
+  void updateItemListHoverInfo();
 public:
 
   void onLeave() override;

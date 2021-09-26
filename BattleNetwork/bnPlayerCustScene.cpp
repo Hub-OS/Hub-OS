@@ -1,9 +1,12 @@
 #include "bnPlayerCustScene.h"
+#include "stx/string.h"
 
 constexpr size_t BAD_GRID_POS = std::numeric_limits<size_t>::max();
 constexpr size_t MAX_ALLOWED_TYPES = 4u;
-constexpr float GRID_START_X = 5.f;
+constexpr size_t MAX_ITEMS_ON_SCREEN = 5;
+constexpr float GRID_START_X = 4.f;
 constexpr float GRID_START_Y = 23.f;
+constexpr sf::Uint8 PROGRESS_MAX_ALPHA = 200;
 
 enum class Blocks : uint8_t {
   White = 0,
@@ -45,13 +48,18 @@ PlayerCustScene::Piece* generateRandomBlock() {
 
   p->typeIndex = rand() % static_cast<uint8_t>(Blocks::Size);
   p->specialType = rand() % 2;
+  p->name = stx::rand_alphanum(8);
+  p->description = stx::rand_alphanum(30);
 
+  p->description[9] = '\n';
+  p->description[19] = '\n';
   return p;
 }
 
 PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
-  font(Font::Style::thin),
-  text(font),
+  infoText(Font::Style::thin),
+  itemText(Font::Style::thick),
+  hoverText(Font::Style::thick),
   textbox(sf::Vector2f(4, 255)),
   questionInterface(nullptr),
   Scene(controller)
@@ -66,6 +74,13 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
   auto load_texture = [this](const std::string& path) {
     return Textures().LoadTextureFromFile(path);
   };
+
+  cursorTexture = load_texture("resources/ui/textbox_cursor.png");
+  itemArrowCursor = sf::Sprite(*cursorTexture);
+
+  sf::FloatRect bounds = itemArrowCursor.getLocalBounds();
+  itemArrowCursor.setScale(2.f, 2.f);
+  itemArrowCursor.setOrigin({ bounds.width, 0. });
 
   bg = sf::Sprite(*load_texture("resources/scenes/cust/bg.png"));
   bg.setScale(2.f, 2.f);
@@ -108,8 +123,12 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
   sf::Vector2f textPosition = infoBox.getPosition();
   textPosition.y += 20.f;
   textPosition.x += 8.f;
-  text.setPosition(textPosition);
-  text.setScale(2.f, 2.f);
+  infoText.setPosition(textPosition);
+  infoText.setScale(2.f, 2.f);
+
+  itemText.setScale(2.f, 2.f);
+
+  hoverText = itemText;
 
   auto progressBarTexture = load_texture("resources/scenes/cust/progress_bar.png");
   progressBarTexture->setRepeated(true);
@@ -119,7 +138,7 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
   progressBar.setScale(2.f, 2.f);
   progressBar.setPosition((GRID_START_X * 2.) + 20, 168);
   progressBar.setTextureRect(progressBarUVs); // source is 69x14 pixels
-  progressBar.setColor(sf::Color(255, 255, 255, 200));
+  progressBar.setColor(sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA));
 
   // set screen view
   setView(sf::Vector2u(480, 320));
@@ -127,28 +146,34 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
 
 PlayerCustScene::~PlayerCustScene()
 {
-  std::map<Piece*, bool> deleted;
-
-  for (Piece* p : grid) {
-    if (p && !deleted[p]) {
-      deleted[p] = true;
+  for (Piece* p : pieces) {
       delete p;
-    }
   }
+
+  pieces.clear();
 }
 
 bool PlayerCustScene::canPieceFit(Piece* piece, size_t loc)
 {
   size_t x = loc % GRID_SIZE;
   size_t y = loc / GRID_SIZE;
+
+  // prevent inserting edges
+  bool tl = (x == 0 && y == 0);
+  bool tr = (x + piece->maxWidth + 1u == GRID_SIZE && y == 0);
+  bool bl = (x == 0 && y + 1u == GRID_SIZE);
+  bool br = (x + piece->maxWidth + 1u == GRID_SIZE && y + 1u == GRID_SIZE);
+
+  if (tl || tr || bl || br) return false;
+
   return (piece->maxWidth + x) < GRID_SIZE && (piece->maxHeight + y) < GRID_SIZE;
 }
 
 bool PlayerCustScene::doesPieceOverlap(Piece* piece, size_t loc)
 {
   size_t index = loc;
-  for (size_t i = 0; i < Piece::BLOCK_SIZE; i++) {
-    for (size_t j = 0; j < Piece::BLOCK_SIZE; j++) {
+  for (size_t i = piece->startY; i <= piece->maxHeight; i++) {
+    for (size_t j = piece->startX; j <= piece->maxWidth; j++) {
       if (piece->shape[(i * Piece::BLOCK_SIZE) + j]) {
         if (grid[index + j]) return true;
       }
@@ -196,6 +221,22 @@ bool PlayerCustScene::isGridEdge(size_t y, size_t x)
   return x == 0 || x == GRID_SIZE-1u || y == GRID_SIZE-1u || y == 0;
 }
 
+void PlayerCustScene::startCompile()
+{
+  infoText.SetString("RUNNING...");
+  progress = 0;
+  isCompiling = true;
+  sf::Color color = sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA);
+  progressBarUVs.width = 0;
+  progressBar.setTextureRect(progressBarUVs);
+  progressBar.setColor(color);
+}
+
+bool PlayerCustScene::isCompileFinished()
+{
+  return progress >= maxProgressTime; // in seconds
+}
+
 void PlayerCustScene::removePiece(Piece* piece)
 {
   size_t index = getPieceCenter(piece);
@@ -213,7 +254,6 @@ void PlayerCustScene::removePiece(Piece* piece)
         grid[index + j] = nullptr;
       }
     }
-    std::cout << std::endl;
     index += GRID_SIZE;
   }
 
@@ -221,6 +261,26 @@ void PlayerCustScene::removePiece(Piece* piece)
   blockTypeInUseTable[piece->typeIndex]--;
 
   centerHash[piece] = BAD_GRID_POS;
+}
+
+bool PlayerCustScene::hasLeftInput()
+{
+  return Input().Has(InputEvents::pressed_ui_left) || Input().Has(InputEvents::held_ui_left);
+}
+
+bool PlayerCustScene::hasRightInput()
+{
+  return Input().Has(InputEvents::pressed_ui_right) || Input().Has(InputEvents::held_ui_right);
+}
+
+bool PlayerCustScene::hasUpInput()
+{
+  return Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up);
+}
+
+bool PlayerCustScene::hasDownInput()
+{
+  return Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down);
 }
 
 size_t PlayerCustScene::getPieceCenter(Piece* piece)
@@ -245,13 +305,17 @@ void PlayerCustScene::drawPiece(sf::RenderTarget& surface, Piece* piece, const s
   sf::Sprite blockSprite;
   blockSprite.setScale(2.f, 2.f);
 
+  sf::Color color = blockSprite.getColor();
+  color.a = 200;
+  blockSprite.setColor(color);
+
   for (size_t i = 0; i < Piece::BLOCK_SIZE; i++) {
     for (size_t j = 0; j < Piece::BLOCK_SIZE; j++) {
       size_t index = (i * Piece::BLOCK_SIZE) + j;
       if (piece->shape[index]) {
         float halfOffset = (((Piece::BLOCK_SIZE / 2)) * -20.f)*2.f;
-        float offsetX = halfOffset + (j * 20.f * 2.f);
-        float offsetY = halfOffset + (i * 20.f * 2.f);
+        float offsetX = halfOffset + (j * 20.f * 2.f)-4.f;
+        float offsetY = halfOffset + (i * 20.f * 2.f)-4.f;
         blockSprite.setTexture(*blockTextures[piece->typeIndex], true);
         blockSprite.setTextureRect({ 40, 20, 20, 20 });
         blockSprite.setPosition({ cursorPos.x + offsetX, cursorPos.y + offsetY});
@@ -276,15 +340,33 @@ void PlayerCustScene::consolePrintGrid()
   }
 }
 
+bool PlayerCustScene::handleSelectItemFromList()
+{
+  if (listStart >= pieces.size()) return false;
+
+  auto iter = std::next(pieces.begin(), listStart);
+  insertingPiece = *iter;
+  pieces.erase(iter);
+
+  // move cursor to the center of the grid
+  cursorLocation = ((GRID_SIZE / 2) * GRID_SIZE) + (GRID_SIZE/2);
+  itemListSelected = false;
+
+  return true;
+}
+
 void PlayerCustScene::executeLeftKey()
 {
   if (itemListSelected) {
     itemListSelected = false;
+    Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
     return;
   }
 
   if (cursorLocation % GRID_SIZE > 0) {
     cursorLocation--;
+    updateCursorHoverInfo();
+    Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
 }
 
@@ -292,24 +374,75 @@ void PlayerCustScene::executeRightKey()
 {
   if ((cursorLocation + 1) % GRID_SIZE > 0) {
     cursorLocation++;
+    updateCursorHoverInfo();
+    Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
   else if(!grabbedPiece && !insertingPiece) {
     itemListSelected = true;
+    updateItemListHoverInfo();
   }
 }
 
 void PlayerCustScene::executeUpKey()
 {
+  if (itemListSelected) {
+    if (listStart > 0) {
+      listStart--;
+      updateItemListHoverInfo();
+      Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
+    }
+    return;
+  }
+
   if (cursorLocation >= GRID_SIZE) {
     cursorLocation -= GRID_SIZE;
+    updateCursorHoverInfo();
+    Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
 }
 
 void PlayerCustScene::executeDownKey()
 {
+  if (itemListSelected) {
+    // pieces end iterator doubles as the `run` action item
+    if (listStart+1u <= pieces.size()) {
+      listStart++;
+      updateItemListHoverInfo();
+      Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
+    }
+    return;
+  }
+
   if (cursorLocation + GRID_SIZE < grid.size()) {
     cursorLocation += GRID_SIZE;
+    updateCursorHoverInfo();
+    Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
+}
+
+bool PlayerCustScene::handleArrowKeys(double elapsed)
+{
+  if (hasLeftInput()) {
+    handleInputDelay(elapsed, &PlayerCustScene::executeLeftKey);
+    return true;
+  }
+
+  if (hasRightInput()) {
+    handleInputDelay(elapsed, &PlayerCustScene::executeRightKey);
+    return true;
+  }
+
+  if (hasUpInput()) {
+    handleInputDelay(elapsed, &PlayerCustScene::executeUpKey);
+    return true;
+  }
+
+  if (hasDownInput()) {
+    handleInputDelay(elapsed, &PlayerCustScene::executeDownKey);
+    return true;
+  }
+
+  return false;
 }
 
 void PlayerCustScene::handleInputDelay(double elapsed, void(PlayerCustScene::*executeFunc)())
@@ -326,6 +459,35 @@ void PlayerCustScene::handleInputDelay(double elapsed, void(PlayerCustScene::*ex
     }
 
     (this->*executeFunc)();
+  }
+}
+
+void PlayerCustScene::updateCursorHoverInfo()
+{
+  if (Piece* p = grid[cursorLocation]) {
+    infoText.SetString(p->description);
+    hoverText.SetString(p->name);
+
+    sf::Vector2f pos = gridCursorToScreen();
+    pos.y += 20.f * 2.f; // below the block it is on
+    hoverText.setPosition(pos);
+
+    sf::FloatRect bounds = hoverText.GetLocalBounds();
+    hoverText.setOrigin({ bounds.width * 0.5f, bounds.height });
+  }
+  else {
+    infoText.SetString("");
+    hoverText.SetString("");
+  }
+}
+
+void PlayerCustScene::updateItemListHoverInfo()
+{
+  if (listStart < pieces.size()) {
+    infoText.SetString(pieces[listStart]->description);
+  }
+  else {
+    infoText.SetString("RUN?");
   }
 }
 
@@ -354,6 +516,7 @@ void PlayerCustScene::onUpdate(double elapsed)
 {
   textbox.Update(elapsed);
   progressBarUVs.left -= 1;
+  progressBarUVs.width = static_cast<int>(std::min(118., (118.*(progress/maxProgressTime))));
   progressBar.setTextureRect(progressBarUVs);
 
   sf::Vector2f dest = gridCursorToScreen();
@@ -363,15 +526,52 @@ void PlayerCustScene::onUpdate(double elapsed)
   claw.setPosition(cursorPos);
   cursor.setPosition(cursorPos);
 
+  if (isCompiling) {
+    progress += elapsed;
+    if (isCompileFinished()) {
+      isCompiling = false;
+      infoText.SetString("OK");
+      Audio().Play(AudioType::ITEM_GET);
+    }
+    else {
+      double percent = (progress / static_cast<double>(maxProgressTime));
+      double block_time = static_cast<double>(maxProgressTime/ GRID_SIZE);
+
+      // complete the text when we're 75% through the block
+      std::string label = "None";
+      double COMPLETE_AT_PROGRESS = .75;
+      double block_progress = std::fmod(progress, block_time) / block_time;
+      double text_progress = std::min(block_progress * 1. / COMPLETE_AT_PROGRESS, 1.);
+
+      size_t loc = static_cast<size_t>(percent * GRID_SIZE);
+      if (Piece* p = grid[(3u*GRID_SIZE)+loc]) {
+        label = p->name;
+      }
+
+      size_t len = 1u + std::ceil(label.size() * text_progress);
+      infoText.SetString("Running...\n" + label.substr(0, len));
+    }
+
+    return;
+  }
+  else {
+    sf::Color color = progressBar.getColor();
+
+    if (color.a > 0) {
+      color.a -= 1;
+      progressBar.setColor(color);
+    }
+  }
+
   if (questionInterface) {
     if (!textbox.IsOpen()) return;
 
-    if (Input().Has(InputEvents::pressed_ui_left)) {
+    if (hasLeftInput()) {
       questionInterface->SelectYes();
       return;
     }
 
-    if (Input().Has(InputEvents::pressed_ui_right)) {
+    if (hasRightInput()) {
       questionInterface->SelectNo();
       return;
     }
@@ -383,14 +583,20 @@ void PlayerCustScene::onUpdate(double elapsed)
   }
 
   if (itemListSelected) {
-    if (Input().Has(InputEvents::pressed_ui_left)) {
-      executeLeftKey();
+    if (handleArrowKeys(elapsed)) {
       return;
     }
 
-    if (!Input().Has(InputEvents::pressed_confirm)) return; // TODO: for now
+    //else arrow keys are not held this state
+    selectInputCooldown = 0;
+    extendedHold = false;
+
+    if (!Input().Has(InputEvents::pressed_confirm)) return;
+    
+    if (handleSelectItemFromList()) return;
 
     auto onYes = [this]() {
+      startCompile();
       questionInterface = nullptr;
       textbox.Close();
     };
@@ -426,7 +632,7 @@ void PlayerCustScene::onUpdate(double elapsed)
   }
   else if(insertingPiece) {
     if (Input().Has(InputEvents::pressed_cancel)) {
-      delete insertingPiece;
+      pieces.push_back(insertingPiece);
       insertingPiece = nullptr;
       return;
     }
@@ -436,7 +642,7 @@ void PlayerCustScene::onUpdate(double elapsed)
         insertingPiece = nullptr;
       }
       else {
-        Audio().Play(AudioType::CHIP_ERROR, AudioPriority::high);
+        Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
       }
       return;
     }
@@ -445,11 +651,18 @@ void PlayerCustScene::onUpdate(double elapsed)
       insertingPiece->rotateLeft();
       return;
     }
+    
+    if (Input().Has(InputEvents::pressed_shoulder_right)) {
+      insertingPiece->rotateRight();
+      return;
+    }
   }
   else if (grabbedPiece) {
     if (Input().Has(InputEvents::pressed_cancel)) {
       insertPiece(grabbedPiece, grabStartLocation);
+      cursorLocation = grabStartLocation;
       grabbedPiece = nullptr;
+      updateCursorHoverInfo();
       return;
     }
 
@@ -458,7 +671,7 @@ void PlayerCustScene::onUpdate(double elapsed)
         grabbedPiece = nullptr;
       }
       else {
-        Audio().Play(AudioType::CHIP_ERROR, AudioPriority::high);
+        Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
       }
       return;
     }
@@ -469,23 +682,7 @@ void PlayerCustScene::onUpdate(double elapsed)
     }
   }
 
-  if (Input().Has(InputEvents::pressed_ui_left) || Input().Has(InputEvents::held_ui_left)) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeLeftKey);
-    return;
-  } 
-
-  if (Input().Has(InputEvents::pressed_ui_right) || Input().Has(InputEvents::held_ui_right)) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeRightKey);
-    return;
-  }
-
-  if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeUpKey);
-    return;
-  }
-
-  if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeDownKey);
+  if (handleArrowKeys(elapsed)) {
     return;
   }
 
@@ -512,8 +709,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
     blockSprite.setTextureRect({ 60, 0, 14, 9 });
     blockSprite.setPosition({ x, y });
     surface.draw(blockSprite);
-
-    if (count++ == MAX_ALLOWED_TYPES) break;
+    count++;
   }
 
   for (size_t i = 0; i < GRID_SIZE; i++) {
@@ -540,11 +736,36 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   }
 
   // draw items
+  float yoffset = 0.;
+  
+  if (listStart > MAX_ITEMS_ON_SCREEN) {
+    yoffset = -blueButtonSprite.getLocalBounds().height * (listStart - MAX_ITEMS_ON_SCREEN);
+  }
+
   sf::Vector2f bottom;
   bottom.x = 140.f;
 
   for (size_t i = 0; i < pieces.size(); i++) {
-    bottom.y += blueButtonSprite.getLocalBounds().height + 20.f;
+    blueButtonSprite.setPosition(bottom.x * blueButtonSprite.getScale().x, (bottom.y * blueButtonSprite.getScale().y) + yoffset);
+    surface.draw(blueButtonSprite);
+
+    if (listStart == i) {
+      sf::Vector2f dest = blueButtonSprite.getPosition();
+      sf::Vector2f pos = itemArrowCursor.getPosition();
+      pos.x = swoosh::ease::interpolate(0.5f, pos.x, dest.x);
+      pos.y = swoosh::ease::interpolate(0.5f, pos.y, dest.y);
+      itemArrowCursor.setPosition(pos);
+    }
+
+    itemText.SetString(pieces[i]->name);
+    itemText.SetColor(sf::Color(33, 115, 140));
+    itemText.setPosition((bottom.x + 4.) * itemText.getScale().x, (bottom.y * itemText.getScale().y) + 8.f + yoffset + 2.f);
+    surface.draw(itemText);
+    itemText.SetColor(sf::Color::White);
+    itemText.setPosition((bottom.x + 4.) * itemText.getScale().x, (bottom.y * itemText.getScale().y) + 8.f + yoffset);
+    surface.draw(itemText);
+
+    bottom.y += blueButtonSprite.getLocalBounds().height;
   }
 
   if (bottom.y == 0) {
@@ -555,31 +776,58 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   greenButtonSprite.setPosition(bottom.x * greenButtonSprite.getScale().x, bottom.y*greenButtonSprite.getScale().y);
   surface.draw(greenButtonSprite);
 
+  if (listStart == pieces.size()) {
+    sf::Vector2f dest = greenButtonSprite.getPosition();
+    sf::Vector2f pos = itemArrowCursor.getPosition();
+    pos.x = swoosh::ease::interpolate(0.5f, pos.x, dest.x);
+    pos.y = swoosh::ease::interpolate(0.5f, pos.y, dest.y);
+    itemArrowCursor.setPosition(pos);
+  }
+
+  if (itemListSelected) {
+    surface.draw(itemArrowCursor);
+  }
+
   // draw info box
   surface.draw(infoBox);
 
-  if (itemListSelected) {
-    sf::Vector2f pos = text.getPosition();
-    text.SetString("RUN?");
-    text.SetColor(sf::Color(33, 115, 140));
-    text.setPosition(pos.x+2.f, pos.y+2.f);
-    surface.draw(text);
-    text.SetColor(sf::Color::White);
-    text.setPosition(pos);
-    surface.draw(text);
+  sf::Vector2f pos = infoText.getPosition();
+  infoText.SetColor(sf::Color(33, 115, 140));
+  infoText.setPosition(pos.x+2.f, pos.y+2.f);
+  surface.draw(infoText);
+  infoText.SetColor(sf::Color::White);
+  infoText.setPosition(pos);
+  surface.draw(infoText);
 
-    // TODO: for now
-    surface.draw(progressBar);
-  }
-  else {
+  // progress bar shows when compiling
+  surface.draw(progressBar);
+  
+  if(!itemListSelected) {
     // claw/cursor always draws on top
     Piece* p = insertingPiece ? insertingPiece : grabbedPiece ? grabbedPiece : nullptr;
     if (p) {
       drawPiece(surface, p, gridCursorToScreen());
-      surface.draw(claw);
+
+      if (grabbedPiece) {
+        surface.draw(claw);
+      }
     }
     else {
-      surface.draw(cursor);
+      // display any hovering text
+      sf::Vector2f pos = hoverText.getPosition();
+      hoverText.SetColor(sf::Color::Black);
+      hoverText.setPosition(pos.x + 2.f, pos.y + 2.f);
+      surface.draw(hoverText);
+      hoverText.SetColor(sf::Color::White);
+      hoverText.setPosition(pos);
+      surface.draw(hoverText);
+
+      if (grid[cursorLocation]) {
+        surface.draw(claw);
+      }
+      else {
+        surface.draw(cursor);
+      }
     }
   }
 
