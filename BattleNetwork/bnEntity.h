@@ -829,7 +829,7 @@ inline std::shared_ptr<ComponentType> Entity::GetFirstComponent() const
 {
   for (auto& component : components) {
     if (typeid(*component) == typeid(ComponentType)) {
-      return std::reinterpret_pointer_cast<ComponentType>(component);
+      return std::dynamic_pointer_cast<ComponentType>(component);
     }
   }
 
@@ -843,7 +843,7 @@ inline std::vector<std::shared_ptr<ComponentType>> Entity::GetComponents() const
 
   for (auto& component : components) {
     if (typeid(*component) == typeid(ComponentType)) {
-      res.push_back(std::reinterpret_pointer_cast<ComponentType>(component));
+      res.push_back(std::dynamic_pointer_cast<ComponentType>(component));
     }
   }
 
