@@ -306,7 +306,7 @@ void PlayerCustScene::drawPiece(sf::RenderTarget& surface, Piece* piece, const s
   blockSprite.setScale(2.f, 2.f);
 
   sf::Color color = blockSprite.getColor();
-  color.a = 200;
+  color.a = 140;
   blockSprite.setColor(color);
 
   for (size_t i = 0; i < Piece::BLOCK_SIZE; i++) {
@@ -473,7 +473,10 @@ void PlayerCustScene::updateCursorHoverInfo()
     hoverText.setPosition(pos);
 
     sf::FloatRect bounds = hoverText.GetLocalBounds();
-    hoverText.setOrigin({ bounds.width * 0.5f, bounds.height });
+
+    float x = (cursorLocation % GRID_SIZE)/static_cast<float>(GRID_SIZE) * bounds.width;
+    float y = (cursorLocation / GRID_SIZE) + 1u == GRID_SIZE ? 20.f*2.f : 0.f;
+    hoverText.setOrigin({ x, y});
   }
   else {
     infoText.SetString("");
@@ -515,7 +518,7 @@ void PlayerCustScene::onStart()
 void PlayerCustScene::onUpdate(double elapsed)
 {
   textbox.Update(elapsed);
-  progressBarUVs.left -= 1;
+  progressBarUVs.left -= isCompileFinished()?1:2;
   progressBarUVs.width = static_cast<int>(std::min(118., (118.*(progress/maxProgressTime))));
   progressBar.setTextureRect(progressBarUVs);
 
@@ -559,6 +562,7 @@ void PlayerCustScene::onUpdate(double elapsed)
 
     if (color.a > 0) {
       color.a -= 1;
+      progressBarUVs.left -= 1; // another speedup at this step
       progressBar.setColor(color);
     }
   }
@@ -577,6 +581,11 @@ void PlayerCustScene::onUpdate(double elapsed)
     }
 
     if (Input().Has(InputEvents::pressed_confirm)) {
+      if (!textbox.IsEndOfBlock()) {
+        textbox.CompleteCurrentBlock();
+        return;
+      }
+
       questionInterface->ConfirmSelection();
       return;
     }
