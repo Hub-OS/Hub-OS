@@ -3,7 +3,7 @@
 
 constexpr size_t BAD_GRID_POS = std::numeric_limits<size_t>::max();
 constexpr size_t MAX_ALLOWED_TYPES = 4u;
-constexpr size_t MAX_ITEMS_ON_SCREEN = 5;
+constexpr size_t MAX_ITEMS_ON_SCREEN = 4u; // includes RUN button
 constexpr float GRID_START_X = 4.f;
 constexpr float GRID_START_Y = 23.f;
 constexpr sf::Uint8 PROGRESS_MAX_ALPHA = 200;
@@ -27,7 +27,7 @@ PlayerCustScene::Piece* generateRandomBlock() {
   while (x == 0) {
     // generate smaller 3x3 shapes
     for (size_t i = 1; i < 4; i++) { // start one row down
-      for (size_t j = 0; j < 3; j++) {
+      for (size_t j = 1; j < 4; j++) { // start one column over
         size_t index = (i * p->BLOCK_SIZE) + j;
         size_t k = rand() % 2;
         p->shape[index] = k;
@@ -70,6 +70,15 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
   // Selection input delays
   maxSelectInputCooldown = 0.25; // 4th of a second
   selectInputCooldown = maxSelectInputCooldown;
+
+  auto load_audio = [this](const std::string& path) {
+    return Audio().LoadFromFile(path);
+  };
+
+  compile_start = load_audio("resources/sfx/compile_start.ogg");
+  compile_complete = load_audio("resources/sfx/compile_complete.ogg");
+  compile_no_item = load_audio("resources/sfx/compile_empty_item.ogg");
+  compile_item = load_audio("resources/sfx/compile_item.ogg");
 
   auto load_texture = [this](const std::string& path) {
     return Textures().LoadTextureFromFile(path);
@@ -120,16 +129,25 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
   infoBox.setScale(2.f, 2.f);
   infoBox.setPosition({ 280, 188 });
 
+  previewBox = sf::Sprite(*load_texture("resources/scenes/cust/mini_block_container.png"));
+  previewBox.setScale(2.f, 2.f);
+
+  miniblocksTexture = load_texture("resources/scenes/cust/mini_blocks.png");
+
+  // info text
   sf::Vector2f textPosition = infoBox.getPosition();
   textPosition.y += 20.f;
   textPosition.x += 8.f;
   infoText.setPosition(textPosition);
   infoText.setScale(2.f, 2.f);
 
+  // item text
   itemText.setScale(2.f, 2.f);
 
+  // hover text copies item text
   hoverText = itemText;
 
+  // progress bar data
   auto progressBarTexture = load_texture("resources/scenes/cust/progress_bar.png");
   progressBarTexture->setRepeated(true);
 
@@ -230,6 +248,7 @@ void PlayerCustScene::startCompile()
   progressBarUVs.width = 0;
   progressBar.setTextureRect(progressBarUVs);
   progressBar.setColor(color);
+  Audio().Play(compile_start);
 }
 
 bool PlayerCustScene::isCompileFinished()
@@ -300,7 +319,7 @@ sf::Vector2f PlayerCustScene::gridCursorToScreen()
   return { (GRID_START_X * 2) + cursorLocationX, (GRID_START_Y * 2) + cursorLocationY };
 }
 
-void PlayerCustScene::drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& cursorPos)
+void PlayerCustScene::drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
 {
   sf::Sprite blockSprite;
   blockSprite.setScale(2.f, 2.f);
@@ -318,7 +337,30 @@ void PlayerCustScene::drawPiece(sf::RenderTarget& surface, Piece* piece, const s
         float offsetY = halfOffset + (i * 20.f * 2.f)-4.f;
         blockSprite.setTexture(*blockTextures[piece->typeIndex], true);
         blockSprite.setTextureRect({ 40, 20, 20, 20 });
-        blockSprite.setPosition({ cursorPos.x + offsetX, cursorPos.y + offsetY});
+        blockSprite.setPosition({ pos.x + offsetX, pos.y + offsetY});
+        surface.draw(blockSprite);
+      }
+    }
+  }
+}
+
+void PlayerCustScene::drawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
+{
+  sf::Sprite blockSprite;
+  blockSprite.setScale(2.f, 2.f);
+
+  previewBox.setPosition(pos);
+  surface.draw(previewBox);
+
+  for (size_t i = 0; i < Piece::BLOCK_SIZE; i++) {
+    for (size_t j = 0; j < Piece::BLOCK_SIZE; j++) {
+      size_t index = (i * Piece::BLOCK_SIZE) + j;
+      if (piece->shape[index]) {
+        float offsetX = (j * 3.f * 2.f) + 4.f;
+        float offsetY = (i * 3.f * 2.f) + 4.f;
+        blockSprite.setTexture(*miniblocksTexture, true);
+        blockSprite.setTextureRect({ static_cast<int>(piece->typeIndex*3), 0, 3, 3 });
+        blockSprite.setPosition({ pos.x + offsetX, pos.y + offsetY });
         surface.draw(blockSprite);
       }
     }
@@ -359,7 +401,7 @@ void PlayerCustScene::executeLeftKey()
 {
   if (itemListSelected) {
     itemListSelected = false;
-    Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
+    Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::low);
     return;
   }
 
@@ -378,8 +420,10 @@ void PlayerCustScene::executeRightKey()
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
   else if(!grabbedPiece && !insertingPiece) {
+    if (itemListSelected) return;
     itemListSelected = true;
     updateItemListHoverInfo();
+    Audio().Play(AudioType::CHIP_DESC, AudioPriority::low);
   }
 }
 
@@ -534,7 +578,7 @@ void PlayerCustScene::onUpdate(double elapsed)
     if (isCompileFinished()) {
       isCompiling = false;
       infoText.SetString("OK");
-      Audio().Play(AudioType::ITEM_GET);
+      Audio().Play(compile_complete);
     }
     else {
       double percent = (progress / static_cast<double>(maxProgressTime));
@@ -547,7 +591,20 @@ void PlayerCustScene::onUpdate(double elapsed)
       double text_progress = std::min(block_progress * 1. / COMPLETE_AT_PROGRESS, 1.);
 
       size_t loc = static_cast<size_t>(percent * GRID_SIZE);
-      if (Piece* p = grid[(3u*GRID_SIZE)+loc]) {
+      Piece* p = grid[(3u * GRID_SIZE) + loc];
+
+      if (currCompileIndex != loc) {
+        if (p) {
+          Audio().Play(compile_item);
+        }
+        else {
+          Audio().Play(compile_no_item);
+        }
+
+        currCompileIndex = loc;
+      }
+
+      if(p) {
         label = p->name;
       }
 
@@ -747,15 +804,16 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   // draw items
   float yoffset = 0.;
   
-  if (listStart > MAX_ITEMS_ON_SCREEN) {
-    yoffset = -blueButtonSprite.getLocalBounds().height * (listStart - MAX_ITEMS_ON_SCREEN);
+  if (listStart+1u > MAX_ITEMS_ON_SCREEN) {
+    yoffset = -blueButtonSprite.getLocalBounds().height * ((listStart+1u) - MAX_ITEMS_ON_SCREEN);
   }
 
+  sf::Vector2f previewPos{};
   sf::Vector2f bottom;
   bottom.x = 140.f;
 
   for (size_t i = 0; i < pieces.size(); i++) {
-    blueButtonSprite.setPosition(bottom.x * blueButtonSprite.getScale().x, (bottom.y * blueButtonSprite.getScale().y) + yoffset);
+    blueButtonSprite.setPosition(bottom.x * blueButtonSprite.getScale().x, (bottom.y + yoffset) * blueButtonSprite.getScale().y);
     surface.draw(blueButtonSprite);
 
     if (listStart == i) {
@@ -764,37 +822,45 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
       pos.x = swoosh::ease::interpolate(0.5f, pos.x, dest.x);
       pos.y = swoosh::ease::interpolate(0.5f, pos.y, dest.y);
       itemArrowCursor.setPosition(pos);
+      previewPos = { dest.x + (blueButtonSprite.getGlobalBounds().width+10.f), dest.y };
     }
 
+    sf::Vector2f textOffset = { 4.f, 8.f };
     itemText.SetString(pieces[i]->name);
     itemText.SetColor(sf::Color(33, 115, 140));
-    itemText.setPosition((bottom.x + 4.) * itemText.getScale().x, (bottom.y * itemText.getScale().y) + 8.f + yoffset + 2.f);
+    itemText.setPosition((bottom.x + textOffset.x) * itemText.getScale().x, ((bottom.y + yoffset) * itemText.getScale().y) + textOffset.y + 2.f);
     surface.draw(itemText);
     itemText.SetColor(sf::Color::White);
-    itemText.setPosition((bottom.x + 4.) * itemText.getScale().x, (bottom.y * itemText.getScale().y) + 8.f + yoffset);
+    itemText.setPosition((bottom.x + textOffset.x) * itemText.getScale().x, ((bottom.y + yoffset) * itemText.getScale().y) + textOffset.y);
     surface.draw(itemText);
 
     bottom.y += blueButtonSprite.getLocalBounds().height;
   }
 
   if (bottom.y == 0) {
-    bottom.y = blueButtonSprite.getLocalBounds().height + 20.f;
+    bottom.y = blueButtonSprite.getLocalBounds().height;
   }
 
   // draw run button
-  greenButtonSprite.setPosition(bottom.x * greenButtonSprite.getScale().x, bottom.y*greenButtonSprite.getScale().y);
+  greenButtonSprite.setPosition(bottom.x * greenButtonSprite.getScale().x, (bottom.y+yoffset)*greenButtonSprite.getScale().y);
   surface.draw(greenButtonSprite);
-
-  if (listStart == pieces.size()) {
-    sf::Vector2f dest = greenButtonSprite.getPosition();
-    sf::Vector2f pos = itemArrowCursor.getPosition();
-    pos.x = swoosh::ease::interpolate(0.5f, pos.x, dest.x);
-    pos.y = swoosh::ease::interpolate(0.5f, pos.y, dest.y);
-    itemArrowCursor.setPosition(pos);
-  }
 
   if (itemListSelected) {
     surface.draw(itemArrowCursor);
+
+    if (listStart == pieces.size()) {
+      sf::Vector2f dest = greenButtonSprite.getPosition();
+      sf::Vector2f pos = itemArrowCursor.getPosition();
+      pos.x = swoosh::ease::interpolate(0.5f, pos.x, dest.x);
+      pos.y = swoosh::ease::interpolate(0.5f, pos.y, dest.y);
+      itemArrowCursor.setPosition(pos);
+    }
+    else {
+      // check if this value was set
+      if (previewPos.x > 0.) {
+        drawPreview(surface, pieces[listStart], previewPos);
+      }
+    }
   }
 
   // draw info box
@@ -815,7 +881,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
     // claw/cursor always draws on top
     Piece* p = insertingPiece ? insertingPiece : grabbedPiece ? grabbedPiece : nullptr;
     if (p) {
-      drawPiece(surface, p, gridCursorToScreen());
+      drawPiece(surface, p, cursor.getPosition());
 
       if (grabbedPiece) {
         surface.draw(claw);

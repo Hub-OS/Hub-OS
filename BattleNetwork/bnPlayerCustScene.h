@@ -22,7 +22,7 @@ public:
     size_t maxWidth{}, maxHeight{};
     size_t startX{}, startY{}; // index where the first entry for the shape is
     bool specialType{};
-    std::array<uint8_t, BLOCK_SIZE*BLOCK_SIZE> shape{}; // 5x5
+    std::array<uint8_t, BLOCK_SIZE* BLOCK_SIZE> shape{}; // 5x5
 
     void rotateLeft() {
       auto newShape = shape;
@@ -64,21 +64,23 @@ private:
   sf::Sprite gridSprite;
   sf::Sprite greenButtonSprite;
   sf::Sprite blueButtonSprite;
-  sf::Sprite infoBox;
+  sf::Sprite infoBox, previewBox;
   sf::Sprite track;
   sf::Sprite progressBar;
   sf::IntRect progressBarUVs;
-  std::shared_ptr<sf::Texture> cursorTexture;
+  std::shared_ptr<sf::Texture> cursorTexture, miniblocksTexture;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
+  std::shared_ptr<sf::SoundBuffer> compile_start, compile_complete, compile_no_item, compile_item;
   std::vector<Piece*> pieces;
   std::map<Piece*, size_t> centerHash;
   std::map<size_t, size_t> blockTypeInUseTable;
-  std::array<Piece*, GRID_SIZE*GRID_SIZE> grid{ nullptr }; // 7x7
+  std::array<Piece*, GRID_SIZE* GRID_SIZE> grid{ nullptr }; // 7x7
   Piece* grabbedPiece{ nullptr }; // when moving from the grid to another location
   Piece* insertingPiece{ nullptr }; // when moving from the list to the grid
   size_t cursorLocation{}; // in grid-space
   size_t grabStartLocation{}; // in grid-space
   size_t listStart{};
+  size_t currCompileIndex{};
   AnimatedTextBox textbox;
   Question* questionInterface{ nullptr };
 
@@ -106,7 +108,8 @@ private:
   bool isGridEdge(size_t y, size_t x);
   size_t getPieceCenter(Piece* piece);
   sf::Vector2f gridCursorToScreen();
-  void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& cursorPos);
+  void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
+  void drawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
   void consolePrintGrid();
   bool handleSelectItemFromList();
   void executeLeftKey();
