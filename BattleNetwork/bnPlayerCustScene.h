@@ -21,9 +21,10 @@ public:
     size_t typeIndex{};
     size_t maxWidth{}, maxHeight{};
     size_t startX{}, startY{}; // index where the first entry for the shape is
+    size_t rotates{}; // how many times rotated
     bool specialType{};
     std::array<uint8_t, BLOCK_SIZE* BLOCK_SIZE> shape{}; // 5x5
-
+    
     void rotateLeft() {
       auto newShape = shape;
       size_t idx = 0u;
@@ -34,12 +35,29 @@ public:
       }
 
       std::swap(newShape, shape);
+      rotates++;
     }
 
     void rotateRight() {
       rotateLeft();
       rotateLeft();
       rotateLeft();
+    }
+
+    void commit() {
+      rotates = 0;
+    }
+
+    void revert() {
+      size_t count = rotates % 4;
+
+      if (count == 0) return;
+
+      for (size_t i = 0; i < 4u-count; i++) {
+        rotateLeft();
+      }
+
+      commit();
     }
   };
 private:
@@ -56,7 +74,8 @@ private:
   // progress bar
   double progress{}, maxProgressTime{ 3. };
 
-  // folder menu graphics
+  // scene graphics
+  double blockFlashElapsed{}, buttonFlashElapsed{};
   sf::Sprite bg;
   sf::Sprite cursor, itemArrowCursor;
   sf::Sprite claw;
@@ -73,9 +92,10 @@ private:
   std::shared_ptr<sf::SoundBuffer> compile_start, compile_complete, compile_no_item, compile_item;
   std::vector<Piece*> pieces;
   std::map<Piece*, size_t> centerHash;
+  std::map<Piece*, bool> compiledHash;
   std::map<size_t, size_t> blockTypeInUseTable;
   std::array<Piece*, GRID_SIZE* GRID_SIZE> grid{ nullptr }; // 7x7
-  Piece* grabbedPiece{ nullptr }; // when moving from the grid to another location
+  Piece* grabbingPiece{ nullptr }; // when moving from the grid to another location
   Piece* insertingPiece{ nullptr }; // when moving from the list to the grid
   size_t cursorLocation{}; // in grid-space
   size_t grabStartLocation{}; // in grid-space
@@ -109,6 +129,7 @@ private:
   bool isGridEdge(size_t y, size_t x);
   bool handleSelectItemFromList();
   bool handleArrowKeys(double elapsed);
+  bool handlePieceAction(Piece*& piece, void(PlayerCustScene::* executeFunc)());
   size_t getPieceCenter(Piece* piece);
   sf::Vector2f gridCursorToScreen();
   void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
@@ -117,15 +138,18 @@ private:
   void animateButton(double elapsed);
   void animateCursor(double elapsed);
   void animateGrid();
-  void animateBlock(double elapsed, size_t loc, Piece* p);
+  void animateBlock(double elapsed, Piece* p = nullptr);
   void refreshBlock(Piece* p, sf::Sprite& sprite);
+  void refreshButton(size_t idx);
   void executeLeftKey();
   void executeRightKey();
   void executeUpKey();
   void executeDownKey();
-  void handleInputDelay(double elapsed, void(PlayerCustScene::*executeFunc)());
+  void executeCancelInsert();
+  void executeCancelGrab();
   void updateCursorHoverInfo();
   void updateItemListHoverInfo();
+  void handleInputDelay(double elapsed, void(PlayerCustScene::* executeFunc)());
 public:
 
   void onLeave() override;

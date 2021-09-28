@@ -65,10 +65,11 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, std::ve
   questionInterface(nullptr),
   Scene(controller)
 {
+  cursorLocation = ((GRID_SIZE / 2) * GRID_SIZE) + (GRID_SIZE / 2);
   gridAnim = Animation("resources/scenes/cust/grid.animation");
-  clawAnim = Animation("resources/scenes/cust/claw.animation") << Animator::Mode::Loop;
-  blockAnim = Animation("resources/scenes/cust/block.animation") << Animator::Mode::Loop;
-  buttonAnim = Animation("resources/scenes/cust/button.animation") << Animator::Mode::Loop;
+  clawAnim = Animation("resources/scenes/cust/claw.animation");
+  blockAnim = Animation("resources/scenes/cust/block.animation");
+  buttonAnim = Animation("resources/scenes/cust/button.animation") << "DEFAULT";
   cursorAnim = Animation("resources/scenes/cust/red_cursor.animation") << "DEFAULT" << Animator::Mode::Loop;
 
   textbox.SetTextSpeed(1.0f);
@@ -238,6 +239,8 @@ bool PlayerCustScene::insertPiece(Piece* piece, size_t loc)
   // update the block types in use table
   blockTypeInUseTable[piece->typeIndex]++;
 
+  piece->commit();
+
   return true;
 }
 
@@ -250,6 +253,7 @@ void PlayerCustScene::startCompile()
 {
   infoText.SetString("RUNNING...");
   progress = 0;
+  compiledHash.clear();
   isCompiling = true;
   sf::Color color = sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA);
   progressBarUVs.width = 0;
@@ -392,12 +396,15 @@ void PlayerCustScene::consolePrintGrid()
 
 void PlayerCustScene::animateButton(double elapsed)
 {
-  buttonAnim.Update(elapsed, blueButtonSprite);
+  buttonFlashElapsed += elapsed;
+  buttonAnim.SyncTime(buttonFlashElapsed);
+  buttonAnim.Refresh(blueButtonSprite);
+  buttonAnim.Refresh(greenButtonSprite);
 }
 
 void PlayerCustScene::animateCursor(double elapsed)
 {
-  if (grabbedPiece) {
+  if (grabbingPiece) {
     if (clawAnim.GetAnimationString() != "CLAW_CLOSED") {
       clawAnim.SetAnimation("CLAW_CLOSED");
     }
@@ -428,38 +435,76 @@ void PlayerCustScene::animateGrid()
   }
 }
 
-void PlayerCustScene::animateBlock(double elapsed, size_t loc, Piece* p)
+void PlayerCustScene::animateBlock(double elapsed, Piece* p)
 {
-  if (itemListSelected) {
+  blockFlashElapsed += elapsed;
+
+  if (!p) return;
+
+  if (p == insertingPiece || p == grabbingPiece) {
     if (p->specialType) {
-      if (blockAnim.GetAnimationString() != "FLAT_DIMMED") {
-        blockAnim << "FLAT_DIMMED" << Animator::Mode::Loop;
+      if (blockAnim.GetAnimationString() != "FLAT_INSERT") {
+        blockAnim << "FLAT_INSERT";
       }
     }
     else {
-      if (blockAnim.GetAnimationString() != "SQUARE_DIMMED") {
-        blockAnim << "SQUARE_DIMMED" << Animator::Mode::Loop;
+      if (blockAnim.GetAnimationString() != "SQUARE_INSERT") {
+        blockAnim << "SQUARE_INSERT";
       }
     }
+
+    blockAnim.SyncTime(blockFlashElapsed);
+    return;
+  }
+
+  if (isCompiling && compiledHash[p]) {
+    if (p->specialType) {
+      if (blockAnim.GetAnimationString() != "FLAT_BLINK") {
+        blockAnim << "FLAT_BLINK" << Animator::Mode::Loop;
+      }
+    }
+    else {
+      if (blockAnim.GetAnimationString() != "SQUARE_BLINK") {
+        blockAnim << "SQUARE_BLINK" << Animator::Mode::Loop;
+      }
+    }
+    
+    blockAnim.SyncTime(blockFlashElapsed);
     return;
   }
 
   if (p->specialType) {
-    if (blockAnim.GetAnimationString() != "FLAT_BLINK") {
-      blockAnim << "FLAT_BLINK" << Animator::Mode::Loop;
+    if (blockAnim.GetAnimationString() != "FLAT_DIMMED") {
+      blockAnim << "FLAT_DIMMED" << Animator::Mode::Loop;
     }
   }
   else {
-    if (blockAnim.GetAnimationString() != "SQUARE_BLINK") {
-      blockAnim << "SQUARE_BLINK" << Animator::Mode::Loop;
+    if (blockAnim.GetAnimationString() != "SQUARE_DIMMED") {
+      blockAnim << "SQUARE_DIMMED" << Animator::Mode::Loop;
     }
   }
+
+  blockAnim.SyncTime(blockFlashElapsed);
 }
 
 void PlayerCustScene::refreshBlock(Piece* p, sf::Sprite& sprite)
 {
-  animateBlock(0, 0, p);
+  animateBlock(0, p);
   blockAnim.Refresh(sprite);
+}
+
+void PlayerCustScene::refreshButton(size_t idx)
+{
+  if (idx == listStart+currItemIndex && itemListSelected) {
+    if (buttonAnim.GetAnimationString() != "BLINK") {
+      buttonAnim << "BLINK" << Animator::Mode::Loop;
+    }
+  }
+  else if (buttonAnim.GetAnimationString() != "DEFAULT") {
+    buttonAnim << "DEFAULT";
+  }
+
+  animateButton(0);
 }
 
 bool PlayerCustScene::handleSelectItemFromList()
@@ -481,6 +526,7 @@ void PlayerCustScene::executeLeftKey()
 {
   if (itemListSelected) {
     itemListSelected = false;
+    updateCursorHoverInfo();
     Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::low);
     return;
   }
@@ -499,7 +545,7 @@ void PlayerCustScene::executeRightKey()
     updateCursorHoverInfo();
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
-  else if(!grabbedPiece && !insertingPiece) {
+  else if(!grabbingPiece && !insertingPiece) {
     if (itemListSelected) return;
     itemListSelected = true;
     updateItemListHoverInfo();
@@ -544,6 +590,20 @@ void PlayerCustScene::executeDownKey()
   }
 }
 
+void PlayerCustScene::executeCancelInsert()
+{
+  pieces.push_back(insertingPiece);
+  insertingPiece = nullptr;
+}
+
+void PlayerCustScene::executeCancelGrab()
+{
+  insertPiece(grabbingPiece, grabStartLocation);
+  cursorLocation = grabStartLocation;
+  grabbingPiece = nullptr;
+  updateCursorHoverInfo();
+}
+
 bool PlayerCustScene::handleArrowKeys(double elapsed)
 {
   if (hasLeftInput()) {
@@ -584,6 +644,37 @@ void PlayerCustScene::handleInputDelay(double elapsed, void(PlayerCustScene::*ex
 
     (this->*executeFunc)();
   }
+}
+
+bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* cancelFunc)())
+{
+  if (Input().Has(InputEvents::pressed_cancel)) {
+    piece->revert();
+    (this->*cancelFunc)();
+    return true;
+  }
+
+  if (Input().Has(InputEvents::pressed_confirm)) {
+    if (insertPiece(piece, cursorLocation)) {
+      piece = nullptr;
+    }
+    else {
+      Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
+    }
+    return true;
+  }
+
+  if (Input().Has(InputEvents::pressed_shoulder_left)) {
+    piece->rotateLeft();
+    return true;
+  }
+
+  if (Input().Has(InputEvents::pressed_shoulder_right)) {
+    piece->rotateRight();
+    return true;
+  }
+
+  return false;
 }
 
 void PlayerCustScene::updateCursorHoverInfo()
@@ -656,6 +747,7 @@ void PlayerCustScene::onUpdate(double elapsed)
   animateGrid();
   animateCursor(elapsed);
   animateButton(elapsed);
+  animateBlock(elapsed);
 
   if (isCompiling) {
     progress += elapsed;
@@ -679,13 +771,12 @@ void PlayerCustScene::onUpdate(double elapsed)
       Piece* p = grid[gridLoc];
 
       if (p) {
-        for (size_t i = 0; i < xoffset; i++) {
-          animateBlock(elapsed, gridLoc, p);
-        }
+        label = p->name;
       }
 
       if (currCompileIndex != gridLoc) {
         if (p) {
+          compiledHash[p] = true;
           Audio().Play(compile_item);
         }
         else {
@@ -695,11 +786,7 @@ void PlayerCustScene::onUpdate(double elapsed)
         currCompileIndex = gridLoc;
       }
 
-      if(p) {
-        label = p->name;
-      }
-
-      size_t len = 1u + std::ceil(label.size() * text_progress);
+      size_t len = std::ceil(label.size() * text_progress);
       infoText.SetString("Running...\n" + label.substr(0, len));
     }
 
@@ -769,7 +856,7 @@ void PlayerCustScene::onUpdate(double elapsed)
     return;
   }
 
-  if (!grabbedPiece && !insertingPiece) {
+  if (!grabbingPiece && !insertingPiece) {
     if (Input().GetAnyKey() == sf::Keyboard::Space) {
       insertingPiece = generateRandomBlock();
       return;
@@ -782,61 +869,18 @@ void PlayerCustScene::onUpdate(double elapsed)
         cursorLocation = std::min(grabStartLocation, grid.size()-1u);
 
         removePiece(piece);
-        grabbedPiece = piece;
+        grabbingPiece = piece;
         return;
       }
     }
   }
-  else if(insertingPiece) {
-    if (Input().Has(InputEvents::pressed_cancel)) {
-      pieces.push_back(insertingPiece);
-      insertingPiece = nullptr;
+  else if (insertingPiece) {
+    if(handlePieceAction(insertingPiece, &PlayerCustScene::executeCancelInsert))
       return;
-    }
-
-    if (Input().Has(InputEvents::pressed_confirm)) {
-      if (insertPiece(insertingPiece, cursorLocation)) {
-        insertingPiece = nullptr;
-      }
-      else {
-        Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
-      }
-      return;
-    }
-
-    if (Input().Has(InputEvents::pressed_shoulder_left)) {
-      insertingPiece->rotateLeft();
-      return;
-    }
-    
-    if (Input().Has(InputEvents::pressed_shoulder_right)) {
-      insertingPiece->rotateRight();
-      return;
-    }
   }
-  else if (grabbedPiece) {
-    if (Input().Has(InputEvents::pressed_cancel)) {
-      insertPiece(grabbedPiece, grabStartLocation);
-      cursorLocation = grabStartLocation;
-      grabbedPiece = nullptr;
-      updateCursorHoverInfo();
+  else if (grabbingPiece) {
+    if(handlePieceAction(grabbingPiece, &PlayerCustScene::executeCancelGrab))
       return;
-    }
-
-    if (Input().Has(InputEvents::pressed_confirm)) {
-      if (insertPiece(grabbedPiece, cursorLocation)) {
-        grabbedPiece = nullptr;
-      }
-      else {
-        Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
-      }
-      return;
-    }
-
-    if (Input().Has(InputEvents::pressed_shoulder_left)) {
-      grabbedPiece->rotateLeft();
-      return;
-    }
   }
 
   if (handleArrowKeys(elapsed)) {
@@ -872,12 +916,11 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   for (size_t i = 0; i < GRID_SIZE; i++) {
     for (size_t j = 0; j < GRID_SIZE; j++) {
       size_t index = (i * GRID_SIZE) + j;
-      if (Piece* piece = grid[index]) {
+      if (Piece* p = grid[index]) {
         float offsetX = (GRID_START_X * 2)+(j * 20.f * 2.f)-4.f;
         float offsetY = (GRID_START_Y * 2)+(i * 20.f * 2.f)-4.f;
         blockSprite.setTexture(*blockTextures[grid[index]->typeIndex], true);
         blockSprite.setPosition({ offsetX, offsetY });
-        refreshBlock(piece, blockSprite);
 
         if (isGridEdge(i, j)) {
           sf::Color color = sf::Color::White;
@@ -887,6 +930,8 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
         else {
           blockSprite.setColor(sf::Color::White);
         }
+
+        refreshBlock(p, blockSprite);
         surface.draw(blockSprite);
       }
     }
@@ -904,6 +949,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   bottom.x = 140.f;
 
   for (size_t i = 0; i < pieces.size(); i++) {
+    refreshButton(i);
     blueButtonSprite.setPosition(bottom.x * blueButtonSprite.getScale().x, (bottom.y + yoffset) * blueButtonSprite.getScale().y);
     surface.draw(blueButtonSprite);
 
@@ -933,6 +979,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   }
 
   // draw run button
+  refreshButton(pieces.size());
   greenButtonSprite.setPosition(bottom.x * greenButtonSprite.getScale().x, (bottom.y+yoffset)*greenButtonSprite.getScale().y);
   surface.draw(greenButtonSprite);
 
@@ -970,11 +1017,12 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   
   if(!itemListSelected) {
     // claw/cursor always draws on top
-    Piece* p = insertingPiece ? insertingPiece : grabbedPiece ? grabbedPiece : nullptr;
+    Piece* p = insertingPiece ? insertingPiece : grabbingPiece ? grabbingPiece : nullptr;
+    sf::Vector2f piecePos = insertingPiece ? cursor.getPosition() : gridCursorToScreen();
     if (p) {
-      drawPiece(surface, p, cursor.getPosition());
+      drawPiece(surface, p, piecePos);
 
-      if (grabbedPiece) {
+      if (grabbingPiece) {
         surface.draw(claw);
       }
     }
