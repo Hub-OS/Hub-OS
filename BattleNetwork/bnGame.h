@@ -45,6 +45,7 @@ using swoosh::ActivityController;
 class PlayerPackageManager;
 class CardPackageManager;
 class MobPackageManager;
+class BlockPackageManager;
 
 enum class Endianness : short {
   big = 0,
@@ -69,6 +70,7 @@ private:
   CardPackageManager* cardPackageManager;
   PlayerPackageManager* playerPackageManager;
   MobPackageManager* mobPackageManager;
+  BlockPackageManager* blockPackageManager;
 
   DrawWindow& window;
   ConfigReader reader;
@@ -121,6 +123,7 @@ public:
   CardPackageManager& CardPackageManager();
   PlayerPackageManager& PlayerPackageManager();
   MobPackageManager& MobPackageManager();
+  BlockPackageManager& BlockPackageManager();
   ConfigSettings& ConfigSettings();
 
   /**
@@ -176,6 +179,20 @@ private:
   * battle.
   */
   void RunCardInit(std::atomic<int>* progress);
+
+  /*! \brief This thread initializes all prog blocks
+  *
+  * Uses an std::atomic<int> pointer
+  * to keep track of all successfully loaded
+  * objects.
+  *
+  * After the media resources are loaded we
+  * safely load all registered prog blocks.
+  * Loaded prog blocks will show up in available cust
+  * screen and can be chosen to play with in
+  * battle.
+  */
+  void RunBlocksInit(std::atomic<int>* progress);
 
   /*! \brief This thread tnitializes all mobs
   *

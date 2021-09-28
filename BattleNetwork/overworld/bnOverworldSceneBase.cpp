@@ -24,6 +24,7 @@
 #include "../bnMailScene.h"
 #include "../bnVendorScene.h"
 #include "../bnPlayerCustScene.h"
+#include "../bnBlockPackageManager.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnCustomBackground.h"
 #include "../bnLanBackground.h"
@@ -918,7 +919,33 @@ void Overworld::SceneBase::GotoPlayerCust()
 
   using effect = segue<BlackWashFade, milliseconds<500>>;
 
-  getController().push<effect::to<PlayerCustScene>>();
+  std::vector<PlayerCustScene::Piece*> blocks;
+
+  auto& blockManager = getController().BlockPackageManager();
+  std::string package = blockManager.FirstValidPackage();
+
+  do {
+    if (package.empty()) break;
+
+    auto& meta = blockManager.FindPackageByID(package);
+    auto* piece = meta.GetData();
+    piece->description = meta.description;
+    piece->name = meta.name;
+
+    size_t idx{};
+    for (auto& s : piece->shape) {
+      s = *(meta.shape.begin()+idx);
+      idx++;
+    }
+
+    piece->typeIndex = meta.color;
+    piece->specialType = meta.isProgram;
+
+    blocks.push_back(piece);
+    package = blockManager.GetPackageAfter(package);
+  } while (package != blockManager.FirstValidPackage());
+
+  getController().push<effect::to<PlayerCustScene>>(blocks);
 }
 
 Overworld::PersonalMenu& Overworld::SceneBase::GetPersonalMenu()

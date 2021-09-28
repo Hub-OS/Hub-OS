@@ -56,7 +56,8 @@ PlayerCustScene::Piece* generateRandomBlock() {
   return p;
 }
 
-PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
+PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, std::vector<Piece*> pieces) :
+  pieces(pieces),
   infoText(Font::Style::thin),
   itemText(Font::Style::thick),
   hoverText(Font::Style::thick),
@@ -64,6 +65,12 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller):
   questionInterface(nullptr),
   Scene(controller)
 {
+  gridAnim = Animation("resources/scenes/cust/grid.animation");
+  clawAnim = Animation("resources/scenes/cust/claw.animation") << Animator::Mode::Loop;
+  blockAnim = Animation("resources/scenes/cust/block.animation") << Animator::Mode::Loop;
+  buttonAnim = Animation("resources/scenes/cust/button.animation") << Animator::Mode::Loop;
+  cursorAnim = Animation("resources/scenes/cust/red_cursor.animation") << "DEFAULT" << Animator::Mode::Loop;
+
   textbox.SetTextSpeed(1.0f);
   gotoNextScene = true;
 
@@ -332,12 +339,13 @@ void PlayerCustScene::drawPiece(sf::RenderTarget& surface, Piece* piece, const s
     for (size_t j = 0; j < Piece::BLOCK_SIZE; j++) {
       size_t index = (i * Piece::BLOCK_SIZE) + j;
       if (piece->shape[index]) {
+        
         float halfOffset = (((Piece::BLOCK_SIZE / 2)) * -20.f)*2.f;
         float offsetX = halfOffset + (j * 20.f * 2.f)-4.f;
         float offsetY = halfOffset + (i * 20.f * 2.f)-4.f;
         blockSprite.setTexture(*blockTextures[piece->typeIndex], true);
-        blockSprite.setTextureRect({ 40, 20, 20, 20 });
-        blockSprite.setPosition({ pos.x + offsetX, pos.y + offsetY});
+        blockSprite.setPosition({ pos.x + offsetX, pos.y + offsetY });
+        refreshBlock(piece, blockSprite);
         surface.draw(blockSprite);
       }
     }
@@ -380,6 +388,78 @@ void PlayerCustScene::consolePrintGrid()
     }
     std::cout << std::endl;
   }
+}
+
+void PlayerCustScene::animateButton(double elapsed)
+{
+  buttonAnim.Update(elapsed, blueButtonSprite);
+}
+
+void PlayerCustScene::animateCursor(double elapsed)
+{
+  if (grabbedPiece) {
+    if (clawAnim.GetAnimationString() != "CLAW_CLOSED") {
+      clawAnim.SetAnimation("CLAW_CLOSED");
+    }
+  }
+  else {
+    if (clawAnim.GetAnimationString() != "CLAW") {
+      clawAnim << "CLAW" << Animator::Mode::Loop;
+    }
+  }
+
+  cursorAnim.Update(elapsed, cursor);
+  clawAnim.Update(elapsed, claw);
+}
+
+void PlayerCustScene::animateGrid()
+{
+  if (itemListSelected) {
+    if (gridAnim.GetAnimationString() != "DIMMED") {
+      gridAnim.SetAnimation("DIMMED");
+      gridAnim.Refresh(gridSprite);
+    }
+  }
+  else {
+    if (gridAnim.GetAnimationString() != "DEFAULT") {
+      gridAnim.SetAnimation("DEFAULT");
+      gridAnim.Refresh(gridSprite);
+    }
+  }
+}
+
+void PlayerCustScene::animateBlock(double elapsed, size_t loc, Piece* p)
+{
+  if (itemListSelected) {
+    if (p->specialType) {
+      if (blockAnim.GetAnimationString() != "FLAT_DIMMED") {
+        blockAnim << "FLAT_DIMMED" << Animator::Mode::Loop;
+      }
+    }
+    else {
+      if (blockAnim.GetAnimationString() != "SQUARE_DIMMED") {
+        blockAnim << "SQUARE_DIMMED" << Animator::Mode::Loop;
+      }
+    }
+    return;
+  }
+
+  if (p->specialType) {
+    if (blockAnim.GetAnimationString() != "FLAT_BLINK") {
+      blockAnim << "FLAT_BLINK" << Animator::Mode::Loop;
+    }
+  }
+  else {
+    if (blockAnim.GetAnimationString() != "SQUARE_BLINK") {
+      blockAnim << "SQUARE_BLINK" << Animator::Mode::Loop;
+    }
+  }
+}
+
+void PlayerCustScene::refreshBlock(Piece* p, sf::Sprite& sprite)
+{
+  animateBlock(0, 0, p);
+  blockAnim.Refresh(sprite);
 }
 
 bool PlayerCustScene::handleSelectItemFromList()
@@ -573,6 +653,10 @@ void PlayerCustScene::onUpdate(double elapsed)
   claw.setPosition(cursorPos);
   cursor.setPosition(cursorPos);
 
+  animateGrid();
+  animateCursor(elapsed);
+  animateButton(elapsed);
+
   if (isCompiling) {
     progress += elapsed;
     if (isCompileFinished()) {
@@ -590,10 +674,17 @@ void PlayerCustScene::onUpdate(double elapsed)
       double block_progress = std::fmod(progress, block_time) / block_time;
       double text_progress = std::min(block_progress * 1. / COMPLETE_AT_PROGRESS, 1.);
 
-      size_t loc = static_cast<size_t>(percent * GRID_SIZE);
-      Piece* p = grid[(3u * GRID_SIZE) + loc];
+      size_t xoffset = static_cast<size_t>(percent * GRID_SIZE);
+      size_t gridLoc = (3u * GRID_SIZE) + xoffset;
+      Piece* p = grid[gridLoc];
 
-      if (currCompileIndex != loc) {
+      if (p) {
+        for (size_t i = 0; i < xoffset; i++) {
+          animateBlock(elapsed, gridLoc, p);
+        }
+      }
+
+      if (currCompileIndex != gridLoc) {
         if (p) {
           Audio().Play(compile_item);
         }
@@ -601,7 +692,7 @@ void PlayerCustScene::onUpdate(double elapsed)
           Audio().Play(compile_no_item);
         }
 
-        currCompileIndex = loc;
+        currCompileIndex = gridLoc;
       }
 
       if(p) {
@@ -781,12 +872,12 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   for (size_t i = 0; i < GRID_SIZE; i++) {
     for (size_t j = 0; j < GRID_SIZE; j++) {
       size_t index = (i * GRID_SIZE) + j;
-      if (grid[index]) {
+      if (Piece* piece = grid[index]) {
         float offsetX = (GRID_START_X * 2)+(j * 20.f * 2.f)-4.f;
         float offsetY = (GRID_START_Y * 2)+(i * 20.f * 2.f)-4.f;
         blockSprite.setTexture(*blockTextures[grid[index]->typeIndex], true);
-        blockSprite.setTextureRect({ 20, 0, 20, 20 });
         blockSprite.setPosition({ offsetX, offsetY });
+        refreshBlock(piece, blockSprite);
 
         if (isGridEdge(i, j)) {
           sf::Color color = sf::Color::White;

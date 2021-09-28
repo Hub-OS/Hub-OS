@@ -81,6 +81,7 @@ private:
   size_t grabStartLocation{}; // in grid-space
   size_t listStart{};
   size_t currCompileIndex{};
+  Animation gridAnim, cursorAnim, clawAnim, blockAnim, buttonAnim;
   AnimatedTextBox textbox;
   Question* questionInterface{ nullptr };
 
@@ -106,17 +107,22 @@ private:
   bool doesPieceOverlap(Piece* piece, size_t loc);
   bool insertPiece(Piece* piece, size_t loc);
   bool isGridEdge(size_t y, size_t x);
+  bool handleSelectItemFromList();
+  bool handleArrowKeys(double elapsed);
   size_t getPieceCenter(Piece* piece);
   sf::Vector2f gridCursorToScreen();
   void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
   void drawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
   void consolePrintGrid();
-  bool handleSelectItemFromList();
+  void animateButton(double elapsed);
+  void animateCursor(double elapsed);
+  void animateGrid();
+  void animateBlock(double elapsed, size_t loc, Piece* p);
+  void refreshBlock(Piece* p, sf::Sprite& sprite);
   void executeLeftKey();
   void executeRightKey();
   void executeUpKey();
   void executeDownKey();
-  bool handleArrowKeys(double elapsed);
   void handleInputDelay(double elapsed, void(PlayerCustScene::*executeFunc)());
   void updateCursorHoverInfo();
   void updateItemListHoverInfo();
@@ -150,7 +156,7 @@ public:
    *
    * Loads and initializes all default graphics and state values
    */
-  PlayerCustScene(swoosh::ActivityController&);
+  PlayerCustScene(swoosh::ActivityController&, std::vector<Piece*> pieces);
 
   /**
    * @brief deconstructor
