@@ -341,11 +341,9 @@ void Overworld::SceneBase::HandleInput() {
     if (Input().Has(InputEvents::pressed_interact)) {
       OnInteract(Interaction::action);
     }
+
     if (Input().Has(InputEvents::pressed_shoulder_left)) {
       OnInteract(Interaction::inspect);
-    }
-    if (Input().GetAnyKey() == sf::Keyboard::F9) {
-      GotoPlayerCust();
     }
   }
 }
@@ -909,43 +907,6 @@ void Overworld::SceneBase::GotoKeyItems()
   using effect = segue<BlackWashFade, milliseconds<500>>;
 
   getController().push<effect::to<KeyItemScene>>(items);
-}
-
-void Overworld::SceneBase::GotoPlayerCust()
-{
-  // Config Select on PC
-  gotoNextScene = true;
-  Audio().Play(AudioType::CHIP_DESC);
-
-  using effect = segue<BlackWashFade, milliseconds<500>>;
-
-  std::vector<PlayerCustScene::Piece*> blocks;
-
-  auto& blockManager = getController().BlockPackageManager();
-  std::string package = blockManager.FirstValidPackage();
-
-  do {
-    if (package.empty()) break;
-
-    auto& meta = blockManager.FindPackageByID(package);
-    auto* piece = meta.GetData();
-    piece->description = meta.description;
-    piece->name = meta.name;
-
-    size_t idx{};
-    for (auto& s : piece->shape) {
-      s = *(meta.shape.begin()+idx);
-      idx++;
-    }
-
-    piece->typeIndex = meta.color;
-    piece->specialType = meta.isProgram;
-
-    blocks.push_back(piece);
-    package = blockManager.GetPackageAfter(package);
-  } while (package != blockManager.FirstValidPackage());
-
-  getController().push<effect::to<PlayerCustScene>>(blocks);
 }
 
 Overworld::PersonalMenu& Overworld::SceneBase::GetPersonalMenu()

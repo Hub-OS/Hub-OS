@@ -21,7 +21,7 @@ public:
     size_t typeIndex{};
     size_t maxWidth{}, maxHeight{};
     size_t startX{}, startY{}; // index where the first entry for the shape is
-    size_t rotates{}; // how many times rotated
+    size_t rotates{}, finalRot{}; // how many times rotated
     bool specialType{};
     std::array<uint8_t, BLOCK_SIZE* BLOCK_SIZE> shape{}; // 5x5
     
@@ -45,6 +45,7 @@ public:
     }
 
     void commit() {
+      finalRot = rotates % 4;
       rotates = 0;
     }
 
@@ -63,6 +64,13 @@ public:
 private:
   static constexpr size_t GRID_SIZE = 7u;
 
+  enum class state : char {
+    usermode = 0,
+    compiling,
+    waiting,
+    finishing
+  } state{};
+
   // Menu name font
   Text infoText, itemText, hoverText;
 
@@ -76,6 +84,8 @@ private:
 
   // scene graphics
   double blockFlashElapsed{}, buttonFlashElapsed{};
+  double frameElapsed{};
+  double scaffolding{1.f};
   sf::Sprite bg;
   sf::Sprite cursor, itemArrowCursor;
   sf::Sprite claw;
@@ -101,7 +111,7 @@ private:
   size_t grabStartLocation{}; // in grid-space
   size_t listStart{};
   size_t currCompileIndex{};
-  Animation gridAnim, cursorAnim, clawAnim, blockAnim, buttonAnim;
+  Animation gridAnim, cursorAnim, clawAnim, blockAnim, buttonAnim, trackAnim;
   AnimatedTextBox textbox;
   Question* questionInterface{ nullptr };
 
@@ -109,9 +119,6 @@ private:
   int currItemIndex{}; /*!< Current index in list */
   int numOfItems{}; /*!< Number of index in list */
 
-  double frameElapsed{};
-
-  bool isCompiling{};
   bool gotoNextScene{}; /*!< If true, user cannot interact */
   bool itemListSelected{}; // If the item list if not selected, it implies the grid area is
 
@@ -135,12 +142,15 @@ private:
   void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
   void drawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
   void consolePrintGrid();
+  void startScaffolding();
   void animateButton(double elapsed);
   void animateCursor(double elapsed);
+  void animateScaffolding(double elapsed);
   void animateGrid();
   void animateBlock(double elapsed, Piece* p = nullptr);
   void refreshBlock(Piece* p, sf::Sprite& sprite);
   void refreshButton(size_t idx);
+  void refreshTrack();
   void executeLeftKey();
   void executeRightKey();
   void executeUpKey();
@@ -150,6 +160,9 @@ private:
   void updateCursorHoverInfo();
   void updateItemListHoverInfo();
   void handleInputDelay(double elapsed, void(PlayerCustScene::* executeFunc)());
+  void selectGridUI();
+  void selectItemUI(size_t idx);
+  void quitScene();
 public:
 
   void onLeave() override;

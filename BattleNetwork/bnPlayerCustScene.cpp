@@ -1,12 +1,16 @@
 #include "bnPlayerCustScene.h"
 #include "stx/string.h"
 
+#include <Segues/BlackWashFade.h>
+
 constexpr size_t BAD_GRID_POS = std::numeric_limits<size_t>::max();
 constexpr size_t MAX_ALLOWED_TYPES = 4u;
 constexpr size_t MAX_ITEMS_ON_SCREEN = 4u; // includes RUN button
 constexpr float GRID_START_X = 4.f;
 constexpr float GRID_START_Y = 23.f;
 constexpr sf::Uint8 PROGRESS_MAX_ALPHA = 200;
+
+using namespace swoosh::types;
 
 enum class Blocks : uint8_t {
   White = 0,
@@ -61,12 +65,13 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, std::ve
   infoText(Font::Style::thin),
   itemText(Font::Style::thick),
   hoverText(Font::Style::thick),
-  textbox(sf::Vector2f(4, 255)),
+  textbox(sf::Vector2f(4, 200)),
   questionInterface(nullptr),
   Scene(controller)
 {
   cursorLocation = ((GRID_SIZE / 2) * GRID_SIZE) + (GRID_SIZE / 2);
   gridAnim = Animation("resources/scenes/cust/grid.animation");
+  trackAnim = Animation("resources/scenes/cust/track.animation") << "DEFAULT";
   clawAnim = Animation("resources/scenes/cust/claw.animation");
   blockAnim = Animation("resources/scenes/cust/block.animation");
   buttonAnim = Animation("resources/scenes/cust/button.animation") << "DEFAULT";
@@ -141,6 +146,13 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, std::ve
   previewBox.setScale(2.f, 2.f);
 
   miniblocksTexture = load_texture("resources/scenes/cust/mini_blocks.png");
+
+  sf::Vector2f pos = gridSprite.getPosition();
+  pos.x += 22.f;
+  pos.y += 121.f;
+  track = sf::Sprite(*load_texture("resources/scenes/cust/track.png"));
+  track.setScale(2.f, 2.f);
+  track.setPosition(pos);
 
   // info text
   sf::Vector2f textPosition = infoBox.getPosition();
@@ -251,10 +263,12 @@ bool PlayerCustScene::isGridEdge(size_t y, size_t x)
 
 void PlayerCustScene::startCompile()
 {
+  textbox.Close();
+  questionInterface = nullptr;
   infoText.SetString("RUNNING...");
   progress = 0;
   compiledHash.clear();
-  isCompiling = true;
+  state = state::compiling;
   sf::Color color = sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA);
   progressBarUVs.width = 0;
   progressBar.setTextureRect(progressBarUVs);
@@ -394,6 +408,11 @@ void PlayerCustScene::consolePrintGrid()
   }
 }
 
+void PlayerCustScene::startScaffolding()
+{
+  scaffolding = 0.f;
+}
+
 void PlayerCustScene::animateButton(double elapsed)
 {
   buttonFlashElapsed += elapsed;
@@ -417,6 +436,13 @@ void PlayerCustScene::animateCursor(double elapsed)
 
   cursorAnim.Update(elapsed, cursor);
   clawAnim.Update(elapsed, claw);
+}
+
+void PlayerCustScene::animateScaffolding(double elapsed)
+{
+  if (scaffolding < 1.) {
+    scaffolding = std::min(scaffolding + (10.f*elapsed), 1.);
+  }
 }
 
 void PlayerCustScene::animateGrid()
@@ -457,7 +483,7 @@ void PlayerCustScene::animateBlock(double elapsed, Piece* p)
     return;
   }
 
-  if (isCompiling && compiledHash[p]) {
+  if ((state == state::compiling || state == state::finishing) && compiledHash[p]) {
     if (p->specialType) {
       if (blockAnim.GetAnimationString() != "FLAT_BLINK") {
         blockAnim << "FLAT_BLINK" << Animator::Mode::Loop;
@@ -495,7 +521,7 @@ void PlayerCustScene::refreshBlock(Piece* p, sf::Sprite& sprite)
 
 void PlayerCustScene::refreshButton(size_t idx)
 {
-  if (idx == listStart+currItemIndex && itemListSelected) {
+  if (idx == listStart+currItemIndex && itemListSelected && state == state::usermode) {
     if (buttonAnim.GetAnimationString() != "BLINK") {
       buttonAnim << "BLINK" << Animator::Mode::Loop;
     }
@@ -504,7 +530,25 @@ void PlayerCustScene::refreshButton(size_t idx)
     buttonAnim << "DEFAULT";
   }
 
+  blueButtonSprite.setScale(2.f, scaffolding * 2.f);
+  greenButtonSprite.setScale(2.f, scaffolding * 2.f);
   animateButton(0);
+}
+
+void PlayerCustScene::refreshTrack()
+{
+  if (itemListSelected) {
+    if (trackAnim.GetAnimationString() != "DIMMED") {
+      trackAnim.SetAnimation("DIMMED");
+    }
+  }
+  else {
+    if (trackAnim.GetAnimationString() != "DEFAULT") {
+      trackAnim.SetAnimation("DEFAULT");
+    }
+  }
+
+  trackAnim.Refresh(track);
 }
 
 bool PlayerCustScene::handleSelectItemFromList()
@@ -519,15 +563,15 @@ bool PlayerCustScene::handleSelectItemFromList()
   cursorLocation = ((GRID_SIZE / 2) * GRID_SIZE) + (GRID_SIZE/2);
   itemListSelected = false;
 
+  Audio().Play(AudioType::CHIP_DESC);
+
   return true;
 }
 
 void PlayerCustScene::executeLeftKey()
 {
   if (itemListSelected) {
-    itemListSelected = false;
-    updateCursorHoverInfo();
-    Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::low);
+    selectGridUI();
     return;
   }
 
@@ -546,10 +590,7 @@ void PlayerCustScene::executeRightKey()
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
   else if(!grabbingPiece && !insertingPiece) {
-    if (itemListSelected) return;
-    itemListSelected = true;
-    updateItemListHoverInfo();
-    Audio().Play(AudioType::CHIP_DESC, AudioPriority::low);
+    selectItemUI(listStart);
   }
 }
 
@@ -594,6 +635,7 @@ void PlayerCustScene::executeCancelInsert()
 {
   pieces.push_back(insertingPiece);
   insertingPiece = nullptr;
+  selectGridUI();
 }
 
 void PlayerCustScene::executeCancelGrab()
@@ -601,7 +643,7 @@ void PlayerCustScene::executeCancelGrab()
   insertPiece(grabbingPiece, grabStartLocation);
   cursorLocation = grabStartLocation;
   grabbingPiece = nullptr;
-  updateCursorHoverInfo();
+  selectGridUI();
 }
 
 bool PlayerCustScene::handleArrowKeys(double elapsed)
@@ -626,6 +668,36 @@ bool PlayerCustScene::handleArrowKeys(double elapsed)
     return true;
   }
 
+  if (Input().Has(InputEvents::pressed_option) && !itemListSelected) {
+    selectItemUI(pieces.size());
+    startScaffolding();
+    return true;
+  }
+
+  if (Input().Has(InputEvents::pressed_cancel)) {
+    if (!itemListSelected) {
+      selectItemUI(listStart);
+      return true;
+    }
+
+    if (itemListSelected) {
+      auto onYes = [this]() {
+        quitScene();
+      };
+
+      auto onNo = [this]() {
+        selectItemUI(listStart);
+      };
+
+      Audio().Play(AudioType::PAUSE, AudioPriority::low);
+      questionInterface = new Question("Quit programming?", onYes, onNo);
+      textbox.EnqueMessage(questionInterface);
+      textbox.Open();
+      textbox.CompleteCurrentBlock();
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -646,6 +718,44 @@ void PlayerCustScene::handleInputDelay(double elapsed, void(PlayerCustScene::*ex
   }
 }
 
+void PlayerCustScene::selectGridUI()
+{
+  if (textbox.IsOpen()) {
+    textbox.Close();
+    questionInterface = nullptr;
+  }
+
+  state = state::usermode;
+  itemListSelected = false;
+  updateCursorHoverInfo();
+  Audio().Play(AudioType::CHIP_DESC, AudioPriority::low);
+}
+
+void PlayerCustScene::selectItemUI(size_t idx)
+{
+  if (textbox.IsOpen()) {
+    textbox.Close();
+    questionInterface = nullptr;
+  }
+
+  state = state::usermode;
+
+  if (itemListSelected) return;
+
+  itemListSelected = true;
+  listStart = idx;
+  updateItemListHoverInfo();
+  Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::low);
+}
+
+void PlayerCustScene::quitScene()
+{
+  textbox.Close();
+
+  using effect = swoosh::types::segue<BlackWashFade, milliseconds<500>>;
+  getController().pop<effect>();
+}
+
 bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* cancelFunc)())
 {
   if (Input().Has(InputEvents::pressed_cancel)) {
@@ -657,6 +767,8 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
   if (Input().Has(InputEvents::pressed_confirm)) {
     if (insertPiece(piece, cursorLocation)) {
       piece = nullptr;
+      Audio().Play(AudioType::CHIP_DESC);
+      updateCursorHoverInfo();
     }
     else {
       Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
@@ -666,11 +778,13 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
 
   if (Input().Has(InputEvents::pressed_shoulder_left)) {
     piece->rotateLeft();
+    Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
     return true;
   }
 
   if (Input().Has(InputEvents::pressed_shoulder_right)) {
     piece->rotateRight();
+    Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
     return true;
   }
 
@@ -748,15 +862,58 @@ void PlayerCustScene::onUpdate(double elapsed)
   animateCursor(elapsed);
   animateButton(elapsed);
   animateBlock(elapsed);
+  animateScaffolding(elapsed);
 
-  if (isCompiling) {
+  // textbox takes priority
+  if (questionInterface) {
+    if (!textbox.IsOpen()) return;
+
+    if (hasLeftInput()) {
+      questionInterface->SelectYes();
+      return;
+    }
+
+    if (hasRightInput()) {
+      questionInterface->SelectNo();
+      return;
+    }
+
+    if (Input().Has(InputEvents::pressed_confirm)) {
+      if (!textbox.IsEndOfBlock()) {
+        textbox.CompleteCurrentBlock();
+        return;
+      }
+
+      if (textbox.IsEndOfBlock() && !textbox.IsFinalBlock()) {
+        textbox.ShowNextLines();
+        return;
+      }
+
+      questionInterface->ConfirmSelection();
+      return;
+    }
+
+    return; // TODO: take out?
+  }
+
+  // handle the compile sequence states
+  if (state == state::compiling || state == state::waiting) {
     progress += elapsed;
-    if (isCompileFinished()) {
-      isCompiling = false;
+
+    if (state == state::waiting) {
+      if (Input().Has(InputEvents::pressed_confirm)) {
+        state = state::finishing;
+        return;
+      }
+    }
+    if (isCompileFinished() && state != state::waiting) {
+      state = state::waiting;
       infoText.SetString("OK");
       Audio().Play(compile_complete);
+      return;
     }
-    else {
+
+    if(!isCompileFinished()) {
       double percent = (progress / static_cast<double>(maxProgressTime));
       double block_time = static_cast<double>(maxProgressTime/ GRID_SIZE);
 
@@ -792,40 +949,40 @@ void PlayerCustScene::onUpdate(double elapsed)
 
     return;
   }
-  else {
+  
+  // if finishing the compilation sequence
+  if(state == state::finishing) {
     sf::Color color = progressBar.getColor();
 
     if (color.a > 0) {
-      color.a -= 1;
+      color.a -= 4;
       progressBarUVs.left -= 1; // another speedup at this step
       progressBar.setColor(color);
     }
+    else {
+      // the animation is over, stop blinking
+      compiledHash.clear();
+
+      auto onYes = [this]() {
+        quitScene();
+      };
+
+      auto onNo = [this]() {
+        selectItemUI(pieces.size());
+      };
+
+      std::string msg = "OK!\nRUN complete!\n\n";
+      msg += "Good job, op!\n\n\n";
+      msg += "Quit the Navi Customizer?";
+      questionInterface = new Question(msg, onYes, onNo);
+      textbox.EnqueMessage(questionInterface);
+      textbox.Open();
+    }
+
+    return;
   }
 
-  if (questionInterface) {
-    if (!textbox.IsOpen()) return;
-
-    if (hasLeftInput()) {
-      questionInterface->SelectYes();
-      return;
-    }
-
-    if (hasRightInput()) {
-      questionInterface->SelectNo();
-      return;
-    }
-
-    if (Input().Has(InputEvents::pressed_confirm)) {
-      if (!textbox.IsEndOfBlock()) {
-        textbox.CompleteCurrentBlock();
-        return;
-      }
-
-      questionInterface->ConfirmSelection();
-      return;
-    }
-  }
-
+  // handle input
   if (itemListSelected) {
     if (handleArrowKeys(elapsed)) {
       return;
@@ -841,13 +998,10 @@ void PlayerCustScene::onUpdate(double elapsed)
 
     auto onYes = [this]() {
       startCompile();
-      questionInterface = nullptr;
-      textbox.Close();
     };
 
     auto onNo = [this]() {
-      questionInterface = nullptr;
-      textbox.Close();
+      selectItemUI(pieces.size());
     };
 
     questionInterface = new Question("Run the program?", onYes, onNo);
@@ -870,6 +1024,7 @@ void PlayerCustScene::onUpdate(double elapsed)
 
         removePiece(piece);
         grabbingPiece = piece;
+        Audio().Play(AudioType::CHIP_SELECT);
         return;
       }
     }
@@ -937,6 +1092,10 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
     }
   }
 
+  // draw track
+  refreshTrack();
+  surface.draw(track);
+
   // draw items
   float yoffset = 0.;
   
@@ -950,7 +1109,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
 
   for (size_t i = 0; i < pieces.size(); i++) {
     refreshButton(i);
-    blueButtonSprite.setPosition(bottom.x * blueButtonSprite.getScale().x, (bottom.y + yoffset) * blueButtonSprite.getScale().y);
+    blueButtonSprite.setPosition(bottom.x * 2.f, (bottom.y + yoffset) * 2.f);
     surface.draw(blueButtonSprite);
 
     if (listStart == i) {
@@ -962,29 +1121,33 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
       previewPos = { dest.x + (blueButtonSprite.getGlobalBounds().width+10.f), dest.y };
     }
 
-    sf::Vector2f textOffset = { 4.f, 8.f };
-    itemText.SetString(pieces[i]->name);
-    itemText.SetColor(sf::Color(33, 115, 140));
-    itemText.setPosition((bottom.x + textOffset.x) * itemText.getScale().x, ((bottom.y + yoffset) * itemText.getScale().y) + textOffset.y + 2.f);
-    surface.draw(itemText);
-    itemText.SetColor(sf::Color::White);
-    itemText.setPosition((bottom.x + textOffset.x) * itemText.getScale().x, ((bottom.y + yoffset) * itemText.getScale().y) + textOffset.y);
-    surface.draw(itemText);
+    if (scaffolding == 1.f) {
+      sf::Vector2f textOffset = { 4.f, 8.f };
+      itemText.SetString(pieces[i]->name);
+      itemText.SetColor(sf::Color(33, 115, 140));
+      itemText.setPosition((bottom.x + textOffset.x) * itemText.getScale().x, ((bottom.y + yoffset) * itemText.getScale().y) + textOffset.y + 2.f);
+      surface.draw(itemText);
+      itemText.SetColor(sf::Color::White);
+      itemText.setPosition((bottom.x + textOffset.x) * itemText.getScale().x, ((bottom.y + yoffset) * itemText.getScale().y) + textOffset.y);
+      surface.draw(itemText);
+    }
 
-    bottom.y += blueButtonSprite.getLocalBounds().height;
+    bottom.y += 19; // pixel height of button
   }
 
   if (bottom.y == 0) {
-    bottom.y = blueButtonSprite.getLocalBounds().height;
+    bottom.y = 19; // pixel height of button
   }
 
   // draw run button
   refreshButton(pieces.size());
-  greenButtonSprite.setPosition(bottom.x * greenButtonSprite.getScale().x, (bottom.y+yoffset)*greenButtonSprite.getScale().y);
+  greenButtonSprite.setPosition(bottom.x*2.f, (bottom.y+yoffset)*2.f);
   surface.draw(greenButtonSprite);
 
   if (itemListSelected) {
-    surface.draw(itemArrowCursor);
+    if (state == state::usermode) {
+      surface.draw(itemArrowCursor);
+    }
 
     if (listStart == pieces.size()) {
       sf::Vector2f dest = greenButtonSprite.getPosition();

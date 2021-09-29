@@ -238,7 +238,7 @@ namespace Overworld {
     void GotoPVP();
     void GotoMail();
     void GotoKeyItems();
-    void GotoPlayerCust();
+    // void GotoPlayerCust();
 
     //
     // Getters
