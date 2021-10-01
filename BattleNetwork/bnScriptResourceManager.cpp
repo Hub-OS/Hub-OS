@@ -61,6 +61,15 @@ namespace {
   }
 }
 
+void ScriptResourceManager::SetSystemFunctions( sol::state* state )
+{
+    // Has to capture a pointer to sol::state, the move constructor was deleted.
+  state->set_function( "include", [state]( const std::string fileName ) -> void {
+    std::cout << "Including script file: " << fileName << std::endl;
+    state->do_file( fileName, sol::load_mode::any );
+  });
+}
+
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
@@ -1234,6 +1243,7 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
 
   sol::state* lua = new sol::state;
   ConfigureEnvironment(*lua);
+  SetSystemFunctions( lua );
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
 
