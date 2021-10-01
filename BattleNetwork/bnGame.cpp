@@ -10,6 +10,7 @@
 #include "bnPlayerPackageManager.h"
 #include "bnCardPackageManager.h"
 #include "bnMobPackageManager.h"
+#include "bnBlockPackageManager.h"
 #include "bnGameOverScene.h"
 #include "bnFakeScene.h"
 #include "bnConfigReader.h"
@@ -18,6 +19,7 @@
 #include "bnQueueMobRegistration.h"
 #include "bnQueueNaviRegistration.h"
 #include "bnQueueCardRegistration.h"
+#include "bnQueueBlockRegistration.h"
 #include "bnResourceHandle.h"
 #include "bnInputHandle.h"
 #include "overworld/bnOverworldHomepage.h"
@@ -60,6 +62,7 @@ Game::Game(DrawWindow& window) :
   cardPackageManager = new class CardPackageManager;
   playerPackageManager = new class PlayerPackageManager;
   mobPackageManager = new class MobPackageManager;
+  blockPackageManager = new class BlockPackageManager;
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -134,6 +137,9 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   Callback<void()> cards;
   cards.Slot(std::bind(&Game::RunCardInit, this, &progress));
 
+  Callback<void()> blocks;
+  blocks.Slot(std::bind(&Game::RunBlocksInit, this, &progress));
+
   Callback<void()> finish;
   finish.Slot([this] {
     // Tell the input event loop how to behave when the app loses and regains focus
@@ -158,6 +164,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   tasks.AddTask("Load Navis", std::move(navis));
   tasks.AddTask("Load mobs", std::move(mobs));
   tasks.AddTask("Load cards", std::move(cards));
+  tasks.AddTask("Load prog blocks", std::move(blocks));
   tasks.AddTask("Finishing", std::move(finish));
 
     // Load font symbols for use across the entire engine...
@@ -371,6 +378,11 @@ MobPackageManager& Game::MobPackageManager()
   return *mobPackageManager;
 }
 
+BlockPackageManager& Game::BlockPackageManager()
+{
+  return *blockPackageManager;
+}
+
 ConfigSettings& Game::ConfigSettings()
 {
   return configSettings;
@@ -383,6 +395,16 @@ void Game::RunNaviInit(std::atomic<int>* progress) {
   playerPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+}
+
+void Game::RunBlocksInit(std::atomic<int>* progress)
+{
+  clock_t begin_time = clock();
+  QueueBlockRegistration(*blockPackageManager); // Queues navis to be loaded later
+
+  blockPackageManager->LoadAllPackages(*progress);
+
+  Logger::Logf("Loaded registered prog blocks: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::RunMobInit(std::atomic<int>* progress) {

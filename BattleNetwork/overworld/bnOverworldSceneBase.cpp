@@ -23,6 +23,8 @@
 #include "../bnKeyItemScene.h"
 #include "../bnMailScene.h"
 #include "../bnVendorScene.h"
+#include "../bnPlayerCustScene.h"
+#include "../bnBlockPackageManager.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnCustomBackground.h"
 #include "../bnLanBackground.h"
@@ -339,6 +341,7 @@ void Overworld::SceneBase::HandleInput() {
     if (Input().Has(InputEvents::pressed_interact)) {
       OnInteract(Interaction::action);
     }
+
     if (Input().Has(InputEvents::pressed_shoulder_left)) {
       OnInteract(Interaction::inspect);
     }

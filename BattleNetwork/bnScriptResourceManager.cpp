@@ -10,6 +10,7 @@
 #include "bnCardPackageManager.h"
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
+#include "bnBlockPackageManager.h"
 
 #include "bnAnimator.h"
 #include "bnEntity.h"
@@ -35,6 +36,7 @@
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnScriptedComponent.h"
+#include "bindings/bnScriptedBlock.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -822,6 +824,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_health", &MobMeta::SetHP,
     "declare_package_id", &MobMeta::SetPackageID
   );
+
+  const auto& blockmeta_table = battle_namespace.new_usertype<BlockMeta>("BlockMeta",
+    "set_description", &BlockMeta::SetDescription,
+    "set_name", &BlockMeta::SetName,
+    "set_color", &BlockMeta::SetColor,
+    "set_shape", &BlockMeta::SetShape,
+    "as_program", &BlockMeta::AsProgram,
+    "declare_package_id", &BlockMeta::SetPackageID
+    );
 
   const auto& scriptedmob_table = battle_namespace.new_usertype<ScriptedMob>("Mob",
     "create_spawner", &ScriptedMob::CreateSpawner,

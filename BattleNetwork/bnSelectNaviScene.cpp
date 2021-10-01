@@ -2,6 +2,8 @@
 #include <Swoosh/ActivityController.h>
 #include <Swoosh/Game.h>
 
+#include "bnPlayerCustScene.h"
+#include "bnBlockPackageManager.h"
 #include "bnSelectNaviScene.h"
 #include "Segues/Checkerboard.h"
 
@@ -18,6 +20,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   attackLabel("1", font),
   speedLabel("1", font),
   menuLabel("1", font),
+  owTextbox({4, 255}),
   Scene(controller) {
 
   // Menu name font
@@ -229,6 +232,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   }
 
   surface.draw(navi);
+  surface.draw(owTextbox);
 }
 
 void SelectNaviScene::onStart()
@@ -257,17 +261,57 @@ void SelectNaviScene::onEnd()
 {
 }
 
+void SelectNaviScene::GotoPlayerCust()
+{
+  // Config Select on PC
+  gotoNextScene = true;
+  Audio().Play(AudioType::CHIP_DESC);
+
+  using effect = segue<BlackWashFade, milliseconds<500>>;
+
+  std::vector<PlayerCustScene::Piece*> blocks;
+
+  auto& blockManager = getController().BlockPackageManager();
+  std::string package = blockManager.FirstValidPackage();
+
+  do {
+    if (package.empty()) break;
+
+    auto& meta = blockManager.FindPackageByID(package);
+    auto* piece = meta.GetData();
+    piece->description = meta.description;
+    piece->name = meta.name;
+
+    size_t idx{};
+    for (auto& s : piece->shape) {
+      s = *(meta.shape.begin() + idx);
+      idx++;
+    }
+
+    piece->typeIndex = meta.color;
+    piece->specialType = meta.isProgram;
+
+    blocks.push_back(piece);
+    package = blockManager.GetPackageAfter(package);
+  } while (package != blockManager.FirstValidPackage());
+
+  getController().push<effect::to<PlayerCustScene>>(blocks);
+}
+
 void SelectNaviScene::onUpdate(double elapsed) {
   SelectNaviScene::elapsed = elapsed;
 
   textbox.Update((float)elapsed);
+  owTextbox.Update((float)elapsed);
   bg->Update((float)elapsed);
 
   std::string prevSelectId = currentChosenId;
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (Input().Has(InputEvents::pressed_ui_left)) {
+    if (owTextbox.IsOpen()) {
+      owTextbox.HandleInput(Input(), {});
+    }else if (Input().Has(InputEvents::pressed_ui_left)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -389,10 +433,19 @@ void SelectNaviScene::onUpdate(double elapsed) {
   navi.setOrigin(float(navi.getTextureRect().width)*0.5f, float(navi.getTextureRect().height));
 
   // Make a selection
-  if (Input().Has(InputEvents::pressed_confirm) && currentChosenId != naviSelectionId) {
-    Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
-    prevChosenId = currentChosenId;
-    naviSelectionId = currentChosenId;
-    WEBCLIENT.SetKey("SelectedNavi", naviSelectionId);
+  if (Input().Has(InputEvents::pressed_confirm)) {
+    if (currentChosenId != naviSelectionId) {
+      Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
+      prevChosenId = currentChosenId;
+      naviSelectionId = currentChosenId;
+      WEBCLIENT.SetKey("SelectedNavi", naviSelectionId);
+    }
+    else if(owTextbox.IsClosed()) {
+      owTextbox.EnqueueQuestion("Open Navi Cust?", [this](bool result) {
+        if (result) {
+          this->GotoPlayerCust();
+        }
+      });
+    }
   }
 }
