@@ -61,6 +61,26 @@ namespace {
   }
 }
 
+std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
+{
+  std::list<OverrideFrame> frames;
+
+  auto count = table.size();
+
+  std::cout << "Framedata:" << std::endl;
+
+  for( int ind = 1; ind <= count; ++ind )
+  {
+    unsigned animStateNumber = table.traverse_get<unsigned>(ind, 1);
+    double duration = table.traverse_get<double>(ind, 2);
+
+    std::cout << "id:" << animStateNumber << " d:" << duration << std::endl;
+    frames.emplace_back( OverrideFrame { animStateNumber, duration } );
+  }
+
+  return frames;
+}
+
 void ScriptResourceManager::SetSystemFunctions( sol::state* state )
 {
     // Has to capture a pointer to sol::state, the move constructor was deleted.
@@ -520,6 +540,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_float_shoe", &ScriptedPlayer::SetFloatShoe,
     "set_air_shoe", &ScriptedPlayer::SetAirShoe,
     "slide_when_moving", &ScriptedPlayer::SlideWhenMoving,
+    "add_defense_rule", &ScriptedPlayer::AddDefenseRule,
+    "add_defense_rule_s", [](ScriptedPlayer* player, ScriptedDefenseRule* rule) { player->AddDefenseRule(rule); },
     "delete", &ScriptedPlayer::Delete,
     "register_component", &ScriptedPlayer::RegisterComponent,
     "update_func", &ScriptedPlayer::on_update_func
@@ -1201,9 +1223,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     [](unsigned num) { return frames(num); }
   );
 
-  state.set_function("fdata",
-    [](unsigned index, double sec) { return OverrideFrame{ index, sec };  }
-  );
+  state.set_function( "make_frame_data", &CreateFrameData );
 
   state.set_function("reverse_dir",
     [](Direction dir) { return Reverse(dir); }
