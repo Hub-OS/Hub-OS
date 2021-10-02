@@ -11,7 +11,6 @@ class BusterCardAction : public CardAction {
 private:
   SpriteProxyNode buster, flare;
   Attachment* busterAttachment{ nullptr };
-  std::shared_ptr<Field> field{ nullptr };
   Animation busterAnim, flareAnim;
   bool charged{};
   int damage{};

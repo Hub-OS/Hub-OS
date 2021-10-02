@@ -41,7 +41,7 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
   auto onFire = [this, user]() -> void {
     Team team = user->GetTeam();
     auto b = std::make_shared<Buster>(team, charged, damage);
-    field = user->GetField();
+    auto field = user->GetField();
 
     if (team == Team::red) {
       b->SetDirection(Direction::right);
@@ -56,7 +56,7 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
 
     notifier = field->CallbackOnDelete(b->GetID(), busterRemoved);
 
-    user->GetField()->AddEntity(b, *user->GetTile());
+    field->AddEntity(b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
 
     busterAttachment->AddAttachment(busterAnim, "endpoint", flare).UseAnimation(flareAnim);
@@ -72,6 +72,8 @@ void BusterCardAction::Update(double _elapsed)
 
 void BusterCardAction::OnActionEnd()
 {
+  auto field = GetActor()->GetField();
+  
   if (field) {
     field->DropNotifier(this->notifier);
   }
