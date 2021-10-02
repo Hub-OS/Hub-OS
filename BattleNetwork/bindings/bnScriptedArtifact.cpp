@@ -19,8 +19,15 @@ ScriptedArtifact::~ScriptedArtifact() { }
 
 void ScriptedArtifact::OnUpdate(double _elapsed)
 {
-  auto sa = shared_from_base<ScriptedArtifact>();
-  updateCallback ? updateCallback(sa, _elapsed) : (void)0;
+  if (updateCallback) {
+    auto sa = shared_from_base<ScriptedArtifact>();
+
+    try {
+      updateCallback(sa, _elapsed);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
 }
 
 void ScriptedArtifact::NeverFlip(bool enabled)
@@ -30,8 +37,15 @@ void ScriptedArtifact::NeverFlip(bool enabled)
 
 void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 {
-  auto sa = shared_from_base<ScriptedArtifact>();
-  spawnCallback ? spawnCallback(sa, tile) : (void)0;
+  if (spawnCallback) {
+    auto sa = shared_from_base<ScriptedArtifact>();
+
+    try {
+      spawnCallback(sa, tile);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
 
   if (GetTeam() == Team::blue && flip) {
     setScale(-2.f, 2.f);
@@ -40,14 +54,30 @@ void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 
 void ScriptedArtifact::OnDelete()
 {
-  auto sa = shared_from_base<ScriptedArtifact>();
-  deleteCallback ? deleteCallback(sa) : (void)0;
+  if (deleteCallback) {
+    auto sa = shared_from_base<ScriptedArtifact>();
+
+    try {
+      deleteCallback(sa);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
+
   Remove();
 }
 
 bool ScriptedArtifact::CanMoveTo(Battle::Tile* next)
 {
-  return canMoveToCallback ? canMoveToCallback(*next) : false;
+  if (canMoveToCallback) {
+    try {
+      return canMoveToCallback(*next);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
+
+  return false;
 }
 
 void ScriptedArtifact::SetAnimation(const std::string& path)

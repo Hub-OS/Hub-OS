@@ -129,7 +129,11 @@ void ScriptedPlayer::OnUpdate(double _elapsed)
   Player::OnUpdate(_elapsed);
 
   if (on_update_func) {
-    on_update_func(shared_from_base<ScriptedPlayer>(), _elapsed);
+    try {
+      on_update_func(shared_from_base<ScriptedPlayer>(), _elapsed);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 

@@ -23,38 +23,84 @@ ScriptedSpell::~ScriptedSpell() {
 
 bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 {
-  return canMoveToCallback? canMoveToCallback(*next) : false;
+  if (canMoveToCallback) {
+    try {
+      return canMoveToCallback(*next);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
+
+  return false;
 }
 
 void ScriptedSpell::OnUpdate(double _elapsed) {
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
-  auto ss = shared_from_base<ScriptedSpell>();
-  updateCallback ? updateCallback(ss, _elapsed) : (void)0;
+
+  if (updateCallback) {
+    auto ss = shared_from_base<ScriptedSpell>();
+
+    try {
+      updateCallback(ss, _elapsed);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
 }
 
 void ScriptedSpell::OnDelete() {
-  auto ss = shared_from_base<ScriptedSpell>();
-  deleteCallback ? deleteCallback(ss) : (void)0;
+  if (deleteCallback) {
+    auto ss = shared_from_base<ScriptedSpell>();
+
+    try {
+      deleteCallback(ss);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
+
   Remove();
 }
 
 void ScriptedSpell::OnCollision(const std::shared_ptr<Entity> other)
 {
-  auto ss = shared_from_base<ScriptedSpell>();
-  collisionCallback ? collisionCallback(ss, other) : (void)0;
+  if (collisionCallback) {
+    auto ss = shared_from_base<ScriptedSpell>();
+
+    try {
+      collisionCallback(ss, other);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
 }
 
 void ScriptedSpell::Attack(std::shared_ptr<Entity> other) {
   other->Hit(GetHitboxProperties());
-  auto ss = shared_from_base<ScriptedSpell>();
-  attackCallback ? attackCallback(ss, other) : (void)0;
+
+  if (attackCallback) {
+    auto ss = shared_from_base<ScriptedSpell>();
+
+    try {
+      attackCallback(ss, other);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
 }
 
 void ScriptedSpell::OnSpawn(Battle::Tile& spawn)
 {
-  auto ss = shared_from_base<ScriptedSpell>();
-  spawnCallback ? spawnCallback(ss, spawn) : (void)0;
+  if (spawnCallback) {
+    auto ss = shared_from_base<ScriptedSpell>();
+
+    try {
+      spawnCallback(ss, spawn);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
+  }
 
   if (GetTeam() == Team::blue && flip) {
     setScale(-2.f, 2.f);

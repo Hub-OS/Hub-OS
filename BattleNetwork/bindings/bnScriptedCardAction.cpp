@@ -18,7 +18,11 @@ CardAction::Attachment& ScriptedCardAction::AddAttachment(std::shared_ptr<Charac
 void ScriptedCardAction::Update(double elapsed) {
   CardAction::Update(elapsed);
   if (onUpdate) {
-    onUpdate(shared_from_base<ScriptedCardAction>(), elapsed);
+    try {
+      onUpdate(shared_from_base<ScriptedCardAction>(), elapsed);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 
@@ -29,19 +33,31 @@ void ScriptedCardAction::draw(sf::RenderTarget& target, sf::RenderStates states)
 
 void ScriptedCardAction::OnAnimationEnd() {
   if (onAnimationEnd) {
-    onAnimationEnd(shared_from_base<ScriptedCardAction>());
+    try {
+      onAnimationEnd(shared_from_base<ScriptedCardAction>());
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 
 void ScriptedCardAction::OnActionEnd() {
   if (onActionEnd) {
-    onActionEnd(shared_from_base<ScriptedCardAction>());
+    try {
+      onActionEnd(shared_from_base<ScriptedCardAction>());
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 
 void ScriptedCardAction::OnExecute(std::shared_ptr<Character> user) {
   if (onExecute) {
-    onExecute(shared_from_base<ScriptedCardAction>(), user);
+    try {
+      onExecute(shared_from_base<ScriptedCardAction>(), user);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 

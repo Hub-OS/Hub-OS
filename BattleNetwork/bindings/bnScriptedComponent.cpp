@@ -13,14 +13,22 @@ ScriptedComponent::~ScriptedComponent()
 void ScriptedComponent::OnUpdate(double dt)
 {
   if (update_func) {
-    update_func(shared_from_base<ScriptedComponent>(), dt);
+    try {
+      update_func(shared_from_base<ScriptedComponent>(), dt);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 
 void ScriptedComponent::Inject(BattleSceneBase& scene)
 {
   if (scene_inject_func) {
-    scene_inject_func(shared_from_base<ScriptedComponent>());
+    try {
+      scene_inject_func(shared_from_base<ScriptedComponent>());
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 
   // the component is now injected into the scene's update loop

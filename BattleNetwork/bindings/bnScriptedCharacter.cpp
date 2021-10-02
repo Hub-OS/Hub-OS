@@ -60,19 +60,31 @@ void ScriptedCharacter::OnDelete() {
   }
 
   if (deleteCallback) {
-    deleteCallback(shared_from_base<ScriptedCharacter>());
+    try {
+      deleteCallback(shared_from_base<ScriptedCharacter>()); 
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
   if (spawnCallback) {
-    spawnCallback(shared_from_base<ScriptedCharacter>(), start);
+    try {
+      spawnCallback(shared_from_base<ScriptedCharacter>(), start);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 
 void ScriptedCharacter::OnBattleStart() {
   if (onBattleStartCallback) {
-    onBattleStartCallback(shared_from_base<ScriptedCharacter>());
+    try {
+      onBattleStartCallback(shared_from_base<ScriptedCharacter>());
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 
@@ -80,13 +92,21 @@ void ScriptedCharacter::OnBattleStop() {
   Character::OnBattleStop();
 
   if (onBattleEndCallback) {
-    onBattleEndCallback(shared_from_base<ScriptedCharacter>());
+    try {
+      onBattleEndCallback(shared_from_base<ScriptedCharacter>());
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 }
 
 bool ScriptedCharacter::CanMoveTo(Battle::Tile * next) {
   if (canMoveToCallback) {
-    return canMoveToCallback(*next);
+    try {
+      return canMoveToCallback(*next);
+    } catch(std::exception& e) {
+      Logger::Log(e.what());
+    }
   }
 
   return Character::CanMoveTo(next);

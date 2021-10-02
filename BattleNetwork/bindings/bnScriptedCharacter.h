@@ -62,7 +62,11 @@ public:
 
   void OnUpdate(double elapsed, ScriptedCharacter& s) override {
     if (s.updateCallback) {
-      s.updateCallback(s.shared_from_base<ScriptedCharacter>(), elapsed);
+      try {
+        s.updateCallback(s.shared_from_base<ScriptedCharacter>(), elapsed);
+      } catch(std::exception& e) {
+        Logger::Log(e.what());
+      }
     }
   }
 
