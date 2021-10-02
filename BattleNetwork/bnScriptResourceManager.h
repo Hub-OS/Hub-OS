@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <atomic>
+#include <filesystem>
 
 #ifdef __unix__
 #define LUA_USE_POSIX 1
@@ -35,7 +36,7 @@ public:
 
   ~ScriptResourceManager();
 
-  LoadScriptResult& LoadScript(const std::string& path);
+  LoadScriptResult& LoadScript(const std::filesystem::path& path);
 
   void DefineCharacter(const std::string& fqn, const std::string& path) /* throw std::exception */;
   sol::state* FetchCharacter(const std::string& fqn);
