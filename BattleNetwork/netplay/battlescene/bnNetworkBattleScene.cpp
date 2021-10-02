@@ -37,7 +37,7 @@
 using namespace swoosh::types;
 using swoosh::ActivityController;
 
-NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props, BattleResultsFunc onEnd) :
+NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBattleSceneProps& props, BattleResultsFunc onEnd) :
   BattleSceneBase(controller, props.base, onEnd),
   ping(Font::Style::wide)
 {

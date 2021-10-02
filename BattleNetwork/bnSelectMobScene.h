@@ -42,18 +42,18 @@ class SelectMobScene : public Scene
 public:
   struct Properties {
     std::string naviId;
-    CardFolder& folder;
+    std::unique_ptr<CardFolder> folder;
     PA& pa;
     std::shared_ptr<Background> background{ nullptr };
   };
 
 private:
-  Properties props;
   std::string selectedNaviId; /*!< The selected navi */
+  std::shared_ptr<Background> defaultBackground; /*!< Inherited background from the previous scene */
 
   PA& programAdvance;
   
-  CardFolder& selectedFolder; /*!< Reference to the selected folder */
+  std::unique_ptr<CardFolder> selectedFolder; /*!< Reference to the selected folder */
 
   Font font; /*!< Menu title font */
   Text menuLabel; /*!< "Mob Select" */
@@ -111,7 +111,7 @@ public:
   /**
    * @brief Loads graphics and sets original state of all items
    */
-  SelectMobScene(swoosh::ActivityController&, const Properties& props);
+  SelectMobScene(swoosh::ActivityController&, Properties props);
   
   /**
    * @brief Deletes all allocated resource. If mob is non null, deletes the mob

@@ -75,7 +75,7 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
 
   /* Spawn shine artifact */
   Battle::Tile* tile = e.GetTile();
-  Field* field = e.GetField();
+  std::shared_ptr<Field> field = e.GetField();
   shine = std::make_shared<ShineExplosion>();
   shine->SetHeight(e.GetHeight() * 0.5f);
   field->AddEntity(shine, tile->GetX(), tile->GetY());

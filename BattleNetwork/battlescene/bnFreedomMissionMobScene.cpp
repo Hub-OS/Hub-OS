@@ -14,8 +14,8 @@
 
 using namespace swoosh;
 
-FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, const FreedomMissionProps& props, BattleResultsFunc onEnd) :
-  props(props), 
+FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, FreedomMissionProps _props, BattleResultsFunc onEnd) :
+  props(std::move(_props)), 
   BattleSceneBase(controller, props.base, onEnd) {
 
   Mob* current = props.mobs.at(0);

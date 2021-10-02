@@ -22,7 +22,7 @@ namespace Battle {
 
 #define BN_MAX_COMBAT_EVALUATION_STEPS 20
 
-class Field : public CharacterDeletePublisher{
+class Field : public std::enable_shared_from_this<Field>, public CharacterDeletePublisher{
 public:
   using NotifyID_t = long long; // for lifetime notifiers
 

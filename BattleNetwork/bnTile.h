@@ -78,7 +78,7 @@ namespace Battle {
      * @brief Assigns the tile's field pointer
      * @param _field
      */
-    void SetField(Field* _field);
+    void SetField(std::weak_ptr<Field> field);
 
     /**
      * @brief Base 1. Returns the column of the tile.
@@ -240,7 +240,7 @@ namespace Battle {
      * @brief Updates all entities occupying this tile
      * @param _elapsed in seconds
      */
-    void Update(double _elapsed);
+    void Update(Field& field, double _elapsed);
 
     /**
      * @brief Triggers this tile and all entities to behave as if time is frozen
@@ -263,8 +263,8 @@ namespace Battle {
     */
     void SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim);
 
-    void HandleTileBehaviors(std::shared_ptr<Obstacle> obst);
-    void HandleTileBehaviors(std::shared_ptr<Character> character);
+    void HandleTileBehaviors(Field& field, std::shared_ptr<Obstacle> obst);
+    void HandleTileBehaviors(Field& field, std::shared_ptr<Character> character);
 
     /**
      * @brief Query for multiple entities using a functor
@@ -303,11 +303,11 @@ namespace Battle {
 
     std::string GetAnimState(const TileState state);
 
-    void CleanupEntities();
-    void ExecuteAllAttacks();
-    void UpdateSpells(const double elapsed);
-    void UpdateArtifacts(const double elapsed);
-    void UpdateCharacters(const double elapsed);
+    void CleanupEntities(Field& field);
+    void ExecuteAllAttacks(Field& field);
+    void UpdateSpells(Field& field, const double elapsed);
+    void UpdateArtifacts(Field& field, const double elapsed);
+    void UpdateCharacters(Field& field, const double elapsed);
 
     int x; /**< Column number*/
     int y; /**< Row number*/
@@ -318,7 +318,7 @@ namespace Battle {
 
     float width;
     float height;
-    Field* field{ nullptr };
+    std::weak_ptr<Field> fieldWeak;
     double teamCooldown;
 
     std::shared_ptr<sf::Texture> red_team_atlas;

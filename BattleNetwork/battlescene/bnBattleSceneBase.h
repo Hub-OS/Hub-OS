@@ -52,8 +52,8 @@ using BattleResultsFunc = std::function<void(const BattleResults& results)>;
 struct BattleSceneBaseProps {
   std::shared_ptr<Player> player;
   PA& programAdvance;
-  CardFolder* folder{ nullptr };
-  Field* field{ nullptr };
+  std::unique_ptr<CardFolder> folder{ nullptr };
+  std::shared_ptr<Field> field{ nullptr };
   std::shared_ptr<Background> background{ nullptr };
 };
 
@@ -96,7 +96,7 @@ private:
   Camera camera; /*!< Camera object - will shake screen */
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
-  Field* field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
+  std::shared_ptr<Field> field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
   std::shared_ptr<Player> player{ nullptr }; /*!< Pointer to player's selected character */
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
@@ -260,7 +260,7 @@ public:
 
   BattleSceneBase() = delete;
   BattleSceneBase(const BattleSceneBase&) = delete;
-  BattleSceneBase(swoosh::ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd = nullptr);
+  BattleSceneBase(swoosh::ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd = nullptr);
   virtual ~BattleSceneBase();
 
   const bool DoubleDelete() const;
@@ -329,8 +329,8 @@ public:
   bool IsPlayerDeleted() const;
 
   std::shared_ptr<Player> GetPlayer();
-  Field* GetField();
-  const Field* GetField() const;
+  std::shared_ptr<Field> GetField();
+  const std::shared_ptr<Field> GetField() const;
   CardSelectionCust& GetCardSelectWidget();
   PlayerSelectedCardsUI& GetSelectedCardsUI();
   PlayerEmotionUI& GetEmotionWindow();

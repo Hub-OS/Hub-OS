@@ -15,13 +15,13 @@ class ScriptedMob : public MobFactory, public ResourceHandle
 private:
   sol::state& script;
   Mob* mob{ nullptr }; //!< ptr for scripts to access
-  Field* field{ nullptr };
+  std::shared_ptr<Field> field{ nullptr };
 
 public:
   // ScriptedSpawner wrapper for scripted mobs...
   class ScriptedSpawner  {
     Mob* mob{ nullptr };
-    Mob::Spawner<ScriptedCharacter>* scriptedSpawner{ nullptr };
+    std::unique_ptr<Mob::Spawner<ScriptedCharacter>> scriptedSpawner;
     std::function<std::shared_ptr<Character>()> constructor;
     std::function<void(std::shared_ptr<Character>)> pixelStateInvoker, defaultStateInvoker;
     Character::Rank rank{};
@@ -29,24 +29,22 @@ public:
   public:
     ScriptedSpawner() = default;
     ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank);
-    ~ScriptedSpawner();
 
     template<typename BuiltInCharacter>
     void UseBuiltInType(Character::Rank rank);
 
-    Mob::Mutator* SpawnAt(int x, int y);
+    std::shared_ptr<Mob::Mutator> SpawnAt(int x, int y);
     void SetMob(Mob* mob);
   };
 
   ScriptedMob(sol::state& script);
-  ~ScriptedMob();
 
   /**
    * @brief Builds and returns the generated mob
    * @return Mob*
    */
-  Mob* Build(Field* field);
-  Field* GetField();
+  Mob* Build(std::shared_ptr<Field> field);
+  std::shared_ptr<Field> GetField();
   void EnableFreedomMission(uint8_t turnCount);
   /**
   * @brief Creates a spawner object that loads a scripted or built-in character by its Fully Qualified Names (FQN) 

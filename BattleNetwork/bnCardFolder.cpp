@@ -27,14 +27,14 @@ void CardFolder::Shuffle()
   std::shuffle(folderList.begin(), folderList.end(), urng);
 }
 
-CardFolder* CardFolder::Clone() {
-  CardFolder* clone = new CardFolder();
+std::unique_ptr<CardFolder> CardFolder::Clone() {
+  auto clone = std::make_unique<CardFolder>();
 
   for (int i = 0; i < folderList.size(); i++) {
     clone->AddCard(*folderList[i]);
   }
 
-  return clone;
+  return std::move(clone);
 }
 
 void CardFolder::AddCard(Battle::Card copy)

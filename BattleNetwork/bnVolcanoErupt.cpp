@@ -37,7 +37,7 @@ void VolcanoErupt::OnDelete()
 
 void VolcanoErupt::OnCollision(const std::shared_ptr<Entity>)
 {
-  field->AddEntity(std::make_shared<ParticleImpact>(ParticleImpact::Type::volcano), *GetTile());
+  field.lock()->AddEntity(std::make_shared<ParticleImpact>(ParticleImpact::Type::volcano), *GetTile());
 }
 
 void VolcanoErupt::Attack(std::shared_ptr<Entity> _entity)

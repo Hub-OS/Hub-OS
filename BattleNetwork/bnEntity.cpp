@@ -554,14 +554,14 @@ const bool Entity::IsMoving() const
   return IsSliding() || IsJumping() || IsTeleporting();
 }
 
-void Entity::SetField(Field* _field) {
+void Entity::SetField(std::shared_ptr<Field> _field) {
   assert(_field && "field was nullptr");
   field = _field;
   channel = EventBus::Channel(_field->scene);
 }
 
-Field* Entity::GetField() const {
-  return field;
+std::shared_ptr<Field> Entity::GetField() const {
+  return field.lock();
 }
 
 Team Entity::GetTeam() const {
@@ -939,7 +939,7 @@ void Entity::ResolveFrameBattleDamage()
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
         if ((props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
-          frameCounterAggressor = field->GetCharacter(props.filtered.aggressor);
+          frameCounterAggressor = GetField()->GetCharacter(props.filtered.aggressor);
         }
 
         flagCheckThunk(Hit::impact);

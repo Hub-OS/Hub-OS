@@ -29,7 +29,6 @@ Field::Field(int _width, int _height) :
     vector<Battle::Tile*> row = vector<Battle::Tile*>();
     for (int x = 0; x < _width+2; x++) {
       Battle::Tile* tile = new Battle::Tile(x, y);
-      tile->SetField(this);
       tile->SetupGraphics(t_a_r, t_a_b, a);
 
       if (x <= 3) {
@@ -82,6 +81,12 @@ Field::~Field() {
 void Field::SetScene(const Scene* scene)
 {
   this->scene = scene;
+
+  for (auto& row : tiles) {
+    for (auto& tile : row) {
+      tile->SetField(shared_from_this());
+    }
+  }
 }
 
 int Field::GetWidth() const {
@@ -212,7 +217,7 @@ Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, int x, i
     return Field::AddEntityStatus::queued;
   }
 
-  entity->SetField(this);
+  entity->SetField(shared_from_this());
 
   Battle::Tile* tile = GetAt(x, y);
 
@@ -308,33 +313,33 @@ void Field::Update(double _elapsed) {
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->CleanupEntities();
-      tiles[i][j]->UpdateSpells(_elapsed);
+      tiles[i][j]->CleanupEntities(*this);
+      tiles[i][j]->UpdateSpells(*this, _elapsed);
     }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->ExecuteAllAttacks();
+      tiles[i][j]->ExecuteAllAttacks(*this);
     }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->UpdateArtifacts(_elapsed);
+      tiles[i][j]->UpdateArtifacts(*this, _elapsed);
       // TODO: tiles[i][j]->UpdateObjects(_elapsed);
     }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->Update(_elapsed);
+      tiles[i][j]->Update(*this, _elapsed);
     }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->UpdateCharacters(_elapsed);
+      tiles[i][j]->UpdateCharacters(*this, _elapsed);
     }
   }
 
@@ -451,7 +456,7 @@ void Field::Update(double _elapsed) {
     // Apply new spells into this frame's combat resolution
     for (int i = 0; i < tiles.size(); i++) {
       for (int j = 0; j < tiles[i].size(); j++) {
-        tiles[i][j]->ExecuteAllAttacks();
+        tiles[i][j]->ExecuteAllAttacks(*this);
       }
     }
 

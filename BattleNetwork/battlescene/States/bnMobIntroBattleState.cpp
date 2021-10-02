@@ -17,7 +17,7 @@ void MobIntroBattleState::onUpdate(double elapsed)
   Field& field = *GetScene().GetField();
 
   if (mob->NextMobReady()) {
-    Mob::MobData* data = mob->GetNextMob();
+    auto data = mob->GetNextSpawn();
 
     Agent* cast = dynamic_cast<Agent*>(data->character.get());
 

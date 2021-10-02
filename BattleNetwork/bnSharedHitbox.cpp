@@ -61,7 +61,7 @@ void SharedHitbox::OnSpawn(Battle::Tile& start)
     hitbox.owner.reset();
   };
 
-  field->NotifyOnDelete(owner.lock()->GetID(), this->GetID(), onOwnerDelete);
+  field.lock()->NotifyOnDelete(owner.lock()->GetID(), this->GetID(), onOwnerDelete);
 }
 
 const float SharedHitbox::GetHeight() const {

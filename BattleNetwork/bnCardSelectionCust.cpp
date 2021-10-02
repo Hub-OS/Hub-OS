@@ -106,8 +106,8 @@ void CardSelectionCust::SetSelectedFormIndex(int index)
   }
 }
 
-CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
-  props(props),
+CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
+  props(std::move(_props)),
   greyscale(Shaders().GetShader(ShaderType::GREYSCALE)),
   textbox({ 4, 255 }),
   isInView(false),
@@ -125,9 +125,9 @@ CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
   this->props.cap = std::min(this->props.cap, 8);
 
   frameElapsed = 1;
-  queue = new Bucket[this->props.cap];
-  selectQueue = new Bucket*[this->props.cap];
-  newSelectQueue = new Bucket*[this->props.cap];
+  queue = std::vector<Bucket>(this->props.cap);
+  selectQueue = std::vector<Bucket*>(this->props.cap);
+  newSelectQueue = std::vector<Bucket*>(this->props.cap);
 
   cardCount = selectCount = newSelectCount = cursorPos = cursorRow = 0;
 
@@ -229,16 +229,9 @@ CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
 CardSelectionCust::~CardSelectionCust() {
   ClearCards();
 
-  if (cardCount > 0) {
-    delete[] queue;
-    delete[] selectQueue;
-  }
-
   free(selectedCards);
 
   cardCount = 0;
-
-  delete props._folder;
 }
 
 bool CardSelectionCust::CursorUp() {

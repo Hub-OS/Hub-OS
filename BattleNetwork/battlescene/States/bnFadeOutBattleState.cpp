@@ -11,7 +11,7 @@ void FadeOutBattleState::onStart(const BattleSceneState*) {
     p->ChangeState<PlayerIdleState>();
   }
 
-  auto* field = GetScene().GetField();
+  auto field = GetScene().GetField();
   field->RequestBattleStop();
 
   auto mobList = GetScene().MobList();

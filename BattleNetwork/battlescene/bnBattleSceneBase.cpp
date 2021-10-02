@@ -33,7 +33,7 @@ using swoosh::types::segue;
 using swoosh::Activity;
 using swoosh::ActivityController;
 
-BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
+BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
   cardActionListener(this->getController().CardPackageManager()),
   player(props.player),
@@ -47,7 +47,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   heatShader(Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI({ props.folder, &getController().CardPackageManager(), 8, 8 }),
+  cardCustGUI(CardSelectionCust::Props{ std::move(props.folder), &getController().CardPackageManager(), 8, 8 }),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
   onEndCallback(onEnd),
@@ -681,12 +681,12 @@ std::shared_ptr<Player> BattleSceneBase::GetPlayer()
   return player;
 }
 
-Field* BattleSceneBase::GetField()
+std::shared_ptr<Field> BattleSceneBase::GetField()
 {
   return field;
 }
 
-const Field* BattleSceneBase::GetField() const
+const std::shared_ptr<Field> BattleSceneBase::GetField() const
 {
   return field;
 }

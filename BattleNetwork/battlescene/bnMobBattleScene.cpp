@@ -16,10 +16,10 @@
 
 using namespace swoosh;
 
-MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattleProperties& props, BattleResultsFunc onEnd) :
-  props(props), 
-  BattleSceneBase(controller, props.base, onEnd) {
-
+MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperties _props, BattleResultsFunc onEnd) :
+  BattleSceneBase(controller, _props.base, onEnd),
+  props(std::move(_props))
+{
   Mob* current = props.mobs.at(0);
 
   // Simple error reporting if the scene was not fed any mobs

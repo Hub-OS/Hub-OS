@@ -30,7 +30,7 @@ class FreedomMissionMobScene final : public BattleSceneBase {
   int playerHitCount{};
 
   public:
-  FreedomMissionMobScene(swoosh::ActivityController& controller, const FreedomMissionProps& props, BattleResultsFunc onEnd=nullptr);
+  FreedomMissionMobScene(swoosh::ActivityController& controller, FreedomMissionProps props, BattleResultsFunc onEnd=nullptr);
   ~FreedomMissionMobScene();
 
   void OnHit(Entity& victim, const Hit::Properties& props) override final;

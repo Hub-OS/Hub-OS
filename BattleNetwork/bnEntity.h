@@ -285,14 +285,14 @@ public:
    * @brief Sets the field pointer
    * @param _field
    */
-  void SetField(Field* _field);
+  void SetField(std::shared_ptr<Field> _field);
 
   /**
    * @brief Gets the field pointer
    * Useful to check field state such as IsTimeFrozen()
    * @return Field pointer
    */
-  Field* GetField() const;
+  std::shared_ptr<Field> GetField() const;
 
   /**
    * @brief Gets the entity's assigned team
@@ -718,7 +718,7 @@ protected:
   sf::Vector2f tileOffset{ 0,0 }; /*!< complete motion is captured by `tile_pos + tileOffset`*/
   sf::Vector2f moveStartPosition{ 0,0 }; /*!< Used internally when moving*/
   sf::Vector2f drawOffset{ 0,0 }; /*!< extra draw offset added by the programmer */
-  Field* field{ nullptr };
+  std::weak_ptr<Field> field;
   Team team{};
   Element element{Element::none};
   ActionQueue actionQueue;

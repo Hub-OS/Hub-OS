@@ -2128,16 +2128,14 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     }
 
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
-    CardFolder* folder;
+    std::unique_ptr<CardFolder> folder;
 
     if (selectedFolder) {
       folder = (*selectedFolder)->Clone();
-      // Shuffle our folder
-      folder->Shuffle();
     }
     else {
       // use a new blank folder if we dont have a folder selected
-      folder = new CardFolder();
+      folder = std::make_unique<CardFolder>();
     }
 
     NetPlayConfig config;
@@ -2164,7 +2162,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     player->SetEmotion(GetPlayerSession()->emotion);
 
     NetworkBattleSceneProps props = {
-      { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
+      { player, GetProgramAdvance(), std::move(folder), std::make_shared<Field>(6, 3), GetBackground() },
       sf::Sprite(*mugshot),
       mugshotAnim,
       emotions,
@@ -2241,7 +2239,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   auto& mobMeta = packageManager.FindPackageByID(packageId);
 
-  auto* mob = mobMeta.GetData()->Build(new Field(6, 3));
+  auto* mob = mobMeta.GetData()->Build(std::make_shared<Field>(6, 3));
 
   AddSceneChangeTask([=] {
     // Play the pre battle rumble sound
@@ -2266,7 +2264,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     CardFolder* newFolder = nullptr;
 
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
-    CardFolder* folder;
+    std::unique_ptr<CardFolder> folder;
 
     if (selectedFolder) {
       folder = (*selectedFolder)->Clone();
@@ -2274,7 +2272,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     }
     else {
       // use a new blank folder if we dont have a folder selected
-      folder = new CardFolder();
+      folder = std::make_unique<CardFolder>();
     }
 
     // Queue screen transition to Battle Scene with a white fade effect
@@ -2284,7 +2282,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     }
 
     MobBattleProperties props{
-      { player, GetProgramAdvance(), folder, mob->GetField(), mob->GetBackground() },
+      { player, GetProgramAdvance(), std::move(folder), mob->GetField(), mob->GetBackground() },
       MobBattleProperties::RewardBehavior::take,
       { mob },
       sf::Sprite(*mugshot),
@@ -2297,7 +2295,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     };
 
     using effect = segue<WhiteWashFade>;
-    getController().push<effect::to<MobBattleScene>>(props, callback);
+    getController().push<effect::to<MobBattleScene>>(std::move(props), callback);
     GetPlayer()->Face(GetPlayer()->GetHeading());
     returningFrom = ReturningScene::BattleScene;
   });

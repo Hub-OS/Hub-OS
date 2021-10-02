@@ -38,7 +38,8 @@
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnScriptedComponent.h"
-#include "bindings/bnScriptedBlock.h"
+#include "bindings/bnWeakWrapper.h"
+#include "bindings/bnUserTypeField.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -258,6 +259,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int { return randSeed; });
 
+  DefineFieldUserType(battle_namespace);
+
   // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
   const auto& tile_record = state.new_usertype<Battle::Tile>("Tile", sol::no_constructor,
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
@@ -292,33 +295,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "add_entity", sol::overload(
       [] (Battle::Tile& tile, Entity* e) { return tile.AddEntity(e->shared_from_this()); }
     )
-  );
-
-  // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
-  // If you hold onto their ID, and use that through Field::GetCharacter,
-  // instead you will get passed a nullptr/nil in Lua after they've been effectively removed,
-  // rather than potentially holding onto a hanging pointer to deleted data.
-  const auto& field_record = battle_namespace.new_usertype<Field>("Field", sol::no_constructor,
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "Field", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "Field", key );
-    },
-    "tile_at", &Field::GetAt,
-    "width", &Field::GetWidth,
-    "height", &Field::GetHeight,
-    "spawn", sol::overload(
-      [](Field& field, Entity* e, int x, int y) { return field.AddEntity(e->shared_from_this(), x, y); },
-      [](Field& field, Entity* e, Battle::Tile& tile) { return field.AddEntity(e->shared_from_this(), tile); }
-    ),
-    "get_character", &Field::GetCharacter,
-    "get_entity", &Field::GetEntity,
-    "find_characters", &Field::FindCharacters,
-    "find_nearest_characters", &Field::FindNearestCharacters,
-    "find_tiles", &Field::FindTiles,
-    "notify_on_delete", &Field::NotifyOnDelete,
-    "callback_on_delete", &Field::CallbackOnDelete
   );
 
   const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
@@ -441,7 +417,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "get_id", &ScriptedSpell::GetID,
     "get_tile", &ScriptedSpell::GetTile,
     "get_current_tile", &ScriptedSpell::GetCurrentTile,
-    "get_field", &ScriptedSpell::GetField,
+    "get_field", [](ScriptedSpell& o) { return WeakWrapper(o.GetField()); },
     "get_facing", &ScriptedSpell::GetFacing,
     "set_facing", &ScriptedSpell::SetFacing,
     "sprite", &ScriptedSpell::AsSpriteProxyNode,
@@ -510,7 +486,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_alpha", &ScriptedObstacle::SetAlpha,
     "get_color", &ScriptedObstacle::getColor,
     "set_color", &ScriptedObstacle::setColor,
-    "get_field", &ScriptedObstacle::GetField,
+    "get_field", [](ScriptedObstacle& o) { return WeakWrapper(o.GetField()); },
     "sprite", &ScriptedObstacle::AsSpriteProxyNode,
     "hide", &ScriptedObstacle::Hide,
     "reveal", &ScriptedObstacle::Reveal,
@@ -579,7 +555,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_element", &Character::SetElement,
     "get_tile", &Character::GetTile,
     "get_current_tile", &Character::GetCurrentTile,
-    "get_field", &Character::GetField,
+    "get_field", [](Character& o) { return WeakWrapper(o.GetField()); },
     "get_facing", &Character::GetFacing,
     "get_alpha", &Character::GetAlpha,
     "set_alpha", &Character::SetAlpha,
@@ -640,7 +616,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_element", &ScriptedCharacter::SetElement,
     "get_tile", &ScriptedCharacter::GetTile,
     "get_current_tile", &ScriptedCharacter::GetCurrentTile,
-    "get_field", &ScriptedCharacter::GetField,
+    "get_field", [](ScriptedCharacter& o) { return WeakWrapper(o.GetField()); },
     "get_facing", &ScriptedCharacter::GetFacing,
     "get_target", &ScriptedCharacter::GetTarget,
     "get_alpha", &ScriptedCharacter::GetAlpha,
@@ -711,7 +687,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "get_id", &Player::GetID,
     "get_tile", &Player::GetTile,
     "get_current_tile", &Player::GetCurrentTile,
-    "get_field", &Player::GetField,
+    "get_field", [](Player& o) { return WeakWrapper(o.GetField()); },
     "get_facing", &Player::GetFacing,
     "is_sliding", &Player::IsSliding,
     "is_jumping", &Player::IsJumping,
@@ -743,7 +719,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_element", &ScriptedPlayer::SetElement,
     "get_tile", &ScriptedPlayer::GetTile,
     "get_current_tile", &ScriptedPlayer::GetCurrentTile,
-    "get_field", &ScriptedPlayer::GetField,
+    "get_field", [](ScriptedPlayer& o) { return WeakWrapper(o.GetField()); },
     "get_facing", &ScriptedPlayer::GetFacing,
     "get_alpha", &ScriptedPlayer::GetAlpha,
     "set_alpha", &ScriptedPlayer::SetAlpha,
@@ -774,7 +750,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "set_texture", &ScriptedPlayer::setTexture,
     "set_animation", &ScriptedPlayer::SetAnimation,
     "set_height", &ScriptedPlayer::SetHeight,
-    "set_fully_charge_color", &ScriptedPlayer::SetFullyChargeColor,
+    "set_fully_charged_color", &ScriptedPlayer::SetFullyChargeColor,
     "set_charge_position", &ScriptedPlayer::SetChargePosition,
     "get_animation", &ScriptedPlayer::GetAnimationObject,
     "set_float_shoe", &ScriptedPlayer::SetFloatShoe,
@@ -803,7 +779,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "get_id", &ScriptedArtifact::GetID,
     "get_tile", &ScriptedArtifact::GetTile,
     "get_current_tile", &ScriptedArtifact::GetCurrentTile,
-    "get_field", &ScriptedArtifact::GetField,
+    "get_field", [](ScriptedArtifact& o) { return WeakWrapper(o.GetField()); },
     "get_facing", &ScriptedArtifact::GetFacing,
     "get_alpha", &ScriptedArtifact::GetAlpha,
     "set_alpha", &ScriptedArtifact::SetAlpha,
@@ -1105,7 +1081,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "create_spawner", &ScriptedMob::CreateSpawner,
     "set_background", &ScriptedMob::SetBackground,
     "stream_music", &ScriptedMob::StreamMusic,
-    "get_field", &ScriptedMob::GetField,
+    "get_field", [](ScriptedMob& o) { return WeakWrapper(o.GetField()); },
     "enable_freedom_mission", &ScriptedMob::EnableFreedomMission
   );
 

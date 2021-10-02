@@ -15,22 +15,19 @@ BusterCardAction::BusterCardAction(std::shared_ptr<Character> actor, bool charge
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
-  buster = new SpriteProxyNode();
-  buster->setTexture(actor->getTexture());
-  buster->SetLayer(-1);
+  buster.setTexture(actor->getTexture());
+  buster.SetLayer(-1);
 
   busterAnim = Animation(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
   busterAnim.SetAnimation("BUSTER");
 
-  flare = new SpriteProxyNode();
-  flare->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
-  flare->SetLayer(-1);
+  flare.setTexture(Textures().LoadTextureFromFile(NODE_PATH));
+  flare.SetLayer(-1);
 
   flareAnim = Animation(NODE_ANIM);
   flareAnim.SetAnimation("DEFAULT");
 
-  busterAttachment = &AddAttachment(actor, "buster", *buster).UseAnimation(busterAnim);
-  
+  busterAttachment = &AddAttachment(actor, "buster", buster).UseAnimation(busterAnim);
 
   this->SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
@@ -62,13 +59,11 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
     user->GetField()->AddEntity(b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
 
-    busterAttachment->AddAttachment(busterAnim, "endpoint", *flare).UseAnimation(flareAnim);
+    busterAttachment->AddAttachment(busterAnim, "endpoint", flare).UseAnimation(flareAnim);
   };
 
   AddAnimAction(2, onFire);
 }
-
-BusterCardAction::~BusterCardAction(){ }
 
 void BusterCardAction::Update(double _elapsed)
 {

@@ -11,7 +11,7 @@
 //
 ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank)
 { 
-  scriptedSpawner = new Mob::Spawner <ScriptedCharacter>(std::ref(script), rank);
+  scriptedSpawner = std::make_unique<Mob::Spawner<ScriptedCharacter>>(std::ref(script), rank);
   std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
 
   scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> std::shared_ptr<ScriptedCharacter> {
@@ -21,10 +21,7 @@ ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::str
   };
 }
 
-ScriptedMob::ScriptedSpawner::~ScriptedSpawner()
-{}
-
-Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
+std::shared_ptr<Mob::Mutator> ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
 {
   if (scriptedSpawner) {
     // todo: swap out with ScriptedIntroState
@@ -36,7 +33,7 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
     return nullptr;
 
   // Create a new enemy spawn data object
-  Mob::MobData* data = new Mob::MobData();
+  auto data = std::make_unique<Mob::SpawnData>();
   std::shared_ptr<Character> character = constructor();
 
   auto ui = character->CreateComponent<MobHealthUI>(character);
@@ -49,8 +46,6 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
   data->index = (unsigned)mob->spawn.size();
 
   mob->GetField()->GetAt(x, y)->ReserveEntityByID(character->GetID());
-
-  auto mutator = new Mob::Mutator(data);
 
   mob->pixelStateInvokers.push_back(this->pixelStateInvoker);
 
@@ -87,10 +82,12 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
   }
 
   // Add the mob spawn data to our list of enemies to spawn
-  mob->spawn.push_back(mutator);
   mob->tracked.push_back(data->character);
 
   // Return a mutator to change some spawn info
+  auto mutator = std::make_shared<Mob::Mutator>(std::move(data));
+  mob->spawn.push_back(mutator);
+
   return mutator;
 }
 
@@ -110,15 +107,10 @@ ScriptedMob::ScriptedMob(sol::state& script) :
   MobFactory(), 
   script(script)
 {
-  field = new Field(6, 3);
+  script.script("package_requires_scripts()", sol::script_throw_on_error);
 }
 
-ScriptedMob::~ScriptedMob()
-{
-  delete field;
-}
-
-Mob* ScriptedMob::Build(Field* field) {
+Mob* ScriptedMob::Build(std::shared_ptr<Field> field) {
   // Build a mob around the field input
   this->field = field;
   this->mob = new Mob(field);
@@ -132,7 +124,7 @@ Mob* ScriptedMob::Build(Field* field) {
   return mob;
 }
 
-Field* ScriptedMob::GetField()
+std::shared_ptr<Field> ScriptedMob::GetField()
 {
   return field;
 }
@@ -149,7 +141,7 @@ ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn, 
 {
   auto obj = ScriptedMob::ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn), rank);
   obj.SetMob(this->mob);
-  return obj;
+  return std::move(obj);
 }
 
 void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely)

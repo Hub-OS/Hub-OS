@@ -133,7 +133,7 @@ public:
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use
    */
-  NetworkBattleScene(swoosh::ActivityController&, const NetworkBattleSceneProps& props, BattleResultsFunc onEnd=nullptr);
+  NetworkBattleScene(swoosh::ActivityController&, NetworkBattleSceneProps& props, BattleResultsFunc onEnd=nullptr);
   
   /**
    * @brief Clears all nodes and components

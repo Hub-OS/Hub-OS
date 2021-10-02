@@ -478,7 +478,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
     std::vector<std::string> cardUUIDs, cardPackages;
 
-    CardFolder* copy = folder.Clone();
+    auto copy = folder.Clone();
     auto next = copy->Next();
 
     while (next) {
@@ -492,8 +492,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
       }
       next = copy->Next();
     }
-
-    delete copy;
 
     DownloadSceneProps props = {
       canProceedToBattle,
@@ -568,7 +566,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
     if (this->sequenceTimer >= 3) {
       // Shuffle our folder
-      CardFolder* copy = folder.Clone();
+      auto copy = folder.Clone();
       copy->Shuffle();
 
       // Queue screen transition to Battle Scene with a white fade effect
@@ -595,7 +593,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
 
       NetworkBattleSceneProps props = {
-        { player, pa, copy, new Field(6, 3), std::make_shared<SecretBackground>() },
+        { player, pa, std::move(copy), std::make_shared<Field>(6, 3), std::make_shared<SecretBackground>() },
         sf::Sprite(*mugshot),
         mugshotAnim,
         emotions,

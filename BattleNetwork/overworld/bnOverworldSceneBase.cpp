@@ -855,10 +855,10 @@ void Overworld::SceneBase::GotoMobSelect()
     folder = new CardFolder();
   }
 
-  SelectMobScene::Properties props{ currentNaviId, *folder, programAdvance, bg };
+  SelectMobScene::Properties props{ currentNaviId, std::unique_ptr<CardFolder>(folder), programAdvance, bg };
   using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
   Audio().Play(AudioType::CHIP_DESC);
-  getController().push<effect::to<SelectMobScene>>(props);
+  getController().push<effect::to<SelectMobScene>>(std::move(props));
 }
 
 void Overworld::SceneBase::GotoPVP()
@@ -1125,7 +1125,7 @@ void Overworld::SceneBase::StartupTouchControls() {
     if (data.GetFolder("Default", folder)) {
       Audio().Play(AudioType::CHIP_DESC);
       using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
-      getController().push<segue>(currentNavi, *folder);
+      getController().push<segue>(currentNavi, std::unique_ptr<CardFolder>(folder));
     }
     else {
       Audio().Play(AudioType::CHIP_ERROR);

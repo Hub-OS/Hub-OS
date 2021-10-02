@@ -32,7 +32,7 @@ class MobBattleScene final : public BattleSceneBase {
   int playerHitCount{};
 
   public:
-  MobBattleScene(swoosh::ActivityController& controller, const MobBattleProperties& props, BattleResultsFunc onEnd=nullptr);
+  MobBattleScene(swoosh::ActivityController& controller, MobBattleProperties props, BattleResultsFunc onEnd=nullptr);
   ~MobBattleScene();
 
   void OnHit(Entity& victim, const Hit::Properties& props) override final;

@@ -19,7 +19,7 @@ class Mob
 {
 public:
   /*! \brief Spawn info data object */
-  struct MobData {
+  struct SpawnData {
     std::shared_ptr<Character> character{ nullptr }; /*!< The character to spawn */
     int tileX{}; /*!< The tile column to spawn on */
     int tileY{}; /*!< The tile row to spawn on */
@@ -29,19 +29,19 @@ public:
   class Mutator {
     friend class Mob;
 
-    MobData* data{ nullptr };
+    std::unique_ptr<SpawnData> data;
     std::vector<std::function<void(std::shared_ptr<Character> in)>> mutations;
 
-    MobData* GetSpawned() {
+    std::unique_ptr<SpawnData> GetSpawned() {
       for (auto&& m : mutations) {
         m(data->character);
       }
 
-      return data;
+      return std::move(data);
     }
 
   public:
-    Mutator(MobData* data) : data(data) {
+    Mutator(std::unique_ptr<SpawnData> data) : data(std::move(data)) {
 
     }
 
@@ -58,12 +58,12 @@ private:
   bool isBoss{ false }; /*!< Flag to change rank and music */
   bool isFreedomMission{ false };
   std::string music; /*!< Override with custom music */
-  std::vector<Mutator*> spawn; /*!< The enemies to spawn and manage */
+  std::vector<std::shared_ptr<Mutator>> spawn; /*!< The enemies to spawn and manage */
   std::vector<std::shared_ptr<Character>> tracked; /*! Enemies that may or may not be spawned through the mob class but need to be considered */
   std::vector<std::function<void(std::shared_ptr<Character>)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
   std::vector<std::function<void(std::shared_ptr<Character>)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
   std::multimap<int, BattleItem> rewards; /*!< All possible rewards for this mob by rank */
-  Field* field{ nullptr }; /*!< The field to play on */
+  std::shared_ptr<Field> field{ nullptr }; /*!< The field to play on */
   std::shared_ptr<Background> background; /*!< Override with custom background */
 
 public:
@@ -75,7 +75,7 @@ public:
   /**
    * @brief constructor
    */
-  Mob(Field* _field);
+  Mob(std::shared_ptr<Field> _field);
 
   /**
    * @brief Deletes memory and cleanups all enemies
@@ -108,9 +108,9 @@ public:
 
   /**
    * @brief Get the field
-   * @return Field*
+   * @return std::shared_ptr<Field>
    */
-  Field* GetField();
+  std::shared_ptr<Field> GetField();
 
   /**
    * @brief Get the count of enemies in battle
@@ -237,10 +237,10 @@ public:
   /**
    * @brief Get the next unspawned enemy
    * 
-   * Spawns the mob and changes its state to PixelInState<>
-   * @return MobData*
+   * Spawns the character and changes its state to PixelInState<>
+   * @return SpawnData
    */
-  MobData* GetNextMob();
+  std::unique_ptr<SpawnData> GetNextSpawn();
 
   /**
    * @brief Create a spawner object to spawn typed enemies
@@ -315,13 +315,13 @@ public:
   virtual ~Spawner() { }
 
   template<template<typename> class IntroState>
-  Mutator* SpawnAt(unsigned x, unsigned y) {
+  std::shared_ptr<Mutator> SpawnAt(unsigned x, unsigned y) {
     // assert that tileX and tileY exist in field
     assert(x >= 1 && x <= static_cast<unsigned>(mob->field->GetWidth()) 
         && y >= 1 && y <= static_cast<unsigned>(mob->field->GetHeight()));
 
     // Create a new enemy spawn data object
-    MobData* data = new MobData();
+    auto data = std::make_unique<SpawnData>();
     std::shared_ptr<Character> character = constructor();
 
     auto ui = character->CreateComponent<MobHealthUI>(character);
@@ -334,8 +334,6 @@ public:
     data->index = (unsigned)mob->spawn.size();
 
     mob->field->GetAt(x, y)->ReserveEntityByID(character->GetID());
-
-    auto mutator = new Mutator(data);
 
     // Thinking we need to remove AI inheritence and be another component on its own
     Mob* mobPtr = this->mob;
@@ -384,13 +382,15 @@ public:
       break;
     case ClassType::Rank::NM:
       data->character->SetName(data->character->GetName() + char(-3));
-    } 
+    }
 
-    // Add the mob spawn data to our list of enemies to spawn
-    mob->spawn.push_back(mutator);
+    // Add the character to our list of enemies to spawn
     mob->tracked.push_back(data->character);
 
     // Return a mutator to change some spawn info
+    auto mutator = std::make_shared<Mutator>(std::move(data));
+    mob->spawn.push_back(mutator);
+
     return mutator;
   }
 
