@@ -1,6 +1,8 @@
 #include "bnPlayerCustScene.h"
+#include "bnWebClientMananger.h"
+#include "netplay/bnBufferWriter.h"
+#include "netplay/bnBufferReader.h"
 #include "stx/string.h"
-
 #include <Segues/BlackWashFade.h>
 
 constexpr size_t BAD_GRID_POS = std::numeric_limits<size_t>::max();
@@ -33,22 +35,14 @@ PlayerCustScene::Piece* generateRandomBlock() {
     for (size_t i = 1; i < 4; i++) { // start one row down
       for (size_t j = 1; j < 4; j++) { // start one column over
         size_t index = (i * p->BLOCK_SIZE) + j;
-        size_t k = rand() % 2;
+        uint8_t k = rand() % 2;
         p->shape[index] = k;
         x += k;
-
-        if (first) {
-          p->startX = j;
-          p->startY = i;
-        }
-
-        if (k) {
-          p->maxWidth = std::max(j, p->maxWidth);
-          p->maxHeight = std::max(i, p->maxHeight);
-        }
       }
     }
   }
+
+  p->calculateDimensions();
 
   p->typeIndex = rand() % static_cast<uint8_t>(Blocks::Size);
   p->specialType = rand() % 2;
@@ -60,7 +54,8 @@ PlayerCustScene::Piece* generateRandomBlock() {
   return p;
 }
 
-PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, std::vector<Piece*> pieces) :
+PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const std::string& playerUUID, std::vector<Piece*> pieces) :
+  playerUUID(playerUUID),
   pieces(pieces),
   infoText(Font::Style::thin),
   itemText(Font::Style::thick),
@@ -178,8 +173,16 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, std::ve
   progressBar.setTextureRect(progressBarUVs); // source is 69x14 pixels
   progressBar.setColor(sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA));
 
+  // ensure piece dimensions are up-to-date
+  for (auto& p : pieces) {
+    p->calculateDimensions();
+  }
+
   // set screen view
   setView(sf::Vector2u(480, 320));
+
+  // load initial layout from profile data
+  loadFromSave();
 }
 
 PlayerCustScene::~PlayerCustScene()
@@ -191,32 +194,55 @@ PlayerCustScene::~PlayerCustScene()
   pieces.clear();
 }
 
+// cheaper check to see if piece can fit inside the region the grid cursor is located
 bool PlayerCustScene::canPieceFit(Piece* piece, size_t loc)
 {
   size_t x = loc % GRID_SIZE;
   size_t y = loc / GRID_SIZE;
 
-  // prevent inserting edges
-  bool tl = (x == 0 && y == 0);
-  bool tr = (x + piece->maxWidth + 1u == GRID_SIZE && y == 0);
-  bool bl = (x == 0 && y + 1u == GRID_SIZE);
-  bool br = (x + piece->maxWidth + 1u == GRID_SIZE && y + 1u == GRID_SIZE);
+  if (x == 0 && piece->startX <= 1)
+    return false;
+  else if (x == 1 && piece->startX == 0)
+    return false;
+  else if (x == 5 && (piece->startX + piece->maxWidth) == Piece::BLOCK_SIZE)
+    return false;
+  else if (x == 6 && (piece->startX + piece->maxWidth) >= Piece::BLOCK_SIZE - 1u)
+    return false;
 
-  if (tl || tr || bl || br) return false;
+  if (y == 0 && piece->startY <= 1)
+    return false;
+  else if (y == 1 && piece->startY == 0)
+    return false;
+  else if (y == 5 && (piece->startY + piece->maxHeight) == Piece::BLOCK_SIZE)
+    return false;
+  else if (y == 6 && (piece->startY + piece->maxHeight) >= Piece::BLOCK_SIZE - 1u)
+    return false;
 
-  return (piece->maxWidth + x) < GRID_SIZE && (piece->maxHeight + y) < GRID_SIZE;
+  return true;
 }
 
 bool PlayerCustScene::doesPieceOverlap(Piece* piece, size_t loc)
 {
-  size_t index = loc;
-  for (size_t i = piece->startY; i <= piece->maxHeight; i++) {
-    for (size_t j = piece->startX; j <= piece->maxWidth; j++) {
+  size_t start = getPieceStart(piece, loc);
+
+  for (size_t i = piece->startY; i < piece->maxHeight+piece->startY; i++) {
+    size_t idx = 0;
+    for (size_t j = piece->startX; j < piece->maxWidth+piece->startX; j++) {
       if (piece->shape[(i * Piece::BLOCK_SIZE) + j]) {
-        if (grid[index + j]) return true;
+        size_t x = (start + idx) % GRID_SIZE;
+        size_t y = (start + idx) / GRID_SIZE;
+
+        // prevent inserting corner spots
+        bool tl = (x == 0 && y == 0);
+        bool tr = (x + 1u == GRID_SIZE && y == 0);
+        bool bl = (x == 0 && y + 1u == GRID_SIZE);
+        bool br = (x + 1u == GRID_SIZE && y + 1u == GRID_SIZE);
+        bool corner = tl || tr || bl || br;
+        if (grid[start + idx] || corner) return true;
       }
+      idx++;
     }
-    index += GRID_SIZE; // next row
+    start += GRID_SIZE; // next row
   }
 
   return false;
@@ -224,29 +250,24 @@ bool PlayerCustScene::doesPieceOverlap(Piece* piece, size_t loc)
 
 bool PlayerCustScene::insertPiece(Piece* piece, size_t loc)
 {
-  size_t shape_half = ((Piece::BLOCK_SIZE / 2)*GRID_SIZE)+(GRID_SIZE-Piece::BLOCK_SIZE);
-
-  if (loc < shape_half) return false;
-  size_t start = loc - shape_half;
-  size_t center = loc; // where should pickup the piece where it was inserted
-
-  if (!canPieceFit(piece, start) || doesPieceOverlap(piece, start)) {
+  if (!canPieceFit(piece, loc) || doesPieceOverlap(piece, loc))
     return false;
-  }
 
-  // update grid pos
-  loc = start;
+  size_t start = getPieceStart(piece, loc);
 
-  for (size_t i = 0; i < Piece::BLOCK_SIZE; i++) {
-    for (size_t j = 0; j < Piece::BLOCK_SIZE; j++) {
+  for (size_t i = piece->startY; i < piece->maxHeight+piece->startY; i++) {
+    size_t idx = 0;
+
+    for (size_t j = piece->startX; j < piece->maxWidth+piece->startX; j++) {
       if (piece->shape[(i * Piece::BLOCK_SIZE) + j]) {
-        grid[loc + j] = piece;
+        grid[start + idx] = piece;
       }
+      idx++;
     }
-    loc += GRID_SIZE; // next row
+    start += GRID_SIZE; // next row
   }
 
-  centerHash[piece] = center;
+  centerHash[piece] = loc;
 
   // update the block types in use table
   blockTypeInUseTable[piece->typeIndex]++;
@@ -254,6 +275,37 @@ bool PlayerCustScene::insertPiece(Piece* piece, size_t loc)
   piece->commit();
 
   return true;
+}
+
+void PlayerCustScene::removePiece(Piece* piece)
+{
+  size_t index = getPieceCenter(piece);
+  if (index == BAD_GRID_POS) return;
+
+  size_t start = getPieceStart(piece, index);
+
+  bool scan = true;
+
+  for (size_t i = piece->startY; i < piece->maxHeight+piece->startY && scan; i++) {
+    size_t idx = 0;
+
+    for (size_t j = piece->startX; j < piece->maxWidth+piece->startX && scan; j++) {
+      // crash prevention, shouldn't be necessary if everything is programmed correctly
+      scan = (start + idx) < grid.size();
+
+      if (scan && piece->shape[(i * Piece::BLOCK_SIZE) + j]) {
+        grid[start + idx] = nullptr;
+      }
+
+      idx++;
+    }
+    start += GRID_SIZE;
+  }
+
+  // update the block types in use table
+  blockTypeInUseTable[piece->typeIndex]--;
+
+  centerHash[piece] = BAD_GRID_POS;
 }
 
 bool PlayerCustScene::isGridEdge(size_t y, size_t x)
@@ -281,30 +333,59 @@ bool PlayerCustScene::isCompileFinished()
   return progress >= maxProgressTime; // in seconds
 }
 
-void PlayerCustScene::removePiece(Piece* piece)
+void PlayerCustScene::loadFromSave()
 {
-  size_t index = getPieceCenter(piece);
-  if (index == BAD_GRID_POS) return;
-  index = index - (((Piece::BLOCK_SIZE / 2)*GRID_SIZE)+(GRID_SIZE-Piece::BLOCK_SIZE)); // start scanning here
+  std::string value = WEBCLIENT.GetValue(playerUUID + ":" + "blocks");
+  if (value.empty()) return;
 
-  bool scan = true;
+  Poco::Buffer<char> buffer{ value.c_str(), value.size() };
+  BufferReader reader;
 
-  for (size_t i = 0; i < Piece::BLOCK_SIZE && scan; i++) {
-    for (size_t j = 0; j < Piece::BLOCK_SIZE && scan; j++) {
-      // crash prevention, shouldn't be necessary if everything is programmed correctly
-      scan = (index + j) < grid.size();
+  size_t size = reader.Read<size_t>(buffer);
+  for (size_t i = 0; i < size; i++) {
+    std::string uuid = reader.ReadTerminatedString(buffer);
+    size_t center = reader.Read<size_t>(buffer);
+    size_t rot = reader.Read<size_t>(buffer);
 
-      if (scan && piece->shape[(i*Piece::BLOCK_SIZE)+j]) {
-        grid[index + j] = nullptr;
+    for (auto iter = pieces.begin(); iter != pieces.end(); /* skip */) {
+      if ((*iter)->uuid == uuid) {
+        for (size_t c = 0; c < rot; c++) {
+          (*iter)->rotateLeft();
+        }
+
+        if (insertPiece(*iter, center)) {
+          iter = pieces.erase(iter);
+          continue;
+        }
       }
+      iter++;
     }
-    index += GRID_SIZE;
+  }
+}
+
+void PlayerCustScene::completeAndSave()
+{
+  state = state::waiting;
+  infoText.SetString("OK");
+  Audio().Play(compile_complete);
+
+  Poco::Buffer<char> buffer{ 0 };
+  BufferWriter writer;
+
+  writer.Write(buffer, centerHash.size());
+  for (auto& [piece, center] : centerHash) {
+    writer.WriteTerminatedString(buffer, piece->uuid);
+    writer.Write(buffer, center);
+    writer.Write(buffer, piece->finalRot);
   }
 
-  // update the block types in use table
-  blockTypeInUseTable[piece->typeIndex]--;
-
-  centerHash[piece] = BAD_GRID_POS;
+  WEBCLIENT.SetKey(playerUUID + ":" + "blocks", std::string(buffer.begin(), buffer.size()));
+  if (WEBCLIENT.IsLoggedIn()) {
+    WEBCLIENT.SaveSession("profile.bin");
+  }
+  else {
+    WEBCLIENT.SaveSession("guest.bin");
+  }
 }
 
 bool PlayerCustScene::hasLeftInput()
@@ -335,6 +416,18 @@ size_t PlayerCustScene::getPieceCenter(Piece* piece)
   }
 
   return BAD_GRID_POS;
+}
+
+size_t PlayerCustScene::getPieceStart(Piece* piece, size_t center)
+{
+  size_t shape_half = ((Piece::BLOCK_SIZE / 2) * GRID_SIZE) + (GRID_SIZE - Piece::BLOCK_SIZE);
+  size_t offset = ((piece->startY * GRID_SIZE) + piece->startX);
+
+  size_t start_top_left = (center - (shape_half - offset));
+  size_t start_bottom_right = (center + (offset - shape_half));
+  bool afterCenter = offset > shape_half;
+
+  return afterCenter ? start_bottom_right : start_top_left;
 }
 
 sf::Vector2f PlayerCustScene::gridCursorToScreen()
@@ -441,7 +534,7 @@ void PlayerCustScene::animateCursor(double elapsed)
 void PlayerCustScene::animateScaffolding(double elapsed)
 {
   if (scaffolding < 1.) {
-    scaffolding = std::min(scaffolding + (10.f*elapsed), 1.);
+    scaffolding = std::min(scaffolding + (10.f*static_cast<float>(elapsed)), 1.f);
   }
 }
 
@@ -646,7 +739,7 @@ void PlayerCustScene::executeCancelGrab()
   selectGridUI();
 }
 
-bool PlayerCustScene::handleArrowKeys(double elapsed)
+bool PlayerCustScene::handleUIKeys(double elapsed)
 {
   if (hasLeftInput()) {
     handleInputDelay(elapsed, &PlayerCustScene::executeLeftKey);
@@ -907,9 +1000,7 @@ void PlayerCustScene::onUpdate(double elapsed)
       }
     }
     if (isCompileFinished() && state != state::waiting) {
-      state = state::waiting;
-      infoText.SetString("OK");
-      Audio().Play(compile_complete);
+      completeAndSave();
       return;
     }
 
@@ -943,7 +1034,7 @@ void PlayerCustScene::onUpdate(double elapsed)
         currCompileIndex = gridLoc;
       }
 
-      size_t len = std::ceil(label.size() * text_progress);
+      size_t len = static_cast<size_t>(std::ceil(label.size() * text_progress));
       infoText.SetString("Running...\n" + label.substr(0, len));
     }
 
@@ -984,7 +1075,7 @@ void PlayerCustScene::onUpdate(double elapsed)
 
   // handle input
   if (itemListSelected) {
-    if (handleArrowKeys(elapsed)) {
+    if (handleUIKeys(elapsed)) {
       return;
     }
 
@@ -1011,10 +1102,11 @@ void PlayerCustScene::onUpdate(double elapsed)
   }
 
   if (!grabbingPiece && !insertingPiece) {
-    if (Input().GetAnyKey() == sf::Keyboard::Space) {
-      insertingPiece = generateRandomBlock();
-      return;
-    }
+    // DEBUG: generate random pieces
+    //if (Input().GetAnyKey() == sf::Keyboard::Space) {
+    //  insertingPiece = generateRandomBlock();
+    //  return;
+    //}
 
     if (Input().Has(InputEvents::pressed_confirm)) {
       if (Piece* piece = grid[cursorLocation]) {
@@ -1038,7 +1130,7 @@ void PlayerCustScene::onUpdate(double elapsed)
       return;
   }
 
-  if (handleArrowKeys(elapsed)) {
+  if (handleUIKeys(elapsed)) {
     return;
   }
 
@@ -1059,7 +1151,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   size_t count{};
   for (auto& [key, value] : blockTypeInUseTable) {
     if (value == 0) continue;
-    float x = (gridSprite.getPosition().x + (8.f*2.f)) + (count*(14.+1.)*2.f);
+    float x = (gridSprite.getPosition().x + (8.f*2.f)) + (count*(14.f+1.f)*2.f);
     float y = gridSprite.getPosition().y + 2.f*2.f;
     blockSprite.setTexture(*blockTextures[key], true);
     blockSprite.setTextureRect({ 60, 0, 14, 9 });

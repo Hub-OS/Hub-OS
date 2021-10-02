@@ -152,8 +152,8 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     Font::specialCharLookup.insert(std::make_pair(char(-3), "THICK_NM"));
 
     // See the random generator with current time
-    srand(time(0));
-    this->SeedRand(time(0));
+    srand((unsigned int)time(0));
+    this->SeedRand((unsigned int)time(0));
   });
 
   this->UpdateConfigSettings(reader.GetConfigSettings());
@@ -196,7 +196,7 @@ void Game::Run()
   bool inMessageState = true;
 
   while (window.Running()) {
-    this->SeedRand(time(0));
+    this->SeedRand((unsigned int)time(0));
 
     float FPS = 0.f;
 
