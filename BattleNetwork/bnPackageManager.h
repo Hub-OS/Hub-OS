@@ -149,15 +149,12 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
   auto modpath = std::filesystem::absolute(path);
   modpath.make_preferred();
 
-  auto entrypath = modpath / "entry.lua";
   std::string packageName = modpath.filename().generic_string();
-  auto& res = handle.Scripts().LoadScript(entrypath.generic_string());
+
+  auto& res = handle.Scripts().LoadScript( modpath );
 
   if (res.result.valid()) {
     sol::state& state = *res.state;
-
-    // Sets the predefined _modpath variable
-    state["_modpath"] = modpath.generic_string() + "/";
 
     auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 

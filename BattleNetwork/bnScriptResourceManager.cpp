@@ -84,9 +84,14 @@ std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
 void ScriptResourceManager::SetSystemFunctions( sol::state* state )
 {
     // Has to capture a pointer to sol::state, the move constructor was deleted.
-  state->set_function( "include", [state]( const std::string fileName ) -> void {
+  state->set_function( "include", [state]( const std::string fileName ) -> sol::protected_function_result {
     std::cout << "Including script file: " << fileName << std::endl;
-    state->do_file( fileName, sol::load_mode::any );
+
+    std::string modPathRef = (*state)["_modpath"];
+    
+    sol::protected_function_result result = state->do_file( modPathRef + fileName, sol::load_mode::any );
+
+    return result;
   });
 }
 
@@ -198,9 +203,26 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& component_record = battle_namespace.new_usertype<ScriptedComponent>("Component",
-    sol::factories([](Character* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
-      return std::make_unique<ScriptedComponent>(owner, lifetime);
-    }),
+    sol::factories(
+      [](Character* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](ScriptedCharacter* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](Player* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](ScriptedPlayer* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](Obstacle* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](ScriptedObstacle* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      }
+    ),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
@@ -541,7 +563,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_air_shoe", &ScriptedPlayer::SetAirShoe,
     "slide_when_moving", &ScriptedPlayer::SlideWhenMoving,
     "add_defense_rule", &ScriptedPlayer::AddDefenseRule,
-    "add_defense_rule_s", [](ScriptedPlayer* player, ScriptedDefenseRule* rule) { player->AddDefenseRule(rule); },
     "delete", &ScriptedPlayer::Delete,
     "register_component", &ScriptedPlayer::RegisterComponent,
     "update_func", &ScriptedPlayer::on_update_func
@@ -1253,9 +1274,12 @@ ScriptResourceManager::~ScriptResourceManager()
   states.clear();
 }
 
-ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::string& path)
+ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::filesystem::path& modDirectory)
 {
-  auto iter = scriptTableHash.find(path);
+  auto entryPath = modDirectory / "entry.lua";
+  auto modpath = modDirectory;
+
+  auto iter = scriptTableHash.find(entryPath.filename().generic_string());
 
   if (iter != scriptTableHash.end()) {
     return iter->second;
@@ -1264,11 +1288,14 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   sol::state* lua = new sol::state;
   ConfigureEnvironment(*lua);
   SetSystemFunctions( lua );
+
+  (*lua)["_modpath"] = modDirectory.generic_string() + "/";
+
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
 
-  auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
-  auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
+  auto load_result = lua->safe_script_file(entryPath, sol::script_pass_on_error);
+  auto pair = scriptTableHash.emplace(entryPath, LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }
 
