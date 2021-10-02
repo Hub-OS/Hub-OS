@@ -60,7 +60,9 @@ ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) :
 
 template<typename Any>
 ExplodeState<Any>::~ExplodeState() {
-  /* explosion artifact is deleted by field */
+  if (explosion) {
+    delete explosion;
+  }
 }
 
 template<typename Any>
@@ -122,7 +124,6 @@ inline void ExplodeState<Any>::CleanupExplosions(Any& e)
 
   for (auto element : explosion->GetChain()) {
     e.RemoveNode(element);
-    delete element;
   }
 
   e.RemoveNode(explosion);

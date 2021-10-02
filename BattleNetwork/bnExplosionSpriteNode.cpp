@@ -177,4 +177,7 @@ std::vector<ExplosionSpriteNode*> ExplosionSpriteNode::GetChain()
 
 ExplosionSpriteNode::~ExplosionSpriteNode()
 {
+  for (auto node : chain) {
+    delete node;
+  }
 }
