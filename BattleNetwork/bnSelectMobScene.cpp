@@ -74,7 +74,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const Sel
   textbox.Stop();
   textbox.setPosition(100, 205);
   textbox.SetTextColor(sf::Color::Black);
-  textbox.SetCharactersPerSecond(25);
 
 #ifdef __ANDROID__
   touchPosX = 0;
@@ -90,14 +89,7 @@ SelectMobScene::~SelectMobScene() {
 void SelectMobScene::onUpdate(double elapsed) {
   SelectMobScene::elapsed += elapsed;
 
-  // multiplying update by 2 effectively sets playback speed to 200%
-  float animatorSpeed = 1.0f;
-
-  if (navigatorAnimator.GetAnimationString() != "IDLE") {
-    animatorSpeed = 2.0f;
-  }
-
-  navigatorAnimator.Update(double(elapsed* animatorSpeed), navigator.getSprite());
+  navigatorAnimator.Update(elapsed, navigator.getSprite());
 
   textbox.Update((float)elapsed);
 
