@@ -69,8 +69,11 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
   trackAnim = Animation("resources/scenes/cust/track.animation") << "DEFAULT";
   clawAnim = Animation("resources/scenes/cust/claw.animation");
   blockAnim = Animation("resources/scenes/cust/block.animation");
+  blockShadowHorizAnim = Animation("resources/scenes/cust/horizontal_shadow.animation");
+  blockShadowVertAnim = Animation("resources/scenes/cust/vertical_shadow.animation");
   buttonAnim = Animation("resources/scenes/cust/button.animation") << "DEFAULT";
   cursorAnim = Animation("resources/scenes/cust/red_cursor.animation") << "DEFAULT" << Animator::Mode::Loop;
+  menuAnim = Animation("resources/scenes/cust/menu.animation") << "MOVE";
 
   textbox.SetTextSpeed(1.0f);
   gotoNextScene = true;
@@ -124,6 +127,11 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
     blockTextures.push_back(load_texture("resources/scenes/cust/cust_blocks_" + std::to_string(i) + ".png"));
   }
 
+  blockShadowHorizontal = sf::Sprite(*load_texture("resources/scenes/cust/horiz_shadow.png"));
+  blockShadowHorizontal.setScale(2.f, 2.f);
+  blockShadowVertical = sf::Sprite(*load_texture("resources/scenes/cust/vert_shadow.png"));
+  blockShadowVertical.setScale(2.f, 2.f);
+
   sf::IntRect buttonRect = {0, 0, 73, 19};
   blueButtonSprite = sf::Sprite(*load_texture("resources/scenes/cust/item_name_container.png"));
   blueButtonSprite.setTextureRect(buttonRect);
@@ -139,6 +147,10 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
 
   previewBox = sf::Sprite(*load_texture("resources/scenes/cust/mini_block_container.png"));
   previewBox.setScale(2.f, 2.f);
+
+  menuBox = sf::Sprite(*load_texture("resources/scenes/cust/menu.png"));
+  menuBox.setScale(2.f, 2.f);
+  menuBox.setPosition(GRID_START_X + 100.f, GRID_START_Y + 100.f);
 
   miniblocksTexture = load_texture("resources/scenes/cust/mini_blocks.png");
 
@@ -225,12 +237,18 @@ bool PlayerCustScene::doesPieceOverlap(Piece* piece, size_t loc)
 {
   size_t start = getPieceStart(piece, loc);
 
+  bool entirelyOutOfBounds = true; // assume
+
   for (size_t i = piece->startY; i < piece->maxHeight+piece->startY; i++) {
     size_t idx = 0;
     for (size_t j = piece->startX; j < piece->maxWidth+piece->startX; j++) {
       if (piece->shape[(i * Piece::BLOCK_SIZE) + j]) {
         size_t x = (start + idx) % GRID_SIZE;
         size_t y = (start + idx) / GRID_SIZE;
+
+        if (x > 0 && x + 1u < GRID_SIZE && y > 0 && y + 1u < GRID_SIZE) {
+          entirelyOutOfBounds = false;
+        }
 
         // prevent inserting corner spots
         bool tl = (x == 0 && y == 0);
@@ -244,6 +262,8 @@ bool PlayerCustScene::doesPieceOverlap(Piece* piece, size_t loc)
     }
     start += GRID_SIZE; // next row
   }
+
+  if (piece->specialType && entirelyOutOfBounds) return true;
 
   return false;
 }
@@ -306,6 +326,61 @@ void PlayerCustScene::removePiece(Piece* piece)
   blockTypeInUseTable[piece->typeIndex]--;
 
   centerHash[piece] = BAD_GRID_POS;
+}
+
+void PlayerCustScene::drawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x)
+{
+  // TODO: make arrow and left block sprite
+  if ((x == 0 || x + 1u == GRID_SIZE) && y == 3) return;
+
+  sf::Vector2f pos = blockToScreen(y, x);
+
+  // assume if false, it is a horizontal piece
+  bool vert = x == 0 || x + 1u == GRID_SIZE;
+
+  if ((state == state::compiling || state == state::finishing) && compiledHash[piece]) {
+    if (vert) {
+      if (blockShadowVertAnim.GetAnimationString() != "BLINK") {
+        blockShadowVertAnim << "BLINK" << Animator::Mode::Loop;
+      }
+    }
+    else {
+      if (blockShadowHorizAnim.GetAnimationString() != "BLINK") {
+        blockShadowHorizAnim << "BLINK" << Animator::Mode::Loop;
+      }
+    }
+  }
+  else {
+    if (vert) {
+      if (blockShadowVertAnim.GetAnimationString() != "DIMMED") {
+        blockShadowVertAnim.SetAnimation("DIMMED");
+      }
+    }
+    else {
+      if (blockShadowHorizAnim.GetAnimationString() != "DIMMED") {
+        blockShadowHorizAnim.SetAnimation("DIMMED");
+      }
+    }
+  }
+
+  if (x == 0) {
+    pos.x += 26.f;
+  }
+
+  if (y == 0) {
+    pos.y += 26.f;
+  }
+
+  if (vert) {
+    blockShadowVertical.setPosition(pos);
+    blockShadowVertAnim.Refresh(blockShadowVertical);
+    surface.draw(blockShadowVertical);
+  }
+  else {
+    blockShadowHorizontal.setPosition(pos);
+    blockShadowHorizAnim.Refresh(blockShadowHorizontal);
+    surface.draw(blockShadowHorizontal);
+  }
 }
 
 bool PlayerCustScene::isGridEdge(size_t y, size_t x)
@@ -388,6 +463,14 @@ void PlayerCustScene::completeAndSave()
   }
 }
 
+sf::Vector2f PlayerCustScene::blockToScreen(size_t y, size_t x)
+{
+  float offsetX = (GRID_START_X * 2) + (x * 20.f * 2.f) - 4.f;
+  float offsetY = (GRID_START_Y * 2) + (y * 20.f * 2.f) - 4.f;
+
+  return sf::Vector2f{ offsetX, offsetY };
+}
+
 bool PlayerCustScene::hasLeftInput()
 {
   return Input().Has(InputEvents::pressed_ui_left) || Input().Has(InputEvents::held_ui_left);
@@ -428,6 +511,62 @@ size_t PlayerCustScene::getPieceStart(Piece* piece, size_t center)
   bool afterCenter = offset > shape_half;
 
   return afterCenter ? start_bottom_right : start_top_left;
+}
+
+void PlayerCustScene::handleGrabAction()
+{
+  state = state::block_prompt;
+  menuAnim.SetAnimation("MOVE");
+  menuAnim.Refresh(menuBox);
+  Audio().Play(AudioType::CHIP_DESC);
+  updateMenuPosition();
+  updateCursorHoverInfo();
+}
+
+void PlayerCustScene::handleMenuUIKeys(double elapsed)
+{
+  if (hasUpInput()) {
+    handleInputDelay(elapsed, &PlayerCustScene::executeUpKey);
+    return;
+  }
+
+  if (hasDownInput()) {
+    handleInputDelay(elapsed, &PlayerCustScene::executeDownKey);
+    return;
+  }
+
+  if (Input().Has(InputEvents::pressed_cancel)) {
+    state = state::usermode;
+    Audio().Play(AudioType::CHIP_DESC_CLOSE);
+    return;
+  }
+
+  Piece* piece = grid[cursorLocation];
+
+  if (!piece) return;
+
+  if (Input().Has(InputEvents::pressed_confirm)) {
+    if (menuAnim.GetAnimationString() == "MOVE") {
+      // interpolate to the center of the block
+      grabStartLocation = getPieceCenter(piece);
+      cursorLocation = std::min(grabStartLocation, grid.size() - 1u);
+
+      removePiece(piece);
+      grabbingPiece = piece;
+      state = state::usermode;
+      Audio().Play(AudioType::CHIP_DESC);
+
+      return;
+    }
+
+    if (menuAnim.GetAnimationString() == "REMOVE") {
+      removePiece(piece);
+      pieces.push_back(piece);
+      state = state::usermode;
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
+      updateCursorHoverInfo();
+    }
+  }
 }
 
 sf::Vector2f PlayerCustScene::gridCursorToScreen()
@@ -557,6 +696,8 @@ void PlayerCustScene::animateGrid()
 void PlayerCustScene::animateBlock(double elapsed, Piece* p)
 {
   blockFlashElapsed += elapsed;
+  blockShadowVertAnim.SyncTime(blockFlashElapsed);
+  blockShadowHorizAnim.SyncTime(blockFlashElapsed);
 
   if (!p) return;
 
@@ -689,6 +830,16 @@ void PlayerCustScene::executeRightKey()
 
 void PlayerCustScene::executeUpKey()
 {
+  if (state == state::block_prompt) {
+    if (menuAnim.GetAnimationString() == "MOVE")
+      return;
+
+    menuAnim.SetAnimation("MOVE");
+    menuAnim.Refresh(menuBox);
+    Audio().Play(AudioType::CHIP_SELECT);
+    return;
+  }
+
   if (itemListSelected) {
     if (listStart > 0) {
       listStart--;
@@ -707,6 +858,17 @@ void PlayerCustScene::executeUpKey()
 
 void PlayerCustScene::executeDownKey()
 {
+  if (state == state::block_prompt) {
+    if (menuAnim.GetAnimationString() == "REMOVE")
+      return;
+
+    menuAnim.SetAnimation("REMOVE");
+    menuAnim.Refresh(menuBox);
+    Audio().Play(AudioType::CHIP_SELECT);
+
+    return;
+  }
+
   if (itemListSelected) {
     // pieces end iterator doubles as the `run` action item
     if (listStart+1u <= pieces.size()) {
@@ -741,16 +903,6 @@ void PlayerCustScene::executeCancelGrab()
 
 bool PlayerCustScene::handleUIKeys(double elapsed)
 {
-  if (hasLeftInput()) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeLeftKey);
-    return true;
-  }
-
-  if (hasRightInput()) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeRightKey);
-    return true;
-  }
-
   if (hasUpInput()) {
     handleInputDelay(elapsed, &PlayerCustScene::executeUpKey);
     return true;
@@ -758,6 +910,16 @@ bool PlayerCustScene::handleUIKeys(double elapsed)
 
   if (hasDownInput()) {
     handleInputDelay(elapsed, &PlayerCustScene::executeDownKey);
+    return true;
+  }
+
+  if (hasLeftInput()) {
+    handleInputDelay(elapsed, &PlayerCustScene::executeLeftKey);
+    return true;
+  }
+
+  if (hasRightInput()) {
+    handleInputDelay(elapsed, &PlayerCustScene::executeRightKey);
     return true;
   }
 
@@ -818,6 +980,7 @@ void PlayerCustScene::selectGridUI()
     questionInterface = nullptr;
   }
 
+  selectInputCooldown = maxSelectInputCooldown;
   state = state::usermode;
   itemListSelected = false;
   updateCursorHoverInfo();
@@ -832,6 +995,7 @@ void PlayerCustScene::selectItemUI(size_t idx)
   }
 
   state = state::usermode;
+  selectInputCooldown = maxSelectInputCooldown;
 
   if (itemListSelected) return;
 
@@ -860,7 +1024,7 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
   if (Input().Has(InputEvents::pressed_confirm)) {
     if (insertPiece(piece, cursorLocation)) {
       piece = nullptr;
-      Audio().Play(AudioType::CHIP_DESC);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       updateCursorHoverInfo();
     }
     else {
@@ -886,7 +1050,7 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
 
 void PlayerCustScene::updateCursorHoverInfo()
 {
-  if (Piece* p = grid[cursorLocation]) {
+  if (Piece* p = grid[cursorLocation]; p && state != state::block_prompt) {
     infoText.SetString(p->description);
     hoverText.SetString(p->name);
 
@@ -904,6 +1068,19 @@ void PlayerCustScene::updateCursorHoverInfo()
     infoText.SetString("");
     hoverText.SetString("");
   }
+}
+
+void PlayerCustScene::updateMenuPosition() {
+  sf::Vector2f pos = gridCursorToScreen();
+
+  // some offsets since the cursor sprite isn't centered...
+  pos.x += 10.f * 2.f;
+  pos.y += 20.f * 2.f;
+
+  float y = (cursorLocation / GRID_SIZE) + 1u >= (GRID_SIZE - 1u) ? 60.f *2.f : 0.f;
+  pos.y -= y;
+
+  menuBox.setPosition(pos);
 }
 
 void PlayerCustScene::updateItemListHoverInfo()
@@ -986,7 +1163,7 @@ void PlayerCustScene::onUpdate(double elapsed)
       return;
     }
 
-    return; // TODO: take out?
+    return;
   }
 
   // handle the compile sequence states
@@ -1087,17 +1264,13 @@ void PlayerCustScene::onUpdate(double elapsed)
     
     if (handleSelectItemFromList()) return;
 
-    auto onYes = [this]() {
-      startCompile();
-    };
+    startCompile();
 
-    auto onNo = [this]() {
-      selectItemUI(pieces.size());
-    };
+    return;
+  }
 
-    questionInterface = new Question("Run the program?", onYes, onNo);
-    textbox.EnqueMessage(questionInterface);
-    textbox.Open();
+  if (state == state::block_prompt) {
+    handleMenuUIKeys(elapsed);
     return;
   }
 
@@ -1110,15 +1283,10 @@ void PlayerCustScene::onUpdate(double elapsed)
 
     if (Input().Has(InputEvents::pressed_confirm)) {
       if (Piece* piece = grid[cursorLocation]) {
-        // interpolate to the center of the block
-        grabStartLocation = getPieceCenter(piece);
-        cursorLocation = std::min(grabStartLocation, grid.size()-1u);
-
-        removePiece(piece);
-        grabbingPiece = piece;
-        Audio().Play(AudioType::CHIP_SELECT);
-        return;
+        handleGrabAction();
       }
+
+      return;
     }
   }
   else if (insertingPiece) {
@@ -1164,22 +1332,17 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
     for (size_t j = 0; j < GRID_SIZE; j++) {
       size_t index = (i * GRID_SIZE) + j;
       if (Piece* p = grid[index]) {
-        float offsetX = (GRID_START_X * 2)+(j * 20.f * 2.f)-4.f;
-        float offsetY = (GRID_START_Y * 2)+(i * 20.f * 2.f)-4.f;
-        blockSprite.setTexture(*blockTextures[grid[index]->typeIndex], true);
-        blockSprite.setPosition({ offsetX, offsetY });
-
         if (isGridEdge(i, j)) {
-          sf::Color color = sf::Color::White;
-          color.a = 100;
-          blockSprite.setColor(color);
+          drawEdgeBlock(surface, p, i, j);
         }
         else {
-          blockSprite.setColor(sf::Color::White);
-        }
+          sf::Vector2f blockPos = blockToScreen(i, j);
 
-        refreshBlock(p, blockSprite);
-        surface.draw(blockSprite);
+          blockSprite.setTexture(*blockTextures[grid[index]->typeIndex], true);
+          blockSprite.setPosition({ blockPos.x, blockPos.y });
+          refreshBlock(p, blockSprite);
+          surface.draw(blockSprite);
+        }
       }
     }
   }
@@ -1298,6 +1461,11 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
         surface.draw(cursor);
       }
     }
+  }
+
+  // grab prompt
+  if (state == state::block_prompt) {
+    surface.draw(menuBox);
   }
 
   // textbox is top over everything

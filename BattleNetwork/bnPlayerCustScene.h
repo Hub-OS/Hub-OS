@@ -103,6 +103,7 @@ private:
 
   enum class state : char {
     usermode = 0,
+    block_prompt,
     compiling,
     waiting,
     finishing
@@ -130,7 +131,8 @@ private:
   sf::Sprite gridSprite;
   sf::Sprite greenButtonSprite;
   sf::Sprite blueButtonSprite;
-  sf::Sprite infoBox, previewBox;
+  sf::Sprite infoBox, previewBox, menuBox;
+  sf::Sprite blockShadowVertical, blockShadowHorizontal;
   sf::Sprite track;
   sf::Sprite progressBar;
   sf::IntRect progressBarUVs;
@@ -149,7 +151,7 @@ private:
   size_t grabStartLocation{}; // in grid-space
   size_t listStart{};
   size_t currCompileIndex{};
-  Animation gridAnim, cursorAnim, clawAnim, blockAnim, buttonAnim, trackAnim;
+  Animation gridAnim, cursorAnim, clawAnim, blockAnim, buttonAnim, trackAnim, blockShadowVertAnim, blockShadowHorizAnim, menuAnim;
   AnimatedTextBox textbox;
   Question* questionInterface{ nullptr };
 
@@ -171,12 +173,16 @@ private:
   bool isGridEdge(size_t y, size_t x);
   bool handleSelectItemFromList();
   bool handleUIKeys(double elapsed);
+  void handleMenuUIKeys(double elapsed);
+  void handleGrabAction();
   bool handlePieceAction(Piece*& piece, void(PlayerCustScene::* executeFunc)());
   size_t getPieceCenter(Piece* piece);
   size_t getPieceStart(Piece* piece, size_t center);
   sf::Vector2f gridCursorToScreen();
+  sf::Vector2f blockToScreen(size_t y, size_t x);
   void loadFromSave();
   void completeAndSave();
+  void drawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x);
   void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
   void drawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
   void removePiece(Piece* piece);
@@ -199,6 +205,7 @@ private:
   void executeCancelGrab();
   void updateCursorHoverInfo();
   void updateItemListHoverInfo();
+  void updateMenuPosition();
   void handleInputDelay(double elapsed, void(PlayerCustScene::* executeFunc)());
   void selectGridUI();
   void selectItemUI(size_t idx);
