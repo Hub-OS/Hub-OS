@@ -137,13 +137,6 @@ void TitleScene::onUpdate(double elapsed)
       // We want the next screen to be the main menu screen
       using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
       getController().push<tx>();
-
-      /*if (!loginSelected) {
-        getController().push<ConfigScene>();
-      }*/
-
-      // Zoom out and start a segue effect
-      //getController().pop<segue<DiamondTileCircle>>();
     }
   }
   catch (std::future_error& err) {

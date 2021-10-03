@@ -220,14 +220,13 @@ void Game::ProcessFrame()
     bool updateFrame = true; // (frameByFrame && nextFrameKey) || !frameByFrame;
 
     if (updateFrame) {
-      // Prepare for draw calls
-      window.Clear();
+      window.Clear(); // clear screen
 
-      this->update(delta);
-      Logger::Logf("after update(delta)");
-      this->draw();
+      inputManager.Update(); // process inputs
+      this->update(delta);  // update game logic
+      this->draw();        // draw game
 
-      window.Display();
+      window.Display(); // display to screen
     }
 
     scope_elapsed = clock.getElapsedTime().asSeconds();
@@ -239,8 +238,8 @@ void Game::Run()
   while (window.Running()) {
     this->SeedRand(time(0));
 
-    // Poll input
-    inputManager.Update();
+    // Poll window events
+    inputManager.EventPoll();
 
     // unused images need to be free'd 
     textureManager.HandleExpiredTextureCache();

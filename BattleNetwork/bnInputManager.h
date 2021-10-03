@@ -50,6 +50,7 @@ public:
    * they are cleared from the event list. If no release is found but a press is present,
    * the button state is transformed into a HELD state equivalent.
    */
+  void EventPoll();
   void Update();
 
   bool HasFocus() const;
@@ -181,8 +182,7 @@ private:
 
   std::array<bool, sf::Keyboard::KeyCount> keyboardState;
   std::unordered_map<unsigned int, bool> gamepadState;
-  std::unordered_map<std::string, InputState> state; /*!< Current state */
-  std::unordered_map<std::string, InputState> stateLastFrame; /*!< The state prior to this update */
+  std::unordered_map<std::string, InputState> state, stateLastFrame, queuedState;
   map<InputEvent, std::string> input; /*!< Maps controller events*/
   ConfigSettings settings; /*!< Settings object*/
 
