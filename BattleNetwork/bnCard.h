@@ -5,10 +5,13 @@
 #include <vector>
 #include "bnElements.h"
 
+#include "bindings/bnCardImpl.h"
+
 using std::string;
 
 class BattleSceneBase;
 class SelectedCardsUI;
+class CardAction;
 
 /**
  * @class Card
@@ -27,9 +30,7 @@ namespace Battle {
     dark
   };
 
-  class Card {
-  public:
-    struct Properties {
+  struct CardProperties {
       std::string uuid;
       unsigned damage{ 0 };
       unsigned limit{ 0 };
@@ -46,11 +47,15 @@ namespace Battle {
       std::vector<std::string> metaClasses; /*!< Cards can be tagged with additional user information*/
     };
 
-    Properties props;
+  class Card : public CardImpl {
+  public:        
+    virtual CardAction* BuildCardAction(Character* user, Battle::CardProperties& props) { throw; };
+
+    CardProperties props;
     /**
       * @brief Cards are not designed to have default or partial data. Must provide all at once.
       */
-    Card(const Card::Properties& props);
+    Card(const CardProperties& props);
 
     /**
       * @brief copies card data
@@ -64,7 +69,7 @@ namespace Battle {
 
     ~Card();
 
-    const Card::Properties& GetUnmoddedProps() const;
+    const CardProperties& GetUnmoddedProps() const;
 
     /**
       * @brief Get extra card description. Shows up on library.
@@ -177,7 +182,7 @@ namespace Battle {
     friend struct Compare;
 
   private:
-    Properties unmodded;
+    CardProperties unmodded;
     unsigned int multiplier{ 0 };
   };
 }

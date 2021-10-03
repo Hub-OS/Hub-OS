@@ -6,6 +6,7 @@
 #include "bnPackageManager.h"
 #include "bnElements.h"
 #include "bnCard.h"
+#include "bindings/bnCardImpl.h"
 
 /*! \brief Use this to register card mods with the engine
 */
@@ -13,14 +14,8 @@
 class Character;
 class CardAction;
 
-class CardImpl {
-public:
-  virtual ~CardImpl() {};
-  virtual CardAction* BuildCardAction(Character* user, Battle::Card::Properties& props) = 0;
-};
-
 struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
-  Battle::Card::Properties properties;
+  Battle::CardProperties properties;
   std::shared_ptr<sf::Texture> iconTexture; /*!< Icon used in hand */
   std::shared_ptr<sf::Texture> previewTexture; /*!< Picture used in select widget */
   std::vector<char> codes;
@@ -61,7 +56,7 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
   const std::shared_ptr<sf::Texture> GetPreviewTexture() const;
 
   // mutable to allow scripting to modify this
-  Battle::Card::Properties& GetCardProperties();
+  Battle::CardProperties& GetCardProperties();
 
   const std::vector<char> GetCodes() const;
 };

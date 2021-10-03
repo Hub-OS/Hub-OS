@@ -155,6 +155,7 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
 
   if (res.result.valid()) {
     sol::state& state = *res.state;
+    state.open_libraries( sol::lib::base );
 
     auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 

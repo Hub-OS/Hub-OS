@@ -99,7 +99,7 @@ private:
   Character* actor{ nullptr };
   Attachments attachments;
   AnimationComponent* anim{ nullptr };
-  Battle::Card::Properties meta;
+  Battle::CardProperties meta;
 
   // Used internally
   void RecallPreviousState();
@@ -130,7 +130,7 @@ public:
   void SetLockout(const LockoutProperties& props);
   void SetLockoutGroup(const LockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
-  void SetMetaData(const Battle::Card::Properties& props);
+  void SetMetaData(const Battle::CardProperties& props);
   void Execute(Character* user);
   void EndAction();
   void UseStuntDouble(Character& stuntDouble);
@@ -140,7 +140,7 @@ public:
   const std::string& GetAnimState() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
-  const Battle::Card::Properties& GetMetaData() const;
+  const Battle::CardProperties& GetMetaData() const;
   const bool CanExecute() const;
   Character* GetActor();
   const Character* GetActor() const;

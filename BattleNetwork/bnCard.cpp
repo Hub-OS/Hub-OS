@@ -7,17 +7,17 @@ namespace Battle {
   Card::Card() : props(), unmodded(props) 
   { }
 
-  Card::Card(const Card::Properties& props) : props(props), unmodded(props)
+  Card::Card(const CardProperties& props) : props(props), unmodded(props)
   { }
 
   Card::Card(const Battle::Card & copy) : props(copy.props), unmodded(copy.props) 
   { }
 
   Card::~Card() {
-    props = unmodded = Card::Properties();
+    props = unmodded = CardProperties();
   }
 
-  const Card::Properties& Card::GetUnmoddedProps() const
+  const CardProperties& Card::GetUnmoddedProps() const
   {
     return unmodded;
   }

@@ -29,8 +29,7 @@ private:
   std::map<std::string, LoadScriptResult> scriptTableHash; /*!< Script path to sol table hash */
   std::map<std::string, std::string> characterFQN; /*! character FQN to script path */
   void ConfigureEnvironment(sol::state& state);
-  void SetSystemFunctions( sol::state* state );
-
+  
 public:
   static ScriptResourceManager& GetInstance();
 

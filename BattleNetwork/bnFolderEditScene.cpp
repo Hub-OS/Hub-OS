@@ -983,7 +983,7 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
       auto& meta = packageManager.FindPackageByID(packageId);
 
       for (auto& code : meta.GetCodes()) {
-        Battle::Card::Properties props = meta.GetCardProperties();
+        Battle::CardProperties props = meta.GetCardProperties();
         props.code = code;
         auto bucket = PoolBucket(5, Battle::Card(props));
         poolCardBuckets.push_back(bucket);

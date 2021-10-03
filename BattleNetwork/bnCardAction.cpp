@@ -103,7 +103,7 @@ const Character* CardAction::GetActor() const
   return actor;
 }
 
-const Battle::Card::Properties& CardAction::GetMetaData() const
+const Battle::CardProperties& CardAction::GetMetaData() const
 {
   return meta;
 }
@@ -142,7 +142,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   }
 }
 
-void CardAction::SetMetaData(const Battle::Card::Properties& props)
+void CardAction::SetMetaData(const Battle::CardProperties& props)
 {
   meta = props;
 }
