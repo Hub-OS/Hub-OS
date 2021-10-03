@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <atomic>
+#include <filesystem>
 
 #ifdef __unix__
 #define LUA_USE_POSIX 1
@@ -28,13 +29,14 @@ private:
   std::map<std::string, LoadScriptResult> scriptTableHash; /*!< Script path to sol table hash */
   std::map<std::string, std::string> characterFQN; /*! character FQN to script path */
   void ConfigureEnvironment(sol::state& state);
+  void SetSystemFunctions( sol::state* state );
 
 public:
   static ScriptResourceManager& GetInstance();
 
   ~ScriptResourceManager();
 
-  LoadScriptResult& LoadScript(const std::string& path);
+  LoadScriptResult& LoadScript(const std::filesystem::path& path);
 
   void DefineCharacter(const std::string& fqn, const std::string& path) /* throw std::exception */;
   sol::state* FetchCharacter(const std::string& fqn);

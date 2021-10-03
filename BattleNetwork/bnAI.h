@@ -43,7 +43,18 @@ public:
   /**
    * @brief Deletes the state machine object and Frees target
    */
-  ~AI() { if (stateMachine) { delete stateMachine; } ref = nullptr; FreeTarget(); }
+  ~AI() {
+    if (stateMachine) {
+      delete stateMachine;
+    }
+
+    if (queuedState) {
+      delete queuedState;
+    }
+
+    ref = nullptr;
+    FreeTarget();
+  }
 
   void InvokeDefaultState() {
     using DefaultState = typename CharacterT::DefaultState;

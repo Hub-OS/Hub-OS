@@ -52,7 +52,7 @@ void Question::OnUpdate(double elapsed) {
   this->elapsed = elapsed;
   this->totalElapsed += this->elapsed;
 
-  isQuestionReady = GetTextBox()->IsEndOfMessage();
+  isQuestionReady = GetTextBox()->IsFinalBlock() && GetTextBox()->IsEndOfMessage();
 
   Message::OnUpdate(elapsed);
 

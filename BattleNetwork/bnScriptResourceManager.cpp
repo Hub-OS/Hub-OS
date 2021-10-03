@@ -10,6 +10,7 @@
 #include "bnCardPackageManager.h"
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
+#include "bnBlockPackageManager.h"
 
 #include "bnAnimator.h"
 #include "bnEntity.h"
@@ -35,6 +36,7 @@
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnScriptedComponent.h"
+#include "bindings/bnScriptedBlock.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -59,6 +61,40 @@ namespace {
 
     return sol::stack::push(L, description);
   }
+}
+
+std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
+{
+  std::list<OverrideFrame> frames;
+
+  auto count = table.size();
+
+  std::cout << "Framedata:" << std::endl;
+
+  for( int ind = 1; ind <= count; ++ind )
+  {
+    unsigned animStateNumber = table.traverse_get<unsigned>(ind, 1);
+    double duration = table.traverse_get<double>(ind, 2);
+
+    std::cout << "id:" << animStateNumber << " d:" << duration << std::endl;
+    frames.emplace_back( OverrideFrame { animStateNumber, duration } );
+  }
+
+  return frames;
+}
+
+void ScriptResourceManager::SetSystemFunctions( sol::state* state )
+{
+    // Has to capture a pointer to sol::state, the move constructor was deleted.
+  state->set_function( "include", [state]( const std::string fileName ) -> sol::protected_function_result {
+    std::cout << "Including script file: " << fileName << std::endl;
+
+    std::string modPathRef = (*state)["_modpath"];
+    
+    sol::protected_function_result result = state->do_file( modPathRef + fileName, sol::load_mode::any );
+
+    return result;
+  });
 }
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
@@ -88,6 +124,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "attack_entities", &Battle::Tile::AffectEntities,
     "get_distance_to_tile", &Battle::Tile::Distance,
     "find_characters", &Battle::Tile::FindCharacters,
+    "highlight", &Battle::Tile::RequestHighlight,
     "get_tile", &Battle::Tile::GetTile,
     "contains_entity", &Battle::Tile::ContainsEntity,
     "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
@@ -168,9 +205,26 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& component_record = battle_namespace.new_usertype<ScriptedComponent>("Component",
-    sol::factories([](Character* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
-      return std::make_unique<ScriptedComponent>(owner, lifetime);
-    }),
+    sol::factories(
+      [](Character* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](ScriptedCharacter* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](Player* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](ScriptedPlayer* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](Obstacle* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      },
+      [](ScriptedObstacle* owner, Component::lifetimes lifetime) -> std::unique_ptr<ScriptedComponent> {
+        return std::make_unique<ScriptedComponent>(owner, lifetime);
+      }
+    ),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
@@ -510,6 +564,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_float_shoe", &ScriptedPlayer::SetFloatShoe,
     "set_air_shoe", &ScriptedPlayer::SetAirShoe,
     "slide_when_moving", &ScriptedPlayer::SlideWhenMoving,
+    "add_defense_rule", &ScriptedPlayer::AddDefenseRule,
     "delete", &ScriptedPlayer::Delete,
     "register_component", &ScriptedPlayer::RegisterComponent,
     "update_func", &ScriptedPlayer::on_update_func
@@ -821,6 +876,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_health", &MobMeta::SetHP,
     "declare_package_id", &MobMeta::SetPackageID
   );
+
+  const auto& blockmeta_table = battle_namespace.new_usertype<BlockMeta>("BlockMeta",
+    "set_description", &BlockMeta::SetDescription,
+    "set_name", &BlockMeta::SetName,
+    "set_color", &BlockMeta::SetColor,
+    "set_shape", &BlockMeta::SetShape,
+    "as_program", &BlockMeta::AsProgram,
+    "declare_package_id", &BlockMeta::SetPackageID
+    );
 
   const auto& scriptedmob_table = battle_namespace.new_usertype<ScriptedMob>("Mob",
     "create_spawner", &ScriptedMob::CreateSpawner,
@@ -1191,9 +1255,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     [](unsigned num) { return frames(num); }
   );
 
-  state.set_function("fdata",
-    [](unsigned index, double sec) { return OverrideFrame{ index, sec };  }
-  );
+  state.set_function( "make_frame_data", &CreateFrameData );
 
   state.set_function("reverse_dir",
     [](Direction dir) { return Reverse(dir); }
@@ -1223,9 +1285,12 @@ ScriptResourceManager::~ScriptResourceManager()
   states.clear();
 }
 
-ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::string& path)
+ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::filesystem::path& modDirectory)
 {
-  auto iter = scriptTableHash.find(path);
+  auto entryPath = modDirectory / "entry.lua";
+  auto modpath = modDirectory;
+
+  auto iter = scriptTableHash.find(entryPath.filename().generic_string());
 
   if (iter != scriptTableHash.end()) {
     return iter->second;
@@ -1233,11 +1298,15 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
 
   sol::state* lua = new sol::state;
   ConfigureEnvironment(*lua);
+  SetSystemFunctions( lua );
+
+  (*lua)["_modpath"] = modDirectory.generic_string() + "/";
+
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
 
-  auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
-  auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
+  auto load_result = lua->safe_script_file(entryPath.generic_string(), sol::script_pass_on_error);
+  auto pair = scriptTableHash.emplace(entryPath.generic_string(), LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }
 

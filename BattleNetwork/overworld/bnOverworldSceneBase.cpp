@@ -23,6 +23,8 @@
 #include "../bnKeyItemScene.h"
 #include "../bnMailScene.h"
 #include "../bnVendorScene.h"
+#include "../bnPlayerCustScene.h"
+#include "../bnBlockPackageManager.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnCustomBackground.h"
 #include "../bnLanBackground.h"
@@ -147,6 +149,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
 
   menuSystem.BindMenu(InputEvents::pressed_pause, personalMenu);
   menuSystem.BindMenu(InputEvents::pressed_map, minimap);
+  minimap->setScale(2.f, 2.f);
 }
 
 void Overworld::SceneBase::onStart() {
@@ -338,6 +341,7 @@ void Overworld::SceneBase::HandleInput() {
     if (Input().Has(InputEvents::pressed_interact)) {
       OnInteract(Interaction::action);
     }
+
     if (Input().Has(InputEvents::pressed_shoulder_left)) {
       OnInteract(Interaction::inspect);
     }
@@ -756,9 +760,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   // update map to trigger recalculating shadows for minimap
   this->map.Update(*this, 0.0f);
-
-  *minimap = Minimap::CreateFrom(this->map.GetName(), this->map);
-  minimap->setScale(2.f, 2.f);
+  minimap->Update(this->map.GetName(), this->map);
 }
 
 void Overworld::SceneBase::TeleportUponReturn(const sf::Vector3f& position)

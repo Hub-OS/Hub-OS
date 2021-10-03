@@ -202,8 +202,7 @@ void AnimatedTextBox::ReplaceText(std::string text)
 void AnimatedTextBox::Update(double elapsed) {
   float mugshotSpeed = 1.0f;
 
-  // multiplying the speed by a factor of 2 looks more natural
-  textBox.Update(elapsed * static_cast<float>(textSpeed) * 2.0);
+  textBox.Update(elapsed * static_cast<float>(textSpeed));
 
   if (isReady && messages.size() > 0) {
     int yIndex = (int)(textBox.GetNumberOfLines() % textBox.GetNumberOfFittingLines());

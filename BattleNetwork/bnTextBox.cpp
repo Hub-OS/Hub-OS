@@ -19,7 +19,7 @@ TextBox::TextBox(int width, int height, const Font& font) :
   message = "";
   areaWidth = width;
   areaHeight = height;
-  charsPerSecond = 10;
+  charsPerSecond = 40;
   charIndex = 0;
   play = true;
   mute = false;

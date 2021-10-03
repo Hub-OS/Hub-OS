@@ -214,7 +214,7 @@ void Cube::OnSpawn(Battle::Tile & start)
     }
   };
 
-  if (!start.IsWalkable() || start.IsReservedByCharacter({ this })) {
+  if (!start.IsWalkable() || start.IsReservedByCharacter({ GetID() })) {
     animation->SetAnimation("APPEAR", 0, [this]() { finishedSpawn = true; });
     killLater = true;
   }
