@@ -113,6 +113,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   SetCommandLineValues(values);
 
   isDebug = CommandLineValue<bool>("debug");
+  singlethreaded = CommandLineValue<bool>("singlethreaded");
 
   // Initialize the engine and log the startup time
   const clock_t begin_time = clock();
@@ -188,9 +189,26 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
   spinnerAnimator = Animation("resources/ui/spinner.animation") << "SPIN" << Animator::Mode::Loop;
 
-  renderThread = std::thread(&Game::ProcessFrame, this);
+  if (!singlethreaded) {
+    renderThread = std::thread(&Game::ProcessFrame, this);
+  }
 
   return tasks;
+}
+
+bool Game::NextFrame()
+{
+  bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame);
+  bool resumeKey = inputManager.Has(InputEvents::pressed_resume_frames);
+
+  if (nextFrameKey && isDebug && !frameByFrame) {
+    frameByFrame = true;
+  }
+  else if (resumeKey && frameByFrame) {
+    frameByFrame = false;
+  }
+
+  return (frameByFrame && nextFrameKey) || !frameByFrame;
 }
 
 void Game::ProcessFrame()
@@ -198,6 +216,7 @@ void Game::ProcessFrame()
   sf::Clock clock;
   float scope_elapsed = 0.0f;
   window.GetRenderWindow()->setActive(true);
+
   while (window.Running()) {
     clock.restart();
 
@@ -207,19 +226,43 @@ void Game::ProcessFrame()
     // Poll net code
     netManager.Update(delta);
 
-    //bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame);
-    //bool resumeKey = inputManager.Has(InputEvents::pressed_resume_frames);
+    if (NextFrame()) {
+      window.Clear(); // clear screen
 
-    //if (nextFrameKey && isDebug && !frameByFrame) {
-      //frameByFrame = true;
-   // }
-    //else if (resumeKey && frameByFrame) {
-    //  frameByFrame = false;
-   // }
+      inputManager.Update(); // process inputs
+      this->update(delta);  // update game logic
+      this->draw();        // draw game
 
-    bool updateFrame = true; // (frameByFrame && nextFrameKey) || !frameByFrame;
+      window.Display(); // display to screen
+    }
 
-    if (updateFrame) {
+    scope_elapsed = clock.getElapsedTime().asSeconds();
+  }
+}
+
+void Game::RunSingleThreaded()
+{
+  sf::Clock clock;
+  float scope_elapsed = 0.0f;
+  window.GetRenderWindow()->setActive(true);
+
+  while (window.Running()) {
+    clock.restart();
+    this->SeedRand(time(0));
+
+    // Poll window events
+    inputManager.EventPoll();
+
+    // unused images need to be free'd 
+    textureManager.HandleExpiredTextureCache();
+
+    double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
+    this->elapsed += from_seconds(delta);
+
+    // Poll net code
+    netManager.Update(delta);
+
+    if (NextFrame()) {
       window.Clear(); // clear screen
 
       inputManager.Update(); // process inputs
@@ -235,6 +278,11 @@ void Game::ProcessFrame()
 
 void Game::Run()
 {
+  if (singlethreaded) {
+    RunSingleThreaded();
+    return;
+  }  
+
   while (window.Running()) {
     this->SeedRand(time(0));
 

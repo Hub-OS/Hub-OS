@@ -58,6 +58,7 @@ private:
   double mouseAlpha{};
   bool showScreenBars{};
   bool frameByFrame{}, isDebug{};
+  bool singlethreaded{ false };
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
@@ -102,7 +103,8 @@ private:
   std::thread renderThread;
 
   void ProcessFrame();
-
+  void RunSingleThreaded();
+  bool NextFrame();
 public:
   Game(DrawWindow& window);
   Game(const Game&) = delete;
