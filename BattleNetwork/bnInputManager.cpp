@@ -97,9 +97,11 @@ void InputManager::Update()
   std::swap(queuedLastKey, lastkey);
   std::swap(queuedLastButton, lastButton);
   std::swap(stateLastFrame, state); // (store state in stateLastFrame, without deep copy)
-  state.clear();
-  systemCopyEvent = systemPasteEvent = false;
+  std::swap(queuedSystemCopyEvent, systemCopyEvent);
+  std::swap(queuedSystemPasteEvent, systemPasteEvent);
 
+  state.clear();
+  queuedSystemCopyEvent = queuedSystemPasteEvent = false;
   queuedLastKey = sf::Keyboard::Key::Unknown;
   queuedLastButton = static_cast<Gamepad>(-1);
 
@@ -181,10 +183,10 @@ void InputManager::EventPoll() {
 
 #ifndef __ANDROID__
         if (event.key.control && event.key.code == sf::Keyboard::V)
-          systemPasteEvent = true;
+          queuedSystemPasteEvent = true;
 
         if (event.key.control && event.key.code == sf::Keyboard::C)
-          systemCopyEvent = true;
+          queuedSystemCopyEvent = true;
 #endif
 
         textBuffer.HandleKeyPressed(event);
@@ -202,7 +204,7 @@ void InputManager::EventPoll() {
     }
   } // end event poll
 
-  if (systemPasteEvent) {
+  if (queuedSystemPasteEvent) {
     textBuffer.HandlePaste(GetClipboard());
   }
 

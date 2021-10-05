@@ -171,7 +171,7 @@ private:
 
   InputTextBuffer textBuffer;
 
-  bool systemCopyEvent{ false }, systemPasteEvent{ false };
+  bool queuedSystemCopyEvent{ false }, systemCopyEvent{ false }, queuedSystemPasteEvent{ false }, systemPasteEvent{ false };
   bool hasFocus{ true };
   bool useGamepadControls{ true };
   bool useKeyboardControls{ true };
