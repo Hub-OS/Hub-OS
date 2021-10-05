@@ -25,15 +25,12 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
   reserved = metal.GetField()->GetAt(tile->GetX() + 1, tile->GetY());
 
   if (reserved) {
-    metal.canEnterRedTeam = true;
-
     auto lastTile = metal.GetTile();
     reserved->ReserveEntityByID(metal.GetID());
     lastTile->ReserveEntityByID(metal.GetID());
 
     auto onFinish = [metal = &metal, lastTile, anim, this]() {
-      Logger::Log("metalman move on finish called");
-
+      metal->canEnterRedTeam = true;
       if (metal->Teleport(reserved)) {
 
         auto onFinishPunch = [m = metal, anim, lastTile]() {

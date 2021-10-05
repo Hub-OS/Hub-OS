@@ -33,7 +33,9 @@ enum class ActionTypes : short {
   buster,
   peek_card,
   card,
-  movement
+  movement,
+  flip_facing,
+  size
 };
 
 enum class ActionDiscardOp : short {

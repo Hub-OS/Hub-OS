@@ -1,7 +1,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Window/Clipboard.hpp>
-using sf::Event;
-using sf::Keyboard;
+#include <mutex>
+
 #include "bnGame.h"
 #include "bnInputManager.h"
 
@@ -9,7 +9,8 @@ using sf::Keyboard;
 #include "Android/bnTouchArea.h"
 #endif
 
-// #include <iostream>
+using sf::Event;
+using sf::Keyboard;
 
 #define GAMEPAD_AXIS_SENSITIVITY 30.f
 
@@ -17,11 +18,11 @@ InputManager::InputManager(sf::Window& win)  :
   window(win),
   settings(),
   textBuffer() {
-  lastkey = sf::Keyboard::Key::Unknown;
-  lastButton = (decltype(lastButton))-1;
+  queuedLastKey = lastkey = sf::Keyboard::Key::Unknown;
+  queuedLastButton = lastButton = (decltype(lastButton))-1;
+  queuedKeyboardState.fill(false);
   keyboardState.fill(false);
 }
-
 
 InputManager::~InputManager() {
 }
@@ -69,83 +70,141 @@ void InputManager::SupportConfigSettings(ConfigSettings& settings) {
   invertThumbstick = settings.GetInvertThumbstick();
 }
 
-void InputManager::Update() {
+void InputManager::Update()
+{
+  this->mutex.lock();
+
+  // Prioritize press events only (discard release events)
+  for (auto iter = queuedState.begin(); iter != queuedState.end(); /* skip */) {
+    auto& event = *iter;
+
+    if (event.second == InputState::pressed) {
+      auto query = [event](const std::pair<std::string, InputState>& pair) {
+        return pair.first == event.first && pair.second == InputState::released;
+      };
+
+      auto iterFind = std::find_if(queuedState.begin(), queuedState.end(), query);
+
+      if (iterFind != queuedState.end()) {
+        iter = queuedState.erase(iterFind);
+        continue;
+      }
+    }
+
+    iter++;
+  }
+
+  std::swap(queuedLastKey, lastkey);
+  std::swap(queuedLastButton, lastButton);
   std::swap(stateLastFrame, state); // (store state in stateLastFrame, without deep copy)
+  std::swap(queuedSystemCopyEvent, systemCopyEvent);
+  std::swap(queuedSystemPasteEvent, systemPasteEvent);
+
   state.clear();
-  systemCopyEvent = systemPasteEvent = false;
+  queuedSystemCopyEvent = queuedSystemPasteEvent = false;
+  queuedLastKey = sf::Keyboard::Key::Unknown;
+  queuedLastButton = static_cast<Gamepad>(-1);
 
+  // Uncomment for debugging
+/*for (auto& [name, state] : stateLastFrame) {
+  std::string stateName = "NONE";
+
+  switch (state) {
+  case InputState::held:
+    stateName = "InputState::held";
+    break;
+  case InputState::released:
+    stateName = "InputState::released";
+    break;
+  case InputState::pressed:
+    stateName = "InputState::pressed";
+    break;
+  }
+  Logger::Logf("input event %s, %s", name.c_str(), stateName.c_str());
+}*/
+
+// Finally, merge the continuous InputState::held key events into the final event buffer
+  for (auto& [name, value]: queuedState) {
+    auto previouslyHeld = (value == InputState::pressed && stateLastFrame[name] == InputState::pressed)|| stateLastFrame[name] == InputState::held;
+
+    if (previouslyHeld) {
+      state[name] = InputState::held;
+    }
+    else{
+      state[name] = value;
+    }
+  }
+
+  for (auto& [name, value]: stateLastFrame) {
+    if (queuedState[name] == InputState::none && value != InputState::released) {
+      state[name] = InputState::released;
+    }
+  }
+
+  queuedState.clear();
+
+#ifdef __ANDROID__
+  state.clear(); // TODO: what inputs get stuck in the event list on droid?
+  TouchArea::poll();
+#endif
+  this->mutex.unlock();
+}
+
+void InputManager::EventPoll() {
   Event event{};
-
-  lastkey = sf::Keyboard::Key::Unknown;
-  lastButton = static_cast<Gamepad>(-1);
 
   while (window.pollEvent(event)) {
     if (event.type == Event::Closed) {
-      {
-        std::lock_guard lock(mutex);
-        onLoseFocus ? onLoseFocus() : (void)0;
-      }
-
+      onLoseFocus ? onLoseFocus() : (void)0;
       window.close();
       hasFocus = false;
     } else if (event.type == Event::LostFocus) {
-      {
-        std::lock_guard lock(mutex);
-
-        onLoseFocus ? onLoseFocus() : (void)0;
-      }
-
+      onLoseFocus ? onLoseFocus() : (void)0;
       hasFocus = false;
 
       FlushAllInputEvents();
     }
     else if (event.type == Event::GainedFocus) {
-      {
-        std::lock_guard lock(mutex);
-
-        onRegainFocus ? onRegainFocus() : (void)0;
-      }
-
+      onRegainFocus ? onRegainFocus() : (void)0;
       hasFocus = true;
 
       // we have re-entered, do not let keys be held down
       FlushAllInputEvents();
     }
     else if (event.type == Event::Resized) {
-      std::lock_guard lock(mutex);
-
       onResized? onResized(event.size.width, event.size.height) : (void)0;
       hasFocus = true;
-    } else if (event.type == sf::Event::TextEntered) {
+    }
+    else if (event.type == sf::Event::TextEntered) {
       textBuffer.HandleTextEntered(event);
     } else if(event.type == sf::Event::EventType::KeyPressed) {
       if (hasFocus) {
-        lastkey = event.key.code;
+        queuedLastKey = event.key.code;
 
 #ifndef __ANDROID__
         if (event.key.control && event.key.code == sf::Keyboard::V)
-          systemPasteEvent = true;
+          queuedSystemPasteEvent = true;
 
         if (event.key.control && event.key.code == sf::Keyboard::C)
-          systemCopyEvent = true;
+          queuedSystemCopyEvent = true;
 #endif
 
         textBuffer.HandleKeyPressed(event);
       }
     }
 
-    if (Event::EventType::KeyPressed == event.type) {
+    if (event.type == Event::EventType::KeyPressed) {
       if(event.key.code != Keyboard::Unknown) {
-        keyboardState[event.key.code] = true;
+        queuedKeyboardState[event.key.code] = true;
       }
-    } else if (Event::KeyReleased == event.type) {
+    } else if (event.type == Event::KeyReleased) {
       if(event.key.code != Keyboard::Unknown) {
-        keyboardState[event.key.code] = false;
+        queuedKeyboardState[event.key.code] = false;
       }
     }
   } // end event poll
 
-  if (systemPasteEvent) {
+  if (queuedSystemPasteEvent) {
     textBuffer.HandlePaste(GetClipboard());
   }
 
@@ -160,18 +219,20 @@ void InputManager::Update() {
     }
   }
 
+  this->mutex.lock();
+
   // update gamepad inputs
   if (sf::Joystick::isConnected(currGamepad)) {
-    gamepadState.clear();
+    queuedGamepadState.clear();
 
     // track buttons
     for (unsigned int i = 0; i < sf::Joystick::getButtonCount(currGamepad); i++) {
       auto buttonPressed = sf::Joystick::isButtonPressed(currGamepad, i);
 
-      gamepadState[i] = buttonPressed;
+      queuedGamepadState[i] = buttonPressed;
 
       if (buttonPressed) {
-        lastButton = (decltype(lastButton))i;
+        queuedLastButton = (decltype(queuedLastButton))i;
       }
     }
 
@@ -196,21 +257,21 @@ void InputManager::Update() {
     }
 
     if (axisXPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-      gamepadState[(unsigned int)Gamepad::LEFT] = true;
-      lastButton = Gamepad::LEFT;
+      queuedLastButton = Gamepad::LEFT;
+      queuedGamepadState[(unsigned int)queuedLastButton] = true;
     }
     else if (axisXPower >= GAMEPAD_AXIS_SENSITIVITY) {
-      gamepadState[(unsigned int)Gamepad::RIGHT] = true;
-      lastButton = Gamepad::RIGHT;
+      queuedLastButton = Gamepad::RIGHT;
+      queuedGamepadState[(unsigned int)queuedLastButton] = true;
     }
 
     if (axisYPower >= GAMEPAD_AXIS_SENSITIVITY) {
-      lastButton = Gamepad::UP;
-      gamepadState[(unsigned int)lastButton] = true;
+      queuedLastButton = Gamepad::UP;
+      queuedGamepadState[(unsigned int)queuedLastButton] = true;
     }
     else if (axisYPower <= -GAMEPAD_AXIS_SENSITIVITY) {
-      lastButton = Gamepad::DOWN;
-      gamepadState[(unsigned int)lastButton] = true;
+      queuedLastButton = Gamepad::DOWN;
+      queuedGamepadState[(unsigned int)queuedLastButton] = true;
     }
   }
 
@@ -222,8 +283,8 @@ void InputManager::Update() {
         for (auto& binding : actionBindings) {
           isActive |=
             binding.isKeyboardBinding
-              ? useKeyboardControls && keyboardState[binding.input]
-              : useGamepadControls && gamepadState[binding.input];
+              ? useKeyboardControls && queuedKeyboardState[binding.input]
+              : useGamepadControls && queuedGamepadState[binding.input];
 
           if (isActive) {
             break;
@@ -231,7 +292,7 @@ void InputManager::Update() {
         }
 
         if(isActive) {
-          state[name] = InputState::pressed;
+          queuedState[name] = InputState::pressed;
         }
       }
     }
@@ -254,16 +315,13 @@ void InputManager::Update() {
       }
       if (keyboardState[sf::Keyboard::Key::X]) {
         VirtualKeyEvent(InputEvents::pressed_cancel);
-        VirtualKeyEvent(InputEvents::pressed_shoot);
+        VirtualKeyEvent(InputEvents::pressed_use_chip);
         VirtualKeyEvent(InputEvents::pressed_run);
       }
       if (keyboardState[sf::Keyboard::Key::Z]) {
+        VirtualKeyEvent(InputEvents::pressed_shoot);
         VirtualKeyEvent(InputEvents::pressed_confirm);
-        VirtualKeyEvent(InputEvents::pressed_use_chip);
         VirtualKeyEvent(InputEvents::pressed_interact);
-      }
-      if (keyboardState[sf::Keyboard::Key::Space]) {
-        VirtualKeyEvent(InputEvents::pressed_cust_menu);
       }
       if (keyboardState[sf::Keyboard::Key::Enter]) {
         VirtualKeyEvent(InputEvents::pressed_pause);
@@ -277,41 +335,12 @@ void InputManager::Update() {
       }
       if (keyboardState[sf::Keyboard::Key::S]) {
         VirtualKeyEvent(InputEvents::pressed_shoulder_right);
+        VirtualKeyEvent(InputEvents::pressed_cust_menu);
       }
     }
   }
 
-  // Uncomment for debugging
-  /*for (auto& [name, state] : stateLastFrame) {
-    std::string stateName = "NONE";
-
-    switch (state) {
-    case InputState::held:
-      stateName = "InputState::held";
-      break;
-    case InputState::released:
-      stateName = "InputState::released";
-      break;
-    case InputState::pressed:
-      stateName = "InputState::pressed";
-      break;
-    }
-    Logger::Logf("input event %s, %s", name.c_str(), stateName.c_str());
-  }*/
-
-  // Finally, merge the continuous InputState::held key events into the final event buffer
-  for (auto& [name, previousState] : stateLastFrame) {
-    auto previouslyHeld = previousState == InputState::pressed || previousState == InputState::held;
-
-    if (previouslyHeld) {
-      state[name] = state[name] == InputState::pressed ? InputState::held : InputState::released;
-    }
-  }
-
-#ifdef __ANDROID__
-    state.clear(); // TODO: what inputs get stuck in the event list on droid?
-    TouchArea::poll();
-#endif
+  this->mutex.unlock();
 }
 
 bool InputManager::HasFocus() const
@@ -339,7 +368,7 @@ Gamepad InputManager::GetAnyGamepadButton() const
   return lastButton;
 }
 
-const std::unordered_map<std::string, InputState>& InputManager::StateThisFrame() const
+const std::unordered_map<std::string, InputState> InputManager::StateThisFrame() const
 {
   return state;
 }
@@ -480,6 +509,7 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
   return false;
 }
 
+// NOTE: This is thread-safe when used in game Update() loop
 bool InputManager::Has(InputEvent event) const {
   auto it = state.find(event.name);
 
@@ -491,24 +521,24 @@ bool InputManager::Has(InputEvent event) const {
 }
 
 void InputManager::VirtualKeyEvent(InputEvent event) {
-  state[event.name] = event.state;
+  queuedState[event.name] = event.state;
 }
 
 void InputManager::BindRegainFocusEvent(std::function<void()> callback)
 {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(this->mutex);
   onRegainFocus = callback;
 }
 
 void InputManager::BindResizedEvent(std::function<void(int, int)> callback)
 {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(this->mutex);
   onResized = callback;
 }
 
 void InputManager::BindLoseFocusEvent(std::function<void()> callback)
 {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(this->mutex);
   onLoseFocus = callback;;
 }
 
@@ -544,10 +574,10 @@ ConfigSettings& InputManager::GetConfigSettings()
 
 void InputManager::FlushAllInputEvents()
 {
-  for (auto& [name, previousState] : stateLastFrame) {
+  for (auto& [name, previousState] : state) {
     // Search for press keys that have been InputState::held and transform them
     if (previousState == InputState::pressed || previousState == InputState::held) {
-      state[name] = InputState::released;
+      queuedState[name] = InputState::released;
     }
   }
 

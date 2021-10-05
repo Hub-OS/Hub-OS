@@ -279,8 +279,11 @@ void SelectNaviScene::GotoPlayerCust()
 
     auto& meta = blockManager.FindPackageByID(package);
     auto* piece = meta.GetData();
-    piece->description = meta.description;
+
+    // TODO: lines 283-295 should use PreGetData() hook in package manager class?
+    piece->uuid = meta.GetPackageID();
     piece->name = meta.name;
+    piece->description = meta.description;
 
     size_t idx{};
     for (auto& s : piece->shape) {
@@ -295,7 +298,7 @@ void SelectNaviScene::GotoPlayerCust()
     package = blockManager.GetPackageAfter(package);
   } while (package != blockManager.FirstValidPackage());
 
-  getController().push<effect::to<PlayerCustScene>>(blocks);
+  getController().push<effect::to<PlayerCustScene>>(this->currentChosenId, blocks);
 }
 
 void SelectNaviScene::onUpdate(double elapsed) {

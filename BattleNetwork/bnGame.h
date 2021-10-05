@@ -1,6 +1,7 @@
 #pragma once
 #include <Swoosh/ActivityController.h>
 #include <atomic>
+#include <thread>
 
 #include "bnTaskGroup.h"
 #include "bnDrawWindow.h"
@@ -58,6 +59,7 @@ private:
   double mouseAlpha{};
   bool showScreenBars{};
   bool frameByFrame{}, isDebug{};
+  bool singlethreaded{ false };
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
@@ -98,7 +100,12 @@ private:
 
   Endianness endian{ Endianness::big };
   std::atomic<int> progress{ 0 };
+  std::mutex windowMutex;
+  std::thread renderThread;
 
+  void ProcessFrame();
+  void RunSingleThreaded();
+  bool NextFrame();
 public:
   Game(DrawWindow& window);
   Game(const Game&) = delete;

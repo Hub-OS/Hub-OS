@@ -17,6 +17,7 @@ public:
   struct Piece {
     std::string name = "Unnamed";
     std::string description = "N/A";
+    std::string uuid;
     static constexpr size_t BLOCK_SIZE = 5u;
     size_t typeIndex{};
     size_t maxWidth{}, maxHeight{};
@@ -36,6 +37,8 @@ public:
 
       std::swap(newShape, shape);
       rotates++;
+
+      calculateDimensions(); // TODO: this can be embedded in the loop above for optimization
     }
 
     void rotateRight() {
@@ -45,7 +48,7 @@ public:
     }
 
     void commit() {
-      finalRot = rotates % 4;
+      finalRot = (finalRot + rotates) % 4;
       rotates = 0;
     }
 
@@ -60,12 +63,47 @@ public:
 
       commit();
     }
+
+    void calculateDimensions() {
+      bool first = true;
+      size_t min_i{}, min_j{}, max_i{}, max_j{};
+
+      for (size_t i = 0; i < BLOCK_SIZE; i++) {
+        for (size_t j = 0; j < BLOCK_SIZE; j++) {
+          size_t index = (i * BLOCK_SIZE) + j;
+          uint8_t k = shape[index];
+
+          if (k) {
+            if (!first) {
+              // max of rect
+              max_j = std::max(j, max_j);
+              max_i = std::max(i, max_i);
+
+              // min of rect
+              min_j = std::min(j, min_j);
+              min_i = std::min(i, min_i);
+            }
+            else {
+              max_j = min_j = j;
+              max_i = min_i = i;
+              first = false;
+            }
+          }
+        }
+      }
+
+      startX = min_j;
+      startY = min_i;
+      maxWidth = (max_j - min_j) + 1u;
+      maxHeight = (max_i - min_i) + 1u;
+    }
   };
 private:
   static constexpr size_t GRID_SIZE = 7u;
 
   enum class state : char {
     usermode = 0,
+    block_prompt,
     compiling,
     waiting,
     finishing
@@ -85,7 +123,7 @@ private:
   // scene graphics
   double blockFlashElapsed{}, buttonFlashElapsed{};
   double frameElapsed{};
-  double scaffolding{1.f};
+  float scaffolding{1.f};
   sf::Sprite bg;
   sf::Sprite cursor, itemArrowCursor;
   sf::Sprite claw;
@@ -93,10 +131,12 @@ private:
   sf::Sprite gridSprite;
   sf::Sprite greenButtonSprite;
   sf::Sprite blueButtonSprite;
-  sf::Sprite infoBox, previewBox;
+  sf::Sprite infoBox, previewBox, menuBox;
+  sf::Sprite blockShadowVertical, blockShadowHorizontal;
   sf::Sprite track;
   sf::Sprite progressBar;
   sf::IntRect progressBarUVs;
+  std::string playerUUID;
   std::shared_ptr<sf::Texture> cursorTexture, miniblocksTexture;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
   std::shared_ptr<sf::SoundBuffer> compile_start, compile_complete, compile_no_item, compile_item;
@@ -111,7 +151,7 @@ private:
   size_t grabStartLocation{}; // in grid-space
   size_t listStart{};
   size_t currCompileIndex{};
-  Animation gridAnim, cursorAnim, clawAnim, blockAnim, buttonAnim, trackAnim;
+  Animation gridAnim, cursorAnim, clawAnim, blockAnim, buttonAnim, trackAnim, blockShadowVertAnim, blockShadowHorizAnim, menuAnim;
   AnimatedTextBox textbox;
   Question* questionInterface{ nullptr };
 
@@ -122,10 +162,7 @@ private:
   bool gotoNextScene{}; /*!< If true, user cannot interact */
   bool itemListSelected{}; // If the item list if not selected, it implies the grid area is
 
-  void startCompile();
   bool isCompileFinished();
-
-  void removePiece(Piece* piece);
   bool hasLeftInput();
   bool hasRightInput();
   bool hasUpInput();
@@ -135,13 +172,22 @@ private:
   bool insertPiece(Piece* piece, size_t loc);
   bool isGridEdge(size_t y, size_t x);
   bool handleSelectItemFromList();
-  bool handleArrowKeys(double elapsed);
+  bool handleUIKeys(double elapsed);
+  void handleMenuUIKeys(double elapsed);
+  void handleGrabAction();
   bool handlePieceAction(Piece*& piece, void(PlayerCustScene::* executeFunc)());
   size_t getPieceCenter(Piece* piece);
+  size_t getPieceStart(Piece* piece, size_t center);
   sf::Vector2f gridCursorToScreen();
+  sf::Vector2f blockToScreen(size_t y, size_t x);
+  void loadFromSave();
+  void completeAndSave();
+  void drawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x);
   void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
   void drawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
+  void removePiece(Piece* piece);
   void consolePrintGrid();
+  void startCompile();
   void startScaffolding();
   void animateButton(double elapsed);
   void animateCursor(double elapsed);
@@ -159,6 +205,7 @@ private:
   void executeCancelGrab();
   void updateCursorHoverInfo();
   void updateItemListHoverInfo();
+  void updateMenuPosition();
   void handleInputDelay(double elapsed, void(PlayerCustScene::* executeFunc)());
   void selectGridUI();
   void selectItemUI(size_t idx);
@@ -193,7 +240,7 @@ public:
    *
    * Loads and initializes all default graphics and state values
    */
-  PlayerCustScene(swoosh::ActivityController&, std::vector<Piece*> pieces);
+  PlayerCustScene(swoosh::ActivityController&, const std::string& playerUUID, std::vector<Piece*> pieces);
 
   /**
    * @brief deconstructor

@@ -166,7 +166,10 @@ void FolderScene::onUpdate(double elapsed) {
       questionInterface->SelectNo();
     }
     else if (Input().Has(InputEvents::pressed_confirm)) {
-      if (!textbox.IsEndOfMessage()) {
+      if (!textbox.IsEndOfBlock()) {
+        textbox.CompleteCurrentBlock();
+      }
+      else if (!textbox.IsEndOfMessage()) {
         questionInterface->Continue();
       }
       else {
@@ -174,8 +177,13 @@ void FolderScene::onUpdate(double elapsed) {
       }
     }
     else if (Input().Has(InputEvents::pressed_cancel)) {
-      questionInterface->SelectNo();
-      questionInterface->ConfirmSelection();
+      if (!textbox.IsEndOfBlock()) {
+        textbox.CompleteCurrentBlock();
+      }
+      else if (textbox.IsEndOfMessage()) {
+        questionInterface->SelectNo();
+        questionInterface->ConfirmSelection();
+      }
     }
 
     return;
