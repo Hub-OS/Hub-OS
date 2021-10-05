@@ -48,10 +48,10 @@ void ScriptedObstacle::OnCollision(const std::shared_ptr<Entity> other)
     return;
   }
 
-  auto so = shared_from_base<ScriptedObstacle>();
+  auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
 
   try {
-    collisionCallback(so, other);
+    collisionCallback(obstacle, WeakWrapper(other));
   } catch(std::exception& e) {
     Logger::Log(e.what());
   }
@@ -62,10 +62,10 @@ void ScriptedObstacle::OnUpdate(double _elapsed) {
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
 
   if (updateCallback) {
-    auto so = shared_from_base<ScriptedObstacle>();
+    auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
 
     try {
-      updateCallback(so, _elapsed);
+      updateCallback(obstacle, _elapsed);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -74,10 +74,10 @@ void ScriptedObstacle::OnUpdate(double _elapsed) {
 
 void ScriptedObstacle::OnDelete() {
   if (deleteCallback) {
-    auto so = shared_from_base<ScriptedObstacle>();
+    auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
 
     try {
-      deleteCallback(so);
+      deleteCallback(obstacle);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -90,10 +90,10 @@ void ScriptedObstacle::Attack(std::shared_ptr<Entity> other) {
   other->Hit(GetHitboxProperties());
 
   if (attackCallback) {
-    auto so = shared_from_base<ScriptedObstacle>();
+    auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
 
     try {
-      attackCallback(so, other);
+      attackCallback(obstacle, WeakWrapper(other));
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -103,10 +103,10 @@ void ScriptedObstacle::Attack(std::shared_ptr<Entity> other) {
 void ScriptedObstacle::OnSpawn(Battle::Tile& spawn)
 {
   if (spawnCallback) {
-    auto so = shared_from_base<ScriptedObstacle>();
+    auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
 
     try {
-      spawnCallback(so, spawn);
+      spawnCallback(obstacle, spawn);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }

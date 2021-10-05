@@ -5,6 +5,7 @@
 #include "bnScriptedCardAction.h"
 #include "../../bnCard.h"
 #include "../bnSolHelpers.h"
+#include "bnWeakWrapper.h"
 
 class CardImpl;
 
@@ -17,7 +18,7 @@ public:
   }
 
   std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, Battle::Card::Properties& props) override {
-    auto functionResult = CallLuaFunction(script, "card_create_action", user, props);
+    auto functionResult = CallLuaFunction(script, "card_create_action", WeakWrapper(user), props);
 
     if (functionResult.is_error()) {
       Logger::Log(functionResult.error_cstr());

@@ -5,6 +5,7 @@
 #include "dynamic_object.h"
 #include "../bnObstacle.h"
 #include "../bnAnimationComponent.h"
+#include "bnWeakWrapper.h"
 
 using sf::Texture;
 
@@ -36,12 +37,12 @@ public:
 
   void NeverFlip(bool enabled);
 
-  std::function<void(std::shared_ptr<ScriptedObstacle>, Battle::Tile&)> spawnCallback;
-  std::function<void(std::shared_ptr<ScriptedObstacle>, std::shared_ptr<Entity>)> attackCallback;
-  std::function<void(std::shared_ptr<ScriptedObstacle>, std::shared_ptr<Entity>)> collisionCallback;
+  std::function<void(WeakWrapper<ScriptedObstacle>, Battle::Tile&)> spawnCallback;
+  std::function<void(WeakWrapper<ScriptedObstacle>, WeakWrapper<Entity>)> attackCallback;
+  std::function<void(WeakWrapper<ScriptedObstacle>, WeakWrapper<Entity>)> collisionCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(std::shared_ptr<ScriptedObstacle>)> deleteCallback;
-  std::function<void(std::shared_ptr<ScriptedObstacle>, double)> updateCallback;
+  std::function<void(WeakWrapper<ScriptedObstacle>)> deleteCallback;
+  std::function<void(WeakWrapper<ScriptedObstacle>, double)> updateCallback;
 private:
   bool flip{ true };
   sf::Vector2f scriptedOffset{};

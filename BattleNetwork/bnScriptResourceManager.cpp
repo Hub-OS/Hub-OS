@@ -40,6 +40,13 @@
 #include "bindings/bnScriptedComponent.h"
 #include "bindings/bnWeakWrapper.h"
 #include "bindings/bnUserTypeField.h"
+#include "bindings/bnUserTypeTile.h"
+#include "bindings/bnUserTypeBasicCharacter.h"
+#include "bindings/bnUserTypeScriptedCharacter.h"
+#include "bindings/bnUserTypeScriptedPlayer.h"
+#include "bindings/bnUserTypeScriptedSpell.h"
+#include "bindings/bnUserTypeScriptedObstacle.h"
+#include "bindings/bnUserTypeScriptedArtifact.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -260,42 +267,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int { return randSeed; });
 
   DefineFieldUserType(battle_namespace);
-
-  // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
-  const auto& tile_record = state.new_usertype<Battle::Tile>("Tile", sol::no_constructor,
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "Tile", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "Tile", key );
-    },
-    "x", &Battle::Tile::GetX,
-    "y", &Battle::Tile::GetY,
-    "width", &Battle::Tile::GetWidth,
-    "height", &Battle::Tile::GetHeight,
-    "get_state", &Battle::Tile::GetState,
-    "set_state", &Battle::Tile::SetState,
-    "is_edge", &Battle::Tile::IsEdgeTile,
-    "is_cracked", &Battle::Tile::IsCracked,
-    "is_hole", &Battle::Tile::IsHole,
-    "is_walkable", &Battle::Tile::IsWalkable,
-    "is_hidden", &Battle::Tile::IsHidden,
-    "is_reserved", &Battle::Tile::IsReservedByCharacter,
-    "get_team", &Battle::Tile::GetTeam,
-    "attack_entities", &Battle::Tile::AffectEntities,
-    "get_distance_to_tile", &Battle::Tile::Distance,
-    "find_characters", &Battle::Tile::FindCharacters,
-    "highlight", &Battle::Tile::RequestHighlight,
-    "get_tile", &Battle::Tile::GetTile,
-    "contains_entity", sol::overload(
-      [] (Battle::Tile& tile, Entity* e) { return tile.ContainsEntity(e->shared_from_this()); }
-    ),
-    "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
-    "reserve_entity_by_id", &Battle::Tile::ReserveEntityByID,
-    "add_entity", sol::overload(
-      [] (Battle::Tile& tile, Entity* e) { return tile.AddEntity(e->shared_from_this()); }
-    )
-  );
+  DefineTileUserType(state);
+  DefineBasicCharacterUserType(battle_namespace);
+  DefineScriptedCharacterUserType(battle_namespace);
+  DefineScriptedPlayerUserType(battle_namespace);
+  DefineScriptedSpellUserType(battle_namespace);
+  DefineScriptedObstacleUserType(battle_namespace);
+  DefineScriptedArtifactUserType(battle_namespace);
 
   const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
     sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
@@ -349,8 +327,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& component_record = battle_namespace.new_usertype<ScriptedComponent>("Component",
-    sol::factories([](Character* owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
-      return std::make_shared<ScriptedComponent>(owner->weak_from_base<Character>(), lifetime);
+    sol::factories([](WeakWrapper<Character> owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
+      return std::make_shared<ScriptedComponent>(owner.Unwrap(), lifetime);
+    }),
+    sol::factories([](WeakWrapper<ScriptedCharacter> owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
+      return std::make_shared<ScriptedComponent>(owner.Unwrap(), lifetime);
+    }),
+    sol::factories([](WeakWrapper<ScriptedPlayer> owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
+      return std::make_shared<ScriptedComponent>(owner.Unwrap(), lifetime);
     }),
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
@@ -364,472 +348,22 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Component>()
   );
 
-const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
-    sol::no_constructor,
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "BasicSpell", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "BasicSpell", key );
-    },
-    "get_id", &Spell::GetID,
-    "get_tile", &Spell::GetTile,
-    "get_current_tile", &Spell::GetCurrentTile,
-    "get_field", &Spell::GetField,
-    "get_facing", &Spell::GetFacing,
-    "set_facing", &Spell::SetFacing,
-    "sprite", &Spell::AsSpriteProxyNode,
-    "get_alpha", &Spell::GetAlpha,
-    "set_alpha", &Spell::SetAlpha,
-    "get_color", &Spell::getColor,
-    "set_color", &Spell::setColor,
-    "slide", &Spell::Slide,
-    "jump", &Spell::Jump,
-    "teleport", &Spell::Teleport,
-    "hide", &Spell::Hide,
-    "reveal", &Spell::Reveal,
-    "raw_move_event", &Spell::RawMoveEvent,
-    "is_sliding", &Spell::IsSliding,
-    "is_jumping", &Spell::IsJumping,
-    "is_teleporting", &Spell::IsTeleporting,
-    "is_moving", &Spell::IsMoving,
-    "is_deleted", &Spell::IsDeleted,
-    "will_remove_eof", &Spell::WillRemoveLater,
-    "get_team", &Spell::GetTeam,
-    "is_team", &Spell::Teammate,
-    "remove", &ScriptedSpell::Remove,
-    "delete", &ScriptedSpell::Delete,
-    "get_texture", &ScriptedSpell::getTexture,
-    "copy_hit_props", &ScriptedSpell::GetHitboxProperties,
-    "get_position", &Spell::GetDrawOffset
-  );
-
-  const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>( "Spell",
-    sol::factories([](Team team) -> std::shared_ptr<ScriptedSpell> {
-      auto spell = std::make_shared<ScriptedSpell>(team);
-      spell->Init();
-      return spell;
-    }),
-    sol::base_classes, sol::bases<Spell, Entity>(),
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    "get_id", &ScriptedSpell::GetID,
-    "get_tile", &ScriptedSpell::GetTile,
-    "get_current_tile", &ScriptedSpell::GetCurrentTile,
-    "get_field", [](ScriptedSpell& o) { return WeakWrapper(o.GetField()); },
-    "get_facing", &ScriptedSpell::GetFacing,
-    "set_facing", &ScriptedSpell::SetFacing,
-    "sprite", &ScriptedSpell::AsSpriteProxyNode,
-    "get_alpha", &ScriptedSpell::GetAlpha,
-    "set_alpha", &ScriptedSpell::SetAlpha,
-    "get_color", &ScriptedSpell::getColor,
-    "set_color", &ScriptedSpell::setColor,
-    "slide", &ScriptedSpell::Slide,
-    "jump", &ScriptedSpell::Jump,
-    "teleport", &ScriptedSpell::Teleport,
-    "hide", &ScriptedSpell::Hide,
-    "reveal", &ScriptedSpell::Reveal,
-    "raw_move_event", &ScriptedSpell::RawMoveEvent,
-    "is_sliding", &ScriptedSpell::IsSliding,
-    "is_jumping", &ScriptedSpell::IsJumping,
-    "is_teleporting", &ScriptedSpell::IsTeleporting,
-    "is_moving", &ScriptedSpell::IsMoving,
-    "is_deleted", &ScriptedSpell::IsDeleted,
-    "will_remove_eof", &ScriptedSpell::WillRemoveLater,
-    "get_team", &ScriptedSpell::GetTeam,
-    "is_team", &ScriptedSpell::Teammate,
-    "remove", &ScriptedSpell::Remove,
-    "delete", &ScriptedSpell::Delete,
-    "get_texture", &ScriptedSpell::getTexture,
-    "set_texture", &ScriptedSpell::setTexture,
-    "add_node", &ScriptedSpell::AddNode,
-    "highlight_tile", &ScriptedSpell::HighlightTile,
-    "copy_hit_props", &ScriptedSpell::GetHitboxProperties,
-    "set_hit_props", &ScriptedSpell::SetHitboxProperties,
-    "get_animation", &ScriptedSpell::GetAnimationObject,
-    "set_animation", &ScriptedSpell::SetAnimation,
-    "shake_camera", &ScriptedSpell::ShakeCamera,
-    "set_height", &ScriptedSpell::SetHeight,
-    "set_position", sol::overload(
-      sol::resolve<void(float, float)>(&ScriptedSpell::SetDrawOffset)
-    ),
-    "get_position", &ScriptedSpell::GetDrawOffset,
-    "show_shadow", &ScriptedSpell::ShowShadow,
-    "never_flip", &ScriptedSpell::NeverFlip,
-    "attack_func", &ScriptedSpell::attackCallback,
-    "delete_func", &ScriptedSpell::deleteCallback,
-    "update_func", &ScriptedSpell::updateCallback,
-    "collision_func", &ScriptedSpell::collisionCallback,
-    "can_move_to_func", &ScriptedSpell::canMoveToCallback,
-    "on_spawn_func", &ScriptedSpell::spawnCallback
-  );
-
-  const auto& scriptedobstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
-    sol::factories([](Team team) -> std::shared_ptr<ScriptedObstacle> {
-      auto obstacle = std::make_shared<ScriptedObstacle>(team);
-      obstacle->Init();
-      return obstacle;
-    }),
-    sol::base_classes, sol::bases<Obstacle, Character, Entity>(),
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    "get_id", &ScriptedObstacle::GetID,
-    "get_element", &ScriptedObstacle::GetElement,
-    "set_element", &ScriptedObstacle::SetElement,
-    "get_facing", &ScriptedObstacle::GetFacing,
-    "set_facing", &ScriptedObstacle::SetFacing,
-    "get_tile", &ScriptedObstacle::GetTile,
-    "get_current_tile", &ScriptedObstacle::GetCurrentTile,
-    "get_alpha", &ScriptedObstacle::GetAlpha,
-    "set_alpha", &ScriptedObstacle::SetAlpha,
-    "get_color", &ScriptedObstacle::getColor,
-    "set_color", &ScriptedObstacle::setColor,
-    "get_field", [](ScriptedObstacle& o) { return WeakWrapper(o.GetField()); },
-    "sprite", &ScriptedObstacle::AsSpriteProxyNode,
-    "hide", &ScriptedObstacle::Hide,
-    "reveal", &ScriptedObstacle::Reveal,
-    "slide", &ScriptedObstacle::Slide,
-    "jump", &ScriptedObstacle::Jump,
-    "teleport", &ScriptedObstacle::Teleport,
-    "raw_move_event", &ScriptedObstacle::RawMoveEvent,
-    "is_sliding", &ScriptedObstacle::IsSliding,
-    "is_jumping", &ScriptedObstacle::IsJumping,
-    "is_teleporting", &ScriptedObstacle::IsTeleporting,
-    "is_moving", &ScriptedObstacle::IsMoving,
-    "is_team", &ScriptedObstacle::Teammate,
-    "is_deleted", &ScriptedObstacle::IsDeleted,
-    "is_passthrough", &ScriptedObstacle::IsPassthrough,
-    "will_remove_eof", &ScriptedObstacle::WillRemoveLater,
-    "get_team", &ScriptedObstacle::GetTeam,
-    "remove", &ScriptedObstacle::Remove,
-    "delete", &ScriptedObstacle::Delete,
-    "get_name", &ScriptedObstacle::GetName,
-    "get_health", &ScriptedObstacle::GetHealth,
-    "get_max_health", &ScriptedObstacle::GetMaxHealth,
-    "set_name", &ScriptedObstacle::SetName,
-    "set_health", &ScriptedObstacle::SetHealth,
-    "share_tile", &ScriptedObstacle::ShareTileSpace,
-    "add_defense_rule", sol::overload(
-      [](ScriptedObstacle& o, DefenseRule* d) { o.AddDefenseRule(d->shared_from_this()); }
-    ),
-    "remove_defense_rule", sol::overload(
-      sol::resolve<void(DefenseRule*)>(&ScriptedObstacle::RemoveDefenseRule)
-    ),
-    "get_texture", &ScriptedObstacle::getTexture,
-    "set_texture", &ScriptedObstacle::setTexture,
-    "get_animation", &ScriptedObstacle::GetAnimationObject,
-    "set_animation", &ScriptedObstacle::SetAnimation,
-    "add_node", &ScriptedObstacle::AddNode,
-    "highlight_tile", &ScriptedObstacle::HighlightTile,
-    "get_hit_props", &ScriptedObstacle::GetHitboxProperties,
-    "set_hit_props", &ScriptedObstacle::SetHitboxProperties,
-    "ignore_common_aggressor", &ScriptedObstacle::IgnoreCommonAggressor,
-    "set_height", &ScriptedObstacle::SetHeight,
-    "show_shadow", &ScriptedObstacle::ShowShadow,
-    "shake_camera", &ScriptedObstacle::ShakeCamera,
-    "register_component", sol::overload(
-      [](ScriptedObstacle& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
-    ),
-    "set_position", sol::overload(
-      sol::resolve<void(float, float)>(&ScriptedObstacle::SetDrawOffset)
-    ),
-    "get_position", &ScriptedObstacle::GetDrawOffset,
-    "never_flip", &ScriptedObstacle::NeverFlip,
-    "attack_func", &ScriptedObstacle::attackCallback,
-    "delete_func", &ScriptedObstacle::deleteCallback,
-    "update_func", &ScriptedObstacle::updateCallback,
-    "collision_func", &ScriptedObstacle::collisionCallback,
-    "can_move_to_func", &ScriptedObstacle::canMoveToCallback,
-    "on_spawn_func", &ScriptedObstacle::spawnCallback
-  );
-
-  // Adding in bindings for std::shared_ptr<Character> type objects to sol.
-  // Without adding these in, it has no idea what to do with std::shared_ptr<Character> objects passed up to it,
-  // even though there's bindings for ScriptedCharacter already done.
-  const auto& basic_character_record = battle_namespace.new_usertype<Character>( "BasicCharacter",
-    sol::base_classes, sol::bases<Entity>(),
-    "get_id", &Character::GetID,
-    "get_element", &Character::GetElement,
-    "set_element", &Character::SetElement,
-    "get_tile", &Character::GetTile,
-    "get_current_tile", &Character::GetCurrentTile,
-    "get_field", [](Character& o) { return WeakWrapper(o.GetField()); },
-    "get_facing", &Character::GetFacing,
-    "get_alpha", &Character::GetAlpha,
-    "set_alpha", &Character::SetAlpha,
-    "get_color", &Character::getColor,
-    "set_color", &Character::setColor,
-    "sprite", &Character::AsSpriteProxyNode,
-    "slide", &Character::Slide,
-    "jump", &Character::Jump,
-    "teleport", &Character::Teleport,
-    "raw_move_event", &Character::RawMoveEvent,
-    "is_sliding", &Character::IsSliding,
-    "is_jumping", &Character::IsJumping,
-    "is_teleporting", &Character::IsTeleporting,
-    "is_passthrough", &Character::IsPassthrough,
-    "is_moving", &Character::IsMoving,
-    "is_deleted", &Character::IsDeleted,
-    "will_remove_eof", &Character::WillRemoveLater,
-    "get_team", &Character::GetTeam,
-    "is_team", &Character::Teammate,
-    "hide", &Character::Hide,
-    "reveal", &Character::Reveal,
-    "get_texture", &Character::getTexture,
-    "set_texture", &Character::setTexture,
-    "add_node", &Character::AddNode,
-
-    "get_name", &Character::GetName,
-    "get_health", &Character::GetHealth,
-    "get_max_health", &Character::GetMaxHealth,
-    "set_name", &Character::SetName,
-    "set_health", &Character::SetHealth,
-    "get_rank", &Character::GetRank,
-    "share_tile", &Character::ShareTileSpace,
-    "add_defense_rule", sol::overload(
-      [](Character& c, DefenseRule* d) { c.AddDefenseRule(d->shared_from_this()); }
-    ),
-    "register_component", sol::overload(
-      [](Character& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
-    ),
-    "remove_defense_rule", sol::overload(
-      sol::resolve<void(DefenseRule*)>(&Character::RemoveDefenseRule)
-    ),
-    "set_position", sol::overload(
-      sol::resolve<void(float, float)>(&Character::SetDrawOffset)
-    ),
-    "get_position", &Character::GetDrawOffset,
-    "set_height", &Character::SetHeight,
-    "toggle_counter", &Character::ToggleCounter,
-    "get_animation", &Character::GetAnimationFromComponent // I don't want to do this, but sol2 makes me...
-  );
-
-  const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    sol::base_classes, sol::bases<Character, Entity>(),
-    "get_id", &ScriptedCharacter::GetID,
-    "get_element", &ScriptedCharacter::GetElement,
-    "set_element", &ScriptedCharacter::SetElement,
-    "get_tile", &ScriptedCharacter::GetTile,
-    "get_current_tile", &ScriptedCharacter::GetCurrentTile,
-    "get_field", [](ScriptedCharacter& o) { return WeakWrapper(o.GetField()); },
-    "get_facing", &ScriptedCharacter::GetFacing,
-    "get_target", &ScriptedCharacter::GetTarget,
-    "get_alpha", &ScriptedCharacter::GetAlpha,
-    "set_alpha", &ScriptedCharacter::SetAlpha,
-    "get_color", &ScriptedCharacter::getColor,
-    "set_color", &ScriptedCharacter::setColor,
-    "sprite", &ScriptedCharacter::AsSpriteProxyNode,
-    "slide", &ScriptedCharacter::Slide,
-    "jump", &ScriptedCharacter::Jump,
-    "teleport", &ScriptedCharacter::Teleport,
-    "raw_move_event", &ScriptedCharacter::RawMoveEvent,
-    "card_action_event", sol::overload(
-      sol::resolve<void(std::shared_ptr<ScriptedCardAction>, ActionOrder)>(&ScriptedCharacter::SimpleCardActionEvent),
-      sol::resolve<void(std::shared_ptr<CardAction>, ActionOrder)>(&ScriptedCharacter::SimpleCardActionEvent)
-    ),
-    "is_sliding", &ScriptedCharacter::IsSliding,
-    "is_jumping", &ScriptedCharacter::IsJumping,
-    "is_teleporting", &ScriptedCharacter::IsTeleporting,
-    "is_moving", &ScriptedCharacter::IsMoving,
-    "is_passthrough", &ScriptedCharacter::IsPassthrough,
-    "is_deleted", &ScriptedCharacter::IsDeleted,
-    "will_remove_eof", &ScriptedCharacter::WillRemoveLater,
-    "get_team", &ScriptedCharacter::GetTeam,
-    "is_team", &ScriptedCharacter::Teammate,
-    "hide", &ScriptedCharacter::Hide,
-    "reveal", &ScriptedCharacter::Reveal,
-    "remove", &ScriptedCharacter::Remove,
-    "delete", &ScriptedCharacter::Delete,
-    "get_texture", &ScriptedCharacter::getTexture,
-    "set_texture", &ScriptedCharacter::setTexture,
-    "add_node", &ScriptedCharacter::AddNode,
-    "get_name", &ScriptedCharacter::GetName,
-    "get_health", &ScriptedCharacter::GetHealth,
-    "get_max_health", &ScriptedCharacter::GetMaxHealth,
-    "set_name", &ScriptedCharacter::SetName,
-    "set_health", &ScriptedCharacter::SetHealth,
-    "get_rank", &ScriptedCharacter::GetRank,
-    "share_tile", &ScriptedCharacter::ShareTileSpace,
-    "add_defense_rule", sol::overload(
-      [](ScriptedCharacter& c, DefenseRule* d) { c.AddDefenseRule(d->shared_from_this()); }
-    ),
-    "register_component", sol::overload(
-      [](ScriptedCharacter& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
-    ),
-    "remove_defense_rule", sol::overload(
-      sol::resolve<void(DefenseRule*)>(&ScriptedCharacter::RemoveDefenseRule)
-    ),
-    "set_position", sol::overload(
-      sol::resolve<void(float, float)>(&ScriptedCharacter::SetDrawOffset)
-    ),
-    "get_position", &ScriptedCharacter::GetDrawOffset,
-    "set_height", &ScriptedCharacter::SetHeight,
-    "get_animation", &ScriptedCharacter::GetAnimationObject,
-    "shake_camera", &ScriptedCharacter::ShakeCamera,
-    "toggle_counter", &ScriptedCharacter::ToggleCounter,
-    "register_status_callback", &ScriptedCharacter::RegisterStatusCallback,
-    "delete_func", &ScriptedCharacter::deleteCallback,
-    "update_func", &ScriptedCharacter::updateCallback,
-    "can_move_to_func", &ScriptedCharacter::canMoveToCallback,
-    "on_spawn_func", &ScriptedCharacter::spawnCallback,
-    "battle_start_func", &ScriptedCharacter::onBattleStartCallback,
-    "battle_end_func", &ScriptedCharacter::onBattleEndCallback,
-    "set_explosion_behavior", &ScriptedCharacter::SetExplosionBehavior
-  );
-
-  const auto& player_record = battle_namespace.new_usertype<Player>("BasicPlayer",
-    sol::base_classes, sol::bases<Character, Entity>(),
-    "get_id", &Player::GetID,
-    "get_tile", &Player::GetTile,
-    "get_current_tile", &Player::GetCurrentTile,
-    "get_field", [](Player& o) { return WeakWrapper(o.GetField()); },
-    "get_facing", &Player::GetFacing,
-    "is_sliding", &Player::IsSliding,
-    "is_jumping", &Player::IsJumping,
-    "is_teleporting", &Player::IsTeleporting,
-    "is_moving", &Player::IsMoving,
-    "is_deleted", &Player::IsDeleted,
-    "is_passthrough", &Player::IsPassthrough,
-    "get_alpha", &Player::GetAlpha,
-    "set_alpha", &Player::SetAlpha,
-    "get_color", &Player::getColor,
-    "set_color", &Player::setColor,
-    "register_component", sol::overload(
-      [](Player& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
-    ),
-    "remove", &Player::Remove,
-    "delete", &Player::Delete,
-    "hide", &Player::Hide,
-    "reveal", &Player::Reveal,
-    "will_remove_eof", &Player::WillRemoveLater,
-    "get_team", &Player::GetTeam,
-    "get_name", &Player::GetName,
-    "get_health", &Player::GetHealth,
-    "get_max_health", &Player::GetMaxHealth
-  );
-
-  const auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
-    "get_id", &ScriptedPlayer::GetID,
-    "get_element", &ScriptedPlayer::GetElement,
-    "set_element", &ScriptedPlayer::SetElement,
-    "get_tile", &ScriptedPlayer::GetTile,
-    "get_current_tile", &ScriptedPlayer::GetCurrentTile,
-    "get_field", [](ScriptedPlayer& o) { return WeakWrapper(o.GetField()); },
-    "get_facing", &ScriptedPlayer::GetFacing,
-    "get_alpha", &ScriptedPlayer::GetAlpha,
-    "set_alpha", &ScriptedPlayer::SetAlpha,
-    "get_color", &ScriptedPlayer::getColor,
-    "set_color", &ScriptedPlayer::setColor,
-    "register_component", &ScriptedPlayer::RegisterComponent,
-    "sprite", &ScriptedPlayer::AsSpriteProxyNode,
-    "slide", &ScriptedPlayer::Slide,
-    "jump", &ScriptedPlayer::Jump,
-    "teleport", &ScriptedPlayer::Teleport,
-    "hide", &ScriptedPlayer::Hide,
-    "reveal", &ScriptedPlayer::Reveal,
-    "raw_move_event", &ScriptedPlayer::RawMoveEvent,
-    "is_sliding", &ScriptedPlayer::IsSliding,
-    "is_jumping", &ScriptedPlayer::IsJumping,
-    "is_teleporting", &ScriptedPlayer::IsTeleporting,
-    "is_moving", &ScriptedPlayer::IsMoving,
-    "is_deleted", &ScriptedPlayer::IsDeleted,
-    "is_passthrough", &ScriptedPlayer::IsPassthrough,
-    "will_remove_eof", &ScriptedPlayer::WillRemoveLater,
-    "get_team", &ScriptedPlayer::GetTeam,
-    "get_name", &ScriptedPlayer::GetName,
-    "get_health", &ScriptedPlayer::GetHealth,
-    "get_max_health", &ScriptedPlayer::GetMaxHealth,
-    "set_name", &ScriptedPlayer::SetName,
-    "set_health", &ScriptedPlayer::SetHealth,
-    "get_texture", &ScriptedPlayer::getTexture,
-    "set_texture", &ScriptedPlayer::setTexture,
-    "set_animation", &ScriptedPlayer::SetAnimation,
-    "set_height", &ScriptedPlayer::SetHeight,
-    "set_fully_charged_color", &ScriptedPlayer::SetFullyChargeColor,
-    "set_charge_position", &ScriptedPlayer::SetChargePosition,
-    "get_animation", &ScriptedPlayer::GetAnimationObject,
-    "set_float_shoe", &ScriptedPlayer::SetFloatShoe,
-    "set_air_shoe", &ScriptedPlayer::SetAirShoe,
-    "slide_when_moving", &ScriptedPlayer::SlideWhenMoving,
-    "add_defense_rule", &ScriptedPlayer::AddDefenseRule,
-    "delete", &ScriptedPlayer::Delete,
-    "register_component", sol::overload(
-      [](ScriptedPlayer& e, Component* c) { e.RegisterComponent(c->shared_from_this()); }
-    ),
-    "update_func", &ScriptedPlayer::on_update_func,
-    sol::base_classes, sol::bases<Player, Character, Entity>()
-  );
-
-  const auto& scripted_artifact_record = battle_namespace.new_usertype<ScriptedArtifact>("Artifact",
-    sol::factories([](Team team) -> std::shared_ptr<ScriptedArtifact> {
-      auto ptr = std::make_shared<ScriptedArtifact>();
-      ptr->Init();
-      ptr->SetTeam(team);
-      return ptr;
-    }),
-    sol::base_classes, sol::bases<Artifact, Entity>(),
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    "get_id", &ScriptedArtifact::GetID,
-    "get_tile", &ScriptedArtifact::GetTile,
-    "get_current_tile", &ScriptedArtifact::GetCurrentTile,
-    "get_field", [](ScriptedArtifact& o) { return WeakWrapper(o.GetField()); },
-    "get_facing", &ScriptedArtifact::GetFacing,
-    "get_alpha", &ScriptedArtifact::GetAlpha,
-    "set_alpha", &ScriptedArtifact::SetAlpha,
-    "get_color", &ScriptedArtifact::getColor,
-    "set_color", &ScriptedArtifact::setColor,
-    "sprite", &ScriptedArtifact::AsSpriteProxyNode,
-    "slide", &ScriptedArtifact::Slide,
-    "jump", &ScriptedArtifact::Jump,
-    "teleport", &ScriptedArtifact::Teleport,
-    "hide", &ScriptedArtifact::Hide,
-    "reveal", &ScriptedArtifact::Reveal,
-    "remove", &ScriptedArtifact::Remove,
-    "delete", &ScriptedArtifact::Delete,
-    "raw_move_event", &ScriptedArtifact::RawMoveEvent,
-    "is_sliding", &ScriptedArtifact::IsSliding,
-    "is_jumping", &ScriptedArtifact::IsJumping,
-    "is_teleporting", &ScriptedArtifact::IsTeleporting,
-    "is_moving", &ScriptedArtifact::IsMoving,
-    "is_deleted", &ScriptedArtifact::IsDeleted,
-    "will_remove_eof", &ScriptedArtifact::WillRemoveLater,
-    "get_team", &ScriptedArtifact::GetTeam,
-    "set_animation", &ScriptedArtifact::SetAnimation,
-    "get_texture", &ScriptedArtifact::getTexture,
-    "set_texture", &ScriptedArtifact::setTexture,
-    "set_height", &ScriptedArtifact::SetHeight,
-    "set_position", sol::overload(
-      sol::resolve<void(float, float)>(&ScriptedArtifact::SetDrawOffset)
-    ),
-    "get_animation", &ScriptedArtifact::GetAnimationObject,
-    "never_flip", &ScriptedArtifact::NeverFlip,
-    "delete_func", &ScriptedArtifact::deleteCallback,
-    "update_func", &ScriptedArtifact::updateCallback,
-    "can_move_to_func", &ScriptedArtifact::canMoveToCallback,
-    "on_spawn_func", &ScriptedArtifact::spawnCallback
-  );
-
   const auto& card_action_record = battle_namespace.new_usertype<CardAction>("BaseCardAction",
     "set_lockout", &CardAction::SetLockout,
     "set_lockout_group", &CardAction::SetLockoutGroup,
     "override_animation_frames", &CardAction::OverrideAnimationFrames,
     "add_attachment", sol::overload(
-      [](CardAction& a, Character* c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c->shared_from_base<Character>(), s, n); },
+      [](CardAction& a, WeakWrapper<Character> c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c.Unwrap(), s, n); },
+      [](CardAction& a, WeakWrapper<ScriptedCharacter> c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c.Unwrap(), s, n); },
+      [](CardAction& a, WeakWrapper<ScriptedPlayer> c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c.Unwrap(), s, n); },
       sol::resolve<CardAction::Attachment& (Animation&, const std::string&, SpriteProxyNode&)>(&CardAction::CardAction::AddAttachment)
     ),
     "add_anim_action", &CardAction::AddAnimAction,
     "add_step", &CardAction::AddStep,
     "end_action", &CardAction::EndAction,
-    "get_actor", sol::overload(
-      sol::resolve<std::shared_ptr<Character> ()>(&CardAction::GetActor)
-    ),
+    "get_actor", [](CardAction& cardAction) {
+      WeakWrapper(cardAction.GetActor());
+    },
     "set_metadata", &CardAction::SetMetaData,
     "copy_metadata", &CardAction::GetMetaData
   );
@@ -838,8 +372,14 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   // Many things use std::shared_ptr<Character> references but we will maybe have to consolidate all the interfaces for characters into one type.
   const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
     sol::factories(
-      [](Character* character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
-        return std::make_shared<ScriptedCardAction>(character->shared_from_base<Character>(), state);
+      [](WeakWrapper<Character>& character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
+        return std::make_shared<ScriptedCardAction>(character.Unwrap(), state);
+      },
+      [](WeakWrapper<ScriptedCharacter>& character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
+        return std::make_shared<ScriptedCardAction>(character.Unwrap(), state);
+      },
+      [](WeakWrapper<ScriptedPlayer>& character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
+        return std::make_shared<ScriptedCardAction>(character.Unwrap(), state);
       }
     ),
     sol::meta_function::index, &dynamic_object::dynamic_get,
@@ -906,6 +446,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "signal_defense_was_pierced", &DefenseFrameStateJudge::SignalDefenseWasPierced
   );
 
+  // using shared_ptr as it can be added + removed from entities, ownership is never given to the field
   const auto& defense_rule_record = battle_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
     sol::factories(
         [](int priority, const DefenseOrder& order) -> std::shared_ptr<ScriptedDefenseRule>
@@ -948,31 +489,87 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "add_attachment", &CardAction::Attachment::AddAttachment
   );
 
-  const auto& hitbox_record = battle_namespace.new_usertype<HitboxSpell>("Hitbox",
-    sol::factories([](Team team) { return std::make_shared<HitboxSpell>(team); } ),
+  const auto& hitbox_record = battle_namespace.new_usertype<WeakWrapper<HitboxSpell>>("Hitbox",
+    sol::factories([] (Team team) -> WeakWrapper<HitboxSpell> {
+      auto spell = std::make_shared<HitboxSpell>(team);
+      auto wrappedSpell = WeakWrapper(spell);
+      wrappedSpell.Own();
+      return wrappedSpell;
+    }),
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
       ScriptResourceManager::PrintInvalidAccessMessage( table, "Hitbox", key );
     },
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Hitbox", key );
     },
-    "set_callbacks", &HitboxSpell::AddCallback,
-    "set_hit_props", &HitboxSpell::SetHitboxProperties,
-    "get_hit_props", &HitboxSpell::GetHitboxProperties,
-    sol::base_classes, sol::bases<Spell, Entity>()
+    "set_callbacks", [](WeakWrapper<HitboxSpell>& spell, std::function<void(WeakWrapper<Entity>)> luaAttackCallback, std::function<void(WeakWrapper<Entity>)> luaCollisionCallback) {
+      auto attackCallback = [luaAttackCallback] (std::shared_ptr<Entity> e) {
+        luaAttackCallback(WeakWrapper(e));
+      };
+
+      auto collisionCallback = [luaCollisionCallback] (const std::shared_ptr<Entity> e) {
+        luaCollisionCallback(WeakWrapper(e));
+      };
+
+      spell.Unwrap()->AddCallback(attackCallback, collisionCallback);
+    },
+    "set_hit_props", [](WeakWrapper<HitboxSpell>& spell, Hit::Properties& props) {
+      spell.Unwrap()->SetHitboxProperties(props);
+    },
+    "copy_hit_props", [](WeakWrapper<HitboxSpell>& spell) -> Hit::Properties {
+      return spell.Unwrap()->GetHitboxProperties();
+    }
   );
 
   const auto& shared_hitbox_record = battle_namespace.new_usertype<SharedHitbox>("SharedHitbox",
     sol::factories(
-      [](Spell* spell, float f) -> std::shared_ptr<Spell>
-          { return std::make_shared<SharedHitbox>(spell->shared_from_base<Spell>(), f); }
+      [] (WeakWrapper<Entity>& e, float f) -> WeakWrapper<Entity> {
+        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
+        auto wrappedSpell = WeakWrapper(spell);
+        wrappedSpell.Own();
+        return wrappedSpell;
+      },
+      [] (WeakWrapper<Character>& e, float f) -> WeakWrapper<Entity> {
+        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
+        auto wrappedSpell = WeakWrapper(spell);
+        wrappedSpell.Own();
+        return wrappedSpell;
+      },
+      [] (WeakWrapper<ScriptedCharacter>& e, float f) -> WeakWrapper<Entity> {
+        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
+        auto wrappedSpell = WeakWrapper(spell);
+        wrappedSpell.Own();
+        return wrappedSpell;
+      },
+      [] (WeakWrapper<ScriptedPlayer>& e, float f) -> WeakWrapper<Entity> {
+        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
+        auto wrappedSpell = WeakWrapper(spell);
+        wrappedSpell.Own();
+        return wrappedSpell;
+      },
+      [] (WeakWrapper<ScriptedSpell>& e, float f) -> WeakWrapper<Entity> {
+        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
+        auto wrappedSpell = WeakWrapper(spell);
+        wrappedSpell.Own();
+        return wrappedSpell;
+      },
+      [] (WeakWrapper<ScriptedObstacle>& e, float f) -> WeakWrapper<Entity> {
+        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
+        auto wrappedSpell = WeakWrapper(spell);
+        wrappedSpell.Own();
+        return wrappedSpell;
+      }
     )
   );
 
   const auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories(
-      [](Character* character, bool charged, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BusterCardAction>(character->shared_from_base<Character>(), charged, dmg); }
+      [](WeakWrapper<Character> character, bool charged, int dmg) -> std::shared_ptr<CardAction>
+          { return std::make_shared<BusterCardAction>(character.Unwrap(), charged, dmg); },
+      [](WeakWrapper<ScriptedCharacter> character, bool charged, int dmg) -> std::shared_ptr<CardAction>
+          { return std::make_shared<BusterCardAction>(character.Unwrap(), charged, dmg); },
+      [](WeakWrapper<ScriptedPlayer> character, bool charged, int dmg) -> std::shared_ptr<CardAction>
+          { return std::make_shared<BusterCardAction>(character.Unwrap(), charged, dmg); }
     )
   );
 
@@ -1420,20 +1017,29 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
   const auto& card_event_record = state.new_usertype<CardEvent>("CardEvent");
 
   const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
-    sol::factories([](int count, double speed) -> std::shared_ptr<Artifact> {
-      return std::make_shared<Explosion>(count, speed);
+    sol::factories([](int count, double speed) -> WeakWrapper<Entity> {
+      std::shared_ptr<Entity> artifact = std::make_shared<Explosion>(count, speed);
+      auto wrappedArtifact = WeakWrapper(artifact);
+      wrappedArtifact.Own();
+      return wrappedArtifact;
     })
   );
 
   const auto& particle_poof = battle_namespace.new_usertype<ParticlePoof>("ParticlePoof",
-    sol::factories([]() -> std::shared_ptr<Artifact> {
-      return std::make_shared<ParticlePoof>();
+    sol::factories([]() -> WeakWrapper<Entity> {
+      std::shared_ptr<Entity> artifact = std::make_shared<ParticlePoof>();
+      auto wrappedArtifact = WeakWrapper(artifact);
+      wrappedArtifact.Own();
+      return wrappedArtifact;
     })
   );
 
   const auto& particle_impact = battle_namespace.new_usertype<ParticleImpact>("ParticleImpact",
-    sol::factories([](ParticleImpact::Type type) -> std::shared_ptr<Artifact> {
-      return std::make_shared<ParticleImpact>(type);
+    sol::factories([](ParticleImpact::Type type) -> WeakWrapper<Entity> {
+      std::shared_ptr<Entity> artifact = std::make_shared<ParticleImpact>(type);
+      auto wrappedArtifact = WeakWrapper(artifact);
+      wrappedArtifact.Own();
+      return wrappedArtifact;
     })
   );
 

@@ -1,26 +1,18 @@
 Look for circular references:
- - BattleSceneBase
- - Player
- - CardActions seem circular with actor/owner
- - shareHit in bnCharacter seems sus, prob circular, maybe use weak_ptr
- - More
- - Components seem fine as they're using weak pointers now
- - CardActions have a reference to their owner, does the owner have one back?
- - Check spells like SharedHitbox -> just recently switched to a weak_ptr
+ - CardActions, Entity::actionQueue -> has shared_ptr to owner
 
-CardAction Step as shared_ptr
-SpriteProxy as shared_ptr
-Attachement as shared_ptr?
+SpriteProxy as WeakWrapper // search "add_node", SceneNode*
+Attachment as WeakWrapper
+Tiles as WeakWrapper // search -> Tile* / get_tile / Tile& / can_move_to_func
+WeakWrapper for nearly everything instead of shared_ptr
 
-// todo: break entity shared_ptr cycles
-// also call this->FreeAllComponents();
-// should the field and tiles be shared_ptr? as sprite proxy node???
-// what about animations
+// AsSpriteProxyNode???
+
+// search "get_animation" + `-> Animation*`
 // is Animation& safe? GetAnimationFromComponent? - no references are not safe
 // maybe return something that wraps the AnimationComponent like an animation component user type with the same exports
 
+keep defense rule as shared_ptr in lua?
+callbacks can corrupt the lua vm, check notifiers
 
-Battle::Tile& // check out stuff like scripted spells
-
-check phone -> remove Spell from Obstacle
-add a CallbackSafe function to sol helpers that wraps an std::function call with a try catch and checks to see if the callback is set
+Battle::Tile::IsReservedByCharacter -> take in ids instead of shared_ptrs?

@@ -20,10 +20,10 @@ ScriptedArtifact::~ScriptedArtifact() { }
 void ScriptedArtifact::OnUpdate(double _elapsed)
 {
   if (updateCallback) {
-    auto sa = shared_from_base<ScriptedArtifact>();
+    auto artifact = WeakWrapper(weak_from_base<ScriptedArtifact>());
 
     try {
-      updateCallback(sa, _elapsed);
+      updateCallback(artifact, _elapsed);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -38,10 +38,10 @@ void ScriptedArtifact::NeverFlip(bool enabled)
 void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 {
   if (spawnCallback) {
-    auto sa = shared_from_base<ScriptedArtifact>();
+    auto artifact = WeakWrapper(weak_from_base<ScriptedArtifact>());
 
     try {
-      spawnCallback(sa, tile);
+      spawnCallback(artifact, tile);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -55,10 +55,10 @@ void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 void ScriptedArtifact::OnDelete()
 {
   if (deleteCallback) {
-    auto sa = shared_from_base<ScriptedArtifact>();
+    auto artifact = WeakWrapper(weak_from_base<ScriptedArtifact>());
 
     try {
-      deleteCallback(sa);
+      deleteCallback(artifact);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }

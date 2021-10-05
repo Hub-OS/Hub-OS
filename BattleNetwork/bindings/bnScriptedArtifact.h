@@ -5,6 +5,7 @@
 #include "../bnArtifact.h"
 #include "dynamic_object.h"
 #include "../bnAnimationComponent.h"
+#include "bnWeakWrapper.h"
 
 	/**
 	 * \class ScriptedArtifact
@@ -40,10 +41,10 @@ public:
 	/**
 	 * \brief Callback function that, when registered, is called on every frame.
 	 */
-	std::function<void(std::shared_ptr<ScriptedArtifact>, double)> updateCallback;
-	std::function<void(std::shared_ptr<ScriptedArtifact>, Battle::Tile&)> spawnCallback;
+	std::function<void(WeakWrapper<ScriptedArtifact>, double)> updateCallback;
+	std::function<void(WeakWrapper<ScriptedArtifact>, Battle::Tile&)> spawnCallback;
 	std::function<bool(Battle::Tile&)> canMoveToCallback;
-	std::function<void(std::shared_ptr<ScriptedArtifact>)> deleteCallback;
+	std::function<void(WeakWrapper<ScriptedArtifact>)> deleteCallback;
 };
 
 #endif

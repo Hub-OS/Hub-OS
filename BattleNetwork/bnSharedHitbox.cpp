@@ -7,15 +7,12 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SharedHitbox::SharedHitbox(std::weak_ptr<Spell> owner, float duration) : 
+SharedHitbox::SharedHitbox(std::weak_ptr<Entity> owner, float duration) : 
   owner(owner), 
   Spell(owner.lock()->GetTeam()) {
   cooldown = duration;
   SetHitboxProperties(owner.lock()->GetHitboxProperties());
   keepAlive = (duration == 0.0f);
-}
-
-SharedHitbox::~SharedHitbox() {
 }
 
 void SharedHitbox::OnUpdate(double _elapsed) {

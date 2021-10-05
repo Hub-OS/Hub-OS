@@ -1,0 +1,5 @@
+#pragma once
+
+#include <sol/sol.hpp>
+
+void DefineScriptedArtifactUserType(sol::table& battle_namespace);

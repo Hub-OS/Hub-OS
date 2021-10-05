@@ -29,7 +29,8 @@ void ScriptedCharacter::Init() {
 
   animation = CreateComponent<AnimationComponent>(weak_from_this());
 
-  auto initResult = CallLuaFunction(script, "package_init", shared_from_base<ScriptedCharacter>());
+  auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
+  auto initResult = CallLuaFunction(script, "package_init", character);
 
   if (initResult.is_error()) {
     Logger::Log(initResult.error_cstr());
@@ -61,7 +62,8 @@ void ScriptedCharacter::OnDelete() {
 
   if (deleteCallback) {
     try {
-      deleteCallback(shared_from_base<ScriptedCharacter>()); 
+      auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
+      deleteCallback(character); 
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -71,7 +73,8 @@ void ScriptedCharacter::OnDelete() {
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
   if (spawnCallback) {
     try {
-      spawnCallback(shared_from_base<ScriptedCharacter>(), start);
+      auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
+      spawnCallback(character, start);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -81,7 +84,8 @@ void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
 void ScriptedCharacter::OnBattleStart() {
   if (onBattleStartCallback) {
     try {
-      onBattleStartCallback(shared_from_base<ScriptedCharacter>());
+      auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
+      onBattleStartCallback(character);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -93,7 +97,8 @@ void ScriptedCharacter::OnBattleStop() {
 
   if (onBattleEndCallback) {
     try {
-      onBattleEndCallback(shared_from_base<ScriptedCharacter>());
+      auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
+      onBattleEndCallback(character);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }

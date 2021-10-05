@@ -69,7 +69,7 @@ void ScriptedSpell::OnCollision(const std::shared_ptr<Entity> other)
     auto ss = shared_from_base<ScriptedSpell>();
 
     try {
-      collisionCallback(ss, other);
+      collisionCallback(ss, WeakWrapper(other));
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }
@@ -83,7 +83,7 @@ void ScriptedSpell::Attack(std::shared_ptr<Entity> other) {
     auto ss = shared_from_base<ScriptedSpell>();
 
     try {
-      attackCallback(ss, other);
+      attackCallback(ss, WeakWrapper(other));
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }

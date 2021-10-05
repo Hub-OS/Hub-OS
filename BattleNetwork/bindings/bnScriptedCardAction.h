@@ -7,6 +7,7 @@
 #include "dynamic_object.h"
 #include "../bnCardAction.h"
 #include "../bnAnimation.h"
+#include "bnWeakWrapper.h"
 
 class SpriteProxyNode;
 class Character;
@@ -26,7 +27,7 @@ public:
   std::function<void(std::shared_ptr<ScriptedCardAction>, double)> onUpdate;
   std::function<void(std::shared_ptr<ScriptedCardAction>)> onAnimationEnd;
   std::function<void(std::shared_ptr<ScriptedCardAction>)> onActionEnd;
-  std::function<void(std::shared_ptr<ScriptedCardAction>, std::shared_ptr<Character>)> onExecute;
+  std::function<void(std::shared_ptr<ScriptedCardAction>, WeakWrapper<Character>)> onExecute;
 };
 
 #endif

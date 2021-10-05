@@ -15,13 +15,15 @@ public:
     ownedPtr = weakPtr.lock();
   }
 
-  void Release() {
+  std::shared_ptr<T> Release() {
+    auto temp = weakPtr.lock();
     ownedPtr = nullptr;
+    return temp;
   }
 
-  std::shared_ptr<T> Lock() {
-    return weakPtr.lock();
-  }
+  // std::shared_ptr<T> Lock() {
+  //   return weakPtr.lock();
+  // }
 
   std::shared_ptr<T> Unwrap() {
     auto ptr = weakPtr.lock();

@@ -54,7 +54,7 @@ void ScriptedCardAction::OnActionEnd() {
 void ScriptedCardAction::OnExecute(std::shared_ptr<Character> user) {
   if (onExecute) {
     try {
-      onExecute(shared_from_base<ScriptedCardAction>(), user);
+      onExecute(shared_from_base<ScriptedCardAction>(), WeakWrapper(user));
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }

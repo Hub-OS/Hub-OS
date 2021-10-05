@@ -5,6 +5,7 @@
 #include "dynamic_object.h"
 #include "../bnSpell.h"
 #include "../bnAnimationComponent.h"
+#include "bnWeakWrapper.h"
 
 using sf::Texture;
 
@@ -33,12 +34,12 @@ public:
   void ShakeCamera(double power, float duration);
   void NeverFlip(bool enabled);
 
-  std::function<void(std::shared_ptr<ScriptedSpell>, Battle::Tile&)> spawnCallback;
-  std::function<void(std::shared_ptr<ScriptedSpell>, std::shared_ptr<Entity>)> attackCallback;
-  std::function<void(std::shared_ptr<ScriptedSpell>, std::shared_ptr<Entity>)> collisionCallback;
+  std::function<void(WeakWrapper<ScriptedSpell>, Battle::Tile&)> spawnCallback;
+  std::function<void(WeakWrapper<ScriptedSpell>, WeakWrapper<Entity>)> attackCallback;
+  std::function<void(WeakWrapper<ScriptedSpell>, WeakWrapper<Entity>)> collisionCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(std::shared_ptr<ScriptedSpell>)> deleteCallback;
-  std::function<void(std::shared_ptr<ScriptedSpell>, double)> updateCallback;
+  std::function<void(WeakWrapper<ScriptedSpell>)> deleteCallback;
+  std::function<void(WeakWrapper<ScriptedSpell>, double)> updateCallback;
 private:
   bool flip{true};
   float height{};

@@ -18,7 +18,7 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
 void ScriptedPlayer::Init() {
   Player::Init();
 
-  auto initResult = CallLuaFunction(script, "player_init", shared_from_base<ScriptedPlayer>());
+  auto initResult = CallLuaFunction(script, "player_init", WeakWrapper(weak_from_base<ScriptedPlayer>()));
 
   if (initResult.is_error()) {
     Logger::Log(initResult.error_cstr());
@@ -65,7 +65,7 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
 
 std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(const std::string& functionName) {
 
-  auto result = CallLuaFunction(script, functionName, shared_from_base<ScriptedPlayer>());
+  auto result = CallLuaFunction(script, functionName, WeakWrapper(weak_from_base<ScriptedPlayer>()));
 
   if(result.is_error()) {
     Logger::Log(result.error_cstr());
@@ -128,9 +128,10 @@ void ScriptedPlayer::OnUpdate(double _elapsed)
 {
   Player::OnUpdate(_elapsed);
 
-  if (on_update_func) {
+  if (updateCallback) {
     try {
-      on_update_func(shared_from_base<ScriptedPlayer>(), _elapsed);
+      auto player = WeakWrapper(weak_from_base<ScriptedPlayer>());
+      updateCallback(player, _elapsed);
     } catch(std::exception& e) {
       Logger::Log(e.what());
     }

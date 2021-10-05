@@ -6,6 +6,7 @@
 #include "../bnCharacter.h"
 #include "../bnAI.h"
 #include "bnScriptedCardAction.h"
+#include "bnWeakWrapper.h"
 
 class AnimationComponent;
 class ScriptedCharacterState;
@@ -47,12 +48,12 @@ public:
   void SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order);
   void SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order);
 
-  std::function<void(std::shared_ptr<ScriptedCharacter>, Battle::Tile&)> spawnCallback;
+  std::function<void(WeakWrapper<ScriptedCharacter>, Battle::Tile&)> spawnCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(std::shared_ptr<ScriptedCharacter>)> deleteCallback;
-  std::function<void(std::shared_ptr<ScriptedCharacter>)> onBattleStartCallback;
-  std::function<void(std::shared_ptr<ScriptedCharacter>)> onBattleEndCallback;
-  std::function<void(std::shared_ptr<ScriptedCharacter>, double)> updateCallback;
+  std::function<void(WeakWrapper<ScriptedCharacter>)> deleteCallback;
+  std::function<void(WeakWrapper<ScriptedCharacter>)> onBattleStartCallback;
+  std::function<void(WeakWrapper<ScriptedCharacter>)> onBattleEndCallback;
+  std::function<void(WeakWrapper<ScriptedCharacter>, double)> updateCallback;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {

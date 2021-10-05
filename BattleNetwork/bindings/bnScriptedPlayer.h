@@ -12,6 +12,7 @@
 #include "../bnPlayerIdleState.h"
 #include "../bnPlayerHitState.h"
 #include "../stx/result.h"
+#include "bnWeakWrapper.h"
 
 /*! \brief scriptable navi
  *
@@ -42,7 +43,7 @@ public:
   std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
   std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
   std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
-  std::function<void(std::shared_ptr<ScriptedPlayer>, double)> on_update_func;
+  std::function<void(WeakWrapper<ScriptedPlayer>, double)> updateCallback;
 };
 
 #endif
