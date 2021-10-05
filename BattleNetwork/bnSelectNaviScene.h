@@ -24,7 +24,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnScene.h"
 #include "bnTextBox.h"
-#include "overworld/bnOverworldTextbox.h"
+#include "overworld/bnOverworldTextBox.h"
 
 constexpr float UI_LEFT_POS_MAX = 10.f; /*!< Left ui stops here */
 constexpr float UI_RIGHT_POS_MAX = 300.f; /*!< Right ui stops here */

@@ -1,6 +1,7 @@
 #pragma once
 #include <Swoosh/ActivityController.h>
 #include <atomic>
+#include <thread>
 
 #include "bnTaskGroup.h"
 #include "bnDrawWindow.h"
