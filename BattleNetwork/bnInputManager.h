@@ -164,10 +164,10 @@ public:
 
 private:
   mutable std::mutex mutex;
-  sf::Keyboard::Key lastkey{};
+  sf::Keyboard::Key queuedLastKey{}, lastkey{};
   sf::Window& window;
 
-  Gamepad lastButton{};
+  Gamepad queuedLastButton{}, lastButton{};
 
   InputTextBuffer textBuffer;
 
@@ -180,8 +180,8 @@ private:
   unsigned int currGamepad{};
   bool invertThumbstick{};
 
-  std::array<bool, sf::Keyboard::KeyCount> keyboardState;
-  std::unordered_map<unsigned int, bool> gamepadState;
+  std::array<bool, sf::Keyboard::KeyCount> queuedKeyboardState, keyboardState;
+  std::unordered_map<unsigned int, bool> queuedGamepadState, gamepadState;
   std::unordered_map<std::string, InputState> state, stateLastFrame, queuedState;
   map<InputEvent, std::string> input; /*!< Maps controller events*/
   ConfigSettings settings; /*!< Settings object*/
