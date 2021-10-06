@@ -242,7 +242,6 @@ void MatchMakingScene::RecieveHandshakeSignal()
   // only acknowledge handshakes if you have recieved the cnnect signal
   if (!remoteIsReady || !clientIsReady) return;
 
-  copyScreen = true;
   this->handshakeComplete = true;
   this->SendHandshakeSignal();
 }
@@ -427,8 +426,8 @@ void MatchMakingScene::onResume() {
     using namespace std::placeholders;
     packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
     packetProcessor->SetKickCallback([] {});
-
     packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
+    Reset();
     break;
   case ReturningScene::DownloadScene:
     if (!canProceedToBattle) {
@@ -705,11 +704,5 @@ void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
     sf::RectangleShape screen(size);
     screen.setFillColor(sf::Color::White);
     surface.draw(screen);
-  }
-
-  if (copyScreen) {
-    surface.display();
-    screen = surface.getTexture();
-    copyScreen = false;
   }
 }
