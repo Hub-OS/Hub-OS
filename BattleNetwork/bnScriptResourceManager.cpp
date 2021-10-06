@@ -361,8 +361,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "add_anim_action", &CardAction::AddAnimAction,
     "add_step", &CardAction::AddStep,
     "end_action", &CardAction::EndAction,
-    "get_actor", [](CardAction& cardAction) {
-      WeakWrapper(cardAction.GetActor());
+    "get_actor", [](CardAction& cardAction) -> WeakWrapper<Character> {
+      return WeakWrapper(cardAction.GetActor());
     },
     "set_metadata", &CardAction::SetMetaData,
     "copy_metadata", &CardAction::GetMetaData
