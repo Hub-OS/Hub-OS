@@ -16,7 +16,11 @@ class ScriptEnvironmentManager
     static void ConfigureEnvironment( sol::state& state );
 
     private:
-    
+    static void DefineObject_Tile( sol::state& state );
+    static sol::object PrintInvalidAccessMessage( sol::table table, const std::string typeName, const std::string key );
+    static sol::object PrintInvalidAssignMessage( sol::table table, const std::string typeName, const std::string key );
+
+    static std::string GetCurrentLine( lua_State* L );
   };
 
 #endif

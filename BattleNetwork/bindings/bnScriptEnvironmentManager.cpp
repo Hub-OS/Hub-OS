@@ -43,6 +43,9 @@
 #include "../bnPlayerPackageManager.h"
 #include "../bnMobPackageManager.h"
 
+template<class T>
+void DefineType( sol::table& battle_namespace, sol::table& overworld_namespace, sol::table& engine_namespace );
+
 void ScriptEnvironmentManager::SetModPathVariable( sol::state* state, const std::filesystem::path& modDirectory )
 {
   (*state)["_modpath"] = modDirectory.generic_string() + "/";
@@ -66,6 +69,62 @@ void ScriptEnvironmentManager::SetSystemFunctions( sol::state* state )
   );
 }
 
+sol::object ScriptEnvironmentManager::PrintInvalidAccessMessage( sol::table table, const std::string typeName, const std::string key )
+{
+  auto filePoint = GetCurrentLine( table.lua_state() );
+
+  Logger::Log( "[Script Error] in " + filePoint );
+  Logger::Log( "[Script Error] : Attempted to access \"" + key + "\" in type \"" + typeName + "\"." );
+  Logger::Log( "[Script Error] : " + key + " does not exist in " + typeName + "." );
+  return sol::lua_nil;
+}
+sol::object ScriptEnvironmentManager::PrintInvalidAssignMessage( sol::table table, const std::string typeName, const std::string key )
+{
+  auto filePoint = GetCurrentLine( table.lua_state() );
+
+  Logger::Log( "[Script Error] in " + filePoint );
+  Logger::Log( "[Script Error] : Attempted to assign to \"" + key + "\" in type \"" + typeName + "\"." );
+  Logger::Log( "[Script Error] : " + typeName + " is read-only. Cannot assign new values to it." );
+  return sol::lua_nil;
+}
+
+std::string ScriptEnvironmentManager::GetCurrentLine( lua_State* L )
+{
+  lua_getglobal( L, "debug" );          // debug
+  lua_getfield( L, -1, "getinfo" );     // debug.getinfo 
+  lua_pushinteger( L, 2 );              // debug.getinfo ( 2 )
+  lua_pushstring( L, "S" );             // debug.getinfo ( 2, "S" )
+
+  if( lua_pcall( L, 2, 1, 0) != 0 )     // table
+  {
+    Logger::Log( "Error running function \"debug.getinfo\"");
+    Logger::Log( std::string( lua_tostring(L, -1) ));
+  }
+
+  lua_pushstring( L, "source" );        // table.source
+  lua_gettable(L, -2);                  // <value>
+  
+  auto fileName = std::string( lua_tostring( L, -1 ) );
+
+  lua_getglobal( L, "debug" );          // debug
+  lua_getfield( L, -1, "getinfo" );     // debug.getinfo 
+  lua_pushinteger( L, 2 );              // debug.getinfo ( 2 )
+  lua_pushstring( L, "l" );             // debug.getinfo ( 2, "S" )
+
+  if( lua_pcall( L, 2, 1, 0) != 0 )     // table
+  {
+    Logger::Log( "Error running function \"debug.getinfo\"");
+    Logger::Log( std::string( lua_tostring(L, -1) ));
+  }
+
+  lua_pushstring( L, "currentline" );        // table.source
+  lua_gettable(L, -2);                  // <value>
+  
+  auto lineNumber = lua_tointeger( L, -1 );
+
+  return fileName + ":" + std::to_string( lineNumber );
+}
+
 std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
 {
   std::list<OverrideFrame> frames;
@@ -83,14 +142,16 @@ std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
   return frames;
 }
 
-void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
-
-  sol::table battle_namespace =     state.create_table("Battle");
-  sol::table overworld_namespace =  state.create_table("Overworld");
-  sol::table engine_namespace =     state.create_table("Engine");
-
-  // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
-  const auto& tile_record = state.new_usertype<Battle::Tile>("Tile",
+void ScriptEnvironmentManager::DefineObject_Tile( sol::state& state )
+{
+// The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
+  const auto& tile_record = state.new_usertype<Battle::Tile>("Tile", sol::no_constructor,
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Tile", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Tile", key );
+    },
     "x", &Battle::Tile::GetX,
     "y", &Battle::Tile::GetY,
     "width", &Battle::Tile::GetWidth,
@@ -119,12 +180,26 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
       sol::resolve<void(Character&)>(&Battle::Tile::AddEntity)
     )
   );
+}
+void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
+
+  sol::table battle_namespace =     state.create_table("Battle");
+  sol::table overworld_namespace =  state.create_table("Overworld");
+  sol::table engine_namespace =     state.create_table("Engine");
+
+  DefineObject_Tile( state );
 
   // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
   // If you hold onto their ID, and use that through Field::GetCharacter,
   // instead you will get passed a nullptr/nil in Lua after they've been effectively removed,
   // rather than potentially holding onto a hanging pointer to deleted data.
-  const auto& field_record = battle_namespace.new_usertype<Field>("Field",
+  const auto& field_record = battle_namespace.new_usertype<Field>("Field", sol::no_constructor,
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Field", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Field", key );
+    },
     "tile_at", &Field::GetAt,
     "width", &Field::GetWidth,
     "height", &Field::GetHeight,
@@ -150,6 +225,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
     sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Animation", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Animation", key );
+    },
     "load", &Animation::Load,
     "update", &Animation::Update,
     "refresh", &Animation::Refresh,
@@ -165,6 +246,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "SpriteNode", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "SpriteNode", key );
+    },
     "get_texture", &SpriteProxyNode::getTexture,
     "set_texture", &SpriteProxyNode::setTexture,
     "show", &SpriteProxyNode::Reveal,
@@ -648,6 +735,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
     sol::factories([]() -> std::unique_ptr<CardAction::Step> {
       return std::make_unique<CardAction::Step>();
     }),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Step", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Step", key );
+    },
     "update_func", &CardAction::Step::updateFunc,
     "draw_func", &CardAction::Step::drawFunc,
     "complete_step", &CardAction::Step::markDone
@@ -678,6 +771,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& defense_frame_state_judge_record = state.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "DefenseFrameStateJudge", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "DefenseFrameStateJudge", key );
+    },
     "block_damage", &DefenseFrameStateJudge::BlockDamage,
     "block_impact", &DefenseFrameStateJudge::BlockImpact,
     "is_damage_blocked", &DefenseFrameStateJudge::IsDamageBlocked,
@@ -691,6 +790,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
         [](int priority, const DefenseOrder& order) -> std::unique_ptr<ScriptedDefenseRule>
         { return std::make_unique<ScriptedDefenseRule>(Priority(priority), order); }
     ),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "DefenseRule", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "DefenseRule", key );
+    },
     "is_replaced", &ScriptedDefenseRule::IsReplaced,
     "can_block_func", &ScriptedDefenseRule::canBlockCallback,
     "filter_statuses_func", &ScriptedDefenseRule::filterStatusesCallback,
@@ -713,12 +818,24 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
     sol::constructors<CardAction::Attachment(Animation&, const std::string&, SpriteProxyNode&)>(),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Attachment", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Attachment", key );
+    },
     "use_animation", &CardAction::Attachment::UseAnimation,
     "add_attachment", &CardAction::Attachment::AddAttachment
   );
 
   const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
     sol::factories([](Team team) { return new Hitbox(team); } ),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Hitbox", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Hitbox", key );
+    },
     "set_callbacks", &Hitbox::AddCallback,
     "set_hit_props", &Hitbox::SetHitboxProperties,
     "get_hit_props", &Hitbox::GetHitboxProperties,
@@ -804,6 +921,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
 
   // make meta object info metatable
   const auto& playermeta_table = battle_namespace.new_usertype<PlayerMeta>("PlayerMeta",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "PlayerMeta", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "PlayerMeta", key );
+    },
     "set_special_description", &PlayerMeta::SetSpecialDescription,
     "set_attack", &PlayerMeta::SetAttack,
     "set_charged_attack", &PlayerMeta::SetChargedAttack,
@@ -821,6 +944,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& cardpropsmeta_table = battle_namespace.new_usertype<Battle::CardProperties>("CardProperties",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "CardProperties", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "CardProperties", key );
+    },
     "action", &Battle::CardProperties::action,
     "can_boost", &Battle::CardProperties::canBoost,
     "card_class", &Battle::CardProperties::cardClass,
@@ -837,6 +966,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& cardmeta_table = battle_namespace.new_usertype<CardMeta>("CardMeta",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "CardMeta", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "CardMeta", key );
+    },
     "get_card_props", &CardMeta::GetCardProperties,
     "set_preview_texture", &CardMeta::SetPreviewTexture,
     "set_icon_texture", &CardMeta::SetIconTexture,
@@ -845,6 +980,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& mobmeta_table = battle_namespace.new_usertype<MobMeta>("MobMeta",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "MobMeta", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "MobMeta", key );
+    },
     "set_description", &MobMeta::SetDescription,
     "set_name", &MobMeta::SetName,
     "set_preview_texture_path", &MobMeta::SetPlaceholderTexturePath,
@@ -855,6 +996,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& scriptedmob_table = battle_namespace.new_usertype<ScriptedMob>("Mob",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Mob", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Mob", key );
+    },
     "create_spawner", &ScriptedMob::CreateSpawner,
     "set_background", &ScriptedMob::SetBackground,
     "stream_music", &ScriptedMob::StreamMusic,
@@ -863,6 +1010,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& scriptedspawner_table = battle_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Spawner", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Spawner", key );
+    },
     "spawn_at", &ScriptedMob::ScriptedSpawner::SpawnAt
   );
 
@@ -1079,6 +1232,12 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "Drag", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "Drag", key );
+    },
     "direction", &Hit::Drag::dir,
     "count", &Hit::Drag::count
   );
