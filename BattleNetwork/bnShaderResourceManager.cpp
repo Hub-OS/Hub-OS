@@ -67,6 +67,8 @@ sf::Shader* ShaderResourceManager::GetShader(ShaderType _stype) {
   if (shaders.size()) {
     return shaders.at(_stype);
   }
+
+  return nullptr;
 }
 
 const bool ShaderResourceManager::IsEnabled() const
