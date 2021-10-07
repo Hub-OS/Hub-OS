@@ -70,7 +70,6 @@ namespace Overworld {
 
     Overworld::EmoteNode emoteNode;
     std::shared_ptr<sf::Texture> customEmotesTexture;
-    std::string pvpRemoteAddress; // remember who we want to connect to after download scene
     std::string ticket; //!< How we are represented on the server
     std::shared_ptr<PacketProcessor> packetProcessor;
     std::shared_ptr<Netplay::PacketProcessor> netBattleProcessor;
@@ -83,7 +82,6 @@ namespace Overworld {
     bool transferringServers{ false };
     bool kicked{ false };
     bool tryPopScene{ false };
-    bool isPreparingForBattle{ false };
     bool canProceedToBattle{ false };
     bool copyScreen{ false };
     ReturningScene returningFrom{ ReturningScene::Null };
@@ -105,18 +103,22 @@ namespace Overworld {
     CameraController serverCameraController;
     CameraController warpCameraController;
     std::vector<VendorScene::Item> shopItems;
+    std::vector<std::string> downloadedMobPackages;
+    std::queue<std::function<void()>> sceneChangeTasks;
 
-    void HandlePVPStep(const std::string& remoteAddress);
     void ResetPVPStep(bool failed = false);
+    void RemovePackages();
 
     std::optional<AbstractUser> GetAbstractUser(const std::string& id);
+    void AddSceneChangeTask(const std::function<void()>& task);
+    void SetAvatarAsSpeaker();
     void onInteract(Interaction type);
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
     void detectWarp();
     bool positionIsInWarp(sf::Vector3f position);
     Overworld::TeleportController::Command& teleportIn(sf::Vector3f position, Direction direction);
-    void transferServer(const std::string& host, uint16_t port, const std::string& data, bool warpOut);
+    void transferServer(const std::string& host, uint16_t port, std::string data, bool warpOut);
     void processPacketBody(const Poco::Buffer<char>& data);
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);

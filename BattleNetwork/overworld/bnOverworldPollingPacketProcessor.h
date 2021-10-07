@@ -18,10 +18,16 @@ namespace Overworld {
 
   class PollingPacketProcessor : public IPacketProcessor {
   public:
-    PollingPacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, std::function<void(ServerStatus, uint16_t)> onPacketBody);
+    PollingPacketProcessor(
+      const Poco::Net::SocketAddress& remoteAddress,
+      uint16_t maxPayloadSize,
+      const std::function<void(ServerStatus, uint16_t)>& onResolve = [](auto, auto) {}
+    );
 
+    void SetStatusHandler(const std::function<void(ServerStatus, uint16_t)>& onResolve);
     bool TimedOut();
     void Update(double elapsed) override;
+    void OnListen(const Poco::Net::SocketAddress& sender) override;
     void OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) override;
 
   private:

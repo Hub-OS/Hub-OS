@@ -17,6 +17,7 @@
 #include "bnOverworldTileType.h"
 #include "bnOverworldTileBehaviors.h"
 #include "bnOverworldObjectType.h"
+#include "bnOverworldPollingPacketProcessor.h"
 #include "../bnMath.h"
 #include "../bnMobPackageManager.h"
 #include "../bnPlayerPackageManager.h"
@@ -128,6 +129,20 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
   return {};
 }
 
+// makes sure we transition while the scene is in focus
+void Overworld::OnlineArea::AddSceneChangeTask(const std::function<void()>& task) {
+  // we could check if we're in focus here, but we push some tasks that try to block changes for a frame (copyScreen)
+  sceneChangeTasks.push(task);
+}
+
+void Overworld::OnlineArea::SetAvatarAsSpeaker() {
+  auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+  const std::string& image = meta.GetMugshotTexturePath();
+  const std::string& anim = meta.GetMugshotAnimationPath();
+  auto mugshot = Textures().LoadTextureFromFile(image);
+  GetMenuSystem().SetNextSpeaker(sf::Sprite(*mugshot), anim);
+}
+
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
   if (tryPopScene) {
@@ -150,9 +165,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     return;
   }
 
-  if (this->pvpRemoteAddress.size()) {
-    HandlePVPStep(pvpRemoteAddress);
-    return;
+  if (IsInFocus() && !sceneChangeTasks.empty()) {
+    sceneChangeTasks.front()();
+    sceneChangeTasks.pop();
   }
 
   updateOtherPlayers(elapsed);
@@ -195,118 +210,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   UnlockCamera(); // reset lock, we'll lock it later if we need to
 }
 
-void Overworld::OnlineArea::HandlePVPStep(const std::string& remoteAddress)
-{
-  pvpRemoteAddress = remoteAddress;
-
-  if (!IsInFocus() || copyScreen) return;
-
-  // The two steps needed to be in for pvp
-  if (isPreparingForBattle && !canProceedToBattle) return;
-
-  auto remote = Poco::Net::SocketAddress(remoteAddress);
-
-  std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
-  CardFolder* folder;
-
-  if (selectedFolder) {
-    folder = (*selectedFolder)->Clone();
-  }
-  else {
-    // use a new blank folder if we dont have a folder selected
-    folder = new CardFolder();
-  }
-
-  if (!isPreparingForBattle) {
-    isPreparingForBattle = true;
-
-    try {
-      netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
-      Net().AddHandler(remote, netBattleProcessor);
-    }
-    catch (...) {
-      delete folder;
-      ResetPVPStep(true);
-      return;
-    }
-
-    std::vector<std::string> cardUUIDs, cardPackages;
-    auto next = folder->Next();
-
-    while (next) {
-      // NOTE TO SELF: assume if it's not a package, it's from the web for now
-      //               until we phase out the web stuff entirely.
-      if (!getController().CardPackageManager().HasPackage(next->GetUUID())) {
-        cardUUIDs.push_back(next->GetUUID());
-      }
-      else {
-        cardPackages.push_back(next->GetUUID());
-      }
-      next = folder->Next();
-    }
-
-    delete folder;
-
-    DownloadSceneProps props = {
-      canProceedToBattle,
-      cardUUIDs,
-      cardPackages,
-      GetCurrentNaviID(),
-      remoteNaviId,
-      remote,
-      netBattleProcessor,
-      screen
-    };
-
-    returningFrom = ReturningScene::DownloadScene;
-    using effect = swoosh::types::segue<BlendFadeIn>;
-    getController().push<effect::to<DownloadScene>>(props);
-    return;
-  }
-  else if (canProceedToBattle) {
-     // Shuffle our folder
-    folder->Shuffle();
-
-    NetPlayConfig config;
-
-    // Play the pre battle sound
-    Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
-
-    // Stop music and go to battle screen
-    Audio().StopStream();
-
-    // Configure the session
-    config.myNaviId = GetCurrentNaviID();
-
-    auto& meta = getController().PlayerPackageManager().FindPackageByID(config.myNaviId);
-    const std::string& image = meta.GetMugshotTexturePath();
-    const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
-    const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
-    auto mugshot = Textures().LoadTextureFromFile(image);
-    auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-    Player* player = meta.GetData();
-
-    player->SetHealth(GetPlayerSession()->health);
-    player->SetEmotion(GetPlayerSession()->emotion);
-
-    NetworkBattleSceneProps props = {
-      { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
-      sf::Sprite(*mugshot),
-      mugshotAnim,
-      emotions,
-      config,
-      netBattleProcessor
-    };
-
-    BattleResultsFunc callback = [this](const BattleResults& results) {
-      sendBattleResultsSignal(results);
-    };
-
-    returningFrom = ReturningScene::BattleScene;
-    getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
-  }
-}
-
 void Overworld::OnlineArea::ResetPVPStep(bool failed)
 {
   if (failed) {
@@ -318,8 +221,17 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
     netBattleProcessor = nullptr;
   }
 
-  canProceedToBattle = isPreparingForBattle = false;
-  pvpRemoteAddress.clear();
+  canProceedToBattle = false;
+}
+
+void Overworld::OnlineArea::RemovePackages() {
+  auto& packageManager = getController().MobPackageManager();
+
+  for (auto& packageId : downloadedMobPackages) {
+    packageManager.RemovePackageByID(packageId);
+  }
+
+  downloadedMobPackages.clear();
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
@@ -452,11 +364,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
     auto& menuSystem = GetMenuSystem();
 
     if (menuSystem.IsClosed() && Input().Has(InputEvents::pressed_shoulder_right)) {
-      auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
-      const std::string& image = meta.GetMugshotTexturePath();
-      const std::string& anim = meta.GetMugshotAnimationPath();
-      auto mugshot = Textures().LoadTextureFromFile(image);
-      menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
+      SetAvatarAsSpeaker();
 
       menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
         if (result) {
@@ -786,17 +694,68 @@ Overworld::TeleportController::Command& Overworld::OnlineArea::teleportIn(sf::Ve
   return GetTeleportController().TeleportIn(actor, position, direction);
 }
 
-void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t port, const std::string& data, bool warpOut) {
-  auto transfer = [=] {
-    getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
+void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t port, std::string data, bool warpOut) {
+  auto reportFailure = [=] {
+    SetAvatarAsSpeaker();
+    GetMenuSystem().EnqueueMessage("Looks like the next area is offline...");
+  };
+
+  auto handleFail = [=] {
+    if (warpOut) {
+      auto player = GetPlayer();
+      auto position = player->Get3DPosition();
+      auto direction = Reverse(player->GetHeading());
+      auto& command = GetTeleportController().TeleportIn(player, position, direction);
+      warpCameraController.UnlockCamera();
+
+      command.onFinish.Slot(reportFailure);
+    }
+    else {
+      reportFailure();
+    }
+
+    transferringServers = false;
+  };
+
+  auto attemptTransfer = [=] {
+    Poco::Net::SocketAddress remoteAddress;
+
+    try {
+      remoteAddress = Poco::Net::SocketAddress(host, port);
+    }
+    catch (Poco::IOException&) {
+      handleFail();
+      return;
+    }
+
+    auto packetProcessor = std::make_shared<Overworld::PollingPacketProcessor>(
+      remoteAddress,
+      Net().GetMaxPayloadSize()
+      );
+
+    packetProcessor->SetStatusHandler([=](auto status, auto maxPayloadSize) {
+      Net().DropProcessor(packetProcessor);
+
+      if (status == ServerStatus::online) {
+        AddSceneChangeTask([=] {
+          RemovePackages();
+          getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
+        });
+      }
+      else {
+        handleFail();
+      }
+    });
+
+    Net().AddHandler(remoteAddress, packetProcessor);
   };
 
   if (warpOut) {
     auto& command = GetTeleportController().TeleportOut(GetPlayer());
-    command.onFinish.Slot(transfer);
+    command.onFinish.Slot(attemptTransfer);
   }
   else {
-    transfer();
+    attemptTransfer();
   }
 
   transferringServers = true;
@@ -2070,28 +2029,142 @@ void Overworld::OnlineArea::receiveOpenShopSignal(BufferReader& reader, const Po
   auto mugTexturePath = reader.ReadString<uint16_t>(buffer);
   auto mugAnimationPath = reader.ReadString<uint16_t>(buffer);
 
-  auto mugTexture = GetTexture(mugTexturePath);
+  std::vector<VendorScene::Item> shopItemCopy;
+  std::swap(shopItems, shopItemCopy);
 
-  Animation mugAnimation;
-  mugAnimation.LoadWithData(GetText(mugAnimationPath));
+  AddSceneChangeTask([=] {
+    auto mugTexture = GetTexture(mugTexturePath);
 
-  auto callback = [this](const std::string& itemName) {
-    sendShopPurchaseSignal(itemName);
-  };
+    Animation mugAnimation;
+    mugAnimation.LoadWithData(GetText(mugAnimationPath));
 
-  returningFrom = ReturningScene::VendorScene;
-  getController().push<segue<BlackWashFade>::to<VendorScene>>(shopItems, money, mugTexture, mugAnimation, callback);
-  shopItems.clear();
+    auto callback = [this](const std::string& itemName) {
+      sendShopPurchaseSignal(itemName);
+    };
+
+    returningFrom = ReturningScene::VendorScene;
+    getController().push<segue<BlackWashFade>::to<VendorScene>>(shopItemCopy, money, mugTexture, mugAnimation, callback);
+  });
 }
 
 void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  if (pvpRemoteAddress.empty()) {
-    pvpRemoteAddress = reader.ReadString<uint16_t>(buffer);
-    Logger::Logf("Trying to net battle with %s", pvpRemoteAddress.c_str());
+  auto remoteAddress = reader.ReadString<uint16_t>(buffer);
 
-    copyScreen = true; // copy screen contents for download screen fx
+  auto remote = Poco::Net::SocketAddress(remoteAddress);
+
+  try {
+    netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
+    Net().AddHandler(remote, netBattleProcessor);
   }
+  catch (...) {
+    Logger::Log("Failed to connect to remote player");
+    ResetPVPStep(true);
+    return;
+  }
+
+  AddSceneChangeTask([&] {
+    // adding as a scene change task to block one frame
+    copyScreen = true; // copy screen contents for download screen fx
+  });
+
+  AddSceneChangeTask([=] {
+    std::vector<std::string> cardUUIDs, cardPackages;
+    std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
+
+    if (selectedFolder) {
+      auto folder = (*selectedFolder)->Clone();
+      auto next = folder->Next();
+
+      while (next) {
+        // NOTE TO SELF: assume if it's not a package, it's from the web for now
+        //               until we phase out the web stuff entirely.
+        if (!getController().CardPackageManager().HasPackage(next->GetUUID())) {
+          cardUUIDs.push_back(next->GetUUID());
+        }
+        else {
+          cardPackages.push_back(next->GetUUID());
+        }
+
+        next = folder->Next();
+      }
+
+      delete folder;
+    }
+
+    DownloadSceneProps props = {
+      this->canProceedToBattle,
+      cardUUIDs,
+      cardPackages,
+      GetCurrentNaviID(),
+      this->remoteNaviId,
+      remote,
+      netBattleProcessor,
+      screen
+    };
+
+    returningFrom = ReturningScene::DownloadScene;
+    using effect = swoosh::types::segue<BlendFadeIn>;
+    getController().push<effect::to<DownloadScene>>(props);
+  });
+
+  AddSceneChangeTask([=] {
+    if (!this->canProceedToBattle) {
+      Logger::Log("Failed to download assets from remote player");
+      return;
+    }
+
+    std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
+    CardFolder* folder;
+
+    if (selectedFolder) {
+      folder = (*selectedFolder)->Clone();
+      // Shuffle our folder
+      folder->Shuffle();
+    }
+    else {
+      // use a new blank folder if we dont have a folder selected
+      folder = new CardFolder();
+    }
+
+    NetPlayConfig config;
+
+    // Play the pre battle sound
+    Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
+
+    // Stop music and go to battle screen
+    Audio().StopStream();
+
+    // Configure the session
+    config.myNaviId = GetCurrentNaviID();
+
+    auto& meta = getController().PlayerPackageManager().FindPackageByID(config.myNaviId);
+    const std::string& image = meta.GetMugshotTexturePath();
+    const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
+    const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
+    auto mugshot = Textures().LoadTextureFromFile(image);
+    auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+    Player* player = meta.GetData();
+
+    player->SetHealth(GetPlayerSession()->health);
+    player->SetEmotion(GetPlayerSession()->emotion);
+
+    NetworkBattleSceneProps props = {
+      { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
+      sf::Sprite(*mugshot),
+      mugshotAnim,
+      emotions,
+      config,
+      netBattleProcessor
+    };
+
+    BattleResultsFunc callback = [this](const BattleResults& results) {
+      sendBattleResultsSignal(results);
+    };
+
+    returningFrom = ReturningScene::BattleScene;
+    getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
+  });
 }
 
 void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2116,11 +2189,21 @@ void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poc
   // install for the first time
   if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
     Logger::Logf("Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
+    return;
   }
+
+  packageId = packageManager.FilepathToPackageID(file_path);
+  downloadedMobPackages.push_back(packageId);
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  if (transferringServers) {
+    sendBattleResultsSignal(BattleResults{});
+    // ignore encounters if we're leaving
+    return;
+  }
+
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
 
   std::string file_path = serverAssetManager.GetPath(asset_path);
@@ -2146,61 +2229,63 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   auto* mob = mobMeta.GetData()->Build(new Field(6, 3));
 
-  // Play the pre battle rumble sound
-  Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
+  AddSceneChangeTask([=] {
+    // Play the pre battle rumble sound
+    Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
-  // Stop music and go to battle screen 
-  Audio().StopStream();
+    // Stop music and go to battle screen 
+    Audio().StopStream();
 
-  // Get the navi we selected
-  auto& playerMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
-  const std::string& image = playerMeta.GetMugshotTexturePath();
-  const std::string& mugshotAnim = playerMeta.GetMugshotAnimationPath();
-  const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
-  auto mugshot = Textures().LoadTextureFromFile(image);
-  auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-  Player* player = playerMeta.GetData();
+    // Get the navi we selected
+    auto& playerMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+    const std::string& image = playerMeta.GetMugshotTexturePath();
+    const std::string& mugshotAnim = playerMeta.GetMugshotAnimationPath();
+    const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
+    auto mugshot = Textures().LoadTextureFromFile(image);
+    auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+    Player* player = playerMeta.GetData();
 
-  player->SetHealth(GetPlayerSession()->health);
-  player->SetEmotion(GetPlayerSession()->emotion);
+    player->SetHealth(GetPlayerSession()->health);
+    player->SetEmotion(GetPlayerSession()->emotion);
 
-  CardFolder* newFolder = nullptr;
+    CardFolder* newFolder = nullptr;
 
-  std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
-  CardFolder* folder;
+    std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
+    CardFolder* folder;
 
-  if (selectedFolder) {
-    folder = (*selectedFolder)->Clone();
-    folder->Shuffle();
-  }
-  else {
-    // use a new blank folder if we dont have a folder selected
-    folder = new CardFolder();
-  }
+    if (selectedFolder) {
+      folder = (*selectedFolder)->Clone();
+      folder->Shuffle();
+    }
+    else {
+      // use a new blank folder if we dont have a folder selected
+      folder = new CardFolder();
+    }
 
-  // Queue screen transition to Battle Scene with a white fade effect
-  // just like the game
-  if (!mob->GetBackground()) {
-    mob->SetBackground(GetBackground());
-  }
+    // Queue screen transition to Battle Scene with a white fade effect
+    // just like the game
+    if (!mob->GetBackground()) {
+      mob->SetBackground(GetBackground());
+    }
 
-  MobBattleProperties props{
-    { *player, GetProgramAdvance(), folder, mob->GetField(), mob->GetBackground() },
-    MobBattleProperties::RewardBehavior::take,
-    { mob },
-    sf::Sprite(*mugshot),
-    mugshotAnim,
-    emotions,
-  };
+    MobBattleProperties props{
+      { *player, GetProgramAdvance(), folder, mob->GetField(), mob->GetBackground() },
+      MobBattleProperties::RewardBehavior::take,
+      { mob },
+      sf::Sprite(*mugshot),
+      mugshotAnim,
+      emotions,
+    };
 
-  BattleResultsFunc callback = [this](const BattleResults& results) {
-    sendBattleResultsSignal(results);
-  };
+    BattleResultsFunc callback = [this](const BattleResults& results) {
+      sendBattleResultsSignal(results);
+    };
 
-  using effect = segue<WhiteWashFade>;
-  getController().push<effect::to<MobBattleScene>>(props, callback);
-  GetPlayer()->Face(GetPlayer()->GetHeading());
-  returningFrom = ReturningScene::BattleScene;
+    using effect = segue<WhiteWashFade>;
+    getController().push<effect::to<MobBattleScene>>(props, callback);
+    GetPlayer()->Face(GetPlayer()->GetHeading());
+    returningFrom = ReturningScene::BattleScene;
+  });
 }
 
 void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2601,6 +2686,7 @@ void Overworld::OnlineArea::leave() {
     packetProcessor = nullptr;
   }
 
+  RemovePackages();
   tryPopScene = true;
 }
 

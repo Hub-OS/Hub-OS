@@ -248,7 +248,7 @@ void Overworld::Minimap::FindObjectMarkers(Map& map) {
   }
 }
 
-void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Overworld::Map& map, size_t index) {
+void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, const sf::Shader& shader, sf::RenderStates states, Overworld::Map& map, size_t index) {
   auto& layer = map.GetLayer(index);
 
   // TODO: render SOME objects that are overlaying the map

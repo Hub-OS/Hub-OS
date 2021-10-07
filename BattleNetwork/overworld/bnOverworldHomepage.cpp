@@ -353,14 +353,12 @@ void Overworld::Homepage::onStart()
   SceneBase::onStart();
 
   Audio().Stream("resources/loops/loop_overworld.ogg", false);
-  infocus = true;
 }
 
 void Overworld::Homepage::onResume()
 {
   SceneBase::onResume();
   Audio().Stream("resources/loops/loop_overworld.ogg", false);
-  infocus = true;
 
   if (packetProcessor) {
     Net().AddHandler(remoteAddress, packetProcessor);
@@ -369,7 +367,7 @@ void Overworld::Homepage::onResume()
 
 void Overworld::Homepage::onLeave()
 {
-  infocus = false;
+  SceneBase::onLeave();
 
   if (packetProcessor) {
     Net().DropProcessor(packetProcessor);
