@@ -36,6 +36,7 @@ public:
   ~ScriptResourceManager();
 
   LoadScriptResult& LoadScript(const std::filesystem::path& path);
+  LoadScriptResult& LoadLibrary( const std::string& path );
 
   void DefineCharacter(const std::string& fqn, const std::string& path) /* throw std::exception */;
   sol::state* FetchCharacter(const std::string& fqn);

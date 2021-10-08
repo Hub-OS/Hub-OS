@@ -45,6 +45,7 @@ using swoosh::ActivityController;
 class PlayerPackageManager;
 class CardPackageManager;
 class MobPackageManager;
+class LuaLibraryPackageManager;
 
 enum class Endianness : short {
   big = 0,
@@ -69,6 +70,7 @@ private:
   CardPackageManager* cardPackageManager;
   PlayerPackageManager* playerPackageManager;
   MobPackageManager* mobPackageManager;
+  LuaLibraryPackageManager* luaLibraryPackageManager;
 
   DrawWindow& window;
   ConfigReader reader;
@@ -121,6 +123,7 @@ public:
   CardPackageManager& CardPackageManager();
   PlayerPackageManager& PlayerPackageManager();
   MobPackageManager& MobPackageManager();
+  LuaLibraryPackageManager& GetLuaLibraryPackageManager();
   ConfigSettings& ConfigSettings();
 
   /**
@@ -188,6 +191,17 @@ private:
   * against.
   */
   void RunMobInit(std::atomic<int>* progress);
+
+  /*! \brief This thread tnitializes all shared lua libraries
+  *
+  * @see RunNaviInit()
+  *
+  * After the media resources are loaded we
+  * safely load all registed shared libraries.
+  * Loaded shared libraries will be able to be
+  * included by other scripts.
+  */
+  void RunLuaLibraryInit(std::atomic<int>* progress);
 
   /*! \brief This thread loads textures and shaders
   *

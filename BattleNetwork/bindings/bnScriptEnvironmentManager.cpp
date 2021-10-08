@@ -69,25 +69,27 @@ void ScriptEnvironmentManager::SetSystemFunctions( sol::state* state )
   );
 }
 
+// Free Function provided to a number of Lua types that will print an error message when attempting to access a key that does not exist.
+// Will print the file and line the error occured in, as well as the invalid key and type. 
 sol::object ScriptEnvironmentManager::PrintInvalidAccessMessage( sol::table table, const std::string typeName, const std::string key )
 {
-  auto filePoint = GetCurrentLine( table.lua_state() );
-
-  Logger::Log( "[Script Error] in " + filePoint );
+  Logger::Log( "[Script Error] in " + GetCurrentLine( table.lua_state() ) );
   Logger::Log( "[Script Error] : Attempted to access \"" + key + "\" in type \"" + typeName + "\"." );
   Logger::Log( "[Script Error] : " + key + " does not exist in " + typeName + "." );
   return sol::lua_nil;
 }
+// Free Function provided to a number of Lua types that will print an error message when attempting to assign to a key that exists in a system type.
+// Will print the file and line the error occured in, as well as the invalid key and type. 
 sol::object ScriptEnvironmentManager::PrintInvalidAssignMessage( sol::table table, const std::string typeName, const std::string key )
 {
-  auto filePoint = GetCurrentLine( table.lua_state() );
-
-  Logger::Log( "[Script Error] in " + filePoint );
+  Logger::Log( "[Script Error] in " + GetCurrentLine( table.lua_state() ) );
   Logger::Log( "[Script Error] : Attempted to assign to \"" + key + "\" in type \"" + typeName + "\"." );
   Logger::Log( "[Script Error] : " + typeName + " is read-only. Cannot assign new values to it." );
   return sol::lua_nil;
 }
 
+// Returns the current executing line in the Lua script.
+// Format: \@[full_filename]:[line_number]
 std::string ScriptEnvironmentManager::GetCurrentLine( lua_State* L )
 {
   lua_getglobal( L, "debug" );          // debug
@@ -125,7 +127,9 @@ std::string ScriptEnvironmentManager::GetCurrentLine( lua_State* L )
   return fileName + ":" + std::to_string( lineNumber );
 }
 
-std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
+// Creates a std::list<OverrideFrame> object from a provided table.
+// Expected format : { { unsigned int state_in_animation, double duration }, ... }
+std::list<OverrideFrame> ScriptEnvironmentManager::CreateFrameData( sol::lua_table table )
 {
   std::list<OverrideFrame> frames;
 
@@ -142,8 +146,12 @@ std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
   return frames;
 }
 
-void ScriptEnvironmentManager::DefineObject_Tile( sol::state& state )
-{
+void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
+
+  sol::table battle_namespace =     state.create_table("Battle");
+  sol::table overworld_namespace =  state.create_table("Overworld");
+  sol::table engine_namespace =     state.create_table("Engine");
+
 // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
   const auto& tile_record = state.new_usertype<Battle::Tile>("Tile", sol::no_constructor,
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
@@ -180,14 +188,6 @@ void ScriptEnvironmentManager::DefineObject_Tile( sol::state& state )
       sol::resolve<void(Character&)>(&Battle::Tile::AddEntity)
     )
   );
-}
-void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
-
-  sol::table battle_namespace =     state.create_table("Battle");
-  sol::table overworld_namespace =  state.create_table("Overworld");
-  sol::table engine_namespace =     state.create_table("Engine");
-
-  DefineObject_Tile( state );
 
   // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
   // If you hold onto their ID, and use that through Field::GetCharacter,
@@ -1314,7 +1314,7 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
     [](unsigned num) { return frames(num); }
   );
 
-  state.set_function( "make_frame_data", &CreateFrameData );
+  state.set_function( "make_frame_data", &ScriptEnvironmentManager::CreateFrameData );
 
   state.set_function("reverse_dir",
     [](Direction dir) { return Reverse(dir); }

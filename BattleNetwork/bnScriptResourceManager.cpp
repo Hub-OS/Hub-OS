@@ -122,6 +122,11 @@ ScriptResourceManager::~ScriptResourceManager()
   states.clear();
 }
 
+ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadLibrary( const std::string& path )
+{
+  
+}
+
 ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::filesystem::path& modDirectory)
 {
   auto entryPath = modDirectory / "entry.lua";

@@ -10,6 +10,7 @@
 #include "bnPlayerPackageManager.h"
 #include "bnCardPackageManager.h"
 #include "bnMobPackageManager.h"
+#include "bnLuaLibraryPackageManager.h"
 #include "bnGameOverScene.h"
 #include "bnFakeScene.h"
 #include "bnConfigReader.h"
@@ -18,6 +19,7 @@
 #include "bnQueueMobRegistration.h"
 #include "bnQueueNaviRegistration.h"
 #include "bnQueueCardRegistration.h"
+#include "bindings/bnQueueLuaLibraryRegistration.h"
 #include "bnResourceHandle.h"
 #include "bnInputHandle.h"
 #include "overworld/bnOverworldHomepage.h"
@@ -60,6 +62,7 @@ Game::Game(DrawWindow& window) :
   cardPackageManager = new class CardPackageManager;
   playerPackageManager = new class PlayerPackageManager;
   mobPackageManager = new class MobPackageManager;
+  luaLibraryPackageManager = new class LuaLibraryPackageManager;
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -125,6 +128,9 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   Callback<void()> audio;
   audio.Slot(std::bind(&Game::RunAudioInit, this, &progress));
 
+  Callback<void()> libraries;
+  libraries.Slot( std::bind( &Game::RunLuaLibraryInit, this, &progress ) );
+
   Callback<void()> navis;
   navis.Slot(std::bind(&Game::RunNaviInit, this, &progress));
 
@@ -155,6 +161,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   TaskGroup tasks;
   tasks.AddTask("Init graphics", std::move(graphics));
   tasks.AddTask("Init audio", std::move(audio));
+  tasks.AddTask( "Load Libraries", std::move( libraries ) );
   tasks.AddTask("Load Navis", std::move(navis));
   tasks.AddTask("Load mobs", std::move(mobs));
   tasks.AddTask("Load cards", std::move(cards));
@@ -371,6 +378,11 @@ MobPackageManager& Game::MobPackageManager()
   return *mobPackageManager;
 }
 
+LuaLibraryPackageManager& Game::GetLuaLibraryPackageManager()
+{
+  return *luaLibraryPackageManager;
+}
+
 ConfigSettings& Game::ConfigSettings()
 {
   return configSettings;
@@ -401,6 +413,15 @@ void Game::RunCardInit(std::atomic<int>* progress) {
   cardPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+}
+
+void Game::RunLuaLibraryInit(std::atomic<int>* progress) {
+  clock_t begin_time = clock();
+  QueueLuaLibraryRegistration(*luaLibraryPackageManager);
+
+  luaLibraryPackageManager->LoadAllPackages(*progress);
+
+  Logger::Logf("Loaded registered libraries: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::RunGraphicsInit(std::atomic<int> * progress) {
