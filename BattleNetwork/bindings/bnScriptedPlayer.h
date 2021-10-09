@@ -12,6 +12,7 @@
 #include "../bnPlayerIdleState.h"
 #include "../bnPlayerHitState.h"
 #include "../stx/result.h"
+#include "dynamic_object.h"
 #include "bnWeakWrapper.h"
 
 /*! \brief scriptable navi
@@ -19,11 +20,12 @@
  * Uses callback functions defined in an external file to configure
  */
 
-class ScriptedPlayer : public Player {
+class ScriptedPlayer : public Player, public dynamic_object {
   sol::state& script;
   float height{};
 
   std::shared_ptr<CardAction> GenerateCardAction(const std::string& functionName);
+  WeakWrapper<ScriptedPlayer> weakWrap;
 public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;
@@ -43,7 +45,6 @@ public:
   std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
   std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
   std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
-  std::function<void(WeakWrapper<ScriptedPlayer>, double)> updateCallback;
 };
 
 #endif

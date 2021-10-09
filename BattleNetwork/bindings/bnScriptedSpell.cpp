@@ -1,5 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedSpell.h"
+#include "../bnSolHelpers.h"
+#include "../bnTile.h"
 
 ScriptedSpell::ScriptedSpell(Team team) : Spell(team) {
   setScale(2.f, 2.f);
@@ -15,6 +17,7 @@ ScriptedSpell::ScriptedSpell(Team team) : Spell(team) {
 void ScriptedSpell::Init() {
   Spell::Init();
   animComponent = CreateComponent<AnimationComponent>(weak_from_base<Entity>());
+  weakWrap = WeakWrapper(weak_from_base<ScriptedSpell>());
 }
 
 ScriptedSpell::~ScriptedSpell() {
@@ -23,12 +26,15 @@ ScriptedSpell::~ScriptedSpell() {
 
 bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 {
-  if (canMoveToCallback) {
-    try {
-      return canMoveToCallback(*next);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["can_move_to_func"].valid()) 
+  {
+    auto result = CallLuaFunctionExpectingValue<bool>(entries, "can_move_to_func", next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
+
+    return result.value();
   }
 
   return false;
@@ -38,25 +44,23 @@ void ScriptedSpell::OnUpdate(double _elapsed) {
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
 
-  if (updateCallback) {
-    auto ss = shared_from_base<ScriptedSpell>();
+  if (entries["update_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "update_func", weakWrap, _elapsed);
 
-    try {
-      updateCallback(ss, _elapsed);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
 void ScriptedSpell::OnDelete() {
-  if (deleteCallback) {
-    auto ss = shared_from_base<ScriptedSpell>();
+  if (entries["delete_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "delete_func", weakWrap);
 
-    try {
-      deleteCallback(ss);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 
@@ -65,13 +69,12 @@ void ScriptedSpell::OnDelete() {
 
 void ScriptedSpell::OnCollision(const std::shared_ptr<Entity> other)
 {
-  if (collisionCallback) {
-    auto ss = shared_from_base<ScriptedSpell>();
+  if (entries["collision_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "collision_func", weakWrap, WeakWrapper(other));
 
-    try {
-      collisionCallback(ss, WeakWrapper(other));
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
@@ -79,26 +82,24 @@ void ScriptedSpell::OnCollision(const std::shared_ptr<Entity> other)
 void ScriptedSpell::Attack(std::shared_ptr<Entity> other) {
   other->Hit(GetHitboxProperties());
 
-  if (attackCallback) {
-    auto ss = shared_from_base<ScriptedSpell>();
+  if (entries["attack_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "attack_func", weakWrap, WeakWrapper(other));
 
-    try {
-      attackCallback(ss, WeakWrapper(other));
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
 void ScriptedSpell::OnSpawn(Battle::Tile& spawn)
 {
-  if (spawnCallback) {
-    auto ss = shared_from_base<ScriptedSpell>();
+  if (entries["on_spawn_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "on_spawn_func", weakWrap);
 
-    try {
-      spawnCallback(ss, spawn);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 

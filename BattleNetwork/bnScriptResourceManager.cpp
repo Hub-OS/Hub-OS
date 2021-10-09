@@ -47,6 +47,9 @@
 #include "bindings/bnUserTypeScriptedSpell.h"
 #include "bindings/bnUserTypeScriptedObstacle.h"
 #include "bindings/bnUserTypeScriptedArtifact.h"
+#include "bindings/bnUserTypeScriptedComponent.h"
+#include "bindings/bnUserTypeBaseCardAction.h"
+#include "bindings/bnUserTypeScriptedCardAction.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -274,6 +277,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineScriptedSpellUserType(battle_namespace);
   DefineScriptedObstacleUserType(battle_namespace);
   DefineScriptedArtifactUserType(battle_namespace);
+  DefineScriptedComponentUserType(battle_namespace);
+  DefineBaseCardActionUserType(battle_namespace);
+  DefineScriptedCardActionUserType(battle_namespace);
 
   const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
     sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
@@ -291,9 +297,18 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_state", &Animation::GetAnimationString,
     "point", &Animation::GetPoint,
     "set_playback", sol::resolve<Animation& (char)>(&Animation::operator<<),
-    "on_complete", sol::resolve<void(const FrameCallback&)>(&Animation::operator<<),
-    "on_frame", &Animation::AddCallback,
-    "on_interrupt", &Animation::SetInterruptCallback
+    "on_complete", [] (Animation& animation, sol::stack_object callbackObject) {
+      sol::protected_function callback = callbackObject;
+      animation << [callback] { callback(); };
+    },
+    "on_frame", [](Animation& animation, int frame, sol::stack_object callbackObject, bool doOnce) {
+      sol::protected_function callback = callbackObject;
+      animation.AddCallback(frame, [callback] { callback(); }, doOnce);
+    },
+    "on_interrupt", [](Animation& animation, sol::stack_object callbackObject) {
+      sol::protected_function callback = callbackObject;
+      animation.SetInterruptCallback([callback] { callback(); });
+    }
   );
 
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
@@ -324,87 +339,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "unwrap", &SpriteProxyNode::getSprite,
     "enable_parent_shader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
-  );
-
-  const auto& component_record = battle_namespace.new_usertype<ScriptedComponent>("Component",
-    sol::factories([](WeakWrapper<Character> owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
-      return std::make_shared<ScriptedComponent>(owner.Unwrap(), lifetime);
-    }),
-    sol::factories([](WeakWrapper<ScriptedCharacter> owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
-      return std::make_shared<ScriptedComponent>(owner.Unwrap(), lifetime);
-    }),
-    sol::factories([](WeakWrapper<ScriptedPlayer> owner, Component::lifetimes lifetime) -> std::shared_ptr<ScriptedComponent> {
-      return std::make_shared<ScriptedComponent>(owner.Unwrap(), lifetime);
-    }),
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    "eject", &ScriptedComponent::Eject,
-    "get_id", &ScriptedComponent::GetID,
-    "is_injected", &ScriptedComponent::Injected,
-    "get_owner", &ScriptedComponent::GetOwnerAsCharacter,
-    "scene_inject_func", &ScriptedComponent::scene_inject_func,
-    "update_func", &ScriptedComponent::update_func,
-    sol::base_classes, sol::bases<Component>()
-  );
-
-  const auto& card_action_record = battle_namespace.new_usertype<CardAction>("BaseCardAction",
-    "set_lockout", &CardAction::SetLockout,
-    "set_lockout_group", &CardAction::SetLockoutGroup,
-    "override_animation_frames", &CardAction::OverrideAnimationFrames,
-    "add_attachment", sol::overload(
-      [](CardAction& a, WeakWrapper<Character> c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c.Unwrap(), s, n); },
-      [](CardAction& a, WeakWrapper<ScriptedCharacter> c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c.Unwrap(), s, n); },
-      [](CardAction& a, WeakWrapper<ScriptedPlayer> c, const std::string& s, SpriteProxyNode& n) { return a.AddAttachment(c.Unwrap(), s, n); },
-      sol::resolve<CardAction::Attachment& (Animation&, const std::string&, SpriteProxyNode&)>(&CardAction::CardAction::AddAttachment)
-    ),
-    "add_anim_action", &CardAction::AddAnimAction,
-    "add_step", &CardAction::AddStep,
-    "end_action", &CardAction::EndAction,
-    "get_actor", [](CardAction& cardAction) -> WeakWrapper<Character> {
-      return WeakWrapper(cardAction.GetActor());
-    },
-    "set_metadata", &CardAction::SetMetaData,
-    "copy_metadata", &CardAction::GetMetaData
-  );
-
-  // Game would crash when using ScriptedPlayer* values so had to expose other versions for it to cooperate.
-  // Many things use std::shared_ptr<Character> references but we will maybe have to consolidate all the interfaces for characters into one type.
-  const auto& scripted_card_action_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
-    sol::factories(
-      [](WeakWrapper<Character>& character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
-        return std::make_shared<ScriptedCardAction>(character.Unwrap(), state);
-      },
-      [](WeakWrapper<ScriptedCharacter>& character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
-        return std::make_shared<ScriptedCardAction>(character.Unwrap(), state);
-      },
-      [](WeakWrapper<ScriptedPlayer>& character, const std::string& state)-> std::shared_ptr<ScriptedCardAction> {
-        return std::make_shared<ScriptedCardAction>(character.Unwrap(), state);
-      }
-    ),
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    "action_end_func", &ScriptedCardAction::onActionEnd,
-    "animation_end_func", &ScriptedCardAction::onAnimationEnd,
-    "execute_func", &ScriptedCardAction::onExecute,
-    "update_func", &ScriptedCardAction::onUpdate,
-    sol::base_classes, sol::bases<CardAction>()
-  );
-
-  const auto& step_record = battle_namespace.new_usertype<CardAction::Step>("Step",
-    sol::factories([]() -> std::unique_ptr<CardAction::Step> {
-      return std::make_unique<CardAction::Step>();
-    }),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "Step", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "Step", key );
-    },
-    "update_func", &CardAction::Step::updateFunc,
-    "draw_func", &CardAction::Step::drawFunc,
-    "complete_step", &CardAction::Step::markDone
   );
 
   state.set_function("make_animation_lockout",
@@ -459,8 +393,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "DefenseRule", key );
     },
     "is_replaced", &ScriptedDefenseRule::IsReplaced,
-    "can_block_func", &ScriptedDefenseRule::canBlockCallback,
-    "filter_statuses_func", &ScriptedDefenseRule::filterStatusesCallback,
+    sol::meta_function::index, &dynamic_object::dynamic_get,
+    sol::meta_function::new_index, &dynamic_object::dynamic_set,
+    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
     sol::base_classes, sol::bases<DefenseRule>()
   );
 
@@ -502,7 +437,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Hitbox", key );
     },
-    "set_callbacks", [](WeakWrapper<HitboxSpell>& spell, std::function<void(WeakWrapper<Entity>)> luaAttackCallback, std::function<void(WeakWrapper<Entity>)> luaCollisionCallback) {
+    "set_callbacks", [](WeakWrapper<HitboxSpell>& spell, sol::stack_object luaAttackCallbackObject, sol::stack_object luaCollisionCallbackObject) {
+      sol::protected_function luaAttackCallback = luaAttackCallbackObject;
+      sol::protected_function luaCollisionCallback = luaCollisionCallbackObject;
+
       auto attackCallback = [luaAttackCallback] (std::shared_ptr<Entity> e) {
         luaAttackCallback(WeakWrapper(e));
       };
@@ -559,17 +497,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         wrappedSpell.Own();
         return wrappedSpell;
       }
-    )
-  );
-
-  const auto& busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
-    sol::factories(
-      [](WeakWrapper<Character> character, bool charged, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BusterCardAction>(character.Unwrap(), charged, dmg); },
-      [](WeakWrapper<ScriptedCharacter> character, bool charged, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BusterCardAction>(character.Unwrap(), charged, dmg); },
-      [](WeakWrapper<ScriptedPlayer> character, bool charged, int dmg) -> std::shared_ptr<CardAction>
-          { return std::make_shared<BusterCardAction>(character.Unwrap(), charged, dmg); }
     )
   );
 
@@ -1011,7 +938,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "endlag_frames",&MoveEvent::endlagFrames,
     "height", &MoveEvent::height,
     "dest_tile", &MoveEvent::dest,
-    "on_begin_func", &MoveEvent::onBegin
+    "on_begin_func", sol::property(
+      [](MoveEvent& event, sol::stack_object onBeginObject) {
+        sol::protected_function onBegin = onBeginObject;
+        event.onBegin = [onBegin] { onBegin(); };
+      }
+    )
   );
 
   const auto& card_event_record = state.new_usertype<CardEvent>("CardEvent");

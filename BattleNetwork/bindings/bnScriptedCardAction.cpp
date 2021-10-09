@@ -1,6 +1,8 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedCardAction.h"
 #include "../bnCharacter.h"
+#include "../bnSolHelpers.h"
+
 ScriptedCardAction::ScriptedCardAction(std::shared_ptr<Character> actor, const std::string& state) :
   CardAction(actor, state)
 {
@@ -11,17 +13,19 @@ ScriptedCardAction::~ScriptedCardAction() {
 
 }
 
-CardAction::Attachment& ScriptedCardAction::AddAttachment(std::shared_ptr<Character> character, const std::string& point, SpriteProxyNode& node) {
-  return CardAction::AddAttachment(character, point, node);
+void ScriptedCardAction::Init() {
+  weakWrap = WeakWrapper(weak_from_base<ScriptedCardAction>());
 }
 
 void ScriptedCardAction::Update(double elapsed) {
   CardAction::Update(elapsed);
-  if (onUpdate) {
-    try {
-      onUpdate(shared_from_base<ScriptedCardAction>(), elapsed);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+
+  if (entries["update_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "update_func", weakWrap, elapsed);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
@@ -32,31 +36,34 @@ void ScriptedCardAction::draw(sf::RenderTarget& target, sf::RenderStates states)
 }
 
 void ScriptedCardAction::OnAnimationEnd() {
-  if (onAnimationEnd) {
-    try {
-      onAnimationEnd(shared_from_base<ScriptedCardAction>());
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["animation_end_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "animation_end_func", weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
 void ScriptedCardAction::OnActionEnd() {
-  if (onActionEnd) {
-    try {
-      onActionEnd(shared_from_base<ScriptedCardAction>());
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["action_end_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "action_end_func", weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
 void ScriptedCardAction::OnExecute(std::shared_ptr<Character> user) {
-  if (onExecute) {
-    try {
-      onExecute(shared_from_base<ScriptedCardAction>(), WeakWrapper(user));
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["execute_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "execute_func", weakWrap, WeakWrapper(user));
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }

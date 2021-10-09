@@ -65,6 +65,10 @@ namespace stx {
 
       }
 
+      result_t(bool value) : m_value(value)
+      {
+      }
+
       result_t() : m_value(true)
       {
       }

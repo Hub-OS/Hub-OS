@@ -66,9 +66,18 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       WeakWrapper<ScriptedSpell>& spell,
       Battle::Tile* dest,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return spell.Unwrap()->Teleport(dest, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return spell.Unwrap()->Teleport(dest, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "slide", [](
       WeakWrapper<ScriptedSpell>& spell,
@@ -76,9 +85,18 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       const frame_time_t& slideTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return spell.Unwrap()->Slide(dest, slideTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return spell.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "jump", [](
       WeakWrapper<ScriptedSpell>& spell,
@@ -87,9 +105,18 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       const frame_time_t& jumpTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return spell.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return spell.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "raw_move_event", [](WeakWrapper<ScriptedSpell>& spell, const MoveEvent& event, ActionOrder order) -> bool {
       return spell.Unwrap()->RawMoveEvent(event, order);
@@ -165,54 +192,6 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     },
     "never_flip", [](WeakWrapper<ScriptedSpell>& spell, bool enabled) {
       spell.Unwrap()->NeverFlip(enabled);
-    },
-    "attack_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) {
-        return spell.Unwrap()->attackCallback;
-      },
-      [](WeakWrapper<ScriptedSpell>& spell, std::function<void(WeakWrapper<ScriptedSpell>, WeakWrapper<Entity>)> callback) {
-        spell.Unwrap()->attackCallback = callback;
-      }
-    ),
-    "delete_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) {
-        return spell.Unwrap()->deleteCallback;
-      },
-      [](WeakWrapper<ScriptedSpell>& spell, std::function<void(WeakWrapper<ScriptedSpell>)> callback) {
-        spell.Unwrap()->deleteCallback = callback;
-      }
-    ),
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) {
-        return spell.Unwrap()->updateCallback;
-      },
-      [](WeakWrapper<ScriptedSpell>& spell, std::function<void(WeakWrapper<ScriptedSpell>, double)> callback) {
-        spell.Unwrap()->updateCallback = callback;
-      }
-    ),
-    "collision_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) {
-        return spell.Unwrap()->collisionCallback;
-      },
-      [](WeakWrapper<ScriptedSpell>& spell, std::function<void(WeakWrapper<ScriptedSpell>, WeakWrapper<Entity>)> callback) {
-        spell.Unwrap()->collisionCallback = callback;
-      }
-    ),
-    "can_move_to_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) {
-        return spell.Unwrap()->canMoveToCallback;
-      },
-      [](WeakWrapper<ScriptedSpell>& spell, std::function<bool(Battle::Tile&)> callback) {
-        spell.Unwrap()->canMoveToCallback = callback;
-      }
-    ),
-    "on_spawn_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) {
-        return spell.Unwrap()->spawnCallback;
-      },
-      [](WeakWrapper<ScriptedSpell>& spell, std::function<void(WeakWrapper<ScriptedSpell>, Battle::Tile&)> callback) {
-        spell.Unwrap()->spawnCallback = callback;
-      }
-    )
+    }
   );
 }

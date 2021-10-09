@@ -72,9 +72,18 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       WeakWrapper<ScriptedObstacle>& obstacle,
       Battle::Tile* dest,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return obstacle.Unwrap()->Teleport(dest, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return obstacle.Unwrap()->Teleport(dest, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "slide", [](
       WeakWrapper<ScriptedObstacle>& obstacle,
@@ -82,9 +91,18 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       const frame_time_t& slideTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return obstacle.Unwrap()->Slide(dest, slideTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return obstacle.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "jump", [](
       WeakWrapper<ScriptedObstacle>& obstacle,
@@ -93,9 +111,18 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       const frame_time_t& jumpTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return obstacle.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return obstacle.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "raw_move_event", [](WeakWrapper<ScriptedObstacle>& obstacle, const MoveEvent& event, ActionOrder order) -> bool {
       return obstacle.Unwrap()->RawMoveEvent(event, order);
@@ -204,54 +231,6 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     },
     "never_flip", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enabled) {
       obstacle.Unwrap()->NeverFlip(enabled);
-    },
-    "attack_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) {
-        return obstacle.Unwrap()->attackCallback;
-      },
-      [](WeakWrapper<ScriptedObstacle>& obstacle, std::function<void(WeakWrapper<ScriptedObstacle>, WeakWrapper<Entity>)> callback) {
-        obstacle.Unwrap()->attackCallback = callback;
-      }
-    ),
-    "delete_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) {
-        return obstacle.Unwrap()->deleteCallback;
-      },
-      [](WeakWrapper<ScriptedObstacle>& obstacle, std::function<void(WeakWrapper<ScriptedObstacle>)> callback) {
-        obstacle.Unwrap()->deleteCallback = callback;
-      }
-    ),
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) {
-        return obstacle.Unwrap()->updateCallback;
-      },
-      [](WeakWrapper<ScriptedObstacle>& obstacle, std::function<void(WeakWrapper<ScriptedObstacle>, double)> callback) {
-        obstacle.Unwrap()->updateCallback = callback;
-      }
-    ),
-    "collision_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) {
-        return obstacle.Unwrap()->collisionCallback;
-      },
-      [](WeakWrapper<ScriptedObstacle>& obstacle, std::function<void(WeakWrapper<ScriptedObstacle>, WeakWrapper<Entity>)> callback) {
-        obstacle.Unwrap()->collisionCallback = callback;
-      }
-    ),
-    "can_move_to_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) {
-        return obstacle.Unwrap()->canMoveToCallback;
-      },
-      [](WeakWrapper<ScriptedObstacle>& obstacle, std::function<bool(Battle::Tile&)> callback) {
-        obstacle.Unwrap()->canMoveToCallback = callback;
-      }
-    ),
-    "on_spawn_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) {
-        return obstacle.Unwrap()->spawnCallback;
-      },
-      [](WeakWrapper<ScriptedObstacle>& obstacle, std::function<void(WeakWrapper<ScriptedObstacle>, Battle::Tile&)> callback) {
-        obstacle.Unwrap()->spawnCallback = callback;
-      }
-    )
+    }
   );
 }

@@ -30,19 +30,19 @@ int main(int argc, char** argv) {
   // to the bottom of the stack
   // TODO: game.push<GameOverScene>();
 
-  try {
+  // try {
     // Go the the title screen to kick off the rest of the app
     game.push<TitleScene>(game.Boot(options.parse(argc, argv)));
 
     // blocking
     game.Run();
-  }
-  catch (std::exception& e) {
-    Logger::Log(e.what());
-  }
-  catch (...) {
-    Logger::Log("Game encountered an unknown exception. Aborting.");
-  }
+  // }
+  // catch (std::exception& e) {
+  //   Logger::Log(e.what());
+  // }
+  // catch (...) {
+  //   Logger::Log("Game encountered an unknown exception. Aborting.");
+  // }
 
   // finished
   return EXIT_SUCCESS;

@@ -5,6 +5,7 @@
 #include "dynamic_object.h"
 #include "../bnComponent.h"
 #include "../battlescene/bnBattleSceneBase.h"
+#include "bnWeakWrapper.h"
 
 /**
  * @class ScriptedComponent
@@ -20,12 +21,12 @@ public:
   ScriptedComponent(std::weak_ptr<Character> owner, Component::lifetimes lifetime);
   ~ScriptedComponent();
 
+  void Init();
   void OnUpdate(double dt) override;
   void Inject(BattleSceneBase&) override;
   std::shared_ptr<Character> GetOwnerAsCharacter();
-
-  std::function<void(std::shared_ptr<ScriptedComponent>, double)> update_func;
-  std::function<void(std::shared_ptr<ScriptedComponent>)> scene_inject_func;
+private:
+  WeakWrapper<ScriptedComponent> weakWrap;
 };
 
 #endif

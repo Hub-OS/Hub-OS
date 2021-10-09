@@ -43,10 +43,19 @@ void DefineTileUserType(sol::state& state) {
     "get_distance_to_tile", &Battle::Tile::Distance,
     "find_characters", [] (
       Battle::Tile& tile,
-      std::function<bool(WeakWrapper<Character>)> query
+      sol::stack_object queryObject
     ) -> std::vector<WeakWrapper<Character>> {
-      auto results = tile.FindCharacters([query] (std::shared_ptr<Character> e) {
-        return query(e);
+      sol::protected_function query = queryObject;
+
+      auto results = tile.FindCharacters([query] (std::shared_ptr<Character> character) -> bool {
+        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
+
+        if (result.is_error()) {
+          Logger::Log(result.error_cstr());
+          return false;
+        }
+
+        return result.value();
       });
 
       std::vector<WeakWrapper<Character>> wrappedResults;

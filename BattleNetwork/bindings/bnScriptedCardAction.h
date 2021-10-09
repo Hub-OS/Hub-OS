@@ -16,18 +16,16 @@ public:
   ScriptedCardAction(std::shared_ptr<Character> actor, const std::string& state);
   ~ScriptedCardAction();
 
+  void Init();
   void Update(double elapsed) override;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;
   void OnExecute(std::shared_ptr<Character> user) override;
-  CardAction::Attachment& AddAttachment(std::shared_ptr<Character> character, const std::string& point, SpriteProxyNode& node);
 
-  std::function<void(std::shared_ptr<ScriptedCardAction>, double)> onUpdate;
-  std::function<void(std::shared_ptr<ScriptedCardAction>)> onAnimationEnd;
-  std::function<void(std::shared_ptr<ScriptedCardAction>)> onActionEnd;
-  std::function<void(std::shared_ptr<ScriptedCardAction>, WeakWrapper<Character>)> onExecute;
+private:
+  WeakWrapper<ScriptedCardAction> weakWrap;
 };
 
 #endif

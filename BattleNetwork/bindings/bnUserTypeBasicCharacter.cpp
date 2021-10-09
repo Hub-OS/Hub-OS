@@ -51,9 +51,18 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
       WeakWrapper<Character>& character,
       Battle::Tile* dest,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return character.Unwrap()->Teleport(dest, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return character.Unwrap()->Teleport(dest, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "slide", [](
       WeakWrapper<Character>& character,
@@ -61,9 +70,18 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
       const frame_time_t& slideTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return character.Unwrap()->Slide(dest, slideTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return character.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "jump", [](
       WeakWrapper<Character>& character,
@@ -72,9 +90,18 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
       const frame_time_t& jumpTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return character.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return character.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "raw_move_event", [](WeakWrapper<Character>& character, const MoveEvent& event, ActionOrder order) -> bool {
       return character.Unwrap()->RawMoveEvent(event, order);

@@ -26,6 +26,8 @@ void ScriptedPlayer::Init() {
 
   animationComponent->Reload();
   FinishConstructor();
+
+  weakWrap = WeakWrapper(weak_from_base<ScriptedPlayer>());
 }
 
 void ScriptedPlayer::SetChargePosition(const float x, const float y)
@@ -75,13 +77,13 @@ std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(const std::string
   auto obj = result.value();
 
   if (obj.valid()) {
-    if (obj.is<std::shared_ptr<CardAction>>())
+    if (obj.is<WeakWrapper<CardAction>>())
     {
-      return obj.as<std::shared_ptr<CardAction>>();
+      return obj.as<WeakWrapper<CardAction>>().Release();
     }
-    else if (obj.is<std::shared_ptr<ScriptedCardAction>>())
+    else if (obj.is<WeakWrapper<ScriptedCardAction>>())
     {
-      return obj.as<std::shared_ptr<ScriptedCardAction>>();
+      return obj.as<WeakWrapper<ScriptedCardAction>>().Release();
     }
     else {
       Logger::Logf("Lua function \"%s\" didn't return a CardAction.", functionName.c_str());
@@ -128,12 +130,12 @@ void ScriptedPlayer::OnUpdate(double _elapsed)
 {
   Player::OnUpdate(_elapsed);
 
-  if (updateCallback) {
-    try {
-      auto player = WeakWrapper(weak_from_base<ScriptedPlayer>());
-      updateCallback(player, _elapsed);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["update_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "update_func", weakWrap, _elapsed);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }

@@ -36,13 +36,6 @@ public:
   void ShakeCamera(double power, float duration);
 
   void NeverFlip(bool enabled);
-
-  std::function<void(WeakWrapper<ScriptedObstacle>, Battle::Tile&)> spawnCallback;
-  std::function<void(WeakWrapper<ScriptedObstacle>, WeakWrapper<Entity>)> attackCallback;
-  std::function<void(WeakWrapper<ScriptedObstacle>, WeakWrapper<Entity>)> collisionCallback;
-  std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(WeakWrapper<ScriptedObstacle>)> deleteCallback;
-  std::function<void(WeakWrapper<ScriptedObstacle>, double)> updateCallback;
 private:
   bool flip{ true };
   sf::Vector2f scriptedOffset{};
@@ -50,5 +43,6 @@ private:
   SpriteProxyNode* shadow{ nullptr };
   std::shared_ptr<AnimationComponent> animComponent{ nullptr };
   std::shared_ptr<DefenseRule> obstacleBody{ nullptr };
+  WeakWrapper<ScriptedObstacle> weakWrap;
 };
 #endif

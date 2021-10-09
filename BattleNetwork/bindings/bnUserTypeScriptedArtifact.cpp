@@ -67,9 +67,18 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       WeakWrapper<ScriptedArtifact>& artifact,
       Battle::Tile* dest,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return artifact.Unwrap()->Teleport(dest, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return artifact.Unwrap()->Teleport(dest, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "slide", [](
       WeakWrapper<ScriptedArtifact>& artifact,
@@ -77,9 +86,18 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       const frame_time_t& slideTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return artifact.Unwrap()->Slide(dest, slideTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return artifact.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "jump", [](
       WeakWrapper<ScriptedArtifact>& artifact,
@@ -88,9 +106,18 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       const frame_time_t& jumpTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return artifact.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return artifact.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "raw_move_event", [](WeakWrapper<ScriptedArtifact>& artifact, const MoveEvent& event, ActionOrder order) -> bool {
       return artifact.Unwrap()->RawMoveEvent(event, order);
@@ -142,38 +169,6 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     },
     "never_flip", [](WeakWrapper<ScriptedArtifact>& artifact, bool enabled) {
       artifact.Unwrap()->NeverFlip(enabled);
-    },
-    "delete_func", sol::property(
-      [](WeakWrapper<ScriptedArtifact>& artifact) {
-        return artifact.Unwrap()->deleteCallback;
-      },
-      [](WeakWrapper<ScriptedArtifact>& artifact, std::function<void(WeakWrapper<ScriptedArtifact>)> callback) {
-        artifact.Unwrap()->deleteCallback = callback;
-      }
-    ),
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedArtifact>& artifact) {
-        return artifact.Unwrap()->updateCallback;
-      },
-      [](WeakWrapper<ScriptedArtifact>& artifact, std::function<void(WeakWrapper<ScriptedArtifact>, double)> callback) {
-        artifact.Unwrap()->updateCallback = callback;
-      }
-    ),
-    "can_move_to_func", sol::property(
-      [](WeakWrapper<ScriptedArtifact>& artifact) {
-        return artifact.Unwrap()->canMoveToCallback;
-      },
-      [](WeakWrapper<ScriptedArtifact>& artifact, std::function<bool(Battle::Tile&)> callback) {
-        artifact.Unwrap()->canMoveToCallback = callback;
-      }
-    ),
-    "on_spawn_func", sol::property(
-      [](WeakWrapper<ScriptedArtifact>& artifact) {
-        return artifact.Unwrap()->spawnCallback;
-      },
-      [](WeakWrapper<ScriptedArtifact>& artifact, std::function<void(WeakWrapper<ScriptedArtifact>, Battle::Tile&)> callback) {
-        artifact.Unwrap()->spawnCallback = callback;
-      }
-    )
+    }
   );
 }

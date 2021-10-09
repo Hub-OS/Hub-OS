@@ -1,6 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedObstacle.h"
 #include "../bnDefenseObstacleBody.h"
+#include "../bnSolHelpers.h"
 
 ScriptedObstacle::ScriptedObstacle(Team _team) :
   Obstacle(_team) {
@@ -23,6 +24,8 @@ void ScriptedObstacle::Init() {
 
   obstacleBody = std::make_shared<DefenseObstacleBody>();
   this->AddDefenseRule(obstacleBody);
+
+  weakWrap = WeakWrapper(weak_from_base<ScriptedObstacle>());
 }
 
 ScriptedObstacle::~ScriptedObstacle() {
@@ -31,12 +34,15 @@ ScriptedObstacle::~ScriptedObstacle() {
 
 bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
 {
-  if (canMoveToCallback) {
-    try {
-      return canMoveToCallback(*next);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["can_move_to_func"].valid()) 
+  {
+    auto result = CallLuaFunctionExpectingValue<bool>(entries, "can_move_to_func", next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
+
+    return result.value();
   }
 
   return false;
@@ -44,16 +50,13 @@ bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
 
 void ScriptedObstacle::OnCollision(const std::shared_ptr<Entity> other)
 {
-  if (!collisionCallback) {
-    return;
-  }
+  if (entries["collision_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "collision_func", weakWrap, WeakWrapper(other));
 
-  auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
-
-  try {
-    collisionCallback(obstacle, WeakWrapper(other));
-  } catch(std::exception& e) {
-    Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
@@ -61,25 +64,23 @@ void ScriptedObstacle::OnUpdate(double _elapsed) {
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
 
-  if (updateCallback) {
-    auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
+  if (entries["update_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "update_func", weakWrap, _elapsed);
 
-    try {
-      updateCallback(obstacle, _elapsed);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
 void ScriptedObstacle::OnDelete() {
-  if (deleteCallback) {
-    auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
+  if (entries["delete_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "delete_func", weakWrap);
 
-    try {
-      deleteCallback(obstacle);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 
@@ -89,26 +90,24 @@ void ScriptedObstacle::OnDelete() {
 void ScriptedObstacle::Attack(std::shared_ptr<Entity> other) {
   other->Hit(GetHitboxProperties());
 
-  if (attackCallback) {
-    auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
+  if (entries["attack_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "attack_func", weakWrap, WeakWrapper(other));
 
-    try {
-      attackCallback(obstacle, WeakWrapper(other));
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
 void ScriptedObstacle::OnSpawn(Battle::Tile& spawn)
 {
-  if (spawnCallback) {
-    auto obstacle = WeakWrapper(weak_from_base<ScriptedObstacle>());
+  if (entries["on_spawn_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "on_spawn_func", weakWrap);
 
-    try {
-      spawnCallback(obstacle, spawn);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 

@@ -64,9 +64,18 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
       WeakWrapper<ScriptedCharacter>& character,
       Battle::Tile* dest,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return character.Unwrap()->Teleport(dest, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return character.Unwrap()->Teleport(dest, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "slide", [](
       WeakWrapper<ScriptedCharacter>& character,
@@ -74,9 +83,18 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
       const frame_time_t& slideTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return character.Unwrap()->Slide(dest, slideTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return character.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "jump", [](
       WeakWrapper<ScriptedCharacter>& character,
@@ -85,19 +103,28 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
       const frame_time_t& jumpTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return character.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return character.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "raw_move_event", [](WeakWrapper<ScriptedCharacter>& character, const MoveEvent& event, ActionOrder order) -> bool {
       return character.Unwrap()->RawMoveEvent(event, order);
     },
     "card_action_event", sol::overload(
-      [](WeakWrapper<ScriptedCharacter> character, std::shared_ptr<ScriptedCardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->SimpleCardActionEvent(cardAction, order);
+      [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
+        character.Unwrap()->SimpleCardActionEvent(cardAction.Release(), order);
       },
-      [](WeakWrapper<ScriptedCharacter> character,std::shared_ptr<CardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->SimpleCardActionEvent(cardAction, order);
+      [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
+        character.Unwrap()->SimpleCardActionEvent(cardAction.Release(), order);
       }
     ),
     "is_sliding", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
@@ -190,57 +217,17 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "toggle_counter", [](WeakWrapper<ScriptedCharacter>& character, bool on) {
       character.Unwrap()->ToggleCounter(on);
     },
-    "register_status_callback", [](WeakWrapper<ScriptedCharacter>& character, const Hit::Flags& flag, const std::function<void()>& callback) {
-      character.Unwrap()->RegisterStatusCallback(flag, callback);
+    "register_status_callback", [](WeakWrapper<ScriptedCharacter>& character, const Hit::Flags& flag, sol::stack_object callbackObject) {
+      sol::protected_function callback = callbackObject;
+      character.Unwrap()->RegisterStatusCallback(flag, [callback] {
+        auto result = callback();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
-    "delete_func", sol::property(
-      [](WeakWrapper<ScriptedCharacter>& character) {
-        return character.Unwrap()->deleteCallback;
-      },
-      [](WeakWrapper<ScriptedCharacter>& character, std::function<void(WeakWrapper<ScriptedCharacter>)> callback) {
-        character.Unwrap()->deleteCallback = callback;
-      }
-    ),
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedCharacter>& character) {
-        return character.Unwrap()->updateCallback;
-      },
-      [](WeakWrapper<ScriptedCharacter>& character, std::function<void(WeakWrapper<ScriptedCharacter>, double)> callback) {
-        character.Unwrap()->updateCallback = callback;
-      }
-    ),
-    "can_move_to_func", sol::property(
-      [](WeakWrapper<ScriptedCharacter>& character) {
-        return character.Unwrap()->canMoveToCallback;
-      },
-      [](WeakWrapper<ScriptedCharacter>& character, std::function<bool(Battle::Tile&)> callback) {
-        character.Unwrap()->canMoveToCallback = callback;
-      }
-    ),
-    "on_spawn_func", sol::property(
-      [](WeakWrapper<ScriptedCharacter>& character) {
-        return character.Unwrap()->spawnCallback;
-      },
-      [](WeakWrapper<ScriptedCharacter>& character, std::function<void(WeakWrapper<ScriptedCharacter>, Battle::Tile&)> callback) {
-        character.Unwrap()->spawnCallback = callback;
-      }
-    ),
-    "battle_start_func", sol::property(
-      [](WeakWrapper<ScriptedCharacter>& character) {
-        return character.Unwrap()->onBattleStartCallback;
-      },
-      [](WeakWrapper<ScriptedCharacter>& character, std::function<void(WeakWrapper<ScriptedCharacter>)> callback) {
-        character.Unwrap()->onBattleStartCallback = callback;
-      }
-    ),
-    "battle_end_func", sol::property(
-      [](WeakWrapper<ScriptedCharacter>& character) {
-        return character.Unwrap()->onBattleEndCallback;
-      },
-      [](WeakWrapper<ScriptedCharacter>& character, std::function<void(WeakWrapper<ScriptedCharacter>)> callback) {
-        character.Unwrap()->onBattleEndCallback = callback;
-      }
-    ),
     "set_explosion_behavior", [](WeakWrapper<ScriptedCharacter>& character, int num, double speed, bool isBoss) {
       character.Unwrap()->SetExplosionBehavior(num, speed, isBoss);
     }

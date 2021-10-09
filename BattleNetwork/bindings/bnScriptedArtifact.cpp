@@ -1,6 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedArtifact.h"
 #include "../bnTile.h"
+#include "../bnSolHelpers.h"
 
 ScriptedArtifact::ScriptedArtifact() :
   Artifact()
@@ -13,19 +14,19 @@ void ScriptedArtifact::Init()
   Artifact::Init();
   animationComponent = std::make_shared<AnimationComponent>(weak_from_this());
   RegisterComponent(animationComponent);
+  weakWrap = WeakWrapper(weak_from_base<ScriptedArtifact>());
 }
 
 ScriptedArtifact::~ScriptedArtifact() { }
 
 void ScriptedArtifact::OnUpdate(double _elapsed)
 {
-  if (updateCallback) {
-    auto artifact = WeakWrapper(weak_from_base<ScriptedArtifact>());
+  if (entries["update_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "update_func", weakWrap, _elapsed);
 
-    try {
-      updateCallback(artifact, _elapsed);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
@@ -37,13 +38,12 @@ void ScriptedArtifact::NeverFlip(bool enabled)
 
 void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 {
-  if (spawnCallback) {
-    auto artifact = WeakWrapper(weak_from_base<ScriptedArtifact>());
+  if (entries["on_spawn_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "on_spawn_func", weakWrap);
 
-    try {
-      spawnCallback(artifact, tile);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 
@@ -54,13 +54,12 @@ void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 
 void ScriptedArtifact::OnDelete()
 {
-  if (deleteCallback) {
-    auto artifact = WeakWrapper(weak_from_base<ScriptedArtifact>());
+  if (entries["delete_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "delete_func", weakWrap);
 
-    try {
-      deleteCallback(artifact);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 
@@ -69,12 +68,15 @@ void ScriptedArtifact::OnDelete()
 
 bool ScriptedArtifact::CanMoveTo(Battle::Tile* next)
 {
-  if (canMoveToCallback) {
-    try {
-      return canMoveToCallback(*next);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["can_move_to_func"].valid()) 
+  {
+    auto result = CallLuaFunctionExpectingValue<bool>(entries, "can_move_to_func", next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
+
+    return result.value();
   }
 
   return false;

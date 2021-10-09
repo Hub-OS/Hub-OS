@@ -5,6 +5,15 @@
 
 void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedPlayer>>("Player",
+    sol::meta_function::index, [](WeakWrapper<ScriptedPlayer>& player, std::string key) {
+      return player.Unwrap()->dynamic_get(key);
+    },
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedPlayer>& player, std::string key, sol::stack_object value) {
+      player.Unwrap()->dynamic_set(key, value);
+    },
+    sol::meta_function::length, [](WeakWrapper<ScriptedPlayer>& player) {
+      return player.Unwrap()->entries.size();
+    },
     "get_id", [](WeakWrapper<ScriptedPlayer>& player) -> Entity::ID_t {
       return player.Unwrap()->GetID();
     },
@@ -51,9 +60,18 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       WeakWrapper<ScriptedPlayer>& player,
       Battle::Tile* dest,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return player.Unwrap()->Teleport(dest, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return player.Unwrap()->Teleport(dest, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "slide", [](
       WeakWrapper<ScriptedPlayer>& player,
@@ -61,9 +79,18 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       const frame_time_t& slideTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return player.Unwrap()->Slide(dest, slideTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return player.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "jump", [](
       WeakWrapper<ScriptedPlayer>& player,
@@ -72,9 +99,18 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       const frame_time_t& jumpTime,
       const frame_time_t& endlag,
       ActionOrder order,
-      std::function<void()> onBegin
+      sol::stack_object onBeginObject
     ) -> bool {
-      return player.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, onBegin);
+      sol::protected_function onBegin = onBeginObject;
+
+      return player.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "raw_move_event", [](WeakWrapper<ScriptedPlayer>& player, const MoveEvent& event, ActionOrder order) -> bool {
       return player.Unwrap()->RawMoveEvent(event, order);
@@ -153,14 +189,6 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     },
     "register_component", [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Component> component) {
       player.Unwrap()->RegisterComponent(component);
-    },
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedPlayer>& player) {
-        return player.Unwrap()->updateCallback;
-      },
-      [](WeakWrapper<ScriptedPlayer>& player, std::function<void(WeakWrapper<ScriptedPlayer>, double)> callback) {
-        player.Unwrap()->updateCallback = callback;
-      }
-    )
+    }
   );
 }

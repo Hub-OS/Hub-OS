@@ -17,6 +17,7 @@ class ScriptedArtifact final : public Artifact, public dynamic_object
 	std::shared_ptr<AnimationComponent> animationComponent{ nullptr };
 	sf::Vector2f scriptedOffset{ };
 	bool flip{true};
+	WeakWrapper<ScriptedArtifact> weakWrap;
 
 public:
 	ScriptedArtifact();
@@ -37,14 +38,6 @@ public:
 	void SetAnimation(const std::string& path);
 	Animation& GetAnimationObject();
 	Battle::Tile* GetCurrentTile() const;
-
-	/**
-	 * \brief Callback function that, when registered, is called on every frame.
-	 */
-	std::function<void(WeakWrapper<ScriptedArtifact>, double)> updateCallback;
-	std::function<void(WeakWrapper<ScriptedArtifact>, Battle::Tile&)> spawnCallback;
-	std::function<bool(Battle::Tile&)> canMoveToCallback;
-	std::function<void(WeakWrapper<ScriptedArtifact>)> deleteCallback;
 };
 
 #endif

@@ -9,7 +9,6 @@
 #include "../bnGame.h"
 #include "../bnDefenseVirusBody.h"
 #include "../bnUIComponent.h"
-#include "../bnSolHelpers.h"
 
 ScriptedCharacter::ScriptedCharacter(sol::state& script, Character::Rank rank) :
   script(script),
@@ -37,6 +36,8 @@ void ScriptedCharacter::Init() {
   }
 
   animation->Refresh();
+
+  weakWrap = WeakWrapper(weak_from_base<ScriptedCharacter>());
 }
 
 void ScriptedCharacter::OnUpdate(double _elapsed) {
@@ -60,34 +61,34 @@ void ScriptedCharacter::OnDelete() {
     ChangeState<ExplodeState<ScriptedCharacter>>(numOfExplosions, explosionPlayback);
   }
 
-  if (deleteCallback) {
-    try {
-      auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
-      deleteCallback(character); 
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["delete_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "delete_func", weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
-  if (spawnCallback) {
-    try {
-      auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
-      spawnCallback(character, start);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["on_spawn_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "on_spawn_func", weakWrap, start);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
 void ScriptedCharacter::OnBattleStart() {
-  if (onBattleStartCallback) {
-    try {
-      auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
-      onBattleStartCallback(character);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["battle_start_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "battle_start_func", weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
@@ -95,23 +96,26 @@ void ScriptedCharacter::OnBattleStart() {
 void ScriptedCharacter::OnBattleStop() {
   Character::OnBattleStop();
 
-  if (onBattleEndCallback) {
-    try {
-      auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
-      onBattleEndCallback(character);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+  if (entries["battle_end_func"].valid()) 
+  {
+    auto result = CallLuaFunction(entries, "battle_end_func", weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
   }
 }
 
-bool ScriptedCharacter::CanMoveTo(Battle::Tile * next) {
-  if (canMoveToCallback) {
-    try {
-      return canMoveToCallback(*next);
-    } catch(std::exception& e) {
-      Logger::Log(e.what());
+bool ScriptedCharacter::CanMoveTo(Battle::Tile* next) {
+  if (entries["can_move_to_func"].valid()) 
+  {
+    auto result = CallLuaFunctionExpectingValue<bool>(entries, "can_move_to_func", next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
     }
+
+    return result.value();
   }
 
   return Character::CanMoveTo(next);

@@ -33,18 +33,12 @@ public:
   // duration in seconds
   void ShakeCamera(double power, float duration);
   void NeverFlip(bool enabled);
-
-  std::function<void(WeakWrapper<ScriptedSpell>, Battle::Tile&)> spawnCallback;
-  std::function<void(WeakWrapper<ScriptedSpell>, WeakWrapper<Entity>)> attackCallback;
-  std::function<void(WeakWrapper<ScriptedSpell>, WeakWrapper<Entity>)> collisionCallback;
-  std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(WeakWrapper<ScriptedSpell>)> deleteCallback;
-  std::function<void(WeakWrapper<ScriptedSpell>, double)> updateCallback;
 private:
   bool flip{true};
   float height{};
   sf::Vector2f scriptedOffset{};
   SpriteProxyNode* shadow{ nullptr };
   std::shared_ptr<AnimationComponent> animComponent{ nullptr };
+  WeakWrapper<ScriptedSpell> weakWrap;
 };
 #endif

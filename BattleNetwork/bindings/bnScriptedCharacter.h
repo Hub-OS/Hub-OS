@@ -5,6 +5,7 @@
 #include "dynamic_object.h"
 #include "../bnCharacter.h"
 #include "../bnAI.h"
+#include "../bnSolHelpers.h"
 #include "bnScriptedCardAction.h"
 #include "bnWeakWrapper.h"
 
@@ -27,6 +28,7 @@ class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, 
   bool bossExplosion{ false };
   double explosionPlayback{ 1.0 };
   int numOfExplosions{ 2 };
+  WeakWrapper<ScriptedCharacter> weakWrap;
 public:
   using DefaultState = ScriptedCharacterState;
 
@@ -47,13 +49,6 @@ public:
   void SetExplosionBehavior(int num, double speed, bool isBoss);
   void SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order);
   void SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order);
-
-  std::function<void(WeakWrapper<ScriptedCharacter>, Battle::Tile&)> spawnCallback;
-  std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(WeakWrapper<ScriptedCharacter>)> deleteCallback;
-  std::function<void(WeakWrapper<ScriptedCharacter>)> onBattleStartCallback;
-  std::function<void(WeakWrapper<ScriptedCharacter>)> onBattleEndCallback;
-  std::function<void(WeakWrapper<ScriptedCharacter>, double)> updateCallback;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {
@@ -62,11 +57,12 @@ public:
   }
 
   void OnUpdate(double elapsed, ScriptedCharacter& s) override {
-    if (s.updateCallback) {
-      try {
-        s.updateCallback(s.shared_from_base<ScriptedCharacter>(), elapsed);
-      } catch(std::exception& e) {
-        Logger::Log(e.what());
+    if (s.entries["update_func"].valid()) 
+    {
+      auto result = CallLuaFunction(s.entries, "update_func", s.weakWrap, elapsed);
+
+      if (result.is_error()) {
+        Logger::Log(result.error_cstr());
       }
     }
   }
@@ -90,4 +86,4 @@ class ScriptedIntroState : public AIState<ScriptedCharacter> {
   }
 };
 
-#endif 
+#endif
