@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeScriptedObstacle.h"
 
 #include "bnWeakWrapper.h"
@@ -234,3 +235,4 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     }
   );
 }
+#endif

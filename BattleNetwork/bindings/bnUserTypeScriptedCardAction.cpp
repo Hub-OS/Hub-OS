@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeScriptedCardAction.h"
 
 #include "bnWeakWrapper.h"
@@ -81,3 +82,4 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
     }
   );
 }
+#endif

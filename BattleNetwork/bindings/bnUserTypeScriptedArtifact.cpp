@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeScriptedArtifact.h"
 
 #include "bnWeakWrapper.h"
@@ -172,3 +173,4 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     }
   );
 }
+#endif

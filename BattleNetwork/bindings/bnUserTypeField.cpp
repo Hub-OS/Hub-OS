@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeField.h"
 
 #include "bnWeakWrapper.h"
@@ -178,3 +179,4 @@ void DefineFieldUserType(sol::table& battle_namespace) {
     }
   );
 }
+#endif

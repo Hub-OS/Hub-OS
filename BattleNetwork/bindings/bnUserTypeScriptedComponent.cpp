@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeScriptedComponent.h"
 
 #include "bnWeakWrapper.h"
@@ -48,3 +49,4 @@ void DefineScriptedComponentUserType(sol::table& battle_namespace) {
     }
   );
 }
+#endif

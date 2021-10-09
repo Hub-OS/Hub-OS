@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeBaseCardAction.h"
 
 #include "bnWeakWrapper.h"
@@ -94,3 +95,4 @@ void DefineBaseCardActionUserType(sol::table& battle_namespace) {
     )
   );
 }
+#endif

@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeScriptedSpell.h"
 
 #include "bnWeakWrapper.h"
@@ -195,3 +196,4 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     }
   );
 }
+#endif

@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeTile.h"
 
 #include "bnWeakWrapper.h"
@@ -92,3 +93,4 @@ void DefineTileUserType(sol::state& state) {
     )
   );
 }
+#endif

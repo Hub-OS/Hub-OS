@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeScriptedPlayer.h"
 
 #include "bnWeakWrapper.h"
@@ -192,3 +193,4 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     }
   );
 }
+#endif

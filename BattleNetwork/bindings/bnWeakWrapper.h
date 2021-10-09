@@ -1,4 +1,5 @@
 #pragma once
+#ifdef BN_MOD_SUPPORT
 
 #include <memory>
 
@@ -36,3 +37,4 @@ public:
     return ptr;
   }
 };
+#endif

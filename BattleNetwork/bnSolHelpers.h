@@ -46,7 +46,7 @@ stx::result_t<Result> CallLuaFunctionExpectingValue(Table& script, const std::st
 }
 
 template<typename Result, typename ...Args>
-stx::result_t<Result> CallLuaCallbackExpectingValue(sol::protected_function& func, Args... args)
+stx::result_t<Result> CallLuaCallbackExpectingValue(const sol::protected_function& func, Args... args)
 {
   auto result = func(std::forward<Args>(args)...);
 
@@ -67,7 +67,7 @@ stx::result_t<Result> CallLuaCallbackExpectingValue(sol::protected_function& fun
 }
 
 template<typename ...Args>
-stx::result_t<bool> CallLuaCallbackExpectingBool(sol::protected_function& func, Args... args)
+stx::result_t<bool> CallLuaCallbackExpectingBool(const sol::protected_function& func, Args... args)
 {
   auto result = func(std::forward<Args>(args)...);
 

@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnUserTypeBasicCharacter.h"
 
 #include "bnWeakWrapper.h"
@@ -189,3 +190,4 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     }
   );
 }
+#endif
