@@ -10,7 +10,7 @@ public:
   ~Megaman();
 
   virtual void OnUpdate(double elapsed);
-
+  void OnSpawn(Battle::Tile& start) override;
   CardAction* OnExecuteBusterAction() override;
   CardAction* OnExecuteChargedBusterAction() override;
   CardAction* OnExecuteSpecialAction() override;

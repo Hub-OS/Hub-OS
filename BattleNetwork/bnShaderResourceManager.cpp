@@ -107,7 +107,7 @@ ShaderResourceManager::ShaderResourceManager() {
   paths[(int)ShaderType::TRANSITION] = std::string() + "resources/shaders/" + version + "/transition";
   paths[(int)ShaderType::COLORIZE] = std::string() + "resources/shaders/" + version + "/colorize";
   paths[(int)ShaderType::ADDITIVE] = std::string() + "resources/shaders/" + version + "/additive";
-  paths[(int)ShaderType::PALETTE_SWAP] = std::string() + "resources/shaders/" + version + "/palette_swap";
+  paths[(int)ShaderType::BATTLE_CHARACTER] = std::string() + "resources/shaders/" + version + "/battle_character";
   paths[(int)ShaderType::GRADIENT] = std::string() + "resources/shaders/" + version + "/color_oscillate";
   paths[(int)ShaderType::BLACK] = std::string() + "resources/shaders/" + version + "/black";
   paths[(int)ShaderType::MINIMAP_COLOR] = std::string() + "resources/shaders/" + version + "/minimap_color";

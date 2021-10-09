@@ -85,14 +85,20 @@ private:
   // This continues until all statuses are processed
   std::queue<CombatHitProps> statusQueue;
 
-  sf::Shader* whiteout{ nullptr }; /*!< Flash white when hit */
-  sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
-  sf::Shader* root{ nullptr };     /*!< Flicker black with luminance values when root */
   std::shared_ptr<CardAction> currCardAction{ nullptr };
   frame_time_t cardActionStartDelay{0};
 
   bool hit{}; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
+
+  int maxHealth{ std::numeric_limits<int>::max() };
+  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
+  float counterSlideDelta{};
+
+  std::shared_ptr<sf::Texture> palette;
+  SmartShader smartShader;
+
+  void RefreshShader();
 public:
 
   /**
@@ -292,11 +298,9 @@ public:
   // NOTE: I do not want this but Sol2 is type strict and actor objects for card actions
   //       do not have a way to get animations even if their super class does...
   Animation* GetAnimationFromComponent();
-private:
-  int maxHealth{ std::numeric_limits<int>::max() };
-  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
-  float counterSlideDelta{};
 
+  void SetPalette(const std::shared_ptr<sf::Texture>& palette);
+  std::shared_ptr<sf::Texture> GetPalette();
 protected:
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 

@@ -515,10 +515,13 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   auto mouseScreen = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
 
+  // NOTE: Uncomment below for debug mouse cursor
+  /*
   sf::RectangleShape rect({ 2.f, 2.f });
   rect.setFillColor(sf::Color::Red);
   rect.setPosition(mousef);
   surface.draw(rect);
+  */
 
   auto& map = GetMap();
 
@@ -558,10 +561,20 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
   testActor(*GetPlayer());
 
+  mousef.x += 10.f;
+
   nameText.setPosition(mousef);
   nameText.SetString(topName);
-  nameText.setOrigin(-10.0f, 0);
-  surface.draw(nameText);
+  nameText.setOrigin(-5.0f, -2.f);
+
+  if (topName.size()) {
+    sf::FloatRect nameBounds = nameText.GetWorldBounds();
+    sf::RectangleShape rect({ nameBounds.width + 10.f, nameBounds.height + 4.f });
+    rect.setFillColor(sf::Color(0, 0, 0, 100));
+    rect.setPosition(mousef);
+    surface.draw(rect);
+    surface.draw(nameText);
+  }
 }
 
 void Overworld::OnlineArea::onStart()

@@ -49,7 +49,7 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   greenBg.setScale(2.f, 2.f);
 
   this->gridBG = new GridBackground();
-  gridBG->setColor(sf::Color(0)); // hide until it is ready
+  gridBG->SetColor(sf::Color(0)); // hide until it is ready
 
   auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(selectedNaviId);
   clientPreview.setTexture(playerPkg.GetPreviewTexture());
@@ -404,7 +404,7 @@ void MatchMakingScene::Reset()
   }
 
   greenBg.setColor(sf::Color::White);
-  gridBG->setColor(sf::Color(0)); // hide until it is ready
+  gridBG->SetColor(sf::Color(0)); // hide until it is ready
 
   clientPreview.setPosition(0, 0);
   remotePreview.setPosition(0, 0);
@@ -554,7 +554,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
         flashCooldown -= elapsed;
 
         // make bg appear
-        gridBG->setColor(sf::Color(255, 255, 255, 255));
+        gridBG->SetColor(sf::Color(255, 255, 255, 255));
 
         if (flashCooldown > 20) {
           delta = swoosh::ease::linear(sequenceTimer - 1.0, 2.0, 1.0);

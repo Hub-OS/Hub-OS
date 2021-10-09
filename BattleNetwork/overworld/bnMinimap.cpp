@@ -4,6 +4,8 @@
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"
 #include "../stx/string.h"
+
+#include <SFML/Graphics.hpp>
 #include <Swoosh/EmbedGLSL.h>
 #include <cmath>
 
@@ -172,10 +174,10 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
   for (auto i = 0; i < layerCount; i++) {
     auto& layer = map.GetLayer(i);
 
-    for (auto col = 0; col < cols; col++) {
-      for (auto row = 0; row < rows; row++) {
-        auto tile = layer.GetTile(col, row);
-        auto tileMeta = map.GetTileMeta(tile->gid);
+    for (unsigned int col = 0; col < cols; col++) {
+      for (unsigned int row = 0; row < rows; row++) {
+        Tile* tile = layer.GetTile((int)col, (int)row);
+        std::shared_ptr<Overworld::TileMeta>& tileMeta = map.GetTileMeta(tile->gid);
 
         if (!tileMeta) {
           continue;
@@ -248,7 +250,7 @@ void Overworld::Minimap::FindObjectMarkers(Map& map) {
   }
 }
 
-void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, const sf::Shader& shader, sf::RenderStates states, Overworld::Map& map, size_t index) {
+void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Overworld::Map& map, size_t index) {
   auto& layer = map.GetLayer(index);
 
   // TODO: render SOME objects that are overlaying the map

@@ -13,7 +13,6 @@ private:
   bool enabled{}; /*!< Turn this effect on/off */
   std::shared_ptr<sf::Texture> palette;
   std::shared_ptr<sf::Texture> base, alt;
-  SmartShader paletteSwap;
   Character* asCharacter{ nullptr };
 public:
   PaletteSwap(Entity* owner);

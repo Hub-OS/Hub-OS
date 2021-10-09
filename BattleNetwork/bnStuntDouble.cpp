@@ -18,15 +18,10 @@ StuntDouble::StuntDouble(Character& ref) : ref(ref)
 
   // add common components and copy
   auto* anim = CreateComponent<AnimationComponent>(this);
-  auto* pswap = CreateComponent<PaletteSwap>(this);
 
   // palette swap if applicable
-  if (auto otherPswap = ref.GetFirstComponent<PaletteSwap>()) {
-    pswap->CopyFrom(*otherPswap);
-    pswap->Apply();
-  }
-  else {
-    pswap->Enable(false);
+  if (auto palette = ref.GetPalette()) {
+    SetPalette(palette);
   }
 
   // animation component if applicable
@@ -55,11 +50,7 @@ void StuntDouble::OnDelete()
 
 void StuntDouble::OnUpdate(double elapsed)
 {
-  // If, and only if, an action changes the user's colors (e.g. partially translucent)
-  // copy the user's new colors
-  // if (ref.getColor() != defaultColor) {
-    setColor(ref.getColor());
-  //}
+  setColor(ref.getColor());
 }
 
 bool StuntDouble::CanMoveTo(Battle::Tile*)

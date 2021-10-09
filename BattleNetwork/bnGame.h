@@ -79,6 +79,7 @@ private:
   ConfigSettings configSettings;
 
   // mouse stuff
+  std::shared_ptr<sf::Texture> mouseTexture;
   SpriteProxyNode mouse;
   sf::Vector2f lastMousepos;
   Animation mouseAnimation;
@@ -103,9 +104,11 @@ private:
   std::mutex windowMutex;
   std::thread renderThread;
 
+  void UpdateMouse(double dt);
   void ProcessFrame();
   void RunSingleThreaded();
   bool NextFrame();
+
 public:
   Game(DrawWindow& window);
   Game(const Game&) = delete;

@@ -17,6 +17,42 @@
 #include "bnCardAction.h"
 #include "bnCardToActions.h"
 
+void Character::RefreshShader()
+{
+  SetShader(smartShader); // TODO: take out
+
+  if (!smartShader.Get()) return;
+
+  // state checks
+  unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
+  unsigned rootFrame = from_seconds(rootCooldown).count() % 4;
+  counterFrameFlag = counterFrameFlag % 4;;;
+  counterFrameFlag++;
+
+  bool iframes = invincibilityCooldown > 0;
+
+  vector<float> states = {
+    static_cast<float>(this->hit || GetHealth() <= 0),                  // WHITEOUT
+    static_cast<float>(rootCooldown > 0. && (iframes || rootCooldown)), // BLACKOUT
+    static_cast<float>(stunCooldown > 0. && (iframes || stunFrame))     // HIGHLIGHT
+  };
+
+  smartShader.SetUniform("states", states);
+  
+  bool enabled = states[0] || states[1];
+
+  for (auto child : GetChildNodesWithTag({ Player::BASE_NODE_TAG, Player::FORM_NODE_TAG })) {
+    child->EnableParentShader(true);
+  }
+
+  if (enabled) return;
+
+  if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag < 2) {
+    // Highlight when the character can be countered
+    setColor(sf::Color(55, 55, 255, getColor().a));
+  }
+}
+
 Character::Character(Rank _rank) :
   health(0),
   maxHealth(0),
@@ -34,9 +70,11 @@ Character::Character(Rank _rank) :
   CardActionUsePublisher(),
   Entity() {
 
-  whiteout = Shaders().GetShader(ShaderType::WHITE);
-  stun = Shaders().GetShader(ShaderType::YELLOW);
-  root = Shaders().GetShader(ShaderType::BLACK);
+  if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
+    smartShader = shader;
+    smartShader.SetUniform("texture", sf::Shader::CurrentTexture);
+    smartShader.SetUniform("swapPalette", false);
+  }
 
   using namespace std::placeholders;
   auto cardHandler = std::bind(&Character::HandleCardEvent, this, _1, _2);
@@ -51,7 +89,7 @@ Character::Character(Rank _rank) :
     
     // TODO: take out this ugly hack
     if (auto ai = dynamic_cast<Player*>(this)) {
-      ai->ChangeState<BubbleState<Player>>();
+      ai->ChangeState<BubbleState<Player>>(); 
     }
   });
 }
@@ -120,68 +158,12 @@ const bool Character::IsLockoutAnimationComplete()
 }
 
 void Character::Update(double _elapsed) {
-  ResolveFrameBattleDamage();
+  ResolveFrameBattleDamage(); 
 
-  // normal color every start frame
-  setColor(sf::Color(255, 255, 255, getColor().a));
-
-  sf::Vector2f shakeOffset;
-
-  double prevThisFrameStun = stunCooldown;
-  double prevThisFrameRoot = rootCooldown;
+  // reset base color
+  setColor(sf::Color(0, 0, 0, getColor().a));
 
   if (!hit) {
-    unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
-    unsigned rootFrame = from_seconds(rootCooldown).count() % 4;
-    if (stunCooldown && stunFrame < 2) {
-      if (stun) {
-        SetShader(stun);
-      }
-      else {
-        setColor(sf::Color::Yellow);
-      }
-
-      for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
-        if (!child->IsUsingParentShader()) {
-          child->EnableParentShader(true);
-        }
-      }
-    }
-    else if (rootCooldown && rootFrame < 2) {
-      if (root) {
-        SetShader(root);
-      }
-      else {
-        setColor(sf::Color::Black);
-      }
-
-      for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
-        if (!child->IsUsingParentShader()) {
-          child->EnableParentShader(true);
-        }
-      }
-    }
-    else if(GetHealth() > 0) {
-      SetShader(nullptr);
-
-      for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
-        if (child->IsUsingParentShader()) {
-          child->EnableParentShader(false);
-        }
-      }
-
-      counterFrameFlag = counterFrameFlag % 4;
-      counterFrameFlag++;
-
-      if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag < 2) {
-        // Highlight when the character can be countered
-        setColor(sf::Color(55, 55, 255, getColor().a));
-
-        // TODO: how to interop with new shaders like pallete swap?
-        SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
-      }
-    }
-
     if (invincibilityCooldown > 0) {
       unsigned frame = from_seconds(invincibilityCooldown).count() % 4;
       if (frame < 2) {
@@ -281,18 +263,6 @@ void Character::Update(double _elapsed) {
     setPosition(tile->getPosition().x + offset.x, tile->getPosition().y + offset.y);
   }
 
-  setPosition(getPosition() + shakeOffset);
-
-  if (hit) {
-    SetShader(whiteout);
-
-    for (auto child : GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
-      if (!child->IsUsingParentShader()) {
-        child->EnableParentShader(true);
-      }
-    }
-  }
-
   if (health <= 0 || IsDeleted()) {
     // Ensure entity is deleted if health is zero
     Delete();
@@ -308,6 +278,8 @@ void Character::Update(double _elapsed) {
 
   // If drag status is over, reset the flag
   if (!IsSliding() && slideFromDrag) slideFromDrag = false;
+
+  RefreshShader();
 
   hit = false; // reset our hit flag
 }
@@ -365,10 +337,6 @@ const bool Character::Hit(Hit::Properties props) {
     props.flags |= Hit::no_counter;
   }
 
-  if (GetHealth() <= 0) {
-    SetShader(whiteout);
-  }
-
   // Add to status queue for state resolution
   statusQueue.push(CombatHitProps{ original, props });
 
@@ -377,6 +345,11 @@ const bool Character::Hit(Hit::Properties props) {
   }
 
   return true;
+}
+
+std::shared_ptr<sf::Texture> Character::GetPalette()
+{
+  return palette;
 }
 
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback)
@@ -822,4 +795,16 @@ Animation* Character::GetAnimationFromComponent()
   }
 
   return nullptr;
+}
+
+void Character::SetPalette(const std::shared_ptr<sf::Texture>& palette)
+{
+  if (palette.get() == nullptr) {
+    smartShader.SetUniform("swapPalette", false);
+    return;
+  }
+
+  this->palette = palette;
+  smartShader.SetUniform("swapPalette", true);
+  smartShader.SetUniform("palette", *this->palette.get());
 }
