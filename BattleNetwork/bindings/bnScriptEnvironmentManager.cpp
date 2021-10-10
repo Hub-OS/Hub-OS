@@ -2,6 +2,7 @@
 #include <list>
 
 #include "bnScriptEnvironmentManager.h"
+#include "../bnResourceHandle.h"
 
 // Useful prefabs to use in scripts...
 #include "../bnExplosion.h"
@@ -42,6 +43,7 @@
 #include "../bnCardPackageManager.h"
 #include "../bnPlayerPackageManager.h"
 #include "../bnMobPackageManager.h"
+#include "../bnLuaLibraryPackageManager.h"
 
 template<class T>
 void DefineType( sol::table& battle_namespace, sol::table& overworld_namespace, sol::table& engine_namespace );
@@ -53,20 +55,6 @@ void ScriptEnvironmentManager::SetModPathVariable( sol::state* state, const std:
 void ScriptEnvironmentManager::SetSystemFunctions( sol::state* state )
 {
   state->open_libraries(sol::lib::base, sol::lib::debug, sol::lib::math, sol::lib::table);
-
-  // 'include()' in Lua is intended to load a LIBRARY file of Lua code into the current lua state.
-  // Currently only loads library files included in the SAME directory as the script file.
-  // Has to capture a pointer to sol::state, the copy constructor was deleted, cannot capture a copy to reference.
-  state->set_function( "include",
-    [state]( const std::string fileName ) -> sol::protected_function_result {
-      std::cout << "Including script file: " << fileName << std::endl;
-
-      std::string modPathRef = (*state)["_modpath"];
-      sol::protected_function_result result = state->do_file( modPathRef + fileName, sol::load_mode::any );
-
-      return result;
-    }
-  );
 }
 
 // Free Function provided to a number of Lua types that will print an error message when attempting to access a key that does not exist.
@@ -994,6 +982,18 @@ void ScriptEnvironmentManager::ConfigureEnvironment(sol::state& state) {
     "set_health", &MobMeta::SetHP,
     "declare_package_id", &MobMeta::SetPackageID
   );
+  
+  const auto& lualibrarymeta_table = battle_namespace.new_usertype<LuaLibraryMeta>("LuaLibraryMeta",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptEnvironmentManager::PrintInvalidAccessMessage( table, "LuaLibraryMeta", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptEnvironmentManager::PrintInvalidAssignMessage( table, "LuaLibraryMeta", key );
+    },
+    "declare_package_id", &LuaLibraryMeta::SetPackageID
+  );
+
+  
 
   const auto& scriptedmob_table = battle_namespace.new_usertype<ScriptedMob>("Mob",
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
