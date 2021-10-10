@@ -3,6 +3,7 @@
 
 #include "bnWeakWrapper.h"
 #include "bnWeakWrapperChild.h"
+#include "bnUserTypeAnimation.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
 #include "../bnCardAction.h"
@@ -51,8 +52,8 @@ void DefineBaseCardActionUserType(sol::table& battle_namespace) {
         auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
         return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
       },
-      [](WeakWrapper<CardAction>& cardAction, Animation& animation, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(animation, point, node);
+      [](WeakWrapper<CardAction>& cardAction, AnimationWrapper& animation, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
+        auto& attachment = cardAction.Unwrap()->AddAttachment(animation.Unwrap(), point, node);
         return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
       }
     ),
@@ -84,13 +85,13 @@ void DefineBaseCardActionUserType(sol::table& battle_namespace) {
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Attachment", key );
     },
-    "use_animation", [](CardActionAttachmentWrapper& wrapper, Animation& animation) -> CardActionAttachmentWrapper {
-      wrapper.Unwrap().UseAnimation(animation);
+    "use_animation", [](CardActionAttachmentWrapper& wrapper, AnimationWrapper& animation) -> CardActionAttachmentWrapper {
+      wrapper.Unwrap().UseAnimation(animation.Unwrap());
       return wrapper;
     },
-    "add_attachment", [](CardActionAttachmentWrapper& wrapper, Animation& parent, const std::string& point, SpriteProxyNode& node) {
+    "add_attachment", [](CardActionAttachmentWrapper& wrapper, AnimationWrapper parent, const std::string& point, SpriteProxyNode& node) {
       auto cardActionWeak = wrapper.GetParentWeak();
-      auto& attachment = wrapper.Unwrap().AddAttachment(parent, point, node);
+      auto& attachment = wrapper.Unwrap().AddAttachment(parent.Unwrap(), point, node);
 
       return CardActionAttachmentWrapper(cardActionWeak, attachment);
     }

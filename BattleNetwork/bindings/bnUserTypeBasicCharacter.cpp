@@ -2,7 +2,9 @@
 #include "bnUserTypeBasicCharacter.h"
 
 #include "bnWeakWrapper.h"
+#include "bnUserTypeAnimation.h"
 #include "../bnCharacter.h"
+#include <optional>
 
 void DefineBasicCharacterUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<Character>>( "BasicCharacter",
@@ -185,8 +187,14 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "toggle_counter", [](WeakWrapper<Character>& character, bool on) {
       character.Unwrap()->ToggleCounter(on);
     },
-    "get_animation", [](WeakWrapper<Character>& character) -> Animation* {
-      return character.Unwrap()->GetAnimationFromComponent();
+    "get_animation", [](WeakWrapper<Character>& character) -> std::optional<AnimationWrapper> {
+      auto characterPtr = character.Unwrap();
+
+      if (auto anim = characterPtr->GetFirstComponent<AnimationComponent>()) {
+        return AnimationWrapper(characterPtr, anim->GetAnimationObject());
+      }
+
+      return {};
     }
   );
 }

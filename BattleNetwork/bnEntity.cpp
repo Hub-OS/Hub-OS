@@ -1212,15 +1212,6 @@ bool Entity::IsCountered()
   return (counterable && stunCooldown <= 0);
 }
 
-Animation* Entity::GetAnimationFromComponent()
-{
-  if (auto anim = GetFirstComponent<AnimationComponent>()) {
-    return &anim->GetAnimationObject();
-  }
-
-  return nullptr;
-}
-
 const Battle::TileHighlight Entity::GetTileHighlightMode() const {
   return mode;
 }

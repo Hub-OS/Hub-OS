@@ -3,6 +3,7 @@
 
 #include "bnWeakWrapper.h"
 #include "bnWeakWrapperChild.h"
+#include "bnUserTypeAnimation.h"
 #include "bnScriptedCardAction.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
@@ -63,8 +64,8 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
         auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
         return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
       },
-      [](WeakWrapper<ScriptedCardAction>& cardAction, Animation& animation, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(animation, point, node);
+      [](WeakWrapper<ScriptedCardAction>& cardAction, AnimationWrapper& animation, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
+        auto& attachment = cardAction.Unwrap()->AddAttachment(animation.Unwrap(), point, node);
         return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
       }
     ),

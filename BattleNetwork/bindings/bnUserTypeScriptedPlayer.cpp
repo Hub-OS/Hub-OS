@@ -2,6 +2,7 @@
 #include "bnUserTypeScriptedPlayer.h"
 
 #include "bnWeakWrapper.h"
+#include "bnUserTypeAnimation.h"
 #include "bnScriptedPlayer.h"
 
 void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
@@ -173,8 +174,9 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "set_animation", [](WeakWrapper<ScriptedPlayer>& player, std::string animation) {
       player.Unwrap()->SetAnimation(animation);
     },
-    "get_animation", [](WeakWrapper<ScriptedPlayer>& player) -> Animation& {
-      return player.Unwrap()->GetAnimationObject();
+    "get_animation", [](WeakWrapper<ScriptedPlayer>& player) -> AnimationWrapper {
+      auto& animation = player.Unwrap()->GetAnimationObject();
+      return AnimationWrapper(player.GetWeak(), animation);
     },
     "set_float_shoe", [](WeakWrapper<ScriptedPlayer>& player, bool enable) {
       player.Unwrap()->SetFloatShoe(enable);

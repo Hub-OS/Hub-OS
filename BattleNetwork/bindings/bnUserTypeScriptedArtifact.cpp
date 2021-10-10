@@ -2,6 +2,7 @@
 #include "bnUserTypeScriptedArtifact.h"
 
 #include "bnWeakWrapper.h"
+#include "bnUserTypeAnimation.h"
 #include "bnScriptedArtifact.h"
 #include "../bnTile.h"
 
@@ -159,8 +160,9 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     "set_animation", [](WeakWrapper<ScriptedArtifact>& artifact, std::string animation) {
       artifact.Unwrap()->SetAnimation(animation);
     },
-    "get_animation", [](WeakWrapper<ScriptedArtifact>& artifact) -> Animation& {
-      return artifact.Unwrap()->GetAnimationObject();
+    "get_animation", [](WeakWrapper<ScriptedArtifact>& artifact) -> AnimationWrapper {
+      auto& animation = artifact.Unwrap()->GetAnimationObject();
+      return AnimationWrapper(artifact.GetWeak(), animation);
     },
     "set_height", [](WeakWrapper<ScriptedArtifact>& artifact, float height) {
       artifact.Unwrap()->SetHeight(height);

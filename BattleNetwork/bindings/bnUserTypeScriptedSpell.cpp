@@ -2,6 +2,7 @@
 #include "bnUserTypeScriptedSpell.h"
 
 #include "bnWeakWrapper.h"
+#include "bnUserTypeAnimation.h"
 #include "bnScriptedSpell.h"
 #include "../bnTile.h"
 
@@ -161,8 +162,9 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "set_animation", [](WeakWrapper<ScriptedSpell>& spell, std::string animation) {
       spell.Unwrap()->SetAnimation(animation);
     },
-    "get_animation", [](WeakWrapper<ScriptedSpell>& spell) -> Animation& {
-      return spell.Unwrap()->GetAnimationObject();
+    "get_animation", [](WeakWrapper<ScriptedSpell>& spell) -> AnimationWrapper {
+      auto& animation = spell.Unwrap()->GetAnimationObject();
+      return AnimationWrapper(spell.GetWeak(), animation);
     },
     "add_node", [](WeakWrapper<ScriptedSpell>& spell, SceneNode* node) {
       spell.Unwrap()->AddNode(node);

@@ -2,6 +2,7 @@
 #include "bnUserTypeScriptedCharacter.h"
 
 #include "bnWeakWrapper.h"
+#include "bnUserTypeAnimation.h"
 #include "bnScriptedCharacter.h"
 #include "../bnTile.h"
 
@@ -209,8 +210,9 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<ScriptedCharacter>& character, float height) {
       character.Unwrap()->SetHeight(height);
     },
-    "get_animation", [](WeakWrapper<ScriptedCharacter>& character) -> Animation& {
-      return character.Unwrap()->GetAnimationObject();
+    "get_animation", [](WeakWrapper<ScriptedCharacter>& character) -> AnimationWrapper {
+      auto& animation = character.Unwrap()->GetAnimationObject();
+      return AnimationWrapper(character.GetWeak(), animation);
     },
     "shake_camera", [](WeakWrapper<ScriptedCharacter>& character, double power, float duration) {
       character.Unwrap()->ShakeCamera(power, duration);

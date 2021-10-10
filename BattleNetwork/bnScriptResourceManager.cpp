@@ -36,6 +36,7 @@
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnScriptedComponent.h"
 #include "bindings/bnWeakWrapper.h"
+#include "bindings/bnUserTypeAnimation.h"
 #include "bindings/bnUserTypeField.h"
 #include "bindings/bnUserTypeTile.h"
 #include "bindings/bnUserTypeBasicCharacter.h"
@@ -269,6 +270,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   DefineFieldUserType(battle_namespace);
   DefineTileUserType(state);
+  DefineAnimationUserType(state, engine_namespace);
   DefineBasicCharacterUserType(battle_namespace);
   DefineScriptedCharacterUserType(battle_namespace);
   DefineScriptedPlayerUserType(battle_namespace);
@@ -279,36 +281,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineBaseCardActionUserType(battle_namespace);
   DefineScriptedCardActionUserType(battle_namespace);
   DefineDefenseRuleUserTypes(battle_namespace);
-
-  const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
-    sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "Animation", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "Animation", key );
-    },
-    "load", &Animation::Load,
-    "update", &Animation::Update,
-    "refresh", &Animation::Refresh,
-    "copy_from", &Animation::CopyFrom,
-    "set_state", &Animation::SetAnimation,
-    "get_state", &Animation::GetAnimationString,
-    "point", &Animation::GetPoint,
-    "set_playback", sol::resolve<Animation& (char)>(&Animation::operator<<),
-    "on_complete", [] (Animation& animation, sol::stack_object callbackObject) {
-      sol::protected_function callback = callbackObject;
-      animation << [callback] { callback(); };
-    },
-    "on_frame", [](Animation& animation, int frame, sol::stack_object callbackObject, bool doOnce) {
-      sol::protected_function callback = callbackObject;
-      animation.AddCallback(frame, [callback] { callback(); }, doOnce);
-    },
-    "on_interrupt", [](Animation& animation, sol::stack_object callbackObject) {
-      sol::protected_function callback = callbackObject;
-      animation.SetInterruptCallback([callback] { callback(); });
-    }
-  );
 
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
@@ -681,13 +653,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "UpRight", Direction::up_right,
     "DownLeft", Direction::down_left,
     "DownRight", Direction::down_right
-  );
-
-  const auto& animation_mode_record = state.new_enum("Playback",
-    "Once", Animator::Mode::NoEffect,
-    "Loop", Animator::Mode::Loop,
-    "Bounce", Animator::Mode::Bounce,
-    "Reverse", Animator::Mode::Reverse
   );
 
   const auto& team_record = state.new_enum("Team",

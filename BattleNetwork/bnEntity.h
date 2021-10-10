@@ -650,10 +650,6 @@ public:
    */
   void DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> in, const DefenseOrder& filter);
 
-  // NOTE: I do not want this but Sol2 is type strict and actor objects for card actions
-  //       do not have a way to get animations even if their super class does...
-  Animation* GetAnimationFromComponent();
-
   /**
    * @brief Queried by Tile to highlight or not
    * @return Highlight mode

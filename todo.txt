@@ -7,10 +7,6 @@ WeakWrapper for nearly everything instead of shared_ptr
 
 // AsSpriteProxyNode???
 
-// search "get_animation" + `-> Animation*`
-// is Animation& safe? GetAnimationFromComponent? - no references are not safe
-// maybe return something that wraps the AnimationComponent like an animation component user type with the same exports
-
 keep defense rule as shared_ptr in lua? // nah, but needs a plan
 
 Battle::Tile::IsReservedByCharacter -> take in ids instead of shared_ptrs?

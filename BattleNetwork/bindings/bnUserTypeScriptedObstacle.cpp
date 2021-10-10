@@ -2,6 +2,7 @@
 #include "bnUserTypeScriptedObstacle.h"
 
 #include "bnWeakWrapper.h"
+#include "bnUserTypeAnimation.h"
 #include "bnScriptedObstacle.h"
 #include "../bnTile.h"
 
@@ -194,8 +195,9 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "set_animation", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string animation) {
       obstacle.Unwrap()->SetAnimation(animation);
     },
-    "get_animation", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Animation& {
-      return obstacle.Unwrap()->GetAnimationObject();
+    "get_animation", [](WeakWrapper<ScriptedObstacle>& obstacle) -> AnimationWrapper {
+      auto& animation = obstacle.Unwrap()->GetAnimationObject();
+      return AnimationWrapper(obstacle.GetWeak(), animation);
     },
     "add_node", [](WeakWrapper<ScriptedObstacle>& obstacle, SceneNode* node) {
       obstacle.Unwrap()->AddNode(node);
