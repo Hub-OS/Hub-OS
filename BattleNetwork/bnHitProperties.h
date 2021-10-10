@@ -47,7 +47,7 @@ namespace Hit {
 
   const constexpr Hit::Properties DefaultProperties = { 
     0, 
-    Flags(Hit::flinch | Hit::impact | Hit::stun), 
+    Flags(Hit::flinch | Hit::impact), 
     Element::none, 
     0, 
     Direction::none,

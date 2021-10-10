@@ -5,6 +5,7 @@
 class SpriteProxyNode;
 
 class Megaman final : public Player {
+  std::shared_ptr<sf::Texture> basePalette;
 public:
   Megaman();
   ~Megaman();

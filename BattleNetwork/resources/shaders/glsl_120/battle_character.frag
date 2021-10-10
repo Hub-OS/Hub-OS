@@ -7,6 +7,7 @@ const int HIGHLIGHT = 2;
 uniform sampler2D texture;
 uniform sampler2D palette;
 uniform bool swapPalette;
+uniform bool additiveMode;
 uniform float states[3];
 
 vec4 colorize(in vec4 pixel) {
@@ -78,7 +79,12 @@ void main()
         return;
     }
     
-    pixel = additive(pixel);
+    if(additiveMode) {
+        gl_FragColor = additive(pixel);
+        return;
+    }
+
+    pixel = colorize(pixel);
     
     gl_FragColor = pixel;
 }

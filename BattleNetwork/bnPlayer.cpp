@@ -352,6 +352,7 @@ void Player::ActivateFormAt(int index)
     if (!node->HasTag(Player::BASE_NODE_TAG) && node != &chargeEffect) {
       // Tag it as a form node
       node->AddTags({ Player::FORM_NODE_TAG });
+      node->EnableParentShader(true);
     }
   }
 }

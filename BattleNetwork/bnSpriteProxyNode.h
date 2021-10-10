@@ -22,6 +22,7 @@ private:
   mutable SmartShader shader; /*!< Sprites can have shaders attached to them */
   sf::Sprite* sprite{ nullptr }; /*!< Reference to sprite behind proxy */
   std::shared_ptr<sf::Texture> textureRef; /*!< We want to intelligently keep track so the cache doesn't eat it*/
+
 public:
   /**
     * \brief Construct new SpriteSceneNode

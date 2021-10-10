@@ -9,7 +9,6 @@
 
 #pragma once
 #include "bnShineExplosion.h"
-#include "bnPaletteSwap.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -71,9 +70,6 @@ NaviWhiteoutState<Any>::~NaviWhiteoutState() {
 template<typename Any>
 void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     e.SetPassthrough(true); // Shoot through dying enemies
-
-    auto paletteSwap = e.template GetFirstComponent<PaletteSwap>();
-    if (paletteSwap) paletteSwap->Enable(false);
 
     /* Spawn shine artifact */
     Battle::Tile* tile = e.GetTile();

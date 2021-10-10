@@ -1,6 +1,6 @@
 #include "bnStuntDouble.h"
 #include "bnAnimationComponent.h"
-#include "bnPaletteSwap.h"
+
 StuntDouble::StuntDouble(Character& ref) : ref(ref)
 {
   // Copy attributes & stats
