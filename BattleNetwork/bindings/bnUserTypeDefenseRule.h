@@ -3,6 +3,6 @@
 
 #include <sol/sol.hpp>
 
-void DefineDefenseRuleUserTypes(sol::table& battle_namespace);
+void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace);
 
 #endif

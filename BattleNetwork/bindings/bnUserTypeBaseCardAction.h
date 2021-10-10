@@ -3,6 +3,6 @@
 
 #include <sol/sol.hpp>
 
-void DefineBaseCardActionUserType(sol::table& battle_namespace);
+void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespace);
 
 #endif

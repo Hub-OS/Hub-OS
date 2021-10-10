@@ -3,6 +3,6 @@
 
 #include <sol/sol.hpp>
 
-void DefineScriptedComponentUserType(sol::table& battle_namespace);
+void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_namespace);
 
 #endif

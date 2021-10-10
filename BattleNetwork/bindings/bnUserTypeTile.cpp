@@ -92,5 +92,23 @@ void DefineTileUserType(sol::state& state) {
       [] (Battle::Tile& tile, WeakWrapper<ScriptedArtifact>& e) { return tile.AddEntity(e.Release()); }
     )
   );
+
+  state.new_enum("TileState",
+    "Broken", TileState::broken,
+    "Cracked", TileState::cracked,
+    "DirectionDown", TileState::directionDown,
+    "DirectionLevel", TileState::directionLeft,
+    "DirectionRight", TileState::directionRight,
+    "DirectionUp", TileState::directionUp,
+    "Empty", TileState::empty,
+    "Grass", TileState::grass,
+    "Hidden", TileState::hidden,
+    "Holy", TileState::holy,
+    "Ice", TileState::ice,
+    "Lava", TileState::lava,
+    "Normal", TileState::normal,
+    "Poison", TileState::poison,
+    "Volcano", TileState::volcano
+  );
 }
 #endif

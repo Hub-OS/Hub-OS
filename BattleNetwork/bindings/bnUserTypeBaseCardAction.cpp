@@ -21,7 +21,7 @@ static WeakWrapper<CardAction> construct(std::shared_ptr<Character> character, A
   return wrappedCardAction;
 }
 
-void DefineBaseCardActionUserType(sol::table& battle_namespace) {
+void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespace) {
   // make sure to copy changes to bnUserTypeScriptedCardAction
   const auto& card_action_record = battle_namespace.new_usertype<WeakWrapper<CardAction>>("BaseCardAction",
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
@@ -133,6 +133,30 @@ void DefineBaseCardActionUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedPlayer> character, bool charged, int dmg) -> WeakWrapper<CardAction>
           { return construct<BusterCardAction>(character.Unwrap(), charged, dmg); }
     )
+  );
+
+  state.set_function("make_animation_lockout",
+    []() { return CardAction::LockoutProperties{ CardAction::LockoutType::animation }; }
+  );
+
+  state.set_function("make_async_lockout",
+    [](double cooldown){ return CardAction::LockoutProperties{ CardAction::LockoutType::async, cooldown }; }
+  );
+
+  state.set_function("make_sequence_lockout",
+    [](){ return CardAction::LockoutProperties{ CardAction::LockoutType::sequence }; }
+  );
+
+  state.new_enum("LockType",
+    "Animation", CardAction::LockoutType::animation,
+    "Async", CardAction::LockoutType::async,
+    "Sequence", CardAction::LockoutType::sequence
+  );
+
+  state.new_enum("Lockout",
+    "Weapons", CardAction::LockoutGroup::weapon,
+    "Cards", CardAction::LockoutGroup::card,
+    "Abilities", CardAction::LockoutGroup::ability
   );
 }
 #endif

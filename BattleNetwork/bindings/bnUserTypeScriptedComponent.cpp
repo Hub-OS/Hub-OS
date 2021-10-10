@@ -15,7 +15,7 @@ static WeakWrapper<ScriptedComponent> construct(std::shared_ptr<Character> chara
   return wrappedComponent;
 }
 
-void DefineScriptedComponentUserType(sol::table& battle_namespace) {
+void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedComponent>>("Component",
     sol::factories([](WeakWrapper<Character> owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
       return construct(owner.Unwrap(), lifetime);
@@ -47,6 +47,12 @@ void DefineScriptedComponentUserType(sol::table& battle_namespace) {
     "get_owner", [](WeakWrapper<ScriptedComponent>& component) -> WeakWrapper<Character> {
       return WeakWrapper(component.Unwrap()->GetOwnerAsCharacter());
     }
+  );
+
+  state.new_enum("Lifetimes",
+    "Local", Component::lifetimes::local,
+    "Battlestep", Component::lifetimes::battlestep,
+    "Scene", Component::lifetimes::ui
   );
 }
 #endif

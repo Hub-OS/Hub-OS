@@ -6,7 +6,7 @@
 #include "../bnDefenseVirusBody.h"
 #include "../bnDefenseNodrag.h"
 
-void DefineDefenseRuleUserTypes(sol::table& battle_namespace) {
+void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace) {
   // using shared_ptr as it can be added + removed from entities, ownership is never given to the field
   battle_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
     sol::factories(
@@ -50,6 +50,11 @@ void DefineDefenseRuleUserTypes(sol::table& battle_namespace) {
     "signal_defense_was_pierced", [](ScopedWrapper<DefenseFrameStateJudge>& judge) {
       judge.Unwrap().SignalDefenseWasPierced();
     }
+  );
+
+  state.new_enum("DefenseOrder",
+    "Always", DefenseOrder::always,
+    "CollisionOnly", DefenseOrder::collisionOnly
   );
 }
 #endif

@@ -277,10 +277,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineScriptedSpellUserType(battle_namespace);
   DefineScriptedObstacleUserType(battle_namespace);
   DefineScriptedArtifactUserType(battle_namespace);
-  DefineScriptedComponentUserType(battle_namespace);
-  DefineBaseCardActionUserType(battle_namespace);
+  DefineScriptedComponentUserType(state, battle_namespace);
+  DefineBaseCardActionUserType(state, battle_namespace);
   DefineScriptedCardActionUserType(battle_namespace);
-  DefineDefenseRuleUserTypes(battle_namespace);
+  DefineDefenseRuleUserTypes(state, battle_namespace);
 
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
@@ -310,30 +310,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "unwrap", &SpriteProxyNode::getSprite,
     "enable_parent_shader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
-  );
-
-  state.set_function("make_animation_lockout",
-    []() { return CardAction::LockoutProperties{ CardAction::LockoutType::animation }; }
-  );
-
-  state.set_function("make_async_lockout",
-    [](double cooldown){ return CardAction::LockoutProperties{ CardAction::LockoutType::async, cooldown }; }
-  );
-
-  state.set_function("make_sequence_lockout",
-    [](){ return CardAction::LockoutProperties{ CardAction::LockoutType::sequence }; }
-  );
-
-  const auto& lockout_type_record = state.new_enum("LockType",
-    "Animation", CardAction::LockoutType::animation,
-    "Async", CardAction::LockoutType::async,
-    "Sequence", CardAction::LockoutType::sequence
-  );
-
-  const auto& lockout_group_record = state.new_enum("Lockout",
-    "Weapons", CardAction::LockoutGroup::weapon,
-    "Cards", CardAction::LockoutGroup::card,
-    "Abilities", CardAction::LockoutGroup::ability
   );
 
   const auto& hitbox_record = battle_namespace.new_usertype<WeakWrapper<HitboxSpell>>("Hitbox",
@@ -594,29 +570,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     }
   );
 
-  const auto& tile_state_table = state.new_enum("TileState",
-    "Broken", TileState::broken,
-    "Cracked", TileState::cracked,
-    "DirectionDown", TileState::directionDown,
-    "DirectionLevel", TileState::directionLeft,
-    "DirectionRight", TileState::directionRight,
-    "DirectionUp", TileState::directionUp,
-    "Empty", TileState::empty,
-    "Grass", TileState::grass,
-    "Hidden", TileState::hidden,
-    "Holy", TileState::holy,
-    "Ice", TileState::ice,
-    "Lava", TileState::lava,
-    "Normal", TileState::normal,
-    "Poison", TileState::poison,
-    "Volcano", TileState::volcano
-  );
-
-  const auto& defense_order_table = state.new_enum("DefenseOrder",
-    "Always", DefenseOrder::always,
-    "CollisionOnly", DefenseOrder::collisionOnly
-  );
-
   const auto& particle_impact_type_table = state.new_enum("ParticleType",
     "Blue", ParticleImpact::Type::blue,
     "Fire", ParticleImpact::Type::fire,
@@ -813,12 +766,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Mega", Battle::CardClass::mega,
     "Giga", Battle::CardClass::giga,
     "Dark", Battle::CardClass::dark
-  );
-
-  const auto& component_lifetimes_record = state.new_enum("Lifetimes",
-    "Local", Component::lifetimes::local,
-    "Battlestep", Component::lifetimes::battlestep,
-    "Scene", Component::lifetimes::ui
   );
 
   state.set_function("drag",
