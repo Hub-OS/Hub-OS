@@ -17,6 +17,10 @@ public:
     ownedPtr = weakPtr.lock();
   }
 
+  std::weak_ptr<T> GetWeak() {
+    return weakPtr;
+  }
+
   std::shared_ptr<T> Release() {
     auto temp = weakPtr.lock();
     ownedPtr = nullptr;

@@ -364,18 +364,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Abilities", CardAction::LockoutGroup::ability
   );
 
-  const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
-    sol::constructors<CardAction::Attachment(Animation&, const std::string&, SpriteProxyNode&)>(),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "Attachment", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "Attachment", key );
-    },
-    "use_animation", &CardAction::Attachment::UseAnimation,
-    "add_attachment", &CardAction::Attachment::AddAttachment
-  );
-
   const auto& hitbox_record = battle_namespace.new_usertype<WeakWrapper<HitboxSpell>>("Hitbox",
     sol::factories([] (Team team) -> WeakWrapper<HitboxSpell> {
       auto spell = std::make_shared<HitboxSpell>(team);

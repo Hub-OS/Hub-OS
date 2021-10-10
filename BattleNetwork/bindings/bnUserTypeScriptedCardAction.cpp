@@ -2,9 +2,12 @@
 #include "bnUserTypeScriptedCardAction.h"
 
 #include "bnWeakWrapper.h"
+#include "bnWeakWrapperChild.h"
 #include "bnScriptedCardAction.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
+
+using CardActionAttachmentWrapper = WeakWrapperChild<CardAction, CardAction::Attachment>;
 
 static WeakWrapper<ScriptedCardAction> construct(std::shared_ptr<Character> character, const std::string& state) {
   auto cardAction = std::make_shared<ScriptedCardAction>(character, state);
@@ -48,17 +51,21 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
       cardAction.Unwrap()->OverrideAnimationFrames(frameData);
     },
     "add_attachment", sol::overload(
-      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<Character> character, const std::string& point, SpriteProxyNode& node) -> CardAction::Attachment& {
-        return cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
+      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<Character> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
+        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
+        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
       },
-      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<ScriptedCharacter> character, const std::string& point, SpriteProxyNode& node) -> CardAction::Attachment& {
-        return cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
+      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<ScriptedCharacter> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
+        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
+        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
       },
-      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<ScriptedPlayer> character, const std::string& point, SpriteProxyNode& node) -> CardAction::Attachment& {
-        return cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
+      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<ScriptedPlayer> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
+        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
+        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
       },
-      [](WeakWrapper<ScriptedCardAction>& cardAction, Animation& animation, const std::string& point, SpriteProxyNode& node) -> CardAction::Attachment& {
-        return cardAction.Unwrap()->AddAttachment(animation, point, node);
+      [](WeakWrapper<ScriptedCardAction>& cardAction, Animation& animation, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
+        auto& attachment = cardAction.Unwrap()->AddAttachment(animation, point, node);
+        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
       }
     ),
     "add_anim_action", [](WeakWrapper<ScriptedCardAction>& cardAction, int frame, sol::stack_object actionObject) {
