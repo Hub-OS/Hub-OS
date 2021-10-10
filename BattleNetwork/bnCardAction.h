@@ -96,7 +96,7 @@ private:
   std::function<void()> prepareActionDelegate;
   ActionList sequence;
   std::list<Step*> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
-  std::shared_ptr<Character> actor{ nullptr };
+  std::weak_ptr<Character> actor;
   Attachments attachments;
   std::shared_ptr<AnimationComponent> anim{ nullptr };
   Battle::Card::Properties meta;
@@ -108,7 +108,7 @@ private:
 public:
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
-  CardAction(std::shared_ptr<Character> actor, const std::string& animation);
+  CardAction(std::weak_ptr<Character> actor, const std::string& animation);
   virtual ~CardAction();
 
   // Used by cards that use sequences (like most Time Freeze animations)
@@ -133,7 +133,7 @@ public:
   void SetMetaData(const Battle::Card::Properties& props);
   void Execute(std::shared_ptr<Character> user);
   void EndAction();
-  void UseStuntDouble(std::shared_ptr<Character> stuntDouble);
+  void UseStuntDouble(std::shared_ptr<Character> stuntDouble); // can cause GetActor to return nullptr
 
   const LockoutGroup GetLockoutGroup() const;
   const LockoutType GetLockoutType() const;
@@ -142,8 +142,8 @@ public:
   const bool IsLockoutOver() const;
   const Battle::Card::Properties& GetMetaData() const;
   const bool CanExecute() const;
-  std::shared_ptr<Character> GetActor();
-  const std::shared_ptr<Character> GetActor() const;
+  std::shared_ptr<Character> GetActor(); // may return nullptr
+  const std::shared_ptr<Character> GetActor() const; // may return nullptr
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;

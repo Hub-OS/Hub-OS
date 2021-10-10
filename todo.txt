@@ -1,11 +1,5 @@
-Look for circular references:
- - CardActions, Entity::actionQueue -> has shared_ptr to owner
- - do CardActions outlive owners? use raw pointer?
-
 SpriteProxyNode as shared_ptr throughout the engine?
 
 Tiles as WeakWrapper // search -> Tile* / get_tile / Tile& / can_move_to_func
 
 keep defense rule as shared_ptr in lua? // nah, but needs a plan
-
-Battle::Tile::IsReservedByCharacter -> take in ids instead of shared_ptrs?

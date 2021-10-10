@@ -10,10 +10,12 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(std::shared_ptr<Character> actor, bool charged, int damage) : CardAction(actor, "PLAYER_SHOOTING")
+BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool charged, int damage) : CardAction(actorWeak, "PLAYER_SHOOTING")
 {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
+
+  auto actor = actorWeak.lock();
 
   buster.setTexture(actor->getTexture());
   buster.SetLayer(-1);
@@ -72,8 +74,9 @@ void BusterCardAction::Update(double _elapsed)
 
 void BusterCardAction::OnActionEnd()
 {
-  auto field = GetActor()->GetField();
-  
+  auto actor = GetActor();
+  auto field = actor->GetField();
+
   if (field) {
     field->DropNotifier(this->notifier);
   }
