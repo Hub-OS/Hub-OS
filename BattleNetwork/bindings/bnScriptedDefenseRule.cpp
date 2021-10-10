@@ -1,6 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedDefenseRule.h"
 #include "bnWeakWrapper.h"
+#include "bnScopedWrapper.h"
 #include "../bnSolHelpers.h"
 #include "../bnLogger.h"
 
@@ -35,7 +36,8 @@ Hit::Properties& ScriptedDefenseRule::FilterStatuses(Hit::Properties& statuses)
 void ScriptedDefenseRule::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) {
   if (entries["can_block_func"].valid()) 
   {
-    auto result = CallLuaFunction(entries, "can_block_func", &judge, WeakWrapper(attacker), WeakWrapper(owner));
+    auto wrappedJudge = ScopedWrapper(judge);
+    auto result = CallLuaFunction(entries, "can_block_func", wrappedJudge, WeakWrapper(attacker), WeakWrapper(owner));
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());

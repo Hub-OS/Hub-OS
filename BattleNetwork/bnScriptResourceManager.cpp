@@ -22,8 +22,6 @@
 #include "bnTile.h"
 #include "bnHitboxSpell.h"
 #include "bnSharedHitbox.h"
-#include "bnDefenseNodrag.h"
-#include "bnDefenseVirusBody.h"
 #include "bnParticlePoof.h"
 #include "bnParticleImpact.h"
 
@@ -34,7 +32,6 @@
 #include "bindings/bnScriptedSpell.h"
 #include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
-#include "bindings/bnScriptedDefenseRule.h"
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnScriptedComponent.h"
@@ -50,6 +47,7 @@
 #include "bindings/bnUserTypeScriptedComponent.h"
 #include "bindings/bnUserTypeBaseCardAction.h"
 #include "bindings/bnUserTypeScriptedCardAction.h"
+#include "bindings/bnUserTypeDefenseRule.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -280,6 +278,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineScriptedComponentUserType(battle_namespace);
   DefineBaseCardActionUserType(battle_namespace);
   DefineScriptedCardActionUserType(battle_namespace);
+  DefineDefenseRuleUserTypes(battle_namespace);
 
   const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
     sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
@@ -363,53 +362,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Weapons", CardAction::LockoutGroup::weapon,
     "Cards", CardAction::LockoutGroup::card,
     "Abilities", CardAction::LockoutGroup::ability
-  );
-
-  const auto& defense_frame_state_judge_record = state.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "DefenseFrameStateJudge", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "DefenseFrameStateJudge", key );
-    },
-    "block_damage", &DefenseFrameStateJudge::BlockDamage,
-    "block_impact", &DefenseFrameStateJudge::BlockImpact,
-    "is_damage_blocked", &DefenseFrameStateJudge::IsDamageBlocked,
-    "is_impact_blocked", &DefenseFrameStateJudge::IsImpactBlocked,
-    /*"add_trigger", &DefenseFrameStateJudge::AddTrigger,*/
-    "signal_defense_was_pierced", &DefenseFrameStateJudge::SignalDefenseWasPierced
-  );
-
-  // using shared_ptr as it can be added + removed from entities, ownership is never given to the field
-  const auto& defense_rule_record = battle_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
-    sol::factories(
-        [](int priority, const DefenseOrder& order) -> std::shared_ptr<ScriptedDefenseRule>
-        { return std::make_shared<ScriptedDefenseRule>(Priority(priority), order); }
-    ),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "DefenseRule", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "DefenseRule", key );
-    },
-    "is_replaced", &ScriptedDefenseRule::IsReplaced,
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    sol::base_classes, sol::bases<DefenseRule>()
-  );
-
-  const auto& defense_rule_nodrag = battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
-    sol::factories(
-      [] () -> std::shared_ptr<DefenseRule> { return std::make_shared<DefenseNodrag>(); }
-    ),
-    sol::base_classes, sol::bases<DefenseRule>()
-  );
-
-  const auto& defense_rule_virus_body = battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
-    sol::factories(
-      [] () -> std::shared_ptr<DefenseRule> { return std::make_shared<DefenseVirusBody>(); }
-    )
   );
 
   const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",

@@ -6,18 +6,14 @@ Attachment as WeakWrapper
 Tiles as WeakWrapper // search -> Tile* / get_tile / Tile& / can_move_to_func
 WeakWrapper for nearly everything instead of shared_ptr
 
-// DefenseFrameStateJudge& judge
 // AsSpriteProxyNode???
 
 // search "get_animation" + `-> Animation*`
 // is Animation& safe? GetAnimationFromComponent? - no references are not safe
 // maybe return something that wraps the AnimationComponent like an animation component user type with the same exports
 
-keep defense rule as shared_ptr in lua? // nah, but needs a plan // ScopedWrapper?
+keep defense rule as shared_ptr in lua? // nah, but needs a plan
 
 Battle::Tile::IsReservedByCharacter -> take in ids instead of shared_ptrs?
-
-move sol helpers into bindings
-wrap classes in #ifdef BN_MOD_SUPPORT
 
 CardAction::Attachment&
