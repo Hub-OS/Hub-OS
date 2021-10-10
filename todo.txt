@@ -1,11 +1,10 @@
 Look for circular references:
  - CardActions, Entity::actionQueue -> has shared_ptr to owner
+ - do CardActions outlive owners? use raw pointer?
 
-SpriteProxy as WeakWrapper // search "add_node", SceneNode*
+SpriteProxyNode as shared_ptr throughout the engine?
+
 Tiles as WeakWrapper // search -> Tile* / get_tile / Tile& / can_move_to_func
-WeakWrapper for nearly everything instead of shared_ptr
-
-// AsSpriteProxyNode???
 
 keep defense rule as shared_ptr in lua? // nah, but needs a plan
 

@@ -37,6 +37,7 @@
 #include "bindings/bnScriptedComponent.h"
 #include "bindings/bnWeakWrapper.h"
 #include "bindings/bnUserTypeAnimation.h"
+#include "bindings/bnUserTypeSpriteNode.h"
 #include "bindings/bnUserTypeField.h"
 #include "bindings/bnUserTypeTile.h"
 #include "bindings/bnUserTypeBasicCharacter.h"
@@ -271,6 +272,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineFieldUserType(battle_namespace);
   DefineTileUserType(state);
   DefineAnimationUserType(state, engine_namespace);
+  DefineSpriteNodeUserType(engine_namespace);
   DefineBasicCharacterUserType(battle_namespace);
   DefineScriptedCharacterUserType(battle_namespace);
   DefineScriptedPlayerUserType(battle_namespace);
@@ -281,36 +283,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineBaseCardActionUserType(state, battle_namespace);
   DefineScriptedCardActionUserType(battle_namespace);
   DefineDefenseRuleUserTypes(state, battle_namespace);
-
-  const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
-    sol::constructors<SpriteProxyNode()>(),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "SpriteNode", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "SpriteNode", key );
-    },
-    "get_texture", &SpriteProxyNode::getTexture,
-    "set_texture", &SpriteProxyNode::setTexture,
-    "show", &SpriteProxyNode::Reveal,
-    "hide", &SpriteProxyNode::Hide,
-    "set_layer", &SpriteProxyNode::SetLayer,
-    "get_layer", &SpriteProxyNode::GetLayer,
-    "add_node", &SpriteProxyNode::AddNode,
-    "remove_node", &SpriteProxyNode::RemoveNode,
-    "add_tag", &SpriteProxyNode::AddTags,
-    "remove_tags", &SpriteProxyNode::RemoveTags,
-    "has_tag", &SpriteProxyNode::HasTag,
-    "find_child_nodes_with_tags", &SpriteProxyNode::GetChildNodesWithTag,
-    "get_layer", &SpriteProxyNode::GetLayer,
-    "set_position", sol::resolve<void(float, float)>(&SpriteProxyNode::setPosition),
-    "get_position", &SpriteProxyNode::getPosition,
-    "get_color", &SpriteProxyNode::getColor,
-    "set_color", &SpriteProxyNode::setColor,
-    "unwrap", &SpriteProxyNode::getSprite,
-    "enable_parent_shader", &SpriteProxyNode::EnableParentShader,
-    sol::base_classes, sol::bases<SceneNode>()
-  );
 
   const auto& hitbox_record = battle_namespace.new_usertype<WeakWrapper<HitboxSpell>>("Hitbox",
     sol::factories([] (Team team) -> WeakWrapper<HitboxSpell> {

@@ -61,8 +61,8 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedObstacle>& obstacle, sf::Color color) {
       obstacle.Unwrap()->setColor(color);
     },
-    "sprite", [](WeakWrapper<ScriptedObstacle>& obstacle) -> SpriteProxyNode& {
-      return obstacle.Unwrap()->AsSpriteProxyNode();
+    "sprite", [](WeakWrapper<ScriptedObstacle>& obstacle) -> std::shared_ptr<SpriteProxyNode> {
+      return obstacle.Unwrap();
     },
     "hide", [](WeakWrapper<ScriptedObstacle>& obstacle) {
       obstacle.Unwrap()->Hide();

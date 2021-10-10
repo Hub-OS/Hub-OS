@@ -53,8 +53,8 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedCharacter>& character, sf::Color color) {
       character.Unwrap()->setColor(color);
     },
-    "sprite", [](WeakWrapper<ScriptedCharacter>& character) -> SpriteProxyNode& {
-      return character.Unwrap()->AsSpriteProxyNode();
+    "sprite", [](WeakWrapper<ScriptedCharacter>& character) -> std::shared_ptr<SpriteProxyNode> {
+      return character.Unwrap();
     },
     "hide", [](WeakWrapper<ScriptedCharacter>& character) {
       character.Unwrap()->Hide();

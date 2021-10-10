@@ -55,8 +55,8 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedSpell>& spell, sf::Color color) {
       spell.Unwrap()->setColor(color);
     },
-    "sprite", [](WeakWrapper<ScriptedSpell>& spell) -> SpriteProxyNode& {
-      return spell.Unwrap()->AsSpriteProxyNode();
+    "sprite", [](WeakWrapper<ScriptedSpell>& spell) -> std::shared_ptr<SpriteProxyNode> {
+      return spell.Unwrap();
     },
     "hide", [](WeakWrapper<ScriptedSpell>& spell) {
       spell.Unwrap()->Hide();
