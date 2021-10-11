@@ -20,7 +20,7 @@ CardAction::CardAction(std::weak_ptr<Character> actor, const std::string& animat
       }
 
       for (auto& [nodeName, node] : attachments) {
-        actor->AddNode(&node.spriteProxy.get());
+        actor->AddNode(node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
@@ -127,7 +127,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       }
 
       for (auto& [nodeName, node] : attachments) {
-        actor->AddNode(&node.spriteProxy.get());
+        actor->AddNode(node.spriteProxy.get());
         node.AttachAllPendingNodes();
       }
 
@@ -191,34 +191,27 @@ void CardAction::UseStuntDouble(std::shared_ptr<Character> stuntDouble)
   }
 }
 
-CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
-  auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(parent), point, std::ref(node) }));
+CardAction::Attachment& CardAction::AddAttachment(const std::string& point) {
+  auto actor = this->GetActor();
+
+  if (!actor) {
+    throw std::runtime_error("Owner was deleted");
+  }
+
+  auto animComp = actor->GetFirstComponent<AnimationComponent>();
+  assert(animComp && "owner must have an animation component");
+  auto& anim = animComp->GetAnimationObject();
+
+  auto iter = attachments.insert(std::make_pair(point, Attachment{ anim, point }));
 
   if (started) {
-    auto actor = this->GetActor();
+    actor->AddNode(iter->second.spriteProxy.get());
 
-    if (!actor) {
-      return iter->second;
-    }
-
-    actor->AddNode(&node);
-    
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;
   }
 
   return iter->second;
-}
-
-CardAction::Attachment& CardAction::AddAttachment(std::shared_ptr<Character> character, const std::string& point, SpriteProxyNode& node) {
-  auto animComp = character->GetFirstComponent<AnimationComponent>();
-  assert(animComp && "character must have an animation component");
-
-  if (started) {
-    this->GetActor()->AddNode(&node);
-  }
-
-  return AddAttachment(animComp->GetAnimationObject(), point, node);
 }
 
 void CardAction::Update(double _elapsed)
@@ -281,7 +274,7 @@ void CardAction::SetLockoutGroup(const CardAction::LockoutGroup& group)
 void CardAction::FreeAttachedNodes() {
   if (auto actor = GetActor()) {
     for (auto& [nodeName, node] : attachments) {
-      actor->RemoveNode(&node.spriteProxy.get());
+      actor->RemoveNode(node.spriteProxy.get());
     }
   }
 
@@ -326,8 +319,8 @@ const bool CardAction::CanExecute() const
 //                Attachment Impl               //
 //////////////////////////////////////////////////
 
-CardAction::Attachment::Attachment(Animation& parentAnim, const std::string& point, SpriteProxyNode& parentNode) :
-  spriteProxy(parentNode), parentAnim(parentAnim), point(point)
+CardAction::Attachment::Attachment(Animation& parentAnim, const std::string& point) :
+  spriteProxy(std::make_shared<SpriteProxyNode>()), parentAnim(parentAnim), point(point)
 {
 }
 
@@ -335,25 +328,9 @@ CardAction::Attachment::~Attachment()
 {
 }
 
-CardAction::Attachment& CardAction::Attachment::UseAnimation(Animation& anim)
-{
-  myAnim = &anim;
-  anim.Refresh(spriteProxy.get().getSprite());
-
-  // update the node's position
-  auto baseOffset = GetParentAnim().GetPoint(point);
-  const auto& origin = spriteProxy.get().getSprite().getOrigin();
-  baseOffset = baseOffset - origin;
-  SetOffset(baseOffset);
-
-  return *this;
-}
-
 void CardAction::Attachment::Update(double elapsed)
 {
-  if (this->myAnim) {
-    this->myAnim->Update(elapsed, spriteProxy.get().getSprite());
-  }
+  animation.Update(elapsed, spriteProxy->getSprite());
 
   for (auto& [nodeName, node] : attachments) {
     // update the node's animation
@@ -361,7 +338,7 @@ void CardAction::Attachment::Update(double elapsed)
 
     // update the node's position
     auto baseOffset = node.GetParentAnim().GetPoint(nodeName);
-    const auto& origin = spriteProxy.get().getSprite().getOrigin();
+    const auto& origin = spriteProxy->getSprite().getOrigin();
     baseOffset = baseOffset - origin;
 
     node.SetOffset(baseOffset);
@@ -370,18 +347,18 @@ void CardAction::Attachment::Update(double elapsed)
 
 void CardAction::Attachment::SetOffset(const sf::Vector2f& pos)
 {
-  this->spriteProxy.get().setPosition(pos);
+  this->spriteProxy->setPosition(pos);
 }
 
 void CardAction::Attachment::SetScale(const sf::Vector2f& scale)
 {
-  this->spriteProxy.get().setScale(scale);
+  this->spriteProxy->setScale(scale);
 }
 
 void CardAction::Attachment::AttachAllPendingNodes()
 {
   for (auto& [nodeName, node] : attachments) {
-    this->spriteProxy.get().AddNode(&node.spriteProxy.get());
+    this->spriteProxy->AddNode(node.spriteProxy.get());
   }
 
   started = true;
@@ -392,15 +369,24 @@ Animation& CardAction::Attachment::GetParentAnim()
   return this->parentAnim;
 }
 
-CardAction::Attachment& CardAction::Attachment::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
-  auto iter = attachments.insert(std::make_pair(point, Attachment(std::ref(parent), point, std::ref(node) )));
+CardAction::Attachment& CardAction::Attachment::AddAttachment(const std::string& point) {
+  auto iter = attachments.insert(std::make_pair(point, Attachment(animation, point)));
 
   if (started) {
-    this->spriteProxy.get().AddNode(&node);
+    this->spriteProxy->AddNode(iter->second.spriteProxy.get());
 
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;
   }
 
   return iter->second;
+}
+
+std::shared_ptr<SpriteProxyNode> CardAction::Attachment::GetSpriteNode() {
+  return spriteProxy;
+}
+
+
+Animation& CardAction::Attachment::GetAnimationObject() {
+  return animation;
 }

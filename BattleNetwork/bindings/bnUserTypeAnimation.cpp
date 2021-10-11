@@ -2,6 +2,8 @@
 #include "bnUserTypeAnimation.h"
 #include "../bnScriptResourceManager.h"
 
+#include "../bnSpriteProxyNode.h"
+
 void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
   engine_namespace.new_usertype<AnimationWrapper>("Animation",
     sol::factories(
@@ -31,11 +33,11 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
     "load", [](AnimationWrapper& animation, const std::string& path) {
       animation.Unwrap().Load(path);
     },
-    "update", [](AnimationWrapper& animation, double elapsed, sf::Sprite& target, double playbackSpeed = 1.0) {
-      animation.Unwrap().Update(elapsed, target, playbackSpeed);
+    "update", [](AnimationWrapper& animation, double elapsed, WeakWrapper<SpriteProxyNode>& target, double playbackSpeed = 1.0) {
+      animation.Unwrap().Update(elapsed, target.Unwrap()->getSprite(), playbackSpeed);
     },
-    "refresh", [](AnimationWrapper& animation, sf::Sprite& target) {
-      animation.Unwrap().Refresh(target);
+    "refresh", [](AnimationWrapper& animation, WeakWrapper<SpriteProxyNode>& target) {
+      animation.Unwrap().Refresh(target.Unwrap()->getSprite());
     },
     "copy_from", [](AnimationWrapper& animation, AnimationWrapper& rhs) {
       animation.Unwrap().CopyFrom(rhs.Unwrap());

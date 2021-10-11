@@ -20,6 +20,16 @@ public:
     return weakPtr;
   }
 
+  std::shared_ptr<Parent> UnwrapParent() {
+    auto ptr = weakPtr.lock();
+
+    if (!ptr) {
+      throw std::runtime_error("data deleted");
+    }
+
+    return ptr;
+  }
+
   Child& Unwrap() {
     if (weakPtr.expired()) {
       throw std::runtime_error("data deleted");

@@ -17,28 +17,24 @@ BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool char
 
   auto actor = actorWeak.lock();
 
-  buster.setTexture(actor->getTexture());
-  buster.SetLayer(-1);
+  busterAttachment = &AddAttachment("buster");
 
-  busterAnim = Animation(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  auto& busterAnim = busterAttachment->GetAnimationObject();
+  busterAnim.Load(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
   busterAnim.SetAnimation("BUSTER");
 
-  flare.setTexture(Textures().LoadTextureFromFile(NODE_PATH));
-  flare.SetLayer(-1);
-
-  flareAnim = Animation(NODE_ANIM);
-  flareAnim.SetAnimation("DEFAULT");
-
-  busterAttachment = &AddAttachment(actor, "buster", buster).UseAnimation(busterAnim);
+  buster = busterAttachment->GetSpriteNode();
+  buster->setTexture(actor->getTexture());
+  buster->SetLayer(-1);
+  buster->EnableParentShader(true);
+  buster->AddTags({Player::BASE_NODE_TAG});
 
   this->SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
 
 void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
   buster->setColor(user->getColor());
-  buster->EnableParentShader(true);
-  buster->AddTags({Player::BASE_NODE_TAG});
- 
+
   // On shoot frame, drop projectile
   auto onFire = [this, user]() -> void {
     Team team = user->GetTeam();
@@ -61,7 +57,15 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
     field->AddEntity(b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
 
-    busterAttachment->AddAttachment(busterAnim, "endpoint", flare).UseAnimation(flareAnim);
+    auto& attachment = busterAttachment->AddAttachment("endpoint");
+
+    auto flare = attachment.GetSpriteNode();
+    flare->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
+    flare->SetLayer(-1);
+
+    auto& flareAnim = attachment.GetAnimationObject();
+    flareAnim = Animation(NODE_ANIM);
+    flareAnim.SetAnimation("DEFAULT");
   };
 
   AddAnimAction(2, onFire);

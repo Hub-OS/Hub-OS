@@ -49,8 +49,8 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedPlayer>& player, sf::Color color) {
       player.Unwrap()->setColor(color);
     },
-    "sprite", [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<SpriteProxyNode> {
-      return player.Unwrap();
+    "sprite", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapper<SpriteProxyNode> {
+      return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(player.Unwrap()));
     },
     "hide", [](WeakWrapper<ScriptedPlayer>& player) {
       player.Unwrap()->Hide();

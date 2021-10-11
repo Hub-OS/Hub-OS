@@ -51,24 +51,11 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
     "override_animation_frames", [](WeakWrapper<ScriptedCardAction>& cardAction, std::list<OverrideFrame> frameData) {
       cardAction.Unwrap()->OverrideAnimationFrames(frameData);
     },
-    "add_attachment", sol::overload(
-      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<Character> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
-        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
-      },
-      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<ScriptedCharacter> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
-        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
-      },
-      [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<ScriptedPlayer> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
-        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
-      },
-      [](WeakWrapper<ScriptedCardAction>& cardAction, AnimationWrapper& animation, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(animation.Unwrap(), point, node);
-        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
-      }
-    ),
+    "add_attachment", [](WeakWrapper<ScriptedCardAction>& cardAction, const std::string& point) -> CardActionAttachmentWrapper {
+      auto cardActionPtr = cardAction.Unwrap();
+      auto& attachment = cardActionPtr->AddAttachment(point);
+      return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
+    },
     "add_anim_action", [](WeakWrapper<ScriptedCardAction>& cardAction, int frame, sol::stack_object actionObject) {
       sol::protected_function action = actionObject;
       cardAction.Unwrap()->AddAnimAction(frame, [action]{ action(); });

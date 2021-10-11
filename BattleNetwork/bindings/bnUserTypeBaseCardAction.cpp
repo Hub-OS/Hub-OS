@@ -16,7 +16,7 @@ template<typename TemplateCardAction, typename ...Args>
 static WeakWrapper<CardAction> construct(std::shared_ptr<Character> character, Args&&... args) {
   auto cardAction = std::make_shared<TemplateCardAction>(character, std::forward<Args>(args)...);
 
-  auto wrappedCardAction = WeakWrapper<CardAction>(static_pointer_cast<CardAction>(cardAction));
+  auto wrappedCardAction = WeakWrapper<CardAction>(std::static_pointer_cast<CardAction>(cardAction));
   wrappedCardAction.Own();
   return wrappedCardAction;
 }
@@ -39,24 +39,10 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     "override_animation_frames", [](WeakWrapper<CardAction>& cardAction, std::list<OverrideFrame> frameData) {
       cardAction.Unwrap()->OverrideAnimationFrames(frameData);
     },
-    "add_attachment", sol::overload(
-      [](WeakWrapper<CardAction>& cardAction, WeakWrapper<Character> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
-        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
-      },
-      [](WeakWrapper<CardAction>& cardAction, WeakWrapper<ScriptedCharacter> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
-        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
-      },
-      [](WeakWrapper<CardAction>& cardAction, WeakWrapper<ScriptedPlayer> character, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(character.Unwrap(), point, node);
-        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
-      },
-      [](WeakWrapper<CardAction>& cardAction, AnimationWrapper& animation, const std::string& point, SpriteProxyNode& node) -> CardActionAttachmentWrapper {
-        auto& attachment = cardAction.Unwrap()->AddAttachment(animation.Unwrap(), point, node);
-        return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
-      }
-    ),
+    "add_attachment", [](WeakWrapper<CardAction>& cardAction, const std::string& point) -> CardActionAttachmentWrapper {
+      auto& attachment = cardAction.Unwrap()->AddAttachment(point);
+      return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
+    },
     "add_anim_action", [](WeakWrapper<CardAction>& cardAction, int frame, sol::stack_object actionObject) {
       sol::protected_function action = actionObject;
       cardAction.Unwrap()->AddAnimAction(frame, [action]{ action(); });
@@ -85,15 +71,14 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Attachment", key );
     },
-    "use_animation", [](CardActionAttachmentWrapper& wrapper, AnimationWrapper& animation) -> CardActionAttachmentWrapper {
-      wrapper.Unwrap().UseAnimation(animation.Unwrap());
-      return wrapper;
+    "add_attachment", [](CardActionAttachmentWrapper& wrapper, const std::string& node) -> CardActionAttachmentWrapper {
+      return CardActionAttachmentWrapper(wrapper.GetParentWeak(), wrapper.Unwrap().AddAttachment(node));
     },
-    "add_attachment", [](CardActionAttachmentWrapper& wrapper, AnimationWrapper parent, const std::string& point, SpriteProxyNode& node) {
-      auto cardActionWeak = wrapper.GetParentWeak();
-      auto& attachment = wrapper.Unwrap().AddAttachment(parent.Unwrap(), point, node);
-
-      return CardActionAttachmentWrapper(cardActionWeak, attachment);
+    "sprite", [](CardActionAttachmentWrapper& wrapper) -> WeakWrapper<SpriteProxyNode> {
+      return wrapper.Unwrap().GetSpriteNode();
+    },
+    "get_animation", [](CardActionAttachmentWrapper& wrapper) -> AnimationWrapper {
+      return AnimationWrapper(wrapper.GetParentWeak(), wrapper.Unwrap().GetAnimationObject());
     }
   );
 

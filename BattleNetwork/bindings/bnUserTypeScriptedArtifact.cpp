@@ -56,8 +56,8 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedArtifact>& artifact, sf::Color color) {
       artifact.Unwrap()->setColor(color);
     },
-    "sprite", [](WeakWrapper<ScriptedArtifact>& artifact) -> std::shared_ptr<SpriteProxyNode> {
-      return artifact.Unwrap();
+    "sprite", [](WeakWrapper<ScriptedArtifact>& artifact) -> WeakWrapper<SpriteProxyNode> {
+      return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(artifact.Unwrap()));
     },
     "hide", [](WeakWrapper<ScriptedArtifact>& artifact) {
       artifact.Unwrap()->Hide();

@@ -55,8 +55,8 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedSpell>& spell, sf::Color color) {
       spell.Unwrap()->setColor(color);
     },
-    "sprite", [](WeakWrapper<ScriptedSpell>& spell) -> std::shared_ptr<SpriteProxyNode> {
-      return spell.Unwrap();
+    "sprite", [](WeakWrapper<ScriptedSpell>& spell) -> WeakWrapper<SpriteProxyNode> {
+      return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(spell.Unwrap()));
     },
     "hide", [](WeakWrapper<ScriptedSpell>& spell) {
       spell.Unwrap()->Hide();
@@ -166,8 +166,11 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       auto& animation = spell.Unwrap()->GetAnimationObject();
       return AnimationWrapper(spell.GetWeak(), animation);
     },
-    "add_node", [](WeakWrapper<ScriptedSpell>& spell, SceneNode* node) {
-      spell.Unwrap()->AddNode(node);
+    "add_node", [](WeakWrapper<ScriptedSpell>& spell) -> WeakWrapper<SpriteProxyNode> {
+      auto child = std::make_shared<SpriteProxyNode>();
+      spell.Unwrap()->AddNode(child);
+
+      return WeakWrapper(child);
     },
     "highlight_tile", [](WeakWrapper<ScriptedSpell>& spell, Battle::TileHighlight mode) {
       spell.Unwrap()->HighlightTile(mode);

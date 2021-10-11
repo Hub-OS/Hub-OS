@@ -61,8 +61,8 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedObstacle>& obstacle, sf::Color color) {
       obstacle.Unwrap()->setColor(color);
     },
-    "sprite", [](WeakWrapper<ScriptedObstacle>& obstacle) -> std::shared_ptr<SpriteProxyNode> {
-      return obstacle.Unwrap();
+    "sprite", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<SpriteProxyNode> {
+      return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(obstacle.Unwrap()));
     },
     "hide", [](WeakWrapper<ScriptedObstacle>& obstacle) {
       obstacle.Unwrap()->Hide();
@@ -199,8 +199,11 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       auto& animation = obstacle.Unwrap()->GetAnimationObject();
       return AnimationWrapper(obstacle.GetWeak(), animation);
     },
-    "add_node", [](WeakWrapper<ScriptedObstacle>& obstacle, SceneNode* node) {
-      obstacle.Unwrap()->AddNode(node);
+    "add_node", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<SpriteProxyNode> {
+      auto child = std::make_shared<SpriteProxyNode>();
+      obstacle.Unwrap()->AddNode(child);
+
+      return WeakWrapper(child);
     },
     "highlight_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, Battle::TileHighlight mode) {
       obstacle.Unwrap()->HighlightTile(mode);

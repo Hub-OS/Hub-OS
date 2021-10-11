@@ -53,16 +53,24 @@ void SceneNode::AddNode(SceneNode* child) {
   if (child == nullptr) return;  child->parent = this; childNodes.push_back(child); 
 }
 
+void SceneNode::AddNode(std::shared_ptr<SceneNode> child) { 
+  if (child == nullptr) return;
+  ownedChildren.push_back(child);
+  AddNode(child.get());
+}
+
 void SceneNode::RemoveNode(SceneNode* find) {
   if (find == nullptr) return;
 
   auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [find](SceneNode *in) { return in == find; }); 
+  auto ownedIter = std::remove_if(ownedChildren.begin(), ownedChildren.end(), [find](std::shared_ptr<SceneNode>& in) { return in.get() == find; });
 
   if (iter != childNodes.end()) {
     (*iter)->parent = nullptr;
   }
 
   childNodes.erase(iter, childNodes.end());
+  ownedChildren.erase(ownedIter, ownedChildren.end());
 }
 
 void SceneNode::EnableParentShader(bool use)

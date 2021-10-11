@@ -20,6 +20,7 @@ SpriteProxyNode::SpriteProxyNode(SpriteProxyNode&& rhs) noexcept
 {
   std::swap(allocatedSprite, rhs.allocatedSprite);
   std::swap(childNodes, rhs.childNodes);
+  std::swap(ownedChildren, rhs.ownedChildren);
   std::swap(layer, rhs.layer);
   std::swap(parent, rhs.parent);
   std::swap(shader, rhs.shader);
@@ -27,7 +28,7 @@ SpriteProxyNode::SpriteProxyNode(SpriteProxyNode&& rhs) noexcept
   std::swap(sprite, rhs.sprite);
   std::swap(textureRef, rhs.textureRef);
   std::swap(useParentShader, rhs.useParentShader);
-  
+
   rhs.sprite = nullptr;
   rhs.allocatedSprite = false;
   rhs.textureRef.reset();

@@ -7,13 +7,15 @@
 
 #pragma once
 #include <vector>
-#include<set>
+#include <set>
 #include <algorithm>
+#include <memory>
 #include <SFML/Graphics.hpp>
 
 class SceneNode : public sf::Transformable, public sf::Drawable {
 protected:
   std::set<std::string> tags; /*!< Tags to lookup nodes by*/
+  std::vector<std::shared_ptr<SceneNode>> ownedChildren; /*!< List of owned children */
   mutable std::vector<SceneNode*> childNodes; /*!< List of all children */
   SceneNode* parent; /*!< The node this node is a child of */
   bool show; /*!< Flag to hide or display a scene node and its children */
@@ -81,7 +83,12 @@ public:
    * Must be non null
    */
   void AddNode(SceneNode* child);
-  
+
+  /**
+   * @brief Adds a node as a child and takes shared ownership
+   */
+  void AddNode(std::shared_ptr<SceneNode> node);
+
   /**
    * @brief Removes a child node
    * @param find the node to remove if it exists

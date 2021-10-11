@@ -53,8 +53,8 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedCharacter>& character, sf::Color color) {
       character.Unwrap()->setColor(color);
     },
-    "sprite", [](WeakWrapper<ScriptedCharacter>& character) -> std::shared_ptr<SpriteProxyNode> {
-      return character.Unwrap();
+    "sprite", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<SpriteProxyNode> {
+      return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(character.Unwrap()));
     },
     "hide", [](WeakWrapper<ScriptedCharacter>& character) {
       character.Unwrap()->Hide();
@@ -168,8 +168,11 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "set_texture", [](WeakWrapper<ScriptedCharacter>& character, std::shared_ptr<Texture> texture) {
       character.Unwrap()->setTexture(texture);
     },
-    "add_node", [](WeakWrapper<ScriptedCharacter>& character, SceneNode* node) {
-      character.Unwrap()->AddNode(node);
+    "add_node", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<SpriteProxyNode> {
+      auto child = std::make_shared<SpriteProxyNode>();
+      character.Unwrap()->AddNode(child);
+
+      return WeakWrapper(child);
     },
     "get_name", [](WeakWrapper<ScriptedCharacter>& character) -> std::string {
       return character.Unwrap()->GetName();

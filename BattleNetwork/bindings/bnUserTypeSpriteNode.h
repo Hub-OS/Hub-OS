@@ -3,9 +3,6 @@
 
 #include <sol/sol.hpp>
 
-#include "bnWeakWrapperChild.h"
-#include "../bnSpriteProxyNode.h"
-
 void DefineSpriteNodeUserType(sol::table& engine_namespace);
 
 #endif

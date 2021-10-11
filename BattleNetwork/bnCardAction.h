@@ -41,15 +41,15 @@ public:
 
     bool started{ false };
     std::string point;
-    std::reference_wrapper<SpriteProxyNode> spriteProxy;
+    std::shared_ptr<SpriteProxyNode> spriteProxy;
     std::reference_wrapper<Animation> parentAnim;
     Attachments attachments;
-    Animation* myAnim{ nullptr };
+    Animation animation;
 
   public:
     friend class CardAction; // Let CardAction inspect our member vars
 
-    Attachment(Animation& parentAnim, const std::string& point, SpriteProxyNode& parentNode);
+    Attachment(Animation& parentAnim, const std::string& point);
     ~Attachment();
 
     Attachment& UseAnimation(Animation&);
@@ -58,7 +58,9 @@ public:
     void SetScale(const sf::Vector2f& scale);
     void AttachAllPendingNodes();
     Animation& GetParentAnim();
-    Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);
+    Attachment& AddAttachment(const std::string& point);
+    std::shared_ptr<SpriteProxyNode> GetSpriteNode();
+    Animation& GetAnimationObject();
   };
 
   struct Step : public swoosh::BlockingActionItem {
@@ -118,10 +120,7 @@ public:
   void AddAnimAction(int frame, const FrameCallback& action);
 
   // For additional visual overlays
-  Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);
-
-  // Shortcut to add an attachment to a character via their animation component
-  Attachment& AddAttachment(std::shared_ptr<Character> character, const std::string& point, SpriteProxyNode& node);
+  Attachment& AddAttachment(const std::string& point);
 
   // Calculate the offset for an attachment for a given point in the owner's animation set
   sf::Vector2f CalculatePointOffset(const std::string& point);
