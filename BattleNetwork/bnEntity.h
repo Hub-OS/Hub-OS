@@ -30,6 +30,7 @@ using std::string;
 #include "bnComponent.h"
 #include "bnEventBus.h"
 #include "bnActionQueue.h"
+#include "bnVirtualInputState.h"
 
 namespace Battle {
   class Tile;
@@ -102,6 +103,7 @@ private:
   unsigned moveEventFrame{};
   unsigned frame{};
   float currJumpHeight{};
+  VirtualInputState inputState;
 
   /**
    * @brief Frees one component with the same ID
@@ -478,6 +480,12 @@ public:
    * @return mode
    */
   ColorMode GetColorMode();
+
+  /**
+  * @brief Get the virtual key presses states for this entity
+  * @return VirtaulInputState
+  */
+  VirtualInputState& InputState();
 
 protected:
   Battle::Tile* tile{ nullptr }; /*!< Current tile pointer */

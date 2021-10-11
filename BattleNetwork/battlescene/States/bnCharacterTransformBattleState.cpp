@@ -52,6 +52,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       playerPtr->ClearActionQueue();
       playerPtr->ActivateFormAt(_index);
       playerPtr->MakeActionable();
+      playerPtr->setColor(NoopCompositeColor(playerPtr->GetColorMode()));
       
       if (auto animComp = playerPtr->GetFirstComponent<AnimationComponent>()) {
         animComp->Refresh();
