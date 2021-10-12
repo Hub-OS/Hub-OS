@@ -33,16 +33,9 @@ struct DownloadSceneProps {
 
 class DownloadScene final : public Scene {
 private:
-  enum class TaskTypes : char {
-    none = 0,
-    trade_web_cards,
-    trade_card_packages,
-    trade_player_package,
-    wait
-  } currTask{}, nextTask{ TaskTypes::trade_web_cards };
-
   bool& downloadSuccess;
-  bool aborting{}, remoteSuccess{};
+  bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{};
+  bool webCardListRequested{}, playerPackageRequested{}, cardPackageRequested{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};

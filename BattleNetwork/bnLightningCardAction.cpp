@@ -1,6 +1,7 @@
 #include "bnLightningCardAction.h"
 #include "bnCardAction.h"
 #include "bnSpriteProxyNode.h"
+#include "bnPlayer.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnHitbox.h"
@@ -42,7 +43,9 @@ LightningCardAction::LightningCardAction(Character* actor, int damage) :
 }
 
 void LightningCardAction::OnExecute(Character* user) {
+  attachment->setColor(user->getColor());
   attachment->EnableParentShader(true);
+  attachment->AddTags({ Player::BASE_NODE_TAG });
 
   // On shoot frame, drop projectile
   auto onFire = [=]() -> void {

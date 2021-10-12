@@ -3,7 +3,6 @@
 #include "../bnBattleSceneBase.h"
 #include "../../bnPlayer.h"
 #include "../../bnSceneNode.h"
-#include "../../bnPaletteSwap.h"
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 
@@ -39,27 +38,12 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     // The list of nodes change when adding the shine overlay and new form overlay nodes
     std::shared_ptr<std::vector<SceneNode*>> originals(new std::vector<SceneNode*>());
-    std::shared_ptr<std::vector<bool>> states(new std::vector<bool>());
     SmartShader* originalShader = &player->GetShader();
-    auto paletteSwap = player->GetFirstComponent<PaletteSwap>();
 
     // I found out structured bindings cannot be captured...
     auto playerPtr = player;
     int _index = index;
 
-    auto collectChildNodes = [=]
-    () {
-      // collect ALL child nodes
-      for (auto child : playerPtr->GetChildNodesWithTag({ Player::BASE_NODE_TAG })) {
-        states->push_back(child->IsUsingParentShader());
-        child->EnableParentShader(true);
-      }
-
-      // collect ALL child nodes
-      for (auto child : playerPtr->GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
-        child->EnableParentShader(true);
-      }
-    };
 
     auto onTransform = [=]
     () {
@@ -67,6 +51,12 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       // This way dying will cancel the form
       playerPtr->ClearActionQueue();
       playerPtr->ActivateFormAt(_index);
+      playerPtr->MakeActionable();
+      playerPtr->setColor(NoopCompositeColor(playerPtr->GetColorMode()));
+      
+      if (auto animComp = playerPtr->GetFirstComponent<AnimationComponent>()) {
+        animComp->Refresh();
+      }
 
       if (playerPtr->GetHealth() == 0 && _index == -1) {
         Audio().Play(AudioType::DEFORM);
@@ -83,35 +73,13 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
         Audio().Play(AudioType::SHINE);
       }
 
-      // Activating the form will add NEW child nodes onto our character
-      for (auto child : playerPtr->GetChildNodesWithTag({ Player::FORM_NODE_TAG })) {
-          states->push_back(child->IsUsingParentShader());
-          child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
-      }
-
       playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
     };
 
     bool* completePtr = &complete;
     auto onFinish = [=]
     () {
-      // the whiteout shader overwrites the pallette swap shader, apply it again
-      if (paletteSwap && paletteSwap->IsEnabled()) {
-        paletteSwap->Apply();
-      }
-      else {
-        playerPtr->SetShader(nullptr);
-      }
-
-      unsigned idx = 0;
-
-      // collect ALL child nodes
-      for (auto child : playerPtr->GetChildNodesWithTag({ Player::BASE_NODE_TAG, Player::FORM_NODE_TAG })) {
-        bool enabled = (*states)[idx];
-        child->EnableParentShader(enabled);
-        idx++;
-      }
-
+      playerPtr->RefreshShader();
       *completePtr = true; // set tracking data `complete` to true
     };
 
@@ -121,15 +89,13 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       if (index == -1) {
         // If decross, turn white immediately
         shineAnimations[count] << Animator::On(1, [=] {      
-          collectChildNodes();
           playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
           }) << Animator::On(10, onTransform);
       }
       else {
         // Else collect child nodes on frame 10 instead
         // We do not want to duplicate the child node collection
-        shineAnimations[count] << Animator::On(10, [collectChildNodes, onTransform] {
-          collectChildNodes();
+        shineAnimations[count] << Animator::On(10, [onTransform] {
           onTransform();
         });
       }
@@ -209,9 +175,8 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
 
     if (index != -1 && !complete) {
       // re-use the shine graphic for all animating player-types 
-      auto pos = player->getPosition();
+      const sf::Vector2f pos = player->getPosition();
       shine.setPosition(pos.x, pos.y - (player->GetHeight() / 2.0f));
-
       surface.draw(shine);
     }
 

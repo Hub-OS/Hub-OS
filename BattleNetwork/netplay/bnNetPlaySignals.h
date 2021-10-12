@@ -29,6 +29,7 @@ enum class NetPlaySignals : unsigned int {
   ///////////////////////
   // PVP Download Cmds //
   ///////////////////////
+  download_handshake,
   trade_web_card_list, // Swap list data with opponent
   web_card_list_request, // Ask to download only specific cards
   web_card_list_download, // Download and deserialize card data

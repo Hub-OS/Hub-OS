@@ -85,14 +85,18 @@ private:
   // This continues until all statuses are processed
   std::queue<CombatHitProps> statusQueue;
 
-  sf::Shader* whiteout{ nullptr }; /*!< Flash white when hit */
-  sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
-  sf::Shader* root{ nullptr };     /*!< Flicker black with luminance values when root */
   std::shared_ptr<CardAction> currCardAction{ nullptr };
   frame_time_t cardActionStartDelay{0};
 
   bool hit{}; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
+
+  int maxHealth{ std::numeric_limits<int>::max() };
+  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
+  float counterSlideDelta{};
+
+  std::shared_ptr<sf::Texture> palette, basePalette;
+  mutable SmartShader smartShader;
 public:
 
   /**
@@ -146,8 +150,8 @@ public:
   const std::vector<std::shared_ptr<CardAction>> AsyncActionList() const;
   std::shared_ptr<CardAction> CurrentCardAction();
 
-  // TODO: move tile behavior out of update loop and into its own rule system for customization
   void Update(double elapsed) override;
+  void draw(sf::RenderTarget& target, sf::RenderStates states = sf::RenderStates::Default) const override final;
   
   /**
   * @brief Default characters cannot move onto occupied, broken, or empty tiles
@@ -155,7 +159,6 @@ public:
   * @return true if character can move to tile, false otherwise
   */
   virtual bool CanMoveTo(Battle::Tile* next) override;
- 
   
   /**
    * @brief Get the character's current health
@@ -292,11 +295,13 @@ public:
   // NOTE: I do not want this but Sol2 is type strict and actor objects for card actions
   //       do not have a way to get animations even if their super class does...
   Animation* GetAnimationFromComponent();
-private:
-  int maxHealth{ std::numeric_limits<int>::max() };
-  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
-  float counterSlideDelta{};
 
+  void SetPalette(const std::shared_ptr<sf::Texture>& palette);
+  void StoreBasePalette(const std::shared_ptr<sf::Texture>& palette);
+  std::shared_ptr<sf::Texture> GetPalette();
+  std::shared_ptr<sf::Texture> GetBasePalette();
+
+  void RefreshShader();
 protected:
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 

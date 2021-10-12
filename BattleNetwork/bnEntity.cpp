@@ -215,6 +215,21 @@ void Entity::SetHeight(const float height) {
   Entity::height = std::fabs(height);
 }
 
+void Entity::SetColorMode(ColorMode mode)
+{
+  colorMode = mode;
+}
+
+ColorMode Entity::GetColorMode()
+{
+  return colorMode;
+}
+
+VirtualInputState& Entity::InputState()
+{
+  return inputState;
+}
+
 const bool Entity::IsSuperEffective(Element _other) const {
   switch(GetElement()) {
     case Element::aqua:
@@ -237,6 +252,7 @@ const bool Entity::IsSuperEffective(Element _other) const {
 void Entity::Update(double _elapsed) {
   isUpdating = true;
 
+  inputState.Process();
   actionQueue.Process();
 
   UpdateMovement(_elapsed);

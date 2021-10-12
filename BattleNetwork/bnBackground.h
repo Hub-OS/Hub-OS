@@ -18,6 +18,16 @@
 
 class Background : public sf::Drawable, public sf::Transformable, public ResourceHandle
 {
+  void RecalculateColors() {
+    for (int i = 0; i < vertices.getVertexCount(); i++) {
+      sf::Color color = Background::color;
+      color.r *= opacity;
+      color.g *= opacity;
+      color.b *= opacity;
+      vertices[i].color = color;
+    }
+  }
+
 protected:
   /**
    * @brief Wraps the texture area seemlessly to simulate scrolling
@@ -154,19 +164,24 @@ public:
    * @see bnUndernetBackground.h
    * @param color
    */
-  void setColor(sf::Color color) {
-    for (int i = 0; i < vertices.getVertexCount(); i++) {
-      vertices[i].color = color;
-    }
+  void SetColor(sf::Color color) {
+    Background::color = color;
+    RecalculateColors();
   }
 
+  void SetOpacity(float opacity) {
+    Background::opacity = opacity;
+    RecalculateColors();
+  }
 
 protected:
   sf::VertexArray vertices; /*!< Geometry */
   std::shared_ptr<sf::Texture> texture; /*!< Texture aka spritesheet if animated */
   sf::IntRect textureRect; /*!< Frame of the animation if applicable */
   sf::Vector2f offset; /*!< Offset of the frame in pixels */
+  sf::Color color{ sf::Color::White };
   int width, height; /*!< Dimensions of screen in pixels */
+  float opacity{1.}; /*!< used to darken screen: 1.f is normal colors, 0.f is black */
   sf::Shader* textureWrap; /*!< Scroll background values in normalized coord [0.0f, 1.0f] */
 };
 

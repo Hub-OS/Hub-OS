@@ -31,7 +31,6 @@ private:
   };
 
   ReturningScene returningFrom{ ReturningScene::Null };
-  bool copyScreen{ false }; //!< If true, copy the screen contents
   bool isScreenReady{ false };
   bool closing{ false };
   bool remoteIsReady{ false };

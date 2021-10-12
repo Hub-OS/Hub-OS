@@ -8,14 +8,12 @@
 using std::map;
 using std::vector;
 
-#include "bnInputEvent.h"
+#include "bnVirtualInputState.h"
 #include "bnInputTextBuffer.h"
 #include "bnConfigReader.h"
 #include "bnConfigWriter.h"
 #include "bnConfigSettings.h"
 
-using std::map;
-using std::vector;
 
 /**
  * @class InputManager
@@ -52,7 +50,6 @@ public:
    */
   void EventPoll();
   void Update();
-
   bool HasFocus() const;
 
   sf::Keyboard::Key GetAnyKey() const;
@@ -158,7 +155,7 @@ public:
   ConfigSettings& GetConfigSettings();
 
   /**
-  * @brief if any buttons are held ore pressed, fire release events for all
+  * @brief if any buttons are held or pressed, fire release events for all
   */
   void FlushAllInputEvents();
 
@@ -170,6 +167,7 @@ private:
   Gamepad queuedLastButton{}, lastButton{};
 
   InputTextBuffer textBuffer;
+  VirtualInputState inputState;
 
   bool queuedSystemCopyEvent{ false }, systemCopyEvent{ false }, queuedSystemPasteEvent{ false }, systemPasteEvent{ false };
   bool hasFocus{ true };
@@ -182,7 +180,6 @@ private:
 
   std::array<bool, sf::Keyboard::KeyCount> queuedKeyboardState, keyboardState;
   std::unordered_map<unsigned int, bool> queuedGamepadState, gamepadState;
-  std::unordered_map<std::string, InputState> state, stateLastFrame, queuedState;
   map<InputEvent, std::string> input; /*!< Maps controller events*/
   ConfigSettings settings; /*!< Settings object*/
 

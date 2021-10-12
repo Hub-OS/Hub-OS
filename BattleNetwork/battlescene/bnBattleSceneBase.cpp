@@ -553,7 +553,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     tint = 255;
   }
 
-  background->setColor(sf::Color(tint, tint, tint, 255));
+  background->SetOpacity(1.0f- backdropOpacity);
 
   surface.draw(*background);
 

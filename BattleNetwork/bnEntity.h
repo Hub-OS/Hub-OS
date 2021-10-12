@@ -30,6 +30,7 @@ using std::string;
 #include "bnComponent.h"
 #include "bnEventBus.h"
 #include "bnActionQueue.h"
+#include "bnVirtualInputState.h"
 
 namespace Battle {
   class Tile;
@@ -63,6 +64,19 @@ struct MoveEvent {
   }
 };
 
+enum class ColorMode {
+  MULTIPLY = 0,
+  ADDITIVE
+};
+
+static sf::Color NoopCompositeColor(ColorMode mode) {
+  if (mode == ColorMode::ADDITIVE)
+    return sf::Color::Black;
+
+  // case ColorMode::MULTIPLY
+  return sf::Color::White;
+}
+
 struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
 };
@@ -79,6 +93,7 @@ private:
   ID_t ID{}; /*!< IDs are used for tagging during battle & to identify entities in scripting. */
   static long numOfIDs; /*!< Internal counter to identify the next entity with. */
   int alpha{ 255 }; /*!< Control the transparency of an entity. */
+  ColorMode colorMode{ ColorMode::ADDITIVE };
   Component::ID_t lastComponentID{}; /*!< Entities keep track of new components to run through scene injection later. */
   bool hasSpawned{ false }; /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
   float height{}; /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
@@ -88,6 +103,7 @@ private:
   unsigned moveEventFrame{};
   unsigned frame{};
   float currJumpHeight{};
+  VirtualInputState inputState;
 
   /**
    * @brief Frees one component with the same ID
@@ -452,6 +468,24 @@ public:
    */
   virtual const float GetHeight() const;
   virtual void SetHeight(const float height);
+
+  /**
+   * @brief Set color mode
+   * @param mode
+   */
+  void SetColorMode(ColorMode mode);
+
+  /**
+   * @brief Get color mode
+   * @return mode
+   */
+  ColorMode GetColorMode();
+
+  /**
+  * @brief Get the virtual key presses states for this entity
+  * @return VirtaulInputState
+  */
+  VirtualInputState& InputState();
 
 protected:
   Battle::Tile* tile{ nullptr }; /*!< Current tile pointer */

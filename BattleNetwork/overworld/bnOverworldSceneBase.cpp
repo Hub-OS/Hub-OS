@@ -91,8 +91,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
 
   personalMenu->setScale(2.f, 2.f);
 
-  gotoNextScene = true;
-
   /// WEB ACCOUNT LOADING
 
   WebAccounts::AccountState account;
@@ -157,8 +155,6 @@ void Overworld::SceneBase::onStart() {
   StartupTouchControls();
 #endif
 
-  gotoNextScene = false;
-
   // TODO: Take out after endpoints are added to server @Konst
   Inbox& inbox = playerSession->inbox;
 
@@ -174,7 +170,7 @@ void Overworld::SceneBase::onStart() {
 void Overworld::SceneBase::onUpdate(double elapsed) {
   playerController.ListenToInputEvents(!IsInputLocked());
 
-  if (!gotoNextScene) {
+  if (IsInFocus()) {
     HandleInput();
   }
 
@@ -196,7 +192,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // update tile animations
   map.Update(*this, animElapsed);
 
-  if (gotoNextScene == false) {
+  if (IsInFocus()) {
     playerController.Update(elapsed);
     teleportController.Update(elapsed);
 
@@ -217,7 +213,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
 #ifdef __ANDROID__
-  if (gotoNextScene)
+  if (!IsInFocus())
     return; // keep the screen looking the same when we come back
 #endif
 
@@ -352,8 +348,6 @@ void Overworld::SceneBase::onLeave() {
 #ifdef __ANDROID__
   ShutdownTouchControls();
 #endif
-
-  gotoNextScene = true;
 }
 
 void Overworld::SceneBase::onExit()
@@ -362,7 +356,6 @@ void Overworld::SceneBase::onExit()
 
 void Overworld::SceneBase::onEnter()
 {
-  gotoNextScene = true;
   RefreshNaviSprite();
 }
 
@@ -381,8 +374,6 @@ void Overworld::SceneBase::onResume() {
       Logger::Logf("Could not fetch account.\nError: %s", e.what());
     }
   }
-
-  gotoNextScene = false;
 
   // if we left this scene for a new OW scene... return to our warp area
   if (teleportedOut) {
@@ -809,7 +800,7 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 
 bool Overworld::SceneBase::IsInputLocked() {
   return
-    inputLocked || gotoNextScene ||
+    inputLocked || !IsInFocus() ||
     menuSystem.ShouldLockInput() ||
     !teleportController.IsComplete() || teleportController.TeleportedOut();
 }
@@ -832,7 +823,6 @@ void Overworld::SceneBase::UnlockCamera() {
 
 void Overworld::SceneBase::GotoChipFolder()
 {
-  gotoNextScene = true;
   Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<PushIn<direction::left>, milliseconds<500>>;
@@ -842,7 +832,6 @@ void Overworld::SceneBase::GotoChipFolder()
 void Overworld::SceneBase::GotoNaviSelect()
 {
   // Navi select
-  gotoNextScene = true;
   Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<Checkerboard, milliseconds<250>>;
@@ -852,7 +841,6 @@ void Overworld::SceneBase::GotoNaviSelect()
 void Overworld::SceneBase::GotoConfig()
 {
   // Config Select on PC
-  gotoNextScene = true;
   Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<DiamondTileSwipe<direction::right>, milliseconds<500>>;
@@ -861,8 +849,6 @@ void Overworld::SceneBase::GotoConfig()
 
 void Overworld::SceneBase::GotoMobSelect()
 {
-  gotoNextScene = true;
-
   CardFolder* folder = nullptr;
 
   if (!folders.GetFolder(0, folder)) {
@@ -877,7 +863,6 @@ void Overworld::SceneBase::GotoMobSelect()
 
 void Overworld::SceneBase::GotoPVP()
 {
-  gotoNextScene = true;
   CardFolder* folder = nullptr;
 
   if (!folders.GetFolder(0, folder)) {
@@ -891,7 +876,6 @@ void Overworld::SceneBase::GotoPVP()
 
 void Overworld::SceneBase::GotoMail()
 {
-  gotoNextScene = true;
   Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<BlackWashFade, milliseconds<500>>;
@@ -901,7 +885,6 @@ void Overworld::SceneBase::GotoMail()
 void Overworld::SceneBase::GotoKeyItems()
 {
   // Config Select on PC
-  gotoNextScene = true;
   Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<BlackWashFade, milliseconds<500>>;
@@ -1008,9 +991,9 @@ void Overworld::SceneBase::RemoveItem(const std::string& id)
   }
 }
 
-bool Overworld::SceneBase::IsInFocus() const
+bool Overworld::SceneBase::IsInFocus()
 {
-  return this->gotoNextScene == false;
+  return getController().getCurrentActivity() == this;
 }
 
 std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const
@@ -1072,7 +1055,6 @@ void Overworld::SceneBase::StartupTouchControls() {
   folderBtn.onRelease([this](sf::Vector2i delta) {
     Logger::Log("folder released");
 
-    gotoNextScene = true;
     Audio().Play(AudioType::CHIP_DESC);
 
     using swoosh::intent::direction;
@@ -1098,7 +1080,6 @@ void Overworld::SceneBase::StartupTouchControls() {
   libraryBtn.onRelease([this](sf::Vector2i delta) {
     Logger::Log("library released");
 
-    gotoNextScene = true;
     Audio().Play(AudioType::CHIP_DESC);
 
     using swoosh::intent::direction;
@@ -1120,7 +1101,6 @@ void Overworld::SceneBase::StartupTouchControls() {
   auto& naviBtn = TouchArea::create(rect);
 
   naviBtn.onRelease([this](sf::Vector2i delta) {
-    gotoNextScene = true;
     Audio().Play(AudioType::CHIP_DESC);
     using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
     using intent = segue::to<SelectNaviScene>;
@@ -1140,8 +1120,6 @@ void Overworld::SceneBase::StartupTouchControls() {
   auto& mobBtn = TouchArea::create(rect);
 
   mobBtn.onRelease([this](sf::Vector2i delta) {
-    gotoNextScene = true;
-
     CardFolder* folder = nullptr;
 
     if (data.GetFolder("Default", folder)) {
@@ -1152,7 +1130,6 @@ void Overworld::SceneBase::StartupTouchControls() {
     else {
       Audio().Play(AudioType::CHIP_ERROR);
       Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
-      gotoNextScene = false;
     }
   });
 

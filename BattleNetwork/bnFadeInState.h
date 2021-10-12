@@ -89,10 +89,11 @@ void FadeInState<Any>::OnUpdate(double _elapsed, Any& e) {
   }
 
   double range = (MAX_TIME - factor) / MAX_TIME;
-  e.setColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(255 * range)));
+
+  sf::Color start = NoopCompositeColor(e.GetColorMode());
+  start.a = static_cast<sf::Uint8>(255 * range);
+  e.setColor(start);
 }
 
 template<typename Any>
-void FadeInState<Any>::OnLeave(Any& e) {
-  e.setColor(sf::Color::White); // full color again
-}
+void FadeInState<Any>::OnLeave(Any& e) {}

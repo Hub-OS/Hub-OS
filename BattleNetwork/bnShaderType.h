@@ -52,7 +52,7 @@
         BADGE_WIRE,
         COLORIZE,
         ADDITIVE,
-        PALETTE_SWAP,
+        BATTLE_CHARACTER,
         GRADIENT,
         MINIMAP_COLOR,
         MINIMAP_EDGE,

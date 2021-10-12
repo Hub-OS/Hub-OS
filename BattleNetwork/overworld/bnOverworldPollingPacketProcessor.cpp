@@ -5,16 +5,19 @@
 #include "../netplay/bnBufferReader.h"
 #include <optional>
 
-constexpr sf::Int32 PING_SERVER_MILI = 1000;
+constexpr sf::Int32 POLL_SERVER_MILI = 500;
 
 namespace Overworld {
-  PollingPacketProcessor::PollingPacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, std::function<void(ServerStatus, uint16_t)> onResolve) :
+  PollingPacketProcessor::PollingPacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, const std::function<void(ServerStatus, uint16_t)>& onResolve) :
     packetShipper(remoteAddress, maxPayloadSize),
     onResolve(onResolve)
   {
     pingServerTimer.reverse(true);
-    pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
     pingServerTimer.start();
+  }
+
+  void PollingPacketProcessor::SetStatusHandler(const std::function<void(ServerStatus, uint16_t)>& onResolve) {
+    this->onResolve = onResolve;
   }
 
   bool PollingPacketProcessor::TimedOut() {
@@ -22,7 +25,7 @@ namespace Overworld {
       std::chrono::steady_clock::now() - lastMessageTime
       );
 
-    constexpr int64_t MAX_TIMEOUT_SECONDS = 5;
+    constexpr int64_t MAX_TIMEOUT_SECONDS = 3;
 
     return timeDifference.count() > MAX_TIMEOUT_SECONDS;
   }
@@ -37,7 +40,7 @@ namespace Overworld {
 
       packetShipper.Send(*client, Reliability::Unreliable, buffer);
 
-      pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
+      pingServerTimer.set(sf::milliseconds(POLL_SERVER_MILI));
     }
 
     if (TimedOut()) {
@@ -45,6 +48,10 @@ namespace Overworld {
       lastMessageTime = std::chrono::steady_clock::now();
       onResolve(ServerStatus::offline, 0);
     }
+  }
+
+  void PollingPacketProcessor::OnListen(const Poco::Net::SocketAddress& sender) {
+    lastMessageTime = std::chrono::steady_clock::now();
   }
 
   void PollingPacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) {

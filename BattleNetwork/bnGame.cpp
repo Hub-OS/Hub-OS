@@ -176,11 +176,14 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     // Load font symbols for use across the entire engine...
   textureManager.LoadImmediately(TextureType::FONT);
 
-  mouse.setTexture(textureManager.LoadTextureFromFile("resources/ui/mouse.png"));
-  mouse.setScale(2.f, 2.f);
+  mouseTexture = textureManager.LoadTextureFromFile("resources/ui/mouse.png");
+  mouse.setTexture(mouseTexture);
+  //  mouse.setScale(2.f, 2.f);
   mouseAnimation = Animation("resources/ui/mouse.animation");
   mouseAnimation << "DEFAULT" << Animator::Mode::Loop;
   mouseAlpha = 1.0;
+
+  window.GetRenderWindow()->setMouseCursorVisible(false);
 
   // set a loading spinner on the bottom-right corner of the screen
   spinner.setTexture(textureManager.LoadTextureFromFile("resources/ui/spinner.png"));
@@ -211,6 +214,16 @@ bool Game::NextFrame()
   return (frameByFrame && nextFrameKey) || !frameByFrame;
 }
 
+void Game::UpdateMouse(double dt)
+{
+  auto& renderWindow = *window.GetRenderWindow();
+  sf::Vector2f mousepos = renderWindow.mapPixelToCoords(sf::Mouse::getPosition(renderWindow));
+
+  mouse.setPosition(mousepos);
+  mouse.setColor(sf::Color::White);
+  mouseAnimation.Update(dt, mouse.getSprite());
+}
+
 void Game::ProcessFrame()
 {
   sf::Clock clock;
@@ -230,9 +243,10 @@ void Game::ProcessFrame()
       window.Clear(); // clear screen
 
       inputManager.Update(); // process inputs
+      UpdateMouse(delta);
       this->update(delta);  // update game logic
       this->draw();        // draw game
-
+      mouse.draw(*window.GetRenderWindow());
       window.Display(); // display to screen
     }
 
@@ -266,9 +280,10 @@ void Game::RunSingleThreaded()
       window.Clear(); // clear screen
 
       inputManager.Update(); // process inputs
+      UpdateMouse(delta);
       this->update(delta);  // update game logic
       this->draw();        // draw game
-
+      mouse.draw(*window.GetRenderWindow());
       window.Display(); // display to screen
     }
 

@@ -189,7 +189,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   bg = new RobotBackground();
 
   // dim
-  bg->setColor(sf::Color(120, 120, 120));
+  bg->SetColor(sf::Color(120, 120, 120));
 
   endBtnAnimator = Animation("resources/ui/config/end_btn.animation");
   endBtnAnimator.Load();
