@@ -53,7 +53,7 @@ const std::shared_ptr<Texture> CardMeta::GetPreviewTexture() const
   return previewTexture;
 }
 
-Battle::CardProperties& CardMeta::GetCardProperties()
+Battle::Card::Properties& CardMeta::GetCardProperties()
 {
   return properties;
 }

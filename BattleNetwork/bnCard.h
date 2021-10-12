@@ -5,13 +5,10 @@
 #include <vector>
 #include "bnElements.h"
 
-#include "bindings/bnCardImpl.h"
-
 using std::string;
 
 class BattleSceneBase;
 class SelectedCardsUI;
-class CardAction;
 
 /**
  * @class Card
@@ -53,7 +50,7 @@ namespace Battle {
     /**
       * @brief Cards are not designed to have default or partial data. Must provide all at once.
       */
-    Card(const CardProperties& props);
+    Card(const Card::Properties& props);
 
     /**
       * @brief copies card data
@@ -67,7 +64,7 @@ namespace Battle {
 
     ~Card();
 
-    const CardProperties& GetUnmoddedProps() const;
+    const Card::Properties& GetUnmoddedProps() const;
 
     /**
       * @brief Get extra card description. Shows up on library.

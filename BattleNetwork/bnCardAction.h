@@ -140,7 +140,7 @@ public:
   const std::string& GetAnimState() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
-  const Battle::CardProperties& GetMetaData() const;
+  const Battle::Card::Properties& GetMetaData() const;
   const bool CanExecute() const;
   Character* GetActor();
   const Character* GetActor() const;

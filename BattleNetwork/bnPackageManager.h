@@ -159,6 +159,9 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
 
     auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
+    //  Run all "includes" first
+    state["package_requires_scripts"]();
+
     // run script on meta info object
     state["package_init"](packageClass);
 

@@ -62,7 +62,7 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
   const std::shared_ptr<sf::Texture> GetPreviewTexture() const;
 
   // mutable to allow scripting to modify this
-  Battle::CardProperties& GetCardProperties();
+  Battle::Card::Properties& GetCardProperties();
 
   const std::vector<char> GetCodes() const;
 };

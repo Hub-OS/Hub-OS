@@ -337,6 +337,46 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::base_classes, sol::bases<Component>()
   );
 
+const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
+    sol::no_constructor,
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "BasicSpell", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "BasicSpell", key );
+    },
+    "get_id", &Spell::GetID,
+    "get_tile", &Spell::GetTile,
+    "get_current_tile", &Spell::GetCurrentTile,
+    "get_field", &Spell::GetField,
+    "get_facing", &Spell::GetFacing,
+    "set_facing", &Spell::SetFacing,
+    "sprite", &Spell::AsSpriteProxyNode,
+    "get_alpha", &Spell::GetAlpha,
+    "set_alpha", &Spell::SetAlpha,
+    "get_color", &Spell::getColor,
+    "set_color", &Spell::setColor,
+    "slide", &Spell::Slide,
+    "jump", &Spell::Jump,
+    "teleport", &Spell::Teleport,
+    "hide", &Spell::Hide,
+    "reveal", &Spell::Reveal,
+    "raw_move_event", &Spell::RawMoveEvent,
+    "is_sliding", &Spell::IsSliding,
+    "is_jumping", &Spell::IsJumping,
+    "is_teleporting", &Spell::IsTeleporting,
+    "is_moving", &Spell::IsMoving,
+    "is_deleted", &Spell::IsDeleted,
+    "will_remove_eof", &Spell::WillRemoveLater,
+    "get_team", &Spell::GetTeam,
+    "is_team", &Spell::Teammate,
+    "remove", &ScriptedSpell::Remove,
+    "delete", &ScriptedSpell::Delete,
+    "get_texture", &ScriptedSpell::getTexture,
+    "copy_hit_props", &ScriptedSpell::GetHitboxProperties,
+    "get_position", &Spell::GetDrawOffset
+  );
+
   const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>( "Spell",
     sol::factories([](Team team) -> std::unique_ptr<ScriptedSpell> {
         return std::make_unique<ScriptedSpell>(team);
@@ -634,6 +674,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_alpha", &ScriptedPlayer::SetAlpha,
     "get_color", &ScriptedPlayer::getColor,
     "set_color", &ScriptedPlayer::setColor,
+    "register_component", &ScriptedPlayer::RegisterComponent,
     "sprite", &ScriptedPlayer::AsSpriteProxyNode,
     "slide", &ScriptedPlayer::Slide,
     "jump", &ScriptedPlayer::Jump,
@@ -1562,7 +1603,6 @@ sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)
 const std::string& ScriptResourceManager::FetchSharedLibraryPath(const std::string& fqn)
 {
   static std::string empty = "";
-  Logger::Log( "ScriptResourceManager::FetchSharedLibraryPath..." + fqn );
 
   auto iter = libraryFQN.find(fqn);
 

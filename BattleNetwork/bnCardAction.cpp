@@ -142,7 +142,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   }
 }
 
-void CardAction::SetMetaData(const Battle::CardProperties& props)
+void CardAction::SetMetaData(const Battle::Card::Properties& props)
 {
   meta = props;
 }

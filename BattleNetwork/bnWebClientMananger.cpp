@@ -1005,7 +1005,7 @@ const Battle::Card WebClientManager::MakeBattleCardFromWebCardData(const WebAcco
   }
   auto cardModelIter = account.cardProperties.find(modelId);
 
-  Battle::CardProperties props;
+  Battle::Card::Properties props;
 
   if (cardModelIter != account.cardProperties.end()) {
     auto cardModel = cardModelIter->second;
@@ -1035,7 +1035,7 @@ const Battle::Card WebClientManager::MakeBattleCardFromWebComboData(const WebAcc
 
   auto comboIter = account.cardCombos.find(modelId);
 
-  Battle::CardProperties props;
+  Battle::Card::Properties props;
 
   if (comboIter != account.cardCombos.end()) {
     auto combo = comboIter->second;

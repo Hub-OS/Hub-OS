@@ -3,11 +3,11 @@
 #pragma once
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedCardAction.h"
-#include "bnCardImpl.h"
-#include "../bnCardAction.h"
 #include "../../bnCard.h"
 
 #include <sol/sol.hpp>
+
+class CardImpl;
 
 class ScriptedCard : public CardImpl {
   sol::state& script;
@@ -17,7 +17,7 @@ public:
 
   }
 
-  CardAction* BuildCardAction(Character* user, Battle::CardProperties& props) override {
+  CardAction* BuildCardAction(Character* user, Battle::Card::Properties& props) override {
     CardAction* result{ nullptr };
 
     sol::object obj = script["card_create_action"](*user, props);
