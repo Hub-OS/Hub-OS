@@ -18,12 +18,24 @@ PlayerMeta::PlayerMeta():
   atk = 1;
   chargedAtk = 1;
   speed = 1;
-  hp = 1;
   isSword = false;
 }
 
 PlayerMeta::~PlayerMeta()
 {
+}
+
+void PlayerMeta::OnMetaParsed() {
+  if (data == nullptr) {
+    return;
+  }
+
+  auto player = std::shared_ptr<Player>(data);
+  player->Init();
+  element = player->GetElement();
+  name = player->GetName();
+  hp = player->GetHealth();
+  loadClass();
 }
 
 void PlayerMeta::PreGetData() {
@@ -146,15 +158,12 @@ const std::shared_ptr<Texture> PlayerMeta::GetPreviewTexture() const
 
 const std::string PlayerMeta::GetName() const
 {
-  return data->GetName();
+  return name;
 }
 
 int PlayerMeta::GetHP() const
 {
-  if (!data) {
-    loadClass();
-  }
-  return data->GetHealth();
+  return hp;
 }
 
 const std::string PlayerMeta::GetHPString() const
@@ -172,7 +181,7 @@ const std::string PlayerMeta::GetSpeedString() const
 
 const Element PlayerMeta::GetElement() const
 {
-  return data->GetElement();
+  return element;
 }
 
 const std::string PlayerMeta::GetAttackString() const
