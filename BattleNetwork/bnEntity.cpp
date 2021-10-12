@@ -389,7 +389,8 @@ int Entity::GetAlpha()
 
 bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void()> onBegin) {
   if (dest && CanMoveTo(dest)) {
-    MoveEvent event = { 0, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
+    auto endlagDelay = moveEndlagDelay ? *moveEndlagDelay : frame_time_t{};
+    MoveEvent event = { 0, moveStartupDelay, endlagDelay, 0, dest, onBegin };
     actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
     return true;
@@ -402,7 +403,8 @@ bool Entity::Slide(Battle::Tile* dest,
   const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
   if (dest && CanMoveTo(dest)) {
-    MoveEvent event = { slideTime, moveStartupDelay, moveEndlagDelay, 0, dest, onBegin };
+    auto endlagDelay = moveEndlagDelay ? *moveEndlagDelay : endlag;
+    MoveEvent event = { slideTime, moveStartupDelay, endlagDelay, 0, dest, onBegin };
     actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
     return true;
@@ -417,7 +419,8 @@ bool Entity::Jump(Battle::Tile* dest, float destHeight,
   destHeight = std::max(destHeight, 0.f); // no negative jumps
 
   if (dest && CanMoveTo(dest)) {
-    MoveEvent event = { jumpTime, moveStartupDelay, moveEndlagDelay, destHeight, dest, onBegin };
+    auto endlagDelay = moveEndlagDelay ? *moveEndlagDelay : endlag;
+    MoveEvent event = { jumpTime, moveStartupDelay, endlagDelay, destHeight, dest, onBegin };
     actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
     return true;
@@ -763,17 +766,7 @@ void Entity::UpdateMoveStartPosition()
 
 const int Entity::GetMoveCount() const
 {
-    return moveCount;
-}
-
-void Entity::SetMoveEndlag(const frame_time_t& frames)
-{
-  moveEndlagDelay = frames;
-}
-
-void Entity::SetMoveStartupDelay(const frame_time_t& frames)
-{
-  moveStartupDelay = frames;
+  return moveCount;
 }
 
 void Entity::ClearActionQueue()

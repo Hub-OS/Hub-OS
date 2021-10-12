@@ -719,7 +719,7 @@ protected:
   Element element{Element::none};
   ActionQueue actionQueue;
   frame_time_t moveStartupDelay{};
-  frame_time_t moveEndlagDelay{};
+  std::optional<frame_time_t> moveEndlagDelay;
 
   std::vector<std::shared_ptr<Component>> components; /*!< List of all components attached to this entity*/
 
