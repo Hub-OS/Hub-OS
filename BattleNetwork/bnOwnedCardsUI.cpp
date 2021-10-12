@@ -8,21 +8,10 @@ OwnedCardsUI::OwnedCardsUI(std::shared_ptr<Character> owner, CardPackageManager*
 }
 
 OwnedCardsUI::~OwnedCardsUI() {
-  while (count+1 > 1) {
-    delete ownedCards[count-1];
-    count--;
-  }
-
-  delete[] ownedCards;
 }
 
 void OwnedCardsUI::AddCards(const std::vector<Battle::Card>& cards) {
-  ownedCards = new Battle::Card * [cards.size()];
+  ownedCards = cards;
 
-  for (auto& c : cards) {
-    ownedCards[count] = new Battle::Card(c);
-    count++;
-  }
-
-  LoadCards(ownedCards, count);
+  LoadCards(ownedCards);
 }

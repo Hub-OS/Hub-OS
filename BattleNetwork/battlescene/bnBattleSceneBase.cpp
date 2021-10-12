@@ -345,18 +345,16 @@ void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
   }
 }
 
-void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
+void BattleSceneBase::FilterSupportCards(std::vector<Battle::Card>& cards) {
   // Only remove the support cards in the queue. Increase the previous card damage by their support value.
-  int newCardCount = cardCount;
   Battle::Card* card = nullptr;
 
   // Create a temp card list
-  Battle::Card** newCardList = new Battle::Card*[cardCount];
+  std::vector<Battle::Card> newCardList;
 
-  int j = 0;
-  for (int i = 0; i < cardCount; ) {
-    if (cards[i]->IsBooster()) {
-      Logger::Logf("Booster card %s detected", cards[i]->GetShortName().c_str());
+  for (int i = 0; i < cards.size(); i++) {
+    if (cards[i].IsBooster()) {
+      Logger::Logf("Booster card %s detected", cards[i].GetShortName().c_str());
 
       // check if we are tracking a non-booster card first
       if (card) {
@@ -366,39 +364,23 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
           int buff = 0;
 
           // NOTE: hardcoded filter step for "Atk+X" cards
-          if (cards[i]->GetShortName().substr(0, 3) == "Atk") {
-            std::string substr = cards[i]->GetShortName().substr(4, cards[i]->GetShortName().size() - 4).c_str();
+          if (cards[i].GetShortName().substr(0, 3) == "Atk") {
+            std::string substr = cards[i].GetShortName().substr(4, cards[i].GetShortName().size() - 4).c_str();
             buff = atoi(substr.c_str());
           }
 
           card->ModDamage(buff);
         }
 
-        i++;
         continue; // skip the rest of the code below
       }
     }
 
-    newCardList[j] = cards[i];
-    card = cards[i];
-
-    i++;
-    j++;
+    newCardList.push_back(cards[i]);
+    card = &cards[i];
   }
 
-  newCardCount = j;
-
-  // Set the new cards
-  for (int i = 0; i < newCardCount; i++) {
-    cards[i] = *(newCardList + i);
-  }
-
-  // Set the new card count
-  cardCount = newCardCount;
-
-  // Delete the temp list space
-  // NOTE: We are _not_ deleting the pointers in them
-  delete[] newCardList;
+  cards = std::move(newCardList);
 }
 
 #ifdef __ANDROID__

@@ -228,10 +228,6 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
 
 CardSelectionCust::~CardSelectionCust() {
   ClearCards();
-
-  free(selectedCards);
-
-  cardCount = 0;
 }
 
 bool CardSelectionCust::CursorUp() {
@@ -1016,18 +1012,16 @@ void CardSelectionCust::Update(double elapsed)
   isInView = IsInView();
 }
 
-Battle::Card** CardSelectionCust::GetCards() {
+std::vector<Battle::Card> CardSelectionCust::GetCards() {
   if (newSelectCount != 0) {
     // Allocate selected cards list
     size_t sz = sizeof(Battle::Card*) * newSelectCount;
 
-    free(selectedCards);
-
-    selectedCards = (Battle::Card**)malloc(sz);
+    selectedCards.clear();
 
     // Point to selected queue
     for (int i = 0; i < newSelectCount; i++) {
-      selectedCards[i] = new Battle::Card(*newSelectQueue[i]->data);
+      selectedCards.emplace_back(*newSelectQueue[i]->data);
     }
 
     selectCount = newSelectCount;

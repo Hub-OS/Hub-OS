@@ -171,7 +171,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   battleover.ChangeOnEvent(fadeout, &BattleOverBattleState::IsFinished);
 
   // share some values between states
-  combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
+  combo->ShareCardList(cardSelect->GetCardPtrList());
 
   // Some states need to know about card uses
   auto& ui = this->GetSelectedCardsUI();
@@ -199,8 +199,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 }
 
 NetworkBattleScene::~NetworkBattleScene()
-{ 
-  if (remoteHand) delete[] remoteHand;
+{
 }
 
 void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
@@ -488,16 +487,12 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   trackedForms[1]->selectedForm = remoteForm;
   trackedForms[1]->animationComplete = !remoteState.remoteChangeForm; // a value of false forces animation to play
 
-  if (remoteHand) {
-    delete[] remoteHand;
-    remoteHand = nullptr;
-  }
+  remoteHand.clear();
 
   size_t handSize = remoteUUIDs.size();
   int len = (int)handSize; // TODO: use size_t for card lengths...
 
   if (handSize) {
-    remoteHand = new Battle::Card * [handSize];
     auto& packageManager = getController().CardPackageManager();
 
     for (size_t i = 0; i < handSize; i++) {
@@ -511,7 +506,7 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
         card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ id });
       }
 
-      remoteHand[i] = new Battle::Card(card);
+      remoteHand.push_back(card);
     }
   }
 
@@ -522,7 +517,7 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   // simulate PA to calculate time required to animate
   while (!cardComboStatePtr->IsDone()) {
     constexpr double step = 1.0 / frame_time_t::frames_per_second;
-    cardComboStatePtr->Simulate(step, &remoteHand, &len, false);
+    cardComboStatePtr->Simulate(step, remoteHand, false);
     duration += step;
   }
 
@@ -530,10 +525,10 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   cardComboStatePtr->Reset();
 
   // Filter support cards
-  FilterSupportCards(remoteHand, len);
+  FilterSupportCards(remoteHand);
 
   // Supply the final hand info
-  remoteCardActionUsePublisher->LoadCards(remoteHand, len);
+  remoteCardActionUsePublisher->LoadCards(remoteHand);
   
   // Convert to microseconds and use this as the round start delay
   roundStartDelay = from_milliseconds((long long)((duration*1000.0) + packetProcessor->GetAvgLatency()));

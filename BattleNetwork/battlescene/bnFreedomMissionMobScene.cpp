@@ -118,7 +118,7 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
   battleover.ChangeOnEvent(fadeout, &FreedomMissionOverState::IsFinished);
 
   // share some values between states
-  combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
+  combo->ShareCardList(cardSelect->GetCardPtrList());
 
   // special condition: if in combat and should decross, trigger the character transform states
   auto playerDecrosses = [this, forms] () mutable {

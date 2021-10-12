@@ -83,7 +83,7 @@ private:
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   SpriteProxyNode pingIndicator;
   std::shared_ptr<SelectedCardsUI> remoteCardActionUsePublisher{ nullptr };
-  Battle::Card** remoteHand{ nullptr }; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
+  std::vector<Battle::Card> remoteHand; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
   std::shared_ptr<Player> remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
   CombatBattleState* combatPtr{ nullptr };

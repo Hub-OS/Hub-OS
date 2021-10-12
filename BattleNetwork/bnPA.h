@@ -72,7 +72,7 @@ public:
    * @param size size of card list
    * @return -1 if no match. Otherwise returns the start position of the PA
    */
-  const int FindPA(Battle::Card** input, unsigned size);
+  const int FindPA(std::vector<Battle::Card>& input);
   
   /**
    * @brief Returns the list of matching steps in the PA
@@ -86,7 +86,7 @@ public:
    * @warning do not delete this pointer!
    * This is deleted by the PA 
    */
-  Battle::Card* GetAdvanceCard();
+  Battle::Card& GetAdvanceCard();
 
   static PA ReadFromWebAccount(const WebAccounts::AccountState& account);
 };

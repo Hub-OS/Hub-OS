@@ -103,7 +103,7 @@ private:
   std::vector<sf::Sprite> formUI;
   double formSelectQuitTimer;
   double frameElapsed; /*!< delta seconds since last frame */
-  Battle::Card** selectedCards{ nullptr }; /*!< Pointer to a list of selected cards */
+  std::vector<Battle::Card> selectedCards; /*!< Pointer to a list of selected cards */
   std::vector<Bucket> queue; /*!< List of buckets */
   std::vector<Bucket*> selectQueue, newSelectQueue; /*!< List of selected buckets in order */
   Battle::TextBox textbox; /*!< Popups card descriptions */
@@ -288,7 +288,7 @@ public:
    * @brief Transfer ownership from Folder through GUI to user of all selected cards in queue
    * @return List of Card*
    */
-  Battle::Card** GetCards();
+  std::vector<Battle::Card> GetCards();
 
   bool HasNewHand() const;
   

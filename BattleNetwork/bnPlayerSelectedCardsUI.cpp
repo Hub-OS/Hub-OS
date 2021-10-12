@@ -54,9 +54,9 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
 
     // i = curr so we only see the cards that are left
     int curr = GetCurrentCardIndex();
-    int cardCount = GetCardCount();
     unsigned multiplierValue = GetMultiplier();
-    Battle::Card** selectedCards = SelectedCardsPtrArray();
+    auto& selectedCards = GetSelectedCards();
+    int cardCount = selectedCards.size();
     auto& icon = IconNode();
     auto& frame = FrameNode();
 
@@ -112,7 +112,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
 
         // Grab the ID of the card and draw that icon from the spritesheet
         std::shared_ptr<sf::Texture> texture;
-        std::string id = selectedCards[drawOrderIndex]->GetUUID();
+        std::string id = selectedCards[drawOrderIndex].GetUUID();
         if (SelectedCardsUI::packageManager && SelectedCardsUI::packageManager->HasPackage(id)) {
           texture = SelectedCardsUI::packageManager->FindPackageByID(id).GetIconTexture();
         }
@@ -129,18 +129,19 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
     if (!player->CanAttack() && player->IsMoving()) return;
 
     // If we have a valid card, update and draw the data
-    if (cardCount > 0 && curr < cardCount && selectedCards[curr]) {
+    if (cardCount > 0 && curr < cardCount) {
+      auto& currCard = selectedCards[curr];
 
-      canBoost = selectedCards[curr]->CanBoost();
+      canBoost = currCard.CanBoost();
 
       // Text sits at the bottom-left of the screen
-      text.SetString(selectedCards[curr]->GetShortName());
+      text.SetString(currCard.GetShortName());
       text.setOrigin(0, 0);
       text.setPosition(3.0f, 290.0f);
 
       // Text sits at the bottom-left of the screen
-      int unmodDamage = selectedCards[curr]->GetUnmoddedProps().damage;
-      int delta = selectedCards[curr]->GetDamage() - unmodDamage;
+      int unmodDamage = currCard.GetUnmoddedProps().damage;
+      int delta = currCard.GetDamage() - unmodDamage;
       sf::String dmgText = std::to_string(unmodDamage);
 
       if (delta != 0) {

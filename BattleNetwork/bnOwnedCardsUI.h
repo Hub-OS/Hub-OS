@@ -18,6 +18,5 @@ public:
 
   void AddCards(const std::vector<Battle::Card>& cards);
 private:
-  Battle::Card** ownedCards{ nullptr }; /*!< list of provided cards. */
-  unsigned count{};
+  std::vector<Battle::Card> ownedCards; /*!< list of provided cards. */
 };

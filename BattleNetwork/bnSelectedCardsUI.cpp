@@ -21,7 +21,7 @@ SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackageMana
   CardActionUsePublisher(), 
   UIComponent(owner)
 {
-  cardCount = curr = 0;
+  curr = 0;
   auto iconRect = sf::IntRect(0, 0, 14, 14);
   icon.setTextureRect(iconRect);
   icon.setScale(sf::Vector2f(2.f, 2.f));
@@ -30,6 +30,9 @@ SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackageMana
   frame.setScale(sf::Vector2f(2.f, 2.f));
 
   firstFrame = true; // first time drawn, update positions
+
+  // temp until chips are loaded
+  selectedCards = std::make_shared<std::vector<Battle::Card>>();
 }
 
 SelectedCardsUI::~SelectedCardsUI() {
@@ -47,11 +50,11 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
   int cardOrder = 0;
 
   // i = curr so we only see the cards that are left
-  for (int i = curr; i < cardCount; i++) {
+  for (int i = curr; i < selectedCards->size(); i++) {
     // The first card appears in front
     // But the trick is that we start at i which is a remainder of the whole list
     // We first draw the last card in the list down to i
-    int drawOrderIndex = cardCount - i + curr - 1;
+    int drawOrderIndex = selectedCards->size() - i + curr - 1;
 
     // If stacked, the algorithm makes a jagged pattern that goes up and to the left:
     // x = ( ( i - curr ) * spacing ) - spacing
@@ -69,7 +72,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
 
     // Grab the ID of the card and draw that icon from the spritesheet
     std::shared_ptr<sf::Texture> texture;
-    std::string id = selectedCards[drawOrderIndex]->GetUUID();
+    std::string id = (*selectedCards)[drawOrderIndex].GetUUID();
     if (packageManager && packageManager->HasPackage(id)) {
       texture = packageManager->FindPackageByID(id).GetIconTexture();
     }
@@ -95,9 +98,8 @@ void SelectedCardsUI::OnUpdate(double _elapsed) {
   }
 }
 
-void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
-  selectedCards = incoming;
-  cardCount = size;
+void SelectedCardsUI::LoadCards(std::vector<Battle::Card> incoming) {
+  *selectedCards = incoming;
   curr = 0;
 }
 
@@ -107,7 +109,7 @@ bool SelectedCardsUI::UseNextCard() {
   if (!owner) return false;
 
   const std::vector<std::shared_ptr<CardAction>> actions = owner->AsyncActionList();
-  bool hasNextCard = curr < cardCount;
+  bool hasNextCard = curr < selectedCards->size();
   bool canUseCard = true;
 
   // We could be using an ability, just make sure one of these actions are not from a card
@@ -122,10 +124,10 @@ bool SelectedCardsUI::UseNextCard() {
     return false;
   }
 
-  auto card = selectedCards[curr];
+  auto& card = (*selectedCards)[curr];
 
-  if (!card->IsBooster()) {
-    card->MultiplyDamage(multiplierValue);
+  if (!card.IsBooster()) {
+    card.MultiplyDamage(multiplierValue);
   }
 
   multiplierValue = 1; // reset 
@@ -143,9 +145,9 @@ void SelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 
 std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek()
 {
-  if (cardCount > 0) {
+  if (selectedCards->size() > 0) {
     using RefType = std::reference_wrapper<const Battle::Card>;
-    return std::optional<RefType>(std::ref(*selectedCards[curr]));
+    return std::optional<RefType>(std::ref((*selectedCards)[curr]));
   }
 
   return {};
@@ -176,16 +178,11 @@ std::vector<std::string> SelectedCardsUI::GetUUIDList()
 {
   std::vector<std::string> res;
 
-  for (int i = curr; i < cardCount; i++) {
-    res.push_back(selectedCards[i]->GetUUID());
+  for (int i = curr; i < selectedCards->size(); i++) {
+    res.push_back((*selectedCards)[i].GetUUID());
   }
 
   return res;
-}
-
-const int SelectedCardsUI::GetCardCount() const
-{
-  return cardCount;
 }
 
 const int SelectedCardsUI::GetCurrentCardIndex() const
@@ -198,9 +195,9 @@ const unsigned SelectedCardsUI::GetMultiplier() const
   return multiplierValue;
 }
 
-Battle::Card** SelectedCardsUI::SelectedCardsPtrArray() const
+std::vector<Battle::Card>& SelectedCardsUI::GetSelectedCards() const
 {
-  return selectedCards;
+  return *selectedCards;
 }
 
 SpriteProxyNode& SelectedCardsUI::IconNode() const

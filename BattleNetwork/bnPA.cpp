@@ -38,9 +38,9 @@ const PA::Steps PA::GetMatchingSteps()
   return result;
 }
 
-Battle::Card * PA::GetAdvanceCard()
+Battle::Card& PA::GetAdvanceCard()
 {
-  return advanceCardRef;
+  return *advanceCardRef;
 }
 
 PA PA::ReadFromWebAccount(const WebAccounts::AccountState& account)
@@ -92,9 +92,10 @@ PA PA::ReadFromWebAccount(const WebAccounts::AccountState& account)
   return pa;
 }
 
-const int PA::FindPA(Battle::Card ** input, unsigned size)
+const int PA::FindPA(std::vector<Battle::Card>& input)
 {
   int startIndex = -1;
+  auto size = input.size();
 
   if (size == 0) {
     return startIndex;
@@ -110,10 +111,10 @@ const int PA::FindPA(Battle::Card ** input, unsigned size)
     int index = 0;
     while (index <= (int)size - (int)iter->steps.size()) {
       for (unsigned i = 0; i < iter->steps.size(); i++) {
-        char code_i = input[i + index]->GetCode();
+        char code_i = input[i + index].GetCode();
         bool isSameCode = code_i == iter->steps[i].code;
         bool isWildStar = code_i == '*';
-        bool isSameCard = iter->steps[i].name == input[i + index]->GetShortName();
+        bool isSameCard = iter->steps[i].name == input[i + index].GetShortName();
         if ((isWildStar || isSameCode) && isSameCard) {
           match = true;
           // We do not break here. If it is a match all across the steps, then the for loop ends 

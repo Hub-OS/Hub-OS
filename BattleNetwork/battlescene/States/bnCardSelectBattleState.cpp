@@ -29,6 +29,8 @@ CardSelectBattleState::CardSelectBattleState(std::vector<std::shared_ptr<Player>
 
   mobBackdropSprite.setScale(2.f, 2.f);
   mobEdgeSprite.setScale(2.f, 2.f);
+
+  cards = std::make_shared<std::vector<Battle::Card>>();
 }
 
 void CardSelectBattleState::CheckFormChanges()
@@ -53,14 +55,9 @@ void CardSelectBattleState::CheckFormChanges()
   }
 }
 
-Battle::Card**& CardSelectBattleState::GetCardPtrList()
+std::shared_ptr<std::vector<Battle::Card>> CardSelectBattleState::GetCardPtrList()
 {
   return cards;
-}
-
-int& CardSelectBattleState::GetCardListLengthAddr()
-{
-  return cardCount;
 }
 
 void CardSelectBattleState::onStart(const BattleSceneState*)
@@ -198,10 +195,9 @@ void CardSelectBattleState::onUpdate(double elapsed)
           auto ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
 
           if (ui && hasNewHand) {
-            cards = newCards;
-            cardCount = cardCust.GetCardCount();
-            GetScene().FilterSupportCards(cards, cardCount);
-            ui->LoadCards(cards, cardCount);
+            *cards = newCards;
+            GetScene().FilterSupportCards(*cards);
+            ui->LoadCards(*cards);
             ui->Hide();
             hasNewChips = true;
           }

@@ -17,7 +17,6 @@ struct CardComboBattleState final : public BattleSceneState {
   bool advanceSoundPlay{ false };
   int hasPA{ -1 };
   int paStepIndex{ 0 };
-  int* cardCountPtr{ nullptr };
   double elapsed{ 0 };
   double increment{ 0 }; /*!< Used to cycle through colors for the PA label */
   double listStepCooldown{ 0.25 };
@@ -29,14 +28,14 @@ struct CardComboBattleState final : public BattleSceneState {
   sf::Sprite programAdvanceSprite;
   Font font;
   SelectedCardsUI& ui;
-  Battle::Card*** cardsListPtr{ nullptr };
+  std::shared_ptr<std::vector<Battle::Card>> cardsListPtr{ nullptr };
 
   CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance);
 
-  void Simulate(double elapsed, Battle::Card*** cardsPtr, int* listLengthPtr, bool playSound);
+  void Simulate(double elapsed, std::vector<Battle::Card>& cardsPtr, bool playSound);
   void Reset();
 
-  void ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr);
+  void ShareCardList(std::shared_ptr<std::vector<Battle::Card>> cardsPtr);
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
