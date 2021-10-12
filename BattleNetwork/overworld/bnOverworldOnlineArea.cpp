@@ -2239,7 +2239,8 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   auto& mobMeta = packageManager.FindPackageByID(packageId);
 
-  auto* mob = mobMeta.GetData()->Build(std::make_shared<Field>(6, 3));
+  auto mobFactory = std::unique_ptr<MobFactory>(mobMeta.GetData());
+  auto* mob = mobFactory->Build(std::make_shared<Field>(6, 3));
 
   AddSceneChangeTask([=] {
     // Play the pre battle rumble sound

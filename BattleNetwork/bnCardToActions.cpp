@@ -12,7 +12,8 @@ std::shared_ptr<CardAction> CardToAction(const Battle::Card& card, std::shared_p
 
   if (packageManager && packageManager->HasPackage(card.GetUUID())) {
     auto& meta = packageManager->FindPackageByID(card.GetUUID());
-    return meta.GetData()->BuildCardAction(character, meta.GetCardProperties());
+    auto cardImpl = std::unique_ptr<CardImpl>(meta.GetData());
+    return cardImpl->BuildCardAction(character, meta.GetCardProperties());
   }
 
   return std::make_shared<InvalidCardAction>(character);
