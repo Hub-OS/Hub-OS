@@ -103,7 +103,7 @@ const Character* CardAction::GetActor() const
   return actor;
 }
 
-const Battle::CardProperties& CardAction::GetMetaData() const
+const Battle::Card::Properties& CardAction::GetMetaData() const
 {
   return meta;
 }

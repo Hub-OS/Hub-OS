@@ -30,7 +30,9 @@ namespace Battle {
     dark
   };
 
-  struct CardProperties {
+  class Card {
+  public:
+    struct Properties {
       std::string uuid;
       unsigned damage{ 0 };
       unsigned limit{ 0 };
@@ -47,11 +49,7 @@ namespace Battle {
       std::vector<std::string> metaClasses; /*!< Cards can be tagged with additional user information*/
     };
 
-  class Card : public CardImpl {
-  public:        
-    virtual CardAction* BuildCardAction(Character* user, Battle::CardProperties& props) { throw; };
-
-    CardProperties props;
+    Properties props;
     /**
       * @brief Cards are not designed to have default or partial data. Must provide all at once.
       */
@@ -182,7 +180,7 @@ namespace Battle {
     friend struct Compare;
 
   private:
-    CardProperties unmodded;
+    Properties unmodded;
     unsigned int multiplier{ 0 };
   };
 }

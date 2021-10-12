@@ -10,10 +10,4 @@ namespace Battle
     struct CardProperties;
 };
 
-class CardImpl {
-public:
-  virtual ~CardImpl() {};
-  virtual CardAction* BuildCardAction(Character* user, Battle::CardProperties& props) = 0;
-};
-
 #endif

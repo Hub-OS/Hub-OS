@@ -46,6 +46,14 @@ public:
   const std::string& FetchSharedLibraryPath(const std::string& fqn);
   const std::string& CharacterToModpath(const std::string& fqn);
   void SeedRand(unsigned int seed);
+
+  private:
+  void SetSystemFunctions( sol::state* state );
+  void SetModPathVariable( sol::state* state, const std::filesystem::path& modDirectory );
+
+  static std::string GetCurrentLine( lua_State* L );
+  static sol::object PrintInvalidAccessMessage( sol::table table, const std::string typeName, const std::string key );
+  static sol::object PrintInvalidAssignMessage( sol::table table, const std::string typeName, const std::string key );
 };
 
 #endif

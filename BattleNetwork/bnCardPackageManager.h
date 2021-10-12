@@ -14,8 +14,14 @@
 class Character;
 class CardAction;
 
+class CardImpl {
+public:
+  virtual ~CardImpl() {};
+  virtual CardAction* BuildCardAction(Character* user, Battle::Card::Properties& props) = 0;
+};
+
 struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
-  Battle::CardProperties properties;
+  Battle::Card::Properties properties;
   std::shared_ptr<sf::Texture> iconTexture; /*!< Icon used in hand */
   std::shared_ptr<sf::Texture> previewTexture; /*!< Picture used in select widget */
   std::vector<char> codes;
