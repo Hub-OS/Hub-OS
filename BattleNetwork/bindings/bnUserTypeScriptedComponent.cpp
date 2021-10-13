@@ -17,15 +17,17 @@ static WeakWrapper<ScriptedComponent> construct(std::shared_ptr<Character> chara
 
 void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedComponent>>("Component",
-    sol::factories([](WeakWrapper<Character> owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
-      return construct(owner.Unwrap(), lifetime);
-    }),
-    sol::factories([](WeakWrapper<ScriptedCharacter> owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
-      return construct(owner.Unwrap(), lifetime);
-    }),
-    sol::factories([](WeakWrapper<ScriptedPlayer> owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
-      return construct(owner.Unwrap(), lifetime);
-    }),
+    sol::factories(
+      [](WeakWrapper<Character>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
+        return construct(owner.Unwrap(), lifetime);
+      },
+      [](WeakWrapper<ScriptedCharacter>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
+        return construct(owner.Unwrap(), lifetime);
+      },
+      [](WeakWrapper<ScriptedPlayer>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
+        return construct(owner.Unwrap(), lifetime);
+      }
+    ),
     sol::meta_function::index, [](WeakWrapper<ScriptedComponent>& component, std::string key) {
       return component.Unwrap()->dynamic_get(key);
     },
