@@ -45,7 +45,14 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     },
     "add_anim_action", [](WeakWrapper<CardAction>& cardAction, int frame, sol::stack_object actionObject) {
       sol::protected_function action = actionObject;
-      cardAction.Unwrap()->AddAnimAction(frame, [action]{ action(); });
+      cardAction.Unwrap()->AddAnimAction(frame, [action]{
+        auto result = action();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     },
     "add_step", [](WeakWrapper<CardAction>& cardAction, const CardAction::Step& step) {
       cardAction.Unwrap()->AddStep(step);
@@ -96,14 +103,28 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       // write only, reading might cause lifetime issues
       [](CardAction::Step& step, sol::stack_object callbackObject) {
         sol::protected_function callback = callbackObject;
-        step.updateFunc = [callback] (CardAction::Step& step, double dt) { callback(step, dt); };
+        step.updateFunc = [callback] (CardAction::Step& step, double dt) {
+          auto result = callback(step, dt);
+
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(error.what());
+          }
+        };
       }
     ),
     "draw_func", sol::property(
       // write only, reading might cause lifetime issues
       [](CardAction::Step& step, sol::stack_object callbackObject) {
         sol::protected_function callback = callbackObject;
-        step.drawFunc = [callback] (CardAction::Step& step, sf::RenderTexture& rt) { callback(step, rt); };
+        step.drawFunc = [callback] (CardAction::Step& step, sf::RenderTexture& rt) {
+          auto result = callback(step, rt);
+
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(error.what());
+          }
+        };
       }
     ),
     "complete_step", &CardAction::Step::markDone

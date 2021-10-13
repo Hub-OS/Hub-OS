@@ -58,15 +58,36 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
     // memory leak if animation created from lua is captured in these callback functions
     "on_complete", [] (AnimationWrapper& animation, sol::stack_object callbackObject) {
       sol::protected_function callback = callbackObject;
-      animation.Unwrap() << [callback] { callback(); };
+      animation.Unwrap() << [callback] {
+        auto result = callback();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      };
     },
     "on_frame", [](AnimationWrapper& animation, int frame, sol::stack_object callbackObject, bool doOnce) {
       sol::protected_function callback = callbackObject;
-      animation.Unwrap().AddCallback(frame, [callback] { callback(); }, doOnce);
+      animation.Unwrap().AddCallback(frame, [callback] {
+        auto result = callback();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      }, doOnce);
     },
     "on_interrupt", [](AnimationWrapper& animation, sol::stack_object callbackObject) {
       sol::protected_function callback = callbackObject;
-      animation.Unwrap().SetInterruptCallback([callback] { callback(); });
+      animation.Unwrap().SetInterruptCallback([callback] {
+        auto result = callback();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
     }
   );
 
