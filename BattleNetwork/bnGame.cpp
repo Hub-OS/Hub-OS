@@ -160,7 +160,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     Font::specialCharLookup.insert(std::make_pair(char(-3), "THICK_NM"));
 
     // See the random generator with current time
-    srand((unsigned int)time(0));
     this->SeedRand((unsigned int)time(0));
   });
 

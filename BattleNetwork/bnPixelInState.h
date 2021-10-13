@@ -17,6 +17,8 @@
 
 typedef std::function<void()> FinishNotifier;
 
+#define MAX_TIME 0.5 // in seconds
+
 template<typename Any>
 class PixelInState : public AIState<Any>
 {
@@ -77,7 +79,9 @@ void PixelInState<Any>::OnEnter(Any& e) {
   // play swoosh
   e.Audio().Play(AudioType::APPEAR);
 
-  e.setColor(sf::Color(255, 255, 255, 0));
+  sf::Color start = NoopCompositeColor(e.GetColorMode());
+  start.a = 0;
+  e.setColor(start);
 }
 
 template<typename Any>
@@ -99,9 +103,11 @@ void PixelInState<Any>::OnUpdate(double _elapsed, Any& e) {
     e.SetShader(nullptr);
   }
 
+  double range = (180. - factor) / 180.;
 
-  float range = (125.f - factor) / 125.f;
-  e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
+  sf::Color start = NoopCompositeColor(e.GetColorMode());
+  start.a = static_cast<sf::Uint8>(255 * range);
+  e.setColor(start);
 
   sf::IntRect t = e.getTextureRect();
   sf::Vector2u size = e.getTexture()->getSize();
@@ -113,6 +119,6 @@ void PixelInState<Any>::OnUpdate(double _elapsed, Any& e) {
 }
 
 template<typename Any>
-void PixelInState<Any>::OnLeave(Any& e) {
-  e.SetShader(nullptr);
-}
+void PixelInState<Any>::OnLeave(Any& e) {}
+
+#undef MAX_TIME

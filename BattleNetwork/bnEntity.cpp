@@ -25,6 +25,8 @@ Entity::Entity() :
   using namespace std::placeholders;
   auto handler = std::bind(&Entity::HandleMoveEvent, this, _1, _2);
   actionQueue.RegisterType<MoveEvent>(ActionTypes::movement, handler);
+
+  setColor(NoopCompositeColor(GetColorMode()));
 }
 
 Entity::~Entity() {
@@ -220,7 +222,7 @@ void Entity::SetColorMode(ColorMode mode)
   colorMode = mode;
 }
 
-ColorMode Entity::GetColorMode()
+ColorMode Entity::GetColorMode() const
 {
   return colorMode;
 }

@@ -292,7 +292,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
   std::fstream file;
   file.open(path, std::ios::out | std::ios::binary);
 
-  stx::result_t<bool> result;
+  stx::result_t<std::string> result(std::nullptr_t{}, "Unset");
 
   if (file.is_open()) {
     while (file_len > 0) {
@@ -375,7 +375,7 @@ void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, Packag
   std::fstream file;
   file.open(path, std::ios::out | std::ios::binary);
 
-  stx::result_t<bool> result;
+  stx::result_t<std::string> result(std::nullptr_t{}, "Unset");
 
   if (file.is_open()) {
     while (file_len > 0) {

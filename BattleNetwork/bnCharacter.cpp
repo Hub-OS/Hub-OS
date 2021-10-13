@@ -66,6 +66,8 @@ Character::Character(Rank _rank) :
   CardActionUsePublisher(),
   Entity() {
 
+  SetColorMode(ColorMode::ADDITIVE);
+
   if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
     smartShader = shader;
     smartShader.SetUniform("texture", sf::Shader::CurrentTexture);
@@ -158,8 +160,7 @@ void Character::Update(double _elapsed) {
   ResolveFrameBattleDamage(); 
 
   // reset base color
-  // NOTE: that black works with additive color mode
-  setColor(sf::Color(0, 0, 0, getColor().a));
+  setColor(NoopCompositeColor(GetColorMode()));
 
   if (!hit) {
     if (invincibilityCooldown > 0) {
@@ -319,12 +320,20 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
     else {
       SpriteProxyNode* asSpriteProxyNode{ nullptr };
       SmartShader temp(smartShader);
+
+      /**
+      hack for now.
+      form overlay nodes (like helmet and shoulder pads)
+      are already colored to the desired palette. So we do not apply palette swapping.
+      **/
+      bool needsRevert = false;
       sf::Color tempColor = sf::Color::White;
       if (currNode->HasTag(Player::FORM_NODE_TAG)) {
         if (asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode)) {
           smartShader.SetUniform("swapPalette", false);
           tempColor = asSpriteProxyNode->getColor();
           asSpriteProxyNode->setColor(sf::Color(0, 0, 0, getColor().a));
+          needsRevert = true;
         }
       }
 
@@ -338,7 +347,7 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
       currNode->draw(target, states);
 
       // revert color
-      if (asSpriteProxyNode) {
+      if (asSpriteProxyNode && needsRevert) {
         asSpriteProxyNode->setColor(tempColor);
       }
 

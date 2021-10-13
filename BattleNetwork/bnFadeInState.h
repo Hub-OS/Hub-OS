@@ -75,7 +75,9 @@ void FadeInState<Any>::OnEnter(Any& e) {
   // play iconic fade in sound
   e.Audio().Play(AudioType::APPEAR);
 
-  e.setColor(sf::Color(255, 255, 255, 0));
+  sf::Color start = NoopCompositeColor(e.GetColorMode());
+  start.a = 0;
+  e.setColor(start);
 }
 
 template<typename Any>
@@ -97,3 +99,5 @@ void FadeInState<Any>::OnUpdate(double _elapsed, Any& e) {
 
 template<typename Any>
 void FadeInState<Any>::OnLeave(Any& e) {}
+
+#undef MAX_TIME

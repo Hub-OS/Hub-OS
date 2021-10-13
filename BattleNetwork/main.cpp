@@ -1,5 +1,6 @@
 #include "bnGame.h"
 #include "battlescene/bnMobBattleScene.h"
+#include "bindings/bnScriptedMob.h"
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
 #include "bnGameOverScene.h"
@@ -9,11 +10,20 @@
 #include "bnPlayer.h"
 #include "bnEmotions.h"
 #include "bnCardFolder.h"
+#include "stx/string.h"
+#include "stx/result.h"
 #include "cxxopts/cxxopts.hpp"
 #include "netplay/bnNetPlayConfig.h"
 
+#include <Poco/Net/HTTPClientSession.h>
+#include <Poco/URI.h>
+#include <Poco/StreamCopier.h>
+
 int LaunchGame(Game& g, const cxxopts::ParseResult& results);
 int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, const std::string& mobpath, bool isURL);
+
+template<typename ScriptedDataType, typename PackageManager>
+stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager);
 
 int main(int argc, char** argv) {
   DrawWindow win;
@@ -54,12 +64,14 @@ int main(int argc, char** argv) {
   catch (...) {
     Logger::Log("Game encountered an unknown exception. Aborting.");
   }
+  game.Exit();
 
   // finished
   return EXIT_SUCCESS;
 }
 
 int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
+  srand((unsigned int)time(0));
   g.SetCommandLineValues(results);
 
   if (g.CommandLineValue<bool>("battleonly")) {
@@ -96,13 +108,16 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
 }
 
 int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, const std::string& mobpath, bool isURL) {
+  std::string mobid = mobpath;
+
   if (isURL) {
-    // TODO: 1. download zip file from URL at `modpath`
-    //       2. boot game to load resources
-    //       3. install mob package
-    //       4. go to battle scene
-    Logger::Logf("url unimplemented");
-    return EXIT_FAILURE;
+    auto result = DownloadPackageFromURL<ScriptedMob>(mobpath, g.MobPackageManager());
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+      return EXIT_FAILURE;
+    }
+
+    mobid = result.value();
   }
 
   // wait for resources to be available for us
@@ -125,7 +140,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   Field* field = new Field(6, 3);
 
   // Get the navi we selected
-  auto& playermeta = g.PlayerPackageManager().FindPackageByID(playerpath); // TODO: check if path is already installed...
+  auto& playermeta = g.PlayerPackageManager().FindPackageByID(playerpath);
   const std::string& image = playermeta.GetMugshotTexturePath();
   Animation mugshotAnim = Animation() << playermeta.GetMugshotAnimationPath();
   const std::string& emotionsTexture = playermeta.GetEmotionsTexturePath();
@@ -133,7 +148,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   auto emotions = handle.Textures().LoadTextureFromFile(emotionsTexture);
   Player* player = playermeta.GetData();
 
-  auto& mobmeta = g.MobPackageManager().FindPackageByID(mobpath); // TODO: check if path is already installed...
+  auto& mobmeta = g.MobPackageManager().FindPackageByID(mobid);
   Mob* mob = mobmeta.GetData()->Build(field);
 
   // Shuffle our new folder
@@ -159,4 +174,33 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
 
   g.push<MobBattleScene>(props);
   return EXIT_SUCCESS;
+}
+
+template<typename ScriptedDataType, typename PackageManager>
+stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager)
+{
+  using namespace Poco::Net;
+  Poco::URI uri(url);
+  std::string path(uri.getPathAndQuery());
+  if (path.empty()) {
+    return stx::error<std::string>("`moburl` was empty. Aborting.");
+  }
+
+  HTTPClientSession session(uri.getHost(), uri.getPort());
+  HTTPRequest request(HTTPRequest::HTTP_GET, path, HTTPMessage::HTTP_1_1);
+  HTTPResponse response;
+
+  session.sendRequest(request);
+  std::istream& rs = session.receiveResponse(response);
+  std::cout << response.getStatus() << " " << response.getReason() << std::endl;
+
+  if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED) {
+    return stx::error<std::string>("Unable to download package. Result was HTTP_UNAUTHORIZED. Aborting.");
+  }
+
+  std::string outpath = "cache/" + stx::rand_alphanum(12) + ".zip";
+  std::ofstream ofs(outpath, std::fstream::binary);
+  Poco::StreamCopier::copyStream(rs, ofs);
+
+  return packageManager.template LoadPackageFromZip<ScriptedDataType>(outpath);
 }
