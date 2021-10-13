@@ -1,9 +1,9 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnUserTypeSpriteNode.h"
-#include "../bnScriptResourceManager.cpp"
 
 #include "bnWeakWrapper.h"
 #include "../bnSpriteProxyNode.h"
+#include "../bnScriptResourceManager.h"
 
 void DefineSpriteNodeUserType(sol::table& engine_namespace) {
   engine_namespace.new_usertype<WeakWrapper<SpriteProxyNode>>("SpriteNode",

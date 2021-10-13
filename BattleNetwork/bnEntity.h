@@ -720,6 +720,11 @@ protected:
   ActionQueue actionQueue;
   frame_time_t moveStartupDelay{};
   std::optional<frame_time_t> moveEndlagDelay;
+  double stunCooldown{ 0 }; /*!< Timer until stun is over */
+  double rootCooldown{ 0 }; /*!< Timer until root is over */
+  double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
+  bool counterable{};
+  int counterFrameFlag{ 0 };
 
   std::vector<std::shared_ptr<Component>> components; /*!< List of all components attached to this entity*/
 
@@ -785,12 +790,7 @@ private:
   int maxHealth{ std::numeric_limits<int>::max() };
   sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
   float counterSlideDelta{};
-  bool counterable{};
-  int counterFrameFlag{ 0 };
   bool canTilePush{};
-  double stunCooldown{ 0 }; /*!< Timer until stun is over */
-  double rootCooldown{ 0 }; /*!< Timer until root is over */
-  double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   bool canShareTile{}; /*!< Some characters can share tiles with others */
   bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   std::vector<std::shared_ptr<DefenseRule>> defenses; /*<! All defense rules sorted by the lowest priority level */

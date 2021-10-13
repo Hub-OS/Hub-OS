@@ -19,6 +19,12 @@
 
 void Character::RefreshShader()
 {
+  auto field = this->field.lock();
+
+  if (!field) {
+    return;
+  }
+
   SetShader(smartShader);
 
   if (!smartShader.Get()) return;

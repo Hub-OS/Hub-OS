@@ -165,7 +165,7 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
 
     if (includesResult.is_error()) {
       delete packageClass;
-      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + initResult.error_cstr();
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + includesResult.error_cstr();
       return stx::error<bool>(msg);
     }
 

@@ -2101,8 +2101,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
         next = folder->Next();
       }
-
-      delete folder;
     }
 
     DownloadSceneProps props = {

@@ -24,7 +24,7 @@ void StuntDouble::Init() {
   auto anim = CreateComponent<AnimationComponent>(weak_from_this());
 
   // palette swap if applicable
-  if (auto palette = ref.GetPalette()) {
+  if (auto palette = ref->GetPalette()) {
     SetPalette(palette);
   }
 
@@ -54,7 +54,7 @@ void StuntDouble::OnDelete()
 
 void StuntDouble::OnUpdate(double elapsed)
 {
-  setColor(ref.getColor());
+  setColor(ref->getColor());
 }
 
 bool StuntDouble::CanMoveTo(Battle::Tile*)
