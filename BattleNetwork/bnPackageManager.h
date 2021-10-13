@@ -156,11 +156,20 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
 
   if (res.result.valid()) {
     sol::state& state = *res.state;
+    state.open_libraries( sol::lib::base );
 
     packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
+    //  Run all "includes" first
+    state["package_requires_scripts"]();
+
     // run script on meta info object
     state["package_init"](packageClass);
+
+      // Assign Package ID to the state, now that it's been registered.
+    state["_package_id"] = packageClass->GetPackageID();
+
+    handle.Scripts().RegisterDependencyNotes( &state );
 
     packageClass->OnMetaParsed();
 

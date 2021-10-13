@@ -6,6 +6,7 @@
 #include "bnPackageManager.h"
 #include "bnElements.h"
 #include "bnCard.h"
+#include "bindings/bnCardImpl.h"
 
 /*! \brief Use this to register card mods with the engine
 */

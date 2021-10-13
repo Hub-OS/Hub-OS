@@ -48,6 +48,7 @@ class CardPackageManager;
 class MobPackageManager;
 class BlockPackageManager;
 class GameSession;
+class LuaLibraryPackageManager;
 
 enum class Endianness : short {
   big = 0,
@@ -74,12 +75,12 @@ private:
   PlayerPackageManager* playerPackageManager;
   MobPackageManager* mobPackageManager;
   BlockPackageManager* blockPackageManager;
-
-  GameSession* session;
+  LuaLibraryPackageManager* luaLibraryPackageManager;
 
   DrawWindow& window;
   ConfigReader reader;
   ConfigSettings configSettings;
+  GameSession* session;
 
   // mouse stuff
   std::shared_ptr<sf::Texture> mouseTexture;
@@ -93,8 +94,6 @@ private:
 
   sf::Shader* postprocess{ nullptr };
 
-  std::vector<cxxopts::KeyValue> commandline; /*!< Values parsed from the command line*/
-
   // We need a render surface to draw to so Swoosh ActivityController
   // can add screen transition effects from the title screen
   sf::RenderTexture renderSurface;
@@ -103,6 +102,7 @@ private:
   frame_time_t elapsed{};
 
   Endianness endian{ Endianness::big };
+  std::vector<cxxopts::KeyValue> commandline; /*!< Values parsed from the command line*/
   std::atomic<int> progress{ 0 };
   std::mutex windowMutex;
   std::thread renderThread;
@@ -139,6 +139,7 @@ public:
   PlayerPackageManager& PlayerPackageManager();
   MobPackageManager& MobPackageManager();
   BlockPackageManager& BlockPackageManager();
+  LuaLibraryPackageManager& GetLuaLibraryPackageManager();
   ConfigSettings& ConfigSettings();
   GameSession& Session();
 
@@ -226,6 +227,17 @@ private:
   * against.
   */
   void RunMobInit(std::atomic<int>* progress);
+
+  /*! \brief This thread tnitializes all shared lua libraries
+  *
+  * @see RunNaviInit()
+  *
+  * After the media resources are loaded we
+  * safely load all registed shared libraries.
+  * Loaded shared libraries will be able to be
+  * included by other scripts.
+  */
+  void RunLuaLibraryInit(std::atomic<int>* progress);
 
   /*! \brief This thread loads textures and shaders
   *

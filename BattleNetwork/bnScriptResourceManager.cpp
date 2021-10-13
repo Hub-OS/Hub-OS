@@ -11,6 +11,7 @@
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
 #include "bnBlockPackageManager.h"
+#include "bnLuaLibraryPackageManager.h"
 
 #include "bnAnimator.h"
 #include "bnEntity.h"
@@ -26,6 +27,7 @@
 #include "bnParticlePoof.h"
 #include "bnParticleImpact.h"
 
+#include "bindings/bnLuaLibrary.h"
 #include "bindings/bnScriptedArtifact.h"
 #include "bindings/bnScriptedCardAction.h"
 #include "bindings/bnScriptedCharacter.h"
@@ -63,20 +65,19 @@ namespace {
   }
 }
 
+// Creates a std::list<OverrideFrame> object from a provided table.
+// Expected format : { { unsigned int state_in_animation, double duration }, ... }
 std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
 {
   std::list<OverrideFrame> frames;
 
   auto count = table.size();
 
-  std::cout << "Framedata:" << std::endl;
-
   for( int ind = 1; ind <= count; ++ind )
   {
     unsigned animStateNumber = table.traverse_get<unsigned>(ind, 1);
     double duration = table.traverse_get<double>(ind, 2);
 
-    std::cout << "id:" << animStateNumber << " d:" << duration << std::endl;
     frames.emplace_back( OverrideFrame { animStateNumber, duration } );
   }
 
@@ -85,29 +86,190 @@ std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
 
 void ScriptResourceManager::SetSystemFunctions( sol::state* state )
 {
-    // Has to capture a pointer to sol::state, the move constructor was deleted.
-  state->set_function( "include", [state]( const std::string fileName ) -> sol::protected_function_result {
-    std::cout << "Including script file: " << fileName << std::endl;
+  state->open_libraries(sol::lib::base, sol::lib::debug, sol::lib::math, sol::lib::table);
 
-    std::string modPathRef = (*state)["_modpath"];
-    
-    sol::protected_function_result result = state->do_file( modPathRef + fileName, sol::load_mode::any );
+  // 'include()' in Lua is intended to load a LIBRARY file of Lua code into the current lua state.
+  // Currently only loads library files included in the SAME directory as the script file.
+  // Has to capture a pointer to sol::state, the copy constructor was deleted, cannot capture a copy to reference.
+  state->set_function( "include",
+    [this, state]( const std::string fileName ) -> sol::protected_function_result {
+      #ifdef _DEBUG
+      std::cout << "Including library: " << fileName << std::endl;
+      #endif
 
-    return result;
-  });
+      sol::protected_function_result result;
+
+        // Prefer using the shared libraries if possible.
+        // i.e. ones that were present in "mods/libs/"
+      if( auto sharedLibPath = FetchSharedLibraryPath( fileName ); !sharedLibPath.empty() )
+      {
+        #ifdef _DEBUG
+        Logger::Log( "Including shared library: " + fileName);
+        #endif
+        
+        AddDependencyNote( state, fileName );
+
+        result = state->do_file( sharedLibPath, sol::load_mode::any );
+      }
+      else
+      {
+        #ifdef _DEBUG
+        std::cout << "Including local library: " << fileName << std::endl;
+        #endif
+
+        std::string modPathRef = (*state)["_modpath"];
+        result = state->do_file( modPathRef + fileName, sol::load_mode::any );
+      }
+
+      return result;
+    }
+  );
+}
+
+void ScriptResourceManager::AddDependencyNote( sol::state* state, const std::string& dependencyPackageID )
+{
+    // If "__dependencies" doesn't exist already, create it. We need it to exist.
+  if( ! (*state)["__dependencies"].valid() )
+    state->create_table("__dependencies");
+
+  sol::lua_table t = (*state)["__dependencies"];
+
+    // Add the package dependency to the table.
+  t.set( t.size() + 1, dependencyPackageID );
+}
+
+void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
+{
+    // If "_package_id" isn't set, something's gone wrong, return.
+  if( ! (*state)["_package_id"].valid() )
+  {
+    #ifdef _DEBUG
+    Logger::Log( "-- No Valid Package ID" );
+    #endif
+    return;
+  }
+  
+    // Retrieve the package ID from the state.
+  std::string packageID = (*state)["_package_id"];
+
+    // If this doesn't have any dependencies (no entries in "__dependencies" from earlier), return.
+  if( ! (*state)["__dependencies"].valid() )
+  {
+    #ifdef _DEBUG
+    Logger::Log( "-- " + packageID + ": No Dependency Table" );
+    #endif
+    return;
+  }
+
+    // Retrieve the table of dependencies set from earlier.
+  sol::lua_table deps = (*state)["__dependencies"];
+    // Get the number of keys in that table, to iterate over.
+  auto count = deps.size();
+
+  std::list<std::string> dependencies;
+
+  #ifdef _DEBUG
+  std::string depsString = "";
+  #endif
+
+  for( int ind = 1; ind <= count; ++ind )
+  {
+    depsString = depsString + deps.get<std::string>(ind) + ", ";
+
+      // Get the KEY of each member in the table, as those are the package IDs that this depends on.
+      // Add them to the list.
+    dependencies.emplace_back( deps.get<std::string>(ind) );
+  }
+
+  #ifdef _DEBUG
+  Logger::Log( "Package: " + packageID );
+  Logger::Log( "- Depends on " + depsString );
+  #endif
+
+    // Register the dependencies with the list in ScriptResourceManager.
+  scriptDependencies[packageID] = dependencies;
+
+    // Remove the "__dependencies" table secretly inserted into the sol state, we don't need it anymore.
+  (*state)["__dependencies"] = sol::nil;
+}
+
+void ScriptResourceManager::SetModPathVariable( sol::state* state, const std::filesystem::path& modDirectory )
+{
+  (*state)["_modpath"] = modDirectory.generic_string() + "/";
+}
+
+// Free Function provided to a number of Lua types that will print an error message when attempting to access a key that does not exist.
+// Will print the file and line the error occured in, as well as the invalid key and type. 
+sol::object ScriptResourceManager::PrintInvalidAccessMessage( sol::table table, const std::string typeName, const std::string key )
+{
+  Logger::Log( "[Script Error] in " + GetCurrentLine( table.lua_state() ) );
+  Logger::Log( "[Script Error] : Attempted to access \"" + key + "\" in type \"" + typeName + "\"." );
+  Logger::Log( "[Script Error] : " + key + " does not exist in " + typeName + "." );
+  return sol::lua_nil;
+}
+// Free Function provided to a number of Lua types that will print an error message when attempting to assign to a key that exists in a system type.
+// Will print the file and line the error occured in, as well as the invalid key and type. 
+sol::object ScriptResourceManager::PrintInvalidAssignMessage( sol::table table, const std::string typeName, const std::string key )
+{
+  Logger::Log( "[Script Error] in " + GetCurrentLine( table.lua_state() ) );
+  Logger::Log( "[Script Error] : Attempted to assign to \"" + key + "\" in type \"" + typeName + "\"." );
+  Logger::Log( "[Script Error] : " + typeName + " is read-only. Cannot assign new values to it." );
+  return sol::lua_nil;
+}// Returns the current executing line in the Lua script.
+// Format: \@[full_filename]:[line_number]
+std::string ScriptResourceManager::GetCurrentLine( lua_State* L )
+{
+  lua_getglobal( L, "debug" );          // debug
+  lua_getfield( L, -1, "getinfo" );     // debug.getinfo 
+  lua_pushinteger( L, 2 );              // debug.getinfo ( 2 )
+  lua_pushstring( L, "S" );             // debug.getinfo ( 2, "S" )
+
+  if( lua_pcall( L, 2, 1, 0) != 0 )     // table
+  {
+    Logger::Log( "Error running function \"debug.getinfo\"");
+    Logger::Log( std::string( lua_tostring(L, -1) ));
+  }
+
+  lua_pushstring( L, "source" );        // table.source
+  lua_gettable(L, -2);                  // <value>
+  
+  auto fileName = std::string( lua_tostring( L, -1 ) );
+
+  lua_getglobal( L, "debug" );          // debug
+  lua_getfield( L, -1, "getinfo" );     // debug.getinfo 
+  lua_pushinteger( L, 2 );              // debug.getinfo ( 2 )
+  lua_pushstring( L, "l" );             // debug.getinfo ( 2, "S" )
+
+  if( lua_pcall( L, 2, 1, 0) != 0 )     // table
+  {
+    Logger::Log( "Error running function \"debug.getinfo\"");
+    Logger::Log( std::string( lua_tostring(L, -1) ));
+  }
+
+  lua_pushstring( L, "currentline" );        // table.source
+  lua_gettable(L, -2);                       // <value>
+  
+  auto lineNumber = lua_tointeger( L, -1 );
+
+  return fileName + ":" + std::to_string( lineNumber );
 }
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
-  state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
-  sol::table battle_namespace = state.create_table("Battle");
-  sol::table overworld_namespace = state.create_table("Overworld");
-  sol::table engine_namespace = state.create_table("Engine");
+  sol::table battle_namespace =     state.create_table("Battle");
+  sol::table overworld_namespace =  state.create_table("Overworld");
+  sol::table engine_namespace =     state.create_table("Engine");
 
   engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int { return randSeed; });
 
   // The function calls in Lua for what is normally treated like a member variable seem a little bit wonky
-  const auto& tile_record = state.new_usertype<Battle::Tile>("Tile",
+  const auto& tile_record = state.new_usertype<Battle::Tile>("Tile", sol::no_constructor,
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Tile", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Tile", key );
+    },
     "x", &Battle::Tile::GetX,
     "y", &Battle::Tile::GetY,
     "width", &Battle::Tile::GetWidth,
@@ -141,7 +303,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   // If you hold onto their ID, and use that through Field::GetCharacter,
   // instead you will get passed a nullptr/nil in Lua after they've been effectively removed,
   // rather than potentially holding onto a hanging pointer to deleted data.
-  const auto& field_record = battle_namespace.new_usertype<Field>("Field",
+  const auto& field_record = battle_namespace.new_usertype<Field>("Field", sol::no_constructor,
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Field", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Field", key );
+    },
     "tile_at", &Field::GetAt,
     "width", &Field::GetWidth,
     "height", &Field::GetHeight,
@@ -167,6 +335,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
     sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Animation", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Animation", key );
+    },
     "load", &Animation::Load,
     "update", &Animation::Update,
     "refresh", &Animation::Refresh,
@@ -182,6 +356,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
     sol::constructors<SpriteProxyNode()>(),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "SpriteNode", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "SpriteNode", key );
+    },
     "get_texture", &SpriteProxyNode::getTexture,
     "set_texture", &SpriteProxyNode::setTexture,
     "show", &SpriteProxyNode::Reveal,
@@ -235,6 +415,46 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "scene_inject_func", &ScriptedComponent::scene_inject_func,
     "update_func", &ScriptedComponent::update_func,
     sol::base_classes, sol::bases<Component>()
+  );
+
+const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
+    sol::no_constructor,
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "BasicSpell", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "BasicSpell", key );
+    },
+    "get_id", &Spell::GetID,
+    "get_tile", &Spell::GetTile,
+    "get_current_tile", &Spell::GetCurrentTile,
+    "get_field", &Spell::GetField,
+    "get_facing", &Spell::GetFacing,
+    "set_facing", &Spell::SetFacing,
+    "sprite", &Spell::AsSpriteProxyNode,
+    "get_alpha", &Spell::GetAlpha,
+    "set_alpha", &Spell::SetAlpha,
+    "get_color", &Spell::getColor,
+    "set_color", &Spell::setColor,
+    "slide", &Spell::Slide,
+    "jump", &Spell::Jump,
+    "teleport", &Spell::Teleport,
+    "hide", &Spell::Hide,
+    "reveal", &Spell::Reveal,
+    "raw_move_event", &Spell::RawMoveEvent,
+    "is_sliding", &Spell::IsSliding,
+    "is_jumping", &Spell::IsJumping,
+    "is_teleporting", &Spell::IsTeleporting,
+    "is_moving", &Spell::IsMoving,
+    "is_deleted", &Spell::IsDeleted,
+    "will_remove_eof", &Spell::WillRemoveLater,
+    "get_team", &Spell::GetTeam,
+    "is_team", &Spell::Teammate,
+    "remove", &ScriptedSpell::Remove,
+    "delete", &ScriptedSpell::Delete,
+    "get_texture", &ScriptedSpell::getTexture,
+    "copy_hit_props", &ScriptedSpell::GetHitboxProperties,
+    "get_position", &Spell::GetDrawOffset
   );
 
   const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>( "Spell",
@@ -534,6 +754,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_alpha", &ScriptedPlayer::SetAlpha,
     "get_color", &ScriptedPlayer::getColor,
     "set_color", &ScriptedPlayer::setColor,
+    "register_component", &ScriptedPlayer::RegisterComponent,
     "sprite", &ScriptedPlayer::AsSpriteProxyNode,
     "slide", &ScriptedPlayer::Slide,
     "jump", &ScriptedPlayer::Jump,
@@ -651,12 +872,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         return std::make_unique<ScriptedCardAction>(character, state);
       }
     ),
-    sol::meta_function::index,
-    &dynamic_object::dynamic_get,
-    sol::meta_function::new_index,
-    &dynamic_object::dynamic_set,
-    sol::meta_function::length,
-    [](dynamic_object& d) { return d.entries.size(); },
+    sol::meta_function::index, &dynamic_object::dynamic_get,
+    sol::meta_function::new_index, &dynamic_object::dynamic_set,
+    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
     "action_end_func", &ScriptedCardAction::onActionEnd,
     "animation_end_func", &ScriptedCardAction::onAnimationEnd,
     "execute_func", &ScriptedCardAction::onExecute,
@@ -668,6 +886,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::factories([]() -> std::unique_ptr<CardAction::Step> {
       return std::make_unique<CardAction::Step>();
     }),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Step", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Step", key );
+    },
     "update_func", &CardAction::Step::updateFunc,
     "draw_func", &CardAction::Step::drawFunc,
     "complete_step", &CardAction::Step::markDone
@@ -698,6 +922,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& defense_frame_state_judge_record = state.new_usertype<DefenseFrameStateJudge>("DefenseFrameStateJudge",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "DefenseFrameStateJudge", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "DefenseFrameStateJudge", key );
+    },
     "block_damage", &DefenseFrameStateJudge::BlockDamage,
     "block_impact", &DefenseFrameStateJudge::BlockImpact,
     "is_damage_blocked", &DefenseFrameStateJudge::IsDamageBlocked,
@@ -711,6 +941,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         [](int priority, const DefenseOrder& order) -> std::unique_ptr<ScriptedDefenseRule>
         { return std::make_unique<ScriptedDefenseRule>(Priority(priority), order); }
     ),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "DefenseRule", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "DefenseRule", key );
+    },
     "is_replaced", &ScriptedDefenseRule::IsReplaced,
     "can_block_func", &ScriptedDefenseRule::canBlockCallback,
     "filter_statuses_func", &ScriptedDefenseRule::filterStatusesCallback,
@@ -733,12 +969,24 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   const auto& attachment_record = battle_namespace.new_usertype<CardAction::Attachment>("Attachment",
     sol::constructors<CardAction::Attachment(Animation&, const std::string&, SpriteProxyNode&)>(),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Attachment", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Attachment", key );
+    },
     "use_animation", &CardAction::Attachment::UseAnimation,
     "add_attachment", &CardAction::Attachment::AddAttachment
   );
 
   const auto& hitbox_record = battle_namespace.new_usertype<Hitbox>("Hitbox",
     sol::factories([](Team team) { return new Hitbox(team); } ),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Hitbox", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Hitbox", key );
+    },
     "set_callbacks", &Hitbox::AddCallback,
     "set_hit_props", &Hitbox::SetHitboxProperties,
     "get_hit_props", &Hitbox::GetHitboxProperties,
@@ -824,6 +1072,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   // make meta object info metatable
   const auto& playermeta_table = battle_namespace.new_usertype<PlayerMeta>("PlayerMeta",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "PlayerMeta", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "PlayerMeta", key );
+    },
     "set_special_description", &PlayerMeta::SetSpecialDescription,
     "set_attack", &PlayerMeta::SetAttack,
     "set_charged_attack", &PlayerMeta::SetChargedAttack,
@@ -840,10 +1094,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "declare_package_id", &PlayerMeta::SetPackageID
   );
 
-  const auto& cardpropsmeta_table = battle_namespace.new_usertype<Battle::Card::Properties>("CardProperties",
-    sol::factories(
-      [this]() -> Battle::Card::Properties { return {};  }
-    ),
+  const auto& cardpropsmeta_table = battle_namespace.new_usertype<Battle::Card::Properties>("Card::Properties",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Card::Properties", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Card::Properties", key );
+    },
     "action", &Battle::Card::Properties::action,
     "can_boost", &Battle::Card::Properties::canBoost,
     "card_class", &Battle::Card::Properties::cardClass,
@@ -860,6 +1117,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& cardmeta_table = battle_namespace.new_usertype<CardMeta>("CardMeta",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "CardMeta", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "CardMeta", key );
+    },
     "get_card_props", &CardMeta::GetCardProperties,
     "set_preview_texture", &CardMeta::SetPreviewTexture,
     "set_icon_texture", &CardMeta::SetIconTexture,
@@ -868,6 +1131,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& mobmeta_table = battle_namespace.new_usertype<MobMeta>("MobMeta",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "MobMeta", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "MobMeta", key );
+    },
     "set_description", &MobMeta::SetDescription,
     "set_name", &MobMeta::SetName,
     "set_preview_texture_path", &MobMeta::SetPlaceholderTexturePath,
@@ -875,6 +1144,16 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_attack", &MobMeta::SetAttack,
     "set_health", &MobMeta::SetHP,
     "declare_package_id", &MobMeta::SetPackageID
+  );
+  
+  const auto& lualibrarymeta_table = battle_namespace.new_usertype<LuaLibraryMeta>("LuaLibraryMeta",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "LuaLibraryMeta", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "LuaLibraryMeta", key );
+    },
+    "declare_package_id", &LuaLibraryMeta::SetPackageID
   );
 
   const auto& blockmeta_table = battle_namespace.new_usertype<BlockMeta>("BlockMeta",
@@ -884,9 +1163,15 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_shape", &BlockMeta::SetShape,
     "as_program", &BlockMeta::AsProgram,
     "declare_package_id", &BlockMeta::SetPackageID
-    );
+  );
 
   const auto& scriptedmob_table = battle_namespace.new_usertype<ScriptedMob>("Mob",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Mob", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Mob", key );
+    },
     "create_spawner", &ScriptedMob::CreateSpawner,
     "set_background", &ScriptedMob::SetBackground,
     "stream_music", &ScriptedMob::StreamMusic,
@@ -895,8 +1180,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& scriptedspawner_table = battle_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Spawner", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Spawner", key );
+    },
     "spawn_at", &ScriptedMob::ScriptedSpawner::SpawnAt
-  );
+  );  
 
   engine_namespace.set_function("load_texture",
     [](const std::string& path) {
@@ -958,13 +1249,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
           Logger::Log(msg);
           throw std::runtime_error(msg);
       }
-    }
-  );
-
-  engine_namespace.set_function("action_from_card",
-    [this](const std::string& fqn)
-    {
-
     }
   );
 
@@ -1179,6 +1463,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "Drag", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "Drag", key );
+    },
     "direction", &Hit::Drag::dir,
     "count", &Hit::Drag::count
   );
@@ -1234,7 +1524,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& particle_impact = battle_namespace.new_usertype<ParticleImpact>("ParticleImpact",
-    sol::constructors<ParticleImpact(ParticleImpact::Type)>(),
+    sol::constructors<ParticleImpact(ParticleImpact::Type) >(),
     sol::base_classes, sol::bases<Artifact>()
   );
 
@@ -1268,6 +1558,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.set_function("flip_y_dir",
     [](Direction dir) { return FlipVertical(dir);  }
   );
+
+  engine_namespace.set_function("define_library",
+    [this]( const std::string& fqn, const std::string& path )
+    {
+      Logger::Log("fqn: " + fqn + " , path: " + path );
+      this->DefineLibrary( fqn, path );
+    }
+  );
+
+  engine_namespace.set_function("action_from_card",
+    [this](const std::string& fqn)
+    {
+
+    }
+  );
 }
 
 ScriptResourceManager& ScriptResourceManager::GetInstance()
@@ -1285,6 +1590,25 @@ ScriptResourceManager::~ScriptResourceManager()
   states.clear();
 }
 
+ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary( const std::string& path )
+{
+  auto iter = scriptTableHash.find( path );
+
+  if (iter != scriptTableHash.end()) {
+    return iter->second;
+  }
+
+  sol::state* lua = new sol::state;
+
+  lua->set_exception_handler(&::exception_handler);
+  states.push_back(lua);
+
+  auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
+  auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
+
+  return pair.first->second;
+}
+
 ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::filesystem::path& modDirectory)
 {
   auto entryPath = modDirectory / "entry.lua";
@@ -1297,10 +1621,10 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   }
 
   sol::state* lua = new sol::state;
-  ConfigureEnvironment(*lua);
+  
+  SetModPathVariable( lua, modDirectory );
   SetSystemFunctions( lua );
-
-  (*lua)["_modpath"] = modDirectory.generic_string() + "/";
+  ConfigureEnvironment( *lua  );
 
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
@@ -1330,6 +1654,27 @@ void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::s
   }
 }
 
+void ScriptResourceManager::DefineLibrary( const std::string& fqn, const std::string& path )
+{
+  Logger::Log( "Loading Library ... " );
+  auto iter = libraryFQN.find(fqn);
+
+  if( iter == libraryFQN.end() )
+  {
+    auto& res = InitLibrary( path );
+
+    if( res.result.valid() )
+      libraryFQN[fqn] = path;
+    else
+    {
+      sol::error error = res.result;
+      Logger::Logf("Failed to Require library with FQN %s. Reason %s", fqn.c_str(), error.what() );
+
+      throw std::exception( error );
+    }
+  }
+}
+
 sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)
 {
   auto iter = characterFQN.find(fqn);
@@ -1342,11 +1687,27 @@ sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)
   return nullptr;
 }
 
+const std::string& ScriptResourceManager::FetchSharedLibraryPath(const std::string& fqn)
+{
+  static std::string empty = "";
+
+  auto iter = libraryFQN.find(fqn);
+
+  if (iter != libraryFQN.end()) {
+    return iter->second;
+  }
+
+  // else miss
+  return empty;
+}
+
 const std::string& ScriptResourceManager::CharacterToModpath(const std::string& fqn) {
   return characterFQN[fqn];
 }
+
 void ScriptResourceManager::SeedRand(unsigned int seed)
 {
   randSeed = seed;
 }
+
 #endif
