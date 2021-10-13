@@ -11,7 +11,7 @@ ScriptedDefenseRule::~ScriptedDefenseRule() { }
 Hit::Properties& ScriptedDefenseRule::FilterStatuses(Hit::Properties& statuses)
 {
   if(filterStatusesCallback) {
-      return filterStatusesCallback(statuses);
+      return filterStatusesCallback(&statuses);
   }
 
   return statuses;
@@ -19,7 +19,7 @@ Hit::Properties& ScriptedDefenseRule::FilterStatuses(Hit::Properties& statuses)
 
 void ScriptedDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
     if(canBlockCallback) {
-        canBlockCallback(judge, in, owner);
+        canBlockCallback(&judge, &in, &owner);
     }
 }
 
