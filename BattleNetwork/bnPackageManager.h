@@ -165,6 +165,11 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
     // run script on meta info object
     state["package_init"](packageClass);
 
+      // Assign Package ID to the state, now that it's been registered.
+    state["_package_id"] = packageClass->GetPackageID();
+
+    handle.Scripts().RegisterDependencyNotes( &state );
+
     packageClass->OnMetaParsed();
    
     std::string file_path = modpath.generic_string();

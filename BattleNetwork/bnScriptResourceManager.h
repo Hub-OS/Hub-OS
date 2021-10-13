@@ -10,6 +10,7 @@
 #include <iostream>
 #include <atomic>
 #include <filesystem>
+#include <list>
 
 #ifdef __unix__
 #define LUA_USE_POSIX 1
@@ -29,6 +30,7 @@ private:
   std::map<std::string, LoadScriptResult> scriptTableHash; /*!< Script path to sol table hash */
   std::map<std::string, std::string> characterFQN; /*! character FQN to script path */
   std::map<std::string, std::string> libraryFQN; /*! library FQN to script path */
+  std::map< std::string, std::list< std::string > > scriptDependencies; // [ Package Name, List of packages it depends on ] 
   void ConfigureEnvironment(sol::state& state);
   
 public:
@@ -46,6 +48,9 @@ public:
   const std::string& FetchSharedLibraryPath(const std::string& fqn);
   const std::string& CharacterToModpath(const std::string& fqn);
   void SeedRand(unsigned int seed);
+
+  void AddDependencyNote( sol::state* state, const std::string& dependencyPackageID );
+  void RegisterDependencyNotes( sol::state* state );
 
   private:
   void SetSystemFunctions( sol::state* state );
