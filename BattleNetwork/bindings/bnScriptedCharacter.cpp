@@ -74,7 +74,7 @@ void ScriptedCharacter::OnDelete() {
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
   if (entries["on_spawn_func"].valid()) 
   {
-    auto result = CallLuaFunction(entries, "on_spawn_func", weakWrap, start);
+    auto result = CallLuaFunction(entries, "on_spawn_func", weakWrap, &start);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
