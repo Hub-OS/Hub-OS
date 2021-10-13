@@ -38,8 +38,8 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "get_facing", [](WeakWrapper<ScriptedCharacter>& character) -> Direction {
       return character.Unwrap()->GetFacing();
     },
-    "get_target", [](WeakWrapper<ScriptedCharacter>& character) -> std::shared_ptr<Character> {
-      return character.Unwrap()->GetTarget();
+    "get_target", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<Character> {
+      return WeakWrapper(character.Unwrap()->GetTarget());
     },
     "get_alpha", [](WeakWrapper<ScriptedCharacter>& character) -> int {
       return character.Unwrap()->GetAlpha();
