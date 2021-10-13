@@ -8,3 +8,9 @@ document:
  - `SpriteNode:find_child_nodes_with_tags(tags)` removed
  - `SpriteNode:unwrap()` deprecated
  - `CardAction:add_attachment(parent, point_name, sprite)` is now `CardAction:add_attachment(point_name) -> attachment`
+ - `CardAction:sprite()` added
+ - `CardAction:use_animation()` removed
+ - `CardAction:get_animation()` added
+
+ improve CardAction::Step
+ temporary solution could be to use a ScopedWrapper, better solution is to use shared_ptr and WeakWrapper

@@ -4,6 +4,7 @@
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedPlayer.h"
+#include "bnScriptedComponent.h"
 
 void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedPlayer>>("Player",
@@ -190,8 +191,8 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "delete", [](WeakWrapper<ScriptedPlayer>& player) {
       player.Unwrap()->Delete();
     },
-    "register_component", [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Component> component) {
-      player.Unwrap()->RegisterComponent(component);
+    "register_component", [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedComponent>& component) {
+      player.Unwrap()->RegisterComponent(component.Release());
     }
   );
 }

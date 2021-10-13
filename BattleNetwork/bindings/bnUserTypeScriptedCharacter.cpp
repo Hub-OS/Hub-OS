@@ -4,6 +4,7 @@
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedCharacter.h"
+#include "bnScriptedComponent.h"
 #include "../bnTile.h"
 
 void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
@@ -195,8 +196,8 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "share_tile", [](WeakWrapper<ScriptedCharacter>& character, bool share) {
       character.Unwrap()->ShareTileSpace(share);
     },
-    "register_component", [](WeakWrapper<ScriptedCharacter>& character, std::shared_ptr<Component> component) {
-      character.Unwrap()->RegisterComponent(component);
+    "register_component", [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<ScriptedComponent>& component) {
+      character.Unwrap()->RegisterComponent(component.Release());
     },
     "add_defense_rule", [](WeakWrapper<ScriptedCharacter>& character, DefenseRule* defenseRule) {
       character.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());

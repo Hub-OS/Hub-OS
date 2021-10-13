@@ -4,6 +4,7 @@
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedObstacle.h"
+#include "bnScriptedComponent.h"
 #include "../bnTile.h"
 
 void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
@@ -226,8 +227,8 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "shake_camera", [](WeakWrapper<ScriptedObstacle>& obstacle, double power, float duration) {
       obstacle.Unwrap()->ShakeCamera(power, duration);
     },
-    "register_component", [](WeakWrapper<ScriptedObstacle>& obstacle, std::shared_ptr<Component> component) {
-      obstacle.Unwrap()->RegisterComponent(component);
+    "register_component", [](WeakWrapper<ScriptedObstacle>& obstacle, WeakWrapper<ScriptedComponent>& component) {
+      obstacle.Unwrap()->RegisterComponent(component.Release());
     },
     "get_position", [](WeakWrapper<ScriptedObstacle>& obstacle) -> sf::Vector2f {
       return obstacle.Unwrap()->GetDrawOffset();

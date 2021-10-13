@@ -3,6 +3,7 @@
 
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
+#include "bnScriptedComponent.h"
 #include "../bnCharacter.h"
 #include <optional>
 
@@ -172,8 +173,8 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "add_defense_rule", [](WeakWrapper<Character>& character, DefenseRule* defenseRule) {
       character.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
     },
-    "register_component", [](WeakWrapper<Character>& character, std::shared_ptr<Component> component) {
-      character.Unwrap()->RegisterComponent(component);
+    "register_component", [](WeakWrapper<Character>& character, WeakWrapper<ScriptedComponent>& component) {
+      character.Unwrap()->RegisterComponent(component.Release());
     },
     "remove_defense_rule", [](WeakWrapper<Character>& character, DefenseRule* defenseRule) {
       character.Unwrap()->RemoveDefenseRule(defenseRule);
