@@ -66,7 +66,7 @@ Character::Character(Rank _rank) :
   CardActionUsePublisher(),
   Entity() {
 
-  SetColorMode(ColorMode::ADDITIVE);
+  SetColorMode(ColorMode::additive);
 
   if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
     smartShader = shader;
@@ -340,7 +340,7 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
       // Apply and return shader if applicable
       sf::Shader* s = smartShader.Get();
 
-      if (s) {
+      if (s && currNode->IsUsingParentShader()) {
         states.shader = s;
       }
 

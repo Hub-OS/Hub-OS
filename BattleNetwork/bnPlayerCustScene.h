@@ -15,6 +15,16 @@
 class PlayerCustScene : public Scene {
 public:
   struct Piece {
+    enum class Types : uint8_t {
+      white = 0,
+      red,
+      green,
+      blue,
+      pink,
+      yellow,
+      size
+    };
+
     std::string name = "Unnamed";
     std::string description = "N/A";
     std::string uuid;

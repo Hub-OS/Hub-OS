@@ -64,19 +64,6 @@ struct MoveEvent {
   }
 };
 
-enum class ColorMode {
-  MULTIPLY = 0,
-  ADDITIVE
-};
-
-static sf::Color NoopCompositeColor(ColorMode mode) {
-  if (mode == ColorMode::ADDITIVE)
-    return sf::Color::Black;
-
-  // case ColorMode::MULTIPLY
-  return sf::Color::White;
-}
-
 struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
 };
@@ -93,7 +80,6 @@ private:
   ID_t ID{}; /*!< IDs are used for tagging during battle & to identify entities in scripting. */
   static long numOfIDs; /*!< Internal counter to identify the next entity with. */
   int alpha{ 255 }; /*!< Control the transparency of an entity. */
-  ColorMode colorMode{ ColorMode::MULTIPLY };
   Component::ID_t lastComponentID{}; /*!< Entities keep track of new components to run through scene injection later. */
   bool hasSpawned{ false }; /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
   float height{}; /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
@@ -468,18 +454,6 @@ public:
    */
   virtual const float GetHeight() const;
   virtual void SetHeight(const float height);
-
-  /**
-   * @brief Set color mode
-   * @param mode
-   */
-  void SetColorMode(ColorMode mode);
-
-  /**
-   * @brief Get color mode
-   * @return mode
-   */
-  ColorMode GetColorMode() const;
 
   /**
   * @brief Get the virtual key presses states for this entity

@@ -217,16 +217,6 @@ void Entity::SetHeight(const float height) {
   Entity::height = std::fabs(height);
 }
 
-void Entity::SetColorMode(ColorMode mode)
-{
-  colorMode = mode;
-}
-
-ColorMode Entity::GetColorMode() const
-{
-  return colorMode;
-}
-
 VirtualInputState& Entity::InputState()
 {
   return inputState;

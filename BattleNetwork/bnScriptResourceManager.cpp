@@ -26,6 +26,7 @@
 #include "bnDefenseVirusBody.h"
 #include "bnParticlePoof.h"
 #include "bnParticleImpact.h"
+#include "bnPlayerCustScene.h"
 
 #include "bindings/bnLuaLibrary.h"
 #include "bindings/bnScriptedArtifact.h"
@@ -379,6 +380,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "get_position", &SpriteProxyNode::getPosition,
     "get_color", &SpriteProxyNode::getColor,
     "set_color", &SpriteProxyNode::setColor,
+    "get_color_mode", &SpriteProxyNode::GetColorMode,
+    "set_color_mode", &SpriteProxyNode::SetColorMode,
     "unwrap", &SpriteProxyNode::getSprite,
     "enable_parent_shader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
@@ -1484,6 +1487,20 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "Local", Component::lifetimes::local,
     "Battlestep", Component::lifetimes::battlestep,
     "Scene", Component::lifetimes::ui
+  );
+
+  const auto& prog_blocks_record = state.new_enum("Blocks",
+    "White", PlayerCustScene::Piece::Types::white,
+    "Red", PlayerCustScene::Piece::Types::red,
+    "Green", PlayerCustScene::Piece::Types::green,
+    "Blue", PlayerCustScene::Piece::Types::blue,
+    "Pink", PlayerCustScene::Piece::Types::pink,
+    "Yellow", PlayerCustScene::Piece::Types::yellow
+  );
+
+  const auto& colormode_record = state.new_enum("ColorMode",
+    "Multiply", ColorMode::multiply,
+    "Additive", ColorMode::additive
   );
 
   state.set_function("drag",
