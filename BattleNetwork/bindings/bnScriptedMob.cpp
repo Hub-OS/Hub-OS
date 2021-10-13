@@ -107,7 +107,6 @@ ScriptedMob::ScriptedMob(sol::state& script) :
   MobFactory(), 
   script(script)
 {
-  script.script("package_requires_scripts()", sol::script_throw_on_error);
 }
 
 Mob* ScriptedMob::Build(std::shared_ptr<Field> field) {

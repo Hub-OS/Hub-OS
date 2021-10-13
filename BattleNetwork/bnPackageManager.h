@@ -3,6 +3,7 @@
 #include "bnLogger.h"
 #include "bnResourceHandle.h"
 #include "bnScriptResourceManager.h"
+#include "bnSolHelpers.h"
 #include "stx/result.h"
 #include "stx/tuple.h"
 #include "stx/zip_utils.h"
@@ -160,10 +161,22 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
     auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
     //  Run all "includes" first
-    state["package_requires_scripts"]();
+    auto includesResult = CallLuaFunction(state, "package_requires_scripts");
 
-    // run script on meta info object
-    state["package_init"](packageClass);
+    if (includesResult.is_error()) {
+      delete packageClass;
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + initResult.error_cstr();
+      return stx::error<bool>(msg);
+    }
+
+    // todo: use a ScopedWrapper
+    auto initResult = CallLuaFunction(state, "package_init", packageClass);
+
+    if (initResult.is_error()) {
+      delete packageClass;
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + initResult.error_cstr();
+      return stx::error<bool>(msg);
+    }
 
       // Assign Package ID to the state, now that it's been registered.
     state["_package_id"] = packageClass->GetPackageID();
