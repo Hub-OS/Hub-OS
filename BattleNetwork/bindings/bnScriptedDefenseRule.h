@@ -28,8 +28,8 @@ public:
   void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
 
   // configurable callback functions from Lua
-  std::function<Hit::Properties&(Hit::Properties&)> filterStatusesCallback;
-  std::function<void(DefenseFrameStateJudge&, Spell&, Character&)> canBlockCallback;
+  std::function<Hit::Properties&(Hit::Properties*)> filterStatusesCallback;
+  std::function<void(DefenseFrameStateJudge*, Spell*, Character*)> canBlockCallback;
 };
 
 #endif

@@ -1,6 +1,8 @@
 #pragma once
 #include <sol/sol.hpp>
 
+#include "../bnLogger.h"
+
 /**
  * @class dynamic_object
  * @brief allows sol representations of classes have dynamic properties
@@ -22,7 +24,8 @@ struct dynamic_object {
 
   sol::object dynamic_get(std::string key) {
     auto it = entries.find(key);
-    if (it == entries.cend()) {
+    if (it == entries.cend()) {        
+      Logger::Log( "Attempted to access '" + key + "'" );
       return sol::lua_nil;
     }
     return it->second;
