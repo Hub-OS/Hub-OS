@@ -50,7 +50,7 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
       return node.Unwrap()->HasTag(tag);
     },
     // can't be done yet, unless we're ok with only returning owned children in the search
-    // "find_child_nodes_with_tags", [](WeakWrapper<SpriteProxyNode>& node, std::initializer_list<std::string> tags) -> std::vector<WeakWrapper<SpriteProxyNode>> {
+    // "find_child_nodes_with_tags", [](WeakWrapper<SpriteProxyNode>& node, std::initializer_list<std::string> tags) {
     //   auto nodes = node.Unwrap->GetChildNodesWithTag(tag);
     //   std::vector<WeakWrapper<SpriteProxyNode>> result;
     //   result.reserve(nodes.size());
@@ -59,7 +59,7 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
     //     result.push_back(WeakWrapper(node));
     //   }
 
-    //   return result;
+    //   return sol::as_table(result);
     // },
     "get_position", [](WeakWrapper<SpriteProxyNode>& node) -> sf::Vector2f {
       return node.Unwrap()->getPosition();

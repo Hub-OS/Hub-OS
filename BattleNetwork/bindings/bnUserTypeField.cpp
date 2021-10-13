@@ -70,7 +70,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
     "find_characters", [] (
       WeakWrapper<Field>& field,
       sol::stack_object queryObject
-    ) -> std::vector<WeakWrapper<Character>> {
+    ) {
       sol::protected_function query = queryObject;
 
       auto results = field.Unwrap()->FindCharacters([query] (std::shared_ptr<Character> character) -> bool {
@@ -91,13 +91,13 @@ void DefineFieldUserType(sol::table& battle_namespace) {
         wrappedResults.push_back(WeakWrapper(character));
       }
 
-      return wrappedResults;
+      return sol::as_table(wrappedResults);
     },
     "find_nearest_characters", [] (
       WeakWrapper<Field>& field,
       const std::shared_ptr<Character> test,
       sol::stack_object queryObject
-    ) -> std::vector<WeakWrapper<Character>> {
+    ) {
       sol::protected_function query = queryObject;
 
       auto results = field.Unwrap()->FindNearestCharacters(test, [query] (std::shared_ptr<Character> character) -> bool {
@@ -118,15 +118,15 @@ void DefineFieldUserType(sol::table& battle_namespace) {
         wrappedResults.push_back(WeakWrapper(character));
       }
 
-      return wrappedResults;
+      return sol::as_table(wrappedResults);
     },
     "find_tiles", [] (
       WeakWrapper<Field>& field,
       sol::stack_object queryObject
-    ) -> std::vector<Battle::Tile*> {
+    ) {
       sol::protected_function query = queryObject;
 
-      return field.Unwrap()->FindTiles([query] (Battle::Tile* t) -> bool {
+      auto tiles = field.Unwrap()->FindTiles([query] (Battle::Tile* t) -> bool {
         auto result = CallLuaCallbackExpectingBool(query, t);
 
         if (result.is_error()) {
@@ -136,6 +136,8 @@ void DefineFieldUserType(sol::table& battle_namespace) {
 
         return result.value();
       });
+
+      return sol::as_table(tiles);
     },
     "notify_on_delete", [] (
       WeakWrapper<Field>& field,

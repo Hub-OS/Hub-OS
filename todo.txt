@@ -14,3 +14,5 @@ document:
 
  improve CardAction::Step
  temporary solution could be to use a ScopedWrapper, better solution is to use shared_ptr and WeakWrapper
+
+ provide sol::meta_function::equal_to

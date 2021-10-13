@@ -45,7 +45,7 @@ void DefineTileUserType(sol::state& state) {
     "find_characters", [] (
       Battle::Tile& tile,
       sol::stack_object queryObject
-    ) -> std::vector<WeakWrapper<Character>> {
+    ) {
       sol::protected_function query = queryObject;
 
       auto results = tile.FindCharacters([query] (std::shared_ptr<Character> character) -> bool {
@@ -66,7 +66,7 @@ void DefineTileUserType(sol::state& state) {
         wrappedResults.push_back(WeakWrapper(character));
       }
 
-      return wrappedResults;
+      return sol::as_table(wrappedResults);
     },
     "highlight", &Battle::Tile::RequestHighlight,
     "get_tile", &Battle::Tile::GetTile,
