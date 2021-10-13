@@ -27,7 +27,7 @@ private:
 
   Font font;
   mutable Text text;
-  double charsPerSecond; /**< default is 10 cps */
+  double charsPerSecond; /**< default is 40 cps */
   double progress; /**< Total elapsed time */
   int areaWidth, areaHeight;
   std::string message;

@@ -29,7 +29,7 @@ private:
   bool isOpening{}; /*!< Opening textbox flag */
   bool isClosing{}; /*!< Closing textbox flag */
   double totalTime{}; /*!< elapsed */
-  double textSpeed{2.0}; /*!< desired speed of text */
+  double textSpeed{1.0}; /*!< desired speed of text */
   mutable std::vector<sf::Sprite> mugshots; /*!< List of current and next mugshots */
   std::vector<Animation> anims; /*!< List of animation paths for the mugshots */
   std::vector<MessageInterface*> messages; /*!< Lists of current and next messages */

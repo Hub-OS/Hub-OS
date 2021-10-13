@@ -8,6 +8,8 @@
     funiforms = copy.funiforms;
     iuniforms = copy.iuniforms;
     vfuniforms = copy.vfuniforms;
+    duniforms = copy.duniforms;
+    farruniforms = copy.farruniforms;
     coluniforms = copy.coluniforms;
     texuniforms = copy.texuniforms;
     textypeuniforms = copy.textypeuniforms;
@@ -43,6 +45,8 @@
 
     iiter iIter = iuniforms.begin();
     fiter fIter = funiforms.begin();
+    diter dIter = duniforms.begin();
+    farriter farrIter = farruniforms.begin();
     vfiter vfIter = vfuniforms.begin();
     coliter colIter = coluniforms.begin();
     texiter texIter = texuniforms.begin();
@@ -54,6 +58,14 @@
 
     for (; fIter != funiforms.end(); fIter++) {
       ref->setUniform(fIter->first, fIter->second);
+    }
+
+    for (; dIter != duniforms.end(); dIter++) {
+      ref->setUniform(dIter->first, static_cast<float>(dIter->second));
+    }
+
+    for (; farrIter != farruniforms.end(); farrIter++) {
+      ref->setUniformArray(farrIter->first, farrIter->second.data(), farrIter->second.size());
     }
 
     for (; vfIter != vfuniforms.end(); vfIter++) {
@@ -89,6 +101,8 @@
 
     iiter iIter = iuniforms.begin();
     fiter fIter = funiforms.begin();
+    diter dIter = duniforms.begin();
+    farriter farrIter = farruniforms.begin();
     vfiter vfIter = vfuniforms.begin();
     coliter colIter = coluniforms.begin();
     texiter texIter = texuniforms.begin();
@@ -100,6 +114,16 @@
 
     for (; fIter != funiforms.end(); fIter++) {
       ref->setUniform(fIter->first, 0.f);
+    }
+
+    for (; dIter != duniforms.end(); dIter++) {
+      ref->setUniform(dIter->first, 0.f);
+    }
+
+    for (; farrIter != farruniforms.end(); farrIter++) {
+      std::vector<float> dummyVec;
+      dummyVec.reserve(farrIter->second.size());
+      ref->setUniformArray(farrIter->first, dummyVec.data(), farrIter->second.size());
     }
 
     for (; vfIter != vfuniforms.end(); vfIter++) {
@@ -120,6 +144,8 @@
 
     iuniforms.clear();
     funiforms.clear();
+    duniforms.clear();
+    farruniforms.clear();
     vfuniforms.clear();
     coluniforms.clear();
     texuniforms.clear();
@@ -128,6 +154,16 @@
 
   void SmartShader::SetUniform(std::string uniform, float fvalue) {
     funiforms[uniform] = fvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, double dvalue)
+  {
+    duniforms[uniform] = dvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, const std::vector<float>& farr)
+  {
+    farruniforms[uniform] = farr;
   }
 
   void SmartShader::SetUniform(std::string uniform, int ivalue) {

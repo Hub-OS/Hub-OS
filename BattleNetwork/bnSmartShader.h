@@ -18,6 +18,7 @@ private:
   std::map<std::string, int>    iuniforms; /*!< lookup of integer uniforms */
   std::map<std::string, float>  funiforms; /*!< lookup of float uniforms */
   std::map<std::string, double> duniforms; /*!< lookup of double uniforms */
+  std::map<std::string, std::vector<float>> farruniforms; /*! lookup of float arrays */
   std::map<std::string, sf::Vector2f> vfuniforms; /*!< lookup of vector2f uniforms */
   std::map<std::string, sf::Color> coluniforms; /*!< lookup of sf::Color uniforms */
   std::map<std::string, sf::Texture> texuniforms; /*! lookups of texture uniforms */
@@ -25,6 +26,8 @@ private:
 
   typedef std::map<std::string, int>::iterator iiter; 
   typedef std::map<std::string, float>::iterator fiter;
+  typedef std::map<std::string, double>::iterator diter;
+  typedef std::map<std::string, std::vector<float>>::iterator farriter;
   typedef std::map<std::string, sf::Vector2f>::iterator vfiter;
   typedef std::map<std::string, sf::Color>::iterator coliter;
   typedef std::map<std::string, sf::Texture>::iterator texiter;
@@ -80,6 +83,20 @@ public:
    * @param fvalue
    */
   void SetUniform(std::string uniform, float fvalue);
+
+  /**
+   * @brief Set a double uniform value
+   * @param uniform the name of the uniform
+   * @param dvalue
+   */
+  void SetUniform(std::string uniform, double dvalue);
+
+  /**
+   * @brief Set a float array uniform value
+   * @param uniform the name of the uniform
+   * @param farrvalue
+   */
+  void SetUniform(std::string uniform, const std::vector<float>& farr);
   
   /**
    * @brief Set an integer uniform value

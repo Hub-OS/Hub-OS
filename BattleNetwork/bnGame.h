@@ -1,6 +1,7 @@
 #pragma once
 #include <Swoosh/ActivityController.h>
 #include <atomic>
+#include <thread>
 
 #include "bnTaskGroup.h"
 #include "bnDrawWindow.h"
@@ -45,6 +46,7 @@ using swoosh::ActivityController;
 class PlayerPackageManager;
 class CardPackageManager;
 class MobPackageManager;
+class BlockPackageManager;
 class LuaLibraryPackageManager;
 
 enum class Endianness : short {
@@ -58,6 +60,7 @@ private:
   double mouseAlpha{};
   bool showScreenBars{};
   bool frameByFrame{}, isDebug{};
+  bool singlethreaded{ false };
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
@@ -70,13 +73,15 @@ private:
   CardPackageManager* cardPackageManager;
   PlayerPackageManager* playerPackageManager;
   MobPackageManager* mobPackageManager;
+  BlockPackageManager* blockPackageManager;
   LuaLibraryPackageManager* luaLibraryPackageManager;
-
+  
   DrawWindow& window;
   ConfigReader reader;
   ConfigSettings configSettings;
 
   // mouse stuff
+  std::shared_ptr<sf::Texture> mouseTexture;
   SpriteProxyNode mouse;
   sf::Vector2f lastMousepos;
   Animation mouseAnimation;
@@ -98,6 +103,13 @@ private:
 
   Endianness endian{ Endianness::big };
   std::atomic<int> progress{ 0 };
+  std::mutex windowMutex;
+  std::thread renderThread;
+
+  void UpdateMouse(double dt);
+  void ProcessFrame();
+  void RunSingleThreaded();
+  bool NextFrame();
 
 public:
   Game(DrawWindow& window);
@@ -123,6 +135,7 @@ public:
   CardPackageManager& CardPackageManager();
   PlayerPackageManager& PlayerPackageManager();
   MobPackageManager& MobPackageManager();
+  BlockPackageManager& BlockPackageManager();
   LuaLibraryPackageManager& GetLuaLibraryPackageManager();
   ConfigSettings& ConfigSettings();
 
@@ -146,6 +159,11 @@ public:
     }
 
     return T{};
+  }
+
+  // todo: remove when this is public from swoosh
+  const swoosh::Activity* getCurrentActivity() const {
+    return ActivityController::getCurrentActivity();
   }
 private:
   DrawWindow::WindowMode windowMode{};
@@ -179,6 +197,20 @@ private:
   * battle.
   */
   void RunCardInit(std::atomic<int>* progress);
+
+  /*! \brief This thread initializes all prog blocks
+  *
+  * Uses an std::atomic<int> pointer
+  * to keep track of all successfully loaded
+  * objects.
+  *
+  * After the media resources are loaded we
+  * safely load all registered prog blocks.
+  * Loaded prog blocks will show up in available cust
+  * screen and can be chosen to play with in
+  * battle.
+  */
+  void RunBlocksInit(std::atomic<int>* progress);
 
   /*! \brief This thread tnitializes all mobs
   *

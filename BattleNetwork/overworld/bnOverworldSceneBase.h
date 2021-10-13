@@ -55,7 +55,6 @@ namespace Overworld {
     bool cameraLocked{ false };
     bool teleportedOut{ false }; /*!< We may return to this area*/
     bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
-    bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
 
     Camera camera;
     CameraController cameraController; /*!< camera in scene follows player */
@@ -238,6 +237,7 @@ namespace Overworld {
     void GotoPVP();
     void GotoMail();
     void GotoKeyItems();
+    // void GotoPlayerCust();
 
     //
     // Getters
@@ -259,7 +259,7 @@ namespace Overworld {
     std::optional<CardFolder*> GetSelectedFolder();
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
-    bool IsInFocus() const;
+    bool IsInFocus();
     virtual std::string GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);
     virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);

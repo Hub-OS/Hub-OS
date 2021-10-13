@@ -89,15 +89,12 @@ void Player::OnUpdate(double _elapsed) {
   if (!this->IsInForm()) {
     if (emotion == Emotion::angry) {
       setColor(sf::Color(155, 0, 0, getColor().a));
-      SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
     }
     else if (emotion == Emotion::full_synchro) {
       setColor(sf::Color(55, 55, 155, getColor().a));
-      SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
     }
     else if (emotion == Emotion::evil) {
       setColor(sf::Color(155, 100, 255, getColor().a));
-      SetShader(Shaders().GetShader(ShaderType::COLORIZE));
     }
   }
 
@@ -351,9 +348,11 @@ void Player::ActivateFormAt(int index)
 
   // Find nodes that do not have tags, those are newly added
   for (auto& node : GetChildNodes()) {
-    if (!node->HasTag(Player::BASE_NODE_TAG)) {
-      // Tag them
+    // if untagged and not the charge effect...
+    if (!node->HasTag(Player::BASE_NODE_TAG) && node != &chargeEffect) {
+      // Tag it as a form node
       node->AddTags({ Player::FORM_NODE_TAG });
+      node->EnableParentShader(true);
     }
   }
 }
@@ -433,6 +432,9 @@ void Player::CreateMoveAnimHash()
 void Player::TagBaseNodes()
 {
   for (auto& node : GetChildNodes()) {
+    // skip charge node, it is a special effect and not a part of our character
+    if (node == &chargeEffect) continue;
+
     node->AddTags({ Player::BASE_NODE_TAG });
   }
 }

@@ -14,25 +14,18 @@
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-
 #include "bnWind.h"
-#include "bnPaletteSwap.h"
 
 Megaman::Megaman() : Player() {
-  auto basePallete = Textures().LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
-  PaletteSwap* pswap = CreateComponent<PaletteSwap>(this);
-  pswap->SetBase(basePallete);
+  basePalette = Textures().LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
+  StoreBasePalette(basePalette);
+  SetPalette(basePalette);
 
-  SetHealth(200);
+  SetHealth(1000);
   SetName("Megaman");
   SetHeight(48.f);
 
   std::string path = "resources/navis/megaman/navi_megaman_atlas.png";
-
-  if (!ResourceHandle::Shaders().IsEnabled()) {
-    path = "resources/navis/megaman/navi_megaman_atlas.og.png";
-  }
-
   setTexture(Textures().LoadTextureFromFile(path));
 
   AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");
@@ -43,7 +36,6 @@ Megaman::Megaman() : Player() {
 
   // First sprite on the screen should be default player stance
   SetAnimation("PLAYER_IDLE");
-  pswap->Apply();
 }
 
 Megaman::~Megaman()
@@ -53,6 +45,14 @@ Megaman::~Megaman()
 void Megaman::OnUpdate(double elapsed)
 {
   Player::OnUpdate(elapsed);
+}
+
+void Megaman::OnSpawn(Battle::Tile& start)
+{
+  if (ResourceHandle::Shaders().IsEnabled()) return;
+
+  std::string path = "resources/navis/megaman/navi_megaman_atlas.og.png";
+  setTexture(Textures().LoadTextureFromFile(path));
 }
 
 CardAction* Megaman::OnExecuteBusterAction()
@@ -94,8 +94,7 @@ ForteCross::~ForteCross()
 
 void ForteCross::OnActivate(Player& player)
 {
-  ResourceHandle handle;
-  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/forte_cross.png");
+  auto cross = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/forte_cross.png");
 
   prevTexture = player.getTexture();
   player.setTexture(cross);
@@ -108,19 +107,12 @@ void ForteCross::OnActivate(Player& player)
     animComponent->SetAnimation(prevState);
   }
 
-  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
-    pswap->Enable(false);
-  }
-
+  player.SetPalette(nullptr);
   player.SetAirShoe(true);
 }
 
 void ForteCross::OnDeactivate(Player& player)
 {
-  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
-    pswap->Enable(true);
-  }
-
   if (auto* animComponent = player.GetFirstComponent<AnimationComponent>()) {
     animComponent->SetPath(prevAnimation);
     animComponent->Reload();
@@ -128,6 +120,7 @@ void ForteCross::OnDeactivate(Player& player)
   }
 
   player.setTexture(prevTexture);
+  player.SetPalette(player.GetBasePalette());
 }
 
 void ForteCross::OnUpdate(double elapsed, Player& player)
@@ -182,15 +175,13 @@ TenguCross::~TenguCross()
 
 void TenguCross::OnActivate(Player& player)
 {
-  ResourceHandle handle;
-
   overlayAnimation = Animation("resources/navis/megaman/forms/tengu_cross.animation");
   overlayAnimation.Load();
 
   fanAnimation = overlayAnimation;
   fanAnimation.SetAnimation("FAN");
 
-  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
+  auto cross = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -198,10 +189,8 @@ void TenguCross::OnActivate(Player& player)
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
   
-  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
-    pswap->LoadPaletteTexture("resources/navis/megaman/forms/tengu.palette.png");
-    pswap->Enable(true);
-  }
+  auto palette = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/tengu.palette.png");
+  player.SetPalette(palette);
 
   player.AddNode(overlay);
   player.SetAirShoe(true);
@@ -216,9 +205,7 @@ void TenguCross::OnActivate(Player& player)
 void TenguCross::OnDeactivate(Player & player)
 {
   player.RemoveNode(overlay);
-  auto pswap = player.GetFirstComponent<PaletteSwap>();
-  pswap->Revert();
-
+  player.SetPalette(player.GetBasePalette());
   parentAnim->RemoveFromSyncList(sync);
 }
 
@@ -278,25 +265,19 @@ HeatCross::~HeatCross()
 
 void HeatCross::OnActivate(Player& player)
 {
-  ResourceHandle handle;
-
   overlayAnimation = Animation("resources/navis/megaman/forms/heat_cross.animation");
   overlayAnimation.Load();
-  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/heat_cross.png");
+  auto cross = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/heat_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
-  
-  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
-    pswap->LoadPaletteTexture("resources/navis/megaman/forms/heat.palette.png");
-    pswap->Enable(true);
-  }
 
+  auto palette = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/heat.palette.png");
+  player.SetPalette(palette);
   player.SetElement(Element::fire);
-
   player.AddNode(overlay);
 
   sync.anim = &overlayAnimation;
@@ -310,12 +291,8 @@ void HeatCross::OnDeactivate(Player & player)
 {
   player.RemoveNode(overlay);
   player.SetElement(Element::none);
-
+  player.SetPalette(player.GetBasePalette());
   parentAnim->RemoveFromSyncList(sync);
-
-  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
-    pswap->Revert();
-  }
 }
 
 void HeatCross::OnUpdate(double elapsed, Player& player)
@@ -373,11 +350,9 @@ TomahawkCross::~TomahawkCross()
 
 void TomahawkCross::OnActivate(Player& player)
 {
-  ResourceHandle handle;
-
   overlayAnimation = Animation("resources/navis/megaman/forms/hawk_cross.animation");
   overlayAnimation.Load();
-  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/hawk_cross.png");
+  auto cross = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/hawk_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -385,10 +360,8 @@ void TomahawkCross::OnActivate(Player& player)
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
 
-  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
-    pswap->LoadPaletteTexture("resources/navis/megaman/forms/hawk.palette.png");
-    pswap->Enable(true);
-  }
+  auto palette = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/hawk.palette.png");
+  player.SetPalette(palette);
 
   player.AddNode(overlay);
 
@@ -405,13 +378,10 @@ void TomahawkCross::OnActivate(Player& player)
 void TomahawkCross::OnDeactivate(Player & player)
 {
   player.RemoveNode(overlay);
-  auto pswap = player.GetFirstComponent<PaletteSwap>();
-  pswap->Revert();
-
-  parentAnim->RemoveFromSyncList(sync);
   player.SetAirShoe(false);
-
   player.RemoveDefenseRule(statusGuard);
+  player.SetPalette(player.GetBasePalette());
+  parentAnim->RemoveFromSyncList(sync);
 }
 
 void TomahawkCross::OnUpdate(double elapsed, Player& player)
@@ -476,10 +446,8 @@ void ElecCross::OnActivate(Player& player)
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
   
-  if (auto pswap = player.GetFirstComponent<PaletteSwap>()) {
-    pswap->LoadPaletteTexture("resources/navis/megaman/forms/elec.palette.png");
-    pswap->Enable(true);
-  }
+  auto palette = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/elec.palette.png");
+  player.SetPalette(palette);
 
   player.SetElement(Element::elec);
   player.AddNode(overlay);
@@ -494,11 +462,8 @@ void ElecCross::OnActivate(Player& player)
 void ElecCross::OnDeactivate(Player& player)
 {
   player.RemoveNode(overlay);
-  auto pswap = player.GetFirstComponent<PaletteSwap>();
-  pswap->Revert();
-
   player.SetElement(Element::none);
-
+  player.SetPalette(player.GetBasePalette());
   parentAnim->RemoveFromSyncList(sync);
 }
 
@@ -554,7 +519,6 @@ frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
 // class TenguCross
 TenguCross::SpecialAction::SpecialAction(Character* actor) : 
   CardAction(actor, "PLAYER_IDLE") {
-
   OverrideAnimationFrames({ FRAMES });
 }
 

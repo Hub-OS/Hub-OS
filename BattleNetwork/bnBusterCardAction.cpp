@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnBuster.h"
+#include "bnPlayer.h"
 #include "bnField.h"
 
 #define NODE_PATH "resources/spells/buster_shoot.png"
@@ -29,13 +30,16 @@ BusterCardAction::BusterCardAction(Character* actor, bool charged, int damage) :
   flareAnim.SetAnimation("DEFAULT");
 
   busterAttachment = &AddAttachment(actor, "buster", *buster).UseAnimation(busterAnim);
+  
 
   this->SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
 
 void BusterCardAction::OnExecute(Character* user) {
+  buster->setColor(user->getColor());
   buster->EnableParentShader(true);
-
+  buster->AddTags({Player::BASE_NODE_TAG});
+ 
   // On shoot frame, drop projectile
   auto onFire = [this, user]() -> void {
     Team team = user->GetTeam();

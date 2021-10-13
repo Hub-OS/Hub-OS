@@ -22,6 +22,7 @@ private:
   mutable SmartShader shader; /*!< Sprites can have shaders attached to them */
   sf::Sprite* sprite{ nullptr }; /*!< Reference to sprite behind proxy */
   std::shared_ptr<sf::Texture> textureRef; /*!< We want to intelligently keep track so the cache doesn't eat it*/
+
 public:
   /**
     * \brief Construct new SpriteSceneNode
@@ -145,7 +146,7 @@ public:
    * SpriteSceneNodes can have child nodes in front of them. To achieve this,
    * we sort by Z and if this sprite node is to be drawn, drawns the proxy sprite
    */
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states = sf::RenderStates::Default) const override;
 
   // For scripting bindings, this function makes it easier to return an underlining type shared by all super classes
   SpriteProxyNode& AsSpriteProxyNode();

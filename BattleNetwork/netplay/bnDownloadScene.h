@@ -33,32 +33,24 @@ struct DownloadSceneProps {
 
 class DownloadScene final : public Scene {
 private:
-  enum class TaskTypes : char {
-    trade_web_cards = 0,
-    trade_card_packages,
-    trade_player_package,
-    download_player_package,
-    download_web_cards
-  } type;
-
   bool& downloadSuccess;
-  bool downloading_player_data{ false };
-  bool aborting{}, remoteSuccess{};
+  bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{};
+  bool webCardListRequested{}, playerPackageRequested{}, cardPackageRequested{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
   std::string playerHash;
   std::string& remotePlayerHash;
   std::vector<std::string> playerWebCardList, playerCardPackageList;
-  std::queue<TaskTypes> taskQueue;
-  std::map<std::string, bool> taskComplete;
-  std::map<std::string, std::string> cardsToDownload;
+  std::map<std::string, std::string> contentToDownload;
   Text label;
   sf::Sprite bg; // background
   sf::RenderTexture surface;
   sf::Texture lastScreen;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   swoosh::glsl::FastGaussianBlur blur{ 10 };
+
+  void RemoveFromDownloadList(const std::string& id);
 
   void SendHandshakeAck();
   bool ProcessTaskQueue();

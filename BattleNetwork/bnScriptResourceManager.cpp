@@ -10,6 +10,7 @@
 #include "bnCardPackageManager.h"
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
+#include "bnBlockPackageManager.h"
 #include "bnLuaLibraryPackageManager.h"
 
 #include "bnAnimator.h"
@@ -37,6 +38,7 @@
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnScriptedComponent.h"
+#include "bindings/bnScriptedBlock.h"
 
 // Useful prefabs to use in scripts...
 #include "bnExplosion.h"
@@ -1154,7 +1156,14 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "declare_package_id", &LuaLibraryMeta::SetPackageID
   );
 
-  
+  const auto& blockmeta_table = battle_namespace.new_usertype<BlockMeta>("BlockMeta",
+    "set_description", &BlockMeta::SetDescription,
+    "set_name", &BlockMeta::SetName,
+    "set_color", &BlockMeta::SetColor,
+    "set_shape", &BlockMeta::SetShape,
+    "as_program", &BlockMeta::AsProgram,
+    "declare_package_id", &BlockMeta::SetPackageID
+  );
 
   const auto& scriptedmob_table = battle_namespace.new_usertype<ScriptedMob>("Mob",
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
@@ -1620,8 +1629,8 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
 
-  auto load_result = lua->safe_script_file(entryPath, sol::script_pass_on_error);
-  auto pair = scriptTableHash.emplace(entryPath, LoadScriptResult{std::move(load_result), lua} );
+  auto load_result = lua->safe_script_file(entryPath.generic_string(), sol::script_pass_on_error);
+  auto pair = scriptTableHash.emplace(entryPath.generic_string(), LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }
 
@@ -1695,6 +1704,7 @@ const std::string& ScriptResourceManager::FetchSharedLibraryPath(const std::stri
 const std::string& ScriptResourceManager::CharacterToModpath(const std::string& fqn) {
   return characterFQN[fqn];
 }
+
 void ScriptResourceManager::SeedRand(unsigned int seed)
 {
   randSeed = seed;

@@ -49,7 +49,7 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   greenBg.setScale(2.f, 2.f);
 
   this->gridBG = new GridBackground();
-  gridBG->setColor(sf::Color(0)); // hide until it is ready
+  gridBG->SetColor(sf::Color(0)); // hide until it is ready
 
   auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(selectedNaviId);
   clientPreview.setTexture(playerPkg.GetPreviewTexture());
@@ -242,7 +242,6 @@ void MatchMakingScene::RecieveHandshakeSignal()
   // only acknowledge handshakes if you have recieved the cnnect signal
   if (!remoteIsReady || !clientIsReady) return;
 
-  copyScreen = true;
   this->handshakeComplete = true;
   this->SendHandshakeSignal();
 }
@@ -405,7 +404,7 @@ void MatchMakingScene::Reset()
   }
 
   greenBg.setColor(sf::Color::White);
-  gridBG->setColor(sf::Color(0)); // hide until it is ready
+  gridBG->SetColor(sf::Color(0)); // hide until it is ready
 
   clientPreview.setPosition(0, 0);
   remotePreview.setPosition(0, 0);
@@ -427,8 +426,8 @@ void MatchMakingScene::onResume() {
     using namespace std::placeholders;
     packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
     packetProcessor->SetKickCallback([] {});
-
     packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
+    Reset();
     break;
   case ReturningScene::DownloadScene:
     if (!canProceedToBattle) {
@@ -555,7 +554,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
         flashCooldown -= elapsed;
 
         // make bg appear
-        gridBG->setColor(sf::Color(255, 255, 255, 255));
+        gridBG->SetColor(sf::Color(255, 255, 255, 255));
 
         if (flashCooldown > 20) {
           delta = swoosh::ease::linear(sequenceTimer - 1.0, 2.0, 1.0);
@@ -705,11 +704,5 @@ void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
     sf::RectangleShape screen(size);
     screen.setFillColor(sf::Color::White);
     surface.draw(screen);
-  }
-
-  if (copyScreen) {
-    surface.display();
-    screen = surface.getTexture();
-    copyScreen = false;
   }
 }
