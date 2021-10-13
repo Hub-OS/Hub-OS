@@ -1,13 +1,11 @@
 #include "bnStarfishMob.h"
 #include "bnMettaur.h"
 #include "bnField.h"
-#include "bnWebClientMananger.h"
 #include "bnCardUUIDs.h"
 #include "bnFadeInState.h"
 
 Mob* StarfishMob::Build(Field* field) {
   Mob* mob = new Mob(field);
-  mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::YoYo_M)));
 
   Starfish::Rank rank = rand() % 4 == 0 ? Starfish::Rank::SP : Starfish::Rank::_1;
   auto spawner = mob->CreateSpawner<Starfish>(rank);

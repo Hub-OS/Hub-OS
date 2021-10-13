@@ -6,7 +6,7 @@
 #include <Swoosh/Ease.h>
 
 #include "bnGame.h"
-#include "bnWebClientMananger.h"
+#include "bnGameSession.h"
 #include "bnPlayerPackageManager.h"
 #include "bnCardPackageManager.h"
 #include "bnMobPackageManager.h"
@@ -64,6 +64,9 @@ Game::Game(DrawWindow& window) :
   mobPackageManager = new class MobPackageManager;
   blockPackageManager = new class BlockPackageManager;
 
+  // Game session object needs to be available to every scene
+  session = new GameSession;
+
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
   unsigned int win_x = static_cast<unsigned int>(window.GetView().getSize().x);
@@ -81,6 +84,7 @@ Game::~Game() {
     renderThread.join();
   }
 
+  delete session;
   delete cardPackageManager;
   delete playerPackageManager;
   delete mobPackageManager;
@@ -110,8 +114,6 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
 TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 {
   SeedRand((unsigned int)time(0));
-  SetCommandLineValues(values);
-
   isDebug = CommandLineValue<bool>("debug");
   singlethreaded = CommandLineValue<bool>("singlethreaded");
 
@@ -230,7 +232,7 @@ void Game::ProcessFrame()
   float scope_elapsed = 0.0f;
   window.GetRenderWindow()->setActive(true);
 
-  while (window.Running()) {
+  while (!quitting) {
     clock.restart();
 
     double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
@@ -260,7 +262,7 @@ void Game::RunSingleThreaded()
   float scope_elapsed = 0.0f;
   window.GetRenderWindow()->setActive(true);
 
-  while (window.Running()) {
+  while (window.Running() && !quitting) {
     clock.restart();
     this->SeedRand(time(0));
 
@@ -287,8 +289,15 @@ void Game::RunSingleThreaded()
       window.Display(); // display to screen
     }
 
+    quitting = getStackSize() == 0;
+
     scope_elapsed = clock.getElapsedTime().asSeconds();
   }
+}
+
+void Game::Exit()
+{
+  quitting = true;
 }
 
 void Game::Run()
@@ -298,7 +307,7 @@ void Game::Run()
     return;
   }  
 
-  while (window.Running()) {
+  while (window.Running() && !quitting) {
     this->SeedRand(time(0));
 
     // Poll window events
@@ -306,6 +315,8 @@ void Game::Run()
 
     // unused images need to be free'd 
     textureManager.HandleExpiredTextureCache();
+
+    quitting = getStackSize() == 0;
   }
 }
 
@@ -343,49 +354,6 @@ void Game::LoadConfigSettings()
 {
   // try to read the config file
   configSettings = reader.GetConfigSettings();
-
-  if (configSettings.IsOK()) {
-    const WebServerInfo info = configSettings.GetWebServerInfo();
-    const std::string version = info.version;
-    const std::string URL = info.URL;
-    const int port = info.port;
-    const std::string username = info.user;
-    const std::string password = info.password;
-
-    if (URL.empty() || version.empty() || username.empty() || password.empty()) {
-      Logger::Logf("One or more web server fields are empty in config.");
-    }
-    else {
-
-      Logger::Logf("Connecting to web server @ %s:%i (Version %s)", URL.data(), port, version.data());
-
-      WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
-      auto result = WEBCLIENT.SendLoginCommand(username, password);
-
-      Logger::Logf("waiting for server...");
-
-      int timeoutCount = 0;
-      constexpr int MAX_TIMEOUT = 5;
-
-      while (!is_ready(result) && timeoutCount < MAX_TIMEOUT) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        Logger::Logf("timeout %i", ++timeoutCount);
-      }
-
-      if (timeoutCount == MAX_TIMEOUT) {
-        Logger::Logf("Could not communicate with the server. Aborting automatic login.");
-      }
-      else if (is_ready(result)) {
-        bool success = result.get();
-        if (success) {
-          Logger::Logf("Logged in! Welcome %s!", username.data());
-        }
-        else {
-          Logger::Logf("Could not authenticate. Aborting automatic login");
-        }
-      }
-    }
-  }
 }
 
 void Game::UpdateConfigSettings(const struct ConfigSettings& new_settings)
@@ -426,6 +394,11 @@ const unsigned int Game::GetRandSeed() const
   return randSeed;
 }
 
+bool Game::IsSingleThreaded() const
+{
+  return singlethreaded;
+}
+
 CardPackageManager& Game::CardPackageManager()
 {
   return *cardPackageManager;
@@ -449,6 +422,11 @@ BlockPackageManager& Game::BlockPackageManager()
 ConfigSettings& Game::ConfigSettings()
 {
   return configSettings;
+}
+
+GameSession& Game::Session()
+{
+  return *session;
 }
 
 void Game::RunNaviInit(std::atomic<int>* progress) {

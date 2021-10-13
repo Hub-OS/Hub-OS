@@ -19,7 +19,6 @@
 #include "../../bnInputManager.h"
 #include "../../bnDrawWindow.h"
 #include "../../bnSceneNode.h"
-#include "../../bnWebClientMananger.h"
 
 struct DownloadSceneProps {
   bool& downloadSuccess;
@@ -53,7 +52,6 @@ private:
   void RemoveFromDownloadList(const std::string& id);
 
   void SendHandshakeAck();
-  bool ProcessTaskQueue();
   bool AllTasksComplete();
   void SendPing(); //!< keep connections alive while clients download data
 
@@ -61,17 +59,14 @@ private:
   void SendDownloadComplete(bool success);
 
   // Initiate trades
-  void TradeWebCardList(const std::vector<std::string>& uuids);
   void TradePlayerPackageData(const std::string& hash);
   void TradeCardPackageData(const std::vector<std::string>& hashes);
 
   // Initiate requests
-  void RequestWebCardList(const std::vector<std::string>& uuids);
   void RequestPlayerPackageData(const std::string& hash);
   void RequestCardPackageList(const std::vector<std::string>& hash);
 
   // Handle recieve 
-  void RecieveTradeWebCardList(const Poco::Buffer<char>& buffer);
   void RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer);
   void RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer);
   void RecieveRequestWebCardList(const Poco::Buffer<char>& buffer);
@@ -80,7 +75,6 @@ private:
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
 
   // Downloads
-  void DownloadCardList(const Poco::Buffer<char>& buffer);
   void DownloadPlayerData(const Poco::Buffer<char>& buffer);
 
   template<typename PackageManagerType, typename ScriptedDataType>
@@ -89,7 +83,6 @@ private:
   // Serializers
   std::vector<std::string> DeserializeListOfStrings(const Poco::Buffer<char>& buffer);
   Poco::Buffer<char> SerializeListOfStrings(NetPlaySignals header, const std::vector<std::string>& list);
-  Poco::Buffer<char> SerializeCards(const std::vector<std::string>& cardList);
 
   template<typename PackageManagerType>
   Poco::Buffer<char> SerializePackageData(const std::string& hash, NetPlaySignals header, PackageManagerType& pm);

@@ -3,6 +3,7 @@
 #include <Swoosh/Game.h>
 
 #include "bnPlayerCustScene.h"
+#include "bnGameSession.h"
 #include "bnBlockPackageManager.h"
 #include "bnSelectNaviScene.h"
 #include "Segues/Checkerboard.h"
@@ -441,7 +442,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
       prevChosenId = currentChosenId;
       naviSelectionId = currentChosenId;
-      WEBCLIENT.SetKey("SelectedNavi", naviSelectionId);
+      getController().Session().SetKey("SelectedNavi", naviSelectionId);
     }
     else if(owTextbox.IsClosed()) {
       owTextbox.EnqueueQuestion("Open Navi Cust?", [this](bool result) {

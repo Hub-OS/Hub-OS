@@ -1,5 +1,5 @@
 #include "bnPlayerCustScene.h"
-#include "bnWebClientMananger.h"
+#include "bnGameSession.h"
 #include "netplay/bnBufferWriter.h"
 #include "netplay/bnBufferReader.h"
 #include "stx/string.h"
@@ -410,7 +410,7 @@ bool PlayerCustScene::isCompileFinished()
 
 void PlayerCustScene::loadFromSave()
 {
-  std::string value = WEBCLIENT.GetValue(playerUUID + ":" + "blocks");
+  std::string value = getController().Session().GetValue(playerUUID + ":" + "blocks");
   if (value.empty()) return;
 
   Poco::Buffer<char> buffer{ value.c_str(), value.size() };
@@ -454,13 +454,10 @@ void PlayerCustScene::completeAndSave()
     writer.Write(buffer, piece->finalRot);
   }
 
-  WEBCLIENT.SetKey(playerUUID + ":" + "blocks", std::string(buffer.begin(), buffer.size()));
-  if (WEBCLIENT.IsLoggedIn()) {
-    WEBCLIENT.SaveSession("profile.bin");
-  }
-  else {
-    WEBCLIENT.SaveSession("guest.bin");
-  }
+  auto& session = getController().Session();
+  
+  session.SetKey(playerUUID + ":" + "blocks", std::string(buffer.begin(), buffer.size()));
+  session.SaveSession("profile.bin");
 }
 
 sf::Vector2f PlayerCustScene::blockToScreen(size_t y, size_t x)

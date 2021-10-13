@@ -6,7 +6,6 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
 
-#include "bnWebClientMananger.h"
 #include "bnFolderEditScene.h"
 #include "Segues/BlackWashFade.h"
 #include "bnCardLibrary.h"
@@ -1009,52 +1008,50 @@ std::shared_ptr<sf::Texture> FolderEditScene::GetIconForCard(const std::string& 
 {
   auto& packageManager = getController().CardPackageManager();
 
-  if (packageManager.HasPackage(uuid)) {
-    auto& meta = packageManager.FindPackageByID(uuid);
-    return meta.GetIconTexture();
-  }
+  if (!packageManager.HasPackage(uuid))
+    return nullptr;
 
-  return WEBCLIENT.GetIconForCard(uuid);
+  auto& meta = packageManager.FindPackageByID(uuid);
+  return meta.GetIconTexture();
 }
 std::shared_ptr<sf::Texture> FolderEditScene::GetPreviewForCard(const std::string& uuid)
 {
   auto& packageManager = getController().CardPackageManager();
 
-  if (packageManager.HasPackage(uuid)) {
-    auto& meta = packageManager.FindPackageByID(uuid);
-    return meta.GetPreviewTexture();
-  }
+  if (!packageManager.HasPackage(uuid))
+    return nullptr;
 
-  return WEBCLIENT.GetImageForCard(uuid);
+  auto& meta = packageManager.FindPackageByID(uuid);
+  return meta.GetPreviewTexture();
 }
 
 #ifdef __ANDROID__
 void FolderEditScene::StartupTouchControls() {
-    /* Android touch areas*/
-    TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
 
-    rightSide.enableExtendedRelease(true);
+  rightSide.enableExtendedRelease(true);
 
-    rightSide.onTouch([]() {
-        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
-        });
+  rightSide.onTouch([]() {
+    INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
 
-    rightSide.onRelease([this](sf::Vector2i delta) {
-        if (!releasedB) {
-            INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
-        }
-        });
+  rightSide.onRelease([this](sf::Vector2i delta) {
+    if (!releasedB) {
+      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
+    }
+  });
 
-    rightSide.onDrag([this](sf::Vector2i delta) {
-        if (delta.x < -25 && !releasedB) {
-            INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
-            INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
-            releasedB = true;
-        }
-        });
+  rightSide.onDrag([this](sf::Vector2i delta) {
+    if (delta.x < -25 && !releasedB) {
+      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
+      INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
+      releasedB = true;
+    }
+  });
 }
 
 void FolderEditScene::ShutdownTouchControls() {
-    TouchArea::free();
+  TouchArea::free();
 }
 #endif

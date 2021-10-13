@@ -794,6 +794,13 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
     current = nullptr;
   }
 
+  // NOTE: swoosh quirk
+  if (getController().getStackSize() == 1) {
+    getController().pop();
+    quitting = true;
+    return;
+  }
+
   // Depending on the mode, use Swoosh's 
   // activity controller to fadeout with the right
   // visual appearance

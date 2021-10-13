@@ -1,5 +1,4 @@
 #include "bnBattleResults.h"
-#include "bnWebClientMananger.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -10,7 +9,7 @@
 #include <algorithm>
 #include <random>
 
-BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob) :
+BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob, CardPackageManager& packageManager) :
   cardMatrixIndex(0), 
   isRevealed(false),
   playSoundOnce(false),
@@ -42,7 +41,6 @@ BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob)
 
   // Get reward based on score
   item = mob->GetRankedReward(score);
-
   resultsSprite = sf::Sprite(*Textures().GetTexture(TextureType::BATTLE_RESULTS_FRAME));
   resultsSprite.setScale(2.f, 2.f);
   resultsSprite.setPosition(-resultsSprite.getTextureRect().width*2.f, 20.f);
@@ -56,7 +54,7 @@ BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob)
 
 
   if (item) {
-    rewardCard = sf::Sprite(*WEBCLIENT.GetImageForCard(item->GetUUID()));
+    rewardCard = sf::Sprite(*packageManager.FindPackageByID(item->GetUUID()).GetPreviewTexture());
 
     rewardCard.setTextureRect(sf::IntRect(0,0,56,48));
 

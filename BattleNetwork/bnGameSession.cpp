@@ -1,3 +1,14 @@
+#include "bnGameSession.h"
+
+const bool GameSession::LoadSession(const std::string& inpath)
+{
+  return false;
+}
+
+void GameSession::SaveSession(const std::string& outpath)
+{
+}
+
 void GameSession::SetKey(const std::string& key, const std::string& value)
 {
   auto iter = keys.find(key);
@@ -11,7 +22,7 @@ void GameSession::SetKey(const std::string& key, const std::string& value)
 }
 
 void GameSession::SetNick(const std::string& nickname) {
-    this->nickname = nickname;
+  this->nickname = nickname;
 }
 
 const std::string GameSession::GetValue(const std::string& key)
@@ -26,7 +37,7 @@ const std::string GameSession::GetValue(const std::string& key)
   return res;
 }
 
-const std::string WebClientManager::GetNick() const
+const std::string GameSession::GetNick() const
 {
   return nickname;
 }

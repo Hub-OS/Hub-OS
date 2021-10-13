@@ -18,6 +18,7 @@
 #include "bnOverworldTileBehaviors.h"
 #include "bnOverworldObjectType.h"
 #include "bnOverworldPollingPacketProcessor.h"
+#include "../bnGameSession.h"
 #include "../bnMath.h"
 #include "../bnMobPackageManager.h"
 #include "../bnPlayerPackageManager.h"
@@ -1002,7 +1003,7 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientAssetType assetType, uin
 
 void Overworld::OnlineArea::sendLoginSignal()
 {
-  std::string username = WEBCLIENT.GetUserName();
+  std::string username = getController().Session().GetNick();
 
   if (username.empty()) {
     username = "Anon";

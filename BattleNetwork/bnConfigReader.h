@@ -13,8 +13,6 @@ User="JohnDoe"
 Key="ABCDE"
 [Audio()]
 Play="1"
-[Net]
-uPNP="0"
 [Video]
 Filter="0"
 Size="1"

@@ -47,6 +47,7 @@ class PlayerPackageManager;
 class CardPackageManager;
 class MobPackageManager;
 class BlockPackageManager;
+class GameSession;
 
 enum class Endianness : short {
   big = 0,
@@ -58,7 +59,7 @@ private:
   unsigned int randSeed{};
   double mouseAlpha{};
   bool showScreenBars{};
-  bool frameByFrame{}, isDebug{};
+  bool frameByFrame{}, isDebug{}, quitting{ false };
   bool singlethreaded{ false };
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
@@ -73,6 +74,8 @@ private:
   PlayerPackageManager* playerPackageManager;
   MobPackageManager* mobPackageManager;
   BlockPackageManager* blockPackageManager;
+
+  GameSession* session;
 
   DrawWindow& window;
   ConfigReader reader;
@@ -120,6 +123,7 @@ public:
    */
   TaskGroup Boot(const cxxopts::ParseResult& values);
 
+  void Exit();
   void Run();
   void SetWindowMode(DrawWindow::WindowMode mode);
   void Postprocess(ShaderType shaderType);
@@ -130,11 +134,13 @@ public:
   void UpdateConfigSettings(const struct ConfigSettings& new_settings);
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
+  bool IsSingleThreaded() const;
   CardPackageManager& CardPackageManager();
   PlayerPackageManager& PlayerPackageManager();
   MobPackageManager& MobPackageManager();
   BlockPackageManager& BlockPackageManager();
   ConfigSettings& ConfigSettings();
+  GameSession& Session();
 
   /**
    * @brief Store parsed command line values into the engine for easy access

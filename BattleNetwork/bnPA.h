@@ -17,7 +17,6 @@
 #include <string>
 #include <vector>
 #include "bnCard.h"
-#include "bnWebClientMananger.h"
 
 class PA
 {
@@ -29,7 +28,7 @@ private:
   }; /*!< Name of card and code */
 
 public: 
-  typedef std::vector<StepType> Steps;         /*!< List of steps for a PA*/
+  typedef std::vector<StepType> Steps; /*!< List of steps for a PA*/
 
 private:
   /*! \class PAData
@@ -38,7 +37,7 @@ private:
     std::string name; /*!< name of PA*/
     std::string uuid; /*!< UUID of PA*/
     std::string action{ "IDLE" }; /*!< Action this PA invokes*/
-    int damage{ 0 };  /*!< damage of the PA*/
+    unsigned damage{ 0 };  /*!< damage of the PA*/
     Element primaryElement{ Element::none };/*!< element of the PA*/
     Element secondElement{ Element::none }; /*!< Secondary (hidden) element of PA*/
     bool canBoost{ false }; /*!< true if damage > 0*/
@@ -87,7 +86,5 @@ public:
    * This is deleted by the PA 
    */
   Battle::Card* GetAdvanceCard();
-
-  static PA ReadFromWebAccount(const WebAccounts::AccountState& account);
 };
 
