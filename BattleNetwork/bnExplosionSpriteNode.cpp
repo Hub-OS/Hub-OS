@@ -12,7 +12,6 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
   SpriteProxyNode(), animation(ANIM_PATH), parent(parent)
 {
   root = this;
-  this->parent->AddNode(this);
   SetLayer(-1000);
   numOfExplosions = _numOfExplosions;
   playbackSpeed = _playbackSpeed;
@@ -48,7 +47,8 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
     animation << Animator::On(8, [this, _numOfExplosions]() {
       auto parent = GetParent();
       if (parent) {
-        auto child = new ExplosionSpriteNode(*this);
+        auto child = std::make_shared<ExplosionSpriteNode>(*this);
+        parent->AddNode(child);
         child->EnableParentShader(false);
         chain.push_back(child);
       }
@@ -69,8 +69,6 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
   numOfExplosions = copy.numOfExplosions-1;
   playbackSpeed = copy.playbackSpeed;
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
-
-  parent->AddNode(this);
 
   animation.SetAnimation("EXPLODE");
   animation << [this]() {
@@ -96,7 +94,8 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
 
   if (numOfExplosions > 1) {
     animation << Animator::On(8, [this]() {
-      auto child = new ExplosionSpriteNode(*this);
+      auto child = std::make_shared<ExplosionSpriteNode>(*this);
+      parent->AddNode(child);
       child->EnableParentShader(false);
       root->chain.push_back(child);
     }, true);
@@ -170,14 +169,11 @@ const bool ExplosionSpriteNode::IsSequenceComplete() const
   return done;
 }
 
-std::vector<ExplosionSpriteNode*> ExplosionSpriteNode::GetChain()
+std::vector<std::shared_ptr<ExplosionSpriteNode>> ExplosionSpriteNode::GetChain()
 {
   return chain;
 }
 
 ExplosionSpriteNode::~ExplosionSpriteNode()
 {
-  for (auto node : chain) {
-    delete node;
-  }
 }

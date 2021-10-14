@@ -17,7 +17,7 @@
 
 Player::Player() :
   state(PLAYER_IDLE),
-  chargeEffect(this),
+  chargeEffect(std::make_shared<ChargeEffectSceneNode>(this)),
   AI<Player>(this),
   Character(Rank::_1),
   emotion{Emotion::normal}
@@ -28,10 +28,10 @@ Player::Player() :
   // Make sure the charge is in front of this node
   // Otherwise children scene nodes are drawn behind 
   // their parents
-  chargeEffect.SetLayer(-2);
-  AddNode(&chargeEffect);
-  chargeEffect.setPosition(0, -20.0f); // translate up -20
-  chargeEffect.EnableParentShader(false);
+  chargeEffect->SetLayer(-2);
+  AddNode(chargeEffect);
+  chargeEffect->setPosition(0, -20.0f); // translate up -20
+  chargeEffect->EnableParentShader(false);
 
   SetLayer(0);
   team = Team::red;
@@ -107,9 +107,9 @@ void Player::OnUpdate(double _elapsed) {
   }
 
   //Node updates
-  chargeEffect.Update(_elapsed);
+  chargeEffect->Update(_elapsed);
 
-  fullyCharged = chargeEffect.IsFullyCharged();
+  fullyCharged = chargeEffect->IsFullyCharged();
 }
 
 void Player::MakeActionable()
@@ -170,7 +170,7 @@ void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::Exec
 }
 
 void Player::OnDelete() {
-  chargeEffect.Hide();
+  chargeEffect->Hide();
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 
   // Cleanup child nodes
@@ -212,8 +212,8 @@ void Player::Charge(bool state)
     maxCharge = activeForm->CalculateChargeTime(GetChargeLevel());
   }
 
-  chargeEffect.SetMaxChargeTime(maxCharge);
-  chargeEffect.SetCharging(state);
+  chargeEffect->SetMaxChargeTime(maxCharge);
+  chargeEffect->SetCharging(state);
 }
 
 void Player::SetAttackLevel(unsigned lvl)
@@ -351,7 +351,7 @@ void Player::ActivateFormAt(int index)
   // Find nodes that do not have tags, those are newly added
   for (auto& node : GetChildNodes()) {
     // if untagged and not the charge effect...
-    if (!node->HasTag(Player::BASE_NODE_TAG) && node != &chargeEffect) {
+    if (!node->HasTag(Player::BASE_NODE_TAG) && node != chargeEffect) {
       // Tag it as a form node
       node->AddTags({ Player::FORM_NODE_TAG });
       node->EnableParentShader(true);
@@ -386,7 +386,7 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
 
 ChargeEffectSceneNode& Player::GetChargeComponent()
 {
-  return chargeEffect;
+  return *chargeEffect;
 }
 
 void Player::OverrideSpecialAbility(const std::function<std::shared_ptr<CardAction> ()>& func)
@@ -435,7 +435,7 @@ void Player::TagBaseNodes()
 {
   for (auto& node : GetChildNodes()) {
     // skip charge node, it is a special effect and not a part of our character
-    if (node == &chargeEffect) continue;
+    if (node == chargeEffect) continue;
 
     node->AddTags({ Player::BASE_NODE_TAG });
   }

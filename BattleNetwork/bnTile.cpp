@@ -63,11 +63,12 @@ namespace Battle {
 
     highlightMode = TileHighlight::none;
 
+    volcanoSprite = std::make_shared<SpriteProxyNode>();
     volcanoErupt = Animation("resources/tiles/volcano.animation");
 
     auto resetVolcanoThunk = [this](int seconds) {
       if (!isBattleOver) {
-        this->volcanoErupt.SetFrame(1, this->volcanoSprite.getSprite()); // start over
+        this->volcanoErupt.SetFrame(1, this->volcanoSprite->getSprite()); // start over
         volcanoEruptTimer = seconds;
         
         auto field = fieldWeak.lock();
@@ -77,7 +78,7 @@ namespace Battle {
         }
       }
       else {
-        RemoveNode(&volcanoSprite);
+        RemoveNode(volcanoSprite);
       }
     };
 
@@ -93,10 +94,10 @@ namespace Battle {
       resetVolcanoThunk(2);
     };
 
-    volcanoSprite.setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
-    volcanoSprite.SetLayer(-1); // in front of tile
+    volcanoSprite->setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
+    volcanoSprite->SetLayer(-1); // in front of tile
 
-    volcanoErupt.Refresh(volcanoSprite.getSprite());
+    volcanoErupt.Refresh(volcanoSprite->getSprite());
 
     // debugging, I'll make the tiles transparent
     // setColor(sf::Color(255, 255, 255, 100));
@@ -139,10 +140,10 @@ namespace Battle {
     volcanoErupt = other.volcanoErupt;
     volcanoEruptTimer = other.volcanoEruptTimer;
 
-    volcanoSprite.setTexture(other.volcanoSprite.getTexture());
-    volcanoSprite.SetLayer(-1); // in front of tile
+    volcanoSprite->setTexture(other.volcanoSprite->getTexture());
+    volcanoSprite->SetLayer(-1); // in front of tile
 
-    volcanoErupt.Refresh(volcanoSprite.getSprite());
+    volcanoErupt.Refresh(volcanoSprite->getSprite());
 
     return *this;
   }
@@ -276,10 +277,10 @@ namespace Battle {
     }
 
     if (_state == TileState::volcano) {
-      AddNode(&volcanoSprite);
+      AddNode(volcanoSprite);
     }
     else {
-      RemoveNode(&volcanoSprite);
+      RemoveNode(volcanoSprite);
     }
 
     state = _state;
@@ -486,11 +487,11 @@ namespace Battle {
       volcanoEruptTimer -= _elapsed;
 
       if (volcanoEruptTimer <= 0) {
-        volcanoErupt.Update(_elapsed, volcanoSprite.getSprite());
+        volcanoErupt.Update(_elapsed, volcanoSprite->getSprite());
       }
 
       // set the offset to be at center origin
-      volcanoSprite.setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
+      volcanoSprite->setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
     }
 
     // We need a copy because we WILL invalidate the iterator

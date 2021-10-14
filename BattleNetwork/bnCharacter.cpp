@@ -181,7 +181,13 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
   states.transform *= combinedTransform;
 
-  std::vector<SceneNode*> copies = childNodes;
+  std::vector<SceneNode*> copies;
+  copies.reserve(childNodes.size() + 1);
+
+  for (auto& child : childNodes) {
+    copies.push_back(child.get());
+  }
+
   copies.push_back((SceneNode*)this);
 
   std::sort(copies.begin(), copies.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });
@@ -207,7 +213,9 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
       SmartShader temp(smartShader);
       sf::Color tempColor = sf::Color::White;
       if (currNode->HasTag(Player::FORM_NODE_TAG)) {
-        if (asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode)) {
+        asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode);
+
+        if (asSpriteProxyNode) {
           smartShader.SetUniform("swapPalette", false);
           tempColor = asSpriteProxyNode->getColor();
           asSpriteProxyNode->setColor(sf::Color(0, 0, 0, getColor().a));

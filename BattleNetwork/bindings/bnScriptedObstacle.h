@@ -40,7 +40,7 @@ private:
   bool flip{ true };
   sf::Vector2f scriptedOffset{};
   float height{};
-  SpriteProxyNode* shadow{ nullptr };
+  std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
   std::shared_ptr<AnimationComponent> animComponent{ nullptr };
   std::shared_ptr<DefenseRule> obstacleBody{ nullptr };
   WeakWrapper<ScriptedObstacle> weakWrap;

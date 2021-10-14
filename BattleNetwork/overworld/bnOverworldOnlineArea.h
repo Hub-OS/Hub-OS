@@ -24,7 +24,7 @@ namespace Overworld {
     OnlinePlayer(std::string name) : actor(std::make_shared<Overworld::Actor>(name)) {}
     std::shared_ptr<Minimap::PlayerMarker> marker;
     std::shared_ptr<Overworld::Actor> actor;
-    Overworld::EmoteNode emoteNode;
+    std::shared_ptr<Overworld::EmoteNode> emoteNode;
     Overworld::TeleportController teleportController{};
     bool disconnecting{ false };
     Direction idleDirection;
@@ -41,7 +41,7 @@ namespace Overworld {
     struct AbstractUser {
       std::shared_ptr<Overworld::Actor> actor;
       std::shared_ptr<Minimap::PlayerMarker> marker;
-      Overworld::EmoteNode& emoteNode;
+      std::shared_ptr<Overworld::EmoteNode> emoteNode;
       Overworld::TeleportController& teleportController;
       ActorPropertyAnimator& propertyAnimator;
     };
@@ -68,7 +68,7 @@ namespace Overworld {
       Poco::Buffer<char> buffer{ 0 };
     };
 
-    Overworld::EmoteNode emoteNode;
+    std::shared_ptr<Overworld::EmoteNode> emoteNode;
     std::shared_ptr<sf::Texture> customEmotesTexture;
     std::string ticket; //!< How we are represented on the server
     std::shared_ptr<PacketProcessor> packetProcessor;

@@ -14,18 +14,6 @@ BubbleTrap::BubbleTrap(std::weak_ptr<Entity> owner) :
   ResourceHandle(), InputHandle(),
   SpriteProxyNode(), Component(owner)
 {
-  auto asCharacter = GetOwnerAs<Character>();
-
-  if (!asCharacter || asCharacter->IsDeleted()) {
-    this->Eject();
-  }
-  else {
-    // Bubbles have to pop when hit
-    defense = std::make_shared<DefenseBubbleWrap>();
-    asCharacter->AddDefenseRule(defense);
-    asCharacter->AddNode(this);
-  }
-
   SetLayer(1);
   setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE_TRAP));
   bubble = getSprite();
@@ -40,7 +28,17 @@ BubbleTrap::BubbleTrap(std::weak_ptr<Entity> owner) :
 }
 
 void BubbleTrap::Inject(BattleSceneBase& bs) {
+  auto asCharacter = GetOwnerAs<Character>();
 
+  if (!asCharacter || asCharacter->IsDeleted()) {
+    this->Eject();
+  }
+  else {
+    // Bubbles have to pop when hit
+    defense = std::make_shared<DefenseBubbleWrap>();
+    asCharacter->AddDefenseRule(defense);
+    asCharacter->AddNode(shared_from_base<BubbleTrap>());
+  }
 }
 
 void BubbleTrap::OnUpdate(double _elapsed) {

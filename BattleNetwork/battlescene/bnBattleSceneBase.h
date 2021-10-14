@@ -110,7 +110,7 @@ private:
   BattleResultsFunc onEndCallback;
 
   // counter stuff
-  SpriteProxyNode counterReveal;
+  std::shared_ptr<SpriteProxyNode> counterReveal;
   Animation counterRevealAnim;
   std::shared_ptr<CounterCombatRule> counterCombatRule{ nullptr };
 

@@ -7,7 +7,7 @@ ScriptedObstacle::ScriptedObstacle(Team _team) :
   Obstacle(_team) {
   setScale(2.f, 2.f);
 
-  shadow = new SpriteProxyNode();
+  shadow = std::make_shared<SpriteProxyNode>();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->Hide(); // default: hidden
@@ -29,7 +29,6 @@ void ScriptedObstacle::Init() {
 }
 
 ScriptedObstacle::~ScriptedObstacle() {
-  delete shadow;
 }
 
 bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)

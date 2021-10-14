@@ -62,7 +62,7 @@ private:
   class TextItem : public MenuItem {
   protected:
     inline static const std::function<void(TextItem&)>& defaultSecondaryCallback = [](auto&) {};
-    Text label;
+    std::shared_ptr<Text> label;
     sf::Color color;
   public:
     TextItem(
@@ -84,7 +84,7 @@ private:
 
   class BindingItem : public TextItem {
   private:
-    Text value;
+    std::shared_ptr<Text> valueText;
     sf::Color valueColor;
   public:
     BindingItem(
@@ -100,7 +100,7 @@ private:
 
   class NumberItem : public TextItem, ResourceHandle {
   private:
-    SpriteProxyNode icon;
+    std::shared_ptr<SpriteProxyNode> icon;
     Animation animator;
     int value{}, maxValue{}, minValue{};
     std::function<void(int, NumberItem&)> refreshCallback;

@@ -20,7 +20,6 @@ SpriteProxyNode::SpriteProxyNode(SpriteProxyNode&& rhs) noexcept
 {
   std::swap(allocatedSprite, rhs.allocatedSprite);
   std::swap(childNodes, rhs.childNodes);
-  std::swap(ownedChildren, rhs.ownedChildren);
   std::swap(layer, rhs.layer);
   std::swap(parent, rhs.parent);
   std::swap(shader, rhs.shader);
@@ -131,7 +130,13 @@ void SpriteProxyNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
     states.shader = nullptr;
   }
 
-  std::vector<SceneNode*> copies = childNodes;
+  std::vector<SceneNode*> copies;
+  copies.reserve(childNodes.size() + 1);
+
+  for (auto& child : childNodes) {
+    copies.push_back(child.get());
+  }
+
   copies.push_back((SceneNode*)this);
 
   std::sort(copies.begin(), copies.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });

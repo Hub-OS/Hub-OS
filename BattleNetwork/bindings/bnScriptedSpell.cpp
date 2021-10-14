@@ -6,7 +6,7 @@
 ScriptedSpell::ScriptedSpell(Team team) : Spell(team) {
   setScale(2.f, 2.f);
 
-  shadow = new SpriteProxyNode();
+  shadow = std::make_shared<SpriteProxyNode>();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->Hide(); // default: hidden
@@ -21,7 +21,6 @@ void ScriptedSpell::Init() {
 }
 
 ScriptedSpell::~ScriptedSpell() {
-  delete shadow;
 }
 
 bool ScriptedSpell::CanMoveTo(Battle::Tile * next)

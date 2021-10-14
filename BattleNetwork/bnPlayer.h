@@ -167,7 +167,7 @@ protected:
   bool playerControllerSlide{};
   bool fullyCharged{}; //!< Per-frame value of the charge
   std::shared_ptr<AnimationComponent> animationComponent;
-  ChargeEffectSceneNode chargeEffect; /*!< Handles charge effect */
+  std::shared_ptr<ChargeEffectSceneNode> chargeEffect; /*!< Handles charge effect */
 
   std::vector<PlayerFormMeta*> forms;
   PlayerForm* activeForm{ nullptr };

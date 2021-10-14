@@ -20,7 +20,7 @@ CardAction::CardAction(std::weak_ptr<Character> actor, const std::string& animat
       }
 
       for (auto& [nodeName, node] : attachments) {
-        actor->AddNode(node.spriteProxy.get());
+        actor->AddNode(node.spriteProxy);
         node.AttachAllPendingNodes();
       }
 
@@ -127,7 +127,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       }
 
       for (auto& [nodeName, node] : attachments) {
-        actor->AddNode(node.spriteProxy.get());
+        actor->AddNode(node.spriteProxy);
         node.AttachAllPendingNodes();
       }
 
@@ -205,7 +205,7 @@ CardAction::Attachment& CardAction::AddAttachment(const std::string& point) {
   auto iter = attachments.insert(std::make_pair(point, Attachment{ anim, point }));
 
   if (started) {
-    actor->AddNode(iter->second.spriteProxy.get());
+    actor->AddNode(iter->second.spriteProxy);
 
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;
@@ -358,7 +358,7 @@ void CardAction::Attachment::SetScale(const sf::Vector2f& scale)
 void CardAction::Attachment::AttachAllPendingNodes()
 {
   for (auto& [nodeName, node] : attachments) {
-    this->spriteProxy->AddNode(node.spriteProxy.get());
+    this->spriteProxy->AddNode(node.spriteProxy);
   }
 
   started = true;
@@ -373,7 +373,7 @@ CardAction::Attachment& CardAction::Attachment::AddAttachment(const std::string&
   auto iter = attachments.insert(std::make_pair(point, Attachment(animation, point)));
 
   if (started) {
-    this->spriteProxy->AddNode(iter->second.spriteProxy.get());
+    this->spriteProxy->AddNode(iter->second.spriteProxy);
 
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;

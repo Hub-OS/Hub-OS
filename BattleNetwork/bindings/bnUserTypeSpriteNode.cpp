@@ -49,18 +49,17 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
     "has_tags", [](WeakWrapper<SpriteProxyNode>& node, const std::string& tag) -> bool{
       return node.Unwrap()->HasTag(tag);
     },
-    // can't be done yet, unless we're ok with only returning owned children in the search
-    // "find_child_nodes_with_tags", [](WeakWrapper<SpriteProxyNode>& node, std::initializer_list<std::string> tags) {
-    //   auto nodes = node.Unwrap->GetChildNodesWithTag(tag);
-    //   std::vector<WeakWrapper<SpriteProxyNode>> result;
-    //   result.reserve(nodes.size());
+    "find_child_nodes_with_tags", [](WeakWrapper<SpriteProxyNode>& node, std::initializer_list<std::string> tags) {
+      auto nodes = node.Unwrap()->GetChildNodesWithTag(tags);
+      std::vector<WeakWrapper<SceneNode>> result;
+      result.reserve(nodes.size());
 
-    //   for (auto node : nodes) {
-    //     result.push_back(WeakWrapper(node));
-    //   }
+      for (auto node : nodes) {
+        result.push_back(WeakWrapper(node));
+      }
 
-    //   return sol::as_table(result);
-    // },
+      return sol::as_table(result);
+    },
     "get_position", [](WeakWrapper<SpriteProxyNode>& node) -> sf::Vector2f {
       return node.Unwrap()->getPosition();
     },

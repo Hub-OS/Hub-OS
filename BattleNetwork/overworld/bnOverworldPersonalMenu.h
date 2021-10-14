@@ -50,13 +50,13 @@ namespace Overworld {
     mutable Text infoText; //!< Text obj used for all other info
     mutable Text time; //!< Text obj displaying the time both inside and outside of the widget
     swoosh::Timer easeInTimer; //!< Timer used for animations
-    SpriteProxyNode banner;
-    SpriteProxyNode symbol;
-    SpriteProxyNode icon;
-    SpriteProxyNode exit;
-    SpriteProxyNode infoBox;
-    SpriteProxyNode selectTextSpr;
-    SpriteProxyNode placeTextSpr;
+    std::shared_ptr<SpriteProxyNode> banner;
+    std::shared_ptr<SpriteProxyNode> symbol;
+    std::shared_ptr<SpriteProxyNode> icon;
+    std::shared_ptr<SpriteProxyNode> exit;
+    std::shared_ptr<SpriteProxyNode> infoBox;
+    std::shared_ptr<SpriteProxyNode> selectTextSpr;
+    std::shared_ptr<SpriteProxyNode> placeTextSpr;
     OptionsList optionsList;
     std::vector<std::shared_ptr<SpriteProxyNode>> options;
     std::vector<std::shared_ptr<SpriteProxyNode>> optionIcons;

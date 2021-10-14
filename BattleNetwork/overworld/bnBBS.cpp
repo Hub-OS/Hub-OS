@@ -39,8 +39,6 @@ BBS::BBS(
   const std::function<void(const std::string&)>& onSelect,
   const std::function<void()>& onClose
 ) :
-  topicText(topic, Font::Style::thick),
-  topicShadow(topic, Font::Style::thick),
   onSelect(onSelect),
   onClose(onClose)
 {
@@ -48,36 +46,44 @@ BBS::BBS(
   newAnimation << "FLICKER" << Animator::Mode::Loop;
   newNode.setTexture(Textures().LoadTextureFromFile("resources/ui/new.png"));
 
-  shadows.setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_shadows.png"));
-  AddNode(&shadows);
+  shadows = std::make_shared<SpriteProxyNode>();
+  shadows->setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_shadows.png"));
+  AddNode(shadows);
 
-  frame.setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_frame.png"));
-  frame.setPosition(2, 18);
-  frame.SetLayer(-1);
-  shadows.AddNode(&frame);
+  frame = std::make_shared<SpriteProxyNode>();
+  frame->setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_frame.png"));
+  frame->setPosition(2, 18);
+  frame->SetLayer(-1);
+  shadows->AddNode(frame);
 
-  postbg.setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_post_bg.png"));
-  postbg.setPosition(3, 3);
-  postbg.SetLayer(-2);
-  frame.AddNode(&postbg);
+  postbg = std::make_shared<SpriteProxyNode>();
+  postbg->setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_post_bg.png"));
+  postbg->setPosition(3, 3);
+  postbg->SetLayer(-2);
+  frame->AddNode(postbg);
 
-  scrollbarThumb.setTexture(Textures().LoadTextureFromFile("resources/ui/scrollbar.png"));
-  scrollbarThumb.setOrigin(3, 4);
-  scrollbarThumb.setPosition(SCROLLBAR_X, SCROLLBAR_Y);
-  scrollbarThumb.SetLayer(-2);
-  frame.AddNode(&scrollbarThumb);
+  scrollbarThumb = std::make_shared<SpriteProxyNode>();
+  scrollbarThumb->setTexture(Textures().LoadTextureFromFile("resources/ui/scrollbar.png"));
+  scrollbarThumb->setOrigin(3, 4);
+  scrollbarThumb->setPosition(SCROLLBAR_X, SCROLLBAR_Y);
+  scrollbarThumb->SetLayer(-2);
+  frame->AddNode(scrollbarThumb);
 
   auto cursorTarget = GetCursorTarget(selectedIndex - topIndex);
-  cursor.setPosition(cursorTarget);
-  cursor.SetTarget(cursorTarget);
-  cursor.SetLayer(-3);
-  postbg.AddNode(&cursor);
+  cursor = std::make_shared<VerticalCursor>();
+  cursor->setPosition(cursorTarget);
+  cursor->SetTarget(cursorTarget);
+  cursor->SetLayer(-3);
+  postbg->AddNode(cursor);
 
-  topicText.SetColor(sf::Color::White);
-  topicText.setPosition(8, 3);
-  topicShadow.setPosition(9, 4);
-  AddNode(&topicShadow);
-  AddNode(&topicText);
+  topicShadow = std::make_shared<Text>(topic, Font::Style::thick);
+  topicShadow->setPosition(9, 4);
+  AddNode(topicShadow);
+
+  topicText = std::make_shared<Text>(topic, Font::Style::thick);
+  topicText->SetColor(sf::Color::White);
+  topicText->setPosition(8, 3);
+  AddNode(topicText);
 
   SetTopic(topic);
   SetColor(color);
@@ -88,10 +94,10 @@ void BBS::SetTopic(const std::string& topic) {
 }
 
 void BBS::SetColor(sf::Color color) {
-  shadows.setColor(color);
-  frame.setColor(lerp(sf::Color::White, color, .025f));
-  postbg.setColor(lerp(sf::Color::White, color, .5f));
-  topicShadow.SetColor(lerp(sf::Color::Black, color, .7f));
+  shadows->setColor(color);
+  frame->setColor(lerp(sf::Color::White, color, .025f));
+  postbg->setColor(lerp(sf::Color::White, color, .5f));
+  topicShadow->SetColor(lerp(sf::Color::Black, color, .7f));
 }
 
 void BBS::SetLastPageCallback(const std::function<void()>& callback) {
@@ -107,7 +113,7 @@ void BBS::PrependPosts(const std::vector<BBS::Post>& newPosts) {
     topIndex += newPosts.size();
   }
 
-  scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+  scrollbarThumb->setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
 }
 
 void BBS::PrependPosts(const std::string& id, const std::vector<BBS::Post>& newPosts) {
@@ -124,7 +130,7 @@ void BBS::PrependPosts(const std::string& id, const std::vector<BBS::Post>& newP
       topIndex += newPosts.size();
     }
 
-    scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+    scrollbarThumb->setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
   }
 }
 
@@ -151,7 +157,7 @@ void BBS::AppendPosts(const std::string& id, const std::vector<BBS::Post>& newPo
       topIndex += newPosts.size();
     }
 
-    scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+    scrollbarThumb->setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
   }
   else {
     reachedEnd = false;
@@ -182,7 +188,7 @@ void BBS::RemovePost(const std::string& id) {
         topIndex -= 1;
       }
 
-      scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+      scrollbarThumb->setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
     }
   }
 }
@@ -267,7 +273,7 @@ void BBS::HandleInput(InputManager& input) {
     cooldown = nextCooldown;
     nextCooldown = SCROLL_COOLDOWN;
 
-    scrollbarThumb.setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
+    scrollbarThumb->setPosition(SCROLLBAR_X, CalcScrollbarThumbY(posts.size(), topIndex));
   }
 
   if (!reachedEnd && selectedIndex + PAGE_SIZE >= posts.size()) {
@@ -281,8 +287,8 @@ void BBS::Update(float elapsed) {
     cooldown -= elapsed;
   }
 
-  cursor.SetTarget(GetCursorTarget(selectedIndex - topIndex));
-  cursor.Update(elapsed);
+  cursor->SetTarget(GetCursorTarget(selectedIndex - topIndex));
+  cursor->Update(elapsed);
   newAnimation.Update(elapsed, newNode.getSprite());
 }
 
@@ -292,7 +298,7 @@ void BBS::draw(sf::RenderTarget& surface, sf::RenderStates states) const {
   SceneNode::draw(surface, states);
 
   // calculate positions
-  auto postBgPos = postbg.getPosition() + frame.getPosition();
+  auto postBgPos = postbg->getPosition() + frame->getPosition();
 
   auto unreadLeft = postBgPos.x + 14;
   auto titleLeft = postBgPos.x + 34;

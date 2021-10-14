@@ -90,10 +90,11 @@ Overworld::OnlineArea::OnlineArea(
   auto player = GetPlayer();
   // move the emote above the player's head
   float emoteY = -player->getSprite().getOrigin().y - 10;
-  emoteNode.setPosition(0, emoteY);
-  emoteNode.SetLayer(-100);
-  emoteNode.setScale(0.5f, 0.5f);
-  player->AddNode(&emoteNode);
+  emoteNode = std::make_shared<Overworld::EmoteNode>();
+  emoteNode->setPosition(0, emoteY);
+  emoteNode->SetLayer(-100);
+  emoteNode->setScale(0.5f, 0.5f);
+  player->AddNode(emoteNode);
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -265,7 +266,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
     auto& actor = onlinePlayer.actor;
 
     onlinePlayer.teleportController.Update(elapsed);
-    onlinePlayer.emoteNode.Update(elapsed);
+    onlinePlayer.emoteNode->Update(elapsed);
 
     onlinePlayer.propertyAnimator.Update(*actor, elapsed);
 
@@ -335,7 +336,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   TileBehaviors::UpdateActor(*this, *player, propertyAnimator);
 
   propertyAnimator.Update(*player, elapsed);
-  emoteNode.Update(elapsed);
+  emoteNode->Update(elapsed);
 
   if (serverLockedInput || propertyAnimator.IsAnimatingPosition()) {
     LockInput();
@@ -357,7 +358,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
 
     // move the emote above the player's head
     float emoteY = -GetPlayer()->getSprite().getOrigin().y - 10;
-    emoteNode.setPosition(0, emoteY);
+    emoteNode->setPosition(0, emoteY);
   }
 
   if (!IsInputLocked()) {
@@ -1473,11 +1474,11 @@ void Overworld::OnlineArea::receiveCustomEmotesPathSignal(BufferReader& reader, 
   auto path = reader.ReadString<uint16_t>(buffer);
 
   customEmotesTexture = serverAssetManager.GetTexture(path);
-  emoteNode.LoadCustomEmotes(customEmotesTexture);
+  emoteNode->LoadCustomEmotes(customEmotesTexture);
 
   for (auto& pair : onlinePlayers) {
     auto& otherEmoteNode = pair.second.emoteNode;
-    otherEmoteNode.LoadCustomEmotes(customEmotesTexture);
+    otherEmoteNode->LoadCustomEmotes(customEmotesTexture);
   }
 }
 
@@ -2365,10 +2366,11 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   }
 
   auto& emoteNode = onlinePlayer.emoteNode;
+  emoteNode = std::make_shared<Overworld::EmoteNode>();
   float emoteY = -actor->getSprite().getOrigin().y - 10;
-  emoteNode.setPosition(0, emoteY);
-  emoteNode.setScale(0.5f, 0.5f);
-  emoteNode.LoadCustomEmotes(customEmotesTexture);
+  emoteNode->setPosition(0, emoteY);
+  emoteNode->setScale(0.5f, 0.5f);
+  emoteNode->LoadCustomEmotes(customEmotesTexture);
 
   auto& teleportController = onlinePlayer.teleportController;
 
@@ -2378,7 +2380,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     // add nodes to the scene base
     teleportController.EnableSound(false);
 
-    actor->AddNode(&emoteNode);
+    actor->AddNode(emoteNode);
     actor->SetSolid(solid);
     actor->CollideWithMap(false);
     actor->SetCollisionRadius(6);
@@ -2556,8 +2558,8 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
 
-  float emoteY = -actor->getSprite().getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
-  emoteNode.setPosition(0, emoteY);
+  float emoteY = -actor->getSprite().getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
+  emoteNode->setPosition(0, emoteY);
 }
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2576,10 +2578,10 @@ void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const 
   auto& emoteNode = abstractUser.emoteNode;
 
   if (custom) {
-    emoteNode.CustomEmote(emote);
+    emoteNode->CustomEmote(emote);
   }
   else {
-    emoteNode.Emote((Emotes)emote);
+    emoteNode->Emote((Emotes)emote);
   }
 }
 

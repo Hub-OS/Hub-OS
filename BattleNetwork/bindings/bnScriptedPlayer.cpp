@@ -8,7 +8,7 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   script(script),
   Player()
 {
-  chargeEffect.setPosition(0, -30.0f);
+  chargeEffect->setPosition(0, -30.0f);
 
 
   SetLayer(0);
@@ -32,12 +32,12 @@ void ScriptedPlayer::Init() {
 
 void ScriptedPlayer::SetChargePosition(const float x, const float y)
 {
-  chargeEffect.setPosition({ x,y });
+  chargeEffect->setPosition({ x,y });
 }
 
 void ScriptedPlayer::SetFullyChargeColor(const sf::Color& color)
 {
-  chargeEffect.SetFullyChargedColor(color);
+  chargeEffect->SetFullyChargedColor(color);
 }
 
 void ScriptedPlayer::SetHeight(const float height)

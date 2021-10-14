@@ -102,11 +102,11 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   CardActionUseListener::Subscribe(*cardUI);
 
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
-  cardCustGUI.AddNode(healthUI.get());
+  cardCustGUI.AddNode(healthUI);
 
   // Player Emotion
   this->emotionUI = player->CreateComponent<PlayerEmotionUI>(player);
-  cardCustGUI.AddNode(emotionUI.get());
+  cardCustGUI.AddNode(emotionUI);
 
   emotionUI->Subscribe(cardCustGUI);
 
@@ -117,9 +117,10 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   counterRevealAnim = Animation("resources/navis/counter_reveal.animation");
   counterRevealAnim << "DEFAULT" << Animator::Mode::Loop;
 
-  counterReveal.setTexture(LOAD_TEXTURE(MISC_COUNTER_REVEAL), true);
-  counterReveal.EnableParentShader(false);
-  counterReveal.SetLayer(-100);
+  counterReveal = std::make_shared<SpriteProxyNode>();
+  counterReveal->setTexture(LOAD_TEXTURE(MISC_COUNTER_REVEAL), true);
+  counterReveal->EnableParentShader(false);
+  counterReveal->SetLayer(-100);
 
   counterCombatRule = std::make_shared<CounterCombatRule>(this);
 
@@ -225,8 +226,8 @@ void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
 
       // node positions are relative to the parent node's origin
       auto bounds = player->getLocalBounds();
-      counterReveal.setPosition(0, -bounds.height / 4.0f);
-      player->AddNode(&counterReveal);
+      counterReveal->setPosition(0, -bounds.height / 4.0f);
+      player->AddNode(counterReveal);
 
       cardUI->SetMultiplier(2);
 
@@ -334,7 +335,7 @@ void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
 {
   if (&subject == player.get()) {
     if (field->DoesRevealCounterFrames()) {
-      player->RemoveNode(&counterReveal);
+      player->RemoveNode(counterReveal);
       player->RemoveDefenseRule(counterCombatRule);
       player->SetEmotion(Emotion::normal);
       field->RevealCounterFrames(false);
@@ -431,7 +432,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
     backdropShader->setUniform("opacity", (float)backdropOpacity);
   }
 
-  counterRevealAnim.Update((float)elapsed, counterReveal.getSprite());
+  counterRevealAnim.Update((float)elapsed, counterReveal->getSprite());
   comboInfoTimer.update(sf::seconds(static_cast<float>(elapsed)));
   multiDeleteTimer.update(sf::seconds(static_cast<float>(elapsed)));
   battleTimer.update(sf::seconds(static_cast<float>(elapsed)));

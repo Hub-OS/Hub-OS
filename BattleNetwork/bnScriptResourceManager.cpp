@@ -31,6 +31,7 @@
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnWeakWrapper.h"
 #include "bindings/bnUserTypeAnimation.h"
+#include "bindings/bnUserTypeSceneNode.h"
 #include "bindings/bnUserTypeSpriteNode.h"
 #include "bindings/bnUserTypeField.h"
 #include "bindings/bnUserTypeTile.h"
@@ -266,6 +267,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineFieldUserType(battle_namespace);
   DefineTileUserType(state);
   DefineAnimationUserType(state, engine_namespace);
+  DefineSceneNodeUserType(engine_namespace);
   DefineSpriteNodeUserType(engine_namespace);
   DefineBasicCharacterUserType(battle_namespace);
   DefineScriptedCharacterUserType(battle_namespace);

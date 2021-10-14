@@ -25,7 +25,7 @@ template<typename Any>
 class ExplodeState : public AIState<Any>
 {
 protected:
-  ExplosionSpriteNode* explosion; /*!< The root explosion object */
+  std::shared_ptr<ExplosionSpriteNode> explosion; /*!< The root explosion object */
   sf::Shader* whiteout; /*!< Flash the dying entity white */
   double elapsed;
   int numOfExplosions; /*!< Number of explosions to spawn */
@@ -60,9 +60,6 @@ ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) :
 
 template<typename Any>
 ExplodeState<Any>::~ExplodeState() {
-  if (explosion) {
-    delete explosion;
-  }
 }
 
 template<typename Any>
@@ -70,7 +67,8 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   e.SetPassthrough(true); // Shoot through dying enemies
 
   /* explode over the sprite */
-  explosion = new ExplosionSpriteNode(&e, numOfExplosions, playbackSpeed);
+  explosion = std::make_shared<ExplosionSpriteNode>(&e, numOfExplosions, playbackSpeed);
+  e.AddNode(explosion);
   
   // Define the area relative to origin to spawn explosions around
   // based on a fraction of the current frame's size
@@ -128,6 +126,5 @@ inline void ExplodeState<Any>::CleanupExplosions(Any& e)
 
   e.RemoveNode(explosion);
 
-  delete explosion;
   explosion = nullptr;
 }

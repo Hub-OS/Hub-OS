@@ -354,7 +354,7 @@ namespace Battle {
     Animation animation;
     Animation volcanoErupt;
     double volcanoEruptTimer{ 4 }; // seconds
-    SpriteProxyNode volcanoSprite;
+    std::shared_ptr<SpriteProxyNode> volcanoSprite;
   };
 
   template<class Type>

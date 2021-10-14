@@ -3,8 +3,8 @@
 #include "../bnWidget.h"
 
 class Button final : public Widget, std::enable_shared_from_this<Button> {
-  mutable SpriteProxyNode img;
-  mutable Text label;
+  mutable std::shared_ptr<SpriteProxyNode> img;
+  mutable std::shared_ptr<Text> label;
   Widget::Layout* btnLayout{ nullptr };
 
   class ButtonLayout final : public Widget::Layout {

@@ -16,7 +16,8 @@ namespace Overworld {
     std::string name;
     sf::RectangleShape rectangle;
     sf::Color bgColor{};
-    SpriteProxyNode player, hp, warp, board, shop, overlay, arrows, conveyor, bakedMap;
+    std::shared_ptr<SpriteProxyNode> hp;
+    SpriteProxyNode player, warp, board, shop, overlay, arrows, conveyor, bakedMap;
     std::vector<std::shared_ptr<SpriteProxyNode>> playerMarkers;
     std::vector<std::shared_ptr<SpriteProxyNode>> mapMarkers;
     void EnforceTextureSizeLimits();

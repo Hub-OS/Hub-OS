@@ -35,7 +35,7 @@ const bool SceneNode::IsVisible() const {
 void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   if (!show) return;
 
-  std::sort(childNodes.begin(), childNodes.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });
+  std::sort(childNodes.begin(), childNodes.end(), [](std::shared_ptr<SceneNode>& a, std::shared_ptr<SceneNode>& b) { return (a->GetLayer() > b->GetLayer()); });
 
   // draw its children
   for (std::size_t i = 0; i < childNodes.size(); i++) {
@@ -49,28 +49,25 @@ void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   }
 }
 
-void SceneNode::AddNode(SceneNode* child) { 
+void SceneNode::AddNode(std::shared_ptr<SceneNode> child) { 
   if (child == nullptr) return;  child->parent = this; childNodes.push_back(child); 
 }
 
-void SceneNode::AddNode(std::shared_ptr<SceneNode> child) { 
-  if (child == nullptr) return;
-  ownedChildren.push_back(child);
-  AddNode(child.get());
+void SceneNode::RemoveNode(std::shared_ptr<SceneNode> find) {
+  RemoveNode(find.get());
 }
-
+#include "bnLogger.h"
 void SceneNode::RemoveNode(SceneNode* find) {
   if (find == nullptr) return;
 
-  auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [find](SceneNode *in) { return in == find; }); 
-  auto ownedIter = std::remove_if(ownedChildren.begin(), ownedChildren.end(), [find](std::shared_ptr<SceneNode>& in) { return in.get() == find; });
+  auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [find](std::shared_ptr<SceneNode>& in) { return in.get() == find; });
 
   if (iter != childNodes.end()) {
-    (*iter)->parent = nullptr;
+    // something is causing *iter to be zero here?
+    find->parent = nullptr;
   }
 
   childNodes.erase(iter, childNodes.end());
-  ownedChildren.erase(ownedIter, ownedChildren.end());
 }
 
 void SceneNode::EnableParentShader(bool use)
@@ -83,14 +80,14 @@ const bool SceneNode::IsUsingParentShader() const
   return useParentShader;
 }
 
-std::vector<SceneNode*>& SceneNode::GetChildNodes() const
+std::vector<std::shared_ptr<SceneNode>>& SceneNode::GetChildNodes() const
 {
   return childNodes;
 }
 
-std::set<SceneNode*> SceneNode::GetChildNodesWithTag(const std::initializer_list<std::string>& query)
+std::set<std::shared_ptr<SceneNode>> SceneNode::GetChildNodesWithTag(const std::initializer_list<std::string>& query)
 {
-  std::set<SceneNode*> results;
+  std::set<std::shared_ptr<SceneNode>> results;
 
   for (auto& q : query) {
     for (auto& n : childNodes) {

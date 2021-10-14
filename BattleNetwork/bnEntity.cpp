@@ -316,8 +316,8 @@ void Entity::Update(double _elapsed) {
   UpdateMovement(_elapsed);
 
   sf::Uint8 alpha = getSprite().getColor().a;
-  for (auto* child : GetChildNodes()) {
-    auto* sprite = dynamic_cast<SpriteProxyNode*>(child);
+  for (auto& child : GetChildNodes()) {
+    auto sprite = dynamic_cast<SpriteProxyNode*>(child.get());
     if (sprite) {
       sf::Color color = sprite->getColor();
       sprite->setColor(sf::Color(color.r, color.g, color.b, alpha));
