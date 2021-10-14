@@ -65,6 +65,7 @@ Character::Character(Rank _rank) :
     smartShader.SetUniform("texture", sf::Shader::CurrentTexture);
     smartShader.SetUniform("additiveMode", true);
     smartShader.SetUniform("swapPalette", false);
+    baseColor = sf::Color(0, 0, 0, 0);
   }
 
   EnableTilePush(true);

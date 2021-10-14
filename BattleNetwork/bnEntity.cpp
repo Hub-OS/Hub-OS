@@ -269,7 +269,7 @@ void Entity::Update(double _elapsed) {
 
   // reset base color
   // NOTE: that black works with additive color mode
-  setColor(sf::Color(0, 0, 0, getColor().a));
+  setColor(sf::Color(baseColor.r, baseColor.g, baseColor.b, getColor().a));
 
   if (!hit) {
     if (invincibilityCooldown > 0) {

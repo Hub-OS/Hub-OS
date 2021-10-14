@@ -725,6 +725,7 @@ protected:
   double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   bool counterable{};
   int counterFrameFlag{ 0 };
+  sf::Color baseColor = sf::Color(255, 255, 255, 255);
 
   std::vector<std::shared_ptr<Component>> components; /*!< List of all components attached to this entity*/
 

@@ -16,6 +16,8 @@ Other Changes:
  - Removed every built in playable character
  - Crashes are far less likely
  - Battle Engine leaks should be gone
+ - Many methods moved to Entity
+ - Obstacles no longer inherit from Spell
 
 Remaining issues:
  - ScriptedDefenseRule can leak if self captured in a closure (Using shared_ptr)
