@@ -129,7 +129,8 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
       return character.Unwrap()->IsDeleted();
     },
     "will_remove_eof", [](WeakWrapper<Character>& character) -> bool {
-      return character.Unwrap()->WillRemoveLater();
+      auto ptr = character.Lock();
+      return !ptr || ptr->WillRemoveLater();
     },
     "get_team", [](WeakWrapper<Character>& character) -> Team {
       return character.Unwrap()->GetTeam();

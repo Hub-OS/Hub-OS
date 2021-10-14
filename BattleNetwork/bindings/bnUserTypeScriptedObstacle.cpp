@@ -149,7 +149,8 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       return obstacle.Unwrap()->IsDeleted();
     },
     "will_remove_eof", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->WillRemoveLater();
+      auto ptr = obstacle.Lock();
+      return !ptr || ptr->WillRemoveLater();
     },
     "is_team", [](WeakWrapper<ScriptedObstacle>& obstacle, Team team) -> bool {
       return obstacle.Unwrap()->Teammate(team);

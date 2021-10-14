@@ -137,7 +137,8 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       return player.Unwrap()->IsDeleted();
     },
     "will_remove_eof", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->WillRemoveLater();
+      auto ptr = player.Lock();
+      return !ptr || ptr->WillRemoveLater();
     },
     "get_team", [](WeakWrapper<ScriptedPlayer>& player) -> Team {
       return player.Unwrap()->GetTeam();

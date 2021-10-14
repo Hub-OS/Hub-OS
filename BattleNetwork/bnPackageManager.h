@@ -161,12 +161,14 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
     auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
     //  Run all "includes" first
-    auto includesResult = CallLuaFunction(state, "package_requires_scripts");
+    if (state["package_requires_scripts"].valid()) {
+      auto includesResult = CallLuaFunction(state, "package_requires_scripts");
 
-    if (includesResult.is_error()) {
-      delete packageClass;
-      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + includesResult.error_cstr();
-      return stx::error<bool>(msg);
+      if (includesResult.is_error()) {
+        delete packageClass;
+        std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + includesResult.error_cstr();
+        return stx::error<bool>(msg);
+      }
     }
 
     // todo: use a ScopedWrapper
