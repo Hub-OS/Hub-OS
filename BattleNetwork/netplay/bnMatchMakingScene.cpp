@@ -17,10 +17,10 @@
 
 using namespace swoosh::types;
 
-MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const std::string& naviId, CardFolder& folder, PA& pa) : 
+MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const std::string& naviId, std::unique_ptr<CardFolder> _folder, PA& pa) : 
   textbox(sf::Vector2f(4, 250)), 
   selectedNaviId(naviId), 
-  folder(folder), pa(pa),
+  folder(std::move(_folder)), pa(pa),
   uiAnim("resources/ui/pvp_widget.animation"),
   text(Font::Style::thick),
   id(Font::Style::thick),
@@ -478,7 +478,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
     std::vector<std::string> cardUUIDs, cardPackages;
 
-    auto copy = folder.Clone();
+    auto copy = folder->Clone();
     auto next = copy->Next();
 
     while (next) {
@@ -566,7 +566,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
     if (this->sequenceTimer >= 3) {
       // Shuffle our folder
-      auto copy = folder.Clone();
+      auto copy = folder->Clone();
       copy->Shuffle();
 
       // Queue screen transition to Battle Scene with a white fade effect
