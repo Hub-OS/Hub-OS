@@ -3,6 +3,7 @@
 
 #include "bnWeakWrapper.h"
 #include "bnWeakWrapperChild.h"
+#include "bnScopedWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
@@ -104,7 +105,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       [](CardAction::Step& step, sol::stack_object callbackObject) {
         sol::protected_function callback = callbackObject;
         step.updateFunc = [callback] (CardAction::Step& step, double dt) {
-          auto result = callback(step, dt);
+          auto result = callback(ScopedWrapper(step), dt);
 
           if (!result.valid()) {
             sol::error error = result;
@@ -118,7 +119,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       [](CardAction::Step& step, sol::stack_object callbackObject) {
         sol::protected_function callback = callbackObject;
         step.drawFunc = [callback] (CardAction::Step& step, sf::RenderTexture& rt) {
-          auto result = callback(step, rt);
+          auto result = callback(ScopedWrapper(step), rt);
 
           if (!result.valid()) {
             sol::error error = result;
@@ -127,7 +128,15 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
         };
       }
     ),
-    "complete_step", &CardAction::Step::markDone
+    "complete_step", []() {
+      throw std::runtime_error("complete_step must be called on the reference passed in update_func");
+    }
+  );
+
+  battle_namespace.new_usertype<ScopedWrapper<CardAction::Step>>("StepReference",
+    "complete_step", [](ScopedWrapper<CardAction::Step>& step) {
+      step.Unwrap().markDone();
+    }
   );
 
   battle_namespace.new_usertype<BusterCardAction>("Buster",
