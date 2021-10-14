@@ -131,10 +131,10 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
       }
     ),
     "is_sliding", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
-      return character.Unwrap()->IsJumping();
+      return character.Unwrap()->IsSliding();
     },
     "is_jumping", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
-      return character.Unwrap()->IsSliding();
+      return character.Unwrap()->IsJumping();
     },
     "is_teleporting", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
       return character.Unwrap()->IsTeleporting();

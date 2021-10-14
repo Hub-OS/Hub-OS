@@ -125,10 +125,10 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       return artifact.Unwrap()->RawMoveEvent(event, order);
     },
     "is_sliding", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      return artifact.Unwrap()->IsJumping();
+      return artifact.Unwrap()->IsSliding();
     },
     "is_jumping", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      return artifact.Unwrap()->IsSliding();
+      return artifact.Unwrap()->IsJumping();
     },
     "is_teleporting", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
       return artifact.Unwrap()->IsTeleporting();

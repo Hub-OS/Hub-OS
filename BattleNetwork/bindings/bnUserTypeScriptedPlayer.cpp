@@ -119,10 +119,10 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       return player.Unwrap()->RawMoveEvent(event, order);
     },
     "is_sliding", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->IsJumping();
+      return player.Unwrap()->IsSliding();
     },
     "is_jumping", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->IsSliding();
+      return player.Unwrap()->IsJumping();
     },
     "is_teleporting", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
       return player.Unwrap()->IsTeleporting();

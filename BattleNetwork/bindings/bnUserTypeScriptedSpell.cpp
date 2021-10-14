@@ -124,10 +124,10 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       return spell.Unwrap()->RawMoveEvent(event, order);
     },
     "is_sliding", [](WeakWrapper<ScriptedSpell>& spell) -> bool {
-      return spell.Unwrap()->IsJumping();
+      return spell.Unwrap()->IsSliding();
     },
     "is_jumping", [](WeakWrapper<ScriptedSpell>& spell) -> bool {
-      return spell.Unwrap()->IsSliding();
+      return spell.Unwrap()->IsJumping();
     },
     "is_teleporting", [](WeakWrapper<ScriptedSpell>& spell) -> bool {
       return spell.Unwrap()->IsTeleporting();

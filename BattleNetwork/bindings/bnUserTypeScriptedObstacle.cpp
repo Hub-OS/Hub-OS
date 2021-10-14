@@ -131,10 +131,10 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       return obstacle.Unwrap()->RawMoveEvent(event, order);
     },
     "is_sliding", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->IsJumping();
+      return obstacle.Unwrap()->IsSliding();
     },
     "is_jumping", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->IsSliding();
+      return obstacle.Unwrap()->IsJumping();
     },
     "is_teleporting", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       return obstacle.Unwrap()->IsTeleporting();

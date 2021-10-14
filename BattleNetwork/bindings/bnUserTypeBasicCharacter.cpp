@@ -111,10 +111,10 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
       return character.Unwrap()->RawMoveEvent(event, order);
     },
     "is_sliding", [](WeakWrapper<Character>& character) -> bool {
-      return character.Unwrap()->IsJumping();
+      return character.Unwrap()->IsSliding();
     },
     "is_jumping", [](WeakWrapper<Character>& character) -> bool {
-      return character.Unwrap()->IsSliding();
+      return character.Unwrap()->IsJumping();
     },
     "is_teleporting", [](WeakWrapper<Character>& character) -> bool {
       return character.Unwrap()->IsTeleporting();
