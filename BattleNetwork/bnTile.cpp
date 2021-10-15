@@ -387,6 +387,9 @@ namespace Battle {
       spells.push_back(spell);
     } else if(auto artifact = std::dynamic_pointer_cast<Artifact>(_entity)) {
       artifacts.push_back(artifact);
+    } else if(auto obstacle = std::dynamic_pointer_cast<Obstacle>(_entity)) {
+      characters.push_back(obstacle);
+      spells.push_back(_entity);
     } else if(auto character = std::dynamic_pointer_cast<Character>(_entity)) {
       characters.push_back(character);
     }
@@ -1001,8 +1004,8 @@ namespace Battle {
 
   void Tile::UpdateSpells(Field& field, const double elapsed)
   {
-    vector<std::shared_ptr<Spell>> spells_copy = spells;
-    for (vector<std::shared_ptr<Spell>>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
+    vector<std::shared_ptr<Entity>> spells_copy = spells;
+    for (vector<std::shared_ptr<Entity>>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
       int request = (int)(*entity)->GetTileHighlightMode();
 
       if (!(*entity)->IsTimeFrozen()) {

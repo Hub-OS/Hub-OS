@@ -340,7 +340,7 @@ namespace Battle {
 
     // Todo: use sets to avoid duplicate entries
     vector<std::shared_ptr<Artifact>> artifacts; /**< Entity bucket for type Artifacts */
-    vector<std::shared_ptr<Spell>> spells; /**< Entity bucket for type Spells */
+    vector<std::shared_ptr<Entity>> spells; /**< Entity bucket for type Spells */
     vector<std::shared_ptr<Character>> characters; /**< Entity bucket for type Characters */
 
     set<std::shared_ptr<Character>, EntityComparitor> deletingCharacters;
