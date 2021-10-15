@@ -11,6 +11,30 @@
 #include "bnScriptedObstacle.h"
 #include "bnScriptedArtifact.h"
 
+static sol::as_table_t<std::vector<WeakWrapper<Character>>> FindNearestCharacters(WeakWrapper<Field> field, std::shared_ptr<Character> test, sol::stack_object queryObject) {
+  sol::protected_function query = queryObject;
+
+  auto results = field.Unwrap()->FindNearestCharacters(test, [query] (std::shared_ptr<Character> character) -> bool {
+    auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+      return false;
+    }
+
+    return result.value();
+  });
+
+  std::vector<WeakWrapper<Character>> wrappedResults;
+  wrappedResults.reserve(results.size());
+
+  for (auto& character : results) {
+    wrappedResults.push_back(WeakWrapper(character));
+  }
+
+  return sol::as_table(wrappedResults);
+}
+
 void DefineFieldUserType(sol::table& battle_namespace) {
   // Exposed "GetCharacter" so that there's a way to maintain a reference to other actors without hanging onto pointers.
   // If you hold onto their ID, and use that through Field::GetCharacter,
@@ -93,33 +117,17 @@ void DefineFieldUserType(sol::table& battle_namespace) {
 
       return sol::as_table(wrappedResults);
     },
-    "find_nearest_characters", [] (
-      WeakWrapper<Field>& field,
-      const std::shared_ptr<Character> test,
-      sol::stack_object queryObject
-    ) {
-      sol::protected_function query = queryObject;
-
-      auto results = field.Unwrap()->FindNearestCharacters(test, [query] (std::shared_ptr<Character> character) -> bool {
-        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
-
-        if (result.is_error()) {
-          Logger::Log(result.error_cstr());
-          return false;
-        }
-
-        return result.value();
-      });
-
-      std::vector<WeakWrapper<Character>> wrappedResults;
-      wrappedResults.reserve(results.size());
-
-      for (auto& character : results) {
-        wrappedResults.push_back(WeakWrapper(character));
+    "find_nearest_characters", sol::overload(
+      [] (WeakWrapper<Field>& field, WeakWrapper<Character>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
+      },
+      [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedCharacter>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
+      },
+      [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedPlayer>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
       }
-
-      return sol::as_table(wrappedResults);
-    },
+    ),
     "find_tiles", [] (
       WeakWrapper<Field>& field,
       sol::stack_object queryObject
