@@ -56,11 +56,9 @@ namespace {
   int exception_handler(lua_State* L, sol::optional<const std::exception&> maybe_exception, sol::string_view description) {
     if (maybe_exception) {
       const std::exception& ex = *maybe_exception;
-      Logger::Log(ex.what());
     }
     else {
       std::string message(description.data(), description.size());
-      Logger::Log(message.c_str());
     }
 
     return sol::stack::push(L, description);
