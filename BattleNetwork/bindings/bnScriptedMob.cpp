@@ -14,10 +14,6 @@ ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::str
   scriptedSpawner = std::make_unique<Mob::Spawner<ScriptedCharacter>>(std::ref(script), rank);
   std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
 
-  if(&script == nullptr) {
-    throw std::runtime_error("what the fuck");
-  }
-
   scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> std::shared_ptr<ScriptedCharacter> {
     (*scriptPtr)["_modpath"] = path+"/";
 

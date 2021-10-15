@@ -56,7 +56,7 @@ void SceneNode::AddNode(std::shared_ptr<SceneNode> child) {
 void SceneNode::RemoveNode(std::shared_ptr<SceneNode> find) {
   RemoveNode(find.get());
 }
-#include "bnLogger.h"
+
 void SceneNode::RemoveNode(SceneNode* find) {
   if (find == nullptr) return;
 
