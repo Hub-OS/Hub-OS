@@ -174,7 +174,9 @@ void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
 
   for( int ind = 1; ind <= count; ++ind )
   {
+    #ifdef _DEBUG
     depsString = depsString + deps.get<std::string>(ind) + ", ";
+    #endif
 
       // Get the KEY of each member in the table, as those are the package IDs that this depends on.
       // Add them to the list.
