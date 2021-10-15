@@ -14,6 +14,10 @@ ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::str
   scriptedSpawner = std::make_unique<Mob::Spawner<ScriptedCharacter>>(std::ref(script), rank);
   std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
 
+  if(&script == nullptr) {
+    throw std::runtime_error("what the fuck");
+  }
+
   scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> std::shared_ptr<ScriptedCharacter> {
     (*scriptPtr)["_modpath"] = path+"/";
 
@@ -138,7 +142,13 @@ void ScriptedMob::EnableFreedomMission(uint8_t turnCount)
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn, Character::Rank rank)
 {
-  auto obj = ScriptedMob::ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn), rank);
+  sol::state* state = Scripts().FetchCharacter(fqn);
+
+  if (!state) {
+    throw std::runtime_error("Character does not exist");
+  }
+
+  auto obj = ScriptedMob::ScriptedSpawner(*state, Scripts().CharacterToModpath(fqn), rank);
   obj.SetMob(this->mob);
   return std::move(obj);
 }
