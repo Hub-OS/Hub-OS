@@ -113,8 +113,6 @@ ScriptedMob::ScriptedMob(sol::state& script) :
   MobFactory(), 
   script(script)
 {
-  script.script("package_requires_scripts()", sol::script_throw_on_error);
-
   field = new Field(6, 3);
 }
 
