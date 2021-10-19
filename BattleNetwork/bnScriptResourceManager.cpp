@@ -169,9 +169,7 @@ void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
 
   std::list<std::string> dependencies;
 
-  #ifdef _DEBUG
   std::string depsString = "";
-  #endif
 
   for( int ind = 1; ind <= count; ++ind )
   {
