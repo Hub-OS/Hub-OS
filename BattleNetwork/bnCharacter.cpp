@@ -27,7 +27,7 @@ void Character::RefreshShader()
 
   SetShader(smartShader);
 
-  if (!smartShader.Get()) return;
+  if (!smartShader.HasShader()) return;
 
   // state checks
   unsigned stunFrame = from_seconds(stunCooldown).count() % 4;

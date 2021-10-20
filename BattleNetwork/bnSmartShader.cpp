@@ -40,6 +40,10 @@
    return ref;
  }
 
+ bool SmartShader::HasShader() {
+   return ref != nullptr;
+ }
+
   void SmartShader::ApplyUniforms() {
     if (!ref) return;
 

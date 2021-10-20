@@ -143,5 +143,11 @@ public:
    * @return sf::Shader*
    */
   sf::Shader* Get();
+
+  /**
+   * @brief Lighter than checking if Get() returns nullptr
+   * @return true if ref is not nullptr
+   */
+  bool HasShader();
 };
 
