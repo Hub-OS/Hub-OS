@@ -10,10 +10,10 @@
 
 void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedCharacter>>("Character",
-    sol::meta_function::index, [](WeakWrapper<ScriptedCharacter>& character, std::string key) {
+    sol::meta_function::index, [](WeakWrapper<ScriptedCharacter>& character, const std::string& key) {
       return character.Unwrap()->dynamic_get(key);
     },
-    sol::meta_function::new_index, [](WeakWrapper<ScriptedCharacter>& character, std::string key, sol::stack_object value) {
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedCharacter>& character, const std::string& key, sol::stack_object value) {
       character.Unwrap()->dynamic_set(key, value);
     },
     sol::meta_function::length, [](WeakWrapper<ScriptedCharacter>& character) {

@@ -17,10 +17,10 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       wrappedSpell.Own();
       return wrappedSpell;
     }),
-    sol::meta_function::index, [](WeakWrapper<ScriptedSpell>& spell, std::string key) {
+    sol::meta_function::index, [](WeakWrapper<ScriptedSpell>& spell, const std::string& key) {
       return spell.Unwrap()->dynamic_get(key);
     },
-    sol::meta_function::new_index, [](WeakWrapper<ScriptedSpell>& spell, std::string key, sol::stack_object value) {
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedSpell>& spell, const std::string& key, sol::stack_object value) {
       spell.Unwrap()->dynamic_set(key, value);
     },
     sol::meta_function::length, [](WeakWrapper<ScriptedSpell>& spell) {

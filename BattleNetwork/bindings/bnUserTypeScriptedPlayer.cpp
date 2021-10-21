@@ -9,10 +9,10 @@
 
 void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedPlayer>>("Player",
-    sol::meta_function::index, [](WeakWrapper<ScriptedPlayer>& player, std::string key) {
+    sol::meta_function::index, [](WeakWrapper<ScriptedPlayer>& player, const std::string& key) {
       return player.Unwrap()->dynamic_get(key);
     },
-    sol::meta_function::new_index, [](WeakWrapper<ScriptedPlayer>& player, std::string key, sol::stack_object value) {
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedPlayer>& player, const std::string& key, sol::stack_object value) {
       player.Unwrap()->dynamic_set(key, value);
     },
     sol::meta_function::length, [](WeakWrapper<ScriptedPlayer>& player) {

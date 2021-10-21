@@ -34,10 +34,10 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
         return construct(character.Unwrap(), state);
       }
     ),
-    sol::meta_function::index, [](WeakWrapper<ScriptedCardAction>& cardAction, std::string key) {
+    sol::meta_function::index, [](WeakWrapper<ScriptedCardAction>& cardAction, const std::string& key) {
       return cardAction.Unwrap()->dynamic_get(key);
     },
-    sol::meta_function::new_index, [](WeakWrapper<ScriptedCardAction>& cardAction, std::string key, sol::stack_object value) {
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedCardAction>& cardAction, const std::string& key, sol::stack_object value) {
       cardAction.Unwrap()->dynamic_set(key, value);
     },
     sol::meta_function::length, [](WeakWrapper<ScriptedCardAction>& cardAction) {

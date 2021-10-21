@@ -29,10 +29,10 @@ void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_names
         return construct(owner.Unwrap(), lifetime);
       }
     ),
-    sol::meta_function::index, [](WeakWrapper<ScriptedComponent>& component, std::string key) {
+    sol::meta_function::index, [](WeakWrapper<ScriptedComponent>& component, const std::string& key) {
       return component.Unwrap()->dynamic_get(key);
     },
-    sol::meta_function::new_index, [](WeakWrapper<ScriptedComponent>& component, std::string key, sol::stack_object value) {
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedComponent>& component, const std::string& key, sol::stack_object value) {
       component.Unwrap()->dynamic_set(key, value);
     },
     sol::meta_function::length, [](WeakWrapper<ScriptedComponent>& component) {

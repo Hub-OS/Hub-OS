@@ -18,10 +18,10 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       wrappedObstacle.Own();
       return wrappedObstacle;
     }),
-    sol::meta_function::index, [](WeakWrapper<ScriptedObstacle>& obstacle, std::string key) {
+    sol::meta_function::index, [](WeakWrapper<ScriptedObstacle>& obstacle, const std::string& key) {
       return obstacle.Unwrap()->dynamic_get(key);
     },
-    sol::meta_function::new_index, [](WeakWrapper<ScriptedObstacle>& obstacle, std::string key, sol::stack_object value) {
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedObstacle>& obstacle, const std::string& key, sol::stack_object value) {
       obstacle.Unwrap()->dynamic_set(key, value);
     },
     sol::meta_function::length, [](WeakWrapper<ScriptedObstacle>& obstacle) {

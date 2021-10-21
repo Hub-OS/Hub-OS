@@ -18,10 +18,10 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       wrappedArtifact.Own();
       return wrappedArtifact;
     }),
-    sol::meta_function::index, [](WeakWrapper<ScriptedArtifact>& artifact, std::string key) {
+    sol::meta_function::index, [](WeakWrapper<ScriptedArtifact>& artifact, const std::string& key) {
       return artifact.Unwrap()->dynamic_get(key);
     },
-    sol::meta_function::new_index, [](WeakWrapper<ScriptedArtifact>& artifact, std::string key, sol::stack_object value) {
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedArtifact>& artifact, const std::string& key, sol::stack_object value) {
       artifact.Unwrap()->dynamic_set(key, value);
     },
     sol::meta_function::length, [](WeakWrapper<ScriptedArtifact>& artifact) {
