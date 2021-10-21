@@ -6,6 +6,7 @@
 #include "bnScriptedObstacle.h"
 #include "bnScriptedComponent.h"
 #include "../bnTile.h"
+#include "../bnSolHelpers.h"
 
 void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
   const auto& scriptedobstacle_record = battle_namespace.new_usertype<WeakWrapper<ScriptedObstacle>>("Obstacle",
@@ -239,7 +240,43 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     },
     "never_flip", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enabled) {
       obstacle.Unwrap()->NeverFlip(enabled);
-    }
+    },
+    "can_move_to_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->can_move_to_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
+        obstacle.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
+      }
+    ),
+    "collision_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->collision_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
+        obstacle.Unwrap()->collision_func = VerifyLuaCallback(value);
+      }
+    ),
+    "update_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->update_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
+        obstacle.Unwrap()->update_func = VerifyLuaCallback(value);
+      }
+    ),
+    "delete_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->delete_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
+        obstacle.Unwrap()->delete_func = VerifyLuaCallback(value);
+      }
+    ),
+    "attack_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->attack_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
+        obstacle.Unwrap()->attack_func = VerifyLuaCallback(value);
+      }
+    ),
+    "on_spawn_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->on_spawn_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
+        obstacle.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
+      }
+    )
   );
 }
 #endif

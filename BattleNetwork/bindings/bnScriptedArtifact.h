@@ -38,6 +38,11 @@ public:
 	void SetAnimation(const std::string& path);
 	Animation& GetAnimationObject();
 	Battle::Tile* GetCurrentTile() const;
+
+	sol::object update_func;
+	sol::object on_spawn_func;
+	sol::object delete_func;
+	sol::object can_move_to_func;
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedPlayer.h"
 #include "bnScriptedComponent.h"
+#include "../bnSolHelpers.h"
 
 void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedPlayer>>("Player",
@@ -194,7 +195,13 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     },
     "register_component", [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedComponent>& component) {
       player.Unwrap()->RegisterComponent(component.Release());
-    }
+    },
+    "update_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->update_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->update_func = VerifyLuaCallback(value);
+      }
+    )
   );
 }
 #endif

@@ -4,6 +4,7 @@
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedSpell.h"
+#include "../bnSolHelpers.h"
 #include "../bnTile.h"
 
 void DefineScriptedSpellUserType(sol::table& battle_namespace) {
@@ -199,7 +200,43 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     },
     "never_flip", [](WeakWrapper<ScriptedSpell>& spell, bool enabled) {
       spell.Unwrap()->NeverFlip(enabled);
-    }
+    },
+    "can_move_to_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->can_move_to_func; },
+      [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
+        spell.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
+      }
+    ),
+    "update_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->update_func; },
+      [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
+        spell.Unwrap()->update_func = VerifyLuaCallback(value);
+      }
+    ),
+    "delete_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->delete_func; },
+      [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
+        spell.Unwrap()->delete_func = VerifyLuaCallback(value);
+      }
+    ),
+    "collision_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->collision_func; },
+      [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
+        spell.Unwrap()->collision_func = VerifyLuaCallback(value);
+      }
+    ),
+    "attack_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->attack_func; },
+      [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
+        spell.Unwrap()->attack_func = VerifyLuaCallback(value);
+      }
+    ),
+    "on_spawn_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->on_spawn_func; },
+      [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
+        spell.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
+      }
+    )
   );
 }
 #endif

@@ -21,9 +21,9 @@ ScriptedArtifact::~ScriptedArtifact() { }
 
 void ScriptedArtifact::OnUpdate(double _elapsed)
 {
-  if (entries["update_func"].valid()) 
+  if (update_func.valid()) 
   {
-    auto result = CallLuaFunction(entries, "update_func", weakWrap, _elapsed);
+    auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
@@ -38,9 +38,9 @@ void ScriptedArtifact::NeverFlip(bool enabled)
 
 void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 {
-  if (entries["on_spawn_func"].valid()) 
+  if (on_spawn_func.valid()) 
   {
-    auto result = CallLuaFunction(entries, "on_spawn_func", weakWrap);
+    auto result = CallLuaCallback(on_spawn_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
@@ -54,9 +54,9 @@ void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 
 void ScriptedArtifact::OnDelete()
 {
-  if (entries["delete_func"].valid()) 
+  if (delete_func.valid()) 
   {
-    auto result = CallLuaFunction(entries, "delete_func", weakWrap);
+    auto result = CallLuaCallback(delete_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
@@ -68,9 +68,9 @@ void ScriptedArtifact::OnDelete()
 
 bool ScriptedArtifact::CanMoveTo(Battle::Tile* next)
 {
-  if (entries["can_move_to_func"].valid()) 
+  if (can_move_to_func.valid()) 
   {
-    auto result = CallLuaFunctionExpectingValue<bool>(entries, "can_move_to_func", next);
+    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());

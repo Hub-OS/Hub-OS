@@ -5,6 +5,7 @@
 #include "bnScriptedDefenseRule.h"
 #include "../bnDefenseVirusBody.h"
 #include "../bnDefenseNodrag.h"
+#include "../bnSolHelpers.h"
 
 void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace) {
   // using shared_ptr as it can be added + removed from entities, ownership is never given to the field
@@ -17,7 +18,19 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    sol::base_classes, sol::bases<DefenseRule>()
+    sol::base_classes, sol::bases<DefenseRule>(),
+    "filter_statuses_func", sol::property(
+      [](ScriptedDefenseRule& defenseRule) { return defenseRule.filter_statuses_func; },
+      [](ScriptedDefenseRule& defenseRule, sol::stack_object value) {
+        defenseRule.filter_statuses_func = VerifyLuaCallback(value);
+      }
+    ),
+    "can_block_func", sol::property(
+      [](ScriptedDefenseRule& defenseRule) { return defenseRule.can_block_func; },
+      [](ScriptedDefenseRule& defenseRule, sol::stack_object value) {
+        defenseRule.can_block_func = VerifyLuaCallback(value);
+      }
+    )
   );
 
   battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",

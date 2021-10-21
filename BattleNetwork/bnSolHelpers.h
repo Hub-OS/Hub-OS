@@ -45,6 +45,18 @@ stx::result_t<Result> CallLuaFunctionExpectingValue(Table& script, const std::st
   return stx::ok<Result>(value);
 }
 
+template<typename ...Args>
+stx::result_t<bool> CallLuaCallback(const sol::protected_function& func, Args... args) {
+  auto result = func(std::forward<Args>(args)...);
+
+  if(!result.valid()) {
+    sol::error error = result;
+    return stx::error<bool>(error.what());
+  }
+
+  return stx::ok();
+}
+
 template<typename Result, typename ...Args>
 stx::result_t<Result> CallLuaCallbackExpectingValue(const sol::protected_function& func, Args... args)
 {
@@ -83,4 +95,47 @@ stx::result_t<bool> CallLuaCallbackExpectingBool(const sol::protected_function& 
   }
 
   return stx::ok(obj.template as<bool>());
+}
+
+template<typename ...Args>
+stx::result_t<bool> CallLuaCallback(const sol::object& object, Args... args) {
+  if (object.get_type() != sol::type::function) {
+    std::string error = "Lua object is not a function.";
+    return stx::error<bool>(error);
+  }
+
+  sol::protected_function func = object;
+  return CallLuaCallback(func, std::forward<Args>(args)...);
+}
+
+template<typename Result, typename ...Args>
+stx::result_t<Result> CallLuaCallbackExpectingValue(const sol::object& object, Args... args) {
+  if (object.get_type() != sol::type::function) {
+    std::string error = "Lua object is not a function.";
+    return stx::error<Result>(error);
+  }
+
+  sol::protected_function func = object;
+  return CallLuaCallbackExpectingValue<Result>(func, std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+stx::result_t<bool> CallLuaCallbackExpectingBool(const sol::object& object, Args... args) {
+  if (object.get_type() != sol::type::function) {
+    std::string error = "Lua object is not a function.";
+    return stx::error<bool>(error);
+  }
+
+  sol::protected_function func = object;
+  return CallLuaCallbackExpectingBool(func, std::forward<Args>(args)...);
+}
+
+inline sol::object VerifyLuaCallback(sol::stack_object value) {
+  auto object = sol::object(std::move(value));
+
+  if (object.get_type() != sol::type::function) {
+    throw std::runtime_error("Lua object is not a function.");
+  }
+
+  return object;
 }

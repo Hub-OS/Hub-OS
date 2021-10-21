@@ -33,6 +33,13 @@ public:
   // duration in seconds
   void ShakeCamera(double power, float duration);
   void NeverFlip(bool enabled);
+
+  sol::object can_move_to_func;
+  sol::object update_func;
+  sol::object delete_func;
+  sol::object collision_func;
+  sol::object attack_func;
+  sol::object on_spawn_func;
 private:
   bool flip{true};
   float height{};

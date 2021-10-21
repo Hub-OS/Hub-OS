@@ -61,9 +61,9 @@ void ScriptedCharacter::OnDelete() {
     ChangeState<ExplodeState<ScriptedCharacter>>(numOfExplosions, explosionPlayback);
   }
 
-  if (entries["delete_func"].valid()) 
+  if (delete_func.valid()) 
   {
-    auto result = CallLuaFunction(entries, "delete_func", weakWrap);
+    auto result = CallLuaCallback(delete_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
@@ -72,9 +72,9 @@ void ScriptedCharacter::OnDelete() {
 }
 
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
-  if (entries["on_spawn_func"].valid()) 
+  if (on_spawn_func.valid()) 
   {
-    auto result = CallLuaFunction(entries, "on_spawn_func", weakWrap, &start);
+    auto result = CallLuaCallback(on_spawn_func, weakWrap, &start);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
@@ -83,9 +83,9 @@ void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
 }
 
 void ScriptedCharacter::OnBattleStart() {
-  if (entries["battle_start_func"].valid()) 
+  if (battle_start_func.valid()) 
   {
-    auto result = CallLuaFunction(entries, "battle_start_func", weakWrap);
+    auto result = CallLuaCallback(battle_start_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
@@ -96,9 +96,9 @@ void ScriptedCharacter::OnBattleStart() {
 void ScriptedCharacter::OnBattleStop() {
   Character::OnBattleStop();
 
-  if (entries["battle_end_func"].valid()) 
+  if (battle_end_func.valid()) 
   {
-    auto result = CallLuaFunction(entries, "battle_end_func", weakWrap);
+    auto result = CallLuaCallback(battle_end_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
@@ -107,9 +107,9 @@ void ScriptedCharacter::OnBattleStop() {
 }
 
 bool ScriptedCharacter::CanMoveTo(Battle::Tile* next) {
-  if (entries["can_move_to_func"].valid()) 
+  if (can_move_to_func.valid()) 
   {
-    auto result = CallLuaFunctionExpectingValue<bool>(entries, "can_move_to_func", next);
+    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());

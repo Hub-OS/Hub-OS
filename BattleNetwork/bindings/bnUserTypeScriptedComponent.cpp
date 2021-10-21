@@ -5,6 +5,7 @@
 #include "bnScriptedComponent.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
+#include "../bnSolHelpers.h"
 
 static WeakWrapper<ScriptedComponent> construct(std::shared_ptr<Character> character, Component::lifetimes lifetime) {
   auto component = std::make_shared<ScriptedComponent>(character, lifetime);
@@ -48,7 +49,19 @@ void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_names
     },
     "get_owner", [](WeakWrapper<ScriptedComponent>& component) -> WeakWrapper<Character> {
       return WeakWrapper(component.Unwrap()->GetOwnerAsCharacter());
-    }
+    },
+    "update_func", sol::property(
+      [](WeakWrapper<ScriptedComponent>& component) { return component.Unwrap()->update_func; },
+      [](WeakWrapper<ScriptedComponent>& component, sol::stack_object value) {
+        component.Unwrap()->update_func = VerifyLuaCallback(value);
+      }
+    ),
+    "scene_inject_func", sol::property(
+      [](WeakWrapper<ScriptedComponent>& component) { return component.Unwrap()->scene_inject_func; },
+      [](WeakWrapper<ScriptedComponent>& component, sol::stack_object value) {
+        component.Unwrap()->scene_inject_func = VerifyLuaCallback(value);
+      }
+    )
   );
 
   state.new_enum("Lifetimes",

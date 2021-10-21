@@ -25,6 +25,9 @@ public:
   void OnUpdate(double dt) override;
   void Inject(BattleSceneBase&) override;
   std::shared_ptr<Character> GetOwnerAsCharacter();
+
+  sol::object update_func;
+  sol::object scene_inject_func;
 private:
   WeakWrapper<ScriptedComponent> weakWrap;
 };

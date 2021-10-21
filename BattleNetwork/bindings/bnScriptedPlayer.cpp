@@ -126,13 +126,13 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteChargedBusterAction()
   return result;
 }
 
-void ScriptedPlayer::OnUpdate(double _elapsed)
+void ScriptedPlayer::OnUpdate(double elapsed)
 {
-  Player::OnUpdate(_elapsed);
+  Player::OnUpdate(elapsed);
 
-  if (entries["update_func"].valid()) 
+  if (update_func.valid())
   {
-    auto result = CallLuaFunction(entries, "update_func", weakWrap, _elapsed);
+    auto result = CallLuaCallback(update_func, weakWrap, elapsed);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());

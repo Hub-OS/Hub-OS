@@ -24,6 +24,10 @@ public:
   void OnActionEnd() override;
   void OnExecute(std::shared_ptr<Character> user) override;
 
+  sol::object update_func;
+  sol::object animation_end_func;
+  sol::object action_end_func;
+  sol::object execute_func;
 private:
   WeakWrapper<ScriptedCardAction> weakWrap;
 };

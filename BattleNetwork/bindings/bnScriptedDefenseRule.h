@@ -27,6 +27,9 @@ public:
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
   void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
+
+  sol::object filter_statuses_func;
+  sol::object can_block_func;
 };
 
 #endif

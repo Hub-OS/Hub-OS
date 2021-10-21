@@ -49,6 +49,13 @@ public:
   void SetExplosionBehavior(int num, double speed, bool isBoss);
   void SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order);
   void SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order);
+
+  sol::object update_func;
+  sol::object delete_func;
+  sol::object on_spawn_func;
+  sol::object battle_start_func;
+  sol::object battle_end_func;
+  sol::object can_move_to_func;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {
@@ -57,9 +64,9 @@ public:
   }
 
   void OnUpdate(double elapsed, ScriptedCharacter& s) override {
-    if (s.entries["update_func"].valid()) 
+    if (s.update_func.valid())
     {
-      auto result = CallLuaFunction(s.entries, "update_func", s.weakWrap, elapsed);
+      auto result = CallLuaCallback(s.update_func, s.weakWrap, elapsed);
 
       if (result.is_error()) {
         Logger::Log(result.error_cstr());

@@ -45,6 +45,8 @@ public:
   std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
   std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
   std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
+
+  sol::object update_func;
 };
 
 #endif

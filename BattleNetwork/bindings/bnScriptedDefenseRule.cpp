@@ -14,12 +14,12 @@ ScriptedDefenseRule::~ScriptedDefenseRule() { }
 
 Hit::Properties& ScriptedDefenseRule::FilterStatuses(Hit::Properties& statuses)
 {
-  if (entries["filter_statuses_func"].valid()) 
+  if (filter_statuses_func.valid()) 
   {
     // create a copy to protect against a scripter holding on to this variable for too long
     auto statusCopy = statuses;
 
-    auto result = CallLuaFunctionExpectingValue<Hit::Properties>(entries, "filter_statuses_func", statusCopy);
+    auto result = CallLuaCallbackExpectingValue<Hit::Properties>(filter_statuses_func, statusCopy);
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
@@ -34,10 +34,10 @@ Hit::Properties& ScriptedDefenseRule::FilterStatuses(Hit::Properties& statuses)
 }
 
 void ScriptedDefenseRule::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) {
-  if (entries["can_block_func"].valid()) 
+  if (can_block_func.valid()) 
   {
     auto wrappedJudge = ScopedWrapper(judge);
-    auto result = CallLuaFunction(entries, "can_block_func", wrappedJudge, WeakWrapper(attacker), WeakWrapper(owner));
+    auto result = CallLuaCallback(can_block_func, wrappedJudge, WeakWrapper(attacker), WeakWrapper(owner));
 
     if (result.is_error()) {
       Logger::Log(result.error_cstr());

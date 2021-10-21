@@ -5,6 +5,7 @@
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedArtifact.h"
 #include "../bnTile.h"
+#include "../bnSolHelpers.h"
 
 void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedArtifact>>("Artifact",
@@ -173,7 +174,31 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     },
     "never_flip", [](WeakWrapper<ScriptedArtifact>& artifact, bool enabled) {
       artifact.Unwrap()->NeverFlip(enabled);
-    }
+    },
+    "update_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->update_func; },
+      [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
+        artifact.Unwrap()->update_func = VerifyLuaCallback(value);
+      }
+    ),
+    "on_spawn_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->on_spawn_func; },
+      [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
+        artifact.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
+      }
+    ),
+    "delete_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->delete_func; },
+      [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
+        artifact.Unwrap()->delete_func = VerifyLuaCallback(value);
+      }
+    ),
+    "can_move_to_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->can_move_to_func; },
+      [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
+        artifact.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
+      }
+    )
   );
 }
 #endif

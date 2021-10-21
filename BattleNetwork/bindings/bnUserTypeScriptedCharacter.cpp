@@ -5,6 +5,7 @@
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedComponent.h"
+#include "../bnSolHelpers.h"
 #include "../bnTile.h"
 
 void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
@@ -238,7 +239,43 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     },
     "set_explosion_behavior", [](WeakWrapper<ScriptedCharacter>& character, int num, double speed, bool isBoss) {
       character.Unwrap()->SetExplosionBehavior(num, speed, isBoss);
-    }
+    },
+    "update_func", sol::property(
+      [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->update_func; },
+      [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {
+        character.Unwrap()->update_func = VerifyLuaCallback(value);
+      }
+    ),
+    "delete_func", sol::property(
+      [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->delete_func; },
+      [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {
+        character.Unwrap()->delete_func = VerifyLuaCallback(value);
+      }
+    ),
+    "on_spawn_func", sol::property(
+      [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->on_spawn_func; },
+      [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {
+        character.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
+      }
+    ),
+    "battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->battle_start_func; },
+      [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {
+        character.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+      }
+    ),
+    "battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->battle_end_func; },
+      [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {
+        character.Unwrap()->battle_end_func = VerifyLuaCallback(value);
+      }
+    ),
+    "can_move_to_func", sol::property(
+      [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->can_move_to_func; },
+      [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {
+        character.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
+      }
+    )
   );
 }
 #endif

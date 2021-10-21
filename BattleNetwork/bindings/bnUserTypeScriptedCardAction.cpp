@@ -7,6 +7,7 @@
 #include "bnScriptedCardAction.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
+#include "../bnSolHelpers.h"
 
 using CardActionAttachmentWrapper = WeakWrapperChild<CardAction, CardAction::Attachment>;
 
@@ -74,7 +75,31 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
     },
     "copy_metadata", [](WeakWrapper<ScriptedCardAction>& cardAction) -> Battle::Card::Properties {
       return cardAction.Unwrap()->GetMetaData();
-    }
+    },
+    "update_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->update_func; },
+      [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
+        cardAction.Unwrap()->update_func = VerifyLuaCallback(value);
+      }
+    ),
+    "animation_end_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->animation_end_func; },
+      [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
+        cardAction.Unwrap()->animation_end_func = VerifyLuaCallback(value);
+      }
+    ),
+    "action_end_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->action_end_func; },
+      [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
+        cardAction.Unwrap()->action_end_func = VerifyLuaCallback(value);
+      }
+    ),
+    "execute_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->execute_func; },
+      [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
+        cardAction.Unwrap()->execute_func = VerifyLuaCallback(value);
+      }
+    )
   );
 }
 #endif
