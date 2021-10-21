@@ -13,25 +13,25 @@ public:
   WeakWrapper(std::weak_ptr<T> weakPtr) : weakPtr(weakPtr) {}
   WeakWrapper() {}
 
-  void Own() {
+  inline void Own() {
     ownedPtr = weakPtr.lock();
   }
 
-  std::weak_ptr<T> GetWeak() {
+  inline std::weak_ptr<T> GetWeak() {
     return weakPtr;
   }
 
-  std::shared_ptr<T> Release() {
+  inline std::shared_ptr<T> Release() {
     auto temp = weakPtr.lock();
     ownedPtr = nullptr;
     return temp;
   }
 
-  std::shared_ptr<T> Lock() {
+  inline std::shared_ptr<T> Lock() {
     return weakPtr.lock();
   }
 
-  std::shared_ptr<T> Unwrap() {
+  inline std::shared_ptr<T> Unwrap() {
     auto ptr = weakPtr.lock();
 
     if (!ptr) {

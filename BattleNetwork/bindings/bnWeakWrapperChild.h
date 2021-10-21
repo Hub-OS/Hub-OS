@@ -12,15 +12,15 @@ private:
 public:
   WeakWrapperChild(std::weak_ptr<Parent> weakPtr, Child& child) : weakPtr(weakPtr), child(child) {}
 
-  void OwnParent() {
+  inline void OwnParent() {
     sharedPtr = weakPtr.lock();
   }
 
-  std::weak_ptr<Parent> GetParentWeak() {
+  inline std::weak_ptr<Parent> GetParentWeak() {
     return weakPtr;
   }
 
-  std::shared_ptr<Parent> UnwrapParent() {
+  inline std::shared_ptr<Parent> UnwrapParent() {
     auto ptr = weakPtr.lock();
 
     if (!ptr) {
@@ -30,7 +30,7 @@ public:
     return ptr;
   }
 
-  Child& Unwrap() {
+  inline Child& Unwrap() {
     if (weakPtr.expired()) {
       throw std::runtime_error("data deleted");
     }

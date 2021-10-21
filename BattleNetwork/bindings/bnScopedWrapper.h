@@ -12,7 +12,7 @@ public:
   ScopedWrapper(T& ref) : ref(ref) { valid = std::make_shared<bool>(true); }
   ~ScopedWrapper() { *valid = false; }
 
-  T& Unwrap() {
+  inline T& Unwrap() {
     if (!*valid) {
       throw std::runtime_error("data deleted");
     }
