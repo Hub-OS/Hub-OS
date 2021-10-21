@@ -113,6 +113,7 @@ namespace Battle {
     ogTeam = other.ogTeam;
     state = other.state;
     RefreshTexture();
+    animation.Refresh(getSprite());
     entities = other.entities;
     setScale(2.f, 2.f);
     width = other.width;
@@ -229,6 +230,7 @@ namespace Battle {
       }
 
       RefreshTexture();
+      animation.Refresh(getSprite());
     }
   }
 
@@ -321,8 +323,6 @@ namespace Battle {
     else {
       setTexture(blue_team_atlas);
     }
-
-    animation.Refresh(getSprite());
   }
 
   bool Tile::IsWalkable() const {
