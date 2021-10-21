@@ -251,7 +251,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   auto pendingPtr = &pending;
 
   // Find any AI using this character as a target and free that pointer  
-  field->FindEntities([pendingPtr](std::shared_ptr<Entity> in) {
+  field->FindEntities([pendingPtr](std::shared_ptr<Entity>& in) {
     auto agent = dynamic_cast<Agent*>(in.get());
 
     if (agent && agent->GetTarget().get() == pendingPtr) {
@@ -588,23 +588,20 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   }
 
   for (Battle::Tile* tile : allTiles) {
-    auto allEntities = tile->FindEntities([](std::shared_ptr<Entity> ent) { return true; });
+    std::vector<Entity*> allEntities;
+    tile->FindEntities([&allEntities](std::shared_ptr<Entity>& ent) {
+      allEntities.push_back(ent.get());
+      return false;
+    });
 
-    for (auto ent : allEntities) {
+    for (auto& ent : allEntities) {
       auto uic = ent->GetComponentsDerivedFrom<UIComponent>();
       uis.insert(uis.begin(), uic.begin(), uic.end());
     }
 
-    auto nodes = std::vector<SceneNode*>();
-    nodes.reserve(allEntities.size());
+    std::sort(allEntities.begin(), allEntities.end(), [](Entity* A, Entity* B) { return A->GetLayer() > B->GetLayer(); });
 
-    for(auto& entity : allEntities) {
-      nodes.push_back(entity.get());
-    }
-
-    std::sort(nodes.begin(), nodes.end(), [](SceneNode* A, SceneNode* B) { return A->GetLayer() > B->GetLayer(); });
-
-    for (SceneNode* node : nodes) {
+    for (Entity* node : allEntities) {
       node->move(viewOffset);
       surface.draw(*node);
       node->move(-viewOffset);
@@ -612,7 +609,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   }
 
   // draw ui on top
-  for (auto ui : uis) {
+  for (auto& ui : uis) {
     if (ui->DrawOnUIPass()) {
       ui->move(viewOffset);
       surface.draw(*ui);
@@ -621,16 +618,16 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   }
 
   // draw extra card action graphics
-  std::vector<std::shared_ptr<Character>> allCharacters;
-  field->FindEntities([&allCharacters](std::shared_ptr<Entity> e) mutable {
-    if (auto character = std::dynamic_pointer_cast<Character>(e)) {
+  std::vector<Character*> allCharacters;
+  field->FindEntities([&allCharacters](std::shared_ptr<Entity>& e) mutable {
+    if (auto character = dynamic_cast<Character*>(e.get())) {
       allCharacters.push_back(character);
     }
 
     return false;
   });
 
-  for (std::shared_ptr<Character> c : allCharacters) {
+  for (auto* c : allCharacters) {
     auto actionList = c->AsyncActionList();
     auto currAction = c->CurrentCardAction();
 
@@ -868,7 +865,11 @@ void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {
 void BattleSceneBase::ProcessNewestComponents()
 {
   // effectively returns all of them
-  auto entities = field->FindEntities([](std::shared_ptr<Entity> e) { return true; });
+  std::vector<Entity*> entities;
+  field->FindEntities([&entities](std::shared_ptr<Entity>& e) {
+    entities.push_back(e.get());
+    return false;
+  });
 
   for (auto e : entities) {
     if (e->components.size() > 0) {

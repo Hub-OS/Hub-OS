@@ -38,14 +38,14 @@ void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   std::sort(childNodes.begin(), childNodes.end(), [](std::shared_ptr<SceneNode>& a, std::shared_ptr<SceneNode>& b) { return (a->GetLayer() > b->GetLayer()); });
 
   // draw its children
-  for (std::size_t i = 0; i < childNodes.size(); i++) {
+  for (auto& childNode : childNodes) {
     auto childStates = states;
 
-    if (!childNodes[i]->useParentShader) {
+    if (!childNode->useParentShader) {
       childStates.shader = nullptr;
     }
 
-    childNodes[i]->draw(target, childStates);
+    childNode->draw(target, childStates);
   }
 }
 

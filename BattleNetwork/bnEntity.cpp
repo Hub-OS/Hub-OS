@@ -325,14 +325,12 @@ void Entity::Update(double _elapsed) {
   }
 
   // Update all components
-  auto iter = components.begin();
-  while (iter != components.end()) {
+  for (auto& component : components) {
     // respectfully only update local components
     // anything shared with the battle scene needs to update those components
-    if ((*iter)->Lifetime() == Component::lifetimes::local) {
-      (*iter)->Update(_elapsed);
+    if (component->Lifetime() == Component::lifetimes::local) {
+      component->Update(_elapsed);
     }
-    iter = std::next(iter);
   }
 
   ReleaseComponentsPendingRemoval();

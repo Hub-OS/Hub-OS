@@ -117,7 +117,7 @@ void Character::Update(double _elapsed) {
 
   // process async actions
   std::vector<std::shared_ptr<CardAction>> asyncCopy = asyncActions;
-  for (std::shared_ptr<CardAction> action : asyncCopy) {
+  for (std::shared_ptr<CardAction>& action : asyncCopy) {
     action->Update(_elapsed);
 
     if (action->IsLockoutOver()) {
@@ -244,7 +244,7 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 bool Character::CanMoveTo(Battle::Tile * next)
 {
-  auto occupied = [this](std::shared_ptr<Entity> in) {
+  auto occupied = [this](std::shared_ptr<Entity>& in) {
     auto c = dynamic_cast<Character*>(in.get());
 
     return c && c != this && !c->CanShareTileSpace();

@@ -16,8 +16,9 @@ ScriptedSpell::ScriptedSpell(Team team) : Spell(team) {
 
 void ScriptedSpell::Init() {
   Spell::Init();
-  animComponent = CreateComponent<AnimationComponent>(weak_from_base<Entity>());
-  weakWrap = WeakWrapper(weak_from_base<ScriptedSpell>());
+  auto sharedPtr = shared_from_base<ScriptedSpell>();
+  animComponent = CreateComponent<AnimationComponent>(sharedPtr);
+  weakWrap = WeakWrapper(sharedPtr);
 }
 
 ScriptedSpell::~ScriptedSpell() {

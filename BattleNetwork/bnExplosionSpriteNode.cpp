@@ -116,7 +116,7 @@ void ExplosionSpriteNode::Update(double _elapsed) {
    * Keep root alive until all explosions are completed, then delete root
    */
   if (this == root) {
-    for (auto element : chain) {
+    for (auto& element : chain) {
       element->Update(_elapsed);
     }
 
@@ -162,7 +162,7 @@ const bool ExplosionSpriteNode::IsSequenceComplete() const
 {
   bool done = this->done;
 
-  for (auto element : chain) {
+  for (auto& element : chain) {
     done = done && element->done;
   }
 

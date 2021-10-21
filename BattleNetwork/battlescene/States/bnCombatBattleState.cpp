@@ -67,7 +67,7 @@ const bool CombatBattleState::HasTimeFreeze() const {
 
 const bool CombatBattleState::PlayerWon() const
 {
-  auto blueTeamChars = GetScene().GetField()->FindEntities([](std::shared_ptr<Entity> e) {
+  auto blueTeamChars = GetScene().GetField()->FindEntities([](std::shared_ptr<Entity>& e) {
     // check when the enemy has been removed from the field even if the mob
     // forgot about it
     // TODO: do not use dynamic casts

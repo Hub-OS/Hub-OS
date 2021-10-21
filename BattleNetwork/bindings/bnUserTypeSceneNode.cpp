@@ -48,7 +48,7 @@ void DefineSceneNodeUserType(sol::table& engine_namespace) {
       std::vector<WeakWrapper<SceneNode>> result;
       result.reserve(nodes.size());
 
-      for (auto node : nodes) {
+      for (auto& node : nodes) {
         result.push_back(WeakWrapper(node));
       }
 

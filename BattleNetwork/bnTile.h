@@ -263,8 +263,8 @@ namespace Battle {
     */
     void SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim);
 
-    void HandleTileBehaviors(Field& field, std::shared_ptr<Obstacle> obst);
-    void HandleTileBehaviors(Field& field, std::shared_ptr<Character> character);
+    void HandleTileBehaviors(Field& field, Obstacle& obst);
+    void HandleTileBehaviors(Field& field, Character& character);
 
     /**
      * @brief Query for multiple entities using a functor
@@ -273,7 +273,7 @@ namespace Battle {
      * @param e Functor that takes in an entity and returns a boolean
      * @return returns a list of entities that returned true in the functor `e` 
      */
-    std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity>e)> query);
+    std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query);
 
     /**
      * @brief Query for multiple charactors using a functor
@@ -282,7 +282,7 @@ namespace Battle {
      * @param e Functor that takes in an character and returns a boolean
      * @return returns a list of characters that returned true in the functor `e`
      */
-    std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character> e)> query);
+    std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query);
 
     /**
      * @brief Calculates and returns Manhattan-distance from this tile to the other

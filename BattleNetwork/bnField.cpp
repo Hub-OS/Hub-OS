@@ -239,7 +239,7 @@ Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, Battle::
   return AddEntity(entity, dest.GetX(), dest.GetY());
 }
 
-std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std::shared_ptr<Entity> e)> query) const
+std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query) const
 {
   std::vector<std::shared_ptr<Entity>> res;
 
@@ -256,7 +256,7 @@ std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std:
   return res;
 }
 
-std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool(std::shared_ptr<Character> e)> query) const
+std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const
 {
   std::vector<std::shared_ptr<Character>> res;
 
@@ -273,11 +273,11 @@ std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool
   return res;
 }
 
-std::vector<std::shared_ptr<Character>> Field::FindNearestCharacters(const std::shared_ptr<Character> test, std::function<bool(std::shared_ptr<Character> e)> filter) const
+std::vector<std::shared_ptr<Character>> Field::FindNearestCharacters(const std::shared_ptr<Character> test, std::function<bool(std::shared_ptr<Character>& e)> filter) const
 {
   auto list = this->FindCharacters(filter);
 
-  std::sort(list.begin(), list.end(), [test](const std::shared_ptr<Character> first, const std::shared_ptr<Character> next) {
+  std::sort(list.begin(), list.end(), [test](const std::shared_ptr<Character>& first, const std::shared_ptr<Character>& next) {
     auto& t0 = *test->GetTile();
     auto& t1 = *first->GetTile();
     auto& t2 = *next->GetTile();
@@ -535,13 +535,13 @@ const bool Field::HasPendingEntities() const
   return pending.size();
 }
 
-void Field::UpdateEntityOnce(std::shared_ptr<Entity> entity, const double elapsed)
+void Field::UpdateEntityOnce(Entity& entity, const double elapsed)
 {
-  if(entity == nullptr || updatedEntities.find(entity->GetID()) != updatedEntities.end())
+  if(updatedEntities.find(entity.GetID()) != updatedEntities.end())
       return;
 
-  entity->Update(elapsed);
-  updatedEntities.insert(std::make_pair(entity->GetID(), (void*)0));
+  entity.Update(elapsed);
+  updatedEntities.insert(std::make_pair(entity.GetID(), (void*)0));
 }
 
 void Field::ForgetEntity(Entity::ID_t ID)

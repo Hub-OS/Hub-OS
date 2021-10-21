@@ -48,7 +48,7 @@ void DefineTileUserType(sol::state& state) {
     ) {
       sol::protected_function query = queryObject;
 
-      auto results = tile.FindCharacters([query] (std::shared_ptr<Character> character) -> bool {
+      auto results = tile.FindCharacters([query] (std::shared_ptr<Character>& character) -> bool {
         auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
 
         if (result.is_error()) {

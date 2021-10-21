@@ -120,7 +120,7 @@ inline void ExplodeState<Any>::CleanupExplosions(Any& e)
 {
   if (explosion == nullptr) return;
 
-  for (auto element : explosion->GetChain()) {
+  for (auto& element : explosion->GetChain()) {
     e.RemoveNode(element);
   }
 

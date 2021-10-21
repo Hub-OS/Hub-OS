@@ -11,10 +11,10 @@
 #include "bnScriptedObstacle.h"
 #include "bnScriptedArtifact.h"
 
-static sol::as_table_t<std::vector<WeakWrapper<Character>>> FindNearestCharacters(WeakWrapper<Field> field, std::shared_ptr<Character> test, sol::stack_object queryObject) {
+static sol::as_table_t<std::vector<WeakWrapper<Character>>> FindNearestCharacters(WeakWrapper<Field>& field, std::shared_ptr<Character> test, sol::stack_object queryObject) {
   sol::protected_function query = queryObject;
 
-  auto results = field.Unwrap()->FindNearestCharacters(test, [query] (std::shared_ptr<Character> character) -> bool {
+  auto results = field.Unwrap()->FindNearestCharacters(test, [query] (std::shared_ptr<Character>& character) -> bool {
     auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
 
     if (result.is_error()) {
@@ -97,7 +97,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
     ) {
       sol::protected_function query = queryObject;
 
-      auto results = field.Unwrap()->FindCharacters([query] (std::shared_ptr<Character> character) -> bool {
+      auto results = field.Unwrap()->FindCharacters([query] (std::shared_ptr<Character>& character) -> bool {
         auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
 
         if (result.is_error()) {

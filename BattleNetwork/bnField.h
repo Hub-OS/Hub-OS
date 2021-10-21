@@ -95,14 +95,14 @@ public:
    * @param query. the query input function
    * @return list of std::shared_ptr<Entity> that passed the input function's conditions
    */
-  std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity> e)> query) const;
+  std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query) const;
 
   /**
    * @brief Query for characters on the entire field
    * @param query. the query input function
    * @return list of std::shared_ptr<Character> that passed the input function's conditions
    */
-  std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character> e)> query) const;
+  std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const;
 
   /**
    * @brief Query for the closest characters on the entire field given an input character.
@@ -110,7 +110,7 @@ public:
    * @param query. the query input function
    * @return list of std::shared_ptr<Character> that passed the input function's conditions
    */
-  std::vector<std::shared_ptr<Character>> FindNearestCharacters(const std::shared_ptr<Character> test, std::function<bool(std::shared_ptr<Character> e)> query) const;
+  std::vector<std::shared_ptr<Character>> FindNearestCharacters(const std::shared_ptr<Character> test, std::function<bool(std::shared_ptr<Character>& e)> query) const;
 
   /**
    * @brief Set the tile at (x,y) team to _team
@@ -178,7 +178,7 @@ public:
   * Because entities update on a per-tile basis, we need to ensure an entity spanning multiple tiles
   * Is only ever updated once.
   */
-  void UpdateEntityOnce(std::shared_ptr<Entity> entity, const double elapsed);
+  void UpdateEntityOnce(Entity& entity, const double elapsed);
 
   /**
   * @brief removes the ID from allEntityHash
