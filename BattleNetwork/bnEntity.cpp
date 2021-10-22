@@ -14,6 +14,11 @@ bool EntityComparitor::operator()(std::shared_ptr<Entity> f, std::shared_ptr<Ent
   return f->GetID() < s->GetID();
 }
 
+bool EntityComparitor::operator()(Entity* f, Entity* s) const
+{
+  return f->GetID() < s->GetID();
+}
+
 // First entity ID begins at 1
 Entity::Entity() : 
   elapsedMoveTime(0),

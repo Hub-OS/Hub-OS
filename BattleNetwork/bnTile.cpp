@@ -383,13 +383,13 @@ namespace Battle {
       return;
     }
 
-    if (auto spell = std::dynamic_pointer_cast<Spell>(_entity)) {
+    if (auto spell = dynamic_cast<Spell*>(_entity.get())) {
       spells.push_back(spell);
-    } else if(auto artifact = std::dynamic_pointer_cast<Artifact>(_entity)) {
+    } else if(auto artifact = dynamic_cast<Artifact*>(_entity.get())) {
       artifacts.push_back(artifact);
     } else if(auto obstacle = std::dynamic_pointer_cast<Obstacle>(_entity)) {
       characters.push_back(obstacle);
-      spells.push_back(_entity);
+      spells.push_back(_entity.get());
     } else if(auto character = std::dynamic_pointer_cast<Character>(_entity)) {
       characters.push_back(character);
     }
@@ -426,10 +426,10 @@ namespace Battle {
     if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
     auto itEnt    = find_if(entities.begin(), entities.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
-    auto itSpell  = find_if(spells.begin(), spells.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
+    auto itSpell  = find_if(spells.begin(), spells.end(), [ID](Entity* in) { return in->GetID() == ID; });
     auto itChar   = find_if(characters.begin(), characters.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
-    auto itArt    = find_if(artifacts.begin(), artifacts.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
-    auto itDelete = find_if(deletingCharacters.begin(), deletingCharacters.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
+    auto itArt    = find_if(artifacts.begin(), artifacts.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itDelete = find_if(deletingCharacters.begin(), deletingCharacters.end(), [ID](Entity* in) { return in->GetID() == ID; });
     
     if (itDelete != deletingCharacters.end()) {
       deletingCharacters.erase(itDelete);
@@ -497,7 +497,7 @@ namespace Battle {
     }
 
     // We need a copy because we WILL invalidate the iterator
-    const std::set<std::shared_ptr<Character>, EntityComparitor> deletingCharsCopy = deletingCharacters;
+    const std::set<Character*, EntityComparitor> deletingCharsCopy = deletingCharacters;
     for (auto& character : deletingCharsCopy) {
       // Can remove the character from the tile's deleting queue
       field.UpdateEntityOnce(*character, _elapsed);
@@ -873,7 +873,7 @@ namespace Battle {
 
       if (ptr->IsDeleted()) {
         // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
-        auto character = std::dynamic_pointer_cast<Character>(ptr);
+        auto character = dynamic_cast<Character*>(ptr.get());
 
         if (character && deletingCharacters.find(character) == deletingCharacters.end()) {
           field.CharacterDeletePublisher::Broadcast(*character);
@@ -1002,7 +1002,7 @@ namespace Battle {
 
   void Tile::UpdateSpells(Field& field, const double elapsed)
   {
-    vector<std::shared_ptr<Entity>> spells_copy = spells;
+    vector<Entity*> spells_copy = spells;
     for (auto& spell : spells_copy) {
       int request = (int)spell->GetTileHighlightMode();
 
@@ -1023,7 +1023,7 @@ namespace Battle {
 
   void Tile::UpdateArtifacts(Field& field, const double elapsed)
   {
-    vector<std::shared_ptr<Artifact>> artifacts_copy = artifacts;
+    vector<Artifact*> artifacts_copy = artifacts;
     for (auto& artifact : artifacts_copy) {
       // artifacts are special effects and do not stop for TimeFreeze events
       field.UpdateEntityOnce(*artifact, elapsed);

@@ -19,7 +19,7 @@ AnimationComponent::~AnimationComponent() {
 void AnimationComponent::OnUpdate(double _elapsed)
 {
   auto owner = GetOwner();
-  auto character = GetOwnerAs<Character>();
+  auto character = dynamic_cast<Character*>(owner.get());
 
   // Since animations can be used on non-characters
   // we check if the owning entity is non-null 

@@ -247,9 +247,11 @@ std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std:
     for (int x = 1; x <= width; x++) {
       Battle::Tile* tile = GetAt(x, y);
 
-      std::vector<std::shared_ptr<Entity>> found = tile->FindEntities(query);
-      res.reserve(res.size() + found.size()); // preallocate memory
-      res.insert(res.end(), found.begin(), found.end());
+      for(auto& entity : tile->entities) {
+        if (query(entity)) {
+          res.push_back(entity);
+        }
+      }
     }
   }
 
@@ -580,7 +582,6 @@ void Field::DeallocEntity(Entity::ID_t ID)
     auto& entity = iter->second;
     entity->GetTile()->RemoveEntityByID(ID);
     ForgetEntity(ID);
-    // todo: break entity shared_ptr cycles
   }
 }
 

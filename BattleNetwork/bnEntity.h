@@ -92,6 +92,7 @@ struct CombatHitProps {
 
 struct EntityComparitor {
   bool operator()(std::shared_ptr<Entity> f, std::shared_ptr<Entity> s) const;
+  bool operator()(Entity* f, Entity* s) const;
 };
 
 class Entity :
@@ -827,11 +828,11 @@ inline std::vector<std::shared_ptr<BaseType>> Entity::GetComponentsDerivedFrom()
 {
   auto res = std::vector<std::shared_ptr<BaseType>>();
 
-  for (vector<std::shared_ptr<Component>>::const_iterator it = components.begin(); it != components.end(); ++it) {
-    auto cast = std::dynamic_pointer_cast<BaseType>(*it);
+  for (const auto& component : components) {
+    auto cast = std::dynamic_pointer_cast<BaseType>(component);
 
     if (cast) {
-      res.push_back(cast);
+      res.push_back(std::move(cast));
     }
   }
 

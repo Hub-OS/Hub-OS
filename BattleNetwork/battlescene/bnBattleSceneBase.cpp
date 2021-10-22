@@ -587,46 +587,46 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     tile->move(-viewOffset);
   }
 
+  std::vector<Entity*> allEntities;
+
   for (Battle::Tile* tile : allTiles) {
-    std::vector<Entity*> allEntities;
-    tile->FindEntities([&allEntities](std::shared_ptr<Entity>& ent) {
+    std::vector<Entity*> tileEntities;
+    tile->FindEntities([&tileEntities, &allEntities](std::shared_ptr<Entity>& ent) {
+      tileEntities.push_back(ent.get());
       allEntities.push_back(ent.get());
       return false;
     });
 
-    for (auto& ent : allEntities) {
-      auto uic = ent->GetComponentsDerivedFrom<UIComponent>();
-      uis.insert(uis.begin(), uic.begin(), uic.end());
-    }
+    std::sort(tileEntities.begin(), tileEntities.end(), [](Entity* A, Entity* B) { return A->GetLayer() > B->GetLayer(); });
 
-    std::sort(allEntities.begin(), allEntities.end(), [](Entity* A, Entity* B) { return A->GetLayer() > B->GetLayer(); });
-
-    for (Entity* node : allEntities) {
+    for (Entity* node : tileEntities) {
       node->move(viewOffset);
       surface.draw(*node);
       node->move(-viewOffset);
     }
   }
 
+  std::vector<Character*> allCharacters;
+
   // draw ui on top
-  for (auto& ui : uis) {
-    if (ui->DrawOnUIPass()) {
-      ui->move(viewOffset);
-      surface.draw(*ui);
-      ui->move(-viewOffset);
+  for (auto* ent : allEntities) {
+    auto uis = ent->GetComponentsDerivedFrom<UIComponent>();
+
+    for (auto& ui : uis) {
+      if (ui->DrawOnUIPass()) {
+        ui->move(viewOffset);
+        surface.draw(*ui);
+        ui->move(-viewOffset);
+      }
+    }
+
+    // collect characters while drawing ui
+    if (auto character = dynamic_cast<Character*>(ent)) {
+      allCharacters.push_back(character);
     }
   }
 
   // draw extra card action graphics
-  std::vector<Character*> allCharacters;
-  field->FindEntities([&allCharacters](std::shared_ptr<Entity>& e) mutable {
-    if (auto character = dynamic_cast<Character*>(e.get())) {
-      allCharacters.push_back(character);
-    }
-
-    return false;
-  });
-
   for (auto* c : allCharacters) {
     auto actionList = c->AsyncActionList();
     auto currAction = c->CurrentCardAction();
