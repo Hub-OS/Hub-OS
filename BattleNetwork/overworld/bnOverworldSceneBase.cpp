@@ -10,10 +10,13 @@
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldTiledMapLoader.h"
 
-#include "../bnWebClientMananger.h"
 #include "../Android/bnTouchArea.h"
 #include "../bnCurrentTime.h"
+#include "../bnBlockPackageManager.h"
+#include "../bnCardFolderCollection.h"
+#include "../bnGameSession.h"
 
+// scenes
 #include "../bnFolderScene.h"
 #include "../bnSelectNaviScene.h"
 #include "../bnSelectMobScene.h"
@@ -24,8 +27,8 @@
 #include "../bnMailScene.h"
 #include "../bnVendorScene.h"
 #include "../bnPlayerCustScene.h"
-#include "../bnBlockPackageManager.h"
-#include "../bnCardFolderCollection.h"
+
+// Backgrounds
 #include "../bnCustomBackground.h"
 #include "../bnLanBackground.h"
 #include "../bnACDCBackground.h"
@@ -73,14 +76,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   map(0, 0, 0, 0),
   playerActor(std::make_shared<Overworld::Actor>("You"))
 {
-  // When we reach the menu scene we need to load the player information
-  // before proceeding to next sub menus
-  webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
-  webAccountIcon.setScale(2.f, 2.f);
-  webAccountIcon.setPosition(4, getController().getVirtualWindowSize().y - 44.0f);
-  webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
-  webAccountAnimator.Load();
-  webAccountAnimator.SetAnimation("NO_CONNECTION");
 
   // Draws the scrolling background
   SetBackground(std::make_shared<LanBackground>());
@@ -90,48 +85,14 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   Overworld::Actor::SetMissingTexture(missingTexture);
 
   personalMenu->setScale(2.f, 2.f);
+   
+  auto& session = getController().Session();
+  bool loaded = session.LoadSession("profile.bin");
 
-  /// WEB ACCOUNT LOADING
+  if (loaded) {
+    //folders = session.ReadFolders();
 
-  WebAccounts::AccountState account;
-
-  if (WEBCLIENT.IsLoggedIn()) {
-    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account);
-
-    // Quickly load the session on disk to reduce wait times
-    if (loaded) {
-      Logger::Log("Found cached account data");
-
-      WEBCLIENT.UseCachedAccount(account);
-      WEBCLIENT.CacheTextureData(account);
-      folders = CardFolderCollection::ReadFromWebAccount(account);
-      programAdvance = PA::ReadFromWebAccount(account);
-
-      NaviEquipSelectedFolder();
-    }
-
-    Logger::Log("Fetching account data...");
-
-    // resent fetch command to get the a latest account info
-    accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
-
-    Logger::Log("waiting for server...");
-  }
-  else {
-
-    // If we are not actively online but we have a profile on disk, try to load our previous session
-    // The user may be logging in but has not completed yet and we want to reduce wait times...
-    // Otherwise, use the guest profile
-    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account) || WEBCLIENT.LoadSession("guest.bin", &account);
-
-    if (loaded) {
-      WEBCLIENT.UseCachedAccount(account);
-      WEBCLIENT.CacheTextureData(account);
-      folders = CardFolderCollection::ReadFromWebAccount(account);
-      programAdvance = PA::ReadFromWebAccount(account);
-
-      NaviEquipSelectedFolder();
-    }
+    NaviEquipSelectedFolder();
   }
 
   setView(sf::Vector2u(480, 320));
@@ -217,37 +178,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     return; // keep the screen looking the same when we come back
 #endif
 
-  if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
-    try {
-      webAccount = accountCommandResponse.get();
-      Logger::Logf("You have %i folders on your account", webAccount.folders.size());
-      WEBCLIENT.CacheTextureData(webAccount);
-      folders = CardFolderCollection::ReadFromWebAccount(webAccount);
-      programAdvance = PA::ReadFromWebAccount(webAccount);
-
-      NaviEquipSelectedFolder();
-
-      // Replace
-      WEBCLIENT.SaveSession("profile.bin");
-    }
-    catch (const std::runtime_error& e) {
-      Logger::Logf("Could not fetch account.\nError: %s", e.what());
-    }
-  }
-
-  // update the web connectivity icon
-  bool currentConnectivity = WEBCLIENT.IsConnectedToWebServer();
-  if (currentConnectivity != lastIsConnectedState) {
-    if (WEBCLIENT.IsConnectedToWebServer()) {
-      webAccountAnimator.SetAnimation("OK_CONNECTION");
-    }
-    else {
-      webAccountAnimator.SetAnimation("NO_CONNECTION");
-    }
-
-    lastIsConnectedState = currentConnectivity;
-  }
-
   auto layerCount = map.GetLayerCount() + 1;
 
   if (spriteLayers.size() != layerCount) {
@@ -290,13 +220,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   menuSystem.Update((float)elapsed);
 
   HandleCamera((float)elapsed);
-
-  // Allow player to resync with remote account by pressing the pause action
-  /*if (Input().Has(InputEvents::pressed_option)) {
-      accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
-  }*/
-
-  webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
 }
 
 void Overworld::SceneBase::HandleCamera(float elapsed) {
@@ -360,20 +283,7 @@ void Overworld::SceneBase::onEnter()
 }
 
 void Overworld::SceneBase::onResume() {
-
-  auto guestAccount = !WEBCLIENT.IsLoggedIn();
-
-  if (!guestAccount) {
-    accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
-  }
-  else {
-    try {
-      WEBCLIENT.SaveSession("guest.bin");
-    }
-    catch (const std::runtime_error& e) {
-      Logger::Logf("Could not fetch account.\nError: %s", e.what());
-    }
-  }
+  getController().Session().SaveSession("guest.bin");
 
   // if we left this scene for a new OW scene... return to our warp area
   if (teleportedOut) {
@@ -415,9 +325,6 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
     // might make sense to extract some parts of menu system as the closed UI has different requirements
     personalMenu->draw(surface, sf::RenderStates::Default);
   }
-
-  // Add the web account connection symbol
-  surface.draw(webAccountIcon);
 
   // This will mask everything before this line with camera fx
   surface.draw(camera.GetLens());
@@ -634,12 +541,13 @@ void Overworld::SceneBase::RefreshNaviSprite()
 
 void Overworld::SceneBase::NaviEquipSelectedFolder()
 {
-  auto naviId = WEBCLIENT.GetValue("SelectedNavi");
+  auto& session = getController().Session();
+  auto naviId = session.GetValue("SelectedNavi");
   if (!naviId.empty()) {
     currentNaviId = naviId;
     RefreshNaviSprite();
 
-    auto folderStr = WEBCLIENT.GetValue("FolderFor:" + naviId);
+    auto folderStr = session.GetValue("FolderFor:" + naviId);
     if (!folderStr.empty()) {
       // preserve our selected folder
       if (int index = folders.FindFolder(folderStr); index >= 0) {
@@ -649,7 +557,7 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
   }
   else {
     currentNaviId = getController().PlayerPackageManager().FirstValidPackage();
-    WEBCLIENT.SetKey("SelectedNavi", currentNaviId);
+    session.SetKey("SelectedNavi", currentNaviId);
   }
 }
 

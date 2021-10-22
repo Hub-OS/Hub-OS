@@ -4,6 +4,7 @@
 #include "../../bnPlayer.h"
 #include "../../bnMob.h"
 #include "../../bnInputManager.h"
+#include "../../bnCardPackageManager.h"
 #include "../bnBattleSceneBase.h"
 
 #include <Swoosh/Segue.h>
@@ -44,8 +45,10 @@ void RewardBattleState::onStart(const BattleSceneState*)
   results.runaway = false;
 
   battleResultsWidget = new BattleResultsWidget(
-    BattleResults::CalculateScore(results, mob), 
-    mob);
+    BattleResults::CalculateScore(results, mob),
+    mob,
+    GetScene().getController().CardPackageManager()
+  );
 }
 
 void RewardBattleState::onEnd(const BattleSceneState*)

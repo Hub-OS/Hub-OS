@@ -502,9 +502,6 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
       if (packageManager.HasPackage(id)) {
         card = packageManager.FindPackageByID(id).GetCardProperties();
       }
-      else {
-        card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ id });
-      }
 
       remoteHand.push_back(card);
     }

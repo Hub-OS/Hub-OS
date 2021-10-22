@@ -64,11 +64,6 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   startLabel.SetString("Loading, Please Wait");
   CenterLabel();
 
-  ConfigSettings config = getController().ConfigSettings();
-  WebServerInfo web = config.GetWebServerInfo();
-  WEBCLIENT.ConnectToWebServer(web.version.c_str(), web.URL.c_str(), web.port);
-  loginResult = WEBCLIENT.SendLoginCommand(web.user, web.password);
-
   setView(sf::Vector2u(480, 320));
 }
 
@@ -102,10 +97,6 @@ void TitleScene::onUpdate(double elapsed)
       Poll();
 
       return;
-    } else if (loginResult.valid() && !is_ready(loginResult)) {
-      startLabel.SetString("Loggin in...");
-      CenterLabel();
-      return;
     }
     else {
 #if defined(__ANDROID__)
@@ -114,21 +105,6 @@ void TitleScene::onUpdate(double elapsed)
       startLabel.SetString("PRESS START");
       CenterLabel();
 #endif
-    }
-
-    static bool doOnce = true;
-
-    if (doOnce) {
-      doOnce = false;
-
-      if (loginResult.valid()) {
-        if (loginResult.get()) {
-          Logger::Logf("Logged in successfully!");
-        }
-        else {
-          Logger::Logf("Could not log in!");
-        }
-      }
     }
 
     if (Input().Has(InputEvents::pressed_pause) && !pressedStart) {

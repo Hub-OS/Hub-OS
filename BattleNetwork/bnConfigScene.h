@@ -76,9 +76,9 @@ private:
     void SetAlpha(sf::Uint8) override;
   };
 
-  class LoginItem : public TextItem {
+  class NicknameItem : public TextItem {
   public:
-    LoginItem(const std::function<void()>& callback);
+    NicknameItem(const std::function<void()>& callback);
     void Update() override;
   };
 
@@ -113,24 +113,6 @@ private:
     void SetValueRange(int min, int max);
   };
 
-  struct UserInfo {
-    std::string username;
-    std::string password;
-    std::string server_url;
-    std::string version{};
-    int port{};
-    std::future<bool> result;
-    enum class states : char {
-      entering_username,
-      entering_password,
-      entering_server,
-      entering_port,
-      entering_version_num,
-      pending,
-      complete
-    } currState{ states::complete };
-  } user;
-
   using Menu = std::vector<std::unique_ptr<MenuItem>>;
 
   Menu primaryMenu, keyboardMenu, gamepadMenu;
@@ -152,8 +134,6 @@ private:
   void UpdateShaderLevel(int shaderLevel,NumberItem& item);
   void ShowKeyboardMenu();
   void ShowGamepadMenu();
-  void ToggleLogin();
-  void LoginStep(UserInfo::states next);
   void AwaitKeyBinding(BindingItem&);
   void UnsetKeyBinding(BindingItem&);
   void AwaitGamepadBinding(BindingItem&);

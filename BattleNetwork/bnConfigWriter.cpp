@@ -19,11 +19,6 @@ void ConfigWriter::Write(std::string path)
   w << "Music=" << quote(std::to_string(settings.GetMusicLevel())) << w.endl();
   w << "SFX=" << quote(std::to_string(settings.GetSFXLevel())) << w.endl();
   w << "[Net]" << w.endl();
-  w << "WebServer=" << quote(settings.GetWebServerInfo().URL) << w.endl();
-  w << "Version=" << quote(settings.GetWebServerInfo().version) << w.endl();
-  w << "Port=" << quote(std::to_string(settings.GetWebServerInfo().port)) << w.endl();
-  w << "Username=" << quote(settings.GetWebServerInfo().user) << w.endl();
-  w << "Password=" << quote(settings.GetWebServerInfo().password) << w.endl();
   w << "[Video]" << w.endl();
   w << "Fullscreen=" << quote("0") << w.endl();
   w << "Shader=" << quote(std::to_string(settings.GetShaderLevel())) << w.endl();

@@ -73,6 +73,16 @@ const sf::Color& SpriteProxyNode::getColor() const {
   return sprite->getColor();
 }
 
+void SpriteProxyNode::SetColorMode(ColorMode mode)
+{
+  colorMode = mode;
+}
+
+ColorMode SpriteProxyNode::GetColorMode() const
+{
+  return colorMode;
+}
+
 const sf::IntRect& SpriteProxyNode::getTextureRect() {
   return sprite->getTextureRect();
 }

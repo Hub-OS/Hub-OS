@@ -165,34 +165,6 @@ bool ConfigReader::ParseAudioProperty(std::string_view line) {
 }
 
 bool ConfigReader::ParseNetProperty(std::string_view line) {
-  auto key = ResolveKey(line);
-  auto value = ResolveValue(line);
-
-  if (key == "WebServer") {
-    settings.webServer.URL = value;
-    return true;
-  }
-  if (key == "Version") {
-    settings.webServer.version = value;
-    return true;
-  }
-  if (key == "Port") {
-    auto valueCopy = std::string(value);
-    settings.webServer.port = std::atoi(valueCopy.c_str());
-    return true;
-  }
-  if (key == "Username") {
-    settings.webServer.user = value;
-    return true;
-  }
-  if (key == "Password") {
-    settings.webServer.password = value;
-    return true;
-  }
-
-  auto keyCopy = std::string(key);
-  Logger::Logf("Unknown config property in [Net]: %s", keyCopy.c_str());
-
   return true;
 }
 

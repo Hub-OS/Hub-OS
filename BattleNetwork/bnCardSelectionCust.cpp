@@ -3,7 +3,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnInputManager.h"
-#include "bnWebClientMananger.h"
 #include "bnCardLibrary.h"
 #include "bnCardPackageManager.h"
 
@@ -704,13 +703,11 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     std::shared_ptr<sf::Texture> texture;
     std::string id = queue[i].data->GetUUID();
 
-    if (props.roster->HasPackage(id)) {
-      texture = props.roster->FindPackageByID(id).GetIconTexture();
-    }
-    else {
-      texture = WEBCLIENT.GetIconForCard(id);
-    }
+    if (!props.roster->HasPackage(id))
+      continue;
 
+    texture = props.roster->FindPackageByID(id).GetIconTexture();
+    
     icon.setTexture(texture);
     icon.SetShader(nullptr);
 
@@ -741,12 +738,10 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     std::shared_ptr<sf::Texture> texture;
     std::string id = (*newSelectQueue[i]).data->GetUUID();
 
-    if (props.roster->HasPackage(id)) {
-      texture = props.roster->FindPackageByID(id).GetIconTexture();
-    }
-    else {
-      texture = WEBCLIENT.GetIconForCard(id);
-    }
+    if (!props.roster->HasPackage(id))
+      continue;
+
+    texture = props.roster->FindPackageByID(id).GetIconTexture();
 
     icon.setTexture(texture);
 
@@ -762,71 +757,69 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       std::shared_ptr<sf::Texture> texture;
       std::string id = queue[cursorPos + (5 * cursorRow)].data->GetUUID();
 
-      if(props.roster->HasPackage(id)) {
+      if (props.roster->HasPackage(id)) {
         texture = props.roster->FindPackageByID(id).GetPreviewTexture();
-      }
-      else {
-       texture = WEBCLIENT.GetImageForCard(id);
-      }
 
-      cardCard.setTexture(texture);
+        cardCard.setTexture(texture);
 
-      auto lastPos = cardCard.getPosition();
-      cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
-      cardCard.SetShader(nullptr);
+        auto lastPos = cardCard.getPosition();
+        cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
+        cardCard.SetShader(nullptr);
 
-      if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::voided) {
-        cardCard.SetShader(greyscale);
+        if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::voided) {
+          cardCard.SetShader(greyscale);
 
-        auto statesCopy = states;
-        statesCopy.shader = greyscale;
+          auto statesCopy = states;
+          statesCopy.shader = greyscale;
 
-        target.draw(cardCard, statesCopy);
+          target.draw(cardCard, statesCopy);
 
-      } else {
-        target.draw(cardCard, states);
-      }
+        }
+        else {
+          target.draw(cardCard, states);
+        }
 
-      cardCard.setPosition(lastPos);
+        cardCard.setPosition(lastPos);
 
-      // card name font shadow
-      const std::string& shortname = queue[cursorPos + (5 * cursorRow)].data->GetShortName();
-      label.setPosition((offset + 2.f * 16.f)+2.f, 22.f);
-      label.SetString(shortname);
-      label.SetColor(sf::Color(80, 75, 80));
-      target.draw(label, states);
-
-      // card name font overlay
-      label.setPosition(offset + 2.f*16.f, 20.f);
-      label.SetString(shortname);
-      label.SetColor(sf::Color::White);
-      target.draw(label, states);
-
-      // the order here is very important:
-      if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
-        label.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
-        label.setOrigin(label.GetLocalBounds().width+label.GetLocalBounds().left, 0);
-        label.setPosition((offset + 2.f*(70.f))+2.f, 152.f);
+        // card name font shadow
+        const std::string& shortname = queue[cursorPos + (5 * cursorRow)].data->GetShortName();
+        label.setPosition((offset + 2.f * 16.f) + 2.f, 22.f);
+        label.SetString(shortname);
+        label.SetColor(sf::Color(80, 75, 80));
         target.draw(label, states);
+
+        // card name font overlay
+        label.setPosition(offset + 2.f * 16.f, 20.f);
+        label.SetString(shortname);
+        label.SetColor(sf::Color::White);
+        target.draw(label, states);
+
+        // the order here is very important:
+        if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
+          label.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
+          label.setOrigin(label.GetLocalBounds().width + label.GetLocalBounds().left, 0);
+          label.setPosition((offset + 2.f * (70.f)) + 2.f, 152.f);
+          target.draw(label, states);
+        }
+
+        label.setOrigin(0, 0);
+        label.setPosition(offset + 2.f * 16.f, 150.f);
+        label.SetString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
+        label.SetColor(sf::Color(253, 246, 71));
+        target.draw(label, states);
+
+        int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
+
+        auto elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
+        element.setTextureRect(elementRect);
+
+        auto elementLastPos = element.getPosition();
+        element.setPosition(element.getPosition() + sf::Vector2f(offset, 0));
+
+        target.draw(element, states);
+
+        element.setPosition(elementLastPos);
       }
-
-      label.setOrigin(0, 0);
-      label.setPosition(offset + 2.f*16.f, 150.f);
-      label.SetString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
-      label.SetColor(sf::Color(253, 246, 71));
-      target.draw(label, states);
-
-      int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
-
-      auto elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
-      element.setTextureRect(elementRect);
-
-      auto elementLastPos = element.getPosition();
-      element.setPosition(element.getPosition() + sf::Vector2f(offset, 0));
-
-      target.draw(element, states);
-
-      element.setPosition(elementLastPos);
     }
     else {
       auto cardNoDataLastPos = cardNoData.getPosition();

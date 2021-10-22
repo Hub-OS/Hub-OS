@@ -34,6 +34,7 @@ Entity::Entity() :
   whiteout = Shaders().GetShader(ShaderType::WHITE);
   stun = Shaders().GetShader(ShaderType::YELLOW);
   root = Shaders().GetShader(ShaderType::BLACK);
+  setColor(NoopCompositeColor(GetColorMode()));
 }
 
 Entity::~Entity() {
@@ -222,16 +223,6 @@ void Entity::SetHeight(const float height) {
   Entity::height = std::fabs(height);
 }
 
-void Entity::SetColorMode(ColorMode mode)
-{
-  colorMode = mode;
-}
-
-ColorMode Entity::GetColorMode()
-{
-  return colorMode;
-}
-
 VirtualInputState& Entity::InputState()
 {
   return inputState;
@@ -268,8 +259,7 @@ void Entity::Update(double _elapsed) {
   ResolveFrameBattleDamage();
 
   // reset base color
-  // NOTE: that black works with additive color mode
-  setColor(sf::Color(baseColor.r, baseColor.g, baseColor.b, getColor().a));
+  setColor(NoopCompositeColor(GetColorMode()));
 
   if (!hit) {
     if (invincibilityCooldown > 0) {

@@ -241,7 +241,7 @@ void TextBox::CompleteCurrentBlock()
     }
 
     if ((currEffect & effects::dramatic) == effects::dramatic) {
-      modifiedCharsPerSeconds = DRAMATIC_TEXT_SPEED;
+      modifiedCharsPerSeconds = charsPerSecond * DRAMATIC_TEXT_SPEED;
     }
     
     simProgress += 1.0 / modifiedCharsPerSeconds;
@@ -410,7 +410,7 @@ void TextBox::Update(const double elapsed) {
 
   if ((currEffect & effects::dramatic) == effects::dramatic) {
     // if we are doing dramatic text, reduce speed
-    modifiedCharsPerSecond = DRAMATIC_TEXT_SPEED;
+    modifiedCharsPerSecond = charsPerSecond * DRAMATIC_TEXT_SPEED;
   }
 
   while (modifiedCharsPerSecond > 0 && progress > 1.0/modifiedCharsPerSecond) {

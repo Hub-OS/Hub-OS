@@ -10,14 +10,6 @@ struct DiscordInfo {
   std::string key;
 };
 
-struct WebServerInfo {
-  std::string user;
-  std::string password;
-  std::string URL;
-  std::string version;
-  int port{};
-};
-
 /*! \brief easy to cast in with some special codes for joystick x/y axis */
 enum class Gamepad : signed { BAD_CODE = -1, UP = 5555, LEFT = 5556, RIGHT = 5557, DOWN = 5558 };
 
@@ -80,11 +72,6 @@ public:
   void SetGamepadHash(const GamepadHash gamepad);
 
   /**
-  * @brief Set the web server info
-  */
-  void SetWebServerInfo(const std::string& url, int port, const std::string& version);
-
-  /**
    * @brief Get inverted thumbstick setting
    */
   bool GetInvertThumbstick() const;
@@ -135,8 +122,6 @@ public:
   ConfigSettings& operator=(const ConfigSettings& rhs);
 
   const DiscordInfo& GetDiscordInfo() const;
-  const WebServerInfo& GetWebServerInfo() const;
-
   const KeyboardHash& GetKeyboardHash();
   const GamepadHash& GetGamepadHash();
 
@@ -149,7 +134,6 @@ private:
   KeyboardHash keyboard; /*!< Keyboard key to event */
   GamepadHash gamepad; /*!< Gamepad button to event */
   DiscordInfo discord; /*!< account info to allow alerts on discord channel */
-  WebServerInfo webServer; /*!< account info that hosts cards and folders */
 
   int musicLevel{ 3 };
   int sfxLevel{ 3 };

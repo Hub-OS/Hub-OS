@@ -18,7 +18,6 @@ private:
   std::vector<std::string> logs;
   unsigned progress{}, total {};
   unsigned ellipsis{};
-  std::future<bool> loginResult;
   std::string taskStr, incomingTaskStr;
 
   // Status flags

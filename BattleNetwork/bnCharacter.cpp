@@ -60,6 +60,8 @@ Character::Character(Rank _rank) :
   CardActionUsePublisher(),
   Entity() {
 
+  SetColorMode(ColorMode::additive);
+
   if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
     smartShader = shader;
     smartShader.SetUniform("texture", sf::Shader::CurrentTexture);
@@ -211,6 +213,13 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
     else {
       SpriteProxyNode* asSpriteProxyNode{ nullptr };
       SmartShader temp(smartShader);
+
+      /**
+      hack for now.
+      form overlay nodes (like helmet and shoulder pads)
+      are already colored to the desired palette. So we do not apply palette swapping.
+      **/
+      bool needsRevert = false;
       sf::Color tempColor = sf::Color::White;
       if (currNode->HasTag(Player::FORM_NODE_TAG)) {
         asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode);
@@ -219,20 +228,21 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
           smartShader.SetUniform("swapPalette", false);
           tempColor = asSpriteProxyNode->getColor();
           asSpriteProxyNode->setColor(sf::Color(0, 0, 0, getColor().a));
+          needsRevert = true;
         }
       }
 
       // Apply and return shader if applicable
       sf::Shader* s = smartShader.Get();
 
-      if (s) {
+      if (s && currNode->IsUsingParentShader()) {
         states.shader = s;
       }
 
       currNode->draw(target, states);
 
       // revert color
-      if (asSpriteProxyNode) {
+      if (asSpriteProxyNode && needsRevert) {
         asSpriteProxyNode->setColor(tempColor);
       }
 

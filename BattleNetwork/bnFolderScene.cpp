@@ -5,6 +5,7 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
 
+#include "bnGameSession.h"
 #include "bnFolderScene.h"
 #include "bnFolderEditScene.h"
 #include "bnFolderChangeNameScene.h"
@@ -12,6 +13,7 @@
 #include "bnCardLibrary.h"
 #include "bnCardFolder.h"
 #include "bnPlayerPackageManager.h"
+#include "bnCardPackageManager.h"
 #include "Android/bnTouchArea.h"
 #include "bnMessageQuestion.h"
 
@@ -147,6 +149,8 @@ void FolderScene::onStart() {
 }
 
 void FolderScene::onUpdate(double elapsed) {
+  auto& session = getController().Session();
+
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
@@ -374,12 +378,12 @@ void FolderScene::onUpdate(double elapsed) {
 
             // Save this session data
             auto folderStr = collection.GetFolderNames()[0];
-            auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
+            auto naviSelectedStr = session.GetValue("SelectedNavi");
             
             if (naviSelectedStr.empty()) 
               naviSelectedStr = getController().PlayerPackageManager().FirstValidPackage();
             
-            WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
+            session.SetKey("FolderFor:" + naviSelectedStr, folderStr);
 
             Audio().Play(AudioType::PA_ADVANCE);
           }
@@ -489,10 +493,11 @@ void FolderScene::onResume() {
     // Save any edits
     collection.SetFolderName(folderNames[currFolderIndex], folder);
     folderSwitch = true;
-    collection.WriteToFile("resources/database/folders.txt");
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
+  auto& packageManager = getController().CardPackageManager();
+
   surface.draw(bg);
   surface.draw(menuLabel);
 
@@ -613,7 +618,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
       float cardIconY = 132.0f + (32.f*i);
 
-      cardIcon.setTexture(*WEBCLIENT.GetIconForCard((*iter)->GetUUID()));
+      cardIcon.setTexture(*packageManager.FindPackageByID((*iter)->GetUUID()).GetPreviewTexture());
       cardIcon.setPosition(2.f*99.f, cardIconY);
       surface.draw(cardIcon);
 

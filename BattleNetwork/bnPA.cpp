@@ -43,55 +43,6 @@ Battle::Card& PA::GetAdvanceCard()
   return *advanceCardRef;
 }
 
-PA PA::ReadFromWebAccount(const WebAccounts::AccountState& account)
-{
-  PA pa;
-
-  // Loop through each combo entry from the API
-  for (auto&& pair : account.cardCombos) {
-    auto entry = *pair.second;
-    
-    PA::Steps steps;
-    
-    // Build the steps from each card in the entry
-    for (auto&& step : entry.cards) {
-      auto cardIter = account.cards.find(step);
-      
-      if (cardIter == account.cards.end()) continue;
-      
-      auto modelIter = account.cardProperties.find(cardIter->second->modelId);
-
-      if (modelIter == account.cardProperties.end()) continue;
-
-      auto card = cardIter->second;
-      auto model = modelIter->second;
-
-      steps.push_back({ card->id, model->name, card->code });
-    }
-
-    if (steps.size() > 2) {
-      // Valid combo recipe
-      PAData data;
-      
-      data.steps = steps;
-      data.action = entry.action;
-      data.canBoost = entry.canBoost;
-      data.damage = entry.damage;
-      data.metaClasses = entry.metaClasses;
-      data.name = entry.name;
-      data.primaryElement = GetElementFromStr(entry.element);
-      data.secondElement = GetElementFromStr(entry.secondaryElement);
-      data.timeFreeze = entry.timeFreeze;
-      data.uuid = entry.id;
-
-      // Add to our PA object
-      pa.RegisterPA(data);
-    }
-  }
-
-  return pa;
-}
-
 const int PA::FindPA(std::vector<Battle::Card>& input)
 {
   int startIndex = -1;
@@ -140,8 +91,23 @@ const int PA::FindPA(std::vector<Battle::Card>& input)
       // Load the PA card
       if (advanceCardRef) { delete advanceCardRef; }
 
-      auto fromUUID = WebAccounts::CardCombo{ iter->uuid };
-      advanceCardRef = new Battle::Card(WEBCLIENT.MakeBattleCardFromWebComboData(fromUUID));
+      advanceCardRef = new Battle::Card({
+        iter->uuid,
+        iter->damage,
+        0,
+        '*',
+        iter->canBoost,
+        iter->timeFreeze,
+        false,
+        iter->name,
+        iter->action,
+        iter->action,
+        "combo",
+        iter->primaryElement,
+        iter->secondElement,
+        Battle::CardClass::standard,
+        iter->metaClasses
+      });
 
       return startIndex;
     }

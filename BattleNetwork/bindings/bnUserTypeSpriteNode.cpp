@@ -72,6 +72,12 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
     "set_color", [](WeakWrapper<SpriteProxyNode>& node, sf::Color color) {
       node.Unwrap()->setColor(color);
     },
+    "get_color_mode", [](WeakWrapper<SpriteProxyNode>& node) -> ColorMode {
+      return node.Unwrap()->GetColorMode();
+    },
+    "set_color_mode", [](WeakWrapper<SpriteProxyNode>& node, ColorMode mode) {
+      node.Unwrap()->SetColorMode(mode);
+    },
     "unwrap", [](WeakWrapper<SpriteProxyNode>& node) -> WeakWrapper<SpriteProxyNode> {
       return node;
     },

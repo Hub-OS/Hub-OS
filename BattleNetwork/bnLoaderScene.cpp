@@ -40,6 +40,11 @@ const bool LoaderScene::IsComplete() const
 
 void LoaderScene::LaunchTasks()
 {
+  if (getController().IsSingleThreaded()) {
+    ExecuteTasks();
+    return;
+  }
+
   taskThread = std::thread(std::bind(&LoaderScene::ExecuteTasks, this));
   taskThread.detach();
 }

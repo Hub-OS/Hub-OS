@@ -21,6 +21,7 @@
 #include "bnSharedHitbox.h"
 #include "bnParticlePoof.h"
 #include "bnParticleImpact.h"
+#include "bnPlayerCustScene.h"
 
 #include "bindings/bnLuaLibrary.h"
 #include "bindings/bnScriptedArtifact.h"
@@ -168,9 +169,7 @@ void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
 
   std::list<std::string> dependencies;
 
-  #ifdef _DEBUG
   std::string depsString = "";
-  #endif
 
   for( int ind = 1; ind <= count; ++ind )
   {
@@ -734,6 +733,20 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Mega", Battle::CardClass::mega,
     "Giga", Battle::CardClass::giga,
     "Dark", Battle::CardClass::dark
+  );
+
+  const auto& prog_blocks_record = state.new_enum("Blocks",
+    "White", PlayerCustScene::Piece::Types::white,
+    "Red", PlayerCustScene::Piece::Types::red,
+    "Green", PlayerCustScene::Piece::Types::green,
+    "Blue", PlayerCustScene::Piece::Types::blue,
+    "Pink", PlayerCustScene::Piece::Types::pink,
+    "Yellow", PlayerCustScene::Piece::Types::yellow
+  );
+
+  const auto& colormode_record = state.new_enum("ColorMode",
+    "Multiply", ColorMode::multiply,
+    "Additive", ColorMode::additive
   );
 
   state.set_function("drag",

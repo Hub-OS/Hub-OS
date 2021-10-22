@@ -8,6 +8,3 @@
 [submodule "breathe"]
 	path = breathe
 	url = https://github.com/michaeljones/breathe.git
-[submodule "extern/WebAPI"]
-	path = extern/WebAPI
-	url = https://github.com/TheMaverickProgrammer/OpenNetBattleWebDataAPI.git
