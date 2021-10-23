@@ -104,8 +104,7 @@ void ExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
     explosion->Update(_elapsed);
 
     if (explosion->IsSequenceComplete()) {
-      Entity::ID_t ID = e.GetID();
-      e.GetField()->DeallocEntity(ID);
+      e.Remove();
     }
   }
 }

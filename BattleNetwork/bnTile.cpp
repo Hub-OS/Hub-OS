@@ -878,9 +878,11 @@ namespace Battle {
         if (character && deletingCharacters.find(character) == deletingCharacters.end()) {
           field.CharacterDeletePublisher::Broadcast(*character);
 
-          // prevent this entity from being broadcast again while any deletion animations take place
-          // TODO: this could be written better
-          deletingCharacters.insert(character);
+          if (ptr->WillRemoveLater()) {
+            // prevent this entity from being broadcast again while any deletion animations take place
+            // TODO: this could be written better
+            deletingCharacters.insert(character);
+          }
         }
       }
 
