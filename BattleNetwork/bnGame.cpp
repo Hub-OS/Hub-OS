@@ -91,6 +91,8 @@ Game::~Game() {
   delete cardPackageManager;
   delete playerPackageManager;
   delete mobPackageManager;
+  delete blockPackageManager;
+  delete luaLibraryPackageManager;
 }
 
 void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
