@@ -17,7 +17,7 @@
  */
 class CardFolderCollection {
 private:
-  std::map<std::string, CardFolder*> collection; /*!< All folders by name */
+  std::map<std::string, std::unique_ptr<CardFolder>> collection; /*!< All folders by name */
   std::vector<std::string> order; /*!< Cheaply use index 0 as the saved default folder */
 public:
 
@@ -53,7 +53,7 @@ public:
   bool MakeFolder(const std::string& name) {
     if (HasFolder(name)) return false;
 
-    collection[name] = new CardFolder();
+    collection[name] = std::make_unique<CardFolder>();
 
     order.push_back(name);
 
@@ -90,7 +90,7 @@ public:
   bool GetFolder(const std::string& name, CardFolder*& folder) {
     if (!HasFolder(name)) return false;
 
-    folder = collection[name];
+    folder = collection[name].get();
 
     return true;
   }
@@ -106,7 +106,7 @@ public:
 
     if (!HasFolder(order[index])) return false;
 
-    folder = collection[order[index]];
+    folder = collection[order[index]].get();
 
     return true;
   }
@@ -138,8 +138,11 @@ public:
       return false;
     }
 
-    for (std::map<std::string, CardFolder*>::iterator it = collection.begin(); it != collection.end(); ++it) {
-      if (it->second == folder) {
+    std::unique_ptr<CardFolder> value;
+
+    for (std::map<std::string, std::unique_ptr<CardFolder>>::iterator it = collection.begin(); it != collection.end(); ++it) {
+      if (it->second.get() == folder) {
+        value = std::move(it->second);
 
         // insert the new name where the old name was
         auto f = std::find(order.begin(), order.end(), it->first);
@@ -154,7 +157,11 @@ public:
       }
     }
 
-    collection[name] = folder;
+    if (!value) {
+      value = std::unique_ptr<CardFolder>(folder);
+    }
+
+    collection[name] = std::move(value);
 
     return true;
   }
