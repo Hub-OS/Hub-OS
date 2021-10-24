@@ -64,8 +64,6 @@ namespace Overworld {
     sf::Vector3f cameraTrackPoint{}; // used for smooth cameras
     std::shared_ptr<PersonalMenu> personalMenu;
     std::shared_ptr<Minimap> minimap;
-    SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
-    Animation webAccountAnimator; /*!< Use animator to represent different statuses */
 
     // Bunch of sprites and their attachments
     std::shared_ptr<Background> bg{ nullptr }; /*!< Background image pointer */
@@ -77,12 +75,8 @@ namespace Overworld {
     /*!< Current player package selection */
     std::string currentNaviId, lastSelectedNaviId;
 
-
     CardFolderCollection folders; /*!< Collection of folders */
     PA programAdvance;
-
-    std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
-    WebAccounts::AccountState webAccount;
 
     void HandleCamera(float elapsed);
     void HandleInput();

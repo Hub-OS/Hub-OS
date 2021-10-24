@@ -12,7 +12,7 @@
 static inline void QueueLuaLibraryRegistration( LuaLibraryPackageManager& packageManager )
 {
     #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
-    std::string base_path = "resources/mods/lib/";
+    std::string base_path = "resources/mods/libs/";
     std::map< std::string, bool > ignoreList;
 
     for( const auto& entry : std::filesystem::directory_iterator( base_path ) )

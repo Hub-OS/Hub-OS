@@ -47,6 +47,7 @@ class PlayerPackageManager;
 class CardPackageManager;
 class MobPackageManager;
 class BlockPackageManager;
+class GameSession;
 class LuaLibraryPackageManager;
 
 enum class Endianness : short {
@@ -59,7 +60,7 @@ private:
   unsigned int randSeed{};
   double mouseAlpha{};
   bool showScreenBars{};
-  bool frameByFrame{}, isDebug{};
+  bool frameByFrame{}, isDebug{}, quitting{ false };
   bool singlethreaded{ false };
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
@@ -75,10 +76,11 @@ private:
   MobPackageManager* mobPackageManager;
   BlockPackageManager* blockPackageManager;
   LuaLibraryPackageManager* luaLibraryPackageManager;
-  
+
   DrawWindow& window;
   ConfigReader reader;
   ConfigSettings configSettings;
+  GameSession* session;
 
   // mouse stuff
   std::shared_ptr<sf::Texture> mouseTexture;
@@ -92,8 +94,6 @@ private:
 
   sf::Shader* postprocess{ nullptr };
 
-  std::vector<cxxopts::KeyValue> commandline; /*!< Values parsed from the command line*/
-
   // We need a render surface to draw to so Swoosh ActivityController
   // can add screen transition effects from the title screen
   sf::RenderTexture renderSurface;
@@ -102,6 +102,7 @@ private:
   frame_time_t elapsed{};
 
   Endianness endian{ Endianness::big };
+  std::vector<cxxopts::KeyValue> commandline; /*!< Values parsed from the command line*/
   std::atomic<int> progress{ 0 };
   std::mutex windowMutex;
   std::thread renderThread;
@@ -122,6 +123,7 @@ public:
    */
   TaskGroup Boot(const cxxopts::ParseResult& values);
 
+  void Exit();
   void Run();
   void SetWindowMode(DrawWindow::WindowMode mode);
   void Postprocess(ShaderType shaderType);
@@ -132,12 +134,14 @@ public:
   void UpdateConfigSettings(const struct ConfigSettings& new_settings);
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
+  bool IsSingleThreaded() const;
   CardPackageManager& CardPackageManager();
   PlayerPackageManager& PlayerPackageManager();
   MobPackageManager& MobPackageManager();
   BlockPackageManager& BlockPackageManager();
   LuaLibraryPackageManager& GetLuaLibraryPackageManager();
   ConfigSettings& ConfigSettings();
+  GameSession& Session();
 
   /**
    * @brief Store parsed command line values into the engine for easy access

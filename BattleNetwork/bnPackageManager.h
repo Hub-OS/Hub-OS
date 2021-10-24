@@ -110,10 +110,10 @@ class PackageManager {
     void LoadAllPackages(std::atomic<int>& progress);
 
     template<typename ScriptedDataType>
-    stx::result_t<bool> LoadPackageFromDisk(const std::string& path);
+    stx::result_t<std::string> LoadPackageFromDisk(const std::string& path);
 
     template<typename ScriptedDataType>
-    stx::result_t<bool> LoadPackageFromZip(const std::string& path);
+    stx::result_t<std::string> LoadPackageFromZip(const std::string& path);
 
     /**
     * @brief Get the size of the package list
@@ -141,23 +141,24 @@ void PackageManager<MetaClass>::LoadAllPackages(std::atomic<int>& progress)
 
 template<typename MetaClass>
 template<typename ScriptedDataType>
-stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::string& path)
+stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const std::string& path)
 {
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   ResourceHandle handle;
+  MetaClass* packageClass{ nullptr };
 
   auto modpath = std::filesystem::absolute(path);
   modpath.make_preferred();
 
   std::string packageName = modpath.filename().generic_string();
 
-  auto& res = handle.Scripts().LoadScript( modpath );
+  auto& res = handle.Scripts().LoadScript(modpath);
 
   if (res.result.valid()) {
     sol::state& state = *res.state;
     state.open_libraries( sol::lib::base );
 
-    auto packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
+    packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
     //  Run all "includes" first
     state["package_requires_scripts"]();
@@ -171,7 +172,7 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
     handle.Scripts().RegisterDependencyNotes( &state );
 
     packageClass->OnMetaParsed();
-   
+
     std::string file_path = modpath.generic_string();
     packageClass->SetFilePath(file_path);
 
@@ -179,43 +180,38 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromDisk(const std::st
     if (zip_result.is_error()) {
       delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + zip_result.error_cstr();
-      return stx::error<bool>(msg);
+      return stx::error<std::string>(msg);
     }
 
     auto md5_result = stx::generate_md5_from_file(file_path + ".zip");
     if (md5_result.is_error()) {
       delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + md5_result.error_cstr();
-      return stx::error<bool>(msg);
+      return stx::error<std::string>(msg);
     }
     else {
       packageClass->SetPackageFingerprint(md5_result.value());
     }
-    
+
     if (auto commit_result = this->Commit(packageClass); commit_result.is_error()) {
       delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + commit_result.error_cstr();
-      return stx::error<bool>(msg);
+      return stx::error<std::string>(msg);
     }
   }
   else {
     sol::error sol_error = res.result;
     std::string msg = std::string("Failed to load package ") + packageName + ". Reason: " + sol_error.what();
-    return stx::error<bool>(msg);
+    return stx::error<std::string>(msg);
   }
 #endif
 
-  return stx::ok();
+  return stx::ok(packageClass->GetPackageID());
 }
 
-/**
-
-TODO: Take ScriptedDataType out. Package manager should be used for scripted or on-disk resources by default now...
-
-**/
 template<typename MetaClass>
 template<typename ScriptedDataType>
-stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromZip(const std::string& path)
+stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromZip(const std::string& path)
 {
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
   auto absolute = std::filesystem::absolute(path);
@@ -233,13 +229,13 @@ stx::result_t<bool> PackageManager<MetaClass>::LoadPackageFromZip(const std::str
 
   auto result = stx::unzip(path, extracted_path);
 
-  if (result.value()) {
-    return this->LoadPackageFromDisk<ScriptedDataType>(extracted_path);
+  if (result.is_error()) {
+    return stx::error<std::string>(std::string("Could not unzip package: ") + result.error_cstr());
   }
-
-  return result;
+  
+  return this->LoadPackageFromDisk<ScriptedDataType>(extracted_path);
 #elif
-  return stx::error<bool>("std::filesystem not supported");
+  return stx::error<std::string>("std::filesystem not supported");
 #endif
 }
 

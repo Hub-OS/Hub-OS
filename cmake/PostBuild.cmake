@@ -56,7 +56,6 @@ if(BN_USE_SHARED_LIBS)
         COMMAND ${CMAKE_COMMAND}
         ARGS -E copy_directory
         
-        "$<TARGET_FILE_DIR:WebAPI-client>"
         "$<TARGET_FILE_DIR:sfml-graphics>"
         "$<TARGET_FILE_DIR:sfml-audio>"
         "$<TARGET_FILE_DIR:sfml-network>"

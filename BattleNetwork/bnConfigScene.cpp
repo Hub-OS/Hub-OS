@@ -1,7 +1,7 @@
 #include "bnConfigScene.h"
-#include "bnWebClientMananger.h"
 #include "Segues/WhiteWashFade.h"
 #include "bnRobotBackground.h"
+#include "bnGameSession.h"
 
 #undef GetUserName
 
@@ -57,15 +57,11 @@ void ConfigScene::TextItem::SetAlpha(sf::Uint8 alpha) {
   label.SetColor(color);
 }
 
-ConfigScene::LoginItem::LoginItem(const std::function<void()>& callback) : TextItem("Login", [callback](auto&) { callback(); }) {}
+ConfigScene::NicknameItem::NicknameItem(const std::function<void()>& callback) : TextItem("Set Nick", [callback](auto&) { callback(); }) {}
 
-void ConfigScene::LoginItem::Update() {
-  if (!WEBCLIENT.IsLoggedIn()) {
-    SetString("LOGIN");
-  }
-  else {
-    SetString("LOGOUT " + WEBCLIENT.GetUserName());
-  }
+void ConfigScene::NicknameItem::Update() {
+  // TODO:
+  SetString("Set Nick");
 }
 
 ConfigScene::BindingItem::BindingItem(
@@ -258,9 +254,9 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
     [this](TextItem& item) { InvertMinimap(item); },
     [this](TextItem& item) { InvertMinimap(item); }
   ));
-  // Login
-  primaryMenu.push_back(std::make_unique<LoginItem>(
-    [this] { ToggleLogin(); })
+  // Nickname
+  primaryMenu.push_back(std::make_unique<NicknameItem>(
+    [this] { /*TODO*/ })
   );
 
   // For keyboard keys 
@@ -385,29 +381,6 @@ void ConfigScene::ShowGamepadMenu() {
   Audio().Play(AudioType::CHIP_SELECT);
 }
 
-void ConfigScene::ToggleLogin() {
-  if (WEBCLIENT.IsLoggedIn()) {
-    if (textbox.IsClosed()) {
-      auto onYes = [this]() {
-        Logger::Log("SendLogoutCommand");
-        WEBCLIENT.SendLogoutCommand();
-      };
-
-      auto onNo = [this]() {
-        Audio().Play(AudioType::CHIP_DESC_CLOSE);
-      };
-      questionInterface = new Question("Are you sure you want to logout?", onYes, onNo);
-      textbox.EnqueMessage(questionInterface);
-      textbox.Open();
-      Audio().Play(AudioType::CHIP_DESC);
-    }
-  }
-  else {
-    // Begin login state from the beginning
-    LoginStep(UserInfo::states::entering_server);
-  }
-}
-
 void ConfigScene::AwaitKeyBinding(BindingItem& item) {
   pendingKeyBinding = item;
 }
@@ -504,23 +477,6 @@ void ConfigScene::onUpdate(double elapsed)
   textbox.Update(elapsed);
   bg->Update((float)elapsed);
 
-  if (user.currState == UserInfo::states::pending) {
-    if (is_ready(user.result)) {
-      if (user.result.get()) {
-        LoginStep(UserInfo::states::complete);
-      }
-      else {
-        user.currState = UserInfo::states::entering_username;
-        user.password.clear();
-        user.username.clear();
-
-        Audio().Play(AudioType::CHIP_ERROR);
-      }
-    }
-
-    return;
-  }
-
   bool hasConfirmed = Input().Has(InputEvents::pressed_confirm);
   bool hasSecondary = Input().Has(InputEvents::pressed_option);
 
@@ -551,7 +507,6 @@ void ConfigScene::onUpdate(double elapsed)
         configSettings.SetSFXLevel(sfxLevel);
         configSettings.SetShaderLevel(shaderLevel);
         configSettings.SetInvertMinimap(invertMinimap);
-        configSettings.SetWebServerInfo(user.server_url, user.port, user.version);
 
         ConfigWriter writer(configSettings);
         writer.Write("config.ini");
@@ -653,33 +608,7 @@ void ConfigScene::onUpdate(double elapsed)
       else if (inputInterface) {
         if (inputInterface->IsDone()) {
           std::string entry = inputInterface->Submit();
-
           inputInterface = nullptr;
-
-          switch (user.currState) {
-          case UserInfo::states::entering_server:
-            user.server_url = entry;
-            LoginStep(UserInfo::states::entering_port);
-            break;
-          case UserInfo::states::entering_port:
-            user.port = std::atoi(entry.c_str());
-            LoginStep(UserInfo::states::entering_version_num);
-            break;
-          case UserInfo::states::entering_version_num:
-            user.version = entry;
-            LoginStep(UserInfo::states::entering_username);
-            break;
-          case UserInfo::states::entering_username:
-            user.username = entry;
-            LoginStep(UserInfo::states::entering_password);
-            break;
-          case UserInfo::states::entering_password:
-            user.password = entry;
-            WEBCLIENT.ConnectToWebServer(user.version.c_str(), user.server_url.c_str(), user.port);
-            user.result = WEBCLIENT.SendLoginCommand(user.username, user.password);
-            LoginStep(UserInfo::states::pending);
-            break;
-          }
         }
       }
 
@@ -910,61 +839,6 @@ void ConfigScene::onDraw(sf::RenderTexture& surface)
   }
 
   surface.draw(textbox);
-}
-
-void ConfigScene::LoginStep(UserInfo::states next)
-{
-  if (next == UserInfo::states::pending) return;
-
-  if (next == UserInfo::states::complete) {
-    Audio().Play(AudioType::NEW_GAME);
-    return;
-  }
-
-  user.currState = next;
-
-  inputInterface = new MessageInput("", 20);
-
-  switch(user.currState) {
-    case UserInfo::states::entering_server:
-    {
-      inputInterface->SetHint("Enter Server URL");
-      inputInterface->SetCaptureText(configSettings.GetWebServerInfo().URL);
-      break;
-    }
-    case UserInfo::states::entering_port:
-    {
-      inputInterface->SetHint("Enter Server Port");
-      int port = configSettings.GetWebServerInfo().port;
-
-      if (port > 0) {
-        inputInterface->SetCaptureText(std::to_string(port));
-      }
-
-      break;
-    }
-    case UserInfo::states::entering_version_num:
-    {
-      inputInterface->SetHint("Enter Server Version");
-      inputInterface->SetCaptureText(configSettings.GetWebServerInfo().version);
-      break;
-    }
-    case UserInfo::states::entering_username:
-    {
-      inputInterface->SetHint("Enter Username");
-      break;
-    }
-    case UserInfo::states::entering_password: 
-    {
-      inputInterface->ProtectPassword(true);
-      inputInterface->SetHint("Enter Password");
-      break;
-    }
-  }
-
-  textbox.EnqueMessage(inputInterface);
-  textbox.Open();
-  Audio().Play(AudioType::CHIP_DESC);
 }
 
 void ConfigScene::onStart()

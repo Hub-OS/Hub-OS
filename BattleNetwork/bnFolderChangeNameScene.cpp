@@ -1,8 +1,8 @@
 #include "bnFolderChangeNameScene.h"
 #include "bnInputManager.h"
-#include "bnWebClientMananger.h"
 #include "Segues/BlackWashFade.h"
 #include "bnPlayerPackageManager.h"
+#include "bnGameSession.h"
 
 #include <Swoosh/ActivityController.h>
 
@@ -135,12 +135,12 @@ void FolderChangeNameScene::DoOK()
   // TODO
 
   // We must have a key for the selected navi
-  auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
+  auto naviSelectedStr = getController().Session().GetValue("SelectedNavi");
   if (naviSelectedStr.empty()) 
     naviSelectedStr = getController().PlayerPackageManager().FirstValidPackage(); 
 
   // Save this session data new folder name
-  WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderName);
+  getController().Session().SetKey("FolderFor:" + naviSelectedStr, folderName);
 
   // Set original variable to new results
   folderName = copy;

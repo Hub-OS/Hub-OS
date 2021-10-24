@@ -1,7 +1,6 @@
 #include <string>
 #include <Swoosh/Ease.h>
 
-#include "bnWebClientMananger.h"
 #include "bnPlayer.h"
 #include "bnField.h"
 #include "bnPlayerSelectedCardsUI.h"
@@ -116,14 +115,9 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         std::string id = selectedCards[drawOrderIndex]->GetUUID();
         if (SelectedCardsUI::packageManager && SelectedCardsUI::packageManager->HasPackage(id)) {
           texture = SelectedCardsUI::packageManager->FindPackageByID(id).GetIconTexture();
+          icon.setTexture(texture);
+          target.draw(icon, states);
         }
-        else {
-          texture = WEBCLIENT.GetIconForCard(id);
-        }
-
-        icon.setTexture(texture);
-
-        target.draw(icon, states);
       }
     }
 

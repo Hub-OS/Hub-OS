@@ -18,6 +18,7 @@
 #include "bnOverworldTileBehaviors.h"
 #include "bnOverworldObjectType.h"
 #include "bnOverworldPollingPacketProcessor.h"
+#include "../bnGameSession.h"
 #include "../bnMath.h"
 #include "../bnMobPackageManager.h"
 #include "../bnPlayerPackageManager.h"
@@ -55,6 +56,8 @@ Overworld::OnlineArea::OnlineArea(
   serverAssetManager(host, port),
   identityManager(host, port)
 {
+  RefreshNaviSprite();
+
   try {
     auto remoteAddress = Poco::Net::SocketAddress(host, port);
     packetProcessor = std::make_shared<Overworld::PacketProcessor>(
@@ -70,8 +73,16 @@ Overworld::OnlineArea::OnlineArea(
     sendAvatarChangeSignal();
     sendRequestJoinSignal();
   }
+  catch (std::runtime_error& e) {
+    Logger::Logf(e.what());
+    leave();
+  }
+  catch (Poco::Net::NetException& e) {
+    Logger::Logf(e.what());
+    leave();
+  }
   catch (...) {
-    // invalid remote address
+    Logger::Logf("Unknown exception thrown. Aborting join.");
     leave();
   }
 
@@ -1002,7 +1013,7 @@ void Overworld::OnlineArea::sendAssetStreamSignal(ClientAssetType assetType, uin
 
 void Overworld::OnlineArea::sendLoginSignal()
 {
-  std::string username = WEBCLIENT.GetUserName();
+  std::string username = getController().Session().GetNick();
 
   if (username.empty()) {
     username = "Anon";

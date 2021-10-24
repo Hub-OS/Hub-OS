@@ -3,12 +3,12 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
 
-#include "bnWebClientMananger.h"
 #include "bnLibraryScene.h"
 #include "bnCardLibrary.h"
 #include "bnCardFolder.h"
 #include "Android/bnTouchArea.h"
 
+#include "bnCardPackageManager.h"
 #include "bnMessage.h"
 #include "bnFont.h"
 
@@ -329,6 +329,8 @@ void LibraryScene::onResume() {
 }
 
 void LibraryScene::onDraw(sf::RenderTexture& surface) {
+  auto& packageManager = getController().CardPackageManager();
+
   surface.draw(bg);
   surface.draw(menuLabel);
 
@@ -353,7 +355,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
   // Now that we are at the viewing range, draw each card in the list
   for (int i = 0; i < maxCardsOnScreen && lastCardOnScreen + i < numOfCards; i++) {
-    cardIcon.setTexture(WEBCLIENT.GetIconForCard(iter->GetUUID()));
+    cardIcon.setTexture(packageManager.FindPackageByID(iter->GetUUID()).GetPreviewTexture());
     cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
     surface.draw(cardIcon);
 

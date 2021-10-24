@@ -122,7 +122,7 @@ void Player::MakeActionable()
 
 bool Player::IsActionable() const
 {
-    return animationComponent->GetAnimationString() == "PLAYER_IDLE";
+  return animationComponent->GetAnimationString() == "PLAYER_IDLE";
 }
 
 void Player::Attack() {
@@ -448,9 +448,19 @@ void Player::FinishConstructor()
   animationComponent->Refresh();
 }
 
-bool Player::RegisterForm(PlayerFormMeta * info)
+bool Player::RegisterForm(PlayerFormMeta* meta)
 {
-  if (forms.size() >= Player::MAX_FORM_SIZE || !info) return false;
-  forms.push_back(info);
+  if (forms.size() >= Player::MAX_FORM_SIZE || !meta) return false;
+  forms.push_back(meta);
   return true;
+}
+
+PlayerFormMeta* Player::AddForm(PlayerFormMeta* meta)
+{
+  if (!RegisterForm(meta)) {
+    delete meta;
+    meta = nullptr;
+  }
+
+  return meta;
 }

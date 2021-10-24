@@ -3,7 +3,6 @@
 #include "bnBufferWriter.h"
 #include "../stx/string.h"
 #include "../stx/zip_utils.h"
-#include "../bnWebClientMananger.h"
 #include "../bnPlayer.h"
 #include "../bindings/bnScriptedPlayer.h"
 #include "../bnPackageManager.h"
@@ -89,12 +88,6 @@ bool DownloadScene::AllTasksComplete()
   return cardPackageRequested && webCardListRequested && playerPackageRequested && contentToDownload.empty();
 }
 
-void DownloadScene::TradeWebCardList(const std::vector<std::string>& uuids)
-{
-  // Upload card list to remote. Track as the handshake.
-  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::trade_web_card_list, uuids));
-}
-
 void DownloadScene::TradePlayerPackageData(const std::string& hash)
 {
   BufferWriter writer;
@@ -108,11 +101,6 @@ void DownloadScene::TradeCardPackageData(const std::vector<std::string>& hashes)
 {
   // Upload card list to remote. Track as the handshake.
   packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::trade_card_package_list, hashes));
-}
-
-void DownloadScene::RequestWebCardList(const std::vector<std::string>& uuids)
-{
-  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::web_card_list_request, uuids));
 }
 
 void DownloadScene::RequestPlayerPackageData(const std::string& hash)
@@ -166,10 +154,6 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     Logger::Logf("Remote is sending initial handshake");
     remoteHandshake = true;
     break;
-  case NetPlaySignals::trade_web_card_list:
-    Logger::Logf("Remote is requesting to compare the card list...");
-    this->RecieveTradeWebCardList(body);
-    break;
   case NetPlaySignals::trade_card_package_list:
     Logger::Logf("Remote is requesting to compare the card packages...");
     this->RecieveTradeCardPackageData(body);
@@ -178,10 +162,6 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     Logger::Logf("Remote is requesting to compare the player packages...");
     this->RecieveTradePlayerPackageData(body);
     break;
-  case NetPlaySignals::web_card_list_request:
-    Logger::Logf("Remote is requesting to download the card list...");
-    this->RecieveRequestWebCardList(body);
-    break;
   case NetPlaySignals::player_package_request:
     Logger::Logf("Remote is requesting to download the player package...");
     this->RecieveRequestPlayerPackageData(body);
@@ -189,10 +169,6 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
   case NetPlaySignals::card_package_request:
     Logger::Logf("Remote is requesting to download a card package...");
     this->RecieveRequestCardPackageData(body);
-    break;
-  case NetPlaySignals::web_card_list_download:
-    Logger::Logf("Downloading card list...");
-    this->DownloadCardList(body);
     break;
   case NetPlaySignals::card_package_download:
     Logger::Logf("Downloading card package...");
@@ -206,29 +182,6 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     this->RecieveDownloadComplete(body);
     break;
   }
-}
-
-void DownloadScene::RecieveTradeWebCardList(const Poco::Buffer<char>& buffer)
-{
-  auto cardList = DeserializeListOfStrings(buffer);
-  std::vector<std::string> retryCardList;
-
-  for (auto& remoteUUID : cardList) {
-    if (auto ptr = WEBCLIENT.GetWebCard(remoteUUID); !ptr) {
-      retryCardList.push_back(remoteUUID);
-      contentToDownload[remoteUUID] = "Downloading";
-    }
-  }
-
-  // move to the next state
-  if (retryCardList.size()) {
-    Logger::Logf("Need to download %d cards", retryCardList.size());
-    RequestWebCardList(retryCardList);
-  }
-  else {
-    Logger::Logf("Nothing to download.");
-  }
-  webCardListRequested = true;
 }
 
 void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer)
@@ -274,14 +227,6 @@ void DownloadScene::RecieveTradePlayerPackageData(const Poco::Buffer<char>& buff
   playerPackageRequested = true;
 }
 
-void DownloadScene::RecieveRequestWebCardList(const Poco::Buffer<char>& buffer)
-{
-  auto uuids = DeserializeListOfStrings(buffer);
-
-  Logger::Logf("Recieved download request for %d items", uuids.size());
-  packetProcessor->SendPacket(Reliability::BigData, SerializeCards(uuids));
-}
-
 void DownloadScene::RecieveRequestPlayerPackageData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
@@ -312,7 +257,7 @@ void DownloadScene::RecieveRequestCardPackageData(const Poco::Buffer<char>& buff
         hash,
         NetPlaySignals::card_package_download,
         getController().CardPackageManager()
-        )
+      )
     );
   }
 }
@@ -347,7 +292,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
   std::fstream file;
   file.open(path, std::ios::out | std::ios::binary);
 
-  stx::result_t<bool> result;
+  stx::result_t<std::string> result(std::nullptr_t{}, "Unset");
 
   if (file.is_open()) {
     while (file_len > 0) {
@@ -367,106 +312,6 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 
     // There was a problem creating the file
     SendDownloadComplete(false);
-  }
-}
-
-void DownloadScene::DownloadCardList(const Poco::Buffer<char>& buffer)
-{
-  BufferReader reader;
-  // Tell web client to fetch and download these cards
-  std::vector<std::string> cardList;
-  size_t cardLen = reader.Read<uint16_t>(buffer);
-
-  while (cardLen-- > 0) {
-    // name
-    std::string id = reader.ReadString<uint16_t>(buffer);
-
-    // image data
-    auto image_len = reader.Read<uint64_t>(buffer);
-
-    sf::Uint8* imageData = new sf::Uint8[image_len]{ 0 };
-    std::memcpy(imageData, buffer.begin() + reader.GetOffset(), image_len);
-    reader.Skip(image_len);
-
-    sf::Image image;
-    image.create(56, 48, imageData);
-    auto textureObj = std::make_shared<sf::Texture>();
-    textureObj->loadFromImage(image);
-    delete[] imageData;
-
-    // icon data
-    auto icon_len = reader.Read<uint64_t>(buffer);
-
-    sf::Uint8* iconData = new  sf::Uint8[icon_len]{ 0 };
-    std::memcpy(iconData, buffer.begin() + reader.GetOffset(), icon_len);
-    reader.Skip(icon_len);
-
-    sf::Image icon;
-    icon.create(14, 14, iconData);
-    auto iconObj = std::make_shared<sf::Texture>();
-    iconObj->loadFromImage(icon);
-    delete[] iconData;
-
-    ////////////////////
-    //   Card Model   //
-    ////////////////////
-    std::string model_id = reader.ReadString<uint16_t>(buffer);
-    std::string name = reader.ReadString<uint16_t>(buffer);
-    std::string action = reader.ReadString<uint16_t>(buffer);
-    std::string element = reader.ReadString<uint16_t>(buffer);
-    std::string secondary_element = reader.ReadString<uint16_t>(buffer);
-
-    auto props = std::make_shared<WebAccounts::CardProperties>();
-
-    props->classType = reader.Read<decltype(props->classType)>(buffer);
-    props->damage = reader.Read<decltype(props->damage)>(buffer);
-    props->timeFreeze = reader.Read<decltype(props->timeFreeze)>(buffer);
-    props->limit = reader.Read<decltype(props->limit)>(buffer);
-
-    props->id = model_id;
-    props->name = name;
-    props->action = action;
-    props->canBoost = props->damage > 0;
-    props->element = element;
-    props->secondaryElement = secondary_element;
-
-    // codes count
-    std::vector<char> codes;
-    auto codes_len = reader.Read<uint16_t>(buffer);
-
-    while (codes_len-- > 0) {
-      char code = reader.Read<char>(buffer);
-      codes.push_back(code);
-    }
-
-    props->codes = codes;
-
-    // meta classes count
-    std::vector<std::string> metaClasses;
-    auto meta_len = reader.Read<uint16_t>(buffer);
-
-    while (meta_len-- > 0) {
-      std::string meta = reader.ReadString<uint16_t>(buffer);
-      metaClasses.push_back(meta);
-    }
-
-    props->metaClasses = metaClasses;
-
-    props->description = reader.ReadString<uint16_t>(buffer);
-    props->verboseDescription = reader.ReadString<uint16_t>(buffer);
-
-    ////////////////////
-    //  Card Data     //
-    ////////////////////
-    auto cardData = std::make_shared<WebAccounts::Card>();
-    cardData->code = reader.Read<char>(buffer);
-    cardData->id = reader.ReadString<uint16_t>(buffer);
-    cardData->modelId = reader.ReadString<uint16_t>(buffer);
-
-    // Upload
-    WEBCLIENT.UploadCardData(id, iconObj, textureObj, cardData, props);
-    
-    RemoveFromDownloadList(id);
   }
 }
 
@@ -515,86 +360,6 @@ Poco::Buffer<char> DownloadScene::SerializeListOfStrings(NetPlaySignals header, 
   return data;
 }
 
-Poco::Buffer<char> DownloadScene::SerializeCards(const std::vector<std::string>& cardList)
-{
-  BufferWriter writer;
-  Poco::Buffer<char> data{ 0 };
-  size_t len = cardList.size();
-
-  // header
-  writer.Write(data, NetPlaySignals::web_card_list_download);
-
-  // number of cards
-  writer.Write(data, (uint16_t)cardList.size());
-
-  for (auto& card : cardList) {
-    // name
-    writer.WriteString<uint16_t>(data, card);
-
-    // image data
-    auto texture = WEBCLIENT.GetImageForCard(card);
-    auto image = texture->copyToImage();
-    auto image_len = static_cast<uint64_t>(image.getSize().x * image.getSize().y * 4u);
-    writer.Write(data, image_len);
-    writer.WriteBytes(data, image.getPixelsPtr(), image_len);
-
-    // icon data
-    auto icon = WEBCLIENT.GetIconForCard(card);
-    image = icon->copyToImage();
-    image_len = static_cast<uint64_t>(image.getSize().x * image.getSize().y * 4u);
-    writer.Write(data, image_len);
-    writer.WriteBytes(data, image.getPixelsPtr(), image_len);
-
-    ////////////////////
-    // card meta data //
-    ////////////////////
-
-    auto cardData = WEBCLIENT.GetWebCard(card);
-    auto model = WEBCLIENT.GetWebCardModel(cardData->modelId);
-
-    writer.WriteString<uint16_t>(data, model->id);
-    writer.WriteString<uint16_t>(data, model->name);
-    writer.WriteString<uint16_t>(data, model->action);
-    writer.WriteString<uint16_t>(data, model->element);
-    writer.WriteString<uint16_t>(data, model->secondaryElement);
-
-    writer.Write(data, model->classType);
-    writer.Write(data, model->damage);
-    writer.Write(data, model->timeFreeze);
-    writer.Write(data, model->limit);
-
-    // codes count
-    std::vector<char> codes = model->codes;
-    auto codes_len = (uint16_t)codes.size();
-    writer.Write(data, codes_len);
-
-    for (auto&& code : codes) {
-      data.append(code);
-    }
-
-    // meta classes count
-    auto& metaClasses = model->metaClasses;
-    auto meta_len = (uint16_t)metaClasses.size();
-    writer.Write(data, meta_len);
-
-    for (auto&& meta : metaClasses) {
-      writer.WriteString<uint16_t>(data, meta);
-    }
-
-    writer.WriteString<uint16_t>(data, model->description);
-    writer.WriteString<uint16_t>(data, model->verboseDescription);
-
-    ///////////////
-    // Card Data //
-    ///////////////
-    data.append(cardData->code);
-    writer.WriteString<uint16_t>(data, cardData->id);
-    writer.WriteString<uint16_t>(data, cardData->modelId);
-  }
-
-  return data;
-}
-
 template<typename PackageManagerType, typename ScriptedDataType>
 void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, PackageManagerType& pm)
 {
@@ -610,7 +375,7 @@ void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, Packag
   std::fstream file;
   file.open(path, std::ios::out | std::ios::binary);
 
-  stx::result_t<bool> result;
+  stx::result_t<std::string> result(std::nullptr_t{}, "Unset");
 
   if (file.is_open()) {
     while (file_len > 0) {
@@ -697,7 +462,6 @@ void DownloadScene::onUpdate(double elapsed)
   if (!hasTradedData) {
     hasTradedData = true;
 
-    this->TradeWebCardList(playerWebCardList);
     this->TradeCardPackageData(playerCardPackageList);
     this->TradePlayerPackageData(playerHash);
     return;
@@ -727,6 +491,8 @@ void DownloadScene::onUpdate(double elapsed)
 
 void DownloadScene::onDraw(sf::RenderTexture& surface)
 {
+  auto& packageManager = getController().CardPackageManager();
+
   surface.draw(bg);
   blur.apply(surface);
 
@@ -759,7 +525,7 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
     auto bounds = label.GetLocalBounds();
     float ydiff = bounds.height * label.getScale().y;
 
-    if (auto iconTexture = WEBCLIENT.GetIconForCard(key)) {
+    if (auto iconTexture = packageManager.FindPackageByID(key).GetIconTexture()) {
       icon.setTexture(*iconTexture);
       float iconHeight = icon.getLocalBounds().height;
       icon.setOrigin(0, iconHeight);

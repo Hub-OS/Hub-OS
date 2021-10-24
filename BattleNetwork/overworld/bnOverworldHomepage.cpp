@@ -6,6 +6,7 @@
 #include "bnOverworldOnlineArea.h"
 #include "../netplay/bnNetPlayConfig.h"
 #include "../bnMessage.h"
+#include "../bnGameSession.h"
 
 using namespace swoosh::types;
 
@@ -14,7 +15,7 @@ constexpr size_t DEFAULT_PORT = 8765;
 Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
   SceneBase(controller)
 {
-  std::string destination_ip = WEBCLIENT.GetValue("homepage_warp:0");
+  std::string destination_ip = getController().Session().GetValue("homepage_warp:0");
 
   int remotePort = getController().CommandLineValue<int>("remotePort");
   host = getController().CommandLineValue<std::string>("cyberworld");
@@ -170,7 +171,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
 
         auto& menuSystem = GetMenuSystem();
         menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
-        menuSystem.EnqueueTextInput(WEBCLIENT.GetValue("homepage_warp:0"), 128, [=](const std::string& response) {
+        menuSystem.EnqueueTextInput(getController().Session().GetValue("homepage_warp:0"), 128, [=](const std::string& response) {
           std::string dest = response;
           size_t port = DEFAULT_PORT;
 
@@ -212,14 +213,8 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
             auto& menuSystem = GetMenuSystem();
             menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
             menuSystem.EnqueueMessage("CHANGED TO " + response + "!");
-            WEBCLIENT.SetKey("homepage_warp:0", response);
-
-            if (WEBCLIENT.IsLoggedIn()) {
-              WEBCLIENT.SaveSession("profile.bin");
-            }
-            else {
-              WEBCLIENT.SaveSession("guest.bin");
-            }
+            getController().Session().SetKey("homepage_warp:0", response);
+            getController().Session().SaveSession("profile.bin");
           }
           catch (...) {
             auto& menuSystem = GetMenuSystem();

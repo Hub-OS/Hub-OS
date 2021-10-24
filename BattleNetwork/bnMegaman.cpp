@@ -32,7 +32,8 @@ Megaman::Megaman() : Player() {
   AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
   AddForm<ElecCross>()->SetUIPath("resources/navis/megaman/forms/elec_entry.png");
   AddForm<TomahawkCross>()->SetUIPath("resources/navis/megaman/forms/hawk_entry.png");
-  AddForm<ForteCross>()->SetUIPath("resources/navis/megaman/forms/forte_entry.png");
+  auto form = AddForm<ForteCross>();
+  form->SetUIPath("resources/navis/megaman/forms/forte_entry.png");
 
   // First sprite on the screen should be default player stance
   SetAnimation("PLAYER_IDLE");

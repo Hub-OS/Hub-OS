@@ -9,6 +9,7 @@
 #include "bnText.h"
 #include "bnFont.h"
 #include "bnEmotions.h"
+#include "bnCardPackageManager.h"
 
 class Mob;
 class BattleItem;
@@ -87,7 +88,7 @@ public:
    * @param runaway if player fled from battle
    * @param mob extra mob information e.g. if considered boss mob or common mob
    */
-  BattleResultsWidget(const BattleResults& results, Mob* mob);
+  BattleResultsWidget(const BattleResults& results, Mob* mob, CardPackageManager& packageManager);
   ~BattleResultsWidget();
 
   /**

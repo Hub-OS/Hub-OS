@@ -3,21 +3,17 @@
 #include "bnCanodumb.h"
 #include "bnField.h"
 #include "bnTile.h"
-#include "bnWebClientMananger.h"
 #include "bnCardUUIDs.h"
 #include "bnFadeInState.h"
 
 Mob* MetridMob::Build(Field* field) {
   int mobType = rand() % 3; 
 
+  Mob* mob = new Mob(field);
+
   // 0 - metrid and cannodumb
   // 1 - 2 metrid and cannodumb of higher types
   // 2 - highest metrids, lava tiles, and holes
-  Mob* mob = new Mob(field);
-
-  mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::ElecPulse_B)));
-  mob->RegisterRankedReward(5, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Recov300_WILD)));
-
   if (mobType == 0) {
 
     Battle::Tile* tile = field->GetAt(4, 2);

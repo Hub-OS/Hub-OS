@@ -40,7 +40,7 @@ public:
 
   void ActivateForm(Player& player);
 
-  PlayerForm* BuildForm();
+  virtual PlayerForm* BuildForm();
 
   const size_t GetFormIndex() const;
 };

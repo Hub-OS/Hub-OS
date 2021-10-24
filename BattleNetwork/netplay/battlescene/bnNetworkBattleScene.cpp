@@ -498,7 +498,7 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   int len = (int)handSize; // TODO: use size_t for card lengths...
 
   if (handSize) {
-    remoteHand = new Battle::Card * [handSize];
+    remoteHand = new Battle::Card * [handSize] {nullptr};
     auto& packageManager = getController().CardPackageManager();
 
     for (size_t i = 0; i < handSize; i++) {
@@ -507,12 +507,8 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
 
       if (packageManager.HasPackage(id)) {
         card = packageManager.FindPackageByID(id).GetCardProperties();
+        remoteHand[i] = new Battle::Card(card);
       }
-      else {
-        card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ id });
-      }
-
-      remoteHand[i] = new Battle::Card(card);
     }
   }
 

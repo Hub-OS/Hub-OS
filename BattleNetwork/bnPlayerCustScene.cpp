@@ -1,5 +1,5 @@
 #include "bnPlayerCustScene.h"
-#include "bnWebClientMananger.h"
+#include "bnGameSession.h"
 #include "netplay/bnBufferWriter.h"
 #include "netplay/bnBufferReader.h"
 #include "stx/string.h"
@@ -13,16 +13,7 @@ constexpr float GRID_START_Y = 23.f;
 constexpr sf::Uint8 PROGRESS_MAX_ALPHA = 200;
 
 using namespace swoosh::types;
-
-enum class Blocks : uint8_t {
-  White = 0,
-  Red,
-  Green,
-  Blue,
-  Pink,
-  Yellow,
-  Size
-};
+using Blocks = PlayerCustScene::Piece::Types;
 
 PlayerCustScene::Piece* generateRandomBlock() {
   PlayerCustScene::Piece* p = new PlayerCustScene::Piece();
@@ -44,7 +35,7 @@ PlayerCustScene::Piece* generateRandomBlock() {
 
   p->calculateDimensions();
 
-  p->typeIndex = rand() % static_cast<uint8_t>(Blocks::Size);
+  p->typeIndex = rand() % static_cast<uint8_t>(Blocks::size);
   p->specialType = rand() % 2;
   p->name = stx::rand_alphanum(8);
   p->description = stx::rand_alphanum(30);
@@ -122,7 +113,7 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
   gridSprite.setPosition((GRID_START_X*2.)+12, (GRID_START_Y*2.)-8);
   gridSprite.setScale(2.f, 2.f);
   
-  for (uint8_t i = 0; i < static_cast<uint8_t>(Blocks::Size); i++) {
+  for (uint8_t i = 0; i < static_cast<uint8_t>(Blocks::size); i++) {
     blockTypeInUseTable[i] = 0u;
     blockTextures.push_back(load_texture("resources/scenes/cust/cust_blocks_" + std::to_string(i) + ".png"));
   }
@@ -410,7 +401,7 @@ bool PlayerCustScene::isCompileFinished()
 
 void PlayerCustScene::loadFromSave()
 {
-  std::string value = WEBCLIENT.GetValue(playerUUID + ":" + "blocks");
+  std::string value = getController().Session().GetValue(playerUUID + ":" + "blocks");
   if (value.empty()) return;
 
   Poco::Buffer<char> buffer{ value.c_str(), value.size() };
@@ -454,13 +445,10 @@ void PlayerCustScene::completeAndSave()
     writer.Write(buffer, piece->finalRot);
   }
 
-  WEBCLIENT.SetKey(playerUUID + ":" + "blocks", std::string(buffer.begin(), buffer.size()));
-  if (WEBCLIENT.IsLoggedIn()) {
-    WEBCLIENT.SaveSession("profile.bin");
-  }
-  else {
-    WEBCLIENT.SaveSession("guest.bin");
-  }
+  auto& session = getController().Session();
+  
+  session.SetKey(playerUUID + ":" + "blocks", std::string(buffer.begin(), buffer.size()));
+  session.SaveSession("profile.bin");
 }
 
 sf::Vector2f PlayerCustScene::blockToScreen(size_t y, size_t x)

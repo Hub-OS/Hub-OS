@@ -135,7 +135,6 @@ const std::list<std::string> ConfigSettings::GetPairedActions(const Gamepad& eve
 ConfigSettings& ConfigSettings::operator=(const ConfigSettings& rhs)
 {
   discord = rhs.discord;
-  webServer = rhs.webServer;
   gamepad = rhs.gamepad;
   gamepadIndex = rhs.gamepadIndex;
   invertThumbstick = rhs.invertThumbstick;
@@ -152,11 +151,6 @@ ConfigSettings& ConfigSettings::operator=(const ConfigSettings& rhs)
 const DiscordInfo& ConfigSettings::GetDiscordInfo() const
 {
   return discord;
-}
-
-const WebServerInfo& ConfigSettings::GetWebServerInfo() const
-{
-  return webServer;
 }
 
 const ConfigSettings::KeyboardHash& ConfigSettings::GetKeyboardHash()
@@ -177,13 +171,6 @@ void ConfigSettings::SetKeyboardHash(const KeyboardHash key)
 void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
 {
   ConfigSettings::gamepad = gamepad;
-}
-
-void ConfigSettings::SetWebServerInfo(const std::string& url, int port, const std::string& version)
-{
-  this->webServer.URL = url;
-  this->webServer.port = port;
-  this->webServer.version = version;
 }
 
 ConfigSettings::ConfigSettings(const ConfigSettings& rhs)

@@ -25,6 +25,8 @@ Entity::Entity() :
   using namespace std::placeholders;
   auto handler = std::bind(&Entity::HandleMoveEvent, this, _1, _2);
   actionQueue.RegisterType<MoveEvent>(ActionTypes::movement, handler);
+
+  setColor(NoopCompositeColor(GetColorMode()));
 }
 
 Entity::~Entity() {
@@ -213,16 +215,6 @@ const float Entity::GetHeight() const {
 
 void Entity::SetHeight(const float height) {
   Entity::height = std::fabs(height);
-}
-
-void Entity::SetColorMode(ColorMode mode)
-{
-  colorMode = mode;
-}
-
-ColorMode Entity::GetColorMode()
-{
-  return colorMode;
 }
 
 VirtualInputState& Entity::InputState()

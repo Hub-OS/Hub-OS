@@ -16,12 +16,26 @@
 #include "bnSceneNode.h"
 #include "bnSmartShader.h"
 
+enum class ColorMode {
+  multiply = 0,
+  additive
+};
+
+static sf::Color NoopCompositeColor(ColorMode mode) {
+  if (mode == ColorMode::additive)
+    return sf::Color::Black;
+
+  // case ColorMode::multiply
+  return sf::Color::White;
+}
+
 class SpriteProxyNode : public SceneNode {
 private:
   bool allocatedSprite; /*!< Whether or not SpriteSceneNode owns the sprite pointer */
   mutable SmartShader shader; /*!< Sprites can have shaders attached to them */
   sf::Sprite* sprite{ nullptr }; /*!< Reference to sprite behind proxy */
   std::shared_ptr<sf::Texture> textureRef; /*!< We want to intelligently keep track so the cache doesn't eat it*/
+  ColorMode colorMode{ ColorMode::multiply };
 
 public:
   /**
@@ -85,6 +99,18 @@ public:
    * @return sprite color
    */
   const sf::Color& getColor() const;
+
+  /**
+   * @brief Set color mode
+   * @param mode
+   */
+  void SetColorMode(ColorMode mode);
+
+  /**
+   * @brief Get color mode
+   * @return mode
+   */
+  ColorMode GetColorMode() const;
 
   /**
    * @brief Get sprite rect proxy
