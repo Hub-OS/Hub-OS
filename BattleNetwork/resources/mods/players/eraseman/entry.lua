@@ -24,6 +24,10 @@ function player_init(player)
     player.update_func = function(self, dt) 
         -- nothing in particular
     end
+
+    player.normal_attack_func = create_normal_attack
+    player.charged_attack_func = create_charged_attack
+    player.special_attack_func = create_special_attack
 end
 
 function create_normal_attack(player)

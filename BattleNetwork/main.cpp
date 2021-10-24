@@ -27,7 +27,7 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
 
 int main(int argc, char** argv) {
   DrawWindow win;
-  win.Initialize(DrawWindow::WindowMode::window);
+  win.Initialize("Open Net Battle v2.0a", DrawWindow::WindowMode::window);
   Game game{ win };
 
   if (game.GetEndianness() == Endianness::big) {

@@ -6,7 +6,7 @@
 #include "bnShaderType.h"
 #include "bnShaderResourceManager.h"
 
-void DrawWindow::Initialize(DrawWindow::WindowMode mode) {
+void DrawWindow::Initialize(const std::string& title, DrawWindow::WindowMode mode) {
   // center, size
   view = sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320));
   cam = std::make_shared<Camera>(view);
@@ -28,7 +28,7 @@ void DrawWindow::Initialize(DrawWindow::WindowMode mode) {
       style = sf::Style::Fullscreen;
   }
 
-  window = new RenderWindow(videoMode, "Battle Network: Progs Edition", style);
+  window = new RenderWindow(videoMode, title, style);
 
   Resize((int)view.getSize().x, (int)view.getSize().y);
 
@@ -167,9 +167,7 @@ void DrawWindow::SupportShaders(bool support)
 }
 
 DrawWindow::DrawWindow()
-{
-  Initialize(WindowMode::window);
-}
+{}
 
 DrawWindow::~DrawWindow() {
   delete window;

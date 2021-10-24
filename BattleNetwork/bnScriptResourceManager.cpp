@@ -35,6 +35,7 @@
 #include "bindings/bnScriptedSpell.h"
 #include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
+#include "bindings/bnScriptedPlayerForm.h"
 #include "bindings/bnScriptedDefenseRule.h"
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedCard.h"
@@ -458,7 +459,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "get_position", &Spell::GetDrawOffset
   );
 
-  const auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>( "Spell",
+  const auto& scripted_spell_record = battle_namespace.new_usertype<ScriptedSpell>( "Spell",
     sol::factories([](Team team) -> std::unique_ptr<ScriptedSpell> {
         return std::make_unique<ScriptedSpell>(team);
     }),
@@ -517,7 +518,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     sol::base_classes, sol::bases<Spell>()
   );
 
-  const auto& scriptedobstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
+  const auto& scripted_obstacle_record = battle_namespace.new_usertype<ScriptedObstacle>("Obstacle",
     sol::factories([](Team team) -> std::unique_ptr<ScriptedObstacle> {
         return std::make_unique<ScriptedObstacle>(team);
     }),
@@ -643,7 +644,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "get_animation", &Character::GetAnimationFromComponent // I don't want to do this, but sol2 makes me...
   );
 
-  const auto& scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
+  const auto& scripted_character_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
     sol::meta_function::index, &dynamic_object::dynamic_get,
     sol::meta_function::new_index, &dynamic_object::dynamic_set,
     sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
@@ -742,7 +743,7 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "get_max_health", &Player::GetMaxHealth
   );
 
-  const auto& scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
+  const auto& scripted_player_record = battle_namespace.new_usertype<ScriptedPlayer>("Player",
     sol::base_classes, sol::bases<Player>(),
     "get_id", &ScriptedPlayer::GetID,
     "get_element", &ScriptedPlayer::GetElement,
@@ -774,6 +775,8 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "get_name", &ScriptedPlayer::GetName,
     "get_health", &ScriptedPlayer::GetHealth,
     "get_max_health", &ScriptedPlayer::GetMaxHealth,
+    "get_attack_level", &ScriptedPlayer::GetAttackLevel,
+    "get_charge_level", &ScriptedPlayer::GetChargeLevel,
     "set_name", &ScriptedPlayer::SetName,
     "set_health", &ScriptedPlayer::SetHealth,
     "get_texture", &ScriptedPlayer::getTexture,
@@ -789,7 +792,34 @@ const auto& spell_record = battle_namespace.new_usertype<Spell>( "BasicSpell",
     "add_defense_rule", &ScriptedPlayer::AddDefenseRule,
     "delete", &ScriptedPlayer::Delete,
     "register_component", &ScriptedPlayer::RegisterComponent,
-    "update_func", &ScriptedPlayer::on_update_func
+    "set_palette", &ScriptedPlayer::SetPalette,
+    "store_base_palette", &ScriptedPlayer::StoreBasePalette,
+    "get_base_palette", &ScriptedPlayer::GetBasePalette,
+    "get_current_palette", &ScriptedPlayer::GetPalette,
+    "create_form", &ScriptedPlayer::CreateForm,
+    "add_form", &ScriptedPlayer::AddForm,
+    "create_anim_sync_item", &ScriptedPlayer::CreateAnimSyncItem,
+    "remove_anim_sync_item", &ScriptedPlayer::RemoveAnimSyncItem,
+    "update_func", &ScriptedPlayer::on_update_func,
+    "normal_attack_func", &ScriptedPlayer::on_buster_action,
+    "charged_attack_func", &ScriptedPlayer::on_charged_action,
+    "special_attack_func", &ScriptedPlayer::on_special_action
+  );
+
+  const auto& scripted_player_form_meta_record = battle_namespace.new_usertype<ScriptedPlayerFormMeta>("PlayerFormMeta",
+    "set_mugshot_texture_path", &ScriptedPlayerFormMeta::SetUIPath,
+    "update_func", &ScriptedPlayerFormMeta::on_update,
+    "charged_attack_func", &ScriptedPlayerFormMeta::on_charge_action,
+    "special_attack_func", &ScriptedPlayerFormMeta::on_special_action,
+    "on_activate_func", &ScriptedPlayerFormMeta::on_activate,
+    "on_deactivate_func", &ScriptedPlayerFormMeta::on_deactivate,
+    "calculate_charge_time_func", &ScriptedPlayerFormMeta::on_calculate_charge_time
+  );
+
+  const auto& scripted_player_form_record = battle_namespace.new_usertype<ScriptedPlayerForm>("PlayerForm",
+    sol::meta_function::index, &dynamic_object::dynamic_get,
+    sol::meta_function::new_index, &dynamic_object::dynamic_set,
+    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); }
   );
 
   const auto& scripted_artifact_record = battle_namespace.new_usertype<ScriptedArtifact>("Artifact",

@@ -21,7 +21,7 @@ public:
   };
 
 private:
-  const double DRAMATIC_TEXT_SPEED = 0.5;
+  const double DRAMATIC_TEXT_SPEED = 0.05;
 
   vfx currEffect{};
 
