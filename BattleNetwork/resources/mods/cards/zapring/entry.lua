@@ -9,10 +9,10 @@ function package_init(package)
     package:declare_package_id("com.claris.card.zapring")
     package:set_icon_texture(Engine.load_texture(_modpath.."icon.png"))
     package:set_preview_texture(Engine.load_texture(_modpath.."preview.png"))
+	package:set_codes({'*'})
 
     local props = package:get_card_props()
     props.shortname = "Zap Ring"
-    props.code = '*'
     props.damage = DAMAGE
     props.time_freeze = false
     props.element = Element.Elec
@@ -35,45 +35,38 @@ function card_create_action(actor, props)
     action.execute_func = function(self, user)
         print("in custom card action execute_func()!")
 
-        self.tile      = actor:get_current_tile()
+        self.tile = actor:get_current_tile()
 		self.zapbuster = nil
-        self.zapring   = nil
-        
-		local ref = self
+        self.zapring = nil
+		self.anim = nil
 		
-        local step1 = Battle.Step.new()
-
-        step1.update_func = function(self, dt) 
-            if ref.zapbuster == nil then
-                ref.zapbuster = create_zap_buster()
-                actor:get_field():spawn(ref.beastman, ref.tile:x(), ref.tile:y())
-            end
-			if ref.zapring == nil then
-				ref.zapring = create_zap()
-				actor:get_field():spawn(ref.zapring, ref.tile:x(), ref.tile:y())
-			end
-            self:complete_step()
-        end
-
+		if self.zapbuster == nil then
+			self.zapbuster = create_zap_buster()
+			self.anim = Engine.Animation.new(_modpath.."buster_zapring.animation")
+			self.anim:set_state("DEFAULT")
+			self:add_attachment(user, "BUSTER", self.zapbuster):use_animation(self.anim)
+		end
+		if self.zapring == nil then
+			self.zapring = create_zap("DEFAULT", actor)
+			actor:get_field():spawn(self.zapring, self.tile:x(), self.tile:y())
+		end
+	end
     return action
 end
 
-function create_zap_buster() 
-    local fx = Battle.Artifact.new()
-    fx:set_texture(BUSTER_TEXTURE, true)
-    fx:get_animation():load(_modpath.."buster_zapring.animation")
-    fx:get_animation():set_state("DEFAULT")
-    fx:get_animation():on_complete(function() 
-        fx:remove()
-    end)
-    return fx
+function create_zap_buster()
+	local proxySprite = Engine.SpriteNode.new()
+	proxySprite:set_texture(BUSTER_TEXTURE, true)
+	proxySprite:set_layer(-1)
+	return proxySprite
 end
 
-function create_zap(animation_state, direction, user)
+function create_zap(animation_state, user)
     local spell = Battle.Spell.new(user:get_team())
     spell:set_texture(TEXTURE, true)
     spell:highlight_tile(Highlight.Solid)
-	
+	spell:set_height(16.0)
+	local direction = user:get_facing()
     spell.slide_started = false
 	
     spell:set_hit_props(
@@ -100,7 +93,7 @@ function create_zap(animation_state, direction, user)
 
             local dest = self:get_tile(direction, 1)
             local ref = self
-            self:slide(dest, frames(7), frames(0), ActionOrder.Voluntary, 
+            self:slide(dest, frames(4), frames(0), ActionOrder.Voluntary, 
                 function()
                     ref.slide_started = true 
                 end
@@ -111,7 +104,11 @@ function create_zap(animation_state, direction, user)
     spell.attack_func = function(self, other) 
         -- nothing
     end
-
+	
+	spell.collision_func = function(self, other)
+		self:remove()
+	end
+	
     spell.delete_func = function(self) 
     end
 
