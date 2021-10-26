@@ -7,6 +7,7 @@
 
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <memory>
 #include <map>
 
 class SmartShader
@@ -21,7 +22,7 @@ private:
   std::map<std::string, std::vector<float>> farruniforms; /*! lookup of float arrays */
   std::map<std::string, sf::Vector2f> vfuniforms; /*!< lookup of vector2f uniforms */
   std::map<std::string, sf::Color> coluniforms; /*!< lookup of sf::Color uniforms */
-  std::map<std::string, sf::Texture> texuniforms; /*! lookups of texture uniforms */
+  std::map<std::string, std::shared_ptr<sf::Texture>> texuniforms; /*! lookups of texture uniforms */
   std::map<std::string, sf::Shader::CurrentTextureType> textypeuniforms;
 
   typedef std::map<std::string, int>::iterator iiter; 
@@ -30,7 +31,7 @@ private:
   typedef std::map<std::string, std::vector<float>>::iterator farriter;
   typedef std::map<std::string, sf::Vector2f>::iterator vfiter;
   typedef std::map<std::string, sf::Color>::iterator coliter;
-  typedef std::map<std::string, sf::Texture>::iterator texiter;
+  typedef std::map<std::string, std::shared_ptr<sf::Texture>>::iterator texiter;
   typedef std::map<std::string, sf::Shader::CurrentTextureType>::iterator textypeiter;
 
   /**
@@ -124,7 +125,7 @@ public:
    * @param uniform the name of the uniform
    * @param texvalue
    */
-  void SetUniform(std::string uniform, const sf::Texture& texvalue);
+  void SetUniform(std::string uniform, const std::shared_ptr<sf::Texture>& texvalue);
 
   /**
   * @brief Set a texture type uniform value

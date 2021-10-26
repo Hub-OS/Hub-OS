@@ -349,7 +349,7 @@ void Character::SetPalette(const std::shared_ptr<sf::Texture>& palette)
 
   this->palette = palette;
   smartShader.SetUniform("swapPalette", true);
-  smartShader.SetUniform("palette", *this->palette.get());
+  smartShader.SetUniform("palette", this->palette);
 }
 
 std::shared_ptr<sf::Texture> Character::GetPalette()
