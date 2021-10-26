@@ -31,6 +31,7 @@ private:
 
 public:
   PlayerFormMeta(size_t index);
+  virtual ~PlayerFormMeta() { }
 
   template<class T> PlayerFormMeta& SetFormClass();
 
