@@ -34,6 +34,7 @@
 #include "bindings/bnUserTypeAnimation.h"
 #include "bindings/bnUserTypeSceneNode.h"
 #include "bindings/bnUserTypeSpriteNode.h"
+#include "bindings/bnUserTypeSyncNode.h"
 #include "bindings/bnUserTypeField.h"
 #include "bindings/bnUserTypeTile.h"
 #include "bindings/bnUserTypeBasicCharacter.h"
@@ -268,6 +269,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineAnimationUserType(state, engine_namespace);
   DefineSceneNodeUserType(engine_namespace);
   DefineSpriteNodeUserType(engine_namespace);
+  DefineSyncNodeUserType(engine_namespace);
   DefineBasicCharacterUserType(battle_namespace);
   DefineScriptedCharacterUserType(battle_namespace);
   DefineScriptedPlayerUserType(battle_namespace);

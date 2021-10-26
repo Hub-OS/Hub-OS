@@ -176,8 +176,8 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "set_fully_charged_color", [](WeakWrapper<ScriptedPlayer>& player, sf::Color color) {
       player.Unwrap()->SetFullyChargeColor(color);
     },
-    "set_charge_position", [](WeakWrapper<ScriptedPlayer>& player, sf::Color color) {
-      player.Unwrap()->SetFullyChargeColor(color);
+    "set_charge_position", [](WeakWrapper<ScriptedPlayer>& player, float x, float y) {
+      player.Unwrap()->SetChargePosition(x, y);
     },
     "set_animation", [](WeakWrapper<ScriptedPlayer>& player, std::string animation) {
       player.Unwrap()->SetAnimation(animation);
@@ -223,11 +223,11 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
 
       return WeakWrapperChild<Player, ScriptedPlayerFormMeta>(parentPtr, *formMeta);
     },
-    "create_anim_sync_item", [] (WeakWrapper<ScriptedPlayer>& player, AnimationWrapper animation, WeakWrapper<SpriteProxyNode> node, const std::string& point) -> AnimationComponent::SyncItem {
-      return player.Unwrap()->CreateAnimSyncItem(&animation.Unwrap(), node.Unwrap(), point);
+    "add_sync_node", [] (WeakWrapper<ScriptedPlayer>& player, const std::string& point) -> std::shared_ptr<SyncNode> {
+      return player.Unwrap()->AddSyncNode(point);
     },
-    "remove_anim_sync_item", [] (WeakWrapper<ScriptedPlayer>& player, const AnimationComponent::SyncItem& item) {
-      player.Unwrap()->RemoveAnimSyncItem(item);
+    "remove_sync_node", [] (WeakWrapper<ScriptedPlayer>& player, const std::shared_ptr<SyncNode>& node) {
+      player.Unwrap()->RemoveSyncNode(node);
     },
     "update_func", sol::property(
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->update_func; },

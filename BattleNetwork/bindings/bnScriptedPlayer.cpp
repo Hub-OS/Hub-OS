@@ -69,6 +69,14 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
   return GetTile();
 }
 
+std::shared_ptr<SyncNode> ScriptedPlayer::AddSyncNode(const std::string& point) {
+  return syncNodeContainer.AddSyncNode(*this, *animationComponent, point);
+}
+
+void ScriptedPlayer::RemoveSyncNode(std::shared_ptr<SyncNode> syncNode) {
+  syncNodeContainer.RemoveSyncNode(*this, *animationComponent, syncNode);
+}
+
 std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(sol::object& function, const std::string& functionName)
 {
   auto result = CallLuaCallback(function, WeakWrapper(weak_from_base<ScriptedPlayer>()));
@@ -153,27 +161,9 @@ ScriptedPlayerFormMeta* ScriptedPlayer::CreateForm()
     return nullptr;
   }
 
+  meta->playerWeak = shared_from_base<ScriptedPlayer>();
   meta->SetUIPath(meta->GetUIPath());
   return meta;
-}
-
-AnimationComponent::SyncItem ScriptedPlayer::CreateAnimSyncItem(Animation* anim, std::shared_ptr<SpriteProxyNode> node, const std::string& point)
-{
-  AnimationComponent::SyncItem item = AnimationComponent::SyncItem();
-  item.anim = anim;
-  item.node = node;
-  item.point = point;
-
-  animationComponent->AddToSyncList(item);
-  AddNode(item.node);
-
-  return item;
-}
-
-void ScriptedPlayer::RemoveAnimSyncItem(const AnimationComponent::SyncItem& item)
-{
-  animationComponent->RemoveFromSyncList(item);
-  RemoveNode(item.node);
 }
 
 #endif

@@ -107,6 +107,7 @@ frame_time_t ScriptedPlayerForm::CalculateChargeTime(unsigned chargeLevel)
   auto result = CallLuaCallbackExpectingValue<frame_time_t>(calculate_charge_time_func, chargeLevel);
 
   if (result.is_error()) {
+    Logger::Log(result.error_cstr());
     return frames(60);
   }
 
