@@ -43,7 +43,6 @@ public:
   void OnUpdate(double _elapsed) override;
 
   ScriptedPlayerFormMeta* CreateForm();
-  void AddForm(ScriptedPlayerFormMeta* meta);
 
   AnimationComponent::SyncItem CreateAnimSyncItem(Animation* anim, std::shared_ptr<SpriteProxyNode> node, const std::string& point);
   void RemoveAnimSyncItem(const AnimationComponent::SyncItem& item);

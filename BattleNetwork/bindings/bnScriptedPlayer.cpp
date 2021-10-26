@@ -146,27 +146,28 @@ void ScriptedPlayer::OnUpdate(double elapsed)
 
 ScriptedPlayerFormMeta* ScriptedPlayer::CreateForm()
 {
-  return new ScriptedPlayerFormMeta(forms.size() + 1u);
-}
+  auto meta = new ScriptedPlayerFormMeta(forms.size() + 1u);
 
-void ScriptedPlayer::AddForm(ScriptedPlayerFormMeta* meta)
-{
-  if (auto form = Player::AddForm(meta)) {
-    form->SetUIPath(meta->GetUIPath());
+  if (!Player::RegisterForm(meta)) {
+    delete meta;
+    return nullptr;
   }
+
+  meta->SetUIPath(meta->GetUIPath());
+  return meta;
 }
 
 AnimationComponent::SyncItem ScriptedPlayer::CreateAnimSyncItem(Animation* anim, std::shared_ptr<SpriteProxyNode> node, const std::string& point)
 {
-  AnimationComponent::SyncItem* item = new AnimationComponent::SyncItem();
-  item->anim = anim;
-  item->node = node;
-  item->point = point;
+  AnimationComponent::SyncItem item = AnimationComponent::SyncItem();
+  item.anim = anim;
+  item.node = node;
+  item.point = point;
 
-  animationComponent->AddToSyncList(*item);
-  AddNode(item->node);
+  animationComponent->AddToSyncList(item);
+  AddNode(item.node);
 
-  return *item;
+  return item;
 }
 
 void ScriptedPlayer::RemoveAnimSyncItem(const AnimationComponent::SyncItem& item)

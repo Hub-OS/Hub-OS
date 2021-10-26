@@ -2,6 +2,7 @@
 #include "bnUserTypeScriptedPlayer.h"
 
 #include "bnWeakWrapper.h"
+#include "bnScopedWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedPlayer.h"
 #include "bnScriptedComponent.h"
@@ -212,11 +213,15 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "store_base_palette",  [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
       player.Unwrap()->StoreBasePalette(texture);
     },
-    "create_form",  [](WeakWrapper<ScriptedPlayer>& player) -> ScriptedPlayerFormMeta* {
-      return player.Unwrap()->CreateForm();
-    },
-    "add_form",  [](WeakWrapper<ScriptedPlayer>& player, ScriptedPlayerFormMeta* form) {
-      player.Unwrap()->AddForm(form);
+    "create_form", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapperChild<Player, ScriptedPlayerFormMeta> {
+      auto parentPtr = player.Unwrap();
+      auto formMeta = parentPtr->CreateForm();
+
+      if (!formMeta) {
+        throw std::runtime_error("Failed to create form");
+      }
+
+      return WeakWrapperChild<Player, ScriptedPlayerFormMeta>(parentPtr, *formMeta);
     },
     "create_anim_sync_item", [] (WeakWrapper<ScriptedPlayer>& player, AnimationWrapper animation, WeakWrapper<SpriteProxyNode> node, const std::string& point) -> AnimationComponent::SyncItem {
       return player.Unwrap()->CreateAnimSyncItem(&animation.Unwrap(), node.Unwrap(), point);
@@ -250,20 +255,58 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     )
   );
 
-  battle_namespace.new_usertype<ScriptedPlayerFormMeta>("PlayerFormMeta",
-    "set_mugshot_texture_path", &ScriptedPlayerFormMeta::SetUIPath,
-    "update_func", &ScriptedPlayerFormMeta::on_update,
-    "charged_attack_func", &ScriptedPlayerFormMeta::on_charge_action,
-    "special_attack_func", &ScriptedPlayerFormMeta::on_special_action,
-    "on_activate_func", &ScriptedPlayerFormMeta::on_activate,
-    "on_deactivate_func", &ScriptedPlayerFormMeta::on_deactivate,
-    "calculate_charge_time_func", &ScriptedPlayerFormMeta::on_calculate_charge_time
+  battle_namespace.new_usertype<WeakWrapperChild<Player, ScriptedPlayerFormMeta>>("PlayerFormMeta",
+    "set_mugshot_texture_path", [] (WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, const std::string& path) {
+      form.Unwrap().SetUIPath(path);
+    },
+    "calculate_charge_time_func", sol::property(
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form) { return form.Unwrap().calculate_charge_time_func; },
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, sol::stack_object value) {
+        form.Unwrap().calculate_charge_time_func = VerifyLuaCallback(value);
+      }
+    ),
+    "on_activate_func", sol::property(
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form) { return form.Unwrap().on_activate_func; },
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, sol::stack_object value) {
+        form.Unwrap().on_activate_func = VerifyLuaCallback(value);
+      }
+    ),
+    "on_deactivate_func", sol::property(
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form) { return form.Unwrap().on_deactivate_func; },
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, sol::stack_object value) {
+        form.Unwrap().on_deactivate_func = VerifyLuaCallback(value);
+      }
+    ),
+    "update_func", sol::property(
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form) { return form.Unwrap().update_func; },
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, sol::stack_object value) {
+        form.Unwrap().update_func = VerifyLuaCallback(value);
+      }
+    ),
+    "charged_attack_func", sol::property(
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form) { return form.Unwrap().charged_attack_func; },
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, sol::stack_object value) {
+        form.Unwrap().charged_attack_func = VerifyLuaCallback(value);
+      }
+    ),
+    "special_attack_func", sol::property(
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form) { return form.Unwrap().special_attack_func; },
+      [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, sol::stack_object value) {
+        form.Unwrap().special_attack_func = VerifyLuaCallback(value);
+      }
+    )
   );
 
-  battle_namespace.new_usertype<ScriptedPlayerForm>("PlayerForm",
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); }
+  battle_namespace.new_usertype<ScopedWrapper<ScriptedPlayerForm>>("PlayerForm",
+    sol::meta_function::index, [](ScopedWrapper<ScriptedPlayerForm>& form, const std::string& key) {
+      return form.Unwrap().dynamic_get(key);
+    },
+    sol::meta_function::new_index, [](ScopedWrapper<ScriptedPlayerForm>& form, const std::string& key, sol::stack_object value) {
+      form.Unwrap().dynamic_set(key, value);
+    },
+    sol::meta_function::length, [](ScopedWrapper<ScriptedPlayerForm>& form) {
+      return form.Unwrap().entries.size();
+    }
   );
 }
 #endif
