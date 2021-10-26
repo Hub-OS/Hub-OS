@@ -107,7 +107,17 @@ std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(sol::object& func
 
 std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
 {
-  std::shared_ptr<CardAction> result = GenerateCardAction(special_attack_func, "special_attack_func");
+  std::shared_ptr<CardAction> result;
+
+  result = activeForm ? activeForm->OnSpecialAction(weakWrap.Lock()) : nullptr;
+  if (result) return result;
+  
+  if (!special_attack_func.valid()) {
+    // prevent error message for nil function, just return nullptr
+    return nullptr;
+  }
+
+  result = GenerateCardAction(special_attack_func, "special_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -129,7 +139,12 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteBusterAction()
 
 std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteChargedBusterAction()
 {
-  std::shared_ptr<CardAction> result = GenerateCardAction(charged_attack_func, "charged_attack_func");
+  std::shared_ptr<CardAction> result;
+
+  result = activeForm ? activeForm->OnChargedBusterAction(weakWrap.Lock()) : nullptr;
+  if (result) return result;
+
+  result = GenerateCardAction(charged_attack_func, "charged_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::ability);

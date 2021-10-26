@@ -101,7 +101,7 @@ stx::result_t<bool> CallLuaCallbackExpectingBool(const sol::protected_function& 
 
 template<typename ...Args>
 stx::result_t<sol::object> CallLuaCallback(const sol::object& object, Args... args) {
-  if (object.get_type() != sol::type::function) {
+  if (!object.valid() || object.get_type() != sol::type::function) {
     std::string error = "Lua object is not a function.";
     return stx::error<sol::object>(error);
   }
