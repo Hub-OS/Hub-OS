@@ -8,9 +8,23 @@ class ScopedWrapper {
 private:
   T& ref;
   std::shared_ptr<bool> valid;
+  bool isFirst{};
 public:
-  ScopedWrapper(T& ref) : ref(ref) { valid = std::make_shared<bool>(true); }
-  ~ScopedWrapper() { *valid = false; }
+  ScopedWrapper(T& ref) : ref(ref) {
+    valid = std::make_shared<bool>(true);
+    isFirst = true;
+  }
+
+  ScopedWrapper(const ScopedWrapper<T>& original) : ref(original.ref) {
+    valid = original.valid;
+    isFirst = false;
+  }
+
+  ~ScopedWrapper() {
+    if (isFirst) {
+      *valid = false;
+    }
+  }
 
   inline T& Unwrap() {
     if (!*valid) {
@@ -20,4 +34,5 @@ public:
     return ref;
   }
 };
+
 #endif
