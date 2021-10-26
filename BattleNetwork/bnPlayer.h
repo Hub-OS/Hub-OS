@@ -155,10 +155,14 @@ public:
 protected:
   // functions
   void FinishConstructor();
-  bool RegisterForm(PlayerFormMeta* info);
+  bool RegisterForm(PlayerFormMeta* meta);
 
+  // add form from class type
   template<typename T>
   PlayerFormMeta* AddForm();
+
+  // add form from existing meta
+  PlayerFormMeta* AddForm(PlayerFormMeta* meta);
 
   // member vars
   string state; /*!< Animation state name */
@@ -179,13 +183,13 @@ protected:
 
 template<typename T>
 PlayerFormMeta* Player::AddForm() {
-  PlayerFormMeta* info = new PlayerFormMeta(forms.size()+1);
-  info->SetFormClass<T>();
+  PlayerFormMeta* meta = new PlayerFormMeta(forms.size()+1u);
+  meta->SetFormClass<T>();
   
-  if (!RegisterForm(info)) {
-    delete info;
-    info = nullptr;
+  if (!RegisterForm(meta)) {
+    delete meta;
+    meta = nullptr;
   }
 
-  return info;
+  return meta;
 }

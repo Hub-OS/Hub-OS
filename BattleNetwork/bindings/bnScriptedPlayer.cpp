@@ -1,8 +1,9 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedPlayer.h"
 #include "bnScriptedCardAction.h"
-#include "../bnCardAction.h"
+#include "bnScriptedPlayerForm.h"
 #include "../bnSolHelpers.h"
+#include "../bnCardAction.h"
 
 ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   script(script),
@@ -28,6 +29,9 @@ void ScriptedPlayer::Init() {
   FinishConstructor();
 
   weakWrap = WeakWrapper(weak_from_base<ScriptedPlayer>());
+}
+
+ScriptedPlayer::~ScriptedPlayer() {
 }
 
 void ScriptedPlayer::SetChargePosition(const float x, const float y)
@@ -65,9 +69,9 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
   return GetTile();
 }
 
-std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(const std::string& functionName) {
-
-  auto result = CallLuaFunction(script, functionName, WeakWrapper(weak_from_base<ScriptedPlayer>()));
+std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(sol::object& function, const std::string& functionName)
+{
+  auto result = CallLuaCallback(function, WeakWrapper(weak_from_base<ScriptedPlayer>()));
 
   if(result.is_error()) {
     Logger::Log(result.error_cstr());
@@ -95,10 +99,10 @@ std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(const std::string
 
 std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
 {
-  std::shared_ptr<CardAction> result = GenerateCardAction("create_special_attack");
+  std::shared_ptr<CardAction> result = GenerateCardAction(special_attack_func, "special_attack_func");
 
   if (result) {
-    result->SetLockoutGroup(CardAction::LockoutGroup::ability);
+    result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
   }
 
   return result;
@@ -106,7 +110,7 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
 
 std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteBusterAction()
 {
-  std::shared_ptr<CardAction> result = GenerateCardAction("create_normal_attack");
+  std::shared_ptr<CardAction> result = GenerateCardAction(normal_attack_func, "normal_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -117,10 +121,10 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteBusterAction()
 
 std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteChargedBusterAction()
 {
-  std::shared_ptr<CardAction> result = GenerateCardAction("create_charged_attack");
+  std::shared_ptr<CardAction> result = GenerateCardAction(charged_attack_func, "charged_attack_func");
 
   if (result) {
-    result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
+    result->SetLockoutGroup(CardAction::LockoutGroup::ability);
   }
 
   return result;
@@ -138,6 +142,37 @@ void ScriptedPlayer::OnUpdate(double elapsed)
       Logger::Log(result.error_cstr());
     }
   }
+}
+
+ScriptedPlayerFormMeta* ScriptedPlayer::CreateForm()
+{
+  return new ScriptedPlayerFormMeta(forms.size() + 1u);
+}
+
+void ScriptedPlayer::AddForm(ScriptedPlayerFormMeta* meta)
+{
+  if (auto form = Player::AddForm(meta)) {
+    form->SetUIPath(meta->GetUIPath());
+  }
+}
+
+AnimationComponent::SyncItem ScriptedPlayer::CreateAnimSyncItem(Animation* anim, std::shared_ptr<SpriteProxyNode> node, const std::string& point)
+{
+  AnimationComponent::SyncItem* item = new AnimationComponent::SyncItem();
+  item->anim = anim;
+  item->node = node;
+  item->point = point;
+
+  animationComponent->AddToSyncList(*item);
+  AddNode(item->node);
+
+  return *item;
+}
+
+void ScriptedPlayer::RemoveAnimSyncItem(const AnimationComponent::SyncItem& item)
+{
+  animationComponent->RemoveFromSyncList(item);
+  RemoveNode(item.node);
 }
 
 #endif

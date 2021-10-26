@@ -97,7 +97,7 @@ void DefineTileUserType(sol::state& state) {
     "Broken", TileState::broken,
     "Cracked", TileState::cracked,
     "DirectionDown", TileState::directionDown,
-    "DirectionLevel", TileState::directionLeft,
+    "DirectionLeft", TileState::directionLeft,
     "DirectionRight", TileState::directionRight,
     "DirectionUp", TileState::directionUp,
     "Empty", TileState::empty,

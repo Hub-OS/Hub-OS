@@ -46,15 +46,17 @@ stx::result_t<Result> CallLuaFunctionExpectingValue(Table& script, const std::st
 }
 
 template<typename ...Args>
-stx::result_t<bool> CallLuaCallback(const sol::protected_function& func, Args... args) {
+stx::result_t<sol::object> CallLuaCallback(const sol::protected_function& func, Args... args) {
   auto result = func(std::forward<Args>(args)...);
 
   if(!result.valid()) {
     sol::error error = result;
-    return stx::error<bool>(error.what());
+    return stx::error<sol::object>(error.what());
   }
 
-  return stx::ok();
+  sol::object obj = result;
+
+  return stx::ok(obj);
 }
 
 template<typename Result, typename ...Args>
@@ -98,10 +100,10 @@ stx::result_t<bool> CallLuaCallbackExpectingBool(const sol::protected_function& 
 }
 
 template<typename ...Args>
-stx::result_t<bool> CallLuaCallback(const sol::object& object, Args... args) {
+stx::result_t<sol::object> CallLuaCallback(const sol::object& object, Args... args) {
   if (object.get_type() != sol::type::function) {
     std::string error = "Lua object is not a function.";
-    return stx::error<bool>(error);
+    return stx::error<sol::object>(error);
   }
 
   sol::protected_function func = object;

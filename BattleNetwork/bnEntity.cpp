@@ -1084,9 +1084,6 @@ void Entity::ResolveFrameBattleDamage()
         // Re-queue the drag status to be re-considered in our next combat checks
         statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
       }
-
-      // cancel stun
-      stunCooldown = 0;
     }
   }
 

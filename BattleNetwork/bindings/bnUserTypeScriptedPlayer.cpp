@@ -5,6 +5,7 @@
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedPlayer.h"
 #include "bnScriptedComponent.h"
+#include "bnScriptedPlayerForm.h"
 #include "../bnSolHelpers.h"
 
 void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
@@ -153,11 +154,14 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "get_health", [](WeakWrapper<ScriptedPlayer>& player) -> int {
       return player.Unwrap()->GetHealth();
     },
-    "get_max_health", [](WeakWrapper<ScriptedPlayer>& player) -> int {
-      return player.Unwrap()->GetMaxHealth();
-    },
     "set_health", [](WeakWrapper<ScriptedPlayer>& player, int health) {
       player.Unwrap()->SetHealth(health);
+    },
+    "get_attack_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
+      return player.Unwrap()->GetAttackLevel();
+    },
+    "get_charge_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
+      return player.Unwrap()->GetChargeLevel();
     },
     "get_texture", [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
       return player.Unwrap()->getTexture();
@@ -196,12 +200,70 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "register_component", [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedComponent>& component) {
       player.Unwrap()->RegisterComponent(component.Release());
     },
+    "get_current_palette",  [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
+      return player.Unwrap()->GetPalette();
+    },
+    "set_palette",  [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
+      player.Unwrap()->SetPalette(texture);
+    },
+    "get_base_palette",  [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
+      return player.Unwrap()->GetBasePalette();
+    },
+    "store_base_palette",  [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
+      player.Unwrap()->StoreBasePalette(texture);
+    },
+    "create_form",  [](WeakWrapper<ScriptedPlayer>& player) -> ScriptedPlayerFormMeta* {
+      return player.Unwrap()->CreateForm();
+    },
+    "add_form",  [](WeakWrapper<ScriptedPlayer>& player, ScriptedPlayerFormMeta* form) {
+      player.Unwrap()->AddForm(form);
+    },
+    "create_anim_sync_item", [] (WeakWrapper<ScriptedPlayer>& player, AnimationWrapper animation, WeakWrapper<SpriteProxyNode> node, const std::string& point) -> AnimationComponent::SyncItem {
+      return player.Unwrap()->CreateAnimSyncItem(&animation.Unwrap(), node.Unwrap(), point);
+    },
+    "remove_anim_sync_item", [] (WeakWrapper<ScriptedPlayer>& player, const AnimationComponent::SyncItem& item) {
+      player.Unwrap()->RemoveAnimSyncItem(item);
+    },
     "update_func", sol::property(
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->update_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
         player.Unwrap()->update_func = VerifyLuaCallback(value);
       }
+    ),
+    "normal_attack_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->normal_attack_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->normal_attack_func = VerifyLuaCallback(value);
+      }
+    ),
+    "charged_attack_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->charged_attack_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->charged_attack_func = VerifyLuaCallback(value);
+      }
+    ),
+    "special_attack_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->special_attack_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->special_attack_func = VerifyLuaCallback(value);
+      }
     )
+  );
+
+  battle_namespace.new_usertype<ScriptedPlayerFormMeta>("PlayerFormMeta",
+    "set_mugshot_texture_path", &ScriptedPlayerFormMeta::SetUIPath,
+    "update_func", &ScriptedPlayerFormMeta::on_update,
+    "charged_attack_func", &ScriptedPlayerFormMeta::on_charge_action,
+    "special_attack_func", &ScriptedPlayerFormMeta::on_special_action,
+    "on_activate_func", &ScriptedPlayerFormMeta::on_activate,
+    "on_deactivate_func", &ScriptedPlayerFormMeta::on_deactivate,
+    "calculate_charge_time_func", &ScriptedPlayerFormMeta::on_calculate_charge_time
+  );
+
+  battle_namespace.new_usertype<ScriptedPlayerForm>("PlayerForm",
+    sol::meta_function::index, &dynamic_object::dynamic_get,
+    sol::meta_function::new_index, &dynamic_object::dynamic_set,
+    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); }
   );
 }
 #endif

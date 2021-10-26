@@ -28,7 +28,7 @@ public:
   */
   struct SyncItem {
     Animation* anim{ nullptr };
-    SpriteProxyNode* node{ nullptr };
+    std::shared_ptr<SpriteProxyNode> node{ nullptr };
     std::string point{ "origin" };
   };
 

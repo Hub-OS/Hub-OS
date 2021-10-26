@@ -44,7 +44,7 @@ public:
    * @param fullscreen. If false, the game launches in windowed mode.
    * @warning on mobile the activity is always the full window regardless of mode.
    */
-  void Initialize(WindowMode);
+  void Initialize(const std::string& title, WindowMode);
   
   /**
    * @brief Draw an sf::Drawable through the engine pipeline
