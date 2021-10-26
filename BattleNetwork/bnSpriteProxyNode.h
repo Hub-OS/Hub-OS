@@ -159,6 +159,8 @@ public:
    */
   SmartShader& GetShader();
 
+  SmartShader& GetShader() const;
+
   /**
    * @brief Revokes the attached shader
    */

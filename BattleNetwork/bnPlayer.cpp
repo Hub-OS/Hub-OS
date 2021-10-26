@@ -86,6 +86,8 @@ Player::~Player() {
 }
 
 void Player::OnUpdate(double _elapsed) {
+  SetColorMode(ColorMode::additive);
+
   if (!this->IsInForm()) {
     if (emotion == Emotion::angry) {
       setColor(sf::Color(155, 0, 0, getColor().a));
@@ -95,6 +97,10 @@ void Player::OnUpdate(double _elapsed) {
     }
     else if (emotion == Emotion::evil) {
       setColor(sf::Color(155, 100, 255, getColor().a));
+    }
+
+    if (this->emotion == Emotion::evil) {
+      SetColorMode(ColorMode::multiply);
     }
   }
 

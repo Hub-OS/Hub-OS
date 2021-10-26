@@ -19,7 +19,13 @@
 
 void Character::RefreshShader()
 {
-  SetShader(smartShader);
+  sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER);
+
+  if (shader != GetShader().Get()) {
+    SetShader(shader);
+  }
+
+  auto& smartShader = GetShader();
 
   if (!smartShader.Get()) return;
 
@@ -37,8 +43,9 @@ void Character::RefreshShader()
     static_cast<float>(stunCooldown > 0. && (iframes || stunFrame))     // HIGHLIGHT
   };
 
-  smartShader.SetUniform("states", states);
-  
+  GetShader().SetUniform("states", states); 
+  smartShader.SetUniform("additiveMode", GetColorMode() == ColorMode::additive);
+
   bool enabled = states[0] || states[1];
 
   if (enabled) return;
@@ -69,7 +76,8 @@ Character::Character(Rank _rank) :
   SetColorMode(ColorMode::additive);
 
   if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
-    smartShader = shader;
+    SetShader(shader);
+    auto& smartShader = GetShader();
     smartShader.SetUniform("texture", sf::Shader::CurrentTexture);
     smartShader.SetUniform("additiveMode", true);
     smartShader.SetUniform("swapPalette", false);
@@ -290,6 +298,8 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
   //       color their attached nodes correctly in-game
 
   if (!SpriteProxyNode::show) return;
+
+  auto& smartShader = GetShader();
 
   // combine the parent transform with the node's one
   sf::Transform combinedTransform = getTransform();
@@ -864,6 +874,8 @@ Animation* Character::GetAnimationFromComponent()
 
 void Character::SetPalette(const std::shared_ptr<sf::Texture>& palette)
 {
+  auto& smartShader = GetShader();
+
   if (palette.get() == nullptr) {
     smartShader.SetUniform("swapPalette", false);
     return;

@@ -207,6 +207,7 @@ public:
    * Without this, scripts would need to specify direction and offset every time
    */
   Battle::Tile* GetCurrentTile() const;
+
   const sf::Vector2f GetTileOffset() const;
   void SetDrawOffset(const sf::Vector2f& offset);
   void SetDrawOffset(float x, float y);

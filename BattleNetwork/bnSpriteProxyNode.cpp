@@ -119,6 +119,11 @@ SmartShader& SpriteProxyNode::GetShader() {
   return shader;
 }
 
+SmartShader& SpriteProxyNode::GetShader() const
+{
+  return shader;
+}
+
 void SpriteProxyNode::RevokeShader() {
   shader.Reset();
 }
