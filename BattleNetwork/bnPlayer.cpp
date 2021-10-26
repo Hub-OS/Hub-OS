@@ -84,6 +84,10 @@ Player::~Player() {
     delete form;
   }
 
+  if (activeForm) {
+    delete activeForm;
+  }
+
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 }
 
