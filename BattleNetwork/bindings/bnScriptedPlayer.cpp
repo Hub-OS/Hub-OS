@@ -162,7 +162,6 @@ ScriptedPlayerFormMeta* ScriptedPlayer::CreateForm()
   }
 
   meta->playerWeak = shared_from_base<ScriptedPlayer>();
-  meta->SetUIPath(meta->GetUIPath());
   return meta;
 }
 
