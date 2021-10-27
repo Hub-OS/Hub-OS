@@ -283,6 +283,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "is_hidden", &Battle::Tile::IsHidden,
     "is_reserved", &Battle::Tile::IsReservedByCharacter,
     "get_team", &Battle::Tile::GetTeam,
+	"set_team", &Battle::Tile::SetTeam,
     "attack_entities", &Battle::Tile::AffectEntities,
     "get_distance_to_tile", &Battle::Tile::Distance,
     "find_characters", &Battle::Tile::FindCharacters,

@@ -37,8 +37,6 @@ Megaman::Megaman() : Player() {
 
   // First sprite on the screen should be default player stance
   SetAnimation("PLAYER_IDLE");
-
-  SetEmotion(Emotion::evil);
 }
 
 Megaman::~Megaman()
