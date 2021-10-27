@@ -112,11 +112,11 @@ public:
   * Fetches all the nodes attached to this node with any of the tags
   * @return a vector of SceneNode*
   */
-  std::set<std::shared_ptr<SceneNode>> GetChildNodesWithTag(const std::initializer_list<std::string>& query);
+  std::set<std::shared_ptr<SceneNode>> GetChildNodesWithTag(const std::vector<std::string>& query);
   
   SceneNode* GetParent();
 
-  void AddTags(const std::initializer_list<std::string> tags);
-  void RemoveTags(const std::initializer_list<std::string> tags);
+  void AddTags(std::vector<std::string> tags);
+  void RemoveTags(std::vector<std::string> tags);
   const bool HasTag(const std::string& name);
 };

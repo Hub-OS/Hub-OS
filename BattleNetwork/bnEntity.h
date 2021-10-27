@@ -257,6 +257,7 @@ public:
    * Without this, scripts would need to specify direction and offset every time
    */
   Battle::Tile* GetCurrentTile() const;
+
   const sf::Vector2f GetTileOffset() const;
   void SetDrawOffset(const sf::Vector2f& offset);
   void SetDrawOffset(float x, float y);
@@ -347,21 +348,23 @@ public:
   bool WillSlideOnTiles();
 
   /**
-   * @brief Directly modify the entity's current direction property. @see Entity::Move() 
+   * @brief Directly modify the entity's current move direction property. @see Entity::Move() 
    * Direction can be used for entities that use a single direction for linear movement.
    * e.g. Mettaur Waves, Bullet, Fishy
    * @param direction the new direction
    */
-  void SetDirection(Direction direction);
+  void SetMoveDirection(Direction direction);
   
   /**
-   * @brief Query the entity's current direction
-   * @return The entity's current direction
+   * @brief Query the entity's move direction
+   * @return The entity's current move direction
    */
-  Direction GetDirection();
+  Direction GetMoveDirection();
   
   void SetFacing(Direction facing);
   Direction GetFacing();
+  Direction GetFacingAway();
+
   /**
    * @brief Query the entity's previous direction
    * Can be used to see if an entity was previously moving before it changed direction

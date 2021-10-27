@@ -41,6 +41,9 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "get_facing", [](WeakWrapper<ScriptedSpell>& spell) -> Direction {
       return spell.Unwrap()->GetFacing();
     },
+    "get_facing_away", [](WeakWrapper<ScriptedSpell>& spell) -> Direction {
+      return spell.Unwrap()->GetFacingAway();
+    },
     "set_facing", [](WeakWrapper<ScriptedSpell>& spell, Direction direction) {
       spell.Unwrap()->SetFacing(direction);
     },

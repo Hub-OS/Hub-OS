@@ -44,7 +44,6 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     auto playerPtr = player;
     int _index = index;
 
-
     auto onTransform = [=]
     () {
       // The next form has a switch based on health
@@ -52,7 +51,8 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       playerPtr->ClearActionQueue();
       playerPtr->ActivateFormAt(_index);
       playerPtr->MakeActionable();
-      playerPtr->setColor(NoopCompositeColor(playerPtr->GetColorMode()));
+      playerPtr->SetColorMode(ColorMode::additive);
+      playerPtr->setColor(NoopCompositeColor(ColorMode::additive));
       
       if (auto animComp = playerPtr->GetFirstComponent<AnimationComponent>()) {
         animComp->Refresh();
@@ -90,7 +90,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
         // If decross, turn white immediately
         shineAnimations[count] << Animator::On(1, [=] {      
           playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
-          }) << Animator::On(10, onTransform);
+        }) << Animator::On(10, onTransform);
       }
       else {
         // Else collect child nodes on frame 10 instead

@@ -48,6 +48,9 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "get_facing", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Direction {
       return obstacle.Unwrap()->GetFacing();
     },
+    "get_facing_away", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Direction {
+      return obstacle.Unwrap()->GetFacingAway();
+    },
     "set_facing", [](WeakWrapper<ScriptedObstacle>& obstacle, Direction direction) {
       obstacle.Unwrap()->SetFacing(direction);
     },

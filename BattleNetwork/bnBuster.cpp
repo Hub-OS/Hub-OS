@@ -66,7 +66,7 @@ void Buster::OnUpdate(double _elapsed) {
 
   cooldown -= from_seconds(_elapsed);
   if (cooldown <= frames(0)) {
-    if (Teleport(GetTile() + GetDirection())) {
+    if (Teleport(GetTile() + GetMoveDirection())) {
       cooldown = frames(2);
     }
     else {

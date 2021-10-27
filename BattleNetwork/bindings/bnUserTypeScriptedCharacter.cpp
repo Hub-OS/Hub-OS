@@ -40,6 +40,9 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "get_facing", [](WeakWrapper<ScriptedCharacter>& character) -> Direction {
       return character.Unwrap()->GetFacing();
     },
+    "get_facing_away", [](WeakWrapper<ScriptedCharacter>& character) -> Direction {
+      return character.Unwrap()->GetFacingAway();
+    },
     "get_target", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<Character> {
       return WeakWrapper(character.Unwrap()->GetTarget());
     },

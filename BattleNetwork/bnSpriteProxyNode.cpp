@@ -96,6 +96,8 @@ sf::FloatRect SpriteProxyNode::getLocalBounds() const {
 }
 
 void SpriteProxyNode::setTexture(const std::shared_ptr<sf::Texture> texture, bool resetRect) {
+  if (!texture) return;
+
   textureRef = texture;
   sprite->setTexture(*texture, resetRect);
 }
@@ -116,6 +118,11 @@ void SpriteProxyNode::SetShader(SmartShader& _shader) {
 }
 
 SmartShader& SpriteProxyNode::GetShader() {
+  return shader;
+}
+
+SmartShader& SpriteProxyNode::GetShader() const
+{
   return shader;
 }
 

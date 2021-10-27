@@ -49,7 +49,7 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
     "has_tags", [](WeakWrapper<SpriteProxyNode>& node, const std::string& tag) -> bool{
       return node.Unwrap()->HasTag(tag);
     },
-    "find_child_nodes_with_tags", [](WeakWrapper<SpriteProxyNode>& node, std::initializer_list<std::string> tags) {
+    "find_child_nodes_with_tags", [](WeakWrapper<SpriteProxyNode>& node, std::vector<std::string> tags) {
       auto nodes = node.Unwrap()->GetChildNodesWithTag(tags);
       std::vector<WeakWrapper<SceneNode>> result;
       result.reserve(nodes.size());
@@ -65,6 +65,20 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
     },
     "set_position", [](WeakWrapper<SpriteProxyNode>& node, float x, float y) {
       node.Unwrap()->setPosition(x, y);
+    },
+    "get_origin", [](WeakWrapper<SpriteProxyNode>& node) -> sf::Vector2f {
+      return node.Unwrap()->getOrigin();
+    },
+    "set_origin", [](WeakWrapper<SpriteProxyNode>& node, float x, float y) {
+      node.Unwrap()->setOrigin(x, y);
+    },
+    "get_width", [](WeakWrapper<SpriteProxyNode>& node) -> float {
+      auto self = node.Unwrap();
+      return self->getLocalBounds().width * self->getScale().x;
+    },
+    "get_height", [](WeakWrapper<SpriteProxyNode>& node) -> float {
+      auto self = node.Unwrap();
+      return self->getLocalBounds().height * self->getScale().y;
     },
     "get_color", [](WeakWrapper<SpriteProxyNode>& node) -> sf::Color {
       return node.Unwrap()->getColor();

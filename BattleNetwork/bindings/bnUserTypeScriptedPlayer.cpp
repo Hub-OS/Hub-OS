@@ -38,8 +38,8 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "get_field", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapper<Field> {
       return WeakWrapper(player.Unwrap()->GetField());
     },
-    "get_facing", [](WeakWrapper<ScriptedPlayer>& player) -> Direction {
-      return player.Unwrap()->GetFacing();
+    "get_facing_away", [](WeakWrapper<ScriptedPlayer>& player) -> Direction {
+      return player.Unwrap()->GetFacingAway();
     },
     "get_color", [](WeakWrapper<ScriptedPlayer>& player) -> sf::Color {
       return player.Unwrap()->getColor();

@@ -20,20 +20,23 @@
 
 class PA
 {
-private: 
-  struct StepType {
+public: 
+  enum class RuleType : char {
+    ordered = 0, // only order matters: any code can be replaced by wildcard
+    dupes        // set of duplicate cards matching the code combination with a limit of 1 wildcard
+  };
+
+  struct StepData {
     std::string id;
     std::string name;
     char code;
   }; /*!< Name of card and code */
 
-public: 
-  typedef std::vector<StepType> Steps; /*!< List of steps for a PA*/
+  typedef std::vector<StepData> Steps; /*!< List of steps for a PA*/
 
-private:
-  /*! \class PAData
+  /*! \class PACard
    *  \desc Describes the PA card and what steps it needs */
-  struct PAData {
+  struct PACard {
     std::string name; /*!< name of PA*/
     std::string uuid; /*!< UUID of PA*/
     std::string action{ "IDLE" }; /*!< Action this PA invokes*/
@@ -42,14 +45,12 @@ private:
     Element secondElement{ Element::none }; /*!< Secondary (hidden) element of PA*/
     bool canBoost{ false }; /*!< true if damage > 0*/
     bool timeFreeze{ false }; /*!< Triggers time freeze if true */
+    
     std::vector<std::string> metaClasses; /*!< User-created class types*/
     PA::Steps steps; /*!< list of steps for PA */
+    RuleType ruleType;
   };
 
-  std::vector<PAData> advances; /*!< list of all PAs */
-  std::vector<PAData>::iterator iter; /*!< iterator */
-  Battle::Card* advanceCardRef; /*!< Allocated PA needs to be deleted */
-public:
   /**
    * @brief sets advanceCardRef to null
    */
@@ -63,7 +64,7 @@ public:
   /**
    * @brief Registers a new combo
    */
-  void RegisterPA(const PAData& entry);
+  void RegisterPA(PACard entry);
   
   /**
    * @brief Given a list of cards, generates a matching PA. 
@@ -85,7 +86,10 @@ public:
    * @warning do not delete this pointer!
    * This is deleted by the PA 
    */
-
   Battle::Card& GetAdvanceCard();
+
+  std::vector<PACard> advances; /*!< list of all PAs */
+  std::vector<PACard>::iterator iter; /*!< iterator */
+  Battle::Card* advanceCardRef; /*!< Allocated PA needs to be deleted */
 };
 

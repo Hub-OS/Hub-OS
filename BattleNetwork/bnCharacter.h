@@ -66,7 +66,7 @@ private:
   float counterSlideDelta{};
 
   std::shared_ptr<sf::Texture> palette, basePalette;
-  mutable SmartShader smartShader;
+  // mutable SmartShader smartShader;
   std::string name;
 public:
 

@@ -42,6 +42,9 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     "get_facing", [](WeakWrapper<ScriptedArtifact>& artifact) -> Direction {
       return artifact.Unwrap()->GetFacing();
     },
+    "get_facing_away", [](WeakWrapper<ScriptedArtifact>& artifact) -> Direction {
+      return artifact.Unwrap()->GetFacingAway();
+    },
     "set_facing", [](WeakWrapper<ScriptedArtifact>& artifact, Direction direction) {
       artifact.Unwrap()->SetFacing(direction);
     },

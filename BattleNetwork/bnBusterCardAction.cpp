@@ -42,10 +42,10 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
     auto field = user->GetField();
 
     if (team == Team::red) {
-      b->SetDirection(Direction::right);
+      b->SetMoveDirection(Direction::right);
     }
     else {
-      b->SetDirection(Direction::left);
+      b->SetMoveDirection(Direction::left);
     }
 
     auto busterRemoved = [this](auto target) {

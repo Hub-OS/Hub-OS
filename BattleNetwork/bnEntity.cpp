@@ -609,11 +609,11 @@ bool Entity::WillSlideOnTiles()
   return slidesOnTiles;
 }
 
-void Entity::SetDirection(Direction dir) {
+void Entity::SetMoveDirection(Direction dir) {
   direction = dir;
 }
 
-Direction Entity::GetDirection()
+Direction Entity::GetMoveDirection()
 {
   return direction;
 }
@@ -626,6 +626,11 @@ void Entity::SetFacing(Direction facing)
 Direction Entity::GetFacing()
 {
   return facing;
+}
+
+Direction Entity::GetFacingAway()
+{
+  return Reverse(facing);
 }
 
 Direction Entity::GetPreviousDirection()

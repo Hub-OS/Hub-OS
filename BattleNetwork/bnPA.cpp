@@ -1,9 +1,10 @@
 #include "bnPA.h"
 #include "bnLogger.h"
 #include "bnFileUtil.h"
+#include "bnCardLibrary.h"
+
 #include <assert.h>
 #include <iostream>
-#include "bnCardLibrary.h"
 
 PA::PA()
 {
@@ -22,8 +23,17 @@ PA::~PA()
   advances.clear();
 }
 
-void PA::RegisterPA(const PAData& entry)
+void PA::RegisterPA(PACard entry)
 {
+  std::vector<PA::StepData> vec(entry.steps.begin(), entry.steps.begin() + entry.steps.size());
+
+  std::sort(vec.begin(), vec.end(), [](PA::StepData a, PA::StepData b) { return a.name < b.name; });
+  vec.erase(unique(vec.begin(), vec.end(), [](PA::StepData a, PA::StepData b) { return a.name == b.name; }), vec.end());
+
+  if (vec.size() == 1u) {
+    entry.ruleType = PA::RuleType::dupes;
+  }
+
   advances.push_back(entry);
 }
 
@@ -61,12 +71,26 @@ const int PA::FindPA(std::vector<Battle::Card>& input)
 
     int index = 0;
     while (index <= (int)size - (int)iter->steps.size()) {
+      size_t wildCodeCount = 0;
+      bool strictWildPattern = iter->ruleType == PA::RuleType::dupes;
+
       for (unsigned i = 0; i < iter->steps.size(); i++) {
         char code_i = input[i + index].GetCode();
         bool isSameCode = code_i == iter->steps[i].code;
         bool isWildStar = code_i == '*';
         bool isSameCard = iter->steps[i].name == input[i + index].GetShortName();
+
+        if (isWildStar) {
+          wildCodeCount++;
+        }
+
         if ((isWildStar || isSameCode) && isSameCard) {
+          if (isWildStar && strictWildPattern && wildCodeCount > 1) {
+            match = false;
+            startIndex = -1;
+            break;
+          }
+
           match = true;
           // We do not break here. If it is a match all across the steps, then the for loop ends 
           // and match stays == true
