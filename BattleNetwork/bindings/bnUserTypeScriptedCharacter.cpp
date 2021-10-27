@@ -43,12 +43,6 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "get_target", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<Character> {
       return WeakWrapper(character.Unwrap()->GetTarget());
     },
-    "get_alpha", [](WeakWrapper<ScriptedCharacter>& character) -> int {
-      return character.Unwrap()->GetAlpha();
-    },
-    "set_alpha", [](WeakWrapper<ScriptedCharacter>& character, int alpha) {
-      character.Unwrap()->SetAlpha(alpha);
-    },
     "get_color", [](WeakWrapper<ScriptedCharacter>& character) -> sf::Color {
       return character.Unwrap()->getColor();
     },

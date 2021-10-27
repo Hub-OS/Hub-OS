@@ -30,12 +30,6 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "get_facing", [](WeakWrapper<Character>& character) -> Direction {
       return character.Unwrap()->GetFacing();
     },
-    "get_alpha", [](WeakWrapper<Character>& character) -> int {
-      return character.Unwrap()->GetAlpha();
-    },
-    "set_alpha", [](WeakWrapper<Character>& character, int alpha) {
-      character.Unwrap()->SetAlpha(alpha);
-    },
     "get_color", [](WeakWrapper<Character>& character) -> sf::Color {
       return character.Unwrap()->getColor();
     },

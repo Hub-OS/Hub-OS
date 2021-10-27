@@ -41,12 +41,6 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "get_facing", [](WeakWrapper<ScriptedPlayer>& player) -> Direction {
       return player.Unwrap()->GetFacing();
     },
-    "get_alpha", [](WeakWrapper<ScriptedPlayer>& player) -> int {
-      return player.Unwrap()->GetAlpha();
-    },
-    "set_alpha", [](WeakWrapper<ScriptedPlayer>& player, int alpha) {
-      player.Unwrap()->SetAlpha(alpha);
-    },
     "get_color", [](WeakWrapper<ScriptedPlayer>& player) -> sf::Color {
       return player.Unwrap()->getColor();
     },

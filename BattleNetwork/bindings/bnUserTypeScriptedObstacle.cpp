@@ -51,12 +51,6 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "set_facing", [](WeakWrapper<ScriptedObstacle>& obstacle, Direction direction) {
       obstacle.Unwrap()->SetFacing(direction);
     },
-    "get_alpha", [](WeakWrapper<ScriptedObstacle>& obstacle) -> int {
-      return obstacle.Unwrap()->GetAlpha();
-    },
-    "set_alpha", [](WeakWrapper<ScriptedObstacle>& obstacle, int alpha) {
-      obstacle.Unwrap()->SetAlpha(alpha);
-    },
     "get_color", [](WeakWrapper<ScriptedObstacle>& obstacle) -> sf::Color {
       return obstacle.Unwrap()->getColor();
     },

@@ -44,12 +44,6 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "set_facing", [](WeakWrapper<ScriptedSpell>& spell, Direction direction) {
       spell.Unwrap()->SetFacing(direction);
     },
-    "get_alpha", [](WeakWrapper<ScriptedSpell>& spell) -> int {
-      return spell.Unwrap()->GetAlpha();
-    },
-    "set_alpha", [](WeakWrapper<ScriptedSpell>& spell, int alpha) {
-      spell.Unwrap()->SetAlpha(alpha);
-    },
     "get_color", [](WeakWrapper<ScriptedSpell>& spell) -> sf::Color {
       return spell.Unwrap()->getColor();
     },

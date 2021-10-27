@@ -45,12 +45,6 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     "set_facing", [](WeakWrapper<ScriptedArtifact>& artifact, Direction direction) {
       artifact.Unwrap()->SetFacing(direction);
     },
-    "get_alpha", [](WeakWrapper<ScriptedArtifact>& artifact) -> int {
-      return artifact.Unwrap()->GetAlpha();
-    },
-    "set_alpha", [](WeakWrapper<ScriptedArtifact>& artifact, int alpha) {
-      artifact.Unwrap()->SetAlpha(alpha);
-    },
     "get_color", [](WeakWrapper<ScriptedArtifact>& artifact) -> sf::Color {
       return artifact.Unwrap()->getColor();
     },
