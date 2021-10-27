@@ -151,6 +151,8 @@ public:
   */
   void Spawn(Battle::Tile& start);
 
+  bool HasSpawned();
+
   virtual void OnSpawn(Battle::Tile& start) { };
 
   /**

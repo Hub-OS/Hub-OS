@@ -220,6 +220,10 @@ void Entity::Spawn(Battle::Tile & start)
   hasSpawned = true;
 }
 
+bool Entity::HasSpawned() {
+  return hasSpawned;
+}
+
 const float Entity::GetHeight() const {
   return height;
 }

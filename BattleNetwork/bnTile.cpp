@@ -470,6 +470,11 @@ namespace Battle {
   }
 
   void Tile::AffectEntities(Entity& attacker) {
+    if (!attacker.HasSpawned()) {
+      // should check to see if the entity is on the field, but it's cheaper to check if the entity has spawned
+      throw std::runtime_error("Attacker must be on the field");
+    }
+
     if (std::find_if(taggedAttackers.begin(), taggedAttackers.end(), [&attacker](int ID) { return ID == attacker.GetID(); }) != taggedAttackers.end())
       return;
     if (std::find_if(queuedAttackers.begin(), queuedAttackers.end(), [&attacker](int ID) { return ID == attacker.GetID(); }) != queuedAttackers.end())
@@ -916,6 +921,11 @@ namespace Battle {
 
       for (Entity::ID_t ID : queuedAttackers) {
         auto attacker = field.GetEntity(ID);
+
+        if (!attacker) {
+          Logger::Logf("Attacker %d removed from field?", ID);
+          continue;
+        }
 
         if (character->GetID() == attacker->GetID()) // Case: prevent attackers from attacking themselves
           continue;
