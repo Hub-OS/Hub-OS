@@ -27,7 +27,7 @@ AirShot::AirShot(Team _team,int _damage) : Spell(_team) {
   random = rand() % 20 - 20;
   cooldown = 0.0f;
 
-  SetDirection(Direction::right);
+  SetMoveDirection(Direction::right);
 
   damage = _damage;
 

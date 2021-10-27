@@ -29,7 +29,7 @@ Wave::Wave(Team _team, double speed, int damage) : Spell(_team) {
 
     if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
       auto* wave = new Wave(GetTeam(), Wave::speed);
-      wave->SetDirection(dir);
+      wave->SetMoveDirection(dir);
       wave->SetHitboxProperties(GetHitboxProperties());
       wave->CrackTiles(this->crackTiles);
       wave->PoisonTiles(this->poisonTiles);
@@ -59,7 +59,7 @@ Wave::~Wave() {
 }
 
 void Wave::OnUpdate(double _elapsed) {
-  int lr = (GetDirection() == Direction::left) ? 1 : -1;
+  int lr = (GetMoveDirection() == Direction::left) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
   auto tile = GetTile();

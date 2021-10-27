@@ -74,7 +74,7 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
       spell->PoisonTiles(true);
     }
 
-    spell->SetDirection(Direction::left);
+    spell->SetMoveDirection(Direction::left);
     met.field->AddEntity(*spell, met.tile->GetX() - 1, met.tile->GetY());
   }
 }

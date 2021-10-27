@@ -68,7 +68,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
         Cube* isCube = dynamic_cast<Cube*>(e);
 
         if (isCube && isCube->GetElement() == Element::ice && GetElement() == Element::ice) {
-          Direction dir = GetDirection();
+          Direction dir = GetMoveDirection();
           isCube->Slide(GetTile() + dir, frames(12), frames(0));
           stop = true;
         }
@@ -80,7 +80,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
       });
 
       if (stop) {
-        SetDirection(Direction::none);
+        SetMoveDirection(Direction::none);
         previousDirection = Direction::none;
         pushedByDrag = false;
         return false;
@@ -90,7 +90,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
     return true;
   }
 
-  SetDirection(Direction::none);
+  SetMoveDirection(Direction::none);
   previousDirection = Direction::none;
   return false;
 }
@@ -108,7 +108,7 @@ void Cube::OnUpdate(double _elapsed) {
 
   // Keep momentum
   if (!IsSliding() && pushedByDrag) {
-    Slide(GetTile() + GetDirection(), frames(12), frames(0));
+    Slide(GetTile() + GetMoveDirection(), frames(12), frames(0));
   }
 
   if (timer <= 0 ) {

@@ -36,7 +36,7 @@ void MetalManThrowState::Attack(MetalMan& metal) {
   props.aggressor = metal.GetID();
   blade->SetHitboxProperties(props);
 
-  blade->SetDirection(Direction::left);
+  blade->SetMoveDirection(Direction::left);
 
   metal.GetField()->AddEntity(*blade, metal.GetTile()->GetX()-1, metal.GetTile()->GetY());
   metal.Audio().Play(AudioType::SWORD_SWING);

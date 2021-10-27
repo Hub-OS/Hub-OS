@@ -16,9 +16,9 @@ void Aura::OnHitCallback(Spell& in, Character& owner, bool windRemove) {
   if (windRemove) {
     if (fx && fx->flyStartTile == nullptr) {
       // Attach visual fx node to the tile and make it fly up and away based on direction
-      auto direction = in.GetDirection();
+      auto direction = in.GetMoveDirection();
       if (direction == Direction::none) {
-        direction = owner.GetDirection();
+        direction = owner.GetMoveDirection();
       }
 
       if (direction == Direction::left) {

@@ -96,6 +96,8 @@ sf::FloatRect SpriteProxyNode::getLocalBounds() const {
 }
 
 void SpriteProxyNode::setTexture(const std::shared_ptr<sf::Texture> texture, bool resetRect) {
+  if (!texture) return;
+
   textureRef = texture;
   sprite->setTexture(*texture, resetRect);
 }

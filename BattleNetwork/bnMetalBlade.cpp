@@ -39,22 +39,22 @@ void MetalBlade::OnUpdate(double _elapsed) {
         if (tile->GetX() == 1) {
          if (tile->GetY() == 1) {
             // If we're at the top row going left, go down
-            if (GetDirection() == Direction::left) {
-              SetDirection(Direction::down);
+            if (GetMoveDirection() == Direction::left) {
+              SetMoveDirection(Direction::down);
             }
             else {
               // Otherwise make a right
-              SetDirection(Direction::right);
+              SetMoveDirection(Direction::right);
             }
           }
           else if(tile->GetY() == 3){
             // If were at bottom tile going left, go up
-            if (GetDirection() == Direction::left) {
-              SetDirection(Direction::up);
+            if (GetMoveDirection() == Direction::left) {
+              SetMoveDirection(Direction::up);
             }
             else {
               // Otherwise make a right
-              SetDirection(Direction::right);
+              SetMoveDirection(Direction::right);
             }
           }
         }
@@ -64,22 +64,22 @@ void MetalBlade::OnUpdate(double _elapsed) {
       if (tile->GetX() == 6) {
         if (tile->GetY() == 1) {
           // If we're at the top row going right, go down
-          if (GetDirection() == Direction::right) {
-            SetDirection(Direction::down);
+          if (GetMoveDirection() == Direction::right) {
+            SetMoveDirection(Direction::down);
           }
           else {
             // Otherwise make a left
-            SetDirection(Direction::left);
+            SetMoveDirection(Direction::left);
           }
         }
         else if (tile->GetY() == 3) {
           // If were at bottom tile going right, go up
-          if (GetDirection() == Direction::right) {
-            SetDirection(Direction::up);
+          if (GetMoveDirection() == Direction::right) {
+            SetMoveDirection(Direction::up);
           }
           else {
             // Otherwise make a left
-            SetDirection(Direction::left);
+            SetMoveDirection(Direction::left);
           }
         }
       }
@@ -87,12 +87,12 @@ void MetalBlade::OnUpdate(double _elapsed) {
 
     // Always slide
     if (!IsSliding()) {
-      if (!CanMoveTo(GetTile() + GetDirection())) {
+      if (!CanMoveTo(GetTile() + GetMoveDirection())) {
         Delete();
       }
       else {
         int ispeed = static_cast<unsigned>(25 * speed);
-        Slide(GetTile() + GetDirection(), frames(ispeed), frames(0));
+        Slide(GetTile() + GetMoveDirection(), frames(ispeed), frames(0));
       }
     }
   }

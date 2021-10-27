@@ -93,7 +93,7 @@ void Thunder::OnUpdate(double _elapsed) {
   }
 
   // If sliding is flagged to false, we know we've ended a move
-  auto direction = GetDirection();
+  auto direction = GetMoveDirection();
   if (!IsSliding()) {
     if (target) {
       if (target->GetTile()) {
@@ -127,13 +127,13 @@ void Thunder::OnUpdate(double _elapsed) {
       }
     }
 
-    if(direction != GetDirection()) {
-      SetDirection(direction);
+    if(direction != GetMoveDirection()) {
+      SetMoveDirection(direction);
     }
 
     // Always slide to the tile we're moving to
     if (!IsSliding()) {
-      Slide(GetTile() + GetDirection(), frames(60), frames(0));
+      Slide(GetTile() + GetMoveDirection(), frames(60), frames(0));
     }
   }
 

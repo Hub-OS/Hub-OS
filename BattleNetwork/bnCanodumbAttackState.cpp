@@ -21,7 +21,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
 
     if (can.GetField()->GetAt(can.tile->GetX() - 1, can.tile->GetY())) {
         Spell* spell = new Cannon(can.team, 10);
-        spell->SetDirection(Direction::left);
+        spell->SetMoveDirection(Direction::left);
         auto props = spell->GetHitboxProperties();
         props.aggressor = can.GetID();
         spell->SetHitboxProperties(props);

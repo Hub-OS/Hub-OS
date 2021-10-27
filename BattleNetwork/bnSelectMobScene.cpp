@@ -26,7 +26,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const Sel
   props(props),
   Scene(controller)
 {
-
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
   menuLabel.setScale(2.f, 2.f);

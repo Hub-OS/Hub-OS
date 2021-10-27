@@ -56,7 +56,7 @@ void TwinFangCardAction::OnExecute(Character* user) {
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = user->GetID();
       twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(dir);
+      twinfang->SetMoveDirection(dir);
 
       user->GetField()->AddEntity(*twinfang, *tiles[0]);
     }
@@ -66,7 +66,7 @@ void TwinFangCardAction::OnExecute(Character* user) {
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = user->GetID();
       twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(dir);
+      twinfang->SetMoveDirection(dir);
 
       user->GetField()->AddEntity(*twinfang, *tiles[1]);
     }

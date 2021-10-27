@@ -15,7 +15,7 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
   setScale(2.f, 2.f);
   SetFloatShoe(true);
   SetTeam(_team);
-  SetDirection(Direction::left);
+  SetMoveDirection(Direction::left);
   SetHealth(999);
   ShareTileSpace(true);
   SetName("AlphaArm");
@@ -57,7 +57,7 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
     break;
   case Type::RIGHT_SWIPE:
     animComponent->SetAnimation("RIGHT_CLAW_SWIPE");
-    SetDirection(Direction::down);
+    SetMoveDirection(Direction::down);
     AddNode(shadow);
 
     blueArmShadowPos = {
@@ -75,7 +75,7 @@ AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
     break;
   case Type::LEFT_SWIPE:
     animComponent->SetAnimation("LEFT_CLAW_SWIPE");
-    SetDirection(Direction::left);
+    SetMoveDirection(Direction::left);
     changeState = (rand() % 10 < 5) ? TileState::poison : TileState::ice;
     SetLayer(-1);
     break;
@@ -142,11 +142,11 @@ void AlphaArm::OnUpdate(double _elapsed) {
 
         // Keep moving
         if (!IsSliding()) {
-          if (!CanMoveTo(GetTile() + GetDirection())) {
+          if (!CanMoveTo(GetTile() + GetMoveDirection())) {
             isFinished = true;
           }
           else {
-            Slide(GetTile() + GetDirection(), frames(6), frames(0));
+            Slide(GetTile() + GetMoveDirection(), frames(6), frames(0));
           }
         }
       }
@@ -170,11 +170,11 @@ void AlphaArm::OnUpdate(double _elapsed) {
 
       // Keep moving
       if (!IsSliding()) {
-        if (!CanMoveTo(GetTile() + GetDirection())) {
+        if (!CanMoveTo(GetTile() + GetMoveDirection())) {
           isFinished = true;
         }
         else {
-          Slide(GetTile() + GetDirection(), frames(6), frames(0));
+          Slide(GetTile() + GetMoveDirection(), frames(6), frames(0));
         }
       }
     }

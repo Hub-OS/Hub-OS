@@ -47,10 +47,10 @@ void BusterCardAction::OnExecute(Character* user) {
     field = user->GetField();
 
     if (team == Team::red) {
-      b->SetDirection(Direction::right);
+      b->SetMoveDirection(Direction::right);
     }
     else {
-      b->SetDirection(Direction::left);
+      b->SetMoveDirection(Direction::left);
     }
 
     auto busterRemoved = [this](Entity& target) {

@@ -544,17 +544,17 @@ void TenguCross::SpecialAction::OnExecute(Character* user)
     }
 
     auto wind = new Wind(team);
-    wind->SetDirection(direction);
+    wind->SetMoveDirection(direction);
     wind->DeleteOnTeamTile();
     field->AddEntity(*wind, startCol, 1);
 
     wind = new Wind(team);
-    wind->SetDirection(direction);
+    wind->SetMoveDirection(direction);
     wind->DeleteOnTeamTile();
     field->AddEntity(*wind, startCol, 2);
 
     wind = new Wind(team);
-    wind->SetDirection(direction);
+    wind->SetMoveDirection(direction);
     wind->DeleteOnTeamTile();
     field->AddEntity(*wind, startCol, 3);
   };

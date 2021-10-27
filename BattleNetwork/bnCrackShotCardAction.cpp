@@ -60,7 +60,7 @@ void CrackShotCardAction::OnExecute(Character* user) {
         b->SetHitboxProperties(props);
 
         auto direction = (actor->GetTeam() == Team::red) ? Direction::right : Direction::left;
-        b->SetDirection(direction);
+        b->SetMoveDirection(direction);
 
         actor->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 

@@ -16,7 +16,7 @@ Gear::Gear(Team _team,Direction startDir) :
   SlidesOnTiles(false);
   SetName("MetalGear");
   SetTeam(_team);
-  SetDirection(startDir);
+  SetMoveDirection(startDir);
   HighlightTile(Battle::Tile::Highlight::solid);
 
   animation = CreateComponent<AnimationComponent>(this);
@@ -61,11 +61,11 @@ bool Gear::CanMoveTo(Battle::Tile * next)
 
   if (valid) {
     if (next->ContainsEntityType<Gear>()) {
-      if (GetDirection() == Direction::left) {
-        SetDirection(Direction::right);
+      if (GetMoveDirection() == Direction::left) {
+        SetMoveDirection(Direction::right);
       }
-      else if(GetDirection() == Direction::right) {
-        SetDirection(Direction::left);
+      else if(GetMoveDirection() == Direction::right) {
+        SetMoveDirection(Direction::left);
       }
       return false;
     }
@@ -73,11 +73,11 @@ bool Gear::CanMoveTo(Battle::Tile * next)
     return true;
   }
 
-  if (GetDirection() == Direction::left) {
-    SetDirection(Direction::right);
+  if (GetMoveDirection() == Direction::left) {
+    SetMoveDirection(Direction::right);
   }
-  else if (GetDirection() == Direction::right) {
-    SetDirection(Direction::left);
+  else if (GetMoveDirection() == Direction::right) {
+    SetMoveDirection(Direction::left);
   }
 
   return false;
@@ -95,17 +95,17 @@ void Gear::OnUpdate(double _elapsed) {
 
   // Keep moving
   if (!IsSliding()) {
-    if (!CanMoveTo(GetTile() + GetDirection())) {
+    if (!CanMoveTo(GetTile() + GetMoveDirection())) {
       if (CanMoveTo(GetTile() + Direction::right)) {
-        SetDirection(Direction::right);
+        SetMoveDirection(Direction::right);
       }
       else if (CanMoveTo(GetTile() + Direction::left)) {
-        SetDirection(Direction::left);
+        SetMoveDirection(Direction::left);
       }
     }
 
     // Now try to move
-    Slide(GetTile() + GetDirection(), frames(120), frames(0));
+    Slide(GetTile() + GetMoveDirection(), frames(120), frames(0));
   }
 }
 

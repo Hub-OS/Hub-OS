@@ -51,11 +51,11 @@ void VulcanCardAction::OnExecute(Character* user) {
     int step = 1;
 
     if (team == Team::red) {
-      b->SetDirection(Direction::right);
+      b->SetMoveDirection(Direction::right);
     }
     else {
       step = -1;
-      b->SetDirection(Direction::left);
+      b->SetMoveDirection(Direction::left);
     }
 
     if (auto tile = user->GetTile()->Offset(step, 0)) {

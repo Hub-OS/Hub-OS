@@ -21,9 +21,9 @@ Cannon::Cannon(Team _team,int _damage) : Spell(_team){
   random = rand() % 20 - 20;
 
   if(_team == Team::red) {
-    SetDirection(Direction::right);
+    SetMoveDirection(Direction::right);
   } else {
-    SetDirection(Direction::left);
+    SetMoveDirection(Direction::left);
   }
   damage = _damage;
 
@@ -48,7 +48,7 @@ void Cannon::OnUpdate(double _elapsed) {
   if (cooldown >= COOLDOWN) {
     if (GetTile()->GetX() == 6 && GetTeam() == Team::red) { Delete(); } 
     if (GetTile()->GetX() == 1 && GetTeam() == Team::blue) { Delete(); }
-    Teleport(GetTile() + GetDirection());
+    Teleport(GetTile() + GetMoveDirection());
     cooldown = 0;
   }
 }

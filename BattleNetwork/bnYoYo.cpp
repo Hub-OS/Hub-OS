@@ -62,7 +62,7 @@ void YoYo::OnUpdate(double _elapsed) {
       if (!reversed) {
         auto direction = GetPreviousDirection();
 
-        SetDirection(Direction::none);
+        SetMoveDirection(Direction::none);
 
         reversed = true;
 
@@ -73,7 +73,7 @@ void YoYo::OnUpdate(double _elapsed) {
           if (!IsSliding()) {
             // After we slide in place two more times, change direction
             if (++hitCount == 2) {
-              SetDirection(Reverse(direction));
+              SetMoveDirection(Reverse(direction));
               animation->CancelCallbacks();
             }
           }
@@ -82,7 +82,7 @@ void YoYo::OnUpdate(double _elapsed) {
     }
     else {
       // Keep moving OR slide in place
-      Slide(GetTile() + GetDirection(), frames(7), frames(0));
+      Slide(GetTile() + GetMoveDirection(), frames(7), frames(0));
     }
 
   }else {

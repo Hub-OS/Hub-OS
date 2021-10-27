@@ -99,7 +99,7 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
     Field* field = owner.GetField();
 
     Spell* rowhit = new RowHit(owner.GetTeam(), damage);
-    rowhit->SetDirection(direction);
+    rowhit->SetMoveDirection(direction);
 
     field->AddEntity(*rowhit, owner.GetTile()->GetX() + 1, owner.GetTile()->GetY());
 

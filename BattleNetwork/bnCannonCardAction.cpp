@@ -60,10 +60,10 @@ void CannonCardAction::OnExecute(Character* user) {
     Audio().Play(AudioType::CANNON);
 
     if (team == Team::red) {
-      cannon->SetDirection(Direction::right);
+      cannon->SetMoveDirection(Direction::right);
     }
     else {
-      cannon->SetDirection(Direction::left);
+      cannon->SetMoveDirection(Direction::left);
     }
 
     user->GetField()->AddEntity(*cannon, user->GetTile()->GetX() + 1, user->GetTile()->GetY());

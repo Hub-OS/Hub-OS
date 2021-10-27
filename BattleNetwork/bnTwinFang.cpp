@@ -81,11 +81,11 @@ void TwinFang::OnUpdate(double _elapsed) {
     }
     else {
       if (!IsSliding()) {
-        if (!CanMoveTo(GetTile() + GetDirection())) {
+        if (!CanMoveTo(GetTile() + GetMoveDirection())) {
           onEdgeOfMap = true;
         }
         else {
-          Slide(GetTile() + GetDirection(), frames(4), frames(0));
+          Slide(GetTile() + GetMoveDirection(), frames(4), frames(0));
         }
       }
     }
@@ -113,7 +113,7 @@ void TwinFang::OnSpawn(Battle::Tile& startTile)
   auto height = 50.0f;
   Entity::drawOffset.y = -height + spreadOffset;
 
-  if (GetDirection() == Direction::left) {
+  if (GetMoveDirection() == Direction::left) {
     setScale(-1.f, 1.0);
   }
 }

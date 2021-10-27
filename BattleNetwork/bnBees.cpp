@@ -64,10 +64,10 @@ Bees::Bees(Team _team,int damage) :
   SetHitboxProperties(props);
 
   if (GetTeam() == Team::red) {
-    SetDirection(Direction::right);
+    SetMoveDirection(Direction::right);
   }
   else {
-    SetDirection(Direction::left);
+    SetMoveDirection(Direction::left);
   }
 
   absorbDamage = new BeeDefenseRule();
@@ -111,10 +111,10 @@ Bees::Bees(const Bees & leader) :
   SetHitboxProperties(leader.GetHitboxProperties());
 
   if (GetTeam() == Team::red) {
-    SetDirection(Direction::right);
+    SetMoveDirection(Direction::right);
   }
   else {
-    SetDirection(Direction::left);
+    SetMoveDirection(Direction::left);
   }
 
   absorbDamage = new BeeDefenseRule();
@@ -186,8 +186,8 @@ void Bees::OnUpdate(double _elapsed) {
 
   // If sliding is flagged to false, we know we've ended a move
   auto direction = Direction::none;
-  bool wasMovingVertical   = (GetDirection() == Direction::down || GetDirection() == Direction::up);
-  bool wasMovingHorizontal = (GetDirection() == Direction::left || GetDirection() == Direction::right);
+  bool wasMovingVertical   = (GetMoveDirection() == Direction::down || GetMoveDirection() == Direction::up);
+  bool wasMovingHorizontal = (GetMoveDirection() == Direction::left || GetMoveDirection() == Direction::right);
   bool skipMoveCode = false;
 
   if (target && target != this->leader) {
@@ -219,11 +219,11 @@ void Bees::OnUpdate(double _elapsed) {
         Battle::Tile* targetTile = target->GetTile();
         Battle::Tile* tile = GetTile();
 
-        if (tile->GetX() <= targetTile->GetX() && GetDirection() != Direction::right) {
+        if (tile->GetX() <= targetTile->GetX() && GetMoveDirection() != Direction::right) {
           isbehind = true;
         }
 
-        if (tile->GetX() >= targetTile->GetX() && GetDirection() != Direction::left) {
+        if (tile->GetX() >= targetTile->GetX() && GetMoveDirection() != Direction::left) {
           isbehind = true;
         }
 
@@ -256,19 +256,19 @@ void Bees::OnUpdate(double _elapsed) {
       direction = Direction::none;
     }
 
-    if (direction != GetDirection() && direction != Direction::none) {
+    if (direction != GetMoveDirection() && direction != Direction::none) {
       turnCount++;
-      SetDirection(direction);
+      SetMoveDirection(direction);
     }
 
     // stay on top of the real target, not the leader
     if (target && target->GetTile() == GetTile() && !Teammate(target->GetTeam()) && madeContact) {
-      SetDirection(Direction::none);
+      SetMoveDirection(Direction::none);
       setPosition(target->getPosition() - sf::Vector2f{ 0, GetHeight() });
     }
     else {
       // Always slide to the tile we're moving to
-      Slide(GetTile() + GetDirection(), frames(27), frames(0));
+      Slide(GetTile() + GetMoveDirection(), frames(27), frames(0));
 
       // Did not move and update next tile pointer
       if (!IsMoving() && GetTile()->IsEdgeTile()) {
@@ -277,10 +277,10 @@ void Bees::OnUpdate(double _elapsed) {
     }
   }
 
-  if (GetDirection() == Direction::left) {
+  if (GetMoveDirection() == Direction::left) {
     setScale(2, 2);
   }
-  else if (GetDirection() == Direction::right) {
+  else if (GetMoveDirection() == Direction::right) {
     setScale(-2, 2);
   }
 

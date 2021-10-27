@@ -47,7 +47,7 @@ void YoYoCardAction::OnExecute(Character* user) {
     Team team = actor->GetTeam();
     YoYo* y = new YoYo(team, damage);
 
-    y->SetDirection(team == Team::red? Direction::right : Direction::left);
+    y->SetMoveDirection(team == Team::red? Direction::right : Direction::left);
     auto props = y->GetHitboxProperties();
     props.aggressor = user->GetID();
     y->SetHitboxProperties(props);

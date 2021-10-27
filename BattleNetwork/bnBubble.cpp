@@ -53,13 +53,13 @@ void Bubble::OnUpdate(double _elapsed) {
   if (!IsSliding() && animation.GetAnimationString() == "FLOAT") {
     if (GetTile()->GetX() == 1) {
       if (GetTile()->GetY() == 1) {
-        if (GetDirection() == Direction::left) {
-          SetDirection(Direction::down);
+        if (GetMoveDirection() == Direction::left) {
+          SetMoveDirection(Direction::down);
         }
       }
       else if (GetTile()->GetY() == 3) {
-        if (GetDirection() == Direction::left) {
-          SetDirection(Direction::up);
+        if (GetMoveDirection() == Direction::left) {
+          SetMoveDirection(Direction::up);
         }
       }
     }
@@ -69,7 +69,7 @@ void Bubble::OnUpdate(double _elapsed) {
         Remove(); // doesn't make the bubble pop
       }
       else {
-        Slide(GetTile() + GetDirection(), frames(int(35.0*this->speed)), frames(0));
+        Slide(GetTile() + GetMoveDirection(), frames(int(35.0*this->speed)), frames(0));
       }
     }
   }

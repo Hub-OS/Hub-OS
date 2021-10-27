@@ -33,7 +33,7 @@ CrackShot::~CrackShot() {
 }
 
 void CrackShot::OnUpdate(double _elapsed) {
-  if (GetDirection() == Direction::left) {
+  if (GetMoveDirection() == Direction::left) {
     setScale(-2.f, 2.f);
   }
   else {
@@ -42,11 +42,11 @@ void CrackShot::OnUpdate(double _elapsed) {
 
   // Keep moving, when we reach the end of the map, remove from play
   if (!IsSliding()) {
-    if (!CanMoveTo(GetTile() + GetDirection())) {
+    if (!CanMoveTo(GetTile() + GetMoveDirection())) {
       Delete();
     }
     else {
-      Slide(GetTile() + GetDirection(), frames(8), frames(0));
+      Slide(GetTile() + GetMoveDirection(), frames(8), frames(0));
     }
   }
 

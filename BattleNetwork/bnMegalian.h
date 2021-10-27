@@ -41,7 +41,7 @@ private:
       animation->OnUpdate(0);
       SetLayer(-1); // on top of base
       SetHealth(base->GetHealth());
-      SetDirection(Direction::left);
+      SetMoveDirection(Direction::left);
       //SetSlideTime(sf::milliseconds(250));
       timer = 0;
       moveCount = 0;
@@ -108,7 +108,7 @@ private:
       if (!IsSliding()) {
         timer += _elapsed;
 
-        if (timer > 1 && lastTile == nullptr && GetDirection() == Direction::none && moveCount == 0) {
+        if (timer > 1 && lastTile == nullptr && GetMoveDirection() == Direction::none && moveCount == 0) {
           Battle::Tile* nextTile = nullptr;
 
           int x = 0;
@@ -127,7 +127,7 @@ private:
           // teleporting erases our direction information
           //auto tele1 = Teleport(x, y);
           //auto tele2 = base->Teleport(x, y);
-          SetDirection(Direction::left);
+          SetMoveDirection(Direction::left);
 
           //Logger::Log("tele1: " + std::to_string(tele1) + " tele2: " + std::to_string(tele2));
 
@@ -147,8 +147,8 @@ private:
             playOnce = false;
           }
 
-          if (GetTile() == base->GetTile() && GetDirection() == Direction::right) {
-            SetDirection(Direction::none);
+          if (GetTile() == base->GetTile() && GetMoveDirection() == Direction::right) {
+            SetMoveDirection(Direction::none);
             timer = 0;
             animation->SetFrame(1);
             playOnce = true;
@@ -162,7 +162,7 @@ private:
             animation->SetFrame(2);
 
             if(moveCount >= 2) {
-              SetDirection(Direction::right);
+              SetMoveDirection(Direction::right);
             }
           }
         }

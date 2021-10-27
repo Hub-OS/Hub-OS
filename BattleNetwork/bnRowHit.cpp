@@ -18,9 +18,9 @@ RowHit::RowHit(Team _team, int damage) :
   };
 
   auto onFrameTwo = [this]() {
-    if (auto next_tile = tile + this->GetDirection()) {
+    if (auto next_tile = tile + this->GetMoveDirection()) {
       auto rowHit = new RowHit(GetTeam(), RowHit::damage);
-      rowHit->SetDirection(GetDirection());
+      rowHit->SetMoveDirection(GetMoveDirection());
       field->AddEntity(*rowHit, *next_tile);
     }
   };

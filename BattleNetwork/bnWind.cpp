@@ -16,7 +16,7 @@ Wind::Wind(Team _team) : Spell(_team) {
     Hit::drag,
     Element::wind,
     0,
-    { GetDirection(), 9 },
+    { GetMoveDirection(), 9 },
   });
 }
 
@@ -40,14 +40,14 @@ void Wind::OnUpdate(double _elapsed) {
     GetTile()->AffectEntities(this);
   }
 
-  Slide(GetTile() + GetDirection(), frames(4), frames(0));
+  Slide(GetTile() + GetMoveDirection(), frames(4), frames(0));
 
   SetHitboxProperties({
     0,
     Hit::drag,
     Element::wind,
     0,
-    { GetDirection(), 9 }
+    { GetMoveDirection(), 9 }
   });
 }
 

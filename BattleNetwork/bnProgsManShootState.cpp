@@ -18,7 +18,7 @@ void ProgsManShootState::OnEnter(ProgsMan& progs) {
 
     // Spawn a buster aiming down the field
     Direction dir = (progs.GetTeam() == Team::blue)? Direction::left : Direction::right;
-    buster->SetDirection(dir);
+    buster->SetMoveDirection(dir);
     buster->SetTile(progs.GetTarget()->GetTile());
     
     // NOTE: Is this necessary anymore

@@ -95,17 +95,17 @@ void WindRackCardAction::OnExecute(Character* user)
     // big push effect
     auto wind = new Wind(team);
     wind->Hide();
-    wind->SetDirection(direction);
+    wind->SetMoveDirection(direction);
     field->AddEntity(*wind, *tiles[0]);
 
     wind = new Wind(team);
     wind->Hide();
-    wind->SetDirection(direction);
+    wind->SetMoveDirection(direction);
     field->AddEntity(*wind, *tiles[1]);
 
     wind = new Wind(team);
     wind->Hide();
-    wind->SetDirection(direction);
+    wind->SetMoveDirection(direction);
     field->AddEntity(*wind, *tiles[2]);
 
     // hitboxes

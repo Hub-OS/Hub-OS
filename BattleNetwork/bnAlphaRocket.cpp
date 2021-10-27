@@ -36,7 +36,7 @@ AlphaRocket::~AlphaRocket() {
 }
 
 void AlphaRocket::OnUpdate(double _elapsed) {
-  if (GetDirection() == Direction::left) {
+  if (GetMoveDirection() == Direction::left) {
     setScale(2.f, 2.f);
   }
   else {
@@ -44,7 +44,7 @@ void AlphaRocket::OnUpdate(double _elapsed) {
   }
 
   // Keep moving
-  Slide(GetTile() + GetDirection(), frames(20), frames(0));
+  Slide(GetTile() + GetMoveDirection(), frames(20), frames(0));
 
   if (GetTile()->IsEdgeTile()) {
       Delete();
