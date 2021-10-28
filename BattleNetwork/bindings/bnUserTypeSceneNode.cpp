@@ -25,7 +25,7 @@ void DefineSceneNodeUserType(sol::table& engine_namespace) {
     "get_layer", [](WeakWrapper<SceneNode>& node) -> int {
       return node.Unwrap()->GetLayer();
     },
-    "add_node", [](WeakWrapper<SceneNode>& node) -> WeakWrapper<SceneNode> {
+    "create_node", [](WeakWrapper<SceneNode>& node) -> WeakWrapper<SceneNode> {
       auto child = std::make_shared<SceneNode>();
       node.Unwrap()->AddNode(child);
 

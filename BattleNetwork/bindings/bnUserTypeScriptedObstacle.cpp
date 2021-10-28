@@ -199,7 +199,7 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       auto& animation = obstacle.Unwrap()->GetAnimationObject();
       return AnimationWrapper(obstacle.GetWeak(), animation);
     },
-    "add_node", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<SpriteProxyNode> {
+    "create_node", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<SpriteProxyNode> {
       auto child = std::make_shared<SpriteProxyNode>();
       obstacle.Unwrap()->AddNode(child);
 
