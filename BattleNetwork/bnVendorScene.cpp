@@ -15,7 +15,7 @@
 VendorScene::VendorBackground::VendorBackground() :
   x(0.0f),
   y(0.0f),
-  Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180)
+  Background(Textures().LoadFromFile(PATH + "bg.png"), 240, 180)
 {
   FillScreen(sf::Vector2u(TILEW, TILEH));
 }
@@ -71,18 +71,18 @@ VendorScene::VendorScene(
 {
   label.setScale(2.f, 2.f);
 
-  moreItems.setTexture(*LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
+  moreItems.setTexture(*Textures().LoadFromFile(TexturePaths::TEXT_BOX_NEXT_CURSOR));
   moreItems.setScale(2.f, 2.f);
 
-  wallet.setTexture(*Textures().LoadTextureFromFile("resources/scenes/vendors/price.png"), true);
+  wallet.setTexture(*Textures().LoadFromFile("resources/scenes/vendors/price.png"), true);
   wallet.setScale(0.f, 0.f); // hide
   wallet.setPosition(340, 0.f);
 
-  list.setTexture(*Textures().LoadTextureFromFile("resources/scenes/vendors/list.png"), true);
+  list.setTexture(*Textures().LoadFromFile("resources/scenes/vendors/list.png"), true);
   list.setScale(0.f, 0.f); // hide
   list.setPosition(0.f, 0.f);
 
-  cursor.setTexture(*LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  cursor.setTexture(*Textures().LoadFromFile(TexturePaths::TEXT_BOX_CURSOR));
   cursor.setScale(2.f, 2.f);
 
   bg = new VendorBackground;

@@ -57,23 +57,23 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   UI_LEFT_POS = UI_LEFT_POS_START;
   UI_TOP_POS = UI_TOP_POS_START;
 
-  charName.setTexture(LOAD_TEXTURE(CHAR_NAME));
+  charName.setTexture(Textures().LoadFromFile(TexturePaths::CHAR_NAME));
   charName.setScale(2.f, 2.f);
   charName.setPosition(UI_LEFT_POS, 10);
 
-  charElement.setTexture(LOAD_TEXTURE(CHAR_ELEMENT));
+  charElement.setTexture(Textures().LoadFromFile(TexturePaths::CHAR_ELEMENT));
   charElement.setScale(2.f, 2.f);
   charElement.setPosition(UI_LEFT_POS, 80);
 
-  charStat.setTexture(LOAD_TEXTURE(CHAR_STAT));
+  charStat.setTexture(Textures().LoadFromFile(TexturePaths::CHAR_STAT));
   charStat.setScale(2.f, 2.f);
   charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
 
-  charInfo.setTexture(LOAD_TEXTURE(CHAR_INFO_BOX));
+  charInfo.setTexture(Textures().LoadFromFile(TexturePaths::CHAR_INFO_BOX));
   charInfo.setScale(2.f, 2.f);
   charInfo.setPosition(UI_RIGHT_POS, 170);
 
-  element.setTexture(Textures().GetTexture(TextureType::ELEMENT_ICON));
+  element.setTexture(Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(UI_LEFT_POS_MAX + 15.f, 90);
 

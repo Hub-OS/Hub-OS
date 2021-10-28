@@ -4,7 +4,7 @@
 #include <cmath>
 
 VerticalCursor::VerticalCursor() {
-  setTexture(Textures().LoadTextureFromFile("resources/ui/select_cursor.png"));
+  setTexture(Textures().LoadFromFile("resources/ui/select_cursor.png"));
   setOrigin(0, getTextureRect().height / 2.0f);
 }
 

@@ -24,8 +24,8 @@ CardSelectBattleState::CardSelectBattleState(std::vector<std::shared_ptr<Player>
   cardSelectInputCooldown = maxCardSelectInputCooldown;
 
   // Load assets
-  mobBackdropSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_BACKDROP));
-  mobEdgeSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_EDGE));
+  mobBackdropSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_NAME_BACKDROP));
+  mobEdgeSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_NAME_EDGE));
 
   mobBackdropSprite.setScale(2.f, 2.f);
   mobEdgeSprite.setScale(2.f, 2.f);

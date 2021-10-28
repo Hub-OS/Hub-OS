@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "bnSpell.h"
 #include "bnHitboxSpell.h"
-#include "bnGuardHit.h"
+// #include "bnGuardHit.h"
 
 DefenseGuard::DefenseGuard(const DefenseGuard::Callback& callback)
   : callback(callback), DefenseRule(Priority(1), DefenseOrder::collisionOnly)
@@ -24,7 +24,7 @@ void DefenseGuard::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entit
     if ((props.flags & Hit::impact) == Hit::impact) {
       judge.AddTrigger(callback, attacker, owner);
       judge.BlockImpact();
-      owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
+      // owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
       owner->GetField()->AddEntity(std::make_shared<HitboxSpell>(owner->GetTeam(), 0), *owner->GetTile());
     }
   }

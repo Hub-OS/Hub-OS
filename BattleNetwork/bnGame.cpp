@@ -183,10 +183,10 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   tasks.AddTask("Load prog blocks", std::move(blocks));
   tasks.AddTask("Finishing", std::move(finish));
 
-    // Load font symbols for use across the entire engine...
-  textureManager.LoadImmediately(TextureType::FONT);
+  // Load font symbols immediately...
+  textureManager.LoadFromFile(TexturePaths::FONT);
 
-  mouseTexture = textureManager.LoadTextureFromFile("resources/ui/mouse.png");
+  mouseTexture = textureManager.LoadFromFile("resources/ui/mouse.png");
   mouse.setTexture(mouseTexture);
   //  mouse.setScale(2.f, 2.f);
   mouseAnimation = Animation("resources/ui/mouse.animation");
@@ -196,7 +196,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   window.GetRenderWindow()->setMouseCursorVisible(false);
 
   // set a loading spinner on the bottom-right corner of the screen
-  spinner.setTexture(textureManager.LoadTextureFromFile("resources/ui/spinner.png"));
+  spinner.setTexture(textureManager.LoadFromFile("resources/ui/spinner.png"));
   spinner.setScale(2.f, 2.f);
   spinner.setPosition(float(window.GetView().getSize().x - 64), float(window.GetView().getSize().y - 50));
 

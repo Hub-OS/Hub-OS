@@ -12,7 +12,7 @@ ParticlePoof::ParticlePoof() :
   Artifact()
 {
   SetLayer(0);
-  setTexture(Textures().GetTexture(TextureType::SPELL_POOF));
+  setTexture(Textures().LoadFromFile(TexturePaths::SPELL_POOF));
   setScale(2.f, 2.f);
   poof = getSprite();
 

@@ -81,7 +81,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   SetBackground(std::make_shared<LanBackground>());
 
   // set the missing texture for all actor objects
-  auto missingTexture = Textures().LoadTextureFromFile("resources/ow/missing.png");
+  auto missingTexture = Textures().LoadFromFile("resources/ow/missing.png");
   Overworld::Actor::SetMissingTexture(missingTexture);
 
   personalMenu->setScale(2.f, 2.f);
@@ -119,7 +119,7 @@ void Overworld::SceneBase::onStart() {
   // TODO: Take out after endpoints are added to server @Konst
   Inbox& inbox = playerSession->inbox;
 
-  sf::Texture mugshot = *Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png");
+  sf::Texture mugshot = *Textures().LoadFromFile("resources/ow/prog/prog_mug.png");
   inbox.AddMail(Inbox::Mail{ Inbox::Icons::announcement, "Welcome", "NO-TITLE", "This is your first email!", mugshot });
   inbox.AddMail(Inbox::Mail{ Inbox::Icons::dm, "HELLO", "KERISTERO", "try gravy" });
   inbox.AddMail(Inbox::Mail{ Inbox::Icons::dm_w_attachment, "ELLO", "DESTROYED", "ello govna" });
@@ -520,7 +520,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
   const auto& owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
-    if (auto tex = Textures().LoadTextureFromFile(meta.GetOverworldTexturePath())) {
+    if (auto tex = Textures().LoadFromFile(meta.GetOverworldTexturePath())) {
       playerActor->setTexture(tex);
     }
     playerActor->LoadAnimations(owPath);
@@ -617,7 +617,7 @@ std::string Overworld::SceneBase::GetText(const std::string& path) {
 }
 
 std::shared_ptr<sf::Texture> Overworld::SceneBase::GetTexture(const std::string& path) {
-  return Textures().LoadTextureFromFile(path);
+  return Textures().LoadFromFile(path);
 }
 
 std::shared_ptr<sf::SoundBuffer> Overworld::SceneBase::GetAudio(const std::string& path) {

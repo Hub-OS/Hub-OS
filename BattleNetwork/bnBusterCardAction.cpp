@@ -60,7 +60,7 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
     auto& attachment = busterAttachment->AddAttachment("endpoint");
 
     auto flare = attachment.GetSpriteNode();
-    flare->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
+    flare->setTexture(Textures().LoadFromFile(NODE_PATH));
     flare->SetLayer(-1);
 
     auto& flareAnim = attachment.GetAnimationObject();

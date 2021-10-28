@@ -20,7 +20,6 @@
 #include "bnHitboxSpell.h"
 #include "bnSharedHitbox.h"
 #include "bnParticlePoof.h"
-#include "bnParticleImpact.h"
 #include "bnPlayerCustScene.h"
 
 #include "bindings/bnLuaLibrary.h"
@@ -479,7 +478,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   engine_namespace.set_function("load_texture",
     [](const std::string& path) {
       static ResourceHandle handle;
-      return handle.Textures().LoadTextureFromFile(path);
+      return handle.Textures().LoadFromFile(path);
     }
   );
 
@@ -537,17 +536,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
           throw std::runtime_error(msg);
       }
     }
-  );
-
-  const auto& particle_impact_type_table = state.new_enum("ParticleType",
-    "Blue", ParticleImpact::Type::blue,
-    "Fire", ParticleImpact::Type::fire,
-    "Green", ParticleImpact::Type::green,
-    "Thin", ParticleImpact::Type::thin,
-    "Volcano", ParticleImpact::Type::volcano,
-    "Vulcan", ParticleImpact::Type::vulcan,
-    "Wind", ParticleImpact::Type::wind,
-    "Yellow", ParticleImpact::Type::yellow
   );
 
   const auto& elements_table = state.new_enum("Element",
@@ -795,15 +783,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& particle_poof = battle_namespace.new_usertype<ParticlePoof>("ParticlePoof",
     sol::factories([]() -> WeakWrapper<Entity> {
       std::shared_ptr<Entity> artifact = std::make_shared<ParticlePoof>();
-      auto wrappedArtifact = WeakWrapper(artifact);
-      wrappedArtifact.Own();
-      return wrappedArtifact;
-    })
-  );
-
-  const auto& particle_impact = battle_namespace.new_usertype<ParticleImpact>("ParticleImpact",
-    sol::factories([](ParticleImpact::Type type) -> WeakWrapper<Entity> {
-      std::shared_ptr<Entity> artifact = std::make_shared<ParticleImpact>(type);
       auto wrappedArtifact = WeakWrapper(artifact);
       wrappedArtifact.Own();
       return wrappedArtifact;

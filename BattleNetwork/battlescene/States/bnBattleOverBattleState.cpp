@@ -15,7 +15,7 @@ bool BattleOverBattleState::IsFinished() {
 
 BattleOverBattleState::BattleOverBattleState(std::vector<std::shared_ptr<Player>>& tracked) : tracked(tracked)
 {
-  battleEnd = sf::Sprite(*LOAD_TEXTURE(ENEMY_DELETED));
+  battleEnd = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ENEMY_DELETED));
   battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);
   battleEnd.setPosition(sf::Vector2f(240.f, 140.f));
   battleEnd.setScale(2.f, 2.f);

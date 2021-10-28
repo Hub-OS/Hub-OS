@@ -9,7 +9,7 @@
 FreedomMissionStartState::FreedomMissionStartState(std::vector<std::shared_ptr<Player>>& tracked, uint8_t maxTurns) : 
   maxTurns(maxTurns),
   tracked(tracked) {
-  battleStart = sf::Sprite(*Textures().LoadTextureFromFile("resources/ui/counted_turn_start.png"));
+  battleStart = sf::Sprite(*Textures().LoadFromFile("resources/ui/counted_turn_start.png"));
   battleStart.setOrigin(battleStart.getLocalBounds().width / 2.0f, battleStart.getLocalBounds().height / 2.0f);
   battleStartPos = sf::Vector2f(240.f, 140.f);
   battleStart.setPosition(battleStartPos);
@@ -26,7 +26,7 @@ void FreedomMissionStartState::onStart(const BattleSceneState*)
   GetScene().IncrementTurnCount();
 
   if (maxTurns == GetScene().GetTurnCount()) {
-    battleStart.setTexture(*Textures().LoadTextureFromFile("resources/ui/final_turn_start.png"), true);
+    battleStart.setTexture(*Textures().LoadFromFile("resources/ui/final_turn_start.png"), true);
     battleStart.setOrigin(battleStart.getLocalBounds().width / 2.0f, battleStart.getLocalBounds().height / 2.0f);
   }
 

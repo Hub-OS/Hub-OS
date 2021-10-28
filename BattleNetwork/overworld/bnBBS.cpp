@@ -44,26 +44,26 @@ BBS::BBS(
 {
   newAnimation.Load("resources/ui/new.animation");
   newAnimation << "FLICKER" << Animator::Mode::Loop;
-  newNode.setTexture(Textures().LoadTextureFromFile("resources/ui/new.png"));
+  newNode.setTexture(Textures().LoadFromFile("resources/ui/new.png"));
 
   shadows = std::make_shared<SpriteProxyNode>();
-  shadows->setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_shadows.png"));
+  shadows->setTexture(Textures().LoadFromFile("resources/ui/bbs/bbs_shadows.png"));
   AddNode(shadows);
 
   frame = std::make_shared<SpriteProxyNode>();
-  frame->setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_frame.png"));
+  frame->setTexture(Textures().LoadFromFile("resources/ui/bbs/bbs_frame.png"));
   frame->setPosition(2, 18);
   frame->SetLayer(-1);
   shadows->AddNode(frame);
 
   postbg = std::make_shared<SpriteProxyNode>();
-  postbg->setTexture(Textures().LoadTextureFromFile("resources/ui/bbs/bbs_post_bg.png"));
+  postbg->setTexture(Textures().LoadFromFile("resources/ui/bbs/bbs_post_bg.png"));
   postbg->setPosition(3, 3);
   postbg->SetLayer(-2);
   frame->AddNode(postbg);
 
   scrollbarThumb = std::make_shared<SpriteProxyNode>();
-  scrollbarThumb->setTexture(Textures().LoadTextureFromFile("resources/ui/scrollbar.png"));
+  scrollbarThumb->setTexture(Textures().LoadFromFile("resources/ui/scrollbar.png"));
   scrollbarThumb->setOrigin(3, 4);
   scrollbarThumb->setPosition(SCROLLBAR_X, SCROLLBAR_Y);
   scrollbarThumb->SetLayer(-2);

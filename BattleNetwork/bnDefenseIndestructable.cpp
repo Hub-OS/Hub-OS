@@ -1,7 +1,6 @@
 #include "bnDefenseIndestructable.h"
 #include "bnEntity.h"
 #include "bnField.h"
-#include "bnGuardHit.h"
 
 DefenseIndestructable::DefenseIndestructable(bool breakCollidingObjectOnHit)
   : breakCollidingObjectOnHit(breakCollidingObjectOnHit), DefenseRule(Priority(1), DefenseOrder::always)
@@ -24,7 +23,7 @@ void DefenseIndestructable::CanBlock(DefenseFrameStateJudge& judge, std::shared_
 
   // Only drop gaurd effect as a response to attacks that can do impact damage > 0
   if (attacker->GetHitboxProperties().damage > 0 && (attacker->GetHitboxProperties().flags & Hit::impact) != 0) {
-    owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
+    // owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
     judge.BlockDamage();
   }
 

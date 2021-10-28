@@ -19,7 +19,8 @@ Quiz::Quiz(const std::string& optionA, const std::string& optionB, const std::st
     selection += 1;
   }
 
-  selectCursor.setTexture(LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  ResourceHandle handle;
+  selectCursor.setTexture(handle.Textures().LoadFromFile(TexturePaths::TEXT_BOX_CURSOR));
   selectCursor.scale(2.0f, 2.0f);
 }
 

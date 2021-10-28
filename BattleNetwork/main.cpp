@@ -144,8 +144,8 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   const std::string& image = playermeta.GetMugshotTexturePath();
   Animation mugshotAnim = Animation() << playermeta.GetMugshotAnimationPath();
   const std::string& emotionsTexture = playermeta.GetEmotionsTexturePath();
-  auto mugshot = handle.Textures().LoadTextureFromFile(image);
-  auto emotions = handle.Textures().LoadTextureFromFile(emotionsTexture);
+  auto mugshot = handle.Textures().LoadFromFile(image);
+  auto emotions = handle.Textures().LoadFromFile(emotionsTexture);
   auto player = std::shared_ptr<Player>(playermeta.GetData());
 
   auto& mobmeta = g.MobPackageManager().FindPackageByID(mobid);

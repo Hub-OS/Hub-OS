@@ -64,29 +64,29 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 
   // folder menu graphic
-  bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_INFO_BG));
+  bg = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_INFO_BG));
   bg.setScale(2.f, 2.f);
 
-  scrollbar = sf::Sprite(*LOAD_TEXTURE(FOLDER_SCROLLBAR));
+  scrollbar = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
   scrollbar.setPosition(410.f, 60.f);
 
-  folderBox = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX));
+  folderBox = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_BOX));
   folderBox.setScale(2.f, 2.f);
 
   RefreshOptions();
 
-  folderCursor = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX_CURSOR));
+  folderCursor = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_BOX_CURSOR));
   folderCursor.setScale(2.f, 2.f);
 
-  folderEquip = sf::Sprite(*LOAD_TEXTURE(FOLDER_EQUIP));
+  folderEquip = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_EQUIP));
   folderEquip.setScale(2.f, 2.f);
 
-  cursor = sf::Sprite(*LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  cursor = sf::Sprite(*Textures().LoadFromFile(TexturePaths::TEXT_BOX_CURSOR));
   cursor.setScale(2.f, 2.f);
   cursor.setPosition(2.0, 155.0f);
 
-  element = sf::Sprite(*LOAD_TEXTURE(ELEMENT_ICON));
+  element = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
@@ -94,7 +94,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   cardIcon.setScale(2.f, 2.f);
   cardIcon.setTextureRect(sf::IntRect(0, 0, 14, 14));
 
-  mbPlaceholder = sf::Sprite(*LOAD_TEXTURE(FOLDER_MB));
+  mbPlaceholder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_MB));
   mbPlaceholder.setScale(2.f, 2.f);
 
   equipAnimation = Animation("resources/ui/folder_equip.animation");
@@ -688,7 +688,7 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
   questionInterface = new Question("Delete this folder?", onYes, onNo);
 
   textbox.EnqueMessage(
-    sf::Sprite(*Textures().GetTexture(TextureType::MUG_NAVIGATOR)), 
+    sf::Sprite(*Textures().LoadFromFile(TexturePaths::MUG_NAVIGATOR)),
     "resources/ui/navigator.animation", 
     questionInterface);
 
@@ -698,7 +698,7 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 void FolderScene::RefreshOptions()
 {
   const bool emptyCollection = collection.GetFolderNames().empty();
-  const auto folderOptionsTex = emptyCollection ? LOAD_TEXTURE(FOLDER_OPTIONS_NEW) : LOAD_TEXTURE(FOLDER_OPTIONS);
+  const auto folderOptionsTex = emptyCollection ? Textures().LoadFromFile(TexturePaths::FOLDER_OPTIONS_NEW) : Textures().LoadFromFile(TexturePaths::FOLDER_OPTIONS);
   folderOptions = sf::Sprite(*folderOptionsTex);
   folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
 

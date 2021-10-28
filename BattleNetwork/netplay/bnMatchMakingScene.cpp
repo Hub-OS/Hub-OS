@@ -27,11 +27,11 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   Scene(controller)
 {
   // Sprites
-  ui.setTexture(Textures().LoadTextureFromFile("resources/ui/pvp_widget.png"));
-  vs.setTexture(Textures().LoadTextureFromFile("resources/ui/vs_text.png"));
-  vsFaded.setTexture(Textures().LoadTextureFromFile("resources/ui/vs_text.png"));
-  greenBg.setTexture(Textures().GetTexture(TextureType::FOLDER_VIEW_BG));
-  navigator.setTexture(Textures().GetTexture(TextureType::MUG_NAVIGATOR));
+  ui.setTexture(Textures().LoadFromFile("resources/ui/pvp_widget.png"));
+  vs.setTexture(Textures().LoadFromFile("resources/ui/vs_text.png"));
+  vsFaded.setTexture(Textures().LoadFromFile("resources/ui/vs_text.png"));
+  greenBg.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_VIEW_BG));
+  navigator.setTexture(Textures().LoadFromFile(TexturePaths::MUG_NAVIGATOR));
 
   float w = static_cast<float>(controller.getVirtualWindowSize().x);
   float h = static_cast<float>(controller.getVirtualWindowSize().y);
@@ -586,8 +586,8 @@ void MatchMakingScene::onUpdate(double elapsed) {
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
-      auto mugshot = Textures().LoadTextureFromFile(image);
-      auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+      auto mugshot = Textures().LoadFromFile(image);
+      auto emotions = Textures().LoadFromFile(emotionsTexture);
       auto player = std::shared_ptr<Player>(meta.GetData());
       player->Init();
 

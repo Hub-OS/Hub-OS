@@ -8,7 +8,7 @@
 
 CharacterTransformBattleState::CharacterTransformBattleState(std::vector<std::shared_ptr<TrackedFormData>>& tracking) : tracking(tracking)
 {
-  shine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
+  shine = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_BOSS_SHINE));
   shine.setScale(2.f, 2.f);
 }
 

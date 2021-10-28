@@ -135,29 +135,29 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   cardDesc.SetColor(sf::Color::Black);
 
   // folder menu graphic
-  bg.setTexture(LOAD_TEXTURE(FOLDER_VIEW_BG));
+  bg.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_VIEW_BG));
   bg.setScale(2.f, 2.f);
 
-  folderDock.setTexture(LOAD_TEXTURE(FOLDER_DOCK));
+  folderDock.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_DOCK));
   folderDock.setScale(2.f, 2.f);
   folderDock.setPosition(2.f, 30.f);
 
-  scrollbar.setTexture(LOAD_TEXTURE(FOLDER_SCROLLBAR));
+  scrollbar.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
   scrollbar.setPosition(410.f, 60.f);
 
-  cursor.setTexture(LOAD_TEXTURE(FOLDER_CURSOR));
+  cursor.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_CURSOR));
   cursor.setScale(2.f, 2.f);
   cursor.setPosition((2.f*90.f), 64.0f);
 
-  stars.setTexture(LOAD_TEXTURE(FOLDER_RARITY));
+  stars.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_RARITY));
   stars.setScale(2.f, 2.f);
 
-  cardHolder.setTexture(LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+  cardHolder.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
   cardHolder.setScale(2.f, 2.f);
   cardHolder.setPosition(4.f, 35.f);
 
-  element.setTexture(LOAD_TEXTURE(ELEMENT_ICON));
+  element.setTexture(Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 

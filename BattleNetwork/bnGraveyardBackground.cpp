@@ -14,7 +14,7 @@ GraveyardBackground::GraveyardBackground() :
   x(0.0f), 
   y(0.0f), 
   progress(0.0f), 
-  Background(Textures().LoadTextureFromFile("resources/scenes/grave/fg.png"), 240, 180)
+  Background(Textures().LoadFromFile("resources/scenes/grave/fg.png"), 240, 180)
 {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 }

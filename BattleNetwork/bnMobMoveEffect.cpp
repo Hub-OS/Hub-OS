@@ -12,7 +12,7 @@ MobMoveEffect::MobMoveEffect() :
   Artifact()
 {
   SetLayer(-1);
-  setTexture(Textures().GetTexture(TextureType::MOB_MOVE));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_MOVE));
   setScale(2.f, 2.f);
   move = getSprite();
 

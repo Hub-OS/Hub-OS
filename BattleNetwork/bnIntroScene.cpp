@@ -10,7 +10,7 @@ IntroScene::IntroScene(ActivityController& controller)
   inMessageState = true;
   messageCooldown = 0.0f;
 
-  std::shared_ptr<sf::Texture> alert = Textures().LoadTextureFromFile("resources/ui/alert.png");
+  std::shared_ptr<sf::Texture> alert = Textures().LoadFromFile("resources/ui/alert.png");
   alertSprite.setTexture(alert);
   alertSprite.setScale(2.f, 2.f);
   alertSprite.setOrigin(alertSprite.getLocalBounds().width / 2, alertSprite.getLocalBounds().height / 2);

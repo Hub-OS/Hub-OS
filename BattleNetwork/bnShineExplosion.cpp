@@ -9,7 +9,7 @@ using sf::IntRect;
 ShineExplosion::ShineExplosion() : Artifact()
 {
   SetLayer(0);
-  setTexture(LOAD_TEXTURE(MOB_BOSS_SHINE));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_BOSS_SHINE));
   setScale(2.f, 2.f);
 }
 

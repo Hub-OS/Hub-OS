@@ -151,7 +151,7 @@ void ConfigScene::NumberItem::SetAlpha(sf::Uint8 alpha) {
 void ConfigScene::NumberItem::UseIcon(const std::string& image_path, const std::string& animation_path, const std::string& state)
 {
   AddNode(icon);
-  icon->setTexture(Textures().LoadTextureFromFile(image_path));
+  icon->setTexture(Textures().LoadFromFile(image_path));
   icon->setPosition(
     label->GetLocalBounds().width + COL_PADDING,
     label->GetLocalBounds().height / 2.0f - icon->getLocalBounds().height / 2.0f
@@ -192,7 +192,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   endBtnAnimator.Load();
 
   // end button
-  endBtn = sf::Sprite(*LOAD_TEXTURE(END_BTN));;
+  endBtn = sf::Sprite(*Textures().LoadFromFile(TexturePaths::END_BTN));;
   endBtn.setScale(2.f, 2.f);
   endBtnAnimator.SetAnimation("BLINK");
   endBtnAnimator.SetFrame(1, endBtn);

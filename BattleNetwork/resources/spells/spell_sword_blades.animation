@@ -1,9 +1,0 @@
-imagePath="spell_sword_blades.png"
-
-animation state="DEFAULT"
-frame duration="0.05" x="1" y="23" w="27" h="23" originx="2" originy="7"
-frame duration="0.05" x="30" y="12" w="34" h="30" originx="0" originy="13"
-frame duration="0.05" x="66" y="4" w="66" h="30" originx="16" originy="15"
-frame duration="0.05" x="135" y="4" w="48" h="28" originx="15" originy="15"
-frame duration="0.05" x="189" y="4" w="38" h="26" originx="15" originy="15"
-frame duration="0.05" x="230" y="3" w="19" h="27" originx="15" originy="16"

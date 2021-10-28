@@ -83,7 +83,7 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
   compile_item = load_audio("resources/sfx/compile_item.ogg");
 
   auto load_texture = [this](const std::string& path) {
-    return Textures().LoadTextureFromFile(path);
+    return Textures().LoadFromFile(path);
   };
 
   cursorTexture = load_texture("resources/ui/textbox_cursor.png");

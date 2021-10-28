@@ -1,8 +1,0 @@
-imagePath="C:\mmbn\net battle engine\Release\resources\spells\panel_wind.png"
-
-animation state="DEFAULT"
-frame duration="0.05" x="0" y="18" w="35" h="51" originx="18" originy="16"
-frame duration="0.083" x="38" y="5" w="47" h="66" originx="19" originy="30"
-frame duration="0.067" x="87" y="2" w="42" h="65" originx="2" originy="33"
-frame duration="0.033" x="133" y="1" w="25" h="65" originx="-15" originy="38"
-frame duration="0.056" x="133" y="1" w="25" h="65" originx="-20" originy="38"

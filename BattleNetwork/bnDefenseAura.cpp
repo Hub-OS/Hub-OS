@@ -2,7 +2,6 @@
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
-#include "bnGuardHit.h"
 #include "bnHitboxSpell.h"
 
 DefenseAura::DefenseAura(const DefenseAura::Callback& callback) : DefenseRule(Priority(4), DefenseOrder::always)

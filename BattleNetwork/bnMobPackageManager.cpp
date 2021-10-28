@@ -23,7 +23,7 @@ MobMeta::~MobMeta()
 void MobMeta::OnMetaParsed()
 {
   static ResourceHandle handle;
-  placeholderTexture = handle.Textures().LoadTextureFromFile(placeholderPath);
+  placeholderTexture = handle.Textures().LoadFromFile(placeholderPath);
 }
 
 MobMeta& MobMeta::SetPlaceholderTexturePath(std::string path)

@@ -22,13 +22,13 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<std::shared_ptr<Playe
   pauseShader(Shaders().GetShader(ShaderType::BLACK_FADE))
 {
   // PAUSE
-  pause.setTexture(*Textures().LoadTextureFromFile("resources/ui/pause.png"));
+  pause.setTexture(*Textures().LoadFromFile("resources/ui/pause.png"));
   pause.setScale(2.f, 2.f);
   pause.setOrigin(pause.getLocalBounds().width * 0.5f, pause.getLocalBounds().height * 0.5f);
   pause.setPosition(sf::Vector2f(240.f, 145.f));
 
   // CHIP CUST GRAPHICS
-  auto customBarTexture = Textures().LoadTextureFromFile("resources/ui/custom.png");
+  auto customBarTexture = Textures().LoadFromFile("resources/ui/custom.png");
   customBar.setTexture(customBarTexture);
   customBar.setOrigin(customBar.getLocalBounds().width / 2, 0);
   auto customBarPos = sf::Vector2f(240.f, 0.f);
@@ -49,16 +49,16 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<std::shared_ptr<Playe
   // COMBO DELETE AND COUNTER LABELS
   auto labelPosition = sf::Vector2f(240.0f, 50.f);
 
-  doubleDelete = sf::Sprite(*LOAD_TEXTURE(DOUBLE_DELETE));
+  doubleDelete = sf::Sprite(*Textures().LoadFromFile(TexturePaths::DOUBLE_DELETE));
   doubleDelete.setOrigin(doubleDelete.getLocalBounds().width / 2.0f, doubleDelete.getLocalBounds().height / 2.0f);
   doubleDelete.setPosition(labelPosition);
   doubleDelete.setScale(2.f, 2.f);
 
   tripleDelete = doubleDelete;
-  tripleDelete.setTexture(*LOAD_TEXTURE(TRIPLE_DELETE));
+  tripleDelete.setTexture(*Textures().LoadFromFile(TexturePaths::TRIPLE_DELETE));
 
   counterHit = doubleDelete;
-  counterHit.setTexture(*LOAD_TEXTURE(COUNTER_HIT));
+  counterHit.setTexture(*Textures().LoadFromFile(TexturePaths::COUNTER_HIT));
 }
 
 const bool CombatBattleState::HasTimeFreeze() const {

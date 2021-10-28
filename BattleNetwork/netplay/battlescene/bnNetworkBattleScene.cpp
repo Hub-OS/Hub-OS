@@ -44,7 +44,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   ping.setPosition(480 - (2.f * 16) - 4, 320 - 2.f); // screen upscaled w - (16px*upscale scale) - (2px*upscale)
   ping.SetColor(sf::Color::Red);
 
-  pingIndicator.setTexture(Textures().LoadTextureFromFile("resources/ui/ping.png"));
+  pingIndicator.setTexture(Textures().LoadFromFile("resources/ui/ping.png"));
   pingIndicator.getSprite().setOrigin(sf::Vector2f(16.f, 16.f));
   pingIndicator.setPosition(480, 320);
   pingIndicator.setScale(2.f, 2.f);

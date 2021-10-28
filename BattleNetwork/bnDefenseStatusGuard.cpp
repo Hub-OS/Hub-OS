@@ -1,7 +1,6 @@
 #include "bnDefenseStatusGuard.h"
 #include "bnEntity.h"
 #include "bnField.h"
-#include "bnGuardHit.h"
 
 DefenseStatusGuard::DefenseStatusGuard() : DefenseRule(Priority(1), DefenseOrder::always)
 {

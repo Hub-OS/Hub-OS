@@ -16,7 +16,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
   numOfExplosions = _numOfExplosions;
   playbackSpeed = _playbackSpeed;
   count = 0;
-  setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_EXPLOSION));
 
   SetOffsetArea(offsetArea);
 
@@ -68,7 +68,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
   SetLayer(-1000);
   numOfExplosions = copy.numOfExplosions-1;
   playbackSpeed = copy.playbackSpeed;
-  setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_EXPLOSION));
 
   animation.SetAnimation("EXPLODE");
   animation << [this]() {

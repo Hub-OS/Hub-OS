@@ -14,7 +14,7 @@ Explosion::Explosion(int _numOfExplosions, double _playbackSpeed) :
   numOfExplosions = _numOfExplosions;
   playbackSpeed = _playbackSpeed;
   count = 0;
-  setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_EXPLOSION));
   setScale(2.f, 2.f);
 }
 
@@ -28,7 +28,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact()
   team = copy.GetTeam();
   numOfExplosions = copy.numOfExplosions-1;
   playbackSpeed = copy.playbackSpeed;
-  setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_EXPLOSION));
   setScale(2.f, 2.f);
 
   SetOffsetArea(copy.offsetArea);

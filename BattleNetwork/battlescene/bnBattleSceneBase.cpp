@@ -118,7 +118,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   counterRevealAnim << "DEFAULT" << Animator::Mode::Loop;
 
   counterReveal = std::make_shared<SpriteProxyNode>();
-  counterReveal->setTexture(LOAD_TEXTURE(MISC_COUNTER_REVEAL), true);
+  counterReveal->setTexture(Textures().LoadFromFile(TexturePaths::MISC_COUNTER_REVEAL), true);
   counterReveal->EnableParentShader(false);
   counterReveal->SetLayer(-100);
 
@@ -128,8 +128,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
 
   // MOB UI
-  mobBackdropSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_BACKDROP));
-  mobEdgeSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_EDGE));
+  mobBackdropSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_NAME_BACKDROP));
+  mobEdgeSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_NAME_EDGE));
 
   mobBackdropSprite.setScale(2.f, 2.f);
   mobEdgeSprite.setScale(2.f, 2.f);

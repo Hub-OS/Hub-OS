@@ -15,7 +15,7 @@ BubbleTrap::BubbleTrap(std::weak_ptr<Entity> owner) :
   SpriteProxyNode(), Component(owner)
 {
   SetLayer(1);
-  setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE_TRAP));
+  setTexture(Textures().LoadFromFile(TexturePaths::SPELL_BUBBLE_TRAP));
   bubble = getSprite();
 
   //Components setup and load

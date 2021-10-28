@@ -9,7 +9,7 @@ ChargeEffectSceneNode::ChargeEffectSceneNode(Entity* _entity) {
   charging = false;
   chargeCounter = frames(0) ;
   setScale(0.f, 0.f);
-  setTexture(LOAD_TEXTURE(SPELL_BUSTER_CHARGE));
+  setTexture(Textures().LoadFromFile(TexturePaths::SPELL_BUSTER_CHARGE));
 
   animation = Animation("resources/spells/spell_buster_charge.animation");
 

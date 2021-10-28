@@ -17,7 +17,7 @@ using namespace swoosh::ease;
 
 Overworld::EmoteNode::EmoteNode() : ResourceHandle()
 {
-  defaultEmotes = Textures().LoadTextureFromFile("resources/ow/emotes/emotes_48x48.png");
+  defaultEmotes = Textures().LoadFromFile("resources/ow/emotes/emotes_48x48.png");
   setTexture(defaultEmotes);
   setOrigin(EMOJI_PX * 0.5f, EMOJI_PX * 0.5f);
   Reset();
@@ -93,7 +93,7 @@ Overworld::EmoteWidget::EmoteWidget() :
 
   while (idx < max) {
     auto& e = emoteSprites[idx];
-    e.setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes_48x48.png"));
+    e.setTexture(Textures().LoadFromFile("resources/ow/emotes/emotes_48x48.png"));
     e.setOrigin(EMOJI_PX * 0.5f, EMOJI_PX * 0.5f);
 
     sf::IntRect rect = sf::IntRect(static_cast<int>(idx * 48), 0, 48, 48);

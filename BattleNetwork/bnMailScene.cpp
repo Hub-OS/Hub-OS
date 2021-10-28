@@ -52,22 +52,22 @@ MailScene::MailScene(swoosh::ActivityController& controller, Inbox& inbox) :
 {
   label.setScale(2.f, 2.f);
 
-  moreText.setTexture(*LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
+  moreText.setTexture(*Textures().LoadFromFile(TexturePaths::TEXT_BOX_NEXT_CURSOR));
   moreText.setScale(2.f, 2.f);
 
-  scroll.setTexture(*LOAD_TEXTURE(FOLDER_SCROLLBAR));
+  scroll.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_SCROLLBAR));
   scroll.setScale(2.f, 2.f);
 
-  cursor.setTexture(*LOAD_TEXTURE(FOLDER_CURSOR));
+  cursor.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CURSOR));
   cursor.setScale(2.f, 2.f);
 
-  bg.setTexture(*Textures().LoadTextureFromFile("resources/scenes/items/bg.png"), true);
+  bg.setTexture(*Textures().LoadFromFile("resources/scenes/items/bg.png"), true);
   bg.setScale(2.f, 2.f);
 
-  iconTexture = Textures().LoadTextureFromFile("resources/scenes/mail/icons.png");
+  iconTexture = Textures().LoadFromFile("resources/scenes/mail/icons.png");
   iconAnim = Animation("resources/scenes/mail/icons.animation");
 
-  noMug = Textures().LoadTextureFromFile("resources/scenes/mail/nomug.png");
+  noMug = Textures().LoadFromFile("resources/scenes/mail/nomug.png");
 
   newSprite.setTexture(*iconTexture);
   newSprite.setScale(2.f, 2.f);

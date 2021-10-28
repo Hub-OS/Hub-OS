@@ -1,8 +1,0 @@
-imagePath="C:/mmbn/net battle engine/Release/resources/spells/shell_impact.png"
-
-animation state="Default"
-frame duration="0.067" x="169" y="0" w="47" h="74" originx="9" originy="37"
-frame duration="0.067" x="96" y="0" w="47" h="74" originx="8" originy="37"
-frame duration="0.083" x="14" y="0" w="47" h="75" originx="7" originy="37"
-frame duration="0.067" x="156" y="107" w="47" h="88" originx="7" originy="43"
-frame duration="0.05" x="42" y="101" w="47" h="98" originx="9" originy="48"

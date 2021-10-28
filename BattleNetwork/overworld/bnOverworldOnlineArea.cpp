@@ -151,7 +151,7 @@ void Overworld::OnlineArea::SetAvatarAsSpeaker() {
   auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
   const std::string& image = meta.GetMugshotTexturePath();
   const std::string& anim = meta.GetMugshotAnimationPath();
-  auto mugshot = Textures().LoadTextureFromFile(image);
+  auto mugshot = Textures().LoadFromFile(image);
   GetMenuSystem().SetNextSpeaker(sf::Sprite(*mugshot), anim);
 }
 
@@ -2163,8 +2163,8 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
     const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
-    auto mugshot = Textures().LoadTextureFromFile(image);
-    auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+    auto mugshot = Textures().LoadFromFile(image);
+    auto emotions = Textures().LoadFromFile(emotionsTexture);
     auto player = std::shared_ptr<Player>(meta.GetData());
     player->Init();
 
@@ -2264,8 +2264,8 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     const std::string& image = playerMeta.GetMugshotTexturePath();
     const std::string& mugshotAnim = playerMeta.GetMugshotAnimationPath();
     const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
-    auto mugshot = Textures().LoadTextureFromFile(image);
-    auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+    auto mugshot = Textures().LoadFromFile(image);
+    auto emotions = Textures().LoadFromFile(emotionsTexture);
     auto player = std::shared_ptr<Player>(playerMeta.GetData());
     player->Init();
 

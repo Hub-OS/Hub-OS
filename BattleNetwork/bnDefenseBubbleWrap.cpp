@@ -3,7 +3,6 @@
 #include "bnField.h"
 #include "bnSpell.h"
 #include "bnHitboxSpell.h"
-#include "bnGuardHit.h"
 
 DefenseBubbleWrap::DefenseBubbleWrap() : popped(false), DefenseRule(Priority(0), DefenseOrder::always)
 {

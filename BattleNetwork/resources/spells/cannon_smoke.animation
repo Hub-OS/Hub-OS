@@ -1,6 +1,0 @@
-imagePath="C:/mmbn/net battle engine/Release/resources/spells/cannon_smoke.png"
-
-animation state="Default"
-frame duration="0.05" x="100" y="0" w="35" h="61" originx="30" originy="24"
-frame duration="0.05" x="60" y="1" w="35" h="61" originx="30" originy="24"
-frame duration="0.05" x="17" y="1" w="35" h="61" originx="30" originy="29"

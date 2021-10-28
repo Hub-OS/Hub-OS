@@ -21,11 +21,11 @@ void BusterHit::Init()
   animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
 
   if (type == Type::CHARGED) {
-    setTexture(Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
+    setTexture(Textures().LoadFromFile(TexturePaths::SPELL_CHARGED_BULLET_HIT));
     animationComponent->SetPath(CHARGED_RESOURCE_PATH);
   }
   else {
-    setTexture(Textures().GetTexture(TextureType::SPELL_BULLET_HIT));
+    setTexture(Textures().LoadFromFile(TexturePaths::SPELL_BULLET_HIT));
     animationComponent->SetPath(PEA_RESOURCE_PATH);
   }
 

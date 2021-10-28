@@ -103,7 +103,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
   if (statusBotSpawnOptional) {
     auto mrprog = std::make_shared<Overworld::Actor>("Mr. Prog");
     mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
-    mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+    mrprog->setTexture(Textures().LoadFromFile("resources/ow/prog/prog_ow.png"));
     mrprog->Set3DPosition(*statusBotSpawnOptional);
     mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
@@ -116,7 +116,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
 
       // Play message
       sf::Sprite face;
-      face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+      face.setTexture(*Textures().LoadFromFile("resources/ow/prog/prog_mug.png"));
 
       std::string message = "If you're seeing this message, something has gone horribly wrong with the next area.";
       message += "For your safety you cannot enter the next area!";
@@ -147,7 +147,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
   if (destBotSpawnOptional) {
     auto mrprog = std::make_shared<Overworld::Actor>("Mr. Prog");
     mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
-    mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+    mrprog->setTexture(Textures().LoadFromFile("resources/ow/prog/prog_ow.png"));
     mrprog->Set3DPosition(destBotSpawnOptional.value());
     mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
@@ -158,7 +158,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
 
       // Play message
       sf::Sprite face;
-      face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+      face.setTexture(*Textures().LoadFromFile("resources/ow/prog/prog_mug.png"));
 
       std::string message = "CHANGE YOUR WARP DESTINATION?";
 
@@ -326,7 +326,7 @@ void Overworld::Homepage::onUpdate(double elapsed)
     auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
-    auto mugshot = Textures().LoadTextureFromFile(image);
+    auto mugshot = Textures().LoadFromFile(image);
 
     auto& menuSystem = GetMenuSystem();
     menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);

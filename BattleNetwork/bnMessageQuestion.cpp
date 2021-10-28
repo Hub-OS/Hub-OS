@@ -6,10 +6,12 @@
 
 Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) : 
   Message(message + "\n\x02       YES     NO") {
+  ResourceHandle handle;
+
   Question::onNo = onNo;
   Question::onYes = onYes;
   isQuestionReady = false;
-  selectCursor.setTexture(LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  selectCursor.setTexture(handle.Textures().LoadFromFile(TexturePaths::TEXT_BOX_CURSOR));
   selectCursor.scale(2.0f, 2.0f);
   elapsed = 0;
   yes = canceled = false;

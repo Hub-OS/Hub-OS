@@ -22,8 +22,8 @@ Field::Field(int _width, int _height) :
   a.Reload();
   a << Animator::Mode::Loop;
 
-  auto t_a_b = handle.Textures().GetTexture(TextureType::TILE_ATLAS_BLUE);
-  auto t_a_r = handle.Textures().GetTexture(TextureType::TILE_ATLAS_RED);
+  auto t_a_b = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_BLUE);
+  auto t_a_r = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_RED);
 
   for (int y = 0; y < _height+2; y++) {
     vector<Battle::Tile*> row = vector<Battle::Tile*>();

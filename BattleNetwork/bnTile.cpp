@@ -94,7 +94,7 @@ namespace Battle {
       resetVolcanoThunk(2);
     };
 
-    volcanoSprite->setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
+    volcanoSprite->setTexture(Textures().LoadFromFile("resources/tiles/volcano.png"));
     volcanoSprite->SetLayer(-1); // in front of tile
 
     volcanoErupt.Refresh(volcanoSprite->getSprite());

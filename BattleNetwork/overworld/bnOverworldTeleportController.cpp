@@ -9,7 +9,7 @@
 Overworld::TeleportController::TeleportController()
 {
   beam = std::make_shared<WorldSprite>();
-  beam->setTexture(Textures().LoadTextureFromFile("resources/ow/teleport.png"));
+  beam->setTexture(Textures().LoadFromFile("resources/ow/teleport.png"));
   beamAnim = Animation("resources/ow/teleport.animation");
   beamAnim.SetAnimation("teleport_in");
   beamAnim.SetFrame(0, beam->getSprite());

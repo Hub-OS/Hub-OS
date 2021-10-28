@@ -8,7 +8,7 @@ using namespace swoosh::types;
 
 GameOverScene::GameOverScene(swoosh::ActivityController& controller) : Scene(controller) {
   fadeInCooldown = 2.0f;
-  gameOverTexture = *Textures().LoadTextureFromFile("resources/scenes/game_over/game_over.png");
+  gameOverTexture = *Textures().LoadFromFile("resources/scenes/game_over/game_over.png");
   //Separating the texture into its own member allows the texture to live long enough to be drawn
   //within the next function.
   gameOver.setTexture(gameOverTexture);

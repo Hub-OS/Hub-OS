@@ -211,16 +211,16 @@ void FolderEditScene::RefreshCurrentCardDock(FolderEditScene::CardView& view, co
 
       switch (card.GetClass()) {
       case Battle::CardClass::mega:
-        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_MEGA));
+        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_MEGA));
         break;
       case Battle::CardClass::giga:
-        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_GIGA));
+        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_GIGA));
         break;
       case Battle::CardClass::dark:
-        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_DARK));
+        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_DARK));
         break;
       default:
-        sprite.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
       }
     }
   }

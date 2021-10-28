@@ -41,15 +41,15 @@ BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob,
 
   // Get reward based on score
   item = mob->GetRankedReward(score);
-  resultsSprite = sf::Sprite(*Textures().GetTexture(TextureType::BATTLE_RESULTS_FRAME));
+  resultsSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::BATTLE_RESULTS_FRAME));
   resultsSprite.setScale(2.f, 2.f);
   resultsSprite.setPosition(-resultsSprite.getTextureRect().width*2.f, 20.f);
 
-  pressA = sf::Sprite(*LOAD_TEXTURE(BATTLE_RESULTS_PRESS_A));
+  pressA = sf::Sprite(*Textures().LoadFromFile(TexturePaths::BATTLE_RESULTS_PRESS_A));
   pressA.setScale(2.f, 2.f);
   pressA.setPosition(2.f*42.f, 249.f);
 
-  star = sf::Sprite(*LOAD_TEXTURE(BATTLE_RESULTS_STAR));
+  star = sf::Sprite(*Textures().LoadFromFile(TexturePaths::BATTLE_RESULTS_STAR));
   star.setScale(2.f, 2.f);
 
 
@@ -67,7 +67,7 @@ BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob,
     }
   }
   else {
-    rewardCard = sf::Sprite(*Textures().GetTexture(TextureType::BATTLE_RESULTS_NODATA));
+    rewardCard = sf::Sprite(*Textures().LoadFromFile(TexturePaths::BATTLE_RESULTS_NODATA));
   }
 
   rewardCard.setScale(2.f, 2.f);

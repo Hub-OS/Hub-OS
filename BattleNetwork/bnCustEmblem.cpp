@@ -12,8 +12,8 @@ CustEmblem::CustEmblem() {
     wireShader->setUniform("numOfWires", numWires);
   }
 
-  emblem.setTexture(*LOAD_TEXTURE(CUST_BADGE));
-  emblemWireMask.setTexture(*LOAD_TEXTURE(CUST_BADGE_MASK));
+  emblem.setTexture(*handle.Textures().LoadFromFile(TexturePaths::CUST_BADGE));
+  emblemWireMask.setTexture(*handle.Textures().LoadFromFile(TexturePaths::CUST_BADGE_MASK));
 
   emblemWireMask.setPosition(-9.0f, -7.0f);
 }

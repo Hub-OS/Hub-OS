@@ -157,21 +157,21 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     cardDesc.setScale(2.f, 2.f);
 
     // folder menu graphic
-    bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_VIEW_BG));
+    bg = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_VIEW_BG));
     bg.setScale(2.f, 2.f);
 
-    folderDock = sf::Sprite(*LOAD_TEXTURE(FOLDER_DOCK));
+    folderDock = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_DOCK));
     folderDock.setScale(2.f, 2.f);
     folderDock.setPosition(2.f, 30.f);
 
-    packDock = sf::Sprite(*LOAD_TEXTURE(PACK_DOCK));
+    packDock = sf::Sprite(*Textures().LoadFromFile(TexturePaths::PACK_DOCK));
     packDock.setScale(2.f, 2.f);
     packDock.setPosition(480.f, 30.f);
 
-    scrollbar = sf::Sprite(*LOAD_TEXTURE(FOLDER_SCROLLBAR));
+    scrollbar = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SCROLLBAR));
     scrollbar.setScale(2.f, 2.f);
 
-    folderCursor = sf::Sprite(*LOAD_TEXTURE(FOLDER_CURSOR));
+    folderCursor = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CURSOR));
     folderCursor.setScale(2.f, 2.f);
     folderCursor.setPosition((2.f * 90.f), 64.0f);
     folderSwapCursor = folderCursor;
@@ -180,27 +180,27 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     packCursor.setPosition((2.f * 90.f) + 480.0f, 64.0f);
     packSwapCursor = packCursor;
 
-    mbPlaceholder = sf::Sprite(*LOAD_TEXTURE(FOLDER_MB));
+    mbPlaceholder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_MB));
     mbPlaceholder.setScale(2.f, 2.f);
 
-    folderNextArrow = sf::Sprite(*LOAD_TEXTURE(FOLDER_NEXT_ARROW));
+    folderNextArrow = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_NEXT_ARROW));
     folderNextArrow.setScale(2.f, 2.f);
 
     packNextArrow = folderNextArrow;
     packNextArrow.setScale(-2.f, 2.f);
 
-    folderCardCountBox = sf::Sprite(*LOAD_TEXTURE(FOLDER_SIZE));
+    folderCardCountBox = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SIZE));
     folderCardCountBox.setPosition(sf::Vector2f(425.f, 10.f + folderCardCountBox.getLocalBounds().height));
     folderCardCountBox.setScale(2.f, 2.f);
     folderCardCountBox.setOrigin(folderCardCountBox.getLocalBounds().width / 2.0f, folderCardCountBox.getLocalBounds().height / 2.0f);
 
-    cardHolder = sf::Sprite(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+    cardHolder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
     cardHolder.setScale(2.f, 2.f);
 
-    packCardHolder = sf::Sprite(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+    packCardHolder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
     packCardHolder.setScale(2.f, 2.f);
 
-    element = sf::Sprite(*LOAD_TEXTURE(ELEMENT_ICON));
+    element = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
     element.setScale(2.f, 2.f);
 
     // Current card graphic

@@ -30,7 +30,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectMob
   menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
   menuLabel.setScale(2.f, 2.f);
 
-  navigator.setTexture(LOAD_TEXTURE(MUG_NAVIGATOR));
+  navigator.setTexture(Textures().LoadFromFile(TexturePaths::MUG_NAVIGATOR));
   navigator.setScale(2.0f, 2.0f);
   navigator.setPosition(10.0f, 208.0f);
 
@@ -39,7 +39,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectMob
   navigatorAnimator.SetAnimation("TALK");
   navigatorAnimator << Animator::Mode::Loop;
 
-  cursor.setTexture(LOAD_TEXTURE(FOLDER_CURSOR));
+  cursor.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_CURSOR));
   cursor.setScale(2.f, 2.f);
 
   // Selection input delays
@@ -56,7 +56,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectMob
   numberCooldown = maxNumberCooldown; // half a second
 
   // select menu graphic
-  bg.setTexture(LOAD_TEXTURE(BATTLE_SELECT_BG));
+  bg.setTexture(Textures().LoadFromFile(TexturePaths::BATTLE_SELECT_BG));
   bg.setScale(2.f, 2.f);
 
   gotoNextScene = true; 
@@ -365,8 +365,8 @@ void SelectMobScene::onUpdate(double elapsed) {
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
-      auto mugshot = Textures().LoadTextureFromFile(image);
-      auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
+      auto mugshot = Textures().LoadFromFile(image);
+      auto emotions = Textures().LoadFromFile(emotionsTexture);
       auto player = std::shared_ptr<Player>(meta.GetData());
       player->Init();
 

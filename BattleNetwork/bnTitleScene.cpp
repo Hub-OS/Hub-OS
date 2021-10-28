@@ -29,14 +29,14 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   std::shared_ptr<sf::Texture> logo;
   
   if (getController().CommandLineValue<std::string>("locale") == "jp") {
-    logo = Textures().LoadTextureFromFile("resources/scenes/title/tile.png");
+    logo = Textures().LoadFromFile("resources/scenes/title/tile.png");
   }
   else {
-    logo = Textures().LoadTextureFromFile("resources/scenes/title/tile_en.png");
+    logo = Textures().LoadFromFile("resources/scenes/title/tile_en.png");
   }
 
 
-  bgSprite.setTexture(Textures().LoadTextureFromFile("resources/scenes/title/bg_blue.png"));
+  bgSprite.setTexture(Textures().LoadFromFile("resources/scenes/title/bg_blue.png"));
   bgSprite.setScale(2.f, 2.f);
 
   logoSprite.setTexture(logo);
@@ -44,7 +44,7 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   sf::Vector2f logoPos = sf::Vector2f(240.f, 160.f);
   logoSprite.setPosition(logoPos);
 
-  progSprite.setTexture(Textures().LoadTextureFromFile("resources/scenes/title/prog-pulse.png"));
+  progSprite.setTexture(Textures().LoadFromFile("resources/scenes/title/prog-pulse.png"));
   progSprite.setPosition(sf::Vector2f(380.f, 210.f));
   progSprite.setScale(2.f, 2.f);
   anim = Animation("resources/scenes/title/default.animation");

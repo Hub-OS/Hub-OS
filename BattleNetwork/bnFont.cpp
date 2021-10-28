@@ -140,7 +140,7 @@ void Font::SetLetter(char letter)
 
 const sf::Texture & Font::GetTexture() const
 {
-  static std::shared_ptr<sf::Texture> texture = LOAD_TEXTURE(FONT);
+  static std::shared_ptr<sf::Texture> texture = Textures().LoadFromFile(TexturePaths::FONT);
   return *texture;
 }
 

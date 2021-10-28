@@ -21,12 +21,14 @@ SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackageMana
   CardActionUsePublisher(), 
   UIComponent(owner)
 {
+  ResourceHandle handle;
+
   curr = 0;
   auto iconRect = sf::IntRect(0, 0, 14, 14);
   icon.setTextureRect(iconRect);
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
-  frame.setTexture(LOAD_TEXTURE(CHIP_FRAME));
+  frame.setTexture(handle.Textures().LoadFromFile(TexturePaths::CHIP_FRAME));
   frame.setScale(sf::Vector2f(2.f, 2.f));
 
   firstFrame = true; // first time drawn, update positions

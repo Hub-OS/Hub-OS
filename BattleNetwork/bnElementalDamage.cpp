@@ -13,7 +13,7 @@ ElementalDamage::ElementalDamage() :
   Artifact()
 {
   SetLayer(0);
-  setTexture(LOAD_TEXTURE(ELEMENT_ALERT));
+  setTexture(Textures().LoadFromFile(TexturePaths::ELEMENT_ALERT));
   setScale(0.f, 0.0f);
   swoosh::game::setOrigin(getSprite(), 0.5, 0.5);
   progress = 0;

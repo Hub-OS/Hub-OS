@@ -46,12 +46,12 @@ void Buster::Init()
   animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
 
   if (isCharged) {
-    texture = Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+    texture = Textures().LoadFromFile(TexturePaths::SPELL_CHARGED_BULLET_HIT);
     animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   } else {
-    texture = Textures().GetTexture(TextureType::SPELL_BULLET_HIT);
+    texture = Textures().LoadFromFile(TexturePaths::SPELL_BULLET_HIT);
     animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");

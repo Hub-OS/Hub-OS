@@ -15,7 +15,7 @@ bool FreedomMissionOverState::IsFinished() {
 
 FreedomMissionOverState::FreedomMissionOverState(std::vector<std::shared_ptr<Player>>& tracked) : tracked(tracked)
 {
-  battleEnd = sf::Sprite(*LOAD_TEXTURE(ENEMY_DELETED));
+  battleEnd = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ENEMY_DELETED));
   battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);
   battleEnd.setPosition(sf::Vector2f(240.f, 140.f));
   battleEnd.setScale(2.f, 2.f);
@@ -34,18 +34,18 @@ void FreedomMissionOverState::onStart(const BattleSceneState*)
 
   switch (context) {
   case Conditions::player_deleted:
-    battleEnd.setTexture(*Textures().LoadTextureFromFile("resources/ui/player_deleted.png"), true);
+    battleEnd.setTexture(*Textures().LoadFromFile("resources/ui/player_deleted.png"), true);
     break;
   case Conditions::player_won_single_turn:
-    battleEnd.setTexture(*Textures().LoadTextureFromFile("resources/ui/single_turn_freedom.png"), true);
+    battleEnd.setTexture(*Textures().LoadFromFile("resources/ui/single_turn_freedom.png"), true);
     Audio().Stream("resources/loops/enemy_deleted.ogg");
     break;
   case Conditions::player_won_mutliple_turn:
-    battleEnd.setTexture(*Textures().LoadTextureFromFile("resources/ui/multi_turn_freedom.png"), true);
+    battleEnd.setTexture(*Textures().LoadFromFile("resources/ui/multi_turn_freedom.png"), true);
     Audio().Stream("resources/loops/enemy_deleted.ogg");
     break;
   case Conditions::player_failed:
-    battleEnd.setTexture(*Textures().LoadTextureFromFile("resources/ui/freedom_failed.png"), true);
+    battleEnd.setTexture(*Textures().LoadFromFile("resources/ui/freedom_failed.png"), true);
     break;
   }
 

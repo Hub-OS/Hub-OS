@@ -5,7 +5,7 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   textArea(), 
   totalTime(0), 
   textBox(280, 45) {
-  textureRef = LOAD_TEXTURE(ANIMATED_TEXT_BOX);
+  textureRef = Textures().LoadFromFile(TexturePaths::ANIMATED_TEXT_BOX);
   frame = sf::Sprite(*textureRef);
 
   // set the textbox positions

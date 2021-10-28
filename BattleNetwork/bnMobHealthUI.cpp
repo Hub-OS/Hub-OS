@@ -13,7 +13,7 @@ MobHealthUI::MobHealthUI(std::weak_ptr<Character> mob) : UIComponent(mob) {
   healthCounter = mob.lock()->GetHealth();
   cooldown = 0;
   color = sf::Color::White;
-  glyphs.setTexture(ResourceHandle().Textures().GetTexture(TextureType::ENEMY_HP_NUMSET));
+  glyphs.setTexture(ResourceHandle().Textures().LoadFromFile(TexturePaths::ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 
   /*auto onMobDelete = [this](auto target) {

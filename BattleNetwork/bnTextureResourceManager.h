@@ -40,11 +40,6 @@ public:
   void LoadAllTextures(std::atomic<int> &status);
 
   /**
-  * @brief will load a resource immediately (used at boot for font) 
-  */
-  void LoadImmediately(TextureType type);
-
-  /**
   * @brief will clean expired textures from the cache and free image data
   */
   void HandleExpiredTextureCache();
@@ -54,21 +49,10 @@ public:
    * @param _path Relative path to the application
    * @return Texture. The texture is cached.
    */
-  std::shared_ptr<Texture> LoadTextureFromFile(string _path);
-  
-  /**
-   * @brief Returns pointer to the pre-loaded texture type
-   * @param _ttype Texture type to fetch from cache
-   * @return Texture pointer. 
-   * @warning This resource is managed by the manager.
-   */
-  std::shared_ptr<Texture> GetTexture(TextureType _ttype);
+  std::shared_ptr<Texture> LoadFromFile(string _path);
 
 private:
   std::mutex mutex;
   vector<string> paths; /**< Paths to all textures. Must be in order of TextureType @see TextureType */
-  map<TextureType, CachedResource<Texture>> textures; /**< Cache */
   map<std::string, CachedResource<Texture>> texturesFromPath; /**< Cache for textures loaded at run-time */
 };
-
-#define LOAD_TEXTURE(x) ResourceHandle().Textures().GetTexture(TextureType::x)

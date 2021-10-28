@@ -13,7 +13,7 @@ PlayerHealthUI::PlayerHealthUI(std::weak_ptr<Player> _player) :
 {
   ResourceHandle handle;
 
-  texture = handle.Textures().LoadTextureFromFile("resources/ui/img_health.png");
+  texture = handle.Textures().LoadFromFile("resources/ui/img_health.png");
   uibox.setTexture(texture);
   uibox.setPosition(3.f, 0.0f);
   uibox.setScale(2.f, 2.f);

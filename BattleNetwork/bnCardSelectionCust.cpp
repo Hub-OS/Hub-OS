@@ -134,19 +134,19 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
   emblem.setScale(2.f, 2.f);
   emblem.setPosition(194.0f, 14.0f);
 
-  custSprite = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_SELECT_MENU));
+  custSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::CHIP_SELECT_MENU));
   custSprite.setScale(2.f, 2.f);
   custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
 
-  custDarkCardOverlay = sf::Sprite(*LOAD_TEXTURE(CHIP_SELECT_DARK_OVERLAY));
+  custDarkCardOverlay = sf::Sprite(*Textures().LoadFromFile(TexturePaths::CHIP_SELECT_DARK_OVERLAY));
   custDarkCardOverlay.setScale(2.f, 2.f);
   custDarkCardOverlay.setPosition(custSprite.getPosition());
 
   custMegaCardOverlay = custDarkCardOverlay;
-  custMegaCardOverlay.setTexture(*LOAD_TEXTURE(CHIP_SELECT_MEGA_OVERLAY));
+  custMegaCardOverlay.setTexture(*Textures().LoadFromFile(TexturePaths::CHIP_SELECT_MEGA_OVERLAY));
 
   custGigaCardOverlay = custDarkCardOverlay;
-  custGigaCardOverlay.setTexture(*LOAD_TEXTURE(CHIP_SELECT_GIGA_OVERLAY));
+  custGigaCardOverlay.setTexture(*Textures().LoadFromFile(TexturePaths::CHIP_SELECT_GIGA_OVERLAY));
 
   // TODO: fully use scene nodes on all card slots and the GUI sprite
   // AddSprite(custSprite);
@@ -156,31 +156,31 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
   icon.setTextureRect(iconSize);
   icon.setScale(iconScale);
 
-  element.setTexture(Textures().GetTexture(TextureType::ELEMENT_ICON));
+  element.setTexture(Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
-  cursorSmall = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_CURSOR_SMALL));
+  cursorSmall = sf::Sprite(*Textures().LoadFromFile(TexturePaths::CHIP_CURSOR_SMALL));
   cursorSmall.setScale(sf::Vector2f(2.f, 2.f));
 
-  cursorBig = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_CURSOR_BIG));
+  cursorBig = sf::Sprite(*Textures().LoadFromFile(TexturePaths::CHIP_CURSOR_BIG));
   cursorBig.setScale(sf::Vector2f(2.f, 2.f));
 
   // never moves
   cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*122.f));
 
-  cardLock = sf::Sprite(*LOAD_TEXTURE(CHIP_LOCK));
+  cardLock = sf::Sprite(*Textures().LoadFromFile(TexturePaths::CHIP_LOCK));
   cardLock.setScale(sf::Vector2f(2.f, 2.f));
 
   cardCard.setScale(2.f, 2.f);
   cardCard.setPosition(2.f*16.f, 48.f);
   cardCard.setTextureRect(sf::IntRect{0, 0, 56, 48});
 
-  cardNoData.setTexture(Textures().GetTexture(TextureType::CHIP_NODATA));
+  cardNoData.setTexture(Textures().LoadFromFile(TexturePaths::CHIP_NODATA));
   cardNoData.setScale(2.f, 2.f);
   cardNoData.setPosition(2.f*16.f, 48.f);
 
-  cardSendData.setTexture(Textures().GetTexture(TextureType::CHIP_SENDDATA));
+  cardSendData.setTexture(Textures().LoadFromFile(TexturePaths::CHIP_SENDDATA));
   cardSendData.setScale(2.f, 2.f);
   cardSendData.setPosition(2.f*16.f, 48.f);
 
@@ -211,11 +211,11 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
 
   formSelectQuitTimer = 0.f; // used to time out the activation
 
-  formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
+  formItemBG.setTexture(*Textures().LoadFromFile(TexturePaths::CUST_FORM_ITEM_BG));
   formItemBG.setScale(2.f, 2.f);
 
-  formSelect.setTexture(LOAD_TEXTURE(CUST_FORM_SELECT));
-  formCursor.setTexture(LOAD_TEXTURE(CUST_FORM_CURSOR));
+  formSelect.setTexture(Textures().LoadFromFile(TexturePaths::CUST_FORM_SELECT));
+  formCursor.setTexture(Textures().LoadFromFile(TexturePaths::CUST_FORM_CURSOR));
 
   formSelect.setScale(2.f, 2.f);
   formCursor.setScale(2.f, 2.f);
@@ -620,7 +620,7 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
   for (auto&& f : forms) {
     this->forms.push_back(f);
     sf::Sprite ui;
-    ui.setTexture(*Textures().LoadTextureFromFile(f->GetUIPath()));
+    ui.setTexture(*Textures().LoadFromFile(f->GetUIPath()));
     ui.setScale(2.f, 2.f);
     formUI.push_back(ui);
   }

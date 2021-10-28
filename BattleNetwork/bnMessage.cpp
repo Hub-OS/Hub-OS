@@ -2,7 +2,8 @@
 #include "bnAnimatedTextBox.h"
 #include "bnTextureResourceManager.h"
 Message::Message(std::string message) : MessageInterface(message) {
-  nextCursor.setTexture(LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
+  ResourceHandle handle;
+  nextCursor.setTexture(handle.Textures().LoadFromFile(TexturePaths::TEXT_BOX_NEXT_CURSOR));
   nextCursor.scale(2.0f, 2.0f);
   totalElapsed = 0;
 }

@@ -1,5 +1,5 @@
 #include "bnVolcanoErupt.h"
-#include "bnParticleImpact.h"
+#include "bnTile.h"
 #include "bnTextureResourceManager.h"
 
 VolcanoErupt::VolcanoErupt() :
@@ -13,7 +13,7 @@ VolcanoErupt::VolcanoErupt() :
   setScale(2.f, 2.f);
   SetLayer(-1);
 
-  setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
+  setTexture(Textures().LoadFromFile("resources/tiles/volcano.png"));
 
   auto props = GetHitboxProperties();
   props.damage = 50;
@@ -37,7 +37,7 @@ void VolcanoErupt::OnDelete()
 
 void VolcanoErupt::OnCollision(const std::shared_ptr<Entity>)
 {
-  field.lock()->AddEntity(std::make_shared<ParticleImpact>(ParticleImpact::Type::volcano), *GetTile());
+  // field.lock()->AddEntity(std::make_shared<ParticleImpact>(ParticleImpact::Type::volcano), *GetTile());
 }
 
 void VolcanoErupt::Attack(std::shared_ptr<Entity> _entity)

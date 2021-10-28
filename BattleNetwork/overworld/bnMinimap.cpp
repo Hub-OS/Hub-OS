@@ -349,14 +349,14 @@ void Overworld::Minimap::EnforceTextureSizeLimits()
 Overworld::Minimap::Minimap()
 {
   hp = std::make_shared<SpriteProxyNode>();
-  hp->setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_hp.png"));
-  player.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_pos.png"));
-  overlay.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_over.png"));
-  arrows.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_over_arrows.png"));
-  warp.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_warp.png"));
-  board.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_board.png"));
-  shop.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_shop.png"));
-  conveyor.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_conveyor.png"));
+  hp->setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_hp.png"));
+  player.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_pos.png"));
+  overlay.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over.png"));
+  arrows.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over_arrows.png"));
+  warp.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_warp.png"));
+  board.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_board.png"));
+  shop.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_shop.png"));
+  conveyor.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_conveyor.png"));
   EnforceTextureSizeLimits();
 
   // dark blueish

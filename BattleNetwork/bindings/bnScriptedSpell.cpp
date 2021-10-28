@@ -7,7 +7,7 @@ ScriptedSpell::ScriptedSpell(Team team) : Spell(team) {
   setScale(2.f, 2.f);
 
   shadow = std::make_shared<SpriteProxyNode>();
-  shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
+  shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->Hide(); // default: hidden
   shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);

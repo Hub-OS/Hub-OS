@@ -21,7 +21,7 @@ namespace Overworld {
     time.setPosition(480 - 4.f, 6.f);
     time.setScale(2.f, 2.f);
 
-    widgetTexture = Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png");
+    widgetTexture = Textures().LoadFromFile("resources/ui/main_menu_ui.png");
 
     banner = std::make_shared<SpriteProxyNode>();
     symbol = std::make_shared<SpriteProxyNode>();
@@ -31,7 +31,7 @@ namespace Overworld {
     selectTextSpr = std::make_shared<SpriteProxyNode>();
     placeTextSpr = std::make_shared<SpriteProxyNode>();
 
-    banner->setTexture(Textures().LoadTextureFromFile("resources/ui/menu_overlay.png"));
+    banner->setTexture(Textures().LoadFromFile("resources/ui/menu_overlay.png"));
     symbol->setTexture(widgetTexture);
     icon->setTexture(widgetTexture);
     exit->setTexture(widgetTexture);
@@ -273,7 +273,7 @@ namespace Overworld {
     for (auto&& L : optionsList) {
       // label
       auto sprite = std::make_shared<SpriteProxyNode>();
-      sprite->setTexture(Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+      sprite->setTexture(Textures().LoadFromFile("resources/ui/main_menu_ui.png"));
       sprite->setPosition(36, 26);
       optionAnim << (L.name + "_LABEL");
       optionAnim.SetFrame(1, sprite->getSprite());
@@ -283,7 +283,7 @@ namespace Overworld {
 
       // icon
       auto iconSpr = std::make_shared<SpriteProxyNode>();
-      iconSpr->setTexture(Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+      iconSpr->setTexture(Textures().LoadFromFile("resources/ui/main_menu_ui.png"));
       iconSpr->setPosition(36, 26);
       optionAnim << L.name;
       optionAnim.SetFrame(1, iconSpr->getSprite());
