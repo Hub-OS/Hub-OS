@@ -23,6 +23,10 @@ function create_upward_fist(duo)
     fist:never_flip(true)
     fist:set_texture(texture, true)
     fist:highlight_tile(Highlight.Flash)
+	local fist_pos = fist:get_position()
+	if fist:get_current_tile() then
+		fist:set_position(fist_pos.x + math.floor(fist:get_current_tile():width()/2), fist_pos.y)
+	end
 
     fist:set_hit_props(
         make_hit_props(
@@ -53,6 +57,8 @@ function create_upward_fist(duo)
 
     fist.update_func = function(self, dt) 
         self:get_current_tile():attack_entities(self)
+		self:get_current_tile():get_tile(Direction.Right, 1):attack_entities(self)
+		self:get_current_tile():get_tile(Direction.Right, 1):highlight(Highlight.Solid)
 
         if self:is_sliding() == false then 
             if self:get_current_tile():is_edge() then 
@@ -84,7 +90,10 @@ function create_downward_fist(duo)
     local fist = Battle.Spell.new(Team.Blue)
     fist:set_texture(texture, true)
     fist:never_flip(true)
-
+	local fist_pos = fist:get_position()
+	if fist:get_current_tile() then
+		fist:set_position(fist_pos.x - math.floor(fist:get_current_tile():width()/2), fist_pos.y)
+	end
     fist:set_hit_props(
         make_hit_props(
             50, 
@@ -114,6 +123,8 @@ function create_downward_fist(duo)
 
     fist.update_func = function(self, dt) 
         self:get_current_tile():attack_entities(self)
+		self:get_current_tile():get_tile(Direction.Right, 1):attack_entities(self)
+		self:get_current_tile():get_tile(Direction.Right, 1):highlight(Highlight.Solid)
 
         if self:is_sliding() == false then 
             if self:get_current_tile():y() == 4 then 
@@ -623,7 +634,7 @@ function package_init(self)
     texture = Engine.load_texture(_modpath.."duo_compressed.png")
 
     self:set_name("Duo")
-    self:set_health(3000)
+    self:set_health(2000)
     self:set_texture(texture, true)
     self:set_height(60)
     self:share_tile(true)
