@@ -28,7 +28,7 @@ public:
 
   inline T& Unwrap() {
     if (!*valid) {
-      throw std::runtime_error("data deleted");
+      throw std::runtime_error("data invalid after scope ends");
     }
 
     return ref;
