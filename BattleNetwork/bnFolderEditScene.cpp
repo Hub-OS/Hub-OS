@@ -191,7 +191,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
 
     folderCardCountBox = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SIZE));
     folderCardCountBox.setPosition(sf::Vector2f(425.f, 10.f + folderCardCountBox.getLocalBounds().height));
-    folderCardCountBox.setScale(2.f, 2.f);
+    folderCardCountBox.setScale(1.75f, 1.75f);
     folderCardCountBox.setOrigin(folderCardCountBox.getLocalBounds().width / 2.0f, folderCardCountBox.getLocalBounds().height / 2.0f);
 
     cardHolder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));

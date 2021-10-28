@@ -137,10 +137,10 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   double summonSecs = summonTimer.getElapsed().asSeconds();
   double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
-  sf::Vector2f position = sf::Vector2f(40.0f, 80.f);
+  sf::Vector2f position = sf::Vector2f(66.f, 82.f);
 
   if (team == Team::blue) {
-    position = sf::Vector2f(470.0f, 80.0f);
+    position = sf::Vector2f(416.f, 82.f);
   }
 
   summonsLabel.setScale(2.0f, 2.0f*(float)scale);

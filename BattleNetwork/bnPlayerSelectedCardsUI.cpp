@@ -131,7 +131,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
       // Text sits at the bottom-left of the screen
       text.SetString(currCard.GetShortName());
       text.setOrigin(0, 0);
-      text.setPosition(3.0f, 290.0f);
+      text.setPosition(2.0f, 296.0f);
 
       // Text sits at the bottom-left of the screen
       int unmodDamage = currCard.GetUnmoddedProps().damage;
