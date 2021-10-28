@@ -43,6 +43,9 @@ Entity::Entity() :
 }
 
 Entity::~Entity() {
+}
+
+void Entity::Cleanup() {
   this->FreeAllComponents();
 }
 

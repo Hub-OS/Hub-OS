@@ -568,6 +568,8 @@ void Field::ForgetEntity(Entity::ID_t ID)
         }
       }
     }
+
+    target->Cleanup();
   }
 
   allEntityHash.erase(ID);

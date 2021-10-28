@@ -180,6 +180,11 @@ public:
   /**
    * @brief TODO
    */
+  virtual void Cleanup();
+
+  /**
+   * @brief TODO
+   */
   virtual void Update(double _elapsed);
 
   /**
