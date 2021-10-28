@@ -88,6 +88,7 @@ public:
 
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
+  virtual void Cleanup() override;
 
   virtual void OnBattleStop() override;
 

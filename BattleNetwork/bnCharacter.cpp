@@ -99,9 +99,14 @@ Character::Character(Rank _rank) :
 }
 
 Character::~Character() {
+}
+
+void Character::Cleanup() {
   for (auto& action : asyncActions) {
     action->EndAction();
   }
+
+  Entity::Cleanup();
 }
 
 void Character::OnBattleStop()

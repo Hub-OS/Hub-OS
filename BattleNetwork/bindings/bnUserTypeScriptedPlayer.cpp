@@ -217,7 +217,13 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
 
       return WeakWrapperChild<Player, ScriptedPlayerFormMeta>(parentPtr, *formMeta);
     },
-    "add_sync_node", [] (WeakWrapper<ScriptedPlayer>& player, const std::string& point) -> std::shared_ptr<SyncNode> {
+    "create_node", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapper<SpriteProxyNode> {
+      auto child = std::make_shared<SpriteProxyNode>();
+      player.Unwrap()->AddNode(child);
+
+      return WeakWrapper(child);
+    },
+    "create_sync_node", [] (WeakWrapper<ScriptedPlayer>& player, const std::string& point) -> std::shared_ptr<SyncNode> {
       return player.Unwrap()->AddSyncNode(point);
     },
     "remove_sync_node", [] (WeakWrapper<ScriptedPlayer>& player, const std::shared_ptr<SyncNode>& node) {

@@ -79,6 +79,8 @@ void BusterCardAction::Update(double _elapsed)
 void BusterCardAction::OnActionEnd()
 {
   auto actor = GetActor();
+  if (!actor) return;
+
   auto field = actor->GetField();
 
   if (field) {

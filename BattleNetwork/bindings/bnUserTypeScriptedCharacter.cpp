@@ -168,7 +168,7 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "set_texture", [](WeakWrapper<ScriptedCharacter>& character, std::shared_ptr<Texture> texture) {
       character.Unwrap()->setTexture(texture);
     },
-    "add_node", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<SpriteProxyNode> {
+    "create_node", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<SpriteProxyNode> {
       auto child = std::make_shared<SpriteProxyNode>();
       character.Unwrap()->AddNode(child);
 

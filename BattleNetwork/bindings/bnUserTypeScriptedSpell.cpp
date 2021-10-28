@@ -165,7 +165,7 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       auto& animation = spell.Unwrap()->GetAnimationObject();
       return AnimationWrapper(spell.GetWeak(), animation);
     },
-    "add_node", [](WeakWrapper<ScriptedSpell>& spell) -> WeakWrapper<SpriteProxyNode> {
+    "create_node", [](WeakWrapper<ScriptedSpell>& spell) -> WeakWrapper<SpriteProxyNode> {
       auto child = std::make_shared<SpriteProxyNode>();
       spell.Unwrap()->AddNode(child);
 

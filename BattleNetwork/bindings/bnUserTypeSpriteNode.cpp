@@ -31,7 +31,7 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
     "get_layer", [](WeakWrapper<SpriteProxyNode>& node) -> int {
       return node.Unwrap()->GetLayer();
     },
-    "add_node", [](WeakWrapper<SpriteProxyNode>& node) -> WeakWrapper<SpriteProxyNode> {
+    "create_node", [](WeakWrapper<SpriteProxyNode>& node) -> WeakWrapper<SpriteProxyNode> {
       auto child = std::make_shared<SpriteProxyNode>();
       node.Unwrap()->AddNode(child);
 
