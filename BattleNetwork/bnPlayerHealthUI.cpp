@@ -19,7 +19,7 @@ PlayerHealthUI::PlayerHealthUI(std::weak_ptr<Player> _player) :
   uibox.setScale(2.f, 2.f);
 
   glyphs.setScale(2.f, 2.f);
-  glyphs.setPosition((uibox.getLocalBounds().width*2.f) - 8.f, 4.f);
+  glyphs.setPosition((uibox.getLocalBounds().width*2.f) - 8.f, 6.f);
 
   lastHP = currHP = startHP = _player.lock()->GetHealth();
 

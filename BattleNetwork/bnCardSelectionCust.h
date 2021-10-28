@@ -80,6 +80,7 @@ private:
   Font codeFont, codeFont2;
   mutable Text smCodeLabel;
   mutable Text label;
+  mutable Text damageLabel;
   mutable CustEmblem emblem;
 
   int formCursorRow; //!< Cursor row

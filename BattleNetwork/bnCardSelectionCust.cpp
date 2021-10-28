@@ -119,6 +119,7 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
   codeFont(Font::Style::wide),
   codeFont2(Font::Style::small),
   label("", labelFont),
+  damageLabel("", labelFont),
   smCodeLabel("?", codeFont)
 {
   this->props.cap = std::min(this->props.cap, 8);
@@ -221,6 +222,7 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
 
   //setScale(0.5f, 0.5); // testing transforms
   label.setScale(2.f, 2.f);
+  damageLabel.setScale(2.1, 2.1);
   smCodeLabel.setScale(2.f, 2.f);
 }
 
@@ -781,23 +783,24 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       // card name font shadow
       const std::string& shortname = queue[cursorPos + (5 * cursorRow)].data->GetShortName();
-      label.setPosition((offset + 2.f * 16.f) + 2.f, 22.f);
+      label.setPosition((offset + 2.f * 16.f) + 2.f, 26.f);
       label.SetString(shortname);
       label.SetColor(sf::Color(80, 75, 80));
       target.draw(label, states);
 
       // card name font overlay
-      label.setPosition(offset + 2.f * 16.f, 20.f);
+      label.setPosition(offset + 2.f * 16.f, 24.f);
       label.SetString(shortname);
-      label.SetColor(sf::Color::White);
+      label.SetColor(sf::Color(224, 224, 224, 255));
+      damageLabel.SetColor(sf::Color(224, 224, 224, 255));
       target.draw(label, states);
 
       // the order here is very important:
       if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
-        label.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
+        damageLabel.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
         label.setOrigin(label.GetLocalBounds().width + label.GetLocalBounds().left, 0);
-        label.setPosition((offset + 2.f * (70.f)) + 2.f, 152.f);
-        target.draw(label, states);
+        damageLabel.setPosition(((offset-28.f) + 2.f * (70.f)) + 2.f, 150.f);
+        target.draw(damageLabel, states);
       }
 
       label.setOrigin(0, 0);
