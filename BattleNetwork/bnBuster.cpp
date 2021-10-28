@@ -9,8 +9,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-#include "bnGear.h" 
-
 Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_team) {
   SetPassthrough(true);
   SetLayer(-100);
@@ -28,19 +26,6 @@ Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spe
 
   random = 0;
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
-
-  if (_charged) {
-    texture = Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
-    animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
-    animationComponent->Reload();
-    animationComponent->SetAnimation("HIT");
-  } else {
-    texture = Textures().GetTexture(TextureType::SPELL_BULLET_HIT);
-    animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
-    animationComponent->Reload();
-    animationComponent->SetAnimation("HIT");
-  }
   setScale(2.f, 2.f);
 
   Audio().Play(AudioType::BUSTER_PEA, AudioPriority::high);
@@ -55,11 +40,29 @@ Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spe
   spawnGuard = false;
 }
 
+void Buster::Init()
+{
+  Spell::Init();
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
+
+  if (isCharged) {
+    texture = Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+    animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
+  } else {
+    texture = Textures().GetTexture(TextureType::SPELL_BULLET_HIT);
+    animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
+  }
+}
+
 Buster::~Buster() {
 }
 
 void Buster::OnUpdate(double _elapsed) {
-  GetTile()->AffectEntities(this);
+  GetTile()->AffectEntities(*this);
 
   cooldown -= from_seconds(_elapsed);
   if (cooldown <= frames(0)) {
@@ -83,7 +86,7 @@ void Buster::OnDelete()
   Remove();
 }
 
-void Buster::OnCollision(const Character* entity)
+void Buster::OnCollision(const std::shared_ptr<Entity> entity)
 {
   random = entity->getLocalBounds().width / 2.0f;
   hitHeight = std::floor(entity->GetHeight());
@@ -100,14 +103,14 @@ void Buster::OnCollision(const Character* entity)
     hitHeight /= 2;
   }
 
-  auto bhit = new BusterHit(isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
+  auto bhit = std::make_shared<BusterHit>(isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
   bhit->SetOffset({ random, -(GetHeight() + hitHeight) });
-  GetField()->AddEntity(*bhit, *GetTile());
+  GetField()->AddEntity(bhit, *GetTile());
 
   Delete();
   Audio().Play(AudioType::HURT);
 }
 
-void Buster::Attack(Character* _entity) {
+void Buster::Attack(std::shared_ptr<Entity> _entity) {
   _entity->Hit(GetHitboxProperties());
 }

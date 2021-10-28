@@ -11,6 +11,10 @@
 #include "../bnPlayerControlledState.h"
 #include "../bnPlayerIdleState.h"
 #include "../bnPlayerHitState.h"
+#include "../stx/result.h"
+#include "dynamic_object.h"
+#include "bnWeakWrapper.h"
+#include "bnSyncNode.h"
 
 /*! \brief scriptable navi
  *
@@ -19,10 +23,13 @@
 
 class ScriptedPlayerFormMeta;
 
-class ScriptedPlayer : public Player {
+class ScriptedPlayer : public Player, public dynamic_object {
   sol::state& script;
   float height{};
+  SyncNodeContainer syncNodeContainer;
 
+  std::shared_ptr<CardAction> GenerateCardAction(sol::object& function, const std::string& functionName);
+  WeakWrapper<ScriptedPlayer> weakWrap;
 public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;
@@ -30,6 +37,7 @@ public:
   ScriptedPlayer(sol::state& script);
   ~ScriptedPlayer();
 
+  void Init() override;
   void SetChargePosition(const float x, const float y);
   void SetFullyChargeColor(const sf::Color& color);
   void SetHeight(const float height);
@@ -37,20 +45,18 @@ public:
   void OnUpdate(double _elapsed) override;
 
   ScriptedPlayerFormMeta* CreateForm();
-  void AddForm(ScriptedPlayerFormMeta* meta);
-
-  AnimationComponent::SyncItem& CreateAnimSyncItem(Animation* anim, SpriteProxyNode* node, const std::string& point);
-  void RemoveAnimSyncItem(const AnimationComponent::SyncItem& item);
 
   const float GetHeight() const;
   Animation& GetAnimationObject();
   Battle::Tile* GetCurrentTile() const;
+  std::shared_ptr<SyncNode> AddSyncNode(const std::string& point);
+  void RemoveSyncNode(std::shared_ptr<SyncNode> syncNode);
 
-  CardAction* OnExecuteBusterAction() override final;
-  CardAction* OnExecuteChargedBusterAction() override final;
-  std::function<void(Character&, double)> on_update_func;
-  CardAction* OnExecuteSpecialAction() override final;
-  std::function<sol::object(Player*)> on_buster_action, on_charged_action, on_special_action;
+  std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
+  std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
+  std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
+
+  sol::object update_func, normal_attack_func, charged_attack_func, special_attack_func;
 };
 
 #endif

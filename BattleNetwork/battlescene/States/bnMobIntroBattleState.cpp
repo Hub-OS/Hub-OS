@@ -5,7 +5,7 @@
 #include "../../bnMob.h"
 #include "../../bnAgent.h"
 
-MobIntroBattleState::MobIntroBattleState(Mob* mob, std::vector<Player*> tracked): 
+MobIntroBattleState::MobIntroBattleState(Mob* mob, std::vector<std::shared_ptr<Player>> tracked): 
   mob(mob), tracked(tracked)
 {
 }
@@ -17,21 +17,20 @@ void MobIntroBattleState::onUpdate(double elapsed)
   Field& field = *GetScene().GetField();
 
   if (mob->NextMobReady()) {
-    Mob::MobData* data = mob->GetNextMob();
+    auto data = mob->GetNextSpawn();
 
-    Agent* cast = dynamic_cast<Agent*>(data->character);
+    Agent* cast = dynamic_cast<Agent*>(data->character.get());
 
     // Some entities have AI and need targets
     // TODO: support multiple targets
-    Player* player = tracked[0];
     if (cast) {
-      cast->SetTarget(player);
+      cast->SetTarget(tracked[0]);
     }
 
-    Character* enemy = data->character;
+    auto& enemy = data->character;
 
     enemy->ToggleTimeFreeze(false);
-    GetScene().GetField()->AddEntity(*enemy, data->tileX, data->tileY);
+    GetScene().GetField()->AddEntity(enemy, data->tileX, data->tileY);
 
     // Listen for events
     GetScene().CounterHitListener::Subscribe(*enemy);
@@ -46,7 +45,7 @@ void MobIntroBattleState::onEnd(const BattleSceneState*)
 {
   mob->DefaultState();
 
-  for (auto* player : tracked) {
+  for (auto& player : tracked) {
     player->ChangeState<PlayerControlledState>();
   }
 

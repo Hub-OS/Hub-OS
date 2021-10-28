@@ -13,9 +13,6 @@ class Field;
  */
 class BusterHit : public Artifact
 {
-private:
-  AnimationComponent* animationComponent;
-  sf::Vector2f offset;
 public:
   enum class Type : int {
     PEA,
@@ -25,8 +22,13 @@ public:
   BusterHit(Type type = Type::PEA);
   ~BusterHit();
   void SetOffset(const sf::Vector2f offset);
+  void Init() override;
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
 
+private:
+  std::shared_ptr<AnimationComponent> animationComponent;
+  sf::Vector2f offset;
+  Type type;
 };
 

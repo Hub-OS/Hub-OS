@@ -5,6 +5,7 @@
 #include "dynamic_object.h"
 #include "../bnObstacle.h"
 #include "../bnAnimationComponent.h"
+#include "bnWeakWrapper.h"
 
 using sf::Texture;
 
@@ -15,12 +16,13 @@ class ScriptedObstacle final : public Obstacle, public dynamic_object {
 public:
   ScriptedObstacle(Team _team);
   ~ScriptedObstacle();
-  
+
+  void Init() override;
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile * next) override;
-  void OnCollision(const Character* other) override;
-  void Attack(Character* e) override;
+  void OnCollision(const std::shared_ptr<Entity> other) override;
+  void Attack(std::shared_ptr<Entity> e) override;
   void OnSpawn(Battle::Tile& spawn) override;
   const float GetHeight() const;
   void SetHeight(const float height);
@@ -35,18 +37,19 @@ public:
 
   void NeverFlip(bool enabled);
 
-  std::function<void(ScriptedObstacle&, Battle::Tile&)> spawnCallback;
-  std::function<void(ScriptedObstacle&, Character&)> attackCallback;
-  std::function<void(ScriptedObstacle&, Character&)> collisionCallback;
-  std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(ScriptedObstacle&)> deleteCallback;
-  std::function<void(ScriptedObstacle&, double)> updateCallback;
+  sol::object can_move_to_func;
+  sol::object collision_func;
+  sol::object update_func;
+  sol::object delete_func;
+  sol::object attack_func;
+  sol::object on_spawn_func;
 private:
   bool flip{ true };
   sf::Vector2f scriptedOffset{};
   float height{};
-  SpriteProxyNode* shadow{ nullptr };
-  AnimationComponent* animComponent{ nullptr };
-  DefenseRule* obstacleBody{ nullptr };
+  std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
+  std::shared_ptr<AnimationComponent> animComponent{ nullptr };
+  std::shared_ptr<DefenseRule> obstacleBody{ nullptr };
+  WeakWrapper<ScriptedObstacle> weakWrap;
 };
 #endif

@@ -33,28 +33,28 @@ ConfigScene::TextItem::TextItem(
     [this, callback] { callback(*this); },
     [this, secondaryCallback] { secondaryCallback(*this); }
   ),
-  label(text, Font::Style::wide),
+  label(std::make_shared<Text>(text, Font::Style::wide)),
   color(DEFAULT_TEXT_COLOR)
 {
-  AddNode(&label);
+  AddNode(label);
 }
 
 const std::string& ConfigScene::TextItem::GetString() {
-  return label.GetString();
+  return label->GetString();
 }
 
 void ConfigScene::TextItem::SetString(const std::string& text) {
-  label.SetString(text);
+  label->SetString(text);
 }
 
 void ConfigScene::TextItem::SetColor(sf::Color color) {
   this->color = color;
-  label.SetColor(color);
+  label->SetColor(color);
 }
 
 void ConfigScene::TextItem::SetAlpha(sf::Uint8 alpha) {
   color.a = alpha;
-  label.SetColor(color);
+  label->SetColor(color);
 }
 
 ConfigScene::NicknameItem::NicknameItem(const std::function<void()>& callback) : TextItem("Set Nick", [callback](auto&) { callback(); }) {}
@@ -75,31 +75,31 @@ ConfigScene::BindingItem::BindingItem(
     [this, callback](auto&) { callback(*this); },
     [this, secondaryCallback](auto&) { secondaryCallback(*this); }
   ),
-  value(Font::Style::wide)
+  valueText(std::make_shared<Text>(Font::Style::wide))
 {
   SetValue(valueName);
-  AddNode(&value);
+  AddNode(valueText);
 }
 
 void ConfigScene::BindingItem::SetValue(std::optional<std::reference_wrapper<std::string>> valueName) {
   if (valueName) {
     valueColor = DEFAULT_TEXT_COLOR;
-    value.SetString(valueName->get());
+    valueText->SetString(valueName->get());
   }
   else {
     valueColor = NO_BINDING_COLOR;
-    value.SetString("NO KEY");
+    valueText->SetString("NO KEY");
   }
 }
 
 void ConfigScene::BindingItem::SetAlpha(sf::Uint8 alpha) {
   valueColor.a = alpha;
-  value.SetColor(valueColor);
+  valueText->SetColor(valueColor);
   TextItem::SetAlpha(alpha);
 }
 
 void ConfigScene::BindingItem::Update() {
-  value.setPosition((BINDED_VALUE_OFFSET * 2.0f) / getScale().x - value.GetLocalBounds().width, 0.0f);
+  valueText->setPosition((BINDED_VALUE_OFFSET * 2.0f) / getScale().x - valueText->GetLocalBounds().width, 0.0f);
 }
 
 ConfigScene::NumberItem::NumberItem(
@@ -109,7 +109,8 @@ ConfigScene::NumberItem::NumberItem(
   const std::function<void(int, NumberItem&)>& callback) :
   TextItem(text, createCallback(callback), createSecondaryCallback(callback)),
   refreshCallback(callback),
-  value(value)
+  value(value),
+  icon(std::make_shared<SpriteProxyNode>())
 {
   this->color = color;
 }
@@ -123,7 +124,7 @@ std::function<void(ConfigScene::TextItem&)> ConfigScene::NumberItem::createCallb
       value = minValue;
     }
 
-    animator.SetFrame(value, icon.getSprite());
+    animator.SetFrame(value, icon->getSprite());
     callback(value, *this);
   };
 }
@@ -137,30 +138,30 @@ std::function<void(ConfigScene::TextItem&)> ConfigScene::NumberItem::createSecon
       value = maxValue;
     }
 
-    animator.SetFrame(value, icon.getSprite());
+    animator.SetFrame(value, icon->getSprite());
     callback(value, *this);
   };
 }
 
 void ConfigScene::NumberItem::SetAlpha(sf::Uint8 alpha) {
   TextItem::SetAlpha(alpha);
-  icon.setColor(color);
+  icon->setColor(color);
 }
 
 void ConfigScene::NumberItem::UseIcon(const std::string& image_path, const std::string& animation_path, const std::string& state)
 {
-  AddNode(&icon);
-  icon.setTexture(Textures().LoadTextureFromFile(image_path));
-  icon.setPosition(
-    label.GetLocalBounds().width + COL_PADDING,
-    label.GetLocalBounds().height / 2.0f - icon.getLocalBounds().height / 2.0f
+  AddNode(icon);
+  icon->setTexture(Textures().LoadTextureFromFile(image_path));
+  icon->setPosition(
+    label->GetLocalBounds().width + COL_PADDING,
+    label->GetLocalBounds().height / 2.0f - icon->getLocalBounds().height / 2.0f
   );
 
   animator = Animation(animation_path);
   animator.Load();
   animator.SetAnimation(state);
-  animator.SetFrame(value, icon.getSprite());
-  animator.Update(0, icon.getSprite());
+  animator.SetFrame(value, icon->getSprite());
+  animator.Update(0, icon->getSprite());
 }
 
 void ConfigScene::NumberItem::SetValueRange(int min, int max)

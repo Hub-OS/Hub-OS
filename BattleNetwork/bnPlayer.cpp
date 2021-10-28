@@ -6,7 +6,6 @@
 #include "bnAudioResourceManager.h"
 #include "bnGame.h"
 #include "bnLogger.h"
-#include "bnAura.h"
 #include "netplay/bnPlayerNetworkState.h"
 #include "netplay/bnPlayerInputReplicator.h"
 #include "netplay/bnPlayerNetworkProxy.h"
@@ -18,7 +17,7 @@
 
 Player::Player() :
   state(PLAYER_IDLE),
-  chargeEffect(this),
+  chargeEffect(std::make_shared<ChargeEffectSceneNode>(this)),
   AI<Player>(this),
   Character(Rank::_1),
   emotion{Emotion::normal}
@@ -29,24 +28,20 @@ Player::Player() :
   // Make sure the charge is in front of this node
   // Otherwise children scene nodes are drawn behind 
   // their parents
-  chargeEffect.SetLayer(-2);
-  AddNode(&chargeEffect);
-  chargeEffect.setPosition(0, -20.0f); // translate up -20
-  chargeEffect.EnableParentShader(false);
+  chargeEffect->SetLayer(-2);
+  AddNode(chargeEffect);
+  chargeEffect->setPosition(0, -20.0f); // translate up -20
+  chargeEffect->EnableParentShader(false);
 
   SetLayer(0);
   team = Team::red;
 
   setScale(2.0f, 2.0f);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
-  animationComponent->SetPath(RESOURCE_PATH);
-  animationComponent->Reload();
-
   previous = nullptr;
   playerControllerSlide = false;
   activeForm = nullptr;
-  superArmor = new DefenseSuperArmor();
+  superArmor = std::make_shared<DefenseSuperArmor>();
 
   auto flinch = [this]() {
     ClearActionQueue();
@@ -62,8 +57,6 @@ Player::Player() :
 
   actionQueue.RegisterType<BusterEvent>(ActionTypes::buster, handler);
 
-  FinishConstructor();
-
   // When we have no upcoming actions we should be in IDLE state
   actionQueue.SetIdleCallback([this] {
     if (!IsActionable()) {
@@ -76,12 +69,25 @@ Player::Player() :
   });
 }
 
+void Player::Init() {
+  Character::Init();
+
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
+  animationComponent->SetPath(RESOURCE_PATH);
+  animationComponent->Reload();
+
+  FinishConstructor();
+}
+
 Player::~Player() {
   for (auto form : forms) {
     delete form;
   }
 
-  delete superArmor;
+  if (activeForm) {
+    delete activeForm;
+  }
+
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 }
 
@@ -107,13 +113,13 @@ void Player::OnUpdate(double _elapsed) {
   AI<Player>::Update(_elapsed);
 
   if (activeForm) {
-    activeForm->OnUpdate(_elapsed, *this);
+    activeForm->OnUpdate(_elapsed, shared_from_base<Player>());
   }
 
   //Node updates
-  chargeEffect.Update(_elapsed);
+  chargeEffect->Update(_elapsed);
 
-  fullyCharged = chargeEffect.IsFullyCharged();
+  fullyCharged = chargeEffect->IsFullyCharged();
 }
 
 void Player::MakeActionable()
@@ -132,7 +138,7 @@ bool Player::IsActionable() const
 }
 
 void Player::Attack() {
-  CardAction* action = nullptr;
+  std::shared_ptr<CardAction> action = nullptr;
 
   // Queue an action for the controller to fire at the right frame
   if (tile) {
@@ -174,7 +180,7 @@ void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::Exec
 }
 
 void Player::OnDelete() {
-  chargeEffect.Hide();
+  chargeEffect->Hide();
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 
   // Cleanup child nodes
@@ -216,8 +222,8 @@ void Player::Charge(bool state)
     maxCharge = activeForm->CalculateChargeTime(GetChargeLevel());
   }
 
-  chargeEffect.SetMaxChargeTime(maxCharge);
-  chargeEffect.SetCharging(state);
+  chargeEffect->SetMaxChargeTime(maxCharge);
+  chargeEffect->SetCharging(state);
 }
 
 void Player::SetAttackLevel(unsigned lvl)
@@ -281,7 +287,7 @@ void Player::SlideWhenMoving(bool enable, const frame_time_t& frames)
   playerControllerSlide = enable;
 }
 
-CardAction* Player::OnExecuteSpecialAction()
+std::shared_ptr<CardAction> Player::OnExecuteSpecialAction()
 {
   if (specialOverride) {
     return specialOverride();
@@ -314,17 +320,17 @@ frame_time_t Player::CalculateChargeTime(const unsigned chargeLevel)
   return frames(50);
 }
 
-CardAction* Player::ExecuteBuster()
+std::shared_ptr<CardAction> Player::ExecuteBuster()
 {
    return OnExecuteBusterAction();
 }
 
-CardAction* Player::ExecuteChargedBuster()
+std::shared_ptr<CardAction> Player::ExecuteChargedBuster()
 {
    return OnExecuteChargedBusterAction();
 }
 
-CardAction* Player::ExecuteSpecial()
+std::shared_ptr<CardAction> Player::ExecuteSpecial()
 {
   return OnExecuteSpecialAction();
 }
@@ -334,7 +340,7 @@ void Player::ActivateFormAt(int index)
   index = index - 1; // base 1 to base 0
 
   if (activeForm) {
-    activeForm->OnDeactivate(*this);
+    activeForm->OnDeactivate(shared_from_base<Player>());
     delete activeForm;
     activeForm = nullptr;
     RevertStats();
@@ -346,7 +352,7 @@ void Player::ActivateFormAt(int index)
 
     if (activeForm) {
       SaveStats();
-      activeForm->OnActivate(*this);
+      activeForm->OnActivate(shared_from_base<Player>());
       CreateMoveAnimHash();
       animationComponent->Refresh();
     }
@@ -355,7 +361,7 @@ void Player::ActivateFormAt(int index)
   // Find nodes that do not have tags, those are newly added
   for (auto& node : GetChildNodes()) {
     // if untagged and not the charge effect...
-    if (!node->HasTag(Player::BASE_NODE_TAG) && node != &chargeEffect) {
+    if (!node->HasTag(Player::BASE_NODE_TAG) && node != chargeEffect) {
       // Tag it as a form node
       node->AddTags({ Player::FORM_NODE_TAG });
       node->EnableParentShader(true);
@@ -366,7 +372,7 @@ void Player::ActivateFormAt(int index)
 void Player::DeactivateForm()
 {
   if (activeForm) {
-    activeForm->OnDeactivate(*this);
+    activeForm->OnDeactivate(shared_from_base<Player>());
     RevertStats();
     CreateMoveAnimHash();
   }
@@ -390,10 +396,10 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
 
 ChargeEffectSceneNode& Player::GetChargeComponent()
 {
-  return chargeEffect;
+  return *chargeEffect;
 }
 
-void Player::OverrideSpecialAbility(const std::function<CardAction* ()>& func)
+void Player::OverrideSpecialAbility(const std::function<std::shared_ptr<CardAction> ()>& func)
 {
   specialOverride = func;
 }
@@ -439,7 +445,7 @@ void Player::TagBaseNodes()
 {
   for (auto& node : GetChildNodes()) {
     // skip charge node, it is a special effect and not a part of our character
-    if (node == &chargeEffect) continue;
+    if (node == chargeEffect) continue;
 
     node->AddTags({ Player::BASE_NODE_TAG });
   }

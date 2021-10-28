@@ -5,7 +5,9 @@
 #include "dynamic_object.h"
 #include "../bnCharacter.h"
 #include "../bnAI.h"
+#include "../bnSolHelpers.h"
 #include "bnScriptedCardAction.h"
+#include "bnWeakWrapper.h"
 
 class AnimationComponent;
 class ScriptedCharacterState;
@@ -22,15 +24,17 @@ class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, 
   friend class ScriptedIntroState;
   sol::state& script;
   float height{};
-  AnimationComponent* animation{ nullptr };
+  std::shared_ptr<AnimationComponent> animation{ nullptr };
   bool bossExplosion{ false };
   double explosionPlayback{ 1.0 };
   int numOfExplosions{ 2 };
+  WeakWrapper<ScriptedCharacter> weakWrap;
 public:
   using DefaultState = ScriptedCharacterState;
 
   ScriptedCharacter(sol::state& script, Character::Rank rank);
   ~ScriptedCharacter();
+  void Init();
   void OnSpawn(Battle::Tile& start) override;
   void OnBattleStart() override;
   void OnBattleStop() override;
@@ -43,15 +47,15 @@ public:
   void ShakeCamera(double power, float duration);
   Animation& GetAnimationObject();
   void SetExplosionBehavior(int num, double speed, bool isBoss);
-  void SimpleCardActionEvent(std::unique_ptr<ScriptedCardAction>& action, ActionOrder order);
-  void SimpleCardActionEvent(std::unique_ptr<CardAction>& action, ActionOrder order);
+  void SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order);
+  void SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order);
 
-  std::function<void(ScriptedCharacter&, Battle::Tile&)> spawnCallback;
-  std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(ScriptedCharacter&)> deleteCallback;
-  std::function<void(ScriptedCharacter&)> onBattleStartCallback;
-  std::function<void(ScriptedCharacter&)> onBattleEndCallback;
-  std::function<void(ScriptedCharacter&, double)> updateCallback;
+  sol::object update_func;
+  sol::object delete_func;
+  sol::object on_spawn_func;
+  sol::object battle_start_func;
+  sol::object battle_end_func;
+  sol::object can_move_to_func;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {
@@ -60,7 +64,14 @@ public:
   }
 
   void OnUpdate(double elapsed, ScriptedCharacter& s) override {
-    s.updateCallback(s, elapsed);
+    if (s.update_func.valid())
+    {
+      auto result = CallLuaCallback(s.update_func, s.weakWrap, elapsed);
+
+      if (result.is_error()) {
+        Logger::Log(result.error_cstr());
+      }
+    }
   }
 
   void OnLeave(ScriptedCharacter& s) override {
@@ -82,4 +93,4 @@ class ScriptedIntroState : public AIState<ScriptedCharacter> {
   }
 };
 
-#endif 
+#endif

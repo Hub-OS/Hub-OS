@@ -4,18 +4,18 @@
 #include <string>
 #include <functional>
 #include <map>
+#include "stx/memory.h"
 
 #include "bnSpriteProxyNode.h"
 #include "bnResourceHandle.h"
 #include "bnAnimationComponent.h"
 #include "bnCard.h"
-#include "bnEntity.h"
 
 class Character;
 
 using namespace swoosh;
 
-class CardAction : public sf::Drawable, public ResourceHandle {
+class CardAction : public stx::enable_shared_from_base<CardAction>, public sf::Drawable, public ResourceHandle {
 public:
   enum class LockoutType : unsigned {
     animation = 0,
@@ -41,15 +41,15 @@ public:
 
     bool started{ false };
     std::string point;
-    std::reference_wrapper<SpriteProxyNode> spriteProxy;
+    std::shared_ptr<SpriteProxyNode> spriteProxy;
     std::reference_wrapper<Animation> parentAnim;
     Attachments attachments;
-    Animation* myAnim{ nullptr };
+    Animation animation;
 
   public:
     friend class CardAction; // Let CardAction inspect our member vars
 
-    Attachment(Animation& parentAnim, const std::string& point, SpriteProxyNode& parentNode);
+    Attachment(Animation& parentAnim, const std::string& point);
     ~Attachment();
 
     Attachment& UseAnimation(Animation&);
@@ -58,7 +58,9 @@ public:
     void SetScale(const sf::Vector2f& scale);
     void AttachAllPendingNodes();
     Animation& GetParentAnim();
-    Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);
+    Attachment& AddAttachment(const std::string& point);
+    std::shared_ptr<SpriteProxyNode> GetSpriteNode();
+    Animation& GetAnimationObject();
   };
 
   struct Step : public swoosh::BlockingActionItem {
@@ -96,9 +98,9 @@ private:
   std::function<void()> prepareActionDelegate;
   ActionList sequence;
   std::list<Step*> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
-  Character* actor{ nullptr };
+  std::weak_ptr<Character> actor;
   Attachments attachments;
-  AnimationComponent* anim{ nullptr };
+  std::shared_ptr<AnimationComponent> anim{ nullptr };
   Battle::Card::Properties meta;
 
   // Used internally
@@ -108,7 +110,7 @@ private:
 public:
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
-  CardAction(Character* actor, const std::string& animation);
+  CardAction(std::weak_ptr<Character> actor, const std::string& animation);
   virtual ~CardAction();
 
   // Used by cards that use sequences (like most Time Freeze animations)
@@ -118,10 +120,7 @@ public:
   void AddAnimAction(int frame, const FrameCallback& action);
 
   // For additional visual overlays
-  Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);
-
-  // Shortcut to add an attachment to a character via their animation component
-  Attachment& AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node);
+  Attachment& AddAttachment(const std::string& point);
 
   // Calculate the offset for an attachment for a given point in the owner's animation set
   sf::Vector2f CalculatePointOffset(const std::string& point);
@@ -131,9 +130,9 @@ public:
   void SetLockoutGroup(const LockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
   void SetMetaData(const Battle::Card::Properties& props);
-  void Execute(Character* user);
+  void Execute(std::shared_ptr<Character> user);
   void EndAction();
-  void UseStuntDouble(Character& stuntDouble);
+  void UseStuntDouble(std::shared_ptr<Character> stuntDouble); // can cause GetActor to return nullptr
 
   const LockoutGroup GetLockoutGroup() const;
   const LockoutType GetLockoutType() const;
@@ -142,8 +141,8 @@ public:
   const bool IsLockoutOver() const;
   const Battle::Card::Properties& GetMetaData() const;
   const bool CanExecute() const;
-  Character* GetActor();
-  const Character* GetActor() const;
+  std::shared_ptr<Character> GetActor(); // may return nullptr
+  const std::shared_ptr<Character> GetActor() const; // may return nullptr
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -151,5 +150,5 @@ public:
 protected:
   virtual void OnActionEnd() = 0;
   virtual void OnAnimationEnd() = 0;
-  virtual void OnExecute(Character* user) = 0;
+  virtual void OnExecute(std::shared_ptr<Character> user) = 0;
 };

@@ -13,7 +13,7 @@ bool FreedomMissionOverState::IsFinished() {
   return battleEndTimer.getElapsed().asMilliseconds() >= postBattleLength;
 }
 
-FreedomMissionOverState::FreedomMissionOverState(std::vector<Player*>& tracked) : tracked(tracked)
+FreedomMissionOverState::FreedomMissionOverState(std::vector<std::shared_ptr<Player>>& tracked) : tracked(tracked)
 {
   battleEnd = sf::Sprite(*LOAD_TEXTURE(ENEMY_DELETED));
   battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);

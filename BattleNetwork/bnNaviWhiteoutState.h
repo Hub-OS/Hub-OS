@@ -18,7 +18,7 @@ class NaviWhiteoutState : public AIState<Any>
 {
 protected:
     float factor; /*!< Strength of the pixelate effect. Set to 125 */
-    ShineExplosion* shine; /*!< Shine X that appears over navi ranked enemies */
+    std::shared_ptr<ShineExplosion> shine; /*!< Shine X that appears over navi ranked enemies */
     bool fadeout; /*!< If true, begin fading out*/
 public:
     inline static const int PriorityLevel = 0; // Highest
@@ -73,8 +73,9 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
 
     /* Spawn shine artifact */
     Battle::Tile* tile = e.GetTile();
-    Field* field = e.GetField();
-    shine = new ShineExplosion();
+    std::shared_ptr<Field> field = e.GetField();
+    shine = std::make_shared<ShineExplosion>();
+    shine->Init();
 
     // ShineExplosion loops, we just want to play once and delete
     auto animComponent = shine->GetFirstComponent<AnimationComponent>();
@@ -85,7 +86,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
         ResourceHandle().Audio().Play(AudioType::DELETED);
     });
 
-    field->AddEntity(*shine, tile->GetX(), tile->GetY());
+    field->AddEntity(shine, tile->GetX(), tile->GetY());
 
     auto animation = e.template GetFirstComponent<AnimationComponent>();
 

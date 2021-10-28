@@ -14,8 +14,8 @@ const std::string PlayerFormMeta::GetUIPath() const
   return path;
 }
 
-void PlayerFormMeta::ActivateForm(Player& player) {
-  player.ActivateFormAt(static_cast<int>(index));
+void PlayerFormMeta::ActivateForm(std::shared_ptr<Player> player) {
+  player->ActivateFormAt(static_cast<int>(index));
 }
 
 PlayerForm* PlayerFormMeta::BuildForm() {

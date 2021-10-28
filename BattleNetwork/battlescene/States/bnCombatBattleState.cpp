@@ -14,7 +14,7 @@
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
 
-CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, double customDuration) :
+CombatBattleState::CombatBattleState(Mob* mob, std::vector<std::shared_ptr<Player>>& tracked, double customDuration) :
   mob(mob), 
   tracked(tracked), 
   customDuration(customDuration),
@@ -67,14 +67,19 @@ const bool CombatBattleState::HasTimeFreeze() const {
 
 const bool CombatBattleState::PlayerWon() const
 {
-  auto blueTeamChars = GetScene().GetField()->FindEntities([](Entity* e) {
+  auto blueTeamCharCount = 0;
+  GetScene().GetField()->FindEntities([&blueTeamCharCount](std::shared_ptr<Entity>& e) {
     // check when the enemy has been removed from the field even if the mob
     // forgot about it
     // TODO: do not use dynamic casts
-    return e->GetTeam() == Team::blue && dynamic_cast<Character*>(e) && (dynamic_cast<Obstacle*>(e) == nullptr);
+    if (e->GetTeam() == Team::blue && dynamic_cast<Character*>(e.get()) && (dynamic_cast<Obstacle*>(e.get()) == nullptr)) {
+      blueTeamCharCount++;
+    }
+
+    return false;
   });
 
-  return !PlayerLost() && mob->IsCleared() && blueTeamChars.empty() && GetScene().ComboDeleteSize() == 0;
+  return !PlayerLost() && mob->IsCleared() && blueTeamCharCount == 0 && GetScene().ComboDeleteSize() == 0;
 }
 
 const bool CombatBattleState::PlayerLost() const

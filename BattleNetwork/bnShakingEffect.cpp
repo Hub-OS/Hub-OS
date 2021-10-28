@@ -2,12 +2,11 @@
 #include "bnEntity.h"
 #include "battlescene/bnBattleSceneBase.h"
 
-ShakingEffect::ShakingEffect(Entity * owner) : 
-  privOwner(owner),
+ShakingEffect::ShakingEffect(std::weak_ptr<Entity> owner) : 
   shakeDur(0.35f),
   stress(3),
   shakeProgress(0),
-  startPos(owner->getPosition()),
+  startPos(owner.lock()->getPosition()),
   bscene(nullptr),
   isShaking(false),
   Component(owner, Component::lifetimes::ui)
@@ -20,9 +19,10 @@ ShakingEffect::~ShakingEffect()
 
 void ShakingEffect::OnUpdate(double _elapsed)
 {
+  auto owner = GetOwner();
   shakeProgress += _elapsed;
 
-  if (shakeProgress <= shakeDur) {
+  if (owner && shakeProgress <= shakeDur) {
     // Drop off to zero by end of shake
     double currStress = stress * (1.0 - (shakeProgress / shakeDur));
 
@@ -30,7 +30,8 @@ void ShakingEffect::OnUpdate(double _elapsed)
     randomAngle += (150 + (rand() % 60));
 
     auto shakeOffset = sf::Vector2f(std::sin(static_cast<float>(randomAngle * currStress)), std::cos(static_cast<float>(randomAngle * currStress)));
-    privOwner->setPosition(startPos + shakeOffset);
+
+    owner->setPosition(startPos + shakeOffset);
   }
   else {
     Eject();
@@ -39,6 +40,6 @@ void ShakingEffect::OnUpdate(double _elapsed)
 
 void ShakingEffect::Inject(BattleSceneBase&bscene)
 {
-  bscene.Inject(this);
+  bscene.Inject(shared_from_base<ShakingEffect>());
   ShakingEffect::bscene = &bscene;
 }

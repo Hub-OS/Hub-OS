@@ -28,19 +28,19 @@ VolcanoErupt::~VolcanoErupt()
 void VolcanoErupt::OnUpdate(double elapsed)
 {
   eruptAnim.Update(elapsed, getSprite());
-  GetTile()->AffectEntities(this);
+  GetTile()->AffectEntities(*this);
 }
 
 void VolcanoErupt::OnDelete()
 {
 }
 
-void VolcanoErupt::OnCollision(const Character*)
+void VolcanoErupt::OnCollision(const std::shared_ptr<Entity>)
 {
-  field->AddEntity(*new ParticleImpact(ParticleImpact::Type::volcano), *GetTile());
+  field.lock()->AddEntity(std::make_shared<ParticleImpact>(ParticleImpact::Type::volcano), *GetTile());
 }
 
-void VolcanoErupt::Attack(Character* _entity)
+void VolcanoErupt::Attack(std::shared_ptr<Entity> _entity)
 {
   _entity->Hit(GetHitboxProperties());
 }

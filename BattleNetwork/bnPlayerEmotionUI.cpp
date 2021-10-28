@@ -16,9 +16,8 @@ static const struct {
   { {150}, true },  // End on new emotion so it's shown when there is no more animation
 };
 
-PlayerEmotionUI::PlayerEmotionUI(Player* player)
+PlayerEmotionUI::PlayerEmotionUI(std::weak_ptr<Player> player)
   : UIComponent(player)
-  , player{ player }
   , texture{ nullptr }
   , emotionWindow()
   , emotion{ Emotion::normal }
@@ -45,21 +44,27 @@ void PlayerEmotionUI::SetTexture(std::shared_ptr<sf::Texture> texture)
 
 void PlayerEmotionUI::Inject(BattleSceneBase& scene)
 {
-  scene.Inject(this);
+  scene.Inject(shared_from_base<PlayerEmotionUI>());
 }
 
 void PlayerEmotionUI::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
   if (this->IsHidden()) return;
-  if ((player) && (!player->IsInForm()))
+
+  auto player = GetOwnerAs<Player>();
+
+  if (player && !player->IsInForm())
   {
     target.draw(emotionWindow, states);
   }
+
   UIComponent::draw(target, states);
 }
 
 void PlayerEmotionUI::OnUpdate(double elapsed)
 {
+  auto player = GetOwnerAs<Player>();
+
   if (!player) return;
   if (!texture) return;
 

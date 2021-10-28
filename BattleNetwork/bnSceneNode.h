@@ -7,14 +7,15 @@
 
 #pragma once
 #include <vector>
-#include<set>
+#include <set>
 #include <algorithm>
+#include <memory>
 #include <SFML/Graphics.hpp>
 
 class SceneNode : public sf::Transformable, public sf::Drawable {
 protected:
   std::set<std::string> tags; /*!< Tags to lookup nodes by*/
-  mutable std::vector<SceneNode*> childNodes; /*!< List of all children */
+  mutable std::vector<std::shared_ptr<SceneNode>> childNodes; /*!< List of all children */
   SceneNode* parent; /*!< The node this node is a child of */
   bool show; /*!< Flag to hide or display a scene node and its children */
   int layer; /*!< Draw order of this node */
@@ -75,13 +76,16 @@ public:
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
   /**
-   * @brief Adds a child node
-   * @param child the node to add
-   * 
-   * Must be non null
+   * @brief Adds a node as a child
    */
-  void AddNode(SceneNode* child);
-  
+  void AddNode(std::shared_ptr<SceneNode> node);
+
+  /**
+   * @brief Removes a child node
+   * @param find the node to remove if it exists
+   */
+  void RemoveNode(std::shared_ptr<SceneNode> find);
+
   /**
    * @brief Removes a child node
    * @param find the node to remove if it exists
@@ -102,13 +106,13 @@ public:
   * Fetches all the child nodes attached to this node
   * @return a reference to the vector of SceneNode*
   */
-  std::vector<SceneNode*>& GetChildNodes() const;
+  std::vector<std::shared_ptr<SceneNode>>& GetChildNodes() const;
 
   /**
   * Fetches all the nodes attached to this node with any of the tags
   * @return a vector of SceneNode*
   */
-  std::set<SceneNode*> GetChildNodesWithTag(std::vector<std::string> query);
+  std::set<std::shared_ptr<SceneNode>> GetChildNodesWithTag(const std::vector<std::string>& query);
   
   SceneNode* GetParent();
 

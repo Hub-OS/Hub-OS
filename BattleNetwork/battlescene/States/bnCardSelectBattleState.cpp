@@ -13,7 +13,7 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
-CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms) : 
+CardSelectBattleState::CardSelectBattleState(std::vector<std::shared_ptr<Player>>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms) : 
   tracked(tracked), 
   forms(forms),
   font(Font::Style::thick)
@@ -29,6 +29,8 @@ CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, std:
 
   mobBackdropSprite.setScale(2.f, 2.f);
   mobEdgeSprite.setScale(2.f, 2.f);
+
+  cards = std::make_shared<std::vector<Battle::Card>>();
 }
 
 void CardSelectBattleState::CheckFormChanges()
@@ -53,14 +55,9 @@ void CardSelectBattleState::CheckFormChanges()
   }
 }
 
-Battle::Card**& CardSelectBattleState::GetCardPtrList()
+std::shared_ptr<std::vector<Battle::Card>> CardSelectBattleState::GetCardPtrList()
 {
   return cards;
-}
-
-int& CardSelectBattleState::GetCardListLengthAddr()
-{
-  return cardCount;
 }
 
 void CardSelectBattleState::onStart(const BattleSceneState*)
@@ -194,14 +191,13 @@ void CardSelectBattleState::onUpdate(double elapsed)
           bool hasNewHand = cardCust.HasNewHand();
           auto newCards = cardCust.GetCards();
 
-          Player* player = tracked[0];
-          SelectedCardsUI* ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
+          auto& player = tracked[0];
+          auto ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
 
           if (ui && hasNewHand) {
-            cards = newCards;
-            cardCount = cardCust.GetCardCount();
-            GetScene().FilterSupportCards(cards, cardCount);
-            ui->LoadCards(cards, cardCount);
+            *cards = newCards;
+            GetScene().FilterSupportCards(*cards);
+            ui->LoadCards(*cards);
             ui->Hide();
             hasNewChips = true;
           }

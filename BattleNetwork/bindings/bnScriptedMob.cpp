@@ -4,30 +4,24 @@
 #include "../bnFadeInState.h"
 #include "../bnScriptResourceManager.h"
 #include "../bnCustomBackground.h"
-
-// Builtins
-#include "../bnMettaur.h"
-#include "../bnCanodumb.h"
+#include "../bnSolHelpers.h"
 
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
 //
 ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank)
 { 
-  scriptedSpawner = new Mob::Spawner <ScriptedCharacter>(std::ref(script), rank);
-  std::function<ScriptedCharacter*()> lambda = scriptedSpawner->constructor;
+  scriptedSpawner = std::make_unique<Mob::Spawner<ScriptedCharacter>>(std::ref(script), rank);
+  std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
 
-  scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> ScriptedCharacter* {
+  scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> std::shared_ptr<ScriptedCharacter> {
     (*scriptPtr)["_modpath"] = path+"/";
 
     return lambda();
   };
 }
 
-ScriptedMob::ScriptedSpawner::~ScriptedSpawner()
-{}
-
-Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
+std::shared_ptr<Mob::Mutator> ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
 {
   if (scriptedSpawner) {
     // todo: swap out with ScriptedIntroState
@@ -39,8 +33,8 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
     return nullptr;
 
   // Create a new enemy spawn data object
-  Mob::MobData* data = new Mob::MobData();
-  Character* character = constructor();
+  auto data = std::make_unique<Mob::SpawnData>();
+  std::shared_ptr<Character> character = constructor();
 
   auto ui = character->CreateComponent<MobHealthUI>(character);
   ui->Hide(); // let default state invocation reveal health
@@ -53,12 +47,10 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
 
   mob->GetField()->GetAt(x, y)->ReserveEntityByID(character->GetID());
 
-  auto mutator = new Mob::Mutator(data);
-
   mob->pixelStateInvokers.push_back(this->pixelStateInvoker);
 
   auto next = this->defaultStateInvoker;
-  auto defaultStateWrapper = [ui, next](Character* in) {
+  auto defaultStateWrapper = [ui, next](std::shared_ptr<Character> in) {
     ui->Reveal();
     next(in);
   };
@@ -90,10 +82,12 @@ Mob::Mutator* ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
   }
 
   // Add the mob spawn data to our list of enemies to spawn
-  mob->spawn.push_back(mutator);
   mob->tracked.push_back(data->character);
 
   // Return a mutator to change some spawn info
+  auto mutator = std::make_shared<Mob::Mutator>(std::move(data));
+  mob->spawn.push_back(mutator);
+
   return mutator;
 }
 
@@ -113,23 +107,23 @@ ScriptedMob::ScriptedMob(sol::state& script) :
   MobFactory(), 
   script(script)
 {
-  field = new Field(6, 3);
 }
 
-ScriptedMob::~ScriptedMob()
-{
-  delete field;
-}
-
-Mob* ScriptedMob::Build(Field* field) {
+Mob* ScriptedMob::Build(std::shared_ptr<Field> field) {
   // Build a mob around the field input
   this->field = field;
   this->mob = new Mob(field);
-  script["package_build"](this);
+
+  auto initResult = CallLuaFunction(script, "package_build", this);
+
+  if (initResult.is_error()) {
+    Logger::Log(initResult.error_cstr());
+  }
+
   return mob;
 }
 
-Field* ScriptedMob::GetField()
+std::shared_ptr<Field> ScriptedMob::GetField()
 {
   return field;
 }
@@ -144,33 +138,15 @@ void ScriptedMob::EnableFreedomMission(uint8_t turnCount)
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn, Character::Rank rank)
 {
-  std::string_view prefix = "com.builtins.char.";
-  size_t builtin = fqn.find(prefix);
+  sol::state* state = Scripts().FetchCharacter(fqn);
 
-  if (builtin == std::string::npos) {
-    auto obj = ScriptedMob::ScriptedSpawner(*Scripts().FetchCharacter(fqn), Scripts().CharacterToModpath(fqn), rank);
-    obj.SetMob(this->mob);
-    return obj;
+  if (!state) {
+    throw std::runtime_error("Character does not exist");
   }
 
-  std::string name = fqn.substr(builtin+prefix.size());
-
-  //
-  // else we are built in
-  //
-
-  auto obj = ScriptedMob::ScriptedSpawner();
+  auto obj = ScriptedMob::ScriptedSpawner(*state, Scripts().CharacterToModpath(fqn), rank);
   obj.SetMob(this->mob);
-
-  if (name == "canodumb") {
-    obj.UseBuiltInType<Canodumb>(rank);
-  }
-  else /* if (name == "mettaur") */ {
-    // for now spawn metts if nothing matches...
-    obj.UseBuiltInType<Mettaur>(rank);
-  }
-
-  return obj;
+  return std::move(obj);
 }
 
 void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely)

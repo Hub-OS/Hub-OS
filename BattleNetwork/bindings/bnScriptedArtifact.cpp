@@ -1,66 +1,101 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedArtifact.h"
 #include "../bnTile.h"
+#include "../bnSolHelpers.h"
 
 ScriptedArtifact::ScriptedArtifact() :
-	Artifact()
+  Artifact()
 {
-	animationComponent = new AnimationComponent(this);
-	RegisterComponent(animationComponent);
+  setScale(2.f, 2.f);
+}
 
-	setScale(2.f, 2.f);
+void ScriptedArtifact::Init()
+{
+  Artifact::Init();
+  animationComponent = std::make_shared<AnimationComponent>(weak_from_this());
+  RegisterComponent(animationComponent);
+  weakWrap = WeakWrapper(weak_from_base<ScriptedArtifact>());
 }
 
 ScriptedArtifact::~ScriptedArtifact() { }
 
 void ScriptedArtifact::OnUpdate(double _elapsed)
 {
-	ScriptedArtifact& sa = *this;
-	updateCallback ? updateCallback(sa, _elapsed) : (void)0;
+  if (update_func.valid()) 
+  {
+    auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 }
 
 void ScriptedArtifact::NeverFlip(bool enabled)
 {
-	flip = !enabled;
+  flip = !enabled;
 }
 
 void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 {
-	ScriptedArtifact& sa = *this;
-	spawnCallback ? spawnCallback(sa, tile) : (void)0;
+  if (on_spawn_func.valid()) 
+  {
+    auto result = CallLuaCallback(on_spawn_func, weakWrap);
 
-	if (GetTeam() == Team::blue && flip) {
-		setScale(-2.f, 2.f);
-	}
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
+
+  if (GetTeam() == Team::blue && flip) {
+    setScale(-2.f, 2.f);
+  }
 }
 
 void ScriptedArtifact::OnDelete()
 {
-	ScriptedArtifact& sa = *this;
-	deleteCallback ? deleteCallback(sa) : (void)0;
-	Remove();
+  if (delete_func.valid()) 
+  {
+    auto result = CallLuaCallback(delete_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
+
+  Remove();
 }
 
 bool ScriptedArtifact::CanMoveTo(Battle::Tile* next)
 {
-	return canMoveToCallback ? canMoveToCallback(*next) : false;
+  if (can_move_to_func.valid()) 
+  {
+    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+
+    return result.value();
+  }
+
+  return false;
 }
 
 void ScriptedArtifact::SetAnimation(const std::string& path)
 {
-	animationComponent->SetPath(path);
-	animationComponent->Load();
-
+  animationComponent->SetPath(path);
+  animationComponent->Load();
 }
 
 Animation& ScriptedArtifact::GetAnimationObject()
 {
-	return animationComponent->GetAnimationObject();
+  return animationComponent->GetAnimationObject();
 }
 
 Battle::Tile* ScriptedArtifact::GetCurrentTile() const
 {
-	return GetTile();
+  return GetTile();
 }
 
 #endif

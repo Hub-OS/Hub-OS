@@ -41,11 +41,12 @@ private:
   size_t selectedIndex{};
   bool reachedEnd{};
   std::string topic;
-  Text topicText, topicShadow;
-  SpriteProxyNode shadows, frame, postbg, scrollbarThumb, newNode;
+  std::shared_ptr<Text> topicText, topicShadow;
+  std::shared_ptr<SpriteProxyNode> shadows, frame, postbg, scrollbarThumb;
+  SpriteProxyNode newNode;
   Animation newAnimation;
   std::vector<Post> posts;
-  VerticalCursor cursor;
+  std::shared_ptr<VerticalCursor> cursor;
   std::function<void(const std::string&)> onSelect;
   std::function<void()> onClose;
   std::function<void()> onLastPage;

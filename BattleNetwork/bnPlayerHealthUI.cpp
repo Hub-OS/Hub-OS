@@ -7,8 +7,7 @@ using std::to_string;
 #include "bnAudioResourceManager.h"
 #include "battlescene/bnBattleSceneBase.h"
 
-PlayerHealthUI::PlayerHealthUI(Player* _player) : 
-  player(_player), 
+PlayerHealthUI::PlayerHealthUI(std::weak_ptr<Player> _player) :
   UIComponent(_player),
   glyphs(Font::Style::gradient)
 {
@@ -22,7 +21,7 @@ PlayerHealthUI::PlayerHealthUI(Player* _player) :
   glyphs.setScale(2.f, 2.f);
   glyphs.setPosition((uibox.getLocalBounds().width*2.f) - 8.f, 6.f);
 
-  lastHP = currHP = startHP = _player->GetHealth();
+  lastHP = currHP = startHP = _player.lock()->GetHealth();
 
   cooldown = 0;
 
@@ -38,7 +37,7 @@ PlayerHealthUI::~PlayerHealthUI() {
 
 void PlayerHealthUI::Inject(BattleSceneBase& scene)
 {
-  scene.Inject(this);
+  scene.Inject(shared_from_base<PlayerHealthUI>());
 }
 
 void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
@@ -65,7 +64,7 @@ void PlayerHealthUI::OnUpdate(double elapsed) {
   // if battle is ongoing and valid, play high pitch sound when hp is low
   isBattleOver = this->Injected()? this->Scene()->IsCleared() : true;
 
-  if (player) {
+  if (auto player = GetOwnerAs<Player>()) {
     if (player->WillRemoveLater()) {
       this->Eject();
       player = nullptr;

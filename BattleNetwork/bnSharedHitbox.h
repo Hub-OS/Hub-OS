@@ -19,14 +19,12 @@
 // If there needs to be a shared hit box for obstacles, it needs to be it's own class
 class SharedHitbox : public Spell {
 public:
-	
   /**
    * @brief Disables tile highlighting and enables tile sharing
-   * @param owner the original spell source
+   * @param owner the original entity source
    * @param duration how long the hitbox should linger in seconds
    */
-  SharedHitbox(Spell* owner, float duration = 0.0f);
-   ~SharedHitbox();
+  SharedHitbox(std::weak_ptr<Entity> owner, float duration = 0.0f);
 
   /**
    * @brief Removes itself if time is up or the original source is deleted
@@ -36,9 +34,9 @@ public:
   
   /**
    * @brief owner->Attack(_entity) is called 
-   * @param _entity the character to attack that is not the same as the owner
+   * @param _entity the entity to attack that is not the same as the owner
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Entity> _entity) override;
   void OnDelete() override;
   void OnSpawn(Battle::Tile& start) override;
   const float GetHeight() const override;
@@ -46,5 +44,5 @@ public:
 private:
   double cooldown{}; /*< When cooldown reaches zero, this hitbox removes */
   bool keepAlive{}; /*!< If duration is not set, the hitbox stays alive for long as the owner stays alive*/
-  Spell* owner{ nullptr }; /*!< When this hitbox is hit, the owner is hit */
+  std::weak_ptr<Entity> owner; /*!< When this hitbox is hit, the owner is hit */
 };

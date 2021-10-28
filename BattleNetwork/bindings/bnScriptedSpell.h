@@ -5,6 +5,7 @@
 #include "dynamic_object.h"
 #include "../bnSpell.h"
 #include "../bnAnimationComponent.h"
+#include "bnWeakWrapper.h"
 
 using sf::Texture;
 
@@ -16,11 +17,12 @@ public:
   ScriptedSpell(Team _team);
   ~ScriptedSpell();
   
+  void Init() override;
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
-  void OnCollision(const Character* other) override;
+  void OnCollision(const std::shared_ptr<Entity> other) override;
   bool CanMoveTo(Battle::Tile * next) override;
-  void Attack(Character* e) override;
+  void Attack(std::shared_ptr<Entity> e) override;
   void OnSpawn(Battle::Tile& spawn) override;
   const float GetHeight() const;
   void SetHeight(const float height);
@@ -32,17 +34,18 @@ public:
   void ShakeCamera(double power, float duration);
   void NeverFlip(bool enabled);
 
-  std::function<void(ScriptedSpell&, Battle::Tile&)> spawnCallback;
-  std::function<void(ScriptedSpell&, Character&)> attackCallback;
-  std::function<void(ScriptedSpell&, Character&)> collisionCallback;
-  std::function<bool(Battle::Tile&)> canMoveToCallback;
-  std::function<void(ScriptedSpell&)> deleteCallback;
-  std::function<void(ScriptedSpell&, double)> updateCallback;
+  sol::object can_move_to_func;
+  sol::object update_func;
+  sol::object delete_func;
+  sol::object collision_func;
+  sol::object attack_func;
+  sol::object on_spawn_func;
 private:
   bool flip{true};
   float height{};
   sf::Vector2f scriptedOffset{};
-  SpriteProxyNode* shadow{ nullptr };
-  AnimationComponent* animComponent{ nullptr };
+  std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
+  std::shared_ptr<AnimationComponent> animComponent{ nullptr };
+  WeakWrapper<ScriptedSpell> weakWrap;
 };
 #endif

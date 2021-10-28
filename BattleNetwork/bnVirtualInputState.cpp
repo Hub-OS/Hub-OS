@@ -1,5 +1,6 @@
 #include "bnVirtualInputState.h"
 #include "bnLogger.h"
+#include <algorithm>
 
 void VirtualInputState::Process()
 {

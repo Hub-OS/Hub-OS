@@ -19,8 +19,8 @@ struct BattleStartBattleState final : public BattleSceneState {
   sf::Sprite battleStart; /*!< "Battle Start" graphic */
   swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
   sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */
-  std::vector<Player*>& tracked;
-  BattleStartBattleState(std::vector<Player*>& tracked);
+  std::vector<std::shared_ptr<Player>>& tracked;
+  BattleStartBattleState(std::vector<std::shared_ptr<Player>>& tracked);
 
   void SetStartupDelay(frame_time_t frames);
   void onStart(const BattleSceneState* last) override;

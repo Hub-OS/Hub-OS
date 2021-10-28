@@ -2,8 +2,9 @@
 
 #pragma once
 #include "../bnDefenseRule.h"
+#include "dynamic_object.h"
 
-class ScriptedDefenseRule final : public DefenseRule {
+class ScriptedDefenseRule final : public DefenseRule, public dynamic_object {
 
 public:
   /**
@@ -25,11 +26,10 @@ public:
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
-  void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 
-  // configurable callback functions from Lua
-  std::function<Hit::Properties&(Hit::Properties*)> filterStatusesCallback;
-  std::function<void(DefenseFrameStateJudge*, Spell*, Character*)> canBlockCallback;
+  sol::object filter_statuses_func;
+  sol::object can_block_func;
 };
 
 #endif

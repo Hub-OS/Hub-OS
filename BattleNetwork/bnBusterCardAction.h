@@ -9,19 +9,16 @@ class SpriteProxyNode;
 class Character;
 class BusterCardAction : public CardAction {
 private:
-  SpriteProxyNode* buster{ nullptr }, * flare{ nullptr };
   Attachment* busterAttachment{ nullptr };
-  Field* field{ nullptr };
-  Animation busterAnim, flareAnim;
   bool charged{};
   int damage{};
+  std::shared_ptr<SpriteProxyNode> buster;
   Field::NotifyID_t notifier{ -1 };
 public:
-  BusterCardAction(Character* user, bool charged, int damage);
-  ~BusterCardAction();
+  BusterCardAction(std::weak_ptr<Character> user, bool charged, int damage);
 
   void Update(double _elapsed) override;
   void OnAnimationEnd();
   void OnActionEnd();
-  void OnExecute(Character* user);
+  void OnExecute(std::shared_ptr<Character> user);
 };

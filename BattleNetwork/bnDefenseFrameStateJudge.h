@@ -2,6 +2,7 @@
 #include <map>
 #include <set>
 #include <functional>
+#include <memory>
 
 class DefenseRule; // forward decl
 
@@ -18,9 +19,9 @@ class DefenseRule; // forward decl
  */
 class DefenseFrameStateJudge final {
   bool blockedDamage, blockedImpact;
-  std::map<DefenseRule*, std::function<void()>> triggers;
-  std::set<DefenseRule*> piercedSet;
-  DefenseRule* context;
+  std::map<std::shared_ptr<DefenseRule>, std::function<void()>> triggers;
+  std::set<std::shared_ptr<DefenseRule>> piercedSet;
+  std::shared_ptr<DefenseRule> context;
 public:
   DefenseFrameStateJudge();
   DefenseFrameStateJudge(const DefenseFrameStateJudge&) = delete;
@@ -31,7 +32,7 @@ public:
   void BlockDamage();
   void BlockImpact();
   void SignalDefenseWasPierced();
-  void SetDefenseContext(DefenseRule*);
+  void SetDefenseContext(std::shared_ptr<DefenseRule>);
   void PrepareForNextAttack();
 
   template<typename Func, typename... Args>

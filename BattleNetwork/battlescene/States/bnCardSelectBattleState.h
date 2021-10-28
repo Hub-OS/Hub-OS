@@ -28,21 +28,19 @@ class CardSelectBattleState final : public BattleSceneState {
   bool hasNewChips{ false }; 
   bool formSelected{ false };
   int currForm{ -1 };
-  int cardCount{ 0 }; /*!< Length of card list */
   float streamVolume{ -1.f };
-  std::vector<Player*>& tracked;
+  std::vector<std::shared_ptr<Player>>& tracked;
   std::vector<std::shared_ptr<TrackedFormData>>& forms;
   Font font;
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
-  Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
+  std::shared_ptr<std::vector<Battle::Card>> cards; /*!< List of Card* the user selects from the card cust */
 
   // Check if a form change was properly triggered
   void CheckFormChanges();
 public:
-  CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
+  CardSelectBattleState(std::vector<std::shared_ptr<Player>>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
 
-  Battle::Card**& GetCardPtrList();
-  int& GetCardListLengthAddr();
+  std::shared_ptr<std::vector<Battle::Card>> GetCardPtrList();
   void onStart(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;

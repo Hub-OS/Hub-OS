@@ -23,47 +23,55 @@ namespace Overworld {
 
     widgetTexture = Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png");
 
-    banner.setTexture(Textures().LoadTextureFromFile("resources/ui/menu_overlay.png"));
-    symbol.setTexture(widgetTexture);
-    icon.setTexture(widgetTexture);
-    exit.setTexture(widgetTexture);
-    infoBox.setTexture(widgetTexture);
-    selectTextSpr.setTexture(widgetTexture);
-    placeTextSpr.setTexture(widgetTexture);
+    banner = std::make_shared<SpriteProxyNode>();
+    symbol = std::make_shared<SpriteProxyNode>();
+    icon = std::make_shared<SpriteProxyNode>();
+    exit = std::make_shared<SpriteProxyNode>();
+    infoBox = std::make_shared<SpriteProxyNode>();
+    selectTextSpr = std::make_shared<SpriteProxyNode>();
+    placeTextSpr = std::make_shared<SpriteProxyNode>();
 
-    AddNode(&banner);
+    banner->setTexture(Textures().LoadTextureFromFile("resources/ui/menu_overlay.png"));
+    symbol->setTexture(widgetTexture);
+    icon->setTexture(widgetTexture);
+    exit->setTexture(widgetTexture);
+    infoBox->setTexture(widgetTexture);
+    selectTextSpr->setTexture(widgetTexture);
+    placeTextSpr->setTexture(widgetTexture);
+
+    AddNode(banner);
 
     infoBoxAnim = Animation("resources/ui/main_menu_ui.animation");
     infoBoxAnim << "INFO";
-    infoBoxAnim.SetFrame(1, infoBox.getSprite());
-    AddNode(&infoBox);
-    infoBox.setPosition(180, 52);
+    infoBoxAnim.SetFrame(1, infoBox->getSprite());
+    AddNode(infoBox);
+    infoBox->setPosition(180, 52);
 
     optionAnim = Animation("resources/ui/main_menu_ui.animation");
     optionAnim << "SYMBOL";
-    optionAnim.SetFrame(1, symbol.getSprite());
-    AddNode(&symbol);
-    symbol.setPosition(20, 1);
+    optionAnim.SetFrame(1, symbol->getSprite());
+    AddNode(symbol);
+    symbol->setPosition(20, 1);
 
     optionAnim << "SELECT";
-    optionAnim.SetFrame(1, selectTextSpr.getSprite());
-    AddNode(&selectTextSpr);
-    selectTextSpr.setPosition(4, 18);
+    optionAnim.SetFrame(1, selectTextSpr->getSprite());
+    AddNode(selectTextSpr);
+    selectTextSpr->setPosition(4, 18);
 
     optionAnim << "PLACE";
-    optionAnim.SetFrame(1, placeTextSpr.getSprite());
-    AddNode(&placeTextSpr);
-    placeTextSpr.setPosition(120, 111);
+    optionAnim.SetFrame(1, placeTextSpr->getSprite());
+    AddNode(placeTextSpr);
+    placeTextSpr->setPosition(120, 111);
 
     optionAnim << "EXIT";
-    optionAnim.SetFrame(1, exit.getSprite());
-    AddNode(&exit);
-    exit.setPosition(240, 144);
-    exit.Hide();
+    optionAnim.SetFrame(1, exit->getSprite());
+    exit->setPosition(240, 144);
+    exit->Hide();
+    AddNode(exit);
 
     optionAnim << "PET";
-    optionAnim.SetFrame(1, icon.getSprite());
-    icon.setPosition(2, 3);
+    optionAnim.SetFrame(1, icon->getSprite());
+    icon->setPosition(2, 3);
 
     exitAnim = Animation("resources/ui/main_menu_ui.animation") << Animator::Mode::Loop;
 
@@ -132,7 +140,7 @@ namespace Overworld {
 
     t0f.doTask([=](sf::Time elapsed) {
       float x = ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(8)), 1.0f);
-      this->banner.setPosition((1.0f - x) * -this->banner.getSprite().getLocalBounds().width, 0);
+      this->banner->setPosition((1.0f - x) * -this->banner->getSprite().getLocalBounds().width, 0);
     }).withDuration(frames(8));
 
     if (state == PersonalMenu::state::closing) {
@@ -175,9 +183,9 @@ namespace Overworld {
 
     if (state == PersonalMenu::state::opening) {
       t8f.doTask([=](sf::Time elapsed) {
-        placeTextSpr.Reveal();
-        selectTextSpr.Reveal();
-        exit.Reveal();
+        placeTextSpr->Reveal();
+        selectTextSpr->Reveal();
+        exit->Reveal();
 
         for (auto&& opts : options) {
           opts->Reveal();
@@ -198,12 +206,12 @@ namespace Overworld {
     }
     else {
       t8f.doTask([=](sf::Time elapsed) {
-        placeTextSpr.Hide();
-        selectTextSpr.Hide();
-        exit.Hide();
+        placeTextSpr->Hide();
+        selectTextSpr->Hide();
+        exit->Hide();
 
         //infobox task handles showing, but we need to hide if closing
-        infoBox.Hide();
+        infoBox->Hide();
 
         for (auto&& opts : options) {
           opts->Hide();
@@ -218,7 +226,7 @@ namespace Overworld {
 
     t8f.doTask([=](sf::Time elapsed) {
       float x = 1.0f - ease::linear(elapsed.asSeconds(), seconds_cast<float>(frames(6)), 1.0f);
-      exit.setPosition(130 + (x * 200), exit.getPosition().y);
+      exit->setPosition(130 + (x * 200), exit->getPosition().y);
     }).withDuration(frames(6));
 
     t8f.doTask([=](sf::Time elapsed) {
@@ -240,9 +248,9 @@ namespace Overworld {
     easeInTimer
       .at(time_cast<sf::Time>(frames(14)))
       .doTask([=](sf::Time elapsed) {
-        infoBox.Reveal();
+        infoBox->Reveal();
         infoBoxAnim.SyncTime(static_cast<float>(elapsed.asSeconds()));
-        infoBoxAnim.Refresh(infoBox.getSprite());
+        infoBoxAnim.Refresh(infoBox->getSprite());
       }).withDuration(frames(4));
 
     //
@@ -271,7 +279,7 @@ namespace Overworld {
       optionAnim.SetFrame(1, sprite->getSprite());
       options.push_back(sprite);
       sprite->Hide();
-      AddNode(sprite.get());
+      AddNode(sprite);
 
       // icon
       auto iconSpr = std::make_shared<SpriteProxyNode>();
@@ -281,7 +289,7 @@ namespace Overworld {
       optionAnim.SetFrame(1, iconSpr->getSprite());
       optionIcons.push_back(iconSpr);
       iconSpr->Hide();
-      AddNode(iconSpr.get());
+      AddNode(iconSpr);
     }
   }
 
@@ -323,7 +331,7 @@ namespace Overworld {
     }
 
     if (selectExit) {
-      exitAnim.Update(elapsed, exit.getSprite());
+      exitAnim.Update(elapsed, exit->getSprite());
     }
   }
 
@@ -404,7 +412,7 @@ namespace Overworld {
     states.transform *= getTransform();
 
     if (IsClosed()) {
-      target.draw(icon, states);
+      target.draw(*icon, states);
 
       const sf::Vector2f pos = areaLabelThick.getPosition();
       areaLabelThick.SetColor(sf::Color(105, 105, 105));
@@ -539,7 +547,7 @@ namespace Overworld {
   void PersonalMenu::UseIconTexture(const std::shared_ptr<sf::Texture> iconTexture)
   {
     this->iconTexture = iconTexture;
-    this->icon.setTexture(iconTexture, true);
+    this->icon->setTexture(iconTexture, true);
   }
 
   void PersonalMenu::ResetIconTexture()
@@ -547,8 +555,8 @@ namespace Overworld {
     iconTexture.reset();
 
     optionAnim << "PET";
-    icon.setTexture(widgetTexture);
-    optionAnim.SetFrame(1, icon.getSprite());
+    icon->setTexture(widgetTexture);
+    optionAnim.SetFrame(1, icon->getSprite());
   }
 
   bool PersonalMenu::ExecuteSelection()
@@ -576,7 +584,7 @@ namespace Overworld {
     if (!selectExit) {
       selectExit = true;
       exitAnim << "EXIT_SELECTED" << Animator::Mode::Loop;
-      exitAnim.SetFrame(1, exit.getSprite());
+      exitAnim.SetFrame(1, exit->getSprite());
 
       for (size_t i = 0; i < optionsList.size(); i++) {
         optionAnim << optionsList[i].name;
@@ -597,7 +605,7 @@ namespace Overworld {
       selectExit = false;
       row = 0;
       exitAnim << "EXIT";
-      exitAnim.SetFrame(1, exit.getSprite());
+      exitAnim.SetFrame(1, exit->getSprite());
       return true;
     }
 

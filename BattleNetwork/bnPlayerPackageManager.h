@@ -30,6 +30,7 @@ struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
   double speed; /*!< The speed of the navi */
   int hp; /*!< The health of the navi */
   bool isSword; /*!< Is buster or sword based navi */
+  Element element;
 
   /**
    * @brief Sets every number to 1 and string to "None"
@@ -40,6 +41,8 @@ struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
    * @brief Delete navi pointer
    */
   ~PlayerMeta();
+
+  void OnMetaParsed() override;
 
   void PreGetData() override;
 

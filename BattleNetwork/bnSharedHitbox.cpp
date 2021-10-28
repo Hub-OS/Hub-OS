@@ -7,23 +7,20 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SharedHitbox::SharedHitbox(Spell* owner, float duration) : 
+SharedHitbox::SharedHitbox(std::weak_ptr<Entity> owner, float duration) : 
   owner(owner), 
-  Spell(owner->GetTeam()) {
+  Spell(owner.lock()->GetTeam()) {
   cooldown = duration;
-  SetHitboxProperties(owner->GetHitboxProperties());
+  SetHitboxProperties(owner.lock()->GetHitboxProperties());
   keepAlive = (duration == 0.0f);
-}
-
-SharedHitbox::~SharedHitbox() {
 }
 
 void SharedHitbox::OnUpdate(double _elapsed) {
   cooldown -= _elapsed;
 
-  tile->AffectEntities(this);
+  tile->AffectEntities(*this);
 
-  if (owner) {
+  if (auto owner = this->owner.lock()) {
     if (owner->IsDeleted() || owner->WillRemoveLater()) {
       Delete();
     }
@@ -37,8 +34,8 @@ void SharedHitbox::OnUpdate(double _elapsed) {
   }
 }
 
-void SharedHitbox::Attack(Character* _entity) {
-  if(owner) {
+void SharedHitbox::Attack(std::shared_ptr<Entity> _entity) {
+  if(auto owner = this->owner.lock()) {
     if (_entity->GetID() == owner->GetID()) return;
     owner->Attack(_entity);
     owner->Delete();
@@ -56,16 +53,16 @@ void SharedHitbox::OnDelete()
 
 void SharedHitbox::OnSpawn(Battle::Tile& start)
 {
-  auto onOwnerDelete = [](Entity& target, Entity& observer) {
-    SharedHitbox& hitbox = dynamic_cast<SharedHitbox&>(observer);
-    hitbox.owner = nullptr;
+  auto onOwnerDelete = [](auto target, auto observer) {
+    SharedHitbox& hitbox = dynamic_cast<SharedHitbox&>(*observer);
+    hitbox.owner.reset();
   };
 
-  field->NotifyOnDelete(owner->GetID(), this->GetID(), onOwnerDelete);
+  field.lock()->NotifyOnDelete(owner.lock()->GetID(), this->GetID(), onOwnerDelete);
 }
 
 const float SharedHitbox::GetHeight() const {
-  if(Character* c = dynamic_cast<Character*>(owner)) { 
+  if(auto c = dynamic_cast<Character*>(owner.lock().get())) { 
     return c->GetHeight(); 
   }
   else { 

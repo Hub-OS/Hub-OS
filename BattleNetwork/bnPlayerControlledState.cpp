@@ -65,7 +65,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   // One of our ongoing animations is preventing us from charging
   if (!lockout) {
-    player.chargeEffect.SetCharging(false);
+    player.chargeEffect->SetCharging(false);
     isChargeHeld = false;
     return;
   }
@@ -77,7 +77,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     auto cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
       if (cardsUI->UseNextCard()) {
-        player.chargeEffect.SetCharging(false);
+        player.chargeEffect->SetCharging(false);
         isChargeHeld = false;
       }
     }
@@ -99,12 +99,12 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   else if (InputQueueHas(InputEvents::released_shoot) || missChargeKey) {
     // This routine is responsible for determining the outcome of the attack
     isChargeHeld = false;
-    player.chargeEffect.SetCharging(false);
+    player.chargeEffect->SetCharging(false);
     player.Attack();
 
   } else if (InputQueueHas(InputEvents::held_shoot)) {
     isChargeHeld = true;
-    player.chargeEffect.SetCharging(true);
+    player.chargeEffect->SetCharging(true);
   }
 
   // Movement increments are restricted based on anim speed at this time

@@ -18,29 +18,31 @@ public:
   Buster(Team _team,bool _charged, int damage);
   ~Buster() override;
 
+  void Init() override;
+
   void OnUpdate(double _elapsed) override;
   
   bool CanMoveTo(Battle::Tile* next) override;
 
   void OnDelete() override;
 
-  void OnCollision(const Character*) override;
+  void OnCollision(const std::shared_ptr<Entity>) override;
 
   /**
    * @brief Deal impact damage
    * @param _entity
    */
-  void Attack(Character* _entity) override;
+  void Attack(std::shared_ptr<Entity> _entity) override;
 
 private:
   bool isCharged;
   bool spawnGuard;
-  Character* contact;
+  std::shared_ptr<Character> contact;
   int damage;
   frame_time_t cooldown;
   float random; // offset
   float hitHeight;
   std::shared_ptr<sf::Texture> texture;
   float progress;
-  AnimationComponent* animationComponent;
+  std::shared_ptr<AnimationComponent> animationComponent;
 };

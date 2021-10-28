@@ -33,10 +33,10 @@ using swoosh::types::segue;
 using swoosh::Activity;
 using swoosh::ActivityController;
 
-BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
+BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
   cardActionListener(this->getController().CardPackageManager()),
-  player(&props.player),
+  player(props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
   totalCounterMoves(0),
@@ -47,7 +47,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   heatShader(Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI({ props.folder, &getController().CardPackageManager(), 8, 8 }),
+  cardCustGUI(CardSelectionCust::Props{ std::move(props.folder), &getController().CardPackageManager(), 8, 8 }),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
   onEndCallback(onEnd),
@@ -61,7 +61,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   player->ChangeState<PlayerIdleState>();
   player->ToggleTimeFreeze(false);
-  field->AddEntity(*player, 2, 2);
+  field->AddEntity(player, 2, 2);
 
   /*
   Background for scene*/
@@ -116,12 +116,13 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   counterRevealAnim = Animation("resources/navis/counter_reveal.animation");
   counterRevealAnim << "DEFAULT" << Animator::Mode::Loop;
-  
-  counterReveal.setTexture(LOAD_TEXTURE(MISC_COUNTER_REVEAL), true);
-  counterReveal.EnableParentShader(false);
-  counterReveal.SetLayer(-100);
 
-  counterCombatRule = new CounterCombatRule(this);
+  counterReveal = std::make_shared<SpriteProxyNode>();
+  counterReveal->setTexture(LOAD_TEXTURE(MISC_COUNTER_REVEAL), true);
+  counterReveal->EnableParentShader(false);
+  counterReveal->SetLayer(-100);
+
+  counterCombatRule = std::make_shared<CounterCombatRule>(this);
 
   // Load forms
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
@@ -176,6 +177,10 @@ BattleSceneBase::~BattleSceneBase() {
   for (auto&& elem : nodeToEdges) {
     delete elem.second;
   }
+
+  for (auto& c : components) {
+    c->scene = nullptr;
+  }
 }
 
 const bool BattleSceneBase::DoubleDelete() const
@@ -202,11 +207,11 @@ const bool BattleSceneBase::IsQuitting() const
     return this->quitting;
 }
 
-void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
+void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
 {
   Audio().Play(AudioType::COUNTER, AudioPriority::highest);
 
-  if (&aggressor == player) {
+  if (&aggressor == player.get()) {
     totalCounterMoves++;
 
     if (victim.IsDeleted()) {
@@ -221,8 +226,8 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
 
       // node positions are relative to the parent node's origin
       auto bounds = player->getLocalBounds();
-      counterReveal.setPosition(0, -bounds.height / 4.0f);
-      player->AddNode(&counterReveal);
+      counterReveal->setPosition(0, -bounds.height / 4.0f);
+      player->AddNode(counterReveal);
 
       cardUI->SetMultiplier(2);
 
@@ -237,7 +242,7 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
 void BattleSceneBase::OnDeleteEvent(Character& pending)
 {
   // Track if player is being deleted
-  if (!isPlayerDeleted && player == &pending) {
+  if (!isPlayerDeleted && player.get() == &pending) {
     battleResults.runaway = false;
     isPlayerDeleted = true;
     player = nullptr;
@@ -246,10 +251,10 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   auto pendingPtr = &pending;
 
   // Find any AI using this character as a target and free that pointer  
-  field->FindEntities([pendingPtr](Entity* in) {
-    auto agent = dynamic_cast<Agent*>(in);
+  field->FindEntities([pendingPtr](std::shared_ptr<Entity>& in) {
+    auto agent = dynamic_cast<Agent*>(in.get());
 
-    if (agent && agent->GetTarget() == pendingPtr) {
+    if (agent && agent->GetTarget().get() == pendingPtr) {
       agent->FreeTarget();
     }
 
@@ -326,11 +331,11 @@ void BattleSceneBase::LoadMob(Mob& mob)
   this->mob = &mob;
 }
 
-void BattleSceneBase::HandleCounterLoss(Character& subject, bool playsound)
+void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
 {
-  if (&subject == player) {
+  if (&subject == player.get()) {
     if (field->DoesRevealCounterFrames()) {
-      player->RemoveNode(&counterReveal);
+      player->RemoveNode(counterReveal);
       player->RemoveDefenseRule(counterCombatRule);
       player->SetEmotion(Emotion::normal);
       field->RevealCounterFrames(false);
@@ -341,18 +346,16 @@ void BattleSceneBase::HandleCounterLoss(Character& subject, bool playsound)
   }
 }
 
-void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
+void BattleSceneBase::FilterSupportCards(std::vector<Battle::Card>& cards) {
   // Only remove the support cards in the queue. Increase the previous card damage by their support value.
-  int newCardCount = cardCount;
   Battle::Card* card = nullptr;
 
   // Create a temp card list
-  Battle::Card** newCardList = new Battle::Card*[cardCount];
+  std::vector<Battle::Card> newCardList;
 
-  int j = 0;
-  for (int i = 0; i < cardCount; ) {
-    if (cards[i]->IsBooster()) {
-      Logger::Logf("Booster card %s detected", cards[i]->GetShortName().c_str());
+  for (int i = 0; i < cards.size(); i++) {
+    if (cards[i].IsBooster()) {
+      Logger::Logf("Booster card %s detected", cards[i].GetShortName().c_str());
 
       // check if we are tracking a non-booster card first
       if (card) {
@@ -362,39 +365,23 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
           int buff = 0;
 
           // NOTE: hardcoded filter step for "Atk+X" cards
-          if (cards[i]->GetShortName().substr(0, 3) == "Atk") {
-            std::string substr = cards[i]->GetShortName().substr(4, cards[i]->GetShortName().size() - 4).c_str();
+          if (cards[i].GetShortName().substr(0, 3) == "Atk") {
+            std::string substr = cards[i].GetShortName().substr(4, cards[i].GetShortName().size() - 4).c_str();
             buff = atoi(substr.c_str());
           }
 
           card->ModDamage(buff);
         }
 
-        i++;
         continue; // skip the rest of the code below
       }
     }
 
-    newCardList[j] = cards[i];
-    card = cards[i];
-
-    i++;
-    j++;
+    newCardList.push_back(cards[i]);
+    card = &cards[i];
   }
 
-  newCardCount = j;
-
-  // Set the new cards
-  for (int i = 0; i < newCardCount; i++) {
-    cards[i] = *(newCardList + i);
-  }
-
-  // Set the new card count
-  cardCount = newCardCount;
-
-  // Delete the temp list space
-  // NOTE: We are _not_ deleting the pointers in them
-  delete[] newCardList;
+  cards = std::move(newCardList);
 }
 
 #ifdef __ANDROID__
@@ -445,7 +432,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
     backdropShader->setUniform("opacity", (float)backdropOpacity);
   }
 
-  counterRevealAnim.Update((float)elapsed, counterReveal.getSprite());
+  counterRevealAnim.Update((float)elapsed, counterReveal->getSprite());
   comboInfoTimer.update(sf::seconds(static_cast<float>(elapsed)));
   multiDeleteTimer.update(sf::seconds(static_cast<float>(elapsed)));
   battleTimer.update(sf::seconds(static_cast<float>(elapsed)));
@@ -483,8 +470,10 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   current->onUpdate(elapsed);
 
+  auto componentsCopy = components;
+
   // Update components
-  for (auto c : components) {
+  for (auto& c : componentsCopy) {
     if (c->Lifetime() == Component::lifetimes::ui && battleTimer.getElapsed().asMilliseconds() > 0) {
       c->Update((float)elapsed);
     }
@@ -557,7 +546,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   surface.draw(*background);
 
-  auto uis = std::vector<UIComponent*>();
+  auto uis = std::vector<std::shared_ptr<UIComponent>>();
 
   auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
   auto viewOffset = getController().CameraViewOffset(camera);
@@ -598,46 +587,47 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     tile->move(-viewOffset);
   }
 
+  std::vector<Entity*> allEntities;
+
   for (Battle::Tile* tile : allTiles) {
-    auto allEntities = tile->FindEntities([](Entity* ent) { return true; });
+    std::vector<Entity*> tileEntities;
+    tile->FindEntities([&tileEntities, &allEntities](std::shared_ptr<Entity>& ent) {
+      tileEntities.push_back(ent.get());
+      allEntities.push_back(ent.get());
+      return false;
+    });
 
-    for (Entity* ent : allEntities) {
-      auto uic = ent->GetComponentsDerivedFrom<UIComponent>();
-      uis.insert(uis.begin(), uic.begin(), uic.end());
-    }
+    std::sort(tileEntities.begin(), tileEntities.end(), [](Entity* A, Entity* B) { return A->GetLayer() > B->GetLayer(); });
 
-    auto nodes = std::vector<SceneNode*>();
-    nodes.insert(nodes.end(), allEntities.begin(), allEntities.end());
-    //nodes.insert(nodes.end(), scenenodes.begin(), scenenodes.end());
-    std::sort(nodes.begin(), nodes.end(), [](SceneNode* A, SceneNode* B) { return A->GetLayer() > B->GetLayer(); });
-
-    for (SceneNode* node : nodes) {
+    for (Entity* node : tileEntities) {
       node->move(viewOffset);
       surface.draw(*node);
       node->move(-viewOffset);
     }
   }
 
+  std::vector<Character*> allCharacters;
+
   // draw ui on top
-  for (UIComponent* ui : uis) {
-    if (ui->DrawOnUIPass()) {
-      ui->move(viewOffset);
-      surface.draw(*ui);
-      ui->move(-viewOffset);
+  for (auto* ent : allEntities) {
+    auto uis = ent->GetComponentsDerivedFrom<UIComponent>();
+
+    for (auto& ui : uis) {
+      if (ui->DrawOnUIPass()) {
+        ui->move(viewOffset);
+        surface.draw(*ui);
+        ui->move(-viewOffset);
+      }
+    }
+
+    // collect characters while drawing ui
+    if (auto character = dynamic_cast<Character*>(ent)) {
+      allCharacters.push_back(character);
     }
   }
 
   // draw extra card action graphics
-  std::vector<Character*> allCharacters;
-  field->FindEntities([&allCharacters](Entity* e) mutable {
-    if (auto* character = dynamic_cast<Character*>(e)) {
-      allCharacters.push_back(character);
-    }
-
-    return false;
-  });
-
-  for (Character* c : allCharacters) {
+  for (auto* c : allCharacters) {
     auto actionList = c->AsyncActionList();
     auto currAction = c->CurrentCardAction();
 
@@ -666,17 +656,17 @@ bool BattleSceneBase::IsPlayerDeleted() const
   return isPlayerDeleted;
 }
 
-Player* BattleSceneBase::GetPlayer()
+std::shared_ptr<Player> BattleSceneBase::GetPlayer()
 {
   return player;
 }
 
-Field* BattleSceneBase::GetField()
+std::shared_ptr<Field> BattleSceneBase::GetField()
 {
   return field;
 }
 
-const Field* BattleSceneBase::GetField() const
+const std::shared_ptr<Field> BattleSceneBase::GetField() const
 {
   return field;
 }
@@ -819,24 +809,24 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
 
 
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
-void BattleSceneBase::Inject(MobHealthUI& other)
+void BattleSceneBase::Inject(std::shared_ptr<MobHealthUI> other)
 {
-  other.scene = this;
-  components.push_back(&other);
-  scenenodes.push_back(&other);
+  other->scene = this;
+  components.push_back(other);
+  scenenodes.push_back(other);
 }
 
-void BattleSceneBase::Inject(SelectedCardsUI& cardUI)
+void BattleSceneBase::Inject(std::shared_ptr<SelectedCardsUI> cardUI)
 {
-  this->SubscribeToCardActions(cardUI);
+  this->SubscribeToCardActions(*cardUI);
 }
 
 // Default case: no special injection found for the type, just add it to our update loop
-void BattleSceneBase::Inject(Component* other)
+void BattleSceneBase::Inject(std::shared_ptr<Component> other)
 {
   assert(other && "Component injected was nullptr");
 
-  SceneNode* node = dynamic_cast<SceneNode*>(other);
+  auto node = std::dynamic_pointer_cast<SceneNode>(other);
   if (node) { scenenodes.push_back(node); }
 
   other->scene = this;
@@ -846,15 +836,17 @@ void BattleSceneBase::Inject(Component* other)
 void BattleSceneBase::Eject(Component::ID_t ID)
 {
   auto iter = std::find_if(components.begin(), components.end(), 
-    [ID](Component* in) { return in->GetID() == ID; }
+    [ID](auto& in) { return in->GetID() == ID; }
   );
 
   if (iter != components.end()) {
-    Component* component = *iter;
+    auto& component = **iter;
+
+    auto node = dynamic_cast<SceneNode*>(&component);
     // TODO: dynamic casting could be entirely avoided by hashing IDs
     auto iter2 = std::find_if(scenenodes.begin(), scenenodes.end(), 
-      [component](SceneNode* in) { 
-        return in == dynamic_cast<SceneNode*>(component);
+      [node](auto& in) { 
+        return in.get() == node;
       }
     );
 
@@ -862,6 +854,7 @@ void BattleSceneBase::Eject(Component::ID_t ID)
       scenenodes.erase(iter2);
     }
 
+    component.scene = nullptr;
     components.erase(iter);
   }
 }
@@ -879,7 +872,11 @@ void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {
 void BattleSceneBase::ProcessNewestComponents()
 {
   // effectively returns all of them
-  auto entities = field->FindEntities([](Entity* e) { return true; });
+  std::vector<Entity*> entities;
+  field->FindEntities([&entities](std::shared_ptr<Entity>& e) {
+    entities.push_back(e.get());
+    return false;
+  });
 
   for (auto e : entities) {
     if (e->components.size() > 0) {
@@ -890,7 +887,7 @@ void BattleSceneBase::ProcessNewestComponents()
       if (e->lastComponentID < latestID) {
         //std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
 
-        for (auto c : e->components) {
+        for (auto& c : e->components) {
           if (!c) continue;
 
           // Older components are last in order, we're done

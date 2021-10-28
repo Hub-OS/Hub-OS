@@ -25,6 +25,7 @@
 #include "../bnCardSelectionCust.h"
 #include "../bnPlayerEmotionUI.h"
 #include "../bnBattleResults.h"
+#include "../bnEventBus.h"
 
 // Battle scene specific classes
 #include "bnBattleSceneState.h"
@@ -49,10 +50,10 @@ using sf::Event;
 using BattleResultsFunc = std::function<void(const BattleResults& results)>;
 
 struct BattleSceneBaseProps {
-  Player& player;
+  std::shared_ptr<Player> player;
   PA& programAdvance;
-  CardFolder* folder{ nullptr };
-  Field* field{ nullptr };
+  std::unique_ptr<CardFolder> folder{ nullptr };
+  std::shared_ptr<Field> field{ nullptr };
   std::shared_ptr<Background> background{ nullptr };
 };
 
@@ -90,28 +91,28 @@ private:
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
   RealtimeCardActionUseListener cardActionListener; /*!< Card use listener handles one card at a time */
-  PlayerSelectedCardsUI* cardUI{ nullptr }; /*!< Player's Card UI implementation */
-  PlayerEmotionUI* emotionUI{ nullptr }; /*!< Player's Emotion Window */
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI{ nullptr }; /*!< Player's Card UI implementation */
+  std::shared_ptr<PlayerEmotionUI> emotionUI{ nullptr }; /*!< Player's Emotion Window */
   Camera camera; /*!< Camera object - will shake screen */
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
-  Field* field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
-  Player* player{ nullptr }; /*!< Pointer to player's selected character */
+  std::shared_ptr<Field> field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
+  std::shared_ptr<Player> player{ nullptr }; /*!< Pointer to player's selected character */
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   Font mobFont; /*!< Name of mob font */
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
-  std::vector<SceneNode*> scenenodes; /*!< ui components. DO NOT DELETE. */
-  std::vector<Component*> components; /*!< Components injected into the scene to track. DO NOT DELETE. */
+  std::vector<std::shared_ptr<SceneNode>> scenenodes; /*!< ui components. */
+  std::vector<std::shared_ptr<Component>> components; /*!< Components injected into the scene to track. */
   std::vector<std::reference_wrapper<CardActionUsePublisher>> cardUseSubscriptions; /*!< Share subscriptions with other CardListeners states*/
   BattleResults battleResults{};
   BattleResultsFunc onEndCallback;
 
   // counter stuff
-  SpriteProxyNode counterReveal;
+  std::shared_ptr<SpriteProxyNode> counterReveal;
   Animation counterRevealAnim;
-  CounterCombatRule* counterCombatRule{ nullptr };
+  std::shared_ptr<CounterCombatRule> counterCombatRule{ nullptr };
 
   // card stuff
   CardSelectionCust cardCustGUI; /*!< Card selection GUI that has an API to interact with */
@@ -244,7 +245,7 @@ protected:
   void ProcessNewestComponents();
 
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
-  void OnCounter(Character& victim, Character& aggressor) override final;
+  void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
 
 #ifdef __ANDROID__
@@ -259,14 +260,14 @@ public:
 
   BattleSceneBase() = delete;
   BattleSceneBase(const BattleSceneBase&) = delete;
-  BattleSceneBase(swoosh::ActivityController& controller, const BattleSceneBaseProps& props, BattleResultsFunc onEnd = nullptr);
+  BattleSceneBase(swoosh::ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd = nullptr);
   virtual ~BattleSceneBase();
 
   const bool DoubleDelete() const;
   const bool TripleDelete() const;
   const int ComboDeleteSize() const;
   const bool Countered() const;
-  void HandleCounterLoss(Character& subject, bool playsound);
+  void HandleCounterLoss(Entity& subject, bool playsound);
   void HighlightTiles(bool enable);
 
   const double GetCustomBarProgress() const;
@@ -327,9 +328,9 @@ public:
 
   bool IsPlayerDeleted() const;
 
-  Player* GetPlayer();
-  Field* GetField();
-  const Field* GetField() const;
+  std::shared_ptr<Player> GetPlayer();
+  std::shared_ptr<Field> GetField();
+  const std::shared_ptr<Field> GetField() const;
   CardSelectionCust& GetCardSelectWidget();
   PlayerSelectedCardsUI& GetSelectedCardsUI();
   PlayerEmotionUI& GetEmotionWindow();
@@ -355,7 +356,7 @@ public:
   /**
     @brief Crude support card filter step
   */
-  void FilterSupportCards(Battle::Card** cards, int& cardCount);
+  void FilterSupportCards(std::vector<Battle::Card>& cards);
 
   /*
       \brief Forces the creation a fadeout state onto the state pointer and goes back to the last scene
@@ -366,19 +367,19 @@ public:
     * @brief Inject uses double-visitor design pattern. BattleScene adds component to draw and update list.
     * @param other
     */
-  void Inject(MobHealthUI& other);
+  void Inject(std::shared_ptr<MobHealthUI> other);
 
   /**
   * @brief Inject uses double-visitor design pattern. BattleScene subscribes to the selected card ui.
   * @param cardUI
   */
-  void Inject(SelectedCardsUI& cardUI);
+  void Inject(std::shared_ptr<SelectedCardsUI> cardUI);
 
   /**
     * @brief Inject uses double-visitor design pattern. This is default case.
     * @param other Adds component "other" to component update list.
     */
-  void Inject(Component* other);
+  void Inject(std::shared_ptr<Component> other);
 
   /**
     * @brief When ejecting component from scene, removes it from update list

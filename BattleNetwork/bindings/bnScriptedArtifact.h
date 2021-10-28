@@ -5,6 +5,7 @@
 #include "../bnArtifact.h"
 #include "dynamic_object.h"
 #include "../bnAnimationComponent.h"
+#include "bnWeakWrapper.h"
 
 	/**
 	 * \class ScriptedArtifact
@@ -13,13 +14,16 @@
 	 */
 class ScriptedArtifact final : public Artifact, public dynamic_object
 {
-	AnimationComponent* animationComponent{ nullptr };
+	std::shared_ptr<AnimationComponent> animationComponent{ nullptr };
 	sf::Vector2f scriptedOffset{ };
 	bool flip{true};
+	WeakWrapper<ScriptedArtifact> weakWrap;
 
 public:
 	ScriptedArtifact();
 	~ScriptedArtifact();
+
+	void Init() override;
 
 	/**
 	 * Centers the animation on the tile, offsets it by its internal offsets, then invokes the function assigned to onUpdate if present.
@@ -35,13 +39,10 @@ public:
 	Animation& GetAnimationObject();
 	Battle::Tile* GetCurrentTile() const;
 
-	/**
-	 * \brief Callback function that, when registered, is called on every frame.
-	 */
-	std::function<void(ScriptedArtifact&, double)> updateCallback;
-	std::function<void(ScriptedArtifact&, Battle::Tile&)> spawnCallback;
-	std::function<bool(Battle::Tile&)> canMoveToCallback;
-	std::function<void(ScriptedArtifact&)> deleteCallback;
+	sol::object update_func;
+	sol::object on_spawn_func;
+	sol::object delete_func;
+	sol::object can_move_to_func;
 };
 
 #endif

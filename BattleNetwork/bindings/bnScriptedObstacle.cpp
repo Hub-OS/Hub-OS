@@ -1,66 +1,114 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedObstacle.h"
 #include "../bnDefenseObstacleBody.h"
+#include "../bnSolHelpers.h"
 
 ScriptedObstacle::ScriptedObstacle(Team _team) :
   Obstacle(_team) {
   setScale(2.f, 2.f);
 
-  shadow = new SpriteProxyNode();
+  shadow = std::make_shared<SpriteProxyNode>();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->Hide(); // default: hidden
   shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
   AddNode(shadow);
+}
 
-  animComponent = CreateComponent<AnimationComponent>(this);
+void ScriptedObstacle::Init() {
+  Obstacle::Init();
+
+  animComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animComponent->Load();
   animComponent->Refresh();
 
-  obstacleBody = new DefenseObstacleBody();
+  obstacleBody = std::make_shared<DefenseObstacleBody>();
   this->AddDefenseRule(obstacleBody);
+
+  weakWrap = WeakWrapper(weak_from_base<ScriptedObstacle>());
 }
 
 ScriptedObstacle::~ScriptedObstacle() {
-  delete shadow;
-  delete obstacleBody;
 }
 
 bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
 {
-  return canMoveToCallback? canMoveToCallback(*next) : false;
+  if (can_move_to_func.valid()) 
+  {
+    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+
+    return result.value();
+  }
+
+  return false;
 }
 
-void ScriptedObstacle::OnCollision(const Character* other)
+void ScriptedObstacle::OnCollision(const std::shared_ptr<Entity> other)
 {
-  ScriptedObstacle& so = *this;
-  collisionCallback ? collisionCallback(so, const_cast<Character&>(*other)) : (void)0;
+  if (collision_func.valid()) 
+  {
+    auto result = CallLuaCallback(collision_func, weakWrap, WeakWrapper(other));
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 }
 
 void ScriptedObstacle::OnUpdate(double _elapsed) {
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
-  ScriptedObstacle& so = *this;
-  updateCallback ? updateCallback(so, _elapsed) : (void)0;
 
+  if (update_func.valid()) 
+  {
+    auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 }
 
 void ScriptedObstacle::OnDelete() {
-  ScriptedObstacle& so = *this;
-  deleteCallback ? deleteCallback(so) : (void)0;
+  if (delete_func.valid()) 
+  {
+    auto result = CallLuaCallback(delete_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
+
   Remove();
 }
 
-void ScriptedObstacle::Attack(Character* other) {
+void ScriptedObstacle::Attack(std::shared_ptr<Entity> other) {
   other->Hit(GetHitboxProperties());
-  ScriptedObstacle& so = *this;
-  attackCallback ? attackCallback(so, *other) : (void)0;
+
+  if (attack_func.valid()) 
+  {
+    auto result = CallLuaCallback(attack_func, weakWrap, WeakWrapper(other));
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 }
 
 void ScriptedObstacle::OnSpawn(Battle::Tile& spawn)
 {
-  ScriptedObstacle& so = *this;
-  spawnCallback ? spawnCallback(so, spawn) : (void)0;
+  if (on_spawn_func.valid()) 
+  {
+    auto result = CallLuaCallback(on_spawn_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 
   if (GetTeam() == Team::blue && flip) {
     setScale(-2.f, 2.f);

@@ -24,16 +24,16 @@ struct FreedomMissionProps {
 class FreedomMissionMobScene final : public BattleSceneBase {
   FreedomMissionOverState* overStatePtr{ nullptr };
   FreedomMissionProps props;
-  std::vector<Player*> players;
+  std::vector<std::shared_ptr<Player>> players;
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   bool playerDecross{ false };
   int playerHitCount{};
 
   public:
-  FreedomMissionMobScene(swoosh::ActivityController& controller, const FreedomMissionProps& props, BattleResultsFunc onEnd=nullptr);
+  FreedomMissionMobScene(swoosh::ActivityController& controller, FreedomMissionProps props, BattleResultsFunc onEnd=nullptr);
   ~FreedomMissionMobScene();
 
-  void OnHit(Character& victim, const Hit::Properties& props) override final;
+  void OnHit(Entity& victim, const Hit::Properties& props) override final;
   void onStart() override final;
   void onExit() override;
   void onEnter() override;

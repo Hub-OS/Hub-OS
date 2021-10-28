@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stx/memory.h"
+
 class Entity;
 class BattleSceneBase;
 
@@ -12,7 +14,7 @@ class BattleSceneBase;
  * Components can be attached to (and owned by) any Entity in the game
  * This allows for custom behavior on pre-existing effects, characters, and attacks
  */
-class Component {
+class Component : public stx::enable_shared_from_base<Component> {
 public:
   friend class BattleSceneBase;
 
@@ -27,7 +29,7 @@ private:
   BattleSceneBase* scene{ nullptr };
   static long numOfComponents; /*!< Resource counter to generate new IDs */
   lifetimes lifetime{lifetimes::local};
-  Entity* owner; /*!< Who the component is attached to */
+  std::weak_ptr<Entity> owner; /*!< Who the component is attached to */
   ID_t ID; /*!< ID for quick lookups, resource management, and scripting */
 
 protected:
@@ -44,7 +46,7 @@ public:
    * @brief Sets an owner and ID. Increments numOfComponents beforehand.
    * @param owner the entity to attach to
    */
-  Component(Entity* owner, lifetimes lifetime = lifetimes::local);
+  Component(std::weak_ptr<Entity> owner, lifetimes lifetime = lifetimes::local);
   virtual ~Component();
 
   Component(Component&& rhs) = delete;
@@ -52,15 +54,15 @@ public:
 
   /**
    * @brief Get the owner as an Entity
-   * @return Entity*
+   * @return std::shared_ptr<Entity>
    */
-  Entity* GetOwner();
+  std::shared_ptr<Entity> GetOwner();
 
   /**
    * @brief Get the owner as an Entity (const. qualified)
-   * @return const Entity*
+   * @return const std::shared_ptr<Entity>
    */
-  const Entity* GetOwner() const;
+  const std::shared_ptr<Entity> GetOwner() const;
 
   /**
   * @brief Query if this component has been injected into the battle scene's ui or logic loop 
@@ -80,7 +82,7 @@ public:
    * @return T* if dynamic_cast is successful, otherwise null if type T is incompatible
    */
   template<typename T>
-  T* GetOwnerAs() { return dynamic_cast<T*>(owner); }
+  std::shared_ptr<T> GetOwnerAs() const { return std::dynamic_pointer_cast<T>(owner.lock()); }
 
   /**
    * @brief Releases the pointer and sets it to null

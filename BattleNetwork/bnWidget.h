@@ -47,7 +47,7 @@ class Widget : public SceneNode {
     */
     struct item {
       Direction dir{ Direction::none };
-      Widget* submenu{ nullptr };
+      std::shared_ptr<Widget> submenu{ nullptr };
     };
 
     /*!
@@ -60,10 +60,10 @@ class Widget : public SceneNode {
     const sf::FloatRect CalculateBounds() const;
     std::pair<bool, size_t> GetActiveSubmenuIndex();
     Widget* GetParentWidget();
-    Widget* GetDeepestSubmenu();
+    Widget& GetDeepestSubmenu();
     const size_t CountSubmenus() const;
     void SelectSubmenu(size_t at);
-    void AddSubmenu(Direction openDir, Widget* item);
+    void AddSubmenu(Direction openDir, std::shared_ptr<Widget> item);
 
     /*!
      * @brief color-matches the background based on state and surrounds the content with a box
@@ -89,7 +89,7 @@ class Widget : public SceneNode {
       }
     }
 
-    std::vector<Widget*> GetChildren() {
+    std::vector<std::shared_ptr<Widget>> GetChildren() {
       return children;
     }
 
@@ -98,7 +98,7 @@ class Widget : public SceneNode {
     }
 
 
-    Widget* GetChild(size_t index) {
+    std::shared_ptr<Widget> GetChild(size_t index) {
       if (index < children.size()) {
         return children[index];
       }
@@ -106,7 +106,7 @@ class Widget : public SceneNode {
       return nullptr;
     }
 
-    void AddWidget(Widget* content) {
+    void AddWidget(std::shared_ptr<Widget> content) {
       dirty = true;
       content->parent = this;
       children.push_back(content);
@@ -135,10 +135,10 @@ class Widget : public SceneNode {
     mutable sf::RectangleShape container{ {1.f,1.f} }; //!< widget container (box)
     sf::Color bg{ grey }, bgActive{ active }, bgOpen{ darkGrey }; //!< state colors
     std::vector<item> submenus; //!< submenu items with popout directions
-    std::vector<Widget*> children; //!< child widgets
+    std::vector<std::shared_ptr<Widget>> children; //!< child widgets
     Layout* layout{ nullptr }; //!< dictates the bounds of a widget and rearranges items if required
     Widget* parent{ nullptr }; //!< parent widget
-    Widget* open{ nullptr }; //! active submenu ptr (only valid if owning widget is also OPEN)
+    std::shared_ptr<Widget> open{ nullptr }; //! active submenu ptr (only valid if owning widget is also OPEN)
     static Widget* widgetInFocus; //!< Keep context of currently selected widget
 };
 
@@ -188,7 +188,7 @@ public:
       bounds.width = std::max(rowWidth, bounds.width);
       bounds.width = std::min(maxWidth, bounds.width);
 
-      last = item;
+      last = item.get();
     }
 
     return bounds;

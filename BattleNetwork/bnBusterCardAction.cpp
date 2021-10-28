@@ -10,41 +10,36 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(Character* actor, bool charged, int damage) : CardAction(actor, "PLAYER_SHOOTING")
+BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool charged, int damage) : CardAction(actorWeak, "PLAYER_SHOOTING")
 {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
-  buster = new SpriteProxyNode();
-  buster->setTexture(actor->getTexture());
-  buster->SetLayer(-1);
+  auto actor = actorWeak.lock();
 
-  busterAnim = Animation(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  busterAttachment = &AddAttachment("buster");
+
+  auto& busterAnim = busterAttachment->GetAnimationObject();
+  busterAnim.Load(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
   busterAnim.SetAnimation("BUSTER");
 
-  flare = new SpriteProxyNode();
-  flare->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
-  flare->SetLayer(-1);
-
-  flareAnim = Animation(NODE_ANIM);
-  flareAnim.SetAnimation("DEFAULT");
-
-  busterAttachment = &AddAttachment(actor, "buster", *buster).UseAnimation(busterAnim);
-  
+  buster = busterAttachment->GetSpriteNode();
+  buster->setTexture(actor->getTexture());
+  buster->SetLayer(-1);
+  buster->EnableParentShader(true);
+  buster->AddTags({Player::BASE_NODE_TAG});
 
   this->SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
 
-void BusterCardAction::OnExecute(Character* user) {
+void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
   buster->setColor(user->getColor());
-  buster->EnableParentShader(true);
-  buster->AddTags({Player::BASE_NODE_TAG});
- 
+
   // On shoot frame, drop projectile
   auto onFire = [this, user]() -> void {
     Team team = user->GetTeam();
-    Buster* b = new Buster(team, charged, damage);
-    field = user->GetField();
+    auto b = std::make_shared<Buster>(team, charged, damage);
+    auto field = user->GetField();
 
     if (team == Team::red) {
       b->SetMoveDirection(Direction::right);
@@ -53,22 +48,28 @@ void BusterCardAction::OnExecute(Character* user) {
       b->SetMoveDirection(Direction::left);
     }
 
-    auto busterRemoved = [this](Entity& target) {
+    auto busterRemoved = [this](auto target) {
       EndAction();
     };
 
     notifier = field->CallbackOnDelete(b->GetID(), busterRemoved);
 
-    user->GetField()->AddEntity(*b, *user->GetTile());
+    field->AddEntity(b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
 
-    busterAttachment->AddAttachment(busterAnim, "endpoint", *flare).UseAnimation(flareAnim);
+    auto& attachment = busterAttachment->AddAttachment("endpoint");
+
+    auto flare = attachment.GetSpriteNode();
+    flare->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
+    flare->SetLayer(-1);
+
+    auto& flareAnim = attachment.GetAnimationObject();
+    flareAnim = Animation(NODE_ANIM);
+    flareAnim.SetAnimation("DEFAULT");
   };
 
   AddAnimAction(2, onFire);
 }
-
-BusterCardAction::~BusterCardAction(){ }
 
 void BusterCardAction::Update(double _elapsed)
 {
@@ -77,6 +78,9 @@ void BusterCardAction::Update(double _elapsed)
 
 void BusterCardAction::OnActionEnd()
 {
+  auto actor = GetActor();
+  auto field = actor->GetField();
+
   if (field) {
     field->DropNotifier(this->notifier);
   }

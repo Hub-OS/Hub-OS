@@ -29,7 +29,6 @@ Field::Field(int _width, int _height) :
     vector<Battle::Tile*> row = vector<Battle::Tile*>();
     for (int x = 0; x < _width+2; x++) {
       Battle::Tile* tile = new Battle::Tile(x, y);
-      tile->SetField(this);
       tile->SetupGraphics(t_a_r, t_a_b, a);
 
       if (x <= 3) {
@@ -82,6 +81,12 @@ Field::~Field() {
 void Field::SetScene(const Scene* scene)
 {
   this->scene = scene;
+
+  for (auto& row : tiles) {
+    for (auto& tile : row) {
+      tile->SetField(shared_from_this());
+    }
+  }
 }
 
 int Field::GetWidth() const {
@@ -92,7 +97,7 @@ int Field::GetHeight() const {
   return height;
 }
 
-Field::NotifyID_t Field::CallbackOnDelete(Entity::ID_t target, const std::function<void(Entity&)>& callback)
+Field::NotifyID_t Field::CallbackOnDelete(Entity::ID_t target, const std::function<void(std::shared_ptr<Entity>)>& callback)
 {
   auto iter = entityDeleteObservers.find(target);
   Field::NotifyID_t ID = nextID;
@@ -118,8 +123,11 @@ Field::NotifyID_t Field::CallbackOnDelete(Entity::ID_t target, const std::functi
   return ID;
 }
 
-Field::NotifyID_t Field::NotifyOnDelete(Entity::ID_t target, Entity::ID_t observer, const std::function<void(Entity&, Entity&)>& callback)
-{
+Field::NotifyID_t Field::NotifyOnDelete(
+  Entity::ID_t target,
+  Entity::ID_t observer,
+  const std::function<void(std::shared_ptr<Entity>, std::shared_ptr<Entity>)>& callback
+) {
   auto iter = entityDeleteObservers.find(target);
   NotifyID_t ID = {};
 
@@ -198,130 +206,67 @@ std::vector<Battle::Tile*> Field::FindTiles(std::function<bool(Battle::Tile* t)>
   return res;
 }
 
-Field::AddEntityStatus Field::AddEntity(Character & character, int x, int y)
+Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, int x, int y)
 {
+  if (!entity->HasInit()) {
+    entity->Init();
+  }
+
   if (isUpdating) {
-    pending.push_back(queueBucket(x, y, character ));
+    pending.push_back(queueBucket(x, y, entity));
     return Field::AddEntityStatus::queued;
   }
 
-  character.SetField(this);
+  entity->SetField(shared_from_this());
 
   Battle::Tile* tile = GetAt(x, y);
 
   if (tile) {
-    character.AdoptTile(tile);
-    allEntityHash.insert(std::make_pair(character.GetID(), &character));
+    if (!entity->IsMoving()) {
+      entity->setPosition(tile->getPosition());
+    }
+
+    tile->AddEntity(entity);
+    allEntityHash.insert(std::make_pair(entity->GetID(), entity));
     return Field::AddEntityStatus::added;
-  }
-  else {
-    delete &character;
   }
 
   return Field::AddEntityStatus::deleted;
 }
 
-Field::AddEntityStatus Field::AddEntity(Character & character, Battle::Tile & dest)
+Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, Battle::Tile & dest)
 {
-  return AddEntity(character, dest.GetX(), dest.GetY());
+  return AddEntity(entity, dest.GetX(), dest.GetY());
 }
 
-
-Field::AddEntityStatus Field::AddEntity(Spell & spell, int x, int y)
+std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query) const
 {
-  if (isUpdating) {
-    pending.push_back(queueBucket(x, y, spell ));
-    return Field::AddEntityStatus::queued;
-  }
-
-  spell.SetField(this);
-
-  Battle::Tile* tile = GetAt(x, y);
-
-  if (tile) {
-    spell.AdoptTile(tile);
-    allEntityHash.insert(std::make_pair(spell.GetID(), &spell));
-    return Field::AddEntityStatus::added;
-  }
-  else {
-    delete &spell;
-  }
-
-  return Field::AddEntityStatus::deleted;
-}
-
-Field::AddEntityStatus Field::AddEntity(Spell & spell, Battle::Tile & dest)
-{
-  return AddEntity(spell, dest.GetX(), dest.GetY());
-}
-
-Field::AddEntityStatus Field::AddEntity(Obstacle & obst, int x, int y)
-{
-  if (isUpdating) {
-    pending.push_back(queueBucket(x, y, obst));
-    return Field::AddEntityStatus::queued;
-  }
-
-  obst.SetField(this);
-
-  Battle::Tile* tile = GetAt(x, y);
-
-  if (tile) {
-    obst.AdoptTile(tile);
-    allEntityHash.insert(std::make_pair(obst.GetID(), &obst));
-    return Field::AddEntityStatus::added;
-  }
-  else {
-    delete &obst;
-  }
-
-  return Field::AddEntityStatus::deleted;
-}
-
-
-
-Field::AddEntityStatus Field::AddEntity(Obstacle & obst, Battle::Tile & dest)
-{
-  return AddEntity(obst, dest.GetX(), dest.GetY());
-}
-
-Field::AddEntityStatus Field::AddEntity(Artifact & art, int x, int y)
-{
-  if (isUpdating) {
-    pending.push_back(queueBucket(x, y, art ));
-    return Field::AddEntityStatus::queued;
-  }
-
-  art.SetField(this);
-
-  Battle::Tile* tile = GetAt(x, y);
-
-  if (tile) {
-    art.AdoptTile(tile);
-    allEntityHash.insert(std::make_pair(art.GetID(), &art));
-    return Field::AddEntityStatus::added;
-  }
-  else {
-    delete &art;
-  }
-
-  return Field::AddEntityStatus::deleted;
-}
-
-Field::AddEntityStatus Field::AddEntity(Artifact & art, Battle::Tile & dest)
-{
-  return AddEntity(art, dest.GetX(), dest.GetY());
-}
-
-std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
-{
-  std::vector<Entity*> res;
+  std::vector<std::shared_ptr<Entity>> res;
 
   for (int y = 1; y <= height; y++) {
     for (int x = 1; x <= width; x++) {
       Battle::Tile* tile = GetAt(x, y);
 
-      std::vector<Entity*> found = tile->FindEntities(query);
+      for(auto& entity : tile->entities) {
+        if (query(entity)) {
+          res.push_back(entity);
+        }
+      }
+    }
+  }
+
+  return res;
+}
+
+std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const
+{
+  std::vector<std::shared_ptr<Character>> res;
+
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      std::vector<std::shared_ptr<Character>> found = tile->FindCharacters(query);
       res.reserve(res.size() + found.size()); // preallocate memory
       res.insert(res.end(), found.begin(), found.end());
     }
@@ -330,79 +275,11 @@ std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
   return res;
 }
 
-std::vector<const Entity*> Field::FindEntities(std::function<bool(Entity* e)> query) const
-{
-  std::vector<const Entity*> res;
-
-  for (int y = 1; y <= height; y++) {
-    for (int x = 1; x <= width; x++) {
-      Battle::Tile* tile = GetAt(x, y);
-
-      std::vector<Entity*> found = tile->FindEntities(query);
-      res.reserve(res.size() + found.size()); // preallocate memory
-      res.insert(res.end(), found.begin(), found.end());
-    }
-  }
-
-  return res;
-}
-
-std::vector<Character*> Field::FindCharacters(std::function<bool(Character* e)> query)
-{
-  std::vector<Character*> res;
-
-  for (int y = 1; y <= height; y++) {
-    for (int x = 1; x <= width; x++) {
-      Battle::Tile* tile = GetAt(x, y);
-
-      std::vector<Character*> found = tile->FindCharacters(query);
-      res.reserve(res.size() + found.size()); // preallocate memory
-      res.insert(res.end(), found.begin(), found.end());
-    }
-  }
-
-  return res;
-}
-
-std::vector<const Character*> Field::FindCharacters(std::function<bool(Character* e)> query) const
-{
-  std::vector<const Character*> res;
-
-  for (int y = 1; y <= height; y++) {
-    for (int x = 1; x <= width; x++) {
-      Battle::Tile* tile = GetAt(x, y);
-
-      std::vector<Character*> found = tile->FindCharacters(query);
-      res.reserve(res.size() + found.size()); // preallocate memory
-      res.insert(res.end(), found.begin(), found.end());
-    }
-  }
-
-  return res;
-}
-
-std::vector<Character*> Field::FindNearestCharacters(Character* test, std::function<bool(Character* e)> filter)
+std::vector<std::shared_ptr<Character>> Field::FindNearestCharacters(const std::shared_ptr<Character> test, std::function<bool(std::shared_ptr<Character>& e)> filter) const
 {
   auto list = this->FindCharacters(filter);
 
-  std::sort(list.begin(), list.end(), [test](Character* first, Character* next) {
-    auto& t0 = *test->GetTile();
-    auto& t1 = *first->GetTile();
-    auto& t2 = *next->GetTile();
-
-    unsigned int t1_dist = std::abs(t0.Distance(t1));
-    unsigned int t2_dist = std::abs(t0.Distance(t2));
-    return (t1_dist < t2_dist);
-  });
-
-  return list;
-}
-
-std::vector<const Character*> Field::FindNearestCharacters(const Character* test, std::function<bool(Character* e)> filter) const
-{
-  auto list = this->FindCharacters(filter);
-
-  std::sort(list.begin(), list.end(), [test](const Character* first, const Character* next) {
+  std::sort(list.begin(), list.end(), [test](const std::shared_ptr<Character>& first, const std::shared_ptr<Character>& next) {
     auto& t0 = *test->GetTile();
     auto& t1 = *first->GetTile();
     auto& t2 = *next->GetTile();
@@ -438,33 +315,33 @@ void Field::Update(double _elapsed) {
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->CleanupEntities();
-      tiles[i][j]->UpdateSpells(_elapsed);
+      tiles[i][j]->CleanupEntities(*this);
+      tiles[i][j]->UpdateSpells(*this, _elapsed);
     }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->ExecuteAllSpellAttacks();
+      tiles[i][j]->ExecuteAllAttacks(*this);
     }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->UpdateArtifacts(_elapsed);
+      tiles[i][j]->UpdateArtifacts(*this, _elapsed);
       // TODO: tiles[i][j]->UpdateObjects(_elapsed);
     }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->Update(_elapsed);
+      tiles[i][j]->Update(*this, _elapsed);
     }
   }
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->UpdateCharacters(_elapsed);
+      tiles[i][j]->UpdateCharacters(*this, _elapsed);
     }
   }
 
@@ -508,7 +385,7 @@ void Field::Update(double _elapsed) {
       auto& t = tiles[i][*charIter];
 
       auto matchIter = std::find_if(t->characters.begin(), t->characters.end(), 
-        [team = t->ogTeam](Character* in) { return !in->Teammate(team); });
+        [team = t->ogTeam](std::shared_ptr<Character> in) { return !in->Teammate(team); });
 
       // We found a character on a different team than us
       if (matchIter != t->characters.end()) {
@@ -581,7 +458,7 @@ void Field::Update(double _elapsed) {
     // Apply new spells into this frame's combat resolution
     for (int i = 0; i < tiles.size(); i++) {
       for (int j = 0; j < tiles[i].size(); j++) {
-        tiles[i][j]->ExecuteAllSpellAttacks();
+        tiles[i][j]->ExecuteAllAttacks(*this);
       }
     }
 
@@ -589,12 +466,6 @@ void Field::Update(double _elapsed) {
   }
 
   updatedEntities.clear();
-
-  for (auto* entity : dueForDeallocation) {
-    delete entity;
-  }
-
-  dueForDeallocation.clear();
 }
 
 void Field::ToggleTimeFreeze(bool state)
@@ -652,30 +523,12 @@ void Field::SpawnPendingEntities()
 {
   while (pending.size()) {
     auto& next = pending.back();
-    pending.pop_back();
 
-    switch (next.entity_type) {
-    case queueBucket::type::artifact:
-      if (AddEntity(*next.data.artifact, next.x, next.y) == Field::AddEntityStatus::added) {
-          next.data.artifact->Update(0);
-      }
-      break;
-    case queueBucket::type::character:
-      if (AddEntity(*next.data.character, next.x, next.y) == Field::AddEntityStatus::added) {
-          next.data.character->Update(0);
-      }
-      break;
-    case queueBucket::type::obstacle:
-      if (AddEntity(*next.data.obstacle, next.x, next.y) == Field::AddEntityStatus::added) {
-          next.data.obstacle->Update(0);
-      }
-      break;
-    case queueBucket::type::spell:
-      if (AddEntity(*next.data.spell, next.x, next.y) == Field::AddEntityStatus::added) {
-          next.data.spell->Update(0);
-      }
-      break;
+    if (AddEntity(next.entity, next.x, next.y) == Field::AddEntityStatus::added) {
+      next.entity->Update(0);
     }
+
+    pending.pop_back();
   }
 }
 
@@ -684,20 +537,20 @@ const bool Field::HasPendingEntities() const
   return pending.size();
 }
 
-void Field::UpdateEntityOnce(Entity *entity, const double elapsed)
+void Field::UpdateEntityOnce(Entity& entity, const double elapsed)
 {
-  if(entity == nullptr || updatedEntities.find(entity->GetID()) != updatedEntities.end())
+  if(updatedEntities.find(entity.GetID()) != updatedEntities.end())
       return;
 
-  entity->Update(elapsed);
-  updatedEntities.insert(std::make_pair(entity->GetID(), (void*)0));
+  entity.Update(elapsed);
+  updatedEntities.insert(std::make_pair(entity.GetID(), (void*)0));
 }
 
 void Field::ForgetEntity(Entity::ID_t ID)
 {
   auto entityIter = allEntityHash.find(ID);
   if (entityIter != allEntityHash.end()) {
-    Entity* target = entityIter->second;
+    std::shared_ptr<Entity> target = entityIter->second;
 
     auto deleteIter = entityDeleteObservers.find(ID);
 
@@ -706,12 +559,12 @@ void Field::ForgetEntity(Entity::ID_t ID)
 
       for (auto& d : deleteObservers) {
         if (d.observer.has_value()) {
-          if (Entity* observer = this->GetEntity(d.observer.value())) {
-            d.callback2(*target, *observer);
+          if (std::shared_ptr<Entity> observer = this->GetEntity(d.observer.value())) {
+            d.callback2(target, observer);
           }
         }
         else {
-          d.callback1(*target);
+          d.callback1(target);
         }
       }
     }
@@ -726,21 +579,20 @@ void Field::DeallocEntity(Entity::ID_t ID)
   auto iter = allEntityHash.find(ID);
 
   if (iter != allEntityHash.end()) {
-    auto* entity = iter->second;
+    auto& entity = iter->second;
     entity->GetTile()->RemoveEntityByID(ID);
     ForgetEntity(ID);
-    dueForDeallocation.push_back(entity);
   }
 }
 
-Entity * Field::GetEntity(Entity::ID_t ID)
+std::shared_ptr<Entity> Field::GetEntity(Entity::ID_t ID)
 {
   return allEntityHash[ID];
 }
 
-Character* Field::GetCharacter(Entity::ID_t ID)
+std::shared_ptr<Character> Field::GetCharacter(Entity::ID_t ID)
 {
-  return dynamic_cast<Character*>(GetEntity(ID));
+  return std::dynamic_pointer_cast<Character>(GetEntity(ID));
 }
 
 void Field::RevealCounterFrames(bool enabled)
@@ -753,46 +605,7 @@ const bool Field::DoesRevealCounterFrames() const
   return this->revealCounterFrames;
 }
 
-Field::queueBucket::queueBucket(int x, int y, Character& d) : x(x), y(y), entity_type(Field::queueBucket::type::character)
+Field::queueBucket::queueBucket(int x, int y, std::shared_ptr<Entity> e) : x(x), y(y), entity(e)
 {
-  data.character = &d;
-  ID = d.GetID();
+  ID = e->GetID();
 }
-
-Field::queueBucket::queueBucket(int x, int y, Obstacle& d) : x(x), y(y), entity_type(Field::queueBucket::type::obstacle)
-{
-  data.obstacle = &d;
-  ID = d.GetID();
-}
-
-Field::queueBucket::queueBucket(int x, int y, Artifact& d) : x(x), y(y), entity_type(Field::queueBucket::type::artifact)
-{
-  data.artifact = &d;
-  ID = d.GetID();
-}
-
-Field::queueBucket::queueBucket(int x, int y, Spell& d) : x(x), y(y), entity_type(Field::queueBucket::type::spell)
-{
-  data.spell = &d;
-  ID = d.GetID();
-}
-
-#ifdef BN_MOD_SUPPORT
-Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedArtifact>& arti, int x, int y)
-{
-    Artifact* ptr = arti.release();
-    return AddEntity(*ptr, x, y);
-}
-
-Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedSpell>& spell, int x, int y)
-{
-    Spell* ptr = spell.release();
-    return AddEntity(*ptr, x, y);
-}
-
-Field::AddEntityStatus Field::AddEntity(std::unique_ptr<ScriptedObstacle>& obst, int x, int y)
-{
-  Obstacle* ptr = obst.release();
-  return AddEntity(*ptr, x, y);
-}
-#endif

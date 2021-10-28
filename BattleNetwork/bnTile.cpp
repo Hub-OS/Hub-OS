@@ -45,7 +45,7 @@ namespace Battle {
       state = TileState::normal;
     }
 
-    entities = vector<Entity*>();
+    entities = vector<std::shared_ptr<Entity>>();
     setScale(2.f, 2.f);
     width = TILE_WIDTH * getScale().x;
     height = TILE_HEIGHT * getScale().y;
@@ -61,21 +61,24 @@ namespace Battle {
     burncycle = 0.12; // milliseconds
     elapsedBurnTime = burncycle;
 
-    highlightMode = Highlight::none;
+    highlightMode = TileHighlight::none;
 
+    volcanoSprite = std::make_shared<SpriteProxyNode>();
     volcanoErupt = Animation("resources/tiles/volcano.animation");
 
     auto resetVolcanoThunk = [this](int seconds) {
       if (!isBattleOver) {
-        this->volcanoErupt.SetFrame(1, this->volcanoSprite.getSprite()); // start over
+        this->volcanoErupt.SetFrame(1, this->volcanoSprite->getSprite()); // start over
         volcanoEruptTimer = seconds;
         
+        auto field = fieldWeak.lock();
+
         if (field && state == TileState::volcano) {
-          field->AddEntity(*new VolcanoErupt, *this);
+          field->AddEntity(std::make_shared<VolcanoErupt>(), *this);
         }
       }
       else {
-        RemoveNode(&volcanoSprite);
+        RemoveNode(volcanoSprite);
       }
     };
 
@@ -91,10 +94,10 @@ namespace Battle {
       resetVolcanoThunk(2);
     };
 
-    volcanoSprite.setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
-    volcanoSprite.SetLayer(-1); // in front of tile
+    volcanoSprite->setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
+    volcanoSprite->SetLayer(-1); // in front of tile
 
-    volcanoErupt.Refresh(volcanoSprite.getSprite());
+    volcanoErupt.Refresh(volcanoSprite->getSprite());
 
     // debugging, I'll make the tiles transparent
     // setColor(sf::Color(255, 255, 255, 100));
@@ -110,6 +113,7 @@ namespace Battle {
     ogTeam = other.ogTeam;
     state = other.state;
     RefreshTexture();
+    animation.Refresh(getSprite());
     entities = other.entities;
     setScale(2.f, 2.f);
     width = other.width;
@@ -137,10 +141,10 @@ namespace Battle {
     volcanoErupt = other.volcanoErupt;
     volcanoEruptTimer = other.volcanoEruptTimer;
 
-    volcanoSprite.setTexture(other.volcanoSprite.getTexture());
-    volcanoSprite.SetLayer(-1); // in front of tile
+    volcanoSprite->setTexture(other.volcanoSprite->getTexture());
+    volcanoSprite->SetLayer(-1); // in front of tile
 
-    volcanoErupt.Refresh(volcanoSprite.getSprite());
+    volcanoErupt.Refresh(volcanoSprite->getSprite());
 
     return *this;
   }
@@ -152,22 +156,14 @@ namespace Battle {
   }
 
   Tile::~Tile() {
-    // Free memory
-    auto iter = entities.begin();
-
-    while (iter != entities.end()) {
-      delete (*iter);
-      iter++;
-    }
-
     entities.clear();
     spells.clear();
     artifacts.clear();
     characters.clear();
   }
 
-  void Tile::SetField(Field* _field) {
-    field = _field;
+  void Tile::SetField(std::weak_ptr<Field> field) {
+    fieldWeak = field;
   }
 
   const int Tile::GetX() const {
@@ -194,10 +190,10 @@ namespace Battle {
     return team;
   }
 
-  void Tile::HandleMove(Entity* entity)
+  void Tile::HandleMove(std::shared_ptr<Entity> entity)
   {
     // If removing an entity and the tile was broken, crack the tile
-    if (reserved.size() == 0 && dynamic_cast<Character*>(entity) != nullptr && (IsCracked() && !(entity->HasFloatShoe() || entity->HasAirShoe()))) {
+    if (reserved.size() == 0 && dynamic_cast<Character*>(entity.get()) != nullptr && (IsCracked() && !(entity->HasFloatShoe() || entity->HasAirShoe()))) {
       SetState(TileState::broken);
       Audio().Play(AudioType::PANEL_CRACK);
     }
@@ -216,8 +212,8 @@ namespace Battle {
 
     // Check if no characters on the opposing team are on this tile
     if (GetTeam() == Team::unknown || GetTeam() != _team) {
-      size_t size = FindEntities([this, _team](Entity* in) {
-        auto* isCharacter = dynamic_cast<Character*>(in);
+      size_t size = FindEntities([this, _team](std::shared_ptr<Entity>& in) {
+        auto isCharacter = dynamic_cast<Character*>(in.get());
         return isCharacter && in->GetTeam() != _team;
       }).size();
 
@@ -234,6 +230,7 @@ namespace Battle {
       }
 
       RefreshTexture();
+      animation.Refresh(getSprite());
     }
   }
 
@@ -282,10 +279,10 @@ namespace Battle {
     }
 
     if (_state == TileState::volcano) {
-      AddNode(&volcanoSprite);
+      AddNode(volcanoSprite);
     }
     else {
-      RemoveNode(&volcanoSprite);
+      RemoveNode(volcanoSprite);
     }
 
     state = _state;
@@ -326,8 +323,6 @@ namespace Battle {
     else {
       setTexture(blue_team_atlas);
     }
-
-    animation.Refresh(getSprite());
   }
 
   bool Tile::IsWalkable() const {
@@ -352,7 +347,7 @@ namespace Battle {
     return willHighlight;
   }
 
-  void Tile::RequestHighlight(Highlight mode)
+  void Tile::RequestHighlight(TileHighlight mode)
   {
     highlightMode = mode;
   }
@@ -365,56 +360,40 @@ namespace Battle {
       return !characters.empty();
     }
 
-    std::vector<Character*> diff, char_exclude;
-    for (Entity::ID_t id : exclude) {
-      if (Character* c = field->GetCharacter(id)) {
-        char_exclude.push_back(c);
+    for (auto& character: characters) {
+      bool excluded = false;
+
+      for (auto id : exclude) {
+        if (character->GetID() == id) {
+          excluded = true;
+          break;
+        }
+      }
+
+      if (!excluded) {
+        return true;
       }
     }
 
-    std::sort(characters.begin(), characters.end());
-    std::sort(char_exclude.begin(), char_exclude.end());
-
-    std::set_difference(characters.begin(), characters.end(), char_exclude.begin(), char_exclude.end(), std::inserter(diff, diff.begin()));
-
-    return !diff.empty();
+    return false;
   }
 
-  void Tile::AddEntity(Spell & _entity)
-  {
-    if (!ContainsEntity(&_entity)) {
-      spells.push_back(&_entity);
-      AddEntity(&_entity);
+  void Tile::AddEntity(std::shared_ptr<Entity> _entity) {
+    if (!_entity || ContainsEntity(_entity)) {
+      return;
     }
-  }
 
-  void Tile::AddEntity(Character & _entity)
-  {
-    if (!ContainsEntity(&_entity)) {
-      characters.push_back(&_entity);
-      AddEntity(&_entity);
+    if (auto spell = dynamic_cast<Spell*>(_entity.get())) {
+      spells.push_back(spell);
+    } else if(auto artifact = dynamic_cast<Artifact*>(_entity.get())) {
+      artifacts.push_back(artifact);
+    } else if(auto obstacle = std::dynamic_pointer_cast<Obstacle>(_entity)) {
+      characters.push_back(obstacle);
+      spells.push_back(_entity.get());
+    } else if(auto character = std::dynamic_pointer_cast<Character>(_entity)) {
+      characters.push_back(character);
     }
-  }
 
-  void Tile::AddEntity(Obstacle & _entity)
-  {
-    if (!ContainsEntity(&_entity)) {
-      characters.push_back(&_entity);
-      spells.push_back(&_entity);
-      AddEntity(&_entity);
-    }
-  }
-
-  void Tile::AddEntity(Artifact & _entity)
-  {
-    if (!ContainsEntity(&_entity)) {
-      artifacts.push_back(&_entity);
-      AddEntity(&_entity);
-    }
-  }
-
-  // Aux function that all AddX() functions call
-  void Tile::AddEntity(Entity* _entity) {
     _entity->SetTile(this);
 
     // May be part of the spawn routine
@@ -436,17 +415,19 @@ namespace Battle {
   {
     bool modified = false;
 
-    // This is for queued entities that have not been spawned yet
-    // But are requested to be removed on the same frame
-    field->TileRequestsRemovalOfQueued(this, ID);
+    if (auto field = fieldWeak.lock()) {
+      // This is for queued entities that have not been spawned yet
+      // But are requested to be removed on the same frame
+      field->TileRequestsRemovalOfQueued(this, ID);
+    }
 
     // If the entity was in the reserved list, remove it
     auto reservedIter = reserved.find(ID);
     if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
-    auto itEnt    = find_if(entities.begin(), entities.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itEnt    = find_if(entities.begin(), entities.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
     auto itSpell  = find_if(spells.begin(), spells.end(), [ID](Entity* in) { return in->GetID() == ID; });
-    auto itChar   = find_if(characters.begin(), characters.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itChar   = find_if(characters.begin(), characters.end(), [ID](std::shared_ptr<Entity> in) { return in->GetID() == ID; });
     auto itArt    = find_if(artifacts.begin(), artifacts.end(), [ID](Entity* in) { return in->GetID() == ID; });
     auto itDelete = find_if(deletingCharacters.begin(), deletingCharacters.end(), [ID](Entity* in) { return in->GetID() == ID; });
     
@@ -462,9 +443,9 @@ namespace Battle {
     if (itSpell != spells.end()) {
       spells.erase(itSpell);
 
-      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [ID](Entity::ID_t in) { return ID == in; });
-      if (tagged != taggedSpells.end()) {
-        taggedSpells.erase(tagged);
+      auto tagged = std::find_if(taggedAttackers.begin(), taggedAttackers.end(), [ID](Entity::ID_t in) { return ID == in; });
+      if (tagged != taggedAttackers.end()) {
+        taggedAttackers.erase(tagged);
       }
     }
 
@@ -479,9 +460,8 @@ namespace Battle {
     return modified;
   }
 
-  bool Tile::ContainsEntity(const Entity* _entity) const {
-    vector<Entity*> copy = entities;
-    return find(copy.begin(), copy.end(), _entity) != copy.end();
+  bool Tile::ContainsEntity(const std::shared_ptr<Entity> _entity) const {
+    return find(entities.begin(), entities.end(), _entity) != entities.end();
   }
 
   void Tile::ReserveEntityByID(long ID)
@@ -489,15 +469,20 @@ namespace Battle {
     reserved.insert(ID);
   }
 
-  void Tile::AffectEntities(Spell* caller) {
-    if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
+  void Tile::AffectEntities(Entity& attacker) {
+    if (!attacker.HasSpawned()) {
+      // should check to see if the entity is on the field, but it's cheaper to check if the entity has spawned
+      throw std::runtime_error("Attacker must be on the field");
+    }
+
+    if (std::find_if(taggedAttackers.begin(), taggedAttackers.end(), [&attacker](int ID) { return ID == attacker.GetID(); }) != taggedAttackers.end())
       return;
-    if (std::find_if(queuedSpells.begin(), queuedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != queuedSpells.end())
+    if (std::find_if(queuedAttackers.begin(), queuedAttackers.end(), [&attacker](int ID) { return ID == attacker.GetID(); }) != queuedAttackers.end())
       return;
-    queuedSpells.push_back(caller->GetID());
+    queuedAttackers.push_back(attacker.GetID());
   }
 
-  void Tile::Update(double _elapsed) {
+  void Tile::Update(Field& field, double _elapsed) {
     willHighlight = false;
     totalElapsed += _elapsed;
 
@@ -509,18 +494,18 @@ namespace Battle {
       volcanoEruptTimer -= _elapsed;
 
       if (volcanoEruptTimer <= 0) {
-        volcanoErupt.Update(_elapsed, volcanoSprite.getSprite());
+        volcanoErupt.Update(_elapsed, volcanoSprite->getSprite());
       }
 
       // set the offset to be at center origin
-      volcanoSprite.setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
+      volcanoSprite->setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
     }
 
     // We need a copy because we WILL invalidate the iterator
     const std::set<Character*, EntityComparitor> deletingCharsCopy = deletingCharacters;
-    for (auto* chars : deletingCharsCopy) {
+    for (auto& character : deletingCharsCopy) {
       // Can remove the character from the tile's deleting queue
-      field->UpdateEntityOnce(chars, _elapsed);
+      field.UpdateEntityOnce(*character, _elapsed);
     }
 
     // Update our tile animation and texture
@@ -547,10 +532,10 @@ namespace Battle {
     animation.Refresh(this->getSprite());
 
     switch (highlightMode) {
-    case Highlight::solid:
+    case TileHighlight::solid:
       willHighlight = true;
       break;
-    case Highlight::flash:
+    case TileHighlight::flash:
       willHighlight = (int)(totalElapsed * 15) % 2 == 0;
       break;
     default:
@@ -563,13 +548,13 @@ namespace Battle {
 
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
-    highlightMode = Highlight::none;
+    highlightMode = TileHighlight::none;
 
     // Process tile behaviors
-    vector<Character*> characters_copy = characters;
-    for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
-      if (!(*entity)->IsTimeFrozen()) {
-        HandleTileBehaviors(*entity);
+    vector<std::shared_ptr<Character>> characters_copy = characters;
+    for (auto& character : characters_copy) {
+      if (!character->IsTimeFrozen()) {
+        HandleTileBehaviors(field, *character);
       }
     }
   }
@@ -613,12 +598,12 @@ namespace Battle {
     useParentShader = true;
   }
 
-  void Tile::HandleTileBehaviors(Obstacle* obst) {
+  void Tile::HandleTileBehaviors(Field& field, Obstacle& obst) {
     if (!isTimeFrozen || !isBattleOver || !(state == TileState::hidden)) {
 
       // DIRECTIONAL TILES
       auto directional = Direction::none;
-      auto notMoving = !obst->IsMoving();
+      auto notMoving = !obst.IsMoving();
 
       switch (GetState()) {
       case TileState::directionDown:
@@ -636,11 +621,11 @@ namespace Battle {
       }
 
       if (directional != Direction::none) {
-        if (obst->WillSlideOnTiles()) {
-          if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
-            if (!obst->IsSliding() && notMoving) {
-              MoveEvent event{ frames(3), frames(0), frames(0), 0, obst->GetTile() + directional };
-              obst->Entity::RawMoveEvent(event, ActionOrder::involuntary);
+        if (obst.WillSlideOnTiles()) {
+          if (!obst.HasAirShoe() && !obst.HasFloatShoe()) {
+            if (!obst.IsSliding() && notMoving) {
+              MoveEvent event{ frames(3), frames(0), frames(0), 0, obst.GetTile() + directional };
+              obst.Entity::RawMoveEvent(event, ActionOrder::involuntary);
             }
           }
         }
@@ -648,10 +633,10 @@ namespace Battle {
     }
   }
 
-  void Tile::HandleTileBehaviors(Character* character)
+  void Tile::HandleTileBehaviors(Field& field, Character& character)
   {
     // Obstacles cannot be considered
-    if (!character || dynamic_cast<Obstacle*>(character)) return;
+    if (dynamic_cast<Obstacle*>(&character)) return;
     if (isTimeFrozen || state == TileState::hidden) return; 
 
     /*
@@ -662,10 +647,10 @@ namespace Battle {
 
     if (!isBattleOver) {
       // LAVA & POISON TILES
-      if (!character->HasFloatShoe()) {
+      if (!character.HasFloatShoe()) {
         if (GetState() == TileState::poison) {
           if (elapsedBurnTime <= 0) {
-            if (character->Hit(Hit::Properties({ 1, Hit::pierce, Element::none, 0, Direction::none }))) {
+            if (character.Hit(Hit::Properties({ 1, Hit::pierce, Element::none, 0, Direction::none }))) {
               elapsedBurnTime = burncycle;
             }
           }
@@ -675,9 +660,8 @@ namespace Battle {
         }
 
         if (GetState() == TileState::lava) {
-          if (character->Hit(Hit::Properties({ 50, Hit::flash, Element::none, 0, Direction::none }))) {
-            Artifact* explosion = new Explosion;
-            field->AddEntity(*explosion, GetX(), GetY());
+          if (character.Hit(Hit::Properties({ 50, Hit::flash, Element::none, 0, Direction::none }))) {
+            field.AddEntity(std::make_shared<Explosion>(), GetX(), GetY());
             SetState(TileState::normal);
           }
         }
@@ -702,12 +686,12 @@ namespace Battle {
       }
 
       if (directional != Direction::none) {
-        auto notMoving = !character->IsMoving();
-        if (character->WillSlideOnTiles()) {
-          if (!character->HasAirShoe() && !character->HasFloatShoe()) {
-            if (notMoving && !character->IsSliding()) {
-              MoveEvent event{ frames(3), frames(0), frames(0), 0, character->GetTile() + directional };
-              character->RawMoveEvent(event, ActionOrder::involuntary);
+        auto notMoving = !character.IsMoving();
+        if (character.WillSlideOnTiles()) {
+          if (!character.HasAirShoe() && !character.HasFloatShoe()) {
+            if (notMoving && !character.IsSliding()) {
+              MoveEvent event{ frames(3), frames(0), frames(0), 0, character.GetTile() + directional };
+              character.RawMoveEvent(event, ActionOrder::involuntary);
             }
           }
         }
@@ -715,9 +699,9 @@ namespace Battle {
     }
   }
 
-  std::vector<Entity*> Tile::FindEntities(std::function<bool(Entity* e)> query)
+  std::vector<std::shared_ptr<Entity>> Tile::FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query)
   {
-    std::vector<Entity*> res;
+    std::vector<std::shared_ptr<Entity>> res;
 
     for(auto iter = entities.begin(); iter != entities.end(); iter++ ) {
       if (query(*iter)) {
@@ -728,13 +712,13 @@ namespace Battle {
     return res;
   }
 
-  std::vector<Character*> Tile::FindCharacters(std::function<bool(Character* e)> query)
+  std::vector<std::shared_ptr<Character>> Tile::FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query)
   {
-    std::vector<Character*> res;
+    std::vector<std::shared_ptr<Character>> res;
 
     for (auto iter = characters.begin(); iter != characters.end(); iter++) {
       // skip obstacle types...
-      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](Spell* other) {
+      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](auto& other) {
         return other->GetID() == character->GetID();
       });
 
@@ -755,6 +739,12 @@ namespace Battle {
 
   Tile* Tile::operator+(const Direction& dir)
   {
+    auto field = fieldWeak.lock();
+
+    if (!field) {
+      return nullptr;
+    }
+
     switch (dir) {
     case Direction::down:
     {
@@ -807,6 +797,12 @@ namespace Battle {
 
   Tile* Tile::Offset(int x, int y)
   {
+    auto field = fieldWeak.lock();
+
+    if (!field) {
+      return nullptr;
+    }
+
     return field->GetAt(this->x + x, this->y + y);
   }
 
@@ -870,26 +866,28 @@ namespace Battle {
     return str;
   }
 
-  void Tile::CleanupEntities()
+  void Tile::CleanupEntities(Field& field)
   {
     int i = 0;
 
     // Step through the entity bucket (all entity types)
     while (i < entities.size()) {
-      auto ptr = entities[i];
+      auto& ptr = entities[i];
 
       Entity::ID_t ID = ptr->GetID();
-      // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
-      Character* character = dynamic_cast<Character*>(ptr);
-      Obstacle* obst = dynamic_cast<Obstacle*>(ptr);
 
       if (ptr->IsDeleted()) {
-        if (character && deletingCharacters.find(character) == deletingCharacters.end()) {
-          field->CharacterDeletePublisher::Broadcast(*character);
+        // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
+        auto character = dynamic_cast<Character*>(ptr.get());
 
-          // prevent this entity from being broadcast again while any deletion animations take place
-          // TODO: this could be written better
-          deletingCharacters.insert(character);
+        if (character && deletingCharacters.find(character) == deletingCharacters.end()) {
+          field.CharacterDeletePublisher::Broadcast(*character);
+
+          if (ptr->WillRemoveLater()) {
+            // prevent this entity from being broadcast again while any deletion animations take place
+            // TODO: this could be written better
+            deletingCharacters.insert(character);
+          }
         }
       }
 
@@ -897,8 +895,7 @@ namespace Battle {
       if (ptr->WillRemoveLater()) {
         if (RemoveEntityByID(ID)) {
           // Don't track this entity anymore
-          field->ForgetEntity(ID);
-          delete ptr;
+          field.ForgetEntity(ID);
           continue;
         }
       }  
@@ -907,7 +904,7 @@ namespace Battle {
     }
   }
 
-  void Tile::ExecuteAllSpellAttacks()
+  void Tile::ExecuteAllAttacks(Field& field)
   {
     // Spells dont cause damage when the battle is over
     if (isBattleOver) return;
@@ -915,99 +912,91 @@ namespace Battle {
     // Now that spells and characters have updated and moved, they are due to check for attack outcomes
     auto characters_copy = characters; // may be modified after hitboxes are resolved
 
-    for (auto it = characters_copy.begin(); it != characters_copy.end(); ++it) {
+    for (auto& character : characters_copy) {
       // the entity is a character (can be hit) and the team isn't the same
       // we see if it passes defense checks, then call attack
 
-      Character& character = *(*it);
       bool retangible = false;
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
-      for (Entity::ID_t ID : queuedSpells) {
-        Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
+      for (Entity::ID_t ID : queuedAttackers) {
+        auto attacker = field.GetEntity(ID);
 
-        // this shouldn't happen but it does sometimes... 
-        // TODO: we need to be sure it's always right to perform static casting
-        if (!spell) continue;
+        if (!attacker) {
+          Logger::Logf("Attacker %d removed from field?", ID);
+          continue;
+        }
 
-        if (character.GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
+        if (character->GetID() == attacker->GetID()) // Case: prevent attackers from attacking themselves
           continue;
 
-        bool unknownTeams = character.GetTeam() == Team::unknown;
-        unknownTeams = unknownTeams && (spell->GetTeam() == Team::unknown);
+        bool unknownTeams = character->GetTeam() == Team::unknown;
+        unknownTeams = unknownTeams && (attacker->GetTeam() == Team::unknown);
 
-        if (character.GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
+        if (character->GetTeam() == attacker->GetTeam() && !unknownTeams) // Case: prevent friendly fire
           continue;
 
-        if (unknownTeams && !character.UnknownTeamResolveCollision(*spell)) // Case: unknown vs unknown need further inspection
+        if (unknownTeams && !character->UnknownTeamResolveCollision(*attacker)) // Case: unknown vs unknown need further inspection
           continue;
 
-        character.DefenseCheck(judge, *spell, DefenseOrder::always);
+        character->DefenseCheck(judge, attacker, DefenseOrder::always);
 
         bool alreadyTagged = false;
 
         if (judge.IsDamageBlocked()) {
           alreadyTagged = true;
-          // Tag the spell
-          // only ignore spells that have already hit something on a tile
+          // Tag the attacker
+          // only ignore attackers that have already hit something on a tile
           // this is similar to the hitbox being removed in mmbn mechanics
-          taggedSpells.push_back(spell->GetID());
+          taggedAttackers.push_back(attacker->GetID());
         }
 
         // Collision here means "we are able to hit" 
         // either with a hitbox that can pierce a defense or by tangibility
-        auto props = spell->GetHitboxProperties();
-        if (!character.HasCollision(props)) continue;
+        auto props = attacker->GetHitboxProperties();
+        if (!character->HasCollision(props)) continue;
 
-        // There was a collision (not necessarilly implies damage will be done)
-        Obstacle* obst = dynamic_cast<Obstacle*>(&character); 
+        // Obstacles can hit eachother, even on the same team
+        // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
+        bool sharesCommonAggressor = attacker->GetHitboxProperties().aggressor == character->GetHitboxProperties().aggressor;
           
-        // If colliding with a character, always do collision effect
-        if (!obst) {
-          spell->OnCollision(&character);
-        } else if(obst) {
-          // Obstacles can hit eachother, even on the same team
-          // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
-          bool sharesCommonAggressor = spell->GetHitboxProperties().aggressor == obst->GetHitboxProperties().aggressor;
-            
-          // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
-          if (!(sharesCommonAggressor && obst->WillIgnoreCommonAggressor())) {
-            spell->OnCollision(&character);
-          }
+        // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
+        if (!(sharesCommonAggressor && character->WillIgnoreCommonAggressor())) {
+          attacker->OnCollision(character);
         }
 
         if (!alreadyTagged) {
           // If not collided by the earlier defense types, tag it now
           // since we have a definite collision
-          taggedSpells.push_back(spell->GetID());
+          taggedAttackers.push_back(attacker->GetID());
         }
 
         // Retangible flag takes characters out of passthrough status
         retangible = retangible || ((props.flags & Hit::retangible) == Hit::retangible);
 
-        // The spell passed at least one defense check
-        character.DefenseCheck(judge, *spell, DefenseOrder::collisionOnly);
+        // The attacker passed at least one defense check
+        character->DefenseCheck(judge, attacker, DefenseOrder::collisionOnly);
 
         if (!judge.IsDamageBlocked()) {
 
           // We make sure to apply any tile bonuses at this stage
           if (GetState() == TileState::holy) {
-            auto props = spell->GetHitboxProperties();
+            auto props = attacker->GetHitboxProperties();
             props.damage /= 2;
-            spell->SetHitboxProperties(props);
+            attacker->SetHitboxProperties(props);
           }
 
           // Attack() routine has Hit() which immediately subtracts HP
           if (isTimeFrozen) {
-            auto props = spell->GetHitboxProperties();
+            auto props = attacker->GetHitboxProperties();
             props.flags |= Hit::shake;
-            spell->SetHitboxProperties(props);
+            attacker->SetHitboxProperties(props);
           }
 
-          spell->Attack(&character);
+          attacker->Attack(character);
 
           // we restore the hitbox properties
-          spell->SetHitboxProperties(props);
+          attacker->SetHitboxProperties(props);
         }
 
         judge.PrepareForNextAttack();
@@ -1015,50 +1004,51 @@ namespace Battle {
 
       judge.ExecuteAllTriggers();
 
-      if (retangible) character.SetPassthrough(false);
+      if (retangible) character->SetPassthrough(false);
     } // end each character loop
 
     // empty previous frame queue to be used this current frame
-    queuedSpells.clear();
+    queuedAttackers.clear();
+    // taggedAttackers.clear();
   }
 
-  void Tile::UpdateSpells(const double elapsed)
+  void Tile::UpdateSpells(Field& field, const double elapsed)
   {
-    vector<Spell*> spells_copy = spells;
-    for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
-      int request = (int)(*entity)->GetTileHighlightMode();
+    vector<Entity*> spells_copy = spells;
+    for (auto& spell : spells_copy) {
+      int request = (int)spell->GetTileHighlightMode();
 
-      if (!(*entity)->IsTimeFrozen()) {
+      if (!spell->IsTimeFrozen()) {
         if (request > (int)highlightMode) {
-          highlightMode = (Highlight)request;
+          highlightMode = (TileHighlight)request;
         }
 
-        Element hitboxElement = (*entity)->GetElement();
+        Element hitboxElement = spell->GetElement();
         if (hitboxElement == Element::aqua && state == TileState::volcano) {
           SetState(TileState::normal);
         }
 
-        field->UpdateEntityOnce(*entity, elapsed);
+        field.UpdateEntityOnce(*spell, elapsed);
       }
     }
   }
 
-  void Tile::UpdateArtifacts(const double elapsed)
+  void Tile::UpdateArtifacts(Field& field, const double elapsed)
   {
     vector<Artifact*> artifacts_copy = artifacts;
-    for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
+    for (auto& artifact : artifacts_copy) {
       // artifacts are special effects and do not stop for TimeFreeze events
-      field->UpdateEntityOnce(*entity, elapsed);
+      field.UpdateEntityOnce(*artifact, elapsed);
     }
   }
 
-  void Tile::UpdateCharacters(const double elapsed)
+  void Tile::UpdateCharacters(Field& field, const double elapsed)
   {
-    vector<Character*> characters_copy = characters;
-    for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
-      if (!(*entity)->IsTimeFrozen()) {
+    vector<std::shared_ptr<Character>> characters_copy = characters;
+    for (auto& character : characters_copy) {
+      if (!character->IsTimeFrozen()) {
         // Allow user input to move them out of tiles if they are frame perfect
-        field->UpdateEntityOnce(*entity, elapsed);
+        field.UpdateEntityOnce(*character, elapsed);
       }
     }
   }

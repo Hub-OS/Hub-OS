@@ -26,7 +26,7 @@ public:
    * @brief Attaches this component to the owner
    * @param owner
    */
-  UIComponent(Entity* owner) : Component(owner, Component::lifetimes::ui) { ; }
+  UIComponent(std::weak_ptr<Entity> owner) : Component(owner, Component::lifetimes::ui) { ; }
   ~UIComponent() { ; }
 
   UIComponent(UIComponent&& rhs) = delete;

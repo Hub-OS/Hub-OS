@@ -3,11 +3,12 @@
 
 class StuntDouble : public Character {
   sf::Color defaultColor;
-  Character& ref;
+  std::shared_ptr<Character> ref;
 public:
-  StuntDouble(Character& ref);
+  StuntDouble(std::shared_ptr<Character> ref);
   ~StuntDouble();
 
+  void Init() override;
   void OnDelete();
   void OnUpdate(double elapsed);
   bool CanMoveTo(Battle::Tile*) override;

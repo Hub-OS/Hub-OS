@@ -15,7 +15,7 @@ public:
   /**
    * @brief constructor character owns the component 
    */
-  MobHealthUI(Character* _mob);
+  MobHealthUI(std::weak_ptr<Character> _mob);
   
   /**
    * @brief deconstructor
@@ -45,7 +45,6 @@ public:
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
-  Character* mob{ nullptr }; /*!< Owner of health */
   sf::Color color; /*!< Color of the glyphs */
   mutable SpriteProxyNode glyphs; /*!< Drawable texture */
   int healthCounter; /*!< mob's current health */

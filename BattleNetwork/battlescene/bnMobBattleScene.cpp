@@ -16,10 +16,10 @@
 
 using namespace swoosh;
 
-MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattleProperties& props, BattleResultsFunc onEnd) :
-  props(props), 
-  BattleSceneBase(controller, props.base, onEnd) {
-
+MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperties _props, BattleResultsFunc onEnd) :
+  BattleSceneBase(controller, _props.base, onEnd),
+  props(std::move(_props))
+{
   Mob* current = props.mobs.at(0);
 
   // Simple error reporting if the scene was not fed any mobs
@@ -37,11 +37,11 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   GetEmotionWindow().SetTexture(props.emotion);
 
   // If playing co-op, add more players to track here
-  players = { &props.base.player };
+  players = { props.base.player };
 
   // ptr to player, form select index (-1 none), if should transform
   trackedForms = { 
-    std::make_shared<TrackedFormData>(&props.base.player, -1, false)
+    std::make_shared<TrackedFormData>(props.base.player.get(), -1, false)
   }; 
 
   // in seconds
@@ -56,7 +56,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto battlestart = AddState<BattleStartBattleState>(players);
   auto battleover  = AddState<BattleOverBattleState>(players);
   auto timeFreeze  = AddState<TimeFreezeBattleState>();
-  auto reward      = AddState<RewardBattleState>(current, &props.base.player, &playerHitCount);
+  auto reward      = AddState<RewardBattleState>(current, props.base.player.get(), &playerHitCount);
   auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players);
 
   // TODO: create a textbox in the battle scene and supply it to the card select widget and other states...
@@ -140,7 +140,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   battleover.ChangeOnEvent(reward, &BattleOverBattleState::IsFinished);
 
   // share some values between states
-  combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
+  combo->ShareCardList(cardSelect->GetCardPtrList());
 
   // special condition: if in combat and should decross, trigger the character transform states
   auto playerDecrosses = [this, forms] () mutable {
@@ -192,10 +192,10 @@ MobBattleScene::~MobBattleScene() {
   props.mobs.clear();
 }
 
-void MobBattleScene::OnHit(Character& victim, const Hit::Properties& props)
+void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
   auto player = GetPlayer();
-  if (player == &victim && props.damage > 0) {
+  if (player.get() == &victim && props.damage > 0) {
     playerHitCount++;
 
     if (props.damage >= 300) {
@@ -209,10 +209,10 @@ void MobBattleScene::OnHit(Character& victim, const Hit::Properties& props)
   }
 
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
-    Artifact* seSymbol = new ElementalDamage;
+    auto seSymbol = std::make_shared<ElementalDamage>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
-    GetField()->AddEntity(*seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
+    GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
   }
 }
 

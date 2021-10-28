@@ -6,7 +6,7 @@
 #include "../../bnTextureResourceManager.h"
 #include "../../bnPlayerSelectedCardsUI.h"
 
-FreedomMissionStartState::FreedomMissionStartState(std::vector<Player*>& tracked, uint8_t maxTurns) : 
+FreedomMissionStartState::FreedomMissionStartState(std::vector<std::shared_ptr<Player>>& tracked, uint8_t maxTurns) : 
   maxTurns(maxTurns),
   tracked(tracked) {
   battleStart = sf::Sprite(*Textures().LoadTextureFromFile("resources/ui/counted_turn_start.png"));

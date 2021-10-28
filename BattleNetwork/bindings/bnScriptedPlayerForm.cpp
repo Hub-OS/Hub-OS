@@ -1,6 +1,8 @@
 #include "bnScriptedPlayerForm.h"
 #include "bnScriptedPlayer.h"
 #include "bnScriptedCardAction.h"
+#include "bnScopedWrapper.h"
+#include "../bnSolHelpers.h"
 
 ScriptedPlayerForm::ScriptedPlayerForm()
 {
@@ -10,49 +12,73 @@ ScriptedPlayerForm::~ScriptedPlayerForm()
 {
 }
 
-void ScriptedPlayerForm::OnUpdate(double elapsed, Player& player)
+void ScriptedPlayerForm::OnUpdate(double elapsed, std::shared_ptr<Player> _)
 {
-  if (!on_update) return;
+  if (!update_func.valid()) return;
 
-  on_update(this, elapsed, static_cast<ScriptedPlayer&>(player));
+  auto wrappedSelf = ScopedWrapper(*this);
+  auto result = CallLuaCallback(update_func, wrappedSelf, elapsed, WeakWrapper(playerWeak));
+
+  if (result.is_error()) {
+    Logger::Log(result.error_cstr());
+  }
 }
 
-void ScriptedPlayerForm::OnActivate(Player& player)
+void ScriptedPlayerForm::OnActivate(std::shared_ptr<Player> _)
 {
-  if (!on_activate) return;
-  on_activate(this, static_cast<ScriptedPlayer&>(player));
+  if (!on_activate_func.valid()) return;
+
+  auto wrappedSelf = ScopedWrapper(*this);
+  auto result = CallLuaCallback(on_activate_func, wrappedSelf, WeakWrapper(playerWeak));
+
+  if (result.is_error()) {
+    Logger::Log(result.error_cstr());
+  }
 }
 
-void ScriptedPlayerForm::OnDeactivate(Player& player)
+void ScriptedPlayerForm::OnDeactivate(std::shared_ptr<Player> _)
 {
-  if (!on_deactivate) return;
-  on_deactivate(this, static_cast<ScriptedPlayer&>(player));
+  if (!on_deactivate_func.valid()) return;
+
+  auto wrappedSelf = ScopedWrapper(*this);
+  auto result = CallLuaCallback(on_deactivate_func, wrappedSelf, WeakWrapper(playerWeak));
+
+  if (result.is_error()) {
+    Logger::Log(result.error_cstr());
+  }
 }
 
-CardAction* ScriptedPlayerForm::OnChargedBusterAction(Player& player)
+std::shared_ptr<CardAction> ScriptedPlayerForm::GenerateCardAction(sol::object& function, const std::string& functionName)
 {
-  CardAction* result{ nullptr };
+  auto result = CallLuaCallback(function, WeakWrapper(playerWeak));
 
-  if (!on_charge_action)
-    return result;
+  if(result.is_error()) {
+    Logger::Log(result.error_cstr());
+    return nullptr;
+  }
 
-  sol::object obj = on_charge_action(static_cast<ScriptedPlayer&>(player));
+  auto obj = result.value();
 
   if (obj.valid()) {
-    if (obj.is<std::unique_ptr<CardAction>>())
+    if (obj.is<WeakWrapper<CardAction>>())
     {
-      auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      result = ptr.release();
+      return obj.as<WeakWrapper<CardAction>>().Release();
     }
-    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+    else if (obj.is<WeakWrapper<ScriptedCardAction>>())
     {
-      auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      result = ptr.release();
+      return obj.as<WeakWrapper<ScriptedCardAction>>().Release();
     }
     else {
-      Logger::Log("Lua function \"create_charged_attack\" didn't return a CardAction.");
+      Logger::Logf("Lua function \"%s\" didn't return a CardAction.", functionName.c_str());
     }
   }
+
+  return nullptr;
+}
+
+std::shared_ptr<CardAction> ScriptedPlayerForm::OnChargedBusterAction(std::shared_ptr<Player> _)
+{
+  std::shared_ptr<CardAction> result = GenerateCardAction(charged_attack_func, "charged_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -61,30 +87,14 @@ CardAction* ScriptedPlayerForm::OnChargedBusterAction(Player& player)
   return result;
 }
 
-CardAction*ScriptedPlayerForm::OnSpecialAction(Player& player)
+std::shared_ptr<CardAction> ScriptedPlayerForm::OnSpecialAction(std::shared_ptr<Player> player)
 {
-  CardAction* result{ nullptr };
-
-  if (!on_special_action)
-    return result;
-
-  sol::object obj = on_special_action(static_cast<ScriptedPlayer&>(player));
-
-  if (obj.valid()) {
-    if (obj.is<std::unique_ptr<CardAction>>())
-    {
-      auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      result = ptr.release();
-    }
-    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
-    {
-      auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      result = ptr.release();
-    }
-    else {
-      Logger::Log("Lua function \"create_special_attack\" didn't return a CardAction.");
-    }
+  if (!special_attack_func.valid()) {
+    // prevent error message for nil function, just return nullptr
+    return nullptr;
   }
+
+  std::shared_ptr<CardAction> result = GenerateCardAction(special_attack_func, "special_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::ability);
@@ -95,11 +105,18 @@ CardAction*ScriptedPlayerForm::OnSpecialAction(Player& player)
 
 frame_time_t ScriptedPlayerForm::CalculateChargeTime(unsigned chargeLevel)
 {
-  if (!on_calculate_charge_time) {
+  if (!calculate_charge_time_func.valid()) {
     return frames(60);
   }
 
-  return on_calculate_charge_time(chargeLevel);
+  auto result = CallLuaCallbackExpectingValue<frame_time_t>(calculate_charge_time_func, chargeLevel);
+
+  if (result.is_error()) {
+    Logger::Log(result.error_cstr());
+    return frames(60);
+  }
+
+  return result.value();
 }
 
 ScriptedPlayerFormMeta::ScriptedPlayerFormMeta(size_t index) : PlayerFormMeta(index)
@@ -111,12 +128,13 @@ PlayerForm* ScriptedPlayerFormMeta::BuildForm()
 {
   ScriptedPlayerForm* form = static_cast<ScriptedPlayerForm*>(PlayerFormMeta::BuildForm());
 
-  form->on_activate = this->on_activate;
-  form->on_deactivate = this->on_deactivate;
-  form->on_charge_action = this->on_charge_action;
-  form->on_special_action = this->on_special_action;
-  form->on_calculate_charge_time = this->on_calculate_charge_time;
-  form->on_update = this->on_update;
+  form->playerWeak = this->playerWeak;
+  form->calculate_charge_time_func = this->calculate_charge_time_func;
+  form->on_activate_func = this->on_activate_func;
+  form->on_deactivate_func = this->on_deactivate_func;
+  form->update_func = this->update_func;
+  form->charged_attack_func = this->charged_attack_func;
+  form->special_attack_func = this->special_attack_func;
 
   return form;
 }

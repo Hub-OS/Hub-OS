@@ -13,9 +13,8 @@ private:
   double shakeProgress;
   sf::Vector2f startPos;
   BattleSceneBase* bscene;
-  Entity* privOwner;
 public:
-  ShakingEffect(Entity* owner);
+  ShakingEffect(std::weak_ptr<Entity> owner);
   ~ShakingEffect();
   void OnUpdate(double _elapsed) override;
   void Inject(BattleSceneBase&) override;

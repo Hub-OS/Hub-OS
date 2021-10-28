@@ -16,34 +16,6 @@ Explosion::Explosion(int _numOfExplosions, double _playbackSpeed) :
   count = 0;
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
-  animationComponent = new AnimationComponent(this);
-  animationComponent->SetPath("resources/mobs/mob_explosion.animation");
-  animationComponent->Reload();
-
-  Audio().Play(AudioType::EXPLODE, AudioPriority::low);
-
-  animationComponent->SetAnimation("EXPLODE");
-  animationComponent->SetPlaybackSpeed(playbackSpeed);
-  animationComponent->OnUpdate(0.0f);
-
-  /*
-   * On the 12th frame, increment the explosion count, and turn the first 
-   * explosion transpatent.
-   * 
-   * If there are more explosions expected, spawn a copy on frame 8
-   */
-  animationComponent->AddCallback(12, [this]() {
-    root->IncrementExplosionCount();
-    setColor(sf::Color(0, 0, 0, 0));
-  }, true);
-
-  if (_numOfExplosions > 1) {
-    animationComponent->AddCallback(8, [this, _numOfExplosions]() {
-      GetField()->AddEntity(*new Explosion(*this), *GetTile());
-    }, true);
-  }
-
-  RegisterComponent(animationComponent);
 }
 
 Explosion::Explosion(const Explosion & copy) : Artifact()
@@ -59,11 +31,15 @@ Explosion::Explosion(const Explosion & copy) : Artifact()
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  SetOffsetArea(copy.offsetArea);
+}
+
+void Explosion::Init() {
+  Artifact::Init();
+
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
-
-  SetOffsetArea(copy.offsetArea);
 
   Audio().Play(AudioType::EXPLODE, AudioPriority::low);
 
@@ -78,12 +54,18 @@ Explosion::Explosion(const Explosion & copy) : Artifact()
    * Spawn a copy on frame 8
    */
   animationComponent->AddCallback(12, [this]() {
-    Delete(); root->IncrementExplosionCount();
+    root->IncrementExplosionCount();
+
+    if(this == root) {
+      setColor(sf::Color(0, 0, 0, 0));
+    } else {
+      Delete();
+    }
   }, true);
 
   if (numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this]() {
-      GetField()->AddEntity(*new Explosion(*this), *GetTile());
+      GetField()->AddEntity(std::shared_ptr<Explosion>(new Explosion(*this)), *GetTile());
     }, true);
   }
   else {

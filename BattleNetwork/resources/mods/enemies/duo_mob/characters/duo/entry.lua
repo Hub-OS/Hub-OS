@@ -164,10 +164,9 @@ function create_mine(duo)
     mine.waitTimer = 1 -- second
     mine.slideFrames = MINE_SLIDE_FRAMES
     mine.moveStart = true -- first time starts
-    mine.node = Engine.SpriteNode.new()
+    mine.node = mine:add_node()
     mine.node:set_texture(texture, true)
     mine.node:set_position(0,0)
-    mine:add_node(mine.node)
 
     miscAnim:set_state("MINE")
     miscAnim:set_playback(Playback.Once)
@@ -637,18 +636,17 @@ function package_init(self)
     anim:set_state("BODY")
     anim:set_playback(Playback.Once)
 
-    hand = Engine.SpriteNode.new()
+    hand = self:add_node()
     hand:set_texture(texture, true)
     hand:set_position(idleHandPos.x, idleHandPos.y)
     hand:set_layer(-2) -- put it in front at all times
     hand:enable_parent_shader(true)
-    self:add_node(hand)
 
     miscAnim = Engine.Animation.new(anim)
     miscAnim:set_state("HAND_IDLE")
     miscAnim:refresh(hand:unwrap())
 
-    middle = Engine.SpriteNode.new()
+    middle = self:add_node()
     middle:set_texture(texture, true)
     middle:set_layer(-1)
 
@@ -658,7 +656,6 @@ function package_init(self)
     local origin = anim:point("origin")
     local point  = anim:point("NO_SHOOT")
     middle:set_position(point.x - origin.x, point.y - origin.y)
-    self:add_node(middle)
 
     self.defense = Battle.DefenseRule.new(0, DefenseOrder.Always)
 

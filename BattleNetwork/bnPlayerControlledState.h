@@ -18,7 +18,7 @@ private:
   bool isChargeHeld{}; /*!< Flag if player is holding down shoot button */
   unsigned moveFrame{};
   double currLag{};
-  PlayerInputReplicator* replicator{ nullptr }; /*!< Pass actions onto a replicator to handle if requested */
+  std::shared_ptr<PlayerInputReplicator> replicator{ nullptr }; /*!< Pass actions onto a replicator to handle if requested */
   std::vector<InputEvent> inputQueue;
 
 public:

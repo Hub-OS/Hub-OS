@@ -48,7 +48,7 @@ private:
   std::string myIP, theirIP; // IP strings for textbox
   std::string selectedNaviId;
   std::string remoteNaviId;
-  CardFolder& folder;
+  std::unique_ptr<CardFolder> folder;
   PA& pa;
   NetPlayConfig netplayconfig;
   Background* gridBG;
@@ -91,7 +91,7 @@ private:
 public:
   friend class MatchMaking::PacketProcessor;
 
-  MatchMakingScene(swoosh::ActivityController&, const std::string& naviId, CardFolder&, PA&);
+  MatchMakingScene(swoosh::ActivityController&, const std::string& naviId, std::unique_ptr<CardFolder>, PA&);
   ~MatchMakingScene();
 
   /**

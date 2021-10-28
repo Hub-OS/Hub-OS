@@ -34,7 +34,7 @@ public:
   /**
    * \brief Sets the player owner. Sets hp tracker to current health.
    */
-  PlayerHealthUI(Player* _player);
+  PlayerHealthUI(std::weak_ptr<Player> _player);
   
   /**
    * @brief No memory needs to be freed
@@ -66,7 +66,6 @@ private:
   int startHP; /*!< HP of target when this component was attached */
   bool isBattleOver; /*!< flag when battle scene ends to stop beeping */
   double cooldown; /*!< timer to colorize the health. Set to 0.5 seconds */
-  Player* player; /*!< target entity of type Player */
   mutable Text glyphs; /*!< numbers to draw */
   SpriteProxyNode uibox; /*!< the box surrounding the health */
   std::shared_ptr<Texture> texture; /*!< the texture of the box */

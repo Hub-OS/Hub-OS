@@ -25,7 +25,7 @@ template<typename Any>
 class ExplodeState : public AIState<Any>
 {
 protected:
-  ExplosionSpriteNode* explosion; /*!< The root explosion object */
+  std::shared_ptr<ExplosionSpriteNode> explosion; /*!< The root explosion object */
   sf::Shader* whiteout; /*!< Flash the dying entity white */
   double elapsed;
   int numOfExplosions; /*!< Number of explosions to spawn */
@@ -60,7 +60,6 @@ ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) :
 
 template<typename Any>
 ExplodeState<Any>::~ExplodeState() {
-  /* explosion artifact is deleted by field */
 }
 
 template<typename Any>
@@ -68,7 +67,8 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   e.SetPassthrough(true); // Shoot through dying enemies
 
   /* explode over the sprite */
-  explosion = new ExplosionSpriteNode(&e, numOfExplosions, playbackSpeed);
+  explosion = std::make_shared<ExplosionSpriteNode>(&e, numOfExplosions, playbackSpeed);
+  e.AddNode(explosion);
   
   // Define the area relative to origin to spawn explosions around
   // based on a fraction of the current frame's size
@@ -104,8 +104,7 @@ void ExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
     explosion->Update(_elapsed);
 
     if (explosion->IsSequenceComplete()) {
-      Entity::ID_t ID = e.GetID();
-      e.GetField()->DeallocEntity(ID);
+      e.Remove();
     }
   }
 }
@@ -120,13 +119,11 @@ inline void ExplodeState<Any>::CleanupExplosions(Any& e)
 {
   if (explosion == nullptr) return;
 
-  for (auto element : explosion->GetChain()) {
+  for (auto& element : explosion->GetChain()) {
     e.RemoveNode(element);
-    delete element;
   }
 
   e.RemoveNode(explosion);
 
-  delete explosion;
   explosion = nullptr;
 }

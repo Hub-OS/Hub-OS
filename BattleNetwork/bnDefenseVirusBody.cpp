@@ -14,6 +14,6 @@ Hit::Properties& DefenseVirusBody::FilterStatuses(Hit::Properties& statuses)
   return statuses;
 }
 
-void DefenseVirusBody::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
+void DefenseVirusBody::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) {
   // doesn't block anything
 }

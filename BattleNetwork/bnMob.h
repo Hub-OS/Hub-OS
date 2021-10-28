@@ -6,6 +6,7 @@
 #include "bnBackground.h"
 #include "bnField.h"
 #include "bnMobHealthUI.h"
+#include "bnTile.h"
 #include "stx/tuple.h"
 
 #include <vector>
@@ -18,8 +19,8 @@ class Mob
 {
 public:
   /*! \brief Spawn info data object */
-  struct MobData {
-    Character* character{ nullptr }; /*!< The character to spawn */
+  struct SpawnData {
+    std::shared_ptr<Character> character{ nullptr }; /*!< The character to spawn */
     int tileX{}; /*!< The tile column to spawn on */
     int tileY{}; /*!< The tile row to spawn on */
     unsigned index{}; /*!< this character's spawn order */
@@ -28,23 +29,23 @@ public:
   class Mutator {
     friend class Mob;
 
-    MobData* data{ nullptr };
-    std::vector<std::function<void(Character& in)>> mutations;
+    std::unique_ptr<SpawnData> data;
+    std::vector<std::function<void(std::shared_ptr<Character> in)>> mutations;
 
-    MobData* GetSpawned() {
+    std::unique_ptr<SpawnData> GetSpawned() {
       for (auto&& m : mutations) {
-        m(*data->character);
+        m(data->character);
       }
 
-      return data;
+      return std::move(data);
     }
 
   public:
-    Mutator(MobData* data) : data(data) {
+    Mutator(std::unique_ptr<SpawnData> data) : data(std::move(data)) {
 
     }
 
-    void Mutate(const std::function<void(Character& in)>& mutation) {
+    void Mutate(const std::function<void(std::shared_ptr<Character> in)>& mutation) {
       mutations.push_back(mutation);
     }
   };
@@ -57,12 +58,12 @@ private:
   bool isBoss{ false }; /*!< Flag to change rank and music */
   bool isFreedomMission{ false };
   std::string music; /*!< Override with custom music */
-  std::vector<Mutator*> spawn; /*!< The enemies to spawn and manage */
-  std::vector<Character*> tracked; /*! Enemies that may or may not be spawned through the mob class but need to be considered */
-  std::vector<std::function<void(Character*)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
-  std::vector<std::function<void(Character*)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
+  std::vector<std::shared_ptr<Mutator>> spawn; /*!< The enemies to spawn and manage */
+  std::vector<std::shared_ptr<Character>> tracked; /*! Enemies that may or may not be spawned through the mob class but need to be considered */
+  std::vector<std::function<void(std::shared_ptr<Character>)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
+  std::vector<std::function<void(std::shared_ptr<Character>)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
   std::multimap<int, BattleItem> rewards; /*!< All possible rewards for this mob by rank */
-  Field* field{ nullptr }; /*!< The field to play on */
+  std::shared_ptr<Field> field{ nullptr }; /*!< The field to play on */
   std::shared_ptr<Background> background; /*!< Override with custom background */
 
 public:
@@ -74,7 +75,7 @@ public:
   /**
    * @brief constructor
    */
-  Mob(Field* _field);
+  Mob(std::shared_ptr<Field> _field);
 
   /**
    * @brief Deletes memory and cleanups all enemies
@@ -107,9 +108,9 @@ public:
 
   /**
    * @brief Get the field
-   * @return Field*
+   * @return std::shared_ptr<Field>
    */
-  Field* GetField();
+  std::shared_ptr<Field> GetField();
 
   /**
    * @brief Get the count of enemies in battle
@@ -236,10 +237,10 @@ public:
   /**
    * @brief Get the next unspawned enemy
    * 
-   * Spawns the mob and changes its state to PixelInState<>
-   * @return MobData*
+   * Spawns the character and changes its state to PixelInState<>
+   * @return SpawnData
    */
-  MobData* GetNextMob();
+  std::unique_ptr<SpawnData> GetNextSpawn();
 
   /**
    * @brief Create a spawner object to spawn typed enemies
@@ -253,7 +254,7 @@ public:
   template<class ClassType, typename... Args>
   Spawner<ClassType> CreateSpawner(Args&&...);
 
-  void Track(Character& character);
+  void Track(std::shared_ptr<Character> character);
 
   void EnableFreedomMission(bool enabled);
   void LimitTurnCount(uint8_t turnLimit);
@@ -285,7 +286,7 @@ Mob::Spawner<ClassType> Mob::CreateSpawner(Args&&... args) {
 template<class ClassType>
 class Mob::Spawner {
 protected:
-  std::function<ClassType*()> constructor;
+  std::function<std::shared_ptr<ClassType>()> constructor;
   Mob* mob{ nullptr };
 public:
   friend class ScriptedMob;
@@ -293,7 +294,7 @@ public:
   // ctors with zero arguments (or default args are provided)
   Spawner() {
     constructor = []() mutable {
-      return new ClassType();
+      return std::make_shared<ClassType>();
     };
   }
 
@@ -303,8 +304,10 @@ public:
   // c-tors with arguments (std::enable_if_t prevents matching with the copy ctor)
   template<typename... Args, typename std::enable_if_t<!std::is_constructible<Args&&..., const Spawner&>::value>* = nullptr>
   explicit Spawner(Args&&... args) {
-    constructor = [tuple_args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable->ClassType* {
-      return stx::make_ptr_from_tuple<ClassType>(tuple_args);
+    constructor = [tuple_args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable->std::shared_ptr<ClassType> {
+      auto character = stx::make_shared_from_tuple<ClassType>(tuple_args);
+      character->Init();
+      return character;
     };
   }
 
@@ -312,14 +315,14 @@ public:
   virtual ~Spawner() { }
 
   template<template<typename> class IntroState>
-  Mutator* SpawnAt(unsigned x, unsigned y) {
+  std::shared_ptr<Mutator> SpawnAt(unsigned x, unsigned y) {
     // assert that tileX and tileY exist in field
     assert(x >= 1 && x <= static_cast<unsigned>(mob->field->GetWidth()) 
         && y >= 1 && y <= static_cast<unsigned>(mob->field->GetHeight()));
 
     // Create a new enemy spawn data object
-    MobData* data = new MobData();
-    Character* character = constructor();
+    auto data = std::make_unique<SpawnData>();
+    std::shared_ptr<Character> character = constructor();
 
     auto ui = character->CreateComponent<MobHealthUI>(character);
     ui->Hide(); // let default state invocation reveal health
@@ -332,14 +335,12 @@ public:
 
     mob->field->GetAt(x, y)->ReserveEntityByID(character->GetID());
 
-    auto mutator = new Mutator(data);
-
     // Thinking we need to remove AI inheritence and be another component on its own
     Mob* mobPtr = this->mob;
-    auto pixelStateInvoker = [mobPtr](Character* character) {
+    auto pixelStateInvoker = [mobPtr](std::shared_ptr<Character> character) {
       auto onFinish = [mobPtr]() { mobPtr->FlagNextReady(); };
 
-      ClassType* enemy = static_cast<ClassType*>(character);
+      ClassType* enemy = static_cast<ClassType*>(character.get());
 
       if (enemy) {
         if constexpr (std::is_base_of<AI<ClassType>, ClassType>::value) {
@@ -351,8 +352,8 @@ public:
       }
     };
 
-    auto defaultStateInvoker = [ui](Character* character) {
-      ClassType* enemy = static_cast<ClassType*>(character);
+    auto defaultStateInvoker = [ui](std::shared_ptr<Character> character) {
+      ClassType* enemy = static_cast<ClassType*>(character.get());
       if (enemy) { enemy->InvokeDefaultState(); ui->Reveal(); }
     };
 
@@ -381,13 +382,15 @@ public:
       break;
     case ClassType::Rank::NM:
       data->character->SetName(data->character->GetName() + char(-3));
-    } 
+    }
 
-    // Add the mob spawn data to our list of enemies to spawn
-    mob->spawn.push_back(mutator);
+    // Add the character to our list of enemies to spawn
     mob->tracked.push_back(data->character);
 
     // Return a mutator to change some spawn info
+    auto mutator = std::make_shared<Mutator>(std::move(data));
+    mob->spawn.push_back(mutator);
+
     return mutator;
   }
 

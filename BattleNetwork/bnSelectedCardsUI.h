@@ -26,7 +26,7 @@ public:
   /**
    * \param character Character to attach to
    */
-  SelectedCardsUI(Character* owner, CardPackageManager* packageManager);
+  SelectedCardsUI(std::weak_ptr<Character> owner, CardPackageManager* packageManager);
   
   /**
    * @brief destructor
@@ -42,11 +42,10 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief Set the cards array and size. Updates card cursor to 0.
-   * @param incoming List of Card pointers
-   * @param size Size of List
+   * @brief Set the cards. Updates card cursor to 0.
+   * @param incoming List of cards
    */
-  void LoadCards(Battle::Card** incoming, int size);
+  void LoadCards(std::vector<Battle::Card> incoming);
   
   /**
    * @brief Broadcasts the card at the cursor curr. Increases curr.
@@ -77,7 +76,7 @@ public:
   */
   std::optional<std::reference_wrapper<const Battle::Card>> Peek();
 
-  void HandlePeekEvent(Character* from);
+  void HandlePeekEvent(std::shared_ptr<Character> from);
 
   /**
   * @brief Returns the uuids of all the cards
@@ -86,18 +85,16 @@ public:
 
 protected:
 
-  const int GetCardCount() const;
   const int GetCurrentCardIndex() const;
   const unsigned GetMultiplier() const;
-  Battle::Card** SelectedCardsPtrArray() const;
+  std::vector<Battle::Card>& GetSelectedCards() const;
   SpriteProxyNode& IconNode() const;
   SpriteProxyNode& FrameNode() const;
   CardPackageManager* packageManager{ nullptr };
 
 private:
   double elapsed{}; /*!< Used by draw function, delta time since last update frame */
-  Battle::Card** selectedCards{ nullptr }; /*!< Current list of cards. */
-  int cardCount{}; /*!< Size of list */
+  std::shared_ptr<std::vector<Battle::Card>> selectedCards; /*!< Current list of cards. */
   int curr{}; /*!< Card cursor index */
   unsigned multiplierValue{ 1 };
   mutable bool firstFrame{ true }; /*!< If true, this UI graphic is being drawn for the first time*/

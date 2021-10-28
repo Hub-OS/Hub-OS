@@ -11,7 +11,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/guard_hit.animation"
 
-GuardHit::GuardHit(Character* hit, bool center) 
+GuardHit::GuardHit(std::shared_ptr<Entity> hit, bool center) 
   : 
   w(0), 
   h(0), 
@@ -43,16 +43,20 @@ GuardHit::GuardHit(Character* hit, bool center)
   setTexture(Textures().GetTexture(TextureType::SPELL_GUARD_HIT));
   setScale(2.f, 2.f);
 
+  Audio().Play(AudioType::GUARD_HIT);
+}
+
+void GuardHit::Init() {
+  Artifact::Init();
+
   //Components setup and load
   auto onFinish = [&]() { Delete();  };
 
-  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("DEFAULT", onFinish);
   animationComponent->OnUpdate(0);
-
-  Audio().Play(AudioType::GUARD_HIT);
 }
 
 void GuardHit::OnUpdate(double _elapsed) {

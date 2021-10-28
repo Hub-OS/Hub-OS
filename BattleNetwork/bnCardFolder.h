@@ -3,6 +3,7 @@
 #include "bnCardLibrary.h"
 #include <vector>
 #include <algorithm>
+#include <memory>
 
 /**
  * @class CardFolder
@@ -47,10 +48,10 @@ public:
   
   /**
    * @brief Returns a safe clone of all cards used in the folder
-   * @return CardFolder*
+   * @return std::unique_ptr<CardFolder>
    * @important Use Clone() to make a copy of the folder before exhausting it in battle
    */
-  CardFolder * Clone();
+  std::unique_ptr<CardFolder> Clone();
   
   /**
    * @brief Copies card data and allocates new one in folder

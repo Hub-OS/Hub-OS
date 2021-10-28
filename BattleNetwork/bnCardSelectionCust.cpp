@@ -105,8 +105,8 @@ void CardSelectionCust::SetSelectedFormIndex(int index)
   }
 }
 
-CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
-  props(props),
+CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
+  props(std::move(_props)),
   greyscale(Shaders().GetShader(ShaderType::GREYSCALE)),
   textbox({ 4, 255 }),
   isInView(false),
@@ -125,9 +125,9 @@ CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
   this->props.cap = std::min(this->props.cap, 8);
 
   frameElapsed = 1;
-  queue = new Bucket[this->props.cap];
-  selectQueue = new Bucket*[this->props.cap];
-  newSelectQueue = new Bucket*[this->props.cap];
+  queue = std::vector<Bucket>(this->props.cap);
+  selectQueue = std::vector<Bucket*>(this->props.cap);
+  newSelectQueue = std::vector<Bucket*>(this->props.cap);
 
   cardCount = selectCount = newSelectCount = cursorPos = cursorRow = 0;
 
@@ -229,17 +229,6 @@ CardSelectionCust::CardSelectionCust(const CardSelectionCust::Props& props) :
 
 CardSelectionCust::~CardSelectionCust() {
   ClearCards();
-
-  if (cardCount > 0) {
-    delete[] queue;
-    delete[] selectQueue;
-  }
-
-  free(selectedCards);
-
-  cardCount = 0;
-
-  delete props._folder;
 }
 
 bool CardSelectionCust::CursorUp() {
@@ -1016,18 +1005,16 @@ void CardSelectionCust::Update(double elapsed)
   isInView = IsInView();
 }
 
-Battle::Card** CardSelectionCust::GetCards() {
+std::vector<Battle::Card> CardSelectionCust::GetCards() {
   if (newSelectCount != 0) {
     // Allocate selected cards list
     size_t sz = sizeof(Battle::Card*) * newSelectCount;
 
-    free(selectedCards);
-
-    selectedCards = (Battle::Card**)malloc(sz);
+    selectedCards.clear();
 
     // Point to selected queue
     for (int i = 0; i < newSelectCount; i++) {
-      selectedCards[i] = new Battle::Card(*newSelectQueue[i]->data);
+      selectedCards.emplace_back(*newSelectQueue[i]->data);
     }
 
     selectCount = newSelectCount;

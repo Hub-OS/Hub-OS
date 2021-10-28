@@ -5,7 +5,7 @@ HitPublisher::~HitPublisher()
 {
 }
 
-void HitPublisher::Broadcast(Character& victim, const Hit::Properties& props)
+void HitPublisher::Broadcast(Entity& victim, const Hit::Properties& props)
 {
   std::list<HitListener*>::iterator iter = listeners.begin();
 

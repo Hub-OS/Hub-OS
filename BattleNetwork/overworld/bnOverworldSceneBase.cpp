@@ -757,29 +757,36 @@ void Overworld::SceneBase::GotoConfig()
 
 void Overworld::SceneBase::GotoMobSelect()
 {
-  CardFolder* folder = nullptr;
+  std::unique_ptr<CardFolder> folder;
+  CardFolder* f = nullptr;
 
-  if (!folders.GetFolder(0, folder)) {
-    folder = new CardFolder();
+  if (folders.GetFolder(0, f)) {
+    folder = f->Clone();
+  } else {
+    folder = std::make_unique<CardFolder>();
   }
 
-  SelectMobScene::Properties props{ currentNaviId, *folder, programAdvance, bg };
+  SelectMobScene::Properties props{ currentNaviId, std::move(folder), programAdvance, bg };
   using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
   Audio().Play(AudioType::CHIP_DESC);
-  getController().push<effect::to<SelectMobScene>>(props);
+  getController().push<effect::to<SelectMobScene>>(std::move(props));
 }
 
 void Overworld::SceneBase::GotoPVP()
 {
-  CardFolder* folder = nullptr;
+  std::unique_ptr<CardFolder> folder;
 
-  if (!folders.GetFolder(0, folder)) {
-    folder = new CardFolder();
+  CardFolder* f = nullptr;
+
+  if (folders.GetFolder(0, f)) {
+    folder = f->Clone();
+  } else {
+    folder = std::make_unique<CardFolder>();
   }
 
   Audio().Play(AudioType::CHIP_DESC);
   using effect = segue<PushIn<direction::down>, milliseconds<500>>;
-  getController().push<effect::to<MatchMakingScene>>(currentNaviId, *folder, programAdvance);
+  getController().push<effect::to<MatchMakingScene>>(currentNaviId, std::move(folder), programAdvance);
 }
 
 void Overworld::SceneBase::GotoMail()
@@ -1033,7 +1040,7 @@ void Overworld::SceneBase::StartupTouchControls() {
     if (data.GetFolder("Default", folder)) {
       Audio().Play(AudioType::CHIP_DESC);
       using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
-      getController().push<segue>(currentNavi, *folder);
+      getController().push<segue>(currentNavi, folder->Clone());
     }
     else {
       Audio().Play(AudioType::CHIP_ERROR);

@@ -34,7 +34,7 @@ public:
    * @param victim who was hit
    * @param aggressor who hit the victim to trigger this event
    */
-  void Broadcast(Character& victim, Character& aggressor) {
+  void Broadcast(Entity& victim, Entity& aggressor) {
     std::list<CounterHitListener*>::iterator iter = listeners.begin();
 
     while (iter != listeners.end()) {

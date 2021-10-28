@@ -1,7 +1,9 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedCardAction.h"
 #include "../bnCharacter.h"
-ScriptedCardAction::ScriptedCardAction(Character* actor, const std::string& state) :
+#include "../bnSolHelpers.h"
+
+ScriptedCardAction::ScriptedCardAction(std::shared_ptr<Character> actor, const std::string& state) :
   CardAction(actor, state)
 {
 
@@ -11,14 +13,20 @@ ScriptedCardAction::~ScriptedCardAction() {
 
 }
 
-CardAction::Attachment& ScriptedCardAction::AddAttachment(Character* character, const std::string& point, SpriteProxyNode& node) {
-  return CardAction::AddAttachment(character, point, node);
+void ScriptedCardAction::Init() {
+  weakWrap = WeakWrapper(weak_from_base<ScriptedCardAction>());
 }
 
 void ScriptedCardAction::Update(double elapsed) {
   CardAction::Update(elapsed);
-  if (onUpdate) {
-    onUpdate(*this, elapsed);
+
+  if (update_func.valid())
+  {
+    auto result = CallLuaCallback(update_func, weakWrap, elapsed);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
@@ -28,20 +36,35 @@ void ScriptedCardAction::draw(sf::RenderTarget& target, sf::RenderStates states)
 }
 
 void ScriptedCardAction::OnAnimationEnd() {
-  if (onAnimationEnd) {
-    onAnimationEnd(*this);
+  if (animation_end_func.valid()) 
+  {
+    auto result = CallLuaCallback(animation_end_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
 void ScriptedCardAction::OnActionEnd() {
-  if (onActionEnd) {
-    onActionEnd(*this);
+  if (action_end_func.valid()) 
+  {
+    auto result = CallLuaCallback(action_end_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
-void ScriptedCardAction::OnExecute(Character* user) {
-  if (onExecute) {
-    onExecute(*this, user);
+void ScriptedCardAction::OnExecute(std::shared_ptr<Character> user) {
+  if (execute_func.valid()) 
+  {
+    auto result = CallLuaCallback(execute_func, weakWrap, WeakWrapper(user));
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 

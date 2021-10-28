@@ -6,7 +6,7 @@
 #include "../../../bnPlayerControlledState.h"
 #include "../../../bnPlayer.h"
 
-NetworkSyncBattleState::NetworkSyncBattleState(Player*& remotePlayer, NetworkBattleScene* scene) :
+NetworkSyncBattleState::NetworkSyncBattleState(std::shared_ptr<Player>& remotePlayer, NetworkBattleScene* scene) :
   remotePlayer(remotePlayer),
   scene(scene),
   cardSelectState(scene->cardStatePtr),

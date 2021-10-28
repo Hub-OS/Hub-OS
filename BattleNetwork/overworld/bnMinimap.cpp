@@ -210,7 +210,7 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
 }
 
 void Overworld::Minimap::FindObjectMarkers(Map& map) {
-  hp.Hide();
+  hp->Hide();
 
   auto layerCount = map.GetLayerCount();
   auto tileSize = map.GetTileSize();
@@ -331,7 +331,7 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
 void Overworld::Minimap::EnforceTextureSizeLimits()
 {
   player.setTextureRect({ 0, 0, 6, 8 });
-  hp.setTextureRect({ 0, 0, 8, 8 });
+  hp->setTextureRect({ 0, 0, 8, 8 });
   warp.setTextureRect({ 0, 0, 8, 6 });
   board.setTextureRect({ 0, 0, 6, 7 });
   shop.setTextureRect({ 0, 0, 6, 7 });
@@ -339,7 +339,7 @@ void Overworld::Minimap::EnforceTextureSizeLimits()
   overlay.setTextureRect({ 0, 0, 240, 160 });
 
   player.setOrigin({ 3, 8 });
-  hp.setOrigin({ 4, 4 });
+  hp->setOrigin({ 4, 4 });
   warp.setOrigin({ 4, 3 });
   board.setOrigin({ 3, 7 });
   shop.setOrigin({ 3, 7 });
@@ -348,8 +348,9 @@ void Overworld::Minimap::EnforceTextureSizeLimits()
 
 Overworld::Minimap::Minimap()
 {
+  hp = std::make_shared<SpriteProxyNode>();
+  hp->setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_hp.png"));
   player.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_pos.png"));
-  hp.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_hp.png"));
   overlay.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_over.png"));
   arrows.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_over_arrows.png"));
   warp.setTexture(Textures().LoadTextureFromFile("resources/ow/minimap/mm_warp.png"));
@@ -364,8 +365,8 @@ Overworld::Minimap::Minimap()
   rectangle.setFillColor(bgColor);
 
   // add the homepage marker but hide it
-  bakedMap.AddNode(&hp);
-  hp.Hide();
+  bakedMap.AddNode(hp);
+  hp->Hide();
 }
 
 Overworld::Minimap::~Minimap()
@@ -422,7 +423,7 @@ void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos, bool isConce
 void Overworld::Minimap::AddPlayerMarker(std::shared_ptr<Overworld::Minimap::PlayerMarker> marker) {
   CopyTextureAndOrigin(*marker, player);
   marker->SetLayer(-1);
-  bakedMap.AddNode(marker.get());
+  bakedMap.AddNode(marker);
   playerMarkers.push_back(marker);
 }
 
@@ -447,15 +448,15 @@ void Overworld::Minimap::RemovePlayerMarker(std::shared_ptr<Overworld::Minimap::
 void Overworld::Minimap::SetHomepagePosition(const sf::Vector2f& pos, bool isConcealed)
 {
   auto newpos = pos * this->scaling;
-  hp.setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
-  hp.setColor(isConcealed ? CONCEALED_COLOR : sf::Color::White);
-  hp.SetLayer(-1); // on top of the map
-  hp.Reveal();
+  hp->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
+  hp->setColor(isConcealed ? CONCEALED_COLOR : sf::Color::White);
+  hp->SetLayer(-1); // on top of the map
+  hp->Reveal();
 }
 
 void Overworld::Minimap::ClearIcons()
 {
-  bakedMap.RemoveNode(&hp);
+  bakedMap.RemoveNode(hp);
 
   for(auto& marker : mapMarkers) {
     bakedMap.RemoveNode(marker.get());
@@ -522,7 +523,7 @@ void Overworld::Minimap::AddMarker(const std::shared_ptr<SpriteProxyNode>& marke
   auto newpos = pos * this->scaling;
   marker->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
   marker->SetLayer(-1);
-  bakedMap.AddNode(marker.get());
+  bakedMap.AddNode(marker);
 }
 
 void Overworld::Minimap::Open() {

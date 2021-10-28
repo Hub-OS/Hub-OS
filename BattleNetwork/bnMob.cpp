@@ -9,7 +9,7 @@
 #include <map>
 #include <stdexcept>
 
-Mob::Mob(Field* _field) {
+Mob::Mob(std::shared_ptr<Field> _field) {
   nextReady = true;
   field = _field;
   isBoss = false;
@@ -64,12 +64,6 @@ BattleItem* Mob::GetRankedReward(int score) {
 }
 
 void Mob::Cleanup() {
-  delete field;
-
-  //for (int i = 0; i < spawn.size(); i++) {
-  //  delete spawn[i];
-  //}
-
   /*iter = spawn.end();
   field = nullptr;
   spawn.clear();
@@ -82,7 +76,7 @@ void Mob::KillSwitch() {
   }
 }
 
-Field* Mob::GetField() {
+std::shared_ptr<Field> Mob::GetField() {
   return field;
 }
 
@@ -95,7 +89,7 @@ void Mob::Forget(Character& character) {
 
   auto forgetIter = tracked.begin();
   while(forgetIter != tracked.end()) {
-    if ((*forgetIter) == &character) {
+    if ((*forgetIter).get() == &character) {
       tracked.erase(forgetIter);
       break; // done
     }
@@ -183,18 +177,18 @@ void Mob::DefaultState() {
   defaultStateInvokers.clear();
 }
 
-Mob::MobData* Mob::GetNextMob() {
+std::unique_ptr<Mob::SpawnData> Mob::GetNextSpawn() {
   if (spawnIndex >= spawn.size()) return nullptr;
 
   nextReady = false;
-  MobData* data = spawn[spawnIndex++]->GetSpawned();
+  auto data = spawn[spawnIndex++]->GetSpawned();
   pixelStateInvokers[data->index](data->character);
   return data;
 }
 
-void Mob::Track(Character& character)
+void Mob::Track(std::shared_ptr<Character> character)
 {
-  tracked.push_back(&character);
+  tracked.push_back(character);
 }
 
 void Mob::EnableFreedomMission(bool enabled)

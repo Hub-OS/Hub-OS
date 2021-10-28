@@ -13,20 +13,31 @@
 ScriptedCharacter::ScriptedCharacter(sol::state& script, Character::Rank rank) :
   script(script),
   AI<ScriptedCharacter>(this), 
-  Character(rank) {
+  Character(rank)
+{
   SetElement(Element::none);
   SetTeam(Team::blue);
   setScale(2.f, 2.f);
-
-  //Components setup and load
-  animation = CreateComponent<AnimationComponent>(this);
-
-  script["package_init"](this);
-
-  animation->Refresh();
 }
 
 ScriptedCharacter::~ScriptedCharacter() {
+}
+
+void ScriptedCharacter::Init() {
+  Character::Init();
+
+  animation = CreateComponent<AnimationComponent>(weak_from_this());
+
+  auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
+  auto initResult = CallLuaFunction(script, "package_init", character);
+
+  if (initResult.is_error()) {
+    Logger::Log(initResult.error_cstr());
+  }
+
+  animation->Refresh();
+
+  weakWrap = WeakWrapper(weak_from_base<ScriptedCharacter>());
 }
 
 void ScriptedCharacter::OnUpdate(double _elapsed) {
@@ -50,34 +61,61 @@ void ScriptedCharacter::OnDelete() {
     ChangeState<ExplodeState<ScriptedCharacter>>(numOfExplosions, explosionPlayback);
   }
 
-  if (deleteCallback) {
-    deleteCallback(*this);
+  if (delete_func.valid()) 
+  {
+    auto result = CallLuaCallback(delete_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
-  if (spawnCallback) {
-    spawnCallback(*this, start);
+  if (on_spawn_func.valid()) 
+  {
+    auto result = CallLuaCallback(on_spawn_func, weakWrap, &start);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
 void ScriptedCharacter::OnBattleStart() {
-  if (onBattleStartCallback) {
-    onBattleStartCallback(*this);
+  if (battle_start_func.valid()) 
+  {
+    auto result = CallLuaCallback(battle_start_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
 void ScriptedCharacter::OnBattleStop() {
   Character::OnBattleStop();
 
-  if (onBattleEndCallback) {
-    onBattleEndCallback(*this);
+  if (battle_end_func.valid()) 
+  {
+    auto result = CallLuaCallback(battle_end_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
-bool ScriptedCharacter::CanMoveTo(Battle::Tile * next) {
-  if (canMoveToCallback) {
-    return canMoveToCallback(*next);
+bool ScriptedCharacter::CanMoveTo(Battle::Tile* next) {
+  if (can_move_to_func.valid()) 
+  {
+    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+
+    return result.value();
   }
 
   return Character::CanMoveTo(next);
@@ -103,23 +141,13 @@ void ScriptedCharacter::SetExplosionBehavior(int num, double speed, bool isBoss)
   bossExplosion = isBoss;
 }
 
-void ScriptedCharacter::SimpleCardActionEvent(std::unique_ptr<ScriptedCardAction>& action, ActionOrder order)
+void ScriptedCharacter::SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order)
 {
-  // getting around sol limitations:
-  // using unique_ptr to allow sol to manage memory
-  // but we need to share this with the subsystems...
-  std::unique_ptr uniqueAction = std::move(action);
-  std::shared_ptr<CardAction> sharedAction;
-  sharedAction.reset(uniqueAction.release());
-  Character::AddAction(CardEvent{ sharedAction }, order);
+  Character::AddAction(CardEvent{ action }, order);
 }
 
-void ScriptedCharacter::SimpleCardActionEvent(std::unique_ptr<CardAction>& action, ActionOrder order)
+void ScriptedCharacter::SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order)
 {
-  // see previous function for explanation
-  std::unique_ptr uniqueAction = std::move(action);
-  std::shared_ptr<CardAction> sharedAction;
-  sharedAction.reset(uniqueAction.release());
-  Character::AddAction(CardEvent{ sharedAction }, order);
+  Character::AddAction(CardEvent{ action }, order);
 }
 #endif

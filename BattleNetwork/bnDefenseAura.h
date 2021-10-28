@@ -13,7 +13,7 @@
  */
 class DefenseAura : public DefenseRule {
 public:
-  typedef std::function<void(Spell& in, Character& owner, bool windRemove)> Callback;
+  typedef std::function<void(std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner, bool windRemove)> Callback;
   
 private:
   Callback callback;
@@ -29,5 +29,5 @@ public:
    * @param in the attack
    * @param owner the character the rule is attached to (this)
    */
-  void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 };

@@ -7,7 +7,7 @@ class PlayerInputReplicator final : public Component {
   NetworkBattleScene* networkbs{ nullptr };
 
 public:
-  PlayerInputReplicator(Entity* owner) : Component(owner, Component::lifetimes::battlestep) {
+  PlayerInputReplicator(std::weak_ptr<Entity> owner) : Component(owner, Component::lifetimes::battlestep) {
 
   }
 

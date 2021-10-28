@@ -37,7 +37,7 @@
 using namespace swoosh::types;
 using swoosh::ActivityController;
 
-NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props, BattleResultsFunc onEnd) :
+NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBattleSceneProps& props, BattleResultsFunc onEnd) :
   BattleSceneBase(controller, props.base, onEnd),
   ping(Font::Style::wide)
 {
@@ -50,10 +50,10 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   pingIndicator.setScale(2.f, 2.f);
   UpdatePingIndicator(frames(0));
 
-  auto* clientPlayer = &props.base.player;
+  auto clientPlayer = props.base.player;
 
   selectedNaviId = props.netconfig.myNaviId;
-  props.base.player.CreateComponent<PlayerInputReplicator>(clientPlayer);
+  clientPlayer->CreateComponent<PlayerInputReplicator>(clientPlayer);
 
   packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
@@ -72,7 +72,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   // ptr to player, form select index (-1 none), if should transform
   // TODO: just make this a struct to use across all states that need it...
   trackedForms = {
-    std::make_shared<TrackedFormData>(clientPlayer, -1, false)
+    std::make_shared<TrackedFormData>(clientPlayer.get(), -1, false)
   };
 
   // trackedForms[0]->SetReadyState<PlayerControlledState>();
@@ -171,7 +171,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   battleover.ChangeOnEvent(fadeout, &BattleOverBattleState::IsFinished);
 
   // share some values between states
-  combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
+  combo->ShareCardList(cardSelect->GetCardPtrList());
 
   // Some states need to know about card uses
   auto& ui = this->GetSelectedCardsUI();
@@ -199,15 +199,13 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
 }
 
 NetworkBattleScene::~NetworkBattleScene()
-{ 
-  delete remotePlayer;
-  if (remoteHand) delete[] remoteHand;
+{
 }
 
-void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
+void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
   auto player = GetPlayer();
-  if (player == &victim && props.damage > 0) {
+  if (player.get() == &victim && props.damage > 0) {
     if (props.damage >= 300) {
       player->SetEmotion(Emotion::angry);
       GetSelectedCardsUI().SetMultiplier(2);
@@ -221,10 +219,10 @@ void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
   }
 
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
-    Artifact* seSymbol = new ElementalDamage;
+    auto seSymbol = std::make_shared<ElementalDamage>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight() + (victim.getLocalBounds().height * 0.5f)); // place it at sprite height
-    GetField()->AddEntity(*seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
+    GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
   }
 }
 
@@ -489,16 +487,12 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   trackedForms[1]->selectedForm = remoteForm;
   trackedForms[1]->animationComplete = !remoteState.remoteChangeForm; // a value of false forces animation to play
 
-  if (remoteHand) {
-    delete[] remoteHand;
-    remoteHand = nullptr;
-  }
+  remoteHand.clear();
 
   size_t handSize = remoteUUIDs.size();
   int len = (int)handSize; // TODO: use size_t for card lengths...
 
   if (handSize) {
-    remoteHand = new Battle::Card * [handSize] {nullptr};
     auto& packageManager = getController().CardPackageManager();
 
     for (size_t i = 0; i < handSize; i++) {
@@ -507,8 +501,9 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
 
       if (packageManager.HasPackage(id)) {
         card = packageManager.FindPackageByID(id).GetCardProperties();
-        remoteHand[i] = new Battle::Card(card);
       }
+
+      remoteHand.push_back(card);
     }
   }
 
@@ -519,7 +514,7 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   // simulate PA to calculate time required to animate
   while (!cardComboStatePtr->IsDone()) {
     constexpr double step = 1.0 / frame_time_t::frames_per_second;
-    cardComboStatePtr->Simulate(step, &remoteHand, &len, false);
+    cardComboStatePtr->Simulate(step, remoteHand, false);
     duration += step;
   }
 
@@ -527,10 +522,10 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   cardComboStatePtr->Reset();
 
   // Filter support cards
-  FilterSupportCards(remoteHand, len);
+  FilterSupportCards(remoteHand);
 
   // Supply the final hand info
-  remoteCardActionUsePublisher->LoadCards(remoteHand, len);
+  remoteCardActionUsePublisher->LoadCards(remoteHand);
   
   // Convert to microseconds and use this as the round start delay
   roundStartDelay = from_milliseconds((long long)((duration*1000.0) + packetProcessor->GetAvgLatency()));
@@ -588,7 +583,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   Logger::Logf("Recieved connect signal! Remote navi: %s", remoteState.remoteNaviId.c_str());
 
   assert(remotePlayer == nullptr && "remote player was already set!");
-  remotePlayer = getController().PlayerPackageManager().FindPackageByID(remoteNaviId).GetData();
+  remotePlayer = std::shared_ptr<Player>(getController().PlayerPackageManager().FindPackageByID(remoteNaviId).GetData());
 
   // TODO: manual flipping shouldn't be needed. The engine should flip based on team and direction...
   remotePlayer->SetTeam(Team::blue);
@@ -596,8 +591,8 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remotePlayer->ChangeState<FadeInState<Player>>([]{});
 
-  GetField()->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
-  mob->Track(*remotePlayer);
+  GetField()->AddEntity(remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
+  mob->Track(remotePlayer);
 
   remoteCardActionUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().CardPackageManager());
   remoteCardActionUsePublisher->Hide(); // do not reveal opponent's cards
@@ -615,7 +610,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   auto netProxy = remotePlayer->CreateComponent<PlayerNetworkProxy>(remotePlayer, remoteState);
 
   players.push_back(remotePlayer);
-  trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer, -1, false ));
+  trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer.get(), -1, false ));
   //trackedForms.back()->SetReadyState<PlayerNetworkState>(netProxy);
 }
 

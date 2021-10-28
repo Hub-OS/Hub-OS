@@ -15,11 +15,6 @@ Widget::Widget()
 
 Widget::~Widget()
 {
-  for (auto& child : children) {
-    if (child->parent == this || child->parent == nullptr) {
-      delete child;
-    }
-  }
 }
 
 const sf::FloatRect Widget::CalculateBounds() const
@@ -45,27 +40,27 @@ Widget* Widget::GetParentWidget()
   return parent;
 }
 
-Widget* Widget::GetDeepestSubmenu()
+Widget& Widget::GetDeepestSubmenu()
 {
   if (currState != states::opened)
-    return this;
+    return *this;
 
-  Widget* recent = this->open;
+  auto* recent = this->open.get();
 
   while (recent) {
-    auto next = recent->GetDeepestSubmenu();
+    auto next = &recent->GetDeepestSubmenu();
     if (next != recent) {
       recent = next;
     }
     else {
       if (recent->children.size() && (recent->IsActive() || recent->IsOpen())) {
-        recent = recent->children[recent->selectedChildIndex]->GetDeepestSubmenu();
+        recent = &recent->children[recent->selectedChildIndex]->GetDeepestSubmenu();
       }
       break;
     }
   }
 
-  return recent;
+  return *recent;
 }
 
 const size_t Widget::CountSubmenus() const
@@ -82,7 +77,7 @@ void Widget::SelectSubmenu(size_t at)
   }
 }
 
-void Widget::AddSubmenu(Direction openDir, Widget* item)
+void Widget::AddSubmenu(Direction openDir, std::shared_ptr<Widget> item)
 {
   item->parent = this;
   submenus.push_back(Widget::item{ openDir, item });

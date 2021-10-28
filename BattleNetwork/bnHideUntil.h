@@ -20,7 +20,6 @@ public:
 
 private:
   Battle::Tile* temp;
-  Character* owner;
   BattleSceneBase* scene;
   Callback callback;
 
@@ -28,7 +27,7 @@ public:
   /**
    * @brief Sets the query functor
    */
-  HideUntil(Character* owner, Callback callback);
+  HideUntil(std::weak_ptr<Character> owner, Callback callback);
 
   /**
    * @brief When query stored in callback() is true, adds the entity back into the scene

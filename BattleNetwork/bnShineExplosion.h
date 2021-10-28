@@ -7,7 +7,7 @@
 class ShineExplosion : public Artifact
 {
 private:
-  AnimationComponent* animationComponent;
+  std::shared_ptr<AnimationComponent> animationComponent;
 
 public:
   /**
@@ -15,6 +15,8 @@ public:
    */
   ShineExplosion();
   ~ShineExplosion();
+
+  void Init() override;
 
   /**
    * @brief Loops animations

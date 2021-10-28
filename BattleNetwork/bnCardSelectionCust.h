@@ -30,7 +30,7 @@ public:
     @warning CardSelectionCust WILL deallocate the folder passed in
   **/
   struct Props {
-    CardFolder* _folder{ nullptr };
+    std::unique_ptr<CardFolder> _folder;
     CardPackageManager* roster{ nullptr };
     int cap{};
     int perTurn{ 5 };
@@ -104,9 +104,9 @@ private:
   std::vector<sf::Sprite> formUI;
   double formSelectQuitTimer;
   double frameElapsed; /*!< delta seconds since last frame */
-  Battle::Card** selectedCards{ nullptr }; /*!< Pointer to a list of selected cards */
-  Bucket* queue{ nullptr }; /*!< List of buckets */
-  Bucket** selectQueue{ nullptr }, ** newSelectQueue{ nullptr }; /*!< List of selected buckets in order */
+  std::vector<Battle::Card> selectedCards; /*!< Pointer to a list of selected cards */
+  std::vector<Bucket> queue; /*!< List of buckets */
+  std::vector<Bucket*> selectQueue, newSelectQueue; /*!< List of selected buckets in order */
   Battle::TextBox textbox; /*!< Popups card descriptions */
   std::vector<PlayerFormMeta*> forms;
 
@@ -121,7 +121,7 @@ public:
    * @param cap How many cards that can load in total. GUI only supports 8 max.
    * @param perTurn How many cards are drawn per turn. Default is 5.
    */
-  CardSelectionCust(const Props& props);
+  CardSelectionCust(Props props);
   
   /**
    * @brief Clears and deletes all cards and queues. Deletes folder.
@@ -289,7 +289,7 @@ public:
    * @brief Transfer ownership from Folder through GUI to user of all selected cards in queue
    * @return List of Card*
    */
-  Battle::Card** GetCards();
+  std::vector<Battle::Card> GetCards();
 
   bool HasNewHand() const;
   

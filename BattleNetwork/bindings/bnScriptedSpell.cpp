@@ -1,59 +1,106 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedSpell.h"
+#include "../bnSolHelpers.h"
+#include "../bnTile.h"
 
-ScriptedSpell::ScriptedSpell(Team _team) : 
-  Spell(_team) {
+ScriptedSpell::ScriptedSpell(Team team) : Spell(team) {
   setScale(2.f, 2.f);
 
-  shadow = new SpriteProxyNode();
+  shadow = std::make_shared<SpriteProxyNode>();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->Hide(); // default: hidden
   shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
   AddNode(shadow);
+}
 
-  animComponent = CreateComponent<AnimationComponent>(this);
+void ScriptedSpell::Init() {
+  Spell::Init();
+  auto sharedPtr = shared_from_base<ScriptedSpell>();
+  animComponent = CreateComponent<AnimationComponent>(sharedPtr);
+  weakWrap = WeakWrapper(sharedPtr);
 }
 
 ScriptedSpell::~ScriptedSpell() {
-  delete shadow;
 }
 
 bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 {
-  return canMoveToCallback? canMoveToCallback(*next) : false;
+  if (can_move_to_func.valid()) 
+  {
+    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+
+    return result.value();
+  }
+
+  return false;
 }
 
 void ScriptedSpell::OnUpdate(double _elapsed) {
   // counter offset the shadow node
   shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
-  ScriptedSpell& ss = *this;
-  updateCallback ? updateCallback(ss, _elapsed) : (void)0;
 
+  if (update_func.valid()) {
+    auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 }
 
 void ScriptedSpell::OnDelete() {
-  ScriptedSpell& ss = *this;
-  deleteCallback ? deleteCallback(ss) : (void)0;
+  if (delete_func.valid()) 
+  {
+    auto result = CallLuaCallback(delete_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
+
   Remove();
 }
 
-void ScriptedSpell::OnCollision(const Character* other)
+void ScriptedSpell::OnCollision(const std::shared_ptr<Entity> other)
 {
-  ScriptedSpell& ss = *this;
-  collisionCallback ? collisionCallback(ss, const_cast<Character&>(*other)) : (void)0;
+  if (collision_func.valid()) 
+  {
+    auto result = CallLuaCallback(collision_func, weakWrap, WeakWrapper(other));
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 }
 
-void ScriptedSpell::Attack(Character* other) {
+void ScriptedSpell::Attack(std::shared_ptr<Entity> other) {
   other->Hit(GetHitboxProperties());
-  ScriptedSpell& ss = *this;
-  attackCallback ? attackCallback(ss, *other) : (void)0;
+
+  if (attack_func.valid()) 
+  {
+    auto result = CallLuaCallback(attack_func, weakWrap, WeakWrapper(other));
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 }
 
 void ScriptedSpell::OnSpawn(Battle::Tile& spawn)
 {
-  ScriptedSpell& ss = *this;
-  spawnCallback ? spawnCallback(ss, spawn) : (void)0;
+  if (on_spawn_func.valid()) 
+  {
+    auto result = CallLuaCallback(on_spawn_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
 
   if (GetTeam() == Team::blue && flip) {
     setScale(-2.f, 2.f);
@@ -96,8 +143,10 @@ void ScriptedSpell::ShakeCamera(double power, float duration)
 {
   this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
+
 void ScriptedSpell::NeverFlip (bool enabled)
 {
   flip = !enabled;
 }
+
 #endif

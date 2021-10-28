@@ -13,7 +13,7 @@
 class GuardHit : public Artifact
 {
 private:
-  AnimationComponent* animationComponent; /*!< Animator the effect */
+  std::shared_ptr<AnimationComponent> animationComponent; /*!< Animator the effect */
   float w; float h; /*!< Area to appear in */
   bool center; /*!< If true, dink will appear in center of area instead of random */
 
@@ -21,8 +21,10 @@ public:
   /**
    * @brief Load the animation and set position
    */
-  GuardHit(Character* hit, bool center = false);
+  GuardHit(std::shared_ptr<Entity> hit, bool center = false);
   ~GuardHit();
+
+  void Init() override;
 
   /**
    * @brief When the animation ends, it deletes itself

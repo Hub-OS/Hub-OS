@@ -101,10 +101,11 @@ Overworld::OnlineArea::OnlineArea(
   auto player = GetPlayer();
   // move the emote above the player's head
   float emoteY = -player->getSprite().getOrigin().y - 10;
-  emoteNode.setPosition(0, emoteY);
-  emoteNode.SetLayer(-100);
-  emoteNode.setScale(0.5f, 0.5f);
-  player->AddNode(&emoteNode);
+  emoteNode = std::make_shared<Overworld::EmoteNode>();
+  emoteNode->setPosition(0, emoteY);
+  emoteNode->SetLayer(-100);
+  emoteNode->setScale(0.5f, 0.5f);
+  player->AddNode(emoteNode);
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -276,7 +277,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
     auto& actor = onlinePlayer.actor;
 
     onlinePlayer.teleportController.Update(elapsed);
-    onlinePlayer.emoteNode.Update(elapsed);
+    onlinePlayer.emoteNode->Update(elapsed);
 
     onlinePlayer.propertyAnimator.Update(*actor, elapsed);
 
@@ -346,7 +347,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
   TileBehaviors::UpdateActor(*this, *player, propertyAnimator);
 
   propertyAnimator.Update(*player, elapsed);
-  emoteNode.Update(elapsed);
+  emoteNode->Update(elapsed);
 
   if (serverLockedInput || propertyAnimator.IsAnimatingPosition()) {
     LockInput();
@@ -368,7 +369,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
 
     // move the emote above the player's head
     float emoteY = -GetPlayer()->getSprite().getOrigin().y - 10;
-    emoteNode.setPosition(0, emoteY);
+    emoteNode->setPosition(0, emoteY);
   }
 
   if (!IsInputLocked()) {
@@ -1484,11 +1485,11 @@ void Overworld::OnlineArea::receiveCustomEmotesPathSignal(BufferReader& reader, 
   auto path = reader.ReadString<uint16_t>(buffer);
 
   customEmotesTexture = serverAssetManager.GetTexture(path);
-  emoteNode.LoadCustomEmotes(customEmotesTexture);
+  emoteNode->LoadCustomEmotes(customEmotesTexture);
 
   for (auto& pair : onlinePlayers) {
     auto& otherEmoteNode = pair.second.emoteNode;
-    otherEmoteNode.LoadCustomEmotes(customEmotesTexture);
+    otherEmoteNode->LoadCustomEmotes(customEmotesTexture);
   }
 }
 
@@ -2112,8 +2113,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
         next = folder->Next();
       }
-
-      delete folder;
     }
 
     DownloadSceneProps props = {
@@ -2139,16 +2138,14 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     }
 
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
-    CardFolder* folder;
+    std::unique_ptr<CardFolder> folder;
 
     if (selectedFolder) {
       folder = (*selectedFolder)->Clone();
-      // Shuffle our folder
-      folder->Shuffle();
     }
     else {
       // use a new blank folder if we dont have a folder selected
-      folder = new CardFolder();
+      folder = std::make_unique<CardFolder>();
     }
 
     NetPlayConfig config;
@@ -2168,13 +2165,14 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
     auto mugshot = Textures().LoadTextureFromFile(image);
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-    Player* player = meta.GetData();
+    auto player = std::shared_ptr<Player>(meta.GetData());
+    player->Init();
 
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
 
     NetworkBattleSceneProps props = {
-      { *player, GetProgramAdvance(), folder, new Field(6, 3), GetBackground() },
+      { player, GetProgramAdvance(), std::move(folder), std::make_shared<Field>(6, 3), GetBackground() },
       sf::Sprite(*mugshot),
       mugshotAnim,
       emotions,
@@ -2251,7 +2249,8 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   auto& mobMeta = packageManager.FindPackageByID(packageId);
 
-  auto* mob = mobMeta.GetData()->Build(new Field(6, 3));
+  auto mobFactory = std::unique_ptr<MobFactory>(mobMeta.GetData());
+  auto* mob = mobFactory->Build(std::make_shared<Field>(6, 3));
 
   AddSceneChangeTask([=] {
     // Play the pre battle rumble sound
@@ -2267,7 +2266,8 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
     auto mugshot = Textures().LoadTextureFromFile(image);
     auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-    Player* player = playerMeta.GetData();
+    auto player = std::shared_ptr<Player>(playerMeta.GetData());
+    player->Init();
 
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
@@ -2275,7 +2275,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     CardFolder* newFolder = nullptr;
 
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
-    CardFolder* folder;
+    std::unique_ptr<CardFolder> folder;
 
     if (selectedFolder) {
       folder = (*selectedFolder)->Clone();
@@ -2283,7 +2283,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     }
     else {
       // use a new blank folder if we dont have a folder selected
-      folder = new CardFolder();
+      folder = std::make_unique<CardFolder>();
     }
 
     // Queue screen transition to Battle Scene with a white fade effect
@@ -2293,7 +2293,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     }
 
     MobBattleProperties props{
-      { *player, GetProgramAdvance(), folder, mob->GetField(), mob->GetBackground() },
+      { player, GetProgramAdvance(), std::move(folder), mob->GetField(), mob->GetBackground() },
       MobBattleProperties::RewardBehavior::take,
       { mob },
       sf::Sprite(*mugshot),
@@ -2306,7 +2306,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     };
 
     using effect = segue<WhiteWashFade>;
-    getController().push<effect::to<MobBattleScene>>(props, callback);
+    getController().push<effect::to<MobBattleScene>>(std::move(props), callback);
     GetPlayer()->Face(GetPlayer()->GetHeading());
     returningFrom = ReturningScene::BattleScene;
   });
@@ -2377,10 +2377,11 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   }
 
   auto& emoteNode = onlinePlayer.emoteNode;
+  emoteNode = std::make_shared<Overworld::EmoteNode>();
   float emoteY = -actor->getSprite().getOrigin().y - 10;
-  emoteNode.setPosition(0, emoteY);
-  emoteNode.setScale(0.5f, 0.5f);
-  emoteNode.LoadCustomEmotes(customEmotesTexture);
+  emoteNode->setPosition(0, emoteY);
+  emoteNode->setScale(0.5f, 0.5f);
+  emoteNode->LoadCustomEmotes(customEmotesTexture);
 
   auto& teleportController = onlinePlayer.teleportController;
 
@@ -2390,7 +2391,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     // add nodes to the scene base
     teleportController.EnableSound(false);
 
-    actor->AddNode(&emoteNode);
+    actor->AddNode(emoteNode);
     actor->SetSolid(solid);
     actor->CollideWithMap(false);
     actor->SetCollisionRadius(6);
@@ -2568,8 +2569,8 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
 
-  float emoteY = -actor->getSprite().getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
-  emoteNode.setPosition(0, emoteY);
+  float emoteY = -actor->getSprite().getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
+  emoteNode->setPosition(0, emoteY);
 }
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2588,10 +2589,10 @@ void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const 
   auto& emoteNode = abstractUser.emoteNode;
 
   if (custom) {
-    emoteNode.CustomEmote(emote);
+    emoteNode->CustomEmote(emote);
   }
   else {
-    emoteNode.Emote((Emotes)emote);
+    emoteNode->Emote((Emotes)emote);
   }
 }
 

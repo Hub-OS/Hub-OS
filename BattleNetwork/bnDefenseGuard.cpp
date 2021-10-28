@@ -2,7 +2,7 @@
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
-#include "bnHitbox.h"
+#include "bnHitboxSpell.h"
 #include "bnGuardHit.h"
 
 DefenseGuard::DefenseGuard(const DefenseGuard::Callback& callback)
@@ -14,18 +14,18 @@ DefenseGuard::~DefenseGuard()
 {
 }
 
-void DefenseGuard::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
+void DefenseGuard::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)
 {
-  auto props = in.GetHitboxProperties();
+  auto props = attacker->GetHitboxProperties();
 
   if ((props.flags & Hit::breaking) == 0) {
     judge.BlockDamage();
 
     if ((props.flags & Hit::impact) == Hit::impact) {
-      judge.AddTrigger(callback, std::ref(in), std::ref(owner));
+      judge.AddTrigger(callback, attacker, owner);
       judge.BlockImpact();
-      owner.GetField()->AddEntity(*new GuardHit(&owner, true), *owner.GetTile());
-      owner.GetField()->AddEntity(*new Hitbox(owner.GetTeam(), 0), *owner.GetTile());
+      owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
+      owner->GetField()->AddEntity(std::make_shared<HitboxSpell>(owner->GetTeam(), 0), *owner->GetTile());
     }
   }
   else if((props.flags & Hit::impact) == Hit::impact){

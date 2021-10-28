@@ -23,7 +23,7 @@ CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvan
 
 }
 
-void CardComboBattleState::Simulate(double elapsed, Battle::Card*** cardsPtr, int* listLengthPtr, bool playSound)
+void CardComboBattleState::Simulate(double elapsed, std::vector<Battle::Card>& cards, bool playSound)
 {
   increment += 360.0 * elapsed;
   PAStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
@@ -32,12 +32,12 @@ void CardComboBattleState::Simulate(double elapsed, Battle::Card*** cardsPtr, in
   // Start Program Advance checks
   if (paChecked && hasPA == -1) {
     // Filter and apply support cards
-    GetScene().FilterSupportCards(*cardsPtr, *listLengthPtr);
+    GetScene().FilterSupportCards(cards);
     isPAComplete = true;
   }
   else if (!paChecked) {
 
-    hasPA = programAdvance.FindPA(*cardsPtr, *listLengthPtr);
+    hasPA = programAdvance.FindPA(cards);
 
     if (hasPA > -1) {
       paSteps = programAdvance.GetMatchingSteps();
@@ -53,49 +53,39 @@ void CardComboBattleState::Simulate(double elapsed, Battle::Card*** cardsPtr, in
       listStepCounter -= (float)elapsed;
     }
     else {
+      int cardsLen = cards.size();
+
       // +2 = 1 step for showing PA label and 1 step for showing merged card
       // That's the cards we want to show + 1 + 1 = cardCount + 2
-      if (paStepIndex == (*listLengthPtr) + 2) {
+      if (paStepIndex == cardsLen + 2) {
 
-        Battle::Card* paCard = programAdvance.GetAdvanceCard();
+        auto& paCard = programAdvance.GetAdvanceCard();
 
         // Only remove the cards involved in the program advance. Replace them with the new PA card.
         // PA card is dealloc by the class that created it so it must be removed before the library tries to dealloc
-        int newCardCount = (*listLengthPtr) - (int)paSteps.size() + 1; // Add the new one
+        int newCardCount = cardsLen - (int)paSteps.size() + 1; // Add the new one
         int newCardStart = hasPA;
 
         // Create a temp card list
-        Battle::Card** newCardList = new Battle::Card * [newCardCount] {nullptr};
+        std::vector<Battle::Card> newCardList;
 
-        int j = 0;
-        for (int i = 0; i < *listLengthPtr && j < newCardCount; ) {
+        for (int i = 0; i < cardsLen;) {
           if (i == hasPA) {
-            newCardList[j] = paCard;
+            newCardList.push_back(paCard);
             i += (int)paSteps.size();
-            j++;
             continue;
           }
 
-          newCardList[j] = (*cardsPtr)[i];
+          newCardList.push_back(cards[i]);
           i++;
-          j++;
         }
 
-        // Set the new cards
-        for (int i = 0; i < newCardCount; i++) {
-          (*cardsPtr)[i] = newCardList[i];
-        }
-
-        // Delete the temp list space
-        // We are _not_ deleting the pointers in the list, just the list itself
-        delete[] newCardList;
-
-        *listLengthPtr = newCardCount;
+        cards = std::move(newCardList);
 
         hasPA = -1; // used as state reset flag
       }
       else {
-        if (paStepIndex == (*listLengthPtr) + 1) {
+        if (paStepIndex == cardsLen + 1) {
           listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when showing the final PA
 
           // play the sound
@@ -135,10 +125,9 @@ void CardComboBattleState::Reset()
   PAStartTimer.start();
 }
 
-void CardComboBattleState::ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr)
+void CardComboBattleState::ShareCardList(std::shared_ptr<std::vector<Battle::Card>> cardsPtr)
 {
   this->cardsListPtr = cardsPtr;
-  this->cardCountPtr = listLengthPtr;
 }
 
 void CardComboBattleState::onStart(const BattleSceneState*)
@@ -149,13 +138,13 @@ void CardComboBattleState::onStart(const BattleSceneState*)
 void CardComboBattleState::onEnd(const BattleSceneState*)
 {
   advanceSoundPlay = false;
-  ui.LoadCards(*cardsListPtr, *cardCountPtr);
+  ui.LoadCards(*cardsListPtr);
 }
 
 void CardComboBattleState::onUpdate(double elapsed)
 {
   this->elapsed += elapsed;
-  Simulate(elapsed, cardsListPtr, cardCountPtr, true);
+  Simulate(elapsed, *cardsListPtr, true);
 }
 
 void CardComboBattleState::onDraw(sf::RenderTexture& surface)
@@ -168,11 +157,11 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
     programAdvanceSprite.setScale(2.f, (float)scale * 2.f);
     surface.draw(programAdvanceSprite);
 
-    if (paStepIndex <= (*cardCountPtr) + 1) {
-      for (int i = 0; i < paStepIndex && i < *cardCountPtr; i++) {
-        std::string formatted = (*cardsListPtr)[i]->GetShortName();
+    if (paStepIndex <= cardsListPtr->size() + 1) {
+      for (int i = 0; i < paStepIndex && i < cardsListPtr->size(); i++) {
+        std::string formatted = (*cardsListPtr)[i].GetShortName();
         formatted.resize(9, ' ');
-        formatted[8] = (*cardsListPtr)[i]->GetCode();
+        formatted[8] = (*cardsListPtr)[i].GetCode();
 
         Text stepLabel{ formatted, font };
 
@@ -207,10 +196,10 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
       nextLabelHeight = 0;
     }
     else {
-      for (int i = 0; i < *cardCountPtr; i++) {
-        std::string formatted = (*cardsListPtr)[i]->GetShortName();
+      for (int i = 0; i < cardsListPtr->size(); i++) {
+        std::string formatted = (*cardsListPtr)[i].GetShortName();
         formatted.resize(9, ' ');
-        formatted[8] = (*cardsListPtr)[i]->GetCode();
+        formatted[8] = (*cardsListPtr)[i].GetCode();
 
         Text stepLabel{ formatted, font };
 
@@ -221,9 +210,9 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
 
         if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
           if (i == hasPA) {
-            Battle::Card* paCard = programAdvance.GetAdvanceCard();
+            Battle::Card& paCard = programAdvance.GetAdvanceCard();
 
-            Text stepLabel{ paCard->GetShortName(), font };
+            Text stepLabel{ paCard.GetShortName(), font };
             stepLabel.setOrigin(0, 0);
             stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
             stepLabel.setScale(2.0f, 2.0f);

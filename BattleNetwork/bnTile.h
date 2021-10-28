@@ -27,7 +27,6 @@ using std::vector;
 using std::find;
 using std::set;
 
-class Entity;
 class Spell;
 class Character;
 class Obstacle;
@@ -46,14 +45,14 @@ class Artifact;
 class Field;
 
 namespace Battle {
+  enum class TileHighlight : int {
+    none = 0,
+    flash = 1,
+    solid = 2,
+  };
+
   class Tile : public SpriteProxyNode, public ResourceHandle {
   public:
-
-    enum class Highlight : int {
-      none = 0,
-      flash = 1,
-      solid = 2,
-    };
 
     friend Field;
 
@@ -79,7 +78,7 @@ namespace Battle {
      * @brief Assigns the tile's field pointer
      * @param _field
      */
-    void SetField(Field* _field);
+    void SetField(std::weak_ptr<Field> field);
 
     /**
      * @brief Base 1. Returns the column of the tile.
@@ -101,7 +100,7 @@ namespace Battle {
      */
     const Team GetTeam() const;
     
-    void HandleMove(Entity* entity);
+    void HandleMove(std::shared_ptr<Entity> entity);
 
     /**
      * @brief Change the tile's team if unoccupied
@@ -183,7 +182,7 @@ namespace Battle {
     /**
      * @brief will request a highlight style for one frame
      */
-    void RequestHighlight(Highlight mode);
+    void RequestHighlight(TileHighlight mode);
 
     /**
      * @brief Returns true if a character is standing on or has reserved this tile 
@@ -195,28 +194,10 @@ namespace Battle {
     bool IsReservedByCharacter(std::vector<Entity::ID_t> exclude = {});
 
     /**
-     * @brief Adds a spell to the spell bucket if it doesn't already exist
+     * @brief Adds an entity and stores in an appropriate bucket if it doesn't already exist
      * @param _entity
      */
-    void AddEntity(Spell& _entity);
-    
-    /**
-     * @brief Adds a character to the character bucket if it doesn't already exist
-     * @param _entity
-     */
-    void AddEntity(Character& _entity);
-    
-    /**
-     * @brief Adds an obstacle to the obstacle bucket if it doesn't already exist
-     * @param _entity
-     */
-    void AddEntity(Obstacle& _entity);
-    
-    /**
-     * @brief Adds an artifact to the artifact bucket if it doesn't already exist
-     * @param _entity
-     */
-    void AddEntity(Artifact& _entity);
+    void AddEntity(std::shared_ptr<Entity> _entity);
 
     /**
      * @brief If found, remove the entity from all buckets with the same ID
@@ -230,7 +211,7 @@ namespace Battle {
      * @param _entity to check
      * @return true if the entity is already in one of the buckets
      */
-    bool ContainsEntity(const Entity* _entity) const;
+    bool ContainsEntity(const std::shared_ptr<Entity> _entity) const;
 
     /**
      * @brief Reserve this tile for an entity with ID 
@@ -250,16 +231,16 @@ namespace Battle {
     template<class Type> bool ContainsEntityType();
     
     /**
-     * @brief Queues spell to all entities occupying this tile with spell 
-     * @param caller must be valid non-null spell
+     * @brief Queues an entity to attack to all other entities occupying this tile 
+     * @param caller must be valid non-null entity
      */
-    void AffectEntities(Spell* caller);
+    void AffectEntities(Entity& attacker);
 
     /**
      * @brief Updates all entities occupying this tile
      * @param _elapsed in seconds
      */
-    void Update(double _elapsed);
+    void Update(Field& field, double _elapsed);
 
     /**
      * @brief Triggers this tile and all entities to behave as if time is frozen
@@ -282,8 +263,8 @@ namespace Battle {
     */
     void SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim);
 
-    void HandleTileBehaviors(Obstacle * obst);
-    void HandleTileBehaviors(Character* character);
+    void HandleTileBehaviors(Field& field, Obstacle& obst);
+    void HandleTileBehaviors(Field& field, Character& character);
 
     /**
      * @brief Query for multiple entities using a functor
@@ -292,7 +273,7 @@ namespace Battle {
      * @param e Functor that takes in an entity and returns a boolean
      * @return returns a list of entities that returned true in the functor `e` 
      */
-    std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
+    std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query);
 
     /**
      * @brief Query for multiple charactors using a functor
@@ -301,7 +282,7 @@ namespace Battle {
      * @param e Functor that takes in an character and returns a boolean
      * @return returns a list of characters that returned true in the functor `e`
      */
-    std::vector<Character*> FindCharacters(std::function<bool(Character* e)> query);
+    std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query);
 
     /**
      * @brief Calculates and returns Manhattan-distance from this tile to the other
@@ -322,11 +303,11 @@ namespace Battle {
 
     std::string GetAnimState(const TileState state);
 
-    void CleanupEntities();
-    void ExecuteAllSpellAttacks();
-    void UpdateSpells(const double elapsed);
-    void UpdateArtifacts(const double elapsed);
-    void UpdateCharacters(const double elapsed);
+    void CleanupEntities(Field& field);
+    void ExecuteAllAttacks(Field& field);
+    void UpdateSpells(Field& field, const double elapsed);
+    void UpdateArtifacts(Field& field, const double elapsed);
+    void UpdateCharacters(Field& field, const double elapsed);
 
     int x; /**< Column number*/
     int y; /**< Row number*/
@@ -337,7 +318,7 @@ namespace Battle {
 
     float width;
     float height;
-    Field* field{ nullptr };
+    std::weak_ptr<Field> fieldWeak;
     double teamCooldown;
 
     std::shared_ptr<sf::Texture> red_team_atlas;
@@ -350,7 +331,7 @@ namespace Battle {
     static double flickerTeamCooldownLength;
     double totalElapsed;
     bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
-    Highlight highlightMode;
+    TileHighlight highlightMode;
     bool isTimeFrozen;
     bool isBattleOver;
     bool isBattleStarted{ false };
@@ -359,33 +340,27 @@ namespace Battle {
 
     // Todo: use sets to avoid duplicate entries
     vector<Artifact*> artifacts; /**< Entity bucket for type Artifacts */
-    vector<Spell*> spells; /**< Entity bucket for type Spells */
-    vector<Character*> characters; /**< Entity bucket for type Characters */
+    vector<Entity*> spells; /**< Entity bucket for type Spells */
+    vector<std::shared_ptr<Character>> characters; /**< Entity bucket for type Characters */
 
     set<Character*, EntityComparitor> deletingCharacters;
 
-    vector<Entity*> entities; /**< Entity bucket for looping over all entities **/
+    vector<std::shared_ptr<Entity>> entities; /**< Entity bucket for looping over all entities **/
 
     set<Entity::ID_t> reserved; /**< IDs of entities reserving this tile*/
-    vector<Entity::ID_t> queuedSpells; /**< IDs of occupying spells that have signaled they are to attack this frame */
-    vector<Entity::ID_t> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
+    vector<Entity::ID_t> queuedAttackers; /**< IDs of occupying attackers that have signaled they are to attack this frame */
+    vector<Entity::ID_t> taggedAttackers; /**< IDs of occupying attackers that have already attacked this frame*/
 
     Animation animation;
     Animation volcanoErupt;
     double volcanoEruptTimer{ 4 }; // seconds
-    SpriteProxyNode volcanoSprite;
-
-    /**
-     * @brief Auxillary function used by all other overloads of AddEntity
-     * @param _entity
-     */
-    void AddEntity(Entity* _entity);
+    std::shared_ptr<SpriteProxyNode> volcanoSprite;
   };
 
   template<class Type>
   bool Tile::ContainsEntityType() {
-    for (vector<Entity*>::iterator it = entities.begin(); it != entities.end(); ++it) {
-      if (dynamic_cast<Type*>(*it) != nullptr) {
+    for (vector<std::shared_ptr<Entity>>::iterator it = entities.begin(); it != entities.end(); ++it) {
+      if (dynamic_cast<Type*>((*it).get()) != nullptr) {
         return true;
       }
     }

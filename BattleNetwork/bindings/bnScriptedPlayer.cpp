@@ -2,22 +2,33 @@
 #include "bnScriptedPlayer.h"
 #include "bnScriptedCardAction.h"
 #include "bnScriptedPlayerForm.h"
+#include "../bnSolHelpers.h"
 #include "../bnCardAction.h"
 
 ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   script(script),
   Player()
 {
-  chargeEffect.setPosition(0, -30.0f);
+  chargeEffect->setPosition(0, -30.0f);
 
 
   SetLayer(0);
   SetTeam(Team::red);
+}
 
-  script["player_init"](*this);
+void ScriptedPlayer::Init() {
+  Player::Init();
+
+  auto initResult = CallLuaFunction(script, "player_init", WeakWrapper(weak_from_base<ScriptedPlayer>()));
+
+  if (initResult.is_error()) {
+    Logger::Log(initResult.error_cstr());
+  }
 
   animationComponent->Reload();
   FinishConstructor();
+
+  weakWrap = WeakWrapper(weak_from_base<ScriptedPlayer>());
 }
 
 ScriptedPlayer::~ScriptedPlayer() {
@@ -25,12 +36,12 @@ ScriptedPlayer::~ScriptedPlayer() {
 
 void ScriptedPlayer::SetChargePosition(const float x, const float y)
 {
-  chargeEffect.setPosition({ x,y });
+  chargeEffect->setPosition({ x,y });
 }
 
 void ScriptedPlayer::SetFullyChargeColor(const sf::Color& color)
 {
-  chargeEffect.SetFullyChargedColor(color);
+  chargeEffect->SetFullyChargedColor(color);
 }
 
 void ScriptedPlayer::SetHeight(const float height)
@@ -58,31 +69,55 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
   return GetTile();
 }
 
-CardAction* ScriptedPlayer::OnExecuteBusterAction()
+std::shared_ptr<SyncNode> ScriptedPlayer::AddSyncNode(const std::string& point) {
+  return syncNodeContainer.AddSyncNode(*this, *animationComponent, point);
+}
+
+void ScriptedPlayer::RemoveSyncNode(std::shared_ptr<SyncNode> syncNode) {
+  syncNodeContainer.RemoveSyncNode(*this, *animationComponent, syncNode);
+}
+
+std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(sol::object& function, const std::string& functionName)
 {
-  if (!on_buster_action) {
+  auto result = CallLuaCallback(function, WeakWrapper(weak_from_base<ScriptedPlayer>()));
+
+  if(result.is_error()) {
+    Logger::Log(result.error_cstr());
     return nullptr;
   }
 
-  CardAction* result{ nullptr };
-
-  sol::object obj = on_buster_action(this);
+  auto obj = result.value();
 
   if (obj.valid()) {
-    if (obj.is<std::unique_ptr<CardAction>>())
+    if (obj.is<WeakWrapper<CardAction>>())
     {
-      auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      result = ptr.release();
+      return obj.as<WeakWrapper<CardAction>>().Release();
     }
-    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
+    else if (obj.is<WeakWrapper<ScriptedCardAction>>())
     {
-      auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      result = ptr.release();
+      return obj.as<WeakWrapper<ScriptedCardAction>>().Release();
     }
     else {
-      Logger::Log("Lua function \"create_normal_attack\" didn't return a CardAction.");
+      Logger::Logf("Lua function \"%s\" didn't return a CardAction.", functionName.c_str());
     }
   }
+
+  return nullptr;
+}
+
+std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
+{
+  std::shared_ptr<CardAction> result;
+
+  result = activeForm ? activeForm->OnSpecialAction(weakWrap.Lock()) : nullptr;
+  if (result) return result;
+  
+  if (!special_attack_func.valid()) {
+    // prevent error message for nil function, just return nullptr
+    return nullptr;
+  }
+
+  result = GenerateCardAction(special_attack_func, "special_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -91,32 +126,9 @@ CardAction* ScriptedPlayer::OnExecuteBusterAction()
   return result;
 }
 
-CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
+std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteBusterAction()
 {
-  if (!on_charged_action) {
-    return nullptr;
-  }
-
-  CardAction* result = activeForm ? activeForm->OnChargedBusterAction(*this) : nullptr;
-  if (result) return result;
-
-  sol::object obj = on_charged_action(this);
-
-  if (obj.valid()) {
-    if (obj.is<std::unique_ptr<CardAction>>())
-    {
-      auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      result = ptr.release();
-    }
-    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
-    {
-      auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      result = ptr.release();
-    }
-    else {
-      Logger::Log("Lua function \"create_charged_attack\" didn't return a CardAction.");
-    }
-  }
+  std::shared_ptr<CardAction> result = GenerateCardAction(normal_attack_func, "normal_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -125,32 +137,14 @@ CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
   return result;
 }
 
-CardAction* ScriptedPlayer::OnExecuteSpecialAction()
+std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteChargedBusterAction()
 {
-  if (!on_special_action) {
-    return nullptr;
-  }
+  std::shared_ptr<CardAction> result;
 
-  CardAction* result = activeForm ? activeForm->OnSpecialAction(*this) : nullptr;
+  result = activeForm ? activeForm->OnChargedBusterAction(weakWrap.Lock()) : nullptr;
   if (result) return result;
 
-  sol::object obj = on_special_action(this);
-
-  if (obj.valid()) {
-    if (obj.is<std::unique_ptr<CardAction>>())
-    {
-      auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
-      result = ptr.release();
-    }
-    else if (obj.is<std::unique_ptr<ScriptedCardAction>>())
-    {
-      auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-      result = ptr.release();
-    }
-    else {
-      Logger::Log("Lua function \"create_special_attack\" didn't return a CardAction.");
-    }
-  }
+  result = GenerateCardAction(charged_attack_func, "charged_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::ability);
@@ -159,44 +153,31 @@ CardAction* ScriptedPlayer::OnExecuteSpecialAction()
   return result;
 }
 
-void ScriptedPlayer::OnUpdate(double _elapsed)
+void ScriptedPlayer::OnUpdate(double elapsed)
 {
-  Player::OnUpdate(_elapsed);
+  Player::OnUpdate(elapsed);
 
-  if (on_update_func) {
-    on_update_func(*this, _elapsed);
+  if (update_func.valid())
+  {
+    auto result = CallLuaCallback(update_func, weakWrap, elapsed);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
   }
 }
 
 ScriptedPlayerFormMeta* ScriptedPlayer::CreateForm()
 {
-  return new ScriptedPlayerFormMeta(forms.size() + 1u);
-}
+  auto meta = new ScriptedPlayerFormMeta(forms.size() + 1u);
 
-void ScriptedPlayer::AddForm(ScriptedPlayerFormMeta* meta)
-{
-  if (auto form = Player::AddForm(meta)) {
-    form->SetUIPath(meta->GetUIPath());
+  if (!Player::RegisterForm(meta)) {
+    delete meta;
+    return nullptr;
   }
-}
 
-AnimationComponent::SyncItem& ScriptedPlayer::CreateAnimSyncItem(Animation* anim, SpriteProxyNode* node, const std::string& point)
-{
-  AnimationComponent::SyncItem* item = new AnimationComponent::SyncItem();
-  item->anim = anim;
-  item->node = node;
-  item->point = point;
-
-  animationComponent->AddToSyncList(*item);
-  AddNode(item->node);
-
-  return *item;
-}
-
-void ScriptedPlayer::RemoveAnimSyncItem(const AnimationComponent::SyncItem& item)
-{
-  animationComponent->RemoveFromSyncList(item);
-  RemoveNode(item.node);
+  meta->playerWeak = shared_from_base<ScriptedPlayer>();
+  return meta;
 }
 
 #endif

@@ -10,11 +10,12 @@ constexpr float PIXEL_SPEED = 180.0f;
 
 using namespace swoosh::types;
 
-SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const SelectMobScene::Properties& props) :
+SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectMobScene::Properties props) :
   elapsed(0),
-  selectedFolder(props.folder),
+  selectedFolder(std::move(props.folder)),
   selectedNaviId(props.naviId),
   programAdvance(props.pa),
+  defaultBackground(props.background),
   font(Font::Style::wide),
   menuLabel("BATTLE SELECT", font),
   uiFont(Font::Style::thick),
@@ -23,7 +24,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const Sel
   speedLabel("1", uiFont),
   hpLabel("1", uiFont),
   textbox(360, 100),
-  props(props),
   Scene(controller)
 {
   // Menu name font
@@ -335,7 +335,9 @@ void SelectMobScene::onUpdate(double elapsed) {
 
     if (getController().MobPackageManager().Size() != 0) {
       try {
-        mob = getController().MobPackageManager().FindPackageByID(mobSelectionId).GetData()->Build(new Field(6,3));
+        auto mobFactory = getController().MobPackageManager().FindPackageByID(mobSelectionId).GetData();
+        mob = mobFactory->Build(std::make_shared<Field>(6,3));
+        delete mobFactory;
       }
       catch (...) {
         mob = nullptr;
@@ -365,23 +367,24 @@ void SelectMobScene::onUpdate(double elapsed) {
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
       auto mugshot = Textures().LoadTextureFromFile(image);
       auto emotions = Textures().LoadTextureFromFile(emotionsTexture);
-      Player* player = meta.GetData();
+      auto player = std::shared_ptr<Player>(meta.GetData());
+      player->Init();
 
       // Shuffle our new folder
-      CardFolder* newFolder = selectedFolder.Clone();
+      auto newFolder = selectedFolder->Clone();
       newFolder->Shuffle();
 
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
       if (!mob->GetBackground()) {
-        mob->SetBackground(props.background);
+        mob->SetBackground(defaultBackground);
       }
 
       using effect = segue<WhiteWashFade>;
 
       if (mob->IsFreedomMission()) {
         FreedomMissionProps props{
-          { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
+          { player, programAdvance, std::move(newFolder), mob->GetField(), mob->GetBackground() },
           { mob },
           mob->GetTurnLimit(),
           sf::Sprite(*mugshot),
@@ -389,11 +392,11 @@ void SelectMobScene::onUpdate(double elapsed) {
           emotions,
         };
 
-        getController().push<effect::to<FreedomMissionMobScene>>(props);
+        getController().push<effect::to<FreedomMissionMobScene>>(std::move(props));
       }
       else {
-        MobBattleProperties props{
-          { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
+        MobBattleProperties props{ 
+          { player, programAdvance, std::move(newFolder), mob->GetField(), mob->GetBackground() },
           MobBattleProperties::RewardBehavior::take,
           { mob },
           sf::Sprite(*mugshot),
@@ -401,7 +404,7 @@ void SelectMobScene::onUpdate(double elapsed) {
           emotions,
         };
 
-        getController().push<effect::to<MobBattleScene>>(props);
+        getController().push<effect::to<MobBattleScene>>(std::move(props));
       }
     }
   }

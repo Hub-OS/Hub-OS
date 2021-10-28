@@ -20,7 +20,7 @@ public:
    * \brief Loads the graphics and sets spread duration to .2 seconds
    * \param _player the player to attach to
    */
-  PlayerSelectedCardsUI(Player* _player, CardPackageManager* packageManager);
+  PlayerSelectedCardsUI(std::weak_ptr<Player> _player, CardPackageManager* packageManager);
   
   /**
    * @brief destructor

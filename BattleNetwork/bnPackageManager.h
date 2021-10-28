@@ -3,6 +3,7 @@
 #include "bnLogger.h"
 #include "bnResourceHandle.h"
 #include "bnScriptResourceManager.h"
+#include "bnSolHelpers.h"
 #include "stx/result.h"
 #include "stx/tuple.h"
 #include "stx/zip_utils.h"
@@ -161,10 +162,24 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
     packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
     //  Run all "includes" first
-    state["package_requires_scripts"]();
+    if (state["package_requires_scripts"].valid()) {
+      auto includesResult = CallLuaFunction(state, "package_requires_scripts");
 
-    // run script on meta info object
-    state["package_init"](packageClass);
+      if (includesResult.is_error()) {
+        delete packageClass;
+        std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + includesResult.error_cstr();
+        return stx::error<std::string>(msg);
+      }
+    }
+
+    // todo: use a ScopedWrapper
+    auto initResult = CallLuaFunction(state, "package_init", packageClass);
+
+    if (initResult.is_error()) {
+      delete packageClass;
+      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + initResult.error_cstr();
+      return stx::error<std::string>(msg);
+    }
 
       // Assign Package ID to the state, now that it's been registered.
     state["_package_id"] = packageClass->GetPackageID();
@@ -369,6 +384,7 @@ template<typename MetaClass>
 stx::result_t<std::string> PackageManager<MetaClass>::RemovePackageByID(const std::string& id)
 {
   if (auto iter = packages.find(id); iter != packages.end()) {
+    delete iter->second;
     packages.erase(iter);
 
     std::string path = iter->second->filepath;

@@ -2,7 +2,6 @@
 #include "bnAudioResourceManager.h"
 #include "bnInputManager.h"
 #include "bnField.h"
-#include "bnRowHit.h"
 #include "bnDefenseBubbleWrap.h"
 #include "bnBubbleTrap.h"
 
@@ -10,21 +9,11 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : 
+BubbleTrap::BubbleTrap(std::weak_ptr<Entity> owner) : 
   willDelete(false), defense(nullptr), duration(3), 
   ResourceHandle(), InputHandle(),
   SpriteProxyNode(), Component(owner)
 {
-  if (owner->IsDeleted()) {
-    this->Eject();
-  }
-  else {
-    // Bubbles have to pop when hit
-    defense = new DefenseBubbleWrap();
-    owner->AddDefenseRule(defense);
-    owner->AddNode(this);
-  }
-
   SetLayer(1);
   setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE_TRAP));
   bubble = getSprite();
@@ -39,7 +28,17 @@ BubbleTrap::BubbleTrap(Character* owner) :
 }
 
 void BubbleTrap::Inject(BattleSceneBase& bs) {
+  auto asCharacter = GetOwnerAs<Character>();
 
+  if (!asCharacter || asCharacter->IsDeleted()) {
+    this->Eject();
+  }
+  else {
+    // Bubbles have to pop when hit
+    defense = std::make_shared<DefenseBubbleWrap>();
+    asCharacter->AddDefenseRule(defense);
+    asCharacter->AddNode(shared_from_base<BubbleTrap>());
+  }
 }
 
 void BubbleTrap::OnUpdate(double _elapsed) {
@@ -107,9 +106,4 @@ void BubbleTrap::Pop()
 const double BubbleTrap::GetDuration() const
 {
   return duration;
-}
-
-BubbleTrap::~BubbleTrap()
-{
-  delete defense;
 }

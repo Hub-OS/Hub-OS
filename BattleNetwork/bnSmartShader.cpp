@@ -40,6 +40,10 @@
    return ref;
  }
 
+ bool SmartShader::HasShader() {
+   return ref != nullptr;
+ }
+
   void SmartShader::ApplyUniforms() {
     if (!ref) return;
 
@@ -85,7 +89,7 @@
     }
 
     for (; texIter != texuniforms.end(); texIter++) {
-      ref->setUniform(texIter->first, texIter->second);
+      ref->setUniform(texIter->first, *texIter->second);
     }
 
     for (; texTypeIter != textypeuniforms.end(); texTypeIter++) {
@@ -179,7 +183,7 @@
     coluniforms[uniform] = colvalue;
   }
 
-  void SmartShader::SetUniform(std::string uniform, const sf::Texture& texvalue)
+  void SmartShader::SetUniform(std::string uniform, const std::shared_ptr<sf::Texture>& texvalue)
   {
     texuniforms[uniform] = texvalue;
   }

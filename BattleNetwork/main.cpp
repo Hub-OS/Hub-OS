@@ -137,7 +137,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   // Stop music and go to battle screen 
   handle.Audio().StopStream();
 
-  Field* field = new Field(6, 3);
+  auto field = std::make_shared<Field>(6, 3);
 
   // Get the navi we selected
   auto& playermeta = g.PlayerPackageManager().FindPackageByID(playerpath);
@@ -146,13 +146,13 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   const std::string& emotionsTexture = playermeta.GetEmotionsTexturePath();
   auto mugshot = handle.Textures().LoadTextureFromFile(image);
   auto emotions = handle.Textures().LoadTextureFromFile(emotionsTexture);
-  Player* player = playermeta.GetData();
+  auto player = std::shared_ptr<Player>(playermeta.GetData());
 
   auto& mobmeta = g.MobPackageManager().FindPackageByID(mobid);
   Mob* mob = mobmeta.GetData()->Build(field);
 
   // Shuffle our new folder
-  CardFolder* folder = new CardFolder(); // TODO: Load from file?
+  auto folder = std::make_unique<CardFolder>(); // TODO: Load from file?
   folder->Shuffle();
 
   // Queue screen transition to Battle Scene with a white fade effect
@@ -164,7 +164,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   PA programAdvance;
 
   MobBattleProperties props{
-    { *player, programAdvance, folder, field, mob->GetBackground() },
+    { player, programAdvance, std::move(folder), field, mob->GetBackground() },
     MobBattleProperties::RewardBehavior::take,
     { mob },
     sf::Sprite(*mugshot),
@@ -172,7 +172,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
     emotions,
   };
 
-  g.push<MobBattleScene>(props);
+  g.push<MobBattleScene>(std::move(props));
   return EXIT_SUCCESS;
 }
 

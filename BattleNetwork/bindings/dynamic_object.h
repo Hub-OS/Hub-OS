@@ -1,4 +1,5 @@
 #pragma once
+#ifdef BN_MOD_SUPPORT
 #include <sol/sol.hpp>
 
 #include "../bnLogger.h"
@@ -10,10 +11,10 @@
 struct dynamic_object {
   std::unordered_map<std::string, sol::object> entries;
 
-  void dynamic_set(std::string key, sol::stack_object value) {
+  inline void dynamic_set(const std::string& key, sol::stack_object value) {
     auto it = entries.find(key);
     if (it == entries.cend()) {
-      entries.insert(it, { std::move(key), std::move(value) });
+      entries.insert(it, { key, std::move(value) });
     }
     else {
       std::pair<const std::string, sol::object>& kvp = *it;
@@ -22,7 +23,7 @@ struct dynamic_object {
     }
   }
 
-  sol::object dynamic_get(std::string key) {
+  inline sol::object dynamic_get(const std::string& key) {
     auto it = entries.find(key);
     if (it == entries.cend()) {        
       Logger::Log( "Attempted to access '" + key + "'" );
@@ -31,3 +32,4 @@ struct dynamic_object {
     return it->second;
   }
 };
+#endif

@@ -1,5 +1,5 @@
 #pragma once
-class Character;
+class Entity;
 class CounterHitPublisher;
 
 /**
@@ -23,7 +23,7 @@ public:
    * @param victim who was countered
    * @param aggressor who hit the victim and triggered a counter
    */
-  virtual void OnCounter(Character& victim, Character& aggressor) = 0;
+  virtual void OnCounter(Entity& victim, Entity& aggressor) = 0;
   
   /**
    * @brief Subscribe to a potential publisher

@@ -15,22 +15,23 @@ private:
   int count{ 0 }; /*!< Used by root to keep track of explosions left */
   ExplosionSpriteNode* root{ nullptr }; /*!< The explosion that starts the chain */
   
-  std::vector<ExplosionSpriteNode*> chain;
+  std::vector<std::shared_ptr<ExplosionSpriteNode>> chain;
   bool done{ false };
   
   double playbackSpeed; /*!< The speed of the explosion effect. Bosses have higher speeds */
   Animation animation;
-   /** 
-   * @brief Used internally by root explosions to create childen explosions
-   * @param copy the root explosion to copy settings from
-   */
-  ExplosionSpriteNode(const ExplosionSpriteNode& copy);
 
 public:
   /**
    * @brief Create an explosion chain effect with numOfExplosions=1 and playbackSpeed=0.55 defaults
    */
   ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions=1, double _playbackSpeed=0.55);
+
+   /** 
+   * @brief Used internally by root explosions to create childen explosions
+   * @param copy the root explosion to copy settings from
+   */
+  ExplosionSpriteNode(const ExplosionSpriteNode& copy);
   
   ~ExplosionSpriteNode();
 
@@ -51,6 +52,6 @@ public:
   void SetOffsetArea(sf::Vector2f area);
 
   const bool IsSequenceComplete() const;
-  std::vector<ExplosionSpriteNode*> GetChain();
+  std::vector<std::shared_ptr<ExplosionSpriteNode>> GetChain();
 };
 

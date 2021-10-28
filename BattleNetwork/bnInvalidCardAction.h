@@ -3,10 +3,10 @@
 
 class InvalidCardAction : public CardAction {
 public:
-  InvalidCardAction(Character* actor);
+  InvalidCardAction(std::shared_ptr<Character> actor);
   ~InvalidCardAction();
 
-  void OnExecute(Character* user) override;
+  void OnExecute(std::shared_ptr<Character> user) override;
   void OnAnimationEnd() override;
   void OnActionEnd() override;
 };

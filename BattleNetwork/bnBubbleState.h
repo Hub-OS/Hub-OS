@@ -58,7 +58,7 @@ void BubbleState<Any>::OnEnter(Any& e) {
 
 template<typename Any>
 void BubbleState<Any>::OnUpdate(double _elapsed, Any& e) {
-  auto* bubbleTrap = e.template GetFirstComponent<BubbleTrap>();
+  auto bubbleTrap = e.template GetFirstComponent<BubbleTrap>();
 
   // Check if bubbletrap is removed from entity
   if (bubbleTrap == nullptr) {

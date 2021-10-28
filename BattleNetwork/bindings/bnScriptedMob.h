@@ -15,38 +15,36 @@ class ScriptedMob : public MobFactory, public ResourceHandle
 private:
   sol::state& script;
   Mob* mob{ nullptr }; //!< ptr for scripts to access
-  Field* field{ nullptr };
+  std::shared_ptr<Field> field{ nullptr };
 
 public:
   // ScriptedSpawner wrapper for scripted mobs...
   class ScriptedSpawner  {
     Mob* mob{ nullptr };
-    Mob::Spawner<ScriptedCharacter>* scriptedSpawner{ nullptr };
-    std::function<Character* ()> constructor;
-    std::function<void(Character*)> pixelStateInvoker, defaultStateInvoker;
+    std::unique_ptr<Mob::Spawner<ScriptedCharacter>> scriptedSpawner;
+    std::function<std::shared_ptr<Character>()> constructor;
+    std::function<void(std::shared_ptr<Character>)> pixelStateInvoker, defaultStateInvoker;
     Character::Rank rank{};
 
   public:
     ScriptedSpawner() = default;
     ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank);
-    ~ScriptedSpawner();
 
     template<typename BuiltInCharacter>
     void UseBuiltInType(Character::Rank rank);
 
-    Mob::Mutator* SpawnAt(int x, int y);
+    std::shared_ptr<Mob::Mutator> SpawnAt(int x, int y);
     void SetMob(Mob* mob);
   };
 
   ScriptedMob(sol::state& script);
-  ~ScriptedMob();
 
   /**
    * @brief Builds and returns the generated mob
    * @return Mob*
    */
-  Mob* Build(Field* field);
-  Field* GetField();
+  Mob* Build(std::shared_ptr<Field> field);
+  std::shared_ptr<Field> GetField();
   void EnableFreedomMission(uint8_t turnCount);
   /**
   * @brief Creates a spawner object that loads a scripted or built-in character by its Fully Qualified Names (FQN) 
@@ -62,17 +60,17 @@ public:
 template<typename BuiltInCharacter>
 void ScriptedMob::ScriptedSpawner::UseBuiltInType(Character::Rank rank) {
   this->constructor = [rank] {
-    return new BuiltInCharacter(rank);
+    return std::make_shared<BuiltInCharacter>(rank);
   };
 
   // NOTE: the difference between this invoker and the purely C++ one
   //       is we do not have the choice to change our intro state
   //       when using built-in characters from Lua
   Mob* mob = this->mob;
-  this->pixelStateInvoker = [mob](Character* character) {
+  this->pixelStateInvoker = [mob](std::shared_ptr<Character> character) {
     auto onFinish = [mob]() { mob->FlagNextReady(); };
 
-    BuiltInCharacter* enemy = static_cast<BuiltInCharacter*>(character);
+    BuiltInCharacter* enemy = static_cast<BuiltInCharacter*>(character.get());
 
     if (enemy) {
       if constexpr (std::is_base_of<AI<BuiltInCharacter>, BuiltInCharacter>::value) {
@@ -84,8 +82,8 @@ void ScriptedMob::ScriptedSpawner::UseBuiltInType(Character::Rank rank) {
     }
   };
 
-  this->defaultStateInvoker = [](Character * character) {
-    BuiltInCharacter* enemy = static_cast<BuiltInCharacter*>(character);
+  this->defaultStateInvoker = [](std::shared_ptr<Character> character) {
+    auto enemy = static_cast<BuiltInCharacter*>(character.get());
     if (enemy) { enemy->InvokeDefaultState(); }
   };
 }

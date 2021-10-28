@@ -20,5 +20,5 @@ public:
    * @param in attack spell
    * @param owner the character with Invis defense (this) added
    */
-  void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 };

@@ -17,6 +17,6 @@ Hit::Properties& DefenseObstacleBody::FilterStatuses(Hit::Properties& statuses)
   return statuses;
 }
 
-void DefenseObstacleBody::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
+void DefenseObstacleBody::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) {
   // doesn't block anything
 }

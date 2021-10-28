@@ -4,8 +4,8 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedCardAction.h"
 #include "../../bnCard.h"
-
-#include <sol/sol.hpp>
+#include "../bnSolHelpers.h"
+#include "bnWeakWrapper.h"
 
 class CardImpl;
 
@@ -17,27 +17,24 @@ public:
 
   }
 
-  CardAction* BuildCardAction(Character* user, Battle::Card::Properties& props) override {
-    CardAction* result{ nullptr };
+  std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, Battle::Card::Properties& props) override {
+    auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(script, "card_create_action", WeakWrapper(user), props);
 
-    sol::object obj = script["card_create_action"](*user, props);
-
-    if (obj.valid()) {
-      if (obj.is<std::unique_ptr<ScriptedCardAction>>())
-      {
-        auto& ptr = obj.as<std::unique_ptr<ScriptedCardAction>&>();
-        result = ptr.release();
-      }
-      else {
-        Logger::Log("Lua function \"card_create_action\" didn't return a CardAction.");
-      }
+    if (functionResult.is_error()) {
+      Logger::Log(functionResult.error_cstr());
+      return nullptr;
     }
 
-    if (result) {
-      result->SetLockoutGroup(CardAction::LockoutGroup::card);
+    auto wrappedCardAction = functionResult.value();
+    auto cardAction = wrappedCardAction.Release();
+
+    if (cardAction) {
+      cardAction->SetLockoutGroup(CardAction::LockoutGroup::card);
+    } else {
+      Logger::Log("Lua function \"card_create_action\" didn't return a CardAction.");
     }
 
-    return result;
+    return cardAction;
   }
 };
 

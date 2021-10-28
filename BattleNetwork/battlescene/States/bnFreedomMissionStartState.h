@@ -16,8 +16,8 @@ struct FreedomMissionStartState final : public BattleSceneState {
   sf::Sprite battleStart; /*!< "Battle Start" graphic */
   swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
   sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */
-  std::vector<Player*>& tracked;
-  FreedomMissionStartState(std::vector<Player*>& tracked, uint8_t maxTurns);
+  std::vector<std::shared_ptr<Player>>& tracked;
+  FreedomMissionStartState(std::vector<std::shared_ptr<Player>>& tracked, uint8_t maxTurns);
 
   void SetStartupDelay(frame_time_t frames);
   void onStart(const BattleSceneState* last) override;

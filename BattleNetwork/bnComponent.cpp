@@ -1,16 +1,17 @@
 #include "bnComponent.h"
+#include "bnEntity.h"
 #include "battlescene/bnBattleSceneBase.h"
 
 long Component::numOfComponents = 0;
 
-Component::Component(Entity* owner, lifetimes lifetime) 
+Component::Component(std::weak_ptr<Entity> owner, lifetimes lifetime) 
   : owner(owner), lifetime(lifetime) { ID = ++numOfComponents; };
 
 Component::~Component() { ; }
 
-Entity* Component::GetOwner() { return owner; }
+std::shared_ptr<Entity> Component::GetOwner() { return owner.lock(); }
 
-const Entity* Component::GetOwner() const { return owner; }
+const std::shared_ptr<Entity> Component::GetOwner() const { return owner.lock(); }
 
 const bool Component::Injected() { return Scene() != nullptr; }
 
@@ -18,7 +19,7 @@ BattleSceneBase* Component::Scene() { return scene; }
 
 const Component::lifetimes Component::Lifetime() { return lifetime; }
 
-void Component::FreeOwner() { owner = nullptr; }
+void Component::FreeOwner() { owner = {}; }
 
 const Component::ID_t Component::GetID() const { return ID; }
 
@@ -26,7 +27,8 @@ void Component::Eject() {
   if (Injected()) {
     Scene()->Eject(GetID());
   }
-  
+
+  auto owner = this->owner.lock();
   if (owner) {
     owner->FreeComponentByID(GetID());
   }

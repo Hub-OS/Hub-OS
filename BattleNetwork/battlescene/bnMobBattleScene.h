@@ -26,16 +26,16 @@ struct MobBattleProperties {
 */
 class MobBattleScene final : public BattleSceneBase {
   MobBattleProperties props;
-  std::vector<Player*> players;
+  std::vector<std::shared_ptr<Player>> players;
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   bool playerDecross{ false };
   int playerHitCount{};
 
   public:
-  MobBattleScene(swoosh::ActivityController& controller, const MobBattleProperties& props, BattleResultsFunc onEnd=nullptr);
+  MobBattleScene(swoosh::ActivityController& controller, MobBattleProperties props, BattleResultsFunc onEnd=nullptr);
   ~MobBattleScene();
 
-  void OnHit(Character& victim, const Hit::Properties& props) override final;
+  void OnHit(Entity& victim, const Hit::Properties& props) override final;
   void onStart() override final;
   void onExit() override;
   void onEnter() override;
