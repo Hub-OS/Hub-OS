@@ -129,7 +129,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     cardDescFont(Font::Style::thin),
     cardDesc("", cardDescFont),
     numberFont(Font::Style::thick),
-    numberLabel("", numberFont)
+    numberLabel(Font::Style::gradient)
 {
     // Move card data into their appropriate containers for easier management
     PlaceFolderDataIntoCardSlots();
@@ -150,7 +150,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     cardLabel.setPosition(275.f, 15.f);
     cardLabel.setScale(2.f, 2.f);
 
-    numberLabel.setScale(2.0f, 2.0f);
+    numberLabel.setScale(1.6, 1.6);
 
     // Battle::Card description font
     cardDesc.SetColor(sf::Color::Black);
@@ -191,7 +191,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
 
     folderCardCountBox = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SIZE));
     folderCardCountBox.setPosition(sf::Vector2f(425.f, 10.f + folderCardCountBox.getLocalBounds().height));
-    folderCardCountBox.setScale(1.75f, 1.75f);
+    folderCardCountBox.setScale(2.f, 2.f);
     folderCardCountBox.setOrigin(folderCardCountBox.getLocalBounds().width / 2.0f, folderCardCountBox.getLocalBounds().height / 2.0f);
 
     cardHolder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
@@ -670,24 +670,43 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
         nonempty.resize(std::distance(nonempty.begin(), iter));  // shrink container to new size
 
         std::string str = std::to_string(nonempty.size());
+        
         // Draw number of cards in this folder
         numberLabel.SetString(str);
         numberLabel.setOrigin(cardLabel.GetLocalBounds().width, 0);
-        numberLabel.setPosition(396.f, 10.f);
-
-        if (nonempty.size() == 30) {
-            numberLabel.SetColor(sf::Color::Green);
+        if (str.length() > 1) {
+            numberLabel.setPosition(400.f, 14.f);
         }
         else {
-            numberLabel.SetColor(sf::Color::White);
+            numberLabel.setPosition(414.f, 14.f);
+        }
+        if (nonempty.size() == 30) {
+            numberLabel.SetFont(Font::Style::gradient_green);
+        }
+        else {
+            numberLabel.SetFont(Font::Style::gradient);
         }
 
         surface.draw(numberLabel);
 
-        // Draw max
-        numberLabel.SetString(std::string(" /30")); // will print "# / 30"
+        numberLabel.SetFont(numberFont);
+        numberLabel.SetString("/");
         numberLabel.setOrigin(0, 0);
-        numberLabel.setPosition(400.f, 10.f);
+        numberLabel.SetColor(sf::Color(200, 224, 248, 255));
+        numberLabel.setPosition(418.f, 14.f);
+        surface.draw(numberLabel);
+        numberLabel.SetColor(sf::Color::White);
+        if (nonempty.size() == 30) {
+            numberLabel.SetFont(Font::Style::gradient_green);
+        }
+        else {
+            numberLabel.SetFont(Font::Style::gradient);
+        }
+
+        // Draw max
+        numberLabel.SetString(std::string("  30")); // will print "# / 30"
+        numberLabel.setOrigin(0, 0);
+        numberLabel.setPosition(414.f, 14.f);
 
         surface.draw(numberLabel);
     }
