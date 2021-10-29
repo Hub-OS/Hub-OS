@@ -21,13 +21,13 @@ static inline void QueueModRegistration(PackageManagerT& packageManager, const c
 
     try {
       if (size_t pos = full_path.find(".zip"); pos == std::string::npos) {
+        ignoreList[full_path] = true;
+        ignoreList[full_path + ".zip"] = true;
+
         if (auto res = packageManager.LoadPackageFromDisk<ScriptedResourceT>(full_path); res.is_error()) {
           throw std::runtime_error(res.error_cstr());
           continue;
         }
-
-        ignoreList[full_path] = true;
-        ignoreList[full_path+".zip"] = true;
       }
       else {
         zipList.push_back(full_path);

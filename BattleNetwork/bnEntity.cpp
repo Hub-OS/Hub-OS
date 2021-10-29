@@ -624,10 +624,10 @@ Direction Entity::GetMoveDirection()
 void Entity::SetFacing(Direction facing)
 {
   if (facing == Direction::left) {
-    setScale(-2.f, 2.f); // flip standard facing right sprite
+    neverFlip? 0 : setScale(-2.f, 2.f); // flip standard facing right sprite
   }
   else if (facing == Direction::right) {
-    setScale(2.f, 2.f); // standard facing
+    neverFlip? 0 : setScale(2.f, 2.f); // standard facing
   }
   else {
     return;
@@ -752,6 +752,16 @@ void Entity::FreeComponentByID(Component::ID_t ID) {
 
     iter = std::next(iter);
   }
+}
+
+const float Entity::GetElevation() const
+{
+  return elevation;
+}
+
+void Entity::SetElevation(const float elevation)
+{
+  this->elevation = elevation;
 }
 
 std::shared_ptr<Component> Entity::RegisterComponent(std::shared_ptr<Component> c) {
@@ -1204,6 +1214,11 @@ void Entity::DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity>
 void Entity::ToggleCounter(bool on)
 {
   counterable = on;
+}
+
+void Entity::NeverFlip(bool enabled)
+{
+  neverFlip = enabled;
 }
 
 bool Entity::IsStunned()

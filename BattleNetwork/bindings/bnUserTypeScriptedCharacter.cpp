@@ -219,6 +219,12 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<ScriptedCharacter>& character, float height) {
       character.Unwrap()->SetHeight(height);
     },
+    "set_elevation", [](WeakWrapper<ScriptedCharacter>& character, float elevation) {
+      character.Unwrap()->SetElevation(elevation);
+    },
+    "get_elevation", [](WeakWrapper<ScriptedCharacter>& character) -> float {
+      return character.Unwrap()->GetElevation();
+    },
     "get_animation", [](WeakWrapper<ScriptedCharacter>& character) -> AnimationWrapper {
       auto& animation = character.Unwrap()->GetAnimationObject();
       return AnimationWrapper(character.GetWeak(), animation);

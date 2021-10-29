@@ -47,6 +47,12 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "get_facing_away", [](WeakWrapper<ScriptedPlayer>& player) -> Direction {
       return player.Unwrap()->GetFacingAway();
     },
+    "set_elevation", [](WeakWrapper<ScriptedPlayer>& player, float elevation) {
+      player.Unwrap()->SetElevation(elevation);
+    },
+    "get_elevation", [](WeakWrapper<ScriptedPlayer>& player) -> float {
+      return player.Unwrap()->GetElevation();
+    },
     "get_color", [](WeakWrapper<ScriptedPlayer>& player) -> sf::Color {
       return player.Unwrap()->getColor();
     },

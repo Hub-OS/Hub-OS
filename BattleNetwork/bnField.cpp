@@ -329,7 +329,6 @@ void Field::Update(double _elapsed) {
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
       tiles[i][j]->UpdateArtifacts(*this, _elapsed);
-      // TODO: tiles[i][j]->UpdateObjects(_elapsed);
     }
   }
 
@@ -510,7 +509,6 @@ void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, Entity::ID_t ID)
     if (q->x == tile->GetX() && q->y == tile->GetY()) {
       if (q->ID == ID) {
         q = pending.erase(q);
-        // DeallocEntity(ID); // TODO: Check if commenting this out is a problem. This is a nasty side effect and really oughtta not be here...
         break;
       }
     }

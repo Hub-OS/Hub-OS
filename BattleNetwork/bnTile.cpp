@@ -923,9 +923,12 @@ namespace Battle {
         auto attacker = field.GetEntity(ID);
 
         if (!attacker) {
-          Logger::Logf("Attacker %d removed from field?", ID);
+          Logger::Logf("Attacker %d missing from field", ID);
           continue;
         }
+
+        if (!character->IsHitboxAvailable())
+          continue;
 
         if (character->GetID() == attacker->GetID()) // Case: prevent attackers from attacking themselves
           continue;

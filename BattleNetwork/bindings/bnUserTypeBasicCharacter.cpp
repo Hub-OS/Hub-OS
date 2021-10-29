@@ -189,6 +189,12 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<Character>& character, float height) {
       character.Unwrap()->SetHeight(height);
     },
+    "set_elevation", [](WeakWrapper<Character>& character, float elevation) {
+      character.Unwrap()->SetElevation(elevation);
+    },
+    "get_elevation", [](WeakWrapper<Character>& character) -> float {
+      return character.Unwrap()->GetElevation();
+    },
     "toggle_counter", [](WeakWrapper<Character>& character, bool on) {
       character.Unwrap()->ToggleCounter(on);
     },

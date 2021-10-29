@@ -600,9 +600,10 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     std::sort(tileEntities.begin(), tileEntities.end(), [](Entity* A, Entity* B) { return A->GetLayer() > B->GetLayer(); });
 
     for (Entity* node : tileEntities) {
-      node->move(viewOffset);
+      sf::Vector2f offset = viewOffset + sf::Vector2f(0, -node->GetElevation());
+      node->move(offset);
       surface.draw(*node);
-      node->move(-viewOffset);
+      node->move(-offset);
     }
   }
 

@@ -509,11 +509,18 @@ public:
   const EventBus::Channel& EventChannel() const;
 
   /**
-   * @brief Hit height can be overwritten to deduce from sprite bounds
+   * @brief Hit height is a size property that helps identify where something can be hit
    * @return float
    */
   virtual const float GetHeight() const;
   virtual void SetHeight(const float height);
+
+  /**
+   * @brief Elevation is the distance (Z) away from the grid. In 2D coordinates, this affects the final Y position.
+   * @return float
+   */
+  const float GetElevation() const;
+  void SetElevation(const float elevation);
 
   /**
   * @brief Get the virtual key presses states for this entity
@@ -570,6 +577,8 @@ public:
    */
   void ToggleCounter(bool on = true);
   
+  void NeverFlip(bool enabled);
+
   /**
    * @brief Query the character's state is Stunned
    * @return true if character is currently stunned, false otherwise
@@ -719,6 +728,7 @@ protected:
   double rootCooldown{ 0 }; /*!< Timer until root is over */
   double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   bool counterable{};
+  bool neverFlip{};
   bool hit{}; /*!< Was hit this frame */
   int counterFrameFlag{ 0 };
   sf::Color baseColor = sf::Color(255, 255, 255, 255);
@@ -785,6 +795,7 @@ private:
   int health{ std::numeric_limits<int>::max() };
   int maxHealth{ std::numeric_limits<int>::max() };
   sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
+  float elevation{}; // vector away from grid
   float counterSlideDelta{};
   bool hitboxEnabled{ true };
   bool canTilePush{};

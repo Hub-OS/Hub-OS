@@ -35,8 +35,6 @@ public:
   // duration in seconds
   void ShakeCamera(double power, float duration);
 
-  void NeverFlip(bool enabled);
-
   sol::object can_move_to_func;
   sol::object collision_func;
   sol::object update_func;
@@ -44,7 +42,6 @@ public:
   sol::object attack_func;
   sol::object on_spawn_func;
 private:
-  bool flip{ true };
   sf::Vector2f scriptedOffset{};
   float height{};
   std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
