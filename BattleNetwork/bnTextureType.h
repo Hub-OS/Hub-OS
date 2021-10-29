@@ -17,7 +17,8 @@ namespace TexturePaths {
 
   // Battle Misc
   path MISC_COUNTER_REVEAL = "resources/scenes/battle/counter_reveal.png";
-  path MISC_SHADOW = "resources/scenes/battle/small_shadow.png";
+  path MISC_SMALL_SHADOW = "resources/scenes/battle/small_shadow.png";
+  path MISC_BIG_SHADOW = "resources/scenes/battle/big_shadow.png";
 
   //Spells
   path SPELL_BULLET_HIT = "resources/scenes/battle/spells/spell_bullet_hit.png";

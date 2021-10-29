@@ -36,6 +36,12 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "set_element", [](WeakWrapper<ScriptedObstacle>& obstacle, Element element) {
       obstacle.Unwrap()->SetElement(element);
     },
+    "set_elevation", [](WeakWrapper<ScriptedObstacle>& obstacle, float elevation) {
+      obstacle.Unwrap()->SetElevation(elevation);
+    },
+    "get_elevation", [](WeakWrapper<ScriptedObstacle>& obstacle) -> float {
+      return obstacle.Unwrap()->GetElevation();
+    },
     "get_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, Direction dir, unsigned count) -> Battle::Tile* {
       return obstacle.Unwrap()->GetTile(dir, count);
     },
@@ -69,22 +75,23 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "reveal", [](WeakWrapper<ScriptedObstacle>& obstacle) {
       obstacle.Unwrap()->Reveal();
     },
-    "teleport", [](
-      WeakWrapper<ScriptedObstacle>& obstacle,
-      Battle::Tile* dest,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
+    "teleport", 
+      [](
+        WeakWrapper<ScriptedObstacle>& obstacle,
+        Battle::Tile* dest,
+        ActionOrder order,
+        sol::stack_object onBeginObject
+      ) -> bool {
+        sol::protected_function onBegin = onBeginObject;
 
-      return obstacle.Unwrap()->Teleport(dest, order, [onBegin] {
-        auto result = onBegin();
+        return obstacle.Unwrap()->Teleport(dest, order, [onBegin] {
+          auto result = onBegin();
 
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(error.what());
+          }
+        });
     },
     "slide", [](
       WeakWrapper<ScriptedObstacle>& obstacle,
@@ -93,17 +100,17 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       const frame_time_t& endlag,
       ActionOrder order,
       sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
+      ) -> bool {
+        sol::protected_function onBegin = onBeginObject;
 
-      return obstacle.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
-        auto result = onBegin();
+        return obstacle.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
+          auto result = onBegin();
 
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(error.what());
+          }
+        });
     },
     "jump", [](
       WeakWrapper<ScriptedObstacle>& obstacle,
@@ -113,113 +120,121 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       const frame_time_t& endlag,
       ActionOrder order,
       sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
+      ) -> bool {
+        sol::protected_function onBegin = onBeginObject;
 
-      return obstacle.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
-        auto result = onBegin();
+        return obstacle.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
+          auto result = onBegin();
 
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(error.what());
+          }
+        });
     },
-    "raw_move_event", [](WeakWrapper<ScriptedObstacle>& obstacle, const MoveEvent& event, ActionOrder order) -> bool {
+      "raw_move_event", [](WeakWrapper<ScriptedObstacle>& obstacle, const MoveEvent& event, ActionOrder order) -> bool {
       return obstacle.Unwrap()->RawMoveEvent(event, order);
     },
-    "is_sliding", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+      "is_sliding", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       return obstacle.Unwrap()->IsSliding();
     },
-    "is_jumping", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+      "is_jumping", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       return obstacle.Unwrap()->IsJumping();
     },
-    "is_teleporting", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+      "is_teleporting", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       return obstacle.Unwrap()->IsTeleporting();
     },
-    "is_moving", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+      "is_moving", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       return obstacle.Unwrap()->IsMoving();
     },
-    "is_passthrough", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+      "is_passthrough", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       return obstacle.Unwrap()->IsPassthrough();
     },
-    "is_deleted", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+      "is_deleted", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       return obstacle.Unwrap()->IsDeleted();
     },
-    "will_remove_eof", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+      "will_remove_eof", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       auto ptr = obstacle.Lock();
       return !ptr || ptr->WillRemoveLater();
     },
-    "is_team", [](WeakWrapper<ScriptedObstacle>& obstacle, Team team) -> bool {
+      "is_team", [](WeakWrapper<ScriptedObstacle>& obstacle, Team team) -> bool {
       return obstacle.Unwrap()->Teammate(team);
     },
-    "get_team", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Team {
+      "get_team", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Team {
       return obstacle.Unwrap()->GetTeam();
     },
-    "remove", [](WeakWrapper<ScriptedObstacle>& obstacle) {
+      "remove", [](WeakWrapper<ScriptedObstacle>& obstacle) {
       obstacle.Unwrap()->Remove();
     },
-    "delete", [](WeakWrapper<ScriptedObstacle>& obstacle) {
+      "delete", [](WeakWrapper<ScriptedObstacle>& obstacle) {
       obstacle.Unwrap()->Delete();
     },
-    "get_name", [](WeakWrapper<ScriptedObstacle>& obstacle) -> std::string {
+      "get_name", [](WeakWrapper<ScriptedObstacle>& obstacle) -> std::string {
       return obstacle.Unwrap()->GetName();
     },
-    "set_name", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string name) {
+      "set_name", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string name) {
       obstacle.Unwrap()->SetName(name);
     },
-    "get_health", [](WeakWrapper<ScriptedObstacle>& obstacle) -> int {
+      "get_health", [](WeakWrapper<ScriptedObstacle>& obstacle) -> int {
       return obstacle.Unwrap()->GetHealth();
     },
-    "get_max_health", [](WeakWrapper<ScriptedObstacle>& obstacle) -> int {
+      "get_max_health", [](WeakWrapper<ScriptedObstacle>& obstacle) -> int {
       return obstacle.Unwrap()->GetMaxHealth();
     },
-    "set_health", [](WeakWrapper<ScriptedObstacle>& obstacle, int health) {
+      "set_health", [](WeakWrapper<ScriptedObstacle>& obstacle, int health) {
       obstacle.Unwrap()->SetHealth(health);
     },
-    "share_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, bool share) {
+      "share_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, bool share) {
       obstacle.Unwrap()->ShareTileSpace(share);
     },
-    "add_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
+      "add_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
       obstacle.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
     },
-    "remove_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
+      "remove_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
       obstacle.Unwrap()->RemoveDefenseRule(defenseRule);
     },
-    "get_texture", [](WeakWrapper<ScriptedObstacle>& obstacle) -> std::shared_ptr<Texture> {
+      "get_texture", [](WeakWrapper<ScriptedObstacle>& obstacle) -> std::shared_ptr<Texture> {
       return obstacle.Unwrap()->getTexture();
     },
-    "set_texture", [](WeakWrapper<ScriptedObstacle>& obstacle, std::shared_ptr<Texture> texture) {
+      "set_texture", [](WeakWrapper<ScriptedObstacle>& obstacle, std::shared_ptr<Texture> texture) {
       obstacle.Unwrap()->setTexture(texture);
     },
-    "set_animation", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string animation) {
+      "set_animation", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string animation) {
       obstacle.Unwrap()->SetAnimation(animation);
     },
-    "get_animation", [](WeakWrapper<ScriptedObstacle>& obstacle) -> AnimationWrapper {
+      "get_animation", [](WeakWrapper<ScriptedObstacle>& obstacle) -> AnimationWrapper {
       auto& animation = obstacle.Unwrap()->GetAnimationObject();
       return AnimationWrapper(obstacle.GetWeak(), animation);
     },
-    "create_node", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<SpriteProxyNode> {
+      "create_node", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<SpriteProxyNode> {
       auto child = std::make_shared<SpriteProxyNode>();
       obstacle.Unwrap()->AddNode(child);
 
       return WeakWrapper(child);
     },
-    "highlight_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, Battle::TileHighlight mode) {
+      "highlight_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, Battle::TileHighlight mode) {
       obstacle.Unwrap()->HighlightTile(mode);
     },
-    "copy_hit_props", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Hit::Properties {
+      "copy_hit_props", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Hit::Properties {
       return obstacle.Unwrap()->GetHitboxProperties();
     },
-    "set_hit_props", [](WeakWrapper<ScriptedObstacle>& obstacle, Hit::Properties props) {
+      "set_hit_props", [](WeakWrapper<ScriptedObstacle>& obstacle, Hit::Properties props) {
       obstacle.Unwrap()->SetHitboxProperties(props);
     },
-    "ignore_common_aggressor", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enable) {
+      "ignore_common_aggressor", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enable) {
       obstacle.Unwrap()->IgnoreCommonAggressor(enable);
     },
-    "set_height", [](WeakWrapper<ScriptedObstacle>& obstacle, float height) {
+      "set_height", [](WeakWrapper<ScriptedObstacle>& obstacle, float height) {
       obstacle.Unwrap()->SetHeight(height);
     },
+    "set_shadow", sol::overload(
+      [](WeakWrapper<ScriptedObstacle>& obstacle, Entity::Shadow type) {
+        obstacle.Unwrap()->SetShadowSprite(type);
+      },
+      [](WeakWrapper<Character>& obstacle, WeakWrapper<SpriteProxyNode> shadow) {
+        obstacle.Unwrap()->SetShadowSprite(shadow.Release());
+      }
+     ),
     "show_shadow", [](WeakWrapper<ScriptedObstacle>& obstacle, bool show) {
       obstacle.Unwrap()->ShowShadow(show);
     },

@@ -5,13 +5,6 @@
 
 ScriptedSpell::ScriptedSpell(Team team) : Spell(team) {
   setScale(2.f, 2.f);
-
-  shadow = std::make_shared<SpriteProxyNode>();
-  shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_SHADOW));
-  shadow->SetLayer(1);
-  shadow->Hide(); // default: hidden
-  shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
-  AddNode(shadow);
 }
 
 void ScriptedSpell::Init() {
@@ -41,9 +34,6 @@ bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 }
 
 void ScriptedSpell::OnUpdate(double _elapsed) {
-  // counter offset the shadow node
-  shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
-
   if (update_func.valid()) {
     auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
 
@@ -118,16 +108,6 @@ void ScriptedSpell::SetHeight(const float height)
   Entity::drawOffset.y = -this->height;
 }
 
-void ScriptedSpell::ShowShadow(const bool show)
-{
-  if (!show) {
-    this->shadow->Hide();
-  }
-  else {
-    this->shadow->Reveal();
-  }
-}
-
 void ScriptedSpell::SetAnimation(const std::string& path)
 {
   animComponent->SetPath(path);
@@ -142,11 +122,6 @@ Animation& ScriptedSpell::GetAnimationObject()
 void ScriptedSpell::ShakeCamera(double power, float duration)
 {
   this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
-}
-
-void ScriptedSpell::NeverFlip (bool enabled)
-{
-  flip = !enabled;
 }
 
 #endif

@@ -6,13 +6,6 @@
 ScriptedObstacle::ScriptedObstacle(Team _team) :
   Obstacle(_team) {
   setScale(2.f, 2.f);
-
-  shadow = std::make_shared<SpriteProxyNode>();
-  shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_SHADOW));
-  shadow->SetLayer(1);
-  shadow->Hide(); // default: hidden
-  shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
-  AddNode(shadow);
 }
 
 void ScriptedObstacle::Init() {
@@ -60,9 +53,6 @@ void ScriptedObstacle::OnCollision(const std::shared_ptr<Entity> other)
 }
 
 void ScriptedObstacle::OnUpdate(double _elapsed) {
-  // counter offset the shadow node
-  shadow->setPosition(0, Entity::GetCurrJumpHeight() / 2);
-
   if (update_func.valid()) 
   {
     auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
@@ -119,16 +109,6 @@ const float ScriptedObstacle::GetHeight() const
 void ScriptedObstacle::SetHeight(const float height)
 {
   this->height = height;
-}
-
-void ScriptedObstacle::ShowShadow(const bool show)
-{
-  if (!show) {
-    this->shadow->Hide();
-  }
-  else {
-    this->shadow->Reveal();
-  }
 }
 
 void ScriptedObstacle::SetAnimation(const std::string& path)

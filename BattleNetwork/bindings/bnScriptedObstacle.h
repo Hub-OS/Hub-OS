@@ -26,7 +26,6 @@ public:
   void OnSpawn(Battle::Tile& spawn) override;
   const float GetHeight() const;
   void SetHeight(const float height);
-  void ShowShadow(const bool shadow);
 
   void SetAnimation(const std::string& path);
   Animation& GetAnimationObject();
@@ -44,7 +43,6 @@ public:
 private:
   sf::Vector2f scriptedOffset{};
   float height{};
-  std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
   std::shared_ptr<AnimationComponent> animComponent{ nullptr };
   std::shared_ptr<DefenseRule> obstacleBody{ nullptr };
   WeakWrapper<ScriptedObstacle> weakWrap;

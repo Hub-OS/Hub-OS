@@ -53,6 +53,12 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "set_color", [](WeakWrapper<ScriptedSpell>& spell, sf::Color color) {
       spell.Unwrap()->setColor(color);
     },
+    "set_elevation", [](WeakWrapper<ScriptedSpell>& spell, float elevation) {
+      spell.Unwrap()->SetElevation(elevation);
+    },
+    "get_elevation", [](WeakWrapper<ScriptedSpell>& spell) -> float {
+      return spell.Unwrap()->GetElevation();
+    },
     "sprite", [](WeakWrapper<ScriptedSpell>& spell) -> WeakWrapper<SpriteProxyNode> {
       return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(spell.Unwrap()));
     },
@@ -197,6 +203,17 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     },
     "never_flip", [](WeakWrapper<ScriptedSpell>& spell, bool enabled) {
       spell.Unwrap()->NeverFlip(enabled);
+    },
+    "set_shadow", sol::overload(
+      [](WeakWrapper<ScriptedSpell>& spell, Entity::Shadow type) {
+        spell.Unwrap()->SetShadowSprite(type);
+      },
+      [](WeakWrapper<ScriptedSpell>& spell, WeakWrapper<SpriteProxyNode> shadow) {
+        spell.Unwrap()->SetShadowSprite(shadow.Release());
+      }
+    ),
+    "show_shadow", [](WeakWrapper<ScriptedSpell>& spell, bool enabled) {
+      spell.Unwrap()->ShowShadow(enabled);
     },
     "can_move_to_func", sol::property(
       [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->can_move_to_func; },

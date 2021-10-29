@@ -189,6 +189,17 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<Character>& character, float height) {
       character.Unwrap()->SetHeight(height);
     },
+    "set_shadow", sol::overload(
+      [](WeakWrapper<Character>& character, Entity::Shadow type) {
+        character.Unwrap()->SetShadowSprite(type);
+      },
+      [](WeakWrapper<Character>& character, WeakWrapper<SpriteProxyNode> shadow) {
+        character.Unwrap()->SetShadowSprite(shadow.Release());
+      }
+    ),
+    "show_shadow", [](WeakWrapper<Character>& character, bool enabled) {
+      character.Unwrap()->ShowShadow(enabled);
+    },
     "set_elevation", [](WeakWrapper<Character>& character, float elevation) {
       character.Unwrap()->SetElevation(elevation);
     },

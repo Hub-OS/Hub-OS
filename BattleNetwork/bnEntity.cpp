@@ -40,6 +40,11 @@ Entity::Entity() :
   stun = Shaders().GetShader(ShaderType::YELLOW);
   root = Shaders().GetShader(ShaderType::BLACK);
   setColor(NoopCompositeColor(GetColorMode()));
+
+  shadow = std::make_shared<SpriteProxyNode>();
+  shadow->SetLayer(1);
+  shadow->Hide(); // default: hidden
+  AddNode(shadow);
 }
 
 Entity::~Entity() {
@@ -207,6 +212,9 @@ void Entity::UpdateMovement(double elapsed)
   if (tile) {
     setPosition(tile->getPosition() + Entity::tileOffset + drawOffset);
   }
+
+  // counter offset the shadow node
+  shadow->setPosition(0, 0.5f * (Entity::GetElevation() + Entity::GetCurrJumpHeight()));
 }
 
 void Entity::SetFrame(unsigned frame)
@@ -804,9 +812,53 @@ const float Entity::GetJumpHeight() const
   return currMoveEvent.height;
 }
 
+void Entity::ShowShadow(bool enabled)
+{
+  if (enabled) {
+    this->shadow->Reveal();
+  }
+  else {
+    this->shadow->Hide();
+  }
+}
+
+void Entity::SetShadowSprite(Shadow type)
+{
+  switch (type) {
+  case Entity::Shadow::none:
+    shadow->Hide();
+    break;
+  case Entity::Shadow::small:
+    {
+      shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_SMALL_SHADOW), true);
+      auto bounds = shadow->getLocalBounds();
+      shadow->setOrigin(sf::Vector2f(bounds.width * 0.5f, bounds.height * 0.5f));
+    }
+    break;
+  case Entity::Shadow::big:
+    {
+      shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_BIG_SHADOW), true);
+      auto bounds = shadow->getLocalBounds();
+      shadow->setOrigin(sf::Vector2f(bounds.width * 0.5f, bounds.height * 0.5f));
+    }
+    break;
+  case Entity::Shadow::custom:
+    // no op
+  default:
+    break;
+  }
+}
+
+void Entity::SetShadowSprite(std::shared_ptr<SpriteProxyNode> customShadow)
+{
+  shadow = customShadow;
+  auto bounds = shadow->getLocalBounds();
+  shadow->setOrigin(sf::Vector2f(bounds.width*0.5f, bounds.height*0.5f));
+}
+
 const float Entity::GetCurrJumpHeight() const
 {
-    return currJumpHeight;
+  return currJumpHeight;
 }
 
 void Entity::OnHit()

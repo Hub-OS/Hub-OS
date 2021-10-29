@@ -26,13 +26,11 @@ public:
   void OnSpawn(Battle::Tile& spawn) override;
   const float GetHeight() const;
   void SetHeight(const float height);
-  void ShowShadow(const bool shadow);
 
   void SetAnimation(const std::string& path);
   Animation& GetAnimationObject();
   // duration in seconds
   void ShakeCamera(double power, float duration);
-  void NeverFlip(bool enabled);
 
   sol::object can_move_to_func;
   sol::object update_func;
@@ -44,7 +42,6 @@ private:
   bool flip{true};
   float height{};
   sf::Vector2f scriptedOffset{};
-  std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
   std::shared_ptr<AnimationComponent> animComponent{ nullptr };
   WeakWrapper<ScriptedSpell> weakWrap;
 };

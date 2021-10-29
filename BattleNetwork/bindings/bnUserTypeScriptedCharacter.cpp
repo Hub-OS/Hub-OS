@@ -171,6 +171,17 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "set_texture", [](WeakWrapper<ScriptedCharacter>& character, std::shared_ptr<Texture> texture) {
       character.Unwrap()->setTexture(texture);
     },
+    "set_shadow", sol::overload(
+      [](WeakWrapper<ScriptedCharacter>& character, Entity::Shadow type) {
+        character.Unwrap()->SetShadowSprite(type);
+      },
+      [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<SpriteProxyNode> shadow) {
+        character.Unwrap()->SetShadowSprite(shadow.Release());
+      }
+    ),
+    "show_shadow", [](WeakWrapper<ScriptedCharacter>& character, bool enabled) {
+        character.Unwrap()->ShowShadow(enabled);
+    },
     "create_node", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<SpriteProxyNode> {
       auto child = std::make_shared<SpriteProxyNode>();
       character.Unwrap()->AddNode(child);

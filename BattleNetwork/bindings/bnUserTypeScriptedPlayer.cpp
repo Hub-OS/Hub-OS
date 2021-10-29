@@ -124,6 +124,17 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
         }
       });
     },
+    "set_shadow", sol::overload(
+      [](WeakWrapper<ScriptedPlayer>& player, Entity::Shadow type) {
+        player.Unwrap()->SetShadowSprite(type);
+      },
+      [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<SpriteProxyNode> shadow) {
+        player.Unwrap()->SetShadowSprite(shadow.Release());
+      }
+    ),
+    "show_shadow", [](WeakWrapper<ScriptedPlayer>& player, bool enabled) {
+      player.Unwrap()->ShowShadow(enabled);
+    },
     "raw_move_event", [](WeakWrapper<ScriptedPlayer>& player, const MoveEvent& event, ActionOrder order) -> bool {
       return player.Unwrap()->RawMoveEvent(event, order);
     },

@@ -109,20 +109,28 @@ public:
   friend class Component;
   friend class BattleSceneBase;
 
+  enum class Shadow : char {
+    none = 0,
+    small,
+    big,
+    custom
+  };
+
 private:
   ID_t ID{}; /*!< IDs are used for tagging during battle & to identify entities in scripting. */
   static long numOfIDs; /*!< Internal counter to identify the next entity with. */
   int alpha{ 255 }; /*!< Control the transparency of an entity. */
   Component::ID_t lastComponentID{}; /*!< Entities keep track of new components to run through scene injection later. */
   bool hasSpawned{ false }; /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
-  float height{}; /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
   bool isUpdating{ false }; /*!< If an entity has updated once this frame, skip some update routines */
-  EventBus::Channel channel; /*!< Our event bus channel to emit events */
-  MoveEvent currMoveEvent{};
   unsigned moveEventFrame{};
   unsigned frame{};
   float currJumpHeight{};
+  float height{}; /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
+  EventBus::Channel channel; /*!< Our event bus channel to emit events */
+  MoveEvent currMoveEvent{};
   VirtualInputState inputState;
+  std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
 
   /**
    * @brief Frees one component with the same ID
@@ -207,6 +215,10 @@ public:
   void ClearActionQueue();
   const float GetJumpHeight() const;
   virtual void FilterMoveEvent(MoveEvent& event) {};
+
+  void ShowShadow(bool enabled);
+  void SetShadowSprite(Shadow type);
+  void SetShadowSprite(std::shared_ptr<SpriteProxyNode> customShadow);
 
   /**
   * @brief By default, hitbox is available for discovery and hitting
