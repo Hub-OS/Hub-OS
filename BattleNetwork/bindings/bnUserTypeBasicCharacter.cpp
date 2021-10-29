@@ -27,6 +27,9 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "get_field", [](WeakWrapper<Character>& character) -> WeakWrapper<Field> {
       return WeakWrapper(character.Unwrap()->GetField());
     },
+    "set_facing", [](WeakWrapper<Character>& character, Direction dir) {
+      character.Unwrap()->SetFacing(dir);
+    },
     "get_facing", [](WeakWrapper<Character>& character) -> Direction {
       return character.Unwrap()->GetFacing();
     },

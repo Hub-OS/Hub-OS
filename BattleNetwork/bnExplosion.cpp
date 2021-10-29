@@ -38,7 +38,7 @@ void Explosion::Init() {
   Artifact::Init();
 
   animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
-  animationComponent->SetPath("resources/mobs/mob_explosion.animation");
+  animationComponent->SetPath("resources/scenes/battle/mob_explosion.animation");
   animationComponent->Reload();
 
   Audio().Play(AudioType::EXPLODE, AudioPriority::low);

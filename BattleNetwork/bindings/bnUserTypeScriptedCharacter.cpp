@@ -37,6 +37,9 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "get_field", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<Field> {
       return WeakWrapper(character.Unwrap()->GetField());
     },
+    "set_facing", [](WeakWrapper<ScriptedCharacter>& character, Direction dir) {
+      character.Unwrap()->SetFacing(dir);
+    },
     "get_facing", [](WeakWrapper<ScriptedCharacter>& character) -> Direction {
       return character.Unwrap()->GetFacing();
     },
@@ -191,6 +194,9 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     },
     "get_rank", [](WeakWrapper<ScriptedCharacter>& character) -> Character::Rank {
       return character.Unwrap()->GetRank();
+    },
+    "toggle_hitbox", [](WeakWrapper<ScriptedCharacter>& character, bool enabled) {
+      return character.Unwrap()->EnableHitbox(enabled);
     },
     "share_tile", [](WeakWrapper<ScriptedCharacter>& character, bool share) {
       character.Unwrap()->ShareTileSpace(share);

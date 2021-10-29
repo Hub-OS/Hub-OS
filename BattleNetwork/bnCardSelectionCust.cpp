@@ -410,6 +410,7 @@ bool CardSelectionCust::CursorCancel() {
   }
   else if (newSelectCount < 0) {
     newSelectCount = 0;
+    newHand = false;
   }
   
   // Everything is selectable again

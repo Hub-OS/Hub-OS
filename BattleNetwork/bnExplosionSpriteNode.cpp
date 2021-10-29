@@ -6,7 +6,7 @@
 
 using sf::IntRect;
 
-const char* ANIM_PATH = "resources/mobs/mob_explosion.animation";
+const char* ANIM_PATH = "resources/scenes/battle/mob_explosion.animation";
 
 ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions, double _playbackSpeed) : 
   SpriteProxyNode(), animation(ANIM_PATH), parent(parent)

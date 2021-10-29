@@ -47,12 +47,12 @@ void Buster::Init()
 
   if (isCharged) {
     texture = Textures().LoadFromFile(TexturePaths::SPELL_CHARGED_BULLET_HIT);
-    animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
+    animationComponent->SetPath("resources/scenes/battle/spells/spell_charged_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   } else {
     texture = Textures().LoadFromFile(TexturePaths::SPELL_BULLET_HIT);
-    animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
+    animationComponent->SetPath("resources/scenes/battle/spells/spell_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   }

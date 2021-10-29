@@ -268,6 +268,8 @@ void Entity::Init() {
 }
 
 void Entity::Update(double _elapsed) {
+  hit = false; // reset our hit flag
+
   ResolveFrameBattleDamage();
 
   // reset base color
@@ -369,8 +371,6 @@ void Entity::Update(double _elapsed) {
 
   // If drag status is over, reset the flag
   if (!IsSliding() && slideFromDrag) slideFromDrag = false;
-
-  hit = false; // reset our hit flag
 }
 
 void Entity::SetAlpha(int value)
@@ -623,6 +623,16 @@ Direction Entity::GetMoveDirection()
 
 void Entity::SetFacing(Direction facing)
 {
+  if (facing == Direction::left) {
+    setScale(-2.f, 2.f); // flip standard facing right sprite
+  }
+  else if (facing == Direction::right) {
+    setScale(2.f, 2.f); // standard facing
+  }
+  else {
+    return;
+  }
+
   this->facing = facing;
 }
 
@@ -814,7 +824,9 @@ const bool Entity::CanTilePush() const {
 
 const bool Entity::Hit(Hit::Properties props) {
 
-  const auto original = props;
+  if (!hitboxEnabled) {
+    return false;
+  }
 
   if (GetHealth() <= 0) {
     return false;
@@ -823,6 +835,8 @@ const bool Entity::Hit(Hit::Properties props) {
   if (IsJumping()) {
     return false;
   }
+
+  const auto original = props;
 
   if ((props.flags & Hit::shake) == Hit::shake) {
     CreateComponent<ShakingEffect>(weak_from_this());
@@ -1127,6 +1141,16 @@ void Entity::SetHealth(const int _health) {
 
   if (health > maxHealth) health = maxHealth;
   if (health < 0) health = 0;
+}
+
+const bool Entity::IsHitboxAvailable() const
+{
+  return hitboxEnabled;
+}
+
+void Entity::EnableHitbox(bool enabled)
+{
+  hitboxEnabled = enabled;
 }
 
 void Entity::AddDefenseRule(std::shared_ptr<DefenseRule> rule)

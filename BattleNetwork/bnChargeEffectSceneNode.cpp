@@ -11,7 +11,7 @@ ChargeEffectSceneNode::ChargeEffectSceneNode(Entity* _entity) {
   setScale(0.f, 0.f);
   setTexture(Textures().LoadFromFile(TexturePaths::SPELL_BUSTER_CHARGE));
 
-  animation = Animation("resources/spells/spell_buster_charge.animation");
+  animation = Animation("resources/scenes/battle/spells/spell_buster_charge.animation");
 
   isCharged = isPartiallyCharged = false;
   chargeColor = sf::Color::Magenta;

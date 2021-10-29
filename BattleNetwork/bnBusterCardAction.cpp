@@ -7,8 +7,8 @@
 #include "bnPlayer.h"
 #include "bnField.h"
 
-#define NODE_PATH "resources/spells/buster_shoot.png"
-#define NODE_ANIM "resources/spells/buster_shoot.animation"
+#define NODE_PATH "resources/scenes/battle/spells/buster_shoot.png"
+#define NODE_ANIM "resources/scenes/battle/spells/buster_shoot.animation"
 
 BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool charged, int damage) : CardAction(actorWeak, "PLAYER_SHOOTING")
 {

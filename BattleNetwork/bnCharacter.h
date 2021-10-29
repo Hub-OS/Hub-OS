@@ -58,10 +58,8 @@ private:
   std::shared_ptr<CardAction> currCardAction{ nullptr };
   frame_time_t cardActionStartDelay{0};
 
-  bool hit{}; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
 
-  int maxHealth{ std::numeric_limits<int>::max() };
   sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
   float counterSlideDelta{};
 

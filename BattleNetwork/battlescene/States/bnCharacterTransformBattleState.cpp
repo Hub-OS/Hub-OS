@@ -138,7 +138,7 @@ void CharacterTransformBattleState::onStart(const BattleSceneState*) {
 
 void CharacterTransformBattleState::onUpdate(double elapsed) {
   while (shineAnimations.size() < tracking.size()) {
-    Animation animation = Animation("resources/mobs/boss_shine.animation");
+    Animation animation = Animation("resources/scenes/battle/boss_shine.animation");
     animation.Load();
     shineAnimations.push_back(animation);
   }

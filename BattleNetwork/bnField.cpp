@@ -248,7 +248,7 @@ std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std:
       Battle::Tile* tile = GetAt(x, y);
 
       for(auto& entity : tile->entities) {
-        if (query(entity)) {
+        if (query(entity) && entity->IsHitboxAvailable()) {
           res.push_back(entity);
         }
       }

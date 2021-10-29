@@ -5,8 +5,8 @@
 
 using sf::IntRect;
 
-#define CHARGED_RESOURCE_PATH "resources/spells/spell_charged_bullet_hit.animation"
-#define PEA_RESOURCE_PATH "resources/spells/spell_bullet_hit.animation"
+#define CHARGED_RESOURCE_PATH "resources/scenes/battle/spells/spell_charged_bullet_hit.animation"
+#define PEA_RESOURCE_PATH "resources/scenes/battle/spells/spell_bullet_hit.animation"
 
 BusterHit::BusterHit(Type type) : Artifact(), type(type)
 {

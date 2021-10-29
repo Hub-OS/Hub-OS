@@ -704,7 +704,7 @@ namespace Battle {
     std::vector<std::shared_ptr<Entity>> res;
 
     for(auto iter = entities.begin(); iter != entities.end(); iter++ ) {
-      if (query(*iter)) {
+      if (query(*iter) && (*iter)->IsHitboxAvailable()) {
         res.push_back(*iter);
       }
     }
@@ -724,7 +724,7 @@ namespace Battle {
 
       if (spell_iter != spells.end()) continue;
 
-      if (query(*iter)) {
+      if (query(*iter) && (*iter)->IsHitboxAvailable()) {
         res.push_back(*iter);
       }
     }

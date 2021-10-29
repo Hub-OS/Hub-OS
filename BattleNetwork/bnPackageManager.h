@@ -245,7 +245,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromZip(const s
   auto result = stx::unzip(path, extracted_path);
 
   if (result.is_error()) {
-    return stx::error<std::string>(std::string("Could not unzip package: ") + result.error_cstr());
+    return stx::error<std::string>(result.error_cstr());
   }
   
   return this->LoadPackageFromDisk<ScriptedDataType>(extracted_path);

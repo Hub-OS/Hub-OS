@@ -209,6 +209,18 @@ public:
   virtual void FilterMoveEvent(MoveEvent& event) {};
 
   /**
+  * @brief By default, hitbox is available for discovery and hitting
+  * @param enabled
+  */
+  void EnableHitbox(bool enabled);
+
+  /**
+  * @brief If true, hitbox can recieve hits from spells and can be discovered on the field
+  * @return value of `hitboxEnabled`
+  */
+  const bool IsHitboxAvailable() const;
+
+  /**
   * @brief How high off the ground the entity currently is
   * @return current height off ground
   */
@@ -542,8 +554,6 @@ public:
    */
   const int GetMaxHealth() const;
 
-  const bool CanAttack() const;
-
   /**
    * @brief Set the health of the character
    * @param _health
@@ -709,6 +719,7 @@ protected:
   double rootCooldown{ 0 }; /*!< Timer until root is over */
   double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   bool counterable{};
+  bool hit{}; /*!< Was hit this frame */
   int counterFrameFlag{ 0 };
   sf::Color baseColor = sf::Color(255, 255, 255, 255);
 
@@ -728,7 +739,6 @@ protected:
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
   void SetMoveEndlag(const frame_time_t& frames);
   void SetMoveStartupDelay(const frame_time_t& frames);
-
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 
   /**
@@ -776,6 +786,7 @@ private:
   int maxHealth{ std::numeric_limits<int>::max() };
   sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
   float counterSlideDelta{};
+  bool hitboxEnabled{ true };
   bool canTilePush{};
   bool canShareTile{}; /*!< Some characters can share tiles with others */
   bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
@@ -791,7 +802,6 @@ private:
   sf::Shader* stun{ nullptr };     /*!< Flicker yellow with luminance values when stun */
   sf::Shader* root{ nullptr };     /*!< Flicker black with luminance values when root */
 
-  bool hit{}; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
 
     /**

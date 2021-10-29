@@ -17,15 +17,17 @@
 #include "bnConfigReader.h"
 #include "bnFont.h"
 #include "bnText.h"
-#include "bnQueueMobRegistration.h"
-#include "bnQueueNaviRegistration.h"
-#include "bnQueueCardRegistration.h"
-#include "bindings/bnQueueLuaLibraryRegistration.h"
-#include "bnQueueBlockRegistration.h"
+#include "bnQueueModRegistration.h"
 #include "bnResourceHandle.h"
 #include "bnInputHandle.h"
 #include "overworld/bnOverworldHomepage.h"
 #include "SFML/System.hpp"
+
+#include "bindings/bnScriptedBlock.h"
+#include "bindings/bnScriptedCard.h"
+#include "bindings/bnScriptedPlayer.h"
+#include "bindings/bnScriptedMob.h"
+#include "bindings/bnLuaLibrary.h"
 
 Game::Game(DrawWindow& window) :
   window(window), 
@@ -444,8 +446,9 @@ GameSession& Game::Session()
 
 void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueuNaviRegistration(*playerPackageManager); // Queues navis to be loaded later
 
+  auto LoadPlayerMods = QueueModRegistration<class PlayerPackageManager, ScriptedPlayer>;
+  LoadPlayerMods(*playerPackageManager, "resources/mods/players", "Player Mods");
   playerPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
@@ -454,8 +457,9 @@ void Game::RunNaviInit(std::atomic<int>* progress) {
 void Game::RunBlocksInit(std::atomic<int>* progress)
 {
   clock_t begin_time = clock();
-  QueueBlockRegistration(*blockPackageManager); // Queues navis to be loaded later
 
+  auto LoadBlockMods = QueueModRegistration<class BlockPackageManager, ScriptedBlock>;
+  LoadBlockMods(*blockPackageManager, "resources/mods/blocks", "Prog Block Mods");
   blockPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered prog blocks: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
@@ -463,8 +467,9 @@ void Game::RunBlocksInit(std::atomic<int>* progress)
 
 void Game::RunMobInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueueMobRegistration(*mobPackageManager); // Queues mobs to be loaded later
 
+  auto LoadEnemyMods = QueueModRegistration<class MobPackageManager, ScriptedMob>;
+  LoadEnemyMods(*mobPackageManager, "resources/mods/enemies", "Enemy Mods");
   mobPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
@@ -472,8 +477,9 @@ void Game::RunMobInit(std::atomic<int>* progress) {
 
 void Game::RunCardInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueueCardRegistration(*cardPackageManager);
 
+  auto LoadCardMods = QueueModRegistration<class CardPackageManager, ScriptedCard>;
+  LoadCardMods(*cardPackageManager, "resources/mods/cards", "Card Mods");
   cardPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
@@ -481,8 +487,9 @@ void Game::RunCardInit(std::atomic<int>* progress) {
 
 void Game::RunLuaLibraryInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
-  QueueLuaLibraryRegistration(*luaLibraryPackageManager);
 
+  auto LoadCoreLibraryMods = QueueModRegistration<class LuaLibraryPackageManager, LuaLibrary>;
+  LoadCoreLibraryMods(*luaLibraryPackageManager, "resources/mods/libs", "Core Libs Mods");
   luaLibraryPackageManager->LoadAllPackages(*progress);
 
   Logger::Logf("Loaded registered libraries: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
