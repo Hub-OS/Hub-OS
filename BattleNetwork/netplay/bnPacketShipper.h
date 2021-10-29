@@ -59,7 +59,7 @@ private:
 
   void updateLagTime(Reliability type, uint64_t packetId);
   void sendSafe(Poco::Net::DatagramSocket& socket, const Poco::Buffer<char>& data);
-  void acknowledgedReliable(uint64_t id);
+  void acknowledgedReliable(Reliability type, uint64_t id);
   void acknowledgedReliableOrdered(uint64_t id);
 
 public:
