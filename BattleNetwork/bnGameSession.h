@@ -9,7 +9,7 @@ class GameSession {
   std::vector<KeyItem> keyItems;
   std::map<std::string, std::string> keys; // key-value table
   uint32_t monies{}; //!< Monies on the account
-  std::string nickname;
+  std::string nickname = "Anon";
 
 public:
   const bool LoadSession(const std::string& inpath);

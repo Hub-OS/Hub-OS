@@ -11,7 +11,7 @@ const bool GameSession::LoadSession(const std::string& inpath)
 
   BufferReader reader;
   std::fstream file;
-  file.open(inpath, std::ios::out | std::ios::binary);
+  file.open(inpath, std::ios::in | std::ios::binary);
 
   if (!file.is_open())
     return false;
@@ -21,18 +21,18 @@ const bool GameSession::LoadSession(const std::string& inpath)
   size_t file_end = file.tellg();
   size_t file_len = file_end - file_begin;
   Poco::Buffer<char> buffer(file_len);
+  file.seekg(0, std::ios::beg);
+  file.read(buffer.begin(), file_len);
 
   std::string nick = reader.ReadTerminatedString(buffer);
 
   size_t keys_len = reader.Read<size_t>(buffer);
 
   while (keys_len-- > 0) {
-    std::string key = reader.ReadTerminatedString(buffer);
-    std::string val = reader.ReadTerminatedString(buffer);
+    std::string key = reader.ReadString<char>(buffer);
+    std::string val = reader.ReadString<char>(buffer);
     SetKey(key, val);
   }
-
-  monies = reader.Read<decltype(monies)>(buffer);
 
   size_t pool_len = reader.Read<size_t>(buffer);
 
@@ -48,24 +48,22 @@ const bool GameSession::LoadSession(const std::string& inpath)
 
 void GameSession::SaveSession(const std::string& outpath)
 {
-  size_t file_len = nickname.size() + (keys.size() * 2u) + sizeof(monies) + cardPool.size();
-
   BufferWriter writer;
-  Poco::Buffer<char> buffer(file_len);
+  Poco::Buffer<char> buffer(0);
   std::fstream file;
-  file.open(outpath, std::ios::in | std::ios::binary);
+  file.open(outpath, std::ios::out | std::ios::binary);
 
   if (!file.is_open())
     return;
 
   writer.WriteTerminatedString(buffer, nickname);
 
-  size_t keys_len = keys.size();
-  writer.Write(buffer, keys_len);
+  size_t num_of_keys = keys.size();
+  writer.Write(buffer, num_of_keys);
 
   for (auto& [k, v] : keys) {
-    writer.WriteTerminatedString(buffer, k);
-    writer.WriteTerminatedString(buffer, v);
+    writer.WriteString<char>(buffer, k);
+    writer.WriteString<char>(buffer, v);
   }
 
   size_t pool_len = cardPool.size();
@@ -74,6 +72,13 @@ void GameSession::SaveSession(const std::string& outpath)
   for (auto& card : cardPool) {
     writer.WriteTerminatedString(buffer, card);
   }
+
+  char* raw = new char [buffer.size()];
+  std::memcpy(raw, buffer.begin(), buffer.size());
+  std::string as_string = std::string(raw, buffer.size());
+  file << as_string;
+  file.close();
+  delete[] raw;
 }
 
 void GameSession::SetKey(const std::string& key, const std::string& value)

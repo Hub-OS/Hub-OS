@@ -283,7 +283,7 @@ void Overworld::SceneBase::onEnter()
 }
 
 void Overworld::SceneBase::onResume() {
-  getController().Session().SaveSession("guest.bin");
+  getController().Session().SaveSession("profile.bin");
 
   // if we left this scene for a new OW scene... return to our warp area
   if (teleportedOut) {
