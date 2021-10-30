@@ -91,10 +91,6 @@ void ScriptedSpell::OnSpawn(Battle::Tile& spawn)
       Logger::Log(result.error_cstr());
     }
   }
-
-  if (GetTeam() == Team::blue && flip) {
-    setScale(-2.f, 2.f);
-  }
 }
 
 const float ScriptedSpell::GetHeight() const

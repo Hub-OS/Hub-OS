@@ -39,7 +39,6 @@ public:
   sol::object attack_func;
   sol::object on_spawn_func;
 private:
-  bool flip{true};
   float height{};
   sf::Vector2f scriptedOffset{};
   std::shared_ptr<AnimationComponent> animComponent{ nullptr };

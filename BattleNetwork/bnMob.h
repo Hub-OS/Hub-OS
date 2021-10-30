@@ -223,9 +223,7 @@ public:
 
   /**
    * @brief Used in state ivokers to flag the mob to spawn the next piece
-   * 
-   * TODO: If possible hide this step from spawn policies. It's not the spawn policies direct responsibility 
-   * and is always required.
+   *
    */
   void FlagNextReady();
 

@@ -16,7 +16,6 @@ class ScriptedArtifact final : public Artifact, public dynamic_object
 {
 	std::shared_ptr<AnimationComponent> animationComponent{ nullptr };
 	sf::Vector2f scriptedOffset{ };
-	bool flip{true};
 	WeakWrapper<ScriptedArtifact> weakWrap;
 
 public:
@@ -33,7 +32,6 @@ public:
 	void OnDelete() override;
 	bool CanMoveTo(Battle::Tile* next) override;
 	void OnSpawn(Battle::Tile& spawn) override;
-	void NeverFlip(bool enabled);
 
 	void SetAnimation(const std::string& path);
 	Animation& GetAnimationObject();

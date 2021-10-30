@@ -31,11 +31,6 @@ void ScriptedArtifact::OnUpdate(double _elapsed)
   }
 }
 
-void ScriptedArtifact::NeverFlip(bool enabled)
-{
-  flip = !enabled;
-}
-
 void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 {
   if (on_spawn_func.valid()) 
@@ -45,10 +40,6 @@ void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
     if (result.is_error()) {
       Logger::Log(result.error_cstr());
     }
-  }
-
-  if (GetTeam() == Team::blue && flip) {
-    setScale(-2.f, 2.f);
   }
 }
 

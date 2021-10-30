@@ -76,6 +76,7 @@ private:
   bool isPlayerDeleted{ false };
   bool highlightTiles{ true };
   bool backdropAffectBG{ false };
+  bool perspectiveFlip{ false }; //!< if true, view from blue team's perspective
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
   int turn{ 0 }; //!< How many turns per round (inbetween card selection)
   int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
@@ -139,6 +140,8 @@ private:
 
   // event bus
   EventBus::Channel channel;
+
+  sf::Vector2f PerspectiveOffset(SpriteProxyNode& node);
 
 protected:
   using ChangeCondition = BattleSceneState::ChangeCondition;

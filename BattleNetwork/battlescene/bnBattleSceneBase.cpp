@@ -61,6 +61,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
 
   player->ChangeState<PlayerIdleState>();
   player->ToggleTimeFreeze(false);
+  player->SetTeam(Team::red);
   field->AddEntity(player, 2, 2);
 
   /*
@@ -326,6 +327,15 @@ void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint6
   HandleCounterLoss(*action->GetActor(), true);
 }
 
+sf::Vector2f BattleSceneBase::PerspectiveOffset(SpriteProxyNode& node)
+{
+  if (perspectiveFlip) {
+    return sf::Vector2f((240.f - node.getPosition().x)*2.f, 0.f);
+  }
+
+  return sf::Vector2f();
+}
+
 void BattleSceneBase::LoadMob(Mob& mob)
 {
   this->mob = &mob;
@@ -424,6 +434,12 @@ void BattleSceneBase::onStart()
 
 void BattleSceneBase::onUpdate(double elapsed) {
   this->elapsed = elapsed;
+
+  if (getController().CommandLineValue<bool>("debug")) {
+    if (Input().Has(InputEvents::pressed_map)) {
+      perspectiveFlip = !perspectiveFlip;
+    }
+  }
 
   camera.Update((float)elapsed);
   background->Update((float)elapsed);
@@ -548,8 +564,8 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   auto uis = std::vector<std::shared_ptr<UIComponent>>();
 
-  auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
-  auto viewOffset = getController().CameraViewOffset(camera);
+  std::vector<Battle::Tile*> allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+  sf::Vector2f viewOffset = getController().CameraViewOffset(camera);
 
   for (Battle::Tile* tile : allTiles) {
     if (tile->IsEdgeTile()) continue;
@@ -569,7 +585,9 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       tile->setColor(sf::Color::White);
     }
 
-    tile->move(viewOffset);
+    sf::Vector2f flipOffset = PerspectiveOffset(*tile);
+    tile->PerspectiveFlip(perspectiveFlip);
+    tile->move(viewOffset + flipOffset);
     tile->setColor(sf::Color(tint, tint, tint, 255));
     surface.draw(*tile);
     tile->setColor(sf::Color::White);
@@ -584,7 +602,8 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       surface.draw(block);
     }
 
-    tile->move(-viewOffset);
+    tile->move(-(viewOffset+flipOffset));
+    tile->PerspectiveFlip(false);
   }
 
   std::vector<Entity*> allEntities;
@@ -601,9 +620,22 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     for (Entity* node : tileEntities) {
       sf::Vector2f offset = viewOffset + sf::Vector2f(0, -node->GetElevation());
-      node->move(offset);
+      sf::Vector2f flipOffset = PerspectiveOffset(*node);
+      node->move(offset+flipOffset);
+
+      sf::Vector2f ogScale = node->getScale();
+
+      if (perspectiveFlip) {
+        node->setScale(-ogScale.x, ogScale.y);
+      }
+
       surface.draw(*node);
-      node->move(-offset);
+
+      if (perspectiveFlip) {
+        node->setScale(ogScale.x, ogScale.y);
+      }
+
+      node->move(-(offset+flipOffset));
     }
   }
 
@@ -612,12 +644,12 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   // draw ui on top
   for (auto* ent : allEntities) {
     auto uis = ent->GetComponentsDerivedFrom<UIComponent>();
-
+    sf::Vector2f flipOffset = PerspectiveOffset(*ent);
     for (auto& ui : uis) {
       if (ui->DrawOnUIPass()) {
-        ui->move(viewOffset);
+        ui->move(viewOffset + flipOffset);
         surface.draw(*ui);
-        ui->move(-viewOffset);
+        ui->move(-(viewOffset + flipOffset));
       }
     }
 

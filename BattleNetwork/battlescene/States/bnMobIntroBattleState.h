@@ -3,6 +3,7 @@
 #include "../bnBattleSceneState.h"
 #include <vector>
 
+class Character;
 class Player;
 class Mob;
 
@@ -11,6 +12,7 @@ class Mob;
 */
 struct MobIntroBattleState final : public BattleSceneState {
   std::vector<std::shared_ptr<Player>> tracked;
+  std::vector<std::shared_ptr<Character>> friendlies;
   Mob* mob{ nullptr };
 
   void onUpdate(double elapsed) override;

@@ -32,6 +32,14 @@ void MobIntroBattleState::onUpdate(double elapsed)
     enemy->ToggleTimeFreeze(false);
     GetScene().GetField()->AddEntity(enemy, data->tileX, data->tileY);
 
+    Battle::Tile* destTile = GetScene().GetField()->GetAt(data->tileX, data->tileY);
+    enemy->SetFacing(destTile->GetFacing());
+    enemy->SetTeam(destTile->GetTeam());
+
+    if (destTile->GetTeam() == Team::red) {
+      friendlies.push_back(enemy);
+    }
+
     // Listen for events
     GetScene().CounterHitListener::Subscribe(*enemy);
     GetScene().HitListener::Subscribe(*enemy);
@@ -44,6 +52,11 @@ void MobIntroBattleState::onUpdate(double elapsed)
 void MobIntroBattleState::onEnd(const BattleSceneState*)
 {
   mob->DefaultState();
+
+  // Untrack friendlies
+  for (auto& f : friendlies) {
+    mob->Forget(*f);
+  }
 
   for (auto& player : tracked) {
     player->ChangeState<PlayerControlledState>();

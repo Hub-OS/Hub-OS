@@ -10,10 +10,7 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   Player()
 {
   chargeEffect->setPosition(0, -30.0f);
-
-
   SetLayer(0);
-  SetTeam(Team::red);
 }
 
 void ScriptedPlayer::Init() {

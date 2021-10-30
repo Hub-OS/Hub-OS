@@ -102,6 +102,8 @@ namespace Battle {
     
     void HandleMove(std::shared_ptr<Entity> entity);
 
+    void PerspectiveFlip(bool state);
+
     /**
      * @brief Change the tile's team if unoccupied
      * This will also change the color of the tile. 
@@ -113,6 +115,7 @@ namespace Battle {
     void SetTeam(Team _team, bool useFlicker = false);
 
     void SetFacing(Direction facing);
+    Direction GetFacing();
 
     /**
      * @brief Get the width of the tile sprite
@@ -311,33 +314,29 @@ namespace Battle {
 
     int x; /**< Column number*/
     int y; /**< Row number*/
+    bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
+    bool isTimeFrozen;
+    bool isBattleOver;
+    bool isBattleStarted{ false };
+    float width;
+    float height;
+    static double teamCooldownLength;
+    static double brokenCooldownLength;
+    static double flickerTeamCooldownLength;
+    double teamCooldown;
+    double brokenCooldown;
+    double flickerTeamCooldown;
+    double totalElapsed;
+    double elapsedBurnTime;
+    double burncycle;
+    std::weak_ptr<Field> fieldWeak;
+    std::shared_ptr<sf::Texture> red_team_atlas, red_team_perm;
+    std::shared_ptr<sf::Texture> blue_team_atlas, blue_team_perm;
+    TileHighlight highlightMode;
     Team team{}, ogTeam{};
     Direction facing{}, ogFacing{};
     TileState state;
     std::string animState; /**< reflects the tile's state - lookup animation from animation file */
-
-    float width;
-    float height;
-    std::weak_ptr<Field> fieldWeak;
-    double teamCooldown;
-
-    std::shared_ptr<sf::Texture> red_team_atlas;
-    std::shared_ptr<sf::Texture> blue_team_atlas;
-
-    static double teamCooldownLength;
-    double brokenCooldown;
-    static double brokenCooldownLength;
-    double flickerTeamCooldown;
-    static double flickerTeamCooldownLength;
-    double totalElapsed;
-    bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
-    TileHighlight highlightMode;
-    bool isTimeFrozen;
-    bool isBattleOver;
-    bool isBattleStarted{ false };
-    double elapsedBurnTime;
-    double burncycle;
-
     // Todo: use sets to avoid duplicate entries
     vector<Artifact*> artifacts; /**< Entity bucket for type Artifacts */
     vector<Entity*> spells; /**< Entity bucket for type Spells */

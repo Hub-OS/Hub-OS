@@ -131,8 +131,8 @@ namespace Battle {
     brokenCooldown = other.brokenCooldown;
     teamCooldown = other.teamCooldown;
     flickerTeamCooldown = other.flickerTeamCooldown;
-    red_team_atlas = other.red_team_atlas;
-    blue_team_atlas = other.blue_team_atlas;
+    red_team_atlas = red_team_perm = other.red_team_perm;
+    blue_team_atlas = blue_team_perm = other.blue_team_perm;
     animation = other.animation;
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
@@ -199,6 +199,21 @@ namespace Battle {
     }
   }
 
+  void Tile::PerspectiveFlip(bool state)
+  {
+    if (state) {
+      red_team_atlas = blue_team_perm;
+      blue_team_atlas = red_team_perm;
+    }
+    else {
+      red_team_atlas = red_team_perm;
+      blue_team_atlas = blue_team_perm;
+    }
+
+    RefreshTexture();
+    animation.Refresh(getSprite());
+  }
+
   void Tile::SetTeam(Team _team, bool useFlicker) {
     if (ogTeam == Team::unknown) {
       ogTeam = _team;
@@ -241,6 +256,11 @@ namespace Battle {
     }
 
     this->facing = facing;
+  }
+
+  Direction Tile::GetFacing()
+  {
+    return facing;
   }
 
   float Tile::GetWidth() const {
@@ -399,12 +419,6 @@ namespace Battle {
     // May be part of the spawn routine
     // First tile set means entity is live and ready to go
     _entity->Spawn(*this);
-
-    // Note: should be part of Entity::Spawn() 
-    //       but would require passing the facing direction
-    if (_entity->GetFacing() == Direction::none) {
-      _entity->SetFacing(this->facing);
-    }
 
     auto reservedIter = reserved.find(_entity->GetID());
     if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
@@ -593,8 +607,8 @@ namespace Battle {
   void Tile::SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim)
   {
     animation = anim;
-    blue_team_atlas = blueTeam;
-    red_team_atlas = redTeam;
+    blue_team_atlas = blue_team_perm = blueTeam;
+    red_team_atlas = red_team_perm = redTeam;
     useParentShader = true;
   }
 
@@ -734,7 +748,7 @@ namespace Battle {
 
   int Tile::Distance(Battle::Tile& other)
   {
-      return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());
+    return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());
   }
 
   Tile* Tile::operator+(const Direction& dir)

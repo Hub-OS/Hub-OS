@@ -222,7 +222,7 @@ void Entity::SetFrame(unsigned frame)
   this->frame = frame;
 }
 
-void Entity::Spawn(Battle::Tile & start)
+void Entity::Spawn(Battle::Tile& start)
 {
   if (!hasSpawned) {
     OnSpawn(start);

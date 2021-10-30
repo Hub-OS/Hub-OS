@@ -41,7 +41,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
       once = true;
     }
 
-    //this->Abort();
+    this->Abort();
   });
 
   packetProcessor->EnableKickForSilence(true);

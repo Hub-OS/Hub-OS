@@ -585,10 +585,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   assert(remotePlayer == nullptr && "remote player was already set!");
   remotePlayer = std::shared_ptr<Player>(getController().PlayerPackageManager().FindPackageByID(remoteNaviId).GetData());
 
-  // TODO: manual flipping shouldn't be needed. The engine should flip based on team and direction...
   remotePlayer->SetTeam(Team::blue);
-  remotePlayer->setScale(remotePlayer->getScale().x * -1.0f, remotePlayer->getScale().y);
-
   remotePlayer->ChangeState<FadeInState<Player>>([]{});
 
   GetField()->AddEntity(remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);

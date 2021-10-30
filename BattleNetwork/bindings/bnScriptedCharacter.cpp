@@ -16,7 +16,6 @@ ScriptedCharacter::ScriptedCharacter(sol::state& script, Character::Rank rank) :
   Character(rank)
 {
   SetElement(Element::none);
-  SetTeam(Team::blue);
   setScale(2.f, 2.f);
 }
 
