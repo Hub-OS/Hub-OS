@@ -10,7 +10,10 @@
 namespace Overworld {
   class PacketProcessor : public IPacketProcessor {
   public:
-    PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, std::function<void(const Poco::Buffer<char>& data)> onPacketBody);
+    PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize);
+
+    void SetPacketBodyCallback(std::function<void(const Poco::Buffer<char>& data)> onPacketBody);
+    void SetUpdateCallback(std::function<void(double)> onUpdate);
 
     bool TimedOut();
     void SetBackground();
@@ -22,6 +25,7 @@ namespace Overworld {
 
   private:
     std::function<void(const Poco::Buffer<char>& data)> onPacketBody;
+    std::function<void(double)> onUpdate;
     PacketShipper packetShipper;
     PacketSorter<ClientEvents::ack> packetSorter;
     Reliability heartbeatReliability{};

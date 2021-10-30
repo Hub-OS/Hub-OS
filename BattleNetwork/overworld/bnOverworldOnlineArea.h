@@ -147,6 +147,7 @@ namespace Overworld {
     void sendShopPurchaseSignal(const std::string& itemName);
     void sendBattleResultsSignal(const BattleResults& results);
 
+    void receiveAuthorizeSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);
