@@ -24,7 +24,7 @@ static inline void QueueModRegistration(PackageManagerT& packageManager, const c
         ignoreList[full_path] = true;
         ignoreList[full_path + ".zip"] = true;
 
-        if (auto res = packageManager.LoadPackageFromDisk<ScriptedResourceT>(full_path); res.is_error()) {
+        if (auto res = packageManager.template LoadPackageFromDisk<ScriptedResourceT>(full_path); res.is_error()) {
           throw std::runtime_error(res.error_cstr());
           continue;
         }
@@ -44,7 +44,7 @@ static inline void QueueModRegistration(PackageManagerT& packageManager, const c
       continue;
 
     try {
-      if (auto res = packageManager.LoadPackageFromZip<ScriptedResourceT>(path); res.is_error()) {
+      if (auto res = packageManager.template LoadPackageFromZip<ScriptedResourceT>(path); res.is_error()) {
         throw std::runtime_error(res.error_cstr());
       }
     }

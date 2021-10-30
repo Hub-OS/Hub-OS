@@ -632,10 +632,10 @@ Direction Entity::GetMoveDirection()
 void Entity::SetFacing(Direction facing)
 {
   if (facing == Direction::left) {
-    neverFlip? 0 : setScale(-2.f, 2.f); // flip standard facing right sprite
+    neverFlip? void(0) : setScale(-2.f, 2.f); // flip standard facing right sprite
   }
   else if (facing == Direction::right) {
-    neverFlip? 0 : setScale(2.f, 2.f); // standard facing
+    neverFlip? void(0) : setScale(2.f, 2.f); // standard facing
   }
   else {
     return;
