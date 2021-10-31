@@ -48,6 +48,8 @@ Overworld::OnlineArea::OnlineArea(
   const std::string& connectData,
   uint16_t maxPayloadSize
 ) :
+  host(host),
+  port(port),
   SceneBase(controller),
   transitionText(Font::Style::small),
   nameText(Font::Style::small),
@@ -1336,8 +1338,8 @@ void Overworld::OnlineArea::receiveAuthorizeSignal(BufferReader& reader, const P
   BufferWriter writer;
   Poco::Buffer<char> outBuffer{ 0 };
   writer.Write(outBuffer, ClientEvents::authorize);
-  writer.WriteString<uint16_t>(outBuffer, authAddress);
-  writer.Write<uint16_t>(outBuffer, port);
+  writer.WriteString<uint16_t>(outBuffer, this->host);
+  writer.Write<uint16_t>(outBuffer, this->port);
   writer.WriteString<uint8_t>(outBuffer, externIdentity);
   writer.WriteBytes(outBuffer, data, size);
   authPacketProcessor->SendPacket(Reliability::ReliableOrdered, outBuffer);

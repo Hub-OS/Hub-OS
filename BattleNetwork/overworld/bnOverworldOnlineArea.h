@@ -68,6 +68,8 @@ namespace Overworld {
       Poco::Buffer<char> buffer{ 0 };
     };
 
+    std::string host;
+    uint16_t port;
     std::shared_ptr<Overworld::EmoteNode> emoteNode;
     std::shared_ptr<sf::Texture> customEmotesTexture;
     std::string ticket; //!< How we are represented on the server
