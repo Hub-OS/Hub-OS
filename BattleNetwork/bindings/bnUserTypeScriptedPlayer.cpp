@@ -218,6 +218,12 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "register_component", [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedComponent>& component) {
       player.Unwrap()->RegisterComponent(component.Release());
     },
+    "add_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
+      player.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
+    },
+    "remove_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
+      player.Unwrap()->RemoveDefenseRule(defenseRule);
+    },
     "get_current_palette",  [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
       return player.Unwrap()->GetPalette();
     },
