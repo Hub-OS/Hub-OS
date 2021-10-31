@@ -200,12 +200,6 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "shake_camera", [](WeakWrapper<ScriptedSpell>& spell, double power, float duration) {
       spell.Unwrap()->ShakeCamera(power, duration);
     },
-    "get_position", [](WeakWrapper<ScriptedSpell>& spell) -> sf::Vector2f {
-      return spell.Unwrap()->GetDrawOffset();
-    },
-    "set_position", [](WeakWrapper<ScriptedSpell>& spell, float x, float y) {
-      spell.Unwrap()->SetDrawOffset(x, y);
-    },
     "never_flip", [](WeakWrapper<ScriptedSpell>& spell, bool enabled) {
       spell.Unwrap()->NeverFlip(enabled);
     },

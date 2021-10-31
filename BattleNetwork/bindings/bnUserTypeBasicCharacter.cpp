@@ -185,12 +185,6 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "remove_defense_rule", [](WeakWrapper<Character>& character, DefenseRule* defenseRule) {
       character.Unwrap()->RemoveDefenseRule(defenseRule);
     },
-    "get_position", [](WeakWrapper<Character>& character) -> sf::Vector2f {
-      return character.Unwrap()->GetDrawOffset();
-    },
-    "set_position", [](WeakWrapper<Character>& character, float x, float y) {
-      character.Unwrap()->SetDrawOffset(x, y);
-    },
     "set_height", [](WeakWrapper<Character>& character, float height) {
       character.Unwrap()->SetHeight(height);
     },
