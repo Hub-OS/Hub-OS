@@ -29,9 +29,14 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "get_id", [](WeakWrapper<ScriptedSpell>& spell) -> Entity::ID_t {
       return spell.Unwrap()->GetID();
     },
-    "get_tile", [](WeakWrapper<ScriptedSpell>& character, Direction dir, unsigned count) -> Battle::Tile* {
-      return character.Unwrap()->GetTile(dir, count);
-    },
+    "get_tile", sol::overload(
+      [](WeakWrapper<ScriptedSpell>& spell, Direction dir, unsigned count) -> Battle::Tile* {
+        return spell.Unwrap()->GetTile(dir, count);
+      },
+      [](WeakWrapper<ScriptedSpell>& spell) -> Battle::Tile* {
+        return spell.Unwrap()->GetTile();
+      }
+    ),
     "get_current_tile", [](WeakWrapper<ScriptedSpell>& spell) -> Battle::Tile* {
       return spell.Unwrap()->GetCurrentTile();
     },

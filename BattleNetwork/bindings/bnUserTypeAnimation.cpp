@@ -48,6 +48,9 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
     "get_state", [](AnimationWrapper& animation) -> std::string {
       return animation.Unwrap().GetAnimationString();
     },
+    "has_state", [](AnimationWrapper& animation, const std::string& state) -> bool {
+      return animation.Unwrap().HasAnimation(state);
+    },
     "point", [](AnimationWrapper& animation, const std::string& name) -> sf::Vector2f {
       return animation.Unwrap().GetPoint(name);
     },

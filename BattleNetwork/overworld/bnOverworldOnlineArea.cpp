@@ -48,6 +48,8 @@ Overworld::OnlineArea::OnlineArea(
   const std::string& connectData,
   uint16_t maxPayloadSize
 ) :
+  host(host),
+  port(port),
   SceneBase(controller),
   transitionText(Font::Style::small),
   nameText(Font::Style::small),
@@ -60,11 +62,8 @@ Overworld::OnlineArea::OnlineArea(
 
   try {
     auto remoteAddress = Poco::Net::SocketAddress(host, port);
-    packetProcessor = std::make_shared<Overworld::PacketProcessor>(
-      remoteAddress,
-      maxPayloadSize,
-      [this](auto& body) { processPacketBody(body); }
-    );
+    packetProcessor = std::make_shared<Overworld::PacketProcessor>(remoteAddress, maxPayloadSize);
+    packetProcessor->SetPacketBodyCallback([this](auto& body) { processPacketBody(body); });
 
     Net().AddHandler(remoteAddress, packetProcessor);
 
@@ -73,11 +72,7 @@ Overworld::OnlineArea::OnlineArea(
     sendAvatarChangeSignal();
     sendRequestJoinSignal();
   }
-  catch (std::runtime_error& e) {
-    Logger::Logf(e.what());
-    leave();
-  }
-  catch (Poco::Net::NetException& e) {
+  catch (std::exception& e) {
     Logger::Logf(e.what());
     leave();
   }
@@ -794,6 +789,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     auto sig = reader.Read<ServerEvents>(data);
 
     switch (sig) {
+    case ServerEvents::authorize:
+      receiveAuthorizeSignal(reader, data);
+      break;
     case ServerEvents::login:
       receiveLoginSignal(reader, data);
       break;
@@ -1294,6 +1292,57 @@ void Overworld::OnlineArea::sendBattleResultsSignal(const BattleResults& battleR
   writer.Write(buffer, battleResults.finalEmotion);
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::receiveAuthorizeSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  auto authAddress = reader.ReadString<uint16_t>(buffer);
+  auto port = reader.Read<uint16_t>(buffer);
+  auto* data = buffer.begin() + reader.GetOffset();
+  auto size = buffer.size() - reader.GetOffset();
+
+  // create processor for authenticating with server
+  std::shared_ptr<Overworld::PacketProcessor> authPacketProcessor;
+
+  try {
+    auto remoteAddress = Poco::Net::SocketAddress(authAddress, port);
+    authPacketProcessor = std::make_shared<Overworld::PacketProcessor>(remoteAddress, maxPayloadSize);
+
+    Net().AddHandler(remoteAddress, authPacketProcessor);
+  }
+  catch (std::exception& e) {
+    Logger::Logf("Failed to authorize with %s:%d: %s.", authAddress.c_str(), port, e.what());
+    return;
+  }
+  catch (...) {
+    Logger::Logf("Failed to authorize with %s:%d: Unknown exception thrown.", authAddress.c_str(), port);
+    return;
+  }
+
+  // setup callbacks
+  auto* net = &Net();
+  authPacketProcessor->SetPacketBodyCallback([net, authPacketProcessor](auto& body) {
+    // expecting kick message, we don't need to stay connected anyway
+    net->DropProcessor(authPacketProcessor);
+  });
+
+  authPacketProcessor->SetUpdateCallback([net, authPacketProcessor](double elapsed) {
+    if (authPacketProcessor->TimedOut()) {
+      net->DropProcessor(authPacketProcessor);
+    }
+  });
+
+  // create + send message
+  auto externIdentity = IdentityManager(authAddress, port).GetIdentity();
+
+  BufferWriter writer;
+  Poco::Buffer<char> outBuffer{ 0 };
+  writer.Write(outBuffer, ClientEvents::authorize);
+  writer.WriteString<uint16_t>(outBuffer, this->host);
+  writer.Write<uint16_t>(outBuffer, this->port);
+  writer.WriteString<uint8_t>(outBuffer, externIdentity);
+  writer.WriteBytes(outBuffer, data, size);
+  authPacketProcessor->SendPacket(Reliability::ReliableOrdered, outBuffer);
 }
 
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

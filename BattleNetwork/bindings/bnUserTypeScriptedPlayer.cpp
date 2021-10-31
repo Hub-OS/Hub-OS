@@ -29,9 +29,14 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "set_element", [](WeakWrapper<ScriptedPlayer>& player, Element element) {
       player.Unwrap()->SetElement(element);
     },
-    "get_tile", [](WeakWrapper<ScriptedPlayer>& player, Direction dir, unsigned count) -> Battle::Tile* {
-      return player.Unwrap()->GetTile(dir, count);
-    },
+    "get_tile", sol::overload(
+      [](WeakWrapper<ScriptedPlayer>& player, Direction dir, unsigned count) -> Battle::Tile* {
+        return player.Unwrap()->GetTile(dir, count);
+      },
+      [](WeakWrapper<ScriptedPlayer>& player) -> Battle::Tile* {
+        return player.Unwrap()->GetTile();
+      }
+    ),
     "get_current_tile", [](WeakWrapper<ScriptedPlayer>& player) -> Battle::Tile* {
       return player.Unwrap()->GetCurrentTile();
     },
@@ -217,6 +222,12 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     },
     "register_component", [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedComponent>& component) {
       player.Unwrap()->RegisterComponent(component.Release());
+    },
+    "add_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
+      player.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
+    },
+    "remove_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
+      player.Unwrap()->RemoveDefenseRule(defenseRule);
     },
     "get_current_palette",  [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
       return player.Unwrap()->GetPalette();

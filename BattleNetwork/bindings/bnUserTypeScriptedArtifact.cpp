@@ -30,9 +30,14 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     "get_id", [](WeakWrapper<ScriptedArtifact>& artifact) -> Entity::ID_t {
       return artifact.Unwrap()->GetID();
     },
-    "get_tile", [](WeakWrapper<ScriptedArtifact>& artifact, Direction dir, unsigned count) -> Battle::Tile* {
-      return artifact.Unwrap()->GetTile(dir, count);
-    },
+    "get_tile", sol::overload(
+      [](WeakWrapper<ScriptedArtifact>& artifact, Direction dir, unsigned count) -> Battle::Tile* {
+        return artifact.Unwrap()->GetTile(dir, count);
+      },
+      [](WeakWrapper<ScriptedArtifact>& artifact) -> Battle::Tile* {
+        return artifact.Unwrap()->GetTile();
+      }
+    ),
     "get_current_tile", [](WeakWrapper<ScriptedArtifact>& artifact) -> Battle::Tile* {
       return artifact.Unwrap()->GetCurrentTile();
     },

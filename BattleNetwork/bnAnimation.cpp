@@ -27,6 +27,7 @@ Animation::Animation(const Animation& rhs) {
 
 Animation & Animation::operator=(const Animation & rhs)
 {
+  noAnim = rhs.noAnim;
   animations = rhs.animations;
   animator = rhs.animator;
   currAnimation = rhs.currAnimation;

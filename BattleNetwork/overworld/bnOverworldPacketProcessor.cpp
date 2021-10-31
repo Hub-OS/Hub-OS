@@ -6,13 +6,20 @@
 constexpr double KEEP_ALIVE_RATE = 1.0f;
 
 namespace Overworld {
-  PacketProcessor::PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize, std::function<void(const Poco::Buffer<char>& data)> onPacketBody) :
+  PacketProcessor::PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxPayloadSize) :
     packetShipper(remoteAddress, maxPayloadSize),
-    packetSorter(remoteAddress),
-    onPacketBody(onPacketBody)
+    packetSorter(remoteAddress)
   {
     packetResendTimer = PACKET_RESEND_RATE;
     heartbeatTimer = KEEP_ALIVE_RATE;
+  }
+
+  void PacketProcessor::SetPacketBodyCallback(std::function<void(const Poco::Buffer<char>& data)> onPacketBody) {
+    this->onPacketBody = onPacketBody;
+  }
+
+  void PacketProcessor::SetUpdateCallback(std::function<void(double elapsed)> onUpdate) {
+    this->onUpdate = onUpdate;
   }
 
   bool PacketProcessor::TimedOut() {
@@ -63,6 +70,10 @@ namespace Overworld {
         heartbeatTimer = PACKET_RESEND_RATE;
       }
     }
+
+    if (onUpdate) {
+      onUpdate(elapsed);
+    }
   }
 
   void PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net::SocketAddress& sender) {
@@ -89,12 +100,14 @@ namespace Overworld {
           // processing the map is pretty heavy
           latestMapBody = data;
         }
-        else {
+        else if(onPacketBody) {
           onPacketBody(data);
         }
         break;
       default:
-        onPacketBody(data);
+        if(onPacketBody) {
+          onPacketBody(data);
+        }
       }
     }
   }

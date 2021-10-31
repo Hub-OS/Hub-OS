@@ -68,6 +68,8 @@ namespace Overworld {
       Poco::Buffer<char> buffer{ 0 };
     };
 
+    std::string host;
+    uint16_t port;
     std::shared_ptr<Overworld::EmoteNode> emoteNode;
     std::shared_ptr<sf::Texture> customEmotesTexture;
     std::string ticket; //!< How we are represented on the server
@@ -147,6 +149,7 @@ namespace Overworld {
     void sendShopPurchaseSignal(const std::string& itemName);
     void sendBattleResultsSignal(const BattleResults& results);
 
+    void receiveAuthorizeSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferStartSignal(BufferReader& reader, const Poco::Buffer<char>&);

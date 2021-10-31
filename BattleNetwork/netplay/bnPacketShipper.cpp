@@ -147,8 +147,10 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
     break;
   }
 
-  size_t index = static_cast<size_t>(reliability);
-  packetStart[index][newID] = std::chrono::steady_clock::now();
+  if (IsReliable) {
+    size_t index = static_cast<size_t>(reliability);
+    packetStart[index][newID] = std::chrono::steady_clock::now();
+  }
 
   return { reliability, newID };
 }
@@ -156,15 +158,18 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
 void PacketShipper::updateLagTime(Reliability type, uint64_t packetId)
 {
   size_t index = static_cast<size_t>(type);
-  auto iter = packetStart[index].find(packetId);
+  auto packetStartForType = packetStart[index];
+  auto iter = packetStartForType.find(packetId);
 
-  if (iter != packetStart[index].end()) {
+  if (iter != packetStartForType.end()) {
     auto start = iter->second;
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     avgLatency = NetManager::CalculateLag(ackPackets, lagWindow, (double)(duration.count()));
     ackPackets++;
     lagWindow[ackPackets % NetManager::LAG_WINDOW_LEN] = (double)duration.count();
+
+    packetStartForType.erase(iter);
   }
 }
 
@@ -225,7 +230,7 @@ void PacketShipper::Acknowledged(Reliability reliability, uint64_t id)
     break;
   case Reliability::Reliable:
   case Reliability::BigData:
-    acknowledgedReliable(id);
+    acknowledgedReliable(reliability, id);
     break;
   case Reliability::ReliableOrdered:
     acknowledgedReliableOrdered(id);
@@ -238,7 +243,7 @@ const double PacketShipper::GetAvgLatency() const
   return avgLatency / 2.f; // ack is a round trip, so we need half the time to arrive
 }
 
-void PacketShipper::acknowledgedReliable(uint64_t id)
+void PacketShipper::acknowledgedReliable(Reliability type, uint64_t id)
 {
   auto iterEnd = backedUpReliable.end();
   auto iter = std::find_if(backedUpReliable.begin(), backedUpReliable.end(), [=](BackedUpPacket& packet) { return packet.id == id; });
@@ -247,7 +252,7 @@ void PacketShipper::acknowledgedReliable(uint64_t id)
     return;
   }
 
-  updateLagTime(Reliability::Reliable, id);
+  updateLagTime(type, id); // type can be Reliability::Reliable, or Reliability::BigData
   backedUpReliable.erase(iter);
 }
 
