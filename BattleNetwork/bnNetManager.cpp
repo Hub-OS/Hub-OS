@@ -34,7 +34,10 @@ void NetManager::Update(double elapsed)
         continue;
       }
 
-      for (auto processor : handlers[sender]) {
+      // make a copy as a processor may drop in here 
+      auto matchingProcessors = it->second;
+
+      for (auto processor : matchingProcessors) {
         processor->OnPacket(buffer, read, sender);
       }
     }
@@ -60,11 +63,13 @@ void NetManager::AddHandler(const Poco::Net::SocketAddress& sender, const std::s
 
   list.push_back(processor);
 
-  if (processorCounts.find(processor) == processorCounts.end()) {
+  auto processorCountIter = processorCounts.find(processor.get());
+
+  if (processorCountIter == processorCounts.end()) {
     processor->SetSocket(client);
-    processorCounts[processor] = 1;
+    processorCounts[processor.get()] = 1;
   } else {
-    processorCounts[processor] += 1;
+    processorCountIter->second += 1;
   }
 
   processor->OnListen(sender);
@@ -73,14 +78,14 @@ void NetManager::AddHandler(const Poco::Net::SocketAddress& sender, const std::s
 void NetManager::DropHandlers(const Poco::Net::SocketAddress& sender)
 {
   for(auto& processor : handlers[sender]) {
-    auto& count = processorCounts[processor];
+    auto& count = processorCounts[processor.get()];
     processor->OnDrop(sender);
 
     count -= 1;
 
     if(count == 0) {
       // erase processor so it no longer gets updated
-      processorCounts.erase(processor);
+      processorCounts.erase(processor.get());
     }
   }
 
@@ -89,6 +94,11 @@ void NetManager::DropHandlers(const Poco::Net::SocketAddress& sender)
 
 void NetManager::DropProcessor(const std::shared_ptr<IPacketProcessor>& processor)
 {
+  DropProcessor(processor.get());
+}
+
+void NetManager::DropProcessor(IPacketProcessor* processor)
+{
   auto countIter = processorCounts.find(processor);
 
   if (countIter == processorCounts.end()) {
@@ -96,21 +106,30 @@ void NetManager::DropProcessor(const std::shared_ptr<IPacketProcessor>& processo
     return;
   }
 
+  std::vector<Poco::Net::SocketAddress> handlersPendingRemoval;
   auto& count = processorCounts[processor];
 
   for (auto& [sender, processors] : handlers) {
-    auto iter = std::find(processors.begin(), processors.end(), processor);
+    auto iter = std::find_if(processors.begin(), processors.end(), [processor](auto& p) { return p.get() == processor; });
 
     if (iter != processors.end()) {
       (*iter)->OnDrop(sender);
-      iter = processors.erase(iter);
+      processors.erase(iter);
       count -= 1;
+    }
+
+    if (processors.empty()) {
+      handlers.erase(sender);
     }
   }
 
   if (count == 0) {
     // erase processor so it no longer gets updated
     processorCounts.erase(processor);
+  }
+
+  for (auto handler : handlersPendingRemoval) {
+    handlers.erase(handler);
   }
 }
 

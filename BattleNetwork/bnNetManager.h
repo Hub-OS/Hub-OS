@@ -12,7 +12,7 @@
 class NetManager {
 private:
   std::map<Poco::Net::SocketAddress, std::vector<std::shared_ptr<IPacketProcessor>>> handlers;
-  std::map<std::shared_ptr<IPacketProcessor>, size_t> processorCounts;
+  std::map<IPacketProcessor*, size_t> processorCounts;
   std::shared_ptr<Poco::Net::DatagramSocket> client; //!< us
   unsigned int myPort{};
   uint16_t maxPayloadSize{ DEFAULT_MAX_PAYLOAD_SIZE };
@@ -27,6 +27,7 @@ public:
   void AddHandler(const Poco::Net::SocketAddress& sender, const std::shared_ptr<IPacketProcessor>& processor);
   void DropHandlers(const Poco::Net::SocketAddress& sender);
   void DropProcessor(const std::shared_ptr<IPacketProcessor>& processor);
+  void DropProcessor(IPacketProcessor* processor);
   void SetMaxPayloadSize(uint16_t bytes);
   const uint16_t GetMaxPayloadSize() const;
   const bool BindPort(unsigned int port);
