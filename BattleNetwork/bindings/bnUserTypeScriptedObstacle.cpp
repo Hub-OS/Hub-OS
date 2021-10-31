@@ -42,9 +42,14 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "get_elevation", [](WeakWrapper<ScriptedObstacle>& obstacle) -> float {
       return obstacle.Unwrap()->GetElevation();
     },
-    "get_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, Direction dir, unsigned count) -> Battle::Tile* {
-      return obstacle.Unwrap()->GetTile(dir, count);
-    },
+    "get_tile", sol::overload(
+      [](WeakWrapper<ScriptedObstacle>& obstacle, Direction dir, unsigned count) -> Battle::Tile* {
+        return obstacle.Unwrap()->GetTile(dir, count);
+      },
+      [](WeakWrapper<ScriptedObstacle>& obstacle) -> Battle::Tile* {
+        return obstacle.Unwrap()->GetTile();
+      }
+    ),
     "get_current_tile", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Battle::Tile* {
       return obstacle.Unwrap()->GetCurrentTile();
     },

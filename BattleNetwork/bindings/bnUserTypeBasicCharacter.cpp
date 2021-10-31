@@ -18,9 +18,14 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "set_element", [](WeakWrapper<Character>& character, Element element) {
       character.Unwrap()->SetElement(element);
     },
-    "get_tile", [](WeakWrapper<Character>& character, Direction dir, unsigned count) -> Battle::Tile* {
-      return character.Unwrap()->GetTile(dir, count);
-    },
+    "get_tile", sol::overload(
+      [](WeakWrapper<Character>& character, Direction dir, unsigned count) -> Battle::Tile* {
+        return character.Unwrap()->GetTile(dir, count);
+      },
+      [](WeakWrapper<Character>& character) -> Battle::Tile* {
+        return character.Unwrap()->GetTile();
+      }
+    ),
     "get_current_tile", [](WeakWrapper<Character>& character) -> Battle::Tile* {
       return character.Unwrap()->GetCurrentTile();
     },

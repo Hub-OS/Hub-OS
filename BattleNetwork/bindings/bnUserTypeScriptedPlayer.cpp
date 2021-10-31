@@ -29,9 +29,14 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "set_element", [](WeakWrapper<ScriptedPlayer>& player, Element element) {
       player.Unwrap()->SetElement(element);
     },
-    "get_tile", [](WeakWrapper<ScriptedPlayer>& player, Direction dir, unsigned count) -> Battle::Tile* {
-      return player.Unwrap()->GetTile(dir, count);
-    },
+    "get_tile", sol::overload(
+      [](WeakWrapper<ScriptedPlayer>& player, Direction dir, unsigned count) -> Battle::Tile* {
+        return player.Unwrap()->GetTile(dir, count);
+      },
+      [](WeakWrapper<ScriptedPlayer>& player) -> Battle::Tile* {
+        return player.Unwrap()->GetTile();
+      }
+    ),
     "get_current_tile", [](WeakWrapper<ScriptedPlayer>& player) -> Battle::Tile* {
       return player.Unwrap()->GetCurrentTile();
     },
