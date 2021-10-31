@@ -33,7 +33,6 @@ void MobIntroBattleState::onUpdate(double elapsed)
     GetScene().GetField()->AddEntity(enemy, data->tileX, data->tileY);
 
     Battle::Tile* destTile = GetScene().GetField()->GetAt(data->tileX, data->tileY);
-    enemy->SetFacing(destTile->GetFacing());
     enemy->SetTeam(destTile->GetTeam());
 
     if (destTile->GetTeam() == Team::red) {

@@ -225,6 +225,10 @@ void Entity::SetFrame(unsigned frame)
 void Entity::Spawn(Battle::Tile& start)
 {
   if (!hasSpawned) {
+    if (GetFacing() == Direction::none) {
+      SetFacing(start.GetFacing());
+    }
+
     OnSpawn(start);
   }
 
