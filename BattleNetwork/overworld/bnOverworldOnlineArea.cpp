@@ -595,6 +595,11 @@ void Overworld::OnlineArea::onEnd()
   if (packetProcessor) {
     sendLogoutSignal();
     Net().DropProcessor(packetProcessor);
+    packetProcessor = nullptr;
+  }
+
+  for (auto& [key, processor] : authorizationProcessors) {
+    Net().DropProcessor(processor);
   }
 }
 
@@ -1301,36 +1306,41 @@ void Overworld::OnlineArea::receiveAuthorizeSignal(BufferReader& reader, const P
   auto* data = buffer.begin() + reader.GetOffset();
   auto size = buffer.size() - reader.GetOffset();
 
-  // create processor for authenticating with server
+  // processor for authenticating with server
   std::shared_ptr<Overworld::PacketProcessor> authPacketProcessor;
 
-  try {
-    auto remoteAddress = Poco::Net::SocketAddress(authAddress, port);
-    authPacketProcessor = std::make_shared<Overworld::PacketProcessor>(remoteAddress, maxPayloadSize);
+  auto lookupString = authAddress + ":" + std::to_string(port);
+  auto processorIter = authorizationProcessors.find(lookupString);
 
-    Net().AddHandler(remoteAddress, authPacketProcessor);
-  }
-  catch (std::exception& e) {
-    Logger::Logf("Failed to authorize with %s:%d: %s.", authAddress.c_str(), port, e.what());
-    return;
-  }
-  catch (...) {
-    Logger::Logf("Failed to authorize with %s:%d: Unknown exception thrown.", authAddress.c_str(), port);
-    return;
-  }
+  if (processorIter == authorizationProcessors.end()) {
+    // create processor
+    try {
+      auto remoteAddress = Poco::Net::SocketAddress(authAddress, port);
+      authPacketProcessor = std::make_shared<Overworld::PacketProcessor>(remoteAddress, maxPayloadSize);
 
-  // setup callbacks
-  auto* net = &Net();
-  authPacketProcessor->SetPacketBodyCallback([net, authPacketProcessor](auto& body) {
-    // expecting kick message, we don't need to stay connected anyway
-    net->DropProcessor(authPacketProcessor);
-  });
+      // setup callbacks
+      authPacketProcessor->SetUpdateCallback([this, lookupString, authPacketProcessor = authPacketProcessor.get()](double elapsed) {
+        if (authPacketProcessor->TimedOut()) {
+          Net().DropProcessor(authPacketProcessor);
+          authorizationProcessors.erase(lookupString);
+        }
+      });
 
-  authPacketProcessor->SetUpdateCallback([net, authPacketProcessor](double elapsed) {
-    if (authPacketProcessor->TimedOut()) {
-      net->DropProcessor(authPacketProcessor);
+      Net().AddHandler(remoteAddress, authPacketProcessor);
+      authorizationProcessors.emplace(lookupString, authPacketProcessor);
     }
-  });
+    catch (std::exception& e) {
+      Logger::Logf("Failed to authorize with %s:%d: %s.", authAddress.c_str(), port, e.what());
+      return;
+    }
+    catch (...) {
+      Logger::Logf("Failed to authorize with %s:%d: Unknown exception thrown.", authAddress.c_str(), port);
+      return;
+    }
+  } else {
+    // reuse existing processor
+    authPacketProcessor = processorIter->second;
+  }
 
   // create + send message
   auto externIdentity = IdentityManager(authAddress, port).GetIdentity();
@@ -1342,7 +1352,7 @@ void Overworld::OnlineArea::receiveAuthorizeSignal(BufferReader& reader, const P
   writer.Write<uint16_t>(outBuffer, this->port);
   writer.WriteString<uint8_t>(outBuffer, externIdentity);
   writer.WriteBytes(outBuffer, data, size);
-  authPacketProcessor->SendPacket(Reliability::ReliableOrdered, outBuffer);
+  authPacketProcessor->SendPacket(Reliability::Reliable, outBuffer);
 }
 
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

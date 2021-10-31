@@ -75,6 +75,7 @@ namespace Overworld {
     std::string ticket; //!< How we are represented on the server
     std::shared_ptr<PacketProcessor> packetProcessor;
     std::shared_ptr<Netplay::PacketProcessor> netBattleProcessor;
+    std::unordered_map<std::string, std::shared_ptr<PacketProcessor>> authorizationProcessors;
     std::string connectData;
     std::string lastFrameNaviId;
     std::string remoteNaviId;
