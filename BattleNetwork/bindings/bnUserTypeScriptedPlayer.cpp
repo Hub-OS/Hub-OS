@@ -229,6 +229,12 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "remove_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
       player.Unwrap()->RemoveDefenseRule(defenseRule);
     },
+    "get_offset", [](WeakWrapper<ScriptedPlayer>& player) -> sf::Vector2f {
+      return player.Unwrap()->GetDrawOffset();
+    },
+    "set_offset", [](WeakWrapper<ScriptedPlayer>& player, float x, float y) {
+      player.Unwrap()->SetDrawOffset(x, y);
+    },
     "get_current_palette",  [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
       return player.Unwrap()->GetPalette();
     },

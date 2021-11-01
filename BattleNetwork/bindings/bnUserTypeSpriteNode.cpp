@@ -60,10 +60,10 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
 
       return sol::as_table(result);
     },
-    "get_position", [](WeakWrapper<SpriteProxyNode>& node) -> sf::Vector2f {
+    "get_offset", [](WeakWrapper<SpriteProxyNode>& node) -> sf::Vector2f {
       return node.Unwrap()->getPosition();
     },
-    "set_position", [](WeakWrapper<SpriteProxyNode>& node, float x, float y) {
+    "set_offset", [](WeakWrapper<SpriteProxyNode>& node, float x, float y) {
       node.Unwrap()->setPosition(x, y);
     },
     "get_origin", [](WeakWrapper<SpriteProxyNode>& node) -> sf::Vector2f {

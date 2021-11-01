@@ -184,10 +184,10 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     "show_shadow", [](WeakWrapper<Entity>& entity, bool show) {
       entity.Unwrap()->ShowShadow(show);
     },
-    "get_position", [](WeakWrapper<Entity>& entity) -> sf::Vector2f {
+    "get_offset", [](WeakWrapper<Entity>& entity) -> sf::Vector2f {
       return entity.Unwrap()->GetDrawOffset();
     },
-    "set_position", [](WeakWrapper<Entity>& entity, float x, float y) {
+    "set_offset", [](WeakWrapper<Entity>& entity, float x, float y) {
       entity.Unwrap()->SetDrawOffset(x, y);
     }
   );

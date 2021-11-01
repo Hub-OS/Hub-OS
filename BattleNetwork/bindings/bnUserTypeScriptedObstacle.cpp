@@ -249,6 +249,12 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "register_component", [](WeakWrapper<ScriptedObstacle>& obstacle, WeakWrapper<ScriptedComponent>& component) {
       obstacle.Unwrap()->RegisterComponent(component.Release());
     },
+    "get_offset", [](WeakWrapper<ScriptedObstacle>& obstacle) -> sf::Vector2f {
+      return obstacle.Unwrap()->GetDrawOffset();
+    },
+    "set_offset", [](WeakWrapper<ScriptedObstacle>& obstacle, float x, float y) {
+      obstacle.Unwrap()->SetDrawOffset(x, y);
+    },
     "never_flip", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enabled) {
       obstacle.Unwrap()->NeverFlip(enabled);
     },

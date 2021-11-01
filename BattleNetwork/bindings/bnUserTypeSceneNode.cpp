@@ -54,10 +54,10 @@ void DefineSceneNodeUserType(sol::table& engine_namespace) {
 
       return sol::as_table(result);
     },
-    "get_position", [](WeakWrapper<SceneNode>& node) -> sf::Vector2f {
+    "get_offset", [](WeakWrapper<SceneNode>& node) -> sf::Vector2f {
       return node.Unwrap()->getPosition();
     },
-    "set_position", [](WeakWrapper<SceneNode>& node, float x, float y) {
+    "set_offset", [](WeakWrapper<SceneNode>& node, float x, float y) {
       node.Unwrap()->setPosition(x, y);
     },
     "enable_parent_shader", [](WeakWrapper<SceneNode>& node, bool enable) {

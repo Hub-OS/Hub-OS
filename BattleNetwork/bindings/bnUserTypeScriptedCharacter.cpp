@@ -226,6 +226,12 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "remove_defense_rule", [](WeakWrapper<ScriptedCharacter>& character, DefenseRule* defenseRule) {
       character.Unwrap()->RemoveDefenseRule(defenseRule);
     },
+    "get_offset", [](WeakWrapper<ScriptedCharacter>& character) -> sf::Vector2f {
+      return character.Unwrap()->GetDrawOffset();
+    },
+    "set_offset", [](WeakWrapper<ScriptedCharacter>& character, float x, float y) {
+      character.Unwrap()->SetDrawOffset(x, y);
+    },
     "set_height", [](WeakWrapper<ScriptedCharacter>& character, float height) {
       character.Unwrap()->SetHeight(height);
     },

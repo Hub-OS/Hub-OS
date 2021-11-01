@@ -171,6 +171,12 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<ScriptedArtifact>& artifact, float height) {
       artifact.Unwrap()->SetHeight(height);
     },
+    "get_offset", [](WeakWrapper<ScriptedArtifact>& artifact) -> sf::Vector2f {
+      return artifact.Unwrap()->GetDrawOffset();
+    },
+    "set_offset", [](WeakWrapper<ScriptedArtifact>& artifact, float x, float y) {
+      artifact.Unwrap()->SetDrawOffset(x, y);
+    },
     "never_flip", [](WeakWrapper<ScriptedArtifact>& artifact, bool enabled) {
       artifact.Unwrap()->NeverFlip(enabled);
     },
