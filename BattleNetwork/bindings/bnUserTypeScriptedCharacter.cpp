@@ -157,7 +157,7 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     },
     "will_erase_eof", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
       auto ptr = character.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->WillEraseEOF();
     },
     "get_team", [](WeakWrapper<ScriptedCharacter>& character) -> Team {
       return character.Unwrap()->GetTeam();
@@ -166,7 +166,7 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
       character.Unwrap()->Teammate(team);
     },
     "erase", [](WeakWrapper<ScriptedCharacter>& character) {
-      character.Unwrap()->Remove();
+      character.Unwrap()->Erase();
     },
     "delete", [](WeakWrapper<ScriptedCharacter>& character) {
       character.Unwrap()->Delete();

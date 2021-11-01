@@ -94,7 +94,7 @@ void Explosion::OnUpdate(double _elapsed) {
 
 void Explosion::OnDelete()
 {
-  Remove();
+  Erase();
 }
 
 void Explosion::OnSpawn(Battle::Tile& start)

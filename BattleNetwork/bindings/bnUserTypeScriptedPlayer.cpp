@@ -163,7 +163,7 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     },
     "will_erase_eof", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
       auto ptr = player.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->WillEraseEOF();
     },
     "get_team", [](WeakWrapper<ScriptedPlayer>& player) -> Team {
       return player.Unwrap()->GetTeam();

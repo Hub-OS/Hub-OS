@@ -134,7 +134,7 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     },
     "will_erase_eof", [](WeakWrapper<Entity>& entity) -> bool {
       auto ptr = entity.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->WillEraseEOF();
     },
     "is_team", [](WeakWrapper<Entity>& entity, Team team) -> bool {
       return entity.Unwrap()->Teammate(team);
@@ -143,7 +143,7 @@ void DefineEntityUserType(sol::table& battle_namespace) {
       return entity.Unwrap()->GetTeam();
     },
     "erase", [](WeakWrapper<Entity>& entity) {
-      entity.Unwrap()->Remove();
+      entity.Unwrap()->Erase();
     },
     "delete", [](WeakWrapper<Entity>& entity) {
       entity.Unwrap()->Delete();

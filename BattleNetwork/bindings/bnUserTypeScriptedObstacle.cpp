@@ -161,7 +161,7 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     },
     "will_erase_eof", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       auto ptr = obstacle.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->WillEraseEOF();
     },
     "is_team", [](WeakWrapper<ScriptedObstacle>& obstacle, Team team) -> bool {
       return obstacle.Unwrap()->Teammate(team);
@@ -170,7 +170,7 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       return obstacle.Unwrap()->GetTeam();
     },
     "erase", [](WeakWrapper<ScriptedObstacle>& obstacle) {
-      obstacle.Unwrap()->Remove();
+      obstacle.Unwrap()->Erase();
     },
     "delete", [](WeakWrapper<ScriptedObstacle>& obstacle) {
       obstacle.Unwrap()->Delete();

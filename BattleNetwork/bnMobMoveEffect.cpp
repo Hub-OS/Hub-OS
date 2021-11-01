@@ -40,7 +40,7 @@ void MobMoveEffect::OnUpdate(double _elapsed) {
 
 void MobMoveEffect::OnDelete()
 {
-  Remove();
+  Erase();
 }
 
 void MobMoveEffect::SetOffset(const sf::Vector2f& offset)

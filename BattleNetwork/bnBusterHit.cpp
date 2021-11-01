@@ -41,7 +41,7 @@ void BusterHit::OnUpdate(double _elapsed) {
 
 void BusterHit::OnDelete()
 {
-  Remove();
+  Erase();
 }
 
 BusterHit::~BusterHit()

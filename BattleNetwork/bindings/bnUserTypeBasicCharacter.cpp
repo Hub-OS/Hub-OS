@@ -136,7 +136,7 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     },
     "will_erase_eof", [](WeakWrapper<Character>& character) -> bool {
       auto ptr = character.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->WillEraseEOF();
     },
     "get_team", [](WeakWrapper<Character>& character) -> Team {
       return character.Unwrap()->GetTeam();

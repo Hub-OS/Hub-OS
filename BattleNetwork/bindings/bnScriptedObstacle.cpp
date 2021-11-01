@@ -73,7 +73,7 @@ void ScriptedObstacle::OnDelete() {
     }
   }
 
-  Remove();
+  Erase();
 }
 
 void ScriptedObstacle::Attack(std::shared_ptr<Entity> other) {

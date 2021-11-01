@@ -150,7 +150,7 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     },
     "will_erase_eof", [](WeakWrapper<ScriptedSpell>& spell) -> bool {
       auto ptr = spell.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->WillEraseEOF();
     },
     "is_team", [](WeakWrapper<ScriptedSpell>& spell, Team team) -> bool {
       return spell.Unwrap()->Teammate(team);
@@ -159,7 +159,7 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       return spell.Unwrap()->GetTeam();
     },
     "erase", [](WeakWrapper<ScriptedSpell>& spell) {
-      spell.Unwrap()->Remove();
+      spell.Unwrap()->Erase();
     },
     "delete", [](WeakWrapper<ScriptedSpell>& spell) {
       spell.Unwrap()->Delete();
