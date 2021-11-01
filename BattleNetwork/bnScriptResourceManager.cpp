@@ -36,6 +36,7 @@
 #include "bindings/bnUserTypeSyncNode.h"
 #include "bindings/bnUserTypeField.h"
 #include "bindings/bnUserTypeTile.h"
+#include "bindings/bnUserTypeEntity.h"
 #include "bindings/bnUserTypeBasicCharacter.h"
 #include "bindings/bnUserTypeScriptedCharacter.h"
 #include "bindings/bnUserTypeScriptedPlayer.h"
@@ -269,6 +270,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineSceneNodeUserType(engine_namespace);
   DefineSpriteNodeUserType(engine_namespace);
   DefineSyncNodeUserType(engine_namespace);
+  DefineEntityUserType(battle_namespace);
   DefineBasicCharacterUserType(battle_namespace);
   DefineScriptedCharacterUserType(battle_namespace);
   DefineScriptedPlayerUserType(battle_namespace);
