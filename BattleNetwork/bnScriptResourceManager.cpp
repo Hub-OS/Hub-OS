@@ -712,6 +712,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& hitbox_props_record = state.new_usertype<Hit::Properties>("HitProps",
+    sol::factories([](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
+      return Hit::Properties{ damage, flags, element, aggressor, drag };
+    }),
     "aggressor", &Hit::Properties::aggressor,
     "damage", &Hit::Properties::damage,
     "drag", &Hit::Properties::drag,
@@ -754,12 +757,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   const auto& colormode_record = state.new_enum("ColorMode",
     "Multiply", ColorMode::multiply,
     "Additive", ColorMode::additive
-  );
-
-  state.set_function("make_hit_props",
-    [](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
-        return Hit::Properties{ damage, flags, element, aggressor, drag };
-    }
   );
 
   const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent",
