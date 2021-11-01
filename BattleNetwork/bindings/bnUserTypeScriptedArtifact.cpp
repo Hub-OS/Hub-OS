@@ -140,16 +140,17 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       return artifact.Unwrap()->IsMoving();
     },
     "is_deleted", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      return artifact.Unwrap()->IsDeleted();
+      auto ptr = artifact.Lock();
+      return !ptr || ptr->IsDeleted();
     },
-    "will_remove_eof", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
+    "will_erase_eof", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
       auto ptr = artifact.Lock();
       return !ptr || ptr->WillRemoveLater();
     },
     "get_team", [](WeakWrapper<ScriptedArtifact>& artifact) -> Team {
       return artifact.Unwrap()->GetTeam();
     },
-    "remove", [](WeakWrapper<ScriptedArtifact>& artifact) {
+    "erase", [](WeakWrapper<ScriptedArtifact>& artifact) {
       artifact.Unwrap()->Remove();
     },
     "delete", [](WeakWrapper<ScriptedArtifact>& artifact) {

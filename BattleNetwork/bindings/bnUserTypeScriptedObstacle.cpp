@@ -155,10 +155,11 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       "is_passthrough", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       return obstacle.Unwrap()->IsPassthrough();
     },
-      "is_deleted", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->IsDeleted();
+    "is_deleted", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+      auto ptr = obstacle.Lock();
+      return !ptr || ptr->IsDeleted();
     },
-      "will_remove_eof", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
+    "will_erase_eof", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
       auto ptr = obstacle.Lock();
       return !ptr || ptr->WillRemoveLater();
     },
@@ -168,7 +169,7 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       "get_team", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Team {
       return obstacle.Unwrap()->GetTeam();
     },
-      "remove", [](WeakWrapper<ScriptedObstacle>& obstacle) {
+    "erase", [](WeakWrapper<ScriptedObstacle>& obstacle) {
       obstacle.Unwrap()->Remove();
     },
       "delete", [](WeakWrapper<ScriptedObstacle>& obstacle) {

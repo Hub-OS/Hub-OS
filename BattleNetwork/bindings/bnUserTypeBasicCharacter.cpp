@@ -131,9 +131,10 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
       return character.Unwrap()->IsMoving();
     },
     "is_deleted", [](WeakWrapper<Character>& character) -> bool {
-      return character.Unwrap()->IsDeleted();
+      auto ptr = character.Lock();
+      return !ptr || ptr->IsDeleted();
     },
-    "will_remove_eof", [](WeakWrapper<Character>& character) -> bool {
+    "will_erase_eof", [](WeakWrapper<Character>& character) -> bool {
       auto ptr = character.Lock();
       return !ptr || ptr->WillRemoveLater();
     },

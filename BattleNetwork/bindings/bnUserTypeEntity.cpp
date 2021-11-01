@@ -129,9 +129,10 @@ void DefineEntityUserType(sol::table& battle_namespace) {
       return entity.Unwrap()->IsMoving();
     },
     "is_deleted", [](WeakWrapper<Entity>& entity) -> bool {
-      return entity.Unwrap()->IsDeleted();
+      auto ptr = entity.Lock();
+      return !ptr || ptr->IsDeleted();
     },
-    "will_remove_eof", [](WeakWrapper<Entity>& entity) -> bool {
+    "will_erase_eof", [](WeakWrapper<Entity>& entity) -> bool {
       auto ptr = entity.Lock();
       return !ptr || ptr->WillRemoveLater();
     },
@@ -141,7 +142,7 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     "get_team", [](WeakWrapper<Entity>& entity) -> Team {
       return entity.Unwrap()->GetTeam();
     },
-    "remove", [](WeakWrapper<Entity>& entity) {
+    "erase", [](WeakWrapper<Entity>& entity) {
       entity.Unwrap()->Remove();
     },
     "delete", [](WeakWrapper<Entity>& entity) {
