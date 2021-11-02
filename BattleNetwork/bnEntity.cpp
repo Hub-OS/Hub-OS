@@ -280,8 +280,6 @@ void Entity::Init() {
 }
 
 void Entity::Update(double _elapsed) {
-  hit = false; // reset our hit flag
-
   ResolveFrameBattleDamage();
 
   // reset base color
@@ -946,6 +944,11 @@ void Entity::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback
   statusCallbackHash[flag] = callback;
 }
 
+void Entity::PrepareNextFrame()
+{
+  hit = false;
+}
+
 const bool Entity::UnknownTeamResolveCollision(const Entity& other) const
 {
   return true; // by default unknown vs unknown spells attack eachother
@@ -1020,6 +1023,7 @@ void Entity::ResolveFrameBattleDamage()
           frameCounterAggressor = GetField()->GetCharacter(props.filtered.aggressor);
         }
 
+        OnCountered();
         flagCheckThunk(Hit::impact);
       }
 

@@ -35,6 +35,7 @@ void Character::RefreshShader()
 
   if (!smartShader.HasShader()) return;
 
+  smartShader.SetUniform("swapPalette", this->swapPalette);
   // state checks
   unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
   unsigned rootFrame = from_seconds(rootCooldown).count() % 4;
@@ -44,14 +45,14 @@ void Character::RefreshShader()
   bool iframes = invincibilityCooldown > 0;
 
   vector<float> states = {
-    static_cast<float>(this->hit || GetHealth() <= 0),                  // WHITEOUT
-    static_cast<float>(rootCooldown > 0. && (iframes || rootCooldown)), // BLACKOUT
-    static_cast<float>(stunCooldown > 0. && (iframes || stunFrame))     // HIGHLIGHT
+    static_cast<float>(this->hit || GetHealth() <= 0),                           // WHITEOUT
+    static_cast<float>(rootCooldown > 0. && (iframes || rootCooldown)),          // BLACKOUT
+    static_cast<float>(stunCooldown > 0. && (iframes || stunFrame))              // HIGHLIGHT
   };
 
-  GetShader().SetUniform("states", states); 
+  smartShader.SetUniform("states", states);
   smartShader.SetUniform("additiveMode", GetColorMode() == ColorMode::additive);
-
+  
   bool enabled = states[0] || states[1];
 
   if (enabled) return;
@@ -68,6 +69,7 @@ Character::Character(Rank _rank) :
   Entity() {
 
   SetColorMode(ColorMode::additive);
+  setColor(NoopCompositeColor(ColorMode::additive));
 
   if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
     SetShader(shader);
@@ -251,10 +253,14 @@ void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
       sf::Shader* s = smartShader.Get();
 
       if (s && currNode->IsUsingParentShader()) {
+        if (auto asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode)) {
+          asSpriteProxyNode->setColor(this->getColor());
+        }
+
         states.shader = s;
       }
 
-      currNode->draw(target, states);
+      target.draw(*currNode, states);
 
       // revert color
       if (asSpriteProxyNode && needsRevert) {
@@ -361,9 +367,11 @@ void Character::SetPalette(const std::shared_ptr<sf::Texture>& palette)
 
   if (palette.get() == nullptr) {
     smartShader.SetUniform("swapPalette", false);
+    this->swapPalette = false;
     return;
   }
 
+  this->swapPalette = true;
   this->palette = palette;
   smartShader.SetUniform("swapPalette", true);
   smartShader.SetUniform("palette", this->palette);

@@ -880,13 +880,14 @@ namespace Battle {
     return str;
   }
 
-  void Tile::CleanupEntities(Field& field)
+  void Tile::PrepareNextFrame(Field& field)
   {
     int i = 0;
 
     // Step through the entity bucket (all entity types)
     while (i < entities.size()) {
       auto& ptr = entities[i];
+      ptr->PrepareNextFrame();
 
       Entity::ID_t ID = ptr->GetID();
 

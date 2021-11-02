@@ -135,6 +135,15 @@ public:
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
   bool IsSingleThreaded() const;
+  const std::string AppDataPath();
+  const std::string CacheDataPath();
+  const std::string DesktopPath();
+  const std::string DownloadsPath();
+  const std::string DocumentsPath();
+  const std::string VideosPath();
+  const std::string PicturesPath();
+  const std::string SaveGamesPath();
+
   CardPackageManager& CardPackageManager();
   PlayerPackageManager& PlayerPackageManager();
   MobPackageManager& MobPackageManager();

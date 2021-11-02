@@ -40,6 +40,8 @@ file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
         "BattleNetwork/zip/*.h"
         "BattleNetwork/zip/*.c"
         "BattleNetwork/crypto/*.h"
+        "BattleNetwork/sago/*.h"
+        "BattleNetwork/sago/*.cpp"
         "BattleNetwork/mmbn.ico.c"
         )
 

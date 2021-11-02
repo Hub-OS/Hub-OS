@@ -96,9 +96,8 @@ public:
    * @brief Apply FrameList to sprite
    * @param _elapsed in seconds to add to progress
    * @param target sprite to apply to
-   * @param playbackSpeed virtually simulate speed
    */
-  void Update(double _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
+  void Update(double _elapsed, sf::Sprite& target);
   
   /**
    * @brief Syncs the animation elapsed counter to one provided
@@ -186,6 +185,9 @@ public:
 
   const bool HasAnimation(const std::string& state) const;
 
+  const double GetPlaybackSpeed() const;
+  void SetPlaybackSpeed(double factor);
+
   /**
    * @brief Applies a callback
    * @param frame integer frame (base 1)
@@ -216,6 +218,7 @@ protected:
   string path; /*!< Path to the animation file */
   string currAnimation; /*!< Name of the current animation state */
   double progress; /*!< Current progress of animation */
+  double playbackSpeed{ 1.0 }; /*!< Factor to multiply against update `dt`*/
   std::map<string, FrameList> animations; /*!< Dictionary of FrameLists read from file */
   std::function<void()> interruptCallback;
 };

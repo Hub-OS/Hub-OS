@@ -9,9 +9,7 @@ using sf::IntRect;
 #include "bnEntity.h"
 #include "bnCharacter.h"
 
-AnimationComponent::AnimationComponent(std::weak_ptr<Entity> _entity) : Component(_entity) {
-  speed = 1.0;
-}
+AnimationComponent::AnimationComponent(std::weak_ptr<Entity> _entity) : Component(_entity) {}
 
 AnimationComponent::~AnimationComponent() {
 }
@@ -30,7 +28,7 @@ void AnimationComponent::OnUpdate(double _elapsed)
   }
 
   stunnedLastFrame = (character && character->IsStunned());
-  animation.Update(_elapsed, owner->getSprite(), speed);
+  animation.Update(_elapsed, owner->getSprite());
 
   for (auto& s : syncList) {
     animation.SyncAnimation(*s.anim);
@@ -71,12 +69,12 @@ const std::string& AnimationComponent::GetFilePath() const
 
 void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
 {
-  speed = playbackSpeed;
+  animation.SetPlaybackSpeed(playbackSpeed);
 }
 
 const double AnimationComponent::GetPlaybackSpeed()
 {
-  return speed;
+  return animation.GetPlaybackSpeed();
 }
 
 void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish)

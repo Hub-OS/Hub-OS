@@ -29,6 +29,8 @@
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnLuaLibrary.h"
 
+#include "sago/platform_folders.h"
+
 Game::Game(DrawWindow& window) :
   window(window), 
   reader("config.ini"),
@@ -190,7 +192,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
   mouseTexture = textureManager.LoadFromFile("resources/ui/mouse.png");
   mouse.setTexture(mouseTexture);
-  //  mouse.setScale(2.f, 2.f);
   mouseAnimation = Animation("resources/ui/mouse.animation");
   mouseAnimation << "DEFAULT" << Animator::Mode::Loop;
   mouseAlpha = 1.0;
@@ -407,6 +408,46 @@ const unsigned int Game::GetRandSeed() const
 bool Game::IsSingleThreaded() const
 {
   return singlethreaded;
+}
+
+const std::string Game::AppDataPath()
+{
+  return sago::getDataHome() + "/" + window.GetTitle();
+}
+
+const std::string Game::CacheDataPath()
+{
+  return sago::getCacheDir() + "/" + window.GetTitle();
+}
+
+const std::string Game::DesktopPath()
+{
+  return sago::getDesktopFolder();
+}
+
+const std::string Game::DownloadsPath()
+{
+  return sago::getDownloadFolder();
+}
+
+const std::string Game::DocumentsPath()
+{
+  return sago::getDocumentsFolder();
+}
+
+const std::string Game::VideosPath()
+{
+  return sago::getVideoFolder();
+}
+
+const std::string Game::PicturesPath()
+{
+  return sago::getPicturesFolder();
+}
+
+const std::string Game::SaveGamesPath()
+{
+  return sago::getSaveGamesFolder1();
 }
 
 CardPackageManager& Game::CardPackageManager()

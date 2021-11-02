@@ -130,6 +130,18 @@ void ScriptedCharacter::ShakeCamera(double power, float duration)
   this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
 
+void ScriptedCharacter::OnCountered()
+{
+  if (on_countered_func.valid())
+  {
+    auto result = CallLuaCallback(on_countered_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+  }
+}
+
 Animation& ScriptedCharacter::GetAnimationObject() {
   return animation->GetAnimationObject();
 }

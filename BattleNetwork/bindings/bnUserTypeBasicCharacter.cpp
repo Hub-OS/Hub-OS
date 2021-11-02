@@ -151,6 +151,8 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     },
     "create_node", [](WeakWrapper<Character>& character) -> WeakWrapper<SpriteProxyNode> {
       auto child = std::make_shared<SpriteProxyNode>();
+      child->SetColorMode(ColorMode::additive);
+      child->setColor(NoopCompositeColor(ColorMode::additive));
       character.Unwrap()->AddNode(child);
 
       return WeakWrapper(child);

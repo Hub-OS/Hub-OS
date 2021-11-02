@@ -6,7 +6,10 @@
 #include "bnShaderType.h"
 #include "bnShaderResourceManager.h"
 
-void DrawWindow::Initialize(const std::string& title, DrawWindow::WindowMode mode) {
+void DrawWindow::Initialize(const std::string& title, DrawWindow::WindowMode mode)
+{
+  this->title = title;
+
   // center, size
   view = sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320));
   cam = std::make_shared<Camera>(view);
@@ -239,6 +242,11 @@ void DrawWindow::Resize(int newWidth, int newHeight)
 
 const sf::View DrawWindow::GetView() {
   return view;
+}
+
+const std::string DrawWindow::GetTitle() const
+{
+  return title;
 }
 
 Camera& DrawWindow::GetCamera()

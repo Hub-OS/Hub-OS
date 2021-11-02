@@ -62,7 +62,7 @@ private:
 
   sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
   float counterSlideDelta{};
-
+  bool swapPalette{ false };
   std::shared_ptr<sf::Texture> palette, basePalette;
   // mutable SmartShader smartShader;
   std::string name;

@@ -315,7 +315,7 @@ void Field::Update(double _elapsed) {
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->CleanupEntities(*this);
+      tiles[i][j]->PrepareNextFrame(*this);
       tiles[i][j]->UpdateSpells(*this, _elapsed);
     }
   }

@@ -306,7 +306,7 @@ namespace Battle {
 
     std::string GetAnimState(const TileState state);
 
-    void CleanupEntities(Field& field);
+    void PrepareNextFrame(Field& field);
     void ExecuteAllAttacks(Field& field);
     void UpdateSpells(Field& field, const double elapsed);
     void UpdateArtifacts(Field& field, const double elapsed);

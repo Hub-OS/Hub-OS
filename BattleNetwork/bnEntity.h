@@ -722,6 +722,8 @@ public:
   */
   const bool WillIgnoreCommonAggressor() const;
 
+  void PrepareNextFrame();
+
 protected:
   using StatusCallback = std::function<void()>;
 
@@ -785,6 +787,11 @@ protected:
   * Used internally by class
   */
   bool IsCountered();
+
+  /**
+  * Can override to provide custom behavior for when an Entity is countered
+  */
+  virtual void OnCountered() {}
 
 private:
   bool ignoreCommonAggressor{};

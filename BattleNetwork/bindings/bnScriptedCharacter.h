@@ -45,6 +45,7 @@ public:
   bool CanMoveTo(Battle::Tile * next) override;
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
   void ShakeCamera(double power, float duration);
+  void OnCountered() override;
   Animation& GetAnimationObject();
   void SetExplosionBehavior(int num, double speed, bool isBoss);
   void SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order);
@@ -56,6 +57,7 @@ public:
   sol::object battle_start_func;
   sol::object battle_end_func;
   sol::object can_move_to_func;
+  sol::object on_countered_func;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {

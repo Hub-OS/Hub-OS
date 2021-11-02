@@ -55,6 +55,11 @@ void AudioResourceManager::Mute(bool status)
   }
 }
 
+void AudioResourceManager::SetPitch(float pitch)
+{
+  stream.setPitch(pitch);
+}
+
 void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::COUNTER_BONUS, "resources/sfx/counter_bonus.ogg"); status++;
   LoadSource(AudioType::DIR_TILE, "resources/sfx/dir_tile.ogg"); status++;
@@ -351,6 +356,7 @@ int AudioResourceManager::Stream(std::string path, bool loop, long long startMs,
 
   // stop previous stream if any 
   stream.stop();
+  stream.setPitch(1.f);
 
   if (!stream.openFromFile(path))
     return -1; // error

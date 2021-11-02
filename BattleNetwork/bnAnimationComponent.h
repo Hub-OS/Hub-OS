@@ -169,7 +169,6 @@ public:
 private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
-  double speed; /*!< Playback speed */
   bool stunnedLastFrame{ false };
   std::vector<SyncItem> syncList;
 

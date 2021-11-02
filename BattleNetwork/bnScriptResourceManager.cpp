@@ -510,6 +510,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     })
   );
 
+  engine_namespace.set_function("pitch_music",
+    [](float pitch) {
+      static ResourceHandle handle;
+      handle.Audio().SetPitch(pitch);
+    }
+  );
+
   engine_namespace.set_function("input_has",
     [](const InputEvent& event) {
       static InputHandle handle;
@@ -519,7 +526,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   engine_namespace.set_function("define_character",
     [this](const std::string& fqn, const std::string& path) {
-        this->DefineCharacter(fqn, path);
+      this->DefineCharacter(fqn, path);
     }
   );
 
@@ -529,13 +536,13 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       // Handle built-ins...
       auto builtins = { "com.builtins.char.canodumb", "com.builtins.char.mettaur" };
       for (auto&& match : builtins) {
-          if (fqn == match) return;
+        if (fqn == match) return;
       }
 
       if (this->FetchCharacter(fqn) == nullptr) {
-          std::string msg = "Failed to Require character with FQN " + fqn;
-          Logger::Log(msg);
-          throw std::runtime_error(msg);
+        std::string msg = "Failed to Require character with FQN " + fqn;
+        Logger::Log(msg);
+        throw std::runtime_error(msg);
       }
     }
   );

@@ -135,6 +135,8 @@ public:
    */
   const sf::View GetView();
   
+  const std::string GetTitle() const;
+
   /**
    * @brief Get the camera object
    * @return Camera&
@@ -165,9 +167,9 @@ public:
     return *surface;
   }
 
-  // TODO: make this private again
   const sf::Vector2f GetViewOffset(); // for drawing 
 private:
+  std::string title;
   bool supportShaders{ true };
   RenderWindow* window{ nullptr }; /*!< Window created when app launches */
   sf::View view; /*!< Default view created when window launches */

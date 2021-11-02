@@ -33,8 +33,14 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
     "load", [](AnimationWrapper& animation, const std::string& path) {
       animation.Unwrap().Load(path);
     },
-    "update", [](AnimationWrapper& animation, double elapsed, WeakWrapper<SpriteProxyNode>& target, double playbackSpeed = 1.0) {
-      animation.Unwrap().Update(elapsed, target.Unwrap()->getSprite(), playbackSpeed);
+    "update", [](AnimationWrapper& animation, double elapsed, WeakWrapper<SpriteProxyNode>& target) {
+      animation.Unwrap().Update(elapsed, target.Unwrap()->getSprite());
+    },
+    "set_playback_speed", [](AnimationWrapper& animation, double speed) {
+      animation.Unwrap().SetPlaybackSpeed(speed);
+    },
+    "get_playback_speed", [](AnimationWrapper& animation) -> double {
+      return animation.Unwrap().GetPlaybackSpeed();
     },
     "refresh", [](AnimationWrapper& animation, WeakWrapper<SpriteProxyNode>& target) {
       animation.Unwrap().Refresh(target.Unwrap()->getSprite());

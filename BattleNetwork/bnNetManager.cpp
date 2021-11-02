@@ -101,7 +101,7 @@ void NetManager::DropProcessor(IPacketProcessor* processor)
 {
   auto countIter = processorCounts.find(processor);
 
-  if (countIter == processorCounts.end()) {
+  if (countIter == processorCounts.end() || countIter->second == 0u) {
     // processor was never added
     return;
   }
@@ -109,7 +109,9 @@ void NetManager::DropProcessor(IPacketProcessor* processor)
   std::vector<Poco::Net::SocketAddress> handlersPendingRemoval;
   auto& count = processorCounts[processor];
 
-  for (auto& [sender, processors] : handlers) {
+  for (auto handlerIter = handlers.begin(); handlerIter != handlers.end();) {
+    auto& [sender, processors] = *handlerIter;
+
     auto iter = std::find_if(processors.begin(), processors.end(), [processor](auto& p) { return p.get() == processor; });
 
     if (iter != processors.end()) {
@@ -119,8 +121,11 @@ void NetManager::DropProcessor(IPacketProcessor* processor)
     }
 
     if (processors.empty()) {
-      handlers.erase(sender);
+      handlerIter = handlers.erase(handlerIter);
+      continue;
     }
+
+    handlerIter++;
   }
 
   if (count == 0) {
@@ -128,7 +133,7 @@ void NetManager::DropProcessor(IPacketProcessor* processor)
     processorCounts.erase(processor);
   }
 
-  for (auto handler : handlersPendingRemoval) {
+  for (auto& handler : handlersPendingRemoval) {
     handlers.erase(handler);
   }
 }

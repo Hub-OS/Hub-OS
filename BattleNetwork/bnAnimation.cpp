@@ -239,7 +239,7 @@ void Animation::Refresh(sf::Sprite& target) {
   Update(0, target);
 }
 
-void Animation::Update(double elapsed, sf::Sprite& target, double playbackSpeed) {
+void Animation::Update(double elapsed, sf::Sprite& target) {
   progress += elapsed * (float)std::fabs(playbackSpeed);
 
   std::string stateNow = currAnimation;
@@ -422,4 +422,14 @@ void Animation::SetInterruptCallback(const std::function<void()> onInterrupt)
 const bool Animation::HasAnimation(const std::string& state) const
 {
   return animations.find(state) != animations.end();
+}
+
+const double Animation::GetPlaybackSpeed() const
+{
+  return playbackSpeed;
+}
+
+void Animation::SetPlaybackSpeed(double factor)
+{
+  playbackSpeed = factor;
 }

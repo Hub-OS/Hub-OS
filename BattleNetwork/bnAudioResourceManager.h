@@ -54,6 +54,12 @@ public:
   * If toggled, the previous volume settings are persisted
   */
   void Mute(bool status = true);
+
+  /**
+  * @brief Raising the pitch will also result in increasing the speed as a side effect
+  * @param pitch. A floating-point multiplied by 100 to achieve the pitch %
+  */
+  void SetPitch(float pitch);
   
   /**
    * @brief Loads all queued resources. Increases status value.
