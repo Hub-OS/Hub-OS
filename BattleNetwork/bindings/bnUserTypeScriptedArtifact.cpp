@@ -9,10 +9,9 @@
 
 void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedArtifact>>("Artifact",
-    sol::factories([](Team team) -> WeakWrapper<ScriptedArtifact> {
+    sol::factories([]() -> WeakWrapper<ScriptedArtifact> {
       auto artifact = std::make_shared<ScriptedArtifact>();
       artifact->Init();
-      artifact->SetTeam(team);
 
       auto wrappedArtifact = WeakWrapper<ScriptedArtifact>(artifact);
       wrappedArtifact.Own();
