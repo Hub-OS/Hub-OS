@@ -40,7 +40,7 @@ void DefineSceneNodeUserType(sol::table& engine_namespace) {
     "remove_tags", [](WeakWrapper<SceneNode>& node, std::initializer_list<std::string> tags) {
       node.Unwrap()->RemoveTags(tags);
     },
-    "has_tags", [](WeakWrapper<SceneNode>& node, const std::string& tag) -> bool{
+    "has_tag", [](WeakWrapper<SceneNode>& node, const std::string& tag) -> bool{
       return node.Unwrap()->HasTag(tag);
     },
     "find_child_nodes_with_tags", [](WeakWrapper<SceneNode>& node, std::initializer_list<std::string> tags) {
