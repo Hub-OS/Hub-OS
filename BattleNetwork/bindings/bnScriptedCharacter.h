@@ -47,8 +47,6 @@ public:
   void ShakeCamera(double power, float duration);
   Animation& GetAnimationObject();
   void SetExplosionBehavior(int num, double speed, bool isBoss);
-  void SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order);
-  void SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order);
 
   sol::object update_func;
   sol::object delete_func;

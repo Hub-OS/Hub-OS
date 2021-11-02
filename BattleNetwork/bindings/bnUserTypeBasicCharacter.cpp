@@ -4,6 +4,7 @@
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedComponent.h"
+#include "bnScriptedCardAction.h"
 #include "../bnCharacter.h"
 #include <optional>
 
@@ -115,6 +116,14 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "raw_move_event", [](WeakWrapper<Character>& character, const MoveEvent& event, ActionOrder order) -> bool {
       return character.Unwrap()->RawMoveEvent(event, order);
     },
+    "card_action_event", sol::overload(
+      [](WeakWrapper<Character>& character, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
+        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+      },
+      [](WeakWrapper<Character>& character, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
+        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+      }
+    ),
     "is_sliding", [](WeakWrapper<Character>& character) -> bool {
       return character.Unwrap()->IsSliding();
     },

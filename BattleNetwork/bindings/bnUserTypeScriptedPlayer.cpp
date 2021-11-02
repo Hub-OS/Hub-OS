@@ -7,6 +7,7 @@
 #include "bnScriptedPlayer.h"
 #include "bnScriptedComponent.h"
 #include "bnScriptedPlayerForm.h"
+#include "bnScriptedCardAction.h"
 #include "../bnSolHelpers.h"
 
 void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
@@ -143,6 +144,14 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "raw_move_event", [](WeakWrapper<ScriptedPlayer>& player, const MoveEvent& event, ActionOrder order) -> bool {
       return player.Unwrap()->RawMoveEvent(event, order);
     },
+    "card_action_event", sol::overload(
+      [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
+        player.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+      },
+      [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
+        player.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+      }
+    ),
     "is_sliding", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
       return player.Unwrap()->IsSliding();
     },

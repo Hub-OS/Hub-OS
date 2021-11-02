@@ -130,10 +130,10 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     },
     "card_action_event", sol::overload(
       [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->SimpleCardActionEvent(cardAction.Release(), order);
+        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
       },
       [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->SimpleCardActionEvent(cardAction.Release(), order);
+        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
       }
     ),
     "is_sliding", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
