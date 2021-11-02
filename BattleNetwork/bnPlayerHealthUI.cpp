@@ -65,7 +65,7 @@ void PlayerHealthUI::OnUpdate(double elapsed) {
   isBattleOver = this->Injected()? this->Scene()->IsCleared() : true;
 
   if (auto player = GetOwnerAs<Player>()) {
-    if (player->WillRemoveLater()) {
+    if (player->WillEraseEOF()) {
       this->Eject();
       player = nullptr;
       return;

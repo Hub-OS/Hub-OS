@@ -4,6 +4,7 @@
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedComponent.h"
+#include "bnScriptedCardAction.h"
 #include "../bnCharacter.h"
 #include <optional>
 
@@ -115,6 +116,14 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "raw_move_event", [](WeakWrapper<Character>& character, const MoveEvent& event, ActionOrder order) -> bool {
       return character.Unwrap()->RawMoveEvent(event, order);
     },
+    "card_action_event", sol::overload(
+      [](WeakWrapper<Character>& character, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
+        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+      },
+      [](WeakWrapper<Character>& character, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
+        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+      }
+    ),
     "is_sliding", [](WeakWrapper<Character>& character) -> bool {
       return character.Unwrap()->IsSliding();
     },
@@ -131,11 +140,12 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
       return character.Unwrap()->IsMoving();
     },
     "is_deleted", [](WeakWrapper<Character>& character) -> bool {
-      return character.Unwrap()->IsDeleted();
-    },
-    "will_remove_eof", [](WeakWrapper<Character>& character) -> bool {
       auto ptr = character.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->IsDeleted();
+    },
+    "will_erase_eof", [](WeakWrapper<Character>& character) -> bool {
+      auto ptr = character.Lock();
+      return !ptr || ptr->WillEraseEOF();
     },
     "get_team", [](WeakWrapper<Character>& character) -> Team {
       return character.Unwrap()->GetTeam();
@@ -187,10 +197,10 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "remove_defense_rule", [](WeakWrapper<Character>& character, DefenseRule* defenseRule) {
       character.Unwrap()->RemoveDefenseRule(defenseRule);
     },
-    "get_position", [](WeakWrapper<Character>& character) -> sf::Vector2f {
+    "get_offset", [](WeakWrapper<Character>& character) -> sf::Vector2f {
       return character.Unwrap()->GetDrawOffset();
     },
-    "set_position", [](WeakWrapper<Character>& character, float x, float y) {
+    "set_offset", [](WeakWrapper<Character>& character, float x, float y) {
       character.Unwrap()->SetDrawOffset(x, y);
     },
     "set_height", [](WeakWrapper<Character>& character, float height) {

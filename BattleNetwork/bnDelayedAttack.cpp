@@ -31,5 +31,5 @@ void DelayedAttack::Attack(std::shared_ptr<Entity> _entity)
 
 void DelayedAttack::OnDelete()
 {
-  Remove();
+  Erase();
 }

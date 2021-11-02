@@ -670,18 +670,18 @@ void Entity::Delete()
   OnDelete();
 }
 
-void Entity::Remove()
+void Entity::Erase()
 {
-  flagForRemove = true;
+  flagForErase = true;
 }
 
 bool Entity::IsDeleted() const {
   return deleted;
 }
 
-bool Entity::WillRemoveLater() const
+bool Entity::WillEraseEOF() const
 {
-    return flagForRemove;
+    return flagForErase;
 }
 
 void Entity::SetElement(Element _elem)

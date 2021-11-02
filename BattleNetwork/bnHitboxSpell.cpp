@@ -47,5 +47,5 @@ void HitboxSpell::AddCallback(std::function<void(std::shared_ptr<Entity>)> attac
 
 void HitboxSpell::OnDelete()
 {
-  Remove();
+  Erase();
 }

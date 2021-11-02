@@ -898,7 +898,7 @@ namespace Battle {
         if (character && deletingCharacters.find(character) == deletingCharacters.end()) {
           field.CharacterDeletePublisher::Broadcast(*character);
 
-          if (ptr->WillRemoveLater()) {
+          if (ptr->WillEraseEOF()) {
             // prevent this entity from being broadcast again while any deletion animations take place
             // TODO: this could be written better
             deletingCharacters.insert(character);
@@ -907,7 +907,7 @@ namespace Battle {
       }
 
       // If the entity is marked for removal
-      if (ptr->WillRemoveLater()) {
+      if (ptr->WillEraseEOF()) {
         if (RemoveEntityByID(ID)) {
           // Don't track this entity anymore
           field.ForgetEntity(ID);

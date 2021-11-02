@@ -145,11 +145,12 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       return spell.Unwrap()->IsMoving();
     },
     "is_deleted", [](WeakWrapper<ScriptedSpell>& spell) -> bool {
-      return spell.Unwrap()->IsDeleted();
-    },
-    "will_remove_eof", [](WeakWrapper<ScriptedSpell>& spell) -> bool {
       auto ptr = spell.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->IsDeleted();
+    },
+    "will_erase_eof", [](WeakWrapper<ScriptedSpell>& spell) -> bool {
+      auto ptr = spell.Lock();
+      return !ptr || ptr->WillEraseEOF();
     },
     "is_team", [](WeakWrapper<ScriptedSpell>& spell, Team team) -> bool {
       return spell.Unwrap()->Teammate(team);
@@ -157,8 +158,8 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "get_team", [](WeakWrapper<ScriptedSpell>& spell) -> Team {
       return spell.Unwrap()->GetTeam();
     },
-    "remove", [](WeakWrapper<ScriptedSpell>& spell) {
-      spell.Unwrap()->Remove();
+    "erase", [](WeakWrapper<ScriptedSpell>& spell) {
+      spell.Unwrap()->Erase();
     },
     "delete", [](WeakWrapper<ScriptedSpell>& spell) {
       spell.Unwrap()->Delete();
@@ -200,10 +201,10 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "shake_camera", [](WeakWrapper<ScriptedSpell>& spell, double power, float duration) {
       spell.Unwrap()->ShakeCamera(power, duration);
     },
-    "get_position", [](WeakWrapper<ScriptedSpell>& spell) -> sf::Vector2f {
+    "get_offset", [](WeakWrapper<ScriptedSpell>& spell) -> sf::Vector2f {
       return spell.Unwrap()->GetDrawOffset();
     },
-    "set_position", [](WeakWrapper<ScriptedSpell>& spell, float x, float y) {
+    "set_offset", [](WeakWrapper<ScriptedSpell>& spell, float x, float y) {
       spell.Unwrap()->SetDrawOffset(x, y);
     },
     "never_flip", [](WeakWrapper<ScriptedSpell>& spell, bool enabled) {

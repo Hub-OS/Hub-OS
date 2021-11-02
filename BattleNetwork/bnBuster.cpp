@@ -83,7 +83,7 @@ bool Buster::CanMoveTo(Battle::Tile * next)
 
 void Buster::OnDelete()
 {
-  Remove();
+  Erase();
 }
 
 void Buster::OnCollision(const std::shared_ptr<Entity> entity)

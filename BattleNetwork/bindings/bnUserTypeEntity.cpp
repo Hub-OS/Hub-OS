@@ -129,11 +129,12 @@ void DefineEntityUserType(sol::table& battle_namespace) {
       return entity.Unwrap()->IsMoving();
     },
     "is_deleted", [](WeakWrapper<Entity>& entity) -> bool {
-      return entity.Unwrap()->IsDeleted();
-    },
-    "will_remove_eof", [](WeakWrapper<Entity>& entity) -> bool {
       auto ptr = entity.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->IsDeleted();
+    },
+    "will_erase_eof", [](WeakWrapper<Entity>& entity) -> bool {
+      auto ptr = entity.Lock();
+      return !ptr || ptr->WillEraseEOF();
     },
     "is_team", [](WeakWrapper<Entity>& entity, Team team) -> bool {
       return entity.Unwrap()->Teammate(team);
@@ -141,8 +142,8 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     "get_team", [](WeakWrapper<Entity>& entity) -> Team {
       return entity.Unwrap()->GetTeam();
     },
-    "remove", [](WeakWrapper<Entity>& entity) {
-      entity.Unwrap()->Remove();
+    "erase", [](WeakWrapper<Entity>& entity) {
+      entity.Unwrap()->Erase();
     },
     "delete", [](WeakWrapper<Entity>& entity) {
       entity.Unwrap()->Delete();
@@ -184,10 +185,10 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     "show_shadow", [](WeakWrapper<Entity>& entity, bool show) {
       entity.Unwrap()->ShowShadow(show);
     },
-    "get_position", [](WeakWrapper<Entity>& entity) -> sf::Vector2f {
+    "get_offset", [](WeakWrapper<Entity>& entity) -> sf::Vector2f {
       return entity.Unwrap()->GetDrawOffset();
     },
-    "set_position", [](WeakWrapper<Entity>& entity, float x, float y) {
+    "set_offset", [](WeakWrapper<Entity>& entity, float x, float y) {
       entity.Unwrap()->SetDrawOffset(x, y);
     }
   );

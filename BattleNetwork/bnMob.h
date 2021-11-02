@@ -217,7 +217,7 @@ public:
 
   /**
    * @brief Query if all the enemies have been deleted
-   * @return true if all mobs are marked for removal from play via WillRemoveLater() == true
+   * @return true if all mobs are marked for removal from play via WillEraseEOF() == true
    */
   const bool IsCleared();
 

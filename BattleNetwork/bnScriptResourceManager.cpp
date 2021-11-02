@@ -563,6 +563,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& direction_table = state.new_enum("Direction",
+    "flip_x", [](Direction direction) { return FlipHorizontal(direction); },
+    "flip_y", [](Direction direction) { return FlipVertical(direction); },
+    "reverse", [](Direction direction) { return Reverse(direction); },
+    "join", [](Direction a, Direction b) { return Join(a, b); },
     "None", Direction::none,
     "Up", Direction::up,
     "Down", Direction::down,
@@ -715,6 +719,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& hitbox_props_record = state.new_usertype<Hit::Properties>("HitProps",
+    sol::factories([](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
+      return Hit::Properties{ damage, flags, element, aggressor, drag };
+    }),
     "aggressor", &Hit::Properties::aggressor,
     "damage", &Hit::Properties::damage,
     "drag", &Hit::Properties::drag,
@@ -723,6 +730,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   const auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
+    sol::factories(
+      [] (Direction dir, unsigned count) { return Hit::Drag{ dir, count }; },
+      [] { return Hit::Drag{ Direction::none, 0 }; }
+    ),
+    "None", sol::property([] { return Hit::Drag{ Direction::none, 0 }; }),
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
       ScriptResourceManager::PrintInvalidAccessMessage( table, "Drag", key );
     },
@@ -754,23 +766,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Additive", ColorMode::additive
   );
 
-  state.set_function("drag",
-    [](Direction dir, unsigned count) { return Hit::Drag{ dir, count }; }
-  );
-
-  state.set_function("no_drag",
-    []() { return Hit::Drag{ Direction::none, 0 }; }
-  );
-
-  state.set_function("make_hit_props",
-    [](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
-        return Hit::Properties{ damage, flags, element, aggressor, drag };
-    }
-  );
-
-  state.set_function("create_move_event", []() { return MoveEvent{}; } );
-
   const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent",
+    sol::factories([] {
+      return MoveEvent{};
+    }),
     "delta_frames", &MoveEvent::deltaFrames,
     "delay_frames", &MoveEvent::delayFrames,
     "endlag_frames",&MoveEvent::endlagFrames,
@@ -822,18 +821,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   state.set_function( "make_frame_data", &CreateFrameData );
-
-  state.set_function("reverse_dir",
-    [](Direction dir) { return Reverse(dir); }
-  );
-
-  state.set_function("flip_x_dir",
-    [](Direction dir) { return FlipHorizontal(dir);  }
-  );
-
-  state.set_function("flip_y_dir",
-    [](Direction dir) { return FlipVertical(dir);  }
-  );
 
   engine_namespace.set_function("define_library",
     [this]( const std::string& fqn, const std::string& path )

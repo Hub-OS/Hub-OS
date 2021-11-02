@@ -40,7 +40,7 @@ void DefineSceneNodeUserType(sol::table& engine_namespace) {
     "remove_tags", [](WeakWrapper<SceneNode>& node, std::initializer_list<std::string> tags) {
       node.Unwrap()->RemoveTags(tags);
     },
-    "has_tags", [](WeakWrapper<SceneNode>& node, const std::string& tag) -> bool{
+    "has_tag", [](WeakWrapper<SceneNode>& node, const std::string& tag) -> bool{
       return node.Unwrap()->HasTag(tag);
     },
     "find_child_nodes_with_tags", [](WeakWrapper<SceneNode>& node, std::initializer_list<std::string> tags) {
@@ -54,10 +54,10 @@ void DefineSceneNodeUserType(sol::table& engine_namespace) {
 
       return sol::as_table(result);
     },
-    "get_position", [](WeakWrapper<SceneNode>& node) -> sf::Vector2f {
+    "get_offset", [](WeakWrapper<SceneNode>& node) -> sf::Vector2f {
       return node.Unwrap()->getPosition();
     },
-    "set_position", [](WeakWrapper<SceneNode>& node, float x, float y) {
+    "set_offset", [](WeakWrapper<SceneNode>& node, float x, float y) {
       node.Unwrap()->setPosition(x, y);
     },
     "enable_parent_shader", [](WeakWrapper<SceneNode>& node, bool enable) {

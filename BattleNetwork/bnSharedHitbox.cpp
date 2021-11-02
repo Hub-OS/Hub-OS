@@ -21,7 +21,7 @@ void SharedHitbox::OnUpdate(double _elapsed) {
   tile->AffectEntities(*this);
 
   if (auto owner = this->owner.lock()) {
-    if (owner->IsDeleted() || owner->WillRemoveLater()) {
+    if (owner->IsDeleted() || owner->WillEraseEOF()) {
       Delete();
     }
     else if (!keepAlive && cooldown <= 0.f ) {
@@ -48,7 +48,7 @@ void SharedHitbox::Attack(std::shared_ptr<Entity> _entity) {
 
 void SharedHitbox::OnDelete()
 {
-  Remove();
+  Erase();
 }
 
 void SharedHitbox::OnSpawn(Battle::Tile& start)
