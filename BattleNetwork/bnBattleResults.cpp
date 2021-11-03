@@ -75,13 +75,13 @@ BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob,
 
   time.setPosition(2.f*192.f, 87.f);
   time.SetString(FormatString(results.battleLength));
-  time.setOrigin(time.GetLocalBounds().width, 0);
+  time.setOrigin(time.GetLocalBounds().width, -1);
   time.setScale(2.f, 2.f);
 
   rank.setPosition(2.f*192.f, 119.f);
   rank.setScale(2.f, 2.f);
 
-  reward.setPosition(2.f*42.f, 218.f);
+  reward.setPosition(2.f*42.f, 220.f);
   reward.setScale(2.f, 2.f);
 
   if (item) {
@@ -98,7 +98,7 @@ BattleResultsWidget::BattleResultsWidget(const BattleResults& results, Mob* mob,
     rank.SetString(std::to_string(score));
   }
 
-  rank.setOrigin(rank.GetLocalBounds().width, 0);
+  rank.setOrigin(rank.GetLocalBounds().width, -1);
 
   playSoundOnce = false;
 }

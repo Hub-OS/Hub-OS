@@ -263,7 +263,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
     std::string name = mob.GetName();
     Text mobLabel{ name, font };
 
-    mobLabel.setOrigin(mobLabel.GetLocalBounds().width, 0);
+    mobLabel.setOrigin(mobLabel.GetLocalBounds().width, -1);
     mobLabel.setPosition(475.0f+2.f, nextLabelHeight+2.f); // shadow over and down 1px
     mobLabel.setScale(2.0f, 2.0f);
     mobLabel.SetColor(sf::Color::Black);
@@ -271,7 +271,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
     float labelWidth = mobLabel.GetWorldBounds().width;
     float labelHeight = mobLabel.GetWorldBounds().height;
 
-    mobEdgeSprite.setPosition(470.0f - (labelWidth + 10), nextLabelHeight-2.0);
+    mobEdgeSprite.setPosition(470.0f - (labelWidth + 10), nextLabelHeight);
     const sf::Vector2f edgePos = mobEdgeSprite.getPosition();
 
     mobBackdropSprite.setPosition(edgePos.x + mobEdgeSprite.getGlobalBounds().width, edgePos.y);
@@ -286,13 +286,13 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
     surface.draw(mobLabel);
 
     // draw the white text on top
-    mobLabel.setOrigin(mobLabel.GetLocalBounds().width, 0);
+    mobLabel.setOrigin(mobLabel.GetLocalBounds().width, -1);
     mobLabel.setPosition(475.0f, nextLabelHeight);
     mobLabel.SetColor(sf::Color::White);
     surface.draw(mobLabel);
 
     // make the next label relative to this one and 3px down + the 3px margin from the first label
-    nextLabelHeight += mobEdgeSprite.getLocalBounds().height + (6.f*3.f);
+    nextLabelHeight += mobEdgeSprite.getLocalBounds().height + (7.f*3.f);
   }
 
   surface.draw(GetScene().GetCardSelectWidget());
