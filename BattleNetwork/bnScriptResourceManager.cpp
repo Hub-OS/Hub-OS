@@ -300,11 +300,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       sol::protected_function luaCollisionCallback = luaCollisionCallbackObject;
 
       auto attackCallback = [luaAttackCallback] (std::shared_ptr<Entity> e) {
-        luaAttackCallback(WeakWrapper(e));
+        auto result = luaAttackCallback(WeakWrapper(e));
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
       };
 
       auto collisionCallback = [luaCollisionCallback] (const std::shared_ptr<Entity> e) {
-        luaCollisionCallback(WeakWrapper(e));
+        auto result = luaCollisionCallback(WeakWrapper(e));
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
       };
 
       spell.Unwrap()->AddCallback(attackCallback, collisionCallback);
@@ -771,7 +781,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "on_begin_func", sol::property(
       [](MoveEvent& event, sol::stack_object onBeginObject) {
         sol::protected_function onBegin = onBeginObject;
-        event.onBegin = [onBegin] { onBegin(); };
+        event.onBegin = [onBegin] {
+          auto result = onBegin();
+
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(error.what());
+          }
+        };
       }
     )
   );
