@@ -134,8 +134,8 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedPlayer>& player, Entity::Shadow type) {
         player.Unwrap()->SetShadowSprite(type);
       },
-      [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<SpriteProxyNode> shadow) {
-        player.Unwrap()->SetShadowSprite(shadow.Release());
+      [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<sf::Texture> shadow) {
+        player.Unwrap()->SetShadowSprite(shadow);
       }
     ),
     "show_shadow", [](WeakWrapper<ScriptedPlayer>& player, bool enabled) {

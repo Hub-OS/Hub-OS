@@ -210,8 +210,8 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
       [](WeakWrapper<Character>& character, Entity::Shadow type) {
         character.Unwrap()->SetShadowSprite(type);
       },
-      [](WeakWrapper<Character>& character, WeakWrapper<SpriteProxyNode> shadow) {
-        character.Unwrap()->SetShadowSprite(shadow.Release());
+      [](WeakWrapper<Character>& character, std::shared_ptr<sf::Texture> shadow) {
+        character.Unwrap()->SetShadowSprite(shadow);
       }
     ),
     "show_shadow", [](WeakWrapper<Character>& character, bool enabled) {

@@ -142,6 +142,7 @@ private:
   void InsertComponentsPendingRegistration();
   void UpdateMovement(double elapsed);
   void SetFrame(unsigned frame);
+  void ShiftShadow();
 public:
   Entity();
   virtual ~Entity();
@@ -218,7 +219,7 @@ public:
 
   void ShowShadow(bool enabled);
   void SetShadowSprite(Shadow type);
-  void SetShadowSprite(std::shared_ptr<SpriteProxyNode> customShadow);
+  void SetShadowSprite(std::shared_ptr<sf::Texture> customShadow);
 
   /**
   * @brief By default, hitbox is available for discovery and hitting
