@@ -629,6 +629,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
         node->setScale(-ogScale.x, ogScale.y);
       }
 
+      node->ShiftShadow();
       surface.draw(*node);
 
       if (perspectiveFlip) {

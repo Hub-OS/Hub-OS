@@ -214,8 +214,8 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedSpell>& spell, Entity::Shadow type) {
         spell.Unwrap()->SetShadowSprite(type);
       },
-      [](WeakWrapper<ScriptedSpell>& spell, WeakWrapper<SpriteProxyNode> shadow) {
-        spell.Unwrap()->SetShadowSprite(shadow.Release());
+      [](WeakWrapper<ScriptedSpell>& spell, std::shared_ptr<sf::Texture> shadow) {
+        spell.Unwrap()->SetShadowSprite(shadow);
       }
     ),
     "show_shadow", [](WeakWrapper<ScriptedSpell>& spell, bool enabled) {

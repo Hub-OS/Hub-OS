@@ -237,10 +237,10 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedObstacle>& obstacle, Entity::Shadow type) {
         obstacle.Unwrap()->SetShadowSprite(type);
       },
-      [](WeakWrapper<Character>& obstacle, WeakWrapper<SpriteProxyNode> shadow) {
-        obstacle.Unwrap()->SetShadowSprite(shadow.Release());
+      [](WeakWrapper<ScriptedObstacle>& obstacle, std::shared_ptr<sf::Texture> shadow) {
+        obstacle.Unwrap()->SetShadowSprite(shadow);
       }
-     ),
+    ),
     "show_shadow", [](WeakWrapper<ScriptedObstacle>& obstacle, bool show) {
       obstacle.Unwrap()->ShowShadow(show);
     },
