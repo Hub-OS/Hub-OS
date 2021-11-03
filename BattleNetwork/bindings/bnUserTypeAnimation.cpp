@@ -76,7 +76,7 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
         }
       };
     },
-    "on_frame", [](AnimationWrapper& animation, int frame, sol::stack_object callbackObject, bool doOnce) {
+    "on_frame", [](AnimationWrapper& animation, int frame, sol::stack_object callbackObject, std::optional<bool> doOnce) {
       sol::protected_function callback = callbackObject;
       animation.Unwrap().AddCallback(frame, [callback] {
         auto result = callback();
@@ -85,7 +85,7 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
           sol::error error = result;
           Logger::Log(error.what());
         }
-      }, doOnce);
+      }, doOnce.value_or(false));
     },
     "on_interrupt", [](AnimationWrapper& animation, sol::stack_object callbackObject) {
       sol::protected_function callback = callbackObject;
