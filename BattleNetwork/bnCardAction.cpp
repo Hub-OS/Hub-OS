@@ -44,6 +44,11 @@ CardAction::CardAction(std::weak_ptr<Character> actor, const std::string& animat
         RecallPreviousState();
       });
 
+      // add animation callbacks
+      for (auto& [frame, action] : animActions) {
+        anim->AddCallback(frame, action);
+      }
+
       this->animationIsOver = false;
       anim->OnUpdate(0);
     };
@@ -69,7 +74,12 @@ void CardAction::AddStep(Step step)
 
 void CardAction::AddAnimAction(int frame, const FrameCallback& action) {
   Logger::Logf("AddAnimAction() called");
-  anim->AddCallback(frame, action);
+
+  animActions.emplace_back(frame, action);
+
+  if (started) {
+    anim->AddCallback(frame, action);
+  }
 }
 
 sf::Vector2f CardAction::CalculatePointOffset(const std::string& point) {
@@ -149,6 +159,11 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       anim->SetInterruptCallback([this]() {
         RecallPreviousState();
       });
+
+      // add animation callbacks
+      for (auto& [frame, action] : animActions) {
+        anim->AddCallback(frame, action);
+      }
 
       this->animationIsOver = false;
       anim->OnUpdate(0);
