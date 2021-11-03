@@ -93,7 +93,7 @@ void NaviExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
   ExplodeState<Any>::OnUpdate(_elapsed, e);
 
   if (ExplodeState<Any>::explosion->IsSequenceComplete()) {
-    shine->Remove();
+    shine->Erase();
   }
 }
 

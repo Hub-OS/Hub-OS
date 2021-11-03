@@ -130,10 +130,10 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     },
     "card_action_event", sol::overload(
       [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->SimpleCardActionEvent(cardAction.Release(), order);
+        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
       },
       [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->SimpleCardActionEvent(cardAction.Release(), order);
+        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
       }
     ),
     "is_sliding", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
@@ -152,11 +152,12 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
       return character.Unwrap()->IsMoving();
     },
     "is_deleted", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
-      return character.Unwrap()->IsDeleted();
-    },
-    "will_remove_eof", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
       auto ptr = character.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->IsDeleted();
+    },
+    "will_erase_eof", [](WeakWrapper<ScriptedCharacter>& character) -> bool {
+      auto ptr = character.Lock();
+      return !ptr || ptr->WillEraseEOF();
     },
     "get_team", [](WeakWrapper<ScriptedCharacter>& character) -> Team {
       return character.Unwrap()->GetTeam();
@@ -164,8 +165,8 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "is_team", [](WeakWrapper<ScriptedCharacter>& character, Team team) {
       character.Unwrap()->Teammate(team);
     },
-    "remove", [](WeakWrapper<ScriptedCharacter>& character) {
-      character.Unwrap()->Remove();
+    "erase", [](WeakWrapper<ScriptedCharacter>& character) {
+      character.Unwrap()->Erase();
     },
     "delete", [](WeakWrapper<ScriptedCharacter>& character) {
       character.Unwrap()->Delete();
@@ -180,8 +181,8 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedCharacter>& character, Entity::Shadow type) {
         character.Unwrap()->SetShadowSprite(type);
       },
-      [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<SpriteProxyNode> shadow) {
-        character.Unwrap()->SetShadowSprite(shadow.Release());
+      [](WeakWrapper<ScriptedCharacter>& character, std::shared_ptr<sf::Texture> shadow) {
+        character.Unwrap()->SetShadowSprite(shadow);
       }
     ),
     "show_shadow", [](WeakWrapper<ScriptedCharacter>& character, bool enabled) {
@@ -226,10 +227,10 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "remove_defense_rule", [](WeakWrapper<ScriptedCharacter>& character, DefenseRule* defenseRule) {
       character.Unwrap()->RemoveDefenseRule(defenseRule);
     },
-    "get_position", [](WeakWrapper<ScriptedCharacter>& character) -> sf::Vector2f {
+    "get_offset", [](WeakWrapper<ScriptedCharacter>& character) -> sf::Vector2f {
       return character.Unwrap()->GetDrawOffset();
     },
-    "set_position", [](WeakWrapper<ScriptedCharacter>& character, float x, float y) {
+    "set_offset", [](WeakWrapper<ScriptedCharacter>& character, float x, float y) {
       character.Unwrap()->SetDrawOffset(x, y);
     },
     "set_height", [](WeakWrapper<ScriptedCharacter>& character, float height) {

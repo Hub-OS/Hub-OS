@@ -40,7 +40,7 @@ void ParticlePoof::OnUpdate(double _elapsed) {
 
 void ParticlePoof::OnDelete()
 {
-  Remove();
+  Erase();
 }
 
 ParticlePoof::~ParticlePoof()

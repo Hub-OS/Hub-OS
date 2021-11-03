@@ -142,6 +142,7 @@ private:
   void InsertComponentsPendingRegistration();
   void UpdateMovement(double elapsed);
   void SetFrame(unsigned frame);
+  void ShiftShadow();
 public:
   Entity();
   virtual ~Entity();
@@ -150,7 +151,7 @@ public:
   * @brief Performs some user-specified deletion behavior before removing from play
   *
   * Deleted entities are excluded from all battle attack steps however they 
-  * will be visually present and must be removed from field by calling Remove()
+  * will be visually present and must be erased from field by calling Erase()
   */
   virtual void OnDelete() { };
 
@@ -218,7 +219,7 @@ public:
 
   void ShowShadow(bool enabled);
   void SetShadowSprite(Shadow type);
-  void SetShadowSprite(std::shared_ptr<SpriteProxyNode> customShadow);
+  void SetShadowSprite(std::shared_ptr<sf::Texture> customShadow);
 
   /**
   * @brief By default, hitbox is available for discovery and hitting
@@ -410,10 +411,10 @@ public:
   /**
   * @brief Flags the entity to be pruned from the field 
   */
-  void Remove();
+  void Erase();
   
   /**
-   * @brief Query if an entity has been deleted but not removed this frame
+   * @brief Query if an entity has been deleted but not erased this frame
    * @return true if flagged for deletion, false otherwise
    */
   bool IsDeleted() const;
@@ -422,7 +423,7 @@ public:
   * @brief Query if an entity has been marked for removal
   * @return true if flagged, false otherwise
   */
-  bool WillRemoveLater() const;
+  bool WillEraseEOF() const;
 
   /**
    * @brief Changes the element of the entity
@@ -805,7 +806,7 @@ private:
   bool airShoe{};
   bool slidesOnTiles{true}; /* by default everything responds to tile push/slide events */
   bool deleted{}; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
-  bool flagForRemove{}; /*!< Used to remove this entity from the field immediately */
+  bool flagForErase{}; /*!< Used to erase this entity from the field immediately */
   int moveCount{}; /*!< Used by battle results */
   double elapsedMoveTime{}; /*!< delta time since recent move event began */
   Direction direction{};

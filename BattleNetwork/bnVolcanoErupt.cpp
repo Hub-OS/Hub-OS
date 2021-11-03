@@ -7,7 +7,7 @@ VolcanoErupt::VolcanoErupt() :
 {
   eruptAnim = Animation("resources/tiles/volcano.animation");
   eruptAnim << "ERUPT"  << [this]() {
-    this->Remove();
+    this->Erase();
   };;
   
   setScale(2.f, 2.f);

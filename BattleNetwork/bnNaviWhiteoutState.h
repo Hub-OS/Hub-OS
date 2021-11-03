@@ -81,7 +81,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     auto animComponent = shine->GetFirstComponent<AnimationComponent>();
     std::string animStr = animComponent->GetAnimationString();
     animComponent->SetAnimation(animStr, [this]() {
-        shine->Remove();
+        shine->Erase();
         fadeout = true;
         ResourceHandle().Audio().Play(AudioType::DELETED);
     });
@@ -112,7 +112,7 @@ void NaviWhiteoutState<Any>::OnUpdate(double _elapsed, Any& e) {
 
     if (factor <= 0.f) {
         factor = 0.f;
-        e.Remove();
+        e.Erase();
     }
 }
 

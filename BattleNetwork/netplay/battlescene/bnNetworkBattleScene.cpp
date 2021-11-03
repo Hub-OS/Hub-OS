@@ -252,7 +252,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     packetTime += elapsed_frames;
   }
 
-  if (remotePlayer && remotePlayer->WillRemoveLater()) {
+  if (remotePlayer && remotePlayer->WillEraseEOF()) {
     auto iter = std::find(players.begin(), players.end(), remotePlayer);
     if (iter != players.end()) {
       players.erase(iter);

@@ -212,9 +212,6 @@ void Entity::UpdateMovement(double elapsed)
   if (tile) {
     setPosition(tile->getPosition() + Entity::tileOffset + drawOffset);
   }
-
-  // counter offset the shadow node
-  shadow->setPosition(0, 0.5f * (Entity::GetElevation() + Entity::GetCurrJumpHeight()));
 }
 
 void Entity::SetFrame(unsigned frame)
@@ -670,18 +667,18 @@ void Entity::Delete()
   OnDelete();
 }
 
-void Entity::Remove()
+void Entity::Erase()
 {
-  flagForRemove = true;
+  flagForErase = true;
 }
 
 bool Entity::IsDeleted() const {
   return deleted;
 }
 
-bool Entity::WillRemoveLater() const
+bool Entity::WillEraseEOF() const
 {
-    return flagForRemove;
+    return flagForErase;
 }
 
 void Entity::SetElement(Element _elem)
@@ -851,11 +848,16 @@ void Entity::SetShadowSprite(Shadow type)
   }
 }
 
-void Entity::SetShadowSprite(std::shared_ptr<SpriteProxyNode> customShadow)
+void Entity::SetShadowSprite(std::shared_ptr<sf::Texture> customShadow)
 {
-  shadow = customShadow;
+  shadow->setTexture(customShadow, true);
   auto bounds = shadow->getLocalBounds();
   shadow->setOrigin(sf::Vector2f(bounds.width*0.5f, bounds.height*0.5f));
+}
+
+void Entity::ShiftShadow() {
+  // counter offset the shadow node
+  shadow->setPosition(0, 0.5f * (Entity::GetElevation() + Entity::GetCurrJumpHeight()));
 }
 
 const float Entity::GetCurrJumpHeight() const

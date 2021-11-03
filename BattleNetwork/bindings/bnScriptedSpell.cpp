@@ -53,7 +53,7 @@ void ScriptedSpell::OnDelete() {
     }
   }
 
-  Remove();
+  Erase();
 }
 
 void ScriptedSpell::OnCollision(const std::shared_ptr<Entity> other)

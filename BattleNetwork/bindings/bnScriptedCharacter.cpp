@@ -152,13 +152,4 @@ void ScriptedCharacter::SetExplosionBehavior(int num, double speed, bool isBoss)
   bossExplosion = isBoss;
 }
 
-void ScriptedCharacter::SimpleCardActionEvent(std::shared_ptr<ScriptedCardAction> action, ActionOrder order)
-{
-  Character::AddAction(CardEvent{ action }, order);
-}
-
-void ScriptedCharacter::SimpleCardActionEvent(std::shared_ptr<CardAction> action, ActionOrder order)
-{
-  Character::AddAction(CardEvent{ action }, order);
-}
 #endif

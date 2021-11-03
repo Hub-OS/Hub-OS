@@ -9,10 +9,9 @@
 
 void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedArtifact>>("Artifact",
-    sol::factories([](Team team) -> WeakWrapper<ScriptedArtifact> {
+    sol::factories([]() -> WeakWrapper<ScriptedArtifact> {
       auto artifact = std::make_shared<ScriptedArtifact>();
       artifact->Init();
-      artifact->SetTeam(team);
 
       auto wrappedArtifact = WeakWrapper<ScriptedArtifact>(artifact);
       wrappedArtifact.Own();
@@ -140,17 +139,18 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       return artifact.Unwrap()->IsMoving();
     },
     "is_deleted", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      return artifact.Unwrap()->IsDeleted();
-    },
-    "will_remove_eof", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
       auto ptr = artifact.Lock();
-      return !ptr || ptr->WillRemoveLater();
+      return !ptr || ptr->IsDeleted();
+    },
+    "will_erase_eof", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
+      auto ptr = artifact.Lock();
+      return !ptr || ptr->WillEraseEOF();
     },
     "get_team", [](WeakWrapper<ScriptedArtifact>& artifact) -> Team {
       return artifact.Unwrap()->GetTeam();
     },
-    "remove", [](WeakWrapper<ScriptedArtifact>& artifact) {
-      artifact.Unwrap()->Remove();
+    "erase", [](WeakWrapper<ScriptedArtifact>& artifact) {
+      artifact.Unwrap()->Erase();
     },
     "delete", [](WeakWrapper<ScriptedArtifact>& artifact) {
       artifact.Unwrap()->Delete();
@@ -171,7 +171,10 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<ScriptedArtifact>& artifact, float height) {
       artifact.Unwrap()->SetHeight(height);
     },
-    "set_position", [](WeakWrapper<ScriptedArtifact>& artifact, float x, float y) {
+    "get_offset", [](WeakWrapper<ScriptedArtifact>& artifact) -> sf::Vector2f {
+      return artifact.Unwrap()->GetDrawOffset();
+    },
+    "set_offset", [](WeakWrapper<ScriptedArtifact>& artifact, float x, float y) {
       artifact.Unwrap()->SetDrawOffset(x, y);
     },
     "never_flip", [](WeakWrapper<ScriptedArtifact>& artifact, bool enabled) {

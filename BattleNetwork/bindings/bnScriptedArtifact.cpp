@@ -54,7 +54,7 @@ void ScriptedArtifact::OnDelete()
     }
   }
 
-  Remove();
+  Erase();
 }
 
 bool ScriptedArtifact::CanMoveTo(Battle::Tile* next)
