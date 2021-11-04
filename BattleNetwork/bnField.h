@@ -105,12 +105,12 @@ public:
   std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const;
 
   /**
-   * @brief Query for the closest characters on the entire field given an input character.
-   * @param test. The character to test distance againsr.
+   * @brief Query for the closest characters on the entire field given an input entity.
+   * @param test. The entity to test distance against.
    * @param query. the query input function
    * @return list of std::shared_ptr<Character> that passed the input function's conditions
    */
-  std::vector<std::shared_ptr<Character>> FindNearestCharacters(const std::shared_ptr<Character> test, std::function<bool(std::shared_ptr<Character>& e)> query) const;
+  std::vector<std::shared_ptr<Character>> FindNearestCharacters(const std::shared_ptr<Entity> test, std::function<bool(std::shared_ptr<Character>& e)> query) const;
 
   /**
    * @brief Set the tile at (x,y) team to _team

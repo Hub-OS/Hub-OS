@@ -11,7 +11,7 @@
 #include "bnScriptedObstacle.h"
 #include "bnScriptedArtifact.h"
 
-static sol::as_table_t<std::vector<WeakWrapper<Character>>> FindNearestCharacters(WeakWrapper<Field>& field, std::shared_ptr<Character> test, sol::stack_object queryObject) {
+static sol::as_table_t<std::vector<WeakWrapper<Character>>> FindNearestCharacters(WeakWrapper<Field>& field, std::shared_ptr<Entity> test, sol::stack_object queryObject) {
   sol::protected_function query = queryObject;
 
   auto results = field.Unwrap()->FindNearestCharacters(test, [query] (std::shared_ptr<Character>& character) -> bool {
@@ -118,6 +118,9 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       return sol::as_table(wrappedResults);
     },
     "find_nearest_characters", sol::overload(
+      [] (WeakWrapper<Field>& field, WeakWrapper<Entity>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
+      },
       [] (WeakWrapper<Field>& field, WeakWrapper<Character>& test, sol::stack_object queryObject) {
         return FindNearestCharacters(field, test.Unwrap(), queryObject);
       },
@@ -125,6 +128,15 @@ void DefineFieldUserType(sol::table& battle_namespace) {
         return FindNearestCharacters(field, test.Unwrap(), queryObject);
       },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedPlayer>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
+      },
+      [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedObstacle>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
+      },
+      [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedSpell>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
+      },
+      [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedArtifact>& test, sol::stack_object queryObject) {
         return FindNearestCharacters(field, test.Unwrap(), queryObject);
       }
     ),
