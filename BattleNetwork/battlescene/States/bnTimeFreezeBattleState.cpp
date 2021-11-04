@@ -116,6 +116,24 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       }
 
       if (updateAnim) {
+        // For all new input events, set the wait time based on the network latency and append
+        const auto events_this_frame = Input().StateThisFrame();
+
+        std::vector<InputEvent> outEvents;
+        for (auto& [name, state] : events_this_frame) {
+          InputEvent copy;
+          copy.name = name;
+          copy.state = state;
+
+          outEvents.push_back(copy);
+
+          // add delay for network
+          // copy.wait = from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
+          // inputQueue.push_back(copy);
+          user->InputState().VirtualKeyEvent(copy);
+        }
+        user->InputState().Process();
+
         action->Update(elapsed);
       }
       else{

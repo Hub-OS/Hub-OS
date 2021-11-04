@@ -21,6 +21,9 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     sol::meta_function::length, [](WeakWrapper<ScriptedPlayer>& player) {
       return player.Unwrap()->entries.size();
     },
+    "input_has", [](WeakWrapper<ScriptedPlayer>& player, const InputEvent& event) -> bool {
+      return player.Unwrap()->InputState().Has(event);
+    },
     "get_id", [](WeakWrapper<ScriptedPlayer>& player) -> Entity::ID_t {
       return player.Unwrap()->GetID();
     },

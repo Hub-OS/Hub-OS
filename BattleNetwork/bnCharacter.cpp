@@ -17,68 +17,10 @@
 #include "bnCardAction.h"
 #include "bnCardToActions.h"
 
-void Character::RefreshShader()
-{
-  auto field = this->field.lock();
-
-  if (!field) {
-    return;
-  }
-
-  sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER);
-
-  if (shader != GetShader().Get()) {
-    SetShader(shader);
-  }
-
-  auto& smartShader = GetShader();
-
-  if (!smartShader.HasShader()) return;
-
-  smartShader.SetUniform("swapPalette", this->swapPalette);
-  // state checks
-  unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
-  unsigned rootFrame = from_seconds(rootCooldown).count() % 4;
-  counterFrameFlag = counterFrameFlag % 4;
-  counterFrameFlag++;
-
-  bool iframes = invincibilityCooldown > 0;
-
-  vector<float> states = {
-    static_cast<float>(this->hit || GetHealth() <= 0),                           // WHITEOUT
-    static_cast<float>(rootCooldown > 0. && (iframes || rootCooldown)),          // BLACKOUT
-    static_cast<float>(stunCooldown > 0. && (iframes || stunFrame))              // HIGHLIGHT
-  };
-
-  smartShader.SetUniform("states", states);
-  smartShader.SetUniform("additiveMode", GetColorMode() == ColorMode::additive);
-  
-  bool enabled = states[0] || states[1];
-
-  if (enabled) return;
-
-  if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag < 2) {
-    // Highlight when the character can be countered
-    setColor(sf::Color(55, 55, 255, getColor().a));
-  }
-}
-
 Character::Character(Rank _rank) :
   rank(_rank),
   CardActionUsePublisher(),
   Entity() {
-
-  SetColorMode(ColorMode::additive);
-  setColor(NoopCompositeColor(ColorMode::additive));
-
-  if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
-    SetShader(shader);
-    auto& smartShader = GetShader();
-    smartShader.SetUniform("texture", sf::Shader::CurrentTexture);
-    smartShader.SetUniform("additiveMode", true);
-    smartShader.SetUniform("swapPalette", false);
-    baseColor = sf::Color(0, 0, 0, 0);
-  }
 
   EnableTilePush(true);
 
@@ -181,96 +123,6 @@ void Character::Update(double _elapsed) {
       actionQueue.Pop();
     }
   }
-
-  RefreshShader();
-}
-
-void Character::draw(sf::RenderTarget& target, sf::RenderStates states) const
-{
-  // NOTE: This function does not call the parent implementation
-  //       This function is a special behavior for battle characters to
-  //       color their attached nodes correctly in-game
-
-  if (!SpriteProxyNode::show) return;
-
-  auto& smartShader = GetShader();
-
-  // combine the parent transform with the node's one
-  sf::Transform combinedTransform = getTransform();
-
-  states.transform *= combinedTransform;
-
-  std::vector<SceneNode*> copies;
-  copies.reserve(childNodes.size() + 1);
-
-  for (auto& child : childNodes) {
-    copies.push_back(child.get());
-  }
-
-  copies.push_back((SceneNode*)this);
-
-  std::sort(copies.begin(), copies.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });
-
-  // draw its children
-  for (std::size_t i = 0; i < copies.size(); i++) {
-    SceneNode* currNode = copies[i];
-
-    if (!currNode) continue;
-
-    // If it's time to draw our scene node, we draw the proxy sprite
-    if (currNode == this) {
-      sf::Shader* s = smartShader.Get();
-
-      if (s) {
-        states.shader = s;
-      }
-
-      target.draw(getSpriteConst(), states);
-    }
-    else {
-      SpriteProxyNode* asSpriteProxyNode{ nullptr };
-      SmartShader temp(smartShader);
-
-      /**
-      hack for now.
-      form overlay nodes (like helmet and shoulder pads)
-      are already colored to the desired palette. So we do not apply palette swapping.
-      **/
-      bool needsRevert = false;
-      sf::Color tempColor = sf::Color::White;
-      if (currNode->HasTag(Player::FORM_NODE_TAG)) {
-        asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode);
-
-        if (asSpriteProxyNode) {
-          smartShader.SetUniform("swapPalette", false);
-          tempColor = asSpriteProxyNode->getColor();
-          asSpriteProxyNode->setColor(sf::Color(0, 0, 0, getColor().a));
-          needsRevert = true;
-        }
-      }
-
-      // Apply and return shader if applicable
-      sf::Shader* s = smartShader.Get();
-
-      if (s && currNode->IsUsingParentShader()) {
-        if (auto asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode)) {
-          asSpriteProxyNode->setColor(this->getColor());
-        }
-
-        states.shader = s;
-      }
-
-      target.draw(*currNode, states);
-
-      // revert color
-      if (asSpriteProxyNode && needsRevert) {
-        asSpriteProxyNode->setColor(tempColor);
-      }
-
-      // revert uniforms from this pass
-      smartShader = temp;
-    }
-  }
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -312,16 +164,6 @@ std::shared_ptr<CardAction> Character::CurrentCardAction()
   return currCardAction;
 }
 
-void Character::SetName(std::string name)
-{
-  Character::name = name;
-}
-
-const std::string Character::GetName() const
-{
-  return name;
-}
-
 void Character::AddAction(const CardEvent& event, const ActionOrder& order)
 {
   actionQueue.Add(event, order, ActionDiscardOp::until_resolve);
@@ -359,35 +201,4 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
   }
 
   actionQueue.Pop();
-}
-
-void Character::SetPalette(const std::shared_ptr<sf::Texture>& palette)
-{
-  auto& smartShader = GetShader();
-
-  if (palette.get() == nullptr) {
-    smartShader.SetUniform("swapPalette", false);
-    this->swapPalette = false;
-    return;
-  }
-
-  this->swapPalette = true;
-  this->palette = palette;
-  smartShader.SetUniform("swapPalette", true);
-  smartShader.SetUniform("palette", this->palette);
-}
-
-std::shared_ptr<sf::Texture> Character::GetPalette()
-{
-  return palette;
-}
-
-void Character::StoreBasePalette(const std::shared_ptr<sf::Texture>& palette)
-{
-  basePalette = palette;
-}
-
-std::shared_ptr<sf::Texture> Character::GetBasePalette()
-{
-  return basePalette;
 }

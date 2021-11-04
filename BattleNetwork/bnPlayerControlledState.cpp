@@ -32,9 +32,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     currLag = replicator->GetAvgLatency(); // NOTE: in milliseconds
   }
 
-  // Drop inputs less than or equal to 0 frames left
-  InputQueueCleanup();
-
   // For all inputs in the queue, reduce their wait time for this new frame
   for (auto& item : inputQueue) {
     item.wait -= from_seconds(_elapsed);
@@ -51,6 +48,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
     outEvents.push_back(copy);
 
+    // add delay for network
     copy.wait = from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
     inputQueue.push_back(copy);
   }
@@ -58,6 +56,8 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   if (replicator) {
     replicator->SendInputEvents(outEvents);
   }
+
+  ProcessInputQueue(player);
 
   // Actions with animation lockout controls take priority over movement
   bool lockout = player.IsLockoutAnimationComplete();
@@ -70,10 +70,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     return;
   }
 
-  bool missChargeKey = isChargeHeld && !InputQueueHas(InputEvents::held_shoot);
+  bool missChargeKey = isChargeHeld && !player.InputState().Has(InputEvents::held_shoot);
 
   // Are we creating an action this frame?
-  if (InputQueueHas(InputEvents::pressed_use_chip)) {
+  if (player.InputState().Has(InputEvents::pressed_use_chip)) {
     auto cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
       if (cardsUI->UseNextCard()) {
@@ -83,7 +83,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     }
     // If the card used was successful, we may have a card in queue
   }
-  else if (InputQueueHas(InputEvents::released_special)) {
+  else if (player.InputState().Has(InputEvents::released_special)) {
     const auto actions = player.AsyncActionList();
     bool canUseSpecial = player.CanAttack();
 
@@ -96,13 +96,13 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
       player.UseSpecial();
     }
   } // queue attack based on input behavior (buster or charge?)
-  else if (InputQueueHas(InputEvents::released_shoot) || missChargeKey) {
+  else if (player.InputState().Has(InputEvents::released_shoot) || missChargeKey) {
     // This routine is responsible for determining the outcome of the attack
     isChargeHeld = false;
     player.chargeEffect->SetCharging(false);
     player.Attack();
 
-  } else if (InputQueueHas(InputEvents::held_shoot)) {
+  } else if (player.InputState().Has(InputEvents::held_shoot)) {
     isChargeHeld = true;
     player.chargeEffect->SetCharging(true);
   }
@@ -116,16 +116,16 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   Direction direction = Direction::none;
-  if (InputQueueHas(InputEvents::pressed_move_up) || InputQueueHas(InputEvents::held_move_up)) {
+  if (player.InputState().Has(InputEvents::pressed_move_up) || player.InputState().Has(InputEvents::held_move_up)) {
     direction = Direction::up;
   }
-  else if (InputQueueHas(InputEvents::pressed_move_left) || InputQueueHas(InputEvents::held_move_left)) {
+  else if (player.InputState().Has(InputEvents::pressed_move_left) || player.InputState().Has(InputEvents::held_move_left)) {
     direction = Direction::left;
   }
-  else if (InputQueueHas(InputEvents::pressed_move_down) || InputQueueHas(InputEvents::held_move_down)) {
+  else if (player.InputState().Has(InputEvents::pressed_move_down) || player.InputState().Has(InputEvents::held_move_down)) {
     direction = Direction::down;
   }
-  else if (InputQueueHas(InputEvents::pressed_move_right) || InputQueueHas(InputEvents::held_move_right)) {
+  else if (player.InputState().Has(InputEvents::pressed_move_right) || player.InputState().Has(InputEvents::held_move_right)) {
     direction = Direction::right;
   }
 
@@ -162,23 +162,12 @@ void PlayerControlledState::OnLeave(Player& player) {
   Logger::Logf("PlayerControlledState::OnLeave()");
 }
 
-const bool PlayerControlledState::InputQueueHas(const InputEvent& item)
-{
-  auto iter = std::find(inputQueue.cbegin(), inputQueue.cend(), item);
-  
-  // An input is available for reads if its wait time is zero or less frames
-  if (iter != inputQueue.cend()) {
-    return iter->wait <= frames(0);
-  }
-
-  return false;
-}
-
-void PlayerControlledState::InputQueueCleanup()
+void PlayerControlledState::ProcessInputQueue(Player& player)
 {
   // Drop inputs that are already processed at the end of the last frame
   for (auto iter = inputQueue.begin(); iter != inputQueue.end();) {
     if (iter->wait <= frames(0)) {
+      player.InputState().VirtualKeyEvent(*iter);
       iter = inputQueue.erase(iter);
       continue;
     }

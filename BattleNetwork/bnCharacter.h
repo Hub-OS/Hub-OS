@@ -47,25 +47,8 @@ class Character:
 
 private:
   std::vector<std::shared_ptr<CardAction>> asyncActions;
-  std::vector<Component::ID_t> attacks;
-
-  // Statuses are resolved one property at a time
-  // until the entire Flag object is equal to 0x00 None
-  // Then we process the next status
-  // This continues until all statuses are processed
-  std::queue<CombatHitProps> statusQueue;
-
   std::shared_ptr<CardAction> currCardAction{ nullptr };
   frame_time_t cardActionStartDelay{0};
-
-  std::map<Hit::Flags, StatusCallback> statusCallbackHash;
-
-  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
-  float counterSlideDelta{};
-  bool swapPalette{ false };
-  std::shared_ptr<sf::Texture> palette, basePalette;
-  // mutable SmartShader smartShader;
-  std::string name;
 public:
 
   /**
@@ -99,7 +82,6 @@ public:
   std::shared_ptr<CardAction> CurrentCardAction();
 
   void Update(double elapsed) override;
-  void draw(sf::RenderTarget& target, sf::RenderStates states = sf::RenderStates::Default) const override final;
   
   /**
   * @brief Default characters cannot move onto occupied, broken, or empty tiles
@@ -116,29 +98,11 @@ public:
    */
   const Rank GetRank() const;
 
-  /**
-   * @brief Characters can have names
-   * @param name
-   */
-  void SetName(std::string name);
-  
-  /**
-   * @brief Get name of character
-   * @return const std::string
-   */
-  const std::string GetName() const;
-
   void AddAction(const CardEvent& event, const ActionOrder& order);
   void AddAction(const PeekCardEvent& event, const ActionOrder& order);
   void HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec);
   void HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::ExecutionType& exec);
 
-  void SetPalette(const std::shared_ptr<sf::Texture>& palette);
-  void StoreBasePalette(const std::shared_ptr<sf::Texture>& palette);
-  std::shared_ptr<sf::Texture> GetPalette();
-  std::shared_ptr<sf::Texture> GetBasePalette();
-
-  void RefreshShader();
 protected:
   Character::Rank rank;
 };

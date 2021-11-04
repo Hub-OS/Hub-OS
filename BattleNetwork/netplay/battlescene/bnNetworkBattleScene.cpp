@@ -537,7 +537,7 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
 
 void NetworkBattleScene::recieveInputEvent(const Poco::Buffer<char>& buffer)
 {
-  remoteState.remoteInputEvents.clear();
+  if (!this->remotePlayer) return;
 
   std::string name;
   size_t len{}, list_len{};
@@ -561,9 +561,8 @@ void NetworkBattleScene::recieveInputEvent(const Poco::Buffer<char>& buffer)
     InputEvent event{};
     event.name = name;
     event.state = state;
-    remoteState.remoteInputEvents.push_back(event);
+    this->remotePlayer->InputState().VirtualKeyEvent(event);
   }
-
 }
 
 void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)

@@ -36,6 +36,9 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
         return character.Unwrap()->GetTile();
       }
     ),
+    "input_has", [](WeakWrapper<ScriptedCharacter>& character, const InputEvent& event) -> bool {
+      return character.Unwrap()->InputState().Has(event);
+    },
     "get_current_tile", [](WeakWrapper<ScriptedCharacter>& character) -> Battle::Tile* {
       return character.Unwrap()->GetCurrentTile();
     },

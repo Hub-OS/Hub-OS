@@ -38,10 +38,10 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
     return;
   }
 
-  bool missChargeKey = isChargeHeld && !InputQueueHas(InputEvents::held_shoot);
+  bool missChargeKey = isChargeHeld && !player.InputState().Has(InputEvents::held_shoot);
 
   // Are we creating an action this frame?
-  if (InputQueueHas(InputEvents::pressed_use_chip)) {
+  if (player.InputState().Has(InputEvents::pressed_use_chip)) {
     auto cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
       cardsUI->UseNextCard();
@@ -50,7 +50,7 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
     }
     // If the card used was successful, we may have a card in queue
   }
-  else if (InputQueueHas(InputEvents::released_special)) {
+  else if (player.InputState().Has(InputEvents::released_special)) {
     const auto actions = player.AsyncActionList();
     bool canUseSpecial = player.CanAttack();
 
@@ -63,14 +63,14 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
       player.UseSpecial();
     }
   } // queue attack based on input behavior (buster or charge?)
-  else if (InputQueueHas(InputEvents::released_shoot) || missChargeKey) {
+  else if (player.InputState().Has(InputEvents::released_shoot) || missChargeKey) {
     // This routine is responsible for determining the outcome of the attack
     isChargeHeld = false;
     player.chargeEffect->SetCharging(false);
     player.Attack();
 
   }
-  else if (InputQueueHas(InputEvents::held_shoot)) {
+  else if (player.InputState().Has(InputEvents::held_shoot)) {
     isChargeHeld = true;
     player.chargeEffect->SetCharging(true);
   }
@@ -81,17 +81,17 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   }
 
   Direction direction = Direction::none;
-  if (InputQueueHas(InputEvents::pressed_move_up) || InputQueueHas(InputEvents::held_move_up)) {
+  if (player.InputState().Has(InputEvents::pressed_move_up) || player.InputState().Has(InputEvents::held_move_up)) {
     direction = Direction::up;
   }
-  else if (InputQueueHas(InputEvents::pressed_move_left) || InputQueueHas(InputEvents::held_move_left)) {
+  else if (player.InputState().Has(InputEvents::pressed_move_left) || player.InputState().Has(InputEvents::held_move_left)) {
     // reverse the input for network PVP
     direction = Direction::right;
   }
-  else if (InputQueueHas(InputEvents::pressed_move_down) || InputQueueHas(InputEvents::held_move_down)) {
+  else if (player.InputState().Has(InputEvents::pressed_move_down) || player.InputState().Has(InputEvents::held_move_down)) {
     direction = Direction::down;
   }
-  else if (InputQueueHas(InputEvents::pressed_move_right) || InputQueueHas(InputEvents::held_move_right)) {
+  else if (player.InputState().Has(InputEvents::pressed_move_right) || player.InputState().Has(InputEvents::held_move_right)) {
     // reverse the input for network PVP
     direction = Direction::left;
   }
@@ -128,9 +128,4 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 void PlayerNetworkState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.Charge(false);
-}
-
-const bool PlayerNetworkState::InputQueueHas(const InputEvent& item)
-{
-  return netflags.remoteInputEvents.cend() != std::find(netflags.remoteInputEvents.cbegin(), netflags.remoteInputEvents.cend(), item);
 }

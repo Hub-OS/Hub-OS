@@ -27,6 +27,9 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
         return character.Unwrap()->GetTile();
       }
     ),
+    "input_has", [](WeakWrapper<Character>& character, const InputEvent& event) -> bool {
+      return character.Unwrap()->InputState().Has(event);
+    },
     "get_current_tile", [](WeakWrapper<Character>& character) -> Battle::Tile* {
       return character.Unwrap()->GetCurrentTile();
     },

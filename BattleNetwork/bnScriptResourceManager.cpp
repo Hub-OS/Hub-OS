@@ -517,13 +517,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     }
   );
 
-  engine_namespace.set_function("input_has",
-    [](const InputEvent& event) {
-      static InputHandle handle;
-      return handle.Input().Has(event);
-    }
-  );
-
   engine_namespace.set_function("define_character",
     [this](const std::string& fqn, const std::string& path) {
       this->DefineCharacter(fqn, path);
@@ -885,9 +878,9 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
 
   sol::state* lua = new sol::state;
   
-  SetModPathVariable( lua, modDirectory );
-  SetSystemFunctions( lua );
-  ConfigureEnvironment( *lua  );
+  SetModPathVariable(lua, modDirectory);
+  SetSystemFunctions(lua);
+  ConfigureEnvironment(*lua);
 
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);

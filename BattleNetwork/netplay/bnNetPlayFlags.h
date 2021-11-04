@@ -13,5 +13,4 @@ struct NetPlayFlags {
   int remoteFormSelect{ -1 };
   int remoteHP{ 1 };
   std::string remoteNaviId;
-  std::vector<InputEvent> remoteInputEvents;
 };

@@ -201,6 +201,9 @@ public:
    */
   virtual void OnUpdate(double _elapsed) {};
   
+  void RefreshShader();
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const final;
+
   /**
    * @brief Move to any tile on the field
    * @return true if the move action was queued. False if obstructed.
@@ -723,11 +726,16 @@ public:
   */
   const bool WillIgnoreCommonAggressor() const;
 
+  void SetPalette(const std::shared_ptr<sf::Texture>& palette);
+  void StoreBasePalette(const std::shared_ptr<sf::Texture>& palette);
+  std::shared_ptr<sf::Texture> GetPalette();
+  std::shared_ptr<sf::Texture> GetBasePalette();
+
   void PrepareNextFrame();
 
 protected:
   using StatusCallback = std::function<void()>;
-
+  
   Battle::Tile* tile{ nullptr }; /*!< Current tile pointer */
   Battle::Tile* previous{ nullptr }; /*!< Entities retain a previous pointer in case they need to be moved back */
   sf::Vector2f tileOffset{ 0,0 }; /*!< complete motion is captured by `tile_pos + tileOffset`*/
@@ -796,32 +804,34 @@ protected:
 
 private:
   bool ignoreCommonAggressor{};
-  Battle::TileHighlight mode; /*!< Highlight occupying tile */
-  Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
   bool hasInit{};
   bool isTimeFrozen{};
   bool ownedByField{}; /*!< Must delete the entity manual if not owned by the field. */
   bool passthrough{};
   bool floatShoe{};
   bool airShoe{};
-  bool slidesOnTiles{true}; /* by default everything responds to tile push/slide events */
+  bool slidesOnTiles{ true }; /* by default everything responds to tile push/slide events */
   bool deleted{}; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
   bool flagForErase{}; /*!< Used to erase this entity from the field immediately */
-  int moveCount{}; /*!< Used by battle results */
-  double elapsedMoveTime{}; /*!< delta time since recent move event began */
-  Direction direction{};
-  Direction previousDirection{};
-  Direction facing{};
-  int health{ std::numeric_limits<int>::max() };
-  int maxHealth{ std::numeric_limits<int>::max() };
-  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
-  float elevation{}; // vector away from grid
-  float counterSlideDelta{};
   bool hitboxEnabled{ true };
   bool canTilePush{};
   bool canShareTile{}; /*!< Some characters can share tiles with others */
   bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
+  bool swapPalette{ false };
+  int moveCount{}; /*!< Used by battle results */
+  int health{ std::numeric_limits<int>::max() };
+  int maxHealth{ std::numeric_limits<int>::max() };
+  float elevation{}; // vector away from grid
+  float counterSlideDelta{};
+  double elapsedMoveTime{}; /*!< delta time since recent move event began */
+  Battle::TileHighlight mode; /*!< Highlight occupying tile */
+  Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
+  Direction direction{};
+  Direction previousDirection{};
+  Direction facing{};
+  sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
   std::vector<std::shared_ptr<DefenseRule>> defenses; /*<! All defense rules sorted by the lowest priority level */
+  std::string name; /*!< Name of the entity */
 
   // Statuses are resolved one property at a time
   // until the entire Flag object is equal to 0x00 None
@@ -834,6 +844,7 @@ private:
   sf::Shader* root{ nullptr };     /*!< Flicker black with luminance values when root */
 
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
+  std::shared_ptr<sf::Texture> palette, basePalette;
 
     /**
    * @brief Used internally before moving and updates the start position

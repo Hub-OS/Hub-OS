@@ -93,9 +93,6 @@ void ExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
   if (frame < 2) {
     e.SetShader(whiteout);
   }
-  else {
-    e.SetShader(nullptr);
-  }
 
   /* If root explosion is over, finally remove the entity that entered this state
      This ends the effect

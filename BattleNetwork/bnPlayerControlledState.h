@@ -52,7 +52,6 @@ public:
    */
   void OnLeave(Player& player);
 
-  const bool InputQueueHas(const InputEvent& item);
-  void InputQueueCleanup();
+  void ProcessInputQueue(Player& player);
 };
 
