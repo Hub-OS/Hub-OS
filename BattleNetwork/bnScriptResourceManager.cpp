@@ -613,7 +613,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   auto input_event_record = state.create_table("Input");
 
-  const auto& pressed_input_event_record = input_event_record.new_enum("Pressed",
+  input_event_record.new_enum("Pressed",
     "Up", InputEvents::pressed_move_up,
     "Left", InputEvents::pressed_move_left,
     "Right", InputEvents::pressed_move_right,
@@ -623,7 +623,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Shoot", InputEvents::pressed_shoot
   );
 
-  const auto& released_input_event_record = input_event_record.new_enum("Released",
+  input_event_record.new_enum("Held",
+    "Up", InputEvents::held_move_up,
+    "Left", InputEvents::held_move_left,
+    "Right", InputEvents::held_move_right,
+    "Down", InputEvents::held_move_down,
+    "Use", InputEvents::held_use_chip,
+    "Special", InputEvents::held_special,
+    "Shoot", InputEvents::held_shoot
+  );
+
+  input_event_record.new_enum("Released",
     "Up", InputEvents::released_move_up,
     "Left", InputEvents::released_move_left,
     "Right", InputEvents::released_move_right,
