@@ -78,39 +78,54 @@ static std::string_view GetLineWithoutComment(std::string_view view, size_t star
   return line;
 }
 
+static size_t GetNextCharPos(std::string_view view, size_t start) {
+  const char* nextCharPtr = std::find_if(view.begin() + start, view.end(), [](char c) { return c != ' '; });
+  return nextCharPtr == view.end() ? std::string::npos : nextCharPtr - view.begin();
+}
+
 static std::string_view GetValue(std::string_view line, std::string_view key) {
-  auto keyPos = line.find(key);
+  size_t keySearchStart = 0;
 
-  if (keyPos == std::string::npos) {
-    return "";
+  while (keySearchStart < line.size()) {
+    auto keyPos = line.find(key, keySearchStart);
+
+    if (keyPos == std::string::npos) {
+      // failed to find the key
+      break;
+    }
+
+    size_t posAfterKey = keyPos + key.size();
+    size_t equalPos = GetNextCharPos(line, posAfterKey);
+
+    if (equalPos == std::string::npos || line[equalPos] != '=') {
+      // expecting '=' after key
+      // we might be in a text value
+      keySearchStart += posAfterKey;
+      continue;
+    }
+
+    // search for the start of the value
+    auto valueStartPos = GetNextCharPos(line, equalPos + 1);
+
+    if (valueStartPos == std::string::npos || line[valueStartPos] != '"') {
+      keySearchStart += posAfterKey;
+      // expected " after =
+      continue;
+    }
+
+    valueStartPos += 1; // trim "
+    auto valueEndPos = line.find('"', valueStartPos);
+
+    if (valueEndPos == std::string::npos) {
+      // failed to find matching "
+      keySearchStart += posAfterKey;
+      continue;
+    }
+
+    return line.substr(valueStartPos, valueEndPos - valueStartPos);
   }
 
-  size_t posAfterKey = keyPos + key.size();
-
-  const char* nextCharPtr = std::find_if(line.begin() + posAfterKey, line.end(), [](char c) { return c != ' '; });
-  size_t nextCharPos = nextCharPtr == line.end() ? std::string::npos : nextCharPtr - line.begin();
-
-  if (nextCharPos == std::string::npos || line[nextCharPos] != '=') {
-    // expecting '=' after key
-    // we might be in a text value
-    return "";
-  }
-
-  // search for the start of the value
-  auto valueStartPos = line.find('"', nextCharPos);
-
-  if (valueStartPos == std::string::npos) {
-    return "";
-  }
-
-  valueStartPos += 1; // trim "
-  auto valueEndPos = line.find('"', valueStartPos);
-
-  if (valueEndPos == std::string::npos) {
-    return "";
-  }
-
-  return line.substr(valueStartPos, valueEndPos - valueStartPos);
+  return "";
 }
 
 static int GetIntValue(std::string_view line, std::string_view key) {
