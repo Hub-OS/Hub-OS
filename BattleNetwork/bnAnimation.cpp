@@ -95,6 +95,13 @@ static std::string_view GetValue(std::string_view line, std::string_view key) {
     }
 
     size_t posAfterKey = keyPos + key.size();
+
+    if (keyPos > 0 && line[keyPos - 1] != ' ') {
+      // space or start of line must be before the key
+      keySearchStart += posAfterKey;
+      continue;
+    }
+
     size_t equalPos = GetNextCharPos(line, posAfterKey);
 
     if (equalPos == std::string::npos || line[equalPos] != '=') {
