@@ -8,6 +8,8 @@ using sf::IntRect;
 #include "bnEntity.h"
 #include <cmath>
 #include <chrono>
+#include <string_view>
+#include <cstdlib>
 
 Animation::Animation() : animator(), path("") {
   progress = 0;
@@ -59,6 +61,73 @@ void Animation::Load(const std::string& newPath)
   Reload();
 }
 
+static bool StartsWith(std::string_view view, std::string_view find)
+{
+  return view.rfind(find, 0) != std::string::npos;
+}
+
+static std::string_view GetLineWithoutComment(std::string_view view, size_t start, size_t end)
+{
+  std::string_view line = view.substr(start, end - start);
+  auto commentStart = line.find('#', 0);
+
+  if (commentStart != string::npos) {
+    line = line.substr(0, commentStart);
+  }
+
+  return line;
+}
+
+static std::string_view GetValue(std::string_view line, std::string_view key) {
+  auto keyPos = line.find(key);
+
+  if (keyPos == std::string::npos) {
+    return "";
+  }
+
+  size_t posAfterKey = keyPos + key.size();
+
+  const char* nextCharPtr = std::find_if(line.begin() + posAfterKey, line.end(), [](char c) { return c != ' '; });
+  size_t nextCharPos = nextCharPtr == line.end() ? std::string::npos : nextCharPtr - line.begin();
+
+  if (nextCharPos == std::string::npos || line[nextCharPos] != '=') {
+    // expecting '=' after key
+    // we might be in a text value
+    return "";
+  }
+
+  // search for the start of the value
+  auto valueStartPos = line.find('"', nextCharPos);
+
+  if (valueStartPos == std::string::npos) {
+    return "";
+  }
+
+  valueStartPos += 1; // trim "
+  auto valueEndPos = line.find('"', valueStartPos);
+
+  if (valueEndPos == std::string::npos) {
+    return "";
+  }
+
+  return line.substr(valueStartPos, valueEndPos - valueStartPos);
+}
+
+static int GetIntValue(std::string_view line, std::string_view key) {
+  std::string_view valueView = GetValue(line, key);
+  return (int)std::strtol(valueView.data(), nullptr, 10);
+}
+
+static float GetFloatValue(std::string_view line, std::string_view key) {
+  std::string_view valueView = GetValue(line, key);
+  return std::strtof(valueView.data(), nullptr);
+}
+
+static bool GetBoolValue(std::string_view line, std::string_view key) {
+  std::string_view valueView = GetValue(line, key);
+  return valueView == "1" || valueView == "true";
+}
+
 void Animation::LoadWithData(const string& data)
 {
   int frameAnimationIndex = -1;
@@ -70,33 +139,34 @@ void Animation::LoadWithData(const string& data)
   bool legacySupport = false;
   progress = 0;
 
+  std::string_view dataView = data;
   size_t endLine = 0;
 
   do {
     size_t startLine = endLine;
-    endLine = data.find("\n", startLine);
+    endLine = dataView.find("\n", startLine);
 
     if (endLine == string::npos) {
-      endLine = data.size();
+      endLine = dataView.size();
     }
 
-    string line = data.substr(startLine, endLine - startLine);
+    std::string_view line = GetLineWithoutComment(dataView, startLine, endLine);
     endLine += 1;
 
     // NOTE: Support older animation files until we upgrade completely...
-    if (line.find("VERSION") != string::npos) {
-      string version = ValueOf("VERSION", line);
+    if (StartsWith(line, "VERSION")) {
+      std::string_view version = GetValue(line, "VERSION");
 
       if (version == "1.0") {
         legacySupport = true;
       }
     }
-    else if (line.find("imagePath") != string::npos) {
+    else if (StartsWith(line, "imagePath")) {
       // no-op 
       // editor only at this time
       continue;
     }
-    else if (line.find("animation") != string::npos) {
+    else if (StartsWith(line, "animation")) {
       if (!frameLists.empty()) {
         //std::cout << "animation total seconds: " << sf::seconds(currentAnimationDuration).asSeconds() << "\n";
         //std::cout << "animation name push " << currentState << endl;
@@ -106,31 +176,29 @@ void Animation::LoadWithData(const string& data)
         animations.insert(std::make_pair(currentState, frameLists.at(frameAnimationIndex)));
         currentAnimationDuration = 0.0f;
       }
-      string state = ValueOf("state", line);
-      currentState = state;
+      currentState = GetValue(line, "state");
 
       if (legacySupport) {
-        string width = ValueOf("width", line);
-        string height = ValueOf("height", line);
-
-        currentWidth = atoi(width.c_str());
-        currentHeight = atoi(height.c_str());
+        currentWidth = GetIntValue(line, "width");
+        currentHeight = GetIntValue(line, "height");
       }
 
       frameLists.push_back(FrameList());
       frameAnimationIndex++;
     }
-    else if (line.find("blank") != string::npos) {
-      string duration = ValueOf("duration", line);
+    else if (StartsWith(line, "blank")) {
+      float duration = GetFloatValue(line, "duration");
 
       // prevent negative frame numbers
-      float currentFrameDuration = static_cast<float>(std::fabs(atof(duration.c_str())));
+      float currentFrameDuration = std::fabs(duration);
 
       frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect{}, sf::Vector2f{ 0, 0 }, false, false);
     }
-    else if (line.find("frame") != string::npos) {
-      string duration = ValueOf("duration", line);
-      float currentFrameDuration = (float)atof(duration.c_str());
+    else if (StartsWith(line, "frame")) {
+      float duration = GetFloatValue(line, "duration");
+
+      // prevent negative frame numbers
+      float currentFrameDuration = std::fabs(duration);
 
       int currentStartx = 0;
       int currentStarty = 0;
@@ -140,37 +208,25 @@ void Animation::LoadWithData(const string& data)
       bool flipY = false;
 
       if (legacySupport) {
-        string startx = ValueOf("startx", line);
-        string starty = ValueOf("starty", line);
-
-        currentStartx = atoi(startx.c_str());
-        currentStarty = atoi(starty.c_str());
+        currentStartx = GetIntValue(line, "startx");
+        currentStarty = GetIntValue(line, "starty");
       }
       else {
-        string x = ValueOf("x", line);
-        string y = ValueOf("y", line);
-        string w = ValueOf("w", line);
-        string h = ValueOf("h", line);
-        string ox = ValueOf("originx", line);
-        string oy = ValueOf("originy", line);
-        string fx = ValueOf("flipx", line);
-        string fy = ValueOf("flipy", line);
+        currentStartx = GetIntValue(line, "x");
+        currentStarty = GetIntValue(line, "y");
+        currentWidth = GetIntValue(line, "w");
+        currentHeight = GetIntValue(line, "h");
+        originX = (float)GetIntValue(line, "originx");
+        originY = (float)GetIntValue(line, "originy");
 
-        currentStartx = atoi(x.c_str());
-        currentStarty = atoi(y.c_str());
-        currentWidth = atoi(w.c_str());
-        currentHeight = atoi(h.c_str());
-        originX = (float)atoi(ox.c_str());
-        originY = (float)atoi(oy.c_str());
-
-        if (fy == "true" || fy == "1") {
+        if (GetBoolValue(line, "flipy")) {
           flipY = true;
         }
         else {
           flipY = false;
         }
 
-        if (fx == "true" || fx == "1") {
+        if (GetBoolValue(line, "flipx")) {
           flipX = true;
         }
         else {
@@ -193,15 +249,12 @@ void Animation::LoadWithData(const string& data)
         );
       }
     }
-    else if (line.find("point") != string::npos) {
-      string pointName = ValueOf("label", line);
-      string xStr = ValueOf("x", line);
-      string yStr = ValueOf("y", line);
+    else if (StartsWith(line, "point")) {
+      std::string pointName = std::string(GetValue(line, "label"));
+      int x = GetIntValue(line, "x");
+      int y = GetIntValue(line, "y");
 
       std::transform(pointName.begin(), pointName.end(), pointName.begin(), ::toupper);
-
-      int x = atoi(xStr.c_str());
-      int y = atoi(yStr.c_str());
 
       frameLists[frameAnimationIndex].SetPoint(pointName, x, y);
     }
@@ -213,13 +266,6 @@ void Animation::LoadWithData(const string& data)
     std::transform(currentState.begin(), currentState.end(), currentState.begin(), ::toupper);
     animations.insert(std::make_pair(currentState, frameLists.at(frameAnimationIndex)));
   }
-}
-
-string Animation::ValueOf(string _key, string _line) {
-  int keyIndex = (int)_line.find(_key);
-  // assert(keyIndex > -1 && "Key was not found in .animation file.");
-  string s = _line.substr(keyIndex + _key.size() + 2);
-  return s.substr(0, s.find("\""));
 }
 
 void Animation::HandleInterrupted()
