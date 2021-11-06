@@ -240,20 +240,8 @@ void Animation::LoadWithData(const string& data)
         currentHeight = GetIntValue(line, "h");
         originX = (float)GetIntValue(line, "originx");
         originY = (float)GetIntValue(line, "originy");
-
-        if (GetBoolValue(line, "flipy")) {
-          flipY = true;
-        }
-        else {
-          flipY = false;
-        }
-
-        if (GetBoolValue(line, "flipx")) {
-          flipX = true;
-        }
-        else {
-          flipX = false;
-        }
+        flipX = GetBoolValue(line, "flipx");
+        flipY = GetBoolValue(line, "flipy");
       }
 
       currentAnimationDuration += currentFrameDuration;
