@@ -238,10 +238,10 @@ void Entity::Spawn(Battle::Tile& start)
       SetFacing(start.GetFacing());
     }
 
+    hasSpawned = true;
+
     OnSpawn(start);
   }
-
-  hasSpawned = true;
 }
 
 bool Entity::HasSpawned() {
@@ -752,6 +752,10 @@ void Entity::SetField(std::shared_ptr<Field> _field) {
 
 std::shared_ptr<Field> Entity::GetField() const {
   return field.lock();
+}
+
+bool Entity::IsOnField() const {
+  return !field.expired();
 }
 
 Team Entity::GetTeam() const {
