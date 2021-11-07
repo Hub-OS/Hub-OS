@@ -403,6 +403,14 @@ namespace Battle {
       return;
     }
 
+    if (!_entity->IsOnField()) {
+      throw std::runtime_error("Entity must be spawned on the field before adding directly to a tile");
+    }
+
+    if (_entity->WillEraseEOF()) {
+      return;
+    }
+
     if (auto spell = dynamic_cast<Spell*>(_entity.get())) {
       spells.push_back(spell);
     } else if(auto artifact = dynamic_cast<Artifact*>(_entity.get())) {

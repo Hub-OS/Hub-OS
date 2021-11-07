@@ -76,9 +76,19 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
       auto self = node.Unwrap();
       return self->getLocalBounds().width * self->getScale().x;
     },
+    "set_width", [](WeakWrapper<SpriteProxyNode>& node, float width) {
+      auto self = node.Unwrap();
+      auto scaleX = width / self->getLocalBounds().width;
+      self->setScale(scaleX, self->getScale().y);
+    },
     "get_height", [](WeakWrapper<SpriteProxyNode>& node) -> float {
       auto self = node.Unwrap();
       return self->getLocalBounds().height * self->getScale().y;
+    },
+    "set_height", [](WeakWrapper<SpriteProxyNode>& node, float height) {
+      auto self = node.Unwrap();
+      auto scaleY = height / self->getLocalBounds().height;
+      self->setScale(self->getScale().x, scaleY);
     },
     "get_color", [](WeakWrapper<SpriteProxyNode>& node) -> sf::Color {
       return node.Unwrap()->getColor();

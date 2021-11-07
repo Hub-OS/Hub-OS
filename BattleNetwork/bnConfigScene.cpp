@@ -344,7 +344,9 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   setView(sf::Vector2u(480, 320));
 }
 
-ConfigScene::~ConfigScene() { }
+ConfigScene::~ConfigScene() {
+  delete bg;
+}
 
 void ConfigScene::UpdateBgmVolume(int volumeLevel) {
   musicLevel = volumeLevel;

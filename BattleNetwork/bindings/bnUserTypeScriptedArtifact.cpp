@@ -168,6 +168,12 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       auto& animation = artifact.Unwrap()->GetAnimationObject();
       return AnimationWrapper(artifact.GetWeak(), animation);
     },
+    "create_node", [](WeakWrapper<ScriptedArtifact>& artifact) -> WeakWrapper<SpriteProxyNode> {
+      auto child = std::make_shared<SpriteProxyNode>();
+      artifact.Unwrap()->AddNode(child);
+
+      return WeakWrapper(child);
+    },
     "set_height", [](WeakWrapper<ScriptedArtifact>& artifact, float height) {
       artifact.Unwrap()->SetHeight(height);
     },

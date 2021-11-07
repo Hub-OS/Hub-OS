@@ -203,13 +203,6 @@ public:
   }
 
 private:
-  /**
-   * @brief Strips the key-value from a file format
-   * @param _key to look for value of
-   * @param _line string input
-   * @return value as string or empty string
-   */
-  string ValueOf(string _key, string _line);
   void HandleInterrupted();
 protected:
   bool noAnim{ false }; /*!< If the requested state was not found, hide the sprite when updating */

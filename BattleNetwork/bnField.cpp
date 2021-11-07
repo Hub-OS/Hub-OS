@@ -275,7 +275,7 @@ std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool
   return res;
 }
 
-std::vector<std::shared_ptr<Character>> Field::FindNearestCharacters(const std::shared_ptr<Character> test, std::function<bool(std::shared_ptr<Character>& e)> filter) const
+std::vector<std::shared_ptr<Character>> Field::FindNearestCharacters(const std::shared_ptr<Entity> test, std::function<bool(std::shared_ptr<Character>& e)> filter) const
 {
   auto list = this->FindCharacters(filter);
 

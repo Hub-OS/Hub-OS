@@ -102,6 +102,7 @@ private:
   Attachments attachments;
   std::shared_ptr<AnimationComponent> anim{ nullptr };
   Battle::Card::Properties meta;
+  std::vector<std::pair<int, FrameCallback>> animActions;
 
   // Used internally
   void RecallPreviousState();

@@ -317,6 +317,8 @@ public:
    */
   std::shared_ptr<Field> GetField() const;
 
+  bool IsOnField() const;
+
   /**
    * @brief Gets the entity's assigned team
    * @return Current Team
