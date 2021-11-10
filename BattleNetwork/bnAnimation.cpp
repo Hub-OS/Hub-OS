@@ -79,8 +79,8 @@ static std::string_view GetLineWithoutComment(std::string_view view, size_t star
 }
 
 static size_t GetNextCharPos(std::string_view view, size_t start) {
-  const char* nextCharPtr = std::find_if(view.begin() + start, view.end(), [](char c) { return c != ' '; });
-  return nextCharPtr == view.end() ? std::string::npos : nextCharPtr - view.begin();
+  auto nextCharPtr = std::find_if(view.begin() + start, view.end(), [](char c) { return c != ' '; });
+  return nextCharPtr == view.end() ? std::string::npos : std::distance(view.begin(), nextCharPtr);
 }
 
 static std::string_view GetValue(std::string_view line, std::string_view key) {

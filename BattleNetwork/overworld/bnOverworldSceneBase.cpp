@@ -453,12 +453,12 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
   auto cols = map.GetCols();
   auto tileSize = map.GetTileSize();
   auto mapLayerCount = map.GetLayerCount();
-  auto elevation = (float)index;
+  auto layerElevation = (float)index;
 
   for (auto& sprite : spriteLayers[index]) {
     const sf::Vector2f worldPos = sprite->getPosition();
     sf::Vector2f screenPos = map.WorldToScreen(worldPos);
-    screenPos.y -= (sprite->GetElevation() - elevation) * tileSize.y * 0.5f;
+    screenPos.y -= (sprite->GetElevation() - layerElevation) * tileSize.y * 0.5f;
 
     // prevents blurring and camera jittering with the player
     screenPos.x = std::floor(screenPos.x);
@@ -470,12 +470,8 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
 
     if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
       sf::Color originalColor = sprite->getColor();
-      auto layer = int(index) - 1;
-      // NOTE: we snap players so elevations with floating decimals, even if not precise, will 
-      //       let us know if we're on the correct elevation or not
-      if (sprite->GetElevation() != elevation - 1.f) {
-        layer -= 1;
-      }
+      // round to the closest layer for handling online players on stairs
+      auto layer = (int)std::roundf(sprite->GetElevation());
 
       if (map.HasShadow(gridPos, layer)) {
         sf::Uint8 r, g, b;

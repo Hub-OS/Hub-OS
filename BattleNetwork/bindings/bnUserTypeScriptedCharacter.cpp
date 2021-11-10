@@ -165,8 +165,8 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "get_team", [](WeakWrapper<ScriptedCharacter>& character) -> Team {
       return character.Unwrap()->GetTeam();
     },
-    "is_team", [](WeakWrapper<ScriptedCharacter>& character, Team team) {
-      character.Unwrap()->Teammate(team);
+    "is_team", [](WeakWrapper<ScriptedCharacter>& character, Team team) -> bool {
+      return character.Unwrap()->Teammate(team);
     },
     "erase", [](WeakWrapper<ScriptedCharacter>& character) {
       character.Unwrap()->Erase();

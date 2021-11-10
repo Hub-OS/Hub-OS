@@ -3,6 +3,7 @@
 
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
+#include "bnScriptedComponent.h"
 #include "../bnEntity.h"
 #include "../bnAnimationComponent.h"
 #include "../bnSolHelpers.h"
@@ -147,6 +148,9 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     },
     "delete", [](WeakWrapper<Entity>& entity) {
       entity.Unwrap()->Delete();
+    },
+    "register_component", [](WeakWrapper<Entity>& entity, WeakWrapper<ScriptedComponent>& component) {
+      entity.Unwrap()->RegisterComponent(component.Release());
     },
     "get_texture", [](WeakWrapper<Entity>& entity) -> std::shared_ptr<Texture> {
       return entity.Unwrap()->getTexture();

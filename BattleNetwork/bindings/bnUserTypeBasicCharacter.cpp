@@ -153,8 +153,8 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "get_team", [](WeakWrapper<Character>& character) -> Team {
       return character.Unwrap()->GetTeam();
     },
-    "is_team", [](WeakWrapper<Character>& character, Team team) {
-      character.Unwrap()->Teammate(team);
+    "is_team", [](WeakWrapper<Character>& character, Team team) -> bool {
+      return character.Unwrap()->Teammate(team);
     },
     "get_texture", [](WeakWrapper<Character>& character) -> std::shared_ptr<Texture> {
       return character.Unwrap()->getTexture();

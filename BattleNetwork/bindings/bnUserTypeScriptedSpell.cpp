@@ -3,6 +3,7 @@
 
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
+#include "bnScriptedComponent.h"
 #include "bnScriptedSpell.h"
 #include "../bnSolHelpers.h"
 #include "../bnTile.h"
@@ -163,6 +164,9 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     },
     "delete", [](WeakWrapper<ScriptedSpell>& spell) {
       spell.Unwrap()->Delete();
+    },
+    "register_component", [](WeakWrapper<ScriptedSpell>& spell, WeakWrapper<ScriptedComponent>& component) {
+      spell.Unwrap()->RegisterComponent(component.Release());
     },
     "get_texture", [](WeakWrapper<ScriptedSpell>& spell) -> std::shared_ptr<Texture> {
       return spell.Unwrap()->getTexture();
