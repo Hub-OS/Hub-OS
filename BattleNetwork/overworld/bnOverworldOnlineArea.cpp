@@ -1295,6 +1295,15 @@ void Overworld::OnlineArea::sendBattleResultsSignal(const BattleResults& battleR
   writer.Write(buffer, time);
   writer.Write(buffer, battleResults.runaway);
   writer.Write(buffer, battleResults.finalEmotion);
+  writer.Write(buffer, (int)battleResults.turns);
+
+  // npc data
+  writer.Write(buffer, (uint16_t)battleResults.mobStatus.size());
+
+  for (auto& data : battleResults.mobStatus) {
+    writer.WriteString<uint8_t>(buffer, data.id);
+    writer.Write(buffer, (int)data.health);
+  }
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
