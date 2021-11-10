@@ -18,13 +18,12 @@ class ScriptedComponent final :
   public dynamic_object
 {
 public:
-  ScriptedComponent(std::weak_ptr<Character> owner, Component::lifetimes lifetime);
+  ScriptedComponent(std::weak_ptr<Entity> owner, Component::lifetimes lifetime);
   ~ScriptedComponent();
 
   void Init();
   void OnUpdate(double dt) override;
   void Inject(BattleSceneBase&) override;
-  std::shared_ptr<Character> GetOwnerAsCharacter();
 
   sol::object update_func;
   sol::object scene_inject_func;

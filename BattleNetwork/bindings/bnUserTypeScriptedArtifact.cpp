@@ -3,6 +3,7 @@
 
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
+#include "bnScriptedComponent.h"
 #include "bnScriptedArtifact.h"
 #include "../bnTile.h"
 #include "../bnSolHelpers.h"
@@ -154,6 +155,9 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     },
     "delete", [](WeakWrapper<ScriptedArtifact>& artifact) {
       artifact.Unwrap()->Delete();
+    },
+    "register_component", [](WeakWrapper<ScriptedArtifact>& artifact, WeakWrapper<ScriptedComponent>& component) {
+      artifact.Unwrap()->RegisterComponent(component.Release());
     },
     "get_texture", [](WeakWrapper<ScriptedArtifact>& artifact) -> std::shared_ptr<Texture> {
       return artifact.Unwrap()->getTexture();

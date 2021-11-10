@@ -3,7 +3,7 @@
 #include "../bnSolHelpers.h"
 #include "bnWeakWrapper.h"
 
-ScriptedComponent::ScriptedComponent(std::weak_ptr<Character> owner, Component::lifetimes lifetime) :
+ScriptedComponent::ScriptedComponent(std::weak_ptr<Entity> owner, Component::lifetimes lifetime) :
     Component(owner, lifetime)
 {
 }
@@ -44,9 +44,4 @@ void ScriptedComponent::Inject(BattleSceneBase& scene)
   // this way the timer can keep ticking
 
   scene.Inject(shared_from_this());
-}
-
-std::shared_ptr<Character> ScriptedComponent::GetOwnerAsCharacter()
-{
-  return this->GetOwnerAs<Character>();
 }

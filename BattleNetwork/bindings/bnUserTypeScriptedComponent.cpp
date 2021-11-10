@@ -7,8 +7,8 @@
 #include "bnScriptedPlayer.h"
 #include "../bnSolHelpers.h"
 
-static WeakWrapper<ScriptedComponent> construct(std::shared_ptr<Character> character, Component::lifetimes lifetime) {
-  auto component = std::make_shared<ScriptedComponent>(character, lifetime);
+static WeakWrapper<ScriptedComponent> construct(std::shared_ptr<Entity> entity, Component::lifetimes lifetime) {
+  auto component = std::make_shared<ScriptedComponent>(entity, lifetime);
   component->Init();
 
   auto wrappedComponent = WeakWrapper(component);
@@ -19,6 +19,9 @@ static WeakWrapper<ScriptedComponent> construct(std::shared_ptr<Character> chara
 void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedComponent>>("Component",
     sol::factories(
+      [](WeakWrapper<Entity>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
+        return construct(owner.Unwrap(), lifetime);
+      },
       [](WeakWrapper<Character>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
         return construct(owner.Unwrap(), lifetime);
       },
@@ -47,8 +50,8 @@ void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_names
     "is_injected", [](WeakWrapper<ScriptedComponent>& component) -> bool{
       return component.Unwrap()->Injected();
     },
-    "get_owner", [](WeakWrapper<ScriptedComponent>& component) -> WeakWrapper<Character> {
-      return WeakWrapper(component.Unwrap()->GetOwnerAsCharacter());
+    "get_owner", [](WeakWrapper<ScriptedComponent>& component) -> WeakWrapper<Entity> {
+      return WeakWrapper(component.Unwrap()->GetOwner());
     },
     "update_func", sol::property(
       [](WeakWrapper<ScriptedComponent>& component) { return component.Unwrap()->update_func; },
