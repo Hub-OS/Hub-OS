@@ -536,12 +536,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   engine_namespace.set_function("requires_character",
     [this](const std::string& fqn)
     {
-      // Handle built-ins...
-      auto builtins = { "com.builtins.char.canodumb", "com.builtins.char.mettaur" };
-      for (auto&& match : builtins) {
-        if (fqn == match) return;
-      }
-
       if (this->FetchCharacter(fqn) == nullptr) {
         std::string msg = "Failed to Require character with FQN " + fqn;
         Logger::Log(msg);
