@@ -470,6 +470,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
 
     if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
       sf::Color originalColor = sprite->getColor();
+      // round to the closest layer for handling online players on stairs
       auto layer = (int)std::roundf(sprite->GetElevation());
 
       if (map.HasShadow(gridPos, layer)) {
