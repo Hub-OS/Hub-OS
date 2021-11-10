@@ -384,12 +384,13 @@ template<typename MetaClass>
 stx::result_t<std::string> PackageManager<MetaClass>::RemovePackageByID(const std::string& id)
 {
   if (auto iter = packages.find(id); iter != packages.end()) {
-    delete iter->second;
-    packages.erase(iter);
-
     std::string path = iter->second->filepath;
     filepathToPackageId.erase(path);
     zipFilepathToPackageId.erase(path + ".zip");
+
+    delete iter->second;
+    packages.erase(iter);
+
     return stx::ok(path);
   }
 
