@@ -50,7 +50,6 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       // This way dying will cancel the form
       playerPtr->ClearActionQueue();
       playerPtr->ActivateFormAt(_index);
-      playerPtr->MakeActionable();
       playerPtr->SetColorMode(ColorMode::additive);
       playerPtr->setColor(NoopCompositeColor(ColorMode::additive));
       
@@ -62,6 +61,8 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
         Audio().Play(AudioType::DEFORM);
       }
       else {
+        playerPtr->MakeActionable();
+
         if (playerPtr == GetScene().GetPlayer().get()) {
           // only client player should remove their index information (e.g. PVP battles)
           auto& widget = GetScene().GetCardSelectWidget();

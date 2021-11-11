@@ -16,8 +16,8 @@ void VirtualInputState::Process()
       auto iterFind = std::find_if(queuedState.begin(), queuedState.end(), query);
 
       if (iterFind != queuedState.end()) {
-        iter = queuedState.erase(iterFind);
-        continue;
+        //iter = queuedState.erase(iterFind);
+        //continue;
       }
     }
 
@@ -32,12 +32,12 @@ void VirtualInputState::Process()
   for (auto& [name, value] : queuedState) {
     auto previouslyHeld = (value == InputState::pressed && stateLastFrame[name] == InputState::pressed) || stateLastFrame[name] == InputState::held;
 
-    if (previouslyHeld) {
-      state[name] = InputState::held;
-    }
-    else {
+    //if (previouslyHeld) {
+    //  state[name] = InputState::held;
+    //}
+    //else {
       state[name] = value;
-    }
+    //}
   }
 
   for (auto& [name, value] : stateLastFrame) {
@@ -87,6 +87,7 @@ void VirtualInputState::Flush()
 
 void VirtualInputState::DebugPrint()
 {
+  Logger::Logf("========Begin VirtualInputState::DebugPrint()========");
   for (auto& [name, state] : stateLastFrame) {
     std::string stateName = "NONE";
 
@@ -103,4 +104,5 @@ void VirtualInputState::DebugPrint()
     }
     Logger::Logf("input event %s, %s", name.c_str(), stateName.c_str());
   }
+  Logger::Logf("========End VirtualInputState::DebugPrint()========");
 }

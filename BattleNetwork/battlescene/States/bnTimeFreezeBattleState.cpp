@@ -133,6 +133,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
           user->InputState().VirtualKeyEvent(copy);
         }
         user->InputState().Process();
+        user->InputState().DebugPrint();
 
         action->Update(elapsed);
       }
