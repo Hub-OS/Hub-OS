@@ -14,6 +14,12 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     "get_id", [](WeakWrapper<Entity>& entity) -> Entity::ID_t {
       return entity.Unwrap()->GetID();
     },
+    "get_element", [](WeakWrapper<Entity>& entity) -> Element {
+      return entity.Unwrap()->GetElement();
+    },
+    "set_element", [](WeakWrapper<Entity>& entity, Element element) {
+      entity.Unwrap()->SetElement(element);
+    },
     "get_tile", sol::overload(
       [](WeakWrapper<Entity>& entity, Direction dir, unsigned count) -> Battle::Tile* {
         return entity.Unwrap()->GetTile(dir, count);
@@ -194,6 +200,18 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     },
     "set_offset", [](WeakWrapper<Entity>& entity, float x, float y) {
       entity.Unwrap()->SetDrawOffset(x, y);
+    },
+    "get_name", [](WeakWrapper<Entity>& entity) -> std::string {
+      return entity.Unwrap()->GetName();
+    },
+    "get_health", [](WeakWrapper<Entity>& entity) -> int{
+      return entity.Unwrap()->GetHealth();
+    },
+    "get_max_health", [](WeakWrapper<Entity>& entity) -> int {
+      return entity.Unwrap()->GetMaxHealth();
+    },
+    "set_health", [](WeakWrapper<Entity>& entity, int health) {
+      entity.Unwrap()->SetHealth(health);
     }
   );
 }
