@@ -129,11 +129,11 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
           // add delay for network
           // copy.wait = from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
-          // inputQueue.push_back(copy);
+          //inputQueue.push_back(copy);
           user->InputState().VirtualKeyEvent(copy);
         }
         user->InputState().Process();
-        user->InputState().DebugPrint();
+        // user->InputState().DebugPrint();
 
         action->Update(elapsed);
       }
