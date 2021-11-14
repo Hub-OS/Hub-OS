@@ -192,7 +192,11 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
 
   session.sendRequest(request);
   std::istream& rs = session.receiveResponse(response);
-  std::cout << response.getStatus() << " " << response.getReason() << std::endl;
+  std::cout << "[Response Status] " << response.getStatus() << " " << response.getReason() << std::endl;
+
+  if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_MOVED_PERMANENTLY) {
+    std::cout << "Redirect: " << response.get("Location") << std::endl;
+  }
 
   if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED) {
     return stx::error<std::string>("Unable to download package. Result was HTTP_UNAUTHORIZED. Aborting.");
@@ -201,6 +205,7 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
   std::string outpath = "cache/" + stx::rand_alphanum(12) + ".zip";
   std::ofstream ofs(outpath, std::fstream::binary);
   Poco::StreamCopier::copyStream(rs, ofs);
+  ofs.close();
 
   return packageManager.template LoadPackageFromZip<ScriptedDataType>(outpath);
 }
