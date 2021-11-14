@@ -2,10 +2,52 @@
 /*! \brief This function hooks into the loading phase and loads extra content */
 
 #pragma once
- // TODO: mac os < 10.5 file system support...
+#include <vector>
+#include <functional>
+
+// TODO: mac os < 10.5 file system support...
 #ifndef __APPLE__
 #include <filesystem>
 #endif 
+
+static std::map<std::string, std::function<bool()>> retryTable;
+
+static std::vector<std::string> ResolveFailedPackages() {
+  std::vector<std::string> resolvedPackages;
+
+  size_t size_before = retryTable.size();
+
+  for (auto iter = retryTable.begin(); iter != retryTable.end(); /* skip */) {
+    if (iter->second()) {
+      resolvedPackages.push_back(iter->first);
+      iter = retryTable.erase(iter);
+      continue;
+    }
+
+    iter++;
+  }
+
+  return resolvedPackages;
+}
+
+template<typename PackageManagerT, typename ScriptedResourceT>
+static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, const std::string& fullModPath) {
+  auto result = packageManager.template LoadPackageFromDisk<ScriptedResourceT>(fullModPath);
+
+  if (!result.is_error()) {
+    return stx::ok();
+  }
+
+  // Otherwise we could not install,
+  // add this record if possible to the retryTable
+  if (retryTable.find(fullModPath) == retryTable.end()) {
+    retryTable[fullModPath] = [&packageManager, fullModPath] () -> bool {
+      return InstallMod<PackageManagerT, ScriptedResourceT>(packageManager, fullModPath).is_error() == false;
+    };
+  }
+
+  return stx::error<bool>("retry failed");
+}
 
 template<typename PackageManagerT, typename ScriptedResourceT>
 static inline void QueueModRegistration(PackageManagerT& packageManager, const char* modPath, const char* modCategory) {
@@ -24,9 +66,8 @@ static inline void QueueModRegistration(PackageManagerT& packageManager, const c
         ignoreList[full_path] = true;
         ignoreList[full_path + ".zip"] = true;
 
-        if (auto res = packageManager.template LoadPackageFromDisk<ScriptedResourceT>(full_path); res.is_error()) {
+        if (auto res = InstallMod<PackageManagerT, ScriptedResourceT>(packageManager, full_path); res.is_error()) {
           throw std::runtime_error(res.error_cstr());
-          continue;
         }
       }
       else {

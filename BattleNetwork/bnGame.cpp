@@ -160,6 +160,30 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   Callback<void()> blocks;
   blocks.Slot(std::bind(&Game::RunBlocksInit, this, &progress));
 
+  Callback<void()> resolveFailedPackages;
+  resolveFailedPackages.Slot([this]() {
+    std::string package = cardPackageManager->FirstValidPackage();
+
+    do {
+      if (package.empty()) break;
+
+      scriptManager.DefineCard(package, cardPackageManager->FindPackageByID(package).GetFilePath());
+
+      package = cardPackageManager->GetPackageAfter(package);
+    } while (package != cardPackageManager->FirstValidPackage());
+
+    auto packages = ResolveFailedPackages();
+
+    while (!packages.empty()) { 
+      for (auto& p : packages) {
+        scriptManager.DefineCard(cardPackageManager->FilepathToPackageID(p), p);
+      }
+
+      /* keep trying */ 
+      packages = ResolveFailedPackages();
+    }
+  });
+
   Callback<void()> finish;
   finish.Slot([this] {
     // Tell the input event loop how to behave when the app loses and regains focus
@@ -185,6 +209,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   tasks.AddTask("Load mobs", std::move(mobs));
   tasks.AddTask("Load cards", std::move(cards));
   tasks.AddTask("Load prog blocks", std::move(blocks));
+  tasks.AddTask("Resolving failed packages...", std::move(resolveFailedPackages));
   tasks.AddTask("Finishing", std::move(finish));
 
   // Load font symbols immediately...

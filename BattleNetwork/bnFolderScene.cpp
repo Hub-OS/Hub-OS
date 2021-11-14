@@ -616,9 +616,12 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
-      float cardIconY = 132.0f + (32.f*i);
+      std::string id = (*iter)->GetUUID();
+      if (id.empty()) continue;
 
-      cardIcon.setTexture(*packageManager.FindPackageByID((*iter)->GetUUID()).GetIconTexture());
+      float cardIconY = 132.0f + (32.f * i);
+
+      cardIcon.setTexture(*packageManager.FindPackageByID(id).GetIconTexture());
       cardIcon.setPosition(2.f*99.f, cardIconY);
       surface.draw(cardIcon);
 
