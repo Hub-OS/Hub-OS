@@ -181,10 +181,10 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
       return stx::error<std::string>(msg);
     }
 
-      // Assign Package ID to the state, now that it's been registered.
+    // Assign Package ID to the state, now that it's been registered.
     state["_package_id"] = packageClass->GetPackageID();
 
-    handle.Scripts().RegisterDependencyNotes( &state );
+    handle.Scripts().RegisterDependencyNotes(state);
 
     packageClass->OnMetaParsed();
 

@@ -13,6 +13,7 @@
 #include "bnBlockPackageManager.h"
 #include "bnLuaLibraryPackageManager.h"
 
+#include "bnCard.h"
 #include "bnEntity.h"
 #include "bnCharacter.h"
 #include "bnElements.h"
@@ -29,6 +30,8 @@
 #include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
 #include "bindings/bnScriptedMob.h"
+#include "bindings/bnScriptedCard.h"
+#include "bindings/bnScriptedCardAction.h"
 #include "bindings/bnWeakWrapper.h"
 #include "bindings/bnUserTypeAnimation.h"
 #include "bindings/bnUserTypeSceneNode.h"
@@ -86,32 +89,32 @@ std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
   return frames;
 }
 
-void ScriptResourceManager::SetSystemFunctions( sol::state* state )
+void ScriptResourceManager::SetSystemFunctions( sol::state& state )
 {
-  state->open_libraries(sol::lib::base, sol::lib::debug, sol::lib::math, sol::lib::table);
+  state.open_libraries(sol::lib::base, sol::lib::debug, sol::lib::math, sol::lib::table);
 
   // 'include()' in Lua is intended to load a LIBRARY file of Lua code into the current lua state.
   // Currently only loads library files included in the SAME directory as the script file.
   // Has to capture a pointer to sol::state, the copy constructor was deleted, cannot capture a copy to reference.
-  state->set_function( "include",
-    [this, state]( const std::string fileName ) -> sol::protected_function_result {
+  state.set_function( "include",
+    [this, &state]( const std::string fileName ) -> sol::protected_function_result {
       #ifdef _DEBUG
       std::cout << "Including library: " << fileName << std::endl;
       #endif
 
       sol::protected_function_result result;
 
-        // Prefer using the shared libraries if possible.
-        // i.e. ones that were present in "mods/libs/"
+      // Prefer using the shared libraries if possible.
+      // i.e. ones that were present in "mods/libs/"
       if( auto sharedLibPath = FetchSharedLibraryPath( fileName ); !sharedLibPath.empty() )
       {
         #ifdef _DEBUG
         Logger::Log( "Including shared library: " + fileName);
         #endif
         
-        AddDependencyNote( state, fileName );
+        AddDependencyNote(state, fileName );
 
-        result = state->do_file( sharedLibPath, sol::load_mode::any );
+        result = state.do_file( sharedLibPath, sol::load_mode::any );
       }
       else
       {
@@ -119,8 +122,8 @@ void ScriptResourceManager::SetSystemFunctions( sol::state* state )
         std::cout << "Including local library: " << fileName << std::endl;
         #endif
 
-        std::string modPathRef = (*state)["_modpath"];
-        result = state->do_file( modPathRef + fileName, sol::load_mode::any );
+        std::string modPathRef = state["_modpath"];
+        result = state.do_file( modPathRef + fileName, sol::load_mode::any );
       }
 
       return result;
@@ -128,22 +131,22 @@ void ScriptResourceManager::SetSystemFunctions( sol::state* state )
   );
 }
 
-void ScriptResourceManager::AddDependencyNote( sol::state* state, const std::string& dependencyPackageID )
+void ScriptResourceManager::AddDependencyNote(sol::state& state, const std::string& dependencyPackageID )
 {
-    // If "__dependencies" doesn't exist already, create it. We need it to exist.
-  if( ! (*state)["__dependencies"].valid() )
-    state->create_table("__dependencies");
+  // If "__dependencies" doesn't exist already, create it. We need it to exist.
+  if(!state["__dependencies"].valid() )
+    state.create_table("__dependencies");
 
-  sol::lua_table t = (*state)["__dependencies"];
+  sol::lua_table t = state["__dependencies"];
 
-    // Add the package dependency to the table.
+  // Add the package dependency to the table.
   t.set( t.size() + 1, dependencyPackageID );
 }
 
-void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
+void ScriptResourceManager::RegisterDependencyNotes(sol::state& state )
 {
-    // If "_package_id" isn't set, something's gone wrong, return.
-  if( ! (*state)["_package_id"].valid() )
+  // If "_package_id" isn't set, something's gone wrong, return.
+  if(!state["_package_id"].valid() )
   {
     #ifdef _DEBUG
     Logger::Log( "-- No Valid Package ID" );
@@ -151,11 +154,11 @@ void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
     return;
   }
   
-    // Retrieve the package ID from the state.
-  std::string packageID = (*state)["_package_id"];
+  // Retrieve the package ID from the state.
+  std::string packageID = state["_package_id"];
 
-    // If this doesn't have any dependencies (no entries in "__dependencies" from earlier), return.
-  if( ! (*state)["__dependencies"].valid() )
+  // If this doesn't have any dependencies (no entries in "__dependencies" from earlier), return.
+  if(!state["__dependencies"].valid() )
   {
     #ifdef _DEBUG
     Logger::Log( "-- " + packageID + ": No Dependency Table" );
@@ -163,9 +166,10 @@ void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
     return;
   }
 
-    // Retrieve the table of dependencies set from earlier.
-  sol::lua_table deps = (*state)["__dependencies"];
-    // Get the number of keys in that table, to iterate over.
+  // Retrieve the table of dependencies set from earlier.
+  sol::lua_table deps = state["__dependencies"];
+
+  // Get the number of keys in that table, to iterate over.
   auto count = deps.size();
 
   std::list<std::string> dependencies;
@@ -178,8 +182,8 @@ void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
     depsString = depsString + deps.get<std::string>(ind) + ", ";
     #endif
 
-      // Get the KEY of each member in the table, as those are the package IDs that this depends on.
-      // Add them to the list.
+    // Get the KEY of each member in the table, as those are the package IDs that this depends on.
+    // Add them to the list.
     dependencies.emplace_back( deps.get<std::string>(ind) );
   }
 
@@ -188,16 +192,16 @@ void ScriptResourceManager::RegisterDependencyNotes( sol::state* state )
   Logger::Log( "- Depends on " + depsString );
   #endif
 
-    // Register the dependencies with the list in ScriptResourceManager.
+  // Register the dependencies with the list in ScriptResourceManager.
   scriptDependencies[packageID] = dependencies;
 
-    // Remove the "__dependencies" table secretly inserted into the sol state, we don't need it anymore.
-  (*state)["__dependencies"] = sol::nil;
+  // Remove the "__dependencies" table secretly inserted into the sol state, we don't need it anymore.
+  state["__dependencies"] = sol::nil;
 }
 
-void ScriptResourceManager::SetModPathVariable( sol::state* state, const std::filesystem::path& modDirectory )
+void ScriptResourceManager::SetModPathVariable( sol::state& state, const std::filesystem::path& modDirectory )
 {
-  (*state)["_modpath"] = modDirectory.generic_string() + "/";
+  state["_modpath"] = modDirectory.generic_string() + "/";
 }
 
 // Free Function provided to a number of Lua types that will print an error message when attempting to access a key that does not exist.
@@ -217,7 +221,8 @@ sol::object ScriptResourceManager::PrintInvalidAssignMessage( sol::table table, 
   Logger::Log( "[Script Error] : Attempted to assign to \"" + key + "\" in type \"" + typeName + "\"." );
   Logger::Log( "[Script Error] : " + typeName + " is read-only. Cannot assign new values to it." );
   return sol::lua_nil;
-}// Returns the current executing line in the Lua script.
+}
+// Returns the current executing line in the Lua script.
 // Format: \@[full_filename]:[line_number]
 std::string ScriptResourceManager::GetCurrentLine( lua_State* L )
 {
@@ -528,16 +533,37 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   engine_namespace.set_function("define_character",
-    [this](const std::string& fqn, const std::string& path) {
+    [this, &state](const std::string& fqn, const std::string& path) {
+      AddDependencyNote(state, fqn);
       this->DefineCharacter(fqn, path);
     }
   );
 
   engine_namespace.set_function("requires_character",
-    [this](const std::string& fqn)
+    [this, &state](const std::string& fqn)
     {
+      AddDependencyNote(state, fqn);
       if (this->FetchCharacter(fqn) == nullptr) {
         std::string msg = "Failed to Require character with FQN " + fqn;
+        Logger::Log(msg);
+        throw std::runtime_error(msg);
+      }
+    }
+  );
+
+  engine_namespace.set_function("define_card",
+    [this, &state](const std::string& fqn, const std::string& path) {
+      AddDependencyNote(state, fqn);
+      this->DefineCard(fqn, path);
+    }
+  );
+
+  engine_namespace.set_function("requires_card",
+    [this, &state](const std::string& fqn)
+    {
+      AddDependencyNote(state, fqn);
+      if (this->FetchCard(fqn) == nullptr) {
+        std::string msg = "Failed to Require card with FQN " + fqn;
         Logger::Log(msg);
         throw std::runtime_error(msg);
       }
@@ -845,9 +871,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   engine_namespace.set_function("action_from_card",
-    [this](const std::string& fqn)
+    [this](const std::string& fqn, std::shared_ptr<Character> character, const Battle::Card::Properties& props)
     {
-
+      auto card = ScriptedCard(*FetchCard(fqn));
+      return card.BuildCardAction(character, props);
     }
   );
 }
@@ -899,8 +926,8 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
 
   sol::state* lua = new sol::state;
   
-  SetModPathVariable(lua, modDirectory);
-  SetSystemFunctions(lua);
+  SetModPathVariable(*lua, modDirectory);
+  SetSystemFunctions(*lua);
   ConfigureEnvironment(*lua);
 
   lua->set_exception_handler(&::exception_handler);
@@ -909,6 +936,26 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   auto load_result = lua->safe_script_file(entryPath.generic_string(), sol::script_pass_on_error);
   auto pair = scriptTableHash.emplace(entryPath.generic_string(), LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
+}
+
+void ScriptResourceManager::DefineCard(const std::string& fqn, const std::string& path)
+{
+  auto iter = cardFQN.find(fqn);
+
+  if (iter == cardFQN.end()) {
+    auto& res = LoadScript(path);
+
+    if (res.result.valid()) {
+      cardFQN[fqn] = path;
+    }
+    else {
+      sol::error error = res.result;
+      Logger::Logf("Failed to Require card with FQN %s. Reason: %s", fqn.c_str(), error.what());
+
+      // bubble up to end this scene from loading that needs this character...
+      throw std::exception(error);
+    }
+  }
 }
 
 void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::string& path)
@@ -950,6 +997,18 @@ void ScriptResourceManager::DefineLibrary( const std::string& fqn, const std::st
       throw std::exception( error );
     }
   }
+}
+
+sol::state* ScriptResourceManager::FetchCard(const std::string& fqn)
+{
+  auto iter = cardFQN.find(fqn);
+
+  if (iter != cardFQN.end()) {
+    return LoadScript(iter->second).state;
+  }
+
+  // else miss
+  return nullptr;
 }
 
 sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)

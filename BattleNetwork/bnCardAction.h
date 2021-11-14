@@ -13,6 +13,10 @@
 
 class Character;
 
+namespace Battle {
+  class Tile;
+}
+
 using namespace swoosh;
 
 class CardAction : public stx::enable_shared_from_base<CardAction>, public sf::Drawable, public ResourceHandle {
@@ -52,7 +56,6 @@ public:
     Attachment(Animation& parentAnim, const std::string& point);
     ~Attachment();
 
-    Attachment& UseAnimation(Animation&);
     void Update(double elapsed);
     void SetOffset(const sf::Vector2f& pos);
     void SetScale(const sf::Vector2f& scale);
@@ -103,6 +106,7 @@ private:
   std::shared_ptr<AnimationComponent> anim{ nullptr };
   Battle::Card::Properties meta;
   std::vector<std::pair<int, FrameCallback>> animActions;
+  Battle::Tile* startTile{ nullptr };
 
   // Used internally
   void RecallPreviousState();
@@ -147,7 +151,7 @@ public:
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-
+  virtual bool CanMoveTo(Battle::Tile* next);
 protected:
   virtual void OnActionEnd() = 0;
   virtual void OnAnimationEnd() = 0;

@@ -181,6 +181,9 @@ void CardAction::Execute(std::shared_ptr<Character> user)
   // prepare the animation behavior
   prepareActionDelegate();
   started = true;
+  startTile = user->GetTile();
+  startTile->ReserveEntityByID(user->GetID());
+
   // run
   OnExecute(user);
   // Position any new nodes to actor
@@ -191,6 +194,10 @@ void CardAction::EndAction()
 {
   RecallPreviousState();
   OnActionEnd();
+  
+  auto actorPtr = actor.lock();
+  actorPtr->GetTile()->RemoveEntityByID(actorPtr->GetID());
+  startTile->AddEntity(actorPtr);
 }
 
 void CardAction::UseStuntDouble(std::shared_ptr<Character> stuntDouble)
@@ -328,6 +335,10 @@ const bool CardAction::IsLockoutOver() const {
 const bool CardAction::CanExecute() const
 {
   return started == false;
+}
+
+bool CardAction::CanMoveTo(Battle::Tile* next) {
+  return actor.lock()->Entity::CanMoveTo(next);
 }
 
 //////////////////////////////////////////////////

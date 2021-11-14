@@ -35,6 +35,22 @@ void ScriptedCardAction::draw(sf::RenderTarget& target, sf::RenderStates states)
   // TODO
 }
 
+bool ScriptedCardAction::CanMoveTo(Battle::Tile* next)
+{
+  if (can_move_to_func.valid())
+  {
+    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
+
+    if (result.is_error()) {
+      Logger::Log(result.error_cstr());
+    }
+
+    return result.value();
+  }
+
+  return GetActor()->CanMoveTo(next);
+}
+
 void ScriptedCardAction::OnAnimationEnd() {
   if (animation_end_func.valid()) 
   {

@@ -772,8 +772,6 @@ protected:
   std::list<ComponentBucket> queuedComponents;
 
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
-  void SetMoveEndlag(const frame_time_t& frames);
-  void SetMoveStartupDelay(const frame_time_t& frames);
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 
   /**

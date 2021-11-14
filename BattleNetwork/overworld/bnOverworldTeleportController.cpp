@@ -20,20 +20,27 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportO
   this->actor = actor;
 
   if (!teleportedOut) {
-    actor->Hide();
-
     auto onStart = [=] {
       if (!mute) {
         Audio().Play(AudioType::AREA_GRAB);
       }
+
+      this->actor->SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
+      this->actor->setColor(sf::Color::Cyan);
+    };
+
+    auto onWarp = [=] {
+      this->actor->Hide();
     };
 
     auto onFinish = [=] {
       this->animComplete = true;
+      this->actor->RevokeShader();
+      this->actor->setColor(sf::Color::White);
     };
 
     animComplete = false;
-    beamAnim << "TELEPORT_OUT" << Animator::On(1, onStart) << onFinish;
+    beamAnim << "TELEPORT_OUT" << Animator::On(1, onStart) << Animator::On(2, onWarp) << onFinish;
     beamAnim.Refresh(beam->getSprite());
     beam->Set3DPosition(actor->Get3DPosition());
 

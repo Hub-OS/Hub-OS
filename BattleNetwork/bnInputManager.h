@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include <map>
+#include <optional>
 #include <functional>
 #include <SFML/Window/Event.hpp>
 
@@ -163,6 +164,7 @@ private:
   mutable std::mutex mutex;
   sf::Keyboard::Key queuedLastKey{}, lastkey{};
   sf::Window& window;
+  std::optional<sf::Event> queuedTextEvent;
 
   Gamepad queuedLastButton{}, lastButton{};
 

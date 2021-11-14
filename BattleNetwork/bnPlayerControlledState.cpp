@@ -29,7 +29,8 @@ void PlayerControlledState::OnEnter(Player& player) {
 
 void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   if (replicator) {
-    currLag = replicator->GetAvgLatency(); // NOTE: in milliseconds
+    // NOTE: in milliseconds
+    currLag = std::max((double)frames(5).asMilli().value, replicator->GetAvgLatency());
   }
 
   // For all inputs in the queue, reduce their wait time for this new frame

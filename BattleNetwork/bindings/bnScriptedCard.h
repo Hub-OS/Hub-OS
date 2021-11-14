@@ -17,7 +17,7 @@ public:
 
   }
 
-  std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, Battle::Card::Properties& props) override {
+  std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, const Battle::Card::Properties& props) override {
     auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(script, "card_create_action", WeakWrapper(user), props);
 
     if (functionResult.is_error()) {

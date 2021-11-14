@@ -13,6 +13,7 @@ frame duration="0.05" x="0" y="0" w="56" h="46" originx="27" originy="33"
 frame duration="0.1" x="0" y="0" w="0" h="0" originx="0" originy="0"
 
 animation state="teleport_out"
+blank duration="0.083"
 frame duration="0.05" x="210" y="0" w="8" h="68" originx="3" originy="67"
 frame duration="0.05" x="106" y="0" w="8" h="86" originx="3" originy="85"
 frame duration="0.05" x="162" y="0" w="4" h="86" originx="1" originy="85"

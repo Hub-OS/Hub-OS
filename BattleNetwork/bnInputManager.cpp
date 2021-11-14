@@ -73,16 +73,26 @@ void InputManager::Update()
 {
   this->mutex.lock();
 
+  if (!systemPasteEvent && queuedSystemPasteEvent) {
+    textBuffer.HandlePaste(GetClipboard());
+  }
+
   std::swap(queuedLastKey, lastkey);
   std::swap(queuedLastButton, lastButton);
   systemCopyEvent = queuedSystemCopyEvent;
   systemPasteEvent = queuedSystemPasteEvent;
 
-  queuedSystemCopyEvent = queuedSystemPasteEvent = false;
   queuedLastKey = sf::Keyboard::Key::Unknown;
   queuedLastButton = static_cast<Gamepad>(-1);
 
   inputState.Process();
+
+  if (queuedTextEvent.has_value()) {
+    textBuffer.HandleKeyPressed(queuedTextEvent.value());
+    queuedTextEvent.reset();
+  }
+
+  textBuffer.HandleCompletedEventProcessing();
 
 #ifdef __ANDROID__
   state.clear(); // TODO: what inputs get stuck in the event list on droid?
@@ -121,16 +131,18 @@ void InputManager::EventPoll() {
     } else if(event.type == sf::Event::EventType::KeyPressed) {
       if (hasFocus) {
         queuedLastKey = event.key.code;
+        queuedSystemCopyEvent = queuedSystemPasteEvent = false;
 
 #ifndef __ANDROID__
-        if (event.key.control && event.key.code == sf::Keyboard::V)
+        if (event.key.control && event.key.code == sf::Keyboard::V) {
           queuedSystemPasteEvent = true;
+        }
 
-        if (event.key.control && event.key.code == sf::Keyboard::C)
+        if (event.key.control && event.key.code == sf::Keyboard::C) {
           queuedSystemCopyEvent = true;
+        }
 #endif
-
-        textBuffer.HandleKeyPressed(event);
+        queuedTextEvent = event;
       }
     }
 
@@ -144,12 +156,6 @@ void InputManager::EventPoll() {
       }
     }
   } // end event poll
-
-  if (queuedSystemPasteEvent && !systemPasteEvent) {
-    textBuffer.HandlePaste(GetClipboard());
-  }
-
-  textBuffer.HandleCompletedEventProcessing();
 
   // keep the gamepad list up-to-date
   gamepads.clear();

@@ -14,11 +14,12 @@ class Character;
 class ScriptedCardAction : public CardAction, public dynamic_object {
 public:
   ScriptedCardAction(std::shared_ptr<Character> actor, const std::string& state);
-  ~ScriptedCardAction();
+  virtual ~ScriptedCardAction();
 
   void Init();
   void Update(double elapsed) override;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+  bool CanMoveTo(Battle::Tile* next) override;
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;
@@ -28,6 +29,8 @@ public:
   sol::object animation_end_func;
   sol::object action_end_func;
   sol::object execute_func;
+  sol::object can_move_to_func;
+
 private:
   WeakWrapper<ScriptedCardAction> weakWrap;
 };

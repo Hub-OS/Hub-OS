@@ -106,6 +106,12 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
         cardAction.Unwrap()->execute_func = VerifyLuaCallback(value);
       }
+    ),
+    "can_move_to_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->can_move_to_func; },
+      [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
+        cardAction.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
+      }
     )
   );
 }

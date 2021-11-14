@@ -106,18 +106,33 @@ void ScriptedCharacter::OnBattleStop() {
 }
 
 bool ScriptedCharacter::CanMoveTo(Battle::Tile* next) {
-  if (can_move_to_func.valid()) 
-  {
-    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
+  if (canMoveToLock) {
+    canMoveToLock = false;
 
-    if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+    if (can_move_to_func.valid())
+    {
+      auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
+
+      if (result.is_error()) {
+        Logger::Log(result.error_cstr());
+      }
+
+      return result.value();
     }
 
-    return result.value();
+    return Character::CanMoveTo(next);
   }
 
-  return Character::CanMoveTo(next);
+  canMoveToLock = true;
+  bool cardRulesResult = false;
+
+  if (auto action = this->CurrentCardAction()) {
+    cardRulesResult = action->CanMoveTo(next);
+  }
+
+  canMoveToLock = false; // assure this is toggled off
+
+  return cardRulesResult;
 }
 
 void ScriptedCharacter::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback)
