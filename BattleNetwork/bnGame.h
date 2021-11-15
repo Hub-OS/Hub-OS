@@ -62,6 +62,8 @@ private:
   bool showScreenBars{};
   bool frameByFrame{}, isDebug{}, quitting{ false };
   bool singlethreaded{ false };
+  bool isRecording{}, isRecordOutSaving{}, recordPressed{};
+
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
@@ -103,10 +105,12 @@ private:
 
   Endianness endian{ Endianness::big };
   std::vector<cxxopts::KeyValue> commandline; /*!< Values parsed from the command line*/
+  std::vector<std::pair<unsigned, sf::Image>> recordedFrames;
   std::atomic<int> progress{ 0 };
   std::mutex windowMutex;
-  std::thread renderThread;
+  std::thread renderThread, recordOutThread;
 
+  void HandleRecordingEvents();
   void UpdateMouse(double dt);
   void ProcessFrame();
   void RunSingleThreaded();
@@ -135,6 +139,9 @@ public:
   void SeedRand(unsigned int seed);
   const unsigned int GetRandSeed() const;
   bool IsSingleThreaded() const;
+  bool IsRecording() const;
+  void Record(bool enabled = true);
+
   const std::string AppDataPath();
   const std::string CacheDataPath();
   const std::string DesktopPath();

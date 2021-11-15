@@ -91,6 +91,10 @@ Game::~Game() {
     renderThread.join();
   }
 
+  if (recordOutThread.joinable()) {
+    recordOutThread.join();
+  }
+
   delete session;
   delete cardPackageManager;
   delete playerPackageManager;
@@ -252,6 +256,48 @@ bool Game::NextFrame()
   return (frameByFrame && nextFrameKey) || !frameByFrame;
 }
 
+void Game::HandleRecordingEvents()
+{
+  if (isRecordOutSaving)
+    return;
+
+  if (!inputManager.Has(InputEvents::pressed_record_frames)) {
+    recordPressed = false;
+    return;
+  }
+
+  if (recordPressed)
+    return;
+
+  recordPressed = true;
+
+  if (!IsRecording()) {
+    Record(true);
+    window.SetSubtitle("[RECORDING]");
+    return;
+  }
+
+  recordOutThread = std::thread([this]() {
+    isRecordOutSaving = true;
+    Record(false);
+
+    Logger::Logf("Saving recording to disk, please wait.");
+    window.SetSubtitle("[SAVING]");
+
+    for (auto& pair : recordedFrames) {
+      pair.second.saveToFile("recording/frame_" + std::to_string(pair.first) + ".png");
+    }
+
+    Logger::Logf("Wrote %i frames to disk", (int)recordedFrames.size());
+    recordedFrames.clear();
+    window.SetSubtitle("");
+
+    isRecordOutSaving = false;
+  });
+
+  recordOutThread.detach();
+}
+
 void Game::UpdateMouse(double dt)
 {
   auto& renderWindow = *window.GetRenderWindow();
@@ -286,6 +332,11 @@ void Game::ProcessFrame()
       this->draw();        // draw game
       mouse.draw(*window.GetRenderWindow());
       window.Display(); // display to screen
+
+      if (isRecording) {
+        sf::Image image = window.GetRenderWindow()->capture();
+        recordedFrames.push_back(std::pair(FrameNumber(), image));
+      }
     }
 
     scope_elapsed = clock.getElapsedTime().asSeconds();
@@ -318,6 +369,9 @@ void Game::RunSingleThreaded()
       window.Clear(); // clear screen
 
       inputManager.Update(); // process inputs
+
+      HandleRecordingEvents();
+
       UpdateMouse(delta);
       this->update(delta);  // update game logic
       this->draw();        // draw game
@@ -348,6 +402,8 @@ void Game::Run()
 
     // Poll window events
     inputManager.EventPoll();
+
+    HandleRecordingEvents();
 
     // unused images need to be free'd 
     textureManager.HandleExpiredTextureCache();
@@ -433,6 +489,16 @@ const unsigned int Game::GetRandSeed() const
 bool Game::IsSingleThreaded() const
 {
   return singlethreaded;
+}
+
+bool Game::IsRecording() const
+{
+  return isRecording;
+}
+
+void Game::Record(bool enabled)
+{
+  isRecording = enabled;
 }
 
 const std::string Game::AppDataPath()

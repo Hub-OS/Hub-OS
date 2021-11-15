@@ -249,6 +249,18 @@ const std::string DrawWindow::GetTitle() const
   return title;
 }
 
+void DrawWindow::SetSubtitle(const std::string& subtitle)
+{
+  this->subtitle = subtitle;
+
+  if (this->subtitle.empty()) {
+    window->setTitle(this->title);
+    return;
+  }
+
+  window->setTitle(this->title + ": " + this->subtitle);
+}
+
 Camera& DrawWindow::GetCamera()
 {
   return *cam;
