@@ -327,6 +327,7 @@ void Game::ProcessFrame()
       window.Clear(); // clear screen
 
       inputManager.Update(); // process inputs
+      HandleRecordingEvents();
       UpdateMouse(delta);
       this->update(delta);  // update game logic
       this->draw();        // draw game
@@ -402,8 +403,6 @@ void Game::Run()
 
     // Poll window events
     inputManager.EventPoll();
-
-    HandleRecordingEvents();
 
     // unused images need to be free'd 
     textureManager.HandleExpiredTextureCache();

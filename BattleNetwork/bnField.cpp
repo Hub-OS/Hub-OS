@@ -421,21 +421,19 @@ void Field::Update(double _elapsed) {
     // begin the next column
   }
 
-  // revert strategy for tiles:
-  for (auto col : restCol) {
-    for (size_t i = 1; i <= GetHeight(); i++) {
-      auto& t = tiles[i][col];
-
-      t->SetTeam(t->ogTeam, true);
-      t->SetFacing(t->ogFacing);
-    }
-  }
-
-  // Finally, sync stolen tiles with their corresponding columns
+  // sync stolen tiles with their corresponding columns
   for (auto col : syncCol) {
     double maxTimer = 0.0;
     for (size_t i = 1; i <= GetHeight(); i++) {
-      maxTimer = std::max(maxTimer, tiles[i][col]->teamCooldown);
+      auto& t = tiles[i][col];
+      maxTimer = std::max(maxTimer, t->teamCooldown);
+
+      auto adj_tile = t + Reverse(t->GetFacing());
+
+      while (adj_tile) {
+        maxTimer = std::max(maxTimer, adj_tile->teamCooldown);
+        adj_tile = adj_tile + Reverse(adj_tile->GetFacing());
+      }
     }
     for (size_t i = 1; i <= GetHeight(); i++) {
       auto& t = tiles[i][col];
@@ -443,6 +441,16 @@ void Field::Update(double _elapsed) {
       if (t->GetTeam() != t->ogTeam) {
         t->teamCooldown = maxTimer;
       }
+    }
+  }
+
+  // revert strategy for tiles:
+  for (auto col : restCol) {
+    for (size_t i = 1; i <= GetHeight(); i++) {
+      auto& t = tiles[i][col];
+
+      t->SetTeam(t->ogTeam, true);
+      t->SetFacing(t->ogFacing);
     }
   }
 

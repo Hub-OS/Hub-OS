@@ -448,11 +448,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
     backdropShader->setUniform("opacity", (float)backdropOpacity);
   }
 
-  counterRevealAnim.Update((float)elapsed, counterReveal->getSprite());
-  comboInfoTimer.update(sf::seconds(static_cast<float>(elapsed)));
-  multiDeleteTimer.update(sf::seconds(static_cast<float>(elapsed)));
-  battleTimer.update(sf::seconds(static_cast<float>(elapsed)));
-
   switch (backdropMode) {
   case backdrop::fadein:
     backdropOpacity = std::fmin(backdropMaxOpacity, backdropOpacity + (backdropFadeIncrements * elapsed));
@@ -503,6 +498,11 @@ void BattleSceneBase::onUpdate(double elapsed) {
       }
     }
   }
+
+  counterRevealAnim.Update((float)elapsed, counterReveal->getSprite());
+  comboInfoTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  multiDeleteTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  battleTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   // Track combo deletes
   if (lastMobSize != newMobSize && !isPlayerDeleted) {
