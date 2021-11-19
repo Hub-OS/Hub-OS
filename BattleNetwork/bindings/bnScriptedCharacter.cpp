@@ -128,6 +128,8 @@ bool ScriptedCharacter::CanMoveTo(Battle::Tile* next) {
 
   if (auto action = this->CurrentCardAction()) {
     cardRulesResult = action->CanMoveTo(next);
+  } else {
+    cardRulesResult = CanMoveTo(next);
   }
 
   canMoveToLock = false; // assure this is toggled off
