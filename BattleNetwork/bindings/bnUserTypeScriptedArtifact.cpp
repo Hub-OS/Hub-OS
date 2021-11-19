@@ -181,6 +181,9 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<ScriptedArtifact>& artifact, float height) {
       artifact.Unwrap()->SetHeight(height);
     },
+    "get_height", [](WeakWrapper<ScriptedArtifact>& artifact) -> float {
+      return artifact.Unwrap()->GetHeight();
+    },
     "get_offset", [](WeakWrapper<ScriptedArtifact>& artifact) -> sf::Vector2f {
       return artifact.Unwrap()->GetDrawOffset();
     },

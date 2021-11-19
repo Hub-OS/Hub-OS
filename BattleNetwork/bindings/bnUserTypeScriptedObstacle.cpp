@@ -233,6 +233,9 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<ScriptedObstacle>& obstacle, float height) {
       obstacle.Unwrap()->SetHeight(height);
     },
+    "get_height", [](WeakWrapper<ScriptedObstacle>& obstacle) -> float {
+      return obstacle.Unwrap()->GetHeight();
+    },
     "set_shadow", sol::overload(
       [](WeakWrapper<ScriptedObstacle>& obstacle, Entity::Shadow type) {
         obstacle.Unwrap()->SetShadowSprite(type);

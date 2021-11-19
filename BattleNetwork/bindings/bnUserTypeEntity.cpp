@@ -192,6 +192,9 @@ void DefineEntityUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<Entity>& entity, float height) {
       entity.Unwrap()->SetHeight(height);
     },
+    "get_height", [](WeakWrapper<Entity>& entity) -> float {
+      return entity.Unwrap()->GetHeight();
+    },
     "show_shadow", [](WeakWrapper<Entity>& entity, bool show) {
       entity.Unwrap()->ShowShadow(show);
     },
