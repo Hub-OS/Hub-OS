@@ -210,6 +210,9 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<ScriptedPlayer>& player, float height) {
       player.Unwrap()->SetHeight(height);
     },
+    "get_height", [](WeakWrapper<ScriptedPlayer>& player) -> float {
+      return player.Unwrap()->GetHeight();
+    },
     "set_fully_charged_color", [](WeakWrapper<ScriptedPlayer>& player, sf::Color color) {
       player.Unwrap()->SetFullyChargeColor(color);
     },

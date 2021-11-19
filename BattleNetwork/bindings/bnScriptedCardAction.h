@@ -19,7 +19,7 @@ public:
   void Init();
   void Update(double elapsed) override;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-  bool CanMoveTo(Battle::Tile* next) override;
+  std::optional<bool> CanMoveTo(Battle::Tile* next) override;
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;

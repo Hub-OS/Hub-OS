@@ -127,6 +127,14 @@ void Character::Update(double _elapsed) {
 
 bool Character::CanMoveTo(Battle::Tile * next)
 {
+  if (auto action = this->CurrentCardAction()) {
+    auto res = action->CanMoveTo(next);
+
+    if (res) {
+      return *res;
+    }
+  }
+
   auto occupied = [this](std::shared_ptr<Entity>& in) {
     auto c = dynamic_cast<Character*>(in.get());
 

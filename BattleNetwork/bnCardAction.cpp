@@ -337,8 +337,8 @@ const bool CardAction::CanExecute() const
   return started == false;
 }
 
-bool CardAction::CanMoveTo(Battle::Tile* next) {
-  return actor.lock()->Entity::CanMoveTo(next);
+std::optional<bool> CardAction::CanMoveTo(Battle::Tile* next) {
+  return {};
 }
 
 //////////////////////////////////////////////////

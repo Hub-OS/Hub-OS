@@ -199,6 +199,9 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<ScriptedSpell>& spell, float height) {
       spell.Unwrap()->SetHeight(height);
     },
+    "get_height", [](WeakWrapper<ScriptedSpell>& spell) -> float {
+      return spell.Unwrap()->GetHeight();
+    },
     "show_shadow", [](WeakWrapper<ScriptedSpell>& spell, bool show) {
       spell.Unwrap()->ShowShadow(show);
     },

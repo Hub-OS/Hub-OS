@@ -209,6 +209,9 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "set_height", [](WeakWrapper<Character>& character, float height) {
       character.Unwrap()->SetHeight(height);
     },
+    "get_height", [](WeakWrapper<Character>& character) -> float {
+      return character.Unwrap()->GetHeight();
+    },
     "set_shadow", sol::overload(
       [](WeakWrapper<Character>& character, Entity::Shadow type) {
         character.Unwrap()->SetShadowSprite(type);

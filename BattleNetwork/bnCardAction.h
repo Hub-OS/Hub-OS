@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <functional>
+#include <optional>
 #include <map>
 #include "stx/memory.h"
 
@@ -151,7 +152,7 @@ public:
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-  virtual bool CanMoveTo(Battle::Tile* next);
+  virtual std::optional<bool> CanMoveTo(Battle::Tile* next);
 protected:
   virtual void OnActionEnd() = 0;
   virtual void OnAnimationEnd() = 0;
