@@ -22,7 +22,6 @@ class ScriptedIntroState;
 class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, public dynamic_object {
   friend class ScriptedCharacterState;
   friend class ScriptedIntroState;
-  bool canMoveToLock{}; //!< Lock to prevent infinite recursion
   sol::state& script;
   float height{};
   std::shared_ptr<AnimationComponent> animation{ nullptr };

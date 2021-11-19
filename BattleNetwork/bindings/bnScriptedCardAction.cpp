@@ -35,7 +35,7 @@ void ScriptedCardAction::draw(sf::RenderTarget& target, sf::RenderStates states)
   // TODO
 }
 
-bool ScriptedCardAction::CanMoveTo(Battle::Tile* next)
+std::optional<bool> ScriptedCardAction::CanMoveTo(Battle::Tile* next)
 {
   if (can_move_to_func.valid())
   {
@@ -48,7 +48,7 @@ bool ScriptedCardAction::CanMoveTo(Battle::Tile* next)
     return result.value();
   }
 
-  return GetActor()->CanMoveTo(next);
+  return {};
 }
 
 void ScriptedCardAction::OnAnimationEnd() {
