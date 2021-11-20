@@ -2,14 +2,11 @@
 #include "bnUserTypeScriptedArtifact.h"
 
 #include "bnWeakWrapper.h"
-#include "bnUserTypeAnimation.h"
-#include "bnScriptedComponent.h"
+#include "bnUserTypeEntity.h"
 #include "bnScriptedArtifact.h"
-#include "../bnTile.h"
-#include "../bnSolHelpers.h"
 
 void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
-  battle_namespace.new_usertype<WeakWrapper<ScriptedArtifact>>("Artifact",
+  auto table = battle_namespace.new_usertype<WeakWrapper<ScriptedArtifact>>("Artifact",
     sol::factories([]() -> WeakWrapper<ScriptedArtifact> {
       auto artifact = std::make_shared<ScriptedArtifact>();
       artifact->Init();
@@ -26,172 +23,6 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     },
     sol::meta_function::length, [](WeakWrapper<ScriptedArtifact>& artifact) {
       return artifact.Unwrap()->entries.size();
-    },
-    "get_id", [](WeakWrapper<ScriptedArtifact>& artifact) -> Entity::ID_t {
-      return artifact.Unwrap()->GetID();
-    },
-    "get_tile", sol::overload(
-      [](WeakWrapper<ScriptedArtifact>& artifact, Direction dir, unsigned count) -> Battle::Tile* {
-        return artifact.Unwrap()->GetTile(dir, count);
-      },
-      [](WeakWrapper<ScriptedArtifact>& artifact) -> Battle::Tile* {
-        return artifact.Unwrap()->GetTile();
-      }
-    ),
-    "get_current_tile", [](WeakWrapper<ScriptedArtifact>& artifact) -> Battle::Tile* {
-      return artifact.Unwrap()->GetCurrentTile();
-    },
-    "get_field", [](WeakWrapper<ScriptedArtifact>& artifact) -> WeakWrapper<Field> {
-      return WeakWrapper(artifact.Unwrap()->GetField());
-    },
-    "get_facing", [](WeakWrapper<ScriptedArtifact>& artifact) -> Direction {
-      return artifact.Unwrap()->GetFacing();
-    },
-    "get_facing_away", [](WeakWrapper<ScriptedArtifact>& artifact) -> Direction {
-      return artifact.Unwrap()->GetFacingAway();
-    },
-    "set_facing", [](WeakWrapper<ScriptedArtifact>& artifact, Direction direction) {
-      artifact.Unwrap()->SetFacing(direction);
-    },
-    "get_color", [](WeakWrapper<ScriptedArtifact>& artifact) -> sf::Color {
-      return artifact.Unwrap()->getColor();
-    },
-    "set_color", [](WeakWrapper<ScriptedArtifact>& artifact, sf::Color color) {
-      artifact.Unwrap()->setColor(color);
-    },
-    "sprite", [](WeakWrapper<ScriptedArtifact>& artifact) -> WeakWrapper<SpriteProxyNode> {
-      return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(artifact.Unwrap()));
-    },
-    "hide", [](WeakWrapper<ScriptedArtifact>& artifact) {
-      artifact.Unwrap()->Hide();
-    },
-    "reveal", [](WeakWrapper<ScriptedArtifact>& artifact) {
-      artifact.Unwrap()->Reveal();
-    },
-    "teleport", [](
-      WeakWrapper<ScriptedArtifact>& artifact,
-      Battle::Tile* dest,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
-
-      return artifact.Unwrap()->Teleport(dest, order, [onBegin] {
-        auto result = onBegin();
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
-    },
-    "slide", [](
-      WeakWrapper<ScriptedArtifact>& artifact,
-      Battle::Tile* dest,
-      const frame_time_t& slideTime,
-      const frame_time_t& endlag,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
-
-      return artifact.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
-        auto result = onBegin();
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
-    },
-    "jump", [](
-      WeakWrapper<ScriptedArtifact>& artifact,
-      Battle::Tile* dest,
-      float destHeight,
-      const frame_time_t& jumpTime,
-      const frame_time_t& endlag,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
-
-      return artifact.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
-        auto result = onBegin();
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
-    },
-    "raw_move_event", [](WeakWrapper<ScriptedArtifact>& artifact, const MoveEvent& event, ActionOrder order) -> bool {
-      return artifact.Unwrap()->RawMoveEvent(event, order);
-    },
-    "is_sliding", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      return artifact.Unwrap()->IsSliding();
-    },
-    "is_jumping", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      return artifact.Unwrap()->IsJumping();
-    },
-    "is_teleporting", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      return artifact.Unwrap()->IsTeleporting();
-    },
-    "is_moving", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      return artifact.Unwrap()->IsMoving();
-    },
-    "is_deleted", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      auto ptr = artifact.Lock();
-      return !ptr || ptr->IsDeleted();
-    },
-    "will_erase_eof", [](WeakWrapper<ScriptedArtifact>& artifact) -> bool {
-      auto ptr = artifact.Lock();
-      return !ptr || ptr->WillEraseEOF();
-    },
-    "get_team", [](WeakWrapper<ScriptedArtifact>& artifact) -> Team {
-      return artifact.Unwrap()->GetTeam();
-    },
-    "erase", [](WeakWrapper<ScriptedArtifact>& artifact) {
-      artifact.Unwrap()->Erase();
-    },
-    "delete", [](WeakWrapper<ScriptedArtifact>& artifact) {
-      artifact.Unwrap()->Delete();
-    },
-    "register_component", [](WeakWrapper<ScriptedArtifact>& artifact, WeakWrapper<ScriptedComponent>& component) {
-      artifact.Unwrap()->RegisterComponent(component.Release());
-    },
-    "get_texture", [](WeakWrapper<ScriptedArtifact>& artifact) -> std::shared_ptr<Texture> {
-      return artifact.Unwrap()->getTexture();
-    },
-    "set_texture", [](WeakWrapper<ScriptedArtifact>& artifact, std::shared_ptr<Texture> texture) {
-      artifact.Unwrap()->setTexture(texture);
-    },
-    "set_animation", [](WeakWrapper<ScriptedArtifact>& artifact, std::string animation) {
-      artifact.Unwrap()->SetAnimation(animation);
-    },
-    "get_animation", [](WeakWrapper<ScriptedArtifact>& artifact) -> AnimationWrapper {
-      auto& animation = artifact.Unwrap()->GetAnimationObject();
-      return AnimationWrapper(artifact.GetWeak(), animation);
-    },
-    "create_node", [](WeakWrapper<ScriptedArtifact>& artifact) -> WeakWrapper<SpriteProxyNode> {
-      auto child = std::make_shared<SpriteProxyNode>();
-      artifact.Unwrap()->AddNode(child);
-
-      return WeakWrapper(child);
-    },
-    "set_height", [](WeakWrapper<ScriptedArtifact>& artifact, float height) {
-      artifact.Unwrap()->SetHeight(height);
-    },
-    "get_height", [](WeakWrapper<ScriptedArtifact>& artifact) -> float {
-      return artifact.Unwrap()->GetHeight();
-    },
-    "get_offset", [](WeakWrapper<ScriptedArtifact>& artifact) -> sf::Vector2f {
-      return artifact.Unwrap()->GetDrawOffset();
-    },
-    "set_offset", [](WeakWrapper<ScriptedArtifact>& artifact, float x, float y) {
-      artifact.Unwrap()->SetDrawOffset(x, y);
-    },
-    "never_flip", [](WeakWrapper<ScriptedArtifact>& artifact, bool enabled) {
-      artifact.Unwrap()->NeverFlip(enabled);
     },
     "update_func", sol::property(
       [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->update_func; },
@@ -218,5 +49,14 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       }
     )
   );
+
+  DefineEntityFunctionsOn(table);
+  table["set_animation"] = [](WeakWrapper<ScriptedArtifact>& artifact, std::string animation) {
+    artifact.Unwrap()->SetAnimation(animation);
+  };
+  table["get_animation"] = [](WeakWrapper<ScriptedArtifact>& artifact) -> AnimationWrapper {
+    auto& animation = artifact.Unwrap()->GetAnimationObject();
+    return AnimationWrapper(artifact.GetWeak(), animation);
+  };
 }
 #endif
