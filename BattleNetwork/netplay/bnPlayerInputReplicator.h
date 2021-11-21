@@ -25,12 +25,6 @@ public:
     return networkbs->remoteState;
   }
 
-  void SendInputEvents(const std::vector<InputEvent>& events) {
-    assert(networkbs && "Component must be injected into NetworkBattleScene");
-
-    networkbs->QueueInputEvents(events);
-  }
-
   void Inject(BattleSceneBase& bs) {
     networkbs = dynamic_cast<NetworkBattleScene*>(&bs);
   }

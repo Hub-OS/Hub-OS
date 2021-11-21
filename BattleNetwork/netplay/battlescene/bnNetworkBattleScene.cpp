@@ -233,6 +233,8 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   SendPingSignal();
 
   bool skipFrame = IsRemoteBehind();
+  bool lockstep = combatPtr->IsStateCombat(GetCurrentState());
+  std::vector<InputEvent> outEvents;
 
   Logger::Logf("remoteInputQueue size is %i", remoteInputQueue.size());
 
@@ -240,14 +242,18 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     combatPtr->SkipFrame();
     timeFreezePtr->SkipFrame();
   }
+  else if(lockstep) {
+    frame_time_t currLag = frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
+    outEvents = ProcessPlayerInputQueue(currLag);
+  }
   
-  std::sort(remoteInputQueue.begin(), remoteInputQueue.end());
-
   if (!remoteInputQueue.empty()) {
-    auto& frame = remoteInputQueue.begin();
-    auto& events = frame->events;
+    std::sort(remoteInputQueue.begin(), remoteInputQueue.end());
 
-    if (FrameNumber() >= frame->frameNumber) {
+    size_t length = remoteInputQueue.size();
+    auto frame = remoteInputQueue.begin();
+    while(length > 0 && FrameNumber() >= frame->frameNumber) {
+      auto& events = frame->events;
       remoteFrameNumber = frame->frameNumber;
 
       Logger::Logf("next remote frame # is %i", remoteFrameNumber);
@@ -256,11 +262,16 @@ void NetworkBattleScene::onUpdate(double elapsed) {
         remotePlayer->InputState().VirtualKeyEvent(e);
       }
 
-      remoteInputQueue.erase(frame);
+      frame = remoteInputQueue.erase(frame);
+      length--;
     }
   }
 
   BattleSceneBase::onUpdate(elapsed);
+  
+  if (lockstep || combatPtr->IsStateCombat(GetCurrentState())) {
+    SendInputEvents(outEvents);
+  }
 
   frame_time_t elapsed_frames = from_seconds(elapsed);
 
@@ -280,10 +291,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   if (skipFrame) return;
 
   const BattleSceneState* currentState = GetCurrentState();
-
-  if (combatPtr->IsStateCombat(currentState)) {
-    SendInputEvents(queuedOutEvents);
-  }
 
   if (remotePlayer && remotePlayer->WillEraseEOF()) {
     auto iter = std::find(players.begin(), players.end(), remotePlayer);
@@ -416,10 +423,6 @@ void NetworkBattleScene::SendHandshakeSignal()
 
   auto [_, id] = packetProcessor->SendPacket(Reliability::Reliable, buffer);
   packetProcessor->UpdateHandshakeID(id);
-}
-
-void NetworkBattleScene::QueueInputEvents(const std::vector<InputEvent>& events) {
-  this->queuedOutEvents = events;
 }
 
 bool NetworkBattleScene::IsRemoteBehind()

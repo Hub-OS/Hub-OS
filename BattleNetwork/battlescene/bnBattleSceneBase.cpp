@@ -958,6 +958,44 @@ void BattleSceneBase::ProcessNewestComponents()
 #endif
 }
 
+std::vector<InputEvent> BattleSceneBase::ProcessPlayerInputQueue(const frame_time_t& lag)
+{
+  std::vector<InputEvent> outEvents;
+
+  // For all inputs in the queue, reduce their wait time for this new frame
+  for (auto& item : queuedLocalEvents) {
+    item.wait -= from_seconds(elapsed);
+  }
+
+  // For all new input events, set the wait time based on the network latency and append
+  const auto events_this_frame = Input().StateThisFrame();
+
+  for (auto& [name, state] : events_this_frame) {
+    InputEvent copy;
+    copy.name = name;
+    copy.state = state;
+
+    outEvents.push_back(copy);
+
+    // add delay for network
+    copy.wait = lag;
+    queuedLocalEvents.push_back(copy);
+  }
+
+  // Drop inputs that are already processed at the end of the last frame
+  for (auto iter = queuedLocalEvents.begin(); iter != queuedLocalEvents.end();) {
+    if (iter->wait <= frames(0)) {
+      GetPlayer()->InputState().VirtualKeyEvent(*iter);
+      iter = queuedLocalEvents.erase(iter);
+      continue;
+    }
+
+    iter++;
+  }
+
+  return outEvents;
+}
+
 void BattleSceneBase::onLeave() {
 #ifdef __ANDROID__
   ShutdownTouchControls();

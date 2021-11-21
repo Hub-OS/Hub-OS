@@ -104,6 +104,7 @@ private:
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   Font mobFont; /*!< Name of mob font */
+  std::vector<InputEvent> queuedLocalEvents; /*!< Local player input events*/
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
   std::vector<std::shared_ptr<SceneNode>> scenenodes; /*!< ui components. */
   std::vector<std::shared_ptr<Component>> components; /*!< Components injected into the scene to track. */
@@ -247,7 +248,7 @@ protected:
   * @brief Scans the entity list for updated components and tries to Inject them if the components require.
   */
   void ProcessNewestComponents();
-
+  std::vector<InputEvent> ProcessPlayerInputQueue(const frame_time_t& lag = frames(0));
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
   void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;

@@ -95,7 +95,6 @@ private:
   SpriteProxyNode pingIndicator;
   std::shared_ptr<SelectedCardsUI> remoteCardActionUsePublisher{ nullptr };
   std::vector<Battle::Card> remoteHand; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
-  std::vector<InputEvent> queuedOutEvents;
   std::vector<FrameInputData> remoteInputQueue;
   std::shared_ptr<Player> remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
@@ -123,7 +122,6 @@ private:
   void RecieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
 
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
-  void QueueInputEvents(const std::vector<InputEvent>& events);
   bool IsRemoteBehind();
   void UpdatePingIndicator(frame_time_t frames);
 public:

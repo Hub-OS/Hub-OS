@@ -210,6 +210,12 @@ void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
   }
 }
 
+void FreedomMissionMobScene::onUpdate(double elapsed)
+{
+  ProcessPlayerInputQueue();
+  BattleSceneBase::onUpdate(elapsed);
+}
+
 void FreedomMissionMobScene::onStart()
 {
   BattleSceneBase::onStart();

@@ -130,33 +130,6 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       }
 
       if (updateAnim) {
-        // NOTE: This is the same duplicated code in the player update loop. This is ugly.
-        // We shouldn't have to copy this same behavior to allow users to mash buttons during a time freeze...
-        // 
-        // For all new input events, set the wait time based on the network latency and append
-        const auto events_this_frame = Input().StateThisFrame();
-
-        auto replicator = user->GetFirstComponent<PlayerInputReplicator>();
-        frame_time_t currLag{};
-        if (replicator) {
-          currLag = frame_time_t::max(frames(5), from_milliseconds(replicator->GetAvgLatency()));
-        }
-
-        std::vector<InputEvent> outEvents;
-        for (auto& [name, state] : events_this_frame) {
-          InputEvent copy;
-          copy.name = name;
-          copy.state = state;
-
-          outEvents.push_back(copy);
-
-          // add delay for network
-          copy.wait = currLag;
-          user->InputState().VirtualKeyEvent(copy);
-        }
-        user->InputState().Process();
-        // user->InputState().DebugPrint();
-
         action->Update(elapsed);
       }
       else{
