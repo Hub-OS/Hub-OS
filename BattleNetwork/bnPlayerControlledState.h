@@ -17,7 +17,7 @@ class PlayerControlledState : public AIState<Player>, public InputHandle
 private:  
   bool isChargeHeld{}; /*!< Flag if player is holding down shoot button */
   unsigned moveFrame{};
-  double currLag{};
+  frame_time_t currLag{};
   std::shared_ptr<PlayerInputReplicator> replicator{ nullptr }; /*!< Pass actions onto a replicator to handle if requested */
   std::vector<InputEvent> inputQueue;
 

@@ -23,6 +23,7 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   bool isGaugeFull{ false };
   bool hasTimeFreeze{ false };
   bool clearedMob{ false };
+  bool skipFrame{ false };
   double customProgress{ 0 };
   double customDuration{ 0 };
   Mob* mob{ nullptr };
@@ -39,14 +40,16 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   const bool PlayerWon() const;
   const bool PlayerLost() const;
   const bool PlayerRequestCardSelect();
-  void EnablePausing(bool enable);
+  const bool HandleNextRoundSetup(const BattleSceneState* state);
+  const bool IsStateCombat(const BattleSceneState* state);
 
+  void EnablePausing(bool enable);
+  void SkipFrame();
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
-  const bool HandleNextRoundSetup(const BattleSceneState* state);
 
   CombatBattleState(Mob* mob, std::vector<std::shared_ptr<Player>>& tracked, double customDuration);
 };

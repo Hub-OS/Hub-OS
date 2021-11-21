@@ -22,7 +22,7 @@
 
 struct DownloadSceneProps {
   bool& downloadSuccess;
-  std::vector<std::string> webCardsUUIDs, cardPackageHashes;
+  std::vector<std::string> cardPackageHashes;
   std::string playerHash;
   std::string& remotePlayerHash;
   Poco::Net::SocketAddress remoteAddress;
@@ -34,13 +34,13 @@ class DownloadScene final : public Scene {
 private:
   bool& downloadSuccess;
   bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{};
-  bool webCardListRequested{}, playerPackageRequested{}, cardPackageRequested{};
+  bool playerPackageRequested{}, cardPackageRequested{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
   std::string playerHash;
   std::string& remotePlayerHash;
-  std::vector<std::string> playerWebCardList, playerCardPackageList;
+  std::vector<std::string> playerCardPackageList;
   std::map<std::string, std::string> contentToDownload;
   Text label;
   sf::Sprite bg; // background
@@ -69,7 +69,6 @@ private:
   // Handle recieve 
   void RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer);
   void RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer);
-  void RecieveRequestWebCardList(const Poco::Buffer<char>& buffer);
   void RecieveRequestPlayerPackageData(const Poco::Buffer<char>& buffer);
   void RecieveRequestCardPackageData(const Poco::Buffer<char>& buffer);
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);

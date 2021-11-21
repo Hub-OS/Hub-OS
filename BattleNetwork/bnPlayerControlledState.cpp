@@ -29,8 +29,7 @@ void PlayerControlledState::OnEnter(Player& player) {
 
 void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   if (replicator) {
-    // NOTE: in milliseconds
-    currLag = std::max((double)frames(5).asMilli().value, replicator->GetAvgLatency());
+    currLag = frame_time_t::max(frames(5), from_milliseconds(replicator->GetAvgLatency()));
   }
 
   // For all inputs in the queue, reduce their wait time for this new frame
@@ -50,7 +49,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     outEvents.push_back(copy);
 
     // add delay for network
-    copy.wait = from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
+    copy.wait = currLag;
     inputQueue.push_back(copy);
   }
 

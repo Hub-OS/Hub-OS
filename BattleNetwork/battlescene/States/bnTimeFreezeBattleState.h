@@ -27,6 +27,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   double summonTextLength{ 1.0 }; /*!< How long TFC label should stay on screen */
   double backdropInc{ 1.25 }; //!< alpha increase per frame (max 255)
   bool executeOnce{ false };
+  bool skipFrame{};
   std::string name;
   Team team{ Team::unknown };
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
@@ -39,6 +40,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
   void CleanupStuntDouble();
   void SkipToAnimateState();
+  void SkipFrame();
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;

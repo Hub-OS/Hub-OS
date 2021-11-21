@@ -270,6 +270,11 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   }
 }
 
+const BattleSceneState* BattleSceneBase::GetCurrentState() const
+{
+  return current;
+}
+
 const int BattleSceneBase::ComboDeleteSize() const 
 {
   return comboInfoTimer.getElapsed().asSeconds() <= 1.0f ? comboDeleteCounter : 0;
@@ -744,6 +749,11 @@ const int BattleSceneBase::GetRoundCount()
   return round;
 }
 
+const unsigned int BattleSceneBase::FrameNumber() const
+{
+  return frameNumber;
+}
+
 void BattleSceneBase::StartBattleStepTimer()
 {
   battleTimer.start();
@@ -772,6 +782,11 @@ void BattleSceneBase::IncrementTurnCount()
 void BattleSceneBase::IncrementRoundCount()
 {
   round++;
+}
+
+void BattleSceneBase::IncrementFrame()
+{
+  frameNumber++;
 }
 
 const sf::Time BattleSceneBase::GetElapsedBattleTime() {

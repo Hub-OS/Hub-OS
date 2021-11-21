@@ -85,6 +85,7 @@ private:
   int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
   int lastMobSize{ 0 };
   int newMobSize{ 0 };
+  unsigned int frameNumber{ 0 };
   double elapsed{ 0 }; /*!< total time elapsed in battle */
   double customProgress{ 0 }; /*!< Cust bar progress in seconds */
   double customDuration{ 10.0 }; /*!< Cust bar max time in seconds */
@@ -251,6 +252,8 @@ protected:
   void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
 
+  const BattleSceneState* GetCurrentState() const;
+
 #ifdef __ANDROID__
   void SetupTouchControls();
   void ShutdownTouchControls();
@@ -342,13 +345,14 @@ public:
   BattleResults& BattleResultsObj();
   const int GetTurnCount();
   const int GetRoundCount();
+  const unsigned int FrameNumber() const;
   void StartBattleStepTimer();
   void StopBattleStepTimer();
   void BroadcastBattleStart();
   void BroadcastBattleStop();
   virtual void IncrementTurnCount();
   virtual void IncrementRoundCount();
-
+  void IncrementFrame();
   const sf::Time GetElapsedBattleTime();
 
   const bool FadeInBackdrop(double amount, double to, bool affectBackground);

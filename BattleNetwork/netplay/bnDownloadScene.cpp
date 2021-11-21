@@ -21,11 +21,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   label(Font::Style::tiny),
   Scene(ac)
 {
-  playerWebCardList = props.webCardsUUIDs;
   playerCardPackageList = props.cardPackageHashes;
-
-  std::sort(playerWebCardList.begin(), playerWebCardList.end());
-  playerWebCardList.erase(std::unique(playerWebCardList.begin(), playerWebCardList.end()), playerWebCardList.end());
 
   std::sort(playerCardPackageList.begin(), playerCardPackageList.end());
   playerCardPackageList.erase(std::unique(playerCardPackageList.begin(), playerCardPackageList.end()), playerCardPackageList.end());
@@ -85,7 +81,7 @@ void DownloadScene::RemoveFromDownloadList(const std::string& id)
 
 bool DownloadScene::AllTasksComplete()
 {
-  return cardPackageRequested && webCardListRequested && playerPackageRequested && contentToDownload.empty();
+  return cardPackageRequested && playerPackageRequested && contentToDownload.empty();
 }
 
 void DownloadScene::TradePlayerPackageData(const std::string& hash)

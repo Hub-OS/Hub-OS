@@ -1,5 +1,7 @@
 #include "bnTimeFreezeBattleState.h"
 
+#include "../../netplay/bnPlayerInputReplicator.h" // TODO: take out somehow...
+
 #include "../bnBattleSceneBase.h"
 #include "../../bnCard.h"
 #include "../../bnCardAction.h"
@@ -50,6 +52,11 @@ void TimeFreezeBattleState::SkipToAnimateState()
   ExecuteTimeFreeze();
 }
 
+void TimeFreezeBattleState::SkipFrame()
+{
+  skipFrame = true;
+}
+
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
   GetScene().GetSelectedCardsUI().Hide();
@@ -76,6 +83,13 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
 {
+  if (skipFrame) {
+    skipFrame = false;
+    return;
+  }
+
+  GetScene().IncrementFrame();
+
   summonTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   switch (currState) {
@@ -116,8 +130,17 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       }
 
       if (updateAnim) {
+        // NOTE: This is the same duplicated code in the player update loop. This is ugly.
+        // We shouldn't have to copy this same behavior to allow users to mash buttons during a time freeze...
+        // 
         // For all new input events, set the wait time based on the network latency and append
         const auto events_this_frame = Input().StateThisFrame();
+
+        auto replicator = user->GetFirstComponent<PlayerInputReplicator>();
+        frame_time_t currLag{};
+        if (replicator) {
+          currLag = frame_time_t::max(frames(5), from_milliseconds(replicator->GetAvgLatency()));
+        }
 
         std::vector<InputEvent> outEvents;
         for (auto& [name, state] : events_this_frame) {
@@ -128,8 +151,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
           outEvents.push_back(copy);
 
           // add delay for network
-          // copy.wait = from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
-          //inputQueue.push_back(copy);
+          copy.wait = currLag;
           user->InputState().VirtualKeyEvent(copy);
         }
         user->InputState().Process();

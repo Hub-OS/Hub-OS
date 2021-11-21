@@ -66,6 +66,15 @@ struct NetworkBattleSceneProps {
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
 };
 
+struct FrameInputData {
+  unsigned int frameNumber{};
+  std::vector<InputEvent> events;
+};
+
+static bool operator<(const FrameInputData& lhs, const FrameInputData& rhs) {
+  return lhs.frameNumber < rhs.frameNumber;
+}
+
 class NetworkBattleScene final : public BattleSceneBase {
 private:
   friend struct NetworkSyncBattleState;
@@ -76,7 +85,9 @@ private:
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
   frame_time_t cardStateDelay{}; //!< Timer that counts down until the card select state opens up
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
-  Text ping;
+  unsigned int remoteFrameNumber{};
+
+  Text ping, frameNumText;
   std::string selectedNaviId; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   std::vector<std::shared_ptr<Player>> players; //!< Track all players
@@ -84,6 +95,8 @@ private:
   SpriteProxyNode pingIndicator;
   std::shared_ptr<SelectedCardsUI> remoteCardActionUsePublisher{ nullptr };
   std::vector<Battle::Card> remoteHand; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
+  std::vector<InputEvent> queuedOutEvents;
+  std::vector<FrameInputData> remoteInputQueue;
   std::shared_ptr<Player> remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
   CombatBattleState* combatPtr{ nullptr };
@@ -94,24 +107,24 @@ private:
   BattleStartBattleState* startStatePtr{ nullptr };
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
 
-  void sendHandshakeSignal(); // send player data to start the next round
-  void sendInputEvents(const std::vector<InputEvent>& events); // send our key or gamepad events
-  void sendConnectSignal(const std::string& naviId);
-  void sendChangedFormSignal(const int form);
-  void sendHPSignal(const int hp);
-  void sendTileCoordSignal(const int x, const int y);
-  void sendRequestedCardSelectSignal(); 
-  void sendLoserSignal(); // if we die, let them know
+  // netcode send funcs
+  void SendHandshakeSignal(); // send player data to start the next round
+  void SendInputEvents(std::vector<InputEvent>& events); // send our key or gamepad events
+  void SendConnectSignal(const std::string& naviId);
+  void SendChangedFormSignal(const int form);
+  void SendRequestedCardSelectSignal(); 
+  void SendPingSignal();
 
-  void recieveHandshakeSignal(const Poco::Buffer<char>& buffer);
-  void recieveInputEvent(const Poco::Buffer<char>& buffer); 
-  void recieveConnectSignal(const Poco::Buffer<char>&);
-  void recieveChangedFormSignal(const Poco::Buffer<char>&);
-  void recieveHPSignal(const Poco::Buffer<char>&);
-  void recieveTileCoordSignal(const Poco::Buffer<char>&);
-  void recieveLoserSignal(); // if they die, update our state flags
-  void recieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
-  void processPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
+  // netcode recieve funcs
+  void RecieveHandshakeSignal(const Poco::Buffer<char>& buffer);
+  void RecieveInputEvent(const Poco::Buffer<char>& buffer); 
+  void RecieveConnectSignal(const Poco::Buffer<char>&);
+  void RecieveChangedFormSignal(const Poco::Buffer<char>&);
+  void RecieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
+
+  void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
+  void QueueInputEvents(const std::vector<InputEvent>& events);
+  bool IsRemoteBehind();
   void UpdatePingIndicator(frame_time_t frames);
 public:
   using BattleSceneBase::ProcessNewestComponents;

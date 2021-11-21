@@ -94,6 +94,10 @@ struct frame_time_t {
   bool operator !=(const frame_time_t& other) const {
     return this->milli.value != other.milli.value;
   }
+
+  static frame_time_t max(const frame_time_t& lhs, const frame_time_t& rhs) {
+    return lhs.operator<(rhs) ? rhs : lhs;
+  }
 };
 
 template<typename T>

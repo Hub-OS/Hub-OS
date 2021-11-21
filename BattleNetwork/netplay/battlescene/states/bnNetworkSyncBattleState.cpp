@@ -31,7 +31,7 @@ void NetworkSyncBattleState::onStart(const BattleSceneState* last)
 {
   if (cardSelectState && last == cardSelectState) {
     // We have returned from the card select state to force a handshake and wait 
-    scene->sendHandshakeSignal();
+    scene->SendHandshakeSignal();
   }
 }
 

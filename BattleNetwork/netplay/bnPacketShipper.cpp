@@ -158,7 +158,7 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
 void PacketShipper::updateLagTime(Reliability type, uint64_t packetId)
 {
   size_t index = static_cast<size_t>(type);
-  auto packetStartForType = packetStart[index];
+  auto& packetStartForType = packetStart[index];
   auto iter = packetStartForType.find(packetId);
 
   if (iter != packetStartForType.end()) {
