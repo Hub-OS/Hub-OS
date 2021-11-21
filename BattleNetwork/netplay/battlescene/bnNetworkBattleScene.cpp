@@ -392,6 +392,11 @@ const double NetworkBattleScene::GetAvgLatency() const
   return packetProcessor->GetAvgLatency();
 }
 
+bool NetworkBattleScene::IsRemoteBehind()
+{
+  return FrameNumber() > this->remoteFrameNumber;
+}
+
 void NetworkBattleScene::SendHandshakeSignal()
 {
   /**
@@ -423,11 +428,6 @@ void NetworkBattleScene::SendHandshakeSignal()
 
   auto [_, id] = packetProcessor->SendPacket(Reliability::Reliable, buffer);
   packetProcessor->UpdateHandshakeID(id);
-}
-
-bool NetworkBattleScene::IsRemoteBehind()
-{
-  return FrameNumber() > this->remoteFrameNumber;
 }
 
 void NetworkBattleScene::SendInputEvents(std::vector<InputEvent>& events)

@@ -24,8 +24,6 @@ void PlayerNetworkState::OnEnter(Player& player) {
 }
 
 void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
-  player.SetHealth(netflags.remoteHP);
-
   bool actionable = player.IsActionable();
 
   // Actions with animation lockout controls take priority over movement
