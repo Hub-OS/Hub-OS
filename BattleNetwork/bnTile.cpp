@@ -281,8 +281,11 @@ namespace Battle {
   }
 
   void Tile::SetState(TileState _state) {
-    if (IsEdgeTile() || _state == TileState::hidden) {
-      state = _state;
+    if (IsEdgeTile()) {
+      return;
+    }
+
+    if (_state != TileState::hidden && state == TileState::hidden) {
       return;
     }
 
