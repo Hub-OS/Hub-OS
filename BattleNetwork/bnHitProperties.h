@@ -34,6 +34,14 @@ namespace Hit {
   };
 
   /**
+   * @brief Context for creation, carries properties that Hit::Properties will automatically copy
+   */
+  struct Context {
+    EntityID_t aggressor{};
+    Flags flags{};
+  };
+
+  /**
    * @struct Properties
    * @author mav
    * @date 05/05/19
@@ -45,6 +53,7 @@ namespace Hit {
     Element element{ Element::none };
     EntityID_t aggressor{};
     Drag drag{ }; // Used by Hit::drag flag
+    Context context{};
   };
 
   const constexpr Hit::Properties DefaultProperties = { 

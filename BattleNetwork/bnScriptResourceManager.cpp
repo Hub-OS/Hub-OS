@@ -18,17 +18,10 @@
 #include "bnCharacter.h"
 #include "bnElements.h"
 #include "bnField.h"
-#include "bnHitboxSpell.h"
-#include "bnSharedHitbox.h"
 #include "bnParticlePoof.h"
 #include "bnPlayerCustScene.h"
 
 #include "bindings/bnLuaLibrary.h"
-#include "bindings/bnScriptedArtifact.h"
-#include "bindings/bnScriptedCharacter.h"
-#include "bindings/bnScriptedSpell.h"
-#include "bindings/bnScriptedObstacle.h"
-#include "bindings/bnScriptedPlayer.h"
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnScriptedCardAction.h"
@@ -40,6 +33,7 @@
 #include "bindings/bnUserTypeField.h"
 #include "bindings/bnUserTypeTile.h"
 #include "bindings/bnUserTypeEntity.h"
+#include "bindings/bnUserTypeHitbox.h"
 #include "bindings/bnUserTypeBasicCharacter.h"
 #include "bindings/bnUserTypeScriptedCharacter.h"
 #include "bindings/bnUserTypeScriptedPlayer.h"
@@ -276,6 +270,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineSpriteNodeUserType(engine_namespace);
   DefineSyncNodeUserType(engine_namespace);
   DefineEntityUserType(battle_namespace);
+  DefineHitboxUserTypes(state, battle_namespace);
   DefineBasicCharacterUserType(battle_namespace);
   DefineScriptedCharacterUserType(battle_namespace);
   DefineScriptedPlayerUserType(battle_namespace);
@@ -286,92 +281,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineBaseCardActionUserType(state, battle_namespace);
   DefineScriptedCardActionUserType(battle_namespace);
   DefineDefenseRuleUserTypes(state, battle_namespace);
-
-  const auto& hitbox_record = battle_namespace.new_usertype<WeakWrapper<HitboxSpell>>("Hitbox",
-    sol::factories([] (Team team) -> WeakWrapper<HitboxSpell> {
-      auto spell = std::make_shared<HitboxSpell>(team);
-      auto wrappedSpell = WeakWrapper(spell);
-      wrappedSpell.Own();
-      return wrappedSpell;
-    }),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "Hitbox", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "Hitbox", key );
-    },
-    "set_callbacks", [](WeakWrapper<HitboxSpell>& spell, sol::stack_object luaAttackCallbackObject, sol::stack_object luaCollisionCallbackObject) {
-      sol::protected_function luaAttackCallback = luaAttackCallbackObject;
-      sol::protected_function luaCollisionCallback = luaCollisionCallbackObject;
-
-      auto attackCallback = [luaAttackCallback] (std::shared_ptr<Entity> e) {
-        auto result = luaAttackCallback(WeakWrapper(e));
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      };
-
-      auto collisionCallback = [luaCollisionCallback] (const std::shared_ptr<Entity> e) {
-        auto result = luaCollisionCallback(WeakWrapper(e));
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      };
-
-      spell.Unwrap()->AddCallback(attackCallback, collisionCallback);
-    },
-    "set_hit_props", [](WeakWrapper<HitboxSpell>& spell, Hit::Properties& props) {
-      spell.Unwrap()->SetHitboxProperties(props);
-    },
-    "copy_hit_props", [](WeakWrapper<HitboxSpell>& spell) -> Hit::Properties {
-      return spell.Unwrap()->GetHitboxProperties();
-    }
-  );
-
-  const auto& shared_hitbox_record = battle_namespace.new_usertype<SharedHitbox>("SharedHitbox",
-    sol::factories(
-      [] (WeakWrapper<Entity>& e, float f) -> WeakWrapper<Entity> {
-        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
-        auto wrappedSpell = WeakWrapper(spell);
-        wrappedSpell.Own();
-        return wrappedSpell;
-      },
-      [] (WeakWrapper<Character>& e, float f) -> WeakWrapper<Entity> {
-        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
-        auto wrappedSpell = WeakWrapper(spell);
-        wrappedSpell.Own();
-        return wrappedSpell;
-      },
-      [] (WeakWrapper<ScriptedCharacter>& e, float f) -> WeakWrapper<Entity> {
-        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
-        auto wrappedSpell = WeakWrapper(spell);
-        wrappedSpell.Own();
-        return wrappedSpell;
-      },
-      [] (WeakWrapper<ScriptedPlayer>& e, float f) -> WeakWrapper<Entity> {
-        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
-        auto wrappedSpell = WeakWrapper(spell);
-        wrappedSpell.Own();
-        return wrappedSpell;
-      },
-      [] (WeakWrapper<ScriptedSpell>& e, float f) -> WeakWrapper<Entity> {
-        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
-        auto wrappedSpell = WeakWrapper(spell);
-        wrappedSpell.Own();
-        return wrappedSpell;
-      },
-      [] (WeakWrapper<ScriptedObstacle>& e, float f) -> WeakWrapper<Entity> {
-        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
-        auto wrappedSpell = WeakWrapper(spell);
-        wrappedSpell.Own();
-        return wrappedSpell;
-      }
-    )
-  );
 
   // make meta object info metatable
   const auto& playermeta_table = battle_namespace.new_usertype<PlayerMeta>("PlayerMeta",
@@ -749,33 +658,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Low", AudioPriority::low,
     "High", AudioPriority::high,
     "Highest", AudioPriority::highest
-  );
-
-  const auto& hitbox_props_record = state.new_usertype<Hit::Properties>("HitProps",
-    sol::factories([](int damage, Hit::Flags flags, Element element, Entity::ID_t aggressor, Hit::Drag drag) {
-      return Hit::Properties{ damage, flags, element, aggressor, drag };
-    }),
-    "aggressor", &Hit::Properties::aggressor,
-    "damage", &Hit::Properties::damage,
-    "drag", &Hit::Properties::drag,
-    "element", &Hit::Properties::element,
-    "flags", &Hit::Properties::flags
-  );
-
-  const auto& hitbox_drag_prop_record = state.new_usertype<Hit::Drag>("Drag",
-    sol::factories(
-      [] (Direction dir, unsigned count) { return Hit::Drag{ dir, count }; },
-      [] { return Hit::Drag{ Direction::none, 0 }; }
-    ),
-    "None", sol::property([] { return Hit::Drag{ Direction::none, 0 }; }),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "Drag", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "Drag", key );
-    },
-    "direction", &Hit::Drag::dir,
-    "count", &Hit::Drag::count
   );
 
   const auto& card_class_record = state.new_enum("CardClass",

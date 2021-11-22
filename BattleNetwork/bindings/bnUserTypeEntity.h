@@ -189,6 +189,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["highlight_tile"] = [](WeakWrapper<E>& entity, Battle::TileHighlight mode) {
     entity.Unwrap()->HighlightTile(mode);
   };
+  entity_table["get_context"] = [](WeakWrapper<E>& entity) -> Hit::Context {
+    return entity.Unwrap()->GetHitboxContext();
+  };
   entity_table["copy_hit_props"] = [](WeakWrapper<E>& entity) -> Hit::Properties {
     return entity.Unwrap()->GetHitboxProperties();
   };
