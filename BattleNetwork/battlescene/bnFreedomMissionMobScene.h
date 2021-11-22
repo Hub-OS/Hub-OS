@@ -34,6 +34,7 @@ class FreedomMissionMobScene final : public BattleSceneBase {
   ~FreedomMissionMobScene();
 
   void OnHit(Entity& victim, const Hit::Properties& props) override final;
+  void onUpdate(double elapsed) override final;
   void onStart() override final;
   void onExit() override;
   void onEnter() override;

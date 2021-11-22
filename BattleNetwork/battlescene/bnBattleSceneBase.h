@@ -85,6 +85,7 @@ private:
   int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
   int lastMobSize{ 0 };
   int newMobSize{ 0 };
+  unsigned int frameNumber{ 0 };
   double elapsed{ 0 }; /*!< total time elapsed in battle */
   double customProgress{ 0 }; /*!< Cust bar progress in seconds */
   double customDuration{ 10.0 }; /*!< Cust bar max time in seconds */
@@ -103,6 +104,7 @@ private:
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   Font mobFont; /*!< Name of mob font */
+  std::vector<InputEvent> queuedLocalEvents; /*!< Local player input events*/
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
   std::vector<std::shared_ptr<SceneNode>> scenenodes; /*!< ui components. */
   std::vector<std::shared_ptr<Component>> components; /*!< Components injected into the scene to track. */
@@ -246,10 +248,12 @@ protected:
   * @brief Scans the entity list for updated components and tries to Inject them if the components require.
   */
   void ProcessNewestComponents();
-
+  std::vector<InputEvent> ProcessPlayerInputQueue(const frame_time_t& lag = frames(0));
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
   void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
+
+  const BattleSceneState* GetCurrentState() const;
 
 #ifdef __ANDROID__
   void SetupTouchControls();
@@ -342,13 +346,14 @@ public:
   BattleResults& BattleResultsObj();
   const int GetTurnCount();
   const int GetRoundCount();
+  const unsigned int FrameNumber() const;
   void StartBattleStepTimer();
   void StopBattleStepTimer();
   void BroadcastBattleStart();
   void BroadcastBattleStop();
   virtual void IncrementTurnCount();
   virtual void IncrementRoundCount();
-
+  void IncrementFrame();
   const sf::Time GetElapsedBattleTime();
 
   const bool FadeInBackdrop(double amount, double to, bool affectBackground);

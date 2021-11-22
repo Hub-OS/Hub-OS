@@ -548,6 +548,7 @@ void Field::UpdateEntityOnce(Entity& entity, const double elapsed)
   if(updatedEntities.find(entity.GetID()) != updatedEntities.end())
       return;
 
+  entity.InputState().Process();
   entity.Update(elapsed);
   updatedEntities.insert(std::make_pair(entity.GetID(), (void*)0));
 }

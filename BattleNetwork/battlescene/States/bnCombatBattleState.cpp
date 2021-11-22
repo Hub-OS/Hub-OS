@@ -97,6 +97,11 @@ void CombatBattleState::EnablePausing(bool enable)
   canPause = enable;
 }
 
+void CombatBattleState::SkipFrame()
+{
+  skipFrame = true;
+}
+
 void CombatBattleState::onStart(const BattleSceneState* last)
 {
   GetScene().SetCustomBarProgress(customDuration);
@@ -141,6 +146,13 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
 
 void CombatBattleState::onUpdate(double elapsed)
 {  
+  if (skipFrame) {
+    skipFrame = false;
+    return;
+  }
+
+  GetScene().IncrementFrame();
+
   if ((mob->IsCleared() || tracked[0]->GetHealth() == 0 )&& !clearedMob) {
     auto cardUI = tracked[0]->GetFirstComponent<PlayerSelectedCardsUI>();
 
@@ -226,13 +238,18 @@ void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uin
 
 const bool CombatBattleState::HandleNextRoundSetup(const BattleSceneState* state)
 {
+  // Only stop battlestep timers and effects for states
+  // that are not part of the combat state list
+  return !IsStateCombat(state);
+}
+
+const bool CombatBattleState::IsStateCombat(const BattleSceneState* state)
+{
   auto iter = std::find_if(subcombatStates.begin(), subcombatStates.end(),
     [state](const BattleSceneState* in) {
       return in == state;
     }
   );
 
-  // Only stop battlestep timers and effects for states
-  // that are not part of the combat state list
-  return (iter == subcombatStates.end());
+  return (iter != subcombatStates.end()) || (state == this);
 }

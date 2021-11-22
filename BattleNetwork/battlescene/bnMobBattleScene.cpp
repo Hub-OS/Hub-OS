@@ -216,6 +216,12 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
   }
 }
 
+void MobBattleScene::onUpdate(double elapsed)
+{
+  ProcessPlayerInputQueue();
+  BattleSceneBase::onUpdate(elapsed);
+}
+
 void MobBattleScene::onStart()
 {
   BattleSceneBase::onStart();

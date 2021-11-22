@@ -482,20 +482,12 @@ void MatchMakingScene::onUpdate(double elapsed) {
     auto next = copy->Next();
 
     while (next) {
-      // NOTE TO SELF: assume if it's not a package, it's from the web for now
-      //               until we phase out the web stuff entirely.
-      if (!getController().CardPackageManager().HasPackage(next->GetUUID())) {
-        cardUUIDs.push_back(next->GetUUID());
-      }
-      else {
-        cardPackages.push_back(next->GetUUID());
-      }
+      cardPackages.push_back(next->GetUUID());
       next = copy->Next();
     }
 
     DownloadSceneProps props = {
       canProceedToBattle,
-      cardUUIDs,
       cardPackages,
       selectedNaviId,
       remoteNaviId,

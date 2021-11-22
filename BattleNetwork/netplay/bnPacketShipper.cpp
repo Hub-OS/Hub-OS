@@ -147,7 +147,7 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
     break;
   }
 
-  if (IsReliable) {
+  if (IsReliable(reliability)) {
     size_t index = static_cast<size_t>(reliability);
     packetStart[index][newID] = std::chrono::steady_clock::now();
   }
@@ -158,7 +158,7 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
 void PacketShipper::updateLagTime(Reliability type, uint64_t packetId)
 {
   size_t index = static_cast<size_t>(type);
-  auto packetStartForType = packetStart[index];
+  auto& packetStartForType = packetStart[index];
   auto iter = packetStartForType.find(packetId);
 
   if (iter != packetStartForType.end()) {

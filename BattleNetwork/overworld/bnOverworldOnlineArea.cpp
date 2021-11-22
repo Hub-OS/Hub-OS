@@ -2162,7 +2162,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   });
 
   AddSceneChangeTask([=] {
-    std::vector<std::string> cardUUIDs, cardPackages;
+    std::vector<std::string> cardPackages;
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
 
     if (selectedFolder) {
@@ -2170,22 +2170,13 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
       auto next = folder->Next();
 
       while (next) {
-        // NOTE TO SELF: assume if it's not a package, it's from the web for now
-        //               until we phase out the web stuff entirely.
-        if (!getController().CardPackageManager().HasPackage(next->GetUUID())) {
-          cardUUIDs.push_back(next->GetUUID());
-        }
-        else {
-          cardPackages.push_back(next->GetUUID());
-        }
-
+        cardPackages.push_back(next->GetUUID());
         next = folder->Next();
       }
     }
 
     DownloadSceneProps props = {
       this->canProceedToBattle,
-      cardUUIDs,
       cardPackages,
       GetCurrentNaviID(),
       this->remoteNaviId,

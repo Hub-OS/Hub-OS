@@ -9,8 +9,7 @@ struct NetPlayFlags {
   bool remoteHandshake{ false };
   bool remoteChangeForm{ false };
   bool remoteConnected{ false };
-  int remoteTileX{ 5 }, remoteTileY{ 2 };
+  int remoteTileX{ 5 }, remoteTileY{ 2 }; // Spawn start pos hardcoded for now
   int remoteFormSelect{ -1 };
-  int remoteHP{ 1 };
   std::string remoteNaviId;
 };

@@ -39,7 +39,8 @@ using swoosh::ActivityController;
 
 NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBattleSceneProps& props, BattleResultsFunc onEnd) :
   BattleSceneBase(controller, props.base, onEnd),
-  ping(Font::Style::wide)
+  ping(Font::Style::wide),
+  frameNumText(Font::Style::wide)
 {
   ping.setPosition(480 - (2.f * 16) - 4, 320 - 2.f); // screen upscaled w - (16px*upscale scale) - (2px*upscale)
   ping.SetColor(sf::Color::Red);
@@ -61,7 +62,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   });
 
   packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& buffer) {
-    this->processPacketBody(header, buffer);
+    this->ProcessPacketBody(header, buffer);
   });
 
   GetCardSelectWidget().PreventRetreat();
@@ -141,7 +142,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
     if (combatPtr->PlayerRequestCardSelect() || waitingForCardSelectScreen) {
       if (!waitingForCardSelectScreen) {
         cardStateDelay = from_milliseconds(packetProcessor->GetAvgLatency());
-        this->sendRequestedCardSelectSignal();
+        this->SendRequestedCardSelectSignal();
         waitingForCardSelectScreen = true;
       }
 
@@ -192,9 +193,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(syncState);
-
-  sendConnectSignal(this->selectedNaviId); // NOTE: this function only happens once at start
-
   LoadMob(*mob);
 }
 
@@ -227,14 +225,45 @@ void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 }
 
 void NetworkBattleScene::onUpdate(double elapsed) {
-  if (!IsSceneInFocus()) {
-    return;
+  if (!IsSceneInFocus()) return;
+
+  SendPingSignal();
+
+  bool skipFrame = IsRemoteBehind();
+  bool lockstep = combatPtr->IsStateCombat(GetCurrentState());
+  std::vector<InputEvent> outEvents;
+
+  std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
+
+  if (skipFrame) {
+    combatPtr->SkipFrame();
+    timeFreezePtr->SkipFrame();
+  }
+  else if(lockstep) {
+    frame_time_t currLag = frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
+    outEvents = ProcessPlayerInputQueue(currLag);
+  }
+  
+  if (!remoteInputQueue.empty()) {
+    auto frame = remoteInputQueue.begin();
+    if(FrameNumber() >= frame->frameNumber) {
+      auto& events = frame->events;
+      remoteFrameNumber = frame->frameNumber;
+
+      Logger::Logf("next remote frame # is %i", remoteFrameNumber);
+
+      for (auto& e : events) {
+        remotePlayer->InputState().VirtualKeyEvent(e);
+      }
+
+      frame = remoteInputQueue.erase(frame);
+    }
   }
 
   BattleSceneBase::onUpdate(elapsed);
-
-  if (!this->IsPlayerDeleted()) {
-    sendHPSignal(GetPlayer()->GetHealth());
+  
+  if (lockstep || combatPtr->IsStateCombat(GetCurrentState())) {
+    SendInputEvents(outEvents);
   }
 
   frame_time_t elapsed_frames = from_seconds(elapsed);
@@ -251,6 +280,8 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   else {
     packetTime += elapsed_frames;
   }
+
+  if (skipFrame) return;
 
   if (remotePlayer && remotePlayer->WillEraseEOF()) {
     auto iter = std::find(players.begin(), players.end(), remotePlayer);
@@ -277,23 +308,35 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   ping.SetString(std::to_string(lag).substr(0, 5));
 
   //the bounds has been changed after changing the text
-  auto pbounds = ping.GetLocalBounds();
-  ping.setOrigin(pbounds.width, pbounds.height);
+  auto bounds = ping.GetLocalBounds();
+  ping.setOrigin(bounds.width, bounds.height);
 
-  // draw
+  // draw ping
   surface.draw(ping);
+
+  frameNumText.SetString("F" + std::to_string(FrameNumber()));
+
+  bounds = frameNumText.GetLocalBounds();
+  frameNumText.setOrigin(bounds.width, bounds.height);
+
+  frameNumText.SetColor(sf::Color::Cyan);
+  frameNumText.setPosition(480 - (2.f * 128) - 4, 320 - 2.f);
+  surface.draw(frameNumText);
+
+  frameNumText.SetString("F" + std::to_string(remoteFrameNumber));
+
+  bounds = frameNumText.GetLocalBounds();
+  frameNumText.setOrigin(bounds.width, bounds.height);
+
+  frameNumText.SetColor(sf::Color::Magenta);
+  frameNumText.setPosition(480 - (2.f * 64) - 4, 320 - 2.f);
+  surface.draw(frameNumText);
 
   // convert from ms to seconds to discrete frame count...
   frame_time_t lagTime = frame_time_t{ (long long)(lag) };
 
-  if (remoteState.remoteHandshake) {
-    // factor in how long inputs are not being ack'd after sent
-    UpdatePingIndicator(std::max(packetTime, lagTime));
-  }
-  else {
-    // use ack to determine connectivity here
-    UpdatePingIndicator(lagTime);
-  }
+  // use ack to determine connectivity here
+  UpdatePingIndicator(lagTime);
 
   //draw
   surface.draw(pingIndicator);
@@ -302,9 +345,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
 void NetworkBattleScene::onExit()
 {
 }
-/*!
- * @brief 
-*/
+
 void NetworkBattleScene::onEnter()
 {
 }
@@ -312,10 +353,9 @@ void NetworkBattleScene::onEnter()
 void NetworkBattleScene::onStart()
 {
   BattleSceneBase::onStart();
-
   // Once the transition completes, we begin handshakes
+  SendConnectSignal(this->selectedNaviId); // NOTE: this function only happens once at start
   packetProcessor->EnableKickForSilence(true);
-
 }
 
 void NetworkBattleScene::onResume()
@@ -342,7 +382,12 @@ const double NetworkBattleScene::GetAvgLatency() const
   return packetProcessor->GetAvgLatency();
 }
 
-void NetworkBattleScene::sendHandshakeSignal()
+bool NetworkBattleScene::IsRemoteBehind()
+{
+  return FrameNumber() > this->remoteFrameNumber;
+}
+
+void NetworkBattleScene::SendHandshakeSignal()
 {
   /**
   To begin the round, we need to supply the following information to our opponent:
@@ -375,11 +420,14 @@ void NetworkBattleScene::sendHandshakeSignal()
   packetProcessor->UpdateHandshakeID(id);
 }
 
-void NetworkBattleScene::sendInputEvents(const std::vector<InputEvent>& events)
+void NetworkBattleScene::SendInputEvents(std::vector<InputEvent>& events)
 {
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals signalType{ NetPlaySignals::input_event };
   buffer.append((char*)&signalType, sizeof(NetPlaySignals));
+
+  unsigned int frameNumber = FrameNumber() + std::max(5u, from_milliseconds(packetProcessor->GetAvgLatency()).count());
+  buffer.append((char*)&frameNumber, sizeof(unsigned int));
 
   size_t list_len = events.size();
   buffer.append((char*)&list_len, sizeof(size_t));
@@ -394,9 +442,10 @@ void NetworkBattleScene::sendInputEvents(const std::vector<InputEvent>& events)
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
   packetTime = frames(0);
+  events.clear();
 }
 
-void NetworkBattleScene::sendConnectSignal(const std::string& naviId)
+void NetworkBattleScene::SendConnectSignal(const std::string& naviId)
 {
   size_t len = naviId.length();
   Poco::Buffer<char> buffer{ 0 };
@@ -408,7 +457,7 @@ void NetworkBattleScene::sendConnectSignal(const std::string& naviId)
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
-void NetworkBattleScene::sendChangedFormSignal(const int form)
+void NetworkBattleScene::SendChangedFormSignal(const int form)
 {
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::form };
@@ -417,26 +466,7 @@ void NetworkBattleScene::sendChangedFormSignal(const int form)
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
-void NetworkBattleScene::sendHPSignal(const int hp)
-{
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::hp };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)&hp, sizeof(int));
-  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
-}
-
-void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
-{
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::tile };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)&x, sizeof(int));
-  buffer.append((char*)&y, sizeof(int));
-  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
-}
-
-void NetworkBattleScene::sendRequestedCardSelectSignal()
+void NetworkBattleScene::SendRequestedCardSelectSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::card_select };
@@ -444,15 +474,15 @@ void NetworkBattleScene::sendRequestedCardSelectSignal()
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
-void NetworkBattleScene::sendLoserSignal()
+void NetworkBattleScene::SendPingSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::loser };
+  NetPlaySignals type{ NetPlaySignals::ping };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
-void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer)
+void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer)
 {
   std::vector<std::string> remoteUUIDs;
   int remoteForm{ -1 };
@@ -535,16 +565,24 @@ void NetworkBattleScene::recieveHandshakeSignal(const Poco::Buffer<char>& buffer
   remoteState.remoteHandshake = true;
 }
 
-void NetworkBattleScene::recieveInputEvent(const Poco::Buffer<char>& buffer)
+void NetworkBattleScene::RecieveInputEvent(const Poco::Buffer<char>& buffer)
 {
   if (!this->remotePlayer) return;
 
   std::string name;
   size_t len{}, list_len{};
   size_t read{};
+
+  unsigned int frameNumber{};
+  std::memcpy(&frameNumber, buffer.begin(), sizeof(unsigned int));
+  read += sizeof(unsigned int);
+
+  remoteFrameNumber = std::max(remoteFrameNumber, frameNumber);
+
   std::memcpy(&list_len, buffer.begin() + read, sizeof(size_t));
   read += sizeof(size_t);
 
+  std::vector<InputEvent> events;
   while (list_len-- > 0) {
     std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
     read += sizeof(size_t);
@@ -561,11 +599,13 @@ void NetworkBattleScene::recieveInputEvent(const Poco::Buffer<char>& buffer)
     InputEvent event{};
     event.name = name;
     event.state = state;
-    this->remotePlayer->InputState().VirtualKeyEvent(event);
+    events.push_back(event);
   }
+
+  remoteInputQueue.push_back({ frameNumber, events });
 }
 
-void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
+void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 {
   if (remoteState.remoteConnected) return; // prevent multiple connection requests...
 
@@ -607,10 +647,9 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   players.push_back(remotePlayer);
   trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer.get(), -1, false ));
-  //trackedForms.back()->SetReadyState<PlayerNetworkState>(netProxy);
 }
 
-void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buffer)
+void NetworkBattleScene::RecieveChangedFormSignal(const Poco::Buffer<char>& buffer)
 {
   if (buffer.empty()) return;
   int form = remoteState.remoteFormSelect;
@@ -626,76 +665,30 @@ void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buff
   }
 }
 
-void NetworkBattleScene::recieveHPSignal(const Poco::Buffer<char>& buffer)
-{
-  if (buffer.empty()) return;
-  if (!remoteState.remoteConnected) return;
-
-  int hp = remotePlayer->GetHealth();
-  std::memcpy(&hp, buffer.begin(), sizeof(int));
-  
-  remoteState.remoteHP = hp;
-  remotePlayer->SetHealth(hp);
-}
-
-void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer)
-{
-  if (buffer.empty()) return;
-  if (!remoteState.remoteConnected) return;
-
-  int x = remoteState.remoteTileX; 
-  std::memcpy(&x, buffer.begin(), sizeof(int));
-
-  int y = remoteState.remoteTileX; 
-  std::memcpy(&y, (buffer.begin()+sizeof(int)), sizeof(int));
-
-  // mirror the x value for remote
-  x = (GetField()->GetWidth() - x)+1;
-
-  remoteState.remoteTileX = x;
-  remoteState.remoteTileY = y;
-}
-
-void NetworkBattleScene::recieveLoserSignal()
-{
-  // TODO: replace this with PVP win information
-  packetProcessor->EnableKickForSilence(false);
-  this->Quit(FadeOut::black);
-}
-
-void NetworkBattleScene::recieveRequestedCardSelectSignal()
+void NetworkBattleScene::RecieveRequestedCardSelectSignal()
 {
   // also going to trigger opening the card select widget
   remoteState.openedCardWidget = true;
 }
 
-void NetworkBattleScene::processPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
+void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
   try {
     switch (header) {
       case NetPlaySignals::handshake:
-        recieveHandshakeSignal(body);
+        RecieveHandshakeSignal(body);
         break;
       case NetPlaySignals::connect:
-        recieveConnectSignal(body);
+        RecieveConnectSignal(body);
         break;
       case NetPlaySignals::input_event:
-        recieveInputEvent(body);
+        RecieveInputEvent(body);
         break;
       case NetPlaySignals::form:
-        recieveChangedFormSignal(body);
-        break;
-      case NetPlaySignals::hp:
-        recieveHPSignal(body);
-        break;
-      case NetPlaySignals::loser:
-        recieveLoserSignal();
-        break;
-      case NetPlaySignals::tile:
-        recieveTileCoordSignal(body);
+        RecieveChangedFormSignal(body);
         break;
       case NetPlaySignals::card_select:
-        recieveRequestedCardSelectSignal();
+        RecieveRequestedCardSelectSignal();
         break;
     }
   }

@@ -11,8 +11,7 @@
 
 PlayerControlledState::PlayerControlledState() : 
   AIState<Player>(), 
-  InputHandle(), 
-  replicator(nullptr),
+  InputHandle(),
   isChargeHeld(false)
 {
 }
@@ -24,42 +23,9 @@ PlayerControlledState::~PlayerControlledState()
 
 void PlayerControlledState::OnEnter(Player& player) {
   player.MakeActionable();
-  replicator = player.GetFirstComponent<PlayerInputReplicator>();
 }
 
 void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
-  if (replicator) {
-    // NOTE: in milliseconds
-    currLag = std::max((double)frames(5).asMilli().value, replicator->GetAvgLatency());
-  }
-
-  // For all inputs in the queue, reduce their wait time for this new frame
-  for (auto& item : inputQueue) {
-    item.wait -= from_seconds(_elapsed);
-  }
-
-  // For all new input events, set the wait time based on the network latency and append
-  const auto events_this_frame = Input().StateThisFrame();
-
-  std::vector<InputEvent> outEvents;
-  for (auto& [name, state] : events_this_frame) {
-    InputEvent copy;
-    copy.name = name;
-    copy.state = state;
-
-    outEvents.push_back(copy);
-
-    // add delay for network
-    copy.wait = from_seconds(currLag / 1000.0); // note: this is dumb. casting to seconds just to cast back to milli internally...
-    inputQueue.push_back(copy);
-  }
-
-  if (replicator) {
-    replicator->SendInputEvents(outEvents);
-  }
-
-  ProcessInputQueue(player);
-
   // Actions with animation lockout controls take priority over movement
   bool lockout = player.IsLockoutAnimationComplete();
   bool actionable = player.IsActionable();
@@ -109,12 +75,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   // Movement increments are restricted based on anim speed at this time
-  if (player.IsMoving()) {
-    if (replicator) {
-      auto tile = player.GetTile();
-    }
-    return;
-  }
+  if (player.IsMoving()) return;
 
   Direction direction = Direction::none;
   if (player.InputState().Has(InputEvents::pressed_move_up) || player.InputState().Has(InputEvents::held_move_up)) {
@@ -161,18 +122,4 @@ void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.Charge(false);
   Logger::Logf("PlayerControlledState::OnLeave()");
-}
-
-void PlayerControlledState::ProcessInputQueue(Player& player)
-{
-  // Drop inputs that are already processed at the end of the last frame
-  for (auto iter = inputQueue.begin(); iter != inputQueue.end();) {
-    if (iter->wait <= frames(0)) {
-      player.InputState().VirtualKeyEvent(*iter);
-      iter = inputQueue.erase(iter);
-      continue;
-    }
-
-    iter++;
-  }
 }

@@ -335,7 +335,6 @@ void Entity::Update(double _elapsed) {
 
   isUpdating = true;
 
-  inputState.Process();
   actionQueue.Process();
 
   UpdateMovement(_elapsed);
