@@ -1,7 +1,0 @@
-imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/navis/megaman/forms/tomahawk_swing.png"
-
-animation state="DEFAULT"
-frame duration="0.05" x="34" y="5" w="99" h="84" originx="39" originy="59"
-frame duration="0.05" x="32" y="102" w="96" h="69" originx="39" originy="45"
-frame duration="0.05" x="175" y="108" w="95" h="68" originx="38" originy="43"
-frame duration="0.05" x="316" y="112" w="86" h="69" originx="39" originy="43"
