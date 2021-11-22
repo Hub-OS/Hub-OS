@@ -278,9 +278,9 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
   std::string hash = reader.ReadTerminatedString(buffer);
-  RemoveFromDownloadList(hash);
 
   if (hash.empty()) return;
+  RemoveFromDownloadList(hash);
 
   size_t file_len = reader.Read<size_t>(buffer);
   std::string path = "cache/" + stx::rand_alphanum(12) + ".zip";
@@ -516,6 +516,8 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
   sf::Sprite icon;
 
   for (auto& [key, value] : contentToDownload) {
+    if (!packageManager.HasPackage(key)) continue;
+
     label.SetString(key + " - " + value);
 
     auto bounds = label.GetLocalBounds();

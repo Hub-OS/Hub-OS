@@ -147,7 +147,7 @@ std::pair<Reliability, uint64_t> PacketShipper::Send(
     break;
   }
 
-  if (IsReliable) {
+  if (IsReliable(reliability)) {
     size_t index = static_cast<size_t>(reliability);
     packetStart[index][newID] = std::chrono::steady_clock::now();
   }

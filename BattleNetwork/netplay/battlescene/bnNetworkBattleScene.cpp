@@ -193,9 +193,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(syncState);
-
-  SendConnectSignal(this->selectedNaviId); // NOTE: this function only happens once at start
-
   LoadMob(*mob);
 }
 
@@ -236,7 +233,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   bool lockstep = combatPtr->IsStateCombat(GetCurrentState());
   std::vector<InputEvent> outEvents;
 
-  Logger::Logf("remoteInputQueue size is %i", remoteInputQueue.size());
+  std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
 
   if (skipFrame) {
     combatPtr->SkipFrame();
@@ -248,11 +245,8 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   }
   
   if (!remoteInputQueue.empty()) {
-    std::sort(remoteInputQueue.begin(), remoteInputQueue.end());
-
-    size_t length = remoteInputQueue.size();
     auto frame = remoteInputQueue.begin();
-    while(length > 0 && FrameNumber() >= frame->frameNumber) {
+    if(FrameNumber() >= frame->frameNumber) {
       auto& events = frame->events;
       remoteFrameNumber = frame->frameNumber;
 
@@ -263,7 +257,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       }
 
       frame = remoteInputQueue.erase(frame);
-      length--;
     }
   }
 
@@ -289,8 +282,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   }
 
   if (skipFrame) return;
-
-  const BattleSceneState* currentState = GetCurrentState();
 
   if (remotePlayer && remotePlayer->WillEraseEOF()) {
     auto iter = std::find(players.begin(), players.end(), remotePlayer);
@@ -362,10 +353,9 @@ void NetworkBattleScene::onEnter()
 void NetworkBattleScene::onStart()
 {
   BattleSceneBase::onStart();
-
   // Once the transition completes, we begin handshakes
+  SendConnectSignal(this->selectedNaviId); // NOTE: this function only happens once at start
   packetProcessor->EnableKickForSilence(true);
-
 }
 
 void NetworkBattleScene::onResume()
