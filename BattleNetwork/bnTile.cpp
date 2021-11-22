@@ -285,11 +285,7 @@ namespace Battle {
       return;
     }
 
-    if (_state == TileState::hidden && state != TileState::hidden) {
-      state = _state;
-      return;
-    }
-    else if (_state != TileState::hidden && state == TileState::hidden) {
+    if (_state != TileState::hidden && state == TileState::hidden) {
       return;
     }
 
