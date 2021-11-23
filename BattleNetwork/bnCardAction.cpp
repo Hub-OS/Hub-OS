@@ -192,6 +192,8 @@ void CardAction::Execute(std::shared_ptr<Character> user)
 
 void CardAction::EndAction()
 {
+  if (!started) return;
+
   RecallPreviousState();
   OnActionEnd();
   

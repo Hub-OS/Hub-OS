@@ -5,7 +5,6 @@
 #include "../bnDirection.h"
 
 struct NetPlayFlags {
-  bool openedCardWidget{ false };
   bool remoteHandshake{ false };
   bool remoteChangeForm{ false };
   bool remoteConnected{ false };

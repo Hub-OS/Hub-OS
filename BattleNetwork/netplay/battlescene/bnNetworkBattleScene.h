@@ -81,11 +81,9 @@ private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
   
-  bool waitingForCardSelectScreen{}; //!< Flag to count down before changing states
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
-  frame_time_t cardStateDelay{}; //!< Timer that counts down until the card select state opens up
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
-  unsigned int remoteFrameNumber{};
+  unsigned int remoteFrameNumber{}, maxRemoteFrameNumber{}, resyncFrameNumber{};
 
   Text ping, frameNumText;
   std::string selectedNaviId; //!< the type of navi we selected
@@ -111,7 +109,6 @@ private:
   void SendInputEvents(std::vector<InputEvent>& events); // send our key or gamepad events
   void SendConnectSignal(const std::string& naviId);
   void SendChangedFormSignal(const int form);
-  void SendRequestedCardSelectSignal(); 
   void SendPingSignal();
 
   // netcode recieve funcs
@@ -119,7 +116,6 @@ private:
   void RecieveInputEvent(const Poco::Buffer<char>& buffer); 
   void RecieveConnectSignal(const Poco::Buffer<char>&);
   void RecieveChangedFormSignal(const Poco::Buffer<char>&);
-  void RecieveRequestedCardSelectSignal(); // if the remote opens card select, we should be too
 
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
   bool IsRemoteBehind();

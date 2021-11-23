@@ -958,6 +958,11 @@ void BattleSceneBase::ProcessNewestComponents()
 #endif
 }
 
+void BattleSceneBase::FlushPlayerInputQueue()
+{
+  queuedLocalEvents.clear();
+}
+
 std::vector<InputEvent> BattleSceneBase::ProcessPlayerInputQueue(const frame_time_t& lag)
 {
   std::vector<InputEvent> outEvents;

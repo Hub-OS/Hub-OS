@@ -319,7 +319,7 @@ bool CardSelectBattleState::HasForm()
 
 bool CardSelectBattleState::RequestedRetreat()
 {
-  return OKIsPressed() && GetScene().GetCardSelectWidget().RequestedRetreat();
+  return !pvpMode && OKIsPressed() && GetScene().GetCardSelectWidget().RequestedRetreat();
 }
 
 const bool CardSelectBattleState::SelectedNewChips()

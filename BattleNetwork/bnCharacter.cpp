@@ -194,6 +194,8 @@ void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::Execu
     }
   }
 
+  if (currCardAction == nullptr) return;
+
   if (exec == ActionQueue::ExecutionType::interrupt) {
     currCardAction->EndAction();
     currCardAction = nullptr;

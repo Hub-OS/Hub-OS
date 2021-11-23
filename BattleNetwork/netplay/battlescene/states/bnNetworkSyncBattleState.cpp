@@ -55,13 +55,15 @@ void NetworkSyncBattleState::onEnd(const BattleSceneState* next)
 
 void NetworkSyncBattleState::onUpdate(double elapsed)
 {
+  if (!scene->remoteState.remoteConnected) {
+    scene->SendConnectSignal(scene->selectedNaviId);
+  }
+
   flicker += from_seconds(elapsed);
 }
 
 void NetworkSyncBattleState::onDraw(sf::RenderTexture& surface)
 {
-  //surface.draw(GetScene().GetCardSelectWidget());
-
   if (flicker.count() % 60 > 30) {
     Text label = Text("Waiting...", Font::Style::thick);
     label.setScale(2.0f, 2.0f);

@@ -21,7 +21,6 @@ enum class NetPlaySignals : unsigned int {
   form, // used when we are de-formed from battle
   card, // emit our card data
   input_event,
-  card_select, // used when player opens card select widget,
 
   ///////////////////////
   // PVP Download Cmds //

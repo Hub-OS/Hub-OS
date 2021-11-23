@@ -139,25 +139,8 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // Lambda event callback that captures and handles network card select screen opening
   auto onCardSelectEvent = [this]() mutable {
-    if (combatPtr->PlayerRequestCardSelect() || waitingForCardSelectScreen) {
-      if (!waitingForCardSelectScreen) {
-        cardStateDelay = from_milliseconds(packetProcessor->GetAvgLatency());
-        this->SendRequestedCardSelectSignal();
-        waitingForCardSelectScreen = true;
-      }
-
-      if (cardStateDelay <= frames(0) && waitingForCardSelectScreen) {
-        waitingForCardSelectScreen = false;
-      }
-
-      return !waitingForCardSelectScreen;
-    }
-    else if (remoteState.openedCardWidget) {
-      remoteState.openedCardWidget = false;
-      return true;
-    }
-
-    return false;
+    bool remoteRequestedChipSelect = this->remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
+    return combatPtr->PlayerRequestCardSelect() || remoteRequestedChipSelect;
   };
 
   // combat has multiple state interruptions based on events
@@ -229,23 +212,34 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   SendPingSignal();
 
-  bool skipFrame = IsRemoteBehind();
-  bool lockstep = combatPtr->IsStateCombat(GetCurrentState());
-  std::vector<InputEvent> outEvents;
+  bool skipFrame = IsRemoteBehind() && this->remotePlayer && !this->remotePlayer->IsDeleted();
 
   std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
 
-  if (skipFrame) {
+  if (skipFrame && FrameNumber()-resyncFrameNumber >= 5) {
     combatPtr->SkipFrame();
     timeFreezePtr->SkipFrame();
   }
-  else if(lockstep) {
-    frame_time_t currLag = frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
-    outEvents = ProcessPlayerInputQueue(currLag);
+  else {
+    if (combatPtr->IsStateCombat(GetCurrentState())) {
+      frame_time_t currLag = frames(5); // frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
+      SendInputEvents(ProcessPlayerInputQueue(currLag));
+    }
   }
   
-  if (!remoteInputQueue.empty()) {
+  if (!remoteInputQueue.empty() && combatPtr->IsStateCombat(GetCurrentState())) {
     auto frame = remoteInputQueue.begin();
+
+    // do not log desyncs if in card select state
+    if (FrameNumber() != frame->frameNumber) {
+      // for debugging, this should never appear if the code is working properly
+      Logger::Logf("-------------          -------------");
+      Logger::Logf("-------------          -------------");
+      Logger::Logf("-------------  DESYNC  -------------");
+      Logger::Logf("-------------          -------------");
+      Logger::Logf("-------------          -------------");
+    }
+
     if(FrameNumber() >= frame->frameNumber) {
       auto& events = frame->events;
       remoteFrameNumber = frame->frameNumber;
@@ -262,15 +256,10 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   BattleSceneBase::onUpdate(elapsed);
   
-  if (lockstep || combatPtr->IsStateCombat(GetCurrentState())) {
-    SendInputEvents(outEvents);
-  }
+  //if (combatPtr->IsStateCombat(GetCurrentState()) && outEvents.has_value()) {
+  //}
 
   frame_time_t elapsed_frames = from_seconds(elapsed);
-
-  if (cardStateDelay > frames(0)) {
-    cardStateDelay -= elapsed_frames;
-  }
 
   if (!syncStatePtr->IsSynchronized()) {
     if (packetProcessor->IsHandshakeAck() && remoteState.remoteHandshake) {
@@ -301,8 +290,6 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   BattleSceneBase::onDraw(surface);
 
   auto lag = GetAvgLatency();
-
-  // Logger::Logf("lag is: %f", lag);
 
   // draw network ping
   ping.SetString(std::to_string(lag).substr(0, 5));
@@ -354,7 +341,7 @@ void NetworkBattleScene::onStart()
 {
   BattleSceneBase::onStart();
   // Once the transition completes, we begin handshakes
-  SendConnectSignal(this->selectedNaviId); // NOTE: this function only happens once at start
+  SendConnectSignal(this->selectedNaviId);
   packetProcessor->EnableKickForSilence(true);
 }
 
@@ -384,7 +371,7 @@ const double NetworkBattleScene::GetAvgLatency() const
 
 bool NetworkBattleScene::IsRemoteBehind()
 {
-  return FrameNumber() > this->remoteFrameNumber;
+  return FrameNumber() > this->maxRemoteFrameNumber;
 }
 
 void NetworkBattleScene::SendHandshakeSignal()
@@ -400,6 +387,7 @@ void NetworkBattleScene::SendHandshakeSignal()
   */
 
   int form = trackedForms[0]->selectedForm;
+  unsigned thisFrame = this->FrameNumber();
   auto& selectedCardsWidget = this->GetSelectedCardsUI();
   std::vector<std::string> uuids = selectedCardsWidget.GetUUIDList();
   size_t len = uuids.size();
@@ -407,6 +395,7 @@ void NetworkBattleScene::SendHandshakeSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals signalType{ NetPlaySignals::handshake };
   buffer.append((char*)&signalType, sizeof(NetPlaySignals));
+  buffer.append((char*)&thisFrame, sizeof(unsigned));
   buffer.append((char*)&form, sizeof(int));
   buffer.append((char*)&len, sizeof(size_t));
 
@@ -426,7 +415,7 @@ void NetworkBattleScene::SendInputEvents(std::vector<InputEvent>& events)
   NetPlaySignals signalType{ NetPlaySignals::input_event };
   buffer.append((char*)&signalType, sizeof(NetPlaySignals));
 
-  unsigned int frameNumber = FrameNumber() + std::max(5u, from_milliseconds(packetProcessor->GetAvgLatency()).count());
+  unsigned int frameNumber = FrameNumber() + 5u; // std::max(5u, from_milliseconds(packetProcessor->GetAvgLatency()).count());
   buffer.append((char*)&frameNumber, sizeof(unsigned int));
 
   size_t list_len = events.size();
@@ -466,14 +455,6 @@ void NetworkBattleScene::SendChangedFormSignal(const int form)
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
-void NetworkBattleScene::SendRequestedCardSelectSignal()
-{
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::card_select };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
-}
-
 void NetworkBattleScene::SendPingSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
@@ -484,12 +465,21 @@ void NetworkBattleScene::SendPingSignal()
 
 void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer)
 {
+  if (!remoteState.remoteConnected) return;
+
+  remoteInputQueue.clear();
+  FlushPlayerInputQueue();
+
   std::vector<std::string> remoteUUIDs;
   int remoteForm{ -1 };
   size_t cardLen{};
   size_t read{};
 
-  std::memcpy(&remoteForm, buffer.begin(), sizeof(int));
+  std::memcpy(&remoteFrameNumber, buffer.begin(), sizeof(unsigned));
+  maxRemoteFrameNumber = remoteFrameNumber;
+  read += sizeof(unsigned);
+
+  std::memcpy(&remoteForm, buffer.begin() + read, sizeof(int));
   read += sizeof(int);
 
   std::memcpy(&cardLen, buffer.begin() + read, sizeof(size_t));
@@ -560,7 +550,8 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   // Convert to microseconds and use this as the round start delay
   roundStartDelay = from_milliseconds((long long)((duration*1000.0) + packetProcessor->GetAvgLatency()));
 
-  startStatePtr->SetStartupDelay(roundStartDelay);
+  // startStatePtr->SetStartupDelay(roundStartDelay);
+  startStatePtr->SetStartupDelay(frames(5));
 
   remoteState.remoteHandshake = true;
 }
@@ -577,7 +568,7 @@ void NetworkBattleScene::RecieveInputEvent(const Poco::Buffer<char>& buffer)
   std::memcpy(&frameNumber, buffer.begin(), sizeof(unsigned int));
   read += sizeof(unsigned int);
 
-  remoteFrameNumber = std::max(remoteFrameNumber, frameNumber);
+  maxRemoteFrameNumber = frameNumber;
 
   std::memcpy(&list_len, buffer.begin() + read, sizeof(size_t));
   read += sizeof(size_t);
@@ -665,12 +656,6 @@ void NetworkBattleScene::RecieveChangedFormSignal(const Poco::Buffer<char>& buff
   }
 }
 
-void NetworkBattleScene::RecieveRequestedCardSelectSignal()
-{
-  // also going to trigger opening the card select widget
-  remoteState.openedCardWidget = true;
-}
-
 void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
   try {
@@ -686,9 +671,6 @@ void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Bu
         break;
       case NetPlaySignals::form:
         RecieveChangedFormSignal(body);
-        break;
-      case NetPlaySignals::card_select:
-        RecieveRequestedCardSelectSignal();
         break;
     }
   }

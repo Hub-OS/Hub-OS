@@ -248,6 +248,7 @@ protected:
   * @brief Scans the entity list for updated components and tries to Inject them if the components require.
   */
   void ProcessNewestComponents();
+  void FlushPlayerInputQueue();
   std::vector<InputEvent> ProcessPlayerInputQueue(const frame_time_t& lag = frames(0));
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
   void OnCounter(Entity& victim, Entity& aggressor) override final;

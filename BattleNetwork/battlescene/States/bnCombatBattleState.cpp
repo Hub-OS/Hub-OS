@@ -89,7 +89,7 @@ const bool CombatBattleState::PlayerLost() const
 
 const bool CombatBattleState::PlayerRequestCardSelect()
 {
-  return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && Input().Has(InputEvents::pressed_cust_menu);
+  return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && GetScene().GetPlayer()->InputState().Has(InputEvents::pressed_cust_menu);
 }
 
 void CombatBattleState::EnablePausing(bool enable)
