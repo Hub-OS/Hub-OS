@@ -92,7 +92,7 @@ private:
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   SpriteProxyNode pingIndicator;
   std::shared_ptr<SelectedCardsUI> remoteCardActionUsePublisher{ nullptr };
-  std::vector<Battle::Card> remoteHand; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
+  std::vector<Battle::Card> remoteHand;
   std::vector<FrameInputData> remoteInputQueue;
   std::shared_ptr<Player> remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
@@ -131,8 +131,6 @@ public:
   void onStart() override;
   void onResume() override;
   void onEnd() override;
-
-  void Inject(PlayerInputReplicator& pub);
 
   const NetPlayFlags& GetRemoteStateFlags();
   const double GetAvgLatency() const;

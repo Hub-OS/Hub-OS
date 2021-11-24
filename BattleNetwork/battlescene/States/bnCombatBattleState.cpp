@@ -151,7 +151,9 @@ void CombatBattleState::onUpdate(double elapsed)
     return;
   }
 
-  GetScene().IncrementFrame();
+  if (elapsed > 0.0) {
+    GetScene().IncrementFrame();
+  }
 
   if ((mob->IsCleared() || tracked[0]->GetHealth() == 0 )&& !clearedMob) {
     auto cardUI = tracked[0]->GetFirstComponent<PlayerSelectedCardsUI>();

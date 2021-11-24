@@ -6,9 +6,6 @@
 #include "bnAudioResourceManager.h"
 #include "bnGame.h"
 #include "bnLogger.h"
-#include "netplay/bnPlayerNetworkState.h"
-#include "netplay/bnPlayerInputReplicator.h"
-#include "netplay/bnPlayerNetworkProxy.h"
 
 #include "bnBubbleTrap.h"
 #include "bnBubbleState.h"

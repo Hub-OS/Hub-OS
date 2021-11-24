@@ -1,7 +1,5 @@
 #include "bnNetworkSyncBattleState.h"
 #include "../bnNetworkBattleScene.h"
-#include "../../bnPlayerNetworkProxy.h"
-#include "../../bnPlayerNetworkState.h"
 #include "../../battlescene/States/bnCardSelectBattleState.h"
 #include "../../../bnPlayerControlledState.h"
 #include "../../../bnPlayer.h"
@@ -41,9 +39,7 @@ void NetworkSyncBattleState::onEnd(const BattleSceneState* next)
     GetScene().GetPlayer()->ChangeState<PlayerControlledState>();
     
     if (remotePlayer) {
-      if (auto remoteProxy = remotePlayer->GetFirstComponent<PlayerNetworkProxy>()) {
-        remotePlayer->ChangeState<PlayerNetworkState>(remoteProxy->GetNetPlayFlags());
-      }
+      remotePlayer->ChangeState<PlayerControlledState>();
     }
 
     firstConnection = false;

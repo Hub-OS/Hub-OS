@@ -20,11 +20,17 @@ public:
   virtual std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, const Battle::Card::Properties& props) = 0;
 };
 
+struct AdjacentCards {
+  bool hasCardToLeft{}, hasCardToRight{}, deleteLeft{}, deleteRight{}, deleteThisCard{};
+  Battle::Card::Properties* leftCard{nullptr}, *rightCard{nullptr};
+};
+
 struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
   Battle::Card::Properties properties;
   std::shared_ptr<sf::Texture> iconTexture; /*!< Icon used in hand */
   std::shared_ptr<sf::Texture> previewTexture; /*!< Picture used in select widget */
   std::vector<char> codes;
+  std::function<void(Battle::Card::Properties&, AdjacentCards&)> filterHandStep; // Unique filter 
 
   /**
   * @brief

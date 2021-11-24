@@ -3,9 +3,8 @@
 #include "bnPlayer.h"
 #include "bnCardAction.h"
 #include "bnTile.h"
-#include "bnSelectedCardsUI.h"
+#include "bnPlayerSelectedCardsUI.h"
 #include "bnAudioResourceManager.h"
-#include "netplay/bnPlayerInputReplicator.h"
 
 #include <iostream>
 
@@ -82,13 +81,13 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     direction = Direction::up;
   }
   else if (player.InputState().Has(InputEvents::pressed_move_left) || player.InputState().Has(InputEvents::held_move_left)) {
-    direction = Direction::left;
+    direction = player.GetTeam() == Team::red ? Direction::left : Direction::right;
   }
   else if (player.InputState().Has(InputEvents::pressed_move_down) || player.InputState().Has(InputEvents::held_move_down)) {
     direction = Direction::down;
   }
   else if (player.InputState().Has(InputEvents::pressed_move_right) || player.InputState().Has(InputEvents::held_move_right)) {
-    direction = Direction::right;
+    direction = player.GetTeam() == Team::red ? Direction::right : Direction::left;
   }
 
   if(direction != Direction::none && actionable && !player.IsRooted()) {
@@ -121,5 +120,4 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.Charge(false);
-  Logger::Logf("PlayerControlledState::OnLeave()");
 }

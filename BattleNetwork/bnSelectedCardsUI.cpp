@@ -123,7 +123,7 @@ bool SelectedCardsUI::UseNextCard() {
 
   auto& card = (*selectedCards)[curr];
 
-  if (!card.IsBooster()) {
+  if (!card.CanBoost()) {
     card.MultiplyDamage(multiplierValue);
   }
 

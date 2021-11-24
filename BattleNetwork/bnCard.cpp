@@ -81,11 +81,6 @@ namespace Battle {
     return this->IsTaggedAs("navi");
   }
 
-  const bool Card::IsBooster() const
-  {
-    return this->IsTaggedAs("booster");
-  }
-
   const bool Card::IsTimeFreeze() const
   {
     return props.timeFreeze;

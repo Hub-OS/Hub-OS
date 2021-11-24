@@ -131,12 +131,6 @@ namespace Battle {
     const bool IsNaviSummon() const;
 
     /**
-    * @brief Qeuery if card is tagged as a booster card (modifies other cards)
-    * @returns true if flagged as a booster card, false otherwise
-    */
-    const bool IsBooster() const;
-
-    /**
     * @brief Query if card should freeze time
     * @returns true if flagged as a time freeze card, false otherwise
     */

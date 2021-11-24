@@ -1,7 +1,4 @@
 #include "bnTimeFreezeBattleState.h"
-
-#include "../../netplay/bnPlayerInputReplicator.h" // TODO: take out somehow...
-
 #include "../bnBattleSceneBase.h"
 #include "../../bnCard.h"
 #include "../../bnCardAction.h"
@@ -88,7 +85,9 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     return;
   }
 
-  GetScene().IncrementFrame();
+  if (elapsed > 0.0) {
+    GetScene().IncrementFrame();
+  }
 
   summonTimer.update(sf::seconds(static_cast<float>(elapsed)));
 

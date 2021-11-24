@@ -4,9 +4,6 @@
 #include <chrono>
 
 #include "bnNetworkBattleScene.h"
-#include "../bnPlayerInputReplicator.h"
-#include "../bnPlayerNetworkState.h"
-#include "../bnPlayerNetworkProxy.h"
 #include "../../bnFadeInState.h"
 #include "../../bnElementalDamage.h"
 
@@ -54,7 +51,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   auto clientPlayer = props.base.player;
 
   selectedNaviId = props.netconfig.myNaviId;
-  clientPlayer->CreateComponent<PlayerInputReplicator>(clientPlayer);
 
   packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
@@ -354,11 +350,6 @@ void NetworkBattleScene::onEnd()
   BattleSceneBase::onEnd();
 }
 
-void NetworkBattleScene::Inject(PlayerInputReplicator& pub)
-{
-  pub.Inject(*this);
-}
-
 const NetPlayFlags& NetworkBattleScene::GetRemoteStateFlags()
 {
   return remoteState; 
@@ -634,7 +625,6 @@ void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
   this->SubscribeToCardActions(*remoteCardActionUsePublisher);
 
   remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);
-  auto netProxy = remotePlayer->CreateComponent<PlayerNetworkProxy>(remotePlayer, remoteState);
 
   players.push_back(remotePlayer);
   trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer.get(), -1, false ));

@@ -362,41 +362,47 @@ void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
 }
 
 void BattleSceneBase::FilterSupportCards(std::vector<Battle::Card>& cards) {
-  // Only remove the support cards in the queue. Increase the previous card damage by their support value.
-  Battle::Card* card = nullptr;
+  auto& cardPackageManager = getController().CardPackageManager();
 
-  // Create a temp card list
-  std::vector<Battle::Card> newCardList;
+  for (size_t i = 0; i < cards.size(); i++) {
+    std::string uuid = cards[i].GetUUID();
 
-  for (int i = 0; i < cards.size(); i++) {
-    if (cards[i].IsBooster()) {
-      Logger::Logf("Booster card %s detected", cards[i].GetShortName().c_str());
+    // booster cards do not modify other booster cards
+    if (cardPackageManager.HasPackage(uuid)) {
+      AdjacentCards adjCards;
 
-      // check if we are tracking a non-booster card first
-      if (card) {
-        // booster cards do not modify other booster cards
-        if (!card->IsBooster()) {
-          int lastDamage = card->GetDamage();
-          int buff = 0;
+      if (i > 0 && cards[i-1u].CanBoost()) {
+        adjCards.hasCardToLeft = true;
+        adjCards.leftCard = &cards[i-1u].props;
+      }
 
-          // NOTE: hardcoded filter step for "Atk+X" cards
-          if (cards[i].GetShortName().substr(0, 3) == "Atk") {
-            std::string substr = cards[i].GetShortName().substr(4, cards[i].GetShortName().size() - 4).c_str();
-            buff = atoi(substr.c_str());
-          }
+      if (i < cards.size() - 1 && cards[i+1u].CanBoost()) {
+        adjCards.hasCardToRight = true;
+        adjCards.rightCard = &cards[i+1u].props;
+      }
 
-          card->ModDamage(buff);
-        }
+      auto& meta = cardPackageManager.FindPackageByID(uuid);
 
-        continue; // skip the rest of the code below
+      if (meta.filterHandStep) {
+        meta.filterHandStep(cards[i].props, adjCards);
+      }
+
+      if (adjCards.deleteLeft) {
+        cards.erase(cards.begin() + i - 1u);
+        i--;
+      }
+
+      if (adjCards.deleteRight) {
+        cards.erase(cards.begin() + i + 1u);
+        i--;
+      }
+
+      if (adjCards.deleteThisCard) {
+        cards.erase(cards.begin() + i);
+        i--;
       }
     }
-
-    newCardList.push_back(cards[i]);
-    card = &cards[i];
   }
-
-  cards = std::move(newCardList);
 }
 
 #ifdef __ANDROID__

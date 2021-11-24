@@ -143,7 +143,7 @@ void ScriptResourceManager::AddDependencyNote(sol::state& state, const std::stri
   t.set( t.size() + 1, dependencyPackageID );
 }
 
-void ScriptResourceManager::RegisterDependencyNotes(sol::state& state )
+void ScriptResourceManager::RegisterDependencyNotes(sol::state& state)
 {
   // If "_package_id" isn't set, something's gone wrong, return.
   if(!state["_package_id"].valid() )
@@ -426,11 +426,32 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "CardMeta", key );
     },
+    "filter_hand_step", &CardMeta::filterHandStep,
     "get_card_props", &CardMeta::GetCardProperties,
     "set_preview_texture", &CardMeta::SetPreviewTexture,
     "set_icon_texture", &CardMeta::SetIconTexture,
     "set_codes", &CardMeta::SetCodes,
     "declare_package_id", &CardMeta::SetPackageID
+  );
+
+  const auto& adjacent_card_table = battle_namespace.new_usertype<AdjacentCards>("AdjacentCards",
+    "has_card_to_left", [](AdjacentCards& adjCards) {
+      return adjCards.hasCardToLeft;
+    },
+    "has_card_to_right", [](AdjacentCards& adjCards) {
+      return adjCards.hasCardToRight;
+    },
+    "discard_left", [](AdjacentCards& adjCards) {
+      adjCards.deleteLeft = true;
+    },
+    "discard_right", [](AdjacentCards& adjCards) {
+      adjCards.deleteRight = true;
+    },
+    "discard_incoming", [](AdjacentCards& adjCards) {
+      adjCards.deleteThisCard = true;
+    },
+    "left_card", &AdjacentCards::leftCard,
+    "right_card", &AdjacentCards::rightCard
   );
 
   const auto& mobmeta_table = battle_namespace.new_usertype<MobMeta>("MobMeta",
