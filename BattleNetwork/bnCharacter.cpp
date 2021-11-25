@@ -207,7 +207,11 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
   SelectedCardsUI* publisher = event.publisher;
   if (publisher) {
     auto characterPtr = shared_from_base<Character>();
-    publisher->HandlePeekEvent(characterPtr);
+
+    if (publisher->HandlePeekEvent(characterPtr)) {
+      // prepare for this frame's action animation (we must be actionable)
+      this->MakeActionable();
+    }
   }
 
   actionQueue.Pop();

@@ -55,6 +55,7 @@ enum class AudioType : int {
   TEXT,
   SHINE,
   TIME_FREEZE,
+  TRAP,
   METEOR,
   DEFORM,
   AUDIO_TYPE_SIZE

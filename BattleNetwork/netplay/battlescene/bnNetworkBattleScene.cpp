@@ -210,7 +210,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   bool skipFrame = IsRemoteBehind() && this->remotePlayer && !this->remotePlayer->IsDeleted();
 
-  std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
+  // std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
 
   if (skipFrame && FrameNumber()-resyncFrameNumber >= 5) {
     combatPtr->SkipFrame();
@@ -226,27 +226,37 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   if (!remoteInputQueue.empty() && combatPtr->IsStateCombat(GetCurrentState())) {
     auto frame = remoteInputQueue.begin();
 
-    // do not log desyncs if in card select state
-    if (FrameNumber() != frame->frameNumber) {
+    // only log desyncs if we are beyond the initial delay frames and the numbers are not in sync yet
+    if (FrameNumber() - resyncFrameNumber >= 5 && FrameNumber() != frame->frameNumber) {
       // for debugging, this should never appear if the code is working properly
-      Logger::Logf("-------------          -------------");
-      Logger::Logf("-------------          -------------");
-      Logger::Logf("-------------  DESYNC  -------------");
-      Logger::Logf("-------------          -------------");
-      Logger::Logf("-------------          -------------");
+      Logger::Logf("DESYNC: frames #s were %i - %i", remoteFrameNumber, FrameNumber());
+
     }
 
     if(FrameNumber() >= frame->frameNumber) {
       auto& events = frame->events;
       remoteFrameNumber = frame->frameNumber;
 
-      Logger::Logf("next remote frame # is %i", remoteFrameNumber);
+      // Logger::Logf("next remote frame # is %i", remoteFrameNumber);
 
       for (auto& e : events) {
         remotePlayer->InputState().VirtualKeyEvent(e);
       }
 
       frame = remoteInputQueue.erase(frame);
+    }
+  }
+
+  // very special case: time freeze can counter from opponent's inputs
+  if (GetCurrentState() == timeFreezePtr) {
+    for (auto& p : players) {
+      if (p->InputState().Has(InputEvents::pressed_use_chip)) {
+        auto cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
+        if (cardsUI) {
+          cardsUI->HandlePeekEvent(p);
+          p->GetChargeComponent().SetCharging(false);
+        }
+      }
     }
   }
 

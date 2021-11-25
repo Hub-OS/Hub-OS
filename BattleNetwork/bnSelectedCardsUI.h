@@ -76,7 +76,8 @@ public:
   */
   std::optional<std::reference_wrapper<const Battle::Card>> Peek();
 
-  void HandlePeekEvent(std::shared_ptr<Character> from);
+  //!< Returns true if there was a card to peek, false if empty
+  bool HandlePeekEvent(std::shared_ptr<Character> from);
 
   /**
   * @brief Returns the uuids of all the cards

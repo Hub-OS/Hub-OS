@@ -9,7 +9,7 @@
 
 TimeFreezeBattleState::TimeFreezeBattleState()
 {
-  lockedTimestamp = lockedTimestamp = std::numeric_limits<long long>::max();
+  lockedTimestamp = std::numeric_limits<long long>::max();
 }
 
 TimeFreezeBattleState::~TimeFreezeBattleState()
@@ -28,17 +28,21 @@ const bool TimeFreezeBattleState::FadeOutBackdrop()
 
 void TimeFreezeBattleState::CleanupStuntDouble()
 {
-  if (stuntDouble) {
-    GetScene().GetField()->DeallocEntity(stuntDouble->GetID());
-  }
+  while (tfEvents.size()) {
+    auto iter = tfEvents.begin();
 
-  stuntDouble = nullptr;
+    if (iter->stuntDouble) {
+      GetScene().GetField()->DeallocEntity(iter->stuntDouble->GetID());
+    }
+
+    iter = tfEvents.erase(iter);
+  }
 }
 
 std::shared_ptr<Character> TimeFreezeBattleState::CreateStuntDouble(std::shared_ptr<Character> from)
 {
   CleanupStuntDouble();
-  stuntDouble = std::make_shared<StuntDouble>(from);
+  auto stuntDouble = std::make_shared<StuntDouble>(from);
   stuntDouble->Init();
   return stuntDouble;
 }
@@ -58,11 +62,12 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
   GetScene().GetSelectedCardsUI().Hide();
   GetScene().GetField()->ToggleTimeFreeze(true); // freeze everything on the field but accept hits
-  summonTimer.reset();
-  summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = startState;
 
-  if (action && action->GetMetaData().skipTimeFreezeIntro) {
+  if (tfEvents.empty()) return;
+
+  auto& first = tfEvents.begin();
+  if (first->action && first->action->GetMetaData().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
 }
@@ -72,10 +77,10 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
   GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
   GetScene().HighlightTiles(false);
-  action = nullptr;
-  user = nullptr;
+  tfEvents.clear();
+  summonStart = false;
+  summonTick = frames(0);
   startState = state::fadein; // assume fadein for most time freezes
-  executeOnce = false; // reset execute flag
 }
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
@@ -89,53 +94,79 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     GetScene().IncrementFrame();
   }
 
-  summonTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  if (summonStart) {
+    summonTick += frames(1);
+  }
 
   switch (currState) {
   case state::fadein:
   {
     if (FadeInBackdrop()) {
+      summonStart = true;
       currState = state::display_name;
-      summonTimer.start();
       Audio().Play(AudioType::TIME_FREEZE, AudioPriority::highest);
     }
   }
     break;
   case state::display_name:
   {
-    double summonSecs = summonTimer.getElapsed().asSeconds();
+    if (playerCountered) {
+      playerCountered = false;
 
-    if (summonSecs >= summonTextLength) {
+      Audio().Play(AudioType::TRAP, AudioPriority::high);
+      auto& last = tfEvents.begin()+1u;
+      last->animateCounter = true;
+      summonTick = frames(0);
+    }
+
+    if (summonTick >= summonTextLength) {
       GetScene().HighlightTiles(true); // re-enable tile highlighting for new entities
       currState = state::animate; // animate this attack
       ExecuteTimeFreeze();
+    }
+
+    for (auto& e : tfEvents) {
+      if (e.animateCounter) {
+        e.alertFrameCount += frames(1);
+      }
     }
   }
   break;
   case state::animate:
     {
       bool updateAnim = false;
+      auto& first = tfEvents.begin();
 
-      if (action) {
+      if (first->action) {
         // update the action until it is is complete
-        switch (action->GetLockoutType()) {
+        switch (first->action->GetLockoutType()) {
         case CardAction::LockoutType::sequence:
-          updateAnim = !action->IsLockoutOver();
+          updateAnim = !first->action->IsLockoutOver();
           break;
         default:
-          updateAnim = !action->IsAnimationOver();
+          updateAnim = !first->action->IsAnimationOver();
           break;
         }
       }
 
       if (updateAnim) {
-        action->Update(elapsed);
+        first->action->Update(elapsed);
       }
       else{
-        currState = state::fadeout;
-        user->Reveal();
-        CleanupStuntDouble();
-        lockedTimestamp = std::numeric_limits<long long>::max();
+        first->user->Reveal();
+        GetScene().GetField()->DeallocEntity(first->stuntDouble->GetID());
+
+        if (tfEvents.size() <= 1) {
+          // This is the only event in the list
+          lockedTimestamp = std::numeric_limits<long long>::max();
+          currState = state::fadeout;
+        }
+        else {
+          tfEvents.erase(tfEvents.begin());
+
+          // restart the time freeze animation
+          currState = state::animate;
+        }
       }
     }
     break;
@@ -145,20 +176,29 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
-  Text summonsLabel = Text(name, Font::Style::thick);
+  if (tfEvents.empty()) return;
 
-  double summonSecs = summonTimer.getElapsed().asSeconds();
-  double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
+  auto& first = tfEvents.begin();
+  static Text summonsLabel = Text(first->name, Font::Style::thick);
+  static sf::Sprite alertSprite(*Textures().LoadFromFile("resources/ui/alert.png"));
+
+  double scale = swoosh::ease::linear(summonTick.asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
+  scale = std::min(scale, 1.0);
+
+  if (summonTick >= summonTextLength - fadeInOutLength) {
+    scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
+    scale = std::max(scale, 0.0);
+  }
 
   sf::Vector2f position = sf::Vector2f(66.f, 82.f);
 
-  if (team == Team::blue) {
+  if (first->team == Team::blue) {
     position = sf::Vector2f(416.f, 82.f);
   }
 
   summonsLabel.setScale(2.0f, 2.0f*(float)scale);
 
-  if (team == Team::red) {
+  if (first->team == Team::red) {
     summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height*0.5f);
   }
   else {
@@ -173,14 +213,43 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   summonsLabel.SetColor(sf::Color::White);
   summonsLabel.setPosition(position);
   surface.draw(summonsLabel);
+
+  // draw the !! sprite
+  for (auto& e : tfEvents) {
+    if (e.animateCounter) {
+      double scale = swoosh::ease::wideParabola(e.alertFrameCount.asSeconds().value, this->alertAnimFrames.asSeconds().value, 3.0);
+      
+      sf::Vector2f position = sf::Vector2f(66.f, 82.f);
+
+      if (e.team == Team::blue) {
+        position = sf::Vector2f(416.f, 82.f);
+      }
+
+      alertSprite.setScale(2.0f, 2.0f * (float)scale);
+
+      if (e.team == Team::red) {
+        alertSprite.setOrigin(0, alertSprite.getLocalBounds().height * 0.5f);
+      }
+      else {
+        alertSprite.setOrigin(alertSprite.getLocalBounds().width, alertSprite.getLocalBounds().height * 0.5f);
+      }
+
+      alertSprite.setPosition(position);
+      surface.draw(alertSprite);
+    }
+  }
 }
 
 void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
-  if (action && action->CanExecute()) {
-    user->Hide();
-    if (GetScene().GetField()->AddEntity(stuntDouble, *user->GetTile()) != Field::AddEntityStatus::deleted) {
-      action->Execute(user);
+  if (tfEvents.empty()) return;
+
+  auto& first = tfEvents.begin();
+
+  if (first->action && first->action->CanExecute()) {
+    first->user->Hide();
+    if (GetScene().GetField()->AddEntity(first->stuntDouble, *first->user->GetTile()) != Field::AddEntityStatus::deleted) {
+      first->action->Execute(first->user);
     }
     else {
       currState = state::fadeout;
@@ -194,17 +263,42 @@ bool TimeFreezeBattleState::IsOver() {
 
 void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
+  // tfc window ended
+  if (summonTick > summonTextLength) return;
+
   if (!action)
     return;
+  
+  if (action->GetMetaData().timeFreeze) {
+    bool addEvent = true;
 
-  if (action->GetMetaData().timeFreeze && timestamp < lockedTimestamp) {
-    this->name = action->GetMetaData().shortname;
-    this->team = action->GetActor()->GetTeam();
-    this->user = action->GetActor();
-    lockedTimestamp = timestamp;
+    if (!tfEvents.empty()) {
+      // only opposing players can counter
+      auto lastActor = tfEvents.begin()->action->GetActor();
+      if (!lastActor->Teammate(action->GetActor()->GetTeam())) {
+        playerCountered = true;
+        currState = state::display_name;
+      }
+      else {
+        addEvent = false;
+      }
+    }
 
-    this->action = action;
-    stuntDouble = CreateStuntDouble(this->user);
-    action->UseStuntDouble(stuntDouble);
+    if (addEvent) {
+      TimeFreezeBattleState::EventData data;
+      data.action = action;
+      data.name = action->GetMetaData().shortname;
+      data.team = action->GetActor()->GetTeam();
+      data.user = action->GetActor();
+      lockedTimestamp = timestamp;
+
+      data.action = action;
+      data.stuntDouble = CreateStuntDouble(data.user);
+      action->UseStuntDouble(data.stuntDouble);
+
+      tfEvents.insert(tfEvents.begin(), data);
+
+      Logger::Logf("Added chip event: %s", data.name.c_str());
+    }
   }
 }

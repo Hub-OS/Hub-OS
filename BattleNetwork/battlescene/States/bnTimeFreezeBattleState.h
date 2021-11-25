@@ -8,12 +8,13 @@
 #include "../../bnFont.h"
 #include "../../bnCardAction.h"
 #include "../../bnCardUseListener.h"
+#include "../../frame_time_t.h"
 
 class Character;
 namespace Battle { class Card; }
 
 /* 
-    \brief This state governs transitions and combat rules while in TF
+  \brief This state governs transitions and combat rules while in TF
 */
 struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListener {
   enum class state : int {
@@ -23,16 +24,24 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
     fadeout
   } currState{ state::fadein }, startState{ state::fadein };
 
+  struct EventData {
+    std::string name;
+    Team team{ Team::unknown };
+    std::shared_ptr<Character> user{ nullptr }, stuntDouble{ nullptr };
+    std::shared_ptr<CardAction> action{ nullptr };
+    frame_time_t alertFrameCount{ frames(0) };
+    bool counterStart{}, animateCounter{};
+  };
+
+  bool skipFrame{}, summonStart{}, playerCountered{};
   long long lockedTimestamp{ 0 };
-  double summonTextLength{ 1.0 }; /*!< How long TFC label should stay on screen */
+  frame_time_t alertAnimFrames{ frames(20) };
+  frame_time_t fadeInOutLength{ frames(6) };
+  frame_time_t tfcStartFrame{ frames(10) };
+  frame_time_t summonTextLength{ frames(60) }; /*!< How long TFC label should stay on screen */
+  frame_time_t summonTick{ frames(0) };
   double backdropInc{ 1.25 }; //!< alpha increase per frame (max 255)
-  bool executeOnce{ false };
-  bool skipFrame{};
-  std::string name;
-  Team team{ Team::unknown };
-  swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
-  std::shared_ptr<Character> user{ nullptr }, stuntDouble{ nullptr };
-  std::shared_ptr<CardAction> action;
+  std::vector<EventData> tfEvents;
 
   TimeFreezeBattleState();
   ~TimeFreezeBattleState();

@@ -142,7 +142,7 @@ void SelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 
 std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek()
 {
-  if (selectedCards->size() > 0) {
+  if (curr < selectedCards->size()) {
     using RefType = std::reference_wrapper<const Battle::Card>;
     return std::optional<RefType>(std::ref((*selectedCards)[curr]));
   }
@@ -150,7 +150,7 @@ std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek(
   return {};
 }
 
-void SelectedCardsUI::HandlePeekEvent(std::shared_ptr<Character> from)
+bool SelectedCardsUI::HandlePeekEvent(std::shared_ptr<Character> from)
 {
   auto maybe_card = this->Peek();
 
@@ -160,15 +160,16 @@ void SelectedCardsUI::HandlePeekEvent(std::shared_ptr<Character> from)
 
     // could act on metadata later:
     // from->OnCard(card)
-     
-    // prepare for this frame's action animation (we must be actionable)
-    from->MakeActionable();
 
     if (auto action = CardToAction(card, from, packageManager)) {
       action->SetMetaData(card.props); // associate the meta with this action object
       this->Broadcast(action); // tell the rest of the subsystems
     }
+
+    return true;
   }
+
+  return false;
 }
 
 std::vector<std::string> SelectedCardsUI::GetUUIDList()

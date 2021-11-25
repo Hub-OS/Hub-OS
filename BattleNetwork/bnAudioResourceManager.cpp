@@ -112,6 +112,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::SHINE, "resources/sfx/shine.ogg"); status++;
   LoadSource(AudioType::METEOR, "resources/sfx/meteor.ogg"); status++;
   LoadSource(AudioType::TIME_FREEZE, "resources/sfx/timefreeze.ogg"); status++;
+  LoadSource(AudioType::TRAP, "resources/sfx/trap.ogg"); status++;
   LoadSource(AudioType::DEFORM, "resources/sfx/deform.ogg"); status++;
 }
 
