@@ -375,11 +375,16 @@ void FolderEditScene::onUpdate(double elapsed) {
                         }
                         if (found == false) {
                             folderCardSlots[folderView.currCardIndex].GetCard(copy);
-                            auto slot = PoolBucket(1, copy);
-                            poolCardBuckets.push_back(slot);
-                            packView.numOfCards++;
-                            CHIPLIB.AddCard(copy);
-                            bool gotCard = true;
+                            if (copy.GetShortName().length() > 0) {
+                                auto slot = PoolBucket(1, copy);
+                                poolCardBuckets.push_back(slot);
+                                packView.numOfCards++;
+                                CHIPLIB.AddCard(copy);
+                                bool gotCard = true;
+                            }
+                            else {
+                                Audio().Play(AudioType::CHIP_ERROR);
+                            }
                         }
                         // Unselect the card
                         folderView.swapCardIndex = -1;
@@ -402,37 +407,47 @@ void FolderEditScene::onUpdate(double elapsed) {
                         // The card from the pack is copied and added to the slot
                         // The slot card needs to find its corresponding bucket and increment it
                         Battle::Card copy;
-
-                        bool gotCard = false;
-
-                        // If the pack pointed to is the same as the card in our folder, add the card back into folder
-                        if (poolCardBuckets[packView.swapCardIndex].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
-                            poolCardBuckets[packView.swapCardIndex].AddCard();
-                            folderCardSlots[folderView.currCardIndex].GetCard(copy);
-
-                            gotCard = true;
-                        }
-                        else if (poolCardBuckets[packView.swapCardIndex].GetCard(copy)) {
-                            Battle::Card prev;
-
-                            bool findBucket = folderCardSlots[folderView.currCardIndex].GetCard(prev);
-
-                            folderCardSlots[folderView.currCardIndex].AddCard(copy);
-
-                            // If the card slot had a card, find the corresponding bucket to add it back into
-                            if (findBucket) {
-                                auto iter = std::find_if(poolCardBuckets.begin(), poolCardBuckets.end(),
-                                    [&prev](const PoolBucket& in) { return prev.GetShortName() == in.ViewCard().GetShortName(); }
-                                );
-
-                                if (iter != poolCardBuckets.end()) {
-                                    iter->AddCard();
-                                }
+                        Battle::Card copy2 = poolCardBuckets[packView.swapCardIndex].ViewCard();
+                        Battle::Card checkCard;
+                        int maxCards = copy2.GetLimit();
+                        int foundCards = 0;
+                        for (auto i = 0; i < folderCardSlots.size(); i++) {
+                            checkCard = Battle::Card(folderCardSlots[i].ViewCard());
+                            if (checkCard.GetShortName() == copy2.GetShortName() && checkCard.GetClass() == copy2.GetClass() && checkCard.GetElement() == copy2.GetElement()) {
+                                foundCards++;
                             }
-
-                            gotCard = true;
                         }
+                        bool gotCard = false;
+                        if (foundCards < maxCards || maxCards == 0) {
 
+                            // If the pack pointed to is the same as the card in our folder, add the card back into folder
+                            if (poolCardBuckets[packView.swapCardIndex].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
+                                poolCardBuckets[packView.swapCardIndex].AddCard();
+                                folderCardSlots[folderView.currCardIndex].GetCard(copy);
+
+                                gotCard = true;
+                            }
+                            else if (poolCardBuckets[packView.swapCardIndex].GetCard(copy)) {
+                                Battle::Card prev;
+
+                                bool findBucket = folderCardSlots[folderView.currCardIndex].GetCard(prev);
+
+                                folderCardSlots[folderView.currCardIndex].AddCard(copy);
+
+                                // If the card slot had a card, find the corresponding bucket to add it back into
+                                if (findBucket) {
+                                    auto iter = std::find_if(poolCardBuckets.begin(), poolCardBuckets.end(),
+                                        [&prev](const PoolBucket& in) { return prev.GetShortName() == in.ViewCard().GetShortName(); }
+                                    );
+
+                                    if (iter != poolCardBuckets.end()) {
+                                        iter->AddCard();
+                                    }
+                                }
+
+                                gotCard = true;
+                            }
+                        }
                         if (gotCard) {
                             hasFolderChanged = true;
 
@@ -464,12 +479,32 @@ void FolderEditScene::onUpdate(double elapsed) {
                             }
                             Battle::Card copy;
                             if (found != -1 && poolCardBuckets[packView.currCardIndex].GetCard(copy)) {
-                                folderCardSlots[found].AddCard(copy);
-                                bool gotCard = true;
-                                packView.swapCardIndex = -1;
-                                folderView.swapCardIndex = -1;
-                                hasFolderChanged = true;
-                                Audio().Play(AudioType::CHIP_CONFIRM);
+                                Battle::Card checkCard;
+                                int maxCards = copy.GetLimit();
+                                int foundCards = 0;
+                                for (auto i = 0; i < folderCardSlots.size(); i++) {
+                                    checkCard = Battle::Card(folderCardSlots[i].ViewCard());
+                                    if (checkCard.GetShortName() == copy.GetShortName() && checkCard.GetClass() == copy.GetClass() && checkCard.GetElement() == copy.GetElement()) {
+                                        foundCards++;
+                                    }
+                                }
+                                if (foundCards < maxCards || maxCards == 0) {
+                                    folderCardSlots[found].AddCard(copy);
+                                    bool gotCard = true;
+                                    packView.swapCardIndex = -1;
+                                    folderView.swapCardIndex = -1;
+                                    hasFolderChanged = true;
+                                    folderView.numOfCards++;
+                                    Audio().Play(AudioType::CHIP_CONFIRM);
+                                }
+                                else {
+                                    poolCardBuckets[packView.currCardIndex].AddCard();
+                                    bool gotCard = true;
+                                    hasFolderChanged = true;
+                                    packView.swapCardIndex = -1;
+                                    folderView.swapCardIndex = -1;
+                                    Audio().Play(AudioType::CHIP_ERROR);
+                                }
                             }
                         }
                         else {
@@ -477,8 +512,6 @@ void FolderEditScene::onUpdate(double elapsed) {
                             packView.swapCardIndex = -1;
                             Audio().Play(AudioType::CHIP_CANCEL);
                         }
-
-
                     }
                     else {
                         // swap the pack
@@ -486,7 +519,6 @@ void FolderEditScene::onUpdate(double elapsed) {
                         poolCardBuckets[packView.swapCardIndex] = poolCardBuckets[packView.currCardIndex];
                         poolCardBuckets[packView.currCardIndex] = temp;
                         Audio().Play(AudioType::CHIP_CONFIRM);
-
                         packView.swapCardIndex = -1;
                     }
                 }
@@ -507,12 +539,12 @@ void FolderEditScene::onUpdate(double elapsed) {
 
                             gotCard = true;
                         }
-                        else if (poolCardBuckets[packView.currCardIndex].GetCard(copy)) {
+                        else if (poolCardBuckets[packView.swapCardIndex].GetCard(copy)) {
                             Battle::Card prev;
 
-                            bool findBucket = folderCardSlots[folderView.swapCardIndex].GetCard(prev);
+                            bool findBucket = folderCardSlots[folderView.currCardIndex].GetCard(prev);
 
-                            folderCardSlots[folderView.swapCardIndex].AddCard(copy);
+                            folderCardSlots[folderView.currCardIndex].AddCard(copy);
 
                             // If the card slot had a card, find the corresponding bucket to add it back into
                             if (findBucket) {
@@ -524,7 +556,6 @@ void FolderEditScene::onUpdate(double elapsed) {
                                     iter->AddCard();
                                 }
                             }
-
                             gotCard = true;
                         }
 
