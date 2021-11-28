@@ -48,7 +48,6 @@ void Text::UpdateGeometry() const
 
   // Precompute the variables needed by the algorithm
   float whitespaceWidth = font.GetWhiteSpaceWidth();
-  float letterSpacing = 1.0f; //  (whitespaceWidth / 3.f) * (Text::letterSpacing - 1.f);
   whitespaceWidth += letterSpacing;
   float lineSpacing = font.GetLineHeight() * Text::lineSpacing;
   float x = 0.f;
@@ -88,7 +87,7 @@ void Text::UpdateGeometry() const
 
 Text::Text(const Font& font) : font(font), message(""), geometryDirty(true)
 {
-  letterSpacing = (font.GetWhiteSpaceWidth() / 3.0f) + 1.0f;
+  letterSpacing = 1.0f;
   lineSpacing = 1.0f;
   color = sf::Color::White;
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
@@ -96,7 +95,7 @@ Text::Text(const Font& font) : font(font), message(""), geometryDirty(true)
 
 Text::Text(const std::string& message, const Font& font) : font(font), message(message), geometryDirty(true)
 {
-  letterSpacing = (font.GetWhiteSpaceWidth()/3.0f) + 1.0f;
+  letterSpacing = 1.0f;
   lineSpacing = 1.0f;
   color = sf::Color::White;
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
