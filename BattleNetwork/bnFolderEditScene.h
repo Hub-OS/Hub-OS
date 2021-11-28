@@ -111,8 +111,9 @@ private:
 
   Font numberFont;
   Text numberLabel;
-
+  
   Text limitLabel;
+  Text limitLabel2;
 
   // Card description font
   Font cardDescFont;

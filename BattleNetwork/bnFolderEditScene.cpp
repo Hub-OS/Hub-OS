@@ -123,7 +123,8 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     hasFolderChanged(false),
     card(),
     font(Font::Style::wide),
-    limitLabel("NO\nMAX", Font::Style::tiny),
+    limitLabel("NO", Font::Style::tiny),
+    limitLabel2("\nMAX", Font::Style::tiny),
     menuLabel("FOLDER EDIT", font),
     cardFont(Font::Style::thick),
     cardLabel("", cardFont),
@@ -155,6 +156,10 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     limitLabel.setScale(2.f, 2.f);
     limitLabel.SetLetterSpacing(0.f);
     limitLabel.SetLineSpacing(1.2f);
+
+    limitLabel2.setScale(2.f, 2.f);
+    limitLabel2.SetLetterSpacing(0.f);
+    limitLabel2.SetLineSpacing(1.2f);
 
     // Battle::Card description font
     cardDesc.SetColor(sf::Color::Black);
@@ -810,13 +815,19 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
             //Draw Card Limit
             if (copy.GetLimit() > 0) {
                 int limit = copy.GetLimit();
-                limitLabel.SetString(to_string(limit)+"\nMAX");
+                limitLabel.SetColor(sf::Color::White);
+                limitLabel.SetString(to_string(limit));
+                limitLabel2.SetString("\nMAX");
+                limitLabel2.SetColor(sf::Color::Yellow);
             }
             else {
+                limitLabel.SetColor(sf::Color::Yellow);
                 limitLabel.SetString("NO\nMAX");
             }
-            limitLabel.setPosition(2.f * 210.f, cardIconY+2.f);
+            limitLabel.setPosition(2.f * 210.f, cardIconY + 2.f);
             surface.draw(limitLabel);
+            limitLabel2.setPosition(2.f * 210.f, cardIconY + 2.f);
+            surface.draw(limitLabel2);
         }
         // Draw cursor
         if (folderView.lastCardOnScreen + i == folderView.currCardIndex) {
@@ -922,13 +933,19 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
         //Draw Card Limit
         if (copy.GetLimit() > 0) {
             int limit = copy.GetLimit();
-            limitLabel.SetString(to_string(limit) + "\nMAX");
+            limitLabel.SetColor(sf::Color::White);
+            limitLabel.SetString(to_string(limit));
+            limitLabel2.SetString("\nMAX");
+            limitLabel2.SetColor(sf::Color::Yellow);
         }
         else {
+            limitLabel.SetColor(sf::Color::Yellow);
             limitLabel.SetString("NO\nMAX");
         }
         limitLabel.setPosition(236.f + 480.f, 67.0f + (32.f * i));
         surface.draw(limitLabel);
+        limitLabel2.setPosition(236.f + 480.f, 67.0f + (32.f * i));
+        surface.draw(limitLabel2);
 
         // Draw count in pack
         cardLabel.setOrigin(0, 0);
