@@ -112,6 +112,8 @@ private:
   Font numberFont;
   Text numberLabel;
 
+  Text limitLabel;
+
   // Card description font
   Font cardDescFont;
   Text cardDesc;
@@ -127,7 +129,6 @@ private:
   sf::Sprite folderNextArrow;
   sf::Sprite packNextArrow;
   sf::Sprite folderCardCountBox;
-  sf::Sprite mbPlaceholder;
 
   // Current card graphic data
   sf::Sprite card;

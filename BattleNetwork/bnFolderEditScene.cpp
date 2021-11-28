@@ -123,6 +123,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     hasFolderChanged(false),
     card(),
     font(Font::Style::wide),
+    limitLabel("NO\nMAX", Font::Style::tiny),
     menuLabel("FOLDER EDIT", font),
     cardFont(Font::Style::thick),
     cardLabel("", cardFont),
@@ -149,8 +150,11 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     // Battle::Card UI font
     cardLabel.setPosition(275.f, 15.f);
     cardLabel.setScale(2.f, 2.f);
+    numberLabel.setScale(1.6f, 1.6f);
 
-    numberLabel.setScale(1.6, 1.6);
+    limitLabel.setScale(2.f, 2.f);
+    limitLabel.SetLetterSpacing(0.f);
+    limitLabel.SetLineSpacing(1.2f);
 
     // Battle::Card description font
     cardDesc.SetColor(sf::Color::Black);
@@ -179,9 +183,6 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     packCursor = folderCursor;
     packCursor.setPosition((2.f * 90.f) + 480.0f, 64.0f);
     packSwapCursor = packCursor;
-
-    mbPlaceholder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_MB));
-    mbPlaceholder.setScale(2.f, 2.f);
 
     folderNextArrow = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_NEXT_ARROW));
     folderNextArrow.setScale(2.f, 2.f);
@@ -784,9 +785,9 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < folderView.maxCardsOnScreen && folderView.lastCardOnScreen + i < folderView.numOfCards; i++) {
-        const Battle::Card& copy = iter->ViewCard();
-
         if (!iter->IsEmpty()) {
+            const Battle::Card& copy = iter->ViewCard();
+
             float cardIconY = 66.0f + (32.f * i);
             cardIcon.setTexture(*GetIconForCard(copy.GetUUID()));
             cardIcon.setPosition(2.f * 104.f, cardIconY);
@@ -806,12 +807,17 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
             cardLabel.setPosition(2.f * 200.f, cardIconY + 4.0f);
             cardLabel.SetString(std::string() + copy.GetCode());
             surface.draw(cardLabel);
-
-            //Draw MB
-            mbPlaceholder.setPosition(2.f * 210.f, cardIconY + 2.0f);
-            surface.draw(mbPlaceholder);
+            //Draw Card Limit
+            if (copy.GetLimit() > 0) {
+                int limit = copy.GetLimit();
+                limitLabel.SetString(to_string(limit)+"\nMAX");
+            }
+            else {
+                limitLabel.SetString("NO\nMAX");
+            }
+            limitLabel.setPosition(2.f * 210.f, cardIconY+2.f);
+            surface.draw(limitLabel);
         }
-
         // Draw cursor
         if (folderView.lastCardOnScreen + i == folderView.currCardIndex) {
             auto y = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().y, 64.0f + (32.f * i));
@@ -821,7 +827,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
             surface.draw(folderCursor);
 
             if (!iter->IsEmpty()) {
-
+                const Battle::Card& copy = iter->ViewCard();
                 card.setTexture(*GetPreviewForCard(copy.GetUUID()));
                 card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f) * 2.0f, 2.0f);
                 surface.draw(card);
@@ -852,7 +858,6 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
                 surface.draw(element);
             }
         }
-
         if (folderView.lastCardOnScreen + i == folderView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
             auto y = 64.0f + (32.f * i);
 
@@ -914,10 +919,16 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
         cardLabel.setPosition(216.f + 480.f, 69.0f + (32.f * i));
         cardLabel.SetString(std::string() + copy.GetCode());
         surface.draw(cardLabel);
-
-        //Draw MB
-        mbPlaceholder.setPosition(236.f + 480.f, 67.0f + (32.f * i));
-        surface.draw(mbPlaceholder);
+        //Draw Card Limit
+        if (copy.GetLimit() > 0) {
+            int limit = copy.GetLimit();
+            limitLabel.SetString(to_string(limit) + "\nMAX");
+        }
+        else {
+            limitLabel.SetString("NO\nMAX");
+        }
+        limitLabel.setPosition(236.f + 480.f, 67.0f + (32.f * i));
+        surface.draw(limitLabel);
 
         // Draw count in pack
         cardLabel.setOrigin(0, 0);
