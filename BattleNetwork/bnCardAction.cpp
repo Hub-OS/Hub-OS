@@ -283,7 +283,6 @@ void CardAction::Update(double _elapsed)
     if (sequence.isEmpty()) {
       animationIsOver = true; // animation for sequence is complete
       RecallPreviousState();
-      EndAction();
     }
   }
   else if(animationIsOver) /* lockoutProps.type == CardAction::LockoutType::async */ {
