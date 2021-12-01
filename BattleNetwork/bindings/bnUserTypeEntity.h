@@ -67,62 +67,109 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["reveal"] = [](WeakWrapper<E>& entity) {
     entity.Unwrap()->Reveal();
   };
-  entity_table["teleport"] = [](
-    WeakWrapper<E>& entity,
-    Battle::Tile* dest,
-    ActionOrder order,
-    sol::stack_object onBeginObject
-  ) -> bool {
-    sol::protected_function onBegin = onBeginObject;
+  entity_table["teleport"] = sol::overload(
+    [](
+      WeakWrapper<E>& entity,
+      Battle::Tile* dest,
+      ActionOrder order,
+      sol::object onBeginObject
+    ) -> bool {
+      return entity.Unwrap()->Teleport(dest, order, [onBeginObject] {
+        sol::protected_function onBegin = onBeginObject;
 
-    return entity.Unwrap()->Teleport(dest, order, [onBegin] {
-      auto result = onBegin();
+        if (!onBegin.valid()) {
+          return;
+        }
 
-      if (!result.valid()) {
-        sol::error error = result;
-        Logger::Log(error.what());
-      }
-    });
-  };
-  entity_table["slide"] = [](
-    WeakWrapper<E>& entity,
-    Battle::Tile* dest,
-    const frame_time_t& slideTime,
-    const frame_time_t& endlag,
-    ActionOrder order,
-    sol::stack_object onBeginObject
-  ) -> bool {
-    sol::protected_function onBegin = onBeginObject;
+        auto result = onBegin();
 
-    return entity.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
-      auto result = onBegin();
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
+    },
+    // repeating instead of using std::optional to get sol to provide type errors
+    [](WeakWrapper<E>& entity, Battle::Tile* dest, ActionOrder order) -> bool {
+      return entity.Unwrap()->Teleport(dest, order);
+    },
+    [](WeakWrapper<E>& entity, Battle::Tile* dest) -> bool {
+      return entity.Unwrap()->Teleport(dest);
+    }
+  );
+  entity_table["slide"] = sol::overload(
+    [](
+      WeakWrapper<E>& entity,
+      Battle::Tile* dest,
+      frame_time_t slideTime,
+      frame_time_t endlag,
+      ActionOrder order,
+      sol::object onBeginObject
+    ) -> bool {
+      return entity.Unwrap()->Slide(dest, slideTime, endlag, order, [onBeginObject] {
+        sol::protected_function onBegin = onBeginObject;
 
-      if (!result.valid()) {
-        sol::error error = result;
-        Logger::Log(error.what());
-      }
-    });
-  };
-  entity_table["jump"] = [](
-    WeakWrapper<E>& entity,
-    Battle::Tile* dest,
-    float destHeight,
-    const frame_time_t& jumpTime,
-    const frame_time_t& endlag,
-    ActionOrder order,
-    sol::stack_object onBeginObject
-  ) -> bool {
-    sol::protected_function onBegin = onBeginObject;
+        if (!onBegin.valid()) {
+          return;
+        }
 
-    return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
-      auto result = onBegin();
+        auto result = onBegin();
 
-      if (!result.valid()) {
-        sol::error error = result;
-        Logger::Log(error.what());
-      }
-    });
-  };
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
+    },
+    // repeating instead of using std::optional to get sol to provide type errors
+    [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime, frame_time_t endlag, ActionOrder order) -> bool {
+      return entity.Unwrap()->Slide(dest, slideTime, endlag, order);
+    },
+    [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime, frame_time_t endlag) -> bool {
+      return entity.Unwrap()->Slide(dest, slideTime, endlag);
+    },
+    [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime) -> bool {
+      frame_time_t endlag;
+      return entity.Unwrap()->Slide(dest, slideTime, endlag);
+    }
+  );
+  entity_table["jump"] = sol::overload(
+    [](
+      WeakWrapper<E>& entity,
+      Battle::Tile* dest,
+      float destHeight,
+      frame_time_t jumpTime,
+      frame_time_t endlag,
+      ActionOrder order,
+      sol::object onBeginObject
+    ) -> bool {
+      return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBeginObject] {
+        sol::protected_function onBegin = onBeginObject;
+
+        if (!onBegin.valid()) {
+          return;
+        }
+
+        auto result = onBegin();
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(error.what());
+        }
+      });
+    },
+    // repeating instead of using std::optional to get sol to provide type errors
+    [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime, frame_time_t endlag, ActionOrder order) -> bool {
+      return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order);
+    },
+    [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime, frame_time_t endlag) -> bool {
+      return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag);
+    },
+    [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime) -> bool {
+      frame_time_t endlag;
+      return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag);
+    }
+  );
   entity_table["raw_move_event"] = [](WeakWrapper<E>& entity, const MoveEvent& event, ActionOrder order) -> bool {
     return entity.Unwrap()->RawMoveEvent(event, order);
   };
