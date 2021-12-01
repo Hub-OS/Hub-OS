@@ -59,9 +59,9 @@ void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
     "toggle_counter", [](WeakWrapper<ScriptedCharacter>& character, bool on) {
       character.Unwrap()->ToggleCounter(on);
     },
-    "register_status_callback", [](WeakWrapper<ScriptedCharacter>& character, const Hit::Flags& flag, sol::stack_object callbackObject) {
-      sol::protected_function callback = callbackObject;
-      character.Unwrap()->RegisterStatusCallback(flag, [callback] {
+    "register_status_callback", [](WeakWrapper<ScriptedCharacter>& character, const Hit::Flags& flag, sol::object callbackObject) {
+      character.Unwrap()->RegisterStatusCallback(flag, [callbackObject] {
+        sol::protected_function callback = callbackObject;
         auto result = callback();
 
         if (!result.valid()) {

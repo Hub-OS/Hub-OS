@@ -57,9 +57,9 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
       auto& attachment = cardActionPtr->AddAttachment(point);
       return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
     },
-    "add_anim_action", [](WeakWrapper<ScriptedCardAction>& cardAction, int frame, sol::stack_object callbackObject) {
-      sol::protected_function callback = callbackObject;
-      cardAction.Unwrap()->AddAnimAction(frame, [callback] {
+    "add_anim_action", [](WeakWrapper<ScriptedCardAction>& cardAction, int frame, sol::object callbackObject) {
+      cardAction.Unwrap()->AddAnimAction(frame, [callbackObject] {
+        sol::protected_function callback = callbackObject;
         auto result = callback();
 
         if (!result.valid()) {

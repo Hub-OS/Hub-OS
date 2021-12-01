@@ -691,9 +691,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "height", &MoveEvent::height,
     "dest_tile", &MoveEvent::dest,
     "on_begin_func", sol::property(
-      [](MoveEvent& event, sol::stack_object onBeginObject) {
-        sol::protected_function onBegin = onBeginObject;
-        event.onBegin = [onBegin] {
+      [](MoveEvent& event, sol::object onBeginObject) {
+        event.onBegin = [onBeginObject] {
+          sol::protected_function onBegin = onBeginObject;
           auto result = onBegin();
 
           if (!result.valid()) {

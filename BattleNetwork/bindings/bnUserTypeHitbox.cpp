@@ -25,11 +25,9 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Hitbox", key );
     },
-    "set_callbacks", [](WeakWrapper<HitboxSpell>& spell, sol::stack_object luaAttackCallbackObject, sol::stack_object luaCollisionCallbackObject) {
-      sol::protected_function luaAttackCallback = luaAttackCallbackObject;
-      sol::protected_function luaCollisionCallback = luaCollisionCallbackObject;
-
-      auto attackCallback = [luaAttackCallback] (std::shared_ptr<Entity> e) {
+    "set_callbacks", [](WeakWrapper<HitboxSpell>& spell, sol::object luaAttackCallbackObject, sol::object luaCollisionCallbackObject) {
+      auto attackCallback = [luaAttackCallbackObject] (std::shared_ptr<Entity> e) {
+        sol::protected_function luaAttackCallback = luaAttackCallbackObject;
         auto result = luaAttackCallback(WeakWrapper(e));
 
         if (!result.valid()) {
@@ -38,7 +36,8 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
         }
       };
 
-      auto collisionCallback = [luaCollisionCallback] (const std::shared_ptr<Entity> e) {
+      auto collisionCallback = [luaCollisionCallbackObject] (const std::shared_ptr<Entity> e) {
+        sol::protected_function luaCollisionCallback = luaCollisionCallbackObject;
         auto result = luaCollisionCallback(WeakWrapper(e));
 
         if (!result.valid()) {
