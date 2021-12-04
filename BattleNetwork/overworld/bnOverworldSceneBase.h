@@ -67,6 +67,9 @@ namespace Overworld {
 
     // Bunch of sprites and their attachments
     std::shared_ptr<Background> bg{ nullptr }; /*!< Background image pointer */
+    float backgroundParallaxFactor{ 0 };
+    std::shared_ptr<Background> fg{ nullptr }; /*!< Foreground image pointer */
+    float foregroundParallaxFactor{ 0 };
     Overworld::Map map; /*!< Overworld map */
     std::vector<std::shared_ptr<WorldSprite>> sprites;
     std::vector<std::vector<std::shared_ptr<WorldSprite>>> spriteLayers;
@@ -81,6 +84,7 @@ namespace Overworld {
     void HandleCamera(float elapsed);
     void HandleInput();
     void LoadBackground(const Map& map, const std::string& value);
+    void LoadForeground(const Map& map);
     void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
     void DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer, size_t maxLayers);
     void DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
@@ -164,7 +168,8 @@ namespace Overworld {
     void TeleportUponReturn(const sf::Vector3f& position);
     const bool HasTeleportedAway() const;
 
-    void SetBackground(const std::shared_ptr<Background>&);
+    void SetBackground(const std::shared_ptr<Background>&, float parallax = 0.0f);
+    void SetForeground(const std::shared_ptr<Background>&, float parallax = 0.0f);
 
     void AddItem(const std::string& id, const std::string& name, const std::string& description);
     void RemoveItem(const std::string& id);

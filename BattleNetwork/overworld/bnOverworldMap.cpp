@@ -132,6 +132,31 @@ namespace Overworld {
     return backgroundCustomVelocity;
   }
 
+  float Map::GetBackgroundParallax() const
+  {
+    return backgroundParallax;
+  }
+
+  const std::string& Map::GetForegroundTexturePath() const
+  {
+    return foregroundTexturePath;
+  }
+
+  const std::string& Map::GetForegroundAnimationPath() const
+  {
+    return foregroundAnimationPath;
+  }
+
+  sf::Vector2f Map::GetForegroundVelocity() const
+  {
+    return foregroundVelocity;
+  }
+
+  float Map::GetForegroundParallax() const
+  {
+    return foregroundParallax;
+  }
+
   const std::string& Map::GetSongPath() const
   {
     return songPath;
@@ -162,6 +187,31 @@ namespace Overworld {
 
   void Map::SetBackgroundCustomVelocity(sf::Vector2f velocity) {
     backgroundCustomVelocity = velocity;
+  }
+
+  void Map::SetBackgroundParallax(float factor) {
+    backgroundParallax = factor;
+  }
+
+  void Map::SetForegroundTexturePath(const std::string& path) {
+    foregroundTexturePath = path;
+  }
+
+  void Map::SetForegroundAnimationPath(const std::string& path) {
+    foregroundAnimationPath = path;
+  }
+
+  void Map::SetForegroundVelocity(float x, float y) {
+    foregroundVelocity.x = x;
+    foregroundVelocity.y = y;
+  }
+
+  void Map::SetForegroundVelocity(sf::Vector2f velocity) {
+    foregroundVelocity = velocity;
+  }
+
+  void Map::SetForegroundParallax(float factor) {
+    foregroundParallax = factor;
   }
 
   void Map::SetSongPath(const std::string& path)
