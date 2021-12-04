@@ -629,7 +629,13 @@ void Overworld::SceneBase::LoadBackground(const Map& map, const std::string& val
 
 void Overworld::SceneBase::LoadForeground(const Map& map)
 {
-  const auto& texture = GetTexture(map.GetForegroundTexturePath());
+  auto texturePath = map.GetForegroundTexturePath();
+
+  if (texturePath.empty()) {
+    return;
+  }
+
+  const auto& texture = GetTexture(texturePath);
   const auto& animationData = GetText(map.GetForegroundAnimationPath());
   const auto& velocity = map.GetForegroundVelocity();
   auto parallaxFactor = map.GetForegroundParallax();
