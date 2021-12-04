@@ -219,7 +219,8 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   else {
     if (combatPtr->IsStateCombat(GetCurrentState())) {
       frame_time_t currLag = frames(5); // frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
-      SendInputEvents(ProcessPlayerInputQueue(currLag));
+      auto events = ProcessPlayerInputQueue(currLag);
+      SendInputEvents(events);
     }
   }
   
