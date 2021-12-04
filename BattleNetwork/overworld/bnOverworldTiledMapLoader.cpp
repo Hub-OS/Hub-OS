@@ -278,6 +278,30 @@ namespace Overworld {
 
         map.SetBackgroundCustomVelocity(velocity);
       }
+      else if (propertyName == "Background Parallax") {
+        map.SetBackgroundParallax(propertyElement.GetAttributeFloat("value"));
+      }
+      else if (propertyName == "Foreground Texture") {
+        map.SetForegroundTexturePath(propertyValue);
+      }
+      else if (propertyName == "Foreground Animation") {
+        map.SetForegroundAnimationPath(propertyValue);
+      }
+      else if (propertyName == "Foreground Vel X") {
+        auto velocity = map.GetForegroundVelocity();
+        velocity.x = propertyElement.GetAttributeFloat("value");
+
+        map.SetForegroundVelocity(velocity);
+      }
+      else if (propertyName == "Foreground Vel Y") {
+        auto velocity = map.GetForegroundVelocity();
+        velocity.y = propertyElement.GetAttributeFloat("value");
+
+        map.SetForegroundVelocity(velocity);
+      }
+      else if (propertyName == "Foreground Parallax") {
+        map.SetForegroundParallax(propertyElement.GetAttributeFloat("value"));
+      }
       else if (propertyName == "Name") {
         map.SetName(propertyValue);
       }

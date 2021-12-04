@@ -10,6 +10,7 @@
 #include "bnOverworldSceneBase.h"
 #include "bnOverworldTiledMapLoader.h"
 
+#include "../bnMath.h"
 #include "../Android/bnTouchArea.h"
 #include "../bnCurrentTime.h"
 #include "../bnBlockPackageManager.h"
@@ -213,13 +214,29 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     });
   }
 
-  // Loop the bg
-  bg->Update((float)elapsed);
+  // grabbing the player's screen pos for parallax
+  auto playerScreenPos = map.WorldToScreen(playerActor->Get3DPosition());
+
+  // Update bg
+  if (bg) {
+    bg->Update((float)elapsed);
+
+    // Apply parallax
+    bg->SetOffset(bg->GetOffset() + Floor(playerScreenPos * backgroundParallaxFactor));
+  }
 
   // Update the textbox
   menuSystem.Update((float)elapsed);
 
   HandleCamera((float)elapsed);
+
+  // Update foreground
+  if (fg) {
+    fg->Update((float)elapsed);
+
+    // Apply parallax
+    fg->SetOffset(fg->GetOffset() + Floor(playerScreenPos * foregroundParallaxFactor));
+  }
 }
 
 void Overworld::SceneBase::HandleCamera(float elapsed) {
@@ -319,6 +336,10 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   }
 
   DrawWorld(surface, sf::RenderStates::Default);
+
+  if (fg) {
+    surface.draw(*fg);
+  }
 
   if (personalMenu->IsClosed()) {
     // menuSystem will not draw personal menu if it's closed
@@ -559,38 +580,40 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
 
 void Overworld::SceneBase::LoadBackground(const Map& map, const std::string& value)
 {
+  float parallax = map.GetBackgroundParallax();
+
   if (value == "undernet") {
-    SetBackground(std::make_shared<UndernetBackground>());
+    SetBackground(std::make_shared<UndernetBackground>(), parallax);
   }
   else if (value == "robot") {
-    SetBackground(std::make_shared<RobotBackground>());
+    SetBackground(std::make_shared<RobotBackground>(), parallax);
   }
   else if (value == "misc") {
-    SetBackground(std::make_shared<MiscBackground>());
+    SetBackground(std::make_shared<MiscBackground>(), parallax);
   }
   else if (value == "grave") {
-    SetBackground(std::make_shared<GraveyardBackground>());
+    SetBackground(std::make_shared<GraveyardBackground>(), parallax);
   }
   else if (value == "weather") {
-    SetBackground(std::make_shared<WeatherBackground>());
+    SetBackground(std::make_shared<WeatherBackground>(), parallax);
   }
   else if (value == "medical") {
-    SetBackground(std::make_shared<MedicalBackground>());
+    SetBackground(std::make_shared<MedicalBackground>(), parallax);
   }
   else if (value == "acdc") {
-    SetBackground(std::make_shared<ACDCBackground>());
+    SetBackground(std::make_shared<ACDCBackground>(), parallax);
   }
   else if (value == "virus") {
-    SetBackground(std::make_shared<VirusBackground>());
+    SetBackground(std::make_shared<VirusBackground>(), parallax);
   }
   else if (value == "judge") {
-    SetBackground(std::make_shared<JudgeTreeBackground>());
+    SetBackground(std::make_shared<JudgeTreeBackground>(), parallax);
   }
   else if (value == "secret") {
-    SetBackground(std::make_shared<SecretBackground>());
+    SetBackground(std::make_shared<SecretBackground>(), parallax);
   }
   else if (value == "lan") {
-    SetBackground(std::make_shared<LanBackground>());
+    SetBackground(std::make_shared<LanBackground>(), parallax);
   }
   else {
     const auto& texture = GetTexture(map.GetBackgroundCustomTexturePath());
@@ -600,8 +623,21 @@ void Overworld::SceneBase::LoadBackground(const Map& map, const std::string& val
     Animation animation;
     animation.LoadWithData(animationData);
 
-    SetBackground(std::make_shared<CustomBackground>(texture, animation, velocity));
+    SetBackground(std::make_shared<CustomBackground>(texture, animation, velocity), parallax);
   }
+}
+
+void Overworld::SceneBase::LoadForeground(const Map& map)
+{
+  const auto& texture = GetTexture(map.GetForegroundTexturePath());
+  const auto& animationData = GetText(map.GetForegroundAnimationPath());
+  const auto& velocity = map.GetForegroundVelocity();
+  auto parallaxFactor = map.GetForegroundParallax();
+
+  Animation animation;
+  animation.LoadWithData(animationData);
+
+  SetForeground(std::make_shared<CustomBackground>(texture, animation, velocity), parallaxFactor);
 }
 
 std::string Overworld::SceneBase::GetPath(const std::string& path) {
@@ -639,6 +675,18 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   if (backgroundDiffers) {
     LoadBackground(map, map.GetBackgroundName());
+  } else {
+    backgroundParallaxFactor = map.GetBackgroundParallax();
+  }
+
+  bool foregroundDiffers = map.GetForegroundTexturePath() != this->map.GetForegroundTexturePath() ||
+    map.GetForegroundAnimationPath() != this->map.GetForegroundAnimationPath() ||
+    map.GetForegroundVelocity() != this->map.GetForegroundVelocity();
+
+  if (foregroundDiffers) {
+    LoadForeground(map);
+  } else {
+    foregroundParallaxFactor = map.GetForegroundParallax();
   }
 
   if (map.GetSongPath() != this->map.GetSongPath()) {
@@ -669,9 +717,16 @@ const bool Overworld::SceneBase::HasTeleportedAway() const
   return teleportedOut;
 }
 
-void Overworld::SceneBase::SetBackground(const std::shared_ptr<Background>& background)
+void Overworld::SceneBase::SetBackground(const std::shared_ptr<Background>& background, float parallax)
 {
   this->bg = background;
+  backgroundParallaxFactor = parallax;
+}
+
+void Overworld::SceneBase::SetForeground(const std::shared_ptr<Background>& foreground, float parallax)
+{
+  this->fg = foreground;
+  foregroundParallaxFactor = parallax;
 }
 
 void Overworld::SceneBase::AddSprite(const std::shared_ptr<WorldSprite>& sprite)
