@@ -173,11 +173,11 @@ namespace Overworld {
     int tileWidth{}, tileHeight{}; /*!< tile dimensions */
     std::string name, songPath;
     std::string backgroundName, backgroundCustomTexturePath, backgroundCustomAnimationPath;
-    sf::Vector2f backgroundCustomVelocity;
-    float backgroundParallax;
+    sf::Vector2f backgroundCustomVelocity{};
+    float backgroundParallax{ 0 };
     std::string foregroundTexturePath, foregroundAnimationPath;
-    sf::Vector2f foregroundVelocity;
-    float foregroundParallax;
+    sf::Vector2f foregroundVelocity{};
+    float foregroundParallax{ 0 };
     ShadowMap shadowMap;
     std::vector<Layer> layers;
     std::vector<std::shared_ptr<Tileset>> tileToTilesetMap;
