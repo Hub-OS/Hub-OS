@@ -174,6 +174,24 @@ public:
     RecalculateColors();
   }
 
+  sf::Vector2f GetOffset() {
+    auto out = offset;
+    out.x *= (float)textureRect.width;
+    out.y *= (float)textureRect.height;
+    return out;
+  }
+
+  /**
+   * @brief Set a background offset. May get overridden by the background within the Update function
+   * @param offset
+   */
+  void SetOffset(sf::Vector2f offset) {
+    sf::Vector2u size = texture->getSize();
+    offset.x /= (float)textureRect.width;
+    offset.y /= (float)textureRect.height;
+    Wrap(offset);
+  }
+
 protected:
   sf::VertexArray vertices; /*!< Geometry */
   std::shared_ptr<sf::Texture> texture; /*!< Texture aka spritesheet if animated */

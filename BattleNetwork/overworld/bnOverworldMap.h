@@ -132,6 +132,11 @@ namespace Overworld {
     const std::string& GetBackgroundCustomTexturePath() const;
     const std::string& GetBackgroundCustomAnimationPath() const;
     sf::Vector2f GetBackgroundCustomVelocity() const;
+    float GetBackgroundParallax() const;
+    const std::string& GetForegroundTexturePath() const;
+    const std::string& GetForegroundAnimationPath() const;
+    sf::Vector2f GetForegroundVelocity() const;
+    float GetForegroundParallax() const;
     const std::string& GetSongPath() const;
     void SetName(const std::string& name);
     void SetBackgroundName(const std::string& name);
@@ -139,6 +144,12 @@ namespace Overworld {
     void SetBackgroundCustomAnimationPath(const std::string& path);
     void SetBackgroundCustomVelocity(float x, float y);
     void SetBackgroundCustomVelocity(sf::Vector2f velocity);
+    void SetBackgroundParallax(float parallax);
+    void SetForegroundTexturePath(const std::string& path);
+    void SetForegroundAnimationPath(const std::string& path);
+    void SetForegroundVelocity(float x, float y);
+    void SetForegroundVelocity(sf::Vector2f velocity);
+    void SetForegroundParallax(float parallax);
     void SetSongPath(const std::string& path);
     unsigned GetCols() const;
     unsigned GetRows() const;
@@ -160,8 +171,13 @@ namespace Overworld {
   protected:
     unsigned cols{}, rows{}; /*!< map is made out of Cols x Rows tiles */
     int tileWidth{}, tileHeight{}; /*!< tile dimensions */
-    std::string name, backgroundName, backgroundCustomTexturePath, backgroundCustomAnimationPath, songPath;
+    std::string name, songPath;
+    std::string backgroundName, backgroundCustomTexturePath, backgroundCustomAnimationPath;
     sf::Vector2f backgroundCustomVelocity;
+    float backgroundParallax;
+    std::string foregroundTexturePath, foregroundAnimationPath;
+    sf::Vector2f foregroundVelocity;
+    float foregroundParallax;
     ShadowMap shadowMap;
     std::vector<Layer> layers;
     std::vector<std::shared_ptr<Tileset>> tileToTilesetMap;
