@@ -22,25 +22,21 @@ private:
   ConfigSettings::GamepadHash gamepadHash;
   int gamepadIndex, musicLevel, sfxLevel, shaderLevel;
   bool invertThumbstick, invertMinimap;
-
-  AnimatedTextBox textbox;
-
-  // ui sprite maps
-  Animation endBtnAnimator;
+  bool leave{};
+  bool isSelectingTopMenu{};
+  bool inLoginMenu{};
+  bool gamepadWasActive{};
+  bool gamepadButtonHeld{};
   int primaryIndex{}; /*!< Current selection */
   int submenuIndex{};
   float scrollOffset{};
   float scrollCooldown{};
   float nextScrollCooldown{};
+  AnimatedTextBox textbox;
 
+  // ui sprite maps
+  Animation endBtnAnimator;
   sf::Sprite endBtn;
-
-  bool leave{}; // ?
-  bool isSelectingTopMenu{};
-  bool inLoginMenu{};
-  bool gamepadWasActive{};
-  bool gamepadButtonHeld{};
-
   Background* bg{ nullptr };
 
   class MenuItem : public SceneNode {
@@ -77,9 +73,13 @@ private:
   };
 
   class NicknameItem : public TextItem {
+    std::string nickname;
+
   public:
     NicknameItem(const std::function<void()>& callback);
     void Update() override;
+    void SetNick(const std::string& nickname);
+    std::string GetNick();
   };
 
   class BindingItem : public TextItem {
@@ -113,17 +113,17 @@ private:
     void SetValueRange(int min, int max);
   };
 
-  using Menu = std::vector<std::unique_ptr<MenuItem>>;
+  using Menu = std::vector<std::shared_ptr<MenuItem>>;
 
   Menu primaryMenu, keyboardMenu, gamepadMenu;
   std::optional<std::reference_wrapper<Menu>> activeSubmenu;
-
   std::optional<std::reference_wrapper<BindingItem>> pendingKeyBinding;
   std::optional<std::reference_wrapper<BindingItem>> pendingGamepadBinding;
 
   Question* questionInterface{ nullptr };
   MessageInput* inputInterface{ nullptr };
   Message* messageInterface{ nullptr };
+  std::shared_ptr<NicknameItem> nicknameItem;
 
 #ifdef __ANDROID__
   void StartupTouchControls();

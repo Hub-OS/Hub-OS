@@ -2,8 +2,7 @@
 #include "Segues/WhiteWashFade.h"
 #include "bnRobotBackground.h"
 #include "bnGameSession.h"
-
-#undef GetUserName
+#include "bnMessageInput.h"
 
 constexpr float COL_PADDING = 4.0f;
 constexpr float SUBMENU_SPAN = 90.0f;
@@ -60,8 +59,22 @@ void ConfigScene::TextItem::SetAlpha(sf::Uint8 alpha) {
 ConfigScene::NicknameItem::NicknameItem(const std::function<void()>& callback) : TextItem("Set Nick", [callback](auto&) { callback(); }) {}
 
 void ConfigScene::NicknameItem::Update() {
-  // TODO:
-  SetString("Set Nick");
+  if (GetNick().empty()) {
+    SetString("Set Nick");
+    return;
+  }
+
+  SetString("Nick: " + GetNick());
+}
+
+void ConfigScene::NicknameItem::SetNick(const std::string& nickname)
+{
+  this->nickname = nickname;
+}
+
+std::string ConfigScene::NicknameItem::GetNick()
+{
+  return this->nickname;
 }
 
 ConfigScene::BindingItem::BindingItem(
@@ -205,7 +218,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   const std::string audio_ani = "resources/ui/config/audio.animation";
 
   musicLevel = configSettings.GetMusicLevel();
-  auto bgMusicItem = std::make_unique<NumberItem>(
+  auto bgMusicItem = std::make_shared<NumberItem>(
     "BGM",
     sf::Color(255, 0, 255),
     musicLevel,
@@ -217,7 +230,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
 
   // SFX
   sfxLevel = configSettings.GetSFXLevel();
-  auto sfxItem = std::make_unique<NumberItem>(
+  auto sfxItem = std::make_shared<NumberItem>(
     "SFX",
     sf::Color(10, 165, 255),
     sfxLevel,
@@ -229,36 +242,48 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
 
   // Shaders
   shaderLevel = configSettings.GetShaderLevel();
-  auto shadersItem = std::make_unique<NumberItem>(
+  auto shadersItem = std::make_shared<NumberItem>(
     "Shaders",
     sf::Color(10, 165, 255),
     shaderLevel,
     [this](int shaderLevel, NumberItem& item) { UpdateShaderLevel(shaderLevel, item); });
   shadersItem->SetValueRange(0, 1);
   //shadersItem->SetColor(DISABLED_TEXT_COLOR);
-  primaryMenu.push_back(std::move(shadersItem));
+  primaryMenu.push_back(shadersItem);
 
   // Keyboard
-  primaryMenu.push_back(std::make_unique<TextItem>(
+  primaryMenu.push_back(std::make_shared<TextItem>(
     "MY KEYBOARD",
     [this](auto&) { ShowKeyboardMenu(); })
   );
   // Gamepad
-  primaryMenu.push_back(std::make_unique<TextItem>(
+  primaryMenu.push_back(std::make_shared<TextItem>(
     "MY GAMEPAD",
     [this](auto&) { ShowGamepadMenu(); })
   );
   // Minimap
   invertMinimap = configSettings.GetInvertMinimap();
-  primaryMenu.push_back(std::make_unique<TextItem>(
+  primaryMenu.push_back(std::make_shared<TextItem>(
     invertMinimap ? "INVRT MAP: yes" : "INVRT MAP: no",
     [this](TextItem& item) { InvertMinimap(item); },
     [this](TextItem& item) { InvertMinimap(item); }
   ));
   // Nickname
-  primaryMenu.push_back(std::make_unique<NicknameItem>(
-    [this] { /*TODO*/ })
+  this->nicknameItem = std::make_shared<NicknameItem>(
+    [this] {
+      this->inputInterface = new MessageInput(this->nicknameItem->GetNick(), 9u);
+      this->inputInterface->SetHint("Type new nickname");
+      this->textbox.EnqueMessage(this->inputInterface);
+      this->textbox.Open();
+    }
   );
+
+  std::string nickname = getController().Session().GetNick();
+  if (!nickname.empty()) {
+    nicknameItem->SetNick(nickname);
+  }
+
+  primaryMenu.push_back(nicknameItem);
 
   // For keyboard keys 
   auto keyCallback = [this](BindingItem& item) { AwaitKeyBinding(item); };
@@ -275,13 +300,13 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
       value = keyStr;
     }
 
-    keyboardMenu.push_back(std::make_unique<BindingItem>(eventName, value, keyCallback, keySecondaryCallback));
+    keyboardMenu.push_back(std::make_shared<BindingItem>(eventName, value, keyCallback, keySecondaryCallback));
   }
 
   // Adjusting gamepad index (abusing BindingItem for alignment)
   gamepadIndex = configSettings.GetGamepadIndex();
   auto gamepadIndexString = std::to_string(gamepadIndex);
-  gamepadMenu.push_back(std::make_unique<BindingItem>(
+  gamepadMenu.push_back(std::make_shared<BindingItem>(
     "Gamepad Index",
     gamepadIndexString,
     [this](BindingItem& item) { IncrementGamepadIndex(item); },
@@ -290,7 +315,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
 
   invertThumbstick = configSettings.GetInvertThumbstick();
   std::string invertThumbstickString = invertThumbstick ? "yes" : "no";
-  gamepadMenu.push_back(std::make_unique<BindingItem>(
+  gamepadMenu.push_back(std::make_shared<BindingItem>(
     "Invert Thumbstick",
     invertThumbstickString,
     [this](BindingItem& item) { InvertThumbstick(item); },
@@ -332,7 +357,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
       value = valueString;
     }
 
-    gamepadMenu.push_back(std::make_unique<BindingItem>(
+    gamepadMenu.push_back(std::make_shared<BindingItem>(
       eventName,
       value,
       gamepadCallback,
@@ -485,6 +510,7 @@ void ConfigScene::onUpdate(double elapsed)
 
   if (hasConfirmed && isSelectingTopMenu && !leave) {
     if (textbox.IsClosed()) {
+      // Save data
       auto onYes = [this]() {
         // backup keyboard hash in case the current hash is invalid
         auto oldKeyboardHash = configSettings.GetKeyboardHash();
@@ -516,6 +542,13 @@ void ConfigScene::onUpdate(double elapsed)
         ConfigReader reader("config.ini");
         getController().UpdateConfigSettings(reader.GetConfigSettings());
 
+        std::string nickname = "Anon";
+        if (!nicknameItem->GetNick().empty()) {
+          nickname = nicknameItem->GetNick();
+        }
+
+        getController().Session().SetNick(nickname);
+      
         // transition to the next screen
         using namespace swoosh::types;
         using effect = segue<WhiteWashFade, milliseconds<300>>;
@@ -610,7 +643,10 @@ void ConfigScene::onUpdate(double elapsed)
       }
       else if (inputInterface) {
         if (inputInterface->IsDone()) {
-          std::string entry = inputInterface->Submit();
+          // only inputInterface used is for nicknames at this time
+          const std::string name = inputInterface->Submit();
+          nicknameItem->SetNick(name);
+          nicknameItem->SetString(name);
           inputInterface = nullptr;
         }
       }

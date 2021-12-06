@@ -46,8 +46,15 @@ void NetManager::Update(double elapsed)
     }
   }
 
-  for (auto& [processor, _] : processorCounts) {
+  size_t size = processorCounts.size();
+  for (auto iter = processorCounts.begin(); iter != processorCounts.end(); iter++) {
+    auto& [processor, _] = *iter;
     processor->Update(elapsed);
+
+    if (size != processorCounts.size()) {
+      Logger::Logf("WARNING: Network processor list mutated in the middle of a loop!");
+      break;
+    }
   }
 }
 

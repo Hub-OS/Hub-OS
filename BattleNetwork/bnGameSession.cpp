@@ -24,7 +24,7 @@ const bool GameSession::LoadSession(const std::string& inpath)
   file.seekg(0, std::ios::beg);
   file.read(buffer.begin(), file_len);
 
-  std::string nick = reader.ReadTerminatedString(buffer);
+  nickname = reader.ReadTerminatedString(buffer);
 
   size_t keys_len = reader.Read<size_t>(buffer);
 

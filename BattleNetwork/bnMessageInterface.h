@@ -3,6 +3,8 @@
 
 class AnimatedTextBox;
 
+#undef GetMessage
+
 class MessageInterface {
 private:
   std::string message;

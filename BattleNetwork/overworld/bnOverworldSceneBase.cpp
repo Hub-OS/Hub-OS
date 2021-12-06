@@ -214,15 +214,15 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     });
   }
 
-  // grabbing the player's screen pos for parallax
-  auto playerScreenPos = map.WorldToScreen(playerActor->Get3DPosition());
+  // grabbing the camera pos for parallax
+  auto cameraPos = camera.GetView().getCenter();
 
   // Update bg
   if (bg) {
     bg->Update((float)elapsed);
 
     // Apply parallax
-    bg->SetOffset(bg->GetOffset() + Floor(playerScreenPos * backgroundParallaxFactor));
+    bg->SetOffset(bg->GetOffset() + Floor(cameraPos * backgroundParallaxFactor));
   }
 
   // Update the textbox
@@ -235,7 +235,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     fg->Update((float)elapsed);
 
     // Apply parallax
-    fg->SetOffset(fg->GetOffset() + Floor(playerScreenPos * foregroundParallaxFactor));
+    fg->SetOffset(fg->GetOffset() + Floor(cameraPos * foregroundParallaxFactor));
   }
 }
 
@@ -632,6 +632,7 @@ void Overworld::SceneBase::LoadForeground(const Map& map)
   auto texturePath = map.GetForegroundTexturePath();
 
   if (texturePath.empty()) {
+    fg.reset();
     return;
   }
 
