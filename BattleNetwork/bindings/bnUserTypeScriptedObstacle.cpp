@@ -2,14 +2,11 @@
 #include "bnUserTypeScriptedObstacle.h"
 
 #include "bnWeakWrapper.h"
-#include "bnUserTypeAnimation.h"
+#include "bnUserTypeEntity.h"
 #include "bnScriptedObstacle.h"
-#include "bnScriptedComponent.h"
-#include "../bnTile.h"
-#include "../bnSolHelpers.h"
 
 void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
-  const auto& scriptedobstacle_record = battle_namespace.new_usertype<WeakWrapper<ScriptedObstacle>>("Obstacle",
+  auto scriptedobstacle_record = battle_namespace.new_usertype<WeakWrapper<ScriptedObstacle>>("Obstacle",
     sol::factories([](Team team) -> WeakWrapper<ScriptedObstacle> {
       auto obstacle = std::make_shared<ScriptedObstacle>(team);
       obstacle->Init();
@@ -27,168 +24,8 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     sol::meta_function::length, [](WeakWrapper<ScriptedObstacle>& obstacle) {
       return obstacle.Unwrap()->entries.size();
     },
-    "get_id", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Entity::ID_t {
-      return obstacle.Unwrap()->GetID();
-    },
-    "get_element", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Element {
-      return obstacle.Unwrap()->GetElement();
-    },
-    "set_element", [](WeakWrapper<ScriptedObstacle>& obstacle, Element element) {
-      obstacle.Unwrap()->SetElement(element);
-    },
-    "set_elevation", [](WeakWrapper<ScriptedObstacle>& obstacle, float elevation) {
-      obstacle.Unwrap()->SetElevation(elevation);
-    },
-    "get_elevation", [](WeakWrapper<ScriptedObstacle>& obstacle) -> float {
-      return obstacle.Unwrap()->GetElevation();
-    },
-    "get_tile", sol::overload(
-      [](WeakWrapper<ScriptedObstacle>& obstacle, Direction dir, unsigned count) -> Battle::Tile* {
-        return obstacle.Unwrap()->GetTile(dir, count);
-      },
-      [](WeakWrapper<ScriptedObstacle>& obstacle) -> Battle::Tile* {
-        return obstacle.Unwrap()->GetTile();
-      }
-    ),
-    "get_current_tile", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Battle::Tile* {
-      return obstacle.Unwrap()->GetCurrentTile();
-    },
-    "get_field", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<Field> {
-      return WeakWrapper(obstacle.Unwrap()->GetField());
-    },
-    "get_facing", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Direction {
-      return obstacle.Unwrap()->GetFacing();
-    },
-    "get_facing_away", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Direction {
-      return obstacle.Unwrap()->GetFacingAway();
-    },
-    "set_facing", [](WeakWrapper<ScriptedObstacle>& obstacle, Direction direction) {
-      obstacle.Unwrap()->SetFacing(direction);
-    },
-    "get_color", [](WeakWrapper<ScriptedObstacle>& obstacle) -> sf::Color {
-      return obstacle.Unwrap()->getColor();
-    },
-    "set_color", [](WeakWrapper<ScriptedObstacle>& obstacle, sf::Color color) {
-      obstacle.Unwrap()->setColor(color);
-    },
-    "sprite", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<SpriteProxyNode> {
-      return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(obstacle.Unwrap()));
-    },
-    "hide", [](WeakWrapper<ScriptedObstacle>& obstacle) {
-      obstacle.Unwrap()->Hide();
-    },
-    "reveal", [](WeakWrapper<ScriptedObstacle>& obstacle) {
-      obstacle.Unwrap()->Reveal();
-    },
-    "teleport", 
-      [](
-        WeakWrapper<ScriptedObstacle>& obstacle,
-        Battle::Tile* dest,
-        ActionOrder order,
-        sol::stack_object onBeginObject
-      ) -> bool {
-        sol::protected_function onBegin = onBeginObject;
-
-        return obstacle.Unwrap()->Teleport(dest, order, [onBegin] {
-          auto result = onBegin();
-
-          if (!result.valid()) {
-            sol::error error = result;
-            Logger::Log(error.what());
-          }
-        });
-    },
-    "slide", [](
-      WeakWrapper<ScriptedObstacle>& obstacle,
-      Battle::Tile* dest,
-      const frame_time_t& slideTime,
-      const frame_time_t& endlag,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-      ) -> bool {
-        sol::protected_function onBegin = onBeginObject;
-
-        return obstacle.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
-          auto result = onBegin();
-
-          if (!result.valid()) {
-            sol::error error = result;
-            Logger::Log(error.what());
-          }
-        });
-    },
-    "jump", [](
-      WeakWrapper<ScriptedObstacle>& obstacle,
-      Battle::Tile* dest,
-      float destHeight,
-      const frame_time_t& jumpTime,
-      const frame_time_t& endlag,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-      ) -> bool {
-        sol::protected_function onBegin = onBeginObject;
-
-        return obstacle.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
-          auto result = onBegin();
-
-          if (!result.valid()) {
-            sol::error error = result;
-            Logger::Log(error.what());
-          }
-        });
-    },
-    "raw_move_event", [](WeakWrapper<ScriptedObstacle>& obstacle, const MoveEvent& event, ActionOrder order) -> bool {
-      return obstacle.Unwrap()->RawMoveEvent(event, order);
-    },
-    "is_sliding", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->IsSliding();
-    },
-    "is_jumping", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->IsJumping();
-    },
-    "is_teleporting", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->IsTeleporting();
-    },
-    "is_moving", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->IsMoving();
-    },
-    "is_passthrough", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      return obstacle.Unwrap()->IsPassthrough();
-    },
-    "is_deleted", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      auto ptr = obstacle.Lock();
-      return !ptr || ptr->IsDeleted();
-    },
-    "will_erase_eof", [](WeakWrapper<ScriptedObstacle>& obstacle) -> bool {
-      auto ptr = obstacle.Lock();
-      return !ptr || ptr->WillEraseEOF();
-    },
-    "is_team", [](WeakWrapper<ScriptedObstacle>& obstacle, Team team) -> bool {
-      return obstacle.Unwrap()->Teammate(team);
-    },
-    "get_team", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Team {
-      return obstacle.Unwrap()->GetTeam();
-    },
-    "erase", [](WeakWrapper<ScriptedObstacle>& obstacle) {
-      obstacle.Unwrap()->Erase();
-    },
-    "delete", [](WeakWrapper<ScriptedObstacle>& obstacle) {
-      obstacle.Unwrap()->Delete();
-    },
-    "get_name", [](WeakWrapper<ScriptedObstacle>& obstacle) -> std::string {
-      return obstacle.Unwrap()->GetName();
-    },
     "set_name", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string name) {
       obstacle.Unwrap()->SetName(name);
-    },
-    "get_health", [](WeakWrapper<ScriptedObstacle>& obstacle) -> int {
-      return obstacle.Unwrap()->GetHealth();
-    },
-    "get_max_health", [](WeakWrapper<ScriptedObstacle>& obstacle) -> int {
-      return obstacle.Unwrap()->GetMaxHealth();
-    },
-    "set_health", [](WeakWrapper<ScriptedObstacle>& obstacle, int health) {
-      obstacle.Unwrap()->SetHealth(health);
     },
     "share_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, bool share) {
       obstacle.Unwrap()->ShareTileSpace(share);
@@ -199,68 +36,11 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
     "remove_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
       obstacle.Unwrap()->RemoveDefenseRule(defenseRule);
     },
-    "get_texture", [](WeakWrapper<ScriptedObstacle>& obstacle) -> std::shared_ptr<Texture> {
-      return obstacle.Unwrap()->getTexture();
-    },
-    "set_texture", [](WeakWrapper<ScriptedObstacle>& obstacle, std::shared_ptr<Texture> texture) {
-      obstacle.Unwrap()->setTexture(texture);
-    },
-    "set_animation", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string animation) {
-      obstacle.Unwrap()->SetAnimation(animation);
-    },
-    "get_animation", [](WeakWrapper<ScriptedObstacle>& obstacle) -> AnimationWrapper {
-      auto& animation = obstacle.Unwrap()->GetAnimationObject();
-      return AnimationWrapper(obstacle.GetWeak(), animation);
-    },
-    "create_node", [](WeakWrapper<ScriptedObstacle>& obstacle) -> WeakWrapper<SpriteProxyNode> {
-      auto child = std::make_shared<SpriteProxyNode>();
-      obstacle.Unwrap()->AddNode(child);
-
-      return WeakWrapper(child);
-    },
-    "highlight_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, Battle::TileHighlight mode) {
-      obstacle.Unwrap()->HighlightTile(mode);
-    },
-    "copy_hit_props", [](WeakWrapper<ScriptedObstacle>& obstacle) -> Hit::Properties {
-      return obstacle.Unwrap()->GetHitboxProperties();
-    },
-    "set_hit_props", [](WeakWrapper<ScriptedObstacle>& obstacle, Hit::Properties props) {
-      obstacle.Unwrap()->SetHitboxProperties(props);
-    },
     "ignore_common_aggressor", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enable) {
       obstacle.Unwrap()->IgnoreCommonAggressor(enable);
     },
-    "set_height", [](WeakWrapper<ScriptedObstacle>& obstacle, float height) {
-      obstacle.Unwrap()->SetHeight(height);
-    },
-    "get_height", [](WeakWrapper<ScriptedObstacle>& obstacle) -> float {
-      return obstacle.Unwrap()->GetHeight();
-    },
-    "set_shadow", sol::overload(
-      [](WeakWrapper<ScriptedObstacle>& obstacle, Entity::Shadow type) {
-        obstacle.Unwrap()->SetShadowSprite(type);
-      },
-      [](WeakWrapper<ScriptedObstacle>& obstacle, std::shared_ptr<sf::Texture> shadow) {
-        obstacle.Unwrap()->SetShadowSprite(shadow);
-      }
-    ),
-    "show_shadow", [](WeakWrapper<ScriptedObstacle>& obstacle, bool show) {
-      obstacle.Unwrap()->ShowShadow(show);
-    },
     "shake_camera", [](WeakWrapper<ScriptedObstacle>& obstacle, double power, float duration) {
       obstacle.Unwrap()->ShakeCamera(power, duration);
-    },
-    "register_component", [](WeakWrapper<ScriptedObstacle>& obstacle, WeakWrapper<ScriptedComponent>& component) {
-      obstacle.Unwrap()->RegisterComponent(component.Release());
-    },
-    "get_offset", [](WeakWrapper<ScriptedObstacle>& obstacle) -> sf::Vector2f {
-      return obstacle.Unwrap()->GetDrawOffset();
-    },
-    "set_offset", [](WeakWrapper<ScriptedObstacle>& obstacle, float x, float y) {
-      obstacle.Unwrap()->SetDrawOffset(x, y);
-    },
-    "never_flip", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enabled) {
-      obstacle.Unwrap()->NeverFlip(enabled);
     },
     "can_move_to_func", sol::property(
       [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->can_move_to_func; },
@@ -299,5 +79,15 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       }
     )
   );
+
+  DefineEntityFunctionsOn(scriptedobstacle_record);
+
+  scriptedobstacle_record["set_animation"] = [](WeakWrapper<ScriptedObstacle>& obstacle, std::string animation) {
+    obstacle.Unwrap()->SetAnimation(animation);
+  };
+  scriptedobstacle_record["get_animation"] = [](WeakWrapper<ScriptedObstacle>& obstacle) -> AnimationWrapper {
+    auto& animation = obstacle.Unwrap()->GetAnimationObject();
+    return AnimationWrapper(obstacle.GetWeak(), animation);
+  };
 }
 #endif

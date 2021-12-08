@@ -44,9 +44,9 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       auto& attachment = cardAction.Unwrap()->AddAttachment(point);
       return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
     },
-    "add_anim_action", [](WeakWrapper<CardAction>& cardAction, int frame, sol::stack_object actionObject) {
-      sol::protected_function action = actionObject;
-      cardAction.Unwrap()->AddAnimAction(frame, [action]{
+    "add_anim_action", [](WeakWrapper<CardAction>& cardAction, int frame, sol::object actionObject) {
+      cardAction.Unwrap()->AddAnimAction(frame, [actionObject]{
+        sol::protected_function action = actionObject;
         auto result = action();
 
         if (!result.valid()) {
@@ -102,9 +102,9 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     },
     "update_func", sol::property(
       // write only, reading might cause lifetime issues
-      [](CardAction::Step& step, sol::stack_object callbackObject) {
-        sol::protected_function callback = callbackObject;
-        step.updateFunc = [callback] (CardAction::Step& step, double dt) {
+      [](CardAction::Step& step, sol::object callbackObject) {
+        step.updateFunc = [callbackObject] (CardAction::Step& step, double dt) {
+          sol::protected_function callback = callbackObject;
           auto wrappedSelf = ScopedWrapper(step);
           auto result = callback(ScopedWrapper(wrappedSelf), dt);
 
@@ -117,9 +117,9 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     ),
     "draw_func", sol::property(
       // write only, reading might cause lifetime issues
-      [](CardAction::Step& step, sol::stack_object callbackObject) {
-        sol::protected_function callback = callbackObject;
-        step.drawFunc = [callback] (CardAction::Step& step, sf::RenderTexture& rt) {
+      [](CardAction::Step& step, sol::object callbackObject) {
+        step.drawFunc = [callbackObject] (CardAction::Step& step, sf::RenderTexture& rt) {
+          sol::protected_function callback = callbackObject;
           auto wrappedSelf = ScopedWrapper(step);
           auto result = callback(ScopedWrapper(wrappedSelf), rt);
 

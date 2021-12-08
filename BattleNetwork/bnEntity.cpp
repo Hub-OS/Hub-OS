@@ -1510,9 +1510,21 @@ void Entity::HighlightTile(Battle::TileHighlight mode)
   this->mode = mode;
 }
 
+void Entity::SetHitboxContext(Hit::Context context)
+{
+  hitboxProperties.context = context;
+}
+
+Hit::Context Entity::GetHitboxContext()
+{
+  return hitboxProperties.context;
+}
+
 void Entity::SetHitboxProperties(Hit::Properties props)
 {
   hitboxProperties = props;
+  hitboxProperties.flags |= props.context.flags;
+  hitboxProperties.aggressor = props.context.aggressor;
 }
 
 const Hit::Properties Entity::GetHitboxProperties() const

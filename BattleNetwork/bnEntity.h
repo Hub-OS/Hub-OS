@@ -707,6 +707,18 @@ public:
   void HighlightTile(Battle::TileHighlight mode);
 
   /**
+   * @brief Context for creation, carries properties that Hit::Properties will automatically copy
+   * @param Hit::Context
+   */
+  void SetHitboxContext(Hit::Context context);
+
+  /**
+   * @brief Context for creation, carries properties that Hit::Properties will automatically copy
+   * @return Hit::Context
+   */
+  Hit::Context GetHitboxContext();
+
+  /**
    * @brief When an entity is hit, these are the hit properties it will use
    * @param props
    */

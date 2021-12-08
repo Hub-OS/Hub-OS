@@ -103,6 +103,7 @@ private:
   ActionList sequence;
   std::list<Step*> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
   std::weak_ptr<Character> actor;
+  std::weak_ptr<Character> userWeak;
   Attachments attachments;
   std::shared_ptr<AnimationComponent> anim{ nullptr };
   Battle::Card::Properties meta;
