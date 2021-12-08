@@ -42,11 +42,12 @@ static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, co
   // add this record if possible to the retryTable
   if (retryTable.find(fullModPath) == retryTable.end()) {
     retryTable[fullModPath] = [&packageManager, fullModPath] () -> bool {
+      Logger::Logf("Retrying %s", fullModPath.c_str());
       return InstallMod<PackageManagerT, ScriptedResourceT>(packageManager, fullModPath).is_error() == false;
     };
   }
 
-  return stx::error<bool>("retry failed");
+  return stx::error<bool>(result.error_cstr());
 }
 
 template<typename PackageManagerT, typename ScriptedResourceT>

@@ -233,6 +233,10 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
 
 void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
+  // Only intercept this event if we are active
+  if (this->GetScene().GetCurrentState() != this) return;
+
+  Logger::Logf("CombatBattleState::OnCardActionUsed()");
   if (!mob->IsCleared()) {
     hasTimeFreeze = action->GetMetaData().timeFreeze;
   }
