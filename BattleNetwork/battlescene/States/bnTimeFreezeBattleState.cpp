@@ -28,14 +28,14 @@ const bool TimeFreezeBattleState::FadeOutBackdrop()
 
 void TimeFreezeBattleState::CleanupStuntDouble()
 {
-  while (tfEvents.size()) {
+  if (tfEvents.size()) {
     auto iter = tfEvents.begin();
 
     if (iter->stuntDouble) {
       GetScene().GetField()->DeallocEntity(iter->stuntDouble->GetID());
     }
 
-    iter = tfEvents.erase(iter);
+    // iter = tfEvents.erase(iter);
   }
 }
 
@@ -60,6 +60,7 @@ void TimeFreezeBattleState::SkipFrame()
 
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
+  Logger::Logf("TimeFreezeBattleState::onStart");
   GetScene().GetSelectedCardsUI().Hide();
   GetScene().GetField()->ToggleTimeFreeze(true); // freeze everything on the field but accept hits
   currState = startState;
@@ -74,6 +75,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
 {
+  Logger::Logf("TimeFreezeBattleState::onEnd");
   GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
   GetScene().HighlightTiles(false);
@@ -156,7 +158,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
         first->user->Reveal();
         GetScene().GetField()->DeallocEntity(first->stuntDouble->GetID());
 
-        if (tfEvents.size() <= 1) {
+        if (tfEvents.size() == 1) {
           // This is the only event in the list
           lockedTimestamp = std::numeric_limits<long long>::max();
           currState = state::fadeout;
@@ -166,6 +168,8 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
           // restart the time freeze animation
           currState = state::animate;
+
+          ExecuteTimeFreeze();
         }
       }
     }
@@ -263,9 +267,12 @@ bool TimeFreezeBattleState::IsOver() {
 
 void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
+  Logger::Logf("OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().shortname.c_str(), summonTick.count(), summonTextLength.count());
+
   // tfc window ended
   if (summonTick > summonTextLength) return;
 
+  // sanity check
   if (!action)
     return;
   
@@ -277,7 +284,7 @@ void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action,
       auto lastActor = tfEvents.begin()->action->GetActor();
       if (!lastActor->Teammate(action->GetActor()->GetTeam())) {
         playerCountered = true;
-        currState = state::display_name;
+        Logger::Logf("Player was countered!");
       }
       else {
         addEvent = false;

@@ -254,8 +254,6 @@ protected:
   void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
 
-  const BattleSceneState* GetCurrentState() const;
-
 #ifdef __ANDROID__
   void SetupTouchControls();
   void ShutdownTouchControls();
@@ -345,6 +343,7 @@ public:
   Camera& GetCamera();
   PA& GetPA();
   BattleResults& BattleResultsObj();
+  const BattleSceneState* GetCurrentState() const;
   const int GetTurnCount();
   const int GetRoundCount();
   const unsigned int FrameNumber() const;
