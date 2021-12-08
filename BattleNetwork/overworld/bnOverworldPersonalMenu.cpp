@@ -389,10 +389,9 @@ namespace Overworld {
         else {
           // already selected, switch to options
           SelectOptions();
+          Audio().Play(AudioType::CHIP_SELECT);
         }
       }
-
-      Audio().Play(AudioType::CHIP_SELECT);
     }
     else if (input.Has(InputEvents::pressed_ui_left)) {
       SelectOptions() ? Audio().Play(AudioType::CHIP_SELECT) : 0;

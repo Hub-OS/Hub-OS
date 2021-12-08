@@ -215,7 +215,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   // grabbing the camera pos for parallax
-  auto cameraPos = camera.GetView().getCenter();
+  const sf::Vector2f& cameraPos = camera.GetView().getCenter();
 
   // Update bg
   if (bg) {

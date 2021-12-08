@@ -248,16 +248,28 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     }
   }
 
+  // TODO: 
+  // 1. move to the TimeFreezeState
+  // 2. Use regular peek event to see metadata of chip
+  // 3. Have aux function in TimeFreezeState to read metadata to invoke TimeFreeze
+  // 4. Have OnCardAction() callback in TimeFreezeState pass off into this new aux function
+  // 5. BattleSceneBase needs to have a GetAllPlayers() function or something similar
+  //
   // very special case: time freeze can counter from opponent's inputs
   if (GetCurrentState() == timeFreezePtr) {
+    size_t player_idx = 0;
     for (auto& p : players) {
+      p->InputState().Process();
+
       if (p->InputState().Has(InputEvents::pressed_use_chip)) {
+        Logger::Logf("InputEvents::pressed_use_chip for player %i", player_idx);
         auto cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
         if (cardsUI) {
           cardsUI->HandlePeekEvent(p);
           p->GetChargeComponent().SetCharging(false);
         }
       }
+      player_idx++;
     }
   }
 

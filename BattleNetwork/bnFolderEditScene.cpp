@@ -530,7 +530,7 @@ void FolderEditScene::onUpdate(double elapsed) {
                 }
                 else {
                     // See if we're swapping from our folder
-                    if (folderView.swapCardIndex != -1 && packView.numOfCards > 0) {
+                    if (folderView.swapCardIndex != -1 && packView.swapCardIndex != -1 && packView.numOfCards > 0) {
                         // Try to swap the card with the one from the folder
                         // The card from the pack is copied and added to the slot
                         // The slot card needs to find its corresponding bucket and increment it
