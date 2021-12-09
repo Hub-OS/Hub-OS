@@ -8,6 +8,8 @@
 #include "../../bnField.h"
 #include "../../bnPlayer.h"
 #include "../../bnPlayerSelectedCardsUI.h"
+#include <cmath>
+
 TimeFreezeBattleState::TimeFreezeBattleState()
 {
   lockedTimestamp = std::numeric_limits<long long>::max();
@@ -163,7 +165,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       currState = state::animate; // animate this attack
 
       // Resize the time freeze queue to a max of 2 attacks
-      tfEvents.resize(std::min(tfEvents.size(), 2ull));
+      tfEvents.resize(std::min(tfEvents.size(), (size_t)2));
       tfEvents.shrink_to_fit();
 
       ExecuteTimeFreeze();
