@@ -376,7 +376,7 @@ void Entity::Update(double _elapsed) {
     setPosition(tile->getPosition().x + offset.x, tile->getPosition().y + offset.y);
   }
 
-  if (health <= 0 || IsDeleted()) {
+  if ((maxHealth > 0 && health <= 0) || IsDeleted()) {
     // Ensure entity is deleted if health is zero
     Delete();
 
