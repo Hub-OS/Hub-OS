@@ -73,9 +73,12 @@ inline sf::Vector2f CastRay(sf::Vector2f start, sf::Vector2f ray, std::function<
   auto tile = sf::Vector2i(start);
   auto step = sf::Vector2i(ray.x < 0 ? -1 : 1, ray.y < 0 ? -1 : 1);
 
-  // tMax* = the t distance to the next edge instersection
+  // tMax* = the t distance to the next edge intersection
   float tMaxX = std::fabs(((float)tile.x - start.x + (float)(ray.x > 0)) / ray.x);
   float tMaxY = std::fabs(((float)tile.y - start.y + (float)(ray.y > 0)) / ray.y);
+  // 0.0f / 0.0f = NaN and can break stuff
+  tMaxX = std::isnan(tMaxX) ? INFINITY : tMaxX;
+  tMaxY = std::isnan(tMaxY) ? INFINITY : tMaxY;
 
   // t = ray multiplier
   float t = 0.0f;
