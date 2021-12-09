@@ -150,7 +150,7 @@ void Camera::ShakeCamera(double stress, sf::Time duration)
   isShaking = true;
 }
 
-const sf::View Camera::GetView() const
+const sf::View& Camera::GetView() const
 {
   return focus;
 }

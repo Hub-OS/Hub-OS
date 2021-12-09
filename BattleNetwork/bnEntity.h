@@ -831,8 +831,8 @@ private:
   bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   bool swapPalette{ false };
   int moveCount{}; /*!< Used by battle results */
-  int health{ std::numeric_limits<int>::max() };
-  int maxHealth{ std::numeric_limits<int>::max() };
+  int health{};
+  int maxHealth{};
   float elevation{}; // vector away from grid
   float counterSlideDelta{};
   double elapsedMoveTime{}; /*!< delta time since recent move event began */
