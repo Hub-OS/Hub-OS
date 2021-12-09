@@ -54,7 +54,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     bool canUseSpecial = player.CanAttack();
 
     // Just make sure one of these actions are not from an ability
-    for (auto action : actions) {
+    for (const std::shared_ptr<CardAction>& action : actions) {
       canUseSpecial = canUseSpecial && action->GetLockoutGroup() != CardAction::LockoutGroup::ability;
     }
 

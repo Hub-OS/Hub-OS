@@ -47,9 +47,12 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   ~TimeFreezeBattleState();
 
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
+  void HandleTimeFreezeCounter(std::shared_ptr<CardAction> action, uint64_t timestamp);
+  const bool CanCounter(std::shared_ptr<Character> user);
   void CleanupStuntDouble();
   void SkipToAnimateState();
   void SkipFrame();
+  void ProcessInputs();
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;

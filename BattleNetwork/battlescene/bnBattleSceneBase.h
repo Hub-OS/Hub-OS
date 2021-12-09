@@ -99,7 +99,8 @@ private:
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
   std::shared_ptr<Field> field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
-  std::shared_ptr<Player> player{ nullptr }; /*!< Pointer to player's selected character */
+  std::shared_ptr<Player> localPlayer; /*!< Local player */
+  std::vector<std::shared_ptr<Player>> otherPlayers; /*!< Player array supports multiplayer */
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
@@ -248,8 +249,8 @@ protected:
   * @brief Scans the entity list for updated components and tries to Inject them if the components require.
   */
   void ProcessNewestComponents();
-  void FlushPlayerInputQueue();
-  std::vector<InputEvent> ProcessPlayerInputQueue(const frame_time_t& lag = frames(0));
+  void FlushLocalPlayerInputQueue();
+  std::vector<InputEvent> ProcessLocalPlayerInputQueue(const frame_time_t& lag = frames(0));
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
   void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;
@@ -332,9 +333,14 @@ public:
   virtual void onDraw(sf::RenderTexture& surface) override;
   virtual void onEnd() override;
 
+  void TrackOtherPlayer(std::shared_ptr<Player> other);
+  void UntrackOtherPlayer(std::shared_ptr<Player> other);
+
   bool IsPlayerDeleted() const;
 
-  std::shared_ptr<Player> GetPlayer();
+  std::shared_ptr<Player> GetLocalPlayer();
+  std::vector<std::shared_ptr<Player>> GetOtherPlayers();
+  std::vector<std::shared_ptr<Player>> GetAllPlayers();
   std::shared_ptr<Field> GetField();
   const std::shared_ptr<Field> GetField() const;
   CardSelectionCust& GetCardSelectWidget();

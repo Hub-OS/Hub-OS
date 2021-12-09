@@ -48,7 +48,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   pingIndicator.setScale(2.f, 2.f);
   UpdatePingIndicator(frames(0));
 
-  auto clientPlayer = props.base.player;
+  std::shared_ptr<Player> clientPlayer = props.base.player;
 
   selectedNaviId = props.netconfig.myNaviId;
 
@@ -181,7 +181,7 @@ NetworkBattleScene::~NetworkBattleScene()
 
 void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
-  auto player = GetPlayer();
+  auto player = GetLocalPlayer();
   if (player.get() == &victim && props.damage > 0) {
     if (props.damage >= 300) {
       player->SetEmotion(Emotion::angry);
@@ -219,7 +219,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   else {
     if (combatPtr->IsStateCombat(GetCurrentState())) {
       frame_time_t currLag = frames(5); // frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
-      auto events = ProcessPlayerInputQueue(currLag);
+      auto events = ProcessLocalPlayerInputQueue(currLag);
       SendInputEvents(events);
     }
   }
@@ -231,7 +231,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     if (FrameNumber() - resyncFrameNumber >= 5 && FrameNumber() != frame->frameNumber) {
       // for debugging, this should never appear if the code is working properly
       Logger::Logf("DESYNC: frames #s were %i - %i", remoteFrameNumber, FrameNumber());
-
     }
 
     if(FrameNumber() >= frame->frameNumber) {
@@ -245,31 +244,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       }
 
       frame = remoteInputQueue.erase(frame);
-    }
-  }
-
-  // TODO: 
-  // 1. move to the TimeFreezeState
-  // 2. Use regular peek event to see metadata of chip
-  // 3. Have aux function in TimeFreezeState to read metadata to invoke TimeFreeze
-  // 4. Have OnCardAction() callback in TimeFreezeState pass off into this new aux function
-  // 5. BattleSceneBase needs to have a GetAllPlayers() function or something similar
-  //
-  // very special case: time freeze can counter from opponent's inputs
-  if (GetCurrentState() == timeFreezePtr) {
-    size_t player_idx = 0;
-    for (auto& p : players) {
-      p->InputState().Process();
-
-      if (p->InputState().Has(InputEvents::pressed_use_chip)) {
-        Logger::Logf("InputEvents::pressed_use_chip for player %i", player_idx);
-        auto cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
-        if (cardsUI) {
-          cardsUI->HandlePeekEvent(p);
-          p->GetChargeComponent().SetCharging(false);
-        }
-      }
-      player_idx++;
     }
   }
 
@@ -300,7 +274,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     remotePlayer = nullptr;
   }
 
-  if (auto player = GetPlayer()) {
+  if (auto player = GetLocalPlayer()) {
     BattleResultsObj().finalEmotion = player->GetEmotion();
   }
 }
@@ -482,7 +456,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   if (!remoteState.remoteConnected) return;
 
   remoteInputQueue.clear();
-  FlushPlayerInputQueue();
+  FlushLocalPlayerInputQueue();
 
   std::vector<std::string> remoteUUIDs;
   int remoteForm{ -1 };
@@ -638,10 +612,10 @@ void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
   remoteCardActionUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().CardPackageManager());
   remoteCardActionUsePublisher->Hide(); // do not reveal opponent's cards
 
-  combatPtr->Subscribe(*GetPlayer());
+  combatPtr->Subscribe(*GetLocalPlayer());
   combatPtr->Subscribe(*remotePlayer);
   combatPtr->Subscribe(*remoteCardActionUsePublisher);
-  timeFreezePtr->Subscribe(*GetPlayer());
+  timeFreezePtr->Subscribe(*GetLocalPlayer());
   timeFreezePtr->Subscribe(*remotePlayer);
   timeFreezePtr->Subscribe(*remoteCardActionUsePublisher);
 
@@ -650,6 +624,7 @@ void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
   remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);
 
   players.push_back(remotePlayer);
+  this->TrackOtherPlayer(remotePlayer);
   trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer.get(), -1, false ));
 }
 

@@ -6,7 +6,8 @@
 #include "../../bnCharacter.h"
 #include "../../bnStuntDouble.h"
 #include "../../bnField.h"
-
+#include "../../bnPlayer.h"
+#include "../../bnPlayerSelectedCardsUI.h"
 TimeFreezeBattleState::TimeFreezeBattleState()
 {
   lockedTimestamp = std::numeric_limits<long long>::max();
@@ -58,6 +59,40 @@ void TimeFreezeBattleState::SkipFrame()
   skipFrame = true;
 }
 
+void TimeFreezeBattleState::ProcessInputs()
+{
+  size_t player_idx = 0;
+  for (auto& p : this->GetScene().GetAllPlayers()) {
+    p->InputState().Process();
+
+    if (p->InputState().Has(InputEvents::pressed_use_chip)) {
+      Logger::Logf("InputEvents::pressed_use_chip for player %i", player_idx);
+      auto cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
+      if (cardsUI) {
+        auto maybe_card = cardsUI->Peek();
+
+        if (maybe_card.has_value()) {
+          // convert meta data into a useable action object
+          const Battle::Card& card = *maybe_card;
+
+          if (CanCounter(p) && card.IsTimeFreeze()) {
+            if (auto action = CardToAction(card, p, &GetScene().getController().CardPackageManager())) {
+              action->SetMetaData(card.props); // associate the meta with this action object
+
+              OnCardActionUsed(action, CurrentTime::AsMilli());
+
+              cardsUI->DropNextCard();
+            }
+          }
+        }
+
+        p->GetChargeComponent().SetCharging(false);
+      }
+    }
+    player_idx++;
+  }
+}
+
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
   Logger::Logf("TimeFreezeBattleState::onStart");
@@ -96,6 +131,8 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     GetScene().IncrementFrame();
   }
 
+  ProcessInputs();
+
   if (summonStart) {
     summonTick += frames(1);
   }
@@ -124,6 +161,11 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     if (summonTick >= summonTextLength) {
       GetScene().HighlightTiles(true); // re-enable tile highlighting for new entities
       currState = state::animate; // animate this attack
+
+      // Resize the time freeze queue to a max of 2 attacks
+      tfEvents.resize(std::min(tfEvents.size(), 2ull));
+      tfEvents.shrink_to_fit();
+
       ExecuteTimeFreeze();
     }
 
@@ -269,43 +311,48 @@ void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action,
 {
   Logger::Logf("OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().shortname.c_str(), summonTick.count(), summonTextLength.count());
 
+  if (!(action && CanCounter(action->GetActor()) && action->GetMetaData().timeFreeze)) return;
+ 
+  HandleTimeFreezeCounter(action, timestamp);
+}
+
+const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
+{
   // tfc window ended
-  if (summonTick > summonTextLength) return;
+  if (summonTick > summonTextLength) return false;
 
-  // sanity check
-  if (!action)
-    return;
-  
-  if (action->GetMetaData().timeFreeze) {
-    bool addEvent = true;
+  bool addEvent = true;
 
-    if (!tfEvents.empty()) {
-      // only opposing players can counter
-      auto lastActor = tfEvents.begin()->action->GetActor();
-      if (!lastActor->Teammate(action->GetActor()->GetTeam())) {
-        playerCountered = true;
-        Logger::Logf("Player was countered!");
-      }
-      else {
-        addEvent = false;
-      }
+  if (!tfEvents.empty()) {
+    // only opposing players can counter
+    auto lastActor = tfEvents.begin()->action->GetActor();
+    if (!lastActor->Teammate(user->GetTeam())) {
+      playerCountered = true;
+      Logger::Logf("Player was countered!");
     }
-
-    if (addEvent) {
-      TimeFreezeBattleState::EventData data;
-      data.action = action;
-      data.name = action->GetMetaData().shortname;
-      data.team = action->GetActor()->GetTeam();
-      data.user = action->GetActor();
-      lockedTimestamp = timestamp;
-
-      data.action = action;
-      data.stuntDouble = CreateStuntDouble(data.user);
-      action->UseStuntDouble(data.stuntDouble);
-
-      tfEvents.insert(tfEvents.begin(), data);
-
-      Logger::Logf("Added chip event: %s", data.name.c_str());
+    else {
+      addEvent = false;
     }
   }
+
+  return addEvent;
 }
+
+void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> action, uint64_t timestamp)
+{
+  TimeFreezeBattleState::EventData data;
+  data.action = action;
+  data.name = action->GetMetaData().shortname;
+  data.team = action->GetActor()->GetTeam();
+  data.user = action->GetActor();
+  lockedTimestamp = timestamp;
+
+  data.action = action;
+  data.stuntDouble = CreateStuntDouble(data.user);
+  action->UseStuntDouble(data.stuntDouble);
+
+  tfEvents.insert(tfEvents.begin(), data);
+
+  Logger::Logf("Added chip event: %s", data.name.c_str());
+}
+

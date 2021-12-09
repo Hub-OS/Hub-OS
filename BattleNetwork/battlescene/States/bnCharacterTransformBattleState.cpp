@@ -63,7 +63,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       else {
         playerPtr->MakeActionable();
 
-        if (playerPtr == GetScene().GetPlayer().get()) {
+        if (playerPtr == GetScene().GetLocalPlayer().get()) {
           // only client player should remove their index information (e.g. PVP battles)
           auto& widget = GetScene().GetCardSelectWidget();
           widget.LockInPlayerFormSelection();
@@ -168,7 +168,7 @@ void CharacterTransformBattleState::onEnd(const BattleSceneState*)
 void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
 {
   size_t count = 0;
-  for (auto data : tracking) {
+  for (std::shared_ptr<TrackedFormData>& data : tracking) {
     auto& [player, index, complete] = *data;
 
     Animation& anim = shineAnimations[count];

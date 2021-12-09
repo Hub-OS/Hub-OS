@@ -98,7 +98,7 @@ void Character::Update(double _elapsed) {
 
       // execute when delay is over
       if (this->cardActionStartDelay <= frames(0)) {
-        for(auto anim : this->GetComponents<AnimationComponent>()) {
+        for(std::shared_ptr<AnimationComponent>& anim : this->GetComponents<AnimationComponent>()) {
           anim->CancelCallbacks();
         }
         MakeActionable();
@@ -208,7 +208,8 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
   if (publisher) {
     auto characterPtr = shared_from_base<Character>();
 
-    if (publisher->HandlePeekEvent(characterPtr)) {
+    // If we have a card via Peeking, then Play it
+    if (publisher->HandlePlayEvent(characterPtr)) {
       // prepare for this frame's action animation (we must be actionable)
       this->MakeActionable();
     }

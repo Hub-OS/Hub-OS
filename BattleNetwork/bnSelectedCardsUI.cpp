@@ -136,7 +136,7 @@ bool SelectedCardsUI::UseNextCard() {
 
 void SelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 {
-  curr++;
+  this->DropNextCard();
   CardActionUsePublisher::Broadcast(action, CurrentTime::AsMilli());
 }
 
@@ -150,7 +150,7 @@ std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek(
   return {};
 }
 
-bool SelectedCardsUI::HandlePeekEvent(std::shared_ptr<Character> from)
+bool SelectedCardsUI::HandlePlayEvent(std::shared_ptr<Character> from)
 {
   auto maybe_card = this->Peek();
 
@@ -170,6 +170,11 @@ bool SelectedCardsUI::HandlePeekEvent(std::shared_ptr<Character> from)
   }
 
   return false;
+}
+
+void SelectedCardsUI::DropNextCard()
+{
+  curr++;
 }
 
 std::vector<std::string> SelectedCardsUI::GetUUIDList()

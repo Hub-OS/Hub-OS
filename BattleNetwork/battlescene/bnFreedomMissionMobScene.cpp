@@ -97,7 +97,7 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
   // Forms is the last state before kicking off the battle
   // if we reached this state...
   forms.ChangeOnEvent(combat, [forms, cardSelect, this]() mutable { 
-    bool triggered = forms->IsFinished() && (GetPlayer()->GetHealth() == 0 || playerDecross); 
+    bool triggered = forms->IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross); 
 
     if (triggered) {
       playerDecross = false; // reset our decross flag
@@ -165,9 +165,9 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
   // Some states need to know about card uses
   auto& ui = this->GetSelectedCardsUI();
   combat->Subscribe(ui);
-  combat->Subscribe(*GetPlayer());
+  combat->Subscribe(*GetLocalPlayer());
   timeFreeze->Subscribe(ui);
-  timeFreeze->Subscribe(*GetPlayer());
+  timeFreeze->Subscribe(*GetLocalPlayer());
   
   // Some states are part of the combat routine and need to respect
   // the combat state's timers
@@ -188,7 +188,7 @@ FreedomMissionMobScene::~FreedomMissionMobScene() {
 
 void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
-  auto player = GetPlayer();
+  auto player = GetLocalPlayer();
   if (player.get() == &victim && props.damage > 0) {
     playerHitCount++;
 
@@ -212,7 +212,7 @@ void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
 
 void FreedomMissionMobScene::onUpdate(double elapsed)
 {
-  ProcessPlayerInputQueue();
+  ProcessLocalPlayerInputQueue();
   BattleSceneBase::onUpdate(elapsed);
 }
 

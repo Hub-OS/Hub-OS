@@ -36,7 +36,7 @@ void NetworkSyncBattleState::onStart(const BattleSceneState* last)
 void NetworkSyncBattleState::onEnd(const BattleSceneState* next)
 {
   if (firstConnection) {
-    GetScene().GetPlayer()->ChangeState<PlayerControlledState>();
+    GetScene().GetLocalPlayer()->ChangeState<PlayerControlledState>();
     
     if (remotePlayer) {
       remotePlayer->ChangeState<PlayerControlledState>();

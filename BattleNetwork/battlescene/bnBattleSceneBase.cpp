@@ -36,7 +36,7 @@ using swoosh::ActivityController;
 BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
   cardActionListener(this->getController().CardPackageManager()),
-  player(props.player),
+  localPlayer(props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
   totalCounterMoves(0),
@@ -59,10 +59,10 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   CharacterDeleteListener::Subscribe(*field);
   field->SetScene(this); // event emitters during battle needs the active scene
 
-  player->ChangeState<PlayerIdleState>();
-  player->ToggleTimeFreeze(false);
-  player->SetTeam(Team::red);
-  field->AddEntity(player, 2, 2);
+  localPlayer->ChangeState<PlayerIdleState>();
+  localPlayer->ToggleTimeFreeze(false);
+  localPlayer->SetTeam(Team::red);
+  field->AddEntity(localPlayer, 2, 2);
 
   /*
   Background for scene*/
@@ -98,15 +98,15 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   }
 
   // Player UI
-  cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackageManager());
-  CardActionUseListener::Subscribe(*player);
+  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackageManager());
+  CardActionUseListener::Subscribe(*localPlayer);
   CardActionUseListener::Subscribe(*cardUI);
 
-  auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
+  auto healthUI = localPlayer->CreateComponent<PlayerHealthUI>(localPlayer);
   cardCustGUI.AddNode(healthUI);
 
   // Player Emotion
-  this->emotionUI = player->CreateComponent<PlayerEmotionUI>(player);
+  this->emotionUI = localPlayer->CreateComponent<PlayerEmotionUI>(localPlayer);
   cardCustGUI.AddNode(emotionUI);
 
   emotionUI->Subscribe(cardCustGUI);
@@ -126,7 +126,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   counterCombatRule = std::make_shared<CounterCombatRule>(this);
 
   // Load forms
-  cardCustGUI.SetPlayerFormOptions(player->GetForms());
+  cardCustGUI.SetPlayerFormOptions(localPlayer->GetForms());
 
   // MOB UI
   mobBackdropSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_NAME_BACKDROP));
@@ -159,7 +159,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   comboInfoTimer.start();
   multiDeleteTimer.start();
 
-  HitListener::Subscribe(*player);
+  HitListener::Subscribe(*localPlayer);
 
   setView(sf::Vector2u(480, 320));
 
@@ -212,7 +212,7 @@ void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
 {
   Audio().Play(AudioType::COUNTER, AudioPriority::highest);
 
-  if (&aggressor == player.get()) {
+  if (&aggressor == localPlayer.get()) {
     totalCounterMoves++;
 
     if (victim.IsDeleted()) {
@@ -222,20 +222,20 @@ void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
     didCounterHit = true;
     comboInfoTimer.reset();
 
-    if (player->IsInForm() == false && player->GetEmotion() != Emotion::evil) {
+    if (localPlayer->IsInForm() == false && localPlayer->GetEmotion() != Emotion::evil) {
       field->RevealCounterFrames(true);
 
       // node positions are relative to the parent node's origin
-      auto bounds = player->getLocalBounds();
+      auto bounds = localPlayer->getLocalBounds();
       counterReveal->setPosition(0, -bounds.height / 4.0f);
-      player->AddNode(counterReveal);
+      localPlayer->AddNode(counterReveal);
 
       cardUI->SetMultiplier(2);
 
-      player->SetEmotion(Emotion::full_synchro);
+      localPlayer->SetEmotion(Emotion::full_synchro);
 
       // when players get hit by impact, battle scene takes back counter blessings
-      player->AddDefenseRule(counterCombatRule);
+      localPlayer->AddDefenseRule(counterCombatRule);
     }
   }
 }
@@ -243,10 +243,10 @@ void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
 void BattleSceneBase::OnDeleteEvent(Character& pending)
 {
   // Track if player is being deleted
-  if (!isPlayerDeleted && player.get() == &pending) {
+  if (!isPlayerDeleted && localPlayer.get() == &pending) {
     battleResults.runaway = false;
     isPlayerDeleted = true;
-    player = nullptr;
+    localPlayer = nullptr;
   }
 
   auto pendingPtr = &pending;
@@ -348,11 +348,11 @@ void BattleSceneBase::LoadMob(Mob& mob)
 
 void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
 {
-  if (&subject == player.get()) {
+  if (&subject == localPlayer.get()) {
     if (field->DoesRevealCounterFrames()) {
-      player->RemoveNode(counterReveal);
-      player->RemoveDefenseRule(counterCombatRule);
-      player->SetEmotion(Emotion::normal);
+      localPlayer->RemoveNode(counterReveal);
+      localPlayer->RemoveDefenseRule(counterCombatRule);
+      localPlayer->SetEmotion(Emotion::normal);
       field->RevealCounterFrames(false);
 
       playsound ? Audio().Play(AudioType::COUNTER_BONUS, AudioPriority::highest) : 0;
@@ -557,8 +557,8 @@ void BattleSceneBase::onUpdate(double elapsed) {
     }
   }
 
-  if (player) {
-    battleResults.playerHealth = player->GetHealth();
+  if (localPlayer) {
+    battleResults.playerHealth = localPlayer->GetHealth();
   }
 }
 
@@ -696,15 +696,45 @@ void BattleSceneBase::onEnd()
   }
 }
 
+void BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
+  if (other == localPlayer) return; // prevent tracking local player as "other" players
+
+  auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
+
+  if (iter == otherPlayers.end()) {
+    otherPlayers.push_back(other);
+  }
+}
+
+void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player> other) {
+  auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
+
+  if (iter != otherPlayers.end()) {
+    otherPlayers.erase(iter);
+  }
+}
+
 bool BattleSceneBase::IsPlayerDeleted() const
 {
   return isPlayerDeleted;
 }
 
-std::shared_ptr<Player> BattleSceneBase::GetPlayer()
-{
-  return player;
+std::shared_ptr<Player> BattleSceneBase::GetLocalPlayer() {
+  return localPlayer;
 }
+
+std::vector<std::shared_ptr<Player>> BattleSceneBase::GetOtherPlayers()
+{
+  return otherPlayers;
+}
+
+std::vector<std::shared_ptr<Player>> BattleSceneBase::GetAllPlayers()
+{
+  std::vector<std::shared_ptr<Player>> result = otherPlayers;
+  result.insert(result.begin(), localPlayer);
+  return result;
+}
+
 
 std::shared_ptr<Field> BattleSceneBase::GetField()
 {
@@ -964,12 +994,12 @@ void BattleSceneBase::ProcessNewestComponents()
 #endif
 }
 
-void BattleSceneBase::FlushPlayerInputQueue()
+void BattleSceneBase::FlushLocalPlayerInputQueue()
 {
   queuedLocalEvents.clear();
 }
 
-std::vector<InputEvent> BattleSceneBase::ProcessPlayerInputQueue(const frame_time_t& lag)
+std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(const frame_time_t& lag)
 {
   std::vector<InputEvent> outEvents;
 
@@ -996,7 +1026,7 @@ std::vector<InputEvent> BattleSceneBase::ProcessPlayerInputQueue(const frame_tim
   // Drop inputs that are already processed at the end of the last frame
   for (auto iter = queuedLocalEvents.begin(); iter != queuedLocalEvents.end();) {
     if (iter->wait <= frames(0)) {
-      GetPlayer()->InputState().VirtualKeyEvent(*iter);
+      GetLocalPlayer()->InputState().VirtualKeyEvent(*iter);
       iter = queuedLocalEvents.erase(iter);
       continue;
     }

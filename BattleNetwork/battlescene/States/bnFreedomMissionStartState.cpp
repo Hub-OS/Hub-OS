@@ -34,7 +34,7 @@ void FreedomMissionStartState::onStart(const BattleSceneState*)
   battleStartTimer.start();
 
   // only reveal first player's UI widget to them
-  auto ui = GetScene().GetPlayer()->GetFirstComponent<PlayerSelectedCardsUI>();
+  auto ui = GetScene().GetLocalPlayer()->GetFirstComponent<PlayerSelectedCardsUI>();
 
   if (ui) {
     ui->Reveal();

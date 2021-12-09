@@ -455,6 +455,8 @@ void Player::FinishConstructor()
 
   animationComponent->SetAnimation("PLAYER_IDLE");
   animationComponent->Refresh();
+  animationComponent->SetPlaybackMode(Animator::Mode::Loop);
+
 }
 
 bool Player::RegisterForm(PlayerFormMeta* meta)
