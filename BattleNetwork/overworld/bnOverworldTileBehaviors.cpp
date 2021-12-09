@@ -2,8 +2,10 @@
 
 #include "bnOverworldActor.h"
 #include "bnOverworldActorPropertyAnimator.h"
+#include "../bnMath.h"
 
 constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
+constexpr float DEFAULT_ICE_SPEED = 6.0f;
 
 void Overworld::TileBehaviors::UpdateActor(SceneBase& scene, Actor& actor, ActorPropertyAnimator& propertyAnimator) {
   if (propertyAnimator.IsAnimatingPosition()) {
@@ -35,6 +37,9 @@ void Overworld::TileBehaviors::UpdateActor(SceneBase& scene, Actor& actor, Actor
   switch (tileMeta->type) {
   case TileType::conveyor:
     HandleConveyor(scene, actor, propertyAnimator, *tileMeta, *tile);
+    break;
+  case TileType::ice:
+    HandleIce(scene, actor, propertyAnimator, *tileMeta, *tile);
     break;
   }
 }
@@ -167,6 +172,85 @@ void Overworld::TileBehaviors::HandleConveyor(SceneBase& scene, Actor& actor, Ac
     waitKeyFrame.propertySteps.push_back(axisProperty);
     waitKeyFrame.duration = 0.25;
     propertyAnimator.AddKeyFrame(waitKeyFrame);
+  }
+
+  propertyAnimator.UseKeyFrames(actor);
+}
+
+void Overworld::TileBehaviors::HandleIce(SceneBase& scene, Actor& actor, ActorPropertyAnimator& propertyAnimator, TileMeta& tileMeta, Tile& tile) {
+  auto& map = scene.GetMap();
+  auto layerIndex = actor.GetLayer();
+  auto& layer = map.GetLayer(layerIndex);
+
+  // get the slide speed
+  auto speed = tileMeta.customProperties.GetPropertyFloat("speed");
+
+  if (speed == 0.0f) {
+    speed = DEFAULT_ICE_SPEED;
+  }
+
+  // start animation with the ice sound effect
+  ActorPropertyAnimator::PropertyStep sfxProperty;
+  sfxProperty.property = ActorProperty::sound_effect;
+  sfxProperty.stringValue = scene.GetPath(tileMeta.customProperties.GetProperty("sound effect"));
+
+  ActorPropertyAnimator::KeyFrame startKeyframe;
+  startKeyframe.propertySteps.push_back(sfxProperty);
+  propertyAnimator.AddKeyFrame(startKeyframe);
+
+  // resolve edge positions
+  auto isNotIce = [&layer, &map](sf::Vector2i tilePos, sf::Vector2f rayPos, sf::Vector2f ray) {
+    auto tile = layer.GetTile(tilePos.x, tilePos.y);
+
+    if (!tile) {
+      return true;
+    }
+
+    auto tileMeta = map.GetTileMeta(tile->gid);
+
+    return !(tileMeta && tileMeta->type == TileType::ice);
+  };
+
+  auto startTilePos = map.WorldToTileSpace(actor.getPosition());
+  auto direction = actor.GetHeading();
+  auto ray = Round(UnitVector(direction));
+  auto edgeTilePos = CastRay(startTilePos, ray, isNotIce) + map.WorldToTileSpace(ray); // overshoot to get off the ice
+
+  auto edgePos = map.TileToWorld(edgeTilePos);
+  ActorPropertyAnimator::PropertyStep xProperty(ActorProperty::x, edgePos.x, Ease::linear);
+  ActorPropertyAnimator::PropertyStep yProperty(ActorProperty::y, edgePos.y, Ease::linear);
+
+  ActorPropertyAnimator::KeyFrame edgeKeyframe;
+  edgeKeyframe.propertySteps.push_back(xProperty);
+  edgeKeyframe.propertySteps.push_back(yProperty);
+  edgeKeyframe.duration = Distance(startTilePos, edgeTilePos) / speed;
+  propertyAnimator.AddKeyFrame(edgeKeyframe);
+
+  // not on a walkable tile, bounce off the wall and keep going
+  if (!map.CanMoveTo(edgeTilePos.x, edgeTilePos.y, (float)layerIndex, layerIndex)) {
+    // rewind a bit to get back on the ice
+    auto newRayStart = edgeTilePos - map.WorldToTileSpace(ray * 2.f);
+
+    // cast two rays
+    auto xEdgeTilePos = CastRay(newRayStart, { ray.x, 0.0f }, isNotIce);
+    auto yEdgeTilePos = CastRay(newRayStart, { 0.0f, ray.y }, isNotIce);
+
+    // pick the ray that moved us the furthest
+    auto newEdgeTilePos =
+      SquaredDistance(newRayStart, xEdgeTilePos) > SquaredDistance(newRayStart, yEdgeTilePos)
+        ? xEdgeTilePos
+        : yEdgeTilePos;
+
+    // create keyframe
+    auto edgePos = map.TileToWorld(newEdgeTilePos) + ray; // overshoot to get off the ice
+    ActorPropertyAnimator::PropertyStep xProperty(ActorProperty::x, edgePos.x, Ease::linear);
+    ActorPropertyAnimator::PropertyStep yProperty(ActorProperty::y, edgePos.y, Ease::linear);
+
+    ActorPropertyAnimator::KeyFrame edgeKeyframe;
+    edgeKeyframe.propertySteps.push_back(xProperty);
+    edgeKeyframe.propertySteps.push_back(yProperty);
+    edgeKeyframe.duration = Distance(edgeTilePos, newEdgeTilePos) / speed;
+    propertyAnimator.AddKeyFrame(edgeKeyframe);
   }
 
   propertyAnimator.UseKeyFrames(actor);
