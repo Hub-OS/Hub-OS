@@ -198,7 +198,11 @@ void Overworld::TileBehaviors::HandleIce(SceneBase& scene, Actor& actor, ActorPr
   sfxProperty.property = ActorProperty::sound_effect;
   sfxProperty.stringValue = scene.GetPath(tileMeta.customProperties.GetProperty("sound effect"));
 
+  // set the animation speed to 0 so the player appears to slip
+  ActorPropertyAnimator::PropertyStep animationSpeedProperty(ActorProperty::animation_speed, 0.0f);
+
   ActorPropertyAnimator::KeyFrame startKeyframe;
+  startKeyframe.propertySteps.push_back(animationSpeedProperty);
   startKeyframe.propertySteps.push_back(sfxProperty);
   propertyAnimator.AddKeyFrame(startKeyframe);
 

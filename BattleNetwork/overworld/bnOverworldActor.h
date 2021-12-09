@@ -91,6 +91,12 @@ namespace Overworld {
     void Run(const Direction& dir, bool move = true);
 
     /**
+    * @brief Set the playback speed for animations
+    * @param speed playback speed
+    */
+    void SetAnimationSpeed(float speed);
+
+    /**
     * @brief Make the character idle and face a direction
     * @param dir direction to face. movement speed is applied as zero.
     */

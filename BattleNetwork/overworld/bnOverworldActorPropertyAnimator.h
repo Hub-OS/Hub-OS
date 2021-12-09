@@ -7,6 +7,7 @@
 namespace Overworld {
   enum class ActorProperty : uint8_t {
     animation,
+    animation_speed,
     x,
     y,
     z,
