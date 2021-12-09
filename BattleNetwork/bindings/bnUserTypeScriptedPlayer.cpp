@@ -2,16 +2,14 @@
 #include "bnUserTypeScriptedPlayer.h"
 
 #include "bnWeakWrapper.h"
+#include "bnUserTypeEntity.h"
 #include "bnScopedWrapper.h"
-#include "bnUserTypeAnimation.h"
 #include "bnScriptedPlayer.h"
-#include "bnScriptedComponent.h"
 #include "bnScriptedPlayerForm.h"
 #include "bnScriptedCardAction.h"
-#include "../bnSolHelpers.h"
 
 void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
-  battle_namespace.new_usertype<WeakWrapper<ScriptedPlayer>>("Player",
+  auto player_table = battle_namespace.new_usertype<WeakWrapper<ScriptedPlayer>>("Player",
     sol::meta_function::index, [](WeakWrapper<ScriptedPlayer>& player, const std::string& key) {
       return player.Unwrap()->dynamic_get(key);
     },
@@ -24,115 +22,6 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "input_has", [](WeakWrapper<ScriptedPlayer>& player, const InputEvent& event) -> bool {
       return player.Unwrap()->InputState().Has(event);
     },
-    "get_id", [](WeakWrapper<ScriptedPlayer>& player) -> Entity::ID_t {
-      return player.Unwrap()->GetID();
-    },
-    "get_element", [](WeakWrapper<ScriptedPlayer>& player) -> Element {
-      return player.Unwrap()->GetElement();
-    },
-    "set_element", [](WeakWrapper<ScriptedPlayer>& player, Element element) {
-      player.Unwrap()->SetElement(element);
-    },
-    "get_tile", sol::overload(
-      [](WeakWrapper<ScriptedPlayer>& player, Direction dir, unsigned count) -> Battle::Tile* {
-        return player.Unwrap()->GetTile(dir, count);
-      },
-      [](WeakWrapper<ScriptedPlayer>& player) -> Battle::Tile* {
-        return player.Unwrap()->GetTile();
-      }
-    ),
-    "get_current_tile", [](WeakWrapper<ScriptedPlayer>& player) -> Battle::Tile* {
-      return player.Unwrap()->GetCurrentTile();
-    },
-    "get_field", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapper<Field> {
-      return WeakWrapper(player.Unwrap()->GetField());
-    },
-    "set_facing", [](WeakWrapper<ScriptedPlayer>& player, Direction dir) {
-      player.Unwrap()->SetFacing(dir);
-    },
-    "get_facing", [](WeakWrapper<ScriptedPlayer>& player) -> Direction {
-      return player.Unwrap()->GetFacing();
-    },
-    "get_facing_away", [](WeakWrapper<ScriptedPlayer>& player) -> Direction {
-      return player.Unwrap()->GetFacingAway();
-    },
-    "set_elevation", [](WeakWrapper<ScriptedPlayer>& player, float elevation) {
-      player.Unwrap()->SetElevation(elevation);
-    },
-    "get_elevation", [](WeakWrapper<ScriptedPlayer>& player) -> float {
-      return player.Unwrap()->GetElevation();
-    },
-    "get_color", [](WeakWrapper<ScriptedPlayer>& player) -> sf::Color {
-      return player.Unwrap()->getColor();
-    },
-    "set_color", [](WeakWrapper<ScriptedPlayer>& player, sf::Color color) {
-      player.Unwrap()->setColor(color);
-    },
-    "sprite", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapper<SpriteProxyNode> {
-      return WeakWrapper(std::static_pointer_cast<SpriteProxyNode>(player.Unwrap()));
-    },
-    "hide", [](WeakWrapper<ScriptedPlayer>& player) {
-      player.Unwrap()->Hide();
-    },
-    "reveal", [](WeakWrapper<ScriptedPlayer>& player) {
-      player.Unwrap()->Reveal();
-    },
-    "teleport", [](
-      WeakWrapper<ScriptedPlayer>& player,
-      Battle::Tile* dest,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
-
-      return player.Unwrap()->Teleport(dest, order, [onBegin] {
-        auto result = onBegin();
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
-    },
-    "slide", [](
-      WeakWrapper<ScriptedPlayer>& player,
-      Battle::Tile* dest,
-      const frame_time_t& slideTime,
-      const frame_time_t& endlag,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
-
-      return player.Unwrap()->Slide(dest, slideTime, endlag, order, [onBegin] {
-        auto result = onBegin();
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
-    },
-    "jump", [](
-      WeakWrapper<ScriptedPlayer>& player,
-      Battle::Tile* dest,
-      float destHeight,
-      const frame_time_t& jumpTime,
-      const frame_time_t& endlag,
-      ActionOrder order,
-      sol::stack_object onBeginObject
-    ) -> bool {
-      sol::protected_function onBegin = onBeginObject;
-
-      return player.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBegin] {
-        auto result = onBegin();
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(error.what());
-        }
-      });
-    },
     "set_shadow", sol::overload(
       [](WeakWrapper<ScriptedPlayer>& player, Entity::Shadow type) {
         player.Unwrap()->SetShadowSprite(type);
@@ -141,12 +30,6 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
         player.Unwrap()->SetShadowSprite(shadow);
       }
     ),
-    "show_shadow", [](WeakWrapper<ScriptedPlayer>& player, bool enabled) {
-      player.Unwrap()->ShowShadow(enabled);
-    },
-    "raw_move_event", [](WeakWrapper<ScriptedPlayer>& player, const MoveEvent& event, ActionOrder order) -> bool {
-      return player.Unwrap()->RawMoveEvent(event, order);
-    },
     "card_action_event", sol::overload(
       [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
         player.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
@@ -155,45 +38,8 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
         player.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
       }
     ),
-    "is_sliding", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->IsSliding();
-    },
-    "is_jumping", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->IsJumping();
-    },
-    "is_teleporting", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->IsTeleporting();
-    },
-    "is_moving", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->IsMoving();
-    },
-    "is_passthrough", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->IsPassthrough();
-    },
-    "is_deleted", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      return player.Unwrap()->IsDeleted();
-    },
-    "will_erase_eof", [](WeakWrapper<ScriptedPlayer>& player) -> bool {
-      auto ptr = player.Lock();
-      return !ptr || ptr->WillEraseEOF();
-    },
-    "is_team", [](WeakWrapper<ScriptedPlayer>& player, Team team) -> bool {
-      return player.Unwrap()->Teammate(team);
-    },
-    "get_team", [](WeakWrapper<ScriptedPlayer>& player) -> Team {
-      return player.Unwrap()->GetTeam();
-    },
-    "get_name", [](WeakWrapper<ScriptedPlayer>& player) -> std::string {
-      return player.Unwrap()->GetName();
-    },
     "set_name", [](WeakWrapper<ScriptedPlayer>& player, std::string name) {
       player.Unwrap()->SetName(name);
-    },
-    "get_health", [](WeakWrapper<ScriptedPlayer>& player) -> int {
-      return player.Unwrap()->GetHealth();
-    },
-    "set_health", [](WeakWrapper<ScriptedPlayer>& player, int health) {
-      player.Unwrap()->SetHealth(health);
     },
     "get_attack_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetAttackLevel();
@@ -201,30 +47,11 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "get_charge_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetChargeLevel();
     },
-    "get_texture", [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
-      return player.Unwrap()->getTexture();
-    },
-    "set_texture", [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture> texture) {
-      player.Unwrap()->setTexture(texture);
-    },
-    "set_height", [](WeakWrapper<ScriptedPlayer>& player, float height) {
-      player.Unwrap()->SetHeight(height);
-    },
-    "get_height", [](WeakWrapper<ScriptedPlayer>& player) -> float {
-      return player.Unwrap()->GetHeight();
-    },
     "set_fully_charged_color", [](WeakWrapper<ScriptedPlayer>& player, sf::Color color) {
       player.Unwrap()->SetFullyChargeColor(color);
     },
     "set_charge_position", [](WeakWrapper<ScriptedPlayer>& player, float x, float y) {
       player.Unwrap()->SetChargePosition(x, y);
-    },
-    "set_animation", [](WeakWrapper<ScriptedPlayer>& player, std::string animation) {
-      player.Unwrap()->SetAnimation(animation);
-    },
-    "get_animation", [](WeakWrapper<ScriptedPlayer>& player) -> AnimationWrapper {
-      auto& animation = player.Unwrap()->GetAnimationObject();
-      return AnimationWrapper(player.GetWeak(), animation);
     },
     "set_float_shoe", [](WeakWrapper<ScriptedPlayer>& player, bool enable) {
       player.Unwrap()->SetFloatShoe(enable);
@@ -235,23 +62,11 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "slide_when_moving", [](WeakWrapper<ScriptedPlayer>& player, bool enable, const frame_time_t& frames) {
       player.Unwrap()->SlideWhenMoving(enable, frames);
     },
-    "delete", [](WeakWrapper<ScriptedPlayer>& player) {
-      player.Unwrap()->Delete();
-    },
-    "register_component", [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedComponent>& component) {
-      player.Unwrap()->RegisterComponent(component.Release());
-    },
     "add_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
       player.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
     },
     "remove_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
       player.Unwrap()->RemoveDefenseRule(defenseRule);
-    },
-    "get_offset", [](WeakWrapper<ScriptedPlayer>& player) -> sf::Vector2f {
-      return player.Unwrap()->GetDrawOffset();
-    },
-    "set_offset", [](WeakWrapper<ScriptedPlayer>& player, float x, float y) {
-      player.Unwrap()->SetDrawOffset(x, y);
     },
     "get_current_palette",  [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
       return player.Unwrap()->GetPalette();
@@ -274,12 +89,6 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       }
 
       return WeakWrapperChild<Player, ScriptedPlayerFormMeta>(parentPtr, *formMeta);
-    },
-    "create_node", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapper<SpriteProxyNode> {
-      auto child = std::make_shared<SpriteProxyNode>();
-      player.Unwrap()->AddNode(child);
-
-      return WeakWrapper(child);
     },
     "create_sync_node", [] (WeakWrapper<ScriptedPlayer>& player, const std::string& point) -> std::shared_ptr<SyncNode> {
       return player.Unwrap()->AddSyncNode(point);
@@ -312,6 +121,15 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       }
     )
   );
+
+  DefineEntityFunctionsOn(player_table);
+  player_table["set_animation"] = [](WeakWrapper<ScriptedPlayer>& player, std::string animation) {
+    player.Unwrap()->SetAnimation(animation);
+  };
+  player_table["get_animation"] = [](WeakWrapper<ScriptedPlayer>& player) -> AnimationWrapper {
+    auto& animation = player.Unwrap()->GetAnimationObject();
+    return AnimationWrapper(player.GetWeak(), animation);
+  };
 
   battle_namespace.new_usertype<WeakWrapperChild<Player, ScriptedPlayerFormMeta>>("PlayerFormMeta",
     "set_mugshot_texture_path", [] (WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, const std::string& path) {

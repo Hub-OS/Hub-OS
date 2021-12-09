@@ -184,6 +184,17 @@ void CardAction::Execute(std::shared_ptr<Character> user)
   startTile = user->GetTile();
   startTile->ReserveEntityByID(user->GetID());
 
+  // set attack context
+  Hit::Context context;
+  context.aggressor = user->GetID();
+
+  if (preventCounters) {
+    context.flags |= Hit::no_counter;
+  }
+
+  user->SetHitboxContext(context);
+  userWeak = user;
+
   // run
   OnExecute(user);
   // Position any new nodes to actor
@@ -197,9 +208,18 @@ void CardAction::EndAction()
   RecallPreviousState();
   OnActionEnd();
   
-  auto actorPtr = actor.lock();
-  actorPtr->GetTile()->RemoveEntityByID(actorPtr->GetID());
-  startTile->AddEntity(actorPtr);
+  if (auto actorPtr = actor.lock()) {
+    actorPtr->GetTile()->RemoveEntityByID(actorPtr->GetID());
+    startTile->AddEntity(actorPtr);
+  }
+
+  if (auto user = userWeak.lock()) {
+    // reset context
+    Hit::Context context;
+    context.aggressor = user->GetID();
+    context.flags = Hit::none;
+    user->SetHitboxContext(context);
+  }
 }
 
 void CardAction::UseStuntDouble(std::shared_ptr<Character> stuntDouble)
@@ -265,7 +285,6 @@ void CardAction::Update(double _elapsed)
     if (sequence.isEmpty()) {
       animationIsOver = true; // animation for sequence is complete
       RecallPreviousState();
-      EndAction();
     }
   }
   else if(animationIsOver) /* lockoutProps.type == CardAction::LockoutType::async */ {

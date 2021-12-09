@@ -142,11 +142,10 @@ void DefineFieldUserType(sol::table& battle_namespace) {
     ),
     "find_tiles", [] (
       WeakWrapper<Field>& field,
-      sol::stack_object queryObject
+      sol::object queryObject
     ) {
-      sol::protected_function query = queryObject;
-
-      auto tiles = field.Unwrap()->FindTiles([query] (Battle::Tile* t) -> bool {
+      auto tiles = field.Unwrap()->FindTiles([queryObject] (Battle::Tile* t) -> bool {
+        sol::protected_function query = queryObject;
         auto result = CallLuaCallbackExpectingBool(query, t);
 
         if (result.is_error()) {
@@ -163,14 +162,14 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       WeakWrapper<Field>& field,
       Entity::ID_t target,
       Entity::ID_t observer,
-      sol::stack_object callbackObject
+      sol::object callbackObject
     ) -> Field::NotifyID_t {
-      sol::protected_function callback = callbackObject;
 
       return field.Unwrap()->NotifyOnDelete(
         target,
         observer,
-        [callback] (std::shared_ptr<Entity> target, std::shared_ptr<Entity> observer) {
+        [callbackObject] (std::shared_ptr<Entity> target, std::shared_ptr<Entity> observer) {
+          sol::protected_function callback = callbackObject;
           auto result = callback(WeakWrapper(target), WeakWrapper(observer));
 
           if (!result.valid()) {
@@ -183,13 +182,12 @@ void DefineFieldUserType(sol::table& battle_namespace) {
     "callback_on_delete", [] (
       WeakWrapper<Field>& field,
       Entity::ID_t target,
-      sol::stack_object callbackObject
+      sol::object callbackObject
     ) -> Field::NotifyID_t {
-      sol::protected_function callback = callbackObject;
-
       return field.Unwrap()->CallbackOnDelete(
         target,
-        [callback] (std::shared_ptr<Entity> e) {
+        [callbackObject] (std::shared_ptr<Entity> e) {
+          sol::protected_function callback = callbackObject;
           auto result = callback(WeakWrapper(e));
 
           if (!result.valid()) {
