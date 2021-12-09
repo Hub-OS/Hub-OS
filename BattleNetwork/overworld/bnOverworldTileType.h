@@ -8,6 +8,7 @@ namespace Overworld {
       conveyor,
       stairs,
       ice,
+      treadmill,
       undefined,
     };
 
@@ -15,6 +16,7 @@ namespace Overworld {
       constexpr std::string_view conveyor_string = "Conveyor";
       constexpr std::string_view stairs_string = "Stairs";
       constexpr std::string_view ice_string = "Ice";
+      constexpr std::string_view treadmill_string = "Treadmill";
 
       if (stx::insensitive_equals(type_string, conveyor_string)) {
         return TileType::conveyor;
@@ -24,6 +26,9 @@ namespace Overworld {
       }
       if (stx::insensitive_equals(type_string, ice_string)) {
         return TileType::ice;
+      }
+      if (stx::insensitive_equals(type_string, treadmill_string)) {
+        return TileType::treadmill;
       }
 
       return TileType::undefined;

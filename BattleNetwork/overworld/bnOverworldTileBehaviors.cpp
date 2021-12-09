@@ -6,6 +6,7 @@
 
 constexpr float DEFAULT_CONVEYOR_SPEED = 6.0f;
 constexpr float DEFAULT_ICE_SPEED = 6.0f;
+constexpr float DEFAULT_TREADMILL_SPEED = 1.875f;
 
 void Overworld::TileBehaviors::UpdateActor(SceneBase& scene, Actor& actor, ActorPropertyAnimator& propertyAnimator) {
   if (propertyAnimator.IsAnimatingPosition()) {
@@ -40,6 +41,9 @@ void Overworld::TileBehaviors::UpdateActor(SceneBase& scene, Actor& actor, Actor
     break;
   case TileType::ice:
     HandleIce(scene, actor, propertyAnimator, *tileMeta, *tile);
+    break;
+  case TileType::treadmill:
+    HandleTreadmill(scene, actor, propertyAnimator, *tileMeta, *tile);
     break;
   }
 }
@@ -254,4 +258,21 @@ void Overworld::TileBehaviors::HandleIce(SceneBase& scene, Actor& actor, ActorPr
   }
 
   propertyAnimator.UseKeyFrames(actor);
+}
+
+void Overworld::TileBehaviors::HandleTreadmill(SceneBase& scene, Actor& actor, ActorPropertyAnimator& propertyAnimator, TileMeta& tileMeta, Tile& tile) {
+  auto& map = scene.GetMap();
+  auto moveDirection = Orthographic(tileMeta.direction);
+  auto speed = tileMeta.customProperties.GetPropertyFloat("speed");
+
+  if (speed == 0.0f) {
+    speed = DEFAULT_TREADMILL_SPEED;
+  }
+  // divide by fps to get movement for the frame
+  auto tileMovement = UnitVector(moveDirection) * speed / 60.0f;
+  auto movement = map.TileToWorld(tileMovement);
+
+  auto pos = actor.getPosition() + movement;
+
+  actor.setPosition(pos);
 }
