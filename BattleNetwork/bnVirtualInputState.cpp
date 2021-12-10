@@ -87,7 +87,7 @@ void VirtualInputState::Flush()
 
 void VirtualInputState::DebugPrint()
 {
-  Logger::Logf("========Begin VirtualInputState::DebugPrint()========");
+  Logger::Logf(LogLevel::debug, "========Begin VirtualInputState::DebugPrint()========");
   for (auto& [name, state] : stateLastFrame) {
     std::string stateName = "NONE";
 
@@ -102,7 +102,7 @@ void VirtualInputState::DebugPrint()
       stateName = "InputState::pressed";
       break;
     }
-    Logger::Logf("input event %s, %s", name.c_str(), stateName.c_str());
+    Logger::Logf(LogLevel::debug, "input event %s, %s", name.c_str(), stateName.c_str());
   }
-  Logger::Logf("========End VirtualInputState::DebugPrint()========");
+  Logger::Logf(LogLevel::debug, "========End VirtualInputState::DebugPrint()========");
 }

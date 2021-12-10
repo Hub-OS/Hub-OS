@@ -132,6 +132,7 @@ public:
   void SetWindowMode(DrawWindow::WindowMode mode);
   void Postprocess(ShaderType shaderType);
   void NoPostprocess();
+  void PrintCommandLineArgs();
   const sf::Vector2f CameraViewOffset(Camera& camera);
   unsigned FrameNumber() const;
   const Endianness GetEndianness();

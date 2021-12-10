@@ -120,10 +120,10 @@ void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
   //std::scoped_lock lock(mutex);
 
   if (!sources[static_cast<size_t>(type)].loadFromFile(path)) {
-    Logger::Logf("Failed loading Audio(): %s\n", path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed loading Audio(): %s\n", path.c_str());
 
   } else {
-    Logger::Logf("Loaded Audio(): %s", path.c_str());
+    Logger::Logf(LogLevel::info, "Loaded Audio(): %s", path.c_str());
   }
 }
 

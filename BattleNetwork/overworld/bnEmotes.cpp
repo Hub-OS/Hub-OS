@@ -59,7 +59,7 @@ void Overworld::EmoteNode::LoadCustomEmotes(const std::shared_ptr<sf::Texture>& 
 void Overworld::EmoteNode::CustomEmote(uint8_t idx)
 {
   if (!customEmotes) {
-    Logger::Log("Custom emotes have not been loaded!");
+    Logger::Log(LogLevel::critical, "Custom emotes have not been loaded!");
     return;
   }
 

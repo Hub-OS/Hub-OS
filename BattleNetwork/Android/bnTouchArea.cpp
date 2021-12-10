@@ -169,7 +169,7 @@ void TouchArea::poll(RenderWindow& window) {
     auto pos = sf::Touch::getPosition(0);
 
     if(sf::Touch::isDown(0))
-        Logger::Log("touch position was " + std::to_string(pos.x) + ", " + std::to_string(pos.y));
+        Logger::Log(LogLevel::info, "touch position was " + std::to_string(pos.x) + ", " + std::to_string(pos.y));
 
     for(auto t : TouchArea::m_instances) {
         t->privPoll(window);

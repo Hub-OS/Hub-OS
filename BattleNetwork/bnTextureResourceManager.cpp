@@ -28,7 +28,7 @@ void TextureResourceManager::HandleExpiredTextureCache()
       }
 
       // 1 minute is long enough
-      Logger::Logf("Texture data %s expired", iter->first.c_str());
+      Logger::Logf(LogLevel::debug, "Texture data %s expired", iter->first.c_str());
       iter = texturesFromPath.erase(iter);
       continue;
     }
@@ -58,9 +58,9 @@ std::shared_ptr<Texture> TextureResourceManager::LoadFromFile(string _path) {
   std::shared_ptr<Texture> texture = std::make_shared<Texture>();
   
   if (!texture->loadFromFile(_path)) {
-    Logger::Logf("Failed loading texture: %s", _path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed loading texture: %s", _path.c_str());
   } else {
-    Logger::Logf("Loaded texture: %s", _path.c_str());
+    Logger::Logf(LogLevel::info, "Loaded texture: %s", _path.c_str());
   }
 
   if (!skipCaching) {

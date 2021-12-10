@@ -18,7 +18,7 @@ static sol::as_table_t<std::vector<WeakWrapper<Character>>> FindNearestCharacter
     auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
       return false;
     }
 
@@ -101,7 +101,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
         auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
 
         if (result.is_error()) {
-          Logger::Log(result.error_cstr());
+          Logger::Log(LogLevel::critical, result.error_cstr());
           return false;
         }
 
@@ -149,7 +149,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
         auto result = CallLuaCallbackExpectingBool(query, t);
 
         if (result.is_error()) {
-          Logger::Log(result.error_cstr());
+          Logger::Log(LogLevel::critical, result.error_cstr());
           return false;
         }
 
@@ -174,7 +174,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
 
           if (!result.valid()) {
             sol::error error = result;
-            Logger::Log(error.what());
+            Logger::Log(LogLevel::critical, error.what());
           } 
         }
       );
@@ -192,7 +192,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
 
           if (!result.valid()) {
             sol::error error = result;
-            Logger::Log(error.what());
+            Logger::Log(LogLevel::critical, error.what());
           } 
         }
       );

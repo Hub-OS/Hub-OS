@@ -117,7 +117,7 @@ Mob* ScriptedMob::Build(std::shared_ptr<Field> field) {
   auto initResult = CallLuaFunction(script, "package_build", this);
 
   if (initResult.is_error()) {
-    Logger::Log(initResult.error_cstr());
+    Logger::Log(LogLevel::critical, initResult.error_cstr());
   }
 
   return mob;

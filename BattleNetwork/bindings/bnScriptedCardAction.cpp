@@ -25,7 +25,7 @@ void ScriptedCardAction::Update(double elapsed) {
     auto result = CallLuaCallback(update_func, weakWrap, elapsed);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -42,7 +42,7 @@ std::optional<bool> ScriptedCardAction::CanMoveTo(Battle::Tile* next)
     auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
 
     return result.value();
@@ -57,7 +57,7 @@ void ScriptedCardAction::OnAnimationEnd() {
     auto result = CallLuaCallback(animation_end_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -68,7 +68,7 @@ void ScriptedCardAction::OnActionEnd() {
     auto result = CallLuaCallback(action_end_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -79,7 +79,7 @@ void ScriptedCardAction::OnExecute(std::shared_ptr<Character> user) {
     auto result = CallLuaCallback(execute_func, weakWrap, WeakWrapper(user));
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }

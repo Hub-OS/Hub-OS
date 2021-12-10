@@ -30,7 +30,7 @@ public:
     if(text.size() > std::numeric_limits<Size>::max()) {
       // prevent corruption by capping len at sizeof(Size)
       len = std::numeric_limits<Size>::max();
-      Logger::Log("String length longer than Size, truncating...");
+      Logger::Log(LogLevel::debug, "BufferWriter::WriteString() String length longer than Size, truncating...");
     }
 
     Write<Size>(buffer, len);

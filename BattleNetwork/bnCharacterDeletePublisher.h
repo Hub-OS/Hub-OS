@@ -17,6 +17,7 @@ class CharacterDeletePublisher {
 
 private:
   std::list<CharacterDeleteListener*> listeners; /*!< List of subscriptions */
+  bool fired{};
 
   /**
    * @brief Add a listener to subscriptions
@@ -34,11 +35,15 @@ public:
    * @param pending who will be removed
    */
   void Broadcast(Character& pending) {
+    if (fired) return;
+
     std::list<CharacterDeleteListener*>::iterator iter = listeners.begin();
 
     while (iter != listeners.end()) {
       (*iter)->OnDeleteEvent(pending);
       iter++;
     }
+
+    fired = true;
   }
 }; 

@@ -31,7 +31,7 @@ void ScriptedCharacter::Init() {
   auto initResult = CallLuaFunction(script, "package_init", character);
 
   if (initResult.is_error()) {
-    Logger::Log(initResult.error_cstr());
+    Logger::Log(LogLevel::critical, initResult.error_cstr());
   }
 
   animation->Refresh();
@@ -65,7 +65,7 @@ void ScriptedCharacter::OnDelete() {
     auto result = CallLuaCallback(delete_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -76,7 +76,7 @@ void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
     auto result = CallLuaCallback(on_spawn_func, weakWrap, &start);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -87,7 +87,7 @@ void ScriptedCharacter::OnBattleStart() {
     auto result = CallLuaCallback(battle_start_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -100,7 +100,7 @@ void ScriptedCharacter::OnBattleStop() {
     auto result = CallLuaCallback(battle_end_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -119,7 +119,7 @@ bool ScriptedCharacter::CanMoveTo(Battle::Tile* next) {
     auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
 
     return result.value();
@@ -145,7 +145,7 @@ void ScriptedCharacter::OnCountered()
     auto result = CallLuaCallback(on_countered_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }

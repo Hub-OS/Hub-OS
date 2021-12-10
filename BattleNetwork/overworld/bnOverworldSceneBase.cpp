@@ -552,7 +552,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
     }
   }
   else {
-    Logger::Logf("Overworld animation not found for navi package %s", currentNaviId.c_str());
+    Logger::Logf(LogLevel::critical, "Overworld animation not found for navi package %s", currentNaviId.c_str());
   }
 }
 
@@ -669,7 +669,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   auto optionalMap = LoadTiledMap(*this, data);
 
   if (!optionalMap) {
-    Logger::Log("Failed to load map");
+    Logger::Log(LogLevel::critical, "Failed to load map");
     return;
   }
 

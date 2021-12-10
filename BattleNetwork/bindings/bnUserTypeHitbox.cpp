@@ -32,7 +32,7 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       };
 
@@ -42,7 +42,7 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       };
 

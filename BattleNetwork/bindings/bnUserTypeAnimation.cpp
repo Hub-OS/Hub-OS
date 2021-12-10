@@ -72,7 +72,7 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       };
     },
@@ -83,7 +83,7 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       }, doOnce.value_or(false));
     },
@@ -94,7 +94,7 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       });
     }

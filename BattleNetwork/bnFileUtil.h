@@ -53,7 +53,7 @@ public:
         //char buf[strerror_s(err) + 1];
         //strerror_s(buf, sizeof buf, err);
         //Logger::Logf("cannot open file '%s': %s\n", path.c_str(), buf);
-        Logger::Logf("Cannot open file %s", path.c_str());
+        Logger::Logf(LogLevel::critical, "Cannot open file %s", path.c_str());
       }
   #endif
 #endif
@@ -109,7 +109,7 @@ public:
     int keyIndex = (int)line.find(key);
     std::string error("Key '" + key + "' was not found in line '" + line + "'");
     if (keyIndex == -1) {
-      Logger::Log(error);
+      Logger::Log(LogLevel::critical, error);
       throw std::runtime_error(error);
     }
 

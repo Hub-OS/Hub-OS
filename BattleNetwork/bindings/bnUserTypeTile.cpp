@@ -53,7 +53,7 @@ void DefineTileUserType(sol::state& state) {
         auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
 
         if (result.is_error()) {
-          Logger::Log(result.error_cstr());
+          Logger::Log(LogLevel::critical, result.error_cstr());
           return false;
         }
 

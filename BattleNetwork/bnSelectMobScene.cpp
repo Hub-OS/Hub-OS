@@ -531,7 +531,7 @@ void SelectMobScene::onResume() {
   Audio().Stream("resources/loops/loop_navi_customizer.ogg", true);
 
   gotoNextScene = false;
-  Logger::Log("SelectMobScene::onResume()");
+  Logger::Log(LogLevel::info, "SelectMobScene::onResume()");
 
 #ifdef __ANDROID__
   StartupTouchControls();
@@ -549,7 +549,7 @@ void SelectMobScene::onStart() {
   StartupTouchControls();
 #endif
 
-  Logger::Log("SelectMobScene::onStart()");
+  Logger::Log(LogLevel::info, "SelectMobScene::onStart()");
 }
 
 void SelectMobScene::onLeave() {
@@ -559,26 +559,26 @@ void SelectMobScene::onLeave() {
   ShutdownTouchControls();
 #endif
 
-  Logger::Log("SelectMobScene::onLeave()");
+  Logger::Log(LogLevel::info, "SelectMobScene::onLeave()");
 
 }
 
 void SelectMobScene::onExit() {
   //textbox.SetText("");
 
-  Logger::Log("SelectMobScene::onExit()");
+  Logger::Log(LogLevel::info, "SelectMobScene::onExit()");
 
 }
 
 void SelectMobScene::onEnter() {
-  Logger::Log("SelectMobScene::onEnter()");
+  Logger::Log(LogLevel::info, "SelectMobScene::onEnter()");
 }
 
 void SelectMobScene::onEnd() {
 #ifdef __ANDROID__
   ShutdownTouchControls();
 #endif
-  Logger::Log("SelectMobScene::onEnd()");
+  Logger::Log(LogLevel::info, "SelectMobScene::onEnd()");
 
 }
 

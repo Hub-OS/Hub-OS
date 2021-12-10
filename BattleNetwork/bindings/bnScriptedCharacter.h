@@ -69,7 +69,7 @@ public:
       auto result = CallLuaCallback(s.update_func, s.weakWrap, elapsed);
 
       if (result.is_error()) {
-        Logger::Log(result.error_cstr());
+        Logger::Log(LogLevel::critical, result.error_cstr());
       }
     }
   }

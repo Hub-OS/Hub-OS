@@ -214,7 +214,7 @@ void PacketShipper::sendSafe(
     if (e.code() == POCO_EWOULDBLOCK) {
       return;
     }
-    Logger::Logf("Shipper Network exception: %s", e.displayText().c_str());
+    Logger::Logf(LogLevel::critical, "Shipper Network exception: %s", e.displayText().c_str());
 
     failed = true;
   }
@@ -226,7 +226,7 @@ void PacketShipper::Acknowledged(Reliability reliability, uint64_t id)
   {
   case Reliability::Unreliable:
   case Reliability::UnreliableSequenced:
-    Logger::Logf("Server is acknowledging unreliable packets? ID: %i", id);
+    Logger::Logf(LogLevel::debug, "Server is acknowledging unreliable packets? ID: %i", id);
     break;
   case Reliability::Reliable:
   case Reliability::BigData:

@@ -140,7 +140,7 @@ bool ConfigReader::ParseDiscordProperty(std::string_view line) {
   }
 
   auto keyCopy = std::string(key);
-  Logger::Logf("Unknown config property in [Discord]: %s", keyCopy.c_str());
+  Logger::Logf(LogLevel::warning, "Unknown config property in [Discord]: %s", keyCopy.c_str());
 
   return true;
 }
@@ -159,7 +159,7 @@ bool ConfigReader::ParseAudioProperty(std::string_view line) {
   }
 
   auto keyCopy = std::string(key);
-  Logger::Logf("Unknown config property in [Audio]: %s", keyCopy.c_str());
+  Logger::Logf(LogLevel::warning, "Unknown config property in [Audio]: %s", keyCopy.c_str());
 
   return true;
 }
@@ -183,7 +183,7 @@ bool ConfigReader::ParseVideoProperty(std::string_view line) {
   }
 
   auto keyCopy = std::string(key);
-  Logger::Logf("Unknown config property in [Video]: %s", keyCopy.c_str());
+  Logger::Logf(LogLevel::warning, "Unknown config property in [Video]: %s", keyCopy.c_str());
 
   return true;
 }
@@ -199,7 +199,7 @@ bool ConfigReader::ParseGeneralProperty(std::string_view line) {
   }
 
   auto keyCopy = std::string(key);
-  Logger::Logf("Unknown config property in [General]: %s", keyCopy.c_str());
+  Logger::Logf(LogLevel::warning, "Unknown config property in [General]: %s", keyCopy.c_str());
 
   return true;
 }
@@ -219,7 +219,7 @@ bool ConfigReader::ParseKeyboardProperty(std::string_view line) {
   }
 
   auto keyCopy = std::string(key);
-  Logger::Logf("Unknown config property in [Keyboard]: %s", keyCopy.c_str());
+  Logger::Logf(LogLevel::warning, "Unknown config property in [Keyboard]: %s", keyCopy.c_str());
 
   return true;
 }
@@ -249,9 +249,14 @@ bool ConfigReader::ParseGamepadProperty(std::string_view line) {
   }
 
   auto keyCopy = std::string(key);
-  Logger::Logf("Unknown config property in [Gamepad]: %s", keyCopy.c_str());
+  Logger::Logf(LogLevel::warning, "Unknown config property in [Gamepad]: %s", keyCopy.c_str());
 
   return true;
+}
+
+bool ConfigReader::IsOK()
+{
+  return isOK;
 }
 
 ConfigReader::ConfigReader(const std::string& filepath):
@@ -262,11 +267,7 @@ ConfigReader::ConfigReader(const std::string& filepath):
   // We need SOME values
   // Provide default layout
   if (!settings.isOK || !settings.TestKeyboard()) {
-    Logger::Log("config settings was not OK. Will use internal default key layout.");
     settings.isOK = false; // This can be used as a flag that we're using default controls
-  }
-  else {
-    Logger::Log("config settings is OK");
   }
 }
 

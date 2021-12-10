@@ -51,7 +51,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       });
     },
@@ -110,7 +110,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
 
           if (!result.valid()) {
             sol::error error = result;
-            Logger::Log(error.what());
+            Logger::Log(LogLevel::critical, error.what());
           }
         };
       }
@@ -125,7 +125,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
 
           if (!result.valid()) {
             sol::error error = result;
-            Logger::Log(error.what());
+            Logger::Log(LogLevel::critical, error.what());
           }
         };
       }

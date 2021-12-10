@@ -949,7 +949,7 @@ namespace Battle {
         auto attacker = field.GetEntity(ID);
 
         if (!attacker) {
-          Logger::Logf("Attacker %d missing from field", ID);
+          Logger::Logf(LogLevel::debug, "Attacker %d missing from field", ID);
           continue;
         }
 

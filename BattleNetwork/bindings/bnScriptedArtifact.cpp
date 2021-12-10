@@ -26,7 +26,7 @@ void ScriptedArtifact::OnUpdate(double _elapsed)
     auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -38,7 +38,7 @@ void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
     auto result = CallLuaCallback(on_spawn_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -50,7 +50,7 @@ void ScriptedArtifact::OnDelete()
     auto result = CallLuaCallback(delete_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 
@@ -64,7 +64,7 @@ bool ScriptedArtifact::CanMoveTo(Battle::Tile* next)
     auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
 
     return result.value();

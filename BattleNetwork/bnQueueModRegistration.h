@@ -42,7 +42,7 @@ static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, co
   // add this record if possible to the retryTable
   if (retryTable.find(fullModPath) == retryTable.end()) {
     retryTable[fullModPath] = [&packageManager, fullModPath] () -> bool {
-      Logger::Logf("Retrying %s", fullModPath.c_str());
+      Logger::Logf(LogLevel::info, "Retrying %s", fullModPath.c_str());
       return InstallMod<PackageManagerT, ScriptedResourceT>(packageManager, fullModPath).is_error() == false;
     };
   }
@@ -76,7 +76,7 @@ static inline void QueueModRegistration(PackageManagerT& packageManager, const c
       }
     }
     catch (std::runtime_error& e) {
-      Logger::Logf("[%s] extracted package error: %s", modCategory, e.what());
+      Logger::Logf(LogLevel::critical, "[%s] extracted package error: %s", modCategory, e.what());
     }
   }
 
@@ -91,7 +91,7 @@ static inline void QueueModRegistration(PackageManagerT& packageManager, const c
       }
     }
     catch (std::runtime_error& e) {
-      Logger::Logf("[%s] .zip package error %s", modCategory, e.what());
+      Logger::Logf(LogLevel::critical, "[%s] .zip package error %s", modCategory, e.what());
     }
   }
 #endif

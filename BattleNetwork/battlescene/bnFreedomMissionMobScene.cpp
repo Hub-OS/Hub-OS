@@ -22,10 +22,10 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
 
   // Simple error reporting if the scene was not fed any mobs
   if (props.mobs.size() == 0) {
-    Logger::Log(std::string("Warning: Mob list was empty when battle started."));
+    Logger::Log(LogLevel::warning, std::string("Mob list was empty when battle started."));
   }
   else if (current->GetMobCount() == 0) {
-    Logger::Log(std::string("Warning: Current mob was empty when battle started. Mob Type: ") + typeid(current).name());
+    Logger::Log(LogLevel::warning, std::string("Current mob was empty when battle started. Mob Type: ") + typeid(current).name());
   }
   else {
     LoadMob(*props.mobs.front());

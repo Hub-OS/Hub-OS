@@ -21,7 +21,7 @@ public:
     auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(script, "card_create_action", WeakWrapper(user), props);
 
     if (functionResult.is_error()) {
-      Logger::Log(functionResult.error_cstr());
+      Logger::Log(LogLevel::critical, functionResult.error_cstr());
       return nullptr;
     }
 
@@ -31,7 +31,7 @@ public:
     if (cardAction) {
       cardAction->SetLockoutGroup(CardAction::LockoutGroup::card);
     } else {
-      Logger::Log("Lua function \"card_create_action\" didn't return a CardAction.");
+      Logger::Log(LogLevel::info, "Lua function \"card_create_action\" didn't return a CardAction.");
     }
 
     return cardAction;

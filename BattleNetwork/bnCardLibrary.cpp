@@ -146,7 +146,7 @@ void CardLibrary::LoadLibrary(const std::string& path) {
     data = data.substr(endline + 1);
   } while (endline > -1);
 
-  Logger::Log(std::string("library size: ") + std::to_string(GetSize()));
+  Logger::Log(LogLevel::info, std::string("library size: ") + std::to_string(GetSize()));
 }
 
 const bool CardLibrary::SaveLibrary(const std::string& path) {
@@ -189,11 +189,11 @@ const bool CardLibrary::SaveLibrary(const std::string& path) {
       ws << ws.endl();
     }
 
-    Logger::Log(std::string("library saved successfully. Number of cards saved: ") +
+    Logger::Log(LogLevel::info, std::string("library saved successfully. Number of cards saved: ") +
                 std::to_string(GetSize()));
     return true;
   } catch(std::exception& e) {
-    Logger::Log(std::string("library save failed. Reason: ") + e.what());
+    Logger::Log(LogLevel::critical, std::string("library save failed. Reason: ") + e.what());
   }
 
   return false;

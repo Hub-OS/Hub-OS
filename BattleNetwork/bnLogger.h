@@ -16,13 +16,31 @@ using std::to_string;
 using std::cerr;
 using std::endl;
 
+namespace LogLevel {
+  const uint8_t silent = 0x00;
+  const uint8_t info = 0x01;
+  const uint8_t debug = 0x02;
+  const uint8_t warning = 0x04;
+  const uint8_t critical = 0x08;
+  const uint8_t all = info | warning | critical | debug;
+};
+
 /*! \brief Thread safe logging utility logs directly to a file */
 class Logger {
 private:
   static std::mutex m;
   static std::queue<std::string> logs; /*!< get the log stream in order */
   static std::ofstream file; /*!< The file to write to */
+  static uint8_t logLevel;
+
 public:
+
+  /**
+  * @breif sets the log level filter so that any message that does not match will not be reported
+  */
+  static void SetLogLevel(uint8_t level) {
+    logLevel = level;
+  }
 
   /**
    * @brief Gets the next log and stores it in the input string
@@ -45,11 +63,13 @@ public:
    * @brief If first time opening, timestamps file and pushes message to file
    * @param _message
    */
-  static void Log(string _message) {
+  static void Log(uint8_t level, string _message) {
     std::scoped_lock<std::mutex> lock(m);
 
     if (_message.empty())
       return;
+
+    _message = ErrorLevel(level) + _message;
 
     if (!file.is_open()) {
       file.open("log.txt", std::ios::app);
@@ -58,9 +78,11 @@ public:
     }
 
 #if defined(__ANDROID__)
-    __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",_message.c_str());
+    __android_log_print(ANDROID_LOG_INFO, "open mmbn engine", "%s", _message.c_str());
 #else
-    cerr << _message << endl;
+    if ((level & Logger::logLevel) == level) {
+      cerr << _message << endl;
+    }
 #endif
 
     logs.push(_message);
@@ -72,7 +94,7 @@ public:
    * @param fmt string format
    * @param ... input to match the format
    */
-  static void Logf(const char* fmt, ...) {
+  static void Logf(uint8_t level, const char* fmt, ...) {
     std::scoped_lock<std::mutex> lock(m);
 
     int size = 512;
@@ -90,7 +112,14 @@ public:
     std::string ret(buffer);
     va_end(vl);
     delete[] buffer;
-    cerr << ret << endl;
+
+    ret = ErrorLevel(level) + ret;
+
+    // only print what level of error message we want to console
+    if ((level & Logger::logLevel) == level) {
+      cerr << ret << endl;
+    }
+
     logs.push(ret);
 
 #if defined(__ANDROID__)
@@ -106,21 +135,28 @@ public:
 #endif
   }
 
-  template<typename T>
-  static string ToString(const T& number) {
-    return to_string(number);
-  }
-
-  static string ToString(const std::string& input) {
-      return input;
-  }
-
 private:
   Logger() { ; }
 
   /**
    * @brief Dumps queue and closes file
    */
-  ~Logger() { file.close(); while (!logs.empty()) { logs.pop(); }  }
-};
+  ~Logger() { file.close(); while (!logs.empty()) { logs.pop(); } }
 
+  static std::string ErrorLevel(uint8_t level) {
+    if (level == LogLevel::critical) {
+      return "[CRITICAL] ";
+    }
+
+    if (level == LogLevel::warning) {
+      return "[WARNING] ";
+    }
+
+    if (level == LogLevel::debug) {
+      return "[DEBUG] ";
+    }
+
+    // anything else
+    return "[INFO] ";
+  }
+};

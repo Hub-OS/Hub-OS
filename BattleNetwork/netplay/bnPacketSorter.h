@@ -225,9 +225,9 @@ std::vector<Poco::Buffer<char>> PacketSorter<AckID>::SortPacket(
     return {};
   } // case ends
 
-  Logger::Logf("%d", (int)reliability);
+  Logger::Logf(LogLevel::info, "%d", (int)reliability);
   // unreachable, all cases should be covered above
-  Logger::Log("bnPacketSorter.h: How did we get here?");
+  Logger::Log(LogLevel::debug, "bnPacketSorter.h: How did we get here?");
   return {};
 }
 
@@ -274,6 +274,6 @@ void PacketSorter<AckID>::sendAck(Poco::Net::DatagramSocket& socket, Reliability
       return;
     }
 
-    Logger::Logf("Sorter Network exception: %s", e.displayText().c_str());
+    Logger::Logf(LogLevel::critical, "Sorter Network exception: %s", e.displayText().c_str());
   }
 }

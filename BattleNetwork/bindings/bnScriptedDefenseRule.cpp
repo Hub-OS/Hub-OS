@@ -22,7 +22,7 @@ Hit::Properties& ScriptedDefenseRule::FilterStatuses(Hit::Properties& statuses)
     auto result = CallLuaCallbackExpectingValue<Hit::Properties>(filter_statuses_func, statusCopy);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
       return statuses;
     }
 
@@ -40,7 +40,7 @@ void ScriptedDefenseRule::CanBlock(DefenseFrameStateJudge& judge, std::shared_pt
     auto result = CallLuaCallback(can_block_func, wrappedJudge, WeakWrapper(attacker), WeakWrapper(owner));
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }

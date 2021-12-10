@@ -24,7 +24,7 @@ bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
     auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
 
     return result.value();
@@ -38,7 +38,7 @@ void ScriptedSpell::OnUpdate(double _elapsed) {
     auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -49,7 +49,7 @@ void ScriptedSpell::OnDelete() {
     auto result = CallLuaCallback(delete_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 
@@ -63,7 +63,7 @@ void ScriptedSpell::OnCollision(const std::shared_ptr<Entity> other)
     auto result = CallLuaCallback(collision_func, weakWrap, WeakWrapper(other));
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -76,7 +76,7 @@ void ScriptedSpell::Attack(std::shared_ptr<Entity> other) {
     auto result = CallLuaCallback(attack_func, weakWrap, WeakWrapper(other));
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -88,7 +88,7 @@ void ScriptedSpell::OnSpawn(Battle::Tile& spawn)
     auto result = CallLuaCallback(on_spawn_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }

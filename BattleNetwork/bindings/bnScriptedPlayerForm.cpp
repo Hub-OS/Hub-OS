@@ -20,7 +20,7 @@ void ScriptedPlayerForm::OnUpdate(double elapsed, std::shared_ptr<Player> _)
   auto result = CallLuaCallback(update_func, wrappedSelf, elapsed, WeakWrapper(playerWeak));
 
   if (result.is_error()) {
-    Logger::Log(result.error_cstr());
+    Logger::Log(LogLevel::critical, result.error_cstr());
   }
 }
 
@@ -32,7 +32,7 @@ void ScriptedPlayerForm::OnActivate(std::shared_ptr<Player> _)
   auto result = CallLuaCallback(on_activate_func, wrappedSelf, WeakWrapper(playerWeak));
 
   if (result.is_error()) {
-    Logger::Log(result.error_cstr());
+    Logger::Log(LogLevel::critical, result.error_cstr());
   }
 }
 
@@ -44,7 +44,7 @@ void ScriptedPlayerForm::OnDeactivate(std::shared_ptr<Player> _)
   auto result = CallLuaCallback(on_deactivate_func, wrappedSelf, WeakWrapper(playerWeak));
 
   if (result.is_error()) {
-    Logger::Log(result.error_cstr());
+    Logger::Log(LogLevel::critical, result.error_cstr());
   }
 }
 
@@ -53,7 +53,7 @@ std::shared_ptr<CardAction> ScriptedPlayerForm::GenerateCardAction(sol::object& 
   auto result = CallLuaCallback(function, WeakWrapper(playerWeak));
 
   if(result.is_error()) {
-    Logger::Log(result.error_cstr());
+    Logger::Log(LogLevel::critical, result.error_cstr());
     return nullptr;
   }
 
@@ -69,7 +69,7 @@ std::shared_ptr<CardAction> ScriptedPlayerForm::GenerateCardAction(sol::object& 
       return obj.as<WeakWrapper<ScriptedCardAction>>().Release();
     }
     else {
-      Logger::Logf("Lua function \"%s\" didn't return a CardAction.", functionName.c_str());
+      Logger::Logf(LogLevel::warning, "Lua function \"%s\" didn't return a CardAction.", functionName.c_str());
     }
   }
 
@@ -112,7 +112,7 @@ frame_time_t ScriptedPlayerForm::CalculateChargeTime(unsigned chargeLevel)
   auto result = CallLuaCallbackExpectingValue<frame_time_t>(calculate_charge_time_func, chargeLevel);
 
   if (result.is_error()) {
-    Logger::Log(result.error_cstr());
+    Logger::Log(LogLevel::critical, result.error_cstr());
     return frames(60);
   }
 

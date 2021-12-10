@@ -66,7 +66,7 @@ void TimeFreezeBattleState::ProcessInputs()
     p->InputState().Process();
 
     if (p->InputState().Has(InputEvents::pressed_use_chip)) {
-      Logger::Logf("InputEvents::pressed_use_chip for player %i", player_idx);
+      Logger::Logf(LogLevel::info, "InputEvents::pressed_use_chip for player %i", player_idx);
       auto cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
       if (cardsUI) {
         auto maybe_card = cardsUI->Peek();
@@ -95,7 +95,7 @@ void TimeFreezeBattleState::ProcessInputs()
 
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
-  Logger::Logf("TimeFreezeBattleState::onStart");
+  Logger::Logf(LogLevel::info, "TimeFreezeBattleState::onStart");
   GetScene().GetSelectedCardsUI().Hide();
   GetScene().GetField()->ToggleTimeFreeze(true); // freeze everything on the field but accept hits
   currState = startState;
@@ -110,7 +110,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
 {
-  Logger::Logf("TimeFreezeBattleState::onEnd");
+  Logger::Logf(LogLevel::info, "TimeFreezeBattleState::onEnd");
   GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
   GetScene().HighlightTiles(false);
@@ -309,7 +309,7 @@ bool TimeFreezeBattleState::IsOver() {
 
 void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  Logger::Logf("OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().shortname.c_str(), summonTick.count(), summonTextLength.count());
+  Logger::Logf(LogLevel::info, "OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().shortname.c_str(), summonTick.count(), summonTextLength.count());
 
   if (!(action && CanCounter(action->GetActor()) && action->GetMetaData().timeFreeze)) return;
  
@@ -328,7 +328,7 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
     auto lastActor = tfEvents.begin()->action->GetActor();
     if (!lastActor->Teammate(user->GetTeam())) {
       playerCountered = true;
-      Logger::Logf("Player was countered!");
+      Logger::Logf(LogLevel::info, "Player was countered!");
     }
     else {
       addEvent = false;
@@ -353,6 +353,6 @@ void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> 
 
   tfEvents.insert(tfEvents.begin(), data);
 
-  Logger::Logf("Added chip event: %s", data.name.c_str());
+  Logger::Logf(LogLevel::info, "Added chip event: %s", data.name.c_str());
 }
 

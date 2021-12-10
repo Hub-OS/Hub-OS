@@ -33,7 +33,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
     static bool once = false;
 
     if (!once) {
-      Logger::Logf("Kicked for silence!");
+      Logger::Logf(LogLevel::info, "Kicked for silence!");
       once = true;
     }
 
@@ -147,31 +147,31 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
 {
   switch (header) {
   case NetPlaySignals::download_handshake:
-    Logger::Logf("Remote is sending initial handshake");
+    Logger::Logf(LogLevel::info, "Remote is sending initial handshake");
     remoteHandshake = true;
     break;
   case NetPlaySignals::trade_card_package_list:
-    Logger::Logf("Remote is requesting to compare the card packages...");
+    Logger::Logf(LogLevel::info, "Remote is requesting to compare the card packages...");
     this->RecieveTradeCardPackageData(body);
     break;
   case NetPlaySignals::trade_player_package:
-    Logger::Logf("Remote is requesting to compare the player packages...");
+    Logger::Logf(LogLevel::info, "Remote is requesting to compare the player packages...");
     this->RecieveTradePlayerPackageData(body);
     break;
   case NetPlaySignals::player_package_request:
-    Logger::Logf("Remote is requesting to download the player package...");
+    Logger::Logf(LogLevel::info, "Remote is requesting to download the player package...");
     this->RecieveRequestPlayerPackageData(body);
     break;
   case NetPlaySignals::card_package_request:
-    Logger::Logf("Remote is requesting to download a card package...");
+    Logger::Logf(LogLevel::info, "Remote is requesting to download a card package...");
     this->RecieveRequestCardPackageData(body);
     break;
   case NetPlaySignals::card_package_download:
-    Logger::Logf("Downloading card package...");
+    Logger::Logf(LogLevel::info, "Downloading card package...");
     this->DownloadPackageData<CardPackageManager, ScriptedCard>(body, getController().CardPackageManager());
     break;
   case NetPlaySignals::player_package_download:
-    Logger::Logf("Downloading player package...");
+    Logger::Logf(LogLevel::info, "Downloading player package...");
     this->DownloadPlayerData(body);
     break;
   case NetPlaySignals::downloads_complete:
@@ -194,15 +194,15 @@ void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer
     }
   }
 
-  Logger::Logf("Recieved remote's card package list size: %d", packageCardList.size());
+  Logger::Logf(LogLevel::info, "Recieved remote's card package list size: %d", packageCardList.size());
 
   // move to the next state
   if (retryList.size()) {
-    Logger::Logf("Need to download %d card packages", packageCardList.size());
+    Logger::Logf(LogLevel::info, "Need to download %d card packages", packageCardList.size());
     RequestCardPackageList(retryList);
   }
   else {
-    Logger::Logf("Nothing to download.");
+    Logger::Logf(LogLevel::info, "Nothing to download.");
   }
   cardPackageRequested = true;
 }
@@ -229,7 +229,7 @@ void DownloadScene::RecieveRequestPlayerPackageData(const Poco::Buffer<char>& bu
   std::string hash = reader.ReadTerminatedString(buffer);
 
   if (hash.size()) {
-    Logger::Logf("Recieved download request for player hash %s", hash.c_str());
+    Logger::Logf(LogLevel::info, "Recieved download request for player hash %s", hash.c_str());
     packetProcessor->SendPacket(Reliability::BigData,
       SerializePackageData(
         hash,
@@ -246,7 +246,7 @@ void DownloadScene::RecieveRequestCardPackageData(const Poco::Buffer<char>& buff
   std::string hash = reader.ReadTerminatedString(buffer);
 
   if (!hash.empty()) {
-    Logger::Logf("Recieved download request for %s card package", hash.c_str());
+    Logger::Logf(LogLevel::info, "Recieved download request for %s card package", hash.c_str());
 
     packetProcessor->SendPacket(Reliability::BigData,
       SerializePackageData<CardPackageManager>(
@@ -271,7 +271,7 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
     Abort();
   }
 
-  Logger::Logf("Remote says download complete. Result: %s", result ? "Success" : "Fail");
+  Logger::Logf(LogLevel::info, "Remote says download complete. Result: %s", result ? "Success" : "Fail");
 }
 
 void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
@@ -304,7 +304,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
   }
   
   if (result.is_error()) {
-    Logger::Logf("Failed to download custom navi with hash %s: %s", hash.c_str(), result.error_cstr());
+    Logger::Logf(LogLevel::critical, "Failed to download custom navi with hash %s: %s", hash.c_str(), result.error_cstr());
 
     // There was a problem creating the file
     SendDownloadComplete(false);
@@ -386,7 +386,7 @@ void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, Packag
   }
 
   if (result.is_error()) {
-    Logger::Logf("Failed to download card package with hash %s: %s", hash.c_str(), result.error_cstr());
+    Logger::Logf(LogLevel::critical, "Failed to download card package with hash %s: %s", hash.c_str(), result.error_cstr());
 
     // There was a problem creating the file
     SendDownloadComplete(false);
@@ -404,7 +404,7 @@ Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& hash, 
   
   auto result = packageManager.GetPackageFilePath(hash);
   if (result.is_error()) {
-    Logger::Logf("Could not serialize package: %s", result.error_cstr());
+    Logger::Logf(LogLevel::critical, "Could not serialize package: %s", result.error_cstr());
 
     // Give the remote client a headsup abort
     SendDownloadComplete(false);
@@ -445,7 +445,7 @@ void DownloadScene::Abort()
     for (auto& [key, value] : contentToDownload) {
       value = "Failed";
     }
-    Logger::Logf("Aborting");
+    Logger::Logf(LogLevel::critical, "Aborting");
     SendDownloadComplete(false);
     aborting = true;
   }
@@ -553,7 +553,7 @@ void DownloadScene::onEnter()
 
 void DownloadScene::onStart()
 {
-  Logger::Logf("onStart() sending handshake");
+  Logger::Logf(LogLevel::info, "onStart() sending handshake");
   SendHandshakeAck();
 }
 

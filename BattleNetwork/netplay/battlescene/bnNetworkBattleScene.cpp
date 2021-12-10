@@ -230,7 +230,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     // only log desyncs if we are beyond the initial delay frames and the numbers are not in sync yet
     if (FrameNumber() - resyncFrameNumber >= 5 && FrameNumber() != frame->frameNumber) {
       // for debugging, this should never appear if the code is working properly
-      Logger::Logf("DESYNC: frames #s were %i - %i", remoteFrameNumber, FrameNumber());
+      Logger::Logf(LogLevel::debug, "DESYNC: frames #s were %i - %i", remoteFrameNumber, FrameNumber());
     }
 
     if(FrameNumber() >= frame->frameNumber) {
@@ -598,7 +598,7 @@ void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remoteState.remoteNaviId = remoteNaviId;
 
-  Logger::Logf("Recieved connect signal! Remote navi: %s", remoteState.remoteNaviId.c_str());
+  Logger::Logf(LogLevel::debug, "Recieved connect signal! Remote navi: %s", remoteState.remoteNaviId.c_str());
 
   assert(remotePlayer == nullptr && "remote player was already set!");
   remotePlayer = std::shared_ptr<Player>(getController().PlayerPackageManager().FindPackageByID(remoteNaviId).GetData());
@@ -663,7 +663,7 @@ void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Bu
     }
   }
   catch (std::exception& e) {
-    Logger::Logf("PVP Network exception: %s", e.what());
+    Logger::Logf(LogLevel::critical, "PVP Network exception: %s", e.what());
     packetProcessor->HandleError();
   }
 }

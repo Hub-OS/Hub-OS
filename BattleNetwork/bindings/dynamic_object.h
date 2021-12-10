@@ -26,7 +26,7 @@ struct dynamic_object {
   inline sol::object dynamic_get(const std::string& key) {
     auto it = entries.find(key);
     if (it == entries.cend()) {        
-      Logger::Log( "Attempted to access '" + key + "'" );
+      Logger::Log(LogLevel::info, "Attempted to access '" + key + "'" );
       return sol::lua_nil;
     }
     return it->second;

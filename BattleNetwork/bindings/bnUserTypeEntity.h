@@ -85,7 +85,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       });
     },
@@ -117,7 +117,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       });
     },
@@ -154,7 +154,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       });
     },

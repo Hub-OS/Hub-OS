@@ -348,7 +348,7 @@ namespace Overworld {
 
         auto dataIt = std::find_if(layerElement.children.begin(), layerElement.children.end(), [](XMLElement& el) {return el.name == "data";});
         if (dataIt == layerElement.children.end()) {
-          Logger::Log("Map layer missing data element!");
+          Logger::Log(LogLevel::warning, "Map layer missing data element!");
           continue;
         }
 

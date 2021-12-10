@@ -197,7 +197,7 @@ void MatchMakingScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buff
     }
   }
   catch (std::exception& e) {
-    Logger::Logf("Match Making exception: %s", e.what());
+    Logger::Logf(LogLevel::critical, "Match Making exception: %s", e.what());
   }
 }
 
@@ -212,7 +212,7 @@ void MatchMakingScene::SendConnectSignal()
     packetProcessor->SendPacket(Reliability::Unreliable, buffer);
   }
   catch (Poco::IOException& e) {
-    Logger::Logf("IOException when trying to connect to opponent: %s", e.what());
+    Logger::Logf(LogLevel::critical, "IOException when trying to connect to opponent: %s", e.what());
   }
 }
 
@@ -227,7 +227,7 @@ void MatchMakingScene::SendHandshakeSignal()
     packetProcessor->SendPacket(Reliability::Unreliable, buffer);
   }
   catch (Poco::IOException& e) {
-    Logger::Logf("IOException when trying to connect to opponent: %s", e.what());
+    Logger::Logf(LogLevel::critical, "IOException when trying to connect to opponent: %s", e.what());
   }
 }
 
@@ -394,7 +394,7 @@ void MatchMakingScene::Reset()
   }
   else {
     if (theirIP.empty()) {
-      Logger::Logf("My IP came back as %s", myIP.c_str());
+      Logger::Logf(LogLevel::info, "My IP came back as %s", myIP.c_str());
       // start on info mode first
       HandleInfoMode();
     }
@@ -417,8 +417,8 @@ void MatchMakingScene::onStart() {
 void MatchMakingScene::onResume() {
   isScreenReady = true;
 
-  Logger::Logf("remote navi ID is: %s", remoteNaviId.c_str());
-  Logger::Logf("canProceedToBattle: %d", canProceedToBattle? 1 : 0);
+  Logger::Logf(LogLevel::info, "remote navi ID is: %s", remoteNaviId.c_str());
+  Logger::Logf(LogLevel::info, "canProceedToBattle: %d", canProceedToBattle? 1 : 0);
 
   switch (returningFrom) {
   case ReturningScene::BattleScene:
@@ -443,7 +443,7 @@ void MatchMakingScene::onResume() {
     }
     break;
   case ReturningScene::Null:
-    Logger::Log("`returningFrom` has not been set for the scene you returned from");
+    Logger::Log(LogLevel::critical, "`returningFrom` has not been set for the scene you returned from");
   }
 
   returningFrom = ReturningScene::Null;

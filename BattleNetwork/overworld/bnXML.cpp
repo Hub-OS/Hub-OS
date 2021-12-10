@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include "../bnLogger.h"
+#include "../stx/string.h"
 
 bool XMLElement::HasAttribute(const std::string& name) const {
   return attributes.find(name) != attributes.end();
@@ -13,25 +15,29 @@ std::string XMLElement::GetAttribute(const std::string& name) const {
 }
 
 int XMLElement::GetAttributeInt(const std::string& name) const {
-  try {
-    return stoi(GetAttribute(name));
-  }
-  catch (std::exception&) {
-    // conversion failure, use default value (0)
+  if (name.empty()) return 0;
+
+  auto result = stx::to_int(GetAttribute(name));
+
+  if (result.is_error()) {
+    Logger::Logf(LogLevel::warning, "Cannot convert xml attribute `%s` to int. Reason: %s", name.c_str(), result.error_cstr());
+    return 0;
   }
 
-  return 0;
+  return result.value();
 }
 
 float XMLElement::GetAttributeFloat(const std::string& name) const {
-  try {
-    return stof(GetAttribute(name));
-  }
-  catch (std::exception&) {
-    // conversion failure, use default value (0)
+  if (name.empty()) return 0.0;
+
+  auto result = stx::to_float(GetAttribute(name));
+
+  if (result.is_error()) {
+    Logger::Logf(LogLevel::warning, "Cannot convert xml attribute `%s` to float. Reason: %s", name.c_str(), result.error_cstr());
+    return 0.0;
   }
 
-  return 0.0;
+  return result.value();
 }
 
 enum XMLTokenType {

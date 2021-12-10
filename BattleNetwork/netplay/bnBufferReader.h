@@ -24,7 +24,7 @@ public:
     size_t size = sizeof(T);
 
     if (offset + size > buffer.size()) {
-      Logger::Log("BufferReader read past end!");
+      Logger::Log(LogLevel::critical, "BufferReader read past end!");
       offset = buffer.size();
       return result;
     }
@@ -47,7 +47,7 @@ public:
     auto remainingBytes = buffer.size() - offset;
 
     if (remainingBytes < length) {
-      Logger::Log("BufferReader read past end!");
+      Logger::Log(LogLevel::critical, "BufferReader read past end!");
       return "";
     }
 

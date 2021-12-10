@@ -12,7 +12,7 @@ void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
   {
     status++;
     const int to_int = static_cast<int>(shaderType);
-    Logger::Logf("Attemping to load shader type %i with path %s", to_int, paths[to_int].c_str());
+    Logger::Logf(LogLevel::debug, "Attemping to load shader type %i with path %s", to_int, paths[to_int].c_str());
     sf::Shader* shader = LoadShaderFromFile(paths[to_int]);
 
     std::scoped_lock lock(mutex);
@@ -52,12 +52,12 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
 #else 
   sf::Shader* shader = new sf::Shader();
   if (!shader->loadFromFile(_path + ".frag", sf::Shader::Fragment)) {
-    Logger::Log("Error loading shader: " + _path + ".frag");
+    Logger::Log(LogLevel::critical, "Error loading shader: " + _path + ".frag");
     return nullptr;
   }
 #endif
 
-  Logger::Log("Loaded shader: " + _path);
+  Logger::Log(LogLevel::info, "Loaded shader: " + _path);
   return shader;
 }
 

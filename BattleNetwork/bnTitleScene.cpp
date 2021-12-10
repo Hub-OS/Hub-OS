@@ -116,7 +116,7 @@ void TitleScene::onUpdate(double elapsed)
     }
   }
   catch (std::future_error& err) {
-    Logger::Logf("future_error: %s", err.what());
+    Logger::Logf(LogLevel::critical, "future_error: %s", err.what());
   }
 }
 
@@ -157,7 +157,7 @@ void TitleScene::onTaskBegin(const std::string & taskName, float progress)
   startLabel.SetString(this->taskStr + " 00%");
   CenterLabel();
 
-  Logger::Logf("[%.2f] Began task %s", progress, taskName.c_str());
+  Logger::Logf(LogLevel::info, "[%.2f] Began task %s", progress, taskName.c_str());
 }
 
 void TitleScene::onTaskComplete(const std::string & taskName, float progress)
@@ -165,5 +165,5 @@ void TitleScene::onTaskComplete(const std::string & taskName, float progress)
   this->total = unsigned(progress * 100);
   this->taskStr = taskName;
 
-  Logger::Logf("[%.2f] Completed task %s", progress, taskName.c_str());
+  Logger::Logf(LogLevel::info, "[%.2f] Completed task %s", progress, taskName.c_str());
 }

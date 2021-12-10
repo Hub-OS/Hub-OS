@@ -103,7 +103,7 @@ void ScriptResourceManager::SetSystemFunctions( sol::state& state )
       if( auto sharedLibPath = FetchSharedLibraryPath( fileName ); !sharedLibPath.empty() )
       {
         #ifdef _DEBUG
-        Logger::Log( "Including shared library: " + fileName);
+        Logger::Log(LogLevel::info, "Including shared library: " + fileName);
         #endif
         
         AddDependencyNote(state, fileName );
@@ -143,7 +143,7 @@ void ScriptResourceManager::RegisterDependencyNotes(sol::state& state)
   if(!state["_package_id"].valid() )
   {
     #ifdef _DEBUG
-    Logger::Log( "-- No Valid Package ID" );
+    Logger::Log(LogLevel::critical, "No valid package ID while registering dependencies");
     #endif
     return;
   }
@@ -155,7 +155,7 @@ void ScriptResourceManager::RegisterDependencyNotes(sol::state& state)
   if(!state["__dependencies"].valid() )
   {
     #ifdef _DEBUG
-    Logger::Log( "-- " + packageID + ": No Dependency Table" );
+    Logger::Log(LogLevel::info, packageID + ": No Dependency Table" );
     #endif
     return;
   }
@@ -182,8 +182,8 @@ void ScriptResourceManager::RegisterDependencyNotes(sol::state& state)
   }
 
   #ifdef _DEBUG
-  Logger::Log( "Package: " + packageID );
-  Logger::Log( "- Depends on " + depsString );
+  Logger::Log(LogLevel::info, "Package: " + packageID );
+  Logger::Log(LogLevel::info, "- Depends on " + depsString );
   #endif
 
   // Register the dependencies with the list in ScriptResourceManager.
@@ -202,18 +202,18 @@ void ScriptResourceManager::SetModPathVariable( sol::state& state, const std::fi
 // Will print the file and line the error occured in, as well as the invalid key and type. 
 sol::object ScriptResourceManager::PrintInvalidAccessMessage( sol::table table, const std::string typeName, const std::string key )
 {
-  Logger::Log( "[Script Error] in " + GetCurrentLine( table.lua_state() ) );
-  Logger::Log( "[Script Error] : Attempted to access \"" + key + "\" in type \"" + typeName + "\"." );
-  Logger::Log( "[Script Error] : " + key + " does not exist in " + typeName + "." );
+  Logger::Log(LogLevel::critical, "[Script Error] in " + GetCurrentLine( table.lua_state() ) );
+  Logger::Log(LogLevel::critical, "[Script Error] : Attempted to access \"" + key + "\" in type \"" + typeName + "\"." );
+  Logger::Log(LogLevel::critical, "[Script Error] : " + key + " does not exist in " + typeName + "." );
   return sol::lua_nil;
 }
 // Free Function provided to a number of Lua types that will print an error message when attempting to assign to a key that exists in a system type.
 // Will print the file and line the error occured in, as well as the invalid key and type. 
 sol::object ScriptResourceManager::PrintInvalidAssignMessage( sol::table table, const std::string typeName, const std::string key )
 {
-  Logger::Log( "[Script Error] in " + GetCurrentLine( table.lua_state() ) );
-  Logger::Log( "[Script Error] : Attempted to assign to \"" + key + "\" in type \"" + typeName + "\"." );
-  Logger::Log( "[Script Error] : " + typeName + " is read-only. Cannot assign new values to it." );
+  Logger::Log(LogLevel::critical, "[Script Error] in " + GetCurrentLine( table.lua_state() ) );
+  Logger::Log(LogLevel::critical, "[Script Error] : Attempted to assign to \"" + key + "\" in type \"" + typeName + "\"." );
+  Logger::Log(LogLevel::critical, "[Script Error] : " + typeName + " is read-only. Cannot assign new values to it." );
   return sol::lua_nil;
 }
 // Returns the current executing line in the Lua script.
@@ -227,8 +227,8 @@ std::string ScriptResourceManager::GetCurrentLine( lua_State* L )
 
   if( lua_pcall( L, 2, 1, 0) != 0 )     // table
   {
-    Logger::Log( "Error running function \"debug.getinfo\"");
-    Logger::Log( std::string( lua_tostring(L, -1) ));
+    Logger::Log(LogLevel::critical, "Error running function \"debug.getinfo\"");
+    Logger::Log(LogLevel::critical, std::string( lua_tostring(L, -1) ));
   }
 
   lua_pushstring( L, "source" );        // table.source
@@ -243,8 +243,8 @@ std::string ScriptResourceManager::GetCurrentLine( lua_State* L )
 
   if( lua_pcall( L, 2, 1, 0) != 0 )     // table
   {
-    Logger::Log( "Error running function \"debug.getinfo\"");
-    Logger::Log( std::string( lua_tostring(L, -1) ));
+    Logger::Log(LogLevel::critical, "Error running function \"debug.getinfo\"");
+    Logger::Log(LogLevel::critical, std::string( lua_tostring(L, -1) ));
   }
 
   lua_pushstring( L, "currentline" );        // table.source
@@ -475,7 +475,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       AddDependencyNote(state, fqn);
       if (this->FetchCharacter(fqn) == nullptr) {
         std::string msg = "Failed to Require character with FQN " + fqn;
-        Logger::Log(msg);
+        Logger::Log(LogLevel::critical, msg);
         throw std::runtime_error(msg);
       }
     }
@@ -494,7 +494,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       AddDependencyNote(state, fqn);
       if (this->FetchCard(fqn) == nullptr) {
         std::string msg = "Failed to Require card with FQN " + fqn;
-        Logger::Log(msg);
+        Logger::Log(LogLevel::critical, msg);
         throw std::runtime_error(msg);
       }
     }
@@ -719,7 +719,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
           if (!result.valid()) {
             sol::error error = result;
-            Logger::Log(error.what());
+            Logger::Log(LogLevel::critical, error.what());
           }
         };
       }
@@ -768,7 +768,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   engine_namespace.set_function("define_library",
     [this]( const std::string& fqn, const std::string& path )
     {
-      Logger::Log("fqn: " + fqn + " , path: " + path );
+      Logger::Log(LogLevel::info, "fqn: " + fqn + " , path: " + path );
       this->DefineLibrary( fqn, path );
     }
   );
@@ -853,7 +853,7 @@ void ScriptResourceManager::DefineCard(const std::string& fqn, const std::string
     }
     else {
       sol::error error = res.result;
-      Logger::Logf("Failed to Require card with FQN %s. Reason: %s", fqn.c_str(), error.what());
+      Logger::Logf(LogLevel::critical, "Failed to Require card with FQN %s. Reason: %s", fqn.c_str(), error.what());
 
       // bubble up to end this scene from loading that needs this character...
       throw std::exception(error);
@@ -873,7 +873,7 @@ void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::s
     }
     else {
       sol::error error = res.result;
-      Logger::Logf("Failed to Require character with FQN %s. Reason: %s", fqn.c_str(), error.what());
+      Logger::Logf(LogLevel::critical, "Failed to Require character with FQN %s. Reason: %s", fqn.c_str(), error.what());
 
       // bubble up to end this scene from loading that needs this character...
       throw std::exception(error);
@@ -883,7 +883,7 @@ void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::s
 
 void ScriptResourceManager::DefineLibrary( const std::string& fqn, const std::string& path )
 {
-  Logger::Log( "Loading Library ... " );
+  Logger::Log(LogLevel::info, "Loading Library ... " );
   auto iter = libraryFQN.find(fqn);
 
   if( iter == libraryFQN.end() )
@@ -895,7 +895,7 @@ void ScriptResourceManager::DefineLibrary( const std::string& fqn, const std::st
     else
     {
       sol::error error = res.result;
-      Logger::Logf("Failed to Require library with FQN %s. Reason %s", fqn.c_str(), error.what() );
+      Logger::Logf(LogLevel::critical, "Failed to Require library with FQN %s. Reason %s", fqn.c_str(), error.what() );
 
       throw std::exception( error );
     }

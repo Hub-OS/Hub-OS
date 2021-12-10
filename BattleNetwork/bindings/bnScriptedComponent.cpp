@@ -23,7 +23,7 @@ void ScriptedComponent::OnUpdate(double dt)
     auto result = CallLuaCallback(update_func, weakWrap, dt);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }
@@ -35,7 +35,7 @@ void ScriptedComponent::Inject(BattleSceneBase& scene)
     auto result = CallLuaCallback(scene_inject_func, weakWrap);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 

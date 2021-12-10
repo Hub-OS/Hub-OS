@@ -19,7 +19,7 @@ void ScriptedPlayer::Init() {
   auto initResult = CallLuaFunction(script, "player_init", WeakWrapper(weak_from_base<ScriptedPlayer>()));
 
   if (initResult.is_error()) {
-    Logger::Log(initResult.error_cstr());
+    Logger::Log(LogLevel::critical, initResult.error_cstr());
   }
 
   animationComponent->Reload();
@@ -79,7 +79,7 @@ std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(sol::object& func
   auto result = CallLuaCallback(function, WeakWrapper(weak_from_base<ScriptedPlayer>()));
 
   if(result.is_error()) {
-    Logger::Log(result.error_cstr());
+    Logger::Log(LogLevel::critical, result.error_cstr());
     return nullptr;
   }
 
@@ -95,7 +95,7 @@ std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(sol::object& func
       return obj.as<WeakWrapper<ScriptedCardAction>>().Release();
     }
     else {
-      Logger::Logf("Lua function \"%s\" didn't return a CardAction.", functionName.c_str());
+      Logger::Logf(LogLevel::warning, "Lua function \"%s\" didn't return a CardAction.", functionName.c_str());
     }
   }
 
@@ -159,7 +159,7 @@ void ScriptedPlayer::OnUpdate(double elapsed)
     auto result = CallLuaCallback(update_func, weakWrap, elapsed);
 
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
 }

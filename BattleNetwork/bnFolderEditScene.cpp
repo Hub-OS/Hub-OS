@@ -613,7 +613,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         }
         break;
         default:
-            Logger::Logf("No applicable view mode for folder edit scene: %i", static_cast<int>(currViewMode));
+            Logger::Logf(LogLevel::critical, "No applicable view mode for folder edit scene: %i", static_cast<int>(currViewMode));
             break;
         }
 

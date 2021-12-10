@@ -134,7 +134,7 @@ void PackageManager<MetaClass>::LoadAllPackages(std::atomic<int>& progress)
   for (auto& [key, entry] : packages) {
     entry->OnMetaParsed();
 
-    Logger::Logf("Loaded package: %s", entry->packageId.c_str());
+    Logger::Logf(LogLevel::info, "Loaded package: %s", entry->packageId.c_str());
 
     progress++;
   }
@@ -298,7 +298,7 @@ inline std::string PackageManager<MetaClass>::FilepathToPackageID(const std::str
 
     auto iter = zipFilepathToPackageId.find(full_path);
     if (iter == zipFilepathToPackageId.end()) {
-      Logger::Logf("Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
+      Logger::Logf(LogLevel::critical, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
       return "";
     }
     else {

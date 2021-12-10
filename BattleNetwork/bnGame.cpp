@@ -108,11 +108,6 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
 
   if (commandline.empty()) return;
 
-  Logger::Log("Command line args provided");
-  for (auto&& kv : commandline) {
-    Logger::Logf("%s : %s", kv.key().c_str(), kv.value().c_str());
-  }
-
   // Now that we have CLI values, we can configure 
   // other subsystems that need to read from them...
   unsigned int myPort = CommandLineValue<unsigned int>("port");
@@ -130,6 +125,10 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   isDebug = CommandLineValue<bool>("debug");
   singlethreaded = CommandLineValue<bool>("singlethreaded");
 
+  if (reader.IsOK()) {
+    Logger::Log(LogLevel::warning, "config settings was not OK. Will use internal default key layout.");
+  }
+
   // Initialize the engine and log the startup time
   const clock_t begin_time = clock();
 
@@ -140,7 +139,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   window.Initialize(windowMode);
   */
 
-  Logger::Logf("Engine initialized: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf(LogLevel::info, "Engine initialized: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 
   // does shaders too
   Callback<void()> graphics;
@@ -281,14 +280,14 @@ void Game::HandleRecordingEvents()
     isRecordOutSaving = true;
     Record(false);
 
-    Logger::Logf("Saving recording to disk, please wait.");
+    Logger::Logf(LogLevel::info, "Saving recording to disk, please wait.");
     window.SetSubtitle("[SAVING]");
 
     for (auto& pair : recordedFrames) {
       pair.second.saveToFile("recording/frame_" + std::to_string(pair.first) + ".png");
     }
 
-    Logger::Logf("Wrote %i frames to disk", (int)recordedFrames.size());
+    Logger::Logf(LogLevel::info, "Wrote %i frames to disk", (int)recordedFrames.size());
     recordedFrames.clear();
     window.SetSubtitle("");
 
@@ -424,6 +423,14 @@ void Game::Postprocess(ShaderType shaderType)
 void Game::NoPostprocess()
 {
   this->postprocess = nullptr;
+}
+
+void Game::PrintCommandLineArgs()
+{
+  Logger::Log(LogLevel::debug, "Command line args provided");
+  for (auto&& kv : commandline) {
+    Logger::Logf(LogLevel::debug, "%s : %s", kv.key().c_str(), kv.value().c_str());
+  }
 }
 
 const sf::Vector2f Game::CameraViewOffset(Camera& camera)
@@ -582,7 +589,7 @@ void Game::RunNaviInit(std::atomic<int>* progress) {
   LoadPlayerMods(*playerPackageManager, "resources/mods/players", "Player Mods");
   playerPackageManager->LoadAllPackages(*progress);
 
-  Logger::Logf("Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf(LogLevel::info, "Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::RunBlocksInit(std::atomic<int>* progress)
@@ -593,7 +600,7 @@ void Game::RunBlocksInit(std::atomic<int>* progress)
   LoadBlockMods(*blockPackageManager, "resources/mods/blocks", "Prog Block Mods");
   blockPackageManager->LoadAllPackages(*progress);
 
-  Logger::Logf("Loaded registered prog blocks: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf(LogLevel::info, "Loaded registered prog blocks: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::RunMobInit(std::atomic<int>* progress) {
@@ -603,7 +610,7 @@ void Game::RunMobInit(std::atomic<int>* progress) {
   LoadEnemyMods(*mobPackageManager, "resources/mods/enemies", "Enemy Mods");
   mobPackageManager->LoadAllPackages(*progress);
 
-  Logger::Logf("Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf(LogLevel::info, "Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::RunCardInit(std::atomic<int>* progress) {
@@ -613,7 +620,7 @@ void Game::RunCardInit(std::atomic<int>* progress) {
   LoadCardMods(*cardPackageManager, "resources/mods/cards", "Card Mods");
   cardPackageManager->LoadAllPackages(*progress);
 
-  Logger::Logf("Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf(LogLevel::info, "Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::RunLuaLibraryInit(std::atomic<int>* progress) {
@@ -623,25 +630,25 @@ void Game::RunLuaLibraryInit(std::atomic<int>* progress) {
   LoadCoreLibraryMods(*luaLibraryPackageManager, "resources/mods/libs", "Core Libs Mods");
   luaLibraryPackageManager->LoadAllPackages(*progress);
 
-  Logger::Logf("Loaded registered libraries: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf(LogLevel::info, "Loaded registered libraries: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::RunGraphicsInit(std::atomic<int> * progress) {
   clock_t begin_time = clock();
   textureManager.LoadAllTextures(*progress);
 
-  Logger::Logf("Loaded textures: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf(LogLevel::info, "Loaded textures: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 
   if (reader.GetConfigSettings().GetShaderLevel() > 0) {
     ActivityController::optimizeForPerformance(swoosh::quality::realtime);
     begin_time = clock();
     shaderManager.LoadAllShaders(*progress);
 
-    Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+    Logger::Logf(LogLevel::info, "Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
   }
   else {
     ActivityController::optimizeForPerformance(swoosh::quality::mobile);
-    Logger::Log("Shader support is disabled");
+    Logger::Log(LogLevel::info, "Shader support is disabled");
   }
 }
 
@@ -649,7 +656,7 @@ void Game::RunAudioInit(std::atomic<int> * progress) {
   const clock_t begin_time = clock();
   audioManager.LoadAllSources(*progress);
 
-  Logger::Logf("Loaded Audio() sources: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf(LogLevel::info, "Loaded Audio() sources: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::GainFocus() {

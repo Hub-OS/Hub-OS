@@ -27,13 +27,13 @@ CardAction::CardAction(std::weak_ptr<Character> actor, const std::string& animat
       // use the current animation's arrangement, do not overload
       prevState = anim->GetAnimationString();
 
-      Logger::Logf("prevState was %s", prevState.c_str());
+      Logger::Logf(LogLevel::debug, "prevState was %s", prevState.c_str());
 
       anim->CancelCallbacks();
 
       if (!anim->GetAnimationObject().HasAnimation(this->animation)) {
         this->animation = prevState;
-        Logger::Logf("Character %s did not have animation %s, reverting to last anim", actor->GetName().c_str(), this->animation.c_str());
+        Logger::Logf(LogLevel::debug, "Character %s did not have animation %s, reverting to last anim", actor->GetName().c_str(), this->animation.c_str());
       }
 
       anim->SetAnimation(this->animation, [this]() {
@@ -73,7 +73,7 @@ void CardAction::AddStep(Step step)
 }
 
 void CardAction::AddAnimAction(int frame, const FrameCallback& action) {
-  Logger::Logf("AddAnimAction() called");
+  Logger::Logf(LogLevel::debug, "AddAnimAction() called");
 
   animActions.emplace_back(frame, action);
 
@@ -85,7 +85,7 @@ void CardAction::AddAnimAction(int frame, const FrameCallback& action) {
 sf::Vector2f CardAction::CalculatePointOffset(const std::string& point) {
   if (!this->anim) {
     if (auto actor = GetActor()) {
-      Logger::Logf("Character %s must have an animation component", actor->GetName().c_str());
+      Logger::Logf(LogLevel::warning, "Character %s must have an animation component", actor->GetName().c_str());
     }
   }
 
@@ -144,11 +144,11 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       anim->CancelCallbacks();
 
       prevState = anim->GetAnimationString();;
-      Logger::Logf("(override animation) prevState was %s", prevState.c_str());
+      Logger::Logf(LogLevel::info, "(override animation) prevState was %s", prevState.c_str());
 
       if (!anim->GetAnimationObject().HasAnimation(this->animation)) {
         this->animation = prevState;
-        Logger::Logf("(override animation) Character %s did not have animation %s, reverting to last anim", actor->GetName().c_str(), this->animation.c_str());
+        Logger::Logf(LogLevel::info, "(override animation) Character %s did not have animation %s, reverting to last anim", actor->GetName().c_str(), this->animation.c_str());
       }
 
       anim->OverrideAnimationFrames(this->animation, frameData, uuid);

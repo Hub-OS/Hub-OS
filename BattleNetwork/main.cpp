@@ -30,21 +30,15 @@ int main(int argc, char** argv) {
   win.Initialize("Open Net Battle v2.0a", DrawWindow::WindowMode::window);
   Game game{ win };
 
-  if (game.GetEndianness() == Endianness::big) {
-    Logger::Log("System arch is Big Endian");
-  }
-  else {
-    Logger::Log("System arch is Little Endian");
-  }
-
   cxxopts::Options options("ONB", "Open Net Battle Engine");
   options.add_options()
+    ("e,errorLevel", "Set the level to filter error messages [silent, info, warning, critical, debug] (default is `info|debug`)", cxxopts::value<std::string>()->default_value("info"))
     ("d,debug", "Enable debugging")
     ("s,singlethreaded", "run logic and draw routines in a single, main thread")
     ("b,battleonly", "Jump into a battle from a package")
     ("mob", "path to mob file on disk", cxxopts::value<std::string>())
-    ("moburl", "path to mob file to download from a web address", cxxopts::value<std::string>()->default_value(""))
-    ("player", "path to player package on disk", cxxopts::value<std::string>()->default_value(""))
+    ("moburl", "path to mob file to download from a web address", cxxopts::value<std::string>())
+    ("player", "path to player package on disk", cxxopts::value<std::string>())
     ("l,locale", "set flair and language to desired target", cxxopts::value<std::string>()->default_value("en"))
     ("p,port", "port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
     ("r,remotePort", "remote port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
@@ -59,10 +53,10 @@ int main(int argc, char** argv) {
     }
   }
   catch (std::exception& e) {
-    Logger::Log(e.what());
+    Logger::Log(LogLevel::critical, e.what());
   }
   catch (...) {
-    Logger::Log("Game encountered an unknown exception. Aborting.");
+    Logger::Log(LogLevel::critical, "Game encountered an unknown exception. Aborting.");
   }
   game.Exit();
 
@@ -70,9 +64,57 @@ int main(int argc, char** argv) {
   return EXIT_SUCCESS;
 }
 
+void ParseErrorLevel(std::string in) {
+  std::map<std::string, bool> settings;
+
+  // Parse input tokens
+  // Levels are separated by pipes | and lowercased
+  in = stx::replace(in, " ", ""); // trimmed whitespace
+  std::vector<std::string> tokens = stx::tokenize(in, '|');
+
+  for (std::string& s : tokens) {
+    settings[s] = true;
+  }
+
+  uint8_t level = LogLevel::silent;
+
+  if (settings["critical"]) {
+    level |= LogLevel::critical;
+  }
+
+  if (settings["warning"]) {
+    level |= LogLevel::warning;
+  }
+
+  if (settings["debug"]) {
+    level |= LogLevel::debug;
+  }
+
+  if (settings["info"]) {
+    level |= LogLevel::info;
+  }
+
+  if (settings["all"]) {
+    level = LogLevel::all;
+  }
+
+  Logger::SetLogLevel(level);
+}
+
 int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
   srand((unsigned int)time(0));
   g.SetCommandLineValues(results);
+
+  ParseErrorLevel(g.CommandLineValue<std::string>("errorLevel"));
+
+  g.PrintCommandLineArgs();
+
+  if (g.GetEndianness() == Endianness::big) {
+    Logger::Log(LogLevel::info, "System arch is Big Endian");
+  }
+  else {
+    Logger::Log(LogLevel::info, "System arch is Little Endian");
+  }
 
   if (g.CommandLineValue<bool>("battleonly")) {
     std::string playerpath = g.CommandLineValue<std::string>("player");
@@ -81,12 +123,12 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
     bool url = false;
 
     if (playerpath.empty()) {
-      Logger::Logf("Battleonly mode needs `player` input argument");
+      Logger::Logf(LogLevel::critical, "Battleonly mode needs `player` input argument");
       return EXIT_FAILURE;
     }
 
     if (mobpath.empty() && moburl.empty()) {
-      Logger::Logf("Battleonly mode needs `mob` or `moburl` input argument");
+      Logger::Logf(LogLevel::critical, "Battleonly mode needs `mob` or `moburl` input argument");
       return EXIT_FAILURE;
     }
 
@@ -113,7 +155,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   if (isURL) {
     auto result = DownloadPackageFromURL<ScriptedMob>(mobpath, g.MobPackageManager());
     if (result.is_error()) {
-      Logger::Log(result.error_cstr());
+      Logger::Log(LogLevel::critical, result.error_cstr());
       return EXIT_FAILURE;
     }
 
@@ -125,7 +167,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   while (tasks.HasMore()) {
     const std::string taskname = tasks.GetTaskName();
     const unsigned int tasknumber = tasks.GetTaskNumber();
-    Logger::Logf("Running %s, [%i/%i]", taskname.c_str(), tasknumber+1u, maxtasks);
+    Logger::Logf(LogLevel::info, "Running %s, [%i/%i]", taskname.c_str(), tasknumber+1u, maxtasks);
     tasks.DoNextTask();
   }
 

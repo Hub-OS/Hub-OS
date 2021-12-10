@@ -133,8 +133,8 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& host, uint1
       }
     }
     catch (std::filesystem::filesystem_error& err) {
-      Logger::Log("Error occured while reading assets");
-      Logger::Log(err.what());
+      Logger::Log(LogLevel::critical, "Error occured while reading assets");
+      Logger::Log(LogLevel::critical, err.what());
     }
   #else 
     Logger::Log("std::filesystem not supported on Mac OSX at this time.");
@@ -174,7 +174,7 @@ std::vector<char> Overworld::ServerAssetManager::LoadFromCache(const std::string
     data.insert(data.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
   }
   catch (std::ifstream::failure& e) {
-    Logger::Logf("Failed to read cached data \"%s\": %s", meta.path.c_str(), e.what());
+    Logger::Logf(LogLevel::critical, "Failed to read cached data \"%s\": %s", meta.path.c_str(), e.what());
   }
 
   return data;
@@ -258,7 +258,7 @@ void Overworld::ServerAssetManager::CacheAsset(const std::string& name, uint64_t
   fout.open(path, std::ios::out | std::ios::binary);
 
   if (!fout.is_open()) {
-    Logger::Logf("Failed to cache server asset to file: %s", path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed to cache server asset to file: %s", path.c_str());
     return;
   }
 
@@ -325,8 +325,8 @@ void Overworld::ServerAssetManager::RemoveAsset(const std::string& name) {
       std::filesystem::remove(GetPath(name));
     }
     catch (std::filesystem::filesystem_error& err) {
-      Logger::Log("Error occured while removing asset");
-      Logger::Log(err.what());
+      Logger::Log(LogLevel::critical, "Error occured while removing asset");
+      Logger::Log(LogLevel::critical, err.what());
     }
   #endif
   

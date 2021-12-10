@@ -42,7 +42,7 @@ void NetManager::Update(double elapsed)
       }
     }
     catch (Poco::Exception& e) {
-      Logger::Logf("NetManager exception: %s", e.what());
+      Logger::Logf(LogLevel::critical, "NetManager exception: %s", e.what());
     }
   }
 
@@ -52,7 +52,7 @@ void NetManager::Update(double elapsed)
     processor->Update(elapsed);
 
     if (size != processorCounts.size()) {
-      Logger::Logf("WARNING: Network processor list mutated in the middle of a loop!");
+      Logger::Logf(LogLevel::warning, "Network processor list mutated in the middle of a loop!");
       break;
     }
   }
@@ -195,7 +195,7 @@ const std::string NetManager::GetPublicIP()
     }
   }
   catch (std::exception& e) {
-    Logger::Logf("PVP Network Exception while obtaining IP: %s", e.what());
+    Logger::Logf(LogLevel::critical, "PVP Network Exception while obtaining IP: %s", e.what());
   }
 
   // failed 

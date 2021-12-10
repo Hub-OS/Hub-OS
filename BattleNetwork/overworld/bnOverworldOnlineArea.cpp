@@ -73,11 +73,11 @@ Overworld::OnlineArea::OnlineArea(
     sendRequestJoinSignal();
   }
   catch (std::exception& e) {
-    Logger::Logf(e.what());
+    Logger::Logf(LogLevel::critical, e.what());
     leave();
   }
   catch (...) {
-    Logger::Logf("Unknown exception thrown. Aborting join.");
+    Logger::Logf(LogLevel::critical, "Unknown exception thrown. Aborting join.");
     leave();
   }
 
@@ -249,7 +249,7 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
     auto it = onlinePlayers.find(remove);
 
     if (it == onlinePlayers.end()) {
-      Logger::Logf("Removed non existent Player %s", remove.c_str());
+      Logger::Logf(LogLevel::info, "Removed non existent Player %s", remove.c_str());
       continue;
     }
 
@@ -971,7 +971,7 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     }
   }
   catch (Poco::IOException& e) {
-    Logger::Logf("OnlineArea Network exception: %s", e.displayText().c_str());
+    Logger::Logf(LogLevel::critical, "OnlineArea Network exception: %s", e.displayText().c_str());
 
     leave();
   }
@@ -1129,7 +1129,7 @@ static std::vector<char> readBytes(std::string texturePath) {
     textureLength = std::filesystem::file_size(texturePath);
   }
   catch (std::filesystem::filesystem_error& e) {
-    Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+    Logger::Logf(LogLevel::critical, "Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
     return textureData;
   }
 
@@ -1143,7 +1143,7 @@ static std::vector<char> readBytes(std::string texturePath) {
     textureData.insert(textureData.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
   }
   catch (std::ifstream::failure& e) {
-    Logger::Logf("Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+    Logger::Logf(LogLevel::critical, "Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
   }
 #endif
 
@@ -1339,11 +1339,11 @@ void Overworld::OnlineArea::receiveAuthorizeSignal(BufferReader& reader, const P
       authorizationProcessors.emplace(lookupString, authPacketProcessor);
     }
     catch (std::exception& e) {
-      Logger::Logf("Failed to authorize with %s:%d: %s.", authAddress.c_str(), port, e.what());
+      Logger::Logf(LogLevel::critical, "Failed to authorize with %s:%d: %s.", authAddress.c_str(), port, e.what());
       return;
     }
     catch (...) {
-      Logger::Logf("Failed to authorize with %s:%d: Unknown exception thrown.", authAddress.c_str(), port);
+      Logger::Logf(LogLevel::critical, "Failed to authorize with %s:%d: Unknown exception thrown.", authAddress.c_str(), port);
       return;
     }
   } else {
@@ -2151,7 +2151,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     Net().AddHandler(remote, netBattleProcessor);
   }
   catch (...) {
-    Logger::Log("Failed to connect to remote player");
+    Logger::Log(LogLevel::critical, "Failed to connect to remote player");
     ResetPVPStep(true);
     return;
   }
@@ -2192,7 +2192,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
   AddSceneChangeTask([=] {
     if (!this->canProceedToBattle) {
-      Logger::Log("Failed to download assets from remote player");
+      Logger::Log(LogLevel::critical, "Failed to download assets from remote player");
       return;
     }
 
@@ -2255,7 +2255,7 @@ void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poc
   std::string file_path = serverAssetManager.GetPath(asset_path);
 
   if (file_path.empty()) {
-    Logger::Logf("Failed to find remote mob asset %s", file_path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed to find remote mob asset %s", file_path.c_str());
     return;
   }
 
@@ -2269,7 +2269,7 @@ void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poc
 
   // install for the first time
   if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
-    Logger::Logf("Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
+    Logger::Logf(LogLevel::critical, "Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
     return;
   }
 
@@ -2290,7 +2290,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
   std::string file_path = serverAssetManager.GetPath(asset_path);
 
   if (file_path.empty()) {
-    Logger::Logf("Failed to find remote mob asset %s", file_path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed to find remote mob asset %s", file_path.c_str());
     return;
   }
 
@@ -2300,11 +2300,11 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   if (!packageManager.HasPackage(packageId)) {
     // If we don't have it by now something went terribly wrong
-    Logger::Logf("Failed to battle remote mob package %s", file_path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed to battle remote mob package %s", file_path.c_str());
     return;
   }
 
-  Logger::Logf("Battling remote mob %s", packageId.c_str());
+  Logger::Logf(LogLevel::critical, "Battling remote mob %s", packageId.c_str());
 
   auto& mobMeta = packageManager.FindPackageByID(packageId);
 

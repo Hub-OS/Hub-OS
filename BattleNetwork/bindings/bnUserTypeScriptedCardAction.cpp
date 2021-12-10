@@ -64,7 +64,7 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
 
         if (!result.valid()) {
           sol::error error = result;
-          Logger::Log(error.what());
+          Logger::Log(LogLevel::critical, error.what());
         }
       });
     },
