@@ -148,9 +148,14 @@ namespace Overworld {
   }
 
   void MenuSystem::Update(float elapsed) {
-    if (activeBindedMenu) {
-      activeBindedMenu->Update(elapsed);
+    //if (activeBindedMenu) {
+    //  activeBindedMenu->Update(elapsed);
+   // }
+
+    for (auto& [binding, menu] : bindedMenus) {
+      menu->Update(elapsed);
     }
+
 
     if (!bbs.empty()) {
       bbs.back()->Update(elapsed);

@@ -8,10 +8,16 @@
 #include "../bnResourceHandle.h"
 #include "../bnFont.h"
 #include "../bnText.h"
+#include "../bnPlayerHealthUI.h"
 #include <Swoosh/Timer.h>
 #include <Swoosh/Ease.h>
 
 namespace Overworld {
+  enum class PlayerDisplay : char {
+    PlayerIcon = 0,
+    PlayerHealth
+  };
+
   /**
    * @class PersonalMenu
    * @author mav
@@ -36,6 +42,7 @@ namespace Overworld {
 
   private:
     std::shared_ptr<PlayerSession> session;
+    frame_time_t frameTick;
     int row{ 0 }; //!< Current row index
     float opacity{}; //!< Background darkens
     double elapsedThisFrame{};
@@ -57,6 +64,7 @@ namespace Overworld {
     std::shared_ptr<SpriteProxyNode> infoBox;
     std::shared_ptr<SpriteProxyNode> selectTextSpr;
     std::shared_ptr<SpriteProxyNode> placeTextSpr;
+    PlayerHealthUI healthUI;
     OptionsList optionsList;
     std::vector<std::shared_ptr<SpriteProxyNode>> options;
     std::vector<std::shared_ptr<SpriteProxyNode>> optionIcons;
@@ -103,6 +111,8 @@ namespace Overworld {
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
     /// Set data
+
+    void SetPlayerDisplay(PlayerDisplay mode);
 
     /**
     * @brief Set the area name to display

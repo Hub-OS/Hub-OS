@@ -102,7 +102,9 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   CardActionUseListener::Subscribe(*localPlayer);
   CardActionUseListener::Subscribe(*cardUI);
 
-  auto healthUI = localPlayer->CreateComponent<PlayerHealthUI>(localPlayer);
+  auto healthUI = localPlayer->CreateComponent<PlayerHealthUIComponent>(localPlayer);
+  healthUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
+
   cardCustGUI.AddNode(healthUI);
 
   // Player Emotion

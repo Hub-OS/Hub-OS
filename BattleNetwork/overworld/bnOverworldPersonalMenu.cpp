@@ -69,9 +69,14 @@ namespace Overworld {
     exit->Hide();
     AddNode(exit);
 
+    // Device / HP top-left position
     optionAnim << "PET";
     optionAnim.SetFrame(1, icon->getSprite());
     icon->setPosition(2, 3);
+    healthUI.setPosition(2, 3);
+    healthUI.setScale(0.5, 0.5);
+
+    SetPlayerDisplay(PlayerDisplay::PlayerHealth);
 
     exitAnim = Animation("resources/ui/main_menu_ui.animation") << Animator::Mode::Loop;
 
@@ -296,11 +301,17 @@ namespace Overworld {
 
   void PersonalMenu::Update(double elapsed)
   {
+    frameTick += from_seconds(elapsed);
+    if (frameTick.count() >= 60) {
+      frameTick = frames(0);
+    }
+
     easeInTimer.update(sf::seconds(static_cast<float>(elapsed)));
+    elapsedThisFrame = elapsed;
+    healthUI.SetHP(session->health);
+    healthUI.Update(elapsed);
 
     if (!IsOpen()) return;
-
-    elapsedThisFrame = elapsed;
 
     // loop over options
     for (size_t i = 0; i < optionsList.size(); i++) {
@@ -412,6 +423,7 @@ namespace Overworld {
 
     if (IsClosed()) {
       target.draw(*icon, states);
+      target.draw(healthUI, states);
 
       const sf::Vector2f pos = areaLabelThick.getPosition();
       areaLabelThick.SetColor(sf::Color(105, 105, 105));
@@ -497,10 +509,29 @@ namespace Overworld {
     DrawTime(target);
   }
 
+  void PersonalMenu::SetPlayerDisplay(PlayerDisplay mode)
+  {
+    switch (mode) {
+    case PlayerDisplay::PlayerHealth:
+    {
+      healthUI.Reveal();
+      icon->Hide();
+    }
+    break;
+    case PlayerDisplay::PlayerIcon: 
+    {
+      healthUI.Hide();
+      icon->Reveal();
+    }
+    break;
+    }
+  }
+
   void PersonalMenu::DrawTime(sf::RenderTarget& target) const
   {
     auto shadowColor = sf::Color(105, 105, 105);
-    std::string timeStr = CurrentTime::AsFormattedString("%OI:%OM %p");
+    std::string format = (frameTick.count() < 30) ? "%OI:%OM %p" : "%OI %OM %p";
+    std::string timeStr = CurrentTime::AsFormattedString(format);
     time.SetString(timeStr);
     time.setOrigin(time.GetLocalBounds().width, 0.f);
     auto origin = time.GetLocalBounds().width;
