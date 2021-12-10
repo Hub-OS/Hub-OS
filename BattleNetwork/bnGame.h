@@ -104,7 +104,8 @@ private:
   frame_time_t elapsed{};
 
   Endianness endian{ Endianness::big };
-  std::vector<cxxopts::KeyValue> commandline; /*!< Values parsed from the command line*/
+  std::vector<cxxopts::KeyValue> commandlineArgs; /*!< User-provided values from the command line*/
+  cxxopts::ParseResult const* commandline{ nullptr }; /*!< Final values parsed from the command line configuration*/
   std::vector<std::pair<unsigned, sf::Image>> recordedFrames;
   std::atomic<int> progress{ 0 };
   std::mutex windowMutex;
@@ -173,13 +174,7 @@ public:
    */
   template<typename T>
   const T CommandLineValue(const std::string& key) {
-    for (auto&& keyval : commandline) {
-      if (keyval.key() == key) {
-        return keyval.as<T>();
-      }
-    }
-
-    return T{};
+    return (*commandline)[key].as<T>();
   }
 
   // todo: remove when this is public from swoosh

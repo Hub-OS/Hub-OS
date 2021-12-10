@@ -104,13 +104,11 @@ Game::~Game() {
 }
 
 void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
-  commandline = values.arguments();
-
-  if (commandline.empty()) return;
+  commandline = &values;
 
   // Now that we have CLI values, we can configure 
   // other subsystems that need to read from them...
-  unsigned int myPort = CommandLineValue<unsigned int>("port");
+  unsigned int myPort = CommandLineValue<int>("port");
   uint16_t maxPayloadSize = CommandLineValue<uint16_t>("mtu");
   netManager.BindPort(myPort);
 
@@ -428,7 +426,7 @@ void Game::NoPostprocess()
 void Game::PrintCommandLineArgs()
 {
   Logger::Log(LogLevel::debug, "Command line args provided");
-  for (auto&& kv : commandline) {
+  for (auto&& kv : commandlineArgs) {
     Logger::Logf(LogLevel::debug, "%s : %s", kv.key().c_str(), kv.value().c_str());
   }
 }

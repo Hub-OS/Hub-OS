@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
   cxxopts::Options options("ONB", "Open Net Battle Engine");
   options.add_options()
-    ("e,errorLevel", "Set the level to filter error messages [silent, info, warning, critical, debug] (default is `info|debug`)", cxxopts::value<std::string>()->default_value("info"))
+    ("e,errorLevel", "Set the level to filter error messages [silent|info|warning|critical|debug] (default is `critical`)", cxxopts::value<std::string>()->default_value("critical"))
     ("d,debug", "Enable debugging")
     ("s,singlethreaded", "run logic and draw routines in a single, main thread")
     ("b,battleonly", "Jump into a battle from a package")
@@ -42,12 +42,14 @@ int main(int argc, char** argv) {
     ("l,locale", "set flair and language to desired target", cxxopts::value<std::string>()->default_value("en"))
     ("p,port", "port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
     ("r,remotePort", "remote port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
-    ("w,cyberworld", "ip address of main hub", cxxopts::value<std::string>()->default_value("0.0.0.0"))
+    ("w,cyberworld", "ip address of main hub", cxxopts::value<std::string>()->default_value("127.0.0.1"))
     ("m,mtu", "Maximum Transmission Unit - adjust to send big packets", cxxopts::value<uint16_t>()->default_value(std::to_string(NetManager::DEFAULT_MAX_PAYLOAD_SIZE)));
 
   try {
+    cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
+
     // Go the the title screen to kick off the rest of the app
-    if (LaunchGame(game, options.parse(argc, argv)) == EXIT_SUCCESS) {
+    if (LaunchGame(game, parsedOptions) == EXIT_SUCCESS) {
       // blocking
       game.Run();
     }
@@ -78,26 +80,44 @@ void ParseErrorLevel(std::string in) {
 
   uint8_t level = LogLevel::silent;
 
-  if (settings["critical"]) {
-    level |= LogLevel::critical;
-  }
+  std::string msg = "Logs will be displayed below. Log level is set to ";
+  std::vector<std::string> valid;
 
-  if (settings["warning"]) {
-    level |= LogLevel::warning;
-  }
+  auto processSettings = [&settings, &level, &valid](const std::string& key, uint8_t value) {
+    if (settings[key]) {
+      level |= value;
+      valid.push_back(key);
+    }
+  };
 
-  if (settings["debug"]) {
-    level |= LogLevel::debug;
-  }
-
-  if (settings["info"]) {
-    level |= LogLevel::info;
-  }
+  processSettings("critical", LogLevel::critical);
+  processSettings("warning", LogLevel::warning);
+  processSettings("debug", LogLevel::debug);
+  processSettings("info", LogLevel::info);
 
   if (settings["all"]) {
     level = LogLevel::all;
+    valid.clear();
+    valid.push_back("all");
+  }
+  
+  std::string validStr;
+
+  for (size_t i = 0; i < valid.size(); i++) {
+    validStr += valid[i];
+
+    if (i + 1u < valid.size()) {
+      validStr += "|";
+    }
   }
 
+  msg += "`" + validStr + "`";
+  std::cout << msg << std::endl;
+
+  msg = std::string(msg.size(), '-');
+
+  std::cout << msg << std::endl;
+  
   Logger::SetLogLevel(level);
 }
 
