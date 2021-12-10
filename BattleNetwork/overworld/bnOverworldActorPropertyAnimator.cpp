@@ -47,7 +47,9 @@ namespace Overworld {
   static float getDefault(Actor& actor, ActorProperty property) {
     switch (property) {
     case ActorProperty::animation:
-      return 0.0;
+      return 0.0f;
+    case ActorProperty::animation_speed:
+      return 1.0f;
     case ActorProperty::x:
       return actor.getPosition().x;
     case ActorProperty::y:
@@ -70,6 +72,9 @@ namespace Overworld {
   static void setProperty(Actor& actor, ActorProperty property, float value) {
     switch (property) {
     case ActorProperty::animation:
+      break;
+    case ActorProperty::animation_speed:
+      actor.SetAnimationSpeed(value);
       break;
     case ActorProperty::x:
       actor.setPosition(value, actor.getPosition().y);
@@ -276,7 +281,9 @@ namespace Overworld {
     time += elapsed;
 
     if (propertyStates.empty()) {
+      actor.SetAnimationSpeed(1.0f);
       Reset();
+
       if (onComplete) onComplete();
     }
   }

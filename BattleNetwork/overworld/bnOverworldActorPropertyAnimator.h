@@ -7,6 +7,7 @@
 namespace Overworld {
   enum class ActorProperty : uint8_t {
     animation,
+    animation_speed,
     x,
     y,
     z,
@@ -34,6 +35,20 @@ namespace Overworld {
       Ease ease;
       float value;
       std::string stringValue;
+
+      PropertyStep(ActorProperty property, std::string value, Ease ease = Ease::floor) :
+        property(property),
+        stringValue(value),
+        ease(ease)
+      { }
+
+      PropertyStep(ActorProperty property, float value, Ease ease = Ease::floor) :
+        property(property),
+        value(value),
+        ease(ease)
+      { }
+
+      PropertyStep() {}
     };
 
     struct KeyFrame {

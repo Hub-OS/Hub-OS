@@ -280,6 +280,10 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
       continue;
     }
 
+    // tile types such as ice can affect animation speed
+    // set back to default
+    actor->SetAnimationSpeed(1.0f);
+
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer.timestamp) / 1000.0;
     auto delta = onlinePlayer.endBroadcastPos - onlinePlayer.startBroadcastPos;
     auto screenDelta = map.WorldToScreen(delta);
@@ -301,9 +305,15 @@ void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
     if (tile) {
       auto metaPtr = map.GetTileMeta(tile->gid);
 
-      if (metaPtr && metaPtr->type == TileType::conveyor) {
-        actor->Face(newHeading);
-        continue;
+      if (metaPtr) {
+        switch (metaPtr->type) {
+        case TileType::conveyor:
+          actor->Face(newHeading);
+          continue; // continue the loop
+        case TileType::ice:
+          actor->SetAnimationSpeed(0.0f);
+          break; // break the switch
+        }
       }
     }
 

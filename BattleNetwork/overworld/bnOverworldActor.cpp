@@ -48,6 +48,11 @@ void Overworld::Actor::Run(const Direction& dir, bool move)
   this->moveThisFrame = move;
 }
 
+void Overworld::Actor::SetAnimationSpeed(float speed)
+{
+  anim.SetPlaybackSpeed(speed);
+}
+
 void Overworld::Actor::Face(const Direction& dir)
 {
   if (dir == Direction::none) return;
@@ -535,7 +540,7 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
   // we're going to be syncing the time so this is required if changing sprites
   anim << stateStr << Animator::Mode::Loop;
 
-  animProgress += elapsed;
+  animProgress += elapsed * std::abs(anim.GetPlaybackSpeed());
 
   if (!lastStateStr.empty()) {
     anim.SyncTime(animProgress);

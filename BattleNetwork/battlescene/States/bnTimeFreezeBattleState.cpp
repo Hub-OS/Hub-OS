@@ -8,6 +8,8 @@
 #include "../../bnField.h"
 #include "../../bnPlayer.h"
 #include "../../bnPlayerSelectedCardsUI.h"
+#include <cmath>
+
 TimeFreezeBattleState::TimeFreezeBattleState()
 {
   lockedTimestamp = std::numeric_limits<long long>::max();
@@ -102,7 +104,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
 
   if (tfEvents.empty()) return;
 
-  auto& first = tfEvents.begin();
+  const auto& first = tfEvents.begin();
   if (first->action && first->action->GetMetaData().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
@@ -153,7 +155,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       playerCountered = false;
 
       Audio().Play(AudioType::TRAP, AudioPriority::high);
-      auto& last = tfEvents.begin()+1u;
+      auto last = tfEvents.begin()+1u;
       last->animateCounter = true;
       summonTick = frames(0);
     }
@@ -163,7 +165,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       currState = state::animate; // animate this attack
 
       // Resize the time freeze queue to a max of 2 attacks
-      tfEvents.resize(std::min(tfEvents.size(), 2ull));
+      tfEvents.resize(std::min(tfEvents.size(), (size_t)2));
       tfEvents.shrink_to_fit();
 
       ExecuteTimeFreeze();
@@ -179,7 +181,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
   case state::animate:
     {
       bool updateAnim = false;
-      auto& first = tfEvents.begin();
+      const auto& first = tfEvents.begin();
 
       if (first->action) {
         // update the action until it is is complete
@@ -224,7 +226,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
   if (tfEvents.empty()) return;
 
-  auto& first = tfEvents.begin();
+  const auto& first = tfEvents.begin();
   static Text summonsLabel = Text(first->name, Font::Style::thick);
   static sf::Sprite alertSprite(*Textures().LoadFromFile("resources/ui/alert.png"));
 
@@ -290,7 +292,7 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (tfEvents.empty()) return;
 
-  auto& first = tfEvents.begin();
+  auto first = tfEvents.begin();
 
   if (first->action && first->action->CanExecute()) {
     first->user->Hide();

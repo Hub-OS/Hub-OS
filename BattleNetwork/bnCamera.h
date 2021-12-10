@@ -88,7 +88,7 @@ public:
    * @brief Return an SFML view to use to show what camera sees
    * @return const sf::View
    */
-  const sf::View GetView() const;
+  const sf::View& GetView() const;
 
   /**
    * @brief Cinematic fade out controlled by the camera
