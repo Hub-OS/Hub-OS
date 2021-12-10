@@ -88,7 +88,7 @@ PlayerHealthUI::PlayerHealthUI() :
   texture = handle.Textures().LoadFromFile("resources/ui/img_health.png");
   uibox.setTexture(texture);
   uibox.setPosition(3.f, 0.0f);
-  glyphs.setPosition(uibox.getLocalBounds().width - 4.f, 3.f);
+  glyphs.setPosition(uibox.getLocalBounds().width - 2.f, 3.f);
 }
 
 PlayerHealthUI::~PlayerHealthUI()
