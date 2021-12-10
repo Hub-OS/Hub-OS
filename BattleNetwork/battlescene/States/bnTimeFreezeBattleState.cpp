@@ -311,9 +311,11 @@ void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action,
 {
   Logger::Logf(LogLevel::info, "OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().shortname.c_str(), summonTick.count(), summonTextLength.count());
 
-  if (!(action && CanCounter(action->GetActor()) && action->GetMetaData().timeFreeze)) return;
+  if (!(action && action->GetMetaData().timeFreeze)) return;
  
-  HandleTimeFreezeCounter(action, timestamp);
+  if (CanCounter(action->GetActor())) {
+    HandleTimeFreezeCounter(action, timestamp);
+  }
 }
 
 const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)

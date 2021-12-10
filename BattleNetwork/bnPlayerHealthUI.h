@@ -29,17 +29,42 @@ using sf::Drawable;
 using std::vector;
 using std::ostringstream;
 
-class PlayerHealthUI : public UIComponent {
+class PlayerHealthUI : public SceneNode {
+public:
+  PlayerHealthUI();
+  ~PlayerHealthUI();
+
+  void SetFontStyle(Font::Style style);
+  void SetHP(int hp);
+  void Update(double elapsed);
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
+
+private:
+  int targetHP{}; /*!< target value */
+  int lastHP{}; /*!< HP of target last frame */
+  int currHP{}; /*!< HP of target current frame */
+  int startHP{}; /*!< HP of target when this component was attached */
+  double cooldown{}; /*!< timer to colorize the health. Set to 0.5 seconds */
+  mutable Text glyphs; /*!< numbers to draw */
+  SpriteProxyNode uibox; /*!< the box surrounding the health */
+  std::shared_ptr<Texture> texture; /*!< the texture of the box */
+};
+
+class PlayerHealthUIComponent : public UIComponent {
+  PlayerHealthUI ui;
+  int startHP{}; /*!< HP of target when this component was attached */
+  bool isBattleOver{}; /*!< flag when battle scene ends to stop beeping */
+
 public:
   /**
    * \brief Sets the player owner. Sets hp tracker to current health.
    */
-  PlayerHealthUI(std::weak_ptr<Player> _player);
+  PlayerHealthUIComponent(std::weak_ptr<Player> _player);
   
   /**
    * @brief No memory needs to be freed
    */
-  ~PlayerHealthUI();
+  ~PlayerHealthUIComponent();
 
   /**
    * @brief This component does not need to be injected into the scene
@@ -59,14 +84,4 @@ public:
    * @param elapsed in seconds
    */
   void OnUpdate(double elapsed) override;
-
-private:
-  int lastHP; /*!< HP of target last frame */
-  int currHP; /*!< HP of target current frame */
-  int startHP; /*!< HP of target when this component was attached */
-  bool isBattleOver; /*!< flag when battle scene ends to stop beeping */
-  double cooldown; /*!< timer to colorize the health. Set to 0.5 seconds */
-  mutable Text glyphs; /*!< numbers to draw */
-  SpriteProxyNode uibox; /*!< the box surrounding the health */
-  std::shared_ptr<Texture> texture; /*!< the texture of the box */
 };

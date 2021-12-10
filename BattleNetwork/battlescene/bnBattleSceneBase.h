@@ -37,7 +37,7 @@ class Player;
 class Mob;
 class Player;
 class CardFolder;
-class PlayerHealthUI;
+class PlayerHealthUIComponent;
 class CounterCombatRule;
 class Background;
 
