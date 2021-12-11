@@ -14,7 +14,6 @@
 #include "../stx/result.h"
 #include "dynamic_object.h"
 #include "bnWeakWrapper.h"
-#include "bnSyncNode.h"
 
 /*! \brief scriptable navi
  *
@@ -26,7 +25,6 @@ class ScriptedPlayerFormMeta;
 class ScriptedPlayer : public Player, public dynamic_object {
   sol::state& script;
   float height{};
-  SyncNodeContainer syncNodeContainer;
 
   std::shared_ptr<CardAction> GenerateCardAction(sol::object& function, const std::string& functionName);
   WeakWrapper<ScriptedPlayer> weakWrap;
@@ -49,8 +47,6 @@ public:
   const float GetHeight() const;
   Animation& GetAnimationObject();
   Battle::Tile* GetCurrentTile() const;
-  std::shared_ptr<SyncNode> AddSyncNode(const std::string& point);
-  void RemoveSyncNode(std::shared_ptr<SyncNode> syncNode);
 
   std::shared_ptr<CardAction> OnExecuteBusterAction() override final;
   std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;

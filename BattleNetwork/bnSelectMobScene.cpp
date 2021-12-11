@@ -1,10 +1,12 @@
 #include <Swoosh/ActivityController.h>
 #include "bnSelectMobScene.h"
 #include "bnMobPackageManager.h"
+#include "bnGameSession.h"
 #include "battlescene/bnMobBattleScene.h"
 #include "battlescene/bnFreedomMissionMobScene.h"
 #include "Android/bnTouchArea.h"
-
+#include "../../bnBlockPackageManager.h"
+#include "../../bnPlayerCustScene.h"
 constexpr float PIXEL_MAX = 50.0f;
 constexpr float PIXEL_SPEED = 180.0f;
 
@@ -374,14 +376,23 @@ void SelectMobScene::onUpdate(double elapsed) {
       auto newFolder = selectedFolder->Clone();
       newFolder->Shuffle();
 
-      // Queue screen transition to Battle Scene with a white fade effect
-      // just like the game
       if (!mob->GetBackground()) {
         mob->SetBackground(defaultBackground);
       }
 
       using effect = segue<WhiteWashFade>;
+      
+      BlockPackageManager& blockPackages = getController().BlockPackageManager();
+      GameSession& session = getController().Session();
+      for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
+        if (!blockPackages.HasPackage(blockID)) continue;
 
+        auto& blockMeta = blockPackages.FindPackageByID(blockID);
+        blockMeta.mutator(*player);
+      }
+
+      // Queue screen transition to Battle Scene with a white fade effect
+      // just like the game
       if (mob->IsFreedomMission()) {
         FreedomMissionProps props{
           { player, programAdvance, std::move(newFolder), mob->GetField(), mob->GetBackground() },

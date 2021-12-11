@@ -220,7 +220,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     if (combatPtr->IsStateCombat(GetCurrentState())) {
       frame_time_t currLag = frames(5); // frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
       auto events = ProcessLocalPlayerInputQueue(currLag);
-      SendInputEvents(events);
+      SendFrameData(events);
     }
   }
   
@@ -397,15 +397,24 @@ void NetworkBattleScene::SendHandshakeSignal()
   packetProcessor->UpdateHandshakeID(id);
 }
 
-void NetworkBattleScene::SendInputEvents(std::vector<InputEvent>& events)
+void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events)
 {
   Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals signalType{ NetPlaySignals::input_event };
+  NetPlaySignals signalType{ NetPlaySignals::frame_data };
   buffer.append((char*)&signalType, sizeof(NetPlaySignals));
 
   unsigned int frameNumber = FrameNumber() + 5u; // std::max(5u, from_milliseconds(packetProcessor->GetAvgLatency()).count());
   buffer.append((char*)&frameNumber, sizeof(unsigned int));
 
+  // Send our hp
+  int hp = 0;
+  if (auto player = GetLocalPlayer()) {
+    hp = player->GetHealth();
+  }
+
+  buffer.append((char*)&hp, sizeof(int));
+
+  // send the input keys
   size_t list_len = events.size();
   buffer.append((char*)&list_len, sizeof(size_t));
 
@@ -544,7 +553,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   remoteState.remoteHandshake = true;
 }
 
-void NetworkBattleScene::RecieveInputEvent(const Poco::Buffer<char>& buffer)
+void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
 {
   if (!this->remotePlayer) return;
 
@@ -557,6 +566,10 @@ void NetworkBattleScene::RecieveInputEvent(const Poco::Buffer<char>& buffer)
   read += sizeof(unsigned int);
 
   maxRemoteFrameNumber = frameNumber;
+
+  int hp{};
+  std::memcpy(&hp, buffer.begin() + read, sizeof(int));
+  read += sizeof(int);
 
   std::memcpy(&list_len, buffer.begin() + read, sizeof(size_t));
   read += sizeof(size_t);
@@ -582,6 +595,10 @@ void NetworkBattleScene::RecieveInputEvent(const Poco::Buffer<char>& buffer)
   }
 
   remoteInputQueue.push_back({ frameNumber, events });
+  
+  if (remotePlayer) {
+    remotePlayer->SetHealth(hp);
+  }
 }
 
 void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
@@ -654,8 +671,8 @@ void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Bu
       case NetPlaySignals::connect:
         RecieveConnectSignal(body);
         break;
-      case NetPlaySignals::input_event:
-        RecieveInputEvent(body);
+      case NetPlaySignals::frame_data:
+        RecieveFrameData(body);
         break;
       case NetPlaySignals::form:
         RecieveChangedFormSignal(body);

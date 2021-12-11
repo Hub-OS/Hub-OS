@@ -71,6 +71,9 @@ Game::Game(DrawWindow& window) :
   blockPackageManager = new class BlockPackageManager;
   luaLibraryPackageManager = new class LuaLibraryPackageManager;
 
+  // Script bindings needs to know about other sub system
+  scriptManager.SetCardPackageManager(*cardPackageManager);
+
   // Game session object needs to be available to every scene
   session = new GameSession;
 

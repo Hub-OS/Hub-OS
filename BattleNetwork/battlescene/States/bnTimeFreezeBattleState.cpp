@@ -233,6 +233,10 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   double scale = swoosh::ease::linear(summonTick.asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
   scale = std::min(scale, 1.0);
 
+  double tfcTimerScale = swoosh::ease::linear(summonTick.asSeconds().value, summonTextLength.asSeconds().value, 1.0);
+  sf::RectangleShape bar = sf::RectangleShape({ 100.f * static_cast<float>(1.0-tfcTimerScale), 2.f });
+  bar.setScale(2.f, 2.f);
+
   if (summonTick >= summonTextLength - fadeInOutLength) {
     scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
     scale = std::max(scale, 0.0);
@@ -242,6 +246,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
   if (first->team == Team::blue) {
     position = sf::Vector2f(416.f, 82.f);
+    bar.setOrigin(bar.getLocalBounds().width, 0.0f);
   }
 
   summonsLabel.setScale(2.0f, 2.0f*(float)scale);
@@ -261,6 +266,19 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   summonsLabel.SetColor(sf::Color::White);
   summonsLabel.setPosition(position);
   surface.draw(summonsLabel);
+
+  if (currState == state::display_name) {
+    // draw TF bar underneath
+    bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
+    bar.setFillColor(sf::Color::Black);
+    surface.draw(bar);
+
+    bar.setPosition(position + sf::Vector2f(0.f, 12.f));
+
+    sf::Uint8 b = swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
+    bar.setFillColor(sf::Color(255, 255, b));
+    surface.draw(bar);
+  }
 
   // draw the !! sprite
   for (auto& e : tfEvents) {

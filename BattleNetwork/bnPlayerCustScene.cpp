@@ -440,6 +440,8 @@ void PlayerCustScene::completeAndSave()
 
   writer.Write(buffer, centerHash.size());
   for (auto& [piece, center] : centerHash) {
+    if (center == BAD_GRID_POS) continue;
+
     writer.WriteTerminatedString(buffer, piece->uuid);
     writer.Write(buffer, center);
     writer.Write(buffer, piece->finalRot);
@@ -1228,7 +1230,7 @@ void PlayerCustScene::onUpdate(double elapsed)
       };
 
       std::string msg = "OK!\nRUN complete!\n\n";
-      msg += "Good job, op!\n\n\n";
+      msg += "Good job, " + getController().Session().GetNick() + "!\n\n\n";
       msg += "Quit the Navi Customizer?";
       questionInterface = new Question(msg, onYes, onNo);
       textbox.EnqueMessage(questionInterface);
@@ -1458,6 +1460,28 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
 
   // textbox is top over everything
   surface.draw(textbox);
+}
+
+std::vector<std::string> PlayerCustScene::getInstalledBlocks(const std::string& playerID, const GameSession& session)
+{
+  std::vector<std::string> res;
+
+  std::string value = session.GetValue(playerID + ":" + "blocks");
+  if (value.empty()) return res;
+
+  Poco::Buffer<char> buffer{ value.c_str(), value.size() };
+  BufferReader reader;
+
+  size_t size = reader.Read<size_t>(buffer);
+  for (size_t i = 0; i < size; i++) {
+    std::string uuid = reader.ReadTerminatedString(buffer);
+    reader.Read<size_t>(buffer);
+    reader.Read<size_t>(buffer);
+
+    res.push_back(uuid);
+  }
+
+  return res;
 }
 
 void PlayerCustScene::onEnd()

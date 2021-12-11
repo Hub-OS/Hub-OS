@@ -1,13 +1,12 @@
 #pragma once
 #ifdef BN_MOD_SUPPORT
 
-#include "../bnSpriteProxyNode.h"
-#include "../bnAnimation.h"
-#include "../bnAnimationComponent.h"
-#include "dynamic_object.h"
+#include "bnSpriteProxyNode.h"
+#include "bnAnimation.h"
+#include "bnAnimationComponent.h"
 #include <vector>
 
-struct SyncNode : public dynamic_object {
+struct SyncNode {
   std::shared_ptr<SpriteProxyNode> sprite;
   Animation animation;
   AnimationComponent::SyncItem syncItem;

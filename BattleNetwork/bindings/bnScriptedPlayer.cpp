@@ -66,14 +66,6 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
   return GetTile();
 }
 
-std::shared_ptr<SyncNode> ScriptedPlayer::AddSyncNode(const std::string& point) {
-  return syncNodeContainer.AddSyncNode(*this, *animationComponent, point);
-}
-
-void ScriptedPlayer::RemoveSyncNode(std::shared_ptr<SyncNode> syncNode) {
-  syncNodeContainer.RemoveSyncNode(*this, *animationComponent, syncNode);
-}
-
 std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(sol::object& function, const std::string& functionName)
 {
   auto result = CallLuaCallback(function, WeakWrapper(weak_from_base<ScriptedPlayer>()));

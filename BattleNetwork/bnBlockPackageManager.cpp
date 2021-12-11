@@ -38,6 +38,11 @@ void BlockMeta::SetShape(std::vector<uint8_t> values)
   std::swap(shape, values);
 }
 
+void BlockMeta::SetMutator(const std::function<void(Player& player)>& mutator)
+{
+  this->mutator = mutator;
+}
+
 void BlockMeta::AsProgram()
 {
   isProgram = true;

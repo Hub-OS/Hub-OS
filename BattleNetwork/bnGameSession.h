@@ -16,6 +16,6 @@ public:
   void SaveSession(const std::string& outpath);
   void SetKey(const std::string& key, const std::string& value);
   void SetNick(const std::string& nickname);
-  const std::string GetValue(const std::string& key);
+  const std::string GetValue(const std::string& key) const;
   const std::string GetNick() const;
 };

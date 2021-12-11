@@ -17,6 +17,8 @@
 #endif
 #include <sol/sol.hpp>
 
+class CardPackageManager; // forward decl
+
 class ScriptResourceManager {
 public:
   struct LoadScriptResult {
@@ -33,10 +35,9 @@ private:
   std::map<std::string, std::string> libraryFQN; /*! library FQN to script path */
   std::map< std::string, std::list< std::string > > scriptDependencies; // [ Package Name, List of packages it depends on ] 
   void ConfigureEnvironment(sol::state& state);
-  
-public:
-  static ScriptResourceManager& GetInstance();
+  CardPackageManager* cardPackages{ nullptr };
 
+public:
   ~ScriptResourceManager();
 
   LoadScriptResult& LoadScript(const std::filesystem::path& path);
@@ -51,7 +52,7 @@ public:
   const std::string& FetchSharedLibraryPath(const std::string& fqn);
   const std::string& CharacterToModpath(const std::string& fqn);
   void SeedRand(unsigned int seed);
-
+  void SetCardPackageManager(CardPackageManager& packageManager);
   void AddDependencyNote(sol::state& state, const std::string& dependencyPackageID );
   void RegisterDependencyNotes(sol::state& state);
 

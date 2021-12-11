@@ -21,6 +21,7 @@
 #include "bnPlayerChangeFormState.h"
 #include "bnPlayerForm.h"
 #include "bnDefenseSuperArmor.h"
+#include "bnSyncNode.h"
 
 #include <array>
 
@@ -33,6 +34,7 @@ struct PlayerStats {
   static constexpr unsigned MAX_ATTACK_LEVEL = 5u;
 
   unsigned charge{1}, attack{1};
+  int moddedHP{};
   Element element{Element::none};
 };
 
@@ -118,6 +120,9 @@ public:
 
   void SetChargeLevel(unsigned lvl);
   const unsigned GetChargeLevel();
+
+  void SetHealthMod(int mod);
+  const int GetHealthMod();
   
   /** Sets the player's emotion. @note setting an emotion (e.g. full_synchro) does not trigger its effects, it merely
    * tracks state */
@@ -152,6 +157,9 @@ public:
 
   void OverrideSpecialAbility(const std::function<std::shared_ptr<CardAction> ()>& func);
 
+  std::shared_ptr<SyncNode> AddSyncNode(const std::string& point);
+  void RemoveSyncNode(std::shared_ptr<SyncNode> syncNode);
+
 protected:
   // functions
   void FinishConstructor();
@@ -179,6 +187,7 @@ protected:
   PlayerStats stats{}, savedStats{};
   std::function<std::shared_ptr<CardAction>()> specialOverride{};
   std::shared_ptr<DefenseSuperArmor> superArmor{ nullptr };
+  SyncNodeContainer syncNodeContainer;
 };
 
 template<typename T>

@@ -1,7 +1,7 @@
 #pragma once
-#ifdef BN_MOD_SUPPORT
-
 #include "bnWeakWrapper.h"
+
+#ifdef BN_MOD_SUPPORT
 
 template<typename Parent, typename Child>
 class WeakWrapperChild {
@@ -38,4 +38,5 @@ public:
     return child;
   }
 };
+
 #endif

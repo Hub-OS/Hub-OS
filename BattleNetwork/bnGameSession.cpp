@@ -97,7 +97,7 @@ void GameSession::SetNick(const std::string& nickname) {
   this->nickname = nickname;
 }
 
-const std::string GameSession::GetValue(const std::string& key)
+const std::string GameSession::GetValue(const std::string& key) const
 {
   std::string res;
 

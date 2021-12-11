@@ -106,14 +106,14 @@ private:
 
   // netcode send funcs
   void SendHandshakeSignal(); // send player data to start the next round
-  void SendInputEvents(std::vector<InputEvent>& events); // send our key or gamepad events
+  void SendFrameData(std::vector<InputEvent>& events); // send our key or gamepad events along with frame data
   void SendConnectSignal(const std::string& naviId);
   void SendChangedFormSignal(const int form);
   void SendPingSignal();
 
   // netcode recieve funcs
   void RecieveHandshakeSignal(const Poco::Buffer<char>& buffer);
-  void RecieveInputEvent(const Poco::Buffer<char>& buffer); 
+  void RecieveFrameData(const Poco::Buffer<char>& buffer); 
   void RecieveConnectSignal(const Poco::Buffer<char>&);
   void RecieveChangedFormSignal(const Poco::Buffer<char>&);
 

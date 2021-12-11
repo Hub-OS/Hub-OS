@@ -36,6 +36,7 @@
 #include "bindings/bnUserTypeHitbox.h"
 #include "bindings/bnUserTypeBasicCharacter.h"
 #include "bindings/bnUserTypeScriptedCharacter.h"
+#include "bindings/bnUserTypeBasicPlayer.h"
 #include "bindings/bnUserTypeScriptedPlayer.h"
 #include "bindings/bnUserTypeScriptedSpell.h"
 #include "bindings/bnUserTypeScriptedObstacle.h"
@@ -273,6 +274,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineHitboxUserTypes(state, battle_namespace);
   DefineBasicCharacterUserType(battle_namespace);
   DefineScriptedCharacterUserType(battle_namespace);
+  DefineBasicPlayerUserType(battle_namespace);
   DefineScriptedPlayerUserType(battle_namespace);
   DefineScriptedSpellUserType(battle_namespace);
   DefineScriptedObstacleUserType(battle_namespace);
@@ -395,6 +397,18 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_color", &BlockMeta::SetColor,
     "set_shape", &BlockMeta::SetShape,
     "as_program", &BlockMeta::AsProgram,
+    "set_mutator", [](BlockMeta& self, sol::object mutatorObject) {
+      self.mutator = [mutatorObject](Player& player) {
+        sol::protected_function mutator = mutatorObject;
+        auto wrappedPlayer = WeakWrapper(player.shared_from_base<Player>());
+        auto result = mutator(wrappedPlayer);
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(LogLevel::critical, error.what());
+        }
+      };
+    },
     "declare_package_id", &BlockMeta::SetPackageID
   );
 
@@ -774,18 +788,56 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   engine_namespace.set_function("action_from_card",
-    [this](const std::string& fqn, std::shared_ptr<Character> character, const Battle::Card::Properties& props)
-    {
-      auto card = ScriptedCard(*FetchCard(fqn));
-      return card.BuildCardAction(character, props);
-    }
-  );
-}
+    sol::overload(
+      [this](const std::string& fqn, WeakWrapper<Character> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction>
+      {
+        if (!cardPackages) {
+          Logger::Log(LogLevel::critical, "action_from_card() was called but CardPackageManager was nullptr!");
 
-ScriptResourceManager& ScriptResourceManager::GetInstance()
-{
-  static ScriptResourceManager instance;
-  return instance;
+          return nullptr;
+        }
+
+        if (!cardPackages->HasPackage(fqn)) {
+          Logger::Log(LogLevel::critical, "action_from_card() was called with unknown package " + fqn);
+
+          return nullptr;
+        }
+
+        auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(*FetchCard(fqn), "card_create_action", character, props);
+
+        if (functionResult.is_error()) {
+          Logger::Log(LogLevel::critical, functionResult.error_cstr());
+          return nullptr;
+        }
+
+        return functionResult.value();
+      },
+      [this](const std::string& fqn, WeakWrapper<Character> character) -> WeakWrapper<ScriptedCardAction>
+      {
+        if (!cardPackages) {
+          Logger::Log(LogLevel::critical, "action_from_card() was called but CardPackageManager was nullptr!");
+
+          return nullptr;
+        }
+
+        if (!cardPackages->HasPackage(fqn)) {
+          Logger::Log(LogLevel::critical, "action_from_card() was called with unknown package " + fqn);
+
+          return nullptr;
+        }
+
+        Battle::Card::Properties props = cardPackages->FindPackageByID(fqn).GetCardProperties();
+        auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(*FetchCard(fqn), "card_create_action", character, props);
+
+        if (functionResult.is_error()) {
+          Logger::Log(LogLevel::critical, functionResult.error_cstr());
+          return nullptr;
+        }
+
+        return functionResult.value();
+      }
+    )
+  );
 }
 
 ScriptResourceManager::~ScriptResourceManager()
@@ -947,6 +999,11 @@ const std::string& ScriptResourceManager::CharacterToModpath(const std::string& 
 void ScriptResourceManager::SeedRand(unsigned int seed)
 {
   randSeed = seed;
+}
+
+void ScriptResourceManager::SetCardPackageManager(CardPackageManager& packageManager)
+{
+  cardPackages = &packageManager;
 }
 
 #endif

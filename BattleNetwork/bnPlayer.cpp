@@ -88,6 +88,14 @@ Player::~Player() {
   actionQueue.ClearQueue(ActionQueue::CleanupType::clear_and_reset);
 }
 
+std::shared_ptr<SyncNode> Player::AddSyncNode(const std::string& point) {
+  return syncNodeContainer.AddSyncNode(*this, *animationComponent, point);
+}
+
+void Player::RemoveSyncNode(std::shared_ptr<SyncNode> syncNode) {
+  syncNodeContainer.RemoveSyncNode(*this, *animationComponent, syncNode);
+}
+
 void Player::OnUpdate(double _elapsed) {
   SetColorMode(ColorMode::additive);
 
@@ -241,6 +249,16 @@ void Player::SetChargeLevel(unsigned lvl)
 const unsigned Player::GetChargeLevel()
 {
   return stats.charge;
+}
+
+void Player::SetHealthMod(int mod)
+{
+  stats.moddedHP = mod;
+}
+
+const int Player::GetHealthMod()
+{
+  return stats.moddedHP;
 }
 
 void Player::SetEmotion(Emotion emotion)

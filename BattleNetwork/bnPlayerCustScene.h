@@ -222,6 +222,8 @@ private:
   void quitScene();
 public:
 
+  static std::vector<std::string> getInstalledBlocks(const std::string& playerID, const GameSession& session);
+
   void onLeave() override;
   void onExit() override;
   void onEnter() override;
