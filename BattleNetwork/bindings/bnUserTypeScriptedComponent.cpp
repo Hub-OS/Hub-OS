@@ -25,6 +25,9 @@ void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_names
       [](WeakWrapper<Character>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
         return construct(owner.Unwrap(), lifetime);
       },
+      [](WeakWrapper<Player>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
+        return construct(owner.Unwrap(), lifetime);
+      },
       [](WeakWrapper<ScriptedCharacter>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
         return construct(owner.Unwrap(), lifetime);
       },

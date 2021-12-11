@@ -127,6 +127,9 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedCharacter>& test, sol::stack_object queryObject) {
         return FindNearestCharacters(field, test.Unwrap(), queryObject);
       },
+      [] (WeakWrapper<Field>& field, WeakWrapper<Player>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
+      },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedPlayer>& test, sol::stack_object queryObject) {
         return FindNearestCharacters(field, test.Unwrap(), queryObject);
       },
