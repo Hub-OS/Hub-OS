@@ -254,6 +254,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["show_shadow"] = [](WeakWrapper<E>& entity, bool show) {
     entity.Unwrap()->ShowShadow(show);
   };
+  entity_table["get_tile_offset"] = [](WeakWrapper<E>& entity) -> sf::Vector2f {
+    return entity.Unwrap()->GetTileOffset();
+  };
   entity_table["get_offset"] = [](WeakWrapper<E>& entity) -> sf::Vector2f {
     return entity.Unwrap()->GetDrawOffset();
   };
