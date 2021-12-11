@@ -3,6 +3,8 @@
 
 #include <sol/sol.hpp>
 
-void DefineScriptedCardActionUserType(sol::table& battle_namespace);
+class ScriptResourceManager;
+
+void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol::table& battle_namespace);
 
 #endif
