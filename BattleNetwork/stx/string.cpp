@@ -1,5 +1,6 @@
 #include "string.h"
 #include <sstream>
+#include <charconv>
 
 namespace stx {
   std::string replace(std::string str, const std::string& from, const std::string& to) {
@@ -70,8 +71,17 @@ namespace stx {
     // if (ec == std::errc())
     return ok(result);
   }
+
   stx::result_t<float> to_float(const std::string& str)
   {
+#ifdef __unix__
+    // from_chars for floats isn't supported on many systems yet, using strtof outside of windows
+    try {
+      return std::strtof(str.c_str(), nullptr);
+    } catch (std::exception& e) {
+      return error<float>(e.what());
+    }
+#else
     float result{};
 
     auto [ptr, ec] { std::from_chars(str.data(), str.data() + str.size(), result) };
@@ -85,7 +95,7 @@ namespace stx {
       return error<float>("Input number is larger than a float");
     }
 
-    // if (ec == std::errc())
     return ok(result);
+#endif
   }
 }
