@@ -5,8 +5,32 @@
 #include "bnUserTypeEntity.h"
 #include "bnScriptedCharacter.h"
 
-void DefineScriptedCharacterUserType(sol::table& battle_namespace) {
+void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::table& battle_namespace) {
   auto table = battle_namespace.new_usertype<WeakWrapper<ScriptedCharacter>>("Character",
+    sol::factories([](Team team, Character::Rank rank) -> WeakWrapper<ScriptedCharacter> {
+      auto character = std::make_shared<ScriptedCharacter>(rank);
+      character->Init();
+      character->SetTeam(team);
+
+      auto wrappedCharacter = WeakWrapper(character);
+      wrappedCharacter.Own();
+      return wrappedCharacter;
+    }),
+    "from_package", [scriptManager](const std::string& fqn, Team team, Character::Rank rank) {
+      sol::state* state = scriptManager->FetchCharacter(fqn);
+
+      if (!state) {
+        throw std::runtime_error("Character does not exist");
+      }
+
+      auto character = std::make_shared<ScriptedCharacter>(rank);
+      character->SetTeam(team);
+      character->InitFromScript(*state);
+
+      auto wrappedCharacter = WeakWrapper(character);
+      wrappedCharacter.Own();
+      return wrappedCharacter;
+    },
     sol::meta_function::index, [](WeakWrapper<ScriptedCharacter>& character, const std::string& key) {
       return character.Unwrap()->dynamic_get(key);
     },
