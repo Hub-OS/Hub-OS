@@ -47,6 +47,12 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "get_charge_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetChargeLevel();
     },
+    "mod_max_health", [](WeakWrapper<ScriptedPlayer>& player, int mod) -> void {
+      player.Unwrap()->ModMaxHealth(mod);
+    },
+    "get_max_health_mod", [](WeakWrapper<ScriptedPlayer>& player) -> int {
+      return player.Unwrap()->GetMaxHealthMod();
+    },
     "set_fully_charged_color", [](WeakWrapper<ScriptedPlayer>& player, sf::Color color) {
       player.Unwrap()->SetFullyChargeColor(color);
     },

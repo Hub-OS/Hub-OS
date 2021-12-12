@@ -376,7 +376,7 @@ void Entity::Update(double _elapsed) {
     setPosition(tile->getPosition().x + offset.x, tile->getPosition().y + offset.y);
   }
 
-  if ((maxHealth > 0 && health <= 0) || IsDeleted()) {
+  if (fieldStart && ((maxHealth > 0 && health <= 0) || IsDeleted())) {
     // Ensure entity is deleted if health is zero
     Delete();
 
@@ -1165,6 +1165,11 @@ const bool Entity::HasCollision(const Hit::Properties & props)
 
 int Entity::GetHealth() const {
   return health;
+}
+
+void Entity::SetMaxHealth(int _health)
+{
+  maxHealth = _health;
 }
 
 const int Entity::GetMaxHealth() const

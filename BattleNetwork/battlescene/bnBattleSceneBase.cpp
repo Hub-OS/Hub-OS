@@ -542,7 +542,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   // Update components
   for (auto& c : componentsCopy) {
-    if (c->Lifetime() == Component::lifetimes::ui && battleTimer.getElapsed().asMilliseconds() > 0) {
+    if (c->Lifetime() == Component::lifetimes::ui) {
       c->Update((float)elapsed);
     }
     else if (c->Lifetime() == Component::lifetimes::battlestep) {
@@ -1055,6 +1055,8 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(const fram
 {
   std::vector<InputEvent> outEvents;
 
+  if (!localPlayer) return outEvents;
+
   // For all inputs in the queue, reduce their wait time for this new frame
   for (auto& item : queuedLocalEvents) {
     item.wait -= from_seconds(elapsed);
@@ -1078,7 +1080,7 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(const fram
   // Drop inputs that are already processed at the end of the last frame
   for (auto iter = queuedLocalEvents.begin(); iter != queuedLocalEvents.end();) {
     if (iter->wait <= frames(0)) {
-      GetLocalPlayer()->InputState().VirtualKeyEvent(*iter);
+      localPlayer->InputState().VirtualKeyEvent(*iter);
       iter = queuedLocalEvents.erase(iter);
       continue;
     }

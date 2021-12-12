@@ -251,12 +251,14 @@ const unsigned Player::GetChargeLevel()
   return stats.charge;
 }
 
-void Player::SetHealthMod(int mod)
+void Player::ModMaxHealth(int mod)
 {
-  stats.moddedHP = mod;
+  stats.moddedHP += mod;
+  this->SetMaxHealth(this->GetMaxHealth() + mod);
+  this->SetHealth(this->GetMaxHealth());
 }
 
-const int Player::GetHealthMod()
+const int Player::GetMaxHealthMod()
 {
   return stats.moddedHP;
 }

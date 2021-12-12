@@ -121,8 +121,8 @@ public:
   void SetChargeLevel(unsigned lvl);
   const unsigned GetChargeLevel();
 
-  void SetHealthMod(int mod);
-  const int GetHealthMod();
+  void ModMaxHealth(int mod);
+  const int GetMaxHealthMod();
   
   /** Sets the player's emotion. @note setting an emotion (e.g. full_synchro) does not trigger its effects, it merely
    * tracks state */

@@ -168,7 +168,9 @@ public:
   * @brief Performs some user-specified behavior when the battle starts for the first time 
   * @example See bnGears.h for an entity that is live when the round begins and only moves after this call.
   */
-  virtual void OnBattleStart() { };
+  virtual void OnBattleStart() {
+    this->fieldStart = true;
+  };
 
   /**
   * @brief Performs some user-specified behavior when the battle is over
@@ -574,6 +576,12 @@ public:
   virtual int GetHealth() const;
   
   /**
+ * @brief Set the max health of the character
+ * @param _health
+ */
+  void SetMaxHealth(int _health);
+
+  /**
    * @brief Get the character's max (init) health
    * @return 
    */
@@ -830,6 +838,7 @@ private:
   bool canShareTile{}; /*!< Some characters can share tiles with others */
   bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   bool swapPalette{ false };
+  bool fieldStart{ false }; /*!< Used to signify if battle has started */
   int moveCount{}; /*!< Used by battle results */
   int health{};
   int maxHealth{};

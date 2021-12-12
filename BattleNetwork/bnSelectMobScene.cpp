@@ -381,15 +381,6 @@ void SelectMobScene::onUpdate(double elapsed) {
       }
 
       using effect = segue<WhiteWashFade>;
-      
-      BlockPackageManager& blockPackages = getController().BlockPackageManager();
-      GameSession& session = getController().Session();
-      for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
-        if (!blockPackages.HasPackage(blockID)) continue;
-
-        auto& blockMeta = blockPackages.FindPackageByID(blockID);
-        blockMeta.mutator(*player);
-      }
 
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
@@ -416,6 +407,17 @@ void SelectMobScene::onUpdate(double elapsed) {
         };
 
         getController().push<effect::to<MobBattleScene>>(std::move(props));
+      }
+
+      // After the battle scene's constructor, run the block programs over the player ptr
+      // This ensures they are spawned on the field by now to access the field ptr in the block programs
+      BlockPackageManager& blockPackages = getController().BlockPackageManager();
+      GameSession& session = getController().Session();
+      for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
+        if (!blockPackages.HasPackage(blockID)) continue;
+
+        auto& blockMeta = blockPackages.FindPackageByID(blockID);
+        blockMeta.mutator(*player);
       }
     }
   }

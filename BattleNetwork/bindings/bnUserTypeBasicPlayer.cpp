@@ -38,6 +38,12 @@ void DefineBasicPlayerUserType(sol::table& battle_namespace) {
     "get_charge_level", [](WeakWrapper<Player>& player) -> unsigned int {
       return player.Unwrap()->GetChargeLevel();
     },
+    "mod_max_health", [](WeakWrapper<Player>& player, int mod) -> void {
+      player.Unwrap()->ModMaxHealth(mod);
+    },
+    "get_max_health_mod", [](WeakWrapper<Player>& player) -> int {
+      return player.Unwrap()->GetMaxHealthMod();
+    },
     "set_fully_charged_color", [](WeakWrapper<Player>& player, sf::Color color) {
       player.Unwrap()->GetChargeComponent().SetFullyChargedColor(color);
     },
