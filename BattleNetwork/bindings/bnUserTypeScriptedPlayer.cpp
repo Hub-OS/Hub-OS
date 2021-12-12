@@ -44,8 +44,14 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "get_attack_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetAttackLevel();
     },
+    "set_attack_level", [](WeakWrapper<ScriptedPlayer>& player, unsigned int level) {
+      return player.Unwrap()->SetAttackLevel(level);
+    },
     "get_charge_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetChargeLevel();
+    },
+    "set_charge_level", [](WeakWrapper<ScriptedPlayer>& player, unsigned int level) {
+      return player.Unwrap()->SetChargeLevel(level);
     },
     "mod_max_health", [](WeakWrapper<ScriptedPlayer>& player, int mod) -> void {
       player.Unwrap()->ModMaxHealth(mod);
