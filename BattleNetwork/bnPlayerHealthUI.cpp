@@ -7,87 +7,18 @@ using std::to_string;
 #include "bnAudioResourceManager.h"
 #include "battlescene/bnBattleSceneBase.h"
 
-PlayerHealthUIComponent::PlayerHealthUIComponent(std::weak_ptr<Player> _player) :
-  UIComponent(_player)
-{
-  isBattleOver = false;
-  startHP = _player.lock()->GetHealth();
-  ui.SetHP(startHP);
-  SetDrawOnUIPass(false);
-  OnUpdate(0); // refresh and prepare for the 1st frame
-}
-
-PlayerHealthUIComponent::~PlayerHealthUIComponent() {
-  this->Eject();
-}
-
-void PlayerHealthUIComponent::Inject(BattleSceneBase& scene)
-{
-  scene.Inject(shared_from_base<PlayerHealthUIComponent>());
-}
-
-void PlayerHealthUIComponent::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-  if (this->IsHidden()) return;
-
-  auto this_states = states;
-  this_states.transform *= getTransform();
-
-  ui.draw(target, this_states);
-
-  UIComponent::draw(target, states);
-}
-
-/*
-HP drop is not 1 unit per frame. It is:
-10 per frame if difference is 100 or more
-~5 per frame if difference is 99-40 range
--3 per frame for anything lower
-*/
-void PlayerHealthUIComponent::OnUpdate(double elapsed) {
-  // if battle is ongoing and valid, play high pitch sound when hp is low
-  isBattleOver = this->Injected()? this->Scene()->IsCleared() : true;
-
-  if (auto player = GetOwnerAs<Player>()) {
-    ui.SetHP(player->GetHealth());
-
-    if (player->WillEraseEOF()) {
-      this->Eject();
-      player = nullptr;
-      return;
-    }
-
-    ui.Update(elapsed);
-
-    bool isBurning = false;
-    bool isPoisoned = false;
-
-    // If the player is burning or poisoned, turn red to alert them
-    if (player->GetTile() && !(player->HasAirShoe() || player->HasFloatShoe())) {
-      isBurning = player->GetTile()->GetState() == TileState::lava;
-      isBurning = isBurning && player->GetElement() != Element::fire;
-      isBurning = isBurning && !player->HasFloatShoe();
-      isPoisoned = player->GetTile()->GetState() == TileState::poison;
-    }
-
-    if (isBurning || isPoisoned || player->GetHealth() <= startHP * 0.25) {
-      ui.SetFontStyle(Font::Style::gradient_gold);
-
-      // If HP is low, play beep with high priority
-      if (player->GetHealth() <= startHP * 0.25 && !isBattleOver) {
-        ResourceHandle().Audio().Play(AudioType::LOW_HP, AudioPriority::high);
-      }
-    }
-  }
-}
+////////////////////////////////////
+// class PlayerHealthUI           //
+////////////////////////////////////
 
 PlayerHealthUI::PlayerHealthUI() :
-  glyphs(Font::Style::gradient) 
+  glyphs(Font::Style::gradient)
 {
   ResourceHandle handle;
 
   texture = handle.Textures().LoadFromFile("resources/ui/img_health.png");
   uibox.setTexture(texture);
-  uibox.setPosition(3.f, 0.0f);
+  uibox.setPosition(2.f, 0.0f);
   glyphs.setPosition(uibox.getLocalBounds().width - 2.f, 3.f);
 }
 
@@ -172,5 +103,82 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
   //this_states.transform *= getTransform();
 
   target.draw(this->uibox, states);
-  glyphs.draw(target, states);
+  target.draw(glyphs, states);
+}
+
+////////////////////////////////////
+// class PlayerHealthUIComponent  //
+////////////////////////////////////
+
+PlayerHealthUIComponent::PlayerHealthUIComponent(std::weak_ptr<Player> _player) :
+  UIComponent(_player)
+{
+  isBattleOver = false;
+  startHP = _player.lock()->GetHealth();
+  ui.SetHP(startHP);
+  SetDrawOnUIPass(false);
+  OnUpdate(0); // refresh and prepare for the 1st frame
+}
+
+PlayerHealthUIComponent::~PlayerHealthUIComponent() {
+  this->Eject();
+}
+
+void PlayerHealthUIComponent::Inject(BattleSceneBase& scene)
+{
+  scene.Inject(shared_from_base<PlayerHealthUIComponent>());
+}
+
+void PlayerHealthUIComponent::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  if (this->IsHidden()) return;
+
+  auto this_states = states;
+  this_states.transform *= getTransform();
+
+  ui.draw(target, this_states);
+
+  UIComponent::draw(target, this_states);
+}
+
+/*
+HP drop is not 1 unit per frame. It is:
+10 per frame if difference is 100 or more
+~5 per frame if difference is 99-40 range
+-3 per frame for anything lower
+*/
+void PlayerHealthUIComponent::OnUpdate(double elapsed) {
+  // if battle is ongoing and valid, play high pitch sound when hp is low
+  isBattleOver = this->Injected()? this->Scene()->IsCleared() : true;
+
+  if (auto player = GetOwnerAs<Player>()) {
+    ui.SetHP(player->GetHealth());
+
+    if (player->WillEraseEOF()) {
+      this->Eject();
+      player = nullptr;
+      return;
+    }
+
+    ui.Update(elapsed);
+
+    bool isBurning = false;
+    bool isPoisoned = false;
+
+    // If the player is burning or poisoned, turn red to alert them
+    if (player->GetTile() && !(player->HasAirShoe() || player->HasFloatShoe())) {
+      isBurning = player->GetTile()->GetState() == TileState::lava;
+      isBurning = isBurning && player->GetElement() != Element::fire;
+      isBurning = isBurning && !player->HasFloatShoe();
+      isPoisoned = player->GetTile()->GetState() == TileState::poison;
+    }
+
+    if (isBurning || isPoisoned || player->GetHealth() <= startHP * 0.25) {
+      ui.SetFontStyle(Font::Style::gradient_gold);
+
+      // If HP is low, play beep with high priority
+      if (player->GetHealth() <= startHP * 0.25 && !isBattleOver) {
+        ResourceHandle().Audio().Play(AudioType::LOW_HP, AudioPriority::high);
+      }
+    }
+  }
 }

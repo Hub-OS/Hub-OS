@@ -20,19 +20,14 @@ namespace Battle {
 struct CombatBattleState final : public BattleSceneState, public CardActionUseListener {
   bool canPause{ true };
   bool isPaused{ false };
-  bool isGaugeFull{ false };
   bool hasTimeFreeze{ false };
   bool clearedMob{ false };
   bool skipFrame{ false };
-  double customProgress{ 0 };
-  double customDuration{ 0 };
   Mob* mob{ nullptr };
   sf::Sprite pause;
   sf::Sprite doubleDelete;
   sf::Sprite tripleDelete;
   sf::Sprite counterHit;
-  SpriteProxyNode customBar;
-  sf::Shader* customBarShader; /*!< Cust gauge shaders */
   sf::Shader* pauseShader; /*!< Dim screen */
   std::vector<std::shared_ptr<Player>>& tracked;
   std::vector<const BattleSceneState*> subcombatStates;

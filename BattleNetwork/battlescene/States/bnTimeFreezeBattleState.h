@@ -6,6 +6,7 @@
 #include "../bnBattleSceneState.h"
 #include "../../bnTeam.h"
 #include "../../bnFont.h"
+#include "../../bnText.h"
 #include "../../bnCardAction.h"
 #include "../../bnCardUseListener.h"
 #include "../../frame_time_t.h"
@@ -42,6 +43,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   frame_time_t summonTick{ frames(0) };
   double backdropInc{ 1.25 }; //!< alpha increase per frame (max 255)
   std::vector<EventData> tfEvents;
+  Text summonsLabel = Text(Font::Style::thick);
 
   TimeFreezeBattleState();
   ~TimeFreezeBattleState();

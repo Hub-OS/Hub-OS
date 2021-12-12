@@ -89,6 +89,7 @@ private:
   double elapsed{ 0 }; /*!< total time elapsed in battle */
   double customProgress{ 0 }; /*!< Cust bar progress in seconds */
   double customDuration{ 10.0 }; /*!< Cust bar max time in seconds */
+  double customFullAnimDelta{ 0 }; /*!< For animating a complete cust bar*/
   double backdropOpacity{ 1.0 };
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
@@ -112,6 +113,11 @@ private:
   std::vector<std::reference_wrapper<CardActionUsePublisher>> cardUseSubscriptions; /*!< Share subscriptions with other CardListeners states*/
   BattleResults battleResults{};
   BattleResultsFunc onEndCallback;
+
+  // cust gauge 
+  bool isGaugeFull{ false };
+  SpriteProxyNode customBar;
+  sf::Shader* customBarShader; /*!< Cust gauge shaders */
 
   // counter stuff
   std::shared_ptr<SpriteProxyNode> counterReveal;
@@ -270,6 +276,7 @@ public:
   BattleSceneBase(swoosh::ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd = nullptr);
   virtual ~BattleSceneBase();
 
+  const bool IsCustGaugeFull() const;
   const bool DoubleDelete() const;
   const bool TripleDelete() const;
   const int ComboDeleteSize() const;
@@ -279,9 +286,10 @@ public:
 
   const double GetCustomBarProgress() const;
   const double GetCustomBarDuration() const;
-  void SetCustomBarProgress(double percentage);
+  void SetCustomBarProgress(double value);
   void SetCustomBarDuration(double maxTimeSeconds);
 
+  void DrawCustGauage(sf::RenderTexture& surface);
   void SubscribeToCardActions(CardActionUsePublisher& publisher);
   void UnsubscribeFromCardActions(CardActionUsePublisher& publisher);
   const std::vector<std::reference_wrapper<CardActionUsePublisher>>& GetCardActionSubscriptions() const;

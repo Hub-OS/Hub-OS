@@ -1040,7 +1040,10 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
 
 void PlayerCustScene::updateCursorHoverInfo()
 {
-  if (Piece* p = grid[cursorLocation]; p && state != state::block_prompt) {
+  if (grabbingPiece) {
+    infoText.SetString(grabbingPiece->description);
+  }
+  else if (Piece* p = grid[cursorLocation]; p && state != state::block_prompt) {
     infoText.SetString(p->description);
     hoverText.SetString(p->name);
 
