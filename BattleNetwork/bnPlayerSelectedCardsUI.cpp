@@ -150,7 +150,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
       if (delta != 0 || unmodDamage != 0) {
         dmg.SetString(dmgText);
         dmg.setOrigin(0, 0);
-        dmg.setPosition((text.GetLocalBounds().width * text.getScale().x) + 10.f, 290.f);
+        dmg.setPosition((text.GetLocalBounds().width * text.getScale().x) + 10.f, 296.f);
       }
 
       if (multiplierValue != 1 && unmodDamage != 0) {
@@ -158,7 +158,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         std::string multStr = "x" + std::to_string(multiplierValue);
         multiplier.SetString(multStr);
         multiplier.setOrigin(0, 0);
-        multiplier.setPosition(dmg.getPosition().x + (dmg.GetLocalBounds().width * dmg.getScale().x) + 3.0f, 290.0f);
+        multiplier.setPosition(dmg.getPosition().x + (dmg.GetLocalBounds().width * dmg.getScale().x) + 3.0f, 296.0f);
       }
     }
   }
@@ -174,10 +174,10 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
   text.SetColor(sf::Color::White);
   target.draw(text);
 
-  if (canBoost) {
-    // our number font has shadow baked in
-    target.draw(dmg);
+  // our number font has shadow baked in
+  target.draw(dmg);
 
+  if (canBoost) {
     // shadow
     auto multiPos = multiplier.getPosition();
     multiplier.SetColor(sf::Color::Black);

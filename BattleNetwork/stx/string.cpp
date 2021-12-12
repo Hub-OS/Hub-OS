@@ -98,4 +98,69 @@ namespace stx {
     return ok(result);
 #endif
   }
+  std::string format_to_fit(const std::string& str, size_t max_cols, size_t max_rows)
+  {
+    if (str.empty()) return str;
+
+    std::string output = str;
+    static const std::string escaped_newline = "\\n";
+    static const std::string newline = "\n";
+    static const std::string space = " ";
+
+    output = stx::replace(output, escaped_newline, space);
+    output = stx::replace(output, newline, space);
+    output = stx::replace(output, space + space, space);
+
+    std::vector<std::string> words = stx::tokenize(output, space.c_str()[0]);
+
+    output.clear();
+    size_t row_count = 0; // track total row count
+    size_t line_len = 0; // track current line length
+    auto check_line = [&line_len, &output, &row_count, max_rows, max_cols](const std::string& str) {
+      if (line_len + str.size() > max_cols) {
+        output += "\n";
+        row_count++;
+        line_len = 0;
+
+        if (row_count == max_rows) return;
+      }
+
+      output += str;
+      line_len += str.size();
+    };
+
+    for (std::string& w : words) {
+      size_t word_len = w.size();
+      std::vector<std::string> word_pieces;
+
+      size_t last_letter = 0;
+      for (size_t i = 0; i <= word_len; i++) {
+        bool break_here = (i == word_len) || (i % max_cols == 0 && i > 0);
+
+        if (!break_here) continue;
+
+        word_pieces.push_back(w.substr(last_letter, (i - last_letter)));
+        last_letter = i;
+      }
+
+      // we will always have at least one word
+      for (std::string& p : word_pieces) {
+        check_line(p);
+      }
+
+      if (output[output.size() - 1] != '\n' && line_len + 1 < max_cols) {
+        check_line(space);
+      }
+
+      // quit early to prevent breaking formatting
+      if (row_count == max_rows) {
+        break;
+      }
+    }
+
+    output.resize(std::min(output.size(), (size_t)(max_cols * max_rows)));
+    output.shrink_to_fit();
+
+    return output;
+  }
 }

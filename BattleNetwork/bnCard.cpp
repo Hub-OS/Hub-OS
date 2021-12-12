@@ -10,7 +10,7 @@ namespace Battle {
   Card::Card(const Card::Properties& props) : props(props), unmodded(props)
   { }
 
-  Card::Card(const Battle::Card & copy) : props(copy.props), unmodded(copy.props) 
+  Card::Card(const Battle::Card & copy) : props(copy.props), unmodded(copy.unmodded) 
   { }
 
   Card::~Card() {

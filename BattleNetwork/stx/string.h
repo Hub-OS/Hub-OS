@@ -42,4 +42,10 @@ namespace stx {
   * @brief Converts input string to a float or returns an error message
   */
   stx::result_t<float> to_float(const std::string& str);
+
+  /**
+  * @brief Trims and formats an input string by restricting the text into a max_cols x max_rows box
+  * @warning assumes font used to display is monospaced
+  */
+  std::string format_to_fit(const std::string& str, size_t max_cols, size_t max_rows);
 }

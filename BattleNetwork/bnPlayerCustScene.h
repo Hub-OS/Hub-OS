@@ -177,6 +177,7 @@ private:
   bool hasRightInput();
   bool hasUpInput();
   bool hasDownInput();
+  bool isBlockValid(Piece* piece);
   bool canPieceFit(Piece* piece, size_t loc);
   bool doesPieceOverlap(Piece* piece, size_t loc);
   bool insertPiece(Piece* piece, size_t loc);

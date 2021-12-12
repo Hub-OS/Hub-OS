@@ -40,6 +40,8 @@ public:
   sol::object delete_func;
   sol::object attack_func;
   sol::object on_spawn_func;
+  sol::object battle_start_func;
+  sol::object battle_end_func;
 private:
   sf::Vector2f scriptedOffset{};
   float height{};

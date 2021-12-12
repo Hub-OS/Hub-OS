@@ -70,6 +70,18 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
         spell.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
       }
+    ),
+    "battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->battle_start_func; },
+      [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
+        spell.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+      }
+    ),
+    "battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->battle_end_func; },
+      [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
+        spell.Unwrap()->battle_end_func = VerifyLuaCallback(value);
+      }
     )
   );
 

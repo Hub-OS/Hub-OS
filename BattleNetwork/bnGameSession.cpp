@@ -30,8 +30,8 @@ const bool GameSession::LoadSession(const std::string& inpath)
   size_t keys_len = reader.Read<size_t>(buffer);
 
   while (keys_len-- > 0) {
-    std::string key = reader.ReadString<char>(buffer);
-    std::string val = reader.ReadString<char>(buffer);
+    std::string key = reader.ReadString<uint64_t>(buffer);
+    std::string val = reader.ReadString<uint64_t>(buffer);
     SetKeyValue(key, val);
   }
 
@@ -118,8 +118,8 @@ void GameSession::SaveSession(const std::string& outpath)
   writer.Write(buffer, num_of_keys);
 
   for (auto& [k, v] : keys) {
-    writer.WriteString<char>(buffer, k);
-    writer.WriteString<char>(buffer, v);
+    writer.WriteString<uint64_t>(buffer, k);
+    writer.WriteString<uint64_t>(buffer, v);
   }
 
   // save card pool

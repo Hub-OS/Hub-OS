@@ -186,8 +186,6 @@ private:
   void RefreshCurrentCardDock(CardView& view, const std::vector<ElementType>& list);
 
 public:
-  std::string FormatCardDesc(const std::string& desc);
-
   void onStart() override;
   void onUpdate(double elapsed) override;
   void onLeave() override;

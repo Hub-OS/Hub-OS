@@ -47,6 +47,18 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
         artifact.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
       }
+    ),
+    "battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->battle_start_func; },
+      [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
+        artifact.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+      }
+    ),
+    "battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->battle_end_func; },
+      [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
+        artifact.Unwrap()->battle_end_func = VerifyLuaCallback(value);
+      }
     )
   );
 
