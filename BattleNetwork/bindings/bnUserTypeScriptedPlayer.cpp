@@ -114,6 +114,18 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
         player.Unwrap()->update_func = VerifyLuaCallback(value);
       }
     ),
+    "battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->battle_start_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+      }
+    ),
+    "battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->battle_end_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->battle_end_func = VerifyLuaCallback(value);
+      }
+    ),
     "normal_attack_func", sol::property(
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->normal_attack_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
