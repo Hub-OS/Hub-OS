@@ -42,6 +42,7 @@
 #include "bindings/bnUserTypeScriptedObstacle.h"
 #include "bindings/bnUserTypeScriptedArtifact.h"
 #include "bindings/bnUserTypeScriptedComponent.h"
+#include "bindings/bnUserTypeCardMeta.h"
 #include "bindings/bnUserTypeBaseCardAction.h"
 #include "bindings/bnUserTypeScriptedCardAction.h"
 #include "bindings/bnUserTypeDefenseRule.h"
@@ -280,8 +281,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineScriptedObstacleUserType(battle_namespace);
   DefineScriptedArtifactUserType(battle_namespace);
   DefineScriptedComponentUserType(state, battle_namespace);
+  DefineCardMetaUserTypes(this, battle_namespace);
   DefineBaseCardActionUserType(state, battle_namespace);
-  DefineScriptedCardActionUserType(battle_namespace);
+  DefineScriptedCardActionUserType(this, battle_namespace);
   DefineDefenseRuleUserTypes(state, battle_namespace);
 
   // make meta object info metatable
@@ -306,63 +308,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_preview_texture", &PlayerMeta::SetPreviewTexture,
     "set_icon_texture", &PlayerMeta::SetIconTexture,
     "declare_package_id", &PlayerMeta::SetPackageID
-  );
-
-  const auto& cardpropsmeta_table = battle_namespace.new_usertype<Battle::Card::Properties>("Card::Properties",
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "Card::Properties", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "Card::Properties", key );
-    },
-    "action", &Battle::Card::Properties::action,
-    "can_boost", &Battle::Card::Properties::canBoost,
-    "card_class", &Battle::Card::Properties::cardClass,
-    "damage", &Battle::Card::Properties::damage,
-    "description", &Battle::Card::Properties::description,
-    "element", &Battle::Card::Properties::element,
-    "limit", &Battle::Card::Properties::limit,
-    "meta_classes", &Battle::Card::Properties::metaClasses,
-    "secondary_element", &Battle::Card::Properties::secondaryElement,
-    "shortname", &Battle::Card::Properties::shortname,
-    "time_freeze", &Battle::Card::Properties::timeFreeze,
-    "skip_time_freeze_intro", &Battle::Card::Properties::skipTimeFreezeIntro,
-    "long_description", &Battle::Card::Properties::verboseDescription
-  );
-
-  const auto& cardmeta_table = battle_namespace.new_usertype<CardMeta>("CardMeta",
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
-      ScriptResourceManager::PrintInvalidAccessMessage( table, "CardMeta", key );
-    },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
-      ScriptResourceManager::PrintInvalidAssignMessage( table, "CardMeta", key );
-    },
-    "filter_hand_step", &CardMeta::filterHandStep,
-    "get_card_props", &CardMeta::GetCardProperties,
-    "set_preview_texture", &CardMeta::SetPreviewTexture,
-    "set_icon_texture", &CardMeta::SetIconTexture,
-    "set_codes", &CardMeta::SetCodes,
-    "declare_package_id", &CardMeta::SetPackageID
-  );
-
-  const auto& adjacent_card_table = battle_namespace.new_usertype<AdjacentCards>("AdjacentCards",
-    "has_card_to_left", [](AdjacentCards& adjCards) {
-      return adjCards.hasCardToLeft;
-    },
-    "has_card_to_right", [](AdjacentCards& adjCards) {
-      return adjCards.hasCardToRight;
-    },
-    "discard_left", [](AdjacentCards& adjCards) {
-      adjCards.deleteLeft = true;
-    },
-    "discard_right", [](AdjacentCards& adjCards) {
-      adjCards.deleteRight = true;
-    },
-    "discard_incoming", [](AdjacentCards& adjCards) {
-      adjCards.deleteThisCard = true;
-    },
-    "left_card", &AdjacentCards::leftCard,
-    "right_card", &AdjacentCards::rightCard
   );
 
   const auto& mobmeta_table = battle_namespace.new_usertype<MobMeta>("MobMeta",
@@ -786,58 +731,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       this->DefineLibrary( fqn, path );
     }
   );
-
-  engine_namespace.set_function("action_from_card",
-    sol::overload(
-      [this](const std::string& fqn, WeakWrapper<Character> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction>
-      {
-        if (!cardPackages) {
-          Logger::Log(LogLevel::critical, "action_from_card() was called but CardPackageManager was nullptr!");
-
-          return nullptr;
-        }
-
-        if (!cardPackages->HasPackage(fqn)) {
-          Logger::Log(LogLevel::critical, "action_from_card() was called with unknown package " + fqn);
-
-          return nullptr;
-        }
-
-        auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(*FetchCard(fqn), "card_create_action", character, props);
-
-        if (functionResult.is_error()) {
-          Logger::Log(LogLevel::critical, functionResult.error_cstr());
-          return nullptr;
-        }
-
-        return functionResult.value();
-      },
-      [this](const std::string& fqn, WeakWrapper<Character> character) -> WeakWrapper<ScriptedCardAction>
-      {
-        if (!cardPackages) {
-          Logger::Log(LogLevel::critical, "action_from_card() was called but CardPackageManager was nullptr!");
-
-          return nullptr;
-        }
-
-        if (!cardPackages->HasPackage(fqn)) {
-          Logger::Log(LogLevel::critical, "action_from_card() was called with unknown package " + fqn);
-
-          return nullptr;
-        }
-
-        Battle::Card::Properties props = cardPackages->FindPackageByID(fqn).GetCardProperties();
-        auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(*FetchCard(fqn), "card_create_action", character, props);
-
-        if (functionResult.is_error()) {
-          Logger::Log(LogLevel::critical, functionResult.error_cstr());
-          return nullptr;
-        }
-
-        return functionResult.value();
-      }
-    )
-  );
 }
 
 ScriptResourceManager::~ScriptResourceManager()
@@ -1004,6 +897,11 @@ void ScriptResourceManager::SeedRand(unsigned int seed)
 void ScriptResourceManager::SetCardPackageManager(CardPackageManager& packageManager)
 {
   cardPackages = &packageManager;
+}
+
+CardPackageManager& ScriptResourceManager::GetCardPackageManager()
+{
+  return *cardPackages;
 }
 
 #endif

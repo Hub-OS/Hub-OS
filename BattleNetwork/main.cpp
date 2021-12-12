@@ -40,8 +40,8 @@ int main(int argc, char** argv) {
     ("moburl", "path to mob file to download from a web address", cxxopts::value<std::string>())
     ("player", "path to player package on disk", cxxopts::value<std::string>())
     ("l,locale", "set flair and language to desired target", cxxopts::value<std::string>()->default_value("en"))
-    ("p,port", "port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
-    ("r,remotePort", "remote port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
+    ("p,port", "port for PVP", cxxopts::value<int>()->default_value("0"))
+    ("r,remotePort", "remote port for main hub", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
     ("w,cyberworld", "ip address of main hub", cxxopts::value<std::string>()->default_value("127.0.0.1"))
     ("m,mtu", "Maximum Transmission Unit - adjust to send big packets", cxxopts::value<uint16_t>()->default_value(std::to_string(NetManager::DEFAULT_MAX_PAYLOAD_SIZE)));
 

@@ -71,6 +71,12 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
         wrappedSpell.Own();
         return wrappedSpell;
       },
+      [] (WeakWrapper<Player>& e, float f) -> WeakWrapper<Entity> {
+        std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
+        auto wrappedSpell = WeakWrapper(spell);
+        wrappedSpell.Own();
+        return wrappedSpell;
+      },
       [] (WeakWrapper<ScriptedPlayer>& e, float f) -> WeakWrapper<Entity> {
         std::shared_ptr<Entity> spell = std::make_shared<SharedHitbox>(e.Unwrap(), f);
         auto wrappedSpell = WeakWrapper(spell);

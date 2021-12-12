@@ -7,6 +7,7 @@
 #include "bnScriptedCardAction.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
+#include "../bnCardPackageManager.h"
 #include "../bnSolHelpers.h"
 
 using CardActionAttachmentWrapper = WeakWrapperChild<CardAction, CardAction::Attachment>;
@@ -20,11 +21,38 @@ static WeakWrapper<ScriptedCardAction> construct(std::shared_ptr<Character> char
   return wrappedCardAction;
 }
 
-void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
+void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol::table& battle_namespace) {
+  auto action_from_card = [scriptManager](const std::string& fqn, std::shared_ptr<Character> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction> {
+    auto cardPackages = &scriptManager->GetCardPackageManager();
+
+    if (!cardPackages) {
+      Logger::Log(LogLevel::critical, "Battle.CardAction.from_card() was called but CardPackageManager was nullptr!");
+      return WeakWrapper<ScriptedCardAction>();
+    }
+
+    if (!cardPackages->HasPackage(fqn)) {
+      Logger::Log(LogLevel::critical, "Battle.CardAction.from_card() was called with unknown package " + fqn);
+      return WeakWrapper<ScriptedCardAction>();
+    }
+
+    auto wrappedCharacter = WeakWrapper(character);
+    auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(*scriptManager->FetchCard(fqn), "card_create_action", wrappedCharacter, props);
+
+    if (functionResult.is_error()) {
+      Logger::Log(LogLevel::critical, functionResult.error_cstr());
+      return WeakWrapper<ScriptedCardAction>();
+    }
+
+    return functionResult.value();
+  };
+
   // make sure to copy method changes to bnUserTypeBaseCardAction
   battle_namespace.new_usertype<WeakWrapper<ScriptedCardAction>>("CardAction",
     sol::factories(
       [](WeakWrapper<Character>& character, const std::string& state)-> WeakWrapper<ScriptedCardAction> {
+        return construct(character.Unwrap(), state);
+      },
+      [](WeakWrapper<Player>& character, const std::string& state)-> WeakWrapper<ScriptedCardAction> {
         return construct(character.Unwrap(), state);
       },
       [](WeakWrapper<ScriptedCharacter>& character, const std::string& state)-> WeakWrapper<ScriptedCardAction> {
@@ -32,6 +60,45 @@ void DefineScriptedCardActionUserType(sol::table& battle_namespace) {
       },
       [](WeakWrapper<ScriptedPlayer>& character, const std::string& state)-> WeakWrapper<ScriptedCardAction> {
         return construct(character.Unwrap(), state);
+      }
+    ),
+    "from_card", sol::overload(
+      // todo: cut these in half by making use of std::optional?
+      [action_from_card](const std::string& fqn, WeakWrapper<Character> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction>
+      {
+        return action_from_card(fqn, character.Unwrap(), props);
+      },
+      [action_from_card](const std::string& fqn, WeakWrapper<Player> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction>
+      {
+        return action_from_card(fqn, character.Unwrap(), props);
+      },
+      [action_from_card](const std::string& fqn, WeakWrapper<ScriptedCharacter> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction>
+      {
+        return action_from_card(fqn, character.Unwrap(), props);
+      },
+      [action_from_card](const std::string& fqn, WeakWrapper<ScriptedPlayer> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction>
+      {
+        return action_from_card(fqn, character.Unwrap(), props);
+      },
+      [scriptManager, action_from_card](const std::string& fqn, WeakWrapper<Character> character) -> WeakWrapper<ScriptedCardAction>
+      {
+        Battle::Card::Properties props = scriptManager->GetCardPackageManager().FindPackageByID(fqn).GetCardProperties();
+        return action_from_card(fqn, character.Unwrap(), props);
+      },
+      [scriptManager, action_from_card](const std::string& fqn, WeakWrapper<Player> character) -> WeakWrapper<ScriptedCardAction>
+      {
+        Battle::Card::Properties props = scriptManager->GetCardPackageManager().FindPackageByID(fqn).GetCardProperties();
+        return action_from_card(fqn, character.Unwrap(), props);
+      },
+      [scriptManager, action_from_card](const std::string& fqn, WeakWrapper<ScriptedCharacter> character) -> WeakWrapper<ScriptedCardAction>
+      {
+        Battle::Card::Properties props = scriptManager->GetCardPackageManager().FindPackageByID(fqn).GetCardProperties();
+        return action_from_card(fqn, character.Unwrap(), props);
+      },
+      [scriptManager, action_from_card](const std::string& fqn, WeakWrapper<ScriptedPlayer> character) -> WeakWrapper<ScriptedCardAction>
+      {
+        Battle::Card::Properties props = scriptManager->GetCardPackageManager().FindPackageByID(fqn).GetCardProperties();
+        return action_from_card(fqn, character.Unwrap(), props);
       }
     ),
     sol::meta_function::index, [](WeakWrapper<ScriptedCardAction>& cardAction, const std::string& key) {

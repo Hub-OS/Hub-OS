@@ -53,6 +53,7 @@ public:
   const std::string& CharacterToModpath(const std::string& fqn);
   void SeedRand(unsigned int seed);
   void SetCardPackageManager(CardPackageManager& packageManager);
+  CardPackageManager& GetCardPackageManager();
   void AddDependencyNote(sol::state& state, const std::string& dependencyPackageID );
   void RegisterDependencyNotes(sol::state& state);
 
