@@ -44,8 +44,14 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "get_attack_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetAttackLevel();
     },
+    "set_attack_level", [](WeakWrapper<ScriptedPlayer>& player, unsigned int level) {
+      return player.Unwrap()->SetAttackLevel(level);
+    },
     "get_charge_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetChargeLevel();
+    },
+    "set_charge_level", [](WeakWrapper<ScriptedPlayer>& player, unsigned int level) {
+      return player.Unwrap()->SetChargeLevel(level);
     },
     "mod_max_health", [](WeakWrapper<ScriptedPlayer>& player, int mod) -> void {
       player.Unwrap()->ModMaxHealth(mod);
@@ -106,6 +112,18 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->update_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
         player.Unwrap()->update_func = VerifyLuaCallback(value);
+      }
+    ),
+    "battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->battle_start_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+      }
+    ),
+    "battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->battle_end_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->battle_end_func = VerifyLuaCallback(value);
       }
     ),
     "normal_attack_func", sol::property(

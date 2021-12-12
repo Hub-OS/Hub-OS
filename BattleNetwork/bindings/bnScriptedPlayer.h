@@ -41,6 +41,8 @@ public:
   void SetHeight(const float height);
   void SetAnimation(const std::string& path);
   void OnUpdate(double _elapsed) override;
+  void OnBattleStart() override;
+  void OnBattleStop() override;
 
   ScriptedPlayerFormMeta* CreateForm();
 
@@ -52,7 +54,7 @@ public:
   std::shared_ptr<CardAction> OnExecuteChargedBusterAction() override final;
   std::shared_ptr<CardAction> OnExecuteSpecialAction() override final;
 
-  sol::object update_func, normal_attack_func, charged_attack_func, special_attack_func;
+  sol::object update_func, battle_start_func, battle_end_func, normal_attack_func, charged_attack_func, special_attack_func;
 };
 
 #endif

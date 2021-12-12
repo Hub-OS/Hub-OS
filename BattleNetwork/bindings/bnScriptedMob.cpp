@@ -11,13 +11,15 @@
 //
 ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank)
 { 
-  scriptedSpawner = std::make_unique<Mob::Spawner<ScriptedCharacter>>(std::ref(script), rank);
+  scriptedSpawner = std::make_unique<Mob::Spawner<ScriptedCharacter>>(rank);
   std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
 
   scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> std::shared_ptr<ScriptedCharacter> {
     (*scriptPtr)["_modpath"] = path+"/";
 
-    return lambda();
+    auto character = lambda();
+    character->InitFromScript(*scriptPtr);
+    return character;
   };
 }
 

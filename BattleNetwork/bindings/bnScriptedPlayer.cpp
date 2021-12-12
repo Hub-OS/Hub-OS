@@ -156,6 +156,32 @@ void ScriptedPlayer::OnUpdate(double elapsed)
   }
 }
 
+void ScriptedPlayer::OnBattleStart() {
+  Player::OnBattleStart();
+
+  if (battle_start_func.valid()) 
+  {
+    auto result = CallLuaCallback(battle_start_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(LogLevel::critical, result.error_cstr());
+    }
+  }
+}
+
+void ScriptedPlayer::OnBattleStop() {
+  Player::OnBattleStop();
+
+  if (battle_end_func.valid()) 
+  {
+    auto result = CallLuaCallback(battle_end_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(LogLevel::critical, result.error_cstr());
+    }
+  }
+}
+
 ScriptedPlayerFormMeta* ScriptedPlayer::CreateForm()
 {
   auto meta = new ScriptedPlayerFormMeta(forms.size() + 1u);

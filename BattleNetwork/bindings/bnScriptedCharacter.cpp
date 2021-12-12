@@ -10,8 +10,7 @@
 #include "../bnDefenseVirusBody.h"
 #include "../bnUIComponent.h"
 
-ScriptedCharacter::ScriptedCharacter(sol::state& script, Character::Rank rank) :
-  script(script),
+ScriptedCharacter::ScriptedCharacter(Character::Rank rank) :
   AI<ScriptedCharacter>(this), 
   Character(rank)
 {
@@ -26,17 +25,21 @@ void ScriptedCharacter::Init() {
   Character::Init();
 
   animation = CreateComponent<AnimationComponent>(weak_from_this());
+  weakWrap = WeakWrapper(weak_from_base<ScriptedCharacter>());
+}
 
-  auto character = WeakWrapper(weak_from_base<ScriptedCharacter>());
-  auto initResult = CallLuaFunction(script, "package_init", character);
+void ScriptedCharacter::InitFromScript(sol::state& script) {
+  if (!HasInit()) {
+    Init();
+  }
+
+  auto initResult = CallLuaFunction(script, "package_init", weakWrap);
 
   if (initResult.is_error()) {
     Logger::Log(LogLevel::critical, initResult.error_cstr());
   }
 
   animation->Refresh();
-
-  weakWrap = WeakWrapper(weak_from_base<ScriptedCharacter>());
 }
 
 void ScriptedCharacter::OnUpdate(double _elapsed) {

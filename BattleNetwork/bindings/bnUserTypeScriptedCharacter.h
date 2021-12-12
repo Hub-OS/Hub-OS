@@ -3,6 +3,8 @@
 
 #include <sol/sol.hpp>
 
-void DefineScriptedCharacterUserType(sol::table& battle_namespace);
+class ScriptResourceManager;
+
+void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::table& battle_namespace);
 
 #endif
