@@ -9,7 +9,7 @@
 #include "bnScriptedCardAction.h"
 
 void DefineBasicPlayerUserType(sol::table& battle_namespace) {
-  auto player_table = battle_namespace.new_usertype<WeakWrapper<Player>>("Player",
+  auto player_table = battle_namespace.new_usertype<WeakWrapper<Player>>("BasicPlayer",
     "input_has", [](WeakWrapper<Player>& player, const InputEvent& event) -> bool {
       return player.Unwrap()->InputState().Has(event);
     },
