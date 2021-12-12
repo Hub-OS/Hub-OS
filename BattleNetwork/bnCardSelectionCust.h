@@ -75,6 +75,7 @@ private:
   mutable SpriteProxyNode element;
   mutable SpriteProxyNode formSelect;
   mutable SpriteProxyNode formCursor;
+  std::shared_ptr<sf::Texture> noIcon, noCard; // used when missing card data
   sf::Shader* greyscale;
   Font labelFont;
   Font codeFont, codeFont2;

@@ -69,18 +69,27 @@ const bool GameSession::LoadSession(const std::string& inpath)
     // save folder size
     size_t folder_len = reader.Read<size_t>(buffer);
 
-    for(size_t j = 0; j < folder_len; j++) {
+    for (size_t j = 0; j < folder_len; j++) {
       // read name
       std::string id = reader.ReadString<char>(buffer);
 
       // read code
       char code = reader.Read<char>(buffer);
 
-      if (!cardPackages->HasPackage(id)) {
-        Logger::Logf(LogLevel::critical, "Unable to create battle card from mod package %s", id.c_str());
-        continue;
+      // read name 
+      std::string name = reader.ReadString<char>(buffer);
+
+      Battle::Card::Properties props;
+
+      if (cardPackages->HasPackage(id)) {
+        props = cardPackages->FindPackageByID(id).GetCardProperties();
       }
-      Battle::Card::Properties props = cardPackages->FindPackageByID(id).GetCardProperties();
+      else {
+        Logger::Logf(LogLevel::critical, "Unable to create battle card from mod package %s", id.c_str());
+        props.description = id;
+      }
+      props.uuid = id;
+      props.shortname = name;
       props.code = code;
       folder->AddCard(props);
     }
@@ -144,8 +153,12 @@ void GameSession::SaveSession(const std::string& outpath)
         // save card code
         char code = (*iter)->GetCode();
 
+        // save card name
+        std::string name = (*iter)->GetShortName();
+
         writer.WriteString<char>(buffer, id.c_str());
         writer.WriteBytes<char>(buffer, &code, sizeof(char));
+        writer.WriteString<char>(buffer, name.c_str());
       }
     }
   }

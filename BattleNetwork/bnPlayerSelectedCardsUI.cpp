@@ -115,8 +115,12 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         if (SelectedCardsUI::packageManager && SelectedCardsUI::packageManager->HasPackage(id)) {
           texture = SelectedCardsUI::packageManager->FindPackageByID(id).GetIconTexture();
           icon.setTexture(texture);
-          target.draw(icon, states);
         }
+        else {
+          icon.setTexture(noIcon);
+        }
+
+        target.draw(icon, states);
       }
     }
 

@@ -93,6 +93,7 @@ protected:
   SpriteProxyNode& IconNode() const;
   SpriteProxyNode& FrameNode() const;
   CardPackageManager* packageManager{ nullptr };
+  std::shared_ptr<sf::Texture> noIcon;
 
 private:
   double elapsed{}; /*!< Used by draw function, delta time since last update frame */

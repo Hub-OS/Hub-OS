@@ -4,7 +4,6 @@
 #include <Swoosh/Timer.h>
 
 #include "bnLibraryScene.h"
-#include "bnCardLibrary.h"
 #include "bnCardFolder.h"
 #include "Android/bnTouchArea.h"
 
@@ -187,7 +186,7 @@ LibraryScene::~LibraryScene() { ; }
 
 void LibraryScene::MakeUniqueCardsFromPack()
 {
-  CardLibrary::Iter iter = CHIPLIB.Begin();
+  /*CardLibrary::Iter iter = CHIPLIB.Begin();
 
   for (iter; iter != CHIPLIB.End(); iter++) {
     uniqueCards.insert(uniqueCards.begin(), *iter);
@@ -199,7 +198,7 @@ void LibraryScene::MakeUniqueCardsFromPack()
 
   uniqueCards.unique(pred);
 
-  numOfCards = (int)uniqueCards.size();
+  numOfCards = (int)uniqueCards.size();*/
 }
 
 void LibraryScene::onStart() {
