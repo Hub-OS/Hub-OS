@@ -3,6 +3,6 @@
 
 #include <sol/sol.hpp>
 
-void DefineScriptedObstacleUserType(sol::table& battle_namespace);
+void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namespace);
 
 #endif
