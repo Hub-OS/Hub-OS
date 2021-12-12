@@ -883,8 +883,10 @@ void Entity::AdoptNextTile()
 
   if (previous != nullptr /*&& previous != tile*/) {
     previous->RemoveEntityByID(GetID());
+
     // If removing an entity and the tile was broken, crack the tile
-    // previous->HandleMove(shared_from_this());
+    previous->HandleMove(shared_from_this());
+
     previous = tile;
   }
 

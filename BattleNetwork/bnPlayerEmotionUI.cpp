@@ -24,8 +24,6 @@ PlayerEmotionUI::PlayerEmotionUI(std::weak_ptr<Player> player)
   , previousEmotion{ Emotion::COUNT }
   , emotionChangeFrame{ 0 }
 {
-  emotionWindow.setPosition(3.f, 35.f);
-  emotionWindow.setScale(2.f, 2.f);
   SetDrawOnUIPass(false);
 }
 
@@ -51,14 +49,17 @@ void PlayerEmotionUI::draw(sf::RenderTarget& target, sf::RenderStates states) co
 {
   if (this->IsHidden()) return;
 
+  auto this_states = states;
+  this_states.transform *= getTransform();
+
   auto player = GetOwnerAs<Player>();
 
   if (player && !player->IsInForm())
   {
-    target.draw(emotionWindow, states);
+    target.draw(emotionWindow, this_states);
   }
 
-  UIComponent::draw(target, states);
+  UIComponent::draw(target, this_states);
 }
 
 void PlayerEmotionUI::OnUpdate(double elapsed)

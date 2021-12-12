@@ -401,7 +401,7 @@ bool PlayerCustScene::isCompileFinished()
 
 void PlayerCustScene::loadFromSave()
 {
-  std::string value = getController().Session().GetValue(playerUUID + ":" + "blocks");
+  std::string value = getController().Session().GetKeyValue(playerUUID + ":" + "blocks");
   if (value.empty()) return;
 
   Poco::Buffer<char> buffer{ value.c_str(), value.size() };
@@ -449,7 +449,7 @@ void PlayerCustScene::completeAndSave()
 
   auto& session = getController().Session();
   
-  session.SetKey(playerUUID + ":" + "blocks", std::string(buffer.begin(), buffer.size()));
+  session.SetKeyValue(playerUUID + ":" + "blocks", std::string(buffer.begin(), buffer.size()));
   session.SaveSession("profile.bin");
 }
 
@@ -1040,7 +1040,10 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
 
 void PlayerCustScene::updateCursorHoverInfo()
 {
-  if (Piece* p = grid[cursorLocation]; p && state != state::block_prompt) {
+  if (grabbingPiece) {
+    infoText.SetString(grabbingPiece->description);
+  }
+  else if (Piece* p = grid[cursorLocation]; p && state != state::block_prompt) {
     infoText.SetString(p->description);
     hoverText.SetString(p->name);
 
@@ -1466,7 +1469,7 @@ std::vector<std::string> PlayerCustScene::getInstalledBlocks(const std::string& 
 {
   std::vector<std::string> res;
 
-  std::string value = session.GetValue(playerID + ":" + "blocks");
+  std::string value = session.GetKeyValue(playerID + ":" + "blocks");
   if (value.empty()) return res;
 
   Poco::Buffer<char> buffer{ value.c_str(), value.size() };

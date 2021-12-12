@@ -35,6 +35,9 @@ SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackageMana
 
   // temp until chips are loaded
   selectedCards = std::make_shared<std::vector<Battle::Card>>();
+
+  // used when card is missing data
+  noIcon = handle.Textures().LoadFromFile(TexturePaths::CHIP_ICON_MISSINGDATA);
 }
 
 SelectedCardsUI::~SelectedCardsUI() {
@@ -78,8 +81,11 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     if (packageManager && packageManager->HasPackage(id)) {
       texture = packageManager->FindPackageByID(id).GetIconTexture();
       icon.setTexture(texture);
-      target.draw(icon, states);
     }
+    else {
+      icon.setTexture(noIcon);
+    }
+    target.draw(icon, states);
   }
 
   UIComponent::draw(target, states);

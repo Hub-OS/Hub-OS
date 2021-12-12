@@ -138,6 +138,8 @@ private:
   swoosh::Timer cardRevealTimer;
   swoosh::Timer easeInTimer;
 
+  std::shared_ptr<sf::Texture> noPreview, noIcon;
+
   struct CardView {
     int maxCardsOnScreen{ 0 };
     int currCardIndex{ 0 };
@@ -184,7 +186,7 @@ private:
   void RefreshCurrentCardDock(CardView& view, const std::vector<ElementType>& list);
 
 public:
-  std::string FormatCardDesc(const std::string&& desc);
+  std::string FormatCardDesc(const std::string& desc);
 
   void onStart() override;
   void onUpdate(double elapsed) override;

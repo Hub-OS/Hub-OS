@@ -41,11 +41,14 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   comboDeleteCounter(0),
   totalCounterMoves(0),
   totalCounterDeletions(0),
+  customProgress(0),
+  customDuration(10),
   whiteShader(Shaders().GetShader(ShaderType::WHITE_FADE)),
   backdropShader(Shaders().GetShader(ShaderType::BLACK_FADE)),
   yellowShader(Shaders().GetShader(ShaderType::YELLOW)),
   heatShader(Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
+  customBarShader(Shaders().GetShader(ShaderType::CUSTOM_BAR)),
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI(CardSelectionCust::Props{ std::move(props.folder), &getController().CardPackageManager(), 8, 8 }),
   mobFont(Font::Style::thick),
@@ -97,6 +100,20 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
     }
   }
 
+  // Custom bar graphics
+  auto customBarTexture = Textures().LoadFromFile("resources/ui/custom.png");
+  customBar.setTexture(customBarTexture);
+  customBar.setOrigin(customBar.getLocalBounds().width / 2, 0);
+  auto customBarPos = sf::Vector2f(240.f, 0.f);
+  customBar.setPosition(customBarPos);
+  customBar.setScale(2.f, 2.f);
+
+  if (customBarShader) {
+    customBarShader->setUniform("texture", sf::Shader::CurrentTexture);
+    customBarShader->setUniform("factor", 0);
+    customBar.SetShader(customBarShader);
+  }
+
   // Player UI
   cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackageManager());
   CardActionUseListener::Subscribe(*localPlayer);
@@ -109,6 +126,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
 
   // Player Emotion
   this->emotionUI = localPlayer->CreateComponent<PlayerEmotionUI>(localPlayer);
+  this->emotionUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
+  this->emotionUI->setPosition(4.f, 35.f);
   cardCustGUI.AddNode(emotionUI);
 
   emotionUI->Subscribe(cardCustGUI);
@@ -302,9 +321,22 @@ const double BattleSceneBase::GetCustomBarDuration() const
   return this->customDuration;
 }
 
-void BattleSceneBase::SetCustomBarProgress(double percentage)
+const bool BattleSceneBase::IsCustGaugeFull() const
 {
-  this->customProgress = this->customDuration * percentage;
+  return isGaugeFull;
+}
+
+void BattleSceneBase::SetCustomBarProgress(double value)
+{
+  this->customProgress = value;
+
+  if (customProgress < customDuration) {
+    isGaugeFull = false;
+  }
+
+  if (customBarShader) {
+    customBarShader->setUniform("factor", std::min(1.0f, (float)(customProgress/customDuration)));
+  }
 }
 
 void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
@@ -417,6 +449,13 @@ void BattleSceneBase::ShutdownTouchControls() {
 }
 #endif
 
+void BattleSceneBase::DrawCustGauage(sf::RenderTexture& surface)
+{
+  if (!mob->IsCleared()) {
+    surface.draw(customBar);
+  }
+}
+
 void BattleSceneBase::StartStateGraph(StateNode& start) {
   // kick-off and align all sprites on the screen
   field->Update(0);
@@ -494,6 +533,11 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   current->onUpdate(elapsed);
 
+  if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
+    isGaugeFull = true;
+    Audio().Play(AudioType::CUSTOM_BAR_FULL);
+  }
+
   auto componentsCopy = components;
 
   // Update components
@@ -562,6 +606,12 @@ void BattleSceneBase::onUpdate(double elapsed) {
   if (localPlayer) {
     battleResults.playerHealth = localPlayer->GetHealth();
   }
+
+  // custom bar continues to animate when it is already full
+  if (isGaugeFull) {
+    customFullAnimDelta += elapsed/customDuration;
+    customBarShader->setUniform("factor", (float)(1.0 + customFullAnimDelta));
+  }
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
@@ -571,7 +621,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     tint = 255;
   }
 
-  background->SetOpacity(1.0f- backdropOpacity);
+  background->SetOpacity(1.0f - backdropOpacity);
 
   surface.draw(*background);
 

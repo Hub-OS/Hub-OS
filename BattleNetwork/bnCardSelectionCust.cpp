@@ -3,7 +3,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnInputManager.h"
-#include "bnCardLibrary.h"
 #include "bnCardPackageManager.h"
 
 #define WILDCARD '*'
@@ -155,6 +154,10 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
   auto iconScale = sf::Vector2f(2.f, 2.f);
   icon.setTextureRect(iconSize);
   icon.setScale(iconScale);
+
+  // used when card is missing data
+  noIcon = Textures().LoadFromFile(TexturePaths::CHIP_ICON_MISSINGDATA);
+  noCard = Textures().LoadFromFile(TexturePaths::CHIP_MISSINGDATA);
 
   element.setTexture(Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
@@ -584,28 +587,21 @@ void CardSelectionCust::GetNextCards() {
   bool selectFirstDarkCard = true;
 
   for (int i = cardCount; i < props.cap; i++) {
+    queue[i].data = props._folder->Next();
 
-    // The do-while loop ensures that only cards parsed successfully
-    // should be used in combat
-    do {
-      queue[i].data = props._folder->Next();
+    if (!queue[i].data) {
+      // nullptr is end of list
+      return;
+    }
 
-      if (!queue[i].data) {
-        // nullptr is end of list
-        return;
-      }
+    bool isDarkCard = queue[i].data->GetClass() == Battle::CardClass::dark;
 
-      bool isDarkCard = queue[i].data->GetClass() == Battle::CardClass::dark;
-
-      // This auto-selects the first dark card if visible
-      if (selectFirstDarkCard && isDarkCard) {
-        cursorPos = i % 5;
-        cursorRow = i / 5;
-        selectFirstDarkCard = false;
-      }
-
-      // NOTE: IsCardValid() will be used for scripted cards again... for now disable the check
-    } while (false /*!CHIPLIB.IsCardValid(*queue[i].data)*/);
+    // This auto-selects the first dark card if visible
+    if (selectFirstDarkCard && isDarkCard) {
+      cursorPos = i % 5;
+      cursorRow = i / 5;
+      selectFirstDarkCard = false;
+    }
 
     queue[i].state = Bucket::state::staged;
 
@@ -708,6 +704,11 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
     if (props.roster->HasPackage(id)) {
       texture = props.roster->FindPackageByID(id).GetIconTexture();
+      smCodeLabel.SetColor(sf::Color::Yellow);
+    }
+    else {
+      texture = noIcon;
+      smCodeLabel.SetColor(sf::Color::Red);
     }
     
     icon.setTexture(texture);
@@ -743,6 +744,9 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     if (props.roster->HasPackage(id)) {
       texture = props.roster->FindPackageByID(id).GetIconTexture();
     }
+    else {
+      texture = noIcon;
+    }
 
     icon.setTexture(texture);
 
@@ -760,7 +764,9 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       if (props.roster->HasPackage(id)) {
         texture = props.roster->FindPackageByID(id).GetPreviewTexture();
-
+      }
+      else {
+        texture = noCard;
       }
       cardCard.setTexture(texture);
 
@@ -783,7 +789,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       cardCard.setPosition(lastPos);
 
       // card name font shadow
-      const std::string& shortname = queue[cursorPos + (5 * cursorRow)].data->GetShortName();
+      const std::string shortname = queue[cursorPos + (5 * cursorRow)].data->GetShortName();
       label.setPosition((offset + 2.f * 16.f) + 2.f, 26.f);
       label.SetString(shortname);
       label.SetColor(sf::Color(80, 75, 80));
@@ -792,7 +798,14 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       // card name font overlay
       label.setPosition(offset + 2.f * 16.f, 24.f);
       label.SetString(shortname);
-      label.SetColor(sf::Color(224, 224, 224, 255));
+
+      if (props.roster->HasPackage(id)) {
+        label.SetColor(sf::Color(224, 224, 224, 255));
+      }
+      else {
+        label.SetColor(sf::Color::Red);
+      }
+
       damageLabel.SetColor(sf::Color(224, 224, 224, 255));
       target.draw(label, states);
 

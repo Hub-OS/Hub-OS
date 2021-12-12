@@ -78,7 +78,7 @@ namespace Overworld {
     /*!< Current player package selection */
     std::string currentNaviId, lastSelectedNaviId;
 
-    CardFolderCollection folders; /*!< Collection of folders */
+    CardFolderCollection* folders{ nullptr }; /*!< Collection of folders */
     PA programAdvance;
 
     void HandleCamera(float elapsed);
@@ -88,7 +88,6 @@ namespace Overworld {
     void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
     void DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer, size_t maxLayers);
     void DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
-    void PrintTime(sf::RenderTarget& target);
 
 #ifdef __ANDROID__
     void StartupTouchControls();

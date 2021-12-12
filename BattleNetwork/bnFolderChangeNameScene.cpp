@@ -135,12 +135,12 @@ void FolderChangeNameScene::DoOK()
   // TODO
 
   // We must have a key for the selected navi
-  auto naviSelectedStr = getController().Session().GetValue("SelectedNavi");
+  auto naviSelectedStr = getController().Session().GetKeyValue("SelectedNavi");
   if (naviSelectedStr.empty()) 
     naviSelectedStr = getController().PlayerPackageManager().FirstValidPackage(); 
 
   // Save this session data new folder name
-  getController().Session().SetKey("FolderFor:" + naviSelectedStr, folderName);
+  getController().Session().SetKeyValue("FolderFor:" + naviSelectedStr, folderName);
 
   // Set original variable to new results
   folderName = copy;

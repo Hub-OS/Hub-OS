@@ -3,6 +3,7 @@
 #include "../../bnBattleResults.h"
 #include "../../bnPlayer.h"
 #include "../../bnMob.h"
+#include "../../bnGameSession.h"
 #include "../../bnInputManager.h"
 #include "../../bnCardPackageManager.h"
 #include "../bnBattleSceneBase.h"
@@ -80,7 +81,7 @@ void RewardBattleState::onDraw(sf::RenderTexture& surface)
           if (reward->IsCard()) {
             // TODO: send the battle item off to the player's
             // persistent session storage (aka a save file or cloud database)
-            CHIPLIB.AddCard(reward->GetCard());
+            // GetScene().getController().Session().AddToCardPool(reward->GetCard());
             delete reward;
           } // else if health, zenny, frags... etc
         }

@@ -70,6 +70,8 @@ private:
   AnimatedTextBox textbox;
   Question* questionInterface{ nullptr };
 
+  std::shared_ptr<sf::Texture> noPreview, noIcon;
+
   int currFolderIndex{};
   int selectedFolderIndex{};
   int lastFolderIndex{};

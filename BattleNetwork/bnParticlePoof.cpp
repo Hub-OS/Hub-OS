@@ -6,7 +6,7 @@
 
 using sf::IntRect;
 
-#define RESOURCE_PATH "resources/spells/poof.animation"
+#define RESOURCE_PATH "resources/scenes/battle/spells/poof.animation"
 
 ParticlePoof::ParticlePoof() : 
   Artifact()

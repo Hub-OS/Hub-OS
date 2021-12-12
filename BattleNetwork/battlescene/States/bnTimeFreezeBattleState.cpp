@@ -151,6 +151,8 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     break;
   case state::display_name:
   {
+    summonsLabel.SetString(tfEvents.begin()->name);
+
     if (playerCountered) {
       playerCountered = false;
 
@@ -227,7 +229,6 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   if (tfEvents.empty()) return;
 
   const auto& first = tfEvents.begin();
-  static Text summonsLabel = Text(first->name, Font::Style::thick);
   static sf::Sprite alertSprite(*Textures().LoadFromFile("resources/ui/alert.png"));
 
   double scale = swoosh::ease::linear(summonTick.asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
@@ -258,6 +259,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     summonsLabel.setOrigin(summonsLabel.GetLocalBounds().width, summonsLabel.GetLocalBounds().height*0.5f);
   }
 
+  GetScene().DrawCustGauage(surface);
   surface.draw(GetScene().GetCardSelectWidget());
 
   summonsLabel.SetColor(sf::Color::Black);
@@ -375,6 +377,6 @@ void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> 
 
   tfEvents.insert(tfEvents.begin(), data);
 
-  Logger::Logf(LogLevel::info, "Added chip event: %s", data.name.c_str());
+  Logger::Logf(LogLevel::debug, "Added chip event: %s", data.name.c_str());
 }
 

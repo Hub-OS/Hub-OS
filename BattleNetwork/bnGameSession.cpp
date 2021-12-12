@@ -1,4 +1,5 @@
 #include "bnGameSession.h"
+#include "bnCardPackageManager.h"
 #include "netplay/bnBufferWriter.h"
 #include "netplay/bnBufferReader.h"
 
@@ -31,7 +32,7 @@ const bool GameSession::LoadSession(const std::string& inpath)
   while (keys_len-- > 0) {
     std::string key = reader.ReadString<char>(buffer);
     std::string val = reader.ReadString<char>(buffer);
-    SetKey(key, val);
+    SetKeyValue(key, val);
   }
 
   size_t pool_len = reader.Read<size_t>(buffer);
@@ -39,6 +40,59 @@ const bool GameSession::LoadSession(const std::string& inpath)
   while (pool_len-- > 0) {
     std::string card = reader.ReadTerminatedString(buffer);
     cardPool.push_back(card);
+  }
+
+  // create new collection
+  folders.ClearCollection();
+
+  if (!cardPackages) {
+    Logger::Log(LogLevel::critical, "In GameSession::LoadSession() cardPackages was nullptr! No card folders will be loaded.");
+    return false;
+  }
+
+  // get the folder collection size
+  size_t collection_len = reader.Read<size_t>(buffer);
+
+  for (size_t i = 0; i < collection_len; i++) {
+    CardFolder* folder;
+    
+    // read folder name
+    std::string folder_name = reader.ReadString<char>(buffer);
+    
+    if (!folders.MakeFolder(folder_name)) {
+      Logger::Logf(LogLevel::critical, "Unable to create folder `%s`", folder_name.c_str());
+      continue;
+    }
+
+    folders.GetFolder(folder_name, folder);
+
+    // save folder size
+    size_t folder_len = reader.Read<size_t>(buffer);
+
+    for (size_t j = 0; j < folder_len; j++) {
+      // read name
+      std::string id = reader.ReadString<char>(buffer);
+
+      // read code
+      char code = reader.Read<char>(buffer);
+
+      // read name 
+      std::string name = reader.ReadString<char>(buffer);
+
+      Battle::Card::Properties props;
+
+      if (cardPackages->HasPackage(id)) {
+        props = cardPackages->FindPackageByID(id).GetCardProperties();
+      }
+      else {
+        Logger::Logf(LogLevel::critical, "Unable to create battle card from mod package %s", id.c_str());
+        props.description = id;
+      }
+      props.uuid = id;
+      props.shortname = name;
+      props.code = code;
+      folder->AddCard(props);
+    }
   }
 
   file.close();
@@ -56,8 +110,10 @@ void GameSession::SaveSession(const std::string& outpath)
   if (!file.is_open())
     return;
 
+  // save nickname
   writer.WriteTerminatedString(buffer, nickname);
 
+  // save key-values
   size_t num_of_keys = keys.size();
   writer.Write(buffer, num_of_keys);
 
@@ -66,6 +122,7 @@ void GameSession::SaveSession(const std::string& outpath)
     writer.WriteString<char>(buffer, v);
   }
 
+  // save card pool
   size_t pool_len = cardPool.size();
   writer.Write(buffer, pool_len);
 
@@ -73,6 +130,40 @@ void GameSession::SaveSession(const std::string& outpath)
     writer.WriteTerminatedString(buffer, card);
   }
 
+  // save card folder collection size
+  std::vector<std::string> folder_names = folders.GetFolderNames();
+  size_t collection_len = folder_names.size();
+  writer.Write(buffer, collection_len);
+
+  for (const std::string& name : folder_names) {
+    CardFolder* folder;
+    if (folders.GetFolder(name, folder)) {
+      // save folder name
+      writer.WriteString<char>(buffer, name);
+
+      // save folder size
+      size_t folder_len = folder->GetSize();
+      writer.Write(buffer, folder_len);
+
+      // save folder contents
+      for (auto iter = folder->Begin(); iter != folder->End(); iter++) {
+        // save card id
+        std::string id = (*iter)->GetUUID();
+
+        // save card code
+        char code = (*iter)->GetCode();
+
+        // save card name
+        std::string name = (*iter)->GetShortName();
+
+        writer.WriteString<char>(buffer, id.c_str());
+        writer.WriteBytes<char>(buffer, &code, sizeof(char));
+        writer.WriteString<char>(buffer, name.c_str());
+      }
+    }
+  }
+
+  // copy to a std string so we can write-out to the file
   char* raw = new char [buffer.size()];
   std::memcpy(raw, buffer.begin(), buffer.size());
   std::string as_string = std::string(raw, buffer.size());
@@ -81,7 +172,7 @@ void GameSession::SaveSession(const std::string& outpath)
   delete[] raw;
 }
 
-void GameSession::SetKey(const std::string& key, const std::string& value)
+void GameSession::SetKeyValue(const std::string& key, const std::string& value)
 {
   auto iter = keys.find(key);
 
@@ -97,7 +188,12 @@ void GameSession::SetNick(const std::string& nickname) {
   this->nickname = nickname;
 }
 
-const std::string GameSession::GetValue(const std::string& key) const
+void GameSession::SetCardPackageManager(CardPackageManager& cardPackageManager)
+{
+  cardPackages = &cardPackageManager;
+}
+
+const std::string GameSession::GetKeyValue(const std::string& key) const
 {
   std::string res;
 
@@ -112,4 +208,9 @@ const std::string GameSession::GetValue(const std::string& key) const
 const std::string GameSession::GetNick() const
 {
   return nickname;
+}
+
+CardFolderCollection& GameSession::GetCardFolderCollection()
+{
+  return folders;
 }

@@ -17,8 +17,6 @@
 CombatBattleState::CombatBattleState(Mob* mob, std::vector<std::shared_ptr<Player>>& tracked, double customDuration) :
   mob(mob), 
   tracked(tracked), 
-  customDuration(customDuration),
-  customBarShader(Shaders().GetShader(ShaderType::CUSTOM_BAR)),
   pauseShader(Shaders().GetShader(ShaderType::BLACK_FADE))
 {
   // PAUSE
@@ -27,23 +25,10 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<std::shared_ptr<Playe
   pause.setOrigin(pause.getLocalBounds().width * 0.5f, pause.getLocalBounds().height * 0.5f);
   pause.setPosition(sf::Vector2f(240.f, 145.f));
 
-  // CHIP CUST GRAPHICS
-  auto customBarTexture = Textures().LoadFromFile("resources/ui/custom.png");
-  customBar.setTexture(customBarTexture);
-  customBar.setOrigin(customBar.getLocalBounds().width / 2, 0);
-  auto customBarPos = sf::Vector2f(240.f, 0.f);
-  customBar.setPosition(customBarPos);
-  customBar.setScale(2.f, 2.f);
-
+ 
   if (pauseShader) {
     pauseShader->setUniform("texture", sf::Shader::CurrentTexture);
     pauseShader->setUniform("opacity", 0.25f);
-  }
-
-  if (customBarShader) {
-    customBarShader->setUniform("texture", sf::Shader::CurrentTexture);
-    customBarShader->setUniform("factor", 0);
-    customBar.SetShader(customBarShader);
   }
 
   // COMBO DELETE AND COUNTER LABELS
@@ -89,7 +74,7 @@ const bool CombatBattleState::PlayerLost() const
 
 const bool CombatBattleState::PlayerRequestCardSelect()
 {
-  return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && GetScene().GetLocalPlayer()->InputState().Has(InputEvents::pressed_cust_menu);
+  return !this->isPaused && GetScene().IsCustGaugeFull() && !mob->IsCleared() && GetScene().GetLocalPlayer()->InputState().Has(InputEvents::pressed_cust_menu);
 }
 
 void CombatBattleState::EnablePausing(bool enable)
@@ -104,7 +89,6 @@ void CombatBattleState::SkipFrame()
 
 void CombatBattleState::onStart(const BattleSceneState* last)
 {
-  GetScene().SetCustomBarProgress(customDuration);
   GetScene().HighlightTiles(true); // re-enable tile highlighting
 
   // tracked[0] should be the client player
@@ -115,13 +99,7 @@ void CombatBattleState::onStart(const BattleSceneState* last)
     hasTimeFreeze = false;
 
     // reset bar and related flags
-    customProgress = 0;
-
-    if (customBarShader) {
-      customBarShader->setUniform("factor", 0);
-    }
-
-    isGaugeFull = false;
+    GetScene().SetCustomBarProgress(0);
   }
 }
 
@@ -133,11 +111,7 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
     GetScene().StopBattleStepTimer();
 
     // reset bar 
-    customProgress = 0;
-
-    if (customBarShader) {
-      customBarShader->setUniform("factor", 0);
-    }
+    GetScene().SetCustomBarProgress(0);
   }
 
   GetScene().HighlightTiles(false);
@@ -146,13 +120,15 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
 
 void CombatBattleState::onUpdate(double elapsed)
 {  
+  BattleSceneBase& scene = GetScene();
+
   if (skipFrame) {
     skipFrame = false;
     return;
   }
 
   if (elapsed > 0.0) {
-    GetScene().IncrementFrame();
+    scene.IncrementFrame();
   }
 
   if ((mob->IsCleared() || tracked[0]->GetHealth() == 0 )&& !clearedMob) {
@@ -162,7 +138,7 @@ void CombatBattleState::onUpdate(double elapsed)
       cardUI->Hide();
     }
 
-    GetScene().BroadcastBattleStop();
+    scene.BroadcastBattleStop();
 
     clearedMob = true;
   }
@@ -171,14 +147,14 @@ void CombatBattleState::onUpdate(double elapsed)
     if (isPaused) {
       // unpauses
       // Require to stop the battle step timer and all battle-related component updates
-      GetScene().StartBattleStepTimer();
+      scene.StartBattleStepTimer();
     }
     else {
       // pauses
       Audio().Play(AudioType::PAUSE);
 
       // Require to start the timer again and all battle-related component updates
-      GetScene().StopBattleStepTimer();
+      scene.StopBattleStepTimer();
     }
 
     // toggles 
@@ -187,21 +163,11 @@ void CombatBattleState::onUpdate(double elapsed)
 
   if (isPaused) return; // do not update anything else
 
-  customProgress += elapsed;
-  GetScene().SetCustomBarProgress(customProgress/customDuration);
+  scene.SetCustomBarProgress(scene.GetCustomBarProgress() + elapsed);
 
   // Update the field. This includes the player.
   // After this function, the player may have used a card.
-  GetScene().GetField()->Update((float)elapsed);
-
-  if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
-    isGaugeFull = true;
-    Audio().Play(AudioType::CUSTOM_BAR_FULL);
-  }
-
-  if (customBarShader) {
-    customBarShader->setUniform("factor", (float)(customProgress / customDuration));
-  }
+  scene.GetField()->Update((float)elapsed);
 }
 
 void CombatBattleState::onDraw(sf::RenderTexture& surface)
@@ -221,9 +187,7 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
 
   surface.draw(GetScene().GetCardSelectWidget());
 
-  if (!mob->IsCleared()) {
-    surface.draw(customBar);
-  }
+  GetScene().DrawCustGauage(surface);
 
   if (isPaused) {
     // render on top

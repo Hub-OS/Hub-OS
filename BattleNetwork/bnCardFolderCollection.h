@@ -82,6 +82,15 @@ public:
   }
 
   /**
+  * @brief Clears all folders and reset the collection object
+  * @warning Un-cloned pointer references to any existing folder will be invalid!
+  */
+  void ClearCollection() {
+    order.clear();
+    collection.clear();
+  }
+
+  /**
    * @brief Get the folder by name
    * @param name of the folder to get
    * @param folder handle to the folder 

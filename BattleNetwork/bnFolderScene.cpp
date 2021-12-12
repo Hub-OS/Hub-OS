@@ -10,7 +10,6 @@
 #include "bnFolderEditScene.h"
 #include "bnFolderChangeNameScene.h"
 #include "Segues/BlackWashFade.h"
-#include "bnCardLibrary.h"
 #include "bnCardFolder.h"
 #include "bnPlayerPackageManager.h"
 #include "bnCardPackageManager.h"
@@ -107,6 +106,9 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
 
   equipAnimation.Update(0,folderEquip);
   folderCursorAnimation.Update(0, folderCursor);
+
+  noPreview = Textures().LoadFromFile(TexturePaths::CHIP_MISSINGDATA);
+  noIcon = Textures().LoadFromFile(TexturePaths::CHIP_ICON_MISSINGDATA);
 
   maxCardsOnScreen = 5;
   currCardIndex = 0;
@@ -378,12 +380,12 @@ void FolderScene::onUpdate(double elapsed) {
 
             // Save this session data
             auto folderStr = collection.GetFolderNames()[0];
-            auto naviSelectedStr = session.GetValue("SelectedNavi");
+            auto naviSelectedStr = session.GetKeyValue("SelectedNavi");
             
             if (naviSelectedStr.empty()) 
               naviSelectedStr = getController().PlayerPackageManager().FirstValidPackage();
             
-            session.SetKey("FolderFor:" + naviSelectedStr, folderStr);
+            session.SetKeyValue("FolderFor:" + naviSelectedStr, folderStr);
 
             Audio().Play(AudioType::PA_ADVANCE);
           }
@@ -619,10 +621,23 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       std::string id = (*iter)->GetUUID();
       if (id.empty()) continue;
 
+      bool hasID = packageManager.HasPackage(id);
+
       float cardIconY = 132.0f + (32.f * i);
 
-      cardIcon.setTexture(*packageManager.FindPackageByID(id).GetIconTexture());
-      cardIcon.setPosition(2.f*99.f, cardIconY);
+      if (hasID) {
+        cardIcon.setTexture(*packageManager.FindPackageByID(id).GetIconTexture());        
+        // make the cardLabel white
+        cardLabel.SetColor(sf::Color::White);
+      }
+      else {
+        cardIcon.setTexture(*noIcon);
+
+        // make the cardLabel red
+        cardLabel.SetColor(sf::Color::Red);
+      }
+
+      cardIcon.setPosition(2.f * 99.f, cardIconY);
       surface.draw(cardIcon);
 
       cardLabel.setPosition(2.f*115.f, cardIconY + 4.0f);

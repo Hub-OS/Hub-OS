@@ -8,10 +8,10 @@
 
 #include "bnFolderEditScene.h"
 #include "Segues/BlackWashFade.h"
-#include "bnCardLibrary.h"
 #include "bnCardFolder.h"
 #include "bnCardPackageManager.h"
 #include "Android/bnTouchArea.h"
+#include "stx/string.h"
 
 #include <SFML/Graphics.hpp>
 using sf::RenderWindow;
@@ -24,94 +24,69 @@ using sf::Event;
 // 3. If no linebreak can be cleanly placed at the last word start position,
 //    it will break that word where the new line must start
 // 4. To finish off, if the char limit goes over 29, then it will trim the string
-std::string FolderEditScene::FormatCardDesc(const std::string&& desc)
+std::string FolderEditScene::FormatCardDesc(const std::string& desc)
 {
     std::string output = desc;
-
-    auto bothAreSpaces = [](char lhs, char rhs) -> bool { return (lhs == rhs) && (lhs == ' '); };
-
-    std::string::iterator new_end = std::unique(output.begin(), output.end(), bothAreSpaces);
-    output.erase(new_end, output.end());
-
     std::string escaped_newline = "\\n";
     std::string newline = "\n";
+    std::string space = " ";
 
-    std::string::size_type i = output.find(escaped_newline);
+    output = stx::replace(output, escaped_newline, space);
+    output = stx::replace(output, newline, space);
+    output = stx::replace(output, space+space, space);
 
-    while (i != std::string::npos) {
-        output.erase(i, escaped_newline.length());
-        output.insert(i, " "); // replace with space
-        i = output.find(escaped_newline);
+    std::vector<std::string> words = stx::tokenize(output, space.c_str()[0]);
+
+    output.clear();
+    size_t line_len = 0;
+    size_t row_limit = 3;
+    size_t row_count = 0;
+    auto check_line = [&line_len, &output, &row_count, row_limit](const std::string& str) {
+      if (line_len + str.size() > 9) {
+        output += "\n";
+        row_count++;
+        line_len = 0;
+
+        if (row_count == row_limit) return;
+      }
+
+      output += str;
+      line_len += str.size();
+    };
+
+    for (std::string& w : words) {
+      size_t word_len = w.size();
+      std::vector<std::string> word_pieces;
+
+      size_t last_letter = 0;
+      for (size_t i = 0; i <= word_len; i++) {
+        bool break_here = (i == word_len) || (i % 9 == 0 && i > 0);
+
+        if (!break_here) continue;
+
+        word_pieces.push_back(w.substr(last_letter, (i-last_letter)));
+        last_letter = i;
+      }
+
+      // we will always have at least one word
+      for (std::string& p : word_pieces) {
+        check_line(p);
+      }
+
+      if (output[output.size() - 1] != '\n' && line_len+1 < 9) {
+        check_line(space);
+      }
+
+      // quit early to prevent breaking formatting
+      if (row_count == row_limit) {
+        break;
+      }
     }
 
-    /* std::string::size_type */ i = output.find(newline);
+    Logger::Logf(LogLevel::debug, "FormatCardDesc() output text is %s", output.c_str());
 
-    while (i != std::string::npos) {
-        output.erase(i, newline.length());
-        output.insert(i, " "); // replace with space
-        i = output.find(newline);
-    }
-
-    int index = 0;
-    int perLine = 0;
-    int line = 0;
-    int wordIndex = 0; // If we are breaking on a word
-
-    bool finished = false;
-
-    while (index != output.size() && !finished) {
-
-        // Only allow 9 letters
-        if (perLine > 0 && perLine % 9 == 0) {
-            if (wordIndex > -1) {
-                if (index == wordIndex + 8) {
-                    wordIndex = index; // We have no choice but to cut off part of this lengthy word
-                }
-                // Line break at the last word if we continue...
-                if (output[index] != ' ') {
-                    output.insert(wordIndex, "\n");
-                    index = wordIndex; // Start counting from here
-                    while (output[index] == ' ') { output.erase(index, 1); }
-                }
-                else {
-                    output.insert(index, "\n"); index++;
-                    while (output[index] == ' ') { output.erase(index, 1); }
-                }
-            }
-            else {
-                // Line break at the next word
-                while (output[index - 1] == ' ') { output.erase(index - 1, 1); index--; }
-                output.insert(index, "\n"); index++;
-                while (output[index] == ' ') { output.erase(index, 1); }
-            }
-            line++;
-
-            if (line == 3) {
-                output = output.substr(0, index + 1);
-                output[output.size() - 1] = '-'; // TODO: font glyph will show an elipses
-                finished = true;
-            }
-
-            perLine = -1;
-            wordIndex = -1;
-        }
-
-        if (output[index] != ' ' && wordIndex == -1) {
-            wordIndex = index;
-        }
-        else if (output[index] == ' ' && wordIndex > -1) {
-            wordIndex = -1;
-        }
-
-        perLine++;
-        index++;
-    }
-
-    // Card docks only fit 9 chars per line + 2 possible linebreak chars
-    if (output.size() > (3 * 9) + 2) {
-        output = output.substr(0, (3 * 9) + 2);
-        output[output.size() - 1] = '-'; // TODO: font glyph will show an elipses
-    }
+    output.resize(std::min(output.size(), (size_t)(9 * 3)));
+    output.shrink_to_fit();
 
     return output;
 }
@@ -218,6 +193,9 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
     cardIcon = sf::Sprite();
     cardIcon.setTextureRect(sf::IntRect(0, 0, 14, 14));
     cardIcon.setScale(2.f, 2.f);
+
+    noPreview = Textures().LoadFromFile(TexturePaths::CHIP_MISSINGDATA);
+    noIcon = Textures().LoadFromFile(TexturePaths::CHIP_ICON_MISSINGDATA);
 
     cardRevealTimer.start();
     easeInTimer.start();
@@ -385,7 +363,6 @@ void FolderEditScene::onUpdate(double elapsed) {
                                 auto slot = PoolBucket(1, copy);
                                 poolCardBuckets.push_back(slot);
                                 packView.numOfCards++;
-                                CHIPLIB.AddCard(copy);
                                 bool gotCard = true;
                             }
                             else {
@@ -792,13 +769,19 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
     for (int i = 0; i < folderView.maxCardsOnScreen && folderView.lastCardOnScreen + i < folderView.numOfCards; i++) {
         if (!iter->IsEmpty()) {
             const Battle::Card& copy = iter->ViewCard();
+            bool hasID = getController().CardPackageManager().HasPackage(copy.GetUUID());
+
+            cardLabel.SetColor(sf::Color::White);
+
+            if (!hasID) {
+              cardLabel.SetColor(sf::Color::Red);
+            } 
 
             float cardIconY = 66.0f + (32.f * i);
             cardIcon.setTexture(*GetIconForCard(copy.GetUUID()));
             cardIcon.setPosition(2.f * 104.f, cardIconY);
             surface.draw(cardIcon);
 
-            cardLabel.SetColor(sf::Color::White);
             cardLabel.setPosition(2.f * 120.f, cardIconY + 4.0f);
             cardLabel.SetString(copy.GetShortName());
             surface.draw(cardLabel);
@@ -829,7 +812,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
             limitLabel2.setPosition(2.f * 210.f, cardIconY + 2.f);
             surface.draw(limitLabel2);
         }
-        // Draw cursor
+        // Draw card at the cursor
         if (folderView.lastCardOnScreen + i == folderView.currCardIndex) {
             auto y = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().y, 64.0f + (32.f * i));
             auto bounce = std::sin((float)totalTimeElapsed * 10.0f) * 5.0f;
@@ -849,7 +832,6 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
                     cardLabel.SetString(std::to_string(copy.GetDamage()));
                     cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
                     cardLabel.setPosition(2.f * 80.f, 142.f);
-
                     surface.draw(cardLabel);
                 }
 
@@ -858,6 +840,11 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
                 cardLabel.setPosition(2.f * 16.f, 142.f);
                 cardLabel.SetString(std::string() + copy.GetCode());
                 surface.draw(cardLabel);
+
+                if (!getController().CardPackageManager().HasPackage(copy.GetUUID())) {
+                  static volatile int i = 3;
+                  i++;
+                }
 
                 std::string formatted = FormatCardDesc(copy.GetDescription());
                 cardDesc.SetString(formatted);
@@ -1037,22 +1024,6 @@ void FolderEditScene::PlaceFolderDataIntoCardSlots()
 
 void FolderEditScene::PlaceLibraryDataIntoBuckets()
 {
-    CardLibrary::Iter iter = CHIPLIB.Begin();
-    std::map<Battle::Card, bool, Battle::Card::Compare> visited; // visit table
-
-    while (iter != CHIPLIB.End()) {
-        if (visited.find(*iter) != visited.end()) {
-            iter++;
-            continue;
-        }
-
-        visited[(*iter)] = true;
-        int count = CHIPLIB.GetCountOf(*iter);
-        auto bucket = PoolBucket(count, Battle::Card(*iter));
-        poolCardBuckets.push_back(bucket);
-        iter++;
-    }
-
     auto& packageManager = getController().CardPackageManager();
     std::string packageId = packageManager.FirstValidPackage();
 
@@ -1087,7 +1058,7 @@ std::shared_ptr<sf::Texture> FolderEditScene::GetIconForCard(const std::string& 
   auto& packageManager = getController().CardPackageManager();
 
   if (!packageManager.HasPackage(uuid))
-    return nullptr;
+    return noIcon;
 
   auto& meta = packageManager.FindPackageByID(uuid);
   return meta.GetIconTexture();
@@ -1097,7 +1068,7 @@ std::shared_ptr<sf::Texture> FolderEditScene::GetPreviewForCard(const std::strin
   auto& packageManager = getController().CardPackageManager();
 
   if (!packageManager.HasPackage(uuid))
-    return nullptr;
+    return noPreview;
 
   auto& meta = packageManager.FindPackageByID(uuid);
   return meta.GetPreviewTexture();
