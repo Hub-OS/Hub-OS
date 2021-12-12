@@ -90,6 +90,8 @@ void ScriptedCharacter::OnBattleStart() {
       Logger::Log(LogLevel::critical, result.error_cstr());
     }
   }
+
+  Character::OnBattleStart();
 }
 
 void ScriptedCharacter::OnBattleStop() {
