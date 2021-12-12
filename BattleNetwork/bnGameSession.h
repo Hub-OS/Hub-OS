@@ -2,20 +2,27 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "bnCardFolderCollection.h"
+
+class CardPackageManager;
 
 class GameSession {
   using KeyItem = std::pair<std::string, std::string>;
+  CardFolderCollection folders;
   std::vector<std::string> cardPool;
   std::vector<KeyItem> keyItems;
   std::map<std::string, std::string> keys; // key-value table
   uint32_t monies{}; //!< Monies on the account
   std::string nickname = "Anon";
 
+  CardPackageManager* cardPackages{ nullptr };
 public:
   const bool LoadSession(const std::string& inpath);
   void SaveSession(const std::string& outpath);
-  void SetKey(const std::string& key, const std::string& value);
+  void SetKeyValue(const std::string& key, const std::string& value);
   void SetNick(const std::string& nickname);
-  const std::string GetValue(const std::string& key) const;
+  void SetCardPackageManager(CardPackageManager& cardPackageManager);
+  const std::string GetKeyValue(const std::string& key) const;
   const std::string GetNick() const;
+  CardFolderCollection& GetCardFolderCollection();
 };

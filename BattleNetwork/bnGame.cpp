@@ -76,6 +76,7 @@ Game::Game(DrawWindow& window) :
 
   // Game session object needs to be available to every scene
   session = new GameSession;
+  session->SetCardPackageManager(*cardPackageManager);
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...

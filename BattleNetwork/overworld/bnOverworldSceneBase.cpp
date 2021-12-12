@@ -90,9 +90,10 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   auto& session = getController().Session();
   bool loaded = session.LoadSession("profile.bin");
 
-  if (loaded) {
-    //folders = session.ReadFolders();
+  // folders may be blank if session was unable to load a collection
+  folders = &session.GetCardFolderCollection();
 
+  if (loaded) {
     NaviEquipSelectedFolder();
   }
 
@@ -559,22 +560,22 @@ void Overworld::SceneBase::RefreshNaviSprite()
 void Overworld::SceneBase::NaviEquipSelectedFolder()
 {
   auto& session = getController().Session();
-  auto naviId = session.GetValue("SelectedNavi");
+  auto naviId = session.GetKeyValue("SelectedNavi");
   if (!naviId.empty()) {
     currentNaviId = naviId;
     RefreshNaviSprite();
 
-    auto folderStr = session.GetValue("FolderFor:" + naviId);
+    auto folderStr = session.GetKeyValue("FolderFor:" + naviId);
     if (!folderStr.empty()) {
       // preserve our selected folder
-      if (int index = folders.FindFolder(folderStr); index >= 0) {
-        folders.SwapOrder(index, 0); // Select this folder again
+      if (int index = folders->FindFolder(folderStr); index >= 0) {
+        folders->SwapOrder(index, 0); // Select this folder again
       }
     }
   }
   else {
     currentNaviId = getController().PlayerPackageManager().FirstValidPackage();
-    session.SetKey("SelectedNavi", currentNaviId);
+    session.SetKeyValue("SelectedNavi", currentNaviId);
   }
 }
 
@@ -791,8 +792,13 @@ void Overworld::SceneBase::GotoChipFolder()
 {
   Audio().Play(AudioType::CHIP_DESC);
 
+  if (!folders) {
+    Logger::Log(LogLevel::debug, "folder collection was nullptr");
+    return;
+  }
+
   using effect = segue<PushIn<direction::left>, milliseconds<500>>;
-  getController().push<effect::to<FolderScene>>(folders);
+  getController().push<effect::to<FolderScene>>(*folders);
 }
 
 void Overworld::SceneBase::GotoNaviSelect()
@@ -818,7 +824,7 @@ void Overworld::SceneBase::GotoMobSelect()
   std::unique_ptr<CardFolder> folder;
   CardFolder* f = nullptr;
 
-  if (folders.GetFolder(0, f)) {
+  if (folders->GetFolder(0, f)) {
     folder = f->Clone();
   } else {
     folder = std::make_unique<CardFolder>();
@@ -836,7 +842,7 @@ void Overworld::SceneBase::GotoPVP()
 
   CardFolder* f = nullptr;
 
-  if (folders.GetFolder(0, f)) {
+  if (folders->GetFolder(0, f)) {
     folder = f->Clone();
   } else {
     folder = std::make_unique<CardFolder>();
@@ -937,7 +943,7 @@ PA& Overworld::SceneBase::GetProgramAdvance() {
 std::optional<CardFolder*> Overworld::SceneBase::GetSelectedFolder() {
   CardFolder* folder;
 
-  if (folders.GetFolder(0, folder)) {
+  if (folders->GetFolder(0, folder)) {
     return folder;
   }
   else {

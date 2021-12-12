@@ -442,7 +442,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
       prevChosenId = currentChosenId;
       naviSelectionId = currentChosenId;
-      getController().Session().SetKey("SelectedNavi", naviSelectionId);
+      getController().Session().SetKeyValue("SelectedNavi", naviSelectionId);
     }
     else if(owTextbox.IsClosed()) {
       owTextbox.EnqueueQuestion("Open Navi Cust?", [this](bool result) {

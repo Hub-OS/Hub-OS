@@ -378,12 +378,12 @@ void FolderScene::onUpdate(double elapsed) {
 
             // Save this session data
             auto folderStr = collection.GetFolderNames()[0];
-            auto naviSelectedStr = session.GetValue("SelectedNavi");
+            auto naviSelectedStr = session.GetKeyValue("SelectedNavi");
             
             if (naviSelectedStr.empty()) 
               naviSelectedStr = getController().PlayerPackageManager().FirstValidPackage();
             
-            session.SetKey("FolderFor:" + naviSelectedStr, folderStr);
+            session.SetKeyValue("FolderFor:" + naviSelectedStr, folderStr);
 
             Audio().Play(AudioType::PA_ADVANCE);
           }
