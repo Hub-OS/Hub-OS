@@ -399,6 +399,33 @@ bool PlayerCustScene::isCompileFinished()
   return progress >= maxProgressTime; // in seconds
 }
 
+// static public function to return valid packages from the session key
+std::vector<std::string> PlayerCustScene::getInstalledBlocks(const std::string& playerID, const GameSession& session)
+{
+  std::vector<std::string> res;
+
+  std::string value = session.GetKeyValue(playerID + ":" + "blocks");
+  if (value.empty()) return res;
+
+  Poco::Buffer<char> buffer{ value.c_str(), value.size() };
+  BufferReader reader;
+
+  size_t size = reader.Read<size_t>(buffer);
+  for (size_t i = 0; i < size; i++) {
+    std::string uuid = reader.ReadTerminatedString(buffer);
+
+    bool isValid = reader.Read<bool>(buffer);
+    reader.Read<size_t>(buffer); // skip center
+    reader.Read<size_t>(buffer); // skip rot
+
+    if (isValid) {
+      res.push_back(uuid);
+    }
+  }
+
+  return res;
+}
+
 void PlayerCustScene::loadFromSave()
 {
   std::string value = getController().Session().GetKeyValue(playerUUID + ":" + "blocks");
@@ -439,13 +466,22 @@ void PlayerCustScene::completeAndSave()
   Poco::Buffer<char> buffer{ 0 };
   BufferWriter writer;
 
-  writer.Write(buffer, centerHash.size());
+  size_t valid_entry_len = 0;
+
+  // scan ahead to discover the real hash length
+  for (auto& [piece, center] : centerHash) {
+    if (center == BAD_GRID_POS) continue;
+    valid_entry_len++;
+  }
+
+  writer.Write(buffer, valid_entry_len);
   for (auto& [piece, center] : centerHash) {
     if (center == BAD_GRID_POS) continue;
 
     bool isValid = isBlockValid(piece);
+
     writer.WriteTerminatedString(buffer, piece->uuid);
-    writer.WriteBytes(buffer, &isValid, sizeof(bool));
+    writer.Write(buffer, isValid);
     writer.Write(buffer, center);
     writer.Write(buffer, piece->finalRot);
   }
@@ -1479,32 +1515,6 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
 
   // textbox is top over everything
   surface.draw(textbox);
-}
-
-std::vector<std::string> PlayerCustScene::getInstalledBlocks(const std::string& playerID, const GameSession& session)
-{
-  std::vector<std::string> res;
-
-  std::string value = session.GetKeyValue(playerID + ":" + "blocks");
-  if (value.empty()) return res;
-
-  Poco::Buffer<char> buffer{ value.c_str(), value.size() };
-  BufferReader reader;
-
-  size_t size = reader.Read<size_t>(buffer);
-  for (size_t i = 0; i < size; i++) {
-    std::string uuid = reader.ReadTerminatedString(buffer);
-
-    bool isValid = reader.Read<bool>(buffer);
-    reader.Read<size_t>(buffer); // skip center
-    reader.Read<size_t>(buffer); // skip rot
-
-    if (isValid) {
-      res.push_back(uuid);
-    }
-  }
-
-  return res;
 }
 
 void PlayerCustScene::onEnd()

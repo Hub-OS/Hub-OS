@@ -8,7 +8,9 @@
 #include "../bnPackageManager.h"
 #include "../bnPlayerPackageManager.h"
 #include "../bnCardPackageManager.h"
+#include "../bnBlockPackageManager.h"
 #include "../bindings/bnScriptedCard.h"
+#include "../bindings/bnScriptedBlock.h"
 #include <Segues/PixelateBlackWashFade.h>
 
 constexpr std::string_view CACHE_FOLDER = "cache";
@@ -18,13 +20,18 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   lastScreen(props.lastScreen),
   playerHash(props.playerHash),
   remotePlayerHash(props.remotePlayerHash),
+  remoteBlockHash(props.remotePlayerBlocks),
   label(Font::Style::tiny),
   Scene(ac)
 {
   playerCardPackageList = props.cardPackageHashes;
+  playerBlockPackageList = props.blockPackageHashes;
 
   std::sort(playerCardPackageList.begin(), playerCardPackageList.end());
   playerCardPackageList.erase(std::unique(playerCardPackageList.begin(), playerCardPackageList.end()), playerCardPackageList.end());
+
+  std::sort(playerBlockPackageList.begin(), playerBlockPackageList.end());
+  playerBlockPackageList.erase(std::unique(playerBlockPackageList.begin(), playerBlockPackageList.end()), playerBlockPackageList.end());
 
   downloadSuccess = false; 
 
@@ -81,7 +88,7 @@ void DownloadScene::RemoveFromDownloadList(const std::string& id)
 
 bool DownloadScene::AllTasksComplete()
 {
-  return cardPackageRequested && playerPackageRequested && contentToDownload.empty();
+  return cardPackageRequested && playerPackageRequested && blockPackageRequested && contentToDownload.empty();
 }
 
 void DownloadScene::TradePlayerPackageData(const std::string& hash)
@@ -95,8 +102,14 @@ void DownloadScene::TradePlayerPackageData(const std::string& hash)
 
 void DownloadScene::TradeCardPackageData(const std::vector<std::string>& hashes)
 {
-  // Upload card list to remote. Track as the handshake.
+  // Upload card list to remote
   packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::trade_card_package_list, hashes));
+}
+
+void DownloadScene::TradeBlockPackageData(const std::vector<std::string>& hashes)
+{
+  // Upload card list to remote
+  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::trade_block_package_list, hashes));
 }
 
 void DownloadScene::RequestPlayerPackageData(const std::string& hash)
@@ -114,6 +127,17 @@ void DownloadScene::RequestCardPackageList(const std::vector<std::string>& hashe
     BufferWriter writer;
     Poco::Buffer<char> buffer{ 0 };
     writer.Write<NetPlaySignals>(buffer, NetPlaySignals::card_package_request);
+    writer.WriteTerminatedString(buffer, hash);
+    packetProcessor->SendPacket(Reliability::Reliable, buffer);
+  }
+}
+
+void DownloadScene::RequestBlockPackageList(const std::vector<std::string>& hashes)
+{
+  for (auto& hash : hashes) {
+    BufferWriter writer;
+    Poco::Buffer<char> buffer{ 0 };
+    writer.Write<NetPlaySignals>(buffer, NetPlaySignals::block_package_request);
     writer.WriteTerminatedString(buffer, hash);
     packetProcessor->SendPacket(Reliability::Reliable, buffer);
   }
@@ -154,6 +178,10 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     Logger::Logf(LogLevel::info, "Remote is requesting to compare the card packages...");
     this->RecieveTradeCardPackageData(body);
     break;
+  case NetPlaySignals::trade_block_package_list:
+    Logger::Logf(LogLevel::info, "Remote is requesting to compare the block packages...");
+    this->RecieveTradeBlockPackageData(body);
+    break;
   case NetPlaySignals::trade_player_package:
     Logger::Logf(LogLevel::info, "Remote is requesting to compare the player packages...");
     this->RecieveTradePlayerPackageData(body);
@@ -166,9 +194,17 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     Logger::Logf(LogLevel::info, "Remote is requesting to download a card package...");
     this->RecieveRequestCardPackageData(body);
     break;
+  case NetPlaySignals::block_package_request:
+    Logger::Logf(LogLevel::info, "Remote is requesting to download a block package...");
+    this->RecieveRequestBlockPackageData(body);
+    break;
   case NetPlaySignals::card_package_download:
     Logger::Logf(LogLevel::info, "Downloading card package...");
     this->DownloadPackageData<CardPackageManager, ScriptedCard>(body, getController().CardPackageManager());
+    break;
+  case NetPlaySignals::block_package_download:
+    Logger::Logf(LogLevel::info, "Downloading block package...");
+    this->DownloadPackageData<BlockPackageManager, ScriptedBlock>(body, getController().BlockPackageManager());
     break;
   case NetPlaySignals::player_package_download:
     Logger::Logf(LogLevel::info, "Downloading player package...");
@@ -205,6 +241,35 @@ void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer
     Logger::Logf(LogLevel::info, "Nothing to download.");
   }
   cardPackageRequested = true;
+}
+
+void DownloadScene::RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffer)
+{
+  auto packageList = DeserializeListOfStrings(buffer);
+
+  std::vector<std::string> retryList;
+
+  auto& packageManager = getController().BlockPackageManager();
+  for (auto& remoteHash : packageList) {
+    remoteBlockHash.push_back(remoteHash);
+
+    if (!packageManager.HasPackage(remoteHash)) {
+      retryList.push_back(remoteHash);
+      contentToDownload[remoteHash] = "Downloading";
+    }
+  }
+
+  Logger::Logf(LogLevel::info, "Recieved remote's block package list size: %d", packageList.size());
+
+  // move to the next state
+  if (retryList.size()) {
+    Logger::Logf(LogLevel::info, "Need to download %d block packages", packageList.size());
+    RequestBlockPackageList(retryList);
+  }
+  else {
+    Logger::Logf(LogLevel::info, "Nothing to download.");
+  }
+  blockPackageRequested = true;
 }
 
 void DownloadScene::RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer)
@@ -254,6 +319,24 @@ void DownloadScene::RecieveRequestCardPackageData(const Poco::Buffer<char>& buff
         NetPlaySignals::card_package_download,
         getController().CardPackageManager()
       )
+    );
+  }
+}
+
+void DownloadScene::RecieveRequestBlockPackageData(const Poco::Buffer<char>& buffer)
+{
+  BufferReader reader;
+  std::string hash = reader.ReadTerminatedString(buffer);
+
+  if (!hash.empty()) {
+    Logger::Logf(LogLevel::info, "Recieved download request for %s block package", hash.c_str());
+
+    packetProcessor->SendPacket(Reliability::BigData,
+      SerializePackageData<BlockPackageManager>(
+        hash,
+        NetPlaySignals::block_package_download,
+        getController().BlockPackageManager()
+        )
     );
   }
 }
@@ -386,7 +469,7 @@ void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, Packag
   }
 
   if (result.is_error()) {
-    Logger::Logf(LogLevel::critical, "Failed to download card package with hash %s: %s", hash.c_str(), result.error_cstr());
+    Logger::Logf(LogLevel::critical, "Failed to download package with hash %s: %s", hash.c_str(), result.error_cstr());
 
     // There was a problem creating the file
     SendDownloadComplete(false);
@@ -458,6 +541,7 @@ void DownloadScene::onUpdate(double elapsed)
   if (!hasTradedData) {
     hasTradedData = true;
 
+    this->TradeBlockPackageData(playerBlockPackageList);
     this->TradeCardPackageData(playerCardPackageList);
     this->TradePlayerPackageData(playerHash);
     return;

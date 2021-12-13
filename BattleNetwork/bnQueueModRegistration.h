@@ -56,6 +56,8 @@ static inline void QueueModRegistration(PackageManagerT& packageManager, const c
   std::map<std::string, bool> ignoreList;
   std::vector<std::string> zipList;
 
+  std::filesystem::create_directories(modPath);
+
   for (const auto& entry : std::filesystem::directory_iterator(modPath)) {
     auto full_path = std::filesystem::absolute(entry).string();
 

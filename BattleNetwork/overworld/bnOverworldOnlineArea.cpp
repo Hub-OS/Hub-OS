@@ -22,7 +22,9 @@
 #include "../bnMath.h"
 #include "../bnMobPackageManager.h"
 #include "../bnPlayerPackageManager.h"
+#include "../bnBlockPackageManager.h"
 #include "../bnMessageQuestion.h"
+#include "../bnPlayerCustScene.h"
 #include "../battlescene/bnMobBattleScene.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
@@ -2185,11 +2187,23 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
       }
     }
 
+    std::vector<std::string> selectedNaviBlocks;
+
+    BlockPackageManager& blockPackages = getController().BlockPackageManager();
+    GameSession& session = getController().Session();
+    for (std::string& blockID : PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session)) {
+      if (!blockPackages.HasPackage(blockID)) continue;
+
+      selectedNaviBlocks.push_back(blockID);
+    }
+
     DownloadSceneProps props = {
       this->canProceedToBattle,
       cardPackages,
+      selectedNaviBlocks,
       GetCurrentNaviID(),
       this->remoteNaviId,
+      this->remoteNaviBlocks,
       remote,
       netBattleProcessor,
       screen
@@ -2240,13 +2254,19 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
 
+    auto& remoteMeta = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
+    auto remotePlayer = std::shared_ptr<Player>(meta.GetData());
+    remotePlayer->Init();
+
     NetworkBattleSceneProps props = {
       { player, GetProgramAdvance(), std::move(folder), std::make_shared<Field>(6, 3), GetBackground() },
       sf::Sprite(*mugshot),
       mugshotAnim,
       emotions,
       config,
-      netBattleProcessor
+      netBattleProcessor,
+      remotePlayer,
+      remoteNaviBlocks
     };
 
     BattleResultsFunc callback = [this](const BattleResults& results) {
@@ -2255,6 +2275,17 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
     returningFrom = ReturningScene::BattleScene;
     getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
+
+    // After the battle scene's constructor, run the block programs over the player ptr
+    // This ensures they are spawned on the field by now to access the field ptr in the block programs
+    BlockPackageManager& blockPackages = getController().BlockPackageManager();
+    GameSession& session = getController().Session();
+    for (std::string& blockID : PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session)) {
+      if (!blockPackages.HasPackage(blockID)) continue;
+
+      auto& blockMeta = blockPackages.FindPackageByID(blockID);
+      blockMeta.mutator(*player);
+    }
   });
 }
 

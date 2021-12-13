@@ -64,6 +64,8 @@ struct NetworkBattleSceneProps {
   std::shared_ptr<sf::Texture> emotion; // emotion atlas image
   NetPlayConfig& netconfig;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
+  std::shared_ptr<Player> remotePlayer;
+  std::vector<std::string> remoteBlocks; // Add-ons the remote player has
 };
 
 struct FrameInputData {
@@ -107,19 +109,19 @@ private:
   // netcode send funcs
   void SendHandshakeSignal(); // send player data to start the next round
   void SendFrameData(std::vector<InputEvent>& events); // send our key or gamepad events along with frame data
-  void SendConnectSignal(const std::string& naviId);
   void SendChangedFormSignal(const int form);
   void SendPingSignal();
 
   // netcode recieve funcs
   void RecieveHandshakeSignal(const Poco::Buffer<char>& buffer);
   void RecieveFrameData(const Poco::Buffer<char>& buffer); 
-  void RecieveConnectSignal(const Poco::Buffer<char>&);
   void RecieveChangedFormSignal(const Poco::Buffer<char>&);
 
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
   bool IsRemoteBehind();
   void UpdatePingIndicator(frame_time_t frames);
+  void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer, const std::vector<std::string>& remoteBlocks);
+
 public:
   using BattleSceneBase::ProcessNewestComponents;
 

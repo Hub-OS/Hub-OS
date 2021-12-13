@@ -6,6 +6,7 @@
 #include "bnNetworkBattleScene.h"
 #include "../../bnFadeInState.h"
 #include "../../bnElementalDamage.h"
+#include "../../bnBlockPackageManager.h"
 
 // states 
 #include "states/bnNetworkSyncBattleState.h"
@@ -136,7 +137,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   // Lambda event callback that captures and handles network card select screen opening
   auto onCardSelectEvent = [this]() mutable {
     bool remoteRequestedChipSelect = this->remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
-    return combatPtr->PlayerRequestCardSelect() || remoteRequestedChipSelect;
+    return combatPtr->PlayerRequestCardSelect() || (remoteRequestedChipSelect && this->IsCustGaugeFull());
   };
 
   // combat has multiple state interruptions based on events
@@ -173,6 +174,16 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(syncState);
   LoadMob(*mob);
+
+  // Subscribe to player's events
+  combatPtr->Subscribe(*GetLocalPlayer());
+  timeFreezePtr->Subscribe(*GetLocalPlayer());
+
+  // Spawn and subscribe to remote player's events
+  SpawnRemotePlayer(props.remotePlayer, props.remoteBlocks);
+
+  // Tell everything to begin battle
+  BroadcastBattleStart();
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -333,8 +344,6 @@ void NetworkBattleScene::onEnter()
 void NetworkBattleScene::onStart()
 {
   BattleSceneBase::onStart();
-  // Once the transition completes, we begin handshakes
-  SendConnectSignal(this->selectedNaviId);
   packetProcessor->EnableKickForSilence(true);
 }
 
@@ -429,18 +438,6 @@ void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events)
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
   packetTime = frames(0);
   events.clear();
-}
-
-void NetworkBattleScene::SendConnectSignal(const std::string& naviId)
-{
-  size_t len = naviId.length();
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::connect };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)&len, sizeof(size_t));
-  buffer.append(naviId.data(), sizeof(char)*len);
-
-  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void NetworkBattleScene::SendChangedFormSignal(const int form)
@@ -601,24 +598,19 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
   }
 }
 
-void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
+void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer, const std::vector<std::string>& remoteBlocks)
 {
-  if (remoteState.remoteConnected) return; // prevent multiple connection requests...
+  if (remotePlayer) return;
 
+  if (!newRemotePlayer) {
+    Logger::Logf(LogLevel::critical, "PVP tried to spawn a nullptr remote player!");
+    return;
+  }
+
+  remotePlayer = newRemotePlayer;
   remoteState.remoteConnected = true;
 
-  size_t len{};
-  std::memcpy(&len, buffer.begin(), sizeof(size_t));
-  size_t read = sizeof(size_t);
-
-  std::string remoteNaviId(buffer.begin() + read, len);
-
-  remoteState.remoteNaviId = remoteNaviId;
-
-  Logger::Logf(LogLevel::debug, "Recieved connect signal! Remote navi: %s", remoteState.remoteNaviId.c_str());
-
-  assert(remotePlayer == nullptr && "remote player was already set!");
-  remotePlayer = std::shared_ptr<Player>(getController().PlayerPackageManager().FindPackageByID(remoteNaviId).GetData());
+  Logger::Logf(LogLevel::debug, "Spawning remote navi: %s", remotePlayer->GetName().c_str());
 
   remotePlayer->SetTeam(Team::blue);
   remotePlayer->ChangeState<FadeInState<Player>>([]{});
@@ -629,10 +621,8 @@ void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
   remoteCardActionUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().CardPackageManager());
   remoteCardActionUsePublisher->Hide(); // do not reveal opponent's cards
 
-  combatPtr->Subscribe(*GetLocalPlayer());
   combatPtr->Subscribe(*remotePlayer);
   combatPtr->Subscribe(*remoteCardActionUsePublisher);
-  timeFreezePtr->Subscribe(*GetLocalPlayer());
   timeFreezePtr->Subscribe(*remotePlayer);
   timeFreezePtr->Subscribe(*remoteCardActionUsePublisher);
 
@@ -640,9 +630,18 @@ void NetworkBattleScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);
 
-  players.push_back(remotePlayer);
+  players.push_back(remotePlayer); // TODO: remove this now that we have TrackOtherPlayer()
   this->TrackOtherPlayer(remotePlayer);
   trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer.get(), -1, false ));
+
+  // Run block programs on the remote player now that they are spawned
+  BlockPackageManager& blockPackages = getController().BlockPackageManager();
+  for (const std::string& blockID : remoteBlocks) {
+    if (!blockPackages.HasPackage(blockID)) continue;
+
+    auto& blockMeta = blockPackages.FindPackageByID(blockID);
+    blockMeta.mutator(*remotePlayer);
+  }
 }
 
 void NetworkBattleScene::RecieveChangedFormSignal(const Poco::Buffer<char>& buffer)
@@ -667,9 +666,6 @@ void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Bu
     switch (header) {
       case NetPlaySignals::handshake:
         RecieveHandshakeSignal(body);
-        break;
-      case NetPlaySignals::connect:
-        RecieveConnectSignal(body);
         break;
       case NetPlaySignals::frame_data:
         RecieveFrameData(body);

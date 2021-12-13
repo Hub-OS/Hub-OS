@@ -48,6 +48,7 @@ private:
   std::string myIP, theirIP; // IP strings for textbox
   std::string selectedNaviId;
   std::string remoteNaviId;
+  std::vector<std::string> remotePlayerBlocks;
   std::unique_ptr<CardFolder> folder;
   PA& pa;
   NetPlayConfig netplayconfig;

@@ -23,8 +23,10 @@
 struct DownloadSceneProps {
   bool& downloadSuccess;
   std::vector<std::string> cardPackageHashes;
+  std::vector<std::string> blockPackageHashes;
   std::string playerHash;
   std::string& remotePlayerHash;
+  std::vector<std::string>& remotePlayerBlocks;
   Poco::Net::SocketAddress remoteAddress;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   sf::Texture lastScreen;
@@ -34,13 +36,14 @@ class DownloadScene final : public Scene {
 private:
   bool& downloadSuccess;
   bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{};
-  bool playerPackageRequested{}, cardPackageRequested{};
+  bool playerPackageRequested{}, cardPackageRequested{}, blockPackageRequested{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
   std::string playerHash;
   std::string& remotePlayerHash;
-  std::vector<std::string> playerCardPackageList;
+  std::vector<std::string>& remoteBlockHash;
+  std::vector<std::string> playerCardPackageList, playerBlockPackageList;
   std::map<std::string, std::string> contentToDownload;
   Text label;
   sf::Sprite bg; // background
@@ -61,16 +64,20 @@ private:
   // Initiate trades
   void TradePlayerPackageData(const std::string& hash);
   void TradeCardPackageData(const std::vector<std::string>& hashes);
+  void TradeBlockPackageData(const std::vector<std::string>& hashes);
 
   // Initiate requests
   void RequestPlayerPackageData(const std::string& hash);
-  void RequestCardPackageList(const std::vector<std::string>& hash);
+  void RequestCardPackageList(const std::vector<std::string>& hashes);
+  void RequestBlockPackageList(const std::vector<std::string>& hashes);
 
   // Handle recieve 
   void RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer);
   void RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer);
+  void RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffer);
   void RecieveRequestPlayerPackageData(const Poco::Buffer<char>& buffer);
   void RecieveRequestCardPackageData(const Poco::Buffer<char>& buffer);
+  void RecieveRequestBlockPackageData(const Poco::Buffer<char>& buffer);
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
 
   // Downloads
