@@ -190,12 +190,16 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
 
 PlayerCustScene::~PlayerCustScene()
 {
+  // Delete pieces from our inventory (right sidebar)
   for (Piece* p : pieces) {
     delete p;
   }
 
-  for (Piece* p : placedPieces) {
-    delete p;
+  // Delete pieces on the grid
+  for (auto& [piece, center] : centerHash) {
+    if (center == BAD_GRID_POS) continue; // not a valid ptr
+
+    delete piece;
   }
 }
 
@@ -450,7 +454,6 @@ void PlayerCustScene::loadFromSave()
         }
 
         if (insertPiece(*iter, center)) {
-          placedPieces.push_back(*iter);
           iter = pieces.erase(iter);
           continue;
         }
@@ -604,7 +607,6 @@ void PlayerCustScene::handleMenuUIKeys(double elapsed)
     if (menuAnim.GetAnimationString() == "REMOVE") {
       removePiece(piece);
       pieces.push_back(piece);
-      placedPieces.erase(std::find(placedPieces.begin(), placedPieces.end(), piece));
       state = state::usermode;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       updateCursorHoverInfo();
@@ -834,7 +836,6 @@ bool PlayerCustScene::handleSelectItemFromList()
 
   auto iter = std::next(pieces.begin(), listStart);
   insertingPiece = *iter;
-  placedPieces.push_back(insertingPiece);
   pieces.erase(iter);
 
   // move cursor to the center of the grid

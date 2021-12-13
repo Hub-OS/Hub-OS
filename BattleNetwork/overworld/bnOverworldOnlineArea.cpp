@@ -2255,7 +2255,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     player->SetEmotion(GetPlayerSession()->emotion);
 
     auto& remoteMeta = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
-    auto remotePlayer = std::shared_ptr<Player>(meta.GetData());
+    auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());
     remotePlayer->Init();
 
     NetworkBattleSceneProps props = {

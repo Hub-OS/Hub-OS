@@ -595,7 +595,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       player->Init();
 
       auto& remoteMeta = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
-      auto remotePlayer = std::shared_ptr<Player>(meta.GetData());
+      auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());
       remotePlayer->Init();
 
       NetworkBattleSceneProps props = {
