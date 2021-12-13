@@ -345,8 +345,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_mutator", [](BlockMeta& self, sol::object mutatorObject) {
       self.mutator = [mutatorObject](Player& player) {
         sol::protected_function mutator = mutatorObject;
-        auto wrappedPlayer = WeakWrapper(player.shared_from_base<Player>());
-        auto result = mutator(wrappedPlayer);
+        auto result = mutator(WeakWrapper(player.shared_from_base<Player>()));
 
         if (!result.valid()) {
           sol::error error = result;
