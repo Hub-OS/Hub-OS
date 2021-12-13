@@ -103,6 +103,18 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
         obstacle.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
       }
+    ),
+    "battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->battle_start_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
+        obstacle.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+      }
+    ),
+    "battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->battle_end_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
+        obstacle.Unwrap()->battle_end_func = VerifyLuaCallback(value);
+      }
     )
   );
 

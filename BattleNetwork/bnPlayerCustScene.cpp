@@ -401,6 +401,33 @@ bool PlayerCustScene::isCompileFinished()
   return progress >= maxProgressTime; // in seconds
 }
 
+// static public function to return valid packages from the session key
+std::vector<std::string> PlayerCustScene::getInstalledBlocks(const std::string& playerID, const GameSession& session)
+{
+  std::vector<std::string> res;
+
+  std::string value = session.GetKeyValue(playerID + ":" + "blocks");
+  if (value.empty()) return res;
+
+  Poco::Buffer<char> buffer{ value.c_str(), value.size() };
+  BufferReader reader;
+
+  size_t size = reader.Read<size_t>(buffer);
+  for (size_t i = 0; i < size; i++) {
+    std::string uuid = reader.ReadTerminatedString(buffer);
+
+    bool isValid = reader.Read<bool>(buffer);
+    reader.Read<size_t>(buffer); // skip center
+    reader.Read<size_t>(buffer); // skip rot
+
+    if (isValid) {
+      res.push_back(uuid);
+    }
+  }
+
+  return res;
+}
+
 void PlayerCustScene::loadFromSave()
 {
   std::string value = getController().Session().GetKeyValue(playerUUID + ":" + "blocks");
@@ -412,6 +439,7 @@ void PlayerCustScene::loadFromSave()
   size_t size = reader.Read<size_t>(buffer);
   for (size_t i = 0; i < size; i++) {
     std::string uuid = reader.ReadTerminatedString(buffer);
+    bool valid = reader.Read<bool>(buffer); // unused
     size_t center = reader.Read<size_t>(buffer);
     size_t rot = reader.Read<size_t>(buffer);
 
@@ -441,11 +469,22 @@ void PlayerCustScene::completeAndSave()
   Poco::Buffer<char> buffer{ 0 };
   BufferWriter writer;
 
-  writer.Write(buffer, centerHash.size());
+  size_t valid_entry_len = 0;
+
+  // scan ahead to discover the real hash length
+  for (auto& [piece, center] : centerHash) {
+    if (center == BAD_GRID_POS) continue;
+    valid_entry_len++;
+  }
+
+  writer.Write(buffer, valid_entry_len);
   for (auto& [piece, center] : centerHash) {
     if (center == BAD_GRID_POS) continue;
 
+    bool isValid = isBlockValid(piece);
+
     writer.WriteTerminatedString(buffer, piece->uuid);
+    writer.Write(buffer, isValid);
     writer.Write(buffer, center);
     writer.Write(buffer, piece->finalRot);
   }
@@ -482,6 +521,16 @@ bool PlayerCustScene::hasUpInput()
 bool PlayerCustScene::hasDownInput()
 {
   return Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down);
+}
+
+bool PlayerCustScene::isBlockValid(Piece* piece)
+{
+  if (!piece) return false;
+
+  // NOTE: We can use this function to determine any bug statuses as well
+
+  // Restriction: special pieces must be on the "compiled" line. Other pieces do not.
+  return (compiledHash[piece] && piece->specialType) || !piece->specialType;
 }
 
 size_t PlayerCustScene::getPieceCenter(Piece* piece)
@@ -1045,11 +1094,13 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
 
 void PlayerCustScene::updateCursorHoverInfo()
 {
+  std::string infoTextString = "";
+
   if (grabbingPiece) {
-    infoText.SetString(grabbingPiece->description);
+    infoTextString = grabbingPiece->description;
   }
   else if (Piece* p = grid[cursorLocation]; p && state != state::block_prompt) {
-    infoText.SetString(p->description);
+    infoTextString = p->description;
     hoverText.SetString(p->name);
 
     sf::Vector2f pos = gridCursorToScreen();
@@ -1063,9 +1114,10 @@ void PlayerCustScene::updateCursorHoverInfo()
     hoverText.setOrigin({ x, y});
   }
   else {
-    infoText.SetString("");
     hoverText.SetString("");
   }
+
+  infoText.SetString(stx::format_to_fit(infoTextString, 11, 3));
 }
 
 void PlayerCustScene::updateMenuPosition() {
@@ -1084,7 +1136,7 @@ void PlayerCustScene::updateMenuPosition() {
 void PlayerCustScene::updateItemListHoverInfo()
 {
   if (listStart < pieces.size()) {
-    infoText.SetString(pieces[listStart]->description);
+    infoText.SetString(stx::format_to_fit(pieces[listStart]->description, 11, 3));
   }
   else {
     infoText.SetString("RUN?");
@@ -1210,7 +1262,7 @@ void PlayerCustScene::onUpdate(double elapsed)
       }
 
       size_t len = static_cast<size_t>(std::ceil(label.size() * text_progress));
-      infoText.SetString("Running...\n" + label.substr(0, len));
+      infoText.SetString("Running...\n" + stx::format_to_fit(label.substr(0, len), 11, 2));
     }
 
     return;
@@ -1468,28 +1520,6 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
 
   // textbox is top over everything
   surface.draw(textbox);
-}
-
-std::vector<std::string> PlayerCustScene::getInstalledBlocks(const std::string& playerID, const GameSession& session)
-{
-  std::vector<std::string> res;
-
-  std::string value = session.GetKeyValue(playerID + ":" + "blocks");
-  if (value.empty()) return res;
-
-  Poco::Buffer<char> buffer{ value.c_str(), value.size() };
-  BufferReader reader;
-
-  size_t size = reader.Read<size_t>(buffer);
-  for (size_t i = 0; i < size; i++) {
-    std::string uuid = reader.ReadTerminatedString(buffer);
-    reader.Read<size_t>(buffer);
-    reader.Read<size_t>(buffer);
-
-    res.push_back(uuid);
-  }
-
-  return res;
 }
 
 void PlayerCustScene::onEnd()

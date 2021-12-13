@@ -13,6 +13,7 @@
 #include "../bnAudioResourceManager.h"
 #include "../bnSecretBackground.h"
 #include "../bnMessage.h"
+#include "../bnBlockPackageManager.h"
 #include "battlescene/bnNetworkBattleScene.h"
 
 using namespace swoosh::types;
@@ -476,7 +477,15 @@ void MatchMakingScene::onUpdate(double elapsed) {
   else if (handshakeComplete && !hasProcessedCards) {
     hasProcessedCards = true;
 
-    std::vector<std::string> cardUUIDs, cardPackages;
+    std::vector<std::string> cardUUIDs, cardPackages, selectedNaviBlocks;
+
+    BlockPackageManager& blockPackages = getController().BlockPackageManager();
+    GameSession& session = getController().Session();
+    for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
+      if (!blockPackages.HasPackage(blockID)) continue;
+
+      selectedNaviBlocks.push_back(blockID);
+    }
 
     auto copy = folder->Clone();
     auto next = copy->Next();
@@ -489,8 +498,10 @@ void MatchMakingScene::onUpdate(double elapsed) {
     DownloadSceneProps props = {
       canProceedToBattle,
       cardPackages,
+      selectedNaviBlocks,
       selectedNaviId,
       remoteNaviId,
+      remotePlayerBlocks,
       packetProcessor->GetRemoteAddr(),
       packetProcessor->GetProxy(),
       screen
@@ -583,6 +594,9 @@ void MatchMakingScene::onUpdate(double elapsed) {
       auto player = std::shared_ptr<Player>(meta.GetData());
       player->Init();
 
+      auto& remoteMeta = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
+      auto remotePlayer = std::shared_ptr<Player>(meta.GetData());
+      remotePlayer->Init();
 
       NetworkBattleSceneProps props = {
         { player, pa, std::move(copy), std::make_shared<Field>(6, 3), std::make_shared<SecretBackground>() },
@@ -590,11 +604,24 @@ void MatchMakingScene::onUpdate(double elapsed) {
         mugshotAnim,
         emotions,
         config,
-        packetProcessor->GetProxy()
+        packetProcessor->GetProxy(),
+        remotePlayer,
+        remotePlayerBlocks
       };
 
       getController().push<effect::to<NetworkBattleScene>>(props);
       returningFrom = ReturningScene::BattleScene;
+
+      // After the battle scene's constructor, run the block programs over the player ptr
+      // This ensures they are spawned on the field by now to access the field ptr in the block programs
+      BlockPackageManager& blockPackages = getController().BlockPackageManager();
+      GameSession& session = getController().Session();
+      for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
+        if (!blockPackages.HasPackage(blockID)) continue;
+
+        auto& blockMeta = blockPackages.FindPackageByID(blockID);
+        blockMeta.mutator(*player);
+      }
     }
   } else {
     // TODO use states/switches this is getting out of hand...

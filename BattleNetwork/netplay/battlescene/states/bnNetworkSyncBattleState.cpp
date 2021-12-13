@@ -51,10 +51,6 @@ void NetworkSyncBattleState::onEnd(const BattleSceneState* next)
 
 void NetworkSyncBattleState::onUpdate(double elapsed)
 {
-  if (!scene->remoteState.remoteConnected) {
-    scene->SendConnectSignal(scene->selectedNaviId);
-  }
-
   flicker += from_seconds(elapsed);
 }
 

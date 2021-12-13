@@ -19,78 +19,6 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
-// 1. This algorithm line breaks if a whole line goes over 9 characters
-// 2. When it breaks a new line, it will cleanup redundant space characters around it
-// 3. If no linebreak can be cleanly placed at the last word start position,
-//    it will break that word where the new line must start
-// 4. To finish off, if the char limit goes over 29, then it will trim the string
-std::string FolderEditScene::FormatCardDesc(const std::string& desc)
-{
-    std::string output = desc;
-    std::string escaped_newline = "\\n";
-    std::string newline = "\n";
-    std::string space = " ";
-
-    output = stx::replace(output, escaped_newline, space);
-    output = stx::replace(output, newline, space);
-    output = stx::replace(output, space+space, space);
-
-    std::vector<std::string> words = stx::tokenize(output, space.c_str()[0]);
-
-    output.clear();
-    size_t line_len = 0;
-    size_t row_limit = 3;
-    size_t row_count = 0;
-    auto check_line = [&line_len, &output, &row_count, row_limit](const std::string& str) {
-      if (line_len + str.size() > 9) {
-        output += "\n";
-        row_count++;
-        line_len = 0;
-
-        if (row_count == row_limit) return;
-      }
-
-      output += str;
-      line_len += str.size();
-    };
-
-    for (std::string& w : words) {
-      size_t word_len = w.size();
-      std::vector<std::string> word_pieces;
-
-      size_t last_letter = 0;
-      for (size_t i = 0; i <= word_len; i++) {
-        bool break_here = (i == word_len) || (i % 9 == 0 && i > 0);
-
-        if (!break_here) continue;
-
-        word_pieces.push_back(w.substr(last_letter, (i-last_letter)));
-        last_letter = i;
-      }
-
-      // we will always have at least one word
-      for (std::string& p : word_pieces) {
-        check_line(p);
-      }
-
-      if (output[output.size() - 1] != '\n' && line_len+1 < 9) {
-        check_line(space);
-      }
-
-      // quit early to prevent breaking formatting
-      if (row_count == row_limit) {
-        break;
-      }
-    }
-
-    Logger::Logf(LogLevel::debug, "FormatCardDesc() output text is %s", output.c_str());
-
-    output.resize(std::min(output.size(), (size_t)(9 * 3)));
-    output.shrink_to_fit();
-
-    return output;
-}
-
 FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFolder& folder) :
     Scene(controller),
     camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))),
@@ -363,7 +291,6 @@ void FolderEditScene::onUpdate(double elapsed) {
                                 auto slot = PoolBucket(1, copy);
                                 poolCardBuckets.push_back(slot);
                                 packView.numOfCards++;
-                                bool gotCard = true;
                             }
                             else {
                                 Audio().Play(AudioType::CHIP_ERROR);
@@ -473,16 +400,13 @@ void FolderEditScene::onUpdate(double elapsed) {
                                 }
                                 if (foundCards < maxCards || maxCards == 0) {
                                     folderCardSlots[found].AddCard(copy);
-                                    bool gotCard = true;
                                     packView.swapCardIndex = -1;
                                     folderView.swapCardIndex = -1;
                                     hasFolderChanged = true;
-                                    folderView.numOfCards++;
                                     Audio().Play(AudioType::CHIP_CONFIRM);
                                 }
                                 else {
                                     poolCardBuckets[packView.currCardIndex].AddCard();
-                                    bool gotCard = true;
                                     hasFolderChanged = true;
                                     packView.swapCardIndex = -1;
                                     folderView.swapCardIndex = -1;
@@ -507,7 +431,10 @@ void FolderEditScene::onUpdate(double elapsed) {
                 }
                 else {
                     // See if we're swapping from our folder
-                    if (folderView.swapCardIndex != -1 && packView.swapCardIndex != -1 && packView.numOfCards > 0) {
+                  bool swappingBetween = folderView.swapCardIndex != -1 && packView.currCardIndex != -1;
+                  swappingBetween = swappingBetween || (folderView.currCardIndex != -1 && packView.swapCardIndex != -1);
+
+                    if (swappingBetween && packView.numOfCards > 0) {
                         // Try to swap the card with the one from the folder
                         // The card from the pack is copied and added to the slot
                         // The slot card needs to find its corresponding bucket and increment it
@@ -763,6 +690,8 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
     for (int j = 0; j < folderView.lastCardOnScreen; j++) {
         iter++;
+
+        if (iter == folderCardSlots.end()) return;
     }
 
     // Now that we are at the viewing range, draw each card in the list
@@ -841,12 +770,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
                 cardLabel.SetString(std::string() + copy.GetCode());
                 surface.draw(cardLabel);
 
-                if (!getController().CardPackageManager().HasPackage(copy.GetUUID())) {
-                  static volatile int i = 3;
-                  i++;
-                }
-
-                std::string formatted = FormatCardDesc(copy.GetDescription());
+                std::string formatted = stx::format_to_fit(copy.GetDescription(), 9, 3);
                 cardDesc.SetString(formatted);
                 surface.draw(cardDesc);
 
@@ -866,6 +790,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
         }
 
         iter++;
+        if (iter == folderCardSlots.end()) return;
     }
 }
 
@@ -969,7 +894,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
             cardLabel.SetString(std::string() + copy.GetCode());
             surface.draw(cardLabel);
 
-            std::string formatted = FormatCardDesc(copy.GetDescription());
+            std::string formatted = stx::format_to_fit(copy.GetDescription(), 9, 3);
             cardDesc.SetString(formatted);
             surface.draw(cardDesc);
 

@@ -79,6 +79,7 @@ namespace Overworld {
     std::string connectData;
     std::string lastFrameNaviId;
     std::string remoteNaviId;
+    std::vector<std::string> remoteNaviBlocks;
     uint16_t maxPayloadSize;
     bool isConnected{ false };
     bool serverLockedInput{ false };

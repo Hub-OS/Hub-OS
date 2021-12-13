@@ -184,6 +184,7 @@ const std::string NetManager::GetPublicIP()
     HTTPRequest request(HTTPRequest::HTTP_GET, "/", HTTPMessage::HTTP_1_1);
     HTTPResponse response;
 
+    session.setTimeout(Poco::Timespan(10, 0));
     session.sendRequest(request);
     std::istream& rs = session.receiveResponse(response);
 

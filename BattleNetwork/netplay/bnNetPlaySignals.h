@@ -16,10 +16,8 @@ enum class NetPlaySignals : unsigned int {
   ///////////////////////
   //  PVP Battle Cmds  // 
   ///////////////////////
-  connect,
   handshake, // send round information along with hand and form selections
   form, // used when we are de-formed from battle
-  card, // emit our card data
   frame_data,
 
   ///////////////////////
@@ -28,10 +26,13 @@ enum class NetPlaySignals : unsigned int {
   download_handshake,
   trade_player_package, // Swap player package data with opponent
   trade_card_package_list, // Swap card packages list with opponent
+  trade_block_package_list, // Swap block packages list with opponent
   player_package_request, // Ask to download only specific package
   player_package_download, // Download player package data
   card_package_request, // Ask to download only specific package
   card_package_download, // Download card package data
+  block_package_request, // Ask to download only specific package
+  block_package_download, // Download block package data
   downloads_complete,
 
   ///////////////////////

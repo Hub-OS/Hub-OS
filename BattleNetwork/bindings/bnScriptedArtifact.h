@@ -41,6 +41,8 @@ public:
 	sol::object on_spawn_func;
 	sol::object delete_func;
 	sol::object can_move_to_func;
+	sol::object battle_start_func;
+	sol::object battle_end_func;
 };
 
 #endif

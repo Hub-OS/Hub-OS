@@ -38,6 +38,8 @@ public:
   sol::object collision_func;
   sol::object attack_func;
   sol::object on_spawn_func;
+  sol::object battle_start_func;
+  sol::object battle_end_func;
 private:
   float height{};
   sf::Vector2f scriptedOffset{};
