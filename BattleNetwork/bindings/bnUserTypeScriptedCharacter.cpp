@@ -4,8 +4,20 @@
 #include "bnWeakWrapper.h"
 #include "bnUserTypeEntity.h"
 #include "bnScriptedCharacter.h"
+#include "bnScriptedPlayer.h"
 
-void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::table& battle_namespace) {
+void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace) {
+  auto from = [state = &state] (std::shared_ptr<Entity> entity) {
+    if (auto character = std::dynamic_pointer_cast<ScriptedCharacter>(entity)) {
+      return sol::make_object(*state, WeakWrapper(character));
+    }
+    if (auto character = std::dynamic_pointer_cast<Character>(entity)) {
+      return sol::make_object(*state, WeakWrapper(character));
+    }
+
+    return sol::make_object(*state, sol::lua_nil);
+  };
+
   auto table = battle_namespace.new_usertype<WeakWrapper<ScriptedCharacter>>("Character",
     sol::factories([](Team team, Character::Rank rank) -> WeakWrapper<ScriptedCharacter> {
       auto character = std::make_shared<ScriptedCharacter>(rank);
@@ -16,6 +28,26 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
       wrappedCharacter.Own();
       return wrappedCharacter;
     }),
+    "from", sol::overload(
+      [](WeakWrapper<ScriptedCharacter>& e) -> WeakWrapper<ScriptedCharacter> {
+        return e;
+      },
+      [from](WeakWrapper<Entity>& e) -> sol::object {
+        return from(e.Unwrap());
+      },
+      [from](WeakWrapper<Character>& e) -> sol::object {
+        return from(e.Unwrap());
+      },
+      [from](WeakWrapper<Player>& e) -> sol::object {
+        return from(e.Unwrap());
+      },
+      [from](WeakWrapper<ScriptedPlayer>& e) -> sol::object {
+        return from(e.Unwrap());
+      },
+      [state=&state]() -> sol::object {
+        return sol::make_object(*state, sol::lua_nil);
+      }
+    ),
     "from_package", [scriptManager](const std::string& fqn, Team team, Character::Rank rank) {
       sol::state* state = scriptManager->FetchCharacter(fqn);
 

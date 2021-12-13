@@ -274,11 +274,11 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineEntityUserType(battle_namespace);
   DefineHitboxUserTypes(state, battle_namespace);
   DefineBasicCharacterUserType(battle_namespace);
-  DefineScriptedCharacterUserType(this, battle_namespace);
+  DefineScriptedCharacterUserType(this, state, battle_namespace);
   DefineBasicPlayerUserType(battle_namespace);
-  DefineScriptedPlayerUserType(battle_namespace);
+  DefineScriptedPlayerUserType(state, battle_namespace);
   DefineScriptedSpellUserType(battle_namespace);
-  DefineScriptedObstacleUserType(battle_namespace);
+  DefineScriptedObstacleUserType(state, battle_namespace);
   DefineScriptedArtifactUserType(battle_namespace);
   DefineScriptedComponentUserType(state, battle_namespace);
   DefineCardMetaUserTypes(this, battle_namespace);

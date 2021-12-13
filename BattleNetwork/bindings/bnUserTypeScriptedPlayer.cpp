@@ -8,7 +8,18 @@
 #include "bnScriptedPlayerForm.h"
 #include "bnScriptedCardAction.h"
 
-void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
+void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespace) {
+  auto from = [state = &state] (std::shared_ptr<Entity> entity) {
+    if (auto player = std::dynamic_pointer_cast<ScriptedPlayer>(entity)) {
+      return sol::make_object(*state, WeakWrapper(player));
+    }
+    if (auto player = std::dynamic_pointer_cast<Player>(entity)) {
+      return sol::make_object(*state, WeakWrapper(player));
+    }
+
+    return sol::make_object(*state, sol::lua_nil);
+  };
+
   auto player_table = battle_namespace.new_usertype<WeakWrapper<ScriptedPlayer>>("Player",
     sol::meta_function::index, [](WeakWrapper<ScriptedPlayer>& player, const std::string& key) {
       return player.Unwrap()->dynamic_get(key);
@@ -19,6 +30,26 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     sol::meta_function::length, [](WeakWrapper<ScriptedPlayer>& player) {
       return player.Unwrap()->entries.size();
     },
+    "from", sol::overload(
+      [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapper<ScriptedPlayer> {
+        return player;
+      },
+      [state=&state](WeakWrapper<Player>& player) -> sol::object {
+        if (auto scriptedPlayer = std::dynamic_pointer_cast<ScriptedPlayer>(player.Unwrap())) {
+          return sol::make_object(*state, WeakWrapper(scriptedPlayer));
+        }
+        return sol::make_object(*state, player);
+      },
+      [from](WeakWrapper<Entity>& e) -> sol::object {
+        return from(e.Unwrap());
+      },
+      [from](WeakWrapper<Character>& e) -> sol::object {
+        return from(e.Unwrap());
+      },
+      [state=&state]() -> sol::object {
+        return sol::make_object(*state, sol::lua_nil);
+      }
+    ),
     "input_has", [](WeakWrapper<ScriptedPlayer>& player, const InputEvent& event) -> bool {
       return player.Unwrap()->InputState().Has(event);
     },
@@ -80,16 +111,16 @@ void DefineScriptedPlayerUserType(sol::table& battle_namespace) {
     "remove_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
       player.Unwrap()->RemoveDefenseRule(defenseRule);
     },
-    "get_current_palette",  [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
+    "get_current_palette", [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
       return player.Unwrap()->GetPalette();
     },
-    "set_palette",  [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
+    "set_palette", [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
       player.Unwrap()->SetPalette(texture);
     },
-    "get_base_palette",  [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
+    "get_base_palette", [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
       return player.Unwrap()->GetBasePalette();
     },
-    "store_base_palette",  [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
+    "store_base_palette", [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
       player.Unwrap()->StoreBasePalette(texture);
     },
     "create_form", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapperChild<Player, ScriptedPlayerFormMeta> {

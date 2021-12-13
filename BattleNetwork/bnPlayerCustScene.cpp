@@ -191,10 +191,12 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
 PlayerCustScene::~PlayerCustScene()
 {
   for (Piece* p : pieces) {
-      delete p;
+    delete p;
   }
 
-  pieces.clear();
+  for (Piece* p : placedPieces) {
+    delete p;
+  }
 }
 
 // cheaper check to see if piece can fit inside the region the grid cursor is located
@@ -420,6 +422,7 @@ void PlayerCustScene::loadFromSave()
         }
 
         if (insertPiece(*iter, center)) {
+          placedPieces.push_back(*iter);
           iter = pieces.erase(iter);
           continue;
         }
@@ -552,6 +555,7 @@ void PlayerCustScene::handleMenuUIKeys(double elapsed)
     if (menuAnim.GetAnimationString() == "REMOVE") {
       removePiece(piece);
       pieces.push_back(piece);
+      placedPieces.erase(std::find(placedPieces.begin(), placedPieces.end(), piece));
       state = state::usermode;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       updateCursorHoverInfo();
@@ -781,6 +785,7 @@ bool PlayerCustScene::handleSelectItemFromList()
 
   auto iter = std::next(pieces.begin(), listStart);
   insertingPiece = *iter;
+  placedPieces.push_back(insertingPiece);
   pieces.erase(iter);
 
   // move cursor to the center of the grid

@@ -5,7 +5,19 @@
 #include "bnUserTypeEntity.h"
 #include "bnScriptedObstacle.h"
 
-void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
+void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namespace) {
+  auto from = [state = &state] (std::shared_ptr<Entity> entity) {
+    if (auto obstacle = std::dynamic_pointer_cast<ScriptedObstacle>(entity)) {
+      return sol::make_object(*state, WeakWrapper(obstacle));
+    }
+    if (std::dynamic_pointer_cast<Obstacle>(entity)) {
+      // obstacle class is not exposed, return entity to show that this passed as an obstacle
+      return sol::make_object(*state, WeakWrapper(entity));
+    }
+
+    return sol::make_object(*state, sol::lua_nil);
+  };
+
   auto scriptedobstacle_record = battle_namespace.new_usertype<WeakWrapper<ScriptedObstacle>>("Obstacle",
     sol::factories([](Team team) -> WeakWrapper<ScriptedObstacle> {
       auto obstacle = std::make_shared<ScriptedObstacle>(team);
@@ -15,6 +27,20 @@ void DefineScriptedObstacleUserType(sol::table& battle_namespace) {
       wrappedObstacle.Own();
       return wrappedObstacle;
     }),
+    "from", sol::overload(
+      [](WeakWrapper<ScriptedObstacle>& e) -> WeakWrapper<ScriptedObstacle> {
+        return e;
+      },
+      [from](WeakWrapper<Character>& e) -> sol::object {
+        return from(e.Unwrap());
+      },
+      [from](WeakWrapper<Entity>& e) -> sol::object {
+        return from(e.Unwrap());
+      },
+      [state=&state]() -> sol::object {
+        return sol::make_object(*state, sol::lua_nil);
+      }
+    ),
     sol::meta_function::index, [](WeakWrapper<ScriptedObstacle>& obstacle, const std::string& key) {
       return obstacle.Unwrap()->dynamic_get(key);
     },

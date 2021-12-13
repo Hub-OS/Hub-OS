@@ -151,6 +151,7 @@ private:
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
   std::shared_ptr<sf::SoundBuffer> compile_start, compile_complete, compile_no_item, compile_item;
   std::vector<Piece*> pieces;
+  std::vector<Piece*> placedPieces;
   std::map<Piece*, size_t> centerHash;
   std::map<Piece*, bool> compiledHash;
   std::map<size_t, size_t> blockTypeInUseTable;
