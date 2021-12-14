@@ -105,7 +105,11 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       [](CardAction::Step& step, sol::object callbackObject) {
         step.updateFunc = [callbackObject] (CardAction::Step& step, double dt) {
           sol::protected_function callback = callbackObject;
-          auto result = callback(ScopedWrapper(step), dt);
+          // wrap to tie to this scope
+          auto wrappedSelf = ScopedWrapper(step);
+
+          // pass a copy of the wrapped self to avoid being passed as a reference by wrapping again
+          auto result = callback(ScopedWrapper(wrappedSelf), dt);
 
           if (!result.valid()) {
             sol::error error = result;
@@ -119,7 +123,11 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       [](CardAction::Step& step, sol::object callbackObject) {
         step.drawFunc = [callbackObject] (CardAction::Step& step, sf::RenderTexture& rt) {
           sol::protected_function callback = callbackObject;
-          auto result = callback(ScopedWrapper(step), rt);
+          // wrap to tie to this scope
+          auto wrappedSelf = ScopedWrapper(step);
+
+          // pass a copy of the wrapped self to avoid being passed as a reference by wrapping again
+          auto result = callback(ScopedWrapper(wrappedSelf), rt);
 
           if (!result.valid()) {
             sol::error error = result;
