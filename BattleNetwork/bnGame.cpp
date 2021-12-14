@@ -189,8 +189,8 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     }
   });
 
-  Callback<void()> finish;
-  finish.Slot([this] {
+  Callback<void()> init;
+  init.Slot([this] {
     // Tell the input event loop how to behave when the app loses and regains focus
     inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
     inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
@@ -207,6 +207,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   this->UpdateConfigSettings(reader.GetConfigSettings());
 
   TaskGroup tasks;
+  tasks.AddTask("Binding window", std::move(init));
   tasks.AddTask("Init graphics", std::move(graphics));
   tasks.AddTask("Init audio", std::move(audio));
   tasks.AddTask("Load Libraries", std::move( libraries ) );
@@ -214,8 +215,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   tasks.AddTask("Load mobs", std::move(mobs));
   tasks.AddTask("Load cards", std::move(cards));
   tasks.AddTask("Load prog blocks", std::move(blocks));
-  tasks.AddTask("Resolving failed packages...", std::move(resolveFailedPackages));
-  tasks.AddTask("Finishing", std::move(finish));
+  tasks.AddTask("Resolving packages", std::move(resolveFailedPackages));
 
   // Load font symbols immediately...
   textureManager.LoadFromFile(TexturePaths::FONT);
