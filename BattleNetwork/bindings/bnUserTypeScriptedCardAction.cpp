@@ -125,6 +125,8 @@ void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol:
       return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
     },
     "add_anim_action", [](WeakWrapper<ScriptedCardAction>& cardAction, int frame, sol::object callbackObject) {
+      ExpectLuaFunction(callbackObject);
+
       cardAction.Unwrap()->AddAnimAction(frame, [callbackObject] {
         sol::protected_function callback = callbackObject;
         auto result = callback();

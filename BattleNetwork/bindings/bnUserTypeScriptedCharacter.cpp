@@ -116,6 +116,8 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
       character.Unwrap()->ToggleCounter(on);
     },
     "register_status_callback", [](WeakWrapper<ScriptedCharacter>& character, const Hit::Flags& flag, sol::object callbackObject) {
+      ExpectLuaFunction(callbackObject);
+
       character.Unwrap()->RegisterStatusCallback(flag, [callbackObject] {
         sol::protected_function callback = callbackObject;
         auto result = callback();

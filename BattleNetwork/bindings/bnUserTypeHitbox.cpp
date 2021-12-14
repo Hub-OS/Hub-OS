@@ -26,6 +26,9 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Hitbox", key );
     },
     "set_callbacks", [](WeakWrapper<HitboxSpell>& spell, sol::object luaAttackCallbackObject, sol::object luaCollisionCallbackObject) {
+      ExpectLuaFunction(luaAttackCallbackObject);
+      ExpectLuaFunction(luaCollisionCallbackObject);
+
       auto attackCallback = [luaAttackCallbackObject] (std::shared_ptr<Entity> e) {
         sol::protected_function luaAttackCallback = luaAttackCallbackObject;
         auto result = luaAttackCallback(WeakWrapper(e));

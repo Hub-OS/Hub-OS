@@ -1,8 +1,8 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnUserTypeAnimation.h"
 #include "../bnScriptResourceManager.h"
-
 #include "../bnSpriteProxyNode.h"
+#include "../bnSolHelpers.h"
 
 void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
   engine_namespace.new_usertype<AnimationWrapper>("Animation",
@@ -66,6 +66,8 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
 
     // memory leak if animation created from lua is captured in these callback functions
     "on_complete", [] (AnimationWrapper& animation, sol::object callbackObject) {
+      ExpectLuaFunction(callbackObject);
+
       animation.Unwrap() << [callbackObject] {
         sol::protected_function callback = callbackObject;
         auto result = callback();
@@ -77,6 +79,8 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
       };
     },
     "on_frame", [](AnimationWrapper& animation, int frame, sol::object callbackObject, std::optional<bool> doOnce) {
+      ExpectLuaFunction(callbackObject);
+
       animation.Unwrap().AddCallback(frame, [callbackObject] {
         sol::protected_function callback = callbackObject;
         auto result = callback();
@@ -88,6 +92,8 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
       }, doOnce.value_or(false));
     },
     "on_interrupt", [](AnimationWrapper& animation, sol::object callbackObject) {
+      ExpectLuaFunction(callbackObject);
+
       animation.Unwrap().SetInterruptCallback([callbackObject] {
         sol::protected_function callback = callbackObject;
         auto result = callback();

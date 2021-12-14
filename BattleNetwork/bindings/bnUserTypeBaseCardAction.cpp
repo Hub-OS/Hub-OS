@@ -10,6 +10,7 @@
 #include "../bnCardAction.h"
 #include "../bnBusterCardAction.h"
 #include "../bnScriptResourceManager.h"
+#include "../bnSolHelpers.h"
 
 using CardActionAttachmentWrapper = WeakWrapperChild<CardAction, CardAction::Attachment>;
 
@@ -45,6 +46,8 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       return CardActionAttachmentWrapper(cardAction.GetWeak(), attachment);
     },
     "add_anim_action", [](WeakWrapper<CardAction>& cardAction, int frame, sol::object actionObject) {
+      ExpectLuaFunction(actionObject);
+
       cardAction.Unwrap()->AddAnimAction(frame, [actionObject]{
         sol::protected_function action = actionObject;
         auto result = action();
@@ -103,6 +106,8 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     "update_func", sol::property(
       // write only, reading might cause lifetime issues
       [](CardAction::Step& step, sol::object callbackObject) {
+        ExpectLuaFunction(callbackObject);
+
         step.updateFunc = [callbackObject] (CardAction::Step& step, double dt) {
           sol::protected_function callback = callbackObject;
           // wrap to tie to this scope
@@ -121,6 +126,8 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     "draw_func", sol::property(
       // write only, reading might cause lifetime issues
       [](CardAction::Step& step, sol::object callbackObject) {
+        ExpectLuaFunction(callbackObject);
+
         step.drawFunc = [callbackObject] (CardAction::Step& step, sf::RenderTexture& rt) {
           sol::protected_function callback = callbackObject;
           // wrap to tie to this scope
