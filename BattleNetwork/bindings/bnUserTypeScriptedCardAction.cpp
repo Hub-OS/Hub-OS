@@ -137,8 +137,8 @@ void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol:
         }
       });
     },
-    "add_step", [](WeakWrapper<ScriptedCardAction>& cardAction, const CardAction::Step& step) {
-      cardAction.Unwrap()->AddStep(step);
+    "add_step", [](WeakWrapper<ScriptedCardAction>& cardAction, WeakWrapper<CardAction::Step> step) {
+      cardAction.Unwrap()->AddStep(step.Unwrap());
     },
     "end_action", [](WeakWrapper<ScriptedCardAction>& cardAction) {
       cardAction.Unwrap()->EndAction();

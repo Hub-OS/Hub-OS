@@ -2,6 +2,26 @@
 #include "bnCardAction.h"
 #include "battlescene/bnBattleSceneBase.h"
 
+// wrapper for step, as swoosh expects raw pointers and takes ownership (deletes)
+// causing double deletes if we want to share ownership
+class StepActionItem : public swoosh::BlockingActionItem {
+public:
+  StepActionItem(std::shared_ptr<CardAction::Step> step) : step(step) {}
+
+private:
+  std::shared_ptr<CardAction::Step> step;
+
+  // inherited functions simply invoke the functors
+  void update(sf::Time elapsed) override {
+    if (step->updateFunc) step->updateFunc(step, elapsed.asSeconds());
+    if (step->IsComplete()) markDone();
+  }
+  void draw(sf::RenderTexture& surface) override {
+    if (step->drawFunc) step->drawFunc(step, surface);
+  }
+};
+
+
 CardAction::CardAction(std::weak_ptr<Character> actor, const std::string& animation) : 
   actor(actor),
   animation(animation), 
@@ -57,7 +77,6 @@ CardAction::CardAction(std::weak_ptr<Character> actor, const std::string& animat
 
 CardAction::~CardAction()
 {
-  stepList.clear();
   sequence.clear();
 
   if (started) {
@@ -65,11 +84,16 @@ CardAction::~CardAction()
   }
 }
 
-void CardAction::AddStep(Step step)
+void CardAction::AddStep(std::shared_ptr<Step> step)
 {
-  // Swooshlib needs pointers so we put these steps in a list and use that address
-  auto iter = stepList.insert(stepList.begin(), new Step(step));
-  sequence.add(*iter);
+  if (step->Added()) {
+    throw std::runtime_error("Step has already been added to a CardAction");
+  }
+  step->added = true;
+
+  steps.push_back(step);
+  // Swooshlib takes ownership of raw pointers so we wrap our actions
+  sequence.add(new StepActionItem(step));
 }
 
 void CardAction::AddAnimAction(int frame, const FrameCallback& action) {

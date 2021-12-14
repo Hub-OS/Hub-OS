@@ -3,7 +3,6 @@
 
 #include "bnWeakWrapper.h"
 #include "bnUserTypeEntity.h"
-#include "bnScopedWrapper.h"
 #include "bnScriptedPlayer.h"
 #include "bnScriptedPlayerForm.h"
 #include "bnScriptedCardAction.h"

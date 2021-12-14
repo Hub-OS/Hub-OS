@@ -67,12 +67,12 @@ public:
     Animation& GetAnimationObject();
   };
 
-  struct Step : public swoosh::BlockingActionItem {
-    using UpdateFunc_t = std::function<void(Step&, double)>;
-    using DrawFunc_t = std::function<void(Step&, sf::RenderTexture&)>;
+  struct Step {
+    using UpdateFunc_t = std::function<void(std::shared_ptr<Step>, double)>;
+    using DrawFunc_t = std::function<void(std::shared_ptr<Step>, sf::RenderTexture&)>;
     
-    constexpr static auto NoUpdateFunc = [](Step&, double) -> void {};
-    constexpr static auto NoDrawFunc = [](Step&, sf::RenderTexture&) -> void {};
+    constexpr static auto NoUpdateFunc = [](std::shared_ptr<Step>, double) -> void {};
+    constexpr static auto NoDrawFunc = [](std::shared_ptr<Step>, sf::RenderTexture&) -> void {};
 
     UpdateFunc_t updateFunc;
     DrawFunc_t drawFunc;
@@ -80,13 +80,22 @@ public:
     Step(const UpdateFunc_t& u = NoUpdateFunc, const DrawFunc_t& d = NoDrawFunc) :
       updateFunc(u), drawFunc(d) {}
 
-    // inherited functions simply invoke the functors
-    void update(sf::Time elapsed) override {
-      if (updateFunc) updateFunc(*this, elapsed.asSeconds());
+    void CompleteStep() {
+      complete = true;
     }
-    void draw(sf::RenderTexture& surface) override {
-      if (drawFunc) drawFunc(*this, surface);
+
+    bool IsComplete() {
+      return complete;
     }
+
+    bool Added() {
+      return added;
+    }
+
+    private:
+      bool complete{};
+      bool added{};
+      friend class CardAction;
   };
 
   using Attachments = std::multimap<std::string, Attachment>;
@@ -101,7 +110,7 @@ private:
   std::string uuid, prevState;
   std::function<void()> prepareActionDelegate;
   ActionList sequence;
-  std::list<Step*> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
+  std::vector<std::shared_ptr<Step>> steps;
   std::weak_ptr<Character> actor;
   std::weak_ptr<Character> userWeak;
   Attachments attachments;
@@ -121,7 +130,7 @@ public:
   virtual ~CardAction();
 
   // Used by cards that use sequences (like most Time Freeze animations)
-  void AddStep(Step step);
+  void AddStep(std::shared_ptr<Step> step);
 
   // Used with basic cards that perform some action
   void AddAnimAction(int frame, const FrameCallback& action);

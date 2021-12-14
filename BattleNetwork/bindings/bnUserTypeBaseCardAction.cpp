@@ -3,7 +3,6 @@
 
 #include "bnWeakWrapper.h"
 #include "bnWeakWrapperChild.h"
-#include "bnScopedWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
@@ -58,8 +57,8 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
         }
       });
     },
-    "add_step", [](WeakWrapper<CardAction>& cardAction, const CardAction::Step& step) {
-      cardAction.Unwrap()->AddStep(step);
+    "add_step", [](WeakWrapper<CardAction>& cardAction, WeakWrapper<CardAction::Step> step) {
+      cardAction.Unwrap()->AddStep(step.Unwrap());
     },
     "end_action", [](WeakWrapper<CardAction>& cardAction) {
       cardAction.Unwrap()->EndAction();
@@ -93,9 +92,13 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     }
   );
 
-  battle_namespace.new_usertype<CardAction::Step>("Step",
-    sol::factories([]() -> std::unique_ptr<CardAction::Step> {
-      return std::make_unique<CardAction::Step>();
+  battle_namespace.new_usertype<WeakWrapper<CardAction::Step>>("Step",
+    sol::factories([]() -> WeakWrapper<CardAction::Step> {
+      auto step = std::make_shared<CardAction::Step>();
+
+      auto wrappedStep = WeakWrapper(step);
+      wrappedStep.Own();
+      return wrappedStep;
     }),
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
       ScriptResourceManager::PrintInvalidAccessMessage( table, "Step", key );
@@ -105,16 +108,13 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     },
     "update_func", sol::property(
       // write only, reading might cause lifetime issues
-      [](CardAction::Step& step, sol::object callbackObject) {
+      [](WeakWrapper<CardAction::Step> step, sol::object callbackObject) {
         ExpectLuaFunction(callbackObject);
 
-        step.updateFunc = [callbackObject] (CardAction::Step& step, double dt) {
+        step.Unwrap()->updateFunc = [callbackObject] (std::shared_ptr<CardAction::Step> step, double dt) {
           sol::protected_function callback = callbackObject;
-          // wrap to tie to this scope
-          auto wrappedSelf = ScopedWrapper(step);
 
-          // pass a copy of the wrapped self to avoid being passed as a reference by wrapping again
-          auto result = callback(ScopedWrapper(wrappedSelf), dt);
+          auto result = callback(WeakWrapper(step), dt);
 
           if (!result.valid()) {
             sol::error error = result;
@@ -125,16 +125,13 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     ),
     "draw_func", sol::property(
       // write only, reading might cause lifetime issues
-      [](CardAction::Step& step, sol::object callbackObject) {
+      [](WeakWrapper<CardAction::Step> step, sol::object callbackObject) {
         ExpectLuaFunction(callbackObject);
 
-        step.drawFunc = [callbackObject] (CardAction::Step& step, sf::RenderTexture& rt) {
+        step.Unwrap()->drawFunc = [callbackObject] (std::shared_ptr<CardAction::Step> step, sf::RenderTexture& rt) {
           sol::protected_function callback = callbackObject;
-          // wrap to tie to this scope
-          auto wrappedSelf = ScopedWrapper(step);
 
-          // pass a copy of the wrapped self to avoid being passed as a reference by wrapping again
-          auto result = callback(ScopedWrapper(wrappedSelf), rt);
+          auto result = callback(WeakWrapper(step), rt);
 
           if (!result.valid()) {
             sol::error error = result;
@@ -143,14 +140,8 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
         };
       }
     ),
-    "complete_step", []() {
-      throw std::runtime_error("complete_step must be called on the reference passed in update_func");
-    }
-  );
-
-  battle_namespace.new_usertype<ScopedWrapper<CardAction::Step>>("StepReference",
-    "complete_step", [](ScopedWrapper<CardAction::Step>& step) {
-      step.Unwrap().markDone();
+    "complete_step", [](WeakWrapper<CardAction::Step> step) {
+      step.Unwrap()->CompleteStep();
     }
   );
 
