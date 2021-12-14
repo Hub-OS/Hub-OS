@@ -22,6 +22,9 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "get_rank", [](WeakWrapper<Character>& character) -> Character::Rank {
       return character.Unwrap()->GetRank();
     },
+    "toggle_hitbox", [](WeakWrapper<Character>& character, bool enabled) {
+      return character.Unwrap()->EnableHitbox(enabled);
+    },
     "share_tile", [](WeakWrapper<Character>& character, bool share) {
       character.Unwrap()->ShareTileSpace(share);
     },

@@ -679,6 +679,12 @@ bool Entity::Teammate(Team _team) const {
 }
 
 void Entity::SetTile(Battle::Tile* _tile) {
+  // If this entity is not moving, we can safely
+  // refresh their position to the new tile
+  if(!IsMoving() && _tile) {
+    setPosition(_tile->getPosition() + Entity::drawOffset);
+  }
+
   tile = _tile;
 }
 
