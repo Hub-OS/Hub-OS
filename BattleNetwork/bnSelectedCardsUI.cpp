@@ -167,8 +167,7 @@ bool SelectedCardsUI::HandlePlayEvent(std::shared_ptr<Character> from)
     // could act on metadata later:
     // from->OnCard(card)
 
-    if (auto action = CardToAction(card, from, packageManager)) {
-      action->SetMetaData(card.props); // associate the meta with this action object
+    if (auto action = CardToAction(card, from, packageManager, card.props)) {
       this->Broadcast(action); // tell the rest of the subsystems
     }
 

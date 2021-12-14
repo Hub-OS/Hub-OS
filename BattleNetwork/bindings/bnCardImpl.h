@@ -7,7 +7,6 @@ class Character;
 namespace Battle
 {
     class Card;
-    struct CardProperties;
 };
 
 #endif

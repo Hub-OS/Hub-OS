@@ -34,7 +34,7 @@ namespace Battle {
       unsigned damage{ 0 };
       unsigned limit{ 0 };
       char code{ '*' };
-      bool canBoost{ false }; /*!< Can this card be boosted by other cards? */
+      bool canBoost{ true }; /*!< Can this card be boosted by other cards? */
       bool timeFreeze{ false }; /*!< Does this card rely on action items to resolve before resuming the battle scene? */
       bool skipTimeFreezeIntro{ false }; /*! Skips the fade in/out and name appearing for this card */
       string shortname;

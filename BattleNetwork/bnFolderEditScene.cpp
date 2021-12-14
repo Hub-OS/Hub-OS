@@ -442,14 +442,14 @@ void FolderEditScene::onUpdate(double elapsed) {
 
                         bool gotCard = false;
 
-                        // If the pack pointed to is the same as the card in our folder, add the card back into folder
+                        // If the pack pointed to is the same as the card in our folder, add the card back into pool
                         if (poolCardBuckets[packView.currCardIndex].ViewCard() == folderCardSlots[folderView.swapCardIndex].ViewCard()) {
                             poolCardBuckets[packView.currCardIndex].AddCard();
                             folderCardSlots[folderView.swapCardIndex].GetCard(copy);
 
                             gotCard = true;
                         }
-                        else if (poolCardBuckets[packView.swapCardIndex].GetCard(copy)) {
+                        else if (packView.swapCardIndex > -1 && poolCardBuckets[packView.swapCardIndex].GetCard(copy)) {
                             Battle::Card prev;
 
                             bool findBucket = folderCardSlots[folderView.currCardIndex].GetCard(prev);
@@ -467,6 +467,25 @@ void FolderEditScene::onUpdate(double elapsed) {
                                 }
                             }
                             gotCard = true;
+                        }
+                        else if (folderView.swapCardIndex > -1 && poolCardBuckets[packView.currCardIndex].GetCard(copy)) {
+                          Battle::Card prev;
+
+                          bool findBucket = folderCardSlots[folderView.swapCardIndex].GetCard(prev);
+
+                          folderCardSlots[folderView.swapCardIndex].AddCard(copy);
+
+                          // If the card slot had a card, find the corresponding bucket to add it back into
+                          if (findBucket) {
+                            auto iter = std::find_if(poolCardBuckets.begin(), poolCardBuckets.end(),
+                              [&prev](const PoolBucket& in) { return prev.GetShortName() == in.ViewCard().GetShortName(); }
+                            );
+
+                            if (iter != poolCardBuckets.end()) {
+                              iter->AddCard();
+                            }
+                          }
+                          gotCard = true;
                         }
 
                         if (gotCard) {

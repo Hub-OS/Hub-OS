@@ -78,11 +78,8 @@ void TimeFreezeBattleState::ProcessInputs()
           const Battle::Card& card = *maybe_card;
 
           if (CanCounter(p) && card.IsTimeFreeze()) {
-            if (auto action = CardToAction(card, p, &GetScene().getController().CardPackageManager())) {
-              action->SetMetaData(card.props); // associate the meta with this action object
-
+            if (auto action = CardToAction(card, p, &GetScene().getController().CardPackageManager(), card.props)) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
-
               cardsUI->DropNextCard();
             }
           }
