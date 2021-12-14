@@ -278,6 +278,18 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["set_health"] = [](WeakWrapper<E>& entity, int health) {
     entity.Unwrap()->SetHealth(health);
   };
+  entity_table["get_current_palette"] = [](WeakWrapper<E>& entity) -> std::shared_ptr<Texture> {
+    return entity.Unwrap()->GetPalette();
+  };
+  entity_table["set_palette"] = [](WeakWrapper<E>& entity, std::shared_ptr<Texture>& texture) {
+    entity.Unwrap()->SetPalette(texture);
+  };
+  entity_table["get_base_palette"] = [](WeakWrapper<E>& entity) -> std::shared_ptr<Texture> {
+    return entity.Unwrap()->GetBasePalette();
+  };
+  entity_table["store_base_palette"] = [](WeakWrapper<E>& entity, std::shared_ptr<Texture>& texture) {
+    entity.Unwrap()->StoreBasePalette(texture);
+  };
 }
 
 #endif

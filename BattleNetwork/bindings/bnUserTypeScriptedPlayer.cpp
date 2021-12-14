@@ -111,18 +111,6 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
     "remove_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
       player.Unwrap()->RemoveDefenseRule(defenseRule);
     },
-    "get_current_palette", [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
-      return player.Unwrap()->GetPalette();
-    },
-    "set_palette", [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
-      player.Unwrap()->SetPalette(texture);
-    },
-    "get_base_palette", [](WeakWrapper<ScriptedPlayer>& player) -> std::shared_ptr<Texture> {
-      return player.Unwrap()->GetBasePalette();
-    },
-    "store_base_palette", [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<Texture>& texture) {
-      player.Unwrap()->StoreBasePalette(texture);
-    },
     "create_form", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapperChild<Player, ScriptedPlayerFormMeta> {
       auto parentPtr = player.Unwrap();
       auto formMeta = parentPtr->CreateForm();
