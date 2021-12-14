@@ -58,7 +58,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       });
     },
     "add_step", [](WeakWrapper<CardAction>& cardAction, WeakWrapper<CardAction::Step> step) {
-      cardAction.Unwrap()->AddStep(step.Unwrap());
+      cardAction.Unwrap()->AddStep(step.Release());
     },
     "end_action", [](WeakWrapper<CardAction>& cardAction) {
       cardAction.Unwrap()->EndAction();
