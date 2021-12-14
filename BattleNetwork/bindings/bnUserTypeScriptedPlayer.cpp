@@ -63,10 +63,10 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
     ),
     "card_action_event", sol::overload(
       [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
-        player.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+        player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       },
       [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
-        player.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+        player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
     "set_name", [](WeakWrapper<ScriptedPlayer>& player, std::string name) {

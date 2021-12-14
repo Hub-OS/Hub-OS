@@ -10,10 +10,10 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
   auto table = battle_namespace.new_usertype<WeakWrapper<Character>>("BasicCharacter",
     "card_action_event", sol::overload(
       [](WeakWrapper<Character>& character, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+        character.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       },
       [](WeakWrapper<Character>& character, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+        character.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
     "set_name", [](WeakWrapper<Character>& character, std::string name) {

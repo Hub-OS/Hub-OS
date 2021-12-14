@@ -86,14 +86,14 @@ void DefineTileUserType(sol::state& state) {
     "remove_entity_by_id", &Battle::Tile::RemoveEntityByID,
     "reserve_entity_by_id", &Battle::Tile::ReserveEntityByID,
     "add_entity", sol::overload(
-      [] (Battle::Tile& tile, WeakWrapper<Entity>& e) { return tile.AddEntity(e.Release()); },
-      [] (Battle::Tile& tile, WeakWrapper<Character>& e) { return tile.AddEntity(e.Release()); },
-      [] (Battle::Tile& tile, WeakWrapper<ScriptedCharacter>& e) { return tile.AddEntity(e.Release()); },
-      [] (Battle::Tile& tile, WeakWrapper<Player>& e) { return tile.AddEntity(e.Release()); },
-      [] (Battle::Tile& tile, WeakWrapper<ScriptedPlayer>& e) { return tile.AddEntity(e.Release()); },
-      [] (Battle::Tile& tile, WeakWrapper<ScriptedSpell>& e) { return tile.AddEntity(e.Release()); },
-      [] (Battle::Tile& tile, WeakWrapper<ScriptedObstacle>& e) { return tile.AddEntity(e.Release()); },
-      [] (Battle::Tile& tile, WeakWrapper<ScriptedArtifact>& e) { return tile.AddEntity(e.Release()); }
+      [] (Battle::Tile& tile, WeakWrapper<Entity>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
+      [] (Battle::Tile& tile, WeakWrapper<Character>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
+      [] (Battle::Tile& tile, WeakWrapper<ScriptedCharacter>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
+      [] (Battle::Tile& tile, WeakWrapper<Player>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
+      [] (Battle::Tile& tile, WeakWrapper<ScriptedPlayer>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
+      [] (Battle::Tile& tile, WeakWrapper<ScriptedSpell>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
+      [] (Battle::Tile& tile, WeakWrapper<ScriptedObstacle>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
+      [] (Battle::Tile& tile, WeakWrapper<ScriptedArtifact>& e) { return tile.AddEntity(e.UnwrapAndRelease()); }
     )
   );
 
