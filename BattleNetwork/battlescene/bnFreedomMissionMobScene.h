@@ -4,6 +4,9 @@
 
 class Player;
 class Mob;
+class TimeFreezeBattleState;
+class CombatBattleState;
+
 struct FreedomMissionOverState;
 
 /*
@@ -16,6 +19,7 @@ struct FreedomMissionProps {
   sf::Sprite mug; // speaker mugshot
   Animation anim; // mugshot animation
   std::shared_ptr<sf::Texture> emotion; // emotion atlas image
+  std::vector<std::string> blocks;
 };
 
 /*
@@ -24,14 +28,17 @@ struct FreedomMissionProps {
 class FreedomMissionMobScene final : public BattleSceneBase {
   FreedomMissionOverState* overStatePtr{ nullptr };
   FreedomMissionProps props;
-  std::vector<std::shared_ptr<Player>> players;
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   bool playerDecross{ false };
   int playerHitCount{};
+  TimeFreezeBattleState* timeFreezePtr{ nullptr };
+  CombatBattleState* combatPtr{ nullptr };
 
   public:
   FreedomMissionMobScene(swoosh::ActivityController& controller, FreedomMissionProps props, BattleResultsFunc onEnd=nullptr);
   ~FreedomMissionMobScene();
+
+  void Init() override;
 
   void OnHit(Entity& victim, const Hit::Properties& props) override final;
   void onUpdate(double elapsed) override final;

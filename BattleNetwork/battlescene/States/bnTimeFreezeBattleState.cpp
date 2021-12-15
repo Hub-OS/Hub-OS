@@ -77,7 +77,7 @@ void TimeFreezeBattleState::ProcessInputs()
           // convert meta data into a useable action object
           const Battle::Card& card = *maybe_card;
 
-          if (CanCounter(p) && card.IsTimeFreeze()) {
+          if (card.IsTimeFreeze() && CanCounter(p)) {
             if (auto action = CardToAction(card, p, &GetScene().getController().CardPackageManager(), card.props)) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
@@ -97,6 +97,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   Logger::Logf(LogLevel::info, "TimeFreezeBattleState::onStart");
   GetScene().GetSelectedCardsUI().Hide();
   GetScene().GetField()->ToggleTimeFreeze(true); // freeze everything on the field but accept hits
+  GetScene().StopBattleStepTimer();
   currState = startState;
 
   if (tfEvents.empty()) return;
@@ -113,6 +114,7 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
   GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
   GetScene().HighlightTiles(false);
+  GetScene().StartBattleStepTimer();
   tfEvents.clear();
   summonStart = false;
   summonTick = frames(0);

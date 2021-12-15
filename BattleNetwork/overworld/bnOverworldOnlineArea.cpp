@@ -221,6 +221,8 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
 void Overworld::OnlineArea::ResetPVPStep(bool failed)
 {
+  this->remoteNaviBlocks.clear();
+
   if (failed) {
     sendBattleResultsSignal(BattleResults{});
   }
@@ -2225,13 +2227,12 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
     if (selectedFolder) {
       folder = (*selectedFolder)->Clone();
+      folder->Shuffle();
     }
     else {
       // use a new blank folder if we dont have a folder selected
       folder = std::make_unique<CardFolder>();
     }
-
-    NetPlayConfig config;
 
     // Play the pre battle sound
     Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
@@ -2239,34 +2240,35 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     // Stop music and go to battle screen
     Audio().StopStream();
 
-    // Configure the session
-    config.myNaviId = GetCurrentNaviID();
-
-    auto& meta = getController().PlayerPackageManager().FindPackageByID(config.myNaviId);
+    auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
     const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
     auto mugshot = Textures().LoadFromFile(image);
     auto emotions = Textures().LoadFromFile(emotionsTexture);
     auto player = std::shared_ptr<Player>(meta.GetData());
-    player->Init();
 
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
 
+    BlockPackageManager& blockPackages = getController().BlockPackageManager();
+    GameSession& session = getController().Session();
+    std::vector<std::string> localNaviBlocks = PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session);
+
     auto& remoteMeta = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
     auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());
-    remotePlayer->Init();
+
+    std::vector<NetworkPlayerSpawnData> spawnOrder;
+    spawnOrder.push_back({ localNaviBlocks, player });
+    spawnOrder.push_back({ remoteNaviBlocks, remotePlayer });
 
     NetworkBattleSceneProps props = {
       { player, GetProgramAdvance(), std::move(folder), std::make_shared<Field>(6, 3), GetBackground() },
       sf::Sprite(*mugshot),
       mugshotAnim,
       emotions,
-      config,
       netBattleProcessor,
-      remotePlayer,
-      remoteNaviBlocks
+      spawnOrder
     };
 
     BattleResultsFunc callback = [this](const BattleResults& results) {
@@ -2275,17 +2277,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
     returningFrom = ReturningScene::BattleScene;
     getController().push<segue<WhiteWashFade>::to<NetworkBattleScene>>(props, callback);
-
-    // After the battle scene's constructor, run the block programs over the player ptr
-    // This ensures they are spawned on the field by now to access the field ptr in the block programs
-    BlockPackageManager& blockPackages = getController().BlockPackageManager();
-    GameSession& session = getController().Session();
-    for (std::string& blockID : PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session)) {
-      if (!blockPackages.HasPackage(blockID)) continue;
-
-      auto& blockMeta = blockPackages.FindPackageByID(blockID);
-      blockMeta.mutator(*player);
-    }
   });
 }
 

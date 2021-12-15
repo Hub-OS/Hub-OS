@@ -19,8 +19,8 @@
 
 using namespace swoosh::types;
 
-RewardBattleState::RewardBattleState(Mob* mob, Player* player, int* hitCount) : 
-  player(player), mob(mob), hitCount(hitCount)
+RewardBattleState::RewardBattleState(Mob* mob, int* hitCount) : 
+ mob(mob), hitCount(hitCount)
 { 
 }
 
@@ -31,18 +31,19 @@ RewardBattleState::~RewardBattleState()
 
 void RewardBattleState::onStart(const BattleSceneState*)
 {
-  player->ChangeState<PlayerIdleState>();
+  Player& player = *GetScene().GetLocalPlayer();
+  player.ChangeState<PlayerIdleState>();
   GetScene().GetField()->RequestBattleStop();
 
   auto& results = GetScene().BattleResultsObj();
   results.battleLength = GetScene().GetElapsedBattleTime();
-  results.moveCount = player->GetMoveCount();
+  results.moveCount = player.GetMoveCount();
   results.hitCount = *hitCount;
   results.turns = GetScene().GetTurnCount();
   results.counterCount = GetScene().GetCounterCount();
   results.doubleDelete = GetScene().DoubleDelete();
   results.tripleDelete = GetScene().TripleDelete();
-  results.finalEmotion = player->GetEmotion();
+  results.finalEmotion = player.GetEmotion();
   results.runaway = false;
 
   battleResultsWidget = new BattleResultsWidget(

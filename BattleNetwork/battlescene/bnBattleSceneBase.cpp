@@ -23,6 +23,7 @@
 #include "../bnLanBackground.h"
 #include "../bnGraveyardBackground.h"
 #include "../bnVirusBackground.h"
+#include "../bnFadeInState.h"
 
 // Combos are counted if more than one enemy is hit within x frames
 // The game is clocked to display 60 frames per second
@@ -61,11 +62,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   field = props.field;
   CharacterDeleteListener::Subscribe(*field);
   field->SetScene(this); // event emitters during battle needs the active scene
-
-  localPlayer->ChangeState<PlayerIdleState>();
-  localPlayer->ToggleTimeFreeze(false);
-  localPlayer->SetTeam(Team::red);
-  field->AddEntity(localPlayer, 2, 2);
 
   /*
   Background for scene*/
@@ -114,24 +110,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
     customBar.SetShader(customBarShader);
   }
 
-  // Player UI
-  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackageManager());
-  CardActionUseListener::Subscribe(*localPlayer);
-  CardActionUseListener::Subscribe(*cardUI);
-
-  auto healthUI = localPlayer->CreateComponent<PlayerHealthUIComponent>(localPlayer);
-  healthUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
-
-  cardCustGUI.AddNode(healthUI);
-
-  // Player Emotion
-  this->emotionUI = localPlayer->CreateComponent<PlayerEmotionUI>(localPlayer);
-  this->emotionUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
-  this->emotionUI->setPosition(4.f, 35.f);
-  cardCustGUI.AddNode(emotionUI);
-
-  emotionUI->Subscribe(cardCustGUI);
-
   /*
   Counter "reveal" ring
   */
@@ -145,9 +123,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   counterReveal->SetLayer(-100);
 
   counterCombatRule = std::make_shared<CounterCombatRule>(this);
-
-  // Load forms
-  cardCustGUI.SetPlayerFormOptions(localPlayer->GetForms());
 
   // MOB UI
   mobBackdropSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_NAME_BACKDROP));
@@ -179,8 +154,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
 
   comboInfoTimer.start();
   multiDeleteTimer.start();
-
-  HitListener::Subscribe(*localPlayer);
 
   setView(sf::Vector2u(480, 320));
 
@@ -373,6 +346,67 @@ sf::Vector2f BattleSceneBase::PerspectiveOffset(SpriteProxyNode& node)
   }
 
   return sf::Vector2f();
+}
+
+void BattleSceneBase::SpawnLocalPlayer(int x, int y)
+{
+  if (hasPlayerSpawned) return;
+  hasPlayerSpawned = true;
+
+  localPlayer->Init();
+  localPlayer->ChangeState<PlayerIdleState>();
+  localPlayer->ToggleTimeFreeze(false);
+  localPlayer->SetTeam(Team::red);
+  field->AddEntity(localPlayer, x, y);
+
+  // Player UI
+  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackageManager());
+  this->SubscribeToCardActions(*localPlayer);
+  this->SubscribeToCardActions(*cardUI);
+
+  auto healthUI = localPlayer->CreateComponent<PlayerHealthUIComponent>(localPlayer);
+  healthUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
+
+  cardCustGUI.AddNode(healthUI);
+
+  // Player Emotion
+  this->emotionUI = localPlayer->CreateComponent<PlayerEmotionUI>(localPlayer);
+  this->emotionUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
+  this->emotionUI->setPosition(4.f, 35.f);
+  cardCustGUI.AddNode(emotionUI);
+
+  emotionUI->Subscribe(cardCustGUI);
+
+  // Load forms
+  cardCustGUI.SetPlayerFormOptions(localPlayer->GetForms());
+
+  HitListener::Subscribe(*localPlayer);
+}
+
+void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y)
+{
+  if (!TrackOtherPlayer(player)) return;
+
+  Team team = field->GetAt(x, y)->GetTeam();
+  player->ChangeState<FadeInState<Player>>([] {});  player->ToggleTimeFreeze(false);
+  player->SetTeam(team);
+  field->AddEntity(player, x, y);
+
+  if (!localPlayer->Teammate(team)) {
+    mob->Track(player);
+  }
+
+  // Other Player UI
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackageManager());
+  cardUI->Hide();
+  this->SubscribeToCardActions(*player);
+  SubscribeToCardActions(*cardUI);
+
+  std::shared_ptr<MobHealthUI> healthUI = player->CreateComponent<MobHealthUI>(player);
+
+  HitListener::Subscribe(*player);
+
+  player->Init();
 }
 
 void BattleSceneBase::LoadMob(Mob& mob)
@@ -748,14 +782,17 @@ void BattleSceneBase::onEnd()
   }
 }
 
-void BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
-  if (other == localPlayer) return; // prevent tracking local player as "other" players
+bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
+  if (other == localPlayer) return false; // prevent tracking local player as "other" players
 
   auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
 
   if (iter == otherPlayers.end()) {
     otherPlayers.push_back(other);
+    return true;
   }
+
+  return false;
 }
 
 void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player> other) {

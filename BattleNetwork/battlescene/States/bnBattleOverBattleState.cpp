@@ -13,7 +13,7 @@ bool BattleOverBattleState::IsFinished() {
   return battleEndTimer.getElapsed().asMilliseconds() >= postBattleLength;
 }
 
-BattleOverBattleState::BattleOverBattleState(std::vector<std::shared_ptr<Player>>& tracked) : tracked(tracked)
+BattleOverBattleState::BattleOverBattleState()
 {
   battleEnd = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ENEMY_DELETED));
   battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);
@@ -27,7 +27,7 @@ void BattleOverBattleState::onStart(const BattleSceneState*)
   battleEndTimer.start();
   Audio().Stream("resources/loops/enemy_deleted.ogg");
 
-  for (auto p : tracked) {
+  for (auto p : GetScene().GetAllPlayers()) {
     auto animComponent = p->GetFirstComponent<AnimationComponent>();
 
     // If animating, let the animation end to look natural

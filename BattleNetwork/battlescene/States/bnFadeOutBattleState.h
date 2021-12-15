@@ -20,9 +20,8 @@ class FadeOutBattleState final : public BattleSceneState {
   bool keepPlaying{ true };
   FadeOut mode;
   double wait{ 2 }; // in seconds
-  std::vector<std::shared_ptr<Player>>& tracked;
 public:
-  FadeOutBattleState(const FadeOut& mode, std::vector<std::shared_ptr<Player>>& tracked);
+  FadeOutBattleState(const FadeOut& mode);
 
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;

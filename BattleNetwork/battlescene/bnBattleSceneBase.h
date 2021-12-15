@@ -77,6 +77,7 @@ private:
   bool highlightTiles{ true };
   bool backdropAffectBG{ false };
   bool perspectiveFlip{ false }; //!< if true, view from blue team's perspective
+  bool hasPlayerSpawned{ false };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
   int turn{ 0 }; //!< How many turns per round (inbetween card selection)
   int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
@@ -249,6 +250,10 @@ protected:
     }
   };
 
+  virtual void Init() = 0;
+  void SpawnLocalPlayer(int x, int y);
+  void SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y);
+
   void LoadMob(Mob& mob);
 
   /**
@@ -341,7 +346,7 @@ public:
   virtual void onDraw(sf::RenderTexture& surface) override;
   virtual void onEnd() override;
 
-  void TrackOtherPlayer(std::shared_ptr<Player> other);
+  bool TrackOtherPlayer(std::shared_ptr<Player> other);
   void UntrackOtherPlayer(std::shared_ptr<Player> other);
 
   bool IsPlayerDeleted() const;

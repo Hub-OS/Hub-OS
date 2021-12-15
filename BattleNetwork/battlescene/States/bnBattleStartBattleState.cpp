@@ -6,7 +6,7 @@
 #include "../../bnTextureResourceManager.h"
 #include "../../bnPlayerSelectedCardsUI.h"
 
-BattleStartBattleState::BattleStartBattleState(std::vector<std::shared_ptr<Player>>& tracked) : tracked(tracked) {
+BattleStartBattleState::BattleStartBattleState() {
   battleStart = sf::Sprite(*Textures().LoadFromFile(TexturePaths::BATTLE_START));
   battleStart.setOrigin(battleStart.getLocalBounds().width / 2.0f, battleStart.getLocalBounds().height / 2.0f);
   battleStartPos = sf::Vector2f(240.f, 140.f);

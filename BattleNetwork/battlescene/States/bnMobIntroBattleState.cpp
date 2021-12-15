@@ -5,8 +5,8 @@
 #include "../../bnMob.h"
 #include "../../bnAgent.h"
 
-MobIntroBattleState::MobIntroBattleState(Mob* mob, std::vector<std::shared_ptr<Player>> tracked): 
-  mob(mob), tracked(tracked)
+MobIntroBattleState::MobIntroBattleState(Mob* mob): 
+  mob(mob)
 {
 }
 
@@ -24,7 +24,7 @@ void MobIntroBattleState::onUpdate(double elapsed)
     // Some entities have AI and need targets
     // TODO: support multiple targets
     if (cast) {
-      cast->SetTarget(tracked[0]);
+      cast->SetTarget(GetScene().GetLocalPlayer());
     }
 
     auto& enemy = data->character;
@@ -57,7 +57,7 @@ void MobIntroBattleState::onEnd(const BattleSceneState*)
     mob->Forget(*f);
   }
 
-  for (auto& player : tracked) {
+  for (auto& player : GetScene().GetAllPlayers()) {
     player->ChangeState<PlayerControlledState>();
   }
 

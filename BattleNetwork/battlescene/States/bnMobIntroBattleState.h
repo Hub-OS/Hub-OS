@@ -11,7 +11,6 @@ class Mob;
     \brief This state will loop and spawn one enemy at a time
 */
 struct MobIntroBattleState final : public BattleSceneState {
-  std::vector<std::shared_ptr<Player>> tracked;
   std::vector<std::shared_ptr<Character>> friendlies;
   Mob* mob{ nullptr };
 
@@ -21,5 +20,5 @@ struct MobIntroBattleState final : public BattleSceneState {
   void onDraw(sf::RenderTexture&);
 
   const bool IsOver();
-  MobIntroBattleState(Mob* mob, std::vector<std::shared_ptr<Player>> tracked);
+  MobIntroBattleState(Mob* mob);
 };

@@ -370,7 +370,10 @@ void SelectMobScene::onUpdate(double elapsed) {
       auto mugshot = Textures().LoadFromFile(image);
       auto emotions = Textures().LoadFromFile(emotionsTexture);
       auto player = std::shared_ptr<Player>(meta.GetData());
-      player->Init();
+
+      BlockPackageManager& blockPackages = getController().BlockPackageManager();
+      GameSession& session = getController().Session();
+      std::vector<std::string> localNaviBlocks = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
 
       // Shuffle our new folder
       auto newFolder = selectedFolder->Clone();
@@ -392,6 +395,7 @@ void SelectMobScene::onUpdate(double elapsed) {
           sf::Sprite(*mugshot),
           mugshotAnim,
           emotions,
+          localNaviBlocks
         };
 
         getController().push<effect::to<FreedomMissionMobScene>>(std::move(props));
@@ -404,20 +408,10 @@ void SelectMobScene::onUpdate(double elapsed) {
           sf::Sprite(*mugshot),
           mugshotAnim,
           emotions,
+          localNaviBlocks
         };
 
         getController().push<effect::to<MobBattleScene>>(std::move(props));
-      }
-
-      // After the battle scene's constructor, run the block programs over the player ptr
-      // This ensures they are spawned on the field by now to access the field ptr in the block programs
-      BlockPackageManager& blockPackages = getController().BlockPackageManager();
-      GameSession& session = getController().Session();
-      for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
-        if (!blockPackages.HasPackage(blockID)) continue;
-
-        auto& blockMeta = blockPackages.FindPackageByID(blockID);
-        blockMeta.mutator(*player);
       }
     }
   }

@@ -4,6 +4,8 @@
 
 class Player;
 class Mob;
+class TimeFreezeBattleState;
+class CombatBattleState;
 
 /*
     \brief Lots of properties packed into a clean struct
@@ -19,6 +21,7 @@ struct MobBattleProperties {
   sf::Sprite mug; // speaker mugshot
   Animation anim; // mugshot animation
   std::shared_ptr<sf::Texture> emotion; // emotion atlas image
+  std::vector<std::string> blocks;
 };
 
 /*
@@ -26,14 +29,17 @@ struct MobBattleProperties {
 */
 class MobBattleScene final : public BattleSceneBase {
   MobBattleProperties props;
-  std::vector<std::shared_ptr<Player>> players;
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   bool playerDecross{ false };
   int playerHitCount{};
+  TimeFreezeBattleState* timeFreezePtr{ nullptr };
+  CombatBattleState* combatPtr{ nullptr };
 
   public:
   MobBattleScene(swoosh::ActivityController& controller, MobBattleProperties props, BattleResultsFunc onEnd=nullptr);
   ~MobBattleScene();
+
+  void Init() override;
 
   void OnHit(Entity& victim, const Hit::Properties& props) override final;
   void onUpdate(double elapsed) override final;

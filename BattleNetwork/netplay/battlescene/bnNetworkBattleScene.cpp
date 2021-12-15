@@ -35,11 +35,26 @@
 using namespace swoosh::types;
 using swoosh::ActivityController;
 
-NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBattleSceneProps& props, BattleResultsFunc onEnd) :
-  BattleSceneBase(controller, props.base, onEnd),
+NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBattleSceneProps& _props, BattleResultsFunc onEnd) :
+  BattleSceneBase(controller, _props.base, onEnd),
+  props(std::move(_props)),
+  spawnOrder(props.spawnOrder),
   ping(Font::Style::wide),
   frameNumText(Font::Style::wide)
 {
+  mob = new Mob(props.base.field);
+  LoadMob(*mob);
+
+  // Load players in the correct order, then the mob
+  Init();
+
+  packetProcessor = props.packetProcessor;
+
+  if (props.spawnOrder.empty()) {
+    Logger::Log(LogLevel::debug, "Spawn Order list was empty! Aborting.");
+    this->Quit(FadeOut::black);
+  }
+
   ping.setPosition(480 - (2.f * 16) - 4, 320 - 2.f); // screen upscaled w - (16px*upscale scale) - (2px*upscale)
   ping.SetColor(sf::Color::Red);
 
@@ -49,11 +64,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   pingIndicator.setScale(2.f, 2.f);
   UpdatePingIndicator(frames(0));
 
-  std::shared_ptr<Player> clientPlayer = props.base.player;
-
-  selectedNaviId = props.netconfig.myNaviId;
-
-  packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
     this->Quit(FadeOut::black);
   });
@@ -62,34 +72,19 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
     this->ProcessPacketBody(header, buffer);
   });
 
-  GetCardSelectWidget().PreventRetreat();
-
-  // If playing co-op, add more players to track here
-  players = { clientPlayer };
-
-  // ptr to player, form select index (-1 none), if should transform
-  // TODO: just make this a struct to use across all states that need it...
-  trackedForms = {
-    std::make_shared<TrackedFormData>(clientPlayer.get(), -1, false)
-  };
-
-  // trackedForms[0]->SetReadyState<PlayerControlledState>();
-
   // in seconds
-  double battleDuration = 10.0;
-
-  mob = new Mob(props.base.field);
+  constexpr double battleDuration = 10.0;
 
   // First, we create all of our scene states
   auto syncState = AddState<NetworkSyncBattleState>(remotePlayer, this);
-  auto cardSelect = AddState<CardSelectBattleState>(players, trackedForms);
-  auto combat = AddState<CombatBattleState>(mob, players, battleDuration);
+  auto cardSelect = AddState<CardSelectBattleState>(trackedForms);
+  auto combat = AddState<CombatBattleState>(mob, battleDuration);
   auto combo = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
   auto forms = AddState<CharacterTransformBattleState>(trackedForms);
-  auto battlestart = AddState<BattleStartBattleState>(players);
-  auto battleover = AddState<BattleOverBattleState>(players);
+  auto battlestart = AddState<BattleStartBattleState>();
+  auto battleover = AddState<BattleOverBattleState>();
   auto timeFreeze = AddState<TimeFreezeBattleState>();
-  auto fadeout = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
+  auto fadeout = AddState<FadeOutBattleState>(FadeOut::black); // this state requires arguments
 
   // We need to respond to new events later, create a resuable pointer to these states
   timeFreezePtr = &timeFreeze.Unwrap();
@@ -98,6 +93,16 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   cardComboStatePtr = &combo.Unwrap();
   startStatePtr = &battlestart.Unwrap();
   cardStatePtr = &cardSelect.Unwrap();
+
+  for (std::shared_ptr<Player> p : GetAllPlayers()) {
+    std::shared_ptr<PlayerSelectedCardsUI> cardUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
+    combatPtr->Subscribe(*cardUI);
+    timeFreezePtr->Subscribe(*cardUI);
+
+    // Subscribe to player's events
+    combatPtr->Subscribe(*p);
+    timeFreezePtr->Subscribe(*p);
+  }
 
   // Important! State transitions are added in order of priority!
   syncState.ChangeOnEvent(cardSelect, &NetworkSyncBattleState::IsRemoteConnected);
@@ -156,11 +161,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // Some states need to know about card uses
   auto& ui = this->GetSelectedCardsUI();
-  ui.Reveal();
-  
-  GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
-  GetEmotionWindow().SetTexture(props.emotion);
-
   combat->Subscribe(ui);
   timeFreeze->Subscribe(ui);
 
@@ -173,17 +173,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(syncState);
-  LoadMob(*mob);
-
-  // Subscribe to player's events
-  combatPtr->Subscribe(*GetLocalPlayer());
-  timeFreezePtr->Subscribe(*GetLocalPlayer());
-
-  // Spawn and subscribe to remote player's events
-  SpawnRemotePlayer(props.remotePlayer, props.remoteBlocks);
-
-  // Tell everything to begin battle
-  BroadcastBattleStart();
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -277,10 +266,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   if (skipFrame) return;
 
   if (remotePlayer && remotePlayer->WillEraseEOF()) {
-    auto iter = std::find(players.begin(), players.end(), remotePlayer);
-    if (iter != players.end()) {
-      players.erase(iter);
-    }
+    UntrackOtherPlayer(remotePlayer);
     remoteState.remoteConnected = false;
     remotePlayer = nullptr;
   }
@@ -369,6 +355,39 @@ const double NetworkBattleScene::GetAvgLatency() const
 bool NetworkBattleScene::IsRemoteBehind()
 {
   return FrameNumber() > this->maxRemoteFrameNumber;
+}
+
+void NetworkBattleScene::Init()
+{
+  for (auto& [blocks, p] : spawnOrder) {
+    // ptr to player, form select index (-1 none), if should transform
+    // TODO: just make this a struct to use across all states that need it...
+    trackedForms.push_back(std::make_shared<TrackedFormData>(p.get(), -1, false));
+
+    if (p == GetLocalPlayer()) {
+      SpawnLocalPlayer(2, 2);
+    }
+    else {
+      // Spawn and subscribe to remote player's events
+      SpawnRemotePlayer(p);
+    }
+
+    // Run block programs on the remote player now that they are spawned
+    BlockPackageManager& blockPackages = getController().BlockPackageManager();
+    for (const std::string& blockID : blocks) {
+      if (!blockPackages.HasPackage(blockID)) continue;
+
+      auto& blockMeta = blockPackages.FindPackageByID(blockID);
+      blockMeta.mutator(*p);
+    }
+  }
+
+  GetCardSelectWidget().PreventRetreat();
+  GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
+  GetEmotionWindow().SetTexture(props.emotion);
+
+  // Tell everything to begin battle
+  BroadcastBattleStart();
 }
 
 void NetworkBattleScene::SendHandshakeSignal()
@@ -598,7 +617,7 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
   }
 }
 
-void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer, const std::vector<std::string>& remoteBlocks)
+void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer)
 {
   if (remotePlayer) return;
 
@@ -612,36 +631,10 @@ void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlay
 
   Logger::Logf(LogLevel::debug, "Spawning remote navi: %s", remotePlayer->GetName().c_str());
 
-  remotePlayer->SetTeam(Team::blue);
-  remotePlayer->ChangeState<FadeInState<Player>>([]{});
+  // This will add PlayerSelectedCardsUI component to the player
+  SpawnOtherPlayer(newRemotePlayer, 5, 2);
 
-  GetField()->AddEntity(remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
-  mob->Track(remotePlayer);
-
-  remoteCardActionUsePublisher = remotePlayer->CreateComponent<PlayerSelectedCardsUI>(remotePlayer, &getController().CardPackageManager());
-  remoteCardActionUsePublisher->Hide(); // do not reveal opponent's cards
-
-  combatPtr->Subscribe(*remotePlayer);
-  combatPtr->Subscribe(*remoteCardActionUsePublisher);
-  timeFreezePtr->Subscribe(*remotePlayer);
-  timeFreezePtr->Subscribe(*remoteCardActionUsePublisher);
-
-  this->SubscribeToCardActions(*remoteCardActionUsePublisher);
-
-  remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);
-
-  players.push_back(remotePlayer); // TODO: remove this now that we have TrackOtherPlayer()
-  this->TrackOtherPlayer(remotePlayer);
-  trackedForms.push_back(std::make_shared<TrackedFormData>(remotePlayer.get(), -1, false ));
-
-  // Run block programs on the remote player now that they are spawned
-  BlockPackageManager& blockPackages = getController().BlockPackageManager();
-  for (const std::string& blockID : remoteBlocks) {
-    if (!blockPackages.HasPackage(blockID)) continue;
-
-    auto& blockMeta = blockPackages.FindPackageByID(blockID);
-    blockMeta.mutator(*remotePlayer);
-  }
+  remoteCardActionUsePublisher = newRemotePlayer->GetFirstComponent<PlayerSelectedCardsUI>();
 }
 
 void NetworkBattleScene::RecieveChangedFormSignal(const Poco::Buffer<char>& buffer)

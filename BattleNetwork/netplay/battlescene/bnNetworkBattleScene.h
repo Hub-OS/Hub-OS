@@ -57,15 +57,18 @@ class Player;
 class PlayerHealthUI;
 class NetworkCardUseListener; 
 
+struct NetworkPlayerSpawnData {
+  std::vector<std::string> blocks;
+  std::shared_ptr<Player> player;
+};
+
 struct NetworkBattleSceneProps {
   BattleSceneBaseProps base;
   sf::Sprite mug; // speaker mugshot
   Animation anim; // mugshot animation
   std::shared_ptr<sf::Texture> emotion; // emotion atlas image
-  NetPlayConfig& netconfig;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
-  std::shared_ptr<Player> remotePlayer;
-  std::vector<std::string> remoteBlocks; // Add-ons the remote player has
+  std::vector<NetworkPlayerSpawnData> spawnOrder;  // The order to spawn players in
 };
 
 struct FrameInputData {
@@ -83,20 +86,21 @@ private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
   
+  NetworkBattleSceneProps props;
+
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
   unsigned int remoteFrameNumber{}, maxRemoteFrameNumber{}, resyncFrameNumber{};
 
   Text ping, frameNumText;
-  std::string selectedNaviId; //!< the type of navi we selected
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
-  std::vector<std::shared_ptr<Player>> players; //!< Track all players
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   SpriteProxyNode pingIndicator;
   std::shared_ptr<SelectedCardsUI> remoteCardActionUsePublisher{ nullptr };
   std::vector<Battle::Card> remoteHand;
   std::vector<FrameInputData> remoteInputQueue;
   std::shared_ptr<Player> remotePlayer{ nullptr }; //!< their player pawn
+  std::vector<NetworkPlayerSpawnData> spawnOrder;
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
   CombatBattleState* combatPtr{ nullptr };
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
@@ -105,6 +109,9 @@ private:
   CardSelectBattleState* cardStatePtr{ nullptr };
   BattleStartBattleState* startStatePtr{ nullptr };
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
+
+  // Custom init steps
+  void Init() override final;
 
   // netcode send funcs
   void SendHandshakeSignal(); // send player data to start the next round
@@ -120,7 +127,10 @@ private:
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
   bool IsRemoteBehind();
   void UpdatePingIndicator(frame_time_t frames);
-  void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer, const std::vector<std::string>& remoteBlocks);
+  
+  // This utilized BattleSceneBase::SpawnOtherPlayer() but adds some setup for networking
+  void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer);
+
 
 public:
   using BattleSceneBase::ProcessNewestComponents;

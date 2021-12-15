@@ -495,6 +495,8 @@ void MatchMakingScene::onUpdate(double elapsed) {
       next = copy->Next();
     }
 
+    this->remotePlayerBlocks.clear();
+
     DownloadSceneProps props = {
       canProceedToBattle,
       cardPackages,
@@ -575,7 +577,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
       using effect = segue<WhiteWashFade>;
-      NetPlayConfig config;
 
       // Play the pre battle sound
       Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
@@ -584,44 +585,36 @@ void MatchMakingScene::onUpdate(double elapsed) {
       Audio().StopStream();
 
       // Configure the session
-      config.myNaviId = selectedNaviId;
-      auto& meta = getController().PlayerPackageManager().FindPackageByID(config.myNaviId);
+      auto& meta = getController().PlayerPackageManager().FindPackageByID(selectedNaviId);
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
       auto mugshot = Textures().LoadFromFile(image);
       auto emotions = Textures().LoadFromFile(emotionsTexture);
       auto player = std::shared_ptr<Player>(meta.GetData());
-      player->Init();
+
+      BlockPackageManager& blockPackages = getController().BlockPackageManager();
+      GameSession& session = getController().Session();
+      std::vector<std::string> localPlayerBlocks = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
 
       auto& remoteMeta = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
       auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());
-      remotePlayer->Init();
+
+      std::vector<NetworkPlayerSpawnData> spawnOrder;
+      spawnOrder.push_back({ localPlayerBlocks, player });
+      spawnOrder.push_back({ remotePlayerBlocks, remotePlayer });
 
       NetworkBattleSceneProps props = {
         { player, pa, std::move(copy), std::make_shared<Field>(6, 3), std::make_shared<SecretBackground>() },
         sf::Sprite(*mugshot),
         mugshotAnim,
         emotions,
-        config,
         packetProcessor->GetProxy(),
-        remotePlayer,
-        remotePlayerBlocks
+        spawnOrder
       };
 
       getController().push<effect::to<NetworkBattleScene>>(props);
       returningFrom = ReturningScene::BattleScene;
-
-      // After the battle scene's constructor, run the block programs over the player ptr
-      // This ensures they are spawned on the field by now to access the field ptr in the block programs
-      BlockPackageManager& blockPackages = getController().BlockPackageManager();
-      GameSession& session = getController().Session();
-      for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
-        if (!blockPackages.HasPackage(blockID)) continue;
-
-        auto& blockMeta = blockPackages.FindPackageByID(blockID);
-        blockMeta.mutator(*player);
-      }
     }
   } else {
     // TODO use states/switches this is getting out of hand...

@@ -614,10 +614,10 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
     }
 
     icon.setPosition(sf::Vector2f(bounds.width + 5.0f, bounds.height));
-    label.setOrigin(sf::Vector2f(0, bounds.height));
+    label.setOrigin(sf::Vector2f(0, 0));
     label.setPosition(0, h);
 
-    h -= ydiff + 5.0f;
+    h += ydiff + 5.0f;
 
     surface.draw(label);
   }

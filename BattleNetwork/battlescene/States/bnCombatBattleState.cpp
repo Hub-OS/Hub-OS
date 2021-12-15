@@ -14,9 +14,8 @@
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
 
-CombatBattleState::CombatBattleState(Mob* mob, std::vector<std::shared_ptr<Player>>& tracked, double customDuration) :
+CombatBattleState::CombatBattleState(Mob* mob, double customDuration) :
   mob(mob), 
-  tracked(tracked), 
   pauseShader(Shaders().GetShader(ShaderType::BLACK_FADE))
 {
   // PAUSE
@@ -91,8 +90,7 @@ void CombatBattleState::onStart(const BattleSceneState* last)
 {
   GetScene().HighlightTiles(true); // re-enable tile highlighting
 
-  // tracked[0] should be the client player
-  if ((tracked[0]->GetHealth() > 0) && this->HandleNextRoundSetup(last)) {
+  if ((GetScene().GetLocalPlayer()->GetHealth() > 0) && this->HandleNextRoundSetup(last)) {
     GetScene().StartBattleStepTimer();
     GetScene().GetField()->ToggleTimeFreeze(false);
 
@@ -131,8 +129,10 @@ void CombatBattleState::onUpdate(double elapsed)
     scene.IncrementFrame();
   }
 
-  if ((mob->IsCleared() || tracked[0]->GetHealth() == 0 )&& !clearedMob) {
-    auto cardUI = tracked[0]->GetFirstComponent<PlayerSelectedCardsUI>();
+  Player& player = *GetScene().GetLocalPlayer();
+
+  if ((mob->IsCleared() || player.GetHealth() == 0 )&& !clearedMob) {
+    auto cardUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
 
     if (cardUI) {
       cardUI->Hide();
