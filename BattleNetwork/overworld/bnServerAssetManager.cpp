@@ -113,6 +113,12 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& host, uint1
       std::filesystem::create_directories(cachePath);
 
       for (auto& entry : std::filesystem::directory_iterator(cachePath)) {
+        if (entry.is_directory()) {
+          // folders are created from unzipping packages
+          // only the files matter as we flatten folders from the server
+          continue;
+        }
+
         auto path = entry.path().string();
 
         if (path.length() < cachePrefix.length()) {
