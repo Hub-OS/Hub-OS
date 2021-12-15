@@ -44,6 +44,8 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   double backdropInc{ 1.25 }; //!< alpha increase per frame (max 255)
   std::vector<EventData> tfEvents;
   Text summonsLabel = Text(Font::Style::thick);
+  mutable Text multiplier;
+  mutable Text dmg; /*!< Text displays card damage */
 
   TimeFreezeBattleState();
   ~TimeFreezeBattleState();
@@ -63,6 +65,8 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   const bool FadeOutBackdrop();
   const bool FadeInBackdrop();
   bool IsOver();
+  
+  // void DrawCardData(sf::RenderTarget& target); // TODO: we are missing some data from the selected UI to draw the info we need
 
   std::shared_ptr<Character> CreateStuntDouble(std::shared_ptr<Character> from);
 };

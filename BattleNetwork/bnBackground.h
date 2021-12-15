@@ -21,9 +21,9 @@ class Background : public sf::Drawable, public sf::Transformable, public Resourc
   void RecalculateColors() {
     for (int i = 0; i < vertices.getVertexCount(); i++) {
       sf::Color color = Background::color;
-      color.r *= opacity;
-      color.g *= opacity;
-      color.b *= opacity;
+      color.r = (sf::Uint8)(color.r * opacity);
+      color.g = (sf::Uint8)(color.g * opacity);
+      color.b = (sf::Uint8)(color.b * opacity);
       vertices[i].color = color;
     }
   }

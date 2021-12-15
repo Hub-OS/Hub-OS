@@ -17,7 +17,6 @@ enum class NetPlaySignals : unsigned int {
   //  PVP Battle Cmds  // 
   ///////////////////////
   handshake, // send round information along with hand and form selections
-  form, // used when we are de-formed from battle
   frame_data,
 
   ///////////////////////

@@ -13,7 +13,7 @@ bool FreedomMissionOverState::IsFinished() {
   return battleEndTimer.getElapsed().asMilliseconds() >= postBattleLength;
 }
 
-FreedomMissionOverState::FreedomMissionOverState(std::vector<std::shared_ptr<Player>>& tracked) : tracked(tracked)
+FreedomMissionOverState::FreedomMissionOverState()
 {
   battleEnd = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ENEMY_DELETED));
   battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);
@@ -51,7 +51,7 @@ void FreedomMissionOverState::onStart(const BattleSceneState*)
 
   battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);
 
-  for (auto p : tracked) {
+  for (auto p : GetScene().GetAllPlayers()) {
     auto animComponent = p->GetFirstComponent<AnimationComponent>();
 
     // If animating, let the animation end to look natural

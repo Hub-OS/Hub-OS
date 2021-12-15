@@ -173,4 +173,5 @@ private:
   std::vector<SyncItem> syncList;
 
   void RefreshSyncItem(SyncItem& item);
+  void UpdateAnimationObjects(sf::Sprite& sprite, double elapsed);
 };

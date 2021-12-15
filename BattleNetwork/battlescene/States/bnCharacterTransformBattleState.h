@@ -8,21 +8,6 @@
 
 class Player;
 
-/**
-  @brief Tracks form data so the card select knows when or when not to animate the player
-*/
-struct TrackedFormData {
-  Player* player{ nullptr };
-  int selectedForm{ -1 };
-  bool animationComplete{ false };
-
-  TrackedFormData(Player* p, int selectedForm, bool animationComplete) :
-    player(p),
-    selectedForm(selectedForm),
-    animationComplete(animationComplete)
-  {}
-
-};
 /*
     \brief This state handles transformations
 */
@@ -39,7 +24,6 @@ private:
   double frameElapsed{ 0 };
   bool skipBackdrop{ false };
   sf::Sprite shine;
-  std::vector<std::shared_ptr<TrackedFormData>>& tracking;
   std::vector<Animation> shineAnimations;
 
   const bool FadeInBackdrop();
@@ -54,5 +38,5 @@ public:
   void onEnd(const BattleSceneState* next) override;
   void onDraw(sf::RenderTexture&);
 
-  CharacterTransformBattleState(std::vector<std::shared_ptr<TrackedFormData>>& tracking);
+  CharacterTransformBattleState();
 };

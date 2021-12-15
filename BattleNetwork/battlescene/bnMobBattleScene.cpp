@@ -13,6 +13,7 @@
 #include "States/bnCardSelectBattleState.h"
 #include "States/bnCardComboBattleState.h"
 #include "States/bnRetreatBattleState.h"
+#include "../bnBlockPackageManager.h"
 
 using namespace swoosh;
 
@@ -20,52 +21,43 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
   BattleSceneBase(controller, _props.base, onEnd),
   props(std::move(_props))
 {
+  // Load players in the correct order, then the mob
+  Init();
+
   Mob* current = props.mobs.at(0);
 
-  // Simple error reporting if the scene was not fed any mobs
-  if (props.mobs.size() == 0) {
-    Logger::Log(LogLevel::warning, std::string("Mob list was empty when battle started."));
-  }
-  else if (current->GetMobCount() == 0) {
-    Logger::Log(LogLevel::warning, std::string("Current mob was empty when battle started. Mob Type: ") + typeid(current).name());
-  }
-  else {
-    LoadMob(*props.mobs.front());
-  }
-
-  GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
-  GetEmotionWindow().SetTexture(props.emotion);
-
-  // If playing co-op, add more players to track here
-  players = { props.base.player };
-
-  // ptr to player, form select index (-1 none), if should transform
-  trackedForms = { 
-    std::make_shared<TrackedFormData>(props.base.player.get(), -1, false)
-  }; 
-
   // in seconds
-  double battleDuration = 10.0;
+  constexpr double battleDuration = 10.0;
 
   // First, we create all of our scene states
-  auto intro       = AddState<MobIntroBattleState>(current, players);
-  auto cardSelect  = AddState<CardSelectBattleState>(players, trackedForms);
-  auto combat      = AddState<CombatBattleState>(current, players, battleDuration);
+  auto intro       = AddState<MobIntroBattleState>(current);
+  auto cardSelect  = AddState<CardSelectBattleState>();
+  auto combat      = AddState<CombatBattleState>(current, battleDuration);
   auto combo       = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
-  auto forms       = AddState<CharacterTransformBattleState>(trackedForms);
-  auto battlestart = AddState<BattleStartBattleState>(players);
-  auto battleover  = AddState<BattleOverBattleState>(players);
+  auto forms       = AddState<CharacterTransformBattleState>();
+  auto battlestart = AddState<BattleStartBattleState>();
+  auto battleover  = AddState<BattleOverBattleState>();
   auto timeFreeze  = AddState<TimeFreezeBattleState>();
-  auto reward      = AddState<RewardBattleState>(current, props.base.player.get(), &playerHitCount);
-  auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players);
+  auto reward      = AddState<RewardBattleState>(current, &playerHitCount);
+  auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black);
 
   // TODO: create a textbox in the battle scene and supply it to the card select widget and other states...
   auto retreat     = AddState<RetreatBattleState>(GetCardSelectWidget().GetTextBox(), props.mug, props.anim);
 
+  combatPtr = &combat.Unwrap();
+  timeFreezePtr = &timeFreeze.Unwrap();
+
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI = GetLocalPlayer()->GetFirstComponent<PlayerSelectedCardsUI>();
+  combatPtr->Subscribe(*cardUI);
+  timeFreezePtr->Subscribe(*cardUI);
+
+  // Subscribe to player's events
+  combatPtr->Subscribe(*GetLocalPlayer());
+  timeFreezePtr->Subscribe(*GetLocalPlayer());
+
   //////////////////////////////////////////////////////////////////
   // Important! State transitions are added in order of priority! //
   //////////////////////////////////////////////////////////////////
-
 
   auto isIntroOver = [this, intro, timeFreeze, combat]() mutable {
     if (intro->IsOver()) {
@@ -144,13 +136,16 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
 
   // special condition: if in combat and should decross, trigger the character transform states
   auto playerDecrosses = [this, forms] () mutable {
-    bool changeState = this->trackedForms[0]->player->GetHealth() == 0;
+    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+    TrackedFormData& formData = GetPlayerFormData(localPlayer);
+
+    bool changeState = localPlayer->GetHealth() == 0;
     changeState = changeState || playerDecross;
-    changeState = changeState && (this->trackedForms[0]->selectedForm != -1);
+    changeState = changeState && (formData.selectedForm != -1);
 
     if (changeState) {
-      this->trackedForms[0]->selectedForm = -1;
-      this->trackedForms[0]->animationComplete = false;
+      formData.selectedForm = -1;
+      formData.animationComplete = false;
       forms->SkipBackdrop();
     }
 
@@ -167,13 +162,6 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
 
   // Time freeze state interrupts combat state which must resume after animations are finished
   timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
-
-  // Some states need to know about card uses
-  auto& ui = this->GetSelectedCardsUI();
-  combat->Subscribe(ui);
-  combat->Subscribe(*GetLocalPlayer());
-  timeFreeze->Subscribe(ui);
-  timeFreeze->Subscribe(*GetLocalPlayer());
   
   // Some states are part of the combat routine and need to respect
   // the combat state's timers
@@ -190,6 +178,39 @@ MobBattleScene::~MobBattleScene() {
   }
 
   props.mobs.clear();
+}
+
+void MobBattleScene::Init()
+{
+  SpawnLocalPlayer(2, 2);
+
+  // Run block programs on the remote player now that they are spawned
+  BlockPackageManager& blockPackages = getController().BlockPackageManager();
+  for (const std::string& blockID : props.blocks) {
+    if (!blockPackages.HasPackage(blockID)) continue;
+
+    auto& blockMeta = blockPackages.FindPackageByID(blockID);
+    blockMeta.mutator(*GetLocalPlayer());
+  }
+
+  Mob& mob = *props.mobs.front();
+
+  // Simple error reporting if the scene was not fed any mobs
+  if (props.mobs.size() == 0) {
+    Logger::Log(LogLevel::warning, std::string("Mob list was empty when battle started."));
+  }
+  else if (mob.GetMobCount() == 0) {
+    Logger::Log(LogLevel::warning, std::string("Current mob was empty when battle started. Mob Type: ") + typeid(mob).name());
+  }
+  else {
+    LoadMob(mob);
+  }
+
+  GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
+  GetEmotionWindow().SetTexture(props.emotion);
+
+  // Tell everything to begin battle
+  BroadcastBattleStart();
 }
 
 void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)

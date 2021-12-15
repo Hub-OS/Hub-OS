@@ -21,7 +21,6 @@ enum class Element : int {
   plus,
   breaker,
   none,
-  ice,
   size
 };
 
@@ -91,9 +90,6 @@ static const std::string GetStrFromElement(const Element& type) {
     break;
   case Element::fire:
     res = "FIRE";
-    break;
-  case Element::ice:
-    res = "ICE";
     break;
   case Element::none:
     res = "NONE";

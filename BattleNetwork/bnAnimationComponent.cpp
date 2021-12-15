@@ -16,8 +16,8 @@ AnimationComponent::~AnimationComponent() {
 
 void AnimationComponent::OnUpdate(double _elapsed)
 {
-  auto owner = GetOwner();
-  auto character = dynamic_cast<Character*>(owner.get());
+  std::shared_ptr<Entity>  owner = GetOwner();
+  Character* character = dynamic_cast<Character*>(owner.get());
 
   // Since animations can be used on non-characters
   // we check if the owning entity is non-null 
@@ -28,13 +28,7 @@ void AnimationComponent::OnUpdate(double _elapsed)
   }
 
   stunnedLastFrame = (character && character->IsStunned());
-  animation.Update(_elapsed, owner->getSprite());
-
-  for (auto& s : syncList) {
-    animation.SyncAnimation(*s.anim);
-    s.anim->Refresh(s.node->getSprite());
-    RefreshSyncItem(s);
-  }
+  UpdateAnimationObjects(owner->getSprite(), _elapsed);
 }
 
 void AnimationComponent::SetPath(string _path)
@@ -235,7 +229,10 @@ void AnimationComponent::SetFrame(const int index)
 
 void AnimationComponent::Refresh()
 {
-  this->OnUpdate(0);
+  std::shared_ptr<Entity> owner = GetOwner();
+  if (!owner) return;
+
+  UpdateAnimationObjects(owner->getSprite(), 0);
 }
 
 void AnimationComponent::RefreshSyncItem(AnimationComponent::SyncItem& item)
@@ -252,4 +249,15 @@ void AnimationComponent::RefreshSyncItem(AnimationComponent::SyncItem& item)
   baseOffset = baseOffset - origin;
 
   item.node->setPosition(baseOffset);
+}
+
+void AnimationComponent::UpdateAnimationObjects(sf::Sprite& sprite, double elapsed)
+{
+  animation.Update(elapsed, sprite);
+
+  for (auto& s : syncList) {
+    animation.SyncAnimation(*s.anim);
+    s.anim->Refresh(s.node->getSprite());
+    RefreshSyncItem(s);
+  }
 }

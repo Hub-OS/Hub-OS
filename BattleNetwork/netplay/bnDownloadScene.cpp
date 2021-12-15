@@ -17,6 +17,7 @@ constexpr std::string_view CACHE_FOLDER = "cache";
 
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
+  coinFlip(props.coinFlip),
   lastScreen(props.lastScreen),
   playerHash(props.playerHash),
   remotePlayerHash(props.remotePlayerHash),
@@ -74,6 +75,10 @@ void DownloadScene::SendHandshakeAck()
   Poco::Buffer<char> buffer(0);
   BufferWriter writer;
   writer.Write(buffer, NetPlaySignals::download_handshake);
+  
+  mySeed = getController().GetRandSeed();
+  writer.Write(buffer, mySeed);
+
   auto id = packetProcessor->SendPacket(Reliability::Reliable, buffer).second;
   packetProcessor->UpdateHandshakeID(id);
 }
@@ -172,7 +177,7 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
   switch (header) {
   case NetPlaySignals::download_handshake:
     Logger::Logf(LogLevel::info, "Remote is sending initial handshake");
-    remoteHandshake = true;
+    this->RecieveHandshake(body);
     break;
   case NetPlaySignals::trade_card_package_list:
     Logger::Logf(LogLevel::info, "Remote is requesting to compare the card packages...");
@@ -270,6 +275,20 @@ void DownloadScene::RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffe
     Logger::Logf(LogLevel::info, "Nothing to download.");
   }
   blockPackageRequested = true;
+}
+
+void DownloadScene::RecieveHandshake(const Poco::Buffer<char>& buffer)
+{
+  BufferReader reader;
+  unsigned int seed = reader.Read<unsigned int>(buffer);
+  unsigned int maxSeed = std::max(seed, mySeed);
+  getController().SeedRand(maxSeed);
+  coinFlip = (maxSeed == mySeed);
+
+  Logger::Logf(LogLevel::debug, "Coin flip: %i", coinFlip);
+
+  // mark handshake as completed
+  this->remoteHandshake = true;
 }
 
 void DownloadScene::RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer)
@@ -608,16 +627,16 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
     float ydiff = bounds.height * label.getScale().y;
 
     if (auto iconTexture = packageManager.FindPackageByID(key).GetIconTexture()) {
-      icon.setTexture(*iconTexture);
+      icon.setTexture(*iconTexture, true);
       float iconHeight = icon.getLocalBounds().height;
       icon.setOrigin(0, iconHeight);
     }
 
     icon.setPosition(sf::Vector2f(bounds.width + 5.0f, bounds.height));
-    label.setOrigin(sf::Vector2f(0, bounds.height));
+    label.setOrigin(sf::Vector2f(0, 0));
     label.setPosition(0, h);
 
-    h -= ydiff + 5.0f;
+    h += ydiff + 5.0f;
 
     surface.draw(label);
   }

@@ -12,12 +12,11 @@ class Mob;
 struct RewardBattleState final : public BattleSceneState {
 
   BattleResultsWidget* battleResultsWidget{ nullptr }; /*!< modal that pops up when player wins */
-  Player* player{ nullptr };
   Mob* mob{ nullptr };
   int* hitCount{ nullptr };
   double elapsed{ 0 };
 
-  RewardBattleState(Mob* mob, Player* player, int* hitCount);
+  RewardBattleState(Mob* mob, int* hitCount);
   ~RewardBattleState();
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;

@@ -29,7 +29,6 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   sf::Sprite tripleDelete;
   sf::Sprite counterHit;
   sf::Shader* pauseShader; /*!< Dim screen */
-  std::vector<std::shared_ptr<Player>>& tracked;
   std::vector<const BattleSceneState*> subcombatStates;
   const bool HasTimeFreeze() const;
   const bool PlayerWon() const;
@@ -46,5 +45,5 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   void onDraw(sf::RenderTexture& surface) override;
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
 
-  CombatBattleState(Mob* mob, std::vector<std::shared_ptr<Player>>& tracked, double customDuration);
+  CombatBattleState(Mob* mob, double customDuration);
 };

@@ -6,7 +6,7 @@
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 
-CharacterTransformBattleState::CharacterTransformBattleState(std::vector<std::shared_ptr<TrackedFormData>>& tracking) : tracking(tracking)
+CharacterTransformBattleState::CharacterTransformBattleState()
 {
   shine = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_BOSS_SHINE));
   shine.setScale(2.f, 2.f);
@@ -27,8 +27,8 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
   bool allCompleted = true;
 
   size_t count = 0;
-  for (auto& data : tracking) {
-    auto& [player, index, complete] = *data;
+  for (std::shared_ptr<Player>& player : GetScene().GetAllPlayers()) {
+    auto& [index, complete] = GetScene().GetPlayerFormData(player);
 
     if (complete) continue;
 
@@ -41,46 +41,45 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     SmartShader* originalShader = &player->GetShader();
 
     // I found out structured bindings cannot be captured...
-    auto playerPtr = player;
     int _index = index;
 
     auto onTransform = [=]
     () {
       // The next form has a switch based on health
       // This way dying will cancel the form
-      playerPtr->ClearActionQueue();
-      playerPtr->ActivateFormAt(_index);
-      playerPtr->SetColorMode(ColorMode::additive);
-      playerPtr->setColor(NoopCompositeColor(ColorMode::additive));
+      player->ClearActionQueue();
+      player->ActivateFormAt(_index);
+      player->SetColorMode(ColorMode::additive);
+      player->setColor(NoopCompositeColor(ColorMode::additive));
       
-      if (auto animComp = playerPtr->GetFirstComponent<AnimationComponent>()) {
+      if (auto animComp = player->GetFirstComponent<AnimationComponent>()) {
         animComp->Refresh();
       }
 
-      if (playerPtr->GetHealth() == 0 && _index == -1) {
+      if (_index == -1) {
         Audio().Play(AudioType::DEFORM);
       }
       else {
-        playerPtr->MakeActionable();
+        player->MakeActionable();
 
-        if (playerPtr == GetScene().GetLocalPlayer().get()) {
+        if (player == GetScene().GetLocalPlayer()) {
           // only client player should remove their index information (e.g. PVP battles)
           auto& widget = GetScene().GetCardSelectWidget();
           widget.LockInPlayerFormSelection();
           widget.ErasePlayerFormOption(_index);
         }
 
-        GetScene().HandleCounterLoss(*playerPtr, false);
+        GetScene().HandleCounterLoss(*player, false);
         Audio().Play(AudioType::SHINE);
       }
 
-      playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
+      player->SetShader(Shaders().GetShader(ShaderType::WHITE));
     };
 
     bool* completePtr = &complete;
     auto onFinish = [=]
     () {
-      playerPtr->RefreshShader();
+      player->RefreshShader();
       *completePtr = true; // set tracking data `complete` to true
     };
 
@@ -90,7 +89,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       if (index == -1) {
         // If decross, turn white immediately
         shineAnimations[count] << Animator::On(1, [=] {      
-          playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
+          player->SetShader(Shaders().GetShader(ShaderType::WHITE));
         }) << Animator::On(10, onTransform);
       }
       else {
@@ -138,7 +137,7 @@ void CharacterTransformBattleState::onStart(const BattleSceneState*) {
 }
 
 void CharacterTransformBattleState::onUpdate(double elapsed) {
-  while (shineAnimations.size() < tracking.size()) {
+  while (shineAnimations.size() < GetScene().GetAllPlayers().size()) {
     Animation animation = Animation("resources/scenes/battle/boss_shine.animation");
     animation.Load();
     shineAnimations.push_back(animation);
@@ -168,8 +167,8 @@ void CharacterTransformBattleState::onEnd(const BattleSceneState*)
 void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
 {
   size_t count = 0;
-  for (std::shared_ptr<TrackedFormData>& data : tracking) {
-    auto& [player, index, complete] = *data;
+  for (std::shared_ptr<Player>& player : GetScene().GetAllPlayers()) {
+    auto& [index, complete] = GetScene().GetPlayerFormData(player);
 
     Animation& anim = shineAnimations[count];
     anim.Update(static_cast<float>(frameElapsed), shine);

@@ -23,6 +23,7 @@
 #include "../bnLanBackground.h"
 #include "../bnGraveyardBackground.h"
 #include "../bnVirusBackground.h"
+#include "../bnFadeInState.h"
 
 // Combos are counted if more than one enemy is hit within x frames
 // The game is clocked to display 60 frames per second
@@ -61,11 +62,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   field = props.field;
   CharacterDeleteListener::Subscribe(*field);
   field->SetScene(this); // event emitters during battle needs the active scene
-
-  localPlayer->ChangeState<PlayerIdleState>();
-  localPlayer->ToggleTimeFreeze(false);
-  localPlayer->SetTeam(Team::red);
-  field->AddEntity(localPlayer, 2, 2);
 
   /*
   Background for scene*/
@@ -114,24 +110,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
     customBar.SetShader(customBarShader);
   }
 
-  // Player UI
-  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackageManager());
-  CardActionUseListener::Subscribe(*localPlayer);
-  CardActionUseListener::Subscribe(*cardUI);
-
-  auto healthUI = localPlayer->CreateComponent<PlayerHealthUIComponent>(localPlayer);
-  healthUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
-
-  cardCustGUI.AddNode(healthUI);
-
-  // Player Emotion
-  this->emotionUI = localPlayer->CreateComponent<PlayerEmotionUI>(localPlayer);
-  this->emotionUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
-  this->emotionUI->setPosition(4.f, 35.f);
-  cardCustGUI.AddNode(emotionUI);
-
-  emotionUI->Subscribe(cardCustGUI);
-
   /*
   Counter "reveal" ring
   */
@@ -145,9 +123,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   counterReveal->SetLayer(-100);
 
   counterCombatRule = std::make_shared<CounterCombatRule>(this);
-
-  // Load forms
-  cardCustGUI.SetPlayerFormOptions(localPlayer->GetForms());
 
   // MOB UI
   mobBackdropSprite = sf::Sprite(*Textures().LoadFromFile(TexturePaths::MOB_NAME_BACKDROP));
@@ -179,8 +154,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
 
   comboInfoTimer.start();
   multiDeleteTimer.start();
-
-  HitListener::Subscribe(*localPlayer);
 
   setView(sf::Vector2u(480, 320));
 
@@ -267,7 +240,6 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   if (!isPlayerDeleted && localPlayer.get() == &pending) {
     battleResults.runaway = false;
     isPlayerDeleted = true;
-    localPlayer = nullptr;
   }
 
   auto pendingPtr = &pending;
@@ -361,6 +333,29 @@ const std::vector<std::reference_wrapper<CardActionUsePublisher>>& BattleSceneBa
   return cardUseSubscriptions;
 }
 
+TrackedFormData& BattleSceneBase::GetPlayerFormData(const std::shared_ptr<Player>& player)
+{
+  static TrackedFormData dummy;
+  dummy = TrackedFormData();
+
+  auto iter = allPlayerFormsHash.find(player.get());
+
+  if (iter != allPlayerFormsHash.end()) {
+    return iter->second;
+  }
+
+  return dummy;
+}
+
+std::shared_ptr<Player> BattleSceneBase::GetPlayerFromEntityID(Entity::ID_t ID)
+{
+  for (std::shared_ptr<Player> player : GetAllPlayers()) {
+    if (player->GetID() == ID) return player;
+  }
+
+  return nullptr;
+}
+
 void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
   HandleCounterLoss(*action->GetActor(), true);
@@ -373,6 +368,72 @@ sf::Vector2f BattleSceneBase::PerspectiveOffset(SpriteProxyNode& node)
   }
 
   return sf::Vector2f();
+}
+
+void BattleSceneBase::SpawnLocalPlayer(int x, int y)
+{
+  if (hasPlayerSpawned) return;
+  hasPlayerSpawned = true;
+
+  localPlayer->Init();
+  localPlayer->ChangeState<PlayerIdleState>();
+  localPlayer->SetTeam(Team::red);
+  field->AddEntity(localPlayer, x, y);
+
+  // Player UI
+  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackageManager());
+  this->SubscribeToCardActions(*localPlayer);
+  this->SubscribeToCardActions(*cardUI);
+
+  auto healthUI = localPlayer->CreateComponent<PlayerHealthUIComponent>(localPlayer);
+  healthUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
+
+  cardCustGUI.AddNode(healthUI);
+
+  // Player Emotion
+  this->emotionUI = localPlayer->CreateComponent<PlayerEmotionUI>(localPlayer);
+  this->emotionUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
+  this->emotionUI->setPosition(4.f, 35.f);
+  cardCustGUI.AddNode(emotionUI);
+
+  emotionUI->Subscribe(cardCustGUI);
+
+  // Load forms
+  cardCustGUI.SetPlayerFormOptions(localPlayer->GetForms());
+
+  // track forms
+  allPlayerFormsHash[localPlayer.get()] = {}; // use default form data values
+
+  HitListener::Subscribe(*localPlayer);
+}
+
+void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y)
+{
+  if (!TrackOtherPlayer(player)) return;
+
+  Team team = field->GetAt(x, y)->GetTeam();
+
+  player->Init();
+  player->ChangeState<PlayerIdleState>();  
+  player->SetTeam(team);
+  field->AddEntity(player, x, y);
+
+  if (!localPlayer->Teammate(team)) {
+    mob->Track(player);
+  }
+
+  // Other Player UI
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackageManager());
+  cardUI->Hide();
+  this->SubscribeToCardActions(*player);
+  SubscribeToCardActions(*cardUI);
+
+  std::shared_ptr<MobHealthUI> healthUI = player->CreateComponent<MobHealthUI>(player);
+
+  // track forms
+  allPlayerFormsHash[player.get()] = {}; // use default form data values
+
+  HitListener::Subscribe(*player);
 }
 
 void BattleSceneBase::LoadMob(Mob& mob)
@@ -621,7 +682,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     tint = 255;
   }
 
-  background->SetOpacity(1.0f - backdropOpacity);
+  background->SetOpacity(1.0f - (float)backdropOpacity);
 
   surface.draw(*background);
 
@@ -748,21 +809,25 @@ void BattleSceneBase::onEnd()
   }
 }
 
-void BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
-  if (other == localPlayer) return; // prevent tracking local player as "other" players
+bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
+  if (other == localPlayer) return false; // prevent tracking local player as "other" players
 
   auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
 
   if (iter == otherPlayers.end()) {
     otherPlayers.push_back(other);
+    return true;
   }
+
+  return false;
 }
 
 void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player> other) {
   auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
-
+  auto iter2 = allPlayerFormsHash.find(other.get());
   if (iter != otherPlayers.end()) {
     otherPlayers.erase(iter);
+    allPlayerFormsHash.erase(iter2);
   }
 }
 

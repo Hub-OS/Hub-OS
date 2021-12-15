@@ -21,15 +21,16 @@
 #include "../../bnSceneNode.h"
 
 struct DownloadSceneProps {
-  bool& downloadSuccess;
   std::vector<std::string> cardPackageHashes;
   std::vector<std::string> blockPackageHashes;
   std::string playerHash;
-  std::string& remotePlayerHash;
-  std::vector<std::string>& remotePlayerBlocks;
   Poco::Net::SocketAddress remoteAddress;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   sf::Texture lastScreen;
+  bool& downloadSuccess;
+  unsigned& coinFlip;
+  std::string& remotePlayerHash;
+  std::vector<std::string>& remotePlayerBlocks;
 };
 
 class DownloadScene final : public Scene {
@@ -37,6 +38,8 @@ private:
   bool& downloadSuccess;
   bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{};
   bool playerPackageRequested{}, cardPackageRequested{}, blockPackageRequested{};
+  unsigned& coinFlip;
+  unsigned mySeed{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
@@ -72,6 +75,7 @@ private:
   void RequestBlockPackageList(const std::vector<std::string>& hashes);
 
   // Handle recieve 
+  void RecieveHandshake(const Poco::Buffer<char>& buffer);
   void RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer);
   void RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer);
   void RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffer);

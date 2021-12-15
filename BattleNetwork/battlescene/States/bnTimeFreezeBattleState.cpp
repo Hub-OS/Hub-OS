@@ -10,7 +10,9 @@
 #include "../../bnPlayerSelectedCardsUI.h"
 #include <cmath>
 
-TimeFreezeBattleState::TimeFreezeBattleState()
+TimeFreezeBattleState::TimeFreezeBattleState() :
+  dmg(Font::Style::gradient_orange),
+  multiplier(Font::Style::thick)
 {
   lockedTimestamp = std::numeric_limits<long long>::max();
 }
@@ -77,7 +79,7 @@ void TimeFreezeBattleState::ProcessInputs()
           // convert meta data into a useable action object
           const Battle::Card& card = *maybe_card;
 
-          if (CanCounter(p) && card.IsTimeFreeze()) {
+          if (card.IsTimeFreeze() && CanCounter(p)) {
             if (auto action = CardToAction(card, p, &GetScene().getController().CardPackageManager(), card.props)) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
@@ -97,6 +99,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   Logger::Logf(LogLevel::info, "TimeFreezeBattleState::onStart");
   GetScene().GetSelectedCardsUI().Hide();
   GetScene().GetField()->ToggleTimeFreeze(true); // freeze everything on the field but accept hits
+  GetScene().StopBattleStepTimer();
   currState = startState;
 
   if (tfEvents.empty()) return;
@@ -113,6 +116,7 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
   GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
   GetScene().HighlightTiles(false);
+  GetScene().StartBattleStepTimer();
   tfEvents.clear();
   summonStart = false;
   summonTick = frames(0);
@@ -274,7 +278,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
     bar.setPosition(position + sf::Vector2f(0.f, 12.f));
 
-    sf::Uint8 b = swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
+    sf::Uint8 b = (sf::Uint8)swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
     bar.setFillColor(sf::Color(255, 255, b));
     surface.draw(bar);
   }
@@ -325,6 +329,79 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
+
+/*
+void TimeFreezeBattleState::DrawCardData(sf::RenderTarget& target)
+{
+  const auto orange = sf::Color(225, 140, 0);
+  bool canBoost{};
+
+  summonsLabel.SetString("");
+  dmg.SetString("");
+  multiplier.SetString("");
+
+  TimeFreezeBattleState::EventData& event = *tfEvents.begin();
+  Battle::Card::Properties cardProps = event.action->GetMetaData();
+  canBoost = cardProps.canBoost;
+
+  // Text sits at the bottom-left of the screen
+  summonsLabel.SetString(event.name);
+  summonsLabel.setOrigin(0, 0);
+  summonsLabel.setPosition(2.0f, 296.0f);
+
+  // Text sits at the bottom-left of the screen
+  int unmodDamage = event.unmoddedProps.damage; // TODO: get unmodded properties??
+  int delta = cardProps.damage - unmodDamage;
+  sf::String dmgText = std::to_string(unmodDamage);
+
+  if (delta != 0) {
+    dmgText = dmgText + sf::String("+") + sf::String(std::to_string(std::abs(delta)));
+  }
+
+  // attacks that normally show no damage will show if the modifer adds damage
+  if (delta > 0 || unmodDamage > 0) {
+    dmg.SetString(dmgText);
+    dmg.setOrigin(0, 0);
+    dmg.setPosition((summonsLabel.GetLocalBounds().width * summonsLabel.getScale().x) + 10.f, 296.f);
+  }
+  
+  // TODO: multiplierValue needs to come from where?
+  if (multiplierValue != 1 && unmodDamage != 0) {
+    // add "x N" where N is the multiplier
+    std::string multStr = "x" + std::to_string(multiplierValue);
+    multiplier.SetString(multStr);
+    multiplier.setOrigin(0, 0);
+    multiplier.setPosition(dmg.getPosition().x + (dmg.GetLocalBounds().width * dmg.getScale().x) + 3.0f, 296.0f);
+  }
+
+  // shadow beneath
+  auto textPos = summonsLabel.getPosition();
+  summonsLabel.SetColor(sf::Color::Black);
+  summonsLabel.setPosition(textPos.x + 2.f, textPos.y + 2.f);
+  target.draw(summonsLabel);
+
+  // font on top
+  summonsLabel.setPosition(textPos);
+  summonsLabel.SetColor(sf::Color::White);
+  target.draw(summonsLabel);
+
+  // our number font has shadow baked in
+  target.draw(dmg);
+
+  if (canBoost) {
+    // shadow
+    auto multiPos = multiplier.getPosition();
+    multiplier.SetColor(sf::Color::Black);
+    multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
+    target.draw(multiplier);
+
+    // font on top
+    multiplier.setPosition(multiPos);
+    multiplier.SetColor(sf::Color::White);
+    target.draw(multiplier);
+  }
+}
+*/
 
 void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {

@@ -9,6 +9,7 @@
 #include <Swoosh/Activity.h>
 #include <Swoosh/Timer.h>
 
+#include "../bnEntity.h"
 #include "../bnScene.h"
 #include "../bnComponent.h"
 #include "../bnPA.h"
@@ -47,7 +48,16 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
+// alias
 using BattleResultsFunc = std::function<void(const BattleResults& results)>;
+
+/**
+  @brief Tracks form data so the card select knows when or when not to animate the player
+*/
+struct TrackedFormData {
+  int selectedForm{ -1 };
+  bool animationComplete{ true };
+};
 
 struct BattleSceneBaseProps {
   std::shared_ptr<Player> player;
@@ -77,6 +87,7 @@ private:
   bool highlightTiles{ true };
   bool backdropAffectBG{ false };
   bool perspectiveFlip{ false }; //!< if true, view from blue team's perspective
+  bool hasPlayerSpawned{ false };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
   int turn{ 0 }; //!< How many turns per round (inbetween card selection)
   int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
@@ -102,6 +113,7 @@ private:
   std::shared_ptr<Field> field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
   std::shared_ptr<Player> localPlayer; /*!< Local player */
   std::vector<std::shared_ptr<Player>> otherPlayers; /*!< Player array supports multiplayer */
+  std::map<Player*, TrackedFormData> allPlayerFormsHash;
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
@@ -249,6 +261,10 @@ protected:
     }
   };
 
+  virtual void Init() = 0;
+  void SpawnLocalPlayer(int x, int y);
+  void SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y);
+
   void LoadMob(Mob& mob);
 
   /**
@@ -293,6 +309,8 @@ public:
   void SubscribeToCardActions(CardActionUsePublisher& publisher);
   void UnsubscribeFromCardActions(CardActionUsePublisher& publisher);
   const std::vector<std::reference_wrapper<CardActionUsePublisher>>& GetCardActionSubscriptions() const;
+  TrackedFormData& GetPlayerFormData(const std::shared_ptr<Player>& player);
+  std::shared_ptr<Player> GetPlayerFromEntityID(Entity::ID_t ID);
 
   /**
     * @brief State boolean for BattleScene. Query if the battle is over.
@@ -341,7 +359,7 @@ public:
   virtual void onDraw(sf::RenderTexture& surface) override;
   virtual void onEnd() override;
 
-  void TrackOtherPlayer(std::shared_ptr<Player> other);
+  bool TrackOtherPlayer(std::shared_ptr<Player> other);
   void UntrackOtherPlayer(std::shared_ptr<Player> other);
 
   bool IsPlayerDeleted() const;
