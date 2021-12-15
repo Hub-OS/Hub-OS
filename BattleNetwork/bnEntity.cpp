@@ -734,7 +734,7 @@ const bool Entity::IsJumping() const
 {
   bool is_moving = currMoveEvent.IsJumping();
 
-  return is_moving;
+  return is_moving && currJumpHeight > 0.f;
 }
 
 const bool Entity::IsTeleporting() const
@@ -1159,8 +1159,6 @@ const bool Entity::UnknownTeamResolveCollision(const Entity& other) const
 
 const bool Entity::HasCollision(const Hit::Properties & props)
 {
-  if (IsJumping() && GetJumpHeight() > 10.f) return false;
-
   // Pierce status hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
     if (invincibilityCooldown > 0 || IsPassthrough()) return false;

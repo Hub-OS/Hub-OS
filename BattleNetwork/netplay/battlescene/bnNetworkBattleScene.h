@@ -91,7 +91,7 @@ private:
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
   unsigned int remoteFrameNumber{}, maxRemoteFrameNumber{}, resyncFrameNumber{};
-
+  size_t localPlayerIdx{};
   Text ping, frameNumText;
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
@@ -130,8 +130,6 @@ private:
   
   // This utilized BattleSceneBase::SpawnOtherPlayer() but adds some setup for networking
   void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer);
-
-
 public:
   using BattleSceneBase::ProcessNewestComponents;
 

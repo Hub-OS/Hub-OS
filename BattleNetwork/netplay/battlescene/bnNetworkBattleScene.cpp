@@ -129,11 +129,11 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // special condition: if lost in combat and had a form, trigger the character transform states
   auto playerLosesInForm = [this] {
-    const bool changeState = this->trackedForms[0]->player->GetHealth() == 0 && (this->trackedForms[0]->selectedForm != -1);
+    const bool changeState = this->trackedForms[localPlayerIdx]->player->GetHealth() == 0 && (this->trackedForms[localPlayerIdx]->selectedForm != -1);
 
     if (changeState) {
-      this->trackedForms[0]->selectedForm = -1;
-      this->trackedForms[0]->animationComplete = false;
+      this->trackedForms[localPlayerIdx]->selectedForm = -1;
+      this->trackedForms[localPlayerIdx]->animationComplete = false;
     }
 
     return changeState;
@@ -190,8 +190,8 @@ void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 
     if (player->IsSuperEffective(props.element)) {
       // deform
-      trackedForms[0]->animationComplete = false;
-      trackedForms[0]->selectedForm = -1;
+      trackedForms[localPlayerIdx]->animationComplete = false;
+      trackedForms[localPlayerIdx]->selectedForm = -1;
     }
   }
 
@@ -362,14 +362,13 @@ void NetworkBattleScene::Init()
 {
   size_t idx = 0;
   for (auto& [blocks, p] : spawnOrder) {
-    idx++;
-
     // ptr to player, form select index (-1 none), if should transform
     // TODO: just make this a struct to use across all states that need it...
     trackedForms.push_back(std::make_shared<TrackedFormData>(p.get(), -1, false));
 
     if (p == GetLocalPlayer()) {
-      std::string title = "Player #" + std::to_string(idx);
+      localPlayerIdx = idx;
+      std::string title = "Player #" + std::to_string(idx+1);
       SpawnLocalPlayer(2, 2);
       getController().SetSubtitle(title);
     }
@@ -386,6 +385,8 @@ void NetworkBattleScene::Init()
       auto& blockMeta = blockPackages.FindPackageByID(blockID);
       blockMeta.mutator(*p);
     }
+
+    idx++;
   }
 
   GetCardSelectWidget().PreventRetreat();
@@ -408,7 +409,7 @@ void NetworkBattleScene::SendHandshakeSignal()
   remote animations (see: combos and forms)
   */
 
-  int form = trackedForms[0]->selectedForm;
+  int form = trackedForms[localPlayerIdx]->selectedForm;
   unsigned thisFrame = this->FrameNumber();
   auto& selectedCardsWidget = this->GetSelectedCardsUI();
   std::vector<std::string> uuids = selectedCardsWidget.GetUUIDList();
@@ -523,8 +524,8 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   //remoteState.remoteFormSelect = remoteForm;
   remoteState.remoteChangeForm = remoteState.remoteFormSelect != remoteForm;
   remoteState.remoteFormSelect = remoteForm;
-  trackedForms[1]->selectedForm = remoteForm;
-  trackedForms[1]->animationComplete = !remoteState.remoteChangeForm; // a value of false forces animation to play
+  trackedForms[1-localPlayerIdx]->selectedForm = remoteForm;
+  trackedForms[1-localPlayerIdx]->animationComplete = !remoteState.remoteChangeForm; // a value of false forces animation to play
 
   remoteHand.clear();
 
@@ -654,8 +655,8 @@ void NetworkBattleScene::RecieveChangedFormSignal(const Poco::Buffer<char>& buff
     remoteState.remoteFormSelect = form;
 
     // TODO: hacky and ugly
-    this->trackedForms[1]->selectedForm = remoteState.remoteFormSelect;
-    this->trackedForms[1]->animationComplete = false; // kick-off animation
+    this->trackedForms[1-localPlayerIdx]->selectedForm = remoteState.remoteFormSelect;
+    this->trackedForms[1-localPlayerIdx]->animationComplete = false; // kick-off animation
   }
 }
 
