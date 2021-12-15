@@ -111,12 +111,20 @@ ScriptedMob::ScriptedMob(sol::state& script) :
 {
 }
 
-Mob* ScriptedMob::Build(std::shared_ptr<Field> field) {
+Mob* ScriptedMob::Build(std::shared_ptr<Field> field, const std::string& dataString) {
   // Build a mob around the field input
   this->field = field;
   this->mob = new Mob(field);
 
-  auto initResult = CallLuaFunction(script, "package_build", this);
+  Logger::Logf(LogLevel::debug, "Data passed to package_build -> %s", dataString.c_str());
+
+  auto dataResult = EvalLua(script, dataString);
+
+  if (dataResult.is_error()) {
+    Logger::Log(LogLevel::critical, dataResult.error_cstr());
+  }
+
+  auto initResult = CallLuaFunction(script, "package_build", this, dataResult.ok());
 
   if (initResult.is_error()) {
     Logger::Log(LogLevel::critical, initResult.error_cstr());

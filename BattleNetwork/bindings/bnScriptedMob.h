@@ -43,7 +43,7 @@ public:
    * @brief Builds and returns the generated mob
    * @return Mob*
    */
-  Mob* Build(std::shared_ptr<Field> field);
+  Mob* Build(std::shared_ptr<Field> field, const std::string& dataString = "");
   std::shared_ptr<Field> GetField();
   void EnableFreedomMission(uint8_t turnCount);
   /**

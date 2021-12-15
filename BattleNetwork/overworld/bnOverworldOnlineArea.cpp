@@ -2327,6 +2327,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
   }
 
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
+  std::string data_path = reader.ReadString<uint16_t>(buffer);
 
   std::string file_path = serverAssetManager.GetPath(asset_path);
 
@@ -2345,12 +2346,12 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     return;
   }
 
-  Logger::Logf(LogLevel::critical, "Battling remote mob %s", packageId.c_str());
+  Logger::Logf(LogLevel::debug, "Battling remote mob %s", packageId.c_str());
 
   auto& mobMeta = packageManager.FindPackageByID(packageId);
 
   auto mobFactory = std::unique_ptr<MobFactory>(mobMeta.GetData());
-  auto* mob = mobFactory->Build(std::make_shared<Field>(6, 3));
+  auto* mob = mobFactory->Build(std::make_shared<Field>(6, 3), GetText(data_path));
 
   AddSceneChangeTask([=] {
     // Play the pre battle rumble sound

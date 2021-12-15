@@ -144,3 +144,14 @@ inline void ExpectLuaFunction(sol::object object) {
     throw std::runtime_error("Expected function");
   }
 }
+
+inline stx::result_t<sol::object> EvalLua(sol::state& lua, const std::string& dataString) {
+  sol::protected_function_result result = lua.safe_script(dataString, sol::script_pass_on_error);
+
+  if (!result.valid()) {
+    sol::error error = result;
+    return stx::error<sol::object>(error.what());
+  }
+
+  return stx::ok<sol::object>(result);
+}

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <optional>
 
 /* STD LIBRARY extensions */
 namespace stx {
@@ -42,6 +43,13 @@ namespace stx {
 
         T value() {
             return this->m_value;
+        }
+
+        std::optional<T> ok() {
+          if (m_is_error) {
+            return {};
+          }
+          return m_value;
         }
 
         const char* error_cstr() {

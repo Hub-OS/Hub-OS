@@ -380,7 +380,30 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Spawner", key );
     },
     "spawn_at", &ScriptedMob::ScriptedSpawner::SpawnAt
-  );  
+  );
+
+  battle_namespace.new_usertype<Mob::Mutator>("SpawnMutator",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "SpawnMutator", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "SpawnMutator", key );
+    },
+    "mutate", [](Mob::Mutator& mutator, sol::object callbackObject) {
+      ExpectLuaFunction(callbackObject);
+
+      mutator.Mutate([callbackObject] (std::shared_ptr<Character> character) {
+        sol::protected_function callback = callbackObject;
+
+        auto result = callback(WeakWrapper(character));
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(LogLevel::critical, error.what());
+        }
+      });
+    }
+  );
 
   engine_namespace.set_function("load_texture",
     [](const std::string& path) {
