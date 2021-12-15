@@ -13,8 +13,7 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
-CardSelectBattleState::CardSelectBattleState(std::vector<std::shared_ptr<TrackedFormData>>& forms) : 
-  forms(forms),
+CardSelectBattleState::CardSelectBattleState() : 
   font(Font::Style::thick)
 {
   // Selection input delays
@@ -34,7 +33,10 @@ CardSelectBattleState::CardSelectBattleState(std::vector<std::shared_ptr<Tracked
 
 void CardSelectBattleState::CheckFormChanges()
 {
-  CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
+  BattleSceneBase& scene = GetScene();
+  CardSelectionCust& cardCust = scene.GetCardSelectWidget();
+  std::shared_ptr<Player> localPlayer = scene.GetLocalPlayer();
+  TrackedFormData& formData = scene.GetPlayerFormData(localPlayer);
 
   // Check the form transition values
   if (formSelected) {
@@ -43,13 +45,13 @@ void CardSelectBattleState::CheckFormChanges()
     if (currForm == newFormIndex) {
       // no change
       formSelected = false;
-      forms[0]->animationComplete = true;
+      formData.animationComplete = true;
     }
     else {
       // else, update our record and proceed to the animate state
       currForm = newFormIndex;
-      forms[0]->animationComplete = false;
-      forms[0]->selectedForm = currForm;
+      formData.animationComplete = false;
+      formData.selectedForm = currForm;
     }
   }
 }
@@ -251,8 +253,9 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
 void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 {
+  BattleSceneBase& scene = GetScene();
   float nextLabelHeight = 6.0f; // start 3px from the top (6px/2 upscale = 3px)
-  auto mobList = GetScene().MobList();
+  auto mobList = scene.MobList();
 
   for (int i = 0; i < mobList.size(); i++) {
     const Character& mob = mobList[i].get();
@@ -275,7 +278,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 
     mobBackdropSprite.setPosition(edgePos.x + mobEdgeSprite.getGlobalBounds().width, edgePos.y);
 
-    float scalex = GetScene().getController().getVirtualWindowSize().x - mobBackdropSprite.getPosition().x;
+    float scalex = scene.getController().getVirtualWindowSize().x - mobBackdropSprite.getPosition().x;
     mobBackdropSprite.setScale(scalex, 2.f);
 
     surface.draw(mobEdgeSprite);
@@ -294,7 +297,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
     nextLabelHeight += mobEdgeSprite.getLocalBounds().height + (7.f*3.f);
   }
 
-  surface.draw(GetScene().GetCardSelectWidget());
+  surface.draw(scene.GetCardSelectWidget());
 }
 
 void CardSelectBattleState::onEnd(const BattleSceneState*)

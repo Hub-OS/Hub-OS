@@ -91,10 +91,8 @@ private:
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
   unsigned int remoteFrameNumber{}, maxRemoteFrameNumber{}, resyncFrameNumber{};
-  size_t localPlayerIdx{};
   Text ping, frameNumText;
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
-  std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   SpriteProxyNode pingIndicator;
   std::shared_ptr<SelectedCardsUI> remoteCardActionUsePublisher{ nullptr };
   std::vector<Battle::Card> remoteHand;
@@ -116,13 +114,11 @@ private:
   // netcode send funcs
   void SendHandshakeSignal(); // send player data to start the next round
   void SendFrameData(std::vector<InputEvent>& events); // send our key or gamepad events along with frame data
-  void SendChangedFormSignal(const int form);
   void SendPingSignal();
 
   // netcode recieve funcs
   void RecieveHandshakeSignal(const Poco::Buffer<char>& buffer);
   void RecieveFrameData(const Poco::Buffer<char>& buffer); 
-  void RecieveChangedFormSignal(const Poco::Buffer<char>&);
 
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
   bool IsRemoteBehind();

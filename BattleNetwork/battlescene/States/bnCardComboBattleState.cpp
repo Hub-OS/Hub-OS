@@ -53,7 +53,7 @@ void CardComboBattleState::Simulate(double elapsed, std::vector<Battle::Card>& c
       listStepCounter -= (float)elapsed;
     }
     else {
-      int cardsLen = cards.size();
+      int cardsLen = (int)cards.size();
 
       // +2 = 1 step for showing PA label and 1 step for showing merged card
       // That's the cards we want to show + 1 + 1 = cardCount + 2

@@ -143,11 +143,11 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
       sf::String dmgText = std::to_string(unmodDamage);
 
       if (delta != 0) {
-        dmgText = dmgText + sf::String("+") + sf::String(std::to_string(delta));
+        dmgText = dmgText + sf::String("+") + sf::String(std::to_string(std::abs(delta)));
       }
 
       // attacks that normally show no damage will show if the modifer adds damage
-      if (delta != 0 || unmodDamage != 0) {
+      if (delta > 0 || unmodDamage > 0) {
         dmg.SetString(dmgText);
         dmg.setOrigin(0, 0);
         dmg.setPosition((text.GetLocalBounds().width * text.getScale().x) + 10.f, 296.f);

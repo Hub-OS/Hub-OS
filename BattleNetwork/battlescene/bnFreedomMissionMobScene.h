@@ -1,13 +1,12 @@
 #pragma once
 #include "bnBattleSceneBase.h"
-#include "States/bnCharacterTransformBattleState.h" // defines TrackedFormData struct
 
 class Player;
 class Mob;
-class TimeFreezeBattleState;
-class CombatBattleState;
 
+struct CombatBattleState;
 struct FreedomMissionOverState;
+struct TimeFreezeBattleState;
 
 /*
     \brief Lots of properties packed into a clean struct
@@ -28,7 +27,6 @@ struct FreedomMissionProps {
 class FreedomMissionMobScene final : public BattleSceneBase {
   FreedomMissionOverState* overStatePtr{ nullptr };
   FreedomMissionProps props;
-  std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   bool playerDecross{ false };
   int playerHitCount{};
   TimeFreezeBattleState* timeFreezePtr{ nullptr };

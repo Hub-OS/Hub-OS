@@ -9,6 +9,7 @@
 #include <Swoosh/Activity.h>
 #include <Swoosh/Timer.h>
 
+#include "../bnEntity.h"
 #include "../bnScene.h"
 #include "../bnComponent.h"
 #include "../bnPA.h"
@@ -47,7 +48,16 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
+// alias
 using BattleResultsFunc = std::function<void(const BattleResults& results)>;
+
+/**
+  @brief Tracks form data so the card select knows when or when not to animate the player
+*/
+struct TrackedFormData {
+  int selectedForm{ -1 };
+  bool animationComplete{ true };
+};
 
 struct BattleSceneBaseProps {
   std::shared_ptr<Player> player;
@@ -103,6 +113,7 @@ private:
   std::shared_ptr<Field> field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
   std::shared_ptr<Player> localPlayer; /*!< Local player */
   std::vector<std::shared_ptr<Player>> otherPlayers; /*!< Player array supports multiplayer */
+  std::map<Player*, TrackedFormData> allPlayerFormsHash;
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
@@ -298,6 +309,8 @@ public:
   void SubscribeToCardActions(CardActionUsePublisher& publisher);
   void UnsubscribeFromCardActions(CardActionUsePublisher& publisher);
   const std::vector<std::reference_wrapper<CardActionUsePublisher>>& GetCardActionSubscriptions() const;
+  TrackedFormData& GetPlayerFormData(const std::shared_ptr<Player>& player);
+  std::shared_ptr<Player> GetPlayerFromEntityID(Entity::ID_t ID);
 
   /**
     * @brief State boolean for BattleScene. Query if the battle is over.

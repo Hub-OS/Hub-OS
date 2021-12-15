@@ -29,7 +29,6 @@ class CardSelectBattleState final : public BattleSceneState {
   bool formSelected{ false };
   int currForm{ -1 };
   float streamVolume{ -1.f };
-  std::vector<std::shared_ptr<TrackedFormData>>& forms;
   Font font;
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   std::shared_ptr<std::vector<Battle::Card>> cards; /*!< List of Card* the user selects from the card cust */
@@ -37,7 +36,7 @@ class CardSelectBattleState final : public BattleSceneState {
   // Check if a form change was properly triggered
   void CheckFormChanges();
 public:
-  CardSelectBattleState(std::vector<std::shared_ptr<TrackedFormData>>& forms);
+  CardSelectBattleState();
 
   std::shared_ptr<std::vector<Battle::Card>> GetCardPtrList();
   void onStart(const BattleSceneState* last) override;

@@ -31,10 +31,10 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
 
   // First, we create all of our scene states
   auto intro       = AddState<MobIntroBattleState>(current);
-  auto cardSelect  = AddState<CardSelectBattleState>(trackedForms);
+  auto cardSelect  = AddState<CardSelectBattleState>();
   auto combat      = AddState<CombatBattleState>(current, battleDuration);
   auto combo       = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
-  auto forms       = AddState<CharacterTransformBattleState>(trackedForms);
+  auto forms       = AddState<CharacterTransformBattleState>();
   auto battlestart = AddState<BattleStartBattleState>();
   auto battleover  = AddState<BattleOverBattleState>();
   auto timeFreeze  = AddState<TimeFreezeBattleState>();
@@ -136,13 +136,16 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
 
   // special condition: if in combat and should decross, trigger the character transform states
   auto playerDecrosses = [this, forms] () mutable {
-    bool changeState = this->trackedForms[0]->player->GetHealth() == 0;
+    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+    TrackedFormData& formData = GetPlayerFormData(localPlayer);
+
+    bool changeState = localPlayer->GetHealth() == 0;
     changeState = changeState || playerDecross;
-    changeState = changeState && (this->trackedForms[0]->selectedForm != -1);
+    changeState = changeState && (formData.selectedForm != -1);
 
     if (changeState) {
-      this->trackedForms[0]->selectedForm = -1;
-      this->trackedForms[0]->animationComplete = false;
+      formData.selectedForm = -1;
+      formData.animationComplete = false;
       forms->SkipBackdrop();
     }
 
@@ -179,10 +182,6 @@ MobBattleScene::~MobBattleScene() {
 
 void MobBattleScene::Init()
 {
-  // ptr to player, form select index (-1 none), if should transform
-  // TODO: just make this a struct to use across all states that need it...
-  trackedForms.push_back(std::make_shared<TrackedFormData>(GetLocalPlayer().get(), -1, false));
-
   SpawnLocalPlayer(2, 2);
 
   // Run block programs on the remote player now that they are spawned

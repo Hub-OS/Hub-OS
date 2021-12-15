@@ -197,7 +197,7 @@ void Entity::UpdateMovement(double elapsed)
             // If the next tile is not available, not ice, or we are ice element, don't slide
             bool notIce = (next && tile->GetState() != TileState::ice);
             bool cannotMove = (next && !CanMoveTo(next));
-            bool weAreIce = (GetElement() == Element::ice);
+            bool weAreIce = (GetElement() == Element::aqua);
             bool cancelSlide = (notIce || cannotMove || weAreIce);
 
             if (slidesOnTiles && !cancelSlide) {
@@ -264,17 +264,29 @@ VirtualInputState& Entity::InputState()
 const bool Entity::IsSuperEffective(Element _other) const {
   switch(GetElement()) {
     case Element::aqua:
-        return _other == Element::elec;
-        break;
+      return _other == Element::elec;
+      break;
     case Element::fire:
-        return _other == Element::aqua;
-        break;
+      return _other == Element::aqua;
+      break;
     case Element::wood:
-        return _other == Element::fire;
-        break;
+      return _other == Element::fire;
+      break;
     case Element::elec:
-        return _other == Element::wood;
-        break;
+      return _other == Element::wood;
+      break;
+    case Element::sword:
+      return _other == Element::breaker;
+      break;
+    case Element::wind:
+      return _other == Element::sword;
+      break;
+    case Element::cursor:
+      return _other == Element::wind;
+      break;
+    case Element::breaker:
+      return _other == Element::cursor;
+      break;
   }
     
   return false;

@@ -333,6 +333,29 @@ const std::vector<std::reference_wrapper<CardActionUsePublisher>>& BattleSceneBa
   return cardUseSubscriptions;
 }
 
+TrackedFormData& BattleSceneBase::GetPlayerFormData(const std::shared_ptr<Player>& player)
+{
+  static TrackedFormData dummy;
+  dummy = TrackedFormData();
+
+  auto iter = allPlayerFormsHash.find(player.get());
+
+  if (iter != allPlayerFormsHash.end()) {
+    return iter->second;
+  }
+
+  return dummy;
+}
+
+std::shared_ptr<Player> BattleSceneBase::GetPlayerFromEntityID(Entity::ID_t ID)
+{
+  for (std::shared_ptr<Player> player : GetAllPlayers()) {
+    if (player->GetID() == ID) return player;
+  }
+
+  return nullptr;
+}
+
 void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
   HandleCounterLoss(*action->GetActor(), true);
@@ -354,7 +377,6 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
 
   localPlayer->Init();
   localPlayer->ChangeState<PlayerIdleState>();
-  localPlayer->ToggleTimeFreeze(false); // TODO necessary anymore?
   localPlayer->SetTeam(Team::red);
   field->AddEntity(localPlayer, x, y);
 
@@ -379,6 +401,9 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   // Load forms
   cardCustGUI.SetPlayerFormOptions(localPlayer->GetForms());
 
+  // track forms
+  allPlayerFormsHash[localPlayer.get()] = {}; // use default form data values
+
   HitListener::Subscribe(*localPlayer);
 }
 
@@ -390,7 +415,6 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
 
   player->Init();
   player->ChangeState<PlayerIdleState>();  
-  player->ToggleTimeFreeze(false); // TODO necessary anymore?
   player->SetTeam(team);
   field->AddEntity(player, x, y);
 
@@ -405,6 +429,9 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   SubscribeToCardActions(*cardUI);
 
   std::shared_ptr<MobHealthUI> healthUI = player->CreateComponent<MobHealthUI>(player);
+
+  // track forms
+  allPlayerFormsHash[player.get()] = {}; // use default form data values
 
   HitListener::Subscribe(*player);
 }
@@ -655,7 +682,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     tint = 255;
   }
 
-  background->SetOpacity(1.0f - backdropOpacity);
+  background->SetOpacity(1.0f - (float)backdropOpacity);
 
   surface.draw(*background);
 
@@ -797,9 +824,10 @@ bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
 
 void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player> other) {
   auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
-
+  auto iter2 = allPlayerFormsHash.find(other.get());
   if (iter != otherPlayers.end()) {
     otherPlayers.erase(iter);
+    allPlayerFormsHash.erase(iter2);
   }
 }
 

@@ -469,8 +469,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Summon", Element::summon,
     "Plus", Element::plus,
     "Break", Element::breaker,
-    "None", Element::none,
-    "Ice", Element::ice
+    "None", Element::none
   );
 
   const auto& direction_table = state.new_enum("Direction",
