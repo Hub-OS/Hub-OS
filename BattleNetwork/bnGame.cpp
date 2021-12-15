@@ -123,7 +123,6 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
 
 TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 {
-  SeedRand((unsigned int)time(0));
   isDebug = CommandLineValue<bool>("debug");
   singlethreaded = CommandLineValue<bool>("singlethreaded");
 
@@ -199,9 +198,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     Font::specialCharLookup.insert(std::make_pair(char(-1), "THICK_SP"));
     Font::specialCharLookup.insert(std::make_pair(char(-2), "THICK_EX"));
     Font::specialCharLookup.insert(std::make_pair(char(-3), "THICK_NM"));
-
-    // See the random generator with current time
-    this->SeedRand((unsigned int)time(0));
   });
 
   this->UpdateConfigSettings(reader.GetConfigSettings());
@@ -507,6 +503,11 @@ bool Game::IsRecording() const
 void Game::Record(bool enabled)
 {
   isRecording = enabled;
+}
+
+void Game::SetSubtitle(const std::string& subtitle)
+{
+  window.SetSubtitle(subtitle);
 }
 
 const std::string Game::AppDataPath()

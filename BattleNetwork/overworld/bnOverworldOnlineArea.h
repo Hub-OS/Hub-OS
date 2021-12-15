@@ -81,6 +81,7 @@ namespace Overworld {
     std::string remoteNaviId;
     std::vector<std::string> remoteNaviBlocks;
     uint16_t maxPayloadSize;
+    unsigned pvpCoinFlip{};
     bool isConnected{ false };
     bool serverLockedInput{ false };
     bool transferringServers{ false };

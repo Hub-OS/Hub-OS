@@ -240,7 +240,6 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   if (!isPlayerDeleted && localPlayer.get() == &pending) {
     battleResults.runaway = false;
     isPlayerDeleted = true;
-    localPlayer = nullptr;
   }
 
   auto pendingPtr = &pending;
@@ -355,7 +354,7 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
 
   localPlayer->Init();
   localPlayer->ChangeState<PlayerIdleState>();
-  localPlayer->ToggleTimeFreeze(false);
+  localPlayer->ToggleTimeFreeze(false); // TODO necessary anymore?
   localPlayer->SetTeam(Team::red);
   field->AddEntity(localPlayer, x, y);
 
@@ -388,7 +387,10 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   if (!TrackOtherPlayer(player)) return;
 
   Team team = field->GetAt(x, y)->GetTeam();
-  player->ChangeState<FadeInState<Player>>([] {});  player->ToggleTimeFreeze(false);
+
+  player->Init();
+  player->ChangeState<PlayerIdleState>();  
+  player->ToggleTimeFreeze(false); // TODO necessary anymore?
   player->SetTeam(team);
   field->AddEntity(player, x, y);
 
@@ -405,8 +407,6 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   std::shared_ptr<MobHealthUI> healthUI = player->CreateComponent<MobHealthUI>(player);
 
   HitListener::Subscribe(*player);
-
-  player->Init();
 }
 
 void BattleSceneBase::LoadMob(Mob& mob)

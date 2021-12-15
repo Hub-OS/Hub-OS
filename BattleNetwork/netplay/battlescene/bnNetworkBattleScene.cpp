@@ -340,6 +340,7 @@ void NetworkBattleScene::onResume()
 void NetworkBattleScene::onEnd()
 {
   BattleSceneBase::onEnd();
+  getController().SetSubtitle("");
 }
 
 const NetPlayFlags& NetworkBattleScene::GetRemoteStateFlags()
@@ -359,13 +360,18 @@ bool NetworkBattleScene::IsRemoteBehind()
 
 void NetworkBattleScene::Init()
 {
+  size_t idx = 0;
   for (auto& [blocks, p] : spawnOrder) {
+    idx++;
+
     // ptr to player, form select index (-1 none), if should transform
     // TODO: just make this a struct to use across all states that need it...
     trackedForms.push_back(std::make_shared<TrackedFormData>(p.get(), -1, false));
 
     if (p == GetLocalPlayer()) {
+      std::string title = "Player #" + std::to_string(idx);
       SpawnLocalPlayer(2, 2);
+      getController().SetSubtitle(title);
     }
     else {
       // Spawn and subscribe to remote player's events

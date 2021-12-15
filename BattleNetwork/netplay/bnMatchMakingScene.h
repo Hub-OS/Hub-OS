@@ -42,6 +42,7 @@ private:
   bool infoMode{ true }; // we start here and then allow the player to toggle
   bool handshakeComplete{ false };
   bool playVS{ true };
+  unsigned pvpCoinFlip{};
   double sequenceTimer{ 0.0 }; // in seconds
   double flashCooldown{ 0 };
   size_t selectionIndex{ 0 }; // 0 = text input field widget

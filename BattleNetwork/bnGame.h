@@ -143,6 +143,7 @@ public:
   bool IsSingleThreaded() const;
   bool IsRecording() const;
   void Record(bool enabled = true);
+  void SetSubtitle(const std::string& subtitle);
 
   const std::string AppDataPath();
   const std::string CacheDataPath();

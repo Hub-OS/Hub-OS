@@ -498,15 +498,16 @@ void MatchMakingScene::onUpdate(double elapsed) {
     this->remotePlayerBlocks.clear();
 
     DownloadSceneProps props = {
-      canProceedToBattle,
       cardPackages,
       selectedNaviBlocks,
       selectedNaviId,
-      remoteNaviId,
-      remotePlayerBlocks,
       packetProcessor->GetRemoteAddr(),
       packetProcessor->GetProxy(),
-      screen
+      screen,
+      canProceedToBattle,
+      pvpCoinFlip,
+      remoteNaviId,
+      remotePlayerBlocks
     };
 
     using effect = swoosh::types::segue<BlendFadeIn>;
@@ -603,6 +604,9 @@ void MatchMakingScene::onUpdate(double elapsed) {
       std::vector<NetworkPlayerSpawnData> spawnOrder;
       spawnOrder.push_back({ localPlayerBlocks, player });
       spawnOrder.push_back({ remotePlayerBlocks, remotePlayer });
+
+      // Make player who can go first the priority in the list
+      std::iter_swap(spawnOrder.begin(), spawnOrder.begin() + this->pvpCoinFlip);
 
       NetworkBattleSceneProps props = {
         { player, pa, std::move(copy), std::make_shared<Field>(6, 3), std::make_shared<SecretBackground>() },

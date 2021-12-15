@@ -2200,15 +2200,16 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     }
 
     DownloadSceneProps props = {
-      this->canProceedToBattle,
       cardPackages,
       selectedNaviBlocks,
       GetCurrentNaviID(),
-      this->remoteNaviId,
-      this->remoteNaviBlocks,
       remote,
       netBattleProcessor,
-      screen
+      screen,
+      this->canProceedToBattle,
+      this->pvpCoinFlip,
+      this->remoteNaviId,
+      this->remoteNaviBlocks
     };
 
     returningFrom = ReturningScene::DownloadScene;
@@ -2261,6 +2262,9 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     std::vector<NetworkPlayerSpawnData> spawnOrder;
     spawnOrder.push_back({ localNaviBlocks, player });
     spawnOrder.push_back({ remoteNaviBlocks, remotePlayer });
+
+    // Make player who can go first the priority in the list
+    std::iter_swap(spawnOrder.begin(), spawnOrder.begin() + this->pvpCoinFlip);
 
     NetworkBattleSceneProps props = {
       { player, GetProgramAdvance(), std::move(folder), std::make_shared<Field>(6, 3), GetBackground() },
