@@ -209,7 +209,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
     entity.Unwrap()->Delete();
   };
   entity_table["register_component"] = [](WeakWrapper<E>& entity, WeakWrapper<ScriptedComponent>& component) {
-    entity.Unwrap()->RegisterComponent(component.Release());
+    entity.Unwrap()->RegisterComponent(component.UnwrapAndRelease());
   };
   entity_table["get_texture"] = [](WeakWrapper<E>& entity) -> std::shared_ptr<Texture> {
     return entity.Unwrap()->getTexture();

@@ -3,7 +3,6 @@
 
 #include "bnWeakWrapper.h"
 #include "bnUserTypeEntity.h"
-#include "bnScopedWrapper.h"
 #include "bnScriptedPlayer.h"
 #include "bnScriptedPlayerForm.h"
 #include "bnScriptedCardAction.h"
@@ -23,10 +22,10 @@ void DefineBasicPlayerUserType(sol::table& battle_namespace) {
     ),
     "card_action_event", sol::overload(
       [](WeakWrapper<Player>& player, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
-        player.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+        player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       },
       [](WeakWrapper<Player>& player, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
-        player.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+        player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
     "set_name", [](WeakWrapper<Player>& player, std::string name) {

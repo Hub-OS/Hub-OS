@@ -451,7 +451,7 @@ void BattleSceneBase::ShutdownTouchControls() {
 
 void BattleSceneBase::DrawCustGauage(sf::RenderTexture& surface)
 {
-  if (!mob->IsCleared()) {
+  if (!IsCleared()) {
     surface.draw(customBar);
   }
 }

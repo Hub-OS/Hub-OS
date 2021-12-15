@@ -14,6 +14,6 @@ public:
    * @brief Must be implemented. Builds the mob.
    * @return Mob*
    */
-  virtual Mob* Build(std::shared_ptr<Field> field) = 0;
+  virtual Mob* Build(std::shared_ptr<Field> field, const std::string& dataString = "") = 0;
 };
 

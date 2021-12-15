@@ -8,7 +8,7 @@ stx::result_t<sol::object> CallLuaFunction(Table& script, const std::string& fun
   sol::object possible_func = script[functionName];
 
   if (possible_func.get_type() != sol::type::function) {
-    std::string error = "Lua function \"" + functionName + "\" is not defined.";
+    std::string error = "Lua function \"" + functionName + "\" is not defined";
     return stx::error<sol::object>(error);
   }
 
@@ -37,7 +37,7 @@ stx::result_t<Result> CallLuaFunctionExpectingValue(Table& script, const std::st
   auto obj = result.value();
 
   if (!obj.valid() || !obj.template is<Result>()) {
-    std::string error = "Lua function \"" + functionName + "\" returned an invalid type.";
+    std::string error = "Lua function \"" + functionName + "\" returned an unexpected type";
     return stx::error<Result>(error);
   }
 
@@ -72,7 +72,7 @@ stx::result_t<Result> CallLuaCallbackExpectingValue(const sol::protected_functio
   sol::object obj = result;
 
   if (!obj.valid() || !obj.template is<Result>()) {
-    std::string error = "Lua callback returned an invalid type.";
+    std::string error = "Lua callback returned an unexpected type";
     return stx::error<Result>(error);
   }
 
@@ -102,8 +102,7 @@ stx::result_t<bool> CallLuaCallbackExpectingBool(const sol::protected_function& 
 template<typename ...Args>
 stx::result_t<sol::object> CallLuaCallback(const sol::object& object, Args... args) {
   if (!object.valid() || object.get_type() != sol::type::function) {
-    std::string error = "Lua object is not a function.";
-    return stx::error<sol::object>(error);
+    return stx::error<sol::object>("Expected function");
   }
 
   sol::protected_function func = object;
@@ -113,8 +112,7 @@ stx::result_t<sol::object> CallLuaCallback(const sol::object& object, Args... ar
 template<typename Result, typename ...Args>
 stx::result_t<Result> CallLuaCallbackExpectingValue(const sol::object& object, Args... args) {
   if (object.get_type() != sol::type::function) {
-    std::string error = "Lua object is not a function.";
-    return stx::error<Result>(error);
+    return stx::error<Result>("Expected function");
   }
 
   sol::protected_function func = object;
@@ -124,8 +122,7 @@ stx::result_t<Result> CallLuaCallbackExpectingValue(const sol::object& object, A
 template<typename ...Args>
 stx::result_t<bool> CallLuaCallbackExpectingBool(const sol::object& object, Args... args) {
   if (object.get_type() != sol::type::function) {
-    std::string error = "Lua object is not a function.";
-    return stx::error<bool>(error);
+    return stx::error<bool>("Expected function");
   }
 
   sol::protected_function func = object;
@@ -136,8 +133,25 @@ inline sol::object VerifyLuaCallback(sol::stack_object value) {
   auto object = sol::object(std::move(value));
 
   if (object.get_type() != sol::type::function) {
-    throw std::runtime_error("Lua object is not a function.");
+    throw std::runtime_error("Expected function");
   }
 
   return object;
+}
+
+inline void ExpectLuaFunction(sol::object object) {
+  if (object.get_type() != sol::type::function) {
+    throw std::runtime_error("Expected function");
+  }
+}
+
+inline stx::result_t<sol::object> EvalLua(sol::state& lua, const std::string& dataString) {
+  sol::protected_function_result result = lua.safe_script(dataString, sol::script_pass_on_error);
+
+  if (!result.valid()) {
+    sol::error error = result;
+    return stx::error<sol::object>(error.what());
+  }
+
+  return stx::ok<sol::object>(result);
 }

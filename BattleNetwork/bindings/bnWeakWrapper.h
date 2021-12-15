@@ -40,5 +40,16 @@ public:
 
     return ptr;
   }
+
+  inline std::shared_ptr<T> UnwrapAndRelease() {
+    auto temp = weakPtr.lock();
+
+    if (!temp) {
+      throw std::runtime_error("data deleted");
+    }
+
+    ownedPtr = nullptr;
+    return temp;
+  }
 };
 #endif

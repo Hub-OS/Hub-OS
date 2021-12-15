@@ -343,6 +343,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "set_shape", &BlockMeta::SetShape,
     "as_program", &BlockMeta::AsProgram,
     "set_mutator", [](BlockMeta& self, sol::object mutatorObject) {
+      ExpectLuaFunction(mutatorObject);
+
       self.mutator = [mutatorObject](Player& player) {
         sol::protected_function mutator = mutatorObject;
         auto result = mutator(WeakWrapper(player.shared_from_base<Player>()));
@@ -378,7 +380,30 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Spawner", key );
     },
     "spawn_at", &ScriptedMob::ScriptedSpawner::SpawnAt
-  );  
+  );
+
+  battle_namespace.new_usertype<Mob::Mutator>("SpawnMutator",
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "SpawnMutator", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "SpawnMutator", key );
+    },
+    "mutate", [](Mob::Mutator& mutator, sol::object callbackObject) {
+      ExpectLuaFunction(callbackObject);
+
+      mutator.Mutate([callbackObject] (std::shared_ptr<Character> character) {
+        sol::protected_function callback = callbackObject;
+
+        auto result = callback(WeakWrapper(character));
+
+        if (!result.valid()) {
+          sol::error error = result;
+          Logger::Log(LogLevel::critical, error.what());
+        }
+      });
+    }
+  );
 
   engine_namespace.set_function("load_texture",
     [](const std::string& path) {
@@ -671,6 +696,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "dest_tile", &MoveEvent::dest,
     "on_begin_func", sol::property(
       [](MoveEvent& event, sol::object onBeginObject) {
+        ExpectLuaFunction(onBeginObject);
+
         event.onBegin = [onBeginObject] {
           sol::protected_function onBegin = onBeginObject;
           auto result = onBegin();

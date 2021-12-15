@@ -80,10 +80,10 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
     },
     "card_action_event", sol::overload(
       [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+        character.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       },
       [](WeakWrapper<ScriptedCharacter>& character, WeakWrapper<CardAction>& cardAction, ActionOrder order) {
-        character.Unwrap()->AddAction(CardEvent{ cardAction.Release() }, order);
+        character.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
     "set_shadow", sol::overload(
@@ -116,6 +116,8 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
       character.Unwrap()->ToggleCounter(on);
     },
     "register_status_callback", [](WeakWrapper<ScriptedCharacter>& character, const Hit::Flags& flag, sol::object callbackObject) {
+      ExpectLuaFunction(callbackObject);
+
       character.Unwrap()->RegisterStatusCallback(flag, [callbackObject] {
         sol::protected_function callback = callbackObject;
         auto result = callback();
