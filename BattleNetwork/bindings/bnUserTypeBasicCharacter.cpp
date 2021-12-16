@@ -25,9 +25,6 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "toggle_hitbox", [](WeakWrapper<Character>& character, bool enabled) {
       return character.Unwrap()->EnableHitbox(enabled);
     },
-    "share_tile", [](WeakWrapper<Character>& character, bool share) {
-      character.Unwrap()->ShareTileSpace(share);
-    },
     "add_defense_rule", [](WeakWrapper<Character>& character, DefenseRule* defenseRule) {
       character.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
     },
