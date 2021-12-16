@@ -153,5 +153,5 @@ inline stx::result_t<sol::object> EvalLua(sol::state& lua, const std::string& da
     return stx::error<sol::object>(error.what());
   }
 
-  return stx::ok<sol::object>(result);
+  return stx::ok<sol::object>(sol::object(result));
 }
