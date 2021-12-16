@@ -25,29 +25,36 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
 template<typename ScriptedDataType, typename PackageManager>
 stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager);
 
-int main(int argc, char** argv) {
-  DrawWindow win;
-  win.Initialize("Open Net Battle v2.0a", DrawWindow::WindowMode::window);
-  Game game{ win };
+static cxxopts::Options options("ONB", "Open Net Battle Engine");
 
-  cxxopts::Options options("ONB", "Open Net Battle Engine");
+int main(int argc, char** argv) {
   options.add_options()
+    ("h,help", "Print all options")
     ("e,errorLevel", "Set the level to filter error messages [silent|info|warning|critical|debug] (default is `critical`)", cxxopts::value<std::string>()->default_value("critical"))
     ("d,debug", "Enable debugging")
     ("s,singlethreaded", "run logic and draw routines in a single, main thread")
     ("b,battleonly", "Jump into a battle from a package")
-    ("mob", "path to mob file on disk", cxxopts::value<std::string>())
-    ("moburl", "path to mob file to download from a web address", cxxopts::value<std::string>())
-    ("player", "path to player package on disk", cxxopts::value<std::string>())
+    ("mob", "path to mob file on disk", cxxopts::value<std::string>()->default_value(""))
+    ("moburl", "path to mob file to download from a web address", cxxopts::value<std::string>()->default_value(""))
+    ("player", "path to player package on disk", cxxopts::value<std::string>()->default_value(""))
     ("l,locale", "set flair and language to desired target", cxxopts::value<std::string>()->default_value("en"))
     ("p,port", "port for PVP", cxxopts::value<int>()->default_value("0"))
     ("r,remotePort", "remote port for main hub", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
     ("w,cyberworld", "ip address of main hub", cxxopts::value<std::string>()->default_value("127.0.0.1"))
     ("m,mtu", "Maximum Transmission Unit - adjust to send big packets", cxxopts::value<uint16_t>()->default_value(std::to_string(NetManager::DEFAULT_MAX_PAYLOAD_SIZE)));
 
-  try {
-    cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
+  cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
 
+  if (parsedOptions.count("help")) {
+    std::cout << options.help() << std::endl;
+    return EXIT_SUCCESS;
+  }
+
+  DrawWindow win;
+  win.Initialize("Open Net Battle v2.0a", DrawWindow::WindowMode::window);
+  Game game{ win };
+
+  try {
     // Go the the title screen to kick off the rest of the app
     if (LaunchGame(game, parsedOptions) == EXIT_SUCCESS) {
       // blocking
