@@ -103,9 +103,6 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
     "toggle_hitbox", [](WeakWrapper<ScriptedCharacter>& character, bool enabled) {
       return character.Unwrap()->EnableHitbox(enabled);
     },
-    "share_tile", [](WeakWrapper<ScriptedCharacter>& character, bool share) {
-      character.Unwrap()->ShareTileSpace(share);
-    },
     "add_defense_rule", [](WeakWrapper<ScriptedCharacter>& character, DefenseRule* defenseRule) {
       character.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
     },

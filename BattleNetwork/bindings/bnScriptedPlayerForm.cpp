@@ -78,6 +78,11 @@ std::shared_ptr<CardAction> ScriptedPlayerForm::GenerateCardAction(sol::object& 
 
 std::shared_ptr<CardAction> ScriptedPlayerForm::OnChargedBusterAction(std::shared_ptr<Player> _)
 {
+  if (!charged_attack_func.valid()) {
+    // prevent error message for nil function, just return nullptr
+    return nullptr;
+  }
+
   std::shared_ptr<CardAction> result = GenerateCardAction(charged_attack_func, "charged_attack_func");
 
   if (result) {

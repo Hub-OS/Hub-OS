@@ -34,6 +34,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["get_current_tile"] = [](WeakWrapper<E>& entity) -> Battle::Tile* {
     return entity.Unwrap()->GetCurrentTile();
   };
+  entity_table["share_tile"] = [](WeakWrapper<E>& entity, bool share) {
+    entity.Unwrap()->ShareTileSpace(share);
+  };
   entity_table["get_field"] = [](WeakWrapper<E>& entity) -> WeakWrapper<Field> {
     return WeakWrapper(entity.Unwrap()->GetField());
   };

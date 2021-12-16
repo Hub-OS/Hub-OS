@@ -53,9 +53,6 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
     "set_name", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string name) {
       obstacle.Unwrap()->SetName(name);
     },
-    "share_tile", [](WeakWrapper<ScriptedObstacle>& obstacle, bool share) {
-      obstacle.Unwrap()->ShareTileSpace(share);
-    },
     "add_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
       obstacle.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
     },
