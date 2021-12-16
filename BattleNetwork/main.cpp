@@ -20,31 +20,43 @@
 #include <Poco/StreamCopier.h>
 
 int LaunchGame(Game& g, const cxxopts::ParseResult& results);
-int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, const std::string& mobpath, bool isURL);
+int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, const std::string& mobpath, const std::string& folderPath, bool isURL);
 
 template<typename ScriptedDataType, typename PackageManager>
 stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager);
 
+std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, CardPackageManager& packageManager);
+
 static cxxopts::Options options("ONB", "Open Net Battle Engine");
 
 int main(int argc, char** argv) {
+  // Create help and other generic flags
   options.add_options()
     ("h,help", "Print all options")
     ("e,errorLevel", "Set the level to filter error messages [silent|info|warning|critical|debug] (default is `critical`)", cxxopts::value<std::string>()->default_value("critical"))
     ("d,debug", "Enable debugging")
     ("s,singlethreaded", "run logic and draw routines in a single, main thread")
-    ("b,battleonly", "Jump into a battle from a package")
-    ("mob", "path to mob file on disk", cxxopts::value<std::string>()->default_value(""))
-    ("moburl", "path to mob file to download from a web address", cxxopts::value<std::string>()->default_value(""))
-    ("player", "path to player package on disk", cxxopts::value<std::string>()->default_value(""))
     ("l,locale", "set flair and language to desired target", cxxopts::value<std::string>()->default_value("en"))
     ("p,port", "port for PVP", cxxopts::value<int>()->default_value("0"))
     ("r,remotePort", "remote port for main hub", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
     ("w,cyberworld", "ip address of main hub", cxxopts::value<std::string>()->default_value("127.0.0.1"))
     ("m,mtu", "Maximum Transmission Unit - adjust to send big packets", cxxopts::value<uint16_t>()->default_value(std::to_string(NetManager::DEFAULT_MAX_PAYLOAD_SIZE)));
 
+  // Battle-only specific flags
+  options.add_options("Battle Only Mode")
+    ("b,battleonly", "Jump into a battle from a package")
+    ("mob", "path to mob package", cxxopts::value<std::string>()->default_value(""))
+    ("moburl", "path to mob file to download from a web address", cxxopts::value<std::string>()->default_value(""))
+    ("player", "name of player package", cxxopts::value<std::string>()->default_value(""))
+    ("folder", "path to folder list on disk where each line contains a card package name and code e.g. `com.example.MockCard A`", cxxopts::value<std::string>()->default_value(""));
+
+  // Prevent throwing exceptions on bad input
+  options.allow_unrecognised_options();
+
+  // Parse
   cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
 
+  // Check for help, print, and quit early
   if (parsedOptions.count("help")) {
     std::cout << options.help() << std::endl;
     return EXIT_SUCCESS;
@@ -147,6 +159,7 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
     std::string playerpath = g.CommandLineValue<std::string>("player");
     std::string mobpath = g.CommandLineValue<std::string>("mob");
     std::string moburl = g.CommandLineValue<std::string>("moburl");
+    std::string folderpath = g.CommandLineValue<std::string>("folder");
     bool url = false;
 
     if (playerpath.empty()) {
@@ -164,7 +177,7 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
       url = true;
     }
 
-    return HandleBattleOnly(g, g.Boot(results), playerpath, mobpath, url);
+    return HandleBattleOnly(g, g.Boot(results), playerpath, mobpath, folderpath, url);
   }
 
   // If single player game, the last screen the player will ever see 
@@ -176,7 +189,7 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
   return EXIT_SUCCESS;
 }
 
-int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, const std::string& mobpath, bool isURL) {
+int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, const std::string& mobpath, const std::string& folderPath, bool isURL) {
   std::string mobid = mobpath;
 
   if (isURL) {
@@ -221,8 +234,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   Mob* mob = mobmeta.GetData()->Build(field);
 
   // Shuffle our new folder
-  auto folder = std::make_unique<CardFolder>(); // TODO: Load from file?
-  folder->Shuffle();
+  std::unique_ptr<CardFolder> folder = LoadFolderFromFile(folderPath, g.CardPackageManager());
 
   // Queue screen transition to Battle Scene with a white fade effect
   // just like the game
@@ -230,7 +242,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
     mob->SetBackground(std::make_shared<ACDCBackground>());
   }
 
-  PA programAdvance;
+  static PA programAdvance;
 
   MobBattleProperties props{
     { player, programAdvance, std::move(folder), field, mob->GetBackground() },
@@ -277,4 +289,37 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
   ofs.close();
 
   return packageManager.template LoadPackageFromZip<ScriptedDataType>(outpath);
+}
+
+std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, CardPackageManager& packageManager) {
+  std::unique_ptr<CardFolder> folder = std::make_unique<CardFolder>();
+  std::fstream file;
+  file.open(filePath, std::ios::in); 
+  const char space = ' ';
+
+  if (file.is_open()) {
+    std::string line;
+    while (std::getline(file, line)) { 
+      std::vector<std::string> tokens = stx::tokenize(line, space);
+
+      if (tokens.size() < 2) {
+        Logger::Logf(LogLevel::debug, "Card folder list needs two entries per line: `PACKAGE_ID CODE`");
+        continue;
+      }
+      const std::string packageID = tokens[0];
+      char code = tokens[1][0];
+      code = std::isalpha(code) ? code : '*';
+
+      if (packageManager.HasPackage(packageID)) {
+        Battle::Card::Properties props = packageManager.FindPackageByID(packageID).GetCardProperties();
+        props.code = code;
+        folder->AddCard(props);
+      }
+    }
+
+    file.close();
+  }
+
+  folder->Shuffle();
+  return folder;
 }
