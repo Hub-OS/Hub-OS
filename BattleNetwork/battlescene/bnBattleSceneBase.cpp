@@ -585,6 +585,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
   newMobSize = mob? mob->GetMobCount() : 0;
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+    BroadcastBattleStop();
     Quit(FadeOut::white);
     Audio().StopStream();
   }

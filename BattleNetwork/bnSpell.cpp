@@ -9,9 +9,9 @@ Spell::Spell(Team team) : Entity()
 }
 
 void Spell::OnUpdate(double _elapsed) {
-  if (IsTimeFrozen()) return;
+  //if (IsTimeFrozen()) return;
 
-  OnUpdate(_elapsed);
+  //OnUpdate(_elapsed);
 
   setPosition(getPosition().x, getPosition().y - GetHeight());
 }

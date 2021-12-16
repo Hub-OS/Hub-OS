@@ -10,5 +10,4 @@ public:
 
   virtual void OnUpdate(double _elapsed) = 0;
   virtual void OnDelete() = 0;
-  void Update(double _elapsed) override final;
 };

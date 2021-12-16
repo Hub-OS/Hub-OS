@@ -109,6 +109,7 @@ Game::~Game() {
 
 void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
   commandline = &values;
+  commandlineArgs = values.arguments();
 
   // Now that we have CLI values, we can configure 
   // other subsystems that need to read from them...
@@ -320,11 +321,12 @@ void Game::ProcessFrame()
     // Poll net code
     netManager.Update(delta);
 
+    inputManager.Update(); // process inputs
+    HandleRecordingEvents();
+
     if (NextFrame()) {
       window.Clear(); // clear screen
 
-      inputManager.Update(); // process inputs
-      HandleRecordingEvents();
       UpdateMouse(delta);
       this->update(delta);  // update game logic
       this->draw();        // draw game
@@ -363,12 +365,12 @@ void Game::RunSingleThreaded()
     // Poll net code
     netManager.Update(delta);
 
+    inputManager.Update(); // process inputs
+
+    HandleRecordingEvents();
+
     if (NextFrame()) {
       window.Clear(); // clear screen
-
-      inputManager.Update(); // process inputs
-
-      HandleRecordingEvents();
 
       UpdateMouse(delta);
       this->update(delta);  // update game logic
