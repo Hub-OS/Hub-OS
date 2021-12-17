@@ -30,10 +30,18 @@ AnimatedTextBox::~AnimatedTextBox() { }
 void AnimatedTextBox::Close() {
   if (!isReady || isClosing) return;
 
+  lightenMug = true;
   isClosing = true;
   isReady = false;
 
   animator.SetAnimation("CLOSE");
+
+  animator << Animator::On(2, 
+    [this] 
+    {
+      canDraw = false; 
+    }
+  );
 
   auto callback = [this]() {
     isClosing = false;
@@ -52,12 +60,14 @@ void AnimatedTextBox::Open(const std::function<void()>& onOpen) {
 
   animator.SetAnimation("OPEN");
 
+  animator << Animator::On(3, [this] { canDraw = lightenMug = true; });
+
   auto callback = [this, onOpen]() {
     isClosing = false;
     isPaused = false;
     isOpening = false;
     isReady = true;
-
+    lightenMug = false;
     if (onOpen) onOpen();
   };
 
@@ -148,6 +158,8 @@ void AnimatedTextBox::CompleteCurrentBlock() {
 void AnimatedTextBox::DequeMessage() {
   if (messages.size() == 0) return;
 
+  lastSpeaker = *mugshots.begin();
+
   delete *messages.begin(); // TODO: use shared ptrs
   messages.erase(messages.begin());
   anims.erase(anims.begin());
@@ -178,13 +190,15 @@ void AnimatedTextBox::EnqueMessage(const sf::Sprite& speaker, const Animation& a
   mugAnim.SetAnimation("IDLE");
   mugAnim << Animator::Mode::Loop;
 
+  mugshots.push_back(speaker);
+  mugshots[mugshots.size() - 1].setScale(2.f, 2.f);
+
   if (messages.size() == 1) {
+    lastSpeaker = mugshots.front();
     mugAnimator = mugAnim;
     textBox.SetText(message->GetMessage());
   }
 
-  mugshots.push_back(speaker);
-  mugshots[mugshots.size() - 1].setScale(2.f, 2.f);
 
   message->SetTextBox(this);
 }
@@ -271,10 +285,8 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
     target.draw(frame);
   }
 
-  if (messages.size() > 0 && isReady) {
-    sf::Sprite& sprite = mugshots.front();
-
-    sf::Vector2f oldpos = sprite.getPosition();
+  if (canDraw) {
+    sf::Vector2f oldpos = lastSpeaker.getPosition();
     auto pos = oldpos;
     pos += getPosition();
 
@@ -287,20 +299,28 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
     // Prime example where scene nodes would come in handy.
     // TODO: Use SceneNodes now that we have them 12/6/2020
 
-    pos += sf::Vector2f(6.0f, 2.0f - sprite.getGlobalBounds().height / 2.0f);
+    pos += sf::Vector2f(6.0f, 2.0f - lastSpeaker.getGlobalBounds().height / 2.0f);
 
-    sprite.setPosition(pos);
+    lastSpeaker.setPosition(pos);
 
-    mugAnimator.Update(0, sprite);
+    mugAnimator.Update(0, lastSpeaker);
 
-    if (IsOpen()) {
-      target.draw(sprite);
-      sprite.setPosition(oldpos);
+    if (lightenMug) {
+      lastSpeaker.setColor(sf::Color(255, 255, 255, 125));
     }
+    else {
+      lastSpeaker.setColor(sf::Color::White);
+    }
+
+    target.draw(lastSpeaker);
+
+    lastSpeaker.setPosition(oldpos);
 
     //states.transform = getTransform();
 
-    messages.front()->OnDraw(target, states);
+    if(messages.size() > 0) {
+      messages.front()->OnDraw(target, states);
+    }
   }
 }
 

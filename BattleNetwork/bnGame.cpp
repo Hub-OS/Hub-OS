@@ -321,13 +321,12 @@ void Game::ProcessFrame()
     // Poll net code
     netManager.Update(delta);
 
-    inputManager.Update(); // process inputs
-    HandleRecordingEvents();
-
     if (NextFrame()) {
       window.Clear(); // clear screen
 
       UpdateMouse(delta);
+      inputManager.Update(); // process inputs
+      HandleRecordingEvents();
       this->update(delta);  // update game logic
       this->draw();        // draw game
       mouse.draw(*window.GetRenderWindow());

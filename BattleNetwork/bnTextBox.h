@@ -18,10 +18,12 @@ public:
     static const vfx none = 0x0000;
     static const vfx dramatic = 0x0001; // halves the text play-out animation for dramatic moments
     static const vfx zzz = 0x0002; // useful for sleeping or lip-sealed textbox moments
+    static const vfx fast = 0x0003; // doubles the text play-out animation for intense moments
   };
 
 private:
   const double DRAMATIC_TEXT_SPEED = 0.05;
+  const double FAST_TEXT_SPEED = 2.0;
 
   vfx currEffect{};
 

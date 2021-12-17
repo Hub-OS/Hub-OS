@@ -28,9 +28,12 @@ private:
   bool isReady{}; /*!< Ready to type text flag */
   bool isOpening{}; /*!< Opening textbox flag */
   bool isClosing{}; /*!< Closing textbox flag */
+  mutable bool lightenMug{true};
+  bool canDraw{};
   double totalTime{}; /*!< elapsed */
   double textSpeed{1.0}; /*!< desired speed of text */
   mutable std::vector<sf::Sprite> mugshots; /*!< List of current and next mugshots */
+  mutable sf::Sprite lastSpeaker;
   std::vector<Animation> anims; /*!< List of animation paths for the mugshots */
   std::vector<MessageInterface*> messages; /*!< Lists of current and next messages */
   mutable sf::Sprite frame; /*!< Size is calculated from the frame sprite */

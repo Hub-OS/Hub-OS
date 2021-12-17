@@ -6,6 +6,7 @@
 namespace {
   const char dramatic_token = '\x01';
   const char nolip_token = '\x02';
+  const char fast_token = '\x03';
   const auto special_chars = { ::nolip_token, ::dramatic_token, ' ',  '\n' };
 }
 
@@ -63,8 +64,12 @@ void TextBox::FormatToFit() {
     }
 
     std::string fitString = message.substr(lastRow, (size_t)index - (size_t)lastRow + 1);
-    fitString = stx::replace(fitString, std::string(1, ::nolip_token), ""); // fx sections shouldn't increase real estate...
-    fitString = stx::replace(fitString, std::string(1, ::dramatic_token), ""); //fx sections shouldn't increase real estate...
+
+    // fx sections shouldn't increase real estate...
+    fitString = stx::replace(fitString, std::string(1, ::nolip_token), ""); 
+    fitString = stx::replace(fitString, std::string(1, ::dramatic_token), "");
+    fitString = stx::replace(fitString, std::string(1, ::fast_token), "");
+
     text.SetString(fitString);
 
     double width = text.GetWorldBounds().width;
@@ -143,6 +148,9 @@ const bool TextBox::ProcessSpecialCharacters(int& pos) {
     // The following conditions handles elipses for dramatic effect
     if (message[pos] == ::dramatic_token) {
       currEffect ^= effects::dramatic;
+    }
+    else if (message[pos] == ::fast_token) {
+      currEffect ^= effects::fast;
     }
     else if (message[pos] == ::nolip_token) {
       // this makes mugshots stop animating (for thinking effects)
@@ -234,17 +242,20 @@ void TextBox::CompleteCurrentBlock()
   double simProgress = 0;
 
   while (start < end) {
-    double modifiedCharsPerSeconds = charsPerSecond;
+    double modifiedCharsPerSecond = charsPerSecond;
 
     if (!ProcessSpecialCharacters(start)) {
       start++;
     }
 
     if ((currEffect & effects::dramatic) == effects::dramatic) {
-      modifiedCharsPerSeconds = charsPerSecond * DRAMATIC_TEXT_SPEED;
+      modifiedCharsPerSecond = charsPerSecond * DRAMATIC_TEXT_SPEED;
+    }
+    else if ((currEffect & effects::fast) == effects::fast) {
+      modifiedCharsPerSecond = charsPerSecond * FAST_TEXT_SPEED;
     }
     
-    simProgress += 1.0 / modifiedCharsPerSeconds;
+    simProgress += 1.0 / modifiedCharsPerSecond;
   }
 
   charIndex = end;
@@ -411,6 +422,9 @@ void TextBox::Update(const double elapsed) {
   if ((currEffect & effects::dramatic) == effects::dramatic) {
     // if we are doing dramatic text, reduce speed
     modifiedCharsPerSecond = charsPerSecond * DRAMATIC_TEXT_SPEED;
+  }
+  else if ((currEffect & effects::fast) == effects::fast) {
+    modifiedCharsPerSecond = charsPerSecond * FAST_TEXT_SPEED;
   }
 
   while (modifiedCharsPerSecond > 0 && progress > 1.0/modifiedCharsPerSecond) {
