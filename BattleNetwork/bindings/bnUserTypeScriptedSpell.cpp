@@ -24,9 +24,6 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     sol::meta_function::length, [](WeakWrapper<ScriptedSpell>& spell) {
       return spell.Unwrap()->entries.size();
     },
-    "shake_camera", [](WeakWrapper<ScriptedSpell>& spell, double power, float duration) {
-      spell.Unwrap()->ShakeCamera(power, duration);
-    },
     "set_shadow", sol::overload(
       [](WeakWrapper<ScriptedSpell>& spell, Entity::Shadow type) {
         spell.Unwrap()->SetShadowSprite(type);

@@ -43,7 +43,9 @@ Player::Player() :
   auto flinch = [this]() {
     ClearActionQueue();
     Charge(false);
-    SetAnimation(PLAYER_HIT);
+
+    // At the end of flinch we need to be made actionable if possible
+    SetAnimation(recoilAnimHash, [this] { MakeActionable();});
     Audio().Play(AudioType::HURT, AudioPriority::lowest);
   };
 
@@ -298,6 +300,11 @@ const std::string Player::GetMoveAnimHash()
   return moveAnimHash;
 }
 
+const std::string Player::GetRecoilAnimHash()
+{
+  return recoilAnimHash;
+}
+
 void Player::SlideWhenMoving(bool enable, const frame_time_t& frames)
 {
   slideFrames = frames;
@@ -458,6 +465,20 @@ void Player::CreateMoveAnimHash()
   animationComponent->OverrideAnimationFrames("PLAYER_MOVE", frame_data, moveAnimHash);
 }
 
+void Player::CreateRecoilAnimHash()
+{
+  const auto i15_seconds = seconds_cast<float>(frames(15));
+  const auto i7_seconds = seconds_cast<float>(frames(7));
+
+  auto frame_data = std::initializer_list<OverrideFrame>{
+    { 1, i15_seconds },
+    { 2, i7_seconds }
+  };
+
+  // creates and stores the new state in variable `moveAnimHash`
+  animationComponent->OverrideAnimationFrames("PLAYER_HIT", frame_data, recoilAnimHash);
+}
+
 void Player::TagBaseNodes()
 {
   for (auto& node : GetChildNodes()) {
@@ -471,6 +492,7 @@ void Player::TagBaseNodes()
 void Player::FinishConstructor()
 {
   CreateMoveAnimHash();
+  CreateRecoilAnimHash();
   TagBaseNodes();
 
   animationComponent->SetAnimation("PLAYER_IDLE");

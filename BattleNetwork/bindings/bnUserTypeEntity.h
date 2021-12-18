@@ -293,6 +293,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["store_base_palette"] = [](WeakWrapper<E>& entity, std::shared_ptr<Texture>& texture) {
     entity.Unwrap()->StoreBasePalette(texture);
   };
+  entity_table["shake_camera"] = [](WeakWrapper<E>& entity, double power, float duration) {
+    entity.Unwrap()->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
+  };
 }
 
 #endif

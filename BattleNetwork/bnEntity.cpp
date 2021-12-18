@@ -677,7 +677,7 @@ void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType&
 bool Entity::CanMoveTo(Battle::Tile * next)
 {
   bool valid = next? (HasFloatShoe()? true : next->IsWalkable()) : false;
-  return valid && Teammate(next->GetTeam());
+  return valid && Teammate(next->GetTeam()) && !next->IsReservedByCharacter({ GetID() });
 }
 
 const long Entity::GetID() const

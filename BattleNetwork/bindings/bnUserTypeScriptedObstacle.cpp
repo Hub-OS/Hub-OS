@@ -62,9 +62,6 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
     "ignore_common_aggressor", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enable) {
       obstacle.Unwrap()->IgnoreCommonAggressor(enable);
     },
-    "shake_camera", [](WeakWrapper<ScriptedObstacle>& obstacle, double power, float duration) {
-      obstacle.Unwrap()->ShakeCamera(power, duration);
-    },
     "can_move_to_func", sol::property(
       [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->can_move_to_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {

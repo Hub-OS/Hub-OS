@@ -58,6 +58,7 @@ private:
   void SaveStats();
   void RevertStats();
   void CreateMoveAnimHash();
+  void CreateRecoilAnimHash();
   void TagBaseNodes();
 
 public:
@@ -135,6 +136,7 @@ public:
    */
   void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
   const std::string GetMoveAnimHash();
+  const std::string GetRecoilAnimHash();
 
   void SlideWhenMoving(bool enable = true, const frame_time_t& = frames(1));
 
@@ -174,7 +176,7 @@ protected:
 
   // member vars
   string state; /*!< Animation state name */
-  string moveAnimHash;
+  string moveAnimHash, recoilAnimHash; //!< Enforce frame times for players
   frame_time_t slideFrames{ frames(1) };
   bool playerControllerSlide{};
   bool fullyCharged{}; //!< Per-frame value of the charge

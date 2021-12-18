@@ -177,8 +177,5 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
     auto& animation = character.Unwrap()->GetAnimationObject();
     return AnimationWrapper(character.GetWeak(), animation);
   };
-  table["shake_camera"] = [](WeakWrapper<ScriptedCharacter>& character, double power, float duration) {
-    character.Unwrap()->ShakeCamera(power, duration);
-  };
 }
 #endif
