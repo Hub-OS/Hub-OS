@@ -52,6 +52,12 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
     "set_name", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string name) {
       obstacle.Unwrap()->SetName(name);
     },
+    "set_float_shoe", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enable) {
+      obstacle.Unwrap()->SetFloatShoe(enable);
+    },
+    "set_air_shoe", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enable) {
+      obstacle.Unwrap()->SetAirShoe(enable);
+    },
     "add_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
       obstacle.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
     },
@@ -124,6 +130,12 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
   auto obstacle_record = battle_namespace.new_usertype<WeakWrapper<Obstacle>>("BasicObstacle",
     "set_name", [](WeakWrapper<Obstacle>& obstacle, std::string name) {
       obstacle.Unwrap()->SetName(name);
+    },
+    "set_float_shoe", [](WeakWrapper<Obstacle>& obstacle, bool enable) {
+      obstacle.Unwrap()->SetFloatShoe(enable);
+    },
+    "set_air_shoe", [](WeakWrapper<Obstacle>& obstacle, bool enable) {
+      obstacle.Unwrap()->SetAirShoe(enable);
     },
     "add_defense_rule", [](WeakWrapper<Obstacle>& obstacle, DefenseRule* defenseRule) {
       obstacle.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());

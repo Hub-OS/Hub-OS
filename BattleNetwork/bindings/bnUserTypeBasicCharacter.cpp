@@ -22,6 +22,12 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
     "get_rank", [](WeakWrapper<Character>& character) -> Character::Rank {
       return character.Unwrap()->GetRank();
     },
+    "set_float_shoe", [](WeakWrapper<Character>& character, bool enable) {
+      character.Unwrap()->SetFloatShoe(enable);
+    },
+    "set_air_shoe", [](WeakWrapper<Character>& character, bool enable) {
+      character.Unwrap()->SetAirShoe(enable);
+    },
     "toggle_hitbox", [](WeakWrapper<Character>& character, bool enabled) {
       return character.Unwrap()->EnableHitbox(enabled);
     },

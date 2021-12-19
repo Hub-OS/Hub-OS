@@ -102,6 +102,12 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
     "get_rank", [](WeakWrapper<ScriptedCharacter>& character) -> Character::Rank {
       return character.Unwrap()->GetRank();
     },
+    "set_float_shoe", [](WeakWrapper<ScriptedCharacter>& character, bool enable) {
+      character.Unwrap()->SetFloatShoe(enable);
+    },
+    "set_air_shoe", [](WeakWrapper<ScriptedCharacter>& character, bool enable) {
+      character.Unwrap()->SetAirShoe(enable);
+    },
     "toggle_hitbox", [](WeakWrapper<ScriptedCharacter>& character, bool enabled) {
       return character.Unwrap()->EnableHitbox(enabled);
     },
