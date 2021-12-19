@@ -31,25 +31,26 @@ RewardBattleState::~RewardBattleState()
 
 void RewardBattleState::onStart(const BattleSceneState*)
 {
-  Player& player = *GetScene().GetLocalPlayer();
+  BattleSceneBase& scene = GetScene();
+  Player& player = *scene.GetLocalPlayer();
   player.ChangeState<PlayerIdleState>();
-  GetScene().GetField()->RequestBattleStop();
+  scene.GetField()->RequestBattleStop();
 
-  auto& results = GetScene().BattleResultsObj();
-  results.battleLength = GetScene().GetElapsedBattleTime();
+  auto& results = scene.BattleResultsObj();
+  results.battleLength = scene.GetElapsedBattleTime();
   results.moveCount = player.GetMoveCount();
   results.hitCount = *hitCount;
-  results.turns = GetScene().GetTurnCount();
-  results.counterCount = GetScene().GetCounterCount();
-  results.doubleDelete = GetScene().DoubleDelete();
-  results.tripleDelete = GetScene().TripleDelete();
+  results.turns = scene.GetTurnCount();
+  results.counterCount = scene.GetCounterCount();
+  results.doubleDelete = scene.DoubleDelete();
+  results.tripleDelete = scene.TripleDelete();
   results.finalEmotion = player.GetEmotion();
   results.runaway = false;
 
   battleResultsWidget = new BattleResultsWidget(
     BattleResults::CalculateScore(results, mob),
     mob,
-    GetScene().getController().CardPackageManager()
+    scene.getController().CardPackagePartition().GetLocalPartition()
   );
 }
 

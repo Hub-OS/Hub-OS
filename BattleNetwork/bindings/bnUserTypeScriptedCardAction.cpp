@@ -23,7 +23,7 @@ static WeakWrapper<ScriptedCardAction> construct(std::shared_ptr<Character> char
 
 void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol::table& battle_namespace) {
   auto action_from_card = [scriptManager](const std::string& fqn, std::shared_ptr<Character> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction> {
-    auto cardPackages = &scriptManager->GetCardPackageManager();
+    auto cardPackages = &scriptManager->GetCardPackagePartition().GetLocalPartition();
 
     if (!cardPackages) {
       Logger::Log(LogLevel::critical, "Battle.CardAction.from_card() was called but CardPackageManager was nullptr!");
@@ -82,22 +82,22 @@ void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol:
       },
       [scriptManager, action_from_card](const std::string& fqn, WeakWrapper<Character> character) -> WeakWrapper<ScriptedCardAction>
       {
-        Battle::Card::Properties props = scriptManager->GetCardPackageManager().FindPackageByID(fqn).GetCardProperties();
+        Battle::Card::Properties props = scriptManager->GetCardPackagePartition().GetLocalPartition().FindPackageByID(fqn).GetCardProperties();
         return action_from_card(fqn, character.Unwrap(), props);
       },
       [scriptManager, action_from_card](const std::string& fqn, WeakWrapper<Player> character) -> WeakWrapper<ScriptedCardAction>
       {
-        Battle::Card::Properties props = scriptManager->GetCardPackageManager().FindPackageByID(fqn).GetCardProperties();
+        Battle::Card::Properties props = scriptManager->GetCardPackagePartition().GetLocalPartition().FindPackageByID(fqn).GetCardProperties();
         return action_from_card(fqn, character.Unwrap(), props);
       },
       [scriptManager, action_from_card](const std::string& fqn, WeakWrapper<ScriptedCharacter> character) -> WeakWrapper<ScriptedCardAction>
       {
-        Battle::Card::Properties props = scriptManager->GetCardPackageManager().FindPackageByID(fqn).GetCardProperties();
+        Battle::Card::Properties props = scriptManager->GetCardPackagePartition().GetLocalPartition().FindPackageByID(fqn).GetCardProperties();
         return action_from_card(fqn, character.Unwrap(), props);
       },
       [scriptManager, action_from_card](const std::string& fqn, WeakWrapper<ScriptedPlayer> character) -> WeakWrapper<ScriptedCardAction>
       {
-        Battle::Card::Properties props = scriptManager->GetCardPackageManager().FindPackageByID(fqn).GetCardProperties();
+        Battle::Card::Properties props = scriptManager->GetCardPackagePartition().GetLocalPartition().FindPackageByID(fqn).GetCardProperties();
         return action_from_card(fqn, character.Unwrap(), props);
       }
     ),

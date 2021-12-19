@@ -29,8 +29,6 @@ public:
 
   void SetAnimation(const std::string& path);
   Animation& GetAnimationObject();
-  // duration in seconds
-  void ShakeCamera(double power, float duration);
 
   sol::object can_move_to_func;
   sol::object update_func;

@@ -185,7 +185,7 @@ void MobBattleScene::Init()
   SpawnLocalPlayer(2, 2);
 
   // Run block programs on the remote player now that they are spawned
-  BlockPackageManager& blockPackages = getController().BlockPackageManager();
+  BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
   for (const std::string& blockID : props.blocks) {
     if (!blockPackages.HasPackage(blockID)) continue;
 

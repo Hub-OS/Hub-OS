@@ -1,9 +1,10 @@
 #pragma once
 
+#include "bnPackageAddress.h"
 #include "bnLogger.h"
 #include "bnResourceHandle.h"
 #include "bnScriptResourceManager.h"
-#include "bnSolHelpers.h"
+#include "stx/string.h"
 #include "stx/result.h"
 #include "stx/tuple.h"
 #include "stx/zip_utils.h"
@@ -13,6 +14,39 @@
 #include <string>
 #include <functional>
 #include <atomic>
+
+// forward decl.
+template<typename MetaClass>
+class PackageManager;
+
+template<class PackageManager>
+class PartitionedPackageManager {
+  // Paritions are identified by their "namespace" ID
+  std::map<std::string, PackageManager> partitions;
+public:
+  inline static const std::string LocalNamespace = "";
+
+  PartitionedPackageManager() {
+    CreateNamespace(LocalNamespace);
+  }
+
+  const bool HasNamespace(const std::string& ns) {
+    return partitions.find(ns) != partitions.end();
+  }
+
+  void CreateNamespace(const std::string& ns) {
+    if (HasNamespace(ns)) return;
+    partitions.emplace(ns);
+  }
+
+  PackageManager& GetPartition(const std::string& ns) {
+    return partitions.find(ns)->second;
+  }
+
+  PackageManager& GetLocalPartition() {
+    return partitions[LocalNamespace];
+  }
+};
 
 template<typename MetaClass>
 class PackageManager {
@@ -79,6 +113,7 @@ class PackageManager {
     // member methods
     //
     PackageManager() {}
+    PackageManager(const std::string namespaceId) : namespaceId(namespaceId) {};
     PackageManager(const PackageManager&) = delete;
     PackageManager(PackageManager&&) = delete;
     virtual ~PackageManager();
@@ -122,7 +157,24 @@ class PackageManager {
     */
     const unsigned Size() const;
 
+    /**
+    * @brief Clears packages, file2PackageId, and zipFile2PackageId hashes. 
+    * @warning Does not clear the assigned namespaceId
+    */
+    void ClearPackages();
+
+    /**
+    * @brief Returns the namespace for this package manager
+    */
+    const std::string GetNamespace();
+
+    /**
+    * @brief returns a string with the namespace suffix in the form `namespaceId/id`
+    */
+    const std::string WithNamespace(const std::string& id);
+
     private:
+    std::string namespaceId;
     std::map<std::string, MetaClass*> packages;
     std::map<std::string, std::string> filepathToPackageId;
     std::map<std::string, std::string> zipFilepathToPackageId;
@@ -295,18 +347,17 @@ inline std::string PackageManager<MetaClass>::FilepathToPackageID(const std::str
   auto iter = filepathToPackageId.find(full_path);
 
   if (iter == filepathToPackageId.end()) {
-
     auto iter = zipFilepathToPackageId.find(full_path);
     if (iter == zipFilepathToPackageId.end()) {
       Logger::Logf(LogLevel::critical, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
       return "";
     }
     else {
-      return iter->second;
+      return WithNamespace(iter->second);
     }
   }
 
-  return iter->second;
+  return WithNamespace(iter->second);
 }
 
 template<typename MetaClass>
@@ -333,12 +384,14 @@ inline const std::string PackageManager<MetaClass>::FilepathToPackageID(const st
     auto iter = zipFilepathToPackageId.find(full_path);
     if (iter == zipFilepathToPackageId.end()) {
       Logger::Logf(LogLevel::critical, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
+      return "";
     }
-
-    return "";
+    else {
+      return WithNamespace(iter->second);
+    }
   }
 
-  return iter->second;
+  return WithNamespace(iter->second);
 }
 
 template<typename MetaClass>
@@ -472,4 +525,26 @@ template<typename MetaClass>
 const unsigned PackageManager<MetaClass>::Size() const
 {
   return (unsigned)packages.size();
+}
+
+template<typename MetaClass>
+inline const std::string PackageManager<MetaClass>::GetNamespace()
+{
+  return namespaceId;
+}
+
+template<typename MetaClass>
+inline const std::string PackageManager<MetaClass>::WithNamespace(const std::string& id)
+{
+  return PackageAddress{ namespaceId, id }; // implicit cast converts to formatted string
+}
+
+template<typename MetaClass>
+inline void PackageManager<MetaClass>::ClearPackages()
+{
+  packages.clear();
+  filepathToPackageId.clear();
+  zipFilepathToPackageId.clear();
+
+  // TODO: clear zip files
 }

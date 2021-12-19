@@ -9,10 +9,10 @@
 
 class RealtimeCardActionUseListener : public CardActionUseListener {
 private:
-  CardPackageManager& packageManager;
+  CardPackagePartition& partition;
 
 public:
-  RealtimeCardActionUseListener(CardPackageManager& packageManager) : CardActionUseListener(), packageManager(packageManager) {}
+  RealtimeCardActionUseListener(CardPackagePartition& partition) : CardActionUseListener(), partition(partition) {}
   
   /**
    * @brief What happens when a card is used

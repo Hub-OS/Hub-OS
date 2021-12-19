@@ -189,7 +189,8 @@ void ScriptResourceManager::RegisterDependencyNotes(sol::state& state)
   #endif
 
   // Register the dependencies with the list in ScriptResourceManager.
-  scriptDependencies[packageID] = dependencies;
+  PackageAddress addr = { "", packageID }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  scriptDependencies[addr] = dependencies;
 
   // Remove the "__dependencies" table secretly inserted into the sol state, we don't need it anymore.
   state["__dependencies"] = sol::nil;
@@ -769,7 +770,7 @@ ScriptResourceManager::~ScriptResourceManager()
 
 ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary( const std::string& path )
 {
-  auto iter = scriptTableHash.find( path );
+  auto iter = scriptTableHash.find(path);
 
   if (iter != scriptTableHash.end()) {
     return iter->second;
@@ -813,13 +814,14 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
 
 void ScriptResourceManager::DefineCard(const std::string& fqn, const std::string& path)
 {
-  auto iter = cardFQN.find(fqn);
+  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  auto iter = cardFQN.find(addr);
 
   if (iter == cardFQN.end()) {
     auto& res = LoadScript(path);
 
     if (res.result.valid()) {
-      cardFQN[fqn] = path;
+      cardFQN[addr] = path;
     }
     else {
       sol::error error = res.result;
@@ -833,13 +835,14 @@ void ScriptResourceManager::DefineCard(const std::string& fqn, const std::string
 
 void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::string& path)
 {
-  auto iter = characterFQN.find(fqn);
+  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  auto iter = characterFQN.find(addr);
 
   if (iter == characterFQN.end()) {
     auto& res = LoadScript(path);
 
     if (res.result.valid()) {
-      characterFQN[fqn] = path;
+      characterFQN[addr] = path;
     }
     else {
       sol::error error = res.result;
@@ -854,14 +857,15 @@ void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::s
 void ScriptResourceManager::DefineLibrary( const std::string& fqn, const std::string& path )
 {
   Logger::Log(LogLevel::info, "Loading Library ... " );
-  auto iter = libraryFQN.find(fqn);
+  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  auto iter = libraryFQN.find(addr);
 
   if( iter == libraryFQN.end() )
   {
     auto& res = InitLibrary( path );
 
     if( res.result.valid() )
-      libraryFQN[fqn] = path;
+      libraryFQN[addr] = path;
     else
     {
       sol::error error = res.result;
@@ -874,7 +878,8 @@ void ScriptResourceManager::DefineLibrary( const std::string& fqn, const std::st
 
 sol::state* ScriptResourceManager::FetchCard(const std::string& fqn)
 {
-  auto iter = cardFQN.find(fqn);
+  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  auto iter = cardFQN.find(addr);
 
   if (iter != cardFQN.end()) {
     return LoadScript(iter->second).state;
@@ -886,7 +891,8 @@ sol::state* ScriptResourceManager::FetchCard(const std::string& fqn)
 
 sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)
 {
-  auto iter = characterFQN.find(fqn);
+  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  auto iter = characterFQN.find(addr);
 
   if (iter != characterFQN.end()) {
     return LoadScript(iter->second).state;
@@ -900,7 +906,8 @@ const std::string& ScriptResourceManager::FetchSharedLibraryPath(const std::stri
 {
   static std::string empty = "";
 
-  auto iter = libraryFQN.find(fqn);
+  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  auto iter = libraryFQN.find(addr);
 
   if (iter != libraryFQN.end()) {
     return iter->second;
@@ -911,7 +918,8 @@ const std::string& ScriptResourceManager::FetchSharedLibraryPath(const std::stri
 }
 
 const std::string& ScriptResourceManager::CharacterToModpath(const std::string& fqn) {
-  return characterFQN[fqn];
+  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  return characterFQN[addr];
 }
 
 void ScriptResourceManager::SeedRand(unsigned int seed)
@@ -919,14 +927,14 @@ void ScriptResourceManager::SeedRand(unsigned int seed)
   randSeed = seed;
 }
 
-void ScriptResourceManager::SetCardPackageManager(CardPackageManager& packageManager)
+void ScriptResourceManager::SetCardPackagePartition(CardPackagePartition& partition)
 {
-  cardPackages = &packageManager;
+  cardPartition = &partition;
 }
 
-CardPackageManager& ScriptResourceManager::GetCardPackageManager()
+CardPackagePartition& ScriptResourceManager::GetCardPackagePartition()
 {
-  return *cardPackages;
+  return *cardPartition;
 }
 
 #endif

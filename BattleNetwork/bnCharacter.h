@@ -27,7 +27,6 @@ struct CardEvent {
 
 struct PeekCardEvent {
   SelectedCardsUI* publisher{ nullptr };
-  CardPackageManager* packageManager{ nullptr };
 };
 
 constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);

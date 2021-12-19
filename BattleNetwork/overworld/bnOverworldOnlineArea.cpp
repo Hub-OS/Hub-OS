@@ -145,10 +145,10 @@ void Overworld::OnlineArea::AddSceneChangeTask(const std::function<void()>& task
 }
 
 void Overworld::OnlineArea::SetAvatarAsSpeaker() {
-  auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+  PlayerMeta& meta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(GetCurrentNaviID());
   const std::string& image = meta.GetMugshotTexturePath();
   const std::string& anim = meta.GetMugshotAnimationPath();
-  auto mugshot = Textures().LoadFromFile(image);
+  std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(image);
   GetMenuSystem().SetNextSpeaker(sf::Sprite(*mugshot), anim);
 }
 
@@ -236,7 +236,7 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
 }
 
 void Overworld::OnlineArea::RemovePackages() {
-  auto& packageManager = getController().MobPackageManager();
+  MobPackageManager& packageManager = getController().MobPackagePartition().GetLocalPartition();
 
   for (auto& packageId : downloadedMobPackages) {
     packageManager.RemovePackageByID(packageId);
@@ -1119,7 +1119,7 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
 {
   sendAvatarAssetStream();
 
-  auto& naviMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+  auto& naviMeta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(GetCurrentNaviID());
   auto naviName = naviMeta.GetName();
   auto maxHP = naviMeta.GetHP();
   auto element = GetStrFromElement(naviMeta.GetElement());
@@ -1168,7 +1168,7 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
   // + reliability type + id + packet type
   auto packetHeaderSize = 1 + 8 + 2;
 
-  auto& naviMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+  auto& naviMeta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(GetCurrentNaviID());
 
   auto texturePath = naviMeta.GetOverworldTexturePath();
   auto textureData = readBytes(texturePath);
@@ -2157,8 +2157,10 @@ void Overworld::OnlineArea::receiveOpenShopSignal(BufferReader& reader, const Po
 void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto remoteAddress = reader.ReadString<uint16_t>(buffer);
-
   auto remote = Poco::Net::SocketAddress(remoteAddress);
+
+  PlayerPackageManager& playerPackages = getController().PlayerPackagePartition().GetLocalPartition();
+  BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
 
   try {
     netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
@@ -2175,7 +2177,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     copyScreen = true; // copy screen contents for download screen fx
   });
 
-  AddSceneChangeTask([=] {
+  AddSceneChangeTask([=, &blockPackages, &playerPackages] {
     std::vector<std::string> cardPackages;
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
 
@@ -2191,7 +2193,6 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
     std::vector<std::string> selectedNaviBlocks;
 
-    BlockPackageManager& blockPackages = getController().BlockPackageManager();
     GameSession& session = getController().Session();
     for (std::string& blockID : PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session)) {
       if (!blockPackages.HasPackage(blockID)) continue;
@@ -2217,7 +2218,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     getController().push<effect::to<DownloadScene>>(props);
   });
 
-  AddSceneChangeTask([=] {
+  AddSceneChangeTask([=, &blockPackages, &playerPackages] {
     if (!this->canProceedToBattle) {
       Logger::Log(LogLevel::critical, "Failed to download assets from remote player");
       return;
@@ -2241,7 +2242,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     // Stop music and go to battle screen
     Audio().StopStream();
 
-    auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+    auto& meta = playerPackages.FindPackageByID(GetCurrentNaviID());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
     const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
@@ -2252,11 +2253,10 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);
 
-    BlockPackageManager& blockPackages = getController().BlockPackageManager();
     GameSession& session = getController().Session();
     std::vector<std::string> localNaviBlocks = PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session);
 
-    auto& remoteMeta = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
+    auto& remoteMeta = playerPackages.FindPackageByID(remoteNaviId);
     auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());
 
     std::vector<NetworkPlayerSpawnData> spawnOrder;
@@ -2295,7 +2295,7 @@ void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poc
     return;
   }
 
-  auto& packageManager = getController().MobPackageManager();
+  MobPackageManager& packageManager = getController().MobPackagePartition().GetLocalPartition();
 
   std::string packageId = packageManager.FilepathToPackageID(file_path);
 
@@ -2331,11 +2331,12 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     return;
   }
 
-  auto& packageManager = getController().MobPackageManager();
+  MobPackageManager& mobPackages = getController().MobPackagePartition().GetLocalPartition();
+  PlayerPackageManager& playerPackages = getController().PlayerPackagePartition().GetLocalPartition();
 
-  std::string packageId = packageManager.FilepathToPackageID(file_path);
+  std::string packageId = mobPackages.FilepathToPackageID(file_path);
 
-  if (!packageManager.HasPackage(packageId)) {
+  if (!mobPackages.HasPackage(packageId)) {
     // If we don't have it by now something went terribly wrong
     Logger::Logf(LogLevel::critical, "Failed to battle remote mob package %s", file_path.c_str());
     return;
@@ -2343,12 +2344,12 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   Logger::Logf(LogLevel::debug, "Battling remote mob %s", packageId.c_str());
 
-  auto& mobMeta = packageManager.FindPackageByID(packageId);
+  MobMeta& mobMeta = mobPackages.FindPackageByID(packageId);
 
-  auto mobFactory = std::unique_ptr<MobFactory>(mobMeta.GetData());
-  auto* mob = mobFactory->Build(std::make_shared<Field>(6, 3), GetText(data_path));
+  std::unique_ptr<MobFactory> mobFactory = std::unique_ptr<MobFactory>(mobMeta.GetData());
+  Mob* mob = mobFactory->Build(std::make_shared<Field>(6, 3), GetText(data_path));
 
-  AddSceneChangeTask([=] {
+  AddSceneChangeTask([=, &playerPackages, &mobPackages] {
     // Play the pre battle rumble sound
     Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
@@ -2356,13 +2357,13 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     Audio().StopStream();
 
     // Get the navi we selected
-    auto& playerMeta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+    PlayerMeta& playerMeta = playerPackages.FindPackageByID(GetCurrentNaviID());
     const std::string& image = playerMeta.GetMugshotTexturePath();
     const std::string& mugshotAnim = playerMeta.GetMugshotAnimationPath();
     const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
-    auto mugshot = Textures().LoadFromFile(image);
-    auto emotions = Textures().LoadFromFile(emotionsTexture);
-    auto player = std::shared_ptr<Player>(playerMeta.GetData());
+    std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(image);
+    std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(emotionsTexture);
+    std::shared_ptr<Player> player = std::shared_ptr<Player>(playerMeta.GetData());
     player->Init();
 
     player->SetHealth(GetPlayerSession()->health);

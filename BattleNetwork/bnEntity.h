@@ -21,10 +21,10 @@
 using std::string;
 
 #include "bnResourceHandle.h"
+#include "bnSpriteProxyNode.h"
 #include "bnAnimation.h"
 #include "bnDirection.h"
 #include "bnTeam.h"
-#include "bnGame.h"
 #include "bnTextureType.h"
 #include "bnElements.h"
 #include "bnComponent.h"

@@ -10,5 +10,6 @@ class LuaLibraryImpl
     virtual ~LuaLibraryImpl() {};
 };
 
-struct LuaLibraryMeta final : public PackageManager<LuaLibraryMeta>::Meta<LuaLibraryImpl> { };
+struct LuaLibraryMeta final : public PackageManager<LuaLibraryMeta>::Meta<LuaLibraryImpl> {};
 class LuaLibraryPackageManager : public PackageManager<LuaLibraryMeta> {};
+class LuaLibraryPackagePartition : public PartitionedPackageManager<LuaLibraryPackageManager> {};

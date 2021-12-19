@@ -1,10 +1,10 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnUserTypeScriptedCharacter.h"
-
 #include "bnWeakWrapper.h"
 #include "bnUserTypeEntity.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
+#include "../bnScriptResourceManager.h"
 
 void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace) {
   auto from = [state = &state] (std::shared_ptr<Entity> entity) {

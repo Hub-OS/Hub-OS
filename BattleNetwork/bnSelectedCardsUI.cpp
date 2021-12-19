@@ -16,8 +16,8 @@
 
 using std::to_string;
 
-SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackageManager* packageManager) :
-  packageManager(packageManager),
+SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackagePartition* partition) :
+  partition(partition),
   CardActionUsePublisher(), 
   UIComponent(owner)
 {
@@ -78,13 +78,24 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     // Grab the ID of the card and draw that icon from the spritesheet
     std::shared_ptr<sf::Texture> texture;
     std::string id = (*selectedCards)[drawOrderIndex].GetUUID();
-    if (packageManager && packageManager->HasPackage(id)) {
-      texture = packageManager->FindPackageByID(id).GetIconTexture();
-      icon.setTexture(texture);
+
+    bool found = false;
+    stx::result_t<PackageAddress> maybe_addr = PackageAddress::FromStr(id);
+
+    if (!maybe_addr.is_error()) {
+      PackageAddress addr = maybe_addr.value();
+
+      CardPackageManager& packageManager = partition->GetPartition(addr.namespaceId);
+      if (packageManager.HasPackage(addr.packageId)) {
+        texture = packageManager.FindPackageByID(addr.packageId).GetIconTexture();
+        icon.setTexture(texture);
+      }
     }
-    else {
+
+    if (!found) {
       icon.setTexture(noIcon);
     }
+
     target.draw(icon, states);
   }
 
@@ -136,7 +147,7 @@ bool SelectedCardsUI::UseNextCard() {
   multiplierValue = 1; // reset 
 
   // add a peek event to the action queue
-  owner->AddAction(PeekCardEvent{ this, packageManager }, ActionOrder::voluntary);
+  owner->AddAction(PeekCardEvent{ this }, ActionOrder::voluntary);
   return true;
 }
 
@@ -167,7 +178,7 @@ bool SelectedCardsUI::HandlePlayEvent(std::shared_ptr<Character> from)
     // could act on metadata later:
     // from->OnCard(card)
 
-    if (auto action = CardToAction(card, from, packageManager, card.props)) {
+    if (auto action = CardToAction(card, from, partition, card.props)) {
       this->Broadcast(action); // tell the rest of the subsystems
     }
 

@@ -38,3 +38,4 @@ struct BlockMeta final : public PackageManager<BlockMeta>::Meta<PlayerCustScene:
 };
 
 class BlockPackageManager : public PackageManager<BlockMeta> {};
+class BlockPackagePartition : public PartitionedPackageManager<BlockPackageManager> {};

@@ -115,9 +115,4 @@ Animation& ScriptedSpell::GetAnimationObject()
   return animComponent->GetAnimationObject();
 }
 
-void ScriptedSpell::ShakeCamera(double power, float duration)
-{
-  this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
-}
-
 #endif

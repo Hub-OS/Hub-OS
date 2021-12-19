@@ -7,29 +7,38 @@
 
 #include "bnGame.h"
 #include "bnGameSession.h"
-#include "bnPlayerPackageManager.h"
-#include "bnCardPackageManager.h"
-#include "bnMobPackageManager.h"
-#include "bnBlockPackageManager.h"
-#include "bnLuaLibraryPackageManager.h"
 #include "bnGameOverScene.h"
 #include "bnFakeScene.h"
 #include "bnConfigReader.h"
 #include "bnFont.h"
 #include "bnText.h"
-#include "bnQueueModRegistration.h"
 #include "bnResourceHandle.h"
 #include "bnInputHandle.h"
 #include "overworld/bnOverworldHomepage.h"
 #include "SFML/System.hpp"
 
+#ifdef BN_MOD_SUPPORT
+#include "bnScriptResourceManager.h"
 #include "bindings/bnScriptedBlock.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnScriptedPlayer.h"
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnLuaLibrary.h"
+#include "bnQueueModRegistration.h"
+#endif
+
+#include "bnPackageManager.h"
+#include "bnPlayerPackageManager.h"
+#include "bnCardPackageManager.h"
+#include "bnMobPackageManager.h"
+#include "bnBlockPackageManager.h"
+#include "bnLuaLibraryPackageManager.h"
 
 #include "sago/platform_folders.h"
+
+char* Game::LocalPartition = "";
+char* Game::RemotePartition = "pvp";
+char* Game::ServerPartition = "server";
 
 Game::Game(DrawWindow& window) :
   window(window), 
@@ -55,7 +64,8 @@ Game::Game(DrawWindow& window) :
   ResourceHandle::shaders  = &shaderManager;
 
 #ifdef BN_MOD_SUPPORT
-  ResourceHandle::scripts  = &scriptManager;
+  scriptManager = new ScriptResourceManager();
+  ResourceHandle::scripts  = scriptManager;
 #endif
 
   // Link i/o handle to use the input manager created by the game
@@ -64,19 +74,12 @@ Game::Game(DrawWindow& window) :
   // Link net handle to use manager created by the game
   NetHandle::net = &netManager;
 
-  // Create package managers for rest of game to utilize
-  cardPackageManager = new class CardPackageManager;
-  playerPackageManager = new class PlayerPackageManager;
-  mobPackageManager = new class MobPackageManager;
-  blockPackageManager = new class BlockPackageManager;
-  luaLibraryPackageManager = new class LuaLibraryPackageManager;
-
   // Script bindings needs to know about other sub system
-  scriptManager.SetCardPackageManager(*cardPackageManager);
+  scriptManager->SetCardPackagePartition(*cardPackagePartition);
 
   // Game session object needs to be available to every scene
   session = new GameSession;
-  session->SetCardPackageManager(*cardPackageManager);
+  session->SetCardPackageManager(cardPackagePartition->GetLocalPartition());
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -100,11 +103,10 @@ Game::~Game() {
   }
 
   delete session;
-  delete cardPackageManager;
-  delete playerPackageManager;
-  delete mobPackageManager;
-  delete blockPackageManager;
-  delete luaLibraryPackageManager;
+
+#ifdef BN_MOD_SUPPORT
+  delete scriptManager;
+#endif
 }
 
 void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
@@ -165,29 +167,32 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   Callback<void()> blocks;
   blocks.Slot(std::bind(&Game::RunBlocksInit, this, &progress));
 
+#ifdef BN_MOD_SUPPORT
   Callback<void()> resolveFailedPackages;
   resolveFailedPackages.Slot([this]() {
-    std::string package = cardPackageManager->FirstValidPackage();
+    CardPackageManager& cardPackages = cardPackagePartition->GetLocalPartition();
+    std::string package = cardPackages.FirstValidPackage();
 
     do {
       if (package.empty()) break;
 
-      scriptManager.DefineCard(package, cardPackageManager->FindPackageByID(package).GetFilePath());
+      scriptManager->DefineCard(cardPackages.WithNamespace(package), cardPackages.FindPackageByID(package).GetFilePath());
 
-      package = cardPackageManager->GetPackageAfter(package);
-    } while (package != cardPackageManager->FirstValidPackage());
+      package = cardPackages.GetPackageAfter(package);
+    } while (package != cardPackages.FirstValidPackage());
 
     auto packages = ResolveFailedPackages();
 
     while (!packages.empty()) { 
       for (auto& p : packages) {
-        scriptManager.DefineCard(cardPackageManager->FilepathToPackageID(p), p);
+        scriptManager->DefineCard(cardPackages.FilepathToPackageID(p), p);
       }
 
       /* keep trying */ 
       packages = ResolveFailedPackages();
     }
   });
+#endif
 
   Callback<void()> init;
   init.Slot([this] {
@@ -212,7 +217,10 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   tasks.AddTask("Load mobs", std::move(mobs));
   tasks.AddTask("Load cards", std::move(cards));
   tasks.AddTask("Load prog blocks", std::move(blocks));
+
+#ifdef BN_MOD_SUPPORT
   tasks.AddTask("Resolving packages", std::move(resolveFailedPackages));
+#endif
 
   // Load font symbols immediately...
   textureManager.LoadFromFile(TexturePaths::FONT);
@@ -483,7 +491,11 @@ void Game::UpdateConfigSettings(const struct ConfigSettings& new_settings)
 void Game::SeedRand(unsigned int seed)
 {
   randSeed = seed;
-  scriptManager.SeedRand(seed);
+
+#ifdef BN_MOD_SUPPORT
+  scriptManager->SeedRand(seed);
+#endif
+
 }
 
 const unsigned int Game::GetRandSeed() const
@@ -551,29 +563,29 @@ const std::string Game::SaveGamesPath()
   return sago::getSaveGamesFolder1();
 }
 
-CardPackageManager& Game::CardPackageManager()
+CardPackagePartition& Game::CardPackagePartition()
 {
-  return *cardPackageManager;
+  return *cardPackagePartition;
 }
 
-PlayerPackageManager& Game::PlayerPackageManager()
+PlayerPackagePartition& Game::PlayerPackagePartition()
 {
-  return *playerPackageManager;
+  return *playerPackagePartition;
 }
 
-MobPackageManager& Game::MobPackageManager()
+MobPackagePartition& Game::MobPackagePartition()
 {
-  return *mobPackageManager;
+  return *mobPackagePartition;
 }
 
-BlockPackageManager& Game::BlockPackageManager()
+BlockPackagePartition& Game::BlockPackagePartition()
 {
-  return *blockPackageManager;
+  return *blockPackagePartition;
 }
 
-LuaLibraryPackageManager& Game::GetLuaLibraryPackageManager()
+LuaLibraryPackagePartition& Game::GetLuaLibraryPackagePartition()
 {
-  return *luaLibraryPackageManager;
+  return *luaLibraryPackagePartition;
 }
 
 ConfigSettings& Game::ConfigSettings()
@@ -590,8 +602,8 @@ void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
 
   auto LoadPlayerMods = QueueModRegistration<class PlayerPackageManager, ScriptedPlayer>;
-  LoadPlayerMods(*playerPackageManager, "resources/mods/players", "Player Mods");
-  playerPackageManager->LoadAllPackages(*progress);
+  LoadPlayerMods(playerPackagePartition->GetLocalPartition(), "resources/mods/players", "Player Mods");
+  playerPackagePartition->GetLocalPartition().LoadAllPackages(*progress);
 
   Logger::Logf(LogLevel::info, "Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
@@ -601,8 +613,8 @@ void Game::RunBlocksInit(std::atomic<int>* progress)
   clock_t begin_time = clock();
 
   auto LoadBlockMods = QueueModRegistration<class BlockPackageManager, ScriptedBlock>;
-  LoadBlockMods(*blockPackageManager, "resources/mods/blocks", "Prog Block Mods");
-  blockPackageManager->LoadAllPackages(*progress);
+  LoadBlockMods(blockPackagePartition->GetLocalPartition(), "resources/mods/blocks", "Prog Block Mods");
+  blockPackagePartition->GetLocalPartition().LoadAllPackages(*progress);
 
   Logger::Logf(LogLevel::info, "Loaded registered prog blocks: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
@@ -611,8 +623,8 @@ void Game::RunMobInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
 
   auto LoadEnemyMods = QueueModRegistration<class MobPackageManager, ScriptedMob>;
-  LoadEnemyMods(*mobPackageManager, "resources/mods/enemies", "Enemy Mods");
-  mobPackageManager->LoadAllPackages(*progress);
+  LoadEnemyMods(mobPackagePartition->GetLocalPartition(), "resources/mods/enemies", "Enemy Mods");
+  mobPackagePartition->GetLocalPartition().LoadAllPackages(*progress);
 
   Logger::Logf(LogLevel::info, "Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
@@ -621,8 +633,8 @@ void Game::RunCardInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
 
   auto LoadCardMods = QueueModRegistration<class CardPackageManager, ScriptedCard>;
-  LoadCardMods(*cardPackageManager, "resources/mods/cards", "Card Mods");
-  cardPackageManager->LoadAllPackages(*progress);
+  LoadCardMods(cardPackagePartition->GetLocalPartition(), "resources/mods/cards", "Card Mods");
+  cardPackagePartition->GetLocalPartition().LoadAllPackages(*progress);
 
   Logger::Logf(LogLevel::info, "Loaded registered cards: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
@@ -631,8 +643,8 @@ void Game::RunLuaLibraryInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
 
   auto LoadCoreLibraryMods = QueueModRegistration<class LuaLibraryPackageManager, LuaLibrary>;
-  LoadCoreLibraryMods(*luaLibraryPackageManager, "resources/mods/libs", "Core Libs Mods");
-  luaLibraryPackageManager->LoadAllPackages(*progress);
+  LoadCoreLibraryMods(luaLibraryPackagePartition->GetLocalPartition(), "resources/mods/libs", "Core Libs Mods");
+  luaLibraryPackagePartition->GetLocalPartition().LoadAllPackages(*progress);
 
   Logger::Logf(LogLevel::info, "Loaded registered libraries: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }

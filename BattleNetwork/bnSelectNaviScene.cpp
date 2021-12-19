@@ -83,7 +83,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   navi.setOrigin(navi.getLocalBounds().width / 2.f, navi.getLocalBounds().height / 2.f);
   navi.setPosition(100.f, 150.f);
 
-  auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(currentChosenId);
+  auto& playerPkg = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(currentChosenId);
   if (auto tex = playerPkg.GetPreviewTexture()) {
     navi.setTexture(tex);
   }
@@ -272,7 +272,7 @@ void SelectNaviScene::GotoPlayerCust()
 
   std::vector<PlayerCustScene::Piece*> blocks;
 
-  auto& blockManager = getController().BlockPackageManager();
+  auto& blockManager = getController().BlockPackagePartition().GetLocalPartition();
   std::string package = blockManager.FirstValidPackage();
 
   do {
@@ -310,6 +310,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   bg->Update((float)elapsed);
 
   std::string prevSelectId = currentChosenId;
+  PlayerPackageManager& packageManager = getController().PlayerPackagePartition().GetLocalPartition();
 
   // Scene keyboard controls
   if (!gotoNextScene) {
@@ -321,7 +322,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to previous mob
         selectInputCooldown = maxSelectInputCooldown;
-        currentChosenId = getController().PlayerPackageManager().GetPackageBefore(currentChosenId);
+        currentChosenId = packageManager.GetPackageBefore(currentChosenId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -333,7 +334,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to next mob
         selectInputCooldown = maxSelectInputCooldown;
-        currentChosenId = getController().PlayerPackageManager().GetPackageAfter(currentChosenId);
+        currentChosenId = packageManager.GetPackageAfter(currentChosenId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -352,7 +353,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
     }
   }
 
-  auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(currentChosenId);
+  auto& playerPkg = packageManager.FindPackageByID(currentChosenId);
 
   // Reset the factor/slide in effects if a new selection was made
   if (currentChosenId != prevSelectId || !loadNavi) {

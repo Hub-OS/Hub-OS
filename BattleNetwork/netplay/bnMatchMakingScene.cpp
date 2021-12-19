@@ -52,7 +52,7 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   this->gridBG = new GridBackground();
   gridBG->SetColor(sf::Color(0)); // hide until it is ready
 
-  auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(selectedNaviId);
+  auto& playerPkg = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(selectedNaviId);
   clientPreview.setTexture(playerPkg.GetPreviewTexture());
   clientPreview.setScale(2.f, 2.f);
   clientPreview.setOrigin(clientPreview.getLocalBounds().width, clientPreview.getLocalBounds().height);
@@ -437,7 +437,7 @@ void MatchMakingScene::onResume() {
       Reset();
     }
     else if(remoteNaviId.size()) {
-      auto& playerPkg = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
+      auto& playerPkg = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(remoteNaviId);
       this->remotePreview.setTexture(playerPkg.GetPreviewTexture());
       auto height = remotePreview.getSprite().getLocalBounds().height;
       remotePreview.setOrigin(sf::Vector2f(0, height));
@@ -479,7 +479,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
     std::vector<std::string> cardUUIDs, cardPackages, selectedNaviBlocks;
 
-    BlockPackageManager& blockPackages = getController().BlockPackageManager();
+    BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
     GameSession& session = getController().Session();
     for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
       if (!blockPackages.HasPackage(blockID)) continue;
@@ -586,19 +586,19 @@ void MatchMakingScene::onUpdate(double elapsed) {
       Audio().StopStream();
 
       // Configure the session
-      auto& meta = getController().PlayerPackageManager().FindPackageByID(selectedNaviId);
+      PlayerMeta& meta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(selectedNaviId);
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
-      auto mugshot = Textures().LoadFromFile(image);
-      auto emotions = Textures().LoadFromFile(emotionsTexture);
-      auto player = std::shared_ptr<Player>(meta.GetData());
+      std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(image);
+      std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(emotionsTexture);
+      std::shared_ptr<Player> player = std::shared_ptr<Player>(meta.GetData());
 
-      BlockPackageManager& blockPackages = getController().BlockPackageManager();
+      BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
       GameSession& session = getController().Session();
       std::vector<std::string> localPlayerBlocks = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
 
-      auto& remoteMeta = getController().PlayerPackageManager().FindPackageByID(remoteNaviId);
+      auto& remoteMeta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(remoteNaviId);
       auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());
 
       std::vector<NetworkPlayerSpawnData> spawnOrder;

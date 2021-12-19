@@ -14,8 +14,8 @@
 
 using std::to_string;
 
-PlayerSelectedCardsUI::PlayerSelectedCardsUI(std::weak_ptr<Player> _player, CardPackageManager* packageManager) :
-  SelectedCardsUI(_player, packageManager),
+PlayerSelectedCardsUI::PlayerSelectedCardsUI(std::weak_ptr<Player> _player, CardPackagePartition* partition) :
+  SelectedCardsUI(_player, partition),
   text(Font::Style::thick),
   dmg(Font::Style::gradient_orange),
   multiplier(Font::Style::thick)
@@ -112,15 +112,23 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         // Grab the ID of the card and draw that icon from the spritesheet
         std::shared_ptr<sf::Texture> texture;
         std::string id = selectedCards[drawOrderIndex].GetUUID();
-        if (SelectedCardsUI::packageManager && SelectedCardsUI::packageManager->HasPackage(id)) {
-          texture = SelectedCardsUI::packageManager->FindPackageByID(id).GetIconTexture();
-          icon.setTexture(texture);
-        }
-        else {
-          icon.setTexture(noIcon);
-        }
+        stx::result_t<PackageAddress> maybe_addr = PackageAddress::FromStr(id);
+        bool found = false;
 
-        target.draw(icon, states);
+        if (!maybe_addr.is_error() && SelectedCardsUI::partition) {
+          PackageAddress addr = maybe_addr.value();
+
+          if (SelectedCardsUI::partition->HasNamespace(addr.namespaceId)) {
+            CardPackageManager& packages = SelectedCardsUI::partition->GetPartition(addr.namespaceId);
+            texture = packages.FindPackageByID(id).GetIconTexture();
+            icon.setTexture(texture);
+          }
+          else {
+            icon.setTexture(noIcon);
+          }
+
+          target.draw(icon, states);
+        }
       }
     }
 

@@ -3,6 +3,7 @@
 #include <atomic>
 #include <thread>
 
+#include "cxxopts/cxxopts.hpp"
 #include "bnTaskGroup.h"
 #include "bnDrawWindow.h"
 #include "bnConfigReader.h"
@@ -13,9 +14,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
-#include "bnScriptResourceManager.h"
 #include "bnInputManager.h"
-#include "cxxopts/cxxopts.hpp"
+#include "bnPackageManager.h"
 
 #define ONB_REGION_JAPAN 0
 #define ONB_ENABLE_PIXELATE_GFX 0
@@ -43,12 +43,13 @@
 
 using swoosh::ActivityController;
 
-class PlayerPackageManager;
-class CardPackageManager;
-class MobPackageManager;
-class BlockPackageManager;
+// forward decl.
 class GameSession;
-class LuaLibraryPackageManager;
+class CardPackagePartition;
+class PlayerPackagePartition;
+class BlockPackagePartition;
+class MobPackagePartition;
+class LuaLibraryPackagePartition;
 
 enum class Endianness : short {
   big = 0,
@@ -68,16 +69,16 @@ private:
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
 #ifdef BN_MOD_SUPPORT 
-  ScriptResourceManager scriptManager; 
+  ScriptResourceManager* scriptManager{ nullptr };
 #endif
   InputManager inputManager;
   NetManager netManager;
 
-  CardPackageManager* cardPackageManager;
-  PlayerPackageManager* playerPackageManager;
-  MobPackageManager* mobPackageManager;
-  BlockPackageManager* blockPackageManager;
-  LuaLibraryPackageManager* luaLibraryPackageManager;
+  CardPackagePartition* cardPackagePartition{ nullptr };
+  PlayerPackagePartition* playerPackagePartition{ nullptr };
+  MobPackagePartition* mobPackagePartition{ nullptr };
+  BlockPackagePartition* blockPackagePartition{ nullptr };
+  LuaLibraryPackagePartition* luaLibraryPackagePartition{ nullptr };
 
   DrawWindow& window;
   ConfigReader reader;
@@ -154,11 +155,16 @@ public:
   const std::string PicturesPath();
   const std::string SaveGamesPath();
 
-  CardPackageManager& CardPackageManager();
-  PlayerPackageManager& PlayerPackageManager();
-  MobPackageManager& MobPackageManager();
-  BlockPackageManager& BlockPackageManager();
-  LuaLibraryPackageManager& GetLuaLibraryPackageManager();
+  CardPackagePartition& CardPackagePartition();
+  PlayerPackagePartition& PlayerPackagePartition();
+  MobPackagePartition& MobPackagePartition();
+  BlockPackagePartition& BlockPackagePartition();
+  LuaLibraryPackagePartition& GetLuaLibraryPackagePartition();
+
+  static char* LocalPartition;
+  static char* RemotePartition;
+  static char* ServerPartition;
+
   ConfigSettings& ConfigSettings();
   GameSession& Session();
 

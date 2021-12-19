@@ -9,7 +9,7 @@ public:
   /**
    * \param character Character to attach to
    */
-  OwnedCardsUI(std::shared_ptr<Character> owner, CardPackageManager* packageManager);
+  OwnedCardsUI(std::shared_ptr<Character> owner, CardPackagePartition* partition);
 
   /**
    * @brief destructor

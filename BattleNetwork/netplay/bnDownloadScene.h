@@ -20,20 +20,19 @@
 #include "../../bnDrawWindow.h"
 #include "../../bnSceneNode.h"
 
-struct DownloadSceneProps {
-  std::vector<std::string> cardPackageHashes;
-  std::vector<std::string> blockPackageHashes;
-  std::string playerHash;
-  Poco::Net::SocketAddress remoteAddress;
-  std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
-  sf::Texture lastScreen;
-  bool& downloadSuccess;
-  unsigned& coinFlip;
-  std::string& remotePlayerHash;
-  std::vector<std::string>& remotePlayerBlocks;
-};
+class CardPackageManager;
+class PlayerPackageManager;
+class BlockPackageManager;
+
+struct DownloadSceneProps;
 
 class DownloadScene final : public Scene {
+public:
+  struct Hash {
+    std::string packageId;
+    std::string md5;
+  };
+
 private:
   bool& downloadSuccess;
   bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{};
@@ -43,10 +42,10 @@ private:
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
-  std::string playerHash;
-  std::string& remotePlayerHash;
-  std::vector<std::string>& remoteBlockHash;
-  std::vector<std::string> playerCardPackageList, playerBlockPackageList;
+  Hash playerHash;
+  PackageAddress& remotePlayer;
+  std::vector<PackageAddress>& remoteBlocks;
+  std::vector<DownloadScene::Hash> playerCardPackageList, playerBlockPackageList;
   std::map<std::string, std::string> contentToDownload;
   Text label;
   sf::Sprite bg; // background
@@ -54,6 +53,17 @@ private:
   sf::Texture lastScreen;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   swoosh::glsl::FastGaussianBlur blur{ 10 };
+
+  void ResetRemotePartitions(); // prepare remote namespace for incoming mods
+  CardPackageManager& RemoteCardPartition();
+  CardPackageManager& LocalCardPartition();
+  BlockPackageManager& RemoteBlockPartition();
+  BlockPackageManager& LocalBlockPartition();
+  PlayerPackageManager& RemotePlayerPartition();
+  PlayerPackageManager& LocalPlayerPartition();
+
+  template<template<typename> class PackageManagerType, class MetaType>
+  bool DifferentHash(PackageManagerType<MetaType>& packageManager, const std::string& packageId, const std::string& desiredFingerprint);
 
   void RemoveFromDownloadList(const std::string& id);
 
@@ -65,9 +75,9 @@ private:
   void SendDownloadComplete(bool success);
 
   // Initiate trades
-  void TradePlayerPackageData(const std::string& hash);
-  void TradeCardPackageData(const std::vector<std::string>& hashes);
-  void TradeBlockPackageData(const std::vector<std::string>& hashes);
+  void TradePlayerPackageData(const Hash& hash);
+  void TradeCardPackageData(const std::vector<Hash>& hashes);
+  void TradeBlockPackageData(const std::vector<Hash>& hashes);
 
   // Initiate requests
   void RequestPlayerPackageData(const std::string& hash);
@@ -91,11 +101,11 @@ private:
   void DownloadPackageData(const Poco::Buffer<char>& buffer, PackageManagerType& pm);
 
   // Serializers
-  std::vector<std::string> DeserializeListOfStrings(const Poco::Buffer<char>& buffer);
-  Poco::Buffer<char> SerializeListOfStrings(NetPlaySignals header, const std::vector<std::string>& list);
+  std::vector<Hash> DeserializeListOfHashes(const Poco::Buffer<char>& buffer);
+  Poco::Buffer<char> SerializeListOfHashes(NetPlaySignals header, const std::vector<Hash>& list);
 
   template<typename PackageManagerType>
-  Poco::Buffer<char> SerializePackageData(const std::string& hash, NetPlaySignals header, PackageManagerType& pm);
+  Poco::Buffer<char> SerializePackageData(const std::string& packageId, NetPlaySignals header, PackageManagerType& pm);
 
   // Aux
   void Abort();
@@ -116,5 +126,17 @@ public:
    */
   DownloadScene(swoosh::ActivityController&, const DownloadSceneProps& props);
   ~DownloadScene();
+};
 
+struct DownloadSceneProps {
+  std::vector<DownloadScene::Hash> cardPackageHashes;
+  std::vector<DownloadScene::Hash> blockPackageHashes;
+  DownloadScene::Hash playerHash;
+  Poco::Net::SocketAddress remoteAddress;
+  std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
+  sf::Texture lastScreen;
+  bool& downloadSuccess;
+  unsigned& coinFlip;
+  PackageAddress& remotePlayer;
+  std::vector<PackageAddress>& remotePlayerBlocks;
 };

@@ -15,9 +15,11 @@
 #ifdef __unix__
 #define LUA_USE_POSIX 1
 #endif
-#include <sol/sol.hpp>
 
-class CardPackageManager; // forward decl
+#include <sol/sol.hpp>
+#include "bnPackageManager.h"
+
+class CardPackagePartition;
 
 class ScriptResourceManager {
 public:
@@ -30,18 +32,18 @@ private:
   unsigned int randSeed{};
   std::vector<sol::state*> states;
   std::map<std::string, LoadScriptResult> scriptTableHash; /*!< Script path to sol table hash */
-  std::map<std::string, std::string> cardFQN; /*! character FQN to script path */
-  std::map<std::string, std::string> characterFQN; /*! character FQN to script path */
-  std::map<std::string, std::string> libraryFQN; /*! library FQN to script path */
-  std::map< std::string, std::list< std::string > > scriptDependencies; // [ Package Name, List of packages it depends on ] 
+  std::map<PackageAddress, std::string> cardFQN; /*! character FQN to script path */
+  std::map<PackageAddress, std::string> characterFQN; /*! character FQN to script path */
+  std::map<PackageAddress, std::string> libraryFQN; /*! library FQN to script path */
+  std::map<PackageAddress, std::list< std::string > > scriptDependencies; // [ Package Name, List of packages it depends on ] 
+  CardPackagePartition* cardPartition{ nullptr };
+
   void ConfigureEnvironment(sol::state& state);
-  CardPackageManager* cardPackages{ nullptr };
 
 public:
   ~ScriptResourceManager();
 
   LoadScriptResult& LoadScript(const std::filesystem::path& path);
-  
   LoadScriptResult& InitLibrary( const std::string& path );
 
   void DefineCard(const std::string& fqn, const std::string& path) /* throw std::exception */;
@@ -52,8 +54,8 @@ public:
   const std::string& FetchSharedLibraryPath(const std::string& fqn);
   const std::string& CharacterToModpath(const std::string& fqn);
   void SeedRand(unsigned int seed);
-  void SetCardPackageManager(CardPackageManager& packageManager);
-  CardPackageManager& GetCardPackageManager();
+  void SetCardPackagePartition(CardPackagePartition& partition);
+  CardPackagePartition& GetCardPackagePartition();
   void AddDependencyNote(sol::state& state, const std::string& dependencyPackageID );
   void RegisterDependencyNotes(sol::state& state);
 

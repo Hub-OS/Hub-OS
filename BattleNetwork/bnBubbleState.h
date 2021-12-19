@@ -34,6 +34,7 @@ public:
 
 #include "bnField.h"
 #include "bnLogger.h"
+#include "bnAudioResourceManager.h"
 
 template<typename Any>
 BubbleState<Any>::BubbleState()

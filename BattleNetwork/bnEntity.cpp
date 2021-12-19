@@ -4,6 +4,8 @@
 #include "bnField.h"
 #include "bnPlayer.h"
 #include "bnShakingEffect.h"
+#include "bnShaderResourceManager.h"
+#include "bnTextureResourceManager.h"
 #include <cmath>
 #include <Swoosh/Ease.h>
 
@@ -657,7 +659,7 @@ void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType&
     return;
   }
 
-  if (currMoveEvent.dest == nullptr) {
+  if (currMoveEvent.dest == nullptr && !IsRooted()) {
     UpdateMoveStartPosition();
     FilterMoveEvent(event);
     currMoveEvent = event;
@@ -899,14 +901,14 @@ void Entity::AdoptNextTile()
     return;
   }
 
-  if (previous != nullptr /*&& previous != tile*/) {
+  if (previous != nullptr && previous != next) {
     previous->RemoveEntityByID(GetID());
 
     // If removing an entity and the tile was broken, crack the tile
     previous->HandleMove(shared_from_this());
-
-    previous = tile;
   }
+
+  previous = tile;
 
   if (!IsMoving()) {
     setPosition(next->getPosition() + Entity::drawOffset);
@@ -1433,7 +1435,7 @@ void Entity::SetHealth(const int _health) {
 
 const bool Entity::IsHitboxAvailable() const
 {
-  return hitboxEnabled;
+  return hitboxEnabled && GetHealth() > 0;
 }
 
 void Entity::EnableHitbox(bool enabled)

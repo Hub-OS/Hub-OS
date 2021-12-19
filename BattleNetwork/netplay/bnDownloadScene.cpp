@@ -20,8 +20,8 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   coinFlip(props.coinFlip),
   lastScreen(props.lastScreen),
   playerHash(props.playerHash),
-  remotePlayerHash(props.remotePlayerHash),
-  remoteBlockHash(props.remotePlayerBlocks),
+  remotePlayer(props.remotePlayer),
+  remoteBlocks(props.remotePlayerBlocks),
   label(Font::Style::tiny),
   Scene(ac)
 {
@@ -83,6 +83,52 @@ void DownloadScene::SendHandshakeAck()
   packetProcessor->UpdateHandshakeID(id);
 }
 
+void DownloadScene::ResetRemotePartitions()
+{
+  CardPackagePartition& cardPartitioner = getController().CardPackagePartition();
+  cardPartitioner.CreateNamespace(Game::RemotePartition);
+  cardPartitioner.GetPartition(Game::RemotePartition).ClearPackages();
+
+  PlayerPackagePartition& playerPartitioner = getController().PlayerPackagePartition();
+  playerPartitioner.CreateNamespace(Game::RemotePartition);
+  playerPartitioner.GetPartition(Game::RemotePartition).ClearPackages();
+
+  BlockPackagePartition& blockPartitioner = getController().BlockPackagePartition();
+  blockPartitioner.CreateNamespace(Game::RemotePartition);
+  blockPartitioner.GetPartition(Game::RemotePartition).ClearPackages();
+}
+
+CardPackageManager& DownloadScene::RemoteCardPartition()
+{
+  CardPackagePartition& partitioner = getController().CardPackagePartition();
+  return partitioner.GetPartition(Game::RemotePartition);
+}
+
+CardPackageManager& DownloadScene::LocalCardPartition()
+{
+  return getController().CardPackagePartition().GetLocalPartition();
+}
+
+BlockPackageManager& DownloadScene::RemoteBlockPartition()
+{
+  getController().BlockPackagePartition().GetPartition(Game::RemotePartition);
+}
+
+BlockPackageManager& DownloadScene::LocalBlockPartition()
+{
+  getController().BlockPackagePartition().GetLocalPartition();
+}
+
+PlayerPackageManager& DownloadScene::RemotePlayerPartition()
+{
+  getController().PlayerPackagePartition().GetPartition(Game::RemotePartition);
+}
+
+PlayerPackageManager& DownloadScene::LocalPlayerPartition()
+{
+  getController().PlayerPackagePartition().GetLocalPartition();
+}
+
 void DownloadScene::RemoveFromDownloadList(const std::string& id)
 {
   auto iter = contentToDownload.find(id);
@@ -96,54 +142,55 @@ bool DownloadScene::AllTasksComplete()
   return cardPackageRequested && playerPackageRequested && blockPackageRequested && contentToDownload.empty();
 }
 
-void DownloadScene::TradePlayerPackageData(const std::string& hash)
+void DownloadScene::TradePlayerPackageData(const Hash& hash)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write<NetPlaySignals>(buffer, NetPlaySignals::trade_player_package);
-  writer.WriteTerminatedString(buffer, hash);
+  writer.WriteTerminatedString(buffer, hash.packageId);
+  writer.WriteTerminatedString(buffer, hash.md5);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void DownloadScene::TradeCardPackageData(const std::vector<std::string>& hashes)
+void DownloadScene::TradeCardPackageData(const std::vector<Hash>& hashes)
 {
   // Upload card list to remote
-  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::trade_card_package_list, hashes));
+  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfHashes(NetPlaySignals::trade_card_package_list, hashes));
 }
 
-void DownloadScene::TradeBlockPackageData(const std::vector<std::string>& hashes)
+void DownloadScene::TradeBlockPackageData(const std::vector<Hash>& hashes)
 {
   // Upload card list to remote
-  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfStrings(NetPlaySignals::trade_block_package_list, hashes));
+  packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfHashes(NetPlaySignals::trade_block_package_list, hashes));
 }
 
-void DownloadScene::RequestPlayerPackageData(const std::string& hash)
+void DownloadScene::RequestPlayerPackageData(const std::string& packageId)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
   writer.Write<NetPlaySignals>(buffer, NetPlaySignals::player_package_request);
-  writer.WriteTerminatedString(buffer, hash);
+  writer.WriteTerminatedString(buffer, packageId);
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void DownloadScene::RequestCardPackageList(const std::vector<std::string>& hashes)
+void DownloadScene::RequestCardPackageList(const std::vector<std::string>& packageIds)
 {
-  for (auto& hash : hashes) {
+  for (const std::string& pid : packageIds) {
     BufferWriter writer;
     Poco::Buffer<char> buffer{ 0 };
     writer.Write<NetPlaySignals>(buffer, NetPlaySignals::card_package_request);
-    writer.WriteTerminatedString(buffer, hash);
+    writer.WriteTerminatedString(buffer, pid);
     packetProcessor->SendPacket(Reliability::Reliable, buffer);
   }
 }
 
-void DownloadScene::RequestBlockPackageList(const std::vector<std::string>& hashes)
+void DownloadScene::RequestBlockPackageList(const std::vector<std::string>& packageIds)
 {
-  for (auto& hash : hashes) {
+  for (const std::string& pid : packageIds) {
     BufferWriter writer;
     Poco::Buffer<char> buffer{ 0 };
     writer.Write<NetPlaySignals>(buffer, NetPlaySignals::block_package_request);
-    writer.WriteTerminatedString(buffer, hash);
+    writer.WriteTerminatedString(buffer, pid);
     packetProcessor->SendPacket(Reliability::Reliable, buffer);
   }
 }
@@ -205,11 +252,11 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     break;
   case NetPlaySignals::card_package_download:
     Logger::Logf(LogLevel::info, "Downloading card package...");
-    this->DownloadPackageData<CardPackageManager, ScriptedCard>(body, getController().CardPackageManager());
+    this->DownloadPackageData<CardPackageManager, ScriptedCard>(body, LocalCardPartition());
     break;
   case NetPlaySignals::block_package_download:
     Logger::Logf(LogLevel::info, "Downloading block package...");
-    this->DownloadPackageData<BlockPackageManager, ScriptedBlock>(body, getController().BlockPackageManager());
+    this->DownloadPackageData<BlockPackageManager, ScriptedBlock>(body, LocalBlockPartition());
     break;
   case NetPlaySignals::player_package_download:
     Logger::Logf(LogLevel::info, "Downloading player package...");
@@ -223,24 +270,27 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
 
 void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer)
 {
-  auto packageCardList = DeserializeListOfStrings(buffer);
+  std::vector<Hash> packageCardList = DeserializeListOfHashes(buffer);
+  std::vector<std::string> requestList;
+  CardPackageManager& packageManager = LocalCardPartition();
+  for (Hash& remotePackage : packageCardList) {
+    auto& [packageId, md5] = remotePackage;
 
-  std::vector<std::string> retryList;
+    bool needsDownload = (packageManager.HasPackage(packageId) && DifferentHash(packageManager, packageId, md5));
+    needsDownload = needsDownload || !packageManager.HasPackage(packageId);
 
-  auto& packageManager = getController().CardPackageManager();
-  for (auto& remoteHash : packageCardList) {
-    if (!packageManager.HasPackage(remoteHash)) {
-      retryList.push_back(remoteHash);
-      contentToDownload[remoteHash] = "Downloading";
+    if (needsDownload) {
+      requestList.push_back(packageId);
+      contentToDownload[packageId] = "Downloading";
     }
   }
 
   Logger::Logf(LogLevel::info, "Recieved remote's card package list size: %d", packageCardList.size());
 
   // move to the next state
-  if (retryList.size()) {
+  if (requestList.size()) {
     Logger::Logf(LogLevel::info, "Need to download %d card packages", packageCardList.size());
-    RequestCardPackageList(retryList);
+    RequestCardPackageList(requestList);
   }
   else {
     Logger::Logf(LogLevel::info, "Nothing to download.");
@@ -250,26 +300,31 @@ void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer
 
 void DownloadScene::RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffer)
 {
-  auto packageList = DeserializeListOfStrings(buffer);
+  std::vector<Hash> packageBlockList = DeserializeListOfHashes(buffer);
+  std::vector<std::string> requestList;
+  BlockPackageManager& packageManager = LocalBlockPartition();
+  for (Hash& remotePackage : packageBlockList) {
+    auto& [packageId, md5] = remotePackage;
 
-  std::vector<std::string> retryList;
+    bool needsDownload = (packageManager.HasPackage(packageId) && DifferentHash(packageManager, packageId, md5));
+    needsDownload = needsDownload || !packageManager.HasPackage(packageId);
 
-  auto& packageManager = getController().BlockPackageManager();
-  for (auto& remoteHash : packageList) {
-    remoteBlockHash.push_back(remoteHash);
-
-    if (!packageManager.HasPackage(remoteHash)) {
-      retryList.push_back(remoteHash);
-      contentToDownload[remoteHash] = "Downloading";
+    if (needsDownload) {
+      requestList.push_back(packageId);
+      contentToDownload[packageId] = "Downloading";
+      remoteBlocks.push_back(PackageAddress{ Game::RemotePartition, packageId });
+    }
+    else {
+      remoteBlocks.push_back(PackageAddress{ Game::LocalPartition, packageId });
     }
   }
 
-  Logger::Logf(LogLevel::info, "Recieved remote's block package list size: %d", packageList.size());
+  Logger::Logf(LogLevel::info, "Recieved remote's block package list size: %d", packageBlockList.size());
 
   // move to the next state
-  if (retryList.size()) {
-    Logger::Logf(LogLevel::info, "Need to download %d block packages", packageList.size());
-    RequestBlockPackageList(retryList);
+  if (requestList.size()) {
+    Logger::Logf(LogLevel::info, "Need to download %d block packages", requestList.size());
+    RequestBlockPackageList(requestList);
   }
   else {
     Logger::Logf(LogLevel::info, "Nothing to download.");
@@ -294,14 +349,21 @@ void DownloadScene::RecieveHandshake(const Poco::Buffer<char>& buffer)
 void DownloadScene::RecieveTradePlayerPackageData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
-  std::string hash = reader.ReadTerminatedString(buffer);
+  std::string packageId = reader.ReadTerminatedString(buffer);
+  std::string md5 = reader.ReadTerminatedString(buffer);
 
-  remotePlayerHash = hash;
+  PlayerPackageManager& packageManager = LocalPlayerPartition();
+  bool needsDownload = (packageManager.HasPackage(packageId) && DifferentHash(packageManager, packageId, md5));
+  needsDownload = needsDownload || !packageManager.HasPackage(packageId);
 
-  if (!getController().PlayerPackageManager().HasPackage(hash)) {
-    contentToDownload[hash] = "Downloading";
+  if (needsDownload) {
+    contentToDownload[packageId] = "Downloading";
     // This will download the player data and also set the remotePlayerHash when completed successfully
-    RequestPlayerPackageData(hash);
+    RequestPlayerPackageData(packageId);
+    remotePlayer = PackageAddress{ Game::RemotePartition, packageId };
+  }
+  else {
+    remotePlayer = PackageAddress{ Game::LocalPartition, packageId };
   }
 
   playerPackageRequested = true;
@@ -318,7 +380,7 @@ void DownloadScene::RecieveRequestPlayerPackageData(const Poco::Buffer<char>& bu
       SerializePackageData(
         hash,
         NetPlaySignals::player_package_download,
-        getController().PlayerPackageManager()
+        LocalPlayerPartition()
       )
     );
   }
@@ -336,7 +398,7 @@ void DownloadScene::RecieveRequestCardPackageData(const Poco::Buffer<char>& buff
       SerializePackageData<CardPackageManager>(
         hash,
         NetPlaySignals::card_package_download,
-        getController().CardPackageManager()
+        LocalCardPartition()
       )
     );
   }
@@ -354,7 +416,7 @@ void DownloadScene::RecieveRequestBlockPackageData(const Poco::Buffer<char>& buf
       SerializePackageData<BlockPackageManager>(
         hash,
         NetPlaySignals::block_package_download,
-        getController().BlockPackageManager()
+        LocalBlockPartition()
         )
     );
   }
@@ -401,8 +463,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 
     file.close();
 
-    remotePlayerHash = hash;
-    result = getController().PlayerPackageManager().LoadPackageFromZip<ScriptedPlayer>(path);
+    result = RemotePlayerPartition().LoadPackageFromZip<ScriptedPlayer>(path);
   }
   
   if (result.is_error()) {
@@ -413,23 +474,34 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
   }
 }
 
-std::vector<std::string> DownloadScene::DeserializeListOfStrings(const Poco::Buffer<char>& buffer)
+std::vector<DownloadScene::Hash> DownloadScene::DeserializeListOfHashes(const Poco::Buffer<char>& buffer)
 {
   size_t len{};
   size_t read{};
-  std::vector<std::string> list;
+  std::vector<DownloadScene::Hash> list;
 
   // list length
   std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
   read += sizeof(size_t);
 
   while (len > 0) {
+    // package id
     size_t id_len{};
     std::memcpy(&id_len, buffer.begin() + read, sizeof(size_t));
     read += sizeof(size_t);
 
-    list.emplace_back(buffer.begin() + read, id_len);
+    std::string id = std::string(buffer.begin() + read, id_len);
     read += id_len;
+
+    // md5
+    size_t md5_len{};
+    std::memcpy(&md5_len, buffer.begin() + read, sizeof(size_t));
+    read += sizeof(size_t);
+
+    std::string md5 = std::string(buffer.begin() + read, md5_len);
+    read += md5_len;
+
+    list.push_back({ id, md5 });
 
     len--;
   }
@@ -437,7 +509,7 @@ std::vector<std::string> DownloadScene::DeserializeListOfStrings(const Poco::Buf
   return list;
 }
 
-Poco::Buffer<char> DownloadScene::SerializeListOfStrings(NetPlaySignals header, const std::vector<std::string>& list)
+Poco::Buffer<char> DownloadScene::SerializeListOfHashes(NetPlaySignals header, const std::vector<DownloadScene::Hash>& list)
 {
   Poco::Buffer<char> data{ 0 };
 
@@ -448,14 +520,26 @@ Poco::Buffer<char> DownloadScene::SerializeListOfStrings(NetPlaySignals header, 
   size_t len = list.size();
   data.append((char*)&len, sizeof(size_t));
 
-  for(auto & id : list) {
-    // name
-    size_t sz = id.length();
+  for(const DownloadScene::Hash& hash : list) {
+    // package id
+    size_t sz = hash.packageId.length();
     data.append((char*)&sz, sizeof(size_t));
-    data.append(id.c_str(), id.length());
+    data.append(hash.packageId.c_str(), hash.packageId.length());
+
+    // md5
+    sz = hash.md5.length();
+    data.append((char*)&sz, sizeof(size_t));
+    data.append(hash.md5.c_str(), hash.md5.length());
   }
 
   return data;
+}
+
+template<template<typename> class PackageManagerType, class MetaType>
+bool DownloadScene::DifferentHash(PackageManagerType<MetaType>& packageManager, const std::string& packageId, const std::string& desiredFingerprint)
+{
+  MetaType& package = packageManager.FindPackageByID(remotePackage.packageId);
+  return package.GetPackageFingerprint() != desiredFingerprint;
 }
 
 template<typename PackageManagerType, typename ScriptedDataType>
@@ -496,7 +580,7 @@ void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, Packag
 }
 
 template<typename PackageManagerType>
-Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& hash, NetPlaySignals header, PackageManagerType& packageManager)
+Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& packageId, NetPlaySignals header, PackageManagerType& packageManager)
 {
   Poco::Buffer<char> buffer{ 0 };
   std::vector<char> fileBuffer;
@@ -504,7 +588,7 @@ Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& hash, 
   BufferWriter writer;
   size_t len = 0;
   
-  auto result = packageManager.GetPackageFilePath(hash);
+  auto result = packageManager.GetPackageFilePath(packageId);
   if (result.is_error()) {
     Logger::Logf(LogLevel::critical, "Could not serialize package: %s", result.error_cstr());
 
@@ -530,7 +614,7 @@ Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& hash, 
   writer.Write(buffer, header);
 
   // hash name
-  writer.WriteTerminatedString(buffer, hash);
+  writer.WriteTerminatedString(buffer, packageId);
 
   // file size
   writer.Write<size_t>(buffer, len);
@@ -590,7 +674,7 @@ void DownloadScene::onUpdate(double elapsed)
 
 void DownloadScene::onDraw(sf::RenderTexture& surface)
 {
-  auto& packageManager = getController().CardPackageManager();
+  auto& packageManager = RemoteCardPartition();
 
   surface.draw(bg);
   blur.apply(surface);

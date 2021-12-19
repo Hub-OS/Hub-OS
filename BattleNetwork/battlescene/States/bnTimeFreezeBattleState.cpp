@@ -80,7 +80,7 @@ void TimeFreezeBattleState::ProcessInputs()
           const Battle::Card& card = *maybe_card;
 
           if (card.IsTimeFreeze() && CanCounter(p)) {
-            if (auto action = CardToAction(card, p, &GetScene().getController().CardPackageManager(), card.props)) {
+            if (auto action = CardToAction(card, p, &GetScene().getController().CardPackagePartition(), card.props)) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
             }

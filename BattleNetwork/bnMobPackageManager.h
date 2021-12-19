@@ -128,3 +128,4 @@ struct MobMeta final : public PackageManager<MobMeta>::Meta<MobFactory> {
 };
 
 class MobPackageManager : public PackageManager<MobMeta> {};
+class MobPackagePartition : public PartitionedPackageManager<MobPackageManager> {};

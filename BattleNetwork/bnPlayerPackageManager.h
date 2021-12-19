@@ -220,3 +220,4 @@ struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
 };
 
 class PlayerPackageManager : public PackageManager<PlayerMeta> {};
+class PlayerPackagePartition : public PartitionedPackageManager<PlayerPackageManager> {};

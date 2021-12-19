@@ -36,7 +36,7 @@ using swoosh::ActivityController;
 
 BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
-  cardActionListener(this->getController().CardPackageManager()),
+  cardActionListener(this->getController().CardPackagePartition()),
   localPlayer(props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -51,7 +51,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   customBarShader(Shaders().GetShader(ShaderType::CUSTOM_BAR)),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI(CardSelectionCust::Props{ std::move(props.folder), &getController().CardPackageManager(), 8, 8 }),
+  cardCustGUI(CardSelectionCust::Props{ std::move(props.folder), &getController().CardPackagePartition().GetLocalPartition(), 8, 8 }),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
   onEndCallback(onEnd),
@@ -381,7 +381,7 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   field->AddEntity(localPlayer, x, y);
 
   // Player UI
-  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackageManager());
+  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackagePartition());
   this->SubscribeToCardActions(*localPlayer);
   this->SubscribeToCardActions(*cardUI);
 
@@ -423,7 +423,7 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   }
 
   // Other Player UI
-  std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackageManager());
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackagePartition());
   cardUI->Hide();
   this->SubscribeToCardActions(*player);
   SubscribeToCardActions(*cardUI);
@@ -457,44 +457,53 @@ void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
 }
 
 void BattleSceneBase::FilterSupportCards(std::vector<Battle::Card>& cards) {
-  auto& cardPackageManager = getController().CardPackageManager();
+  CardPackagePartition& partitions = getController().CardPackagePartition();
 
   for (size_t i = 0; i < cards.size(); i++) {
     std::string uuid = cards[i].GetUUID();
+    stx::result_t<PackageAddress> maybe_addr = PackageAddress::FromStr(uuid);
 
-    // booster cards do not modify other booster cards
-    if (cardPackageManager.HasPackage(uuid)) {
-      AdjacentCards adjCards;
+    if(!maybe_addr.is_error()) {
+      PackageAddress addr = maybe_addr.value();
 
-      if (i > 0 && cards[i-1u].CanBoost()) {
-        adjCards.hasCardToLeft = true;
-        adjCards.leftCard = &cards[i-1u].props;
-      }
+      if (partitions.HasNamespace(addr.namespaceId)) {
+        CardPackageManager& cardPackageManager = partitions.GetPartition(addr.namespaceId);
 
-      if (i < cards.size() - 1 && cards[i+1u].CanBoost()) {
-        adjCards.hasCardToRight = true;
-        adjCards.rightCard = &cards[i+1u].props;
-      }
+        // booster cards do not modify other booster cards
+        if (cardPackageManager.HasPackage(uuid)) {
+          AdjacentCards adjCards;
 
-      auto& meta = cardPackageManager.FindPackageByID(uuid);
+          if (i > 0 && cards[i - 1u].CanBoost()) {
+            adjCards.hasCardToLeft = true;
+            adjCards.leftCard = &cards[i - 1u].props;
+          }
 
-      if (meta.filterHandStep) {
-        meta.filterHandStep(cards[i].props, adjCards);
-      }
+          if (i < cards.size() - 1 && cards[i + 1u].CanBoost()) {
+            adjCards.hasCardToRight = true;
+            adjCards.rightCard = &cards[i + 1u].props;
+          }
 
-      if (adjCards.deleteLeft) {
-        cards.erase(cards.begin() + i - 1u);
-        i--;
-      }
+          auto& meta = cardPackageManager.FindPackageByID(uuid);
 
-      if (adjCards.deleteRight) {
-        cards.erase(cards.begin() + i + 1u);
-        i--;
-      }
+          if (meta.filterHandStep) {
+            meta.filterHandStep(cards[i].props, adjCards);
+          }
 
-      if (adjCards.deleteThisCard) {
-        cards.erase(cards.begin() + i);
-        i--;
+          if (adjCards.deleteLeft) {
+            cards.erase(cards.begin() + i - 1u);
+            i--;
+          }
+
+          if (adjCards.deleteRight) {
+            cards.erase(cards.begin() + i + 1u);
+            i--;
+          }
+
+          if (adjCards.deleteThisCard) {
+            cards.erase(cards.begin() + i);
+            i--;
+          }
+        }
       }
     }
   }

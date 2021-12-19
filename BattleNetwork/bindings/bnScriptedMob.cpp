@@ -3,6 +3,7 @@
 #include "bnScriptedCharacter.h"
 #include "../bnFadeInState.h"
 #include "../bnScriptResourceManager.h"
+#include "../bnTextureResourceManager.h"
 #include "../bnCustomBackground.h"
 #include "../bnSolHelpers.h"
 

@@ -398,6 +398,8 @@ bool NetworkBattleScene::IsRemoteBehind()
 
 void NetworkBattleScene::Init()
 {
+  BlockPackagePartition& partition = getController().BlockPackagePartition();
+
   size_t idx = 0;
   for (auto& [blocks, p] : spawnOrder) {
     if (p == GetLocalPlayer()) {
@@ -411,11 +413,12 @@ void NetworkBattleScene::Init()
     }
 
     // Run block programs on the remote player now that they are spawned
-    BlockPackageManager& blockPackages = getController().BlockPackageManager();
     for (const std::string& blockID : blocks) {
-      if (!blockPackages.HasPackage(blockID)) continue;
+      PackageAddress addr = PackageAddress::FromStr(blockID).value();
+      BlockPackageManager& blockPackages = partition.GetPartition(addr.namespaceId);
+      if (!blockPackages.HasPackage(addr.packageId)) continue;
 
-      auto& blockMeta = blockPackages.FindPackageByID(blockID);
+      auto& blockMeta = blockPackages.FindPackageByID(addr.packageId);
       blockMeta.mutator(*p);
     }
 
@@ -559,14 +562,16 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   int len = (int)handSize; // TODO: use size_t for card lengths...
 
   if (handSize) {
-    auto& packageManager = getController().CardPackageManager();
+    CardPackagePartition& partition = getController().CardPackagePartition();
 
     for (size_t i = 0; i < handSize; i++) {
       Battle::Card card;
       std::string id = remoteUUIDs[i];
+      PackageAddress addr = PackageAddress::FromStr(id).value();
 
-      if (packageManager.HasPackage(id)) {
-        card = packageManager.FindPackageByID(id).GetCardProperties();
+      CardPackageManager& packageManager = partition.GetPartition(addr.namespaceId);
+      if (packageManager.HasPackage(addr.packageId)) {
+        card = packageManager.FindPackageByID(addr.packageId).GetCardProperties();
       }
 
       remoteHand.push_back(card);

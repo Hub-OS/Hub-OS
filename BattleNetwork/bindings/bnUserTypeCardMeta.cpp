@@ -12,7 +12,7 @@ void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::table& b
       ScriptResourceManager::PrintInvalidAssignMessage( table, "CardProperties", key );
     },
     "from_card", [scriptManager] (const std::string& fqn) -> Battle::Card::Properties {
-      auto cardPackages = &scriptManager->GetCardPackageManager();
+      auto cardPackages = &scriptManager->GetCardPackagePartition().GetLocalPartition();
 
       if (!cardPackages) {
         Logger::Log(LogLevel::critical, "Battle.CardProperties.from_card() was called but CardPackageManager was nullptr!");

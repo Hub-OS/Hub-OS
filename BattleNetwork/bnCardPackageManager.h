@@ -74,3 +74,4 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
 };
 
 class CardPackageManager : public PackageManager<CardMeta> {};
+class CardPackagePartition : public PartitionedPackageManager<CardPackageManager> {};

@@ -3,10 +3,10 @@
 #pragma once
 #ifdef BN_MOD_SUPPORT
 #include "bnScriptedCardAction.h"
+#include "bnWeakWrapper.h"
 #include "../../bnCard.h"
 #include "../bnSolHelpers.h"
-#include "bnWeakWrapper.h"
-
+#include "../bnCardPackageManager.h"
 class CardImpl;
 
 class ScriptedCard : public CardImpl {

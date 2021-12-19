@@ -2,7 +2,7 @@
 #include <memory>
 #include "bnCard.h"
 class Character;
-class CardPackageManager;
+class CardPackagePartition;
 
 /***
  * all of this code will be tossed out when scripting cards is complete.
@@ -12,6 +12,6 @@ class CardPackageManager;
 std::shared_ptr<CardAction> CardToAction(
   const Battle::Card& card, 
   std::shared_ptr<Character> character, 
-  CardPackageManager* packageManager, 
+  CardPackagePartition* partition,
   std::optional<Battle::Card::Properties> moddedProps
 );

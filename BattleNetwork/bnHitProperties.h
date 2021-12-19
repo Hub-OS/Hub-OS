@@ -27,7 +27,6 @@ namespace Hit {
   const Flags no_counter = 0x00000800;
   const Flags root = 0x00001000;
 
-
   struct Drag {
     Direction dir{ Direction::none };
     unsigned count{ 0 };

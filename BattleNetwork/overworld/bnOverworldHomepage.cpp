@@ -323,7 +323,7 @@ void Overworld::Homepage::onUpdate(double elapsed)
   SceneBase::onUpdate(elapsed);
 
   if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked()) {
-    auto& meta = getController().PlayerPackageManager().FindPackageByID(GetCurrentNaviID());
+    PlayerMeta& meta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(GetCurrentNaviID());
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& anim = meta.GetMugshotAnimationPath();
     auto mugshot = Textures().LoadFromFile(image);
