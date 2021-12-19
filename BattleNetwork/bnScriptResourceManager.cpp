@@ -2,7 +2,6 @@
 #include <memory>
 #include <vector>
 #include <functional>
-#include <filesystem>
 #include "bnScriptResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -97,7 +96,7 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
   // Has to capture a pointer to sol::state, the copy constructor was deleted, cannot capture a copy to reference.
   state.set_function( "include",
     [this, &state, &namespaceId]( const std::string fileName ) -> sol::protected_function_result {
-      sol::protected_function_result result;
+      std::string scriptPath;
 
       // Prefer using the shared libraries if possible.
       // i.e. ones that were present in "mods/libs/"
@@ -105,20 +104,22 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
       {
         Logger::Logf(LogLevel::debug, "Including shared library: %s", fileName.c_str());
 
-        AddDependencyNote(state, fileName );
+        AddDependencyNote(state, fileName);
 
-        result = state.do_file( sharedLibPath, sol::load_mode::any );
+        scriptPath = sharedLibPath;
       }
       else
       {
         Logger::Logf(LogLevel::debug, "Including local library: %s", fileName.c_str());
 
         auto parentFolder = GetCurrentFolder(state).unwrap();
-
-        result = state.do_file( parentFolder + "/" + fileName, sol::load_mode::any );
+        scriptPath = parentFolder + "/" + fileName;
       }
 
-      return result;
+      sol::environment env(state, sol::create, state.globals());
+      env["_folderpath"] = std::filesystem::path(scriptPath).parent_path().string() + "/";
+
+      return state.do_file(scriptPath, env);
     }
   );
 }
@@ -200,6 +201,7 @@ std::string ScriptResourceManager::GetStateNamespace(sol::state& state)
 void ScriptResourceManager::SetModPathVariable( sol::state& state, const std::filesystem::path& modDirectory )
 {
   state["_modpath"] = modDirectory.generic_string() + "/";
+  state["_folderpath"] = modDirectory.generic_string() + "/";
 }
 
 // Free Function provided to a number of Lua types that will print an error message when attempting to access a key that does not exist.
@@ -802,7 +804,6 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary(cons
 ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::string& namespaceId, const std::filesystem::path& modDirectory)
 {
   auto entryPath = modDirectory / "entry.lua";
-  auto modpath = modDirectory;
 
   auto iter = scriptTableHash.find(entryPath.filename().generic_string());
 

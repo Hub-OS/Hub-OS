@@ -16,10 +16,12 @@ ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::str
   std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
 
   scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> std::shared_ptr<ScriptedCharacter> {
-    (*scriptPtr)["_modpath"] = path+"/";
+    auto& script = *scriptPtr;
+    script["_modpath"] = path+"/";
+    script["_folderpath"] = path+"/";
 
     auto character = lambda();
-    character->InitFromScript(*scriptPtr);
+    character->InitFromScript(script);
     return character;
   };
 }
