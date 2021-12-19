@@ -67,6 +67,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedPlayer>& e, int x, int y) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), x, y); },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedSpell>& e, int x, int y) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), x, y); },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedObstacle>& e, int x, int y) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), x, y); },
+      [] (WeakWrapper<Field>& field, WeakWrapper<Obstacle>& e, int x, int y) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), x, y); },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedArtifact>& e, int x, int y) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), x, y); },
       [] (WeakWrapper<Field>& field, WeakWrapper<HitboxSpell>& e, int x, int y) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), x, y); },
 
@@ -76,6 +77,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedPlayer>& e, Battle::Tile& tile) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), tile); },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedSpell>& e, Battle::Tile& tile) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), tile); },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedObstacle>& e, Battle::Tile& tile) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), tile); },
+      [] (WeakWrapper<Field>& field, WeakWrapper<Obstacle>& e, Battle::Tile& tile) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), tile); },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedArtifact>& e, Battle::Tile& tile) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), tile); },
       [] (WeakWrapper<Field>& field, WeakWrapper<HitboxSpell>& e, Battle::Tile& tile) { return field.Unwrap()->AddEntity(e.UnwrapAndRelease(), tile); }
     ),
@@ -134,6 +136,9 @@ void DefineFieldUserType(sol::table& battle_namespace) {
         return FindNearestCharacters(field, test.Unwrap(), queryObject);
       },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedObstacle>& test, sol::stack_object queryObject) {
+        return FindNearestCharacters(field, test.Unwrap(), queryObject);
+      },
+      [] (WeakWrapper<Field>& field, WeakWrapper<Obstacle>& test, sol::stack_object queryObject) {
         return FindNearestCharacters(field, test.Unwrap(), queryObject);
       },
       [] (WeakWrapper<Field>& field, WeakWrapper<ScriptedSpell>& test, sol::stack_object queryObject) {

@@ -10,9 +10,8 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
     if (auto obstacle = std::dynamic_pointer_cast<ScriptedObstacle>(entity)) {
       return sol::make_object(*state, WeakWrapper(obstacle));
     }
-    if (std::dynamic_pointer_cast<Obstacle>(entity)) {
-      // obstacle class is not exposed, return entity to show that this passed as an obstacle
-      return sol::make_object(*state, WeakWrapper(entity));
+    if (auto obstacle = std::dynamic_pointer_cast<Obstacle>(entity)) {
+      return sol::make_object(*state, WeakWrapper(obstacle));
     }
 
     return sol::make_object(*state, sol::lua_nil);
@@ -121,5 +120,22 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
     auto& animation = obstacle.Unwrap()->GetAnimationObject();
     return AnimationWrapper(obstacle.GetWeak(), animation);
   };
+
+  auto obstacle_record = battle_namespace.new_usertype<WeakWrapper<Obstacle>>("BasicObstacle",
+    "set_name", [](WeakWrapper<Obstacle>& obstacle, std::string name) {
+      obstacle.Unwrap()->SetName(name);
+    },
+    "add_defense_rule", [](WeakWrapper<Obstacle>& obstacle, DefenseRule* defenseRule) {
+      obstacle.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
+    },
+    "remove_defense_rule", [](WeakWrapper<Obstacle>& obstacle, DefenseRule* defenseRule) {
+      obstacle.Unwrap()->RemoveDefenseRule(defenseRule);
+    },
+    "ignore_common_aggressor", [](WeakWrapper<Obstacle>& obstacle, bool enable) {
+      obstacle.Unwrap()->IgnoreCommonAggressor(enable);
+    }
+  );
+
+  DefineEntityFunctionsOn(obstacle_record);
 }
 #endif
