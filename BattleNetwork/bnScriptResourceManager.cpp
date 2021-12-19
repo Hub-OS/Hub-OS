@@ -89,7 +89,7 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
 {
   const std::string& namespaceId = state2Namespace[&state];
 
-  state.open_libraries(sol::lib::base, sol::lib::debug, sol::lib::math, sol::lib::table);
+  state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
   // 'include()' in Lua is intended to load a LIBRARY file of Lua code into the current lua state.
   // Currently only loads library files included in the SAME directory as the script file.
@@ -230,39 +230,11 @@ sol::object ScriptResourceManager::PrintInvalidAssignMessage( sol::table table, 
 // Format: \@[full_filename]:[line_number]
 std::string ScriptResourceManager::GetCurrentLine( lua_State* L )
 {
-  lua_getglobal( L, "debug" );          // debug
-  lua_getfield( L, -1, "getinfo" );     // debug.getinfo 
-  lua_pushinteger( L, 2 );              // debug.getinfo ( 2 )
-  lua_pushstring( L, "S" );             // debug.getinfo ( 2, "S" )
-
-  if( lua_pcall( L, 2, 1, 0) != 0 )     // table
-  {
-    Logger::Log(LogLevel::critical, "Error running function \"debug.getinfo\"");
-    Logger::Log(LogLevel::critical, std::string( lua_tostring(L, -1) ));
-  }
-
-  lua_pushstring( L, "source" );        // table.source
-  lua_gettable(L, -2);                  // <value>
+  lua_Debug ar;
+  lua_getstack(L, 1, &ar);
+  lua_getinfo(L, "Sl", &ar);
   
-  auto fileName = std::string( lua_tostring( L, -1 ) );
-
-  lua_getglobal( L, "debug" );          // debug
-  lua_getfield( L, -1, "getinfo" );     // debug.getinfo 
-  lua_pushinteger( L, 2 );              // debug.getinfo ( 2 )
-  lua_pushstring( L, "l" );             // debug.getinfo ( 2, "S" )
-
-  if( lua_pcall( L, 2, 1, 0) != 0 )     // table
-  {
-    Logger::Log(LogLevel::critical, "Error running function \"debug.getinfo\"");
-    Logger::Log(LogLevel::critical, std::string( lua_tostring(L, -1) ));
-  }
-
-  lua_pushstring( L, "currentline" );        // table.source
-  lua_gettable(L, -2);                       // <value>
-  
-  auto lineNumber = lua_tointeger( L, -1 );
-
-  return fileName + ":" + std::to_string( lineNumber );
+  return std::string(ar.source) + ":" + std::to_string(ar.currentline);
 }
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
