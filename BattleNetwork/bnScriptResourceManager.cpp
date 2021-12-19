@@ -2,6 +2,7 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include <filesystem>
 #include "bnScriptResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -96,32 +97,29 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
   // Has to capture a pointer to sol::state, the copy constructor was deleted, cannot capture a copy to reference.
   state.set_function( "include",
     [this, &state, &namespaceId]( const std::string fileName ) -> sol::protected_function_result {
-      #ifdef _DEBUG
-      std::cout << "Including library: " << fileName << std::endl;
-      #endif
-
       sol::protected_function_result result;
 
       // Prefer using the shared libraries if possible.
       // i.e. ones that were present in "mods/libs/"
       if( auto sharedLibPath = FetchSharedLibraryPath(namespaceId, fileName); !sharedLibPath.empty() )
       {
-        #ifdef _DEBUG
-        Logger::Log(LogLevel::info, "Including shared library: " + fileName);
-        #endif
-        
+        Logger::Logf(LogLevel::debug, "Including shared library: %s", fileName.c_str());
+
         AddDependencyNote(state, fileName );
 
         result = state.do_file( sharedLibPath, sol::load_mode::any );
       }
       else
       {
-        #ifdef _DEBUG
-        std::cout << "Including local library: " << fileName << std::endl;
-        #endif
+        Logger::Logf(LogLevel::debug, "Including local library: %s", fileName.c_str());
 
-        std::string modPathRef = state["_modpath"];
-        result = state.do_file( modPathRef + fileName, sol::load_mode::any );
+        auto res = GetCurrentFolder(state);
+
+        if(res.is_error()) {
+          throw std::runtime_error(res.error_cstr());
+        }
+
+        result = state.do_file( res.value() + "/" + fileName, sol::load_mode::any );
       }
 
       return result;
@@ -226,6 +224,35 @@ sol::object ScriptResourceManager::PrintInvalidAssignMessage( sol::table table, 
   Logger::Log(LogLevel::critical, "[Script Error] : " + typeName + " is read-only. Cannot assign new values to it." );
   return sol::lua_nil;
 }
+
+stx::result_t<std::string> ScriptResourceManager::GetCurrentFile(lua_State* L)
+{
+  lua_Debug ar;
+  lua_getstack(L, 1, &ar);
+  lua_getinfo(L, "S", &ar);
+
+  auto path = std::string(ar.source);
+
+  if (path.empty() || path[0] != '@') {
+    return stx::error<std::string>("Failed to resolve current file");
+  }
+
+  return stx::ok(path.substr(1));
+}
+
+stx::result_t<std::string> ScriptResourceManager::GetCurrentFolder(lua_State* L)
+{
+  auto res = GetCurrentFile(L);
+
+  if (res.is_error()) {
+    return res;
+  }
+
+  auto path = std::filesystem::path(res.value()).parent_path();
+
+  return stx::ok(path.string());
+}
+
 // Returns the current executing line in the Lua script.
 // Format: \@[full_filename]:[line_number]
 std::string ScriptResourceManager::GetCurrentLine( lua_State* L )

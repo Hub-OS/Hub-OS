@@ -11,6 +11,7 @@
 #include <atomic>
 #include <filesystem>
 #include <list>
+#include "stx/result.h"
 
 #ifdef __unix__
 #define LUA_USE_POSIX 1
@@ -70,6 +71,8 @@ public:
   void SetModPathVariable(sol::state& state, const std::filesystem::path& modDirectory);
 
   static std::string GetCurrentLine( lua_State* L );
+  static stx::result_t<std::string> GetCurrentFile(lua_State* L);
+  static stx::result_t<std::string> GetCurrentFolder(lua_State* L);
 };
 
 #endif
