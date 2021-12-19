@@ -113,13 +113,9 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
       {
         Logger::Logf(LogLevel::debug, "Including local library: %s", fileName.c_str());
 
-        auto res = GetCurrentFolder(state);
+        auto parentFolder = GetCurrentFolder(state).unwrap();
 
-        if(res.is_error()) {
-          throw std::runtime_error(res.error_cstr());
-        }
-
-        result = state.do_file( res.value() + "/" + fileName, sol::load_mode::any );
+        result = state.do_file( parentFolder + "/" + fileName, sol::load_mode::any );
       }
 
       return result;
