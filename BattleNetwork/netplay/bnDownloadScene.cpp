@@ -9,12 +9,14 @@
 #include "../bnPlayerPackageManager.h"
 #include "../bnCardPackageManager.h"
 #include "../bnBlockPackageManager.h"
+#include "../bnLuaLibraryPackageManager.h"
 #include "../bindings/bnScriptedCard.h"
 #include "../bindings/bnScriptedBlock.h"
 #include <Segues/PixelateBlackWashFade.h>
 
 constexpr std::string_view CACHE_FOLDER = "cache";
 
+// Hash struct operators for std containers
 bool operator<(const DownloadScene::Hash& a, const DownloadScene::Hash& b) {
   return std::tie(a.packageId, a.md5) < std::tie(b.packageId, b.md5);
 }
@@ -24,7 +26,7 @@ bool operator==(const DownloadScene::Hash& a, const DownloadScene::Hash& b)
   return std::tie(a.packageId, a.md5) == std::tie(b.packageId, b.md5);
 }
 
-
+// class DownloadScene
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
   coinFlip(props.coinFlip),
@@ -73,6 +75,8 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   setView(sf::Vector2u(480, 320));
 
   std::filesystem::create_directories(CACHE_FOLDER);
+
+  ResetRemotePartitions();
 }
 
 DownloadScene::~DownloadScene()
@@ -106,6 +110,10 @@ void DownloadScene::ResetRemotePartitions()
   BlockPackagePartition& blockPartitioner = getController().BlockPackagePartition();
   blockPartitioner.CreateNamespace(Game::RemotePartition);
   blockPartitioner.GetPartition(Game::RemotePartition).ClearPackages();
+
+  LuaLibraryPackagePartition& libPartitioner = getController().LuaLibraryPackagePartition();
+  libPartitioner.CreateNamespace(Game::RemotePartition);
+  libPartitioner.GetPartition(Game::RemotePartition).ClearPackages();
 }
 
 CardPackageManager& DownloadScene::RemoteCardPartition()
@@ -262,11 +270,11 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     break;
   case NetPlaySignals::card_package_download:
     Logger::Logf(LogLevel::info, "Downloading card package...");
-    this->DownloadPackageData<CardPackageManager, ScriptedCard>(body, LocalCardPartition());
+    this->DownloadPackageData<CardPackageManager, ScriptedCard>(body, RemoteCardPartition());
     break;
   case NetPlaySignals::block_package_download:
     Logger::Logf(LogLevel::info, "Downloading block package...");
-    this->DownloadPackageData<BlockPackageManager, ScriptedBlock>(body, LocalBlockPartition());
+    this->DownloadPackageData<BlockPackageManager, ScriptedBlock>(body, RemoteBlockPartition());
     break;
   case NetPlaySignals::player_package_download:
     Logger::Logf(LogLevel::info, "Downloading player package...");
@@ -299,7 +307,7 @@ void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer
 
   // move to the next state
   if (requestList.size()) {
-    Logger::Logf(LogLevel::info, "Need to download %d card packages", packageCardList.size());
+    Logger::Logf(LogLevel::info, "Need to download %d card packages", requestList.size());
     RequestCardPackageList(requestList);
   }
   else {
@@ -382,13 +390,13 @@ void DownloadScene::RecieveTradePlayerPackageData(const Poco::Buffer<char>& buff
 void DownloadScene::RecieveRequestPlayerPackageData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
-  std::string hash = reader.ReadTerminatedString(buffer);
+  std::string packageId = reader.ReadTerminatedString(buffer);
 
-  if (hash.size()) {
-    Logger::Logf(LogLevel::info, "Recieved download request for player hash %s", hash.c_str());
+  if (packageId.size()) {
+    Logger::Logf(LogLevel::info, "Recieved download request for player hash %s", packageId.c_str());
     packetProcessor->SendPacket(Reliability::BigData,
       SerializePackageData(
-        hash,
+        packageId,
         NetPlaySignals::player_package_download,
         LocalPlayerPartition()
       )
@@ -399,14 +407,14 @@ void DownloadScene::RecieveRequestPlayerPackageData(const Poco::Buffer<char>& bu
 void DownloadScene::RecieveRequestCardPackageData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
-  std::string hash = reader.ReadTerminatedString(buffer);
+  std::string packageId = reader.ReadTerminatedString(buffer);
 
-  if (!hash.empty()) {
-    Logger::Logf(LogLevel::info, "Recieved download request for %s card package", hash.c_str());
+  if (!packageId.empty()) {
+    Logger::Logf(LogLevel::info, "Recieved download request for %s card package", packageId.c_str());
 
     packetProcessor->SendPacket(Reliability::BigData,
       SerializePackageData<CardPackageManager>(
-        hash,
+        packageId,
         NetPlaySignals::card_package_download,
         LocalCardPartition()
       )
@@ -417,14 +425,14 @@ void DownloadScene::RecieveRequestCardPackageData(const Poco::Buffer<char>& buff
 void DownloadScene::RecieveRequestBlockPackageData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
-  std::string hash = reader.ReadTerminatedString(buffer);
+  std::string packageId = reader.ReadTerminatedString(buffer);
 
-  if (!hash.empty()) {
-    Logger::Logf(LogLevel::info, "Recieved download request for %s block package", hash.c_str());
+  if (!packageId.empty()) {
+    Logger::Logf(LogLevel::info, "Recieved download request for %s block package", packageId.c_str());
 
     packetProcessor->SendPacket(Reliability::BigData,
       SerializePackageData<BlockPackageManager>(
-        hash,
+        packageId,
         NetPlaySignals::block_package_download,
         LocalBlockPartition()
         )
@@ -451,10 +459,10 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
 void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
-  std::string hash = reader.ReadTerminatedString(buffer);
+  std::string packageId = reader.ReadTerminatedString(buffer);
 
-  if (hash.empty()) return;
-  RemoveFromDownloadList(hash);
+  if (packageId.empty()) return;
+  RemoveFromDownloadList(packageId);
 
   size_t file_len = reader.Read<size_t>(buffer);
   std::string path = "cache/" + stx::rand_alphanum(12) + ".zip";
@@ -477,7 +485,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
   }
   
   if (result.is_error()) {
-    Logger::Logf(LogLevel::critical, "Failed to download custom navi with hash %s: %s", hash.c_str(), result.error_cstr());
+    Logger::Logf(LogLevel::critical, "Failed to download custom navi with package ID %s: %s", packageId.c_str(), result.error_cstr());
 
     // There was a problem creating the file
     SendDownloadComplete(false);
@@ -556,10 +564,10 @@ template<typename PackageManagerType, typename ScriptedDataType>
 void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, PackageManagerType& pm)
 {
   BufferReader reader;
-  std::string hash = reader.ReadTerminatedString(buffer);
+  std::string packageId = reader.ReadTerminatedString(buffer);
 
-  if (hash.empty()) return;
-  RemoveFromDownloadList(hash);
+  if (packageId.empty()) return;
+  RemoveFromDownloadList(packageId);
 
   size_t file_len = reader.Read<size_t>(buffer);
   std::string path = "cache/" + stx::rand_alphanum(12) + ".zip";
@@ -582,7 +590,7 @@ void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, Packag
   }
 
   if (result.is_error()) {
-    Logger::Logf(LogLevel::critical, "Failed to download package with hash %s: %s", hash.c_str(), result.error_cstr());
+    Logger::Logf(LogLevel::critical, "Failed to download package with package ID %s: %s", packageId.c_str(), result.error_cstr());
 
     // There was a problem creating the file
     SendDownloadComplete(false);
@@ -623,7 +631,7 @@ Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& packag
   // header
   writer.Write(buffer, header);
 
-  // hash name
+  // package name
   writer.WriteTerminatedString(buffer, packageId);
 
   // file size

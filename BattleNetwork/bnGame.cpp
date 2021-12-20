@@ -600,7 +600,7 @@ BlockPackagePartition& Game::BlockPackagePartition()
   return *blockPackagePartition;
 }
 
-LuaLibraryPackagePartition& Game::GetLuaLibraryPackagePartition()
+LuaLibraryPackagePartition& Game::LuaLibraryPackagePartition()
 {
   return *luaLibraryPackagePartition;
 }

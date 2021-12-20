@@ -478,7 +478,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
   else if (handshakeComplete && !hasProcessedCards) {
     hasProcessedCards = true;
 
-    std::vector<DownloadScene::Hash> cardUUIDs, cardHashes, selectedNaviBlocks;
+    std::vector<DownloadScene::Hash> cardHashes, selectedNaviBlocks;
 
     BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
     CardPackageManager& cardPackages = getController().CardPackagePartition().GetLocalPartition();

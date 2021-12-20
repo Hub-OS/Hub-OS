@@ -159,7 +159,7 @@ public:
   PlayerPackagePartition& PlayerPackagePartition();
   MobPackagePartition& MobPackagePartition();
   BlockPackagePartition& BlockPackagePartition();
-  LuaLibraryPackagePartition& GetLuaLibraryPackagePartition();
+  LuaLibraryPackagePartition& LuaLibraryPackagePartition();
 
   static char* LocalPartition;
   static char* RemotePartition;

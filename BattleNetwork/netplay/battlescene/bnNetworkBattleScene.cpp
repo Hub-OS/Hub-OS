@@ -458,7 +458,8 @@ void NetworkBattleScene::SendHandshakeSignal()
   buffer.append((char*)&form, sizeof(int));
   buffer.append((char*)&len, sizeof(size_t));
 
-  for (auto& id : uuids) {
+  for (std::string& id : uuids) {
+    id = getController().CardPackagePartition().GetPartition(Game::RemotePartition).WithNamespace(id);
     size_t len = id.size();
     buffer.append((char*)&len, sizeof(size_t));
     buffer.append(id.c_str(), len);
@@ -559,19 +560,25 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   remoteHand.clear();
 
   size_t handSize = remoteUUIDs.size();
-  int len = (int)handSize; // TODO: use size_t for card lengths...
+  int len = (int)handSize;
 
+  CardPackagePartition& partition = getController().CardPackagePartition();
+  CardPackageManager& localPackageManager = partition.GetLocalPartition();
   if (handSize) {
-    CardPackagePartition& partition = getController().CardPackagePartition();
-
     for (size_t i = 0; i < handSize; i++) {
       Battle::Card card;
       std::string id = remoteUUIDs[i];
       PackageAddress addr = PackageAddress::FromStr(id).value();
 
       CardPackageManager& packageManager = partition.GetPartition(addr.namespaceId);
+
       if (packageManager.HasPackage(addr.packageId)) {
         card = packageManager.FindPackageByID(addr.packageId).GetCardProperties();
+        card.props.uuid = packageManager.WithNamespace(card.props.uuid);
+      }
+      else if(localPackageManager.HasPackage(addr.packageId)) {
+        card = localPackageManager.FindPackageByID(addr.packageId).GetCardProperties();
+        card.props.uuid = localPackageManager.WithNamespace(card.props.uuid);
       }
 
       remoteHand.push_back(card);

@@ -2179,21 +2179,25 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   });
 
   AddSceneChangeTask([=, &blockPartition, &playerPartition] {
-    std::vector<std::string> cardPackages;
+    CardPackagePartition& cardPartition = getController().CardPackagePartition();
+    std::vector<DownloadScene::Hash> cards, selectedNaviBlocks;
+    const std::string& selectedNaviId = GetCurrentNaviID();
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
 
     if (selectedFolder) {
-      auto folder = (*selectedFolder)->Clone();
-      auto next = folder->Next();
+      std::unique_ptr<CardFolder> folder = (*selectedFolder)->Clone();
+      Battle::Card* next = folder->Next();
 
       while (next) {
-        cardPackages.push_back(next->GetUUID());
+        const std::string& packageId = next->GetUUID();
+        PackageAddress packageAddr = PackageAddress{ Game::LocalPartition, packageId };
+        if (cardPartition.HasPackage(packageAddr)) {
+          const std::string& md5 = cardPartition.FindPackageByAddress(packageAddr).GetPackageFingerprint();
+          cards.push_back({ next->GetUUID(), md5 });
+        }
         next = folder->Next();
       }
     }
-
-    std::vector<DownloadScene::Hash> cards, selectedNaviBlocks;
-    const std::string& selectedNaviId = GetCurrentNaviID();
 
     GameSession& session = getController().Session();
     for (const PackageAddress& blockAddr : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
