@@ -5,6 +5,7 @@
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
 #include "../bnScriptResourceManager.h"
+#include "../bnObstacle.h"
 
 void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace) {
   const std::string& namespaceId = scriptManager->GetStateNamespace(state);
@@ -14,7 +15,9 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
       return sol::make_object(*state, WeakWrapper(character));
     }
     if (auto character = std::dynamic_pointer_cast<Character>(entity)) {
-      return sol::make_object(*state, WeakWrapper(character));
+      if (!dynamic_cast<Obstacle*>(entity.get())) {
+        return sol::make_object(*state, WeakWrapper(character));
+      }
     }
 
     return sol::make_object(*state, sol::lua_nil);
