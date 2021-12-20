@@ -791,6 +791,11 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary(cons
 
   sol::state* lua = new sol::state;
 
+  auto modDirectory = std::filesystem::path(path).parent_path();
+  SetModPathVariable(*lua, modDirectory);
+  SetSystemFunctions(*lua);
+  ConfigureEnvironment(*lua);
+
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
   state2Namespace.insert(std::make_pair(lua, namespaceId));
