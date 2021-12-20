@@ -35,6 +35,7 @@ private:
   std::map<PackageAddress, std::string> cardFQN; /*! character FQN to script path */
   std::map<PackageAddress, std::string> characterFQN; /*! character FQN to script path */
   std::map<PackageAddress, std::string> libraryFQN; /*! library FQN to script path */
+  std::map<sol::state*, std::string> state2Namespace; /*! pointer to namespace hash */
   std::map<PackageAddress, std::list< std::string > > scriptDependencies; // [ Package Name, List of packages it depends on ] 
   CardPackagePartition* cardPartition{ nullptr };
 
@@ -43,21 +44,22 @@ private:
 public:
   ~ScriptResourceManager();
 
-  LoadScriptResult& LoadScript(const std::filesystem::path& path);
-  LoadScriptResult& InitLibrary( const std::string& path );
+  LoadScriptResult& LoadScript(const std::string& namespaceId, const std::filesystem::path& path);
+  LoadScriptResult& InitLibrary(const std::string& namespaceId, const std::string& path);
 
-  void DefineCard(const std::string& fqn, const std::string& path) /* throw std::exception */;
-  void DefineCharacter(const std::string& fqn, const std::string& path) /* throw std::exception */;
-  void DefineLibrary(const std::string& fqn, const std::string& path) /* throw std::exception */;
-  sol::state* FetchCharacter(const std::string& fqn);
-  sol::state* FetchCard(const std::string& fqn);
-  const std::string& FetchSharedLibraryPath(const std::string& fqn);
-  const std::string& CharacterToModpath(const std::string& fqn);
+  void DefineCard(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
+  void DefineCharacter(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
+  void DefineLibrary(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
+  sol::state* FetchCharacter(const std::string& namespaceId, const std::string& fqn);
+  sol::state* FetchCard(const std::string& namespaceId, const std::string& fqn);
+  const std::string& FetchSharedLibraryPath(const std::string& namespaceId, const std::string& fqn);
+  const std::string& CharacterToModpath(const std::string& namespaceId, const std::string& fqn);
   void SeedRand(unsigned int seed);
   void SetCardPackagePartition(CardPackagePartition& partition);
   CardPackagePartition& GetCardPackagePartition();
   void AddDependencyNote(sol::state& state, const std::string& dependencyPackageID );
   void RegisterDependencyNotes(sol::state& state);
+  std::string GetStateNamespace(sol::state& state);
 
   static sol::object PrintInvalidAccessMessage(sol::table table, const std::string typeName, const std::string key );
   static sol::object PrintInvalidAssignMessage(sol::table table, const std::string typeName, const std::string key );

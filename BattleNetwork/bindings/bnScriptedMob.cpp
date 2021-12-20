@@ -147,17 +147,17 @@ void ScriptedMob::EnableFreedomMission(uint8_t turnCount)
   }
 }
 
-ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& fqn, Character::Rank rank)
+ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& namespaceId, const std::string& fqn, Character::Rank rank)
 {
-  sol::state* state = Scripts().FetchCharacter(fqn);
+  sol::state* state = Scripts().FetchCharacter(namespaceId, fqn);
 
   if (!state) {
     throw std::runtime_error("Character does not exist");
   }
 
-  auto obj = ScriptedMob::ScriptedSpawner(*state, Scripts().CharacterToModpath(fqn), rank);
+  auto obj = ScriptedMob::ScriptedSpawner(*state, Scripts().CharacterToModpath(namespaceId, fqn), rank);
   obj.SetMob(this->mob);
-  return std::move(obj);
+  return obj;
 }
 
 void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely)

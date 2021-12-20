@@ -78,8 +78,8 @@ namespace Overworld {
     std::unordered_map<std::string, std::shared_ptr<PacketProcessor>> authorizationProcessors;
     std::string connectData;
     std::string lastFrameNaviId;
-    std::string remoteNaviId;
-    std::vector<std::string> remoteNaviBlocks;
+    PackageAddress remoteNaviPackage;
+    std::vector<PackageAddress> remoteNaviBlocks;
     uint16_t maxPayloadSize;
     unsigned pvpCoinFlip{};
     bool isConnected{ false };

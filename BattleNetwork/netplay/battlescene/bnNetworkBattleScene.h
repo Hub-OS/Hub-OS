@@ -58,7 +58,7 @@ class PlayerHealthUI;
 class NetworkCardUseListener; 
 
 struct NetworkPlayerSpawnData {
-  std::vector<std::string> blocks;
+  std::vector<PackageAddress> blocks;
   std::shared_ptr<Player> player;
 };
 

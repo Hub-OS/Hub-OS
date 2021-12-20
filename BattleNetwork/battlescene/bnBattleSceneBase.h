@@ -307,7 +307,6 @@ public:
 
   void DrawCustGauage(sf::RenderTexture& surface);
   void SubscribeToCardActions(CardActionUsePublisher& publisher);
-  void UnsubscribeFromCardActions(CardActionUsePublisher& publisher);
   const std::vector<std::reference_wrapper<CardActionUsePublisher>>& GetCardActionSubscriptions() const;
   TrackedFormData& GetPlayerFormData(const std::shared_ptr<Player>& player);
   std::shared_ptr<Player> GetPlayerFromEntityID(Entity::ID_t ID);

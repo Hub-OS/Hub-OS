@@ -377,7 +377,7 @@ void MatchMakingScene::Reset()
   playVS = true;
   sequenceTimer = 0.0; // in seconds
   flashCooldown = 0;
-  remoteNaviId = "";
+  remoteNaviPackage = PackageAddress{};
 
   this->isScreenReady = true;
   
@@ -418,7 +418,7 @@ void MatchMakingScene::onStart() {
 void MatchMakingScene::onResume() {
   isScreenReady = true;
 
-  Logger::Logf(LogLevel::info, "remote navi ID is: %s", remoteNaviId.c_str());
+  Logger::Logf(LogLevel::info, "remote navi ID is: %s", remoteNaviPackage.packageId.c_str());
   Logger::Logf(LogLevel::info, "canProceedToBattle: %d", canProceedToBattle? 1 : 0);
 
   switch (returningFrom) {
@@ -436,7 +436,8 @@ void MatchMakingScene::onResume() {
       // Reset for next match attempt
       Reset();
     }
-    else if(remoteNaviId.size()) {
+    else if(remoteNaviPackage.HasID()) {
+      const std::string& remoteNaviId = remoteNaviPackage.packageId;
       auto& playerPkg = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(remoteNaviId);
       this->remotePreview.setTexture(playerPkg.GetPreviewTexture());
       auto height = remotePreview.getSprite().getLocalBounds().height;
@@ -477,36 +478,47 @@ void MatchMakingScene::onUpdate(double elapsed) {
   else if (handshakeComplete && !hasProcessedCards) {
     hasProcessedCards = true;
 
-    std::vector<std::string> cardUUIDs, cardPackages, selectedNaviBlocks;
+    std::vector<DownloadScene::Hash> cardUUIDs, cardHashes, selectedNaviBlocks;
 
     BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
-    GameSession& session = getController().Session();
-    for (std::string& blockID : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
-      if (!blockPackages.HasPackage(blockID)) continue;
+    CardPackageManager& cardPackages = getController().CardPackagePartition().GetLocalPartition();
+    PlayerPackageManager& playerPackages = getController().PlayerPackagePartition().GetLocalPartition();
 
-      selectedNaviBlocks.push_back(blockID);
+    GameSession& session = getController().Session();
+    for (const PackageAddress& blockAddr : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
+      const std::string& blockId = blockAddr.packageId;
+      if (!blockPackages.HasPackage(blockAddr.packageId)) continue;
+      const std::string& md5 = blockPackages.FindPackageByID(blockId).GetPackageFingerprint();
+      selectedNaviBlocks.push_back({ blockId, md5 });
     }
 
     auto copy = folder->Clone();
     auto next = copy->Next();
 
     while (next) {
-      cardPackages.push_back(next->GetUUID());
+      const std::string& cardId = next->GetUUID();
+      if (!cardPackages.HasPackage(cardId)) continue;
+      const std::string& md5 = cardPackages.FindPackageByID(cardId).GetPackageFingerprint();
+      cardHashes.push_back({ cardId, md5 });
       next = copy->Next();
     }
+
+    DownloadScene::Hash playerHash;
+    playerHash.packageId = selectedNaviId;
+    playerHash.md5 = playerPackages.FindPackageByID(selectedNaviId).GetPackageFingerprint();
 
     this->remotePlayerBlocks.clear();
 
     DownloadSceneProps props = {
-      cardPackages,
+      cardHashes,
       selectedNaviBlocks,
-      selectedNaviId,
+      playerHash,
       packetProcessor->GetRemoteAddr(),
       packetProcessor->GetProxy(),
       screen,
       canProceedToBattle,
       pvpCoinFlip,
-      remoteNaviId,
+      remoteNaviPackage,
       remotePlayerBlocks
     };
 
@@ -586,7 +598,10 @@ void MatchMakingScene::onUpdate(double elapsed) {
       Audio().StopStream();
 
       // Configure the session
-      PlayerMeta& meta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(selectedNaviId);
+      PlayerPackagePartition& playerPartitioner = getController().PlayerPackagePartition();
+      BlockPackagePartition& blockPartitioner = getController().BlockPackagePartition();
+
+      PlayerMeta& meta = playerPartitioner.FindPackageByAddress({ Game::LocalPartition, selectedNaviId });
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
@@ -594,11 +609,10 @@ void MatchMakingScene::onUpdate(double elapsed) {
       std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(emotionsTexture);
       std::shared_ptr<Player> player = std::shared_ptr<Player>(meta.GetData());
 
-      BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
       GameSession& session = getController().Session();
-      std::vector<std::string> localPlayerBlocks = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
+      std::vector<PackageAddress> localPlayerBlocks = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
 
-      auto& remoteMeta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(remoteNaviId);
+      auto& remoteMeta = playerPartitioner.FindPackageByAddress(remoteNaviPackage);
       auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());
 
       std::vector<NetworkPlayerSpawnData> spawnOrder;

@@ -2156,11 +2156,12 @@ void Overworld::OnlineArea::receiveOpenShopSignal(BufferReader& reader, const Po
 
 void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto remoteAddress = reader.ReadString<uint16_t>(buffer);
-  auto remote = Poco::Net::SocketAddress(remoteAddress);
+  std::string remoteAddress = reader.ReadString<uint16_t>(buffer);
+  Poco::Net::SocketAddress remote = Poco::Net::SocketAddress(remoteAddress);
 
-  PlayerPackageManager& playerPackages = getController().PlayerPackagePartition().GetLocalPartition();
-  BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
+  BlockPackagePartition& blockPartition = getController().BlockPackagePartition();
+  CardPackagePartition& cardPartition = getController().CardPackagePartition();
+  PlayerPackagePartition& playerPartition = getController().PlayerPackagePartition();
 
   try {
     netBattleProcessor = std::make_shared<Netplay::PacketProcessor>(remote, Net().GetMaxPayloadSize());
@@ -2177,7 +2178,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     copyScreen = true; // copy screen contents for download screen fx
   });
 
-  AddSceneChangeTask([=, &blockPackages, &playerPackages] {
+  AddSceneChangeTask([=, &blockPartition, &playerPartition] {
     std::vector<std::string> cardPackages;
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
 
@@ -2191,25 +2192,31 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
       }
     }
 
-    std::vector<std::string> selectedNaviBlocks;
+    std::vector<DownloadScene::Hash> cards, selectedNaviBlocks;
+    const std::string& selectedNaviId = GetCurrentNaviID();
 
     GameSession& session = getController().Session();
-    for (std::string& blockID : PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session)) {
-      if (!blockPackages.HasPackage(blockID)) continue;
-
-      selectedNaviBlocks.push_back(blockID);
+    for (const PackageAddress& blockAddr : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
+      const std::string& blockId = blockAddr.packageId;
+      if (!blockPartition.HasPackage(blockAddr)) continue;
+      const std::string& md5 = blockPartition.FindPackageByAddress(blockAddr).GetPackageFingerprint();
+      selectedNaviBlocks.push_back({ blockId, md5 });
     }
 
+    PackageAddress playerPackageAddr = PackageAddress{ Game::LocalPartition, selectedNaviId };
+    const std::string& playerPackageMd5 = playerPartition.FindPackageByAddress(playerPackageAddr).GetPackageFingerprint();
+    DownloadScene::Hash playerPackageHash = { GetCurrentNaviID(), playerPackageMd5 };
+
     DownloadSceneProps props = {
-      cardPackages,
+      cards,
       selectedNaviBlocks,
-      GetCurrentNaviID(),
+      playerPackageHash,
       remote,
       netBattleProcessor,
       screen,
       this->canProceedToBattle,
       this->pvpCoinFlip,
-      this->remoteNaviId,
+      this->remoteNaviPackage,
       this->remoteNaviBlocks
     };
 
@@ -2218,7 +2225,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     getController().push<effect::to<DownloadScene>>(props);
   });
 
-  AddSceneChangeTask([=, &blockPackages, &playerPackages] {
+  AddSceneChangeTask([=, &blockPartition, &playerPartition] {
     if (!this->canProceedToBattle) {
       Logger::Log(LogLevel::critical, "Failed to download assets from remote player");
       return;
@@ -2242,7 +2249,8 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     // Stop music and go to battle screen
     Audio().StopStream();
 
-    auto& meta = playerPackages.FindPackageByID(GetCurrentNaviID());
+    PackageAddress playerPackage = PackageAddress{ Game::LocalPartition , GetCurrentNaviID() };
+    auto& meta = playerPartition.FindPackageByAddress(playerPackage);
     const std::string& image = meta.GetMugshotTexturePath();
     const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
     const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
@@ -2254,9 +2262,9 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     player->SetEmotion(GetPlayerSession()->emotion);
 
     GameSession& session = getController().Session();
-    std::vector<std::string> localNaviBlocks = PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session);
+    std::vector<PackageAddress> localNaviBlocks = PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session);
 
-    auto& remoteMeta = playerPackages.FindPackageByID(remoteNaviId);
+    auto& remoteMeta = playerPartition.FindPackageByAddress(remoteNaviPackage);
     auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());
 
     std::vector<NetworkPlayerSpawnData> spawnOrder;

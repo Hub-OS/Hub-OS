@@ -7,6 +7,8 @@
 #include "../bnScriptResourceManager.h"
 
 void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace) {
+  const std::string& namespaceId = scriptManager->GetStateNamespace(state);
+
   auto from = [state = &state] (std::shared_ptr<Entity> entity) {
     if (auto character = std::dynamic_pointer_cast<ScriptedCharacter>(entity)) {
       return sol::make_object(*state, WeakWrapper(character));
@@ -48,8 +50,8 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
         return sol::make_object(*state, sol::lua_nil);
       }
     ),
-    "from_package", [scriptManager](const std::string& fqn, Team team, Character::Rank rank) {
-      sol::state* state = scriptManager->FetchCharacter(fqn);
+    "from_package", [scriptManager, &namespaceId](const std::string& fqn, Team team, Character::Rank rank) {
+      sol::state* state = scriptManager->FetchCharacter(fqn, namespaceId);
 
       if (!state) {
         throw std::runtime_error("Character does not exist");
@@ -111,19 +113,6 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
     },
     "toggle_counter", [](WeakWrapper<ScriptedCharacter>& character, bool on) {
       character.Unwrap()->ToggleCounter(on);
-    },
-    "register_status_callback", [](WeakWrapper<ScriptedCharacter>& character, const Hit::Flags& flag, sol::object callbackObject) {
-      ExpectLuaFunction(callbackObject);
-
-      character.Unwrap()->RegisterStatusCallback(flag, [callbackObject] {
-        sol::protected_function callback = callbackObject;
-        auto result = callback();
-
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(LogLevel::critical, error.what());
-        }
-      });
     },
     "set_explosion_behavior", [](WeakWrapper<ScriptedCharacter>& character, int num, double speed, bool isBoss) {
       character.Unwrap()->SetExplosionBehavior(num, speed, isBoss);

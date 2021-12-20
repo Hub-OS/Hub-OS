@@ -51,7 +51,7 @@ public:
   * @param fqn String. The name of the character stored in script cache. Use `BuiltIns.NAME` prefix for built-in characters.
   * @preconditions The mob `load_script` function should never throw an exception prior to using this function.
   */
-  ScriptedSpawner CreateSpawner(const std::string& fqn, Character::Rank rank);
+  ScriptedSpawner CreateSpawner(const std::string& namespaceId, const std::string& fqn, Character::Rank rank);
 
   void SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely);
   void StreamMusic(const std::string& path, long long startMs, long long endMs);

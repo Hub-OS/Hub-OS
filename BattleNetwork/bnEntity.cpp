@@ -1070,10 +1070,6 @@ const float Entity::GetCurrJumpHeight() const
   return currJumpHeight;
 }
 
-void Entity::OnHit()
-{
-}
-
 void Entity::ShareTileSpace(bool enabled)
 {
   canShareTile = enabled;
@@ -1113,17 +1109,13 @@ const bool Entity::Hit(Hit::Properties props) {
     return false;
   }
 
-  if (IsJumping()) {
-    return false;
-  }
-
   const auto original = props;
 
   if ((props.flags & Hit::shake) == Hit::shake) {
     CreateComponent<ShakingEffect>(weak_from_this());
   }
   
-  for (auto&& defense : defenses) {
+  for (auto& defense : defenses) {
     props = defense->FilterStatuses(props);
   }
 
@@ -1372,7 +1364,6 @@ void Entity::ResolveFrameBattleDamage()
 
 
       if (props.filtered.damage) {
-        OnHit();
         SetHealth(GetHealth() - tileDamage);
         if (GetHealth() == 0) {
           postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up

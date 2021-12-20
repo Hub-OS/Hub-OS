@@ -5,6 +5,6 @@
 
 class ScriptResourceManager;
 
-void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol::table& battle_namespace);
+void DefineScriptedCardActionUserType(const std::string& namespaceId, ScriptResourceManager* scriptManager, sol::table& battle_namespace);
 
 #endif

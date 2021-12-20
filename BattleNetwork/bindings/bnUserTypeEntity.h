@@ -214,6 +214,19 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["register_component"] = [](WeakWrapper<E>& entity, WeakWrapper<ScriptedComponent>& component) {
     entity.Unwrap()->RegisterComponent(component.UnwrapAndRelease());
   };
+  entity_table["register_status_callback"] = [](WeakWrapper<E>& entity, const Hit::Flags& flag, sol::object callbackObject) {
+    ExpectLuaFunction(callbackObject);
+
+    entity.Unwrap()->RegisterStatusCallback(flag, [callbackObject] {
+      sol::protected_function callback = callbackObject;
+      auto result = callback();
+
+      if (!result.valid()) {
+        sol::error error = result;
+        Logger::Log(LogLevel::critical, error.what());
+      }
+    });
+  },
   entity_table["get_texture"] = [](WeakWrapper<E>& entity) -> std::shared_ptr<Texture> {
     return entity.Unwrap()->getTexture();
   };

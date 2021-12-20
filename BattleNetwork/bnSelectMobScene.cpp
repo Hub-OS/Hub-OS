@@ -363,6 +363,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       // Stop music and go to battle screen 
       Audio().StopStream();
 
+
       // Get the navi we selected
       auto& meta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(selectedNaviId);
       const std::string& image = meta.GetMugshotTexturePath();
@@ -374,7 +375,14 @@ void SelectMobScene::onUpdate(double elapsed) {
 
       BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
       GameSession& session = getController().Session();
-      std::vector<std::string> localNaviBlocks = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
+
+      // Get the package ID from the address since we know we're only using local packages
+      std::vector<PackageAddress> localNaviBlocksAddr = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
+      std::vector<std::string> localNaviBlocks;
+
+      for (const PackageAddress& addr : localNaviBlocksAddr) {
+        localNaviBlocks.push_back(addr.packageId);
+      }
 
       // Shuffle our new folder
       auto newFolder = selectedFolder->Clone();

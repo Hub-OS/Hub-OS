@@ -15,6 +15,16 @@
 
 constexpr std::string_view CACHE_FOLDER = "cache";
 
+bool operator<(const DownloadScene::Hash& a, const DownloadScene::Hash& b) {
+  return std::tie(a.packageId, a.md5) < std::tie(b.packageId, b.md5);
+}
+
+bool operator==(const DownloadScene::Hash& a, const DownloadScene::Hash& b)
+{
+  return std::tie(a.packageId, a.md5) == std::tie(b.packageId, b.md5);
+}
+
+
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
   coinFlip(props.coinFlip),
@@ -111,22 +121,22 @@ CardPackageManager& DownloadScene::LocalCardPartition()
 
 BlockPackageManager& DownloadScene::RemoteBlockPartition()
 {
-  getController().BlockPackagePartition().GetPartition(Game::RemotePartition);
+  return getController().BlockPackagePartition().GetPartition(Game::RemotePartition);
 }
 
 BlockPackageManager& DownloadScene::LocalBlockPartition()
 {
-  getController().BlockPackagePartition().GetLocalPartition();
+  return getController().BlockPackagePartition().GetLocalPartition();
 }
 
 PlayerPackageManager& DownloadScene::RemotePlayerPartition()
 {
-  getController().PlayerPackagePartition().GetPartition(Game::RemotePartition);
+  return getController().PlayerPackagePartition().GetPartition(Game::RemotePartition);
 }
 
 PlayerPackageManager& DownloadScene::LocalPlayerPartition()
 {
-  getController().PlayerPackagePartition().GetLocalPartition();
+  return getController().PlayerPackagePartition().GetLocalPartition();
 }
 
 void DownloadScene::RemoveFromDownloadList(const std::string& id)
@@ -538,7 +548,7 @@ Poco::Buffer<char> DownloadScene::SerializeListOfHashes(NetPlaySignals header, c
 template<template<typename> class PackageManagerType, class MetaType>
 bool DownloadScene::DifferentHash(PackageManagerType<MetaType>& packageManager, const std::string& packageId, const std::string& desiredFingerprint)
 {
-  MetaType& package = packageManager.FindPackageByID(remotePackage.packageId);
+  MetaType& package = packageManager.FindPackageByID(packageId);
   return package.GetPackageFingerprint() != desiredFingerprint;
 }
 

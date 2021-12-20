@@ -140,3 +140,6 @@ struct DownloadSceneProps {
   PackageAddress& remotePlayer;
   std::vector<PackageAddress>& remotePlayerBlocks;
 };
+
+bool operator<(const DownloadScene::Hash& a, const DownloadScene::Hash& b);
+bool operator==(const DownloadScene::Hash& a, const DownloadScene::Hash& b);

@@ -48,8 +48,8 @@ private:
   size_t selectionIndex{ 0 }; // 0 = text input field widget
   std::string myIP, theirIP; // IP strings for textbox
   std::string selectedNaviId;
-  std::string remoteNaviId;
-  std::vector<std::string> remotePlayerBlocks;
+  PackageAddress remoteNaviPackage;
+  std::vector<PackageAddress> remotePlayerBlocks;
   std::unique_ptr<CardFolder> folder;
   PA& pa;
   NetPlayConfig netplayconfig;

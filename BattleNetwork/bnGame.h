@@ -69,7 +69,7 @@ private:
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
 #ifdef BN_MOD_SUPPORT 
-  ScriptResourceManager* scriptManager{ nullptr };
+  ScriptResourceManager scriptManager;
 #endif
   InputManager inputManager;
   NetManager netManager;

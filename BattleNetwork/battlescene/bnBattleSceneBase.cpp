@@ -323,11 +323,6 @@ void BattleSceneBase::SubscribeToCardActions(CardActionUsePublisher& publisher)
   cardUseSubscriptions.push_back(std::ref(publisher));
 }
 
-void BattleSceneBase::UnsubscribeFromCardActions(CardActionUsePublisher& publisher)
-{
-  // todo: cardListener.Unsubscribe(publisher);
-}
-
 const std::vector<std::reference_wrapper<CardActionUsePublisher>>& BattleSceneBase::GetCardActionSubscriptions() const
 {
   return cardUseSubscriptions;
@@ -593,7 +588,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   newMobSize = mob? mob->GetMobCount() : 0;
 
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && this->IsSceneInFocus()) {
     BroadcastBattleStop();
     Quit(FadeOut::white);
     Audio().StopStream();

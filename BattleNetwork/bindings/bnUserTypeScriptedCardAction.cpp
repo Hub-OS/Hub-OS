@@ -21,9 +21,9 @@ static WeakWrapper<ScriptedCardAction> construct(std::shared_ptr<Character> char
   return wrappedCardAction;
 }
 
-void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol::table& battle_namespace) {
-  auto action_from_card = [scriptManager](const std::string& fqn, std::shared_ptr<Character> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction> {
-    auto cardPackages = &scriptManager->GetCardPackagePartition().GetLocalPartition();
+void DefineScriptedCardActionUserType(const std::string& namespaceId, ScriptResourceManager* scriptManager, sol::table& battle_namespace) {
+  auto action_from_card = [scriptManager, namespaceId](const std::string& fqn, std::shared_ptr<Character> character, const Battle::Card::Properties& props) -> WeakWrapper<ScriptedCardAction> {
+    auto cardPackages = &scriptManager->GetCardPackagePartition().GetPartition(namespaceId);
 
     if (!cardPackages) {
       Logger::Log(LogLevel::critical, "Battle.CardAction.from_card() was called but CardPackageManager was nullptr!");
@@ -36,7 +36,7 @@ void DefineScriptedCardActionUserType(ScriptResourceManager* scriptManager, sol:
     }
 
     auto wrappedCharacter = WeakWrapper(character);
-    auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(*scriptManager->FetchCard(fqn), "card_create_action", wrappedCharacter, props);
+    auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(*scriptManager->FetchCard(namespaceId, fqn), "card_create_action", wrappedCharacter, props);
 
     if (functionResult.is_error()) {
       Logger::Log(LogLevel::critical, functionResult.error_cstr());

@@ -406,9 +406,9 @@ bool PlayerCustScene::isCompileFinished()
 }
 
 // static public function to return valid packages from the session key
-std::vector<std::string> PlayerCustScene::getInstalledBlocks(const std::string& playerID, const GameSession& session)
+std::vector<PackageAddress> PlayerCustScene::getInstalledBlocks(const std::string& playerID, const GameSession& session)
 {
-  std::vector<std::string> res;
+  std::vector<PackageAddress> res;
 
   std::string value = session.GetKeyValue(playerID + ":" + "blocks");
   if (value.empty()) return res;
@@ -425,7 +425,7 @@ std::vector<std::string> PlayerCustScene::getInstalledBlocks(const std::string& 
     reader.Read<size_t>(buffer); // skip rot
 
     if (isValid) {
-      res.push_back(uuid);
+      res.push_back({ Game::LocalPartition, uuid });
     }
   }
 

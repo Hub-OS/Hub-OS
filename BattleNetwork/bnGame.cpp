@@ -64,8 +64,21 @@ Game::Game(DrawWindow& window) :
   ResourceHandle::shaders  = &shaderManager;
 
 #ifdef BN_MOD_SUPPORT
-  scriptManager = new ScriptResourceManager();
-  ResourceHandle::scripts  = scriptManager;
+  cardPackagePartition = new class CardPackagePartition();
+  playerPackagePartition = new class PlayerPackagePartition();
+  blockPackagePartition = new class BlockPackagePartition();
+  mobPackagePartition = new class MobPackagePartition();
+  luaLibraryPackagePartition = new class LuaLibraryPackagePartition();
+
+  cardPackagePartition->CreateNamespace(Game::LocalPartition);
+  playerPackagePartition->CreateNamespace(Game::LocalPartition);
+  blockPackagePartition->CreateNamespace(Game::LocalPartition);
+  mobPackagePartition->CreateNamespace(Game::LocalPartition);
+  luaLibraryPackagePartition->CreateNamespace(Game::LocalPartition);
+
+  // Script bindings needs to know about other sub system
+  ResourceHandle::scripts  = &scriptManager;
+  scriptManager.SetCardPackagePartition(*cardPackagePartition);
 #endif
 
   // Link i/o handle to use the input manager created by the game
@@ -73,9 +86,6 @@ Game::Game(DrawWindow& window) :
 
   // Link net handle to use manager created by the game
   NetHandle::net = &netManager;
-
-  // Script bindings needs to know about other sub system
-  scriptManager->SetCardPackagePartition(*cardPackagePartition);
 
   // Game session object needs to be available to every scene
   session = new GameSession;
@@ -105,7 +115,11 @@ Game::~Game() {
   delete session;
 
 #ifdef BN_MOD_SUPPORT
-  delete scriptManager;
+  delete cardPackagePartition;
+  delete playerPackagePartition;
+  delete blockPackagePartition;
+  delete mobPackagePartition;
+  delete luaLibraryPackagePartition;
 #endif
 }
 
@@ -176,7 +190,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     do {
       if (package.empty()) break;
 
-      scriptManager->DefineCard(cardPackages.WithNamespace(package), cardPackages.FindPackageByID(package).GetFilePath());
+      scriptManager.DefineCard(cardPackages.GetNamespace(), package, cardPackages.FindPackageByID(package).GetFilePath());
 
       package = cardPackages.GetPackageAfter(package);
     } while (package != cardPackages.FirstValidPackage());
@@ -185,7 +199,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
     while (!packages.empty()) { 
       for (auto& p : packages) {
-        scriptManager->DefineCard(cardPackages.FilepathToPackageID(p), p);
+        scriptManager.DefineCard(cardPackages.GetNamespace(), cardPackages.FilepathToPackageID(p), p);
       }
 
       /* keep trying */ 
@@ -334,6 +348,9 @@ void Game::ProcessFrame()
 
       UpdateMouse(delta);
       inputManager.Update(); // process inputs
+
+      if (quitting) return; // inputs may have closed the window
+
       HandleRecordingEvents();
       this->update(delta);  // update game logic
       this->draw();        // draw game
@@ -493,7 +510,7 @@ void Game::SeedRand(unsigned int seed)
   randSeed = seed;
 
 #ifdef BN_MOD_SUPPORT
-  scriptManager->SeedRand(seed);
+  scriptManager.SeedRand(seed);
 #endif
 
 }

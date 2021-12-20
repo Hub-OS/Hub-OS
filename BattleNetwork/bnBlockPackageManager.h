@@ -37,5 +37,9 @@ struct BlockMeta final : public PackageManager<BlockMeta>::Meta<PlayerCustScene:
   void AsProgram();
 };
 
-class BlockPackageManager : public PackageManager<BlockMeta> {};
+class BlockPackageManager : public PackageManager<BlockMeta> {
+public:
+  BlockPackageManager(const std::string& ns) : PackageManager<BlockMeta>(ns) {}
+};
+
 class BlockPackagePartition : public PartitionedPackageManager<BlockPackageManager> {};

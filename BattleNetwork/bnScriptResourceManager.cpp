@@ -68,7 +68,7 @@ namespace {
 
 // Creates a std::list<OverrideFrame> object from a provided table.
 // Expected format : { { unsigned int state_in_animation, double duration }, ... }
-std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
+std::list<OverrideFrame> CreateFrameData(sol::lua_table table)
 {
   std::list<OverrideFrame> frames;
 
@@ -85,15 +85,17 @@ std::list<OverrideFrame> CreateFrameData( sol::lua_table table )
   return frames;
 }
 
-void ScriptResourceManager::SetSystemFunctions( sol::state& state )
+void ScriptResourceManager::SetSystemFunctions(sol::state& state)
 {
+  const std::string& namespaceId = state2Namespace[&state];
+
   state.open_libraries(sol::lib::base, sol::lib::debug, sol::lib::math, sol::lib::table);
 
   // 'include()' in Lua is intended to load a LIBRARY file of Lua code into the current lua state.
   // Currently only loads library files included in the SAME directory as the script file.
   // Has to capture a pointer to sol::state, the copy constructor was deleted, cannot capture a copy to reference.
   state.set_function( "include",
-    [this, &state]( const std::string fileName ) -> sol::protected_function_result {
+    [this, &state, &namespaceId]( const std::string fileName ) -> sol::protected_function_result {
       #ifdef _DEBUG
       std::cout << "Including library: " << fileName << std::endl;
       #endif
@@ -102,7 +104,7 @@ void ScriptResourceManager::SetSystemFunctions( sol::state& state )
 
       // Prefer using the shared libraries if possible.
       // i.e. ones that were present in "mods/libs/"
-      if( auto sharedLibPath = FetchSharedLibraryPath( fileName ); !sharedLibPath.empty() )
+      if( auto sharedLibPath = FetchSharedLibraryPath(namespaceId, fileName); !sharedLibPath.empty() )
       {
         #ifdef _DEBUG
         Logger::Log(LogLevel::info, "Including shared library: " + fileName);
@@ -196,6 +198,11 @@ void ScriptResourceManager::RegisterDependencyNotes(sol::state& state)
   state["__dependencies"] = sol::nil;
 }
 
+std::string ScriptResourceManager::GetStateNamespace(sol::state& state)
+{
+  return state2Namespace[&state];
+}
+
 void ScriptResourceManager::SetModPathVariable( sol::state& state, const std::filesystem::path& modDirectory )
 {
   state["_modpath"] = modDirectory.generic_string() + "/";
@@ -260,6 +267,7 @@ std::string ScriptResourceManager::GetCurrentLine( lua_State* L )
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
+  const std::string& namespaceId = state2Namespace[&state];
   sol::table battle_namespace =     state.create_table("Battle");
   sol::table overworld_namespace =  state.create_table("Overworld");
   sol::table engine_namespace =     state.create_table("Engine");
@@ -284,7 +292,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   DefineScriptedComponentUserType(state, battle_namespace);
   DefineCardMetaUserTypes(this, battle_namespace);
   DefineBaseCardActionUserType(state, battle_namespace);
-  DefineScriptedCardActionUserType(this, battle_namespace);
+  DefineScriptedCardActionUserType(namespaceId, this, battle_namespace);
   DefineDefenseRuleUserTypes(state, battle_namespace);
 
   // make meta object info metatable
@@ -366,7 +374,9 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Mob", key );
     },
-    "create_spawner", &ScriptedMob::CreateSpawner,
+    "create_spawner", [&namespaceId](ScriptedMob& self, const std::string& fqn, Character::Rank rank) {
+      return self.CreateSpawner(namespaceId, fqn, rank);
+    },
     "set_background", &ScriptedMob::SetBackground,
     "stream_music", &ScriptedMob::StreamMusic,
     "get_field", [](ScriptedMob& o) { return WeakWrapper(o.GetField()); },
@@ -447,17 +457,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   engine_namespace.set_function("define_character",
-    [this, &state](const std::string& fqn, const std::string& path) {
+    [this, &state, &namespaceId](const std::string& fqn, const std::string& path) {
       AddDependencyNote(state, fqn);
-      this->DefineCharacter(fqn, path);
+      this->DefineCharacter(namespaceId, fqn, path);
     }
   );
 
   engine_namespace.set_function("requires_character",
-    [this, &state](const std::string& fqn)
+    [this, &state, &namespaceId](const std::string& fqn)
     {
       AddDependencyNote(state, fqn);
-      if (this->FetchCharacter(fqn) == nullptr) {
+      if (this->FetchCharacter(namespaceId, fqn) == nullptr) {
         std::string msg = "Failed to Require character with FQN " + fqn;
         Logger::Log(LogLevel::critical, msg);
         throw std::runtime_error(msg);
@@ -466,17 +476,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   engine_namespace.set_function("define_card",
-    [this, &state](const std::string& fqn, const std::string& path) {
+    [this, &state, &namespaceId](const std::string& fqn, const std::string& path) {
       AddDependencyNote(state, fqn);
-      this->DefineCard(fqn, path);
+      this->DefineCard(namespaceId, fqn, path);
     }
   );
 
   engine_namespace.set_function("requires_card",
-    [this, &state](const std::string& fqn)
+    [this, &state, &namespaceId](const std::string& fqn)
     {
       AddDependencyNote(state, fqn);
-      if (this->FetchCard(fqn) == nullptr) {
+      if (this->FetchCard(namespaceId, fqn) == nullptr) {
         std::string msg = "Failed to Require card with FQN " + fqn;
         Logger::Log(LogLevel::critical, msg);
         throw std::runtime_error(msg);
@@ -751,24 +761,25 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.set_function( "make_frame_data", &CreateFrameData );
 
   engine_namespace.set_function("define_library",
-    [this]( const std::string& fqn, const std::string& path )
+    [this, &namespaceId]( const std::string& fqn, const std::string& path )
     {
       Logger::Log(LogLevel::info, "fqn: " + fqn + " , path: " + path );
-      this->DefineLibrary( fqn, path );
+      this->DefineLibrary(namespaceId, fqn, path);
     }
   );
 }
 
 ScriptResourceManager::~ScriptResourceManager()
 {
-  scriptTableHash.clear();
   for (auto ptr : states) {
     delete ptr;
   }
   states.clear();
+  scriptTableHash.clear();
+  state2Namespace.clear();
 }
 
-ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary( const std::string& path )
+ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary(const std::string& namespaceId, const std::string& path )
 {
   auto iter = scriptTableHash.find(path);
 
@@ -780,6 +791,7 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary( con
 
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
+  state2Namespace.insert(std::make_pair(lua, namespaceId));
 
   auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
   auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
@@ -787,7 +799,7 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary( con
   return pair.first->second;
 }
 
-ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::filesystem::path& modDirectory)
+ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::string& namespaceId, const std::filesystem::path& modDirectory)
 {
   auto entryPath = modDirectory / "entry.lua";
   auto modpath = modDirectory;
@@ -799,26 +811,29 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   }
 
   sol::state* lua = new sol::state;
-  
+
+  // We must store the namespace for the proceeding configurations to work correctly
+  states.push_back(lua);
+  state2Namespace.insert(std::make_pair(lua, namespaceId));
+
+  // Configure the scripts to run safely
   SetModPathVariable(*lua, modDirectory);
   SetSystemFunctions(*lua);
   ConfigureEnvironment(*lua);
 
   lua->set_exception_handler(&::exception_handler);
-  states.push_back(lua);
-
   auto load_result = lua->safe_script_file(entryPath.generic_string(), sol::script_pass_on_error);
   auto pair = scriptTableHash.emplace(entryPath.generic_string(), LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }
 
-void ScriptResourceManager::DefineCard(const std::string& fqn, const std::string& path)
+void ScriptResourceManager::DefineCard(const std::string& namespaceId, const std::string& fqn, const std::string& path)
 {
   PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
   auto iter = cardFQN.find(addr);
 
   if (iter == cardFQN.end()) {
-    auto& res = LoadScript(path);
+    auto& res = LoadScript(namespaceId, path);
 
     if (res.result.valid()) {
       cardFQN[addr] = path;
@@ -833,13 +848,13 @@ void ScriptResourceManager::DefineCard(const std::string& fqn, const std::string
   }
 }
 
-void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::string& path)
+void ScriptResourceManager::DefineCharacter(const std::string& namespaceId, const std::string& fqn, const std::string& path)
 {
   PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
   auto iter = characterFQN.find(addr);
 
   if (iter == characterFQN.end()) {
-    auto& res = LoadScript(path);
+    auto& res = LoadScript(namespaceId, path);
 
     if (res.result.valid()) {
       characterFQN[addr] = path;
@@ -854,15 +869,15 @@ void ScriptResourceManager::DefineCharacter(const std::string& fqn, const std::s
   }
 }
 
-void ScriptResourceManager::DefineLibrary( const std::string& fqn, const std::string& path )
+void ScriptResourceManager::DefineLibrary(const std::string& namespaceId, const std::string& fqn, const std::string& path )
 {
   Logger::Log(LogLevel::info, "Loading Library ... " );
-  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  PackageAddress addr = { namespaceId, fqn };
   auto iter = libraryFQN.find(addr);
 
   if( iter == libraryFQN.end() )
   {
-    auto& res = InitLibrary( path );
+    auto& res = InitLibrary(namespaceId, path);
 
     if( res.result.valid() )
       libraryFQN[addr] = path;
@@ -876,37 +891,37 @@ void ScriptResourceManager::DefineLibrary( const std::string& fqn, const std::st
   }
 }
 
-sol::state* ScriptResourceManager::FetchCard(const std::string& fqn)
+sol::state* ScriptResourceManager::FetchCard(const std::string& namespaceId, const std::string& fqn)
 {
-  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  PackageAddress addr = { namespaceId, fqn };
   auto iter = cardFQN.find(addr);
 
   if (iter != cardFQN.end()) {
-    return LoadScript(iter->second).state;
+    return LoadScript(namespaceId, iter->second).state;
   }
 
   // else miss
   return nullptr;
 }
 
-sol::state* ScriptResourceManager::FetchCharacter(const std::string& fqn)
+sol::state* ScriptResourceManager::FetchCharacter(const std::string& namespaceId, const std::string& fqn)
 {
-  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  PackageAddress addr = { namespaceId, fqn };
   auto iter = characterFQN.find(addr);
 
   if (iter != characterFQN.end()) {
-    return LoadScript(iter->second).state;
+    return LoadScript(namespaceId, iter->second).state;
   }
 
   // else miss
   return nullptr;
 }
 
-const std::string& ScriptResourceManager::FetchSharedLibraryPath(const std::string& fqn)
+const std::string& ScriptResourceManager::FetchSharedLibraryPath(const std::string& namespaceId, const std::string& fqn)
 {
   static std::string empty = "";
 
-  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  PackageAddress addr = { namespaceId, fqn };
   auto iter = libraryFQN.find(addr);
 
   if (iter != libraryFQN.end()) {
@@ -917,8 +932,8 @@ const std::string& ScriptResourceManager::FetchSharedLibraryPath(const std::stri
   return empty;
 }
 
-const std::string& ScriptResourceManager::CharacterToModpath(const std::string& fqn) {
-  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+const std::string& ScriptResourceManager::CharacterToModpath(const std::string& namespaceId, const std::string& fqn) {
+  PackageAddress addr = { namespaceId, fqn };
   return characterFQN[addr];
 }
 

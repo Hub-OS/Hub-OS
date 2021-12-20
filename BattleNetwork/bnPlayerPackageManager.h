@@ -219,5 +219,9 @@ struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
   const Element GetElement() const;
 };
 
-class PlayerPackageManager : public PackageManager<PlayerMeta> {};
+class PlayerPackageManager : public PackageManager<PlayerMeta> {
+public:
+  PlayerPackageManager(const std::string& ns) : PackageManager<PlayerMeta>(ns) {}
+};
+
 class PlayerPackagePartition : public PartitionedPackageManager<PlayerPackageManager> {};

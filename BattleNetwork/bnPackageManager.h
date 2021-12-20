@@ -19,10 +19,13 @@
 template<typename MetaClass>
 class PackageManager;
 
-template<class PackageManager>
+template<typename PackageManager>
 class PartitionedPackageManager {
+  using PackageManager_t = PackageManager;
+  using MetaClass_t = typename PackageManager::MetaClass_t;
+
   // Paritions are identified by their "namespace" ID
-  std::map<std::string, PackageManager> partitions;
+  std::map<std::string, PackageManager_t*> partitions;
 public:
   inline static const std::string LocalNamespace = "";
 
@@ -30,27 +33,50 @@ public:
     CreateNamespace(LocalNamespace);
   }
 
+  ~PartitionedPackageManager() {
+    for (auto& [_, p] : partitions) {
+      p->ClearPackages();
+      delete p;
+    }
+
+    partitions.clear();
+  }
+
   const bool HasNamespace(const std::string& ns) {
     return partitions.find(ns) != partitions.end();
   }
 
+  const bool HasPackage(const PackageAddress& addr) {
+    if (HasNamespace(addr.namespaceId)) {
+      return GetPartition(addr.namespaceId).HasPackage(addr.packageId);
+    }
+
+    return false;
+  }
+
+  MetaClass_t& FindPackageByAddress(const PackageAddress& addr) {
+    return GetPartition(addr.namespaceId).FindPackageByID(addr.packageId);
+  }
+
   void CreateNamespace(const std::string& ns) {
     if (HasNamespace(ns)) return;
-    partitions.emplace(ns);
+    partitions.insert(std::pair<std::string, PackageManager_t*>(ns, new PackageManager_t(ns)));
   }
 
-  PackageManager& GetPartition(const std::string& ns) {
-    return partitions.find(ns)->second;
+  PackageManager_t& GetPartition(const std::string& ns) {
+    return *partitions.find(ns)->second;
   }
 
-  PackageManager& GetLocalPartition() {
-    return partitions[LocalNamespace];
+  PackageManager_t& GetLocalPartition() {
+    return *partitions[LocalNamespace];
   }
 };
 
 template<typename MetaClass>
 class PackageManager {
     public:
+    using MetaClass_t = MetaClass;
+
     template<typename DataType>
     struct Meta {
         std::function<void()> loadClass;
@@ -112,8 +138,8 @@ class PackageManager {
     //
     // member methods
     //
-    PackageManager() {}
-    PackageManager(const std::string namespaceId) : namespaceId(namespaceId) {};
+    PackageManager(const std::string& namespaceId) : namespaceId(namespaceId) {};
+    PackageManager() = delete;
     PackageManager(const PackageManager&) = delete;
     PackageManager(PackageManager&&) = delete;
     virtual ~PackageManager();
@@ -205,7 +231,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
 
   std::string packageName = modpath.filename().generic_string();
 
-  auto& res = handle.Scripts().LoadScript(modpath);
+  auto& res = handle.Scripts().LoadScript(namespaceId, modpath);
 
   if (res.result.valid()) {
     sol::state& state = *res.state;

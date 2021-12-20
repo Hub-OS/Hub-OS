@@ -10,6 +10,7 @@
 #include "bnLanBackground.h"
 #include "bnAnimatedTextBox.h"
 #include "bnMessageQuestion.h"
+#include "bnPackageAddress.h"
 
 class PlayerCustScene : public Scene {
 public:
@@ -222,7 +223,7 @@ private:
   void quitScene();
 public:
 
-  static std::vector<std::string> getInstalledBlocks(const std::string& playerID, const GameSession& session);
+  static std::vector<PackageAddress> getInstalledBlocks(const std::string& playerID, const GameSession& session);
 
   void onLeave() override;
   void onExit() override;

@@ -21,7 +21,23 @@ PackageAddress::operator std::string() const {
 }
 
 bool operator<(const PackageAddress& a, const PackageAddress& b) {
+    std::string a_str = a;
+    std::string b_str = b;
+    return strcmp(a_str.c_str(), b_str.c_str()) < 0;
+}
+
+bool operator==(const PackageAddress& a, const PackageAddress& b)
+{
   std::string a_str = a;
   std::string b_str = b;
-  return strcmp(a_str.c_str(), b_str.c_str()) < 0;
+  return strcmp(a_str.c_str(), b_str.c_str()) == 0;
+}
+
+stx::result_t<PackageAddress> PackageAddress::FromStr(const std::string& fqn) {
+  std::vector<std::string> tokens = stx::tokenize(fqn, nsDelim);
+
+  if (tokens.empty()) return stx::error<PackageAddress>("Tokenization was empty for `" + fqn + "`");
+  if (tokens.size() == 1) return stx::ok(PackageAddress{ "", tokens[0] });
+
+  return stx::ok(PackageAddress{ tokens[0], tokens[1] });
 }

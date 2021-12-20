@@ -73,5 +73,9 @@ struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
   const std::vector<char> GetCodes() const;
 };
 
-class CardPackageManager : public PackageManager<CardMeta> {};
+class CardPackageManager : public PackageManager<CardMeta> {
+public:
+  CardPackageManager(const std::string& ns) : PackageManager<CardMeta>(ns) {}
+};
+
 class CardPackagePartition : public PartitionedPackageManager<CardPackageManager> {};

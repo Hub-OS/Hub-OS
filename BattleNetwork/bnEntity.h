@@ -104,6 +104,7 @@ class Entity :
 {
 public:
   using ID_t = long;
+  using StatusCallback = std::function<void()>;
 
   friend class Field;
   friend class Component;
@@ -549,13 +550,6 @@ public:
   VirtualInputState& InputState();
 
   /**
-   * @brief Describe what happens to this character when they are hit by any attack
-   * @note for specific responses to status effects from hitboxes, use RegisterStatusCallback(...)
-   * @see Character::RegisterStatusCallback
-   */
-  virtual void OnHit();
-
-  /**
   * The hit routine that happens for every character. Queues status properties and damage
   * to resolve at the end of the battle step.
   * @param props
@@ -755,9 +749,10 @@ public:
 
   void PrepareNextFrame();
 
-protected:
-  using StatusCallback = std::function<void()>;
-  
+  void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
+
+
+protected:  
   Battle::Tile* tile{ nullptr }; /*!< Current tile pointer */
   Battle::Tile* previous{ nullptr }; /*!< Entities retain a previous pointer in case they need to be moved back */
   sf::Vector2f tileOffset{ 0,0 }; /*!< complete motion is captured by `tile_pos + tileOffset`*/
@@ -792,7 +787,6 @@ protected:
   std::list<ComponentBucket> queuedComponents;
 
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
-  void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 
   /**
   * @brief Stun a character for maxCooldown seconds
