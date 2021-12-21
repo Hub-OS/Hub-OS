@@ -55,12 +55,6 @@ void DefineBasicPlayerUserType(sol::table& battle_namespace) {
     "set_charge_position", [](WeakWrapper<Player>& player, float x, float y) {
       player.Unwrap()->GetChargeComponent().setPosition(x, y);
     },
-    "set_float_shoe", [](WeakWrapper<Player>& player, bool enable) {
-      player.Unwrap()->SetFloatShoe(enable);
-    },
-    "set_air_shoe", [](WeakWrapper<Player>& player, bool enable) {
-      player.Unwrap()->SetAirShoe(enable);
-    },
     "slide_when_moving", [](WeakWrapper<Player>& player, bool enable, const frame_time_t& frames) {
       player.Unwrap()->SlideWhenMoving(enable, frames);
     },
