@@ -1,5 +1,7 @@
 #include "bnPackageAddress.h"
 
+#include <string.h>
+
 PackageAddress::PackageAddress() {}
 
 PackageAddress::PackageAddress(const std::string& ns, const std::string& id) {

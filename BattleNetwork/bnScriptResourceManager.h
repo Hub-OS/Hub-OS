@@ -18,7 +18,7 @@
 #endif
 
 #include <sol/sol.hpp>
-#include "bnPackageManager.h"
+#include "bnPackageAddress.h"
 
 class CardPackagePartitioner;
 

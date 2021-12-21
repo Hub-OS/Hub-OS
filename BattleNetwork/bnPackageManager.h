@@ -4,6 +4,7 @@
 #include "bnLogger.h"
 #include "bnResourceHandle.h"
 #include "bnScriptResourceManager.h"
+#include "bnSolHelpers.h"
 #include "stx/string.h"
 #include "stx/result.h"
 #include "stx/tuple.h"
