@@ -26,6 +26,8 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
     if (colon > 0 && colon != std::string::npos) {
       host = destination_ip.substr(0, colon);
       remotePort = std::atoi(destination_ip.substr(colon + 1u).c_str());
+    } else {
+      host = destination_ip;
     }
   }
 
