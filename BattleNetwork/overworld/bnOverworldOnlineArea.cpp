@@ -456,7 +456,7 @@ void Overworld::OnlineArea::detectWarp() {
       auto data = tileObject.customProperties.GetProperty("data");
 
       command.onFinish.Slot([=] {
-        transferServer(host, port, data, false);
+        transferServer(host, port, data, true);
       });
       break;
     }
