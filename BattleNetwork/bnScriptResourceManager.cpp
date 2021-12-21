@@ -465,7 +465,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     {
       AddDependencyNote(state, fqn);
       if (this->FetchCharacter(namespaceId, fqn) == nullptr) {
-        std::string msg = "Failed to Require character with FQN " + fqn;
+        std::string msg = "Failed to require character with FQN " + fqn;
         Logger::Log(LogLevel::critical, msg);
         throw std::runtime_error(msg);
       }
@@ -484,7 +484,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     {
       AddDependencyNote(state, fqn);
       if (this->FetchCard(namespaceId, fqn) == nullptr) {
-        std::string msg = "Failed to Require card with FQN " + fqn;
+        std::string msg = "Failed to require card with FQN " + fqn;
         Logger::Log(LogLevel::critical, msg);
         throw std::runtime_error(msg);
       }
@@ -894,7 +894,7 @@ void ScriptResourceManager::DefineCard(const std::string& namespaceId, const std
     }
     else {
       sol::error error = res.result;
-      Logger::Logf(LogLevel::critical, "Failed to Require card with FQN %s. Reason: %s", fqn.c_str(), error.what());
+      Logger::Logf(LogLevel::critical, "Failed to require card with FQN %s. Reason: %s", fqn.c_str(), error.what());
 
       // bubble up to end this scene from loading that needs this character...
       throw std::exception(error);
@@ -915,7 +915,7 @@ void ScriptResourceManager::DefineCharacter(const std::string& namespaceId, cons
     }
     else {
       sol::error error = res.result;
-      Logger::Logf(LogLevel::critical, "Failed to Require character with FQN %s. Reason: %s", fqn.c_str(), error.what());
+      Logger::Logf(LogLevel::critical, "Failed to define character with FQN %s. Reason: %s", fqn.c_str(), error.what());
 
       // bubble up to end this scene from loading that needs this character...
       throw std::exception(error);
@@ -938,7 +938,7 @@ void ScriptResourceManager::DefineLibrary(const std::string& namespaceId, const 
     else
     {
       sol::error error = res.result;
-      Logger::Logf(LogLevel::critical, "Failed to Require library with FQN %s. Reason %s", fqn.c_str(), error.what() );
+      Logger::Logf(LogLevel::critical, "Failed to define library with FQN %s. Reason %s", fqn.c_str(), error.what() );
 
       throw std::exception( error );
     }
