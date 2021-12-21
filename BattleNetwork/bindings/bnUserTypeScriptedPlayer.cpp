@@ -96,12 +96,6 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
     "set_charge_position", [](WeakWrapper<ScriptedPlayer>& player, float x, float y) {
       player.Unwrap()->SetChargePosition(x, y);
     },
-    "set_float_shoe", [](WeakWrapper<ScriptedPlayer>& player, bool enable) {
-      player.Unwrap()->SetFloatShoe(enable);
-    },
-    "set_air_shoe", [](WeakWrapper<ScriptedPlayer>& player, bool enable) {
-      player.Unwrap()->SetAirShoe(enable);
-    },
     "slide_when_moving", [](WeakWrapper<ScriptedPlayer>& player, bool enable, const frame_time_t& frames) {
       player.Unwrap()->SlideWhenMoving(enable, frames);
     },
