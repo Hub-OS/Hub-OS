@@ -2,7 +2,7 @@
 
 using std::to_string;
 
-OwnedCardsUI::OwnedCardsUI(std::shared_ptr<Character> owner, CardPackagePartition* partition) :
+OwnedCardsUI::OwnedCardsUI(std::shared_ptr<Character> owner, CardPackagePartitioner* partition) :
   SelectedCardsUI(owner, partition)
 {
 }

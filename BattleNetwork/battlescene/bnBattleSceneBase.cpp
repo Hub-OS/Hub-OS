@@ -36,7 +36,7 @@ using swoosh::ActivityController;
 
 BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
-  cardActionListener(this->getController().CardPackagePartition()),
+  cardActionListener(this->getController().CardPackagePartitioner()),
   localPlayer(props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -51,7 +51,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   customBarShader(Shaders().GetShader(ShaderType::CUSTOM_BAR)),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI(CardSelectionCust::Props{ std::move(props.folder), &getController().CardPackagePartition().GetLocalPartition(), 8, 8 }),
+  cardCustGUI(CardSelectionCust::Props{ std::move(props.folder), &getController().CardPackagePartitioner().GetPartition(Game::LocalPartition), 8, 8 }),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
   onEndCallback(onEnd),
@@ -376,7 +376,7 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   field->AddEntity(localPlayer, x, y);
 
   // Player UI
-  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackagePartition());
+  cardUI = localPlayer->CreateComponent<PlayerSelectedCardsUI>(localPlayer, &getController().CardPackagePartitioner());
   this->SubscribeToCardActions(*localPlayer);
   this->SubscribeToCardActions(*cardUI);
 
@@ -418,7 +418,7 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   }
 
   // Other Player UI
-  std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackagePartition());
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackagePartitioner());
   cardUI->Hide();
   this->SubscribeToCardActions(*player);
   SubscribeToCardActions(*cardUI);
@@ -452,7 +452,7 @@ void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
 }
 
 void BattleSceneBase::FilterSupportCards(std::vector<Battle::Card>& cards) {
-  CardPackagePartition& partitions = getController().CardPackagePartition();
+  CardPackagePartitioner& partitions = getController().CardPackagePartitioner();
 
   for (size_t i = 0; i < cards.size(); i++) {
     std::string uuid = cards[i].GetUUID();

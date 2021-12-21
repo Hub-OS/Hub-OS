@@ -69,7 +69,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectMob
   shader = Shaders().GetShader(ShaderType::TEXEL_PIXEL_BLUR);
 
   // Current selection index
-  mobSelectionId = getController().MobPackagePartition().GetLocalPartition().FirstValidPackage();
+  mobSelectionId = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition).FirstValidPackage();
 
   // Text box navigator
   textbox.Stop();
@@ -105,7 +105,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to previous mob 
         selectInputCooldown = maxSelectInputCooldown;
-        mobSelectionId = getController().MobPackagePartition().GetLocalPartition().GetPackageBefore(mobSelectionId);
+        mobSelectionId = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition).GetPackageBefore(mobSelectionId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -117,7 +117,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to next mob 
         selectInputCooldown = maxSelectInputCooldown;
-        mobSelectionId = getController().MobPackagePartition().GetLocalPartition().GetPackageAfter(mobSelectionId);
+        mobSelectionId = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition).GetPackageAfter(mobSelectionId);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -171,7 +171,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 #endif
 
   // Grab the mob info object from this index
-  auto& mobinfo = getController().MobPackagePartition().GetLocalPartition().FindPackageByID(mobSelectionId);
+  auto& mobinfo = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition).FindPackageByID(mobSelectionId);
 
   mobLabel.SetString(mobinfo.GetName());
   hpLabel.SetString(mobinfo.GetHPString());
@@ -335,7 +335,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   if (Input().Has(InputEvents::pressed_confirm) && !gotoNextScene) {
     Mob* mob = nullptr;
 
-    MobPackageManager& packageManager = getController().MobPackagePartition().GetLocalPartition();
+    MobPackageManager& packageManager = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition);
     if (packageManager.Size() != 0) {
       try {
         auto mobFactory = packageManager.FindPackageByID(mobSelectionId).GetData();
@@ -365,7 +365,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 
 
       // Get the navi we selected
-      auto& meta = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(selectedNaviId);
+      auto& meta = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FindPackageByID(selectedNaviId);
       const std::string& image = meta.GetMugshotTexturePath();
       const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
       const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
@@ -373,7 +373,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       auto emotions = Textures().LoadFromFile(emotionsTexture);
       auto player = std::shared_ptr<Player>(meta.GetData());
 
-      BlockPackageManager& blockPackages = getController().BlockPackagePartition().GetLocalPartition();
+      BlockPackageManager& blockPackages = getController().BlockPackagePartitioner().GetPartition(Game::LocalPartition);
       GameSession& session = getController().Session();
 
       // Get the package ID from the address since we know we're only using local packages

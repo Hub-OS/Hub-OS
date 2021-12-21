@@ -45,11 +45,11 @@ using swoosh::ActivityController;
 
 // forward decl.
 class GameSession;
-class CardPackagePartition;
-class PlayerPackagePartition;
-class BlockPackagePartition;
-class MobPackagePartition;
-class LuaLibraryPackagePartition;
+class CardPackagePartitioner;
+class PlayerPackagePartitioner;
+class BlockPackagePartitioner;
+class MobPackagePartitioner;
+class LuaLibraryPackagePartitioner;
 
 enum class Endianness : short {
   big = 0,
@@ -74,11 +74,11 @@ private:
   InputManager inputManager;
   NetManager netManager;
 
-  CardPackagePartition* cardPackagePartition{ nullptr };
-  PlayerPackagePartition* playerPackagePartition{ nullptr };
-  MobPackagePartition* mobPackagePartition{ nullptr };
-  BlockPackagePartition* blockPackagePartition{ nullptr };
-  LuaLibraryPackagePartition* luaLibraryPackagePartition{ nullptr };
+  CardPackagePartitioner* cardPackagePartitioner{ nullptr };
+  PlayerPackagePartitioner* playerPackagePartitioner{ nullptr };
+  MobPackagePartitioner* mobPackagePartitioner{ nullptr };
+  BlockPackagePartitioner* blockPackagePartitioner{ nullptr };
+  LuaLibraryPackagePartitioner* luaLibraryPackagePartitioner{ nullptr };
 
   DrawWindow& window;
   ConfigReader reader;
@@ -155,11 +155,11 @@ public:
   const std::string PicturesPath();
   const std::string SaveGamesPath();
 
-  CardPackagePartition& CardPackagePartition();
-  PlayerPackagePartition& PlayerPackagePartition();
-  MobPackagePartition& MobPackagePartition();
-  BlockPackagePartition& BlockPackagePartition();
-  LuaLibraryPackagePartition& LuaLibraryPackagePartition();
+  CardPackagePartitioner& CardPackagePartitioner();
+  PlayerPackagePartitioner& PlayerPackagePartitioner();
+  MobPackagePartitioner& MobPackagePartitioner();
+  BlockPackagePartitioner& BlockPackagePartitioner();
+  LuaLibraryPackagePartitioner& LuaLibraryPackagePartitioner();
 
   static char* LocalPartition;
   static char* RemotePartition;

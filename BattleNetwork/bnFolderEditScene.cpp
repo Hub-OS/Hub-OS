@@ -717,7 +717,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
     for (int i = 0; i < folderView.maxCardsOnScreen && folderView.lastCardOnScreen + i < folderView.numOfCards; i++) {
         if (!iter->IsEmpty()) {
             const Battle::Card& copy = iter->ViewCard();
-            bool hasID = getController().CardPackagePartition().GetLocalPartition().HasPackage(copy.GetUUID());
+            bool hasID = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition).HasPackage(copy.GetUUID());
 
             cardLabel.SetColor(sf::Color::White);
 
@@ -968,7 +968,7 @@ void FolderEditScene::PlaceFolderDataIntoCardSlots()
 
 void FolderEditScene::PlaceLibraryDataIntoBuckets()
 {
-    auto& packageManager = getController().CardPackagePartition().GetLocalPartition();
+    auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
     std::string packageId = packageManager.FirstValidPackage();
 
     do {
@@ -999,7 +999,7 @@ void FolderEditScene::WriteNewFolderData()
 
 std::shared_ptr<sf::Texture> FolderEditScene::GetIconForCard(const std::string& uuid)
 {
-  auto& packageManager = getController().CardPackagePartition().GetLocalPartition();
+  auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
   if (!packageManager.HasPackage(uuid))
     return noIcon;
@@ -1009,7 +1009,7 @@ std::shared_ptr<sf::Texture> FolderEditScene::GetIconForCard(const std::string& 
 }
 std::shared_ptr<sf::Texture> FolderEditScene::GetPreviewForCard(const std::string& uuid)
 {
-  auto& packageManager = getController().CardPackagePartition().GetLocalPartition();
+  auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
   if (!packageManager.HasPackage(uuid))
     return noPreview;

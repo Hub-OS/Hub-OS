@@ -64,6 +64,12 @@ static inline void QueueModRegistration(PackageManagerT& packageManager, const c
     if (ignoreList.find(full_path) != ignoreList.end())
       continue;
 
+    // ignore readmes and text files 
+    if (size_t pos = full_path.find(".txt"); pos != std::string::npos)
+      continue;
+    if (size_t pos = full_path.find(".md"); pos != std::string::npos)
+      continue;
+
     try {
       if (size_t pos = full_path.find(".zip"); pos == std::string::npos) {
         ignoreList[full_path] = true;

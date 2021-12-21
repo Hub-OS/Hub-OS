@@ -10,7 +10,7 @@
 std::shared_ptr<CardAction> CardToAction(
   const Battle::Card& card, 
   std::shared_ptr<Character> character, 
-  CardPackagePartition* partition, 
+  CardPackagePartitioner* partition, 
   std::optional<Battle::Card::Properties> moddedProps
 ) {
   if (!character) return nullptr;

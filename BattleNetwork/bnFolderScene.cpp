@@ -383,7 +383,7 @@ void FolderScene::onUpdate(double elapsed) {
             auto naviSelectedStr = session.GetKeyValue("SelectedNavi");
             
             if (naviSelectedStr.empty()) {
-              naviSelectedStr = getController().PlayerPackagePartition().GetLocalPartition().FirstValidPackage();
+              naviSelectedStr = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FirstValidPackage();
             }
             
             session.SetKeyValue("FolderFor:" + naviSelectedStr, folderStr);
@@ -499,7 +499,7 @@ void FolderScene::onResume() {
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
-  auto& packageManager = getController().CardPackagePartition().GetLocalPartition();
+  auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
   surface.draw(bg);
   surface.draw(menuLabel);

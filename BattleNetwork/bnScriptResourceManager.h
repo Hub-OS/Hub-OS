@@ -19,7 +19,7 @@
 #include <sol/sol.hpp>
 #include "bnPackageManager.h"
 
-class CardPackagePartition;
+class CardPackagePartitioner;
 
 class ScriptResourceManager {
 public:
@@ -37,7 +37,7 @@ private:
   std::map<PackageAddress, std::string> libraryFQN; /*! library FQN to script path */
   std::map<sol::state*, std::string> state2Namespace; /*! pointer to namespace hash */
   std::map<PackageAddress, std::list< std::string > > scriptDependencies; // [ Package Name, List of packages it depends on ] 
-  CardPackagePartition* cardPartition{ nullptr };
+  CardPackagePartitioner* cardPartition{ nullptr };
 
   void ConfigureEnvironment(sol::state& state);
 
@@ -47,6 +47,7 @@ public:
   LoadScriptResult& LoadScript(const std::string& namespaceId, const std::filesystem::path& path);
   LoadScriptResult& InitLibrary(const std::string& namespaceId, const std::string& path);
 
+  void DropPackageData(const PackageAddress& addr);
   void DefineCard(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
   void DefineCharacter(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
   void DefineLibrary(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
@@ -55,8 +56,8 @@ public:
   const std::string& FetchSharedLibraryPath(const std::string& namespaceId, const std::string& fqn);
   const std::string& CharacterToModpath(const std::string& namespaceId, const std::string& fqn);
   void SeedRand(unsigned int seed);
-  void SetCardPackagePartition(CardPackagePartition& partition);
-  CardPackagePartition& GetCardPackagePartition();
+  void SetCardPackagePartitioner(CardPackagePartitioner& partition);
+  CardPackagePartitioner& GetCardPackagePartitioner();
   void AddDependencyNote(sol::state& state, const std::string& dependencyPackageID );
   void RegisterDependencyNotes(sol::state& state);
   std::string GetStateNamespace(sol::state& state);

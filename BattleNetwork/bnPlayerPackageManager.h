@@ -224,4 +224,4 @@ public:
   PlayerPackageManager(const std::string& ns) : PackageManager<PlayerMeta>(ns) {}
 };
 
-class PlayerPackagePartition : public PartitionedPackageManager<PlayerPackageManager> {};
+class PlayerPackagePartitioner : public PackagePartitioner<PlayerPackageManager> {};

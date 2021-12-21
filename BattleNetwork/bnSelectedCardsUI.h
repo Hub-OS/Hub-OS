@@ -18,7 +18,7 @@ using sf::Drawable;
 
 class Card;
 class Character;
-class CardPackagePartition;
+class CardPackagePartitioner;
 class BattleSceneBase;
 
 class SelectedCardsUI : public CardActionUsePublisher, public UIComponent {
@@ -26,7 +26,7 @@ public:
   /**
    * \param character Character to attach to
    */
-  SelectedCardsUI(std::weak_ptr<Character> owner, CardPackagePartition* partition);
+  SelectedCardsUI(std::weak_ptr<Character> owner, CardPackagePartitioner* partition);
   
   /**
    * @brief destructor
@@ -92,7 +92,7 @@ protected:
   std::vector<Battle::Card>& GetSelectedCards() const;
   SpriteProxyNode& IconNode() const;
   SpriteProxyNode& FrameNode() const;
-  CardPackagePartition* partition{ nullptr };
+  CardPackagePartitioner* partition{ nullptr };
   std::shared_ptr<sf::Texture> noIcon;
 
 private:

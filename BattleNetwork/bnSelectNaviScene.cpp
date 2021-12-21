@@ -83,7 +83,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   navi.setOrigin(navi.getLocalBounds().width / 2.f, navi.getLocalBounds().height / 2.f);
   navi.setPosition(100.f, 150.f);
 
-  auto& playerPkg = getController().PlayerPackagePartition().GetLocalPartition().FindPackageByID(currentChosenId);
+  auto& playerPkg = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FindPackageByID(currentChosenId);
   if (auto tex = playerPkg.GetPreviewTexture()) {
     navi.setTexture(tex);
   }
@@ -272,7 +272,7 @@ void SelectNaviScene::GotoPlayerCust()
 
   std::vector<PlayerCustScene::Piece*> blocks;
 
-  auto& blockManager = getController().BlockPackagePartition().GetLocalPartition();
+  auto& blockManager = getController().BlockPackagePartitioner().GetPartition(Game::LocalPartition);
   std::string package = blockManager.FirstValidPackage();
 
   do {
@@ -310,7 +310,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   bg->Update((float)elapsed);
 
   std::string prevSelectId = currentChosenId;
-  PlayerPackageManager& packageManager = getController().PlayerPackagePartition().GetLocalPartition();
+  PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
 
   // Scene keyboard controls
   if (!gotoNextScene) {

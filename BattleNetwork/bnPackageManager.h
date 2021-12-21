@@ -20,22 +20,15 @@ template<typename MetaClass>
 class PackageManager;
 
 template<typename PackageManager>
-class PartitionedPackageManager {
+class PackagePartitioner {
   using PackageManager_t = PackageManager;
   using MetaClass_t = typename PackageManager::MetaClass_t;
 
   // Paritions are identified by their "namespace" ID
   std::map<std::string, PackageManager_t*> partitions;
 public:
-  inline static const std::string LocalNamespace = "";
-
-  PartitionedPackageManager() {
-    CreateNamespace(LocalNamespace);
-  }
-
-  ~PartitionedPackageManager() {
+  ~PackagePartitioner() {
     for (auto& [_, p] : partitions) {
-      p->ClearPackages();
       delete p;
     }
 
@@ -65,10 +58,6 @@ public:
 
   PackageManager_t& GetPartition(const std::string& ns) {
     return *partitions.find(ns)->second;
-  }
-
-  PackageManager_t& GetLocalPartition() {
-    return *partitions[LocalNamespace];
   }
 };
 
@@ -184,10 +173,10 @@ class PackageManager {
     const unsigned Size() const;
 
     /**
-    * @brief Clears packages, file2PackageId, and zipFile2PackageId hashes. 
+    * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes. 
     * @warning Does not clear the assigned namespaceId
     */
-    void ClearPackages();
+    void ErasePackages();
 
     /**
     * @brief Returns the namespace for this package manager
@@ -231,7 +220,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
 
   std::string packageName = modpath.filename().generic_string();
 
-  auto& res = handle.Scripts().LoadScript(namespaceId, modpath);
+  ScriptResourceManager::LoadScriptResult& res = handle.Scripts().LoadScript(namespaceId, modpath);
 
   if (res.result.valid()) {
     sol::state& state = *res.state;
@@ -241,7 +230,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
 
     //  Run all "includes" first
     if (state["package_requires_scripts"].valid()) {
-      auto includesResult = CallLuaFunction(state, "package_requires_scripts");
+      stx::result_t<sol::object> includesResult = CallLuaFunction(state, "package_requires_scripts");
 
       if (includesResult.is_error()) {
         delete packageClass;
@@ -251,7 +240,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
     }
 
     // todo: use a ScopedWrapper
-    auto initResult = CallLuaFunction(state, "package_init", packageClass);
+    stx::result_t<sol::object> initResult = CallLuaFunction(state, "package_init", packageClass);
 
     if (initResult.is_error()) {
       delete packageClass;
@@ -269,14 +258,14 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
     std::string file_path = modpath.generic_string();
     packageClass->SetFilePath(file_path);
 
-    auto zip_result = stx::zip(file_path, file_path + ".zip");
+    stx::result_t<bool> zip_result = stx::zip(file_path, file_path + ".zip");
     if (zip_result.is_error()) {
       delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + zip_result.error_cstr();
       return stx::error<std::string>(msg);
     }
 
-    auto md5_result = stx::generate_md5_from_file(file_path + ".zip");
+    stx::result_t<std::string> md5_result = stx::generate_md5_from_file(file_path + ".zip");
     if (md5_result.is_error()) {
       delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + md5_result.error_cstr();
@@ -286,7 +275,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
       packageClass->SetPackageFingerprint(md5_result.value());
     }
 
-    if (auto commit_result = this->Commit(packageClass); commit_result.is_error()) {
+    if (stx::result_t<bool> commit_result = this->Commit(packageClass); commit_result.is_error()) {
       delete packageClass;
       std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + commit_result.error_cstr();
       return stx::error<std::string>(msg);
@@ -307,9 +296,9 @@ template<typename ScriptedDataType>
 stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromZip(const std::string& path)
 {
 #if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
-  auto absolute = std::filesystem::absolute(path);
+  std::filesystem::path absolute = std::filesystem::absolute(path);
   absolute = absolute.make_preferred();
-  auto file = absolute.filename();
+  std::filesystem::path file = absolute.filename();
   std::string file_str = file.generic_string();
   size_t pos = file_str.find(".zip", 0);
 
@@ -366,7 +355,7 @@ inline MetaClass& PackageManager<MetaClass>::FindPackageByID(const std::string& 
 
 template<typename MetaClass>
 inline std::string PackageManager<MetaClass>::FilepathToPackageID(const std::string& file_path) {
-  auto absolute = std::filesystem::absolute(file_path);
+  std::filesystem::path absolute = std::filesystem::absolute(file_path);
   absolute = absolute.make_preferred();
 
   std::string full_path = absolute.generic_string();
@@ -400,8 +389,9 @@ inline const MetaClass& PackageManager<MetaClass>::FindPackageByID(const std::st
 
 template<typename MetaClass>
 inline const std::string PackageManager<MetaClass>::FilepathToPackageID(const std::string& file_path) const {
-  auto absolute = std::filesystem::absolute(file_path);
+  std::filesystem::path absolute = std::filesystem::absolute(file_path);
   absolute = absolute.make_preferred();
+
   std::string full_path = absolute.string();
   auto iter = filepathToPackageId.find(full_path);
 
@@ -425,8 +415,6 @@ PackageManager<MetaClass>::~PackageManager<MetaClass>() {
   for (auto& [_, p] : packages) {
     delete p;
   }
-
-  packages.clear();
 }
 
 template<typename MetaClass>
@@ -566,11 +554,26 @@ inline const std::string PackageManager<MetaClass>::WithNamespace(const std::str
 }
 
 template<typename MetaClass>
-inline void PackageManager<MetaClass>::ClearPackages()
+inline void PackageManager<MetaClass>::ErasePackages()
 {
+  ResourceHandle handle;
+
+  for (auto& [packageId, _] : this->packages) {
+    PackageAddress addr = { GetNamespace(), packageId };
+    handle.Scripts().DropPackageData(addr);
+  }
+
+  for (auto& [path, _] : filepathToPackageId) {
+    std::filesystem::path absolute = std::filesystem::absolute(path);
+    std::filesystem::remove_all(absolute);
+  }
+
+  for (auto& [path, _] : zipFilepathToPackageId) {
+    std::filesystem::path absolute = std::filesystem::absolute(path);
+    std::filesystem::remove_all(absolute);
+  }
+
   packages.clear();
   filepathToPackageId.clear();
   zipFilepathToPackageId.clear();
-
-  // TODO: clear zip files
 }

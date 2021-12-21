@@ -131,4 +131,4 @@ class MobPackageManager : public PackageManager<MobMeta> {
 public:
   MobPackageManager(const std::string& ns) : PackageManager<MobMeta>(ns) {}
 };
-class MobPackagePartition : public PartitionedPackageManager<MobPackageManager> {};
+class MobPackagePartitioner : public PackagePartitioner<MobPackageManager> {};

@@ -87,10 +87,11 @@ const bool GameSession::LoadSession(const std::string& inpath)
       else {
         Logger::Logf(LogLevel::critical, "Unable to create battle card from mod package %s", id.c_str());
         props.description = id;
+        props.uuid = id;
+        props.shortname = name;
+        props.code = code;
       }
-      props.uuid = id;
-      props.shortname = name;
-      props.code = code;
+
       folder->AddCard(props);
     }
   }

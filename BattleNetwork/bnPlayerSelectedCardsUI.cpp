@@ -14,7 +14,7 @@
 
 using std::to_string;
 
-PlayerSelectedCardsUI::PlayerSelectedCardsUI(std::weak_ptr<Player> _player, CardPackagePartition* partition) :
+PlayerSelectedCardsUI::PlayerSelectedCardsUI(std::weak_ptr<Player> _player, CardPackagePartitioner* partition) :
   SelectedCardsUI(_player, partition),
   text(Font::Style::thick),
   dmg(Font::Style::gradient_orange),

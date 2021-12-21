@@ -15,4 +15,4 @@ class LuaLibraryPackageManager : public PackageManager<LuaLibraryMeta> {
 public:
   LuaLibraryPackageManager(const std::string& ns) : PackageManager<LuaLibraryMeta>(ns) {}
 };
-class LuaLibraryPackagePartition : public PartitionedPackageManager<LuaLibraryPackageManager> {};
+class LuaLibraryPackagePartitioner : public PackagePartitioner<LuaLibraryPackageManager> {};

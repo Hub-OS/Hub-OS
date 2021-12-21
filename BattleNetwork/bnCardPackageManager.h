@@ -78,4 +78,4 @@ public:
   CardPackageManager(const std::string& ns) : PackageManager<CardMeta>(ns) {}
 };
 
-class CardPackagePartition : public PartitionedPackageManager<CardPackageManager> {};
+class CardPackagePartitioner : public PackagePartitioner<CardPackageManager> {};

@@ -522,7 +522,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
   // Only refresh all data and graphics if this is a new navi
   if (lastSelectedNaviId == currentNaviId && !lastSelectedNaviId.empty()) return;
 
-  PlayerPackageManager& packageManager = getController().PlayerPackagePartition().GetLocalPartition();
+  PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
   if (!packageManager.HasPackage(currentNaviId)) {
     currentNaviId = packageManager.FirstValidPackage();
   }
@@ -575,7 +575,7 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
     }
   }
   else {
-    currentNaviId = getController().PlayerPackagePartition().GetLocalPartition().FirstValidPackage();
+    currentNaviId = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FirstValidPackage();
     session.SetKeyValue("SelectedNavi", currentNaviId);
   }
 }

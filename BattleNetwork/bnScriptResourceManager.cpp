@@ -191,7 +191,7 @@ void ScriptResourceManager::RegisterDependencyNotes(sol::state& state)
   #endif
 
   // Register the dependencies with the list in ScriptResourceManager.
-  PackageAddress addr = { "", packageID }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  PackageAddress addr = { state2Namespace[&state], packageID };
   scriptDependencies[addr] = dependencies;
 
   // Remove the "__dependencies" table secretly inserted into the sol state, we don't need it anymore.
@@ -771,12 +771,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
 ScriptResourceManager::~ScriptResourceManager()
 {
-  for (auto ptr : states) {
-    delete ptr;
-  }
-  states.clear();
+  // LoadScriptResult contains a sol::protected_function which points to a state
+  // state must outlive the LoadScriptResult, so we clear them first
   scriptTableHash.clear();
   state2Namespace.clear();
+
+  // Now we can safely cleanup sol::states
+  for (sol::state* ptr : states) {
+    delete ptr;
+  }
+
+  states.clear();
 }
 
 ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary(const std::string& namespaceId, const std::string& path )
@@ -827,9 +832,57 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   return pair.first->second;
 }
 
+void ScriptResourceManager::DropPackageData(const PackageAddress& addr)
+{
+  // First find the path and clear the FQN 
+  std::string path;
+  auto cardIter = cardFQN.find(addr);
+  if (cardIter != cardFQN.end()) {
+    path = cardIter->second;
+    cardFQN.erase(cardIter);
+  }
+
+  auto characterIter = characterFQN.find(addr);
+  if (characterIter != characterFQN.end()) {
+    path = characterIter->second;
+    characterFQN.erase(characterIter);
+  }
+
+  auto libIter = libraryFQN.find(addr);
+  if (libIter != libraryFQN.end()) {
+    path = libIter->second;
+    libraryFQN.erase(libIter);
+  }
+
+  auto depIter = scriptDependencies.find(addr);
+  if (depIter != scriptDependencies.end()) {
+    scriptDependencies.erase(depIter);
+  }
+
+  if (path.empty()) {
+    Logger::Logf(LogLevel::debug, "Cannot erase package in parition %s with ID %s", addr.packageId.c_str(), addr.namespaceId.c_str());
+    return;
+  }
+
+  // Second use the path to erase the state object
+  sol::state* state{ nullptr };
+  auto tableIter = scriptTableHash.find(path);
+  if (tableIter != scriptTableHash.end()) {
+    state = tableIter->second.state;
+    scriptTableHash.erase(tableIter);
+  }
+
+  auto stateIter = std::find(states.begin(), states.end(), state);
+  if (stateIter != states.end()) {
+    states.erase(stateIter);
+  }
+
+  delete state;
+}
+
 void ScriptResourceManager::DefineCard(const std::string& namespaceId, const std::string& fqn, const std::string& path)
 {
-  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  PackageAddress addr = { namespaceId, fqn };
   auto iter = cardFQN.find(addr);
 
   if (iter == cardFQN.end()) {
@@ -850,7 +903,7 @@ void ScriptResourceManager::DefineCard(const std::string& namespaceId, const std
 
 void ScriptResourceManager::DefineCharacter(const std::string& namespaceId, const std::string& fqn, const std::string& path)
 {
-  PackageAddress addr = { "", fqn }; // NOTE: TAKE THIS OUT WHEN DONE WITH REFACTOR
+  PackageAddress addr = { namespaceId, fqn };
   auto iter = characterFQN.find(addr);
 
   if (iter == characterFQN.end()) {
@@ -942,12 +995,12 @@ void ScriptResourceManager::SeedRand(unsigned int seed)
   randSeed = seed;
 }
 
-void ScriptResourceManager::SetCardPackagePartition(CardPackagePartition& partition)
+void ScriptResourceManager::SetCardPackagePartitioner(CardPackagePartitioner& partition)
 {
   cardPartition = &partition;
 }
 
-CardPackagePartition& ScriptResourceManager::GetCardPackagePartition()
+CardPackagePartitioner& ScriptResourceManager::GetCardPackagePartitioner()
 {
   return *cardPartition;
 }

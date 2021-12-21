@@ -42,4 +42,4 @@ public:
   BlockPackageManager(const std::string& ns) : PackageManager<BlockMeta>(ns) {}
 };
 
-class BlockPackagePartition : public PartitionedPackageManager<BlockPackageManager> {};
+class BlockPackagePartitioner : public PackagePartitioner<BlockPackageManager> {};

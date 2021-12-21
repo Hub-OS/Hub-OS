@@ -398,7 +398,7 @@ bool NetworkBattleScene::IsRemoteBehind()
 
 void NetworkBattleScene::Init()
 {
-  BlockPackagePartition& partition = getController().BlockPackagePartition();
+  BlockPackagePartitioner& partition = getController().BlockPackagePartitioner();
 
   size_t idx = 0;
   for (auto& [blocks, p] : spawnOrder) {
@@ -413,8 +413,7 @@ void NetworkBattleScene::Init()
     }
 
     // Run block programs on the remote player now that they are spawned
-    for (const std::string& blockID : blocks) {
-      PackageAddress addr = PackageAddress::FromStr(blockID).value();
+    for (const PackageAddress& addr: blocks) {
       BlockPackageManager& blockPackages = partition.GetPartition(addr.namespaceId);
       if (!blockPackages.HasPackage(addr.packageId)) continue;
 
@@ -459,7 +458,7 @@ void NetworkBattleScene::SendHandshakeSignal()
   buffer.append((char*)&len, sizeof(size_t));
 
   for (std::string& id : uuids) {
-    id = getController().CardPackagePartition().GetPartition(Game::RemotePartition).WithNamespace(id);
+    id = getController().CardPackagePartitioner().GetPartition(Game::RemotePartition).WithNamespace(id);
     size_t len = id.size();
     buffer.append((char*)&len, sizeof(size_t));
     buffer.append(id.c_str(), len);
@@ -562,8 +561,8 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   size_t handSize = remoteUUIDs.size();
   int len = (int)handSize;
 
-  CardPackagePartition& partition = getController().CardPackagePartition();
-  CardPackageManager& localPackageManager = partition.GetLocalPartition();
+  CardPackagePartitioner& partition = getController().CardPackagePartitioner();
+  CardPackageManager& localPackageManager = partition.GetPartition(Game::LocalPartition);
   if (handSize) {
     for (size_t i = 0; i < handSize; i++) {
       Battle::Card card;

@@ -158,7 +158,10 @@ void AnimatedTextBox::CompleteCurrentBlock() {
 void AnimatedTextBox::DequeMessage() {
   if (messages.size() == 0) return;
 
-  lastSpeaker = *mugshots.begin();
+  // We need an image of the last speaker when we close
+  if (messages.size() == 1) {
+    lastSpeaker = *mugshots.begin();
+  }
 
   delete *messages.begin(); // TODO: use shared ptrs
   messages.erase(messages.begin());
@@ -169,6 +172,8 @@ void AnimatedTextBox::DequeMessage() {
 
   if (messages.size() == 0) return;
 
+  // If we have a new speaker, use their image instead
+  lastSpeaker = *mugshots.begin();
   mugAnimator = Animation(anims[0]);
   mugAnimator.SetAnimation("TALK");
   mugAnimator << Animator::Mode::Loop;

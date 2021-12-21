@@ -16,7 +16,7 @@
 
 using std::to_string;
 
-SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackagePartition* partition) :
+SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackagePartitioner* partition) :
   partition(partition),
   CardActionUsePublisher(), 
   UIComponent(owner)
