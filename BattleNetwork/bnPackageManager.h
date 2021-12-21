@@ -176,6 +176,12 @@ class PackageManager {
     const unsigned Size() const;
 
     /**
+    * @brief Removes packages, file2PackageId, and zipFile2PackageId hashes from memory.
+    * @warning Does not clear the assigned namespaceId
+    */
+    void ClearPackages();
+
+    /**
     * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes. 
     * @warning Does not clear the assigned namespaceId
     */
@@ -576,6 +582,21 @@ template<typename MetaClass>
 inline const std::string PackageManager<MetaClass>::WithNamespace(const std::string& id)
 {
   return PackageAddress{ namespaceId, id }; // implicit cast converts to formatted string
+}
+
+template<typename MetaClass>
+inline void PackageManager<MetaClass>::ClearPackages()
+{
+  ResourceHandle handle;
+
+  for (auto& [packageId, _] : this->packages) {
+    PackageAddress addr = { GetNamespace(), packageId };
+    handle.Scripts().DropPackageData(addr);
+  }
+
+  packages.clear();
+  filepathToPackageId.clear();
+  zipFilepathToPackageId.clear();
 }
 
 template<typename MetaClass>

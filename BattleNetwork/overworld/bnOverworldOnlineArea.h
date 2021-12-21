@@ -108,7 +108,6 @@ namespace Overworld {
     CameraController serverCameraController;
     CameraController warpCameraController;
     std::vector<VendorScene::Item> shopItems;
-    std::vector<std::string> downloadedMobPackages;
     std::queue<std::function<void()>> sceneChangeTasks;
 
     void ResetPVPStep(bool failed = false);

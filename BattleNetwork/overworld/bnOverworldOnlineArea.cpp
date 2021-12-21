@@ -103,6 +103,9 @@ Overworld::OnlineArea::OnlineArea(
   emoteNode->SetLayer(-100);
   emoteNode->setScale(0.5f, 0.5f);
   player->AddNode(emoteNode);
+
+  // ensure the existence of these package partitions
+  getController().MobPackagePartitioner().CreateNamespace(Game::ServerPartition);
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -236,13 +239,7 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
 }
 
 void Overworld::OnlineArea::RemovePackages() {
-  MobPackageManager& packageManager = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition);
-
-  for (auto& packageId : downloadedMobPackages) {
-    packageManager.RemovePackageByID(packageId);
-  }
-
-  downloadedMobPackages.clear();
+  getController().MobPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
@@ -2307,22 +2304,18 @@ void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poc
     return;
   }
 
-  MobPackageManager& packageManager = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition);
+  MobPackageManager& packageManager = getController().MobPackagePartitioner().GetPartition(Game::ServerPartition);
 
   std::string packageId = packageManager.FilepathToPackageID(file_path);
 
-  if (packageManager.HasPackage(packageId)) {
+  if (!packageId.empty() && packageManager.HasPackage(packageId)) {
     return;
   }
 
   // install for the first time
   if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
     Logger::Logf(LogLevel::critical, "Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
-    return;
   }
-
-  packageId = packageManager.FilepathToPackageID(file_path);
-  downloadedMobPackages.push_back(packageId);
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2343,7 +2336,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     return;
   }
 
-  MobPackageManager& mobPackages = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition);
+  MobPackageManager& mobPackages = getController().MobPackagePartitioner().GetPartition(Game::ServerPartition);
   PlayerPackageManager& playerPackages = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
 
   std::string packageId = mobPackages.FilepathToPackageID(file_path);
