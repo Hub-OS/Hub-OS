@@ -145,8 +145,10 @@ class PackageManager {
 
     MetaClass& FindPackageByID(const std::string& id);
     std::string FilepathToPackageID(const std::string& id);
+    std::string FilepathToPackageAddress(const std::string& id);
     const MetaClass& FindPackageByID(const std::string& id) const;
     const std::string FilepathToPackageID(const std::string& id) const;
+    const std::string FilepathToPackageAddress(const std::string& id) const;
     stx::result_t<std::string> RemovePackageByID(const std::string& id);
 
     bool HasPackage(const std::string& id) const;
@@ -369,11 +371,22 @@ inline std::string PackageManager<MetaClass>::FilepathToPackageID(const std::str
       return "";
     }
     else {
-      return WithNamespace(iter->second);
+      return iter->second;
     }
   }
 
-  return WithNamespace(iter->second);
+  return iter->second;
+}
+
+template<typename MetaClass>
+inline std::string PackageManager<MetaClass>::FilepathToPackageAddress(const std::string& file_path) {
+  auto packageId = FilepathToPackageID(file_path);
+
+  if (packageId.empty()) {
+    return packageId;
+  }
+
+  return WithNamespace(packageId);
 }
 
 template<typename MetaClass>
@@ -404,11 +417,22 @@ inline const std::string PackageManager<MetaClass>::FilepathToPackageID(const st
       return "";
     }
     else {
-      return WithNamespace(iter->second);
+      return iter->second;
     }
   }
 
-  return WithNamespace(iter->second);
+  return iter->second;
+}
+
+template<typename MetaClass>
+inline const std::string PackageManager<MetaClass>::FilepathToPackageAddress(const std::string& file_path) const {
+  auto packageId = FilepathToPackageID(file_path);
+
+  if (packageId.empty()) {
+    return packageId;
+  }
+
+  return WithNamespace(packageId);
 }
 
 template<typename MetaClass>

@@ -220,7 +220,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
     while (!packages.empty()) { 
       for (auto& p : packages) {
-        scriptManager.DefineCard(cardPackages.GetNamespace(), cardPackages.FilepathToPackageID(p), p);
+        scriptManager.DefineCard(cardPackages.GetNamespace(), cardPackages.FilepathToPackageAddress(p), p);
       }
 
       /* keep trying */ 
