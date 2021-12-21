@@ -365,7 +365,7 @@ inline std::string PackageManager<MetaClass>::FilepathToPackageID(const std::str
   if (iter == filepathToPackageId.end()) {
     auto iter = zipFilepathToPackageId.find(full_path);
     if (iter == zipFilepathToPackageId.end()) {
-      Logger::Logf(LogLevel::critical, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
+      Logger::Logf(LogLevel::debug, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
       return "";
     }
     else {
@@ -400,7 +400,7 @@ inline const std::string PackageManager<MetaClass>::FilepathToPackageID(const st
 
     auto iter = zipFilepathToPackageId.find(full_path);
     if (iter == zipFilepathToPackageId.end()) {
-      Logger::Logf(LogLevel::critical, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
+      Logger::Logf(LogLevel::debug, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
       return "";
     }
     else {
