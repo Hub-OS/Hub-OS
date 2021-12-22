@@ -104,8 +104,6 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
       {
         Logger::Logf(LogLevel::debug, "Including shared library: %s", fileName.c_str());
 
-        AddDependencyNote(state, fileName);
-
         scriptPath = sharedLibPath;
       }
       else
@@ -769,6 +767,16 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     {
       Logger::Log(LogLevel::info, "fqn: " + fqn + " , path: " + path );
       this->DefineLibrary(namespaceId, fqn, path);
+    }
+  );
+
+  engine_namespace.set_function("requires_library",
+    [this, &state, &namespaceId](const std::string& fqn)
+    {
+      AddDependencyNote(state, fqn);
+      if (this->FetchSharedLibraryPath(namespaceId, fqn).empty()) {
+        throw std::runtime_error("Failed to require library with FQN " + fqn);
+      }
     }
   );
 }
