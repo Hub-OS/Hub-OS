@@ -95,7 +95,7 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
   // Currently only loads library files included in the SAME directory as the script file.
   // Has to capture a pointer to sol::state, the copy constructor was deleted, cannot capture a copy to reference.
   state.set_function( "include",
-    [this, &state, &namespaceId]( const std::string fileName ) -> sol::protected_function_result {
+    [this, &state, &namespaceId](const std::string& fileName) -> sol::object {
       std::string scriptPath;
 
       // Prefer using the shared libraries if possible.
@@ -119,7 +119,14 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
       sol::environment env(state, sol::create, state.globals());
       env["_folderpath"] = std::filesystem::path(scriptPath).parent_path().string() + "/";
 
-      return state.do_file(scriptPath, env);
+      sol::protected_function_result result = state.do_file(scriptPath, env);
+
+      if (!result.valid()) {
+        sol::error error = result;
+        throw std::runtime_error(error.what());
+      }
+
+      return result;
     }
   );
 }
