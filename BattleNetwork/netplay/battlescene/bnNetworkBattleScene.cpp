@@ -126,56 +126,17 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // Forms is the last state before kicking off the battle
   // if we reached this state...
-  forms.ChangeOnEvent(combat, &CharacterTransformBattleState::IsFinished);
   forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
   battlestart.ChangeOnEvent(combat, &BattleStartBattleState::IsFinished);
   timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
 
-  // Lambda event callback that captures and handles network card select screen opening
-  auto onCardSelectEvent = [this]() mutable {
-    bool remoteRequestedChipSelect = this->remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
-    return combatPtr->PlayerRequestCardSelect() || (remoteRequestedChipSelect && this->IsCustGaugeFull());
-  };
-
-  // special condition: if in combat and should decross, trigger the character transform states
-  auto playerDecrosses = [this, forms]() mutable {
-    bool changeState = false;
-
-    // If ANY player is decrossing, we need to change state
-    for (std::shared_ptr<Player> player : GetAllPlayers()) {
-      TrackedFormData& formData = GetPlayerFormData(player);
-
-      bool decross = player->GetHealth() == 0  && (formData.selectedForm != -1);
-
-      // ensure we decross if their HP is zero and they have not yet
-      if (decross) {
-        formData.selectedForm = -1;
-        formData.animationComplete = false;
-      }
-
-      // If the anim form data is configured to decross, then we will
-      bool myChangeState = (formData.selectedForm == -1 && formData.animationComplete == false);
-
-      // Accumulate booleans, if any one is true, then the whole is true
-      changeState = changeState || myChangeState;
-    }
-
-    // If we are going back to our base form, skip the animation backdrop step here
-    if (changeState) {
-      forms->SkipBackdrop();
-    }
-
-    // return result
-    return changeState;
-  };
-
   // combat has multiple state interruptions based on events
   // so we can chain them together
   combat
-    .ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
-    .ChangeOnEvent(forms, playerDecrosses)
-    .ChangeOnEvent(fadeout, &CombatBattleState::PlayerLost)
-    .ChangeOnEvent(cardSelect, onCardSelectEvent)
+    .ChangeOnEvent(battleover, HookPlayerWon(combat.Unwrap(), battleover.Unwrap()))
+    .ChangeOnEvent(forms     , HookPlayerDecrosses(forms.Unwrap()))
+    .ChangeOnEvent(battleover, HookPlayerLost(combat.Unwrap(), battleover.Unwrap()))
+    .ChangeOnEvent(cardSelect, HookOnCardSelectEvent())
     .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 
   battleover.ChangeOnEvent(fadeout, &BattleOverBattleState::IsFinished);
@@ -679,6 +640,84 @@ void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlay
   SpawnOtherPlayer(newRemotePlayer, 5, 2);
 
   remoteCardActionUsePublisher = newRemotePlayer->GetFirstComponent<PlayerSelectedCardsUI>();
+}
+
+std::function<bool()> NetworkBattleScene::HookPlayerWon(CombatBattleState& combat, BattleOverBattleState& over)
+{
+  auto lambda = [&combat, &over, this] {
+    bool result = combat.PlayerWon();
+
+    if (result) {
+      over.SetIntroText(remotePlayer->GetName() + " Deleted!");
+    }
+
+    return result;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> NetworkBattleScene::HookPlayerLost(CombatBattleState& combat, BattleOverBattleState& over)
+{
+  auto lambda = [&combat, &over, this] {
+    bool result = combat.PlayerWon();
+
+    if (result) {
+      over.SetIntroText(GetLocalPlayer()->GetName() + " Deleted!");
+    }
+
+    return result;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> NetworkBattleScene::HookPlayerDecrosses(CharacterTransformBattleState& forms)
+{
+  // special condition: if in combat and should decross, trigger the character transform states
+  auto lambda = [this, &forms]() mutable {
+    bool changeState = false;
+
+    // If ANY player is decrossing, we need to change state
+    for (std::shared_ptr<Player> player : GetAllPlayers()) {
+      TrackedFormData& formData = GetPlayerFormData(player);
+
+      bool decross = player->GetHealth() == 0 && (formData.selectedForm != -1);
+
+      // ensure we decross if their HP is zero and they have not yet
+      if (decross) {
+        formData.selectedForm = -1;
+        formData.animationComplete = false;
+      }
+
+      // If the anim form data is configured to decross, then we will
+      bool myChangeState = (formData.selectedForm == -1 && formData.animationComplete == false);
+
+      // Accumulate booleans, if any one is true, then the whole is true
+      changeState = changeState || myChangeState;
+    }
+
+    // If we are going back to our base form, skip the animation backdrop step here
+    if (changeState) {
+      forms.SkipBackdrop();
+    }
+
+    // return result
+    return changeState;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent()
+{
+  // Lambda event callback that captures and handles network card select screen opening
+  auto lambda = [this]() mutable {
+    bool remoteRequestedChipSelect = this->remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
+    return combatPtr->PlayerRequestCardSelect() || (remoteRequestedChipSelect && this->IsCustGaugeFull());
+  };
+
+  return lambda;
 }
 
 void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)

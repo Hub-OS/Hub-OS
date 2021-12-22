@@ -153,14 +153,9 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
   if (auto player = GetOwnerAs<Player>()) {
     ui.SetHP(player->GetHealth());
 
-    if (player->WillEraseEOF()) {
-      this->Eject();
-      player = nullptr;
-      ui.SetHP(0);
-      return;
+    if (player->GetHealth() == 0) {
+      player->FreeComponentByID(GetID());
     }
-
-    ui.Update(elapsed);
 
     bool isBurning = false;
     bool isPoisoned = false;
@@ -182,4 +177,6 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
       }
     }
   }
+
+  ui.Update(elapsed);
 }

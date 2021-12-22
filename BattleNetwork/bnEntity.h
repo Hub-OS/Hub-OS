@@ -516,10 +516,18 @@ public:
   * @return Returns the component as a pointer of the common base class type
   */
   std::shared_ptr<Component> RegisterComponent(std::shared_ptr<Component> c);
-  
+
+  /**
+   * @brief Frees one component with the same ID
+   * @param ID ID of the component to remove
+   * @warning may call components deconstructor if no one else owns it
+   */
+  void FreeComponentByID(Component::ID_t ID);
+
   /**
    * @brief Frees all attached components from an owner
    * All attached components owner pointer will be null
+   * @warning may call components deconstructor if no one else owns it
    */
   void FreeAllComponents();
 
@@ -865,12 +873,6 @@ private:
    * @brief Used internally before moving and updates the start position
    */
   void UpdateMoveStartPosition();
-
-  /**
-   * @brief Frees one component with the same ID
-   * @param ID ID of the component to remove
-   */
-  void FreeComponentByID(Component::ID_t ID);
 };
 
 template<typename ComponentType>

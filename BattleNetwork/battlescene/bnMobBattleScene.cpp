@@ -17,6 +17,83 @@
 
 using namespace swoosh;
 
+std::function<bool()> MobBattleScene::HookIntro(MobIntroBattleState& intro, TimeFreezeBattleState& timefreeze, CombatBattleState& combat)
+{
+  auto isIntroOver = [this, &intro, &timefreeze, &combat]() mutable {
+    if (intro.IsOver()) {
+      // Mob's mutated at spawn may have card use publishers.
+      // Share the scene's subscriptions at this point in time with
+      // those substates.
+      for (auto& publisher : this->GetCardActionSubscriptions()) {
+        timefreeze.Subscribe(publisher);
+        combat.Subscribe(publisher);
+      }
+      return true;
+    }
+
+    return false;
+  };
+
+  return isIntroOver;
+}
+
+std::function<bool()> MobBattleScene::HookRetreat(RetreatBattleState& retreat, FadeOutBattleState& fadeout)
+{
+  auto lambda = [&retreat, &fadeout]() mutable {
+    if (retreat.Success()) {
+      // fadeout pauses animations only when retreating
+      fadeout.EnableKeepPlaying(false);
+      return true;
+    }
+
+    return false;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> MobBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
+{
+  auto lambda = [&form, &cardSelect, this]() mutable {
+    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
+
+    if (triggered) {
+      playerDecross = false; // reset our decross flag
+
+      // update the card select gui and state
+      // since the state has its own records
+      cardSelect.ResetSelectedForm();
+    }
+
+    return triggered;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> MobBattleScene::HookFormChangeStart(CharacterTransformBattleState& form)
+{
+  // special condition: if in combat and should decross, trigger the character transform states
+  auto lambda = [this, &form]() mutable {
+    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+    TrackedFormData& formData = GetPlayerFormData(localPlayer);
+
+    bool changeState = localPlayer->GetHealth() == 0;
+    changeState = changeState || playerDecross;
+    changeState = changeState && (formData.selectedForm != -1);
+
+    if (changeState) {
+      formData.selectedForm = -1;
+      formData.animationComplete = false;
+      form.SkipBackdrop();
+    }
+
+    return changeState;
+  };
+
+  return lambda;
+}
+
 MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperties _props, BattleResultsFunc onEnd) :
   BattleSceneBase(controller, _props.base, onEnd),
   props(std::move(_props))
@@ -59,22 +136,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
   // Important! State transitions are added in order of priority! //
   //////////////////////////////////////////////////////////////////
 
-  auto isIntroOver = [this, intro, timeFreeze, combat]() mutable {
-    if (intro->IsOver()) {
-      // Mob's mutated at spawn may have card use publishers.
-      // Share the scene's subscriptions at this point in time with
-      // those substates.
-      for (auto& publisher : this->GetCardActionSubscriptions()) {
-        timeFreeze->Subscribe(publisher);
-        combat->Subscribe(publisher);
-      }
-      return true;
-    }
-
-    return false;
-  };
-
-  intro.ChangeOnEvent(cardSelect, isIntroOver);
+  intro.ChangeOnEvent(cardSelect, HookIntro(intro.Unwrap(), timeFreeze.Unwrap(), combat.Unwrap()));
 
   // Prevent all other conditions if the player tried to retreat
   cardSelect.ChangeOnEvent(retreat, &CardSelectBattleState::RequestedRetreat);
@@ -97,32 +159,11 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
   retreat.ChangeOnEvent(battlestart, &RetreatBattleState::Fail);
 
   // Otherwise, we leave
-  retreat.ChangeOnEvent(fadeout, [retreat, fadeout]() mutable {
-    if (retreat->Success()) {
-      // fadeout pauses animations only when retreating
-      fadeout->EnableKeepPlaying(false);
-      return true;
-    }
-
-    return false;
-    }
-  );
+  retreat.ChangeOnEvent(fadeout, HookRetreat(retreat.Unwrap(), fadeout.Unwrap()));
 
   // Forms is the last state before kicking off the battle
   // if we reached this state...
-  forms.ChangeOnEvent(combat, [forms, cardSelect, this]() mutable { 
-    bool triggered = forms->IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross); 
-
-    if (triggered) {
-      playerDecross = false; // reset our decross flag
-
-      // update the card select gui and state
-      // since the state has its own records
-      cardSelect->ResetSelectedForm();
-    }
-
-    return triggered; 
-  });
+  forms.ChangeOnEvent(combat, HookFormChangeEnd(forms.Unwrap(), cardSelect.Unwrap()));
   forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
 
   // Combat begins when the battle start animations are finished
@@ -134,28 +175,10 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
   // share some values between states
   combo->ShareCardList(cardSelect->GetCardPtrList());
 
-  // special condition: if in combat and should decross, trigger the character transform states
-  auto playerDecrosses = [this, forms] () mutable {
-    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
-    TrackedFormData& formData = GetPlayerFormData(localPlayer);
-
-    bool changeState = localPlayer->GetHealth() == 0;
-    changeState = changeState || playerDecross;
-    changeState = changeState && (formData.selectedForm != -1);
-
-    if (changeState) {
-      formData.selectedForm = -1;
-      formData.animationComplete = false;
-      forms->SkipBackdrop();
-    }
-
-    return changeState;
-  };
-
   // combat has multiple state interruptions based on events
   // so we can chain them together
   combat.ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
-    .ChangeOnEvent(forms, playerDecrosses)
+    .ChangeOnEvent(forms, HookFormChangeStart(forms.Unwrap()))
     .ChangeOnEvent(fadeout, &CombatBattleState::PlayerLost)
     .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
     .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);

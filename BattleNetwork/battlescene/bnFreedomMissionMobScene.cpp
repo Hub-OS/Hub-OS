@@ -53,22 +53,7 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
   // Important! State transitions are added in order of priority! //
   //////////////////////////////////////////////////////////////////
 
-  auto isIntroOver = [this, intro, timeFreeze, combat]() mutable {
-    if (intro->IsOver()) {
-      // Mob's mutated at spawn may have card use publishers.
-      // Share the scene's subscriptions at this point in time with
-      // those substates.
-      for (auto& publisher : this->GetCardActionSubscriptions()) {
-        timeFreeze->Subscribe(publisher);
-        combat->Subscribe(publisher);
-      }
-      return true;
-    }
-
-    return false;
-  };
-
-  intro.ChangeOnEvent(cardSelect, isIntroOver);
+  intro.ChangeOnEvent(cardSelect, HookIntro(intro.Unwrap(), timeFreeze.Unwrap(), combat.Unwrap()));
 
   // Goto the combo check state if new cards are selected...
   cardSelect.ChangeOnEvent(combo, &CardSelectBattleState::SelectedNewChips);
@@ -86,19 +71,7 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
 
   // Forms is the last state before kicking off the battle
   // if we reached this state...
-  forms.ChangeOnEvent(combat, [forms, cardSelect, this]() mutable { 
-    bool triggered = forms->IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross); 
-
-    if (triggered) {
-      playerDecross = false; // reset our decross flag
-
-      // update the card select gui and state
-      // since the state has its own records
-      cardSelect->ResetSelectedForm();
-    }
-
-    return triggered; 
-  });
+  forms.ChangeOnEvent(combat, HookFormChangeEnd(forms.Unwrap(), cardSelect.Unwrap()));
   forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
 
   // Combat begins when the battle start animations are finished
@@ -110,44 +83,13 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
   // share some values between states
   combo->ShareCardList(cardSelect->GetCardPtrList());
 
-  // special condition: if in combat and should decross, trigger the character transform states
-  auto playerDecrosses = [this, forms] () mutable {
-    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
-    TrackedFormData& formData = GetPlayerFormData(localPlayer);
-
-    bool changeState = localPlayer->GetHealth() == 0;
-    changeState = changeState || playerDecross;
-    changeState = changeState && (formData.selectedForm != -1);
-
-    if (changeState) {
-      formData.selectedForm = -1;
-      formData.animationComplete = false;
-      forms->SkipBackdrop();
-    }
-
-    return changeState;
-  };
-
-  auto cardGaugeIsFull = [this]() mutable {
-    return GetCustomBarProgress() >= GetCustomBarDuration();
-  };
-
-  auto outOfTurns = [this]() mutable {
-    if (GetCustomBarProgress() >= GetCustomBarDuration() && GetTurnCount() == FreedomMissionMobScene::props.maxTurns) {
-      overStatePtr->context = FreedomMissionOverState::Conditions::player_failed;
-      return true;
-    }
-
-    return false;
-  };
-
   // combat has multiple state interruptions based on events
   // so we can chain them together
   combat.ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
     .ChangeOnEvent(battleover, &CombatBattleState::PlayerLost)
-    .ChangeOnEvent(battleover, outOfTurns)
-    .ChangeOnEvent(cardSelect, cardGaugeIsFull)
-    .ChangeOnEvent(forms, playerDecrosses)
+    .ChangeOnEvent(battleover, HookTurnLimitReached())
+    .ChangeOnEvent(cardSelect, HookTurnTimeout())
+    .ChangeOnEvent(forms, HookFormChangeStart(forms.Unwrap()))
     .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 
   // Time freeze state interrupts combat state which must resume after animations are finished
@@ -269,4 +211,89 @@ void FreedomMissionMobScene::IncrementTurnCount()
   else {
     overStatePtr->context = FreedomMissionOverState::Conditions::player_won_mutliple_turn;
   }
+}
+
+std::function<bool()> FreedomMissionMobScene::HookIntro(MobIntroBattleState& intro, TimeFreezeBattleState& timefreeze, CombatBattleState& combat)
+{
+  auto isIntroOver = [this, &intro, &timefreeze, &combat]() mutable {
+    if (intro.IsOver()) {
+      // Mob's mutated at spawn may have card use publishers.
+      // Share the scene's subscriptions at this point in time with
+      // those substates.
+      for (auto& publisher : this->GetCardActionSubscriptions()) {
+        timefreeze.Subscribe(publisher);
+        combat.Subscribe(publisher);
+      }
+      return true;
+    }
+
+    return false;
+  };
+
+  return isIntroOver;
+}
+
+std::function<bool()> FreedomMissionMobScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
+{
+  auto lambda = [&form, &cardSelect, this]() mutable {
+    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
+
+    if (triggered) {
+      playerDecross = false; // reset our decross flag
+
+      // update the card select gui and state
+      // since the state has its own records
+      cardSelect.ResetSelectedForm();
+    }
+
+    return triggered;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> FreedomMissionMobScene::HookFormChangeStart(CharacterTransformBattleState& form)
+{
+  // special condition: if in combat and should decross, trigger the character transform states
+  auto lambda = [this, &form]() mutable {
+    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+    TrackedFormData& formData = GetPlayerFormData(localPlayer);
+
+    bool changeState = localPlayer->GetHealth() == 0;
+    changeState = changeState || playerDecross;
+    changeState = changeState && (formData.selectedForm != -1);
+
+    if (changeState) {
+      formData.selectedForm = -1;
+      formData.animationComplete = false;
+      form.SkipBackdrop();
+    }
+
+    return changeState;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
+{
+  auto outOfTurns = [this]() mutable {
+    if (GetCustomBarProgress() >= GetCustomBarDuration() && GetTurnCount() == FreedomMissionMobScene::props.maxTurns) {
+      overStatePtr->context = FreedomMissionOverState::Conditions::player_failed;
+      return true;
+    }
+
+    return false;
+  };
+
+  return outOfTurns;
+}
+
+std::function<bool()> FreedomMissionMobScene::HookTurnTimeout()
+{
+  auto cardGaugeIsFull = [this]() mutable {
+    return GetCustomBarProgress() >= GetCustomBarDuration();
+  };
+
+  return cardGaugeIsFull;
 }

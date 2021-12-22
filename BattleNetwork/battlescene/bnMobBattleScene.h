@@ -3,8 +3,12 @@
 
 class Player;
 class Mob;
+struct RetreatBattleState;
 struct CombatBattleState;
 struct TimeFreezeBattleState;
+struct CharacterTransformBattleState;
+struct CardSelectBattleState;
+struct MobIntroBattleState;
 
 /*
     \brief Lots of properties packed into a clean struct
@@ -33,6 +37,11 @@ class MobBattleScene final : public BattleSceneBase {
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
   CombatBattleState* combatPtr{ nullptr };
 
+  // Battle state hooks
+  std::function<bool()> HookIntro(MobIntroBattleState& intro, TimeFreezeBattleState& timefreeze, CombatBattleState& combat);
+  std::function<bool()> HookRetreat(RetreatBattleState& retreat, FadeOutBattleState& fadeout);
+  std::function<bool()> HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect);
+  std::function<bool()> HookFormChangeStart(CharacterTransformBattleState& form);
   public:
   MobBattleScene(swoosh::ActivityController& controller, MobBattleProperties props, BattleResultsFunc onEnd=nullptr);
   ~MobBattleScene();

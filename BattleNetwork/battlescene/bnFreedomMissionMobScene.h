@@ -7,6 +7,9 @@ class Mob;
 struct CombatBattleState;
 struct FreedomMissionOverState;
 struct TimeFreezeBattleState;
+struct CharacterTransformBattleState;
+struct CardSelectBattleState;
+struct MobIntroBattleState;
 
 /*
     \brief Lots of properties packed into a clean struct
@@ -32,6 +35,12 @@ class FreedomMissionMobScene final : public BattleSceneBase {
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
   CombatBattleState* combatPtr{ nullptr };
 
+  // Battle state hooks
+  std::function<bool()> HookIntro(MobIntroBattleState& intro, TimeFreezeBattleState& timefreeze, CombatBattleState& combat);
+  std::function<bool()> HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect);
+  std::function<bool()> HookFormChangeStart(CharacterTransformBattleState& form);
+  std::function<bool()> HookTurnLimitReached();
+  std::function<bool()> HookTurnTimeout();
   public:
   FreedomMissionMobScene(swoosh::ActivityController& controller, FreedomMissionProps props, BattleResultsFunc onEnd=nullptr);
   ~FreedomMissionMobScene();

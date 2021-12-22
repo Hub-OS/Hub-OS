@@ -45,13 +45,16 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
+// state forward decl.
 struct CombatBattleState;
 struct TimeFreezeBattleState;
 struct NetworkSyncBattleState;
 struct CardComboBattleState;
 struct BattleStartBattleState;
+struct BattleOverBattleState;
 class CardSelectBattleState;
 
+// battle classes forward decl.
 class Mob;
 class Player;
 class PlayerHealthUI;
@@ -88,6 +91,7 @@ private:
   
   NetworkBattleSceneProps props;
 
+  bool ignoreLockStep{}; //!< Used when battles are over to allow both clients to continue streaming the game ending
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
   unsigned int remoteFrameNumber{}, maxRemoteFrameNumber{}, resyncFrameNumber{};
@@ -126,6 +130,12 @@ private:
   
   // This utilized BattleSceneBase::SpawnOtherPlayer() but adds some setup for networking
   void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer);
+
+  // Battle state hooks
+  std::function<bool()> HookPlayerWon(CombatBattleState& combat, BattleOverBattleState& over);
+  std::function<bool()> HookPlayerLost(CombatBattleState& combat, BattleOverBattleState& over);
+  std::function<bool()> HookPlayerDecrosses(CharacterTransformBattleState& forms);
+  std::function<bool()> HookOnCardSelectEvent();
 public:
   using BattleSceneBase::ProcessNewestComponents;
 

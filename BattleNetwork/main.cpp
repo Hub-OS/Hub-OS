@@ -3,6 +3,9 @@
 #include "bindings/bnScriptedMob.h"
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
+#include "bnBlockPackageManager.h"
+#include "bnCardPackageManager.h"
+#include "bnLuaLibraryPackageManager.h"
 #include "bnGameOverScene.h"
 #include "bnTitleScene.h"
 #include "bnACDCBackground.h"
@@ -27,6 +30,9 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
 
 std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, CardPackageManager& packageManager);
 
+// If filter is empty, lists all packages and hash pairs. Otherwise, displays the pair for the filtered hashes.
+void PrintPackageHash(Game& g, TaskGroup tasks, const std::vector<std::string>& filter);
+
 static cxxopts::Options options("ONB", "Open Net Battle Engine");
 
 int main(int argc, char** argv) {
@@ -49,6 +55,10 @@ int main(int argc, char** argv) {
     ("moburl", "path to mob file to download from a web address", cxxopts::value<std::string>()->default_value(""))
     ("player", "name of player package", cxxopts::value<std::string>()->default_value(""))
     ("folder", "path to folder list on disk where each line contains a card package name and code e.g. `com.example.MockCard A`", cxxopts::value<std::string>()->default_value(""));
+
+  // Utility specific flags
+  options.add_options("Utils")
+    ("i,installed", "List the successfully loaded mods");
 
   // Prevent throwing exceptions on bad input
   options.allow_unrecognised_options();
@@ -178,6 +188,13 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
     }
 
     return HandleBattleOnly(g, g.Boot(results), playerpath, mobpath, folderpath, url);
+  }
+
+  if (g.CommandLineValue<bool>("installed")) {
+    std::vector<std::string> filter;
+    PrintPackageHash(g, g.Boot(results), filter);
+
+    return EXIT_SUCCESS;
   }
 
   // If single player game, the last screen the player will ever see 
@@ -322,4 +339,49 @@ std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, Card
 
   folder->Shuffle();
   return folder;
+}
+
+template<typename PackageManagerT>
+void PrintPackageHashStep(PackageManagerT& pm, const std::vector<std::string>& filter) {
+  std::string first = pm.FirstValidPackage();
+  std::string curr = first;
+
+  if (first.empty()) return;
+
+  do {
+    const std::string& hash = pm.FindPackageByID(curr).GetPackageFingerprint();
+
+    std::ostringstream result;
+    result << std::setw(2) << std::setfill('0') << std::hex;
+    std::copy(hash.begin(), hash.end(), std::ostream_iterator<unsigned int>(result));
+
+    std::cout << result.str();
+    std::cout << " " << curr << std::endl;
+
+    curr = pm.GetPackageAfter(curr);
+  } while (first != curr);
+}
+
+void PrintPackageHash(Game& g, TaskGroup tasks, const std::vector<std::string>& filter) {
+  // wait for resources to be available for us
+  const unsigned int maxtasks = tasks.GetTotalTasks();
+  while (tasks.HasMore()) {
+    const std::string taskname = tasks.GetTaskName();
+    const unsigned int tasknumber = tasks.GetTaskNumber();
+    Logger::Logf(LogLevel::info, "Running %s, [%i/%i]", taskname.c_str(), tasknumber + 1u, maxtasks);
+    tasks.DoNextTask();
+  }
+
+  BlockPackageManager& blocks = g.BlockPackagePartitioner().GetPartition(Game::LocalPartition);
+  PlayerPackageManager& players = g.PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+  CardPackageManager& cards = g.CardPackagePartitioner().GetPartition(Game::LocalPartition);
+  MobPackageManager& mobs = g.MobPackagePartitioner().GetPartition(Game::LocalPartition);
+  LuaLibraryPackageManager& libs = g.LuaLibraryPackagePartitioner().GetPartition(Game::LocalPartition);
+
+  std::cout << "\n========== HASHES ===========" << std::endl;
+  PrintPackageHashStep(blocks, filter);
+  PrintPackageHashStep(players, filter);
+  PrintPackageHashStep(cards, filter);
+  PrintPackageHashStep(mobs, filter);
+  PrintPackageHashStep(libs, filter);
 }
