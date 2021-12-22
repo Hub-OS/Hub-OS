@@ -2347,18 +2347,27 @@ void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, cons
     auto lineView = whitelistView.substr(startLine, endLine - startLine);
     endLine += 1; // skip past the \n
 
-    if (lineView.size() > 32) {
-      PackageHash packageHash;
-      packageHash.md5 = lineView.substr(0, 32);
-
-      auto endsWithReturn = lineView[lineView.size() - 1] == '\r';
-      packageHash.packageId =
-        endsWithReturn
-          ? lineView.substr(33)
-          : lineView.substr(33, lineView.size() - 1);
-
-      packageHashes.push_back(packageHash);
+    if (lineView[lineView.size() - 1] == '\r') {
+      lineView = lineView.substr(0, lineView.size() - 1);
     }
+
+    if (lineView.size() <= 32) {
+      // not enough for md5 + package id
+      continue;
+    }
+
+    auto spaceIndex = lineView.find(' ');
+
+    if (spaceIndex == string::npos) {
+      // missing space
+      continue;
+    }
+
+    PackageHash packageHash;
+    packageHash.packageId = lineView.substr(0, spaceIndex); // text up until first space = packageId
+    packageHash.md5 = lineView.substr(lineView.size() - 32); // assume last 32 chars = md5
+
+    packageHashes.push_back(packageHash);
   } while(endLine < whitelistView.size());
 
   // todo: make use of whitelist
