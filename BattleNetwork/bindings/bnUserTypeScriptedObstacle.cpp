@@ -49,18 +49,6 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
     sol::meta_function::length, [](WeakWrapper<ScriptedObstacle>& obstacle) {
       return obstacle.Unwrap()->entries.size();
     },
-    "set_name", [](WeakWrapper<ScriptedObstacle>& obstacle, std::string name) {
-      obstacle.Unwrap()->SetName(name);
-    },
-    "add_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
-      obstacle.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
-    },
-    "remove_defense_rule", [](WeakWrapper<ScriptedObstacle>& obstacle, DefenseRule* defenseRule) {
-      obstacle.Unwrap()->RemoveDefenseRule(defenseRule);
-    },
-    "ignore_common_aggressor", [](WeakWrapper<ScriptedObstacle>& obstacle, bool enable) {
-      obstacle.Unwrap()->IgnoreCommonAggressor(enable);
-    },
     "can_move_to_func", sol::property(
       [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->can_move_to_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
@@ -121,20 +109,7 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
     return AnimationWrapper(obstacle.GetWeak(), animation);
   };
 
-  auto obstacle_record = battle_namespace.new_usertype<WeakWrapper<Obstacle>>("BasicObstacle",
-    "set_name", [](WeakWrapper<Obstacle>& obstacle, std::string name) {
-      obstacle.Unwrap()->SetName(name);
-    },
-    "add_defense_rule", [](WeakWrapper<Obstacle>& obstacle, DefenseRule* defenseRule) {
-      obstacle.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
-    },
-    "remove_defense_rule", [](WeakWrapper<Obstacle>& obstacle, DefenseRule* defenseRule) {
-      obstacle.Unwrap()->RemoveDefenseRule(defenseRule);
-    },
-    "ignore_common_aggressor", [](WeakWrapper<Obstacle>& obstacle, bool enable) {
-      obstacle.Unwrap()->IgnoreCommonAggressor(enable);
-    }
-  );
+  auto obstacle_record = battle_namespace.new_usertype<WeakWrapper<Obstacle>>("BasicObstacle");
 
   DefineEntityFunctionsOn(obstacle_record);
 }

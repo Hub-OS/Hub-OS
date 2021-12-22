@@ -24,14 +24,6 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
     sol::meta_function::length, [](WeakWrapper<ScriptedSpell>& spell) {
       return spell.Unwrap()->entries.size();
     },
-    "set_shadow", sol::overload(
-      [](WeakWrapper<ScriptedSpell>& spell, Entity::Shadow type) {
-        spell.Unwrap()->SetShadowSprite(type);
-      },
-      [](WeakWrapper<ScriptedSpell>& spell, std::shared_ptr<sf::Texture> shadow) {
-        spell.Unwrap()->SetShadowSprite(shadow);
-      }
-    ),
     "can_move_to_func", sol::property(
       [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->can_move_to_func; },
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {

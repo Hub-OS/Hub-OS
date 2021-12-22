@@ -17,6 +17,12 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["get_id"] = [](WeakWrapper<E>& entity) -> Entity::ID_t {
     return entity.Unwrap()->GetID();
   };
+  entity_table["get_name"] = [](WeakWrapper<E>& entity) -> std::string {
+    return entity.Unwrap()->GetName();
+  };
+  entity_table["set_name"] = [](WeakWrapper<E>& entity, const std::string& name) {
+    return entity.Unwrap()->SetName(name);
+  };
   entity_table["get_element"] = [](WeakWrapper<E>& entity) -> Element {
     return entity.Unwrap()->GetElement();
   };
@@ -188,7 +194,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["is_moving"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsMoving();
   };
-  entity_table["is_passthrough"], [](WeakWrapper<E>& entity) -> bool {
+  entity_table["is_passthrough"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsPassthrough();
   };
   entity_table["is_deleted"] = [](WeakWrapper<E>& entity) -> bool {
@@ -213,6 +219,15 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   };
   entity_table["register_component"] = [](WeakWrapper<E>& entity, WeakWrapper<ScriptedComponent>& component) {
     entity.Unwrap()->RegisterComponent(component.UnwrapAndRelease());
+  };
+  entity_table["add_defense_rule"] = [](WeakWrapper<E>& entity, DefenseRule* defenseRule) {
+    entity.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
+  };
+  entity_table["remove_defense_rule"] = [](WeakWrapper<E>& entity, DefenseRule* defenseRule) {
+    entity.Unwrap()->RemoveDefenseRule(defenseRule);
+  };
+  entity_table["ignore_common_aggressor"] = [](WeakWrapper<E>& entity, bool enable) {
+    entity.Unwrap()->IgnoreCommonAggressor(enable);
   };
   entity_table["register_status_callback"] = [](WeakWrapper<E>& entity, const Hit::Flags& flag, sol::object callbackObject) {
     ExpectLuaFunction(callbackObject);
@@ -267,6 +282,14 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["get_height"] = [](WeakWrapper<E>& entity) -> float {
     return entity.Unwrap()->GetHeight();
   };
+  entity_table["set_shadow"] = sol::overload(
+    [](WeakWrapper<E>& entity, Entity::Shadow type) {
+      entity.Unwrap()->SetShadowSprite(type);
+    },
+    [](WeakWrapper<E>& entity, std::shared_ptr<sf::Texture> shadow) {
+      entity.Unwrap()->SetShadowSprite(shadow);
+    }
+  );
   entity_table["show_shadow"] = [](WeakWrapper<E>& entity, bool show) {
     entity.Unwrap()->ShowShadow(show);
   };
@@ -282,9 +305,6 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["never_flip"] = [](WeakWrapper<E>& entity, bool enabled) {
     entity.Unwrap()->NeverFlip(enabled);
   };
-  entity_table["get_name"] = [](WeakWrapper<E>& entity) -> std::string {
-    return entity.Unwrap()->GetName();
-  };
   entity_table["get_health"] = [](WeakWrapper<E>& entity) -> int{
     return entity.Unwrap()->GetHealth();
   };
@@ -299,6 +319,12 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   };
   entity_table["set_air_shoe"] = [](WeakWrapper<E>& entity, bool enable) {
     entity.Unwrap()->SetAirShoe(enable);
+  };
+  entity_table["toggle_hitbox"] = [](WeakWrapper<E>& entity, bool enabled) {
+    return entity.Unwrap()->EnableHitbox(enabled);
+  };
+  entity_table["toggle_counter"] = [](WeakWrapper<E>& entity, bool on) {
+    entity.Unwrap()->ToggleCounter(on);
   };
   entity_table["get_current_palette"] = [](WeakWrapper<E>& entity) -> std::shared_ptr<Texture> {
     return entity.Unwrap()->GetPalette();

@@ -12,14 +12,6 @@ void DefineBasicPlayerUserType(sol::table& battle_namespace) {
     "input_has", [](WeakWrapper<Player>& player, const InputEvent& event) -> bool {
       return player.Unwrap()->InputState().Has(event);
     },
-    "set_shadow", sol::overload(
-      [](WeakWrapper<Player>& player, Entity::Shadow type) {
-        player.Unwrap()->SetShadowSprite(type);
-      },
-      [](WeakWrapper<Player>& player, std::shared_ptr<sf::Texture> shadow) {
-        player.Unwrap()->SetShadowSprite(shadow);
-      }
-    ),
     "card_action_event", sol::overload(
       [](WeakWrapper<Player>& player, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
         player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
@@ -28,9 +20,6 @@ void DefineBasicPlayerUserType(sol::table& battle_namespace) {
         player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
-    "set_name", [](WeakWrapper<Player>& player, std::string name) {
-      player.Unwrap()->SetName(name);
-    },
     "get_attack_level", [](WeakWrapper<Player>& player) -> unsigned int {
       return player.Unwrap()->GetAttackLevel();
     },
@@ -57,24 +46,6 @@ void DefineBasicPlayerUserType(sol::table& battle_namespace) {
     },
     "slide_when_moving", [](WeakWrapper<Player>& player, bool enable, const frame_time_t& frames) {
       player.Unwrap()->SlideWhenMoving(enable, frames);
-    },
-    "add_defense_rule", [](WeakWrapper<Player>& player, DefenseRule* defenseRule) {
-      player.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
-    },
-    "remove_defense_rule", [](WeakWrapper<Player>& player, DefenseRule* defenseRule) {
-      player.Unwrap()->RemoveDefenseRule(defenseRule);
-    },
-    "get_current_palette",  [](WeakWrapper<Player>& player) -> std::shared_ptr<Texture> {
-      return player.Unwrap()->GetPalette();
-    },
-    "set_palette",  [](WeakWrapper<Player>& player, std::shared_ptr<Texture>& texture) {
-      player.Unwrap()->SetPalette(texture);
-    },
-    "get_base_palette",  [](WeakWrapper<Player>& player) -> std::shared_ptr<Texture> {
-      return player.Unwrap()->GetBasePalette();
-    },
-    "store_base_palette",  [](WeakWrapper<Player>& player, std::shared_ptr<Texture>& texture) {
-      player.Unwrap()->StoreBasePalette(texture);
     },
     "create_sync_node", [] (WeakWrapper<Player>& player, const std::string& point) -> std::shared_ptr<SyncNode> {
       return player.Unwrap()->AddSyncNode(point);
