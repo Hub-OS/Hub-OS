@@ -2177,7 +2177,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
   AddSceneChangeTask([=, &blockPartition, &playerPartition] {
     CardPackagePartitioner& cardPartition = getController().CardPackagePartitioner();
-    std::vector<DownloadScene::Hash> cards, selectedNaviBlocks;
+    std::vector<PackageHash> cards, selectedNaviBlocks;
     const std::string& selectedNaviId = GetCurrentNaviID();
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
 
@@ -2206,7 +2206,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
     PackageAddress playerPackageAddr = PackageAddress{ Game::LocalPartition, selectedNaviId };
     const std::string& playerPackageMd5 = playerPartition.FindPackageByAddress(playerPackageAddr).GetPackageFingerprint();
-    DownloadScene::Hash playerPackageHash = { GetCurrentNaviID(), playerPackageMd5 };
+    PackageHash playerPackageHash = { GetCurrentNaviID(), playerPackageMd5 };
 
     DownloadSceneProps props = {
       cards,

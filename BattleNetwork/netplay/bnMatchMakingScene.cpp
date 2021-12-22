@@ -477,7 +477,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
   else if (handshakeComplete && !hasProcessedCards) {
     hasProcessedCards = true;
 
-    std::vector<DownloadScene::Hash> cardHashes, selectedNaviBlocks;
+    std::vector<PackageHash> cardHashes, selectedNaviBlocks;
 
     BlockPackageManager& blockPackages = getController().BlockPackagePartitioner().GetPartition(Game::LocalPartition);
     CardPackageManager& cardPackages = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
@@ -502,7 +502,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       next = copy->Next();
     }
 
-    DownloadScene::Hash playerHash;
+    PackageHash playerHash;
     playerHash.packageId = selectedNaviId;
     playerHash.md5 = playerPackages.FindPackageByID(selectedNaviId).GetPackageFingerprint();
 

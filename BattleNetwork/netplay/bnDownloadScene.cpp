@@ -16,16 +16,6 @@
 
 constexpr std::string_view CACHE_FOLDER = "cache";
 
-// Hash struct operators for std containers
-bool operator<(const DownloadScene::Hash& a, const DownloadScene::Hash& b) {
-  return std::tie(a.packageId, a.md5) < std::tie(b.packageId, b.md5);
-}
-
-bool operator==(const DownloadScene::Hash& a, const DownloadScene::Hash& b)
-{
-  return std::tie(a.packageId, a.md5) == std::tie(b.packageId, b.md5);
-}
-
 // class DownloadScene
 DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
   downloadSuccess(props.downloadSuccess),
@@ -160,7 +150,7 @@ bool DownloadScene::AllTasksComplete()
   return cardPackageRequested && playerPackageRequested && blockPackageRequested && contentToDownload.empty();
 }
 
-void DownloadScene::TradePlayerPackageData(const Hash& hash)
+void DownloadScene::TradePlayerPackageData(const PackageHash& hash)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer{ 0 };
@@ -170,13 +160,13 @@ void DownloadScene::TradePlayerPackageData(const Hash& hash)
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void DownloadScene::TradeCardPackageData(const std::vector<Hash>& hashes)
+void DownloadScene::TradeCardPackageData(const std::vector<PackageHash>& hashes)
 {
   // Upload card list to remote
   packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfHashes(NetPlaySignals::trade_card_package_list, hashes));
 }
 
-void DownloadScene::TradeBlockPackageData(const std::vector<Hash>& hashes)
+void DownloadScene::TradeBlockPackageData(const std::vector<PackageHash>& hashes)
 {
   // Upload card list to remote
   packetProcessor->SendPacket(Reliability::Reliable, SerializeListOfHashes(NetPlaySignals::trade_block_package_list, hashes));
@@ -289,10 +279,10 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
 
 void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer)
 {
-  std::vector<Hash> packageCardList = DeserializeListOfHashes(buffer);
+  std::vector<PackageHash> packageCardList = DeserializeListOfHashes(buffer);
   std::vector<std::string> requestList;
   CardPackageManager& packageManager = LocalCardPartition();
-  for (Hash& remotePackage : packageCardList) {
+  for (PackageHash& remotePackage : packageCardList) {
     auto& [packageId, md5] = remotePackage;
 
     bool needsDownload = (packageManager.HasPackage(packageId) && DifferentHash(packageManager, packageId, md5));
@@ -319,10 +309,10 @@ void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer
 
 void DownloadScene::RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffer)
 {
-  std::vector<Hash> packageBlockList = DeserializeListOfHashes(buffer);
+  std::vector<PackageHash> packageBlockList = DeserializeListOfHashes(buffer);
   std::vector<std::string> requestList;
   BlockPackageManager& packageManager = LocalBlockPartition();
-  for (Hash& remotePackage : packageBlockList) {
+  for (PackageHash& remotePackage : packageBlockList) {
     auto& [packageId, md5] = remotePackage;
 
     bool needsDownload = (packageManager.HasPackage(packageId) && DifferentHash(packageManager, packageId, md5));
@@ -493,11 +483,11 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
   }
 }
 
-std::vector<DownloadScene::Hash> DownloadScene::DeserializeListOfHashes(const Poco::Buffer<char>& buffer)
+std::vector<PackageHash> DownloadScene::DeserializeListOfHashes(const Poco::Buffer<char>& buffer)
 {
   size_t len{};
   size_t read{};
-  std::vector<DownloadScene::Hash> list;
+  std::vector<PackageHash> list;
 
   // list length
   std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
@@ -528,7 +518,7 @@ std::vector<DownloadScene::Hash> DownloadScene::DeserializeListOfHashes(const Po
   return list;
 }
 
-Poco::Buffer<char> DownloadScene::SerializeListOfHashes(NetPlaySignals header, const std::vector<DownloadScene::Hash>& list)
+Poco::Buffer<char> DownloadScene::SerializeListOfHashes(NetPlaySignals header, const std::vector<PackageHash>& list)
 {
   Poco::Buffer<char> data{ 0 };
 
@@ -539,7 +529,7 @@ Poco::Buffer<char> DownloadScene::SerializeListOfHashes(NetPlaySignals header, c
   size_t len = list.size();
   data.append((char*)&len, sizeof(size_t));
 
-  for(const DownloadScene::Hash& hash : list) {
+  for(const PackageHash& hash : list) {
     // package id
     size_t sz = hash.packageId.length();
     data.append((char*)&sz, sizeof(size_t));
