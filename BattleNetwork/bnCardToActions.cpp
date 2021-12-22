@@ -20,9 +20,8 @@ std::shared_ptr<CardAction> CardToAction(
   if (partition && !maybe_addr.is_error()) {
     PackageAddress addr = maybe_addr.value();
 
-    if (partition->HasNamespace(addr.namespaceId)) {
-      CardPackageManager& packages = partition->GetPartition(addr.namespaceId);
-      CardMeta& meta = packages.FindPackageByID(addr.packageId);
+    if (partition->HasPackage(addr)) {
+      CardMeta& meta = partition->FindPackageByAddress(addr);
       std::unique_ptr<CardImpl> cardImpl = std::unique_ptr<CardImpl>(meta.GetData());
       const Battle::Card::Properties& props = moddedProps.has_value() ? moddedProps.value() : meta.GetCardProperties();
 

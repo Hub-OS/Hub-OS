@@ -1,33 +1,23 @@
 #include "bnBattleOverBattleState.h"
 #include "../bnBattleSceneBase.h"
-
+#include "../../bnScene.h"
 #include "../../bnPlayer.h"
 #include "../../bnField.h"
-#include "../../bnCardAction.h"
-#include "../../bnAudioResourceManager.h"
-#include "../../bnTextureResourceManager.h"
+#include "../../bnAnimationComponent.h"
 
-#include <Swoosh/Ease.h>
-
-bool BattleOverBattleState::IsFinished() {
-  return battleEndTimer.getElapsed().asMilliseconds() >= postBattleLength;
+BattleOverBattleState::BattleOverBattleState() : 
+  BattleTextIntroState()
+{
+  SetIntroText("Enemy Deleted!");
 }
 
-BattleOverBattleState::BattleOverBattleState()
+void BattleOverBattleState::onStart(const BattleSceneState* _)
 {
-  battleEnd = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ENEMY_DELETED));
-  battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);
-  battleEnd.setPosition(sf::Vector2f(240.f, 140.f));
-  battleEnd.setScale(2.f, 2.f);
-}
+  BattleTextIntroState::onStart(_);
 
-void BattleOverBattleState::onStart(const BattleSceneState*)
-{
-  battleEndTimer.reset();
-  battleEndTimer.start();
   Audio().Stream("resources/loops/enemy_deleted.ogg");
 
-  for (auto p : GetScene().GetAllPlayers()) {
+  for (std::shared_ptr<Player> p : GetScene().GetAllPlayers()) {
     auto animComponent = p->GetFirstComponent<AnimationComponent>();
 
     // If animating, let the animation end to look natural
@@ -61,23 +51,11 @@ void BattleOverBattleState::onStart(const BattleSceneState*)
   GetScene().GetField()->RequestBattleStop();
 }
 
-void BattleOverBattleState::onEnd(const BattleSceneState*)
-{
-}
 
 void BattleOverBattleState::onUpdate(double elapsed)
 {
-  battleEndTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  BattleTextIntroState::onUpdate(elapsed);
 
   // finish whatever animations were happening
   GetScene().GetField()->Update(elapsed);
-}
-
-void BattleOverBattleState::onDraw(sf::RenderTexture& surface)
-{
-  double battleEndSecs = battleEndTimer.getElapsed().asMilliseconds();
-  double scale = swoosh::ease::wideParabola(battleEndSecs, postBattleLength, 2.0);
-  battleEnd.setScale(2.f, (float)scale * 2.f);
-
-  surface.draw(battleEnd);
 }

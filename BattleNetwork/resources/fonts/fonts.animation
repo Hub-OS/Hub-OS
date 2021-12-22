@@ -1,4 +1,4 @@
-imagePath="C:\Users\Proto\Code\OpenNetBattle\BattleNetwork\resources\fonts\fonts.png"
+imagePath="C:/Users/Proto/Documents/Code/OpenNetBattle/BattleNetwork/resources/fonts/fonts.png"
 
 animation state="SMALL_A"
 frame duration="0" x="4" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0" 
@@ -263,6 +263,7 @@ frame duration="0" x="184" y="106" w="2" h="7" originx="0" originy="0" flipx="0"
 
 animation state="THICK_A"
 frame duration="0.05" x="244" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0" 
+frame duration="0.05" x="0" y="0" w="0" h="0" originx="0" originy="0" flipx="0" flipy="0" 
 
 animation state="THICK_B"
 frame duration="0.05" x="254" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0" 
@@ -1410,3 +1411,123 @@ frame duration="0.05" x="1087" y="137" w="7" h="15" originx="0" originy="0" flip
 
 animation state="THIN_;"
 frame duration="0.05" x="1012" y="40" w="5" h="15" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_A"
+frame duration="0.05" x="389" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_B"
+frame duration="0.05" x="400" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_C"
+frame duration="0.05" x="411" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_D"
+frame duration="0.05" x="422" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_E"
+frame duration="0.05" x="433" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_F"
+frame duration="0.05" x="445" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_G"
+frame duration="0.05" x="457" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_H"
+frame duration="0.05" x="469" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_I"
+frame duration="0.05" x="480" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_J"
+frame duration="0.05" x="493" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_K"
+frame duration="0.05" x="504" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_L"
+frame duration="0.05" x="516" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_M"
+frame duration="0.05" x="527" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_N"
+frame duration="0.05" x="538" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_O"
+frame duration="0.05" x="389" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_P"
+frame duration="0.05" x="400" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_Q"
+frame duration="0.05" x="411" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_R"
+frame duration="0.05" x="423" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_S"
+frame duration="0.05" x="435" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_T"
+frame duration="0.05" x="447" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_U"
+frame duration="0.05" x="458" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_V"
+frame duration="0.05" x="471" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_W"
+frame duration="0.05" x="482" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_X"
+frame duration="0.05" x="493" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_Y"
+frame duration="0.05" x="504" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_Z"
+frame duration="0.05" x="516" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE__"
+frame duration="0.05" x="556" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_<"
+frame duration="0.05" x="547" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_>"
+frame duration="0.05" x="538" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_!"
+frame duration="0.05" x="527" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_0"
+frame duration="0.05" x="406" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_1"
+frame duration="0.05" x="418" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_2"
+frame duration="0.05" x="429" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_3"
+frame duration="0.05" x="441" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_4"
+frame duration="0.05" x="452" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_5"
+frame duration="0.05" x="464" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_6"
+frame duration="0.05" x="477" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_7"
+frame duration="0.05" x="489" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_8"
+frame duration="0.05" x="501" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="BATTLE_9"
+frame duration="0.05" x="513" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0" 

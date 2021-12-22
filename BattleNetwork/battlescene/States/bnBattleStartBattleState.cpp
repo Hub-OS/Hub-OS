@@ -6,23 +6,17 @@
 #include "../../bnTextureResourceManager.h"
 #include "../../bnPlayerSelectedCardsUI.h"
 
-BattleStartBattleState::BattleStartBattleState() {
-  battleStart = sf::Sprite(*Textures().LoadFromFile(TexturePaths::BATTLE_START));
-  battleStart.setOrigin(battleStart.getLocalBounds().width / 2.0f, battleStart.getLocalBounds().height / 2.0f);
-  battleStartPos = sf::Vector2f(240.f, 140.f);
-  battleStart.setPosition(battleStartPos);
-  battleStart.setScale(2.f, 2.f);
+
+BattleStartBattleState::BattleStartBattleState() : BattleTextIntroState()
+{
+  SetIntroText("Battle Start!");
 }
 
-void BattleStartBattleState::SetStartupDelay(frame_time_t frames)
+void BattleStartBattleState::onStart(const BattleSceneState* _)
 {
-  startupDelay = frames;
-}
+  BattleTextIntroState::onStart(_);
 
-void BattleStartBattleState::onStart(const BattleSceneState*)
-{
-  battleStartTimer.reset();
-  battleStartTimer.start();
+  GetScene().IncrementTurnCount();
 
   // only reveal first player's UI widget to them
   auto ui = GetScene().GetLocalPlayer()->GetFirstComponent<PlayerSelectedCardsUI>();
@@ -30,35 +24,4 @@ void BattleStartBattleState::onStart(const BattleSceneState*)
   if (ui) {
     ui->Reveal();
   }
-
-  GetScene().IncrementTurnCount();
-}
-
-void BattleStartBattleState::onEnd(const BattleSceneState*)
-{
-}
-
-void BattleStartBattleState::onUpdate(double elapsed)
-{
-  battleStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
-}
-
-void BattleStartBattleState::onDraw(sf::RenderTexture& surface)
-{
-  frame_time_t start = from_milliseconds(battleStartTimer.getElapsed().asMilliseconds());
-
-  if (start >= startupDelay) {
-    double delta = (start - startupDelay).asSeconds().value;
-    double length = preBattleLength.asSeconds().value;
-
-    double scale = swoosh::ease::wideParabola(delta, length, 2.0);
-    battleStart.setScale(2.f, static_cast<float>(scale * 2.0));
-
-    surface.draw(GetScene().GetCardSelectWidget());
-    surface.draw(battleStart);
-  }
-}
-
-bool BattleStartBattleState::IsFinished() {
-  return battleStartTimer.getElapsed().asSeconds() >= (startupDelay + preBattleLength).asSeconds().value;
 }

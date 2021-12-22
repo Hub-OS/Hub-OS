@@ -62,6 +62,9 @@ void Font::ApplyStyle()
   case Style::gradient_tall:
     animName = "GRADIENT_TALL_";
     break;
+  case Style::battle:
+    animName = "BATTLE_";
+    break;
   default:
     animName = "SMALL_";
     break;

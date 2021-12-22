@@ -9,49 +9,38 @@
 
 #include <Swoosh/Ease.h>
 
-bool FreedomMissionOverState::IsFinished() {
-  return battleEndTimer.getElapsed().asMilliseconds() >= postBattleLength;
-}
+FreedomMissionOverState::FreedomMissionOverState() :
+  BattleTextIntroState()
+{ }
 
-FreedomMissionOverState::FreedomMissionOverState()
+void FreedomMissionOverState::onStart(const BattleSceneState* _)
 {
-  battleEnd = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ENEMY_DELETED));
-  battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);
-  battleEnd.setPosition(sf::Vector2f(240.f, 140.f));
-  battleEnd.setScale(2.f, 2.f);
-}
+  BattleTextIntroState::onStart(_);
 
-void FreedomMissionOverState::onStart(const BattleSceneState*)
-{
   if (GetScene().IsPlayerDeleted()) {
     context = Conditions::player_deleted;
   }
-
-  battleEndTimer.reset();
-  battleEndTimer.start();
 
   Audio().StopStream();
 
   switch (context) {
   case Conditions::player_deleted:
-    battleEnd.setTexture(*Textures().LoadFromFile("resources/ui/player_deleted.png"), true);
+    SetIntroText(GetScene().GetLocalPlayer()->GetName() + " deleted!");
     break;
   case Conditions::player_won_single_turn:
-    battleEnd.setTexture(*Textures().LoadFromFile("resources/ui/single_turn_freedom.png"), true);
+    SetIntroText("Single Turn Liberation!");
     Audio().Stream("resources/loops/enemy_deleted.ogg");
     break;
   case Conditions::player_won_mutliple_turn:
-    battleEnd.setTexture(*Textures().LoadFromFile("resources/ui/multi_turn_freedom.png"), true);
+    SetIntroText("Liberate success!");
     Audio().Stream("resources/loops/enemy_deleted.ogg");
     break;
   case Conditions::player_failed:
-    battleEnd.setTexture(*Textures().LoadFromFile("resources/ui/freedom_failed.png"), true);
+    SetIntroText("Liberation Failed!");
     break;
   }
 
-  battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);
-
-  for (auto p : GetScene().GetAllPlayers()) {
+  for (std::shared_ptr<Player> p : GetScene().GetAllPlayers()) {
     auto animComponent = p->GetFirstComponent<AnimationComponent>();
 
     // If animating, let the animation end to look natural
@@ -85,23 +74,11 @@ void FreedomMissionOverState::onStart(const BattleSceneState*)
   GetScene().GetField()->RequestBattleStop();
 }
 
-void FreedomMissionOverState::onEnd(const BattleSceneState*)
-{
-}
 
 void FreedomMissionOverState::onUpdate(double elapsed)
 {
-  battleEndTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  BattleTextIntroState::onUpdate(elapsed);
 
   // finish whatever animations were happening
   GetScene().GetField()->Update(elapsed);
-}
-
-void FreedomMissionOverState::onDraw(sf::RenderTexture& surface)
-{
-  double battleEndSecs = battleEndTimer.getElapsed().asMilliseconds();
-  double scale = swoosh::ease::wideParabola(battleEndSecs, postBattleLength, 2.0);
-  battleEnd.setScale(2.f, (float)scale * 2.f);
-
-  surface.draw(battleEnd);
 }

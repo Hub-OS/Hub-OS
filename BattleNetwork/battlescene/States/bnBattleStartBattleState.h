@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../bnBattleSceneState.h"
+#include "bnBattleTextIntroState.h"
+#include "../../bnText.h"
 #include "../../frame_time_t.h"
 
 #include <SFML/Graphics/Sprite.hpp>
@@ -13,18 +14,7 @@
 
 class Player;
 
-struct BattleStartBattleState final : public BattleSceneState {
-  frame_time_t preBattleLength{ frames(60) }; 
-  frame_time_t startupDelay{ frames(0) }; /*!< Animation delay*/
-  sf::Sprite battleStart; /*!< "Battle Start" graphic */
-  swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
-  sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */
+struct BattleStartBattleState final : public BattleTextIntroState {
   BattleStartBattleState();
-
-  void SetStartupDelay(frame_time_t frames);
   void onStart(const BattleSceneState* last) override;
-  void onEnd(const BattleSceneState* next) override;
-  void onUpdate(double elapsed) override;
-  void onDraw(sf::RenderTexture& surface) override;
-  bool IsFinished();
 };

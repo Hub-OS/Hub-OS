@@ -156,6 +156,7 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
     if (player->WillEraseEOF()) {
       this->Eject();
       player = nullptr;
+      ui.SetHP(0);
       return;
     }
 

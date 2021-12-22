@@ -118,7 +118,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         if (!maybe_addr.is_error() && SelectedCardsUI::partition) {
           PackageAddress addr = maybe_addr.value();
 
-          if (SelectedCardsUI::partition->HasNamespace(addr.namespaceId)) {
+          if (SelectedCardsUI::partition->HasPackage(addr)) {
             CardPackageManager& packages = SelectedCardsUI::partition->GetPartition(addr.namespaceId);
             texture = packages.FindPackageByID(id).GetIconTexture();
             icon.setTexture(texture);

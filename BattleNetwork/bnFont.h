@@ -21,6 +21,7 @@ public:
     gradient_green = 7,
     gradient_orange = 8, // a more-contrast gold
     gradient_tall = 9,
+    battle = 10,
     size // don't use!
   } style;
 
