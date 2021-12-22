@@ -103,7 +103,7 @@ namespace Overworld
     shop_inventory,
     open_shop,
     initiate_pvp,
-    load_mob,
+    load_package,
     initiate_mob,
     actor_connected,
     actor_disconnect,

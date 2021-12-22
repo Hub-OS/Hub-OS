@@ -947,8 +947,8 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::initiate_pvp:
       receivePVPSignal(reader, data);
       break;
-    case ServerEvents::load_mob:
-      receiveLoadMobSignal(reader, data);
+    case ServerEvents::load_package:
+      receiveLoadPackageSignal(reader, data);
       break;
     case ServerEvents::initiate_mob:
       receiveMobSignal(reader, data);
@@ -2293,18 +2293,9 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   });
 }
 
-void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
-{
-  std::string asset_path = reader.ReadString<uint16_t>(buffer);
-
-  std::string file_path = serverAssetManager.GetPath(asset_path);
-
-  if (file_path.empty()) {
-    Logger::Logf(LogLevel::critical, "Failed to find remote mob asset %s", file_path.c_str());
-    return;
-  }
-
-  MobPackageManager& packageManager = getController().MobPackagePartitioner().GetPartition(Game::ServerPartition);
+template<typename Partitioner>
+static void LoadPackage(Partitioner& partitioner, const std::string& file_path) {
+  auto& packageManager = partitioner.GetPartition(Game::ServerPartition);
 
   std::string packageId = packageManager.FilepathToPackageID(file_path);
 
@@ -2313,9 +2304,24 @@ void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poc
   }
 
   // install for the first time
-  if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
-    Logger::Logf(LogLevel::critical, "Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
+  if (auto res = packageManager.template LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
+    Logger::Logf(LogLevel::critical, "Error loading remote package %s: %s", packageId.c_str(), res.error_cstr());
+  } 
+}
+
+void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string asset_path = reader.ReadString<uint16_t>(buffer);
+
+  std::string file_path = serverAssetManager.GetPath(asset_path);
+
+  if (file_path.empty()) {
+    Logger::Logf(LogLevel::critical, "Failed to find remote asset %s", file_path.c_str());
+    return;
   }
+
+  // loading everything as an encounter for now
+  LoadPackage(getController().MobPackagePartitioner(), file_path);
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
