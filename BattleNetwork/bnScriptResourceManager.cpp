@@ -89,39 +89,39 @@ void ScriptResourceManager::SetSystemFunctions(sol::state& state)
 {
   const std::string& namespaceId = state2Namespace[&state];
 
-  state.open_libraries(sol::lib::base, sol::lib::debug, sol::lib::math, sol::lib::table);
+  state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
   // 'include()' in Lua is intended to load a LIBRARY file of Lua code into the current lua state.
   // Currently only loads library files included in the SAME directory as the script file.
   // Has to capture a pointer to sol::state, the copy constructor was deleted, cannot capture a copy to reference.
   state.set_function( "include",
-    [this, &state, &namespaceId]( const std::string fileName ) -> sol::protected_function_result {
-      #ifdef _DEBUG
-      std::cout << "Including library: " << fileName << std::endl;
-      #endif
-
-      sol::protected_function_result result;
+    [this, &state, &namespaceId](const std::string& fileName) -> sol::object {
+      std::string scriptPath;
 
       // Prefer using the shared libraries if possible.
       // i.e. ones that were present in "mods/libs/"
       if( auto sharedLibPath = FetchSharedLibraryPath(namespaceId, fileName); !sharedLibPath.empty() )
       {
-        #ifdef _DEBUG
-        Logger::Log(LogLevel::info, "Including shared library: " + fileName);
-        #endif
-        
-        AddDependencyNote(state, fileName );
+        Logger::Logf(LogLevel::debug, "Including shared library: %s", fileName.c_str());
 
-        result = state.do_file( sharedLibPath, sol::load_mode::any );
+        scriptPath = sharedLibPath;
       }
       else
       {
-        #ifdef _DEBUG
-        std::cout << "Including local library: " << fileName << std::endl;
-        #endif
+        Logger::Logf(LogLevel::debug, "Including local library: %s", fileName.c_str());
 
-        std::string modPathRef = state["_modpath"];
-        result = state.do_file( modPathRef + fileName, sol::load_mode::any );
+        auto parentFolder = GetCurrentFolder(state).unwrap();
+        scriptPath = parentFolder + "/" + fileName;
+      }
+
+      sol::environment env(state, sol::create, state.globals());
+      env["_folderpath"] = std::filesystem::path(scriptPath).parent_path().string() + "/";
+
+      sol::protected_function_result result = state.do_file(scriptPath, env);
+
+      if (!result.valid()) {
+        sol::error error = result;
+        throw std::runtime_error(error.what());
       }
 
       return result;
@@ -206,6 +206,7 @@ std::string ScriptResourceManager::GetStateNamespace(sol::state& state)
 void ScriptResourceManager::SetModPathVariable( sol::state& state, const std::filesystem::path& modDirectory )
 {
   state["_modpath"] = modDirectory.generic_string() + "/";
+  state["_folderpath"] = modDirectory.generic_string() + "/";
 }
 
 // Free Function provided to a number of Lua types that will print an error message when attempting to access a key that does not exist.
@@ -226,43 +227,44 @@ sol::object ScriptResourceManager::PrintInvalidAssignMessage( sol::table table, 
   Logger::Log(LogLevel::critical, "[Script Error] : " + typeName + " is read-only. Cannot assign new values to it." );
   return sol::lua_nil;
 }
+
+stx::result_t<std::string> ScriptResourceManager::GetCurrentFile(lua_State* L)
+{
+  lua_Debug ar;
+  lua_getstack(L, 1, &ar);
+  lua_getinfo(L, "S", &ar);
+
+  auto path = std::string(ar.source);
+
+  if (path.empty() || path[0] != '@') {
+    return stx::error<std::string>("Failed to resolve current file");
+  }
+
+  return stx::ok(path.substr(1));
+}
+
+stx::result_t<std::string> ScriptResourceManager::GetCurrentFolder(lua_State* L)
+{
+  auto res = GetCurrentFile(L);
+
+  if (res.is_error()) {
+    return res;
+  }
+
+  auto path = std::filesystem::path(res.value()).parent_path();
+
+  return stx::ok(path.string());
+}
+
 // Returns the current executing line in the Lua script.
 // Format: \@[full_filename]:[line_number]
 std::string ScriptResourceManager::GetCurrentLine( lua_State* L )
 {
-  lua_getglobal( L, "debug" );          // debug
-  lua_getfield( L, -1, "getinfo" );     // debug.getinfo 
-  lua_pushinteger( L, 2 );              // debug.getinfo ( 2 )
-  lua_pushstring( L, "S" );             // debug.getinfo ( 2, "S" )
-
-  if( lua_pcall( L, 2, 1, 0) != 0 )     // table
-  {
-    Logger::Log(LogLevel::critical, "Error running function \"debug.getinfo\"");
-    Logger::Log(LogLevel::critical, std::string( lua_tostring(L, -1) ));
-  }
-
-  lua_pushstring( L, "source" );        // table.source
-  lua_gettable(L, -2);                  // <value>
+  lua_Debug ar;
+  lua_getstack(L, 1, &ar);
+  lua_getinfo(L, "Sl", &ar);
   
-  auto fileName = std::string( lua_tostring( L, -1 ) );
-
-  lua_getglobal( L, "debug" );          // debug
-  lua_getfield( L, -1, "getinfo" );     // debug.getinfo 
-  lua_pushinteger( L, 2 );              // debug.getinfo ( 2 )
-  lua_pushstring( L, "l" );             // debug.getinfo ( 2, "S" )
-
-  if( lua_pcall( L, 2, 1, 0) != 0 )     // table
-  {
-    Logger::Log(LogLevel::critical, "Error running function \"debug.getinfo\"");
-    Logger::Log(LogLevel::critical, std::string( lua_tostring(L, -1) ));
-  }
-
-  lua_pushstring( L, "currentline" );        // table.source
-  lua_gettable(L, -2);                       // <value>
-  
-  auto lineNumber = lua_tointeger( L, -1 );
-
-  return fileName + ":" + std::to_string( lineNumber );
+  return std::string(ar.source) + ":" + std::to_string(ar.currentline);
 }
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
@@ -468,7 +470,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     {
       AddDependencyNote(state, fqn);
       if (this->FetchCharacter(namespaceId, fqn) == nullptr) {
-        std::string msg = "Failed to Require character with FQN " + fqn;
+        std::string msg = "Failed to require character with FQN " + fqn;
         Logger::Log(LogLevel::critical, msg);
         throw std::runtime_error(msg);
       }
@@ -487,7 +489,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     {
       AddDependencyNote(state, fqn);
       if (this->FetchCard(namespaceId, fqn) == nullptr) {
-        std::string msg = "Failed to Require card with FQN " + fqn;
+        std::string msg = "Failed to require card with FQN " + fqn;
         Logger::Log(LogLevel::critical, msg);
         throw std::runtime_error(msg);
       }
@@ -767,6 +769,16 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
       this->DefineLibrary(namespaceId, fqn, path);
     }
   );
+
+  engine_namespace.set_function("requires_library",
+    [this, &state, &namespaceId](const std::string& fqn)
+    {
+      AddDependencyNote(state, fqn);
+      if (this->FetchSharedLibraryPath(namespaceId, fqn).empty()) {
+        throw std::runtime_error("Failed to require library with FQN " + fqn);
+      }
+    }
+  );
 }
 
 ScriptResourceManager::~ScriptResourceManager()
@@ -794,6 +806,11 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary(cons
 
   sol::state* lua = new sol::state;
 
+  auto modDirectory = std::filesystem::path(path).parent_path();
+  SetModPathVariable(*lua, modDirectory);
+  SetSystemFunctions(*lua);
+  ConfigureEnvironment(*lua);
+
   lua->set_exception_handler(&::exception_handler);
   states.push_back(lua);
   state2Namespace.insert(std::make_pair(lua, namespaceId));
@@ -807,7 +824,6 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::InitLibrary(cons
 ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::string& namespaceId, const std::filesystem::path& modDirectory)
 {
   auto entryPath = modDirectory / "entry.lua";
-  auto modpath = modDirectory;
 
   auto iter = scriptTableHash.find(entryPath.filename().generic_string());
 
@@ -893,7 +909,7 @@ void ScriptResourceManager::DefineCard(const std::string& namespaceId, const std
     }
     else {
       sol::error error = res.result;
-      Logger::Logf(LogLevel::critical, "Failed to Require card with FQN %s. Reason: %s", fqn.c_str(), error.what());
+      Logger::Logf(LogLevel::critical, "Failed to require card with FQN %s. Reason: %s", fqn.c_str(), error.what());
 
       // bubble up to end this scene from loading that needs this character...
       throw std::exception(error);
@@ -914,7 +930,7 @@ void ScriptResourceManager::DefineCharacter(const std::string& namespaceId, cons
     }
     else {
       sol::error error = res.result;
-      Logger::Logf(LogLevel::critical, "Failed to Require character with FQN %s. Reason: %s", fqn.c_str(), error.what());
+      Logger::Logf(LogLevel::critical, "Failed to define character with FQN %s. Reason: %s", fqn.c_str(), error.what());
 
       // bubble up to end this scene from loading that needs this character...
       throw std::exception(error);
@@ -937,7 +953,7 @@ void ScriptResourceManager::DefineLibrary(const std::string& namespaceId, const 
     else
     {
       sol::error error = res.result;
-      Logger::Logf(LogLevel::critical, "Failed to Require library with FQN %s. Reason %s", fqn.c_str(), error.what() );
+      Logger::Logf(LogLevel::critical, "Failed to define library with FQN %s. Reason %s", fqn.c_str(), error.what() );
 
       throw std::exception( error );
     }

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <optional>
+#include <stdexcept>
 
 /* STD LIBRARY extensions */
 namespace stx {
@@ -43,6 +44,13 @@ namespace stx {
 
         T value() {
             return this->m_value;
+        }
+
+        T unwrap() {
+          if (m_is_error) {
+            throw std::runtime_error(m_error);
+          }
+          return m_value;
         }
 
         std::optional<T> ok() {

@@ -103,6 +103,9 @@ Overworld::OnlineArea::OnlineArea(
   emoteNode->SetLayer(-100);
   emoteNode->setScale(0.5f, 0.5f);
   player->AddNode(emoteNode);
+
+  // ensure the existence of these package partitions
+  getController().MobPackagePartitioner().CreateNamespace(Game::ServerPartition);
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -236,13 +239,7 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
 }
 
 void Overworld::OnlineArea::RemovePackages() {
-  MobPackageManager& packageManager = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition);
-
-  for (auto& packageId : downloadedMobPackages) {
-    packageManager.RemovePackageByID(packageId);
-  }
-
-  downloadedMobPackages.clear();
+  getController().MobPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
@@ -456,7 +453,7 @@ void Overworld::OnlineArea::detectWarp() {
       auto data = tileObject.customProperties.GetProperty("data");
 
       command.onFinish.Slot([=] {
-        transferServer(host, port, data, false);
+        transferServer(host, port, data, true);
       });
       break;
     }
@@ -947,14 +944,17 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::open_shop:
       receiveOpenShopSignal(reader, data);
       break;
-    case ServerEvents::initiate_pvp:
-      receivePVPSignal(reader, data);
+    case ServerEvents::load_package:
+      receiveLoadPackageSignal(reader, data);
       break;
-    case ServerEvents::load_mob:
-      receiveLoadMobSignal(reader, data);
+    case ServerEvents::mod_whitelist:
+      receiveModWhitelistSignal(reader, data);
       break;
     case ServerEvents::initiate_mob:
       receiveMobSignal(reader, data);
+      break;
+    case ServerEvents::initiate_pvp:
+      receivePVPSignal(reader, data);
       break;
     case ServerEvents::actor_connected:
       receiveActorConnectedSignal(reader, data);
@@ -2180,7 +2180,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
   AddSceneChangeTask([=, &blockPartition, &playerPartition] {
     CardPackagePartitioner& cardPartition = getController().CardPackagePartitioner();
-    std::vector<DownloadScene::Hash> cards, selectedNaviBlocks;
+    std::vector<PackageHash> cards, selectedNaviBlocks;
     const std::string& selectedNaviId = GetCurrentNaviID();
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
 
@@ -2209,7 +2209,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
     PackageAddress playerPackageAddr = PackageAddress{ Game::LocalPartition, selectedNaviId };
     const std::string& playerPackageMd5 = playerPartition.FindPackageByAddress(playerPackageAddr).GetPackageFingerprint();
-    DownloadScene::Hash playerPackageHash = { GetCurrentNaviID(), playerPackageMd5 };
+    PackageHash playerPackageHash = { GetCurrentNaviID(), playerPackageMd5 };
 
     DownloadSceneProps props = {
       cards,
@@ -2296,33 +2296,72 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
   });
 }
 
-void Overworld::OnlineArea::receiveLoadMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+template<typename Partitioner>
+static void LoadPackage(Partitioner& partitioner, const std::string& file_path) {
+  auto& packageManager = partitioner.GetPartition(Game::ServerPartition);
+
+  std::string packageId = packageManager.FilepathToPackageID(file_path);
+
+  if (!packageId.empty() && packageManager.HasPackage(packageId)) {
+    return;
+  }
+
+  // install for the first time
+  if (auto res = packageManager.template LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
+    Logger::Logf(LogLevel::critical, "Error loading remote package %s: %s", packageId.c_str(), res.error_cstr());
+  } 
+}
+
+void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
 
   std::string file_path = serverAssetManager.GetPath(asset_path);
 
   if (file_path.empty()) {
-    Logger::Logf(LogLevel::critical, "Failed to find remote mob asset %s", file_path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed to find remote asset %s", file_path.c_str());
     return;
   }
 
-  MobPackageManager& packageManager = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition);
+  // loading everything as an encounter for now
+  LoadPackage(getController().MobPackagePartitioner(), file_path);
+}
 
-  std::string packageId = packageManager.FilepathToPackageID(file_path);
+void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string assetPath = reader.ReadString<uint16_t>(buffer);
+  auto whitelistString = GetText(assetPath);
+  std::string_view whitelistView = whitelistString;
+  std::vector<PackageHash> packageHashes;
 
-  if (packageManager.HasPackage(packageId)) {
-    return;
-  }
+  size_t endLine = 0;
 
-  // install for the first time
-  if (auto res = packageManager.LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
-    Logger::Logf(LogLevel::critical, "Error loading remote mob package %s: %s", packageId.c_str(), res.error_cstr());
-    return;
-  }
+  do {
+    size_t startLine = endLine;
+    endLine = whitelistView.find("\n", startLine);
 
-  packageId = packageManager.FilepathToPackageID(file_path);
-  downloadedMobPackages.push_back(packageId);
+    if (endLine == string::npos) {
+      endLine = whitelistView.size();
+    }
+
+    auto lineView = whitelistView.substr(startLine, endLine - startLine);
+    endLine += 1; // skip past the \n
+
+    if (lineView.size() > 32) {
+      PackageHash packageHash;
+      packageHash.md5 = lineView.substr(0, 32);
+
+      auto endsWithReturn = lineView[lineView.size() - 1] == '\r';
+      packageHash.packageId =
+        endsWithReturn
+          ? lineView.substr(33)
+          : lineView.substr(33, lineView.size() - 1);
+
+      packageHashes.push_back(packageHash);
+    }
+  } while(endLine < whitelistView.size());
+
+  // todo: make use of whitelist
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2343,7 +2382,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     return;
   }
 
-  MobPackageManager& mobPackages = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition);
+  MobPackageManager& mobPackages = getController().MobPackagePartitioner().GetPartition(Game::ServerPartition);
   PlayerPackageManager& playerPackages = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
 
   std::string packageId = mobPackages.FilepathToPackageID(file_path);

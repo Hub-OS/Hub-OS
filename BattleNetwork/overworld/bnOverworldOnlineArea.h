@@ -108,7 +108,6 @@ namespace Overworld {
     CameraController serverCameraController;
     CameraController warpCameraController;
     std::vector<VendorScene::Item> shopItems;
-    std::vector<std::string> downloadedMobPackages;
     std::queue<std::function<void()>> sceneChangeTasks;
 
     void ResetPVPStep(bool failed = false);
@@ -193,7 +192,8 @@ namespace Overworld {
     void receiveShopInventorySignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveOpenShopSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveLoadMobSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveLoadPackageSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer);
     void receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);

@@ -53,14 +53,6 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
     "input_has", [](WeakWrapper<ScriptedPlayer>& player, const InputEvent& event) -> bool {
       return player.Unwrap()->InputState().Has(event);
     },
-    "set_shadow", sol::overload(
-      [](WeakWrapper<ScriptedPlayer>& player, Entity::Shadow type) {
-        player.Unwrap()->SetShadowSprite(type);
-      },
-      [](WeakWrapper<ScriptedPlayer>& player, std::shared_ptr<sf::Texture> shadow) {
-        player.Unwrap()->SetShadowSprite(shadow);
-      }
-    ),
     "card_action_event", sol::overload(
       [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
         player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
@@ -69,9 +61,6 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
         player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
-    "set_name", [](WeakWrapper<ScriptedPlayer>& player, std::string name) {
-      player.Unwrap()->SetName(name);
-    },
     "get_attack_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetAttackLevel();
     },
@@ -96,20 +85,8 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
     "set_charge_position", [](WeakWrapper<ScriptedPlayer>& player, float x, float y) {
       player.Unwrap()->SetChargePosition(x, y);
     },
-    "set_float_shoe", [](WeakWrapper<ScriptedPlayer>& player, bool enable) {
-      player.Unwrap()->SetFloatShoe(enable);
-    },
-    "set_air_shoe", [](WeakWrapper<ScriptedPlayer>& player, bool enable) {
-      player.Unwrap()->SetAirShoe(enable);
-    },
     "slide_when_moving", [](WeakWrapper<ScriptedPlayer>& player, bool enable, const frame_time_t& frames) {
       player.Unwrap()->SlideWhenMoving(enable, frames);
-    },
-    "add_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
-      player.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
-    },
-    "remove_defense_rule", [](WeakWrapper<ScriptedPlayer>& player, DefenseRule* defenseRule) {
-      player.Unwrap()->RemoveDefenseRule(defenseRule);
     },
     "create_form", [](WeakWrapper<ScriptedPlayer>& player) -> WeakWrapperChild<Player, ScriptedPlayerFormMeta> {
       auto parentPtr = player.Unwrap();

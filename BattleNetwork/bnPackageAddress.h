@@ -18,3 +18,11 @@ struct PackageAddress {
 
 bool operator<(const PackageAddress& a, const PackageAddress& b);
 bool operator==(const PackageAddress& a, const PackageAddress& b);
+
+struct PackageHash {
+  std::string packageId;
+  std::string md5;
+};
+
+bool operator<(const PackageHash& a, const PackageHash& b);
+bool operator==(const PackageHash& a, const PackageHash& b);

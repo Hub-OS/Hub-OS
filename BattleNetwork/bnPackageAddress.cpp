@@ -1,5 +1,8 @@
 #include "bnPackageAddress.h"
 
+#include <string.h>
+#include <tuple>
+
 PackageAddress::PackageAddress() {}
 
 PackageAddress::PackageAddress(const std::string& ns, const std::string& id) {
@@ -40,4 +43,14 @@ stx::result_t<PackageAddress> PackageAddress::FromStr(const std::string& fqn) {
   if (tokens.size() == 1) return stx::ok(PackageAddress{ "", tokens[0] });
 
   return stx::ok(PackageAddress{ tokens[0], tokens[1] });
+}
+
+// PackageHash struct operators for std containers
+bool operator<(const PackageHash& a, const PackageHash& b) {
+  return std::tie(a.packageId, a.md5) < std::tie(b.packageId, b.md5);
+}
+
+bool operator==(const PackageHash& a, const PackageHash& b)
+{
+  return std::tie(a.packageId, a.md5) == std::tie(b.packageId, b.md5);
 }

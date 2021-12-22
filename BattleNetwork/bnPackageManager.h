@@ -4,6 +4,7 @@
 #include "bnLogger.h"
 #include "bnResourceHandle.h"
 #include "bnScriptResourceManager.h"
+#include "bnSolHelpers.h"
 #include "stx/string.h"
 #include "stx/result.h"
 #include "stx/tuple.h"
@@ -144,8 +145,10 @@ class PackageManager {
 
     MetaClass& FindPackageByID(const std::string& id);
     std::string FilepathToPackageID(const std::string& id);
+    std::string FilepathToPackageAddress(const std::string& id);
     const MetaClass& FindPackageByID(const std::string& id) const;
     const std::string FilepathToPackageID(const std::string& id) const;
+    const std::string FilepathToPackageAddress(const std::string& id) const;
     stx::result_t<std::string> RemovePackageByID(const std::string& id);
 
     bool HasPackage(const std::string& id) const;
@@ -171,6 +174,12 @@ class PackageManager {
     * @return const unsigned size
     */
     const unsigned Size() const;
+
+    /**
+    * @brief Removes packages, file2PackageId, and zipFile2PackageId hashes from memory.
+    * @warning Does not clear the assigned namespaceId
+    */
+    void ClearPackages();
 
     /**
     * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes. 
@@ -364,15 +373,26 @@ inline std::string PackageManager<MetaClass>::FilepathToPackageID(const std::str
   if (iter == filepathToPackageId.end()) {
     auto iter = zipFilepathToPackageId.find(full_path);
     if (iter == zipFilepathToPackageId.end()) {
-      Logger::Logf(LogLevel::critical, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
+      Logger::Logf(LogLevel::debug, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
       return "";
     }
     else {
-      return WithNamespace(iter->second);
+      return iter->second;
     }
   }
 
-  return WithNamespace(iter->second);
+  return iter->second;
+}
+
+template<typename MetaClass>
+inline std::string PackageManager<MetaClass>::FilepathToPackageAddress(const std::string& file_path) {
+  auto packageId = FilepathToPackageID(file_path);
+
+  if (packageId.empty()) {
+    return packageId;
+  }
+
+  return WithNamespace(packageId);
 }
 
 template<typename MetaClass>
@@ -399,15 +419,26 @@ inline const std::string PackageManager<MetaClass>::FilepathToPackageID(const st
 
     auto iter = zipFilepathToPackageId.find(full_path);
     if (iter == zipFilepathToPackageId.end()) {
-      Logger::Logf(LogLevel::critical, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
+      Logger::Logf(LogLevel::debug, "Package manager could not find package with filepath %s. (also tested %s)", file_path.c_str(), full_path.c_str());
       return "";
     }
     else {
-      return WithNamespace(iter->second);
+      return iter->second;
     }
   }
 
-  return WithNamespace(iter->second);
+  return iter->second;
+}
+
+template<typename MetaClass>
+inline const std::string PackageManager<MetaClass>::FilepathToPackageAddress(const std::string& file_path) const {
+  auto packageId = FilepathToPackageID(file_path);
+
+  if (packageId.empty()) {
+    return packageId;
+  }
+
+  return WithNamespace(packageId);
 }
 
 template<typename MetaClass>
@@ -551,6 +582,21 @@ template<typename MetaClass>
 inline const std::string PackageManager<MetaClass>::WithNamespace(const std::string& id)
 {
   return PackageAddress{ namespaceId, id }; // implicit cast converts to formatted string
+}
+
+template<typename MetaClass>
+inline void PackageManager<MetaClass>::ClearPackages()
+{
+  ResourceHandle handle;
+
+  for (auto& [packageId, _] : this->packages) {
+    PackageAddress addr = { GetNamespace(), packageId };
+    handle.Scripts().DropPackageData(addr);
+  }
+
+  packages.clear();
+  filepathToPackageId.clear();
+  zipFilepathToPackageId.clear();
 }
 
 template<typename MetaClass>

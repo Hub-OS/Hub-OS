@@ -19,6 +19,7 @@
 #include "../../bnInputManager.h"
 #include "../../bnDrawWindow.h"
 #include "../../bnSceneNode.h"
+#include "../bnPackageAddress.h"
 
 class CardPackageManager;
 class PlayerPackageManager;
@@ -27,12 +28,6 @@ class BlockPackageManager;
 struct DownloadSceneProps;
 
 class DownloadScene final : public Scene {
-public:
-  struct Hash {
-    std::string packageId;
-    std::string md5;
-  };
-
 private:
   bool& downloadSuccess;
   bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{};
@@ -42,10 +37,10 @@ private:
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
-  Hash playerHash;
+  PackageHash playerHash;
   PackageAddress& remotePlayer;
   std::vector<PackageAddress>& remoteBlocks;
-  std::vector<DownloadScene::Hash> playerCardPackageList, playerBlockPackageList;
+  std::vector<PackageHash> playerCardPackageList, playerBlockPackageList;
   std::map<std::string, std::string> contentToDownload;
   Text label;
   sf::Sprite bg; // background
@@ -75,9 +70,9 @@ private:
   void SendDownloadComplete(bool success);
 
   // Initiate trades
-  void TradePlayerPackageData(const Hash& hash);
-  void TradeCardPackageData(const std::vector<Hash>& hashes);
-  void TradeBlockPackageData(const std::vector<Hash>& hashes);
+  void TradePlayerPackageData(const PackageHash& hash);
+  void TradeCardPackageData(const std::vector<PackageHash>& hashes);
+  void TradeBlockPackageData(const std::vector<PackageHash>& hashes);
 
   // Initiate requests
   void RequestPlayerPackageData(const std::string& hash);
@@ -101,8 +96,8 @@ private:
   void DownloadPackageData(const Poco::Buffer<char>& buffer, PackageManagerType& pm);
 
   // Serializers
-  std::vector<Hash> DeserializeListOfHashes(const Poco::Buffer<char>& buffer);
-  Poco::Buffer<char> SerializeListOfHashes(NetPlaySignals header, const std::vector<Hash>& list);
+  std::vector<PackageHash> DeserializeListOfHashes(const Poco::Buffer<char>& buffer);
+  Poco::Buffer<char> SerializeListOfHashes(NetPlaySignals header, const std::vector<PackageHash>& list);
 
   template<typename PackageManagerType>
   Poco::Buffer<char> SerializePackageData(const std::string& packageId, NetPlaySignals header, PackageManagerType& pm);
@@ -129,9 +124,9 @@ public:
 };
 
 struct DownloadSceneProps {
-  std::vector<DownloadScene::Hash> cardPackageHashes;
-  std::vector<DownloadScene::Hash> blockPackageHashes;
-  DownloadScene::Hash playerHash;
+  std::vector<PackageHash> cardPackageHashes;
+  std::vector<PackageHash> blockPackageHashes;
+  PackageHash playerHash;
   Poco::Net::SocketAddress remoteAddress;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
   sf::Texture lastScreen;
@@ -140,6 +135,3 @@ struct DownloadSceneProps {
   PackageAddress& remotePlayer;
   std::vector<PackageAddress>& remotePlayerBlocks;
 };
-
-bool operator<(const DownloadScene::Hash& a, const DownloadScene::Hash& b);
-bool operator==(const DownloadScene::Hash& a, const DownloadScene::Hash& b);

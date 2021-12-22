@@ -100,17 +100,18 @@ public:
     int size = 512;
     char* buffer = 0;
     buffer = new char[static_cast<size_t>(size)];
-    va_list vl;
+    va_list vl, vl2;
     va_start(vl, fmt);
+    va_copy(vl2, vl);
     int nsize = vsnprintf(buffer, size, fmt, vl);
     if (size <= nsize) {
       delete[] buffer;
-      buffer = 0;
       buffer = new char[static_cast<size_t>(nsize) + 1];
-      nsize = vsnprintf(buffer, size, fmt, vl);
+      nsize = vsnprintf(buffer, size, fmt, vl2);
     }
     std::string ret(buffer);
     va_end(vl);
+    va_end(vl2);
     delete[] buffer;
 
     ret = ErrorLevel(level) + ret;

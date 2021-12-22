@@ -5,6 +5,7 @@
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
 #include "../bnScriptResourceManager.h"
+#include "../bnObstacle.h"
 
 void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace) {
   const std::string& namespaceId = scriptManager->GetStateNamespace(state);
@@ -14,7 +15,9 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
       return sol::make_object(*state, WeakWrapper(character));
     }
     if (auto character = std::dynamic_pointer_cast<Character>(entity)) {
-      return sol::make_object(*state, WeakWrapper(character));
+      if (!dynamic_cast<Obstacle*>(entity.get())) {
+        return sol::make_object(*state, WeakWrapper(character));
+      }
     }
 
     return sol::make_object(*state, sol::lua_nil);
@@ -88,31 +91,8 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
         character.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
-    "set_shadow", sol::overload(
-      [](WeakWrapper<ScriptedCharacter>& character, Entity::Shadow type) {
-        character.Unwrap()->SetShadowSprite(type);
-      },
-      [](WeakWrapper<ScriptedCharacter>& character, std::shared_ptr<sf::Texture> shadow) {
-        character.Unwrap()->SetShadowSprite(shadow);
-      }
-    ),
-    "set_name", [](WeakWrapper<ScriptedCharacter>& character, std::string name) {
-      character.Unwrap()->SetName(name);
-    },
     "get_rank", [](WeakWrapper<ScriptedCharacter>& character) -> Character::Rank {
       return character.Unwrap()->GetRank();
-    },
-    "toggle_hitbox", [](WeakWrapper<ScriptedCharacter>& character, bool enabled) {
-      return character.Unwrap()->EnableHitbox(enabled);
-    },
-    "add_defense_rule", [](WeakWrapper<ScriptedCharacter>& character, DefenseRule* defenseRule) {
-      character.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
-    },
-    "remove_defense_rule", [](WeakWrapper<ScriptedCharacter>& character, DefenseRule* defenseRule) {
-      character.Unwrap()->RemoveDefenseRule(defenseRule);
-    },
-    "toggle_counter", [](WeakWrapper<ScriptedCharacter>& character, bool on) {
-      character.Unwrap()->ToggleCounter(on);
     },
     "set_explosion_behavior", [](WeakWrapper<ScriptedCharacter>& character, int num, double speed, bool isBoss) {
       character.Unwrap()->SetExplosionBehavior(num, speed, isBoss);

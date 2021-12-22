@@ -40,6 +40,7 @@ void DefineTileUserType(sol::state& state) {
       [] (Battle::Tile& tile, WeakWrapper<Player>& e) { return tile.AffectEntities(*e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedPlayer>& e) { return tile.AffectEntities(*e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedSpell>& e) { return tile.AffectEntities(*e.Unwrap()); },
+      [] (Battle::Tile& tile, WeakWrapper<Obstacle>& e) { return tile.AffectEntities(*e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedObstacle>& e) { return tile.AffectEntities(*e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<HitboxSpell>& e) { return tile.AffectEntities(*e.Unwrap()); }
     ),
@@ -80,6 +81,7 @@ void DefineTileUserType(sol::state& state) {
       [] (Battle::Tile& tile, WeakWrapper<ScriptedPlayer>& e) { return tile.ContainsEntity(e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedSpell>& e) { return tile.ContainsEntity(e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedObstacle>& e) { return tile.ContainsEntity(e.Unwrap()); },
+      [] (Battle::Tile& tile, WeakWrapper<Obstacle>& e) { return tile.ContainsEntity(e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedArtifact>& e) { return tile.ContainsEntity(e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<HitboxSpell>& e) { return tile.ContainsEntity(e.Unwrap()); }
     ),
@@ -93,6 +95,7 @@ void DefineTileUserType(sol::state& state) {
       [] (Battle::Tile& tile, WeakWrapper<ScriptedPlayer>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedSpell>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedObstacle>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
+      [] (Battle::Tile& tile, WeakWrapper<Obstacle>& e) { return tile.AddEntity(e.UnwrapAndRelease()); },
       [] (Battle::Tile& tile, WeakWrapper<ScriptedArtifact>& e) { return tile.AddEntity(e.UnwrapAndRelease()); }
     )
   );
