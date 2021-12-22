@@ -220,8 +220,8 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["register_component"] = [](WeakWrapper<E>& entity, WeakWrapper<ScriptedComponent>& component) {
     entity.Unwrap()->RegisterComponent(component.UnwrapAndRelease());
   };
-  entity_table["add_defense_rule"] = [](WeakWrapper<E>& entity, DefenseRule* defenseRule) {
-    entity.Unwrap()->AddDefenseRule(defenseRule->shared_from_this());
+  entity_table["add_defense_rule"] = [](WeakWrapper<E>& entity, DefenseRule& defenseRule) {
+    entity.Unwrap()->AddDefenseRule(defenseRule.shared_from_this());
   };
   entity_table["remove_defense_rule"] = [](WeakWrapper<E>& entity, DefenseRule* defenseRule) {
     entity.Unwrap()->RemoveDefenseRule(defenseRule);
