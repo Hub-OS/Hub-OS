@@ -944,14 +944,17 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::open_shop:
       receiveOpenShopSignal(reader, data);
       break;
-    case ServerEvents::initiate_pvp:
-      receivePVPSignal(reader, data);
-      break;
     case ServerEvents::load_package:
       receiveLoadPackageSignal(reader, data);
       break;
+    case ServerEvents::mod_whitelist:
+      receiveModWhitelistSignal(reader, data);
+      break;
     case ServerEvents::initiate_mob:
       receiveMobSignal(reader, data);
+      break;
+    case ServerEvents::initiate_pvp:
+      receivePVPSignal(reader, data);
       break;
     case ServerEvents::actor_connected:
       receiveActorConnectedSignal(reader, data);
@@ -2322,6 +2325,43 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
 
   // loading everything as an encounter for now
   LoadPackage(getController().MobPackagePartitioner(), file_path);
+}
+
+void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string assetPath = reader.ReadString<uint16_t>(buffer);
+  auto whitelistString = GetText(assetPath);
+  std::string_view whitelistView = whitelistString;
+  std::vector<PackageHash> packageHashes;
+
+  size_t endLine = 0;
+
+  do {
+    size_t startLine = endLine;
+    endLine = whitelistView.find("\n", startLine);
+
+    if (endLine == string::npos) {
+      endLine = whitelistView.size();
+    }
+
+    auto lineView = whitelistView.substr(startLine, endLine - startLine);
+    endLine += 1; // skip past the \n
+
+    if (lineView.size() > 32) {
+      PackageHash packageHash;
+      packageHash.md5 = lineView.substr(0, 32);
+
+      auto endsWithReturn = lineView[lineView.size() - 1] == '\r';
+      packageHash.packageId =
+        endsWithReturn
+          ? lineView.substr(33)
+          : lineView.substr(33, lineView.size() - 1);
+
+      packageHashes.push_back(packageHash);
+    }
+  } while(endLine < whitelistView.size());
+
+  // todo: make use of whitelist
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
