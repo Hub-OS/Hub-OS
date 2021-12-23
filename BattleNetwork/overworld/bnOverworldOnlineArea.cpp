@@ -2364,8 +2364,8 @@ void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, cons
     }
 
     PackageHash packageHash;
-    packageHash.packageId = lineView.substr(0, spaceIndex); // text up until first space = packageId
-    packageHash.md5 = lineView.substr(lineView.size() - 32); // assume last 32 chars = md5
+    packageHash.md5 = lineView.substr(0, 32);
+    packageHash.packageId = lineView.substr(33);
 
     packageHashes.push_back(packageHash);
   } while(endLine < whitelistView.size());
