@@ -842,7 +842,7 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   SetSystemFunctions(*lua);
   ConfigureEnvironment(*lua);
 
-  lua->set_exception_handler(&::exception_handler);
+  //lua->set_exception_handler(&::exception_handler);
   auto load_result = lua->safe_script_file(entryPath.generic_string(), sol::script_pass_on_error);
   auto pair = scriptTableHash.emplace(entryPath.generic_string(), LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;

@@ -48,4 +48,10 @@ namespace stx {
   * @warning assumes font used to display is monospaced
   */
   std::string format_to_fit(const std::string& str, size_t max_cols, size_t max_rows);
+
+  /**
+  * @brief converts a string of bytes to ascii-friendly hex for displaying
+  * @param stride determines the number of pairs per space. Default is 1 e.g. `00 AA BB`. If set to 0 there is no spacing.
+  */
+  std::string as_hex(const std::string& buffer, size_t stride=1);
 }

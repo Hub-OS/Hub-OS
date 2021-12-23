@@ -1,6 +1,7 @@
 #include "string.h"
 #include <sstream>
 #include <charconv>
+#include <iomanip>
 
 namespace stx {
   std::string replace(std::string str, const std::string& from, const std::string& to) {
@@ -162,5 +163,20 @@ namespace stx {
     output.shrink_to_fit();
 
     return output;
+  }
+
+  std::string as_hex(const std::string& buffer, size_t stride) {
+    std::stringstream ssout;
+
+    for (size_t i = 0; i < buffer.size(); i++) {
+      unsigned char u = static_cast<unsigned char>(buffer[i]);
+      ssout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned>(u);
+
+      if (stride > 0 && (i+1) % stride == 0) {
+        ssout << " ";
+      }
+    }
+
+    return ssout.str();
   }
 }

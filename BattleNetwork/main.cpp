@@ -1,6 +1,10 @@
 #include "bnGame.h"
 #include "battlescene/bnMobBattleScene.h"
 #include "bindings/bnScriptedMob.h"
+#include "bindings/bnScriptedBlock.h"
+#include "bindings/bnScriptedPlayer.h"
+#include "bindings/bnScriptedCard.h"
+#include "bindings/bnLuaLibrary.h"
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
 #include "bnBlockPackageManager.h"
@@ -22,16 +26,24 @@
 #include <Poco/URI.h>
 #include <Poco/StreamCopier.h>
 
+// Launches the standard game with full setup and configuration
 int LaunchGame(Game& g, const cxxopts::ParseResult& results);
+
+// Prepares launching the game in an isolated battle-only mode
 int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, const std::string& mobpath, const std::string& folderPath, bool isURL);
 
+// (experimental) will download a mod from a URL
 template<typename ScriptedDataType, typename PackageManager>
 stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager);
 
+// Feeds battle-mode with a list of card mods for ez testing
 std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, CardPackageManager& packageManager);
 
 // If filter is empty, lists all packages and hash pairs. Otherwise, displays the pair for the filtered hashes.
 void PrintPackageHash(Game& g, TaskGroup tasks, const std::vector<std::string>& filter);
+
+// Reads a zip mod on disk and displays the package ID and hash
+void ReadPackageAndHash(const std::string& path, const std::string& modType);
 
 static cxxopts::Options options("ONB", "Open Net Battle Engine");
 
@@ -57,11 +69,16 @@ int main(int argc, char** argv) {
     ("folder", "path to folder list on disk where each line contains a card package name and code e.g. `com.example.MockCard A`", cxxopts::value<std::string>()->default_value(""));
 
   // Utility specific flags
-  options.add_options("Utils")
-    ("i,installed", "List the successfully loaded mods");
+  options.add_options("Utilities")
+    ("i,installed", "List the successfully loaded mods and their hashes")
+    ("j,hash", "path to a mod .zip anywhere on disk then display the md5 and package id pair to screen", cxxopts::value<std::string>()->default_value(""))
+    ("t,type", "specifies the one type of mod to parse [player|block|card|mob|lib]", cxxopts::value<std::string>()->default_value(""));
 
   // Prevent throwing exceptions on bad input
   options.allow_unrecognised_options();
+
+  // require these to types to be paired
+  options.parse_positional({ "hash", "type" });
 
   // Parse
   cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
@@ -130,7 +147,7 @@ void ParseErrorLevel(std::string in) {
     valid.push_back("all");
   }
   
-  std::string validStr;
+  std::string validStr = "silent";
 
   for (size_t i = 0; i < valid.size(); i++) {
     validStr += valid[i];
@@ -141,11 +158,7 @@ void ParseErrorLevel(std::string in) {
   }
 
   msg += "`" + validStr + "`";
-  std::cout << msg << std::endl;
-
-  msg = std::string(msg.size(), '-');
-
-  std::cout << msg << std::endl;
+  std::cerr << msg << std::endl;
   
   Logger::SetLogLevel(level);
 }
@@ -193,6 +206,19 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
   if (g.CommandLineValue<bool>("installed")) {
     std::vector<std::string> filter;
     PrintPackageHash(g, g.Boot(results), filter);
+
+    return EXIT_SUCCESS;
+  }
+
+  const std::string& path = g.CommandLineValue<std::string>("hash");
+  const std::string& type = g.CommandLineValue<std::string>("type");
+  if (!path.empty()) {
+    if (type.empty()) {
+      std::cerr << "Please specify the type of mod. Use -h for options." << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    ReadPackageAndHash(path, type);
 
     return EXIT_SUCCESS;
   }
@@ -341,25 +367,48 @@ std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, Card
   return folder;
 }
 
+//!< Takes in a package manager and filters output before storing it in an output buffer `outStr` and storing the max line length for further decorating
 template<typename PackageManagerT>
-void PrintPackageHashStep(PackageManagerT& pm, const std::vector<std::string>& filter) {
+void FormatPackageHashOutput(PackageManagerT& pm, const std::vector<std::string>& filter, std::string& outStr, size_t& maxLineLen) {
   std::string first = pm.FirstValidPackage();
   std::string curr = first;
 
   if (first.empty()) return;
 
   do {
-    const std::string& hash = pm.FindPackageByID(curr).GetPackageFingerprint();
+    const std::string& hash = stx::as_hex(pm.FindPackageByID(curr).GetPackageFingerprint(), 0);
 
-    std::ostringstream result;
-    result << std::setw(2) << std::setfill('0') << std::hex;
-    std::copy(hash.begin(), hash.end(), std::ostream_iterator<unsigned int>(result));
-
-    std::cout << result.str();
-    std::cout << " " << curr << std::endl;
+    outStr += hash + " " + curr + "\n";
+    maxLineLen = std::max(hash.size(), maxLineLen);
 
     curr = pm.GetPackageAfter(curr);
   } while (first != curr);
+}
+
+template<typename PackageManagerT>
+void CollectPackageHashBuffer(PackageManagerT& pm, const std::vector<std::string>& filter, std::string& outStr, size_t& maxLineLen) {
+  std::string subOutStr;
+  size_t lineLen{};
+
+  FormatPackageHashOutput(pm, filter, subOutStr, lineLen);
+  maxLineLen = std::max(maxLineLen, lineLen);
+
+  if (lineLen == 0) {
+    lineLen = maxLineLen;
+    subOutStr = MakeHeader("(empty)", lineLen, ' ') + '\n';
+  }
+
+  outStr += subOutStr;
+}
+
+std::string MakeHeader(const std::string& title, size_t len, char padChar) {
+  if (len == 0) return "";
+
+  std::string header = std::string(len, padChar);
+  size_t origin = title.size() / 2;
+  size_t header_origin = len / 2;
+  header.replace(header_origin-origin, title.size(), title.data());
+  return header;
 }
 
 void PrintPackageHash(Game& g, TaskGroup tasks, const std::vector<std::string>& filter) {
@@ -378,10 +427,81 @@ void PrintPackageHash(Game& g, TaskGroup tasks, const std::vector<std::string>& 
   MobPackageManager& mobs = g.MobPackagePartitioner().GetPartition(Game::LocalPartition);
   LuaLibraryPackageManager& libs = g.LuaLibraryPackagePartitioner().GetPartition(Game::LocalPartition);
 
-  std::cout << "\n========== HASHES ===========" << std::endl;
-  PrintPackageHashStep(blocks, filter);
-  PrintPackageHashStep(players, filter);
-  PrintPackageHashStep(cards, filter);
-  PrintPackageHashStep(mobs, filter);
-  PrintPackageHashStep(libs, filter);
+  size_t lineLen{};
+  std::string blockStr, playerStr, cardStr, mobStr, libStr;
+  CollectPackageHashBuffer(blocks, filter, blockStr, lineLen);
+  CollectPackageHashBuffer(players, filter, playerStr, lineLen);
+  CollectPackageHashBuffer(cards, filter, cardStr, lineLen);
+  CollectPackageHashBuffer(mobs, filter, mobStr, lineLen);
+  CollectPackageHashBuffer(libs, filter, libStr, lineLen);
+
+  // print header
+  std::cout << MakeHeader("HASHES", lineLen, '=') << std::endl << std::endl;
+
+  // print each output
+  std::cout << MakeHeader(typeid(BlockPackageManager).name(), lineLen, '.') << std::endl;
+  std::cout << blockStr << std::endl;
+  std::cout << MakeHeader(typeid(PlayerPackageManager).name(), lineLen, '.') << std::endl;
+  std::cout << playerStr << std::endl;
+  std::cout << MakeHeader(typeid(CardPackageManager).name(), lineLen, '.') << std::endl;
+  std::cout << cardStr << std::endl;
+  std::cout << MakeHeader(typeid(MobPackageManager).name(), lineLen, '.') << std::endl;
+  std::cout << mobStr << std::endl;
+  std::cout << MakeHeader(typeid(LuaLibraryPackageManager).name(), lineLen, '.') << std::endl;
+  std::cout << libStr << std::endl;
+}
+
+template<typename ScriptedDataT, typename PackageManagerT>
+void ReadPackageStep(PackageManagerT& pm, const std::string& path, std::string& id, std::string& hash) {
+  stx::result_t<std::string> maybe_id = pm.LoadPackageFromZip<ScriptedDataT>(path);
+
+  if (maybe_id.is_error()) {
+    std::cerr << maybe_id.error_cstr() << std::endl;
+    return;
+  }
+
+  id = maybe_id.value();
+  hash = pm.FindPackageByID(id).GetPackageFingerprint();
+}
+
+// NOTE: Game needs to instantiate before calling this function so 
+//       that PackageManager's ResourceHandle variable will
+//       have a valid script manager ptr!
+void ReadPackageAndHash(const std::string& path, const std::string& modType) {
+  BlockPackageManager blocks("dummy");
+  PlayerPackageManager players("dummy");
+  CardPackageManager cards("dummy");
+  MobPackageManager mobs("dummy");
+  LuaLibraryPackageManager libs("dummy");
+
+  std::string id;
+  std::string hash;
+
+  if (modType == "block") {
+    ReadPackageStep<ScriptedBlock>(blocks, path, id, hash);
+  }
+
+  if (modType == "player") {
+    ReadPackageStep<ScriptedPlayer>(players, path, id, hash);
+  }
+
+  if (modType == "card") {
+    ReadPackageStep<ScriptedCard>(cards, path, id, hash);
+  }
+
+  if (modType == "mob") {
+    ReadPackageStep<ScriptedMob>(mobs, path, id, hash);
+  }
+
+
+  if (modType == "lib") {
+    ReadPackageStep<LuaLibrary>(libs, path, id, hash);
+  }
+
+  if (id.empty() || hash.empty()) {
+    std::cerr << "Not a valid mod type `" << modType << "`" << std::endl;
+    return;
+  }
+
+  std::cout << stx::as_hex(hash, 0) << " " << id;
 }

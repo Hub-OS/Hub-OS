@@ -243,7 +243,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
 
       if (includesResult.is_error()) {
         delete packageClass;
-        std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + includesResult.error_cstr();
+        std::string msg = std::string("Failed to install package `") + packageName + "`. Reason: " + includesResult.error_cstr();
         return stx::error<std::string>(msg);
       }
     }
@@ -253,7 +253,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
 
     if (initResult.is_error()) {
       delete packageClass;
-      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + initResult.error_cstr();
+      std::string msg = std::string("Failed to install package `") + packageName + "`. Reason: " + initResult.error_cstr();
       return stx::error<std::string>(msg);
     }
 
@@ -270,14 +270,14 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
     stx::result_t<bool> zip_result = stx::zip(file_path, file_path + ".zip");
     if (zip_result.is_error()) {
       delete packageClass;
-      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + zip_result.error_cstr();
+      std::string msg = std::string("Failed to install package `") + packageName + "`. Reason: " + zip_result.error_cstr();
       return stx::error<std::string>(msg);
     }
 
     stx::result_t<std::string> md5_result = stx::generate_md5_from_file(file_path + ".zip");
     if (md5_result.is_error()) {
       delete packageClass;
-      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + md5_result.error_cstr();
+      std::string msg = std::string("Failed to install package `") + packageName + "`. Reason: " + md5_result.error_cstr();
       return stx::error<std::string>(msg);
     }
     else {
@@ -286,13 +286,13 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
 
     if (stx::result_t<bool> commit_result = this->Commit(packageClass); commit_result.is_error()) {
       delete packageClass;
-      std::string msg = std::string("Failed to install package ") + packageName + ". Reason: " + commit_result.error_cstr();
+      std::string msg = std::string("Failed to install package `") + packageName + "`. Reason: " + commit_result.error_cstr();
       return stx::error<std::string>(msg);
     }
   }
   else {
     sol::error sol_error = res.result;
-    std::string msg = std::string("Failed to load package ") + packageName + ". Reason: " + sol_error.what();
+    std::string msg = std::string("Failed to load package `") + packageName + "`. Reason: " + sol_error.what();
     return stx::error<std::string>(msg);
   }
 #endif
