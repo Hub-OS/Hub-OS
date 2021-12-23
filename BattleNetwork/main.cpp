@@ -39,8 +39,8 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
 // Feeds battle-mode with a list of card mods for ez testing
 std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, CardPackageManager& packageManager);
 
-// If filter is empty, lists all packages and hash pairs. Otherwise, displays the pair for the filtered hashes.
-void PrintPackageHash(Game& g, TaskGroup tasks, const std::vector<std::string>& filter);
+// If filter is empty, lists all packages and hash pairs.
+void PrintPackageHash(Game& g, TaskGroup tasks);
 
 // Reads a zip mod on disk and displays the package ID and hash
 void ReadPackageAndHash(const std::string& path, const std::string& modType);
@@ -204,8 +204,7 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
   }
 
   if (g.CommandLineValue<bool>("installed")) {
-    std::vector<std::string> filter;
-    PrintPackageHash(g, g.Boot(results), filter);
+    PrintPackageHash(g, g.Boot(results));
 
     return EXIT_SUCCESS;
   }
@@ -369,7 +368,7 @@ std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, Card
 
 //!< Takes in a package manager and filters output before storing it in an output buffer `outStr` and storing the max line length for further decorating
 template<typename PackageManagerT>
-void FormatPackageHashOutput(PackageManagerT& pm, const std::vector<std::string>& filter, std::string& outStr, size_t& maxLineLen) {
+void FormatPackageHashOutput(PackageManagerT& pm, std::string& outStr, size_t& maxLineLen) {
   std::string first = pm.FirstValidPackage();
   std::string curr = first;
 
@@ -386,11 +385,11 @@ void FormatPackageHashOutput(PackageManagerT& pm, const std::vector<std::string>
 }
 
 template<typename PackageManagerT>
-void CollectPackageHashBuffer(PackageManagerT& pm, const std::vector<std::string>& filter, std::string& outStr, size_t& maxLineLen) {
+void CollectPackageHashBuffer(PackageManagerT& pm, std::string& outStr, size_t& maxLineLen) {
   std::string subOutStr;
   size_t lineLen{};
 
-  FormatPackageHashOutput(pm, filter, subOutStr, lineLen);
+  FormatPackageHashOutput(pm, subOutStr, lineLen);
   maxLineLen = std::max(maxLineLen, lineLen);
 
   if (lineLen == 0) {
@@ -411,7 +410,7 @@ std::string MakeHeader(const std::string& title, size_t len, char padChar) {
   return header;
 }
 
-void PrintPackageHash(Game& g, TaskGroup tasks, const std::vector<std::string>& filter) {
+void PrintPackageHash(Game& g, TaskGroup tasks) {
   // wait for resources to be available for us
   const unsigned int maxtasks = tasks.GetTotalTasks();
   while (tasks.HasMore()) {
@@ -429,11 +428,11 @@ void PrintPackageHash(Game& g, TaskGroup tasks, const std::vector<std::string>& 
 
   size_t lineLen{};
   std::string blockStr, playerStr, cardStr, mobStr, libStr;
-  CollectPackageHashBuffer(blocks, filter, blockStr, lineLen);
-  CollectPackageHashBuffer(players, filter, playerStr, lineLen);
-  CollectPackageHashBuffer(cards, filter, cardStr, lineLen);
-  CollectPackageHashBuffer(mobs, filter, mobStr, lineLen);
-  CollectPackageHashBuffer(libs, filter, libStr, lineLen);
+  CollectPackageHashBuffer(blocks, blockStr, lineLen);
+  CollectPackageHashBuffer(players, playerStr, lineLen);
+  CollectPackageHashBuffer(cards, cardStr, lineLen);
+  CollectPackageHashBuffer(mobs, mobStr, lineLen);
+  CollectPackageHashBuffer(libs, libStr, lineLen);
 
   // print header
   std::cout << MakeHeader("HASHES", lineLen, '=') << std::endl << std::endl;
