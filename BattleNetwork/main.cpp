@@ -77,9 +77,6 @@ int main(int argc, char** argv) {
   // Prevent throwing exceptions on bad input
   options.allow_unrecognised_options();
 
-  // require these to types to be paired
-  options.parse_positional({ "hash", "type" });
-
   // Parse
   cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
 

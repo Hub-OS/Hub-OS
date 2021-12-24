@@ -757,6 +757,27 @@ namespace Battle {
     return res;
   }
 
+  std::vector<std::shared_ptr<Obstacle>> Tile::FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query)
+  {
+    std::vector<std::shared_ptr<Obstacle>> res;
+
+    for (auto iter = characters.begin(); iter != characters.end(); iter++) {
+      // collect only obstacle types...
+      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](auto& other) {
+        return other->GetID() == character->GetID();
+      });
+
+      if (spell_iter == spells.end()) continue;
+
+      std::shared_ptr<Obstacle> as_obstacle = std::dynamic_pointer_cast<Obstacle>(*iter);
+      if (as_obstacle && query(as_obstacle) && as_obstacle->IsHitboxAvailable()) {
+        res.push_back(as_obstacle);
+      }
+    }
+
+    return res;
+  }
+
   int Tile::Distance(Battle::Tile& other)
   {
     return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());

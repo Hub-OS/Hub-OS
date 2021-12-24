@@ -93,6 +93,32 @@ void DefineFieldUserType(sol::table& battle_namespace) {
     ) -> WeakWrapper<Entity> {
       return WeakWrapper(field.Unwrap()->GetEntity(ID));
     },
+    "find_entities", [](
+      WeakWrapper<Field>& field,
+      sol::stack_object queryObject
+      ) {
+      sol::protected_function query = queryObject;
+
+      auto results = field.Unwrap()->FindEntities([query](std::shared_ptr<Entity>& entity) -> bool {
+        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(entity));
+
+        if (result.is_error()) {
+          Logger::Log(LogLevel::critical, result.error_cstr());
+          return false;
+        }
+
+        return result.value();
+      });
+
+      std::vector<WeakWrapper<Entity>> wrappedResults;
+      wrappedResults.reserve(results.size());
+
+      for (auto& entity : results) {
+        wrappedResults.push_back(WeakWrapper(entity));
+      }
+
+      return sol::as_table(wrappedResults);
+    },
     "find_characters", [] (
       WeakWrapper<Field>& field,
       sol::stack_object queryObject
@@ -115,6 +141,32 @@ void DefineFieldUserType(sol::table& battle_namespace) {
 
       for (auto& character : results) {
         wrappedResults.push_back(WeakWrapper(character));
+      }
+
+      return sol::as_table(wrappedResults);
+    },
+    "find_obstacles", [](
+      WeakWrapper<Field>& field,
+      sol::stack_object queryObject
+      ) {
+      sol::protected_function query = queryObject;
+
+      auto results = field.Unwrap()->FindObstacles([query](std::shared_ptr<Obstacle>& obstacle) -> bool {
+        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(obstacle));
+
+        if (result.is_error()) {
+          Logger::Log(LogLevel::critical, result.error_cstr());
+          return false;
+        }
+
+        return result.value();
+      });
+
+      std::vector<WeakWrapper<Obstacle>> wrappedResults;
+      wrappedResults.reserve(results.size());
+
+      for (auto& obstacle : results) {
+        wrappedResults.push_back(WeakWrapper(obstacle));
       }
 
       return sol::as_table(wrappedResults);

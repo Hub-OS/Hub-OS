@@ -5,9 +5,21 @@
 #include "bnSpriteProxyNode.h"
 #include "bnFont.h"
 #include "bnText.h"
+#include "bnAnimatedTextBox.h"
+
+// forward decl.
+class Message;
 
 class TitleScene final : public LoaderScene {
 private:
+  // Status flags
+  bool checkMods{};
+  bool pressedStart{};
+  unsigned progress{}, total{};
+  unsigned ellipsis{};
+  std::string taskStr, incomingTaskStr;
+  std::vector<std::string> logs;
+
   SpriteProxyNode logoSprite, alertSprite;
   SpriteProxyNode bgSprite;
   SpriteProxyNode progSprite;
@@ -15,17 +27,8 @@ private:
   Font font, startFont;
   Text logLabel, startLabel;
   Animation anim;
-  std::vector<std::string> logs;
-  unsigned progress{}, total {};
-  unsigned ellipsis{};
-  std::string taskStr, incomingTaskStr;
-
-  // Status flags
-  bool inLoadState = true;
-  bool ready = false;
-  bool loadMobs = false;
-  bool pressedStart = false;
-  bool loginSelected = true;
+  AnimatedTextBox textbox;
+  Message* currMessage{ nullptr };
 
   void CenterLabel();
 public:

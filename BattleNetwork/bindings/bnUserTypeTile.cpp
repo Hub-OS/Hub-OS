@@ -71,6 +71,58 @@ void DefineTileUserType(sol::state& state) {
 
       return sol::as_table(wrappedResults);
     },
+    "find_entities", [](
+      Battle::Tile& tile,
+      sol::stack_object queryObject
+      ) {
+      sol::protected_function query = queryObject;
+
+      auto results = tile.FindEntities([query](std::shared_ptr<Entity>& character) -> bool {
+        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
+
+        if (result.is_error()) {
+          Logger::Log(LogLevel::critical, result.error_cstr());
+          return false;
+        }
+
+        return result.value();
+      });
+
+      std::vector<WeakWrapper<Entity>> wrappedResults;
+      wrappedResults.reserve(results.size());
+
+      for (auto& entity : results) {
+        wrappedResults.push_back(WeakWrapper(entity));
+      }
+
+      return sol::as_table(wrappedResults);
+    },
+    "find_obstacles", [](
+      Battle::Tile& tile,
+      sol::stack_object queryObject
+      ) {
+      sol::protected_function query = queryObject;
+
+      auto results = tile.FindObstacles([query](std::shared_ptr<Obstacle>& obst) -> bool {
+        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(obst));
+
+        if (result.is_error()) {
+          Logger::Log(LogLevel::critical, result.error_cstr());
+          return false;
+        }
+
+        return result.value();
+      });
+
+      std::vector<WeakWrapper<Obstacle>> wrappedResults;
+      wrappedResults.reserve(results.size());
+
+      for (auto& obstacle : results) {
+        wrappedResults.push_back(WeakWrapper(obstacle));
+      }
+
+      return sol::as_table(wrappedResults);
+    },
     "highlight", &Battle::Tile::RequestHighlight,
     "get_tile", &Battle::Tile::GetTile,
     "contains_entity", sol::overload(

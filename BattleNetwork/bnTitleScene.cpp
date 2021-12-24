@@ -4,6 +4,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnMessage.h"
 #include "overworld/bnOverworldHomepage.h"
 
 using namespace swoosh::types;
@@ -20,9 +21,7 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   font(Font::Style::small),
   logLabel(font),
   startLabel(startFont),
-  inLoadState(true),
-  ready(false),
-  loadMobs(false),
+  textbox({ 4, 255 }),
   LoaderScene(controller, std::move(tasks))
 {
   // Title screen logo based on region
@@ -80,43 +79,75 @@ void TitleScene::onUpdate(double elapsed)
 {
   anim.Update(elapsed, progSprite.getSprite());
 
-  try {
-    // If not ready, do no proceed past this point!
-    if (IsComplete() == false || progress < 100) {
-      ellipsis = (ellipsis + 1) % 4;
-      auto dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
+  // If not ready, do no proceed past this point!
+  if (IsComplete() == false || progress < 100) {
+    ellipsis = (ellipsis + 1) % 4;
+    auto dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
 
-      if (progress < total) {
-        progress++;
-      }
-
-      std::string percent = std::to_string(this->progress) + "%";
-      std::string label = taskStr + ": " + percent + dots;
-      startLabel.SetString(label);
-
-      Poll();
-
-      return;
+    if (progress < total) {
+      progress++;
     }
-    else {
+
+    std::string percent = std::to_string(this->progress) + "%";
+    std::string label = taskStr + ": " + percent + dots;
+    startLabel.SetString(label);
+
+    Poll();
+
+    return;
+  }
+  else {
 #if defined(__ANDROID__)
-      startLabel.SetString("TAP SCREEN");
+    startLabel.SetString("TAP SCREEN");
 #else
-      startLabel.SetString("PRESS START");
-      CenterLabel();
+    startLabel.SetString("PRESS START");
+    CenterLabel();
 #endif
-    }
+  }
 
-    if (Input().Has(InputEvents::pressed_pause) && !pressedStart) {
-      pressedStart = true;
+  if (!checkMods) {
+    checkMods = true;
 
-      // We want the next screen to be the main menu screen
-      using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
-      getController().push<tx>();
+    PlayerPackageManager& pm = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+
+    if (pm.Size() == 0) {
+      std::string path = "resources/ow/prog/";
+      std::string msg = "Looks like you need a Player Mod to continue.\nDownload one and put it under:\n\n`resources/\n mods/\n players/`\nThen re-launch to start playing!";
+      sf::Sprite spr;
+      spr.setTexture(*Textures().LoadFromFile(path+"prog_mug.png"));
+      currMessage = new Message(msg);
+      currMessage->ShowEndMessageCursor();
+      textbox.EnqueMessage(spr, path + "prog_mug.animation", currMessage);
+      textbox.Open();
+      Audio().Play(AudioType::CHIP_DESC, AudioPriority::high);
     }
   }
-  catch (std::future_error& err) {
-    Logger::Logf(LogLevel::critical, "future_error: %s", err.what());
+
+  textbox.Update(elapsed);
+
+  // textbox will prevent players from continuing without mods
+  if (textbox.IsOpen()) {
+    if (textbox.IsEndOfBlock() && (Input().Has(InputEvents::pressed_pause) || Input().Has(InputEvents::pressed_confirm))) {
+      if (!textbox.IsFinalBlock()) {
+        textbox.ShowNextLines();
+        Audio().Play(AudioType::CHIP_CHOOSE, AudioPriority::high);
+      }
+    }
+
+    if (textbox.IsFinalBlock()) {
+      currMessage->ShowEndMessageCursor(false);
+    }
+
+    // return from loop early
+    return;
+  }
+
+  if (Input().Has(InputEvents::pressed_pause) && !pressedStart) {
+    pressedStart = true;
+
+    // We want the next screen to be the main menu screen
+    using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
+    getController().push<tx>();
   }
 }
 
@@ -144,6 +175,7 @@ void TitleScene::onDraw(sf::RenderTexture & surface)
   surface.draw(progSprite);
   surface.draw(logoSprite);
   surface.draw(startLabel);
+  surface.draw(textbox);
 }
 
 void TitleScene::onEnd()

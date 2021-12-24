@@ -288,6 +288,15 @@ namespace Battle {
     std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query);
 
     /**
+     * @brief Query for multiple charactors using a functor
+     * This is useful for movement as well as card attacks
+     * to find specific enemy types under specific conditions
+     * @param e Functor that takes in an obstacle and returns a boolean
+     * @return returns a list of obstacles that returned true in the functor `e`
+     */
+    std::vector<std::shared_ptr<Obstacle>> FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query);
+
+    /**
      * @brief Calculates and returns Manhattan-distance from this tile to the other
      */
     int Distance(Battle::Tile& other);

@@ -105,6 +105,13 @@ public:
   std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const;
 
   /**
+   * @brief Query for obstacles on the entire field
+   * @param query. the query input function
+   * @return list of std::shared_ptr<Obstacle> that passed the input function's conditions
+   */
+  std::vector<std::shared_ptr<Obstacle>> FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query) const;
+
+  /**
    * @brief Query for the closest characters on the entire field given an input entity.
    * @param test. The entity to test distance against.
    * @param query. the query input function

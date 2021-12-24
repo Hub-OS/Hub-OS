@@ -275,6 +275,23 @@ std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool
   return res;
 }
 
+std::vector<std::shared_ptr<Obstacle>> Field::FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query) const
+{
+  std::vector<std::shared_ptr<Obstacle>> res;
+
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      std::vector<std::shared_ptr<Obstacle>> found = tile->FindObstacles(query);
+      res.reserve(res.size() + found.size()); // preallocate memory
+      res.insert(res.end(), found.begin(), found.end());
+    }
+  }
+
+  return res;
+}
+
 std::vector<std::shared_ptr<Character>> Field::FindNearestCharacters(const std::shared_ptr<Entity> test, std::function<bool(std::shared_ptr<Character>& e)> filter) const
 {
   auto list = this->FindCharacters(filter);
