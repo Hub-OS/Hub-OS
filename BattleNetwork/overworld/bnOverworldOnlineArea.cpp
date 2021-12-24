@@ -2184,8 +2184,9 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     const std::string& selectedNaviId = GetCurrentNaviID();
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
 
-    if (selectedFolder) {
+    if (selectedFolder && getController().Session().IsFolderAllowed(*selectedFolder)) {
       std::unique_ptr<CardFolder> folder = (*selectedFolder)->Clone();
+
       Battle::Card* next = folder->Next();
 
       while (next) {
@@ -2238,12 +2239,12 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
     std::unique_ptr<CardFolder> folder;
 
-    if (selectedFolder) {
+    if (selectedFolder && getController().Session().IsFolderAllowed(*selectedFolder)) {
       folder = (*selectedFolder)->Clone();
       folder->Shuffle();
     }
     else {
-      // use a new blank folder if we dont have a folder selected
+      // use a new blank folder if we dont have a proper folder selected
       folder = std::make_unique<CardFolder>();
     }
 
@@ -2330,7 +2331,7 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
 void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string assetPath = reader.ReadString<uint16_t>(buffer);
-  auto whitelistString = GetText(assetPath);
+  std::string whitelistString = GetText(assetPath);
   std::string_view whitelistView = whitelistString;
   std::vector<PackageHash> packageHashes;
 
@@ -2344,7 +2345,7 @@ void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, cons
       endLine = whitelistView.size();
     }
 
-    auto lineView = whitelistView.substr(startLine, endLine - startLine);
+    std::string_view lineView = whitelistView.substr(startLine, endLine - startLine);
     endLine += 1; // skip past the \n
 
     if (lineView[lineView.size() - 1] == '\r') {
@@ -2356,8 +2357,8 @@ void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, cons
       continue;
     }
 
-    auto spaceIndex = lineView.find(' ');
-
+    size_t spaceIndex = lineView.find(' ');
+    
     if (spaceIndex == string::npos) {
       // missing space
       continue;
@@ -2370,7 +2371,7 @@ void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, cons
     packageHashes.push_back(packageHash);
   } while(endLine < whitelistView.size());
 
-  // todo: make use of whitelist
+  getController().Session().SetWhitelist(packageHashes);
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2434,12 +2435,12 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
     std::unique_ptr<CardFolder> folder;
 
-    if (selectedFolder) {
+    if (selectedFolder && getController().Session().IsFolderAllowed(*selectedFolder)) {
       folder = (*selectedFolder)->Clone();
       folder->Shuffle();
     }
     else {
-      // use a new blank folder if we dont have a folder selected
+      // use a new blank folder if we dont have a proper folder selected
       folder = std::make_unique<CardFolder>();
     }
 

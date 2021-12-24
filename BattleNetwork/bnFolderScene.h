@@ -61,6 +61,7 @@ private:
   sf::Sprite element;
   sf::Sprite cursor;
   sf::Sprite folderEquip;
+  sf::Sprite folderDisabled;
   sf::Sprite cardIcon;
   sf::Sprite mbPlaceholder;
 
@@ -103,7 +104,7 @@ private:
   void StartupTouchControls();
   void ShutdownTouchControls();
 #endif
-
+  const bool IsFolderAllowed(CardFolder* folder);
   void MakeNewFolder();
   void DeleteFolder(std::function<void()> onSuccess);
   void RefreshOptions();

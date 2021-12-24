@@ -101,6 +101,30 @@ const bool GameSession::LoadSession(const std::string& inpath)
   return true;
 }
 
+const bool GameSession::IsPackageAllowed(const PackageHash& hash) const
+{
+  return std::find(whitelist.begin(), whitelist.end(), hash) != whitelist.end();
+}
+
+const bool GameSession::IsFolderAllowed(CardFolder* folder) const
+{
+  // as long as ALL contents in the folder match, the folder is allowed
+  for (CardFolder::Iter iter = folder->Begin(); iter != folder->End(); iter++) {
+    PackageHash hash;
+    hash.packageId = (*iter)->GetUUID();
+
+    if (!cardPackages->HasPackage(hash.packageId)) continue;
+
+    hash.md5 = cardPackages->FindPackageByID(hash.packageId).GetPackageFingerprint();
+
+    if (IsPackageAllowed(hash)) continue;
+
+    return false;
+  }
+
+  return true;
+}
+
 void GameSession::SaveSession(const std::string& outpath)
 {
   BufferWriter writer;
@@ -192,6 +216,11 @@ void GameSession::SetNick(const std::string& nickname) {
 void GameSession::SetCardPackageManager(CardPackageManager& cardPackageManager)
 {
   cardPackages = &cardPackageManager;
+}
+
+void GameSession::SetWhitelist(const std::vector<PackageHash> whitelist)
+{
+  this->whitelist = whitelist;
 }
 
 const std::string GameSession::GetKeyValue(const std::string& key) const

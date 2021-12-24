@@ -56,21 +56,6 @@ const int CardFolder::GetSize() const
   return folderSize;
 }
 
-void CardFolder::SetErrors(std::vector<std::string> copy)
-{
-  errors = copy;
-}
-
-const bool CardFolder::HasErrors() const
-{
-  return errors.size();
-}
-
-const std::vector<std::string>& CardFolder::GetErrors() const
-{
-  return errors;
-}
-
 CardFolder::Iter CardFolder::Begin()
 {
   return folderList.begin();

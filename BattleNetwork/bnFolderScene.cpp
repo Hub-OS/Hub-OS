@@ -73,6 +73,9 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   folderBox = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_BOX));
   folderBox.setScale(2.f, 2.f);
 
+  folderDisabled = sf::Sprite(*Textures().LoadFromFile("resources/ui/folder_disabled.png"));
+  folderDisabled.setScale(2.f, 2.f);
+
   RefreshOptions();
 
   folderCursor = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_BOX_CURSOR));
@@ -360,7 +363,7 @@ void FolderScene::onUpdate(double elapsed) {
       else if(folderNames.size()) {
         switch (optionIndex) {
         case 0: // EDIT
-          if (folder) {
+          if (folder && IsFolderAllowed(folder)) {
             Audio().Play(AudioType::CHIP_CONFIRM);
 
             using effect = segue<BlackWashFade, milli<500>>;
@@ -374,7 +377,7 @@ void FolderScene::onUpdate(double elapsed) {
         case 1: // EQUIP
         {
           CardFolder* folder{ nullptr };
-          if (collection.GetFolder(currFolderIndex, folder) && !folder->HasErrors()) {
+          if (collection.GetFolder(currFolderIndex, folder) && IsFolderAllowed(folder)) {
             selectedFolderIndex = currFolderIndex;
             collection.SwapOrder(0, selectedFolderIndex);
 
@@ -396,7 +399,7 @@ void FolderScene::onUpdate(double elapsed) {
         }
           break;
         case 2: // CHANGE NAME
-          if (folder) {
+          if (folder && IsFolderAllowed(folder)) {
             Audio().Play(AudioType::CHIP_CONFIRM);
             using effect = segue<BlackWashFade, milli<500>>;
             getController().push<effect::to<FolderChangeNameScene>>(folderNames[currFolderIndex]);
@@ -488,14 +491,14 @@ void FolderScene::onEnter()
 
 void FolderScene::onResume() {
 #ifdef __ANDROID__
-    StartupTouchControls();
+  StartupTouchControls();
 #endif
 
-    gotoNextScene = false;
+  gotoNextScene = false;
 
-    // Save any edits
-    collection.SetFolderName(folderNames[currFolderIndex], folder);
-    folderSwitch = true;
+  // Save any edits
+  collection.SetFolderName(folderNames[currFolderIndex], folder);
+  folderSwitch = true;
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
@@ -506,11 +509,18 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
   if (folderNames.size() > 0) {
     for (int i = 0; i < folderNames.size(); i++) {
-      float folderLeft = 26.0f + (i*144.0f) - (float)folderOffsetX;
-      folderBox.setPosition(folderLeft, 34.0f);
-      surface.draw(folderBox);
+      CardFolder* folder{ nullptr };
+      collection.GetFolder(folderNames[i], folder);
+      bool allowed = IsFolderAllowed(folder);
 
-      cardLabel.SetColor(sf::Color::White);
+      float folderLeft = 26.0f + (i*144.0f) - (float)folderOffsetX;
+
+      sf::Sprite& drawFolder = allowed ? folderBox : folderDisabled;
+      drawFolder.setPosition(folderLeft, 34.0f);
+      surface.draw(drawFolder);
+
+      sf::Color color = allowed ? sf::Color::White : sf::Color(70, 70, 70); 
+      cardLabel.SetColor(color);
       cardLabel.SetString(folderNames[i]);
       cardLabel.setOrigin(0.0f, 0.0f);
       cardLabel.setPosition(folderLeft + 12.0f, 54.0f);
@@ -605,8 +615,8 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       iter++;
     }
 
-    if (folder->HasErrors()) {
-      cardLabel.SetColor(sf::Color::Red);
+    if (!IsFolderAllowed(folder)) {
+      cardLabel.SetColor(sf::Color(16,136,232));
     }
     else {
       cardLabel.SetColor(sf::Color::White);
@@ -661,6 +671,11 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   }
 
   surface.draw(textbox);
+}
+
+const bool FolderScene::IsFolderAllowed(CardFolder* folder)
+{
+  return getController().Session().IsFolderAllowed(folder);
 }
 
 void FolderScene::MakeNewFolder() {

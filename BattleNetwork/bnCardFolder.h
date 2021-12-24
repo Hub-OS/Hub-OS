@@ -71,24 +71,6 @@ public:
   const int GetSize() const;
   
   /**
-   * @brief Copies error messages into the folder
-   * @param copy
-   */
-  void SetErrors(std::vector<std::string> copy);
-
-  /**
-   * @brief Query if this folder has an error
-   * @return bool
-   */
-  const bool HasErrors() const;
-
-  /**
-   * @brief The remaining size of the folder
-   * @return int
-   */
-  const std::vector<std::string>& GetErrors() const;
-
-  /**
    * @brief Iterator to beginning of the folder
    * @return Iter
    */
