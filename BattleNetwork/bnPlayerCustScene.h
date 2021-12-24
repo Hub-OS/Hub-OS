@@ -36,7 +36,7 @@ public:
     bool specialType{};
     std::array<uint8_t, BLOCK_SIZE* BLOCK_SIZE> shape{}; // 5x5
     
-    void rotateLeft() {
+    void RotateLeft() {
       auto newShape = shape;
       size_t idx = 0u;
       for (size_t i = 0; i < BLOCK_SIZE; i++) {
@@ -48,34 +48,38 @@ public:
       std::swap(newShape, shape);
       rotates++;
 
-      calculateDimensions(); // TODO: this can be embedded in the loop above for optimization
+      CalculateDimensions(); // TODO: this can be embedded in the loop above for optimization
     }
 
-    void rotateRight() {
-      rotateLeft();
-      rotateLeft();
-      rotateLeft();
+    void RotateRight() {
+      RotateLeft();
+      RotateLeft();
+      RotateLeft();
     }
 
-    void commit() {
+    void Commit() {
       finalRot = (finalRot + rotates) % 4;
       rotates = 0;
     }
 
-    void revert() {
+    void Revert() {
       size_t count = rotates % 4;
 
       if (count == 0) return;
 
       for (size_t i = 0; i < 4u-count; i++) {
-        rotateLeft();
+        RotateLeft();
       }
 
-      commit();
+      Commit();
     }
 
-    void calculateDimensions() {
-      bool first = true;
+    bool Empty() const {
+      return maxWidth == 0 || maxHeight == 0;
+    }
+
+    void CalculateDimensions() {
+      bool first_match = true;
       size_t min_i{}, min_j{}, max_i{}, max_j{};
 
       for (size_t i = 0; i < BLOCK_SIZE; i++) {
@@ -84,7 +88,7 @@ public:
           uint8_t k = shape[index];
 
           if (k) {
-            if (!first) {
+            if (!first_match) {
               // max of rect
               max_j = std::max(j, max_j);
               max_i = std::max(i, max_i);
@@ -96,11 +100,16 @@ public:
             else {
               max_j = min_j = j;
               max_i = min_i = i;
-              first = false;
+              first_match = false;
             }
           }
         }
       }
+
+      // This flag should have been false,
+      // if it is still true, signifies it was never set
+      // because the shape is empty (all zeroes)
+      if (first_match) return;
 
       startX = min_j;
       startY = min_i;
@@ -172,58 +181,58 @@ private:
   bool gotoNextScene{}; /*!< If true, user cannot interact */
   bool itemListSelected{}; // If the item list if not selected, it implies the grid area is
 
-  bool isCompileFinished();
-  bool hasLeftInput();
-  bool hasRightInput();
-  bool hasUpInput();
-  bool hasDownInput();
-  bool isBlockValid(Piece* piece);
-  bool canPieceFit(Piece* piece, size_t loc);
-  bool doesPieceOverlap(Piece* piece, size_t loc);
-  bool insertPiece(Piece* piece, size_t loc);
-  bool isGridEdge(size_t y, size_t x);
-  bool handleSelectItemFromList();
-  bool handleUIKeys(double elapsed);
-  void handleMenuUIKeys(double elapsed);
-  void handleGrabAction();
-  bool handlePieceAction(Piece*& piece, void(PlayerCustScene::* executeFunc)());
-  size_t getPieceCenter(Piece* piece);
-  size_t getPieceStart(Piece* piece, size_t center);
-  sf::Vector2f gridCursorToScreen();
-  sf::Vector2f blockToScreen(size_t y, size_t x);
-  void loadFromSave();
-  void completeAndSave();
-  void drawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x);
-  void drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
-  void drawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
-  void removePiece(Piece* piece);
-  void consolePrintGrid();
-  void startCompile();
-  void startScaffolding();
-  void animateButton(double elapsed);
-  void animateCursor(double elapsed);
-  void animateScaffolding(double elapsed);
-  void animateGrid();
-  void animateBlock(double elapsed, Piece* p = nullptr);
-  void refreshBlock(Piece* p, sf::Sprite& sprite);
-  void refreshButton(size_t idx);
-  void refreshTrack();
-  void executeLeftKey();
-  void executeRightKey();
-  void executeUpKey();
-  void executeDownKey();
-  void executeCancelInsert();
-  void executeCancelGrab();
-  void updateCursorHoverInfo();
-  void updateItemListHoverInfo();
-  void updateMenuPosition();
-  void handleInputDelay(double elapsed, void(PlayerCustScene::* executeFunc)());
-  void selectGridUI();
-  void selectItemUI(size_t idx);
-  void quitScene();
+  bool IsCompileFinished();
+  bool HasLeftInput();
+  bool HasRightInput();
+  bool HasUpInput();
+  bool HasDownInput();
+  bool IsBlockValid(Piece* piece);
+  bool CanPieceFit(Piece* piece, size_t loc);
+  bool DoesPieceOverlap(Piece* piece, size_t loc);
+  bool InsertPiece(Piece* piece, size_t loc);
+  bool IsGridEdge(size_t y, size_t x);
+  bool HandleSelectItemFromList();
+  bool HandleUIKeys(double elapsed);
+  void HandleMenuUIKeys(double elapsed);
+  void HandleGrabAction();
+  bool HandlePieceAction(Piece*& piece, void(PlayerCustScene::* executeFunc)());
+  size_t GetPieceCenter(Piece* piece);
+  size_t GetPieceStart(Piece* piece, size_t center);
+  sf::Vector2f GridCursorToScreen();
+  sf::Vector2f BlockToScreen(size_t y, size_t x);
+  void LoadFromSave();
+  void CompleteAndSave();
+  void DrawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x);
+  void DrawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
+  void DrawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
+  void RemovePiece(Piece* piece);
+  void ConsolePrintGrid();
+  void StartCompile();
+  void StartScaffolding();
+  void AnimateButton(double elapsed);
+  void AnimateCursor(double elapsed);
+  void AnimateScaffolding(double elapsed);
+  void AnimateGrid();
+  void AnimateBlock(double elapsed, Piece* p = nullptr);
+  void RefreshBlock(Piece* p, sf::Sprite& sprite);
+  void RefreshButton(size_t idx);
+  void RefreshTrack();
+  void ExecuteLeftKey();
+  void ExecuteRightKey();
+  void ExecuteUpKey();
+  void ExecuteDownKey();
+  void ExecuteCancelInsert();
+  void ExecuteCancelGrab();
+  void UpdateCursorHoverInfo();
+  void UpdateItemListHoverInfo();
+  void UpdateMenuPosition();
+  void HandleInputDelay(double elapsed, void(PlayerCustScene::* executeFunc)());
+  void SelectGridUI();
+  void SelectItemUI(size_t idx);
+  void QuitScene();
 public:
 
-  static std::vector<PackageAddress> getInstalledBlocks(const std::string& playerID, const GameSession& session);
+  static std::vector<PackageAddress> GetInstalledBlocks(const std::string& playerID, const GameSession& session);
 
   void onLeave() override;
   void onExit() override;

@@ -87,6 +87,25 @@ void DownloadScene::SendHandshakeAck()
   packetProcessor->UpdateHandshakeID(id);
 }
 
+void DownloadScene::SendCoinFlip(bool completed) {
+  Poco::Buffer<char> buffer(0);
+  BufferWriter writer;
+  writer.Write(buffer, NetPlaySignals::coin_flip);
+
+  coinFlipComplete = completed;
+
+  if (!coinFlipComplete) {
+    coinFlip = rand() % 2;
+  }
+
+  writer.Write(buffer, coinFlip);
+  writer.Write(buffer, coinFlipComplete);
+
+  Logger::Logf(LogLevel::debug, "Coin flip: %i", coinFlip);
+
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
+}
+
 void DownloadScene::ResetRemotePartitions()
 {
   CardPackagePartitioner& cardPartitioner = getController().CardPackagePartitioner();
@@ -147,7 +166,7 @@ void DownloadScene::RemoveFromDownloadList(const std::string& id)
 
 bool DownloadScene::AllTasksComplete()
 {
-  return cardPackageRequested && playerPackageRequested && blockPackageRequested && contentToDownload.empty();
+  return coinFlipComplete && remoteCoinFlipComplete && cardPackageRequested && playerPackageRequested && blockPackageRequested && contentToDownload.empty();
 }
 
 void DownloadScene::TradePlayerPackageData(const PackageHash& hash)
@@ -234,6 +253,10 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
   case NetPlaySignals::download_handshake:
     Logger::Logf(LogLevel::info, "Remote is sending initial handshake");
     this->RecieveHandshake(body);
+    break;
+  case NetPlaySignals::coin_flip:
+    Logger::Logf(LogLevel::info, "Remote is sending a coin flip");
+    this->RecieveCoinFlip(body);
     break;
   case NetPlaySignals::trade_card_package_list:
     Logger::Logf(LogLevel::info, "Remote is requesting to compare the card packages...");
@@ -345,11 +368,13 @@ void DownloadScene::RecieveHandshake(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
   unsigned int seed = reader.Read<unsigned int>(buffer);
-  unsigned int maxSeed = std::max(seed, mySeed);
-  getController().SeedRand(maxSeed);
-  coinFlip = (maxSeed == mySeed);
+  maxSeed = std::max(seed, mySeed);
 
-  Logger::Logf(LogLevel::debug, "Coin flip: %i", coinFlip);
+  
+  getController().SeedRand(maxSeed);
+
+  // kick off coin flip
+  this->SendCoinFlip(false);
 
   // mark handshake as completed
   this->remoteHandshake = true;
@@ -445,6 +470,25 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
   }
 
   Logger::Logf(LogLevel::info, "Remote says download complete. Result: %s", result ? "Success" : "Fail");
+}
+
+void DownloadScene::RecieveCoinFlip(const Poco::Buffer<char>& buffer)
+{
+  unsigned int result{};
+  std::memcpy(&result, buffer.begin(), sizeof(unsigned int));
+  std::memcpy(&remoteCoinFlipComplete, buffer.begin() + sizeof(unsigned int), sizeof(bool));
+
+  // We can't both have the same result
+  if (result == coinFlip) {
+    // revert seed, diverge, and try to come to an agreement about order
+    getController().SeedRand(mySeed++);
+    SendCoinFlip(false);
+    return;
+  }
+
+  // sync seed
+  getController().SeedRand(maxSeed); 
+  SendCoinFlip(true);
 }
 
 void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)

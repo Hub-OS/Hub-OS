@@ -15,7 +15,7 @@ constexpr sf::Uint8 PROGRESS_MAX_ALPHA = 200;
 using namespace swoosh::types;
 using Blocks = PlayerCustScene::Piece::Types;
 
-PlayerCustScene::Piece* generateRandomBlock() {
+PlayerCustScene::Piece* GenerateRandomBlock() {
   PlayerCustScene::Piece* p = new PlayerCustScene::Piece();
 
   size_t x{};
@@ -33,7 +33,7 @@ PlayerCustScene::Piece* generateRandomBlock() {
     }
   }
 
-  p->calculateDimensions();
+  p->CalculateDimensions();
 
   p->typeIndex = rand() % static_cast<uint8_t>(Blocks::size);
   p->specialType = rand() % 2;
@@ -178,14 +178,14 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
 
   // ensure piece dimensions are up-to-date
   for (auto& p : pieces) {
-    p->calculateDimensions();
+    p->CalculateDimensions();
   }
 
   // set screen view
   setView(sf::Vector2u(480, 320));
 
   // load initial layout from profile data
-  loadFromSave();
+  LoadFromSave();
 }
 
 PlayerCustScene::~PlayerCustScene()
@@ -204,7 +204,7 @@ PlayerCustScene::~PlayerCustScene()
 }
 
 // cheaper check to see if piece can fit inside the region the grid cursor is located
-bool PlayerCustScene::canPieceFit(Piece* piece, size_t loc)
+bool PlayerCustScene::CanPieceFit(Piece* piece, size_t loc)
 {
   size_t x = loc % GRID_SIZE;
   size_t y = loc / GRID_SIZE;
@@ -230,9 +230,9 @@ bool PlayerCustScene::canPieceFit(Piece* piece, size_t loc)
   return true;
 }
 
-bool PlayerCustScene::doesPieceOverlap(Piece* piece, size_t loc)
+bool PlayerCustScene::DoesPieceOverlap(Piece* piece, size_t loc)
 {
-  size_t start = getPieceStart(piece, loc);
+  size_t start = GetPieceStart(piece, loc);
 
   bool entirelyOutOfBounds = true; // assume
 
@@ -265,12 +265,12 @@ bool PlayerCustScene::doesPieceOverlap(Piece* piece, size_t loc)
   return false;
 }
 
-bool PlayerCustScene::insertPiece(Piece* piece, size_t loc)
+bool PlayerCustScene::InsertPiece(Piece* piece, size_t loc)
 {
-  if (!canPieceFit(piece, loc) || doesPieceOverlap(piece, loc))
+  if (!CanPieceFit(piece, loc) || DoesPieceOverlap(piece, loc))
     return false;
 
-  size_t start = getPieceStart(piece, loc);
+  size_t start = GetPieceStart(piece, loc);
 
   for (size_t i = piece->startY; i < piece->maxHeight+piece->startY; i++) {
     size_t idx = 0;
@@ -289,17 +289,17 @@ bool PlayerCustScene::insertPiece(Piece* piece, size_t loc)
   // update the block types in use table
   blockTypeInUseTable[piece->typeIndex]++;
 
-  piece->commit();
+  piece->Commit();
 
   return true;
 }
 
-void PlayerCustScene::removePiece(Piece* piece)
+void PlayerCustScene::RemovePiece(Piece* piece)
 {
-  size_t index = getPieceCenter(piece);
+  size_t index = GetPieceCenter(piece);
   if (index == BAD_GRID_POS) return;
 
-  size_t start = getPieceStart(piece, index);
+  size_t start = GetPieceStart(piece, index);
 
   bool scan = true;
 
@@ -325,12 +325,11 @@ void PlayerCustScene::removePiece(Piece* piece)
   centerHash[piece] = BAD_GRID_POS;
 }
 
-void PlayerCustScene::drawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x)
+void PlayerCustScene::DrawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x)
 {
-  // TODO: make arrow and left block sprite
   if ((x == 0 || x + 1u == GRID_SIZE) && y == 3) return;
 
-  sf::Vector2f pos = blockToScreen(y, x);
+  sf::Vector2f pos = BlockToScreen(y, x);
 
   // assume if false, it is a horizontal piece
   bool vert = x == 0 || x + 1u == GRID_SIZE;
@@ -380,12 +379,12 @@ void PlayerCustScene::drawEdgeBlock(sf::RenderTarget& surface, Piece* piece, siz
   }
 }
 
-bool PlayerCustScene::isGridEdge(size_t y, size_t x)
+bool PlayerCustScene::IsGridEdge(size_t y, size_t x)
 {
   return x == 0 || x == GRID_SIZE-1u || y == GRID_SIZE-1u || y == 0;
 }
 
-void PlayerCustScene::startCompile()
+void PlayerCustScene::StartCompile()
 {
   textbox.Close();
   questionInterface = nullptr;
@@ -400,13 +399,13 @@ void PlayerCustScene::startCompile()
   Audio().Play(compile_start);
 }
 
-bool PlayerCustScene::isCompileFinished()
+bool PlayerCustScene::IsCompileFinished()
 {
   return progress >= maxProgressTime; // in seconds
 }
 
 // static public function to return valid packages from the session key
-std::vector<PackageAddress> PlayerCustScene::getInstalledBlocks(const std::string& playerID, const GameSession& session)
+std::vector<PackageAddress> PlayerCustScene::GetInstalledBlocks(const std::string& playerID, const GameSession& session)
 {
   std::vector<PackageAddress> res;
 
@@ -432,7 +431,7 @@ std::vector<PackageAddress> PlayerCustScene::getInstalledBlocks(const std::strin
   return res;
 }
 
-void PlayerCustScene::loadFromSave()
+void PlayerCustScene::LoadFromSave()
 {
   std::string value = getController().Session().GetKeyValue(playerUUID + ":" + "blocks");
   if (value.empty()) return;
@@ -448,12 +447,12 @@ void PlayerCustScene::loadFromSave()
     size_t rot = reader.Read<size_t>(buffer);
 
     for (auto iter = pieces.begin(); iter != pieces.end(); /* skip */) {
-      if ((*iter)->uuid == uuid) {
+      if ((*iter)->uuid == uuid && !(*iter)->Empty()) {
         for (size_t c = 0; c < rot; c++) {
-          (*iter)->rotateLeft();
+          (*iter)->RotateLeft();
         }
 
-        if (insertPiece(*iter, center)) {
+        if (InsertPiece(*iter, center)) {
           iter = pieces.erase(iter);
           continue;
         }
@@ -463,7 +462,7 @@ void PlayerCustScene::loadFromSave()
   }
 }
 
-void PlayerCustScene::completeAndSave()
+void PlayerCustScene::CompleteAndSave()
 {
   state = state::waiting;
   infoText.SetString("OK");
@@ -484,7 +483,7 @@ void PlayerCustScene::completeAndSave()
   for (auto& [piece, center] : centerHash) {
     if (center == BAD_GRID_POS) continue;
 
-    bool isValid = isBlockValid(piece);
+    bool isValid = IsBlockValid(piece);
 
     writer.WriteTerminatedString(buffer, piece->uuid);
     writer.Write(buffer, isValid);
@@ -498,7 +497,7 @@ void PlayerCustScene::completeAndSave()
   session.SaveSession("profile.bin");
 }
 
-sf::Vector2f PlayerCustScene::blockToScreen(size_t y, size_t x)
+sf::Vector2f PlayerCustScene::BlockToScreen(size_t y, size_t x)
 {
   float offsetX = (GRID_START_X * 2) + (x * 20.f * 2.f) - 4.f;
   float offsetY = (GRID_START_Y * 2) + (y * 20.f * 2.f) - 4.f;
@@ -506,29 +505,29 @@ sf::Vector2f PlayerCustScene::blockToScreen(size_t y, size_t x)
   return sf::Vector2f{ offsetX, offsetY };
 }
 
-bool PlayerCustScene::hasLeftInput()
+bool PlayerCustScene::HasLeftInput()
 {
   return Input().Has(InputEvents::pressed_ui_left) || Input().Has(InputEvents::held_ui_left);
 }
 
-bool PlayerCustScene::hasRightInput()
+bool PlayerCustScene::HasRightInput()
 {
   return Input().Has(InputEvents::pressed_ui_right) || Input().Has(InputEvents::held_ui_right);
 }
 
-bool PlayerCustScene::hasUpInput()
+bool PlayerCustScene::HasUpInput()
 {
   return Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up);
 }
 
-bool PlayerCustScene::hasDownInput()
+bool PlayerCustScene::HasDownInput()
 {
   return Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down);
 }
 
-bool PlayerCustScene::isBlockValid(Piece* piece)
+bool PlayerCustScene::IsBlockValid(Piece* piece)
 {
-  if (!piece) return false;
+  if (!piece || piece->Empty()) return false;
 
   // NOTE: We can use this function to determine any bug statuses as well
 
@@ -536,7 +535,7 @@ bool PlayerCustScene::isBlockValid(Piece* piece)
   return (compiledHash[piece] && piece->specialType) || !piece->specialType;
 }
 
-size_t PlayerCustScene::getPieceCenter(Piece* piece)
+size_t PlayerCustScene::GetPieceCenter(Piece* piece)
 {
   auto iter = centerHash.find(piece);
   if (iter != centerHash.end()) {
@@ -546,7 +545,7 @@ size_t PlayerCustScene::getPieceCenter(Piece* piece)
   return BAD_GRID_POS;
 }
 
-size_t PlayerCustScene::getPieceStart(Piece* piece, size_t center)
+size_t PlayerCustScene::GetPieceStart(Piece* piece, size_t center)
 {
   size_t shape_half = ((Piece::BLOCK_SIZE / 2) * GRID_SIZE) + (GRID_SIZE - Piece::BLOCK_SIZE);
   size_t offset = ((piece->startY * GRID_SIZE) + piece->startX);
@@ -558,25 +557,25 @@ size_t PlayerCustScene::getPieceStart(Piece* piece, size_t center)
   return afterCenter ? start_bottom_right : start_top_left;
 }
 
-void PlayerCustScene::handleGrabAction()
+void PlayerCustScene::HandleGrabAction()
 {
   state = state::block_prompt;
   menuAnim.SetAnimation("MOVE");
   menuAnim.Refresh(menuBox);
   Audio().Play(AudioType::CHIP_DESC);
-  updateMenuPosition();
-  updateCursorHoverInfo();
+  UpdateMenuPosition();
+  UpdateCursorHoverInfo();
 }
 
-void PlayerCustScene::handleMenuUIKeys(double elapsed)
+void PlayerCustScene::HandleMenuUIKeys(double elapsed)
 {
-  if (hasUpInput()) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeUpKey);
+  if (HasUpInput()) {
+    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteUpKey);
     return;
   }
 
-  if (hasDownInput()) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeDownKey);
+  if (HasDownInput()) {
+    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteDownKey);
     return;
   }
 
@@ -593,10 +592,10 @@ void PlayerCustScene::handleMenuUIKeys(double elapsed)
   if (Input().Has(InputEvents::pressed_confirm)) {
     if (menuAnim.GetAnimationString() == "MOVE") {
       // interpolate to the center of the block
-      grabStartLocation = getPieceCenter(piece);
+      grabStartLocation = GetPieceCenter(piece);
       cursorLocation = std::min(grabStartLocation, grid.size() - 1u);
 
-      removePiece(piece);
+      RemovePiece(piece);
       grabbingPiece = piece;
       state = state::usermode;
       Audio().Play(AudioType::CHIP_DESC);
@@ -605,23 +604,23 @@ void PlayerCustScene::handleMenuUIKeys(double elapsed)
     }
 
     if (menuAnim.GetAnimationString() == "REMOVE") {
-      removePiece(piece);
+      RemovePiece(piece);
       pieces.push_back(piece);
       state = state::usermode;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
-      updateCursorHoverInfo();
+      UpdateCursorHoverInfo();
     }
   }
 }
 
-sf::Vector2f PlayerCustScene::gridCursorToScreen()
+sf::Vector2f PlayerCustScene::GridCursorToScreen()
 {
   float cursorLocationX = (cursorLocation % GRID_SIZE) * 20.f * 2.f;
   float cursorLocationY = (cursorLocation / GRID_SIZE) * 20.f * 2.f;
   return { (GRID_START_X * 2) + cursorLocationX, (GRID_START_Y * 2) + cursorLocationY };
 }
 
-void PlayerCustScene::drawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
+void PlayerCustScene::DrawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
 {
   sf::Sprite blockSprite;
   blockSprite.setScale(2.f, 2.f);
@@ -640,14 +639,14 @@ void PlayerCustScene::drawPiece(sf::RenderTarget& surface, Piece* piece, const s
         float offsetY = halfOffset + (i * 20.f * 2.f)-4.f;
         blockSprite.setTexture(*blockTextures[piece->typeIndex], true);
         blockSprite.setPosition({ pos.x + offsetX, pos.y + offsetY });
-        refreshBlock(piece, blockSprite);
+        RefreshBlock(piece, blockSprite);
         surface.draw(blockSprite);
       }
     }
   }
 }
 
-void PlayerCustScene::drawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
+void PlayerCustScene::DrawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
 {
   sf::Sprite blockSprite;
   blockSprite.setScale(2.f, 2.f);
@@ -670,7 +669,7 @@ void PlayerCustScene::drawPreview(sf::RenderTarget& surface, Piece* piece, const
   }
 }
 
-void PlayerCustScene::consolePrintGrid()
+void PlayerCustScene::ConsolePrintGrid()
 {
   for (size_t i = 0; i < GRID_SIZE; i++) {
     for (size_t j = 0; j < GRID_SIZE; j++) {
@@ -685,12 +684,12 @@ void PlayerCustScene::consolePrintGrid()
   }
 }
 
-void PlayerCustScene::startScaffolding()
+void PlayerCustScene::StartScaffolding()
 {
   scaffolding = 0.f;
 }
 
-void PlayerCustScene::animateButton(double elapsed)
+void PlayerCustScene::AnimateButton(double elapsed)
 {
   buttonFlashElapsed += elapsed;
   buttonAnim.SyncTime(buttonFlashElapsed);
@@ -698,7 +697,7 @@ void PlayerCustScene::animateButton(double elapsed)
   buttonAnim.Refresh(greenButtonSprite);
 }
 
-void PlayerCustScene::animateCursor(double elapsed)
+void PlayerCustScene::AnimateCursor(double elapsed)
 {
   if (grabbingPiece) {
     if (clawAnim.GetAnimationString() != "CLAW_CLOSED") {
@@ -715,14 +714,14 @@ void PlayerCustScene::animateCursor(double elapsed)
   clawAnim.Update(elapsed, claw);
 }
 
-void PlayerCustScene::animateScaffolding(double elapsed)
+void PlayerCustScene::AnimateScaffolding(double elapsed)
 {
   if (scaffolding < 1.) {
     scaffolding = std::min(scaffolding + (10.f*static_cast<float>(elapsed)), 1.f);
   }
 }
 
-void PlayerCustScene::animateGrid()
+void PlayerCustScene::AnimateGrid()
 {
   if (itemListSelected) {
     if (gridAnim.GetAnimationString() != "DIMMED") {
@@ -738,7 +737,7 @@ void PlayerCustScene::animateGrid()
   }
 }
 
-void PlayerCustScene::animateBlock(double elapsed, Piece* p)
+void PlayerCustScene::AnimateBlock(double elapsed, Piece* p)
 {
   blockFlashElapsed += elapsed;
   blockShadowVertAnim.SyncTime(blockFlashElapsed);
@@ -792,13 +791,13 @@ void PlayerCustScene::animateBlock(double elapsed, Piece* p)
   blockAnim.SyncTime(blockFlashElapsed);
 }
 
-void PlayerCustScene::refreshBlock(Piece* p, sf::Sprite& sprite)
+void PlayerCustScene::RefreshBlock(Piece* p, sf::Sprite& sprite)
 {
-  animateBlock(0, p);
+  AnimateBlock(0, p);
   blockAnim.Refresh(sprite);
 }
 
-void PlayerCustScene::refreshButton(size_t idx)
+void PlayerCustScene::RefreshButton(size_t idx)
 {
   if (idx == listStart+currItemIndex && itemListSelected && state == state::usermode) {
     if (buttonAnim.GetAnimationString() != "BLINK") {
@@ -811,10 +810,10 @@ void PlayerCustScene::refreshButton(size_t idx)
 
   blueButtonSprite.setScale(2.f, scaffolding * 2.f);
   greenButtonSprite.setScale(2.f, scaffolding * 2.f);
-  animateButton(0);
+  AnimateButton(0);
 }
 
-void PlayerCustScene::refreshTrack()
+void PlayerCustScene::RefreshTrack()
 {
   if (itemListSelected) {
     if (trackAnim.GetAnimationString() != "DIMMED") {
@@ -830,11 +829,17 @@ void PlayerCustScene::refreshTrack()
   trackAnim.Refresh(track);
 }
 
-bool PlayerCustScene::handleSelectItemFromList()
+bool PlayerCustScene::HandleSelectItemFromList()
 {
   if (listStart >= pieces.size()) return false;
 
   auto iter = std::next(pieces.begin(), listStart);
+
+  if ((*iter)->Empty()) {
+    Audio().Play(AudioType::CHIP_ERROR);
+    return true;
+  }
+
   insertingPiece = *iter;
   pieces.erase(iter);
 
@@ -847,33 +852,33 @@ bool PlayerCustScene::handleSelectItemFromList()
   return true;
 }
 
-void PlayerCustScene::executeLeftKey()
+void PlayerCustScene::ExecuteLeftKey()
 {
   if (itemListSelected) {
-    selectGridUI();
+    SelectGridUI();
     return;
   }
 
   if (cursorLocation % GRID_SIZE > 0) {
     cursorLocation--;
-    updateCursorHoverInfo();
+    UpdateCursorHoverInfo();
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
 }
 
-void PlayerCustScene::executeRightKey()
+void PlayerCustScene::ExecuteRightKey()
 {
   if ((cursorLocation + 1) % GRID_SIZE > 0) {
     cursorLocation++;
-    updateCursorHoverInfo();
+    UpdateCursorHoverInfo();
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
   else if(!grabbingPiece && !insertingPiece) {
-    selectItemUI(listStart);
+    SelectItemUI(listStart);
   }
 }
 
-void PlayerCustScene::executeUpKey()
+void PlayerCustScene::ExecuteUpKey()
 {
   if (state == state::block_prompt) {
     if (menuAnim.GetAnimationString() == "MOVE")
@@ -888,7 +893,7 @@ void PlayerCustScene::executeUpKey()
   if (itemListSelected) {
     if (listStart > 0) {
       listStart--;
-      updateItemListHoverInfo();
+      UpdateItemListHoverInfo();
       Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
     }
     return;
@@ -896,12 +901,12 @@ void PlayerCustScene::executeUpKey()
 
   if (cursorLocation >= GRID_SIZE) {
     cursorLocation -= GRID_SIZE;
-    updateCursorHoverInfo();
+    UpdateCursorHoverInfo();
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
 }
 
-void PlayerCustScene::executeDownKey()
+void PlayerCustScene::ExecuteDownKey()
 {
   if (state == state::block_prompt) {
     if (menuAnim.GetAnimationString() == "REMOVE")
@@ -918,7 +923,7 @@ void PlayerCustScene::executeDownKey()
     // pieces end iterator doubles as the `run` action item
     if (listStart+1u <= pieces.size()) {
       listStart++;
-      updateItemListHoverInfo();
+      UpdateItemListHoverInfo();
       Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
     }
     return;
@@ -926,67 +931,67 @@ void PlayerCustScene::executeDownKey()
 
   if (cursorLocation + GRID_SIZE < grid.size()) {
     cursorLocation += GRID_SIZE;
-    updateCursorHoverInfo();
+    UpdateCursorHoverInfo();
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
   }
 }
 
-void PlayerCustScene::executeCancelInsert()
+void PlayerCustScene::ExecuteCancelInsert()
 {
   pieces.push_back(insertingPiece);
   insertingPiece = nullptr;
-  selectGridUI();
+  SelectGridUI();
 }
 
-void PlayerCustScene::executeCancelGrab()
+void PlayerCustScene::ExecuteCancelGrab()
 {
-  insertPiece(grabbingPiece, grabStartLocation);
+  InsertPiece(grabbingPiece, grabStartLocation);
   cursorLocation = grabStartLocation;
   grabbingPiece = nullptr;
-  selectGridUI();
+  SelectGridUI();
 }
 
-bool PlayerCustScene::handleUIKeys(double elapsed)
+bool PlayerCustScene::HandleUIKeys(double elapsed)
 {
-  if (hasUpInput()) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeUpKey);
+  if (HasUpInput()) {
+    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteUpKey);
     return true;
   }
 
-  if (hasDownInput()) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeDownKey);
+  if (HasDownInput()) {
+    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteDownKey);
     return true;
   }
 
-  if (hasLeftInput()) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeLeftKey);
+  if (HasLeftInput()) {
+    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteLeftKey);
     return true;
   }
 
-  if (hasRightInput()) {
-    handleInputDelay(elapsed, &PlayerCustScene::executeRightKey);
+  if (HasRightInput()) {
+    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteRightKey);
     return true;
   }
 
   if (Input().Has(InputEvents::pressed_option) && !itemListSelected) {
-    selectItemUI(pieces.size());
-    startScaffolding();
+    SelectItemUI(pieces.size());
+    StartScaffolding();
     return true;
   }
 
   if (Input().Has(InputEvents::pressed_cancel)) {
     if (!itemListSelected) {
-      selectItemUI(listStart);
+      SelectItemUI(listStart);
       return true;
     }
 
     if (itemListSelected) {
       auto onYes = [this]() {
-        quitScene();
+        QuitScene();
       };
 
       auto onNo = [this]() {
-        selectItemUI(listStart);
+        SelectItemUI(listStart);
       };
 
       Audio().Play(AudioType::PAUSE, AudioPriority::low);
@@ -1001,7 +1006,7 @@ bool PlayerCustScene::handleUIKeys(double elapsed)
   return false;
 }
 
-void PlayerCustScene::handleInputDelay(double elapsed, void(PlayerCustScene::*executeFunc)())
+void PlayerCustScene::HandleInputDelay(double elapsed, void(PlayerCustScene::*executeFunc)())
 {
   selectInputCooldown -= elapsed;
 
@@ -1018,7 +1023,7 @@ void PlayerCustScene::handleInputDelay(double elapsed, void(PlayerCustScene::*ex
   }
 }
 
-void PlayerCustScene::selectGridUI()
+void PlayerCustScene::SelectGridUI()
 {
   if (textbox.IsOpen()) {
     textbox.Close();
@@ -1028,11 +1033,11 @@ void PlayerCustScene::selectGridUI()
   selectInputCooldown = maxSelectInputCooldown;
   state = state::usermode;
   itemListSelected = false;
-  updateCursorHoverInfo();
+  UpdateCursorHoverInfo();
   Audio().Play(AudioType::CHIP_DESC, AudioPriority::low);
 }
 
-void PlayerCustScene::selectItemUI(size_t idx)
+void PlayerCustScene::SelectItemUI(size_t idx)
 {
   if (textbox.IsOpen()) {
     textbox.Close();
@@ -1046,11 +1051,11 @@ void PlayerCustScene::selectItemUI(size_t idx)
 
   itemListSelected = true;
   listStart = idx;
-  updateItemListHoverInfo();
+  UpdateItemListHoverInfo();
   Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::low);
 }
 
-void PlayerCustScene::quitScene()
+void PlayerCustScene::QuitScene()
 {
   textbox.Close();
 
@@ -1058,19 +1063,19 @@ void PlayerCustScene::quitScene()
   getController().pop<effect>();
 }
 
-bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* cancelFunc)())
+bool PlayerCustScene::HandlePieceAction(Piece*& piece, void(PlayerCustScene::* cancelFunc)())
 {
   if (Input().Has(InputEvents::pressed_cancel)) {
-    piece->revert();
+    piece->Revert();
     (this->*cancelFunc)();
     return true;
   }
 
   if (Input().Has(InputEvents::pressed_confirm)) {
-    if (insertPiece(piece, cursorLocation)) {
+    if (InsertPiece(piece, cursorLocation)) {
       piece = nullptr;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
-      updateCursorHoverInfo();
+      UpdateCursorHoverInfo();
     }
     else {
       Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
@@ -1079,13 +1084,13 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
   }
 
   if (Input().Has(InputEvents::pressed_shoulder_left)) {
-    piece->rotateLeft();
+    piece->RotateLeft();
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
     return true;
   }
 
   if (Input().Has(InputEvents::pressed_shoulder_right)) {
-    piece->rotateRight();
+    piece->RotateRight();
     Audio().Play(AudioType::CHIP_SELECT, AudioPriority::low);
     return true;
   }
@@ -1093,7 +1098,7 @@ bool PlayerCustScene::handlePieceAction(Piece*& piece, void(PlayerCustScene::* c
   return false;
 }
 
-void PlayerCustScene::updateCursorHoverInfo()
+void PlayerCustScene::UpdateCursorHoverInfo()
 {
   std::string infoTextString = "";
 
@@ -1104,7 +1109,7 @@ void PlayerCustScene::updateCursorHoverInfo()
     infoTextString = p->description;
     hoverText.SetString(p->name);
 
-    sf::Vector2f pos = gridCursorToScreen();
+    sf::Vector2f pos = GridCursorToScreen();
     pos.y += 20.f * 2.f; // below the block it is on
     hoverText.setPosition(pos);
 
@@ -1121,8 +1126,8 @@ void PlayerCustScene::updateCursorHoverInfo()
   infoText.SetString(stx::format_to_fit(infoTextString, 11, 3));
 }
 
-void PlayerCustScene::updateMenuPosition() {
-  sf::Vector2f pos = gridCursorToScreen();
+void PlayerCustScene::UpdateMenuPosition() {
+  sf::Vector2f pos = GridCursorToScreen();
 
   // some offsets since the cursor sprite isn't centered...
   pos.x += 10.f * 2.f;
@@ -1134,7 +1139,7 @@ void PlayerCustScene::updateMenuPosition() {
   menuBox.setPosition(pos);
 }
 
-void PlayerCustScene::updateItemListHoverInfo()
+void PlayerCustScene::UpdateItemListHoverInfo()
 {
   if (listStart < pieces.size()) {
     infoText.SetString(stx::format_to_fit(pieces[listStart]->description, 11, 3));
@@ -1168,33 +1173,33 @@ void PlayerCustScene::onStart()
 void PlayerCustScene::onUpdate(double elapsed)
 {
   textbox.Update(elapsed);
-  progressBarUVs.left -= isCompileFinished()?1:2;
+  progressBarUVs.left -= IsCompileFinished()?1:2;
   progressBarUVs.width = static_cast<int>(std::min(118., (118.*(progress/maxProgressTime))));
   progressBar.setTextureRect(progressBarUVs);
 
-  sf::Vector2f dest = gridCursorToScreen();
+  sf::Vector2f dest = GridCursorToScreen();
   sf::Vector2f cursorPos = cursor.getPosition();
   cursorPos.x = swoosh::ease::interpolate(0.5f, cursorPos.x, dest.x);
   cursorPos.y = swoosh::ease::interpolate(0.5f, cursorPos.y, dest.y);
   claw.setPosition(cursorPos);
   cursor.setPosition(cursorPos);
 
-  animateGrid();
-  animateCursor(elapsed);
-  animateButton(elapsed);
-  animateBlock(elapsed);
-  animateScaffolding(elapsed);
+  AnimateGrid();
+  AnimateCursor(elapsed);
+  AnimateButton(elapsed);
+  AnimateBlock(elapsed);
+  AnimateScaffolding(elapsed);
 
   // textbox takes priority
   if (questionInterface) {
     if (!textbox.IsOpen()) return;
 
-    if (hasLeftInput()) {
+    if (HasLeftInput()) {
       questionInterface->SelectYes();
       return;
     }
 
-    if (hasRightInput()) {
+    if (HasRightInput()) {
       questionInterface->SelectNo();
       return;
     }
@@ -1227,12 +1232,12 @@ void PlayerCustScene::onUpdate(double elapsed)
         return;
       }
     }
-    if (isCompileFinished() && state != state::waiting) {
-      completeAndSave();
+    if (IsCompileFinished() && state != state::waiting) {
+      CompleteAndSave();
       return;
     }
 
-    if(!isCompileFinished()) {
+    if(!IsCompileFinished()) {
       double percent = (progress / static_cast<double>(maxProgressTime));
       double block_time = static_cast<double>(maxProgressTime/ GRID_SIZE);
 
@@ -1283,11 +1288,11 @@ void PlayerCustScene::onUpdate(double elapsed)
       compiledHash.clear();
 
       auto onYes = [this]() {
-        quitScene();
+        QuitScene();
       };
 
       auto onNo = [this]() {
-        selectItemUI(pieces.size());
+        SelectItemUI(pieces.size());
       };
 
       std::string msg = "OK!\nRUN complete!\n\n";
@@ -1303,7 +1308,7 @@ void PlayerCustScene::onUpdate(double elapsed)
 
   // handle input
   if (itemListSelected) {
-    if (handleUIKeys(elapsed)) {
+    if (HandleUIKeys(elapsed)) {
       return;
     }
 
@@ -1313,15 +1318,15 @@ void PlayerCustScene::onUpdate(double elapsed)
 
     if (!Input().Has(InputEvents::pressed_confirm)) return;
     
-    if (handleSelectItemFromList()) return;
+    if (HandleSelectItemFromList()) return;
 
-    startCompile();
+    StartCompile();
 
     return;
   }
 
   if (state == state::block_prompt) {
-    handleMenuUIKeys(elapsed);
+    HandleMenuUIKeys(elapsed);
     return;
   }
 
@@ -1334,22 +1339,22 @@ void PlayerCustScene::onUpdate(double elapsed)
 
     if (Input().Has(InputEvents::pressed_confirm)) {
       if (Piece* piece = grid[cursorLocation]) {
-        handleGrabAction();
+        HandleGrabAction();
       }
 
       return;
     }
   }
   else if (insertingPiece) {
-    if(handlePieceAction(insertingPiece, &PlayerCustScene::executeCancelInsert))
+    if(HandlePieceAction(insertingPiece, &PlayerCustScene::ExecuteCancelInsert))
       return;
   }
   else if (grabbingPiece) {
-    if(handlePieceAction(grabbingPiece, &PlayerCustScene::executeCancelGrab))
+    if(HandlePieceAction(grabbingPiece, &PlayerCustScene::ExecuteCancelGrab))
       return;
   }
 
-  if (handleUIKeys(elapsed)) {
+  if (HandleUIKeys(elapsed)) {
     return;
   }
 
@@ -1383,15 +1388,15 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
     for (size_t j = 0; j < GRID_SIZE; j++) {
       size_t index = (i * GRID_SIZE) + j;
       if (Piece* p = grid[index]) {
-        if (isGridEdge(i, j)) {
-          drawEdgeBlock(surface, p, i, j);
+        if (IsGridEdge(i, j)) {
+          DrawEdgeBlock(surface, p, i, j);
         }
         else {
-          sf::Vector2f blockPos = blockToScreen(i, j);
+          sf::Vector2f blockPos = BlockToScreen(i, j);
 
           blockSprite.setTexture(*blockTextures[grid[index]->typeIndex], true);
           blockSprite.setPosition({ blockPos.x, blockPos.y });
-          refreshBlock(p, blockSprite);
+          RefreshBlock(p, blockSprite);
           surface.draw(blockSprite);
         }
       }
@@ -1399,7 +1404,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   }
 
   // draw track
-  refreshTrack();
+  RefreshTrack();
   surface.draw(track);
 
   // draw items
@@ -1414,7 +1419,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   bottom.x = 140.f;
 
   for (size_t i = 0; i < pieces.size(); i++) {
-    refreshButton(i);
+    RefreshButton(i);
     blueButtonSprite.setPosition(bottom.x * 2.f, (bottom.y + yoffset) * 2.f);
     surface.draw(blueButtonSprite);
 
@@ -1446,7 +1451,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   }
 
   // draw run button
-  refreshButton(pieces.size());
+  RefreshButton(pieces.size());
   greenButtonSprite.setPosition(bottom.x*2.f, (bottom.y+yoffset)*2.f);
   surface.draw(greenButtonSprite);
 
@@ -1465,7 +1470,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
     else {
       // check if this value was set
       if (previewPos.x > 0.) {
-        drawPreview(surface, pieces[listStart], previewPos);
+        DrawPreview(surface, pieces[listStart], previewPos);
       }
     }
   }
@@ -1487,9 +1492,9 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   if(!itemListSelected) {
     // claw/cursor always draws on top
     Piece* p = insertingPiece ? insertingPiece : grabbingPiece ? grabbingPiece : nullptr;
-    sf::Vector2f piecePos = insertingPiece ? cursor.getPosition() : gridCursorToScreen();
+    sf::Vector2f piecePos = insertingPiece ? cursor.getPosition() : GridCursorToScreen();
     if (p) {
-      drawPiece(surface, p, piecePos);
+      DrawPiece(surface, p, piecePos);
 
       if (grabbingPiece) {
         surface.draw(claw);

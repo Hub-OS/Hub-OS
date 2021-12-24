@@ -2200,7 +2200,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     }
 
     GameSession& session = getController().Session();
-    for (const PackageAddress& blockAddr : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
+    for (const PackageAddress& blockAddr : PlayerCustScene::GetInstalledBlocks(selectedNaviId, session)) {
       const std::string& blockId = blockAddr.packageId;
       if (!blockPartition.HasPackage(blockAddr)) continue;
       const std::string& md5 = blockPartition.FindPackageByAddress(blockAddr).GetPackageFingerprint();
@@ -2266,7 +2266,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     player->SetEmotion(GetPlayerSession()->emotion);
 
     GameSession& session = getController().Session();
-    std::vector<PackageAddress> localNaviBlocks = PlayerCustScene::getInstalledBlocks(GetCurrentNaviID(), session);
+    std::vector<PackageAddress> localNaviBlocks = PlayerCustScene::GetInstalledBlocks(GetCurrentNaviID(), session);
 
     auto& remoteMeta = playerPartition.FindPackageByAddress(remoteNaviPackage);
     auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());

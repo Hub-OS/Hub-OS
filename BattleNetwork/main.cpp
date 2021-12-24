@@ -161,7 +161,7 @@ void ParseErrorLevel(std::string in) {
 }
 
 int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
-  srand((unsigned int)time(0));
+  g.SeedRand((unsigned int)time(0));
   g.SetCommandLineValues(results);
 
   ParseErrorLevel(g.CommandLineValue<std::string>("errorLevel"));

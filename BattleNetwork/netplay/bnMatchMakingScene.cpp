@@ -484,7 +484,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
     PlayerPackageManager& playerPackages = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
 
     GameSession& session = getController().Session();
-    for (const PackageAddress& blockAddr : PlayerCustScene::getInstalledBlocks(selectedNaviId, session)) {
+    for (const PackageAddress& blockAddr : PlayerCustScene::GetInstalledBlocks(selectedNaviId, session)) {
       const std::string& blockId = blockAddr.packageId;
       if (!blockPackages.HasPackage(blockAddr.packageId)) continue;
       const std::string& md5 = blockPackages.FindPackageByID(blockId).GetPackageFingerprint();
@@ -496,10 +496,11 @@ void MatchMakingScene::onUpdate(double elapsed) {
 
     while (next) {
       const std::string& cardId = next->GetUUID();
+      next = copy->Next();
+
       if (!cardPackages.HasPackage(cardId)) continue;
       const std::string& md5 = cardPackages.FindPackageByID(cardId).GetPackageFingerprint();
       cardHashes.push_back({ cardId, md5 });
-      next = copy->Next();
     }
 
     PackageHash playerHash;
@@ -609,7 +610,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       std::shared_ptr<Player> player = std::shared_ptr<Player>(meta.GetData());
 
       GameSession& session = getController().Session();
-      std::vector<PackageAddress> localPlayerBlocks = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
+      std::vector<PackageAddress> localPlayerBlocks = PlayerCustScene::GetInstalledBlocks(selectedNaviId, session);
 
       auto& remoteMeta = playerPartitioner.FindPackageByAddress(remoteNaviPackage);
       auto remotePlayer = std::shared_ptr<Player>(remoteMeta.GetData());

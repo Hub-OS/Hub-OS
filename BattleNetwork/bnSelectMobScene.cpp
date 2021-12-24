@@ -377,7 +377,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       GameSession& session = getController().Session();
 
       // Get the package ID from the address since we know we're only using local packages
-      std::vector<PackageAddress> localNaviBlocksAddr = PlayerCustScene::getInstalledBlocks(selectedNaviId, session);
+      std::vector<PackageAddress> localNaviBlocksAddr = PlayerCustScene::GetInstalledBlocks(selectedNaviId, session);
       std::vector<std::string> localNaviBlocks;
 
       for (const PackageAddress& addr : localNaviBlocksAddr) {

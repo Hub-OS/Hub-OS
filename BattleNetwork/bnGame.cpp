@@ -395,7 +395,6 @@ void Game::RunSingleThreaded()
 
   while (window.Running() && !quitting) {
     clock.restart();
-    this->SeedRand(time(0));
 
     // Poll window events
     inputManager.EventPoll();
@@ -442,8 +441,6 @@ void Game::Run()
   }  
 
   while (window.Running() && !quitting) {
-    this->SeedRand(time(0));
-
     // Poll window events
     inputManager.EventPoll();
 
@@ -527,6 +524,7 @@ void Game::UpdateConfigSettings(const struct ConfigSettings& new_settings)
 
 void Game::SeedRand(unsigned int seed)
 {
+  srand(seed);
   randSeed = seed;
 
 #ifdef BN_MOD_SUPPORT

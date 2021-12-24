@@ -7,9 +7,9 @@ class Mob;
 struct CombatBattleState;
 struct FreedomMissionOverState;
 struct TimeFreezeBattleState;
-struct CharacterTransformBattleState;
-struct CardSelectBattleState;
 struct MobIntroBattleState;
+class CharacterTransformBattleState;
+class CardSelectBattleState;
 
 /*
     \brief Lots of properties packed into a clean struct

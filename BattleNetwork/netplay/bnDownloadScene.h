@@ -30,10 +30,10 @@ struct DownloadSceneProps;
 class DownloadScene final : public Scene {
 private:
   bool& downloadSuccess;
-  bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{};
+  bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{}, coinFlipComplete{}, remoteCoinFlipComplete{};
   bool playerPackageRequested{}, cardPackageRequested{}, blockPackageRequested{};
   unsigned& coinFlip;
-  unsigned mySeed{};
+  unsigned mySeed{}, maxSeed{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
@@ -59,20 +59,20 @@ private:
 
   template<template<typename> class PackageManagerType, class MetaType>
   bool DifferentHash(PackageManagerType<MetaType>& packageManager, const std::string& packageId, const std::string& desiredFingerprint);
-
+  bool AllTasksComplete();
   void RemoveFromDownloadList(const std::string& id);
 
+  // Send direct data
   void SendHandshakeAck();
-  bool AllTasksComplete();
   void SendPing(); //!< keep connections alive while clients download data
-
-  // Notify remote of health
   void SendDownloadComplete(bool success);
+  void SendCoinFlip(bool completed);
 
   // Initiate trades
   void TradePlayerPackageData(const PackageHash& hash);
   void TradeCardPackageData(const std::vector<PackageHash>& hashes);
   void TradeBlockPackageData(const std::vector<PackageHash>& hashes);
+
 
   // Initiate requests
   void RequestPlayerPackageData(const std::string& hash);
@@ -88,6 +88,7 @@ private:
   void RecieveRequestCardPackageData(const Poco::Buffer<char>& buffer);
   void RecieveRequestBlockPackageData(const Poco::Buffer<char>& buffer);
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
+  void RecieveCoinFlip(const Poco::Buffer<char>& buffer);
 
   // Downloads
   void DownloadPlayerData(const Poco::Buffer<char>& buffer);

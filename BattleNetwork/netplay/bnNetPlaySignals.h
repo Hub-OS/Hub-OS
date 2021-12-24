@@ -23,6 +23,7 @@ enum class NetPlaySignals : unsigned int {
   // PVP Download Cmds //
   ///////////////////////
   download_handshake,
+  coin_flip,            // Keep flipping coin until both clients agree
   trade_player_package, // Swap player package data with opponent
   trade_card_package_list, // Swap card packages list with opponent
   trade_block_package_list, // Swap block packages list with opponent
