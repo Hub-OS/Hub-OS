@@ -814,6 +814,8 @@ void ScriptResourceManager::DropPackageData(const PackageAddress& addr)
     DropPackageData({ package->address.namespaceId, packageId });
   }
 
+  state2package.erase(package->state);
+
   // drop package
   delete package->state;
   delete package;
