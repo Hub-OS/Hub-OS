@@ -302,7 +302,7 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
   surface.draw(cursorPieceRight);
 
   bool blink = (int(elapsed * 3000) % 1000) < 500;
-  float labelTop = 18 * 2.f;
+  float labelTop = 18 * 2.f - 2.f;
 
   for (int i = 0; i < name.size(); i++) {
     if(i == letterPos && blink)
