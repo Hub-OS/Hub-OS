@@ -786,7 +786,10 @@ void ScriptResourceManager::DropPackageData(sol::state* state)
   auto addressIt = address2package.find(package->address);
 
   if (addressIt != address2package.end()) {
+    Logger::Logf(LogLevel::debug, "Dropping package in partition %s with ID %s", package->address.namespaceId.c_str(), package->address.packageId.c_str());
     address2package.erase(addressIt);
+  } else {
+    Logger::Logf(LogLevel::debug, "Dropping unknown package in partition %s", package->address.namespaceId.c_str());
   }
 
   delete state;
@@ -795,10 +798,11 @@ void ScriptResourceManager::DropPackageData(sol::state* state)
 
 void ScriptResourceManager::DropPackageData(const PackageAddress& addr)
 {
+  Logger::Logf(LogLevel::debug, "Dropping package in partition %s with ID %s", addr.namespaceId.c_str(), addr.packageId.c_str());
   auto it = address2package.find(addr);
 
   if (it == address2package.end()) {
-    Logger::Logf(LogLevel::debug, "Cannot erase package in partition %s with ID %s", addr.namespaceId.c_str(), addr.packageId.c_str());
+    Logger::Logf(LogLevel::debug, "Cannot drop package in partition %s with ID %s", addr.namespaceId.c_str(), addr.packageId.c_str());
     return;
   }
 
