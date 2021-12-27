@@ -737,11 +737,13 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
       cardLabel.setPosition(2.f * 120.f, cardIconY + 4.0f);
       cardLabel.SetString(copy.GetShortName());
+      cardLabel.setScale(2.f, 2.f);
       surface.draw(cardLabel);
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f * 183.f, cardIconY);
+      element.setScale(2.f, 2.f);
       surface.draw(element);
 
       cardLabel.setOrigin(0, 0);
@@ -769,6 +771,14 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
     if (folderView.lastCardOnScreen + i == folderView.currCardIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().y, 64.0f + (32.f * i));
       auto bounce = std::sin((float)totalTimeElapsed * 10.0f) * 5.0f;
+      float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f);
+      float xscale = scaleFactor * 2.f;
+
+      auto interp_position = [scaleFactor, this](sf::Vector2f& pos) {
+        sf::Vector2f center = card.getPosition();
+        pos.x = ((scaleFactor * pos) + ((1.0f - scaleFactor) * center)).x;
+        return pos;
+      };
 
       folderCursor.setPosition((2.f * 90.f) + bounce, y);
       surface.draw(folderCursor);
@@ -776,7 +786,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
       if (!iter->IsEmpty()) {
         const Battle::Card& copy = iter->ViewCard();
         card.setTexture(*GetPreviewForCard(copy.GetUUID()));
-        card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f) * 2.0f, 2.0f);
+        card.setScale(xscale, 2.0f);
         surface.draw(card);
 
         // This draws the currently highlighted card
@@ -784,14 +794,16 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
           cardLabel.SetColor(sf::Color::White);
           cardLabel.SetString(std::to_string(copy.GetDamage()));
           cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
-          cardLabel.setPosition(2.f * 80.f, 142.f);
+          cardLabel.setScale(xscale, 2.f);
+          cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 80.f, 142.f }));
           surface.draw(cardLabel);
         }
 
         cardLabel.setOrigin(0, 0);
         cardLabel.SetColor(sf::Color::Yellow);
-        cardLabel.setPosition(2.f * 16.f, 142.f);
+        cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 16.f, 142.f }));
         cardLabel.SetString(std::string() + copy.GetCode());
+        cardLabel.setScale(xscale, 2.f);
         surface.draw(cardLabel);
 
         std::string formatted = stx::format_to_fit(copy.GetDescription(), 9, 3);
@@ -800,7 +812,8 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
         int offset = (int)(copy.GetElement());
         element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-        element.setPosition(2.f * 32.f, 138.f);
+        element.setPosition(interp_position(sf::Vector2f{ 2.f * 32.f, 138.f }));
+        element.setScale(xscale, 2.f);
         surface.draw(element);
       }
     }
@@ -850,16 +863,19 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
 
     cardIcon.setTexture(*GetIconForCard(copy.GetUUID()));
     cardIcon.setPosition(16.f + 480.f, 65.0f + (32.f * i));
+    cardIcon.setScale(2.f, 2.f);
     surface.draw(cardIcon);
 
     cardLabel.SetColor(sf::Color::White);
     cardLabel.setPosition(49.f + 480.f, 69.0f + (32.f * i));
     cardLabel.SetString(copy.GetShortName());
+    cardLabel.setScale(2.f, 2.f);
     surface.draw(cardLabel);
 
     int offset = (int)(copy.GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
     element.setPosition(182.0f + 480.f, 65.0f + (32.f * i));
+    element.setScale(2.f, 2.f);
     surface.draw(element);
 
     cardLabel.setOrigin(0, 0);
@@ -889,43 +905,53 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
     cardLabel.SetString(std::to_string(count));
     surface.draw(cardLabel);
 
-    // Draw cursor
+    // This draws the currently highlighted card
     if (packView.lastCardOnScreen + i == packView.currCardIndex) {
-      auto y = swoosh::ease::interpolate((float)frameElapsed * 7.f, packCursor.getPosition().y, 64.0f + (32.f * i));
-      auto bounce = std::sin((float)totalTimeElapsed * 10.0f) * 2.0f;
+      float y = swoosh::ease::interpolate((float)frameElapsed * 7.f, packCursor.getPosition().y, 64.0f + (32.f * i));
+      float bounce = std::sin((float)totalTimeElapsed * 10.0f) * 2.0f;
+      float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f);
+      float xscale = scaleFactor * 2.f;
 
+      auto interp_position = [scaleFactor, this](sf::Vector2f& pos) {
+        sf::Vector2f center = card.getPosition();
+        pos.x = ((scaleFactor * pos) + ((1.0f - scaleFactor) * center)).x;
+        return pos;
+      };
+        
+      // draw the cursor where the entry is located and bounce
       packCursor.setPosition(bounce + 480.f + 2.f, y);
       surface.draw(packCursor);
 
       card.setTexture(*GetPreviewForCard(poolCardBuckets[packView.currCardIndex].ViewCard().GetUUID()));
       card.setTextureRect(sf::IntRect{ 0,0,56,48 });
-      card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f) * 2.0f, 2.0f);
+      card.setScale(xscale, 2.0f);
       surface.draw(card);
 
-      // This draws the currently highlighted card
       if (copy.GetDamage() > 0) {
         cardLabel.SetColor(sf::Color::White);
         cardLabel.SetString(std::to_string(copy.GetDamage()));
         cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
-        cardLabel.setPosition(2.f * (223.f) + 480.f, 145.f);
-
+        cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * (223.f) + 480.f, 145.f }));
+        cardLabel.setScale(xscale, 2.f);
         surface.draw(cardLabel);
       }
 
       cardLabel.setOrigin(0, 0);
       cardLabel.SetColor(sf::Color::Yellow);
-      cardLabel.setPosition(2.f * 167.f + 480.f, 145.f);
+      cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 167.f + 480.f, 145.f }));
       cardLabel.SetString(std::string() + copy.GetCode());
+      cardLabel.setScale(xscale, 2.f);
       surface.draw(cardLabel);
+
+      int offset = (int)(copy.GetElement());
+      element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+      element.setPosition(interp_position(sf::Vector2f{ 2.f * 179.f + 480.f, 142.f }));
+      element.setScale(xscale, 2.f);
+      surface.draw(element);
 
       std::string formatted = stx::format_to_fit(copy.GetDescription(), 9, 3);
       cardDesc.SetString(formatted);
       surface.draw(cardDesc);
-
-      int offset = (int)(copy.GetElement());
-      element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f * 179.f + 480.f, 142.f);
-      surface.draw(element);
     }
 
     if (packView.lastCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {

@@ -83,7 +83,13 @@ const bool GameSession::LoadSession(const std::string& inpath)
       Battle::Card::Properties props;
 
       if (cardPackages->HasPackage(id)) {
-        props = cardPackages->FindPackageByID(id).GetCardProperties();
+        CardMeta& meta = cardPackages->FindPackageByID(id);
+        props = meta.GetCardProperties();
+        props.code = code;
+
+        if (std::find(meta.codes.begin(), meta.codes.end(), code) == meta.codes.end()) {
+          props.code = *meta.codes.begin();
+        }
       }
       else {
         Logger::Logf(LogLevel::critical, "Unable to create battle card from mod package %s", id.c_str());
