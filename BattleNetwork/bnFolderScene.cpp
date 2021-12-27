@@ -511,6 +511,9 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     for (int i = 0; i < folderNames.size(); i++) {
       CardFolder* folder{ nullptr };
       collection.GetFolder(folderNames[i], folder);
+      if (folder == nullptr) {
+          continue;
+      }
       bool allowed = IsFolderAllowed(folder);
 
       float folderLeft = 26.0f + (i*144.0f) - (float)folderOffsetX;
