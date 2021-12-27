@@ -20,7 +20,6 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 find_package(Poco REQUIRED Foundation Net)
 find_package(Threads REQUIRED)
 find_package(Lua REQUIRED)
-# find_package(FluidSynth REQUIRED)
 
 # find_package(sol2 REQUIRED) # commented out until sol2 vcpkg is up to date
 
@@ -57,19 +56,6 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddFiles.cmake)
 if(MSVC)
 	add_compile_options(/bigobj)
 endif()
-
-#add_library(sfMidi
-#              BattleNetwork/midi/sfMidi/Midi.h
-#              BattleNetwork/midi/sfMidi/Loader.h
-#              BattleNetwork/midi/sfMidi/Music.h
-#              BattleNetwork/midi/sfMidi.h
-#              BattleNetwork/midi/sfMidi/Midi.cpp
-#              BattleNetwork/midi/sfMidi/Loader.cpp
-#              BattleNetwork/midi/sfMidi/Music.cpp
-#            )
-
-# target_include_directories(sfMidi PRIVATE ${FLUIDSYNTH_INCLUDE_DIR})
-# target_link_libraries(sfMidi ${FLUIDSYNTH_LIBRARIES} sfml-audio)
 
 add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
 add_compile_definitions(NOMINMAX)
