@@ -212,7 +212,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
     do {
       if (package.empty()) break;
 
-      scriptManager.DefineCard(cardPackages.GetNamespace(), package, cardPackages.FindPackageByID(package).GetFilePath());
+      scriptManager.DefinePackage(ScriptPackageType::card, cardPackages.GetNamespace(), package, cardPackages.FindPackageByID(package).GetFilePath());
 
       package = cardPackages.GetPackageAfter(package);
     } while (package != cardPackages.FirstValidPackage());
@@ -221,7 +221,7 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
     while (!packages.empty()) { 
       for (auto& p : packages) {
-        scriptManager.DefineCard(cardPackages.GetNamespace(), cardPackages.FilepathToPackageAddress(p), p);
+        scriptManager.DefinePackage(ScriptPackageType::card, cardPackages.GetNamespace(), cardPackages.FilepathToPackageAddress(p), p);
       }
 
       /* keep trying */ 

@@ -151,13 +151,13 @@ void ScriptedMob::EnableFreedomMission(uint8_t turnCount)
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& namespaceId, const std::string& fqn, Character::Rank rank)
 {
-  sol::state* state = Scripts().FetchCharacter(namespaceId, fqn);
+  ScriptPackage* package = Scripts().FetchScriptPackage(namespaceId, fqn, ScriptPackageType::character);
 
-  if (!state) {
+  if (!package) {
     throw std::runtime_error("Character does not exist");
   }
 
-  auto obj = ScriptedMob::ScriptedSpawner(*state, Scripts().CharacterToModpath(namespaceId, fqn), rank);
+  auto obj = ScriptedMob::ScriptedSpawner(*package->state, package->path, rank);
   obj.SetMob(this->mob);
   return obj;
 }

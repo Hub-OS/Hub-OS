@@ -36,8 +36,18 @@ void DefineScriptedCardActionUserType(const std::string& namespaceId, ScriptReso
       return WeakWrapper<ScriptedCardAction>();
     }
 
+    ScriptPackage* cardScriptPackage = scriptManager->FetchScriptPackage(namespaceId, fqn, ScriptPackageType::card);
+
+    if (!cardScriptPackage) {
+      Logger::Log(LogLevel::critical, "Battle.CardAction.from_card() was called with broken(?) package " + fqn);
+      return WeakWrapper<ScriptedCardAction>();
+    }
+
     auto wrappedCharacter = WeakWrapper(character);
-    auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(*scriptManager->FetchCard(namespaceId, fqn), "card_create_action", wrappedCharacter, props);
+    auto functionResult = CallLuaFunctionExpectingValue<WeakWrapper<ScriptedCardAction>>(
+      *cardScriptPackage->state,
+      "card_create_action", wrappedCharacter, props
+    );
 
     if (functionResult.is_error()) {
       Logger::Log(LogLevel::critical, functionResult.error_cstr());

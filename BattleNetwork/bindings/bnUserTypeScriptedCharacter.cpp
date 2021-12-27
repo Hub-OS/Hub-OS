@@ -7,9 +7,7 @@
 #include "../bnScriptResourceManager.h"
 #include "../bnObstacle.h"
 
-void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace) {
-  const std::string& namespaceId = scriptManager->GetStateNamespace(state);
-
+void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, const std::string& namespaceId, sol::state& state, sol::table& battle_namespace) {
   auto from = [state = &state] (std::shared_ptr<Entity> entity) {
     if (auto character = std::dynamic_pointer_cast<ScriptedCharacter>(entity)) {
       return sol::make_object(*state, WeakWrapper(character));
@@ -54,15 +52,15 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
       }
     ),
     "from_package", [scriptManager, &namespaceId](const std::string& fqn, Team team, Character::Rank rank) {
-      sol::state* state = scriptManager->FetchCharacter(fqn, namespaceId);
+      ScriptPackage* scriptPackage = scriptManager->FetchScriptPackage(fqn, namespaceId, ScriptPackageType::character);
 
-      if (!state) {
+      if (!scriptPackage) {
         throw std::runtime_error("Character does not exist");
       }
 
       auto character = std::make_shared<ScriptedCharacter>(rank);
       character->SetTeam(team);
-      character->InitFromScript(*state);
+      character->InitFromScript(*scriptPackage->state);
 
       auto wrappedCharacter = WeakWrapper(character);
       wrappedCharacter.Own();
