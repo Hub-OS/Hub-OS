@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 
+#include "midi/sfMidi.h"
 #include "bnAudioType.h"
 #include "bnCachedResource.h"
 
@@ -103,6 +104,7 @@ private:
     AudioPriority priority{ AudioPriority::lowest };
   };
 
+  sfmidi::Midi midiMusic;
   std::mutex mutex;
   Channel* channels;
   sf::SoundBuffer* sources;
