@@ -1,5 +1,6 @@
 #include "bnGameSession.h"
 #include "bnCardPackageManager.h"
+#include "bnBlockPackageManager.h"
 #include "netplay/bnBufferWriter.h"
 #include "netplay/bnBufferReader.h"
 
@@ -103,6 +104,7 @@ const bool GameSession::LoadSession(const std::string& inpath)
 
 const bool GameSession::IsPackageAllowed(const PackageHash& hash) const
 {
+  if (whitelist.empty()) return true;
   return std::find(whitelist.begin(), whitelist.end(), hash) != whitelist.end();
 }
 
@@ -123,6 +125,14 @@ const bool GameSession::IsFolderAllowed(CardFolder* folder) const
   }
 
   return true;
+}
+
+const bool GameSession::IsBlockAllowed(const std::string& packageId) const
+{  
+  if (!blockPackages->HasPackage(packageId)) return false;
+
+  const std::string& md5 = blockPackages->FindPackageByID(packageId).GetPackageFingerprint();
+  return IsPackageAllowed(PackageHash{ packageId, md5 });
 }
 
 void GameSession::SaveSession(const std::string& outpath)
@@ -216,6 +226,11 @@ void GameSession::SetNick(const std::string& nickname) {
 void GameSession::SetCardPackageManager(CardPackageManager& cardPackageManager)
 {
   cardPackages = &cardPackageManager;
+}
+
+void GameSession::SetBlockPackageManager(BlockPackageManager& blockPackageManager)
+{
+  blockPackages = &blockPackageManager;
 }
 
 void GameSession::SetWhitelist(const std::vector<PackageHash> whitelist)

@@ -91,6 +91,7 @@ Game::Game(DrawWindow& window) :
   // Game session object needs to be available to every scene
   session = new GameSession;
   session->SetCardPackageManager(cardPackagePartitioner->GetPartition(Game::LocalPartition));
+  session->SetBlockPackageManager(blockPackagePartitioner->GetPartition(Game::LocalPartition));
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...

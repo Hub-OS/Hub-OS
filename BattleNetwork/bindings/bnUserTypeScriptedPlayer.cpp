@@ -50,9 +50,6 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
         return sol::make_object(*state, sol::lua_nil);
       }
     ),
-    "input_has", [](WeakWrapper<ScriptedPlayer>& player, const InputEvent& event) -> bool {
-      return player.Unwrap()->InputState().Has(event);
-    },
     "card_action_event", sol::overload(
       [](WeakWrapper<ScriptedPlayer>& player, WeakWrapper<ScriptedCardAction>& cardAction, ActionOrder order) {
         player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);

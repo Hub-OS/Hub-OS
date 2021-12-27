@@ -372,10 +372,10 @@ void FormatPackageHashOutput(PackageManagerT& pm, std::string& outStr, size_t& m
   if (first.empty()) return;
 
   do {
-    const std::string& hash = stx::as_hex(pm.FindPackageByID(curr).GetPackageFingerprint(), 0);
-
-    outStr += hash + " " + curr + "\n";
-    maxLineLen = std::max(hash.size(), maxLineLen);
+    const std::string& hash = pm.FindPackageByID(curr).GetPackageFingerprint();
+    const std::string& line = hash + " " + curr;
+    maxLineLen = std::max(line.size(), maxLineLen);
+    outStr += line + "\n";
 
     curr = pm.GetPackageAfter(curr);
   } while (first != curr);
@@ -499,5 +499,5 @@ void ReadPackageAndHash(const std::string& path, const std::string& modType) {
     return;
   }
 
-  std::cout << stx::as_hex(hash, 0) << " " << id;
+  std::cout << hash << " " << id;
 }

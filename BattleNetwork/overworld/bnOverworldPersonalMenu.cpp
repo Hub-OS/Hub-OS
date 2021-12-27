@@ -354,6 +354,7 @@ namespace Overworld {
 
     if (input.Has(InputEvents::pressed_pause) && !input.Has(InputEvents::pressed_cancel)) {
       Close();
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       return;
     }
 
@@ -399,8 +400,9 @@ namespace Overworld {
         }
         else {
           // already selected, switch to options
-          SelectOptions();
-          Audio().Play(AudioType::CHIP_SELECT);
+          if (SelectOptions()) {
+            Audio().Play(AudioType::CHIP_SELECT);
+          }
         }
       }
     }
@@ -594,6 +596,7 @@ namespace Overworld {
     if (selectExit) {
       if (currState == state::opened) {
         Close();
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
         return true;
       }
     }
@@ -612,6 +615,8 @@ namespace Overworld {
   bool PersonalMenu::SelectExit()
   {
     if (!selectExit) {
+      Audio().Play(AudioType::CHIP_SELECT);
+
       selectExit = true;
       exitAnim << "EXIT_SELECTED" << Animator::Mode::Loop;
       exitAnim.SetFrame(1, exit->getSprite());
@@ -682,7 +687,6 @@ namespace Overworld {
   void PersonalMenu::Close()
   {
     if (currState == state::opened) {
-      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       currState = state::closing;
       QueueAnimTasks(currState);
       easeInTimer.start();

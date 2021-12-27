@@ -156,7 +156,7 @@ private:
   sf::Sprite progressBar;
   sf::IntRect progressBarUVs;
   std::string playerUUID;
-  std::shared_ptr<sf::Texture> cursorTexture, miniblocksTexture;
+  std::shared_ptr<sf::Texture> cursorTexture, miniblocksTexture, disabledBlockTexture;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
   std::shared_ptr<sf::SoundBuffer> compile_start, compile_complete, compile_no_item, compile_item;
   std::vector<Piece*> pieces;
@@ -186,7 +186,7 @@ private:
   bool HasRightInput();
   bool HasUpInput();
   bool HasDownInput();
-  bool IsBlockValid(Piece* piece);
+  bool IsBlockBugged(Piece* piece); //!< Used for in-game placement penalities
   bool CanPieceFit(Piece* piece, size_t loc);
   bool DoesPieceOverlap(Piece* piece, size_t loc);
   bool InsertPiece(Piece* piece, size_t loc);

@@ -14,6 +14,9 @@ void DefineEntityUserType(sol::table& battle_namespace);
 
 template<typename E>
 void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_reference<false> >& entity_table) {
+  entity_table["input_has"] = [](WeakWrapper<E>& entity, const InputEvent& event) -> bool {
+    return entity.Unwrap()->InputState().Has(event);
+  },
   entity_table["get_id"] = [](WeakWrapper<E>& entity) -> Entity::ID_t {
     return entity.Unwrap()->GetID();
   };

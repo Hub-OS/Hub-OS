@@ -578,14 +578,18 @@ void ConfigScene::onUpdate(double elapsed)
 
   auto& activeIndex = GetActiveIndex();
   auto initialIndex = activeIndex;
+  bool hasCanceled = false;
+  bool hasUp = false;
+  bool hasDown = false;
+  bool hasLeft = false;
+  bool hasRight = false;
 
   if (!leave) {
-    bool hasCanceled = Input().Has(InputEvents::pressed_cancel);
-
-    bool hasUp = Input().Has(InputEvents::held_ui_up);
-    bool hasDown = Input().Has(InputEvents::held_ui_down);
-    bool hasLeft = Input().Has(InputEvents::pressed_ui_left);
-    bool hasRight = Input().Has(InputEvents::pressed_ui_right);
+    hasCanceled = Input().Has(InputEvents::pressed_cancel);
+    hasUp = Input().Has(InputEvents::held_ui_up);
+    hasDown = Input().Has(InputEvents::held_ui_down);
+    hasLeft = Input().Has(InputEvents::pressed_ui_left);
+    hasRight = Input().Has(InputEvents::pressed_ui_right);
 
     if (!hasUp && !hasDown) {
       nextScrollCooldown = INITIAL_SCROLL_COOLDOWN;
@@ -788,7 +792,10 @@ void ConfigScene::onUpdate(double elapsed)
   if (activeIndex != initialIndex) {
     scrollCooldown = nextScrollCooldown;
     nextScrollCooldown = SCROLL_COOLDOWN;
-    Audio().Play(AudioType::CHIP_SELECT);
+
+    if (!hasCanceled) {
+      Audio().Play(AudioType::CHIP_SELECT);
+    }
   }
 
   // Make endBtn stick at the top of the screen

@@ -1,5 +1,7 @@
 #include "bnPlayerCustScene.h"
 #include "bnGameSession.h"
+
+#include "bnBlockPackageManager.h"
 #include "netplay/bnBufferWriter.h"
 #include "netplay/bnBufferReader.h"
 #include "stx/string.h"
@@ -117,6 +119,8 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
     blockTypeInUseTable[i] = 0u;
     blockTextures.push_back(load_texture("resources/scenes/cust/cust_blocks_" + std::to_string(i) + ".png"));
   }
+
+  disabledBlockTexture = load_texture("resources/scenes/cust/cust_blocks_disabled.png");
 
   blockShadowHorizontal = sf::Sprite(*load_texture("resources/scenes/cust/horiz_shadow.png"));
   blockShadowHorizontal.setScale(2.f, 2.f);
@@ -267,6 +271,7 @@ bool PlayerCustScene::DoesPieceOverlap(Piece* piece, size_t loc)
 
 bool PlayerCustScene::InsertPiece(Piece* piece, size_t loc)
 {
+  GameSession& session = getController().Session();
   if (!CanPieceFit(piece, loc) || DoesPieceOverlap(piece, loc))
     return false;
 
@@ -423,7 +428,7 @@ std::vector<PackageAddress> PlayerCustScene::GetInstalledBlocks(const std::strin
     reader.Read<size_t>(buffer); // skip center
     reader.Read<size_t>(buffer); // skip rot
 
-    if (isValid) {
+    if (isValid && session.IsBlockAllowed(uuid)) {
       res.push_back({ Game::LocalPartition, uuid });
     }
   }
@@ -479,15 +484,28 @@ void PlayerCustScene::CompleteAndSave()
     valid_entry_len++;
   }
 
-  writer.Write(buffer, valid_entry_len);
+  std::vector<Piece*> installed;
+
+  // collect the pieces
   for (auto& [piece, center] : centerHash) {
     if (center == BAD_GRID_POS) continue;
+    if (!piece || piece->Empty()) continue; // erroneous piece
+    installed.push_back(piece);
+  }
 
-    bool isValid = IsBlockValid(piece);
+  // sort them to achieve predictable installation orders
+  std::sort(installed.begin(), installed.end(), [](Piece* left, Piece* right) {
+    return strcmp(left->uuid.c_str(), right->uuid.c_str());
+  });
+
+  // write to disk
+  writer.Write(buffer, valid_entry_len);
+  for (Piece* piece : installed) {
+    bool isValid = IsBlockBugged(piece);
 
     writer.WriteTerminatedString(buffer, piece->uuid);
     writer.Write(buffer, isValid);
-    writer.Write(buffer, center);
+    writer.Write(buffer, centerHash[piece]);
     writer.Write(buffer, piece->finalRot);
   }
 
@@ -525,10 +543,8 @@ bool PlayerCustScene::HasDownInput()
   return Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down);
 }
 
-bool PlayerCustScene::IsBlockValid(Piece* piece)
+bool PlayerCustScene::IsBlockBugged(Piece* piece)
 {
-  if (!piece || piece->Empty()) return false;
-
   // NOTE: We can use this function to determine any bug statuses as well
 
   // Restriction: special pieces must be on the "compiled" line. Other pieces do not.
@@ -622,6 +638,8 @@ sf::Vector2f PlayerCustScene::GridCursorToScreen()
 
 void PlayerCustScene::DrawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
 {
+  static GameSession& session = getController().Session();
+
   sf::Sprite blockSprite;
   blockSprite.setScale(2.f, 2.f);
 
@@ -637,7 +655,8 @@ void PlayerCustScene::DrawPiece(sf::RenderTarget& surface, Piece* piece, const s
         float halfOffset = (((Piece::BLOCK_SIZE / 2)) * -20.f)*2.f;
         float offsetX = halfOffset + (j * 20.f * 2.f)-4.f;
         float offsetY = halfOffset + (i * 20.f * 2.f)-4.f;
-        blockSprite.setTexture(*blockTextures[piece->typeIndex], true);
+        sf::Texture& tex = session.IsBlockAllowed(piece->uuid) ? *blockTextures[piece->typeIndex] : *disabledBlockTexture;
+        blockSprite.setTexture(tex, true);
         blockSprite.setPosition({ pos.x + offsetX, pos.y + offsetY });
         RefreshBlock(piece, blockSprite);
         surface.draw(blockSprite);
@@ -1365,6 +1384,8 @@ void PlayerCustScene::onUpdate(double elapsed)
 
 void PlayerCustScene::onDraw(sf::RenderTexture& surface)
 {
+  static GameSession& session = getController().Session();
+
   surface.draw(bg);
   surface.draw(sceneLabel);
   surface.draw(gridSprite);
@@ -1394,7 +1415,8 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
         else {
           sf::Vector2f blockPos = BlockToScreen(i, j);
 
-          blockSprite.setTexture(*blockTextures[grid[index]->typeIndex], true);
+          sf::Texture& tex = session.IsBlockAllowed(grid[index]->uuid) ? *blockTextures[grid[index]->typeIndex] : *disabledBlockTexture;
+          blockSprite.setTexture(tex, true);
           blockSprite.setPosition({ blockPos.x, blockPos.y });
           RefreshBlock(p, blockSprite);
           surface.draw(blockSprite);

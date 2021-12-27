@@ -854,20 +854,25 @@ void ScriptResourceManager::DropPackageData(const PackageAddress& addr)
   std::string path;
   auto cardIter = cardFQN.find(addr);
   if (cardIter != cardFQN.end()) {
-    path = cardIter->second;
     cardFQN.erase(cardIter);
   }
 
   auto characterIter = characterFQN.find(addr);
   if (characterIter != characterFQN.end()) {
-    path = characterIter->second;
     characterFQN.erase(characterIter);
   }
 
   auto libIter = libraryFQN.find(addr);
   if (libIter != libraryFQN.end()) {
-    path = libIter->second;
     libraryFQN.erase(libIter);
+  }
+
+  sol::state* state{ nullptr };
+  auto tableIter = scriptTableHash.find(path);
+  if (tableIter != scriptTableHash.end()) {
+    path = tableIter->first;
+    state = tableIter->second.state;
+    scriptTableHash.erase(tableIter);
   }
 
   auto depIter = scriptDependencies.find(addr);
@@ -876,16 +881,8 @@ void ScriptResourceManager::DropPackageData(const PackageAddress& addr)
   }
 
   if (path.empty()) {
-    Logger::Logf(LogLevel::debug, "Cannot erase package in parition %s with ID %s", addr.packageId.c_str(), addr.namespaceId.c_str());
+    Logger::Logf(LogLevel::debug, "Cannot erase package in parition %s with ID %s", addr.namespaceId.c_str(), addr.packageId.c_str());
     return;
-  }
-
-  // Second use the path to erase the state object
-  sol::state* state{ nullptr };
-  auto tableIter = scriptTableHash.find(path);
-  if (tableIter != scriptTableHash.end()) {
-    state = tableIter->second.state;
-    scriptTableHash.erase(tableIter);
   }
 
   auto stateIter = std::find(states.begin(), states.end(), state);

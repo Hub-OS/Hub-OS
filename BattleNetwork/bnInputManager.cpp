@@ -28,6 +28,8 @@ InputManager::~InputManager() {
 }
 
 void InputManager::SupportConfigSettings(ConfigSettings& settings) {
+  std::scoped_lock lock(this->mutex);
+
   this->settings = settings;
   inputState.Flush();
   bindings.clear();

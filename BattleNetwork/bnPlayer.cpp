@@ -69,6 +69,8 @@ Player::Player() :
 }
 
 void Player::Init() {
+  if (HasInit()) return;
+
   Character::Init();
 
   animationComponent = CreateComponent<AnimationComponent>(weak_from_this());

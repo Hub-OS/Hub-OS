@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include "result.h"
+#include "../stx/string.h"
 #include "../crypto/md5.h"
 
 /* STD LIBRARY extensions */
@@ -32,6 +33,6 @@ namespace stx {
 
     MD5(&md5Buffer[0], &fileBuffer[0], len);
 
-    return ok(std::string(md5Buffer.data(), md5Buffer.size()));
+    return ok(stx::as_hex(std::string(md5Buffer.data(), md5Buffer.size()), 0));
   }
 }

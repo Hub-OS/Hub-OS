@@ -6,6 +6,7 @@
 #include "bnPackageAddress.h"
 
 class CardPackageManager;
+class BlockPackageManager;
 
 class GameSession {
   using KeyItem = std::pair<std::string, std::string>;
@@ -18,17 +19,17 @@ class GameSession {
   std::string nickname = "Anon";
 
   CardPackageManager* cardPackages{ nullptr };
-
-  // utility function to compare package with whitelist
-  const bool IsPackageAllowed(const PackageHash& hash) const;
-
+  BlockPackageManager* blockPackages{ nullptr };
 public:
   const bool LoadSession(const std::string& inpath);
+  const bool IsPackageAllowed(const PackageHash& hash) const; // utility function to compare package with whitelist
   const bool IsFolderAllowed(CardFolder* folder) const;
+  const bool IsBlockAllowed(const std::string& packageId) const;
   void SaveSession(const std::string& outpath);
   void SetKeyValue(const std::string& key, const std::string& value);
   void SetNick(const std::string& nickname);
   void SetCardPackageManager(CardPackageManager& cardPackageManager);
+  void SetBlockPackageManager(BlockPackageManager& blockPackageManager);
   void SetWhitelist(const std::vector<PackageHash> whitelist);
   const std::string GetKeyValue(const std::string& key) const;
   const std::string GetNick() const;

@@ -6,7 +6,7 @@
 
 using sf::IntRect;
 
-#define RESOURCE_PATH "resources/mobs/mob_move.animation"
+#define RESOURCE_PATH "resources/scenes/battle/mob_move.animation"
 
 MobMoveEffect::MobMoveEffect() :
   Artifact()

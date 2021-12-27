@@ -10,6 +10,15 @@
 
 using namespace swoosh::types;
 
+bool SelectNaviScene::IsNaviAllowed()
+{
+  PlayerPackagePartitioner& partitioner = getController().PlayerPackagePartitioner();
+  PackageAddress addr = { Game::LocalPartition, naviSelectionId };
+  PackageHash hash = { addr.packageId, partitioner.FindPackageByAddress(addr).GetPackageFingerprint() };
+
+  return getController().Session().IsPackageAllowed(hash);
+}
+
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::string& currentNaviId) :
   naviSelectionId(currentNaviId),
   currentChosenId(currentNaviId),
@@ -108,6 +117,10 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   elapsed = 0;
 
   setView(sf::Vector2u(480, 320));
+
+  if (!IsNaviAllowed()) {
+    owTextbox.EnqueueMessage("This navi is not allowed on this server.");
+  }
 }
 
 SelectNaviScene::~SelectNaviScene()
@@ -312,11 +325,14 @@ void SelectNaviScene::onUpdate(double elapsed) {
   std::string prevSelectId = currentChosenId;
   PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
 
+  bool openTextbox = owTextbox.IsOpen();
+
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (owTextbox.IsOpen()) {
+    if (openTextbox) {
       owTextbox.HandleInput(Input(), {});
-    }else if (Input().Has(InputEvents::pressed_ui_left)) {
+    }
+    else if (Input().Has(InputEvents::pressed_ui_left)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -344,12 +360,17 @@ void SelectNaviScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (Input().Has(InputEvents::pressed_cancel)) {
-      gotoNextScene = true;
-      Audio().Play(AudioType::CHIP_DESC_CLOSE);
-      textbox.Mute();
+    if (Input().Has(InputEvents::pressed_cancel) && !openTextbox) {
+      if (IsNaviAllowed()) {
+        gotoNextScene = true;
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
+        textbox.Mute();
 
-      getController().pop<segue<Checkerboard, milliseconds<500>>>();
+        getController().pop<segue<Checkerboard, milliseconds<500>>>();
+        return;
+      }
+      // else explain why
+      owTextbox.EnqueueMessage("Please select a different navi.");
     }
   }
 
@@ -438,7 +459,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   navi.setOrigin(float(navi.getTextureRect().width)*0.5f, float(navi.getTextureRect().height));
 
   // Make a selection
-  if (Input().Has(InputEvents::pressed_confirm)) {
+  if (Input().Has(InputEvents::pressed_confirm) && !openTextbox) {
     if (currentChosenId != naviSelectionId) {
       Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
       prevChosenId = currentChosenId;

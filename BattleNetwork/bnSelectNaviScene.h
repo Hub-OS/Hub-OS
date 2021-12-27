@@ -82,6 +82,8 @@ private:
   Overworld::TextBox owTextbox;
 
   double elapsed; /*!< delta seconds sice last frame */
+
+  bool IsNaviAllowed();
 public:
   /**
    * @brief gotoNextScene is set to true so user must wait for transition to end to interact

@@ -25,6 +25,7 @@
 #include "../bnBlockPackageManager.h"
 #include "../bnMessageQuestion.h"
 #include "../bnPlayerCustScene.h"
+#include "../bnSelectNaviScene.h"
 #include "../battlescene/bnMobBattleScene.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
@@ -524,7 +525,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   auto mousei = sf::Mouse::getPosition(window);
   auto mousef = window.mapPixelToCoords(mousei);
 
-  auto cameraView = GetCamera().GetView();
+  sf::View cameraView = GetCamera().GetView();
   sf::Vector2f cameraCenter = cameraView.getCenter();
   sf::Vector2f mapScale = GetWorldTransform().getScale();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
@@ -612,6 +613,8 @@ void Overworld::OnlineArea::onEnd()
   for (auto& [key, processor] : authorizationProcessors) {
     Net().DropProcessor(processor);
   }
+
+  getController().Session().SetWhitelist({}); // clear the whitelist
 }
 
 void Overworld::OnlineArea::onLeave()
@@ -990,6 +993,24 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     leave();
   }
 }
+
+void Overworld::OnlineArea::CheckPlayerAgainstWhitelist()
+{
+
+  PlayerPackagePartitioner& partitioner = getController().PlayerPackagePartitioner();
+  std::string& id = GetCurrentNaviID();
+  PackageAddress addr = { Game::LocalPartition, id };
+
+  if (!partitioner.HasPackage(addr)) return;
+  
+  const std::string& md5 = partitioner.FindPackageByAddress(addr).GetPackageFingerprint();
+
+  if (getController().Session().IsPackageAllowed({ id, md5 })) return;
+
+  // Take player to navi select screen with a message
+  getController().push<segue<BlackWashFade>::to<SelectNaviScene>>(id);
+}
+
 void Overworld::OnlineArea::sendAssetFoundSignal(const std::string& path, uint64_t lastModified) {
   ClientEvents event{ ClientEvents::asset_found };
 
@@ -2372,6 +2393,8 @@ void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, cons
   } while(endLine < whitelistView.size());
 
   getController().Session().SetWhitelist(packageHashes);
+
+  AddSceneChangeTask([this] { CheckPlayerAgainstWhitelist(); });
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -2425,7 +2448,6 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(image);
     std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(emotionsTexture);
     std::shared_ptr<Player> player = std::shared_ptr<Player>(playerMeta.GetData());
-    player->Init();
 
     player->SetHealth(GetPlayerSession()->health);
     player->SetEmotion(GetPlayerSession()->emotion);

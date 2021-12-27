@@ -124,6 +124,7 @@ namespace Overworld {
     Overworld::TeleportController::Command& teleportIn(sf::Vector3f position, Direction direction);
     void transferServer(const std::string& host, uint16_t port, std::string data, bool warpOut);
     void processPacketBody(const Poco::Buffer<char>& data);
+    void CheckPlayerAgainstWhitelist();
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
     void sendAssetsFound();

@@ -77,9 +77,6 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::
     sol::meta_function::length, [](WeakWrapper<ScriptedCharacter>& character) {
       return character.Unwrap()->entries.size();
     },
-    "input_has", [](WeakWrapper<ScriptedCharacter>& character, const InputEvent& event) -> bool {
-      return character.Unwrap()->InputState().Has(event);
-    },
     "get_target", [](WeakWrapper<ScriptedCharacter>& character) -> WeakWrapper<Character> {
       return WeakWrapper(character.Unwrap()->GetTarget());
     },

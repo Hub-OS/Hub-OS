@@ -50,6 +50,8 @@ StuntDouble::~StuntDouble()
 
 void StuntDouble::OnDelete()
 {
+  Hide();
+  ref->Delete();
 }
 
 void StuntDouble::OnUpdate(double elapsed)

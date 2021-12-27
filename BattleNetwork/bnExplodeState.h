@@ -82,6 +82,8 @@ void ExplodeState<Any>::OnEnter(Any& e) {
     animation->SetPlaybackSpeed(0);
     animation->CancelCallbacks();
   }
+
+  e.Reveal();
 }
 
 template<typename Any>

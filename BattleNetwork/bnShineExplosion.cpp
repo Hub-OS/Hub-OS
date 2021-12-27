@@ -17,7 +17,7 @@ void ShineExplosion::Init() {
   Artifact::Init();
 
   animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
-  animationComponent->SetPath("resources/mobs/boss_shine.animation");
+  animationComponent->SetPath("resources/scenes/battle/boss_shine.animation");
   animationComponent->Load();
   animationComponent->SetAnimation("SHINE", Animator::Mode::Loop);
   animationComponent->Refresh();
