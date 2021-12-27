@@ -2,7 +2,7 @@
 #include "bnLogger.h"
 
 AudioResourceManager::AudioResourceManager(){
-  midiMusic.loadSoundFontFromFile("resources/midi/soundfont.sf2");
+  // midiMusic.loadSoundFontFromFile("resources/midi/soundfont.sf2");
 
   isEnabled = true;
 
@@ -357,12 +357,12 @@ int AudioResourceManager::Stream(std::string path, bool loop, long long startMs,
 
   currStreamPath = path;
 
-  if (midiMusic.loadMidiFromFile(path)) {
+  /*if (midiMusic.loadMidiFromFile(path)) {
     midiMusic.play();
     midiMusic.setLoop(loop);
     midiMusic.setPitch(1.f);
     return 0;
-  }
+  }*/
 
   // stop previous stream if any 
   stream.stop();
@@ -386,15 +386,13 @@ int AudioResourceManager::Stream(std::string path, bool loop) {
 }
 
 void AudioResourceManager::StopStream() {
-  //std::scoped_lock lock(mutex);
   stream.stop();
-  midiMusic.stop();
+  //midiMusic.stop();
 }
 
 void AudioResourceManager::SetStreamVolume(float volume) {
-  //std::scoped_lock lock(mutex);
   stream.setVolume(volume);
-  midiMusic.setVolume(volume);
+  // midiMusic.setVolume(volume);
   streamVolume = volume;
 }
 

@@ -25,7 +25,7 @@ find_package(Lua REQUIRED)
 # find_package(sol2 REQUIRED) # commented out until sol2 vcpkg is up to date
 
 include_directories(extern/Swoosh/src)
-include_directories(BattleNetwork/midi)
+# include_directories(BattleNetwork/midi)
 include_directories(BattleNetwork/sol/include) # temporary sol2 bugfix
 add_subdirectory(extern/SFML)
 
