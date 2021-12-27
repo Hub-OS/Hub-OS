@@ -429,6 +429,9 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       // failed to load tile
       if (tileMeta == nullptr) continue;
 
+      // invisible tile
+      if (tileMeta->type == TileType::invisible) continue;
+
       auto& tileSprite = tileMeta->sprite;
       auto spriteBounds = tileSprite.getLocalBounds();
 

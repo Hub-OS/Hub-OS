@@ -270,6 +270,9 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
       // failed to load tile
       if (tileMeta == nullptr) continue;
 
+      // hidden
+      if (tileMeta->type == TileType::invisible) continue;
+
       if(index > 0 && map.IgnoreTileAbove((float)j, (float)i, (int)index - 1)) continue;
 
       auto& tileSprite = tileMeta->sprite;
