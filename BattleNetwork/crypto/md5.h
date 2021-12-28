@@ -60,7 +60,7 @@
  * will fill a supplied 16-byte array with the digest.
  */
 
-typedef unsigned long word32;
+typedef uint32_t word32;
 typedef unsigned char byte;
 
 struct xMD5Context {
