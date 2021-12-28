@@ -70,9 +70,7 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   // load animation files
   uiAnim.Load();
 
-  using namespace std::placeholders;
   packetProcessor = std::make_shared<MatchMaking::PacketProcessor>();
-  packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
 
   setView(sf::Vector2u(480, 320));
 }
@@ -187,55 +185,41 @@ void MatchMakingScene::HandlePasteEvent()
 
 void MatchMakingScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {
-  try {
-    switch (header) {
-    case NetPlaySignals::matchmaking_handshake:
-      RecieveHandshakeSignal();
-      break;
-    case NetPlaySignals::matchmaking_request:
-      RecieveConnectSignal(body);
-      break;
-    }
-  }
-  catch (std::exception& e) {
-    Logger::Logf(LogLevel::critical, "Match Making exception: %s", e.what());
+  switch (header) {
+  case NetPlaySignals::matchmaking_handshake:
+    Logger::Log(LogLevel::info, "Received netplay handshake signal");
+    RecieveHandshakeSignal();
+    break;
+  case NetPlaySignals::matchmaking_request:
+    Logger::Log(LogLevel::info, "Received netplay connect signal");
+    RecieveConnectSignal(body);
+    break;
+  default:
+    Logger::Log(LogLevel::info, "Received unsupported signal in netplay");
   }
 }
 
 void MatchMakingScene::SendConnectSignal()
 {
-  // mark unreliable, in case we leak into the next scene
-
-  try {
-    Poco::Buffer<char> buffer{ 0 };
-    NetPlaySignals type{ NetPlaySignals::matchmaking_request };
-    buffer.append((char*)&type, sizeof(NetPlaySignals));
-    packetProcessor->SendPacket(Reliability::Unreliable, buffer);
-  }
-  catch (Poco::IOException& e) {
-    Logger::Logf(LogLevel::critical, "IOException when trying to connect to opponent: %s", e.what());
-  }
+  Poco::Buffer<char> buffer{ 0 };
+  NetPlaySignals type{ NetPlaySignals::matchmaking_request };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void MatchMakingScene::SendHandshakeSignal()
 {
-  // mark unreliable, in case we leak into the next scene
-
-  try {
-    Poco::Buffer<char> buffer{ 0 };
-    NetPlaySignals type{ NetPlaySignals::matchmaking_handshake };
-    buffer.append((char*)&type, sizeof(NetPlaySignals));
-    packetProcessor->SendPacket(Reliability::Unreliable, buffer);
-  }
-  catch (Poco::IOException& e) {
-    Logger::Logf(LogLevel::critical, "IOException when trying to connect to opponent: %s", e.what());
-  }
+  Poco::Buffer<char> buffer{ 0 };
+  NetPlaySignals type{ NetPlaySignals::matchmaking_handshake };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void MatchMakingScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
 {
-  if (!clientIsReady) return;
+  if (!clientIsReady || remoteIsReady) return;
   remoteIsReady = true;
+  SendHandshakeSignal();
 }
 
 void MatchMakingScene::RecieveHandshakeSignal()
@@ -243,8 +227,8 @@ void MatchMakingScene::RecieveHandshakeSignal()
   // only acknowledge handshakes if you have recieved the cnnect signal
   if (!remoteIsReady || !clientIsReady) return;
 
+  packetProcessor->SetPacketBodyCallback(nullptr); // remove the packet callback to store packets for the next scene
   this->handshakeComplete = true;
-  this->SendHandshakeSignal();
 }
 
 void MatchMakingScene::DrawIDInputWidget(sf::RenderTexture& surface)
@@ -409,6 +393,13 @@ void MatchMakingScene::Reset()
 
   clientPreview.setPosition(0, 0);
   remotePreview.setPosition(0, 0);
+
+  // don't use the last scene to process packets, this scene should process them now
+  using namespace std::placeholders;
+  packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
+  packetProcessor->SetKickCallback([] {});
+  packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
+  Net().DropProcessor(packetProcessor);
 }
 
 void MatchMakingScene::onStart() {
@@ -423,11 +414,6 @@ void MatchMakingScene::onResume() {
 
   switch (returningFrom) {
   case ReturningScene::BattleScene:
-    // don't use the last scene to process packets, this scene should process them now
-    using namespace std::placeholders;
-    packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
-    packetProcessor->SetKickCallback([] {});
-    packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
     Reset();
     break;
   case ReturningScene::DownloadScene:
@@ -465,10 +451,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
   if (!isScreenReady || closing || returningFrom != ReturningScene::Null) return; // don't update our scene if not fully in view from segue
 
   bool systemEvent = Input().HasSystemCopyEvent() || Input().HasSystemPasteEvent();
-
-  if (clientIsReady) {
-    SendConnectSignal();
-  }
 
   if (handshakeComplete && hasProcessedCards && !isInFlashyVSIntro) {
     isInFlashyVSIntro = true;
@@ -644,12 +626,6 @@ void MatchMakingScene::onUpdate(double elapsed) {
     }
   } else {
     // TODO use states/switches this is getting out of hand...
-    if (clientIsReady && remoteIsReady) {
-      if (!handshakeComplete) {
-        this->SendHandshakeSignal();
-      }
-    }
-
     if (Input().Has(InputEvents::pressed_cancel) && !systemEvent) {
       closing = true;
       Audio().Play(AudioType::CHIP_CANCEL);
@@ -676,6 +652,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       Net().AddHandler(packetProcessor->GetRemoteAddr(), packetProcessor);
 
       this->clientIsReady = true;
+      SendConnectSignal();
       HandleReady();
       Audio().Play(AudioType::CHIP_CHOOSE);
     }

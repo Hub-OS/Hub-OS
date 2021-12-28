@@ -23,6 +23,18 @@ void Netplay::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net:
 
   auto packetBodies = packetSorter.SortPacket(*client, packet);
 
+  if (onPacketBodyCallback) {
+    ProcessPackets(packetBodies);
+  } else {
+    pendingPackets.insert(pendingPackets.end(), packetBodies.begin(), packetBodies.end());
+    Logger::Log(LogLevel::debug, "Queueing packets");
+  }
+
+  lastPacketTime = std::chrono::steady_clock::now();
+  errorCount = 0;
+}
+
+void Netplay::PacketProcessor::ProcessPackets(std::vector<Poco::Buffer<char>> packetBodies) {
   for (auto& data : packetBodies) {
     BufferReader reader;
     NetPlaySignals sig = reader.Read<NetPlaySignals>(data);
@@ -37,18 +49,17 @@ void Netplay::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net:
         Logger::Logf(LogLevel::debug, "Handshake acknowledge with reliability type %d", (int)reliability);
       }
     }
-    else if(onPacketBodyCallback && !data.empty()) {
+    else if (onPacketBodyCallback) {
       constexpr auto sigSize = sizeof(NetPlaySignals);
 
       Poco::Buffer<char> body{ 0 };
       body.append(data.begin() + sigSize, data.size() - sigSize);
 
       onPacketBodyCallback(sig, body);
+    } else {
+      pendingPackets.push_back(data);
     }
   }
-
-  lastPacketTime = std::chrono::steady_clock::now();
-  errorCount = 0;
 }
 
 void Netplay::PacketProcessor::Update(double elapsed) {
@@ -90,6 +101,11 @@ void Netplay::PacketProcessor::SetKickCallback(const decltype(onKickCallback)& c
 void Netplay::PacketProcessor::SetPacketBodyCallback(const decltype(onPacketBodyCallback)& callback)
 {
   onPacketBodyCallback = callback;
+
+  if (onPacketBodyCallback) {
+    ProcessPackets(pendingPackets);
+    pendingPackets.clear();
+  }
 }
 
 std::pair<Reliability, uint64_t> Netplay::PacketProcessor::SendPacket(Reliability reliability, const Poco::Buffer<char>& data)

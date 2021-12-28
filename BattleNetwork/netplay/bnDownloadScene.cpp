@@ -40,18 +40,20 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
-    static bool once = false;
-
-    if (!once) {
-      Logger::Logf(LogLevel::info, "Kicked for silence!");
-      once = true;
-    }
+    Logger::Logf(LogLevel::info, "Disconnected from opponent silence!");
+    packetProcessor->SetKickCallback([] {});
+    packetProcessor->EnableKickForSilence(false);
 
     this->Abort();
   });
 
   packetProcessor->EnableKickForSilence(true);
 
+  // send handshake + begin coinflip before reading packets
+  SendHandshake();
+  SendCoinFlip();
+
+  // queued packets will come in after this
   packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& body) {
     this->ProcessPacketBody(header, body);
   });
@@ -74,7 +76,7 @@ DownloadScene::~DownloadScene()
 
 }
 
-void DownloadScene::SendHandshakeAck()
+void DownloadScene::SendHandshake()
 {
   Poco::Buffer<char> buffer(0);
   BufferWriter writer;
@@ -83,27 +85,35 @@ void DownloadScene::SendHandshakeAck()
   mySeed = getController().GetRandSeed();
   writer.Write(buffer, mySeed);
 
-  auto id = packetProcessor->SendPacket(Reliability::Reliable, buffer).second;
+  // must be reliable ordered, we want to handle coin flip last as it sets the seed when completed
+  auto id = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer).second;
   packetProcessor->UpdateHandshakeID(id);
+
+  Logger::Logf(LogLevel::info, "Sending handshake");
 }
 
-void DownloadScene::SendCoinFlip(bool completed) {
+void DownloadScene::SendCoinFlip() {
   Poco::Buffer<char> buffer(0);
   BufferWriter writer;
   writer.Write(buffer, NetPlaySignals::coin_flip);
 
-  coinFlipComplete = completed;
+  // https://stackoverflow.com/a/43454179
+  // mac os has microsecond resolution, while windows + linux have higher resolution
+  // using microseconds on all platforms to make sure this works well on all platforms
+  auto time = std::chrono::duration_cast<std::chrono::microseconds>(
+    std::chrono::system_clock::now().time_since_epoch()
+  );
 
-  if (!coinFlipComplete) {
-    coinFlip = rand() % 2;
-  }
+  getController().SeedRand(static_cast<unsigned>(time.count()));
 
-  writer.Write(buffer, coinFlip);
-  writer.Write(buffer, coinFlipComplete);
+  coinValue = rand();
 
-  Logger::Logf(LogLevel::debug, "Coin flip was %i with seed %i and [coinflip complete=%i]", coinFlip, getController().GetRandSeed(), coinFlipComplete);
+  writer.Write(buffer, coinValue);
 
-  packetProcessor->SendPacket(Reliability::Reliable, buffer);
+  Logger::Logf(LogLevel::debug, "Coin value was %i with seed %u", coinValue, getController().GetRandSeed());
+
+  // must be reliable ordered to be read after handshake
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
 void DownloadScene::ResetRemotePartitions()
@@ -166,7 +176,7 @@ void DownloadScene::RemoveFromDownloadList(const std::string& id)
 
 bool DownloadScene::AllTasksComplete()
 {
-  return coinFlipComplete && remoteCoinFlipComplete && cardPackageRequested && playerPackageRequested && blockPackageRequested && contentToDownload.empty();
+  return coinFlipComplete && cardPackageRequested && playerPackageRequested && blockPackageRequested && contentToDownload.empty();
 }
 
 void DownloadScene::TradePlayerPackageData(const PackageHash& hash)
@@ -234,7 +244,19 @@ void DownloadScene::SendDownloadComplete(bool value)
     buffer.append((char*)&downloadSuccess, sizeof(bool));
 
     packetProcessor->SendPacket(Reliability::Reliable, buffer);
-    Abort();
+  }
+}
+
+void DownloadScene::SendTransition()
+{
+  if (!transitionSignalSent) {
+    transitionSignalSent = true;
+
+    Poco::Buffer<char> buffer{ 0 };
+    NetPlaySignals type{ NetPlaySignals::download_transition };
+    buffer.append((char*)&type, sizeof(NetPlaySignals));
+
+    packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
   }
 }
 
@@ -296,6 +318,10 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     break;
   case NetPlaySignals::downloads_complete:
     this->RecieveDownloadComplete(body);
+    break;
+  case NetPlaySignals::download_transition:
+    Logger::Logf(LogLevel::info, "Transitioning to pvp...");
+    this->RecieveTransition(body);
     break;
   }
 }
@@ -369,9 +395,6 @@ void DownloadScene::RecieveHandshake(const Poco::Buffer<char>& buffer)
   BufferReader reader;
   unsigned int seed = reader.Read<unsigned int>(buffer);
   maxSeed = std::max(seed, mySeed);
-
-  // kick off coin flip
-  this->SendCoinFlip(false);
 
   // mark handshake as completed
   this->remoteHandshake = true;
@@ -469,23 +492,29 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
   Logger::Logf(LogLevel::info, "Remote says download complete. Result: %s", result ? "Success" : "Fail");
 }
 
+void DownloadScene::RecieveTransition(const Poco::Buffer<char>& buffer)
+{
+  packetProcessor->SetPacketBodyCallback(nullptr); // queue next packets for pvp
+  transitionToPvp = true;
+}
+
 void DownloadScene::RecieveCoinFlip(const Poco::Buffer<char>& buffer)
 {
-  unsigned int result{};
-  std::memcpy(&result, buffer.begin(), sizeof(unsigned int));
-  std::memcpy(&remoteCoinFlipComplete, buffer.begin() + sizeof(unsigned int), sizeof(bool));
+  BufferReader reader;
+  unsigned int remoteValue = reader.Read<uint32_t>(buffer);
 
   // We can't both have the same result
-  if (result == coinFlip) {
-    // revert seed, diverge, and try to come to an agreement about order
-    getController().SeedRand(mySeed++);
-    SendCoinFlip(false);
+  if (remoteValue == coinValue) {
+    SendCoinFlip();
     return;
   }
 
+  coinFlip = coinValue > remoteValue;
+  coinFlipComplete = true;
+
   // sync seed
   getController().SeedRand(maxSeed); 
-  SendCoinFlip(true);
+  Logger::Logf(LogLevel::debug, "Coin flip completed. Local value: %d. Remote value: %d. Final value: %d", coinValue, remoteValue, coinFlip);
 }
 
 void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
@@ -717,8 +746,12 @@ void DownloadScene::onUpdate(double elapsed)
     SendDownloadComplete(true);
 
     if (downloadSuccess && remoteSuccess) {
-      getController().pop();
+      SendTransition();
     }
+  }
+
+  if (transitionToPvp) {
+    getController().pop();
   }
 }
 
@@ -790,8 +823,6 @@ void DownloadScene::onEnter()
 
 void DownloadScene::onStart()
 {
-  Logger::Logf(LogLevel::info, "onStart() sending handshake");
-  SendHandshakeAck();
 }
 
 void DownloadScene::onResume()

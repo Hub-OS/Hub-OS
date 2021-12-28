@@ -774,7 +774,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
       float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f);
       float xscale = scaleFactor * 2.f;
 
-      auto interp_position = [scaleFactor, this](sf::Vector2f& pos) {
+      auto interp_position = [scaleFactor, this](sf::Vector2f pos) {
         sf::Vector2f center = card.getPosition();
         pos.x = ((scaleFactor * pos) + ((1.0f - scaleFactor) * center)).x;
         return pos;
@@ -912,7 +912,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
       float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f);
       float xscale = scaleFactor * 2.f;
 
-      auto interp_position = [scaleFactor, this](sf::Vector2f& pos) {
+      auto interp_position = [scaleFactor, this](sf::Vector2f pos) {
         sf::Vector2f center = card.getPosition();
         pos.x = ((scaleFactor * pos) + ((1.0f - scaleFactor) * center)).x;
         return pos;
