@@ -85,8 +85,8 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
 
   // combat has multiple state interruptions based on events
   // so we can chain them together
-  combat.ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
-    .ChangeOnEvent(battleover, &CombatBattleState::PlayerLost)
+  combat.ChangeOnEvent(battleover, &CombatBattleState::RedTeamWon)
+    .ChangeOnEvent(battleover, &CombatBattleState::PlayerDeleted)
     .ChangeOnEvent(battleover, HookTurnLimitReached())
     .ChangeOnEvent(cardSelect, HookTurnTimeout())
     .ChangeOnEvent(forms, HookFormChangeStart(forms.Unwrap()))

@@ -162,8 +162,8 @@ private:
   // event bus
   EventBus::Channel channel;
 
-  sf::Vector2f PerspectiveOffset(SpriteProxyNode& node);
-
+  sf::Vector2f PerspectiveOffset(const sf::Vector2f& pos);
+  sf::Vector2f PerspectiveOrigin(const sf::Vector2f& origin, const sf::FloatRect& size);
 protected:
   using ChangeCondition = BattleSceneState::ChangeCondition;
 
@@ -358,6 +358,10 @@ public:
   virtual void onDraw(sf::RenderTexture& surface) override;
   virtual void onEnd() override;
 
+  void DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf);
+  void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);
+  void DrawWithPerspective(Text& text, sf::RenderTarget& surf);
+  void PerspectiveFlip(bool flipped);
   bool TrackOtherPlayer(std::shared_ptr<Player> other);
   void UntrackOtherPlayer(std::shared_ptr<Player> other);
 

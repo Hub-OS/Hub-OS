@@ -49,9 +49,9 @@ const bool CombatBattleState::HasTimeFreeze() const {
   return hasTimeFreeze && !isPaused;
 }
 
-const bool CombatBattleState::PlayerWon() const
+const bool CombatBattleState::RedTeamWon() const
 {
-  auto blueTeamCharCount = 0;
+  size_t blueTeamCharCount = 0;
   GetScene().GetField()->FindEntities([&blueTeamCharCount](std::shared_ptr<Entity>& e) {
     // check when the enemy has been removed from the field even if the mob
     // forgot about it
@@ -63,10 +63,27 @@ const bool CombatBattleState::PlayerWon() const
     return false;
   });
 
-  return !PlayerLost() && mob->IsCleared() && blueTeamCharCount == 0 && GetScene().ComboDeleteSize() == 0;
+  // we add `ComboDeleteSize() == 0` to our state check to give us a few more frames of display before switching states
+  return blueTeamCharCount == 0 && GetScene().ComboDeleteSize() == 0;
 }
 
-const bool CombatBattleState::PlayerLost() const
+const bool CombatBattleState::BlueTeamWon() const
+{
+  size_t redTeamCharCount = 0;
+  GetScene().GetField()->FindEntities([&redTeamCharCount](std::shared_ptr<Entity>& e) {
+    if (e->GetTeam() == Team::red && dynamic_cast<Character*>(e.get()) && (dynamic_cast<Obstacle*>(e.get()) == nullptr)) {
+      redTeamCharCount++;
+    }
+
+    return false;
+  });
+
+  // return !PlayerDeleted() && mob->IsCleared() && redTeamCharCount == 0 && GetScene().ComboDeleteSize() == 0;
+  // we add `ComboDeleteSize() == 0` to our state check to give us a few more frames of display before switching states
+  return redTeamCharCount == 0 && GetScene().ComboDeleteSize() == 0;
+}
+
+const bool CombatBattleState::PlayerDeleted() const
 {
   return GetScene().IsPlayerDeleted();
 }

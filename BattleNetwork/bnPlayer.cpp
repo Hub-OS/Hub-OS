@@ -209,6 +209,7 @@ void Player::OnDelete() {
   if (animationComponent) {
       animationComponent->CancelCallbacks();
       animationComponent->SetAnimation(PLAYER_HIT);
+      animationComponent->Refresh();
   }
 
   ChangeState<NaviWhiteoutState<Player>>();

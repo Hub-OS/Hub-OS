@@ -2307,6 +2307,14 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     // Make player who can go first the priority in the list
     std::iter_swap(spawnOrder.begin(), spawnOrder.begin() + this->pvpCoinFlip);
 
+    // red team goes first
+    spawnOrder[0].x = 2;
+    spawnOrder[0].y = 2;
+
+    // blue team goes second
+    spawnOrder[1].x = 5;
+    spawnOrder[1].y = 2;
+
     NetworkBattleSceneProps props = {
       { player, GetProgramAdvance(), std::move(folder), std::make_shared<Field>(6, 3), GetBackground() },
       sf::Sprite(*mugshot),
