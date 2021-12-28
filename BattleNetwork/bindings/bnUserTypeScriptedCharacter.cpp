@@ -52,7 +52,7 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, const
       }
     ),
     "from_package", [scriptManager, &namespaceId](const std::string& fqn, Team team, Character::Rank rank) {
-      ScriptPackage* scriptPackage = scriptManager->FetchScriptPackage(fqn, namespaceId, ScriptPackageType::character);
+      ScriptPackage* scriptPackage = scriptManager->FetchScriptPackage(namespaceId, fqn, ScriptPackageType::character);
 
       if (!scriptPackage) {
         throw std::runtime_error("Character does not exist");

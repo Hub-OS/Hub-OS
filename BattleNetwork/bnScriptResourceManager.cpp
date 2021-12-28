@@ -746,7 +746,7 @@ stx::result_t<sol::state*> ScriptResourceManager::LoadScript(const std::string& 
   scriptPackage.state = lua;
   scriptPackage.type = type;
   scriptPackage.address.namespaceId = namespaceId;
-  scriptPackage.path = modDirectory;
+  scriptPackage.path = modDirectory.generic_string();
 
   // Configure the scripts to run safely
   SetModPathVariable(*lua, modDirectory);
