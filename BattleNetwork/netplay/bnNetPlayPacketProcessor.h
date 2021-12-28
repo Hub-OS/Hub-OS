@@ -24,6 +24,9 @@ namespace Netplay {
     PacketSorter<NetPlaySignals::ack> packetSorter;
     KickFunc onKickCallback;
     PacketbodyFunc onPacketBodyCallback;
+    std::vector<Poco::Buffer<char>> pendingPackets;
+
+    void ProcessPackets(std::vector<Poco::Buffer<char>> packets);
   public:
     PacketProcessor(const Poco::Net::SocketAddress& remoteAddress, uint16_t maxBytes);
     virtual ~PacketProcessor();
