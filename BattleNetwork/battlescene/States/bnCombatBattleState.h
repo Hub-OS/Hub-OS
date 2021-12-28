@@ -31,8 +31,9 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   sf::Shader* pauseShader; /*!< Dim screen */
   std::vector<const BattleSceneState*> subcombatStates;
   const bool HasTimeFreeze() const;
-  const bool PlayerWon() const;
-  const bool PlayerLost() const;
+  const bool RedTeamWon() const;
+  const bool BlueTeamWon() const;
+  const bool PlayerDeleted() const;
   const bool PlayerRequestCardSelect();
   const bool HandleNextRoundSetup(const BattleSceneState* state);
   const bool IsStateCombat(const BattleSceneState* state);

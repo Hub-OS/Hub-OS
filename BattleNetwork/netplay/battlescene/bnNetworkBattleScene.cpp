@@ -362,15 +362,16 @@ void NetworkBattleScene::Init()
   BlockPackagePartitioner& partition = getController().BlockPackagePartitioner();
 
   size_t idx = 0;
-  for (auto& [blocks, p] : spawnOrder) {
+  for (auto& [blocks, p, x, y] : spawnOrder) {
     if (p == GetLocalPlayer()) {
       std::string title = "Player #" + std::to_string(idx+1);
-      SpawnLocalPlayer(2, 2);
+      SpawnLocalPlayer(x, y);
+      PerspectiveFlip(p->GetTeam() == Team::blue);
       getController().SetSubtitle(title);
     }
     else {
       // Spawn and subscribe to remote player's events
-      SpawnRemotePlayer(p);
+      SpawnRemotePlayer(p, x, y);
     }
 
     // Run block programs on the remote player now that they are spawned
@@ -622,7 +623,7 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
   }
 }
 
-void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer)
+void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer, int x, int y)
 {
   if (remotePlayer) return;
 
@@ -634,10 +635,11 @@ void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlay
   remotePlayer = newRemotePlayer;
   remoteState.remoteConnected = true;
 
-  Logger::Logf(LogLevel::debug, "Spawning remote navi: %s", remotePlayer->GetName().c_str());
-
   // This will add PlayerSelectedCardsUI component to the player
-  SpawnOtherPlayer(newRemotePlayer, 5, 2);
+  // NOTE: this calls Init() to get remote player data
+  SpawnOtherPlayer(newRemotePlayer, x, y);
+
+  Logger::Logf(LogLevel::debug, "Spawn remote navi finished: %s", remotePlayer->GetName().c_str());
 
   remoteCardActionUsePublisher = newRemotePlayer->GetFirstComponent<PlayerSelectedCardsUI>();
 }
@@ -645,10 +647,10 @@ void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlay
 std::function<bool()> NetworkBattleScene::HookPlayerWon(CombatBattleState& combat, BattleOverBattleState& over)
 {
   auto lambda = [&combat, &over, this] {
-    bool result = combat.PlayerWon();
+    bool result = GetLocalPlayer()->GetTeam() == Team::red? combat.RedTeamWon() : combat.BlueTeamWon();
 
     if (result) {
-      over.SetIntroText(remotePlayer->GetName() + " Deleted!");
+      over.SetIntroText("Enemy Deleted!");
     }
 
     return result;
@@ -660,7 +662,7 @@ std::function<bool()> NetworkBattleScene::HookPlayerWon(CombatBattleState& comba
 std::function<bool()> NetworkBattleScene::HookPlayerLost(CombatBattleState& combat, BattleOverBattleState& over)
 {
   auto lambda = [&combat, &over, this] {
-    bool result = combat.PlayerWon();
+    bool result = combat.PlayerDeleted();
 
     if (result) {
       over.SetIntroText(GetLocalPlayer()->GetName() + " Deleted!");

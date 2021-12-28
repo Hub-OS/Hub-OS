@@ -63,6 +63,7 @@ class NetworkCardUseListener;
 struct NetworkPlayerSpawnData {
   std::vector<PackageAddress> blocks;
   std::shared_ptr<Player> player;
+  int x{}, y{}; //!< grid pos
 };
 
 struct NetworkBattleSceneProps {
@@ -129,7 +130,7 @@ private:
   void UpdatePingIndicator(frame_time_t frames);
   
   // This utilized BattleSceneBase::SpawnOtherPlayer() but adds some setup for networking
-  void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer);
+  void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer, int x, int y);
 
   // Battle state hooks
   std::function<bool()> HookPlayerWon(CombatBattleState& combat, BattleOverBattleState& over);

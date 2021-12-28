@@ -186,7 +186,6 @@ const bool BattleSceneBase::TripleDelete() const
 {
   return didTripleDelete;
 }
-;
 
 const int BattleSceneBase::GetCounterCount() const {
   return totalCounterMoves;
@@ -356,23 +355,37 @@ void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint6
   HandleCounterLoss(*action->GetActor(), true);
 }
 
-sf::Vector2f BattleSceneBase::PerspectiveOffset(SpriteProxyNode& node)
+sf::Vector2f BattleSceneBase::PerspectiveOffset(const sf::Vector2f& pos)
 {
   if (perspectiveFlip) {
-    return sf::Vector2f((240.f - node.getPosition().x)*2.f, 0.f);
+    return sf::Vector2f((240.f - pos.x)*2.f, 0.f);
   }
 
   return sf::Vector2f();
+}
+
+sf::Vector2f BattleSceneBase::PerspectiveOrigin(const sf::Vector2f& origin, const sf::FloatRect& size)
+{
+  if (perspectiveFlip) {
+    float rectW = size.width;
+    float canX = (origin.x / rectW);
+    float originF = 1.f - canX;
+    float screenX = rectW * originF;
+    return sf::Vector2f(screenX, origin.y);
+  }
+
+  return origin;
 }
 
 void BattleSceneBase::SpawnLocalPlayer(int x, int y)
 {
   if (hasPlayerSpawned) return;
   hasPlayerSpawned = true;
+  Team team = field->GetAt(x, y)->GetTeam();
 
   localPlayer->Init();
   localPlayer->ChangeState<PlayerIdleState>();
-  localPlayer->SetTeam(Team::red);
+  localPlayer->SetTeam(team);
   field->AddEntity(localPlayer, x, y);
 
   // Player UI
@@ -412,10 +425,6 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   player->ChangeState<PlayerIdleState>();  
   player->SetTeam(team);
   field->AddEntity(player, x, y);
-
-  if (!localPlayer->Teammate(team)) {
-    mob->Track(player);
-  }
 
   // Other Player UI
   std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player, &getController().CardPackagePartitioner());
@@ -522,6 +531,13 @@ void BattleSceneBase::DrawCustGauage(sf::RenderTexture& surface)
 }
 
 void BattleSceneBase::StartStateGraph(StateNode& start) {
+  for (std::shared_ptr<Player> p : GetAllPlayers()) {
+    if (!localPlayer->Teammate(p->GetTeam())) {
+      mob->Track(p);
+      Logger::Logf(LogLevel::debug, "Mob is tracking other player %s", p->GetName().c_str());
+    }
+  }
+
   // kick-off and align all sprites on the screen
   field->Update(0);
 
@@ -607,7 +623,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
   auto componentsCopy = components;
 
   // Update components
-  for (auto& c : componentsCopy) {
+  for (std::shared_ptr<Component>& c : componentsCopy) {
     if (c->Lifetime() == Component::lifetimes::ui) {
       c->Update((float)elapsed);
     }
@@ -714,7 +730,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       tile->setColor(sf::Color::White);
     }
 
-    sf::Vector2f flipOffset = PerspectiveOffset(*tile);
+    sf::Vector2f flipOffset = PerspectiveOffset(tile->getPosition());
     tile->PerspectiveFlip(perspectiveFlip);
     tile->move(viewOffset + flipOffset);
     tile->setColor(sf::Color(tint, tint, tint, 255));
@@ -749,7 +765,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     for (Entity* node : tileEntities) {
       sf::Vector2f offset = viewOffset + sf::Vector2f(0, -node->GetElevation());
-      sf::Vector2f flipOffset = PerspectiveOffset(*node);
+      sf::Vector2f flipOffset = PerspectiveOffset(node->getPosition());
       node->move(offset+flipOffset);
 
       sf::Vector2f ogScale = node->getScale();
@@ -774,7 +790,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   // draw ui on top
   for (auto* ent : allEntities) {
     auto uis = ent->GetComponentsDerivedFrom<UIComponent>();
-    sf::Vector2f flipOffset = PerspectiveOffset(*ent);
+    sf::Vector2f flipOffset = PerspectiveOffset(ent->getPosition());
     for (auto& ui : uis) {
       if (ui->DrawOnUIPass()) {
         ui->move(viewOffset + flipOffset);
@@ -790,11 +806,11 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   }
 
   // draw extra card action graphics
-  for (auto* c : allCharacters) {
-    auto actionList = c->AsyncActionList();
+  for (Character* c : allCharacters) {
+    const std::vector<std::shared_ptr<CardAction>> actionList = c->AsyncActionList();
     auto currAction = c->CurrentCardAction();
 
-    for (auto& action : actionList) {
+    for (const std::shared_ptr<CardAction>& action : actionList) {
       surface.draw(*action);
     }
 
@@ -834,6 +850,59 @@ void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player> other) {
     otherPlayers.erase(iter);
     allPlayerFormsHash.erase(iter2);
   }
+}
+
+void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf)
+{
+  sf::Vector2f position = shape.getPosition();
+  sf::Vector2f origin = shape.getOrigin();
+  sf::Vector2f offset = PerspectiveOffset(position);
+  sf::Vector2f originNew = PerspectiveOrigin(shape.getOrigin(), shape.getLocalBounds());
+
+  shape.setPosition(shape.getPosition() + offset);
+  shape.setOrigin(originNew);
+
+  surf.draw(shape);
+
+  shape.setPosition(position);
+  shape.setOrigin(origin);
+}
+
+void BattleSceneBase::DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf)
+{
+  sf::Vector2f position = sprite.getPosition();
+  sf::Vector2f origin = sprite.getOrigin();
+  sf::Vector2f offset = PerspectiveOffset(position);
+  sf::Vector2f originNew = PerspectiveOrigin(sprite.getOrigin(), sprite.getLocalBounds());
+
+  sprite.setPosition(sprite.getPosition() + offset);
+  sprite.setOrigin(originNew);
+
+  surf.draw(sprite);
+
+  sprite.setPosition(position);
+  sprite.setOrigin(origin);
+}
+
+void BattleSceneBase::DrawWithPerspective(Text& text, sf::RenderTarget& surf)
+{
+  sf::Vector2f position = text.getPosition();
+  sf::Vector2f origin = text.getOrigin();
+  sf::Vector2f offset = PerspectiveOffset(position);
+  sf::Vector2f originNew = PerspectiveOrigin(text.getOrigin(), text.GetLocalBounds());
+
+  text.setPosition(text.getPosition() + offset);
+  text.setOrigin(originNew);
+
+  surf.draw(text);
+
+  text.setPosition(position);
+  text.setOrigin(origin);  
+}
+
+void BattleSceneBase::PerspectiveFlip(bool flipped)
+{
+  perspectiveFlip = flipped;
 }
 
 bool BattleSceneBase::IsPlayerDeleted() const

@@ -177,9 +177,9 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
 
   // combat has multiple state interruptions based on events
   // so we can chain them together
-  combat.ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
+  combat.ChangeOnEvent(battleover, &CombatBattleState::RedTeamWon)
     .ChangeOnEvent(forms, HookFormChangeStart(forms.Unwrap()))
-    .ChangeOnEvent(fadeout, &CombatBattleState::PlayerLost)
+    .ChangeOnEvent(fadeout, &CombatBattleState::PlayerDeleted)
     .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
     .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 

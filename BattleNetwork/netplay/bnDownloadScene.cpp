@@ -101,7 +101,7 @@ void DownloadScene::SendCoinFlip(bool completed) {
   writer.Write(buffer, coinFlip);
   writer.Write(buffer, coinFlipComplete);
 
-  Logger::Logf(LogLevel::debug, "Coin flip: %i", coinFlip);
+  Logger::Logf(LogLevel::debug, "Coin flip was %i with seed %i and [coinflip complete=%i]", coinFlip, getController().GetRandSeed(), coinFlipComplete);
 
   packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
@@ -369,9 +369,6 @@ void DownloadScene::RecieveHandshake(const Poco::Buffer<char>& buffer)
   BufferReader reader;
   unsigned int seed = reader.Read<unsigned int>(buffer);
   maxSeed = std::max(seed, mySeed);
-
-  
-  getController().SeedRand(maxSeed);
 
   // kick off coin flip
   this->SendCoinFlip(false);

@@ -53,7 +53,7 @@ public:
   SpriteProxyNode(const sf::Texture& texture);
 
   /**
-  * \brief Copy ctor
+  * \brief Move ctor
   */
   SpriteProxyNode(SpriteProxyNode&& rhs) noexcept;
 

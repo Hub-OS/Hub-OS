@@ -39,8 +39,6 @@ void TimeFreezeBattleState::CleanupStuntDouble()
     if (iter->stuntDouble) {
       GetScene().GetField()->DeallocEntity(iter->stuntDouble->GetID());
     }
-
-    // iter = tfEvents.erase(iter);
   }
 }
 
@@ -227,16 +225,18 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
+  static sf::Sprite alertSprite(*Textures().LoadFromFile("resources/ui/alert.png"));
+  static sf::RectangleShape bar;
+
   if (tfEvents.empty()) return;
 
   const auto& first = tfEvents.begin();
-  static sf::Sprite alertSprite(*Textures().LoadFromFile("resources/ui/alert.png"));
 
+  double tfcTimerScale = swoosh::ease::linear(summonTick.asSeconds().value, summonTextLength.asSeconds().value, 1.0);
   double scale = swoosh::ease::linear(summonTick.asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
   scale = std::min(scale, 1.0);
 
-  double tfcTimerScale = swoosh::ease::linear(summonTick.asSeconds().value, summonTextLength.asSeconds().value, 1.0);
-  sf::RectangleShape bar = sf::RectangleShape({ 100.f * static_cast<float>(1.0-tfcTimerScale), 2.f });
+  bar = sf::RectangleShape({ 100.f * static_cast<float>(1.0 - tfcTimerScale), 2.f });
   bar.setScale(2.f, 2.f);
 
   if (summonTick >= summonTextLength - fadeInOutLength) {
@@ -265,26 +265,27 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
   summonsLabel.SetColor(sf::Color::Black);
   summonsLabel.setPosition(position.x + 2.f, position.y + 2.f);
-  surface.draw(summonsLabel);
+  GetScene().DrawWithPerspective(summonsLabel, surface);
+
   summonsLabel.SetColor(sf::Color::White);
   summonsLabel.setPosition(position);
-  surface.draw(summonsLabel);
+  GetScene().DrawWithPerspective(summonsLabel, surface);
 
   if (currState == state::display_name) {
     // draw TF bar underneath
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
-    surface.draw(bar);
+    GetScene().DrawWithPerspective(bar, surface);
 
     bar.setPosition(position + sf::Vector2f(0.f, 12.f));
 
     sf::Uint8 b = (sf::Uint8)swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
     bar.setFillColor(sf::Color(255, 255, b));
-    surface.draw(bar);
+    GetScene().DrawWithPerspective(bar, surface);
   }
 
   // draw the !! sprite
-  for (auto& e : tfEvents) {
+  for (TimeFreezeBattleState::EventData& e : tfEvents) {
     if (e.animateCounter) {
       double scale = swoosh::ease::wideParabola(e.alertFrameCount.asSeconds().value, this->alertAnimFrames.asSeconds().value, 3.0);
       
@@ -304,7 +305,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
       }
 
       alertSprite.setPosition(position);
-      surface.draw(alertSprite);
+      GetScene().DrawWithPerspective(alertSprite, surface);
     }
   }
 }
