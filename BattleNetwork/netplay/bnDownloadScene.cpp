@@ -246,6 +246,19 @@ void DownloadScene::SendDownloadComplete(bool value)
   }
 }
 
+void DownloadScene::SendTransition()
+{
+  if (!transitionSignalSent) {
+    transitionSignalSent = true;
+
+    Poco::Buffer<char> buffer{ 0 };
+    NetPlaySignals type{ NetPlaySignals::download_transition };
+    buffer.append((char*)&type, sizeof(NetPlaySignals));
+
+    packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+  }
+}
+
 void DownloadScene::SendPing()
 {
   Poco::Buffer<char> buffer{ 0 };
@@ -304,6 +317,10 @@ void DownloadScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<
     break;
   case NetPlaySignals::downloads_complete:
     this->RecieveDownloadComplete(body);
+    break;
+  case NetPlaySignals::download_transition:
+    Logger::Logf(LogLevel::info, "Transitioning to pvp...");
+    this->RecieveTransition(body);
     break;
   }
 }
@@ -472,6 +489,12 @@ void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
   }
 
   Logger::Logf(LogLevel::info, "Remote says download complete. Result: %s", result ? "Success" : "Fail");
+}
+
+void DownloadScene::RecieveTransition(const Poco::Buffer<char>& buffer)
+{
+  packetProcessor->SetPacketBodyCallback(nullptr); // queue next packets for pvp
+  transitionToPvp = true;
 }
 
 void DownloadScene::RecieveCoinFlip(const Poco::Buffer<char>& buffer)
@@ -722,8 +745,12 @@ void DownloadScene::onUpdate(double elapsed)
     SendDownloadComplete(true);
 
     if (downloadSuccess && remoteSuccess) {
-      getController().pop();
+      SendTransition();
     }
+  }
+
+  if (transitionToPvp) {
+    getController().pop();
   }
 }
 

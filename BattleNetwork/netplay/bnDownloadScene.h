@@ -30,7 +30,7 @@ struct DownloadSceneProps;
 class DownloadScene final : public Scene {
 private:
   bool& downloadSuccess;
-  bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{}, coinFlipComplete{};
+  bool downloadFlagSet{}, transitionSignalSent{}, transitionToPvp{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{}, coinFlipComplete{};
   bool playerPackageRequested{}, cardPackageRequested{}, blockPackageRequested{};
   unsigned& coinFlip;
   unsigned coinValue{};
@@ -67,6 +67,7 @@ private:
   void SendHandshake();
   void SendPing(); //!< keep connections alive while clients download data
   void SendDownloadComplete(bool success);
+  void SendTransition();
   void SendCoinFlip();
 
   // Initiate trades
@@ -89,6 +90,7 @@ private:
   void RecieveRequestCardPackageData(const Poco::Buffer<char>& buffer);
   void RecieveRequestBlockPackageData(const Poco::Buffer<char>& buffer);
   void RecieveDownloadComplete(const Poco::Buffer<char>& buffer);
+  void RecieveTransition(const Poco::Buffer<char>& buffer);
   void RecieveCoinFlip(const Poco::Buffer<char>& buffer);
 
   // Downloads

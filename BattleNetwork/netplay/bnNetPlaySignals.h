@@ -34,6 +34,7 @@ enum class NetPlaySignals : unsigned int {
   block_package_request, // Ask to download only specific package
   block_package_download, // Download block package data
   downloads_complete,
+  download_transition, // transition to pvp
 
   ///////////////////////
   //     Misc. Cmds    //
