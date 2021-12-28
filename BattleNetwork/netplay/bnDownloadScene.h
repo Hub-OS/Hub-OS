@@ -30,9 +30,10 @@ struct DownloadSceneProps;
 class DownloadScene final : public Scene {
 private:
   bool& downloadSuccess;
-  bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{}, coinFlipComplete{}, remoteCoinFlipComplete{};
+  bool downloadFlagSet{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{}, coinFlipComplete{};
   bool playerPackageRequested{}, cardPackageRequested{}, blockPackageRequested{};
   unsigned& coinFlip;
+  unsigned coinValue{};
   unsigned mySeed{}, maxSeed{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
@@ -63,10 +64,10 @@ private:
   void RemoveFromDownloadList(const std::string& id);
 
   // Send direct data
-  void SendHandshakeAck();
+  void SendHandshake();
   void SendPing(); //!< keep connections alive while clients download data
   void SendDownloadComplete(bool success);
-  void SendCoinFlip(bool completed);
+  void SendCoinFlip();
 
   // Initiate trades
   void TradePlayerPackageData(const PackageHash& hash);
