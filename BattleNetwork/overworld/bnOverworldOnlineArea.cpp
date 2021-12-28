@@ -111,11 +111,6 @@ Overworld::OnlineArea::OnlineArea(
 
 Overworld::OnlineArea::~OnlineArea()
 {
-  if (!transferringServers) {
-    // clear packages when completing the return to the homepage
-    // we already clear packages when transferring to a new server
-    RemovePackages();
-  }
 }
 
 std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbstractUser(const std::string& id)
@@ -621,6 +616,12 @@ void Overworld::OnlineArea::onEnd()
   }
 
   getController().Session().SetWhitelist({}); // clear the whitelist
+
+  if (!transferringServers) {
+    // clear packages when completing the return to the homepage
+    // we already clear packages when transferring to a new server
+    RemovePackages();
+  }
 }
 
 void Overworld::OnlineArea::onLeave()
