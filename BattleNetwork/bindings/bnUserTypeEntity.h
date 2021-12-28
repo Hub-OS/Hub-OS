@@ -211,6 +211,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["is_team"] = [](WeakWrapper<E>& entity, Team team) -> bool {
     return entity.Unwrap()->Teammate(team);
   };
+  entity_table["set_team"] = [](WeakWrapper<E>& entity, Team team) {
+    entity.Unwrap()->SetTeam(team);
+  };
   entity_table["get_team"] = [](WeakWrapper<E>& entity) -> Team {
     return entity.Unwrap()->GetTeam();
   };
