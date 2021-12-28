@@ -22,52 +22,49 @@
 
 class CardPackagePartitioner;
 
+enum class ScriptPackageType : uint8_t {
+  card,
+  character,
+  library,
+  other,
+  any
+};
+
+struct ScriptPackage {
+  sol::state* state{ nullptr };
+  ScriptPackageType type;
+  PackageAddress address;
+  std::string path;
+  std::vector<std::string> subpackages;
+  std::vector<std::string> dependencies;
+};
+
 class ScriptResourceManager {
-public:
-  struct LoadScriptResult {
-    sol::protected_function_result result;
-    sol::state* state{ nullptr };
-  };
-
-private:
-  unsigned int randSeed{};
-  std::vector<sol::state*> states;
-  std::map<std::string, LoadScriptResult> scriptTableHash; /*!< Script path to sol table hash */
-  std::map<PackageAddress, std::string> cardFQN; /*! character FQN to script path */
-  std::map<PackageAddress, std::string> characterFQN; /*! character FQN to script path */
-  std::map<PackageAddress, std::string> libraryFQN; /*! library FQN to script path */
-  std::map<sol::state*, std::string> state2Namespace; /*! pointer to namespace hash */
-  std::map<PackageAddress, std::list< std::string > > scriptDependencies; // [ Package Name, List of packages it depends on ] 
-  CardPackagePartitioner* cardPartition{ nullptr };
-
-  void ConfigureEnvironment(sol::state& state);
-
 public:
   ~ScriptResourceManager();
 
-  LoadScriptResult& LoadScript(const std::string& namespaceId, const std::filesystem::path& path);
-  LoadScriptResult& InitLibrary(const std::string& namespaceId, const std::string& path);
+  stx::result_t<sol::state*> LoadScript(const std::string& namespaceId, const std::filesystem::path& path, ScriptPackageType type = ScriptPackageType::other);
 
+  void DropPackageData(sol::state* state);
   void DropPackageData(const PackageAddress& addr);
-  void DefineCard(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
-  void DefineCharacter(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
-  void DefineLibrary(const std::string& namespaceId, const std::string& fqn, const std::string& path) /* throw std::exception */;
-  sol::state* FetchCharacter(const std::string& namespaceId, const std::string& fqn);
-  sol::state* FetchCard(const std::string& namespaceId, const std::string& fqn);
-  const std::string& FetchSharedLibraryPath(const std::string& namespaceId, const std::string& fqn);
-  const std::string& CharacterToModpath(const std::string& namespaceId, const std::string& fqn);
+  ScriptPackage* DefinePackage(ScriptPackageType type, const std::string& namespaceId, const std::string& fqn, const std::string& path); /* throws */
+  ScriptPackage* FetchScriptPackage(const std::string& namespaceId, const std::string& fqn, ScriptPackageType type);
   void SeedRand(unsigned int seed);
   void SetCardPackagePartitioner(CardPackagePartitioner& partition);
   CardPackagePartitioner& GetCardPackagePartitioner();
-  void AddDependencyNote(sol::state& state, const std::string& dependencyPackageID );
-  void RegisterDependencyNotes(sol::state& state);
-  std::string GetStateNamespace(sol::state& state);
 
   static sol::object PrintInvalidAccessMessage(sol::table table, const std::string typeName, const std::string key );
   static sol::object PrintInvalidAssignMessage(sol::table table, const std::string typeName, const std::string key );
 
-  private:
-  void SetSystemFunctions(sol::state& state );
+private:
+  unsigned int randSeed{};
+  std::map<sol::state*, ScriptPackage*> state2package; /*!< lua state pointer to script package */
+  std::map<PackageAddress, ScriptPackage*> address2package; /*!< PackageAddress to script package */
+  CardPackagePartitioner* cardPartition{ nullptr };
+
+  void ConfigureEnvironment(ScriptPackage& scriptPackage);
+  void DefineSubpackage(ScriptPackage& parentPackage, ScriptPackageType type, const std::string& fqn, const std::string& path); /* throws */
+  void SetSystemFunctions(ScriptPackage& scriptPackage);
   void SetModPathVariable(sol::state& state, const std::filesystem::path& modDirectory);
 
   static std::string GetCurrentLine( lua_State* L );

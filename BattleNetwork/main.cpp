@@ -381,6 +381,16 @@ void FormatPackageHashOutput(PackageManagerT& pm, std::string& outStr, size_t& m
   } while (first != curr);
 }
 
+static std::string MakeHeader(const std::string& title, size_t len, char padChar) {
+  if (len == 0) return "";
+
+  std::string header = std::string(len, padChar);
+  size_t origin = title.size() / 2;
+  size_t header_origin = len / 2;
+  header.replace(header_origin-origin, title.size(), title.data());
+  return header;
+}
+
 template<typename PackageManagerT>
 void CollectPackageHashBuffer(PackageManagerT& pm, std::string& outStr, size_t& maxLineLen) {
   std::string subOutStr;
@@ -395,16 +405,6 @@ void CollectPackageHashBuffer(PackageManagerT& pm, std::string& outStr, size_t& 
   }
 
   outStr += subOutStr;
-}
-
-std::string MakeHeader(const std::string& title, size_t len, char padChar) {
-  if (len == 0) return "";
-
-  std::string header = std::string(len, padChar);
-  size_t origin = title.size() / 2;
-  size_t header_origin = len / 2;
-  header.replace(header_origin-origin, title.size(), title.data());
-  return header;
 }
 
 void PrintPackageHash(Game& g, TaskGroup tasks) {
@@ -449,7 +449,7 @@ void PrintPackageHash(Game& g, TaskGroup tasks) {
 
 template<typename ScriptedDataT, typename PackageManagerT>
 void ReadPackageStep(PackageManagerT& pm, const std::string& path, std::string& id, std::string& hash) {
-  stx::result_t<std::string> maybe_id = pm.LoadPackageFromZip<ScriptedDataT>(path);
+  stx::result_t<std::string> maybe_id = pm.template LoadPackageFromZip<ScriptedDataT>(path);
 
   if (maybe_id.is_error()) {
     std::cerr << maybe_id.error_cstr() << std::endl;

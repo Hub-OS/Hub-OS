@@ -5,6 +5,6 @@
 
 class ScriptResourceManager;
 
-void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace);
+void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, const std::string& namespaceId, sol::state& state, sol::table& battle_namespace);
 
 #endif

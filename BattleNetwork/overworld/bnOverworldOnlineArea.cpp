@@ -240,6 +240,7 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
 }
 
 void Overworld::OnlineArea::RemovePackages() {
+  Logger::Log(LogLevel::debug, "Removing server packages");
   getController().MobPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
 }
 
@@ -615,6 +616,12 @@ void Overworld::OnlineArea::onEnd()
   }
 
   getController().Session().SetWhitelist({}); // clear the whitelist
+
+  if (!transferringServers) {
+    // clear packages when completing the return to the homepage
+    // we already clear packages when transferring to a new server
+    RemovePackages();
+  }
 }
 
 void Overworld::OnlineArea::onLeave()
@@ -2329,19 +2336,28 @@ static void LoadPackage(Partitioner& partitioner, const std::string& file_path) 
   }
 
   // install for the first time
-  if (auto res = packageManager.template LoadPackageFromZip<ScriptedMob>(file_path); res.is_error()) {
-    Logger::Logf(LogLevel::critical, "Error loading remote package %s: %s", packageId.c_str(), res.error_cstr());
-  } 
+  auto res = packageManager.template LoadPackageFromZip<ScriptedMob>(file_path);
+
+  if (res.is_error()) {
+    Logger::Logf(LogLevel::critical, "Error loading server package %s: %s", packageId.c_str(), res.error_cstr());
+  }
+
+  Logger::Logf(LogLevel::info, "Installed server package: %s", res.value().c_str());
 }
 
 void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  if (transferringServers) {
+    // skip loading packages if we're leaving anyway
+    return;
+  }
+
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
 
   std::string file_path = serverAssetManager.GetPath(asset_path);
 
   if (file_path.empty()) {
-    Logger::Logf(LogLevel::critical, "Failed to find remote asset %s", file_path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed to find server asset %s", file_path.c_str());
     return;
   }
 
@@ -2411,7 +2427,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
   std::string file_path = serverAssetManager.GetPath(asset_path);
 
   if (file_path.empty()) {
-    Logger::Logf(LogLevel::critical, "Failed to find remote mob asset %s", file_path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed to find server mob asset %s", file_path.c_str());
     return;
   }
 
@@ -2422,11 +2438,11 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
 
   if (!mobPackages.HasPackage(packageId)) {
     // If we don't have it by now something went terribly wrong
-    Logger::Logf(LogLevel::critical, "Failed to battle remote mob package %s", file_path.c_str());
+    Logger::Logf(LogLevel::critical, "Failed to battle server mob package %s", file_path.c_str());
     return;
   }
 
-  Logger::Logf(LogLevel::debug, "Battling remote mob %s", packageId.c_str());
+  Logger::Logf(LogLevel::debug, "Battling server mob %s", packageId.c_str());
 
   MobMeta& mobMeta = mobPackages.FindPackageByID(packageId);
 
@@ -2891,7 +2907,6 @@ void Overworld::OnlineArea::leave() {
     packetProcessor = nullptr;
   }
 
-  RemovePackages();
   tryPopScene = true;
 }
 

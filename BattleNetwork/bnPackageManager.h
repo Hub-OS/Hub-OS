@@ -229,12 +229,10 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
 
   std::string packageName = modpath.filename().generic_string();
 
-  ScriptResourceManager::LoadScriptResult& res = handle.Scripts().LoadScript(namespaceId, modpath);
+  stx::result_t<sol::state*> res = handle.Scripts().LoadScript(namespaceId, modpath);
 
-  if (res.result.valid()) {
-    sol::state& state = *res.state;
-    state.open_libraries( sol::lib::base );
-
+  if (!res.is_error()) {
+    sol::state& state = *res.value();
     packageClass = this->CreatePackage<ScriptedDataType>(std::ref(state));
 
     //  Run all "includes" first
@@ -256,11 +254,6 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
       std::string msg = std::string("Failed to install package `") + packageName + "`. Reason: " + initResult.error_cstr();
       return stx::error<std::string>(msg);
     }
-
-    // Assign Package ID to the state, now that it's been registered.
-    state["_package_id"] = packageClass->GetPackageID();
-
-    handle.Scripts().RegisterDependencyNotes(state);
 
     packageClass->OnMetaParsed();
 
@@ -291,9 +284,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const 
     }
   }
   else {
-    sol::error sol_error = res.result;
-    std::string msg = std::string("Failed to load package `") + packageName + "`. Reason: " + sol_error.what();
-    return stx::error<std::string>(msg);
+    return stx::error<std::string>(res.error_cstr());
   }
 #endif
 

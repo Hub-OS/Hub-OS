@@ -28,10 +28,19 @@ namespace Overworld {
           auto& layer = map.GetLayer(index);
           auto tile = layer.GetTile((int)x, (int)y);
 
-          if (tile->gid == 0) {
+          auto tileMeta = map.GetTileMeta(tile->gid);
+
+          // failed to load tile
+          if (tileMeta == nullptr) {
             continue;
           }
 
+          // invisible tile
+          if (tileMeta->type == TileType::invisible) {
+            continue;
+          }
+
+          // hole
           if (map.IgnoreTileAbove(float(x), float(y), int(index - 1))) {
             continue;
           }
