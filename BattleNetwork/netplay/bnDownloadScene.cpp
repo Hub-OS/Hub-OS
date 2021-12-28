@@ -49,6 +49,11 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   packetProcessor->EnableKickForSilence(true);
 
+  // send handshake + begin coinflip before reading packets
+  SendHandshake();
+  SendCoinFlip();
+
+  // queued packets will come in after this
   packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& body) {
     this->ProcessPacketBody(header, body);
   });
@@ -64,10 +69,6 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   std::filesystem::create_directories(CACHE_FOLDER);
 
   ResetRemotePartitions();
-
-  // send handshake + begin coinflip before reading packets
-  SendHandshake();
-  SendCoinFlip();
 }
 
 DownloadScene::~DownloadScene()
