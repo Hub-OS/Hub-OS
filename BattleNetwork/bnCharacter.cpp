@@ -36,6 +36,7 @@ Character::Character(Rank _rank) :
     CreateComponent<BubbleTrap>(weak_from_this());
     
     // TODO: take out this ugly hack
+    //       Make BubbleState a CardAction
     if (auto ai = dynamic_cast<Player*>(this)) {
       ai->ChangeState<BubbleState<Player>>(); 
     }

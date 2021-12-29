@@ -493,7 +493,7 @@ void Entity::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
   if (!SpriteProxyNode::show) return;
 
-  auto& smartShader = GetShader();
+  SmartShader& smartShader = GetShader();
 
   // combine the parent transform with the node's one
   sf::Transform combinedTransform = getTransform();
@@ -503,7 +503,7 @@ void Entity::draw(sf::RenderTarget& target, sf::RenderStates states) const
   std::vector<SceneNode*> copies;
   copies.reserve(childNodes.size() + 1);
 
-  for (auto& child : childNodes) {
+  for (std::shared_ptr<SceneNode>& child : childNodes) {
     copies.push_back(child.get());
   }
 

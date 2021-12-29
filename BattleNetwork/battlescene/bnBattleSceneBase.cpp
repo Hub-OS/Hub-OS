@@ -788,10 +788,10 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   std::vector<Character*> allCharacters;
 
   // draw ui on top
-  for (auto* ent : allEntities) {
-    auto uis = ent->GetComponentsDerivedFrom<UIComponent>();
+  for (Entity* ent : allEntities) {
+    std::vector<std::shared_ptr<UIComponent>> uis = ent->GetComponentsDerivedFrom<UIComponent>();
     sf::Vector2f flipOffset = PerspectiveOffset(ent->getPosition());
-    for (auto& ui : uis) {
+    for (std::shared_ptr<UIComponent>& ui : uis) {
       if (ui->DrawOnUIPass()) {
         ui->move(viewOffset + flipOffset);
         surface.draw(*ui);
@@ -800,7 +800,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     }
 
     // collect characters while drawing ui
-    if (auto character = dynamic_cast<Character*>(ent)) {
+    if (Character* character = dynamic_cast<Character*>(ent)) {
       allCharacters.push_back(character);
     }
   }
@@ -808,7 +808,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   // draw extra card action graphics
   for (Character* c : allCharacters) {
     const std::vector<std::shared_ptr<CardAction>> actionList = c->AsyncActionList();
-    auto currAction = c->CurrentCardAction();
+    std::shared_ptr<CardAction> currAction = c->CurrentCardAction();
 
     for (const std::shared_ptr<CardAction>& action : actionList) {
       surface.draw(*action);
@@ -1197,7 +1197,7 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(const fram
   if (!localPlayer) return outEvents;
 
   // For all inputs in the queue, reduce their wait time for this new frame
-  for (auto& item : queuedLocalEvents) {
+  for (InputEvent& item : queuedLocalEvents) {
     item.wait -= from_seconds(elapsed);
   }
 

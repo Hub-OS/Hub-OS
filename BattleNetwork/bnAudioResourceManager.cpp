@@ -353,22 +353,23 @@ int AudioResourceManager::Stream(std::string path, bool loop, long long startMs,
 
   currStreamPath = path;
 
-  if (midiMusic.loadMidiFromFile(path)) {
-    midiMusic.play();
-    midiMusic.setLoop(loop);
-    midiMusic.setPitch(1.f);
+  // stop previous stream if any 
+  stream.stop();
+  midiMusic.stop();
+
+  if (!stream.openFromFile(path)) {
+    if (midiMusic.loadMidiFromFile(path)) {
+      midiMusic.play();
+      midiMusic.setLoop(loop);
+      midiMusic.setPitch(1.f);
+    }
+
     return 0;
   }
 
-  // stop previous stream if any 
-  stream.stop();
-  stream.setPitch(1.f);
-
-  if (!stream.openFromFile(path))
-    return -1; // error
-
   stream.play();
   stream.setLoop(loop);
+  stream.setPitch(1.f);
 
   if(loop && startMs > 0 && endMs > startMs) {
     stream.setLoopPoints({ sf::milliseconds(startMs), sf::milliseconds(endMs) });
