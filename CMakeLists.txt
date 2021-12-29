@@ -20,11 +20,12 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 find_package(Poco REQUIRED Foundation Net)
 find_package(Threads REQUIRED)
 find_package(Lua REQUIRED)
-
+find_package(FluidSynth REQUIRED)
 # find_package(sol2 REQUIRED) # commented out until sol2 vcpkg is up to date
 
 include_directories(extern/Swoosh/src)
-# include_directories(BattleNetwork/midi)
+include_directories(BattleNetwork/sfMidi/include)
+include_directories(BattleNetwork/sfMidi/src)
 include_directories(BattleNetwork/sol/include) # temporary sol2 bugfix
 add_subdirectory(extern/SFML)
 
@@ -73,6 +74,7 @@ target_compile_definitions(BattleNetwork PRIVATE SOL_ALL_SAFETIES_ON)
 
 target_include_directories(BattleNetwork PRIVATE ${LUA_INCLUDE_DIR})
 target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
+target_link_libraries(BattleNetwork ${FLUIDSYNTH_LIBRARIES})
 target_link_libraries(BattleNetwork Poco::Net Poco::Foundation)
 target_link_libraries(BattleNetwork Threads::Threads)
 target_link_libraries(BattleNetwork ${LUA_LIBRARIES})

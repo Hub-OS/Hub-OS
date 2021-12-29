@@ -70,7 +70,6 @@ void TitleScene::onStart()
 {
   // stream some music while we wait
   Audio().Stream("resources/loops/loop_theme.ogg");
-  //Audio().Stream("resources/midi/MMBN6CentralXG.mid");
 
   // Begin performing tasks in the background
   LaunchTasks();

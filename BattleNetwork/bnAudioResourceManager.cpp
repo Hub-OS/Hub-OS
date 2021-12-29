@@ -2,7 +2,7 @@
 #include "bnLogger.h"
 
 AudioResourceManager::AudioResourceManager(){
-  // midiMusic.loadSoundFontFromFile("resources/midi/soundfont.sf2");
+  midiMusic.loadSoundFontFromFile("resources/midi/soundfont.sf2");
 
   isEnabled = true;
 
@@ -119,8 +119,6 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
 }
 
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
-  //std::scoped_lock lock(mutex);
-
   if (!sources[static_cast<size_t>(type)].loadFromFile(path)) {
     Logger::Logf(LogLevel::critical, "Failed loading Audio(): %s\n", path.c_str());
 
@@ -152,8 +150,6 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   if (type < AudioType(0) || type >= AudioType::AUDIO_TYPE_SIZE) {
     return -1;
   }
-
-  //std::scoped_lock lock(mutex);
 
   // Annoying sound check. Make sure duplicate sounds are played only by a given amount of offset from the last time it was played.
   // This prevents amplitude stacking when duplicate sounds are played on the same frame...
@@ -357,12 +353,12 @@ int AudioResourceManager::Stream(std::string path, bool loop, long long startMs,
 
   currStreamPath = path;
 
-  /*if (midiMusic.loadMidiFromFile(path)) {
+  if (midiMusic.loadMidiFromFile(path)) {
     midiMusic.play();
     midiMusic.setLoop(loop);
     midiMusic.setPitch(1.f);
     return 0;
-  }*/
+  }
 
   // stop previous stream if any 
   stream.stop();
@@ -387,18 +383,16 @@ int AudioResourceManager::Stream(std::string path, bool loop) {
 
 void AudioResourceManager::StopStream() {
   stream.stop();
-  //midiMusic.stop();
+  midiMusic.stop();
 }
 
 void AudioResourceManager::SetStreamVolume(float volume) {
   stream.setVolume(volume);
-  // midiMusic.setVolume(volume);
+  midiMusic.setVolume(volume);
   streamVolume = volume;
 }
 
 void AudioResourceManager::SetChannelVolume(float volume) {
-  //std::scoped_lock lock(mutex);
-
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     channels[i].buffer.setVolume(volume);
   }
