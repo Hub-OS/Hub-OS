@@ -16,7 +16,7 @@ void Battle::TextBox::DescribeCard(Battle::Card* card)
     DequeMessage();
   }
 
-  EnqueMessage(mug, anim, new Message(card->GetDescription()));
+  EnqueMessage(mug, anim, new Message(card->GetVerboseDescription()));
   Open();
 }
 

@@ -180,27 +180,27 @@ public:
   virtual void OnBattleStop() { };
 
   /**
-   * @brief TODO
+   * @brief If the Entity has been initialized already or not
    */
   bool HasInit();
 
   /**
-   * @brief TODO
+   * @brief Initializes Entity since std::shared_from_this<>() cannot call virtual methods in constructors
    */
   virtual void Init();
 
   /**
-   * @brief TODO
+   * @brief Free's all components
    */
   virtual void Cleanup();
 
   /**
-   * @brief TODO
+   * @brief Entity::Update(dt) contains particular steps that gaurantee frame accuracy for child types
    */
   virtual void Update(double _elapsed);
 
   /**
-   * @brief TODO
+   * @brief User-implemented callback for update hooks
    */
   virtual void OnUpdate(double _elapsed) {};
   
@@ -600,8 +600,6 @@ public:
    * @param on
    * 
    * Used by counter frames. 
-   * 
-   * NOTE: Should be changed to protected or private access
    */
   void ToggleCounter(bool on = true);
   

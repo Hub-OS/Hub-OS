@@ -461,6 +461,8 @@ void Animation::OverrideAnimationFrames(const std::string& animation, const std:
     uuid = animation + "@" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
   }
 
+  if (animations.find(uuid) != animations.end()) return;
+
   animations.emplace(uuid, std::move(animations[animation].MakeNewFromOverrideData(data)));
 }
 

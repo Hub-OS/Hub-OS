@@ -410,7 +410,7 @@ void Entity::Update(double _elapsed) {
 
 void Entity::SetPalette(const std::shared_ptr<sf::Texture>& palette)
 {
-  auto& smartShader = GetShader();
+  SmartShader& smartShader = GetShader();
 
   if (palette.get() == nullptr) {
     smartShader.SetUniform("swapPalette", false);
@@ -441,7 +441,7 @@ std::shared_ptr<sf::Texture> Entity::GetBasePalette()
 
 void Entity::RefreshShader()
 {
-  auto field = this->field.lock();
+  std::shared_ptr<Field> field = this->field.lock();
 
   if (!field) {
     return;
@@ -453,11 +453,13 @@ void Entity::RefreshShader()
     SetShader(shader);
   }
 
-  auto& smartShader = GetShader();
+  SmartShader& smartShader = GetShader();
 
   if (!smartShader.HasShader()) return;
 
   smartShader.SetUniform("swapPalette", this->swapPalette);
+  smartShader.SetUniform("palette", this->palette);
+
   // state checks
   unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
   unsigned rootFrame = from_seconds(rootCooldown).count() % 4;

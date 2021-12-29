@@ -598,6 +598,16 @@ void Field::ForgetEntity(Entity::ID_t ID)
 
   allEntityHash.erase(ID);
   entityDeleteObservers.erase(ID);
+  
+  for (std::vector<Battle::Tile*> row : tiles) {
+    for (Battle::Tile* tile : row) {
+      auto iter = tile->reserved.find(ID);
+
+      if (iter != tile->reserved.end()) {
+        tile->reserved.erase(iter);
+      }
+    }
+  }
 }
 
 void Field::DeallocEntity(Entity::ID_t ID)

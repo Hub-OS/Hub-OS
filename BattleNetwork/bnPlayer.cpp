@@ -381,6 +381,7 @@ void Player::ActivateFormAt(int index)
       SaveStats();
       activeForm->OnActivate(shared_from_base<Player>());
       CreateMoveAnimHash();
+      CreateRecoilAnimHash();
       animationComponent->Refresh();
     }
   }

@@ -760,6 +760,7 @@ stx::result_t<sol::state*> ScriptResourceManager::LoadScript(const std::string& 
     sol::error loadError = loadResult;
     std::string msg = "Failed to load package " + scriptPackage.address.packageId + ". Reason: " + loadError.what();
     DropPackageData(lua);
+    loadResult.abandon();
     return stx::error<sol::state*>(msg);
   }
 

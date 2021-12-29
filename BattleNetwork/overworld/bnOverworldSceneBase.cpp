@@ -14,6 +14,7 @@
 #include "../Android/bnTouchArea.h"
 #include "../bnCurrentTime.h"
 #include "../bnBlockPackageManager.h"
+#include "../bnMobPackageManager.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnGameSession.h"
 
@@ -825,6 +826,13 @@ void Overworld::SceneBase::GotoConfig()
 
 void Overworld::SceneBase::GotoMobSelect()
 {
+  MobPackageManager& pm = getController().MobPackagePartitioner().GetPartition(Game::LocalPartition);
+  if (pm.Size() == 0) {
+    personalMenu->Close();
+    menuSystem.EnqueueMessage("No enemy mods installed.");
+    return;
+  }
+
   std::unique_ptr<CardFolder> folder;
   CardFolder* f = nullptr;
 
