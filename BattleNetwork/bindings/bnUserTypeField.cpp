@@ -14,25 +14,15 @@
 static sol::as_table_t<std::vector<WeakWrapper<Character>>> FindNearestCharacters(WeakWrapper<Field>& field, std::shared_ptr<Entity> test, sol::stack_object queryObject) {
   sol::protected_function query = queryObject;
 
-  auto results = field.Unwrap()->FindNearestCharacters(test, [query] (std::shared_ptr<Character>& character) -> bool {
-    auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
+  // store entities in a temp to avoid issues if the scripter mutates entities in this loop
+  std::vector<WeakWrapper<Character>> characters;
 
-    if (result.is_error()) {
-      Logger::Log(LogLevel::critical, result.error_cstr());
-      return false;
-    }
-
-    return result.value();
+  field.Unwrap()->FindNearestCharacters(test, [&characters] (std::shared_ptr<Character>& character) -> bool {
+    characters.push_back(WeakWrapper(character));
+    return false;
   });
 
-  std::vector<WeakWrapper<Character>> wrappedResults;
-  wrappedResults.reserve(results.size());
-
-  for (auto& character : results) {
-    wrappedResults.push_back(WeakWrapper(character));
-  }
-
-  return sol::as_table(wrappedResults);
+  return FilterEntities(characters, queryObject);
 }
 
 void DefineFieldUserType(sol::table& battle_namespace) {
@@ -96,80 +86,44 @@ void DefineFieldUserType(sol::table& battle_namespace) {
     "find_entities", [](
       WeakWrapper<Field>& field,
       sol::stack_object queryObject
-      ) {
-      sol::protected_function query = queryObject;
+    ) {
+      // store entities in a temp to avoid issues if the scripter mutates entities in this loop
+      std::vector<WeakWrapper<Entity>> entities;
 
-      auto results = field.Unwrap()->FindEntities([query](std::shared_ptr<Entity>& entity) -> bool {
-        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(entity));
-
-        if (result.is_error()) {
-          Logger::Log(LogLevel::critical, result.error_cstr());
-          return false;
-        }
-
-        return result.value();
+      field.Unwrap()->FindEntities([&entities](std::shared_ptr<Entity>& entity) -> bool {
+        entities.push_back(WeakWrapper(entity));
+        return false;
       });
 
-      std::vector<WeakWrapper<Entity>> wrappedResults;
-      wrappedResults.reserve(results.size());
-
-      for (auto& entity : results) {
-        wrappedResults.push_back(WeakWrapper(entity));
-      }
-
-      return sol::as_table(wrappedResults);
+      return FilterEntities(entities, queryObject);
     },
     "find_characters", [] (
       WeakWrapper<Field>& field,
       sol::stack_object queryObject
     ) {
-      sol::protected_function query = queryObject;
+      // store entities in a temp to avoid issues if the scripter mutates entities in this loop
+      std::vector<WeakWrapper<Character>> characters;
 
-      auto results = field.Unwrap()->FindCharacters([query] (std::shared_ptr<Character>& character) -> bool {
-        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
-
-        if (result.is_error()) {
-          Logger::Log(LogLevel::critical, result.error_cstr());
-          return false;
-        }
-
-        return result.value();
+      field.Unwrap()->FindCharacters([&characters](std::shared_ptr<Character>& character) -> bool {
+        characters.push_back(WeakWrapper(character));
+        return false;
       });
 
-      std::vector<WeakWrapper<Character>> wrappedResults;
-      wrappedResults.reserve(results.size());
-
-      for (auto& character : results) {
-        wrappedResults.push_back(WeakWrapper(character));
-      }
-
-      return sol::as_table(wrappedResults);
+      return FilterEntities(characters, queryObject);
     },
     "find_obstacles", [](
       WeakWrapper<Field>& field,
       sol::stack_object queryObject
-      ) {
-      sol::protected_function query = queryObject;
+    ) {
+      // store entities in a temp to avoid issues if the scripter mutates entities in this loop
+      std::vector<WeakWrapper<Obstacle>> obstacles;
 
-      auto results = field.Unwrap()->FindObstacles([query](std::shared_ptr<Obstacle>& obstacle) -> bool {
-        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(obstacle));
-
-        if (result.is_error()) {
-          Logger::Log(LogLevel::critical, result.error_cstr());
-          return false;
-        }
-
-        return result.value();
+      field.Unwrap()->FindObstacles([&obstacles](std::shared_ptr<Obstacle>& obstacle) -> bool {
+        obstacles.push_back(WeakWrapper(obstacle));
+        return false;
       });
 
-      std::vector<WeakWrapper<Obstacle>> wrappedResults;
-      wrappedResults.reserve(results.size());
-
-      for (auto& obstacle : results) {
-        wrappedResults.push_back(WeakWrapper(obstacle));
-      }
-
-      return sol::as_table(wrappedResults);
+      return FilterEntities(obstacles, queryObject);
     },
     "find_nearest_characters", sol::overload(
       [] (WeakWrapper<Field>& field, WeakWrapper<Entity>& test, sol::stack_object queryObject) {
