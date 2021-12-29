@@ -1,6 +1,7 @@
 #ifdef BN_MOD_SUPPORT
 #include "bnUserTypeTile.h"
 
+#include "bnUserTypeField.h"
 #include "bnWeakWrapper.h"
 #include "../bnTile.h"
 #include "../bnHitboxSpell.h"
@@ -49,79 +50,43 @@ void DefineTileUserType(sol::state& state) {
       Battle::Tile& tile,
       sol::stack_object queryObject
     ) {
-      sol::protected_function query = queryObject;
+      // store entities in a temp to avoid issues if the scripter mutates entities in this loop
+      std::vector<WeakWrapper<Character>> characters;
 
-      auto results = tile.FindCharacters([query] (std::shared_ptr<Character>& character) -> bool {
-        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
-
-        if (result.is_error()) {
-          Logger::Log(LogLevel::critical, result.error_cstr());
-          return false;
-        }
-
-        return result.value();
+      tile.FindCharacters([&characters](std::shared_ptr<Character>& character) -> bool {
+        characters.push_back(WeakWrapper(character));
+        return false;
       });
 
-      std::vector<WeakWrapper<Character>> wrappedResults;
-      wrappedResults.reserve(results.size());
-
-      for (auto& character : results) {
-        wrappedResults.push_back(WeakWrapper(character));
-      }
-
-      return sol::as_table(wrappedResults);
+      return FilterEntities(characters, queryObject);
     },
     "find_entities", [](
       Battle::Tile& tile,
       sol::stack_object queryObject
-      ) {
-      sol::protected_function query = queryObject;
+    ) {
+      // store entities in a temp to avoid issues if the scripter mutates entities in this loop
+      std::vector<WeakWrapper<Entity>> entities;
 
-      auto results = tile.FindEntities([query](std::shared_ptr<Entity>& character) -> bool {
-        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(character));
-
-        if (result.is_error()) {
-          Logger::Log(LogLevel::critical, result.error_cstr());
-          return false;
-        }
-
-        return result.value();
+      tile.FindEntities([&entities](std::shared_ptr<Entity>& entity) -> bool {
+        entities.push_back(WeakWrapper(entity));
+        return false;
       });
 
-      std::vector<WeakWrapper<Entity>> wrappedResults;
-      wrappedResults.reserve(results.size());
-
-      for (auto& entity : results) {
-        wrappedResults.push_back(WeakWrapper(entity));
-      }
-
-      return sol::as_table(wrappedResults);
+      return FilterEntities(entities, queryObject);
     },
     "find_obstacles", [](
       Battle::Tile& tile,
       sol::stack_object queryObject
-      ) {
-      sol::protected_function query = queryObject;
+    ) {
+      // store entities in a temp to avoid issues if the scripter mutates entities in this loop
+      std::vector<WeakWrapper<Obstacle>> obstacles;
 
-      auto results = tile.FindObstacles([query](std::shared_ptr<Obstacle>& obst) -> bool {
-        auto result = CallLuaCallbackExpectingBool(query, WeakWrapper(obst));
-
-        if (result.is_error()) {
-          Logger::Log(LogLevel::critical, result.error_cstr());
-          return false;
-        }
-
-        return result.value();
+      tile.FindObstacles([&obstacles](std::shared_ptr<Obstacle>& obstacle) -> bool {
+        obstacles.push_back(WeakWrapper(obstacle));
+        return false;
       });
 
-      std::vector<WeakWrapper<Obstacle>> wrappedResults;
-      wrappedResults.reserve(results.size());
-
-      for (auto& obstacle : results) {
-        wrappedResults.push_back(WeakWrapper(obstacle));
-      }
-
-      return sol::as_table(wrappedResults);
+      return FilterEntities(obstacles, queryObject);
     },
     "highlight", &Battle::Tile::RequestHighlight,
     "get_tile", &Battle::Tile::GetTile,
