@@ -203,33 +203,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   Callback<void()> blocks;
   blocks.Slot(std::bind(&Game::RunBlocksInit, this, &progress));
 
-#ifdef BN_MOD_SUPPORT
-  Callback<void()> resolveFailedPackages;
-  resolveFailedPackages.Slot([this]() {
-    CardPackageManager& cardPackages = cardPackagePartitioner->GetPartition(Game::LocalPartition);
-    std::string package = cardPackages.FirstValidPackage();
-
-    do {
-      if (package.empty()) break;
-
-      scriptManager.DefinePackage(ScriptPackageType::card, cardPackages.GetNamespace(), package, cardPackages.FindPackageByID(package).GetFilePath());
-
-      package = cardPackages.GetPackageAfter(package);
-    } while (package != cardPackages.FirstValidPackage());
-
-    auto packages = ResolveFailedPackages();
-
-    while (!packages.empty()) { 
-      for (auto& p : packages) {
-        scriptManager.DefinePackage(ScriptPackageType::card, cardPackages.GetNamespace(), cardPackages.FilepathToPackageAddress(p), p);
-      }
-
-      /* keep trying */ 
-      packages = ResolveFailedPackages();
-    }
-  });
-#endif
-
   Callback<void()> init;
   init.Slot([this] {
     // Tell the input event loop how to behave when the app loses and regains focus
@@ -253,10 +226,6 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
   tasks.AddTask("Load mobs", std::move(mobs));
   tasks.AddTask("Load cards", std::move(cards));
   tasks.AddTask("Load prog blocks", std::move(blocks));
-
-#ifdef BN_MOD_SUPPORT
-  tasks.AddTask("Resolving packages", std::move(resolveFailedPackages));
-#endif
 
   // Load font symbols immediately...
   textureManager.LoadFromFile(TexturePaths::FONT);
