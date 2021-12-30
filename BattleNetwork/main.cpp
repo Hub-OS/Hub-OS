@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
   // Create help and other generic flags
   options.add_options()
     ("h,help", "Print all options")
-    ("e,errorLevel", "Set the level to filter error messages [silent|info|warning|critical|debug] (default is `critical`)", cxxopts::value<std::string>()->default_value("critical"))
+    ("e,errorLevel", "Set the level to filter error messages [silent|info|warning|critical|debug] (default is `critical`)", cxxopts::value<std::string>()->default_value("warning|critical"))
     ("d,debug", "Enable debugging")
     ("s,singlethreaded", "run logic and draw routines in a single, main thread")
     ("l,locale", "set flair and language to desired target", cxxopts::value<std::string>()->default_value("en"))
