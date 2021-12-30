@@ -3,6 +3,6 @@
 
 #include <sol/sol.hpp>
 
-void DefineSpriteNodeUserType(sol::table& engine_namespace);
+void DefineSpriteNodeUserType(sol::state& state, sol::table& engine_namespace);
 
 #endif

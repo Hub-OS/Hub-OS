@@ -215,9 +215,9 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
   DefineTileUserType(state);
   DefineAnimationUserType(state, engine_namespace);
   DefineSceneNodeUserType(engine_namespace);
-  DefineSpriteNodeUserType(engine_namespace);
+  DefineSpriteNodeUserType(state, engine_namespace);
   DefineSyncNodeUserType(engine_namespace);
-  DefineEntityUserType(battle_namespace);
+  DefineEntityUserType(state, battle_namespace);
   DefineHitboxUserTypes(state, battle_namespace);
   DefineBasicCharacterUserType(battle_namespace);
   DefineScriptedCharacterUserType(this, namespaceId, state, battle_namespace);
@@ -490,34 +490,10 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "DownRight", Direction::down_right
   );
 
-  const auto& team_record = state.new_enum("Team",
-    "Red", Team::red,
-    "Blue", Team::blue,
-    "Other", Team::unknown
-  );
-
-  const auto& highlight_record = state.new_enum("Highlight",
-    "Solid", Battle::TileHighlight::solid,
-    "Flash", Battle::TileHighlight::flash,
-    "None", Battle::TileHighlight::none
-  );
-
   const auto& add_status_record = state.new_enum("EntityStatus",
     "Queued", Field::AddEntityStatus::queued,
     "Added", Field::AddEntityStatus::added,
     "Failed", Field::AddEntityStatus::deleted
-  );
-
-  const auto& action_order_record = state.new_enum("ActionOrder",
-    "Involuntary", ActionOrder::involuntary,
-    "Voluntary", ActionOrder::voluntary,
-    "Immediate", ActionOrder::immediate
-  );
-
-  const auto& shadow_type_record = state.new_enum("Shadow",
-    "None", Entity::Shadow::none,
-    "Small", Entity::Shadow::small,
-    "Big", Entity::Shadow::big
   );
 
   auto input_event_record = state.create_table("Input");
@@ -550,22 +526,6 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "Use", InputEvents::released_use_chip,
     "Special", InputEvents::released_special,
     "Shoot", InputEvents::released_shoot
-  );
-
-  const auto& hitbox_flags_record = state.new_enum("Hit",
-    "None", Hit::none,
-    "Flinch", Hit::flinch,
-    "Flash", Hit::flash,
-    "Stun", Hit::stun,
-    "Root", Hit::root,
-    "Impact", Hit::impact,
-    "Shake", Hit::shake,
-    "Pierce", Hit::pierce,
-    "Retangible", Hit::retangible,
-    "Breaking", Hit::breaking,
-    "Bubble", Hit::bubble,
-    "Freeze", Hit::freeze,
-    "Drag", Hit::drag
   );
 
   const auto& character_rank_record = state.new_enum("Rank",
@@ -640,13 +600,6 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "Highest", AudioPriority::highest
   );
 
-  const auto& card_class_record = state.new_enum("CardClass",
-    "Standard", Battle::CardClass::standard,
-    "Mega", Battle::CardClass::mega,
-    "Giga", Battle::CardClass::giga,
-    "Dark", Battle::CardClass::dark
-  );
-
   const auto& prog_blocks_record = state.new_enum("Blocks",
     "White", PlayerCustScene::Piece::Types::white,
     "Red", PlayerCustScene::Piece::Types::red,
@@ -654,11 +607,6 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "Blue", PlayerCustScene::Piece::Types::blue,
     "Pink", PlayerCustScene::Piece::Types::pink,
     "Yellow", PlayerCustScene::Piece::Types::yellow
-  );
-
-  const auto& colormode_record = state.new_enum("ColorMode",
-    "Multiply", ColorMode::multiply,
-    "Additive", ColorMode::additive
   );
 
   const auto& move_event_record = state.new_usertype<MoveEvent>("MoveEvent",
@@ -687,8 +635,6 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     )
   );
 
-  const auto& card_event_record = state.new_usertype<CardEvent>("CardEvent");
-
   const auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
     sol::factories([](int count, double speed) -> WeakWrapper<Entity> {
       std::shared_ptr<Entity> artifact = std::make_shared<Explosion>(count, speed);
@@ -705,14 +651,6 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
       wrappedArtifact.Own();
       return wrappedArtifact;
     })
-  );
-
-  const auto& color_record = state.new_usertype<sf::Color>("Color",
-    sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>(),
-    "r", &sf::Color::r,
-    "g", &sf::Color::g,
-    "b", &sf::Color::b,
-    "a", &sf::Color::a
   );
 
   const auto& vector_record = state.new_usertype<sf::Vector2f>("Vector2",

@@ -134,5 +134,11 @@ void DefineTileUserType(sol::state& state) {
     "Poison", TileState::poison,
     "Volcano", TileState::volcano
   );
+
+  state.new_enum("Highlight",
+    "Solid", Battle::TileHighlight::solid,
+    "Flash", Battle::TileHighlight::flash,
+    "None", Battle::TileHighlight::none
+  );
 }
 #endif
