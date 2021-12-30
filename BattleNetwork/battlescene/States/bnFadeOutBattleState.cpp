@@ -7,20 +7,24 @@
 FadeOutBattleState::FadeOutBattleState(const FadeOut& mode) : mode(mode) {}
 
 void FadeOutBattleState::onStart(const BattleSceneState*) {
-  for (auto p : GetScene().GetAllPlayers()) {
+  BattleSceneBase& scene = GetScene();
+  std::shared_ptr<Player> localPlayer = scene.GetLocalPlayer();
+  Team localTeam = localPlayer->GetTeam();
+
+  for (auto p : scene.GetAllPlayers()) {
     p->ChangeState<PlayerIdleState>();
   }
 
-  auto field = GetScene().GetField();
+  auto field = scene.GetField();
   field->RequestBattleStop();
 
-  auto mobList = GetScene().MobList();
+  auto mobList = localTeam == Team::red ? scene.RedTeamMobList() : scene.BlueTeamMobList();
 
   if (mobList.empty())
     return;
 
-  auto& results = GetScene().BattleResultsObj();
-  results.turns = GetScene().GetTurnCount();
+  BattleResults& results = scene.BattleResultsObj();
+  results.turns = scene.GetTurnCount();
 
   Entity::ID_t next_id{mobList.front().get().GetID()};
 
@@ -46,13 +50,14 @@ void FadeOutBattleState::onEnd(const BattleSceneState*)
 
 void FadeOutBattleState::onUpdate(double elapsed)
 {
+  BattleSceneBase& scene = GetScene();
   wait -= elapsed;
 
   if (wait <= 0.0) {
-    GetScene().Quit(mode);
+    scene.Quit(mode);
   }
   else if(keepPlaying) {
-    GetScene().GetField()->Update(elapsed);
+    scene.GetField()->Update(elapsed);
   }
 }
 

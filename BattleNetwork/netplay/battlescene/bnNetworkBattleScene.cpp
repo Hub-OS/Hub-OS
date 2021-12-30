@@ -7,6 +7,7 @@
 #include "../../bnFadeInState.h"
 #include "../../bnElementalDamage.h"
 #include "../../bnBlockPackageManager.h"
+#include "../../bnPlayerHealthUI.h"
 
 // states 
 #include "states/bnNetworkSyncBattleState.h"
@@ -43,10 +44,16 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   frameNumText(Font::Style::wide)
 {
   mob = new Mob(props.base.field);
-  LoadMob(*mob);
 
   // Load players in the correct order, then the mob
   Init();
+
+  if (GetLocalPlayer()->GetTeam() == Team::red) {
+    LoadBlueTeamMob(*mob);
+  }
+  else {
+    LoadRedTeamMob(*mob);
+  }
 
   packetProcessor = props.packetProcessor;
 
@@ -126,7 +133,9 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // Forms is the last state before kicking off the battle
   // if we reached this state...
+  forms.ChangeOnEvent(combat, HookFormChangeEnd(forms.Unwrap(), cardSelect.Unwrap()));
   forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
+
   battlestart.ChangeOnEvent(combat, &BattleStartBattleState::IsFinished);
   timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
 
@@ -191,12 +200,19 @@ void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
     if (player->IsSuperEffective(props.element)) {
       // animate the transformation back to default form
       TrackedFormData& formData = GetPlayerFormData(player);
-      formData.animationComplete = false;
-      formData.selectedForm = -1; 
+
+      if (formData.selectedForm != -1) {
+        formData.animationComplete = false;
+        formData.selectedForm = -1;
+      }
 
       if (player == GetLocalPlayer()) {
         // Local player needs to update their form selections in the card gui
         cardStatePtr->ResetSelectedForm();
+        localPlayerDecross = true;
+      }
+      else {
+        remotePlayerDecross = true;
       }
     }
   }
@@ -384,6 +400,12 @@ void NetworkBattleScene::Init()
     }
 
     idx++;
+  }
+
+  std::shared_ptr<MobHealthUI> ui = remotePlayer->GetFirstComponent<MobHealthUI>();
+  
+  if (ui) {
+    ui->SetManualMode(true);
   }
 
   GetCardSelectWidget().PreventRetreat();
@@ -619,7 +641,11 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
   remoteInputQueue.push_back({ frameNumber, events });
   
   if (remotePlayer) {
-    remotePlayer->SetHealth(hp);
+    std::shared_ptr<MobHealthUI> ui = remotePlayer->GetFirstComponent<MobHealthUI>();
+    
+    if (ui) {
+      ui->SetHP(hp);
+    }
   }
 }
 
@@ -721,6 +747,29 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent()
 
   return lambda;
 }
+
+std::function<bool()> NetworkBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
+{
+  auto lambda = [&form, &cardSelect, this]() mutable {
+    bool localTriggered = (GetLocalPlayer()->GetHealth() == 0 || localPlayerDecross);
+    bool remoteTriggered = (remotePlayer->GetHealth() == 0 || remotePlayerDecross);
+    bool triggered = form.IsFinished() && (localTriggered || remoteTriggered);
+
+    if (triggered) {
+      remotePlayerDecross = false; // reset our decross flag
+      localPlayerDecross = false;
+
+      // update the card select gui and state
+      // since the state has its own records
+      cardSelect.ResetSelectedForm();
+    }
+
+    return triggered;
+  };
+
+  return lambda;
+}
+
 
 void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>& body)
 {

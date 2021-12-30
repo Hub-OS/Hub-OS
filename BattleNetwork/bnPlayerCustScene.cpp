@@ -495,7 +495,7 @@ void PlayerCustScene::CompleteAndSave()
 
   // sort them to achieve predictable installation orders
   std::sort(installed.begin(), installed.end(), [](Piece* left, Piece* right) {
-    return strcmp(left->uuid.c_str(), right->uuid.c_str());
+    return strcmp(left->uuid.c_str(), right->uuid.c_str()) > 0;
   });
 
   // write to disk

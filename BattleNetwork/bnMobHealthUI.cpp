@@ -41,12 +41,16 @@ void MobHealthUI::OnUpdate(double elapsed) {
     this->Reveal();
   }
 
-  if (auto mob = GetOwnerAs<Character>()) {
+  if (std::shared_ptr<Character> mob = GetOwnerAs<Character>()) {
+    if (!manualMode) {
+      targetHealth = mob->GetHealth();
+    }
+
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
 
-    if (healthCounter > mob->GetHealth()) {
-      int diff = healthCounter - mob->GetHealth();
+    if (healthCounter > targetHealth) {
+      int diff = healthCounter - targetHealth;
 
       if (diff >= 100) {
         healthCounter -= 10;
@@ -63,7 +67,7 @@ void MobHealthUI::OnUpdate(double elapsed) {
 
       cooldown = seconds_cast<double>(frames(10));
     }
-    else if (healthCounter < mob->GetHealth()) {
+    else if (healthCounter < targetHealth) {
       healthCounter++;
       color = sf::Color(0, 255, 80);
     }
@@ -75,7 +79,7 @@ void MobHealthUI::OnUpdate(double elapsed) {
       color = sf::Color(255, 165, 0);
     }
 
-    if (healthCounter < 0 || mob->GetHealth() <= 0) { healthCounter = 0; }
+    if (healthCounter < 0 || targetHealth <= 0) { healthCounter = 0; }
   }
 }
 
@@ -88,14 +92,14 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
   if (IsHidden()) return;
 
-  auto this_states = states;
+  sf::RenderStates this_states = states;
   this_states.transform *= getTransform();
 
   // Glyphs are 8x10
   // First glyph is 9 the last is 0
   // There's 1px space between the glyphs
 
-  auto mob = GetOwnerAs<Character>();
+  std::shared_ptr<Character> mob = GetOwnerAs<Character>();
 
   if (healthCounter > 0 && mob && mob->GetTile()) {
     int size = (int)(std::to_string(healthCounter).size());
@@ -103,15 +107,15 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
     float offsetx = -(((size)*8.0f) / 2.0f)*glyphs.getScale().x;
     int index = 0;
     while (index < size) {
-      auto str = std::to_string(healthCounter);
-      auto substr = str.substr(index, 1);
+      std::string str = std::to_string(healthCounter);
+      std::string substr = str.substr(index, 1);
       const char* cc = substr.c_str();
       int number = std::atoi(cc);
 
       int row = (10-number-1);
       int rowStart = row + (row * 10);
 
-      auto glyphsRect = sf::IntRect(0, rowStart, 8, 10);
+      sf::IntRect glyphsRect = sf::IntRect(0, rowStart, 8, 10);
       glyphs.setTextureRect(glyphsRect);
       glyphs.setPosition(sf::Vector2f(offsetx, 0.0f) + mob->getPosition());
       glyphs.setColor(color);
@@ -124,4 +128,14 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
   }
 
   UIComponent::draw(target, states);
+}
+
+void MobHealthUI::SetHP(int hp)
+{
+  targetHealth = hp;
+}
+
+void MobHealthUI::SetManualMode(bool enabled)
+{
+  manualMode = enabled;
 }

@@ -166,9 +166,11 @@ void CharacterTransformBattleState::onEnd(const BattleSceneState*)
 
 void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
 {
+  BattleSceneBase& scene = GetScene();
+
   size_t count = 0;
-  for (std::shared_ptr<Player>& player : GetScene().GetAllPlayers()) {
-    auto& [index, complete] = GetScene().GetPlayerFormData(player);
+  for (std::shared_ptr<Player>& player : scene.GetAllPlayers()) {
+    auto& [index, complete] = scene.GetPlayerFormData(player);
 
     Animation& anim = shineAnimations[count];
     anim.Update(static_cast<float>(frameElapsed), shine);
@@ -177,7 +179,8 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
       // re-use the shine graphic for all animating player-types 
       const sf::Vector2f pos = player->getPosition();
       shine.setPosition(pos.x, pos.y - (player->GetHeight() / 2.0f));
-      surface.draw(shine);
+      
+      scene.DrawWithPerspective(shine, surface);
     }
 
     count++;

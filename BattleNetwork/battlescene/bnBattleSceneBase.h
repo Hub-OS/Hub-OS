@@ -94,8 +94,8 @@ private:
   int totalCounterDeletions{ 0 }; /*!< Track player's counter-deletions. Used for ranking. */
   int comboDeleteCounter{ 0 }; /*!< Deletions within 12 frames triggers double or triple deletes. */
   int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
-  int lastMobSize{ 0 };
-  int newMobSize{ 0 };
+  int lastRedTeamMobSize{ 0 }, lastBlueTeamMobSize{ 0 };
+  int newRedTeamMobSize{ 0 }, newBlueTeamMobSize{ 0 };
   unsigned int frameNumber{ 0 };
   double elapsed{ 0 }; /*!< total time elapsed in battle */
   double customProgress{ 0 }; /*!< Cust bar progress in seconds */
@@ -114,7 +114,8 @@ private:
   std::shared_ptr<Player> localPlayer; /*!< Local player */
   std::vector<std::shared_ptr<Player>> otherPlayers; /*!< Player array supports multiplayer */
   std::map<Player*, TrackedFormData> allPlayerFormsHash;
-  Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
+  Mob* redTeamMob{ nullptr }; /*!< Mob and mob data opposing team are fighting against */
+  Mob* blueTeamMob{ nullptr }; /*!< Mob and mob data player are fighting against */
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   Font mobFont; /*!< Name of mob font */
@@ -265,7 +266,8 @@ protected:
   void SpawnLocalPlayer(int x, int y);
   void SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y);
 
-  void LoadMob(Mob& mob);
+  void LoadBlueTeamMob(Mob& mob);
+  void LoadRedTeamMob(Mob& mob);
 
   /**
   * @brief Scans the entity list for updated components and tries to Inject them if the components require.
@@ -315,7 +317,13 @@ public:
     * @brief State boolean for BattleScene. Query if the battle is over.
     * @return true if all mob enemies are marked as deleted
     */
-  const bool IsCleared();
+  const bool IsRedTeamCleared() const;
+
+  /**
+  * @brief State boolean for BattleScene. Query if the battle is over.
+  * @return true if all mob enemies are marked as deleted
+  */
+  const bool IsBlueTeamCleared() const;
 
   /**
     * @brief Get the total number of counter moves
@@ -394,7 +402,8 @@ public:
   const bool FadeInBackdrop(double amount, double to, bool affectBackground);
   const bool FadeOutBackdrop(double amount);
 
-  std::vector<std::reference_wrapper<const Character>> MobList();
+  std::vector<std::reference_wrapper<const Character>> RedTeamMobList();
+  std::vector<std::reference_wrapper<const Character>> BlueTeamMobList();
 
   /**
     @brief Crude support card filter step

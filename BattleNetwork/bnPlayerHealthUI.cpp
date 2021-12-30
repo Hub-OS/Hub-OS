@@ -148,12 +148,12 @@ HP drop is not 1 unit per frame. It is:
 */
 void PlayerHealthUIComponent::OnUpdate(double elapsed) {
   // if battle is ongoing and valid, play high pitch sound when hp is low
-  isBattleOver = this->Injected()? this->Scene()->IsCleared() : true;
+  isBattleOver = Injected() ? (Scene()->IsRedTeamCleared() || Scene()->IsBlueTeamCleared()) : true;
 
   if (auto player = GetOwnerAs<Player>()) {
     ui.SetHP(player->GetHealth());
 
-    if (player->GetHealth() == 0) {
+    if (player->WillEraseEOF()) {
       player->FreeComponentByID(GetID());
     }
 

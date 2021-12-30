@@ -44,9 +44,26 @@ public:
    */
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
+  /**
+  * @brief Sets the hp manually
+  * @param hp manual hp value
+  */
+  void SetHP(int hp);
+
+  /**
+  * @brief Requires that the hp value is set manually
+  * @param true to enable, false for default behavior (reads entity's hp)
+  * @warning value will NOT reflect the underlining entity's REAL hp
+  *
+  * If not set to manual mode, the hp will update from the entity's real hp
+  */
+  void SetManualMode(bool enabled);
+
 private:
   sf::Color color; /*!< Color of the glyphs */
   mutable SpriteProxyNode glyphs; /*!< Drawable texture */
-  int healthCounter; /*!< mob's current health */
-  double cooldown; /*!< Time after dial to uncolorize */
+  int healthCounter{}; /*!< UI current health */
+  int targetHealth{}; /*!< UI target health (mob real hp) */
+  double cooldown{}; /*!< Time after dial to uncolorize */
+  bool manualMode{}; /*!< Default is automatic from the entity's hp*/
 };

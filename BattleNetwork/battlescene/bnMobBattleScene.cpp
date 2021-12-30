@@ -17,83 +17,6 @@
 
 using namespace swoosh;
 
-std::function<bool()> MobBattleScene::HookIntro(MobIntroBattleState& intro, TimeFreezeBattleState& timefreeze, CombatBattleState& combat)
-{
-  auto isIntroOver = [this, &intro, &timefreeze, &combat]() mutable {
-    if (intro.IsOver()) {
-      // Mob's mutated at spawn may have card use publishers.
-      // Share the scene's subscriptions at this point in time with
-      // those substates.
-      for (auto& publisher : this->GetCardActionSubscriptions()) {
-        timefreeze.Subscribe(publisher);
-        combat.Subscribe(publisher);
-      }
-      return true;
-    }
-
-    return false;
-  };
-
-  return isIntroOver;
-}
-
-std::function<bool()> MobBattleScene::HookRetreat(RetreatBattleState& retreat, FadeOutBattleState& fadeout)
-{
-  auto lambda = [&retreat, &fadeout]() mutable {
-    if (retreat.Success()) {
-      // fadeout pauses animations only when retreating
-      fadeout.EnableKeepPlaying(false);
-      return true;
-    }
-
-    return false;
-  };
-
-  return lambda;
-}
-
-std::function<bool()> MobBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
-{
-  auto lambda = [&form, &cardSelect, this]() mutable {
-    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
-
-    if (triggered) {
-      playerDecross = false; // reset our decross flag
-
-      // update the card select gui and state
-      // since the state has its own records
-      cardSelect.ResetSelectedForm();
-    }
-
-    return triggered;
-  };
-
-  return lambda;
-}
-
-std::function<bool()> MobBattleScene::HookFormChangeStart(CharacterTransformBattleState& form)
-{
-  // special condition: if in combat and should decross, trigger the character transform states
-  auto lambda = [this, &form]() mutable {
-    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
-    TrackedFormData& formData = GetPlayerFormData(localPlayer);
-
-    bool changeState = localPlayer->GetHealth() == 0;
-    changeState = changeState || playerDecross;
-    changeState = changeState && (formData.selectedForm != -1);
-
-    if (changeState) {
-      formData.selectedForm = -1;
-      formData.animationComplete = false;
-      form.SkipBackdrop();
-    }
-
-    return changeState;
-  };
-
-  return lambda;
-}
-
 MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperties _props, BattleResultsFunc onEnd) :
   BattleSceneBase(controller, _props.base, onEnd),
   props(std::move(_props))
@@ -226,7 +149,7 @@ void MobBattleScene::Init()
     Logger::Log(LogLevel::warning, std::string("Current mob was empty when battle started. Mob Type: ") + typeid(mob).name());
   }
   else {
-    LoadMob(mob);
+    LoadBlueTeamMob(mob);
   }
 
   GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
@@ -286,4 +209,81 @@ void MobBattleScene::onResume()
 void MobBattleScene::onLeave()
 {
   BattleSceneBase::onLeave();
+}
+
+std::function<bool()> MobBattleScene::HookIntro(MobIntroBattleState& intro, TimeFreezeBattleState& timefreeze, CombatBattleState& combat)
+{
+  auto isIntroOver = [this, &intro, &timefreeze, &combat]() mutable {
+    if (intro.IsOver()) {
+      // Mob's mutated at spawn may have card use publishers.
+      // Share the scene's subscriptions at this point in time with
+      // those substates.
+      for (auto& publisher : this->GetCardActionSubscriptions()) {
+        timefreeze.Subscribe(publisher);
+        combat.Subscribe(publisher);
+      }
+      return true;
+    }
+
+    return false;
+  };
+
+  return isIntroOver;
+}
+
+std::function<bool()> MobBattleScene::HookRetreat(RetreatBattleState& retreat, FadeOutBattleState& fadeout)
+{
+  auto lambda = [&retreat, &fadeout]() mutable {
+    if (retreat.Success()) {
+      // fadeout pauses animations only when retreating
+      fadeout.EnableKeepPlaying(false);
+      return true;
+    }
+
+    return false;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> MobBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
+{
+  auto lambda = [&form, &cardSelect, this]() mutable {
+    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
+
+    if (triggered) {
+      playerDecross = false; // reset our decross flag
+
+      // update the card select gui and state
+      // since the state has its own records
+      cardSelect.ResetSelectedForm();
+    }
+
+    return triggered;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> MobBattleScene::HookFormChangeStart(CharacterTransformBattleState& form)
+{
+  // special condition: if in combat and should decross, trigger the character transform states
+  auto lambda = [this, &form]() mutable {
+    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+    TrackedFormData& formData = GetPlayerFormData(localPlayer);
+
+    bool changeState = localPlayer->GetHealth() == 0;
+    changeState = changeState || playerDecross;
+    changeState = changeState && (formData.selectedForm != -1);
+
+    if (changeState) {
+      formData.selectedForm = -1;
+      formData.animationComplete = false;
+      form.SkipBackdrop();
+    }
+
+    return changeState;
+  };
+
+  return lambda;
 }

@@ -54,7 +54,6 @@ class PlayerHealthUIComponent : public UIComponent {
   PlayerHealthUI ui;
   int startHP{}; /*!< HP of target when this component was attached */
   bool isBattleOver{}; /*!< flag when battle scene ends to stop beeping */
-
 public:
   /**
    * \brief Sets the player owner. Sets hp tracker to current health.

@@ -63,6 +63,11 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   CharacterDeleteListener::Subscribe(*field);
   field->SetScene(this); // event emitters during battle needs the active scene
 
+  // always have mob data even if it's empty for run-time safety
+  // using LoadMob() for teams will erase this dummy and empty mob data
+  redTeamMob = new Mob(field);
+  blueTeamMob = new Mob(field);
+
   /*
   Background for scene*/
   background = props.background;
@@ -245,7 +250,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
 
   // Find any AI using this character as a target and free that pointer  
   field->FindEntities([pendingPtr](std::shared_ptr<Entity>& in) {
-    auto agent = dynamic_cast<Agent*>(in.get());
+    Agent* agent = dynamic_cast<Agent*>(in.get());
 
     if (agent && agent->GetTarget().get() == pendingPtr) {
       agent->FreeTarget();
@@ -255,9 +260,20 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   });
 
   Logger::Logf(LogLevel::debug, "Removing %s from battle (ID: %d)", pending.GetName().c_str(), pending.GetID());
-  mob->Forget(pending);
+  
+  bool redTeamClear = false;
+  bool blueTeamClear = false;
+  if (redTeamMob) {
+    redTeamMob->Forget(pending);
+    redTeamClear = redTeamMob->IsCleared();
+  }
 
-  if (mob->IsCleared()) {
+  if (blueTeamMob) {
+    blueTeamMob->Forget(pending);
+    blueTeamClear = blueTeamMob->IsCleared();
+  }
+
+  if (redTeamClear || blueTeamClear) {
     Audio().StopStream();
   }
 }
@@ -440,9 +456,22 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   HitListener::Subscribe(*player);
 }
 
-void BattleSceneBase::LoadMob(Mob& mob)
+void BattleSceneBase::LoadRedTeamMob(Mob& mob)
 {
-  this->mob = &mob;
+  if (redTeamMob) {
+    delete redTeamMob;
+  }
+
+  redTeamMob = &mob;
+}
+
+void BattleSceneBase::LoadBlueTeamMob(Mob& mob)
+{
+  if (blueTeamMob) {
+    delete blueTeamMob;
+  }
+
+  blueTeamMob = &mob;
 }
 
 void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
@@ -525,7 +554,7 @@ void BattleSceneBase::ShutdownTouchControls() {
 
 void BattleSceneBase::DrawCustGauage(sf::RenderTexture& surface)
 {
-  if (!IsCleared()) {
+  if (!(redTeamMob && redTeamMob->IsCleared()) || !(blueTeamMob && blueTeamMob->IsCleared())) {
     surface.draw(customBar);
   }
 }
@@ -533,8 +562,16 @@ void BattleSceneBase::DrawCustGauage(sf::RenderTexture& surface)
 void BattleSceneBase::StartStateGraph(StateNode& start) {
   for (std::shared_ptr<Player> p : GetAllPlayers()) {
     if (!localPlayer->Teammate(p->GetTeam())) {
-      mob->Track(p);
       Logger::Logf(LogLevel::debug, "Mob is tracking other player %s", p->GetName().c_str());
+    }
+
+    if (p->GetTeam() == Team::red) {
+      if(redTeamMob)
+        redTeamMob->Track(p);
+    }
+    else {
+      if(blueTeamMob)
+        blueTeamMob->Track(p);
     }
   }
 
@@ -551,12 +588,12 @@ void BattleSceneBase::onStart()
   isSceneInFocus = true;
 
   // Stream battle music
-  if (mob && mob->HasCustomMusicPath()) {
-    auto points = mob->GetLoopPoints();
-    Audio().Stream(mob->GetCustomMusicPath(), true, points[0], points[1]);
+  if (blueTeamMob && blueTeamMob->HasCustomMusicPath()) {
+    const std::array<long long, 2> points = blueTeamMob->GetLoopPoints();
+    Audio().Stream(blueTeamMob->GetCustomMusicPath(), true, points[0], points[1]);
   }
   else {
-    if (mob == nullptr || !mob->IsBoss()) {
+    if (blueTeamMob == nullptr || !blueTeamMob->IsBoss()) {
       Audio().Stream("resources/loops/loop_battle.ogg", true);
     }
     else {
@@ -602,7 +639,8 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   cardCustGUI.Update((float)elapsed);
 
-  newMobSize = mob? mob->GetMobCount() : 0;
+  newRedTeamMobSize = redTeamMob ? redTeamMob->GetMobCount() : 0;
+  newBlueTeamMobSize = blueTeamMob ? blueTeamMob->GetMobCount() : 0;
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && this->IsSceneInFocus()) {
     BroadcastBattleStop();
@@ -630,8 +668,9 @@ void BattleSceneBase::onUpdate(double elapsed) {
     else if (c->Lifetime() == Component::lifetimes::battlestep) {
       // If the mob isn't cleared, only update when the battle-step timer is going
       // Otherwise, feel free to update as the battle is over (mob is cleared)
-      bool updateBattleSteps = !mob->IsCleared() && !battleTimer.isPaused();
-      updateBattleSteps = updateBattleSteps || mob->IsCleared();
+      bool isCleared = (redTeamMob && redTeamMob->IsCleared()) || (blueTeamMob && blueTeamMob->IsCleared());
+      bool updateBattleSteps = !isCleared && !battleTimer.isPaused();
+      updateBattleSteps = updateBattleSteps || isCleared;
       if (updateBattleSteps) {
         c->Update((float)elapsed);
       }
@@ -644,6 +683,9 @@ void BattleSceneBase::onUpdate(double elapsed) {
   battleTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   // Track combo deletes
+  const int& lastMobSize = localPlayer->GetTeam() == Team::red ? blueTeamMob->GetMobCount() : redTeamMob->GetMobCount();
+  int& newMobSize = localPlayer->GetTeam() == Team::red ? newBlueTeamMobSize : newRedTeamMobSize;
+
   if (lastMobSize != newMobSize && !isPlayerDeleted) {
     int counter = lastMobSize - newMobSize;
     if (multiDeleteTimer.getElapsed() <= sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)) {
@@ -668,7 +710,8 @@ void BattleSceneBase::onUpdate(double elapsed) {
     multiDeleteTimer.reset();
   }
 
-  lastMobSize = newMobSize;
+  lastRedTeamMobSize = newRedTeamMobSize;
+  lastBlueTeamMobSize = newBlueTeamMobSize;
 
   for (auto iter = nodeToEdges.begin(); iter != nodeToEdges.end(); iter++) {
     if (iter->first == current) {
@@ -717,7 +760,8 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     bool yellowBlock = false;
 
-    if (tile->IsHighlighted() && !this->IsCleared()) {
+    bool isCleared = (redTeamMob && redTeamMob->IsCleared()) || (blueTeamMob && blueTeamMob->IsCleared());
+    if (tile->IsHighlighted() && !isCleared) {
       if (!yellowShader) {
         yellowBlock = true;
       }
@@ -1038,13 +1082,26 @@ const bool BattleSceneBase::FadeOutBackdrop(double amount)
   return (backdropOpacity == 0.0);
 }
 
-std::vector<std::reference_wrapper<const Character>> BattleSceneBase::MobList()
+std::vector<std::reference_wrapper<const Character>> BattleSceneBase::RedTeamMobList()
 {
   std::vector<std::reference_wrapper<const Character>> mobList;
 
-  if (mob) {
-    for (int i = 0; i < mob->GetMobCount(); i++) {
-      mobList.push_back(mob->GetMobAt(i));
+  if (redTeamMob) {
+    for (int i = 0; i < redTeamMob->GetMobCount(); i++) {
+      mobList.push_back(redTeamMob->GetMobAt(i));
+    }
+  }
+
+  return mobList;
+}
+
+std::vector<std::reference_wrapper<const Character>> BattleSceneBase::BlueTeamMobList()
+{
+  std::vector<std::reference_wrapper<const Character>> mobList;
+
+  if (blueTeamMob) {
+    for (int i = 0; i < blueTeamMob->GetMobCount(); i++) {
+      mobList.push_back(blueTeamMob->GetMobAt(i));
     }
   }
 
@@ -1135,9 +1192,14 @@ void BattleSceneBase::Eject(Component::ID_t ID)
   }
 }
 
-const bool BattleSceneBase::IsCleared()
+const bool BattleSceneBase::IsRedTeamCleared() const
 {
-  return mob? mob->IsCleared() : true;
+  return redTeamMob? redTeamMob->IsCleared() : true;
+}
+
+const bool BattleSceneBase::IsBlueTeamCleared() const
+{
+  return blueTeamMob ? blueTeamMob->IsCleared() : true;
 }
 
 void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {

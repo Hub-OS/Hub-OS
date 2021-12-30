@@ -254,8 +254,11 @@ void CardSelectBattleState::onUpdate(double elapsed)
 void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 {
   BattleSceneBase& scene = GetScene();
+  std::shared_ptr<Player> localPlayer = scene.GetLocalPlayer();
+  Team localTeam = localPlayer->GetTeam();
+
   float nextLabelHeight = 6.0f; // start 3px from the top (6px/2 upscale = 3px)
-  auto mobList = scene.MobList();
+  auto mobList = localTeam == Team::red ? scene.RedTeamMobList() : scene.BlueTeamMobList();
 
   for (int i = 0; i < mobList.size(); i++) {
     const Character& mob = mobList[i].get();
