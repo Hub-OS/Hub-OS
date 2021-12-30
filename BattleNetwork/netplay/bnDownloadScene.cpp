@@ -85,7 +85,6 @@ void DownloadScene::SendHandshake()
   mySeed = getController().GetRandSeed();
   writer.Write(buffer, mySeed);
 
-  // must be reliable ordered, we want to handle coin flip last as it sets the seed when completed
   auto id = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer).second;
   packetProcessor->UpdateHandshakeID(id);
 
@@ -112,7 +111,6 @@ void DownloadScene::SendCoinFlip() {
 
   Logger::Logf(LogLevel::debug, "Coin value was %i with seed %u", coinValue, getController().GetRandSeed());
 
-  // must be reliable ordered to be read after handshake
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
@@ -496,6 +494,10 @@ void DownloadScene::RecieveTransition(const Poco::Buffer<char>& buffer)
 {
   packetProcessor->SetPacketBodyCallback(nullptr); // queue next packets for pvp
   transitionToPvp = true;
+
+  // sync seed
+  getController().SeedRand(maxSeed); 
+  Logger::Logf(LogLevel::debug, "Using seed %d", maxSeed);
 }
 
 void DownloadScene::RecieveCoinFlip(const Poco::Buffer<char>& buffer)
@@ -512,8 +514,6 @@ void DownloadScene::RecieveCoinFlip(const Poco::Buffer<char>& buffer)
   coinFlip = coinValue > remoteValue;
   coinFlipComplete = true;
 
-  // sync seed
-  getController().SeedRand(maxSeed); 
   Logger::Logf(LogLevel::debug, "Coin flip completed. Local value: %d. Remote value: %d. Final value: %d", coinValue, remoteValue, coinFlip);
 }
 
