@@ -227,7 +227,6 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
   DefineScriptedObstacleUserType(state, battle_namespace);
   DefineScriptedArtifactUserType(battle_namespace);
   DefineScriptedComponentUserType(state, battle_namespace);
-  DefineCardMetaUserTypes(this, battle_namespace);
   DefineBaseCardActionUserType(state, battle_namespace);
   DefineScriptedCardActionUserType(namespaceId, this, battle_namespace);
   DefineDefenseRuleUserTypes(state, battle_namespace);
@@ -249,6 +248,8 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
 
     address2package[scriptPackage.address] = &scriptPackage;
   };
+
+  DefineCardMetaUserTypes(this, state, battle_namespace, SetPackageId);
 
   // make meta object info metatable
   const auto& playermeta_table = battle_namespace.new_usertype<PlayerMeta>("PlayerMeta",

@@ -4,7 +4,7 @@
 #include "../bnCardPackageManager.h"
 #include "../bnGame.h"
 
-void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::table& battle_namespace) {
+void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace, std::function<void(const std::string& packageId)> setPackageId) {
   const auto& cardpropsmeta_table = battle_namespace.new_usertype<Battle::Card::Properties>("CardProperties",
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
       ScriptResourceManager::PrintInvalidAccessMessage( table, "CardProperties", key );
@@ -54,7 +54,10 @@ void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::table& b
     "set_preview_texture", &CardMeta::SetPreviewTexture,
     "set_icon_texture", &CardMeta::SetIconTexture,
     "set_codes", &CardMeta::SetCodes,
-    "declare_package_id", &CardMeta::SetPackageID
+    "declare_package_id", [setPackageId] (CardMeta& meta, const std::string& packageId) {
+      setPackageId(packageId);
+      meta.SetPackageID(packageId);
+    }
   );
 
   const auto& adjacent_card_table = battle_namespace.new_usertype<AdjacentCards>("AdjacentCards",
@@ -75,6 +78,13 @@ void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::table& b
     },
     "left_card", &AdjacentCards::leftCard,
     "right_card", &AdjacentCards::rightCard
+  );
+
+  state.new_enum("CardClass",
+    "Standard", Battle::CardClass::standard,
+    "Mega", Battle::CardClass::mega,
+    "Giga", Battle::CardClass::giga,
+    "Dark", Battle::CardClass::dark
   );
 }
 

@@ -5,6 +5,6 @@
 
 class ScriptResourceManager;
 
-void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::table& battle_namespace);
+void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace, std::function<void(const std::string& packageId)> setPackageId);
 
 #endif
