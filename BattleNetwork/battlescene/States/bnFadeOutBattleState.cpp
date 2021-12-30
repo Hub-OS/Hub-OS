@@ -1,6 +1,7 @@
 #include "bnFadeOutBattleState.h"
 #include "../bnBattleSceneBase.h"
 
+#include "../../bnEntity.h"
 #include "../../bnPlayer.h"
 #include "../../bnField.h"
 
@@ -11,14 +12,15 @@ void FadeOutBattleState::onStart(const BattleSceneState*) {
   std::shared_ptr<Player> localPlayer = scene.GetLocalPlayer();
   Team localTeam = localPlayer->GetTeam();
 
-  for (auto p : scene.GetAllPlayers()) {
+  for (std::shared_ptr<Player> p : scene.GetAllPlayers()) {
     p->ChangeState<PlayerIdleState>();
   }
 
-  auto field = scene.GetField();
+  std::shared_ptr<Field> field = scene.GetField();
   field->RequestBattleStop();
 
-  auto mobList = localTeam == Team::red ? scene.RedTeamMobList() : scene.BlueTeamMobList();
+  std::vector<std::reference_wrapper<const Character>> mobList;
+  mobList = localTeam == Team::red ? scene.RedTeamMobList() : scene.BlueTeamMobList();
 
   if (mobList.empty())
     return;
@@ -26,15 +28,17 @@ void FadeOutBattleState::onStart(const BattleSceneState*) {
   BattleResults& results = scene.BattleResultsObj();
   results.turns = scene.GetTurnCount();
 
-  Entity::ID_t next_id{mobList.front().get().GetID()};
+  std::sort(mobList.begin(), mobList.end(), [](auto& a, auto& b) { return a.get().GetID() < b.get().GetID(); });
 
-  for (auto& enemy : mobList) {
+  Entity::ID_t next_id{ mobList.front().get().GetID()};
+
+  for (const Character& enemy : mobList) {
     BattleResults::MobData mob;
-    mob.health = enemy.get().GetHealth();
-    mob.id = enemy.get().GetName();
+    mob.health = enemy.GetHealth();
+    mob.id = enemy.GetName();
 
     // track deleted enemies from this mob by returning empty values where they would be
-    while (enemy.get().GetID() != next_id) {
+    while (enemy.GetID() != next_id) {
       results.mobStatus.push_back(BattleResults::MobData{});
       next_id++;
     }

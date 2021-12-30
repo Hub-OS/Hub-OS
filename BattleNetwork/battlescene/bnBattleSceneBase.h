@@ -19,6 +19,7 @@
 #include "../bnCounterCombatRule.h"
 #include "../bnCounterHitListener.h"
 #include "../bnHitListener.h"
+#include "../bnCharacterSpawnListener.h"
 #include "../bnCharacterDeleteListener.h"
 #include "../bnCardUseListener.h"
 #include "../bnRealtimeCardUseListener.h"
@@ -74,6 +75,7 @@ class BattleSceneBase :
   public Scene, 
   public HitListener,
   public CounterHitListener, 
+  public CharacterSpawnListener,
   public CharacterDeleteListener, 
   public CardActionUseListener {
 private:
@@ -114,6 +116,7 @@ private:
   std::shared_ptr<Player> localPlayer; /*!< Local player */
   std::vector<std::shared_ptr<Player>> otherPlayers; /*!< Player array supports multiplayer */
   std::map<Player*, TrackedFormData> allPlayerFormsHash;
+  std::map<Player*, Team> allPlayerTeamHash; /*!< Check previous frames teams for traitors */
   Mob* redTeamMob{ nullptr }; /*!< Mob and mob data opposing team are fighting against */
   Mob* blueTeamMob{ nullptr }; /*!< Mob and mob data player are fighting against */
   std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
@@ -277,6 +280,7 @@ protected:
   std::vector<InputEvent> ProcessLocalPlayerInputQueue(const frame_time_t& lag = frames(0));
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
   void OnCounter(Entity& victim, Entity& aggressor) override final;
+  void OnSpawnEvent(std::shared_ptr<Character>& spawned) override final;
   void OnDeleteEvent(Character& pending) override final;
 
 #ifdef __ANDROID__
@@ -311,6 +315,7 @@ public:
   void SubscribeToCardActions(CardActionUsePublisher& publisher);
   const std::vector<std::reference_wrapper<CardActionUsePublisher>>& GetCardActionSubscriptions() const;
   TrackedFormData& GetPlayerFormData(const std::shared_ptr<Player>& player);
+  Team& GetPlayerTeamData(const std::shared_ptr<Player>& player);
   std::shared_ptr<Player> GetPlayerFromEntityID(Entity::ID_t ID);
 
   /**
@@ -438,6 +443,12 @@ public:
     * @param other
     */
   void Eject(Component::ID_t ID);
+
+  /**
+  * @brief Dynamically track new character on the field
+  * @param newCharacter
+  */
+  void TrackCharacter(std::shared_ptr<Character> newCharacter);
 
 private:
   BattleSceneState* current{nullptr}; //!< Pointer to the current battle scene state

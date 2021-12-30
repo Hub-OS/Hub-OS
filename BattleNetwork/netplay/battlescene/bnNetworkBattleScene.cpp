@@ -406,14 +406,12 @@ void NetworkBattleScene::Init()
   
   if (ui) {
     ui->SetManualMode(true);
+    ui->SetHP(remotePlayer->GetHealth());
   }
 
   GetCardSelectWidget().PreventRetreat();
   GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
   GetEmotionWindow().SetTexture(props.emotion);
-
-  // Tell everything to begin battle
-  BroadcastBattleStart();
 }
 
 void NetworkBattleScene::SendHandshakeSignal()

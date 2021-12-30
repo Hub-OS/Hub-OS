@@ -27,7 +27,7 @@ void MobIntroBattleState::onUpdate(double elapsed)
       cast->SetTarget(GetScene().GetLocalPlayer());
     }
 
-    auto& enemy = data->character;
+    std::shared_ptr<Character>& enemy = data->character;
 
     enemy->ToggleTimeFreeze(false);
     GetScene().GetField()->AddEntity(enemy, data->tileX, data->tileY);
@@ -53,16 +53,13 @@ void MobIntroBattleState::onEnd(const BattleSceneState*)
   mob->DefaultState();
 
   // Untrack friendlies
-  for (auto& f : friendlies) {
+  for (std::shared_ptr<Character>& f : friendlies) {
     mob->Forget(*f);
   }
 
-  for (auto& player : GetScene().GetAllPlayers()) {
+  for (std::shared_ptr<Player>& player : GetScene().GetAllPlayers()) {
     player->ChangeState<PlayerControlledState>();
   }
-
-  // Tell everything to begin battle
-  GetScene().BroadcastBattleStart();
 }
 
 void MobIntroBattleState::onStart(const BattleSceneState*)

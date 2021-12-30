@@ -9,6 +9,7 @@ using std::vector;
 #include "bindings/bnScriptedObstacle.h"
 #include "bnEntity.h"
 #include "bnCharacterDeletePublisher.h"
+#include "bnCharacterSpawnPublisher.h"
 
 class Character;
 class Spell;
@@ -22,7 +23,7 @@ namespace Battle {
 
 #define BN_MAX_COMBAT_EVALUATION_STEPS 20
 
-class Field : public std::enable_shared_from_this<Field>, public CharacterDeletePublisher{
+class Field : public std::enable_shared_from_this<Field>, public CharacterDeletePublisher, public CharacterSpawnPublisher{
 public:
   using NotifyID_t = long long; // for lifetime notifiers
 

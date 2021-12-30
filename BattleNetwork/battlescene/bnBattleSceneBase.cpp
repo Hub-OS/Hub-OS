@@ -61,6 +61,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   Set Scene*/
   field = props.field;
   CharacterDeleteListener::Subscribe(*field);
+  CharacterSpawnListener::Subscribe(*field);
   field->SetScene(this); // event emitters during battle needs the active scene
 
   // always have mob data even if it's empty for run-time safety
@@ -238,6 +239,16 @@ void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
   }
 }
 
+void BattleSceneBase::OnSpawnEvent(std::shared_ptr<Character>& spawned)
+{
+  if (spawned->GetTeam() == Team::red) {
+    redTeamMob->Track(spawned);
+  }
+  else {
+    blueTeamMob->Track(spawned);
+  }
+}
+
 void BattleSceneBase::OnDeleteEvent(Character& pending)
 {
   // Track if player is being deleted
@@ -357,6 +368,20 @@ TrackedFormData& BattleSceneBase::GetPlayerFormData(const std::shared_ptr<Player
   return dummy;
 }
 
+Team& BattleSceneBase::GetPlayerTeamData(const std::shared_ptr<Player>& player)
+{
+  static Team dummy;
+  dummy = Team::unknown;
+
+  auto iter = allPlayerTeamHash.find(player.get());
+
+  if (iter != allPlayerTeamHash.end()) {
+    return iter->second;
+  }
+
+  return dummy;
+}
+
 std::shared_ptr<Player> BattleSceneBase::GetPlayerFromEntityID(Entity::ID_t ID)
 {
   for (std::shared_ptr<Player> player : GetAllPlayers()) {
@@ -427,6 +452,7 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
 
   // track forms
   allPlayerFormsHash[localPlayer.get()] = {}; // use default form data values
+  allPlayerTeamHash[localPlayer.get()] = team;
 
   HitListener::Subscribe(*localPlayer);
 }
@@ -452,6 +478,7 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
 
   // track forms
   allPlayerFormsHash[player.get()] = {}; // use default form data values
+  allPlayerTeamHash[player.get()] = team;
 
   HitListener::Subscribe(*player);
 }
@@ -737,6 +764,29 @@ void BattleSceneBase::onUpdate(double elapsed) {
     customFullAnimDelta += elapsed/customDuration;
     customBarShader->setUniform("factor", (float)(1.0 + customFullAnimDelta));
   }
+
+  // Find and handle traitors
+  for (std::shared_ptr<Player> p : GetAllPlayers()) {
+    Team team = p->GetTeam();
+    Team& oldTeam = GetPlayerTeamData(p);
+
+    if (oldTeam != team) {
+      // inform the mob trackers
+      Mob& oldMob = (oldTeam == Team::red)? *redTeamMob : *blueTeamMob;
+      Mob& newMob = (team == Team::red)? *redTeamMob : *blueTeamMob;
+
+      oldMob.Forget(*p);
+      newMob.Track(p);
+
+      // flip perspective so the traitor can see correctly
+      if (p == GetLocalPlayer()) {
+        PerspectiveFlip(team == Team::blue);
+      }
+
+      // update our record
+      oldTeam = team;
+    }
+  }
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
@@ -890,9 +940,11 @@ bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
 void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player> other) {
   auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
   auto iter2 = allPlayerFormsHash.find(other.get());
+  auto iter3 = allPlayerTeamHash.find(other.get());
   if (iter != otherPlayers.end()) {
     otherPlayers.erase(iter);
     allPlayerFormsHash.erase(iter2);
+    allPlayerTeamHash.erase(iter3);
   }
 }
 
@@ -1192,6 +1244,16 @@ void BattleSceneBase::Eject(Component::ID_t ID)
   }
 }
 
+void BattleSceneBase::TrackCharacter(std::shared_ptr<Character> newCharacter)
+{
+  if (newCharacter->GetTeam() == Team::red) {
+    redTeamMob->Track(newCharacter);
+  }
+  else {
+    blueTeamMob->Track(newCharacter);
+  }
+}
+
 const bool BattleSceneBase::IsRedTeamCleared() const
 {
   return redTeamMob? redTeamMob->IsCleared() : true;
@@ -1216,16 +1278,16 @@ void BattleSceneBase::ProcessNewestComponents()
     return false;
   });
 
-  for (auto e : entities) {
+  for (Entity* e : entities) {
     if (e->components.size() > 0) {
       // update the ledger
       // this step proceeds the lastComponentID update
-      auto latestID = e->components[0]->GetID();
+      Component::ID_t latestID = e->components[0]->GetID();
 
       if (e->lastComponentID < latestID) {
         //std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
 
-        for (auto& c : e->components) {
+        for (std::shared_ptr<Component>& c : e->components) {
           if (!c) continue;
 
           // Older components are last in order, we're done

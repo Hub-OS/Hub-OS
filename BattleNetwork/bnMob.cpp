@@ -188,7 +188,9 @@ std::unique_ptr<Mob::SpawnData> Mob::GetNextSpawn() {
 
 void Mob::Track(std::shared_ptr<Character> character)
 {
-  tracked.push_back(character);
+  if (std::find(tracked.begin(), tracked.end(), character) == tracked.end()) {
+    tracked.push_back(character);
+  }
 }
 
 void Mob::EnableFreedomMission(bool enabled)

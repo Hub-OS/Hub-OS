@@ -5,6 +5,7 @@
 #include "bnArtifact.h"
 #include "bnTile.h"
 #include "bnTextureResourceManager.h"
+#include "battlescene/bnBattleSceneBase.h"
 
 constexpr auto TILE_ANIMATION_PATH = "resources/tiles/tiles.animation";
 
@@ -82,8 +83,8 @@ void Field::SetScene(const Scene* scene)
 {
   this->scene = scene;
 
-  for (auto& row : tiles) {
-    for (auto& tile : row) {
+  for (std::vector<Battle::Tile*>& row : tiles) {
+    for (Battle::Tile* tile : row) {
       tile->SetField(shared_from_this());
     }
   }
@@ -228,6 +229,15 @@ Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, int x, i
 
     tile->AddEntity(entity);
     allEntityHash.insert(std::make_pair(entity->GetID(), entity));
+
+    // TODO: HACK. Stop dynamic casting and use a hash of some kind
+    std::shared_ptr<Character> character = std::dynamic_pointer_cast<Character>(entity);
+    std::shared_ptr<Obstacle> obstacle = std::dynamic_pointer_cast<Obstacle>(entity);
+
+    if (character && !obstacle) {
+      CharacterSpawnPublisher::Broadcast(character);
+    }
+
     return Field::AddEntityStatus::added;
   }
 
@@ -367,7 +377,7 @@ void Field::Update(double _elapsed) {
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      auto& t = tiles[i][j];
+      Battle::Tile* t = tiles[i][j];
       if (t->teamCooldown > 0) {
         syncCol.insert(syncCol.begin(), j);
       }
@@ -398,7 +408,7 @@ void Field::Update(double _elapsed) {
   // any columns with a character in them from a different team do not revert
   for (auto charIter = charCol.begin(); charIter != charCol.end(); charIter++) {
     for (size_t i = 1; i <= GetHeight(); i++) {
-      auto& t = tiles[i][*charIter];
+      Battle::Tile* t = tiles[i][*charIter];
 
       auto matchIter = std::find_if(t->characters.begin(), t->characters.end(), 
         [team = t->ogTeam](std::shared_ptr<Character> in) { return !in->Teammate(team); });
@@ -439,13 +449,13 @@ void Field::Update(double _elapsed) {
   }
 
   // sync stolen tiles with their corresponding columns
-  for (auto col : syncCol) {
+  for (int col : syncCol) {
     double maxTimer = 0.0;
     for (size_t i = 1; i <= GetHeight(); i++) {
-      auto& t = tiles[i][col];
+      Battle::Tile* t = tiles[i][col];
       maxTimer = std::max(maxTimer, t->teamCooldown);
 
-      auto adj_tile = t + Reverse(t->GetFacing());
+      Battle::Tile* adj_tile = t + Reverse(t->GetFacing());
 
       while (adj_tile) {
         maxTimer = std::max(maxTimer, adj_tile->teamCooldown);
@@ -453,7 +463,7 @@ void Field::Update(double _elapsed) {
       }
     }
     for (size_t i = 1; i <= GetHeight(); i++) {
-      auto& t = tiles[i][col];
+      Battle::Tile* t = tiles[i][col];
 
       if (t->GetTeam() != t->ogTeam) {
         t->teamCooldown = maxTimer;
@@ -462,9 +472,9 @@ void Field::Update(double _elapsed) {
   }
 
   // revert strategy for tiles:
-  for (auto col : restCol) {
+  for (int col : restCol) {
     for (size_t i = 1; i <= GetHeight(); i++) {
-      auto& t = tiles[i][col];
+      Battle::Tile* t = tiles[i][col];
 
       t->SetTeam(t->ogTeam, true);
       t->SetFacing(t->ogFacing);
@@ -615,7 +625,7 @@ void Field::DeallocEntity(Entity::ID_t ID)
   auto iter = allEntityHash.find(ID);
 
   if (iter != allEntityHash.end()) {
-    auto& entity = iter->second;
+    std::shared_ptr<Entity>& entity = iter->second;
     entity->GetTile()->RemoveEntityByID(ID);
     ForgetEntity(ID);
   }

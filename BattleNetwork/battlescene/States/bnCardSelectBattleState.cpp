@@ -258,9 +258,9 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
   Team localTeam = localPlayer->GetTeam();
 
   float nextLabelHeight = 6.0f; // start 3px from the top (6px/2 upscale = 3px)
-  auto mobList = localTeam == Team::red ? scene.RedTeamMobList() : scene.BlueTeamMobList();
+  auto mobList = localTeam == Team::red ? scene.BlueTeamMobList() : scene.RedTeamMobList();
 
-  for (int i = 0; i < mobList.size(); i++) {
+  for (int i = 0; i < mobList.size() && firstTime; i++) {
     const Character& mob = mobList[i].get();
     if (mob.IsDeleted())
       continue;
@@ -304,7 +304,13 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 }
 
 void CardSelectBattleState::onEnd(const BattleSceneState*)
-{ }
+{ 
+  // do not show mob list name 2nd time around
+  firstTime = false;
+
+  // Tell everything to begin battle
+  GetScene().BroadcastBattleStart();
+}
 
 void CardSelectBattleState::EnablePVPMode()
 {

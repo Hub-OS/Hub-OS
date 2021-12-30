@@ -144,9 +144,6 @@ void FreedomMissionMobScene::Init()
   cardSelectWidget.PreventRetreat();
   cardSelectWidget.SetSpeaker(props.mug, props.anim);
   GetEmotionWindow().SetTexture(props.emotion);
-
-  // Tell everything to begin battle
-  BroadcastBattleStart();
 }
 
 void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)

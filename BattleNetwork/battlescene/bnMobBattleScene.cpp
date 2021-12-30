@@ -154,9 +154,6 @@ void MobBattleScene::Init()
 
   GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
   GetEmotionWindow().SetTexture(props.emotion);
-
-  // Tell everything to begin battle
-  BroadcastBattleStart();
 }
 
 void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
