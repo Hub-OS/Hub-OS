@@ -238,6 +238,10 @@ Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, int x, i
       CharacterSpawnPublisher::Broadcast(character);
     }
 
+    if (isBattleActive) {
+      entity->OnBattleStart();
+    }
+
     return Field::AddEntityStatus::added;
   }
 

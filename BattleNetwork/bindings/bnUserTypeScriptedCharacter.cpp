@@ -61,7 +61,6 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, const
       auto character = std::make_shared<ScriptedCharacter>(rank);
       character->SetTeam(team);
       character->InitFromScript(*scriptPackage->state);
-      character->InvokeDefaultState();
       character->CreateComponent<MobHealthUI>(character);
 
       auto wrappedCharacter = WeakWrapper(character);
