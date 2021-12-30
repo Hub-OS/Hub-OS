@@ -2,6 +2,7 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include <cstdlib>
 #include "bnScriptResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -91,6 +92,23 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
   const std::string& namespaceId = scriptPackage.address.namespaceId;
 
   state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
+
+  state["math"]["randomseed"] = []{
+    Logger::Log(LogLevel::warning, "math.random uses the engine's random number generator and does not need to be seeded");
+  };
+
+  state["math"]["random"] = sol::overload(
+    [] (int n, int m) -> int { // [n, m]
+      int range = m - n;
+      return rand() % (range + 1) + n;
+    },
+    [] (int n) -> int { // [1, n]
+      return rand() % n + 1;
+    },
+    [] () -> float { // [0, 1)
+      return (float)rand() / ((float)(RAND_MAX) + 1);
+    }
+  );
 
   // 'include()' in Lua is intended to load a LIBRARY file of Lua code into the current lua state.
   // Currently only loads library files included in the SAME directory as the script file.
