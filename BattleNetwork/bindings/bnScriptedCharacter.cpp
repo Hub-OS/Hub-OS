@@ -94,6 +94,8 @@ void ScriptedCharacter::OnBattleStart() {
     }
   }
 
+  InvokeDefaultState();
+
   Character::OnBattleStart();
 }
 
