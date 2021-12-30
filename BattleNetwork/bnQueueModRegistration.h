@@ -10,41 +10,12 @@
 #include <filesystem>
 #endif 
 
-static std::map<std::string, std::function<bool()>> retryTable;
-
-static std::vector<std::string> ResolveFailedPackages() {
-  std::vector<std::string> resolvedPackages;
-
-  size_t size_before = retryTable.size();
-
-  for (auto iter = retryTable.begin(); iter != retryTable.end(); /* skip */) {
-    if (iter->second()) {
-      resolvedPackages.push_back(iter->first);
-      iter = retryTable.erase(iter);
-      continue;
-    }
-
-    iter++;
-  }
-
-  return resolvedPackages;
-}
-
 template<typename PackageManagerT, typename ScriptedResourceT>
 static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, const std::string& fullModPath) {
   auto result = packageManager.template LoadPackageFromDisk<ScriptedResourceT>(fullModPath);
 
   if (!result.is_error()) {
     return stx::ok();
-  }
-
-  // Otherwise we could not install,
-  // add this record if possible to the retryTable
-  if (retryTable.find(fullModPath) == retryTable.end()) {
-    retryTable[fullModPath] = [&packageManager, fullModPath] () -> bool {
-      Logger::Logf(LogLevel::info, "Retrying %s", fullModPath.c_str());
-      return InstallMod<PackageManagerT, ScriptedResourceT>(packageManager, fullModPath).is_error() == false;
-    };
   }
 
   return stx::error<bool>(result.error_cstr());

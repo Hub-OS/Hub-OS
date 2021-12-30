@@ -5,7 +5,7 @@
 #include "../bnSpriteProxyNode.h"
 #include "../bnScriptResourceManager.h"
 
-void DefineSpriteNodeUserType(sol::table& engine_namespace) {
+void DefineSpriteNodeUserType(sol::state& state, sol::table& engine_namespace) {
   engine_namespace.new_usertype<WeakWrapper<SpriteProxyNode>>("SpriteNode",
     sol::meta_function::index, []( sol::table table, const std::string key ) { 
       ScriptResourceManager::PrintInvalidAccessMessage( table, "SpriteNode", key );
@@ -108,6 +108,19 @@ void DefineSpriteNodeUserType(sol::table& engine_namespace) {
     "enable_parent_shader", [](WeakWrapper<SpriteProxyNode>& node, bool enable) {
       node.Unwrap()->EnableParentShader(enable);
     }
+  );
+
+  state.new_usertype<sf::Color>("Color",
+    sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>(),
+    "r", &sf::Color::r,
+    "g", &sf::Color::g,
+    "b", &sf::Color::b,
+    "a", &sf::Color::a
+  );
+
+  state.new_enum("ColorMode",
+    "Multiply", ColorMode::multiply,
+    "Additive", ColorMode::additive
   );
 }
 #endif

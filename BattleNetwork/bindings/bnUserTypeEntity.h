@@ -10,7 +10,7 @@
 #include "../bnSolHelpers.h"
 #include "../bnTile.h"
 
-void DefineEntityUserType(sol::table& battle_namespace);
+void DefineEntityUserType(sol::state& state, sol::table& battle_namespace);
 
 template<typename E>
 void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_reference<false> >& entity_table) {

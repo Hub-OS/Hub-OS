@@ -126,6 +126,22 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
     "flags", &Hit::Properties::flags
   );
 
+  state.new_enum("Hit",
+    "None", Hit::none,
+    "Flinch", Hit::flinch,
+    "Flash", Hit::flash,
+    "Stun", Hit::stun,
+    "Root", Hit::root,
+    "Impact", Hit::impact,
+    "Shake", Hit::shake,
+    "Pierce", Hit::pierce,
+    "Retangible", Hit::retangible,
+    "Breaking", Hit::breaking,
+    "Bubble", Hit::bubble,
+    "Freeze", Hit::freeze,
+    "Drag", Hit::drag
+  );
+
   state.new_usertype<Hit::Drag>("Drag",
     sol::factories(
       [] (Direction dir, unsigned count) { return Hit::Drag{ dir, count }; },
