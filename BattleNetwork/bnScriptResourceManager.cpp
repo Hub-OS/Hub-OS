@@ -107,7 +107,7 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
       return SyncedRand() % n + 1;
     },
     [] () -> float { // [0, 1)
-      return (float)SyncedRand() / ((float)(RAND_MAX) + 1);
+      return (float)SyncedRand() / ((float)(SyncedRandMax()) + 1);
     }
   );
 

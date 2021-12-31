@@ -14,6 +14,10 @@ uint32_t SyncedRand() {
   return randomGenerator();
 }
 
+uint32_t SyncedRandMax() {
+  return randomGenerator.max();
+}
+
 void SeedSyncedRand(uint32_t seed) {
   randomGenerator.seed(seed);
 }
