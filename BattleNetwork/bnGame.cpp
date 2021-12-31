@@ -14,6 +14,7 @@
 #include "bnText.h"
 #include "bnResourceHandle.h"
 #include "bnInputHandle.h"
+#include "bnRandom.h"
 #include "overworld/bnOverworldHomepage.h"
 #include "SFML/System.hpp"
 
@@ -495,12 +496,8 @@ void Game::UpdateConfigSettings(const struct ConfigSettings& new_settings)
 void Game::SeedRand(unsigned int seed)
 {
   srand(seed);
+  SeedSyncedRand(seed);
   randSeed = seed;
-
-#ifdef BN_MOD_SUPPORT
-  scriptManager.SeedRand(seed);
-#endif
-
 }
 
 const unsigned int Game::GetRandSeed() const

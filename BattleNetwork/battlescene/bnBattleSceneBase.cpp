@@ -24,6 +24,7 @@
 #include "../bnGraveyardBackground.h"
 #include "../bnVirusBackground.h"
 #include "../bnFadeInState.h"
+#include "../bnRandom.h"
 
 // Combos are counted if more than one enemy is hit within x frames
 // The game is clocked to display 60 frames per second
@@ -75,7 +76,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   background = props.background;
 
   if (!background) {
-    int randBG = rand() % 8;
+    int randBG = SyncedRand() % 8;
 
     if (randBG == 0) {
       background = std::make_shared<LanBackground>();

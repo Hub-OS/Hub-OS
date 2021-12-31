@@ -3,6 +3,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
 #include "bnTile.h"
+#include "bnRandom.h"
 
 using sf::IntRect;
 
@@ -143,14 +144,14 @@ void ExplosionSpriteNode::SetOffsetArea(sf::Vector2f area)
 
   offsetArea = area;
 
-  int randX = rand() % (int)(area.x+0.5f);
-  int randY = rand() % (int)(area.y+0.5f);
+  int randX = SyncedRand() % (int)(area.x+0.5f);
+  int randY = SyncedRand() % (int)(area.y+0.5f);
 
   int randNegX = 1;
   int randNegY = 1;
 
-  if (rand() % 10 > 5) randNegX = -1;
-  if (rand() % 10 > 5) randNegY = -1;
+  if (SyncedRand() % 10 > 5) randNegX = -1;
+  if (SyncedRand() % 10 > 5) randNegY = -1;
 
   randX *= randNegX;
   randY = -randY;

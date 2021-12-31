@@ -21,6 +21,7 @@
 #include "bnField.h"
 #include "bnParticlePoof.h"
 #include "bnPlayerCustScene.h"
+#include "bnRandom.h"
 
 #include "bindings/bnLuaLibrary.h"
 #include "bindings/bnScriptedMob.h"
@@ -100,13 +101,13 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
   state["math"]["random"] = sol::overload(
     [] (int n, int m) -> int { // [n, m]
       int range = m - n;
-      return rand() % (range + 1) + n;
+      return SyncedRand() % (range + 1) + n;
     },
     [] (int n) -> int { // [1, n]
-      return rand() % n + 1;
+      return SyncedRand() % n + 1;
     },
     [] () -> float { // [0, 1)
-      return (float)rand() / ((float)(RAND_MAX) + 1);
+      return (float)SyncedRand() / ((float)(SyncedRandMax()) + 1);
     }
   );
 
@@ -227,7 +228,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
   sol::table overworld_namespace = state.create_table("Overworld");
   sol::table engine_namespace = state.create_table("Engine");
 
-  engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int { return randSeed; });
+  engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int { return 0; });
 
   DefineFieldUserType(battle_namespace);
   DefineTileUserType(state);
@@ -839,11 +840,6 @@ ScriptPackage* ScriptResourceManager::FetchScriptPackage(const std::string& name
   }
 
   return package;
-}
-
-void ScriptResourceManager::SeedRand(unsigned int seed)
-{
-  randSeed = seed;
 }
 
 void ScriptResourceManager::SetCardPackagePartitioner(CardPackagePartitioner& partition)

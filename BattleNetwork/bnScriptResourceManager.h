@@ -49,7 +49,6 @@ public:
   void DropPackageData(const PackageAddress& addr);
   ScriptPackage* DefinePackage(ScriptPackageType type, const std::string& namespaceId, const std::string& fqn, const std::string& path); /* throws */
   ScriptPackage* FetchScriptPackage(const std::string& namespaceId, const std::string& fqn, ScriptPackageType type);
-  void SeedRand(unsigned int seed);
   void SetCardPackagePartitioner(CardPackagePartitioner& partition);
   CardPackagePartitioner& GetCardPackagePartitioner();
 
@@ -57,7 +56,6 @@ public:
   static sol::object PrintInvalidAssignMessage(sol::table table, const std::string typeName, const std::string key );
 
 private:
-  unsigned int randSeed{};
   std::map<sol::state*, ScriptPackage*> state2package; /*!< lua state pointer to script package */
   std::map<PackageAddress, ScriptPackage*> address2package; /*!< PackageAddress to script package */
   CardPackagePartitioner* cardPartition{ nullptr };

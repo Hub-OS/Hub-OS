@@ -8,6 +8,7 @@
 #include "bnPlayer.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnRandom.h"
 
 Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_team) {
   SetPassthrough(true);
@@ -92,10 +93,10 @@ void Buster::OnCollision(const std::shared_ptr<Entity> entity)
   hitHeight = std::floor(entity->GetHeight());
 
   if (!isCharged) {
-    random *= rand() % 2 == 0 ? -1.0f : 1.0f;
+    random *= SyncedRand() % 2 == 0 ? -1.0f : 1.0f;
 
     if (hitHeight > 0) {
-      hitHeight = (float)(rand() % (int)hitHeight);
+      hitHeight = (float)(SyncedRand() % (int)hitHeight);
     }
   }
   else {
