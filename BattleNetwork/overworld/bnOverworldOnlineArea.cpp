@@ -27,6 +27,7 @@
 #include "../bnPlayerCustScene.h"
 #include "../bnSelectNaviScene.h"
 #include "../battlescene/bnMobBattleScene.h"
+#include "../battlescene/bnFreedomMissionMobScene.h"
 #include "../netplay/bnBufferWriter.h"
 #include "../netplay/battlescene/bnNetworkBattleScene.h"
 #include "../netplay/bnNetPlayConfig.h"
@@ -2473,15 +2474,17 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(emotionsTexture);
     std::shared_ptr<Player> player = std::shared_ptr<Player>(playerMeta.GetData());
 
-    player->SetHealth(GetPlayerSession()->health);
-    player->SetEmotion(GetPlayerSession()->emotion);
+    auto& playerSession = GetPlayerSession();
+    player->SetHealth(playerSession->health);
+    player->SetEmotion(playerSession->emotion);
 
     CardFolder* newFolder = nullptr;
 
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
     std::unique_ptr<CardFolder> folder;
 
-    if (selectedFolder && getController().Session().IsFolderAllowed(*selectedFolder)) {
+    auto& gameSession = getController().Session();
+    if (selectedFolder && gameSession.IsFolderAllowed(*selectedFolder)) {
       folder = (*selectedFolder)->Clone();
       folder->Shuffle();
     }
@@ -2496,21 +2499,48 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
       mob->SetBackground(GetBackground());
     }
 
-    MobBattleProperties props{
-      { player, GetProgramAdvance(), std::move(folder), mob->GetField(), mob->GetBackground() },
-      MobBattleProperties::RewardBehavior::take,
-      { mob },
-      sf::Sprite(*mugshot),
-      mugshotAnim,
-      emotions,
-    };
+    std::vector<PackageAddress> localNaviBlocksAddr = PlayerCustScene::GetInstalledBlocks(playerMeta.packageId, gameSession);
+    std::vector<std::string> localNaviBlocks;
+
+    for (const PackageAddress& addr : localNaviBlocksAddr) {
+      localNaviBlocks.push_back(addr.packageId);
+    }
 
     BattleResultsFunc callback = [this](const BattleResults& results) {
       sendBattleResultsSignal(results);
     };
 
-    using effect = segue<WhiteWashFade>;
-    getController().push<effect::to<MobBattleScene>>(std::move(props), callback);
+    // Queue screen transition to Battle Scene with a white fade effect
+    // just like the game
+    if (mob->IsFreedomMission()) {
+      FreedomMissionProps props{
+        { player, GetProgramAdvance(), std::move(folder), mob->GetField(), mob->GetBackground() },
+        { mob },
+        mob->GetTurnLimit(),
+        sf::Sprite(*mugshot),
+        mugshotAnim,
+        emotions,
+        localNaviBlocks
+      };
+
+      using effect = segue<WhiteWashFade>;
+      getController().push<effect::to<FreedomMissionMobScene>>(std::move(props), callback);
+    }
+    else {
+      MobBattleProperties props{
+        { player, GetProgramAdvance(), std::move(folder), mob->GetField(), mob->GetBackground() },
+        MobBattleProperties::RewardBehavior::take,
+        { mob },
+        sf::Sprite(*mugshot),
+        mugshotAnim,
+        emotions,
+        localNaviBlocks
+      };
+
+      using effect = segue<WhiteWashFade>;
+      getController().push<effect::to<MobBattleScene>>(std::move(props), callback);
+    }
+
     GetPlayer()->Face(GetPlayer()->GetHeading());
     returningFrom = ReturningScene::BattleScene;
   });
