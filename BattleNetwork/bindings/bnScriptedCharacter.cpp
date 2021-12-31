@@ -113,8 +113,8 @@ void ScriptedCharacter::OnBattleStop() {
 }
 
 bool ScriptedCharacter::CanMoveTo(Battle::Tile* next) {
-  if (auto action = this->CurrentCardAction()) {
-    auto res = action->CanMoveTo(next);
+  if (std::shared_ptr<CardAction> action = this->CurrentCardAction()) {
+    std::optional<bool> res = action->CanMoveTo(next);
 
     if (res) {
       return *res;
@@ -123,7 +123,7 @@ bool ScriptedCharacter::CanMoveTo(Battle::Tile* next) {
 
   if (can_move_to_func.valid())
   {
-    auto result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
+    stx::result_t<bool> result = CallLuaCallbackExpectingValue<bool>(can_move_to_func, next);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -142,14 +142,14 @@ void ScriptedCharacter::RegisterStatusCallback(const Hit::Flags& flag, const Sta
 
 void ScriptedCharacter::ShakeCamera(double power, float duration)
 {
-  this->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
+  EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
 
 void ScriptedCharacter::OnCountered()
 {
   if (on_countered_func.valid())
   {
-    auto result = CallLuaCallback(on_countered_func, weakWrap);
+    stx::result_t<sol::object> result = CallLuaCallback(on_countered_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -157,9 +157,11 @@ void ScriptedCharacter::OnCountered()
   }
 }
 
-Animation& ScriptedCharacter::GetAnimationObject() {
+Animation& ScriptedCharacter::GetAnimationObject() 
+{
   return animation->GetAnimationObject();
 }
+
 void ScriptedCharacter::SetExplosionBehavior(int num, double speed, bool isBoss)
 {
   numOfExplosions = num;

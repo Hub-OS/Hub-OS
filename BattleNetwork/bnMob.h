@@ -26,6 +26,11 @@ public:
     unsigned index{}; /*!< this character's spawn order */
   };
 
+  struct PlayerSpawnData {
+    int tileX{};
+    int tileY{};
+  };
+
   class Mutator {
     friend class Mob;
 
@@ -56,12 +61,13 @@ private:
   long long startMs{-1}, endMs{-1};
   bool nextReady{ true }; /*!< Signal if mob is ready to spawn the next character */
   bool isBoss{ false }; /*!< Flag to change rank and music */
-  bool isFreedomMission{ false };
+  bool isFreedomMission{ false }, playerCanFlip{ false };
   std::string music; /*!< Override with custom music */
   std::vector<std::shared_ptr<Mutator>> spawn; /*!< The enemies to spawn and manage */
   std::vector<std::shared_ptr<Character>> tracked; /*! Enemies that may or may not be spawned through the mob class but need to be considered */
   std::vector<std::function<void(std::shared_ptr<Character>)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
   std::vector<std::function<void(std::shared_ptr<Character>)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
+  std::map<unsigned, PlayerSpawnData> playerSpawnPoints; /*!< Player index spawns at the desired target location */
   std::multimap<int, BattleItem> rewards; /*!< All possible rewards for this mob by rank */
   std::shared_ptr<Field> field{ nullptr }; /*!< The field to play on */
   std::shared_ptr<Background> background; /*!< Override with custom background */
@@ -153,6 +159,10 @@ public:
   * @brief Query if freedom mission requested
   */
   bool IsFreedomMission();
+  bool PlayerCanFlip();
+
+  bool HasPlayerSpawnPoint(unsigned playerNum);
+  PlayerSpawnData& GetPlayerSpawnPoint(unsigned playerNum);
 
   /*
   * @brief Query the number of allowed turns. Zero means no limit.
@@ -233,6 +243,16 @@ public:
   void DefaultState();
 
   /**
+  * @brief Specify where the player(s) should spawn in this mob
+  * @param playerNum the player order e.g. player 1 spawns at tile (x,y)
+  * @param tileX the column of the target tile
+  * @param tileY the row of the target tile
+  * 
+  * @warning will overwrite any existing playerNum spawn data if a previous `playerNum` entry exists
+  */
+  void SpawnPlayer(unsigned playerNum, int tileX, int tileY);
+
+  /**
    * @brief Get the next unspawned enemy
    * 
    * Spawns the character and changes its state to PixelInState<>
@@ -254,6 +274,7 @@ public:
 
   void Track(std::shared_ptr<Character> character);
 
+  bool EnablePlayerCanFlip(bool enabled);
   void EnableFreedomMission(bool enabled);
   void LimitTurnCount(uint8_t turnLimit);
 

@@ -7,6 +7,7 @@ namespace TexturePaths {
   //Tiles
   path TILE_ATLAS_BLUE = "resources/tiles/tile_atlas_blue.png";
   path TILE_ATLAS_RED = "resources/tiles/tile_atlas_red.png";
+  path TILE_ATLAS_UNK = "resources/tiles/tile_atlas_unknown.png";
 
   //Mobs
   path MOB_NAME_BACKDROP = "resources/ui/mob_name_backdrop.png";

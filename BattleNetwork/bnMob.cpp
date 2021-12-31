@@ -114,6 +114,21 @@ bool Mob::IsFreedomMission()
   return isFreedomMission;
 }
 
+bool Mob::PlayerCanFlip()
+{
+  return playerCanFlip;
+}
+
+bool Mob::HasPlayerSpawnPoint(unsigned playerNum)
+{
+  return playerSpawnPoints.find(playerNum) != playerSpawnPoints.end();
+}
+
+Mob::PlayerSpawnData& Mob::GetPlayerSpawnPoint(unsigned playerNum)
+{
+  return playerSpawnPoints[playerNum];
+}
+
 uint8_t Mob::GetTurnLimit()
 {
   return turnLimit;
@@ -177,6 +192,11 @@ void Mob::DefaultState() {
   defaultStateInvokers.clear();
 }
 
+void Mob::SpawnPlayer(unsigned playerNum, int tileX, int tileY)
+{
+  playerSpawnPoints[playerNum] = { tileX, tileY };
+}
+
 std::unique_ptr<Mob::SpawnData> Mob::GetNextSpawn() {
   if (spawnIndex >= spawn.size()) return nullptr;
 
@@ -191,6 +211,11 @@ void Mob::Track(std::shared_ptr<Character> character)
   if (std::find(tracked.begin(), tracked.end(), character) == tracked.end()) {
     tracked.push_back(character);
   }
+}
+
+bool Mob::EnablePlayerCanFlip(bool enabled)
+{
+  return playerCanFlip = enabled;
 }
 
 void Mob::EnableFreedomMission(bool enabled)

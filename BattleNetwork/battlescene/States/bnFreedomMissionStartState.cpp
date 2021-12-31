@@ -13,10 +13,18 @@ FreedomMissionStartState::FreedomMissionStartState(uint8_t maxTurns) :
 
 void FreedomMissionStartState::onStart(const BattleSceneState* _)
 {
+  BattleSceneBase& scene = GetScene();
   BattleTextIntroState::onStart(_);
 
-  GetScene().IncrementTurnCount();
-  const uint8_t turnCount = GetScene().GetTurnCount();
+  // only reveal first player's UI widget to them
+  std::shared_ptr<PlayerSelectedCardsUI> ui = scene.GetLocalPlayer()->GetFirstComponent<PlayerSelectedCardsUI>();
+
+  if (ui) {
+    ui->Reveal();
+  }
+
+  scene.IncrementTurnCount();
+  const uint8_t turnCount = scene.GetTurnCount();
 
   if (maxTurns == turnCount) {
     SetIntroText("Final Turn!");
@@ -24,11 +32,4 @@ void FreedomMissionStartState::onStart(const BattleSceneState* _)
   } 
 
   SetIntroText("Round " + std::to_string(turnCount) + " Start!");
-
-  // only reveal first player's UI widget to them
-  auto ui = GetScene().GetLocalPlayer()->GetFirstComponent<PlayerSelectedCardsUI>();
-
-  if (ui) {
-    ui->Reveal();
-  }
 }

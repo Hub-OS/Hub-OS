@@ -141,12 +141,13 @@ std::shared_ptr<Field> ScriptedMob::GetField()
   return field;
 }
 
-void ScriptedMob::EnableFreedomMission(uint8_t turnCount)
+void ScriptedMob::EnableFreedomMission(uint8_t turnCount, bool playerCanFlip)
 {
-  if (this->mob) {
-    this->mob->EnableFreedomMission(true);
-    this->mob->LimitTurnCount(turnCount);
-  }
+  if (!mob) return;
+
+  mob->EnableFreedomMission(true);
+  mob->LimitTurnCount(turnCount);
+  mob->EnablePlayerCanFlip(true);
 }
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& namespaceId, const std::string& fqn, Character::Rank rank)
@@ -174,5 +175,9 @@ void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::str
 void ScriptedMob::StreamMusic(const std::string& path, long long startMs, long long endMs)
 {
   mob->StreamCustomMusic(path, startMs, endMs);
+}
+void ScriptedMob::SpawnPlayer(unsigned playerNum, int tileX, int tileY)
+{
+  mob->SpawnPlayer(playerNum, tileX, tileY);
 }
 #endif

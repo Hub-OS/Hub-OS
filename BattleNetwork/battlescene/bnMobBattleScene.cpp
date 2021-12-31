@@ -119,7 +119,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
 }
 
 MobBattleScene::~MobBattleScene() {
-  for (auto&& m : props.mobs) {
+  for (Mob* m : props.mobs) {
     delete m;
   }
 
@@ -128,17 +128,6 @@ MobBattleScene::~MobBattleScene() {
 
 void MobBattleScene::Init()
 {
-  SpawnLocalPlayer(2, 2);
-
-  // Run block programs on the remote player now that they are spawned
-  BlockPackageManager& blockPackages = getController().BlockPackagePartitioner().GetPartition(Game::LocalPartition);
-  for (const std::string& blockID : props.blocks) {
-    if (!blockPackages.HasPackage(blockID)) continue;
-
-    auto& blockMeta = blockPackages.FindPackageByID(blockID);
-    blockMeta.mutator(*GetLocalPlayer());
-  }
-
   Mob& mob = *props.mobs.front();
 
   // Simple error reporting if the scene was not fed any mobs
@@ -152,13 +141,30 @@ void MobBattleScene::Init()
     LoadBlueTeamMob(mob);
   }
 
+  if (mob.HasPlayerSpawnPoint(1)) {
+    Mob::PlayerSpawnData data = mob.GetPlayerSpawnPoint(1);
+    SpawnLocalPlayer(data.tileX, data.tileY);
+  }
+  else {
+    SpawnLocalPlayer(2, 2);
+  }
+
+  // Run block programs on the remote player now that they are spawned
+  BlockPackageManager& blockPackages = getController().BlockPackagePartitioner().GetPartition(Game::LocalPartition);
+  for (const std::string& blockID : props.blocks) {
+    if (!blockPackages.HasPackage(blockID)) continue;
+
+    auto& blockMeta = blockPackages.FindPackageByID(blockID);
+    blockMeta.mutator(*GetLocalPlayer());
+  }
+
   GetCardSelectWidget().SetSpeaker(props.mug, props.anim);
   GetEmotionWindow().SetTexture(props.emotion);
 }
 
 void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
-  auto player = GetLocalPlayer();
+  std::shared_ptr<Player> player = GetLocalPlayer();
   if (player.get() == &victim && props.damage > 0) {
     playerHitCount++;
 
@@ -173,7 +179,7 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
   }
 
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
-    auto seSymbol = std::make_shared<ElementalDamage>();
+    std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
     GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());

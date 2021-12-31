@@ -71,7 +71,7 @@ namespace Battle {
         this->volcanoErupt.SetFrame(1, this->volcanoSprite->getSprite()); // start over
         volcanoEruptTimer = seconds;
         
-        auto field = fieldWeak.lock();
+        std::shared_ptr<Field> field = fieldWeak.lock();
 
         if (field && state == TileState::volcano) {
           field->AddEntity(std::make_shared<VolcanoErupt>(), *this);
@@ -133,6 +133,7 @@ namespace Battle {
     flickerTeamCooldown = other.flickerTeamCooldown;
     red_team_atlas = red_team_perm = other.red_team_perm;
     blue_team_atlas = blue_team_perm = other.blue_team_perm;
+    unk_team_atlas = unk_team_perm = other.unk_team_perm;
     animation = other.animation;
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
@@ -176,7 +177,7 @@ namespace Battle {
 
   Tile* Tile::GetTile(Direction dir, unsigned count)
   {
-    auto next = this;
+    Tile* next = this;
 
     while (count > 0) {
       next = next + dir;
@@ -228,7 +229,7 @@ namespace Battle {
     // Check if no characters on the opposing team are on this tile
     if (GetTeam() == Team::unknown || GetTeam() != _team) {
       size_t size = FindEntities([this, _team](std::shared_ptr<Entity>& in) {
-        auto isCharacter = dynamic_cast<Character*>(in.get());
+        Character* isCharacter = dynamic_cast<Character*>(in.get());
         return isCharacter && in->GetTeam() != _team;
       }).size();
 
@@ -321,9 +322,9 @@ namespace Battle {
     }
 
     // Hack to toggle between team color without rewriting redundant code
-    auto currTeam = team;
-    auto otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
-    auto prevAnimState = animState;
+    Team currTeam = team;
+    Team otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
+    std::string prevAnimState = animState;
 
     ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
 
@@ -340,11 +341,15 @@ namespace Battle {
       animation << Animator::Mode::Loop;
     }
 
-    if (currTeam == Team::red) {
+    switch (currTeam) {
+    case Team::red:
       setTexture(red_team_atlas);
-    }
-    else {
+      break;
+    case Team::blue:
       setTexture(blue_team_atlas);
+      break;
+    default:
+      setTexture(unk_team_atlas);
     }
   }
 
@@ -383,10 +388,10 @@ namespace Battle {
       return !characters.empty();
     }
 
-    for (auto& character: characters) {
+    for (std::shared_ptr<Character>& character: characters) {
       bool excluded = false;
 
-      for (auto id : exclude) {
+      for (Entity::ID_t id : exclude) {
         if (character->GetID() == id) {
           excluded = true;
           break;
@@ -414,7 +419,7 @@ namespace Battle {
       return;
     }
 
-    if (auto spell = dynamic_cast<Spell*>(_entity.get())) {
+    if (Spell* spell = dynamic_cast<Spell*>(_entity.get())) {
       spells.push_back(spell);
     } else if(auto artifact = dynamic_cast<Artifact*>(_entity.get())) {
       artifacts.push_back(artifact);
@@ -440,7 +445,7 @@ namespace Battle {
   {
     bool modified = false;
 
-    if (auto field = fieldWeak.lock()) {
+    if (std::shared_ptr<Field> field = fieldWeak.lock()) {
       // This is for queued entities that have not been spawned yet
       // But are requested to be removed on the same frame
       field->TileRequestsRemovalOfQueued(this, ID);
@@ -527,8 +532,9 @@ namespace Battle {
     }
 
     // We need a copy because we WILL invalidate the iterator
-    const std::set<Character*, EntityComparitor> deletingCharsCopy = deletingCharacters;
-    for (auto& character : deletingCharsCopy) {
+    using CharacterSet = std::set<Character*, EntityComparitor>;
+    const CharacterSet deletingCharsCopy = deletingCharacters;
+    for (Character* character : deletingCharsCopy) {
       // Can remove the character from the tile's deleting queue
       field.UpdateEntityOnce(*character, _elapsed);
     }
@@ -577,7 +583,7 @@ namespace Battle {
 
     // Process tile behaviors
     vector<std::shared_ptr<Character>> characters_copy = characters;
-    for (auto& character : characters_copy) {
+    for (std::shared_ptr<Character>& character : characters_copy) {
       if (!character->IsTimeFrozen()) {
         HandleTileBehaviors(field, *character);
       }
@@ -589,7 +595,7 @@ namespace Battle {
     if (isTimeFrozen == state) return;
     isTimeFrozen = state;
 
-    for (auto&& entity : entities) {
+    for (std::shared_ptr<Entity>& entity : entities) {
       entity->ToggleTimeFreeze(isTimeFrozen);
     }
     willHighlight = false;
@@ -597,8 +603,8 @@ namespace Battle {
 
   void Tile::BattleStart()
   {
-    for (auto&& e : entities) {
-        e->OnBattleStart();
+    for (std::shared_ptr<Entity>& e : entities) {
+        e->BattleStart();
     }
     isBattleOver = false;
     isBattleStarted = true;
@@ -607,19 +613,24 @@ namespace Battle {
   void Tile::BattleStop() {
     if (isBattleOver) return;
 
-    auto copy = entities;
-    for (auto&& e : copy) {
-      e->OnBattleStop();
+    std::vector<std::shared_ptr<Entity>> copy = entities;
+    for (std::shared_ptr<Entity>& e : copy) {
+      e->BattleStop();
       e->ClearActionQueue();
     }
     isBattleOver = true;
   }
 
-  void Tile::SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim)
+  void Tile::SetupGraphics(
+    std::shared_ptr<sf::Texture> redTeam, 
+    std::shared_ptr<sf::Texture> blueTeam, 
+    std::shared_ptr<sf::Texture> unknown, 
+    const Animation& anim)
   {
     animation = anim;
     blue_team_atlas = blue_team_perm = blueTeam;
     red_team_atlas = red_team_perm = redTeam;
+    unk_team_atlas = unk_team_perm = unknown;
     useParentShader = true;
   }
 
@@ -627,8 +638,8 @@ namespace Battle {
     if (!isTimeFrozen || !isBattleOver || !(state == TileState::hidden)) {
 
       // DIRECTIONAL TILES
-      auto directional = Direction::none;
-      auto notMoving = !obst.IsMoving();
+      Direction directional = Direction::none;
+      bool notMoving = !obst.IsMoving();
 
       switch (GetState()) {
       case TileState::directionDown:
@@ -693,7 +704,7 @@ namespace Battle {
       }
 
       // DIRECTIONAL TILES
-      auto directional = Direction::none;
+      Direction directional = Direction::none;
 
       switch (GetState()) {
       case TileState::directionDown:
@@ -711,7 +722,7 @@ namespace Battle {
       }
 
       if (directional != Direction::none) {
-        auto notMoving = !character.IsMoving();
+        bool notMoving = !character.IsMoving();
         if (character.WillSlideOnTiles()) {
           if (!character.HasAirShoe() && !character.HasFloatShoe()) {
             if (notMoving && !character.IsSliding()) {
@@ -743,7 +754,7 @@ namespace Battle {
 
     for (auto iter = characters.begin(); iter != characters.end(); iter++) {
       // skip obstacle types...
-      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](auto& other) {
+      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](Entity* other) {
         return other->GetID() == character->GetID();
       });
 
@@ -763,7 +774,7 @@ namespace Battle {
 
     for (auto iter = characters.begin(); iter != characters.end(); iter++) {
       // collect only obstacle types...
-      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](auto& other) {
+      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](Entity* other) {
         return other->GetID() == character->GetID();
       });
 
@@ -785,7 +796,7 @@ namespace Battle {
 
   Tile* Tile::operator+(const Direction& dir)
   {
-    auto field = fieldWeak.lock();
+    std::shared_ptr<Field> field = fieldWeak.lock();
 
     if (!field) {
       return nullptr;
@@ -843,7 +854,7 @@ namespace Battle {
 
   Tile* Tile::Offset(int x, int y)
   {
-    auto field = fieldWeak.lock();
+    std::shared_ptr<Field> field = fieldWeak.lock();
 
     if (!field) {
       return nullptr;
@@ -918,14 +929,14 @@ namespace Battle {
 
     // Step through the entity bucket (all entity types)
     while (i < entities.size()) {
-      auto& ptr = entities[i];
+      std::shared_ptr<Entity>& ptr = entities[i];
       ptr->PrepareNextFrame();
 
       Entity::ID_t ID = ptr->GetID();
 
       if (ptr->IsDeleted()) {
         // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
-        auto character = dynamic_cast<Character*>(ptr.get());
+        Character* character = dynamic_cast<Character*>(ptr.get());
 
         if (character && deletingCharacters.find(character) == deletingCharacters.end()) {
           field.CharacterDeletePublisher::Broadcast(*character);
@@ -957,9 +968,9 @@ namespace Battle {
     if (isBattleOver) return;
 
     // Now that spells and characters have updated and moved, they are due to check for attack outcomes
-    auto characters_copy = characters; // may be modified after hitboxes are resolved
+    std::vector<std::shared_ptr<Character>> characters_copy = characters; // may be modified after hitboxes are resolved
 
-    for (auto& character : characters_copy) {
+    for (std::shared_ptr<Character>& character : characters_copy) {
       // the entity is a character (can be hit) and the team isn't the same
       // we see if it passes defense checks, then call attack
 
@@ -967,7 +978,7 @@ namespace Battle {
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
       for (Entity::ID_t ID : queuedAttackers) {
-        auto attacker = field.GetEntity(ID);
+        std::shared_ptr<Entity> attacker = field.GetEntity(ID);
 
         if (!attacker) {
           Logger::Logf(LogLevel::debug, "Attacker %d missing from field", ID);
@@ -1003,7 +1014,7 @@ namespace Battle {
 
         // Collision here means "we are able to hit" 
         // either with a hitbox that can pierce a defense or by tangibility
-        auto props = attacker->GetHitboxProperties();
+        Hit::Properties props = attacker->GetHitboxProperties();
         if (!character->HasCollision(props)) continue;
 
         // Obstacles can hit eachother, even on the same team
@@ -1031,14 +1042,14 @@ namespace Battle {
 
           // We make sure to apply any tile bonuses at this stage
           if (GetState() == TileState::holy) {
-            auto props = attacker->GetHitboxProperties();
+            Hit::Properties props = attacker->GetHitboxProperties();
             props.damage /= 2;
             attacker->SetHitboxProperties(props);
           }
 
           // Attack() routine has Hit() which immediately subtracts HP
           if (isTimeFrozen) {
-            auto props = attacker->GetHitboxProperties();
+            Hit::Properties props = attacker->GetHitboxProperties();
             props.flags |= Hit::shake;
             attacker->SetHitboxProperties(props);
           }
@@ -1065,7 +1076,7 @@ namespace Battle {
   void Tile::UpdateSpells(Field& field, const double elapsed)
   {
     vector<Entity*> spells_copy = spells;
-    for (auto& spell : spells_copy) {
+    for (Entity* spell : spells_copy) {
       int request = (int)spell->GetTileHighlightMode();
 
       if (!spell->IsTimeFrozen()) {
@@ -1086,7 +1097,7 @@ namespace Battle {
   void Tile::UpdateArtifacts(Field& field, const double elapsed)
   {
     vector<Artifact*> artifacts_copy = artifacts;
-    for (auto& artifact : artifacts_copy) {
+    for (Artifact* artifact : artifacts_copy) {
       // artifacts are special effects and do not stop for TimeFreeze events
       field.UpdateEntityOnce(*artifact, elapsed);
     }
@@ -1095,7 +1106,7 @@ namespace Battle {
   void Tile::UpdateCharacters(Field& field, const double elapsed)
   {
     vector<std::shared_ptr<Character>> characters_copy = characters;
-    for (auto& character : characters_copy) {
+    for (std::shared_ptr<Character>& character : characters_copy) {
       if (!character->IsTimeFrozen()) {
         // Allow user input to move them out of tiles if they are frame perfect
         field.UpdateEntityOnce(*character, elapsed);

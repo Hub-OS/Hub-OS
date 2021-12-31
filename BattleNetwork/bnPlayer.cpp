@@ -31,7 +31,6 @@ Player::Player() :
   chargeEffect->EnableParentShader(false);
 
   SetLayer(0);
-  team = Team::red;
 
   setScale(2.0f, 2.0f);
 

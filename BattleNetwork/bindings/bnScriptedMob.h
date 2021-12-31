@@ -45,7 +45,7 @@ public:
    */
   Mob* Build(std::shared_ptr<Field> field, const std::string& dataString = "");
   std::shared_ptr<Field> GetField();
-  void EnableFreedomMission(uint8_t turnCount);
+  void EnableFreedomMission(uint8_t turnCount, bool playerCanFlip);
   /**
   * @brief Creates a spawner object that loads a scripted or built-in character by its Fully Qualified Names (FQN) 
   * @param fqn String. The name of the character stored in script cache. Use `BuiltIns.NAME` prefix for built-in characters.
@@ -55,6 +55,7 @@ public:
 
   void SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely);
   void StreamMusic(const std::string& path, long long startMs, long long endMs);
+  void SpawnPlayer(unsigned playerNum, int tileX, int tileY);
 };
 
 template<typename BuiltInCharacter>

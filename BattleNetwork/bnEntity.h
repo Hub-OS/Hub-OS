@@ -149,14 +149,6 @@ public:
   virtual ~Entity();
 
   /**
-  * @brief Performs some user-specified deletion behavior before removing from play
-  *
-  * Deleted entities are excluded from all battle attack steps however they 
-  * will be visually present and must be erased from field by calling Erase()
-  */
-  virtual void OnDelete() { };
-
-  /**
   * @brief Sets the tile for this entity and invokes OnSpawn() if this is the first time
   */
   void Spawn(Battle::Tile& start);
@@ -165,19 +157,8 @@ public:
 
   virtual void OnSpawn(Battle::Tile& start) { };
 
-  /**
-  * @brief Performs some user-specified behavior when the battle starts for the first time 
-  * @example See bnGears.h for an entity that is live when the round begins and only moves after this call.
-  */
-  virtual void OnBattleStart() {
-    this->fieldStart = true;
-  };
-
-  /**
-  * @brief Performs some user-specified behavior when the battle is over
-  * @example See bnGears.h for an entity that only stops in place when the round is over
-  */
-  virtual void OnBattleStop() { };
+  void BattleStart();
+  void BattleStop();
 
   /**
    * @brief If the Entity has been initialized already or not
@@ -198,11 +179,6 @@ public:
    * @brief Entity::Update(dt) contains particular steps that gaurantee frame accuracy for child types
    */
   virtual void Update(double _elapsed);
-
-  /**
-   * @brief User-implemented callback for update hooks
-   */
-  virtual void OnUpdate(double _elapsed) {};
   
   void RefreshShader();
   void draw(sf::RenderTarget& target, sf::RenderStates states) const final;
@@ -754,7 +730,6 @@ public:
   std::shared_ptr<sf::Texture> GetBasePalette();
 
   void PrepareNextFrame();
-
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 
 
@@ -821,6 +796,31 @@ protected:
   * Can override to provide custom behavior for when an Entity is countered
   */
   virtual void OnCountered() {}
+
+  /**
+  * @brief Performs some user-specified behavior when the battle starts for the first time
+  * @example See bnGears.h for an entity that is live when the round begins and only moves after this call.
+  */
+  virtual void OnBattleStart() { };
+
+  /**
+  * @brief Performs some user-specified behavior when the battle is over
+  * @example See bnGears.h for an entity that only stops in place when the round is over
+  */
+  virtual void OnBattleStop() { };
+
+  /**
+  * @brief Performs some user-specified deletion behavior before removing from play
+  *
+  * Deleted entities are excluded from all battle attack steps however they
+  * will be visually present and must be erased from field by calling Erase()
+  */
+  virtual void OnDelete() { };
+
+  /**
+   * @brief User-implemented callback for update hooks
+   */
+  virtual void OnUpdate(double _elapsed) {};
 
 private:
   bool ignoreCommonAggressor{};

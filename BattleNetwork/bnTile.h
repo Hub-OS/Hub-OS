@@ -264,7 +264,12 @@ namespace Battle {
     /**
     * @brief Assigns the textures used by the tile according to team, their states, and their animation files
     */
-    void SetupGraphics(std::shared_ptr<sf::Texture> redTeam, std::shared_ptr<sf::Texture> blueTeam, const Animation& anim);
+    void SetupGraphics(
+      std::shared_ptr<sf::Texture> redTeam, 
+      std::shared_ptr<sf::Texture> blueTeam, 
+      std::shared_ptr<sf::Texture> unknown, 
+      const Animation& anim
+    );
 
     void HandleTileBehaviors(Field& field, Obstacle& obst);
     void HandleTileBehaviors(Field& field, Character& character);
@@ -341,6 +346,7 @@ namespace Battle {
     std::weak_ptr<Field> fieldWeak;
     std::shared_ptr<sf::Texture> red_team_atlas, red_team_perm;
     std::shared_ptr<sf::Texture> blue_team_atlas, blue_team_perm;
+    std::shared_ptr<sf::Texture> unk_team_atlas, unk_team_perm;
     TileHighlight highlightMode;
     Team team{}, ogTeam{};
     Direction facing{}, ogFacing{};

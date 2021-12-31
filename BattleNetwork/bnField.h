@@ -212,6 +212,7 @@ public:
 
   const bool DoesRevealCounterFrames() const;
 
+  void ClearAllReservations(Entity::ID_t ID);
 private:
   bool isTimeFrozen; 
   bool isBattleActive; /*!< State flag if battle is active */

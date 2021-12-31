@@ -16,7 +16,7 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
 void ScriptedPlayer::Init() {
   Player::Init();
 
-  auto initResult = CallLuaFunction(script, "player_init", WeakWrapper(weak_from_base<ScriptedPlayer>()));
+  stx::result_t<sol::object> initResult = CallLuaFunction(script, "player_init", WeakWrapper(weak_from_base<ScriptedPlayer>()));
 
   if (initResult.is_error()) {
     Logger::Log(LogLevel::critical, initResult.error_cstr());
@@ -68,14 +68,14 @@ Battle::Tile* ScriptedPlayer::GetCurrentTile() const
 
 std::shared_ptr<CardAction> ScriptedPlayer::GenerateCardAction(sol::object& function, const std::string& functionName)
 {
-  auto result = CallLuaCallback(function, WeakWrapper(weak_from_base<ScriptedPlayer>()));
+  stx::result_t<sol::object> result = CallLuaCallback(function, WeakWrapper(weak_from_base<ScriptedPlayer>()));
 
   if(result.is_error()) {
     Logger::Log(LogLevel::critical, result.error_cstr());
     return nullptr;
   }
 
-  auto obj = result.value();
+  sol::object obj = result.value();
 
   if (obj.valid()) {
     if (obj.is<WeakWrapper<CardAction>>())
@@ -161,7 +161,7 @@ void ScriptedPlayer::OnBattleStart() {
 
   if (battle_start_func.valid()) 
   {
-    auto result = CallLuaCallback(battle_start_func, weakWrap);
+    stx::result_t<sol::object> result = CallLuaCallback(battle_start_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -174,7 +174,7 @@ void ScriptedPlayer::OnBattleStop() {
 
   if (battle_end_func.valid()) 
   {
-    auto result = CallLuaCallback(battle_end_func, weakWrap);
+    stx::result_t<sol::object> result = CallLuaCallback(battle_end_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -184,7 +184,7 @@ void ScriptedPlayer::OnBattleStop() {
 
 ScriptedPlayerFormMeta* ScriptedPlayer::CreateForm()
 {
-  auto meta = new ScriptedPlayerFormMeta(forms.size() + 1u);
+  ScriptedPlayerFormMeta* meta = new ScriptedPlayerFormMeta(forms.size() + 1u);
 
   if (!Player::RegisterForm(meta)) {
     delete meta;

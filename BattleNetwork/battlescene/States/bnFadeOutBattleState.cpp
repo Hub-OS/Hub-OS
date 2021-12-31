@@ -20,7 +20,7 @@ void FadeOutBattleState::onStart(const BattleSceneState*) {
   field->RequestBattleStop();
 
   std::vector<std::reference_wrapper<const Character>> mobList;
-  mobList = localTeam == Team::red ? scene.RedTeamMobList() : scene.BlueTeamMobList();
+  mobList = localTeam == Team::red ? scene.BlueTeamMobList() : scene.RedTeamMobList();
 
   if (mobList.empty())
     return;

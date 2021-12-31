@@ -30,7 +30,7 @@ struct FreedomMissionProps {
 class FreedomMissionMobScene final : public BattleSceneBase {
   FreedomMissionOverState* overStatePtr{ nullptr };
   FreedomMissionProps props;
-  bool playerDecross{ false };
+  bool playerDecross{ false }, playerCanFlip{};
   int playerHitCount{};
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
   CombatBattleState* combatPtr{ nullptr };

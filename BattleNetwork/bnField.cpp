@@ -23,21 +23,20 @@ Field::Field(int _width, int _height) :
   a.Reload();
   a << Animator::Mode::Loop;
 
-  auto t_a_b = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_BLUE);
-  auto t_a_r = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_RED);
+  std::shared_ptr<sf::Texture> t_a_b = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_BLUE);
+  std::shared_ptr<sf::Texture> t_a_r = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_RED);
+  std::shared_ptr<sf::Texture> t_a_u = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_UNK);
 
   for (int y = 0; y < _height+2; y++) {
     vector<Battle::Tile*> row = vector<Battle::Tile*>();
     for (int x = 0; x < _width+2; x++) {
       Battle::Tile* tile = new Battle::Tile(x, y);
-      tile->SetupGraphics(t_a_r, t_a_b, a);
+      tile->SetupGraphics(t_a_r, t_a_b, t_a_u, a);
 
       if (x <= 3) {
-        tile->SetTeam(Team::red);
         tile->SetFacing(Direction::right);
       }
       else {
-        tile->SetTeam(Team::blue);
         tile->SetFacing(Direction::left);
       }
 
@@ -239,7 +238,7 @@ Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, int x, i
     }
 
     if (isBattleActive) {
-      entity->OnBattleStart();
+      entity->BattleStart();
     }
 
     return Field::AddEntityStatus::added;
@@ -433,7 +432,7 @@ void Field::Update(double _elapsed) {
 
         // Follow the facing directions to prevent all other teammate tiles
         // from reverting since a character has made it further across our side
-        while (next && next->ogFacing != Direction::none) {
+        while (next && next->ogFacing != Direction::none && next->ogTeam != Team::unknown) {
           if (next->ogTeam != tileTeam)
             break;
 
@@ -612,16 +611,7 @@ void Field::ForgetEntity(Entity::ID_t ID)
 
   allEntityHash.erase(ID);
   entityDeleteObservers.erase(ID);
-  
-  for (std::vector<Battle::Tile*> row : tiles) {
-    for (Battle::Tile* tile : row) {
-      auto iter = tile->reserved.find(ID);
-
-      if (iter != tile->reserved.end()) {
-        tile->reserved.erase(iter);
-      }
-    }
-  }
+  ClearAllReservations(ID);
 }
 
 void Field::DeallocEntity(Entity::ID_t ID)
@@ -653,6 +643,19 @@ void Field::RevealCounterFrames(bool enabled)
 const bool Field::DoesRevealCounterFrames() const
 {
   return this->revealCounterFrames;
+}
+
+void Field::ClearAllReservations(Entity::ID_t ID)
+{
+  for (std::vector<Battle::Tile*> row : tiles) {
+    for (Battle::Tile* tile : row) {
+      auto iter = tile->reserved.find(ID);
+
+      if (iter != tile->reserved.end()) {
+        tile->reserved.erase(iter);
+      }
+    }
+  }
 }
 
 Field::queueBucket::queueBucket(int x, int y, std::shared_ptr<Entity> e) : x(x), y(y), entity(e)

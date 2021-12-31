@@ -39,7 +39,7 @@ Entity::Entity() :
 
   if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
     SetShader(shader);
-    auto& smartShader = GetShader();
+    SmartShader& smartShader = GetShader();
     smartShader.SetUniform("texture", sf::Shader::CurrentTexture);
     smartShader.SetUniform("additiveMode", true);
     smartShader.SetUniform("swapPalette", false);
@@ -62,16 +62,20 @@ Entity::Entity() :
 }
 
 Entity::~Entity() {
+  std::shared_ptr<Field> f = field.lock();
+  if (!f) return;
+  
+  f->ClearAllReservations(ID);
 }
 
 void Entity::Cleanup() {
-  this->FreeAllComponents();
+  FreeAllComponents();
 }
 
 void Entity::SortComponents()
 {
   // Newest components appear first in the list for easy referencing
-  std::sort(components.begin(), components.end(), [](auto& a, auto& b) { return a->GetID() > b->GetID(); });
+  std::sort(components.begin(), components.end(), [](std::shared_ptr<Component>& a, std::shared_ptr<Component>& b) { return a->GetID() > b->GetID(); });
 }
 
 void Entity::ClearPendingComponents()
@@ -82,10 +86,10 @@ void Entity::ClearPendingComponents()
 void Entity::ReleaseComponentsPendingRemoval()
 {
   // `delete` may kick off deconstructors that Eject() other components
-  auto copy = queuedComponents;
+  std::list<Entity::ComponentBucket> copy = queuedComponents;
 
   // Remove the component from our list
-  for (auto&& bucket : copy) {
+  for (Entity::ComponentBucket& bucket : copy) {
     if (bucket.action != ComponentBucket::Status::remove) continue;
 
     auto iter = std::find(components.begin(), components.end(), bucket.pending);
@@ -100,7 +104,7 @@ void Entity::InsertComponentsPendingRegistration()
 {
   bool sort = queuedComponents.size();
 
-  for (auto&& bucket : queuedComponents) {
+  for (Entity::ComponentBucket& bucket : queuedComponents) {
     if (bucket.action == ComponentBucket::Status::add) {
       components.push_back(bucket.pending);
     }
@@ -112,7 +116,7 @@ void Entity::InsertComponentsPendingRegistration()
 void Entity::UpdateMovement(double elapsed)
 {
   // Only move if we have a valid next tile pointer
-  auto next = currMoveEvent.dest;
+  Battle::Tile* next = currMoveEvent.dest;
   if (next) {
     if (currMoveEvent.onBegin) {
       currMoveEvent.onBegin();
@@ -130,7 +134,7 @@ void Entity::UpdateMovement(double elapsed)
       sf::Vector2f tar = next->getPosition();
 
       // Interpolate the sliding position from the start position to the end position
-      auto interpol = tar * delta + (pos * (1.0f - delta));
+      sf::Vector2f interpol = tar * delta + (pos * (1.0f - delta));
       tileOffset = interpol - pos;
 
       // Once halfway, the mmbn entities switch to the next tile
@@ -166,7 +170,7 @@ void Entity::UpdateMovement(double elapsed)
         tileOffset = { 0, 0 };
 
         // Now that we have finished moving across panels, we must wait out endlag
-        auto copyMoveEvent = currMoveEvent;
+        MoveEvent copyMoveEvent = currMoveEvent;
         frame_time_t lastFrame = currMoveEvent.delayFrames + currMoveEvent.deltaFrames + currMoveEvent.endlagFrames;
         if (from_seconds(elapsedMoveTime) > lastFrame) {
           Battle::Tile* prevTile = previous;
@@ -248,6 +252,22 @@ void Entity::Spawn(Battle::Tile& start)
 
 bool Entity::HasSpawned() {
   return hasSpawned;
+}
+
+void Entity::BattleStart()
+{
+  if (fieldStart) return;
+
+  fieldStart = true;
+  OnBattleStart();
+}
+
+void Entity::BattleStop()
+{
+  if (!fieldStart) return;
+
+  fieldStart = false;
+  OnBattleStop();
 }
 
 const float Entity::GetHeight() const {
@@ -344,7 +364,7 @@ void Entity::Update(double _elapsed) {
     }
   }
   else if(stunCooldown <= 0.0) {
-    this->OnUpdate(_elapsed);
+    OnUpdate(_elapsed);
   }
 
   isUpdating = true;
@@ -354,8 +374,8 @@ void Entity::Update(double _elapsed) {
   UpdateMovement(_elapsed);
 
   sf::Uint8 alpha = getSprite().getColor().a;
-  for (auto& child : GetChildNodes()) {
-    auto sprite = dynamic_cast<SpriteProxyNode*>(child.get());
+  for (std::shared_ptr<SceneNode>& child : GetChildNodes()) {
+    SpriteProxyNode* sprite = dynamic_cast<SpriteProxyNode*>(child.get());
     if (sprite) {
       sf::Color color = sprite->getColor();
       sprite->setColor(sf::Color(color.r, color.g, color.b, alpha));
@@ -363,7 +383,7 @@ void Entity::Update(double _elapsed) {
   }
 
   // Update all components
-  for (auto& component : components) {
+  for (std::shared_ptr<Component>& component : components) {
     // respectfully only update local components
     // anything shared with the battle scene needs to update those components
     if (component->Lifetime() == Component::lifetimes::local) {
@@ -383,8 +403,8 @@ void Entity::Update(double _elapsed) {
   if (counterSlideOffset.x != 0 || counterSlideOffset.y != 0) {
     counterSlideDelta += static_cast<float>(_elapsed);
     
-    auto delta = swoosh::ease::linear(counterSlideDelta, 0.10f, 1.0f);
-    auto offset = delta * counterSlideOffset;
+    float delta = swoosh::ease::linear(counterSlideDelta, 0.10f, 1.0f);
+    sf::Vector2f offset = delta * counterSlideOffset;
 
     // Add this offset onto our offsets
     setPosition(tile->getPosition().x + offset.x, tile->getPosition().y + offset.y);
@@ -414,11 +434,11 @@ void Entity::SetPalette(const std::shared_ptr<sf::Texture>& palette)
 
   if (palette.get() == nullptr) {
     smartShader.SetUniform("swapPalette", false);
-    this->swapPalette = false;
+    swapPalette = false;
     return;
   }
 
-  this->swapPalette = true;
+  swapPalette = true;
   this->palette = palette;
   smartShader.SetUniform("swapPalette", true);
   smartShader.SetUniform("palette", this->palette);
@@ -457,8 +477,8 @@ void Entity::RefreshShader()
 
   if (!smartShader.HasShader()) return;
 
-  smartShader.SetUniform("swapPalette", this->swapPalette);
-  smartShader.SetUniform("palette", this->palette);
+  smartShader.SetUniform("swapPalette", swapPalette);
+  smartShader.SetUniform("palette", palette);
 
   // state checks
   unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
@@ -469,7 +489,7 @@ void Entity::RefreshShader()
   bool iframes = invincibilityCooldown > 0;
 
   vector<float> states = {
-    static_cast<float>(this->hit),                                      // WHITEOUT
+    static_cast<float>(hit),                                            // WHITEOUT
     static_cast<float>(rootCooldown > 0. && (iframes || rootCooldown)), // BLACKOUT
     static_cast<float>(stunCooldown > 0. && (iframes || stunFrame))     // HIGHLIGHT
   };
@@ -591,7 +611,7 @@ int Entity::GetAlpha()
 
 bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void()> onBegin) {
   if (dest && CanMoveTo(dest)) {
-    auto endlagDelay = moveEndlagDelay ? *moveEndlagDelay : frame_time_t{};
+    frame_time_t endlagDelay = moveEndlagDelay ? *moveEndlagDelay : frame_time_t{};
     MoveEvent event = { 0, moveStartupDelay, endlagDelay, 0, dest, onBegin };
     actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
@@ -605,7 +625,7 @@ bool Entity::Slide(Battle::Tile* dest,
   const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
   if (dest && CanMoveTo(dest)) {
-    auto endlagDelay = moveEndlagDelay ? *moveEndlagDelay : endlag;
+    frame_time_t endlagDelay = moveEndlagDelay ? *moveEndlagDelay : endlag;
     MoveEvent event = { slideTime, moveStartupDelay, endlagDelay, 0, dest, onBegin };
     actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
@@ -621,7 +641,7 @@ bool Entity::Jump(Battle::Tile* dest, float destHeight,
   destHeight = std::max(destHeight, 0.f); // no negative jumps
 
   if (dest && CanMoveTo(dest)) {
-    auto endlagDelay = moveEndlagDelay ? *moveEndlagDelay : endlag;
+    frame_time_t endlagDelay = moveEndlagDelay ? *moveEndlagDelay : endlag;
     MoveEvent event = { jumpTime, moveStartupDelay, endlagDelay, destHeight, dest, onBegin };
     actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
@@ -691,7 +711,7 @@ const long Entity::GetID() const
 
 /** \brief Unkown team entities are friendly to all spaces @see Cubes */
 bool Entity::Teammate(Team _team) const {
-  return (team == Team::unknown) || (team == _team);
+  return (team == Team::unknown) || (_team == Team::unknown) || (team == _team);
 }
 
 void Entity::SetTile(Battle::Tile* _tile) {
@@ -705,7 +725,7 @@ void Entity::SetTile(Battle::Tile* _tile) {
 }
 
 Battle::Tile* Entity::GetTile(Direction dir, unsigned count) const {
-  auto next = this->tile;
+  Battle::Tile* next = this->tile;
 
   while (count > 0) {
     next = next + dir;
@@ -956,7 +976,7 @@ const EventBus::Channel& Entity::EventChannel() const
 void Entity::FreeComponentByID(Component::ID_t ID) {
   auto iter = components.begin();
   while(iter != components.end()) {
-    auto component = *iter;
+    std::shared_ptr<Component> component = *iter;
 
     if (component->GetID() == ID) {
       // Safely delete component by queueing it
@@ -1021,10 +1041,10 @@ const float Entity::GetJumpHeight() const
 void Entity::ShowShadow(bool enabled)
 {
   if (enabled) {
-    this->shadow->Reveal();
+    shadow->Reveal();
   }
   else {
-    this->shadow->Hide();
+    shadow->Hide();
   }
 }
 
@@ -1037,14 +1057,14 @@ void Entity::SetShadowSprite(Shadow type)
   case Entity::Shadow::small:
     {
       shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_SMALL_SHADOW), true);
-      auto bounds = shadow->getLocalBounds();
+      sf::FloatRect bounds = shadow->getLocalBounds();
       shadow->setOrigin(sf::Vector2f(bounds.width * 0.5f, bounds.height * 0.5f));
     }
     break;
   case Entity::Shadow::big:
     {
       shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_BIG_SHADOW), true);
-      auto bounds = shadow->getLocalBounds();
+      sf::FloatRect bounds = shadow->getLocalBounds();
       shadow->setOrigin(sf::Vector2f(bounds.width * 0.5f, bounds.height * 0.5f));
     }
     break;
@@ -1058,7 +1078,7 @@ void Entity::SetShadowSprite(Shadow type)
 void Entity::SetShadowSprite(std::shared_ptr<sf::Texture> customShadow)
 {
   shadow->setTexture(customShadow, true);
-  auto bounds = shadow->getLocalBounds();
+  sf::FloatRect bounds = shadow->getLocalBounds();
   shadow->setOrigin(sf::Vector2f(bounds.width*0.5f, bounds.height*0.5f));
 }
 
@@ -1111,13 +1131,13 @@ const bool Entity::Hit(Hit::Properties props) {
     return false;
   }
 
-  const auto original = props;
+  const Hit::Properties original = props;
 
   if ((props.flags & Hit::shake) == Hit::shake) {
     CreateComponent<ShakingEffect>(weak_from_this());
   }
   
-  for (auto& defense : defenses) {
+  for (std::shared_ptr<DefenseRule>& defense : defenses) {
     props = defense->FilterStatuses(props);
   }
 
@@ -1483,7 +1503,7 @@ void Entity::DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity>
 
   for (int i = 0; i < copy.size(); i++) {
     if (copy[i]->GetDefenseOrder() == filter) {
-      auto defenseRule = copy[i];
+      std::shared_ptr<DefenseRule> defenseRule = copy[i];
       judge.SetDefenseContext(defenseRule);
       defenseRule->CanBlock(judge, in, characterPtr);
     }

@@ -366,7 +366,8 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "set_background", &ScriptedMob::SetBackground,
     "stream_music", &ScriptedMob::StreamMusic,
     "get_field", [](ScriptedMob& o) { return WeakWrapper(o.GetField()); },
-    "enable_freedom_mission", &ScriptedMob::EnableFreedomMission
+    "enable_freedom_mission", &ScriptedMob::EnableFreedomMission,
+    "spawn_player", &ScriptedMob::SpawnPlayer
   );
 
   const auto& scriptedspawner_table = battle_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
