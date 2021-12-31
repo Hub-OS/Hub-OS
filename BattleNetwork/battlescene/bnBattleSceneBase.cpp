@@ -63,6 +63,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   CharacterDeleteListener::Subscribe(*field);
   CharacterSpawnListener::Subscribe(*field);
   field->SetScene(this); // event emitters during battle needs the active scene
+  field->HandleMissingLayout();
 
   // always have mob data even if it's empty for run-time safety
   // using LoadMob() for teams will erase this dummy and empty mob data
@@ -602,7 +603,6 @@ void BattleSceneBase::StartStateGraph(StateNode& start) {
     }
   }
 
-  // kick-off and align all sprites on the screen
   field->Update(0);
 
   // set the current state ptr and kick-off

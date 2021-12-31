@@ -183,7 +183,7 @@ void FreedomMissionMobScene::onUpdate(double elapsed)
 
   if (playerCanFlip && GetCurrentState() == combatPtr) {
     std::shared_ptr<Player> localPlayer = GetLocalPlayer();
-    if (localPlayer->InputState().Has(InputEvents::pressed_option)) {
+    if (localPlayer->IsActionable() && localPlayer->InputState().Has(InputEvents::pressed_option)) {
       localPlayer->SetFacing(localPlayer->GetFacingAway());
     }
   }

@@ -348,7 +348,7 @@ namespace Battle {
     std::shared_ptr<sf::Texture> blue_team_atlas, blue_team_perm;
     std::shared_ptr<sf::Texture> unk_team_atlas, unk_team_perm;
     TileHighlight highlightMode;
-    Team team{}, ogTeam{};
+    Team team{Team::unset}, ogTeam{Team::unset};
     Direction facing{}, ogFacing{};
     TileState state;
     std::string animState; /**< reflects the tile's state - lookup animation from animation file */

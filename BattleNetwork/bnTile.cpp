@@ -216,7 +216,7 @@ namespace Battle {
   }
 
   void Tile::SetTeam(Team _team, bool useFlicker) {
-    if (ogTeam == Team::unknown) {
+    if (ogTeam == Team::unset) {
       ogTeam = _team;
       team = _team;
     }

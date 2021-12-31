@@ -32,14 +32,6 @@ Field::Field(int _width, int _height) :
     for (int x = 0; x < _width+2; x++) {
       Battle::Tile* tile = new Battle::Tile(x, y);
       tile->SetupGraphics(t_a_r, t_a_b, t_a_u, a);
-
-      if (x <= 3) {
-        tile->SetFacing(Direction::right);
-      }
-      else {
-        tile->SetFacing(Direction::left);
-      }
-
       row.push_back(tile);
     }
     tiles.push_back(row);
@@ -428,6 +420,8 @@ void Field::Update(double _elapsed) {
 
         // Follow this column and prevent other columns that it points to from reverting
         Battle::Tile* next = t + t->ogFacing;
+        Battle::Tile* first_tile = next;
+
         Team tileTeam = t->ogTeam;
 
         // Follow the facing directions to prevent all other teammate tiles
@@ -439,10 +433,14 @@ void Field::Update(double _elapsed) {
           auto iter = restCol.find(next->GetX());
 
           if (iter != restCol.end()) {
-            restCol.erase(iter);
+            iter = restCol.erase(iter);
           }
 
+          Battle::Tile* prev_tile = next;
           next = next + next->ogFacing;
+
+          // prevent infinite loops
+          if (next == prev_tile || next == first_tile) break;
         }
 
         break;
@@ -459,10 +457,15 @@ void Field::Update(double _elapsed) {
       maxTimer = std::max(maxTimer, t->teamCooldown);
 
       Battle::Tile* adj_tile = t + Reverse(t->GetFacing());
-
+      Battle::Tile* first_tile = adj_tile;
       while (adj_tile) {
         maxTimer = std::max(maxTimer, adj_tile->teamCooldown);
-        adj_tile = adj_tile + Reverse(adj_tile->GetFacing());
+
+        Battle::Tile* prev_tile = adj_tile;
+        adj_tile = adj_tile + Reverse(adj_tile->ogFacing);
+
+        // prevent infinite loops
+        if(adj_tile == prev_tile || adj_tile == first_tile) break;
       }
     }
     for (size_t i = 1; i <= GetHeight(); i++) {
@@ -524,7 +527,8 @@ void Field::RequestBattleStart()
 
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->BattleStart();
+      Battle::Tile* t = tiles[i][j];
+      t->BattleStart();
     }
   }
 }
@@ -654,6 +658,35 @@ void Field::ClearAllReservations(Entity::ID_t ID)
       if (iter != tile->reserved.end()) {
         tile->reserved.erase(iter);
       }
+    }
+  }
+}
+
+void Field::HandleMissingLayout()
+{
+  for (int i = 0; i < tiles.size(); i++) {
+    for (int j = 0; j < tiles[i].size(); j++) {
+      Battle::Tile* t = tiles[i][j];
+
+      // Set one half of the grid red and the other blue,
+      // each facing eachother if no field has been set at battle start
+      Direction dir = Direction::left;
+      Team team = Team::blue;
+
+      if (j <= 3) {
+        dir = Direction::right;
+        team = Team::red;
+      }
+
+      if (t->ogFacing == Direction::none) {
+        t->SetFacing(dir);
+      }
+
+      if (t->ogTeam == Team::unset) {
+        t->SetTeam(team);
+      }
+
+      t->BattleStart();
     }
   }
 }

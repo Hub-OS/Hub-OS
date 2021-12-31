@@ -12,7 +12,7 @@ using namespace swoosh::types;
 void TitleScene::CenterLabel()
 {
   // update label position
-  auto bounds = startLabel.GetLocalBounds();
+  sf::FloatRect bounds = startLabel.GetLocalBounds();
   startLabel.setOrigin(bounds.width / 2.0f, bounds.height);
 }
 
@@ -34,8 +34,9 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
     logo = Textures().LoadFromFile("resources/scenes/title/tile_en.png");
   }
 
-
-  bgSprite.setTexture(Textures().LoadFromFile("resources/scenes/title/bg_blue.png"));
+  std::shared_ptr<sf::Texture> bgTexture = Textures().LoadFromFile("resources/scenes/title/bg_blue.png");
+  bgTexture->setRepeated(true);
+  bgSprite.setTexture(bgTexture);
   bgSprite.setScale(2.f, 2.f);
 
   logoSprite.setTexture(logo);
@@ -77,12 +78,18 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
+  // scroll the bg
+  sf::IntRect offset = bgSprite.getTextureRect();
+  offset.top += 1;
+  bgSprite.setTextureRect(offset);
+
+  // update animations
   anim.Update(elapsed, progSprite.getSprite());
 
   // If not ready, do no proceed past this point!
   if (IsComplete() == false || progress < 100) {
     ellipsis = (ellipsis + 1) % 4;
-    auto dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
+    std::string dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
 
     if (progress < total) {
       progress++;
@@ -184,8 +191,8 @@ void TitleScene::onEnd()
 
 void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 {
-  this->total = unsigned(progress * 100);
-  this->taskStr = taskName;
+  total = unsigned(progress * 100);
+  taskStr = taskName;
   startLabel.SetString(this->taskStr + " 00%");
   CenterLabel();
 
@@ -194,8 +201,8 @@ void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 
 void TitleScene::onTaskComplete(const std::string & taskName, float progress)
 {
-  this->total = unsigned(progress * 100);
-  this->taskStr = taskName;
+  total = unsigned(progress * 100);
+  taskStr = taskName;
 
   Logger::Logf(LogLevel::info, "[%.2f] Completed task %s", progress, taskName.c_str());
 }

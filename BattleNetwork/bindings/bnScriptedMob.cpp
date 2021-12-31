@@ -147,7 +147,7 @@ void ScriptedMob::EnableFreedomMission(uint8_t turnCount, bool playerCanFlip)
 
   mob->EnableFreedomMission(true);
   mob->LimitTurnCount(turnCount);
-  mob->EnablePlayerCanFlip(true);
+  mob->EnablePlayerCanFlip(playerCanFlip);
 }
 
 ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& namespaceId, const std::string& fqn, Character::Rank rank)

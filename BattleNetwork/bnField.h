@@ -213,6 +213,11 @@ public:
   const bool DoesRevealCounterFrames() const;
 
   void ClearAllReservations(Entity::ID_t ID);
+
+  /**
+  * @brief provides a default field arrangement if none are provided
+  */
+  void HandleMissingLayout();
 private:
   bool isTimeFrozen; 
   bool isBattleActive; /*!< State flag if battle is active */
