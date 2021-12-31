@@ -180,7 +180,7 @@ xMD5Final(byte digest[16], struct xMD5Context *ctx)
 
 	byteSwap(ctx->buf, 4);
 	std::memcpy(digest, (byte*)ctx->buf, 16);
-	std::memset(ctx, 0, sizeof(ctx));
+	std::memset(ctx, 0, sizeof(*ctx));
 }
 
 
