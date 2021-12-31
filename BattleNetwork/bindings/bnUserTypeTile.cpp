@@ -34,6 +34,7 @@ void DefineTileUserType(sol::state& state) {
     "is_reserved", &Battle::Tile::IsReservedByCharacter,
     "get_team", &Battle::Tile::GetTeam,
     "set_team", &Battle::Tile::SetTeam,
+    "set_facing", &Battle::Tile::SetFacing,
     "attack_entities", sol::overload(
       [] (Battle::Tile& tile, WeakWrapper<Entity>& e) { return tile.AffectEntities(*e.Unwrap()); },
       [] (Battle::Tile& tile, WeakWrapper<Character>& e) { return tile.AffectEntities(*e.Unwrap()); },
