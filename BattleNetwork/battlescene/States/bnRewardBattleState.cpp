@@ -45,7 +45,6 @@ void RewardBattleState::onStart(const BattleSceneState*)
   results.doubleDelete = scene.DoubleDelete();
   results.tripleDelete = scene.TripleDelete();
   results.finalEmotion = player.GetEmotion();
-  results.runaway = false;
 
   battleResultsWidget = new BattleResultsWidget(
     BattleResults::CalculateScore(results, mob),

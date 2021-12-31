@@ -17,6 +17,9 @@ void BattleOverBattleState::onStart(const BattleSceneState* _)
 
   Audio().Stream("resources/loops/enemy_deleted.ogg");
 
+  auto& results = GetScene().BattleResultsObj();
+  results.runaway = false;
+
   for (std::shared_ptr<Player> p : GetScene().GetAllPlayers()) {
     auto animComponent = p->GetFirstComponent<AnimationComponent>();
 

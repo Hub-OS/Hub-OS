@@ -17,6 +17,9 @@ void FreedomMissionOverState::onStart(const BattleSceneState* _)
 {
   BattleTextIntroState::onStart(_);
 
+  auto& results = GetScene().BattleResultsObj();
+  results.runaway = false;
+
   if (GetScene().IsPlayerDeleted()) {
     context = Conditions::player_deleted;
   }
