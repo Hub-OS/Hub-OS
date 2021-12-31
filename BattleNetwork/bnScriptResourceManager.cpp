@@ -228,7 +228,10 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
   sol::table overworld_namespace = state.create_table("Overworld");
   sol::table engine_namespace = state.create_table("Engine");
 
-  engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int { return 0; });
+  engine_namespace.set_function("get_rand_seed", [this]() -> unsigned int {
+    Logger::Log(LogLevel::warning, "Engine.get_rand_seed() is deprecated");
+    return 0;
+  });
 
   DefineFieldUserType(battle_namespace);
   DefineTileUserType(state);
