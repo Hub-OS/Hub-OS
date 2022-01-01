@@ -382,23 +382,12 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter(std::vector<Entity::ID_t> exclude)
   {
-    if (!reserved.empty()) return true;
-
-    if (exclude.size() == 0) {
-      return !characters.empty();
+    if (exclude.empty()) {
+      return !reserved.empty();
     }
 
-    for (std::shared_ptr<Character>& character: characters) {
-      bool excluded = false;
-
-      for (Entity::ID_t id : exclude) {
-        if (character->GetID() == id) {
-          excluded = true;
-          break;
-        }
-      }
-
-      if (!excluded) {
+    for (Entity::ID_t reserver_id : reserved) {
+      if (std::find(exclude.begin(), exclude.end(), reserver_id) == exclude.end()) {
         return true;
       }
     }
