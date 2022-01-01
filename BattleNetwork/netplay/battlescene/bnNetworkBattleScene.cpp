@@ -757,8 +757,6 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent()
 {
   // Lambda event callback that captures and handles network card select screen opening
   auto lambda = [this]() mutable {
-    if (skipFrame) return false;
-
     bool remoteRequestedChipSelect = remotePlayer && remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
     return combatPtr->PlayerRequestCardSelect() || (remoteRequestedChipSelect && this->IsCustGaugeFull());
   };
