@@ -294,7 +294,7 @@ std::function<bool()> MobBattleScene::HookFormChangeStart(CharacterTransformBatt
 std::function<bool()> MobBattleScene::HookPlayerWon()
 {
   auto lambda = [this] {
-    std::shared_ptr<Player>& localPlayer = GetLocalPlayer();
+    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
 
     if (localPlayer->GetTeam() == Team::red) {
       return BlueTeamMobList().empty();

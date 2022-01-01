@@ -228,28 +228,26 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   // std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
 
   if (skipFrame && FrameNumber()-resyncFrameNumber >= 5) {
-    this->SkipFrame();
+    SkipFrame();
   }
   else {
-    std::vector<InputEvent> events;
-
     //if (combatPtr->IsStateCombat(GetCurrentState())) {
       frame_time_t currLag = frames(5); // frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
-      events = ProcessLocalPlayerInputQueue(currLag);
+      std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(currLag);
       SendFrameData(events);
-    // }
+    //}
   }
   
-  if (!remoteInputQueue.empty() /*&& combatPtr->IsStateCombat(GetCurrentState())*/) {
+  if (!remoteInputQueue.empty()/* && combatPtr->IsStateCombat(GetCurrentState())*/) {
     auto frame = remoteInputQueue.begin();
 
-    // only log desyncs if we are beyond the initial delay frames and the numbers are not in sync yet
-    if (FrameNumber() - resyncFrameNumber >= 5 && FrameNumber() != frame->frameNumber) {
-      // for debugging, this should never appear if the code is working properly
-      Logger::Logf(LogLevel::debug, "DESYNC: frames #s were %i - %i", remoteFrameNumber, FrameNumber());
-    }
-
     if(FrameNumber() > frame->frameNumber) {
+      // only log desyncs if we are beyond the initial delay frames and the numbers are not in sync yet
+      if (FrameNumber() - 5 != frame->frameNumber) {
+        // for debugging, this should never appear if the code is working properly
+        Logger::Logf(LogLevel::debug, "DESYNC: frames #s were %i - %i", frame->frameNumber, FrameNumber() - 5);
+      }
+
       std::vector<InputEvent>& events = frame->events;
       remoteFrameNumber = frame->frameNumber;
 
@@ -459,7 +457,7 @@ void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events)
 
   // Send our hp
   int hp = 0;
-  if (std::shared_ptr<Player> player = GetLocalPlayer()) {
+  if (auto player = GetLocalPlayer()) {
     hp = player->GetHealth();
   }
 
@@ -648,7 +646,7 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
     // HACK: manually delete remote so we see them die when they say they do
     // NOTE: this will be removed when lockstep is PERFECT as it is not needed
     if (hp == 0) {
-      remotePlayer->BattleStart();
+      GetField()->CharacterDeletePublisher::Broadcast(*remotePlayer.get());
       remotePlayer->Delete();
     }
   }
@@ -759,6 +757,8 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent()
 {
   // Lambda event callback that captures and handles network card select screen opening
   auto lambda = [this]() mutable {
+    if (skipFrame) return false;
+
     bool remoteRequestedChipSelect = remotePlayer && remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
     return combatPtr->PlayerRequestCardSelect() || (remoteRequestedChipSelect && this->IsCustGaugeFull());
   };
