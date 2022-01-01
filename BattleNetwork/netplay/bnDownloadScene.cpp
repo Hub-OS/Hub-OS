@@ -82,7 +82,8 @@ void DownloadScene::SendHandshake()
   BufferWriter writer;
   writer.Write(buffer, NetPlaySignals::download_handshake);
   
-  mySeed = getController().GetRandSeed();
+  // create a new seed based on the time to avoid using the same seed every battle
+  mySeed = (unsigned int)time(0);
   writer.Write(buffer, mySeed);
 
   auto id = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer).second;
