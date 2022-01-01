@@ -242,13 +242,13 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   if (!remoteInputQueue.empty() && combatPtr->IsStateCombat(GetCurrentState())) {
     auto frame = remoteInputQueue.begin();
 
-    // only log desyncs if we are beyond the initial delay frames and the numbers are not in sync yet
-    if (FrameNumber() - resyncFrameNumber >= 5 && FrameNumber() != frame->frameNumber) {
-      // for debugging, this should never appear if the code is working properly
-      Logger::Logf(LogLevel::debug, "DESYNC: frames #s were %i - %i", remoteFrameNumber, FrameNumber());
-    }
+    if(FrameNumber() > frame->frameNumber) {
+      // only log desyncs if we are beyond the initial delay frames and the numbers are not in sync yet
+      if (FrameNumber() - 5 != frame->frameNumber) {
+        // for debugging, this should never appear if the code is working properly
+        Logger::Logf(LogLevel::debug, "DESYNC: frames #s were %i - %i", frame->frameNumber, FrameNumber() - 5);
+      }
 
-    if(FrameNumber() >= frame->frameNumber) {
       std::vector<InputEvent>& events = frame->events;
       remoteFrameNumber = frame->frameNumber;
 
