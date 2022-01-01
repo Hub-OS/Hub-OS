@@ -52,7 +52,7 @@ void NetManager::Update(double elapsed)
     processor->Update(elapsed);
 
     if (size != processorCounts.size()) {
-      Logger::Logf(LogLevel::warning, "Network processor list mutated in the middle of a loop!");
+      Logger::Logf(LogLevel::critical, "Network processor list mutated in the middle of a loop!");
       break;
     }
   }
