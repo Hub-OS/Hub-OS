@@ -1,6 +1,6 @@
 #pragma once
 
-enum class NetPlaySignals : unsigned int {
+enum class NetPlaySignals : uint32_t {
   none = 0,
   ///////////////////////
   //       ACKs        //

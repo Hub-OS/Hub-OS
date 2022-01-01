@@ -1519,7 +1519,7 @@ void Overworld::OnlineArea::receiveAssetStreamStartSignal(BufferReader& reader, 
   auto lastModified = reader.Read<uint64_t>(buffer);
   auto cachable = reader.Read<bool>(buffer);
   auto type = reader.Read<AssetType>(buffer);
-  auto size = reader.Read<size_t>(buffer);
+  auto size = (size_t)reader.Read<uint64_t>(buffer);
 
   auto slashIndex = name.rfind("/");
   std::string shortName;

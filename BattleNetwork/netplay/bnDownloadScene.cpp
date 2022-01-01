@@ -81,9 +81,10 @@ void DownloadScene::SendHandshake()
   Poco::Buffer<char> buffer(0);
   BufferWriter writer;
   writer.Write(buffer, NetPlaySignals::download_handshake);
-  
-  mySeed = getController().GetRandSeed();
-  writer.Write(buffer, mySeed);
+
+  // create a new seed based on the time to avoid using the same seed every battle
+  mySeed = (unsigned int)time(0);
+  writer.Write<uint32_t>(buffer, mySeed);
 
   auto id = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer).second;
   packetProcessor->UpdateHandshakeID(id);
@@ -107,7 +108,7 @@ void DownloadScene::SendCoinFlip() {
 
   coinValue = rand();
 
-  writer.Write(buffer, coinValue);
+  writer.Write<uint32_t>(buffer, coinValue);
 
   Logger::Logf(LogLevel::debug, "Coin value was %i with seed %u", coinValue, getController().GetRandSeed());
 
@@ -391,7 +392,7 @@ void DownloadScene::RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffe
 void DownloadScene::RecieveHandshake(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
-  unsigned int seed = reader.Read<unsigned int>(buffer);
+  unsigned int seed = reader.Read<uint32_t>(buffer);
   maxSeed = std::max(seed, mySeed);
 
   // mark handshake as completed
@@ -525,7 +526,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
   if (packageId.empty()) return;
   RemoveFromDownloadList(packageId);
 
-  size_t file_len = reader.Read<size_t>(buffer);
+  size_t file_len = reader.Read<uint32_t>(buffer);
   std::string path = "cache/" + stx::rand_alphanum(12) + ".zip";
 
   std::fstream file;
@@ -630,7 +631,7 @@ void DownloadScene::DownloadPackageData(const Poco::Buffer<char>& buffer, Packag
   if (packageId.empty()) return;
   RemoveFromDownloadList(packageId);
 
-  size_t file_len = reader.Read<size_t>(buffer);
+  size_t file_len = reader.Read<uint32_t>(buffer);
   std::string path = "cache/" + stx::rand_alphanum(12) + ".zip";
 
   std::fstream file;
@@ -696,7 +697,7 @@ Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& packag
   writer.WriteTerminatedString(buffer, packageId);
 
   // file size
-  writer.Write<size_t>(buffer, len);
+  writer.Write<uint32_t>(buffer, len);
 
   // file contents
   writer.WriteBytes<char>(buffer, fileBuffer.data(), fileBuffer.size());
