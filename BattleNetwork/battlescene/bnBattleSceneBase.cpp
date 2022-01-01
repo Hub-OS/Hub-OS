@@ -518,8 +518,11 @@ void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
   }
 }
 
-void BattleSceneBase::FilterSupportCards(std::vector<Battle::Card>& cards) {
+void BattleSceneBase::FilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {
   CardPackagePartitioner& partitions = getController().CardPackagePartitioner();
+
+  // Let any callbacks take precedence
+  OnFilterSupportCards(player, cards);
 
   for (size_t i = 0; i < cards.size(); i++) {
     std::string uuid = cards[i].GetUUID();
@@ -532,7 +535,7 @@ void BattleSceneBase::FilterSupportCards(std::vector<Battle::Card>& cards) {
         CardPackageManager& cardPackageManager = partitions.GetPartition(addr.namespaceId);
 
         // booster cards do not modify other booster cards
-        if (cardPackageManager.HasPackage(uuid)) {
+        if (cardPackageManager.HasPackage(addr.packageId)) {
           AdjacentCards adjCards;
 
           if (i > 0 && cards[i - 1u].CanBoost()) {
@@ -545,7 +548,7 @@ void BattleSceneBase::FilterSupportCards(std::vector<Battle::Card>& cards) {
             adjCards.rightCard = &cards[i + 1u].props;
           }
 
-          auto& meta = cardPackageManager.FindPackageByID(uuid);
+          CardMeta& meta = cardPackageManager.FindPackageByID(addr.packageId);
 
           if (meta.filterHandStep) {
             meta.filterHandStep(cards[i].props, adjCards);
@@ -603,6 +606,8 @@ void BattleSceneBase::StartStateGraph(StateNode& start) {
         blueTeamMob->Track(p);
     }
   }
+
+  PerspectiveFlip(localPlayer->GetTeam() == Team::blue);
 
   field->Update(0);
 

@@ -297,7 +297,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
       alertSprite.setScale(2.0f, 2.0f * (float)scale);
 
-      if (e.team == Team::red) {
+      if (e.team == Team::red || e.team == Team::unknown) {
         alertSprite.setOrigin(0, alertSprite.getLocalBounds().height * 0.5f);
       }
       else {

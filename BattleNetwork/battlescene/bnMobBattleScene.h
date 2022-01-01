@@ -42,6 +42,7 @@ class MobBattleScene final : public BattleSceneBase {
   std::function<bool()> HookRetreat(RetreatBattleState& retreat, FadeOutBattleState& fadeout);
   std::function<bool()> HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect);
   std::function<bool()> HookFormChangeStart(CharacterTransformBattleState& form);
+  std::function<bool()> HookPlayerWon();
   public:
   MobBattleScene(swoosh::ActivityController& controller, MobBattleProperties props, BattleResultsFunc onEnd=nullptr);
   ~MobBattleScene();

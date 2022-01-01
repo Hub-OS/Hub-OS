@@ -4,6 +4,7 @@
 #include "../../bnTextureResourceManager.h"
 #include "../../bnAudioResourceManager.h"
 
+
 #include <SFML/Graphics/Font.hpp>
 
 CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance) : 
@@ -23,7 +24,7 @@ CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvan
 
 }
 
-void CardComboBattleState::Simulate(double elapsed, std::vector<Battle::Card>& cards, bool playSound)
+void CardComboBattleState::Simulate(double elapsed, const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards, bool playSound)
 {
   increment += 360.0 * elapsed;
   PAStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
@@ -32,7 +33,7 @@ void CardComboBattleState::Simulate(double elapsed, std::vector<Battle::Card>& c
   // Start Program Advance checks
   if (paChecked && hasPA == -1) {
     // Filter and apply support cards
-    GetScene().FilterSupportCards(cards);
+    GetScene().FilterSupportCards(player, cards);
     isPAComplete = true;
   }
   else if (!paChecked) {
@@ -144,7 +145,7 @@ void CardComboBattleState::onEnd(const BattleSceneState*)
 void CardComboBattleState::onUpdate(double elapsed)
 {
   this->elapsed += elapsed;
-  Simulate(elapsed, *cardsListPtr, true);
+  Simulate(elapsed, GetScene().GetLocalPlayer(), *cardsListPtr, true);
 }
 
 void CardComboBattleState::onDraw(sf::RenderTexture& surface)

@@ -124,6 +124,7 @@ private:
   Component::ID_t lastComponentID{}; /*!< Entities keep track of new components to run through scene injection later. */
   bool hasSpawned{ false }; /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
   bool isUpdating{ false }; /*!< If an entity has updated once this frame, skip some update routines */
+  bool manualDelete{ false }; /* HACK: prevent network pawns from deleting until they report their HP as zero */
   unsigned moveEventFrame{};
   unsigned frame{};
   float currJumpHeight{};
@@ -732,6 +733,9 @@ public:
   void PrepareNextFrame();
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
 
+
+  // NOTE: Netplay hack until lockstep is perfect
+  void ManualDelete();
 
 protected:  
   Battle::Tile* tile{ nullptr }; /*!< Current tile pointer */

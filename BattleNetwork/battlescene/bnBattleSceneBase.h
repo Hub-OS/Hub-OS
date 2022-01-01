@@ -371,6 +371,9 @@ public:
   virtual void onDraw(sf::RenderTexture& surface) override;
   virtual void onEnd() override;
 
+  // Define what happens on scenes that need to inspect pre-filtered card selections
+  virtual void OnFilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {};
+
   void DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf);
   void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);
   void DrawWithPerspective(Text& text, sf::RenderTarget& surf);
@@ -413,7 +416,7 @@ public:
   /**
     @brief Crude support card filter step
   */
-  void FilterSupportCards(std::vector<Battle::Card>& cards);
+  void FilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards);
 
   /*
       \brief Forces the creation a fadeout state onto the state pointer and goes back to the last scene

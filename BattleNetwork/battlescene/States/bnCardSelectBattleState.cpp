@@ -192,12 +192,12 @@ void CardSelectBattleState::onUpdate(double elapsed)
           bool hasNewHand = cardCust.HasNewHand();
           auto newCards = cardCust.GetCards();
 
-          Player& player = *GetScene().GetLocalPlayer().get();
-          auto ui = player.GetFirstComponent<PlayerSelectedCardsUI>();
+          std::shared_ptr<Player> player = GetScene().GetLocalPlayer();
+          auto ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
 
           if (ui && hasNewHand) {
             *cards = newCards;
-            GetScene().FilterSupportCards(*cards);
+            GetScene().FilterSupportCards(player, *cards);
             ui->LoadCards(*cards);
             ui->Hide();
             hasNewChips = true;

@@ -100,7 +100,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
 
   // combat has multiple state interruptions based on events
   // so we can chain them together
-  combat.ChangeOnEvent(battleover, &CombatBattleState::RedTeamWon)
+  combat.ChangeOnEvent(battleover, HookPlayerWon())
     .ChangeOnEvent(forms, HookFormChangeStart(forms.Unwrap()))
     .ChangeOnEvent(fadeout, &CombatBattleState::PlayerDeleted)
     .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
@@ -286,6 +286,24 @@ std::function<bool()> MobBattleScene::HookFormChangeStart(CharacterTransformBatt
     }
 
     return changeState;
+  };
+
+  return lambda;
+}
+
+std::function<bool()> MobBattleScene::HookPlayerWon()
+{
+  auto lambda = [this] {
+    std::shared_ptr<Player>& localPlayer = GetLocalPlayer();
+
+    if (localPlayer->GetTeam() == Team::red) {
+      return BlueTeamMobList().empty();
+    }
+    else if (localPlayer->GetTeam() == Team::blue) {
+      return RedTeamMobList().empty();
+    }
+
+    return BlueTeamMobList().empty() && RedTeamMobList().empty();
   };
 
   return lambda;

@@ -412,7 +412,9 @@ void Entity::Update(double _elapsed) {
 
   if (fieldStart && ((maxHealth > 0 && health <= 0) || IsDeleted())) {
     // Ensure entity is deleted if health is zero
-    Delete();
+    if (manualDelete == false) {
+      Delete();
+    }
 
     // Ensure health is zero if marked for immediate deletion
     health = 0;
@@ -1173,6 +1175,11 @@ const bool Entity::Hit(Hit::Properties props) {
 void Entity::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback)
 {
   statusCallbackHash[flag] = callback;
+}
+
+void Entity::ManualDelete()
+{
+  manualDelete = true;
 }
 
 void Entity::PrepareNextFrame()

@@ -6,6 +6,7 @@
 #include "../bnBattleSceneState.h"
 #include "../../bnSelectedCardsUI.h"
 #include "../../bnPA.h"
+#include "../../bnPlayer.h"
 
 /*
     This state spells out the combo steps
@@ -32,7 +33,7 @@ struct CardComboBattleState final : public BattleSceneState {
 
   CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance);
 
-  void Simulate(double elapsed, std::vector<Battle::Card>& cardsPtr, bool playSound);
+  void Simulate(double elapsed, const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards, bool playSound);
   void Reset();
 
   void ShareCardList(std::shared_ptr<std::vector<Battle::Card>> cardsPtr);

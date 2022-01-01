@@ -40,7 +40,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   // Are we creating an action this frame?
   if (player.InputState().Has(InputEvents::pressed_use_chip)) {
-    auto cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
+    std::shared_ptr<PlayerSelectedCardsUI> cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
       if (cardsUI->UseNextCard()) {
         player.chargeEffect->SetCharging(false);
@@ -50,7 +50,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     // If the card used was successful, we may have a card in queue
   }
   else if (player.InputState().Has(InputEvents::released_special)) {
-    const auto actions = player.AsyncActionList();
+    const std::vector<std::shared_ptr<CardAction>> actions = player.AsyncActionList();
     bool canUseSpecial = player.CanAttack();
 
     // Just make sure one of these actions are not from an ability
@@ -91,8 +91,8 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   if(direction != Direction::none && actionable && !player.IsRooted()) {
-    auto next_tile = player.GetTile() + direction;
-    auto anim = player.GetFirstComponent<AnimationComponent>();
+    Battle::Tile* next_tile = player.GetTile() + direction;
+    std::shared_ptr<AnimationComponent> anim = player.GetFirstComponent<AnimationComponent>();
 
     auto onMoveBegin = [player = &player, next_tile, this, anim] {
       const std::string& move_anim = player->GetMoveAnimHash();

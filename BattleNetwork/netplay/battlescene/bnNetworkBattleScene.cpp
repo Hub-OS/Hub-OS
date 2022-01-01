@@ -223,7 +223,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   SendPingSignal();
 
-  bool skipFrame = IsRemoteBehind() && this->remotePlayer && !this->remotePlayer->IsDeleted();
+  skipFrame = IsRemoteBehind() && this->remotePlayer && !this->remotePlayer->IsDeleted();
 
   // std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
 
@@ -234,7 +234,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   else {
     if (combatPtr->IsStateCombat(GetCurrentState())) {
       frame_time_t currLag = frames(5); // frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
-      auto events = ProcessLocalPlayerInputQueue(currLag);
+      std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(currLag);
       SendFrameData(events);
     }
   }
@@ -249,12 +249,12 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     }
 
     if(FrameNumber() >= frame->frameNumber) {
-      auto& events = frame->events;
+      std::vector<InputEvent>& events = frame->events;
       remoteFrameNumber = frame->frameNumber;
 
       // Logger::Logf("next remote frame # is %i", remoteFrameNumber);
 
-      for (auto& e : events) {
+      for (InputEvent& e : events) {
         remotePlayer->InputState().VirtualKeyEvent(e);
       }
 
@@ -286,7 +286,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     remotePlayer = nullptr;
   }
 
-  if (auto player = GetLocalPlayer()) {
+  if (std::shared_ptr<Player> player = GetLocalPlayer()) {
     BattleResultsObj().finalEmotion = player->GetEmotion();
   }
 }
@@ -294,13 +294,13 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   BattleSceneBase::onDraw(surface);
 
-  auto lag = GetAvgLatency();
+  const double lag = GetAvgLatency();
 
   // draw network ping
   ping.SetString(std::to_string(lag).substr(0, 5));
 
   //the bounds has been changed after changing the text
-  auto bounds = ping.GetLocalBounds();
+  sf::FloatRect bounds = ping.GetLocalBounds();
   ping.setOrigin(bounds.width, bounds.height);
 
   // draw ping
@@ -382,7 +382,6 @@ void NetworkBattleScene::Init()
     if (p == GetLocalPlayer()) {
       std::string title = "Player #" + std::to_string(idx+1);
       SpawnLocalPlayer(x, y);
-      PerspectiveFlip(p->GetTeam() == Team::blue);
       getController().SetSubtitle(title);
     }
     else {
@@ -395,7 +394,7 @@ void NetworkBattleScene::Init()
       BlockPackageManager& blockPackages = partition.GetPartition(addr.namespaceId);
       if (!blockPackages.HasPackage(addr.packageId)) continue;
 
-      auto& blockMeta = blockPackages.FindPackageByID(addr.packageId);
+      BlockMeta& blockMeta = blockPackages.FindPackageByID(addr.packageId);
       blockMeta.mutator(*p);
     }
 
@@ -428,9 +427,7 @@ void NetworkBattleScene::SendHandshakeSignal()
 
   int form = GetPlayerFormData(GetLocalPlayer()).selectedForm;
   unsigned thisFrame = this->FrameNumber();
-  auto& selectedCardsWidget = this->GetSelectedCardsUI();
-  std::vector<std::string> uuids = selectedCardsWidget.GetUUIDList();
-  size_t len = uuids.size();
+  size_t len = prefilteredCardSelection.size();
 
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals signalType{ NetPlaySignals::handshake };
@@ -439,7 +436,7 @@ void NetworkBattleScene::SendHandshakeSignal()
   buffer.append((char*)&form, sizeof(int));
   buffer.append((char*)&len, sizeof(size_t));
 
-  for (std::string& id : uuids) {
+  for (std::string& id : prefilteredCardSelection) {
     id = getController().CardPackagePartitioner().GetPartition(Game::RemotePartition).WithNamespace(id);
     size_t len = id.size();
     buffer.append((char*)&len, sizeof(size_t));
@@ -496,6 +493,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
 {
   if (!remoteState.remoteConnected) return;
 
+  // clear remote and local input queues
   remoteInputQueue.clear();
   FlushLocalPlayerInputQueue();
 
@@ -573,7 +571,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   // simulate PA to calculate time required to animate
   while (!cardComboStatePtr->IsDone()) {
     constexpr double step = 1.0 / frame_time_t::frames_per_second;
-    cardComboStatePtr->Simulate(step, remoteHand, false);
+    cardComboStatePtr->Simulate(step, remotePlayer, remoteHand, false);
     duration += step;
   }
 
@@ -581,7 +579,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   cardComboStatePtr->Reset();
 
   // Filter support cards
-  FilterSupportCards(remoteHand);
+  FilterSupportCards(remotePlayer, remoteHand);
 
   // Supply the final hand info
   remoteCardActionUsePublisher->LoadCards(remoteHand);
@@ -597,7 +595,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
 
 void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
 {
-  if (!this->remotePlayer) return;
+  if (!remotePlayer) return;
 
   std::string name;
   size_t len{}, list_len{};
@@ -640,9 +638,16 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
   
   if (remotePlayer) {
     std::shared_ptr<MobHealthUI> ui = remotePlayer->GetFirstComponent<MobHealthUI>();
-    
+    remotePlayer->SetHealth(hp);
+
     if (ui) {
       ui->SetHP(hp);
+    }
+
+    // HACK: manually delete remote so we see them die when they say they do
+    // NOTE: this will be removed when lockstep is PERFECT as it is not needed
+    if (hp == 0) {
+      remotePlayer->Delete();
     }
   }
 }
@@ -658,6 +663,7 @@ void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlay
 
   remotePlayer = newRemotePlayer;
   remoteState.remoteConnected = true;
+  remotePlayer->ManualDelete(); // HACK: prevent local pawn deleting before network player can sync hp....
 
   // This will add PlayerSelectedCardsUI component to the player
   // NOTE: this calls Init() to get remote player data
@@ -666,6 +672,18 @@ void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlay
   Logger::Logf(LogLevel::debug, "Spawn remote navi finished: %s", remotePlayer->GetName().c_str());
 
   remoteCardActionUsePublisher = newRemotePlayer->GetFirstComponent<PlayerSelectedCardsUI>();
+}
+
+void NetworkBattleScene::OnFilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards)
+{
+  prefilteredCardSelection.clear();
+
+  // intercept pre-filtered cards to send them over the network
+  if (player == GetLocalPlayer()) {
+    for (Battle::Card& card : cards) {
+      prefilteredCardSelection.push_back(card.GetUUID());
+    }
+  }
 }
 
 std::function<bool()> NetworkBattleScene::HookPlayerWon(CombatBattleState& combat, BattleOverBattleState& over)
@@ -739,7 +757,9 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent()
 {
   // Lambda event callback that captures and handles network card select screen opening
   auto lambda = [this]() mutable {
-    bool remoteRequestedChipSelect = this->remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
+    if (!skipFrame) return false;
+
+    bool remoteRequestedChipSelect = remotePlayer && remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
     return combatPtr->PlayerRequestCardSelect() || (remoteRequestedChipSelect && this->IsCustGaugeFull());
   };
 

@@ -92,6 +92,7 @@ private:
   
   NetworkBattleSceneProps props;
 
+  bool skipFrame{ false }; //!< true if the scene is skipping frames - use this boolean to ensure gamestates are in sync before moving between them
   bool localPlayerDecross{ false }, remotePlayerDecross{ false };
   bool ignoreLockStep{}; //!< Used when battles are over to allow both clients to continue streaming the game ending
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
@@ -103,6 +104,7 @@ private:
   std::shared_ptr<SelectedCardsUI> remoteCardActionUsePublisher{ nullptr };
   std::vector<Battle::Card> remoteHand;
   std::vector<FrameInputData> remoteInputQueue;
+  std::vector<std::string> prefilteredCardSelection;
   std::shared_ptr<Player> remotePlayer{ nullptr }; //!< their player pawn
   std::vector<NetworkPlayerSpawnData> spawnOrder;
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
@@ -132,6 +134,9 @@ private:
   
   // This utilized BattleSceneBase::SpawnOtherPlayer() but adds some setup for networking
   void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer, int x, int y);
+
+  // We need to intercept the filtered cards for netplay
+  void OnFilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards);
 
   // Battle state hooks
   std::function<bool()> HookPlayerWon(CombatBattleState& combat, BattleOverBattleState& over);
