@@ -278,7 +278,7 @@ protected:
   */
   void ProcessNewestComponents();
   void FlushLocalPlayerInputQueue();
-  std::vector<InputEvent> ProcessLocalPlayerInputQueue(const frame_time_t& lag = frames(0));
+  std::vector<InputEvent> ProcessLocalPlayerInputQueue(unsigned int lag = 0);
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
   void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnSpawnEvent(std::shared_ptr<Character>& spawned) override final;

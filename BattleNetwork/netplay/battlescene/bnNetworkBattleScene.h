@@ -121,7 +121,7 @@ private:
 
   // netcode send funcs
   void SendHandshakeSignal(); // send player data to start the next round
-  void SendFrameData(std::vector<InputEvent>& events); // send our key or gamepad events along with frame data
+  void SendFrameData(std::vector<InputEvent>& events, unsigned int frameNumber); // send our key or gamepad events along with frame data
   void SendPingSignal();
 
   // netcode recieve funcs

@@ -232,20 +232,18 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   }
   else {
     //if (combatPtr->IsStateCombat(GetCurrentState())) {
-      frame_time_t currLag = frames(5); // frame_time_t::max(frames(5), from_milliseconds(packetProcessor->GetAvgLatency()));
-      std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(currLag);
-      SendFrameData(events);
+      std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5);
+      SendFrameData(events, FrameNumber() + 5);
     //}
   }
   
   if (!remoteInputQueue.empty()/* && combatPtr->IsStateCombat(GetCurrentState())*/) {
     auto frame = remoteInputQueue.begin();
 
-    if(FrameNumber() > frame->frameNumber) {
-      // only log desyncs if we are beyond the initial delay frames and the numbers are not in sync yet
-      if (FrameNumber() - 5 != frame->frameNumber) {
+    if(FrameNumber() >= frame->frameNumber) {
+      if (FrameNumber() != frame->frameNumber) {
         // for debugging, this should never appear if the code is working properly
-        Logger::Logf(LogLevel::debug, "DESYNC: frames #s were %i - %i", frame->frameNumber, FrameNumber() - 5);
+        Logger::Logf(LogLevel::debug, "DESYNC: frames #s were R%i - L%i, ahead by %i", frame->frameNumber, FrameNumber(), FrameNumber() - frame->frameNumber);
       }
 
       std::vector<InputEvent>& events = frame->events;
@@ -446,13 +444,11 @@ void NetworkBattleScene::SendHandshakeSignal()
   packetProcessor->UpdateHandshakeID(id);
 }
 
-void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events)
+void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events, unsigned int frameNumber)
 {
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals signalType{ NetPlaySignals::frame_data };
   buffer.append((char*)&signalType, sizeof(NetPlaySignals));
-
-  unsigned int frameNumber = FrameNumber() + 5u; // std::max(5u, from_milliseconds(packetProcessor->GetAvgLatency()).count());
   buffer.append((char*)&frameNumber, sizeof(unsigned int));
 
   // Send our hp
@@ -757,8 +753,6 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent()
 {
   // Lambda event callback that captures and handles network card select screen opening
   auto lambda = [this]() mutable {
-    if (skipFrame) return false;
-
     bool remoteRequestedChipSelect = remotePlayer && remotePlayer->InputState().Has(InputEvents::pressed_cust_menu);
     return combatPtr->PlayerRequestCardSelect() || (remoteRequestedChipSelect && this->IsCustGaugeFull());
   };
