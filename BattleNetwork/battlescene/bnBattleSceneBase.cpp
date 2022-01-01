@@ -1337,7 +1337,7 @@ void BattleSceneBase::FlushLocalPlayerInputQueue()
   queuedLocalEvents.clear();
 }
 
-std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(const frame_time_t& lag)
+std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned int lag)
 {
   std::vector<InputEvent> outEvents;
 
@@ -1345,7 +1345,7 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(const fram
 
   // For all inputs in the queue, reduce their wait time for this new frame
   for (InputEvent& item : queuedLocalEvents) {
-    item.wait -= from_seconds(elapsed);
+    item.wait--;
   }
 
   // For all new input events, set the wait time based on the network latency and append
@@ -1365,7 +1365,7 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(const fram
 
   // Drop inputs that are already processed at the end of the last frame
   for (auto iter = queuedLocalEvents.begin(); iter != queuedLocalEvents.end();) {
-    if (iter->wait <= frames(0)) {
+    if (iter->wait <= 0) {
       localPlayer->InputState().VirtualKeyEvent(*iter);
       iter = queuedLocalEvents.erase(iter);
       continue;
