@@ -69,8 +69,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     player.Attack();
 
   } else if (player.InputState().Has(InputEvents::held_shoot)) {
-    isChargeHeld = true;
-    player.chargeEffect->SetCharging(true);
+    if (actionable || player.IsMoving()) {
+      isChargeHeld = true;
+      player.chargeEffect->SetCharging(true);
+    }
   }
 
   // Movement increments are restricted based on anim speed at this time
