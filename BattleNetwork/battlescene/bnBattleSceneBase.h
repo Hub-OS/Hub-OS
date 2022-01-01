@@ -80,6 +80,7 @@ class BattleSceneBase :
   public CardActionUseListener {
 private:
   // general stuff
+  bool skipFrame{ false };
   bool quitting{ false }; //!< Determine if we are leaving the battle scene
   bool didDoubleDelete{ false }; /*!< Flag if player double deleted this frame */
   bool didTripleDelete{ false }; /*!< Flag if player tripled deleted this frame */
@@ -384,6 +385,7 @@ public:
   bool IsPlayerDeleted() const;
 
   std::shared_ptr<Player> GetLocalPlayer();
+  const std::shared_ptr<Player> GetLocalPlayer() const;
   std::vector<std::shared_ptr<Player>> GetOtherPlayers();
   std::vector<std::shared_ptr<Player>> GetAllPlayers();
   std::shared_ptr<Field> GetField();
@@ -404,6 +406,7 @@ public:
   void BroadcastBattleStop();
   virtual void IncrementTurnCount();
   virtual void IncrementRoundCount();
+  void SkipFrame();
   void IncrementFrame();
   const sf::Time GetElapsedBattleTime();
 

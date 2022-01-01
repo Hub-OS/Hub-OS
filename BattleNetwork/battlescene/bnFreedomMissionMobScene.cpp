@@ -30,7 +30,7 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
   // First, we create all of our scene states
   auto intro       = AddState<MobIntroBattleState>(mob);
   auto cardSelect  = AddState<CardSelectBattleState>();
-  auto combat      = AddState<CombatBattleState>(mob, battleDuration);
+  auto combat      = AddState<CombatBattleState>(battleDuration);
   auto combo       = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
   auto forms       = AddState<CharacterTransformBattleState>();
   auto battlestart = AddState<FreedomMissionStartState>(props.maxTurns);

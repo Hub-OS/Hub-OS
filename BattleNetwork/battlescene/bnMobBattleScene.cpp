@@ -32,7 +32,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
   // First, we create all of our scene states
   auto intro       = AddState<MobIntroBattleState>(current);
   auto cardSelect  = AddState<CardSelectBattleState>();
-  auto combat      = AddState<CombatBattleState>(current, battleDuration);
+  auto combat      = AddState<CombatBattleState>(battleDuration);
   auto combo       = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
   auto forms       = AddState<CharacterTransformBattleState>();
   auto battlestart = AddState<BattleStartBattleState>();

@@ -644,8 +644,25 @@ void BattleSceneBase::onUpdate(double elapsed) {
     }
   }
 
-  camera.Update((float)elapsed);
   background->Update((float)elapsed);
+
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && this->IsSceneInFocus()) {
+    BroadcastBattleStop();
+    Quit(FadeOut::white);
+    Audio().StopStream();
+  }
+
+  // State update
+  if (!current) return;
+
+  if (skipFrame) {
+    skipFrame = false;
+    return;
+  }
+
+  IncrementFrame();
+
+  camera.Update((float)elapsed);
 
   if (backdropShader) {
     backdropShader->setUniform("opacity", (float)backdropOpacity);
@@ -675,15 +692,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
   newRedTeamMobSize = redTeamMob ? redTeamMob->GetMobCount() : 0;
   newBlueTeamMobSize = blueTeamMob ? blueTeamMob->GetMobCount() : 0;
 
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && this->IsSceneInFocus()) {
-    BroadcastBattleStop();
-    Quit(FadeOut::white);
-    Audio().StopStream();
-  }
-
-  // State update
-  if(!current) return;
-
   current->onUpdate(elapsed);
 
   if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
@@ -691,7 +699,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
     Audio().Play(AudioType::CUSTOM_BAR_FULL);
   }
 
-  auto componentsCopy = components;
+  std::vector<std::shared_ptr<Component>> componentsCopy = components;
 
   // Update components
   for (std::shared_ptr<Component>& c : componentsCopy) {
@@ -1016,6 +1024,10 @@ std::shared_ptr<Player> BattleSceneBase::GetLocalPlayer() {
   return localPlayer;
 }
 
+const std::shared_ptr<Player> BattleSceneBase::GetLocalPlayer() const {
+  return localPlayer;
+}
+
 std::vector<std::shared_ptr<Player>> BattleSceneBase::GetOtherPlayers()
 {
   return otherPlayers;
@@ -1111,6 +1123,11 @@ void BattleSceneBase::IncrementTurnCount()
 void BattleSceneBase::IncrementRoundCount()
 {
   round++;
+}
+
+void BattleSceneBase::SkipFrame()
+{
+  skipFrame = true;
 }
 
 void BattleSceneBase::IncrementFrame()

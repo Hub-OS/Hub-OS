@@ -58,9 +58,6 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
     this->ProcessPacketBody(header, body);
   });
 
-  blur.setPower(40);
-  blur.setTexture(&lastScreen);
-
   bg = sf::Sprite(lastScreen);
   bg.setColor(sf::Color(255, 255, 255, 200));
 
@@ -86,7 +83,7 @@ void DownloadScene::SendHandshake()
   mySeed = (unsigned int)time(0);
   writer.Write<uint32_t>(buffer, mySeed);
 
-  auto id = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer).second;
+  uint64_t id = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer).second;
   packetProcessor->UpdateHandshakeID(id);
 
   Logger::Logf(LogLevel::info, "Sending handshake");
@@ -732,7 +729,7 @@ void DownloadScene::onUpdate(double elapsed)
 
   SendPing();
 
-  if (aborting) {
+  if (aborting || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
     abortingCountdown -= from_seconds(elapsed);
     if (abortingCountdown <= frames(0)) {
       // abort match
@@ -758,10 +755,9 @@ void DownloadScene::onUpdate(double elapsed)
 
 void DownloadScene::onDraw(sf::RenderTexture& surface)
 {
-  auto& packageManager = RemoteCardPartition();
+  CardPackageManager& packageManager = RemoteCardPartition();
 
   surface.draw(bg);
-  blur.apply(surface);
 
   float w = static_cast<float>(getController().getVirtualWindowSize().x);
   float h = static_cast<float>(getController().getVirtualWindowSize().y);
@@ -770,7 +766,7 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
   if (AllTasksComplete()) {
     label.SetString("Complete, waiting...");
 
-    auto bounds = label.GetLocalBounds();
+    sf::FloatRect bounds = label.GetLocalBounds();
     label.setOrigin(sf::Vector2f(bounds.width * label.getScale().x, 0));
     label.setPosition(w, 0);
     label.SetColor(sf::Color::Green);
@@ -778,9 +774,9 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
     return;
   }
 
-  auto bounds = label.GetLocalBounds();
-  label.setOrigin(sf::Vector2f(bounds.width * label.getScale().x , 0));
-  label.setPosition(w, 0);
+  sf::FloatRect bounds = label.GetLocalBounds();
+  label.setOrigin(sf::Vector2f(0, 0));
+  label.setPosition(0, 0);
   label.SetColor(sf::Color::White);
   surface.draw(label);
 
@@ -791,10 +787,10 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
 
     label.SetString(key + " - " + value);
 
-    auto bounds = label.GetLocalBounds();
+    sf::FloatRect bounds = label.GetLocalBounds();
     float ydiff = bounds.height * label.getScale().y;
 
-    if (auto iconTexture = packageManager.FindPackageByID(key).GetIconTexture()) {
+    if (std::shared_ptr<sf::Texture> iconTexture = packageManager.FindPackageByID(key).GetIconTexture()) {
       icon.setTexture(*iconTexture, true);
       float iconHeight = icon.getLocalBounds().height;
       icon.setOrigin(0, iconHeight);

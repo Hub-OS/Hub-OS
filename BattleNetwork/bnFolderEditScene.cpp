@@ -277,7 +277,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           if (folderView.swapCardIndex == folderView.currCardIndex) {
             Battle::Card copy;
             bool found = false;
-            for (auto i = 0; i < poolCardBuckets.size(); i++) {
+            for (size_t i = 0; i < poolCardBuckets.size(); i++) {
               if (poolCardBuckets[i].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
                 poolCardBuckets[i].AddCard();
                 folderCardSlots[folderView.currCardIndex].GetCard(copy);
@@ -292,9 +292,6 @@ void FolderEditScene::onUpdate(double elapsed) {
                 poolCardBuckets.push_back(slot);
                 packView.numOfCards++;
               }
-              else {
-                Audio().Play(AudioType::CHIP_ERROR);
-              }
             }
             // Unselect the card
             folderView.swapCardIndex = -1;
@@ -302,7 +299,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           }
           else {
             // swap the card
-            auto temp = folderCardSlots[folderView.swapCardIndex];
+            FolderEditScene::FolderSlot temp = folderCardSlots[folderView.swapCardIndex];
             folderCardSlots[folderView.swapCardIndex] = folderCardSlots[folderView.currCardIndex];
             folderCardSlots[folderView.currCardIndex] = temp;
             Audio().Play(AudioType::CHIP_CONFIRM);
@@ -321,7 +318,7 @@ void FolderEditScene::onUpdate(double elapsed) {
             Battle::Card checkCard;
             int maxCards = copy2.GetLimit();
             int foundCards = 0;
-            for (auto i = 0; i < folderCardSlots.size(); i++) {
+            for (size_t i = 0; i < folderCardSlots.size(); i++) {
               checkCard = Battle::Card(folderCardSlots[i].ViewCard());
               if (checkCard.GetShortName() == copy2.GetShortName() && checkCard.GetClass() == copy2.GetClass() && checkCard.GetElement() == copy2.GetElement()) {
                 foundCards++;
@@ -382,7 +379,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           if (packView.swapCardIndex == packView.currCardIndex) {
             if (folder.GetSize() <= 30) {
               int found = -1;
-              for (auto i = 0; i < 30; i++) {
+              for (size_t i = 0; i < 30; i++) {
                 if (found == -1 && folderCardSlots[i].IsEmpty()) {
                   found = i;
                 }
@@ -392,7 +389,7 @@ void FolderEditScene::onUpdate(double elapsed) {
                 Battle::Card checkCard;
                 int maxCards = copy.GetLimit();
                 int foundCards = 0;
-                for (auto i = 0; i < folderCardSlots.size(); i++) {
+                for (size_t i = 0; i < folderCardSlots.size(); i++) {
                   checkCard = Battle::Card(folderCardSlots[i].ViewCard());
                   if (checkCard.GetShortName() == copy.GetShortName() && checkCard.GetClass() == copy.GetClass() && checkCard.GetElement() == copy.GetElement()) {
                     foundCards++;
@@ -406,11 +403,17 @@ void FolderEditScene::onUpdate(double elapsed) {
                   Audio().Play(AudioType::CHIP_CONFIRM);
                 }
                 else {
-                  poolCardBuckets[packView.currCardIndex].AddCard();
+                  if (folderView.swapCardIndex == -1) {
+                    Audio().Play(AudioType::CHIP_CANCEL);
+                  }
+                  else {
+                    Audio().Play(AudioType::CHIP_ERROR);
+                  }
+
                   hasFolderChanged = true;
+                  poolCardBuckets[packView.currCardIndex].AddCard();
                   packView.swapCardIndex = -1;
                   folderView.swapCardIndex = -1;
-                  Audio().Play(AudioType::CHIP_ERROR);
                 }
               }
             }
@@ -422,7 +425,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           }
           else {
             // swap the pack
-            auto temp = poolCardBuckets[packView.swapCardIndex];
+            FolderEditScene::PoolBucket temp = poolCardBuckets[packView.swapCardIndex];
             poolCardBuckets[packView.swapCardIndex] = poolCardBuckets[packView.currCardIndex];
             poolCardBuckets[packView.currCardIndex] = temp;
             Audio().Play(AudioType::CHIP_CONFIRM);
@@ -473,31 +476,29 @@ void FolderEditScene::onUpdate(double elapsed) {
 
               bool findBucket = folderCardSlots[folderView.swapCardIndex].GetCard(prev);
 
-              folderCardSlots[folderView.swapCardIndex].AddCard(copy);
-
-              // If the card slot had a card, find the corresponding bucket to add it back into
-              if (findBucket) {
-                auto iter = std::find_if(poolCardBuckets.begin(), poolCardBuckets.end(),
-                  [&prev](const PoolBucket& in) { return prev.GetShortName() == in.ViewCard().GetShortName(); }
-                );
-
-                if (iter != poolCardBuckets.end()) {
-                  iter->AddCard();
+              Battle::Card checkCard;
+              int maxCards = copy.GetLimit();
+              int foundCards = 0;
+              for (size_t i = 0; i < folderCardSlots.size(); i++) {
+                checkCard = Battle::Card(folderCardSlots[i].ViewCard());
+                if (checkCard.GetShortName() == copy.GetShortName() && checkCard.GetClass() == copy.GetClass() && checkCard.GetElement() == copy.GetElement()) {
+                  foundCards++;
                 }
               }
-              gotCard = true;
-            }
-
-            if (gotCard) {
-              packView.swapCardIndex = -1;
-              folderView.swapCardIndex = -1;
-
-              hasFolderChanged = true;
-
-              Audio().Play(AudioType::CHIP_CONFIRM);
-            }
-            else {
-              Audio().Play(AudioType::CHIP_ERROR);
+              if (foundCards < maxCards || maxCards == 0) {
+                folderCardSlots[folderView.swapCardIndex].AddCard(copy);
+                packView.swapCardIndex = -1;
+                folderView.swapCardIndex = -1;
+                hasFolderChanged = true;
+                Audio().Play(AudioType::CHIP_CONFIRM);
+              }
+              else {
+                poolCardBuckets[packView.currCardIndex].AddCard();
+                hasFolderChanged = true;
+                packView.swapCardIndex = -1;
+                folderView.swapCardIndex = -1;
+                Audio().Play(AudioType::CHIP_ERROR);
+              }
             }
           }
           else {

@@ -190,10 +190,10 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
           // If the list is untouched, we do not re-assign the cards
           bool hasNewHand = cardCust.HasNewHand();
-          auto newCards = cardCust.GetCards();
+          std::vector<Battle::Card> newCards = cardCust.GetCards();
 
           std::shared_ptr<Player> player = GetScene().GetLocalPlayer();
-          auto ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
+          std::shared_ptr<PlayerSelectedCardsUI> ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
 
           if (ui && hasNewHand) {
             *cards = newCards;

@@ -22,14 +22,13 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   bool isPaused{ false };
   bool hasTimeFreeze{ false };
   bool clearedMob{ false };
-  bool skipFrame{ false };
-  Mob* mob{ nullptr };
   sf::Sprite pause;
   sf::Sprite doubleDelete;
   sf::Sprite tripleDelete;
   sf::Sprite counterHit;
   sf::Shader* pauseShader; /*!< Dim screen */
   std::vector<const BattleSceneState*> subcombatStates;
+  const bool IsMobCleared() const;
   const bool HasTimeFreeze() const;
   const bool RedTeamWon() const;
   const bool BlueTeamWon() const;
@@ -39,12 +38,11 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   const bool IsStateCombat(const BattleSceneState* state);
 
   void EnablePausing(bool enable);
-  void SkipFrame();
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
 
-  CombatBattleState(Mob* mob, double customDuration);
+  CombatBattleState(double customDuration);
 };

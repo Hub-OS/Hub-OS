@@ -34,7 +34,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
     bool counterStart{}, animateCounter{};
   };
 
-  bool skipFrame{}, summonStart{}, playerCountered{};
+  bool summonStart{}, playerCountered{};
   long long lockedTimestamp{ 0 };
   frame_time_t alertAnimFrames{ frames(20) };
   frame_time_t fadeInOutLength{ frames(6) };
@@ -55,7 +55,6 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   const bool CanCounter(std::shared_ptr<Character> user);
   void CleanupStuntDouble();
   void SkipToAnimateState();
-  void SkipFrame();
   void ProcessInputs();
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;

@@ -4,7 +4,6 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
 #include <Swoosh/EmbedGLSL.h>
-#include <Swoosh/Shaders.h>
 
 #include <time.h>
 #include <queue>
@@ -48,7 +47,6 @@ private:
   sf::RenderTexture surface;
   sf::Texture lastScreen;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
-  swoosh::glsl::FastGaussianBlur blur{ 10 };
 
   void ResetRemotePartitions(); // prepare remote namespace for incoming mods
   CardPackageManager& RemoteCardPartition();

@@ -56,11 +56,6 @@ void TimeFreezeBattleState::SkipToAnimateState()
   ExecuteTimeFreeze();
 }
 
-void TimeFreezeBattleState::SkipFrame()
-{
-  skipFrame = true;
-}
-
 void TimeFreezeBattleState::ProcessInputs()
 {
   size_t player_idx = 0;
@@ -123,15 +118,6 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
 {
-  if (skipFrame) {
-    skipFrame = false;
-    return;
-  }
-
-  if (elapsed > 0.0) {
-    GetScene().IncrementFrame();
-  }
-
   ProcessInputs();
 
   if (summonStart) {

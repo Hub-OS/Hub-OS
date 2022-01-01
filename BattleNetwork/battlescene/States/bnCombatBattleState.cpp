@@ -14,8 +14,7 @@
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
 
-CombatBattleState::CombatBattleState(Mob* mob, double customDuration) :
-  mob(mob), 
+CombatBattleState::CombatBattleState(double customDuration) :
   pauseShader(Shaders().GetShader(ShaderType::BLACK_FADE))
 {
   // PAUSE
@@ -45,6 +44,29 @@ CombatBattleState::CombatBattleState(Mob* mob, double customDuration) :
   counterHit.setTexture(*Textures().LoadFromFile(TexturePaths::COUNTER_HIT));
 }
 
+const bool CombatBattleState::IsMobCleared() const
+{
+  const BattleSceneBase& scene = GetScene();
+  bool redTeamCleared = scene.IsRedTeamCleared();
+  bool blueTeamCleared = scene.IsBlueTeamCleared();
+  bool isCleared = false;
+
+  Team localTeam = scene.GetLocalPlayer()->GetTeam();
+
+  if (localTeam == Team::red) {
+    isCleared = blueTeamCleared;
+  }
+  else if (localTeam == Team::blue) {
+    isCleared = redTeamCleared;
+  }
+  else {
+    // unknown
+    isCleared = blueTeamCleared && redTeamCleared;
+  }
+
+  return isCleared;
+}
+
 const bool CombatBattleState::HasTimeFreeze() const {
   return hasTimeFreeze && !isPaused;
 }
@@ -67,7 +89,8 @@ const bool CombatBattleState::PlayerDeleted() const
 
 const bool CombatBattleState::PlayerRequestCardSelect()
 {
-  return !this->isPaused && GetScene().IsCustGaugeFull() && !mob->IsCleared() && GetScene().GetLocalPlayer()->InputState().Has(InputEvents::pressed_cust_menu);
+  BattleSceneBase& scene = GetScene();
+  return !this->isPaused && scene.IsCustGaugeFull() && !IsMobCleared() && scene.GetLocalPlayer()->InputState().Has(InputEvents::pressed_cust_menu);
 }
 
 void CombatBattleState::EnablePausing(bool enable)
@@ -75,58 +98,46 @@ void CombatBattleState::EnablePausing(bool enable)
   canPause = enable;
 }
 
-void CombatBattleState::SkipFrame()
-{
-  skipFrame = true;
-}
-
 void CombatBattleState::onStart(const BattleSceneState* last)
 {
-  GetScene().HighlightTiles(true); // re-enable tile highlighting
+  BattleSceneBase& scene = GetScene();
+  scene.HighlightTiles(true); // re-enable tile highlighting
 
-  if ((GetScene().GetLocalPlayer()->GetHealth() > 0) && this->HandleNextRoundSetup(last)) {
-    GetScene().StartBattleStepTimer();
-    GetScene().GetField()->ToggleTimeFreeze(false);
+  if ((scene.GetLocalPlayer()->GetHealth() > 0) && this->HandleNextRoundSetup(last)) {
+    scene.StartBattleStepTimer();
+    scene.GetField()->ToggleTimeFreeze(false);
 
     hasTimeFreeze = false;
 
     // reset bar and related flags
-    GetScene().SetCustomBarProgress(0);
+    scene.SetCustomBarProgress(0);
   }
 }
 
 void CombatBattleState::onEnd(const BattleSceneState* next)
 {
+  BattleSceneBase& scene = GetScene();
+
   // If the next state is not a substate of combat
   // then reset our combat and custom progress values
   if (this->HandleNextRoundSetup(next)) {
-    GetScene().StopBattleStepTimer();
+    scene.StopBattleStepTimer();
 
     // reset bar 
-    GetScene().SetCustomBarProgress(0);
+    scene.SetCustomBarProgress(0);
   }
 
-  GetScene().HighlightTiles(false);
+  scene.HighlightTiles(false);
   hasTimeFreeze = false; 
 }
 
 void CombatBattleState::onUpdate(double elapsed)
 {  
   BattleSceneBase& scene = GetScene();
-
-  if (skipFrame) {
-    skipFrame = false;
-    return;
-  }
-
-  if (elapsed > 0.0) {
-    scene.IncrementFrame();
-  }
-
   Player& player = *GetScene().GetLocalPlayer();
 
-  if ((mob->IsCleared() || player.GetHealth() == 0 )&& !clearedMob) {
-    auto cardUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
+  if ((IsMobCleared() || player.GetHealth() == 0 )&& !clearedMob) {
+    std::shared_ptr<PlayerSelectedCardsUI> cardUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
 
     if (cardUI) {
       cardUI->Hide();
@@ -137,7 +148,7 @@ void CombatBattleState::onUpdate(double elapsed)
     clearedMob = true;
   }
 
-  if (canPause && Input().Has(InputEvents::pressed_pause) && !mob->IsCleared()) {
+  if (canPause && Input().Has(InputEvents::pressed_pause) && !IsMobCleared()) {
     if (isPaused) {
       // unpauses
       // Require to stop the battle step timer and all battle-related component updates
@@ -166,9 +177,10 @@ void CombatBattleState::onUpdate(double elapsed)
 
 void CombatBattleState::onDraw(sf::RenderTexture& surface)
 {
-  const int comboDeleteSize = GetScene().ComboDeleteSize();
+  BattleSceneBase& scene = GetScene();
+  const int comboDeleteSize = scene.ComboDeleteSize();
 
-  if (!GetScene().Countered()) {
+  if (!scene.Countered()) {
     if (comboDeleteSize == 2) {
       surface.draw(doubleDelete);
     } else if(comboDeleteSize > 2) {
@@ -179,9 +191,9 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
     surface.draw(counterHit);
   }
 
-  surface.draw(GetScene().GetCardSelectWidget());
+  surface.draw(scene.GetCardSelectWidget());
 
-  GetScene().DrawCustGauage(surface);
+  scene.DrawCustGauage(surface);
 
   if (isPaused) {
     // render on top
@@ -191,11 +203,12 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
 
 void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
+  BattleSceneBase& scene = GetScene();
   // Only intercept this event if we are active
-  if (this->GetScene().GetCurrentState() != this) return;
+  if (scene.GetCurrentState() != this) return;
 
-  Logger::Logf(LogLevel::info, "CombatBattleState::OnCardActionUsed()");
-  if (!mob->IsCleared()) {
+  Logger::Logf(LogLevel::debug, "CombatBattleState::OnCardActionUsed() on frame #%i", scene.FrameNumber());
+  if (!IsMobCleared()) {
     hasTimeFreeze = action->GetMetaData().timeFreeze;
   }
 }
