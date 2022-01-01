@@ -17,7 +17,13 @@ std::string XMLElement::GetAttribute(const std::string& name) const {
 int XMLElement::GetAttributeInt(const std::string& name) const {
   if (name.empty()) return 0;
 
-  auto result = stx::to_int(GetAttribute(name));
+  auto stringValue = GetAttribute(name);
+
+  if (stringValue.empty()) {
+    return 0;
+  }
+
+  auto result = stx::to_int(stringValue);
 
   if (result.is_error()) {
     Logger::Logf(LogLevel::warning, "Cannot convert xml attribute `%s` to int. Reason: %s", name.c_str(), result.error_cstr());
@@ -30,7 +36,13 @@ int XMLElement::GetAttributeInt(const std::string& name) const {
 float XMLElement::GetAttributeFloat(const std::string& name) const {
   if (name.empty()) return 0.0;
 
-  auto result = stx::to_float(GetAttribute(name));
+  auto stringValue = GetAttribute(name);
+
+  if (stringValue.empty()) {
+    return 0.0;
+  }
+
+  auto result = stx::to_float(stringValue);
 
   if (result.is_error()) {
     Logger::Logf(LogLevel::warning, "Cannot convert xml attribute `%s` to float. Reason: %s", name.c_str(), result.error_cstr());
