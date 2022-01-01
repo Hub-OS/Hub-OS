@@ -227,27 +227,28 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   // std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
 
-  if (skipFrame && FrameNumber()-resyncFrameNumber >= 5) {
+  if (skipFrame && FrameNumber()-resyncFrameNumber >= frames(5)) {
     SkipFrame();
   }
   else {
     //if (combatPtr->IsStateCombat(GetCurrentState())) {
       std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5);
-      SendFrameData(events, FrameNumber() + 5);
+      SendFrameData(events, (FrameNumber() + frames(5)).count());
     //}
   }
   
   if (!remoteInputQueue.empty()/* && combatPtr->IsStateCombat(GetCurrentState())*/) {
     auto frame = remoteInputQueue.begin();
 
-    if(FrameNumber() >= frame->frameNumber) {
-      if (FrameNumber() != frame->frameNumber) {
+    const uint64_t sceneFrameNumber = FrameNumber().count();
+    if(sceneFrameNumber >= frame->frameNumber) {
+      if (sceneFrameNumber != frame->frameNumber) {
         // for debugging, this should never appear if the code is working properly
-        Logger::Logf(LogLevel::debug, "DESYNC: frames #s were R%i - L%i, ahead by %i", frame->frameNumber, FrameNumber(), FrameNumber() - frame->frameNumber);
+        Logger::Logf(LogLevel::debug, "DESYNC: frames #s were R%i - L%i, ahead by %i", frame->frameNumber, sceneFrameNumber, sceneFrameNumber - frame->frameNumber);
       }
 
       std::vector<InputEvent>& events = frame->events;
-      remoteFrameNumber = frame->frameNumber;
+      remoteFrameNumber = frames(frame->frameNumber);
 
       // Logger::Logf("next remote frame # is %i", remoteFrameNumber);
 
@@ -303,7 +304,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   // draw ping
   surface.draw(ping);
 
-  frameNumText.SetString("F" + std::to_string(FrameNumber()));
+  frameNumText.SetString("F" + std::to_string(FrameNumber().count()));
 
   bounds = frameNumText.GetLocalBounds();
   frameNumText.setOrigin(bounds.width, bounds.height);
@@ -312,7 +313,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   frameNumText.setPosition(480 - (2.f * 128) - 4, 320 - 2.f);
   surface.draw(frameNumText);
 
-  frameNumText.SetString("F" + std::to_string(remoteFrameNumber));
+  frameNumText.SetString("F" + std::to_string(remoteFrameNumber.count()));
 
   bounds = frameNumText.GetLocalBounds();
   frameNumText.setOrigin(bounds.width, bounds.height);
@@ -322,7 +323,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   surface.draw(frameNumText);
 
   // convert from ms to seconds to discrete frame count...
-  frame_time_t lagTime = frame_time_t{ (long long)(lag) };
+  frame_time_t lagTime = from_milliseconds(lag);
 
   // use ack to determine connectivity here
   UpdatePingIndicator(lagTime);
@@ -423,7 +424,7 @@ void NetworkBattleScene::SendHandshakeSignal()
   */
 
   int form = GetPlayerFormData(GetLocalPlayer()).selectedForm;
-  unsigned thisFrame = this->FrameNumber();
+  unsigned thisFrame = this->FrameNumber().count();
   size_t len = prefilteredCardSelection.size();
 
   Poco::Buffer<char> buffer{ 0 };
@@ -600,7 +601,7 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
   std::memcpy(&frameNumber, buffer.begin(), sizeof(unsigned int));
   read += sizeof(unsigned int);
 
-  maxRemoteFrameNumber = frameNumber;
+  maxRemoteFrameNumber = frames(frameNumber);
 
   int hp{};
   std::memcpy(&hp, buffer.begin() + read, sizeof(int));

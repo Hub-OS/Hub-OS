@@ -270,6 +270,8 @@ bool Game::NextFrame()
 
 void Game::HandleRecordingEvents()
 {
+  return; // for v2, disable this function by returning early.
+  
   if (isRecordOutSaving)
     return;
 

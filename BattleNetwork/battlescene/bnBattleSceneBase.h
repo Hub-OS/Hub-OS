@@ -99,7 +99,7 @@ private:
   int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
   int lastRedTeamMobSize{ 0 }, lastBlueTeamMobSize{ 0 };
   int newRedTeamMobSize{ 0 }, newBlueTeamMobSize{ 0 };
-  unsigned int frameNumber{ 0 };
+  frame_time_t frameNumber{ 0 };
   double elapsed{ 0 }; /*!< total time elapsed in battle */
   double customProgress{ 0 }; /*!< Cust bar progress in seconds */
   double customDuration{ 10.0 }; /*!< Cust bar max time in seconds */
@@ -399,7 +399,7 @@ public:
   const BattleSceneState* GetCurrentState() const;
   const int GetTurnCount();
   const int GetRoundCount();
-  const unsigned int FrameNumber() const;
+  const frame_time_t FrameNumber() const;
   void StartBattleStepTimer();
   void StopBattleStepTimer();
   void BroadcastBattleStart();

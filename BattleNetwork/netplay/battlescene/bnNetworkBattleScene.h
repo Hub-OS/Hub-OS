@@ -97,7 +97,7 @@ private:
   bool ignoreLockStep{}; //!< Used when battles are over to allow both clients to continue streaming the game ending
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
   frame_time_t packetTime{}; //!< When a packet was sent. Compare the time sent vs the recent ACK for accurate connectivity
-  unsigned int remoteFrameNumber{}, maxRemoteFrameNumber{}, resyncFrameNumber{};
+  frame_time_t remoteFrameNumber{}, maxRemoteFrameNumber{}, resyncFrameNumber{};
   Text ping, frameNumText;
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   SpriteProxyNode pingIndicator;

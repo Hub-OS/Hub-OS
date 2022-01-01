@@ -213,7 +213,7 @@ void MailScene::onUpdate(double elapsed)
 
   scroll.setPosition(450.f, y);
 
-  unsigned bob = from_seconds(this->totalElapsed * 0.25).count() % 5; // 5 pixel bobs
+  unsigned bob = from_seconds(this->totalElapsed * 0.20).count() % 5; // 5 pixel bobs
   float bobf = static_cast<float>(bob);
   cursor.setPosition(30 + bobf, 50 + (row * 32) + 1.f);
 

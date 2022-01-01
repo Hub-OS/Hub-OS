@@ -154,7 +154,7 @@ void FolderScene::onStart() {
 }
 
 void FolderScene::onUpdate(double elapsed) {
-  auto& session = getController().Session();
+  GameSession& session = getController().Session();
 
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
@@ -163,9 +163,9 @@ void FolderScene::onUpdate(double elapsed) {
   equipAnimation.Update((float)elapsed, folderEquip);
   textbox.Update(elapsed);
 
-  auto lastCardIndex = currCardIndex;
-  auto lastFolderIndex = currFolderIndex;
-  auto lastOptionIndex = optionIndex;
+  int lastCardIndex = currCardIndex;
+  int lastFolderIndex = currFolderIndex;
+  int lastOptionIndex = optionIndex;
 
   // Prioritize textbox input
   if (textbox.IsOpen() && questionInterface) {
@@ -382,8 +382,8 @@ void FolderScene::onUpdate(double elapsed) {
             collection.SwapOrder(0, selectedFolderIndex);
 
             // Save this session data
-            auto folderStr = collection.GetFolderNames()[0];
-            auto naviSelectedStr = session.GetKeyValue("SelectedNavi");
+            std::string folderStr = collection.GetFolderNames()[0];
+            std::string naviSelectedStr = session.GetKeyValue("SelectedNavi");
             
             if (naviSelectedStr.empty()) {
               naviSelectedStr = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FirstValidPackage();
@@ -502,7 +502,7 @@ void FolderScene::onResume() {
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
-  auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
+  CardPackageManager& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
   surface.draw(bg);
   surface.draw(menuLabel);
@@ -538,12 +538,12 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
 #ifdef __ANDROID__
     if(!canSwipe) {
-      auto x = swoosh::ease::interpolate((float) frameElapsed * 7.f, folderCursor.getPosition().x,
+      float x = swoosh::ease::interpolate((float) frameElapsed * 7.f, folderCursor.getPosition().x,
                                          98.0f + (std::min(2, currFolderIndex) * 144.0f));
       folderCursor.setPosition(x, 68.0f);
 
       if (currFolderIndex > 2) {
-          auto before = folderOffsetX;
+        float before = folderOffsetX;
         folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX,
                                                   (double) (((currFolderIndex - 2) * 144.0f)));
 
@@ -552,7 +552,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
             touchStart = false;
         }
       } else {
-          auto before = folderOffsetX;
+        float before = folderOffsetX;
         folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, 0.0);
 
           if(int(before) == int(folderOffsetX)) {
@@ -562,7 +562,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       }
     }
 #else 
-    auto x = swoosh::ease::interpolate(
+    float x = swoosh::ease::interpolate(
       (float)frameElapsed * 7.f, folderCursor.getPosition().x,
       98.0f + (std::min(2, currFolderIndex) * 144.0f)
     );
@@ -570,12 +570,12 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     folderCursor.setPosition(x, 68.0f);
 
     if (currFolderIndex > 2) {
-      auto before = folderOffsetX;
-      auto after = (double(currFolderIndex) - 2.0) * 144.0;
+      double before = folderOffsetX;
+      double after = (double(currFolderIndex) - 2.0) * 144.0;
       folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, after);
     }
     else {
-      auto before = folderOffsetX;
+      double before = folderOffsetX;
       folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, 0.0);
     }
 #endif
@@ -605,7 +605,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
 
   // swoosh::ease::interpolate((float)frameElapsed * 7.0f, cursor.getPosition().y, 138.0f + ((optionIndex) * 32.0f));
-  auto y = 138.0f + ((optionIndex) * 32.0f); 
+  float y = 138.0f + ((optionIndex) * 32.0f); 
   cursor.setPosition(2.0, y);
 
   if (!folder) return;
@@ -710,6 +710,12 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
       if (folderNames.empty()) {
         folder = nullptr;
       }
+      else {
+        while (!collection.GetFolder(currFolderIndex, folder)) {
+          if (currFolderIndex == 0) break;
+          currFolderIndex = currFolderIndex - 1;
+        }
+      }
     }
 
     textbox.Close();
@@ -735,7 +741,7 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 void FolderScene::RefreshOptions()
 {
   const bool emptyCollection = collection.GetFolderNames().empty();
-  const auto folderOptionsTex = emptyCollection ? Textures().LoadFromFile(TexturePaths::FOLDER_OPTIONS_NEW) : Textures().LoadFromFile(TexturePaths::FOLDER_OPTIONS);
+  const std::shared_ptr<sf::Texture> folderOptionsTex = emptyCollection ? Textures().LoadFromFile(TexturePaths::FOLDER_OPTIONS_NEW) : Textures().LoadFromFile(TexturePaths::FOLDER_OPTIONS);
   folderOptions = sf::Sprite(*folderOptionsTex);
   folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
 

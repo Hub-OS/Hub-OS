@@ -1,6 +1,7 @@
 #pragma once
 
 #include "template_helpers.h"
+#include <cstdint>
 
 /**
 * @class frame_time_t
@@ -15,7 +16,7 @@
 * easily operability between either fidelities of time within the same struct.
 */
 struct frame_time_t {
-  static const unsigned frames_per_second = 60u;
+  static const int64_t frames_per_second = 60u;
 
   struct milliseconds {
     long long value{};
@@ -25,19 +26,18 @@ struct frame_time_t {
     double value{};
   };
 
-  milliseconds milli{};
+  int64_t value{};
 
   seconds asSeconds() const {
-    return seconds{ this->milli.value / 1000.0 };
+    return seconds{ static_cast<double>(value) / frame_time_t::frames_per_second };
   }
 
   milliseconds asMilli() const {
-    return this->milli;
+    return milliseconds{ static_cast<long long>(value / frame_time_t::frames_per_second) * 1000ll };
   }
 
-  unsigned count() const {
-    // returns the number of full frames in this time span
-    return static_cast<unsigned>(asSeconds().value * frames_per_second);
+  int64_t count() const {
+    return value;
   }
 
   operator seconds() const {
@@ -51,48 +51,51 @@ struct frame_time_t {
   template<typename T>
   operator T() const;
 
-  /// TODO: should we be comparing frames or the precision?
+  frame_time_t& operator++(int) {
+    value++;
+    return *this;
+  }
 
   frame_time_t& operator-=(const frame_time_t& other) {
-    this->milli.value = this->milli.value - other.milli.value;
+    value = value - other.value;
     return *this;
   }
 
   frame_time_t& operator+=(const frame_time_t& other) {
-    this->milli.value = this->milli.value + other.milli.value;
+    value = value + other.value;
     return *this;
   }
 
   frame_time_t operator-(const frame_time_t& other) const {
-    return frame_time_t{ this->milli.value - other.milli.value };
+    return frame_time_t{ value - other.value };
   }
 
   frame_time_t operator+(const frame_time_t& other) const {
-    return frame_time_t{ this->milli.value + other.milli.value };
+    return frame_time_t{ value + other.value };
   }
 
   bool operator <(const frame_time_t& other) const {
-    return this->milli.value < other.milli.value;
+    return value < other.value;
   }
 
   bool operator <=(const frame_time_t& other) const {
-    return this->milli.value <= other.milli.value;
+    return value <= other.value;
   }
 
   bool operator >(const frame_time_t& other) const {
-    return this->milli.value > other.milli.value;
+    return value > other.value;
   }
 
   bool operator >=(const frame_time_t& other) const {
-    return this->milli.value >= other.milli.value;
+    return value >= other.value;
   }
 
   bool operator ==(const frame_time_t& other) const {
-    return this->milli.value == other.milli.value;
+    return value == other.value;
   }
 
   bool operator !=(const frame_time_t& other) const {
-    return this->milli.value != other.milli.value;
+    return value != other.value;
   }
 
   static frame_time_t max(const frame_time_t& lhs, const frame_time_t& rhs) {
@@ -103,18 +106,18 @@ struct frame_time_t {
 template<typename T>
 static constexpr frame_time_t from_seconds(T sec) {
   // cast to high precision to type of milliseconds
-  return frame_time_t{ static_cast<decltype(frame_time_t::milliseconds::value)>(static_cast<double>(sec) * 1000.0) };
+  return frame_time_t{ static_cast<int64_t>(std::ceil(sec * frame_time_t::frames_per_second)) };
 }
 
 template<typename T>
 static constexpr frame_time_t from_milliseconds(T milli) {
   // cast to high precision to type of milliseconds
-  return frame_time_t{ static_cast<decltype(frame_time_t::milliseconds::value)>(static_cast<double>(milli) ) };
+  return frame_time_t{ static_cast<int64_t>(std::ceil((milli / 1000.0) * frame_time_t::frames_per_second)) };
 }
 
- //!< frames utility method transforms frames to engine time
-static constexpr frame_time_t frames(unsigned int frames) {
-  return frame_time_t{ static_cast<long long>(1000 * (double(frames) / 60.0)) };
+ //!< frames method shorthand for frame_time_t object
+static constexpr frame_time_t frames(int64_t frames) {
+  return frame_time_t{ frames };
 };
 
 template<typename T>

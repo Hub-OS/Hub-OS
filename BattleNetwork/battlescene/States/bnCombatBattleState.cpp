@@ -207,7 +207,7 @@ void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uin
   // Only intercept this event if we are active
   if (scene.GetCurrentState() != this) return;
 
-  Logger::Logf(LogLevel::debug, "CombatBattleState::OnCardActionUsed() on frame #%i", scene.FrameNumber());
+  Logger::Logf(LogLevel::debug, "CombatBattleState::OnCardActionUsed() on frame #%i", scene.FrameNumber().count());
   if (!IsMobCleared()) {
     hasTimeFreeze = action->GetMetaData().timeFreeze;
   }

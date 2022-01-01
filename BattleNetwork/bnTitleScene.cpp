@@ -78,6 +78,8 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
+  totalElapsed += elapsed;
+
   // scroll the bg
   sf::IntRect offset = bgSprite.getTextureRect();
   offset.top += 1;
@@ -95,7 +97,7 @@ void TitleScene::onUpdate(double elapsed)
       progress++;
     }
 
-    std::string percent = std::to_string(this->progress) + "%";
+    std::string percent = std::to_string(progress) + "%";
     std::string label = taskStr + ": " + percent + dots;
     startLabel.SetString(label);
 
@@ -181,7 +183,13 @@ void TitleScene::onDraw(sf::RenderTexture & surface)
   surface.draw(bgSprite);
   surface.draw(progSprite);
   surface.draw(logoSprite);
-  surface.draw(startLabel);
+
+  // blink
+  unsigned frame = from_seconds(totalElapsed).count() % 60;
+  if (frame < 30 || progress < 100) {
+    surface.draw(startLabel);
+  }
+
   surface.draw(textbox);
 }
 

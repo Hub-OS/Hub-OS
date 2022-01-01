@@ -1090,7 +1090,7 @@ const int BattleSceneBase::GetRoundCount()
   return round;
 }
 
-const unsigned int BattleSceneBase::FrameNumber() const
+const frame_time_t BattleSceneBase::FrameNumber() const
 {
   return frameNumber;
 }

@@ -17,6 +17,7 @@ private:
   bool pressedStart{};
   unsigned progress{}, total{};
   unsigned ellipsis{};
+  double totalElapsed{};
   std::string taskStr, incomingTaskStr;
   std::vector<std::string> logs;
 
