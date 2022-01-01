@@ -540,7 +540,7 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
   // we're going to be syncing the time so this is required if changing sprites
   anim << stateStr << Animator::Mode::Loop;
 
-  animProgress += elapsed * std::abs(anim.GetPlaybackSpeed());
+  animProgress += from_seconds(elapsed * std::abs(anim.GetPlaybackSpeed()));
 
   if (!lastStateStr.empty()) {
     anim.SyncTime(animProgress);
@@ -548,7 +548,7 @@ void Overworld::Actor::UpdateAnimationState(float elapsed) {
   }
 
   if (lastStateStr != stateStr) {
-    animProgress = 0; // reset animation
+    animProgress = frames(0); // reset animation
     anim.SyncTime(animProgress);
 
     // we have changed states

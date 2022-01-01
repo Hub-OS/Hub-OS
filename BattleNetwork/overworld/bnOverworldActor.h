@@ -36,7 +36,7 @@ namespace Overworld {
       Direction dir{};
     };
 
-    float animProgress{}; //!< Used to sync movement animations
+    frame_time_t animProgress{}; //!< Used to sync movement animations
     float walkSpeed{ 80 }; //!< walk speed as pixels per second. Default 40px/s
     float runSpeed{ 140 }; //!< run speed as pixels per second. Default 70px/s
     bool playingCustomAnimation{};

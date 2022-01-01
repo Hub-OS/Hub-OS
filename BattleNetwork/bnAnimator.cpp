@@ -115,12 +115,12 @@ void Animator::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
   }
 }
 
-void Animator::operator() (double progress, sf::Sprite& target, FrameList& sequence) {
-  double startProgress = progress;
+void Animator::operator() (frame_time_t progress, sf::Sprite& target, FrameList& sequence) {
+  frame_time_t startProgress = progress;
 
   // If we did not progress while in an update, do not merge the queues and ignore this request 
   // All we wish to do is re-adjust the origin if applicable
-  if (progress == 0 && sequence.frames.size()) {
+  if (progress == frames(0) && sequence.frames.size()) {
     auto iter = sequence.frames.begin();
     size_t index = 1;
 
@@ -146,7 +146,7 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
   // Set our flag to let callback additions go to the right queue  
   isUpdating = true;
 
-  if (sequence.frames.empty() || sequence.GetTotalDuration() == 0) {
+  if (sequence.frames.empty() || sequence.GetTotalDuration() == frames(0)) {
     if (onFinish != nullptr) {
       // Fire the onFinish callback if available
       onFinish();
@@ -192,7 +192,7 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
   std::vector<Frame>::const_iterator iter = copy.begin();
 
   // While there is time left in the progress loop
-  while (progress > 0.f) {
+  while (progress > frames(0)) {
     // Increase the index
     index++;
 
@@ -203,9 +203,9 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
     // We assume progress hits zero because we use it as a decrementing counter
     // We add a check to ensure the start progress wasn't also 0
     // If it did not start at zero, we know we came across the end of the animation
-    bool reachedLastFrame = &(*iter) == &copy.back() && startProgress != 0.f;
+    bool reachedLastFrame = &(*iter) == &copy.back() && startProgress != frames(0);
 
-    if (progress <= 0.f || reachedLastFrame) {
+    if (progress <= frames(0) || reachedLastFrame) {
       FrameCallbackHash::iterator callbackIter = callbacks.begin();
       FrameCallbackHash::iterator callbackFind = callbacks.find(index);
       FrameCallbackHash::iterator onetimeCallbackIter = onetimeCallbacks.find(index);

@@ -20,7 +20,7 @@ namespace Overworld {
   void Map::Update(SceneBase& scene, double time) {
     for (auto& tileMeta : tileMetas) {
       if (tileMeta != nullptr) {
-        tileMeta->animation.SyncTime(time);
+        tileMeta->animation.SyncTime(from_seconds(time));
         tileMeta->animation.Refresh(tileMeta->sprite);
       }
     }

@@ -254,7 +254,7 @@ namespace Overworld {
       .at(time_cast<sf::Time>(frames(14)))
       .doTask([=](sf::Time elapsed) {
         infoBox->Reveal();
-        infoBoxAnim.SyncTime(static_cast<float>(elapsed.asSeconds()));
+        infoBoxAnim.SyncTime(from_seconds(elapsed.asSeconds()));
         infoBoxAnim.Refresh(infoBox->getSprite());
       }).withDuration(frames(4));
 

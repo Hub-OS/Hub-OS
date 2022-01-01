@@ -12,7 +12,7 @@ using sf::IntRect;
 #include <cstdlib>
 
 Animation::Animation() : animator(), path("") {
-  progress = 0;
+  progress = frames(0);
 }
 
 Animation::Animation(const char* _path) : animator(), path(std::string(_path)) {
@@ -155,11 +155,11 @@ void Animation::LoadWithData(const string& data)
   int frameAnimationIndex = -1;
   vector<FrameList> frameLists;
   string currentState = "";
-  float currentAnimationDuration = 0.0f;
+  frame_time_t currentAnimationDuration = frames(0);
   int currentWidth = 0;
   int currentHeight = 0;
   bool legacySupport = false;
-  progress = 0;
+  progress = frames(0);
 
   std::string_view dataView = data;
   size_t endLine = 0;
@@ -196,7 +196,7 @@ void Animation::LoadWithData(const string& data)
         std::transform(currentState.begin(), currentState.end(), currentState.begin(), ::toupper);
 
         animations.insert(std::make_pair(currentState, frameLists.at(frameAnimationIndex)));
-        currentAnimationDuration = 0.0f;
+        currentAnimationDuration = frames(0);
       }
       currentState = GetValue(line, "state");
 
@@ -212,7 +212,7 @@ void Animation::LoadWithData(const string& data)
       float duration = GetFloatValue(line, "duration");
 
       // prevent negative frame numbers
-      float currentFrameDuration = std::fabs(duration);
+      frame_time_t currentFrameDuration = from_seconds(std::fabs(duration));
 
       frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect{}, sf::Vector2f{ 0, 0 }, false, false);
     }
@@ -220,7 +220,7 @@ void Animation::LoadWithData(const string& data)
       float duration = GetFloatValue(line, "duration");
 
       // prevent negative frame numbers
-      float currentFrameDuration = std::fabs(duration);
+      frame_time_t currentFrameDuration = from_seconds(std::fabs(duration));
 
       int currentStartx = 0;
       int currentStarty = 0;
@@ -296,7 +296,7 @@ void Animation::Refresh(sf::Sprite& target) {
 }
 
 void Animation::Update(double elapsed, sf::Sprite& target) {
-  progress += elapsed * (float)std::fabs(playbackSpeed);
+  progress += frames(std::ceil(elapsed * (float)std::fabs(playbackSpeed)));
 
   std::string stateNow = currAnimation;
 
@@ -311,29 +311,29 @@ void Animation::Update(double elapsed, sf::Sprite& target) {
   if(currAnimation != stateNow) {
     // it was changed during a callback
     // apply new state to target on same frame
-    animator(0, target, animations[currAnimation]);
-    progress = 0;
+    animator(frames(0), target, animations[currAnimation]);
+    progress = frames(0);
     
     HandleInterrupted();
   }
 
-  const double duration = animations[currAnimation].GetTotalDuration();
+  const frame_time_t duration = animations[currAnimation].GetTotalDuration();
 
-  if(duration <= 0.) return;
+  if(duration <= frames(0)) return;
 
   // Since we are manually keeping track of the progress, we must account for the animator's loop mode
   if (progress > duration && (animator.GetMode() & Animator::Mode::Loop) == Animator::Mode::Loop) {
-    progress = std::fmod(progress, duration);
+    progress = frames(std::fmod(progress.count(), duration.count()));
   }
 }
 
-void Animation::SyncTime(double newTime)
+void Animation::SyncTime(frame_time_t newTime)
 {
   progress = newTime;
 
-  const double duration = animations[currAnimation].GetTotalDuration();
+  const frame_time_t duration = animations[currAnimation].GetTotalDuration();
 
-  if (duration <= 0.f) return;
+  if (duration <= frames(0)) return;
 
   // Since we are manually keeping track of the progress, we must account for the animator's loop mode
   while (progress > duration && (animator.GetMode() & Animator::Mode::Loop) == Animator::Mode::Loop) {
@@ -348,13 +348,13 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
   auto size = animations[currAnimation].GetFrameCount();
 
   if (frame <= 0 || frame > size) {
-    progress = 0.0f;
+    progress = frames(0);
     animator.SetFrame(int(size), target, animations[currAnimation]);
 
   }
   else {
     animator.SetFrame(frame, target, animations[currAnimation]);
-    progress = 0.0f;
+    progress = frames(0);
 
     while (frame) {
       progress += animations[currAnimation].GetFrame(--frame).duration;
@@ -365,7 +365,7 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
 void Animation::SetAnimation(string state) {
   HandleInterrupted();
   RemoveCallbacks();
-  progress = 0.0f;
+  progress = frames(0);
 
   std::transform(state.begin(), state.end(), state.begin(), ::toupper);
 
@@ -441,15 +441,15 @@ char Animation::GetMode()
   return animator.GetMode();
 }
 
-float Animation::GetStateDuration(const std::string& state) const
+frame_time_t Animation::GetStateDuration(const std::string& state) const
 {
   auto iter = animations.find(state);
   
   if (iter != animations.end()) {
-    return static_cast<float>(iter->second.GetTotalDuration());
+    return iter->second.GetTotalDuration();
   }
   
-  return 0.0f;
+  return frames(0);
 }
 
 void Animation::OverrideAnimationFrames(const std::string& animation, const std::list<OverrideFrame>&data, std::string& uuid)

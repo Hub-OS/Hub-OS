@@ -102,7 +102,7 @@ public:
   /**
    * @brief Syncs the animation elapsed counter to one provided
    */
-  void SyncTime(double newTime);
+  void SyncTime(frame_time_t newTime);
 
   /**
    * @brief Same as a call to Update(0, target).
@@ -175,7 +175,7 @@ public:
 
   char GetMode();
 
-  float GetStateDuration(const std::string& state) const;
+  frame_time_t GetStateDuration(const std::string& state) const;
 
   void OverrideAnimationFrames(const std::string& animation, const std::list<OverrideFrame>& data, std::string& uuid);
 
@@ -210,7 +210,7 @@ protected:
   Animator animator; /*!< Internal animator to delegate most of the work to */
   string path; /*!< Path to the animation file */
   string currAnimation; /*!< Name of the current animation state */
-  double progress; /*!< Current progress of animation */
+  frame_time_t progress; /*!< Current progress of animation */
   double playbackSpeed{ 1.0 }; /*!< Factor to multiply against update `dt`*/
   std::map<string, FrameList> animations; /*!< Dictionary of FrameLists read from file */
   std::function<void()> interruptCallback;

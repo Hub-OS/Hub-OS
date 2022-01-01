@@ -548,7 +548,7 @@ namespace Battle {
     }
 
     RefreshTexture();
-    animation.SyncTime(totalElapsed);
+    animation.SyncTime(from_seconds(totalElapsed));
     animation.Refresh(this->getSprite());
 
     switch (highlightMode) {

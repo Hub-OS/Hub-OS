@@ -8,6 +8,7 @@
 #include <list>
 
 #include "bnLogger.h"
+#include "frame_time_t.h"
 
 using FrameCallback = std::function<void()>;
 using FrameFinishCallback = std::function<void()>;
@@ -29,14 +30,14 @@ struct OverrideFrame {
  * @brief Lightweight frame composed of  rect, duration (in seconds), an origin, points, and flipped orientations
  */
 struct Frame {
-  double duration;
+  frame_time_t duration;
   sf::IntRect subregion;
   bool applyOrigin{}, flipX{}, flipY{};
   sf::Vector2f origin;
 
   PointHash points;
 
-  Frame(double duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin, bool flipX, bool flipY) :
+  Frame(frame_time_t duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin, bool flipX, bool flipY) :
     duration(duration),
     subregion(subregion),
     applyOrigin(applyOrigin),
@@ -66,7 +67,7 @@ struct Frame {
 
   Frame& operator=(Frame&& rhs) noexcept {
     duration = rhs.duration;
-    rhs.duration = 0;
+    rhs.duration = {};
 
     subregion = rhs.subregion;
 
@@ -98,12 +99,12 @@ struct Frame {
  */
 class FrameList {
   std::vector<Frame> frames;
-  double totalDuration; /*!< Sum of all frame durations */
+  frame_time_t totalDuration; /*!< Sum of all frame durations */
 
 public:
   friend class Animator;
 
-  FrameList() { totalDuration = 0; }
+  FrameList() { totalDuration = ::frames(0); }
   FrameList(const FrameList& rhs) { 
     frames = rhs.frames; 
     totalDuration = rhs.totalDuration;
@@ -122,7 +123,7 @@ public:
       }
 
       Frame copy = frames[index];
-      copy.duration = (float)iter->duration;
+      copy.duration = from_seconds(iter->duration);
       res.frames.push_back(copy);
       res.totalDuration += copy.duration;
 
@@ -137,7 +138,7 @@ public:
    * @param dur duration of frame in seconds
    * @param sub int rectangle defining the frame from a texture sheet
    */
-  inline void Add(double dur, sf::IntRect sub) {
+  inline void Add(frame_time_t dur, sf::IntRect sub) {
     frames.emplace_back(std::move(Frame(dur, sub, false, sf::Vector2f(0,0), false, false )));
     totalDuration += dur;
   }
@@ -150,7 +151,7 @@ public:
    * @param flipX if the frame is flipped horizontally visually (does not affect points)
    * @param flipY if the frame is flipped vertically   visually (does not affect points)
    */
-  inline void Add(double dur, sf::IntRect sub, sf::Vector2f origin, bool flipX, bool flipY) {
+  inline void Add(frame_time_t dur, sf::IntRect sub, sf::Vector2f origin, bool flipX, bool flipY) {
     frames.emplace_back(std::move(Frame(dur, sub, true, origin, flipX, flipY)));
     totalDuration += dur;
   }
@@ -185,7 +186,7 @@ public:
    * @brief Get the total duration for the list of frames
    * @return const float
    */
-  inline const double GetTotalDuration() const { return totalDuration; }
+  inline const frame_time_t GetTotalDuration() const { return totalDuration; }
 
   /**
    * @brief Query if frame list is empty
@@ -299,7 +300,7 @@ public:
    * @param target sprite to apply frames to
    * @param sequence list of frames
    */
-  void operator() (double progress, sf::Sprite& target, FrameList& sequence);
+  void operator() (frame_time_t progress, sf::Sprite& target, FrameList& sequence);
   
   /**
    * @brief Applies a callback

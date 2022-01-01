@@ -711,7 +711,7 @@ void PlayerCustScene::StartScaffolding()
 void PlayerCustScene::AnimateButton(double elapsed)
 {
   buttonFlashElapsed += elapsed;
-  buttonAnim.SyncTime(buttonFlashElapsed);
+  buttonAnim.SyncTime(from_seconds(buttonFlashElapsed));
   buttonAnim.Refresh(blueButtonSprite);
   buttonAnim.Refresh(greenButtonSprite);
 }
@@ -759,8 +759,8 @@ void PlayerCustScene::AnimateGrid()
 void PlayerCustScene::AnimateBlock(double elapsed, Piece* p)
 {
   blockFlashElapsed += elapsed;
-  blockShadowVertAnim.SyncTime(blockFlashElapsed);
-  blockShadowHorizAnim.SyncTime(blockFlashElapsed);
+  blockShadowVertAnim.SyncTime(from_seconds(blockFlashElapsed));
+  blockShadowHorizAnim.SyncTime(from_seconds(blockFlashElapsed));
 
   if (!p) return;
 
@@ -776,7 +776,7 @@ void PlayerCustScene::AnimateBlock(double elapsed, Piece* p)
       }
     }
 
-    blockAnim.SyncTime(blockFlashElapsed);
+    blockAnim.SyncTime(from_seconds(blockFlashElapsed));
     return;
   }
 
@@ -792,7 +792,7 @@ void PlayerCustScene::AnimateBlock(double elapsed, Piece* p)
       }
     }
     
-    blockAnim.SyncTime(blockFlashElapsed);
+    blockAnim.SyncTime(from_seconds(blockFlashElapsed));
     return;
   }
 
@@ -807,7 +807,7 @@ void PlayerCustScene::AnimateBlock(double elapsed, Piece* p)
     }
   }
 
-  blockAnim.SyncTime(blockFlashElapsed);
+  blockAnim.SyncTime(from_seconds(blockFlashElapsed));
 }
 
 void PlayerCustScene::RefreshBlock(Piece* p, sf::Sprite& sprite)

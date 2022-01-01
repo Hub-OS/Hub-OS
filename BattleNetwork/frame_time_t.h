@@ -106,13 +106,13 @@ struct frame_time_t {
 template<typename T>
 static constexpr frame_time_t from_seconds(T sec) {
   // cast to high precision to type of milliseconds
-  return frame_time_t{ static_cast<int64_t>(std::ceil(sec * frame_time_t::frames_per_second)) };
+  return frame_time_t{ static_cast<int64_t>(std::round(sec * frame_time_t::frames_per_second)) };
 }
 
 template<typename T>
 static constexpr frame_time_t from_milliseconds(T milli) {
   // cast to high precision to type of milliseconds
-  return frame_time_t{ static_cast<int64_t>(std::ceil((milli / 1000.0) * frame_time_t::frames_per_second)) };
+  return frame_time_t{ static_cast<int64_t>(std::round((milli / 1000.0) * frame_time_t::frames_per_second)) };
 }
 
  //!< frames method shorthand for frame_time_t object
