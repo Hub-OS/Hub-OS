@@ -211,6 +211,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
               [this](auto status, auto maxPayloadSize) { UpdateServerStatus(status, maxPayloadSize); }
             );
             Net().AddHandler(remoteAddress, packetProcessor);
+            EnableNetWarps(false);
 
             auto& menuSystem = GetMenuSystem();
             menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
