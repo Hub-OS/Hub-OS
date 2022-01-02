@@ -2,6 +2,7 @@
 
 #include "template_helpers.h"
 #include <cstdint>
+#include <cmath>
 
 /**
 * @class frame_time_t

@@ -41,11 +41,9 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Are we creating an action this frame?
   if (player.InputState().Has(InputEvents::pressed_use_chip)) {
     std::shared_ptr<PlayerSelectedCardsUI> cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
-    if (cardsUI && player.CanAttack()) {
-      if (cardsUI->UseNextCard()) {
-        player.chargeEffect->SetCharging(false);
-        isChargeHeld = false;
-      }
+    if (cardsUI && cardsUI->UseNextCard()) {
+      player.chargeEffect->SetCharging(false);
+      isChargeHeld = false;
     }
     // If the card used was successful, we may have a card in queue
   }
