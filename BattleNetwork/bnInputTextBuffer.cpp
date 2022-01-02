@@ -296,6 +296,10 @@ void InputTextBuffer::HandleCompletedEventProcessing() {
 
   modifiedThisRun = false;
   modified = true;
+  CalculateLineIndexes();
+}
+
+void InputTextBuffer::CalculateLineIndexes() {
   lineIndexes.clear();
   lineIndexes.push_back(0);
 

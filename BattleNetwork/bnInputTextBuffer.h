@@ -29,6 +29,11 @@ public:
   void EndCapture();
 
   /**
+   * @brief Calculate line indexes for resolving caret position. Call this after setting text and configuring.
+   */
+  void CalculateLineIndexes();
+
+  /**
    * @brief Resets all settings and clears the captured text
    */
   void Reset();
