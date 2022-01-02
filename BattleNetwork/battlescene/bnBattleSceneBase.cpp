@@ -620,36 +620,21 @@ void BattleSceneBase::StartStateGraph(StateNode& start) {
 
 void BattleSceneBase::onStart()
 {
-    isSceneInFocus = true;
+  isSceneInFocus = true;
 
-    // Stream battle music
-    if (blueTeamMob && blueTeamMob->HasCustomMusicPath()) {
-        const std::array<long long, 2> points = blueTeamMob->GetLoopPoints();
-        Audio().Stream(blueTeamMob->GetCustomMusicPath(), true, points[0], points[1]);
+  // Stream battle music
+  if (blueTeamMob && blueTeamMob->HasCustomMusicPath()) {
+    const std::array<long long, 2> points = blueTeamMob->GetLoopPoints();
+    Audio().Stream(blueTeamMob->GetCustomMusicPath(), true, points[0], points[1]);
+  }
+  else {
+    if (blueTeamMob == nullptr || !blueTeamMob->IsBoss()) {
+      Audio().Stream("resources/loops/loop_battle.ogg", true);
     }
     else {
-        bool PlayerMusicFound = false;
-        std::shared_ptr<Player> foundPlayer;
-        for (std::shared_ptr<Player> p : GetAllPlayers()) {
-            if (p->HasCustomMusicPath()) {
-                PlayerMusicFound = true;
-                foundPlayer = p;
-                break;
-            }
-        }
-        if (PlayerMusicFound) {
-            const std::array<long long, 2> points = foundPlayer->GetLoopPoints();
-            Audio().Stream(foundPlayer->GetCustomMusicPath(), true, points[0], points[1]);
-        }
-        else {
-            if (blueTeamMob == nullptr || !blueTeamMob->IsBoss()) {
-                Audio().Stream("resources/loops/loop_battle.ogg", true);
-            }
-            else {
-                Audio().Stream("resources/loops/loop_boss_battle.ogg", true);
-            }
-        }
+      Audio().Stream("resources/loops/loop_boss_battle.ogg", true);
     }
+  }
 }
 
 void BattleSceneBase::onUpdate(double elapsed) {
