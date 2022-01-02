@@ -12,9 +12,10 @@
 const auto PLAYER_COLOR = sf::Color(0, 248, 248, 255);
 const auto CONCEALED_COLOR = sf::Color(165, 165, 165, 165); // 65% transparency, similar to world sprite darkening
 
-static void CopyTextureAndOrigin(SpriteProxyNode& dest, const SpriteProxyNode& source) {
+static void CopyFrame(SpriteProxyNode& dest, const SpriteProxyNode& source) {
   dest.setTexture(source.getTexture());
-  dest.setOrigin(source.getOrigin());
+  dest.setTextureRect(source.getTextureRect());
+  dest.getSprite().setOrigin(source.getSprite().getOrigin());
 }
 
 const float MAX_TILE_HEIGHT = 10.f;
@@ -331,36 +332,27 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
   }
 }
 
-void Overworld::Minimap::EnforceTextureSizeLimits()
-{
-  player.setTextureRect({ 0, 0, 6, 8 });
-  hp->setTextureRect({ 0, 0, 8, 8 });
-  warp.setTextureRect({ 0, 0, 8, 6 });
-  board.setTextureRect({ 0, 0, 6, 7 });
-  shop.setTextureRect({ 0, 0, 6, 7 });
-  conveyor.setTextureRect({ 0, 0, 6, 3 });
-  overlay.setTextureRect({ 0, 0, 240, 160 });
-
-  player.setOrigin({ 3, 8 });
-  hp->setOrigin({ 4, 4 });
-  warp.setOrigin({ 4, 3 });
-  board.setOrigin({ 3, 7 });
-  shop.setOrigin({ 3, 7 });
-  conveyor.setOrigin({ 3, 1.5 });
-}
-
 Overworld::Minimap::Minimap()
 {
   hp = std::make_shared<SpriteProxyNode>();
-  hp->setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_hp.png"));
-  player.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_pos.png"));
+
+  auto markerTexture = Textures().LoadFromFile("resources/ow/minimap/markers.png");
+  auto markerAnimation = Animation("resources/ow/minimap/markers.animation");
+
+  auto initMarker = [&] (SpriteProxyNode& node, const std::string& state) {
+    node.setTexture(markerTexture);
+    markerAnimation << state;
+    markerAnimation.Refresh(node.getSprite());
+  };
+
+  initMarker(*hp, "home");
+  initMarker(player, "actor");
+  initMarker(warp, "warp");
+  initMarker(board, "board");
+  initMarker(shop, "shop");
+  initMarker(conveyor, "conveyor");
   overlay.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over.png"));
   arrows.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over_arrows.png"));
-  warp.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_warp.png"));
-  board.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_board.png"));
-  shop.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_shop.png"));
-  conveyor.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_conveyor.png"));
-  EnforceTextureSizeLimits();
 
   // dark blueish
   bgColor = sf::Color(24, 56, 104, 255);
@@ -424,7 +416,7 @@ void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos, bool isConce
 }
 
 void Overworld::Minimap::AddPlayerMarker(std::shared_ptr<Overworld::Minimap::PlayerMarker> marker) {
-  CopyTextureAndOrigin(*marker, player);
+  CopyFrame(*marker, player);
   marker->SetLayer(-1);
   bakedMap.AddNode(marker);
   playerMarkers.push_back(marker);
@@ -471,7 +463,7 @@ void Overworld::Minimap::ClearIcons()
 void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos, bool isConcealed)
 {
   std::shared_ptr<SpriteProxyNode> newWarp = std::make_shared<SpriteProxyNode>();
-  CopyTextureAndOrigin(*newWarp, warp);
+  CopyFrame(*newWarp, warp);
 
   AddMarker(newWarp, pos, isConcealed);
   mapMarkers.push_back(newWarp);
@@ -480,7 +472,7 @@ void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos, bool isConceal
 void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip, bool isConcealed)
 {
   std::shared_ptr<SpriteProxyNode> newBoard = std::make_shared<SpriteProxyNode>();
-  CopyTextureAndOrigin(*newBoard, board);
+  CopyFrame(*newBoard, board);
 
   newBoard->setScale(flip ? -1.f : 1.f, 1.f);
 
@@ -491,7 +483,7 @@ void Overworld::Minimap::AddBoardPosition(const sf::Vector2f& pos, bool flip, bo
 void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos, bool isConcealed)
 {
   std::shared_ptr<SpriteProxyNode> newShop = std::make_shared<SpriteProxyNode>();
-  CopyTextureAndOrigin(*newShop, shop);
+  CopyFrame(*newShop, shop);
   AddMarker(newShop, pos, isConcealed);
   mapMarkers.push_back(newShop);
 }
@@ -499,7 +491,7 @@ void Overworld::Minimap::AddShopPosition(const sf::Vector2f& pos, bool isConceal
 void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction direction, bool isConcealed)
 {
   std::shared_ptr<SpriteProxyNode> newConveyor = std::make_shared<SpriteProxyNode>();
-  CopyTextureAndOrigin(*newConveyor, conveyor);
+  CopyFrame(*newConveyor, conveyor);
 
   switch (direction)
   {

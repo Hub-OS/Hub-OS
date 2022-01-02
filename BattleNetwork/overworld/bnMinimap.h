@@ -20,7 +20,6 @@ namespace Overworld {
     SpriteProxyNode player, warp, board, shop, overlay, arrows, conveyor, bakedMap;
     std::vector<std::shared_ptr<SpriteProxyNode>> playerMarkers;
     std::vector<std::shared_ptr<SpriteProxyNode>> mapMarkers;
-    void EnforceTextureSizeLimits();
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
     void FindMapMarkers(Map& map);
     void FindTileMarkers(Map& map);
