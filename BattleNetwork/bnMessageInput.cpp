@@ -56,6 +56,7 @@ void MessageInput::OnUpdate(double elapsed) {
     textBuffer.SetLineWidth(140);
     textBuffer.SetIgnoreNewLine(true);
     textBuffer.ProtectPassword(password);
+    textBuffer.CalculateLineIndexes();
     capturingText = true;
     enteredView = true;
   }

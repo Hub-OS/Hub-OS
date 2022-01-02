@@ -12,6 +12,7 @@
 #include "../bnLuaLibraryPackageManager.h"
 #include "../bindings/bnScriptedCard.h"
 #include "../bindings/bnScriptedBlock.h"
+#include "../bnRandom.h"
 #include <Segues/PixelateBlackWashFade.h>
 
 constexpr std::string_view CACHE_FOLDER = "cache";
