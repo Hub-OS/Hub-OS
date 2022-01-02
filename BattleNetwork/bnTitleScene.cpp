@@ -167,6 +167,7 @@ void TitleScene::onUpdate(double elapsed)
   if (Input().Has(InputEvents::pressed_pause) && !pressedStart) {
     pressedStart = true;
     Audio().Play(AudioType::NEW_GAME);
+    Audio().StopStream();
   }
 }
 

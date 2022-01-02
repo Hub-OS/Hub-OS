@@ -3,7 +3,7 @@
 #include <Segues/PixelateBlackWashFade.h>
 #include <Segues/BlackWashFade.h>
 #include <Segues/WhiteWashFade.h>
-#include <Segues/BlendFadeIn.h>
+#include <Segues/VerticalOpen.h>
 #include <Poco/Net/NetException.h>
 
 // TODO: mac os < 10.5 file system support...
@@ -2255,7 +2255,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     };
 
     returningFrom = ReturningScene::DownloadScene;
-    using effect = swoosh::types::segue<BlendFadeIn>;
+    using effect = swoosh::types::segue<VerticalOpen>;
     getController().push<effect::to<DownloadScene>>(props);
   });
 

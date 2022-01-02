@@ -5,7 +5,7 @@
 #include <SFML/Window/Clipboard.hpp>
 #include <Segues/PushIn.h>
 #include <Segues/WhiteWashFade.h>
-#include <Segues/BlendFadeIn.h>
+#include <Segues/VerticalSlice.h>
 
 #include "bnMatchMakingScene.h"
 #include "bnDownloadScene.h"
@@ -504,7 +504,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       remotePlayerBlocks
     };
 
-    using effect = swoosh::types::segue<BlendFadeIn>;
+    using effect = swoosh::types::segue<VerticalSlice>;
     getController().push<effect::to<DownloadScene>>(props);
     returningFrom = ReturningScene::DownloadScene;
   }

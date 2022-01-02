@@ -24,7 +24,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   playerHash(props.playerHash),
   remotePlayer(props.remotePlayer),
   remoteBlocks(props.remotePlayerBlocks),
-  label(Font::Style::tiny),
+  label(Font::Style::small),
   Scene(ac)
 {
   playerCardPackageList = props.cardPackageHashes;
@@ -49,10 +49,6 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   packetProcessor->EnableKickForSilence(true);
 
-  // send handshake + begin coinflip before reading packets
-  SendHandshake();
-  SendCoinFlip();
-
   // queued packets will come in after this
   packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& body) {
     this->ProcessPacketBody(header, body);
@@ -60,6 +56,13 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   bg = sf::Sprite(lastScreen);
   bg.setColor(sf::Color(255, 255, 255, 200));
+
+  overlayTex = Textures().LoadFromFile("resources/scenes/download/overlay.png");
+  overlay.setTexture(*overlayTex.get(), true);
+  overlay.setScale(2.f, 2.f);
+
+  downloadComplete = Audio().LoadFromFile("resources/sfx/compile_complete.ogg");
+  downloadItem = Audio().LoadFromFile("resources/sfx/compile_item.ogg");
 
   setView(sf::Vector2u(480, 320));
 
@@ -87,6 +90,7 @@ void DownloadScene::SendHandshake()
   packetProcessor->UpdateHandshakeID(id);
 
   Logger::Logf(LogLevel::info, "Sending handshake");
+  handshakeSent = true;
 }
 
 void DownloadScene::SendCoinFlip() {
@@ -343,6 +347,7 @@ void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer
 
   // move to the next state
   if (requestList.size()) {
+    remoteCardPackageList = requestList;
     Logger::Logf(LogLevel::info, "Need to download %d card packages", requestList.size());
     RequestCardPackageList(requestList);
   }
@@ -716,6 +721,14 @@ void DownloadScene::Abort()
 
 void DownloadScene::onUpdate(double elapsed)
 {
+  if (inView) {
+    if (!handshakeSent) {
+      // send handshake + begin coinflip before reading packets
+      SendHandshake();
+      SendCoinFlip();
+    }
+  }
+
   if (!(packetProcessor->IsHandshakeAck() && remoteHandshake) && !aborting) return;
 
   if (!hasTradedData) {
@@ -745,65 +758,80 @@ void DownloadScene::onUpdate(double elapsed)
 
     if (downloadSuccess && remoteSuccess) {
       SendTransition();
+
+      if (!downloadSoundPlayed && remainingTokens >= maxTokens && maxTokens > 0) {
+        downloadSoundPlayed = true;
+        Audio().Play(downloadComplete);
+      }
     }
   }
 
+  if(!downloadSoundPlayed) {
+    // If this sfx hasn't played the "download" isn't caught up in the render step,
+    // so play some busy sounds while we wait
+    Audio().Play(downloadItem, AudioPriority::high);
+  }
+
+  elapsedFrames += from_seconds(elapsed);
+
   if (transitionToPvp) {
-    getController().pop();
+    // re-using aborting countdown as a way to delay the transition
+    abortingCountdown -= from_seconds(elapsed);
+    if (abortingCountdown <= frames(0)) {
+      getController().pop();
+    }
   }
 }
 
 void DownloadScene::onDraw(sf::RenderTexture& surface)
 {
-  CardPackageManager& packageManager = RemoteCardPartition();
-
-  surface.draw(bg);
-
-  float w = static_cast<float>(getController().getVirtualWindowSize().x);
-  float h = static_cast<float>(getController().getVirtualWindowSize().y);
-
-  // 1. Draw the state status info
-  if (AllTasksComplete()) {
-    label.SetString("Complete, waiting...");
-
-    sf::FloatRect bounds = label.GetLocalBounds();
-    label.setOrigin(sf::Vector2f(bounds.width * label.getScale().x, 0));
-    label.setPosition(w, 0);
-    label.SetColor(sf::Color::Green);
-    surface.draw(label);
-    return;
+  if (inView) {
+    surface.draw(bg);
   }
 
+  float w = static_cast<float>(getController().getVirtualWindowSize().x);
+  float h = 30;
+
+  // re-position
   sf::FloatRect bounds = label.GetLocalBounds();
-  label.setOrigin(sf::Vector2f(0, 0));
-  label.setPosition(0, 0);
   label.SetColor(sf::Color::White);
-  surface.draw(label);
 
   sf::Sprite icon;
 
-  for (auto& [key, value] : contentToDownload) {
-    if (!packageManager.HasPackage(key)) continue;
+  // speed up if screen is about to leave
+  int tokens = !transitionToPvp ? elapsedFrames.count() * 2 : (elapsedFrames.count() * (100 / std::max(1, (int)abortingCountdown.count())));
+  remainingTokens = tokens;
+  maxTokens = 0;
 
-    label.SetString(key + " - " + value);
+  CardPackageManager& packageManager = RemoteCardPartition();
+  for (std::string& id : remoteCardPackageList) {
+    if (!packageManager.HasPackage(id)) continue;
+
+    CardMeta& meta = packageManager.FindPackageByID(id);
+    std::string str = meta.properties.shortname + " - " + id;
+    maxTokens += str.size();
+    if (str.size() > remainingTokens) {
+      str = str.substr(0, remainingTokens);
+    }
+    label.SetString(str);
+    remainingTokens = std::max(0ull, remainingTokens - str.size());
 
     sf::FloatRect bounds = label.GetLocalBounds();
-    float ydiff = bounds.height * label.getScale().y;
-
-    if (std::shared_ptr<sf::Texture> iconTexture = packageManager.FindPackageByID(key).GetIconTexture()) {
+    if (std::shared_ptr<sf::Texture> iconTexture = meta.GetIconTexture()) {
       icon.setTexture(*iconTexture, true);
       float iconHeight = icon.getLocalBounds().height;
-      icon.setOrigin(0, iconHeight);
+      icon.setPosition(20, h);
+      icon.setOrigin(0, iconHeight/4);
+      surface.draw(icon);
     }
 
-    icon.setPosition(sf::Vector2f(bounds.width + 5.0f, bounds.height));
-    label.setOrigin(sf::Vector2f(0, 0));
-    label.setPosition(0, h);
+    label.setPosition(20 + 16 + 2, h);
 
-    h += ydiff + 5.0f;
+    h += 15.0f;
 
     surface.draw(label);
   }
+  surface.draw(overlay);
 }
 
 void DownloadScene::onLeave()
@@ -820,6 +848,7 @@ void DownloadScene::onEnter()
 
 void DownloadScene::onStart()
 {
+  inView = true;
 }
 
 void DownloadScene::onResume()

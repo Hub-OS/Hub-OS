@@ -13,7 +13,7 @@
 #include <Poco/Buffer.h>
 
 #include "bnNetPlayPacketProcessor.h"
-#include "../bnScene.h"
+#include "../bnLoaderScene.h"
 #include "../bnText.h"
 #include "../../bnInputManager.h"
 #include "../../bnDrawWindow.h"
@@ -29,11 +29,14 @@ struct DownloadSceneProps;
 class DownloadScene final : public Scene {
 private:
   bool& downloadSuccess;
+  bool inView{}, handshakeSent{};
   bool downloadFlagSet{}, transitionSignalSent{}, transitionToPvp{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{}, coinFlipComplete{};
   bool playerPackageRequested{}, cardPackageRequested{}, blockPackageRequested{};
+  bool downloadSoundPlayed{};
   unsigned& coinFlip;
-  unsigned coinValue{};
+  unsigned coinValue{}, remainingTokens{}, maxTokens{};
   unsigned mySeed{}, maxSeed{};
+  frame_time_t elapsedFrames{};
   frame_time_t abortingCountdown{frames(150)};
   size_t tries{}; //!< After so many attempts, quit the download...
   size_t packetAckId{};
@@ -41,11 +44,14 @@ private:
   PackageAddress& remotePlayer;
   std::vector<PackageAddress>& remoteBlocks;
   std::vector<PackageHash> playerCardPackageList, playerBlockPackageList;
+  std::vector<std::string> remoteCardPackageList, remoteBlockPackageList;
   std::map<std::string, std::string> contentToDownload;
   Text label;
-  sf::Sprite bg; // background
+  sf::Sprite bg, overlay; // background
   sf::RenderTexture surface;
   sf::Texture lastScreen;
+  std::shared_ptr<sf::Texture> overlayTex;
+  std::shared_ptr<sf::SoundBuffer> downloadItem, downloadComplete;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
 
   void ResetRemotePartitions(); // prepare remote namespace for incoming mods
