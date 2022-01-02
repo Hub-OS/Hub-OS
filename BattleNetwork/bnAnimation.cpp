@@ -163,8 +163,10 @@ void Animation::LoadWithData(const string& data)
 
   std::string_view dataView = data;
   size_t endLine = 0;
+  int lineNumber = 0;
 
   do {
+    lineNumber += 1;
     size_t startLine = endLine;
     endLine = dataView.find("\n", startLine);
 
@@ -209,6 +211,11 @@ void Animation::LoadWithData(const string& data)
       frameAnimationIndex++;
     }
     else if (StartsWith(line, "blank")) {
+      if (frameAnimationIndex == -1) {
+        Logger::Logf(LogLevel::critical, "%s:%d: frame defined outside of animation state!", path.c_str(), lineNumber);
+        continue;
+      }
+
       float duration = GetFloatValue(line, "duration");
 
       // prevent negative frame numbers
@@ -217,6 +224,11 @@ void Animation::LoadWithData(const string& data)
       frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect{}, sf::Vector2f{ 0, 0 }, false, false);
     }
     else if (StartsWith(line, "frame")) {
+      if (frameAnimationIndex == -1) {
+        Logger::Logf(LogLevel::critical, "%s:%d: frame defined outside of animation state!", path.c_str(), lineNumber);
+        continue;
+      }
+
       float duration = GetFloatValue(line, "duration");
 
       // prevent negative frame numbers
@@ -260,6 +272,11 @@ void Animation::LoadWithData(const string& data)
       }
     }
     else if (StartsWith(line, "point")) {
+      if (frameAnimationIndex == -1) {
+        Logger::Logf(LogLevel::critical, "%s:%d: frame defined outside of animation state!", path.c_str(), lineNumber);
+        continue;
+      }
+
       std::string pointName = std::string(GetValue(line, "label"));
       int x = GetIntValue(line, "x");
       int y = GetIntValue(line, "y");
