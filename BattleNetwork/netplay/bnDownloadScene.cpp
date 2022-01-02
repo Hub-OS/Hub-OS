@@ -814,7 +814,7 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
       str = str.substr(0, remainingTokens);
     }
     label.SetString(str);
-    remainingTokens = std::max(0ull, remainingTokens - str.size());
+    remainingTokens = std::max(0u, (unsigned)(remainingTokens - str.size()));
 
     sf::FloatRect bounds = label.GetLocalBounds();
     if (std::shared_ptr<sf::Texture> iconTexture = meta.GetIconTexture()) {
