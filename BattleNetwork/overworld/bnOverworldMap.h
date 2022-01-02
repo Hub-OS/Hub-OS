@@ -165,6 +165,7 @@ namespace Overworld {
     float GetElevationAt(float x, float y, int layer);
     bool IgnoreTileAbove(float x, float y, int layer);
     bool HasShadow(sf::Vector2i tilePos, int layer);
+    bool TileConceals(sf::Vector2i tilePos, int layer);
     bool IsConcealed(sf::Vector2i tilePos, int layer);
     void RemoveSprites(SceneBase& scene);
 
