@@ -3,6 +3,7 @@
 #include "bnOverworldTileType.h"
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"
+#include "../bnMath.h"
 #include "../stx/string.h"
 
 #include <SFML/Graphics.hpp>
@@ -184,26 +185,36 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
           continue;
         }
 
-        if (tileMeta->type == TileType::conveyor) {
+        switch (tileMeta->type) {
+        case TileType::conveyor: {
           auto pos = sf::Vector2f(col, row);
           pos.x += 0.5f;
           pos.y += 0.5f;
 
           auto worldPos = map.TileToWorld(pos);
-          auto direction = tileMeta->direction;
-
-          if (tile->flippedHorizontal) {
-            direction = FlipHorizontal(direction);
-          }
-
-          if (tile->flippedVertical) {
-            direction = FlipVertical(direction);
-          }
-
           auto screenPos = map.WorldToScreen({ worldPos.x, worldPos.y, float(i) });
 
           bool isConcealed = map.IsConcealed(sf::Vector2i(col, row), i);
+          auto direction = tile->GetDirection(*tileMeta);
           AddConveyorPosition(screenPos, direction, isConcealed);
+          break;
+        }
+        case TileType::arrow:{
+          auto pos = sf::Vector2f(col, row);
+          pos.x += 0.5f;
+          pos.y += 0.5f;
+
+          auto direction = tile->GetDirection(*tileMeta);
+          pos += Round(UnitVector(Orthographic(direction))) * 0.5f;
+
+          auto worldPos = map.TileToWorld(pos);
+          auto screenPos = map.WorldToScreen({ worldPos.x, worldPos.y, float(i) });
+
+          AddArrowPosition(screenPos, direction);
+          break;
+        }
+        default:
+          break;
         }
       }
     }
@@ -351,8 +362,9 @@ Overworld::Minimap::Minimap()
   initMarker(board, "board");
   initMarker(shop, "shop");
   initMarker(conveyor, "conveyor");
+  initMarker(arrow, "arrow");
   overlay.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over.png"));
-  arrows.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over_arrows.png"));
+  overlayArrows.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over_arrows.png"));
 
   // dark blueish
   bgColor = sf::Color(24, 56, 104, 255);
@@ -510,6 +522,28 @@ void Overworld::Minimap::AddConveyorPosition(const sf::Vector2f& pos, Direction 
   mapMarkers.push_back(newConveyor);
 }
 
+void Overworld::Minimap::AddArrowPosition(const sf::Vector2f& pos, Direction direction)
+{
+  std::shared_ptr<SpriteProxyNode> newArrow = std::make_shared<SpriteProxyNode>();
+  CopyFrame(*newArrow, arrow);
+
+  switch (direction)
+  {
+  case Direction::up_left:
+    newArrow->setScale(-1, -1);
+    break;
+  case Direction::up_right:
+    newArrow->setScale(1, -1);
+    break;
+  case Direction::down_left:
+    newArrow->setScale(-1, 1);
+    break;
+  }
+
+  AddMarker(newArrow, pos, false);
+  mapMarkers.push_back(newArrow);
+}
+
 void Overworld::Minimap::AddMarker(const std::shared_ptr<SpriteProxyNode>& marker, const sf::Vector2f& pos, bool isConcealed) {
   if (isConcealed) {
     marker->setColor(CONCEALED_COLOR);
@@ -566,7 +600,7 @@ void Overworld::Minimap::draw(sf::RenderTarget& surface, sf::RenderStates states
   surface.draw(this->overlay, states);
 
   if (!largeMapControls) return;
-  surface.draw(this->arrows, states);
+  surface.draw(this->overlayArrows, states);
 }
 
 sf::Color Overworld::Minimap::PlayerMarker::GetMarkerColor() {

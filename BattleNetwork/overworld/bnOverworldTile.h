@@ -80,5 +80,6 @@ namespace Overworld
     }
 
     bool Intersects(Map& map, float x, float y) const;
+    Direction GetDirection(TileMeta& meta);
   };
 }

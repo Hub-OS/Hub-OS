@@ -17,7 +17,7 @@ namespace Overworld {
     sf::RectangleShape rectangle;
     sf::Color bgColor{};
     std::shared_ptr<SpriteProxyNode> hp;
-    SpriteProxyNode player, warp, board, shop, overlay, arrows, conveyor, bakedMap;
+    SpriteProxyNode player, warp, board, shop, conveyor, arrow, overlay, overlayArrows, bakedMap;
     std::vector<std::shared_ptr<SpriteProxyNode>> playerMarkers;
     std::vector<std::shared_ptr<SpriteProxyNode>> mapMarkers;
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
@@ -53,6 +53,7 @@ namespace Overworld {
     void AddShopPosition(const sf::Vector2f& pos, bool isConcealed);
     void AddBoardPosition(const sf::Vector2f& pos, bool flip, bool isConcealed);
     void AddConveyorPosition(const sf::Vector2f& pos, Direction direction, bool isConcealed);
+    void AddArrowPosition(const sf::Vector2f& pos, Direction direction);
     bool IsFullscreen() override { return true; };
     void Open() override;
     void HandleInput(InputManager& input, sf::Vector2f mousePos) override;

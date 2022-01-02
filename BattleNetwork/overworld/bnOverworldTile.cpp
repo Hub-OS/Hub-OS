@@ -84,4 +84,18 @@ namespace Overworld {
 
     return false;
   }
+
+  Direction Tile::GetDirection(TileMeta& meta) {
+    auto direction = meta.direction;
+
+    if (flippedHorizontal) {
+      direction = FlipHorizontal(direction);
+    }
+
+    if (flippedVertical) {
+      direction = FlipVertical(direction);
+    }
+
+    return direction;
+  }
 }
