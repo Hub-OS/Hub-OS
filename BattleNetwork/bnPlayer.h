@@ -54,12 +54,15 @@ private:
   friend class PlayerIdleState;
   friend class PlayerHitState;
   friend class PlayerChangeFormState;
-
+  
   void SaveStats();
   void RevertStats();
   void CreateMoveAnimHash();
   void CreateRecoilAnimHash();
   void TagBaseNodes();
+
+  std::string music; /*!< Override with custom music */
+  long long startMs{ -1 }, endMs{ -1 };
 
 public:
   using DefaultState = PlayerControlledState;
@@ -161,6 +164,31 @@ public:
 
   std::shared_ptr<SyncNode> AddSyncNode(const std::string& point);
   void RemoveSyncNode(std::shared_ptr<SyncNode> syncNode);
+
+  /**
+   * @brief The battle scene will load this custom music
+   * @param path path relative to the app
+   */
+  void StreamCustomMusic(const std::string& path, long long startMs = -1LL, long long endMs = -1LL);
+
+  /**
+   * @brief Checks if custom music path was set
+   * @return true if music string length is > 0
+   */
+  bool HasCustomMusicPath();
+
+  /**
+   * @brief Gets the custom music path
+   * @return const std::string
+   */
+  const std::string GetCustomMusicPath() const;
+
+  /**
+  * @brief Gets the music loop points
+  * @return const std::array<long long, 2>. the loop start and end points in milliseconds
+  */
+  const std::array<long long, 2> GetLoopPoints() const;
+
 
 protected:
   // functions

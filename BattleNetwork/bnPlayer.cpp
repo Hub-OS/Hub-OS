@@ -518,3 +518,22 @@ PlayerFormMeta* Player::AddForm(PlayerFormMeta* meta)
 
   return meta;
 }
+
+void Player::StreamCustomMusic(const std::string& path, long long startMs, long long endMs) {
+    music = path;
+    this->startMs = startMs;
+    this->endMs = endMs;
+}
+
+bool Player::HasCustomMusicPath() {
+    return music.length() > 0;
+}
+
+const std::string Player::GetCustomMusicPath() const {
+    return music;
+}
+
+const std::array<long long, 2> Player::GetLoopPoints() const
+{
+    return { startMs, endMs };
+}
