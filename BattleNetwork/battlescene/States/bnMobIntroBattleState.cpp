@@ -30,10 +30,11 @@ void MobIntroBattleState::onUpdate(double elapsed)
     std::shared_ptr<Character>& enemy = data->character;
 
     enemy->ToggleTimeFreeze(false);
-    GetScene().GetField()->AddEntity(enemy, data->tileX, data->tileY);
 
     Battle::Tile* destTile = GetScene().GetField()->GetAt(data->tileX, data->tileY);
     enemy->SetTeam(destTile->GetTeam());
+
+    GetScene().GetField()->AddEntity(enemy, data->tileX, data->tileY);
 
     if (destTile->GetTeam() == Team::red) {
       friendlies.push_back(enemy);

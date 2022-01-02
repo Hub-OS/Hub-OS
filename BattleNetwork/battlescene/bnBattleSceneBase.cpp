@@ -246,7 +246,7 @@ void BattleSceneBase::OnSpawnEvent(std::shared_ptr<Character>& spawned)
   if (spawned->GetTeam() == Team::red) {
     redTeamMob->Track(spawned);
   }
-  else {
+  else if(spawned->GetTeam() == Team::blue) {
     blueTeamMob->Track(spawned);
   }
 }

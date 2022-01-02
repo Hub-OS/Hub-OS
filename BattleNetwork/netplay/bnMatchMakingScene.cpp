@@ -504,7 +504,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       remotePlayerBlocks
     };
 
-    using effect = swoosh::types::segue<VerticalSlice>;
+    using effect = swoosh::types::segue<VerticalSlice, milliseconds<500>>;
     getController().push<effect::to<DownloadScene>>(props);
     returningFrom = ReturningScene::DownloadScene;
   }

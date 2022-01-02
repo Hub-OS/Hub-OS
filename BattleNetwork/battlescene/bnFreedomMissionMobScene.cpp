@@ -126,7 +126,6 @@ void FreedomMissionMobScene::Init()
     Logger::Log(LogLevel::warning, std::string("Current mob was empty when battle started. Mob Type: ") + typeid(mob).name());
   }
   else {
-    LoadBlueTeamMob(mob);
     playerCanFlip = mob.PlayerCanFlip();
   }
 
