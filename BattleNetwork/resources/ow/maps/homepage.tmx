@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="isometric" renderorder="right-down" compressionlevel="0" width="10" height="10" tilewidth="64" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="55">
+<map version="1.5" tiledversion="1.7.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="10" height="10" tilewidth="64" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="55">
  <properties>
   <property name="Background" value="lan"/>
   <property name="Name" value="Homepage"/>
@@ -24,9 +24,9 @@
 0,0,0,1,2147483649,1,0,0,0,0
 </data>
  </layer>
- <objectgroup id="5" name="Object Layer" locked="1">
-  <object id="25" name="Home Warp" gid="10" x="116" y="244" width="114" height="64"/>
-  <object id="27" name="Net Warp" gid="4" x="127" y="31" width="61" height="32"/>
+ <objectgroup id="5" name="Object Layer">
+  <object id="25" type="Home Warp" gid="10" x="116" y="244" width="114" height="64"/>
+  <object id="27" type="Server Warp" gid="4" x="127" y="31" width="61" height="32"/>
   <object id="49" name="Warp Status Bot" x="176" y="48">
    <point/>
   </object>

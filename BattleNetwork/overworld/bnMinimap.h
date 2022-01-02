@@ -16,8 +16,7 @@ namespace Overworld {
     std::string name;
     sf::RectangleShape rectangle;
     sf::Color bgColor{};
-    std::shared_ptr<SpriteProxyNode> hp;
-    SpriteProxyNode player, warp, board, shop, conveyor, arrow, overlay, overlayArrows, bakedMap;
+    SpriteProxyNode player, home, warp, board, shop, conveyor, arrow, overlay, overlayArrows, bakedMap;
     std::vector<std::shared_ptr<SpriteProxyNode>> playerMarkers;
     std::vector<std::shared_ptr<SpriteProxyNode>> mapMarkers;
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
@@ -47,8 +46,8 @@ namespace Overworld {
     void AddPlayerMarker(std::shared_ptr<PlayerMarker> marker);
     void UpdatePlayerMarker(PlayerMarker& playerMarker, sf::Vector2f pos, bool isConcealed);
     void RemovePlayerMarker(std::shared_ptr<PlayerMarker> playerMarker);
-    void SetHomepagePosition(const sf::Vector2f& pos, bool isConcealed);
     void ClearIcons();
+    void AddHomepagePosition(const sf::Vector2f& pos, bool isConcealed);
     void AddWarpPosition(const sf::Vector2f& pos, bool isConcealed);
     void AddShopPosition(const sf::Vector2f& pos, bool isConcealed);
     void AddBoardPosition(const sf::Vector2f& pos, bool flip, bool isConcealed);

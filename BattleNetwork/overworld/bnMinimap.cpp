@@ -222,8 +222,6 @@ void Overworld::Minimap::FindTileMarkers(Map& map) {
 }
 
 void Overworld::Minimap::FindObjectMarkers(Map& map) {
-  hp->Hide();
-
   auto layerCount = map.GetLayerCount();
   auto tileSize = map.GetTileSize();
 
@@ -241,7 +239,7 @@ void Overworld::Minimap::FindObjectMarkers(Map& map) {
 
       if (tileObject.type == ObjectType::home_warp) {
         bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
-        SetHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
+        AddHomepagePosition(map.WorldToScreen(objectCenterPos) + zOffset, isConcealed);
       }
       else if (ObjectType::IsWarp(tileObject.type)) {
         bool isConcealed = map.IsConcealed(sf::Vector2i(map.WorldToTileSpace(objectCenterPos)), i);
@@ -345,8 +343,6 @@ void Overworld::Minimap::DrawLayer(sf::RenderTarget& target, sf::Shader& shader,
 
 Overworld::Minimap::Minimap()
 {
-  hp = std::make_shared<SpriteProxyNode>();
-
   auto markerTexture = Textures().LoadFromFile("resources/ow/minimap/markers.png");
   auto markerAnimation = Animation("resources/ow/minimap/markers.animation");
 
@@ -356,8 +352,8 @@ Overworld::Minimap::Minimap()
     markerAnimation.Refresh(node.getSprite());
   };
 
-  initMarker(*hp, "home");
   initMarker(player, "actor");
+  initMarker(home, "home");
   initMarker(warp, "warp");
   initMarker(board, "board");
   initMarker(shop, "shop");
@@ -370,10 +366,6 @@ Overworld::Minimap::Minimap()
   bgColor = sf::Color(24, 56, 104, 255);
   rectangle = sf::RectangleShape({ 240,160 });
   rectangle.setFillColor(bgColor);
-
-  // add the homepage marker but hide it
-  bakedMap.AddNode(hp);
-  hp->Hide();
 }
 
 Overworld::Minimap::~Minimap()
@@ -452,24 +444,22 @@ void Overworld::Minimap::RemovePlayerMarker(std::shared_ptr<Overworld::Minimap::
   bakedMap.RemoveNode(playerMarker.get());
 }
 
-void Overworld::Minimap::SetHomepagePosition(const sf::Vector2f& pos, bool isConcealed)
-{
-  auto newpos = pos * this->scaling;
-  hp->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
-  hp->setColor(isConcealed ? CONCEALED_COLOR : sf::Color::White);
-  hp->SetLayer(-1); // on top of the map
-  hp->Reveal();
-}
-
 void Overworld::Minimap::ClearIcons()
 {
-  bakedMap.RemoveNode(hp);
-
   for(auto& marker : mapMarkers) {
     bakedMap.RemoveNode(marker.get());
   }
 
   mapMarkers.clear();
+}
+
+void Overworld::Minimap::AddHomepagePosition(const sf::Vector2f& pos, bool isConcealed)
+{
+  std::shared_ptr<SpriteProxyNode> newHome = std::make_shared<SpriteProxyNode>();
+  CopyFrame(*newHome, home);
+
+  AddMarker(newHome, pos, isConcealed);
+  mapMarkers.push_back(newHome);
 }
 
 void Overworld::Minimap::AddWarpPosition(const sf::Vector2f& pos, bool isConcealed)
