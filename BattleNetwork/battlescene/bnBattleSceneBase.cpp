@@ -259,7 +259,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
     isPlayerDeleted = true;
   }
 
-  auto pendingPtr = &pending;
+  Character* pendingPtr = &pending;
 
   // Find any AI using this character as a target and free that pointer  
   field->FindEntities([pendingPtr](std::shared_ptr<Entity>& in) {
@@ -279,11 +279,13 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   if (redTeamMob) {
     redTeamMob->Forget(pending);
     redTeamClear = redTeamMob->IsCleared();
+    deletingRedMobs.push_back(pending.GetID());
   }
 
   if (blueTeamMob) {
     blueTeamMob->Forget(pending);
     blueTeamClear = blueTeamMob->IsCleared();
+    deletingBlueMobs.push_back(pending.GetID());
   }
 
   if (redTeamClear || blueTeamClear) {
@@ -769,6 +771,28 @@ void BattleSceneBase::onUpdate(double elapsed) {
     }
   }
 
+  // cleanup trackers for ex-mob enemies when they are fully removed from the field
+  // 
+  // red team mobs
+  for (auto iter = deletingRedMobs.begin(); iter != deletingRedMobs.end(); /*skip*/) {
+    if (!field->GetEntity(*iter)) {
+      iter = deletingRedMobs.erase(iter);
+      continue;
+    }
+
+    iter++;
+  }
+
+  // blue team mobs
+  for (auto iter = deletingBlueMobs.begin(); iter != deletingBlueMobs.end(); /*skip*/) {
+    if (!field->GetEntity(*iter)) {
+      iter = deletingBlueMobs.erase(iter);
+      continue;
+    }
+
+    iter++;
+  }
+
   if (localPlayer) {
     battleResults.playerHealth = localPlayer->GetHealth();
   }
@@ -933,12 +957,12 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
 void BattleSceneBase::onEnd()
 {
-  if (this->onEndCallback) {
-    this->onEndCallback(battleResults);
+  if (onEndCallback) {
+    onEndCallback(battleResults);
   }
 }
 
-bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
+bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player>& other) {
   if (other == localPlayer) return false; // prevent tracking local player as "other" players
 
   auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
@@ -951,7 +975,7 @@ bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player> other) {
   return false;
 }
 
-void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player> other) {
+void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player>& other) {
   auto iter = std::find(otherPlayers.begin(), otherPlayers.end(), other);
   auto iter2 = allPlayerFormsHash.find(other.get());
   auto iter3 = allPlayerTeamHash.find(other.get());
@@ -960,6 +984,12 @@ void BattleSceneBase::UntrackOtherPlayer(std::shared_ptr<Player> other) {
     allPlayerFormsHash.erase(iter2);
     allPlayerTeamHash.erase(iter3);
   }
+}
+
+void BattleSceneBase::UntrackMobCharacter(std::shared_ptr<Character>& character)
+{
+  redTeamMob->Forget(*character.get());
+  blueTeamMob->Forget(*character.get());
 }
 
 void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf)
@@ -1279,12 +1309,12 @@ void BattleSceneBase::TrackCharacter(std::shared_ptr<Character> newCharacter)
 
 const bool BattleSceneBase::IsRedTeamCleared() const
 {
-  return redTeamMob? redTeamMob->IsCleared() : true;
+  return redTeamMob? redTeamMob->IsCleared() && deletingRedMobs.empty() : true;
 }
 
 const bool BattleSceneBase::IsBlueTeamCleared() const
 {
-  return blueTeamMob ? blueTeamMob->IsCleared() : true;
+  return blueTeamMob ? blueTeamMob->IsCleared() && deletingBlueMobs.empty() : true;
 }
 
 void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {

@@ -13,11 +13,13 @@ class Message;
 class TitleScene final : public LoaderScene {
 private:
   // Status flags
+  bool leaving{};
   bool checkMods{};
   bool pressedStart{};
   unsigned progress{}, total{};
   unsigned ellipsis{};
   double totalElapsed{};
+  frame_time_t fastStartFlicker{ frames(60) };
   std::string taskStr, incomingTaskStr;
   std::vector<std::string> logs;
 

@@ -749,9 +749,9 @@ protected:
   ActionQueue actionQueue;
   frame_time_t moveStartupDelay{};
   std::optional<frame_time_t> moveEndlagDelay;
-  double stunCooldown{ 0 }; /*!< Timer until stun is over */
-  double rootCooldown{ 0 }; /*!< Timer until root is over */
-  double invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
+  frame_time_t stunCooldown{ 0 }; /*!< Timer until stun is over */
+  frame_time_t rootCooldown{ 0 }; /*!< Timer until root is over */
+  frame_time_t invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   bool counterable{};
   bool neverFlip{};
   bool hit{}; /*!< Was hit this frame */
@@ -779,7 +779,7 @@ protected:
   * Used internally by class
   *
   */
-  void Stun(double maxCooldown);
+  void Stun(frame_time_t maxCooldown);
 
   /**
   * @brief Stop a character from moving for maxCooldown seconds
@@ -787,7 +787,7 @@ protected:
   * Used internally by class
   *
   */
-  void Root(double maxCooldown);
+  void Root(frame_time_t maxCooldown);
 
   /**
   * @brief Query if an attack successfully countered a Character

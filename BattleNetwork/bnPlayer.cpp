@@ -48,7 +48,7 @@ Player::Player() :
     Audio().Play(AudioType::HURT, AudioPriority::lowest);
   };
 
-  this->RegisterStatusCallback(Hit::flinch, Callback<void()>{ flinch });
+  RegisterStatusCallback(Hit::flinch, Callback<void()>{ flinch });
 
   using namespace std::placeholders;
   auto handler = std::bind(&Player::HandleBusterEvent, this, _1, _2);
@@ -80,7 +80,7 @@ void Player::Init() {
 }
 
 Player::~Player() {
-  for (auto form : forms) {
+  for (PlayerFormMeta* form : forms) {
     delete form;
   }
 
@@ -102,7 +102,7 @@ void Player::RemoveSyncNode(std::shared_ptr<SyncNode> syncNode) {
 void Player::OnUpdate(double _elapsed) {
   SetColorMode(ColorMode::additive);
 
-  if (!this->IsInForm()) {
+  if (!IsInForm()) {
     if (emotion == Emotion::angry) {
       setColor(sf::Color(155, 0, 0, getColor().a));
     }
@@ -113,7 +113,7 @@ void Player::OnUpdate(double _elapsed) {
       setColor(sf::Color(155, 100, 255, getColor().a));
     }
 
-    if (this->emotion == Emotion::evil) {
+    if (emotion == Emotion::evil) {
       SetColorMode(ColorMode::multiply);
     }
   }
@@ -173,7 +173,7 @@ void Player::Attack() {
 void Player::UseSpecial()
 {
   if (tile) {
-    if (auto action = ExecuteSpecial()) {
+    if (std::shared_ptr<CardAction> action = ExecuteSpecial()) {
       action->PreventCounters();
       action->SetLockoutGroup(CardAction::LockoutGroup::ability);
       CardEvent event = { std::shared_ptr<CardAction>(action) };
@@ -193,17 +193,14 @@ void Player::OnDelete() {
 
   // Cleanup child nodes
   // TODO: this should have been cleaned up automatically by card actions...
-  auto ourNodes = GetChildNodesWithTag({ Player::BASE_NODE_TAG, Player::FORM_NODE_TAG });
-  auto allNodes = GetChildNodes();
+  // auto ourNodes = GetChildNodesWithTag({ Player::BASE_NODE_TAG, Player::FORM_NODE_TAG });
+  std::vector<std::shared_ptr<SceneNode>> allNodes = GetChildNodes();
 
-  for (auto node : allNodes) {
-    auto iter = ourNodes.find(node);
-    if (iter == ourNodes.end()) {
-      RemoveNode(node);
-    }
+  for (std::shared_ptr<SceneNode>& node : allNodes) {
+    RemoveNode(node);
   }
 
-  auto animationComponent = GetFirstComponent<AnimationComponent>();
+  std::shared_ptr<AnimationComponent> animationComponent = GetFirstComponent<AnimationComponent>();
 
   if (animationComponent) {
       animationComponent->CancelCallbacks();
@@ -258,8 +255,8 @@ const unsigned Player::GetChargeLevel()
 void Player::ModMaxHealth(int mod)
 {
   stats.moddedHP += mod;
-  this->SetMaxHealth(this->GetMaxHealth() + mod);
-  this->SetHealth(this->GetMaxHealth());
+  SetMaxHealth(this->GetMaxHealth() + mod);
+  SetHealth(this->GetMaxHealth());
 }
 
 const int Player::GetMaxHealthMod()
@@ -272,10 +269,10 @@ void Player::SetEmotion(Emotion emotion)
   this->emotion = emotion;
 
   if (this->emotion == Emotion::angry) {
-    this->AddDefenseRule(superArmor);
+    AddDefenseRule(superArmor);
   }
   else {
-    this->RemoveDefenseRule(superArmor);
+    RemoveDefenseRule(superArmor);
   }
 }
 

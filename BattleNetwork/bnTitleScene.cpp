@@ -151,12 +151,22 @@ void TitleScene::onUpdate(double elapsed)
     return;
   }
 
+  if (pressedStart) {
+    if (fastStartFlicker > frames(0)) {
+      fastStartFlicker -= from_seconds(elapsed);
+    }
+    else {
+      // We want the next screen to be the main menu screen
+      using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
+      getController().push<tx>();
+      leaving = true;
+      return;
+    }
+  }
+
   if (Input().Has(InputEvents::pressed_pause) && !pressedStart) {
     pressedStart = true;
-
-    // We want the next screen to be the main menu screen
-    using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
-    getController().push<tx>();
+    Audio().Play(AudioType::NEW_GAME);
   }
 }
 
@@ -184,9 +194,17 @@ void TitleScene::onDraw(sf::RenderTexture & surface)
   surface.draw(progSprite);
   surface.draw(logoSprite);
 
-  // blink
-  unsigned frame = from_seconds(totalElapsed).count() % 60;
-  if (frame < 30 || progress < 100) {
+  // blink when ready
+  unsigned min = pressedStart ? 5 : 30;
+  unsigned max = pressedStart ? 10 : 60;
+  unsigned frame = from_seconds(totalElapsed).count() % max;
+  if ((frame < min || progress < 100) && !leaving) {
+    sf::Vector2f lastPos = startLabel.getPosition();
+    startLabel.setPosition(lastPos.x + 2.f, lastPos.y + 2.f);
+    startLabel.SetColor(sf::Color::Black);
+    surface.draw(startLabel);
+    startLabel.setPosition(lastPos);
+    startLabel.SetColor(sf::Color::White);
     surface.draw(startLabel);
   }
 

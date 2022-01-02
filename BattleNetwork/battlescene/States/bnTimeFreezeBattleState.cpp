@@ -37,6 +37,7 @@ void TimeFreezeBattleState::CleanupStuntDouble()
     auto iter = tfEvents.begin();
 
     if (iter->stuntDouble) {
+      GetScene().UntrackMobCharacter(iter->stuntDouble);
       GetScene().GetField()->DeallocEntity(iter->stuntDouble->GetID());
     }
   }
@@ -45,7 +46,7 @@ void TimeFreezeBattleState::CleanupStuntDouble()
 std::shared_ptr<Character> TimeFreezeBattleState::CreateStuntDouble(std::shared_ptr<Character> from)
 {
   CleanupStuntDouble();
-  auto stuntDouble = std::make_shared<StuntDouble>(from);
+  std::shared_ptr<StuntDouble> stuntDouble = std::make_shared<StuntDouble>(from);
   stuntDouble->Init();
   return stuntDouble;
 }
@@ -59,12 +60,12 @@ void TimeFreezeBattleState::SkipToAnimateState()
 void TimeFreezeBattleState::ProcessInputs()
 {
   size_t player_idx = 0;
-  for (auto& p : this->GetScene().GetAllPlayers()) {
+  for (std::shared_ptr<Player>& p : this->GetScene().GetAllPlayers()) {
     p->InputState().Process();
 
     if (p->InputState().Has(InputEvents::pressed_use_chip)) {
       Logger::Logf(LogLevel::info, "InputEvents::pressed_use_chip for player %i", player_idx);
-      auto cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
+      std::shared_ptr<PlayerSelectedCardsUI> cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
       if (cardsUI) {
         auto maybe_card = cardsUI->Peek();
 
@@ -73,7 +74,7 @@ void TimeFreezeBattleState::ProcessInputs()
           const Battle::Card& card = *maybe_card;
 
           if (card.IsTimeFreeze() && CanCounter(p)) {
-            if (auto action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.props)) {
+            if (std::shared_ptr<CardAction> action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.props)) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
             }
@@ -158,7 +159,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       ExecuteTimeFreeze();
     }
 
-    for (auto& e : tfEvents) {
+    for (TimeFreezeBattleState::EventData& e : tfEvents) {
       if (e.animateCounter) {
         e.alertFrameCount += frames(1);
       }
@@ -410,7 +411,7 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
 
   if (!tfEvents.empty()) {
     // only opposing players can counter
-    auto lastActor = tfEvents.begin()->action->GetActor();
+    std::shared_ptr<Character> lastActor = tfEvents.begin()->action->GetActor();
     if (!lastActor->Teammate(user->GetTeam())) {
       playerCountered = true;
       Logger::Logf(LogLevel::info, "Player was countered!");

@@ -331,8 +331,8 @@ void Entity::Update(double _elapsed) {
   RefreshShader();
 
   if (!hit) {
-    if (invincibilityCooldown > 0) {
-      unsigned frame = from_seconds(invincibilityCooldown).count() % 4;
+    if (invincibilityCooldown > frames(0)) {
+      unsigned frame = invincibilityCooldown.count() % 4;
       if (frame < 2) {
         Hide();
       }
@@ -340,30 +340,30 @@ void Entity::Update(double _elapsed) {
         Reveal();
       }
 
-      invincibilityCooldown -= _elapsed;
+      invincibilityCooldown -= from_seconds(_elapsed);
 
-      if (invincibilityCooldown <= 0) {
+      if (invincibilityCooldown <= frames(0)) {
         Reveal();
       }
     }
   }
 
-  if(rootCooldown > 0.0) {
-    rootCooldown -= _elapsed;
+  if(rootCooldown > frames(0)) {
+    rootCooldown -= from_seconds(_elapsed);
 
-    if (rootCooldown <= 0.0 || invincibilityCooldown > 0 || IsPassthrough()) {
-      rootCooldown = 0.0;
+    if (rootCooldown <= frames(0) || invincibilityCooldown > frames(0) || IsPassthrough()) {
+      rootCooldown = frames(0);
     }
   }
 
-  if(stunCooldown > 0.0) {
-    stunCooldown -= _elapsed;
+  if(stunCooldown > frames(0)) {
+    stunCooldown -= from_seconds(_elapsed);
 
-    if (stunCooldown <= 0.0) {
-      stunCooldown = 0.0;
+    if (stunCooldown <= frames(0)) {
+      stunCooldown = frames(0);
     }
   }
-  else if(stunCooldown <= 0.0) {
+  else if(stunCooldown <= frames(0)) {
     OnUpdate(_elapsed);
   }
 
@@ -420,9 +420,9 @@ void Entity::Update(double _elapsed) {
     health = 0;
 
     // Ensure status effects do not play out
-    stunCooldown = 0;
-    rootCooldown = 0;
-    invincibilityCooldown = 0;
+    stunCooldown = frames(0);
+    rootCooldown = frames(0);
+    invincibilityCooldown = frames(0);
   }
 
   // If drag status is over, reset the flag
@@ -483,17 +483,17 @@ void Entity::RefreshShader()
   smartShader.SetUniform("palette", palette);
 
   // state checks
-  unsigned stunFrame = from_seconds(stunCooldown).count() % 4;
-  unsigned rootFrame = from_seconds(rootCooldown).count() % 4;
+  unsigned stunFrame = stunCooldown.count() % 4;
+  unsigned rootFrame = rootCooldown.count() % 4;
   counterFrameFlag = counterFrameFlag % 4;
   counterFrameFlag++;
 
-  bool iframes = invincibilityCooldown > 0;
+  bool iframes = invincibilityCooldown > frames(0);
 
   vector<float> states = {
-    static_cast<float>(hit),                                            // WHITEOUT
-    static_cast<float>(rootCooldown > 0. && (iframes || rootCooldown)), // BLACKOUT
-    static_cast<float>(stunCooldown > 0. && (iframes || stunFrame))     // HIGHLIGHT
+    static_cast<float>(hit),                                                // WHITEOUT
+    static_cast<float>(rootCooldown > frames(0) && (iframes || rootFrame)), // BLACKOUT
+    static_cast<float>(stunCooldown > frames(0) && (iframes || stunFrame))  // HIGHLIGHT
   };
 
   smartShader.SetUniform("states", states);
@@ -1196,7 +1196,7 @@ const bool Entity::HasCollision(const Hit::Properties & props)
 {
   // Pierce status hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
-    if (invincibilityCooldown > 0 || IsPassthrough()) return false;
+    if (invincibilityCooldown > frames(0) || IsPassthrough()) return false;
   }
 
   return true;
@@ -1318,11 +1318,11 @@ void Entity::ResolveFrameBattleDamage()
 
           if ((props.filtered.flags & Hit::flash) == Hit::flash && cancelsStun) {
             // cancel stun
-            stunCooldown = 0.0;
+            stunCooldown = frames(0);
           }
           else {
             // refresh stun
-            stunCooldown = 3.0;
+            stunCooldown = frames(180);
             flagCheckThunk(Hit::stun);
           }
 
@@ -1339,7 +1339,7 @@ void Entity::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          invincibilityCooldown = 2.0; // used as a `flash` status time
+          invincibilityCooldown = frames(120); // used as a `flash` status time
           flagCheckThunk(Hit::flash);
         }
       }
@@ -1349,7 +1349,7 @@ void Entity::ResolveFrameBattleDamage()
 
       // Flinch is canceled if retangibility is applied
       if ((props.filtered.flags & Hit::retangible) == Hit::retangible) {
-        invincibilityCooldown = 0.0;
+        invincibilityCooldown = frames(0);
 
         flagCheckThunk(Hit::retangible);
       }
@@ -1365,7 +1365,7 @@ void Entity::ResolveFrameBattleDamage()
       props.filtered.flags &= ~Hit::bubble;
 
       if ((props.filtered.flags & Hit::root) == Hit::root) {
-          rootCooldown = 2.0;
+          rootCooldown = frames(120);
           flagCheckThunk(Hit::root);
       }
 
@@ -1438,7 +1438,7 @@ void Entity::ResolveFrameBattleDamage()
   } else if (frameCounterAggressor) {
     CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
     ToggleCounter(false);
-    Stun(2.5); // 150 frames @ 60 fps = 2.5 seconds
+    Stun(frames(150));
   }
 }
 
@@ -1529,27 +1529,27 @@ void Entity::NeverFlip(bool enabled)
 
 bool Entity::IsStunned()
 {
-  return stunCooldown > 0;
+  return stunCooldown > frames(0);
 }
 
 bool Entity::IsRooted()
 {
-  return rootCooldown > 0;
+  return rootCooldown > frames(0);
 }
 
-void Entity::Stun(double maxCooldown)
+void Entity::Stun(frame_time_t maxCooldown)
 {
   stunCooldown = maxCooldown;
 }
 
-void Entity::Root(double maxCooldown)
+void Entity::Root(frame_time_t maxCooldown)
 {
   rootCooldown = maxCooldown;
 }
 
 bool Entity::IsCountered()
 {
-  return (counterable && stunCooldown <= 0);
+  return (counterable && stunCooldown <= frames(0));
 }
 
 const Battle::TileHighlight Entity::GetTileHighlightMode() const {

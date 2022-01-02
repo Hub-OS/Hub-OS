@@ -191,6 +191,7 @@ void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::Execu
       actionQueue.Pop();
     }
     else {
+      cardActionStartDelay = frames(5);
       currCardAction = event.action;
     }
   }
@@ -213,7 +214,6 @@ void Character::HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::E
     if (publisher->HandlePlayEvent(characterPtr)) {
       // prepare for this frame's action animation (we must be actionable)
       MakeActionable();
-      cardActionStartDelay = frames(5);
     }
   }
 

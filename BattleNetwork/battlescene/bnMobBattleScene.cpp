@@ -297,13 +297,13 @@ std::function<bool()> MobBattleScene::HookPlayerWon()
     std::shared_ptr<Player> localPlayer = GetLocalPlayer();
 
     if (localPlayer->GetTeam() == Team::red) {
-      return BlueTeamMobList().empty();
+      return IsBlueTeamCleared();
     }
     else if (localPlayer->GetTeam() == Team::blue) {
-      return RedTeamMobList().empty();
+      return IsRedTeamCleared();
     }
 
-    return BlueTeamMobList().empty() && RedTeamMobList().empty();
+    return IsBlueTeamCleared() && IsRedTeamCleared();
   };
 
   return lambda;

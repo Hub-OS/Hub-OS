@@ -115,6 +115,7 @@ private:
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
   std::shared_ptr<Field> field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
   std::shared_ptr<Player> localPlayer; /*!< Local player */
+  std::vector<Entity::ID_t> deletingRedMobs, deletingBlueMobs; /*!< mobs untrack enemies but we need to know when they fully finish deleting*/
   std::vector<std::shared_ptr<Player>> otherPlayers; /*!< Player array supports multiplayer */
   std::map<Player*, TrackedFormData> allPlayerFormsHash;
   std::map<Player*, Team> allPlayerTeamHash; /*!< Check previous frames teams for traitors */
@@ -321,13 +322,13 @@ public:
 
   /**
     * @brief State boolean for BattleScene. Query if the battle is over.
-    * @return true if all mob enemies are marked as deleted
+    * @return true if all mob enemies are marked as deleted and removed from field.
     */
   const bool IsRedTeamCleared() const;
 
   /**
   * @brief State boolean for BattleScene. Query if the battle is over.
-  * @return true if all mob enemies are marked as deleted
+  * @return true if all mob enemies are marked as deleted and removed from field.
   */
   const bool IsBlueTeamCleared() const;
 
@@ -379,9 +380,9 @@ public:
   void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);
   void DrawWithPerspective(Text& text, sf::RenderTarget& surf);
   void PerspectiveFlip(bool flipped);
-  bool TrackOtherPlayer(std::shared_ptr<Player> other);
-  void UntrackOtherPlayer(std::shared_ptr<Player> other);
-
+  bool TrackOtherPlayer(std::shared_ptr<Player>& other);
+  void UntrackOtherPlayer(std::shared_ptr<Player>& other);
+  void UntrackMobCharacter(std::shared_ptr<Character>& character);
   bool IsPlayerDeleted() const;
 
   std::shared_ptr<Player> GetLocalPlayer();
