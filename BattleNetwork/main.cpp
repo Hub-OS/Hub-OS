@@ -77,25 +77,27 @@ int main(int argc, char** argv) {
   // Prevent throwing exceptions on bad input
   options.allow_unrecognised_options();
 
-  // Parse
-  cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
+ try {
+    cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
 
-  // Check for help, print, and quit early
-  if (parsedOptions.count("help")) {
-    std::cout << options.help() << std::endl;
-    return EXIT_SUCCESS;
-  }
+    // Check for help, print, and quit early
+    if (parsedOptions.count("help")) {
+      std::cout << options.help() << std::endl;
+      return EXIT_SUCCESS;
+    }
 
-  DrawWindow win;
-  win.Initialize("Open Net Battle v2.0a", DrawWindow::WindowMode::window);
-  Game game{ win };
+    DrawWindow win;
+    win.Initialize("Open Net Battle v2.0a", DrawWindow::WindowMode::window);
+    Game game{ win };
 
-  try {
     // Go the the title screen to kick off the rest of the app
     if (LaunchGame(game, parsedOptions) == EXIT_SUCCESS) {
       // blocking
       game.Run();
     }
+  }
+  catch (cxxopts::missing_argument_exception& e) {
+    Logger::Log(LogLevel::critical, e.what());
   }
   catch (std::exception& e) {
     Logger::Log(LogLevel::critical, e.what());
@@ -103,7 +105,6 @@ int main(int argc, char** argv) {
   catch (...) {
     Logger::Log(LogLevel::critical, "Game encountered an unknown exception. Aborting.");
   }
-  game.Exit();
 
   // finished
   return EXIT_SUCCESS;

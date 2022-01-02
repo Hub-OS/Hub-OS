@@ -26,8 +26,11 @@ std::shared_ptr<CardAction> CardToAction(
       const Battle::Card::Properties& props = moddedProps.has_value() ? moddedProps.value() : meta.GetCardProperties();
 
       std::shared_ptr<CardAction> result = cardImpl->BuildCardAction(character, props);
-      result->SetMetaData(props);
-      return result;
+
+      if (result) {
+        result->SetMetaData(props);
+        return result;
+      }
     }
   }
 

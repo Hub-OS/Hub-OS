@@ -2255,7 +2255,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     };
 
     returningFrom = ReturningScene::DownloadScene;
-    using effect = swoosh::types::segue<VerticalOpen>;
+    using effect = swoosh::types::segue<VerticalOpen, milliseconds<500>>;
     getController().push<effect::to<DownloadScene>>(props);
   });
 

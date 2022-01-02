@@ -434,8 +434,17 @@ void NetworkBattleScene::SendHandshakeSignal()
   buffer.append((char*)&form, sizeof(int));
   buffer.append((char*)&len, sizeof(size_t));
 
+  CardPackagePartitioner& partitioner = getController().CardPackagePartitioner();
+  CardPackageManager& localPackages = partitioner.GetPartition(Game::LocalPartition);
+  CardPackageManager& remotePackages = partitioner.GetPartition(Game::RemotePartition);
   for (std::string& id : prefilteredCardSelection) {
-    id = getController().CardPackagePartitioner().GetPartition(Game::RemotePartition).WithNamespace(id);
+    if (localPackages.HasPackage(id)) {
+      id = remotePackages.WithNamespace(id);
+    }
+    else {
+      id = "";
+    }
+
     size_t len = id.size();
     buffer.append((char*)&len, sizeof(size_t));
     buffer.append(id.c_str(), len);

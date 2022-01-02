@@ -265,8 +265,6 @@ void Entity::BattleStart()
 void Entity::BattleStop()
 {
   if (!fieldStart) return;
-
-  fieldStart = false;
   OnBattleStop();
 }
 
@@ -334,10 +332,10 @@ void Entity::Update(double _elapsed) {
     if (invincibilityCooldown > frames(0)) {
       unsigned frame = invincibilityCooldown.count() % 4;
       if (frame < 2) {
-        Hide();
+        Reveal();
       }
       else {
-        Reveal();
+        Hide();
       }
 
       invincibilityCooldown -= from_seconds(_elapsed);
@@ -1167,6 +1165,7 @@ const bool Entity::Hit(Hit::Properties props) {
 
   if ((props.flags & Hit::impact) == Hit::impact) {
     this->hit = true; // flash white immediately
+    RefreshShader();
   }
 
   return true;

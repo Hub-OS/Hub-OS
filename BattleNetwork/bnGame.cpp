@@ -107,6 +107,8 @@ Game::Game(DrawWindow& window) :
 }
 
 Game::~Game() {
+  Exit();
+
   if (renderThread.joinable()) {
     renderThread.join();
   }
@@ -255,14 +257,20 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
 bool Game::NextFrame()
 {
-  bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame);
+  static bool pressOnce = false;
+  bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame) && !pressOnce;
   bool resumeKey = inputManager.Has(InputEvents::pressed_resume_frames);
 
-  if (nextFrameKey && isDebug && !frameByFrame) {
+  if (nextFrameKey && isDebug) {
     frameByFrame = true;
+    pressOnce = true;
   }
   else if (resumeKey && frameByFrame) {
     frameByFrame = false;
+  }
+
+  if (inputManager.Has(InputEvents::released_advance_frame)) {
+    pressOnce = false;
   }
 
   return (frameByFrame && nextFrameKey) || !frameByFrame;

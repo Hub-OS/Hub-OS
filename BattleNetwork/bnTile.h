@@ -326,23 +326,23 @@ namespace Battle {
     void UpdateArtifacts(Field& field, const double elapsed);
     void UpdateCharacters(Field& field, const double elapsed);
 
-    int x; /**< Column number*/
-    int y; /**< Row number*/
-    bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
-    bool isTimeFrozen;
-    bool isBattleOver;
+    int x{}; /**< Column number*/
+    int y{}; /**< Row number*/
+    bool willHighlight{ false }; /**< Highlights when there is a spell occupied in this tile */
+    bool isTimeFrozen{ false };
+    bool isBattleOver{ false };
     bool isBattleStarted{ false };
-    float width;
-    float height;
+    float width{};
+    float height{};
     static double teamCooldownLength;
     static double brokenCooldownLength;
     static double flickerTeamCooldownLength;
-    double teamCooldown;
-    double brokenCooldown;
-    double flickerTeamCooldown;
-    double totalElapsed;
-    double elapsedBurnTime;
-    double burncycle;
+    double teamCooldown{};
+    double brokenCooldown{};
+    double flickerTeamCooldown{};
+    double totalElapsed{};
+    double elapsedBurnTime{};
+    double burncycle{};
     std::weak_ptr<Field> fieldWeak;
     std::shared_ptr<sf::Texture> red_team_atlas, red_team_perm;
     std::shared_ptr<sf::Texture> blue_team_atlas, blue_team_perm;
