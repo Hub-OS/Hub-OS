@@ -54,7 +54,7 @@ private:
   friend class PlayerIdleState;
   friend class PlayerHitState;
   friend class PlayerChangeFormState;
-
+  
   void SaveStats();
   void RevertStats();
   void CreateMoveAnimHash();
