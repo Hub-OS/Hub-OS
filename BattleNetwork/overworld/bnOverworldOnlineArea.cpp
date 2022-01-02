@@ -780,7 +780,7 @@ void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t por
       Net().GetMaxPayloadSize()
       );
 
-    packetProcessor->SetStatusHandler([=](auto status, auto maxPayloadSize) {
+    packetProcessor->SetStatusHandler([this, host, port, data, handleFail, packetProcessor = packetProcessor.get()](auto status, auto maxPayloadSize) {
       Net().DropProcessor(packetProcessor);
 
       if (status == ServerStatus::online) {

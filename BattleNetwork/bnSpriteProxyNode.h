@@ -116,7 +116,7 @@ public:
    * @brief Get sprite rect proxy
    * @return texture rect
    */
-  const sf::IntRect& getTextureRect();
+  const sf::IntRect& getTextureRect() const;
 
   /**
    * @brief Set sprite rect proxy

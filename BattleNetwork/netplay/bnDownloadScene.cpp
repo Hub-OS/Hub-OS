@@ -107,7 +107,11 @@ void DownloadScene::SendCoinFlip() {
 
   getController().SeedRand(static_cast<unsigned>(time.count()));
 
-  coinValue = rand();
+  // this is intentionally desynced here from the SeedRand above, but syncs back up later when the scene exits to pvp
+  // we want to use the same random generator due to implemenation differences of RAND_MAX
+  // on linux RAND_MAX is 2147483647 while on windows it is 32767,
+  // giving a far higher probability of being player 2 on linux when using rand() instead of SyncedRand()
+  coinValue = SyncedRand();
 
   writer.Write<uint32_t>(buffer, coinValue);
 
