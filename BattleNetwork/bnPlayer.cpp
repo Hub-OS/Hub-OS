@@ -184,7 +184,6 @@ void Player::UseSpecial()
 
 void Player::HandleBusterEvent(const BusterEvent& event, const ActionQueue::ExecutionType& exec)
 {
-  actionQueue.CreateDiscardFilter(ActionTypes::movement, ActionDiscardOp::until_resolve);
   Character::HandleCardEvent({ std::shared_ptr<CardAction>(event.action) }, exec);
 }
 

@@ -24,7 +24,7 @@ class PixelInState : public AIState<Any>
 {
 private:
   SmartShader pixelated; /*!< Shader to pixelate effect */
-  float factor; /*!< Strength of the pixelate effect. Set to 125 */
+  float factor{}; /*!< Strength of the pixelate effect. Set to 125 */
   FinishNotifier callback; /*!< Callback when intro effect finished */
 public:
   inline static const int PriorityLevel = 2;
@@ -86,10 +86,8 @@ void PixelInState<Any>::OnEnter(Any& e) {
 
 template<typename Any>
 void PixelInState<Any>::OnUpdate(double _elapsed, Any& e) {
-    /* freeze frame */
-#if ONB_ENABLE_PIXELATE_GFX 
-    e.SetShader(pixelated);
-#endif
+  /* freeze frame */
+  e.SetShader(pixelated);
 
   /* If progress is 1, pop state and move onto original state*/
   factor -= static_cast<float>(_elapsed) * 180.f;
