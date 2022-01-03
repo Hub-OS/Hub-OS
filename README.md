@@ -49,7 +49,7 @@ Note that you will need to also install `fluidsynth` with vcpkg and the install 
 - and so much more
 
 # 🧑🏼‍🤝‍🧑🏼 COMMUNITY 
-View the contributor list [here](). I could not have made it this far without these special and very talented people!
+View the contributor list [here](https://github.com/TheMaverickProgrammer/OpenNetBattle/wiki/Contributing#contributor-list). I could not have made it this far without these special and very talented people!
 
 Join the project official discord [here](https://discord.gg/yAK9MG2)
 
