@@ -1004,8 +1004,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
 
 void Overworld::OnlineArea::CheckPlayerAgainstWhitelist()
 {
-
+  // Check if the current navi is compatible
   PlayerPackagePartitioner& partitioner = getController().PlayerPackagePartitioner();
+  PlayerPackageManager& packages = partitioner.GetPartition(Game::LocalPartition);
   std::string& id = GetCurrentNaviID();
   PackageAddress addr = { Game::LocalPartition, id };
 
@@ -1013,10 +1014,39 @@ void Overworld::OnlineArea::CheckPlayerAgainstWhitelist()
   
   const std::string& md5 = partitioner.FindPackageByAddress(addr).GetPackageFingerprint();
 
-  if (getController().Session().IsPackageAllowed({ id, md5 })) return;
+  GameSession& session = getController().Session();
+  if (session.IsPackageAllowed({ id, md5 })) return;
 
-  // Take player to navi select screen with a message
-  getController().push<segue<BlackWashFade>::to<SelectNaviScene>>(id);
+  // Otherwise check to see if the player has any compatible mods
+  bool anyCompatible = false;
+  
+  std::string next_id = packages.GetPackageAfter(id);
+
+  while (next_id != id) {
+    std::string next_md5 = packages.FindPackageByID(next_id).GetPackageFingerprint();
+    if (session.IsPackageAllowed({ next_id, next_md5 })) {
+      anyCompatible = true;
+      break;
+    }
+
+    next_id = packages.GetPackageAfter(next_id);
+  }
+
+  if (anyCompatible) {
+    // If so, take player to navi select screen with a message
+    getController().push<segue<BlackWashFade>::to<SelectNaviScene>>(id);
+    return;
+  }
+
+  // Else, inform the player they will be kicked
+  auto onComplete = [this] {
+    auto& command = GetTeleportController().TeleportOut(GetPlayer());
+    command.onFinish.Slot([this] {
+      getController().pop<segue<PixelateBlackWashFade>>();
+    });
+  };
+  std::string message = "This server detects none of your installed navis are allowed.\nReturning to your homepage.";
+  this->GetMenuSystem().EnqueueMessage(message, onComplete);
 }
 
 void Overworld::OnlineArea::sendAssetFoundSignal(const std::string& path, uint64_t lastModified) {
