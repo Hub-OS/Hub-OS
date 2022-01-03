@@ -7,6 +7,7 @@ This was originally started to kill some time one summer and I got a little carr
 # 🕹️ GET STARTED PLAYING THE GAME
 
 To begin, follow the [Playing Guide](https://github.com/TheMaverickProgrammer/OpenNetBattle/wiki/Playing-Guide).
+
 Below are the default bindings. The engine supports 1 joystick. You can change these bindings from within the game's `Config` screen.
 
 ```
