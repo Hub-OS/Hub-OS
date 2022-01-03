@@ -6,6 +6,11 @@ using namespace std;
 
 template<typename T>
 class TurnOrderTrait {
+public:
+  virtual ~TurnOrderTrait() {
+    RemoveMeFromTurnOrder();
+  }
+
 protected:
 
   TurnOrderTrait() {
@@ -45,7 +50,7 @@ protected:
       if (it != IDs.end()) {
         // Remove me out of rotation...
         IDs.erase(it);
-        this->EndMyTurn();
+        EndMyTurn();
       }
     }
   }

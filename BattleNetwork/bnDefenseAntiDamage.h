@@ -12,29 +12,29 @@
  * This is used by the NinjaAntiDamage component that adds the rule to the entity
  * and spawns a NinjaStar when the callback is triggered
  * 
- * You can create more anti damage chips using this rule
+ * You can create more anti damage cards using this rule
  */
 class DefenseAntiDamage : public DefenseRule {
 public:
-  typedef std::function<void(Spell* in, Character* owner)> Callback;
+  typedef std::function<void(std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)> Callback;
 
 private:
   Callback callback; /*!< Runs when the antidefense is triggered */
+  bool triggering{ false };
 
 public:
   /**
    * @brief sets callback
    * @param callback
    */
-  DefenseAntiDamage(Callback callback);
+  DefenseAntiDamage(const Callback& callback);
 
-  virtual ~DefenseAntiDamage();
+  ~DefenseAntiDamage();
 
   /**
    * @brief If the attack does > 10 units of impact damage, triggers the callback
    * @param in attack spell
    * @param owner the character with antidamage defense (this) added 
-   * @return true if triggered, false, if not
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 };

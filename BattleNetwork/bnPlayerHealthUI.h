@@ -16,71 +16,71 @@
 #include <sstream>
 #include <vector>
 
-#include "bnBattleOverTrigger.h"
 #include "bnPlayer.h"
 #include "bnUIComponent.h"
+#include "bnText.h"
 
 class Entity;
 class Player;
+class BattleSceneBase;
 
-using sf::Font;
-using sf::Text;
-using sf::Sprite;
 using sf::Texture;
 using sf::Drawable;
 using std::vector;
 using std::ostringstream;
 
-class PlayerHealthUI : virtual public UIComponent, virtual public BattleOverTrigger<Player> {
+class PlayerHealthUI : public SceneNode {
+public:
+  PlayerHealthUI();
+  ~PlayerHealthUI();
+
+  void SetFontStyle(Font::Style style);
+  void SetHP(int hp);
+  void Update(double elapsed);
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
+
+private:
+  int targetHP{}; /*!< target value */
+  int lastHP{}; /*!< HP of target last frame */
+  int currHP{}; /*!< HP of target current frame */
+  int startHP{}; /*!< HP of target when this component was attached */
+  double cooldown{}; /*!< timer to colorize the health. Set to 0.5 seconds */
+  mutable Text glyphs; /*!< numbers to draw */
+  SpriteProxyNode uibox; /*!< the box surrounding the health */
+  std::shared_ptr<Texture> texture; /*!< the texture of the box */
+};
+
+class PlayerHealthUIComponent : public UIComponent {
+  PlayerHealthUI ui;
+  int startHP{}; /*!< HP of target when this component was attached */
+  bool isBattleOver{}; /*!< flag when battle scene ends to stop beeping */
 public:
   /**
    * \brief Sets the player owner. Sets hp tracker to current health.
    */
-  PlayerHealthUI(Player* _player);
+  PlayerHealthUIComponent(std::weak_ptr<Player> _player);
   
   /**
    * @brief No memory needs to be freed
    */
-  ~PlayerHealthUI();
+  ~PlayerHealthUIComponent();
 
   /**
    * @brief This component does not need to be injected into the scene
    * @param scene
    */
-  void Inject(BattleScene& scene);
+  void Inject(BattleSceneBase& scene) override;
 
   /**
    * @brief Uses bitmap glyphs for each number in the health
    * @param target
    * @param states
    */
-  virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
+  void draw(sf::RenderTarget & target, sf::RenderStates states) const override;
   
   /**
    * @brief Quickly depletes health based on game rules and beeps if health is low
    * @param elapsed in seconds
    */
-  void OnUpdate(float elapsed);
-
-private:
-  int lastHP; /*!< HP of target last frame */
-  int currHP; /*!< HP of target current frame */
-  int startHP; /*!< HP of target when this component was attached */
-  Player* player; /*!< target entity of type Player */
-  mutable Sprite glyphs; /*!< bitmap image object to draw */
-  Sprite sprite; /*!< the box surrounding the health */
-  Texture* texture; /*!< the texture of the box */
-
-  /**
-   * @class Color
-   * @brief strong type for glyph colors
-   */
-  enum class Color : int {
-    NORMAL,
-    ORANGE,
-    GREEN
-  } color; /*!< color of the glyphs */
-
-  bool isBattleOver; /*!< flag when battle scene ends to stop beeping */
-  double cooldown; /*!< timer to colorize the health. Set to 0.5 seconds */
+  void OnUpdate(double elapsed) override;
 };

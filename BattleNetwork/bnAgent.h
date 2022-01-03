@@ -1,6 +1,6 @@
 #pragma once
 
-class Entity;
+class Character;
 
 /**
  * @class Agent
@@ -11,9 +11,9 @@ class Entity;
  */
 class Agent {
 private:
-  Entity * target;
+  std::shared_ptr<Character> target;
 public:
-  void SetTarget(Entity* _target) {
+  void SetTarget(std::shared_ptr<Character> _target) {
     target = _target;
   }
 
@@ -21,5 +21,5 @@ public:
     SetTarget(nullptr);
   }
 
-  Entity* GetTarget() const { return target; }
+  std::shared_ptr<Character> GetTarget() const { return target; }
 };

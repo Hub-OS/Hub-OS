@@ -20,24 +20,23 @@ public:
 
 private:
   Battle::Tile* temp;
-  Character* owner;
-  BattleScene* scene;
+  BattleSceneBase* scene;
   Callback callback;
 
 public:
   /**
    * @brief Sets the query functor
    */
-  HideUntil(Character* owner, Callback callback);
+  HideUntil(std::weak_ptr<Character> owner, Callback callback);
 
   /**
    * @brief When query stored in callback() is true, adds the entity back into the scene
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Transfers ownership from entity to the battle scene and removes entity from play
    */
-  virtual void Inject(BattleScene&);
+  void Inject(BattleSceneBase&) override;
 };

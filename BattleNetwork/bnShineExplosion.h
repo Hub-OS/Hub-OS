@@ -7,25 +7,25 @@
 class ShineExplosion : public Artifact
 {
 private:
-  AnimationComponent* animationComponent;
+  std::shared_ptr<AnimationComponent> animationComponent;
 
 public:
   /**
    * @brief Loads the shine texture and animation. Sets the layer to 0*
    */
-  ShineExplosion(Field* _field, Team _team);
+  ShineExplosion();
   ~ShineExplosion();
+
+  void Init() override;
 
   /**
    * @brief Loops animations
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief the shine effect does not move
-   * @param _direction ignored
-   * @return false
-   */
-  virtual bool Move(Direction _direction) { return false; }
+  * @brief Removes shine explosion from play
+  */
+  void OnDelete() override;
 };

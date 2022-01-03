@@ -8,18 +8,17 @@
  * @date 05/05/19
  * @brief Invis is a rule that prevents all tangible attacks from passing unless it has pierce ability
  *
- * This is used by the Invis chip's component
+ * This is used by the Invis card's component
  */
 class DefenseInvis : public DefenseRule {
 public:
   DefenseInvis();
-  virtual ~DefenseInvis();
+  ~DefenseInvis();
 
   /**
    * @brief If the attack does pierce damage, the defense fails
    * @param in attack spell
    * @param owner the character with Invis defense (this) added
-   * @return true if triggered, false, if not
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 };

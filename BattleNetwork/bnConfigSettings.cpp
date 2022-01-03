@@ -1,123 +1,166 @@
 #include "bnConfigSettings.h"
 #include "bnLogger.h"
+#include "bnInputEvent.h"
 
 /**
  * @brief If config file is ok
  * @return true if wellformed, false otherwise
  */
-const bool ConfigSettings::IsOK() { return isOK; }
+const bool ConfigSettings::IsOK() const { return isOK; }
 
 /**
- * @brief Check if audio is on or off based on ini file
+ * @brief Check if Audio() is on or off based on ini file
  * @return true if on, false otherwise
  */
-const bool ConfigSettings::IsAudioEnabled() { return (musicLevel || sfxLevel); }
+const bool ConfigSettings::IsAudioEnabled() const { return (musicLevel || sfxLevel); }
 
-const int ConfigSettings::GetMusicLevel()
+const bool ConfigSettings::IsFullscreen() const
 {
-  return musicLevel;
+  return fullscreen;
 }
 
-const int ConfigSettings::GetSFXLevel()
+const int ConfigSettings::GetMusicLevel() const { return musicLevel; }
+
+const int ConfigSettings::GetSFXLevel() const { return sfxLevel; }
+
+const int ConfigSettings::GetShaderLevel() const
 {
-  return sfxLevel;
+  return shaderLevel;
 }
 
-void ConfigSettings::SetMusicLevel(int level)
-{
-  musicLevel = level;
+const bool ConfigSettings::TestKeyboard() const {
+  static auto exclusiveEvents = std::vector{
+    InputEvents::pressed_ui_up,
+    InputEvents::pressed_ui_down,
+    InputEvents::pressed_ui_left,
+    InputEvents::pressed_ui_right,
+    InputEvents::pressed_confirm,
+    InputEvents::pressed_cancel,
+    InputEvents::pressed_pause,
+  };
+
+  std::vector<sf::Keyboard::Key> bindedKeys;
+
+  for (auto& event : exclusiveEvents) {
+    auto key = GetPairedInput(event.name);
+
+    auto isUnset = key == sf::Keyboard::Unknown;
+    auto isDuplicate = std::find(bindedKeys.begin(), bindedKeys.end(), key) != bindedKeys.end();
+
+    if (isUnset || isDuplicate) {
+      return false;
+    }
+
+    bindedKeys.push_back(key);
+  };
+
+  return true;
 }
 
-void ConfigSettings::SetSFXLevel(int level)
+void ConfigSettings::SetMusicLevel(int level) { musicLevel = level; }
+
+void ConfigSettings::SetSFXLevel(int level) { sfxLevel = level; }
+
+void ConfigSettings::SetShaderLevel(int level)
 {
-  sfxLevel = level;
+  shaderLevel = level;
 }
 
-const std::list<std::string> ConfigSettings::GetPairedActions(sf::Keyboard::Key event) {
+int ConfigSettings::GetGamepadIndex() const { return gamepadIndex; }
+
+void ConfigSettings::SetGamepadIndex(int index) { gamepadIndex = index; }
+
+bool ConfigSettings::GetInvertThumbstick() const { return invertThumbstick; }
+
+void ConfigSettings::SetInvertThumbstick(bool invert) { invertThumbstick = invert; }
+
+bool ConfigSettings::GetInvertMinimap() const { return invertMinimap; }
+
+void ConfigSettings::SetInvertMinimap(bool invert) { invertMinimap = invert; }
+
+const std::list<std::string> ConfigSettings::GetPairedActions(const sf::Keyboard::Key& event) const {
   std::list<std::string> list;
 
-  decltype(keyboard)::iterator iter = keyboard.begin();
-
-  while (iter != keyboard.end()) {
-    if (iter->first == event) {
-      list.push_back(iter->second);
+  for (auto& [k, v] : keyboard) {
+    if (k == event) {
+      list.push_back(v);
     }
-    iter++;
   }
 
   return list;
 }
 
-const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action)
+const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action) const
 {
-  auto iter = keyboard.begin();
-
-  while (iter != keyboard.end()) {
-    auto first = iter->second;
-
-    std::transform(first.begin(), first.end(), first.begin(), ::toupper);
+  for (auto& [k, v] : keyboard) {
+    std::string value = v;
+    std::transform(value.begin(), value.end(), value.begin(), ::toupper);
     std::transform(action.begin(), action.end(), action.begin(), ::toupper);
 
-    if (first == action) {
-      return iter->first;
+    if (value == action) {
+      return k;
     }
-    iter++;
   }
 
   return sf::Keyboard::Unknown;
 }
 
-const Gamepad ConfigSettings::GetPairedGamepadButton(std::string action)
+const Gamepad ConfigSettings::GetPairedGamepadButton(std::string action) const
 {
-  auto iter = gamepad.begin();
-
-  while (iter != gamepad.end()) {
-    auto first = iter->second;
-
-    std::transform(first.begin(), first.end(), first.begin(), ::toupper);
+  for (auto& [k, v] : gamepad) {
+    std::string value = v;
+    std::transform(value.begin(), value.end(), value.begin(), ::toupper);
     std::transform(action.begin(), action.end(), action.begin(), ::toupper);
 
-    if (first == action) {
-      return iter->first;
+    if (value == action) {
+      return k;
     }
-    iter++;
   }
 
-  return (Gamepad) - 1;
+  return Gamepad::BAD_CODE;
 }
 
-const std::list<std::string> ConfigSettings::GetPairedActions(Gamepad event) {
+const std::list<std::string> ConfigSettings::GetPairedActions(const Gamepad& event) const {
   std::list<std::string> list;
 
-  if (gamepad.size()) {
-    decltype(gamepad)::iterator iter = gamepad.begin();
-
-    while (iter != gamepad.end()) {
-      if (iter->first == event) {
-        list.push_back(iter->second);
-      }
-      iter++;
+  for (auto& [k, v] : gamepad) {
+    if (k == event) {
+      list.push_back(v);
     }
   }
 
   return list;
 }
 
-ConfigSettings & ConfigSettings::operator=(ConfigSettings rhs)
+ConfigSettings& ConfigSettings::operator=(const ConfigSettings& rhs)
 {
-  this->discord.key = rhs.discord.key;
-  this->discord.user = rhs.discord.user;
-  this->gamepad = rhs.gamepad;
-  this->musicLevel = rhs.musicLevel;
-  this->sfxLevel = rhs.sfxLevel;
-  this->isOK = rhs.isOK;
-  this->keyboard = rhs.keyboard;
+  discord = rhs.discord;
+  gamepad = rhs.gamepad;
+  gamepadIndex = rhs.gamepadIndex;
+  invertThumbstick = rhs.invertThumbstick;
+  musicLevel = rhs.musicLevel;
+  sfxLevel = rhs.sfxLevel;
+  shaderLevel = rhs.shaderLevel;
+  isOK = rhs.isOK;
+  keyboard = rhs.keyboard;
+  fullscreen = rhs.fullscreen;
+  invertMinimap = rhs.invertMinimap;
   return *this;
 }
 
-const DiscordInfo ConfigSettings::GetDiscordInfo() const
+const DiscordInfo& ConfigSettings::GetDiscordInfo() const
 {
-  return this->discord;
+  return discord;
+}
+
+const ConfigSettings::KeyboardHash& ConfigSettings::GetKeyboardHash()
+{
+  return keyboard;
+}
+
+const ConfigSettings::GamepadHash& ConfigSettings::GetGamepadHash()
+{
+  return gamepad;
 }
 
 void ConfigSettings::SetKeyboardHash(const KeyboardHash key)
@@ -127,18 +170,12 @@ void ConfigSettings::SetKeyboardHash(const KeyboardHash key)
 
 void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
 {
-  this->gamepad = gamepad;
+  ConfigSettings::gamepad = gamepad;
 }
 
-ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
+ConfigSettings::ConfigSettings(const ConfigSettings& rhs)
 {
-  this->discord.key = rhs.discord.key;
-  this->discord.user = rhs.discord.user;
-  this->gamepad = rhs.gamepad;
-  this->musicLevel = rhs.musicLevel;
-  this->sfxLevel = rhs.sfxLevel;
-  this->isOK = rhs.isOK;
-  this->keyboard = rhs.keyboard;
+  this->operator=(rhs);
 }
 
 ConfigSettings::ConfigSettings()

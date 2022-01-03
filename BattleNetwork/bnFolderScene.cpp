@@ -5,12 +5,14 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
 
+#include "bnGameSession.h"
 #include "bnFolderScene.h"
 #include "bnFolderEditScene.h"
 #include "bnFolderChangeNameScene.h"
 #include "Segues/BlackWashFade.h"
-#include "bnChipLibrary.h"
-#include "bnChipFolder.h"
+#include "bnCardFolder.h"
+#include "bnPlayerPackageManager.h"
+#include "bnCardPackageManager.h"
 #include "Android/bnTouchArea.h"
 #include "bnMessageQuestion.h"
 
@@ -19,80 +21,82 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
+
+using namespace swoosh::types;
 
 #include "Segues/PushIn.h"
 
-FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderCollection& collection) :
+FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderCollection& collection) :
   collection(collection),
-  camera(ENGINE.GetView()),
   folderSwitch(true),
+  font(Font::Style::wide),
+  menuLabel("CHIP FOLDER", font),
+  cardFont(Font::Style::thick),
+  cardLabel("", cardFont),
+  numberFont(Font::Style::thick),
+  numberLabel("", numberFont),
   textbox(sf::Vector2f(4, 255)),
-  swoosh::Activity(&controller)
+  questionInterface(nullptr),
+  Scene(controller)
 {
-  textbox.SetTextSpeed(2.0f);
+  textbox.SetTextSpeed(1.0f);
 
   promptOptions = false;
   enterText = false;
   gotoNextScene = true;
 
-  // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("Folders", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+  // Menu name
+  menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
+  menuLabel.setScale(2.f, 2.f);
 
   // Selection input delays
-  maxSelectInputCooldown = 0.5; // half of a second
+  maxSelectInputCooldown = 0.25; // 4th of a second
   selectInputCooldown = maxSelectInputCooldown;
 
-  // Chip UI font
-  chipFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  chipLabel = new sf::Text("", *chipFont);
-  chipLabel->setPosition(275.f, 15.f);
+  // Card UI font
+  cardLabel.setPosition(275.f, 15.f);
+  cardLabel.setScale(2.f, 2.f);
 
-  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
-  numberLabel = new sf::Text("", *numberFont);
-  numberLabel->setOutlineColor(sf::Color(48, 56, 80));
-  numberLabel->setOutlineThickness(2.f);
-  numberLabel->setScale(0.8f, 0.8f);
-  numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
-  numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
+  numberLabel.SetColor(sf::Color(48, 56, 80));
+  numberLabel.setScale(2.f, 2.f);
+  numberLabel.setOrigin(numberLabel.GetWorldBounds().width, 0);
+  numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 
   // folder menu graphic
-  bg = sf::Sprite(LOAD_TEXTURE(FOLDER_INFO_BG));
+  bg = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_INFO_BG));
   bg.setScale(2.f, 2.f);
 
-  scrollbar = sf::Sprite(LOAD_TEXTURE(FOLDER_SCROLLBAR));
+  scrollbar = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
   scrollbar.setPosition(410.f, 60.f);
 
-  folderBox = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX));
+  folderBox = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_BOX));
   folderBox.setScale(2.f, 2.f);
 
-  folderOptions = sf::Sprite(LOAD_TEXTURE(FOLDER_OPTIONS));
-  folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
-  folderOptions.setPosition(98.0f, 210.0f);
-  folderOptions.setScale(2.f, 0.f); // hide on start
+  folderDisabled = sf::Sprite(*Textures().LoadFromFile("resources/ui/folder_disabled.png"));
+  folderDisabled.setScale(2.f, 2.f);
 
-  folderCursor = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX_CURSOR));
+  RefreshOptions();
+
+  folderCursor = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_BOX_CURSOR));
   folderCursor.setScale(2.f, 2.f);
 
-  folderEquip = sf::Sprite(LOAD_TEXTURE(FOLDER_EQUIP));
+  folderEquip = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_EQUIP));
   folderEquip.setScale(2.f, 2.f);
 
-  cursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  cursor = sf::Sprite(*Textures().LoadFromFile(TexturePaths::TEXT_BOX_CURSOR));
   cursor.setScale(2.f, 2.f);
   cursor.setPosition(2.0, 155.0f);
 
-  element = sf::Sprite(LOAD_TEXTURE(ELEMENT_ICON));
+  element = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
-  chipIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
-  chipIcon.setScale(2.f, 2.f);
+  cardIcon = sf::Sprite();
+  cardIcon.setScale(2.f, 2.f);
+  cardIcon.setTextureRect(sf::IntRect(0, 0, 14, 14));
 
-  mbPlaceholder = sf::Sprite(LOAD_TEXTURE(FOLDER_MB));
+  mbPlaceholder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_MB));
   mbPlaceholder.setScale(2.f, 2.f);
 
   equipAnimation = Animation("resources/ui/folder_equip.animation");
@@ -106,8 +110,11 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   equipAnimation.Update(0,folderEquip);
   folderCursorAnimation.Update(0, folderCursor);
 
-  maxChipsOnScreen = 5;
-  currChipIndex = 0;
+  noPreview = Textures().LoadFromFile(TexturePaths::CHIP_MISSINGDATA);
+  noIcon = Textures().LoadFromFile(TexturePaths::CHIP_ICON_MISSINGDATA);
+
+  maxCardsOnScreen = 5;
+  currCardIndex = 0;
   currFolderIndex = lastFolderIndex = 0;
   selectedFolderIndex = optionIndex = 0;
 
@@ -120,10 +127,10 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   if (collection.GetFolderNames().size() > 0) {
     collection.GetFolder(0, folder);
 
-    numOfChips = folder->GetSize();
+    numOfCards = folder->GetSize();
   }
   else {
-    numOfChips = 0;
+    numOfCards = 0;
   }
 
 #ifdef __ANDROID__
@@ -132,240 +139,300 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   touchPosX = touchPosStartX = 0;
   releasedB = false;
 #endif
+
+  setView(sf::Vector2u(480, 320));
 }
 
 FolderScene::~FolderScene() { ; }
 
 void FolderScene::onStart() {
-  ENGINE.SetCamera(camera);
-
   gotoNextScene = false;
 
 #ifdef __ANDROID__
-    this->StartupTouchControls();
+    StartupTouchControls();
 #endif
 }
 
 void FolderScene::onUpdate(double elapsed) {
+  GameSession& session = getController().Session();
+
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
-  camera.Update((float)elapsed);
   folderCursorAnimation.Update((float)elapsed, folderCursor);
   equipAnimation.Update((float)elapsed, folderEquip);
   textbox.Update(elapsed);
 
-  auto lastChipIndex = currChipIndex;
-  auto lastFolderIndex = currFolderIndex;
-  auto lastOptionIndex = optionIndex;
+  int lastCardIndex = currCardIndex;
+  int lastFolderIndex = currFolderIndex;
+  int lastOptionIndex = optionIndex;
 
   // Prioritize textbox input
-  if (textbox.IsOpen()) return;
+  if (textbox.IsOpen() && questionInterface) {
+    if (Input().Has(InputEvents::pressed_ui_left)) {
+      questionInterface->SelectYes();
+    } else if (Input().Has(InputEvents::pressed_ui_right)) {
+      questionInterface->SelectNo();
+    }
+    else if (Input().Has(InputEvents::pressed_confirm)) {
+      if (!textbox.IsEndOfBlock()) {
+        textbox.CompleteCurrentBlock();
+      }
+      else if (!textbox.IsEndOfMessage()) {
+        questionInterface->Continue();
+      }
+      else {
+        questionInterface->ConfirmSelection();
+      }
+    }
+    else if (Input().Has(InputEvents::pressed_cancel)) {
+      if (!textbox.IsEndOfBlock()) {
+        textbox.CompleteCurrentBlock();
+      }
+      else if (textbox.IsEndOfMessage()) {
+        questionInterface->SelectNo();
+        questionInterface->ConfirmSelection();
+      }
+    }
+
+    return;
+  }
 
   // Scene keyboard controls
   if (enterText) {
-    InputEvent  cancelButton = EventTypes::RELEASED_CANCEL;
+    InputEvent  cancelButton = InputEvents::released_cancel;
 
 #ifdef __ANDROID__
     cancelButton = PRESSED_B;
 #endif
 
-    if (INPUT.Has(cancelButton)) {
+    if (Input().Has(cancelButton)) {
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(false);
 #endif
-      this->enterText = false;
+      enterText = false;
       bool changed = collection.SetFolderName(folderNames[currFolderIndex], folder);
 
       if (!changed) {
         folderNames[currFolderIndex] = collection.GetFolderNames()[currFolderIndex];
       }
 
-      INPUT.EndCaptureInputBuffer();
+      Input().GetInputTextBuffer().EndCapture();
     }
     else {
-      std::string buffer = INPUT.GetInputBuffer();
-
-      buffer = buffer.substr(0, 10);
-      folderNames[currFolderIndex] = buffer;
-
-      INPUT.SetInputBuffer(buffer); // shrink
+      folderNames[currFolderIndex] = Input().GetInputTextBuffer().ToString();
 
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(true);
 #endif
     }
   } else if (!gotoNextScene) {
-      if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
-        selectInputCooldown -= elapsed;
+    if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
+      selectInputCooldown -= elapsed;
 
-        if (selectInputCooldown <= 0) {
+      if (selectInputCooldown <= 0) {
+        if (!extendedHold) {
           selectInputCooldown = maxSelectInputCooldown;
-
-          if (!promptOptions) {
-            currChipIndex--;
-          }
-          else {
-            optionIndex--;
-          }
-        }
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          selectInputCooldown = maxSelectInputCooldown;
-
-          if (!promptOptions) {
-            currChipIndex++;
-          }
-          else {
-            optionIndex++;
-          }
-        }
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          selectInputCooldown = maxSelectInputCooldown;
-
-          if (!promptOptions) {
-            currFolderIndex++;
-            folderSwitch = true;
-          }
-        }
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          selectInputCooldown = maxSelectInputCooldown;
-
-          if (!promptOptions) {
-            currFolderIndex--;
-            folderSwitch = true;
-          }
-        }
-      }
-      else {
-        selectInputCooldown = 0;
-      }
-
-      currChipIndex = std::max(0, currChipIndex);
-      currChipIndex = std::min(numOfChips - 1, currChipIndex);
-      currFolderIndex = std::max(0, currFolderIndex);
-      currFolderIndex = std::min((int)folderNames.size() - 1, currFolderIndex);
-      optionIndex = std::max(0, optionIndex);
-
-      if (currChipIndex != lastChipIndex 
-        || currFolderIndex != lastFolderIndex 
-        || optionIndex != lastOptionIndex) {
-        AUDIO.Play(AudioType::CHIP_SELECT);
-      }
-
-      if (folderNames.size()) {
-        optionIndex = std::min(4, optionIndex); // total of 5 options 
-      }
-      else {
-        optionIndex = 0; // "NEW" option only
-      }
-
-#ifdef __ANDROID__
-      if(lastFolderIndex != currFolderIndex) {
-          folderSwitch = true;
-      }
-#endif
-
-      if (folderSwitch) {
-        if (collection.GetFolderNames().size() > 0) {
-          collection.GetFolder(*(folderNames.begin() + currFolderIndex), folder);
-
-          numOfChips = folder->GetSize();
-          currChipIndex = 0;
-        }
-
-        folderSwitch = false;
-      }
-
-      InputEvent cancelButton = EventTypes::RELEASED_CANCEL;
-
-      if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
-        if (!promptOptions) {
-          gotoNextScene = true;
-          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-
-          using swoosh::intent::direction;
-          using segue = swoosh::intent::segue<PushIn<direction::right>, swoosh::intent::milli<500>>;
-          getController().queuePop<segue>();
-        } else {
-            promptOptions = false;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-        }
-      } else if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
-          if (promptOptions) {
-            promptOptions = false;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-          }
-      } else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
-        if (!promptOptions) {
-          promptOptions = true;
-          AUDIO.Play(AudioType::CHIP_DESC);
-        }
-        else if(folderNames.size()) {
-          switch (optionIndex) {
-          case 0: // EDIT
-            if (folder) {
-              using namespace intent;
-              using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderEditScene>;
-              getController().push<next>(*folder);
-              AUDIO.Play(AudioType::CHIP_CONFIRM);
-              gotoNextScene = true;
-            }
-            else {
-              AUDIO.Play(AudioType::CHIP_ERROR);
-            }
-            break;
-          case 1: // EQUIP
-            selectedFolderIndex = currFolderIndex;
-            collection.SwapOrder(0, selectedFolderIndex);
-            AUDIO.Play(AudioType::PA_ADVANCE);
-            break;
-          case 2: // CHANGE NAME
-            if (folder) {
-              using namespace intent;
-              using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderChangeNameScene>;
-              getController().push<next>(folderNames[currFolderIndex]);
-              AUDIO.Play(AudioType::CHIP_CONFIRM);
-              gotoNextScene = true;
-            }
-            else {
-              AUDIO.Play(AudioType::CHIP_ERROR);
-            }
-            break;
-          case 3: // NEW 
-            MakeNewFolder();
-            promptOptions = false;
-            currFolderIndex = (int)folderNames.size() - 1;
-            folderSwitch = true;
-
-            break;
-          case 4: // DELETE 
-            DeleteFolder([this]() {
-              promptOptions = false;
-              currFolderIndex--;
-              folderSwitch = true;
-            });
-            break;
-          }
+          extendedHold = true;
         }
         else {
+          selectInputCooldown = maxSelectInputCooldown * 0.25;
+        }
+
+        if (!promptOptions) {
+          currCardIndex--;
+        }
+        else {
+          optionIndex--;
+        }
+      }
+    }
+    else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
+      selectInputCooldown -= elapsed;
+
+      if (selectInputCooldown <= 0) {
+        if (!extendedHold) {
+          selectInputCooldown = maxSelectInputCooldown;
+          extendedHold = true;
+        }
+        else {
+          selectInputCooldown = maxSelectInputCooldown * 0.25;
+        }
+
+        if (!promptOptions) {
+          currCardIndex++;
+        }
+        else {
+          optionIndex++;
+        }
+      }
+    }
+    else if (Input().Has(InputEvents::pressed_ui_right)) {
+      extendedHold = false;
+
+      selectInputCooldown -= elapsed;
+
+      if (selectInputCooldown <= 0) {
+        selectInputCooldown = maxSelectInputCooldown;
+
+        if (!promptOptions) {
+          currFolderIndex++;
+          folderSwitch = true;
+        }
+      }
+    }
+    else if (Input().Has(InputEvents::pressed_ui_left)) {
+      extendedHold = false;
+
+      selectInputCooldown -= elapsed;
+
+      if (selectInputCooldown <= 0) {
+        selectInputCooldown = maxSelectInputCooldown;
+
+        if (!promptOptions) {
+          currFolderIndex--;
+          folderSwitch = true;
+        }
+      }
+    }
+    else {
+      selectInputCooldown = 0;
+      extendedHold = false;
+    }
+
+    currCardIndex = std::max(0, currCardIndex);
+    currCardIndex = std::min(std::max(0, numOfCards - 1), currCardIndex);
+    currFolderIndex = std::max(0, currFolderIndex);
+    currFolderIndex = std::min(std::max(0, static_cast<int>(folderNames.size()) - 1), currFolderIndex);
+    optionIndex = std::max(0, optionIndex);
+
+    if (folderNames.size()) {
+      optionIndex = std::min(4, optionIndex); // total of 5 options 
+    }
+    else {
+      optionIndex = 0; // "NEW" option only
+    }
+
+    if (currCardIndex != lastCardIndex 
+      || currFolderIndex != lastFolderIndex 
+      || optionIndex != lastOptionIndex) {
+      Audio().Play(AudioType::CHIP_SELECT);
+    }
+
+#ifdef __ANDROID__
+    if(lastFolderIndex != currFolderIndex) {
+        folderSwitch = true;
+    }
+#endif
+
+    if (folderSwitch) {
+      if (collection.GetFolderNames().size() > 0 && folderNames.size() > 0) {
+        collection.GetFolder(*(folderNames.begin() + currFolderIndex), folder);
+
+        numOfCards = folder->GetSize();
+        currCardIndex = 0;
+      }
+
+      folderSwitch = false;
+    }
+
+    InputEvent cancelButton = InputEvents::released_cancel;
+
+    if (Input().Has(InputEvents::pressed_cancel)) {
+      if (!promptOptions) {
+        gotoNextScene = true;
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
+
+        using segue = segue<PushIn<direction::right>, milli<500>>;
+        getController().pop<segue>();
+      } else {
+          promptOptions = false;
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
+      }
+    } else if (Input().Has(InputEvents::pressed_cancel)) {
+        if (promptOptions) {
+          promptOptions = false;
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
+        }
+    } else if (Input().Has(InputEvents::pressed_confirm)) {
+      if (!promptOptions) {
+        promptOptions = true;
+        RefreshOptions();
+        Audio().Play(AudioType::CHIP_DESC);
+      }
+      else if(folderNames.size()) {
+        switch (optionIndex) {
+        case 0: // EDIT
+          if (folder && IsFolderAllowed(folder)) {
+            Audio().Play(AudioType::CHIP_CONFIRM);
+
+            using effect = segue<BlackWashFade, milli<500>>;
+            getController().push<effect::to<FolderEditScene>>(*folder);
+            gotoNextScene = true;
+          }
+          else {
+            Audio().Play(AudioType::CHIP_ERROR);
+          }
+          break;
+        case 1: // EQUIP
+        {
+          CardFolder* folder{ nullptr };
+          if (collection.GetFolder(currFolderIndex, folder) && IsFolderAllowed(folder)) {
+            selectedFolderIndex = currFolderIndex;
+            collection.SwapOrder(0, selectedFolderIndex);
+
+            // Save this session data
+            std::string folderStr = collection.GetFolderNames()[0];
+            std::string naviSelectedStr = session.GetKeyValue("SelectedNavi");
+            
+            if (naviSelectedStr.empty()) {
+              naviSelectedStr = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FirstValidPackage();
+            }
+            
+            session.SetKeyValue("FolderFor:" + naviSelectedStr, folderStr);
+
+            Audio().Play(AudioType::PA_ADVANCE);
+          }
+          else {
+            Audio().Play(AudioType::CHIP_ERROR);
+          }
+        }
+          break;
+        case 2: // CHANGE NAME
+          if (folder && IsFolderAllowed(folder)) {
+            Audio().Play(AudioType::CHIP_CONFIRM);
+            using effect = segue<BlackWashFade, milli<500>>;
+            getController().push<effect::to<FolderChangeNameScene>>(folderNames[currFolderIndex]);
+
+            gotoNextScene = true;
+          }
+          else {
+            Audio().Play(AudioType::CHIP_ERROR);
+          }
+          break;
+        case 3: // NEW 
           MakeNewFolder();
           promptOptions = false;
           currFolderIndex = (int)folderNames.size() - 1;
           folderSwitch = true;
+
+          break;
+        case 4: // DELETE 
+          DeleteFolder([this]() {
+            promptOptions = false;
+            currFolderIndex = std::max(0, currFolderIndex-1);
+            folderSwitch = true;
+            });
+          break;
         }
       }
+      else {
+        MakeNewFolder();
+        promptOptions = false;
+        currFolderIndex = std::max(0, static_cast<int>(folderNames.size() - 1));
+        folderSwitch = true;
+      }
+    }
   }
 
 #ifdef __ANDROID__
@@ -410,7 +477,7 @@ void FolderScene::onUpdate(double elapsed) {
 
 void FolderScene::onLeave() {
 #ifdef __ANDROID__
-    this->ShutdownTouchControls();
+    ShutdownTouchControls();
 #endif
 }
 
@@ -424,49 +491,59 @@ void FolderScene::onEnter()
 
 void FolderScene::onResume() {
 #ifdef __ANDROID__
-    this->StartupTouchControls();
+  StartupTouchControls();
 #endif
 
-    gotoNextScene = false;
+  gotoNextScene = false;
 
-    // Save any edits
-    collection.SetFolderName(folderNames[currFolderIndex], folder);
-    folderSwitch = true;
-    collection.WriteToFile("resources/database/folders.txt");
+  // Save any edits
+  collection.SetFolderName(folderNames[currFolderIndex], folder);
+  folderSwitch = true;
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
+  CardPackageManager& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
-  ENGINE.Draw(bg);
-  ENGINE.Draw(menuLabel);
+  surface.draw(bg);
+  surface.draw(menuLabel);
 
   if (folderNames.size() > 0) {
     for (int i = 0; i < folderNames.size(); i++) {
-      folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);
-      ENGINE.Draw(folderBox);
+      CardFolder* folder{ nullptr };
+      collection.GetFolder(folderNames[i], folder);
+      if (folder == nullptr) {
+          continue;
+      }
+      bool allowed = IsFolderAllowed(folder);
 
-      chipLabel->setFillColor(sf::Color::White);
-      chipLabel->setString(folderNames[i]);
-      chipLabel->setOrigin(chipLabel->getGlobalBounds().width / 2.0f, chipLabel->getGlobalBounds().height / 2.0f);
-      chipLabel->setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
-      ENGINE.Draw(chipLabel, false);
+      float folderLeft = 26.0f + (i*144.0f) - (float)folderOffsetX;
+
+      sf::Sprite& drawFolder = allowed ? folderBox : folderDisabled;
+      drawFolder.setPosition(folderLeft, 34.0f);
+      surface.draw(drawFolder);
+
+      sf::Color color = allowed ? sf::Color::White : sf::Color(70, 70, 70); 
+      cardLabel.SetColor(color);
+      cardLabel.SetString(folderNames[i]);
+      cardLabel.setOrigin(0.0f, 0.0f);
+      cardLabel.setPosition(folderLeft + 12.0f, 54.0f);
+      surface.draw(cardLabel);
 
       if (i == selectedFolderIndex) {
-        folderEquip.setPosition(25.0f + (i*144.0f) - (float)folderOffsetX, 30.0f);
-        ENGINE.Draw(folderEquip, false);
+        folderEquip.setPosition(folderLeft - 2.0f, 30.0f);
+        surface.draw(folderEquip);
       }
 
     }
 
 #ifdef __ANDROID__
     if(!canSwipe) {
-      auto x = swoosh::ease::interpolate((float) frameElapsed * 7.f, folderCursor.getPosition().x,
+      float x = swoosh::ease::interpolate((float) frameElapsed * 7.f, folderCursor.getPosition().x,
                                          98.0f + (std::min(2, currFolderIndex) * 144.0f));
       folderCursor.setPosition(x, 68.0f);
 
       if (currFolderIndex > 2) {
-          auto before = folderOffsetX;
+        float before = folderOffsetX;
         folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX,
                                                   (double) (((currFolderIndex - 2) * 144.0f)));
 
@@ -475,7 +552,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
             touchStart = false;
         }
       } else {
-          auto before = folderOffsetX;
+        float before = folderOffsetX;
         folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, 0.0);
 
           if(int(before) == int(folderOffsetX)) {
@@ -485,38 +562,40 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       }
     }
 #else 
-    auto x = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().x,
-      98.0f + (std::min(2, currFolderIndex) * 144.0f));
+    float x = swoosh::ease::interpolate(
+      (float)frameElapsed * 7.f, folderCursor.getPosition().x,
+      98.0f + (std::min(2, currFolderIndex) * 144.0f)
+    );
+
     folderCursor.setPosition(x, 68.0f);
 
     if (currFolderIndex > 2) {
-      auto before = folderOffsetX;
-      folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX,
-        (double)(((currFolderIndex - 2) * 144.0f)));
+      double before = folderOffsetX;
+      double after = (double(currFolderIndex) - 2.0) * 144.0;
+      folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, after);
     }
     else {
-      auto before = folderOffsetX;
+      double before = folderOffsetX;
       folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, 0.0);
     }
 #endif
 
-    ENGINE.Draw(folderCursor, false);
+    surface.draw(folderCursor);
   }
 
-  // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
+  // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 120.0f; float bottom = 170.0f;
-  float depth = ((float)(currChipIndex) / (float)numOfChips)*bottom;
+  float depth = ((float)(currCardIndex) / (float)numOfCards)*bottom;
   scrollbar.setPosition(436.f, top + depth);
 
-  ENGINE.Draw(scrollbar);
-
-  ENGINE.Draw(folderOptions);
+  surface.draw(scrollbar);
+  surface.draw(folderOptions);
 
   float scale = 0.0f;
 
   if (promptOptions) {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
-    ENGINE.Draw(cursor);
+    surface.draw(cursor);
   }
   else {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
@@ -525,59 +604,85 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   folderOptions.setScale(2.0f, scale);
 
 
-  auto y = swoosh::ease::interpolate((float)frameElapsed*7.0f, cursor.getPosition().y, 138.0f + ((optionIndex)*32.0f));
+  // swoosh::ease::interpolate((float)frameElapsed * 7.0f, cursor.getPosition().y, 138.0f + ((optionIndex) * 32.0f));
+  float y = 138.0f + ((optionIndex) * 32.0f); 
   cursor.setPosition(2.0, y);
 
   if (!folder) return;
+
   if (folder->GetSize() != 0) {
+    // Move the card library iterator to the current highlighted card
+    CardFolder::Iter iter = folder->Begin();
 
-    // Move the chip library iterator to the current highlighted chip
-    ChipFolder::Iter iter = folder->Begin();
-
-    for (int j = 0; j < currChipIndex; j++) {
+    for (int j = 0; j < currCardIndex; j++) {
       iter++;
     }
 
-    chipLabel->setFillColor(sf::Color::White);
-    chipLabel->setString(folderNames[currFolderIndex]);
-    chipLabel->setOrigin(0.f, chipLabel->getGlobalBounds().height / 2.0f);
-    chipLabel->setPosition(195.0f, 100.0f);
-    ENGINE.Draw(chipLabel, false);
+    if (!IsFolderAllowed(folder)) {
+      cardLabel.SetColor(sf::Color(16,136,232));
+    }
+    else {
+      cardLabel.SetColor(sf::Color::White);
+    }
 
-    // Now that we are at the viewing range, draw each chip in the list
-    for (int i = 0; i < maxChipsOnScreen && currChipIndex + i < numOfChips; i++) {
-      chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(((*iter)->GetIconID())));
-      chipIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
-      ENGINE.Draw(chipIcon, false);
+    cardLabel.SetString(folderNames[currFolderIndex]);
+    cardLabel.setOrigin(0.f, 0.f);
+    cardLabel.setPosition(195.0f, 102.0f);
+    surface.draw(cardLabel);
 
-      chipLabel->setOrigin(0.0f, 0.0f);
-      chipLabel->setFillColor(sf::Color::White);
-      chipLabel->setPosition(2.f*115.f, 128.0f + (32.f*i));
-      chipLabel->setString((*iter)->GetShortName());
-      ENGINE.Draw(chipLabel, false);
+    // Now that we are at the viewing range, draw each card in the list
+    for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
+      std::string id = (*iter)->GetUUID();
+      if (id.empty()) continue;
 
+      bool hasID = packageManager.HasPackage(id);
+
+      float cardIconY = 132.0f + (32.f * i);
+
+      if (hasID) {
+        cardIcon.setTexture(*packageManager.FindPackageByID(id).GetIconTexture());        
+        // make the cardLabel white
+        cardLabel.SetColor(sf::Color::White);
+      }
+      else {
+        cardIcon.setTexture(*noIcon);
+
+        // make the cardLabel red
+        cardLabel.SetColor(sf::Color::Red);
+      }
+
+      cardIcon.setPosition(2.f * 99.f, cardIconY);
+      surface.draw(cardIcon);
+
+      cardLabel.setPosition(2.f*115.f, cardIconY + 4.0f);
+      cardLabel.SetString((*iter)->GetShortName());
+      surface.draw(cardLabel);
 
       int offset = (int)((*iter)->GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f*173.f, 133.0f + (32.f*i));
-      ENGINE.Draw(element, false);
+      element.setPosition(2.f*173.f, cardIconY);
+      surface.draw(element);
 
-      chipLabel->setOrigin(0, 0);
-      chipLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
-      chipLabel->setString(std::string() + (*iter)->GetCode());
-      ENGINE.Draw(chipLabel, false);
+      cardLabel.setPosition(2.f*190.f, cardIconY + 4.0f);
+      cardLabel.SetString(std::string() + (*iter)->GetCode());
+      surface.draw(cardLabel);
 
-      mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
-      ENGINE.Draw(mbPlaceholder, false);
+      mbPlaceholder.setPosition(2.f*200.f, cardIconY + 2.0f);
+      surface.draw(mbPlaceholder);
       iter++;
     }
   }
 
-  ENGINE.Draw(textbox, false);
+  surface.draw(textbox);
+}
+
+const bool FolderScene::IsFolderAllowed(CardFolder* folder)
+{
+  return getController().Session().IsFolderAllowed(folder);
 }
 
 void FolderScene::MakeNewFolder() {
-  AUDIO.Play(AudioType::CHIP_CONFIRM); 
+  Audio().Play(AudioType::CHIP_CONFIRM); 
 
   std::string name = "NewFldr";
   int i = 0;
@@ -593,8 +698,7 @@ void FolderScene::MakeNewFolder() {
 void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 {
   if (!folderNames.size()) {
-    AUDIO.Play(AudioType::CHIP_ERROR);
-
+    Audio().Play(AudioType::CHIP_ERROR);
     return;
   }
 
@@ -602,36 +706,56 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     if (collection.DeleteFolder(folderNames[currFolderIndex])) {
       onSuccess();
       folderNames = collection.GetFolderNames();
+
+      if (folderNames.empty()) {
+        folder = nullptr;
+      }
+      else {
+        while (!collection.GetFolder(currFolderIndex, folder)) {
+          if (currFolderIndex == 0) break;
+          currFolderIndex = currFolderIndex - 1;
+        }
+      }
     }
 
     textbox.Close();
-    AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+    Audio().Play(AudioType::CHIP_DESC_CLOSE);
   };
 
   auto onNo = [this]() {
     textbox.Close();
-    AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+    Audio().Play(AudioType::CHIP_DESC_CLOSE);
   };
 
+  //if (questionInterface) delete questionInterface;
+  questionInterface = new Question("Delete this folder?", onYes, onNo);
+
   textbox.EnqueMessage(
-    sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR)), 
+    sf::Sprite(*Textures().LoadFromFile(TexturePaths::MUG_NAVIGATOR)),
     "resources/ui/navigator.animation", 
-    new Question("Are you sure you want to permanently delete this folder?", 
-    onYes,
-    onNo));
+    questionInterface);
 
   textbox.Open();
 }
 
-void FolderScene::onEnd() {
-  delete font;
-  delete chipFont;
-  delete numberFont;
-  delete menuLabel;
-  delete numberLabel;
+void FolderScene::RefreshOptions()
+{
+  const bool emptyCollection = collection.GetFolderNames().empty();
+  const std::shared_ptr<sf::Texture> folderOptionsTex = emptyCollection ? Textures().LoadFromFile(TexturePaths::FOLDER_OPTIONS_NEW) : Textures().LoadFromFile(TexturePaths::FOLDER_OPTIONS);
+  folderOptions = sf::Sprite(*folderOptionsTex);
+  folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
 
+  if (emptyCollection) {
+    folderOptions.setPosition(98.0f, 145.0f);
+}
+  else {
+    folderOptions.setPosition(98.0f, 210.0f);
+  }
+}
+
+void FolderScene::onEnd() {
 #ifdef __ANDROID__
-    this->ShutdownTouchControls();
+    ShutdownTouchControls();
 #endif
 }
 
@@ -643,22 +767,22 @@ void FolderScene::StartupTouchControls() {
     rightSide.enableExtendedRelease(true);
 
     rightSide.onTouch([]() {
-        INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+        Input().VirtualKeyEvent(InputEvent::RELEASED_A);
     });
 
     rightSide.onRelease([this](sf::Vector2i delta) {
-        if(!this->releasedB) {
-            INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+        if(!releasedB) {
+            Input().VirtualKeyEvent(InputEvent::PRESSED_A);
         }
 
-        this->releasedB = false;
+        releasedB = false;
     });
 
     rightSide.onDrag([this](sf::Vector2i delta){
-        if(delta.x < -25 && !this->releasedB && !touchStart) {
-            INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
-            INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-            this->releasedB = true;
+        if(delta.x < -25 && !releasedB && !touchStart) {
+            Input().VirtualKeyEvent(InputEvent::PRESSED_B);
+            Input().VirtualKeyEvent(InputEvent::RELEASED_B);
+            releasedB = true;
         }
     });
 }

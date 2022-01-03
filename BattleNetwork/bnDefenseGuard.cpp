@@ -2,10 +2,11 @@
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
-#include "bnHitbox.h"
-#include "bnGuardHit.h"
+#include "bnHitboxSpell.h"
+// #include "bnGuardHit.h"
 
-DefenseGuard::DefenseGuard(DefenseGuard::Callback callback) : callback(callback), DefenseRule(Priority(1))
+DefenseGuard::DefenseGuard(const DefenseGuard::Callback& callback)
+  : callback(callback), DefenseRule(Priority(1), DefenseOrder::collisionOnly)
 {
 }
 
@@ -13,18 +14,21 @@ DefenseGuard::~DefenseGuard()
 {
 }
 
-const bool DefenseGuard::Check(Spell * in, Character* owner)
+void DefenseGuard::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)
 {
-  auto props = in->GetHitboxProperties();
+  auto props = attacker->GetHitboxProperties();
 
   if ((props.flags & Hit::breaking) == 0) {
-    this->callback(in, owner);
+    judge.BlockDamage();
 
-    owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());
-    owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
-
-    return true; // Guard disallows an attack to passthrough
+    if ((props.flags & Hit::impact) == Hit::impact) {
+      judge.AddTrigger(callback, attacker, owner);
+      judge.BlockImpact();
+      // owner->GetField()->AddEntity(std::make_shared<GuardHit>(owner, true), *owner->GetTile());
+      owner->GetField()->AddEntity(std::make_shared<HitboxSpell>(owner->GetTeam(), 0), *owner->GetTile());
+    }
   }
-
-  return false;
+  else if((props.flags & Hit::impact) == Hit::impact){
+    judge.SignalDefenseWasPierced();
+  }
 }

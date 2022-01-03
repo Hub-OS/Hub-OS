@@ -1,81 +1,82 @@
 #pragma once
 #include <Swoosh/Ease.h>
-#include <Swoosh/Activity.h>
 
+#include "bnScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
-#include "bnChipFolder.h"
+#include "bnCardFolder.h"
+#include "bnText.h"
 
 /**
  * @class FolderEditScene
  * @author mav
  * @date 04/05/19
- * @brief Edit folder contents and select from chip pool
- * @important the games, the chip pool chip count is not shared by folders
+ * @brief Edit folder contents and select from card pool
+ * @important the games, the card pool card count is not shared by folders
  * 
- * User can select chip and switch to the chip pool on the right side of the scene to select chips
+ * User can select card and switch to the card pool on the right side of the scene to select cards
  * to swap out for. 
  * 
  * Before leaving the user is prompted to save changes
  */
  
-class FolderEditScene : public swoosh::Activity {
+class FolderEditScene : public Scene {
 private:
   enum class ViewMode : int {
-    FOLDER,
-    PACK
+    folder,
+    pool
   };
 
   /**
   * @class PackBucket
-  * @brief Chips in a pack avoid listing duplicates by bundling them in a counted bucket 
+  * @brief Cards in a pool avoid listing duplicates by bundling them in a counted bucket 
   * 
-  * Users can select up to all of the chips in a bucket. The bucket will remain in the list but at 0. 
+  * Users can select up to all of the cards in a bucket. The bucket will remain in the list but at 0. 
   */
-  class PackBucket {
+  class PoolBucket {
   private:
     unsigned size;
     unsigned maxSize;
-    Chip info;
+    Battle::Card info;
 
   public:
-    PackBucket(unsigned size, Chip info) : size(size), maxSize(size), info(info) { }
-    ~PackBucket() { }
+    PoolBucket(unsigned size, Battle::Card info) : size(size), maxSize(size), info(info) { }
+    ~PoolBucket() { }
 
     const bool IsEmpty() const { return size == 0; }
-    const bool GetChip(Chip& copy) { if (IsEmpty()) return false; else copy = Chip(info); size--;  return true; }
-    void AddChip() { size++; size = std::min(size, maxSize);  }
-    const Chip& ViewChip() const { return info; }
+    const bool GetCard(Battle::Card& copy) { if (IsEmpty()) return false; else copy = Battle::Card(info); size--;  return true; }
+    void AddCard() { size++; size = std::min(size, maxSize);  }
+    const Battle::Card& ViewCard() const { return info; }
     const unsigned GetCount() const { return size; }
   };
 
   /**
   * @class FolderSlot
-  * @brief A selectable row in the folder to place new chips. When removing chips, an empty slot is left behind
+  * @brief A selectable row in the folder to place new cards. When removing cards, an empty slot is left behind
   */
   class FolderSlot {
   private:
     bool occupied;
-    Chip info;
+    Battle::Card info;
   public:
-    void AddChip(Chip other) {
+    void AddCard(Battle::Card other) {
       info = other;
       occupied = true;
     }
 
-    const bool GetChip(Chip& copy) {
+    const bool GetCard(Battle::Card& copy) {
       if (!occupied) return false;
 
-      copy = Chip(info);
+      copy = Battle::Card(info);
       occupied = false;
 
-      info = Chip(); // null chip
+      info = Battle::Card(); // null card
 
       return true;
     }
@@ -84,69 +85,68 @@ private:
       return !occupied;
     }
 
-    const Chip& ViewChip() {
+    const Battle::Card& ViewCard() {
       return info;
     }
   };
 
-  void ExcludeFolderDataFromPack();
-  void PlaceFolderDataIntoChipSlots();
-  void PlaceLibraryDataIntoBuckets();
-  void WriteNewFolderData();
-
 private:
-  std::vector<FolderSlot> folderChipSlots; /*!< Rows in the folder that can be inserted with chips or replaced */
-  std::vector<PackBucket> packChipBuckets; /*!< Rows in the pack that represent how many of a chip are left */
+  std::vector<FolderSlot> folderCardSlots; /*!< Rows in the folder that can be inserted with cards or replaced */
+  std::vector<PoolBucket> poolCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
   bool hasFolderChanged; /*!< Flag if folder needs to be saved before quitting screen */
   Camera camera;
-  ChipFolder& folder;
+  CardFolder& folder;
 
   // Menu name font
-  sf::Font* font;
-  sf::Text* menuLabel;
+  Font font;
+  Text menuLabel;
 
   // Selection input delays
   double maxSelectInputCooldown; // half of a second
   double selectInputCooldown;
 
-  // Chip UI font
-  sf::Font *chipFont;
-  sf::Text *chipLabel;
+  // Card UI font
+  Font cardFont;
+  Text cardLabel;
 
-  sf::Font *numberFont;
-  sf::Text *numberLabel;
+  Font numberFont;
+  Text numberLabel;
+  
+  Text limitLabel;
+  Text limitLabel2;
 
-  // Chip description font
-  sf::Font *chipDescFont;
-  sf::Text* chipDesc;
+  // Card description font
+  Font cardDescFont;
+  Text cardDesc;
 
   // folder menu graphic
   sf::Sprite bg;
   sf::Sprite folderDock, packDock;
   sf::Sprite scrollbar;
-  sf::Sprite chipHolder;
+  sf::Sprite cardHolder, packCardHolder;
   sf::Sprite element;
   sf::Sprite folderCursor, folderSwapCursor;
   sf::Sprite packCursor, packSwapCursor;
   sf::Sprite folderNextArrow;
   sf::Sprite packNextArrow;
-  sf::Sprite folderChipCountBox;
-  sf::Sprite mbPlaceholder;
+  sf::Sprite folderCardCountBox;
 
-  // Current chip graphic data
-  sf::Sprite chip;
+  // Current card graphic data
+  sf::Sprite card;
   sf::IntRect cardSubFrame;
-  sf::Sprite chipIcon;
-  swoosh::Timer chipRevealTimer;
+  sf::Sprite cardIcon;
+  swoosh::Timer cardRevealTimer;
   swoosh::Timer easeInTimer;
 
-  struct ChipView {
-    int maxChipsOnScreen;
-    int currChipIndex;
-    int lastChipOnScreen; // index
-    int prevIndex; // for effect
-    int numOfChips;
-    int swapChipIndex; // -1 for unselected, otherwise ID
+  std::shared_ptr<sf::Texture> noPreview, noIcon;
+
+  struct CardView {
+    int maxCardsOnScreen{ 0 };
+    int currCardIndex{ 0 };
+    int lastCardOnScreen{ 0 }; // index
+    int prevIndex{ -1 }; // for effect
+    int numOfCards{ 0 };
+    int swapCardIndex{ -1 }; // -1 for unselected, otherwise ID
   } folderView, packView;
 
   ViewMode currViewMode;
@@ -155,6 +155,8 @@ private:
   double totalTimeElapsed;
   double frameElapsed;
  
+  bool extendedHold{ false }; //!< If held for a 2nd pass, scroll quickly
+  InputEvent lastKey{};
   bool canInteract;
 
 #ifdef __ANDROID__
@@ -170,21 +172,58 @@ private:
   void ShutdownTouchControls();
 #endif
 
-  void DrawFolder();
-  void DrawLibrary();
+  std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
+  std::shared_ptr<sf::Texture> GetPreviewForCard(const std::string& uuid);
+
+  void DrawFolder(sf::RenderTarget& surface);
+  void DrawPool(sf::RenderTarget& surface);
+  void ExcludeFolderDataFromPool();
+  void PlaceFolderDataIntoCardSlots();
+  void PlaceLibraryDataIntoBuckets();
+  void WriteNewFolderData();
+
+  template<typename ElementType>
+  void RefreshCurrentCardDock(CardView& view, const std::vector<ElementType>& list);
 
 public:
-  std::string FormatChipDesc(const std::string&& desc);
+  void onStart() override;
+  void onUpdate(double elapsed) override;
+  void onLeave() override;
+  void onExit() override;
+  void onEnter() override;
+  void onResume() override;
+  void onDraw(sf::RenderTexture& surface) override;
+  void onEnd() override;
 
-  virtual void onStart();
-  virtual void onUpdate(double elapsed);
-  virtual void onLeave();
-  virtual void onExit();
-  virtual void onEnter();
-  virtual void onResume();
-  virtual void onDraw(sf::RenderTexture& surface);
-  virtual void onEnd();
-
-  FolderEditScene(swoosh::ActivityController&, ChipFolder& folder);
-  virtual ~FolderEditScene();
+  FolderEditScene(swoosh::ActivityController&, CardFolder& folder);
+  ~FolderEditScene();
 };
+
+template<typename ElementType>
+void FolderEditScene::RefreshCurrentCardDock(FolderEditScene::CardView& view, const std::vector<ElementType>& list)
+{
+  if (view.currCardIndex < list.size()) {
+    ElementType slot = list[view.currCardIndex]; // copy data, do not mutate it
+
+    // If we have selected a new card, display the appropriate texture for its type
+    if (view.currCardIndex != view.prevIndex) {
+      sf::Sprite& sprite = currViewMode == ViewMode::folder ? cardHolder : packCardHolder;
+      Battle::Card card;
+      slot.GetCard(card); // Returns and frees the card from the bucket, this is why we needed a copy
+
+      switch (card.GetClass()) {
+      case Battle::CardClass::mega:
+        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_MEGA));
+        break;
+      case Battle::CardClass::giga:
+        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_GIGA));
+        break;
+      case Battle::CardClass::dark:
+        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_DARK));
+        break;
+      default:
+        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
+      }
+    }
+  }
+}

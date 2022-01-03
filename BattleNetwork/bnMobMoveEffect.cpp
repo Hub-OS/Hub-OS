@@ -6,14 +6,15 @@
 
 using sf::IntRect;
 
-#define RESOURCE_PATH "resources/mobs/mob_move.animation"
+#define RESOURCE_PATH "resources/scenes/battle/mob_move.animation"
 
-MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
+MobMoveEffect::MobMoveEffect() :
+  Artifact()
 {
   SetLayer(-1);
-  this->setTexture(*TEXTURES.GetTexture(TextureType::MOB_MOVE));
-  this->setScale(2.f, 2.f);
-  move = (sf::Sprite)*this;
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_MOVE));
+  setScale(2.f, 2.f);
+  move = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -22,20 +23,29 @@ MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
   animation.SetAnimation("DEFAULT");
 
   auto onEnd = [this]() {
-    this->Delete();
+    Delete();
   };
 
   animation << onEnd;
 
-  animation.Update(0, *this);
+  animation.Update(0, getSprite());
 
 }
 
-void MobMoveEffect::OnUpdate(float _elapsed) {
-  this->setPosition(this->GetTile()->getPosition());
+void MobMoveEffect::OnUpdate(double _elapsed) {
+  Entity::drawOffset = offset;
 
-  animation.Update(_elapsed, *this);
-  //Entity::Update(_elapsed);
+  animation.Update(_elapsed, getSprite());
+}
+
+void MobMoveEffect::OnDelete()
+{
+  Erase();
+}
+
+void MobMoveEffect::SetOffset(const sf::Vector2f& offset)
+{
+  this->offset = offset;
 }
 
 MobMoveEffect::~MobMoveEffect()

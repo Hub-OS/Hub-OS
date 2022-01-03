@@ -6,24 +6,29 @@
 
 using sf::IntRect;
 
-ShineExplosion::ShineExplosion(Field* _field, Team _team) : Artifact(_field)
+ShineExplosion::ShineExplosion() : Artifact()
 {
   SetLayer(0);
-  field = _field;
-  team = _team;
-  setTexture(LOAD_TEXTURE(MOB_BOSS_SHINE));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_BOSS_SHINE));
   setScale(2.f, 2.f);
-
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
-  animationComponent->Setup("resources/mobs/boss_shine.animation");
-  animationComponent->Load();
-  animationComponent->SetAnimation("SHINE", Animator::Mode::Loop);
-  animationComponent->OnUpdate(0.0f);
 }
 
-void ShineExplosion::OnUpdate(float _elapsed) {
-  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y - 30.f);
+void ShineExplosion::Init() {
+  Artifact::Init();
+
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
+  animationComponent->SetPath("resources/scenes/battle/boss_shine.animation");
+  animationComponent->Load();
+  animationComponent->SetAnimation("SHINE", Animator::Mode::Loop);
+  animationComponent->Refresh();
+}
+
+void ShineExplosion::OnUpdate(double _elapsed) {
+  Entity::drawOffset.y= -this->GetHeight();
+}
+
+void ShineExplosion::OnDelete()
+{
 }
 
 ShineExplosion::~ShineExplosion()

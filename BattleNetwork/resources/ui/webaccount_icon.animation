@@ -1,0 +1,10 @@
+imagePath="webaccount_icon.png"
+
+animation state="NO_CONNECTION"
+frame duration="0.05" x="0" y="0" w="16" h="16" originx="0" originy="0"
+
+animation state="OK_CONNECTION"
+frame duration="1" x="48" y="0" w="16" h="16" originx="0" originy="0"
+
+animation state="POLL_CONNECTION"
+frame duration="0.05" x="32" y="0" w="16" h="16" originx="0" originy="0"

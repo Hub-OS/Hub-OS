@@ -1,6 +1,0 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_yoyo.png"
-
-animation state="DEFAULT"
-frame duration="0.05" x="2" y="3" w="41" h="52" originx="19" originy="48"
-frame duration="0.05" x="46" y="2" w="42" h="54" originx="20" originy="48"
-frame duration="0.05" x="93" y="2" w="43" h="53" originx="21" originy="48"

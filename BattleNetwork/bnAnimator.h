@@ -8,33 +8,48 @@
 #include <list>
 
 #include "bnLogger.h"
+#include "frame_time_t.h"
 
+using FrameCallback = std::function<void()>;
+using FrameFinishCallback = std::function<void()>;
+using FrameCallbackHash = std::multimap<int, FrameCallback>;
+using PointHash = std::map<std::string, sf::Vector2f>;
+
+/**
+ * @struct OverrideFrame
+ * @brief a struct to override animations with using brace initialization e.g. { 3, 5.0f } */
 struct OverrideFrame {
-  int frameIndex;
-  double duration;
+  unsigned frameIndex{};
+  double duration{};
 };
 
 /**
  * @struct Frame
  * @author mav
  * @date 13/05/19
- * @brief Lightweight frame is just an integer rect, duration (in seconds), an origin, and points
+ * @brief Lightweight frame composed of  rect, duration (in seconds), an origin, points, and flipped orientations
  */
 struct Frame {
-  float duration;
+  frame_time_t duration;
   sf::IntRect subregion;
-  bool applyOrigin;
+  bool applyOrigin{}, flipX{}, flipY{};
   sf::Vector2f origin;
-  
-  std::map<std::string, sf::Vector2f> points;
 
-  Frame(float duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin) 
-  : duration(duration), subregion(subregion), applyOrigin(applyOrigin), origin(origin) {
+  PointHash points;
+
+  Frame(frame_time_t duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin, bool flipX, bool flipY) :
+    duration(duration),
+    subregion(subregion),
+    applyOrigin(applyOrigin),
+    origin(origin),
+    flipX(flipX),
+    flipY(flipY)
+  {
     points["ORIGIN"] = origin;
   }
 
   Frame(const Frame& rhs) {
-    *this = rhs;
+    this->operator=(rhs);
   }
 
   Frame& operator=(const Frame& rhs) {
@@ -43,14 +58,16 @@ struct Frame {
     applyOrigin = rhs.applyOrigin;
     origin = rhs.origin;
     points = rhs.points;
+    flipX = rhs.flipX;
+    flipY = rhs.flipY;
 
     return *this;
   }
 
 
-  Frame& operator=(Frame&& rhs) {
+  Frame& operator=(Frame&& rhs) noexcept {
     duration = rhs.duration;
-    rhs.duration = 0;
+    rhs.duration = {};
 
     subregion = rhs.subregion;
 
@@ -60,10 +77,16 @@ struct Frame {
     origin = rhs.origin;
     points = rhs.points;
     rhs.points.clear();
+
+    flipX = rhs.flipX;
+    flipY = rhs.flipY;
+
+    rhs.flipX = rhs.flipY = false;
+
     return *this;
   }
 
-  Frame(Frame&& rhs) {
+  Frame(Frame&& rhs) noexcept {
     *this = rhs;
   }
 };
@@ -76,28 +99,35 @@ struct Frame {
  */
 class FrameList {
   std::vector<Frame> frames;
-  float totalDuration; /*!< Sum of all frame durations */
+  frame_time_t totalDuration; /*!< Sum of all frame durations */
 
 public:
   friend class Animator;
 
-  FrameList() { totalDuration = 0; }
+  FrameList() { totalDuration = ::frames(0); }
   FrameList(const FrameList& rhs) { 
     frames = rhs.frames; 
     totalDuration = rhs.totalDuration;
   }
 
-  FrameList MakeNewFromOverrideData(std::list<OverrideFrame> data) {
-    auto iter = data.begin();
-
+  FrameList MakeNewFromOverrideData(const std::list<OverrideFrame>& data) {
     FrameList res;
+    if (frames.empty()) return res;
 
+    auto iter = data.begin();
     while (iter != data.end() && data.size() > 0) {
-      auto copy = this->frames[iter->frameIndex - 1];
-      copy.duration = (float)iter->duration;
+      size_t index = static_cast<size_t>(iter->frameIndex) - 1;
+
+      if (index >= frames.size()) {
+        index = frames.size() - 1u;
+      }
+
+      Frame copy = frames[index];
+      copy.duration = from_seconds(iter->duration);
       res.frames.push_back(copy);
       res.totalDuration += copy.duration;
-      iter++;
+
+      iter = std::next(iter);
     }
 
     return res;
@@ -108,8 +138,8 @@ public:
    * @param dur duration of frame in seconds
    * @param sub int rectangle defining the frame from a texture sheet
    */
-  void Add(float dur, sf::IntRect sub) {
-    frames.emplace_back(std::move(Frame(dur, sub, false, sf::Vector2f(0,0) )));
+  inline void Add(frame_time_t dur, sf::IntRect sub) {
+    frames.emplace_back(std::move(Frame(dur, sub, false, sf::Vector2f(0,0), false, false )));
     totalDuration += dur;
   }
 
@@ -118,9 +148,11 @@ public:
    * @param dur duration of frame in seconds
    * @param sub int rectangle defininf the frame from a texture sheet
    * @param origin origin of frame
+   * @param flipX if the frame is flipped horizontally visually (does not affect points)
+   * @param flipY if the frame is flipped vertically   visually (does not affect points)
    */
-  void Add(float dur, sf::IntRect sub, sf::Vector2f origin) {
-    frames.emplace_back(std::move(Frame(dur, sub, true, origin)));
+  inline void Add(frame_time_t dur, sf::IntRect sub, sf::Vector2f origin, bool flipX, bool flipY) {
+    frames.emplace_back(std::move(Frame(dur, sub, true, origin, flipX, flipY)));
     totalDuration += dur;
   }
 
@@ -131,7 +163,7 @@ public:
   * @param y of the vector
   * Will overwrite any other point with the same name in the frame - unique names only
   */
-  void SetPoint(const std::string& name, int x, int y) {
+  inline void SetPoint(const std::string& name, int x, int y) {
     auto str = name;
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
     frames[frames.size() - 1].points[name] = sf::Vector2f(float(x), float(y));
@@ -141,26 +173,26 @@ public:
  * @brief Get the total number of frames in this list
  * @return const unsigned int
  */
-  const size_t GetFrameCount() { return this->frames.size(); }
+  inline const size_t GetFrameCount() { return frames.size(); }
 
   /**
   * @brief Get the frame data at the given index
   * @param index of the frame in the list (base 0)
   * @return const Frame immutable
   */
-  const Frame& GetFrame(const int index) { return this->frames[index]; }
+  inline const Frame& GetFrame(const int index) { return frames[index]; }
 
   /**
    * @brief Get the total duration for the list of frames
    * @return const float
    */
-  const float GetTotalDuration() const { return totalDuration; }
+  inline const frame_time_t GetTotalDuration() const { return totalDuration; }
 
   /**
    * @brief Query if frame list is empty
    * @return true if empty, false otherwise
    */
-  const bool IsEmpty() const { return frames.empty(); }
+  inline const bool IsEmpty() const { return frames.empty(); }
 };
 
 /**
@@ -176,26 +208,27 @@ public:
  */
 class Animator {
 private:
-  std::map<int, std::function<void()>> callbacks; /*!< Called every time on frame */
-  std::map<int, std::function<void()>> onetimeCallbacks; /*!< Called once on frame then discarded */
-  std::map<int, std::function<void()>> nextLoopCallbacks; /*!< used to queue already called callbacks */
-  std::map<int, std::function<void()>> queuedCallbacks; /*!< used for adding new callbacks while updating */
-  std::map<int, std::function<void()>> queuedOnetimeCallbacks; /*!< adding new one-time callbacks in update */
+  FrameCallbackHash callbacks; /*!< Called every time on frame */
+  FrameCallbackHash onetimeCallbacks; /*!< Called once on frame then discarded */
+  FrameCallbackHash nextLoopCallbacks; /*!< used to queue already called callbacks */
+  FrameCallbackHash queuedCallbacks; /*!< used for adding new callbacks while updating */
+  FrameCallbackHash queuedOnetimeCallbacks; /*!< adding new one-time callbacks in update */
   
-  std::map<std::string, sf::Vector2f> currentPoints;
+  PointHash currentPoints;
   
-  std::function<void()> onFinish; /*!< special callback that fires when the animation is completed */
-  std::function<void()> queuedOnFinish; /*!< Queues onFinish callback when used in the middle of update */
+  FrameFinishCallback onFinish; /*!< special callback that fires when the animation is completed */
+  FrameFinishCallback queuedOnFinish; /*!< Queues onFinish callback when used in the middle of update */
   
   char playbackMode; /*!< determins how to animate the frame list */
   
   bool isUpdating; /*!< Flag if in the middle of update */
   bool callbacksAreValid; /*!< Flag for queues. If false, all added callbacks are discarded. */
-  
-  void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
+  bool clearLater{ false }; //!< if clearing inside a callback, wait until after callback scope ends
 
+  void UpdateSpriteAttributes(sf::Sprite& target, const Frame& data);
+  const sf::Vector2f CalculatePointData(const sf::Vector2f& point, const Frame& data);
 public:
-  inline static const std::function<void()> NoCallback = [](){};
+  inline static const FrameCallback NoCallback = [](){};
 
   /**
    * @struct On
@@ -205,20 +238,20 @@ public:
    */
   struct On {
     int id; /*!< Base 1 frame index */
-    std::function<void()> callback; /*!< Callback to queue */
+    FrameCallback callback; /*!< Callback to queue */
     bool doOnce; /*!< If true, this is a one-time callback */
 
     friend class Animator;
-    On(int id, std::function<void()> callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
+    On(int id, FrameCallback callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
       ;
     }
     
     On(const On& rhs) {
-		  //std::cout << "in cpy constructor" << std::endl;
-		  this->id = rhs.id;
-		  this->callback = rhs.callback;
-		  this->doOnce = rhs.doOnce;
-	  }
+      //std::cout << "in cpy constructor" << std::endl;
+      id = rhs.id;
+      callback = rhs.callback;
+      doOnce = rhs.doOnce;
+    }
   };
 
   /**
@@ -233,16 +266,14 @@ public:
     
     friend class Animator;
   public:
-    static const char NoEffect = 0x00; /*!< Play once and stop */
-    static const char Loop = 0x01; /*!< When it reaches the end, restarts animation and resumes */
-    static const char Bounce = 0x02; /*!< When it reaches the end, reverse the animation and resume */
-    static const char Reverse = 0x04; /*!< Reverse the animation */
+    static constexpr char NoEffect = 0x00; /*!< Play once and stop */
+    static constexpr char Loop = 0x01; /*!< When it reaches the end, restarts animation and resumes */
+    static constexpr char Bounce = 0x02; /*!< When it reaches the end, reverse the animation and resume */
+    static constexpr char Reverse = 0x04; /*!< Reverse the animation */
 
-    Mode(int playback) {
-      this->playback = playback;
-    }
+    Mode(int playback);
 
-    ~Mode() { ; }
+    ~Mode() = default;
   };
 
   Animator();
@@ -254,7 +285,7 @@ public:
    * @brief Get the current playback mode
    * @return char
    */
-  char GetMode() { return playbackMode;  }
+  char GetMode();
   
   const sf::Vector2f GetPoint(const std::string& pointName);
   
@@ -269,7 +300,7 @@ public:
    * @param target sprite to apply frames to
    * @param sequence list of frames
    */
-  void operator() (float progress, sf::Sprite& target, FrameList& sequence);
+  void operator() (frame_time_t progress, sf::Sprite& target, FrameList& sequence);
   
   /**
    * @brief Applies a callback
@@ -289,13 +320,23 @@ public:
    * @brief Sets an onFinish callback. 
    * @important Does not chain. This must come at the end.
    */
-  void operator<< (std::function<void()> finishNotifier);
+  void operator<< (FrameFinishCallback finishNotifier);
 
   /**
    * @brief Manually applies the frame at index
-   * @param frameIndex Base 1 index to apply frame of
+   * @param frameIndex Base 0 index to apply frame of
    * @param target sprite to apply frame to
    * @param sequence frame is pulled from list using index
    */
   void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence);
+
+  /**
+ * @brief Updates the internal points hash from the frame list for a given frame
+ * @param frameIndex Base 0 index to apply frame of
+ * @param The frame list
+ * 
+ * Once this function is complete, the currentpoints stored inside the animator
+ * is refreshed with latest data
+ */
+  void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
 };

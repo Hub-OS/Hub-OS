@@ -2,6 +2,8 @@
 #include "bnTextBox.h"
 #include "bnAnimation.h"
 #include "bnMessageInterface.h"
+#include "bnResourceHandle.h"
+
 #include <Swoosh/Ease.h>
 
 /**
@@ -20,44 +22,59 @@
  * e.g. Tutorial textbox can dequeue and enqueue the last messages until user says "Dont repeat"
  *      then it can say the last few messages left in queue.
  */
-class AnimatedTextBox : public sf::Drawable, public sf::Transformable {
+class AnimatedTextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
 private:
-  mutable sf::Sprite frame; /*!< Size is calculated from the frame sprite */ 
-  mutable Animation mugAnimator; /*!< Animators the mugshot frames */
-  bool isPaused; /*!< Pause text flag */
-  bool isReady; /*!< Ready to type text flag */
-  bool isOpening; /*!< Opening textbox flag */
-  bool isClosing; /*!< Closing textbox flag */
+  bool isPaused{}; /*!< Pause text flag */
+  bool isReady{}; /*!< Ready to type text flag */
+  bool isOpening{}; /*!< Opening textbox flag */
+  bool isClosing{}; /*!< Closing textbox flag */
+  mutable bool lightenMug{true};
+  bool canDraw{};
+  double totalTime{}; /*!< elapsed */
+  double textSpeed{1.0}; /*!< desired speed of text */
   mutable std::vector<sf::Sprite> mugshots; /*!< List of current and next mugshots */
-  std::vector<std::string> animPaths; /*!< List of animation paths for the mugshots */
+  mutable sf::Sprite lastSpeaker;
+  std::vector<Animation> anims; /*!< List of animation paths for the mugshots */
   std::vector<MessageInterface*> messages; /*!< Lists of current and next messages */
+  mutable sf::Sprite frame; /*!< Size is calculated from the frame sprite */
+  mutable Animation mugAnimator; /*!< Animators the mugshot frames */
   Animation animator; /*!< Animator for the textbox */
-
+  std::shared_ptr<Texture> textureRef; /*!< smart reference to the texture*/
   sf::IntRect textArea; /*!< The area for text to type in */
   TextBox textBox; /*!< Textbox object types text out for us */
 
-  double totalTime; /*!< elapsed */
-  double textSpeed; /*!< desired speed of text */
 public:
   /**
    * @brief constructs AnimatedTextBox at given position on screen 
    **/
-  AnimatedTextBox(sf::Vector2f pos);
+  AnimatedTextBox(const sf::Vector2f& pos);
   virtual ~AnimatedTextBox();
 
   /**
    * @brief Remove message and mugshot from queue
    */
   void DequeMessage();
+
+  void ClearAllMessages();
   
   /**
    * @brief Adds message and mugshot to queue
    * @param speaker mugshot sprite
-   * @param animationPath mugshot animations list
+   * @param animation mugshot animation
    * @param message message object
    */
-  void EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message);
+  void EnqueMessage(const sf::Sprite& speaker, const Animation& anim, MessageInterface* message);
   
+  /**
+   * @brief Adds message to queue
+   * @param message message object
+   * 
+   * This variation does not display a talking face
+   */
+  void EnqueMessage(MessageInterface* message);
+
+  void ReplaceText(std::string text);
+
   /**
    * @brief Begins closing the textbox
    */
@@ -66,7 +83,7 @@ public:
   /**
    * @brief Begins opening the textbox
    */
-  void Open();
+  void Open(const std::function<void()>& onOpen = nullptr);
 
   /**
    * @brief Query if the textbox is playing
@@ -94,18 +111,52 @@ public:
 
   /**
    * @brief Query if the message has finished or if there is more text waiting to print
-   * @return true if there are 1 or more messages in queue and the textbox isn't finished, false otherwise
+   * @return false if there are 1 or more messages in queue and the textbox isn't finished, true otherwise
    */
   const bool IsEndOfMessage();
 
+  const bool IsEndOfBlock();
+
   /**
-   * @brief Query if the message has finished or if there is more text waiting to print
-   * @return true if there are 1 or more messages in queue and the textbox isn't finished, false otherwise
+   * @brief Query if the current message has another block
+   * @return false if the textbox has more blocks, true otherwise
+   */
+  bool IsFinalBlock() const;
+
+  /**
+   * @brief Will remove the first line and add the next line to ensure all text fits
    */
   void ShowNextLines();
 
+  void ShowPreviousLines();
+
+  void CompleteCurrentBlock();
+
+  /**
+  * @brief returns the number of fitting lines in the underlyning textbox object
+  */
+  const int GetNumberOfFittingLines() const;
+
   const float GetFrameWidth() const;
   const float GetFrameHeight() const;
+
+  /**
+   * @brief Returns the character range of the displayed text
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetCurrentCharacterRange() const;
+
+  /**
+   * @brief Returns the range of the displayed lines (not the range of the characters)
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetCurrentLineRange() const;
+
+  /**
+   * @brief Returns the character range of the completed text
+   * @return pair of size_t
+   */
+  std::pair<size_t, size_t> GetBlockCharacterRange() const;
 
   /**
    * @brief Update the animated textbox
@@ -128,5 +179,11 @@ public:
 
   void DrawMessage(sf::RenderTarget& target, sf::RenderStates states) const;
 
-  sf::Text MakeTextObject(std::string data = std::string());
+  Text MakeTextObject(const std::string& data = std::string());
+
+  Font GetFont() const;
+  sf::Vector2f GetTextPosition() const;
+
+  void Mute(bool enabled = true);
+  void Unmute();
 };

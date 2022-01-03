@@ -2,54 +2,270 @@
 #include "bnComponent.h"
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnPlayer.h"
+#include "bnShakingEffect.h"
+#include "bnShaderResourceManager.h"
+#include "bnTextureResourceManager.h"
+#include <cmath>
 #include <Swoosh/Ease.h>
 
 long Entity::numOfIDs = 0;
 
+bool EntityComparitor::operator()(std::shared_ptr<Entity> f, std::shared_ptr<Entity> s) const
+{
+  return f->GetID() < s->GetID();
+}
+
+bool EntityComparitor::operator()(Entity* f, Entity* s) const
+{
+  return f->GetID() < s->GetID();
+}
+
 // First entity ID begins at 1
-Entity::Entity()
-  : tile(nullptr),
-  next(nullptr),
-  previous(nullptr),
-  field(nullptr),
-  previousDirection(Direction::NONE),
-  direction(Direction::NONE),
-  team(Team::UNKNOWN),
-  isBattleActive(false),
-  deleted(false),
-  passthrough(false),
-  ownedByField(false),
-  isSliding(false),
-  hasSpawned(false),
-  element(Element::NONE),
-  tileOffset(sf::Vector2f(0, 0)),
-  slideTime(sf::milliseconds(100)),
-  defaultSlideTime(slideTime),
-  elapsedSlideTime(0),
+Entity::Entity() : 
+  elapsedMoveTime(0),
   lastComponentID(0),
-  height(0)
+  height(0),
+  moveCount(0),
+  channel(nullptr),
+  mode(Battle::TileHighlight::none),
+  hitboxProperties(Hit::DefaultProperties),
+  CounterHitPublisher()
 {
-  this->ID = ++Entity::numOfIDs;
-  alpha = 255;
+  ID = ++Entity::numOfIDs;
+
+  SetColorMode(ColorMode::additive);
+  setColor(NoopCompositeColor(ColorMode::additive));
+
+  if (sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER)) {
+    SetShader(shader);
+    SmartShader& smartShader = GetShader();
+    smartShader.SetUniform("texture", sf::Shader::CurrentTexture);
+    smartShader.SetUniform("additiveMode", true);
+    smartShader.SetUniform("swapPalette", false);
+    baseColor = sf::Color(0, 0, 0, 0);
+  }
+
+  using namespace std::placeholders;
+  auto handler = std::bind(&Entity::HandleMoveEvent, this, _1, _2);
+  actionQueue.RegisterType<MoveEvent>(ActionTypes::movement, handler);
+
+  whiteout = Shaders().GetShader(ShaderType::WHITE);
+  stun = Shaders().GetShader(ShaderType::YELLOW);
+  root = Shaders().GetShader(ShaderType::BLACK);
+  setColor(NoopCompositeColor(GetColorMode()));
+
+  shadow = std::make_shared<SpriteProxyNode>();
+  shadow->SetLayer(1);
+  shadow->Hide(); // default: hidden
+  AddNode(shadow);
 }
 
-// Entity's own the components still attached
-// Use FreeComponent() to preserve a component upon entity's deletion
 Entity::~Entity() {
-  for (int i = 0; i < components.size(); i++) {
-    delete components[i];
-  }
-
-  components.clear();
+  std::shared_ptr<Field> f = field.lock();
+  if (!f) return;
+  
+  f->ClearAllReservations(ID);
 }
 
-void Entity::Spawn(Battle::Tile & start)
+void Entity::Cleanup() {
+  FreeAllComponents();
+}
+
+void Entity::SortComponents()
 {
-  if (!this->hasSpawned) {
-    this->OnSpawn(start);
+  // Newest components appear first in the list for easy referencing
+  std::sort(components.begin(), components.end(), [](std::shared_ptr<Component>& a, std::shared_ptr<Component>& b) { return a->GetID() > b->GetID(); });
+}
+
+void Entity::ClearPendingComponents()
+{
+  queuedComponents.clear();
+}
+
+void Entity::ReleaseComponentsPendingRemoval()
+{
+  // `delete` may kick off deconstructors that Eject() other components
+  std::list<Entity::ComponentBucket> copy = queuedComponents;
+
+  // Remove the component from our list
+  for (Entity::ComponentBucket& bucket : copy) {
+    if (bucket.action != ComponentBucket::Status::remove) continue;
+
+    auto iter = std::find(components.begin(), components.end(), bucket.pending);
+
+    if (iter != components.end()) {
+      components.erase(iter);
+    }
+  }
+}
+
+void Entity::InsertComponentsPendingRegistration()
+{
+  bool sort = queuedComponents.size();
+
+  for (Entity::ComponentBucket& bucket : queuedComponents) {
+    if (bucket.action == ComponentBucket::Status::add) {
+      components.push_back(bucket.pending);
+    }
   }
 
-  this->hasSpawned = true;
+  sort ? SortComponents() : void(0);
+}
+
+void Entity::UpdateMovement(double elapsed)
+{
+  // Only move if we have a valid next tile pointer
+  Battle::Tile* next = currMoveEvent.dest;
+  if (next) {
+    if (currMoveEvent.onBegin) {
+      currMoveEvent.onBegin();
+      currMoveEvent.onBegin = nullptr;
+    }
+
+    elapsedMoveTime += elapsed;
+
+    if (from_seconds(elapsedMoveTime) > currMoveEvent.delayFrames) {
+      // Get a value from 0.0 to 1.0
+      float duration = seconds_cast<float>(currMoveEvent.deltaFrames);
+      float delta = swoosh::ease::linear(static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value), duration, 1.0f);
+      
+      sf::Vector2f pos = moveStartPosition;
+      sf::Vector2f tar = next->getPosition();
+
+      // Interpolate the sliding position from the start position to the end position
+      sf::Vector2f interpol = tar * delta + (pos * (1.0f - delta));
+      tileOffset = interpol - pos;
+
+      // Once halfway, the mmbn entities switch to the next tile
+      // and the slide position offset must be readjusted 
+      if (delta >= 0.5f) {
+        // conditions of the target tile may change, ensure by the time we switch
+        if (CanMoveTo(next)) {
+          if (tile != next) {
+            AdoptNextTile();
+          }
+
+          // Adjust for the new current tile, begin halfway approaching the current tile
+          tileOffset = -tar + pos + tileOffset;
+        }
+        else {
+          // Slide back into the origin tile if we can no longer slide to the next tile
+          moveStartPosition = next->getPosition();
+          currMoveEvent.dest = tile;
+
+          tileOffset = -tar + pos + tileOffset;
+        }
+      }
+
+      float heightElapsed = static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value);
+      float heightDelta = swoosh::ease::wideParabola(heightElapsed, duration, 1.0f);
+      currJumpHeight = (heightDelta * currMoveEvent.height);
+      tileOffset.y -= currJumpHeight;
+      
+      // When delta is 1.0, the slide duration is complete
+      if (delta == 1.0f)
+      {
+        // Slide or jump is complete, clear the tile offset used in those animations
+        tileOffset = { 0, 0 };
+
+        // Now that we have finished moving across panels, we must wait out endlag
+        MoveEvent copyMoveEvent = currMoveEvent;
+        frame_time_t lastFrame = currMoveEvent.delayFrames + currMoveEvent.deltaFrames + currMoveEvent.endlagFrames;
+        if (from_seconds(elapsedMoveTime) > lastFrame) {
+          Battle::Tile* prevTile = previous;
+          FinishMove(); // mutates `previous` ptr
+          previousDirection = direction;
+          Battle::Tile* currTile = GetTile();
+
+          // If we slide onto an ice block and we don't have float shoe enabled, slide
+          if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
+            // calculate our new entity's position
+            UpdateMoveStartPosition();
+
+            if (prevTile->GetX() > currTile->GetX()) {
+              next = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
+              previousDirection = Direction::left;
+            }
+            else if (prevTile->GetX() < currTile->GetX()) {
+              next = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
+              previousDirection = Direction::right;
+            }
+            else if (prevTile->GetY() < currTile->GetY()) {
+              next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() + 1);
+              previousDirection = Direction::down;
+            }
+            else if (prevTile->GetY() > currTile->GetY()) {
+              next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() - 1);
+              previousDirection = Direction::up;
+            }
+
+            // If the next tile is not available, not ice, or we are ice element, don't slide
+            bool notIce = (next && tile->GetState() != TileState::ice);
+            bool cannotMove = (next && !CanMoveTo(next));
+            bool weAreIce = (GetElement() == Element::aqua);
+            bool cancelSlide = (notIce || cannotMove || weAreIce);
+
+            if (slidesOnTiles && !cancelSlide) {
+              MoveEvent event = { frames(4), frames(0), frames(0), 0, tile + previousDirection };
+              RawMoveEvent(event, ActionOrder::immediate);
+              copyMoveEvent = {};
+            }
+          }
+          else {
+            // Invalidate the next tile pointer
+            next = nullptr;
+          }
+        }
+      }
+    }
+  }
+  else {
+    // If we don't have a valid next tile pointer or are not sliding,
+    // Keep centered in the current tile with no offset
+    tileOffset = sf::Vector2f(0, 0);
+    elapsedMoveTime = 0;
+  }
+
+  if (tile) {
+    setPosition(tile->getPosition() + Entity::tileOffset + drawOffset);
+  }
+}
+
+void Entity::SetFrame(unsigned frame)
+{
+  this->frame = frame;
+}
+
+void Entity::Spawn(Battle::Tile& start)
+{
+  if (!hasSpawned) {
+    if (GetFacing() == Direction::none) {
+      SetFacing(start.GetFacing());
+    }
+
+    hasSpawned = true;
+
+    OnSpawn(start);
+  }
+}
+
+bool Entity::HasSpawned() {
+  return hasSpawned;
+}
+
+void Entity::BattleStart()
+{
+  if (fieldStart) return;
+
+  fieldStart = true;
+  OnBattleStart();
+}
+
+void Entity::BattleStop()
+{
+  if (!fieldStart) return;
+  OnBattleStop();
 }
 
 const float Entity::GetHeight() const {
@@ -57,237 +273,425 @@ const float Entity::GetHeight() const {
 }
 
 void Entity::SetHeight(const float height) {
-  this->height = height;
+  Entity::height = std::fabs(height);
+}
+
+VirtualInputState& Entity::InputState()
+{
+  return inputState;
 }
 
 const bool Entity::IsSuperEffective(Element _other) const {
-  switch(this->GetElement()) {
-    case Element::AQUA:
-        return _other == Element::ELEC;
-        break;
-    case Element::FIRE:
-        return _other == Element::AQUA;
-        break;
-    case Element::WOOD:
-        return _other == Element::FIRE;
-        break;
-    case Element::ELEC:
-        return _other == Element::WOOD;
-        break;
+  switch(GetElement()) {
+    case Element::aqua:
+      return _other == Element::elec;
+      break;
+    case Element::fire:
+      return _other == Element::aqua;
+      break;
+    case Element::wood:
+      return _other == Element::fire;
+      break;
+    case Element::elec:
+      return _other == Element::wood;
+      break;
+    case Element::sword:
+      return _other == Element::breaker;
+      break;
+    case Element::wind:
+      return _other == Element::sword;
+      break;
+    case Element::cursor:
+      return _other == Element::wind;
+      break;
+    case Element::breaker:
+      return _other == Element::cursor;
+      break;
   }
     
   return false;
 }
 
-void Entity::Update(float _elapsed) {
-  // If this entity is flagged for deletion, remove it from its current tile
-  /*if (IsDeleted()) {
-    if (tile) {
-      tile->RemoveEntityByID(this->GetID());
+bool Entity::HasInit() {
+  return hasInit;
+}
+
+void Entity::Init() {
+  hasInit = true;
+}
+
+void Entity::Update(double _elapsed) {
+  ResolveFrameBattleDamage();
+
+  // reset base color
+  setColor(NoopCompositeColor(GetColorMode()));
+
+  RefreshShader();
+
+  if (!hit) {
+    if (invincibilityCooldown > frames(0)) {
+      unsigned frame = invincibilityCooldown.count() % 4;
+      if (frame < 2) {
+        Reveal();
+      }
+      else {
+        Hide();
+      }
+
+      invincibilityCooldown -= from_seconds(_elapsed);
+
+      if (invincibilityCooldown <= frames(0)) {
+        Reveal();
+      }
     }
-  }*/
+  }
+
+  if(rootCooldown > frames(0)) {
+    rootCooldown -= from_seconds(_elapsed);
+
+    if (rootCooldown <= frames(0) || invincibilityCooldown > frames(0) || IsPassthrough()) {
+      rootCooldown = frames(0);
+    }
+  }
+
+  if(stunCooldown > frames(0)) {
+    stunCooldown -= from_seconds(_elapsed);
+
+    if (stunCooldown <= frames(0)) {
+      stunCooldown = frames(0);
+    }
+  }
+  else if(stunCooldown <= frames(0)) {
+    OnUpdate(_elapsed);
+  }
+
+  isUpdating = true;
+
+  actionQueue.Process();
+
+  UpdateMovement(_elapsed);
+
+  sf::Uint8 alpha = getSprite().getColor().a;
+  for (std::shared_ptr<SceneNode>& child : GetChildNodes()) {
+    SpriteProxyNode* sprite = dynamic_cast<SpriteProxyNode*>(child.get());
+    if (sprite) {
+      sf::Color color = sprite->getColor();
+      sprite->setColor(sf::Color(color.r, color.g, color.b, alpha));
+    }
+  }
 
   // Update all components
-  for (int i = 0; i < components.size(); i++) {
-    components[i]->OnUpdate(_elapsed);
-  }
-
-  // Do not upate if the entity's current tile pointer is null
-  if (_elapsed <= 0 || !tile)
-    return;
-
-  // Only slide if we have a valid next tile pointer
-  if (isSliding && this->next) {
-    elapsedSlideTime += _elapsed;
-
-    // Get a value from 0.0 to 1.0
-    float delta = swoosh::ease::linear((float)elapsedSlideTime, slideTime.asSeconds(), 1.0f);
-
-    sf::Vector2f pos = this->slideStartPosition;
-    sf::Vector2f tar = this->next->getPosition();
-
-    // Interpolate the sliding position from the start position to the end position
-    auto interpol = tar * delta + (pos*(1.0f - delta));
-    this->tileOffset = interpol - pos;
-
-    // Once halfway, the mmbn entities switch to the next tile
-    // and the slide position offset must be readjusted 
-    if (delta >= 0.5f) {
-      // conditions of the target tile may change, ensure by the time we switch
-      if (this->CanMoveTo(next)) {
-        if (tile != next) {
-          // Remove the entity from its previous tile pointer 
-          previous->RemoveEntityByID(this->GetID());
-          
-          // Previous tile is now the current tile
-          previous = tile;
-
-          // Curent tile is now the next tile
-          this->AdoptTile(next);
-        }
-
-        // Adjust for the new current tile, begin halfway approaching the current tile
-        this->tileOffset = -tar + pos + tileOffset;
-      }
-      else {
-        // Slide back into the origin tile if we can no longer slide to the next tile
-        this->next = this->tile;
-      }
-    } 
-
-    // When delta is 1.0, the slide duration is complete
-    if(delta == 1.0f)
-    {
-      elapsedSlideTime = 0;
-      Battle::Tile* prevTile = this->GetTile();
-      this->tileOffset = sf::Vector2f(0, 0);
-
-      // If we slide onto an ice block and we don't have float shoe enabled, slide
-      if (this->tile->GetState() == TileState::ICE && !this->HasFloatShoe()) {
-        // Move again in the same direction as before
-        this->Move(this->GetPreviousDirection());
-
-        // calculate our new entity's position
-        this->UpdateSlideStartPosition();
-
-        // TODO: shorten with this->GetPreviousDirection() switch
-        if (this->previous->GetX() > prevTile->GetX()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
-        }
-        else if (this->previous->GetX() < prevTile->GetX()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX() + 1, this->GetTile()->GetY());
-        }
-        else if (this->previous->GetY() < prevTile->GetY()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() + 1);
-        }
-        else if (this->previous->GetY() > prevTile->GetY()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() - 1);
-        }
-
-        // If the next tile is not available, not ice, or we are ice element, don't slide
-        if (((this->next && this->tile->GetState() != TileState::ICE) 
-          || !this->CanMoveTo(next)) 
-          || (this->GetElement() == Element::ICE)) {
-          // Conditions not met
-          isSliding = false;
-        }
-      }
-      else {
-        // Invalidate the next tile pointer
-        this->next = nullptr;
-      }
+  for (std::shared_ptr<Component>& component : components) {
+    // respectfully only update local components
+    // anything shared with the battle scene needs to update those components
+    if (component->Lifetime() == Component::lifetimes::local) {
+      component->Update(_elapsed);
     }
   }
-  else {
-    // If we don't have a valid next tile pointer or are not sliding,
-    // Keep centered in the current tile with no offset
-    //this->tileOffset = sf::Vector2f(0, 0);
-    isSliding = false;
+
+  ReleaseComponentsPendingRemoval();
+  InsertComponentsPendingRegistration();
+  ClearPendingComponents();
+
+  isUpdating = false;
+
+
+  // If the counterSlideOffset has changed from 0, it's due to the character
+  // being deleted on a counter frame. Begin animating the counter-delete slide
+  if (counterSlideOffset.x != 0 || counterSlideOffset.y != 0) {
+    counterSlideDelta += static_cast<float>(_elapsed);
+    
+    float delta = swoosh::ease::linear(counterSlideDelta, 0.10f, 1.0f);
+    sf::Vector2f offset = delta * counterSlideOffset;
+
+    // Add this offset onto our offsets
+    setPosition(tile->getPosition().x + offset.x, tile->getPosition().y + offset.y);
+  }
+
+  if (fieldStart && ((maxHealth > 0 && health <= 0) || IsDeleted())) {
+    // Ensure entity is deleted if health is zero
+    if (manualDelete == false) {
+      Delete();
+    }
+
+    // Ensure health is zero if marked for immediate deletion
+    health = 0;
+
+    // Ensure status effects do not play out
+    stunCooldown = frames(0);
+    rootCooldown = frames(0);
+    invincibilityCooldown = frames(0);
+  }
+
+  // If drag status is over, reset the flag
+  if (!IsSliding() && slideFromDrag) slideFromDrag = false;
+}
+
+
+void Entity::SetPalette(const std::shared_ptr<sf::Texture>& palette)
+{
+  SmartShader& smartShader = GetShader();
+
+  if (palette.get() == nullptr) {
+    smartShader.SetUniform("swapPalette", false);
+    swapPalette = false;
+    return;
+  }
+
+  swapPalette = true;
+  this->palette = palette;
+  smartShader.SetUniform("swapPalette", true);
+  smartShader.SetUniform("palette", this->palette);
+}
+
+std::shared_ptr<sf::Texture> Entity::GetPalette()
+{
+  return palette;
+}
+
+void Entity::StoreBasePalette(const std::shared_ptr<sf::Texture>& palette)
+{
+  basePalette = palette;
+}
+
+std::shared_ptr<sf::Texture> Entity::GetBasePalette()
+{
+  return basePalette;
+}
+
+void Entity::RefreshShader()
+{
+  std::shared_ptr<Field> field = this->field.lock();
+
+  if (!field) {
+    return;
+  }
+
+  sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER);
+
+  if (shader != GetShader().Get()) {
+    SetShader(shader);
+  }
+
+  SmartShader& smartShader = GetShader();
+
+  if (!smartShader.HasShader()) return;
+
+  smartShader.SetUniform("swapPalette", swapPalette);
+  smartShader.SetUniform("palette", palette);
+
+  // state checks
+  unsigned stunFrame = stunCooldown.count() % 4;
+  unsigned rootFrame = rootCooldown.count() % 4;
+  counterFrameFlag = counterFrameFlag % 4;
+  counterFrameFlag++;
+
+  bool iframes = invincibilityCooldown > frames(0);
+
+  vector<float> states = {
+    static_cast<float>(hit),                                                // WHITEOUT
+    static_cast<float>(rootCooldown > frames(0) && (iframes || rootFrame)), // BLACKOUT
+    static_cast<float>(stunCooldown > frames(0) && (iframes || stunFrame))  // HIGHLIGHT
+  };
+
+  smartShader.SetUniform("states", states);
+  smartShader.SetUniform("additiveMode", GetColorMode() == ColorMode::additive);
+
+  bool enabled = states[0] || states[1];
+
+  if (enabled) return;
+
+  if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag < 2) {
+    // Highlight when the character can be countered
+    setColor(sf::Color(55, 55, 255, getColor().a));
+  }
+}
+
+void Entity::draw(sf::RenderTarget& target, sf::RenderStates states) const
+{
+  // NOTE: This function does not call the parent implementation
+  //       This function is a special behavior for battle characters to
+  //       color their attached nodes correctly in-game
+
+  if (!SpriteProxyNode::show) return;
+
+  SmartShader& smartShader = GetShader();
+
+  // combine the parent transform with the node's one
+  sf::Transform combinedTransform = getTransform();
+
+  states.transform *= combinedTransform;
+
+  std::vector<SceneNode*> copies;
+  copies.reserve(childNodes.size() + 1);
+
+  for (std::shared_ptr<SceneNode>& child : childNodes) {
+    copies.push_back(child.get());
+  }
+
+  copies.push_back((SceneNode*)this);
+
+  std::sort(copies.begin(), copies.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });
+
+  // draw its children
+  for (std::size_t i = 0; i < copies.size(); i++) {
+    SceneNode* currNode = copies[i];
+
+    if (!currNode) continue;
+
+    // If it's time to draw our scene node, we draw the proxy sprite
+    if (currNode == this) {
+      sf::Shader* s = smartShader.Get();
+
+      if (s) {
+        states.shader = s;
+      }
+
+      target.draw(getSpriteConst(), states);
+    }
+    else {
+      SpriteProxyNode* asSpriteProxyNode{ nullptr };
+      SmartShader temp(smartShader);
+
+      /**
+      hack for now.
+      form overlay nodes (like helmet and shoulder pads)
+      are already colored to the desired palette. So we do not apply palette swapping.
+      **/
+      bool needsRevert = false;
+      sf::Color tempColor = sf::Color::White;
+      if (currNode->HasTag(Player::FORM_NODE_TAG)) {
+        asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode);
+
+        if (asSpriteProxyNode) {
+          smartShader.SetUniform("swapPalette", false);
+          tempColor = asSpriteProxyNode->getColor();
+          asSpriteProxyNode->setColor(sf::Color(0, 0, 0, getColor().a));
+          needsRevert = true;
+        }
+      }
+
+      // Apply and return shader if applicable
+      sf::Shader* s = smartShader.Get();
+
+      if (s && currNode->IsUsingParentShader()) {
+        if (auto asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode)) {
+          asSpriteProxyNode->setColor(this->getColor());
+        }
+
+        states.shader = s;
+      }
+
+      target.draw(*currNode, states);
+
+      // revert color
+      if (asSpriteProxyNode && needsRevert) {
+        asSpriteProxyNode->setColor(tempColor);
+      }
+
+      // revert uniforms from this pass
+      smartShader = temp;
+    }
   }
 }
 
 void Entity::SetAlpha(int value)
 {
   alpha = value;
-  sf::Color c = this->getColor();
+  sf::Color c = getColor();
   c.a = alpha;
 
-  this->setColor(c);
+  setColor(c);
 }
 
-
-bool Entity::Move(Direction _direction) {
-  if (!tile) return false;
-
-  bool moved = false;
-
-  // Update the entity direction 
-  this->direction = _direction;
-
-  Battle::Tile* temp = tile;
-  
-  if (_direction == Direction::NONE) next = nullptr;
-
-  // Based on the input direction grab the tile we wish 
-  // to move to and check to see if this entity is allowed
-  // to move onto it with CanMoveTo() 
-  if (_direction == Direction::UP) {
-    if (tile->GetY() - 1 >= 0) {
-      next = field->GetAt(tile->GetX(), tile->GetY() - 1);
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 >= 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::DOWN) {
-    if (tile->GetY() + 1 <= (int)field->GetHeight()+1) {
-      next = field->GetAt(tile->GetX(), tile->GetY() + 1);
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-  else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() + 1 <= (int)(field->GetWidth()+1)) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-      if (!CanMoveTo(next)) {
-        next = nullptr;
-      }
-    }
-  }
-
-  // If the next tile pointer is valid and is different from our current tile, we are moving
-  if (next && next != tile) {
-    this->previousDirection = _direction;
-
-    previous = temp;
-
-    // If we are sliding onto this tile, prevent move callbacks by returning false
-    if (isSliding) return false;
-
-    moved = true;
-  }
-  else {
-    this->direction = Direction::NONE;
-    isSliding = false;
-  }
-
-  return moved;
+int Entity::GetAlpha()
+{
+  return getColor().a;
 }
 
-bool Entity::Teleport(int col, int row) {
-  bool moved = false;
+bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void()> onBegin) {
+  if (dest && CanMoveTo(dest)) {
+    frame_time_t endlagDelay = moveEndlagDelay ? *moveEndlagDelay : frame_time_t{};
+    MoveEvent event = { 0, moveStartupDelay, endlagDelay, 0, dest, onBegin };
+    actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
-  Battle::Tile* temp = tile;
-
-  this->direction = Direction::NONE;
-
-
-  next = field->GetAt(col, row);
-
-  if (!(next && CanMoveTo(next))) {
-    next = nullptr;
+    return true;
   }
 
-  if (next) {
-    this->previousDirection = Direction::NONE;
+  return false;
+}
 
-    previous = temp;
+bool Entity::Slide(Battle::Tile* dest, 
+  const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
+{
+  if (dest && CanMoveTo(dest)) {
+    frame_time_t endlagDelay = moveEndlagDelay ? *moveEndlagDelay : endlag;
+    MoveEvent event = { slideTime, moveStartupDelay, endlagDelay, 0, dest, onBegin };
+    actionQueue.Add(event, order, ActionDiscardOp::until_eof);
 
-    moved = true;
+    return true;
   }
 
-  isSliding = false;
+  return false;
+}
 
-  return moved;
+bool Entity::Jump(Battle::Tile* dest, float destHeight, 
+  const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
+{
+  destHeight = std::max(destHeight, 0.f); // no negative jumps
+
+  if (dest && CanMoveTo(dest)) {
+    frame_time_t endlagDelay = moveEndlagDelay ? *moveEndlagDelay : endlag;
+    MoveEvent event = { jumpTime, moveStartupDelay, endlagDelay, destHeight, dest, onBegin };
+    actionQueue.Add(event, order, ActionDiscardOp::until_eof);
+
+    return true;
+  }
+
+  return false;
+}
+
+void Entity::FinishMove()
+{
+  // completes the move or moves the object back
+  if (currMoveEvent.dest /*&& !currMoveEvent.immutable*/) {
+    AdoptNextTile();
+    tileOffset = {};
+    currMoveEvent = {};
+    actionQueue.ClearFilters();
+    actionQueue.Pop();
+  }
+}
+
+bool Entity::RawMoveEvent(const MoveEvent& event, ActionOrder order)
+{
+  if (event.dest && CanMoveTo(event.dest)) {
+    actionQueue.Add(event, order, ActionDiscardOp::until_eof);
+
+    return true;
+  }
+
+  return false;
+}
+
+void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType& exec)
+{
+  if (exec == ActionQueue::ExecutionType::interrupt) {
+    FinishMove();
+    return;
+  }
+
+  if (currMoveEvent.dest == nullptr && !IsRooted()) {
+    UpdateMoveStartPosition();
+    FilterMoveEvent(event);
+    currMoveEvent = event;
+    moveEventFrame = this->frame;
+    previous = tile;
+    elapsedMoveTime = 0;
+    actionQueue.CreateDiscardFilter(ActionTypes::buster, ActionDiscardOp::until_resolve);
+    actionQueue.CreateDiscardFilter(ActionTypes::peek_card, ActionDiscardOp::until_resolve);
+  }
+
 }
 
 // Default implementation of CanMoveTo() checks 
@@ -296,53 +700,103 @@ bool Entity::Teleport(int col, int row) {
 // 3) if the tile is valid and the next tile is the same team
 bool Entity::CanMoveTo(Battle::Tile * next)
 {
-  bool valid = next? (this->HasFloatShoe()? true : next->IsWalkable()) : false;
-  return valid && Teammate(next->GetTeam());
+  bool valid = next? (HasFloatShoe()? true : next->IsWalkable()) : false;
+  return valid && Teammate(next->GetTeam()) && !next->IsReservedByCharacter({ GetID() });
 }
 
 const long Entity::GetID() const
 {
-  return this->ID;
+  return ID;
 }
 
 /** \brief Unkown team entities are friendly to all spaces @see Cubes */
-bool Entity::Teammate(Team _team) {
-  return (team == Team::UNKNOWN) || (team == _team);
+bool Entity::Teammate(Team _team) const {
+  return (team == Team::unknown) || (_team == Team::unknown) || (team == _team);
 }
 
 void Entity::SetTile(Battle::Tile* _tile) {
+  // If this entity is not moving, we can safely
+  // refresh their position to the new tile
+  if(!IsMoving() && _tile) {
+    setPosition(_tile->getPosition() + Entity::drawOffset);
+  }
+
   tile = _tile;
 }
 
-Battle::Tile* Entity::GetTile() const {
-  return tile;
-}
+Battle::Tile* Entity::GetTile(Direction dir, unsigned count) const {
+  Battle::Tile* next = this->tile;
 
-const Battle::Tile* Entity::GetNextTile() const {
+  while (count > 0) {
+    next = next + dir;
+    count--;
+  }
+
   return next;
 }
 
-void Entity::SlideToTile(bool enabled)
-{
-  isSliding = enabled;
+Battle::Tile* Entity::GetCurrentTile() const {
+    return GetTile();
+}
 
-  if (enabled) {
-    // capture potential slide starting position
-    this->UpdateSlideStartPosition();
-  }
+const sf::Vector2f Entity::GetTileOffset() const
+{
+  return this->tileOffset;
+}
+
+void Entity::SetDrawOffset(const sf::Vector2f& offset)
+{
+  drawOffset = offset;
+}
+
+void Entity::SetDrawOffset(float x, float y)
+{
+  drawOffset = { x, y };
+}
+
+const sf::Vector2f Entity::GetDrawOffset() const
+{
+  return drawOffset;
 }
 
 const bool Entity::IsSliding() const
 {
-  return isSliding;
+  bool is_moving = currMoveEvent.IsSliding();
+
+  return is_moving;
 }
 
-void Entity::SetField(Field* _field) {
+const bool Entity::IsJumping() const
+{
+  bool is_moving = currMoveEvent.IsJumping();
+
+  return is_moving && currJumpHeight > 0.f;
+}
+
+const bool Entity::IsTeleporting() const
+{
+  bool is_moving = currMoveEvent.IsTeleporting();
+
+  return is_moving;
+}
+
+const bool Entity::IsMoving() const
+{
+  return IsSliding() || IsJumping() || IsTeleporting();
+}
+
+void Entity::SetField(std::shared_ptr<Field> _field) {
+  assert(_field && "field was nullptr");
   field = _field;
+  channel = EventBus::Channel(_field->scene);
 }
 
-Field* Entity::GetField() const {
-  return field;
+std::shared_ptr<Field> Entity::GetField() const {
+  return field.lock();
+}
+
+bool Entity::IsOnField() const {
+  return !field.expired();
 }
 
 Team Entity::GetTeam() const {
@@ -371,6 +825,11 @@ void Entity::SetAirShoe(bool state) {
   airShoe = state;
 }
 
+void Entity::SlidesOnTiles(bool state)
+{
+  slidesOnTiles = state;
+}
+
 bool Entity::HasFloatShoe()
 {
   return floatShoe;
@@ -380,13 +839,43 @@ bool Entity::HasAirShoe() {
   return airShoe;
 }
 
-void Entity::SetDirection(Direction dir) {
-  this->direction = dir;
+bool Entity::WillSlideOnTiles()
+{
+  return slidesOnTiles;
 }
 
-Direction Entity::GetDirection()
+void Entity::SetMoveDirection(Direction dir) {
+  direction = dir;
+}
+
+Direction Entity::GetMoveDirection()
 {
   return direction;
+}
+
+void Entity::SetFacing(Direction facing)
+{
+  if (facing == Direction::left) {
+    neverFlip? void(0) : setScale(-2.f, 2.f); // flip standard facing right sprite
+  }
+  else if (facing == Direction::right) {
+    neverFlip? void(0) : setScale(2.f, 2.f); // standard facing
+  }
+  else {
+    return;
+  }
+
+  this->facing = facing;
+}
+
+Direction Entity::GetFacing()
+{
+  return facing;
+}
+
+Direction Entity::GetFacingAway()
+{
+  return Reverse(facing);
 }
 
 Direction Entity::GetPreviousDirection()
@@ -396,17 +885,30 @@ Direction Entity::GetPreviousDirection()
 
 void Entity::Delete()
 {
+  if (deleted) return;
+
   deleted = true;
-  this->FreeAllComponents();
+
+  OnDelete();
+}
+
+void Entity::Erase()
+{
+  flagForErase = true;
 }
 
 bool Entity::IsDeleted() const {
   return deleted;
 }
 
+bool Entity::WillEraseEOF() const
+{
+    return flagForErase;
+}
+
 void Entity::SetElement(Element _elem)
 {
-  this->element = _elem;
+  element = _elem;
 }
 
 const Element Entity::GetElement() const
@@ -416,20 +918,28 @@ const Element Entity::GetElement() const
 
 void Entity::AdoptNextTile()
 {
+  Battle::Tile* next = currMoveEvent.dest;
   if (next == nullptr) {
     return;
   }
 
-  if (previous != nullptr) {
-    previous->RemoveEntityByID(this->GetID());
+  if (previous != nullptr && previous != next) {
+    previous->RemoveEntityByID(GetID());
+
+    // If removing an entity and the tile was broken, crack the tile
+    previous->HandleMove(shared_from_this());
   }
 
-  this->AdoptTile(next);
+  previous = tile;
+
+  if (!IsMoving()) {
+    setPosition(next->getPosition() + Entity::drawOffset);
+  }
+
+  next->AddEntity(shared_from_this());
 
   // Slide if the tile we are moving to is ICE
-  if (next->GetState() == TileState::ICE && !this->HasFloatShoe()) {
-    this->SlideToTile(true);
-  } else {
+  if (next->GetState() != TileState::ice || HasFloatShoe()) {
     // If not using animations, then 
     // adopting a tile is the last step in the move procedure
     // Increase the move count
@@ -437,70 +947,647 @@ void Entity::AdoptNextTile()
   }
 }
 
-void Entity::SetBattleActive(bool state)
+void Entity::ToggleTimeFreeze(bool state)
 {
-  isBattleActive = state;
+  isTimeFrozen = state;
 }
 
-const bool Entity::IsBattleActive()
+const bool Entity::IsTimeFrozen()
 {
-  return isBattleActive;
+  return isTimeFrozen;
 }
 
 void Entity::FreeAllComponents()
 {
   for (int i = 0; i < components.size(); i++) {
-    components[i]->FreeOwner();
+    components[i]->Eject();
   }
+
+  ReleaseComponentsPendingRemoval();
 
   components.clear();
 }
 
-void Entity::FreeComponentByID(long ID) {
-  for (int i = 0; i < components.size(); i++) {
-    if (components[i]->GetID() == ID) {
-      components[i]->FreeOwner();
-      components.erase(components.begin() + i);
-      return;
+const EventBus::Channel& Entity::EventChannel() const
+{
+  return channel;
+}
+
+void Entity::FreeComponentByID(Component::ID_t ID) {
+  auto iter = components.begin();
+  while(iter != components.end()) {
+    std::shared_ptr<Component> component = *iter;
+
+    if (component->GetID() == ID) {
+      // Safely delete component by queueing it
+      queuedComponents.insert(queuedComponents.begin(), ComponentBucket{ component, ComponentBucket::Status::remove });
+      return; // found and handled, quit early.
     }
+
+    iter = std::next(iter);
   }
 }
 
-void Entity::FinishMove()
+const float Entity::GetElevation() const
 {
-  // prevent breaking sliding mechanics
-  if (IsSliding()) return;
-
-  next = nullptr;
+  return elevation;
 }
 
-Component* Entity::RegisterComponent(Component* c) {
+void Entity::SetElevation(const float elevation)
+{
+  this->elevation = elevation;
+}
+
+std::shared_ptr<Component> Entity::RegisterComponent(std::shared_ptr<Component> c) {
   if (c == nullptr) return nullptr;
 
   auto iter = std::find(components.begin(), components.end(), c);
   if (iter != components.end())
     return *iter;
 
-  components.push_back(c);
-
-  // Newest components appear first in the list for easy referencing
-  std::sort(components.begin(), components.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
+  if (isUpdating) {
+    queuedComponents.insert(queuedComponents.begin(), ComponentBucket{ c, ComponentBucket::Status::add });
+  }
+  else {
+    components.push_back(c);
+    SortComponents();
+  }
 
   return c;
 }
 
-void Entity::UpdateSlideStartPosition()
+void Entity::UpdateMoveStartPosition()
 {
   if (tile) {
-    slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
+    moveStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
   }
-}
-
-void Entity::SetSlideTime(sf::Time time) {
-  this->slideTime = time;
 }
 
 const int Entity::GetMoveCount() const
 {
-    return this->moveCount;
+  return moveCount;
+}
+
+void Entity::ClearActionQueue()
+{
+  actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
+}
+
+const float Entity::GetJumpHeight() const
+{
+  return currMoveEvent.height;
+}
+
+void Entity::ShowShadow(bool enabled)
+{
+  if (enabled) {
+    shadow->Reveal();
+  }
+  else {
+    shadow->Hide();
+  }
+}
+
+void Entity::SetShadowSprite(Shadow type)
+{
+  switch (type) {
+  case Entity::Shadow::none:
+    shadow->Hide();
+    break;
+  case Entity::Shadow::small:
+    {
+      shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_SMALL_SHADOW), true);
+      sf::FloatRect bounds = shadow->getLocalBounds();
+      shadow->setOrigin(sf::Vector2f(bounds.width * 0.5f, bounds.height * 0.5f));
+    }
+    break;
+  case Entity::Shadow::big:
+    {
+      shadow->setTexture(Textures().LoadFromFile(TexturePaths::MISC_BIG_SHADOW), true);
+      sf::FloatRect bounds = shadow->getLocalBounds();
+      shadow->setOrigin(sf::Vector2f(bounds.width * 0.5f, bounds.height * 0.5f));
+    }
+    break;
+  case Entity::Shadow::custom:
+    // no op
+  default:
+    break;
+  }
+}
+
+void Entity::SetShadowSprite(std::shared_ptr<sf::Texture> customShadow)
+{
+  shadow->setTexture(customShadow, true);
+  sf::FloatRect bounds = shadow->getLocalBounds();
+  shadow->setOrigin(sf::Vector2f(bounds.width*0.5f, bounds.height*0.5f));
+}
+
+void Entity::ShiftShadow() {
+  // counter offset the shadow node
+  shadow->setPosition(0, 0.5f * (Entity::GetElevation() + Entity::GetCurrJumpHeight()));
+}
+
+const float Entity::GetCurrJumpHeight() const
+{
+  return currJumpHeight;
+}
+
+void Entity::ShareTileSpace(bool enabled)
+{
+  canShareTile = enabled;
+}
+
+const bool Entity::CanShareTileSpace() const
+{
+  return canShareTile;
+}
+
+void Entity::EnableTilePush(bool enabled)
+{
+  canTilePush = enabled;
+}
+
+void Entity::SetName(std::string name)
+{
+  this->name = name;
+}
+
+const std::string Entity::GetName() const
+{
+  return name;
+}
+
+const bool Entity::CanTilePush() const {
+  return canTilePush;
+}
+
+const bool Entity::Hit(Hit::Properties props) {
+
+  if (!hitboxEnabled) {
+    return false;
+  }
+
+  if (GetHealth() <= 0) {
+    return false;
+  }
+
+  const Hit::Properties original = props;
+
+  if ((props.flags & Hit::shake) == Hit::shake) {
+    CreateComponent<ShakingEffect>(weak_from_this());
+  }
+  
+  for (std::shared_ptr<DefenseRule>& defense : defenses) {
+    props = defense->FilterStatuses(props);
+  }
+
+  // If the character itself is also super-effective,
+  // double the damage independently from tile damage
+  bool isSuperEffective = IsSuperEffective(props.element);
+
+  // super effective damage is x2
+  if (isSuperEffective) {
+    props.damage *= 2;
+  }
+
+  SetHealth(GetHealth() - props.damage);
+
+  if (IsTimeFrozen()) {
+    props.flags |= Hit::no_counter;
+  }
+
+  if (GetHealth() <= 0) {
+    SetShader(whiteout);
+  }
+
+  // Add to status queue for state resolution
+  statusQueue.push(CombatHitProps{ original, props });
+
+  if ((props.flags & Hit::impact) == Hit::impact) {
+    this->hit = true; // flash white immediately
+    RefreshShader();
+  }
+
+  return true;
+}
+
+void Entity::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback)
+{
+  statusCallbackHash[flag] = callback;
+}
+
+void Entity::ManualDelete()
+{
+  manualDelete = true;
+}
+
+void Entity::PrepareNextFrame()
+{
+  hit = false;
+}
+
+const bool Entity::UnknownTeamResolveCollision(const Entity& other) const
+{
+  return true; // by default unknown vs unknown spells attack eachother
+}
+
+const bool Entity::HasCollision(const Hit::Properties & props)
+{
+  // Pierce status hits even when passthrough or flinched
+  if ((props.flags & Hit::pierce) != Hit::pierce) {
+    if (invincibilityCooldown > frames(0) || IsPassthrough()) return false;
+  }
+
+  return true;
+}
+
+int Entity::GetHealth() const {
+  return health;
+}
+
+void Entity::SetMaxHealth(int _health)
+{
+  maxHealth = _health;
+}
+
+const int Entity::GetMaxHealth() const
+{
+  return maxHealth;
+}
+
+void Entity::ResolveFrameBattleDamage()
+{
+  if(statusQueue.empty()) return;
+
+  std::shared_ptr<Character> frameCounterAggressor = nullptr;
+  bool frameStunCancel = false;
+  Hit::Drag postDragEffect{};
+
+  std::queue<CombatHitProps> append;
+
+  while (!statusQueue.empty() && !IsSliding()) {
+    CombatHitProps props = statusQueue.front();
+    statusQueue.pop();
+
+    // a re-usable thunk for custom status effects
+    auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
+      if ((props.filtered.flags & toCheck) == toCheck) {
+        if (auto& func = statusCallbackHash[toCheck]) {
+          func();
+        }
+      }
+    };
+
+    int tileDamage = 0;
+
+    // Calculate elemental damage if the tile the character is on is super effective to it
+    if (props.filtered.element == Element::fire
+      && GetTile()->GetState() == TileState::grass) {
+      tileDamage = props.filtered.damage;
+      GetTile()->SetState(TileState::normal);
+    }
+    else if (props.filtered.element == Element::elec
+      && GetTile()->GetState() == TileState::ice) {
+      tileDamage = props.filtered.damage;
+    }
+
+    {
+      // Only register counter if:
+      // 1. Hit type is impact
+      // 2. The hitbox is allowed to counter
+      // 3. The character is on a counter frame
+      // 4. Hit properties has an aggressor
+      // This will set the counter aggressor to be the first non-impact hit and not check again this frame
+      if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+        if ((props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
+          frameCounterAggressor = GetField()->GetCharacter(props.filtered.aggressor);
+        }
+
+        OnCountered();
+        flagCheckThunk(Hit::impact);
+      }
+
+      // Requeue drag if already sliding by drag or in the middle of a move
+      if ((props.filtered.flags & Hit::drag) == Hit::drag) {
+        if (IsSliding()) {
+          append.push({ props.hitbox, { 0, Hit::drag, Element::none, 0, props.filtered.drag } });
+        }
+        else {
+          // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
+          if (frameCounterAggressor) {
+            append.push({ props.hitbox, { 0, Hit::impact, Element::none, frameCounterAggressor->GetID() } });
+            frameCounterAggressor = nullptr;
+          }
+
+          // requeue drag if count is > 0
+          if(props.filtered.drag.count > 0) {
+            // Apply drag effect post status resolution
+            postDragEffect.dir = props.filtered.drag.dir;
+            postDragEffect.count = props.filtered.drag.count - 1u;
+          }
+        }
+
+        flagCheckThunk(Hit::drag);
+
+        // exclude this from the next processing step
+        props.filtered.flags &= ~Hit::drag;
+      }
+
+      /**
+      While an attack that only flinches will not cancel stun, 
+      an attack that both flinches and flashes will cancel stun. 
+      This applies if the entity doesn't have SuperArmor installed. 
+      If they do have armor, stun isn't cancelled.
+      
+      This effect is requeued for another frame if currently dragging
+      */
+      if ((props.filtered.flags & Hit::stun) == Hit::stun) {
+        if (postDragEffect.dir != Direction::none) {
+          // requeue these statuses if in the middle of a slide
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
+        }
+        else {
+          // TODO: this is a specific (and expensive) check. Is there a way to prioritize this defense rule?
+          /*for (auto&& d : this->defenses) {
+            hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
+          }*/
+
+          // assume some defense rule strips out flinch, prevent abuse of stun
+          bool cancelsStun = (props.filtered.flags & Hit::flinch) == 0 && (props.hitbox.flags & Hit::flinch) == Hit::flinch;
+
+          if ((props.filtered.flags & Hit::flash) == Hit::flash && cancelsStun) {
+            // cancel stun
+            stunCooldown = frames(0);
+          }
+          else {
+            // refresh stun
+            stunCooldown = frames(180);
+            flagCheckThunk(Hit::stun);
+          }
+
+          actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
+        }
+      }
+
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::stun;
+
+      // Flash can be queued if dragging this frame
+      if ((props.filtered.flags & Hit::flash) == Hit::flash) {
+        if (postDragEffect.dir != Direction::none) {
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
+        }
+        else {
+          invincibilityCooldown = frames(120); // used as a `flash` status time
+          flagCheckThunk(Hit::flash);
+        }
+      }
+
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::flash;
+
+      // Flinch is canceled if retangibility is applied
+      if ((props.filtered.flags & Hit::retangible) == Hit::retangible) {
+        invincibilityCooldown = frames(0);
+
+        flagCheckThunk(Hit::retangible);
+      }
+
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::retangible;
+
+      if ((props.filtered.flags & Hit::bubble) == Hit::bubble) {
+        flagCheckThunk(Hit::bubble);
+      }
+
+      // exclude this from the next processing step 
+      props.filtered.flags &= ~Hit::bubble;
+
+      if ((props.filtered.flags & Hit::root) == Hit::root) {
+          rootCooldown = frames(120);
+          flagCheckThunk(Hit::root);
+      }
+
+      // exclude this from the next processing step 
+      props.filtered.flags &= ~Hit::root;
+
+      /*
+      flags already accounted for:
+      - impact
+      - stun
+      - flash
+      - drag
+      - retangible
+      - bubble
+      - root
+
+      Now check if the rest were triggered and invoke the
+      corresponding status callbacks
+      */
+      flagCheckThunk(Hit::breaking);
+      flagCheckThunk(Hit::freeze);
+      flagCheckThunk(Hit::pierce);
+      flagCheckThunk(Hit::shake);
+      flagCheckThunk(Hit::flinch);
+
+
+      if (props.filtered.damage) {
+        SetHealth(GetHealth() - tileDamage);
+        if (GetHealth() == 0) {
+          postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up
+        }
+        HitPublisher::Broadcast(*this, props.filtered);
+      }
+    }
+  } // end while-loop
+
+  if (!append.empty()) {
+    statusQueue = append;
+  }
+
+  if (postDragEffect.dir != Direction::none) {
+    // enemies and objects on opposing side of field are granted immunity from drag
+    if (Teammate(GetTile()->GetTeam())) {
+      actionQueue.ClearQueue(ActionQueue::CleanupType::allow_interrupts);
+      slideFromDrag = true;
+      Battle::Tile* dest = GetTile() + postDragEffect.dir;
+
+      if (CanMoveTo(dest)) {
+        // Enqueue a move action at the top of our priorities
+        actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
+
+        // Re-queue the drag status to be re-considered in our next combat checks
+        statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
+      }
+    }
+  }
+
+  if (GetHealth() == 0) {
+    while(statusQueue.size() > 0) {
+      statusQueue.pop();
+    }
+
+    //FinishMove(); // cancels slide. TODO: obstacles do not use this but characters do!
+
+    if(frameCounterAggressor) {
+      // Slide entity back a few pixels
+      counterSlideOffset = sf::Vector2f(50.f, 0.0f);
+      CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
+    }
+  } else if (frameCounterAggressor) {
+    CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
+    ToggleCounter(false);
+    Stun(frames(150));
+  }
+}
+
+void Entity::SetHealth(const int _health) {
+  std::shared_ptr<Field> fieldPtr = field.lock();
+
+  if (fieldPtr) {
+    if (!fieldPtr->isBattleActive) return;
+  }
+
+  health = _health;
+
+  if (maxHealth == 0) {
+    maxHealth = health;
+  }
+
+  if (health > maxHealth) health = maxHealth;
+  if (health < 0) health = 0;
+}
+
+const bool Entity::IsHitboxAvailable() const
+{
+  return hitboxEnabled && GetHealth() > 0;
+}
+
+void Entity::EnableHitbox(bool enabled)
+{
+  hitboxEnabled = enabled;
+}
+
+void Entity::AddDefenseRule(std::shared_ptr<DefenseRule> rule)
+{
+  if (!rule) return;
+
+  auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](auto other) { return rule->GetPriorityLevel() == other->GetPriorityLevel(); });
+
+  if (rule && iter == defenses.end()) {
+    defenses.push_back(rule);
+    std::sort(defenses.begin(), defenses.end(), [](std::shared_ptr<DefenseRule> first,std::shared_ptr<DefenseRule> second) { return first->GetPriorityLevel() < second->GetPriorityLevel(); });
+  }
+  else {
+    (*iter)->replaced = true; // Flag that this defense rule may be valid ptr, but is no longer in use
+    (*iter)->OnReplace();
+    RemoveDefenseRule(*iter); // will invalidate the iterator
+
+    // call again, adding new rule this time
+    AddDefenseRule(rule);
+  }
+}
+
+void Entity::RemoveDefenseRule(std::shared_ptr<DefenseRule> rule)
+{
+  RemoveDefenseRule(rule.get());
+}
+
+void Entity::RemoveDefenseRule(DefenseRule* rule)
+{
+  auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](auto in) { return in.get() == rule; });
+
+  if(iter != defenses.end())
+    defenses.erase(iter);
+}
+
+void Entity::DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> in, const DefenseOrder& filter)
+{
+  std::vector<std::shared_ptr<DefenseRule>> copy = defenses;
+
+  auto characterPtr = shared_from_base<Character>();
+
+  for (int i = 0; i < copy.size(); i++) {
+    if (copy[i]->GetDefenseOrder() == filter) {
+      std::shared_ptr<DefenseRule> defenseRule = copy[i];
+      judge.SetDefenseContext(defenseRule);
+      defenseRule->CanBlock(judge, in, characterPtr);
+    }
+  }
+}
+
+void Entity::ToggleCounter(bool on)
+{
+  counterable = on;
+}
+
+void Entity::NeverFlip(bool enabled)
+{
+  neverFlip = enabled;
+}
+
+bool Entity::IsStunned()
+{
+  return stunCooldown > frames(0);
+}
+
+bool Entity::IsRooted()
+{
+  return rootCooldown > frames(0);
+}
+
+void Entity::Stun(frame_time_t maxCooldown)
+{
+  stunCooldown = maxCooldown;
+}
+
+void Entity::Root(frame_time_t maxCooldown)
+{
+  rootCooldown = maxCooldown;
+}
+
+bool Entity::IsCountered()
+{
+  return (counterable && stunCooldown <= frames(0));
+}
+
+const Battle::TileHighlight Entity::GetTileHighlightMode() const {
+  return mode;
+}
+
+void Entity::HighlightTile(Battle::TileHighlight mode)
+{
+  this->mode = mode;
+}
+
+void Entity::SetHitboxContext(Hit::Context context)
+{
+  hitboxProperties.context = context;
+}
+
+Hit::Context Entity::GetHitboxContext()
+{
+  return hitboxProperties.context;
+}
+
+void Entity::SetHitboxProperties(Hit::Properties props)
+{
+  hitboxProperties = props;
+  hitboxProperties.flags |= props.context.flags;
+  hitboxProperties.aggressor = props.context.aggressor;
+}
+
+const Hit::Properties Entity::GetHitboxProperties() const
+{
+  return hitboxProperties;
+}
+
+void Entity::IgnoreCommonAggressor(bool enable = true)
+{
+  ignoreCommonAggressor = enable;
+}
+
+const bool Entity::WillIgnoreCommonAggressor() const
+{
+  return ignoreCommonAggressor;
 }

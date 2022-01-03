@@ -17,6 +17,8 @@
 
 typedef std::function<void()> FinishNotifier;
 
+#define MAX_TIME 0.5 // in seconds
+
 template<typename Any>
 class PixelInState : public AIState<Any>
 {
@@ -48,7 +50,7 @@ public:
    * @param _elapsed in seconds
    * @param e entity
    */
-  void OnUpdate(float _elapsed, Any& e);
+  void OnUpdate(double _elapsed, Any& e);
   
   /**
    * @brief Revokes the pixelate shader from the entity
@@ -65,7 +67,7 @@ PixelInState<Any>::PixelInState(FinishNotifier onFinish) : AIState<Any>() {
   callback = onFinish;
   factor = 125.f;
 
-  pixelated = SHADERS.GetShader(ShaderType::TEXEL_PIXEL_BLUR);
+  pixelated = ResourceHandle().Shaders().GetShader(ShaderType::TEXEL_PIXEL_BLUR);
 }
 
 template<typename Any>
@@ -75,20 +77,22 @@ PixelInState<Any>::~PixelInState() {
 template<typename Any>
 void PixelInState<Any>::OnEnter(Any& e) {
   // play swoosh
-  AUDIO.Play(AudioType::APPEAR);
+  e.Audio().Play(AudioType::APPEAR);
 
-  e.setColor(sf::Color(255, 255, 255, 0));
+  sf::Color start = NoopCompositeColor(e.GetColorMode());
+  start.a = 0;
+  e.setColor(start);
 }
 
 template<typename Any>
-void PixelInState<Any>::OnUpdate(float _elapsed, Any& e) {
+void PixelInState<Any>::OnUpdate(double _elapsed, Any& e) {
     /* freeze frame */
-#if OBN_ENABLE_PIXELATE_GFX 
+#if ONB_ENABLE_PIXELATE_GFX 
     e.SetShader(pixelated);
 #endif
 
   /* If progress is 1, pop state and move onto original state*/
-  factor -= _elapsed * 180.f;
+  factor -= static_cast<float>(_elapsed) * 180.f;
 
   if (factor <= 0.f) {
     factor = 0.f;
@@ -99,9 +103,11 @@ void PixelInState<Any>::OnUpdate(float _elapsed, Any& e) {
     e.SetShader(nullptr);
   }
 
+  double range = (180. - factor) / 180.;
 
-  float range = (125.f - factor) / 125.f;
-  e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
+  sf::Color start = NoopCompositeColor(e.GetColorMode());
+  start.a = static_cast<sf::Uint8>(255 * range);
+  e.setColor(start);
 
   sf::IntRect t = e.getTextureRect();
   sf::Vector2u size = e.getTexture()->getSize();
@@ -113,6 +119,6 @@ void PixelInState<Any>::OnUpdate(float _elapsed, Any& e) {
 }
 
 template<typename Any>
-void PixelInState<Any>::OnLeave(Any& e) {
-  e.SetShader(nullptr);
-}
+void PixelInState<Any>::OnLeave(Any& e) {}
+
+#undef MAX_TIME

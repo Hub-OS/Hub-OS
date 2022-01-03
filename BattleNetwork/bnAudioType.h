@@ -3,8 +3,11 @@
 * @warning These have to be in order.
 * @see AudioResourceManager
 */
-enum AudioType {
+enum class AudioType : int {
   // In-battle SFX
+  COUNTER_BONUS,
+  DIR_TILE,
+  FANFARE,
   APPEAR,
   AREA_GRAB,
   AREA_GRAB_TOUCHDOWN,
@@ -46,9 +49,14 @@ enum AudioType {
   INVISIBLE,
   PA_ADVANCE,
   LOW_HP,
-  POINT,
+  DARK_CARD,
+  POINT_SFX,
   NEW_GAME,
   TEXT,
   SHINE,
+  TIME_FREEZE,
+  TRAP,
+  METEOR,
+  DEFORM,
   AUDIO_TYPE_SIZE
 };

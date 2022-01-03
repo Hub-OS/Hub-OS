@@ -7,11 +7,12 @@ class MobMoveEffect : public Artifact {
 private:
   Animation animation;
   sf::Sprite move;
+  sf::Vector2f offset{};
 public:
   /**
    * \brief sets the animation
    */
-  MobMoveEffect(Field* field);
+  MobMoveEffect();
 
   /**
    * @brief deconstructor
@@ -22,12 +23,12 @@ public:
    * @brief plays the animation and deletes when finished
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed) final override;
 
   /**
-   * @brief mob move effect doesn't move
-   * @param _direction ignored
-   * @return false
-   */
-  virtual bool Move(Direction _direction) { return false; }
+  * @brief Removes entity from play
+  */
+  void OnDelete() final override;
+
+  void SetOffset(const sf::Vector2f& offset); 
 };

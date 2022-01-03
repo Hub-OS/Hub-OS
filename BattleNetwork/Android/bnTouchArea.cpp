@@ -3,7 +3,6 @@
 //
 #include "bnTouchArea.h"
 #include "../bnLogger.h"
-#include "../bnEngine.h"
 
 std::vector<int> TouchArea::m_touches; // We want to be aware of what touches are already owned
 std::vector<TouchArea*> TouchArea::m_instances;
@@ -53,18 +52,18 @@ void TouchArea::releaseTouch() {
     m_touchIndex = 0;
 }
 
-void TouchArea::privPoll() {
+void TouchArea::privPoll(RenderWindow& window) {
     if(m_state == TouchArea::State::RELEASED) {
         m_onDefaultCallback();
         m_state = TouchArea::State::DEFAULT;
     }
 
     if(m_state == TouchArea::State::DEFAULT) {
-        unsigned int nextFinger = unsigned int(m_touches.size());
+        unsigned int nextFinger = unsigned(m_touches.size());
         if(sf::Touch::isDown(nextFinger)) {
             // Check to see if in rectangle
-            sf::Vector2i touchPosition = sf::Touch::getPosition(nextFinger, *ENGINE.GetWindow());
-            sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetView());
+            sf::Vector2i touchPosition = sf::Touch::getPosition(nextFinger, window);
+            sf::Vector2f coords = window.mapPixelToCoords(touchPosition, window.getView());
             sf::Vector2i iCoords = sf::Vector2i((int)coords.x, (int)coords.y);
             touchPosition = iCoords;
 
@@ -79,8 +78,8 @@ void TouchArea::privPoll() {
     } else if(m_state == TouchArea::State::TOUCHED || m_state == TouchArea::DRAGGING) {
         if(sf::Touch::isDown(m_touchIndex)) {
             // Check to see if we are still within the rectangle
-            sf::Vector2i touchPosition = sf::Touch::getPosition(m_touchIndex, *ENGINE.GetWindow());
-            sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetView());
+            sf::Vector2i touchPosition = sf::Touch::getPosition(m_touchIndex, window);
+            sf::Vector2f coords = window.mapPixelToCoords(touchPosition, window.getView());
             sf::Vector2i iCoords = sf::Vector2i((int)coords.x, (int)coords.y);
             touchPosition = iCoords;
 
@@ -166,14 +165,14 @@ TouchArea& TouchArea::create(const sf::IntRect& source) {
     return *instance;
 }
 
-void TouchArea::poll() {
+void TouchArea::poll(RenderWindow& window) {
     auto pos = sf::Touch::getPosition(0);
 
     if(sf::Touch::isDown(0))
-        Logger::Log("touch position was " + std::to_string(pos.x) + ", " + std::to_string(pos.y));
+        Logger::Log(LogLevel::info, "touch position was " + std::to_string(pos.x) + ", " + std::to_string(pos.y));
 
     for(auto t : TouchArea::m_instances) {
-        t->privPoll();
+        t->privPoll(window);
     }
 }
 

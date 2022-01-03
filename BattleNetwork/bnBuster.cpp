@@ -2,23 +2,20 @@
 #include <time.h>
 
 #include "bnBuster.h"
+#include "bnBusterHit.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnRandom.h"
 
-#include "bnGear.h" 
-
-#define COOLDOWN 40.0f/1000.0f
-
-Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_field, _team) {
+Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_team) {
   SetPassthrough(true);
   SetLayer(-100);
 
-  cooldown = 0;
+  cooldown = frames(2);
 
-  hit = false;
   progress = 0.0f;
 
   if (isCharged) {
@@ -30,61 +27,51 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
 
   random = 0;
 
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
-
-  if (_charged) {
-    texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
-    animationComponent->Setup("resources/spells/spell_charged_bullet_hit.animation");
-    animationComponent->Reload();
-    animationComponent->SetAnimation("HIT");
-  } else {
-    texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
-    animationComponent->Setup("resources/spells/spell_bullet_hit.animation");
-    animationComponent->Reload();
-    animationComponent->SetAnimation("HIT");
-  }
   setScale(2.f, 2.f);
 
-  AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
+  Audio().Play(AudioType::BUSTER_PEA, AudioPriority::high);
 
   auto props = Hit::DefaultProperties;
-  props.flags = props.flags & ~Hit::recoil;
+  props.flags = props.flags & ~(Hit::flinch | Hit::flash);
+
   props.damage = damage;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   contact = nullptr;
   spawnGuard = false;
 }
 
+void Buster::Init()
+{
+  Spell::Init();
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
+
+  if (isCharged) {
+    texture = Textures().LoadFromFile(TexturePaths::SPELL_CHARGED_BULLET_HIT);
+    animationComponent->SetPath("resources/scenes/battle/spells/spell_charged_bullet_hit.animation");
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
+  } else {
+    texture = Textures().LoadFromFile(TexturePaths::SPELL_BULLET_HIT);
+    animationComponent->SetPath("resources/scenes/battle/spells/spell_bullet_hit.animation");
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
+  }
+}
+
 Buster::~Buster() {
 }
 
-void Buster::OnUpdate(float _elapsed) {
-  if (hit) {
-    if (progress == 0.0f) {
-      animationComponent->SetAnimation("HIT");
-      setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
-    }
-    progress += 5 * _elapsed;
-    this->setTexture(*texture);
-    if (progress >= 1.f) {
-      this->Delete();
-    }
-    return;
-  }
+void Buster::OnUpdate(double _elapsed) {
+  GetTile()->AffectEntities(*this);
 
-  GetTile()->AffectEntities(this);
-
-  cooldown += _elapsed;
-  if (cooldown >= COOLDOWN) {
-    if (Move(GetDirection())) {
-      AdoptNextTile();
-      FinishMove();
-      cooldown = 0;
+  cooldown -= from_seconds(_elapsed);
+  if (cooldown <= frames(0)) {
+    if (Teleport(GetTile() + GetMoveDirection())) {
+      cooldown = frames(2);
     }
     else {
-      this->Delete();
+      Delete();
     }
   }
 
@@ -95,23 +82,36 @@ bool Buster::CanMoveTo(Battle::Tile * next)
   return true;
 }
 
-void Buster::Attack(Character* _entity) {
-  if (_entity->Hit(this->GetHitboxProperties())) {
-    hit = true;  
+void Buster::OnDelete()
+{
+  Erase();
+}
 
-    if (!isCharged) {
-      random = _entity->getLocalBounds().width / 2.0f;
-      random *= rand() % 2 == 0 ? -1.0f : 1.0f;
+void Buster::OnCollision(const std::shared_ptr<Entity> entity)
+{
+  random = entity->getLocalBounds().width / 2.0f;
+  hitHeight = std::floor(entity->GetHeight());
 
-      hitHeight = (float)(std::floor(_entity->GetHeight()));
+  if (!isCharged) {
+    random *= SyncedRand() % 2 == 0 ? -1.0f : 1.0f;
 
-      if (hitHeight > 0) {
-        hitHeight = (float)(rand() % (int)hitHeight);
-      }
+    if (hitHeight > 0) {
+      hitHeight = (float)(SyncedRand() % (int)hitHeight);
     }
   }
-
-  if (hit) {
-    AUDIO.Play(AudioType::HURT);
+  else {
+    random = 0;
+    hitHeight /= 2;
   }
+
+  auto bhit = std::make_shared<BusterHit>(isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
+  bhit->SetOffset({ random, -(GetHeight() + hitHeight) });
+  GetField()->AddEntity(bhit, *GetTile());
+
+  Delete();
+  Audio().Play(AudioType::HURT);
+}
+
+void Buster::Attack(std::shared_ptr<Entity> _entity) {
+  _entity->Hit(GetHitboxProperties());
 }

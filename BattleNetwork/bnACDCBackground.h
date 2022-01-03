@@ -16,13 +16,13 @@ using std::vector;
  * @date 09/21/19
  * @brief ACDC background scrolls diagonally
  */
-class ACDCBackground : public Background
+class ACDCBackground final  : public Background
 {
 public:
   ACDCBackground();
   ~ACDCBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(double _elapsed) override;
 
 private:
   float x, y;

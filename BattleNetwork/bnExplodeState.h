@@ -1,8 +1,7 @@
 #pragma once
 #include "bnEntity.h"
 #include "bnAIState.h"
-#include "bnAIPriorityLock.h"
-#include "bnExplosion.h"
+#include "bnExplosionSpriteNode.h"
 #include "bnAnimationComponent.h"
 #include "bnShaderResourceManager.h"
 
@@ -26,11 +25,14 @@ template<typename Any>
 class ExplodeState : public AIState<Any>
 {
 protected:
-  Entity* explosion; /*!< The root explosion object */
+  std::shared_ptr<ExplosionSpriteNode> explosion; /*!< The root explosion object */
   sf::Shader* whiteout; /*!< Flash the dying entity white */
   double elapsed;
   int numOfExplosions; /*!< Number of explosions to spawn */
   double playbackSpeed; /*!< how fast the animation should be */
+
+  void CleanupExplosions(Any& e);
+
 public:
   inline static const int PriorityLevel = 0; // Highest
 
@@ -38,7 +40,7 @@ public:
   virtual ~ExplodeState();
 
   void OnEnter(Any& e);
-  void OnUpdate(float _elapsed, Any& e);
+  void OnUpdate(double _elapsed, Any& e);
   void OnLeave(Any& e);
 };
 
@@ -46,39 +48,33 @@ public:
 #include "bnLogger.h"
 
 template<typename Any>
-ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
-  : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
-  explosion = nullptr;
-
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-
-  elapsed = 0;
+ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) : 
+  elapsed(0), 
+  explosion(nullptr), 
+  numOfExplosions(_numOfExplosions), 
+  playbackSpeed(_playbackSpeed), 
+  AIState<Any>() {
+  whiteout = ResourceHandle{}.Shaders().GetShader(ShaderType::WHITE);
+  this->PriorityLock();
 }
 
 template<typename Any>
 ExplodeState<Any>::~ExplodeState() {
-  /* explosion artifact is deleted by field */
 }
 
 template<typename Any>
 void ExplodeState<Any>::OnEnter(Any& e) {
-  AIPriorityLock<Any> lock(e);
-
   e.SetPassthrough(true); // Shoot through dying enemies
 
-  /* Spawn an explosion */
-  Battle::Tile* tile = e.GetTile();
-  Field* field = e.GetField();
-  explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions, this->playbackSpeed);
-
+  /* explode over the sprite */
+  explosion = std::make_shared<ExplosionSpriteNode>(&e, numOfExplosions, playbackSpeed);
+  e.AddNode(explosion);
+  
   // Define the area relative to origin to spawn explosions around
   // based on a fraction of the current frame's size
-  auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height / 6.0f);
+  auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height*0.8f);
 
-  // Logger::Log("explosion area: " + std::to_string(area.x) + ", " + std::to_string(area.y));
-
-  ((Explosion*)explosion)->SetOffsetArea(area);
-  field->AddEntity(*(Artifact*)explosion, tile->GetX(), tile->GetY());
+  explosion->SetOffsetArea(area);
 
   auto animation = e.template GetFirstComponent<AnimationComponent>();
 
@@ -86,28 +82,47 @@ void ExplodeState<Any>::OnEnter(Any& e) {
     animation->SetPlaybackSpeed(0);
     animation->CancelCallbacks();
   }
+
+  e.Reveal();
 }
 
 template<typename Any>
-void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
+void ExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
   elapsed += _elapsed;
 
-  /* freeze frame, flash white */
-  if ((((int)(elapsed * 15))) % 2 == 0) {
+  // flicker white every 2 frames 
+  unsigned frame = from_seconds(elapsed).count() % 4;
+  if (frame < 2) {
     e.SetShader(whiteout);
   }
-  else {
-    e.SetShader(nullptr);
-  }
 
-  /* If root explosion is over, delete the entity that entered this state
+  /* If root explosion is over, finally remove the entity that entered this state
      This ends the effect
      */
-  if (explosion->IsDeleted()) {
-    e.Delete();
+  if (explosion) {
+    explosion->Update(_elapsed);
+
+    if (explosion->IsSequenceComplete()) {
+      e.Erase();
+    }
   }
 }
 
 template<typename Any>
 void ExplodeState<Any>::OnLeave(Any& e) {
+  CleanupExplosions(e);
+}
+
+template<typename Any>
+inline void ExplodeState<Any>::CleanupExplosions(Any& e)
+{
+  if (explosion == nullptr) return;
+
+  for (std::shared_ptr<ExplosionSpriteNode>& element : explosion->GetChain()) {
+    e.RemoveNode(element);
+  }
+
+  e.RemoveNode(explosion);
+
+  explosion = nullptr;
 }

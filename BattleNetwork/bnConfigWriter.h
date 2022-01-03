@@ -8,10 +8,14 @@ Example file contents
 [Discord]
 User="JohnDoe"
 Key="ABCDE"
-[Audio]
+[Audio()]
 Play="1"
 [Net]
-uPNP="0"
+WebServer="battlenetwork.io"
+Version="1"
+Port="3030"
+Username="Deltron"
+Password="Mastermind"
 [Video]
 Fullscreen="0"
 [Keyboard]
@@ -19,7 +23,7 @@ Move Up="8"
 Move Left="13"
 Move Right="83"
 Move Down="65"
-Use Chip="88"
+Use Card="88"
 Special="90"
 Shoot="37"
 Cust="40"
@@ -32,7 +36,7 @@ Move Up="8"
 Move Left="13"
 Move Right="83"
 Move Down="65"
-Use Chip="88"
+Use Card="88"
 Special="90"
 Shoot="37"
 Cust="40"
@@ -49,13 +53,16 @@ public:
   ~ConfigWriter();
 
   void Write(std::string path);
+
+  const std::string quote(const std::string& str);
+
 private:
   /**
    * @brief Transform Gamepad codes to ascii
    * @param Gamepad event code
    * @return int ascii
    */
-   int GetAsciiFromGamepad(Gamepad code);
+  int GetAsciiFromGamepad(Gamepad code);
   /**
    * @brief Transform SFML events to ascii
    * @param sf::Keyboard::Key

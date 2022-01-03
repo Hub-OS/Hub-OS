@@ -1,6 +1,0 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_twin_fang.png"
-
-animation state="DEFAULT"
-frame duration="0.1" x="74" y="0" w="37" h="27" originx="7" originy="12"
-frame duration="0.1" x="38" y="0" w="36" h="24" originx="7" originy="12"
-frame duration="1" x="2" y="0" w="36" h="25" originx="7" originy="12"

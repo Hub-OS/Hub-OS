@@ -12,7 +12,7 @@ using sf::Drawable;
 #include "bnAnimation.h"
 
 /*! \brief Moves diagonally and animates */
-class LanBackground : public Background {
+class LanBackground final : public Background {
 public:
   LanBackground();
   ~LanBackground();
@@ -21,7 +21,7 @@ public:
    * @brief Texture wraps the frame and sets frame based on time
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  void Update(double _elapsed) override;
 
 private:
 

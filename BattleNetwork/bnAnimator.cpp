@@ -2,6 +2,69 @@
 
 #include <iostream>
 
+Animator::Mode::Mode(int playback)
+{
+  Mode::playback = playback;
+}
+
+
+void Animator::UpdateSpriteAttributes(sf::Sprite& target, const Frame& data)
+{
+  // rect attr 
+  int x = data.subregion.left;
+  int y = data.subregion.top;
+  int w = data.subregion.width;
+  int h = data.subregion.height;
+
+  float originx = static_cast<float>(data.origin.x);
+  float originy = static_cast<float>(data.origin.y);
+
+  // flip x and flip y attr
+  if (data.flipX) {
+    originx = w - originx;
+
+    float newX = static_cast<float>(x + w);
+    w = -w;
+    x = static_cast<int>(newX);
+  }
+
+  if (data.flipY) {
+    originy = h - originy;
+
+    float newY = static_cast<float>(y + h);
+    h = -h;
+    y = static_cast<int>(newY);
+  }
+
+  target.setTextureRect(sf::IntRect(x, y, w, h));
+
+  // origin attr
+  if (data.applyOrigin) {
+    target.setOrigin(originx, originy);
+  }
+}
+
+const sf::Vector2f Animator::CalculatePointData(const sf::Vector2f& point, const Frame& data)
+{
+  // rect attr 
+  int w = data.subregion.width;
+  int h = data.subregion.height;
+
+  float pointx = static_cast<float>(point.x);
+  float pointy = static_cast<float>(point.y);
+
+  // flip x and flip y attr
+  if (data.flipX) {
+    pointx = w - pointx;
+  }
+
+  if (data.flipY) {
+    pointy = h - pointy;
+  }
+
+  return sf::Vector2f{ pointx, pointy };
+}
+
 Animator::Animator() {
   onFinish = nullptr;
   queuedOnFinish = nullptr;
@@ -16,62 +79,63 @@ Animator::Animator(const Animator& rhs) {
 
 Animator & Animator::operator=(const Animator & rhs)
 {
-  this->onFinish = rhs.onFinish;
-  this->callbacks = rhs.callbacks;
-  this->onetimeCallbacks = rhs.onetimeCallbacks;
-  this->nextLoopCallbacks = rhs.nextLoopCallbacks;
-  this->queuedCallbacks = rhs.queuedCallbacks;
-  this->queuedOnetimeCallbacks = rhs.queuedOnetimeCallbacks;
-  this->queuedOnFinish = rhs.queuedOnFinish;
-  this->isUpdating = rhs.isUpdating;
-  this->callbacksAreValid = rhs.callbacksAreValid;
-  this->currentPoints = rhs.currentPoints;
-  this->playbackMode = rhs.playbackMode;
+  onFinish = rhs.onFinish;
+  callbacks = rhs.callbacks;
+  onetimeCallbacks = rhs.onetimeCallbacks;
+  nextLoopCallbacks = rhs.nextLoopCallbacks;
+  queuedCallbacks = rhs.queuedCallbacks;
+  queuedOnetimeCallbacks = rhs.queuedOnetimeCallbacks;
+  queuedOnFinish = rhs.queuedOnFinish;
+  isUpdating = rhs.isUpdating;
+  callbacksAreValid = rhs.callbacksAreValid;
+  currentPoints = rhs.currentPoints;
+  playbackMode = rhs.playbackMode;
 
   return *this;
 }
 
 Animator::~Animator() {
-  this->callbacks.clear();
-  this->queuedCallbacks.clear();
-  this->onetimeCallbacks.clear();
-  this->queuedOnetimeCallbacks.clear();
-  this->nextLoopCallbacks.clear();
-  this->onFinish = nullptr;
-  this->queuedOnFinish = nullptr;
+  callbacks.clear();
+  queuedCallbacks.clear();
+  onetimeCallbacks.clear();
+  queuedOnetimeCallbacks.clear();
+  nextLoopCallbacks.clear();
+  onFinish = nullptr;
+  queuedOnFinish = nullptr;
 }
 
 void Animator::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
   if (sequence.frames.size() <= frameIndex) return;
 
-  currentPoints = sequence.frames[frameIndex].points;
+  auto& data = sequence.frames[frameIndex];
+  currentPoints = data.points;
+
+  for (auto& [key, point] : currentPoints) {
+    point = CalculatePointData(point, data);
+  }
 }
 
-void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequence) {
-  float startProgress = progress;
+void Animator::operator() (frame_time_t progress, sf::Sprite& target, FrameList& sequence) {
+  frame_time_t startProgress = progress;
 
   // If we did not progress while in an update, do not merge the queues and ignore this request 
   // All we wish to do is re-adjust the origin if applicable
-  if (progress == 0 && sequence.frames.size()) {
+  if (progress == frames(0) && sequence.frames.size()) {
     auto iter = sequence.frames.begin();
-    int index = 1;
+    size_t index = 1;
 
     // If the playback mode is reverse, flip the frames
     // and the index
     if ((playbackMode & Mode::Reverse) == Mode::Reverse) {
-      iter = sequence.frames.end();
+      iter = sequence.frames.end()-1;
       index = sequence.frames.size();
     }
 
-    target.setTextureRect((*iter).subregion);
-
-    // If applicable, update the origin
-    if ((*iter).applyOrigin) {
-      target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-    }
+    // apply rect, flip, and origin attributes
+    UpdateSpriteAttributes(target, *iter);
 
     // animation index are base 1
-    UpdateCurrentPoints(index-1, sequence);
+    UpdateCurrentPoints(int(index-1), sequence);
     return;
   }
 
@@ -82,7 +146,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
   // Set our flag to let callback additions go to the right queue  
   isUpdating = true;
 
-  if (sequence.frames.empty() || sequence.GetTotalDuration() == 0) {
+  if (sequence.frames.empty() || sequence.GetTotalDuration() == frames(0)) {
     if (onFinish != nullptr) {
       // Fire the onFinish callback if available
       onFinish();
@@ -128,7 +192,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
   std::vector<Frame>::const_iterator iter = copy.begin();
 
   // While there is time left in the progress loop
-  while (startProgress != 0.f) {
+  while (progress > frames(0)) {
     // Increase the index
     index++;
 
@@ -139,16 +203,15 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     // We assume progress hits zero because we use it as a decrementing counter
     // We add a check to ensure the start progress wasn't also 0
     // If it did not start at zero, we know we came across the end of the animation
-    bool reachedLastFrame = &(*iter) == &copy.back() && startProgress != 0.f;
+    bool reachedLastFrame = &(*iter) == &copy.back() && startProgress != frames(0);
 
-    if (progress <= 0.f || reachedLastFrame) {
-      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index);
-      std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index);
-
-      callbackIter = callbacks.begin();
+    if (progress <= frames(0) || reachedLastFrame) {
+      FrameCallbackHash::iterator callbackIter = callbacks.begin();
+      FrameCallbackHash::iterator callbackFind = callbacks.find(index);
+      FrameCallbackHash::iterator onetimeCallbackIter = onetimeCallbacks.find(index);
 
       // step through and execute any callbacks that haven't triggerd up to this frame
-      while (callbacksAreValid && callbackIter != callbackFind && callbackFind != this->callbacks.end()) {
+      while (callbacksAreValid && callbacks.size() && callbackIter != callbackFind && callbackFind != callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
         }
@@ -167,7 +230,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       }
 
       // If callbacks are ok and the iterator matches the expected frame
-      if (callbacksAreValid && callbackIter == callbackFind && callbackFind != this->callbacks.end()) {
+      if (callbacksAreValid && callbacks.size() && callbackIter == callbackFind && callbackFind != callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
         }
@@ -178,7 +241,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
         }
       }
 
-      if (callbacksAreValid && onetimeCallbackIter != this->onetimeCallbacks.end()) {
+      if (callbacksAreValid && onetimeCallbackIter != onetimeCallbacks.end()) {
         if (onetimeCallbackIter->second) {
           onetimeCallbackIter->second();
         }
@@ -203,7 +266,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       }
 
       // If the playback mode was set to loop...
-      if ((playbackMode & Mode::Loop) == Mode::Loop && progress > 0.f && &(*iter) == &copy.back()) {
+      if ((playbackMode & Mode::Loop) == Mode::Loop && &(*iter) == &copy.back() && startProgress >= sequence.totalDuration) {
         // But it was also set to bounce, reverse the list and start over
         if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
           reverse(copy.begin(), copy.end());
@@ -215,25 +278,22 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
           iter = copy.begin();
         }
 
-        // Clear any remaining callbacks
-        this->callbacks.clear();
+        if (callbacksAreValid) {
+          // Clear callbacks
+          callbacks.clear();
 
-        // Enqueue the callbacks for the next go around
-        this->callbacks = nextLoopCallbacks;
-        this->nextLoopCallbacks.clear();
+          // Enqueue the callbacks for the next round
+          callbacks = nextLoopCallbacks;
+          nextLoopCallbacks.clear();
 
-        callbacksAreValid = true;
+          // callbacksAreValid = true;
+        }
 
         continue; // Start loop again
       }
 
-      // Apply the frame to the sprite object
-      target.setTextureRect((*iter).subregion);
-
-      // If applicable, apply the origin too
-      if ((*iter).applyOrigin) {
-        target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-      }
+      // apply rect, flip, and origin attributes
+      UpdateSpriteAttributes(target, *iter);
 
       UpdateCurrentPoints(index - 1, sequence);
 
@@ -246,16 +306,18 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
 
   // If we prematurely ended the loop, update the sprite
   if (iter != copy.end()) {
-    target.setTextureRect((*iter).subregion);
-
-    // If applicable, update the origin
-    if ((*iter).applyOrigin) {
-      target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-    }
+    // apply rect, flip, and origin attributes
+    UpdateSpriteAttributes(target, *iter);
   }
 
   // End updating flag
   isUpdating = false;
+
+  if (clearLater) {
+    onFinish = nullptr;
+    clearLater = false;
+  }
+
   callbacksAreValid = true;
 
   if (index == 0) {
@@ -290,18 +352,18 @@ Animator & Animator::operator<<(On rhs)
   if(!rhs.callback) return *this;
   
   if (rhs.doOnce) {
-	  if(this->isUpdating) {
-		  this->queuedOnetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
-	  } else {
-          this->onetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
+    if(isUpdating) {
+      queuedOnetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
+    } else {
+          onetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
       }
   }
   else {
-	if(this->isUpdating) {
-        this->queuedCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
+  if(isUpdating) {
+        queuedCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
     } else {
-        this->callbacks.insert(std::make_pair(rhs.id, rhs.callback));		
-	}
+        callbacks.insert(std::make_pair(rhs.id, rhs.callback));		
+  }
   }
 
   return *this;
@@ -309,26 +371,33 @@ Animator & Animator::operator<<(On rhs)
 
 Animator & Animator::operator<<(char rhs)
 {
-  this->playbackMode = rhs;
+  playbackMode = rhs;
   return *this;
 }
 
-void Animator::operator<<(std::function<void()> finishNotifier)
+void Animator::operator<<(FrameFinishCallback finishNotifier)
 {
   if(!finishNotifier) return;
   
-  if(!this->isUpdating) {
-    this->onFinish = finishNotifier;
+  if(!isUpdating) {
+    onFinish = finishNotifier;
   } else {
-	  this->queuedOnFinish = finishNotifier;
+    queuedOnFinish = finishNotifier;
   }
+}
+
+char Animator::GetMode()
+{
+  return playbackMode;
 }
 
 const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
   auto str = pointName;
   std::transform(str.begin(), str.end(), str.begin(), ::toupper);
   if (currentPoints.find(str) == currentPoints.end()) {
+#ifdef BN_LOG_MISSING_POINT
     Logger::Log("Could not find point in current sequence named " + str);
+#endif
     return sf::Vector2f();
   }
   return currentPoints[str];
@@ -337,10 +406,18 @@ const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
 void Animator::Clear() {
   callbacksAreValid = false;
   queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
-  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0;
+  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); playbackMode = 0;
+
+  if (isUpdating) {
+    clearLater = true;
+  }
+  else {
+    clearLater = false;
+    onFinish = nullptr;
+  }
 }
 
-void Animator::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)
+void Animator::SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence)
 {
   int index = 0;
   for (Frame& frame : sequence.frames) {
@@ -358,6 +435,6 @@ void Animator::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence
     }
   }
 
-  Logger::Log("finished without applying frame. Frame sizes: " + std::to_string(sequence.frames.size()));
+  Logger::Log(LogLevel::debug, "finished without applying frame. Frame sizes: " + std::to_string(sequence.frames.size()));
 
 }

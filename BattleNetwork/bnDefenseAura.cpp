@@ -2,28 +2,44 @@
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
-#include "bnGuardHit.h"
-#include "bnHitbox.h"
+#include "bnHitboxSpell.h"
 
-DefenseAura::DefenseAura(DefenseAura::Callback callback) : DefenseRule(Priority(4))
+DefenseAura::DefenseAura(const DefenseAura::Callback& callback) : DefenseRule(Priority(4), DefenseOrder::always)
 {
-	this->callback = callback;
+  this->callback = callback;
 }
 
-DefenseAura::DefenseAura() : DefenseRule(Priority(4)) {
-	callback = nullptr;
+DefenseAura::DefenseAura() : DefenseRule(Priority(4), DefenseOrder::always) {
+  callback = nullptr;
 }
 
 DefenseAura::~DefenseAura()
 {
 }
 
-const bool DefenseAura::Check(Spell * in, Character* owner)
+void DefenseAura::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)
 {
-  // Drop a 0 damage hitbox to block/trigger attack hits
-  owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+  // special case: removed by wind element
+  if ((attacker->GetHitboxProperties().element == Element::wind)) {
+    judge.BlockDamage();
 
-  if(callback) { callback(in, owner); }
-  
-  return true; // barrier never lets attacks passthrough
+    if (callback) {
+      judge.AddTrigger(callback, attacker, owner, true);
+    }
+
+    return;
+  }
+
+  // base case: impact-only hitboxes are processed further
+  if ((attacker->GetHitboxProperties().flags & Hit::impact) != Hit::impact) return; // no blocking happens
+
+  // weak obstacles will break
+  auto hitbox = std::make_shared<HitboxSpell>(owner->GetTeam(), 0);
+  owner->GetField()->AddEntity(hitbox, *owner->GetTile());
+
+  judge.BlockDamage();
+
+  if(callback) {
+    judge.AddTrigger(callback, attacker, owner, false);
+  }
 }

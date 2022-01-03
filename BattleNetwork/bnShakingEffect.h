@@ -1,22 +1,21 @@
 #pragma once
 #include "bnComponent.h"
 #include <SFML/Graphics.hpp>
-class BattleScene;
+class BattleSceneBase;
 class Entity;
 
 
 class ShakingEffect : public Component {
 private:
-  BattleScene* bscene;
-  Entity* privOwner;
-  float shakeDur; /*!< Duration of shake effect */
-  double stress; /*!< How much stress to apply to shake */
   bool isShaking;
-  float shakeProgress;
+  double shakeDur; /*!< Duration of shake effect */
+  double stress; /*!< How much stress to apply to shake */
+  double shakeProgress;
   sf::Vector2f startPos;
+  BattleSceneBase* bscene;
 public:
-  ShakingEffect(Entity* owner);
+  ShakingEffect(std::weak_ptr<Entity> owner);
   ~ShakingEffect();
-  void OnUpdate(float _elapsed);
-  void Inject(BattleScene&);;
+  void OnUpdate(double _elapsed) override;
+  void Inject(BattleSceneBase&) override;
 };

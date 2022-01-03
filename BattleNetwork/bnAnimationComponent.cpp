@@ -3,40 +3,52 @@ using sf::Sprite;
 using sf::IntRect;
 
 #include "bnAnimationComponent.h"
+#include "bnSpriteProxyNode.h"
 #include "bnFileUtil.h"
 #include "bnLogger.h"
 #include "bnEntity.h"
 #include "bnCharacter.h"
 
-AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
-  speed = 1.0;
-  character = this->GetOwnerAs<Character>();
-}
+AnimationComponent::AnimationComponent(std::weak_ptr<Entity> _entity) : Component(_entity) {}
 
 AnimationComponent::~AnimationComponent() {
 }
 
-void AnimationComponent::OnUpdate(float _elapsed)
+void AnimationComponent::OnUpdate(double _elapsed)
 {
-  if (character && character->IsStunned()) {
+  std::shared_ptr<Entity>  owner = GetOwner();
+  Character* character = dynamic_cast<Character*>(owner.get());
+
+  // Since animations can be used on non-characters
+  // we check if the owning entity is non-null 
+  // we also check if it is a character, because stunned
+  // characters do not update
+  if (!owner || (character && character->IsStunned() && stunnedLastFrame)) {
     return;
   }
 
-  animation.Update(_elapsed, *GetOwner(), speed);
+  stunnedLastFrame = (character && character->IsStunned());
+  UpdateAnimationObjects(owner->getSprite(), _elapsed);
 }
 
-void AnimationComponent::Setup(string _path)
+void AnimationComponent::SetPath(string _path)
 {
   path = _path;
 }
 
 void AnimationComponent::Load() {
-  this->Reload();
+  Reload();
 }
 
 void AnimationComponent::Reload() {
   animation = Animation(path);
   animation.Reload();
+}
+
+void AnimationComponent::CopyFrom(const AnimationComponent& rhs)
+{
+  animation = rhs.animation;
+  path = rhs.path;
 }
 
 const std::string AnimationComponent::GetAnimationString() const
@@ -51,46 +63,75 @@ const std::string& AnimationComponent::GetFilePath() const
 
 void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
 {
-  speed = playbackSpeed;
+  animation.SetPlaybackSpeed(playbackSpeed);
 }
 
 const double AnimationComponent::GetPlaybackSpeed()
 {
-  return speed;
+  return animation.GetPlaybackSpeed();
 }
 
-void AnimationComponent::SetAnimation(string state, std::function<void()> onFinish)
+void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish)
 {
-  // Animation changes cancel stun
-  // REDACTION: Why did I write this? Changing animation shouldn't cancel stun!
-  /*auto c = GetOwnerAs<Character>();
-  if (c && c->IsStunned()) {
-    c->stunCooldown = 0;
-  }*/
-
   animation.SetAnimation(state);
+
+  for (auto& s : syncList) {
+    s.anim->SetAnimation(state);
+    s.anim->Refresh(s.node->getSprite());
+    RefreshSyncItem(s);
+  }
+
   animation << onFinish;
 
-  // TODO: why does this cancel callbacks?
-  //animation.Refresh(*GetOwner());
+  if (auto owner = GetOwner()) {
+    animation.Refresh(owner->getSprite());
+  }
 }
 
-void AnimationComponent::SetAnimation(string state, char playbackMode, std::function<void()> onFinish)
+void AnimationComponent::SetAnimation(string state, char playbackMode, FrameFinishCallback onFinish)
 {
   animation.SetAnimation(state);
+
+  for (auto& s : syncList) {
+    s.anim->SetAnimation(state);
+    s.anim->Refresh(s.node->getSprite());
+    RefreshSyncItem(s);
+  }
+
   animation << playbackMode << onFinish;
 
-  // TODO: why does this cancel callbacks?
-  //animation.Refresh(*GetOwner());
+  if (auto owner = GetOwner()) {
+    animation.Refresh(owner->getSprite());
+  }
 }
 
 void AnimationComponent::SetPlaybackMode(char playbackMode)
 {
-	animation << playbackMode;
+  animation << playbackMode;
+
+  for (auto&& s : syncList) {
+    (*s.anim) << playbackMode;
+  }
 }
 
-void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame, bool doOnce) {
-  animation << Animator::On(frame, onFrame, doOnce) << Animator::On(frame+1, outFrame, doOnce);
+void AnimationComponent::AddCallback(int frame, FrameCallback onFrame, bool doOnce) {
+  animation << Animator::On(frame, onFrame, doOnce);
+}
+
+void AnimationComponent::SetCounterFrameRange(int frameStart, int frameEnd)
+{
+  if (frameStart == frameEnd) frameEnd = frameEnd + 1;
+  if (frameStart > frameEnd || frameStart <= 0 || frameEnd <= 0) return;
+
+  auto c = GetOwnerAs<Character>();
+  if (c == nullptr) return;
+
+  auto enableCounterable  = [c]() { c->ToggleCounter(); };
+  auto disableCounterable = [c]() { c->ToggleCounter(false); };
+
+  animation << Animator::On(frameStart, enableCounterable, true);
+  animation << Animator::On(frameEnd,  disableCounterable, true);
+
 }
 
 void AnimationComponent::CancelCallbacks()
@@ -100,6 +141,17 @@ void AnimationComponent::CancelCallbacks()
   auto mode = animation.GetMode();
   animation.RemoveCallbacks();
   animation << mode;
+
+  for (auto& s : syncList) {
+    s.anim->RemoveCallbacks();
+    (*s.anim) << mode;
+  }
+}
+
+void AnimationComponent::OnFinish(const FrameFinishCallback& onFinish)
+{
+  CancelCallbacks();
+  animation << onFinish;
 }
 
 sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
@@ -107,12 +159,17 @@ sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
   return animation.GetPoint(pointName);
 }
 
+Animation & AnimationComponent::GetAnimationObject()
+{
+  return animation;
+}
+
 void AnimationComponent::OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string & uuid)
 {
-  this->animation.OverrideAnimationFrames(animation, data, uuid);
+  AnimationComponent::animation.OverrideAnimationFrames(animation, data, uuid);
 
-  for (auto o : overrideList) {
-    o->OverrideAnimationFrames(animation, data, uuid);
+  for (auto& o : syncList) {
+    o.anim->OverrideAnimationFrames(animation, data, uuid);
   }
 }
 
@@ -121,34 +178,86 @@ void AnimationComponent::SyncAnimation(Animation & other)
   animation.SyncAnimation(other);
 }
 
-void AnimationComponent::SyncAnimation(AnimationComponent * other)
+void AnimationComponent::SyncAnimation(std::shared_ptr<AnimationComponent> other)
 {
   animation.SyncAnimation(other->animation);
+  other->OnUpdate(0);
 }
 
-void AnimationComponent::AddToOverrideList(Animation * other)
+void AnimationComponent::AddToSyncList(const AnimationComponent::SyncItem& item)
 {
-  if (other == &animation) return;
+  auto iter = std::find_if(syncList.begin(), syncList.end(), [item](auto in) {
+    return std::tie(in.anim, in.node, in.point) == std::tie(item.anim, item.node, item.point); 
+  });
 
-  auto iter = std::find(overrideList.begin(), overrideList.end(), other);
-
-  if (iter == overrideList.end()) {
-    overrideList.push_back(other);
+  if (iter == syncList.end()) {
+    syncList.push_back(item);
   }
 }
 
-void AnimationComponent::RemoveFromOverrideList(Animation * other)
+void AnimationComponent::RemoveFromSyncList(const AnimationComponent::SyncItem& item)
 {
-  if (other == &animation) return;
+  auto iter = std::find_if(syncList.begin(), syncList.end(), [item](auto in) {
+    return std::tie(in.anim, in.node, in.point) == std::tie(item.anim, item.node, item.point);
+  });
 
-  auto iter = std::find(overrideList.begin(), overrideList.end(), other);
-
-  if (iter != overrideList.end()) {
-    overrideList.erase(iter);
+  if (iter != syncList.end()) {
+    syncList.erase(iter);
   }
+}
+
+std::vector<AnimationComponent::SyncItem> AnimationComponent::GetSyncItems()
+{
+  return syncList;
+}
+
+void AnimationComponent::SetInterruptCallback(const FrameFinishCallback& onInterrupt)
+{
+  animation.SetInterruptCallback(onInterrupt);
 }
 
 void AnimationComponent::SetFrame(const int index)
 {
-  animation.SetFrame(index, *GetOwner());
+  if (auto owner = GetOwner())
+  animation.SetFrame(index, owner->getSprite());
+
+  for (auto& s : syncList) {
+    s.anim->SetFrame(index, s.node->getSprite());
+    RefreshSyncItem(s);
+  }
+}
+
+void AnimationComponent::Refresh()
+{
+  std::shared_ptr<Entity> owner = GetOwner();
+  if (!owner) return;
+
+  UpdateAnimationObjects(owner->getSprite(), 0);
+}
+
+void AnimationComponent::RefreshSyncItem(AnimationComponent::SyncItem& item)
+{
+  auto character = GetOwnerAs<Character>();
+
+  if (!character) {
+    return;
+  }
+
+  // update node position in the animation
+  auto baseOffset = GetPoint(item.point);
+  auto& origin = character->getSprite().getOrigin();
+  baseOffset = baseOffset - origin;
+
+  item.node->setPosition(baseOffset);
+}
+
+void AnimationComponent::UpdateAnimationObjects(sf::Sprite& sprite, double elapsed)
+{
+  animation.Update(elapsed, sprite);
+
+  for (auto& s : syncList) {
+    animation.SyncAnimation(*s.anim);
+    s.anim->Refresh(s.node->getSprite());
+    RefreshSyncItem(s);
+  }
 }

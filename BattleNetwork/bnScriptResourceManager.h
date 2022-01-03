@@ -1,5 +1,6 @@
 #pragma once
-#include "bnScriptMetaType.h"
+#ifdef BN_MOD_SUPPORT
+
 #include "bnLogger.h"
 
 #include <SFML/Graphics.hpp>
@@ -8,52 +9,65 @@
 #include <vector>
 #include <iostream>
 #include <atomic>
+#include <filesystem>
+#include <list>
+#include "stx/result.h"
 
-#define SOL_ALL_SAFETIES_ON 1
-#define SOL_USING_CXX_LUA 1
-#include "sol/sol.hpp"
+#ifdef __unix__
+#define LUA_USE_POSIX 1
+#endif
+
+#include <sol/sol.hpp>
+#include "bnPackageAddress.h"
+
+class CardPackagePartitioner;
+
+enum class ScriptPackageType : uint8_t {
+  card,
+  character,
+  library,
+  other,
+  any
+};
+
+struct ScriptPackage {
+  sol::state* state{ nullptr };
+  ScriptPackageType type;
+  PackageAddress address;
+  std::string path;
+  std::vector<std::string> subpackages;
+  std::vector<std::string> dependencies;
+};
 
 class ScriptResourceManager {
 public:
-  struct FileMeta {
-    ScriptMetaType type;
-    std::string path;
-    std::string name;
+  ~ScriptResourceManager();
 
-    FileMeta() {
-      type = ScriptMetaType::ERROR_STATE;
-    }
+  stx::result_t<sol::state*> LoadScript(const std::string& namespaceId, const std::filesystem::path& path, ScriptPackageType type = ScriptPackageType::other);
 
-    FileMeta(const FileMeta& rhs) {
-      type = rhs.type; 
-      path = rhs.path;
-      name = rhs.name;
-    }
-  };
+  void DropPackageData(sol::state* state);
+  void DropPackageData(const PackageAddress& addr);
+  ScriptPackage* DefinePackage(ScriptPackageType type, const std::string& namespaceId, const std::string& fqn, const std::string& path); /* throws */
+  ScriptPackage* FetchScriptPackage(const std::string& namespaceId, const std::string& fqn, ScriptPackageType type);
+  void SetCardPackagePartitioner(CardPackagePartitioner& partition);
+  CardPackagePartitioner& GetCardPackagePartitioner();
+
+  static sol::object PrintInvalidAccessMessage(sol::table table, const std::string typeName, const std::string key );
+  static sol::object PrintInvalidAssignMessage(sol::table table, const std::string typeName, const std::string key );
 
 private:
-  std::vector<FileMeta> paths; /*!< Scripts to load */
-  std::map<std::string, ScriptMetaType> nameToTypeHash; /*!< Script name to type hash */
-  std::map<std::string, sol::table> scriptTableHash; /*!< Script name to sol table hash */
-  sol::state luaState; 
+  std::map<sol::state*, ScriptPackage*> state2package; /*!< lua state pointer to script package */
+  std::map<PackageAddress, ScriptPackage*> address2package; /*!< PackageAddress to script package */
+  CardPackagePartitioner* cardPartition{ nullptr };
 
-  void ConfigureEnvironment(); 
+  void ConfigureEnvironment(ScriptPackage& scriptPackage);
+  void DefineSubpackage(ScriptPackage& parentPackage, ScriptPackageType type, const std::string& fqn, const std::string& path); /* throws */
+  void SetSystemFunctions(ScriptPackage& scriptPackage);
+  void SetModPathVariable(sol::state& state, const std::filesystem::path& modDirectory);
 
-public:
-  void AddToPaths(FileMeta pathInfo);
-
-  static ScriptResourceManager& GetInstance() {
-    static ScriptResourceManager* instance = new ScriptResourceManager();
-
-    return *instance;
-  }
-
-  /**
- * @brief Loads all scripts
- * @param status Increases the count after each shader loads
- */
-  void LoadAllSCripts(std::atomic<int> &status);
+  static std::string GetCurrentLine( lua_State* L );
+  static stx::result_t<std::string> GetCurrentFile(lua_State* L);
+  static stx::result_t<std::string> GetCurrentFolder(lua_State* L);
 };
 
-/*! \brief Shorthand to get instance of the manager */
-#define SCRIPTS ScriptResourceManager::GetInstance()
+#endif

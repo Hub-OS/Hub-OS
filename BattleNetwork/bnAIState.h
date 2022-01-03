@@ -6,6 +6,10 @@
 template<typename T>
 class AI;
 
+// forward decl
+template<typename T>
+class BossPatternAI;
+
 /**
  * @class AIState
  * @author mav
@@ -18,8 +22,12 @@ class AI;
 template<class T>
 class AIState
 {
-  friend class AI<T>;
+  bool locked{ false };
+
 public:
+  friend class AI<T>;
+  friend class BossPatternAI<T>;
+
   /**
    * @brief Ctor
    */
@@ -35,7 +43,7 @@ public:
    * @param _elapsed in seconds
    * @param context the referenced AI object
    */
-  void Update(float _elapsed, T& context) {
+  void Update(double _elapsed, T& context) {
     OnUpdate(_elapsed, context);
   }
 
@@ -52,12 +60,30 @@ public:
    * @param _elapsed in seconds
    * @param context reference object
    */
-  virtual void OnUpdate(float _elapsed, T& context) = 0;
+  virtual void OnUpdate(double _elapsed, T& context) = 0;
   
   /**
    * @brief Prepare the reference object for the next state, when state changes
    * @param context reference object
    */
   virtual void OnLeave(T& context) = 0;
+
+  /**
+  * @brief Locks state so other states cannot change it unless the priority of the new state is higher
+  * 
+  * Sets `locked` to true
+  */
+  void PriorityLock() {
+    locked = true;
+  }
+
+  /**
+  * @brief Unlocks state so other states can change freely
+  *
+  * Sets `locked` to false
+  */
+  void PriorityUnlock() {
+    locked = false;
+  }
 };
 

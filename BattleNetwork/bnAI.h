@@ -20,12 +20,11 @@
 template<typename CharacterT>
 class AI : public Agent {
 private:
-  AIState<CharacterT>* stateMachine; /*!< State machine responsible for state management */
-  CharacterT* ref; /*!< AI of this instance */
-  bool isUpdating; /*!< Safely ignore any extra Update() requests */
-  AIState<CharacterT>* queuedState;
-  int priorityLevel; 
-  bool priorityLocked;
+  AIState<CharacterT>* stateMachine{ nullptr }; /*!< State machine responsible for state management */
+  AIState<CharacterT>* queuedState{ nullptr }; /*!< State due to change to in the next update */
+  CharacterT* ref{ nullptr }; /*!< AI of this instance */
+  bool isUpdating{ false }; /*!< Safely ignore any extra Update() requests */
+  int priorityLevel{std::numeric_limits<int>::max()};
 public:
   // Used for SFINAE events that require characters with AI
   using IsUsingAI = CharacterT;
@@ -38,27 +37,29 @@ public:
     stateMachine = queuedState = nullptr; 
     ref = _ref;
     isUpdating = false;
-    priorityLocked = false;
     priorityLevel = 999;
   }
   
   /**
    * @brief Deletes the state machine object and Frees target
    */
-  ~AI() { if (stateMachine) { delete stateMachine; } ref = nullptr; this->FreeTarget(); }
+  ~AI() {
+    if (stateMachine) {
+      delete stateMachine;
+    }
+
+    if (queuedState) {
+      delete queuedState;
+    }
+
+    ref = nullptr;
+    FreeTarget();
+  }
 
   void InvokeDefaultState() {
     using DefaultState = typename CharacterT::DefaultState;
 
-    this->ChangeState<DefaultState>();
-  }
-
-  void PriorityLock() {
-    priorityLocked = true;
-  }
-
-  void PriorityUnlock() {
-    priorityLocked = false;
+    ChangeState<DefaultState>();
   }
 
   /**
@@ -68,12 +69,20 @@ public:
   void ChangeState() {
     bool change = true;
 
-    if (priorityLocked) {
-      change = false;
-
+    if (stateMachine && stateMachine->locked) {
       if (priorityLevel > U::PriorityLevel) {
-        change = true;
-        priorityLocked = false; // unlock
+        stateMachine->PriorityUnlock();
+      }
+      else {
+        change = false;
+      }
+    }
+    else if (queuedState && queuedState->locked) {
+      if (priorityLevel > U::PriorityLevel) {
+        queuedState->PriorityUnlock();
+      }
+      else {
+        change = false;
       }
     }
 
@@ -88,24 +97,32 @@ public:
 /**
  * @brief For states that require arguments, pass the arguments
  * 
- * e.g. this->ChangeState<PlayerThrowBombState>(200.f, 300, true);
+ * e.g. ChangeState<PlayerThrowBombState>(200.f, 300, true);
  */
 template<typename U, typename ...Args>
-  void ChangeState(Args... args) {
+  void ChangeState(Args&&... args) {
     bool change = true;
 
-    if (priorityLocked) {
-      change = false;
-
+    if (stateMachine && stateMachine->locked) {
       if (priorityLevel > U::PriorityLevel) {
-        change = true;
-        priorityLocked = false; // unlock
+        stateMachine->PriorityUnlock();
+      }
+      else {
+        change = false;
+      }
+    }
+    else if (queuedState && queuedState->locked) {
+      if (priorityLevel > U::PriorityLevel) {
+        queuedState->PriorityUnlock();
+      }
+      else {
+        change = false;
       }
     }
 
     if (change) {
       if (queuedState) { delete queuedState; }
-      queuedState = new U(args...);
+      queuedState = new U(std::forward<Args>(args)...);
 
       priorityLevel = U::PriorityLevel;
     }
@@ -117,7 +134,7 @@ template<typename U, typename ...Args>
  * 
  * If a change state request is made inside of a state, change to that state at end of update
  */
-  void Update(float _elapsed) {
+  void Update(double _elapsed) {
     if (isUpdating) return;
 
     isUpdating = true;

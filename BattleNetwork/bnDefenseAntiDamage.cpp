@@ -2,9 +2,9 @@
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
-#include "bnHitbox.h"
+#include "bnHitboxSpell.h"
 
-DefenseAntiDamage::DefenseAntiDamage(DefenseAntiDamage::Callback callback) : callback(callback), DefenseRule(Priority(5))
+DefenseAntiDamage::DefenseAntiDamage(const DefenseAntiDamage::Callback& callback) : callback(callback), DefenseRule(Priority(5), DefenseOrder::collisionOnly)
 {
 }
 
@@ -12,18 +12,24 @@ DefenseAntiDamage::~DefenseAntiDamage()
 {
 }
 
-const bool DefenseAntiDamage::Check(Spell * in, Character* owner)
+void DefenseAntiDamage::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)
 {
-  auto props = in->GetHitboxProperties();
+  auto props = attacker->GetHitboxProperties();
 
-  if ((props.flags & Hit::impact) == Hit::impact && props.damage >= 10) {
+  if (props.element == Element::cursor) {
+    judge.SignalDefenseWasPierced();
+  } else if (
+    (props.flags & Hit::impact) == Hit::impact &&
+    props.damage >= 10 &&
+    !judge.IsDamageBlocked() &&
+    !judge.IsImpactBlocked()
+  ) {
+    if (!triggering) {
+      owner->GetField()->AddEntity(std::make_shared<HitboxSpell>(owner->GetTeam(), 0), *owner->GetTile());
+      judge.AddTrigger(callback, attacker, owner);
+    }
 
-    owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
-
-    this->callback(in, owner);
-
-    return true; // Antidamage disallows an attack to passthrough
+    judge.BlockDamage();
+    triggering = true;
   }
-
-  return false;
 }

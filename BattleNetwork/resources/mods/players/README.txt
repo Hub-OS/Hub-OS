@@ -1,0 +1,2 @@
+Player mods are fully customizable playable characters that share common animations and utilities to keep battle mechanics fresh while being fair. 
+You can travel to the virtual cyberspace with your custom character and play against your friends!

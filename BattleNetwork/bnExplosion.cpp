@@ -3,54 +3,23 @@
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
 #include "bnTile.h"
+#include "bnRandom.h"
 
 using sf::IntRect;
 
-Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _playbackSpeed) : Artifact(_field)
+Explosion::Explosion(int _numOfExplosions, double _playbackSpeed) : 
+  Artifact()
 {
   root = this;
   SetLayer(-1000);
-  field = _field;
-  team = _team;
   numOfExplosions = _numOfExplosions;
   playbackSpeed = _playbackSpeed;
   count = 0;
-  setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_EXPLOSION));
   setScale(2.f, 2.f);
-  animationComponent = new AnimationComponent(this);
-  animationComponent->Setup("resources/mobs/mob_explosion.animation");
-  animationComponent->Reload();
-
-  offsetArea = sf::Vector2f(20.f, 0.f);
-  SetOffsetArea(offsetArea);
-
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
-
-  animationComponent->SetAnimation("EXPLODE");
-  animationComponent->SetPlaybackSpeed(playbackSpeed);
-  animationComponent->OnUpdate(0.0f);
-
-  /*
-   * On the 12th frame, increment the explosion count, and turn the first 
-   * explosion transpatent.
-   * 
-   * If there are more explosions expected, spawn a copy on frame 8
-   */
-  animationComponent->AddCallback(12, [this]() {
-    this->root->IncrementExplosionCount();
-    this->setColor(sf::Color(0, 0, 0, 0));
-  }, Animator::NoCallback, true);
-
-  if (_numOfExplosions > 1) {
-    animationComponent->AddCallback(8, [this, _field, _team, _numOfExplosions]() {
-      this->GetField()->AddEntity(*new Explosion(*this), *this->GetTile());
-    }, Animator::NoCallback, true);
-  }
-
-  this->RegisterComponent(animationComponent);
 }
 
-Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
+Explosion::Explosion(const Explosion & copy) : Artifact()
 {
   root = copy.root;
 
@@ -60,16 +29,20 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
   team = copy.GetTeam();
   numOfExplosions = copy.numOfExplosions-1;
   playbackSpeed = copy.playbackSpeed;
-  setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
+  setTexture(Textures().LoadFromFile(TexturePaths::MOB_EXPLOSION));
   setScale(2.f, 2.f);
 
-  animationComponent = new AnimationComponent(this);
-  animationComponent->Setup("resources/mobs/mob_explosion.animation");
+  SetOffsetArea(copy.offsetArea);
+}
+
+void Explosion::Init() {
+  Artifact::Init();
+
+  animationComponent = CreateComponent<AnimationComponent>(weak_from_this());
+  animationComponent->SetPath("resources/scenes/battle/mob_explosion.animation");
   animationComponent->Reload();
 
-  SetOffsetArea(copy.offsetArea);
-
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
+  Audio().Play(AudioType::EXPLODE, AudioPriority::low);
 
   animationComponent->SetAnimation("EXPLODE");
   animationComponent->SetPlaybackSpeed(playbackSpeed);
@@ -82,23 +55,27 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
    * Spawn a copy on frame 8
    */
   animationComponent->AddCallback(12, [this]() {
-    this->Delete(); this->root->IncrementExplosionCount();
-  }, Animator::NoCallback, true);
+    root->IncrementExplosionCount();
+
+    if(this == root) {
+      setColor(sf::Color(0, 0, 0, 0));
+    } else {
+      Delete();
+    }
+  }, true);
 
   if (numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this]() {
-      this->GetField()->AddEntity(*new Explosion(*this), *this->GetTile());
-    }, Animator::NoCallback, true);
+      GetField()->AddEntity(std::shared_ptr<Explosion>(new Explosion(*this)), *GetTile());
+    }, true);
   }
   else {
     // Last explosion happens behind entities
-    this->SetLayer(1000); // ensure bottom draw
+    SetLayer(1000); // ensure bottom draw
   }
-
-  this->RegisterComponent(animationComponent);
 }
 
-void Explosion::OnUpdate(float _elapsed) {
+void Explosion::OnUpdate(double _elapsed) {
   /*
    * Keep root alive until all explosions are completed, then delete root
    */
@@ -109,11 +86,21 @@ void Explosion::OnUpdate(float _elapsed) {
     }
   }
 
-  if(this->numOfExplosions != 1) {
-    setPosition((GetTile()->getPosition().x + offset.x), (GetTile()->getPosition().y + offset.y));
-  } else {
-    setPosition((GetTile()->getPosition().x), (GetTile()->getPosition().y));
+  // The first explosion spawns inside of the entity 
+  // all other explosions use the offset to explode around the entity
+  if (numOfExplosions != 1) {
+    Entity::drawOffset += {offset.x, offset.y};
   }
+}
+
+void Explosion::OnDelete()
+{
+  Erase();
+}
+
+void Explosion::OnSpawn(Battle::Tile& start)
+{
+  OnUpdate(0); // refresh and position explosion graphic
 }
 
 void Explosion::IncrementExplosionCount() {
@@ -125,19 +112,19 @@ void Explosion::SetOffsetArea(sf::Vector2f area)
   if ((int)area.x == 0) area.x = 1;
   if ((int)area.y == 0) area.y = 1;
 
-  this->offsetArea = area;
+  offsetArea = area;
 
-  int randX = rand() % (int)(area.x+0.5f);
-  int randY = rand() % (int)(area.y+0.5f);
+  int randX = SyncedRand() % (int)(area.x+0.5f);
+  int randY = SyncedRand() % (int)(area.y+0.5f);
 
   int randNegX = 1;
   int randNegY = 1;
 
-  if (rand() % 10 > 5) randNegX = -1;
-  if (rand() % 10 > 5) randNegY = -1;
+  if (SyncedRand() % 10 > 5) randNegX = -1;
+  if (SyncedRand() % 10 > 5) randNegY = -1;
 
   randX *= randNegX;
-  randY *= -randY;
+  randY = -randY;
 
   offset = sf::Vector2f((float)randX, (float)randY);
 }

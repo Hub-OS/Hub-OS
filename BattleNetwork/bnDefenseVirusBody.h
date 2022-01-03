@@ -5,6 +5,6 @@ class DefenseVirusBody : public DefenseRule {
 public:
   DefenseVirusBody();
   virtual ~DefenseVirusBody();
-  virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses);
-  virtual const bool Check(Spell* in, Character* owner) { /* does nothing */ return false; }
+  virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
+  virtual void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 };

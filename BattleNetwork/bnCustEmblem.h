@@ -9,7 +9,7 @@
  * @class CustEmblem
  * @author mav
  * @date 05/05/19
- * @brief Replaces symbol in chip select menu. Creates electricity that moves through wires for effect
+ * @brief Replaces symbol in card select menu. Creates electricity that moves through wires for effect
  */
 class CustEmblem : public sf::Drawable, public sf::Transformable {
 private:
@@ -24,7 +24,7 @@ private:
    * @date 05/05/19
    * @brief Tracks wire states for immersion
    * 
-   * If a wire moves forward and a chip is cancelled, the same wire is reversed
+   * If a wire moves forward and a card is cancelled, the same wire is reversed
    */
   struct WireEffect {
     double progress; /*!< How far along the electricity is */
@@ -53,6 +53,11 @@ public:
    * @brief Places the last wire effect from coming into leaving 
    */
   void UndoWireEffect();
+
+  /**
+  * @brief Empty both queues
+  */
+  void Reset();
   
   /**
    * @brief When the wire is leaving and reaches total progress, remove the effect

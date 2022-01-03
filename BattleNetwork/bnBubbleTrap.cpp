@@ -1,7 +1,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnInputManager.h"
 #include "bnField.h"
-#include "bnRowHit.h"
 #include "bnDefenseBubbleWrap.h"
 #include "bnBubbleTrap.h"
 
@@ -9,25 +9,14 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
+BubbleTrap::BubbleTrap(std::weak_ptr<Entity> owner) : 
+  willDelete(false), defense(nullptr), duration(3), 
+  ResourceHandle(), InputHandle(),
+  SpriteProxyNode(), Component(owner)
 {
-  // Bubbles have to pop when hit
-  defense = new DefenseBubbleWrap();
-
-  if (owner->IsDeleted()) {
-    this->Delete();
-    this->GetOwner()->FreeComponentByID(this->Component::GetID());
-    this->FreeOwner();
-    this->defense = nullptr;
-  }
-  else {
-    owner->AddDefenseRule(defense);
-  }
-
   SetLayer(1);
-  this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_BUBBLE_TRAP));
-  this->setScale(2.f, 2.f);
-  bubble = (sf::Sprite)*this;
+  setTexture(Textures().LoadFromFile(TexturePaths::SPELL_BUBBLE_TRAP));
+  bubble = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -35,46 +24,86 @@ BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
 
   animation << "DEFAULT" << Animator::Mode::Loop;
 
-  animation.Update(0, *this);
-
-  duration = 4; // seconds
+  animation.Update(0, getSprite());
 }
 
-void BubbleTrap::Inject(BattleScene& bs) {
+void BubbleTrap::Inject(BattleSceneBase& bs) {
+  auto asCharacter = GetOwnerAs<Character>();
 
+  if (!asCharacter || asCharacter->IsDeleted()) {
+    this->Eject();
+  }
+  else {
+    // Bubbles have to pop when hit
+    defense = std::make_shared<DefenseBubbleWrap>();
+    asCharacter->AddDefenseRule(defense);
+    asCharacter->AddNode(shared_from_base<BubbleTrap>());
+  }
 }
 
-void BubbleTrap::OnUpdate(float _elapsed) {
-  if (!this->tile) return;
+void BubbleTrap::OnUpdate(double _elapsed) {
+  auto keyTestThunk = [this](const InputEvent& key) {
+    bool pass = false;
 
-  if (duration <= 0 &&  animation.GetAnimationString() != "POP" ) {
-    this->Pop();
+    if (Input().Has(key)) {
+      auto iter = std::find(lastFrameStates.begin(), lastFrameStates.end(), key);
+
+      if (iter == lastFrameStates.end()) {
+        lastFrameStates.clear();
+        pass = true;
+      } 
+
+      lastFrameStates.push_back(key);
+    }
+
+    return pass;
+  };
+
+  bool anyKey = keyTestThunk(InputEvents::pressed_use_chip);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_cust_menu);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_down);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_up);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_left);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_right);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_shoot);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_pause);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_special);
+
+  if (anyKey) {
+    duration -= seconds_cast<double>(frames(1));
   }
 
   duration -= _elapsed;
 
-  auto x = this->GetOwner()->getPosition().x;
-  auto y = this->GetOwner()->getPosition().y - (this->GetOwnerAs<Character>()->GetHeight()/2.0f / 2.0f);
-  this->setPosition(x, y);
+  // either the timer runs out or the defense was popped by an attack
+  bool shouldpop = duration <= 0 && animation.GetAnimationString() != "POP";
+  shouldpop = shouldpop || (defense->IsPopped() && animation.GetAnimationString() != "POP");
 
-  animation.Update(_elapsed, *this);
+  if (shouldpop) {
+    Pop();
+  }
+
+  auto y = -GetOwnerAs<Character>()->GetHeight() / 4.0f;
+  setPosition(0.f, y);
+
+  animation.Update(_elapsed, getSprite());
 }
 
 void BubbleTrap::Pop()
 {
   auto onFinish = [this]() {
-    if (this->GetOwner()) {
-      this->GetOwnerAs<Character>()->RemoveDefenseRule(defense);
-      this->GetOwner()->FreeComponentByID(this->Component::GetID());
+    if (auto character = GetOwnerAs<Character>()) {
+      character->RemoveNode(this);
+      character->RemoveDefenseRule(defense);
+      this->Eject();
     }
-
-    this->Delete();
+    willDelete = true;
   };
 
   animation << "POP" << onFinish;
 }
 
-BubbleTrap::~BubbleTrap()
+const double BubbleTrap::GetDuration() const
 {
-  delete defense;
+  return duration;
 }

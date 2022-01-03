@@ -11,16 +11,20 @@
  * Allows all attacks to hit and passthrough
  */
 class DefenseBubbleWrap : public DefenseRule {
+private:
+  bool popped; /*!< whether or not the defense popped*/
 public:
   DefenseBubbleWrap();
-
-  virtual ~DefenseBubbleWrap();
+  ~DefenseBubbleWrap();
   
+  const bool IsPopped() const;
+
+  Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
+
   /**
    * @brief Allows all attacks to hit and pass 
    * @param in the attack spell
    * @param owner the character this is attached to
-   * @return false
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 };

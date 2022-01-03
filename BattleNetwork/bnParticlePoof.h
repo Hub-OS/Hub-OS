@@ -1,5 +1,5 @@
 
-/*! \brief Poof effect that plays when some chips fail */
+/*! \brief Poof effect that plays when some cards fail */
 
 #pragma once
 #include "bnArtifact.h"
@@ -25,12 +25,10 @@ public:
    * @brief plays the animation and deletes when finished 
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed) override;
   
-  /**
-   * @brief particle poof effect doesn't move
-   * @param _direction ignored
-   * @return false
-   */
-  bool Move(Direction _direction) { return false; }
+  /** 
+  * @brief Removes the poof
+  */
+  void OnDelete() override;
 };

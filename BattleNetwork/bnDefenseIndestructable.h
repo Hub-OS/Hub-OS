@@ -10,18 +10,19 @@
  *
  */
 class DefenseIndestructable : public DefenseRule {
-  bool breakCollidingObjectOnHit; /*!< Whether or not colliding objects delete on contact. This does will not resolve true for entity->Hit() calls */
+  bool breakCollidingObjectOnHit; /*!< Whether or not colliding objects auto-delete on contact. */
 
 public:
   DefenseIndestructable(bool breakCollidingObjectOnHit = false);
 
-  virtual ~DefenseIndestructable();
+  ~DefenseIndestructable();
+
+  Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
 
   /**
    * @brief Check for breaking properties
    * @param in the attack
    * @param owner the character this is attached to
-   * @return always true. Nothing ever passes.
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 };

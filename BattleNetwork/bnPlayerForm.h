@@ -1,31 +1,37 @@
 #pragma once
+#include "bnDrawWindow.h"
 #include "bnAnimation.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include <string>
 
 class Player;
-class ChipAction;
+class CardAction;
 
 class PlayerForm {
+  bool elementalDecross{ true };
 public:
   PlayerForm() = default;
   virtual ~PlayerForm() { ; }
-  virtual void OnActivate(Player&) = 0;
-  virtual void OnDeactivate(Player&) = 0;
-  virtual void OnUpdate(float elapsed, Player&) = 0;
-  virtual ChipAction* OnChargedBusterAction(Player&) = 0;
-  virtual ChipAction* OnSpecialAction(Player&) = 0;
+  virtual void OnActivate(std::shared_ptr<Player>) = 0;
+  virtual void OnDeactivate(std::shared_ptr<Player>) = 0;
+  virtual void OnUpdate(double elapsed, std::shared_ptr<Player>) = 0;
+  virtual std::shared_ptr<CardAction> OnChargedBusterAction(std::shared_ptr<Player>) = 0;
+  virtual std::shared_ptr<CardAction> OnSpecialAction(std::shared_ptr<Player>) = 0;
+  virtual frame_time_t CalculateChargeTime(const unsigned) = 0;
+  void SetElementalDecross(bool state) { elementalDecross = state; }
+  const bool WillElementalHitDecross() const { return elementalDecross; }
 };
 
 class PlayerFormMeta {
 private:
-  int index;
-  PlayerForm* form;
+  size_t index{};
+  PlayerForm* form{ nullptr };
   std::function<void()> loadFormClass; /*!< Deffered form loading. Only load form class when needed */
   std::string path;
 
 public:
-  PlayerFormMeta(int index);
+  PlayerFormMeta(size_t index);
+  virtual ~PlayerFormMeta() { }
 
   template<class T> PlayerFormMeta& SetFormClass();
 
@@ -33,9 +39,11 @@ public:
 
   const std::string GetUIPath() const;
 
-  void ActivateForm(Player& player);
+  void ActivateForm(std::shared_ptr<Player> player);
 
-  PlayerForm* BuildForm();
+  virtual PlayerForm* BuildForm();
+
+  const size_t GetFormIndex() const;
 };
 
 /**
@@ -50,7 +58,7 @@ template<class T>
 inline PlayerFormMeta& PlayerFormMeta::SetFormClass()
 {
   loadFormClass = [this]() {
-    this->form = new T();
+    form = new T();
   };
 
   return *this;

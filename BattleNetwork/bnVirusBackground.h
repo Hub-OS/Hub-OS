@@ -12,16 +12,21 @@ using std::vector;
 
 #include "bnBackground.h"
 
-class VirusBackground : public Background
+class VirusBackground final : public Background
 {
 public:
   VirusBackground();
   ~VirusBackground();
 
-  virtual void Update(float _elapsed);
-
+  void Update(double _elapsed) override;
+  void ScrollUp();
+  void ScrollLeft();
+  void SetScrollSpeed(const double);
 private:
   float x, y;
-  float progress;
+  double progress;
+  double speed;
+  int lr{ 0 };
+  int ud{ -1 };
 };
 

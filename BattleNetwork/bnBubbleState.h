@@ -27,17 +27,19 @@ public:
   BubbleState();
   virtual ~BubbleState();
 
-  void OnEnter(Any& e);
-  void OnUpdate(float _elapsed, Any& e);
-  void OnLeave(Any& e);
+  void OnEnter(Any& e) override;
+  void OnUpdate(double _elapsed, Any& e) override;
+  void OnLeave(Any& e) override;
 };
 
 #include "bnField.h"
 #include "bnLogger.h"
+#include "bnAudioResourceManager.h"
 
 template<typename Any>
 BubbleState<Any>::BubbleState()
-  : progress(0), AIState<Any>() {
+  : progress(0), prevFloatShoe(false), AIState<Any>() {
+  this->PriorityLock();
 }
 
 template<typename Any>
@@ -47,30 +49,36 @@ BubbleState<Any>::~BubbleState() {
 
 template<typename Any>
 void BubbleState<Any>::OnEnter(Any& e) {
-  prevFloatShoe = e.HasFloatShoe();
+  prevFloatShoe = e.HasFloatShoe(); // Hack: bubble would be otherwise pushed by moving tiles
   e.SetFloatShoe(true);
-  e.PriorityLock();
+  auto animationComponent = e.template GetFirstComponent<AnimationComponent>();
+  if (animationComponent) { animationComponent->CancelCallbacks(); }
+  e.ClearActionQueue();
+  e.FinishMove();
 }
 
 template<typename Any>
-void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
+void BubbleState<Any>::OnUpdate(double _elapsed, Any& e) {
+  auto bubbleTrap = e.template GetFirstComponent<BubbleTrap>();
+
   // Check if bubbletrap is removed from entity
-  if (e.template GetFirstComponent<BubbleTrap>() == nullptr) {
-    e.PriorityUnlock();
+  if (bubbleTrap == nullptr) {
     e.template ChangeState<typename Any::DefaultState>();
     e.SetFloatShoe(prevFloatShoe);
+    this->PriorityUnlock();
   }
+  else {
+    progress = bubbleTrap->GetDuration();
 
-  sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));
-  e.setPosition(e.getPosition() - offset);
-  e.SetAnimation("PLAYER_HIT"); // playing over and over from the start creates a freeze frame effect
-
-  progress += _elapsed;
+    sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));
+    e.SetDrawOffset(-offset);
+    e.SetAnimation("PLAYER_HIT"); // playing over and over from the start creates a freeze frame effect
+  }
 }
 
 template<typename Any>
 void BubbleState<Any>::OnLeave(Any& e) {
   //std::cout << "left bubblestate" << std::endl;
-
-  AUDIO.Play(AudioType::BUBBLE_POP);
+  e.SetDrawOffset(sf::Vector2f{});
+  ResourceHandle().Audio().Play(AudioType::BUBBLE_POP);
 }

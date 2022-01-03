@@ -1,7 +1,7 @@
 #pragma once
 
 #include "bnShaderResourceManager.h"
-#include "bnTextureResourceManager.h"
+#include "bnResourceHandle.h"
 #include "bnSmartShader.h"
 
 #include <cmath>
@@ -16,8 +16,18 @@
  * the screen
  */
 
-class Background : public sf::Drawable, public sf::Transformable
+class Background : public sf::Drawable, public sf::Transformable, public ResourceHandle
 {
+  void RecalculateColors() {
+    for (int i = 0; i < vertices.getVertexCount(); i++) {
+      sf::Color color = Background::color;
+      color.r = (sf::Uint8)(color.r * opacity);
+      color.g = (sf::Uint8)(color.g * opacity);
+      color.b = (sf::Uint8)(color.b * opacity);
+      vertices[i].color = color;
+    }
+  }
+
 protected:
   /**
    * @brief Wraps the texture area seemlessly to simulate scrolling
@@ -57,14 +67,14 @@ protected:
     occuranceX = std::max(occuranceX, (unsigned)1);
     occuranceY = std::max(occuranceY, (unsigned)1);
 
-    vertices.resize(occuranceX * occuranceY * (unsigned)6);
+    vertices.resize(static_cast<size_t>(occuranceX * occuranceY * 6));
 
     textureRect = sf::IntRect(0, 0, textureSize.x, textureSize.y);
 
     for (unsigned int i = 0; i < occuranceX; ++i) {
       for (unsigned int j = 0; j < occuranceY; ++j) {
         // get a pointer to the current tile's quad
-        sf::Vertex* quad = &vertices[(i + j * occuranceX) * 6];
+        sf::Vertex* quad = &vertices[static_cast<size_t>(i + j * occuranceX) * size_t(6)];
 
         // define its 4 corners
         quad[0].position = sf::Vector2f((float)(i * textureSize.x * 2), (float)((j + 1) * textureSize.y * 2));
@@ -96,26 +106,28 @@ public:
    * @param width of screen
    * @param height of screen
    */
-  Background(sf::Texture& ref, int width, int height) : offset(0,0), textureRect(0, 0, width, height), width(width), height(height), texture(ref) {
+  Background(const std::shared_ptr<sf::Texture>& ref, int width, int height) : 
+    offset(0,0), 
+    textureRect(0, 0, width, height), 
+    width(width), 
+    height(height), 
+    texture(ref)
+  {
       texture = ref;
-      texture.setRepeated(true);
+      texture->setRepeated(true);
 
       vertices.setPrimitiveType(sf::Triangles);
 
-      sf::Vector2u textureSize = ref.getSize();
+      sf::Vector2u textureSize = texture->getSize();
 
       FillScreen(textureSize);
 
-      textureWrap = SHADERS.GetShader(ShaderType::TEXEL_TEXTURE_WRAP);
+      textureWrap = Shaders().GetShader(ShaderType::TEXEL_TEXTURE_WRAP);
   }
 
-  ~Background() { ;  }
-  
-  /**
-   * @brief Implement for custom animated backgrounds
-   * @param _elapsed in seconds
-   */
-  virtual void Update(float _elapsed) = 0;
+  virtual ~Background() { ;  }
+
+  virtual void Update(double _elapsed) = 0;
 
   /**
    * @brief Draw the animated background with applied values
@@ -128,16 +140,18 @@ public:
     states.transform *= getTransform();
 
     // apply the tileset texture
-    states.texture = &texture;
+    states.texture = &(*texture);
 
-    sf::Vector2u size = texture.getSize();
+    sf::Vector2u size = texture->getSize();
 
-    textureWrap->setUniform("x", (float)textureRect.left / (float)size.x);
-    textureWrap->setUniform("y", (float)textureRect.top / (float)size.y);
-    textureWrap->setUniform("w", (float)textureRect.width / (float)size.x);
-    textureWrap->setUniform("h", (float)textureRect.height / (float)size.y);
-    textureWrap->setUniform("offsetx", (float)(offset.x));
-    textureWrap->setUniform("offsety", (float)(offset.y));
+    if (textureWrap) {
+      textureWrap->setUniform("x", (float)textureRect.left / (float)size.x);
+      textureWrap->setUniform("y", (float)textureRect.top / (float)size.y);
+      textureWrap->setUniform("w", (float)textureRect.width / (float)size.x);
+      textureWrap->setUniform("h", (float)textureRect.height / (float)size.y);
+      textureWrap->setUniform("offsetx", (float)(offset.x));
+      textureWrap->setUniform("offsety", (float)(offset.y));
+    }
 
     states.shader = textureWrap;
 
@@ -150,18 +164,42 @@ public:
    * @see bnUndernetBackground.h
    * @param color
    */
-  void setColor(sf::Color color) {
-    for (int i = 0; i < vertices.getVertexCount(); i++) {
-      vertices[i].color = color;
-    }
+  void SetColor(sf::Color color) {
+    Background::color = color;
+    RecalculateColors();
+  }
+
+  void SetOpacity(float opacity) {
+    Background::opacity = opacity;
+    RecalculateColors();
+  }
+
+  sf::Vector2f GetOffset() {
+    auto out = offset;
+    out.x *= (float)textureRect.width;
+    out.y *= (float)textureRect.height;
+    return out;
+  }
+
+  /**
+   * @brief Set a background offset. May get overridden by the background within the Update function
+   * @param offset
+   */
+  void SetOffset(sf::Vector2f offset) {
+    sf::Vector2u size = texture->getSize();
+    offset.x /= (float)textureRect.width;
+    offset.y /= (float)textureRect.height;
+    Wrap(offset);
   }
 
 protected:
   sf::VertexArray vertices; /*!< Geometry */
-  sf::Texture& texture; /*!< Texture aka spritesheet if animated */
+  std::shared_ptr<sf::Texture> texture; /*!< Texture aka spritesheet if animated */
   sf::IntRect textureRect; /*!< Frame of the animation if applicable */
   sf::Vector2f offset; /*!< Offset of the frame in pixels */
+  sf::Color color{ sf::Color::White };
   int width, height; /*!< Dimensions of screen in pixels */
+  float opacity{1.}; /*!< used to darken screen: 1.f is normal colors, 0.f is black */
   sf::Shader* textureWrap; /*!< Scroll background values in normalized coord [0.0f, 1.0f] */
 };
 

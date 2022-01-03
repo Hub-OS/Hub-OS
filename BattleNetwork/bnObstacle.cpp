@@ -1,27 +1,15 @@
 #include "bnObstacle.h"
-#include "bnTextureResourceManager.h"
-#include "bnShaderResourceManager.h"
 
-Obstacle::Obstacle(Field* _field, Team _team) : Spell(_field, _team), Character()  {
-  this->field = _field;
-  this->team = _team;
-
+Obstacle::Obstacle(Team _team) : Character()
+{
+  SetTeam(_team);
   SetFloatShoe(true);
   SetLayer(1);
+
+  auto hitboxProperties = GetHitboxProperties();
   hitboxProperties.flags = Hit::none;
+  SetHitboxProperties(hitboxProperties);
+
+  // overwrite bubble...
+  RegisterStatusCallback(Hit::bubble, [] {});
 }
-
-Obstacle::~Obstacle() {
-
-}
-
-bool Obstacle::CanMoveTo(Battle::Tile * next)
-{
-  return (Entity::CanMoveTo(next));
-}
-
-void Obstacle::AdoptTile(Battle::Tile * tile)
-{
-  this->Spell::AdoptTile(tile); // favor spell grouping
-}
-

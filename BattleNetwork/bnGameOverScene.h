@@ -1,9 +1,8 @@
 #pragma once
-#include "bnEngine.h"
+#include "bnScene.h"
+#include "bnGame.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
-
-#include <Swoosh/Activity.h>
 
 /**
  * @class GameOverScene
@@ -13,10 +12,11 @@
  * 
  * This is the first scene on the stack and resumed when players lose
  */
-class GameOverScene : public swoosh::Activity {
+class GameOverScene : public Scene {
 private:
   float fadeInCooldown; /*!< Fade in time */
   sf::Sprite gameOver; /*!< GAME OVER */
+  sf::Texture gameOverTexture; /*< GAME OVER TEXTURE */
   bool leave; /*!< Scene state coming/going flag */
 
 public:

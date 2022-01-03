@@ -1,6 +1,6 @@
 /*! \brief This scene allows user to select navi and see their stats
  * 
- * The scene takes SelectedNavi reference as input. The currently selected navi will
+ * The scene takes SelectedNavi reference as INPUTx. The currently selected navi will
  * be directly modified. 
  * 
  * User can press LEFT/RIGHT to move through the navis loaded @see QueueNaviRegistration
@@ -14,7 +14,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "bnSelectMobScene.h"
-#include "bnNaviRegistration.h"
+#include "bnPlayerPackageManager.h"
 #include "bnGridBackground.h"
 #include "bnCamera.h"
 #include "bnAnimation.h"
@@ -22,14 +22,9 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnScene.h"
 #include "bnTextBox.h"
-
-using sf::RenderWindow;
-using sf::VideoMode;
-using sf::Clock;
-using sf::Event;
-using sf::Font;
+#include "overworld/bnOverworldTextBox.h"
 
 constexpr float UI_LEFT_POS_MAX = 10.f; /*!< Left ui stops here */
 constexpr float UI_RIGHT_POS_MAX = 300.f; /*!< Right ui stops here */
@@ -40,26 +35,24 @@ constexpr float UI_TOP_POS_START = 250.f; /*!< ui begins at top pos here */
 constexpr float UI_TOP_POS_MAX = 0.0f; /*!< ui ends here */
 constexpr float MAX_PIXEL_FACTOR = 125.f;
 
-class SelectNaviScene : public swoosh::Activity
+class SelectNaviScene : public Scene
 {
 private:
-  SelectedNavi& naviSelectionIndex; /*!< SelectedNavi reference. Will change when user selects new navi */
-  SelectedNavi prevChosen; /*!< The previous selected navi. Used to start effects. */
-
-  Camera camera;
+  std::string& naviSelectionId; /*!< SelectedNavi reference. Will change when user selects new navi */
+  std::string prevChosenId; /*!< The previous selected navi. Used to start effects. */
+  std::string currentChosenId; /*!< The value of naviSelectionIndex if no change, otherwise the user's selection*/
 
   double maxSelectInputCooldown; /*!< half of a second input delay */
   double selectInputCooldown;    /*!< count down before registering input */
 
   // NAVI UI font
-  sf::Font* font;
-  sf::Font *naviFont;
-  sf::Text* menuLabel;
-
-  sf::Text *naviLabel; /*!< navi name text */
-  sf::Text *attackLabel; /*!< attack text */
-  sf::Text *speedLabel; /*!< speed text */
-  sf::Text *hpLabel; /*!< hp text */
+  Font font;
+  Font naviFont;
+  Text menuLabel;
+  Text naviLabel; /*!< navi name text */
+  Text attackLabel; /*!< attack text */
+  Text speedLabel; /*!< speed text */
+  Text hpLabel; /*!< hp text */
 
   float maxNumberCooldown; /*!< half a second scramble effect */
   float numberCooldown; /*!< Effect count down */
@@ -71,44 +64,38 @@ private:
   float UI_LEFT_POS;
   float UI_TOP_POS;
 
-  sf::Sprite charName; /*!< name holder panel */
-  sf::Sprite charElement; /*!< element holder panel */
-  sf::Sprite charStat; /*!< stat holder panel */
-  sf::Sprite charInfo; /*!< navi info box */
-  sf::Sprite element; /*! element icon */
+  SpriteProxyNode charName; /*!< name holder panel */
+  SpriteProxyNode charElement; /*!< element holder panel */
+  SpriteProxyNode charStat; /*!< stat holder panel */
+  SpriteProxyNode charInfo; /*!< navi info box */
+  SpriteProxyNode element; /*! element icon */
 
   bool loadNavi;
 
-  sf::Sprite navi; /*!< Navi sprite */
+  SpriteProxyNode navi; /*!< Navi sprite */
   
-  Animation naviAnimator; /*!< Some navi idle graphics animate */
-
   double factor; /*!< Used in pixelate distortion effect */
 
   bool gotoNextScene; /*!< If true, user cannot interact with the scene */
 
-  SmartShader pixelated; /*!< Pixelate distortion effect */
-
-  Animation glowpadAnimator; /*!< Animator for the glowing pad */
-  sf::Sprite glowpad; /*!< Glow pad ring piece */
-  sf::Sprite glowbase; /*!< G;ow pad base */
-  sf::Sprite glowbottom; /*!< Glow pad bottom piece */
-
   TextBox textbox; /*!< Displays extra navi info. Use UP/DOWN to read more */
+  Overworld::TextBox owTextbox;
 
   double elapsed; /*!< delta seconds sice last frame */
+
+  bool IsNaviAllowed();
 public:
   /**
    * @brief gotoNextScene is set to true so user must wait for transition to end to interact
    *
    * Loads and positions all graphics
    */
-  SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& navi);
+  SelectNaviScene(swoosh::ActivityController& controller, std::string& naviId);
   
   /**
    * @brief Cleanup all allocated memory
    */
-  virtual ~SelectNaviScene();
+  ~SelectNaviScene();
 
   /**
    * @brief Updates scene
@@ -120,42 +107,44 @@ public:
    * 
    * The opposite happens when the user leaves the scene (Press B)
    */
-  virtual void onUpdate(double elapsed);
+  void onUpdate(double elapsed) override;
   
   /**
    * @brief Draws entire scene
    * @param surface
    */
-  virtual void onDraw(sf::RenderTexture& surface);
+  void onDraw(sf::RenderTexture& surface) override;
   
   /**
    * @brief gotoNextScene = false, user can interact
    */
-  virtual void onStart();
+  void onStart() override;
   
   /**
    * @brief nothing
    */
-  virtual void onLeave();
+  void onLeave() override;
   
   /**
    * @brief nothing
    */
-  virtual void onExit();
+  void onExit() override;
   
   /**
    * @brief nothing
    */
-  virtual void onEnter();
+  void onEnter() override;
   
   /**
    * @brief gotoNextScene = false, user can interact
    */
-  virtual void onResume();
+  void onResume() override;
   
   /**
    * @brief nothing
    */
-  virtual void onEnd();
+  void onEnd() override;
+
+  void GotoPlayerCust();
 };
 

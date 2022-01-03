@@ -15,28 +15,34 @@ public:
   /**
    * @brief If _charged is true, deals 10 damage
    */
-  Buster(Field* _field, Team _team, bool _charged, int damage);
-  virtual ~Buster();
+  Buster(Team _team,bool _charged, int damage);
+  ~Buster() override;
 
-  virtual void OnUpdate(float _elapsed);
+  void Init() override;
+
+  void OnUpdate(double _elapsed) override;
   
-  virtual bool CanMoveTo(Battle::Tile* next);
+  bool CanMoveTo(Battle::Tile* next) override;
+
+  void OnDelete() override;
+
+  void OnCollision(const std::shared_ptr<Entity>) override;
 
   /**
    * @brief Deal impact damage
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(std::shared_ptr<Entity> _entity) override;
+
 private:
   bool isCharged;
   bool spawnGuard;
-  bool hit;
-  Character* contact;
+  std::shared_ptr<Character> contact;
   int damage;
-  float cooldown;
+  frame_time_t cooldown;
   float random; // offset
   float hitHeight;
-  sf::Texture* texture;
+  std::shared_ptr<sf::Texture> texture;
   float progress;
-  AnimationComponent* animationComponent;
+  std::shared_ptr<AnimationComponent> animationComponent;
 };

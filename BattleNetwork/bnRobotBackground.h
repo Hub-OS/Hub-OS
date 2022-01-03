@@ -16,13 +16,13 @@ using std::vector;
  * @date 09/21/19
  * @brief robot animates and scrolls upward
  */
-class RobotBackground : public Background
+class RobotBackground final : public Background
 {
 public:
   RobotBackground();
   ~RobotBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(double _elapsed) override;
 
 private:
   float x, y;

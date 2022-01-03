@@ -5,27 +5,16 @@
 class DelayedAttack : public Spell {
 private:
   double duration;
-  Spell* next;
+  std::shared_ptr<Entity> next;
 
 public:
-  DelayedAttack(Spell* next, Battle::Tile::Highlight highlightMode, double seconds) : duration(seconds),
-  Spell(next->GetField(), next->GetTeam()) {
-    this->HighlightTile(highlightMode);
-    this->SetFloatShoe(true);
-    this->next = next;
-  }
+  DelayedAttack(std::shared_ptr<Entity> next, Battle::TileHighlight highlightMode, double seconds);
 
-  ~DelayedAttack() { ;  }
+  ~DelayedAttack();
 
-  void OnUpdate(float elapsed) {
-    duration -= elapsed;
+  void OnUpdate(double elapsed) override;
 
-    if (duration <= 0 && next) {
-      GetField()->AddEntity(*next, *GetTile());
-      this->Delete();
-      next = nullptr;
-    }
-  }
+  void Attack(std::shared_ptr<Entity> _entity) override;
 
-  void Attack(Character* _entity) { }
+  void OnDelete() override;
 };

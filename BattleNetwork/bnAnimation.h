@@ -28,15 +28,15 @@ using std::to_string;
  *
  * ```
  * animation state="PLAYER_SHOOTING"
- * frame duration="0.05" x="0" y="10" w="70" h="47" originx="21" originy="40"
+ * frame duration="0.05" x="0" y="10" w="70" h="47" originx="21" originy="40" flipx="0" flipy="0"
  * point label="Buster" x="42" y="15"
- * frame duration="0.05" x="72" y="7" w="70" h="47" originx="23" originy="40"
+ * frame duration="0.05" x="72" y="7" w="70" h="47" originx="23" originy="40" flipx="0" flipy="0"
  * point label="Buster" x="42" y="15"
- * frame duration="0.05" x="149" y="11" w="75" h="47" originx="21" originy="39"
+ * frame duration="0.05" x="149" y="11" w="75" h="47" originx="21" originy="39" flipx="0" flipy="0"
  * point label="Buster" x="40" y="14"
- * frame duration="0.05" x="225" y="11" w="77" h="47" originx="20" originy="39"
+ * frame duration="0.05" x="225" y="11" w="77" h="47" originx="20" originy="39" flipx="0" flipy="0"
  * point label="Buster" x="39" y="14"
- * frame duration="0.05" x="302" y="11" w="68" h="47" originx="18" originy="39"
+ * frame duration="0.05" x="302" y="11" w="68" h="47" originx="18" originy="39" flipx="0" flipy="0"
  * point label="Buster" x="38" y="14"
  * 
  * animation state="PLAYER_MOVING"
@@ -47,11 +47,6 @@ using std::to_string;
  */
 class Animation {
 public:
-
-  auto GetMode() {
-    return animator.GetMode();
-  }
-
   /**
    * @brief No frame list is loaded*/
   Animation();
@@ -66,13 +61,16 @@ public:
    * @brief Parses file at path and populates FrameList with data
    * @param path relative path from application to file
    */
-  Animation(string path);
+  Animation(const string& path);
 
   Animation(const Animation& rhs);
 
   Animation& operator=(const Animation& rhs);
 
   ~Animation();
+
+  void CopyFrom(const Animation& rhs);
+
   /**
    * @brief Reads file at path set by constructor, parses lines, and populates FrameList with data
 
@@ -85,23 +83,29 @@ public:
 
     Effectively same as calling Reload();
  */
-  void Load();
+  void Load(const std::string& newPath = "");
+ 
+  /**
+ * @brief Parses lines, and populates FrameList with data
+
+    Effectively same as calling Reload();
+ */
+  void LoadWithData(const string& data);
 
   /**
    * @brief Apply FrameList to sprite
    * @param _elapsed in seconds to add to progress
    * @param target sprite to apply to
-   * @param playbackSpeed virtually simulate speed
    */
-  void Update(float _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
+  void Update(double _elapsed, sf::Sprite& target);
   
   /**
    * @brief Syncs the animation elapsed counter to one provided
    */
-  void SyncTime(float newTime);
+  void SyncTime(frame_time_t newTime);
 
   /**
-   * @brief Sets progress to 0 and updates sprite. Same as a call to Update(0, target).
+   * @brief Same as a call to Update(0, target).
    * @param target
    */
   void Refresh(sf::Sprite& target);
@@ -119,7 +123,7 @@ public:
    * @brief Sets the current animation from a map of FrameLists
    * @param state animation name is the map key
    */
-  void SetAnimation(string state);
+  void SetAnimation(std::string state);
 
   /**
    * @brief Clears the function callbacks in the animator
@@ -145,7 +149,7 @@ public:
    * @param rhs On struct
    * @return Animation& to chain
    */
-  Animation& operator<<(Animator::On rhs);
+  Animation& operator<<(const Animator::On& rhs);
   
   /**
    * @brief Set the animator mode
@@ -158,33 +162,56 @@ public:
    * @brief Set the animation state
    * @param state name to chain
    */
-  Animation& operator<<(std::string state);
+  Animation& operator<<(const std::string& state);
 
   /**
    * @brief Set the onFinish callback
    * @param onFinish the function to call when the animation finishes
    * @warning does not return object. This must be the end of the chain.
    */
-  void operator<<(std::function<void()> onFinish);
+  void operator<<(const std::function<void()>& onFinish);
 
   sf::Vector2f GetPoint(const std::string& pointName);
 
-  void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string& uuid);
+  char GetMode();
+
+  frame_time_t GetStateDuration(const std::string& state) const;
+
+  void OverrideAnimationFrames(const std::string& animation, const std::list<OverrideFrame>& data, std::string& uuid);
 
   void SyncAnimation(Animation& other);
 
-private:
+  void SetInterruptCallback(const std::function<void()> onInterrupt);
+
+  const bool HasAnimation(const std::string& state) const;
+
+  const double GetPlaybackSpeed() const;
+  void SetPlaybackSpeed(double factor);
+
   /**
-   * @brief Strips the key-value from a file format
-   * @param _key to look for value of
-   * @param _line string input
-   * @return value as string or empty string
+   * @brief Applies a callback
+   * @param frame integer frame (base 1)
+   * @param callback void() function callback type
+   * @param doOnce boolean to fire the callback once or every time
+   * @return Animation& for chaining
+   *
+   * This explicit function signature was added for scripting
    */
-  string ValueOf(string _key, string _line);
+  Animation& AddCallback(int frame, FrameCallback callback, bool doOnce) {
+    *this << Animator::On(frame, callback, doOnce);
+    return *this;
+  }
+
+private:
+  void HandleInterrupted();
 protected:
+  bool noAnim{ false }; /*!< If the requested state was not found, hide the sprite when updating */
+  bool handlingInterrupt{ false }; /*!< Whether or not the interupt handler is executing (for nested animations) */
   Animator animator; /*!< Internal animator to delegate most of the work to */
   string path; /*!< Path to the animation file */
   string currAnimation; /*!< Name of the current animation state */
-  float progress; /*!< Current progress of animation */
+  frame_time_t progress; /*!< Current progress of animation */
+  double playbackSpeed{ 1.0 }; /*!< Factor to multiply against update `dt`*/
   std::map<string, FrameList> animations; /*!< Dictionary of FrameLists read from file */
+  std::function<void()> interruptCallback;
 };

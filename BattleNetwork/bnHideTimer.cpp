@@ -1,49 +1,44 @@
 #include "bnHideTimer.h"
 #include "bnCharacter.h"
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
-HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
+HideTimer::HideTimer(std::weak_ptr<Character> owner, double secs) : Component(owner, Component::lifetimes::battlestep) {
   duration = secs;
   elapsed = 0;
 
-  this->owner = owner;
-  temp = owner->GetTile();
+  temp = GetOwner()->GetTile();
+
+  respawn = [this]() {
+    temp->AddEntity(GetOwner());
+  };
 }
 
-void HideTimer::OnUpdate(float _elapsed) {
-  if(!this->scene) return;
-
-  if (!this->scene->IsCleared() && !this->scene->IsBattleActive()) {
-      return;
-  }
-
+void HideTimer::OnUpdate(double _elapsed) {
   elapsed += _elapsed;
 
   if (elapsed >= duration && temp) {
-    temp->AddEntity(*this->owner);
-    this->GetOwner()->FreeComponentByID(this->GetID());
-
-    this->scene->Eject(this);
-    delete this;
+    respawn();
+    Eject();
   }
 }
 
-void HideTimer::Inject(BattleScene& scene) {
-  scene.Inject(this);
-  this->scene = &scene;
+void HideTimer::Inject(BattleSceneBase& scene) {
+  // temporarily remove from character from play
+  auto owner = GetOwner();
 
-  // it is safe now to temporarily remove from character from play
-  // the component is now injected into the scene's update loop
-  if (temp) {
-    temp->ReserveEntityByID(owner->GetID());
-    temp->RemoveEntityByID(owner->GetID());
-
-    if (temp->GetState() == TileState::BROKEN) {
-      temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
-    }
+  if (owner && temp) {
+    // remove then reserve otherwise the API will also clear the reservation
+    Entity::ID_t id = owner->GetID();
+    temp->RemoveEntityByID(id);
+    temp->ReserveEntityByID(id);
 
     owner->SetTile(nullptr);
   }
+
+  // the component is now injected into the scene's update loop
+  // because the character's update loop is only called when they are on the field
+  // this way the timer can keep ticking
+  scene.Inject(shared_from_base<HideTimer>());
 }

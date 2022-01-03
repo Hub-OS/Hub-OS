@@ -13,18 +13,17 @@ class Field;
 class ElementalDamage : public Artifact
 {
 private:
-  AnimationComponent animationComponent;
-  float progress;
+  double progress;
 
 public:
-  ElementalDamage(Field* field);
+  ElementalDamage();
   ~ElementalDamage();
 
   /**
    * @brief Grow and shrink quickly. Appear over the sprite.
    * @param _elapsed
    */
-  virtual void OnUpdate(float _elapsed);
-  virtual bool Move(Direction _direction) { return false; }
+  void OnUpdate(double _elapsed) override;
 
+  void OnDelete() override;
 };

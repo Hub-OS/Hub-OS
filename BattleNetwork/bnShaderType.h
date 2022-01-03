@@ -43,6 +43,7 @@
         WHITE,
         WHITE_FADE,
         YELLOW,
+        BLACK,
         DISTORTION,
         SPOT_DISTORTION,
         SPOT_REFLECTION,
@@ -51,7 +52,10 @@
         BADGE_WIRE,
         COLORIZE,
         ADDITIVE,
-        PALETTE_SWAP,
+        BATTLE_CHARACTER,
+        GRADIENT,
+        MINIMAP_COLOR,
+        MINIMAP_EDGE,
         SHADER_TYPE_SIZE
     };
 #endif

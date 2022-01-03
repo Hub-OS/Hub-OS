@@ -8,12 +8,16 @@
     funiforms = copy.funiforms;
     iuniforms = copy.iuniforms;
     vfuniforms = copy.vfuniforms;
+    duniforms = copy.duniforms;
+    farruniforms = copy.farruniforms;
+    coluniforms = copy.coluniforms;
+    texuniforms = copy.texuniforms;
+    textypeuniforms = copy.textypeuniforms;
+
     ref = copy.ref;
   }
 
   SmartShader::~SmartShader() {
-    iuniforms.clear();
-    funiforms.clear();
     ref = nullptr;
   }
 
@@ -32,13 +36,25 @@
  }
 
  sf::Shader* SmartShader::Get() {
+   ApplyUniforms();
    return ref;
  }
 
+ bool SmartShader::HasShader() {
+   return ref != nullptr;
+ }
+
   void SmartShader::ApplyUniforms() {
+    if (!ref) return;
+
     iiter iIter = iuniforms.begin();
     fiter fIter = funiforms.begin();
+    diter dIter = duniforms.begin();
+    farriter farrIter = farruniforms.begin();
     vfiter vfIter = vfuniforms.begin();
+    coliter colIter = coluniforms.begin();
+    texiter texIter = texuniforms.begin();
+    textypeiter texTypeIter = textypeuniforms.begin();
 
     for (; iIter != iuniforms.end(); iIter++) {
       ref->setUniform(iIter->first, iIter->second);
@@ -48,9 +64,38 @@
       ref->setUniform(fIter->first, fIter->second);
     }
 
+    for (; dIter != duniforms.end(); dIter++) {
+      ref->setUniform(dIter->first, static_cast<float>(dIter->second));
+    }
+
+    for (; farrIter != farruniforms.end(); farrIter++) {
+      ref->setUniformArray(farrIter->first, farrIter->second.data(), farrIter->second.size());
+    }
+
     for (; vfIter != vfuniforms.end(); vfIter++) {
       ref->setUniform(vfIter->first, vfIter->second);
     }
+
+    for (; colIter != coluniforms.end(); colIter++) {
+      sf::Color col = colIter->second;
+      ref->setUniform(colIter->first, 
+        sf::Glsl::Vec4{ 
+          col.r/255.f,
+          col.g/255.f, 
+          col.b/255.f, 
+          col.a/255.f 
+        }
+      );
+    }
+
+    for (; texIter != texuniforms.end(); texIter++) {
+      ref->setUniform(texIter->first, *texIter->second);
+    }
+
+    for (; texTypeIter != textypeuniforms.end(); texTypeIter++) {
+      ref->setUniform(texTypeIter->first, texTypeIter->second);
+    }
+
   }
 
   void SmartShader::ResetUniforms() {
@@ -60,7 +105,12 @@
 
     iiter iIter = iuniforms.begin();
     fiter fIter = funiforms.begin();
+    diter dIter = duniforms.begin();
+    farriter farrIter = farruniforms.begin();
     vfiter vfIter = vfuniforms.begin();
+    coliter colIter = coluniforms.begin();
+    texiter texIter = texuniforms.begin();
+    textypeiter texTypeIter = textypeuniforms.begin();
 
     for (; iIter != iuniforms.end(); iIter++) {
       ref->setUniform(iIter->first, 0);
@@ -70,17 +120,54 @@
       ref->setUniform(fIter->first, 0.f);
     }
 
+    for (; dIter != duniforms.end(); dIter++) {
+      ref->setUniform(dIter->first, 0.f);
+    }
+
+    for (; farrIter != farruniforms.end(); farrIter++) {
+      std::vector<float> dummyVec;
+      dummyVec.reserve(farrIter->second.size());
+      ref->setUniformArray(farrIter->first, dummyVec.data(), farrIter->second.size());
+    }
+
     for (; vfIter != vfuniforms.end(); vfIter++) {
       ref->setUniform(vfIter->first, 0.f);
     }
 
+    for (; colIter != coluniforms.end(); colIter++) {
+      ref->setUniform(colIter->first, 0.f);
+    }
+
+    for (; texIter != texuniforms.end(); texIter++) {
+      ref->setUniform(texIter->first, sf::Shader::CurrentTexture);
+    }
+
+    for (; texTypeIter != textypeuniforms.end(); texTypeIter++) {
+      ref->setUniform(texTypeIter->first, sf::Shader::CurrentTexture);
+    }
+
     iuniforms.clear();
     funiforms.clear();
+    duniforms.clear();
+    farruniforms.clear();
     vfuniforms.clear();
+    coluniforms.clear();
+    texuniforms.clear();
+    textypeuniforms.clear();
   }
 
   void SmartShader::SetUniform(std::string uniform, float fvalue) {
     funiforms[uniform] = fvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, double dvalue)
+  {
+    duniforms[uniform] = dvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, const std::vector<float>& farr)
+  {
+    farruniforms[uniform] = farr;
   }
 
   void SmartShader::SetUniform(std::string uniform, int ivalue) {
@@ -91,7 +178,22 @@
     vfuniforms[uniform] = vfvalue;
   }
 
+  void SmartShader::SetUniform(std::string uniform, const sf::Color& colvalue)
+  {
+    coluniforms[uniform] = colvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, const std::shared_ptr<sf::Texture>& texvalue)
+  {
+    texuniforms[uniform] = texvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, const sf::Shader::CurrentTextureType& value)
+  {
+    textypeuniforms[uniform] = value;
+  }
+
   void SmartShader::Reset() {
-    this->ResetUniforms();
-    this->ref = nullptr;
+    ResetUniforms();
+    ref = nullptr;
   }

@@ -18,9 +18,10 @@ template<typename Any>
 class NaviExplodeState : public ExplodeState<Any>
 {
 protected:
-  ShineExplosion* shine; /*!< Shine X that appears over navi ranked enemies */
+  std::shared_ptr<ShineExplosion> shine{ nullptr }; /*!< Shine X that appears over navi ranked enemies */
 
 public:
+  inline static const int PriorityLevel = 0; // Highest
 
   /**
    * @brief Constructor
@@ -49,7 +50,7 @@ public:
    * @param _elapsed in seconds
    * @param e entity
    */
-  void OnUpdate(float _elapsed, Any& e);
+  void OnUpdate(double _elapsed, Any& e);
   
   /**
    * @brief Calls ExplodeState<Any>::OnLeave(e)
@@ -59,8 +60,8 @@ public:
 };
 
 template<typename Any>
-NaviExplodeState<Any>::NaviExplodeState(int _numOfExplosions, double _playbackSpeed)
-  : ExplodeState<Any>(_numOfExplosions, _playbackSpeed) {
+NaviExplodeState<Any>::NaviExplodeState(int _numOfExplosions, double _playbackSpeed) : 
+  ExplodeState<Any>(_numOfExplosions, _playbackSpeed) {
 }
 
 template<typename Any>
@@ -74,9 +75,10 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
 
   /* Spawn shine artifact */
   Battle::Tile* tile = e.GetTile();
-  Field* field = e.GetField();
-  shine = new ShineExplosion(field, e.GetTeam());
-  field->AddEntity(*shine, tile->GetX(), tile->GetY());
+  std::shared_ptr<Field> field = e.GetField();
+  shine = std::make_shared<ShineExplosion>();
+  shine->SetHeight(e.GetHeight() * 0.5f);
+  field->AddEntity(shine, tile->GetX(), tile->GetY());
 
   auto animation = e.template GetFirstComponent<AnimationComponent>();
 
@@ -87,11 +89,11 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
 }
 
 template<typename Any>
-void NaviExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
+void NaviExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
   ExplodeState<Any>::OnUpdate(_elapsed, e);
 
-  if (e.IsDeleted()) {
-    shine->Delete();
+  if (ExplodeState<Any>::explosion->IsSequenceComplete()) {
+    shine->Erase();
   }
 }
 

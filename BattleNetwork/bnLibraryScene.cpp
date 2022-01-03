@@ -4,11 +4,12 @@
 #include <Swoosh/Timer.h>
 
 #include "bnLibraryScene.h"
-#include "bnChipLibrary.h"
-#include "bnChipFolder.h"
+#include "bnCardFolder.h"
 #include "Android/bnTouchArea.h"
 
+#include "bnCardPackageManager.h"
 #include "bnMessage.h"
+#include "bnFont.h"
 
 #include <SFML/Graphics.hpp>
 #include <cmath>
@@ -17,11 +18,13 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
+
+using namespace swoosh::types;
+using swoosh::types::direction;
 
 #include "Segues/PushIn.h"
 
-std::string LibraryScene::FormatChipDesc(const std::string && desc)
+std::string LibraryScene::FormatCardDesc(const std::string && desc)
 {
   std::string output = desc;
 
@@ -73,12 +76,12 @@ std::string LibraryScene::FormatChipDesc(const std::string && desc)
       perLine = 0;
       wordIndex = -1;
     }
-    
+
     perLine++;
     index++;
   }
 
-  // Chip docks can only fit 9 characters per line, 3 lines total
+  // Card docks can only fit 9 characters per line, 3 lines total
   if (output.size() > 3 * 10) {
     output = output.substr(0, (3 * 10));
     output[output.size() - 1] = ';'; // font glyph will show an elipses
@@ -88,125 +91,121 @@ std::string LibraryScene::FormatChipDesc(const std::string && desc)
 }
 
 LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
-  camera(ENGINE.GetView()),
+  camera(getView()),
   textbox(sf::Vector2f(4, 255)),
-  swoosh::Activity(&controller)
+  font(Font::Style::thick),
+  menuLabel("", font),
+  cardFont(Font::Style::wide),
+  cardLabel("", cardFont),
+  cardDescFont(Font::Style::small),
+  cardDesc("", cardDescFont),
+  numberFont(Font::Style::wide),
+  numberLabel("", numberFont),
+  Scene(controller)
 {
 
   // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("Library", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
 
 #ifdef __ANDROID__
-maxSelectInputCooldown = 0.1;
-canSwipe = false;
-releasedB = false;
-touchStart = false;
-touchPosX = touchPosStartX = -1;
+  maxSelectInputCooldown = 0.1;
+  canSwipe = false;
+  releasedB = false;
+  touchStart = false;
+  touchPosX = touchPosStartX = -1;
 #endif
 
   selectInputCooldown = maxSelectInputCooldown;
 
-  // Chip UI font
-  chipFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  chipLabel = new sf::Text("", *chipFont);
-  chipLabel->setPosition(275.f, 15.f);
+  // Card UI font
+  cardLabel.setPosition(275.f, 15.f);
 
-  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
-  numberLabel = new sf::Text("", *numberFont);
-  numberLabel->setOutlineColor(sf::Color(48, 56, 80));
-  numberLabel->setOutlineThickness(2.f);
-  numberLabel->setScale(0.8f, 0.8f);
-  numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
-  numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
+  numberLabel.SetColor(sf::Color(48, 56, 80));
+  numberLabel.setScale(0.8f, 0.8f);
+  numberLabel.setOrigin(numberLabel.GetLocalBounds().width, 0);
+  numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 
-  // Chip description font
-  chipDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
-  chipDesc = new sf::Text("", *chipDescFont);
-  chipDesc->setCharacterSize(24);
-  chipDesc->setPosition(sf::Vector2f(20.f, 185.0f));
-  //chipDesc->setLineSpacing(5);
-  chipDesc->setFillColor(sf::Color::Black);
+  // Card description font
+  cardDesc.setPosition(sf::Vector2f(20.f, 185.0f));
+  //cardDesc.setLineSpacing(5);
+  cardDesc.SetColor(sf::Color::Black);
 
   // folder menu graphic
-  bg = sf::Sprite(LOAD_TEXTURE(FOLDER_VIEW_BG));
+  bg.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_VIEW_BG));
   bg.setScale(2.f, 2.f);
 
-  folderDock = sf::Sprite(LOAD_TEXTURE(FOLDER_DOCK));
+  folderDock.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_DOCK));
   folderDock.setScale(2.f, 2.f);
   folderDock.setPosition(2.f, 30.f);
 
-  scrollbar = sf::Sprite(LOAD_TEXTURE(FOLDER_SCROLLBAR));
+  scrollbar.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
   scrollbar.setPosition(410.f, 60.f);
 
-  cursor = sf::Sprite(LOAD_TEXTURE(FOLDER_CURSOR));
+  cursor.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_CURSOR));
   cursor.setScale(2.f, 2.f);
   cursor.setPosition((2.f*90.f), 64.0f);
 
-  stars = sf::Sprite(LOAD_TEXTURE(FOLDER_RARITY));
+  stars.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_RARITY));
   stars.setScale(2.f, 2.f);
 
-  chipHolder = sf::Sprite(LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
-  chipHolder.setScale(2.f, 2.f);
-  chipHolder.setPosition(4.f, 35.f);
+  cardHolder.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
+  cardHolder.setScale(2.f, 2.f);
+  cardHolder.setPosition(4.f, 35.f);
 
-  element = sf::Sprite(LOAD_TEXTURE(ELEMENT_ICON));
+  element.setTexture(Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
-  // Current chip graphic
-  chip = sf::Sprite(LOAD_TEXTURE(CHIP_CARDS));
-  cardSubFrame = sf::IntRect(TEXTURES.GetCardRectFromID(0));
-  chip.setTextureRect(cardSubFrame);
-  chip.setScale(2.f, 2.f);
-  chip.setPosition(83.f, 93.f);
-  chip.setOrigin(chip.getLocalBounds().width / 2.0f, chip.getLocalBounds().height / 2.0f);
+  // Current card graphic
+  card = sf::Sprite();
+  cardSubFrame = sf::IntRect(0,0,56,64);
+  card.setTextureRect(cardSubFrame);
+  card.setScale(2.f, 2.f);
+  card.setPosition(83.f, 93.f);
+  card.setOrigin(card.getLocalBounds().width / 2.0f, card.getLocalBounds().height / 2.0f);
 
-  chipIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
-  chipIcon.setScale(2.f, 2.f);
+  auto iconRect = sf::IntRect(0, 0, 14, 14);
+  cardIcon.setTextureRect(iconRect);
+  cardIcon.setScale(2.f, 2.f);
 
-  chipRevealTimer.start();
+  cardRevealTimer.start();
   easeInTimer.start();
 
-  maxChipsOnScreen = 7;
-  currChipIndex = lastChipOnScreen = prevIndex = 0;
+  maxCardsOnScreen = 7;
+  currCardIndex = lastCardOnScreen = prevIndex = 0;
   totalTimeElapsed = frameElapsed = 0.0;
 
-  this->MakeUniqueChipsFromPack();
+  MakeUniqueCardsFromPack();
 }
 
 LibraryScene::~LibraryScene() { ; }
 
-void LibraryScene::MakeUniqueChipsFromPack()
+void LibraryScene::MakeUniqueCardsFromPack()
 {
-  ChipLibrary::Iter iter = CHIPLIB.Begin();
+  /*CardLibrary::Iter iter = CHIPLIB.Begin();
 
   for (iter; iter != CHIPLIB.End(); iter++) {
-    this->uniqueChips.insert(uniqueChips.begin(), *iter);
+    uniqueCards.insert(uniqueCards.begin(), *iter);
   }
 
-  auto pred = [](const Chip &a, const Chip &b) -> bool {
+  auto pred = [](const Battle::Card &a, const Battle::Card &b) -> bool {
     return a.GetShortName() == b.GetShortName();
   };
 
-  this->uniqueChips.unique(pred);
+  uniqueCards.unique(pred);
 
-  numOfChips = (int)uniqueChips.size();
+  numOfCards = (int)uniqueCards.size();*/
 }
 
 void LibraryScene::onStart() {
-  ENGINE.SetCamera(camera);
-
   gotoNextScene = false;
 
 #ifdef __ANDROID__
-  this->StartupTouchControls();
+  StartupTouchControls();
 #endif
 }
 
@@ -219,54 +218,56 @@ void LibraryScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
-  camera.Update((float)elapsed);
-  textbox.Update((float)elapsed);
+  cardRevealTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  easeInTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  camera.Update(elapsed);
+  textbox.Update(elapsed);
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+    if (Input().Has(InputEvents::pressed_ui_up)) {
       selectInputCooldown -= elapsed;
 
-      prevIndex = currChipIndex;
+      prevIndex = currCardIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
-        currChipIndex--;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        currCardIndex--;
+        Audio().Play(AudioType::CHIP_SELECT);
 
-        if (currChipIndex < lastChipOnScreen) {
-          --lastChipOnScreen;
+        if (currCardIndex < lastCardOnScreen) {
+          --lastCardOnScreen;
         }
 
-        chipRevealTimer.reset();
+        cardRevealTimer.reset();
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+    else if (Input().Has(InputEvents::pressed_ui_down)) {
       selectInputCooldown -= elapsed;
 
-      prevIndex = currChipIndex;
+      prevIndex = currCardIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
-        currChipIndex++;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        currCardIndex++;
+        Audio().Play(AudioType::CHIP_SELECT);
 
-        if (currChipIndex > lastChipOnScreen + maxChipsOnScreen - 1) {
-          ++lastChipOnScreen;
+        if (currCardIndex > lastCardOnScreen + maxCardsOnScreen - 1) {
+          ++lastCardOnScreen;
         }
 
-        chipRevealTimer.reset();
+        cardRevealTimer.reset();
       }
     }
     else {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsClosed()) {
-      auto iter = uniqueChips.begin();
+    if (Input().Has(InputEvents::pressed_confirm) && textbox.IsClosed()) {
+      auto iter = uniqueCards.begin();
       int i = 0;
 
-      while (i < currChipIndex) {
+      while (i < currCardIndex) {
         i++;
         iter++;
       }
@@ -274,34 +275,33 @@ void LibraryScene::onUpdate(double elapsed) {
       textbox.DequeMessage(); // make sure textbox is empty
       textbox.EnqueMessage(sf::Sprite(), "", new Message(iter->GetVerboseDescription()));
       textbox.Open();
-      AUDIO.Play(AudioType::CHIP_DESC);
+      Audio().Play(AudioType::CHIP_DESC);
     }
-    else if (INPUT.Has(EventTypes::RELEASED_CANCEL) && textbox.IsOpen()) {
+    else if (Input().Has(InputEvents::released_cancel) && textbox.IsOpen()) {
       textbox.Close();
       textbox.SetTextSpeed(1.0);
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
     }
-    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsOpen()) {
-      textbox.SetTextSpeed(3.0);
+    else if (Input().Has(InputEvents::pressed_confirm) && textbox.IsOpen()) {
+      textbox.SetTextSpeed(2.0);
     }
-    else if (INPUT.Has(EventTypes::RELEASED_CONFIRM) && textbox.IsOpen()) {
+    else if (Input().Has(InputEvents::released_confirm) && textbox.IsOpen()) {
       textbox.SetTextSpeed(1.0);
       //textbox.Continue();
     }
 
-    currChipIndex = std::max(0, currChipIndex);
-    currChipIndex = std::min(numOfChips - 1, currChipIndex);
+    currCardIndex = std::max(0, currCardIndex);
+    currCardIndex = std::min(numOfCards - 1, currCardIndex);
 
-    lastChipOnScreen = std::max(0, lastChipOnScreen);
-    lastChipOnScreen = std::min(numOfChips - 1, lastChipOnScreen);
+    lastCardOnScreen = std::max(0, lastCardOnScreen);
+    lastCardOnScreen = std::min(numOfCards - 1, lastCardOnScreen);
 
-    if (INPUT.Has(EventTypes::PRESSED_CANCEL) && textbox.IsClosed()) {
+    if (Input().Has(InputEvents::pressed_cancel) && textbox.IsClosed()) {
       gotoNextScene = true;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
-      using swoosh::intent::direction;
-      using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
-      getController().queuePop<segue>();
+      using segue = segue<PushIn<direction::left>, milli<500>>;
+      getController().pop<segue>();
     }
   }
 
@@ -309,7 +309,7 @@ void LibraryScene::onUpdate(double elapsed) {
 
 void LibraryScene::onLeave() {
 #ifdef __ANDROID__
-  this->ShutdownTouchControls();
+  ShutdownTouchControls();
 #endif
 }
 
@@ -323,103 +323,88 @@ void LibraryScene::onEnter()
 
 void LibraryScene::onResume() {
 #ifdef __ANDROID__
-  this->StartupTouchControls();
+  StartupTouchControls();
 #endif
 }
 
 void LibraryScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
+  auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
-  ENGINE.Draw(bg);
-  ENGINE.Draw(menuLabel);
+  surface.draw(bg);
+  surface.draw(menuLabel);
 
-  ENGINE.Draw(folderDock);
-  ENGINE.Draw(chipHolder);
+  surface.draw(folderDock);
+  surface.draw(cardHolder);
 
-  // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
+  // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 50.0f; float bottom = 230.0f;
-  float depth = ((float)lastChipOnScreen / (float)numOfChips)*bottom;
+  float depth = ((float)lastCardOnScreen / (float)numOfCards)*bottom;
   scrollbar.setPosition(452.f, top + depth);
 
-  ENGINE.Draw(scrollbar);
+  surface.draw(scrollbar);
 
-  if (uniqueChips.size() == 0) return;
+  if (uniqueCards.size() == 0) return;
 
-  // Move the chip library iterator to the current highlighted chip
-  auto iter = uniqueChips.begin();
+  // Move the card library iterator to the current highlighted card
+  auto iter = uniqueCards.begin();
 
-  for (int j = 0; j < lastChipOnScreen; j++) {
+  for (int j = 0; j < lastCardOnScreen; j++) {
     iter++;
   }
 
-  // Now that we are at the viewing range, draw each chip in the list
-  for (int i = 0; i < maxChipsOnScreen && lastChipOnScreen + i < numOfChips; i++) {
-    chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(iter->GetIconID()));
-    chipIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
-    ENGINE.Draw(chipIcon, false);
+  // Now that we are at the viewing range, draw each card in the list
+  for (int i = 0; i < maxCardsOnScreen && lastCardOnScreen + i < numOfCards; i++) {
+    cardIcon.setTexture(packageManager.FindPackageByID(iter->GetUUID()).GetPreviewTexture());
+    cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
+    surface.draw(cardIcon);
 
-    chipLabel->setOrigin(0, 0);
-    chipLabel->setFillColor(sf::Color::White);
-    chipLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
-    chipLabel->setString(iter->GetShortName());
-    ENGINE.Draw(chipLabel, false);
-
-    //Draw rating
-    unsigned rarity = iter->GetRarity() - 1;
-    stars.setTextureRect(sf::IntRect(0, 16 * rarity, 22, 16));
-    stars.setPosition(2.f*199.f, 74.0f + (32.f*(float)i));
-    ENGINE.Draw(stars, false);
+    cardLabel.setOrigin(0, 0);
+    cardLabel.SetColor(sf::Color::White);
+    cardLabel.setPosition(2.f*120.f, 60.0f + (32.f*i));
+    cardLabel.SetString(iter->GetShortName());
+    surface.draw(cardLabel);
 
     // Draw cursor
-    if (lastChipOnScreen + i == currChipIndex) {
+    if (lastCardOnScreen + i == currCardIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
       auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
       cursor.setPosition((2.f*90.f) + bounce, y);
-      ENGINE.Draw(cursor);
+      surface.draw(cursor);
 
-      sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(iter->GetID());
-      chip.setTextureRect(cardSubFrame);
-      chip.setScale((float)swoosh::ease::linear(chipRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
-      ENGINE.Draw(chip, false);
+      card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
+      surface.draw(card);
 
-      // This draws the currently highlighted chip
+      // This draws the currently highlighted card
       if (iter->GetDamage() > 0) {
-        chipLabel->setFillColor(sf::Color::White);
-        chipLabel->setString(std::to_string(iter->GetDamage()));
-        chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
-        chipLabel->setPosition(2.f*(70.f), 135.f);
+        cardLabel.SetColor(sf::Color::White);
+        cardLabel.SetString(std::to_string(iter->GetDamage()));
+        cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
+        cardLabel.setPosition(2.f*(70.f), 135.f);
 
-        ENGINE.Draw(chipLabel, false);
+        surface.draw(cardLabel);
       }
 
-      std::string formatted = FormatChipDesc(iter->GetDescription());
-      chipDesc->setString(formatted);
-      ENGINE.Draw(chipDesc, false);
+      std::string formatted = FormatCardDesc(iter->GetDescription());
+      cardDesc.SetString(formatted);
+      surface.draw(cardDesc);
 
       int offset = (int)(iter->GetElement());
-      element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+      auto elementRect = sf::IntRect(14 * offset, 0, 14, 14);
+      element.setTextureRect(elementRect);
       element.setPosition(2.f*25.f, 142.f);
-      ENGINE.Draw(element, false);
+      surface.draw(element);
     }
 
     iter++;
   }
 
-  ENGINE.Draw(textbox);
+  surface.draw(textbox);
 }
 
 void LibraryScene::onEnd() {
-  delete font;
-  delete chipFont;
-  delete chipDescFont;
-  delete numberFont;
-  delete menuLabel;
-  delete numberLabel;
-  delete chipDesc;
-
 #ifdef __ANDROID__
-  this->ShutdownTouchControls();
+  ShutdownTouchControls();
 #endif
 }
 
@@ -432,20 +417,20 @@ void LibraryScene::StartupTouchControls() {
   rightSide.enableExtendedRelease(true);
 
   rightSide.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+      INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
   });
 
   rightSide.onRelease([this](sf::Vector2i delta) {
-      if(!this->releasedB) {
-        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      if(!releasedB) {
+        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
       }
   });
 
   rightSide.onDrag([this](sf::Vector2i delta){
-      if(delta.x < -25 && !this->releasedB) {
-        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
-        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-        this->releasedB = true;
+      if(delta.x < -25 && !releasedB) {
+        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
+        releasedB = true;
       }
   });
 }

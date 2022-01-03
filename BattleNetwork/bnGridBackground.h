@@ -15,7 +15,7 @@ using std::vector;
  * @date 01/05/19
  * @brief Simple wire background that animates and doesn't move
  */
-class GridBackground : public Background
+class GridBackground final : public Background
 {
 public:
   /**
@@ -28,11 +28,11 @@ public:
    * @brief Loops through the animation
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  void Update(double _elapsed) override;
 
 private:
   float x, y; /*!< Unused */
-  float progress; /*!< Used to progress animation and loop */
+  double progress; /*!< Used to progress animation and loop */
 };
 
 #pragma once

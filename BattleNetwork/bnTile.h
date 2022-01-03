@@ -20,35 +20,41 @@
 #include <set>
 #include <algorithm>
 #include <functional>
+
 using sf::RectangleShape;
 using sf::Sprite;
 using std::vector;
 using std::find;
 using std::set;
 
-class Entity;
 class Spell;
 class Character;
 class Obstacle;
 class Artifact;
 
+#include "bnEntity.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTeam.h"
 #include "bnTextureType.h"
 #include "bnTileState.h"
 #include "bnAnimation.h"
-#include "bnField.h"
+#include "bnDefenseRule.h"
+#include "bnResourceHandle.h"
+
+// forward decl
+class Field;
 
 namespace Battle {
-  class Tile : public Sprite {
-  public:
-    enum class Highlight : int {
-      none = 0,
-      flash = 1,
-      solid = 2,
-    };
+  enum class TileHighlight : int {
+    none = 0,
+    flash = 1,
+    solid = 2,
+  };
 
-    friend Field::Field(int _width, int _height);
-    friend void Field::Update(float _elapsed);
+  class Tile : public SpriteProxyNode, public ResourceHandle {
+  public:
+
+    friend Field;
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
@@ -72,7 +78,7 @@ namespace Battle {
      * @brief Assigns the tile's field pointer
      * @param _field
      */
-    void SetField(Field* _field);
+    void SetField(std::weak_ptr<Field> field);
 
     /**
      * @brief Base 1. Returns the column of the tile.
@@ -86,12 +92,18 @@ namespace Battle {
      */
     const int GetY() const;
 
+    Tile* GetTile(Direction dir, unsigned count);
+
     /**
      * @brief Query the tile's team
      * @return Team
      */
     const Team GetTeam() const;
     
+    void HandleMove(std::shared_ptr<Entity> entity);
+
+    void PerspectiveFlip(bool state);
+
     /**
      * @brief Change the tile's team if unoccupied
      * This will also change the color of the tile. 
@@ -101,6 +113,9 @@ namespace Battle {
      * @param useFlicker if true, will change state & will flicker for flickerTeamCooldownLength milliseconds
      */
     void SetTeam(Team _team, bool useFlicker = false);
+
+    void SetFacing(Direction facing);
+    Direction GetFacing();
 
     /**
      * @brief Get the width of the tile sprite
@@ -112,7 +127,7 @@ namespace Battle {
      * @brief Get the number of entities occupying this tile
      * Size
      */
-    const size_t GetEntityCount() const { return this->entities.size(); }
+    const size_t GetEntityCount() const;
     
     /**
      * @brief Get the height of the tile sprite
@@ -123,7 +138,7 @@ namespace Battle {
     /**
      * @brief Change the tile's state if unoccupied or not broken nor empty
      * SetState tries to abide by the game's original rules
-     * You cannot use a chip to change the state of the tile if it's in a state
+     * You cannot use a card to change the state of the tile if it's in a state
      * that cannot be modified such as being TileState::Empty
      * @param _state
      */
@@ -142,15 +157,20 @@ namespace Battle {
     
     /**
      * @brief Query if the tile is cracked
-     * @return true if state == TileState::CRACKED 
+     * @return true if state == TileState::cracked 
      */
     bool IsCracked() const;
 
     /**
-   * @brief Query if the tile is an edge tile
-   * @return true if x = {0, 7} or y = {0, 4}
-   */
+     * @brief Query if the tile is an edge tile
+     * @return true if x = {0, 7} or y = {0, 4}
+     */
     bool IsEdgeTile() const;
+
+    /**
+    * @brief Query if the tile state is some kind of hole
+    */
+    bool IsHole() const;
 
     /**
      * @brief Query if the tile should be highlighted in battle
@@ -163,54 +183,43 @@ namespace Battle {
     bool IsHighlighted() const;
 
     /**
+     * @brief will request a highlight style for one frame
+     */
+    void RequestHighlight(TileHighlight mode);
+
+    /**
      * @brief Returns true if a character is standing on or has reserved this tile 
      * 
      * Only checks for character entity types
+     * 
+     * @param exclude list. Optional parameter. Any character matching the ID in this list are exluded from the final count and could change the result.
      */
-    bool IsReservedByCharacter(); 
+    bool IsReservedByCharacter(std::vector<Entity::ID_t> exclude = {});
 
     /**
-     * @brief Adds a spell to the spell bucket if it doesn't already exist
+     * @brief Adds an entity and stores in an appropriate bucket if it doesn't already exist
      * @param _entity
      */
-    void AddEntity(Spell& _entity);
-    
-    /**
-     * @brief Adds a character to the character bucket if it doesn't already exist
-     * @param _entity
-     */
-    void AddEntity(Character& _entity);
-    
-    /**
-     * @brief Adds an obstacle to the obstacle bucket if it doesn't already exist
-     * @param _entity
-     */
-    void AddEntity(Obstacle& _entity);
-    
-    /**
-     * @brief Adds an artifact to the artifact bucket if it doesn't already exist
-     * @param _entity
-     */
-    void AddEntity(Artifact& _entity);
+    void AddEntity(std::shared_ptr<Entity> _entity);
 
     /**
      * @brief If found, remove the entity from all buckets with the same ID
      * @param ID
      * @return true if the entity bucket has been modified and the entity removed
      */
-    bool RemoveEntityByID(long ID);
+    bool RemoveEntityByID(Entity::ID_t ID);
     
     /**
      * @brief Query if the given entity already occupies this tile
      * @param _entity to check
      * @return true if the entity is already in one of the buckets
      */
-    bool ContainsEntity(Entity* _entity) const;
+    bool ContainsEntity(const std::shared_ptr<Entity> _entity) const;
 
     /**
      * @brief Reserve this tile for an entity with ID 
      * An entity may be temporarily removed from play but will be back
-     * later. This mechanic is seen with AntiDamage chip. While
+     * later. This mechanic is seen with AntiDamage card. While
      * the entity is removed, the tile it was on must not be modified
      * by state changes and should be treated as occupied for all other checks.
      * When the entity is added again with AddEntity(), the reserve will be removed.
@@ -225,101 +234,160 @@ namespace Battle {
     template<class Type> bool ContainsEntityType();
     
     /**
-     * @brief Queues spell to all entities occupying this tile with spell 
-     * @param caller must be valid non-null spell
+     * @brief Queues an entity to attack to all other entities occupying this tile 
+     * @param caller must be valid non-null entity
      */
-    void AffectEntities(Spell* caller);
+    void AffectEntities(Entity& attacker);
 
     /**
      * @brief Updates all entities occupying this tile
      * @param _elapsed in seconds
      */
-    void Update(float _elapsed);
+    void Update(Field& field, double _elapsed);
+
+    /**
+     * @brief Triggers this tile and all entities to behave as if time is frozen
+     * @param state
+     */
+    void ToggleTimeFreeze(bool state);
 
     /**
      * @brief Notifies all entities that the battle is active
-     * @param state
      */
-    void SetBattleActive(bool state);
+    void BattleStart();
 
-    void HandleTileBehaviors(Obstacle * obst);
-    void HandleTileBehaviors(Character* character);
+    /**
+     * @brief Notifies all entities that the battle is inactive
+     */
+    void BattleStop();
+
+    /**
+    * @brief Assigns the textures used by the tile according to team, their states, and their animation files
+    */
+    void SetupGraphics(
+      std::shared_ptr<sf::Texture> redTeam, 
+      std::shared_ptr<sf::Texture> blueTeam, 
+      std::shared_ptr<sf::Texture> unknown, 
+      const Animation& anim
+    );
+
+    void HandleTileBehaviors(Field& field, Obstacle& obst);
+    void HandleTileBehaviors(Field& field, Character& character);
 
     /**
      * @brief Query for multiple entities using a functor
-     * This is useful for movement as well as chip attacks 
+     * This is useful for movement as well as card attacks 
      * to find specific enemy types under specific conditions
      * @param e Functor that takes in an entity and returns a boolean
      * @return returns a list of entities that returned true in the functor `e` 
      */
-    std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
+    std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query);
+
+    /**
+     * @brief Query for multiple charactors using a functor
+     * This is useful for movement as well as card attacks
+     * to find specific enemy types under specific conditions
+     * @param e Functor that takes in an character and returns a boolean
+     * @return returns a list of characters that returned true in the functor `e`
+     */
+    std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query);
+
+    /**
+     * @brief Query for multiple charactors using a functor
+     * This is useful for movement as well as card attacks
+     * to find specific enemy types under specific conditions
+     * @param e Functor that takes in an obstacle and returns a boolean
+     * @return returns a list of obstacles that returned true in the functor `e`
+     */
+    std::vector<std::shared_ptr<Obstacle>> FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query);
+
+    /**
+     * @brief Calculates and returns Manhattan-distance from this tile to the other
+     */
+    int Distance(Battle::Tile& other);
+
+    /**
+    * @brief Tile math easily returns tiles with the directional input enum type
+    *
+    * If the operand tile is an edge tile and the direction would proceed the edge tile,
+    * then nullptr is returned
+    */
+    Tile* operator+(const Direction& dir);
+
+    Tile* Offset(int x, int y);
 
   private:
-    /**
-    * @brief Attack all entities occupying this tile with spell
-    * @param non-null spell type pulled from queue
-    */
-    void PerformSpellAttack(Spell* caller);
 
     std::string GetAnimState(const TileState state);
 
-    int x; /**< Column number*/
-    int y; /**< Row number*/
-    Team team;
+    void PrepareNextFrame(Field& field);
+    void ExecuteAllAttacks(Field& field);
+    void UpdateSpells(Field& field, const double elapsed);
+    void UpdateArtifacts(Field& field, const double elapsed);
+    void UpdateCharacters(Field& field, const double elapsed);
+
+    int x{}; /**< Column number*/
+    int y{}; /**< Row number*/
+    bool willHighlight{ false }; /**< Highlights when there is a spell occupied in this tile */
+    bool isTimeFrozen{ false };
+    bool isBattleOver{ false };
+    bool isBattleStarted{ false };
+    float width{};
+    float height{};
+    static double teamCooldownLength;
+    static double brokenCooldownLength;
+    static double flickerTeamCooldownLength;
+    double teamCooldown{};
+    double brokenCooldown{};
+    double flickerTeamCooldown{};
+    double totalElapsed{};
+    double elapsedBurnTime{};
+    double burncycle{};
+    std::weak_ptr<Field> fieldWeak;
+    std::shared_ptr<sf::Texture> red_team_atlas, red_team_perm;
+    std::shared_ptr<sf::Texture> blue_team_atlas, blue_team_perm;
+    std::shared_ptr<sf::Texture> unk_team_atlas, unk_team_perm;
+    TileHighlight highlightMode;
+    Team team{Team::unset}, ogTeam{Team::unset};
+    Direction facing{}, ogFacing{};
     TileState state;
     std::string animState; /**< reflects the tile's state - lookup animation from animation file */
-    float elapsed; /**< Internal counter for non-permanent states e.g. TileState::Cracked */
-
-    float width;
-    float height;
-    Field* field;
-    float teamCooldown;
-
-    sf::Texture* red_team_atlas;
-    sf::Texture* blue_team_atlas;
-
-    static float teamCooldownLength;
-    float brokenCooldown;
-    static float brokenCooldownLength;
-    float flickerTeamCooldown;
-    static float flickerTeamCooldownLength;
-    float totalElapsed;
-    bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
-    Highlight highlightMode;
-    bool isBattleActive;
-
-    double elapsedBurnTime;
-    double burncycle;
-
     // Todo: use sets to avoid duplicate entries
     vector<Artifact*> artifacts; /**< Entity bucket for type Artifacts */
-    vector<Spell*> spells; /**< Entity bucket for type Spells */
-    vector<Character*> characters; /**< Entity bucket for type Characters */
-    vector<Entity*> entities; /**< Entity bucket for looping over all entities **/
+    vector<Entity*> spells; /**< Entity bucket for type Spells */
+    vector<std::shared_ptr<Character>> characters; /**< Entity bucket for type Characters */
 
-    set<long> reserved; /**< IDs of entities reserving this tile*/
+    set<Character*, EntityComparitor> deletingCharacters;
 
-    vector<long> queuedSpells; /**< IDs of occupying spells that have signaled they are to attack this frame */
-    vector<long> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
+    vector<std::shared_ptr<Entity>> entities; /**< Entity bucket for looping over all entities **/
+
+    set<Entity::ID_t> reserved; /**< IDs of entities reserving this tile*/
+    vector<Entity::ID_t> queuedAttackers; /**< IDs of occupying attackers that have signaled they are to attack this frame */
+    vector<Entity::ID_t> taggedAttackers; /**< IDs of occupying attackers that have already attacked this frame*/
 
     Animation animation;
-
-    /**
-     * @brief Auxillary function used by all other overloads of AddEntity
-     * @param _entity
-     */
-    void AddEntity(Entity* _entity);
+    Animation volcanoErupt;
+    double volcanoEruptTimer{ 4 }; // seconds
+    std::shared_ptr<SpriteProxyNode> volcanoSprite;
   };
-
 
   template<class Type>
   bool Tile::ContainsEntityType() {
-    for (vector<Entity*>::iterator it = entities.begin(); it != entities.end(); ++it) {
-      if (dynamic_cast<Type*>(*it) != nullptr) {
+    for (vector<std::shared_ptr<Entity>>::iterator it = entities.begin(); it != entities.end(); ++it) {
+      if (dynamic_cast<Type*>((*it).get()) != nullptr) {
         return true;
       }
     }
 
     return false;
+  }
+
+  // handles pointer to tiles and will return nullptr if lhs is null
+  static Tile* operator+(Tile* lhs, Direction rhs) {
+    if (lhs) {
+      return *lhs + rhs;
+    }
+
+    return nullptr;
   }
 }

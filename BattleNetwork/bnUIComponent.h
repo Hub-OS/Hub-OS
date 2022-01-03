@@ -13,18 +13,20 @@
 #include "bnComponent.h"
 #include "bnSceneNode.h"
 
-class BattleScene;
+class BattleSceneBase;
 
 class UIComponent : public Component, public SceneNode {
-private:
+  bool autodraw{ true };
 
 public:
+
+
   UIComponent() = delete;
   /**
    * @brief Attaches this component to the owner
    * @param owner
    */
-  UIComponent(Entity* owner) : Component(owner) { ; }
+  UIComponent(std::weak_ptr<Entity> owner) : Component(owner, Component::lifetimes::ui) { ; }
   ~UIComponent() { ; }
 
   UIComponent(UIComponent&& rhs) = delete;
@@ -43,10 +45,13 @@ public:
    * @brief To be implemented: what happens on update
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed) = 0;
+  virtual void OnUpdate(double _elapsed) = 0;
   
   /**
    * @brief To be implemented: what happens when the Battlescene requests injection
    */
-  virtual void Inject(BattleScene&) = 0;
+  virtual void Inject(BattleSceneBase&) = 0;
+
+  void SetDrawOnUIPass(bool enabled);
+  const bool DrawOnUIPass() const;
 }; 

@@ -1,16 +1,35 @@
 #pragma once
 #include "bnEntity.h"
-#include "bnCounterHitPublisher.h"
+#include "bnDefenseFrameStateJudge.h"
+#include "bnDefenseRule.h"
 #include "bnHitProperties.h"
 #include "bnTile.h"
+#include "bnActionQueue.h"
+#include "bnCardUsePublisher.h"
 
 #include <string>
-#include <queue>
+#include <functional>
+#include "stx/memory.h"
 
-using std::string;
+namespace Battle {
+  class Tile;
+}
 
 class DefenseRule;
 class Spell;
+class CardAction;
+class SelectedCardsUI;
+class CardPackageManager;
+
+struct CardEvent {
+  std::shared_ptr<CardAction> action;
+};
+
+struct PeekCardEvent {
+  SelectedCardsUI* publisher{ nullptr };
+};
+
+constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
 
 /**
  * @class Character
@@ -18,25 +37,17 @@ class Spell;
  * @date 05/05/19
  * @brief Characters are mobs, enemies, and players. They have health and can take hits.
  */
-class Character : public virtual Entity, public CounterHitPublisher {
+class Character: 
+  public Entity,
+  public CardActionUsePublisher
+{
   friend class Field;
   friend class AnimationComponent;
-  
-private:
-  bool invokeDeletion; /*!< One-time flag to call OnDelete() if character has custom Delete() behavior */
-  bool canShareTile; /*!< Some characters can share tiles with others */
-  bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
-  std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
-  std::vector<Character*> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
-  // Statuses are resolved one property at a time
-  // until the entire Flag object is equal to 0x00 None
-  // Then we process the next status
-  // This continues until all statuses are processed
-  std::queue<Hit::Properties> statusQueue;
 
-  sf::Shader* whiteout; /*!< Flash white when hit */
-  sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
-  bool hit; /*!< Was hit this frame */
+private:
+  std::vector<std::shared_ptr<CardAction>> asyncActions;
+  std::shared_ptr<CardAction> currCardAction{ nullptr };
+  frame_time_t cardActionStartDelay{0};
 public:
 
   /**
@@ -51,86 +62,34 @@ public:
     EX,
     Rare1,
     Rare2,
+    NM,
     SIZE
   };
 
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
+  virtual void Cleanup() override;
+
+  virtual void OnBattleStop() override;
+
+  virtual void MakeActionable();
+  virtual bool IsActionable() const;
+
+  const bool IsLockoutAnimationComplete();
+
+  const std::vector<std::shared_ptr<CardAction>> AsyncActionList() const;
+  std::shared_ptr<CardAction> CurrentCardAction();
+
+  void Update(double elapsed) override;
   
   /**
-   * @brief Describe what happens to this character when they are hit
-   * @param props
-   * @return true if hit, false if missed
-   */
-  virtual const bool OnHit(const Hit::Properties props) = 0;
+  * @brief Default characters cannot move onto occupied, broken, or empty tiles
+  * @param next
+  * @return true if character can move to tile, false otherwise
+  */
+  virtual bool CanMoveTo(Battle::Tile* next) override;
 
-  /**
-   * The hit routine that happens for every character. Queues status properties and damage
-   * to resolve at the end of the battle step.
-   * @param props
-   * @return Returns false  if IsPassthrough() is true (i-frames), otherwise true
-   */
-  const bool Hit(Hit::Properties props = Hit::DefaultProperties);
-
-  void ResolveFrameBattleDamage();
-
-  virtual void OnUpdate(float elapsed) = 0;
-
-  // TODO: move tile behavior out of update loop and into its own rule system for customization
-  void Update(float elapsed);
-  
-  /**
-   * @brief Default characters cannot move onto occupied, broken, or empty tiles
-   * @param next
-   * @return true if character can move to tile, false otherwise
-   */
-  virtual bool CanMoveTo(Battle::Tile* next);
- 
-  
-  /**
-   * @brief Get the character's current health
-   * @return 
-   */
-  virtual int GetHealth() const;
-  
-  /**
-   * @brief Get the character's max (init) health
-   * @return 
-   */
-  const int GetMaxHealth() const;
-
-  /**
-   * @brief Set the health of the character
-   * @param _health
-   */
-  void SetHealth(int _health);
- 
-  /**
-   * @brief Place the character in the tile's character bucket
-   * @param tile
-   */
-  virtual void AdoptTile(Battle::Tile* tile);
-
-  /**
-   * @brief Deletes only if health is <= 0
-   */
-  void TryDelete();
-  
-  /**
-   * @brief Sets counter flag on
-   * @param on
-   * 
-   * Used by counter frames. 
-   * 
-   * NOTE: Should be changed to protected or private access
-   */
-  void ToggleCounter(bool on = true);
-  
-  /**
-   * @brief Query the character's state is Stunned
-   * @return true if character is currently stunned, false otherwise
-   */
-  bool IsStunned();
+  const bool CanAttack() const;
 
   /**
    * @brief Get the rank of this character
@@ -138,91 +97,11 @@ public:
    */
   const Rank GetRank() const;
 
-  /**
-   * @brief Some characters allow others to move on top of them
-   * @param enabled true, characters can share space, false otherwise
-   */
-  void ShareTileSpace(bool enabled);
-  
-  /**
-   * @brief Query if entity can share space
-   * @return true if shareTilespace is enabled, false otherwise
-   */
-  const bool CanShareTileSpace() const;
+  void AddAction(const CardEvent& event, const ActionOrder& order);
+  void AddAction(const PeekCardEvent& event, const ActionOrder& order);
+  void HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec);
+  void HandlePeekEvent(const PeekCardEvent& event, const ActionQueue::ExecutionType& exec);
 
-    /**
-   * @brief Query if entity is pushable by tiles
-   * @return true if canTilePush is enabled, false otherwise
-   */
-    const bool CanTilePush() const;
-
-  /**
-   * @brief Some characters can be moved around on the field by tiles
-   * @param enabled
-   */
-  void EnableTilePush(bool enabled);
-
-  /**
-   * @brief Characters can have names
-   * @param name
-   */
-  void SetName(std::string name);
-  
-  /**
-   * @brief Get name of character
-   * @return const std::string
-   */
-  const std::string GetName() const;
-
-  /**
-   * @brief Add defense rule for combat resolution
-   * @param rule
-   */
-  void AddDefenseRule(DefenseRule* rule);
-  
-  /**
-   * @brief Removes the defense rule from this character's defense checks
-   * @param rule
-   */
-  void RemoveDefenseRule(DefenseRule* rule);
-
-  /**
-   * @brief Check if spell passes all defense checks
-   * @param in attack
-   * @return true if passes all defenses
-   */
-  const bool CheckDefenses(Spell* in);
-
-  void SharedHitboxDamage(Character* to);
-  void CancelSharedHitboxDamage(Character* to);
-
-private:
-  int maxHealth;
-  sf::Vector2f counterSlideOffset; /*!< Used when enemies delete on counter - they slide back */
-  float counterSlideDelta;
 protected:
-  /**
- * @brief Stun a character for maxCooldown seconds
- * @param maxCooldown
- * Used internally by class
- *
- */
-  void Stun(double maxCooldown);
-
-  /**
- * @brief Query if an attack successfully countered a Character
- * @return true if character is currently countered, false otherwise
- * Used internally by class
- */
-  bool IsCountered();
-
-
-
-  int health;
-  bool counterable;
-  bool canTilePush;
-  std::string name;
-  double stunCooldown; /*!< Timer until stun is over */
-  double invincibilityCooldown; /*!< Timer until invincibility is over */
   Character::Rank rank;
 };

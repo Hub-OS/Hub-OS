@@ -2,19 +2,22 @@
 
 #pragma once
 #include "bnAIState.h"
+#include "bnInputHandle.h"
+#include <vector>
+#include <chrono>
+
 class Tile;
 class Player;
 class InputManager;
-class ChipAction;
+class CardAction;
+class PlayerInputReplicator;
 
-class PlayerControlledState : public AIState<Player>
+class PlayerControlledState : public AIState<Player>, public InputHandle
 {
 private:  
-  bool isChargeHeld; /*!< Flag if player is holding down shoot button */
-  ChipAction* queuedAction; /*!< Movement takes priority. If there is an action queued, fire on next best frame*/
+  bool isChargeHeld{}; /*!< Flag if player is holding down shoot button */
+  unsigned moveFrame{};
 
-  const bool CanTakeAction(Player& player) const;
-  void QueueAction(Player& player);
 public:
 
   /**
@@ -38,7 +41,7 @@ public:
    * @param _elapsed
    * @param player
    */
-  void OnUpdate(float _elapsed, Player& player);
+  void OnUpdate(double _elapsed, Player& player);
   
   /**
    * @brief Sets player entity charge component to false

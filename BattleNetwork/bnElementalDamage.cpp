@@ -9,26 +9,31 @@
 
 using sf::IntRect;
 
-ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationComponent(this)
+ElementalDamage::ElementalDamage() : 
+  Artifact()
 {
   SetLayer(0);
-  setTexture(LOAD_TEXTURE(ELEMENT_ALERT));
+  setTexture(Textures().LoadFromFile(TexturePaths::ELEMENT_ALERT));
   setScale(0.f, 0.0f);
-  swoosh::game::setOrigin(*this, 0.5, 0.5);
+  swoosh::game::setOrigin(getSprite(), 0.5, 0.5);
   progress = 0;
 }
 
-void ElementalDamage::OnUpdate(float _elapsed) {
+void ElementalDamage::OnUpdate(double _elapsed) {
   progress += _elapsed;
 
-  auto alpha = swoosh::ease::wideParabola(progress, 0.5f, 4.0f);
+  float alpha = swoosh::ease::wideParabola(static_cast<float>(progress), 0.5f, 4.0f);
 
-  if (progress > 1.0f) {
-    this->Delete();
+  if (progress > 1.0) {
+    Delete();
   }
 
   setScale(2.f*alpha, 2.f*alpha);
-  setPosition((GetTile()->getPosition().x - 30.0f), (GetTile()->getPosition().y - 30.0f));
+  Entity::drawOffset = {-30.0f, -30.0f };
+}
+
+void ElementalDamage::OnDelete()
+{
 }
 
 ElementalDamage::~ElementalDamage()

@@ -8,36 +8,13 @@ template<typename CharacterT>
 class BossPatternAI : public Agent {
 private:
   std::vector<AIState<CharacterT>*> stateMachine; /*!< State machine responsible for state management */
-  AIState<CharacterT>* interruptState;
-  int stateIndex;
-  CharacterT* ref; /*!< AI of this instance */
-  int lock; /*!< Whether or not a state is locked */
-  bool isUpdating, gotoNext, beginInterrupt, endInterrupt;
-protected:
-  /**
-  * @brief State machine can or cannot be changed */
-  enum StateLock {
-    Locked,
-    Unlocked
-  };
-
+  AIState<CharacterT>* interruptState{ nullptr };
+  CharacterT* ref{ nullptr }; /*!< AI of this instance */
+  int stateIndex{};
+  bool isUpdating{}, gotoNext{}, beginInterrupt{}, endInterrupt{};
 public:
   // Used for SFINAE events that require characters with AI
   using IsUsingAI = CharacterT;
-
-  /**
-   * @brief Prevents the AI state to be changed. Must be unlocked to use again.
-   */
-  void LockState() {
-    lock = BossPatternAI<CharacterT>::StateLock::Locked;
-  }
-
-  /**
-   * @brief Allows the AI state to be changed.
-   */
-  void UnlockState() {
-    lock = BossPatternAI<CharacterT>::StateLock::Unlocked;
-  }
 
   /**
    * @brief Construct an AI with the object ref
@@ -46,7 +23,6 @@ public:
   BossPatternAI(CharacterT* _ref) : Agent() {
     interruptState = nullptr;
     ref = _ref;
-    lock = BossPatternAI<CharacterT>::StateLock::Unlocked;
     isUpdating = gotoNext = beginInterrupt = endInterrupt = false;
     stateIndex = 0;
   }
@@ -61,10 +37,14 @@ public:
 
     stateMachine.clear();
 
-    ref = nullptr; this->FreeTarget(); 
+    ref = nullptr; FreeTarget(); 
   }
 
   void InvokeDefaultState() {
+    if (stateMachine.size() && stateMachine[stateIndex]->locked) {
+      return;
+    }
+
     if (interruptState) {
       endInterrupt = true;
 
@@ -78,9 +58,18 @@ public:
   }
 
   void GoToNextState() {
-    gotoNext = true;
+    if (stateMachine.size() && stateMachine[stateIndex]->locked) {
+      return;
+    }
 
-    if (interruptState) { endInterrupt = true; }
+    if (interruptState) {
+      if (interruptState->locked) {
+        return;
+      }
+      endInterrupt = true;
+    }
+
+    gotoNext = true;
   }
 
   /**
@@ -88,25 +77,17 @@ public:
    */
   template<typename U>
   void AddState() {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
-      return;
-    }
-
     stateMachine.push_back(new U());
   }
 
   /**
    * @brief For states that require arguments, pass the arguments
    *
-   * e.g. this->AddState<PlayerThrowBombState>(200.f, 300, true);
+   * e.g. AddState<PlayerThrowBombState>(200.f, 300, true);
    */
   template<typename U, typename ...Args>
-  void AddState(Args... args) {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
-      return;
-    }
-
-    stateMachine.push_back(new U(args...));
+  void AddState(Args&&... args) {
+    stateMachine.push_back(new U(std::forward<Args>(args)...));
   }
 
   /**
@@ -114,11 +95,13 @@ public:
  */
   template<typename U>
   void InterruptState() {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
+    if (stateMachine.size() && stateMachine[stateIndex]->locked) {
       return;
     }
 
     if (interruptState) { 
+      if (interruptState->locked) return;
+
       interruptState->OnLeave(*ref);
       delete interruptState;  
     }
@@ -130,20 +113,22 @@ public:
   /**
    * @brief For states that require arguments, pass the arguments
    *
-   * e.g. this->AddState<PlayerThrowBombState>(200.f, 300, true);
+   * e.g. AddState<PlayerThrowBombState>(200.f, 300, true);
    */
   template<typename U, typename ...Args>
-  void InterruptState(Args... args) {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
+  void InterruptState(Args&&... args) {
+    if (stateMachine.size() && stateMachine[stateIndex]->locked) {
       return;
     }
 
     if (interruptState) { 
+      if (interruptState->locked) return;
+
       interruptState->OnLeave(*ref);
       delete interruptState; 
     }
 
-    interruptState = new U(args...);
+    interruptState = new U(std::forward<Args>(args)...);
     beginInterrupt = true;
   }
 
@@ -153,7 +138,7 @@ public:
    *
    * If a change state request is made inside of a state, change to that state at end of update
    */
-  void Update(float _elapsed) {
+  void Update(double _elapsed) {
     if (isUpdating) return; // Prevent crashes from updating inside an active state
 
     isUpdating = true;
@@ -200,9 +185,9 @@ public:
         stateIndex = 0;
       }
 
-      stateMachine[stateIndex]->OnEnter(*ref);
-
       gotoNext = false;
+
+      stateMachine[stateIndex]->OnEnter(*ref);
     }
 
     isUpdating = false;

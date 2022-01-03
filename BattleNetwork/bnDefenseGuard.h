@@ -11,21 +11,19 @@
  */
 class DefenseGuard : public DefenseRule {
 public:
-  typedef std::function<void(Spell* in, Character* owner)> Callback;
+  typedef std::function<void(std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)> Callback;
 
 private:
   Callback callback;
 
 public:
-  DefenseGuard(Callback callback);
-
-  virtual ~DefenseGuard();
+  DefenseGuard(const Callback& callback);
+  ~DefenseGuard();
 
   /**
    * @brief Check for breaking properties
    * @param in the attack
    * @param owner the character this is attached to
-   * @return Returns true if spell does not have breaking properties, false otherwise
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner);
 };

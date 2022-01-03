@@ -1,5 +1,6 @@
 #pragma once
 #include "bnMessageInterface.h"
+#include "bnSpriteProxyNode.h"
 #include <string>
 
 /**
@@ -9,9 +10,16 @@
    * @brief Message object prints message in classic RPG style
    */
 class Message : public MessageInterface {
-  mutable sf::Sprite nextCursor; /*!< Green cursor at bottom-right */
+  mutable SpriteProxyNode nextCursor; /*!< Green cursor at bottom-right */
   double totalElapsed;
+  bool showEndMessageCursor{ false };
 public:
+  enum class ContinueResult : char{
+    no_op = 0,
+    dequeued,
+    next_lines
+  };
+
   Message(std::string message);
 
   virtual ~Message();
@@ -25,6 +33,7 @@ public:
   * If there are more messages and the current one is done printing, will deque
   * the message and begin the next one
   */
-  void Continue();
+  ContinueResult Continue();
 
+  void ShowEndMessageCursor(bool show = true);
 };

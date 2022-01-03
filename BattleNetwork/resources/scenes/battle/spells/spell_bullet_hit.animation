@@ -1,0 +1,7 @@
+imagePath="spell_bullet_hit.png"
+
+animation state="HIT"
+frame duration="0.016" x="1" y="1" w="30" h="23" originx="15" originy="11"
+frame duration="0.016" x="30" y="0" w="30" h="23" originx="15" originy="11"
+frame duration="0.016" x="60" y="0" w="30" h="23" originx="15" originy="11"
+frame duration="0.016" x="90" y="0" w="30" h="23" originx="15" originy="11"

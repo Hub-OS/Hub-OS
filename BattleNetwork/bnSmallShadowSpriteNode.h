@@ -1,6 +1,6 @@
 #pragma once
-#include "bnSpriteSceneNode.h"
+/*#include "bnSpriteSceneNode.h"
 
 class SmallShadowsSpriteNode : public SpriteSceneNode {
 
-};
+};*/

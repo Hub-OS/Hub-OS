@@ -16,13 +16,13 @@ using std::vector;
  * @date 09/21/19
  * @brief misc bn4 background
  */
-class MiscBackground : public Background
+class MiscBackground final : public Background
 {
 public:
   MiscBackground();
   ~MiscBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(double _elapsed) override;
 
 private:
   float x, y;

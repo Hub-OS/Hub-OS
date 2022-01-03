@@ -6,14 +6,15 @@
 
 using sf::IntRect;
 
-#define RESOURCE_PATH "resources/spells/poof.animation"
+#define RESOURCE_PATH "resources/scenes/battle/spells/poof.animation"
 
-ParticlePoof::ParticlePoof() : Artifact(nullptr)
+ParticlePoof::ParticlePoof() : 
+  Artifact()
 {
   SetLayer(0);
-  this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_POOF));
-  this->setScale(2.f, 2.f);
-  poof = (sf::Sprite)*this;
+  setTexture(Textures().LoadFromFile(TexturePaths::SPELL_POOF));
+  setScale(2.f, 2.f);
+  poof = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -22,20 +23,24 @@ ParticlePoof::ParticlePoof() : Artifact(nullptr)
   animation.SetAnimation("DEFAULT");
 
   auto onEnd = [this]() {
-    this->Delete();
+    Delete();
   };
 
   animation << onEnd;
 
-  animation.Update(0, *this);
+  animation.Update(0, getSprite());
 
 }
 
-void ParticlePoof::OnUpdate(float _elapsed) {
-  this->setPosition(this->GetTile()->getPosition());
+void ParticlePoof::OnUpdate(double _elapsed) {
+  Entity::drawOffset = -sf::Vector2f{ 0.f, this->GetHeight() };
 
-  animation.Update(_elapsed, *this);
-  Entity::Update(_elapsed);
+  animation.Update(_elapsed, getSprite());
+}
+
+void ParticlePoof::OnDelete()
+{
+  Erase();
 }
 
 ParticlePoof::~ParticlePoof()
