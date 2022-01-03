@@ -510,6 +510,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "flip_y", [](Direction direction) { return FlipVertical(direction); },
     "reverse", [](Direction direction) { return Reverse(direction); },
     "join", [](Direction a, Direction b) { return Join(a, b); },
+    "unit_vector", [](Direction direction) { return UnitVector(direction); },
     "None", Direction::none,
     "Up", Direction::up,
     "Down", Direction::down,
