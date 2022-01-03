@@ -1,60 +1,54 @@
-# WARNING - THIS BRANCH IS OUTDATED
-Please `git checkout development` for the latest, greatest, and (maybe) unstable features.
-
-This main branch is over a year old!
-
-New `development` branch can be found [here](https://github.com/TheMaverickProgrammer/OpenNetBattle/tree/development)
-
-# About This Project
+# ❓ ABOUT
 Follow this project on :bird: [Twitter](https://twitter.com/OpenNetBattle)!
 
-This aims to be an accurate mmbn6 battle engine that can be used to program custom enemies, chips, navis, or used to make your own mmbn story. It includes a fully playable battle-rush game.
-
+This project aims to be an accurate mmbn6 battle engine that can be used to program custom enemies, chips, navis, or used to make your own mmbn story.
 This was originally started to kill some time one summer and I got a little carried away. It's been fun and I hope you have fun with it as I have had making it.
 
-## Update 7/17/2021
-[New Build Instructions On YouTube!](https://www.youtube.com/watch?v=5T_kS7DYbvw)
+# 🕹️ GET STARTED PLAYING THE GAME
 
-## Update 12/27/2019
-[![forte-thumbnail.png](https://i.postimg.cc/bNvt3xP3/forte-thumbnail.png)](https://streamable.com/cxp7l#)
-[![thumbnail.png](https://i.postimg.cc/dVNffmg6/thumbnail.png)](https://streamable.com/pmy2d)
-[![thumbnail.png](https://i.postimg.cc/pLmCmN1Q/thumbnail.png)](https://twitter.com/i/status/1175981132912975872)
-[![thumbnail.png](https://i.postimg.cc/8cnWGcG2/thumbnail.png)](https://twitter.com/i/status/1185687172868956161)
 
-_some videos may be a little old_
+# 🧩 GET STARTED WITH THE CODE
+This project uses `master` branch to stage releases  before tagging the final version.
+In-progress features and bug fixes go into the `development` branch and can be found [here](https://github.com/TheMaverickProgrammer/OpenNetBattle/tree/development)
 
-Lots of updates:
-- New playable characters
-- Customizable forms and form menu
-- New enemies
-- New chips and `ChipAction` system
-- New lifecycle callbacks: `OnSpawn`, `OnDelete`, `OnUpdate` allow more control for custom content
-- Battle-step routines will have more expected outcomes even with customization
-- Less fickle movement system
-- Entity & Tile queries
-- Hitbox types for sharing damage across multiple targets on the field
-- A single entity can also share life cycle events across other entities to create big enemies with multiple parts (like Alpha or Stone man)
-- Support chips
-- No more 3rd party configuration -> we have an options/ joystick config screen now
-- Folder naming, editing, and deleting screens are complete
-- Different AI pattern templates
-- Bunch of other things
+You will need:
+* [CMAKE](https://cmake.org/download/) 3.19.6 or higher
+* [VCPKG](https://vcpkg.io/en/index.html) 
+* a C++ compiler and toolchain
 
-# Wiki
-TODO
+Over time, it was decided that content would be made faster and easier if scripted with lua and so the engine itself contains no game-play content and must be provided with external mod files.
 
-# Controls
-These are the default bindings. The engine supports 1 joystick.
+The codebase aims to achieve excellent coding standards, memory saftey, and re-usable components. However, due to the balancing act required to release interesting content, some areas of code could use some touch-up. I have never made a network game before, let alone lockstep, and the project of this scale is new to me as well. There are many good ideas and some not-so-good ideas. I welcome any and all contributions to improve the design. For the most part, I'm very satisfied with the stability and magnitude of this project.
+
+## Build instructions from 7/17/2021
+[Build Instructions On YouTube!](https://www.youtube.com/watch?v=5T_kS7DYbvw)
+
+Note that you will need to also install `fluidsynth` with vcpkg and the install guide video is not yet updated.
+
+# 💡 FEATURES
+- Scriptable
+- Custom players and forms (battle and overworld)
+- Custom chips and attacks (timefreeze, etc.)
+- Custom enemies and mob arrangements
+- Standard battle, liberation missions, and network PVP via lockstep (or make your own battle scenes with the state graph!)
+- Supports online play from custom [servers](https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server).
+
+# 🧑🏼‍🤝‍🧑🏼 COMMUNITY 
+View the contributor list [here](). I could not have made it this far without these special and very talented people!
+Join the project official discord [here](https://discord.gg/yAK9MG2)
+
+# ⚙️ CONTROLS
+These are the default bindings. The engine supports 1 joystick. You can change these bindings from within the game's `Config` screen.
 
 ```
 ARROWS -> Move / UI options
-Z      -> Shoot (hold to charge) / UI Cancel
-X      -> Use chip / UI Confirm
-A      -> Bring up chip select GUI
-D      -> Scan Left
-F      -> Scan Right
+Z      -> Shoot (hold to charge) / UI Confirm / Interact
+X      -> Use chip / UI Cancel / Run
+C      -> Special ability / Misc. Action
+A      -> Scan Left / Misc. Action
+S      -> Scan Right / Bring up chip select GUI / Talk to navi
+M      -> Display map
 RETURN -> Pause
-SPACE  -> Quick Option
 ```
 
 # Contributions to the project
