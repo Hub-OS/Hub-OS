@@ -48,8 +48,8 @@ void AudioResourceManager::Mute(bool status)
     SetChannelVolume(channelVolume);
   }
   else {
-    auto streamBefore = streamVolume;
-    auto channelBefore = channelVolume;
+    float streamBefore = streamVolume;
+    float channelBefore = channelVolume;
     SetStreamVolume(0);
     SetChannelVolume(0);
     streamVolume = streamBefore;
@@ -157,7 +157,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   if (priority < AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getBuffer() == &sources[static_cast<size_t>(type)] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
-        auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
+        sf::Int32 howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
         if (howLongPlayed <= AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
           return -1;
         }
@@ -256,7 +256,7 @@ int AudioResourceManager::Play(std::shared_ptr<sf::SoundBuffer> resource, AudioP
   if (priority < AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getBuffer() == resource.get() && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
-        auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
+        sf::Int32 howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
         if (howLongPlayed <= AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
           return -1;
         }
@@ -390,6 +390,7 @@ void AudioResourceManager::StopStream() {
 void AudioResourceManager::SetStreamVolume(float volume) {
   stream.setVolume(volume);
   midiMusic.setVolume(volume);
+  midiMusic.setGain(1.0);
   streamVolume = volume;
 }
 

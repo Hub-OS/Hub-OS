@@ -41,6 +41,7 @@ class FreedomMissionMobScene final : public BattleSceneBase {
   std::function<bool()> HookFormChangeStart(CharacterTransformBattleState& form);
   std::function<bool()> HookTurnLimitReached();
   std::function<bool()> HookTurnTimeout();
+  std::function<bool()> HookPlayerWon();
   public:
   FreedomMissionMobScene(swoosh::ActivityController& controller, FreedomMissionProps props, BattleResultsFunc onEnd=nullptr);
   ~FreedomMissionMobScene();

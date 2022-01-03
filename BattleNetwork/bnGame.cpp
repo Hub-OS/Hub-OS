@@ -257,20 +257,14 @@ TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 
 bool Game::NextFrame()
 {
-  static bool pressOnce = false;
-  bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame) && !pressOnce;
+  bool nextFrameKey = inputManager.Has(InputEvents::pressed_advance_frame);
   bool resumeKey = inputManager.Has(InputEvents::pressed_resume_frames);
 
   if (nextFrameKey && isDebug) {
     frameByFrame = true;
-    pressOnce = true;
   }
-  else if (resumeKey && frameByFrame) {
+  else if (resumeKey) {
     frameByFrame = false;
-  }
-
-  if (inputManager.Has(InputEvents::released_advance_frame)) {
-    pressOnce = false;
   }
 
   return (frameByFrame && nextFrameKey) || !frameByFrame;
@@ -346,23 +340,23 @@ void Game::ProcessFrame()
     netManager.Update(delta);
 
     inputManager.Update(); // process inputs
+    UpdateMouse(delta);
+
+    window.Clear(); // clear screen
 
     if (NextFrame()) {
-      window.Clear(); // clear screen
-
       HandleRecordingEvents();
-      UpdateMouse(delta);
-
       this->update(delta);  // update game logic
-      this->draw();        // draw game
-      mouse.draw(*window.GetRenderWindow());
-      window.Display(); // display to screen
 
       if (isRecording) {
         sf::Image image = window.GetRenderWindow()->capture();
         recordedFrames.push_back(std::pair(FrameNumber(), image));
       }
     }
+
+    this->draw();        // draw game
+    mouse.draw(*window.GetRenderWindow());
+    window.Display(); // display to screen
 
     scope_elapsed = clock.getElapsedTime().asSeconds();
   }
@@ -388,20 +382,19 @@ void Game::RunSingleThreaded()
 
     // Poll net code
     netManager.Update(delta);
-
     inputManager.Update(); // process inputs
+    UpdateMouse(delta);
 
-    HandleRecordingEvents();
+    window.Clear(); // clear screen
 
     if (NextFrame()) {
-      window.Clear(); // clear screen
-
-      UpdateMouse(delta);
+      HandleRecordingEvents();
       this->update(delta);  // update game logic
-      this->draw();        // draw game
-      mouse.draw(*window.GetRenderWindow());
-      window.Display(); // display to screen
     }
+    
+    this->draw();        // draw game
+    mouse.draw(*window.GetRenderWindow());
+    window.Display(); // display to screen
 
     quitting = getStackSize() == 0;
 

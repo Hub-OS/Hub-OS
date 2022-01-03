@@ -85,7 +85,7 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
 
   // combat has multiple state interruptions based on events
   // so we can chain them together
-  combat.ChangeOnEvent(battleover, &CombatBattleState::RedTeamWon)
+  combat.ChangeOnEvent(battleover, HookPlayerWon())
     .ChangeOnEvent(battleover, &CombatBattleState::PlayerDeleted)
     .ChangeOnEvent(battleover, HookTurnLimitReached())
     .ChangeOnEvent(cardSelect, HookTurnTimeout())
@@ -307,4 +307,22 @@ std::function<bool()> FreedomMissionMobScene::HookTurnTimeout()
   };
 
   return cardGaugeIsFull;
+}
+
+std::function<bool()> FreedomMissionMobScene::HookPlayerWon()
+{
+  auto lambda = [this] {
+    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+
+    if (localPlayer->GetTeam() == Team::red) {
+      return IsBlueTeamCleared();
+    }
+    else if (localPlayer->GetTeam() == Team::blue) {
+      return IsRedTeamCleared();
+    }
+
+    return IsBlueTeamCleared() && IsRedTeamCleared();
+  };
+
+  return lambda;
 }
