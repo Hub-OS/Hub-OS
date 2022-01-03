@@ -1,3 +1,9 @@
+# WARNING - THIS BRANCH IS OUTDATED
+Please `git checkout development` for the latest, greatest, and (maybe) unstable features.
+
+This main branch is over a year old!
+
+New `development` branch can be found [here](https://github.com/TheMaverickProgrammer/OpenNetBattle/tree/development)
 
 # About This Project
 Follow this project on :bird: [Twitter](https://twitter.com/OpenNetBattle)!

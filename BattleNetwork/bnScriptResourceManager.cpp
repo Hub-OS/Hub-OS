@@ -442,7 +442,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
 
   engine_namespace.set_function("stream_music",
     sol::factories(
-      [](std::string& path, std::optional<bool> loop, std::optional<long long> startMs, std::optional<long long> endMs) {
+      [](const std::string& path, std::optional<bool> loop, std::optional<long long> startMs, std::optional<long long> endMs) {
       static ResourceHandle handle;
       return handle.Audio().Stream(path, loop.value_or(true), startMs.value_or(0), endMs.value_or(0));
     })
