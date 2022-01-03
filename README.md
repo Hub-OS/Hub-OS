@@ -31,10 +31,14 @@ Note that you will need to also install `fluidsynth` with vcpkg and the install 
 - Custom chips and attacks (timefreeze, etc.)
 - Custom enemies and mob arrangements
 - Standard battle, liberation missions, and network PVP via lockstep (or make your own battle scenes with the state graph!)
-- Supports online play from custom [servers](https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server).
+- Overworld
+- Navicust
+- Supports online play from custom [servers](https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server)
+- Servers can script quests, custom battles, PVP, and more!
 
 # 🧑🏼‍🤝‍🧑🏼 COMMUNITY 
 View the contributor list [here](). I could not have made it this far without these special and very talented people!
+
 Join the project official discord [here](https://discord.gg/yAK9MG2)
 
 # ⚙️ CONTROLS
@@ -50,6 +54,3 @@ S      -> Scan Right / Bring up chip select GUI / Talk to navi
 M      -> Display map
 RETURN -> Pause
 ```
-
-# Contributions to the project
-TODO: add contributors list
