@@ -442,7 +442,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
 
   engine_namespace.set_function("stream_music",
     sol::factories(
-      [](std::string& path, std::optional<bool> loop, std::optional<long long> startMs, std::optional<long long> endMs) {
+      [](const std::string& path, std::optional<bool> loop, std::optional<long long> startMs, std::optional<long long> endMs) {
       static ResourceHandle handle;
       return handle.Audio().Stream(path, loop.value_or(true), startMs.value_or(0), endMs.value_or(0));
     })
@@ -510,6 +510,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "flip_y", [](Direction direction) { return FlipVertical(direction); },
     "reverse", [](Direction direction) { return Reverse(direction); },
     "join", [](Direction a, Direction b) { return Join(a, b); },
+    "unit_vector", [](Direction direction) { return UnitVector(direction); },
     "None", Direction::none,
     "Up", Direction::up,
     "Down", Direction::down,
