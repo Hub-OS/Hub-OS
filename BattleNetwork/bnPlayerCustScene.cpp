@@ -95,8 +95,14 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
   itemArrowCursor.setScale(2.f, 2.f);
   itemArrowCursor.setOrigin({ bounds.width, 0. });
 
-  bg = sf::Sprite(*load_texture("resources/scenes/cust/bg.png"));
+  bgTex = load_texture("resources/scenes/cust/bg.png");
+  bg = sf::Sprite(*bgTex);
   bg.setScale(2.f, 2.f);
+
+  bgBottom = sf::Sprite(*bgTex);
+  bgBottom.setScale(2.f, 2.f);
+  bgBottom.setPosition(sf::Vector2f(0, 150*2));
+  bgBottom.setTextureRect(sf::IntRect(sf::Vector2i(0, 150), sf::Vector2i(240, 10)));
 
   sceneLabel = sf::Sprite(*load_texture("resources/scenes/cust/scene_label.png"));
   sceneLabel.setPosition(sf::Vector2f(20.f, 8.0f));
@@ -263,10 +269,8 @@ bool PlayerCustScene::DoesPieceOverlap(Piece* piece, size_t loc)
     }
     start += GRID_SIZE; // next row
   }
-
-  if (piece->specialType && entirelyOutOfBounds) return true;
-
-  return false;
+  
+  return entirelyOutOfBounds;
 }
 
 bool PlayerCustScene::InsertPiece(Piece* piece, size_t loc)
@@ -959,7 +963,11 @@ void PlayerCustScene::ExecuteCancelInsert()
 {
   pieces.push_back(insertingPiece);
   insertingPiece = nullptr;
-  SelectGridUI();
+}
+
+void PlayerCustScene::ExecuteCancelInsertOnGrid()
+{
+  ExecuteCancelInsert(); SelectGridUI();
 }
 
 void PlayerCustScene::ExecuteCancelGrab()
@@ -967,7 +975,11 @@ void PlayerCustScene::ExecuteCancelGrab()
   InsertPiece(grabbingPiece, grabStartLocation);
   cursorLocation = grabStartLocation;
   grabbingPiece = nullptr;
-  SelectGridUI();
+}
+
+void PlayerCustScene::ExecuteCancelGrabOnGrid()
+{
+  ExecuteCancelGrab(); SelectGridUI();
 }
 
 bool PlayerCustScene::HandleUIKeys(double elapsed)
@@ -993,6 +1005,16 @@ bool PlayerCustScene::HandleUIKeys(double elapsed)
   }
 
   if (Input().Has(InputEvents::pressed_option) && !itemListSelected) {
+    if (grabbingPiece) {
+      grabbingPiece->Revert();
+      ExecuteCancelGrab();
+    }
+
+    if (insertingPiece) {
+      insertingPiece->Revert();
+      ExecuteCancelInsert();
+    }
+
     SelectItemUI(pieces.size());
     StartScaffolding();
     return true;
@@ -1084,6 +1106,8 @@ void PlayerCustScene::QuitScene()
 
 bool PlayerCustScene::HandlePieceAction(Piece*& piece, void(PlayerCustScene::* cancelFunc)())
 {
+  if (!piece) return false;
+
   if (Input().Has(InputEvents::pressed_cancel)) {
     piece->Revert();
     (this->*cancelFunc)();
@@ -1351,10 +1375,10 @@ void PlayerCustScene::onUpdate(double elapsed)
 
   if (!grabbingPiece && !insertingPiece) {
     // DEBUG: generate random pieces
-    //if (Input().GetAnyKey() == sf::Keyboard::Space) {
-    //  insertingPiece = generateRandomBlock();
-    //  return;
-    //}
+    /*if (Input().GetAnyKey() == sf::Keyboard::Space) {
+      insertingPiece = GenerateRandomBlock();
+      return;
+    }*/
 
     if (Input().Has(InputEvents::pressed_confirm)) {
       if (Piece* piece = grid[cursorLocation]) {
@@ -1364,13 +1388,11 @@ void PlayerCustScene::onUpdate(double elapsed)
       return;
     }
   }
-  else if (insertingPiece) {
-    if(HandlePieceAction(insertingPiece, &PlayerCustScene::ExecuteCancelInsert))
-      return;
+  else if(HandlePieceAction(insertingPiece, &PlayerCustScene::ExecuteCancelInsertOnGrid)) {
+    return;
   }
-  else if (grabbingPiece) {
-    if(HandlePieceAction(grabbingPiece, &PlayerCustScene::ExecuteCancelGrab))
-      return;
+  else if(HandlePieceAction(grabbingPiece, &PlayerCustScene::ExecuteCancelGrabOnGrid)) {
+    return;
   }
 
   if (HandleUIKeys(elapsed)) {
@@ -1476,6 +1498,9 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   RefreshButton(pieces.size());
   greenButtonSprite.setPosition(bottom.x*2.f, (bottom.y+yoffset)*2.f);
   surface.draw(greenButtonSprite);
+
+  // bgBottom overlays on top of the list so it doesn't peak underneath the info box
+  surface.draw(bgBottom);
 
   if (itemListSelected) {
     if (state == state::usermode) {

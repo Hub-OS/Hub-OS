@@ -22,10 +22,10 @@ private:
 };
 
 
-CardAction::CardAction(std::weak_ptr<Character> actor, const std::string& animation) : 
-  actor(actor),
+CardAction::CardAction(std::weak_ptr<Character> user, const std::string& animation) : 
+  actor(user),
   animation(animation), 
-  anim(actor.lock()->GetFirstComponent<AnimationComponent>()),
+  anim(user.lock()->GetFirstComponent<AnimationComponent>()),
   uuid(), 
   prevState(), 
   attachments(),

@@ -395,7 +395,6 @@ bool CardSelectionCust::CursorCancel() {
   }
 
   if (newSelectCount == 0) {
-    newHand = false;
     if (lockedInFormIndex != GetSelectedFormIndex()) {
       currentFormItem.setTexture(*previousFormItem.getTexture());
       SetSelectedFormIndex(previousFormIndex);
@@ -410,11 +409,13 @@ bool CardSelectionCust::CursorCancel() {
   // Unqueue all cards buckets
   if (newSelectCount > 0) {
     newSelectQueue[--newSelectCount]->state = Bucket::state::staged;
+
+    if (newSelectCount == 0) {
+      newHand = false;
+    }
   }
-  else if (newSelectCount < 0) {
-    newSelectCount = 0;
-    newHand = false;
-  }
+  
+  newSelectCount = std::max(0, newSelectCount);
   
   // Everything is selectable again
   for (int i = 0; i < cardCount; i++) {

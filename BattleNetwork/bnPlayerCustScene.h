@@ -143,7 +143,7 @@ private:
   double blockFlashElapsed{}, buttonFlashElapsed{};
   double frameElapsed{};
   float scaffolding{1.f};
-  sf::Sprite bg;
+  sf::Sprite bg, bgBottom;
   sf::Sprite cursor, itemArrowCursor;
   sf::Sprite claw;
   sf::Sprite sceneLabel;
@@ -158,6 +158,7 @@ private:
   std::string playerUUID;
   std::shared_ptr<sf::Texture> cursorTexture, miniblocksTexture, disabledBlockTexture;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
+  std::shared_ptr<sf::Texture> bgTex;
   std::shared_ptr<sf::SoundBuffer> compile_start, compile_complete, compile_no_item, compile_item;
   std::vector<Piece*> pieces;
   std::map<Piece*, size_t> centerHash;
@@ -221,8 +222,10 @@ private:
   void ExecuteRightKey();
   void ExecuteUpKey();
   void ExecuteDownKey();
-  void ExecuteCancelInsert();
+  void ExecuteCancelInsert(); 
+  void ExecuteCancelInsertOnGrid(); //!< design oversight, we need to know if we canceled and the context
   void ExecuteCancelGrab();
+  void ExecuteCancelGrabOnGrid();//!< design oversight, we need to know if we canceled and the context
   void UpdateCursorHoverInfo();
   void UpdateItemListHoverInfo();
   void UpdateMenuPosition();
