@@ -125,6 +125,8 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     summonTick += frames(1);
   }
 
+  GetScene().GetField()->Update(elapsed);
+
   switch (currState) {
   case state::fadein:
   {
@@ -207,7 +209,6 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     }
     break;
   }
-  GetScene().GetField()->Update(elapsed);
 }
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)

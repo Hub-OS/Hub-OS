@@ -58,6 +58,12 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["set_facing"] = [](WeakWrapper<E>& entity, Direction direction) {
     entity.Unwrap()->SetFacing(direction);
   };
+  entity_table["get_move_direction"] = [](WeakWrapper<E>& entity)->Direction {
+    return entity.Unwrap()->GetMoveDirection();
+  };
+  entity_table["set_move_direction"] = [](WeakWrapper<E>& entity, Direction direction) {
+    entity.Unwrap()->SetMoveDirection(direction);
+  };
   entity_table["get_color"] = [](WeakWrapper<E>& entity) -> sf::Color {
     return entity.Unwrap()->getColor();
   };
