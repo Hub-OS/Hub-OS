@@ -50,6 +50,10 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   packetProcessor->EnableKickForSilence(true);
 
+  // send handshake + begin coinflip before reading packets
+  SendHandshake();
+  SendCoinFlip();
+
   // queued packets will come in after this
   packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& body) {
     this->ProcessPacketBody(header, body);
@@ -91,7 +95,6 @@ void DownloadScene::SendHandshake()
   packetProcessor->UpdateHandshakeID(id);
 
   Logger::Logf(LogLevel::info, "Sending handshake");
-  handshakeSent = true;
 }
 
 void DownloadScene::SendCoinFlip() {
@@ -726,14 +729,6 @@ void DownloadScene::Abort()
 
 void DownloadScene::onUpdate(double elapsed)
 {
-  if (inView) {
-    if (!handshakeSent) {
-      // send handshake + begin coinflip before reading packets
-      SendHandshake();
-      SendCoinFlip();
-    }
-  }
-
   if (!(packetProcessor->IsHandshakeAck() && remoteHandshake) && !aborting) return;
 
   if (!hasTradedData) {
