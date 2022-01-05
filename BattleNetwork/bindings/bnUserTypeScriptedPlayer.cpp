@@ -10,9 +10,6 @@
 
 void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespace) {
   auto from = [state = &state] (std::shared_ptr<Entity> entity) {
-    if (auto player = std::dynamic_pointer_cast<ScriptedPlayer>(entity)) {
-      return sol::make_object(*state, WeakWrapper(player));
-    }
     if (auto player = std::dynamic_pointer_cast<Player>(entity)) {
       return sol::make_object(*state, WeakWrapper(player));
     }
