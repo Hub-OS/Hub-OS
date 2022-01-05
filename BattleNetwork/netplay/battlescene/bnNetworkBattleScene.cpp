@@ -424,7 +424,12 @@ void NetworkBattleScene::SendHandshakeSignal()
   */
 
   int form = GetPlayerFormData(GetLocalPlayer()).selectedForm;
-  unsigned thisFrame = this->FrameNumber().count();
+  unsigned thisFrame = FrameNumber().count();
+
+  if (thisFrame > 0) {
+    thisFrame = thisFrame - 1u;
+  }
+
   size_t len = prefilteredCardSelection.size();
 
   Poco::Buffer<char> buffer{ 0 };

@@ -1195,7 +1195,7 @@ const bool Entity::HasCollision(const Hit::Properties & props)
 {
   // Pierce status hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
-    if (invincibilityCooldown > frames(0) || IsPassthrough()) return false;
+    if (invincibilityCooldown > frames(0) || IsPassthrough() || !hitboxEnabled) return false;
   }
 
   return true;

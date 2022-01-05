@@ -685,7 +685,9 @@ namespace Battle {
         }
 
         if (GetState() == TileState::lava) {
-          if (character.Hit(Hit::Properties({ 50, Hit::flash, Element::none, 0, Direction::none }))) {
+          Hit::Properties props = { 50, Hit::flash | Hit::flinch, Element::none, 0, Direction::none };
+          if (character.HasCollision(props)) {
+            character.Hit(props);
             field.AddEntity(std::make_shared<Explosion>(), GetX(), GetY());
             SetState(TileState::normal);
           }
