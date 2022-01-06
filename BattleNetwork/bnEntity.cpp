@@ -1161,7 +1161,8 @@ const bool Entity::Hit(Hit::Properties props) {
 
   const Hit::Properties original = props;
 
-  if ((props.flags & Hit::shake) == Hit::shake) {
+  // If in time freeze, shake immediate on any contact
+  if ((props.flags & Hit::shake) == Hit::shake && IsTimeFrozen()) {
     CreateComponent<ShakingEffect>(weak_from_this());
   }
   
@@ -1184,16 +1185,16 @@ const bool Entity::Hit(Hit::Properties props) {
     props.flags |= Hit::no_counter;
   }
 
-  if (GetHealth() <= 0) {
-    SetShader(whiteout);
-  }
-
   // Add to status queue for state resolution
   statusQueue.push(CombatHitProps{ original, props });
 
   if ((props.flags & Hit::impact) == Hit::impact) {
     this->hit = true; // flash white immediately
     RefreshShader();
+  }
+
+  if (GetHealth() <= 0) {
+    SetShader(whiteout);
   }
 
   return true;
@@ -1249,7 +1250,7 @@ void Entity::ResolveFrameBattleDamage()
 
   std::shared_ptr<Character> frameCounterAggressor = nullptr;
   bool frameStunCancel = false;
-  bool frameFlashCanel = true;
+  bool frameFlashCancel = true;
   bool frameFreezeCancel = false;
   bool willFreeze = false;
   Hit::Drag postDragEffect{};
@@ -1290,6 +1291,12 @@ void Entity::ResolveFrameBattleDamage()
 
     if (props.filtered.element == Element::aqua && GetTile()->GetState() == TileState::ice && !frameFreezeCancel) {
       willFreeze = true;
+    }
+
+    // Broadcast the hit before we apply statuses and change the entity's state flags
+    if (props.filtered.damage) {
+      SetHealth(GetHealth() - tileDamage);
+      HitPublisher::Broadcast(*this, props.filtered);
     }
 
     // start of new scope
@@ -1365,7 +1372,7 @@ void Entity::ResolveFrameBattleDamage()
           }
           else {
             // refresh stun
-            stunCooldown = frames(180);
+            stunCooldown = frames(120);
             flagCheckThunk(Hit::stun);
           }
 
@@ -1377,14 +1384,23 @@ void Entity::ResolveFrameBattleDamage()
       props.filtered.flags &= ~Hit::stun;
 
       if ((props.filtered.flags & Hit::freeze) == Hit::freeze) {
-        // this will strip out flash in the next step
-        frameFlashCanel = true;
-        props.filtered.flags &= ~Hit::freeze;
-        willFreeze = true;
+        if (postDragEffect.dir != Direction::none) {
+          // requeue these statuses if in the middle of a slide
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
+        }
+        else {
+          // this will strip out flash in the next step
+          frameFlashCancel = true;
+          willFreeze = true;
+          flagCheckThunk(Hit::flinch);
+        }
       }
 
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::freeze;
+
       // Always negate flash if frozen this frame
-      if (frameFlashCanel) {
+      if (frameFlashCancel) {
         props.filtered.flags &= ~Hit::flash;
       }
 
@@ -1413,7 +1429,13 @@ void Entity::ResolveFrameBattleDamage()
       props.filtered.flags &= ~Hit::retangible;
 
       if ((props.filtered.flags & Hit::bubble) == Hit::bubble) {
-        flagCheckThunk(Hit::bubble);
+        if (postDragEffect.dir != Direction::none) {
+          // requeue these statuses if in the middle of a slide
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
+        }
+        else {
+          flagCheckThunk(Hit::bubble);
+        }
       }
 
       // exclude this from the next processing step 
@@ -1427,31 +1449,41 @@ void Entity::ResolveFrameBattleDamage()
       // exclude this from the next processing step 
       props.filtered.flags &= ~Hit::root;
 
+      // Only if not in time freeze, consider this status for delayed effect after sliding
+      if ((props.filtered.flags & Hit::shake) == Hit::shake && !IsTimeFrozen()) {
+        if (postDragEffect.dir != Direction::none) {
+          // requeue these statuses if in the middle of a slide
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
+        }
+        else {
+          CreateComponent<ShakingEffect>(weak_from_this());
+          flagCheckThunk(Hit::shake);
+        }
+      }
+
+      // exclude this from the next processing step 
+      props.filtered.flags &= ~Hit::shake;
+
       /*
       flags already accounted for:
       - impact
       - stun
+      - freeze
       - flash
       - drag
       - retangible
       - bubble
       - root
-
+      - shake
       Now check if the rest were triggered and invoke the
       corresponding status callbacks
       */
       flagCheckThunk(Hit::breaking);
-      flagCheckThunk(Hit::freeze);
       flagCheckThunk(Hit::pierce);
-      flagCheckThunk(Hit::shake);
       flagCheckThunk(Hit::flinch);
 
-      if (props.filtered.damage) {
-        SetHealth(GetHealth() - tileDamage);
-        if (GetHealth() == 0) {
-          postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up
-        }
-        HitPublisher::Broadcast(*this, props.filtered);
+      if (GetHealth() == 0) {
+        postDragEffect.dir = Direction::none; // Cancel slide post-status if blowing up
       }
     }
   } // end while-loop
@@ -1471,8 +1503,16 @@ void Entity::ResolveFrameBattleDamage()
         // Enqueue a move action at the top of our priorities
         actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
 
-        // Re-queue the drag status to be re-considered in our next combat checks
+        std::queue<CombatHitProps> oldQueue = statusQueue;
+        statusQueue = {};
+        // Re-queue the drag status to be re-considered FIRST in our next combat checks
         statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
+
+        // append the old queue items after
+        while (!oldQueue.empty()) {
+          statusQueue.push(oldQueue.front());
+          oldQueue.pop();
+        }
       }
     }
   }
@@ -1621,7 +1661,7 @@ void Entity::IceFreeze(frame_time_t maxCooldown)
   static std::shared_ptr<sf::SoundBuffer> freezesfx = Audio().LoadFromFile(SoundPaths::ICE_FX);
   Audio().Play(freezesfx, AudioPriority::highest);
 
-  if (height <= 50*2) {
+  if (height <= 48*2) {
     iceFxAnimation << "small" << Animator::Mode::Loop;
     iceFx->setPosition(0, -height/2.f);
   }
