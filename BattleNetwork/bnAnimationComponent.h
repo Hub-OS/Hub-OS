@@ -169,7 +169,7 @@ public:
 private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
-  bool stunnedLastFrame{ false };
+  bool couldUpdateLastFrame{ true };
   std::vector<SyncItem> syncList;
 
   void RefreshSyncItem(SyncItem& item);

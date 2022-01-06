@@ -27,6 +27,7 @@ namespace TexturePaths {
   path SPELL_CHARGED_BULLET_HIT = "resources/scenes/battle/spells/spell_charged_bullet_hit.png";
   path SPELL_BUBBLE_TRAP = "resources/scenes/battle/spells/bubble_trap.png";
   path SPELL_POOF = "resources/scenes/battle/spells/poof.png";
+  path ICE_FX = "resources/scenes/battle/spells/ice_fx.png";
 
   //Card Select 
   path CHIP_SELECT_MENU = "resources/ui/card_select.png";
@@ -139,4 +140,11 @@ namespace TexturePaths {
   path END_BTN = "resources/scenes/config/end_btn.png";
 };
 
+namespace AnimationPaths {
+  path ICE_FX = "resources/scenes/battle/spells/ice_fx.animation";
+}
+
+namespace SoundPaths {
+  path ICE_FX = "resources/sfx/freeze.ogg";
+}
 #undef path

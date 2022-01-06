@@ -6,6 +6,7 @@
 #include "bnShakingEffect.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
+#include "bnAudioResourceManager.h"
 #include <cmath>
 #include <Swoosh/Ease.h>
 
@@ -59,6 +60,14 @@ Entity::Entity() :
   shadow->SetLayer(1);
   shadow->Hide(); // default: hidden
   AddNode(shadow);
+
+  iceFx = std::make_shared<SpriteProxyNode>();
+  iceFx->setTexture(Textures().LoadFromFile(TexturePaths::ICE_FX));
+  iceFx->SetLayer(-2);
+  iceFx->Hide(); // default: hidden
+  AddNode(iceFx);
+
+  iceFxAnimation = Animation(AnimationPaths::ICE_FX);
 }
 
 Entity::~Entity() {
@@ -349,19 +358,38 @@ void Entity::Update(double _elapsed) {
   if(rootCooldown > frames(0)) {
     rootCooldown -= from_seconds(_elapsed);
 
+    // Root is cancelled if these conditions are met
     if (rootCooldown <= frames(0) || invincibilityCooldown > frames(0) || IsPassthrough()) {
       rootCooldown = frames(0);
     }
   }
 
+  bool canUpdateThisFrame = true;
+
   if(stunCooldown > frames(0)) {
+    canUpdateThisFrame = false;
     stunCooldown -= from_seconds(_elapsed);
 
     if (stunCooldown <= frames(0)) {
       stunCooldown = frames(0);
     }
   }
-  else if(stunCooldown <= frames(0)) {
+
+  // assume this is hidden, will flip to visible if not
+  iceFx->Hide();
+  if (freezeCooldown > frames(0)) {
+    iceFxAnimation.Update(_elapsed, iceFx->getSprite());
+    iceFx->Reveal();
+
+    canUpdateThisFrame = false;
+    freezeCooldown -= from_seconds(_elapsed);
+
+    if (freezeCooldown <= frames(0)) {
+      freezeCooldown = frames(0);
+    }
+  }
+  
+  if(canUpdateThisFrame) {
     OnUpdate(_elapsed);
   }
 
@@ -394,7 +422,6 @@ void Entity::Update(double _elapsed) {
   ClearPendingComponents();
 
   isUpdating = false;
-
 
   // If the counterSlideOffset has changed from 0, it's due to the character
   // being deleted on a counter frame. Begin animating the counter-delete slide
@@ -487,11 +514,12 @@ void Entity::RefreshShader()
   counterFrameFlag++;
 
   bool iframes = invincibilityCooldown > frames(0);
-
+  bool whiteout = hit && !isTimeFrozen;
   vector<float> states = {
-    static_cast<float>(hit),                                                // WHITEOUT
+    static_cast<float>(whiteout),                                           // WHITEOUT
     static_cast<float>(rootCooldown > frames(0) && (iframes || rootFrame)), // BLACKOUT
-    static_cast<float>(stunCooldown > frames(0) && (iframes || stunFrame))  // HIGHLIGHT
+    static_cast<float>(stunCooldown > frames(0) && (iframes || stunFrame)), // HIGHLIGHT
+    static_cast<float>(freezeCooldown > frames(0))                          // ICEOUT
   };
 
   smartShader.SetUniform("states", states);
@@ -1221,6 +1249,9 @@ void Entity::ResolveFrameBattleDamage()
 
   std::shared_ptr<Character> frameCounterAggressor = nullptr;
   bool frameStunCancel = false;
+  bool frameFlashCanel = true;
+  bool frameFreezeCancel = false;
+  bool willFreeze = false;
   Hit::Drag postDragEffect{};
 
   std::queue<CombatHitProps> append;
@@ -1246,11 +1277,22 @@ void Entity::ResolveFrameBattleDamage()
       tileDamage = props.filtered.damage;
       GetTile()->SetState(TileState::normal);
     }
-    else if (props.filtered.element == Element::elec
+    
+    if (props.filtered.element == Element::elec
       && GetTile()->GetState() == TileState::ice) {
       tileDamage = props.filtered.damage;
     }
 
+    if (props.filtered.element == Element::breaker && IsIceFrozen()) {
+      props.filtered.damage *= 2;
+      frameFreezeCancel = true;
+    }
+
+    if (props.filtered.element == Element::aqua && GetTile()->GetState() == TileState::ice && !frameFreezeCancel) {
+      willFreeze = true;
+    }
+
+    // start of new scope
     {
       // Only register counter if:
       // 1. Hit type is impact
@@ -1293,6 +1335,8 @@ void Entity::ResolveFrameBattleDamage()
         props.filtered.flags &= ~Hit::drag;
       }
 
+      frameFreezeCancel = frameFreezeCancel || ((props.filtered.flags & Hit::flash) == Hit::flash) && ((props.filtered.flags & Hit::flinch) == Hit::flinch);
+
       /**
       While an attack that only flinches will not cancel stun, 
       an attack that both flinches and flashes will cancel stun. 
@@ -1331,6 +1375,18 @@ void Entity::ResolveFrameBattleDamage()
 
       // exclude this from the next processing step
       props.filtered.flags &= ~Hit::stun;
+
+      if ((props.filtered.flags & Hit::freeze) == Hit::freeze) {
+        // this will strip out flash in the next step
+        frameFlashCanel = true;
+        props.filtered.flags &= ~Hit::freeze;
+        willFreeze = true;
+      }
+
+      // Always negate flash if frozen this frame
+      if (frameFlashCanel) {
+        props.filtered.flags &= ~Hit::flash;
+      }
 
       // Flash can be queued if dragging this frame
       if ((props.filtered.flags & Hit::flash) == Hit::flash) {
@@ -1390,7 +1446,6 @@ void Entity::ResolveFrameBattleDamage()
       flagCheckThunk(Hit::shake);
       flagCheckThunk(Hit::flinch);
 
-
       if (props.filtered.damage) {
         SetHealth(GetHealth() - tileDamage);
         if (GetHealth() == 0) {
@@ -1420,6 +1475,13 @@ void Entity::ResolveFrameBattleDamage()
         statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
       }
     }
+  }
+
+  if (frameFreezeCancel) {
+    freezeCooldown = frames(0); // end freeze effect
+  }
+  else if (willFreeze) {
+    IceFreeze(frames(150)); // start freeze effect
   }
 
   if (GetHealth() == 0) {
@@ -1536,6 +1598,10 @@ bool Entity::IsRooted()
   return rootCooldown > frames(0);
 }
 
+bool Entity::IsIceFrozen() {
+  return freezeCooldown > frames(0);
+}
+
 void Entity::Stun(frame_time_t maxCooldown)
 {
   stunCooldown = maxCooldown;
@@ -1544,6 +1610,31 @@ void Entity::Stun(frame_time_t maxCooldown)
 void Entity::Root(frame_time_t maxCooldown)
 {
   rootCooldown = maxCooldown;
+}
+
+void Entity::IceFreeze(frame_time_t maxCooldown)
+{
+  freezeCooldown = maxCooldown;
+
+  const float height = GetHeight();
+
+  static std::shared_ptr<sf::SoundBuffer> freezesfx = Audio().LoadFromFile(SoundPaths::ICE_FX);
+  Audio().Play(freezesfx, AudioPriority::highest);
+
+  if (height <= 50*2) {
+    iceFxAnimation << "small" << Animator::Mode::Loop;
+    iceFx->setPosition(0, -height/2.f);
+  }
+  else if (height <= 75*2) {
+    iceFxAnimation << "medium" << Animator::Mode::Loop;
+    iceFx->setPosition(0, -height/2.f);
+  }
+  else {
+    iceFxAnimation << "large" << Animator::Mode::Loop;
+    iceFx->setPosition(0, -height/2.f);
+  }
+
+  iceFxAnimation.Refresh(iceFx->getSprite());
 }
 
 bool Entity::IsCountered()

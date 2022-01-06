@@ -131,6 +131,12 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
         player.Unwrap()->charged_attack_func = VerifyLuaCallback(value);
       }
     ),
+    "charged_time_table_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->charge_time_table_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->charge_time_table_func = VerifyLuaCallback(value);
+      }
+    ),
     "special_attack_func", sol::property(
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->special_attack_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
