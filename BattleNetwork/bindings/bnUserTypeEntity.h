@@ -335,6 +335,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["toggle_hitbox"] = [](WeakWrapper<E>& entity, bool enabled) {
     return entity.Unwrap()->EnableHitbox(enabled);
   };
+  entity_table["is_counterable"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->IsCounterable();
+  };
   entity_table["toggle_counter"] = [](WeakWrapper<E>& entity, bool on) {
     entity.Unwrap()->ToggleCounter(on);
   };
