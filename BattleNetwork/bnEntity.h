@@ -572,7 +572,12 @@ public:
    * @param _health
    */
   void SetHealth(int _health);
-  
+
+  /**
+   * @brief Returns true if the counter flag is on
+   */
+  bool IsCounterable();
+
   /**
    * @brief Sets counter flag on
    * @param on

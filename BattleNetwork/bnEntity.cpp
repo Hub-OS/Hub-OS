@@ -1618,6 +1618,11 @@ void Entity::DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity>
   }
 }
 
+bool Entity::IsCounterable()
+{
+  return counterable;
+}
+
 void Entity::ToggleCounter(bool on)
 {
   counterable = on;
