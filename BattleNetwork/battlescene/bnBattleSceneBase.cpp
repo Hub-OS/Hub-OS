@@ -105,10 +105,10 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   }
 
   // Custom bar graphics
-  auto customBarTexture = Textures().LoadFromFile("resources/ui/custom.png");
+  std::shared_ptr<sf::Texture> customBarTexture = Textures().LoadFromFile(TexturePaths::CUST_GAUGE);
   customBar.setTexture(customBarTexture);
   customBar.setOrigin(customBar.getLocalBounds().width / 2, 0);
-  auto customBarPos = sf::Vector2f(240.f, 0.f);
+  sf::Vector2f customBarPos = sf::Vector2f(240.f, 0.f);
   customBar.setPosition(customBarPos);
   customBar.setScale(2.f, 2.f);
 
@@ -122,7 +122,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   Counter "reveal" ring
   */
 
-  counterRevealAnim = Animation("resources/navis/counter_reveal.animation");
+  counterRevealAnim = Animation(AnimationPaths::MISC_COUNTER_REVEAL);
   counterRevealAnim << "DEFAULT" << Animator::Mode::Loop;
 
   counterReveal = std::make_shared<SpriteProxyNode>();
@@ -173,15 +173,15 @@ BattleSceneBase::~BattleSceneBase() {
   // drop the camera from our event bus
   channel.Drop(&camera);
 
-  for (auto&& elem : states) {
-    delete elem;
+  for (BattleSceneState* statePtr : states) {
+    delete statePtr;
   }
 
-  for (auto&& elem : nodeToEdges) {
-    delete elem.second;
+  for (auto [statePtr, edgePtr] : nodeToEdges) {
+    delete edgePtr;
   }
 
-  for (auto& c : components) {
+  for (std::shared_ptr<Component>& c : components) {
     c->scene = nullptr;
   }
 }
@@ -206,7 +206,7 @@ const bool BattleSceneBase::IsSceneInFocus() const
 
 const bool BattleSceneBase::IsQuitting() const
 {
-    return this->quitting;
+  return quitting;
 }
 
 void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
@@ -219,24 +219,34 @@ void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
     if (victim.IsDeleted()) {
       totalCounterDeletions++;
     }
+  }
 
-    didCounterHit = true;
-    comboInfoTimer.reset();
+  didCounterHit = true;
+  comboInfoTimer.reset();
 
-    if (localPlayer->IsInForm() == false && localPlayer->GetEmotion() != Emotion::evil) {
-      field->RevealCounterFrames(true);
+  for (std::shared_ptr<Player> p : GetAllPlayers()) {
+    if (&aggressor != p.get()) continue;
+
+    if (p->IsInForm() == false && p->GetEmotion() != Emotion::evil) {
+      if (p == localPlayer) {
+        field->RevealCounterFrames(true);
+      }
 
       // node positions are relative to the parent node's origin
-      auto bounds = localPlayer->getLocalBounds();
+      sf::FloatRect bounds = p->getLocalBounds();
       counterReveal->setPosition(0, -bounds.height / 4.0f);
-      localPlayer->AddNode(counterReveal);
+      p->AddNode(counterReveal);
 
-      cardUI->SetMultiplier(2);
+      std::shared_ptr<PlayerSelectedCardsUI> cardUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
 
-      localPlayer->SetEmotion(Emotion::full_synchro);
+      if (cardUI) {
+        cardUI->SetMultiplier(2);
+      }
+
+      p->SetEmotion(Emotion::full_synchro);
 
       // when players get hit by impact, battle scene takes back counter blessings
-      localPlayer->AddDefenseRule(counterCombatRule);
+      p->AddDefenseRule(counterCombatRule);
     }
   }
 }
@@ -614,8 +624,8 @@ void BattleSceneBase::StartStateGraph(StateNode& start) {
   field->Update(0);
 
   // set the current state ptr and kick-off
-  this->current = &start.state;
-  this->current->onStart();
+  current = &start.state;
+  current->onStart();
 }
 
 void BattleSceneBase::onStart()
@@ -759,7 +769,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
   for (auto iter = nodeToEdges.begin(); iter != nodeToEdges.end(); iter++) {
     if (iter->first == current) {
       if (iter->second->when()) {
-        auto temp = iter->second->b;
+        BattleSceneState* temp = iter->second->b;
         this->last = current;
         this->next = temp;
         current->onEnd(this->next);
@@ -1265,7 +1275,7 @@ void BattleSceneBase::Inject(std::shared_ptr<MobHealthUI> other)
 
 void BattleSceneBase::Inject(std::shared_ptr<SelectedCardsUI> cardUI)
 {
-  this->SubscribeToCardActions(*cardUI);
+  SubscribeToCardActions(*cardUI);
 }
 
 // Default case: no special injection found for the type, just add it to our update loop
@@ -1273,7 +1283,7 @@ void BattleSceneBase::Inject(std::shared_ptr<Component> other)
 {
   assert(other && "Component injected was nullptr");
 
-  auto node = std::dynamic_pointer_cast<SceneNode>(other);
+  std::shared_ptr<SceneNode> node = std::dynamic_pointer_cast<SceneNode>(other);
   if (node) { scenenodes.push_back(node); }
 
   other->scene = this;
@@ -1283,16 +1293,16 @@ void BattleSceneBase::Inject(std::shared_ptr<Component> other)
 void BattleSceneBase::Eject(Component::ID_t ID)
 {
   auto iter = std::find_if(components.begin(), components.end(), 
-    [ID](auto& in) { return in->GetID() == ID; }
+    [ID](std::shared_ptr<Component>& in) { return in->GetID() == ID; }
   );
 
   if (iter != components.end()) {
-    auto& component = **iter;
+    Component& component = **iter;
 
-    auto node = dynamic_cast<SceneNode*>(&component);
+    SceneNode* node = dynamic_cast<SceneNode*>(&component);
     // TODO: dynamic casting could be entirely avoided by hashing IDs
     auto iter2 = std::find_if(scenenodes.begin(), scenenodes.end(), 
-      [node](auto& in) { 
+      [node](std::shared_ptr<SceneNode>& in) { 
         return in.get() == node;
       }
     );

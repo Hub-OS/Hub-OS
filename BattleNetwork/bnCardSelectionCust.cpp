@@ -150,8 +150,8 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
   // TODO: fully use scene nodes on all card slots and the GUI sprite
   // AddSprite(custSprite);
 
-  auto iconSize = sf::IntRect{ 0,0,14,14 };
-  auto iconScale = sf::Vector2f(2.f, 2.f);
+  sf::IntRect iconSize = sf::IntRect{ 0,0,14,14 };
+  sf::Vector2f iconScale = sf::Vector2f(2.f, 2.f);
   icon.setTextureRect(iconSize);
   icon.setScale(iconScale);
 
@@ -769,9 +769,9 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       else {
         texture = noCard;
       }
-      cardCard.setTexture(texture);
+      cardCard.setTexture(texture, false);
 
-      auto lastPos = cardCard.getPosition();
+      sf::Vector2f lastPos = cardCard.getPosition();
       cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
       cardCard.SetShader(nullptr);
 
@@ -826,10 +826,10 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
 
-      auto elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
+      sf::IntRect elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
       element.setTextureRect(elementRect);
 
-      auto elementLastPos = element.getPosition();
+      sf::Vector2f elementLastPos = element.getPosition();
       element.setPosition(element.getPosition() + sf::Vector2f(offset, 0));
 
       target.draw(element, states);
@@ -837,7 +837,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       element.setPosition(elementLastPos);
     }
     else {
-      auto cardNoDataLastPos = cardNoData.getPosition();
+      sf::Vector2f cardNoDataLastPos = cardNoData.getPosition();
       cardNoData.setPosition(cardNoData.getPosition() + sf::Vector2f(offset, 0));
       target.draw(cardNoData, states);
       cardNoData.setPosition(cardNoDataLastPos);
@@ -849,12 +849,12 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
   }
   else {
-    auto cardSendDataLastPos = cardSendData.getPosition();
+    sf::Vector2f cardSendDataLastPos = cardSendData.getPosition();
     cardSendData.setPosition(cardSendData.getPosition() + sf::Vector2f(offset, 0));
     target.draw(cardSendData, states);
     cardSendData.setPosition(cardSendDataLastPos);
 
-    auto cursorBigLastPos = cursorBig.getPosition();
+    sf::Vector2f cursorBigLastPos = cursorBig.getPosition();
     cursorBig.setPosition(cursorBig.getPosition() + sf::Vector2f(offset, 0));
     target.draw(cursorBig, states);
     cursorBig.setPosition(cursorBigLastPos);
@@ -876,7 +876,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   // draw the dark card in on top of it so it looks brighter
   if (isDarkCardSelected) {
-    auto lastPos = cardCard.getPosition();
+    sf::Vector2f lastPos = cardCard.getPosition();
     cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
     target.draw(cardCard, states);
     cardCard.setPosition(lastPos);
@@ -885,7 +885,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   if (isInFormSelect) {
     if (formSelectAnimator.GetAnimationString() == "OPEN") {
       int i = 0;
-      auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
+      float offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
 
       for (sf::Sprite f : formUI) {
         formItemBG.setPosition(offset + 16.f, 16.f + float(i*32.0f));
@@ -894,12 +894,12 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         f.setPosition(offset + 16.f, 16.f + float(i*32.0f));
 
         if (i != selectedFormRow && i != formCursorRow && selectedFormRow > -1) {
-          auto greyscaleState = states;
+          sf::RenderStates greyscaleState = states;
           greyscaleState.shader = handle.Shaders().GetShader(ShaderType::GREYSCALE);
           target.draw(f, greyscaleState);
         }
         else if (i == selectedFormRow && selectedFormRow > -1) {
-          auto aquaMarineState = states;
+          sf::RenderStates aquaMarineState = states;
           aquaMarineState.shader = handle.Shaders().GetShader(ShaderType::COLORIZE);
           f.setColor(sf::Color(127,255,212));
           target.draw(f, aquaMarineState);
@@ -926,7 +926,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   // Reveal the new form icon in the HUD after the flash
   if (formSelectQuitTimer <= seconds_cast<float>(frames(10))) {
-    auto rect = currentFormItem.getTextureRect();
+    sf::IntRect rect = currentFormItem.getTextureRect();
     currentFormItem.setTextureRect(sf::IntRect(rect.left, rect.top, 30, 14));
     currentFormItem.setPosition(sf::Vector2f(4, 36.f));
     target.draw(currentFormItem, states);
@@ -935,8 +935,8 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   // draw the white flash
   if (isInFormSelect && formSelectQuitTimer <= seconds_cast<float>(frames(20))) {
-    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, seconds_cast<double>(frames(20)), 1.0);
-    const auto& view = target.getView();
+    double delta = swoosh::ease::wideParabola(formSelectQuitTimer, seconds_cast<double>(frames(20)), 1.0);
+    const sf::View& view = target.getView();
     sf::RectangleShape screen(view.getSize());
     screen.setFillColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(delta * 255.0)));
     target.draw(screen, sf::RenderStates::Default);
@@ -979,7 +979,7 @@ void CardSelectionCust::Update(double elapsed)
   formCursorAnimator.Update(elapsed, formCursor.getSprite());
   formSelectAnimator.Update(elapsed, formSelect.getSprite());
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items...
+  float offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items...
 
   formCursor.setPosition(offset + 16.f, 12.f + float(formCursorRow*32.f));
   formSelect.setPosition(offset + 88.f, 194.f);

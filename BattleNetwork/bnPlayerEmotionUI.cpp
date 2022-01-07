@@ -9,11 +9,11 @@ static const struct {
   frame_time_t frames{ ::frames(0) };
   bool showNewEmotion{};
 } flickerAnimation[] = {
-  { { ::frames(30)}, true  },  // For frames [0-30), show new emotion
-  { { ::frames(60)}, false },  // For frames [30-60), show old emotion
-  { { ::frames(90)}, true  },  // etc.
-  { {::frames(120)}, false },
-  { {::frames(150)}, true  },  // End on new emotion so it's shown when there is no more animation
+  { { ::frames(3)}, true  },  // For frames [0-3), show new emotion
+  { { ::frames(6)}, false },  // For frames [3-6), show old emotion
+  { { ::frames(9)}, true  },  // etc.
+  { { ::frames(12)}, false },
+  { { ::frames(15)}, true  },  // End on new emotion so it's shown when there is no more animation
 };
 
 PlayerEmotionUI::PlayerEmotionUI(std::weak_ptr<Player> player)

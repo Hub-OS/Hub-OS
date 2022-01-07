@@ -515,12 +515,11 @@ void Entity::RefreshShader()
   }
 
   sf::Shader* shader = Shaders().GetShader(ShaderType::BATTLE_CHARACTER);
+  SmartShader& smartShader = GetShader();
 
-  if (shader != GetShader().Get()) {
+  if (shader != smartShader.Get()) {
     SetShader(shader);
   }
-
-  SmartShader& smartShader = GetShader();
 
   if (!smartShader.HasShader()) return;
 
@@ -1275,7 +1274,7 @@ void Entity::ResolveFrameBattleDamage()
 
   std::shared_ptr<Character> frameCounterAggressor = nullptr;
   bool frameStunCancel = false;
-  bool frameFlashCancel = true;
+  bool frameFlashCancel = false;
   bool frameFreezeCancel = false;
   bool willFreeze = false;
   Hit::Drag postDragEffect{};
@@ -1563,6 +1562,10 @@ void Entity::ResolveFrameBattleDamage()
   }
   else if (willFreeze) {
     IceFreeze(frames(150)); // start freeze effect
+  }
+
+  if (frameFlashCancel) {
+    invincibilityCooldown = frames(0); // end flash effect
   }
 
   if (GetHealth() == 0) {
