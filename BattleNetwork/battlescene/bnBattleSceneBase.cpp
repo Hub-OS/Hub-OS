@@ -783,6 +783,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
     iter++;
   }
 
+  //
   // blue team mobs
   for (auto iter = deletingBlueMobs.begin(); iter != deletingBlueMobs.end(); /*skip*/) {
     if (!field->GetEntity(*iter)) {
@@ -847,7 +848,6 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     if (tile->IsEdgeTile()) continue;
 
     bool yellowBlock = false;
-
     bool isCleared = (redTeamMob && redTeamMob->IsCleared()) || (blueTeamMob && blueTeamMob->IsCleared());
     if (tile->IsHighlighted() && !isCleared) {
       if (!yellowShader) {
@@ -907,7 +907,13 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       }
 
       node->ShiftShadow();
-      surface.draw(*node);
+
+      // TODO: having the field use hashes to identify entity types purely by ID would be faster
+      //       and remove all dynamic casting in the engine...
+      bool isSpell = (dynamic_cast<Spell*>(node) != nullptr);
+      if (isSpell || localPlayer->Teammate(node->GetTeam()) || !localPlayer->IsBlind()) {
+        surface.draw(*node);
+      }
 
       if (perspectiveFlip) {
         node->setScale(ogScale.x, ogScale.y);
@@ -921,6 +927,9 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   // draw ui on top
   for (Entity* ent : allEntities) {
+    // skip this entity's UI components if player is blinded
+    if (!(localPlayer->Teammate(ent->GetTeam()) || !localPlayer->IsBlind())) continue;
+
     std::vector<std::shared_ptr<UIComponent>> uis = ent->GetComponentsDerivedFrom<UIComponent>();
     sf::Vector2f flipOffset = PerspectiveOffset(ent->getPosition());
     for (std::shared_ptr<UIComponent>& ui : uis) {

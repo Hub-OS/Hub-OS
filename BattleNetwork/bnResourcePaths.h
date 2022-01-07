@@ -28,6 +28,7 @@ namespace TexturePaths {
   path SPELL_BUBBLE_TRAP = "resources/scenes/battle/spells/bubble_trap.png";
   path SPELL_POOF = "resources/scenes/battle/spells/poof.png";
   path ICE_FX = "resources/scenes/battle/spells/ice_fx.png";
+  path BLIND_FX = "resources/scenes/battle/blind.png";
 
   //Card Select 
   path CHIP_SELECT_MENU = "resources/ui/card_select.png";
@@ -142,6 +143,7 @@ namespace TexturePaths {
 
 namespace AnimationPaths {
   path ICE_FX = "resources/scenes/battle/spells/ice_fx.animation";
+  path BLIND_FX = "resources/scenes/battle/blind.animation";
 }
 
 namespace SoundPaths {

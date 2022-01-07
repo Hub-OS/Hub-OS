@@ -67,7 +67,14 @@ Entity::Entity() :
   iceFx->Hide(); // default: hidden
   AddNode(iceFx);
 
+  blindFx = std::make_shared<SpriteProxyNode>();
+  blindFx->setTexture(Textures().LoadFromFile(TexturePaths::BLIND_FX));
+  blindFx->SetLayer(-2);
+  blindFx->Hide(); // default: hidden
+  AddNode(blindFx);
+
   iceFxAnimation = Animation(AnimationPaths::ICE_FX);
+  blindFxAnimation = Animation(AnimationPaths::BLIND_FX);
 }
 
 Entity::~Entity() {
@@ -386,6 +393,19 @@ void Entity::Update(double _elapsed) {
 
     if (freezeCooldown <= frames(0)) {
       freezeCooldown = frames(0);
+    }
+  }
+
+  // assume this is hidden, will flip to visible if not
+  blindFx->Hide();
+  if (blindCooldown > frames(0)) {
+    blindFxAnimation.Update(_elapsed, blindFx->getSprite());
+    blindFx->Reveal();
+
+    blindCooldown -= from_seconds(_elapsed);
+
+    if (blindCooldown <= frames(0)) {
+      blindCooldown = frames(0);
     }
   }
   
@@ -728,8 +748,13 @@ void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType&
 // 3) if the tile is valid and the next tile is the same team
 bool Entity::CanMoveTo(Battle::Tile * next)
 {
-  bool valid = next? (HasFloatShoe()? true : next->IsWalkable()) : false;
-  return valid && Teammate(next->GetTeam()) && !next->IsReservedByCharacter({ GetID() });
+  bool valid = Teammate(next->GetTeam()) && !next->IsReservedByCharacter({ GetID() });
+
+  if (HasAirShoe() && !next->IsEdgeTile()) {
+    return valid;
+  }
+
+  return next->IsWalkable() && valid;
 }
 
 const long Entity::GetID() const
@@ -1464,6 +1489,21 @@ void Entity::ResolveFrameBattleDamage()
       // exclude this from the next processing step 
       props.filtered.flags &= ~Hit::shake;
 
+      // blind check 
+      if ((props.filtered.flags & Hit::blind) == Hit::blind) {
+        if (postDragEffect.dir != Direction::none) {
+          // requeue these statuses if in the middle of a slide/drag
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
+        }
+        else {
+          Blind(frames(300));
+          flagCheckThunk(Hit::blind);
+        }
+      }
+
+      // exclude blind from the next processing step
+      props.filtered.flags &= ~Hit::blind;
+
       /*
       flags already accounted for:
       - impact
@@ -1475,6 +1515,7 @@ void Entity::ResolveFrameBattleDamage()
       - bubble
       - root
       - shake
+      - blind
       Now check if the rest were triggered and invoke the
       corresponding status callbacks
       */
@@ -1647,6 +1688,11 @@ bool Entity::IsIceFrozen() {
   return freezeCooldown > frames(0);
 }
 
+bool Entity::IsBlind()
+{
+  return blindCooldown > frames(0);
+}
+
 void Entity::Stun(frame_time_t maxCooldown)
 {
   stunCooldown = maxCooldown;
@@ -1666,11 +1712,11 @@ void Entity::IceFreeze(frame_time_t maxCooldown)
   static std::shared_ptr<sf::SoundBuffer> freezesfx = Audio().LoadFromFile(SoundPaths::ICE_FX);
   Audio().Play(freezesfx, AudioPriority::highest);
 
-  if (height <= 48*2) {
+  if (height <= 48) {
     iceFxAnimation << "small" << Animator::Mode::Loop;
     iceFx->setPosition(0, -height/2.f);
   }
-  else if (height <= 75*2) {
+  else if (height <= 75) {
     iceFxAnimation << "medium" << Animator::Mode::Loop;
     iceFx->setPosition(0, -height/2.f);
   }
@@ -1680,6 +1726,21 @@ void Entity::IceFreeze(frame_time_t maxCooldown)
   }
 
   iceFxAnimation.Refresh(iceFx->getSprite());
+}
+
+void Entity::Blind(frame_time_t maxCooldown)
+{
+  float height = -GetHeight()/2.f;
+  std::shared_ptr<AnimationComponent> anim = GetFirstComponent<AnimationComponent>();
+
+  if (anim && anim->HasPoint("head")) {
+    height = (anim->GetPoint("head") - anim->GetPoint("origin")).y;
+  }
+
+  blindCooldown = maxCooldown;
+  blindFx->setPosition(0, height);
+  blindFxAnimation << "default" << Animator::Mode::Loop;
+  blindFxAnimation.Refresh(blindFx->getSprite());
 }
 
 bool Entity::IsCountered()

@@ -37,7 +37,7 @@ PlayerSelectedCardsUI::~PlayerSelectedCardsUI() {
 void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   if (this->IsHidden()) return;
 
-  const auto orange = sf::Color(225, 140, 0);
+  const sf::Color orange = sf::Color(225, 140, 0);
   bool canBoost{};
 
   text.SetString("");
@@ -48,16 +48,16 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
   //this_states.transform *= getTransform();
   states.transform *= getTransform();
 
-  if (auto player = GetOwnerAs<Player>()) {
+  if (std::shared_ptr<Player> player = GetOwnerAs<Player>()) {
     int cardOrder = 0;
 
     // i = curr so we only see the cards that are left
     int curr = GetCurrentCardIndex();
     unsigned multiplierValue = GetMultiplier();
-    auto& selectedCards = GetSelectedCards();
+    std::vector<Battle::Card>& selectedCards = GetSelectedCards();
     int cardCount = selectedCards.size();
-    auto& icon = IconNode();
-    auto& frame = FrameNode();
+    SpriteProxyNode& icon = IconNode();
+    SpriteProxyNode& frame = FrameNode();
 
     for (int i = curr; i < cardCount; i++) {
       // The first card appears in front

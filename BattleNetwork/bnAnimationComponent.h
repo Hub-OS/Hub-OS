@@ -146,6 +146,8 @@ public:
    */
   sf::Vector2f GetPoint(const std::string& pointName);
 
+  const bool HasPoint(const std::string& pointName);
+
   Animation& GetAnimationObject();
   
   void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string& uuid);

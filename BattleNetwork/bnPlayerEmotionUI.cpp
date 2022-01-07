@@ -6,14 +6,14 @@
  * A pair of Frame-count to Whether-or-not-to-show-the-new-or-old-emotion.
  */
 static const struct {
-  frame_time_t frames;
-  bool showNewEmotion;
+  frame_time_t frames{ ::frames(0) };
+  bool showNewEmotion{};
 } flickerAnimation[] = {
-  {  {30}, true },  // For frames [0-30), show new emotion
-  {  {60}, false }, // For frames [30-60), show old emotion
-  {  {90}, true },  // etc.
-  { {120}, false },
-  { {150}, true },  // End on new emotion so it's shown when there is no more animation
+  { { ::frames(30)}, true  },  // For frames [0-30), show new emotion
+  { { ::frames(60)}, false },  // For frames [30-60), show old emotion
+  { { ::frames(90)}, true  },  // etc.
+  { {::frames(120)}, false },
+  { {::frames(150)}, true  },  // End on new emotion so it's shown when there is no more animation
 };
 
 PlayerEmotionUI::PlayerEmotionUI(std::weak_ptr<Player> player)

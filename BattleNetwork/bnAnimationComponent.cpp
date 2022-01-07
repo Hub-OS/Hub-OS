@@ -161,6 +161,11 @@ sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
   return animation.GetPoint(pointName);
 }
 
+const bool AnimationComponent::HasPoint(const std::string& pointName)
+{
+  return animation.HasPoint(pointName);
+}
+
 Animation & AnimationComponent::GetAnimationObject()
 {
   return animation;

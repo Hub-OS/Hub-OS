@@ -134,7 +134,8 @@ private:
   VirtualInputState inputState;
   std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
   std::shared_ptr<SpriteProxyNode> iceFx{ nullptr };
-  Animation iceFxAnimation;
+  std::shared_ptr<SpriteProxyNode> blindFx{ nullptr };
+  Animation iceFxAnimation, blindFxAnimation;
   /**
    * @brief Frees one component with the same ID
    * @param ID ID of the component to remove
@@ -601,10 +602,16 @@ public:
   bool IsRooted();
 
   /**
- * @brief Query the character's state is Ice Frozen
- * @return true if character is currently frozen from hitbox status effects, false otherwise
- */
+   * @brief Query the character's state is Ice Frozen
+   * @return true if character is currently frozen from hitbox status effects, false otherwise
+   */
   bool IsIceFrozen();
+
+  /**
+  * @brief Query the character's state is Blind
+  * @return true if character is currently blind from hitbox status effects, false otherwise
+  */
+  bool IsBlind();
 
   /**
    * @brief Some characters allow others to move on top of them
@@ -764,6 +771,7 @@ protected:
   frame_time_t stunCooldown{ 0 }; /*!< Timer until stun is over */
   frame_time_t rootCooldown{ 0 }; /*!< Timer until root is over */
   frame_time_t freezeCooldown{ 0 }; /*!< Timer until freeze is over */
+  frame_time_t blindCooldown{ 0 }; /*!< Timer until blind is over */
   frame_time_t invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   bool counterable{};
   bool neverFlip{};
@@ -809,6 +817,14 @@ protected:
   *
   */
   void IceFreeze(frame_time_t maxCooldown);
+
+  /**
+  * @brief This entity should not see opponents for maxCooldown seconds
+  * @param maxCooldown
+  * Used internally by class
+  *
+  */
+  void Blind(frame_time_t maxCooldown);
 
   /**
   * @brief Query if an attack successfully countered a Character
