@@ -191,7 +191,7 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 
 void MobBattleScene::onUpdate(double elapsed)
 {
-  if (GetCurrentState() == combatPtr) {
+  if (combatPtr->IsStateCombat(GetCurrentState())) {
     ProcessLocalPlayerInputQueue();
   }
 

@@ -228,19 +228,19 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   skipFrame = IsRemoteBehind() && this->remotePlayer && !this->remotePlayer->IsDeleted();
 
-  // std::cout << "remoteInputQueue size is " << remoteInputQueue.size() << std::endl;
-
   if (skipFrame && FrameNumber()-resyncFrameNumber >= frames(5)) {
     SkipFrame();
   }
   else {
-    //if (combatPtr->IsStateCombat(GetCurrentState())) {
-      std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5);
-      SendFrameData(events, (FrameNumber() + frames(5)).count());
-    //}
+    std::vector<InputEvent> events;
+    if (combatPtr->IsStateCombat(GetCurrentState())) {
+      events = ProcessLocalPlayerInputQueue(5);
+    }
+
+    SendFrameData(events, (FrameNumber() + frames(5)).count());
   }
   
-  if (!remoteInputQueue.empty()/* && combatPtr->IsStateCombat(GetCurrentState())*/) {
+  if (!remoteInputQueue.empty()) {
     auto frame = remoteInputQueue.begin();
 
     const uint64_t sceneFrameNumber = FrameNumber().count();
@@ -264,9 +264,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   }
 
   BattleSceneBase::onUpdate(elapsed);
-  
-  //if (combatPtr->IsStateCombat(GetCurrentState()) && outEvents.has_value()) {
-  //}
 
   frame_time_t elapsed_frames = from_seconds(elapsed);
 
