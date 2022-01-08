@@ -29,7 +29,8 @@
 // Combos are counted if more than one enemy is hit within x frames
 // The game is clocked to display 60 frames per second
 // If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
-#define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
+#define COMBO_HIT_THRESHOLD_FRAMES frames(20)
+#define COUNTER_HIT_THRESHOLD_FRAMES frames(60)
 
 using swoosh::types::segue;
 using swoosh::Activity;
@@ -211,21 +212,23 @@ const bool BattleSceneBase::IsQuitting() const
 
 void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
 {
-  Audio().Play(AudioType::COUNTER, AudioPriority::highest);
-
-  if (&aggressor == localPlayer.get()) {
-    totalCounterMoves++;
-
-    if (victim.IsDeleted()) {
-      totalCounterDeletions++;
-    }
-  }
-
-  didCounterHit = true;
-  comboInfoTimer.reset();
-
   for (std::shared_ptr<Player> p : GetAllPlayers()) {
     if (&aggressor != p.get()) continue;
+
+    if (p == localPlayer) {
+      didCounterHit = true; // This flag allows the counter to display
+      comboInfoTimer.reset(); // reset display timer
+      totalCounterMoves++;
+
+      if (victim.IsDeleted()) {
+        totalCounterDeletions++;
+      }
+    }
+
+    Audio().Play(AudioType::COUNTER, AudioPriority::highest);
+
+    victim.ToggleCounter(false); // disable counter frame for the victim
+    victim.Stun(frames(150));
 
     if (p->IsInForm() == false && p->GetEmotion() != Emotion::evil) {
       if (p == localPlayer) {
@@ -310,12 +313,12 @@ const BattleSceneState* BattleSceneBase::GetCurrentState() const
 
 const int BattleSceneBase::ComboDeleteSize() const 
 {
-  return comboInfoTimer.getElapsed().asSeconds() <= 1.0f ? comboDeleteCounter : 0;
+  return comboInfoTimer.elapsed() <= COUNTER_HIT_THRESHOLD_FRAMES ? comboDeleteCounter : 0;
 }
 
 const bool BattleSceneBase::Countered() const
 {
-  return comboInfoTimer.getElapsed().asSeconds() <= 1.0f && didCounterHit;
+  return comboInfoTimer.elapsed() <= COUNTER_HIT_THRESHOLD_FRAMES && didCounterHit;
 }
 
 void BattleSceneBase::HighlightTiles(bool enable)
@@ -658,7 +661,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   background->Update((float)elapsed);
 
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && this->IsSceneInFocus()) {
+  if (Input().GetAnyKey() == sf::Keyboard::Escape && this->IsSceneInFocus()) {
     BroadcastBattleStop();
     Quit(FadeOut::white);
     Audio().StopStream();
@@ -722,7 +725,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
       // If the mob isn't cleared, only update when the battle-step timer is going
       // Otherwise, feel free to update as the battle is over (mob is cleared)
       bool isCleared = (redTeamMob && redTeamMob->IsCleared()) || (blueTeamMob && blueTeamMob->IsCleared());
-      bool updateBattleSteps = !isCleared && !battleTimer.isPaused();
+      bool updateBattleSteps = !isCleared && !battleTimer.is_paused();
       updateBattleSteps = updateBattleSteps || isCleared;
       if (updateBattleSteps) {
         c->Update((float)elapsed);
@@ -731,31 +734,41 @@ void BattleSceneBase::onUpdate(double elapsed) {
   }
 
   counterRevealAnim.Update((float)elapsed, counterReveal->getSprite());
-  comboInfoTimer.update(sf::seconds(static_cast<float>(elapsed)));
-  multiDeleteTimer.update(sf::seconds(static_cast<float>(elapsed)));
-  battleTimer.update(sf::seconds(static_cast<float>(elapsed)));
+
+  if (!battleTimer.is_paused()) {
+    comboInfoTimer.tick();
+    multiDeleteTimer.tick();
+
+    if (comboInfoTimer.elapsed() > COUNTER_HIT_THRESHOLD_FRAMES) {
+      didCounterHit = didDoubleDelete = didTripleDelete = false;
+    }
+  }
+
+  Logger::Logf(LogLevel::debug, "didCounterHit: %i", didCounterHit ? 1 : 0);
+
+  battleTimer.tick();
 
   // Track combo deletes
   const int& lastMobSize = localPlayer->GetTeam() == Team::red ? blueTeamMob->GetMobCount() : redTeamMob->GetMobCount();
   int& newMobSize = localPlayer->GetTeam() == Team::red ? newBlueTeamMobSize : newRedTeamMobSize;
 
   if (lastMobSize != newMobSize && !isPlayerDeleted) {
-    int counter = lastMobSize - newMobSize;
-    if (multiDeleteTimer.getElapsed() <= sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)) {
+    int counter = newMobSize - lastMobSize; // this frame's mob size - mob size after 1 frame of update = combo delete count
+    if (multiDeleteTimer.elapsed() <= COMBO_HIT_THRESHOLD_FRAMES) {
       comboDeleteCounter += counter;
 
       if (comboDeleteCounter == 2) {
         didDoubleDelete = true;
-        comboInfoTimer.reset();
       }
       else if (comboDeleteCounter > 2) {
         didTripleDelete = true;
-        comboInfoTimer.reset();
       }
     }
-    else if (multiDeleteTimer.getElapsed() > sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)) {
+    else if (multiDeleteTimer.elapsed() > COMBO_HIT_THRESHOLD_FRAMES) {
       comboDeleteCounter = counter;
     }
+
+    comboInfoTimer.reset();
   }
 
   if (lastMobSize != newMobSize) {
@@ -1184,8 +1197,8 @@ void BattleSceneBase::IncrementFrame()
   frameNumber++;
 }
 
-const sf::Time BattleSceneBase::GetElapsedBattleTime() {
-  return battleTimer.getElapsed();
+const frame_time_t BattleSceneBase::GetElapsedBattleFrames() {
+  return battleTimer.elapsed();
 }
 
 const bool BattleSceneBase::FadeInBackdrop(double amount, double to, bool affectBackground)

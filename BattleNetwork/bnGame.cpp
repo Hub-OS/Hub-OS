@@ -376,6 +376,7 @@ void Game::RunSingleThreaded()
 
     // unused images need to be free'd 
     textureManager.HandleExpiredTextureCache();
+    audioManager.HandleExpiredAudioCache();
 
     double delta = 1.0 / static_cast<double>(frame_time_t::frames_per_second);
     this->elapsed += from_seconds(delta);
@@ -420,6 +421,7 @@ void Game::Run()
 
     // unused images need to be free'd 
     textureManager.HandleExpiredTextureCache();
+    audioManager.HandleExpiredAudioCache();
 
     quitting = getStackSize() == 0;
   }

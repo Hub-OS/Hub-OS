@@ -146,9 +146,9 @@ private:
   CardSelectionCust cardCustGUI; /*!< Card selection GUI that has an API to interact with */
 
   // sprites
-  swoosh::Timer comboInfoTimer; /*!< How long the info should stay on screen */
-  swoosh::Timer multiDeleteTimer; /*!< Deletions start a 12 frame timer to count towards combos */
-  swoosh::Timer battleTimer; /*!< Total duration of active battle time */
+  frame_time_stopwatch_t comboInfoTimer; /*!< How long the info should stay on screen */
+  frame_time_stopwatch_t multiDeleteTimer; /*!< Deletions start a 12 frame timer to count towards combos */
+  frame_time_stopwatch_t battleTimer; /*!< Total duration of active battle time */
 
   // shader fx
   double shaderCooldown;
@@ -409,7 +409,7 @@ public:
   virtual void IncrementRoundCount();
   void SkipFrame();
   void IncrementFrame();
-  const sf::Time GetElapsedBattleTime();
+  const frame_time_t GetElapsedBattleFrames();
 
   const bool FadeInBackdrop(double amount, double to, bool affectBackground);
   const bool FadeOutBackdrop(double amount);

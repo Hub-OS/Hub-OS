@@ -339,6 +339,21 @@ void Entity::Init() {
 void Entity::Update(double _elapsed) {
   ResolveFrameBattleDamage();
 
+  if (fieldStart && ((maxHealth > 0 && health <= 0) || IsDeleted())) {
+    // Ensure entity is deleted if health is zero
+    if (manualDelete == false) {
+      Delete();
+    }
+
+    // Ensure health is zero if marked for immediate deletion
+    health = 0;
+
+    // Ensure status effects do not play out
+    stunCooldown = frames(0);
+    rootCooldown = frames(0);
+    invincibilityCooldown = frames(0);
+  }
+
   // reset base color
   setColor(NoopCompositeColor(GetColorMode()));
 
@@ -453,21 +468,6 @@ void Entity::Update(double _elapsed) {
 
     // Add this offset onto our offsets
     setPosition(tile->getPosition().x + offset.x, tile->getPosition().y + offset.y);
-  }
-
-  if (fieldStart && ((maxHealth > 0 && health <= 0) || IsDeleted())) {
-    // Ensure entity is deleted if health is zero
-    if (manualDelete == false) {
-      Delete();
-    }
-
-    // Ensure health is zero if marked for immediate deletion
-    health = 0;
-
-    // Ensure status effects do not play out
-    stunCooldown = frames(0);
-    rootCooldown = frames(0);
-    invincibilityCooldown = frames(0);
   }
 
   // If drag status is over, reset the flag
@@ -738,7 +738,6 @@ void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType&
     actionQueue.CreateDiscardFilter(ActionTypes::buster, ActionDiscardOp::until_resolve);
     actionQueue.CreateDiscardFilter(ActionTypes::peek_card, ActionDiscardOp::until_resolve);
   }
-
 }
 
 // Default implementation of CanMoveTo() checks 
@@ -777,7 +776,7 @@ void Entity::SetTile(Battle::Tile* _tile) {
 }
 
 Battle::Tile* Entity::GetTile(Direction dir, unsigned count) const {
-  Battle::Tile* next = this->tile;
+  Battle::Tile* next = tile;
 
   while (count > 0) {
     next = next + dir;
@@ -788,7 +787,7 @@ Battle::Tile* Entity::GetTile(Direction dir, unsigned count) const {
 }
 
 Battle::Tile* Entity::GetCurrentTile() const {
-    return GetTile();
+  return GetTile();
 }
 
 const sf::Vector2f Entity::GetTileOffset() const
@@ -1179,7 +1178,7 @@ const bool Entity::Hit(Hit::Properties props) {
     return false;
   }
 
-  if (GetHealth() <= 0) {
+  if (health <= 0) {
     return false;
   }
 
@@ -1270,7 +1269,7 @@ const int Entity::GetMaxHealth() const
 
 void Entity::ResolveFrameBattleDamage()
 {
-  if(statusQueue.empty()) return;
+  if(statusQueue.empty() || IsDeleted()) return;
 
   std::shared_ptr<Character> frameCounterAggressor = nullptr;
   bool frameStunCancel = false;
@@ -1288,7 +1287,7 @@ void Entity::ResolveFrameBattleDamage()
     // a re-usable thunk for custom status effects
     auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
       if ((props.filtered.flags & toCheck) == toCheck) {
-        if (auto& func = statusCallbackHash[toCheck]) {
+        if (Entity::StatusCallback& func = statusCallbackHash[toCheck]) {
           func();
         }
       }
@@ -1315,6 +1314,7 @@ void Entity::ResolveFrameBattleDamage()
 
     if (props.filtered.element == Element::aqua && GetTile()->GetState() == TileState::ice && !frameFreezeCancel) {
       willFreeze = true;
+      GetTile()->SetState(TileState::normal);
     }
 
     // Broadcast the hit before we apply statuses and change the entity's state flags
@@ -1366,7 +1366,8 @@ void Entity::ResolveFrameBattleDamage()
         props.filtered.flags &= ~Hit::drag;
       }
 
-      frameFreezeCancel = frameFreezeCancel || ((props.filtered.flags & Hit::flash) == Hit::flash) && ((props.filtered.flags & Hit::flinch) == Hit::flinch);
+      bool flashAndFlinch = ((props.filtered.flags & Hit::flash) == Hit::flash) && ((props.filtered.flags & Hit::flinch) == Hit::flinch);
+      frameFreezeCancel = frameFreezeCancel || flashAndFlinch;
 
       /**
       While an attack that only flinches will not cancel stun, 
@@ -1388,9 +1389,9 @@ void Entity::ResolveFrameBattleDamage()
           }*/
 
           // assume some defense rule strips out flinch, prevent abuse of stun
-          bool cancelsStun = (props.filtered.flags & Hit::flinch) == 0 && (props.hitbox.flags & Hit::flinch) == Hit::flinch;
+          frameStunCancel = frameStunCancel ||(props.filtered.flags & Hit::flinch) == 0 && (props.hitbox.flags & Hit::flinch) == Hit::flinch;
 
-          if ((props.filtered.flags & Hit::flash) == Hit::flash && cancelsStun) {
+          if ((props.filtered.flags & Hit::flash) == Hit::flash && frameStunCancel) {
             // cancel stun
             stunCooldown = frames(0);
           }
@@ -1503,6 +1504,11 @@ void Entity::ResolveFrameBattleDamage()
       // exclude blind from the next processing step
       props.filtered.flags &= ~Hit::blind;
 
+      // todo: for confusion
+      //if ((props.filtered.flags & Hit::confusion) == Hit::confusion) {
+      //  frameStunCancel = true;
+      //}
+
       /*
       flags already accounted for:
       - impact
@@ -1568,6 +1574,10 @@ void Entity::ResolveFrameBattleDamage()
     invincibilityCooldown = frames(0); // end flash effect
   }
 
+  if (frameStunCancel) {
+    stunCooldown = frames(0); // end stun effect
+  }
+
   if (GetHealth() == 0) {
     while(statusQueue.size() > 0) {
       statusQueue.pop();
@@ -1582,8 +1592,6 @@ void Entity::ResolveFrameBattleDamage()
     }
   } else if (frameCounterAggressor) {
     CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
-    ToggleCounter(false);
-    Stun(frames(150));
   }
 }
 
@@ -1698,6 +1706,7 @@ bool Entity::IsBlind()
 
 void Entity::Stun(frame_time_t maxCooldown)
 {
+  freezeCooldown = frames(0); // cancel freeze
   stunCooldown = maxCooldown;
 }
 
@@ -1708,6 +1717,7 @@ void Entity::Root(frame_time_t maxCooldown)
 
 void Entity::IceFreeze(frame_time_t maxCooldown)
 {
+  stunCooldown = frames(0); // cancel stun
   freezeCooldown = maxCooldown;
 
   const float height = GetHeight();
