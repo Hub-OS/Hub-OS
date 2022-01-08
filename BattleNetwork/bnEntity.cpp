@@ -1563,22 +1563,10 @@ void Entity::ResolveFrameBattleDamage()
     }
   }
 
-  if (frameFreezeCancel) {
-    freezeCooldown = frames(0); // end freeze effect
-  }
-  else if (willFreeze) {
-    IceFreeze(frames(150)); // start freeze effect
-  }
-
-  if (frameFlashCancel) {
-    invincibilityCooldown = frames(0); // end flash effect
-  }
-
-  if (frameStunCancel) {
-    stunCooldown = frames(0); // end stun effect
-  }
-
   if (GetHealth() == 0) {
+    // We are dying. Prevent special fx and status animations from triggering.
+    frameFreezeCancel = frameFlashCancel = frameStunCancel = true;
+
     while(statusQueue.size() > 0) {
       statusQueue.pop();
     }
@@ -1592,6 +1580,21 @@ void Entity::ResolveFrameBattleDamage()
     }
   } else if (frameCounterAggressor) {
     CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
+  }
+
+  if (frameFreezeCancel) {
+    freezeCooldown = frames(0); // end freeze effect
+  }
+  else if (willFreeze) {
+    IceFreeze(frames(150)); // start freeze effect
+  }
+
+  if (frameFlashCancel) {
+    invincibilityCooldown = frames(0); // end flash effect
+  }
+
+  if (frameStunCancel) {
+    stunCooldown = frames(0); // end stun effect
   }
 }
 
@@ -1706,6 +1709,7 @@ bool Entity::IsBlind()
 
 void Entity::Stun(frame_time_t maxCooldown)
 {
+  invincibilityCooldown = frames(0); // cancel flash
   freezeCooldown = frames(0); // cancel freeze
   stunCooldown = maxCooldown;
 }
@@ -1717,6 +1721,7 @@ void Entity::Root(frame_time_t maxCooldown)
 
 void Entity::IceFreeze(frame_time_t maxCooldown)
 {
+  invincibilityCooldown = frames(0); // cancel flash
   stunCooldown = frames(0); // cancel stun
   freezeCooldown = maxCooldown;
 

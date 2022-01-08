@@ -191,7 +191,10 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 
 void MobBattleScene::onUpdate(double elapsed)
 {
-  ProcessLocalPlayerInputQueue();
+  if (GetCurrentState() == combatPtr) {
+    ProcessLocalPlayerInputQueue();
+  }
+
   BattleSceneBase::onUpdate(elapsed);
 }
 

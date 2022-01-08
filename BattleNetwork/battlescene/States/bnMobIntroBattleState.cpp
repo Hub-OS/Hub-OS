@@ -19,7 +19,7 @@ void MobIntroBattleState::onUpdate(double elapsed)
   Field& field = *scene.GetField();
 
   if (mob->NextMobReady()) {
-    auto data = mob->GetNextSpawn();
+    std::unique_ptr<Mob::SpawnData> data = mob->GetNextSpawn();
 
     Agent* cast = dynamic_cast<Agent*>(data->character.get());
 

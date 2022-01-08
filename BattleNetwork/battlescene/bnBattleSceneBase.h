@@ -374,7 +374,7 @@ public:
   virtual void onEnd() override;
 
   // Define what happens on scenes that need to inspect pre-filtered card selections
-  virtual void OnFilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {};
+  virtual void OnSelectNewCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {};
 
   void DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf);
   void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);

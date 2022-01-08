@@ -136,7 +136,7 @@ private:
   void SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlayer, int x, int y);
 
   // We need to intercept the filtered cards for netplay
-  void OnFilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards);
+  void OnSelectNewCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards);
 
   // Battle state hooks
   std::function<bool()> HookPlayerWon(CombatBattleState& combat, BattleOverBattleState& over);

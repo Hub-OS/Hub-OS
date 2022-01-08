@@ -153,7 +153,7 @@ bool SelectedCardsUI::UseNextCard() {
 
 void SelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 {
-  this->DropNextCard();
+  DropNextCard();
   CardActionUsePublisher::Broadcast(action, CurrentTime::AsMilli());
 }
 
@@ -193,12 +193,12 @@ void SelectedCardsUI::DropNextCard()
   curr++;
 }
 
-std::vector<std::string> SelectedCardsUI::GetUUIDList()
+std::vector<Battle::Card> SelectedCardsUI::GetRemainingCards()
 {
-  std::vector<std::string> res;
+  std::vector<Battle::Card> res;
 
   for (int i = curr; i < selectedCards->size(); i++) {
-    res.push_back((*selectedCards)[i].GetUUID());
+    res.push_back((*selectedCards)[i]);
   }
 
   return res;

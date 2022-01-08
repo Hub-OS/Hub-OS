@@ -688,12 +688,12 @@ void NetworkBattleScene::SpawnRemotePlayer(std::shared_ptr<Player> newRemotePlay
   remoteCardActionUsePublisher = newRemotePlayer->GetFirstComponent<PlayerSelectedCardsUI>();
 }
 
-void NetworkBattleScene::OnFilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards)
+void NetworkBattleScene::OnSelectNewCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards)
 {
-  prefilteredCardSelection.clear();
-
   // intercept pre-filtered cards to send them over the network
   if (player == GetLocalPlayer()) {
+    prefilteredCardSelection.clear();
+
     for (Battle::Card& card : cards) {
       prefilteredCardSelection.push_back(card.GetUUID());
     }

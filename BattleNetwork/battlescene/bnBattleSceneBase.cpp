@@ -536,9 +536,6 @@ void BattleSceneBase::HandleCounterLoss(Entity& subject, bool playsound)
 void BattleSceneBase::FilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {
   CardPackagePartitioner& partitions = getController().CardPackagePartitioner();
 
-  // Let any callbacks take precedence
-  OnFilterSupportCards(player, cards);
-
   for (size_t i = 0; i < cards.size(); i++) {
     std::string uuid = cards[i].GetUUID();
     stx::result_t<PackageAddress> maybe_addr = PackageAddress::FromStr(uuid);
@@ -743,8 +740,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
       didCounterHit = didDoubleDelete = didTripleDelete = false;
     }
   }
-
-  Logger::Logf(LogLevel::debug, "didCounterHit: %i", didCounterHit ? 1 : 0);
 
   battleTimer.tick();
 
