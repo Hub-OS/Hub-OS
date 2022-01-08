@@ -1512,14 +1512,6 @@ void Entity::ResolveFrameBattleDamage()
       //  frameStunCancel = true;
       //}
 
-      if ((props.filtered.flags & Hit::breaking) == Hit::breaking) {
-        if (IsIceFrozen()) {
-          props.filtered.damage *= 2;
-          frameFreezeCancel = true;
-        }
-      }
-
-
       /*
       flags already accounted for:
       - impact
