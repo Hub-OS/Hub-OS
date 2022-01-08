@@ -332,6 +332,7 @@ namespace Battle {
     bool isTimeFrozen{ false };
     bool isBattleOver{ false };
     bool isBattleStarted{ false };
+    bool isPerspectiveFlipped{ false };
     float width{};
     float height{};
     static double teamCooldownLength;

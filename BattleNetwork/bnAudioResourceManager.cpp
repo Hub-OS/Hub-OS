@@ -409,7 +409,7 @@ void AudioResourceManager::StopStream() {
 void AudioResourceManager::SetStreamVolume(float volume) {
   stream.setVolume(volume);
   midiMusic.setVolume(volume);
-  midiMusic.setGain(1.0);
+  midiMusic.setGain(1.5); // midi's are quiet, make them louder
   streamVolume = volume;
 }
 

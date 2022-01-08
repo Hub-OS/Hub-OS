@@ -522,6 +522,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   std::memcpy(&cardLen, buffer.begin() + read, sizeof(size_t));
   read += sizeof(size_t);
 
+  Logger::Logf(LogLevel::debug, "Recieved remote handshake. Remote sent %i cards.", cardLen);
   while (cardLen > 0) {
     std::string uuid;
     size_t len{};
@@ -531,6 +532,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
     std::memcpy(uuid.data(), buffer.begin() + read, len);
     read += len;
     remoteUUIDs.push_back(uuid);
+    Logger::Logf(LogLevel::debug, "Remote Card: %s", uuid.c_str());
     cardLen--;
   }
 

@@ -16,7 +16,7 @@ namespace Hit {
   const Flags shake      = 0x00000010;
   const Flags stun       = 0x00000020;
   const Flags flash      = 0x00000040;
-  const Flags breaking   = 0x00000080;
+  const Flags breaking   = 0x00000080; // NOTE: this is what we refer to as "true breaking"
   const Flags impact     = 0x00000100;
   const Flags drag       = 0x00000200;
   const Flags bubble     = 0x00000400;

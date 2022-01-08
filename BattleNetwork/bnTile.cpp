@@ -202,6 +202,7 @@ namespace Battle {
 
   void Tile::PerspectiveFlip(bool state)
   {
+    isPerspectiveFlipped = state;
     if (state) {
       red_team_atlas = blue_team_perm;
       blue_team_atlas = red_team_perm;
@@ -889,10 +890,10 @@ namespace Battle {
       str = str + "direction_down";
       break;
     case TileState::directionLeft:
-      str = str + "direction_left";
+      str = str + (isPerspectiveFlipped? "direction_right" : "direction_left");
       break;
     case TileState::directionRight:
-      str = str + "direction_right";
+      str = str + (isPerspectiveFlipped ? "direction_left" : "direction_right");
       break;
     case TileState::directionUp:
       str = str + "direction_up";

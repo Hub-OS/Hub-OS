@@ -1294,6 +1294,7 @@ void Entity::ResolveFrameBattleDamage()
     };
 
     int tileDamage = 0;
+    int extraDamage = 0;
 
     // Calculate elemental damage if the tile the character is on is super effective to it
     if (props.filtered.element == Element::fire
@@ -1307,19 +1308,21 @@ void Entity::ResolveFrameBattleDamage()
       tileDamage = props.filtered.damage;
     }
 
-    if (props.filtered.element == Element::breaker && IsIceFrozen()) {
-      props.filtered.damage *= 2;
-      frameFreezeCancel = true;
-    }
-
-    if (props.filtered.element == Element::aqua && GetTile()->GetState() == TileState::ice && !frameFreezeCancel) {
+    if (props.filtered.element == Element::aqua 
+      && GetTile()->GetState() == TileState::ice 
+      && !frameFreezeCancel) {
       willFreeze = true;
       GetTile()->SetState(TileState::normal);
     }
 
+    if ((props.filtered.flags & Hit::breaking) == Hit::breaking && IsIceFrozen()) {
+      extraDamage = props.filtered.damage;
+      frameFreezeCancel = true;
+    }
+
     // Broadcast the hit before we apply statuses and change the entity's state flags
-    if (props.filtered.damage) {
-      SetHealth(GetHealth() - tileDamage);
+    if (props.filtered.damage > 0) {
+      SetHealth(GetHealth() - (tileDamage + extraDamage));
       HitPublisher::Broadcast(*this, props.filtered);
     }
 
@@ -1508,6 +1511,14 @@ void Entity::ResolveFrameBattleDamage()
       //if ((props.filtered.flags & Hit::confusion) == Hit::confusion) {
       //  frameStunCancel = true;
       //}
+
+      if ((props.filtered.flags & Hit::breaking) == Hit::breaking) {
+        if (IsIceFrozen()) {
+          props.filtered.damage *= 2;
+          frameFreezeCancel = true;
+        }
+      }
+
 
       /*
       flags already accounted for:
