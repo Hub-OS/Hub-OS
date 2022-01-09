@@ -827,13 +827,6 @@ protected:
   void Blind(frame_time_t maxCooldown);
 
   /**
-  * @brief Query if an attack successfully countered a Character
-  * @return true if character is currently countered, false otherwise
-  * Used internally by class
-  */
-  bool IsCountered();
-
-  /**
   * Can override to provide custom behavior for when an Entity is countered
   */
   virtual void OnCountered() {}
