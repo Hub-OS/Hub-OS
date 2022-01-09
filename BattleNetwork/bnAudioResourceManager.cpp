@@ -3,6 +3,7 @@
 
 AudioResourceManager::AudioResourceManager(){
   midiMusic.loadSoundFontFromFile("resources/midi/soundfont.sf2");
+  midiMusic.setReverbActive(false);
 
   isEnabled = true;
 
