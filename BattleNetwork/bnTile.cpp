@@ -732,7 +732,7 @@ namespace Battle {
     std::vector<std::shared_ptr<Entity>> res;
 
     for(auto iter = entities.begin(); iter != entities.end(); iter++ ) {
-      if (query(*iter) && (*iter)->IsHitboxAvailable()) {
+      if ((*iter)->IsHitboxAvailable() && query(*iter)) {
         res.push_back(*iter);
       }
     }
@@ -752,7 +752,7 @@ namespace Battle {
 
       if (spell_iter != spells.end()) continue;
 
-      if (query(*iter) && (*iter)->IsHitboxAvailable()) {
+      if ((*iter)->IsHitboxAvailable() && query(*iter)) {
         res.push_back(*iter);
       }
     }
@@ -773,7 +773,7 @@ namespace Battle {
       if (spell_iter == spells.end()) continue;
 
       std::shared_ptr<Obstacle> as_obstacle = std::dynamic_pointer_cast<Obstacle>(*iter);
-      if (as_obstacle && query(as_obstacle) && as_obstacle->IsHitboxAvailable()) {
+      if (as_obstacle && as_obstacle->IsHitboxAvailable() && query(as_obstacle)) {
         res.push_back(as_obstacle);
       }
     }
