@@ -727,6 +727,43 @@ namespace Battle {
     }
   }
 
+  void Tile::ForEachEntity(const std::function<void(std::shared_ptr<Entity>& e)>& callback) {
+    for(auto iter = entities.begin(); iter != entities.end(); iter++ ) {
+      callback(*iter);
+    }
+  }
+
+  void Tile::ForEachCharacter(const std::function<void(std::shared_ptr<Character>& e)>& callback) {
+    for (auto iter = characters.begin(); iter != characters.end(); iter++) {
+      // skip obstacle types...
+      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](Entity* other) {
+        return other->GetID() == character->GetID();
+      });
+
+      if (spell_iter != spells.end()) continue;
+
+      callback(*iter);
+    }
+  }
+
+  void Tile::ForEachObstacle(const std::function<void(std::shared_ptr<Obstacle>& e)>& callback) {
+    
+    for (auto iter = characters.begin(); iter != characters.end(); iter++) {
+      // collect only obstacle types...
+      auto spell_iter = std::find_if(spells.begin(), spells.end(), [character = *iter](Entity* other) {
+        return other->GetID() == character->GetID();
+      });
+
+      if (spell_iter == spells.end()) continue;
+
+      std::shared_ptr<Obstacle> as_obstacle = std::dynamic_pointer_cast<Obstacle>(*iter);
+
+      if (as_obstacle) {
+        callback(as_obstacle);
+      }
+    }
+  }
+
   std::vector<std::shared_ptr<Entity>> Tile::FindHittableEntities(std::function<bool(std::shared_ptr<Entity>& e)> query)
   {
     std::vector<std::shared_ptr<Entity>> res;

@@ -244,6 +244,39 @@ Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, Battle::
   return AddEntity(entity, dest.GetX(), dest.GetY());
 }
 
+void Field::ForEachEntity(const std::function<void(std::shared_ptr<Entity>& e)>& callback)
+{
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      tile->ForEachEntity(callback);
+    }
+  }
+}
+
+void Field::ForEachCharacter(const std::function<void(std::shared_ptr<Character>& e)>& callback)
+{
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      tile->ForEachCharacter(callback);
+    }
+  }
+}
+
+void Field::ForEachObstacle(const std::function<void(std::shared_ptr<Obstacle>& e)>& callback)
+{
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      tile->ForEachObstacle(callback);
+    }
+  }
+}
+
 std::vector<std::shared_ptr<Entity>> Field::FindHittableEntities(std::function<bool(std::shared_ptr<Entity>& e)> query) const
 {
   std::vector<std::shared_ptr<Entity>> res;
