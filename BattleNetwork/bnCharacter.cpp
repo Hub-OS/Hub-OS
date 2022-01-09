@@ -142,7 +142,7 @@ bool Character::CanMoveTo(Battle::Tile * next)
     return c && c != this && !c->CanShareTileSpace();
   };
 
-  bool result = (Entity::CanMoveTo(next) && next->FindEntities(occupied).size() == 0);
+  bool result = (Entity::CanMoveTo(next) && next->FindHittableEntities(occupied).size() == 0);
   result = result && !next->IsEdgeTile();
 
   return result;

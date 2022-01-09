@@ -281,7 +281,7 @@ namespace Battle {
      * @param e Functor that takes in an entity and returns a boolean
      * @return returns a list of entities that returned true in the functor `e` 
      */
-    std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query);
+    std::vector<std::shared_ptr<Entity>> FindHittableEntities(std::function<bool(std::shared_ptr<Entity>& e)> query);
 
     /**
      * @brief Query for multiple charactors using a functor
@@ -290,7 +290,7 @@ namespace Battle {
      * @param e Functor that takes in an character and returns a boolean
      * @return returns a list of characters that returned true in the functor `e`
      */
-    std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query);
+    std::vector<std::shared_ptr<Character>> FindHittableCharacters(std::function<bool(std::shared_ptr<Character>& e)> query);
 
     /**
      * @brief Query for multiple charactors using a functor
@@ -299,7 +299,7 @@ namespace Battle {
      * @param e Functor that takes in an obstacle and returns a boolean
      * @return returns a list of obstacles that returned true in the functor `e`
      */
-    std::vector<std::shared_ptr<Obstacle>> FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query);
+    std::vector<std::shared_ptr<Obstacle>> FindHittableObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query);
 
     /**
      * @brief Calculates and returns Manhattan-distance from this tile to the other

@@ -55,7 +55,7 @@ void DefineTileUserType(sol::state& state) {
       // store entities in a temp to avoid issues if the scripter mutates entities in this loop
       std::vector<WeakWrapper<Character>> characters;
 
-      tile.FindCharacters([&characters](std::shared_ptr<Character>& character) -> bool {
+      tile.FindHittableCharacters([&characters](std::shared_ptr<Character>& character) -> bool {
         characters.push_back(WeakWrapper(character));
         return false;
       });
@@ -69,7 +69,7 @@ void DefineTileUserType(sol::state& state) {
       // store entities in a temp to avoid issues if the scripter mutates entities in this loop
       std::vector<WeakWrapper<Entity>> entities;
 
-      tile.FindEntities([&entities](std::shared_ptr<Entity>& entity) -> bool {
+      tile.FindHittableEntities([&entities](std::shared_ptr<Entity>& entity) -> bool {
         entities.push_back(WeakWrapper(entity));
         return false;
       });
@@ -83,7 +83,7 @@ void DefineTileUserType(sol::state& state) {
       // store entities in a temp to avoid issues if the scripter mutates entities in this loop
       std::vector<WeakWrapper<Obstacle>> obstacles;
 
-      tile.FindObstacles([&obstacles](std::shared_ptr<Obstacle>& obstacle) -> bool {
+      tile.FindHittableObstacles([&obstacles](std::shared_ptr<Obstacle>& obstacle) -> bool {
         obstacles.push_back(WeakWrapper(obstacle));
         return false;
       });

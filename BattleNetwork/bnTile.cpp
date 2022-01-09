@@ -229,7 +229,7 @@ namespace Battle {
 
     // Check if no characters on the opposing team are on this tile
     if (GetTeam() == Team::unknown || GetTeam() != _team) {
-      size_t size = FindEntities([this, _team](std::shared_ptr<Entity>& in) {
+      size_t size = FindHittableEntities([this, _team](std::shared_ptr<Entity>& in) {
         Character* isCharacter = dynamic_cast<Character*>(in.get());
         return isCharacter && in->GetTeam() != _team;
       }).size();
@@ -727,7 +727,7 @@ namespace Battle {
     }
   }
 
-  std::vector<std::shared_ptr<Entity>> Tile::FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query)
+  std::vector<std::shared_ptr<Entity>> Tile::FindHittableEntities(std::function<bool(std::shared_ptr<Entity>& e)> query)
   {
     std::vector<std::shared_ptr<Entity>> res;
 
@@ -740,7 +740,7 @@ namespace Battle {
     return res;
   }
 
-  std::vector<std::shared_ptr<Character>> Tile::FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query)
+  std::vector<std::shared_ptr<Character>> Tile::FindHittableCharacters(std::function<bool(std::shared_ptr<Character>& e)> query)
   {
     std::vector<std::shared_ptr<Character>> res;
 
@@ -760,7 +760,7 @@ namespace Battle {
     return res;
   }
 
-  std::vector<std::shared_ptr<Obstacle>> Tile::FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query)
+  std::vector<std::shared_ptr<Obstacle>> Tile::FindHittableObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query)
   {
     std::vector<std::shared_ptr<Obstacle>> res;
 

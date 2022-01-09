@@ -90,7 +90,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       // store entities in a temp to avoid issues if the scripter mutates entities in this loop
       std::vector<WeakWrapper<Entity>> entities;
 
-      field.Unwrap()->FindEntities([&entities](std::shared_ptr<Entity>& entity) -> bool {
+      field.Unwrap()->FindHittableEntities([&entities](std::shared_ptr<Entity>& entity) -> bool {
         entities.push_back(WeakWrapper(entity));
         return false;
       });
@@ -104,7 +104,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       // store entities in a temp to avoid issues if the scripter mutates entities in this loop
       std::vector<WeakWrapper<Character>> characters;
 
-      field.Unwrap()->FindCharacters([&characters](std::shared_ptr<Character>& character) -> bool {
+      field.Unwrap()->FindHittableCharacters([&characters](std::shared_ptr<Character>& character) -> bool {
         characters.push_back(WeakWrapper(character));
         return false;
       });
@@ -118,7 +118,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       // store entities in a temp to avoid issues if the scripter mutates entities in this loop
       std::vector<WeakWrapper<Obstacle>> obstacles;
 
-      field.Unwrap()->FindObstacles([&obstacles](std::shared_ptr<Obstacle>& obstacle) -> bool {
+      field.Unwrap()->FindHittableObstacles([&obstacles](std::shared_ptr<Obstacle>& obstacle) -> bool {
         obstacles.push_back(WeakWrapper(obstacle));
         return false;
       });
