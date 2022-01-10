@@ -126,7 +126,7 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
       // Prefer using the shared libraries if possible.
       // i.e. ones that were present in "mods/libs/"
       // make sure it was required by checking dependencies as well
-      if(std::find(scriptPackage.dependencies.begin(), scriptPackage.dependencies.end(), scriptPath) != scriptPackage.dependencies.end())
+      if(std::find(scriptPackage.dependencies.begin(), scriptPackage.dependencies.end(), fileName) != scriptPackage.dependencies.end())
       {
         Logger::Logf(LogLevel::debug, "Including shared library: %s", fileName.c_str());
 
@@ -136,7 +136,7 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
           throw std::runtime_error("Library package \"" + fileName + "\" is either not installed or has not had time to initialize");
         }
 
-        scriptPath = libraryPackage->path;
+        scriptPath = libraryPackage->path + "/entry.lua";
       }
       else
       {
