@@ -21,6 +21,7 @@
 #include "../bnGameSession.h"
 #include "../bnMath.h"
 #include "../bnMobPackageManager.h"
+#include "../bnLuaLibraryPackageManager.h"
 #include "../bnPlayerPackageManager.h"
 #include "../bnBlockPackageManager.h"
 #include "../bnMessageQuestion.h"
@@ -107,7 +108,11 @@ Overworld::OnlineArea::OnlineArea(
   player->AddNode(emoteNode);
 
   // ensure the existence of these package partitions
+  getController().BlockPackagePartitioner().CreateNamespace(Game::ServerPartition);
+  getController().CardPackagePartitioner().CreateNamespace(Game::ServerPartition);
   getController().MobPackagePartitioner().CreateNamespace(Game::ServerPartition);
+  getController().LuaLibraryPackagePartitioner().CreateNamespace(Game::ServerPartition);
+  getController().PlayerPackagePartitioner().CreateNamespace(Game::ServerPartition);
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -242,7 +247,11 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
 
 void Overworld::OnlineArea::RemovePackages() {
   Logger::Log(LogLevel::debug, "Removing server packages");
+  getController().BlockPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
+  getController().CardPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
   getController().MobPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
+  getController().LuaLibraryPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
+  getController().PlayerPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
@@ -2392,6 +2401,7 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
   }
 
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
+  PackageType package_type = reader.Read<PackageType>(buffer);
 
   std::string file_path = serverAssetManager.GetPath(asset_path);
 
@@ -2400,8 +2410,22 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
     return;
   }
 
-  // loading everything as an encounter for now
-  LoadPackage(getController().MobPackagePartitioner(), file_path);
+  switch (package_type) {
+  case PackageType::blocks:
+    LoadPackage(getController().BlockPackagePartitioner(), file_path);
+    break;
+  case PackageType::card:
+    LoadPackage(getController().CardPackagePartitioner(), file_path);
+    break;
+  case PackageType::library:
+    LoadPackage(getController().LuaLibraryPackagePartitioner(), file_path);
+    break;
+  case PackageType::player:
+    LoadPackage(getController().PlayerPackagePartitioner(), file_path);
+    break;
+  default:
+    LoadPackage(getController().MobPackagePartitioner(), file_path);
+  }
 }
 
 void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

@@ -125,4 +125,13 @@ namespace Overworld
     audio,
     data
   };
+
+  enum class PackageType : char {
+    blocks,
+    card,
+    encounter,
+    character,
+    library,
+    player,
+  };
 } // namespace Overworld
