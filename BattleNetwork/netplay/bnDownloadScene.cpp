@@ -487,8 +487,8 @@ void DownloadScene::RecieveRequestBlockPackageData(const Poco::Buffer<char>& buf
 
 void DownloadScene::RecieveDownloadComplete(const Poco::Buffer<char>& buffer)
 {
-  bool result{};
-  std::memcpy(&result, buffer.begin(), sizeof(bool));
+  BufferReader reader;
+  bool result = reader.Read<bool>(buffer);
 
   if (result) {
     remoteSuccess = true;
@@ -566,30 +566,15 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 
 std::vector<PackageHash> DownloadScene::DeserializeListOfHashes(const Poco::Buffer<char>& buffer)
 {
-  size_t len{};
-  size_t read{};
-  std::vector<PackageHash> list;
+  BufferReader reader;
 
   // list length
-  std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
-  read += sizeof(size_t);
+  auto len = reader.Read<uint8_t>(buffer);
+  std::vector<PackageHash> list;
 
   while (len > 0) {
-    // package id
-    size_t id_len{};
-    std::memcpy(&id_len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
-
-    std::string id = std::string(buffer.begin() + read, id_len);
-    read += id_len;
-
-    // md5
-    size_t md5_len{};
-    std::memcpy(&md5_len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
-
-    std::string md5 = std::string(buffer.begin() + read, md5_len);
-    read += md5_len;
+    std::string id = reader.ReadString<uint8_t>(buffer);
+    std::string md5 = reader.ReadString<uint8_t>(buffer);
 
     list.push_back({ id, md5 });
 
@@ -601,28 +586,23 @@ std::vector<PackageHash> DownloadScene::DeserializeListOfHashes(const Poco::Buff
 
 Poco::Buffer<char> DownloadScene::SerializeListOfHashes(NetPlaySignals header, const std::vector<PackageHash>& list)
 {
-  Poco::Buffer<char> data{ 0 };
+  Poco::Buffer<char> buffer{ 0 };
+  BufferWriter writer;
 
   // header
-  data.append((char*)&header, sizeof(NetPlaySignals));
+  writer.Write(buffer, header);
 
   // list length
   size_t len = list.size();
-  data.append((char*)&len, sizeof(size_t));
+  writer.Write<uint8_t>(buffer, (uint8_t)list.size());
 
   for(const PackageHash& hash : list) {
-    // package id
-    size_t sz = hash.packageId.length();
-    data.append((char*)&sz, sizeof(size_t));
-    data.append(hash.packageId.c_str(), hash.packageId.length());
-
-    // md5
-    sz = hash.md5.length();
-    data.append((char*)&sz, sizeof(size_t));
-    data.append(hash.md5.c_str(), hash.md5.length());
+    // package id + md5
+    writer.WriteString<uint8_t>(buffer, hash.packageId);
+    writer.WriteString<uint8_t>(buffer, hash.md5);
   }
 
-  return data;
+  return buffer;
 }
 
 template<template<typename> class PackageManagerType, class MetaType>
