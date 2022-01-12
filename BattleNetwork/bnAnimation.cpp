@@ -313,7 +313,7 @@ void Animation::Refresh(sf::Sprite& target) {
 }
 
 void Animation::Update(double elapsed, sf::Sprite& target) {
-  progress += frames(std::ceil(elapsed * (float)std::fabs(playbackSpeed)));
+  progress += from_seconds(elapsed * playbackSpeed);
 
   std::string stateNow = currAnimation;
 
@@ -511,5 +511,5 @@ const double Animation::GetPlaybackSpeed() const
 
 void Animation::SetPlaybackSpeed(double factor)
 {
-  playbackSpeed = factor;
+  playbackSpeed = std::fabs(factor);
 }
