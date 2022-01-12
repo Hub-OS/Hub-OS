@@ -182,6 +182,11 @@ class PackageManager {
     void ClearPackages();
 
     /**
+    * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes.
+    */
+    void ErasePackage(const std::string& packageId);
+
+    /**
     * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes. 
     * @warning Does not clear the assigned namespaceId
     */
@@ -588,6 +593,37 @@ inline void PackageManager<MetaClass>::ClearPackages()
   packages.clear();
   filepathToPackageId.clear();
   zipFilepathToPackageId.clear();
+}
+
+template<typename MetaClass>
+inline void PackageManager<MetaClass>::ErasePackage(const std::string& packageId)
+{
+  auto packageIt = packages.find(packageId);
+
+  if (packageIt == packages.end()) {
+    Logger::Logf(LogLevel::debug, "Could not find package %s to erase", packageId.c_str());
+    return;
+  }
+
+  MetaClass* package = packageIt->second;
+
+  ResourceHandle handle;
+
+  PackageAddress addr = { GetNamespace(), packageId };
+  handle.Scripts().DropPackageData(addr);
+
+  auto path = package->GetFilePath();
+  auto zipPath = path + ".zip";
+
+  std::filesystem::path absolute = std::filesystem::absolute(path);
+  std::filesystem::path absoluteZip = std::filesystem::absolute(zipPath);
+
+  std::filesystem::remove_all(absolute);
+  std::filesystem::remove_all(absoluteZip);
+
+  packages.erase(packageId);
+  filepathToPackageId.erase(path);
+  zipFilepathToPackageId.erase(path);
 }
 
 template<typename MetaClass>

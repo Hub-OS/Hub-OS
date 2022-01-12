@@ -24,6 +24,10 @@
 #include "../bnLuaLibraryPackageManager.h"
 #include "../bnPlayerPackageManager.h"
 #include "../bnBlockPackageManager.h"
+#include "../bindings/bnScriptedCard.h"
+#include "../bindings/bnLuaLibrary.h"
+#include "../bindings/bnScriptedPlayer.h"
+#include "../bindings/bnScriptedBlock.h"
 #include "../bnMessageQuestion.h"
 #include "../bnPlayerCustScene.h"
 #include "../bnSelectNaviScene.h"
@@ -966,6 +970,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::load_package:
       receiveLoadPackageSignal(reader, data);
+      break;
+    case ServerEvents::package_offer:
+      receivePackageOfferSignal(reader, data);
       break;
     case ServerEvents::mod_whitelist:
       receiveModWhitelistSignal(reader, data);
@@ -2426,6 +2433,120 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
   default:
     LoadPackage(getController().MobPackagePartitioner(), file_path);
   }
+}
+
+template <typename ScriptedType, typename Manager>
+void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& packageName, const std::string& packageId, const std::string& filePath) {
+  auto& menuSystem = GetMenuSystem();
+
+  SetAvatarAsSpeaker();
+  menuSystem.EnqueueMessage("Installing\x01...");
+
+  manager.ErasePackage(packageId);
+
+  // todo: copy the zip into the mods folder
+
+  auto res = manager.template LoadPackageFromZip<ScriptedType>(filePath);
+
+  if (res.is_error()) {
+    Logger::Logf(LogLevel::critical, "%s", res.error_cstr());
+    menuSystem.EnqueueMessage("Installation failed.");
+    return;
+  }
+
+  menuSystem.EnqueueMessage(packageName + " successfully installed!");
+}
+
+template <typename ScriptedType, typename Partitioner>
+void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std::string& packageName, const std::string& packageId, const std::string& filePath)
+{
+  auto& localManager = partitioner.GetPartition(Game::LocalPartition);
+
+  bool hasPackage = localManager.HasPackage(packageId);
+
+  // check if the package is already installed
+  if (localManager.HasPackage(packageId)) {
+    stx::result_t<std::string> md5Result = stx::generate_md5_from_file(filePath);
+
+    if (md5Result.is_error()) {
+      Logger::Logf(LogLevel::critical, "Failed to create md5 for %s. Reason: %s", filePath.c_str(), md5Result.error_cstr());
+      return;
+    }
+
+    std::string md5 = md5Result.value();
+
+    if (localManager.FindPackageByID(packageId).fingerprint == md5) {
+      // package already installed
+      return;
+    }
+  }
+
+  // request permission from the player
+  SetAvatarAsSpeaker();
+
+  GetMenuSystem().EnqueueMessage("Receiving data\x01...", [this]() {
+    GetPlayer()->Face(Direction::down_right);
+  });
+
+  GetMenuSystem().EnqueueQuestion(
+    "Received data for " + packageName + " install?",
+    [this, &localManager, hasPackage, packageName, packageId, filePath](bool yes) {
+      if (!yes) {
+        return;
+      }
+
+      if (!hasPackage) {
+        InstallPackage<ScriptedType>(localManager, packageName, packageId, filePath);
+        return;
+      }
+
+      SetAvatarAsSpeaker();
+      GetMenuSystem().EnqueueQuestion(
+        packageName + " conflicts with an existing package, overwrite?",
+        [this, &localManager, packageName, packageId, filePath](bool yes) {
+          if (!yes) {
+            return;
+          }
+
+          InstallPackage<ScriptedType>(localManager, packageName, packageId, filePath);
+        }
+      );
+    }
+  );
+}
+
+void Overworld::OnlineArea::RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::string& filePath)
+{
+  switch (packageType) {
+  case PackageType::blocks:
+    RunPackageWizard<ScriptedBlock>(getController().BlockPackagePartitioner(), packageName, packageId, filePath);
+    break;
+  case PackageType::card:
+    RunPackageWizard<ScriptedCard>(getController().CardPackagePartitioner(), packageName, packageId, filePath);
+    break;
+  case PackageType::library:
+    RunPackageWizard<LuaLibrary>(getController().LuaLibraryPackagePartitioner(), packageName, packageId, filePath);
+    break;
+  case PackageType::player:
+    RunPackageWizard<ScriptedPlayer>(getController().PlayerPackagePartitioner(), packageName, packageId, filePath);
+    break;
+  default:
+    RunPackageWizard<ScriptedMob>(getController().MobPackagePartitioner(), packageName, packageId, filePath);
+  }
+}
+
+void Overworld::OnlineArea::receivePackageOfferSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  PackageType packageType = reader.Read<PackageType>(buffer);
+  std::string packageId = GetPath(reader.ReadString<uint8_t>(buffer));
+  std::string packageName = GetPath(reader.ReadString<uint8_t>(buffer));
+  std::string filePath = GetPath(reader.ReadString<uint16_t>(buffer));
+
+  if (packageName.empty()) {
+    packageName = "Dependency";
+  }
+
+  RunPackageWizard(packageType, packageName, packageId, filePath);
 }
 
 void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
