@@ -127,9 +127,9 @@ namespace Overworld {
     void CheckPlayerAgainstWhitelist();
 
     template <typename ScriptedType, typename Partition>
-    void InstallPackage(Partition& partition, const std::string& packageName, const std::string& packageId, const std::string& filePath);
+    void InstallPackage(Partition& partition, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath);
     template <typename ScriptedType, typename Partitioner>
-    void RunPackageWizard(Partitioner& partitioner, const std::string& packageName, const std::string& packageId, const std::string& filePath);
+    void RunPackageWizard(Partitioner& partitioner, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath);
     void RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::string& filePath);
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);

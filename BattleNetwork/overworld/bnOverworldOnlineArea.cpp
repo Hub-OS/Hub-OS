@@ -2436,7 +2436,7 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
 }
 
 template <typename ScriptedType, typename Manager>
-void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& packageName, const std::string& packageId, const std::string& filePath) {
+void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath) {
   auto& menuSystem = GetMenuSystem();
 
   SetAvatarAsSpeaker();
@@ -2444,9 +2444,17 @@ void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& 
 
   manager.ErasePackage(packageId);
 
-  // todo: copy the zip into the mods folder
+  std::string installPath = modFolder + "/package-" + URIEncode(packageId) + ".zip";
 
-  auto res = manager.template LoadPackageFromZip<ScriptedType>(filePath);
+  try {
+    std::filesystem::copy_file(filePath, installPath);
+  } catch(std::exception& e) {
+    Logger::Logf(LogLevel::critical, "Failed to copy package %s to %s. Reason: %s", packageId.c_str(), installPath.c_str(), e.what());
+    menuSystem.EnqueueMessage("Installation failed.");
+    return;
+  }
+
+  auto res = manager.template LoadPackageFromZip<ScriptedType>(installPath);
 
   if (res.is_error()) {
     Logger::Logf(LogLevel::critical, "%s", res.error_cstr());
@@ -2458,7 +2466,7 @@ void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& 
 }
 
 template <typename ScriptedType, typename Partitioner>
-void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std::string& packageName, const std::string& packageId, const std::string& filePath)
+void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath)
 {
   auto& localManager = partitioner.GetPartition(Game::LocalPartition);
 
@@ -2490,25 +2498,25 @@ void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std
 
   GetMenuSystem().EnqueueQuestion(
     "Received data for " + packageName + " install?",
-    [this, &localManager, hasPackage, packageName, packageId, filePath](bool yes) {
+    [this, &localManager, hasPackage, modFolder, packageName, packageId, filePath](bool yes) {
       if (!yes) {
         return;
       }
 
       if (!hasPackage) {
-        InstallPackage<ScriptedType>(localManager, packageName, packageId, filePath);
+        InstallPackage<ScriptedType>(localManager, modFolder, packageName, packageId, filePath);
         return;
       }
 
       SetAvatarAsSpeaker();
       GetMenuSystem().EnqueueQuestion(
         packageName + " conflicts with an existing package, overwrite?",
-        [this, &localManager, packageName, packageId, filePath](bool yes) {
+        [this, &localManager, modFolder, packageName, packageId, filePath](bool yes) {
           if (!yes) {
             return;
           }
 
-          InstallPackage<ScriptedType>(localManager, packageName, packageId, filePath);
+          InstallPackage<ScriptedType>(localManager, modFolder, packageName, packageId, filePath);
         }
       );
     }
@@ -2517,21 +2525,23 @@ void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std
 
 void Overworld::OnlineArea::RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::string& filePath)
 {
+  // todo: define mod folders in a single location?
+
   switch (packageType) {
   case PackageType::blocks:
-    RunPackageWizard<ScriptedBlock>(getController().BlockPackagePartitioner(), packageName, packageId, filePath);
+    RunPackageWizard<ScriptedBlock>(getController().BlockPackagePartitioner(), "resources/mods/blocks", packageName, packageId, filePath);
     break;
   case PackageType::card:
-    RunPackageWizard<ScriptedCard>(getController().CardPackagePartitioner(), packageName, packageId, filePath);
+    RunPackageWizard<ScriptedCard>(getController().CardPackagePartitioner(), "resources/mods/cards", packageName, packageId, filePath);
     break;
   case PackageType::library:
-    RunPackageWizard<LuaLibrary>(getController().LuaLibraryPackagePartitioner(), packageName, packageId, filePath);
+    RunPackageWizard<LuaLibrary>(getController().LuaLibraryPackagePartitioner(), "resources/mods/libs", packageName, packageId, filePath);
     break;
   case PackageType::player:
-    RunPackageWizard<ScriptedPlayer>(getController().PlayerPackagePartitioner(), packageName, packageId, filePath);
+    RunPackageWizard<ScriptedPlayer>(getController().PlayerPackagePartitioner(), "resources/mods/players", packageName, packageId, filePath);
     break;
   default:
-    RunPackageWizard<ScriptedMob>(getController().MobPackagePartitioner(), packageName, packageId, filePath);
+    RunPackageWizard<ScriptedMob>(getController().MobPackagePartitioner(), "resources/mods/enemies", packageName, packageId, filePath);
   }
 }
 
