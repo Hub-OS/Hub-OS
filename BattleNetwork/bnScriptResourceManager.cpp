@@ -94,6 +94,11 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
 
   state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
+  // vulnerability patching, why is this included with lib::base :(
+  state["load"] = nullptr;
+  state["loadfile"] = nullptr;
+  state["dofile"] = nullptr;
+
   state["math"]["randomseed"] = []{
     Logger::Log(LogLevel::warning, "math.random uses the engine's random number generator and does not need to be seeded");
   };
@@ -121,7 +126,7 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
       // Prefer using the shared libraries if possible.
       // i.e. ones that were present in "mods/libs/"
       // make sure it was required by checking dependencies as well
-      if(std::find(scriptPackage.dependencies.begin(), scriptPackage.dependencies.end(), scriptPath) != scriptPackage.dependencies.end())
+      if(std::find(scriptPackage.dependencies.begin(), scriptPackage.dependencies.end(), fileName) != scriptPackage.dependencies.end())
       {
         Logger::Logf(LogLevel::debug, "Including shared library: %s", fileName.c_str());
 
@@ -131,7 +136,7 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
           throw std::runtime_error("Library package \"" + fileName + "\" is either not installed or has not had time to initialize");
         }
 
-        scriptPath = libraryPackage->path;
+        scriptPath = libraryPackage->path + "/entry.lua";
       }
       else
       {
@@ -368,7 +373,9 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
       return self.CreateSpawner(namespaceId, fqn, rank);
     },
     "set_background", &ScriptedMob::SetBackground,
-    "stream_music", &ScriptedMob::StreamMusic,
+    "stream_music", [](ScriptedMob& mob, const std::string& path, std::optional<long long> startMs, std::optional<long long> endMs) {
+      mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
+    },
     "get_field", [](ScriptedMob& o) { return WeakWrapper(o.GetField()); },
     "enable_freedom_mission", &ScriptedMob::EnableFreedomMission,
     "spawn_player", &ScriptedMob::SpawnPlayer
@@ -444,7 +451,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     sol::factories(
       [](const std::string& path, std::optional<bool> loop, std::optional<long long> startMs, std::optional<long long> endMs) {
       static ResourceHandle handle;
-      return handle.Audio().Stream(path, loop.value_or(true), startMs.value_or(0), endMs.value_or(0));
+      return handle.Audio().Stream(path, loop.value_or(true), startMs.value_or(-1), endMs.value_or(-1));
     })
   );
 

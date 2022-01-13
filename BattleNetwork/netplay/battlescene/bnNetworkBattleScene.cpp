@@ -4,6 +4,8 @@
 #include <chrono>
 
 #include "bnNetworkBattleScene.h"
+#include "../bnBufferReader.h"
+#include "../bnBufferWriter.h"
 #include "../../bnFadeInState.h"
 #include "../../bnElementalDamage.h"
 #include "../../bnBlockPackageManager.h"
@@ -433,11 +435,10 @@ void NetworkBattleScene::SendHandshakeSignal()
   size_t len = prefilteredCardSelection.size();
 
   Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals signalType{ NetPlaySignals::handshake };
-  buffer.append((char*)&signalType, sizeof(NetPlaySignals));
-  buffer.append((char*)&thisFrame, sizeof(unsigned));
-  buffer.append((char*)&form, sizeof(int));
-  buffer.append((char*)&len, sizeof(size_t));
+  BufferWriter writer;
+  writer.Write(buffer, NetPlaySignals::handshake);
+  writer.Write<int32_t>(buffer, (int32_t)form);
+  writer.Write<uint8_t>(buffer, (uint8_t)len);
 
   CardPackagePartitioner& partitioner = getController().CardPackagePartitioner();
   CardPackageManager& localPackages = partitioner.GetPartition(Game::LocalPartition);
@@ -450,9 +451,7 @@ void NetworkBattleScene::SendHandshakeSignal()
       id = "";
     }
 
-    size_t len = id.size();
-    buffer.append((char*)&len, sizeof(size_t));
-    buffer.append(id.c_str(), len);
+    writer.WriteString<uint8_t>(buffer, id);
   }
 
   auto [_, id] = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
@@ -462,9 +461,9 @@ void NetworkBattleScene::SendHandshakeSignal()
 void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events, unsigned int frameNumber)
 {
   Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals signalType{ NetPlaySignals::frame_data };
-  buffer.append((char*)&signalType, sizeof(NetPlaySignals));
-  buffer.append((char*)&frameNumber, sizeof(unsigned int));
+  BufferWriter writer;
+  writer.Write(buffer, NetPlaySignals::frame_data);
+  writer.Write<uint32_t>(buffer, (uint32_t)frameNumber);
 
   // Send our hp
   int hp = 0;
@@ -472,18 +471,14 @@ void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events, unsigned
     hp = player->GetHealth();
   }
 
-  buffer.append((char*)&hp, sizeof(int));
+  writer.Write<int32_t>(buffer, (int32_t)hp);
 
   // send the input keys
-  size_t list_len = events.size();
-  buffer.append((char*)&list_len, sizeof(size_t));
+  writer.Write<uint8_t>(buffer, (uint8_t)events.size());
 
-  while (list_len > 0) {
-    size_t len = events[list_len-1].name.size();
-    buffer.append((char*)&len, sizeof(size_t));
-    buffer.append(events[list_len-1].name.c_str(), len);
-    buffer.append((char*)&events[list_len-1].state, sizeof(InputState));
-    list_len--;
+  for (auto& event : events) {
+    writer.WriteString<uint8_t>(buffer, event.name);
+    writer.Write(buffer, event.state);
   }
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
@@ -508,29 +503,14 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   FlushLocalPlayerInputQueue();
 
   std::vector<std::string> remoteUUIDs;
-  int remoteForm{ -1 };
-  size_t cardLen{};
-  size_t read{};
 
-  std::memcpy(&remoteFrameNumber, buffer.begin(), sizeof(unsigned));
-  maxRemoteFrameNumber = remoteFrameNumber;
-  read += sizeof(unsigned);
+  BufferReader reader;
+  int remoteForm = reader.Read<int32_t>(buffer);
+  uint8_t cardLen = reader.Read<uint8_t>(buffer);
 
-  std::memcpy(&remoteForm, buffer.begin() + read, sizeof(int));
-  read += sizeof(int);
-
-  std::memcpy(&cardLen, buffer.begin() + read, sizeof(size_t));
-  read += sizeof(size_t);
-
-  Logger::Logf(LogLevel::debug, "Recieved remote handshake. Remote sent %i cards.", cardLen);
+  Logger::Logf(LogLevel::debug, "Recieved remote handshake. Remote sent %i cards.", (int)cardLen);
   while (cardLen > 0) {
-    std::string uuid;
-    size_t len{};
-    std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
-    uuid.resize(len);
-    std::memcpy(uuid.data(), buffer.begin() + read, len);
-    read += len;
+    std::string uuid = reader.ReadString<uint8_t>(buffer);
     remoteUUIDs.push_back(uuid);
     Logger::Logf(LogLevel::debug, "Remote Card: %s", uuid.c_str());
     cardLen--;
@@ -609,40 +589,20 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
 {
   if (!remotePlayer) return;
 
-  std::string name;
-  size_t len{}, list_len{};
-  size_t read{};
-
-  unsigned int frameNumber{};
-  std::memcpy(&frameNumber, buffer.begin(), sizeof(unsigned int));
-  read += sizeof(unsigned int);
+  BufferReader reader;
+  unsigned int frameNumber = reader.Read<uint32_t>(buffer);
 
   maxRemoteFrameNumber = frames(frameNumber);
 
-  int hp{};
-  std::memcpy(&hp, buffer.begin() + read, sizeof(int));
-  read += sizeof(int);
+  int hp = reader.Read<int32_t>(buffer);
 
-  std::memcpy(&list_len, buffer.begin() + read, sizeof(size_t));
-  read += sizeof(size_t);
+  size_t list_len = reader.Read<uint8_t>(buffer);
 
   std::vector<InputEvent> events;
   while (list_len-- > 0) {
-    std::memcpy(&len, buffer.begin() + read, sizeof(size_t));
-    read += sizeof(size_t);
-
-    name.clear();
-    name.resize(len);
-    std::memcpy(name.data(), buffer.begin() + read, len);
-    read += len;
-
-    InputState state{};
-    std::memcpy(&state, buffer.begin() + read, sizeof(InputState));
-    read += sizeof(InputState);
-
     InputEvent event{};
-    event.name = name;
-    event.state = state;
+    event.name = reader.ReadString<uint8_t>(buffer);
+    event.state = reader.Read<InputState>(buffer);
     events.push_back(event);
   }
 

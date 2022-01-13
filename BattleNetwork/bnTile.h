@@ -275,31 +275,49 @@ namespace Battle {
     void HandleTileBehaviors(Field& field, Character& character);
 
     /**
+     * @brief Run a function for every entity on the tile
+     * @param callback
+     */
+    void ForEachEntity(const std::function<void(std::shared_ptr<Entity>& e)>& callback);
+
+    /**
+     * @brief Run a function for every character on the tile
+     * @param callback
+     */
+    void ForEachCharacter(const std::function<void(std::shared_ptr<Character>& e)>& callback);
+
+    /**
+     * @brief Run a function for every obstacle on the tile
+     * @param callback
+     */
+    void ForEachObstacle(const std::function<void(std::shared_ptr<Obstacle>& e)>& callback);
+
+    /**
      * @brief Query for multiple entities using a functor
      * This is useful for movement as well as card attacks 
      * to find specific enemy types under specific conditions
      * @param e Functor that takes in an entity and returns a boolean
      * @return returns a list of entities that returned true in the functor `e` 
      */
-    std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query);
+    std::vector<std::shared_ptr<Entity>> FindHittableEntities(std::function<bool(std::shared_ptr<Entity>& e)> query);
 
     /**
-     * @brief Query for multiple charactors using a functor
+     * @brief Query for multiple characters using a functor
      * This is useful for movement as well as card attacks
      * to find specific enemy types under specific conditions
      * @param e Functor that takes in an character and returns a boolean
      * @return returns a list of characters that returned true in the functor `e`
      */
-    std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query);
+    std::vector<std::shared_ptr<Character>> FindHittableCharacters(std::function<bool(std::shared_ptr<Character>& e)> query);
 
     /**
-     * @brief Query for multiple charactors using a functor
+     * @brief Query for multiple obstacles using a functor
      * This is useful for movement as well as card attacks
      * to find specific enemy types under specific conditions
      * @param e Functor that takes in an obstacle and returns a boolean
      * @return returns a list of obstacles that returned true in the functor `e`
      */
-    std::vector<std::shared_ptr<Obstacle>> FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query);
+    std::vector<std::shared_ptr<Obstacle>> FindHittableObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query);
 
     /**
      * @brief Calculates and returns Manhattan-distance from this tile to the other

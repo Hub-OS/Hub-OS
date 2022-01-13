@@ -1334,7 +1334,7 @@ void Entity::ResolveFrameBattleDamage()
       // 3. The character is on a counter frame
       // 4. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
-      if (IsCountered() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+      if (IsCounterable() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
         if ((props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
           frameCounterAggressor = GetField()->GetCharacter(props.filtered.aggressor);
         }
@@ -1678,7 +1678,7 @@ void Entity::DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity>
 
 bool Entity::IsCounterable()
 {
-  return counterable;
+  return (counterable && stunCooldown <= frames(0));
 }
 
 void Entity::ToggleCounter(bool on)
@@ -1762,11 +1762,6 @@ void Entity::Blind(frame_time_t maxCooldown)
   blindFx->setPosition(0, height);
   blindFxAnimation << "default" << Animator::Mode::Loop;
   blindFxAnimation.Refresh(blindFx->getSprite());
-}
-
-bool Entity::IsCountered()
-{
-  return (counterable && stunCooldown <= frames(0));
 }
 
 const Battle::TileHighlight Entity::GetTileHighlightMode() const {

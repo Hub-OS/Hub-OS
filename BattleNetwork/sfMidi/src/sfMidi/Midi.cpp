@@ -1,6 +1,8 @@
+// Modified to expose more FluidSynth settings (reverb)
+
 ////////////////////////////////
 // sfMidi 1.1.0               //
-// Copyright © Kerli Low 2012 //
+// Copyright ï¿½ Kerli Low 2012 //
 ////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
@@ -179,6 +181,10 @@ double sfmidi::Midi::getGain() const
   return gain;
 }
 
+void sfmidi::Midi::setReverbActive(bool active)
+{
+  fluid_settings_setint(settings_, "synth.reverb.active", (int)active);
+}
 
 bool sfmidi::Midi::loadSoundFontFromFile(const std::string& filename)
 {

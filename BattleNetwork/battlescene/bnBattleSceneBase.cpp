@@ -275,7 +275,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   Character* pendingPtr = &pending;
 
   // Find any AI using this character as a target and free that pointer  
-  field->FindEntities([pendingPtr](std::shared_ptr<Entity>& in) {
+  field->ForEachEntity([pendingPtr](std::shared_ptr<Entity>& in) {
     Agent* agent = dynamic_cast<Agent*>(in.get());
 
     if (agent && agent->GetTarget().get() == pendingPtr) {
@@ -905,7 +905,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   for (Battle::Tile* tile : allTiles) {
     std::vector<Entity*> tileEntities;
-    tile->FindEntities([&tileEntities, &allEntities](std::shared_ptr<Entity>& ent) {
+    tile->ForEachEntity([&tileEntities, &allEntities](std::shared_ptr<Entity>& ent) {
       tileEntities.push_back(ent.get());
       allEntities.push_back(ent.get());
       return false;
@@ -1353,7 +1353,7 @@ void BattleSceneBase::ProcessNewestComponents()
 {
   // effectively returns all of them
   std::vector<Entity*> entities;
-  field->FindEntities([&entities](std::shared_ptr<Entity>& e) {
+  field->ForEachEntity([&entities](std::shared_ptr<Entity>& e) {
     entities.push_back(e.get());
     return false;
   });

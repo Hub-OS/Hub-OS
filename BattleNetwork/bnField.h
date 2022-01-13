@@ -92,25 +92,43 @@ public:
   AddEntityStatus AddEntity(std::shared_ptr<Entity> entity, Battle::Tile& dest);
 
   /**
+   * @brief Callback for entities on the entire field
+   * @param callback the callback function
+   */
+  void ForEachEntity(const std::function<void(std::shared_ptr<Entity>& e)>& callback);
+
+  /**
+   * @brief Callback for characters on the entire field
+   * @param callback the callback function
+   */
+  void ForEachCharacter(const std::function<void(std::shared_ptr<Character>& e)>& callback);
+
+  /**
+   * @brief Callback for obstacles on the entire field
+   * @param callback the callback function
+   */
+  void ForEachObstacle(const std::function<void(std::shared_ptr<Obstacle>& e)>& callback);
+
+  /**
    * @brief Query for entities on the entire field
    * @param query. the query input function
    * @return list of std::shared_ptr<Entity> that passed the input function's conditions
    */
-  std::vector<std::shared_ptr<Entity>> FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query) const;
+  std::vector<std::shared_ptr<Entity>> FindHittableEntities(std::function<bool(std::shared_ptr<Entity>& e)> query) const;
 
   /**
    * @brief Query for characters on the entire field
    * @param query. the query input function
    * @return list of std::shared_ptr<Character> that passed the input function's conditions
    */
-  std::vector<std::shared_ptr<Character>> FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const;
+  std::vector<std::shared_ptr<Character>> FindHittableCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const;
 
   /**
    * @brief Query for obstacles on the entire field
    * @param query. the query input function
    * @return list of std::shared_ptr<Obstacle> that passed the input function's conditions
    */
-  std::vector<std::shared_ptr<Obstacle>> FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query) const;
+  std::vector<std::shared_ptr<Obstacle>> FindHittableObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query) const;
 
   /**
    * @brief Query for the closest characters on the entire field given an input entity.

@@ -1,6 +1,8 @@
+// Modified to expose more FluidSynth settings (reverb)
+
 ////////////////////////////////
 // sfMidi 1.1.0               //
-// Copyright © Kerli Low 2012 //
+// Copyright Â© Kerli Low 2012 //
 ////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
@@ -75,6 +77,7 @@ public:
 
   void   setLoop(bool loop);
   void   setGain(double gain); // 0.0 - 10.0; Default: 0.2
+  void   setReverbActive(bool active); // Default: true
   bool   getLoop() const;
   double getGain() const;
 

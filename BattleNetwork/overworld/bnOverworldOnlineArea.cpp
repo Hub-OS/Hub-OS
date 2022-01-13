@@ -21,8 +21,13 @@
 #include "../bnGameSession.h"
 #include "../bnMath.h"
 #include "../bnMobPackageManager.h"
+#include "../bnLuaLibraryPackageManager.h"
 #include "../bnPlayerPackageManager.h"
 #include "../bnBlockPackageManager.h"
+#include "../bindings/bnScriptedCard.h"
+#include "../bindings/bnLuaLibrary.h"
+#include "../bindings/bnScriptedPlayer.h"
+#include "../bindings/bnScriptedBlock.h"
 #include "../bnMessageQuestion.h"
 #include "../bnPlayerCustScene.h"
 #include "../bnSelectNaviScene.h"
@@ -107,7 +112,11 @@ Overworld::OnlineArea::OnlineArea(
   player->AddNode(emoteNode);
 
   // ensure the existence of these package partitions
+  getController().BlockPackagePartitioner().CreateNamespace(Game::ServerPartition);
+  getController().CardPackagePartitioner().CreateNamespace(Game::ServerPartition);
   getController().MobPackagePartitioner().CreateNamespace(Game::ServerPartition);
+  getController().LuaLibraryPackagePartitioner().CreateNamespace(Game::ServerPartition);
+  getController().PlayerPackagePartitioner().CreateNamespace(Game::ServerPartition);
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -242,7 +251,11 @@ void Overworld::OnlineArea::ResetPVPStep(bool failed)
 
 void Overworld::OnlineArea::RemovePackages() {
   Logger::Log(LogLevel::debug, "Removing server packages");
+  getController().BlockPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
+  getController().CardPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
   getController().MobPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
+  getController().LuaLibraryPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
+  getController().PlayerPackagePartitioner().GetPartition(Game::ServerPartition).ClearPackages();
 }
 
 void Overworld::OnlineArea::updateOtherPlayers(double elapsed) {
@@ -957,6 +970,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::load_package:
       receiveLoadPackageSignal(reader, data);
+      break;
+    case ServerEvents::package_offer:
+      receivePackageOfferSignal(reader, data);
       break;
     case ServerEvents::mod_whitelist:
       receiveModWhitelistSignal(reader, data);
@@ -2392,6 +2408,7 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
   }
 
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
+  PackageType package_type = reader.Read<PackageType>(buffer);
 
   std::string file_path = serverAssetManager.GetPath(asset_path);
 
@@ -2400,8 +2417,146 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
     return;
   }
 
-  // loading everything as an encounter for now
-  LoadPackage(getController().MobPackagePartitioner(), file_path);
+  switch (package_type) {
+  case PackageType::blocks:
+    LoadPackage(getController().BlockPackagePartitioner(), file_path);
+    break;
+  case PackageType::card:
+    LoadPackage(getController().CardPackagePartitioner(), file_path);
+    break;
+  case PackageType::library:
+    LoadPackage(getController().LuaLibraryPackagePartitioner(), file_path);
+    break;
+  case PackageType::player:
+    LoadPackage(getController().PlayerPackagePartitioner(), file_path);
+    break;
+  default:
+    LoadPackage(getController().MobPackagePartitioner(), file_path);
+  }
+}
+
+template <typename ScriptedType, typename Manager>
+void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath) {
+  auto& menuSystem = GetMenuSystem();
+
+  SetAvatarAsSpeaker();
+  menuSystem.EnqueueMessage("Installing\x01...");
+
+  manager.ErasePackage(packageId);
+
+  std::string installPath = modFolder + "/package-" + URIEncode(packageId) + ".zip";
+
+  try {
+    std::filesystem::copy_file(filePath, installPath);
+  } catch(std::exception& e) {
+    Logger::Logf(LogLevel::critical, "Failed to copy package %s to %s. Reason: %s", packageId.c_str(), installPath.c_str(), e.what());
+    menuSystem.EnqueueMessage("Installation failed.");
+    return;
+  }
+
+  auto res = manager.template LoadPackageFromZip<ScriptedType>(installPath);
+
+  if (res.is_error()) {
+    Logger::Logf(LogLevel::critical, "%s", res.error_cstr());
+    menuSystem.EnqueueMessage("Installation failed.");
+    return;
+  }
+
+  menuSystem.EnqueueMessage(packageName + " successfully installed!");
+}
+
+template <typename ScriptedType, typename Partitioner>
+void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath)
+{
+  auto& localManager = partitioner.GetPartition(Game::LocalPartition);
+
+  bool hasPackage = localManager.HasPackage(packageId);
+
+  // check if the package is already installed
+  if (localManager.HasPackage(packageId)) {
+    stx::result_t<std::string> md5Result = stx::generate_md5_from_file(filePath);
+
+    if (md5Result.is_error()) {
+      Logger::Logf(LogLevel::critical, "Failed to create md5 for %s. Reason: %s", filePath.c_str(), md5Result.error_cstr());
+      return;
+    }
+
+    std::string md5 = md5Result.value();
+
+    if (localManager.FindPackageByID(packageId).fingerprint == md5) {
+      // package already installed
+      return;
+    }
+  }
+
+  // request permission from the player
+  SetAvatarAsSpeaker();
+
+  GetMenuSystem().EnqueueMessage("Receiving data\x01...", [this]() {
+    GetPlayer()->Face(Direction::down_right);
+  });
+
+  GetMenuSystem().EnqueueQuestion(
+    "Received data for " + packageName + " install?",
+    [this, &localManager, hasPackage, modFolder, packageName, packageId, filePath](bool yes) {
+      if (!yes) {
+        return;
+      }
+
+      if (!hasPackage) {
+        InstallPackage<ScriptedType>(localManager, modFolder, packageName, packageId, filePath);
+        return;
+      }
+
+      SetAvatarAsSpeaker();
+      GetMenuSystem().EnqueueQuestion(
+        packageName + " conflicts with an existing package, overwrite?",
+        [this, &localManager, modFolder, packageName, packageId, filePath](bool yes) {
+          if (!yes) {
+            return;
+          }
+
+          InstallPackage<ScriptedType>(localManager, modFolder, packageName, packageId, filePath);
+        }
+      );
+    }
+  );
+}
+
+void Overworld::OnlineArea::RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::string& filePath)
+{
+  // todo: define mod folders in a single location?
+
+  switch (packageType) {
+  case PackageType::blocks:
+    RunPackageWizard<ScriptedBlock>(getController().BlockPackagePartitioner(), "resources/mods/blocks", packageName, packageId, filePath);
+    break;
+  case PackageType::card:
+    RunPackageWizard<ScriptedCard>(getController().CardPackagePartitioner(), "resources/mods/cards", packageName, packageId, filePath);
+    break;
+  case PackageType::library:
+    RunPackageWizard<LuaLibrary>(getController().LuaLibraryPackagePartitioner(), "resources/mods/libs", packageName, packageId, filePath);
+    break;
+  case PackageType::player:
+    RunPackageWizard<ScriptedPlayer>(getController().PlayerPackagePartitioner(), "resources/mods/players", packageName, packageId, filePath);
+    break;
+  default:
+    RunPackageWizard<ScriptedMob>(getController().MobPackagePartitioner(), "resources/mods/enemies", packageName, packageId, filePath);
+  }
+}
+
+void Overworld::OnlineArea::receivePackageOfferSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  PackageType packageType = reader.Read<PackageType>(buffer);
+  std::string packageId = GetPath(reader.ReadString<uint8_t>(buffer));
+  std::string packageName = GetPath(reader.ReadString<uint8_t>(buffer));
+  std::string filePath = GetPath(reader.ReadString<uint16_t>(buffer));
+
+  if (packageName.empty()) {
+    packageName = "Dependency";
+  }
+
+  RunPackageWizard(packageType, packageName, packageId, filePath);
 }
 
 void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

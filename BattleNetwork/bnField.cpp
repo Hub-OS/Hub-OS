@@ -244,7 +244,40 @@ Field::AddEntityStatus Field::AddEntity(std::shared_ptr<Entity> entity, Battle::
   return AddEntity(entity, dest.GetX(), dest.GetY());
 }
 
-std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std::shared_ptr<Entity>& e)> query) const
+void Field::ForEachEntity(const std::function<void(std::shared_ptr<Entity>& e)>& callback)
+{
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      tile->ForEachEntity(callback);
+    }
+  }
+}
+
+void Field::ForEachCharacter(const std::function<void(std::shared_ptr<Character>& e)>& callback)
+{
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      tile->ForEachCharacter(callback);
+    }
+  }
+}
+
+void Field::ForEachObstacle(const std::function<void(std::shared_ptr<Obstacle>& e)>& callback)
+{
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      tile->ForEachObstacle(callback);
+    }
+  }
+}
+
+std::vector<std::shared_ptr<Entity>> Field::FindHittableEntities(std::function<bool(std::shared_ptr<Entity>& e)> query) const
 {
   std::vector<std::shared_ptr<Entity>> res;
 
@@ -253,7 +286,7 @@ std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std:
       Battle::Tile* tile = GetAt(x, y);
 
       for(auto& entity : tile->entities) {
-        if (query(entity) && entity->IsHitboxAvailable()) {
+        if (entity->IsHitboxAvailable() && query(entity)) {
           res.push_back(entity);
         }
       }
@@ -263,7 +296,7 @@ std::vector<std::shared_ptr<Entity>> Field::FindEntities(std::function<bool(std:
   return res;
 }
 
-std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const
+std::vector<std::shared_ptr<Character>> Field::FindHittableCharacters(std::function<bool(std::shared_ptr<Character>& e)> query) const
 {
   std::vector<std::shared_ptr<Character>> res;
 
@@ -271,7 +304,7 @@ std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool
     for (int x = 1; x <= width; x++) {
       Battle::Tile* tile = GetAt(x, y);
 
-      std::vector<std::shared_ptr<Character>> found = tile->FindCharacters(query);
+      std::vector<std::shared_ptr<Character>> found = tile->FindHittableCharacters(query);
       res.reserve(res.size() + found.size()); // preallocate memory
       res.insert(res.end(), found.begin(), found.end());
     }
@@ -280,7 +313,7 @@ std::vector<std::shared_ptr<Character>> Field::FindCharacters(std::function<bool
   return res;
 }
 
-std::vector<std::shared_ptr<Obstacle>> Field::FindObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query) const
+std::vector<std::shared_ptr<Obstacle>> Field::FindHittableObstacles(std::function<bool(std::shared_ptr<Obstacle>& e)> query) const
 {
   std::vector<std::shared_ptr<Obstacle>> res;
 
@@ -288,7 +321,7 @@ std::vector<std::shared_ptr<Obstacle>> Field::FindObstacles(std::function<bool(s
     for (int x = 1; x <= width; x++) {
       Battle::Tile* tile = GetAt(x, y);
 
-      std::vector<std::shared_ptr<Obstacle>> found = tile->FindObstacles(query);
+      std::vector<std::shared_ptr<Obstacle>> found = tile->FindHittableObstacles(query);
       res.reserve(res.size() + found.size()); // preallocate memory
       res.insert(res.end(), found.begin(), found.end());
     }
@@ -299,7 +332,7 @@ std::vector<std::shared_ptr<Obstacle>> Field::FindObstacles(std::function<bool(s
 
 std::vector<std::shared_ptr<Character>> Field::FindNearestCharacters(const std::shared_ptr<Entity> test, std::function<bool(std::shared_ptr<Character>& e)> filter) const
 {
-  auto list = this->FindCharacters(filter);
+  auto list = this->FindHittableCharacters(filter);
 
   std::sort(list.begin(), list.end(), [test](const std::shared_ptr<Character>& first, const std::shared_ptr<Character>& next) {
     auto& t0 = *test->GetTile();
