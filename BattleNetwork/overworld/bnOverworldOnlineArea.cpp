@@ -6,11 +6,7 @@
 #include <Segues/VerticalOpen.h>
 #include <Poco/Net/NetException.h>
 
-// TODO: mac os < 10.5 file system support...
-#ifndef __APPLE__
 #include <filesystem>
-#endif 
-
 #include <fstream>
 
 #include "bnOverworldOnlineArea.h"
@@ -1213,7 +1209,6 @@ static std::vector<char> readBytes(std::string texturePath) {
   size_t textureLength;
   std::vector<char> textureData;
 
-#ifndef __APPLE__
   try {
     textureLength = std::filesystem::file_size(texturePath);
   }
@@ -1234,7 +1229,6 @@ static std::vector<char> readBytes(std::string texturePath) {
   catch (std::ifstream::failure& e) {
     Logger::Logf(LogLevel::critical, "Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
   }
-#endif
 
   return textureData;
 }

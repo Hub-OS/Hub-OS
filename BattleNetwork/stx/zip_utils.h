@@ -4,10 +4,7 @@
 #include "result.h"
 #include "../zip/zip.h"
 
-// TODO: mac os < 10.5 file system support...
-#ifndef __APPLE__
 #include <filesystem>
-#endif 
 
 /* STD LIBRARY extensions */
 namespace stx {
@@ -60,16 +57,11 @@ namespace stx {
   }
 
   static result_t<bool> zip(const std::string& target_path, const std::string& destination_path) {
-#ifndef __APPLE__
     struct zip_t* zip = zip_open(destination_path.c_str(), 9, 'w');
     detail::zip_walk(zip, target_path.c_str());
     zip_close(zip);
 
     return ok();
-
-#elif
-    return error<bool>("System filedirectory utils not supported on APPLE");
-#endif
   }
 
   static result_t<bool> unzip(const std::string& target_path, const std::string& destination_path) {

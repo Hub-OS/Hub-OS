@@ -4,11 +4,7 @@
 #pragma once
 #include <vector>
 #include <functional>
-
-// TODO: mac os < 10.5 file system support...
-#ifndef __APPLE__
 #include <filesystem>
-#endif 
 
 template<typename PackageManagerT, typename ScriptedResourceT>
 static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, const std::string& fullModPath) {
@@ -23,7 +19,7 @@ static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, co
 
 template<typename PackageManagerT, typename ScriptedResourceT>
 static inline void QueueModRegistration(PackageManagerT& packageManager, const char* modPath, const char* modCategory) {
-#if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
+#if defined(BN_MOD_SUPPORT)
   std::map<std::string, bool> ignoreList;
   std::vector<std::string> zipList;
 
