@@ -6,10 +6,7 @@
 #include <string_view>
 #include <iterator>
 
-#ifndef __APPLE__
-  // TODO: mac os < 10.15 file system support
-  #include <filesystem>
-#endif
+#include <filesystem>
 
 constexpr std::string_view CACHE_FOLDER = "cache";
 
@@ -107,46 +104,41 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& host, uint1
   // prefix with cached- to avoid reserved names such as COM
   cachePrefix = cachePath + "/cached-";
 
-  #ifndef __APPLE__
-    try {
-      // make sure this directory exists for caching
-      std::filesystem::create_directories(cachePath);
+  try {
+    // make sure this directory exists for caching
+    std::filesystem::create_directories(cachePath);
 
-      for (auto& entry : std::filesystem::directory_iterator(cachePath)) {
-        auto path = entry.path().string();
+    for (auto& entry : std::filesystem::directory_iterator(cachePath)) {
+      auto path = entry.path().string();
 
-        if (entry.is_directory()) {
-          // folders are created from unzipping packages
-          // only the files matter as we flatten folders from the server
-          // remove to save space as the zip file may have been deleted, and will unzip back here anyway
-          std::filesystem::remove_all(path);
-          continue;
-        }
-
-        if (path.length() < cachePrefix.length()) {
-          // delete invalid file
-          std::filesystem::remove(path);
-          continue;
-        }
-
-        auto [name, lastModified] = decodeName(path.substr(cachePrefix.length()));
-
-        CacheMeta meta{
-          path,
-          lastModified,
-          entry.file_size()
-        };
-
-        cachedAssets.emplace(name, meta);
+      if (entry.is_directory()) {
+        // folders are created from unzipping packages
+        // only the files matter as we flatten folders from the server
+        // remove to save space as the zip file may have been deleted, and will unzip back here anyway
+        std::filesystem::remove_all(path);
+        continue;
       }
+
+      if (path.length() < cachePrefix.length()) {
+        // delete invalid file
+        std::filesystem::remove(path);
+        continue;
+      }
+      auto [name, lastModified] = decodeName(path.substr(cachePrefix.length()));
+
+      CacheMeta meta{
+        path,
+        lastModified,
+        entry.file_size()
+      };
+
+      cachedAssets.emplace(name, meta);
     }
-    catch (std::filesystem::filesystem_error& err) {
-      Logger::Log(LogLevel::critical, "Error occured while reading assets");
-      Logger::Log(LogLevel::critical, err.what());
-    }
-  #else 
-    Logger::Log("std::filesystem not supported on Mac OSX at this time.");
-  #endif
+  }
+  catch (std::filesystem::filesystem_error& err) {
+    Logger::Log(LogLevel::critical, "Error occured while reading assets");
+    Logger::Log(LogLevel::critical, err.what());
+  }
 }
 
 std::string Overworld::ServerAssetManager::GetPath(const std::string& name) {
@@ -327,16 +319,12 @@ void Overworld::ServerAssetManager::SetData(const std::string& name, uint64_t la
 }
 
 void Overworld::ServerAssetManager::RemoveAsset(const std::string& name) {
-
-  #ifndef __APPLE__
-    try {
-      std::filesystem::remove(GetPath(name));
-    }
-    catch (std::filesystem::filesystem_error& err) {
-      Logger::Log(LogLevel::critical, "Error occured while removing asset");
-      Logger::Log(LogLevel::critical, err.what());
-    }
-  #endif
-  
+  try {
+    std::filesystem::remove(GetPath(name));
+  }
+  catch (std::filesystem::filesystem_error& err) {
+    Logger::Log(LogLevel::critical, "Error occured while removing asset");
+    Logger::Log(LogLevel::critical, err.what());
+  }
   cachedAssets.erase(name);
 }

@@ -75,7 +75,7 @@ namespace stx {
 
   stx::result_t<float> to_float(const std::string& str)
   {
-#ifdef __unix__
+#if __unix__ || __APPLE__
     // from_chars for floats isn't supported on many systems yet, using strtof outside of windows
     try {
       return std::strtof(str.c_str(), nullptr);

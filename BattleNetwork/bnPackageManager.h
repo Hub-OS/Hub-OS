@@ -225,7 +225,7 @@ template<typename MetaClass>
 template<typename ScriptedDataType>
 stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const std::string& path)
 {
-#if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
+#if defined(BN_MOD_SUPPORT)
   ResourceHandle handle;
   MetaClass* packageClass{ nullptr };
 
@@ -300,7 +300,7 @@ template<typename MetaClass>
 template<typename ScriptedDataType>
 stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromZip(const std::string& path)
 {
-#if defined(BN_MOD_SUPPORT) && !defined(__APPLE__)
+#if defined(BN_MOD_SUPPORT)
   std::filesystem::path absolute = std::filesystem::absolute(path);
   absolute = absolute.make_preferred();
   std::filesystem::path file = absolute.filename();
