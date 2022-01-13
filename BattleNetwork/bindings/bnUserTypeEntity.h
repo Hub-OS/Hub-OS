@@ -338,6 +338,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["is_counterable"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsCounterable();
   };
+  entity_table["is_confused"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->IsConfused();
+  };
   entity_table["toggle_counter"] = [](WeakWrapper<E>& entity, bool on) {
     entity.Unwrap()->ToggleCounter(on);
   };

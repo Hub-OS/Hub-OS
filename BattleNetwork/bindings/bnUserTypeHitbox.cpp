@@ -19,10 +19,10 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
       wrappedSpell.Own();
       return wrappedSpell;
     }),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+    sol::meta_function::index, []( sol::table table, const std::string key ) {
       ScriptResourceManager::PrintInvalidAccessMessage( table, "Hitbox", key );
     },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Hitbox", key );
     },
     "set_callbacks", [](WeakWrapper<HitboxSpell>& spell, sol::object luaAttackCallbackObject, sol::object luaCollisionCallbackObject) {
@@ -140,7 +140,8 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
     "Bubble", Hit::bubble,
     "Freeze", Hit::freeze,
     "Drag", Hit::drag,
-    "Blind", Hit::blind
+    "Blind", Hit::blind,
+    "Confuse", Hit::confuse
   );
 
   state.new_usertype<Hit::Drag>("Drag",
@@ -149,10 +150,10 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
       [] { return Hit::Drag{ Direction::none, 0 }; }
     ),
     "None", sol::property([] { return Hit::Drag{ Direction::none, 0 }; }),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+    sol::meta_function::index, []( sol::table table, const std::string key ) {
       ScriptResourceManager::PrintInvalidAccessMessage( table, "Drag", key );
     },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Drag", key );
     },
     "direction", &Hit::Drag::dir,

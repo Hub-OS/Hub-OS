@@ -8,8 +8,8 @@
 
 #include <iostream>
 
-PlayerControlledState::PlayerControlledState() : 
-  AIState<Player>(), 
+PlayerControlledState::PlayerControlledState() :
+  AIState<Player>(),
   InputHandle(),
   isChargeHeld(false)
 {
@@ -90,6 +90,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     direction = player.GetTeam() == Team::red ? Direction::right : Direction::left;
   }
 
+  if (player.IsConfused()) {
+    direction = Reverse(direction);
+  }
+
   if(direction != Direction::none && actionable && !player.IsRooted()) {
     Battle::Tile* next_tile = player.GetTile() + direction;
     std::shared_ptr<AnimationComponent> anim = player.GetFirstComponent<AnimationComponent>();
@@ -114,7 +118,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
     else {
       player.Teleport(next_tile, ActionOrder::voluntary, onMoveBegin);
     }
-  } 
+  }
 }
 
 void PlayerControlledState::OnLeave(Player& player) {
