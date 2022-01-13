@@ -23,6 +23,7 @@ namespace Hit {
   const Flags no_counter = 0x00000800;
   const Flags root       = 0x00001000;
   const Flags blind      = 0x00002000;
+  const Flags confuse    = 0x00004000;
 
   struct Drag {
     Direction dir{ Direction::none };
@@ -52,11 +53,11 @@ namespace Hit {
     Context context{};
   };
 
-  const constexpr Hit::Properties DefaultProperties = { 
-    0, 
-    Flags(Hit::flinch | Hit::impact), 
-    Element::none, 
-    0, 
+  const constexpr Hit::Properties DefaultProperties = {
+    0,
+    Flags(Hit::flinch | Hit::impact),
+    Element::none,
+    0,
     Direction::none,
     true
   };

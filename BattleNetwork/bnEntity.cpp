@@ -23,7 +23,7 @@ bool EntityComparitor::operator()(Entity* f, Entity* s) const
 }
 
 // First entity ID begins at 1
-Entity::Entity() : 
+Entity::Entity() :
   elapsedMoveTime(0),
   lastComponentID(0),
   height(0),
@@ -73,14 +73,21 @@ Entity::Entity() :
   blindFx->Hide(); // default: hidden
   AddNode(blindFx);
 
+  confusedFx = std::make_shared<SpriteProxyNode>();
+  confusedFx->setTexture(Textures().LoadFromFile(TexturePaths::CONFUSED_FX));
+  confusedFx->SetLayer(-2);
+  confusedFx->Hide(); // default: hidden
+  AddNode(confusedFx);
+
   iceFxAnimation = Animation(AnimationPaths::ICE_FX);
   blindFxAnimation = Animation(AnimationPaths::BLIND_FX);
+  confusedFxAnimation = Animation(AnimationPaths::CONFUSED_FX);
 }
 
 Entity::~Entity() {
   std::shared_ptr<Field> f = field.lock();
   if (!f) return;
-  
+
   f->ClearAllReservations(ID);
 }
 
@@ -145,7 +152,7 @@ void Entity::UpdateMovement(double elapsed)
       // Get a value from 0.0 to 1.0
       float duration = seconds_cast<float>(currMoveEvent.deltaFrames);
       float delta = swoosh::ease::linear(static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value), duration, 1.0f);
-      
+
       sf::Vector2f pos = moveStartPosition;
       sf::Vector2f tar = next->getPosition();
 
@@ -154,7 +161,7 @@ void Entity::UpdateMovement(double elapsed)
       tileOffset = interpol - pos;
 
       // Once halfway, the mmbn entities switch to the next tile
-      // and the slide position offset must be readjusted 
+      // and the slide position offset must be readjusted
       if (delta >= 0.5f) {
         // conditions of the target tile may change, ensure by the time we switch
         if (CanMoveTo(next)) {
@@ -178,7 +185,7 @@ void Entity::UpdateMovement(double elapsed)
       float heightDelta = swoosh::ease::wideParabola(heightElapsed, duration, 1.0f);
       currJumpHeight = (heightDelta * currMoveEvent.height);
       tileOffset.y -= currJumpHeight;
-      
+
       // When delta is 1.0, the slide duration is complete
       if (delta == 1.0f)
       {
@@ -324,7 +331,7 @@ const bool Entity::IsSuperEffective(Element _other) const {
       return _other == Element::cursor;
       break;
   }
-    
+
   return false;
 }
 
@@ -423,7 +430,31 @@ void Entity::Update(double _elapsed) {
       blindCooldown = frames(0);
     }
   }
-  
+
+
+  // assume this is hidden, will flip to visible if not
+  confusedFx->Hide();
+  if (confusedCooldown > frames(0)) {
+    confusedFxAnimation.Update(_elapsed, confusedFx->getSprite());
+    confusedFx->Reveal();
+
+    confusedSfxCooldown -= from_seconds(_elapsed);
+    // Unclear if 55i is the correct timing: this seems to be the one used in MMBN6, though, as the confusion SFX only plays twice during a 110i confusion period.
+    constexpr frame_time_t CONFUSED_SFX_INTERVAL{55};
+    if (confusedSfxCooldown <= frames(0)) {
+      static std::shared_ptr<sf::SoundBuffer> confusedsfx = Audio().LoadFromFile(SoundPaths::CONFUSED_FX);
+      Audio().Play(confusedsfx, AudioPriority::highest);
+      confusedSfxCooldown = CONFUSED_SFX_INTERVAL;
+    }
+
+    confusedCooldown -= from_seconds(_elapsed);
+
+    if (confusedCooldown <= frames(0)) {
+      confusedCooldown = frames(0);
+      confusedSfxCooldown = frames(0);
+    }
+  }
+
   if(canUpdateThisFrame) {
     OnUpdate(_elapsed);
   }
@@ -462,7 +493,7 @@ void Entity::Update(double _elapsed) {
   // being deleted on a counter frame. Begin animating the counter-delete slide
   if (counterSlideOffset.x != 0 || counterSlideOffset.y != 0) {
     counterSlideDelta += static_cast<float>(_elapsed);
-    
+
     float delta = swoosh::ease::linear(counterSlideDelta, 0.10f, 1.0f);
     sf::Vector2f offset = delta * counterSlideOffset;
 
@@ -668,7 +699,7 @@ bool Entity::Teleport(Battle::Tile* dest, ActionOrder order, std::function<void(
   return false;
 }
 
-bool Entity::Slide(Battle::Tile* dest, 
+bool Entity::Slide(Battle::Tile* dest,
   const frame_time_t& slideTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
   if (dest && CanMoveTo(dest)) {
@@ -682,7 +713,7 @@ bool Entity::Slide(Battle::Tile* dest,
   return false;
 }
 
-bool Entity::Jump(Battle::Tile* dest, float destHeight, 
+bool Entity::Jump(Battle::Tile* dest, float destHeight,
   const frame_time_t& jumpTime, const frame_time_t& endlag, ActionOrder order, std::function<void()> onBegin)
 {
   destHeight = std::max(destHeight, 0.f); // no negative jumps
@@ -740,9 +771,9 @@ void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType&
   }
 }
 
-// Default implementation of CanMoveTo() checks 
+// Default implementation of CanMoveTo() checks
 // 1) if the tile is walkable
-// 2) if not, if the entity can float 
+// 2) if not, if the entity can float
 // 3) if the tile is valid and the next tile is the same team
 bool Entity::CanMoveTo(Battle::Tile * next)
 {
@@ -991,7 +1022,7 @@ void Entity::AdoptNextTile()
 
   // Slide if the tile we are moving to is ICE
   if (next->GetState() != TileState::ice || HasFloatShoe()) {
-    // If not using animations, then 
+    // If not using animations, then
     // adopting a tile is the last step in the move procedure
     // Increase the move count
     moveCount++;
@@ -1188,7 +1219,7 @@ const bool Entity::Hit(Hit::Properties props) {
   if ((props.flags & Hit::shake) == Hit::shake && IsTimeFrozen()) {
     CreateComponent<ShakingEffect>(weak_from_this());
   }
-  
+
   for (std::shared_ptr<DefenseRule>& defense : defenses) {
     props = defense->FilterStatuses(props);
   }
@@ -1302,14 +1333,14 @@ void Entity::ResolveFrameBattleDamage()
       tileDamage = props.filtered.damage;
       GetTile()->SetState(TileState::normal);
     }
-    
+
     if (props.filtered.element == Element::elec
       && GetTile()->GetState() == TileState::ice) {
       tileDamage = props.filtered.damage;
     }
 
-    if (props.filtered.element == Element::aqua 
-      && GetTile()->GetState() == TileState::ice 
+    if (props.filtered.element == Element::aqua
+      && GetTile()->GetState() == TileState::ice
       && !frameFreezeCancel) {
       willFreeze = true;
       GetTile()->SetState(TileState::normal);
@@ -1373,11 +1404,11 @@ void Entity::ResolveFrameBattleDamage()
       frameFreezeCancel = frameFreezeCancel || flashAndFlinch;
 
       /**
-      While an attack that only flinches will not cancel stun, 
-      an attack that both flinches and flashes will cancel stun. 
-      This applies if the entity doesn't have SuperArmor installed. 
+      While an attack that only flinches will not cancel stun,
+      an attack that both flinches and flashes will cancel stun.
+      This applies if the entity doesn't have SuperArmor installed.
       If they do have armor, stun isn't cancelled.
-      
+
       This effect is requeued for another frame if currently dragging
       */
       if ((props.filtered.flags & Hit::stun) == Hit::stun) {
@@ -1466,7 +1497,7 @@ void Entity::ResolveFrameBattleDamage()
         }
       }
 
-      // exclude this from the next processing step 
+      // exclude this from the next processing step
       props.filtered.flags &= ~Hit::bubble;
 
       if ((props.filtered.flags & Hit::root) == Hit::root) {
@@ -1474,7 +1505,7 @@ void Entity::ResolveFrameBattleDamage()
           flagCheckThunk(Hit::root);
       }
 
-      // exclude this from the next processing step 
+      // exclude this from the next processing step
       props.filtered.flags &= ~Hit::root;
 
       // Only if not in time freeze, consider this status for delayed effect after sliding
@@ -1489,10 +1520,10 @@ void Entity::ResolveFrameBattleDamage()
         }
       }
 
-      // exclude this from the next processing step 
+      // exclude this from the next processing step
       props.filtered.flags &= ~Hit::shake;
 
-      // blind check 
+      // blind check
       if ((props.filtered.flags & Hit::blind) == Hit::blind) {
         if (postDragEffect.dir != Direction::none) {
           // requeue these statuses if in the middle of a slide/drag
@@ -1506,6 +1537,20 @@ void Entity::ResolveFrameBattleDamage()
 
       // exclude blind from the next processing step
       props.filtered.flags &= ~Hit::blind;
+
+      // confuse check
+      // TODO: Double check with mars that this is the correct behavior for confusion.
+      if ((props.filtered.flags & Hit::confuse) == Hit::confuse) {
+        if (postDragEffect.dir != Direction::none) {
+          // requeue these statuses if in the middle of a slide/drag
+          append.push({ props.hitbox, { 0, props.filtered.flags } });
+        }
+        else {
+          Confuse(frames(110));
+          flagCheckThunk(Hit::confuse);
+        }
+      }
+      props.filtered.flags &= ~Hit::confuse;
 
       // todo: for confusion
       //if ((props.filtered.flags & Hit::confusion) == Hit::confusion) {
@@ -1524,6 +1569,7 @@ void Entity::ResolveFrameBattleDamage()
       - root
       - shake
       - blind
+      - confuse
       Now check if the rest were triggered and invoke the
       corresponding status callbacks
       */
@@ -1710,6 +1756,11 @@ bool Entity::IsBlind()
   return blindCooldown > frames(0);
 }
 
+bool Entity::IsConfused()
+{
+  return confusedCooldown > frames(0);
+}
+
 void Entity::Stun(frame_time_t maxCooldown)
 {
   invincibilityCooldown = frames(0); // cancel flash
@@ -1762,6 +1813,22 @@ void Entity::Blind(frame_time_t maxCooldown)
   blindFx->setPosition(0, height);
   blindFxAnimation << "default" << Animator::Mode::Loop;
   blindFxAnimation.Refresh(blindFx->getSprite());
+}
+
+void Entity::Confuse(frame_time_t maxCooldown) {
+  constexpr float OFFSET_Y = 10.f;
+
+  float height = -GetHeight()-OFFSET_Y;
+  std::shared_ptr<AnimationComponent> anim = GetFirstComponent<AnimationComponent>();
+
+  if (anim && anim->HasPoint("head")) {
+    height = (anim->GetPoint("head") - anim->GetPoint("origin")).y - OFFSET_Y;
+  }
+
+  confusedCooldown = maxCooldown;
+  confusedFx->setPosition(0, height);
+  confusedFxAnimation << "default" << Animator::Mode::Loop;
+  confusedFxAnimation.Refresh(confusedFx->getSprite());
 }
 
 const Battle::TileHighlight Entity::GetTileHighlightMode() const {
