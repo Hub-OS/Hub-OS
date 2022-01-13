@@ -30,8 +30,9 @@ namespace TexturePaths {
   path SPELL_POOF = "resources/scenes/battle/spells/poof.png";
   path ICE_FX = "resources/scenes/battle/spells/ice_fx.png";
   path BLIND_FX = "resources/scenes/battle/blind.png";
+  path CONFUSED_FX = "resources/scenes/battle/spells/confused.png";
 
-  //Card Select 
+  //Card Select
   path CHIP_SELECT_MENU = "resources/ui/card_select.png";
   path CHIP_SELECT_MEGA_OVERLAY = "resources/ui/card_select_mega_overlay.png";
   path CHIP_SELECT_GIGA_OVERLAY = "resources/ui/card_select_giga_overlay.png";
@@ -145,10 +146,12 @@ namespace TexturePaths {
 namespace AnimationPaths {
   path ICE_FX = "resources/scenes/battle/spells/ice_fx.animation";
   path BLIND_FX = "resources/scenes/battle/blind.animation";
+  path CONFUSED_FX = "resources/scenes/battle/spells/confused.animation";
   path MISC_COUNTER_REVEAL = "resources/scenes/battle/counter_reveal.animation";
 }
 
 namespace SoundPaths {
   path ICE_FX = "resources/sfx/freeze.ogg";
+  path CONFUSED_FX = "resources/sfx/confused.ogg";
 }
 #undef path
