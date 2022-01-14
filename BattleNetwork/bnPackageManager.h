@@ -114,7 +114,7 @@ class PackageManager {
 
           DataType* out = data;
           data = nullptr;
-            
+
           loadClass();
 
           return out;
@@ -187,7 +187,7 @@ class PackageManager {
     void ErasePackage(const std::string& packageId);
 
     /**
-    * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes. 
+    * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes.
     * @warning Does not clear the assigned namespaceId
     */
     void ErasePackages();
@@ -314,12 +314,13 @@ stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromZip(const s
   absolute = absolute.remove_filename();
   std::string extracted_path = (absolute / std::filesystem::path(file_str)).generic_string();
 
+  std::filesystem::create_directory(extracted_path);  // Result is unused, do not fail if directory could not be crated (may already exist).
   auto result = stx::unzip(path, extracted_path);
 
   if (result.is_error()) {
     return stx::error<std::string>(result.error_cstr());
   }
-  
+
   return this->LoadPackageFromDisk<ScriptedDataType>(extracted_path);
 #elif
   return stx::error<std::string>("std::filesystem not supported");
