@@ -4,6 +4,7 @@
 #include <tuple>
 #include <vector>
 #include "bnElements.h"
+#include "bnHitProperties.h"
 
 using std::string;
 
@@ -15,9 +16,9 @@ class SelectedCardsUI;
  * @author mav
  * @date 05/05/19
  * @brief Describes card record entry in database of loaded cards
- * 
+ *
  * This will be expanded to load the corresponding script information
- * 
+ *
  */
 namespace Battle {
   enum class CardClass : unsigned {
@@ -38,10 +39,11 @@ namespace Battle {
       bool timeFreeze{ false }; /*!< Does this card rely on action items to resolve before resuming the battle scene? */
       bool skipTimeFreezeIntro{ false }; /*! Skips the fade in/out and name appearing for this card */
       string shortname;
-      string action; 
+      string action;
       string description;
       string verboseDescription;
       Element element{ Element::none }, secondaryElement{ Element::none };
+      Hit::Flags hitFlags{ 0 };
       CardClass cardClass{ CardClass::standard };
       std::vector<std::string> metaClasses; /*!< Cards can be tagged with additional user information*/
     };
