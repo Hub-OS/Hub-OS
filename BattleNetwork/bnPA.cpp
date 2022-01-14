@@ -63,7 +63,7 @@ const int PA::FindPA(std::vector<Battle::Card>& input)
 
   for (iter = advances.begin(); iter != advances.end(); iter++) {
     bool match = false;
-    
+
     if (iter->steps.size() > size) {
       continue; // try next recipe
     }
@@ -91,7 +91,7 @@ const int PA::FindPA(std::vector<Battle::Card>& input)
           }
 
           match = true;
-          // We do not break here. If it is a match all across the steps, then the for loop ends 
+          // We do not break here. If it is a match all across the steps, then the for loop ends
           // and match stays == true
 
           if (startIndex == -1) {
@@ -128,6 +128,7 @@ const int PA::FindPA(std::vector<Battle::Card>& input)
         "combo",
         iter->primaryElement,
         iter->secondElement,
+        iter->hitFlags,
         Battle::CardClass::standard,
         iter->metaClasses
       });

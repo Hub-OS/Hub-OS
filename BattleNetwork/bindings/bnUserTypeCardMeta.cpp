@@ -6,10 +6,10 @@
 
 void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::state& state, sol::table& battle_namespace, std::function<void(const std::string& packageId)> setPackageId) {
   const auto& cardpropsmeta_table = battle_namespace.new_usertype<Battle::Card::Properties>("CardProperties",
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+    sol::meta_function::index, []( sol::table table, const std::string key ) {
       ScriptResourceManager::PrintInvalidAccessMessage( table, "CardProperties", key );
     },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "CardProperties", key );
     },
     "from_card", [scriptManager] (const std::string& fqn) -> Battle::Card::Properties {
@@ -34,6 +34,7 @@ void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::state& s
     "description", &Battle::Card::Properties::description,
     "element", &Battle::Card::Properties::element,
     "limit", &Battle::Card::Properties::limit,
+    "hit_flags", &Battle::Card::Properties::hitFlags,
     "meta_classes", &Battle::Card::Properties::metaClasses,
     "secondary_element", &Battle::Card::Properties::secondaryElement,
     "shortname", &Battle::Card::Properties::shortname,
@@ -43,10 +44,10 @@ void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::state& s
   );
 
   const auto& cardmeta_table = battle_namespace.new_usertype<CardMeta>("CardMeta",
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+    sol::meta_function::index, []( sol::table table, const std::string key ) {
       ScriptResourceManager::PrintInvalidAccessMessage( table, "CardMeta", key );
     },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "CardMeta", key );
     },
     "filter_hand_step", &CardMeta::filterHandStep,
