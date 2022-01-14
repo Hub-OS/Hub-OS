@@ -58,7 +58,7 @@ namespace {
       }
 
       if (zip_entry_isdir(zip)) {
-        std::filesystem::create_directory(entry_destination_path);
+        std::filesystem::create_directory(entry_destination_path);  // Result ignored, folder may already exist.
         stx::result_t<uint64_t> r = unzip_walk(zip, entry_destination_path, root_path, size_limit);
         if (r.is_error()) {
           return r;
@@ -66,6 +66,7 @@ namespace {
         current_size += r.value();
       }
       else {
+        std::filesystem::create_directories(entry_destination_path.parent_path());  // Result ignored, folder may already exist.
         if (int r = zip_entry_fread(zip, entry_destination_path.string().c_str()); r != 0) {
           return stx::error<uint64_t>("zip_entry_fread for "s + filename.string() + ", extracting to " + entry_destination_path.string() + ": " + zip_strerror(r));
         }
