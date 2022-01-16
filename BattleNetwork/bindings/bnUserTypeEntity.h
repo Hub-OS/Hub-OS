@@ -85,6 +85,10 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["reveal"] = [](WeakWrapper<E>& entity) {
     entity.Unwrap()->Reveal();
   };
+  entity_table["can_move_to"] = [](WeakWrapper<E>& entity, Battle::Tile* tile) -> bool {
+    if (!tile) return false;
+    return entity.Unwrap()->CanMoveTo(tile);
+  };
   entity_table["teleport"] = sol::overload(
     [](
       WeakWrapper<E>& entity,
