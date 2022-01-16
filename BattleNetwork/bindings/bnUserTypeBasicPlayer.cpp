@@ -17,6 +17,10 @@ void DefineBasicPlayerUserType(sol::table& battle_namespace) {
         player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
+    "is_locked_out", [](WeakWrapper<Player>& player) {
+      auto playerPtr = player.Unwrap();
+      return !playerPtr->IsActionable() || !playerPtr->IsLockoutAnimationComplete();
+    },
     "get_attack_level", [](WeakWrapper<Player>& player) -> unsigned int {
       return player.Unwrap()->GetAttackLevel();
     },
