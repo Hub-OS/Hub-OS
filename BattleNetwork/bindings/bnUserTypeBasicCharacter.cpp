@@ -16,9 +16,9 @@ void DefineBasicCharacterUserType(sol::table& battle_namespace) {
         character.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
-    "is_locked_out", [](WeakWrapper<Character>& character) {
+    "can_attack", [](WeakWrapper<Character>& character) {
       auto characterPtr = character.Unwrap();
-      return !characterPtr->IsActionable() || !characterPtr->IsLockoutAnimationComplete();
+      return characterPtr->CanAttack();
     },
     "get_rank", [](WeakWrapper<Character>& character) -> Character::Rank {
       return character.Unwrap()->GetRank();

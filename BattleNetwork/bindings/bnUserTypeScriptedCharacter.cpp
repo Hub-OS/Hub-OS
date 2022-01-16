@@ -84,9 +84,9 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, const
         character.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
-    "is_locked_out", [](WeakWrapper<ScriptedCharacter>& character) {
+    "can_attack", [](WeakWrapper<ScriptedCharacter>& character) {
       auto characterPtr = character.Unwrap();
-      return !characterPtr->IsActionable() || !characterPtr->IsLockoutAnimationComplete();
+      return characterPtr->CanAttack();
     },
     "get_rank", [](WeakWrapper<ScriptedCharacter>& character) -> Character::Rank {
       return character.Unwrap()->GetRank();
