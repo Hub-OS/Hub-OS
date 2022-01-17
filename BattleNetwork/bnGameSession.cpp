@@ -4,7 +4,7 @@
 #include "netplay/bnBufferWriter.h"
 #include "netplay/bnBufferReader.h"
 
-const bool GameSession::LoadSession(const std::string& inpath)
+const bool GameSession::LoadSession(const std::filesystem::path& inpath)
 {
   monies = 0;
   cardPool.clear();
@@ -56,10 +56,10 @@ const bool GameSession::LoadSession(const std::string& inpath)
 
   for (size_t i = 0; i < collection_len; i++) {
     CardFolder* folder;
-    
+
     // read folder name
     std::string folder_name = reader.ReadString<char>(buffer);
-    
+
     if (!folders.MakeFolder(folder_name)) {
       Logger::Logf(LogLevel::critical, "Unable to create folder `%s`", folder_name.c_str());
       continue;
@@ -77,7 +77,7 @@ const bool GameSession::LoadSession(const std::string& inpath)
       // read code
       char code = reader.Read<char>(buffer);
 
-      // read name 
+      // read name
       std::string name = reader.ReadString<char>(buffer);
 
       Battle::Card::Properties props;
@@ -134,14 +134,14 @@ const bool GameSession::IsFolderAllowed(CardFolder* folder) const
 }
 
 const bool GameSession::IsBlockAllowed(const std::string& packageId) const
-{  
+{
   if (!blockPackages->HasPackage(packageId)) return false;
 
   const std::string& md5 = blockPackages->FindPackageByID(packageId).GetPackageFingerprint();
   return IsPackageAllowed(PackageHash{ packageId, md5 });
 }
 
-void GameSession::SaveSession(const std::string& outpath)
+void GameSession::SaveSession(const std::filesystem::path& outpath)
 {
   BufferWriter writer;
   Poco::Buffer<char> buffer(0);

@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-MobMeta::MobMeta(): 
+MobMeta::MobMeta():
   placeholderTexture(nullptr),
   PackageManager<MobMeta>::Meta<MobFactory>()
 {
@@ -26,7 +26,7 @@ void MobMeta::OnMetaParsed()
   placeholderTexture = handle.Textures().LoadFromFile(placeholderPath);
 }
 
-MobMeta& MobMeta::SetPlaceholderTexturePath(std::string path)
+MobMeta& MobMeta::SetPlaceholderTexturePath(const std::filesystem::path& path)
 {
   placeholderPath = path;
   return *this;
@@ -67,7 +67,7 @@ const std::shared_ptr<sf::Texture> MobMeta::GetPlaceholderTexture() const
   return placeholderTexture;
 }
 
-const std::string MobMeta::GetPlaceholderTexturePath() const
+const std::filesystem::path MobMeta::GetPlaceholderTexturePath() const
 {
   return placeholderPath;
 }

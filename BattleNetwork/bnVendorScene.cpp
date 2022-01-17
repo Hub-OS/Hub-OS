@@ -1,21 +1,23 @@
 #include "bnVendorScene.h"
 #include "bnMessage.h"
 #include "bnTextureResourceManager.h"
+
+#include <filesystem>
 #include <Segues/BlackWashFade.h>
 
 //
-// Background 
+// Background
 //
 
 #define TILEW 64
 #define TILEH 64
 
-#define PATH std::string("resources/scenes/vendors/")
+#define PATH std::filesystem::path("resources/scenes/vendors")
 
 VendorScene::VendorBackground::VendorBackground() :
   x(0.0f),
   y(0.0f),
-  Background(Textures().LoadFromFile(PATH + "bg.png"), 240, 180)
+  Background(Textures().LoadFromFile(PATH / "bg.png"), 240, 180)
 {
   FillScreen(sf::Vector2u(TILEW, TILEH));
 }

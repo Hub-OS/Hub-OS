@@ -142,17 +142,17 @@ std::shared_ptr<Background> Mob::GetBackground() {
   return background;
 }
 
-void Mob::StreamCustomMusic(const std::string& path, long long startMs, long long endMs) {
+void Mob::StreamCustomMusic(const std::filesystem::path& path, long long startMs, long long endMs) {
   music = path;
   this->startMs = startMs;
   this->endMs = endMs;
 }
 
 bool Mob::HasCustomMusicPath() {
-  return music.length() > 0;
+  return !music.empty();
 }
 
-const std::string Mob::GetCustomMusicPath() const {
+const std::filesystem::path Mob::GetCustomMusicPath() const {
   return music;
 }
 

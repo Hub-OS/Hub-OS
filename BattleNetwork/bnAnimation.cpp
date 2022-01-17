@@ -15,11 +15,11 @@ Animation::Animation() : animator(), path("") {
   progress = frames(0);
 }
 
-Animation::Animation(const char* _path) : animator(), path(std::string(_path)) {
+Animation::Animation(const char* _path) : animator(), path(std::filesystem::u8path(_path)) {
   Reload();
 }
 
-Animation::Animation(const string& _path) : animator(), path(_path) {
+Animation::Animation(const std::filesystem::path& _path) : animator(), path(_path) {
   Reload();
 }
 
@@ -53,7 +53,7 @@ void Animation::Reload() {
   }
 }
 
-void Animation::Load(const std::string& newPath)
+void Animation::Load(const std::filesystem::path& newPath)
 {
   if (!newPath.empty()) {
     path = newPath;
@@ -186,7 +186,7 @@ void Animation::LoadWithData(const string& data)
       }
     }
     else if (StartsWith(line, "imagePath")) {
-      // no-op 
+      // no-op
       // editor only at this time
       continue;
     }
@@ -263,8 +263,8 @@ void Animation::LoadWithData(const string& data)
       }
       else {
         frameLists.at(frameAnimationIndex).Add(
-          currentFrameDuration, 
-          IntRect(currentStartx, currentStarty, currentWidth, currentHeight), 
+          currentFrameDuration,
+          IntRect(currentStartx, currentStarty, currentWidth, currentHeight),
           sf::Vector2f(originX, originY),
           flipX,
           flipY
@@ -330,7 +330,7 @@ void Animation::Update(double elapsed, sf::Sprite& target) {
     // apply new state to target on same frame
     animator(frames(0), target, animations[currAnimation]);
     progress = frames(0);
-    
+
     HandleInterrupted();
   }
 
@@ -466,11 +466,11 @@ char Animation::GetMode()
 frame_time_t Animation::GetStateDuration(const std::string& state) const
 {
   auto iter = animations.find(state);
-  
+
   if (iter != animations.end()) {
     return iter->second.GetTotalDuration();
   }
-  
+
   return frames(0);
 }
 

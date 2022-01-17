@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <time.h>
+#include <filesystem>
 #include <future>
 #include <optional>
 #include <Swoosh/Activity.h>
@@ -258,7 +259,7 @@ namespace Overworld {
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
     bool IsInFocus();
-    virtual std::string GetPath(const std::string& path);
+    virtual std::filesystem::path GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);
     virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
     virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);

@@ -1,4 +1,5 @@
 #include "bnAudioResourceManager.h"
+#include "bnFileUtil.h"
 #include "bnLogger.h"
 
 AudioResourceManager::AudioResourceManager(){
@@ -24,7 +25,7 @@ AudioResourceManager::AudioResourceManager(){
 
 
 AudioResourceManager::~AudioResourceManager() {
-  // Stop playing everything 
+  // Stop playing everything
   stream.stop();
 
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
@@ -119,8 +120,9 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::DEFORM, "resources/sfx/deform.ogg"); status++;
 }
 
-void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
-  if (!sources[static_cast<size_t>(type)].loadFromFile(path)) {
+void AudioResourceManager::LoadSource(AudioType type, const std::filesystem::path& path) {
+  std::unique_ptr<StdFilesystemInputStream> stream = std::make_unique<StdFilesystemInputStream>(path);
+  if (!sources[static_cast<size_t>(type)].loadFromStream(std::move(stream))) {
     Logger::Logf(LogLevel::critical, "Failed loading Audio(): %s\n", path.c_str());
 
   } else {
@@ -128,14 +130,15 @@ void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
   }
 }
 
-std::shared_ptr<sf::SoundBuffer> AudioResourceManager::LoadFromFile(const std::string& path)
+std::shared_ptr<sf::SoundBuffer> AudioResourceManager::LoadFromFile(const std::filesystem::path& path)
 {
   auto iter = cached.find(path);
   std::shared_ptr<sf::SoundBuffer> loaded;
 
   if (iter == cached.end()) {
     loaded = std::make_shared<sf::SoundBuffer>();
-    loaded->loadFromFile(path);
+    std::unique_ptr<StdFilesystemInputStream> stream = std::make_unique<StdFilesystemInputStream>(path);
+    loaded->loadFromStream(std::move(stream));
     cached.insert(std::make_pair(path, CachedResource<sf::SoundBuffer>(loaded)));
   }
   else {
@@ -232,7 +235,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[static_cast<size_t>(type)]) {
-          // Lowest priority or high priority sounds only play once 
+          // Lowest priority or high priority sounds only play once
           return -1;
         }
       }
@@ -250,7 +253,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
       }
     }
     else { // HIGH PRIORITY will not overwrite other HIGH priorities unless they have ended
-      bool canOverwrite = channels[i].priority < AudioPriority::high 
+      bool canOverwrite = channels[i].priority < AudioPriority::high
         ||(channels[i].priority == AudioPriority::high && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing);
       if (canOverwrite) {
         channels[i].buffer.stop();
@@ -332,7 +335,7 @@ int AudioResourceManager::Play(std::shared_ptr<sf::SoundBuffer> resource, AudioP
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == resource.get()) {
-          // Lowest priority or high priority sounds only play once 
+          // Lowest priority or high priority sounds only play once
           return -1;
         }
       }
@@ -366,18 +369,19 @@ int AudioResourceManager::Play(std::shared_ptr<sf::SoundBuffer> resource, AudioP
   return -1;
 }
 
-int AudioResourceManager::Stream(std::string path, bool loop, long long startMs, long long endMs) {
+int AudioResourceManager::Stream(const std::filesystem::path& path, bool loop, long long startMs, long long endMs) {
   if (!isEnabled) { return -1; }
 
   if (path == currStreamPath) { return -1; };
 
   currStreamPath = path;
 
-  // stop previous stream if any 
+  // stop previous stream if any
   stream.stop();
   midiMusic.stop();
 
-  if (!stream.openFromFile(path)) {
+  std::unique_ptr<StdFilesystemInputStream> istream = std::make_unique<StdFilesystemInputStream>(path);
+  if (!stream.openFromStream(std::move(istream))) {
     if (midiMusic.loadMidiFromFile(path)) {
       midiMusic.play();
       midiMusic.setLoop(loop);
@@ -398,7 +402,7 @@ int AudioResourceManager::Stream(std::string path, bool loop, long long startMs,
   return 0;
 }
 
-int AudioResourceManager::Stream(std::string path, bool loop) {
+int AudioResourceManager::Stream(const std::filesystem::path& path, bool loop) {
   return Stream(path, loop, -1, -1);
 }
 

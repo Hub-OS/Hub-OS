@@ -62,7 +62,7 @@ private:
   bool nextReady{ true }; /*!< Signal if mob is ready to spawn the next character */
   bool isBoss{ false }; /*!< Flag to change rank and music */
   bool isFreedomMission{ false }, playerCanFlip{ false };
-  std::string music; /*!< Override with custom music */
+  std::filesystem::path music; /*!< Override with custom music */
   std::vector<std::shared_ptr<Mutator>> spawn; /*!< The enemies to spawn and manage */
   std::vector<std::shared_ptr<Character>> tracked; /*! Enemies that may or may not be spawned through the mob class but need to be considered */
   std::vector<std::function<void(std::shared_ptr<Character>)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
@@ -89,7 +89,7 @@ public:
   ~Mob();
 
   /**
-   * @brief Register a reward for this mob. 
+   * @brief Register a reward for this mob.
    * @param rank Cap ranks between 1-10 and where 11 is Rank S
    * @param item The item to reward with
    */
@@ -97,8 +97,8 @@ public:
 
   /**
    * @brief Find all possible rewards based on this score
-   * @param score generated from BattleRewards class 
-   * @return Randomly chooses possible ranked reward or nullptr if none 
+   * @param score generated from BattleRewards class
+   * @return Randomly chooses possible ranked reward or nullptr if none
    */
   BattleItem* GetRankedReward(int score);
 
@@ -126,21 +126,21 @@ public:
 
   /**
    * @brief removes a character from the mob list
-   * 
+   *
    * When the list is empty, the mob has been cleared
    * We wish to forget about them because the Field class
    * handles deletion of entities that have spawned
-   * 
+   *
    * @see Field
    */
   void Forget(Character& character);
 
   /**
    * @brief Get the count of remaining enemies in battle
-   * 
+   *
    * If health is below or equal to zero, they are skipped
-   * 
-   * @return const int 
+   *
+   * @return const int
    */
   const int GetRemainingMobCount();
 
@@ -150,7 +150,7 @@ public:
   void ToggleBossFlag();
 
   /**
-   * @brief Query if boss battle 
+   * @brief Query if boss battle
    * @return true if isBoss is true, otherwise false
    */
   bool IsBoss();
@@ -183,9 +183,9 @@ public:
 
   /**
    * @brief The battle scene will load this custom music
-   * @param path path relative to the app 
+   * @param path path relative to the app
    */
-  void StreamCustomMusic(const std::string& path, long long startMs = -1LL, long long endMs = -1LL);
+  void StreamCustomMusic(const std::filesystem::path& path, long long startMs = -1LL, long long endMs = -1LL);
 
   /**
    * @brief Checks if custom music path was set
@@ -195,9 +195,9 @@ public:
 
   /**
    * @brief Gets the custom music path
-   * @return const std::string
+   * @return const std::filesystem::path
    */
-  const std::string GetCustomMusicPath() const;
+  const std::filesystem::path GetCustomMusicPath() const;
 
   /**
   * @brief Gets the music loop points
@@ -208,7 +208,7 @@ public:
   /**
    * @brief Gets the mob at spawn index
    * @param index spawn index
-   * @return const Character& 
+   * @return const Character&
    * @throws std::runtime_error if index is not in range
    */
   const Character& GetMobAt(int index);
@@ -247,14 +247,14 @@ public:
   * @param playerNum the player order e.g. player 1 spawns at tile (x,y)
   * @param tileX the column of the target tile
   * @param tileY the row of the target tile
-  * 
+  *
   * @warning will overwrite any existing playerNum spawn data if a previous `playerNum` entry exists
   */
   void SpawnPlayer(unsigned playerNum, int tileX, int tileY);
 
   /**
    * @brief Get the next unspawned enemy
-   * 
+   *
    * Spawns the character and changes its state to PixelInState<>
    * @return SpawnData
    */
@@ -336,7 +336,7 @@ public:
   template<template<typename> class IntroState>
   std::shared_ptr<Mutator> SpawnAt(unsigned x, unsigned y) {
     // assert that tileX and tileY exist in field
-    assert(x >= 1 && x <= static_cast<unsigned>(mob->field->GetWidth()) 
+    assert(x >= 1 && x <= static_cast<unsigned>(mob->field->GetWidth())
         && y >= 1 && y <= static_cast<unsigned>(mob->field->GetHeight()));
 
     // Create a new enemy spawn data object

@@ -7,7 +7,7 @@
 #include <filesystem>
 
 template<typename PackageManagerT, typename ScriptedResourceT>
-static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, const std::string& fullModPath) {
+static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, const std::filesystem::path& fullModPath) {
   auto result = packageManager.template LoadPackageFromDisk<ScriptedResourceT>(fullModPath);
 
   if (!result.is_error()) {
@@ -18,29 +18,29 @@ static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, co
 }
 
 template<typename PackageManagerT, typename ScriptedResourceT>
-static inline void QueueModRegistration(PackageManagerT& packageManager, const char* modPath, const char* modCategory) {
+static inline void QueueModRegistration(PackageManagerT& packageManager, const const std::filesystem::path& modPath, const char* modCategory) {
 #if defined(BN_MOD_SUPPORT)
-  std::map<std::string, bool> ignoreList;
-  std::vector<std::string> zipList;
+  std::map<std::filesystem::path, bool> ignoreList;
+  std::vector<std::filesystem::path> zipList;
 
   std::filesystem::create_directories(modPath);
 
   for (const auto& entry : std::filesystem::directory_iterator(modPath)) {
-    auto full_path = std::filesystem::absolute(entry).string();
+      std::filesystem::path full_path = std::filesystem::absolute(entry);
 
     if (ignoreList.find(full_path) != ignoreList.end())
       continue;
 
-    // ignore readmes and text files 
-    if (size_t pos = full_path.find(".txt"); pos != std::string::npos)
-      continue;
-    if (size_t pos = full_path.find(".md"); pos != std::string::npos)
+    // ignore readmes and text files
+    if (full_path.extension() == ".txt" || full_path.extension() == ".md")
       continue;
 
     try {
-      if (size_t pos = full_path.find(".zip"); pos == std::string::npos) {
+      if (full_path.extension() != ".zip") {
         ignoreList[full_path] = true;
-        ignoreList[full_path + ".zip"] = true;
+        std::filesystem::path zip_full_path = full_path;
+        zip_full_path.concat(".zip");
+        ignoreList[zip_full_path] = true;
 
         if (auto res = InstallMod<PackageManagerT, ScriptedResourceT>(packageManager, full_path); res.is_error()) {
           throw std::runtime_error(res.error_cstr());

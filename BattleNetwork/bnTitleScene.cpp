@@ -26,7 +26,7 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
 {
   // Title screen logo based on region
   std::shared_ptr<sf::Texture> logo;
-  
+
   if (getController().CommandLineValue<std::string>("locale") == "jp") {
     logo = Textures().LoadFromFile("resources/scenes/title/tile.png");
   }
@@ -120,13 +120,13 @@ void TitleScene::onUpdate(double elapsed)
     PlayerPackageManager& pm = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
 
     if (pm.Size() == 0) {
-      std::string path = "resources/ow/prog/";
+      std::filesystem::path path("resources/ow/prog");
       std::string msg = "Looks like you need a Player Mod to continue.\nDownload one and put it under:\n\n`resources/\n mods/\n players/`\nThen re-launch to start playing!";
       sf::Sprite spr;
-      spr.setTexture(*Textures().LoadFromFile(path+"prog_mug.png"));
+      spr.setTexture(*Textures().LoadFromFile(path / "prog_mug.png"));
       currMessage = new Message(msg);
       currMessage->ShowEndMessageCursor();
-      textbox.EnqueMessage(spr, path + "prog_mug.animation", currMessage);
+      textbox.EnqueMessage(spr, path / "prog_mug.animation", currMessage);
       textbox.Open();
       Audio().Play(AudioType::CHIP_DESC, AudioPriority::high);
     }

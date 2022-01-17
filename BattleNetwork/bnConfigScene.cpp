@@ -161,7 +161,7 @@ void ConfigScene::NumberItem::SetAlpha(sf::Uint8 alpha) {
   icon->setColor(color);
 }
 
-void ConfigScene::NumberItem::UseIcon(const std::string& image_path, const std::string& animation_path, const std::string& state)
+void ConfigScene::NumberItem::UseIcon(const std::filesystem::path& image_path, const std::filesystem::path& animation_path, const std::string& state)
 {
   AddNode(icon);
   icon->setTexture(Textures().LoadFromFile(image_path));
@@ -214,8 +214,8 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   // ui sprite maps
   // ascii 58 - 96
   // BGM
-  const std::string audio_img = "resources/ui/config/audio.png";
-  const std::string audio_ani = "resources/ui/config/audio.animation";
+  const std::filesystem::path audio_img = "resources/ui/config/audio.png";
+  const std::filesystem::path audio_ani = "resources/ui/config/audio.animation";
 
   musicLevel = configSettings.GetMusicLevel();
   auto bgMusicItem = std::make_shared<NumberItem>(
@@ -285,7 +285,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
 
   primaryMenu.push_back(nicknameItem);
 
-  // For keyboard keys 
+  // For keyboard keys
   auto keyCallback = [this](BindingItem& item) { AwaitKeyBinding(item); };
   auto keySecondaryCallback = [this](BindingItem& item) { UnsetKeyBinding(item); };
 
@@ -548,7 +548,7 @@ void ConfigScene::onUpdate(double elapsed)
         }
 
         getController().Session().SetNick(nickname);
-      
+
         // transition to the next screen
         using namespace swoosh::types;
         using effect = segue<WhiteWashFade, milliseconds<300>>;

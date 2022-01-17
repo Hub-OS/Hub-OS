@@ -259,7 +259,7 @@ bool ConfigReader::IsOK()
   return isOK;
 }
 
-ConfigReader::ConfigReader(const std::string& filepath):
+ConfigReader::ConfigReader(const std::filesystem::path& filepath):
   filepath(filepath)
 {
   settings.isOK = Parse(FileUtil::Read(filepath));
@@ -278,7 +278,7 @@ ConfigSettings ConfigReader::GetConfigSettings()
   return settings;
 }
 
-const std::string ConfigReader::GetPath() const
+const std::filesystem::path ConfigReader::GetPath() const
 {
   return filepath;
 }

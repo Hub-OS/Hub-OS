@@ -85,31 +85,31 @@ PlayerMeta& PlayerMeta::SetIsSword(const bool enabled)
   return *this;
 }
 
-PlayerMeta& PlayerMeta::SetMugshotAnimationPath(const std::string& path)
+PlayerMeta& PlayerMeta::SetMugshotAnimationPath(const std::filesystem::path& path)
 {
   mugshotAnimationPath = path;
   return *this;
 }
 
-PlayerMeta& PlayerMeta::SetMugshotTexturePath(const std::string& path)
+PlayerMeta& PlayerMeta::SetMugshotTexturePath(const std::filesystem::path& path)
 {
   mugshotTexturePath = path;
   return *this;
 }
 
-PlayerMeta& PlayerMeta::SetEmotionsTexturePath(const std::string& texture)
+PlayerMeta& PlayerMeta::SetEmotionsTexturePath(const std::filesystem::path& path)
 {
-  emotionsTexturePath = texture;
+  emotionsTexturePath = path;
   return *this;
 }
 
-PlayerMeta& PlayerMeta::SetOverworldAnimationPath(const std::string& path)
+PlayerMeta& PlayerMeta::SetOverworldAnimationPath(const std::filesystem::path& path)
 {
   overworldAnimationPath = path;
   return *this;
 }
 
-PlayerMeta& PlayerMeta::SetOverworldTexturePath(const std::string& path)
+PlayerMeta& PlayerMeta::SetOverworldTexturePath(const std::filesystem::path& path)
 {
   overworldTexturePath = path;
   return *this;
@@ -126,27 +126,27 @@ const std::shared_ptr<Texture> PlayerMeta::GetIconTexture() const
   return iconTexture;
 }
 
-const std::string& PlayerMeta::GetOverworldTexturePath() const
+const std::filesystem::path& PlayerMeta::GetOverworldTexturePath() const
 {
   return overworldTexturePath;
 }
 
-const std::string& PlayerMeta::GetOverworldAnimationPath() const
+const std::filesystem::path& PlayerMeta::GetOverworldAnimationPath() const
 {
   return overworldAnimationPath;
 }
 
-const std::string& PlayerMeta::GetMugshotTexturePath() const
+const std::filesystem::path& PlayerMeta::GetMugshotTexturePath() const
 {
   return mugshotTexturePath;
 }
 
-const std::string& PlayerMeta::GetMugshotAnimationPath() const
+const std::filesystem::path& PlayerMeta::GetMugshotAnimationPath() const
 {
   return mugshotAnimationPath;
 }
 
-const std::string & PlayerMeta::GetEmotionsTexturePath() const
+const std::filesystem::path & PlayerMeta::GetEmotionsTexturePath() const
 {
   return emotionsTexturePath;
 }

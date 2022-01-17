@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <filesystem>
 #include <functional>
 #include <atomic>
 #include <SFML/Graphics.hpp>
@@ -17,11 +18,11 @@ class Player; // forward decl
 /*! \brief Player package entry detail. Assign details to display them in specific screens. */
 struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
   std::string special; /*!< The net navi's special description */
-  std::string overworldAnimationPath; /*!< The net navi's overworld animation */
-  std::string overworldTexturePath; /*!< The path of the texture to load */
-  std::string mugshotTexturePath;
-  std::string mugshotAnimationPath;
-  std::string emotionsTexturePath; /*!< The path of the texture containing all possible emotions, ordered by emotion enum */
+  std::filesystem::path overworldAnimationPath; /*!< The net navi's overworld animation */
+  std::filesystem::path overworldTexturePath; /*!< The path of the texture to load */
+  std::filesystem::path mugshotTexturePath;
+  std::filesystem::path mugshotAnimationPath;
+  std::filesystem::path emotionsTexturePath; /*!< The path of the texture containing all possible emotions, ordered by emotion enum */
   std::string name; /*!< The net navi's name */
   std::shared_ptr<sf::Texture> iconTexture; /*!< Icon on the top of the screen */
   std::shared_ptr<sf::Texture> previewTexture; /*!< Roster profile picture */
@@ -91,34 +92,34 @@ struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
  * @brief Sets the mugshot animation path used in textboxes
  * @return PlayerMeta& to chain
  */
-  PlayerMeta& SetMugshotAnimationPath(const std::string& path);
+  PlayerMeta& SetMugshotAnimationPath(const std::filesystem::path& path);
 
   /**
    * @brief Sets the texture of the mugshot animation
    * @param texture
    * @return PlayerMeta& to chain
    */
-  PlayerMeta& SetMugshotTexturePath(const std::string& texture);
+  PlayerMeta& SetMugshotTexturePath(const std::filesystem::path& path);
 
   /**
    * @brief Sets the emotions texture atlas
    * @param texture
    * @return PlayerMeta& to chain
    */
-  PlayerMeta& SetEmotionsTexturePath(const std::string& texture);
+  PlayerMeta& SetEmotionsTexturePath(const std::filesystem::path& path);
 
   /**
    * @brief Sets the overworld animation path used in menu screen
    * @return PlayerMeta& to chain
    */
-  PlayerMeta& SetOverworldAnimationPath(const std::string& path);
+  PlayerMeta& SetOverworldAnimationPath(const std::filesystem::path& path);
 
   /**
    * @brief Sets the texture of the overworld animation
    * @param texture
    * @return PlayerMeta& to chain
    */
-  PlayerMeta& SetOverworldTexturePath(const std::string& texture);
+  PlayerMeta& SetOverworldTexturePath(const std::filesystem::path& path);
 
   /**
    * @brief Sets the texture of the preview used in select screen
@@ -144,31 +145,31 @@ struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
    * @brief Gets the overworld texture path to load
    * @return const std::string&
    */
-  const std::string& GetOverworldTexturePath() const;
+  const std::filesystem::path& GetOverworldTexturePath() const;
 
   /**
    * @brief Gets the overworld animation path
    * @return const std::string&
    */
-  const std::string& GetOverworldAnimationPath() const;
+  const std::filesystem::path& GetOverworldAnimationPath() const;
 
   /**
  * @brief Gets the mugshot texture path
  * @return const std::string&
  */
-  const std::string& GetMugshotTexturePath() const;
+  const std::filesystem::path& GetMugshotTexturePath() const;
 
   /**
  * @brief Gets the mugshot animation path
  * @return const std::string&
  */
-  const std::string& GetMugshotAnimationPath() const;
+  const std::filesystem::path& GetMugshotAnimationPath() const;
 
   /**
  * @brief Gets the emotions texture path
  * @return const std::string&
  */
-  const std::string& GetEmotionsTexturePath() const;
+  const std::filesystem::path& GetEmotionsTexturePath() const;
 
   /**
    * @brief Gets the preview texture to draw

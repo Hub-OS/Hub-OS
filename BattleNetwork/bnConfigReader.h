@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include <map>
 #include <string_view>
 #include "bnInputEvent.h"
@@ -60,7 +61,7 @@ private:
   };
 
   ConfigSettings settings;
-  std::string filepath;
+  std::filesystem::path filepath;
   bool isOK{ false };
 
   /**
@@ -175,11 +176,11 @@ public:
    * @brief Parses config ini file at filepath
    * @param filepath path to ini file
    */
-  ConfigReader(const std::string& filepath);
+  ConfigReader(const std::filesystem::path& filepath);
 
   ~ConfigReader();
 
   ConfigSettings GetConfigSettings();
-  const std::string GetPath() const;
+  const std::filesystem::path GetPath() const;
   bool IsOK();
 };

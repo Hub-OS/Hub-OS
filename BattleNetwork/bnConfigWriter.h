@@ -1,6 +1,8 @@
 #pragma once
 #include "bnConfigSettings.h"
 
+#include <filesystem>
+
 /*
 Example file contents
 ---------------------
@@ -52,7 +54,7 @@ public:
   ConfigWriter(ConfigSettings& settings);
   ~ConfigWriter();
 
-  void Write(std::string path);
+  void Write(const std::filesystem::path& path);
 
   const std::string quote(const std::string& str);
 

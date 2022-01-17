@@ -42,7 +42,7 @@ char* Game::RemotePartition = "pvp";
 char* Game::ServerPartition = "server";
 
 Game::Game(DrawWindow& window) :
-  window(window), 
+  window(window),
   reader("config.ini"),
   configSettings(),
   netManager(),
@@ -51,7 +51,7 @@ Game::Game(DrawWindow& window) :
   shaderManager(),
   inputManager(*window.GetRenderWindow()),
   ActivityController(*window.GetRenderWindow()) {
-  
+
   // figure out system endianness
   {
     int n = 1;
@@ -94,7 +94,7 @@ Game::Game(DrawWindow& window) :
   session->SetCardPackageManager(cardPackagePartitioner->GetPartition(Game::LocalPartition));
   session->SetBlockPackageManager(blockPackagePartitioner->GetPartition(Game::LocalPartition));
 
-  // Use the engine's window settings for this platform to create a properly 
+  // Use the engine's window settings for this platform to create a properly
   // sized render surface...
   unsigned int win_x = static_cast<unsigned int>(window.GetView().getSize().x);
   unsigned int win_y = static_cast<unsigned int>(window.GetView().getSize().y);
@@ -152,7 +152,7 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
   commandline = &values;
   commandlineArgs = values.arguments();
 
-  // Now that we have CLI values, we can configure 
+  // Now that we have CLI values, we can configure
   // other subsystems that need to read from them...
   unsigned int myPort = CommandLineValue<int>("port");
   uint16_t maxPayloadSize = CommandLineValue<uint16_t>("mtu");
@@ -273,7 +273,7 @@ bool Game::NextFrame()
 void Game::HandleRecordingEvents()
 {
   return; // for v2, disable this function by returning early.
-  
+
   if (isRecordOutSaving)
     return;
 
@@ -374,7 +374,7 @@ void Game::RunSingleThreaded()
     // Poll window events
     inputManager.EventPoll();
 
-    // unused images need to be free'd 
+    // unused images need to be free'd
     textureManager.HandleExpiredTextureCache();
     audioManager.HandleExpiredAudioCache();
 
@@ -392,7 +392,7 @@ void Game::RunSingleThreaded()
       HandleRecordingEvents();
       this->update(delta);  // update game logic
     }
-    
+
     this->draw();        // draw game
     mouse.draw(*window.GetRenderWindow());
     window.Display(); // display to screen
@@ -413,13 +413,13 @@ void Game::Run()
   if (singlethreaded) {
     RunSingleThreaded();
     return;
-  }  
+  }
 
   while (window.Running() && !quitting) {
     // Poll window events
     inputManager.EventPoll();
 
-    // unused images need to be free'd 
+    // unused images need to be free'd
     textureManager.HandleExpiredTextureCache();
     audioManager.HandleExpiredAudioCache();
 
@@ -489,7 +489,7 @@ void Game::UpdateConfigSettings(const struct ConfigSettings& new_settings)
     ActivityController::enableShaders(false);
   }
 
-  // If the file is good, use the Audio() and 
+  // If the file is good, use the Audio() and
   // controller settings from the config
   audioManager.EnableAudio(configSettings.IsAudioEnabled());
   audioManager.SetStreamVolume(((configSettings.GetMusicLevel()-1) / 3.0f) * 100.0f);
@@ -530,44 +530,44 @@ void Game::SetSubtitle(const std::string& subtitle)
   window.SetSubtitle(subtitle);
 }
 
-const std::string Game::AppDataPath()
+const std::filesystem::path Game::AppDataPath()
 {
-  return sago::getDataHome() + "/" + window.GetTitle();
+  return std::filesystem::u8path(sago::getDataHome()) / window.GetTitle();
 }
 
-const std::string Game::CacheDataPath()
+const std::filesystem::path Game::CacheDataPath()
 {
-  return sago::getCacheDir() + "/" + window.GetTitle();
+  return std::filesystem::u8path(sago::getCacheDir()) / window.GetTitle();
 }
 
-const std::string Game::DesktopPath()
+const std::filesystem::path Game::DesktopPath()
 {
-  return sago::getDesktopFolder();
+  return std::filesystem::u8path(sago::getDesktopFolder());
 }
 
-const std::string Game::DownloadsPath()
+const std::filesystem::path Game::DownloadsPath()
 {
-  return sago::getDownloadFolder();
+  return std::filesystem::u8path(sago::getDownloadFolder());
 }
 
-const std::string Game::DocumentsPath()
+const std::filesystem::path Game::DocumentsPath()
 {
-  return sago::getDocumentsFolder();
+  return std::filesystem::u8path(sago::getDocumentsFolder());
 }
 
-const std::string Game::VideosPath()
+const std::filesystem::path Game::VideosPath()
 {
-  return sago::getVideoFolder();
+  return std::filesystem::u8path(sago::getVideoFolder());
 }
 
-const std::string Game::PicturesPath()
+const std::filesystem::path Game::PicturesPath()
 {
-  return sago::getPicturesFolder();
+  return std::filesystem::u8path(sago::getPicturesFolder());
 }
 
-const std::string Game::SaveGamesPath()
+const std::filesystem::path Game::SaveGamesPath()
 {
-  return sago::getSaveGamesFolder1();
+  return std::filesystem::u8path(sago::getSaveGamesFolder1());
 }
 
 CardPackagePartitioner& Game::CardPackagePartitioner()

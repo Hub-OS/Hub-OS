@@ -4,6 +4,7 @@
 #include <Poco/Buffer.h>
 #include <map>
 #include <unordered_map>
+#include <filesystem>
 #include <functional>
 
 #include "../bnBattleResults.h"
@@ -127,10 +128,10 @@ namespace Overworld {
     void CheckPlayerAgainstWhitelist();
 
     template <typename ScriptedType, typename Partition>
-    void InstallPackage(Partition& partition, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath);
+    void InstallPackage(Partition& partition, const std::filesystem::path& modFolder, const std::string& packageName, const std::string& packageId, const std::filesystem::path& filePath);
     template <typename ScriptedType, typename Partitioner>
-    void RunPackageWizard(Partitioner& partitioner, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath);
-    void RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::string& filePath);
+    void RunPackageWizard(Partitioner& partitioner, const std::filesystem::path& modFolder, const std::string& packageName, const std::string& packageId, const std::filesystem::path& filePath);
+    void RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::filesystem::path& filePath);
 
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
     void sendAssetsFound();
@@ -214,7 +215,7 @@ namespace Overworld {
     void receiveActorMinimapColorSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
   protected:
-    virtual std::string GetPath(const std::string& path);
+    virtual std::filesystem::path GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);
     virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
     virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);

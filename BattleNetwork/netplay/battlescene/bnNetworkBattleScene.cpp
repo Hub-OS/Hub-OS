@@ -11,7 +11,7 @@
 #include "../../bnBlockPackageManager.h"
 #include "../../bnPlayerHealthUI.h"
 
-// states 
+// states
 #include "states/bnNetworkSyncBattleState.h"
 #include "../../battlescene/States/bnRewardBattleState.h"
 #include "../../battlescene/States/bnTimeFreezeBattleState.h"
@@ -194,9 +194,9 @@ void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
   if (props.damage > 0) {
     if (props.damage >= 300) {
       player->SetEmotion(Emotion::angry);
-      
+
       std::shared_ptr<PlayerSelectedCardsUI> ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
-      
+
       if (ui) {
         ui->SetMultiplier(2);
       }
@@ -241,7 +241,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
     SendFrameData(events, (FrameNumber() + frames(5)).count());
   }
-  
+
   if (!remoteInputQueue.empty()) {
     auto frame = remoteInputQueue.begin();
 
@@ -360,7 +360,7 @@ void NetworkBattleScene::onEnd()
 
 const NetPlayFlags& NetworkBattleScene::GetRemoteStateFlags()
 {
-  return remoteState; 
+  return remoteState;
 }
 
 const double NetworkBattleScene::GetAvgLatency() const
@@ -371,6 +371,7 @@ const double NetworkBattleScene::GetAvgLatency() const
 bool NetworkBattleScene::IsRemoteBehind()
 {
   return FrameNumber() > this->maxRemoteFrameNumber;
+  Logger::Logf(LogLevel::debug, "received maxRemoteFrameNumber: %d", maxRemoteFrameNumber);
 }
 
 void NetworkBattleScene::Init()
@@ -402,7 +403,7 @@ void NetworkBattleScene::Init()
   }
 
   std::shared_ptr<MobHealthUI> ui = remotePlayer->GetFirstComponent<MobHealthUI>();
-  
+
   if (ui) {
     ui->SetManualMode(true);
     ui->SetHP(remotePlayer->GetHealth());
@@ -575,7 +576,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
 
   // Supply the final hand info
   remoteCardActionUsePublisher->LoadCards(remoteHand);
-  
+
   // Convert to microseconds and use this as the round start delay
   roundStartDelay = from_milliseconds((long long)((duration*1000.0) + packetProcessor->GetAvgLatency()));
 
@@ -607,7 +608,7 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
   }
 
   remoteInputQueue.push_back({ frameNumber, events });
-  
+
   if (remotePlayer) {
     std::shared_ptr<MobHealthUI> ui = remotePlayer->GetFirstComponent<MobHealthUI>();
     remotePlayer->SetHealth(hp);
@@ -794,10 +795,10 @@ void NetworkBattleScene::UpdatePingIndicator(frame_time_t frames)
   }
   else if (count >= 3) {
     // 3rd frame is average - ok but not best
-    idx = 3; 
+    idx = 3;
   }
   else  {
-    // 4th frame is excellent or zero latency 
+    // 4th frame is excellent or zero latency
     idx = 4;
   }
 

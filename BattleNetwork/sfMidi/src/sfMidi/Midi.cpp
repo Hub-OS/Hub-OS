@@ -48,7 +48,7 @@ sfmidi::Midi::Midi() : sf::SoundStream(), sfmidi::Error()
     setError("Failed to initialize.");
     return;
   }
-  
+
   synth_ = new_fluid_synth(settings_);
   if (synth_ == NULL) {
     setError("Failed to initialize.");
@@ -70,7 +70,7 @@ sfmidi::Midi::Midi() : sf::SoundStream(), sfmidi::Error()
 }
 
 
-sfmidi::Midi::Midi(const std::string& soundFont, const std::string& midi)
+sfmidi::Midi::Midi(const std::filesystem::path& soundFont, const std::filesystem::path& midi)
   : sf::SoundStream(), sfmidi::Error()
 {
   settings_ = new_fluid_settings();
@@ -78,7 +78,7 @@ sfmidi::Midi::Midi(const std::string& soundFont, const std::string& midi)
     setError("Failed to initialize.");
     return;
   }
-  
+
   synth_ = new_fluid_synth(settings_);
   if (synth_ == NULL) {
     setError("Failed to initialize.");
@@ -104,15 +104,15 @@ sfmidi::Midi::Midi(const std::string& soundFont, const std::string& midi)
 
 
 sfmidi::Midi::Midi
-  (const std::string& soundFont, const void* midiData, unsigned int midiSize)
+  (const std::filesystem::path& soundFont, const void* midiData, unsigned int midiSize)
   : sf::SoundStream(), sfmidi::Error()
-{ 
+{
   settings_ = new_fluid_settings();
   if (settings_ == NULL) {
     setError("Failed to initialize.");
     return;
   }
-  
+
   synth_ = new_fluid_synth(settings_);
   if (synth_ == NULL) {
     setError("Failed to initialize.");
@@ -186,9 +186,11 @@ void sfmidi::Midi::setReverbActive(bool active)
   fluid_settings_setint(settings_, "synth.reverb.active", (int)active);
 }
 
-bool sfmidi::Midi::loadSoundFontFromFile(const std::string& filename)
+bool sfmidi::Midi::loadSoundFontFromFile(const std::filesystem::path& filename)
 {
-  if (fluid_synth_sfload(synth_, filename.c_str(), 1) != FLUID_FAILED) {
+  std::string filename_string = filename.u8string();
+  // fluid_synth_sfload on Windows will convert UTF-8 encoded strings to UTF-16 correctly.
+  if (fluid_synth_sfload(synth_, filename_string.c_str(), 1) != FLUID_FAILED) {
     for (int i = fluid_synth_sfcount(synth_); i > 1; --i) {
       fluid_sfont_t* sfont = fluid_synth_get_sfont(synth_, 1);
       if (sfont != NULL)
@@ -203,7 +205,7 @@ bool sfmidi::Midi::loadSoundFontFromFile(const std::string& filename)
 }
 
 
-bool sfmidi::Midi::loadMidiFromFile(const std::string& filename)
+bool sfmidi::Midi::loadMidiFromFile(const std::filesystem::path& filename)
 {
   if (player_ != NULL)
     delete_fluid_player(player_);
@@ -323,13 +325,13 @@ bool sfmidi::Midi::onGetData(sf::SoundStream::Chunk& data)
 
   int read = fluid_synth_write_s16(synth_, SFMIDI_AUDIOFRAMES,
                                    &buffer_[0], 0, 2, &buffer_[0], 1, 2);
-  
+
   if (read == FLUID_FAILED)
     return false;
 
   data.sampleCount = audioBufferSize;
   data.samples     = &buffer_[0];
-  
+
   if (loop_ && fluid_player_get_status(player_) == FLUID_PLAYER_DONE) {
     if (loopClock_ == NULL)
       loopClock_ = new sf::Clock();
@@ -359,9 +361,9 @@ void sfmidi::Midi::onSeek(sf::Time timeOffset)
 
   if (fluid_player_get_status(player_) == FLUID_PLAYER_DONE)
     return;
-  
+
   sf::Int32 msec = timeOffset.asMilliseconds();
-  
+
   sf::Int32 currentOffset = getPlayingOffset().asMilliseconds();
 
   if (currentOffset == msec)

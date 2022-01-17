@@ -109,7 +109,7 @@ private:
   public:
     NumberItem(const std::string& text, sf::Color color, int value, const std::function<void(int, NumberItem&)>& callback);
     void SetAlpha(sf::Uint8 alpha) override;
-    void UseIcon(const std::string& image_path, const std::string& animation_path, const std::string& state = "DEFAULT");
+    void UseIcon(const std::filesystem::path& image_path, const std::filesystem::path& animation_path, const std::string& state = "DEFAULT");
     void SetValueRange(int min, int max);
   };
 

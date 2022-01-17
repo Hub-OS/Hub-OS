@@ -102,14 +102,14 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& host, uint1
   cachePath(std::string(CACHE_FOLDER) + '/' + URIEncode(host + "_p" + std::to_string(port)))
 {
   // prefix with cached- to avoid reserved names such as COM
-  cachePrefix = cachePath + "/cached-";
+  cachePrefix = cachePath / "cached-";
 
   try {
     // make sure this directory exists for caching
     std::filesystem::create_directories(cachePath);
 
     for (auto& entry : std::filesystem::directory_iterator(cachePath)) {
-      auto path = entry.path().string();
+      auto path = entry.path();
 
       if (entry.is_directory()) {
         // folders are created from unzipping packages
@@ -119,12 +119,12 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& host, uint1
         continue;
       }
 
-      if (path.length() < cachePrefix.length()) {
+      if (path.u8string().length() < cachePrefix.u8string().length()) {
         // delete invalid file
         std::filesystem::remove(path);
         continue;
       }
-      auto [name, lastModified] = decodeName(path.substr(cachePrefix.length()));
+      auto [name, lastModified] = decodeName(path.u8string().substr(cachePrefix.u8string().length()));
 
       CacheMeta meta{
         path,
@@ -141,12 +141,14 @@ Overworld::ServerAssetManager::ServerAssetManager(const std::string& host, uint1
   }
 }
 
-std::string Overworld::ServerAssetManager::GetPath(const std::string& name) {
+std::filesystem::path Overworld::ServerAssetManager::GetPath(const std::string& name) {
   auto it = cachedAssets.find(name);
 
   if (it == cachedAssets.end()) {
     // fallback
-    return cachePrefix + URIEncode(name);
+    std::filesystem::path path = cachePrefix;
+    path.concat(URIEncode(name));
+    return path;
   }
 
   return it->second.path;
@@ -174,7 +176,7 @@ std::vector<char> Overworld::ServerAssetManager::LoadFromCache(const std::string
     data.insert(data.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
   }
   catch (std::ifstream::failure& e) {
-    Logger::Logf(LogLevel::critical, "Failed to read cached data \"%s\": %s", meta.path.c_str(), e.what());
+    Logger::Log(LogLevel::critical, "Failed to read cached data " + meta.path.u8string() + ": " + e.what());
   }
 
   return data;
@@ -252,7 +254,8 @@ std::vector<char> Overworld::ServerAssetManager::GetData(const std::string& name
 }
 
 void Overworld::ServerAssetManager::CacheAsset(const std::string& name, uint64_t lastModified, const char* data, size_t size) {
-  auto path = cachePrefix + encodeName(name, lastModified);
+  auto path = cachePrefix;
+  path.concat(encodeName(name, lastModified));
 
   std::ofstream fout;
   fout.open(path, std::ios::out | std::ios::binary);

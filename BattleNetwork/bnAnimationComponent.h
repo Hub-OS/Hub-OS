@@ -2,6 +2,7 @@
 #include <string>
 #include <assert.h>
 #include <functional>
+#include <filesystem>
 
 #include "bnComponent.h"
 #include "bnAnimation.h"
@@ -49,12 +50,12 @@ public:
    * @param BattleSceneBase& unused
    */
   void Inject(BattleSceneBase&) override { ; }
-  
+
   /**
    * @brief Reconstructs the animation object
    * @param _path to animation file
    */
-  void SetPath(string _path);
+  void SetPath(const std::filesystem::path& _path);
 
   /**
    * @brief Loads the animation object
@@ -70,18 +71,18 @@ public:
   * @brief Do not load from path, copy from an existing animation
   */
   void CopyFrom(const AnimationComponent& rhs);
-  
+
   /**
    * @brief Get animation object's current animation name
    * @return name of animation or empty string if no state
    */
   const std::string GetAnimationString() const;
-  
+
   /**
    * @brief Get animation object's file path used to setup the animation
    * @returnpath of animation file or empty string if no file was loaded
    */
-  const std::string& GetFilePath() const;
+  const std::filesystem::path& GetFilePath() const;
 
   /**
    * @brief Set the animation playback speed
@@ -90,30 +91,30 @@ public:
   void SetPlaybackSpeed(const double playbackSpeed);
 
   /**
-   * @brief Fetch the animation playback speed 
-   * @return double playback speed 
+   * @brief Fetch the animation playback speed
+   * @return double playback speed
    */
   const double GetPlaybackSpeed();
-  
+
   /**
    * @brief Set the playback mode
    * @param playbackMode byte mode
    */
   void SetPlaybackMode(char playbackMode);
-  
+
   /**
    * @brief Set the animation and provide an on finish notifier
    * @param state
    */
   void SetAnimation(string state, FrameFinishCallback onFinish = nullptr);
-  
+
   /**
    * @brief Set the animation, set the playback mode, and provide an on finish notifier
    * @param state
    * @param playbackMode
    */
   void SetAnimation(string state, char playbackMode, FrameFinishCallback onFinish = Animator::NoCallback);
-  
+
   /**
    * @brief Add a frame callback
    * @param frame Base 1 index
@@ -121,7 +122,7 @@ public:
    * @param doOnce Toggle if the callback should be fired every time the animation loops or just once
    */
   void AddCallback(int frame, FrameCallback onFrame, bool doOnce = false);
-  
+
   /**
    * @brief adds a callback to make the frame toggle counterable = true for Characters
    * @param frameStart Base 1 index
@@ -141,7 +142,7 @@ public:
 
   /**
    * @brief Get the (x,y) coordinate of a point from the current frame
-   * @param pointName the name of the point in the animation file 
+   * @param pointName the name of the point in the animation file
    * @return (x,y) vector of point or (0,0) if no point found
    */
   sf::Vector2f GetPoint(const std::string& pointName);
@@ -149,7 +150,7 @@ public:
   const bool HasPoint(const std::string& pointName);
 
   Animation& GetAnimationObject();
-  
+
   void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string& uuid);
 
   void SyncAnimation(Animation& other);
@@ -161,7 +162,7 @@ public:
 
   void SetInterruptCallback(const FrameFinishCallback& onInterrupt);
   /**
-   * @brief Force the animation to jump to this frame index 
+   * @brief Force the animation to jump to this frame index
    * @param index index of the frame
    * If the index is out of range, sets frame to 0
    */
@@ -169,7 +170,7 @@ public:
 
   void Refresh();
 private:
-  string path; /*!< Path to animation */
+  std::filesystem::path path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
   bool couldUpdateLastFrame{ true };
   std::vector<SyncItem> syncList;

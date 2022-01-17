@@ -18,9 +18,9 @@
 
 using namespace swoosh::types;
 
-MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const std::string& naviId, std::unique_ptr<CardFolder> _folder, PA& pa) : 
-  textbox(sf::Vector2f(4, 250)), 
-  selectedNaviId(naviId), 
+MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const std::string& naviId, std::unique_ptr<CardFolder> _folder, PA& pa) :
+  textbox(sf::Vector2f(4, 250)),
+  selectedNaviId(naviId),
   folder(std::move(_folder)), pa(pa),
   uiAnim("resources/ui/pvp_widget.animation"),
   text(Font::Style::thick),
@@ -38,7 +38,7 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   float h = static_cast<float>(controller.getVirtualWindowSize().y);
   vs.setPosition(w / 2.f, h / 2.f);
   swoosh::game::setOrigin(vs.getSprite(), 0.5, 0.5);
-  
+
   // hide this until it is ready
   vs.setScale(0.f, 0.f);
 
@@ -56,12 +56,12 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   clientPreview.setTexture(playerPkg.GetPreviewTexture());
   clientPreview.setScale(2.f, 2.f);
   clientPreview.setOrigin(clientPreview.getLocalBounds().width, clientPreview.getLocalBounds().height);
-  
+
   // flip the remote player
   remotePreview.setScale(-2.f, 2.f);
 
   // text / font
-  text.setPosition(45.f, 4.f); 
+  text.setPosition(45.f, 4.f);
 
   // upscale text
   text.setScale(2.f, 2.f);
@@ -169,9 +169,9 @@ void MatchMakingScene::HandlePasteEvent()
 
         // If everything goes well, we have no error with the address...
         hasError = false;
-      } 
+      }
     }
-    
+
     if(hasError) {
       Audio().Play(AudioType::CHIP_ERROR);
       help = new Message("Bad IP");
@@ -335,9 +335,9 @@ const bool MatchMakingScene::IsValidIPv4(const std::string& ip) const {
   if (ip.find(home) != std::string::npos || ip.find(local) != std::string::npos) {
     size_t pos = ip.find(colon);
     std::string port = ip.substr(pos);
-    
+
     // Do not connect to ourselves...
-    // Note: bad things happen but really shouldn't here, why? 
+    // Note: bad things happen but really shouldn't here, why?
     //       you can connect fine in overworld...
     if (atoi(port.c_str()) == Net().GetSocket().address().port()) {
       return false;
@@ -364,7 +364,7 @@ void MatchMakingScene::Reset()
   remoteNaviPackage = PackageAddress{};
 
   this->isScreenReady = true;
-  
+
   // hide this until it is ready
   vs.setScale(0.f, 0.f);
 
@@ -576,7 +576,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       // Play the pre battle sound
       Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
-      // Stop music and go to battle screen 
+      // Stop music and go to battle screen
       Audio().StopStream();
 
       // Configure the session
@@ -584,9 +584,9 @@ void MatchMakingScene::onUpdate(double elapsed) {
       BlockPackagePartitioner& blockPartitioner = getController().BlockPackagePartitioner();
 
       PlayerMeta& meta = playerPartitioner.FindPackageByAddress({ Game::LocalPartition, selectedNaviId });
-      const std::string& image = meta.GetMugshotTexturePath();
-      const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
-      const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
+      const std::filesystem::path& image = meta.GetMugshotTexturePath();
+      const std::filesystem::path& mugshotAnim = meta.GetMugshotAnimationPath();
+      const std::filesystem::path& emotionsTexture = meta.GetEmotionsTexturePath();
       std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(image);
       std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(emotionsTexture);
       std::shared_ptr<Player> player = std::shared_ptr<Player>(meta.GetData());
@@ -647,7 +647,7 @@ void MatchMakingScene::onUpdate(double elapsed) {
       infoMode = true;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       HandleInfoMode();
-    } 
+    }
     else if (Input().Has(InputEvents::pressed_confirm) && !infoMode && packetProcessor->RemoteAddrIsValid() && !systemEvent) {
       Net().AddHandler(packetProcessor->GetRemoteAddr(), packetProcessor);
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <assert.h>
+#include <filesystem>
 #include <functional>
 
 #include <iostream>
@@ -18,11 +19,11 @@ using std::to_string;
  * @date 14/05/19
  * @see bnAnimator.h
  * @brief Loads a FrameList from an animation file format and animates a sprite
- * 
+ *
  * Basically a wrapper around the animator that knows the possible animations.
- * 
+ *
  * File format example:
- * 
+ *
  * VERSION="1.0"
  * imagePath=C:\User\Bob\Desktop\player.png
  *
@@ -38,7 +39,7 @@ using std::to_string;
  * point label="Buster" x="39" y="14"
  * frame duration="0.05" x="302" y="11" w="68" h="47" originx="18" originy="39" flipx="0" flipy="0"
  * point label="Buster" x="38" y="14"
- * 
+ *
  * animation state="PLAYER_MOVING"
  * ...
  * ```
@@ -50,18 +51,18 @@ public:
   /**
    * @brief No frame list is loaded*/
   Animation();
-  
+
   /**
    * @brief Parses file at path and populates FrameList with data
    * @param path relative path from application to file
    */
   Animation(const char* path);
-  
+
   /**
    * @brief Parses file at path and populates FrameList with data
    * @param path relative path from application to file
    */
-  Animation(const string& path);
+  Animation(const std::filesystem::path& path);
 
   Animation(const Animation& rhs);
 
@@ -77,14 +78,14 @@ public:
      Effectively same as calling Load()
    */
   void Reload();
- 
+
   /**
  * @brief Reads file at path set by constructor, parses lines, and populates FrameList with data
 
     Effectively same as calling Reload();
  */
-  void Load(const std::string& newPath = "");
- 
+  void Load(const std::filesystem::path& newPath = "");
+
   /**
  * @brief Parses lines, and populates FrameList with data
 
@@ -98,7 +99,7 @@ public:
    * @param target sprite to apply to
    */
   void Update(double _elapsed, sf::Sprite& target);
-  
+
   /**
    * @brief Syncs the animation elapsed counter to one provided
    */
@@ -109,16 +110,16 @@ public:
    * @param target
    */
   void Refresh(sf::Sprite& target);
-  
+
   /**
    * @brief Manually set a frame to the sprite
    * @param frame Base 1 frame index
    * @param target Sprite to update
-   * 
+   *
    * If frame is out of bounds for the current animation, ignores
    */
   void SetFrame(int frame, sf::Sprite& target);
-  
+
   /**
    * @brief Sets the current animation from a map of FrameLists
    * @param state animation name is the map key
@@ -150,14 +151,14 @@ public:
    * @return Animation& to chain
    */
   Animation& operator<<(const Animator::On& rhs);
-  
+
   /**
    * @brief Set the animator mode
    * @param rhs byte mode
    * @return Animation& to chain
    */
   Animation& operator<<(char rhs);
-  
+
   /**
    * @brief Set the animation state
    * @param state name to chain
@@ -209,7 +210,7 @@ protected:
   bool noAnim{ false }; /*!< If the requested state was not found, hide the sprite when updating */
   bool handlingInterrupt{ false }; /*!< Whether or not the interupt handler is executing (for nested animations) */
   Animator animator; /*!< Internal animator to delegate most of the work to */
-  string path; /*!< Path to the animation file */
+  std::filesystem::path path; /*!< Path to the animation file */
   string currAnimation; /*!< Name of the current animation state */
   frame_time_t progress; /*!< Current progress of animation */
   double playbackSpeed{ 1.0 }; /*!< Factor to multiply against update `dt`*/
