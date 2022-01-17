@@ -1,0 +1,12 @@
+name: progsman-build
+kind: pipeline
+type: docker
+
+steps:
+- name: compile
+  image: grafana/ci-build-windows
+  commands:
+  - echo "Starting!"
+  - mkdir build
+  - cd build
+  - cmake ..
