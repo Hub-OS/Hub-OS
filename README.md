@@ -1,3 +1,5 @@
+Current Status: [![Build Status](http://129.153.151.84/api/badges/TheMaverickProgrammer/OpenNetBattle/status.svg?ref=refs/heads/development)](http://129.153.151.84/TheMaverickProgrammer/OpenNetBattle)
+
 # ❓ ABOUT
 Follow this project on :bird: [Twitter](https://twitter.com/OpenNetBattle)!
 
