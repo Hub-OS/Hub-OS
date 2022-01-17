@@ -4,12 +4,14 @@
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/Music.hpp>
 #include <atomic>
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <mutex>
 
 #include "sfMidi/include/sfMidi.h"
 #include "bnAudioType.h"
+#include "bnCachedResource.h"
 #include "bnCachedResource.h"
 
 // For more retro experience, decrease available channels.
@@ -22,7 +24,7 @@
 /**
   * @class AudioPriority
   * @brief Each priority describes how or if a playing sample should be interrupted
-  * 
+  *
   * Priorities are LOWEST  (one at a time, if channel available),
   *                LOW     (any free channels),
   *                HIGH    (force a channel to play sound, but one at a time, and don't interrupt other high priorities),
@@ -61,22 +63,22 @@ public:
   * @param pitch. A floating-point multiplied by 100 to achieve the pitch %
   */
   void SetPitch(float pitch);
-  
+
   /**
    * @brief Loads all queued resources. Increases status value.
    * @param status thread-safe counter will reach total count of all samples to load when finished.
    */
   void LoadAllSources(std::atomic<int> &status);
-  
+
   /**
    * @brief Loads an Audio() source at path and map it to enum type
    * @param type Audio() enum to map to
    * @param path path to Audio() sample
    */
-  void LoadSource(AudioType type, const std::string& path);
+  void LoadSource(AudioType type, const std::filesystem::path& path);
 
-  std::shared_ptr<sf::SoundBuffer> LoadFromFile(const std::string& path);
-  
+  std::shared_ptr<sf::SoundBuffer> LoadFromFile(const std::filesystem::path& path);
+
   void HandleExpiredAudioCache();
 
   /**
@@ -89,8 +91,8 @@ public:
 
   int Play(std::shared_ptr<sf::SoundBuffer> resource, AudioPriority priority = AudioPriority::low);
 
-  int Stream(std::string path, bool loop = false);
-  int Stream(std::string path, bool loop, long long startMs, long long endMs);
+  int Stream(const std::filesystem::path &path, bool loop = false);
+  int Stream(const std::filesystem::path &path, bool loop, long long startMs, long long endMs);
   void StopStream();
   void SetStreamVolume(float volume);
   void SetChannelVolume(float volume);
@@ -110,9 +112,9 @@ private:
   std::mutex mutex;
   Channel* channels;
   sf::SoundBuffer* sources;
-  std::map<std::string, CachedResource<sf::SoundBuffer>> cached;
+  std::map<std::filesystem::path, CachedResource<sf::SoundBuffer>> cached;
   sf::Music stream;
-  std::string currStreamPath;
+  std::filesystem::path currStreamPath;
   float channelVolume{};
   float streamVolume{};
   bool isEnabled{true};

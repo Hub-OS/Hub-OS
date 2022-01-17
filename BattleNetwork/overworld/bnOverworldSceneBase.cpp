@@ -87,7 +87,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   Overworld::Actor::SetMissingTexture(missingTexture);
 
   personalMenu->setScale(2.f, 2.f);
-   
+
   auto& session = getController().Session();
   bool loaded = session.LoadSession("profile.bin");
 
@@ -542,7 +542,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
   // If coming back from navi select, the navi has changed, update it
   const auto& owPath = meta.GetOverworldAnimationPath();
 
-  if (owPath.size()) {
+  if (!owPath.empty()) {
     if (auto tex = Textures().LoadFromFile(meta.GetOverworldTexturePath())) {
       playerActor->setTexture(tex);
     }
@@ -653,20 +653,20 @@ void Overworld::SceneBase::LoadForeground(const Map& map)
   SetForeground(std::make_shared<CustomBackground>(texture, animation, velocity), parallaxFactor);
 }
 
-std::string Overworld::SceneBase::GetPath(const std::string& path) {
-  return path;
+std::filesystem::path Overworld::SceneBase::GetPath(const std::string& path) {
+  return std::filesystem::u8path(path);
 }
 
 std::string Overworld::SceneBase::GetText(const std::string& path) {
-  return FileUtil::Read(path);
+  return FileUtil::Read(std::filesystem::u8path(path));
 }
 
 std::shared_ptr<sf::Texture> Overworld::SceneBase::GetTexture(const std::string& path) {
-  return Textures().LoadFromFile(path);
+  return Textures().LoadFromFile(std::filesystem::u8path(path));
 }
 
 std::shared_ptr<sf::SoundBuffer> Overworld::SceneBase::GetAudio(const std::string& path) {
-  return Audio().LoadFromFile(path);
+  return Audio().LoadFromFile(std::filesystem::u8path(path));
 }
 
 

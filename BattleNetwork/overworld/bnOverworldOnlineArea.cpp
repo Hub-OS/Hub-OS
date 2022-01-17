@@ -156,10 +156,8 @@ void Overworld::OnlineArea::AddSceneChangeTask(const std::function<void()>& task
 
 void Overworld::OnlineArea::SetAvatarAsSpeaker() {
   PlayerMeta& meta = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FindPackageByID(GetCurrentNaviID());
-  const std::string& image = meta.GetMugshotTexturePath();
-  const std::string& anim = meta.GetMugshotAnimationPath();
-  std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(image);
-  GetMenuSystem().SetNextSpeaker(sf::Sprite(*mugshot), anim);
+  std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(meta.GetMugshotTexturePath());
+  GetMenuSystem().SetNextSpeaker(sf::Sprite(*mugshot), meta.GetMugshotAnimationPath());
 }
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
@@ -483,7 +481,7 @@ void Overworld::OnlineArea::detectWarp() {
       sf::Vector2f player_pos = { player->getPosition().x, player->getPosition().y };
       float distance = std::pow(targetWorldPos.x - player_pos.x, 2.0f) + std::pow(targetWorldPos.y - player_pos.y, 2.0f);
 
-      // this is a magic number - this is about as close to 2 warps that are 8 blocks away vertically 
+      // this is a magic number - this is about as close to 2 warps that are 8 blocks away vertically
       // (expression is also squared)
       if (distance < 40'000) {
         warpCameraController.QueueWaneCamera(map.WorldToScreen(targetPosition), interpolateTime, 0.55f);
@@ -1023,7 +1021,7 @@ void Overworld::OnlineArea::CheckPlayerAgainstWhitelist()
   PackageAddress addr = { Game::LocalPartition, id };
 
   if (!partitioner.HasPackage(addr)) return;
-  
+
   const std::string& md5 = partitioner.FindPackageByAddress(addr).GetPackageFingerprint();
 
   GameSession& session = getController().Session();
@@ -1031,7 +1029,7 @@ void Overworld::OnlineArea::CheckPlayerAgainstWhitelist()
 
   // Otherwise check to see if the player has any compatible mods
   bool anyCompatible = false;
-  
+
   std::string next_id = packages.GetPackageAfter(id);
 
   while (next_id != id) {
@@ -1205,7 +1203,7 @@ void Overworld::OnlineArea::sendAvatarChangeSignal()
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
 }
 
-static std::vector<char> readBytes(std::string texturePath) {
+static std::vector<char> readBytes(std::filesystem::path texturePath) {
   size_t textureLength;
   std::vector<char> textureData;
 
@@ -1213,7 +1211,7 @@ static std::vector<char> readBytes(std::string texturePath) {
     textureLength = std::filesystem::file_size(texturePath);
   }
   catch (std::filesystem::filesystem_error& e) {
-    Logger::Logf(LogLevel::critical, "Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+    Logger::Logf(LogLevel::critical, "Failed to read texture \"%s\": %s", texturePath.u8string().c_str(), e.what());
     return textureData;
   }
 
@@ -1227,7 +1225,7 @@ static std::vector<char> readBytes(std::string texturePath) {
     textureData.insert(textureData.begin(), std::istream_iterator<char>(fin), std::istream_iterator<char>());
   }
   catch (std::ifstream::failure& e) {
-    Logger::Logf(LogLevel::critical, "Failed to read texture \"%s\": %s", texturePath.c_str(), e.what());
+    Logger::Logf(LogLevel::critical, "Failed to read texture \"%s\": %s", texturePath.u8string().c_str(), e.what());
   }
 
   return textureData;
@@ -1239,20 +1237,16 @@ void Overworld::OnlineArea::sendAvatarAssetStream() {
 
   auto& naviMeta = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FindPackageByID(GetCurrentNaviID());
 
-  auto texturePath = naviMeta.GetOverworldTexturePath();
-  auto textureData = readBytes(texturePath);
+  auto textureData = readBytes(naviMeta.GetOverworldTexturePath());
   sendAssetStreamSignal(ClientAssetType::texture, packetHeaderSize, textureData.data(), textureData.size());
 
-  const auto& animationPath = naviMeta.GetOverworldAnimationPath();
-  std::string animationData = FileUtil::Read(animationPath);
+  std::string animationData = FileUtil::Read(naviMeta.GetOverworldAnimationPath());
   sendAssetStreamSignal(ClientAssetType::animation, packetHeaderSize, animationData.c_str(), animationData.length());
 
-  auto mugshotTexturePath = naviMeta.GetMugshotTexturePath();
-  auto mugshotTextureData = readBytes(mugshotTexturePath);
+  auto mugshotTextureData = readBytes(naviMeta.GetMugshotTexturePath());
   sendAssetStreamSignal(ClientAssetType::mugshot_texture, packetHeaderSize, mugshotTextureData.data(), mugshotTextureData.size());
 
-  const auto& mugshotAnimationPath = naviMeta.GetMugshotAnimationPath();
-  std::string mugshotAnimationData = FileUtil::Read(mugshotAnimationPath);
+  std::string mugshotAnimationData = FileUtil::Read(naviMeta.GetMugshotAnimationPath());
   sendAssetStreamSignal(ClientAssetType::mugshot_animation, packetHeaderSize, mugshotAnimationData.c_str(), mugshotAnimationData.length());
 }
 
@@ -2325,11 +2319,9 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 
     PackageAddress playerPackage = PackageAddress{ Game::LocalPartition , GetCurrentNaviID() };
     auto& meta = playerPartition.FindPackageByAddress(playerPackage);
-    const std::string& image = meta.GetMugshotTexturePath();
-    const std::string& mugshotAnim = meta.GetMugshotAnimationPath();
-    const std::string& emotionsTexture = meta.GetEmotionsTexturePath();
-    auto mugshot = Textures().LoadFromFile(image);
-    auto emotions = Textures().LoadFromFile(emotionsTexture);
+    std::filesystem::path mugshotAnim = meta.GetMugshotAnimationPath();
+    auto mugshot = Textures().LoadFromFile(meta.GetMugshotTexturePath());
+    auto emotions = Textures().LoadFromFile(meta.GetEmotionsTexturePath());
     auto player = std::shared_ptr<Player>(meta.GetData());
 
     player->SetHealth(GetPlayerSession()->health);
@@ -2375,7 +2367,7 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
 }
 
 template<typename Partitioner>
-static void LoadPackage(Partitioner& partitioner, const std::string& file_path) {
+static void LoadPackage(Partitioner& partitioner, const std::filesystem::path& file_path) {
   auto& packageManager = partitioner.GetPartition(Game::ServerPartition);
 
   std::string packageId = packageManager.FilepathToPackageID(file_path);
@@ -2404,7 +2396,7 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
   std::string asset_path = reader.ReadString<uint16_t>(buffer);
   PackageType package_type = reader.Read<PackageType>(buffer);
 
-  std::string file_path = serverAssetManager.GetPath(asset_path);
+  std::filesystem::path file_path = serverAssetManager.GetPath(asset_path);
 
   if (file_path.empty()) {
     Logger::Logf(LogLevel::critical, "Failed to find server asset %s", file_path.c_str());
@@ -2430,7 +2422,7 @@ void Overworld::OnlineArea::receiveLoadPackageSignal(BufferReader& reader, const
 }
 
 template <typename ScriptedType, typename Manager>
-void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath) {
+void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::filesystem::path& modFolder, const std::string& packageName, const std::string& packageId, const std::filesystem::path& filePath) {
   auto& menuSystem = GetMenuSystem();
 
   SetAvatarAsSpeaker();
@@ -2438,7 +2430,7 @@ void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& 
 
   manager.ErasePackage(packageId);
 
-  std::string installPath = modFolder + "/package-" + URIEncode(packageId) + ".zip";
+  std::filesystem::path installPath = modFolder / ("package-" + URIEncode(packageId) + ".zip");
 
   try {
     std::filesystem::copy_file(filePath, installPath);
@@ -2460,7 +2452,7 @@ void Overworld::OnlineArea::InstallPackage(Manager& manager, const std::string& 
 }
 
 template <typename ScriptedType, typename Partitioner>
-void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std::string& modFolder, const std::string& packageName, const std::string& packageId, const std::string& filePath)
+void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std::filesystem::path& modFolder, const std::string& packageName, const std::string& packageId, const std::filesystem::path& filePath)
 {
   auto& localManager = partitioner.GetPartition(Game::LocalPartition);
 
@@ -2517,7 +2509,7 @@ void Overworld::OnlineArea::RunPackageWizard(Partitioner& partitioner, const std
   );
 }
 
-void Overworld::OnlineArea::RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::string& filePath)
+void Overworld::OnlineArea::RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::filesystem::path& filePath)
 {
   // todo: define mod folders in a single location?
 
@@ -2542,9 +2534,9 @@ void Overworld::OnlineArea::RunPackageWizard(PackageType packageType, const std:
 void Overworld::OnlineArea::receivePackageOfferSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   PackageType packageType = reader.Read<PackageType>(buffer);
-  std::string packageId = GetPath(reader.ReadString<uint8_t>(buffer));
-  std::string packageName = GetPath(reader.ReadString<uint8_t>(buffer));
-  std::string filePath = GetPath(reader.ReadString<uint16_t>(buffer));
+  std::string packageId = reader.ReadString<uint8_t>(buffer);
+  std::string packageName = reader.ReadString<uint8_t>(buffer);
+  std::filesystem::path filePath = GetPath(reader.ReadString<uint16_t>(buffer));
 
   if (packageName.empty()) {
     packageName = "Dependency";
@@ -2583,7 +2575,7 @@ void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, cons
     }
 
     size_t spaceIndex = lineView.find(' ');
-    
+
     if (spaceIndex == string::npos) {
       // missing space
       continue;
@@ -2609,10 +2601,10 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     return;
   }
 
-  std::string asset_path = reader.ReadString<uint16_t>(buffer);
+  std::string asset_name = reader.ReadString<uint16_t>(buffer);
   std::string data_path = reader.ReadString<uint16_t>(buffer);
 
-  std::string file_path = serverAssetManager.GetPath(asset_path);
+  std::filesystem::path file_path = serverAssetManager.GetPath(asset_name);
 
   if (file_path.empty()) {
     Logger::Logf(LogLevel::critical, "Failed to find server mob asset %s", file_path.c_str());
@@ -2641,16 +2633,14 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     // Play the pre battle rumble sound
     Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
-    // Stop music and go to battle screen 
+    // Stop music and go to battle screen
     Audio().StopStream();
 
     // Get the navi we selected
     PlayerMeta& playerMeta = playerPackages.FindPackageByID(GetCurrentNaviID());
-    const std::string& image = playerMeta.GetMugshotTexturePath();
-    const std::string& mugshotAnim = playerMeta.GetMugshotAnimationPath();
-    const std::string& emotionsTexture = playerMeta.GetEmotionsTexturePath();
-    std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(image);
-    std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(emotionsTexture);
+    std::filesystem::path mugshotAnim = playerMeta.GetMugshotAnimationPath();
+    std::shared_ptr<sf::Texture> mugshot = Textures().LoadFromFile(playerMeta.GetMugshotTexturePath());
+    std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(playerMeta.GetEmotionsTexturePath());
     std::shared_ptr<Player> player = std::shared_ptr<Player>(playerMeta.GetData());
 
     auto& playerSession = GetPlayerSession();
@@ -3079,10 +3069,10 @@ void Overworld::OnlineArea::receiveActorKeyFramesSignal(BufferReader& reader, co
         propertyStep.value = (float)Orthographic(reader.Read<Direction>(buffer));
         break;
       case ActorProperty::sound_effect:
-        propertyStep.stringValue = GetPath(reader.ReadString<uint16_t>(buffer));
+        propertyStep.stringValue = GetPath(reader.ReadString<uint16_t>(buffer)).u8string();
         break;
       case ActorProperty::sound_effect_loop:
-        propertyStep.stringValue = GetPath(reader.ReadString<uint16_t>(buffer));
+        propertyStep.stringValue = GetPath(reader.ReadString<uint16_t>(buffer)).u8string();
         break;
       default:
         propertyStep.value = reader.Read<float>(buffer);
@@ -3148,7 +3138,7 @@ std::shared_ptr<sf::SoundBuffer> Overworld::OnlineArea::GetAudio(const std::stri
   return Overworld::SceneBase::GetAudio(path);
 }
 
-std::string Overworld::OnlineArea::GetPath(const std::string& path) {
+std::filesystem::path Overworld::OnlineArea::GetPath(const std::string& path) {
   if (path.find("/server", 0) == 0) {
     return serverAssetManager.GetPath(path);
   }

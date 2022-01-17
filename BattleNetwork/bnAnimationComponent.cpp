@@ -33,7 +33,7 @@ void AnimationComponent::OnUpdate(double _elapsed)
   UpdateAnimationObjects(owner->getSprite(), _elapsed);
 }
 
-void AnimationComponent::SetPath(string _path)
+void AnimationComponent::SetPath(const std::filesystem::path& _path)
 {
   path = _path;
 }
@@ -58,7 +58,7 @@ const std::string AnimationComponent::GetAnimationString() const
   return animation.GetAnimationString();
 }
 
-const std::string& AnimationComponent::GetFilePath() const
+const std::filesystem::path& AnimationComponent::GetFilePath() const
 {
   return path;
 }
@@ -194,7 +194,7 @@ void AnimationComponent::SyncAnimation(std::shared_ptr<AnimationComponent> other
 void AnimationComponent::AddToSyncList(const AnimationComponent::SyncItem& item)
 {
   auto iter = std::find_if(syncList.begin(), syncList.end(), [item](auto in) {
-    return std::tie(in.anim, in.node, in.point) == std::tie(item.anim, item.node, item.point); 
+    return std::tie(in.anim, in.node, in.point) == std::tie(item.anim, item.node, item.point);
   });
 
   if (iter == syncList.end()) {

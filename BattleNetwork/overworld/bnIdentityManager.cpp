@@ -3,15 +3,15 @@
 #include "bnServerAssetManager.h"
 #include "../bnFileUtil.h"
 #include <Poco/RandomStream.h>
-#include <filesystem>
 
-constexpr std::string_view IDENTITY_FOLDER = "identity";
 constexpr std::streamsize IDENTITY_LENGTH = 32;
+
+#define IDENTITY_FOLDER std::filesystem::path("identity")
 
 namespace Overworld {
   IdentityManager::IdentityManager(const std::string& host, uint16_t port)
   {
-    path = std::string(IDENTITY_FOLDER) + "/" + URIEncode(host + "_p" + std::to_string(port));
+    path = IDENTITY_FOLDER / URIEncode(host + "_p" + std::to_string(port));
   }
 
   std::string IdentityManager::GetIdentity() {

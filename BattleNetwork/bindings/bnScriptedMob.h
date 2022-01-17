@@ -28,7 +28,7 @@ public:
 
   public:
     ScriptedSpawner() = default;
-    ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank);
+    ScriptedSpawner(sol::state& script, const std::filesystem::path& path, Character::Rank rank);
 
     template<typename BuiltInCharacter>
     void UseBuiltInType(Character::Rank rank);
@@ -47,14 +47,14 @@ public:
   std::shared_ptr<Field> GetField();
   void EnableFreedomMission(uint8_t turnCount, bool playerCanFlip);
   /**
-  * @brief Creates a spawner object that loads a scripted or built-in character by its Fully Qualified Names (FQN) 
+  * @brief Creates a spawner object that loads a scripted or built-in character by its Fully Qualified Names (FQN)
   * @param fqn String. The name of the character stored in script cache. Use `BuiltIns.NAME` prefix for built-in characters.
   * @preconditions The mob `load_script` function should never throw an exception prior to using this function.
   */
   ScriptedSpawner CreateSpawner(const std::string& namespaceId, const std::string& fqn, Character::Rank rank);
 
-  void SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely);
-  void StreamMusic(const std::string& path, long long startMs, long long endMs);
+  void SetBackground(const std::filesystem::path& bgTexturePath, const std::filesystem::path& animPath, float velx, float vely);
+  void StreamMusic(const std::filesystem::path& path, long long startMs, long long endMs);
   void SpawnPlayer(unsigned playerNum, int tileX, int tileY);
 };
 

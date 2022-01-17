@@ -68,7 +68,7 @@ private:
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
-#ifdef BN_MOD_SUPPORT 
+#ifdef BN_MOD_SUPPORT
   ScriptResourceManager scriptManager;
 #endif
   InputManager inputManager;
@@ -146,14 +146,14 @@ public:
   void Record(bool enabled = true);
   void SetSubtitle(const std::string& subtitle);
 
-  const std::string AppDataPath();
-  const std::string CacheDataPath();
-  const std::string DesktopPath();
-  const std::string DownloadsPath();
-  const std::string DocumentsPath();
-  const std::string VideosPath();
-  const std::string PicturesPath();
-  const std::string SaveGamesPath();
+  const std::filesystem::path AppDataPath();
+  const std::filesystem::path CacheDataPath();
+  const std::filesystem::path DesktopPath();
+  const std::filesystem::path DownloadsPath();
+  const std::filesystem::path DocumentsPath();
+  const std::filesystem::path VideosPath();
+  const std::filesystem::path PicturesPath();
+  const std::filesystem::path SaveGamesPath();
 
   CardPackagePartitioner& CardPackagePartitioner();
   PlayerPackagePartitioner& PlayerPackagePartitioner();

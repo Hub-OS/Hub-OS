@@ -1,8 +1,8 @@
 /*! \file bnTextureResourceManager.h */
 
 /*! \brief resource manager for texture data
- * 
- * Texture resource manager provides utilities to load textures from disc 
+ *
+ * Texture resource manager provides utilities to load textures from disc
  * as well as hard-coded textures loaded at startup.
  */
 
@@ -13,6 +13,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <map>
+#include <filesystem>
 #include <vector>
 #include <iostream>
 #include <atomic>
@@ -43,16 +44,16 @@ public:
   * @brief will clean expired textures from the cache and free image data
   */
   void HandleExpiredTextureCache();
-  
+
   /**
    * @brief Given a file path, returns a pointer to the loaded texture
    * @param _path Relative path to the application
    * @return Texture. The texture is cached.
    */
-  std::shared_ptr<Texture> LoadFromFile(string _path);
+  std::shared_ptr<Texture> LoadFromFile(const std::filesystem::path& _path);
 
 private:
   std::mutex mutex;
-  vector<string> paths; /**< Paths to all textures. Must be in order of TextureType @see TextureType */
-  map<std::string, CachedResource<Texture>> texturesFromPath; /**< Cache for textures loaded at run-time */
+  vector<std::filesystem::path> paths; /**< Paths to all textures. Must be in order of TextureType @see TextureType */
+  map<std::filesystem::path, CachedResource<Texture>> texturesFromPath; /**< Cache for textures loaded at run-time */
 };

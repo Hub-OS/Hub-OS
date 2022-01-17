@@ -8,7 +8,7 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
   engine_namespace.new_usertype<AnimationWrapper>("Animation",
     sol::factories(
       [] (const std::string& path) {
-        auto animation = std::make_shared<Animation>(path);
+        auto animation = std::make_shared<Animation>(std::filesystem::u8path(path));
 
         auto animationWrapper = AnimationWrapper(animation, *animation);
         animationWrapper.OwnParent();
@@ -24,14 +24,14 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
         return animationWrapper;
       }
     ),
-    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+    sol::meta_function::index, []( sol::table table, const std::string key ) {
       ScriptResourceManager::PrintInvalidAccessMessage( table, "Animation", key );
     },
-    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Animation", key );
     },
     "load", [](AnimationWrapper& animation, const std::string& path) {
-      animation.Unwrap().Load(path);
+      animation.Unwrap().Load(std::filesystem::u8path(path));
     },
     "update", [](AnimationWrapper& animation, double elapsed, WeakWrapper<SpriteProxyNode>& target) {
       animation.Unwrap().Update(elapsed, target.Unwrap()->getSprite());

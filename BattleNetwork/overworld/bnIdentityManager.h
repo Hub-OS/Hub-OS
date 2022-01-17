@@ -1,4 +1,5 @@
 #include <string>
+#include <filesystem>
 
 namespace Overworld {
   /**
@@ -10,7 +11,7 @@ namespace Overworld {
 
       std::string GetIdentity();
     private:
-      std::string path;
+      std::filesystem::path path;
       std::string identity;
   };
 }

@@ -1,5 +1,6 @@
 #include "bnShaderResourceManager.h"
 #include "bnShaderType.h"
+#include "bnFileUtil.h"
 #include <stdlib.h>
 #include <sstream>
 #include <fstream>
@@ -26,7 +27,7 @@ void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
   isEnabled = true;
 }
 
-sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
+sf::Shader* ShaderResourceManager::LoadShaderFromFile(const std::filesystem::path& _path)
 {
   std::scoped_lock lock(mutex);
 
@@ -34,36 +35,51 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
   sf::Shader* shader = new sf::Shader();
   bool result = false;
 
-  if (shader->loadFromFile(_path + ".vert", _path + ".frag"))
+  std::filesystem::path frag_path = _path;
+  frag_path.concat(".frag");
+  StdFilesystemInputStream frag_stream(frag_path);
+
+  std::filesystem::path vert_path = _path;
+  vert_path.concat(".vert");
+  StdFilesystemInputStream vert_stream(vert_path);
+
+  if (shader->loadFromStream(vert_stream, frag_stream))
   {
     result = true;
   }
   else // default vert shader
   {
-    result = shader->loadFromFile(paths[static_cast<int>(ShaderType::DEFAULT)] + ".vert", _path + ".frag");
+    std::filesystem::path vert_path = paths[static_cast<int>(ShaderType::DEFAULT)];
+    vert_path.concat(".vert");
+  StdFilesystemInputStream vert_stream(vert_path);
+    result = shader->loadFromStream(vert_stream, frag_stream);
   }
 
   if (!result)
   {
-    Logger::Log("Error loading shader: " + _path);
+    Logger::Log(LogLevel::critical, "Error loading shader: " + _path.u8string());
 
     return nullptr;
   }
-#else 
+#else
+  std::filesystem::path frag_path = _path;
+  frag_path.concat(".frag");
+  StdFilesystemInputStream frag_stream(frag_path);
+
   sf::Shader* shader = new sf::Shader();
-  if (!shader->loadFromFile(_path + ".frag", sf::Shader::Fragment)) {
-    Logger::Log(LogLevel::critical, "Error loading shader: " + _path + ".frag");
+  if (!shader->loadFromStream(frag_stream, sf::Shader::Fragment)) {
+    Logger::Log(LogLevel::critical, "Error loading shader: " + frag_path.u8string());
     return nullptr;
   }
 #endif
 
-  Logger::Log(LogLevel::info, "Loaded shader: " + _path);
+  Logger::Log(LogLevel::info, "Loaded shader: " + frag_path.u8string());
   return shader;
 }
 
 sf::Shader* ShaderResourceManager::GetShader(ShaderType _stype) {
   std::scoped_lock lock(mutex);
-  
+
   if (shaders.size()) {
     return shaders.at(_stype);
   }

@@ -36,6 +36,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 #include <SFML/Audio.hpp>
 
 #include "sfMidi/Error.h"
@@ -69,8 +70,8 @@ class sfmidi::Midi : public sf::SoundStream, public sfmidi::Error
 {
 public:
   Midi();
-  Midi(const std::string& soundFont, const std::string& midi);
-  Midi(const std::string& soundFont,
+  Midi(const std::filesystem::path& soundFont, const std::filesystem::path& midi);
+  Midi(const std::filesystem::path& soundFont,
        const void* midiData, unsigned int midiSize);
 
   ~Midi();
@@ -81,9 +82,9 @@ public:
   bool   getLoop() const;
   double getGain() const;
 
-  bool loadSoundFontFromFile(const std::string& filename);
+  bool loadSoundFontFromFile(const std::filesystem::path& filename);
 
-  bool loadMidiFromFile  (const std::string& filename);
+  bool loadMidiFromFile  (const std::filesystem::path& filename);
   bool loadMidiFromMemory(const std::string& data);
   bool loadMidiFromMemory(const void* data, unsigned int size);
 

@@ -158,7 +158,7 @@ void Overworld::TileBehaviors::HandleConveyor(SceneBase& scene, Actor& actor, Ac
 
   ActorPropertyAnimator::PropertyStep sfxProperty;
   sfxProperty.property = ActorProperty::sound_effect_loop;
-  sfxProperty.stringValue = scene.GetPath(tileMeta.customProperties.GetProperty("sound effect"));
+  sfxProperty.stringValue = scene.GetPath(tileMeta.customProperties.GetProperty("sound effect")).u8string();
 
   ActorPropertyAnimator::KeyFrame startKeyframe;
   startKeyframe.propertySteps.push_back(animationProperty);
@@ -196,7 +196,7 @@ void Overworld::TileBehaviors::HandleIce(SceneBase& scene, Actor& actor, ActorPr
   // start animation with the ice sound effect
   ActorPropertyAnimator::PropertyStep sfxProperty;
   sfxProperty.property = ActorProperty::sound_effect;
-  sfxProperty.stringValue = scene.GetPath(tileMeta.customProperties.GetProperty("sound effect"));
+  sfxProperty.stringValue = scene.GetPath(tileMeta.customProperties.GetProperty("sound effect")).u8string();
 
   // set the animation speed to 0 so the player appears to slip
   ActorPropertyAnimator::PropertyStep animationSpeedProperty(ActorProperty::animation_speed, 0.0f);

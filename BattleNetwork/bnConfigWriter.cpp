@@ -9,7 +9,7 @@ ConfigWriter::~ConfigWriter()
 {
 }
 
-void ConfigWriter::Write(std::string path)
+void ConfigWriter::Write(const std::filesystem::path& path)
 {
   FileUtil::WriteStream w(path);
   w << "[Discord]" << w.endl();

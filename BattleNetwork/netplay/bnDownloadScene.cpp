@@ -18,7 +18,7 @@
 constexpr std::string_view CACHE_FOLDER = "cache";
 
 // class DownloadScene
-DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) : 
+DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadSceneProps& props) :
   downloadSuccess(props.downloadSuccess),
   coinFlip(props.coinFlip),
   lastScreen(props.lastScreen),
@@ -37,7 +37,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   std::sort(playerBlockPackageList.begin(), playerBlockPackageList.end());
   playerBlockPackageList.erase(std::unique(playerBlockPackageList.begin(), playerBlockPackageList.end()), playerBlockPackageList.end());
 
-  downloadSuccess = false; 
+  downloadSuccess = false;
 
   packetProcessor = props.packetProcessor;
   packetProcessor->SetKickCallback([this] {
@@ -507,7 +507,7 @@ void DownloadScene::RecieveTransition(const Poco::Buffer<char>& buffer)
   transitionToPvp = true;
 
   // sync seed
-  getController().SeedRand(maxSeed); 
+  getController().SeedRand(maxSeed);
   Logger::Logf(LogLevel::debug, "Using seed %d", maxSeed);
 }
 
@@ -555,7 +555,7 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
 
     result = RemotePlayerPartition().LoadPackageFromZip<ScriptedPlayer>(path);
   }
-  
+
   if (result.is_error()) {
     Logger::Logf(LogLevel::critical, "Failed to download custom navi with package ID %s: %s", packageId.c_str(), result.error_cstr());
 
@@ -657,7 +657,7 @@ Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& packag
 
   BufferWriter writer;
   size_t len = 0;
-  
+
   auto result = packageManager.GetPackageFilePath(packageId);
   if (result.is_error()) {
     Logger::Logf(LogLevel::critical, "Could not serialize package: %s", result.error_cstr());
@@ -666,12 +666,12 @@ Poco::Buffer<char> DownloadScene::SerializePackageData(const std::string& packag
     SendDownloadComplete(false);
   }
   else {
-    std::string path = result.value();
-    
-    if (auto result = stx::zip(path, path + ".zip"); result.value()) {
-      path = path + ".zip";
+    std::filesystem::path path = result.value();
+    std::filesystem::path zipPath = path;
+    zipPath.concat(".zip");
 
-      std::ifstream fs(path, std::ios::binary | std::ios::ate);
+    if (auto result = stx::zip(path, zipPath); result.value()) {
+      std::ifstream fs(zipPath, std::ios::binary | std::ios::ate);
       std::ifstream::pos_type pos = fs.tellg();
       len = pos;
       fileBuffer.resize(len);
@@ -732,7 +732,7 @@ void DownloadScene::onUpdate(double elapsed)
 
     return;
   }
-  
+
   if (AllTasksComplete()) {
     SendDownloadComplete(true);
 

@@ -34,7 +34,7 @@ struct ScriptPackage {
   sol::state* state{ nullptr };
   ScriptPackageType type;
   PackageAddress address;
-  std::string path;
+  std::filesystem::path path;
   std::vector<std::string> subpackages;
   std::vector<std::string> dependencies;
 };
@@ -47,7 +47,7 @@ public:
 
   void DropPackageData(sol::state* state);
   void DropPackageData(const PackageAddress& addr);
-  ScriptPackage* DefinePackage(ScriptPackageType type, const std::string& namespaceId, const std::string& fqn, const std::string& path); /* throws */
+  ScriptPackage* DefinePackage(ScriptPackageType type, const std::string& namespaceId, const std::string& fqn, const std::filesystem::path& path); /* throws */
   ScriptPackage* FetchScriptPackage(const std::string& namespaceId, const std::string& fqn, ScriptPackageType type);
   void SetCardPackagePartitioner(CardPackagePartitioner& partition);
   CardPackagePartitioner& GetCardPackagePartitioner();
@@ -61,13 +61,13 @@ private:
   CardPackagePartitioner* cardPartition{ nullptr };
 
   void ConfigureEnvironment(ScriptPackage& scriptPackage);
-  void DefineSubpackage(ScriptPackage& parentPackage, ScriptPackageType type, const std::string& fqn, const std::string& path); /* throws */
+  void DefineSubpackage(ScriptPackage& parentPackage, ScriptPackageType type, const std::string& fqn, const std::filesystem::path& path); /* throws */
   void SetSystemFunctions(ScriptPackage& scriptPackage);
   void SetModPathVariable(sol::state& state, const std::filesystem::path& modDirectory);
 
   static std::string GetCurrentLine( lua_State* L );
-  static stx::result_t<std::string> GetCurrentFile(lua_State* L);
-  static stx::result_t<std::string> GetCurrentFolder(lua_State* L);
+  static stx::result_t<std::filesystem::path> GetCurrentFile(lua_State* L);
+  static stx::result_t<std::filesystem::path> GetCurrentFolder(lua_State* L);
 };
 
 #endif

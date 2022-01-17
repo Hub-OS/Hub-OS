@@ -110,7 +110,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
     mrprog->SetSolid(true);
     mrprog->SetCollisionRadius(5);
 
-    // we ensure pointer to mrprog is alive because when we interact, 
+    // we ensure pointer to mrprog is alive because when we interact,
     // mrprog must've been alive to interact in the first place...
     mrprog->SetInteractCallback([mrprog = mrprog.get(), this](const auto& with, const auto& event) {
       // Face them
@@ -327,12 +327,10 @@ void Overworld::Homepage::onUpdate(double elapsed)
 
   if (Input().Has(InputEvents::pressed_shoulder_right) && !IsInputLocked()) {
     PlayerMeta& meta = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FindPackageByID(GetCurrentNaviID());
-    const std::string& image = meta.GetMugshotTexturePath();
-    const std::string& anim = meta.GetMugshotAnimationPath();
-    auto mugshot = Textures().LoadFromFile(image);
+    auto mugshot = Textures().LoadFromFile(meta.GetMugshotTexturePath());
 
     auto& menuSystem = GetMenuSystem();
-    menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), anim);
+    menuSystem.SetNextSpeaker(sf::Sprite(*mugshot), meta.GetMugshotAnimationPath());
     menuSystem.EnqueueMessage("This is your homepage.");
     menuSystem.EnqueueMessage("You can edit it anyway you like!");
 

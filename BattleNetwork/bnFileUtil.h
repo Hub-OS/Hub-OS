@@ -1,11 +1,14 @@
 #pragma once
 #include <string>
 #include <cstring>
+#include <filesystem>
 #include <sstream>
+#include <iostream>
 #include <assert.h>
-#include <SFML/System.hpp>
 
 #include "bnLogger.h"
+
+#include <SFML/System/InputStream.hpp>
 
 #ifdef __ANDROID_NDK__
 #include <android/asset_manager.h>
@@ -18,7 +21,7 @@
  * @author mav
  * @date 04/05/19
  * @brief Ammature file utility that reads in a file as a string dump.
- * 
+ *
  * Has function that finds a key and attempts to parse the value wrapped in quotes.
  * Much can be improved here as this was originally legacy code.
  */
@@ -31,10 +34,10 @@ public:
     bool isOK;
 
   public:
-    WriteStream(const std::string& path) {
+    WriteStream(const std::filesystem::path& path) {
       isOK = true;
 #ifdef __ANDROID_NDK__
-      m_file = std::fopen(path.c_str(), "w");
+      m_file = std::fopen(path.native().c_str(), "w");
       if(!m_file) {
         isOK = false;
       }
@@ -45,15 +48,15 @@ public:
         isOK = false;
       }
   #else
-      errno_t err = fopen_s(&m_file, path.c_str(), "w");
+      errno_t err = _wfopen_s(&m_file, path.native().c_str(), L"w");
       if (err != 0) {
         isOK = false;
-        
+
         // todo: strerror_s is not supported in MSVC??
         //char buf[strerror_s(err) + 1];
         //strerror_s(buf, sizeof buf, err);
         //Logger::Logf("cannot open file '%s': %s\n", path.c_str(), buf);
-        Logger::Logf(LogLevel::critical, "Cannot open file %s", path.c_str());
+        Logger::Log(LogLevel::critical, "Cannot open file " + path.u8string());
       }
   #endif
 #endif
@@ -87,22 +90,22 @@ public:
     }
   };
 
-  static std::string Read(const std::string& _path) {
-    sf::FileInputStream in;
-
-    if (in.open(_path) && in.getSize() > 0) {
-      sf::Int64 size = in.getSize();
-      char* buffer = new char[size];
-      in.read(buffer, size);
-
-      std::string strbuff(buffer, size);
-
-      delete[] buffer;
-
-      return strbuff;
+  static std::string Read(const std::filesystem::path& _path) {
+    std::uintmax_t filesize;
+    try {
+      filesize = std::filesystem::file_size(_path);
     }
-
-    return std::string("");
+    catch (std::filesystem::filesystem_error& e) {
+      Logger::Logf(LogLevel::critical, "Failed to read file \"%s\": %s", _path.u8string().c_str(), e.what());
+      return "";
+    }
+    std::ifstream f(_path, std::ios::in | std::ios::binary);
+    std::string buf(filesize, '\0');
+    if (!f.read(buf.data(), filesize)) {
+      Logger::Logf(LogLevel::critical, "Failed to read file \"%s\": eof = %d, bad = %d, fail = %d", _path.u8string().c_str(), f.eof(), f.bad(), f.fail());
+      return "";
+    }
+    return buf;
   }
 
   static std::string ValueOf(std::string key, std::string line) {
@@ -116,4 +119,17 @@ public:
     std::string s = line.substr(keyIndex + key.size() + 2);
     return s.substr(0, s.find("\""));
   }
+};
+
+class StdFilesystemInputStream : public sf::InputStream {
+private:
+  std::filesystem::path path;
+  std::ifstream stream;
+
+public:
+  explicit StdFilesystemInputStream(const std::filesystem::path& path);
+  sf::Int64 read(void* data, sf::Int64 size) override;
+  sf::Int64 seek(sf::Int64 position) override;
+  sf::Int64 tell() override;
+  sf::Int64 getSize() override;
 };

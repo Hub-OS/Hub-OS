@@ -6,6 +6,8 @@
 #include <fstream>
 #include <mutex>
 
+#include "bnFileUtil.h"
+
 using std::ifstream;
 using std::stringstream;
 
@@ -37,7 +39,7 @@ void TextureResourceManager::HandleExpiredTextureCache()
   }
 }
 
-std::shared_ptr<Texture> TextureResourceManager::LoadFromFile(string _path) {
+std::shared_ptr<Texture> TextureResourceManager::LoadFromFile(const std::filesystem::path& _path) {
   //std::scoped_lock lock(mutex);
 
   auto iter = texturesFromPath.find(_path);
@@ -56,11 +58,12 @@ std::shared_ptr<Texture> TextureResourceManager::LoadFromFile(string _path) {
   }
 
   std::shared_ptr<Texture> texture = std::make_shared<Texture>();
-  
-  if (!texture->loadFromFile(_path)) {
-    Logger::Logf(LogLevel::critical, "Failed loading texture: %s", _path.c_str());
+
+  StdFilesystemInputStream stream(_path);
+  if (!texture->loadFromStream(stream)) {
+    Logger::Log(LogLevel::critical, "Failed loading texture: " + _path.u8string());
   } else {
-    Logger::Logf(LogLevel::info, "Loaded texture: %s", _path.c_str());
+    Logger::Log(LogLevel::info, "Loaded texture: " + _path.u8string());
   }
 
   if (!skipCaching) {

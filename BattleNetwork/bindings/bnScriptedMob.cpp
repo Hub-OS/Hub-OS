@@ -10,15 +10,15 @@
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
 //
-ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::string& path, Character::Rank rank)
-{ 
+ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::filesystem::path& path, Character::Rank rank)
+{
   scriptedSpawner = std::make_unique<Mob::Spawner<ScriptedCharacter>>(rank);
   std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
 
   scriptedSpawner->constructor = [lambda, path, scriptPtr=&script] () -> std::shared_ptr<ScriptedCharacter> {
     auto& script = *scriptPtr;
-    script["_modpath"] = path+"/";
-    script["_folderpath"] = path+"/";
+    script["_modpath"] = path.generic_u8string() + "/";
+    script["_folderpath"] = path.generic_u8string() + "/";
 
     auto character = lambda();
     character->InitFromScript(script);
@@ -107,9 +107,9 @@ void ScriptedMob::ScriptedSpawner::SetMob(Mob* mob)
 
 //
 // class ScriptedMob : public Mob
-// 
-ScriptedMob::ScriptedMob(sol::state& script) : 
-  MobFactory(), 
+//
+ScriptedMob::ScriptedMob(sol::state& script) :
+  MobFactory(),
   script(script)
 {
 }
@@ -163,7 +163,7 @@ ScriptedMob::ScriptedSpawner ScriptedMob::CreateSpawner(const std::string& names
   return obj;
 }
 
-void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::string& animPath, float velx, float vely)
+void ScriptedMob::SetBackground(const std::filesystem::path& bgTexturePath, const std::filesystem::path& animPath, float velx, float vely)
 {
   auto texture = Textures().LoadFromFile(bgTexturePath);
   auto anim = Animation(animPath);
@@ -172,7 +172,7 @@ void ScriptedMob::SetBackground(const std::string& bgTexturePath, const std::str
   mob->SetBackground(background);
 }
 
-void ScriptedMob::StreamMusic(const std::string& path, long long startMs, long long endMs)
+void ScriptedMob::StreamMusic(const std::filesystem::path& path, long long startMs, long long endMs)
 {
   mob->StreamCustomMusic(path, startMs, endMs);
 }

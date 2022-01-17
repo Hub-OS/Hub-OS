@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <filesystem>
 #include <fstream>
 #include <vector>
 #include "result.h"
@@ -14,7 +15,7 @@ namespace stx {
     }
   }
 
-  static result_t<std::string> generate_md5_from_file(const std::string& path) {
+  static result_t<std::string> generate_md5_from_file(const std::filesystem::path& path) {
     std::vector<char> fileBuffer, md5Buffer;
     md5Buffer.resize(16);
     size_t len{};
@@ -22,7 +23,7 @@ namespace stx {
     std::ifstream fs(path, std::ios::binary | std::ios::ate);
 
     if (!fs.good()) {
-      return error<std::string>("Unabled to read file " + path);
+      return error<std::string>("Unabled to read file " + path.u8string());
     }
 
     std::ifstream::pos_type pos = fs.tellg();
