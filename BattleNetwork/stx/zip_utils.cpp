@@ -1,4 +1,3 @@
-#pragma once
 #include "zip_utils.h"
 
 #include <iostream>
@@ -63,16 +62,13 @@ namespace {
         return stx::error<uint64_t>("extracting "s + filename.u8string() + " exceeds size limit: current = " + std::to_string(current_size) + "bytes, limit = " + std::to_string(size_limit) + " bytes");
       }
 
-      if (zip_entry_isdir(zip)) {
-        std::filesystem::create_directory(entry_destination_path);  // Result ignored, folder may already exist.
-        stx::result_t<uint64_t> r = unzip_walk(zip, entry_destination_path, root_path, size_limit);
-        if (r.is_error()) {
-          return r;
+      if (!zip_entry_isdir(zip)) {
+        try {
+          std::filesystem::create_directories(entry_destination_path.parent_path());  // Result ignored, folder may already exist.
+        } catch(std::exception& e) {
+          return stx::error<uint64_t>(e.what());
         }
-        current_size += r.value();
-      }
-      else {
-        std::filesystem::create_directories(entry_destination_path.parent_path());  // Result ignored, folder may already exist.
+
         if (int r = zip_entry_fread(zip, entry_destination_path_string.c_str()); r != 0) {
           return stx::error<uint64_t>("zip_entry_fread for "s + filename.u8string() + ", extracting to " + entry_destination_path_string + ": " + zip_strerror(r));
         }
