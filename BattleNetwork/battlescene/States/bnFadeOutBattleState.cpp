@@ -22,11 +22,11 @@ void FadeOutBattleState::onStart(const BattleSceneState*) {
   std::vector<std::reference_wrapper<const Character>> mobList;
   mobList = localTeam == Team::red ? scene.BlueTeamMobList() : scene.RedTeamMobList();
 
-  if (mobList.empty())
-    return;
-
   BattleResults& results = scene.BattleResultsObj();
   results.turns = scene.GetTurnCount();
+
+  if (mobList.empty())
+    return;
 
   std::sort(mobList.begin(), mobList.end(), [](auto& a, auto& b) { return a.get().GetID() < b.get().GetID(); });
 
