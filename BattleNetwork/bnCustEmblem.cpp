@@ -7,7 +7,7 @@ CustEmblem::CustEmblem() {
 
   numWires = 12;
   
-  if (wireShader = shaders.GetShader(ShaderType::BADGE_WIRE)) {
+  if ((wireShader = shaders.GetShader(ShaderType::BADGE_WIRE))) {
     wireShader->setUniform("texture", sf::Shader::CurrentTexture);
     wireShader->setUniform("numOfWires", numWires);
   }
