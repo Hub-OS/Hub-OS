@@ -2,7 +2,10 @@
 #include <cmath>
 #include <cctype> // for control codes
 
-void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char letter) const
+#include <Poco/UTF8Encoding.h>
+#include <Poco/TextIterator.h>
+
+void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, uint32_t letter) const
 {
   font.SetLetter(letter);
   const auto texcoords = font.GetTextureCoords();
@@ -10,7 +13,7 @@ void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char le
   const sf::Texture& texture = font.GetTexture();
   float width  = static_cast<float>(texture.getSize().x);
   float height = static_cast<float>(texture.getSize().y);
-  
+
   float left   = 0;
   float top    = 0;
   float right  = static_cast<float>(texcoords.width);
@@ -54,19 +57,24 @@ void Text::UpdateGeometry() const
   float y = 0.f;
   float width = 0.f;
 
-  for (char letter : message) {
+  Poco::UTF8Encoding utf8Encoding;
+  Poco::TextIterator it(message, utf8Encoding);
+  Poco::TextIterator end(message);
+  for (; it != end; ++it) {
+    uint32_t letter = *it;
+
     // Handle special characters
-    if ((letter == L' ') || (letter == L'\n') || (letter == L'\t'))
+    if ((letter == U' ') || (letter == U'\n') || (letter == U'\t'))
     {
       switch (letter)
       {
-      case L' ':  x += whitespaceWidth;     break;
-      case L'\t': x += whitespaceWidth * 4; break;
-      case L'\n': y += lineSpacing; x = 0;  break;
+      case U' ':  x += whitespaceWidth;     break;
+      case U'\t': x += whitespaceWidth * 4; break;
+      case U'\n': y += lineSpacing; x = 0;  break;
       }
     } else {
       // skip user-defined control codes
-      if (letter > 0 && iscntrl(letter)) continue;
+      if (letter > 0 && letter <= 0xff && iscntrl(letter)) continue;
 
       AddLetterQuad(sf::Vector2f(x, y), color, letter);
 

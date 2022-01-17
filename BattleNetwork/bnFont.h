@@ -4,6 +4,7 @@
 #include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 
+#include <cstdint>
 #include <memory>
 #include <array>
 
@@ -25,14 +26,12 @@ public:
     size // don't use!
   } style;
 
-  static std::map<char, std::string> specialCharLookup;
-
 private:
   static constexpr size_t style_sz = static_cast<size_t>(Style::size);
   static bool animationsLoaded;
   static std::array<Animation, style_sz> animationArray;
 
-  char letter{ 'A' };
+  uint32_t letter{ 'A' };
   sf::IntRect texcoords{};
   sf::IntRect letterATexcoords{};
   sf::Vector2f origin{};
@@ -43,7 +42,7 @@ public:
   ~Font();
 
   const Style& GetStyle() const;
-  void SetLetter(char letter);
+  void SetLetter(uint32_t letter);
   const sf::Texture& GetTexture() const;
   const sf::IntRect GetTextureCoords() const;
   const sf::Vector2f GetOrigin() const;
