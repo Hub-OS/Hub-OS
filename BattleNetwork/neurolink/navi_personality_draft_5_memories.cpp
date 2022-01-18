@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <limits>
 #include <optional>
+#include <vector>
 
 enum class Emotions : char {
     calm = 0,
