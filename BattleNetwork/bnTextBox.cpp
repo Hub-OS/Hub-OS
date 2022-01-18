@@ -26,7 +26,7 @@ namespace {
       }
 
       if (r > 0) {
-        return std::make_pair(r, size);
+        return std::make_pair(static_cast<uint32_t>(r), size);
       }
 
       size = -r;
