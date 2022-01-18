@@ -37,7 +37,7 @@ constexpr frame_time_t CARD_ACTION_ARTIFICIAL_LAG = frames(5);
  * @date 05/05/19
  * @brief Characters are mobs, enemies, and players. They have health and can take hits.
  */
-class Character: 
+class Character:
   public Entity,
   public CardActionUsePublisher
 {
@@ -63,6 +63,11 @@ public:
     Rare1,
     Rare2,
     NM,
+    RV,
+    DS,
+    Alpha,
+    Beta,
+    Omega,
     SIZE
   };
 
@@ -81,7 +86,7 @@ public:
   std::shared_ptr<CardAction> CurrentCardAction();
 
   void Update(double elapsed) override;
-  
+
   /**
   * @brief Default characters cannot move onto occupied, broken, or empty tiles
   * @param next
