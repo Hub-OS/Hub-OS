@@ -5,6 +5,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <cstdint>
 
 #include "bnText.h"
 #include "bnFont.h"
@@ -118,7 +119,7 @@ public:
    * @brief Moves lines upward in text area, shows next lines
    */
   void ShowNextLine();
-  
+
   /**
    * @brief Moves lines downward in text area, shows previous lines
    */
@@ -161,7 +162,7 @@ public:
    * @brief Returns the current character printed
    * @return char
    */
-  const char GetCurrentCharacter() const;
+  const uint32_t GetCurrentCharacter() const;
 
   /**
    * @brief Returns the character range of the displayed text
@@ -198,7 +199,7 @@ public:
    * @return double in sec
    */
   const double GetCharsPerSecond() const;
-  
+
   /**
    * @brief Query if textbox is playing
    * @return true if playing, false if paused
@@ -219,7 +220,7 @@ public:
 
   /**
    * @brief Draws the textbox with correct transformations
-   * 
+   *
    * The textbox inherits sf::Drawable which give it transform properties
    * and can be rotated and scaled. We make sure the text is rendered appropriately.
    * @param target

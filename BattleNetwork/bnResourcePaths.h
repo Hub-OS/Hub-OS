@@ -136,7 +136,7 @@ namespace TexturePaths {
   path SCREEN_BAR = "resources/ui/screen_bar.png";
 
   // FONT
-  path FONT = "resources/fonts/fonts_compressed.png";
+  path FONT = "resources/fonts/fonts.png";
 
   // CONFIG UI
   path AUDIO_ICO = "resources/scenes/config/audio.png";

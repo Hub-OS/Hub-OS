@@ -7,6 +7,11 @@
 #include "Android/bnTouchArea.h"
 #include "../../bnBlockPackageManager.h"
 #include "../../bnPlayerCustScene.h"
+
+#include <Poco/TextIterator.h>
+#include <Poco/UTF8Encoding.h>
+#include <Poco/UnicodeConverter.h>
+
 constexpr float PIXEL_MAX = 50.0f;
 constexpr float PIXEL_SPEED = 180.0f;
 
@@ -250,21 +255,29 @@ void SelectMobScene::onUpdate(double elapsed) {
     numberCooldown -= (float)elapsed;
     std::string newstr;
 
-    for (int i = 0; i < mobLabel.GetString().length(); i++) {
+    Poco::UTF8Encoding utf8Encoding;
+    Poco::TextIterator it(mobLabel.GetString(), utf8Encoding);
+    Poco::TextIterator end(mobLabel.GetString());
+    size_t i = 0;
+    size_t length = Poco::UnicodeConverter::UTFStrlen(mobLabel.GetString().c_str());
+    for (; it != end; ++it) {
       double progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
-      double index = progress * mobLabel.GetString().length();
+      double index = progress * length;
 
       if (i < (int)index) {
-        newstr += mobLabel.GetString()[i];
+        std::string utf8string;
+        Poco::UnicodeConverter::convert(Poco::UTF32String(1, *it), utf8string);
+        newstr += utf8string;
       }
       else {
-        if (mobLabel.GetString()[i] != ' ') {
+        if (*it != U' ') {
           newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
         }
         else {
           newstr += ' ';
         }
       }
+      ++i;
     }
 
     int randAttack = 0;
