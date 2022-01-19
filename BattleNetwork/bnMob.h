@@ -394,13 +394,29 @@ public:
       data->character->SetName(data->character->GetName() + "R2");
       break;
     case ClassType::Rank::SP:
-      data->character->SetName(data->character->GetName() + char(-1));
+      data->character->SetName(data->character->GetName() + "\ue000");
       break;
     case ClassType::Rank::EX:
-      data->character->SetName(data->character->GetName() + char(-2));
+      data->character->SetName(data->character->GetName() + "\ue001");
       break;
     case ClassType::Rank::NM:
-      data->character->SetName(data->character->GetName() + char(-3));
+      data->character->SetName(data->character->GetName() + "\ue002");
+      break;
+    case ClassType::Rank::RV:
+      data->character->SetName(data->character->GetName() + "\ue003");
+      break;
+    case ClassType::Rank::DS:
+      data->character->SetName(data->character->GetName() + "\ue004");
+      break;
+    case ClassType::Rank::Alpha:
+      data->character->SetName(data->character->GetName() + "α");
+      break;
+    case ClassType::Rank::Beta:
+      data->character->SetName(data->character->GetName() + "β");
+      break;
+    case ClassType::Rank::Omega:
+      data->character->SetName(data->character->GetName() + "Ω");
+      break;
     }
 
     // Add the character to our list of enemies to spawn

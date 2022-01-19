@@ -11,7 +11,7 @@ Font::Font(const Style& style) :
   letter('A')
 {
   if (!Font::animationsLoaded) {
-    Font::animationArray.fill(Animation("resources/fonts/fonts_compressed.animation"));
+    Font::animationArray.fill(Animation("resources/fonts/fonts.animation"));
 
     for (auto& a : animationArray) {
       a.Load();

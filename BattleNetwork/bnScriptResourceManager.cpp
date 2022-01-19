@@ -587,7 +587,12 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "EX", Character::Rank::EX,
     "Rare1", Character::Rank::Rare1,
     "Rare2", Character::Rank::Rare2,
-    "NM", Character::Rank::NM
+    "NM", Character::Rank::NM,
+    "RV", Character::Rank::RV,
+    "DS", Character::Rank::DS,
+    "Alpha", Character::Rank::Alpha,
+    "Beta", Character::Rank::Beta,
+    "Omega", Character::Rank::Omega
   );
 
   const auto& audio_type_record = state.new_enum("AudioType",
