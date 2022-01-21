@@ -24,6 +24,7 @@ private:
   std::shared_ptr<DefenseBubbleWrap> defense; /*!< Add BubbleWrapTrap defense rule */
   bool willDelete;
   std::vector<InputEvent> lastFrameStates;
+  bool init{};
 public:
   /**
    * @brief Attaches to the owner, sets the animation */
