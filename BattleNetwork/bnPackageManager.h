@@ -477,7 +477,7 @@ stx::result_t<std::string> PackageManager<MetaClass>::RemovePackageByID(const st
     delete iter->second;
     packages.erase(iter);
 
-    return stx::ok(path);
+    return stx::ok<std::string>(path);
   }
 
   return stx::error<std::string>("No package with that ID");
