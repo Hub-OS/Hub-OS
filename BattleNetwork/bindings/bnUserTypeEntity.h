@@ -207,6 +207,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["is_moving"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsMoving();
   };
+  entity_table["set_passthrough"] = [](WeakWrapper<E>& entity, bool passthrough) {
+    entity.Unwrap()->SetPassthrough(passthrough);
+  };
   entity_table["is_passthrough"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsPassthrough();
   };
