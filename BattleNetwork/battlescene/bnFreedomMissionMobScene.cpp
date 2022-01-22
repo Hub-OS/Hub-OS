@@ -127,6 +127,7 @@ void FreedomMissionMobScene::Init()
   }
   else {
     playerCanFlip = mob.PlayerCanFlip();
+    LoadBlueTeamMob(mob);
   }
 
   if (mob.HasPlayerSpawnPoint(1)) {
