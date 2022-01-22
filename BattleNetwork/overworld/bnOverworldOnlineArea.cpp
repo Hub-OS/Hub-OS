@@ -624,6 +624,7 @@ void Overworld::OnlineArea::onEnd()
   }
 
   getController().Session().SetWhitelist({}); // clear the whitelist
+  // getController().Session().SetBlacklist({}); // clear the blacklist
 
   if (!transferringServers) {
     // clear packages when completing the return to the homepage
@@ -970,6 +971,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::mod_whitelist:
       receiveModWhitelistSignal(reader, data);
+      break;
+    case ServerEvents::mod_blacklist:
+      receiveModBlacklistSignal(reader, data);
       break;
     case ServerEvents::initiate_mob:
       receiveMobSignal(reader, data);
@@ -2545,24 +2549,20 @@ void Overworld::OnlineArea::receivePackageOfferSignal(BufferReader& reader, cons
   RunPackageWizard(packageType, packageName, packageId, filePath);
 }
 
-void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
-{
-  std::string assetPath = reader.ReadString<uint16_t>(buffer);
-  std::string whitelistString = GetText(assetPath);
-  std::string_view whitelistView = whitelistString;
+static std::vector<PackageHash> ParsePackageList(std::string_view packageListView) {
   std::vector<PackageHash> packageHashes;
 
   size_t endLine = 0;
 
   do {
     size_t startLine = endLine;
-    endLine = whitelistView.find("\n", startLine);
+    endLine = packageListView.find("\n", startLine);
 
     if (endLine == string::npos) {
-      endLine = whitelistView.size();
+      endLine = packageListView.size();
     }
 
-    std::string_view lineView = whitelistView.substr(startLine, endLine - startLine);
+    std::string_view lineView = packageListView.substr(startLine, endLine - startLine);
     endLine += 1; // skip past the \n
 
     if (lineView[lineView.size() - 1] == '\r') {
@@ -2586,11 +2586,31 @@ void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, cons
     packageHash.packageId = lineView.substr(33);
 
     packageHashes.push_back(packageHash);
-  } while(endLine < whitelistView.size());
+  } while(endLine < packageListView.size());
+
+  return packageHashes;
+}
+
+void Overworld::OnlineArea::receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string assetPath = reader.ReadString<uint16_t>(buffer);
+  std::string whitelistString = assetPath.empty() ? "" : GetText(assetPath);
+  std::vector<PackageHash> packageHashes = ParsePackageList(whitelistString);
 
   getController().Session().SetWhitelist(packageHashes);
 
   AddSceneChangeTask([this] { CheckPlayerAgainstWhitelist(); });
+}
+
+void Overworld::OnlineArea::receiveModBlacklistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string assetPath = reader.ReadString<uint16_t>(buffer);
+  std::string blacklistString = assetPath.empty() ? "" : GetText(assetPath);
+  std::vector<PackageHash> packageHashes = ParsePackageList(blacklistString);
+
+  // getController().Session().SetBlacklist(packageHashes);
+
+  // AddSceneChangeTask([this] { CheckPlayerAgainstWhitelist(); });
 }
 
 void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
