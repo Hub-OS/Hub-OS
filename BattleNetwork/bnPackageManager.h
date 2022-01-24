@@ -477,7 +477,7 @@ stx::result_t<std::filesystem::path> PackageManager<MetaClass>::RemovePackageByI
     delete iter->second;
     packages.erase(iter);
 
-    return stx::ok<std::string>(path);
+    return stx::ok<std::filesystem::path>(path);
   }
 
   return stx::error<std::filesystem::path>("No package with that ID");
