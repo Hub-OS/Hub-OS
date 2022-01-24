@@ -396,7 +396,7 @@ int AudioResourceManager::Stream(const std::filesystem::path& path, bool loop, l
       midiMusic.setPitch(1.f);
     }
   } else {
-    if (!stream.openFromStream(std::move(istream))) {
+    if (stream.openFromStream(std::move(istream))) {
       stream.play();
       stream.setLoop(loop);
       stream.setPitch(1.f);
