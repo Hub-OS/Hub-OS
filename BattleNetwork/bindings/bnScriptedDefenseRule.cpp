@@ -45,4 +45,15 @@ void ScriptedDefenseRule::CanBlock(DefenseFrameStateJudge& judge, std::shared_pt
   }
 }
 
+void ScriptedDefenseRule::OnReplace() {
+  if (replace_func.valid()) 
+  {
+    auto result = CallLuaCallback(replace_func);
+
+    if (result.is_error()) {
+      Logger::Log(LogLevel::critical, result.error_cstr());
+    }
+  }
+}
+
 #endif

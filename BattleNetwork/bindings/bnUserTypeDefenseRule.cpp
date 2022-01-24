@@ -28,9 +28,9 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
     sol::meta_function::length, [](WeakWrapper<ScriptedDefenseRule>& defenseRule) {
       return defenseRule.Unwrap()->entries.size();
     },
-    "is_deleted", [] (WeakWrapper<ScriptedDefenseRule>& defenseRule) -> bool {
+    "is_replaced", [] (WeakWrapper<ScriptedDefenseRule>& defenseRule) -> bool {
       auto ptr = defenseRule.Lock();
-      return ptr != nullptr;
+      return ptr != nullptr || ptr->IsReplaced();
     },
     "filter_statuses_func", sol::property(
       [](WeakWrapper<ScriptedDefenseRule>& defenseRule) { return defenseRule.Unwrap()->filter_statuses_func; },
@@ -42,6 +42,12 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
       [](WeakWrapper<ScriptedDefenseRule>& defenseRule) { return defenseRule.Unwrap()->can_block_func; },
       [](WeakWrapper<ScriptedDefenseRule>& defenseRule, sol::stack_object value) {
         defenseRule.Unwrap()->can_block_func = VerifyLuaCallback(value);
+      }
+    ),
+    "replace_func", sol::property(
+      [](WeakWrapper<ScriptedDefenseRule>& defenseRule) { return defenseRule.Unwrap()->replace_func; },
+      [](WeakWrapper<ScriptedDefenseRule>& defenseRule, sol::stack_object value) {
+        defenseRule.Unwrap()->replace_func = VerifyLuaCallback(value);
       }
     )
   );

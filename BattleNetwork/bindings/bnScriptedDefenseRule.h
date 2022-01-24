@@ -28,8 +28,14 @@ public:
     */
   void CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner) override;
 
+  /**
+  * @brief Frame-perfect cleanup code after being replaced
+  */
+  void OnReplace() override;
+
   sol::object filter_statuses_func;
   sol::object can_block_func;
+  sol::object replace_func;
 };
 
 #endif
