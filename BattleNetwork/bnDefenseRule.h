@@ -26,6 +26,7 @@ private:
   DefenseOrder order; /*!< Some defenses only check if there was a collision */
   Priority priorityLevel; /*!< Lowest priority goes first */
   bool replaced{}; /*!< If this rule has been replaced by another one in the entity*/
+  bool added{};
 
 public:
   friend class Entity;
@@ -44,11 +45,21 @@ public:
   * @brief Returns the defense order of this defense rule
   */
   const DefenseOrder GetDefenseOrder() const;
-  
+
   /**
   * @brief True if the defense rule has been flagged for replacement by another with a priority level of equal value
   */
   const bool IsReplaced() const;
+
+  /**
+  * @brief True if the defense rule has been added to an entity
+  */
+  bool Added() const;
+
+  /**
+  * @brief Marks as `added`
+  */
+  void OnAdd();
 
   /**
   * @brief Frame-perfect cleanup code after being replaced

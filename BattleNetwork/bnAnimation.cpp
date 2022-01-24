@@ -330,8 +330,6 @@ void Animation::Update(double elapsed, sf::Sprite& target) {
     // apply new state to target on same frame
     animator(frames(0), target, animations[currAnimation]);
     progress = frames(0);
-
-    HandleInterrupted();
   }
 
   const frame_time_t duration = animations[currAnimation].GetTotalDuration();

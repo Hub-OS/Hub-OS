@@ -5,6 +5,7 @@
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"
 #include "bnScriptedComponent.h"
+#include "bnScriptedDefenseRule.h"
 #include "../bnEntity.h"
 #include "../bnAnimationComponent.h"
 #include "../bnSolHelpers.h"
@@ -207,6 +208,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["is_moving"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsMoving();
   };
+  entity_table["set_passthrough"] = [](WeakWrapper<E>& entity, bool passthrough) {
+    entity.Unwrap()->SetPassthrough(passthrough);
+  };
   entity_table["is_passthrough"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsPassthrough();
   };
@@ -236,12 +240,22 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["register_component"] = [](WeakWrapper<E>& entity, WeakWrapper<ScriptedComponent>& component) {
     entity.Unwrap()->RegisterComponent(component.UnwrapAndRelease());
   };
-  entity_table["add_defense_rule"] = [](WeakWrapper<E>& entity, DefenseRule& defenseRule) {
-    entity.Unwrap()->AddDefenseRule(defenseRule.shared_from_this());
-  };
-  entity_table["remove_defense_rule"] = [](WeakWrapper<E>& entity, DefenseRule* defenseRule) {
-    entity.Unwrap()->RemoveDefenseRule(defenseRule);
-  };
+  entity_table["add_defense_rule"] = sol::overload(
+    [](WeakWrapper<E>& entity, WeakWrapper<DefenseRule> defenseRule) {
+      entity.Unwrap()->AddDefenseRule(defenseRule.UnwrapAndRelease());
+    },
+    [](WeakWrapper<E>& entity, WeakWrapper<ScriptedDefenseRule> defenseRule) {
+      entity.Unwrap()->AddDefenseRule(defenseRule.UnwrapAndRelease());
+    }
+  );
+  entity_table["remove_defense_rule"] = sol::overload(
+    [](WeakWrapper<E>& entity, WeakWrapper<DefenseRule> defenseRule) {
+      entity.Unwrap()->RemoveDefenseRule(defenseRule.Unwrap());
+    },
+    [](WeakWrapper<E>& entity, WeakWrapper<ScriptedDefenseRule> defenseRule) {
+      entity.Unwrap()->RemoveDefenseRule(defenseRule.Unwrap());
+    }
+  );
   entity_table["ignore_common_aggressor"] = [](WeakWrapper<E>& entity, bool enable) {
     entity.Unwrap()->IgnoreCommonAggressor(enable);
   };

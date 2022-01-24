@@ -388,7 +388,7 @@ void Entity::Update(double _elapsed) {
     rootCooldown -= from_seconds(_elapsed);
 
     // Root is cancelled if these conditions are met
-    if (rootCooldown <= frames(0) || invincibilityCooldown > frames(0) || IsPassthrough()) {
+    if (rootCooldown <= frames(0) || IsPassthrough()) {
       rootCooldown = frames(0);
     }
   }
@@ -895,7 +895,7 @@ void Entity::SetPassthrough(bool state)
 
 bool Entity::IsPassthrough()
 {
-  return passthrough;
+  return invincibilityCooldown > frames(0) || passthrough;
 }
 
 void Entity::SetFloatShoe(bool state)
@@ -1278,7 +1278,7 @@ const bool Entity::HasCollision(const Hit::Properties & props)
 {
   // Pierce status hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
-    if (invincibilityCooldown > frames(0) || IsPassthrough() || !hitboxEnabled) return false;
+    if (IsPassthrough() || !hitboxEnabled) return false;
   }
 
   return true;
@@ -1675,6 +1675,11 @@ void Entity::AddDefenseRule(std::shared_ptr<DefenseRule> rule)
 {
   if (!rule) return;
 
+  if (rule->Added()) {
+    // caught by bindings, crashes if entirely c++ to give line number
+    throw std::runtime_error("DefenseRule has already been added to an entity");
+  }
+
   auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](auto other) { return rule->GetPriorityLevel() == other->GetPriorityLevel(); });
 
   if (rule && iter == defenses.end()) {
@@ -1689,6 +1694,8 @@ void Entity::AddDefenseRule(std::shared_ptr<DefenseRule> rule)
     // call again, adding new rule this time
     AddDefenseRule(rule);
   }
+
+  rule->OnAdd();
 }
 
 void Entity::RemoveDefenseRule(std::shared_ptr<DefenseRule> rule)

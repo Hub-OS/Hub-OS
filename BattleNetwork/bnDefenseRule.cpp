@@ -19,6 +19,14 @@ const DefenseOrder DefenseRule::GetDefenseOrder() const
   return order;
 }
 
+bool DefenseRule::Added() const {
+  return added;
+}
+
+void DefenseRule::OnAdd() {
+  added = true;
+}
+
 const bool DefenseRule::IsReplaced() const
 {
   return replaced;

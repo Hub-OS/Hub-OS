@@ -2,47 +2,72 @@
 #include "bnUserTypeDefenseRule.h"
 
 #include "bnScopedWrapper.h"
+#include "bnWeakWrapper.h"
 #include "bnScriptedDefenseRule.h"
 #include "../bnDefenseVirusBody.h"
 #include "../bnDefenseNodrag.h"
 #include "../bnSolHelpers.h"
 
 void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace) {
-  // using shared_ptr as it can be added + removed from entities, ownership is never given to the field
-  battle_namespace.new_usertype<ScriptedDefenseRule>("DefenseRule",
+  battle_namespace.new_usertype<WeakWrapper<ScriptedDefenseRule>>("DefenseRule",
     sol::factories(
-        [](int priority, const DefenseOrder& order) -> std::shared_ptr<ScriptedDefenseRule>
-        { return std::make_shared<ScriptedDefenseRule>(Priority(priority), order); }
+      [](int priority, const DefenseOrder& order) -> WeakWrapper<ScriptedDefenseRule> {
+        auto defenseRule = std::make_shared<ScriptedDefenseRule>(Priority(priority), order);
+
+        auto wrappedRule = WeakWrapper(defenseRule);
+        wrappedRule.Own();
+        return wrappedRule;
+      }
     ),
-    "is_replaced", &ScriptedDefenseRule::IsReplaced,
-    sol::meta_function::index, &dynamic_object::dynamic_get,
-    sol::meta_function::new_index, &dynamic_object::dynamic_set,
-    sol::meta_function::length, [](dynamic_object& d) { return d.entries.size(); },
-    sol::base_classes, sol::bases<DefenseRule>(),
+    sol::meta_function::index, [](WeakWrapper<ScriptedDefenseRule>& defenseRule, const std::string& key) {
+      return defenseRule.Unwrap()->dynamic_get(key);
+    },
+    sol::meta_function::new_index, [](WeakWrapper<ScriptedDefenseRule>& defenseRule, const std::string& key, sol::stack_object value) {
+      defenseRule.Unwrap()->dynamic_set(key, value);
+    },
+    sol::meta_function::length, [](WeakWrapper<ScriptedDefenseRule>& defenseRule) {
+      return defenseRule.Unwrap()->entries.size();
+    },
+    "is_deleted", [] (WeakWrapper<ScriptedDefenseRule>& defenseRule) -> bool {
+      auto ptr = defenseRule.Lock();
+      return ptr != nullptr;
+    },
     "filter_statuses_func", sol::property(
-      [](ScriptedDefenseRule& defenseRule) { return defenseRule.filter_statuses_func; },
-      [](ScriptedDefenseRule& defenseRule, sol::stack_object value) {
-        defenseRule.filter_statuses_func = VerifyLuaCallback(value);
+      [](WeakWrapper<ScriptedDefenseRule>& defenseRule) { return defenseRule.Unwrap()->filter_statuses_func; },
+      [](WeakWrapper<ScriptedDefenseRule>& defenseRule, sol::stack_object value) {
+        defenseRule.Unwrap()->filter_statuses_func = VerifyLuaCallback(value);
       }
     ),
     "can_block_func", sol::property(
-      [](ScriptedDefenseRule& defenseRule) { return defenseRule.can_block_func; },
-      [](ScriptedDefenseRule& defenseRule, sol::stack_object value) {
-        defenseRule.can_block_func = VerifyLuaCallback(value);
+      [](WeakWrapper<ScriptedDefenseRule>& defenseRule) { return defenseRule.Unwrap()->can_block_func; },
+      [](WeakWrapper<ScriptedDefenseRule>& defenseRule, sol::stack_object value) {
+        defenseRule.Unwrap()->can_block_func = VerifyLuaCallback(value);
       }
     )
   );
 
   battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
     sol::factories(
-      [] () -> std::shared_ptr<DefenseRule> { return std::make_shared<DefenseNodrag>(); }
+      [] () -> WeakWrapper<DefenseRule> {
+        std::shared_ptr<DefenseRule> defenseRule = std::make_shared<DefenseNodrag>();
+
+        auto wrappedRule = WeakWrapper(defenseRule);
+        wrappedRule.Own();
+        return wrappedRule;
+      }
     ),
     sol::base_classes, sol::bases<DefenseRule>()
   );
 
   battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
     sol::factories(
-      [] () -> std::shared_ptr<DefenseRule> { return std::make_shared<DefenseVirusBody>(); }
+      [] () -> WeakWrapper<DefenseRule> {
+        std::shared_ptr<DefenseRule> defenseRule = std::make_shared<DefenseVirusBody>();
+
+        auto wrappedRule = WeakWrapper(defenseRule);
+        wrappedRule.Own();
+        return wrappedRule;
+      }
     )
   );
 

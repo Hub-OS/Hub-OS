@@ -202,7 +202,8 @@ namespace Overworld {
     void receivePVPSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveLoadPackageSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receivePackageOfferSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>& buffer);
+    void receiveModWhitelistSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveModBlacklistSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMobSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);

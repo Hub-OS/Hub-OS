@@ -28,20 +28,24 @@ BubbleTrap::BubbleTrap(std::weak_ptr<Entity> owner) :
 }
 
 void BubbleTrap::Inject(BattleSceneBase& bs) {
+}
+
+void BubbleTrap::OnUpdate(double _elapsed) {
   auto asCharacter = GetOwnerAs<Character>();
 
   if (!asCharacter || asCharacter->IsDeleted()) {
     this->Eject();
   }
-  else {
+
+  if (!init) {
     // Bubbles have to pop when hit
     defense = std::make_shared<DefenseBubbleWrap>();
     asCharacter->AddDefenseRule(defense);
     asCharacter->AddNode(shared_from_base<BubbleTrap>());
-  }
-}
 
-void BubbleTrap::OnUpdate(double _elapsed) {
+    init = true;
+  }
+
   auto keyTestThunk = [this](const InputEvent& key) {
     bool pass = false;
 
@@ -83,7 +87,7 @@ void BubbleTrap::OnUpdate(double _elapsed) {
     Pop();
   }
 
-  auto y = -GetOwnerAs<Character>()->GetHeight() / 4.0f;
+  auto y = -asCharacter->GetHeight() / 4.0f;
   setPosition(0.f, y);
 
   animation.Update(_elapsed, getSprite());

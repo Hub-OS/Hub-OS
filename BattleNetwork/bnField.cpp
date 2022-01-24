@@ -723,8 +723,6 @@ void Field::HandleMissingLayout()
       if (t->ogTeam == Team::unset) {
         t->SetTeam(team);
       }
-
-      t->BattleStart();
     }
   }
 }
