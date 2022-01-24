@@ -30,7 +30,7 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
     },
     "is_replaced", [] (WeakWrapper<ScriptedDefenseRule>& defenseRule) -> bool {
       auto ptr = defenseRule.Lock();
-      return ptr != nullptr || ptr->IsReplaced();
+      return ptr == nullptr || ptr->IsReplaced();
     },
     "filter_statuses_func", sol::property(
       [](WeakWrapper<ScriptedDefenseRule>& defenseRule) { return defenseRule.Unwrap()->filter_statuses_func; },
