@@ -271,9 +271,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       syncStatePtr->Synchronize();
     }
   }
-  else {
-    packetTime += elapsed_frames;
-  }
 
   if (skipFrame) return;
 
@@ -480,7 +477,6 @@ void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events, unsigned
   }
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
-  packetTime = frames(0);
   events.clear();
 }
 
