@@ -443,7 +443,9 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   hasPlayerSpawned = true;
   Team team = field->GetAt(x, y)->GetTeam();
 
-  localPlayer->Init();
+  if (!localPlayer->HasInit()) {
+    localPlayer->Init();
+  }
   localPlayer->ChangeState<PlayerIdleState>();
   localPlayer->SetTeam(team);
   field->AddEntity(localPlayer, x, y);
@@ -482,7 +484,9 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
 
   Team team = field->GetAt(x, y)->GetTeam();
 
-  player->Init();
+  if (!player->HasInit()) {
+    player->Init();
+  }
   player->ChangeState<PlayerIdleState>();  
   player->SetTeam(team);
   field->AddEntity(player, x, y);
