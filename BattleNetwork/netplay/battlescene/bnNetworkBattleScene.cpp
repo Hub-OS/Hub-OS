@@ -234,10 +234,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     SkipFrame();
   }
   else {
-    std::vector<InputEvent> events;
-    if (combatPtr->IsStateCombat(GetCurrentState())) {
-      events = ProcessLocalPlayerInputQueue(5);
-    }
+    std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5, combatPtr->IsStateCombat(GetCurrentState()));
 
     SendFrameData(events, (FrameNumber() + frames(5)).count());
   }
