@@ -113,10 +113,6 @@ Game::~Game() {
     renderThread.join();
   }
 
-  if (recordOutThread.joinable()) {
-    recordOutThread.join();
-  }
-
   delete session;
 
 #ifdef BN_MOD_SUPPORT
@@ -268,11 +264,6 @@ bool Game::NextFrame()
 
 void Game::HandleRecordingEvents()
 {
-  return; // for v2, disable this function by returning early.
-
-  if (isRecordOutSaving)
-    return;
-
   if (!inputManager.Has(InputEvents::pressed_record_frames)) {
     recordPressed = false;
     return;
@@ -284,30 +275,12 @@ void Game::HandleRecordingEvents()
   recordPressed = true;
 
   if (!IsRecording()) {
-    Record(true);
+    StartRecording();
     window.SetSubtitle("[RECORDING]");
-    return;
-  }
-
-  recordOutThread = std::thread([this]() {
-    isRecordOutSaving = true;
-    Record(false);
-
-    Logger::Logf(LogLevel::info, "Saving recording to disk, please wait.");
-    window.SetSubtitle("[SAVING]");
-
-    for (auto& pair : recordedFrames) {
-      pair.second.saveToFile("recording/frame_" + std::to_string(pair.first) + ".png");
-    }
-
-    Logger::Logf(LogLevel::info, "Wrote %i frames to disk", (int)recordedFrames.size());
-    recordedFrames.clear();
+  } else {
+    StopRecording();
     window.SetSubtitle("");
-
-    isRecordOutSaving = false;
-  });
-
-  recordOutThread.detach();
+  }
 }
 
 void Game::UpdateMouse(double dt)
@@ -343,16 +316,15 @@ void Game::ProcessFrame()
     if (NextFrame()) {
       HandleRecordingEvents();
       this->update(delta);  // update game logic
-
-      if (isRecording) {
-        sf::Image image = window.GetRenderWindow()->capture();
-        recordedFrames.push_back(std::pair(FrameNumber(), image));
-      }
     }
 
     this->draw();        // draw game
     mouse.draw(*window.GetRenderWindow());
     window.Display(); // display to screen
+
+    if (frameRecorder) {
+      frameRecorder->capture();
+    }
 
     scope_elapsed = clock.getElapsedTime().asSeconds();
   }
@@ -392,6 +364,10 @@ void Game::RunSingleThreaded()
     this->draw();        // draw game
     mouse.draw(*window.GetRenderWindow());
     window.Display(); // display to screen
+
+    if (frameRecorder) {
+      frameRecorder->capture();
+    }
 
     quitting = getStackSize() == 0;
 
@@ -513,12 +489,17 @@ bool Game::IsSingleThreaded() const
 
 bool Game::IsRecording() const
 {
-  return isRecording;
+  return frameRecorder != nullptr;
 }
 
-void Game::Record(bool enabled)
+void Game::StartRecording()
 {
-  isRecording = enabled;
+  frameRecorder = std::make_unique<FrameRecorder>(*window.GetRenderWindow());
+}
+
+void Game::StopRecording()
+{
+  frameRecorder = nullptr;
 }
 
 void Game::SetSubtitle(const std::string& subtitle)
