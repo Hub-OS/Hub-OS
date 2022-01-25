@@ -491,10 +491,6 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
 {
   if (!remoteState.remoteConnected) return;
 
-  // clear remote and local input queues
-  remoteInputQueue.clear();
-  FlushLocalPlayerInputQueue();
-
   std::vector<std::string> remoteUUIDs;
 
   BufferReader reader;
