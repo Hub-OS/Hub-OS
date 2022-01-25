@@ -365,7 +365,6 @@ const double NetworkBattleScene::GetAvgLatency() const
 bool NetworkBattleScene::IsRemoteBehind()
 {
   return FrameNumber() > this->maxRemoteFrameNumber;
-  Logger::Logf(LogLevel::debug, "received maxRemoteFrameNumber: %d", maxRemoteFrameNumber);
 }
 
 void NetworkBattleScene::Init()
