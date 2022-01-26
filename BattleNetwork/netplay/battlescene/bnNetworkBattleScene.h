@@ -48,6 +48,7 @@ using sf::Event;
 // state forward decl.
 struct CombatBattleState;
 struct TimeFreezeBattleState;
+struct NetworkCardWaitBattleState;
 struct NetworkSyncBattleState;
 struct CardComboBattleState;
 struct BattleStartBattleState;
@@ -86,7 +87,7 @@ static bool operator<(const FrameInputData& lhs, const FrameInputData& rhs) {
 
 class NetworkBattleScene final : public BattleSceneBase {
 private:
-  friend struct NetworkSyncBattleState;
+  friend struct NetworkCardWaitBattleState;
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
   
@@ -96,7 +97,8 @@ private:
   bool localPlayerDecross{ false }, remotePlayerDecross{ false };
   bool ignoreLockStep{}; //!< Used when battles are over to allow both clients to continue streaming the game ending
   frame_time_t roundStartDelay{}; //!< How long to wait on opponent's animations before starting the next round
-  frame_time_t remoteFrameNumber{}, maxRemoteFrameNumber{}, resyncFrameNumber{};
+  frame_time_t remoteFrameNumber{}, maxRemoteFrameNumber{}, lastSentFrameNumber{};
+  bool sentHandshake{ false }, sentSyncSignal{ false };
   Text ping, frameNumText;
   NetPlayFlags remoteState; //!< remote state flags to ensure stability
   SpriteProxyNode pingIndicator;
@@ -109,6 +111,7 @@ private:
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
   CombatBattleState* combatPtr{ nullptr };
   TimeFreezeBattleState* timeFreezePtr{ nullptr };
+  NetworkCardWaitBattleState* cardWaitStatePtr{ nullptr };
   NetworkSyncBattleState* syncStatePtr{ nullptr };
   CardComboBattleState* cardComboStatePtr{ nullptr };
   CardSelectBattleState* cardStatePtr{ nullptr };
@@ -118,14 +121,10 @@ private:
   // Custom init steps
   void Init() override final;
 
-  // netcode send funcs
-  void SendHandshakeSignal(); // send player data to start the next round
-  void SendFrameData(std::vector<InputEvent>& events, unsigned int frameNumber); // send our key or gamepad events along with frame data
-  void SendPingSignal();
-
   // netcode recieve funcs
-  void RecieveHandshakeSignal(const Poco::Buffer<char>& buffer);
-  void RecieveFrameData(const Poco::Buffer<char>& buffer); 
+  void ReceiveHandshakeSignal(const Poco::Buffer<char>& buffer);
+  void ReceiveSyncSignal();
+  void ReceiveFrameData(const Poco::Buffer<char>& buffer);
 
   void ProcessPacketBody(NetPlaySignals header, const Poco::Buffer<char>&);
   bool IsRemoteBehind();
@@ -145,6 +144,12 @@ private:
   std::function<bool()> HookOnCardSelectEvent();
 public:
   using BattleSceneBase::ProcessNewestComponents;
+
+  // netcode send funcs
+  void SendHandshakeSignal(); // send player data to start the next round
+  void SendSyncSignal();
+  void SendFrameData(std::vector<InputEvent>& events, unsigned int frameNumber); // send our key or gamepad events along with frame data
+  void SendPingSignal();
 
   void OnHit(Entity& victim, const Hit::Properties& props) override final;
   void onUpdate(double elapsed) override final;

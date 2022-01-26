@@ -12,6 +12,7 @@
 #include "../../bnPlayerHealthUI.h"
 
 // states
+#include "states/bnNetworkCardWaitBattleState.h"
 #include "states/bnNetworkSyncBattleState.h"
 #include "../../battlescene/States/bnRewardBattleState.h"
 #include "../../battlescene/States/bnTimeFreezeBattleState.h"
@@ -85,7 +86,8 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   constexpr double battleDuration = 10.0;
 
   // First, we create all of our scene states
-  auto syncState = AddState<NetworkSyncBattleState>(remotePlayer, this);
+  auto cardWaitState = AddState<NetworkCardWaitBattleState>(remotePlayer, this);
+  auto syncState = AddState<NetworkSyncBattleState>(this);
   auto cardSelect = AddState<CardSelectBattleState>();
   auto combat = AddState<CombatBattleState>(battleDuration);
   auto combo = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
@@ -98,6 +100,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   // We need to respond to new events later, create a resuable pointer to these states
   timeFreezePtr = &timeFreeze.Unwrap();
   combatPtr = &combat.Unwrap();
+  cardWaitStatePtr = &cardWaitState.Unwrap();
   syncStatePtr = &syncState.Unwrap();
   cardComboStatePtr = &combo.Unwrap();
   startStatePtr = &battlestart.Unwrap();
@@ -114,29 +117,32 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   }
 
   // Important! State transitions are added in order of priority!
-  syncState.ChangeOnEvent(cardSelect, &NetworkSyncBattleState::IsRemoteConnected);
+  // Start the battle after syncing
+  syncState.ChangeOnEvent(battlestart, &NetworkSyncBattleState::IsReady);
+
+  cardWaitState.ChangeOnEvent(cardSelect, &NetworkCardWaitBattleState::IsRemoteConnected);
 
   // Goto the combo check state if new cards are selected...
-  syncState.ChangeOnEvent(combo, &NetworkSyncBattleState::SelectedNewChips);
+  cardWaitState.ChangeOnEvent(combo, &NetworkCardWaitBattleState::SelectedNewChips);
 
   // ... else if forms were selected, go directly to forms ....
-  syncState.ChangeOnEvent(forms, &NetworkSyncBattleState::HasForm);
+  cardWaitState.ChangeOnEvent(forms, &NetworkCardWaitBattleState::HasForm);
 
-  // ... Finally if none of the above, just start the battle
-  syncState.ChangeOnEvent(battlestart, &NetworkSyncBattleState::NoConditions);
+  // ... Finally if none of the above, just sync
+  cardWaitState.ChangeOnEvent(syncState, &NetworkCardWaitBattleState::NoConditions);
 
   // Wait for handshake to complete by going back to the sync state..
-  cardSelect.ChangeOnEvent(syncState, &CardSelectBattleState::OKIsPressed);
+  cardSelect.ChangeOnEvent(cardWaitState, &CardSelectBattleState::OKIsPressed);
 
   // If we reached the combo state, we must also check if form transformation was next
-  // or to just start the battle after
+  // or just sync
   combo.ChangeOnEvent(forms, [cardSelect, combo, this]() mutable {return combo->IsDone() && (cardSelect->HasForm() || remoteState.remoteChangeForm); });
-  combo.ChangeOnEvent(battlestart, &CardComboBattleState::IsDone);
+  combo.ChangeOnEvent(syncState, &CardComboBattleState::IsDone);
 
-  // Forms is the last state before kicking off the battle
+  // Forms is the last state before syncing + kicking off the battle
   // if we reached this state...
   forms.ChangeOnEvent(combat, HookFormChangeEnd(forms.Unwrap(), cardSelect.Unwrap()));
-  forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
+  forms.ChangeOnEvent(syncState, &CharacterTransformBattleState::IsFinished);
 
   battlestart.ChangeOnEvent(combat, &BattleStartBattleState::IsFinished);
   timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
@@ -166,9 +172,11 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   // Some states are part of the combat routine and need to respect
   // the combat state's timers
   combat->subcombatStates.push_back(&timeFreeze.Unwrap());
+  // consider battlestart as a combat state to allow input to queue
+  combat->subcombatStates.push_back(&battlestart.Unwrap());
 
   // this kicks-off the state graph beginning with the intro state
-  this->StartStateGraph(syncState);
+  this->StartStateGraph(cardWaitState);
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -230,7 +238,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   skipFrame = IsRemoteBehind() && this->remotePlayer && !this->remotePlayer->IsDeleted();
 
-  if (skipFrame && FrameNumber()-resyncFrameNumber >= frames(5)) {
+  if (skipFrame && FrameNumber() >= frames(5)) {
     SkipFrame();
   }
   else {
@@ -262,15 +270,21 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     }
   }
 
-  BattleSceneBase::onUpdate(elapsed);
-
-  frame_time_t elapsed_frames = from_seconds(elapsed);
-
-  if (!syncStatePtr->IsSynchronized()) {
-    if (packetProcessor->IsHandshakeAck() && remoteState.remoteHandshake) {
-      syncStatePtr->Synchronize();
-    }
+  if (!cardWaitStatePtr->IsReady() && sentHandshake && remoteState.remoteHandshake && FrameNumber() == cardWaitStatePtr->GetSyncFrame()) {
+    Logger::Logf(LogLevel::debug, "Synced on frame: %d", FrameNumber().count());
+    cardWaitStatePtr->MarkReady();
+    sentHandshake = false;
+    remoteState.remoteHandshake = false;
   }
+
+  if (!syncStatePtr->IsReady() && sentSyncSignal && remoteState.remoteRequestSync && FrameNumber() == syncStatePtr->GetSyncFrame()) {
+    Logger::Logf(LogLevel::debug, "Synced on frame: %d", FrameNumber().count());
+    syncStatePtr->MarkReady();
+    sentSyncSignal = false;
+    remoteState.remoteRequestSync = false;
+  }
+
+  BattleSceneBase::onUpdate(elapsed);
 
   if (skipFrame) return;
 
@@ -450,6 +464,29 @@ void NetworkBattleScene::SendHandshakeSignal()
 
   auto [_, id] = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
   packetProcessor->UpdateHandshakeID(id);
+
+  sentHandshake = true;
+
+  if (lastSentFrameNumber.count() > cardWaitStatePtr->GetSyncFrame().count()) {
+    Logger::Log(LogLevel::debug, "Using lastSentFrameNumber for sync frame");
+    cardWaitStatePtr->SetSyncFrame(lastSentFrameNumber + frames(1)); // + 1 in case this packet is not handled on the same frame as the input
+  }
+}
+
+void NetworkBattleScene::SendSyncSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  BufferWriter writer;
+  writer.Write(buffer, NetPlaySignals::sync);
+
+  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+
+  sentSyncSignal = true;
+
+  if (lastSentFrameNumber.count() > syncStatePtr->GetSyncFrame().count()) {
+    Logger::Log(LogLevel::debug, "Using lastSentFrameNumber for sync frame");
+    syncStatePtr->SetSyncFrame(lastSentFrameNumber + frames(1)); // + 1 in case this packet is not handled on the same frame as the input
+  }
 }
 
 void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events, unsigned int frameNumber)
@@ -477,6 +514,8 @@ void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events, unsigned
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
   events.clear();
+
+  lastSentFrameNumber = frames(frameNumber);
 }
 
 void NetworkBattleScene::SendPingSignal()
@@ -484,10 +523,10 @@ void NetworkBattleScene::SendPingSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::ping };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+  packetProcessor->SendPacket(Reliability::Reliable, buffer);
 }
 
-void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer)
+void NetworkBattleScene::ReceiveHandshakeSignal(const Poco::Buffer<char>& buffer)
 {
   if (!remoteState.remoteConnected) return;
 
@@ -497,7 +536,7 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   int remoteForm = reader.Read<int32_t>(buffer);
   uint8_t cardLen = reader.Read<uint8_t>(buffer);
 
-  Logger::Logf(LogLevel::debug, "Recieved remote handshake. Remote sent %i cards.", (int)cardLen);
+  Logger::Logf(LogLevel::debug, "Received remote handshake. Remote sent %i cards.", (int)cardLen);
   while (cardLen > 0) {
     std::string uuid = reader.ReadString<uint8_t>(buffer);
     remoteUUIDs.push_back(uuid);
@@ -572,9 +611,23 @@ void NetworkBattleScene::RecieveHandshakeSignal(const Poco::Buffer<char>& buffer
   startStatePtr->SetStartupDelay(frames(5));
 
   remoteState.remoteHandshake = true;
+
+  if (maxRemoteFrameNumber.count() > cardWaitStatePtr->GetSyncFrame().count()) {
+    Logger::Log(LogLevel::debug, "Using maxRemoteFrameNumber for sync frame");
+    cardWaitStatePtr->SetSyncFrame(maxRemoteFrameNumber + frames(1)); // + 1 in case this packet is not handled on the same frame as the input
+  }
 }
 
-void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
+void NetworkBattleScene::ReceiveSyncSignal() {
+  remoteState.remoteRequestSync = true;
+
+  if (maxRemoteFrameNumber.count() > syncStatePtr->GetSyncFrame().count()) {
+    Logger::Log(LogLevel::debug, "Using maxRemoteFrameNumber for sync frame");
+    syncStatePtr->SetSyncFrame(maxRemoteFrameNumber + frames(1)); // + 1 in case this packet is not handled on the same frame as the input
+  }
+}
+
+void NetworkBattleScene::ReceiveFrameData(const Poco::Buffer<char>& buffer)
 {
   if (!remotePlayer) return;
 
@@ -754,10 +807,13 @@ void NetworkBattleScene::ProcessPacketBody(NetPlaySignals header, const Poco::Bu
   try {
     switch (header) {
       case NetPlaySignals::handshake:
-        RecieveHandshakeSignal(body);
+        ReceiveHandshakeSignal(body);
+        break;
+      case NetPlaySignals::sync:
+        ReceiveSyncSignal();
         break;
       case NetPlaySignals::frame_data:
-        RecieveFrameData(body);
+        ReceiveFrameData(body);
         break;
     }
   }

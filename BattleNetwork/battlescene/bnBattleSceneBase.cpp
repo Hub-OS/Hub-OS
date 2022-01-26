@@ -783,6 +783,8 @@ void BattleSceneBase::onUpdate(double elapsed) {
   for (auto iter = nodeToEdges.begin(); iter != nodeToEdges.end(); iter++) {
     if (iter->first == current) {
       if (iter->second->when()) {
+        Logger::Logf(LogLevel::debug, "Changing BattleSceneState on frame %d", FrameNumber());
+
         BattleSceneState* temp = iter->second->b;
         this->last = current;
         this->next = temp;
