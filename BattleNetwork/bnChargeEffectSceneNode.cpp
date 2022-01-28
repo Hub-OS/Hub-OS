@@ -23,14 +23,13 @@ ChargeEffectSceneNode::~ChargeEffectSceneNode() {
 void ChargeEffectSceneNode::Update(double _elapsed) {
   if (charging) {
     chargeCounter += from_seconds(_elapsed);
-
+    setColor(chargeColor);
     if (chargeCounter >= maxChargeTime + i10) {
       if (isCharged == false) {
         // We're switching states
         Audio().Play(AudioType::BUSTER_CHARGED);
         animation.SetAnimation("CHARGED");
         animation << Animator::Mode::Loop;
-        setColor(chargeColor);
         SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
       }
 
