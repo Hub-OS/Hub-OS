@@ -84,5 +84,8 @@ const bool ChargeEffectSceneNode::IsFullyCharged() const
 
 void ChargeEffectSceneNode::SetFullyChargedColor(const sf::Color color)
 {
+  if (isCharged) {
+    setColor(color);
+  }
   chargeColor = color;
 }
