@@ -72,6 +72,10 @@ void Font::ApplyStyle()
     break;
   }
 
+  if (!HasLowerCase(style) && letter >= 0 && letter < 128 && std::islower(letter)) {
+    letter = std::toupper(letter);
+  }
+
   // otherwise, compose the font lookup name
   std::stringstream ss;
   ss << "U" << std::setfill('0') << std::setw(6) << std::uppercase << std::hex << letter;
