@@ -59,6 +59,10 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   packetProcessor = props.packetProcessor;
 
+  packetProcessor->SetKickCallback([this] {
+    this->Quit(FadeOut::black);
+  });
+
   if (props.spawnOrder.empty()) {
     Logger::Log(LogLevel::debug, "Spawn Order list was empty! Aborting.");
     this->Quit(FadeOut::black);
@@ -72,14 +76,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   pingIndicator.setPosition(480, 320);
   pingIndicator.setScale(2.f, 2.f);
   UpdatePingIndicator(frames(0));
-
-  packetProcessor->SetKickCallback([this] {
-    this->Quit(FadeOut::black);
-  });
-
-  packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& buffer) {
-    this->ProcessPacketBody(header, buffer);
-  });
 
   // in seconds
   constexpr double battleDuration = 10.0;
@@ -189,6 +185,11 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(connectSyncState);
+
+  // process pending packets after setup
+  packetProcessor->SetPacketBodyCallback([this](NetPlaySignals header, const Poco::Buffer<char>& buffer) {
+    this->ProcessPacketBody(header, buffer);
+  });
 }
 
 NetworkBattleScene::~NetworkBattleScene()
