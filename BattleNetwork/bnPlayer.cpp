@@ -225,7 +225,7 @@ void Player::Charge(bool state)
 {
   frame_time_t maxCharge = CalculateChargeTime(GetChargeLevel());
   if (activeForm) {
-    maxCharge = activeForm->CalculateChargeTime(GetChargeLevel());
+    maxCharge = activeForm->CalculateChargeTime(GetChargeLevel()).value_or(maxCharge);
   }
 
   chargeEffect->SetMaxChargeTime(maxCharge);

@@ -19,7 +19,7 @@ private:
   void OnDeactivate(std::shared_ptr<Player> player) override;
   std::shared_ptr<CardAction> OnChargedBusterAction(std::shared_ptr<Player>) override;
   std::shared_ptr<CardAction> OnSpecialAction(std::shared_ptr<Player>) override;
-  frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
+  std::optional<frame_time_t> CalculateChargeTime(unsigned chargeLevel) override;
 
   std::weak_ptr<ScriptedPlayer> playerWeak;
   sol::object calculate_charge_time_func;

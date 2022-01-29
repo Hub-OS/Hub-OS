@@ -17,7 +17,7 @@ public:
   virtual void OnUpdate(double elapsed, std::shared_ptr<Player>) = 0;
   virtual std::shared_ptr<CardAction> OnChargedBusterAction(std::shared_ptr<Player>) = 0;
   virtual std::shared_ptr<CardAction> OnSpecialAction(std::shared_ptr<Player>) = 0;
-  virtual frame_time_t CalculateChargeTime(const unsigned) = 0;
+  virtual std::optional<frame_time_t> CalculateChargeTime(const unsigned) = 0;
   void SetElementalDecross(bool state) { elementalDecross = state; }
   const bool WillElementalHitDecross() const { return elementalDecross; }
 };
