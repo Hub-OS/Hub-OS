@@ -169,7 +169,7 @@ void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
     }
   }
 
-  if (victim.IsSuperEffective(props.element) && props.damage > 0 || victim.IsSuperEffective(props.secondaryElement) && props.damage > 0) {
+  if (props.damage > 0 && (victim.IsSuperEffective(props.element) || victim.IsSuperEffective(props.secondaryElement))) {
     std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
