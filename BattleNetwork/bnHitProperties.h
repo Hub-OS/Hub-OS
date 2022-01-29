@@ -48,6 +48,7 @@ namespace Hit {
     int damage{};
     Flags flags{ Hit::none };
     Element element{ Element::none };
+    Element secondaryElement{ Element::none };
     EntityID_t aggressor{};
     Drag drag{ }; // Used by Hit::drag flag
     Context context{};
@@ -56,6 +57,7 @@ namespace Hit {
   const constexpr Hit::Properties DefaultProperties = {
     0,
     Flags(Hit::flinch | Hit::impact),
+    Element::none,
     Element::none,
     0,
     Direction::none,

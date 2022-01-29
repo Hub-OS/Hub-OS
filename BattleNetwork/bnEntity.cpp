@@ -1228,11 +1228,19 @@ const bool Entity::Hit(Hit::Properties props) {
   // double the damage independently from tile damage
   bool isSuperEffective = IsSuperEffective(props.element);
 
+  // If it's not super effective based on the primary element,
+  // Check if it is based on the potential secondary element.
+  // Default to No Element if a secondary element doesn't exist,
+  // as it's an optional.
+  if (!isSuperEffective) {
+   isSuperEffective = IsSuperEffective(props.secondaryElement);
+  }
+
   // super effective damage is x2
   if (isSuperEffective) {
     props.damage *= 2;
   }
-
+  
   SetHealth(GetHealth() - props.damage);
 
   if (IsTimeFrozen()) {
@@ -1328,18 +1336,18 @@ void Entity::ResolveFrameBattleDamage()
     int extraDamage = 0;
 
     // Calculate elemental damage if the tile the character is on is super effective to it
-    if (props.filtered.element == Element::fire
+    if ((props.filtered.element == Element::fire || props.filtered.secondaryElement == Element::fire)
       && GetTile()->GetState() == TileState::grass) {
       tileDamage = props.filtered.damage;
       GetTile()->SetState(TileState::normal);
     }
 
-    if (props.filtered.element == Element::elec
+    if ((props.filtered.element == Element::elec || props.filtered.secondaryElement == Element::elec)
       && GetTile()->GetState() == TileState::ice) {
       tileDamage = props.filtered.damage;
     }
 
-    if (props.filtered.element == Element::aqua
+    if ((props.filtered.element == Element::aqua || props.filtered.secondaryElement == Element::aqua)
       && GetTile()->GetState() == TileState::ice
       && !frameFreezeCancel) {
       willFreeze = true;
@@ -1377,12 +1385,12 @@ void Entity::ResolveFrameBattleDamage()
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.filtered.flags & Hit::drag) == Hit::drag) {
         if (IsSliding()) {
-          append.push({ props.hitbox, { 0, Hit::drag, Element::none, 0, props.filtered.drag } });
+          append.push({ props.hitbox, { 0, Hit::drag, Element::none, Element::none, 0, props.filtered.drag } });
         }
         else {
           // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
           if (frameCounterAggressor) {
-            append.push({ props.hitbox, { 0, Hit::impact, Element::none, frameCounterAggressor->GetID() } });
+            append.push({ props.hitbox, { 0, Hit::impact, Element::none, Element::none, frameCounterAggressor->GetID() } });
             frameCounterAggressor = nullptr;
           }
 
@@ -1598,7 +1606,7 @@ void Entity::ResolveFrameBattleDamage()
         std::queue<CombatHitProps> oldQueue = statusQueue;
         statusQueue = {};
         // Re-queue the drag status to be re-considered FIRST in our next combat checks
-        statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
+        statusQueue.push({ {}, { 0, Hit::drag, Element::none, Element::none, 0, postDragEffect } });
 
         // append the old queue items after
         while (!oldQueue.empty()) {
