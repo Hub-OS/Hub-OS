@@ -109,8 +109,8 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
 
 
   state.new_usertype<Hit::Properties>("HitProps",
-    sol::factories([](int damage, Hit::Flags flags, Element element, std::optional<Hit::Context> contextOptional, Hit::Drag drag) {
-      Hit::Properties props = { damage, flags, element, 0, drag };
+    sol::factories([](int damage, Hit::Flags flags, Element element, Element secondaryElement, std::optional<Hit::Context> contextOptional, Hit::Drag drag) {
+      Hit::Properties props = { damage, flags, element, secondaryElement, 0, drag };
 
       if (contextOptional) {
         props.context = *contextOptional;
@@ -123,6 +123,7 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
     "damage", &Hit::Properties::damage,
     "drag", &Hit::Properties::drag,
     "element", &Hit::Properties::element,
+    "secondary_element", &Hit::Properties::secondaryElement,
     "flags", &Hit::Properties::flags
   );
 

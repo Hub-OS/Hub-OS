@@ -173,13 +173,13 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
       GetSelectedCardsUI().SetMultiplier(2);
     }
 
-    if (player->IsSuperEffective(props.element)) {
+    if (player->IsSuperEffective(props.element) || player->IsSuperEffective(props.secondaryElement)) {
       playerDecross = true;
     }
   }
 
   bool freezeBreak = victim.IsIceFrozen() && ((props.flags & Hit::breaking) == Hit::breaking);
-  bool superEffective = victim.IsSuperEffective(props.element) && props.damage > 0;
+  bool superEffective = victim.IsSuperEffective(props.element) && props.damage > 0 || victim.IsSuperEffective(props.secondaryElement) && props.damage > 0;
 
   if (freezeBreak || superEffective) {
     std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
