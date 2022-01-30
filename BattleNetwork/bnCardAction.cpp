@@ -232,9 +232,10 @@ void CardAction::EndAction()
   RecallPreviousState();
   OnActionEnd();
   
-  if (std::shared_ptr<Character> actorPtr = actor.lock()) {
-    actorPtr->GetTile()->RemoveEntityByID(actorPtr->GetID());
-    startTile->AddEntity(actorPtr);
+  if (std::shared_ptr<Character> actorPtr = actor.lock()) { 
+    if (actorPtr->GetTile()->RemoveEntityByID(actorPtr->GetID())) {
+      startTile->AddEntity(actorPtr);
+    }
   }
 
   if (std::shared_ptr<Character> user = userWeak.lock()) {
