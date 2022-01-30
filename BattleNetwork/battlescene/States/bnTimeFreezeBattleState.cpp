@@ -197,6 +197,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
         first->user->Reveal();
         scene.UntrackMobCharacter(first->stuntDouble);
         scene.GetField()->DeallocEntity(first->stuntDouble->GetID());
+        first->action->EndAction();
 
         if (tfEvents.size() == 1) {
           // This is the only event in the list
