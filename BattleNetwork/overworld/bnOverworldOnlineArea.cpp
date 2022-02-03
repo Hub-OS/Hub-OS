@@ -2328,8 +2328,10 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     auto emotions = Textures().LoadFromFile(meta.GetEmotionsTexturePath());
     auto player = std::shared_ptr<Player>(meta.GetData());
 
-    player->SetHealth(GetPlayerSession()->health);
-    player->SetEmotion(GetPlayerSession()->emotion);
+    auto& overworldSession = GetPlayerSession();
+    player->SetMaxHealth(overworldSession->maxHealth);
+    player->SetHealth(overworldSession->health);
+    player->SetEmotion(overworldSession->emotion);
 
     GameSession& session = getController().Session();
     std::vector<PackageAddress> localNaviBlocks = PlayerCustScene::GetInstalledBlocks(GetCurrentNaviID(), session);
@@ -2663,9 +2665,10 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(playerMeta.GetEmotionsTexturePath());
     std::shared_ptr<Player> player = std::shared_ptr<Player>(playerMeta.GetData());
 
-    auto& playerSession = GetPlayerSession();
-    player->SetHealth(playerSession->health);
-    player->SetEmotion(playerSession->emotion);
+    auto& overworldSession = GetPlayerSession();
+    player->SetMaxHealth(overworldSession->maxHealth);
+    player->SetHealth(overworldSession->health);
+    player->SetEmotion(overworldSession->emotion);
 
     CardFolder* newFolder = nullptr;
 
