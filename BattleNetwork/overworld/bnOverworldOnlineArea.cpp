@@ -127,7 +127,8 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
       nullptr,
       emoteNode,
       GetTeleportController(),
-      propertyAnimator
+      propertyAnimator,
+      true
     };
   }
 
@@ -141,7 +142,8 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
       onlinePlayer.marker,
       onlinePlayer.emoteNode,
       onlinePlayer.teleportController,
-      onlinePlayer.propertyAnimator
+      onlinePlayer.propertyAnimator,
+      onlinePlayer.solid
     };
   }
 
@@ -1816,6 +1818,9 @@ void Overworld::OnlineArea::receiveExcludeActorSignal(BufferReader& reader, cons
   this->RemoveSprite(abstractUser.actor);
   this->RemoveSprite(abstractUser.teleportController.GetBeam());
 
+  // prevent collisions with this actor
+  abstractUser.actor->SetSolid(false);
+
   if (abstractUser.marker) {
     abstractUser.marker->Hide();
   }
@@ -1838,6 +1843,9 @@ void Overworld::OnlineArea::receiveIncludeActorSignal(BufferReader& reader, cons
   // remove this actor to make sure they're not added more than once (server script issue)
   this->RemoveSprite(abstractUser.actor);
   this->RemoveSprite(abstractUser.teleportController.GetBeam());
+
+  // enable collisions if they should be on
+  abstractUser.actor->SetSolid(abstractUser.solid);
 
   // include the actor again
   this->AddSprite(abstractUser.actor);
@@ -2809,6 +2817,9 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   emoteNode->setScale(0.5f, 0.5f);
   emoteNode->LoadCustomEmotes(customEmotesTexture);
 
+  onlinePlayer.solid = solid;
+  actor->SetSolid(solid);
+
   auto& teleportController = onlinePlayer.teleportController;
 
   auto isExcluded = excludedActors.find(user) != excludedActors.end();
@@ -2818,11 +2829,12 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     teleportController.EnableSound(false);
 
     actor->AddNode(emoteNode);
-    actor->SetSolid(solid);
     actor->CollideWithMap(false);
     actor->SetCollisionRadius(6);
     actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with, Interaction type) {
-      sendNaviInteractionSignal(ticket, type);
+      if (excludedActors.find(user) == excludedActors.end()) {
+        sendNaviInteractionSignal(ticket, type);
+      }
     });
 
     AddActor(actor);
@@ -2838,6 +2850,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
       // remove the actor if they are marked as hidden by the server
       RemoveSprite(actor);
       marker->Hide();
+      actor->SetSolid(false);
     }
     else {
       // add the teleport beam if the actor is not marked as hidden by the server
