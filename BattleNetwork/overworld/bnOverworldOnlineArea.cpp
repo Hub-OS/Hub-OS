@@ -674,23 +674,26 @@ void Overworld::OnlineArea::OnTileCollision() { }
 
 void Overworld::OnlineArea::OnInteract(Interaction type) {
   auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
+
   auto playerActor = GetPlayer();
+  auto frontPosition = playerActor->PositionInFrontOf();
 
   // check to see what tile we pressed talk to
   auto layerIndex = playerActor->GetLayer();
-  auto& layer = map.GetLayer(layerIndex);
-  auto tileSize = map.GetTileSize();
 
-  auto frontPosition = playerActor->PositionInFrontOf();
+  if (layerIndex >= 0 && layerIndex < map.GetLayerCount()) {
+    auto& layer = map.GetLayer(layerIndex);
 
-  for (auto& tileObject : layer.GetTileObjects()) {
-    auto interactable = tileObject.visible || tileObject.solid;
+    for (auto& tileObject : layer.GetTileObjects()) {
+      auto interactable = tileObject.visible || tileObject.solid;
 
-    if (interactable && tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
-      sendObjectInteractionSignal(tileObject.id, type);
+      if (interactable && tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
+        sendObjectInteractionSignal(tileObject.id, type);
 
-      // block other interactions with return
-      return;
+        // block other interactions with return
+        return;
+      }
     }
   }
 

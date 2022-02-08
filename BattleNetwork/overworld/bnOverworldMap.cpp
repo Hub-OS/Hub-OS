@@ -402,6 +402,10 @@ namespace Overworld {
   }
 
   bool Map::IgnoreTileAbove(float x, float y, int layerIndex) {
+    if (layerIndex < 0 || layerIndex >= layers.size()) {
+      return false;
+    }
+
     auto& layer = layers[layerIndex];
     auto tile = layer.GetTile(x, y);
 
