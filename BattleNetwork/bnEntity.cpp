@@ -1456,7 +1456,7 @@ void Entity::ResolveFrameBattleDamage()
           // this will strip out flash in the next step
           frameFlashCancel = true;
           willFreeze = true;
-          flagCheckThunk(Hit::flinch);
+          flagCheckThunk(Hit::freeze);
         }
       }
 

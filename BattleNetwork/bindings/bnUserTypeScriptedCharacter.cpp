@@ -130,7 +130,7 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, const
         character.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
       }
     ),
-    "on_countered", sol::property(
+    "on_countered_func", sol::property(
       [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->on_countered_func; },
       [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {
         character.Unwrap()->on_countered_func = VerifyLuaCallback(value);

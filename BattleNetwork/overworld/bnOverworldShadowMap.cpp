@@ -35,13 +35,21 @@ namespace Overworld {
             continue;
           }
 
-          // invisible tile
-          if (tileMeta->type == TileType::invisible) {
-            continue;
-          }
+          switch (tileMeta->shadow) {
+          case TileShadow::automatic:
+            // invisible tile
+            if (tileMeta->type == TileType::invisible) {
+              continue;
+            }
 
-          // hole
-          if (map.IgnoreTileAbove(float(x), float(y), int(index - 1))) {
+            // hole
+            if (map.IgnoreTileAbove(float(x), float(y), int(index - 1))) {
+              continue;
+            }
+            break;
+          case TileShadow::always:
+            break;
+          case TileShadow::never:
             continue;
           }
 

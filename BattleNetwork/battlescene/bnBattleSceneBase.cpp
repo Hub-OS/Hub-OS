@@ -443,7 +443,9 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   hasPlayerSpawned = true;
   Team team = field->GetAt(x, y)->GetTeam();
 
-  localPlayer->Init();
+  if (!localPlayer->HasInit()) {
+    localPlayer->Init();
+  }
   localPlayer->ChangeState<PlayerIdleState>();
   localPlayer->SetTeam(team);
   field->AddEntity(localPlayer, x, y);
@@ -482,7 +484,9 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
 
   Team team = field->GetAt(x, y)->GetTeam();
 
-  player->Init();
+  if (!player->HasInit()) {
+    player->Init();
+  }
   player->ChangeState<PlayerIdleState>();  
   player->SetTeam(team);
   field->AddEntity(player, x, y);
@@ -779,6 +783,8 @@ void BattleSceneBase::onUpdate(double elapsed) {
   for (auto iter = nodeToEdges.begin(); iter != nodeToEdges.end(); iter++) {
     if (iter->first == current) {
       if (iter->second->when()) {
+        Logger::Logf(LogLevel::debug, "Changing BattleSceneState on frame %d", FrameNumber());
+
         BattleSceneState* temp = iter->second->b;
         this->last = current;
         this->next = temp;
@@ -1396,7 +1402,7 @@ void BattleSceneBase::FlushLocalPlayerInputQueue()
   queuedLocalEvents.clear();
 }
 
-std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned int lag)
+std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned int lag, bool gatherInput)
 {
   std::vector<InputEvent> outEvents;
 
@@ -1407,19 +1413,26 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned i
     item.wait--;
   }
 
-  // For all new input events, set the wait time based on the network latency and append
-  const auto events_this_frame = Input().StateThisFrame();
+  if (gatherInput) {
+    // For all new input events, set the wait time based on the network latency and append
+    const auto events_this_frame = Input().StateThisFrame();
 
-  for (auto& [name, state] : events_this_frame) {
-    InputEvent copy;
-    copy.name = name;
-    copy.state = state;
+    for (auto& [name, state] : events_this_frame) {
+      if (state != InputState::pressed && state != InputState::held) {
+        // let VirtualInputState resolve release
+        continue;
+      }
 
-    outEvents.push_back(copy);
+      InputEvent copy;
+      copy.name = name;
+      copy.state = InputState::pressed; // VirtualInputState will handle this
 
-    // add delay for network
-    copy.wait = lag;
-    queuedLocalEvents.push_back(copy);
+      outEvents.push_back(copy);
+
+      // add delay for network
+      copy.wait = lag;
+      queuedLocalEvents.push_back(copy);
+    }
   }
 
   // Drop inputs that are already processed at the end of the last frame

@@ -108,17 +108,17 @@ std::shared_ptr<CardAction> ScriptedPlayerForm::OnSpecialAction(std::shared_ptr<
   return result;
 }
 
-frame_time_t ScriptedPlayerForm::CalculateChargeTime(unsigned chargeLevel)
+std::optional<frame_time_t> ScriptedPlayerForm::CalculateChargeTime(unsigned chargeLevel)
 {
   if (!calculate_charge_time_func.valid()) {
-    return frames(60);
+    return {};
   }
 
   auto result = CallLuaCallbackExpectingValue<frame_time_t>(calculate_charge_time_func, chargeLevel);
 
   if (result.is_error()) {
     Logger::Log(LogLevel::critical, result.error_cstr());
-    return frames(60);
+    return {};
   }
 
   return result.value();

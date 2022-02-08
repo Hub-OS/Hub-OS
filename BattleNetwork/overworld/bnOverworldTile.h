@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "bnOverworldTileType.h"
+#include "bnOverworldTileShadow.h"
 #include "bnOverworldCustomProperties.h"
 #include "bnOverworldShapes.h"
 #include "../bnDirection.h"
@@ -33,8 +34,8 @@ namespace Overworld
     const unsigned int gid;
     const sf::Vector2f drawingOffset;
     const sf::Vector2f alignmentOffset;
-    const std::string typeString;
     const TileType::TileType type;
+    const TileShadow::TileShadow shadow;
     const Direction direction;
     const CustomProperties customProperties;
     const std::vector<std::unique_ptr<Shape>> collisionShapes;
@@ -48,7 +49,8 @@ namespace Overworld
       unsigned int gid,
       sf::Vector2f drawingOffset,
       sf::Vector2f alignmentOffset,
-      const std::string& type,
+      TileType::TileType type,
+      TileShadow::TileShadow shadow,
       const CustomProperties& customProperties,
       std::vector<std::unique_ptr<Shape>> collisionShapes
     );

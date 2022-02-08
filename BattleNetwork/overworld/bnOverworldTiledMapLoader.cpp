@@ -196,7 +196,8 @@ namespace Overworld {
         tileGid,
         tileset.drawingOffset,
         tileset.alignmentOffset,
-        tileElement.GetAttribute("type"),
+        TileType::FromString(tileElement.GetAttribute("type")),
+        TileShadow::FromString(customProperties.GetProperty("shadow")),
         customProperties,
         std::move(collisionShapes)
         );

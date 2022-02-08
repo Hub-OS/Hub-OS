@@ -384,7 +384,9 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "create_spawner", [&namespaceId](ScriptedMob& self, const std::string& fqn, Character::Rank rank) {
       return self.CreateSpawner(namespaceId, fqn, rank);
     },
-    "set_background", &ScriptedMob::SetBackground,
+    "set_background", [](ScriptedMob& mob, const std::string& texturePath, const std::string& animPath, float velx, float vely) {
+      return mob.SetBackground(texturePath, animPath, velx, vely);
+    },
     "stream_music", [](ScriptedMob& mob, const std::string& path, std::optional<long long> startMs, std::optional<long long> endMs) {
       mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
     },

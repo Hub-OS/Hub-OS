@@ -127,7 +127,8 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
       nullptr,
       emoteNode,
       GetTeleportController(),
-      propertyAnimator
+      propertyAnimator,
+      true
     };
   }
 
@@ -141,7 +142,8 @@ std::optional<Overworld::OnlineArea::AbstractUser> Overworld::OnlineArea::GetAbs
       onlinePlayer.marker,
       onlinePlayer.emoteNode,
       onlinePlayer.teleportController,
-      onlinePlayer.propertyAnimator
+      onlinePlayer.propertyAnimator,
+      onlinePlayer.solid
     };
   }
 
@@ -672,23 +674,26 @@ void Overworld::OnlineArea::OnTileCollision() { }
 
 void Overworld::OnlineArea::OnInteract(Interaction type) {
   auto& map = GetMap();
+  auto tileSize = map.GetTileSize();
+
   auto playerActor = GetPlayer();
+  auto frontPosition = playerActor->PositionInFrontOf();
 
   // check to see what tile we pressed talk to
   auto layerIndex = playerActor->GetLayer();
-  auto& layer = map.GetLayer(layerIndex);
-  auto tileSize = map.GetTileSize();
 
-  auto frontPosition = playerActor->PositionInFrontOf();
+  if (layerIndex >= 0 && layerIndex < map.GetLayerCount()) {
+    auto& layer = map.GetLayer(layerIndex);
 
-  for (auto& tileObject : layer.GetTileObjects()) {
-    auto interactable = tileObject.visible || tileObject.solid;
+    for (auto& tileObject : layer.GetTileObjects()) {
+      auto interactable = tileObject.visible || tileObject.solid;
 
-    if (interactable && tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
-      sendObjectInteractionSignal(tileObject.id, type);
+      if (interactable && tileObject.Intersects(map, frontPosition.x, frontPosition.y)) {
+        sendObjectInteractionSignal(tileObject.id, type);
 
-      // block other interactions with return
-      return;
+        // block other interactions with return
+        return;
+      }
     }
   }
 
@@ -1816,6 +1821,9 @@ void Overworld::OnlineArea::receiveExcludeActorSignal(BufferReader& reader, cons
   this->RemoveSprite(abstractUser.actor);
   this->RemoveSprite(abstractUser.teleportController.GetBeam());
 
+  // prevent collisions with this actor
+  abstractUser.actor->SetSolid(false);
+
   if (abstractUser.marker) {
     abstractUser.marker->Hide();
   }
@@ -1838,6 +1846,9 @@ void Overworld::OnlineArea::receiveIncludeActorSignal(BufferReader& reader, cons
   // remove this actor to make sure they're not added more than once (server script issue)
   this->RemoveSprite(abstractUser.actor);
   this->RemoveSprite(abstractUser.teleportController.GetBeam());
+
+  // enable collisions if they should be on
+  abstractUser.actor->SetSolid(abstractUser.solid);
 
   // include the actor again
   this->AddSprite(abstractUser.actor);
@@ -2328,8 +2339,10 @@ void Overworld::OnlineArea::receivePVPSignal(BufferReader& reader, const Poco::B
     auto emotions = Textures().LoadFromFile(meta.GetEmotionsTexturePath());
     auto player = std::shared_ptr<Player>(meta.GetData());
 
-    player->SetHealth(GetPlayerSession()->health);
-    player->SetEmotion(GetPlayerSession()->emotion);
+    auto& overworldSession = GetPlayerSession();
+    player->SetMaxHealth(overworldSession->maxHealth);
+    player->SetHealth(overworldSession->health);
+    player->SetEmotion(overworldSession->emotion);
 
     GameSession& session = getController().Session();
     std::vector<PackageAddress> localNaviBlocks = PlayerCustScene::GetInstalledBlocks(GetCurrentNaviID(), session);
@@ -2663,9 +2676,10 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     std::shared_ptr<sf::Texture> emotions = Textures().LoadFromFile(playerMeta.GetEmotionsTexturePath());
     std::shared_ptr<Player> player = std::shared_ptr<Player>(playerMeta.GetData());
 
-    auto& playerSession = GetPlayerSession();
-    player->SetHealth(playerSession->health);
-    player->SetEmotion(playerSession->emotion);
+    auto& overworldSession = GetPlayerSession();
+    player->SetMaxHealth(overworldSession->maxHealth);
+    player->SetHealth(overworldSession->health);
+    player->SetEmotion(overworldSession->emotion);
 
     CardFolder* newFolder = nullptr;
 
@@ -2806,6 +2820,9 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   emoteNode->setScale(0.5f, 0.5f);
   emoteNode->LoadCustomEmotes(customEmotesTexture);
 
+  onlinePlayer.solid = solid;
+  actor->SetSolid(solid);
+
   auto& teleportController = onlinePlayer.teleportController;
 
   auto isExcluded = excludedActors.find(user) != excludedActors.end();
@@ -2815,11 +2832,12 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
     teleportController.EnableSound(false);
 
     actor->AddNode(emoteNode);
-    actor->SetSolid(solid);
     actor->CollideWithMap(false);
     actor->SetCollisionRadius(6);
     actor->SetInteractCallback([=](const std::shared_ptr<Actor>& with, Interaction type) {
-      sendNaviInteractionSignal(ticket, type);
+      if (excludedActors.find(user) == excludedActors.end()) {
+        sendNaviInteractionSignal(ticket, type);
+      }
     });
 
     AddActor(actor);
@@ -2835,6 +2853,7 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
       // remove the actor if they are marked as hidden by the server
       RemoveSprite(actor);
       marker->Hide();
+      actor->SetSolid(false);
     }
     else {
       // add the teleport beam if the actor is not marked as hidden by the server
