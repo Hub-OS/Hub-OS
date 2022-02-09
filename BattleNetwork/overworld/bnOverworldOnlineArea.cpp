@@ -5,6 +5,8 @@
 #include <Segues/WhiteWashFade.h>
 #include <Segues/VerticalOpen.h>
 #include <Poco/Net/NetException.h>
+#include <Poco/InflatingStream.h>
+#include <Poco/MemoryStream.h>
 
 #include <filesystem>
 #include <fstream>
@@ -1615,6 +1617,14 @@ void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const
   case AssetType::text:
     serverAssetManager.SetText(name, lastModified, assetReader.ReadString(incomingAsset.buffer, incomingAsset.buffer.size()), cachable);
     break;
+  case AssetType::compressed_text: {
+    auto memoryStream = Poco::MemoryInputStream(incomingAsset.buffer.begin(), incomingAsset.buffer.size());
+    auto inflateStream = Poco::InflatingInputStream(memoryStream);
+    std::string decompressedText(std::istreambuf_iterator(inflateStream), {});
+
+    serverAssetManager.SetText(name, lastModified, decompressedText, cachable);
+    break;
+  }
   case AssetType::texture:
     serverAssetManager.SetTexture(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
     break;
