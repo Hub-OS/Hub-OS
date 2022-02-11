@@ -9,7 +9,7 @@ using sf::IntRect;
 
 const char* ANIM_PATH = "resources/scenes/battle/mob_explosion.animation";
 
-ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions, double _playbackSpeed) : 
+ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions, double _playbackSpeed) :
   SpriteProxyNode(), animation(ANIM_PATH), parent(parent)
 {
   root = this;
@@ -28,16 +28,16 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
     this->done = true;
     this->Hide();
   };
-  
+
   animation.Refresh(getSprite());
 
   /*
-   * On the 12th frame, increment the explosion count, and turn the first 
+   * On the 12th frame, increment the explosion count, and turn the first
    * explosion transpatent.
-   * 
+   *
    * If there are more explosions expected, spawn a copy on frame 8
    */
-  animation << Animator::On(12, 
+  animation << Animator::On(12,
     [this]() {
       root->IncrementExplosionCount();
     },
@@ -60,7 +60,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
   Update(0);
 }
 
-ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy) 
+ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
   : SpriteProxyNode(), animation(ANIM_PATH)
 {
   root = copy.root;
@@ -85,7 +85,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
 
   /**
    * Tell root to increment explosion count on frame 12
-   * 
+   *
    * Similar to the root constructor, if there are more explosions
    * Spawn a copy on frame 8
    */
@@ -144,14 +144,14 @@ void ExplosionSpriteNode::SetOffsetArea(sf::Vector2f area)
 
   offsetArea = area;
 
-  int randX = SyncedRand() % (int)(area.x+0.5f);
-  int randY = SyncedRand() % (int)(area.y+0.5f);
+  int randX = SyncedRandBelow((int)(area.x+0.5f));
+  int randY = SyncedRandBelow((int)(area.y+0.5f));
 
   int randNegX = 1;
   int randNegY = 1;
 
-  if (SyncedRand() % 10 > 5) randNegX = -1;
-  if (SyncedRand() % 10 > 5) randNegY = -1;
+  if (SyncedRandBelow(10) > 5) randNegX = -1;
+  if (SyncedRandBelow(10) > 5) randNegY = -1;
 
   randX *= randNegX;
   randY = -randY;
