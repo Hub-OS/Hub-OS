@@ -125,7 +125,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // Go to the forms state if forms are selected on either end, or go straight into battle
   comboSyncState.ChangeOnEvent(forms, [this, comboSyncStatePtr] { return comboSyncStatePtr->IsReady() && (cardStatePtr->HasForm() || remoteState.remoteChangeForm); } );
-  comboSyncState.ChangeOnEvent(combat, &NetworkSyncBattleState::IsReady);
+  comboSyncState.ChangeOnEvent(battlestart, &NetworkSyncBattleState::IsReady);
 
   // If we reached the combo state, we must also check if form transformation was next
   // or just sync
