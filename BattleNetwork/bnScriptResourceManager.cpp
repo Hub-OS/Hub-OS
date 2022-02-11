@@ -106,13 +106,13 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
   state["math"]["random"] = sol::overload(
     [] (int n, int m) -> int { // [n, m]
       int range = m - n;
-      return SyncedRand() % (range + 1) + n;
+      return SyncedRandBelow(range + 1) + n;
     },
     [] (int n) -> int { // [1, n]
-      return SyncedRand() % n + 1;
+      return SyncedRandBelow(n + 1) + 1;
     },
     [] () -> float { // [0, 1)
-      return (float)SyncedRand() / ((float)(SyncedRandMax()) + 1);
+      return SyncedRandFloat();
     }
   );
 

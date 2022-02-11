@@ -7,7 +7,7 @@
 
 using sf::IntRect;
 
-Explosion::Explosion(int _numOfExplosions, double _playbackSpeed) : 
+Explosion::Explosion(int _numOfExplosions, double _playbackSpeed) :
   Artifact()
 {
   root = this;
@@ -50,7 +50,7 @@ void Explosion::Init() {
 
   /**
    * Tell root to increment explosion count on frame 12
-   * 
+   *
    * Similar to the root constructor, if there are more explosions
    * Spawn a copy on frame 8
    */
@@ -86,7 +86,7 @@ void Explosion::OnUpdate(double _elapsed) {
     }
   }
 
-  // The first explosion spawns inside of the entity 
+  // The first explosion spawns inside of the entity
   // all other explosions use the offset to explode around the entity
   if (numOfExplosions != 1) {
     Entity::drawOffset += {offset.x, offset.y};
@@ -114,14 +114,14 @@ void Explosion::SetOffsetArea(sf::Vector2f area)
 
   offsetArea = area;
 
-  int randX = SyncedRand() % (int)(area.x+0.5f);
-  int randY = SyncedRand() % (int)(area.y+0.5f);
+  int randX = SyncedRandBelow((int)(area.x+0.5f));
+  int randY = SyncedRandBelow((int)(area.y+0.5f));
 
   int randNegX = 1;
   int randNegY = 1;
 
-  if (SyncedRand() % 10 > 5) randNegX = -1;
-  if (SyncedRand() % 10 > 5) randNegY = -1;
+  if (SyncedRandBelow(10) > 5) randNegX = -1;
+  if (SyncedRandBelow(10) > 5) randNegY = -1;
 
   randX *= randNegX;
   randY = -randY;

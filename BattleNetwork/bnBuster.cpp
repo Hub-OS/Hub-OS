@@ -93,10 +93,10 @@ void Buster::OnCollision(const std::shared_ptr<Entity> entity)
   hitHeight = std::floor(entity->GetHeight());
 
   if (!isCharged) {
-    random *= SyncedRand() % 2 == 0 ? -1.0f : 1.0f;
+    random *= SyncedRandBelow(2) == 0 ? -1.0f : 1.0f;
 
     if (hitHeight > 0) {
-      hitHeight = (float)(SyncedRand() % (int)hitHeight);
+      hitHeight = (float)(SyncedRandBelow(hitHeight));
     }
   }
   else {
