@@ -185,7 +185,7 @@ public:
 
   void SetInterruptCallback(const std::function<void()> onInterrupt);
 
-  const bool HasAnimation(const std::string& state) const;
+  const bool HasAnimation(std::string state) const;
 
   const double GetPlaybackSpeed() const;
   void SetPlaybackSpeed(double factor);
