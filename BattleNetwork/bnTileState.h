@@ -18,6 +18,7 @@ enum class TileState : int {
   directionUp,
   directionDown,
   volcano,
+  sea,
   hidden, // immutable
   size // no a valid state! used for enum length
 };

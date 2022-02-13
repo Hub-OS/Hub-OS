@@ -23,13 +23,15 @@
 #define START_X 0.0f
 #define START_Y 144.f
 #define Y_OFFSET 10.0f
-#define COOLDOWN 10.0
-#define FLICKER 3.0
+#define COOLDOWN frames(600)
+#define FLICKER frames(180)
+#define SEA_COOLDOWN frames(60*60)
 
 namespace Battle {
-  double Tile::brokenCooldownLength = COOLDOWN;
-  double Tile::teamCooldownLength = COOLDOWN;
-  double Tile::flickerTeamCooldownLength = FLICKER;
+  frame_time_t Tile::brokenCooldownLength = COOLDOWN;
+  frame_time_t Tile::teamCooldownLength = COOLDOWN;
+  frame_time_t Tile::flickerTeamCooldownLength = FLICKER;
+  frame_time_t Tile::seaCooldownLength = SEA_COOLDOWN;
 
   Tile::Tile(int _x, int _y) : 
     SpriteProxyNode(),
@@ -54,8 +56,8 @@ namespace Battle {
     willHighlight = false;
     isTimeFrozen = true;
     isBattleOver = false;
-    brokenCooldown = 0;
-    flickerTeamCooldown = teamCooldown = 0;
+    brokenCooldown = frames(0);
+    flickerTeamCooldown = teamCooldown = frames(0);
     red_team_atlas = blue_team_atlas = nullptr; // Set by field
 
     burncycle = 0.12; // milliseconds
@@ -241,7 +243,7 @@ namespace Battle {
           flickerTeamCooldown = flickerTeamCooldownLength;
         }
         else {
-          flickerTeamCooldown = 0; // cancel 
+          flickerTeamCooldown = frames(0); // cancel 
           teamCooldown = teamCooldownLength;
         }
       }
@@ -310,6 +312,10 @@ namespace Battle {
       RemoveNode(volcanoSprite);
     }
 
+    if (_state == TileState::sea) {
+      seaCooldown = seaCooldownLength;
+    }
+
     state = _state;
   }
 
@@ -327,11 +333,15 @@ namespace Battle {
     Team otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
     std::string prevAnimState = animState;
 
-    ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
+    (((flickerTeamCooldown.count() % 4) < 2) && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
 
     if (state == TileState::broken) {
       // Broken tiles flicker when they regen
-      animState = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
+      animState = (((brokenCooldown.count()%4) < 2) && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
+    }
+    if (state == TileState::sea) {
+      // Sea tiles flicker when they regen
+      animState = (((seaCooldown.count()%4) < 2) && seaCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
     }
     else {
       animState = std::move(GetAnimState(state));
@@ -531,20 +541,26 @@ namespace Battle {
 
     // Update our tile animation and texture
     if (!isTimeFrozen) {
-      if (teamCooldown > 0) {
-        teamCooldown -= 1.0 * _elapsed;
-        if (teamCooldown < 0) teamCooldown = 0;
+      if (teamCooldown > frames(0)) {
+        teamCooldown -= frames(1);
+        if (teamCooldown < frames(0)) teamCooldown = frames(0);
       }
 
-      if (flickerTeamCooldown > 0) {
-        flickerTeamCooldown -= 1.0 * _elapsed;
-        if (flickerTeamCooldown < 0) flickerTeamCooldown = 0;
+      if (flickerTeamCooldown > frames(0)) {
+        flickerTeamCooldown -= frames(1);
+        if (flickerTeamCooldown < frames(0)) flickerTeamCooldown = frames(0);
+      }
+
+      if (state == TileState::sea) {
+        seaCooldown -= frames(1);
+
+        if (seaCooldown < frames(0)) { seaCooldown = frames(0); state = TileState::normal; };
       }
 
       if (state == TileState::broken) {
-        brokenCooldown -= 1.0f* _elapsed;
+        brokenCooldown -= frames(1);
 
-        if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::normal; }
+        if (brokenCooldown < frames(0)) { brokenCooldown = frames(0); state = TileState::normal; }
       }
     }
 
@@ -940,6 +956,9 @@ namespace Battle {
       break;
     case TileState::holy:
       str = str + "holy";
+      break;
+    case TileState::sea:
+      str = str + "sea";
       break;
     default:
       str = str + "normal";

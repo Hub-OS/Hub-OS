@@ -3,6 +3,7 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
+#include "bnWaterSplash.h"
 #include "bnShakingEffect.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -235,6 +236,11 @@ void Entity::UpdateMovement(double elapsed)
               copyMoveEvent = {};
             }
           }
+          else if (tile->GetState() == TileState::sea && !HasFloatShoe()) {
+            Root(frames(20));
+            auto splash = std::make_shared<WaterSplash>();
+            field.lock()->AddEntity(splash, *tile);
+          }
           else {
             // Invalidate the next tile pointer
             next = nullptr;
@@ -388,7 +394,7 @@ void Entity::Update(double _elapsed) {
     rootCooldown -= from_seconds(_elapsed);
 
     // Root is cancelled if these conditions are met
-    if (rootCooldown <= frames(0) || IsPassthrough()) {
+    if (rootCooldown <= frames(0)/* || IsPassthrough() */) {
       rootCooldown = frames(0);
     }
   }
@@ -1343,7 +1349,7 @@ void Entity::ResolveFrameBattleDamage()
     }
 
     if ((props.filtered.element == Element::elec || props.filtered.secondaryElement == Element::elec)
-      && GetTile()->GetState() == TileState::ice) {
+      && GetTile()->GetState() == TileState::sea) {
       tileDamage = props.filtered.damage;
     }
 
