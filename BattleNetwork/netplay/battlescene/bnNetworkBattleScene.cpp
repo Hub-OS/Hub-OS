@@ -127,9 +127,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   comboSyncState.ChangeOnEvent(forms, [this, comboSyncStatePtr] { return comboSyncStatePtr->IsReady() && (cardStatePtr->HasForm() || remoteState.remoteChangeForm); } );
   comboSyncState.ChangeOnEvent(battlestart, &NetworkSyncBattleState::IsReady);
 
-  // If we reached the combo state, we must also check if form transformation was next
-  // or just sync
-  combo.ChangeOnEvent(forms, [cardSelect, combo, this]() mutable {return combo->IsDone() && (cardSelect->HasForm() || remoteState.remoteChangeForm); });
+  // Sync after combo
   combo.ChangeOnEvent(comboSyncState, &CardComboBattleState::IsDone);
 
   // Wait for handshake to complete by going back to the sync state..
