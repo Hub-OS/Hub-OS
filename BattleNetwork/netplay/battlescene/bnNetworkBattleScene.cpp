@@ -165,8 +165,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   // Some states are part of the combat routine and need to respect
   // the combat state's timers
   combat->subcombatStates.push_back(&timeFreeze.Unwrap());
-  // consider battlestart as a combat state to allow input to queue
-  combat->subcombatStates.push_back(&battlestart.Unwrap());
 
   connectSyncStatePtr->SetEndCallback([this] (const BattleSceneState* _) {
     GetLocalPlayer()->ChangeState<PlayerControlledState>();
@@ -253,7 +251,9 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     SkipFrame();
   }
   else {
-    std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5, combatPtr->IsStateCombat(GetCurrentState()));
+    const BattleSceneState* currentState = GetCurrentState();
+    auto queueInput = currentState == startStatePtr || combatPtr->IsStateCombat(currentState);
+    std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5, queueInput);
 
     SendFrameData(events, (FrameNumber() + frames(5)).count());
   }
