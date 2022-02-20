@@ -112,6 +112,8 @@ namespace Overworld {
     CameraController warpCameraController;
     std::vector<VendorScene::Item> shopItems;
     std::queue<std::function<void()>> sceneChangeTasks;
+    bool synchronizingUpdates{ false };
+    std::vector<Poco::Buffer<char>> synchronizedPackets;
 
     void ResetPVPStep(bool failed = false);
     void RemovePackages();

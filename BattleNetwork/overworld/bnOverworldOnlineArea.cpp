@@ -825,10 +825,20 @@ void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t por
 
 void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
 {
+  if (!packetProcessor) {
+    // an exception in a synchronizedPackets loop can lead us here
+    return;
+  }
+
   BufferReader reader;
 
   try {
     auto sig = reader.Read<ServerEvents>(data);
+
+    if (synchronizingUpdates && sig != ServerEvents::end_synchronization) {
+      synchronizedPackets.push_back(data);
+      return;
+    }
 
     switch (sig) {
     case ServerEvents::authorize:
@@ -1014,6 +1024,19 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::actor_minimap_color:
       receiveActorMinimapColorSignal(reader, data);
+      break;
+    case ServerEvents::synchronize_updates:
+      synchronizingUpdates = true;
+      break;
+    case ServerEvents::end_synchronization:
+      synchronizingUpdates = false;
+
+      for (auto& data : synchronizedPackets) {
+        processPacketBody(data);
+      }
+
+      synchronizedPackets.clear();
+      break;
     }
   }
   catch (Poco::IOException& e) {
