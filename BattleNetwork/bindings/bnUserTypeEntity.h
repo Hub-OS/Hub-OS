@@ -280,11 +280,21 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   };
   entity_table["set_animation"] = [](WeakWrapper<E>& entity, std::string animation) {
     auto animationComponent = entity.Unwrap()->template GetFirstComponent<AnimationComponent>();
+
+    if (!animationComponent) {
+      throw std::runtime_error("Entity is missing an animation component");
+    }
+
     animationComponent->SetPath(animation);
     animationComponent->Reload();
   };
-  entity_table["get_animation"] = [](WeakWrapper<E>& entity) -> AnimationWrapper {
+  entity_table["get_animation"] = [](WeakWrapper<E>& entity) -> std::optional<AnimationWrapper> {
     auto animationComponent = entity.Unwrap()->template GetFirstComponent<AnimationComponent>();
+
+    if (!animationComponent) {
+      return {};
+    }
+
     auto& animation = animationComponent->GetAnimationObject();
     return AnimationWrapper(entity.GetWeak(), animation);
   };
