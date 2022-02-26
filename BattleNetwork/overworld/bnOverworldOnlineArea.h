@@ -86,9 +86,9 @@ namespace Overworld {
     uint16_t maxPayloadSize;
     unsigned pvpCoinFlip{};
     bool isConnected{ false };
+    bool cleanedUp{ false };
     bool serverLockedInput{ false };
     bool transferringServers{ false };
-    bool kicked{ false };
     bool tryPopScene{ false };
     bool canProceedToBattle{ false };
     bool copyScreen{ false };
@@ -219,6 +219,7 @@ namespace Overworld {
     void receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorMinimapColorSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
+    void cleanup();
   protected:
     virtual std::filesystem::path GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);
