@@ -150,7 +150,9 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
   // if battle is ongoing and valid, play high pitch sound when hp is low
   isBattleOver = Injected() ? (Scene()->IsRedTeamCleared() || Scene()->IsBlueTeamCleared()) : true;
 
-  if (auto player = GetOwnerAs<Player>()) {
+  ui.Update(elapsed);
+
+    if (auto player = GetOwnerAs<Player>()) {
     ui.SetHP(player->GetHealth());
 
     if (player->WillEraseEOF()) {
@@ -177,6 +179,4 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
       }
     }
   }
-
-  ui.Update(elapsed);
 }

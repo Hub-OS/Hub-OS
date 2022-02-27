@@ -23,7 +23,7 @@
 #define START_X 0.0f
 #define START_Y 144.f
 #define Y_OFFSET 10.0f
-#define COOLDOWN frames(600)
+#define COOLDOWN frames(1800)
 #define FLICKER frames(180)
 #define SEA_COOLDOWN frames(60*60)
 

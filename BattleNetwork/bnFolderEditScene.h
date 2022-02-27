@@ -93,7 +93,7 @@ private:
 private:
   std::vector<FolderSlot> folderCardSlots; /*!< Rows in the folder that can be inserted with cards or replaced */
   std::vector<PoolBucket> poolCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
-  bool hasFolderChanged; /*!< Flag if folder needs to be saved before quitting screen */
+  bool hasFolderChanged{}; /*!< Flag if folder needs to be saved before quitting screen */
   Camera camera;
   CardFolder& folder;
 

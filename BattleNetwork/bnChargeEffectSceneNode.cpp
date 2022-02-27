@@ -23,10 +23,10 @@ ChargeEffectSceneNode::~ChargeEffectSceneNode() {
 void ChargeEffectSceneNode::Update(double _elapsed) {
   if (charging) {
     chargeCounter += from_seconds(_elapsed);
-    setColor(chargeColor);
     if (chargeCounter >= maxChargeTime + i10) {
       if (isCharged == false) {
         // We're switching states
+        setColor(chargeColor);
         Audio().Play(AudioType::BUSTER_CHARGED);
         animation.SetAnimation("CHARGED");
         animation << Animator::Mode::Loop;
@@ -42,7 +42,6 @@ void ChargeEffectSceneNode::Update(double _elapsed) {
         animation << Animator::Mode::Loop;
         setColor(sf::Color::White);
         RevokeShader();
-
       }
 
       isPartiallyCharged = true;
@@ -53,6 +52,11 @@ void ChargeEffectSceneNode::Update(double _elapsed) {
     }
   }
 
+  Animate(_elapsed);
+}
+
+void ChargeEffectSceneNode::Animate(double _elapsed)
+{
   animation.Update(_elapsed, getSprite());
 }
 

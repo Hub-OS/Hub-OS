@@ -18,7 +18,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["input_has"] = [](WeakWrapper<E>& entity, const InputEvent& event) -> bool {
     return entity.Unwrap()->InputState().Has(event);
   },
-  entity_table["get_id"] = [](WeakWrapper<E>& entity) -> Entity::ID_t {
+    entity_table["get_id"] = [](WeakWrapper<E>& entity) -> Entity::ID_t {
     return entity.Unwrap()->GetID();
   };
   entity_table["get_name"] = [](WeakWrapper<E>& entity) -> std::string {
@@ -40,7 +40,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
     [](WeakWrapper<E>& entity) -> Battle::Tile* {
       return entity.Unwrap()->GetTile();
     }
-  );
+    );
   entity_table["get_current_tile"] = [](WeakWrapper<E>& entity) -> Battle::Tile* {
     return entity.Unwrap()->GetCurrentTile();
   };
@@ -96,30 +96,30 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
       Battle::Tile* dest,
       ActionOrder order,
       sol::object onBeginObject
-    ) -> bool {
-      return entity.Unwrap()->Teleport(dest, order, [onBeginObject] {
-        sol::protected_function onBegin = onBeginObject;
+      ) -> bool {
+        return entity.Unwrap()->Teleport(dest, order, [onBeginObject] {
+          sol::protected_function onBegin = onBeginObject;
 
-        if (!onBegin.valid()) {
-          return;
-        }
+          if (!onBegin.valid()) {
+            return;
+          }
 
-        auto result = onBegin();
+          auto result = onBegin();
 
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(LogLevel::critical, error.what());
-        }
-      });
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(LogLevel::critical, error.what());
+          }
+          });
     },
     // repeating instead of using std::optional to get sol to provide type errors
-    [](WeakWrapper<E>& entity, Battle::Tile* dest, ActionOrder order) -> bool {
+      [](WeakWrapper<E>& entity, Battle::Tile* dest, ActionOrder order) -> bool {
       return entity.Unwrap()->Teleport(dest, order);
     },
-    [](WeakWrapper<E>& entity, Battle::Tile* dest) -> bool {
+      [](WeakWrapper<E>& entity, Battle::Tile* dest) -> bool {
       return entity.Unwrap()->Teleport(dest);
     }
-  );
+    );
   entity_table["slide"] = sol::overload(
     [](
       WeakWrapper<E>& entity,
@@ -128,34 +128,34 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
       frame_time_t endlag,
       ActionOrder order,
       sol::object onBeginObject
-    ) -> bool {
-      return entity.Unwrap()->Slide(dest, slideTime, endlag, order, [onBeginObject] {
-        sol::protected_function onBegin = onBeginObject;
+      ) -> bool {
+        return entity.Unwrap()->Slide(dest, slideTime, endlag, order, [onBeginObject] {
+          sol::protected_function onBegin = onBeginObject;
 
-        if (!onBegin.valid()) {
-          return;
-        }
+          if (!onBegin.valid()) {
+            return;
+          }
 
-        auto result = onBegin();
+          auto result = onBegin();
 
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(LogLevel::critical, error.what());
-        }
-      });
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(LogLevel::critical, error.what());
+          }
+          });
     },
     // repeating instead of using std::optional to get sol to provide type errors
-    [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime, frame_time_t endlag, ActionOrder order) -> bool {
+      [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime, frame_time_t endlag, ActionOrder order) -> bool {
       return entity.Unwrap()->Slide(dest, slideTime, endlag, order);
     },
-    [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime, frame_time_t endlag) -> bool {
+      [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime, frame_time_t endlag) -> bool {
       return entity.Unwrap()->Slide(dest, slideTime, endlag);
     },
-    [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime) -> bool {
+      [](WeakWrapper<E>& entity, Battle::Tile* dest, frame_time_t slideTime) -> bool {
       frame_time_t endlag;
       return entity.Unwrap()->Slide(dest, slideTime, endlag);
     }
-  );
+    );
   entity_table["jump"] = sol::overload(
     [](
       WeakWrapper<E>& entity,
@@ -165,34 +165,34 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
       frame_time_t endlag,
       ActionOrder order,
       sol::object onBeginObject
-    ) -> bool {
-      return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBeginObject] {
-        sol::protected_function onBegin = onBeginObject;
+      ) -> bool {
+        return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order, [onBeginObject] {
+          sol::protected_function onBegin = onBeginObject;
 
-        if (!onBegin.valid()) {
-          return;
-        }
+          if (!onBegin.valid()) {
+            return;
+          }
 
-        auto result = onBegin();
+          auto result = onBegin();
 
-        if (!result.valid()) {
-          sol::error error = result;
-          Logger::Log(LogLevel::critical, error.what());
-        }
-      });
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(LogLevel::critical, error.what());
+          }
+          });
     },
     // repeating instead of using std::optional to get sol to provide type errors
-    [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime, frame_time_t endlag, ActionOrder order) -> bool {
+      [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime, frame_time_t endlag, ActionOrder order) -> bool {
       return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag, order);
     },
-    [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime, frame_time_t endlag) -> bool {
+      [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime, frame_time_t endlag) -> bool {
       return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag);
     },
-    [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime) -> bool {
+      [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime) -> bool {
       frame_time_t endlag;
       return entity.Unwrap()->Jump(dest, destHeight, jumpTime, endlag);
     }
-  );
+    );
   entity_table["raw_move_event"] = [](WeakWrapper<E>& entity, const MoveEvent& event, ActionOrder order) -> bool {
     return entity.Unwrap()->RawMoveEvent(event, order);
   };
@@ -247,7 +247,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
     [](WeakWrapper<E>& entity, WeakWrapper<ScriptedDefenseRule> defenseRule) {
       entity.Unwrap()->AddDefenseRule(defenseRule.UnwrapAndRelease());
     }
-  );
+    );
   entity_table["remove_defense_rule"] = sol::overload(
     [](WeakWrapper<E>& entity, WeakWrapper<DefenseRule> defenseRule) {
       entity.Unwrap()->RemoveDefenseRule(defenseRule.Unwrap());
@@ -255,7 +255,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
     [](WeakWrapper<E>& entity, WeakWrapper<ScriptedDefenseRule> defenseRule) {
       entity.Unwrap()->RemoveDefenseRule(defenseRule.Unwrap());
     }
-  );
+    );
   entity_table["ignore_common_aggressor"] = [](WeakWrapper<E>& entity, bool enable) {
     entity.Unwrap()->IgnoreCommonAggressor(enable);
   };
@@ -270,9 +270,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
         sol::error error = result;
         Logger::Log(LogLevel::critical, error.what());
       }
-    });
+      });
   },
-  entity_table["get_texture"] = [](WeakWrapper<E>& entity) -> std::shared_ptr<Texture> {
+    entity_table["get_texture"] = [](WeakWrapper<E>& entity) -> std::shared_ptr<Texture> {
     return entity.Unwrap()->getTexture();
   };
   entity_table["set_texture"] = [](WeakWrapper<E>& entity, std::shared_ptr<Texture> texture) {
@@ -287,6 +287,10 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
     auto animationComponent = entity.Unwrap()->template GetFirstComponent<AnimationComponent>();
     auto& animation = animationComponent->GetAnimationObject();
     return AnimationWrapper(entity.GetWeak(), animation);
+  };
+  entity_table["set_counter_frame_range"] = [](WeakWrapper<E>& entity, int frameStart, int frameEnd) {
+    auto animationComponent = entity.Unwrap()->template GetFirstComponent<AnimationComponent>();
+    animationComponent->SetCounterFrameRange(frameStart, frameEnd);
   };
   entity_table["create_node"] = [](WeakWrapper<E>& entity) -> WeakWrapper<SpriteProxyNode> {
     auto child = std::make_shared<SpriteProxyNode>();
