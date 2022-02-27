@@ -11,7 +11,7 @@ static std::mersenne_twister_engine<
 > randomGenerator;
 
 uint32_t SyncedRandBelow(uint32_t n) {
-  std::uniform_int_distribution<> dist(0, n - 1);
+  std::uniform_int_distribution<uint32_t> dist(0, n - 1);
   return dist(randomGenerator);
 }
 
