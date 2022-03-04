@@ -196,4 +196,9 @@ void ScriptedMob::SpawnPlayer(unsigned playerNum, int tileX, int tileY)
 {
   mob->SpawnPlayer(playerNum, tileX, tileY);
 }
+
+void ScriptedMob::EnableBossBattle()
+{
+  mob->EnableBossBattle();
+}
 #endif

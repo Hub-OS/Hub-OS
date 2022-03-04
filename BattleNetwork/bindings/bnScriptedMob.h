@@ -56,6 +56,7 @@ public:
   void SetBackground(const std::filesystem::path& bgTexturePath, const std::filesystem::path& animPath, float velx, float vely);
   void StreamMusic(const std::filesystem::path& path, long long startMs, long long endMs);
   void SpawnPlayer(unsigned playerNum, int tileX, int tileY);
+  void EnableBossBattle();
 };
 
 template<typename BuiltInCharacter>

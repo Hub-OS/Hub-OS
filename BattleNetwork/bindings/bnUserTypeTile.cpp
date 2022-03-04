@@ -138,7 +138,9 @@ void DefineTileUserType(sol::state& state) {
     "Normal", TileState::normal,
     "Poison", TileState::poison,
     "Volcano", TileState::volcano,
-    "Sea", TileState::sea
+    "Sea", TileState::sea,
+    "Sand", TileState::sand,
+    "Metal", TileState::metal
   );
 
   state.new_enum("Highlight",

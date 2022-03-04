@@ -145,9 +145,9 @@ public:
   const int GetRemainingMobCount();
 
   /**
-   * @brief Toggle boss flag. Changes scoring system and music.
+   * @brief Toggle boss flag to true. Changes scoring system and music.
    */
-  void ToggleBossFlag();
+  void EnableBossBattle();
 
   /**
    * @brief Query if boss battle

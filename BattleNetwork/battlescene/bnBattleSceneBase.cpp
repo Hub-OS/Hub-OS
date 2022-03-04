@@ -995,6 +995,9 @@ void BattleSceneBase::onEnd()
   if (onEndCallback) {
     onEndCallback(battleResults);
   }
+
+  const int music = getController().ConfigSettings().GetMusicLevel();
+  Audio().SetStreamVolume(((music - 1) / 3.0f) * 100.0f);
 }
 
 bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player>& other) {

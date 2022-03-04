@@ -178,6 +178,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       view = &packView;
     }
 
+    // If CTRL+C is pressed during this scene, copy the folder contents in discord-friendly format
     if (Input().HasSystemCopyEvent()) {
       std::string buffer;
       const std::string& nickname = getController().Session().GetNick();

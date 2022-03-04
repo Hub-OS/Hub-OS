@@ -294,14 +294,19 @@ namespace Battle {
     }
 
     if (_state == TileState::broken) {
-      if(characters.size() || reserved.size()) {
+      bool noBreak = characters.size() || reserved.size();
+      noBreak = noBreak || state == TileState::metal;
+
+      if(noBreak) {
         return;
-      } else {
-        brokenCooldown = brokenCooldownLength;
-      }
+      } 
+
+      brokenCooldown = brokenCooldownLength;
     }
 
-    if (_state == TileState::cracked && (state == TileState::empty || state == TileState::broken)) {
+    bool noCrack = (state == TileState::empty) || (state == TileState::broken) || (state == TileState::metal);
+
+    if (_state == TileState::cracked && noCrack) {
       return;
     }
 
@@ -959,6 +964,12 @@ namespace Battle {
       break;
     case TileState::sea:
       str = str + "sea";
+      break;
+    case TileState::sand:
+      str = str + "sand";
+      break;
+    case TileState::metal:
+      str = str + "metal";
       break;
     default:
       str = str + "normal";

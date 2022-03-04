@@ -241,6 +241,9 @@ void Entity::UpdateMovement(double elapsed)
             auto splash = std::make_shared<WaterSplash>();
             field.lock()->AddEntity(splash, *tile);
           }
+          else if (tile->GetState() == TileState::sand && !HasFloatShoe()) {
+            Root(frames(20));
+          }
           else {
             // Invalidate the next tile pointer
             next = nullptr;

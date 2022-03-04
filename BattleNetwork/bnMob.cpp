@@ -101,10 +101,6 @@ const int Mob::GetRemainingMobCount() {
   return int(spawn.size());
 }
 
-void Mob::ToggleBossFlag() {
-  isBoss = !isBoss;
-}
-
 bool Mob::IsBoss() {
   return isBoss;
 }
@@ -211,6 +207,10 @@ void Mob::Track(std::shared_ptr<Character> character)
   if (std::find(tracked.begin(), tracked.end(), character) == tracked.end()) {
     tracked.push_back(character);
   }
+}
+
+void Mob::EnableBossBattle() {
+  isBoss = !isBoss;
 }
 
 bool Mob::EnablePlayerCanFlip(bool enabled)
