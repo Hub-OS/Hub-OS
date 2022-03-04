@@ -22,7 +22,7 @@
 #define TILE_HEIGHT 30.0f
 #define START_X 0.0f
 #define START_Y 144.f
-#define Y_OFFSET 10.0f
+#define Y_OFFSET 6.0f
 #define COOLDOWN frames(1800)
 #define FLICKER frames(180)
 #define SEA_COOLDOWN frames(60*60)
@@ -372,7 +372,8 @@ namespace Battle {
     this->height = height * getScale().y;
     this->startX = startX;
     this->startY = startY;
-    
+    y_offset = y_offset * getScale().y;
+
     setOrigin(width / 2.0f, height / 2.0f);
     setPosition((this->width / 2.0f) + ((x - 1) * this->width) + startX, (this->height / 2.0f) + ((y - 1) * (this->height - y_offset)) + startY);
   }
@@ -1123,6 +1124,14 @@ namespace Battle {
           }
 
           attacker->Attack(character);
+
+          if (GetState() == TileState::sand && props.element == Element::wind) {
+            SetState(TileState::normal);
+          }else if (GetState() == TileState::grass && props.element == Element::fire) {
+            SetState(TileState::normal);
+          }else if (GetState() == TileState::volcano && props.element == Element::aqua) {
+            SetState(TileState::normal);
+          }
 
           // we restore the hitbox properties
           attacker->SetHitboxProperties(props);

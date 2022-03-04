@@ -151,6 +151,11 @@ namespace Battle {
 
     /**
     * @brief Repositions the tile in screen space according to its assigned x/y location
+    * @param startX x position on screen to start (in pixels)
+    * @param startY y position on screen to start (in pixels)
+    * @param width of the tile in pixels
+    * @param height of the tile in pixels
+    * @param y_offset this tile is raised up by this many pixels when below another tile to space out correctly
     */
     void Reposition(float startX, float startY, float width, float height, float y_offset);
 
