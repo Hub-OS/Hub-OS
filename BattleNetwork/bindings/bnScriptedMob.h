@@ -54,6 +54,10 @@ public:
   ScriptedSpawner CreateSpawner(const std::string& namespaceId, const std::string& fqn, Character::Rank rank);
 
   void SetBackground(const std::filesystem::path& bgTexturePath, const std::filesystem::path& animPath, float velx, float vely);
+  void SetPanels(const std::array<std::filesystem::path, 3>& panelTexturePaths,
+    const std::filesystem::path& animPath,
+    unsigned int startPosX, unsigned int startPosY,
+    unsigned int spacingX, unsigned int spacingY);
   void StreamMusic(const std::filesystem::path& path, long long startMs, long long endMs);
   void SpawnPlayer(unsigned playerNum, int tileX, int tileY);
   void EnableBossBattle();

@@ -178,7 +178,7 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
     }
   }
 
-  bool freezeBreak = victim.IsIceFrozen() && ((props.flags & Hit::breaking) == Hit::breaking);
+  bool freezeBreak = victim.IsIceFrozen() && ((props.flags & Hit::pierce_guard) == Hit::pierce_guard);
   bool superEffective = props.damage > 0 && (victim.IsSuperEffective(props.element) || victim.IsSuperEffective(props.secondaryElement));
 
   if (freezeBreak || superEffective) {

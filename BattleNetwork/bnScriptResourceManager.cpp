@@ -384,6 +384,20 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "create_spawner", [&namespaceId](ScriptedMob& self, const std::string& fqn, Character::Rank rank) {
       return self.CreateSpawner(namespaceId, fqn, rank);
     },
+    "set_panels", [](ScriptedMob& mob, 
+      const std::array<std::string, 3> panelTexturePaths,
+      const std::string animPath,
+      unsigned int startPosX, unsigned int startPosY,
+      unsigned int spacingX, unsigned int spacingY) 
+    {
+        std::array<std::filesystem::path, 3> texturePaths;
+
+        for (size_t i = 0; i < panelTexturePaths.size(); i++) {
+          texturePaths[i] = panelTexturePaths[i];
+        }
+
+        mob.SetPanels(texturePaths, animPath, startPosX, startPosY, spacingX, spacingY);
+    },
     "set_background", [](ScriptedMob& mob, const std::string& texturePath, const std::string& animPath, float velx, float vely) {
       return mob.SetBackground(texturePath, animPath, velx, vely);
     },

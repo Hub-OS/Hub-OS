@@ -45,6 +45,8 @@ private:
   double maxSelectInputCooldown; /*!< half of a second input delay */
   double selectInputCooldown;    /*!< count down before registering input */
 
+  sf::Shader* greyScaleShader{ nullptr };
+
   // NAVI UI font
   Font font;
   Font naviFont;

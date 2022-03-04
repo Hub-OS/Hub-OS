@@ -32,6 +32,12 @@ public:
    */
    void OnUpdate(double _elapsed) override;
   
+   /**
+   * @brief owner->Collide(_entity) is called
+   * @param _entity the entity to attack that is not the same as the owner
+   */
+   void OnCollision(const std::shared_ptr<Entity> _entity) override;
+
   /**
    * @brief owner->Attack(_entity) is called 
    * @param _entity the entity to attack that is not the same as the owner

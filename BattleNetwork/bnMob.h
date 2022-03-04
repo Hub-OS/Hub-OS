@@ -72,6 +72,10 @@ private:
   std::shared_ptr<Field> field{ nullptr }; /*!< The field to play on */
   std::shared_ptr<Background> background; /*!< Override with custom background */
 
+  sf::Vector2i panelSpacing; /*!< Override with custom panel spacing */
+  sf::Vector2i panelStartPos; /*!< Override with custom panel startPos */
+  std::array<std::shared_ptr<sf::Texture>, 3> panelTextures; /*!< Override with custom panel texture */
+  Animation panelAnimation; /*!< Required when overriding custom panel texture */
 public:
   friend class ScriptedMob;
 
@@ -177,9 +181,35 @@ public:
 
   /**
    * @brief Get the background object
-   * @return Background*
+   * @return std::shared_ptr<Background>
    */
   std::shared_ptr<Background> GetBackground();
+
+  /**
+  * @brief Set a custom panel texture and its corresponding animation file
+  * @param 3 textures
+  * @param animation
+  * @param spacingX how many pixels apart horizontally tiles are spaced
+  * @param spacingY how many pixels apart vertically tiles are spaced
+  */
+  void SetPanels(const std::array<std::shared_ptr<sf::Texture>, 3>& textures, const Animation& animation, sf::Vector2i startPos, sf::Vector2i spacing);
+
+  /**
+   * @brief Get the panel texture
+   * @return std::array<std::shared_ptr<Texture>, 3>
+   */
+  const std::array<std::shared_ptr<Texture>, 3> GetPanelTextures();
+
+  /**
+   * @brief Get the corresponding animation to the panel texture
+   * @return const Animation
+   */
+  const Animation GetPanelAnimation();
+
+  const sf::Vector2i GetPanelSpacing() const;
+  const sf::Vector2i GetPanelStartPos() const;
+
+  const bool HasCustomPanels() const;
 
   /**
    * @brief The battle scene will load this custom music

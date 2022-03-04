@@ -37,6 +37,8 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   owTextbox({4, 255}),
   Scene(controller) {
 
+  greyScaleShader = Shaders().GetShader(ShaderType::GREYSCALE);
+
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
   menuLabel.setScale(2.f, 2.f);
@@ -196,7 +198,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
 
   // Update UI slide in
   if (!gotoNextScene) {
-    factor -= (float)elapsed * 280.f;
+    factor -= elapsed * 280.0;
 
     if (factor <= 0.f) {
       factor = 0.f;
@@ -249,7 +251,13 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  surface.draw(navi);
+  sf::RenderStates states;
+
+  if (!IsNaviAllowed()) {
+    states.shader = greyScaleShader;
+  }
+
+  surface.draw(navi, states);
   surface.draw(owTextbox);
 }
 

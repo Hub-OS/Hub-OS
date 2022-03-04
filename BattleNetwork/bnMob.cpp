@@ -138,6 +138,42 @@ std::shared_ptr<Background> Mob::GetBackground() {
   return background;
 }
 
+void Mob::SetPanels(const std::array<std::shared_ptr<sf::Texture>, 3>& textures, const Animation& animation, sf::Vector2i startPos, sf::Vector2i spacing)
+{
+  panelSpacing = spacing;
+  panelStartPos = startPos;
+  panelTextures = textures;
+  panelAnimation = animation;
+
+  field->ChangePanelVisuals(startPos, spacing, textures, animation);
+}
+
+const std::array<std::shared_ptr<Texture>, 3> Mob::GetPanelTextures()
+{
+  return panelTextures;
+}
+
+const Animation Mob::GetPanelAnimation()
+{
+  return panelAnimation;
+}
+
+const sf::Vector2i Mob::GetPanelSpacing() const
+{
+  return panelSpacing;
+}
+
+const sf::Vector2i Mob::GetPanelStartPos() const
+{
+  return panelStartPos;
+}
+
+const bool Mob::HasCustomPanels() const
+{
+  // All 3 must be nullptr to use safely
+  return panelTextures[0] != nullptr && panelTextures[1] != nullptr && panelTextures[2] != nullptr;
+}
+
 void Mob::StreamCustomMusic(const std::filesystem::path& path, long long startMs, long long endMs) {
   music = path;
   this->startMs = startMs;

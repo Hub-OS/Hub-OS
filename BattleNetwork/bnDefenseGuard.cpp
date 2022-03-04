@@ -18,7 +18,7 @@ void DefenseGuard::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entit
 {
   auto props = attacker->GetHitboxProperties();
 
-  if ((props.flags & Hit::breaking) == 0) {
+  if ((props.flags & Hit::pierce_guard) == 0) {
     judge.BlockDamage();
 
     if ((props.flags & Hit::impact) == Hit::impact) {

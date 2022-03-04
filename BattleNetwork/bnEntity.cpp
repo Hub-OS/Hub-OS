@@ -1294,7 +1294,7 @@ const bool Entity::UnknownTeamResolveCollision(const Entity& other) const
 const bool Entity::HasCollision(const Hit::Properties & props)
 {
   // Pierce status hits even when passthrough or flinched
-  if ((props.flags & Hit::pierce) != Hit::pierce) {
+  if ((props.flags & Hit::pierce_invis) != Hit::pierce_invis) {
     if (IsPassthrough() || !hitboxEnabled) return false;
   }
 
@@ -1363,7 +1363,7 @@ void Entity::ResolveFrameBattleDamage()
       GetTile()->SetState(TileState::normal);
     }
 
-    if ((props.filtered.flags & Hit::breaking) == Hit::breaking && IsIceFrozen()) {
+    if ((props.filtered.flags & Hit::pierce_guard) == Hit::pierce_guard && IsIceFrozen()) {
       extraDamage = props.filtered.damage;
       frameFreezeCancel = true;
     }
@@ -1587,8 +1587,8 @@ void Entity::ResolveFrameBattleDamage()
       Now check if the rest were triggered and invoke the
       corresponding status callbacks
       */
-      flagCheckThunk(Hit::breaking);
-      flagCheckThunk(Hit::pierce);
+      flagCheckThunk(Hit::pierce_guard);
+      flagCheckThunk(Hit::pierce_invis);
       flagCheckThunk(Hit::flinch);
 
       if (GetHealth() == 0) {

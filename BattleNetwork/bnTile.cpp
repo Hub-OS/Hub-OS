@@ -49,10 +49,7 @@ namespace Battle {
 
     entities = vector<std::shared_ptr<Entity>>();
     setScale(2.f, 2.f);
-    width = TILE_WIDTH * getScale().x;
-    height = TILE_HEIGHT * getScale().y;
-    setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
-    setPosition((width/2.0f) + ((x - 1) * width) + START_X, (height/2.0f) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
+    Reposition(START_X, START_Y, TILE_WIDTH, TILE_HEIGHT, Y_OFFSET);
     willHighlight = false;
     isTimeFrozen = true;
     isBattleOver = false;
@@ -367,6 +364,17 @@ namespace Battle {
     default:
       setTexture(unk_team_atlas);
     }
+  }
+
+  void Tile::Reposition(float startX, float startY, float width, float height, float y_offset)
+  {
+    this->width = width * getScale().x;
+    this->height = height * getScale().y;
+    this->startX = startX;
+    this->startY = startY;
+    
+    setOrigin(width / 2.0f, height / 2.0f);
+    setPosition((this->width / 2.0f) + ((x - 1) * this->width) + startX, (this->height / 2.0f) + ((y - 1) * (this->height - y_offset)) + startY);
   }
 
   bool Tile::IsWalkable() const {
@@ -697,7 +705,7 @@ namespace Battle {
       if (!character.HasFloatShoe()) {
         if (GetState() == TileState::poison) {
           if (elapsedBurnTime <= 0) {
-            if (character.Hit(Hit::Properties({ 1, Hit::pierce, Element::none, Element::none, 0, Direction::none }))) {
+            if (character.Hit(Hit::Properties({ 1, Hit::pierce_invis, Element::none, Element::none, 0, Direction::none }))) {
               elapsedBurnTime = burncycle;
             }
           }

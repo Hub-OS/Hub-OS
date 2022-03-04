@@ -188,6 +188,21 @@ void ScriptedMob::SetBackground(const std::filesystem::path& bgTexturePath, cons
   mob->SetBackground(background);
 }
 
+void ScriptedMob::SetPanels(const std::array<std::filesystem::path, 3>& panelTexturePaths, 
+  const std::filesystem::path& animPath, 
+  unsigned int startPosX, unsigned int startPosY,
+  unsigned int spacingX, unsigned int spacingY)
+{
+  std::array<std::shared_ptr<sf::Texture>, 3> textures;
+
+  for (size_t i = 0; i < panelTexturePaths.size(); i++) {
+    textures[i] = Textures().LoadFromFile(panelTexturePaths[i]);
+  }
+
+  auto anim = Animation(animPath);
+  mob->SetPanels(textures, anim, sf::Vector2i(startPosX, startPosY), sf::Vector2i(spacingX, spacingY));
+}
+
 void ScriptedMob::StreamMusic(const std::filesystem::path& path, long long startMs, long long endMs)
 {
   mob->StreamCustomMusic(path, startMs, endMs);

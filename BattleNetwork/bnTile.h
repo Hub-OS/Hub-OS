@@ -150,6 +150,11 @@ namespace Battle {
     void RefreshTexture();
 
     /**
+    * @brief Repositions the tile in screen space according to its assigned x/y location
+    */
+    void Reposition(float startX, float startY, float width, float height, float y_offset);
+
+    /**
      * @brief Query if the tile is walkable e.g. not Broken nor Empty
      * @return true if walkable, false otherwise
      */
@@ -353,6 +358,8 @@ namespace Battle {
     bool isPerspectiveFlipped{ false };
     float width{};
     float height{};
+    float startX{};
+    float startY{};
     static frame_time_t teamCooldownLength;
     static frame_time_t brokenCooldownLength;
     static frame_time_t flickerTeamCooldownLength;
