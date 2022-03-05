@@ -900,6 +900,7 @@ void Entity::SetTeam(Team _team) {
 void Entity::SetPassthrough(bool state)
 {
   passthrough = state;
+  Reveal();
 }
 
 bool Entity::IsPassthrough()
@@ -1391,6 +1392,9 @@ void Entity::ResolveFrameBattleDamage()
         flagCheckThunk(Hit::impact);
       }
 
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::impact;
+
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.filtered.flags & Hit::drag) == Hit::drag) {
         if (IsSliding()) {
@@ -1412,10 +1416,10 @@ void Entity::ResolveFrameBattleDamage()
         }
 
         flagCheckThunk(Hit::drag);
-
-        // exclude this from the next processing step
-        props.filtered.flags &= ~Hit::drag;
       }
+
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::drag;
 
       bool flashAndFlinch = ((props.filtered.flags & Hit::flash) == Hit::flash) && ((props.filtered.flags & Hit::flinch) == Hit::flinch);
       frameFreezeCancel = frameFreezeCancel || flashAndFlinch;
@@ -1434,11 +1438,6 @@ void Entity::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          // TODO: this is a specific (and expensive) check. Is there a way to prioritize this defense rule?
-          /*for (auto&& d : this->defenses) {
-            hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
-          }*/
-
           if ((props.filtered.flags & Hit::flash) == Hit::flash && frameStunCancel) {
             // cancel stun
             stunCooldown = frames(0);
@@ -1553,7 +1552,6 @@ void Entity::ResolveFrameBattleDamage()
       props.filtered.flags &= ~Hit::blind;
 
       // confuse check
-      // TODO: Double check with mars that this is the correct behavior for confusion.
       if ((props.filtered.flags & Hit::confuse) == Hit::confuse) {
         if (postDragEffect.dir != Direction::none) {
           // requeue these statuses if in the middle of a slide/drag
@@ -1565,11 +1563,6 @@ void Entity::ResolveFrameBattleDamage()
         }
       }
       props.filtered.flags &= ~Hit::confuse;
-
-      // todo: for confusion
-      //if ((props.filtered.flags & Hit::confusion) == Hit::confusion) {
-      //  frameStunCancel = true;
-      //}
 
       /*
       flags already accounted for:
