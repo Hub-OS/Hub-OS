@@ -21,7 +21,7 @@
 #define TILE_WIDTH 40.0f
 #define TILE_HEIGHT 30.0f
 #define START_X 0.0f
-#define START_Y 144.f
+#define START_Y 140.f
 #define Y_OFFSET 6.0f
 #define COOLDOWN frames(1800)
 #define FLICKER frames(180)
@@ -36,7 +36,7 @@ namespace Battle {
   Tile::Tile(int _x, int _y) : 
     SpriteProxyNode(),
     animation() {
-    totalElapsed = 0;
+    totalElapsed = frames(0);
     x = _x;
     y = _y;
 
@@ -57,7 +57,7 @@ namespace Battle {
     flickerTeamCooldown = teamCooldown = frames(0);
     red_team_atlas = blue_team_atlas = nullptr; // Set by field
 
-    burncycle = 0.12; // milliseconds
+    burncycle = frames(1);
     elapsedBurnTime = burncycle;
 
     highlightMode = TileHighlight::none;
@@ -65,10 +65,10 @@ namespace Battle {
     volcanoSprite = std::make_shared<SpriteProxyNode>();
     volcanoErupt = Animation("resources/tiles/volcano.animation");
 
-    auto resetVolcanoThunk = [this](int seconds) {
+    auto resetVolcanoThunk = [this](int frames) {
       if (!isBattleOver) {
         this->volcanoErupt.SetFrame(1, this->volcanoSprite->getSprite()); // start over
-        volcanoEruptTimer = seconds;
+        volcanoEruptTimer = ::frames(frames);
         
         std::shared_ptr<Field> field = fieldWeak.lock();
 
@@ -82,15 +82,15 @@ namespace Battle {
     };
 
     if (team == Team::blue) {
-      resetVolcanoThunk(1); // blue goes first
+      resetVolcanoThunk(60); // blue goes first
     }
     else {
-      resetVolcanoThunk(2); // then red
+      resetVolcanoThunk(120); // then red
     }
 
     // On anim end, reset the timer
     volcanoErupt << "FLICKER" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
-      resetVolcanoThunk(2);
+      resetVolcanoThunk(120);
     };
 
     volcanoSprite->setTexture(Textures().LoadFromFile("resources/tiles/volcano.png"));
@@ -115,10 +115,8 @@ namespace Battle {
     animation.Refresh(getSprite());
     entities = other.entities;
     setScale(2.f, 2.f);
-    width = other.width;
-    height = other.height;
     animState = other.animState;
-    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
+    Reposition(other.startX, other.startY, other.width, other.height, other.offsetY);
     willHighlight = other.willHighlight;
     reserved = other.reserved;
     characters = other.characters;
@@ -368,14 +366,18 @@ namespace Battle {
 
   void Tile::Reposition(float startX, float startY, float width, float height, float y_offset)
   {
-    this->width = width * getScale().x;
-    this->height = height * getScale().y;
+    this->width = width;
+    this->height = height;
     this->startX = startX;
     this->startY = startY;
-    y_offset = y_offset * getScale().y;
+    this->offsetY = y_offset;
+    
+    float tileCenter = std::ceilf((height - offsetY) / 2.f);
+    float xpos = std::ceilf(this->width + ((x - 1) * (this->width * getScale().x)) + startX);
+    float ypos = std::ceilf(this->height + ((y - 1) * ((this->height - this->offsetY)*getScale().y)) + startY);
 
-    setOrigin(width / 2.0f, height / 2.0f);
-    setPosition((this->width / 2.0f) + ((x - 1) * this->width) + startX, (this->height / 2.0f) + ((y - 1) * (this->height - y_offset)) + startY);
+    setOrigin(std::ceilf(width / 2.0f), tileCenter);
+    setPosition(xpos, ypos);
   }
 
   bool Tile::IsWalkable() const {
@@ -528,16 +530,16 @@ namespace Battle {
 
   void Tile::Update(Field& field, double _elapsed) {
     willHighlight = false;
-    totalElapsed += _elapsed;
+    totalElapsed += from_seconds(_elapsed);
 
     if (!isTimeFrozen && isBattleStarted) {
       // LAVA TILES
-      elapsedBurnTime -= _elapsed;
+      elapsedBurnTime -= from_seconds(_elapsed);
 
       // VOLCANO 
-      volcanoEruptTimer -= _elapsed;
+      volcanoEruptTimer -= from_seconds(_elapsed);
 
-      if (volcanoEruptTimer <= 0) {
+      if (volcanoEruptTimer <= frames(0)) {
         volcanoErupt.Update(_elapsed, volcanoSprite->getSprite());
       }
 
@@ -579,7 +581,7 @@ namespace Battle {
     }
 
     RefreshTexture();
-    animation.SyncTime(from_seconds(totalElapsed));
+    animation.SyncTime(totalElapsed);
     animation.Refresh(this->getSprite());
 
     switch (highlightMode) {
@@ -587,7 +589,7 @@ namespace Battle {
       willHighlight = true;
       break;
     case TileHighlight::flash:
-      willHighlight = (int)(totalElapsed * 15) % 2 == 0;
+      willHighlight = (totalElapsed.count() % 4 < 2);
       break;
     default:
       willHighlight = false;
@@ -598,7 +600,8 @@ namespace Battle {
     }
 
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
-    setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
+    float tileCenter = std::ceilf((height - offsetY) / 2.f);
+    setOrigin(std::ceilf(width/2.f), tileCenter);
     highlightMode = TileHighlight::none;
 
     // Process tile behaviors
@@ -705,14 +708,14 @@ namespace Battle {
       // LAVA & POISON TILES
       if (!character.HasFloatShoe()) {
         if (GetState() == TileState::poison) {
-          if (elapsedBurnTime <= 0) {
+          if (elapsedBurnTime <= frames(0)) {
             if (character.Hit(Hit::Properties({ 1, Hit::pierce_invis, Element::none, Element::none, 0, Direction::none }))) {
               elapsedBurnTime = burncycle;
             }
           }
         }
         else {
-          elapsedBurnTime = 0;
+          elapsedBurnTime = frames(0);
         }
 
         if (GetState() == TileState::lava) {
@@ -1131,6 +1134,11 @@ namespace Battle {
           }
 
           attacker->Attack(character);
+
+          // Special case: highlight the tile when attacking on a frame
+          if (attacker->GetTileHighlightMode() == TileHighlight::automatic) {
+            highlightMode = TileHighlight::solid;
+          }
 
           // we restore the hitbox properties
           attacker->SetHitboxProperties(props);

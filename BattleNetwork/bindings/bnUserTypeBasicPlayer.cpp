@@ -21,6 +21,9 @@ void DefineBasicPlayerUserType(sol::table& battle_namespace) {
       auto playerPtr = player.Unwrap();
       return playerPtr->CanAttack();
     },
+    "is_actionable", [](WeakWrapper<Player>& player) -> bool {
+      return player.Unwrap()->IsActionable();
+    },
     "get_attack_level", [](WeakWrapper<Player>& player) -> unsigned int {
       return player.Unwrap()->GetAttackLevel();
     },

@@ -40,7 +40,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
     [](WeakWrapper<E>& entity) -> Battle::Tile* {
       return entity.Unwrap()->GetTile();
     }
-    );
+  );
   entity_table["get_current_tile"] = [](WeakWrapper<E>& entity) -> Battle::Tile* {
     return entity.Unwrap()->GetCurrentTile();
   };

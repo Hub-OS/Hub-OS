@@ -509,12 +509,12 @@ void Game::SetSubtitle(const std::string& subtitle)
 
 const std::filesystem::path Game::AppDataPath()
 {
-  return std::filesystem::u8path(sago::getDataHome()) / window.GetTitle();
+  return std::filesystem::u8path(sago::getDataHome()) / appName;
 }
 
 const std::filesystem::path Game::CacheDataPath()
 {
-  return std::filesystem::u8path(sago::getCacheDir()) / window.GetTitle();
+  return std::filesystem::u8path(sago::getCacheDir()) / appName;
 }
 
 const std::filesystem::path Game::DesktopPath()

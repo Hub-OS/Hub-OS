@@ -18,6 +18,8 @@
 #include "bnInputManager.h"
 #include "bnPackageManager.h"
 
+#define APP_NAME "OpenNetBattle"
+
 #define ONB_REGION_JAPAN 0
 #define ONB_ENABLE_PIXELATE_GFX 0
 
@@ -64,6 +66,7 @@ private:
   bool showScreenBars{};
   bool frameByFrame{}, isDebug{}, quitting{ false };
   bool singlethreaded{ false }, recordPressed{ false };
+  const char* appName{ APP_NAME };
 
   std::unique_ptr<FrameRecorder> frameRecorder;
 

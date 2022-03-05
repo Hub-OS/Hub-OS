@@ -43,6 +43,7 @@ public:
   void OnUpdate(double _elapsed) override;
   void OnBattleStart() override;
   void OnBattleStop() override;
+
   frame_time_t CalculateChargeTime(const unsigned chargeLevel) override;
   ScriptedPlayerFormMeta* CreateForm();
 

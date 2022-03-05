@@ -49,6 +49,7 @@ namespace Battle {
     none = 0,
     flash = 1,
     solid = 2,
+    automatic = 3
   };
 
   class Tile : public SpriteProxyNode, public ResourceHandle {
@@ -58,7 +59,7 @@ namespace Battle {
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
-    * 
+    *
     * If the tile column is <= 3, the tile's team is
     * automatically RED. Otherwise it is BLUE.
     */
@@ -85,7 +86,7 @@ namespace Battle {
      * @return Column number
      */
     const int GetX() const;
-    
+
     /**
      * @brief Base 1. Returns the row of the tile.
      * @return Row number
@@ -99,16 +100,16 @@ namespace Battle {
      * @return Team
      */
     const Team GetTeam() const;
-    
+
     void HandleMove(std::shared_ptr<Entity> entity);
 
     void PerspectiveFlip(bool state);
 
     /**
      * @brief Change the tile's team if unoccupied
-     * This will also change the color of the tile. 
+     * This will also change the color of the tile.
      * If the tile has characters of another team on it,
-     * it will not change. 
+     * it will not change.
      * @param _team Team to change to
      * @param useFlicker if true, will change state & will flicker for flickerTeamCooldownLength milliseconds
      */
@@ -128,7 +129,7 @@ namespace Battle {
      * Size
      */
     const size_t GetEntityCount() const;
-    
+
     /**
      * @brief Get the height of the tile sprite
      * @return height in pixels
@@ -164,10 +165,10 @@ namespace Battle {
      * @return true if walkable, false otherwise
      */
     bool IsWalkable() const;
-    
+
     /**
      * @brief Query if the tile is cracked
-     * @return true if state == TileState::cracked 
+     * @return true if state == TileState::cracked
      */
     bool IsCracked() const;
 
@@ -185,7 +186,7 @@ namespace Battle {
     /**
      * @brief Query if the tile should be highlighted in battle
      * Some spells don't highlight tiles they occupy
-     * The boolean is toggled in the Tile's Update() loop 
+     * The boolean is toggled in the Tile's Update() loop
      * In the battle scene, if a tile is highlighted, it will use the
      * yellow luminocity shader to highlight the tile.
      * @return true if tile will be highlighted
@@ -198,10 +199,10 @@ namespace Battle {
     void RequestHighlight(TileHighlight mode);
 
     /**
-     * @brief Returns true if a character is standing on or has reserved this tile 
-     * 
+     * @brief Returns true if a character is standing on or has reserved this tile
+     *
      * Only checks for character entity types
-     * 
+     *
      * @param exclude list. Optional parameter. Any character matching the ID in this list are exluded from the final count and could change the result.
      */
     bool IsReservedByCharacter(std::vector<Entity::ID_t> exclude = {});
@@ -218,7 +219,7 @@ namespace Battle {
      * @return true if the entity bucket has been modified and the entity removed
      */
     bool RemoveEntityByID(Entity::ID_t ID);
-    
+
     /**
      * @brief Query if the given entity already occupies this tile
      * @param _entity to check
@@ -227,7 +228,7 @@ namespace Battle {
     bool ContainsEntity(const std::shared_ptr<Entity> _entity) const;
 
     /**
-     * @brief Reserve this tile for an entity with ID 
+     * @brief Reserve this tile for an entity with ID
      * An entity may be temporarily removed from play but will be back
      * later. This mechanic is seen with AntiDamage card. While
      * the entity is removed, the tile it was on must not be modified
@@ -242,9 +243,9 @@ namespace Battle {
      * @return true if the tile contains entity of type Type, false if no matches
      */
     template<class Type> bool ContainsEntityType();
-    
+
     /**
-     * @brief Queues an entity to attack to all other entities occupying this tile 
+     * @brief Queues an entity to attack to all other entities occupying this tile
      * @param caller must be valid non-null entity
      */
     void AffectEntities(Entity& attacker);
@@ -275,9 +276,9 @@ namespace Battle {
     * @brief Assigns the textures used by the tile according to team, their states, and their animation files
     */
     void SetupGraphics(
-      std::shared_ptr<sf::Texture> redTeam, 
-      std::shared_ptr<sf::Texture> blueTeam, 
-      std::shared_ptr<sf::Texture> unknown, 
+      std::shared_ptr<sf::Texture> redTeam,
+      std::shared_ptr<sf::Texture> blueTeam,
+      std::shared_ptr<sf::Texture> unknown,
       const Animation& anim
     );
 
@@ -304,10 +305,10 @@ namespace Battle {
 
     /**
      * @brief Query for multiple entities using a functor
-     * This is useful for movement as well as card attacks 
+     * This is useful for movement as well as card attacks
      * to find specific enemy types under specific conditions
      * @param e Functor that takes in an entity and returns a boolean
-     * @return returns a list of entities that returned true in the functor `e` 
+     * @return returns a list of entities that returned true in the functor `e`
      */
     std::vector<std::shared_ptr<Entity>> FindHittableEntities(std::function<bool(std::shared_ptr<Entity>& e)> query);
 
@@ -365,6 +366,8 @@ namespace Battle {
     float height{};
     float startX{};
     float startY{};
+    float offsetX{};
+    float offsetY{};
     static frame_time_t teamCooldownLength;
     static frame_time_t brokenCooldownLength;
     static frame_time_t flickerTeamCooldownLength;
@@ -373,9 +376,9 @@ namespace Battle {
     frame_time_t brokenCooldown{};
     frame_time_t seaCooldown{};
     frame_time_t flickerTeamCooldown{};
-    double totalElapsed{};
-    double elapsedBurnTime{};
-    double burncycle{};
+    frame_time_t totalElapsed{};
+    frame_time_t elapsedBurnTime{};
+    frame_time_t burncycle{};
     std::weak_ptr<Field> fieldWeak;
     std::shared_ptr<sf::Texture> red_team_atlas, red_team_perm;
     std::shared_ptr<sf::Texture> blue_team_atlas, blue_team_perm;
@@ -400,7 +403,7 @@ namespace Battle {
 
     Animation animation;
     Animation volcanoErupt;
-    double volcanoEruptTimer{ 4 }; // seconds
+    frame_time_t volcanoEruptTimer = frames(240);
     std::shared_ptr<SpriteProxyNode> volcanoSprite;
   };
 
