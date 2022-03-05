@@ -12,7 +12,7 @@ DefenseInvis::~DefenseInvis()
 
 void DefenseInvis::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)
 {
-  if ((attacker->GetHitboxProperties().flags & Hit::pierce) != Hit::pierce) {
+  if ((attacker->GetHitboxProperties().flags & Hit::pierce_invis) != Hit::pierce_invis) {
     judge.BlockDamage();
     judge.BlockImpact();
   }

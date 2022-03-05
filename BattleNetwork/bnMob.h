@@ -72,6 +72,10 @@ private:
   std::shared_ptr<Field> field{ nullptr }; /*!< The field to play on */
   std::shared_ptr<Background> background; /*!< Override with custom background */
 
+  sf::Vector2i panelSpacing; /*!< Override with custom panel spacing */
+  sf::Vector2i panelStartPos; /*!< Override with custom panel startPos */
+  std::array<std::shared_ptr<sf::Texture>, 3> panelTextures; /*!< Override with custom panel texture */
+  Animation panelAnimation; /*!< Required when overriding custom panel texture */
 public:
   friend class ScriptedMob;
 
@@ -145,9 +149,9 @@ public:
   const int GetRemainingMobCount();
 
   /**
-   * @brief Toggle boss flag. Changes scoring system and music.
+   * @brief Toggle boss flag to true. Changes scoring system and music.
    */
-  void ToggleBossFlag();
+  void EnableBossBattle();
 
   /**
    * @brief Query if boss battle
@@ -177,9 +181,35 @@ public:
 
   /**
    * @brief Get the background object
-   * @return Background*
+   * @return std::shared_ptr<Background>
    */
   std::shared_ptr<Background> GetBackground();
+
+  /**
+  * @brief Set a custom panel texture and its corresponding animation file
+  * @param 3 textures
+  * @param animation
+  * @param spacingX how many pixels apart horizontally tiles are spaced
+  * @param spacingY how many pixels apart vertically tiles are spaced
+  */
+  void SetPanels(const std::array<std::shared_ptr<sf::Texture>, 3>& textures, const Animation& animation, sf::Vector2i startPos, sf::Vector2i spacing);
+
+  /**
+   * @brief Get the panel texture
+   * @return std::array<std::shared_ptr<Texture>, 3>
+   */
+  const std::array<std::shared_ptr<Texture>, 3> GetPanelTextures();
+
+  /**
+   * @brief Get the corresponding animation to the panel texture
+   * @return const Animation
+   */
+  const Animation GetPanelAnimation();
+
+  const sf::Vector2i GetPanelSpacing() const;
+  const sf::Vector2i GetPanelStartPos() const;
+
+  const bool HasCustomPanels() const;
 
   /**
    * @brief The battle scene will load this custom music
@@ -394,13 +424,29 @@ public:
       data->character->SetName(data->character->GetName() + "R2");
       break;
     case ClassType::Rank::SP:
-      data->character->SetName(data->character->GetName() + char(-1));
+      data->character->SetName(data->character->GetName() + "\ue000");
       break;
     case ClassType::Rank::EX:
-      data->character->SetName(data->character->GetName() + char(-2));
+      data->character->SetName(data->character->GetName() + "\ue001");
       break;
     case ClassType::Rank::NM:
-      data->character->SetName(data->character->GetName() + char(-3));
+      data->character->SetName(data->character->GetName() + "\ue002");
+      break;
+    case ClassType::Rank::RV:
+      data->character->SetName(data->character->GetName() + "\ue003");
+      break;
+    case ClassType::Rank::DS:
+      data->character->SetName(data->character->GetName() + "\ue004");
+      break;
+    case ClassType::Rank::Alpha:
+      data->character->SetName(data->character->GetName() + "α");
+      break;
+    case ClassType::Rank::Beta:
+      data->character->SetName(data->character->GetName() + "β");
+      break;
+    case ClassType::Rank::Omega:
+      data->character->SetName(data->character->GetName() + "Ω");
+      break;
     }
 
     // Add the character to our list of enemies to spawn

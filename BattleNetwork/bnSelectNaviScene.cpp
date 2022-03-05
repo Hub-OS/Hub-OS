@@ -8,6 +8,10 @@
 #include "bnSelectNaviScene.h"
 #include "Segues/Checkerboard.h"
 
+#include <Poco/TextIterator.h>
+#include <Poco/UTF8Encoding.h>
+#include <Poco/UnicodeConverter.h>
+
 using namespace swoosh::types;
 
 bool SelectNaviScene::IsNaviAllowed()
@@ -32,6 +36,8 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   menuLabel("1", font),
   owTextbox({4, 255}),
   Scene(controller) {
+
+  greyScaleShader = Shaders().GetShader(ShaderType::GREYSCALE);
 
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
@@ -101,7 +107,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   speedLabel.SetString(sf::String(playerPkg.GetSpeedString().c_str()));
   attackLabel.SetString(sf::String(playerPkg.GetAttackString().c_str()));
   hpLabel.SetString(sf::String(playerPkg.GetHPString().c_str()));
-  
+
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
 
@@ -192,7 +198,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
 
   // Update UI slide in
   if (!gotoNextScene) {
-    factor -= (float)elapsed * 280.f;
+    factor -= elapsed * 280.0;
 
     if (factor <= 0.f) {
       factor = 0.f;
@@ -245,7 +251,13 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  surface.draw(navi);
+  sf::RenderStates states;
+
+  if (!IsNaviAllowed()) {
+    states.shader = greyScaleShader;
+  }
+
+  surface.draw(navi, states);
   surface.draw(owTextbox);
 }
 
@@ -403,24 +415,29 @@ void SelectNaviScene::onUpdate(double elapsed) {
     numberCooldown -= (float)elapsed;
     std::string newstr;
 
-    for (int i = 0; i < naviLabel.GetString().length(); i++) {
+    Poco::UTF8Encoding utf8Encoding;
+    Poco::TextIterator it(naviLabel.GetString(), utf8Encoding);
+    Poco::TextIterator end(naviLabel.GetString());
+    size_t i = 0;
+    size_t length = Poco::UnicodeConverter::UTFStrlen(naviLabel.GetString().c_str());
+    for (; it != end; ++it) {
       double progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
-      double index = progress * naviLabel.GetString().length();
+      double index = progress * length;
 
       if (i < (int)index) {
-        // Choose the unscrambled character from the original string
-        newstr += naviLabel.GetString()[i];
+        std::string utf8string;
+        Poco::UnicodeConverter::convert(Poco::UTF32String(1, *it), utf8string);
+        newstr += utf8string;
       }
       else {
-        // If the character in the string isn't a space...
-        if (naviLabel.GetString()[i] != ' ') {
-          // Choose a random, capital ASCII character
+        if (*it != U' ') {
           newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
         }
         else {
           newstr += ' ';
         }
       }
+      ++i;
     }
 
     int randAttack = rand() % 10;

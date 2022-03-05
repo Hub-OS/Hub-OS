@@ -1,9 +1,9 @@
 #include "bnAnimatedTextBox.h"
 #include <cmath>
 
-AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) : 
-  textArea(), 
-  totalTime(0), 
+AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
+  textArea(),
+  totalTime(0),
   textBox(280, 45) {
   textureRef = Textures().LoadFromFile(TexturePaths::ANIMATED_TEXT_BOX);
   frame = sf::Sprite(*textureRef);
@@ -36,10 +36,10 @@ void AnimatedTextBox::Close() {
 
   animator.SetAnimation("CLOSE");
 
-  animator << Animator::On(2, 
-    [this] 
+  animator << Animator::On(2,
+    [this]
     {
-      canDraw = false; 
+      canDraw = false;
     }
   );
 
@@ -190,7 +190,7 @@ void AnimatedTextBox::EnqueMessage(const sf::Sprite& speaker, const Animation& a
 {
   messages.push_back(message);
   anims.push_back(anim);
-  
+
   auto& mugAnim = anims[anims.size() - 1];
   mugAnim.SetAnimation("IDLE");
   mugAnim << Animator::Mode::Loop;
@@ -228,10 +228,10 @@ void AnimatedTextBox::Update(double elapsed) {
     auto y = (textBox.GetNumberOfFittingLines() -yIndex) * 10.0f;
     y = frame.getPosition().y - y;
 
-    char currChar = textBox.GetCurrentCharacter();
+    uint32_t currChar = textBox.GetCurrentCharacter();
     bool muteFX = (textBox.GetVFX() & TextBox::effects::zzz) == TextBox::effects::zzz;
-    bool speakingDot = currChar == '.' || currChar == '\0';
-    bool silence = (currChar == ' ' && mugAnimator.GetAnimationString() == "IDLE");
+    bool speakingDot = currChar == U'.' || currChar == U'\0';
+    bool silence = (currChar == U' ' && mugAnimator.GetAnimationString() == "IDLE");
     bool lipsSealed = muteFX || speakingDot || silence;
 
     auto playIdleThunk = [this] {

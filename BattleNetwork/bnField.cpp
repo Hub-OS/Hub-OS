@@ -15,46 +15,16 @@ Field::Field(int _width, int _height) :
   pending(),
   revealCounterFrames(false),
   tiles(vector<vector<Battle::Tile*>>())
-  {
+{
   ResourceHandle handle;
 
-  // Moved tile resource acquisition to field so we only them once for all tiles
   Animation a(TILE_ANIMATION_PATH);
-  a.Reload();
-  a << Animator::Mode::Loop;
 
-  std::shared_ptr<sf::Texture> t_a_b = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_BLUE);
   std::shared_ptr<sf::Texture> t_a_r = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_RED);
+  std::shared_ptr<sf::Texture> t_a_b = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_BLUE);
   std::shared_ptr<sf::Texture> t_a_u = handle.Textures().LoadFromFile(TexturePaths::TILE_ATLAS_UNK);
 
-  for (int y = 0; y < _height+2; y++) {
-    vector<Battle::Tile*> row = vector<Battle::Tile*>();
-    for (int x = 0; x < _width+2; x++) {
-      Battle::Tile* tile = new Battle::Tile(x, y);
-      tile->SetupGraphics(t_a_r, t_a_b, t_a_u, a);
-      row.push_back(tile);
-    }
-    tiles.push_back(row);
-  }
-
-#ifdef ONB_DEBUG
-  // DEBUGGING
-  // invisible tiles surround the arena for some entities to slide off of
-  for (int i = 0; i < _width + 2; i++) {
-    tiles[0][i]->setColor(sf::Color(255, 255, 255, 50));
-  }
-
-  for (int i = 0; i < _width + 2; i++) {
-    tiles[_height + 1][i]->setColor(sf::Color(255, 255, 255, 50));
-  }
-
-  for (int i = 1; i < _height + 1; i++) {
-    tiles[i][0]->setColor(sf::Color(255, 255, 255, 50));
-    tiles[i][_width + 1]->setColor(sf::Color(255, 255, 255, 50));
-
-  }
-#endif
-
+  SetupGraphics(_width, _height, sf::Vector2i(), { t_a_r, t_a_b, t_a_u }, a);
   isTimeFrozen = true;
   isBattleActive = false;
   isUpdating = false;
@@ -406,7 +376,7 @@ void Field::Update(double _elapsed) {
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
       Battle::Tile* t = tiles[i][j];
-      if (t->teamCooldown > 0) {
+      if (t->teamCooldown > frames(0)) {
         syncCol.insert(syncCol.begin(), j);
       }
       else if(t->GetTeam() != t->ogTeam){
@@ -484,7 +454,7 @@ void Field::Update(double _elapsed) {
 
   // sync stolen tiles with their corresponding columns
   for (int col : syncCol) {
-    double maxTimer = 0.0;
+    frame_time_t maxTimer = frames(0);
     for (size_t i = 1; i <= GetHeight(); i++) {
       Battle::Tile* t = tiles[i][col];
       maxTimer = std::max(maxTimer, t->teamCooldown);
@@ -700,6 +670,38 @@ void Field::ClearAllReservations(Entity::ID_t ID)
   }
 }
 
+void Field::ChangePanelVisuals(sf::Vector2i startPos, sf::Vector2i spacing, std::array<std::shared_ptr<sf::Texture>, 3> textures, Animation anim)
+{
+  // We must have tile data to proceed
+  if (tiles.empty())
+    return;
+
+  anim.Reload();
+  anim << Animator::Mode::Loop;
+
+  // use normal tile state as constant tile dimensions reference
+  const std::string& state = tiles[0][0]->GetAnimState(TileState::normal);
+
+  // if we have bad animation data, skip
+  if (!anim.HasAnimation(state))
+    return;
+
+  float width{}, height{};
+
+  // get the frame's dimensions, assume tile uniformity
+  const sf::IntRect& region = anim.GetFrameList(state).GetFrame(0).subregion;
+  width = region.width;
+  height = region.height;
+
+  // change and reposition the field with this new data
+  for (auto& rows : tiles) {
+    for (Battle::Tile* t : rows) {
+      t->SetupGraphics(textures[0], textures[1], textures[2], anim);
+      t->Reposition(startPos.x, startPos.y, width, height, spacing.y);
+    }
+  }
+}
+
 void Field::HandleMissingLayout()
 {
   for (int i = 0; i < tiles.size(); i++) {
@@ -725,6 +727,41 @@ void Field::HandleMissingLayout()
       }
     }
   }
+}
+
+void Field::SetupGraphics(int _width, int _height, const sf::Vector2i& spacing, const std::array<std::shared_ptr<sf::Texture>, 3>& textures, Animation anim)
+{
+  // Moved tile resource acquisition to field so we only them once for all tiles
+  anim.Reload();
+  anim << Animator::Mode::Loop;
+
+  for (int y = 0; y < _height + 2; y++) {
+    vector<Battle::Tile*> row = vector<Battle::Tile*>();
+    for (int x = 0; x < _width + 2; x++) {
+      Battle::Tile* tile = new Battle::Tile(x, y);
+      tile->SetupGraphics(textures[0], textures[1], textures[2], anim);
+      row.push_back(tile);
+    }
+    tiles.push_back(row);
+  }
+
+#ifdef ONB_DEBUG
+  // DEBUGGING
+  // invisible tiles surround the arena for some entities to slide off of
+  for (int i = 0; i < _width + 2; i++) {
+    tiles[0][i]->setColor(sf::Color(255, 255, 255, 50));
+  }
+
+  for (int i = 0; i < _width + 2; i++) {
+    tiles[_height + 1][i]->setColor(sf::Color(255, 255, 255, 50));
+  }
+
+  for (int i = 1; i < _height + 1; i++) {
+    tiles[i][0]->setColor(sf::Color(255, 255, 255, 50));
+    tiles[i][_width + 1]->setColor(sf::Color(255, 255, 255, 50));
+
+  }
+#endif
 }
 
 Field::queueBucket::queueBucket(int x, int y, std::shared_ptr<Entity> e) : x(x), y(y), entity(e)

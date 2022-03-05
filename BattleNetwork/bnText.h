@@ -2,6 +2,8 @@
 #include "bnSceneNode.h"
 #include "bnFont.h"
 
+#include <cstdint>
+
 class Text : public SceneNode
 {
 private:
@@ -14,7 +16,7 @@ private:
   mutable bool geometryDirty; //!< Flag if text needs to be recomputed due to a change in properties
 
   // Add a glyph quad to the vertex array
-  void AddLetterQuad(sf::Vector2f position, const sf::Color& color, char letter) const;
+  void AddLetterQuad(sf::Vector2f position, const sf::Color& color, uint32_t letter) const;
 
   // Computes geometry before draw
   void UpdateGeometry() const;

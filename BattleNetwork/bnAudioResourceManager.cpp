@@ -380,23 +380,31 @@ int AudioResourceManager::Stream(const std::filesystem::path& path, bool loop, l
   stream.stop();
   midiMusic.stop();
 
+  bool isMidi = false;
   std::unique_ptr<StdFilesystemInputStream> istream = std::make_unique<StdFilesystemInputStream>(path);
-  if (!stream.openFromStream(std::move(istream))) {
+  char header[4];
+  if (istream->read(&header, sizeof(header)) == sizeof(header)) {
+    // All MIDI files have 4 bytes starting with "MThd".
+    isMidi = std::memcmp(header, "MThd", sizeof(header)) == 0;
+  }
+  istream->seek(0);
+
+  if (isMidi) {
     if (midiMusic.loadMidiFromFile(path)) {
       midiMusic.play();
       midiMusic.setLoop(loop);
       midiMusic.setPitch(1.f);
     }
+  } else {
+    if (stream.openFromStream(std::move(istream))) {
+      stream.play();
+      stream.setLoop(loop);
+      stream.setPitch(1.f);
 
-    return 0;
-  }
-
-  stream.play();
-  stream.setLoop(loop);
-  stream.setPitch(1.f);
-
-  if(loop && startMs > 0 && endMs > startMs) {
-    stream.setLoopPoints({ sf::milliseconds(startMs), sf::milliseconds(endMs) });
+      if(loop && startMs > 0 && endMs > startMs) {
+        stream.setLoopPoints({ sf::milliseconds(startMs), sf::milliseconds(endMs) });
+      }
+    }
   }
 
   return 0;

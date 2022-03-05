@@ -7,6 +7,7 @@
 #include <Swoosh/Timer.h>
 
 #include "bnFolderEditScene.h"
+#include "bnGameSession.h"
 #include "Segues/BlackWashFade.h"
 #include "bnCardFolder.h"
 #include "bnCardPackageManager.h"
@@ -175,6 +176,39 @@ void FolderEditScene::onUpdate(double elapsed) {
     }
     else if (currViewMode == ViewMode::pool) {
       view = &packView;
+    }
+
+    // If CTRL+C is pressed during this scene, copy the folder contents in discord-friendly format
+    if (Input().HasSystemCopyEvent()) {
+      std::string buffer;
+      const std::string& nickname = getController().Session().GetNick();
+      const CardPackageManager& manager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
+      
+      buffer += "```\n";
+      buffer += "# Folder by " + nickname + "\n";
+
+      if (folderView.numOfCards == 0) {
+        buffer += "# [NONE] \n";
+      }
+
+      for (int i = 0; i < folderView.numOfCards; i++) {
+        const Battle::Card& card = folderCardSlots[i].ViewCard();
+        const std::string& uuid = card.GetUUID();
+
+        if (!manager.HasPackage(uuid)) continue;
+
+        const CardMeta& meta = manager.FindPackageByID(uuid);
+        buffer += uuid + " " + meta.GetPackageFingerprint() + " " + card.GetCode() + "\n";
+      }
+
+      buffer += "```";
+
+      if (buffer != Input().GetClipboard()) {
+        Input().SetClipboard(buffer);
+        Audio().Play(AudioType::NEW_GAME);
+      }
+
+      return;
     }
 
     if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {

@@ -77,13 +77,29 @@ std::shared_ptr<Mob::Mutator> ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y
     data->character->SetName(data->character->GetName() + "R2");
     break;
   case Character::Rank::SP:
-    data->character->SetName(data->character->GetName() + char(-1));
+    data->character->SetName(data->character->GetName() + "\ue000");
     break;
   case Character::Rank::EX:
-    data->character->SetName(data->character->GetName() + char(-2));
+    data->character->SetName(data->character->GetName() + "\ue001");
     break;
   case Character::Rank::NM:
-    data->character->SetName(data->character->GetName() + char(-3));
+    data->character->SetName(data->character->GetName() + "\ue002");
+    break;
+  case Character::Rank::RV:
+    data->character->SetName(data->character->GetName() + "\ue003");
+    break;
+  case Character::Rank::DS:
+    data->character->SetName(data->character->GetName() + "\ue004");
+    break;
+  case Character::Rank::Alpha:
+    data->character->SetName(data->character->GetName() + "α");
+    break;
+  case Character::Rank::Beta:
+    data->character->SetName(data->character->GetName() + "β");
+    break;
+  case Character::Rank::Omega:
+    data->character->SetName(data->character->GetName() + "Ω");
+    break;
   }
 
   // Add the mob spawn data to our list of enemies to spawn
@@ -172,6 +188,21 @@ void ScriptedMob::SetBackground(const std::filesystem::path& bgTexturePath, cons
   mob->SetBackground(background);
 }
 
+void ScriptedMob::SetPanels(const std::array<std::filesystem::path, 3>& panelTexturePaths, 
+  const std::filesystem::path& animPath, 
+  unsigned int startPosX, unsigned int startPosY,
+  unsigned int spacingX, unsigned int spacingY)
+{
+  std::array<std::shared_ptr<sf::Texture>, 3> textures;
+
+  for (size_t i = 0; i < panelTexturePaths.size(); i++) {
+    textures[i] = Textures().LoadFromFile(panelTexturePaths[i]);
+  }
+
+  auto anim = Animation(animPath);
+  mob->SetPanels(textures, anim, sf::Vector2i(startPosX, startPosY), sf::Vector2i(spacingX, spacingY));
+}
+
 void ScriptedMob::StreamMusic(const std::filesystem::path& path, long long startMs, long long endMs)
 {
   mob->StreamCustomMusic(path, startMs, endMs);
@@ -179,5 +210,10 @@ void ScriptedMob::StreamMusic(const std::filesystem::path& path, long long start
 void ScriptedMob::SpawnPlayer(unsigned playerNum, int tileX, int tileY)
 {
   mob->SpawnPlayer(playerNum, tileX, tileY);
+}
+
+void ScriptedMob::EnableBossBattle()
+{
+  mob->EnableBossBattle();
 }
 #endif

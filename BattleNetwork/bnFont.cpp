@@ -1,6 +1,8 @@
 #include "bnFont.h"
 
-std::map<char, std::string> Font::specialCharLookup;
+#include <iomanip>
+#include <iostream>
+
 std::array<Animation, Font::style_sz> Font::animationArray{};
 bool Font::animationsLoaded = false;
 
@@ -9,7 +11,7 @@ Font::Font(const Style& style) :
   letter('A')
 {
   if (!Font::animationsLoaded) {
-    Font::animationArray.fill(Animation("resources/fonts/fonts_compressed.animation"));
+    Font::animationArray.fill(Animation("resources/fonts/fonts.animation"));
 
     for (auto& a : animationArray) {
       a.Load();
@@ -32,13 +34,13 @@ void Font::ApplyStyle()
   std::string animName;
 
   switch (style) {
-  case Style::thick: 
+  case Style::thick:
     animName = "THICK_";
     break;
   case Style::small:
     animName = "SMALL_";
     break;
-  case Style::tiny: 
+  case Style::tiny:
     animName = "TINY_";
     break;
   case Style::wide:
@@ -70,36 +72,23 @@ void Font::ApplyStyle()
     break;
   }
 
-  // prioritize special char lookup for special font letters (e.g. buttons, symbols, multichar letters)
-  if (auto iter = Font::specialCharLookup.find(letter); iter != Font::specialCharLookup.end()) {
-    animName = iter->second;
+  if (!HasLowerCase(style) && letter >= 0 && letter < 128 && std::islower(letter)) {
+    letter = std::toupper(letter);
   }
-  else {
-    // otherwise, compose the font lookup name
-    std::string letterStr(1, letter);
-    std::transform(letterStr.begin(), letterStr.end(), letterStr.begin(), ::toupper);
 
-    if (letter != '"') {
-      // some font cannot be lower-cased
-      if (::islower(letter) && HasLowerCase(style)) {
-        letterStr = "LOWER_" + letterStr;
-      }
-
-      animName = animName + letterStr;
-    }
-    else {
-      animName = animName + "QUOTE";
-    }
-  }
+  // otherwise, compose the font lookup name
+  std::stringstream ss;
+  ss << "U" << std::setfill('0') << std::setw(6) << std::uppercase << std::hex << letter;
+  animName = animName + ss.str();
 
   // Get the frame (list of size 1) of the font
   FrameList list = animation.GetFrameList(animName);
-  
+
   if (list.IsEmpty()) {
     // If the list is empty (font support not existing), use small letter 'A'
-    list = animation.GetFrameList("SMALL_A");
+    list = animation.GetFrameList("SMALL_U000041");
   }
-  
+
   auto& frame = list.GetFrame(0);
   texcoords = frame.subregion;
   origin = frame.origin;
@@ -132,7 +121,7 @@ const Font::Style & Font::GetStyle() const
   return style;
 }
 
-void Font::SetLetter(char letter)
+void Font::SetLetter(uint32_t letter)
 {
   auto prev = Font::letter;
   Font::letter = letter;

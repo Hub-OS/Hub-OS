@@ -149,7 +149,7 @@ class PackageManager {
     const MetaClass& FindPackageByID(const std::string& id) const;
     const string FilepathToPackageID(const std::filesystem::path& file_path) const;
     const string FilepathToPackageAddress(const std::filesystem::path& file_path) const;
-    stx::result_t<std::string> RemovePackageByID(const std::string& id);
+    stx::result_t<std::filesystem::path> RemovePackageByID(const std::string& id);
 
     bool HasPackage(const std::string& id) const;
     const std::string FirstValidPackage() const;
@@ -465,7 +465,7 @@ stx::result_t<bool> PackageManager<MetaClass>::Commit(MetaClass* package)
 }
 
 template<typename MetaClass>
-stx::result_t<std::string> PackageManager<MetaClass>::RemovePackageByID(const std::string& id)
+stx::result_t<std::filesystem::path> PackageManager<MetaClass>::RemovePackageByID(const std::string& id)
 {
   if (auto iter = packages.find(id); iter != packages.end()) {
     std::filesystem::path path = iter->second->filepath;
@@ -477,10 +477,10 @@ stx::result_t<std::string> PackageManager<MetaClass>::RemovePackageByID(const st
     delete iter->second;
     packages.erase(iter);
 
-    return stx::ok<std::string>(path);
+    return stx::ok<std::filesystem::path>(path);
   }
 
-  return stx::error<std::string>("No package with that ID");
+  return stx::error<std::filesystem::path>("No package with that ID");
 }
 
 template<typename MetaClass>

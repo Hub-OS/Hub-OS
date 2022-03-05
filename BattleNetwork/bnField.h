@@ -36,7 +36,7 @@ public:
   };
 
   /**
-   * @brief Creates a field _wdith x _height tiles. Sets isTimeFrozen to false
+   * @brief Creates a field _wdith x _height tiles
    */
   Field(int _width, int _height);
   
@@ -232,6 +232,8 @@ public:
 
   void ClearAllReservations(Entity::ID_t ID);
 
+  void ChangePanelVisuals(sf::Vector2i startPos, sf::Vector2i spacing, std::array<std::shared_ptr<sf::Texture>, 3> textures, Animation anim);
+
   /**
   * @brief provides a default field arrangement if none are provided
   */
@@ -273,4 +275,6 @@ private:
   map<NotifyID_t, Entity::ID_t> notify2TargetHash; /*!< Convert from target entity to its delete observer key*/
   vector<queueBucket> pending;
   vector<vector<Battle::Tile*>> tiles; /*!< Nested vector to make calls via tiles[x][y] */
+
+  void SetupGraphics(int _width, int _height, const sf::Vector2i& spacing, const std::array<std::shared_ptr<sf::Texture>, 3>& textures, Animation anim);
 };

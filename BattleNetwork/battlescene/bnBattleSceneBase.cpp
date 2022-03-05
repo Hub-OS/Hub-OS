@@ -77,7 +77,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   background = props.background;
 
   if (!background) {
-    int randBG = SyncedRand() % 8;
+    int randBG = SyncedRandBelow(8);
 
     if (randBG == 0) {
       background = std::make_shared<LanBackground>();
@@ -274,7 +274,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
 
   Character* pendingPtr = &pending;
 
-  // Find any AI using this character as a target and free that pointer  
+  // Find any AI using this character as a target and free that pointer
   field->ForEachEntity([pendingPtr](std::shared_ptr<Entity>& in) {
     Agent* agent = dynamic_cast<Agent*>(in.get());
 
@@ -286,7 +286,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   });
 
   Logger::Logf(LogLevel::debug, "Removing %s from battle (ID: %d)", pending.GetName().c_str(), pending.GetID());
-  
+
   bool redTeamClear = false;
   bool blueTeamClear = false;
   if (redTeamMob) {
@@ -311,7 +311,7 @@ const BattleSceneState* BattleSceneBase::GetCurrentState() const
   return current;
 }
 
-const int BattleSceneBase::ComboDeleteSize() const 
+const int BattleSceneBase::ComboDeleteSize() const
 {
   return comboInfoTimer.elapsed() <= COUNTER_HIT_THRESHOLD_FRAMES ? comboDeleteCounter : 0;
 }
@@ -487,7 +487,7 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   if (!player->HasInit()) {
     player->Init();
   }
-  player->ChangeState<PlayerIdleState>();  
+  player->ChangeState<PlayerIdleState>();
   player->SetTeam(team);
   field->AddEntity(player, x, y);
 
@@ -798,7 +798,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
   }
 
   // cleanup trackers for ex-mob enemies when they are fully removed from the field
-  // 
+  //
   // red team mobs
   for (auto iter = deletingRedMobs.begin(); iter != deletingRedMobs.end(); /*skip*/) {
     if (!field->GetEntity(*iter)) {
@@ -995,6 +995,9 @@ void BattleSceneBase::onEnd()
   if (onEndCallback) {
     onEndCallback(battleResults);
   }
+
+  const int music = getController().ConfigSettings().GetMusicLevel();
+  Audio().SetStreamVolume(((music - 1) / 3.0f) * 100.0f);
 }
 
 bool BattleSceneBase::TrackOtherPlayer(std::shared_ptr<Player>& other) {
@@ -1072,7 +1075,7 @@ void BattleSceneBase::DrawWithPerspective(Text& text, sf::RenderTarget& surf)
   surf.draw(text);
 
   text.setPosition(position);
-  text.setOrigin(origin);  
+  text.setOrigin(origin);
 }
 
 void BattleSceneBase::PerspectiveFlip(bool flipped)
@@ -1249,7 +1252,7 @@ std::vector<std::reference_wrapper<const Character>> BattleSceneBase::BlueTeamMo
 }
 
 void BattleSceneBase::Quit(const FadeOut& mode) {
-  if(quitting) return; 
+  if(quitting) return;
 
   // end the current state
   if(current) {
@@ -1264,7 +1267,7 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
     return;
   }
 
-  // Depending on the mode, use Swoosh's 
+  // Depending on the mode, use Swoosh's
   // activity controller to fadeout with the right
   // visual appearance
   if(mode == FadeOut::white) {
@@ -1308,7 +1311,7 @@ void BattleSceneBase::Inject(std::shared_ptr<Component> other)
 
 void BattleSceneBase::Eject(Component::ID_t ID)
 {
-  auto iter = std::find_if(components.begin(), components.end(), 
+  auto iter = std::find_if(components.begin(), components.end(),
     [ID](std::shared_ptr<Component>& in) { return in->GetID() == ID; }
   );
 
@@ -1317,8 +1320,8 @@ void BattleSceneBase::Eject(Component::ID_t ID)
 
     SceneNode* node = dynamic_cast<SceneNode*>(&component);
     // TODO: dynamic casting could be entirely avoided by hashing IDs
-    auto iter2 = std::find_if(scenenodes.begin(), scenenodes.end(), 
-      [node](std::shared_ptr<SceneNode>& in) { 
+    auto iter2 = std::find_if(scenenodes.begin(), scenenodes.end(),
+      [node](std::shared_ptr<SceneNode>& in) {
         return in.get() == node;
       }
     );

@@ -21,20 +21,22 @@
 #define TILE_WIDTH 40.0f
 #define TILE_HEIGHT 30.0f
 #define START_X 0.0f
-#define START_Y 144.f
-#define Y_OFFSET 10.0f
-#define COOLDOWN 10.0
-#define FLICKER 3.0
+#define START_Y 140.f
+#define Y_OFFSET 6.0f
+#define COOLDOWN frames(1800)
+#define FLICKER frames(180)
+#define SEA_COOLDOWN frames(60*60)
 
 namespace Battle {
-  double Tile::brokenCooldownLength = COOLDOWN;
-  double Tile::teamCooldownLength = COOLDOWN;
-  double Tile::flickerTeamCooldownLength = FLICKER;
+  frame_time_t Tile::brokenCooldownLength = COOLDOWN;
+  frame_time_t Tile::teamCooldownLength = COOLDOWN;
+  frame_time_t Tile::flickerTeamCooldownLength = FLICKER;
+  frame_time_t Tile::seaCooldownLength = SEA_COOLDOWN;
 
   Tile::Tile(int _x, int _y) : 
     SpriteProxyNode(),
     animation() {
-    totalElapsed = 0;
+    totalElapsed = frames(0);
     x = _x;
     y = _y;
 
@@ -47,18 +49,15 @@ namespace Battle {
 
     entities = vector<std::shared_ptr<Entity>>();
     setScale(2.f, 2.f);
-    width = TILE_WIDTH * getScale().x;
-    height = TILE_HEIGHT * getScale().y;
-    setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
-    setPosition((width/2.0f) + ((x - 1) * width) + START_X, (height/2.0f) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
+    Reposition(START_X, START_Y, TILE_WIDTH, TILE_HEIGHT, Y_OFFSET);
     willHighlight = false;
     isTimeFrozen = true;
     isBattleOver = false;
-    brokenCooldown = 0;
-    flickerTeamCooldown = teamCooldown = 0;
+    brokenCooldown = frames(0);
+    flickerTeamCooldown = teamCooldown = frames(0);
     red_team_atlas = blue_team_atlas = nullptr; // Set by field
 
-    burncycle = 0.12; // milliseconds
+    burncycle = frames(1);
     elapsedBurnTime = burncycle;
 
     highlightMode = TileHighlight::none;
@@ -66,10 +65,10 @@ namespace Battle {
     volcanoSprite = std::make_shared<SpriteProxyNode>();
     volcanoErupt = Animation("resources/tiles/volcano.animation");
 
-    auto resetVolcanoThunk = [this](int seconds) {
+    auto resetVolcanoThunk = [this](int frames) {
       if (!isBattleOver) {
         this->volcanoErupt.SetFrame(1, this->volcanoSprite->getSprite()); // start over
-        volcanoEruptTimer = seconds;
+        volcanoEruptTimer = ::frames(frames);
         
         std::shared_ptr<Field> field = fieldWeak.lock();
 
@@ -83,15 +82,15 @@ namespace Battle {
     };
 
     if (team == Team::blue) {
-      resetVolcanoThunk(1); // blue goes first
+      resetVolcanoThunk(60); // blue goes first
     }
     else {
-      resetVolcanoThunk(2); // then red
+      resetVolcanoThunk(120); // then red
     }
 
     // On anim end, reset the timer
     volcanoErupt << "FLICKER" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
-      resetVolcanoThunk(2);
+      resetVolcanoThunk(120);
     };
 
     volcanoSprite->setTexture(Textures().LoadFromFile("resources/tiles/volcano.png"));
@@ -116,10 +115,8 @@ namespace Battle {
     animation.Refresh(getSprite());
     entities = other.entities;
     setScale(2.f, 2.f);
-    width = other.width;
-    height = other.height;
     animState = other.animState;
-    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
+    Reposition(other.startX, other.startY, other.width, other.height, other.offsetY);
     willHighlight = other.willHighlight;
     reserved = other.reserved;
     characters = other.characters;
@@ -241,7 +238,7 @@ namespace Battle {
           flickerTeamCooldown = flickerTeamCooldownLength;
         }
         else {
-          flickerTeamCooldown = 0; // cancel 
+          flickerTeamCooldown = frames(0); // cancel 
           teamCooldown = teamCooldownLength;
         }
       }
@@ -292,14 +289,19 @@ namespace Battle {
     }
 
     if (_state == TileState::broken) {
-      if(characters.size() || reserved.size()) {
+      bool noBreak = characters.size() || reserved.size();
+      noBreak = noBreak || state == TileState::metal;
+
+      if(noBreak) {
         return;
-      } else {
-        brokenCooldown = brokenCooldownLength;
-      }
+      } 
+
+      brokenCooldown = brokenCooldownLength;
     }
 
-    if (_state == TileState::cracked && (state == TileState::empty || state == TileState::broken)) {
+    bool noCrack = (state == TileState::empty) || (state == TileState::broken) || (state == TileState::metal);
+
+    if (_state == TileState::cracked && noCrack) {
       return;
     }
 
@@ -308,6 +310,10 @@ namespace Battle {
     }
     else {
       RemoveNode(volcanoSprite);
+    }
+
+    if (_state == TileState::sea) {
+      seaCooldown = seaCooldownLength;
     }
 
     state = _state;
@@ -327,11 +333,15 @@ namespace Battle {
     Team otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
     std::string prevAnimState = animState;
 
-    ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
+    (((flickerTeamCooldown.count() % 4) < 2) && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
 
     if (state == TileState::broken) {
       // Broken tiles flicker when they regen
-      animState = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
+      animState = (((brokenCooldown.count()%4) < 2) && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
+    }
+    if (state == TileState::sea) {
+      // Sea tiles flicker when they regen
+      animState = (((seaCooldown.count()%4) < 2) && seaCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
     }
     else {
       animState = std::move(GetAnimState(state));
@@ -352,6 +362,22 @@ namespace Battle {
     default:
       setTexture(unk_team_atlas);
     }
+  }
+
+  void Tile::Reposition(float startX, float startY, float width, float height, float y_offset)
+  {
+    this->width = width;
+    this->height = height;
+    this->startX = startX;
+    this->startY = startY;
+    this->offsetY = y_offset;
+    
+    float tileCenter = std::ceilf((height - offsetY) / 2.f);
+    float xpos = std::ceilf(this->width + ((x - 1) * (this->width * getScale().x)) + startX);
+    float ypos = std::ceilf(this->height + ((y - 1) * ((this->height - this->offsetY)*getScale().y)) + startY);
+
+    setOrigin(std::ceilf(width / 2.0f), tileCenter);
+    setPosition(xpos, ypos);
   }
 
   bool Tile::IsWalkable() const {
@@ -504,16 +530,16 @@ namespace Battle {
 
   void Tile::Update(Field& field, double _elapsed) {
     willHighlight = false;
-    totalElapsed += _elapsed;
+    totalElapsed += from_seconds(_elapsed);
 
     if (!isTimeFrozen && isBattleStarted) {
       // LAVA TILES
-      elapsedBurnTime -= _elapsed;
+      elapsedBurnTime -= from_seconds(_elapsed);
 
       // VOLCANO 
-      volcanoEruptTimer -= _elapsed;
+      volcanoEruptTimer -= from_seconds(_elapsed);
 
-      if (volcanoEruptTimer <= 0) {
+      if (volcanoEruptTimer <= frames(0)) {
         volcanoErupt.Update(_elapsed, volcanoSprite->getSprite());
       }
 
@@ -531,25 +557,31 @@ namespace Battle {
 
     // Update our tile animation and texture
     if (!isTimeFrozen) {
-      if (teamCooldown > 0) {
-        teamCooldown -= 1.0 * _elapsed;
-        if (teamCooldown < 0) teamCooldown = 0;
+      if (teamCooldown > frames(0)) {
+        teamCooldown -= frames(1);
+        if (teamCooldown < frames(0)) teamCooldown = frames(0);
       }
 
-      if (flickerTeamCooldown > 0) {
-        flickerTeamCooldown -= 1.0 * _elapsed;
-        if (flickerTeamCooldown < 0) flickerTeamCooldown = 0;
+      if (flickerTeamCooldown > frames(0)) {
+        flickerTeamCooldown -= frames(1);
+        if (flickerTeamCooldown < frames(0)) flickerTeamCooldown = frames(0);
+      }
+
+      if (state == TileState::sea) {
+        seaCooldown -= frames(1);
+
+        if (seaCooldown < frames(0)) { seaCooldown = frames(0); state = TileState::normal; };
       }
 
       if (state == TileState::broken) {
-        brokenCooldown -= 1.0f* _elapsed;
+        brokenCooldown -= frames(1);
 
-        if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::normal; }
+        if (brokenCooldown < frames(0)) { brokenCooldown = frames(0); state = TileState::normal; }
       }
     }
 
     RefreshTexture();
-    animation.SyncTime(from_seconds(totalElapsed));
+    animation.SyncTime(totalElapsed);
     animation.Refresh(this->getSprite());
 
     switch (highlightMode) {
@@ -557,7 +589,7 @@ namespace Battle {
       willHighlight = true;
       break;
     case TileHighlight::flash:
-      willHighlight = (int)(totalElapsed * 15) % 2 == 0;
+      willHighlight = (totalElapsed.count() % 4 < 2);
       break;
     default:
       willHighlight = false;
@@ -568,7 +600,8 @@ namespace Battle {
     }
 
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
-    setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
+    float tileCenter = std::ceilf((height - offsetY) / 2.f);
+    setOrigin(std::ceilf(width/2.f), tileCenter);
     highlightMode = TileHighlight::none;
 
     // Process tile behaviors
@@ -675,18 +708,18 @@ namespace Battle {
       // LAVA & POISON TILES
       if (!character.HasFloatShoe()) {
         if (GetState() == TileState::poison) {
-          if (elapsedBurnTime <= 0) {
-            if (character.Hit(Hit::Properties({ 1, Hit::pierce, Element::none, 0, Direction::none }))) {
+          if (elapsedBurnTime <= frames(0)) {
+            if (character.Hit(Hit::Properties({ 1, Hit::pierce_invis, Element::none, Element::none, 0, Direction::none }))) {
               elapsedBurnTime = burncycle;
             }
           }
         }
         else {
-          elapsedBurnTime = 0;
+          elapsedBurnTime = frames(0);
         }
 
         if (GetState() == TileState::lava) {
-          Hit::Properties props = { 50, Hit::flash | Hit::flinch, Element::none, 0, Direction::none };
+          Hit::Properties props = { 50, Hit::flash | Hit::flinch, Element::none, Element::none, 0, Direction::none };
           if (character.HasCollision(props)) {
             character.Hit(props);
             field.AddEntity(std::make_shared<Explosion>(), GetX(), GetY());
@@ -941,6 +974,15 @@ namespace Battle {
     case TileState::holy:
       str = str + "holy";
       break;
+    case TileState::sea:
+      str = str + "sea";
+      break;
+    case TileState::sand:
+      str = str + "sand";
+      break;
+    case TileState::metal:
+      str = str + "metal";
+      break;
     default:
       str = str + "normal";
     }
@@ -996,23 +1038,31 @@ namespace Battle {
     // Spells dont cause damage when the battle is over
     if (isBattleOver) return;
 
+    bool hitByWind{}, hitByFire{}, hitByAqua{};
+
     // Now that spells and characters have updated and moved, they are due to check for attack outcomes
     std::vector<std::shared_ptr<Character>> characters_copy = characters; // may be modified after hitboxes are resolved
 
-    for (std::shared_ptr<Character>& character : characters_copy) {
-      // the entity is a character (can be hit) and the team isn't the same
-      // we see if it passes defense checks, then call attack
+    for (Entity::ID_t ID : queuedAttackers) {
+      std::shared_ptr<Entity> attacker = field.GetEntity(ID);
+
+      if (!attacker) {
+        Logger::Logf(LogLevel::debug, "Attacker %d missing from field", ID);
+        continue;
+      }
+
+      Hit::Properties props = attacker->GetHitboxProperties();
+
+      hitByWind = hitByWind || props.element == Element::wind;
+      hitByFire = hitByFire || props.element == Element::fire;
+      hitByAqua = hitByAqua || props.element == Element::aqua;
 
       bool retangible = false;
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
-      for (Entity::ID_t ID : queuedAttackers) {
-        std::shared_ptr<Entity> attacker = field.GetEntity(ID);
-
-        if (!attacker) {
-          Logger::Logf(LogLevel::debug, "Attacker %d missing from field", ID);
-          continue;
-        }
+      for (std::shared_ptr<Character>& character : characters_copy) {
+        // the entity is a character (can be hit) and the team isn't the same
+        // we see if it passes defense checks, then call attack
 
         if (!character->IsHitboxAvailable())
           continue;
@@ -1043,7 +1093,6 @@ namespace Battle {
 
         // Collision here means "we are able to hit" 
         // either with a hitbox that can pierce a defense or by tangibility
-        Hit::Properties props = attacker->GetHitboxProperties();
         if (!character->HasCollision(props)) continue;
 
         // Obstacles can hit eachother, even on the same team
@@ -1086,21 +1135,35 @@ namespace Battle {
 
           attacker->Attack(character);
 
+          // Special case: highlight the tile when attacking on a frame
+          if (attacker->GetTileHighlightMode() == TileHighlight::automatic) {
+            highlightMode = TileHighlight::solid;
+          }
+
           // we restore the hitbox properties
           attacker->SetHitboxProperties(props);
         }
+
+        if (retangible) character->SetPassthrough(false);
 
         judge.PrepareForNextAttack();
       } // end each spell loop
 
       judge.ExecuteAllTriggers();
-
-      if (retangible) character->SetPassthrough(false);
     } // end each character loop
 
     // empty previous frame queue to be used this current frame
     queuedAttackers.clear();
-    // taggedAttackers.clear();
+
+    if (GetState() == TileState::sand && hitByWind) {
+      SetState(TileState::normal);
+    }
+    else if (GetState() == TileState::grass && hitByFire) {
+      SetState(TileState::normal);
+    }
+    else if (GetState() == TileState::volcano && hitByAqua) {
+      SetState(TileState::normal);
+    }
   }
 
   void Tile::UpdateSpells(Field& field, const double elapsed)
@@ -1112,11 +1175,6 @@ namespace Battle {
       if (!spell->IsTimeFrozen()) {
         if (request > (int)highlightMode) {
           highlightMode = (TileHighlight)request;
-        }
-
-        Element hitboxElement = spell->GetElement();
-        if (hitboxElement == Element::aqua && state == TileState::volcano) {
-          SetState(TileState::normal);
         }
 
         field.UpdateEntityOnce(*spell, elapsed);

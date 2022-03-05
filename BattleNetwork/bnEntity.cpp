@@ -3,6 +3,7 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
+#include "bnWaterSplash.h"
 #include "bnShakingEffect.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -235,6 +236,14 @@ void Entity::UpdateMovement(double elapsed)
               copyMoveEvent = {};
             }
           }
+          else if (tile->GetState() == TileState::sea && !HasFloatShoe()) {
+            Root(frames(20));
+            auto splash = std::make_shared<WaterSplash>();
+            field.lock()->AddEntity(splash, *tile);
+          }
+          else if (tile->GetState() == TileState::sand && !HasFloatShoe()) {
+            Root(frames(20));
+          }
           else {
             // Invalidate the next tile pointer
             next = nullptr;
@@ -388,7 +397,7 @@ void Entity::Update(double _elapsed) {
     rootCooldown -= from_seconds(_elapsed);
 
     // Root is cancelled if these conditions are met
-    if (rootCooldown <= frames(0) || IsPassthrough()) {
+    if (rootCooldown <= frames(0)/* || IsPassthrough() */) {
       rootCooldown = frames(0);
     }
   }
@@ -891,6 +900,7 @@ void Entity::SetTeam(Team _team) {
 void Entity::SetPassthrough(bool state)
 {
   passthrough = state;
+  Reveal();
 }
 
 bool Entity::IsPassthrough()
@@ -1228,12 +1238,54 @@ const bool Entity::Hit(Hit::Properties props) {
   // double the damage independently from tile damage
   bool isSuperEffective = IsSuperEffective(props.element);
 
+  // If it's not super effective based on the primary element,
+  // Check if it is based on the potential secondary element.
+  // Default to No Element if a secondary element doesn't exist,
+  // as it's an optional.
+  if (!isSuperEffective) {
+   isSuperEffective = IsSuperEffective(props.secondaryElement);
+  }
+
   // super effective damage is x2
   if (isSuperEffective) {
     props.damage *= 2;
   }
 
-  SetHealth(GetHealth() - props.damage);
+  int tileDamage = 0;
+  int extraDamage = 0;
+
+  // Calculate elemental damage if the tile the character is on is super effective to it
+  if ((props.element == Element::fire || props.secondaryElement == Element::fire)
+    && GetTile()->GetState() == TileState::grass) {
+    tileDamage = props.damage;
+    GetTile()->SetState(TileState::normal);
+  }
+
+  if ((props.element == Element::elec || props.secondaryElement == Element::elec)
+    && GetTile()->GetState() == TileState::sea) {
+    tileDamage = props.damage;
+  }
+
+  /*if ((props.element == Element::aqua || props.secondaryElement == Element::aqua)
+    && GetTile()->GetState() == TileState::ice
+    && !frameFreezeCancel) {
+    willFreeze = true;
+    GetTile()->SetState(TileState::normal);
+  }
+
+  if ((props.flags & Hit::pierce_guard) == Hit::pierce_guard && IsIceFrozen()) {
+    extraDamage = props.damage;
+    frameFreezeCancel = true;
+  }*/
+
+  int totalDamage = props.damage + (tileDamage + extraDamage);
+
+  // Broadcast the hit before we apply statuses and change the entity's state flags
+  if (totalDamage > 0) {
+    HitPublisher::Broadcast(*this, props);
+  }
+  
+  SetHealth(GetHealth() - totalDamage);
 
   if (IsTimeFrozen()) {
     props.flags |= Hit::no_counter;
@@ -1280,7 +1332,7 @@ const bool Entity::UnknownTeamResolveCollision(const Entity& other) const
 const bool Entity::HasCollision(const Hit::Properties & props)
 {
   // Pierce status hits even when passthrough or flinched
-  if ((props.flags & Hit::pierce) != Hit::pierce) {
+  if ((props.flags & Hit::pierce_invis) != Hit::pierce_invis) {
     if (IsPassthrough() || !hitboxEnabled) return false;
   }
 
@@ -1327,39 +1379,6 @@ void Entity::ResolveFrameBattleDamage()
       }
     };
 
-    int tileDamage = 0;
-    int extraDamage = 0;
-
-    // Calculate elemental damage if the tile the character is on is super effective to it
-    if (props.filtered.element == Element::fire
-      && GetTile()->GetState() == TileState::grass) {
-      tileDamage = props.filtered.damage;
-      GetTile()->SetState(TileState::normal);
-    }
-
-    if (props.filtered.element == Element::elec
-      && GetTile()->GetState() == TileState::ice) {
-      tileDamage = props.filtered.damage;
-    }
-
-    if (props.filtered.element == Element::aqua
-      && GetTile()->GetState() == TileState::ice
-      && !frameFreezeCancel) {
-      willFreeze = true;
-      GetTile()->SetState(TileState::normal);
-    }
-
-    if ((props.filtered.flags & Hit::breaking) == Hit::breaking && IsIceFrozen()) {
-      extraDamage = props.filtered.damage;
-      frameFreezeCancel = true;
-    }
-
-    // Broadcast the hit before we apply statuses and change the entity's state flags
-    if (props.filtered.damage > 0) {
-      SetHealth(GetHealth() - (tileDamage + extraDamage));
-      HitPublisher::Broadcast(*this, props.filtered);
-    }
-
     // start of new scope
     {
       // Only register counter if:
@@ -1377,15 +1396,18 @@ void Entity::ResolveFrameBattleDamage()
         flagCheckThunk(Hit::impact);
       }
 
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::impact;
+
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.filtered.flags & Hit::drag) == Hit::drag) {
         if (IsSliding()) {
-          append.push({ props.hitbox, { 0, Hit::drag, Element::none, 0, props.filtered.drag } });
+          append.push({ props.hitbox, { 0, Hit::drag, Element::none, Element::none, 0, props.filtered.drag } });
         }
         else {
           // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
           if (frameCounterAggressor) {
-            append.push({ props.hitbox, { 0, Hit::impact, Element::none, frameCounterAggressor->GetID() } });
+            append.push({ props.hitbox, { 0, Hit::impact, Element::none, Element::none, frameCounterAggressor->GetID() } });
             frameCounterAggressor = nullptr;
           }
 
@@ -1398,10 +1420,10 @@ void Entity::ResolveFrameBattleDamage()
         }
 
         flagCheckThunk(Hit::drag);
-
-        // exclude this from the next processing step
-        props.filtered.flags &= ~Hit::drag;
       }
+
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::drag;
 
       bool flashAndFlinch = ((props.filtered.flags & Hit::flash) == Hit::flash) && ((props.filtered.flags & Hit::flinch) == Hit::flinch);
       frameFreezeCancel = frameFreezeCancel || flashAndFlinch;
@@ -1420,11 +1442,6 @@ void Entity::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          // TODO: this is a specific (and expensive) check. Is there a way to prioritize this defense rule?
-          /*for (auto&& d : this->defenses) {
-            hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
-          }*/
-
           if ((props.filtered.flags & Hit::flash) == Hit::flash && frameStunCancel) {
             // cancel stun
             stunCooldown = frames(0);
@@ -1539,7 +1556,6 @@ void Entity::ResolveFrameBattleDamage()
       props.filtered.flags &= ~Hit::blind;
 
       // confuse check
-      // TODO: Double check with mars that this is the correct behavior for confusion.
       if ((props.filtered.flags & Hit::confuse) == Hit::confuse) {
         if (postDragEffect.dir != Direction::none) {
           // requeue these statuses if in the middle of a slide/drag
@@ -1551,11 +1567,6 @@ void Entity::ResolveFrameBattleDamage()
         }
       }
       props.filtered.flags &= ~Hit::confuse;
-
-      // todo: for confusion
-      //if ((props.filtered.flags & Hit::confusion) == Hit::confusion) {
-      //  frameStunCancel = true;
-      //}
 
       /*
       flags already accounted for:
@@ -1573,8 +1584,8 @@ void Entity::ResolveFrameBattleDamage()
       Now check if the rest were triggered and invoke the
       corresponding status callbacks
       */
-      flagCheckThunk(Hit::breaking);
-      flagCheckThunk(Hit::pierce);
+      flagCheckThunk(Hit::pierce_guard);
+      flagCheckThunk(Hit::pierce_invis);
       flagCheckThunk(Hit::flinch);
 
       if (GetHealth() == 0) {
@@ -1601,7 +1612,7 @@ void Entity::ResolveFrameBattleDamage()
         std::queue<CombatHitProps> oldQueue = statusQueue;
         statusQueue = {};
         // Re-queue the drag status to be re-considered FIRST in our next combat checks
-        statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
+        statusQueue.push({ {}, { 0, Hit::drag, Element::none, Element::none, 0, postDragEffect } });
 
         // append the old queue items after
         while (!oldQueue.empty()) {

@@ -194,8 +194,8 @@ NetworkBattleScene::~NetworkBattleScene()
 
 void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 {
-  bool freezeBreak = victim.IsIceFrozen() && ((props.flags & Hit::breaking) == Hit::breaking);
-  bool superEffective = victim.IsSuperEffective(props.element) && props.damage > 0;
+  bool freezeBreak = victim.IsIceFrozen() && ((props.flags & Hit::pierce_guard) == Hit::pierce_guard);
+  bool superEffective = props.damage > 0 && (victim.IsSuperEffective(props.element) || victim.IsSuperEffective(props.secondaryElement));
 
   if (freezeBreak || superEffective) {
     std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
@@ -219,7 +219,7 @@ void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
       }
     }
 
-    if (player->IsSuperEffective(props.element)) {
+    if (player->IsSuperEffective(props.element) || player->IsSuperEffective(props.secondaryElement)) {
       // animate the transformation back to default form
       TrackedFormData& formData = GetPlayerFormData(player);
 

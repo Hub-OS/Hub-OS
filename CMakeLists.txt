@@ -50,6 +50,8 @@ file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
         "BattleNetwork/mmbn.ico.c"
         )
 
+list(FILTER bnFiles EXCLUDE REGEX "BattleNetwork/neurolink/navi_personality_draft_5_memories.cpp")
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddFiles.cmake)
 
 # ScriptResourceManager has sol2 templates that generate massive number of obj sections...

@@ -10,12 +10,19 @@ static std::mersenne_twister_engine<
   0xefc60000, 18, 1812433253
 > randomGenerator;
 
-uint32_t SyncedRand() {
-  return randomGenerator();
+uint32_t SyncedRandBelow(uint32_t n) {
+  std::uniform_int_distribution<uint32_t> dist(0, n - 1);
+  return dist(randomGenerator);
 }
 
-uint32_t SyncedRandMax() {
-  return randomGenerator.max();
+float SyncedRandFloat() {
+  // https://stackoverflow.com/a/25669510
+  double rd = std::generate_canonical<double, std::numeric_limits<float>::digits>(randomGenerator);
+  float rf = rd;
+  if (rf > rd) {
+    rf = std::nextafter(rf, -std::numeric_limits<float>::infinity());
+  }
+  return rf;
 }
 
 void SeedSyncedRand(uint32_t seed) {

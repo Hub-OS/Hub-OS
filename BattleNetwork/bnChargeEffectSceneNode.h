@@ -24,7 +24,8 @@ public:
   ~ChargeEffectSceneNode();
 
   void Update(double _elapsed);
-  
+  void Animate(double _elapsed);
+
   /**
    * @brief If true, the component begins to charge. Otherwise, cancels charge
    * @param _charging

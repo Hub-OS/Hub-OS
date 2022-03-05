@@ -106,13 +106,13 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
   state["math"]["random"] = sol::overload(
     [] (int n, int m) -> int { // [n, m]
       int range = m - n;
-      return SyncedRand() % (range + 1) + n;
+      return SyncedRandBelow(range + 1) + n;
     },
     [] (int n) -> int { // [1, n]
-      return SyncedRand() % n + 1;
+      return SyncedRandBelow(n + 1) + 1;
     },
     [] () -> float { // [0, 1)
-      return (float)SyncedRand() / ((float)(SyncedRandMax()) + 1);
+      return SyncedRandFloat();
     }
   );
 
@@ -384,6 +384,20 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "create_spawner", [&namespaceId](ScriptedMob& self, const std::string& fqn, Character::Rank rank) {
       return self.CreateSpawner(namespaceId, fqn, rank);
     },
+    "set_panels", [](ScriptedMob& mob, 
+      const std::array<std::string, 3> panelTexturePaths,
+      const std::string animPath,
+      unsigned int startPosX, unsigned int startPosY,
+      unsigned int spacingX, unsigned int spacingY) 
+    {
+        std::array<std::filesystem::path, 3> texturePaths;
+
+        for (size_t i = 0; i < panelTexturePaths.size(); i++) {
+          texturePaths[i] = panelTexturePaths[i];
+        }
+
+        mob.SetPanels(texturePaths, animPath, startPosX, startPosY, spacingX, spacingY);
+    },
     "set_background", [](ScriptedMob& mob, const std::string& texturePath, const std::string& animPath, float velx, float vely) {
       return mob.SetBackground(texturePath, animPath, velx, vely);
     },
@@ -392,7 +406,8 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     },
     "get_field", [](ScriptedMob& o) { return WeakWrapper(o.GetField()); },
     "enable_freedom_mission", &ScriptedMob::EnableFreedomMission,
-    "spawn_player", &ScriptedMob::SpawnPlayer
+    "spawn_player", &ScriptedMob::SpawnPlayer,
+    "enable_boss_battle", &ScriptedMob::EnableBossBattle
   );
 
   const auto& scriptedspawner_table = battle_namespace.new_usertype<ScriptedMob::ScriptedSpawner>("Spawner",
@@ -589,7 +604,12 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "EX", Character::Rank::EX,
     "Rare1", Character::Rank::Rare1,
     "Rare2", Character::Rank::Rare2,
-    "NM", Character::Rank::NM
+    "NM", Character::Rank::NM,
+    "RV", Character::Rank::RV,
+    "DS", Character::Rank::DS,
+    "Alpha", Character::Rank::Alpha,
+    "Beta", Character::Rank::Beta,
+    "Omega", Character::Rank::Omega
   );
 
   const auto& audio_type_record = state.new_enum("AudioType",

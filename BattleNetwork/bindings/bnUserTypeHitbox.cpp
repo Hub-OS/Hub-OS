@@ -107,22 +107,29 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
     )
   );
 
+  auto createHitProps = [](int damage, Hit::Flags flags, Element element, Element secondaryElement, std::optional<Hit::Context> contextOptional, Hit::Drag drag) {
+    Hit::Properties props = { damage, flags, element, secondaryElement, 0, drag };
+
+    if (contextOptional) {
+      props.context = *contextOptional;
+      props.aggressor = props.context.aggressor;
+    }
+
+    return props;
+  };
 
   state.new_usertype<Hit::Properties>("HitProps",
-    sol::factories([](int damage, Hit::Flags flags, Element element, std::optional<Hit::Context> contextOptional, Hit::Drag drag) {
-      Hit::Properties props = { damage, flags, element, 0, drag };
-
-      if (contextOptional) {
-        props.context = *contextOptional;
-        props.aggressor = props.context.aggressor;
+    sol::factories(
+      createHitProps,
+      [createHitProps] (int damage, Hit::Flags flags, Element element, std::optional<Hit::Context> contextOptional, Hit::Drag drag) {
+        return createHitProps(damage, flags, element, Element::none, contextOptional, drag);
       }
-
-      return props;
-    }),
+    ),
     "aggressor", &Hit::Properties::aggressor,
     "damage", &Hit::Properties::damage,
     "drag", &Hit::Properties::drag,
     "element", &Hit::Properties::element,
+    "secondary_element", &Hit::Properties::secondaryElement,
     "flags", &Hit::Properties::flags
   );
 
@@ -134,9 +141,9 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
     "Root", Hit::root,
     "Impact", Hit::impact,
     "Shake", Hit::shake,
-    "Pierce", Hit::pierce,
+    "PierceInvis", Hit::pierce_invis,
     "Retangible", Hit::retangible,
-    "Breaking", Hit::breaking,
+    "PierceGuard", Hit::pierce_guard,
     "Bubble", Hit::bubble,
     "Freeze", Hit::freeze,
     "Drag", Hit::drag,

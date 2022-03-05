@@ -899,6 +899,13 @@ void ConfigScene::onLeave()
 
 void ConfigScene::onExit()
 {
+  ConfigSettings& config = getController().ConfigSettings();
+
+  const int music = config.GetMusicLevel();
+  const int sfx = config.GetSFXLevel();
+
+  Audio().SetStreamVolume(((music - 1) / 3.0f) * 100.0f);
+  Audio().SetChannelVolume(((sfxLevel - 1) / 3.0f) * 100.0f);
 }
 
 void ConfigScene::onEnter()

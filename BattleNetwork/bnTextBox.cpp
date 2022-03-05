@@ -3,18 +3,71 @@
 #include "bnTextureResourceManager.h"
 #include "stx/string.h"
 
+#include <string_view>
+#include <Poco/UTF8Encoding.h>
+
 namespace {
   const char dramatic_token = '\x01';
   const char nolip_token = '\x02';
   const char fast_token = '\x03';
   const auto special_chars = { ::nolip_token, ::dramatic_token, ' ',  '\n' };
+
+  stx::result_t<std::pair<uint32_t, size_t>> nextUTF8CodepointAndSize(std::string_view s) {
+    Poco::UTF8Encoding utf8Encoding;
+    size_t size = 1;
+    for (;;) {
+      if (size > s.size()) {
+        return stx::error<std::pair<uint32_t, size_t>>("premature end of bytes");
+      }
+
+      int r = utf8Encoding.queryConvert(reinterpret_cast<const unsigned char*>(s.data()), size);
+      if (r == -1) {
+        return stx::error<std::pair<uint32_t, size_t>>("malformed byte sequence");
+      }
+
+      if (r > 0) {
+        return std::make_pair(static_cast<uint32_t>(r), size);
+      }
+
+      size = -r;
+    }
+  }
+
+  size_t nextValidUTF8CodepointIndex(std::string_view s) {
+    for (size_t i = 0; i < s.size(); ++i) {
+      stx::result_t<std::pair<uint32_t, size_t>> r = nextUTF8CodepointAndSize(s.substr(i));
+      if (!r.is_error()) {
+        return i + r.value().second;
+      }
+    }
+    return s.size();
+  }
+
+  uint32_t lastUTF8Codepoint(std::string_view s) {
+    // The cursed UTF-8 backwards iteration routine. Based on https://stackoverflow.com/a/22257843.
+    if (s.empty()) {
+      return 0;
+    }
+
+    size_t i = s.size() - 1;
+    while (i >= 0 && (s[i] & 0xc0) == 0x80) {
+      --i;
+    }
+
+    stx::result_t<std::pair<uint32_t, size_t>> r = nextUTF8CodepointAndSize(s.substr(i));
+    if (r.is_error()) {
+      return 0;
+    }
+
+    return r.value().first;
+  }
 }
 
 TextBox::TextBox(int width, int height) :
-  TextBox::TextBox(width, height, Font::Style::thin) { } 
+  TextBox::TextBox(width, height, Font::Style::thin) { }
 
-TextBox::TextBox(int width, int height, const Font& font) : 
-  font(font), 
+TextBox::TextBox(int width, int height, const Font& font) :
+  font(font),
   text("", font) {
   text.scale(2.0f, 2.0f);
   message = "";
@@ -63,10 +116,10 @@ void TextBox::FormatToFit() {
       wordIndex = -1;
     }
 
-    std::string fitString = message.substr(lastRow, (size_t)index - (size_t)lastRow + 1);
+    std::string fitString = message.substr(lastRow, (size_t)index - (size_t)lastRow + nextValidUTF8CodepointIndex(std::string_view(message).substr(index)));
 
     // fx sections shouldn't increase real estate...
-    fitString = stx::replace(fitString, std::string(1, ::nolip_token), ""); 
+    fitString = stx::replace(fitString, std::string(1, ::nolip_token), "");
     fitString = stx::replace(fitString, std::string(1, ::dramatic_token), "");
     fitString = stx::replace(fitString, std::string(1, ::fast_token), "");
 
@@ -111,7 +164,7 @@ void TextBox::FormatToFit() {
     else if (width > areaWidth) {
       // if we're on a space place the new line after
       if (message[index] == ' ') {
-        index++;
+        index += nextValidUTF8CodepointIndex(std::string_view(message).substr(index));
       }
 
       lastRow = index;
@@ -126,7 +179,7 @@ void TextBox::FormatToFit() {
 
       wordIndex = -1;
     }
-    index++;
+    index += nextValidUTF8CodepointIndex(std::string_view(message).substr(index));
   }
 
   // make final text blank to start
@@ -228,7 +281,7 @@ void TextBox::CompleteCurrentBlock()
 {
   if (lineIndex >= lines.size()) return;
 
-  // simulate the end of the text block starting from the beginning 
+  // simulate the end of the text block starting from the beginning
   // and compile a list of flags and set as complete
   int start = lines[lineIndex];
   int end = (int)message.size();
@@ -254,7 +307,7 @@ void TextBox::CompleteCurrentBlock()
     else if ((currEffect & effects::fast) == effects::fast) {
       modifiedCharsPerSecond = charsPerSecond * FAST_TEXT_SPEED;
     }
-    
+
     simProgress += 1.0 / modifiedCharsPerSecond;
   }
 
@@ -310,10 +363,8 @@ void TextBox::Stop() {
   Play(false);
 }
 
-const char TextBox::GetCurrentCharacter() const {
-  if (text.GetString().empty()) return '\0';
-
-  return text.GetString().back();
+const uint32_t TextBox::GetCurrentCharacter() const {
+  return lastUTF8Codepoint(text.GetString());
 }
 
 const int TextBox::GetNumberOfFittingLines() const {
@@ -402,7 +453,7 @@ void TextBox::Update(const double elapsed) {
   // If the text is set don't update the first frame
   if (!play && !dirty) return;
 
-  // If we're at the end of the message, don't step  
+  // If we're at the end of the message, don't step
   // through the words
   if (charIndex >= message.length()) {
     StoreCurrentBlock();
@@ -432,7 +483,7 @@ void TextBox::Update(const double elapsed) {
 
     // Try the next character
     if (!ProcessSpecialCharacters(charIndexIter)) {
-      charIndexIter++;
+      charIndexIter+=nextValidUTF8CodepointIndex(std::string_view(message).substr(charIndexIter));
       ProcessSpecialCharacters(charIndexIter);
     }
 
@@ -440,8 +491,8 @@ void TextBox::Update(const double elapsed) {
     if (charIndexIter > charIndex && charIndex < message.size()) {
       // See how many non-spaces there were in this pass
       int length = charIndexIter - charIndex;
-      std::string pass = message.substr(charIndex, (size_t)length+1);
-      bool talking = pass.end() != std::find_if(pass.begin(), pass.end(), [](char in) { 
+      std::string pass = message.substr(charIndex, (size_t)length+nextValidUTF8CodepointIndex(std::string_view(message).substr(charIndex+length)));
+      bool talking = pass.end() != std::find_if(pass.begin(), pass.end(), [](char in) {
         auto iter = std::find(::special_chars.begin(), ::special_chars.end(), in);
         return iter == ::special_chars.end();
       });
@@ -481,13 +532,13 @@ void TextBox::Update(const double elapsed) {
     }
 
     // Len will be > 0 after first call to Update()
-    // Set the sf::Text to show only the visible text in 
+    // Set the sf::Text to show only the visible text in
     // the text area
     if (len <= 0) {
       text.SetString("");
     }
     else {
-      std::string outString = message.substr(begin, (size_t)len+1);
+      std::string outString = message.substr(begin, (size_t)len+nextValidUTF8CodepointIndex(std::string_view(message).substr(begin+len)));
       outString = stx::replace(outString, std::string(1, ::nolip_token), ""); // fx should not appear in final message
       outString = stx::replace(outString, std::string(1, ::dramatic_token), ""); // fx should not appear in final message
       text.SetString(outString);
@@ -510,7 +561,7 @@ const bool TextBox::IsEndOfBlock() const
   if (lastLine < this->lines.size()) {
     testCharIndex = this->lines[lastLine] - 1;
   }
-  
+
   return charIndex >= testCharIndex;
 }
 
