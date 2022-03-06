@@ -372,11 +372,11 @@ namespace Battle {
     this->startY = startY;
     this->offsetY = y_offset;
     
-    float tileCenter = std::ceilf((height - offsetY) / 2.f);
-    float xpos = std::ceilf(this->width + ((x - 1) * (this->width * getScale().x)) + startX);
-    float ypos = std::ceilf(this->height + ((y - 1) * ((this->height - this->offsetY)*getScale().y)) + startY);
+    float tileCenter = std::ceil((height - offsetY) / 2.f);
+    float xpos = std::ceil(this->width + ((x - 1) * (this->width * getScale().x)) + startX);
+    float ypos = std::ceil(this->height + ((y - 1) * ((this->height - this->offsetY)*getScale().y)) + startY);
 
-    setOrigin(std::ceilf(width / 2.0f), tileCenter);
+    setOrigin(std::ceil(width / 2.0f), tileCenter);
     setPosition(xpos, ypos);
   }
 
@@ -600,8 +600,8 @@ namespace Battle {
     }
 
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
-    float tileCenter = std::ceilf((height - offsetY) / 2.f);
-    setOrigin(std::ceilf(width/2.f), tileCenter);
+    float tileCenter = std::ceil((height - offsetY) / 2.f);
+    setOrigin(std::ceil(width/2.f), tileCenter);
     highlightMode = TileHighlight::none;
 
     // Process tile behaviors
