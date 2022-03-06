@@ -125,11 +125,9 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // Go to the forms state if forms are selected on either end, or go straight into battle
   comboSyncState.ChangeOnEvent(forms, [this, comboSyncStatePtr] { return comboSyncStatePtr->IsReady() && (cardStatePtr->HasForm() || remoteState.remoteChangeForm); } );
-  comboSyncState.ChangeOnEvent(combat, &NetworkSyncBattleState::IsReady);
+  comboSyncState.ChangeOnEvent(battlestart, &NetworkSyncBattleState::IsReady);
 
-  // If we reached the combo state, we must also check if form transformation was next
-  // or just sync
-  combo.ChangeOnEvent(forms, [cardSelect, combo, this]() mutable {return combo->IsDone() && (cardSelect->HasForm() || remoteState.remoteChangeForm); });
+  // Sync after combo
   combo.ChangeOnEvent(comboSyncState, &CardComboBattleState::IsDone);
 
   // Wait for handshake to complete by going back to the sync state..
@@ -167,8 +165,6 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   // Some states are part of the combat routine and need to respect
   // the combat state's timers
   combat->subcombatStates.push_back(&timeFreeze.Unwrap());
-  // consider battlestart as a combat state to allow input to queue
-  combat->subcombatStates.push_back(&battlestart.Unwrap());
 
   connectSyncStatePtr->SetEndCallback([this] (const BattleSceneState* _) {
     GetLocalPlayer()->ChangeState<PlayerControlledState>();
@@ -255,7 +251,9 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     SkipFrame();
   }
   else {
-    std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5, combatPtr->IsStateCombat(GetCurrentState()));
+    const BattleSceneState* currentState = GetCurrentState();
+    auto queueInput = currentState == startStatePtr || combatPtr->IsStateCombat(currentState);
+    std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5, queueInput);
 
     SendFrameData(events, (FrameNumber() + frames(5)).count());
   }
