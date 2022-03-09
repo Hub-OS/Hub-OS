@@ -2,6 +2,7 @@
 #include "bnScriptedCardAction.h"
 #include "../bnCharacter.h"
 #include "../bnSolHelpers.h"
+#include "../bnTextureResourceManager.h"
 
 ScriptedCardAction::ScriptedCardAction(std::shared_ptr<Character> actor, const std::string& state) :
   CardAction(actor, state)
@@ -49,6 +50,12 @@ std::optional<bool> ScriptedCardAction::CanMoveTo(Battle::Tile* next)
   }
 
   return {};
+}
+
+void ScriptedCardAction::SetBackgroundData(const std::filesystem::path& bgTexturePath, const std::filesystem::path& animPath, float velx, float vely)
+{
+  auto bg = std::make_shared<CustomBackground>(Textures().LoadFromFile(bgTexturePath), Animation(animPath), sf::Vector2f(velx, vely));
+  this->SetCustomBackground(bg);
 }
 
 void ScriptedCardAction::OnAnimationEnd() {

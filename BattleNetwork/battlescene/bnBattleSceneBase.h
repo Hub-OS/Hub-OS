@@ -91,6 +91,11 @@ private:
   bool backdropAffectBG{ false };
   bool perspectiveFlip{ false }; //!< if true, view from blue team's perspective
   bool hasPlayerSpawned{ false };
+  enum class CardFadeBGEffect {
+    none = 0,
+    cross_fade_in,
+    cross_fade_out
+  } cardFadeBGEffect{ CardFadeBGEffect::none };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
   int turn{ 0 }; //!< How many turns per round (inbetween card selection)
   int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
@@ -107,6 +112,7 @@ private:
   double backdropOpacity{ 1.0 };
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
+  double cardFadeBGSpeed{};
   RealtimeCardActionUseListener cardActionListener; /*!< Card use listener handles one card at a time */
   std::shared_ptr<PlayerSelectedCardsUI> cardUI{ nullptr }; /*!< Player's Card UI implementation */
   std::shared_ptr<PlayerEmotionUI> emotionUI{ nullptr }; /*!< Player's Emotion Window */
@@ -121,7 +127,8 @@ private:
   std::map<Player*, Team> allPlayerTeamHash; /*!< Check previous frames teams for traitors */
   Mob* redTeamMob{ nullptr }; /*!< Mob and mob data opposing team are fighting against */
   Mob* blueTeamMob{ nullptr }; /*!< Mob and mob data player are fighting against */
-  std::shared_ptr<Background> background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
+  sf::Color backgroundColor{ sf::Color::Green };
+  std::shared_ptr<Background> background{ nullptr }, cardBackground{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   Font mobFont; /*!< Name of mob font */
   std::vector<InputEvent> queuedLocalEvents; /*!< Local player input events*/
@@ -413,6 +420,8 @@ public:
 
   const bool FadeInBackdrop(double amount, double to, bool affectBackground);
   const bool FadeOutBackdrop(double amount);
+  void FadeInBackground(double fadeSpeed, const sf::Color& bgColor, const std::shared_ptr<Background>& bg);
+  void FadeOutBackground(double fadeSpeed);
 
   std::vector<std::reference_wrapper<const Character>> RedTeamMobList();
   std::vector<std::reference_wrapper<const Character>> BlueTeamMobList();

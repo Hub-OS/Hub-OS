@@ -28,6 +28,7 @@ const bool TimeFreezeBattleState::FadeInBackdrop()
 
 const bool TimeFreezeBattleState::FadeOutBackdrop()
 {
+  GetScene().FadeOutBackground(backdropInc);
   return GetScene().FadeOutBackdrop(backdropInc);
 }
 
@@ -132,6 +133,8 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
   scene.GetField()->Update(elapsed);
 
+  const auto& first = tfEvents.begin();
+
   switch (currState) {
   case state::fadein:
   {
@@ -139,6 +142,11 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       summonStart = true;
       currState = state::display_name;
       Audio().Play(AudioType::TIME_FREEZE, AudioPriority::highest);
+
+      if (first != tfEvents.end()) {
+        std::shared_ptr<CustomBackground> bg = first->action->GetCustomBackground();
+        GetScene().FadeInBackground(backdropInc, sf::Color::Black, bg);
+      }
     }
   }
     break;
@@ -176,7 +184,6 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
   case state::animate:
     {
       bool updateAnim = false;
-      const auto& first = tfEvents.begin();
 
       if (first->action) {
         // update the action until it is is complete

@@ -11,6 +11,7 @@
 #include "bnResourceHandle.h"
 #include "bnAnimationComponent.h"
 #include "bnCard.h"
+#include "bnCustomBackground.h"
 
 class Character;
 
@@ -21,6 +22,9 @@ namespace Battle {
 using namespace swoosh;
 
 class CardAction : public stx::enable_shared_from_base<CardAction>, public sf::Drawable, public ResourceHandle {
+private:
+  std::shared_ptr<CustomBackground> background;
+
 public:
   enum class LockoutType : unsigned {
     animation = 0,
@@ -149,6 +153,7 @@ public:
   void Execute(std::shared_ptr<Character> user);
   void EndAction();
   void UseStuntDouble(std::shared_ptr<Character> stuntDouble); // can cause GetActor to return nullptr
+  void SetCustomBackground(const std::shared_ptr<CustomBackground>& background);
 
   const LockoutGroup GetLockoutGroup() const;
   const LockoutType GetLockoutType() const;
@@ -159,6 +164,7 @@ public:
   const bool CanExecute() const;
   std::shared_ptr<Character> GetActor(); // may return nullptr
   const std::shared_ptr<Character> GetActor() const; // may return nullptr
+  std::shared_ptr<CustomBackground> GetCustomBackground(); // may return nullptr
 
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;

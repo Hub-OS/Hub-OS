@@ -20,6 +20,7 @@ public:
   void Update(double elapsed) override;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   std::optional<bool> CanMoveTo(Battle::Tile* next) override;
+  void SetBackgroundData(const std::filesystem::path& bgTexturePath, const std::filesystem::path& animPath, float velx, float vely);
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;

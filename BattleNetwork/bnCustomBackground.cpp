@@ -7,20 +7,24 @@ CustomBackground::CustomBackground(const std::shared_ptr<Texture>& texture, cons
   progress(0.0f),
   Background(texture, 240, 180)
 {
-  this->animation.SetAnimation("BG");
-  this->animation << Animator::Mode::Loop;
-
   sf::Vector2u textureSize = texture->getSize();
-  textureSize.x = std::min(textureSize.x, 240u);
-  textureSize.y = std::min(textureSize.y, 180u);
 
   if (this->animation.HasAnimation("BG")) {
-    auto& frameList = this->animation.GetFrameList("BG");
+    this->animation.SetAnimation("BG");
+    this->animation << Animator::Mode::Loop;
 
-    if (frameList.GetFrameCount() > 0) {
-      const auto& frame = frameList.GetFrame(0);
-      textureSize.x = (unsigned)frame.subregion.width;
-      textureSize.y = (unsigned)frame.subregion.height;
+    sf::Vector2u textureSize = texture->getSize();
+    textureSize.x = std::min(textureSize.x, 240u);
+    textureSize.y = std::min(textureSize.y, 180u);
+
+    if (this->animation.HasAnimation("BG")) {
+      auto& frameList = this->animation.GetFrameList("BG");
+
+      if (frameList.GetFrameCount() > 0) {
+        const auto& frame = frameList.GetFrame(0);
+        textureSize.x = (unsigned)frame.subregion.width;
+        textureSize.y = (unsigned)frame.subregion.height;
+      }
     }
   }
 

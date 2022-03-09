@@ -167,6 +167,9 @@ void DefineScriptedCardActionUserType(const std::string& namespaceId, ScriptReso
     "copy_metadata", [](WeakWrapper<ScriptedCardAction>& cardAction) -> Battle::Card::Properties {
       return cardAction.Unwrap()->GetMetaData();
     },
+    "set_background", [](WeakWrapper<ScriptedCardAction>& cardAction, const std::string& bgTexturePath, const std::string& animPath, float velx, float vely) {
+      cardAction.Unwrap()->SetBackgroundData(bgTexturePath, animPath, velx, vely);
+    },
     "update_func", sol::property(
       [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->update_func; },
       [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {

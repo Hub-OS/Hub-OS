@@ -25,4 +25,7 @@ void BattleStartBattleState::onStart(const BattleSceneState* _)
   if (ui) {
     ui->Reveal();
   }
+
+  // GetScene().FadeInBackdrop(0.1, 1.0, false);
+  //GetScene().FadeOutBackdrop(0.001);
 }

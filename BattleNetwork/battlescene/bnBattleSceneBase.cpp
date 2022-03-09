@@ -664,6 +664,10 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   background->Update((float)elapsed);
 
+  if (cardBackground) {
+    cardBackground->Update((float)elapsed);
+  }
+
   if (Input().GetAnyKey() == sf::Keyboard::Escape && this->IsSceneInFocus()) {
     BroadcastBattleStop();
     Quit(FadeOut::white);
@@ -861,9 +865,16 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     tint = 255;
   }
 
-  background->SetOpacity(1.0f - (float)backdropOpacity);
+  surface.clear(backgroundColor);
+
+  background->SetMix(1.0f - (float)backdropOpacity);
 
   surface.draw(*background);
+
+  // cross-fade a chip background
+  if (cardBackground) {
+    surface.draw(*cardBackground);
+  }
 
   auto uis = std::vector<std::shared_ptr<UIComponent>>();
 
@@ -1223,6 +1234,23 @@ const bool BattleSceneBase::FadeOutBackdrop(double amount)
   backdropFadeIncrements = amount;
 
   return (backdropOpacity == 0.0);
+}
+
+void BattleSceneBase::FadeInBackground(double fadeSpeed, const sf::Color& bgColor, const std::shared_ptr<Background>& bg)
+{
+  this->backgroundColor = bgColor;
+  this->cardBackground = bg;
+  this->cardFadeBGSpeed = fadeSpeed;
+  this->cardFadeBGEffect = CardFadeBGEffect::cross_fade_in;
+}
+
+void BattleSceneBase::FadeOutBackground(double speed)
+{
+  this->cardFadeBGEffect = CardFadeBGEffect::cross_fade_out;
+  this->cardFadeBGSpeed = speed;
+  
+  // TODO: fade out
+  this->cardBackground = nullptr;
 }
 
 std::vector<std::reference_wrapper<const Character>> BattleSceneBase::RedTeamMobList()

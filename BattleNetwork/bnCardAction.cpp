@@ -349,6 +349,16 @@ void CardAction::FreeAttachedNodes() {
   attachments.clear();
 }
 
+void CardAction::SetCustomBackground(const std::shared_ptr<CustomBackground>& background)
+{
+  this->background = background;
+}
+
+std::shared_ptr<CustomBackground> CardAction::GetCustomBackground()
+{
+  return background;
+}
+
 const CardAction::LockoutGroup CardAction::GetLockoutGroup() const
 {
   return lockoutProps.group;
