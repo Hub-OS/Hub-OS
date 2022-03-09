@@ -1291,6 +1291,9 @@ const bool Entity::Hit(Hit::Properties props) {
     props.flags |= Hit::no_counter;
   }
 
+  // protect against defense rules wiping the no_counter flag
+  props.flags |= original.flags & Hit::no_counter;
+
   // Add to status queue for state resolution
   statusQueue.push(CombatHitProps{ original, props });
 
@@ -1385,7 +1388,7 @@ void Entity::ResolveFrameBattleDamage()
       // 4. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
       if (IsCounterable() && (props.filtered.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if ((props.hitbox.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
+        if ((props.filtered.flags & Hit::no_counter) == 0 && props.filtered.aggressor) {
           frameCounterAggressor = GetField()->GetCharacter(props.filtered.aggressor);
         }
 

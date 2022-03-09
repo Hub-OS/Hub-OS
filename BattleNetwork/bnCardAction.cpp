@@ -229,6 +229,12 @@ void CardAction::EndAction()
 {
   if (!started) return;
 
+  for (std::shared_ptr<CardAction::Step>& step : steps) {
+    if (!step->IsComplete()) {
+      step->CompleteStep();
+    }
+  }
+
   RecallPreviousState();
   OnActionEnd();
   

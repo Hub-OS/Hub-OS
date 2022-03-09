@@ -5,6 +5,8 @@
 #include <Segues/WhiteWashFade.h>
 #include <Segues/VerticalOpen.h>
 #include <Poco/Net/NetException.h>
+#include <Poco/InflatingStream.h>
+#include <Poco/MemoryStream.h>
 
 #include <filesystem>
 #include <fstream>
@@ -164,7 +166,7 @@ void Overworld::OnlineArea::SetAvatarAsSpeaker() {
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
-  if (tryPopScene) {
+  if (IsInFocus() && tryPopScene) {
     using effect = segue<PixelateBlackWashFade>;
     if (getController().pop<effect>()) {
       tryPopScene = false;
@@ -180,7 +182,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     return;
   }
 
-  if (!isConnected || kicked) {
+  if (!isConnected) {
     return;
   }
 
@@ -399,7 +401,6 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
       menuSystem.EnqueueQuestion("Return to your homepage?", [this](bool result) {
         if (result) {
           GetTeleportController().TeleportOut(GetPlayer()).onFinish.Slot([this] {
-            this->sendLogoutSignal();
             this->leave();
           });
         }
@@ -452,8 +453,7 @@ void Overworld::OnlineArea::detectWarp() {
       warpCameraController.QueueMoveCamera(map.WorldToScreen(position3), interpolateTime);
 
       command.onFinish.Slot([=] {
-        sendLogoutSignal();
-        getController().pop<segue<BlackWashFade>>();
+        leave();
       });
       break;
     }
@@ -615,23 +615,9 @@ void Overworld::OnlineArea::onStart()
 
 void Overworld::OnlineArea::onEnd()
 {
-  if (packetProcessor) {
-    sendLogoutSignal();
-    Net().DropProcessor(packetProcessor);
-    packetProcessor = nullptr;
-  }
-
-  for (auto& [key, processor] : authorizationProcessors) {
-    Net().DropProcessor(processor);
-  }
-
-  getController().Session().SetWhitelist({}); // clear the whitelist
-  // getController().Session().SetBlacklist({}); // clear the blacklist
-
-  if (!transferringServers) {
-    // clear packages when completing the return to the homepage
-    // we already clear packages when transferring to a new server
-    RemovePackages();
+  if (!cleanedUp) {
+    Logger::Log(LogLevel::critical, "OverworldOnlineArea::cleanup() call missed, may have unintended effects from transition period");
+    cleanup();
   }
 }
 
@@ -796,7 +782,7 @@ void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t por
     packetProcessor->SetStatusHandler([this, host, port, data, handleFail, packetProcessor = packetProcessor.get()](auto status, auto maxPayloadSize) {
       if (status == ServerStatus::online) {
         AddSceneChangeTask([=] {
-          RemovePackages();
+          cleanup();
           getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
         });
       }
@@ -823,10 +809,20 @@ void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t por
 
 void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
 {
+  if (!packetProcessor) {
+    // an exception in a synchronizedPackets loop can lead us here
+    return;
+  }
+
   BufferReader reader;
 
   try {
     auto sig = reader.Read<ServerEvents>(data);
+
+    if (synchronizingUpdates && sig != ServerEvents::end_synchronization) {
+      synchronizedPackets.push_back(data);
+      return;
+    }
 
     switch (sig) {
     case ServerEvents::authorize:
@@ -1012,6 +1008,19 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::actor_minimap_color:
       receiveActorMinimapColorSignal(reader, data);
+      break;
+    case ServerEvents::synchronize_updates:
+      synchronizingUpdates = true;
+      break;
+    case ServerEvents::end_synchronization:
+      synchronizingUpdates = false;
+
+      for (auto& data : synchronizedPackets) {
+        processPacketBody(data);
+      }
+
+      synchronizedPackets.clear();
+      break;
     }
   }
   catch (Poco::IOException& e) {
@@ -1060,10 +1069,10 @@ void Overworld::OnlineArea::CheckPlayerAgainstWhitelist()
   // Else, inform the player they will be kicked
   auto onComplete = [this] {
     auto& command = GetTeleportController().TeleportOut(GetPlayer());
-    command.onFinish.Slot([this] {
-      getController().pop<segue<PixelateBlackWashFade>>();
-    });
+    leave();
   };
+
+  SetAvatarAsSpeaker();
   std::string message = "This server detects none of your installed navis are allowed.\nReturning to your homepage.";
   this->GetMenuSystem().EnqueueMessage(message, onComplete);
 }
@@ -1546,9 +1555,8 @@ void Overworld::OnlineArea::receiveKickSignal(BufferReader& reader, const Poco::
 
   transitionText.SetString(kickText + "\n\n" + kickReason);
   isConnected = false;
-  kicked = true;
 
-  // bool kicked will block incoming packets, so we'll leave in update from a timeout
+  // we'll leave in update from a timeout
 }
 
 void Overworld::OnlineArea::receiveAssetRemoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
@@ -1615,6 +1623,14 @@ void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const
   case AssetType::text:
     serverAssetManager.SetText(name, lastModified, assetReader.ReadString(incomingAsset.buffer, incomingAsset.buffer.size()), cachable);
     break;
+  case AssetType::compressed_text: {
+    auto memoryStream = Poco::MemoryInputStream(incomingAsset.buffer.begin(), incomingAsset.buffer.size());
+    auto inflateStream = Poco::InflatingInputStream(memoryStream);
+    std::string decompressedText(std::istreambuf_iterator(inflateStream), {});
+
+    serverAssetManager.SetText(name, lastModified, decompressedText, cachable);
+    break;
+  }
   case AssetType::texture:
     serverAssetManager.SetTexture(name, lastModified, incomingAsset.buffer.begin(), incomingAsset.size, cachable);
     break;
@@ -3148,12 +3164,28 @@ void Overworld::OnlineArea::receiveActorMinimapColorSignal(BufferReader& reader,
 }
 
 void Overworld::OnlineArea::leave() {
+  cleanup();
+  tryPopScene = true;
+}
+
+void Overworld::OnlineArea::cleanup() {
+  for (auto& [key, processor] : authorizationProcessors) {
+    Net().DropProcessor(processor);
+  }
+  authorizationProcessors.clear();
+
   if (packetProcessor) {
+    sendLogoutSignal();
     Net().DropProcessor(packetProcessor);
     packetProcessor = nullptr;
   }
 
-  tryPopScene = true;
+  RemovePackages();
+  getController().Session().SetWhitelist({}); // clear the whitelist
+  // getController().Session().SetBlacklist({}); // clear the blacklist
+
+  isConnected = false;
+  cleanedUp = true;
 }
 
 std::string Overworld::OnlineArea::GetText(const std::string& path) {
