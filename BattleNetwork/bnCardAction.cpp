@@ -360,6 +360,11 @@ void CardAction::SetCustomBackground(const std::shared_ptr<CustomBackground>& ba
   this->background = background;
 }
 
+void CardAction::TimeFreezeBlackoutTiles(bool enable)
+{
+  timeFreezeBlackoutTiles = enable;
+}
+
 std::shared_ptr<CustomBackground> CardAction::GetCustomBackground()
 {
   return background;
@@ -397,6 +402,11 @@ const bool CardAction::IsLockoutOver() const {
 const bool CardAction::CanExecute() const
 {
   return started == false;
+}
+
+const bool CardAction::WillTimeFreezeBlackoutTiles() const
+{
+  return timeFreezeBlackoutTiles;
 }
 
 std::optional<bool> CardAction::CanMoveTo(Battle::Tile* next) {

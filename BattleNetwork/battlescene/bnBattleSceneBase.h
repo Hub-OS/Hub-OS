@@ -91,11 +91,6 @@ private:
   bool backdropAffectBG{ false };
   bool perspectiveFlip{ false }; //!< if true, view from blue team's perspective
   bool hasPlayerSpawned{ false };
-  enum class CardFadeBGEffect {
-    none = 0,
-    cross_fade_in,
-    cross_fade_out
-  } cardFadeBGEffect{ CardFadeBGEffect::none };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
   int turn{ 0 }; //!< How many turns per round (inbetween card selection)
   int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
@@ -112,7 +107,7 @@ private:
   double backdropOpacity{ 1.0 };
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
-  double cardFadeBGSpeed{};
+  double cardFadeBGSpeed{}, cardBGOpacity{ 0.0 }; /*!< Special effect bg needs to start at zero opacity*/
   RealtimeCardActionUseListener cardActionListener; /*!< Card use listener handles one card at a time */
   std::shared_ptr<PlayerSelectedCardsUI> cardUI{ nullptr }; /*!< Player's Card UI implementation */
   std::shared_ptr<PlayerEmotionUI> emotionUI{ nullptr }; /*!< Player's Emotion Window */
@@ -170,7 +165,7 @@ private:
   enum class backdrop : int {
     fadeout = 0,
     fadein
-  } backdropMode{};
+  } backdropMode{}, cardFadeBGEffect{};
 
   // event bus
   EventBus::Channel channel;

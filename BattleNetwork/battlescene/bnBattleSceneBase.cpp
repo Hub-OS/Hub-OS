@@ -686,22 +686,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   camera.Update((float)elapsed);
 
-  if (backdropShader) {
-    backdropShader->setUniform("opacity", (float)backdropOpacity);
-  }
-
-  switch (backdropMode) {
-  case backdrop::fadein:
-    backdropOpacity = std::fmin(backdropMaxOpacity, backdropOpacity + (backdropFadeIncrements * elapsed));
-    break;
-  case backdrop::fadeout:
-    backdropOpacity = std::fmax(0.0, backdropOpacity - (backdropFadeIncrements * elapsed));
-    if (backdropOpacity == 0.0) {
-      backdropAffectBG = false; // reset this effect
-    }
-    break;
-  }
-
   // Register and eject any applicable components
   ProcessNewestComponents();
 
@@ -799,6 +783,42 @@ void BattleSceneBase::onUpdate(double elapsed) {
         break;
       }
     }
+  }
+
+  // update the background(s)
+  switch (backdropMode) {
+  case backdrop::fadein:
+    backdropOpacity = std::fmin(backdropMaxOpacity, backdropOpacity + (backdropFadeIncrements * elapsed));
+    break;
+  case backdrop::fadeout:
+    backdropOpacity = std::fmax(0.0, backdropOpacity - (backdropFadeIncrements * elapsed));
+    if (backdropOpacity == 0.0) {
+      backdropAffectBG = false; // reset this effect
+    }
+    break;
+  }
+
+  switch (cardFadeBGEffect) {
+  case backdrop::fadein:
+    cardBGOpacity = std::fmin(1.0, cardBGOpacity + (cardFadeBGSpeed * elapsed));
+    break;
+  case backdrop::fadeout:
+    cardBGOpacity = std::fmax(0.0, cardBGOpacity - (cardFadeBGSpeed * elapsed));
+    if (cardBGOpacity == 0.0) {
+      cardBackground = nullptr;
+    }
+    break;
+  }
+
+  background->SetMix(1.0 - cardBGOpacity);
+  background->SetOpacity(1.0 - cardBGOpacity);
+
+  if (cardBackground) {
+    cardBackground->SetOpacity(cardBGOpacity);
+  }
+
+  if (backdropShader) {
+    backdropShader->setUniform("opacity", (float)backdropOpacity);
   }
 
   // cleanup trackers for ex-mob enemies when they are fully removed from the field
@@ -1241,16 +1261,13 @@ void BattleSceneBase::FadeInBackground(double fadeSpeed, const sf::Color& bgColo
   this->backgroundColor = bgColor;
   this->cardBackground = bg;
   this->cardFadeBGSpeed = fadeSpeed;
-  this->cardFadeBGEffect = CardFadeBGEffect::cross_fade_in;
+  this->cardFadeBGEffect = backdrop::fadein;
 }
 
 void BattleSceneBase::FadeOutBackground(double speed)
 {
-  this->cardFadeBGEffect = CardFadeBGEffect::cross_fade_out;
   this->cardFadeBGSpeed = speed;
-  
-  // TODO: fade out
-  this->cardBackground = nullptr;
+  this->cardFadeBGEffect = backdrop::fadeout;
 }
 
 std::vector<std::reference_wrapper<const Character>> BattleSceneBase::RedTeamMobList()

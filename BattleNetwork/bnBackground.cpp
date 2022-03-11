@@ -14,14 +14,14 @@ Background::Background(const std::shared_ptr<sf::Texture>& ref, int width, int h
   height(height),
   texture(ref)
 {
-  texture = ref;
-  texture->setRepeated(true);
+  if (texture) {
+    texture = ref;
+    texture->setRepeated(true);
+    sf::Vector2u textureSize = texture->getSize();
+    FillScreen(textureSize);
+  }
 
   vertices.setPrimitiveType(sf::Triangles);
-
-  sf::Vector2u textureSize = texture->getSize();
-
-  FillScreen(textureSize);
 
   textureWrap = Shaders().GetShader(ShaderType::TEXEL_TEXTURE_WRAP);
 }
@@ -43,7 +43,6 @@ void Background::RecalculateColors() {
   */
 void Background::Wrap(sf::Vector2f _amount) {
   offset = _amount;
-
   offset.x = std::fmod(offset.x, 1.f);
   offset.y = std::fmod(offset.y, 1.f);
 
@@ -117,21 +116,23 @@ void Background::draw(sf::RenderTarget& target, sf::RenderStates states) const
   // apply the transform
   states.transform *= getTransform();
 
-  // apply the tileset texture
-  states.texture = &(*texture);
+  if (texture) {
+    // apply the tileset texture
+    states.texture = &(*texture);
 
-  sf::Vector2u size = texture->getSize();
+    sf::Vector2u size = texture->getSize();
 
-  if (textureWrap) {
-    textureWrap->setUniform("x", (float)textureRect.left / (float)size.x);
-    textureWrap->setUniform("y", (float)textureRect.top / (float)size.y);
-    textureWrap->setUniform("w", (float)textureRect.width / (float)size.x);
-    textureWrap->setUniform("h", (float)textureRect.height / (float)size.y);
-    textureWrap->setUniform("offsetx", (float)(offset.x));
-    textureWrap->setUniform("offsety", (float)(offset.y));
+    if (textureWrap) {
+      textureWrap->setUniform("x", (float)textureRect.left / (float)size.x);
+      textureWrap->setUniform("y", (float)textureRect.top / (float)size.y);
+      textureWrap->setUniform("w", (float)textureRect.width / (float)size.x);
+      textureWrap->setUniform("h", (float)textureRect.height / (float)size.y);
+      textureWrap->setUniform("offsetx", (float)(offset.x));
+      textureWrap->setUniform("offsety", (float)(offset.y));
+    }
+
+    states.shader = textureWrap;
   }
-
-  states.shader = textureWrap;
 
   // draw the vertex array
   target.draw(vertices, states);
@@ -169,6 +170,8 @@ sf::Vector2f Background::GetOffset() {
   * @param offset
   */
 void Background::SetOffset(sf::Vector2f offset) {
+  if (!texture) return;
+
   sf::Vector2u size = texture->getSize();
   offset.x /= (float)textureRect.width;
   offset.y /= (float)textureRect.height;

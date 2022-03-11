@@ -21,6 +21,7 @@ public:
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   std::optional<bool> CanMoveTo(Battle::Tile* next) override;
   void SetBackgroundData(const std::filesystem::path& bgTexturePath, const std::filesystem::path& animPath, float velx, float vely);
+  void SetBackgroundColor(const sf::Color& color);
 
   void OnAnimationEnd() override;
   void OnActionEnd() override;

@@ -58,6 +58,13 @@ void ScriptedCardAction::SetBackgroundData(const std::filesystem::path& bgTextur
   this->SetCustomBackground(bg);
 }
 
+void ScriptedCardAction::SetBackgroundColor(const sf::Color& color)
+{
+  auto bg = std::make_shared<CustomBackground>(nullptr, Animation(), sf::Vector2f());
+  bg->SetColor(color);
+  this->SetCustomBackground(bg);
+}
+
 void ScriptedCardAction::OnAnimationEnd() {
   if (animation_end_func.valid()) 
   {

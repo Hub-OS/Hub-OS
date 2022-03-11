@@ -7,7 +7,11 @@ CustomBackground::CustomBackground(const std::shared_ptr<Texture>& texture, cons
   progress(0.0f),
   Background(texture, 240, 180)
 {
-  sf::Vector2u textureSize = texture->getSize();
+  sf::Vector2u textureSize = sf::Vector2u(240, 180);
+  
+  if (texture) {
+    textureSize = texture->getSize();
+  }
 
   if (this->animation.HasAnimation("BG")) {
     this->animation.SetAnimation("BG");

@@ -109,6 +109,7 @@ private:
   bool started{ false };
   bool recalledAnimation{ false };
   bool preventCounters{ false };
+  bool timeFreezeBlackoutTiles{ false };
   LockoutProperties lockoutProps{};
   std::string animation;
   std::string uuid, prevState;
@@ -154,6 +155,7 @@ public:
   void EndAction();
   void UseStuntDouble(std::shared_ptr<Character> stuntDouble); // can cause GetActor to return nullptr
   void SetCustomBackground(const std::shared_ptr<CustomBackground>& background);
+  void TimeFreezeBlackoutTiles(bool enable);
 
   const LockoutGroup GetLockoutGroup() const;
   const LockoutType GetLockoutType() const;
@@ -162,6 +164,8 @@ public:
   const bool IsLockoutOver() const;
   const Battle::Card::Properties& GetMetaData() const;
   const bool CanExecute() const;
+  const bool WillTimeFreezeBlackoutTiles() const;
+
   std::shared_ptr<Character> GetActor(); // may return nullptr
   const std::shared_ptr<Character> GetActor() const; // may return nullptr
   std::shared_ptr<CustomBackground> GetCustomBackground(); // may return nullptr

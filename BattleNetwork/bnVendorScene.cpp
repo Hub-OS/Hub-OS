@@ -366,7 +366,7 @@ void VendorScene::onDraw(sf::RenderTexture& surface)
   surface.draw(wallet);
 
   label.SetColor(sf::Color(41, 99, 140));
-  label.SetString(std::to_string(monies) + "z");
+  label.SetString(std::to_string(monies) + "$");
   label.setOrigin(label.GetLocalBounds().width, label.GetLocalBounds().height);
   label.setPosition(wallet.getPosition() + sf::Vector2f{(wallet.getLocalBounds().width*2.f) - 10.f, 56.f});
   surface.draw(label);
@@ -382,7 +382,7 @@ void VendorScene::onDraw(sf::RenderTexture& surface)
         label.setOrigin(0.f, 0.f);
         surface.draw(label);
 
-        label.SetString(std::to_string(item.cost)+"z");
+        label.SetString(std::to_string(item.cost)+"$");
         label.setOrigin(label.GetLocalBounds().width, 0.f);
         label.setPosition(322.f, 13.f + (j * 32.f));
         surface.draw(label);

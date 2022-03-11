@@ -30,6 +30,7 @@ namespace Overworld {
     cool,
     uncool,
     spirit,
+    follow,
     size
   };
 

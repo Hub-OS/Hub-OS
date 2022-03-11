@@ -55,7 +55,7 @@ std::shared_ptr<Character> TimeFreezeBattleState::CreateStuntDouble(std::shared_
 
 void TimeFreezeBattleState::SkipToAnimateState()
 {
-  startState = state::animate;
+  currState = state::animate;
   ExecuteTimeFreeze();
 }
 
@@ -105,6 +105,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   if (first->action && first->action->GetMetaData().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
+
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -142,11 +143,6 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       summonStart = true;
       currState = state::display_name;
       Audio().Play(AudioType::TIME_FREEZE, AudioPriority::highest);
-
-      if (first != tfEvents.end()) {
-        std::shared_ptr<CustomBackground> bg = first->action->GetCustomBackground();
-        GetScene().FadeInBackground(backdropInc, sf::Color::Black, bg);
-      }
     }
   }
     break;
@@ -184,6 +180,16 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
   case state::animate:
     {
       bool updateAnim = false;
+
+      if (first != tfEvents.end()) {
+        std::shared_ptr<CustomBackground> bg = first->action->GetCustomBackground();
+        GetScene().FadeInBackground(backdropInc, sf::Color::Black, bg);
+
+        if (first->action->WillTimeFreezeBlackoutTiles()) {
+          // Instead of stopping at 0.5, we will go to 1.0 to darken the entire bg layer and tiles
+          GetScene().FadeInBackdrop(backdropInc, 1.0, true);
+        }
+      }
 
       if (first->action) {
         // update the action until it is is complete

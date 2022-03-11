@@ -167,8 +167,16 @@ void DefineScriptedCardActionUserType(const std::string& namespaceId, ScriptReso
     "copy_metadata", [](WeakWrapper<ScriptedCardAction>& cardAction) -> Battle::Card::Properties {
       return cardAction.Unwrap()->GetMetaData();
     },
-    "set_background", [](WeakWrapper<ScriptedCardAction>& cardAction, const std::string& bgTexturePath, const std::string& animPath, float velx, float vely) {
-      cardAction.Unwrap()->SetBackgroundData(bgTexturePath, animPath, velx, vely);
+    "set_background", sol::overload(
+      [](WeakWrapper<ScriptedCardAction>& cardAction, const std::string& bgTexturePath, const std::string& animPath, float velx, float vely) {
+        cardAction.Unwrap()->SetBackgroundData(bgTexturePath, animPath, velx, vely);
+      },
+      [](WeakWrapper<ScriptedCardAction>& cardAction, const sf::Color& color) {
+        cardAction.Unwrap()->SetBackgroundColor(color);
+      }
+    ),
+    "time_freeze_blackout_tiles", [](WeakWrapper<ScriptedCardAction>& cardAction, bool enable) {
+        cardAction.Unwrap()->TimeFreezeBlackoutTiles(enable);
     },
     "update_func", sol::property(
       [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->update_func; },
