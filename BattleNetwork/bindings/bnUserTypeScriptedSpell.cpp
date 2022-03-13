@@ -42,7 +42,7 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
         spell.Unwrap()->delete_func = VerifyLuaCallback(value);
       }
     ),
-    "collision_func", sol::property(
+    "on_collision_func", sol::property(
       [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->collision_func; },
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
         spell.Unwrap()->collision_func = VerifyLuaCallback(value);

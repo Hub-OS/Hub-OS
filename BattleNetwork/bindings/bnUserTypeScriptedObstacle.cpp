@@ -52,7 +52,7 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
         obstacle.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
       }
     ),
-    "collision_func", sol::property(
+    "on_collision_func", sol::property(
       [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->collision_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
         obstacle.Unwrap()->collision_func = VerifyLuaCallback(value);

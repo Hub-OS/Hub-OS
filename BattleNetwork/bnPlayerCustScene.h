@@ -137,7 +137,7 @@ private:
   double selectInputCooldown{}; /*!< The delay between reading user input */
 
   // progress bar
-  double progress{}, maxProgressTime{ 3. };
+  double progress{}, maxProgressTime{ 2.5 }; // 2.5 second compile tile
 
   // scene graphics
   double blockFlashElapsed{}, buttonFlashElapsed{};
@@ -153,12 +153,14 @@ private:
   sf::Sprite infoBox, previewBox, menuBox;
   sf::Sprite blockShadowVertical, blockShadowHorizontal;
   sf::Sprite track;
-  sf::Sprite progressBar;
+  //sf::Sprite progressBar;
   sf::IntRect progressBarUVs;
+  sf::ConvexShape progressBar;
   std::string playerUUID;
   std::shared_ptr<sf::Texture> cursorTexture, miniblocksTexture, disabledBlockTexture;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
   std::shared_ptr<sf::Texture> bgTex;
+  std::shared_ptr<sf::Texture> progressBarTexture;
   std::shared_ptr<sf::SoundBuffer> compile_start, compile_complete, compile_no_item, compile_item;
   std::vector<Piece*> pieces;
   std::map<Piece*, size_t> centerHash;
@@ -218,6 +220,8 @@ private:
   void RefreshBlock(Piece* p, sf::Sprite& sprite);
   void RefreshButton(size_t idx);
   void RefreshTrack();
+  void ResetCompileArrowPolygon();
+  void UpdateCompileArrowPolygon(double delta);
   void ExecuteLeftKey();
   void ExecuteRightKey();
   void ExecuteUpKey();

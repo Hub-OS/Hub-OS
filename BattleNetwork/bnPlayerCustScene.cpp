@@ -176,15 +176,12 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
   hoverText = itemText;
 
   // progress bar data
-  auto progressBarTexture = load_texture("resources/scenes/cust/progress_bar.png");
+  progressBarTexture = load_texture("resources/scenes/cust/progress_bar.png");
   progressBarTexture->setRepeated(true);
 
-  progressBarUVs = { 0, 0, 118, 14 };
-  progressBar = sf::Sprite(*progressBarTexture);
-  progressBar.setScale(2.f, 2.f);
-  progressBar.setPosition((GRID_START_X * 2.) + 20, 168);
-  progressBar.setTextureRect(progressBarUVs); // source is 69x14 pixels
-  progressBar.setColor(sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA));
+  // construct progress bar polygon
+  progressBar = sf::ConvexShape(28);
+  ResetCompileArrowPolygon();
 
   // ensure piece dimensions are up-to-date
   for (auto& p : pieces) {
@@ -403,8 +400,9 @@ void PlayerCustScene::StartCompile()
   state = state::compiling;
   sf::Color color = sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA);
   progressBarUVs.width = 0;
+  ResetCompileArrowPolygon();
   progressBar.setTextureRect(progressBarUVs);
-  progressBar.setColor(color);
+  progressBar.setFillColor(color);
   Audio().Play(compile_start);
 }
 
@@ -852,6 +850,56 @@ void PlayerCustScene::RefreshTrack()
   trackAnim.Refresh(track);
 }
 
+void PlayerCustScene::ResetCompileArrowPolygon()
+{
+  progressBar.setPoint(0, sf::Vector2f(0, 0));
+
+  size_t lastPoint = 0u;
+  int lastX = 0;
+  int lastY = 0;
+
+  for (size_t i = 0; i < 7; i++) {
+    progressBar.setPoint(++lastPoint, sf::Vector2f(lastX, lastY + 1));
+
+    if (i < 6) {
+      lastX += 1;
+      progressBar.setPoint(++lastPoint, sf::Vector2f(lastX, lastY + 1));
+    }
+
+    lastY += 1;
+  }
+
+  for (size_t i = 0; i < 7; i++) {
+    progressBar.setPoint(++lastPoint, sf::Vector2f(lastX, lastY + 1));
+
+    if (i < 6) {
+      lastX -= 1;
+      progressBar.setPoint(++lastPoint, sf::Vector2f(lastX, lastY + 1));
+    }
+
+    lastY += 1;
+  }
+
+  progressBar.setPoint(++lastPoint, sf::Vector2f(0, lastY));
+
+  progressBarUVs = sf::IntRect{ 0, 0, 118, 14 };
+  progressBar.setTexture(progressBarTexture.get());
+  progressBar.setScale(2.f, 2.f);
+  progressBar.setPosition((GRID_START_X * 2.) + 20, 168);
+  progressBar.setTextureRect(progressBarUVs); // source is 69x14 pixels
+  progressBar.setFillColor(sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA));
+}
+
+void PlayerCustScene::UpdateCompileArrowPolygon(double delta)
+{
+  delta = std::fmin(delta, 1.0f) * 120;
+
+  for (size_t i = 1; i < progressBar.getPointCount(); i++) {
+    const sf::Vector2f p = progressBar.getPoint(i);
+    progressBar.setPoint(i, sf::Vector2f(p.x+1, p.y));
+  }
+}
+
 bool PlayerCustScene::HandleSelectItemFromList()
 {
   if (listStart >= pieces.size()) return false;
@@ -1215,10 +1263,13 @@ void PlayerCustScene::onStart()
 
 void PlayerCustScene::onUpdate(double elapsed)
 {
+  float delta = (progress / maxProgressTime);
   textbox.Update(elapsed);
   progressBarUVs.left -= IsCompileFinished()?1:2;
-  progressBarUVs.width = static_cast<int>(std::min(118., (118.*(progress/maxProgressTime))));
+  progressBarUVs.width = static_cast<int>(std::min(118., (118.*delta)));
   progressBar.setTextureRect(progressBarUVs);
+
+  UpdateCompileArrowPolygon(delta);
 
   sf::Vector2f dest = GridCursorToScreen();
   sf::Vector2f cursorPos = cursor.getPosition();
@@ -1319,12 +1370,12 @@ void PlayerCustScene::onUpdate(double elapsed)
   
   // if finishing the compilation sequence
   if(state == state::finishing) {
-    sf::Color color = progressBar.getColor();
+    sf::Color color = progressBar.getFillColor();
 
     if (color.a > 0) {
       color.a -= 4;
       progressBarUVs.left -= 1; // another speedup at this step
-      progressBar.setColor(color);
+      progressBar.setFillColor(color);
     }
     else {
       // the animation is over, stop blinking
