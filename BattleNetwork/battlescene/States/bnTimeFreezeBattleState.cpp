@@ -80,7 +80,6 @@ void TimeFreezeBattleState::ProcessInputs()
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
             }
-            p->GetChargeComponent().SetCharging(false);
           }
         }
       }
