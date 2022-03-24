@@ -890,7 +890,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
   surface.draw(packCardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
-  float top = 60.0f; float bottom = 210.0f;
+  float top = 60.0f; float bottom = 212.0f;
   float depth = ((float)packView.lastCardOnScreen / (float)packView.numOfCards) * bottom;
   scrollbar.setPosition(292.f + 480.f, top + depth);
 
