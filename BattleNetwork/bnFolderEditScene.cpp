@@ -225,16 +225,17 @@ void FolderEditScene::onUpdate(double elapsed) {
           selectInputCooldown = maxSelectInputCooldown;
           extendedHold = true;
         }
-
-        if (--view->currCardIndex >= 0) {
+        //Set the index.
+        view->currCardIndex = std::max(0, view->currCardIndex - 1);
+        //Check the index's validity. If proper, play the sound and reset the timer.
+        if (view->currCardIndex >= 0) {
           Audio().Play(AudioType::CHIP_SELECT);
           cardRevealTimer.reset();
         }
-
+        //Condition: if we're at the top of the screen, decrement the last card on screen.
         if (view->currCardIndex < view->lastCardOnScreen) {
-          --view->lastCardOnScreen;
+            --view->lastCardOnScreen;
         }
-
       }
     }
     else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
@@ -250,52 +251,65 @@ void FolderEditScene::onUpdate(double elapsed) {
           selectInputCooldown = maxSelectInputCooldown;
           extendedHold = true;
         }
-
-        if (++view->currCardIndex < view->numOfCards) {
+        //Adjust the math to use std::min so that the current card index is always set to numOfCards-1 at most.
+        //Otherwise, if available, increment the index by 1.
+        view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex + 1);
+        
+        if (view->currCardIndex < view->numOfCards) {
           Audio().Play(AudioType::CHIP_SELECT);
           cardRevealTimer.reset();
         }
-
+        //Condition: If we're at the bottom of the menu, increment the last card on screen.
         if (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
-          ++view->lastCardOnScreen;
+            ++view->lastCardOnScreen;
         }
       }
     }
-    else if (Input().Has(InputEvents::pressed_shoulder_left)) {
-      extendedHold = false;
+    else if (Input().Has(InputEvents::pressed_shoulder_left) || Input().Has(InputEvents::held_shoulder_left)) {
+      if (lastKey != InputEvents::pressed_shoulder_left) {
+        lastKey = InputEvents::pressed_shoulder_left;
+        extendedHold = false;
+      }
 
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
-        selectInputCooldown = maxSelectInputCooldown;
-        view->currCardIndex -= view->maxCardsOnScreen;
-
-        view->currCardIndex = std::max(view->currCardIndex, 0);
-
-        Audio().Play(AudioType::CHIP_SELECT);
-
-        while (view->currCardIndex < view->lastCardOnScreen) {
-          --view->lastCardOnScreen;
+        if (!extendedHold) {
+          selectInputCooldown = maxSelectInputCooldown;
+          extendedHold = true;
         }
+        //Adjust the math to use std::max so that the current card index is always set to 0 at least.
+        view->currCardIndex = std::max(view->currCardIndex - view->maxCardsOnScreen, 0);
 
-        cardRevealTimer.reset();
+        if (view->currCardIndex < view->numOfCards) {
+          Audio().Play(AudioType::CHIP_SELECT);
+          cardRevealTimer.reset();
+        }
+        //Set last card to either the current last card minus the amount of cards on screen, or the first card in the pool.
+        view->lastCardOnScreen = std::max(view->lastCardOnScreen - view->maxCardsOnScreen, 0);
       }
     }
-    else if (Input().Has(InputEvents::pressed_shoulder_right)) {
-      extendedHold = false;
+    else if (Input().Has(InputEvents::pressed_shoulder_right) || Input().Has(InputEvents::held_shoulder_right)) {
+      if (lastKey != InputEvents::pressed_shoulder_right) {
+        lastKey = InputEvents::pressed_shoulder_right;
+        extendedHold = false;
+      }
 
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
-        selectInputCooldown = maxSelectInputCooldown;
-        view->currCardIndex += view->maxCardsOnScreen;
-        Audio().Play(AudioType::CHIP_SELECT);
-
-        view->currCardIndex = std::min(view->currCardIndex, view->numOfCards - 1);
-
-        while (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
-          ++view->lastCardOnScreen;
+        if (!extendedHold) {
+          selectInputCooldown = maxSelectInputCooldown;
+          extendedHold = true;
         }
+
+        Audio().Play(AudioType::CHIP_SELECT);
+        
+        //Adjust the math to use std::min so that the current card index is always set to numOfCards-1 at most.
+        view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex + view->maxCardsOnScreen);
+
+        //Set the last card on screen to be one page down or the true final card in the pack.
+        view->lastCardOnScreen = std::min(view->lastCardOnScreen + view->maxCardsOnScreen, view->numOfCards-view->maxCardsOnScreen);
 
         cardRevealTimer.reset();
       }
@@ -738,7 +752,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
   surface.draw(cardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
-  float top = 50.0f; float bottom = 230.0f;
+  float top = 60.0f; float bottom = 268.0f;
   float depth = ((float)folderView.lastCardOnScreen / (float)folderView.numOfCards) * bottom;
   scrollbar.setPosition(452.f, top + depth);
 
@@ -876,7 +890,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
   surface.draw(packCardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
-  float top = 50.0f; float bottom = 230.0f;
+  float top = 60.0f; float bottom = 212.0f;
   float depth = ((float)packView.lastCardOnScreen / (float)packView.numOfCards) * bottom;
   scrollbar.setPosition(292.f + 480.f, top + depth);
 
