@@ -609,8 +609,12 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   cursor.setPosition(2.0, y);
 
   if (!folder) return;
-
-  if (folder->GetSize() != 0) {
+  //Once the folder is confirmed to exist, update the size.
+  //This avoids a crash when updating folders.
+  numOfCards = folder->GetSize();
+  //And since size was just called, we don't need to call it again anymore.
+  //Editing this to use a call to the variable.
+  if (numOfCards != 0) {
     // Move the card library iterator to the current highlighted card
     CardFolder::Iter iter = folder->Begin();
 
