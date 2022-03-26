@@ -89,3 +89,4 @@ set_target_properties(BattleNetwork
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Compiler.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PostBuild.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/GitInfo.cmake)

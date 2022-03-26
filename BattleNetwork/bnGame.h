@@ -150,6 +150,7 @@ public:
   void StartRecording();
   void StopRecording();
   void SetSubtitle(const std::string& subtitle);
+  const std::string& GetBuildHash() const;
 
   const std::filesystem::path AppDataPath();
   const std::filesystem::path CacheDataPath();

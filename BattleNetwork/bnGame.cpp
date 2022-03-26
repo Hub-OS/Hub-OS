@@ -507,6 +507,12 @@ void Game::SetSubtitle(const std::string& subtitle)
   window.SetSubtitle(subtitle);
 }
 
+const std::string& Game::GetBuildHash() const
+{
+  static std::string hash = ONB_BUILD_HASH;
+  return hash;
+}
+
 const std::filesystem::path Game::AppDataPath()
 {
   return std::filesystem::u8path(sago::getDataHome()) / appName;

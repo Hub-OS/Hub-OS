@@ -33,6 +33,15 @@ private:
   static std::ofstream file; /*!< The file to write to */
   static uint8_t logLevel;
 
+  static void Open(std::ofstream& file) {
+    if (!file.is_open()) {
+      file.open("log.txt", std::ios::app);
+      file << "==============================" << endl;
+      file << "Build Hash " << ONB_BUILD_HASH << endl;
+      file << "StartTime " << CurrentTime::AsString() << endl;
+    }
+  }
+
 public:
 
   /**
@@ -71,11 +80,7 @@ public:
 
     _message = ErrorLevel(level) + _message;
 
-    if (!file.is_open()) {
-      file.open("log.txt", std::ios::app);
-      file << "==============================" << endl;
-      file << "StartTime " << CurrentTime::AsString() << endl;
-    }
+    Open(file);
 
 #if defined(__ANDROID__)
     __android_log_print(ANDROID_LOG_INFO, "open mmbn engine", "%s", _message.c_str());
@@ -126,11 +131,7 @@ public:
 #if defined(__ANDROID__)
     __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",ret.c_str());
 #else
-    if (!file.is_open()) {
-      file.open("log.txt", std::ios::app);
-      file << "==========================" << endl;
-      file << "StartTime " << CurrentTime::AsString() << endl;
-    }
+    Open(file);
 
     file << ret << endl;
 #endif
