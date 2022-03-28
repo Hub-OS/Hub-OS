@@ -1,5 +1,5 @@
 #pragma once
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
 
 #include <sol/sol.hpp>
 #include "dynamic_object.h"

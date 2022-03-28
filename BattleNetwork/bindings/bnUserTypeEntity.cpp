@@ -1,4 +1,4 @@
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
 #include "bnUserTypeEntity.h"
 
 void DefineEntityUserType(sol::state& state, sol::table& battle_namespace) {
