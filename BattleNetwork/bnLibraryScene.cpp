@@ -176,7 +176,7 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   easeInTimer.start();
 
   maxCardsOnScreen = 7;
-  currCardIndex = lastCardOnScreen = prevIndex = 0;
+  currCardIndex = firstCardOnScreen = prevIndex = 0;
   totalTimeElapsed = frameElapsed = 0.0;
 
   MakeUniqueCardsFromPack();
@@ -235,8 +235,8 @@ void LibraryScene::onUpdate(double elapsed) {
         currCardIndex--;
         Audio().Play(AudioType::CHIP_SELECT);
 
-        if (currCardIndex < lastCardOnScreen) {
-          --lastCardOnScreen;
+        if (currCardIndex < firstCardOnScreen) {
+          --firstCardOnScreen;
         }
 
         cardRevealTimer.reset();
@@ -252,8 +252,8 @@ void LibraryScene::onUpdate(double elapsed) {
         currCardIndex++;
         Audio().Play(AudioType::CHIP_SELECT);
 
-        if (currCardIndex > lastCardOnScreen + maxCardsOnScreen - 1) {
-          ++lastCardOnScreen;
+        if (currCardIndex > firstCardOnScreen + maxCardsOnScreen - 1) {
+          ++firstCardOnScreen;
         }
 
         cardRevealTimer.reset();
@@ -293,8 +293,8 @@ void LibraryScene::onUpdate(double elapsed) {
     currCardIndex = std::max(0, currCardIndex);
     currCardIndex = std::min(numOfCards - 1, currCardIndex);
 
-    lastCardOnScreen = std::max(0, lastCardOnScreen);
-    lastCardOnScreen = std::min(numOfCards - 1, lastCardOnScreen);
+    firstCardOnScreen = std::max(0, firstCardOnScreen);
+    firstCardOnScreen = std::min(numOfCards - 1, firstCardOnScreen);
 
     if (Input().Has(InputEvents::pressed_cancel) && textbox.IsClosed()) {
       gotoNextScene = true;
@@ -338,7 +338,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 50.0f; float bottom = 230.0f;
-  float depth = ((float)lastCardOnScreen / (float)numOfCards)*bottom;
+  float depth = ((float)firstCardOnScreen / (float)numOfCards)*bottom;
   scrollbar.setPosition(452.f, top + depth);
 
   surface.draw(scrollbar);
@@ -348,12 +348,12 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
   // Move the card library iterator to the current highlighted card
   auto iter = uniqueCards.begin();
 
-  for (int j = 0; j < lastCardOnScreen; j++) {
+  for (int j = 0; j < firstCardOnScreen; j++) {
     iter++;
   }
 
   // Now that we are at the viewing range, draw each card in the list
-  for (int i = 0; i < maxCardsOnScreen && lastCardOnScreen + i < numOfCards; i++) {
+  for (int i = 0; i < maxCardsOnScreen && firstCardOnScreen + i < numOfCards; i++) {
     cardIcon.setTexture(packageManager.FindPackageByID(iter->GetUUID()).GetPreviewTexture());
     cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
     surface.draw(cardIcon);
@@ -365,7 +365,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
     surface.draw(cardLabel);
 
     // Draw cursor
-    if (lastCardOnScreen + i == currCardIndex) {
+    if (firstCardOnScreen + i == currCardIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
       auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
