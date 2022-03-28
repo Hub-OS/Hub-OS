@@ -285,14 +285,26 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   if (skipFrame) return;
 
+  bool healthLow = false;
+
   if (remotePlayer && remotePlayer->WillEraseEOF()) {
     UntrackOtherPlayer(remotePlayer);
     remoteState.remoteConnected = false;
     remotePlayer = nullptr;
+
+    healthLow = remotePlayer->GetHealth() <= remotePlayer->GetMaxHealth() * 0.25;
   }
 
   if (std::shared_ptr<Player> player = GetLocalPlayer()) {
     BattleResultsObj().finalEmotion = player->GetEmotion();
+    healthLow = healthLow || player->GetHealth() <= player->GetMaxHealth() * 0.25;
+  }
+
+  if (healthLow) {
+    Audio().SetPitch(1.25);
+  }
+  else {
+    Audio().SetPitch(1);
   }
 }
 

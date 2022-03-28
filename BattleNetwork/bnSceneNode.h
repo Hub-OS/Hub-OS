@@ -16,10 +16,13 @@ class SceneNode : public sf::Transformable, public sf::Drawable {
 protected:
   std::set<std::string> tags; /*!< Tags to lookup nodes by*/
   mutable std::vector<std::shared_ptr<SceneNode>> childNodes; /*!< List of all children */
-  SceneNode* parent; /*!< The node this node is a child of */
-  bool show; /*!< Flag to hide or display a scene node and its children */
-  int layer; /*!< Draw order of this node */
+  SceneNode* parent{ nullptr }; /*!< The node this node is a child of */
+  bool neverFlip{};
+  bool show{}; /*!< Flag to hide or display a scene node and its children */
+  int layer{}; /*!< Draw order of this node */
   bool useParentShader{ false }; /*!< Default: use your own internal shader*/
+
+  sf::Transform ProcessNeverFlip(const sf::Transform& in) const;
 
 public:
   /**
@@ -114,6 +117,8 @@ public:
   */
   std::set<std::shared_ptr<SceneNode>> GetChildNodesWithTag(const std::vector<std::string>& query);
   
+  void NeverFlip(bool enabled);
+
   SceneNode* GetParent();
 
   void AddTags(std::vector<std::string> tags);

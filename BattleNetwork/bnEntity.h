@@ -588,8 +588,6 @@ public:
    */
   void ToggleCounter(bool on = true);
 
-  void NeverFlip(bool enabled);
-
   /**
    * @brief Query the character's state is Stunned
    * @return true if character is currently stunned, false otherwise
@@ -785,7 +783,6 @@ protected:
   frame_time_t confusedSfxCooldown{ 0 }; /*!< Timer to replay confusion SFX */
   frame_time_t invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   bool counterable{};
-  bool neverFlip{};
   bool hit{}; /*!< Was hit this frame */
   int counterFrameFlag{ 0 };
   sf::Color baseColor = sf::Color(255, 255, 255, 255);
