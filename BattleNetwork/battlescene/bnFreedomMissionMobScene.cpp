@@ -138,7 +138,7 @@ void FreedomMissionMobScene::Init()
     SpawnLocalPlayer(2, 2);
   }
 
-  // Run block programs on the remote player now that they are spawned
+  // Run block programs on the local player now that they are spawned
   BlockPackageManager& blockPackages = getController().BlockPackagePartitioner().GetPartition(Game::LocalPartition);
   for (const std::string& blockID : props.blocks) {
     if (!blockPackages.HasPackage(blockID)) continue;
@@ -146,6 +146,9 @@ void FreedomMissionMobScene::Init()
     auto& blockMeta = blockPackages.FindPackageByID(blockID);
     blockMeta.mutator(*GetLocalPlayer());
   }
+
+  //This should be run to ensure Health UI snaps to the user's current health.
+  GetHealthWindow().ResetHP(GetLocalPlayer()->GetHealth());
 
   CardSelectionCust& cardSelectWidget = GetCardSelectWidget();
   cardSelectWidget.PreventRetreat();

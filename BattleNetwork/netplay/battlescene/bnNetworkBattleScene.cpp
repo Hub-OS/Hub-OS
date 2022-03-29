@@ -406,7 +406,7 @@ void NetworkBattleScene::Init()
       SpawnRemotePlayer(p, x, y);
     }
 
-    // Run block programs on the remote player now that they are spawned
+    // Run block programs on the current player now that they are spawned
     for (const PackageAddress& addr: blocks) {
       BlockPackageManager& blockPackages = partition.GetPartition(addr.namespaceId);
       if (!blockPackages.HasPackage(addr.packageId)) continue;
@@ -417,7 +417,8 @@ void NetworkBattleScene::Init()
 
     idx++;
   }
-
+  //This should be run to ensure Health UI snaps to the user's current health.
+  GetHealthWindow().ResetHP(GetLocalPlayer()->GetHealth());
   std::shared_ptr<MobHealthUI> ui = remotePlayer->GetFirstComponent<MobHealthUI>();
 
   if (ui) {

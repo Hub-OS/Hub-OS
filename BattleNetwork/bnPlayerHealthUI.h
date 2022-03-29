@@ -36,6 +36,7 @@ public:
 
   void SetFontStyle(Font::Style style);
   void SetHP(int hp);
+  void ResetHP(int newHP);
   void Update(double elapsed);
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
 
@@ -60,6 +61,8 @@ public:
    * \brief Sets the player owner. Sets hp tracker to current health.
    */
   PlayerHealthUIComponent(std::weak_ptr<Player> _player);
+
+  void ResetHP(int newHP);
   
   /**
    * @brief No memory needs to be freed

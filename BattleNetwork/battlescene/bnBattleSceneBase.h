@@ -13,6 +13,7 @@
 #include "../bnScene.h"
 #include "../bnComponent.h"
 #include "../bnPA.h"
+#include "../bnPlayerHealthUI.h"
 #include "../bnMobHealthUI.h"
 #include "../bnAnimation.h"
 #include "../bnCamera.h"
@@ -111,6 +112,7 @@ private:
   RealtimeCardActionUseListener cardActionListener; /*!< Card use listener handles one card at a time */
   std::shared_ptr<PlayerSelectedCardsUI> cardUI{ nullptr }; /*!< Player's Card UI implementation */
   std::shared_ptr<PlayerEmotionUI> emotionUI{ nullptr }; /*!< Player's Emotion Window */
+  std::shared_ptr<PlayerHealthUIComponent> healthUI{ nullptr }; /*!< Player's Health Window */
   Camera camera; /*!< Camera object - will shake screen */
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
@@ -397,6 +399,7 @@ public:
   CardSelectionCust& GetCardSelectWidget();
   PlayerSelectedCardsUI& GetSelectedCardsUI();
   PlayerEmotionUI& GetEmotionWindow();
+  PlayerHealthUIComponent& GetHealthWindow();
   Camera& GetCamera();
   PA& GetPA();
   BattleResults& BattleResultsObj();

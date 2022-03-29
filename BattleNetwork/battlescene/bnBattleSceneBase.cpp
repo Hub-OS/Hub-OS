@@ -435,8 +435,8 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   this->SubscribeToCardActions(*localPlayer);
   this->SubscribeToCardActions(*cardUI);
 
-  auto healthUI = localPlayer->CreateComponent<PlayerHealthUIComponent>(localPlayer);
-  healthUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
+  this->healthUI = localPlayer->CreateComponent<PlayerHealthUIComponent>(localPlayer);
+  this->healthUI->setScale(2.f, 2.f); // TODO: this should be upscaled by cardCustGUI transforms... why is it not?
 
   cardCustGUI.AddNode(healthUI);
 
@@ -1171,6 +1171,11 @@ PlayerSelectedCardsUI& BattleSceneBase::GetSelectedCardsUI() {
 PlayerEmotionUI& BattleSceneBase::GetEmotionWindow()
 {
   return *emotionUI;
+}
+
+PlayerHealthUIComponent& BattleSceneBase::GetHealthWindow()
+{
+    return *healthUI;
 }
 
 Camera& BattleSceneBase::GetCamera()

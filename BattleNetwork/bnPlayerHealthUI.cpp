@@ -107,6 +107,11 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
   target.draw(glyphs, states);
 }
 
+void PlayerHealthUI::ResetHP(int newHP) {
+  targetHP = std::max(newHP, 0);
+  currHP = lastHP = newHP;
+}
+
 ////////////////////////////////////
 // class PlayerHealthUIComponent  //
 ////////////////////////////////////
@@ -119,6 +124,11 @@ PlayerHealthUIComponent::PlayerHealthUIComponent(std::weak_ptr<Player> _player) 
   ui.SetHP(startHP);
   SetDrawOnUIPass(false);
   OnUpdate(0); // refresh and prepare for the 1st frame
+}
+
+void PlayerHealthUIComponent::ResetHP(int newHP) {
+  ui.ResetHP(newHP);
+  startHP = newHP;
 }
 
 PlayerHealthUIComponent::~PlayerHealthUIComponent() {
