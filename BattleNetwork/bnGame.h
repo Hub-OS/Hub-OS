@@ -73,7 +73,7 @@ private:
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
   ScriptResourceManager scriptManager;
 #endif
   InputManager inputManager;

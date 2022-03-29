@@ -1,4 +1,4 @@
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
 #include "bnUserTypeScriptedComponent.h"
 
 #include "bnWeakWrapper.h"

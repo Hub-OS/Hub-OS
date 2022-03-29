@@ -18,7 +18,7 @@
 #include "overworld/bnOverworldHomepage.h"
 #include "SFML/System.hpp"
 
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
 #include "bnScriptResourceManager.h"
 #include "bindings/bnScriptedBlock.h"
 #include "bindings/bnScriptedCard.h"
@@ -64,7 +64,7 @@ Game::Game(DrawWindow& window) :
   ResourceHandle::textures = &textureManager;
   ResourceHandle::shaders  = &shaderManager;
 
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
   cardPackagePartitioner = new class CardPackagePartitioner();
   playerPackagePartitioner = new class PlayerPackagePartitioner();
   blockPackagePartitioner = new class BlockPackagePartitioner();
@@ -115,7 +115,7 @@ Game::~Game() {
 
   delete session;
 
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
   if (cardPackagePartitioner->HasNamespace(Game::RemotePartition)) {
     cardPackagePartitioner->GetPartition(Game::RemotePartition).ErasePackages();
   }

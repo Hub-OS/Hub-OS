@@ -1,4 +1,4 @@
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
 #include "bnUserTypeSyncNode.h"
 #include "bnWeakWrapper.h"
 #include "bnUserTypeAnimation.h"

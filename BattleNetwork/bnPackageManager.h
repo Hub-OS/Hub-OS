@@ -182,9 +182,18 @@ class PackageManager {
     void ClearPackages();
 
     /**
-    * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes.
+    * @brief Uninstalls and drop files associated with packages, file2PackageId, and zipFile2PackageId hashes.
+    * @return True on success, false if it does not exist
     */
-    void ErasePackage(const std::string& packageId);
+    bool DropPackage(const std::string& packageId);
+
+    /**
+    * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes.
+    * @warning WILL ERASE PACKAGE OFF DISC!
+    * @return True on success, false if it does not exist
+    */
+    bool ErasePackage(const std::string& packageId);
+
 
     /**
     * @brief Erase files associated with packages, file2PackageId, and zipFile2PackageId hashes.
@@ -225,7 +234,7 @@ template<typename MetaClass>
 template<typename ScriptedDataType>
 stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromDisk(const std::filesystem::path& path)
 {
-#if defined(BN_MOD_SUPPORT)
+#if defined(ONB_MOD_SUPPORT)
   ResourceHandle handle;
   MetaClass* packageClass{ nullptr };
 
@@ -301,13 +310,13 @@ template<typename MetaClass>
 template<typename ScriptedDataType>
 stx::result_t<std::string> PackageManager<MetaClass>::LoadPackageFromZip(const std::filesystem::path& path)
 {
-#if defined(BN_MOD_SUPPORT)
+#if defined(ONB_MOD_SUPPORT)
   std::filesystem::path absolute = std::filesystem::absolute(path).make_preferred();
   std::filesystem::path extracted_path = absolute;
   extracted_path.remove_filename();
   extracted_path /= absolute.stem();
 
-  std::filesystem::create_directory(extracted_path);  // Result is unused, do not fail if directory could not be crated (may already exist).
+  std::filesystem::create_directory(extracted_path);  // Result is unused, do not fail if directory could not be created (may already exist).
   auto result = stx::unzip(absolute, extracted_path);
 
   if (result.is_error()) {
@@ -588,13 +597,12 @@ inline void PackageManager<MetaClass>::ClearPackages()
 }
 
 template<typename MetaClass>
-inline void PackageManager<MetaClass>::ErasePackage(const std::string& packageId)
+inline bool PackageManager<MetaClass>::DropPackage(const std::string& packageId)
 {
   auto packageIt = packages.find(packageId);
 
   if (packageIt == packages.end()) {
-    Logger::Logf(LogLevel::debug, "Could not find package %s to erase", packageId.c_str());
-    return;
+    return false;
   }
 
   MetaClass* package = packageIt->second;
@@ -606,6 +614,27 @@ inline void PackageManager<MetaClass>::ErasePackage(const std::string& packageId
 
   auto path = package->GetFilePath();
 
+  packages.erase(packageId);
+  filepathToPackageId.erase(path);
+  zipFilepathToPackageId.erase(path);
+
+  return true;
+}
+
+template<typename MetaClass>
+inline bool PackageManager<MetaClass>::ErasePackage(const std::string& packageId)
+{
+  auto packageIt = packages.find(packageId);
+
+  if (packageIt == packages.end()) {
+    return false;
+  }
+
+  MetaClass* package = packageIt->second;
+  auto path = package->GetFilePath();
+
+  DropPackage(packageId);
+
   std::filesystem::path absolute = std::filesystem::absolute(path);
   std::filesystem::path absoluteZip = absolute;
   absoluteZip.concat(".zip");
@@ -613,9 +642,7 @@ inline void PackageManager<MetaClass>::ErasePackage(const std::string& packageId
   std::filesystem::remove_all(absolute);
   std::filesystem::remove_all(absoluteZip);
 
-  packages.erase(packageId);
-  filepathToPackageId.erase(path);
-  zipFilepathToPackageId.erase(path);
+  return true;
 }
 
 template<typename MetaClass>

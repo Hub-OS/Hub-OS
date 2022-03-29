@@ -1,7 +1,7 @@
 /*! \brief Loads card meta and action data from a lua script
  */
 #pragma once
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
 #include "bnScriptedCardAction.h"
 #include "bnWeakWrapper.h"
 #include "../../bnCard.h"

@@ -19,7 +19,7 @@ static inline stx::result_t<bool> InstallMod(PackageManagerT& packageManager, co
 
 template<typename PackageManagerT, typename ScriptedResourceT>
 static inline void QueueModRegistration(PackageManagerT& packageManager, const const std::filesystem::path& modPath, const char* modCategory) {
-#if defined(BN_MOD_SUPPORT)
+#if defined(ONB_MOD_SUPPORT)
   std::map<std::filesystem::path, bool> ignoreList;
   std::vector<std::filesystem::path> zipList;
 

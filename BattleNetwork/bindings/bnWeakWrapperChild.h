@@ -1,7 +1,7 @@
 #pragma once
 #include "bnWeakWrapper.h"
 
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
 
 template<typename Parent, typename Child>
 class WeakWrapperChild {

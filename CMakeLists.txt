@@ -4,8 +4,9 @@ project(BattleNetwork-Engine)
 set(CMAKE_CXX_STANDARD          17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS        OFF)
-
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
+option(ONB_HTTPS_SUPPORT "TURN ON AFTER INSTALLING OPENSSL FOR POCO. Please read: https://docs.pocoproject.org/current/00200-GettingStarted.html" OFF)
 
 include(FindLua)
 
@@ -17,7 +18,7 @@ execute_process(COMMAND git submodule update --init -- extern/SFML
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
-find_package(Poco REQUIRED Foundation Net)
+find_package(Poco REQUIRED Foundation Net JSON)
 find_package(Threads REQUIRED)
 find_package(Lua REQUIRED)
 find_package(FluidSynth REQUIRED)
@@ -63,11 +64,29 @@ endif()
 add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
 add_compile_definitions(NOMINMAX)
 
-# This tells BN engine to define a ScriptResourceMananger and
-# load mods during the boot step
-# WARNING: sol2 bindings increase compile times by 2-3x! 
-#          Uncomment this only if you're working with scripting!
-add_compile_definitions(BN_MOD_SUPPORT)
+option(ONB_MOD_SUPPORT "This tells BN engine to define a ScriptResourceMananger and add sol2 bindings. WARNING: sol2 bindings increase compile times by 2-3x!" ON)
+if(ONB_MOD_SUPPORT) 
+        add_definitions(-DONB_MOD_SUPPORT=1)
+        MESSAGE(STATUS "Added ONB mod support")
+else()
+        add_definitions(-DONB_MOD_SUPPORT=0)
+        MESSAGE(STATUS "Disabled ONB mod support")
+endif()
+
+# if building for windows, make sure Poco ENABLE_NETSSL_WIN and ENABLE_NETSSL are both ON!!!
+if(ONB_HTTPS_SUPPORT) 
+        add_definitions(-DONB_HTTPS_SUPPORT=1)
+        find_package(OpenSSL REQUIRED)
+	if(MSVC)
+        	find_package(Poco REQUIRED NetSSLWin Crypto XML)
+        	MESSAGE(STATUS "Added Poco NetSSLWin support for ONB https requests")
+	else()
+        	find_package(Poco REQUIRED NetSSL Crypto XML)
+        	MESSAGE(STATUS "Added Poco NetSSL and OpenSSL support for ONB https requests")
+	endif()
+else()
+        add_definitions(-DONB_HTTPS_SUPPORT=0)
+endif()
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
@@ -77,7 +96,19 @@ target_compile_definitions(BattleNetwork PRIVATE SOL_ALL_SAFETIES_ON)
 target_include_directories(BattleNetwork PRIVATE ${LUA_INCLUDE_DIR})
 target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
 target_link_libraries(BattleNetwork ${FLUIDSYNTH_LIBRARIES})
-target_link_libraries(BattleNetwork Poco::Net Poco::Foundation)
+
+target_link_libraries(BattleNetwork Poco::Net Poco::Foundation Poco::JSON)
+
+if(ONB_HTTPS_SUPPORT)
+        target_link_libraries(BattleNetwork OpenSSL::SSL)
+
+	if(MSVC)
+        	target_link_libraries(BattleNetwork Poco::NetSSLWin Poco::Crypto)
+	else()
+        	target_link_libraries(BattleNetwork Poco::NetSSL Poco::Crypto)
+	endif()
+endif()
+
 target_link_libraries(BattleNetwork Threads::Threads)
 target_link_libraries(BattleNetwork ${LUA_LIBRARIES})
 # target_link_libraries(BattleNetwork sol2::sol2)

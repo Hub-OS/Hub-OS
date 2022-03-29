@@ -48,7 +48,7 @@ if(WIN32 OR UNIX)
 
 endif()
 
-if(BN_USE_SHARED_LIBS)
+if(ONB_USE_SHARED_LIBS)
 
     ADD_CUSTOM_COMMAND(
         TARGET BattleNetwork
@@ -61,9 +61,9 @@ if(BN_USE_SHARED_LIBS)
         "$<TARGET_FILE_DIR:sfml-network>"
         "$<TARGET_FILE_DIR:sfml-system>"
         "$<TARGET_FILE_DIR:sfml-window>"
-        
+
         "$<TARGET_FILE_DIR:BattleNetwork>"
-        
+
         COMMENT "Copying shared libraries\n"
     )
 

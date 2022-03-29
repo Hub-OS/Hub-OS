@@ -18,24 +18,89 @@
 #include "bnPlayer.h"
 #include "bnEmotions.h"
 #include "bnCardFolder.h"
-#include "stx/string.h"
-#include "stx/result.h"
 #include "cxxopts/cxxopts.hpp"
 #include "netplay/bnNetPlayConfig.h"
+#include "stx/string.h"
+#include "stx/result.h"
+#include "stx/memory.h"
 
-#include <Poco/Net/HTTPClientSession.h>
 #include <Poco/URI.h>
+#include <Poco/URIStreamOpener.h>
 #include <Poco/StreamCopier.h>
+#include <Poco/JSON/Parser.h>
+#include <Poco/JSON/Object.h>
+#include <Poco/JSON/Array.h>
 
-// Launches the standard game with full setup and configuration
-int LaunchGame(Game& g, const cxxopts::ParseResult& results);
+#if ONB_HTTPS_SUPPORT
+#include <Poco/Net/SSLManager.h>
+#include <Poco/Net/HTTPSessionFactory.h>
+#include <Poco/Net/HTTPStreamFactory.h>
+#include <Poco/Net/HTTPSStreamFactory.h>
+#include <Poco/Net/FTPStreamFactory.h>
+
+#ifndef WIN32
+#include <Poco/Net/FTPSStreamFactory.h>
+#endif
+
+#include <Poco/Net/ConsoleCertificateHandler.h>
+#include <Poco/Net/PrivateKeyPassphraseHandler.h>
+
+struct ssl_rai_t {
+  ssl_rai_t() { Poco::Net::initializeSSL(); }
+  ~ssl_rai_t() { Poco::Net::uninitializeSSL(); }
+};
+
+#endif
+
+static cxxopts::Options options("ONB", "Open Net Battle Engine");
+static std::vector<std::filesystem::path> tempFiles;
+
+void Trash(const std::filesystem::path& file, bool now=false) {
+  if (now) {
+    std::filesystem::remove_all(file);
+    return;
+  }
+
+  tempFiles.push_back(file);
+}
+
+void CleanupTrash() {
+  for (std::filesystem::path& file : tempFiles) {
+    std::filesystem::remove_all(file);
+  }
+
+  tempFiles.clear();
+}
+
+template<typename... Args>
+void ConsolePrint(const char* fmt, Args&&... args) {
+  Logger::PrintLogf(LogLevel::info, fmt, args...);
+}
+
+// Launches the standard game with full setup and configuration or handles command line functions.
+int Launch(Game& g, const cxxopts::ParseResult& results);
 
 // Prepares launching the game in an isolated battle-only mode
 int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, const std::string& mobpath, const std::string& folderPath, bool isURL);
 
+// This function will compare the installed mods against mods fetched from the URL endpoint as JSON and will download and replaced older mods.
+int HandleModUpgrades(Game& g, TaskGroup tasks, const std::string& url);
+
+// Generates a random filename at cache path
+std::filesystem::path GenerateCachePath(const std::filesystem::path& path = "cache") {
+  return path / std::filesystem::path(stx::rand_alphanum(12));
+}
+
+// Loops through package manager and upgrades outofdate mods
+template<typename ScriptedDataType, typename PackageManager>
+void UpgradeOutdatedMods(PackageManager& pm, 
+  const std::function<std::optional<bool>(typename PackageManager::MetaClass_t& package)>& upgrade_query, 
+  const std::function<std::string(typename PackageManager::MetaClass_t& package)>& url_query
+);
+
 // (experimental) will download a mod from a URL
 template<typename ScriptedDataType, typename PackageManager>
-stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager);
+stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager, const std::filesystem::path& outpath);
 
 // Feeds battle-mode with a list of card mods for ez testing
 std::unique_ptr<CardFolder> LoadFolderFromFile(const std::string& filePath, CardPackageManager& packageManager);
@@ -46,9 +111,29 @@ void PrintPackageHash(Game& g, TaskGroup tasks);
 // Reads a zip mod on disk and displays the package ID and hash
 void ReadPackageAndHash(const std::string& path, const std::string& modType);
 
-static cxxopts::Options options("ONB", "Open Net Battle Engine");
-
 int main(int argc, char** argv) {
+  defer(
+    CleanupTrash()
+  );
+
+  Poco::Net::initializeNetwork();
+
+#if ONB_HTTPS_SUPPORT
+  using namespace Poco::Net;
+  ssl_rai_t ssl_init{};
+  HTTPStreamFactory::registerFactory();
+  HTTPSStreamFactory::registerFactory();
+  FTPStreamFactory::registerFactory();
+
+#ifndef WIN32
+  FTPSStreamFactory::registerFactory();
+#endif
+
+  Poco::SharedPtr<InvalidCertificateHandler> ptrCert = new ConsoleCertificateHandler(false); // ask the user via console
+  Context::Ptr ptrContext = new Context(Context::CLIENT_USE, "");
+  SSLManager::instance().initializeClient(0, ptrCert, ptrContext);
+#endif
+
   // Create help and other generic flags
   options.add_options()
     ("h,help", "Print all options")
@@ -71,6 +156,7 @@ int main(int argc, char** argv) {
 
   // Utility specific flags
   options.add_options("Utilities")
+    ("u,upgrade", "JSON from the URL is compared against all installed mods. Any updated mods are downloaded and replaced.", cxxopts::value<std::string>()->default_value(""))
     ("i,installed", "List the successfully loaded mods and their hashes")
     ("j,hash", "path to a mod .zip anywhere on disk then display the md5 and package id pair to screen", cxxopts::value<std::string>()->default_value(""))
     ("t,type", "specifies the one type of mod to parse [player|block|card|mob|lib]", cxxopts::value<std::string>()->default_value(""));
@@ -78,7 +164,7 @@ int main(int argc, char** argv) {
   // Prevent throwing exceptions on bad input
   options.allow_unrecognised_options();
 
- try {
+  try {
     cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
 
     // Check for help, print, and quit early
@@ -92,7 +178,7 @@ int main(int argc, char** argv) {
     Game game{ win };
 
     // Go the the title screen to kick off the rest of the app
-    if (LaunchGame(game, parsedOptions) == EXIT_SUCCESS) {
+    if (Launch(game, parsedOptions) == EXIT_SUCCESS) {
       // blocking
       game.Run();
     }
@@ -162,7 +248,7 @@ void ParseErrorLevel(std::string in) {
   Logger::SetLogLevel(level);
 }
 
-int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
+int Launch(Game& g, const cxxopts::ParseResult& results) {
   g.SeedRand((unsigned int)time(0));
   g.SetCommandLineValues(results);
 
@@ -221,6 +307,13 @@ int LaunchGame(Game& g, const cxxopts::ParseResult& results) {
     return EXIT_SUCCESS;
   }
 
+  const std::string& upgrade_url = g.CommandLineValue<std::string>("upgrade");
+  if (!upgrade_url.empty()) {
+    HandleModUpgrades(g, g.Boot(results), upgrade_url);
+
+    return EXIT_SUCCESS;
+  }
+
   // If single player game, the last screen the player will ever see
   // is the game over screen so it goes to the bottom of the stack
   // before the TitleSceene:
@@ -234,7 +327,8 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   std::string mobid = mobpath;
 
   if (isURL) {
-    auto result = DownloadPackageFromURL<ScriptedMob>(mobpath, g.MobPackagePartitioner().GetPartition(Game::LocalPartition));
+    // TODO: Engine should know about the mod cache path directory? e.g. game.GetCacheFilePath()?
+    auto result = DownloadPackageFromURL<ScriptedMob>(mobpath, g.MobPackagePartitioner().GetPartition(Game::LocalPartition), GenerateCachePath());
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
       return EXIT_FAILURE;
@@ -312,14 +406,14 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   return EXIT_SUCCESS;
 }
 
-template<typename ScriptedDataType, typename PackageManager>
-stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager)
+int HandleModUpgrades(Game& g, TaskGroup tasks, const std::string& url)
 {
   using namespace Poco::Net;
   Poco::URI uri(url);
   std::string path(uri.getPathAndQuery());
   if (path.empty()) {
-    return stx::error<std::string>("`moburl` was empty. Aborting.");
+    std::cerr << "`upgrade_url` was empty. Aborting." << std::endl;
+    return EXIT_FAILURE;
   }
 
   HTTPClientSession session(uri.getHost(), uri.getPort());
@@ -335,13 +429,181 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
   }
 
   if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED) {
-    return stx::error<std::string>("Unable to download package. Result was HTTP_UNAUTHORIZED. Aborting.");
+    std::cerr << "Unable to reach upgrade url. Result was HTTP_UNAUTHORIZED. Aborting." << std::endl;
+    return EXIT_FAILURE;
   }
 
-  std::filesystem::path outpath = std::filesystem::path("cache") / std::filesystem::path(stx::rand_alphanum(12) + ".zip");
-  std::ofstream ofs(outpath, std::fstream::binary);
-  Poco::StreamCopier::copyStream(rs, ofs);
-  ofs.close();
+  // If we have reached this point, everything is good!
+  // We must now parse the JSON
+  using namespace Poco::JSON;
+  Parser parser;
+  Poco::Dynamic::Var result = parser.parse(rs);
+  Object::Ptr root = result.extract<Object::Ptr>();
+
+  struct mod_data_t {
+    std::string id;
+    std::string hash;
+    std::string url;
+    // Timestamp upload_timestamp; // TODO: add the install time to the save file and extract this
+  };
+  std::map<std::string, std::map<std::string, mod_data_t>> table;
+
+  for (auto iter = root->begin(); iter != root->end(); iter++) {
+    // extract the object in the root's json properties
+    Object::Ptr entry = iter->second.extract<Object::Ptr>();
+
+    // Grab data object
+    Object::Ptr data = entry->getObject("data");
+
+    // Get the mod type
+    const std::string& type = data->getValue<std::string>("type");
+
+    // Then get the id and hash
+    const std::string& id = data->getValue<std::string>("id");
+    const std::string& hash = data->getValue<std::string>("hash");
+
+    // Grab `attachment_data` object
+    Object::Ptr attachment_data = entry->getObject("attachment_data");
+
+    // Finally, grab the upload timestamp download url
+    // const std::string& upload_timestamp = attachment_data->getValue<std::string>("timestamp");
+    const std::string& url = attachment_data->getValue<std::string>("discord_url");
+
+    mod_data_t record = {
+      id, hash, url, // upload_timestamp
+    };
+
+    table[type].insert(std::make_pair(id, record));
+  }
+
+  // will generate a comparitor that will return true if both hashes are the same
+  auto mod_comparitor = [&table](const std::string& key) -> auto {
+    return [&table, key](auto& package) -> std::optional<bool> {
+      auto& bucket = table[key];
+
+      if (bucket.find(package.GetPackageID()) == bucket.end()) return {};
+
+      return bucket[package.GetPackageID()].hash == package.GetPackageFingerprint();
+    };
+  };
+
+  // will generate a lookup function to return the package's url
+  auto url_lookup = [&table](const std::string& key) -> auto {
+    return [&table, key](auto& package) -> std::string {
+      auto& bucket = table[key];
+      return bucket[package.GetPackageID()].url;
+    };
+  };
+
+  // wait for resources to be available for us
+  const unsigned int maxtasks = tasks.GetTotalTasks();
+  while (tasks.HasMore()) {
+    const std::string taskname = tasks.GetTaskName();
+    const unsigned int tasknumber = tasks.GetTaskNumber();
+    Logger::Logf(LogLevel::info, "Running %s, [%i/%i]", taskname.c_str(), tasknumber + 1u, maxtasks);
+    tasks.DoNextTask();
+  }
+
+  // resources are available!
+  
+  // Now that we have ordered lookup data extracted from the JSON, determine which mods are old
+  BlockPackageManager& blocks = g.BlockPackagePartitioner().GetPartition(Game::LocalPartition);
+  PlayerPackageManager& players = g.PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+  CardPackageManager& cards = g.CardPackagePartitioner().GetPartition(Game::LocalPartition);
+  MobPackageManager& mobs = g.MobPackagePartitioner().GetPartition(Game::LocalPartition);
+  LuaLibraryPackageManager& libs = g.LuaLibraryPackagePartitioner().GetPartition(Game::LocalPartition);
+
+  UpgradeOutdatedMods<ScriptedBlock>(blocks, mod_comparitor("blocks"), url_lookup("blocks"));
+  UpgradeOutdatedMods<ScriptedPlayer>(players, mod_comparitor("players"), url_lookup("players"));
+  UpgradeOutdatedMods<ScriptedCard>(cards, mod_comparitor("cards"), url_lookup("cards"));
+  UpgradeOutdatedMods<ScriptedMob>(mobs, mod_comparitor("mobs"), url_lookup("mobs"));
+  UpgradeOutdatedMods<LuaLibrary>(libs, mod_comparitor("libs"), url_lookup("libs"));
+
+  return EXIT_SUCCESS;
+}
+
+template<typename ScriptedDataType, typename PackageManager>
+void UpgradeOutdatedMods(PackageManager& pm, const std::function<std::optional<bool>(typename PackageManager::MetaClass_t& package)>& upgrade_query, const std::function<std::string(typename PackageManager::MetaClass_t& package)>& url_query) {
+  size_t upgrades = 0;
+  size_t errors = 0;
+
+  std::string first = pm.FirstValidPackage();
+  std::string curr = first;
+
+  if (first.empty()) return;
+
+  ConsolePrint("[%s] Looking for upgrades", typeid(pm).name());
+
+  do {
+    auto& package = pm.FindPackageByID(curr);
+
+    // query must return false if the packages are NOT the same
+    if (std::optional<bool> result = upgrade_query(package); result.has_value() && result.value() == false) {
+      ConsolePrint("Package id %s is out of date! Upgrading...", curr.c_str());
+
+      // Copy original filepath
+      std::filesystem::path filepath = package.GetFilePath();
+
+      // Get a cache path for the download
+      std::filesystem::path temp = GenerateCachePath();
+      std::filesystem::path temp_zipped = temp; temp_zipped.concat(".zip");
+      Trash(temp);
+      Trash(temp_zipped);
+
+      ConsolePrint("> Generating cache file %s", temp_zipped.generic_u8string().c_str());
+
+      // Unhook old mod
+      pm.DropPackage(curr);
+
+      // Download to replace old mod
+      stx::result_t<std::string> download = DownloadPackageFromURL<ScriptedDataType, PackageManager>(url_query(package), pm, temp_zipped);
+
+      if (download.is_error()) {
+        errors++;
+        ConsolePrint(download.error_cstr());
+      }
+      else {
+        // Erase old mod from disc
+        std::filesystem::path filepath_zipped = filepath; filepath_zipped.concat(".zip");
+
+        Trash(filepath, true);
+        Trash(filepath_zipped, true);
+
+        std::filesystem::copy_file(temp, filepath);
+
+        upgrades++;
+        ConsolePrint("Upgrade complete");
+      }
+    }
+
+    curr = pm.GetPackageAfter(curr);
+  } while (first != curr);
+
+  ConsolePrint("[%s] had %i upgrades and %i errors", typeid(pm).name(), upgrades, errors);
+}
+
+template<typename ScriptedDataType, typename PackageManager>
+stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, PackageManager& packageManager, const std::filesystem::path& outpath)
+{
+  using namespace Poco::Net;
+  Poco::URI uri(url);
+  std::string path(uri.getPathAndQuery());
+
+  if (path.empty())
+    return stx::error<std::string>("`url` was empty. Aborting.");
+
+  try
+  {
+    ConsolePrint("> Downloading %s", url.c_str());
+    std::unique_ptr<std::istream> pStr(Poco::URIStreamOpener::defaultOpener().open(uri));
+    std::ofstream ofs(outpath, std::fstream::binary);
+    Poco::StreamCopier::copyStream(*pStr.get(), ofs);
+    ofs.close();
+  }
+  catch (Poco::Exception& exc)
+  {
+    return stx::error<std::string>(exc.displayText());
+  }
 
   return packageManager.template LoadPackageFromZip<ScriptedDataType>(outpath);
 }
@@ -432,6 +694,8 @@ void PrintPackageHash(Game& g, TaskGroup tasks) {
     Logger::Logf(LogLevel::info, "Running %s, [%i/%i]", taskname.c_str(), tasknumber + 1u, maxtasks);
     tasks.DoNextTask();
   }
+  
+  // resources are available
 
   BlockPackageManager& blocks = g.BlockPackagePartitioner().GetPartition(Game::LocalPartition);
   PlayerPackageManager& players = g.PlayerPackagePartitioner().GetPartition(Game::LocalPartition);

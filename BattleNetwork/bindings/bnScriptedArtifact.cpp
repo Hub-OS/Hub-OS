@@ -1,4 +1,4 @@
-#ifdef BN_MOD_SUPPORT
+#ifdef ONB_MOD_SUPPORT
 #include "bnScriptedArtifact.h"
 #include "../bnTile.h"
 #include "../bnSolHelpers.h"

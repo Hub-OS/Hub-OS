@@ -54,4 +54,12 @@ namespace stx {
   * @param stride determines the number of pairs per space. Default is 1 e.g. `00 AA BB`. If set to 0 there is no spacing.
   */
   std::string as_hex(const std::string& buffer, size_t stride=1);
+
+  /**
+  * @brief Takes in varadic arguments and formats string similar to sprintf but with an initial static buffer size
+  * @param size initial static buffer size
+  * @param fmt template string
+  * @param ... varadic arguments to format string with
+  */
+  std::string format(size_t size, const char* fmt, ...);
 }
