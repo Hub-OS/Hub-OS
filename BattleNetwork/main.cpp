@@ -55,8 +55,8 @@ struct ssl_rai_t {
 static cxxopts::Options options("ONB", "Open Net Battle Engine");
 static std::vector<std::filesystem::path> tempFiles;
 
-void Trash(const std::filesystem::path& file, bool deffered=true) {
-  if (!deffered) {
+void Trash(const std::filesystem::path& file, bool now=false) {
+  if (now) {
     std::filesystem::remove_all(file);
     return;
   }
@@ -88,7 +88,7 @@ int HandleModUpgrades(Game& g, TaskGroup tasks, const std::string& url);
 
 // Generates a random filename at cache path
 std::filesystem::path GenerateCachePath(const std::filesystem::path& path = "cache") {
-  return path / std::filesystem::path(stx::rand_alphanum(12) + ".zip");
+  return path / std::filesystem::path(stx::rand_alphanum(12));
 }
 
 // Loops through package manager and upgrades outofdate mods
@@ -546,35 +546,28 @@ void UpgradeOutdatedMods(PackageManager& pm, const std::function<std::optional<b
 
       // Get a cache path for the download
       std::filesystem::path temp = GenerateCachePath();
-      std::filesystem::path temp_extracted = std::filesystem::absolute(temp);
-      std::filesystem::path temp_zipped = temp_extracted; temp_zipped.concat(".zip");
-      Trash(temp_extracted);
+      std::filesystem::path temp_zipped = temp; temp_zipped.concat(".zip");
+      Trash(temp);
       Trash(temp_zipped);
 
-      ConsolePrint("> Generating cache file %s", temp.generic_u8string().c_str());
+      ConsolePrint("> Generating cache file %s", temp_zipped.generic_u8string().c_str());
 
       // Unhook old mod
       pm.DropPackage(curr);
 
       // Download to replace old mod
-      stx::result_t<std::string> download = DownloadPackageFromURL<ScriptedDataType, PackageManager>(url_query(package), pm, temp);
+      stx::result_t<std::string> download = DownloadPackageFromURL<ScriptedDataType, PackageManager>(url_query(package), pm, temp_zipped);
 
       if (download.is_error()) {
         errors++;
-        Logger::Logf(LogLevel::critical, download.error_cstr());
+        ConsolePrint(download.error_cstr());
       }
       else {
         // Erase old mod from disc
-        std::filesystem::path absolute = std::filesystem::absolute(filepath);
-        std::filesystem::path absolute_zipped = absolute; absolute_zipped.concat(".zip");
+        std::filesystem::path filepath_zipped = filepath; filepath_zipped.concat(".zip");
 
-        Trash(absolute, false);
-        Trash(absolute_zipped, false);
-
-        // Move successfull install out of cache
-        if (filepath.extension() != ".zip") {
-          filepath += ".zip";
-        }
+        Trash(filepath, true);
+        Trash(filepath_zipped, true);
 
         std::filesystem::copy_file(temp, filepath);
 
