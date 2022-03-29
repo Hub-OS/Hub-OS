@@ -143,7 +143,7 @@ private:
   struct CardView {
     int maxCardsOnScreen{ 0 };
     int currCardIndex{ 0 };
-    int lastCardOnScreen{ 0 }; // index
+    int firstCardOnScreen{ 0 }; //!< index, the topmost card seen in the list
     int prevIndex{ -1 }; // for effect
     int numOfCards{ 0 };
     int swapCardIndex{ -1 }; // -1 for unselected, otherwise ID

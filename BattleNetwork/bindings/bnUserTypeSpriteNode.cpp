@@ -105,6 +105,9 @@ void DefineSpriteNodeUserType(sol::state& state, sol::table& engine_namespace) {
     "unwrap", [](WeakWrapper<SpriteProxyNode>& node) -> WeakWrapper<SpriteProxyNode> {
       return node;
     },
+    "never_flip", [](WeakWrapper<SpriteProxyNode>& node, bool enabled) {
+      node.Unwrap()->NeverFlip(enabled);
+    },
     "enable_parent_shader", [](WeakWrapper<SpriteProxyNode>& node, bool enable) {
       node.Unwrap()->EnableParentShader(enable);
     }

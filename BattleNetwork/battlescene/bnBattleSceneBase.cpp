@@ -943,7 +943,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
       sf::Vector2f ogScale = node->getScale();
 
-      if (perspectiveFlip && !node->neverFlip) {
+      if (perspectiveFlip) {
         node->setScale(-ogScale.x, ogScale.y);
       }
 

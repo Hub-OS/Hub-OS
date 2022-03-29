@@ -1,5 +1,22 @@
 #include "bnSceneNode.h"
 
+sf::Transform SceneNode::ProcessNeverFlip(const sf::Transform& in) const
+{
+  if (neverFlip) {
+    const float* t = in.getMatrix();
+
+    float t_0 = std::fabs(t[0]);
+    float t_5 = std::fabs(t[5]);
+
+    return sf::Transform(
+      t_0,  t[4], t[12],
+      t[1], t_5,  t[13],
+      t[3], t[7], t[15]);
+  }
+
+  return in;
+}
+
 SceneNode::SceneNode() :
 show(true), layer(0), parent(nullptr), childNodes() {
 }
@@ -34,6 +51,8 @@ const bool SceneNode::IsVisible() const {
 
 void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   if (!show) return;
+
+  states.transform = ProcessNeverFlip(states.transform);
 
   std::sort(childNodes.begin(), childNodes.end(), [](std::shared_ptr<SceneNode>& a, std::shared_ptr<SceneNode>& b) { return (a->GetLayer() > b->GetLayer()); });
 
@@ -98,6 +117,11 @@ std::set<std::shared_ptr<SceneNode>> SceneNode::GetChildNodesWithTag(const std::
   }
 
   return results;
+}
+
+void SceneNode::NeverFlip(bool enabled)
+{
+  neverFlip = enabled;
 }
 
 SceneNode* SceneNode::GetParent() {

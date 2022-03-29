@@ -54,7 +54,7 @@ private:
 
   int maxCardsOnScreen; /*!< Number of card items that can appear in a list*/
   int currCardIndex; /*!< Current selection in the list */
-  int lastCardOnScreen; /*!< The topmost card seen in the list */
+  int firstCardOnScreen; /*!< The topmost card seen in the list */
   int prevIndex; /*!< Animator if we've selected a new card this frame */
   int numOfCards; /*!< Total of all cards in the folder to list */
 

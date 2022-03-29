@@ -621,9 +621,8 @@ void Entity::draw(sf::RenderTarget& target, sf::RenderStates states) const
   SmartShader& smartShader = GetShader();
 
   // combine the parent transform with the node's one
-  sf::Transform combinedTransform = getTransform();
-
-  states.transform *= combinedTransform;
+  states.transform *= getTransform();
+  states.transform = ProcessNeverFlip(states.transform);
 
   std::vector<SceneNode*> copies;
   copies.reserve(childNodes.size() + 1);
@@ -994,7 +993,11 @@ Direction Entity::GetPreviousDirection()
 void Entity::Delete()
 {
   if (deleted) return;
+  std::shared_ptr<Field> fieldPtr = field.lock();
 
+  if (fieldPtr) {
+      if (!fieldPtr->isBattleActive) return;
+  }
   deleted = true;
 
   OnDelete();
@@ -1677,10 +1680,6 @@ void Entity::ResolveFrameBattleDamage()
 void Entity::SetHealth(const int _health) {
   std::shared_ptr<Field> fieldPtr = field.lock();
 
-  if (fieldPtr) {
-    if (!fieldPtr->isBattleActive) return;
-  }
-
   health = _health;
 
   if (maxHealth == 0) {
@@ -1764,11 +1763,6 @@ bool Entity::IsCounterable()
 void Entity::ToggleCounter(bool on)
 {
   counterable = on;
-}
-
-void Entity::NeverFlip(bool enabled)
-{
-  neverFlip = enabled;
 }
 
 bool Entity::IsStunned()

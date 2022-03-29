@@ -233,8 +233,8 @@ void FolderEditScene::onUpdate(double elapsed) {
           cardRevealTimer.reset();
         }
         //Condition: if we're at the top of the screen, decrement the last card on screen.
-        if (view->currCardIndex < view->lastCardOnScreen) {
-            --view->lastCardOnScreen;
+        if (view->currCardIndex < view->firstCardOnScreen) {
+            --view->firstCardOnScreen;
         }
       }
     }
@@ -260,8 +260,8 @@ void FolderEditScene::onUpdate(double elapsed) {
           cardRevealTimer.reset();
         }
         //Condition: If we're at the bottom of the menu, increment the last card on screen.
-        if (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
-            ++view->lastCardOnScreen;
+        if (view->currCardIndex > view->firstCardOnScreen + view->maxCardsOnScreen - 1) {
+            ++view->firstCardOnScreen;
         }
       }
     }
@@ -286,7 +286,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           cardRevealTimer.reset();
         }
         //Set last card to either the current last card minus the amount of cards on screen, or the first card in the pool.
-        view->lastCardOnScreen = std::max(view->lastCardOnScreen - view->maxCardsOnScreen, 0);
+        view->firstCardOnScreen = std::max(view->firstCardOnScreen - view->maxCardsOnScreen, 0);
       }
     }
     else if (Input().Has(InputEvents::pressed_shoulder_right) || Input().Has(InputEvents::held_shoulder_right)) {
@@ -309,7 +309,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex + view->maxCardsOnScreen);
 
         //Set the last card on screen to be one page down or the true final card in the pack.
-        view->lastCardOnScreen = std::min(view->lastCardOnScreen + view->maxCardsOnScreen, view->numOfCards-view->maxCardsOnScreen);
+        view->firstCardOnScreen = std::min(view->firstCardOnScreen + view->maxCardsOnScreen, view->numOfCards-view->maxCardsOnScreen);
 
         cardRevealTimer.reset();
       }
@@ -591,8 +591,8 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     view->prevIndex = view->currCardIndex;
 
-    view->lastCardOnScreen = std::max(0, view->lastCardOnScreen);
-    view->lastCardOnScreen = std::min(view->numOfCards - 1, view->lastCardOnScreen);
+    view->firstCardOnScreen = std::max(0, view->firstCardOnScreen);
+    view->firstCardOnScreen = std::min(view->numOfCards - 1, view->firstCardOnScreen);
 
     bool gotoLastScene = false;
 
@@ -752,8 +752,8 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
   surface.draw(cardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
-  float top = 60.0f; float bottom = 268.0f;
-  float depth = ((float)folderView.lastCardOnScreen / (float)folderView.numOfCards) * bottom;
+  float top = 60.0f; float bottom = 260.0f;
+  float depth = (bottom - top) * (((float)folderView.firstCardOnScreen) / ((float)folderView.numOfCards - 7));
   scrollbar.setPosition(452.f, top + depth);
 
   surface.draw(scrollbar);
@@ -761,14 +761,14 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
   // Move the card library iterator to the current highlighted card
   auto iter = folderCardSlots.begin();
 
-  for (int j = 0; j < folderView.lastCardOnScreen; j++) {
+  for (int j = 0; j < folderView.firstCardOnScreen; j++) {
     iter++;
 
     if (iter == folderCardSlots.end()) return;
   }
 
   // Now that we are at the viewing range, draw each card in the list
-  for (int i = 0; i < folderView.maxCardsOnScreen && folderView.lastCardOnScreen + i < folderView.numOfCards; i++) {
+  for (int i = 0; i < folderView.maxCardsOnScreen && folderView.firstCardOnScreen + i < folderView.numOfCards; i++) {
     if (!iter->IsEmpty()) {
       const Battle::Card& copy = iter->ViewCard();
       bool hasID = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition).HasPackage(copy.GetUUID());
@@ -817,7 +817,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
       surface.draw(limitLabel2);
     }
     // Draw card at the cursor
-    if (folderView.lastCardOnScreen + i == folderView.currCardIndex) {
+    if (folderView.firstCardOnScreen + i == folderView.currCardIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().y, 64.0f + (32.f * i));
       auto bounce = std::sin((float)totalTimeElapsed * 10.0f) * 5.0f;
       float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f);
@@ -866,7 +866,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
         surface.draw(element);
       }
     }
-    if (folderView.lastCardOnScreen + i == folderView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
+    if (folderView.firstCardOnScreen + i == folderView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
       auto y = 64.0f + (32.f * i);
 
       folderSwapCursor.setPosition((2.f * 95.f) + 2.0f, y);
@@ -889,24 +889,26 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
   surface.draw(packDock);
   surface.draw(packCardHolder);
 
-  // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
-  float top = 60.0f; float bottom = 212.0f;
-  float depth = ((float)packView.lastCardOnScreen / (float)packView.numOfCards) * bottom;
-  scrollbar.setPosition(292.f + 480.f, top + depth);
-
-  surface.draw(scrollbar);
-
   if (packView.numOfCards == 0) return;
+
+  // Per BN6, don't draw the scrollbar itself if you can't scroll in the pack.
+  if (packView.numOfCards > 7) {
+      // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
+      float top = 60.0f; float bottom = 260.0f;
+      float depth = (bottom - top) * (((float)packView.firstCardOnScreen) / ((float)packView.numOfCards - 7));
+      scrollbar.setPosition(292.f + 480.f, top + depth);
+      surface.draw(scrollbar);
+  }
 
   // Move the card library iterator to the current highlighted card
   auto iter = poolCardBuckets.begin();
 
-  for (int j = 0; j < packView.lastCardOnScreen; j++) {
+  for (int j = 0; j < packView.firstCardOnScreen; j++) {
     iter++;
   }
 
   // Now that we are at the viewing range, draw each card in the list
-  for (int i = 0; i < packView.maxCardsOnScreen && packView.lastCardOnScreen + i < packView.numOfCards; i++) {
+  for (int i = 0; i < packView.maxCardsOnScreen && packView.firstCardOnScreen + i < packView.numOfCards; i++) {
     int count = iter->GetCount();
     const Battle::Card& copy = iter->ViewCard();
 
@@ -955,7 +957,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
     surface.draw(cardLabel);
 
     // This draws the currently highlighted card
-    if (packView.lastCardOnScreen + i == packView.currCardIndex) {
+    if (packView.firstCardOnScreen + i == packView.currCardIndex) {
       float y = swoosh::ease::interpolate((float)frameElapsed * 7.f, packCursor.getPosition().y, 64.0f + (32.f * i));
       float bounce = std::sin((float)totalTimeElapsed * 10.0f) * 2.0f;
       float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f);
@@ -1003,7 +1005,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
       surface.draw(cardDesc);
     }
 
-    if (packView.lastCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
+    if (packView.firstCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
       auto y = 64.0f + (32.f * i);
 
       packSwapCursor.setPosition(485.f + 2.f + 2.f, y);

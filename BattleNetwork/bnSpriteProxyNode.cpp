@@ -138,6 +138,8 @@ void SpriteProxyNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
   states.transform *= combinedTransform;
 
+  states.transform = ProcessNeverFlip(states.transform);
+
   sf::Shader* s = shader.Get();
 
   if (s) {
