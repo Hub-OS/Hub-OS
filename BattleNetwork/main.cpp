@@ -24,19 +24,26 @@
 #include "netplay/bnNetPlayConfig.h"
 
 #include <Poco/URI.h>
+#include <Poco/URIStreamOpener.h>
 #include <Poco/StreamCopier.h>
 #include <Poco/JSON/Parser.h>
 #include <Poco/JSON/Object.h>
 #include <Poco/JSON/Array.h>
-#include <Poco/Net/HTTPClientSession.h>
 
 #if ONB_HTTPS_SUPPORT
 #include <Poco/Net/SSLManager.h>
 #include <Poco/Net/HTTPSessionFactory.h>
-#include <Poco/Net/HTTPSClientSession.h>
-#include <Poco/Net/HTTPSSessionInstantiator.h>
-#include <Poco/Net/AcceptCertificateHandler.h>
+#include <Poco/Net/HTTPStreamFactory.h>
+#include <Poco/Net/HTTPSStreamFactory.h>
+#include <Poco/Net/FTPStreamFactory.h>
 #include <Poco/Net/ConsoleCertificateHandler.h>
+#include <Poco/Net/PrivateKeyPassphraseHandler.h>
+
+struct ssl_rai_t {
+  ssl_rai_t() { Poco::Net::initializeSSL(); }
+  ~ssl_rai_t() { Poco::Net::uninitializeSSL(); }
+};
+
 #endif
 
 // Launches the standard game with full setup and configuration or handles command line functions.
@@ -47,6 +54,11 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
 
 // This function will compare the installed mods against mods fetched from the URL endpoint as JSON and will download and replaced older mods.
 int HandleModUpgrades(Game& g, TaskGroup tasks, const std::string& url);
+
+// Generates a random filename at cache path
+std::filesystem::path GenerateCachePath(const std::filesystem::path& path = "cache") {
+  return path / std::filesystem::path(stx::rand_alphanum(12) + ".zip");
+}
 
 // Loops through package manager and upgrades outofdate mods
 template<typename ScriptedDataType, typename PackageManager>
@@ -75,12 +87,15 @@ int main(int argc, char** argv) {
   Poco::Net::initializeNetwork();
 
 #if ONB_HTTPS_SUPPORT
-  Poco::Net::initializeSSL();
-  Poco::Net::HTTPSessionFactory::defaultFactory().registerProtocol("https", new Poco::Net::HTTPSSessionInstantiator);
-  const Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> certificateHandler(new Poco::Net::AcceptCertificateHandler(false));
-  const Poco::Net::Context::Ptr context(new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, ""));
-  Poco::Net::SSLManager::instance().initializeClient(nullptr, certificateHandler, context);
+  using namespace Poco::Net;
+  ssl_rai_t ssl_init{};
+  HTTPStreamFactory::registerFactory();
+  HTTPSStreamFactory::registerFactory();
+  FTPStreamFactory::registerFactory();
 
+  Poco::SharedPtr<InvalidCertificateHandler> ptrCert = new ConsoleCertificateHandler(false); // ask the user via console
+  Context::Ptr ptrContext = new Context(Context::CLIENT_USE, "");
+  SSLManager::instance().initializeClient(0, ptrCert, ptrContext);
 #endif
 
   // Create help and other generic flags
@@ -113,7 +128,7 @@ int main(int argc, char** argv) {
   // Prevent throwing exceptions on bad input
   options.allow_unrecognised_options();
 
- try {
+  try {
     cxxopts::ParseResult parsedOptions = options.parse(argc, argv);
 
     // Check for help, print, and quit early
@@ -277,8 +292,7 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
 
   if (isURL) {
     // TODO: Engine should know about the mod cache path directory? e.g. game.GetCacheFilePath()?
-    std::filesystem::path cachedPath = std::filesystem::path("cache") / std::filesystem::path(stx::rand_alphanum(12) + ".zip");
-    auto result = DownloadPackageFromURL<ScriptedMob>(mobpath, g.MobPackagePartitioner().GetPartition(Game::LocalPartition), cachedPath);
+    auto result = DownloadPackageFromURL<ScriptedMob>(mobpath, g.MobPackagePartitioner().GetPartition(Game::LocalPartition), GenerateCachePath());
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
       return EXIT_FAILURE;
@@ -495,17 +509,31 @@ void UpgradeOutdatedMods(PackageManager& pm, const std::function<std::optional<b
       // Copy original filepath
       std::filesystem::path filepath = package.GetFilePath();
 
-      // Erase old mod
-      pm.ErasePackage(curr);
+      // Get a cache path for the download
+      std::filesystem::path temp = GenerateCachePath();
+
+      // Unhook old mod
+      pm.DropPackage(curr);
 
       // Download to replace old mod
-      stx::result_t<std::string> download = DownloadPackageFromURL<ScriptedDataType, PackageManager>(url_query(package), pm, filepath);
+      stx::result_t<std::string> download = DownloadPackageFromURL<ScriptedDataType, PackageManager>(url_query(package), pm, temp);
 
       if (download.is_error()) {
         errors++;
         std::cerr << download.error_cstr() << std::endl;
       }
       else {
+        // Erase old mod from disc
+        std::filesystem::path absolute = std::filesystem::absolute(filepath);
+        std::filesystem::path absoluteZip = absolute;
+        absoluteZip.concat(".zip");
+
+        std::filesystem::remove_all(absolute);
+        std::filesystem::remove_all(absoluteZip);
+
+        // Move successfull install out of cache
+        std::filesystem::copy_file(temp, filepath);
+
         upgrades++;
         std::cout << "Upgrade succeeded." << std::endl;
       }
@@ -523,44 +551,21 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
   using namespace Poco::Net;
   Poco::URI uri(url);
   std::string path(uri.getPathAndQuery());
-  if (path.empty()) {
+
+  if (path.empty())
     return stx::error<std::string>("`url` was empty. Aborting.");
+
+  try
+  {
+    std::unique_ptr<std::istream> pStr(Poco::URIStreamOpener::defaultOpener().open(uri));
+    std::ofstream ofs(outpath, std::fstream::binary);
+    Poco::StreamCopier::copyStream(*pStr.get(), ofs);
+    ofs.close();
   }
-
-  HTTPClientSession* session = nullptr;
-
-#if ONB_HTTPS_SUPPORT
-  if (uri.getScheme() == "https") {
-    session = Poco::Net::HTTPSessionFactory::defaultFactory().createClientSession(uri); // new HTTPSClientSession(uri.getHost(), uri.getPort(), pContext);
+  catch (Poco::Exception& exc)
+  {
+    return stx::error<std::string>(exc.displayText());
   }
-#endif
-
-  if (uri.getScheme() == "http") {
-    session = new HTTPClientSession(uri.getHost(), uri.getPort());
-  }
-
-  HTTPRequest request(HTTPRequest::HTTP_GET, path, HTTPMessage::HTTP_1_1);
-  HTTPResponse response;
-
-  session->sendRequest(request);
-  std::istream& rs = session->receiveResponse(response);
-  std::cout << "[Response Status] " << response.getStatus() << " " << response.getReason() << std::endl;
-
-  if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_MOVED_PERMANENTLY) {
-    std::cout << "Redirect: " << response.get("Location") << std::endl;
-  }
-
-  if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED) {
-    delete session;
-
-    return stx::error<std::string>("Unable to download package. Result was HTTP_UNAUTHORIZED. Aborting.");
-  }
-
-  std::ofstream ofs(outpath, std::fstream::binary);
-  Poco::StreamCopier::copyStream(rs, ofs);
-  ofs.close();
-
-  delete session;
 
   return packageManager.template LoadPackageFromZip<ScriptedDataType>(outpath);
 }
