@@ -18,10 +18,11 @@
 #include "bnPlayer.h"
 #include "bnEmotions.h"
 #include "bnCardFolder.h"
-#include "stx/string.h"
-#include "stx/result.h"
 #include "cxxopts/cxxopts.hpp"
 #include "netplay/bnNetPlayConfig.h"
+#include "stx/string.h"
+#include "stx/result.h"
+#include "stx/memory.h"
 
 #include <Poco/URI.h>
 #include <Poco/URIStreamOpener.h>
@@ -36,6 +37,11 @@
 #include <Poco/Net/HTTPStreamFactory.h>
 #include <Poco/Net/HTTPSStreamFactory.h>
 #include <Poco/Net/FTPStreamFactory.h>
+
+#ifndef WIN32
+#include <Poco/Net/FTPSStreamFactory.h>
+#endif
+
 #include <Poco/Net/ConsoleCertificateHandler.h>
 #include <Poco/Net/PrivateKeyPassphraseHandler.h>
 
@@ -45,6 +51,31 @@ struct ssl_rai_t {
 };
 
 #endif
+
+static cxxopts::Options options("ONB", "Open Net Battle Engine");
+static std::vector<std::filesystem::path> tempFiles;
+
+void Trash(const std::filesystem::path& file, bool deffered=true) {
+  if (!deffered) {
+    std::filesystem::remove_all(file);
+    return;
+  }
+
+  tempFiles.push_back(file);
+}
+
+void CleanupTrash() {
+  for (std::filesystem::path& file : tempFiles) {
+    std::filesystem::remove_all(file);
+  }
+
+  tempFiles.clear();
+}
+
+template<typename... Args>
+void ConsolePrint(const char* fmt, Args&&... args) {
+  Logger::PrintLogf(LogLevel::info, fmt, args...);
+}
 
 // Launches the standard game with full setup and configuration or handles command line functions.
 int Launch(Game& g, const cxxopts::ParseResult& results);
@@ -80,9 +111,10 @@ void PrintPackageHash(Game& g, TaskGroup tasks);
 // Reads a zip mod on disk and displays the package ID and hash
 void ReadPackageAndHash(const std::string& path, const std::string& modType);
 
-static cxxopts::Options options("ONB", "Open Net Battle Engine");
-
 int main(int argc, char** argv) {
+  defer(
+    CleanupTrash()
+  );
 
   Poco::Net::initializeNetwork();
 
@@ -92,6 +124,10 @@ int main(int argc, char** argv) {
   HTTPStreamFactory::registerFactory();
   HTTPSStreamFactory::registerFactory();
   FTPStreamFactory::registerFactory();
+
+#ifndef WIN32
+  FTPSStreamFactory::registerFactory();
+#endif
 
   Poco::SharedPtr<InvalidCertificateHandler> ptrCert = new ConsoleCertificateHandler(false); // ask the user via console
   Context::Ptr ptrContext = new Context(Context::CLIENT_USE, "");
@@ -386,7 +422,7 @@ int HandleModUpgrades(Game& g, TaskGroup tasks, const std::string& url)
 
   session.sendRequest(request);
   std::istream& rs = session.receiveResponse(response);
-  std::cerr << "[Response Status] " << response.getStatus() << " " << response.getReason() << std::endl;
+  std::cout << "[Response Status] " << response.getStatus() << " " << response.getReason() << std::endl;
 
   if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_MOVED_PERMANENTLY) {
     std::cout << "Redirect: " << response.get("Location") << std::endl;
@@ -496,21 +532,26 @@ void UpgradeOutdatedMods(PackageManager& pm, const std::function<std::optional<b
 
   if (first.empty()) return;
 
-  std::cout << "Starting upgrades for mod type " << typeid(pm).name() << "..." << std::endl;
+  ConsolePrint("[%s] Looking for upgrades", typeid(pm).name());
 
   do {
     auto& package = pm.FindPackageByID(curr);
 
     // query must return false if the packages are NOT the same
     if (std::optional<bool> result = upgrade_query(package); result.has_value() && result.value() == false) {
-      std::cout << "package id " << curr << " is out of date!" << std::endl;
-      std::cout << "Upgrading..." << std::endl;
+      ConsolePrint("Package id %s is out of date! Upgrading...", curr.c_str());
 
       // Copy original filepath
       std::filesystem::path filepath = package.GetFilePath();
 
       // Get a cache path for the download
       std::filesystem::path temp = GenerateCachePath();
+      std::filesystem::path temp_extracted = std::filesystem::absolute(temp);
+      std::filesystem::path temp_zipped = temp_extracted; temp_zipped.concat(".zip");
+      Trash(temp_extracted);
+      Trash(temp_zipped);
+
+      ConsolePrint("> Generating cache file %s", temp.generic_u8string().c_str());
 
       // Unhook old mod
       pm.DropPackage(curr);
@@ -520,29 +561,32 @@ void UpgradeOutdatedMods(PackageManager& pm, const std::function<std::optional<b
 
       if (download.is_error()) {
         errors++;
-        std::cerr << download.error_cstr() << std::endl;
+        Logger::Logf(LogLevel::critical, download.error_cstr());
       }
       else {
         // Erase old mod from disc
         std::filesystem::path absolute = std::filesystem::absolute(filepath);
-        std::filesystem::path absoluteZip = absolute;
-        absoluteZip.concat(".zip");
+        std::filesystem::path absolute_zipped = absolute; absolute_zipped.concat(".zip");
 
-        std::filesystem::remove_all(absolute);
-        std::filesystem::remove_all(absoluteZip);
+        Trash(absolute, false);
+        Trash(absolute_zipped, false);
 
         // Move successfull install out of cache
+        if (filepath.extension() != ".zip") {
+          filepath += ".zip";
+        }
+
         std::filesystem::copy_file(temp, filepath);
 
         upgrades++;
-        std::cout << "Upgrade succeeded." << std::endl;
+        ConsolePrint("Upgrade complete");
       }
     }
 
     curr = pm.GetPackageAfter(curr);
   } while (first != curr);
 
-  std::cout << typeid(pm).name() << " " << upgrades << " upgrades and " << errors << " errors" << std::endl;
+  ConsolePrint("[%s] had %i upgrades and %i errors", typeid(pm).name(), upgrades, errors);
 }
 
 template<typename ScriptedDataType, typename PackageManager>
@@ -557,6 +601,7 @@ stx::result_t<std::string> DownloadPackageFromURL(const std::string& url, Packag
 
   try
   {
+    ConsolePrint("> Downloading %s", url.c_str());
     std::unique_ptr<std::istream> pStr(Poco::URIStreamOpener::defaultOpener().open(uri));
     std::ofstream ofs(outpath, std::fstream::binary);
     Poco::StreamCopier::copyStream(*pStr.get(), ofs);

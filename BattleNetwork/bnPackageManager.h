@@ -641,6 +641,8 @@ inline bool PackageManager<MetaClass>::ErasePackage(const std::string& packageId
 
   std::filesystem::remove_all(absolute);
   std::filesystem::remove_all(absoluteZip);
+
+  return true;
 }
 
 template<typename MetaClass>

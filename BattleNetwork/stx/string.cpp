@@ -2,6 +2,7 @@
 #include <sstream>
 #include <charconv>
 #include <iomanip>
+#include <cstdarg>
 
 namespace stx {
   std::string replace(std::string str, const std::string& from, const std::string& to) {
@@ -99,6 +100,7 @@ namespace stx {
     return ok(result);
 #endif
   }
+
   std::string format_to_fit(const std::string& str, size_t max_cols, size_t max_rows)
   {
     if (str.empty()) return str;
@@ -178,5 +180,26 @@ namespace stx {
     }
 
     return ssout.str();
+  }
+
+  std::string format(size_t size, const char* fmt, ...)
+  {
+    char* buffer = 0;
+    buffer = new char[static_cast<size_t>(size)];
+    va_list vl, vl2;
+    va_start(vl, fmt);
+    va_copy(vl2, vl);
+    int nsize = vsnprintf(buffer, size, fmt, vl);
+    if (size <= nsize) {
+      delete[] buffer;
+      buffer = new char[static_cast<size_t>(nsize) + 1];
+      nsize = vsnprintf(buffer, size, fmt, vl2);
+    }
+    std::string ret(buffer);
+    va_end(vl);
+    va_end(vl2);
+    delete[] buffer;
+
+    return ret;
   }
 }

@@ -1,10 +1,10 @@
 #pragma once
 #include <iostream>
-#include <string>
-#include <cstdarg>
 #include <queue>
 #include <mutex>
 #include <fstream>
+#include <cstdarg>
+#include "stx/string.h"
 #include "bnCurrentTime.h"
 
 #if defined(__ANDROID__)
@@ -14,6 +14,7 @@
 using std::string;
 using std::to_string;
 using std::cerr;
+using std::cout;
 using std::endl;
 
 namespace LogLevel {
@@ -70,7 +71,7 @@ public:
 
   /**
    * @brief If first time opening, timestamps file and pushes message to file
-   * @param _message
+   * @param message
    */
   static void Log(uint8_t level, string _message) {
     std::scoped_lock<std::mutex> lock(m);
@@ -94,47 +95,23 @@ public:
     file << _message << endl;
   }
 
-  /**
-   * @brief Uses varadic args to print any string format
-   * @param fmt string format
-   * @param ... input to match the format
-   */
-  static void Logf(uint8_t level, const char* fmt, ...) {
-    std::scoped_lock<std::mutex> lock(m);
+  template<typename... Args>
+  static void Logf(uint8_t level, const char* fmt, Args&&... args) {
+    Log(level, stx::format(512, fmt, args...));
+  }
 
-    int size = 512;
-    char* buffer = 0;
-    buffer = new char[static_cast<size_t>(size)];
-    va_list vl, vl2;
-    va_start(vl, fmt);
-    va_copy(vl2, vl);
-    int nsize = vsnprintf(buffer, size, fmt, vl);
-    if (size <= nsize) {
-      delete[] buffer;
-      buffer = new char[static_cast<size_t>(nsize) + 1];
-      nsize = vsnprintf(buffer, size, fmt, vl2);
-    }
-    std::string ret(buffer);
-    va_end(vl);
-    va_end(vl2);
-    delete[] buffer;
+  // Print and log
+  static void PrintLog(uint8_t level, string _message) {
+    Log(level, _message);
+    cout << _message << endl;
+  }
 
-    ret = ErrorLevel(level) + ret;
-
-    // only print what level of error message we want to console
-    if ((level & Logger::logLevel) == level) {
-      cerr << ret << endl;
-    }
-
-    logs.push(ret);
-
-#if defined(__ANDROID__)
-    __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",ret.c_str());
-#else
-    Open(file);
-
-    file << ret << endl;
-#endif
+  // Print and log
+  template<typename... Args>
+  static void PrintLogf(uint8_t level, const char* fmt, Args&&... args) {
+    std::string ret = stx::format(512, fmt, args...);
+    Log(level, ret);
+    cout << ret << endl;
   }
 
 private:
