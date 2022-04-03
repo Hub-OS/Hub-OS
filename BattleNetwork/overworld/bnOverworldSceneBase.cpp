@@ -299,6 +299,10 @@ void Overworld::SceneBase::onExit()
 void Overworld::SceneBase::onEnter()
 {
   RefreshNaviSprite();
+
+  if (!this->map.GetSongPath().empty()) {
+    Audio().Stream(GetPath(map.GetSongPath()), true);
+  }
 }
 
 void Overworld::SceneBase::onResume() {
@@ -320,7 +324,9 @@ void Overworld::SceneBase::onResume() {
     });
   }
 
-  Audio().Stream(GetPath(map.GetSongPath()), true);
+  if (!map.GetSongPath().empty()) {
+    Audio().Stream(GetPath(map.GetSongPath()), true);
+  }
 
 #ifdef __ANDROID__
   StartupTouchControls();
@@ -700,10 +706,6 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     LoadForeground(map);
   } else {
     foregroundParallaxFactor = map.GetForegroundParallax();
-  }
-
-  if (map.GetSongPath() != this->map.GetSongPath()) {
-    Audio().Stream(GetPath(map.GetSongPath()), true);
   }
 
   personalMenu->SetArea(map.GetName());

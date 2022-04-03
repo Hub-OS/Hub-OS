@@ -237,4 +237,6 @@ namespace Overworld {
     const std::pair<bool, sf::Vector3f> CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap);
     const std::pair<bool, sf::Vector3f> CanMoveTo(sf::Vector2f pos, Map& map, SpatialMap& spatialMap);
   };
+
+  using ActorPtr = std::shared_ptr<Overworld::Actor>;
 }

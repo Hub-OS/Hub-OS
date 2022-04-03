@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include "../stx/result.h"
+#include "result.h"
 
 namespace stx {
   /**

@@ -18,7 +18,7 @@ namespace Overworld {
   }
 
   void Map::Update(SceneBase& scene, double time) {
-    for (auto& tileMeta : tileMetas) {
+    for (TileMetaPtr& tileMeta : tileMetas) {
       if (tileMeta != nullptr) {
         tileMeta->animation.SyncTime(from_seconds(time));
         tileMeta->animation.Refresh(tileMeta->sprite);
@@ -26,16 +26,16 @@ namespace Overworld {
     }
 
     for (int i = 0; i < layers.size(); i++) {
-      auto& layer = layers[i];
+      Map::Layer& layer = layers[i];
 
       tilesModified |= layer.tilesModified;
       layer.tilesModified = false;
 
-      for (auto& tileObject : layer.tileObjects) {
+      for (TileObject& tileObject : layer.tileObjects) {
         tileObject.Update(*this);
       }
 
-      for (auto& worldSprite : layer.spritesForAddition) {
+      for (WorldSpritePtr& worldSprite : layer.spritesForAddition) {
         scene.AddSprite(worldSprite);
       }
 
@@ -66,7 +66,7 @@ namespace Overworld {
 
   sf::Vector2f Map::WorldToScreen(sf::Vector3f world) const
   {
-    auto screenPos = WorldToScreen({ world.x, world.y });
+    sf::Vector2f screenPos = WorldToScreen({ world.x, world.y });
     screenPos.y -= world.z * tileHeight / 2.0f;
 
     return screenPos;
@@ -87,14 +87,14 @@ namespace Overworld {
       return nullptr;
     }
 
-    auto layerIndex = size_t(worldPos.z);
-    auto tilePos = sf::Vector2i(WorldToTileSpace({ worldPos.x, worldPos.y }));
+    size_t layerIndex = size_t(worldPos.z);
+    sf::Vector2i tilePos = sf::Vector2i(WorldToTileSpace({ worldPos.x, worldPos.y }));
 
     if (layerIndex >= layers.size()) {
       return nullptr;
     }
 
-    auto& layer = layers[layerIndex];
+    Map::Layer& layer = layers[layerIndex];
 
     return layer.GetTile(tilePos.x, tilePos.y);
   }
@@ -258,11 +258,11 @@ namespace Overworld {
   }
 
   void Map::SetTileset(const std::shared_ptr<Tileset>& tileset, const std::shared_ptr<TileMeta>& tileMeta) {
-    auto tileGid = tileMeta->gid;
+    size_t tileGid = static_cast<size_t>(tileMeta->gid);
 
     if (tileToTilesetMap.size() <= tileGid) {
-      tileToTilesetMap.resize(size_t(tileGid + 1u));
-      tileMetas.resize(size_t(tileGid + 1u));
+      tileToTilesetMap.resize(tileGid + 1);
+      tileMetas.resize(tileGid + 1);
     }
 
     tileMetas[tileGid] = tileMeta;
@@ -292,8 +292,8 @@ namespace Overworld {
       return false;
     }
 
-    auto& layer = GetLayer(layerIndex);
-    auto tile = layer.GetTile(x, y);
+    Map::Layer& layer = GetLayer(layerIndex);
+    Tile* tile = layer.GetTile(x, y);
 
     if (!tile) {
       return false;
@@ -302,7 +302,7 @@ namespace Overworld {
     // get decimal part
     float tileX{};
     float tileY{};
-    auto testPosition = sf::Vector2f(
+    sf::Vector2f testPosition = sf::Vector2f(
       std::modf(x, &tileX),
       std::modf(y, &tileY)
     );
@@ -320,8 +320,8 @@ namespace Overworld {
     testPosition.y *= tileHeight;
 
     float layerElevation;
-    auto layerRelativeZ = std::modf(z, &layerElevation);
-    auto tileTestPos = sf::Vector2f(
+    float layerRelativeZ = std::modf(z, &layerElevation);
+    sf::Vector2f tileTestPos = sf::Vector2f(
       testPosition.x - layerRelativeZ * tileHeight,
       testPosition.y - layerRelativeZ * tileHeight
     );
@@ -334,7 +334,7 @@ namespace Overworld {
     testPosition.y += tileY * tileHeight;
 
     // todo: use a spatial map for increased performance
-    for (auto& tileObject : layer.GetTileObjects()) {
+    for (TileObject& tileObject : layer.GetTileObjects()) {
       if (tileObject.solid && tileObject.Intersects(*this, testPosition.x, testPosition.y)) {
         return false;
       }
@@ -344,23 +344,23 @@ namespace Overworld {
   }
 
   float Map::GetElevationAt(float x, float y, int layerIndex) {
-    auto totalLayers = layers.size();
+    size_t totalLayers = layers.size();
 
     if (layerIndex >= totalLayers) {
       layerIndex = (int)totalLayers - 1;
     }
 
     layerIndex = std::max(layerIndex, 0);
-    auto layerElevation = (float)layerIndex;
+    float layerElevation = (float)layerIndex;
 
-    auto& layer = layers[layerIndex];
-    auto tile = layer.GetTile(x, y);
+    Map::Layer& layer = layers[layerIndex];
+    Tile* tile = layer.GetTile(x, y);
 
     if (!tile) {
       return layerElevation;
     }
 
-    auto& tileMeta = GetTileMeta(tile->gid);
+    TileMetaPtr& tileMeta = GetTileMeta(tile->gid);
 
     if (!tileMeta || tileMeta->type != TileType::stairs) {
       return layerElevation;
@@ -406,14 +406,14 @@ namespace Overworld {
       return false;
     }
 
-    auto& layer = layers[layerIndex];
-    auto tile = layer.GetTile(x, y);
+    Map::Layer& layer = layers[layerIndex];
+    Tile* tile = layer.GetTile(x, y);
 
     if (!tile) {
       return false;
     }
 
-    auto& tileMeta = GetTileMeta(tile->gid);
+    TileMetaPtr& tileMeta = GetTileMeta(tile->gid);
 
     return tileMeta && tileMeta->type == TileType::stairs;
   }
@@ -431,24 +431,24 @@ namespace Overworld {
       return false;
     }
 
-    auto tile = layers[layer].GetTile(tilePos.x, tilePos.y);
+    Tile* tile = layers[layer].GetTile(tilePos.x, tilePos.y);
 
     if (!tile) {
       return false;
     }
 
-    auto tileMeta = GetTileMeta(tile->gid);
+    TileMetaPtr tileMeta = GetTileMeta(tile->gid);
 
     return tileMeta && tileMeta->type != TileType::invisible && !IgnoreTileAbove(tilePos.x, tilePos.y, layer - 1);
   }
 
   bool Map::IsConcealed(sf::Vector2i tilePos, int layer) {
-    auto col = tilePos.x;
-    auto row = tilePos.y;
+    int col = tilePos.x;
+    int row = tilePos.y;
 
-    for (auto i = layer + 1; i < layers.size(); i++) {
-      auto layerOffset = i - layer;
-      auto isOddLayer = layerOffset % 2 == 1;
+    for (size_t i = static_cast<size_t>(layer + 1); i < layers.size(); i++) {
+      size_t layerOffset = i - layer;
+      bool isOddLayer = layerOffset % 2 == 1;
 
       if (!isOddLayer) {
         // every two layers we move, we have a new tile that aligns with us
@@ -473,9 +473,9 @@ namespace Overworld {
   }
 
   void Map::RemoveSprites(SceneBase& scene) {
-    for (auto& layer : layers) {
-      for (auto& tileObject : layer.tileObjects) {
-        auto spriteProxy = tileObject.GetWorldSprite();
+    for (Map::Layer& layer : layers) {
+      for (TileObject& tileObject : layer.tileObjects) {
+        WorldSpritePtr spriteProxy = tileObject.GetWorldSprite();
 
         if (spriteProxy) {
           scene.RemoveSprite(spriteProxy);
@@ -487,7 +487,7 @@ namespace Overworld {
   Map::Layer::Layer(unsigned cols, unsigned rows) {
     this->cols = cols;
     this->rows = rows;
-    tiles.resize(cols * rows, Tile(0));
+    tiles.resize(static_cast<size_t>(cols * rows), Tile(0));
   }
 
   Tile* Map::Layer::GetTile(int x, int y)
@@ -496,7 +496,7 @@ namespace Overworld {
       return nullptr;
     }
 
-    return &tiles[y * cols + x];
+    return &tiles[static_cast<size_t>(y * cols + x)];
   }
 
   Tile* Map::Layer::GetTile(float x, float y)
@@ -506,7 +506,7 @@ namespace Overworld {
 
   Tile* Map::Layer::SetTile(int x, int y, Tile tile)
   {
-    auto storedTile = GetTile(x, y);
+    Tile* storedTile = GetTile(x, y);
 
     if (storedTile) {
       *storedTile = tile;

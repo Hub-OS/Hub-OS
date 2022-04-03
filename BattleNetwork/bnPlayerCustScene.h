@@ -155,7 +155,7 @@ private:
   sf::Sprite track;
   //sf::Sprite progressBar;
   sf::IntRect progressBarUVs;
-  sf::ConvexShape progressBar;
+  sf::ConvexShape progressBarDefault, progressBar;
   std::string playerUUID;
   std::shared_ptr<sf::Texture> cursorTexture, miniblocksTexture, disabledBlockTexture;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;

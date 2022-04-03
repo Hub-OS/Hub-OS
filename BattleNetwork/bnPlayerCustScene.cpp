@@ -180,7 +180,7 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
   progressBarTexture->setRepeated(true);
 
   // construct progress bar polygon
-  progressBar = sf::ConvexShape(28);
+  progressBar = sf::ConvexShape(29);
   ResetCompileArrowPolygon();
 
   // ensure piece dimensions are up-to-date
@@ -852,11 +852,13 @@ void PlayerCustScene::RefreshTrack()
 
 void PlayerCustScene::ResetCompileArrowPolygon()
 {
-  progressBar.setPoint(0, sf::Vector2f(0, 0));
+  progressBar.setPoint(0, sf::Vector2f(-0.1, 0));
 
   size_t lastPoint = 0u;
   int lastX = 0;
   int lastY = 0;
+
+  progressBar.setPoint(++lastPoint, sf::Vector2f(lastX, lastY));
 
   for (size_t i = 0; i < 7; i++) {
     progressBar.setPoint(++lastPoint, sf::Vector2f(lastX, lastY + 1));
@@ -880,23 +882,27 @@ void PlayerCustScene::ResetCompileArrowPolygon()
     lastY += 1;
   }
 
-  progressBar.setPoint(++lastPoint, sf::Vector2f(0, lastY));
+  progressBar.setPoint(++lastPoint, sf::Vector2f(-0.1, lastY));
 
   progressBarUVs = sf::IntRect{ 0, 0, 118, 14 };
   progressBar.setTexture(progressBarTexture.get());
   progressBar.setScale(2.f, 2.f);
   progressBar.setPosition((GRID_START_X * 2.) + 20, 168);
   progressBar.setTextureRect(progressBarUVs); // source is 69x14 pixels
-  progressBar.setFillColor(sf::Color(255, 255, 255, PROGRESS_MAX_ALPHA));
+  progressBar.setFillColor(sf::Color(255, 255, 255, 0));
+
+  progressBarDefault = progressBar;
 }
 
 void PlayerCustScene::UpdateCompileArrowPolygon(double delta)
 {
-  delta = std::fmin(delta, 1.0f) * 120;
+  double offset = std::fmin(delta, 1.0) * (56.0*2);
 
-  for (size_t i = 1; i < progressBar.getPointCount(); i++) {
-    const sf::Vector2f p = progressBar.getPoint(i);
-    progressBar.setPoint(i, sf::Vector2f(p.x+1, p.y));
+  size_t len = progressBar.getPointCount();
+
+  for (size_t i = 1; i < len-1; i++) {
+    const sf::Vector2f p = progressBarDefault.getPoint(i);
+    progressBar.setPoint(i, sf::Vector2f(p.x+offset, p.y));
   }
 }
 

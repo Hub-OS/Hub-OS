@@ -186,4 +186,13 @@ namespace Overworld {
     std::vector<std::shared_ptr<TileMeta>> tileMetas;
     bool tilesModified{};
   };
+
+  // short hand aliases
+  using ShapeObjectRef = std::reference_wrapper<ShapeObject>;
+  using TileObjectRef = std::reference_wrapper<TileObject>;
+  using MaybeShapeObject = std::optional<ShapeObjectRef>;
+  using MaybeTileObject = std::optional<TileObjectRef>;
+  using TilesetPtr = std::shared_ptr<Tileset>;
+  using TileMetaPtr = std::shared_ptr<TileMeta>;
+  using WorldSpritePtr = std::shared_ptr<WorldSprite>;
 }

@@ -23,6 +23,7 @@
 #include "stx/string.h"
 #include "stx/result.h"
 #include "stx/memory.h"
+#include "stx/filesystem.h"
 
 #include <Poco/URI.h>
 #include <Poco/URIStreamOpener.h>
@@ -53,24 +54,6 @@ struct ssl_rai_t {
 #endif
 
 static cxxopts::Options options("ONB", "Open Net Battle Engine");
-static std::vector<std::filesystem::path> tempFiles;
-
-void Trash(const std::filesystem::path& file, bool now=false) {
-  if (now) {
-    std::filesystem::remove_all(file);
-    return;
-  }
-
-  tempFiles.push_back(file);
-}
-
-void CleanupTrash() {
-  for (std::filesystem::path& file : tempFiles) {
-    std::filesystem::remove_all(file);
-  }
-
-  tempFiles.clear();
-}
 
 template<typename... Args>
 void ConsolePrint(const char* fmt, Args&&... args) {
@@ -86,17 +69,16 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
 // This function will compare the installed mods against mods fetched from the URL endpoint as JSON and will download and replaced older mods.
 int HandleModUpgrades(Game& g, TaskGroup tasks, const std::string& url);
 
-// Generates a random filename at cache path
-std::filesystem::path GenerateCachePath(const std::filesystem::path& path = "cache") {
-  return path / std::filesystem::path(stx::rand_alphanum(12));
-}
-
 // Loops through package manager and upgrades outofdate mods
 template<typename ScriptedDataType, typename PackageManager>
 void UpgradeOutdatedMods(PackageManager& pm, 
   const std::function<std::optional<bool>(typename PackageManager::MetaClass_t& package)>& upgrade_query, 
   const std::function<std::string(typename PackageManager::MetaClass_t& package)>& url_query
 );
+
+std::filesystem::path GenerateCachePath() {
+  return stx::filesystem::generate_temp_filename("cache");
+}
 
 // (experimental) will download a mod from a URL
 template<typename ScriptedDataType, typename PackageManager>
@@ -112,10 +94,6 @@ void PrintPackageHash(Game& g, TaskGroup tasks);
 void ReadPackageAndHash(const std::string& path, const std::string& modType);
 
 int main(int argc, char** argv) {
-  defer(
-    CleanupTrash()
-  );
-
   Poco::Net::initializeNetwork();
 
 #if ONB_HTTPS_SUPPORT
@@ -328,7 +306,8 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
 
   if (isURL) {
     // TODO: Engine should know about the mod cache path directory? e.g. game.GetCacheFilePath()?
-    auto result = DownloadPackageFromURL<ScriptedMob>(mobpath, g.MobPackagePartitioner().GetPartition(Game::LocalPartition), GenerateCachePath());
+    MobPackageManager& pm = g.MobPackagePartitioner().GetPartition(Game::LocalPartition);
+    auto result = DownloadPackageFromURL<ScriptedMob>(mobpath, pm, GenerateCachePath());
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
       return EXIT_FAILURE;
@@ -523,7 +502,9 @@ int HandleModUpgrades(Game& g, TaskGroup tasks, const std::string& url)
 }
 
 template<typename ScriptedDataType, typename PackageManager>
-void UpgradeOutdatedMods(PackageManager& pm, const std::function<std::optional<bool>(typename PackageManager::MetaClass_t& package)>& upgrade_query, const std::function<std::string(typename PackageManager::MetaClass_t& package)>& url_query) {
+void UpgradeOutdatedMods(PackageManager& pm, 
+  const std::function<std::optional<bool>(typename PackageManager::MetaClass_t& package)>& upgrade_query, 
+  const std::function<std::string(typename PackageManager::MetaClass_t& package)>& url_query) {
   size_t upgrades = 0;
   size_t errors = 0;
 
@@ -547,8 +528,9 @@ void UpgradeOutdatedMods(PackageManager& pm, const std::function<std::optional<b
       // Get a cache path for the download
       std::filesystem::path temp = GenerateCachePath();
       std::filesystem::path temp_zipped = temp; temp_zipped.concat(".zip");
-      Trash(temp);
-      Trash(temp_zipped);
+
+      stx::filesystem::trash_queue(temp);
+      stx::filesystem::trash_queue(temp_zipped);
 
       ConsolePrint("> Generating cache file %s", temp_zipped.generic_u8string().c_str());
 
@@ -563,16 +545,21 @@ void UpgradeOutdatedMods(PackageManager& pm, const std::function<std::optional<b
         ConsolePrint(download.error_cstr());
       }
       else {
-        // Erase old mod from disc
+        // Try to replace the old mod on disc
         std::filesystem::path filepath_zipped = filepath; filepath_zipped.concat(".zip");
 
-        Trash(filepath, true);
-        Trash(filepath_zipped, true);
+        // stx replace will safely revert in the event of a failure
+        // original mod will be in the same place on disc as before
+        stx::result_t<bool> result = stx::filesystem::replace(temp_zipped, filepath_zipped, "cache");
 
-        std::filesystem::copy_file(temp, filepath);
-
-        upgrades++;
-        ConsolePrint("Upgrade complete");
+        if (result.is_error()) {
+          errors++;
+          ConsolePrint(result.error_cstr());
+        }
+        else {
+          upgrades++;
+          ConsolePrint("Upgrade succeeded!");
+        }
       }
     }
 
