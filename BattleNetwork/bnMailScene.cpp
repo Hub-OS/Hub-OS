@@ -92,6 +92,7 @@ MailScene::~MailScene()
 
 void MailScene::onLeave()
 {
+  isInFocus = false;
 }
 
 void MailScene::onExit()
@@ -100,14 +101,17 @@ void MailScene::onExit()
 
 void MailScene::onEnter()
 {
+  isInFocus = false;
 }
 
 void MailScene::onResume()
 {
+  isInFocus = true;
 }
 
 void MailScene::onStart()
 {
+  isInFocus = true;
 }
 
 void MailScene::onUpdate(double elapsed)
@@ -163,7 +167,10 @@ void MailScene::onUpdate(double elapsed)
           mail.onReadCallback.Reset();
         }
 
-        Audio().Play(AudioType::CHIP_DESC_CLOSE);
+        if (isInFocus) {
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
+        }
+
         ResetTextBox();
       }
     }
@@ -298,7 +305,10 @@ void MailScene::onDraw(sf::RenderTexture& surface)
   }
  
   surface.draw(scroll);
-  surface.draw(textbox);
+
+  if (isInFocus) {
+    surface.draw(textbox);
+  }
 
   if (textbox.HasMore()) {
     surface.draw(moreText);

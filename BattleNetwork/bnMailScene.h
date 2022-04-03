@@ -9,6 +9,7 @@
 
 class MailScene : public Scene {
 private:
+  bool isInFocus{};
   bool isReading{};
   size_t reading{std::numeric_limits<size_t>::max()};
   Text label;
