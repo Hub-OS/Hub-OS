@@ -38,8 +38,6 @@
 #include "bnXML.h"
 #include "bnMinimap.h"
 
-class Background; // forward decl
-
 namespace Overworld {
   class SceneBase : public Scene {
   private:

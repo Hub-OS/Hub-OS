@@ -8,8 +8,6 @@
 #include <vector>
 
 class MailScene : public Scene {
-public:
-
 private:
   bool isReading{};
   size_t reading{std::numeric_limits<size_t>::max()};
@@ -23,7 +21,7 @@ private:
   TextBox textbox;
   Animation iconAnim, newAnim;
   float totalElapsed{};
-  signed row{}, rowOffset{};
+  size_t row{}, rowOffset{};
   float heldCooldown{};
   Inbox& inbox;
 

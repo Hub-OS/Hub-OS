@@ -427,7 +427,7 @@ const sf::Vector2f Game::CameraViewOffset(Camera& camera)
   return window.GetView().getCenter() - camera.GetView().getCenter();
 }
 
-unsigned Game::FrameNumber() const
+int64_t Game::FrameNumber() const
 {
   return this->elapsed.count();
 }

@@ -121,7 +121,7 @@ namespace Overworld {
     std::optional<AbstractUser> GetAbstractUser(const std::string& id);
     void AddSceneChangeTask(const std::function<void()>& task);
     void SetAvatarAsSpeaker();
-    void onInteract(Interaction type);
+    // void onInteract(Interaction type);
     void updateOtherPlayers(double elapsed);
     void updatePlayer(double elapsed);
     void detectWarp();
@@ -131,8 +131,9 @@ namespace Overworld {
     void processPacketBody(const Poco::Buffer<char>& data);
     void CheckPlayerAgainstWhitelist();
 
-    template <typename ScriptedType, typename Partition>
-    void InstallPackage(Partition& partition, const std::filesystem::path& modFolder, const std::string& packageName, const std::string& packageId, const std::filesystem::path& filePath);
+    template <typename ScriptedType, typename Manager>
+    void InstallPackage(Manager& manager, const std::filesystem::path& modFolder, const std::string& packageName, const std::string& packageId, const std::filesystem::path& filePath);
+
     template <typename ScriptedType, typename Partitioner>
     void RunPackageWizard(Partitioner& partitioner, const std::filesystem::path& modFolder, const std::string& packageName, const std::string& packageId, const std::filesystem::path& filePath);
     void RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::filesystem::path& filePath);

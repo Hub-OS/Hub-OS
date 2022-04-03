@@ -17,6 +17,7 @@
 #include "../bnMobPackageManager.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnGameSession.h"
+#include "../bnGameUtils.h"
 
 // scenes
 #include "../bnFolderScene.h"
@@ -29,6 +30,7 @@
 #include "../bnMailScene.h"
 #include "../bnVendorScene.h"
 #include "../bnPlayerCustScene.h"
+#include "../battlescene/bnMobBattleScene.h"
 
 // Backgrounds
 #include "../bnCustomBackground.h"
@@ -119,8 +121,29 @@ void Overworld::SceneBase::onStart() {
   StartupTouchControls();
 #endif
 
-  // TODO: Take out after endpoints are added to server @Konst
+  // TODO: this is all just test stuff 
   Inbox& inbox = playerSession->inbox;
+
+  std::shared_ptr<Background> bg = GetBackground();
+  PA* pa = &GetProgramAdvance();
+  Game* controller = &getController();
+  Inbox::OnMailReadCallback virusTrigger;
+  virusTrigger.Slot([bg, pa, controller, this](Inbox::Mail& mail) {
+    std::string navi = this->GetCurrentNaviID();
+    mail.body = "This mail had a virus. It's clean now.";
+
+    {
+      PlayerPackageManager& playerPackages = controller->PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+      MobPackageManager& mobPackages = controller->MobPackagePartitioner().GetPartition(Game::LocalPartition);
+
+      if (mobPackages.Size() == 0 || playerPackages.Size() == 0) return;
+
+      PlayerMeta& playerMeta = playerPackages.FindPackageByID(navi);
+      MobMeta& mobMeta = mobPackages.FindPackageByID(mobPackages.FirstValidPackage());
+
+      GameUtils(*controller).LaunchMobBattle(playerMeta, mobMeta, bg, *pa, nullptr);
+    }
+  });
 
   sf::Texture mugshot = *Textures().LoadFromFile("resources/ow/prog/prog_mug.png");
   inbox.AddMail(Inbox::Mail{ Inbox::Icons::announcement, "Welcome", "NO-TITLE", "This is your first email!", mugshot });
@@ -128,7 +151,7 @@ void Overworld::SceneBase::onStart() {
   inbox.AddMail(Inbox::Mail{ Inbox::Icons::dm_w_attachment, "ELLO", "DESTROYED", "ello govna" });
   inbox.AddMail(Inbox::Mail{ Inbox::Icons::important, "FIRE", "NO-TITLE", "There's a fire in the undernet!", mugshot });
   inbox.AddMail(Inbox::Mail{ Inbox::Icons::mission, "MISSING", "ANON", "Can you find my missing data? It would really help me out right now... Or don't if it's too hard, I understand..." });
-  inbox.AddMail(Inbox::Mail{ Inbox::Icons::dm, "Test", "NO-TITLE", "Just another test.", mugshot });
+  inbox.AddMail(Inbox::Mail{ Inbox::Icons::dm, "Test", "NO-TITLE", "Just another test-\n\n\nWait! This email contained a virus!", mugshot, virusTrigger });
 }
 
 void Overworld::SceneBase::onUpdate(double elapsed) {
@@ -363,12 +386,12 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 }
 
 void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
-  const auto& mapScale = worldTransform.getScale();
+  const sf::Vector2f& mapScale = worldTransform.getScale();
   sf::Vector2f cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
   cameraCenter.y = std::floor(cameraCenter.y) * mapScale.y;
 
-  auto offset = getView().getCenter() - cameraCenter;
+  sf::Vector2f offset = getView().getCenter() - cameraCenter;
 
   // prevents stitching artifacts between tiles
   offset.x = std::floor(offset.x);
@@ -377,11 +400,11 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
   states.transform.translate(offset);
   states.transform *= worldTransform.getTransform();
 
-  auto tileSize = map.GetTileSize();
-  auto mapLayerCount = map.GetLayerCount();
+  sf::Vector2i tileSize = map.GetTileSize();
+  size_t mapLayerCount = map.GetLayerCount();
 
   // there should be mapLayerCount + 1 sprite layers
-  for (auto i = 0; i < mapLayerCount + 1; i++) {
+  for (size_t i = 0; i < mapLayerCount + 1; i++) {
 
     // loop is based on expected sprite layers
     // make sure we dont try to draw an extra map layer and segfault
@@ -400,29 +423,29 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
 }
 
 void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index, size_t maxLayers) {
-  auto& layer = map.GetLayer(index);
+  Map::Layer& layer = map.GetLayer(index);
 
   if (!layer.IsVisible()) {
     return;
   }
 
-  auto rows = map.GetRows();
-  auto cols = map.GetCols();
-  auto tileSize = map.GetTileSize();
+  unsigned int rows = map.GetRows();
+  unsigned int cols = map.GetCols();
+  sf::Vector2i tileSize = map.GetTileSize();
 
-  const auto TILE_PADDING = 3;
-  auto screenSize = sf::Vector2f(target.getSize()) / worldTransform.getScale().x;
+  const int TILE_PADDING = 3;
+  sf::Vector2f screenSize = sf::Vector2f(target.getSize()) / worldTransform.getScale().x;
 
-  auto verticalTileCount = (int)std::ceil((screenSize.y / (float)tileSize.y) * 2.0f);
-  auto horizontalTileCount = (int)std::ceil(screenSize.x / (float)tileSize.x);
+  int verticalTileCount = (int)std::ceil((screenSize.y / (float)tileSize.y) * 2.0f);
+  int horizontalTileCount = (int)std::ceil(screenSize.x / (float)tileSize.x);
 
-  auto screenTopLeft = camera.GetView().getCenter() - screenSize / 2.0f;
-  auto tileSpaceStart = sf::Vector2i(map.WorldToTileSpace(map.ScreenToWorld(screenTopLeft)));
-  auto verticalOffset = (int)index;
+  sf::Vector2f screenTopLeft = camera.GetView().getCenter() - screenSize / 2.0f;
+  sf::Vector2i tileSpaceStart = sf::Vector2i(map.WorldToTileSpace(map.ScreenToWorld(screenTopLeft)));
+  int verticalOffset = (int)index;
 
   for (int i = -TILE_PADDING; i < verticalTileCount + TILE_PADDING; i++) {
-    auto verticalStart = (verticalOffset + i) / 2;
-    auto rowOffset = (verticalOffset + i) % 2;
+    int verticalStart = (verticalOffset + i) / 2;
+    int rowOffset = (verticalOffset + i) % 2;
 
     for (int j = -TILE_PADDING; j < horizontalTileCount + rowOffset + TILE_PADDING; j++) {
       int row = tileSpaceStart.y + verticalStart - j + rowOffset;
@@ -431,7 +454,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       auto tile = layer.GetTile(col, row);
       if (!tile || tile->gid == 0) continue;
 
-      auto tileMeta = map.GetTileMeta(tile->gid);
+      TileMetaPtr tileMeta = map.GetTileMeta(tile->gid);
 
       // failed to load tile
       if (tileMeta == nullptr) continue;
@@ -439,18 +462,18 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
       // invisible tile
       if (tileMeta->type == TileType::invisible) continue;
 
-      auto& tileSprite = tileMeta->sprite;
-      auto spriteBounds = tileSprite.getLocalBounds();
+      sf::Sprite& tileSprite = tileMeta->sprite;
+      sf::FloatRect spriteBounds = tileSprite.getLocalBounds();
 
-      const auto& originalOrigin = tileSprite.getOrigin();
+      const sf::Vector2f& originalOrigin = tileSprite.getOrigin();
       tileSprite.setOrigin(sf::Vector2f(sf::Vector2i(
         (int)spriteBounds.width / 2,
         tileSize.y / 2
       )));
 
       sf::Vector2i pos((col * tileSize.x) / 2, row * tileSize.y);
-      auto ortho = map.WorldToScreen(sf::Vector2f(pos));
-      auto tileOffset = sf::Vector2f(sf::Vector2i(
+      sf::Vector2f ortho = map.WorldToScreen(sf::Vector2f(pos));
+      sf::Vector2f tileOffset = sf::Vector2f(sf::Vector2i(
         -tileSize.x / 2 + (int)spriteBounds.width / 2,
         tileSize.y + tileSize.y / 2 - (int)spriteBounds.height
       ));
@@ -481,13 +504,13 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
 
 
 void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
-  auto rows = map.GetRows();
-  auto cols = map.GetCols();
-  auto tileSize = map.GetTileSize();
-  auto mapLayerCount = map.GetLayerCount();
-  auto layerElevation = (float)index;
+  unsigned int rows = map.GetRows();
+  unsigned int cols = map.GetCols();
+  sf::Vector2i tileSize = map.GetTileSize();
+  size_t mapLayerCount = map.GetLayerCount();
+  float layerElevation = (float)index;
 
-  for (auto& sprite : spriteLayers[index]) {
+  for (WorldSpritePtr& sprite : spriteLayers[index]) {
     const sf::Vector2f worldPos = sprite->getPosition();
     sf::Vector2f screenPos = map.WorldToScreen(worldPos);
     screenPos.y -= (sprite->GetElevation() - layerElevation) * tileSize.y * 0.5f;
@@ -503,7 +526,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
     if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
       sf::Color originalColor = sprite->getColor();
       // round to the closest layer for handling online players on stairs
-      auto layer = (int)std::roundf(sprite->GetElevation());
+      int layer = (int)std::roundf(sprite->GetElevation());
 
       if (map.HasShadow(gridPos, layer)) {
         sf::Uint8 r, g, b;
@@ -546,7 +569,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
   playerSession->maxHealth = meta.GetHP();
 
   // If coming back from navi select, the navi has changed, update it
-  const auto& owPath = meta.GetOverworldAnimationPath();
+  const std::filesystem::path& owPath = meta.GetOverworldAnimationPath();
 
   if (!owPath.empty()) {
     if (auto tex = Textures().LoadFromFile(meta.GetOverworldTexturePath())) {
@@ -570,13 +593,13 @@ void Overworld::SceneBase::RefreshNaviSprite()
 
 void Overworld::SceneBase::NaviEquipSelectedFolder()
 {
-  auto& session = getController().Session();
-  auto naviId = session.GetKeyValue("SelectedNavi");
+  GameSession& session = getController().Session();
+  std::string naviId = session.GetKeyValue("SelectedNavi");
   if (!naviId.empty()) {
     currentNaviId = naviId;
     RefreshNaviSprite();
 
-    auto folderStr = session.GetKeyValue("FolderFor:" + naviId);
+    std::string folderStr = session.GetKeyValue("FolderFor:" + naviId);
     if (!folderStr.empty()) {
       // preserve our selected folder
       if (int index = folders->FindFolder(folderStr); index >= 0) {

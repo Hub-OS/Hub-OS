@@ -2702,7 +2702,7 @@ void Overworld::OnlineArea::receiveMobSignal(BufferReader& reader, const Poco::B
     std::optional<CardFolder*> selectedFolder = GetSelectedFolder();
     std::unique_ptr<CardFolder> folder;
 
-    auto& gameSession = getController().Session();
+    GameSession& gameSession = getController().Session();
     if (selectedFolder && gameSession.IsFolderAllowed(*selectedFolder)) {
       folder = (*selectedFolder)->Clone();
       folder->Shuffle();

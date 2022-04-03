@@ -1396,7 +1396,7 @@ void PlayerCustScene::onUpdate(double elapsed)
       };
 
       std::string msg = "OK!\nRUN complete!\n\n";
-      msg += "Good job, " + getController().Session().GetNick() + "!\n\n\n";
+      msg += "Good job, \n" + getController().Session().GetNick() + "!\n\n";
       msg += "Quit the Navi Customizer?";
       questionInterface = new Question(msg, onYes, onNo);
       textbox.EnqueMessage(questionInterface);

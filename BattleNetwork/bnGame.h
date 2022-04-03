@@ -140,7 +140,7 @@ public:
   void NoPostprocess();
   void PrintCommandLineArgs();
   const sf::Vector2f CameraViewOffset(Camera& camera);
-  unsigned FrameNumber() const;
+  int64_t FrameNumber() const;
   const Endianness GetEndianness();
   void UpdateConfigSettings(const struct ConfigSettings& new_settings);
   void SeedRand(unsigned int seed);

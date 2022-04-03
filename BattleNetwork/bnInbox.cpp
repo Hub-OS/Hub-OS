@@ -16,12 +16,12 @@ void Inbox::ReadMail(size_t index, std::function<void(const Inbox::Mail& msg)> o
 {
   if (index >= mailList.size() || !onRead) return;
 
-  auto& mail = mailList.at(index);
+  Mail& mail = mailList.at(index);
   mail.read = true;
   onRead(mail);
 }
 
-const Inbox::Mail& Inbox::GetAt(size_t index) const
+Inbox::Mail& Inbox::GetAt(size_t index)
 {
   return mailList.at(index);
 }

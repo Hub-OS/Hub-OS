@@ -115,7 +115,7 @@ void MailScene::onUpdate(double elapsed)
   textbox.Update(elapsed);
   newAnim.Update(elapsed, newSprite);
 
-  unsigned lastRow = row;
+  size_t lastRow = row;
 
   if (textbox.HasMore()) {
     textbox.Play(false); // don't keep typing on the second page
@@ -129,19 +129,20 @@ void MailScene::onUpdate(double elapsed)
   }
   else if (Input().Has(InputEvents::pressed_confirm)) {
     if (row < inbox.Size()) {
+      size_t idx = row + rowOffset;
 
       if (!isReading) {
-        size_t read = row + rowOffset;
-        auto callback = [this, read](const Inbox::Mail& mail) {
+
+        auto callback = [this, idx](const Inbox::Mail& mail) {
           isReading = true;
-          reading = read;
+          reading = idx;
           textbox.SetText(mail.body);
           textbox.Unmute();
           textbox.Play();
           Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
         };
 
-        inbox.ReadMail(read, callback);
+        inbox.ReadMail(idx, callback);
 
       }else if (textbox.HasMore() || textbox.IsPlaying()) {
         if (textbox.IsEndOfBlock()) {
@@ -156,6 +157,12 @@ void MailScene::onUpdate(double elapsed)
         Audio().Play(AudioType::CHIP_CHOOSE);
       }
       else {
+        Inbox::Mail& mail = inbox.GetAt(idx);
+        if (mail.read) {
+          mail.onReadCallback(mail);
+          mail.onReadCallback.Reset();
+        }
+
         Audio().Play(AudioType::CHIP_DESC_CLOSE);
         ResetTextBox();
       }
@@ -167,7 +174,7 @@ void MailScene::onUpdate(double elapsed)
     Audio().Play(AudioType::CHIP_DESC_CLOSE);
   }
 
-  signed lastRowOffset = rowOffset;
+  size_t lastRowOffset = rowOffset;
 
   if (row >= maxRows) {
     rowOffset++;
@@ -179,9 +186,9 @@ void MailScene::onUpdate(double elapsed)
     row++;
   }
 
-  signed maxRowOffset = static_cast<signed>(inbox.Size());
+  size_t maxRowOffset = inbox.Size();
 
-  row = std::max(0, row);
+  row = std::max(size_t(0), row);
 
   if (maxRowOffset > 1) {
     row = std::min(maxRowOffset - 1, row);
@@ -189,7 +196,7 @@ void MailScene::onUpdate(double elapsed)
 
   size_t index = row;
 
-  rowOffset = std::max(0, rowOffset);
+  rowOffset = std::max(size_t(0), rowOffset);
   rowOffset = std::min(maxRowOffset, rowOffset);
 
   if (lastRow != row || lastRowOffset != rowOffset) {
@@ -217,7 +224,7 @@ void MailScene::onUpdate(double elapsed)
   float bobf = static_cast<float>(bob);
   cursor.setPosition(30 + bobf, 50 + (row * 32) + 1.f);
 
-  auto bounce = std::sin((float)totalElapsed * 20.0f);
+  float bounce = std::sin((float)totalElapsed * 20.0f);
   moreText.setPosition(sf::Vector2f(225, 140+bounce) * 2.0f);
 
   totalElapsed += static_cast<float>(elapsed);
@@ -228,12 +235,12 @@ void MailScene::onDraw(sf::RenderTexture& surface)
   surface.draw(bg);
 
   for (size_t i = 0; i < maxRows && i < inbox.Size(); i++) {
-    size_t offset = static_cast<size_t>(rowOffset);
+    size_t offset = rowOffset;
     size_t index = offset + i;
 
     if (index >= inbox.Size()) break;
 
-    auto& msg = inbox.GetAt(index);
+    Inbox::Mail& msg = inbox.GetAt(index);
 
     // icon
     sf::Sprite spr(*iconTexture);
@@ -299,7 +306,7 @@ void MailScene::onDraw(sf::RenderTexture& surface)
 
   // mugshot
   if (isReading) {
-    auto& msg = inbox.GetAt(this->reading);
+    Inbox::Mail& msg = inbox.GetAt(this->reading);
     
     if (msg.mugshot.getNativeHandle()) {
       sf::Sprite mug(msg.mugshot, sf::IntRect(0, 0, 40, 48));
@@ -318,7 +325,7 @@ void MailScene::onDraw(sf::RenderTexture& surface)
   }
   /*
   else {
-    // Player mug
+    // TODO: Player mug?
   }
   */
 
