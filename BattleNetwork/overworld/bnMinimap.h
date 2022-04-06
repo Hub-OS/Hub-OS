@@ -16,9 +16,11 @@ namespace Overworld {
     std::string name;
     sf::RectangleShape rectangle;
     sf::Color bgColor{};
-    SpriteProxyNode player, home, warp, board, shop, conveyor, arrow, overlay, overlayArrows, bakedMap;
+    SpriteProxyNode home, warp, board, shop, conveyor, arrow, overlay, overlayArrows, bakedMap;
+    std::shared_ptr<SpriteProxyNode> player;
     std::vector<std::shared_ptr<SpriteProxyNode>> playerMarkers;
     std::vector<std::shared_ptr<SpriteProxyNode>> mapMarkers;
+    std::shared_ptr<SceneNode> originNode;
     void DrawLayer(sf::RenderTarget& target, sf::Shader& shader, sf::RenderStates states, Map& map, size_t index);
     void FindMapMarkers(Map& map);
     void FindTileMarkers(Map& map);

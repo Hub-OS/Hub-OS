@@ -55,13 +55,10 @@ void Overworld::Minimap::Update(const std::string& name, Map& map)
   // how many times could this map fit into the screen? make that many.
   sf::Vector2f texsizef = {
     std::ceil(mapScreenUnitDimensions.x * tileSize.x * scaling * 0.5f),
-    std::ceil(mapScreenUnitDimensions.y * tileSize.y * scaling * 0.5f) + 1.0f
+    std::ceil(mapScreenUnitDimensions.y * tileSize.y * scaling * 0.5f)
   };
 
   auto textureSize = sf::Vector2i(texsizef);
-
-  textureSize.x = std::max(screenSize.x, textureSize.x);
-  textureSize.y = std::max(screenSize.y, textureSize.y);
 
   // texture does not fit on screen, allow large map controls
   largeMapControls = textureSize.x > screenSize.x || textureSize.y > screenSize.y;
@@ -100,13 +97,12 @@ void Overworld::Minimap::Update(const std::string& name, Map& map)
 
   // move the map to the center of the screen and fit
   // TODO: chunk the minimap for large map
-  sf::Vector2f center = map.WorldToScreen(sf::Vector3f(mapDimensions. x, mapDimensions.y, mapDimensions.z * 2.0f) * 0.5f) * scaling;
-  offset = center;
+  sf::Vector2f center = map.WorldToScreen(sf::Vector3f(mapDimensions.x, mapDimensions.y, mapDimensions.z) * 0.5f) * scaling;
 
   const int maxLayerCount = (int)map.GetLayerCount();
 
   // apply transforms
-  states.transform.translate((240.f * 0.5f) - center.x, (160.f * 0.5f) - center.y);
+  states.transform.translate((textureSize.x * .5f) - center.x, (textureSize.y * .5f) - center.y);
   states.transform.scale(scaling, scaling);
 
   // draw. every layer passes through the shader
@@ -151,6 +147,8 @@ void Overworld::Minimap::Update(const std::string& name, Map& map)
 
   // set the final texture
   bakedMap.setTexture(std::make_shared<sf::Texture>(texture.getTexture()));
+  bakedMap.setOrigin(sf::Vector2f((textureSize - screenSize) / 2));
+  originNode->setPosition(textureSize.x / 2 - center.x, maxLayerCount * tileHeight / 2);
 
   FindMapMarkers(map);
 }
@@ -158,7 +156,7 @@ void Overworld::Minimap::Update(const std::string& name, Map& map)
 void Overworld::Minimap::FindMapMarkers(Map& map) {
   // remove old map markers
   for(auto& marker : mapMarkers) {
-    bakedMap.RemoveNode(marker.get());
+    originNode->RemoveNode(marker.get());
   }
 
   mapMarkers.clear();
@@ -352,7 +350,7 @@ Overworld::Minimap::Minimap()
     markerAnimation.Refresh(node.getSprite());
   };
 
-  initMarker(player, "actor");
+  // create template nodes
   initMarker(home, "home");
   initMarker(warp, "warp");
   initMarker(board, "board");
@@ -361,6 +359,17 @@ Overworld::Minimap::Minimap()
   initMarker(arrow, "arrow");
   overlay.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over.png"));
   overlayArrows.setTexture(Textures().LoadFromFile("resources/ow/minimap/mm_over_arrows.png"));
+
+  // create origin
+  originNode = std::make_shared<SpriteProxyNode>();
+  bakedMap.AddNode(originNode);
+  bakedMap.SetLayer(1);
+
+  // create player
+  player = std::make_shared<SpriteProxyNode>();
+  player->SetLayer(-2);
+  initMarker(*player, "actor");
+  originNode->AddNode(player);
 
   // dark blueish
   bgColor = sf::Color(24, 56, 104, 255);
@@ -405,24 +414,22 @@ void Overworld::Minimap::Pan(const sf::Vector2f& amount)
 
 void Overworld::Minimap::SetPlayerPosition(const sf::Vector2f& pos, bool isConcealed)
 {
-  player.setColor(isConcealed ? PLAYER_COLOR * CONCEALED_COLOR : PLAYER_COLOR);
+  player->setColor(isConcealed ? PLAYER_COLOR * CONCEALED_COLOR : PLAYER_COLOR);
+
+  auto newpos = pos * this->scaling;
+  player->setPosition(newpos.x, newpos.y);
 
   if (largeMapControls) {
-    auto newpos = panning + (-pos * this->scaling);
-    player.setPosition((240.f * 0.5f)+panning.x, (160.f * 0.5f)+panning.y);
-    this->bakedMap.setPosition(newpos + offset);
-  }
-  else {
-    auto newpos = pos * this->scaling;
-    player.setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
-    this->bakedMap.setPosition(0,0);
+    auto localBounds = bakedMap.getLocalBounds();
+    auto textureSize = sf::Vector2f(0, localBounds.height / 2);
+    bakedMap.setPosition(panning - newpos + textureSize);
   }
 }
 
 void Overworld::Minimap::AddPlayerMarker(std::shared_ptr<Overworld::Minimap::PlayerMarker> marker) {
-  CopyFrame(*marker, player);
+  CopyFrame(*marker, *player);
   marker->SetLayer(-1);
-  bakedMap.AddNode(marker);
+  originNode->AddNode(marker);
   playerMarkers.push_back(marker);
 }
 
@@ -430,8 +437,7 @@ void Overworld::Minimap::UpdatePlayerMarker(Overworld::Minimap::PlayerMarker& pl
 {
   auto markerColor = playerMarker.GetMarkerColor();
   playerMarker.setColor(isConcealed ? markerColor * CONCEALED_COLOR : markerColor);
-  pos *= this->scaling;
-  playerMarker.setPosition(pos.x + (240.f * 0.5f) - offset.x, pos.y + (160.f * 0.5f) - offset.y);
+  playerMarker.setPosition(pos * this->scaling);
 }
 
 void Overworld::Minimap::RemovePlayerMarker(std::shared_ptr<Overworld::Minimap::PlayerMarker> playerMarker) {
@@ -441,13 +447,13 @@ void Overworld::Minimap::RemovePlayerMarker(std::shared_ptr<Overworld::Minimap::
     playerMarkers.erase(it);
   }
 
-  bakedMap.RemoveNode(playerMarker.get());
+  originNode->RemoveNode(playerMarker.get());
 }
 
 void Overworld::Minimap::ClearIcons()
 {
   for(auto& marker : mapMarkers) {
-    bakedMap.RemoveNode(marker.get());
+    originNode->RemoveNode(marker.get());
   }
 
   mapMarkers.clear();
@@ -539,10 +545,8 @@ void Overworld::Minimap::AddMarker(const std::shared_ptr<SpriteProxyNode>& marke
     marker->setColor(CONCEALED_COLOR);
   }
 
-  auto newpos = pos * this->scaling;
-  marker->setPosition(newpos.x + (240.f * 0.5f) - offset.x, newpos.y + (160.f * 0.5f) - offset.y);
-  marker->SetLayer(-1);
-  bakedMap.AddNode(marker);
+  marker->setPosition(pos * this->scaling);
+  originNode->AddNode(marker);
 }
 
 void Overworld::Minimap::Open() {
@@ -586,7 +590,6 @@ void Overworld::Minimap::draw(sf::RenderTarget& surface, sf::RenderStates states
   states.transform *= getTransform();
   surface.draw(rectangle, states);
   surface.draw(this->bakedMap, states);
-  surface.draw(this->player, states);
   surface.draw(this->overlay, states);
 
   if (!largeMapControls) return;
