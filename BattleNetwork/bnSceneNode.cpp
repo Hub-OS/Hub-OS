@@ -1,5 +1,7 @@
 #include "bnSceneNode.h"
 
+#include <cmath>
+
 sf::Transform SceneNode::ProcessNeverFlip(const sf::Transform& in) const
 {
   if (neverFlip) {
