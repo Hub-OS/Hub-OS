@@ -192,7 +192,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
                 port = std::atoi(response.substr(colon + 1u).c_str());
               }
 
-              const Poco::Net::HostEntry::AddressList& addrList = Poco::Net::DNS::hostByName(dest).addresses();
+              const Poco::Net::HostEntry::AddressList addrList = Poco::Net::DNS::hostByName(dest).addresses();
 
               if (addrList.empty()) {
                 throw std::runtime_error("Empty address list");
