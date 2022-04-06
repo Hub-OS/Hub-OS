@@ -781,10 +781,8 @@ void Overworld::OnlineArea::transferServer(const std::string& host, uint16_t por
 
     packetProcessor->SetStatusHandler([this, host, port, data, handleFail, packetProcessor = packetProcessor.get()](auto status, auto maxPayloadSize) {
       if (status == ServerStatus::online) {
-        AddSceneChangeTask([=] {
-          cleanup();
-          getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
-        });
+        cleanup();
+        getController().replace<segue<BlackWashFade>::to<Overworld::OnlineArea>>(host, port, data, maxPayloadSize);
       }
       else {
         handleFail();
@@ -3184,7 +3182,6 @@ void Overworld::OnlineArea::cleanup() {
   getController().Session().SetWhitelist({}); // clear the whitelist
   // getController().Session().SetBlacklist({}); // clear the blacklist
 
-  isConnected = false;
   cleanedUp = true;
 }
 
