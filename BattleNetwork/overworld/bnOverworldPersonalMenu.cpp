@@ -657,7 +657,8 @@ namespace Overworld {
       return true;
     }
 
-    row = std::max(row, 0);
+    // else if exit is selected
+    selectExit = false;
 
     return false;
   }
@@ -669,6 +670,10 @@ namespace Overworld {
 
       return true;
     }
+
+    // else if exit is selected
+
+    selectExit = false;
 
     return false;
   }
