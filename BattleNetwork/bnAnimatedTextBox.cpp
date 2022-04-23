@@ -342,6 +342,14 @@ Text AnimatedTextBox::MakeTextObject(const std::string& data)
   return obj;
 }
 
+void AnimatedTextBox::ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation)
+{
+  textureRef = newTexture;
+  frame.setTexture(*textureRef);
+  animator = newAnimation;
+  animator.Refresh(frame);
+}
+
 Font AnimatedTextBox::GetFont() const {
   return textBox.GetText().GetFont();
 }

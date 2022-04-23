@@ -40,6 +40,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
   numberLabel(Font::Style::gradient),
   owTextbox({ 4, 255 })
 {
+  owTextbox.ChangeAppearance(Textures().LoadFromFile(TexturePaths::FOLDER_TEXTBOX), AnimationPaths::FOLDER_TEXTBOX);
   equipFolderOnExit = false;
 
   // Move card data into their appropriate containers for easier management
@@ -191,7 +192,7 @@ void FolderEditScene::onUpdate(double elapsed) {
   setView(camera.GetView());
 
   // update the folder sort cursor
-  sf::Vector2f sortCursorOffset = sf::Vector2f(0, 2.0 * (14.0 + (cursorSortIndex * 16.0)));
+  sf::Vector2f sortCursorOffset = sf::Vector2f(-10.f, 2.0 * (14.0 + (cursorSortIndex * 16.0)));
   sortCursor.setPosition(folderSort.getPosition() + sortCursorOffset);
 
   // Scene keyboard controls
@@ -395,6 +396,7 @@ void FolderEditScene::onUpdate(double elapsed) {
             bool found = false;
             for (size_t i = 0; i < poolCardBuckets.size(); i++) {
               if (poolCardBuckets[i].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
+                hasFolderChanged = true;
                 poolCardBuckets[i].AddCard();
                 folderCardSlots[folderView.currCardIndex].GetCard(copy);
                 found = true;
@@ -407,6 +409,7 @@ void FolderEditScene::onUpdate(double elapsed) {
                 auto slot = PoolBucket(1, copy);
                 poolCardBuckets.push_back(slot);
                 packView.numOfCards++;
+                hasFolderChanged = true;
               }
             }
             // Unselect the card
@@ -447,7 +450,7 @@ void FolderEditScene::onUpdate(double elapsed) {
               if (poolCardBuckets[packView.swapCardIndex].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
                 poolCardBuckets[packView.swapCardIndex].AddCard();
                 folderCardSlots[folderView.currCardIndex].GetCard(copy);
-
+                hasFolderChanged = true;
                 gotCard = true;
               }
               else if (poolCardBuckets[packView.swapCardIndex].GetCard(copy)) {
@@ -565,7 +568,7 @@ void FolderEditScene::onUpdate(double elapsed) {
             if (poolCardBuckets[packView.currCardIndex].ViewCard() == folderCardSlots[folderView.swapCardIndex].ViewCard()) {
               poolCardBuckets[packView.currCardIndex].AddCard();
               folderCardSlots[folderView.swapCardIndex].GetCard(copy);
-
+              hasFolderChanged = true;
               gotCard = true;
             }
             else if (packView.swapCardIndex > -1 && poolCardBuckets[packView.swapCardIndex].GetCard(copy)) {
@@ -586,6 +589,7 @@ void FolderEditScene::onUpdate(double elapsed) {
                 }
               }
               gotCard = true;
+              hasFolderChanged = true;
             }
             else if (folderView.swapCardIndex > -1 && poolCardBuckets[packView.currCardIndex].GetCard(copy)) {
               Battle::Card prev;
@@ -602,6 +606,7 @@ void FolderEditScene::onUpdate(double elapsed) {
                 }
               }
               if (foundCards < maxCards || maxCards == 0) {
+                hasFolderChanged = true;
                 folderCardSlots[folderView.swapCardIndex].AddCard(copy);
                 packView.swapCardIndex = -1;
                 folderView.swapCardIndex = -1;
@@ -1139,34 +1144,35 @@ void FolderEditScene::ComposeSortOptions()
   auto sortByFolderCopies = [this](const ICardView& first, const ICardView& second) -> bool {
     size_t firstCount{}, secondCount{};
 
-    firstCount = std::count_if(folderCardSlots.cbegin(), folderCardSlots.cend(), [&first](auto& entry) {
-      return entry.ViewCard().GetUUID() == first.ViewCard().GetUUID();
-      });
+    for (const auto& el : poolCardBuckets) {
+      if (el.ViewCard().GetUUID() == first.ViewCard().GetUUID()) {
+        firstCount++;
+      }
 
-    secondCount = std::count_if(folderCardSlots.cbegin(), folderCardSlots.cend(), [&second](auto& entry) {
-      return entry.ViewCard().GetUUID() == second.ViewCard().GetUUID();
-      });
+      if (el.ViewCard().GetUUID() == second.ViewCard().GetUUID()) {
+        secondCount++;
+      }
+    }
 
     return firstCount < secondCount;
   };
 
   auto sortByPoolCopies = [this](const ICardView& first, const ICardView& second) -> bool {
     size_t firstCount{}, secondCount{};
+    bool firstCountFound{}, secondCountFound{};
 
-    auto iter = std::find_if(poolCardBuckets.cbegin(), poolCardBuckets.cend(), [&first](auto& entry) {
-      return entry.ViewCard().GetUUID() == first.ViewCard().GetUUID();
-      });
+    for (const auto& el : poolCardBuckets) {
+      if (el.ViewCard().GetUUID() == first.ViewCard().GetUUID()) {
+        firstCount = el.GetCount(); 
+        firstCountFound = true;
+      }
 
-    auto iter2 = std::find_if(poolCardBuckets.cbegin(), poolCardBuckets.cend(), [&second](auto& entry) {
-      return entry.ViewCard().GetUUID() == second.ViewCard().GetUUID();
-      });
+      if (el.ViewCard().GetUUID() == second.ViewCard().GetUUID()) {
+        secondCount = el.GetCount();
+        secondCountFound = true;
+      }
 
-    if (iter != poolCardBuckets.cend()) {
-      firstCount = iter->GetCount();
-    }
-
-    if (iter2 != poolCardBuckets.cend()) {
-      secondCount = iter2->GetCount();
+      if (firstCountFound && secondCountFound) break;
     }
 
     return firstCount < secondCount;

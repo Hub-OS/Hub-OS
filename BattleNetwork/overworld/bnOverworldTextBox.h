@@ -30,7 +30,7 @@ namespace Overworld {
 
     void Update(float elapsed);
     void HandleInput(InputManager& input, sf::Vector2f mousePos);
-
+    void ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation);
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
   private:

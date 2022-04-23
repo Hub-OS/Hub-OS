@@ -181,6 +181,8 @@ public:
 
   Text MakeTextObject(const std::string& data = std::string());
 
+  void ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation);
+
   Font GetFont() const;
   sf::Vector2f GetTextPosition() const;
 

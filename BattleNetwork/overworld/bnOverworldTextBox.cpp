@@ -198,6 +198,11 @@ namespace Overworld {
     }
   }
 
+  void TextBox::ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation)
+  {
+    textbox.ChangeAppearance(newTexture, newAnimation);
+  }
+
   void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     textbox.draw(target, states);
   }
