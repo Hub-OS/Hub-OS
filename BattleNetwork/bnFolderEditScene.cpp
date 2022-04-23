@@ -110,14 +110,16 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
   folderCardCountBox.setOrigin(folderCardCountBox.getLocalBounds().width / 2.0f, folderCardCountBox.getLocalBounds().height / 2.0f);
 
   cardHolder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
+  cardHolder.setPosition(16.f, 35.f);
   cardHolder.setScale(2.f, 2.f);
 
   packCardHolder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
+  packCardHolder.setPosition(310.f + 480.f, 35.f);
   packCardHolder.setScale(2.f, 2.f);
 
   folderSort = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SORT));
   folderSort.setScale(2.f, 2.f);
-  folderSort.setPosition(cardHolder.getPosition() + sf::Vector2f(8 * 2, 5 * 2));
+  folderSort.setPosition(cardHolder.getPosition() + sf::Vector2f(11 * 2, 5 * 2));
 
   element = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
@@ -176,6 +178,10 @@ void FolderEditScene::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   setView(camera.GetView());
 
+  // update the folder sort cursor
+  sf::Vector2f sortCursorOffset = sf::Vector2f(0, 2.0 * (14.0 + (cursorSortIndex * 16.0)));
+  sortCursor.setPosition(folderSort.getPosition() + sortCursorOffset);
+
   // Scene keyboard controls
   if (canInteract) {
     if (isInSortMenu) {
@@ -201,9 +207,6 @@ void FolderEditScene::onUpdate(double elapsed) {
           cursorSortIndex = 0;
         }
       }
-
-      sf::Vector2f offset = sf::Vector2f(0, 2.0 * (15.0 + (cursorSortIndex) * 17.0));
-      sortCursor.setPosition(folderSort.getPosition() + offset);
 
       if (Input().Has(InputEvents::pressed_confirm)) {
         options->SelectOption(cursorSortIndex);
@@ -804,9 +807,8 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
   cardDesc.setPosition(sf::Vector2f(26.f, 175.0f));
   scrollbar.setPosition(410.f, 60.f);
-  cardHolder.setPosition(16.f, 32.f);
   element.setPosition(2.f * 28.f, 136.f);
-  card.setPosition(96.f, 88.f);
+  card.setPosition(96.f, 93.f);
 
   surface.draw(folderDock);
   surface.draw(cardHolder);
@@ -907,13 +909,13 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
           cardLabel.SetString(std::to_string(copy.GetDamage()));
           cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
           cardLabel.setScale(xscale, 2.f);
-          cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 80.f, 142.f }));
+          cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 77.f, 145.f }));
           surface.draw(cardLabel);
         }
 
         cardLabel.setOrigin(0, 0);
         cardLabel.SetColor(sf::Color::Yellow);
-        cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 16.f, 142.f }));
+        cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 20.f, 145.f }));
         cardLabel.SetString(std::string() + copy.GetCode());
         cardLabel.setScale(xscale, 2.f);
         surface.draw(cardLabel);
@@ -924,7 +926,7 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
         int offset = (int)(copy.GetElement());
         element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-        element.setPosition(interp_position(sf::Vector2f{ 2.f * 32.f, 138.f }));
+        element.setPosition(interp_position(sf::Vector2f{ 2.f * 32.f, 142.f }));
         element.setScale(xscale, 2.f);
         surface.draw(element);
       }
@@ -946,7 +948,6 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
   cardDesc.setPosition(sf::Vector2f(320.f + 480.f, 175.0f));
   element.setPosition(400.f + 2.f * 20.f + 480.f, 146.f);
-  packCardHolder.setPosition(310.f + 480.f, 35.f);
   card.setPosition(389.f + 480.f, 93.f);
 
   surface.draw(packDock);

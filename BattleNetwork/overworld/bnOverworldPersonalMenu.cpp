@@ -370,7 +370,8 @@ namespace Overworld {
           selectInputCooldown = maxSelectInputCooldown / 4.0;
         }
 
-        CursorMoveUp() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
+        CursorMoveUp();
+        Audio().Play(AudioType::CHIP_SELECT);
       }
     }
     else if (input.Has(InputEvents::pressed_ui_down) || input.Has(InputEvents::held_ui_down)) {
@@ -383,7 +384,8 @@ namespace Overworld {
           selectInputCooldown = maxSelectInputCooldown / 4.0;
         }
 
-        CursorMoveDown() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
+        CursorMoveDown();
+        Audio().Play(AudioType::CHIP_SELECT);
       }
     }
     else if (input.Has(InputEvents::pressed_confirm)) {
