@@ -731,6 +731,10 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
     foregroundParallaxFactor = map.GetForegroundParallax();
   }
 
+  if (this->map.GetSongPath() != map.GetSongPath()) {
+    Audio().Stream(GetPath(map.GetSongPath()), true);
+  }
+
   personalMenu->SetArea(map.GetName());
 
   // cleanup data from the previous map
