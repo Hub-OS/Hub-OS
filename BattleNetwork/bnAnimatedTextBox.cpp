@@ -22,7 +22,7 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   isOpening = false;
   isClosing = false;
 
-  textBox.SetTextFillColor(sf::Color::Black);
+  textBox.SetTextFillColor(sf::Color(66, 57, 57));
 }
 
 AnimatedTextBox::~AnimatedTextBox() { }

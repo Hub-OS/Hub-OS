@@ -1,0 +1,13 @@
+imagePath="folder_textbox.png"
+
+animation state="OPEN"
+frame duration="0.04" x="0" y="129" w="235" h="2" originx="0" originy="0" flipx="0" flipy="0" 
+frame duration="0.04" x="0" y="102" w="236" h="27" originx="0" originy="14" flipx="0" flipy="0" 
+frame duration="0.04" x="0" y="59" w="236" h="43" originx="0" originy="22" flipx="0" flipy="0" 
+frame duration="0.04" x="0" y="0" w="236" h="59" originx="0" originy="28" flipx="0" flipy="0" 
+
+animation state="CLOSE"
+frame duration="0.04" x="0" y="0" w="236" h="59" originx="0" originy="28" flipx="0" flipy="0"
+frame duration="0.04" x="0" y="59" w="236" h="43" originx="0" originy="22" flipx="0" flipy="0" 
+frame duration="0.04" x="0" y="102" w="236" h="27" originx="0" originy="14" flipx="0" flipy="0" 
+frame duration="0.04" x="0" y="129" w="235" h="2" originx="0" originy="0" flipx="0" flipy="0" 

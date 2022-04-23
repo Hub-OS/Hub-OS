@@ -9,6 +9,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnGame.h"
 #include "bnAnimation.h"
+#include "Overworld/bnOverworldTextBox.h"
 #include "bnLanBackground.h"
 #include "bnCardFolder.h"
 #include "bnText.h"
@@ -102,12 +103,14 @@ private:
   };
 
 private:
+  bool& equipFolderOnExit; /*!< When set to true, signals that the previous scene should equip this folder */
   std::vector<FolderSlot> folderCardSlots; /*!< Rows in the folder that can be inserted with cards or replaced */
   std::vector<PoolBucket> poolCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
   bool hasFolderChanged{}; /*!< Flag if folder needs to be saved before quitting screen */
   bool isInSortMenu{}; /*!< Flag if in the sort menu */
   Camera camera;
   CardFolder& folder;
+  Overworld::TextBox owTextbox;
 
   // Menu name font
   Font font;
@@ -246,6 +249,7 @@ private:
   void PlaceFolderDataIntoCardSlots();
   void PlaceLibraryDataIntoBuckets();
   void WriteNewFolderData();
+  void GotoLastScene();
 
   template<typename ElementType>
   void RefreshCurrentCardDock(CardView& view, const std::vector<ElementType>& list);
@@ -260,7 +264,7 @@ public:
   void onDraw(sf::RenderTexture& surface) override;
   void onEnd() override;
 
-  FolderEditScene(swoosh::ActivityController&, CardFolder& folder);
+  FolderEditScene(swoosh::ActivityController&, CardFolder& folder, bool& equipFolderOnExit);
   ~FolderEditScene();
 };
 

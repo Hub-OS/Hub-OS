@@ -558,6 +558,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
   PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
   if (!packageManager.HasPackage(currentNaviId)) {
     currentNaviId = packageManager.FirstValidPackage();
+    getController().Session().SetKeyValue("SelectedNavi", currentNaviId);
   }
 
   lastSelectedNaviId = currentNaviId;

@@ -42,6 +42,7 @@ private:
 
   // Selection input delays
   bool extendedHold{ false }; /*!< 2nd delay pass makes scrolling quicker */
+  bool equipFolderOnReturn{ false }; /*!< If set when returning from FolderEditScene, equip this folder*/
   double maxSelectInputCooldown{}; /*!< Set to fraction of a second */
   double selectInputCooldown{}; /*!< The delay between reading user input */
 
@@ -107,6 +108,7 @@ private:
   const bool IsFolderAllowed(CardFolder* folder);
   void MakeNewFolder();
   void DeleteFolder(std::function<void()> onSuccess);
+  bool EquipFolder(size_t index);
   void RefreshOptions();
 public:  
 

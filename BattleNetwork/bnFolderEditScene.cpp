@@ -10,6 +10,7 @@
 #include "bnGameSession.h"
 #include "Segues/BlackWashFade.h"
 #include "bnCardFolder.h"
+#include "bnPlayerPackageManager.h"
 #include "bnCardPackageManager.h"
 #include "Android/bnTouchArea.h"
 #include "stx/string.h"
@@ -20,8 +21,9 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
-FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFolder& folder) :
+FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFolder& folder, bool& equipFolderOnExit) :
   Scene(controller),
+  equipFolderOnExit(equipFolderOnExit),
   camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))),
   folder(folder),
   hasFolderChanged(false),
@@ -35,8 +37,11 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
   cardDescFont(Font::Style::thin),
   cardDesc("", cardDescFont),
   numberFont(Font::Style::thick),
-  numberLabel(Font::Style::gradient)
+  numberLabel(Font::Style::gradient),
+  owTextbox({ 4, 255 })
 {
+  equipFolderOnExit = false;
+
   // Move card data into their appropriate containers for easier management
   PlaceFolderDataIntoCardSlots();
   PlaceLibraryDataIntoBuckets();
@@ -166,6 +171,13 @@ void FolderEditScene::onStart() {
 void FolderEditScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
+
+  owTextbox.Update((float)elapsed);
+
+  if (owTextbox.IsOpen()) {
+    owTextbox.HandleInput(Input(), {});
+    return;
+  }
 
   cardRevealTimer.update(sf::seconds(static_cast<float>(elapsed)));
   easeInTimer.update(sf::seconds(static_cast<float>(elapsed)));
@@ -665,19 +677,34 @@ void FolderEditScene::onUpdate(double elapsed) {
       else {
         WriteNewFolderData();
 
+        if (hasFolderChanged) {
+          auto onResponse = [this](bool value) {
+            if (value) {
+              equipFolderOnExit = true;
+            }
+
+            GotoLastScene();
+          };
+          const std::string& selectedNavi = getController().Session().GetKeyValue("SelectedNavi");
+          PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+
+          if (packageManager.HasPackage(selectedNavi)) {
+            auto& meta = packageManager.FindPackageByID(selectedNavi);
+            auto texture = Textures().LoadFromFile(meta.GetMugshotTexturePath());
+            owTextbox.SetNextSpeaker(sf::Sprite(*texture), meta.GetMugshotAnimationPath());
+          }
+          owTextbox.EnqueueQuestion("You made changes. Want to equip?", onResponse);
+          hasFolderChanged = false;
+          return;
+        } 
+
         gotoLastScene = true;
         canInteract = false;
-
-        Audio().Play(AudioType::CHIP_DESC_CLOSE);
       }
     }
 
     if (gotoLastScene) {
-      canInteract = false;
-
-      using namespace swoosh::types;
-      using segue = segue<BlackWashFade, milli<500>>;
-      getController().pop<segue>();
+      GotoLastScene();
     }
   } // end if(gotoLastScene)
   else {
@@ -802,6 +829,8 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
     surface.draw(folderSort);
     surface.draw(sortCursor);
   }
+
+  surface.draw(owTextbox);
 }
 
 void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
@@ -1246,6 +1275,15 @@ std::shared_ptr<sf::Texture> FolderEditScene::GetPreviewForCard(const std::strin
 
   auto& meta = packageManager.FindPackageByID(uuid);
   return meta.GetPreviewTexture();
+}
+
+void FolderEditScene::GotoLastScene() {
+  canInteract = false;
+  using namespace swoosh::types;
+  using segue = segue<BlackWashFade, milli<500>>;
+  getController().pop<segue>();
+
+  Audio().Play(AudioType::CHIP_DESC_CLOSE);
 }
 
 #ifdef __ANDROID__

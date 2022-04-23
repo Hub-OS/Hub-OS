@@ -367,7 +367,7 @@ void FolderScene::onUpdate(double elapsed) {
             Audio().Play(AudioType::CHIP_CONFIRM);
 
             using effect = segue<BlackWashFade, milli<500>>;
-            getController().push<effect::to<FolderEditScene>>(*folder);
+            getController().push<effect::to<FolderEditScene>>(*folder, equipFolderOnReturn);
             gotoNextScene = true;
           }
           else {
@@ -376,21 +376,7 @@ void FolderScene::onUpdate(double elapsed) {
           break;
         case 1: // EQUIP
         {
-          CardFolder* folder{ nullptr };
-          if (collection.GetFolder(currFolderIndex, folder) && IsFolderAllowed(folder)) {
-            selectedFolderIndex = currFolderIndex;
-            collection.SwapOrder(0, selectedFolderIndex);
-
-            // Save this session data
-            std::string folderStr = collection.GetFolderNames()[0];
-            std::string naviSelectedStr = session.GetKeyValue("SelectedNavi");
-            
-            if (naviSelectedStr.empty()) {
-              naviSelectedStr = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FirstValidPackage();
-            }
-            
-            session.SetKeyValue("FolderFor:" + naviSelectedStr, folderStr);
-
+          if (EquipFolder(currFolderIndex)) {
             Audio().Play(AudioType::PA_ADVANCE);
           }
           else {
@@ -499,6 +485,12 @@ void FolderScene::onResume() {
   // Save any edits
   collection.SetFolderName(folderNames[currFolderIndex], folder);
   folderSwitch = true;
+
+  // Equip if prompted
+  if (equipFolderOnReturn) {
+    equipFolderOnReturn = false; // reset flag
+    EquipFolder(currFolderIndex);
+  }
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
@@ -740,6 +732,31 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     questionInterface);
 
   textbox.Open();
+}
+
+bool FolderScene::EquipFolder(size_t index)
+{
+  CardFolder* folder{ nullptr };
+  GameSession& session = getController().Session();
+
+  if (collection.GetFolder(index, folder) && IsFolderAllowed(folder)) {
+    selectedFolderIndex = index;
+    collection.SwapOrder(0, selectedFolderIndex);
+
+    // Save this session data
+    std::string folderStr = collection.GetFolderNames()[0];
+    std::string naviSelectedStr = session.GetKeyValue("SelectedNavi");
+
+    if (naviSelectedStr.empty()) {
+      naviSelectedStr = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition).FirstValidPackage();
+    }
+
+    session.SetKeyValue("FolderFor:" + naviSelectedStr, folderStr);
+
+    return true;
+  }
+
+  return false;
 }
 
 void FolderScene::RefreshOptions()
