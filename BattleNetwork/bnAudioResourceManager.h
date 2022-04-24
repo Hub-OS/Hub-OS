@@ -79,6 +79,8 @@ public:
 
   std::shared_ptr<sf::SoundBuffer> LoadFromFile(const std::filesystem::path& path);
 
+  std::shared_ptr<sf::SoundBuffer> FetchSharedPtr(AudioType type);
+
   void HandleExpiredAudioCache();
 
   /**

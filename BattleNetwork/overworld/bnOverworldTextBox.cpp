@@ -203,6 +203,11 @@ namespace Overworld {
     textbox.ChangeAppearance(newTexture, newAnimation);
   }
 
+  void TextBox::ChangeBlipSfx(std::shared_ptr<sf::SoundBuffer> newSfx)
+  {
+    textbox.ChangeBlipSfx(newSfx);
+  }
+
   void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     textbox.draw(target, states);
   }

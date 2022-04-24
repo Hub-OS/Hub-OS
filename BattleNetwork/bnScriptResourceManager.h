@@ -19,6 +19,7 @@
 
 #include <sol/sol.hpp>
 #include "bnPackageAddress.h"
+#include "bnEventBus.h"
 
 class CardPackagePartitioner;
 
@@ -55,7 +56,12 @@ public:
   static sol::object PrintInvalidAccessMessage(sol::table table, const std::string typeName, const std::string key );
   static sol::object PrintInvalidAssignMessage(sol::table table, const std::string typeName, const std::string key );
 
+  void SetKeyValue(const std::string& key, const std::string& value);
+  void SetEventChannel(EventBus::Channel& channel);
+  void DropEventChannel();
 private:
+  EventBus::Channel* eventChannel{ nullptr };
+  std::map<std::string, std::string> keys;
   std::map<sol::state*, ScriptPackage*> state2package; /*!< lua state pointer to script package */
   std::map<PackageAddress, ScriptPackage*> address2package; /*!< PackageAddress to script package */
   CardPackagePartitioner* cardPartition{ nullptr };

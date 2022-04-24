@@ -148,6 +148,11 @@ std::shared_ptr<sf::SoundBuffer> AudioResourceManager::LoadFromFile(const std::f
   return loaded;
 }
 
+std::shared_ptr<sf::SoundBuffer> AudioResourceManager::FetchSharedPtr(AudioType type)
+{
+  return std::make_shared<sf::SoundBuffer>(sources[static_cast<size_t>(type)]);
+}
+
 void AudioResourceManager::HandleExpiredAudioCache()
 {
   auto iter = cached.begin();

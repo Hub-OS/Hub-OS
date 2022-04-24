@@ -189,6 +189,21 @@ sol::object ScriptResourceManager::PrintInvalidAssignMessage( sol::table table, 
   return sol::lua_nil;
 }
 
+void ScriptResourceManager::SetKeyValue(const std::string& key, const std::string& value)
+{
+  keys[key] = value;
+}
+
+void ScriptResourceManager::SetEventChannel(EventBus::Channel& channel)
+{
+  eventChannel = &channel;
+}
+
+void ScriptResourceManager::DropEventChannel()
+{
+  eventChannel = nullptr;
+}
+
 stx::result_t<std::filesystem::path> ScriptResourceManager::GetCurrentFile(lua_State* L)
 {
   lua_Debug ar;
@@ -527,6 +542,22 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
       scriptPackage.dependencies.push_back(fqn);
     }
   );
+
+  engine_namespace.set_function("get_cust_gauge_value",
+    [this] {
+      return std::atof(keys["cust_gauge_value"].c_str());
+    });
+
+  engine_namespace.set_function("set_cust_gauge_time",
+    [this](double seconds) {
+      if (eventChannel == nullptr) return;
+      eventChannel->Emit(&BattleSceneBase::SetCustomBarProgress, seconds);
+    });
+
+  engine_namespace.set_function("set_cust_gauge_max_time",
+    [this](double max_seconds) {
+      eventChannel->Emit(&BattleSceneBase::SetCustomBarDuration, max_seconds);
+    });
 
   const auto& elements_table = state.new_enum("Element",
     "Fire", Element::fire,

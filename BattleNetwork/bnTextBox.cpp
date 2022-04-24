@@ -80,6 +80,7 @@ TextBox::TextBox(int width, int height, const Font& font) :
   progress = 0;
   lineIndex = 0;
   numberOfFittingLines = 1;
+  blipSfx = Audio().FetchSharedPtr(AudioType::TEXT);
 }
 
 TextBox::~TextBox() {
@@ -355,6 +356,11 @@ void TextBox::SetText(const std::string& text) {
   dirty = true;
 }
 
+void TextBox::SetBlipSfx(std::shared_ptr<sf::SoundBuffer> blipSfx)
+{
+  this->blipSfx = blipSfx;
+}
+
 void TextBox::Play(const bool play) {
   TextBox::play = play;
 }
@@ -500,7 +506,7 @@ void TextBox::Update(const double elapsed) {
       if (talking) {
         // Play a sound if we are able and the character is a letter
         if (!mute && playOnce) {
-          Audio().Play(AudioType::TEXT, AudioPriority::high);
+          Audio().Play(blipSfx, AudioPriority::high);
           playOnce = false;
         }
       }
@@ -571,6 +577,8 @@ bool TextBox::IsFinalBlock() const {
 
 void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
+  SceneNode::draw(target, states);
+
   if (message.empty())
     return;
 
