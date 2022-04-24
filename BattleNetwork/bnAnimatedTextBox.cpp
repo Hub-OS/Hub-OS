@@ -14,7 +14,7 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   setScale(2.0f, 2.0f);
 
   // Load the textbox animation
-  animator = Animation("resources/ui/textbox.animation");
+  animator = Animation(AnimationPaths::ANIMATED_TEXT_BOX);
   animator.Reload();
 
   isPaused = true;

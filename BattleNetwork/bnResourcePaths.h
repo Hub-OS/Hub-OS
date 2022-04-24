@@ -149,6 +149,7 @@ namespace AnimationPaths {
   path CONFUSED_FX = "resources/scenes/battle/spells/confused.animation";
   path MISC_COUNTER_REVEAL = "resources/scenes/battle/counter_reveal.animation";
   path FOLDER_TEXTBOX = "resources/ui/folder_textbox.animation";
+  path ANIMATED_TEXT_BOX = "resources/ui/textbox.animation";
 }
 
 namespace SoundPaths {

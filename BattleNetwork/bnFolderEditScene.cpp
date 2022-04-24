@@ -223,6 +223,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
       if (Input().Has(InputEvents::pressed_confirm)) {
         options->SelectOption(cursorSortIndex);
+        RefreshCurrentCardSelection();
         Audio().Play(AudioType::CHIP_DESC);
       }
 
@@ -644,23 +645,7 @@ void FolderEditScene::onUpdate(double elapsed) {
     view->currCardIndex = std::max(0, view->currCardIndex);
     view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex);
 
-    switch (currViewMode) {
-    case ViewMode::folder:
-    {
-      using SlotType = decltype(folderCardSlots)::value_type;
-      RefreshCurrentCardDock<SlotType>(*view, folderCardSlots);
-    }
-    break;
-    case ViewMode::pool:
-    {
-      using SlotType = decltype(poolCardBuckets)::value_type;
-      RefreshCurrentCardDock<SlotType>(*view, poolCardBuckets);
-    }
-    break;
-    default:
-      Logger::Logf(LogLevel::critical, "No applicable view mode for folder edit scene: %i", static_cast<int>(currViewMode));
-      break;
-    }
+    RefreshCurrentCardSelection();
 
     view->prevIndex = view->currCardIndex;
 
@@ -753,7 +738,7 @@ void FolderEditScene::onExit()
 void FolderEditScene::onEnter()
 {
   folderView.currCardIndex = 0;
-  RefreshCurrentCardDock(folderView, folderCardSlots);
+  RefreshCurrentCardSelection();
 }
 
 void FolderEditScene::onResume() {
@@ -869,20 +854,23 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
       const Battle::Card& copy = iter->ViewCard();
       bool hasID = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition).HasPackage(copy.GetUUID());
 
-      cardLabel.SetColor(sf::Color::White);
-
-      if (!hasID) {
-        cardLabel.SetColor(sf::Color::Red);
-      }
-
       float cardIconY = 66.0f + (32.f * i);
       cardIcon.setTexture(*GetIconForCard(copy.GetUUID()));
       cardIcon.setPosition(2.f * 104.f, cardIconY);
       surface.draw(cardIcon);
 
-      cardLabel.setPosition(2.f * 120.f, cardIconY + 4.0f);
+      sf::Vector2f labelPos = sf::Vector2f(2.f * 120.f, cardIconY + 4.0f);
+      cardLabel.setPosition(labelPos + sf::Vector2f(2.f, 2.f));
       cardLabel.SetString(copy.GetShortName());
       cardLabel.setScale(2.f, 2.f);
+      cardLabel.SetColor(sf::Color(80, 96, 112));
+      surface.draw(cardLabel);
+
+      cardLabel.SetColor(sf::Color::White);
+      if (!hasID) {
+        cardLabel.SetColor(sf::Color::Red);
+      }
+      cardLabel.setPosition(labelPos);
       surface.draw(cardLabel);
 
       int offset = (int)(copy.GetElement());
@@ -891,10 +879,20 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
       element.setScale(2.f, 2.f);
       surface.draw(element);
 
+      labelPos = sf::Vector2f(2.f * 200.f, cardIconY + 4.0f);
+      cardLabel.SetColor(sf::Color(80, 96, 112));
       cardLabel.setOrigin(0, 0);
-      cardLabel.setPosition(2.f * 200.f, cardIconY + 4.0f);
+      cardLabel.setPosition(labelPos + sf::Vector2f(2.f, 2.f));
       cardLabel.SetString(std::string() + copy.GetCode());
       surface.draw(cardLabel);
+
+      cardLabel.SetColor(sf::Color::White);
+      if (!hasID) {
+        cardLabel.SetColor(sf::Color::Red);
+      }
+      cardLabel.setPosition(labelPos);
+      surface.draw(cardLabel);
+
       //Draw Card Limit
       if (copy.GetLimit() > 0) {
         int limit = copy.GetLimit();
@@ -1122,31 +1120,58 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
 void FolderEditScene::ComposeSortOptions()
 {
   auto sortByID = [](const ICardView& first, const ICardView& second) -> bool {
-    return first.ViewCard().GetUUID() < second.ViewCard().GetUUID();
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    return std::tie(a.GetUUID(), a.GetShortName()) < std::tie(b.GetUUID(), b.GetShortName());
   };
 
   auto sortByAlpha = [](const ICardView& first, const ICardView& second) -> bool {
-    return first.ViewCard().GetShortName() < second.ViewCard().GetShortName();
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+    return std::tie(a.GetShortName(), codeA) < std::tie(b.GetShortName(), codeB);
   };
 
   auto sortByCode = [](const ICardView& first, const ICardView& second) -> bool {
-    return first.ViewCard().GetCode() < second.ViewCard().GetCode();
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+    return std::tie(codeA, a.GetShortName()) < std::tie(codeB, b.GetShortName());
   };
 
   auto sortByAttack = [](const ICardView& first, const ICardView& second) -> bool {
-    return first.ViewCard().GetDamage() < second.ViewCard().GetDamage();
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    int attackA = a.GetDamage();
+    int attackB = b.GetDamage();
+    return std::tie(attackA, a.GetShortName()) < std::tie(attackB, b.GetShortName());
   };
 
   auto sortByElement = [](const ICardView& first, const ICardView& second) -> bool {
-    return first.ViewCard().GetElement() < second.ViewCard().GetElement();
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    Element elementA = a.GetElement();
+    Element elementB = b.GetElement();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+    return std::tie(elementA, a.GetShortName(), codeA) < std::tie(elementB, b.GetShortName(), codeB);
   };
 
   auto sortByFolderCopies = [this](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+
     size_t firstCount{}, secondCount{};
 
-    for (const auto& el : poolCardBuckets) {
+    for (size_t i = 0; i < folderCardSlots.size(); i++) {
+      const auto& el = folderCardSlots[i];
       if (el.ViewCard().GetUUID() == first.ViewCard().GetUUID()) {
         firstCount++;
+
       }
 
       if (el.ViewCard().GetUUID() == second.ViewCard().GetUUID()) {
@@ -1154,20 +1179,27 @@ void FolderEditScene::ComposeSortOptions()
       }
     }
 
-    return firstCount < secondCount;
+    return std::tie(firstCount, a.GetShortName(), codeA) < std::tie(secondCount, b.GetShortName(), codeB);
   };
 
   auto sortByPoolCopies = [this](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+
     size_t firstCount{}, secondCount{};
     bool firstCountFound{}, secondCountFound{};
 
-    for (const auto& el : poolCardBuckets) {
-      if (el.ViewCard().GetUUID() == first.ViewCard().GetUUID()) {
+    for (size_t i = 0; i < poolCardBuckets.size(); i++) {
+      const auto& el = poolCardBuckets[i];
+
+      if (el.ViewCard() == first.ViewCard()) {
         firstCount = el.GetCount(); 
         firstCountFound = true;
       }
 
-      if (el.ViewCard().GetUUID() == second.ViewCard().GetUUID()) {
+      if (el.ViewCard() == second.ViewCard()) {
         secondCount = el.GetCount();
         secondCountFound = true;
       }
@@ -1175,20 +1207,30 @@ void FolderEditScene::ComposeSortOptions()
       if (firstCountFound && secondCountFound) break;
     }
 
-    return firstCount < secondCount;
+    return std::tie(firstCount, a.GetShortName(), codeA) < std::tie(secondCount, b.GetShortName(), codeB);
   };
 
-  auto sortByMax = [](const ICardView& first, const ICardView& second) -> bool {
-    return first.ViewCard().GetLimit() < second.ViewCard().GetLimit();
+  auto sortByClass = [](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    Battle::CardClass classA = a.GetClass();
+    Battle::CardClass classB = b.GetClass();
+    return std::tie(classA, a.GetShortName()) < std::tie(classB, b.GetShortName());
   };
 
+  // push empty slots at the bottom
+  auto pivoter = [](const ICardView& el) {
+    return !el.IsEmpty();
+  };
+
+  folderSortOptions.SetPivotPredicate(pivoter);
   folderSortOptions.AddOption(sortByID);
   folderSortOptions.AddOption(sortByAlpha);
   folderSortOptions.AddOption(sortByCode);
   folderSortOptions.AddOption(sortByAttack);
   folderSortOptions.AddOption(sortByElement);
   folderSortOptions.AddOption(sortByFolderCopies);
-  folderSortOptions.AddOption(sortByMax);
+  folderSortOptions.AddOption(sortByClass);
 
   poolSortOptions.AddOption(sortByID);
   poolSortOptions.AddOption(sortByAlpha);
@@ -1196,7 +1238,7 @@ void FolderEditScene::ComposeSortOptions()
   poolSortOptions.AddOption(sortByAttack);
   poolSortOptions.AddOption(sortByElement);
   poolSortOptions.AddOption(sortByPoolCopies);
-  poolSortOptions.AddOption(sortByMax);
+  poolSortOptions.AddOption(sortByClass);
 }
 
 void FolderEditScene::onEnd() {
@@ -1290,6 +1332,26 @@ void FolderEditScene::GotoLastScene() {
   getController().pop<segue>();
 
   Audio().Play(AudioType::CHIP_DESC_CLOSE);
+}
+
+void FolderEditScene::RefreshCurrentCardSelection() {
+  switch (currViewMode) {
+  case ViewMode::folder:
+  {
+    using SlotType = decltype(folderCardSlots)::value_type;
+    RefreshCardDock<SlotType>(folderView, folderCardSlots);
+  }
+  break;
+  case ViewMode::pool:
+  {
+    using SlotType = decltype(poolCardBuckets)::value_type;
+    RefreshCardDock<SlotType>(packView, poolCardBuckets);
+  }
+  break;
+  default:
+    Logger::Logf(LogLevel::critical, "No applicable view mode for folder edit scene: %i", static_cast<int>(currViewMode));
+    break;
+  }
 }
 
 #ifdef __ANDROID__
