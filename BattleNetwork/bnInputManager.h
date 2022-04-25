@@ -15,7 +15,6 @@ using std::vector;
 #include "bnConfigWriter.h"
 #include "bnConfigSettings.h"
 
-
 /**
  * @class InputManager
  * @author mav

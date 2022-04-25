@@ -71,10 +71,6 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
   textbox.SetTextSpeed(1.0f);
   gotoNextScene = true;
 
-  // Selection input delays
-  maxSelectInputCooldown = 0.25; // 4th of a second
-  selectInputCooldown = maxSelectInputCooldown;
-
   auto load_audio = [this](const std::string& path) {
     return Audio().LoadFromFile(path);
   };
@@ -587,15 +583,15 @@ void PlayerCustScene::HandleGrabAction()
 
 void PlayerCustScene::HandleMenuUIKeys(double elapsed)
 {
-  if (HasUpInput()) {
-    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteUpKey);
+  if (keyRepeater.HandleInput(InputEvents::ui_up_group, std::bind(&PlayerCustScene::ExecuteUpKey, this))) {
     return;
   }
 
-  if (HasDownInput()) {
-    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteDownKey);
+  if (keyRepeater.HandleInput(InputEvents::ui_down_group, std::bind(&PlayerCustScene::ExecuteDownKey, this))) {
     return;
   }
+
+  keyRepeater.Reset();
 
   if (Input().Has(InputEvents::pressed_cancel)) {
     state = state::usermode;
@@ -1038,25 +1034,23 @@ void PlayerCustScene::ExecuteCancelGrabOnGrid()
 
 bool PlayerCustScene::HandleUIKeys(double elapsed)
 {
-  if (HasUpInput()) {
-    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteUpKey);
+  if (keyRepeater.HandleInput(InputEvents::ui_up_group, std::bind(&PlayerCustScene::ExecuteUpKey, this))) {
     return true;
   }
 
-  if (HasDownInput()) {
-    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteDownKey);
+  if (keyRepeater.HandleInput(InputEvents::ui_right_group, std::bind(&PlayerCustScene::ExecuteRightKey, this))) {
     return true;
   }
 
-  if (HasLeftInput()) {
-    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteLeftKey);
+  if (keyRepeater.HandleInput(InputEvents::ui_down_group, std::bind(&PlayerCustScene::ExecuteDownKey, this))) {
     return true;
   }
 
-  if (HasRightInput()) {
-    HandleInputDelay(elapsed, &PlayerCustScene::ExecuteRightKey);
+  if (keyRepeater.HandleInput(InputEvents::ui_left_group, std::bind(&PlayerCustScene::ExecuteLeftKey, this))) {
     return true;
   }
+
+  keyRepeater.Reset();
 
   if (Input().Has(InputEvents::pressed_option) && !itemListSelected) {
     if (grabbingPiece) {
@@ -1101,23 +1095,6 @@ bool PlayerCustScene::HandleUIKeys(double elapsed)
   return false;
 }
 
-void PlayerCustScene::HandleInputDelay(double elapsed, void(PlayerCustScene::*executeFunc)())
-{
-  selectInputCooldown -= elapsed;
-
-  if (selectInputCooldown <= 0) {
-    if (!extendedHold) {
-      selectInputCooldown = maxSelectInputCooldown;
-      extendedHold = true;
-    }
-    else {
-      selectInputCooldown = maxSelectInputCooldown * 0.25;
-    }
-
-    (this->*executeFunc)();
-  }
-}
-
 void PlayerCustScene::SelectGridUI()
 {
   if (textbox.IsOpen()) {
@@ -1125,7 +1102,7 @@ void PlayerCustScene::SelectGridUI()
     questionInterface = nullptr;
   }
 
-  selectInputCooldown = maxSelectInputCooldown;
+  keyRepeater.Reset();
   state = state::usermode;
   itemListSelected = false;
   UpdateCursorHoverInfo();
@@ -1140,7 +1117,7 @@ void PlayerCustScene::SelectItemUI(size_t idx)
   }
 
   state = state::usermode;
-  selectInputCooldown = maxSelectInputCooldown;
+  keyRepeater.Reset();
 
   if (itemListSelected) return;
 
@@ -1407,14 +1384,12 @@ void PlayerCustScene::onUpdate(double elapsed)
   }
 
   // handle input
+  keyRepeater.Update(elapsed);
+
   if (itemListSelected) {
     if (HandleUIKeys(elapsed)) {
       return;
     }
-
-    //else arrow keys are not held this state
-    selectInputCooldown = 0;
-    extendedHold = false;
 
     if (!Input().Has(InputEvents::pressed_confirm)) return;
     
@@ -1455,10 +1430,6 @@ void PlayerCustScene::onUpdate(double elapsed)
   if (HandleUIKeys(elapsed)) {
     return;
   }
-
-  //else
-  selectInputCooldown = 0;
-  extendedHold = false;
 }
 
 void PlayerCustScene::onDraw(sf::RenderTexture& surface)

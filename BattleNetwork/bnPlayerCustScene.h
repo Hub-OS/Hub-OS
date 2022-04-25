@@ -2,7 +2,7 @@
 #include <Swoosh/Ease.h>
 
 #include "bnScene.h"
-#include "bnInputManager.h"
+#include "bnInputRepeater.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -132,9 +132,7 @@ private:
   Text infoText, itemText, hoverText;
 
   // Selection input delays
-  bool extendedHold{ false }; /*!< 2nd delay pass makes scrolling quicker */
-  double maxSelectInputCooldown{}; /*!< Set to fraction of a second */
-  double selectInputCooldown{}; /*!< The delay between reading user input */
+  InputRepeater keyRepeater;
 
   // progress bar
   double progress{}, maxProgressTime{ 2.5 }; // 2.5 second compile tile
@@ -233,10 +231,10 @@ private:
   void UpdateCursorHoverInfo();
   void UpdateItemListHoverInfo();
   void UpdateMenuPosition();
-  void HandleInputDelay(double elapsed, void(PlayerCustScene::* executeFunc)());
   void SelectGridUI();
   void SelectItemUI(size_t idx);
   void QuitScene();
+
 public:
 
   static std::vector<PackageAddress> GetInstalledBlocks(const std::string& playerID, const GameSession& session);

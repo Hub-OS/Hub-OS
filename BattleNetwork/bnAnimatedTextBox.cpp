@@ -166,7 +166,14 @@ void AnimatedTextBox::DequeMessage() {
 
   // We need an image of the last speaker when we close
   if (messages.size() == 1) {
-    lastSpeaker->setTexture(std::make_shared<sf::Texture>(*mugshots.begin()->getTexture()));
+    const sf::Texture* texture = mugshots.front().getTexture();
+
+    if (texture) {
+      lastSpeaker->setTexture(std::make_shared<sf::Texture>(*texture));
+    }
+    else {
+      lastSpeaker->setTextureRect({});
+    }
   }
 
   delete *messages.begin(); // TODO: use shared ptrs
@@ -179,7 +186,15 @@ void AnimatedTextBox::DequeMessage() {
   if (messages.size() == 0) return;
 
   // If we have a new speaker, use their image instead
-  lastSpeaker->setTexture(std::make_shared<sf::Texture>(*mugshots.begin()->getTexture()));
+  const sf::Texture* texture = mugshots.front().getTexture();
+
+  if (texture) {
+    lastSpeaker->setTexture(std::make_shared<sf::Texture>(*texture));
+  }
+  else {
+    lastSpeaker->setTextureRect({});
+  }
+
   mugAnimator = Animation(anims[0]);
   mugAnimator.SetAnimation("TALK");
   mugAnimator << Animator::Mode::Loop;
@@ -205,7 +220,15 @@ void AnimatedTextBox::EnqueMessage(const sf::Sprite& speaker, const Animation& a
   mugshots[mugshots.size() - 1].setScale(2.f, 2.f);
 
   if (messages.size() == 1) {
-    lastSpeaker->setTexture(std::make_shared<sf::Texture>(*mugshots.front().getTexture()));
+    const sf::Texture* texture = mugshots.front().getTexture();
+
+    if (texture) {
+      lastSpeaker->setTexture(std::make_shared<sf::Texture>(*texture));
+    }
+    else {
+      lastSpeaker->setTextureRect({});
+    }
+
     mugAnimator = mugAnim;
     textBox->SetText(message->GetMessage());
   }

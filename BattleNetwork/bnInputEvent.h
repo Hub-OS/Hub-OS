@@ -103,6 +103,11 @@ namespace InputEvents {
   static const InputEvent held_resume_frames  = { "Resume Frames", InputState::held };
   static const InputEvent held_record_frames  = { "Record Frames", InputState::held };
 
+  static const auto ui_up_group    = { pressed_ui_up,    held_ui_up    };
+  static const auto ui_down_group  = { pressed_ui_down,  held_ui_down  };
+  static const auto ui_left_group  = { pressed_ui_left,  held_ui_left  };
+  static const auto ui_right_group = { pressed_ui_right, held_ui_right };
+
   static const std::string KEYS[] = {
     "Move Up", "Move Down", "Move Left", "Move Right",
     "Shoot", "Use Card", "Special", "Cust Menu", "Pause",
