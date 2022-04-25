@@ -5,14 +5,17 @@
 #include "bnWeakWrapper.h"
 #include "bnScriptedDefenseRule.h"
 #include "../bnDefenseVirusBody.h"
-#include "../bnDefenseNodrag.h"
 #include "../bnSolHelpers.h"
 
 void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedDefenseRule>>("DefenseRule",
     sol::factories(
-      [](int priority, const DefenseOrder& order) -> WeakWrapper<ScriptedDefenseRule> {
-        auto defenseRule = std::make_shared<ScriptedDefenseRule>(Priority(priority), order);
+      [](DefensePriority priority, const DefenseOrder& order) -> WeakWrapper<ScriptedDefenseRule> {
+        if (priority == DefensePriority::Internal) {
+          std::runtime_error("DefensePriority reserved for internal use");
+        }
+
+        auto defenseRule = std::make_shared<ScriptedDefenseRule>(priority, order);
 
         auto wrappedRule = WeakWrapper(defenseRule);
         wrappedRule.Own();
@@ -52,19 +55,6 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
     )
   );
 
-  battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
-    sol::factories(
-      [] () -> WeakWrapper<DefenseRule> {
-        std::shared_ptr<DefenseRule> defenseRule = std::make_shared<DefenseNodrag>();
-
-        auto wrappedRule = WeakWrapper(defenseRule);
-        wrappedRule.Own();
-        return wrappedRule;
-      }
-    ),
-    sol::base_classes, sol::bases<DefenseRule>()
-  );
-
   battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
     sol::factories(
       [] () -> WeakWrapper<DefenseRule> {
@@ -99,6 +89,16 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
   state.new_enum("DefenseOrder",
     "Always", DefenseOrder::always,
     "CollisionOnly", DefenseOrder::collisionOnly
+  );
+
+  state.new_enum("DefensePriority",
+    // "Internal", DefensePriority::Internal, // internal use only
+    // "Passthrough", DefensePriority::Passthrough, // excluded as modders should use set_passthrough
+    "Barrier", DefensePriority::Barrier,
+    "Body", DefensePriority::Body,
+    "CardAction", DefensePriority::CardAction,
+    "Trap", DefensePriority::Trap,
+    "Last", DefensePriority::Last // special case, appends instead of replaces
   );
 }
 #endif

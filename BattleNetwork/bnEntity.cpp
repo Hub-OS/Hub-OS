@@ -923,6 +923,11 @@ bool Entity::IsPassthrough()
   return invincibilityCooldown > frames(0) || passthrough;
 }
 
+void Entity::SetDraggable(bool state)
+{
+  draggable = state;
+}
+
 void Entity::SetFloatShoe(bool state)
 {
   floatShoe = state;
@@ -1420,7 +1425,9 @@ void Entity::ResolveFrameBattleDamage()
 
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.filtered.flags & Hit::drag) == Hit::drag) {
-        if (IsSliding()) {
+        if (!draggable) {
+          // ignore drag
+        } else if (IsSliding()) {
           append.push({ props.hitbox, { 0, Hit::drag, Element::none, Element::none, 0, props.filtered.drag } });
         }
         else {
@@ -1707,7 +1714,12 @@ void Entity::AddDefenseRule(std::shared_ptr<DefenseRule> rule)
     throw std::runtime_error("DefenseRule has already been added to an entity");
   }
 
-  auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](auto other) { return rule->GetPriorityLevel() == other->GetPriorityLevel(); });
+  DefensePriority priority = rule->GetPriorityLevel();
+
+  auto iter =
+    priority >= DefensePriority::Last
+      ? defenses.end() // force append for DefensePriority::Last (and invalid values)
+      : std::find_if(defenses.begin(), defenses.end(), [priority](auto other) { return priority == other->GetPriorityLevel(); });
 
   if (rule && iter == defenses.end()) {
     defenses.push_back(rule);

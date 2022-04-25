@@ -335,6 +335,12 @@ public:
   int GetAlpha();
 
   /**
+   * @brief Enable or disable Drag
+   * @param state set true to enable, false to disable
+   */
+  void SetDraggable(bool state);
+
+  /**
    * @brief Enable or disable FloatShoe
    * @param state set true to enable, false to disable
    */
@@ -878,6 +884,7 @@ private:
   bool isTimeFrozen{};
   bool ownedByField{}; /*!< Must delete the entity manual if not owned by the field. */
   bool passthrough{};
+  bool draggable{ true };
   bool floatShoe{};
   bool airShoe{};
   bool slidesOnTiles{ true }; /* by default everything responds to tile push/slide events */

@@ -4,7 +4,7 @@
 #include "bnSpell.h"
 #include "bnHitboxSpell.h"
 
-DefenseBubbleWrap::DefenseBubbleWrap() : popped(false), DefenseRule(Priority(0), DefenseOrder::always)
+DefenseBubbleWrap::DefenseBubbleWrap() : popped(false), DefenseRule(DefensePriority::Internal, DefenseOrder::always)
 {
 }
 
