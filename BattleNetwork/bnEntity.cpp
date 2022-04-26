@@ -1368,11 +1368,7 @@ const bool Entity::UnknownTeamResolveCollision(const Entity& other) const
 const bool Entity::HasCollision(const Hit::Properties & props)
 {
   if (defenseIntangible->IsEnabled()) {
-    if (defenseIntangible->TryPierce(props)) {
-      return true;
-    }
-
-    return false;
+    return defenseIntangible->TryPierce(props);
   }
 
   return true;
