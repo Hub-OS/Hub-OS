@@ -20,22 +20,15 @@ void DefenseIntangible::Update() {
   }
 }
 
-void DefenseIntangible::Enable(
-  frame_time_t frames,
-  bool retangibleWhenPierced,
-  Hit::Flags hitWeaknesses,
-  std::vector<Element> elemWeaknesses,
-  std::function<void()> onDeactivate
-) {
+void DefenseIntangible::Enable(const IntangibleRule& rule) {
   if (IsEnabled()) {
     Disable();
   }
 
-  cooldown = frames;
-  this->retangibleWhenPierced = retangibleWhenPierced;
-  this->hitWeaknesses = hitWeaknesses;
-  this->elemWeaknesses = elemWeaknesses;
-  this->onDeactivate = onDeactivate;
+  cooldown = rule.duration;
+  this->hitWeaknesses = rule.hitWeaknesses;
+  this->elemWeaknesses = rule.elementWeaknesses;
+  this->onDeactivate = rule.onDeactivate;
   retangible = false;
 }
 
@@ -71,7 +64,7 @@ bool DefenseIntangible::TryPierce(const Hit::Properties& statuses) {
     return false;
   }
 
-  if (retangibleWhenPierced && (statuses.flags & Hit::retain_intangible) != Hit::none) {
+  if ((statuses.flags & Hit::retain_intangible) != Hit::none) {
     retangible = true;
   }
 

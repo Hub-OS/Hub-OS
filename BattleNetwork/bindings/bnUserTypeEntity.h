@@ -211,33 +211,10 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["set_intangible"] = [](
     WeakWrapper<E>& entity,
     bool intangible,
-    std::optional<frame_time_t> duration,
-    std::optional<bool> retangibleWhenPierced,
-    std::optional<Hit::Flags> hitWeaknesses,
-    std::optional<std::vector<Element>> elementWeaknesses,
-    sol::object onDeactivateObject
+    std::optional<IntangibleRule> rule
   ) {
     if (intangible) {
-      entity.Unwrap()->EnableIntangible(
-        duration.value_or(frames(120)),
-        retangibleWhenPierced.value_or(true),
-        hitWeaknesses.value_or(Hit::pierce_invis),
-        elementWeaknesses.value_or(std::vector<Element>{}),
-        [onDeactivateObject] {
-          sol::protected_function onDeactivate = onDeactivateObject;
-
-          if (!onDeactivate.valid()) {
-            return;
-          }
-
-          auto result = onDeactivate();
-
-          if (!result.valid()) {
-            sol::error error = result;
-            Logger::Log(LogLevel::critical, error.what());
-          }
-        }
-      );
+      entity.Unwrap()->EnableIntangible(rule.value_or(IntangibleRule{}));
     } else {
       entity.Unwrap()->DisableIntangible();
     }

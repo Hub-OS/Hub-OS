@@ -918,20 +918,8 @@ void Entity::SetTeam(Team _team) {
   team = _team;
 }
 
-void Entity::EnableIntangible(
-  frame_time_t duration,
-  bool retangibleWhenPierced,
-  Hit::Flags hitWeaknesses,
-  std::vector<Element> elementWeaknesses,
-  std::function<void()> onDeactivate
-) {
-  defenseIntangible->Enable(
-    duration,
-    retangibleWhenPierced,
-    hitWeaknesses,
-    elementWeaknesses,
-    onDeactivate
-  );
+void Entity::EnableIntangible(const IntangibleRule& rule) {
+  defenseIntangible->Enable(rule);
 }
 
 void Entity::DisableIntangible() {
@@ -944,7 +932,7 @@ bool Entity::IsRetangible() {
 
 bool Entity::IsIntangible()
 {
-  return invincibilityCooldown > frames(0) || defenseIntangible->IsEnabled();
+  return defenseIntangible->IsEnabled();
 }
 
 void Entity::SetDraggable(bool state)
@@ -1539,11 +1527,14 @@ void Entity::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          invincibilityCooldown = frames(120); // used as a `flash` status time
-          EnableIntangible(frames(120), true, Hit::pierce_invis, {}, [this] {
+          IntangibleRule rule;
+          rule.onDeactivate = [this] {
             invincibilityCooldown = frames(0);
             Reveal();
-          });
+          };
+          EnableIntangible(rule);
+
+          invincibilityCooldown = rule.duration; // used as a `flash` status time
           flagCheckThunk(Hit::flash);
         }
       }

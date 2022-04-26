@@ -4,6 +4,13 @@
 #include <vector>
 #include <functional>
 
+struct IntangibleRule {
+  frame_time_t duration { frames(120) };
+  Hit::Flags hitWeaknesses { Hit::pierce_invis };
+  std::vector<Element> elementWeaknesses;
+  std::function<void()> onDeactivate;
+};
+
 class DefenseIntangible : public DefenseRule {
 public:
   DefenseIntangible();
@@ -11,13 +18,7 @@ public:
 
   void Update();
   bool IsEnabled();
-  void Enable(
-    frame_time_t frames,
-    bool retangibleWhenPierced,
-    Hit::Flags hitWeaknesses,
-    std::vector<Element> elemWeaknesses,
-    std::function<void()> onDeactivate
-  );
+  void Enable(const IntangibleRule& rule);
   void Disable();
   bool Pierces(const Hit::Properties& statuses);
   bool TryPierce(const Hit::Properties& statuses);
@@ -28,7 +29,6 @@ public:
 
 private:
   frame_time_t cooldown{};
-  bool retangibleWhenPierced{};
   Hit::Flags hitWeaknesses{};
   std::vector<Element> elemWeaknesses;
   std::function<void()> onDeactivate;

@@ -5,6 +5,8 @@
 #include "bnWeakWrapper.h"
 #include "bnScriptedDefenseRule.h"
 #include "../bnDefenseVirusBody.h"
+#include "../bnDefenseIntangible.h"
+#include "../bnScriptResourceManager.h"
 #include "../bnSolHelpers.h"
 
 void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace) {
@@ -65,6 +67,41 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
         auto wrappedRule = WeakWrapper(defenseRule);
         wrappedRule.Own();
         return wrappedRule;
+      }
+    )
+  );
+
+  battle_namespace.new_usertype<IntangibleRule>("IntangibleRule",
+    sol::factories(
+      [] () -> IntangibleRule {
+        return IntangibleRule {};
+      }
+    ),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "IntangibleRule", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "IntangibleRule", key );
+    },
+    "duration", &IntangibleRule::duration,
+    "hit_weaknesses", &IntangibleRule::hitWeaknesses,
+    "element_weaknesses", &IntangibleRule::elementWeaknesses,
+    "on_deactivate_func", sol::property(
+      [](IntangibleRule& rule, sol::object onDeactivateObject) {
+        rule.onDeactivate = [onDeactivateObject] {
+          sol::protected_function onDeactivate = onDeactivateObject;
+
+          if (!onDeactivate.valid()) {
+            return;
+          }
+
+          auto result = onDeactivate();
+
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(LogLevel::critical, error.what());
+          }
+        };
       }
     )
   );

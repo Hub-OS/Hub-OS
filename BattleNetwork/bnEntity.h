@@ -318,13 +318,7 @@ public:
   /**
    * @brief Attacks skip entities with intangible enabled.
    */
-  void EnableIntangible(
-    frame_time_t duration = frames(120),
-    bool retangibleWhenPierced = true,
-    Hit::Flags hitWeaknesses = Hit::pierce_invis,
-    std::vector<Element> elementWeaknesses = {},
-    std::function<void()> onDeactivate = nullptr
-  );
+  void EnableIntangible(const IntangibleRule& rule);
 
   /**
    * @brief Attacks skip entities with intangible enabled.
