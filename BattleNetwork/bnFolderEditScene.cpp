@@ -41,6 +41,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
   owTextbox({ 4, 255 })
 {
   owTextbox.ChangeAppearance(Textures().LoadFromFile(TexturePaths::FOLDER_TEXTBOX), AnimationPaths::FOLDER_TEXTBOX);
+  owTextbox.ChangeBlipSfx(Audio().LoadFromFile(SoundPaths::COMPILE_BLIP_SFX));
   equipFolderOnExit = false;
 
   // Move card data into their appropriate containers for easier management
@@ -240,12 +241,9 @@ void FolderEditScene::onUpdate(double elapsed) {
       return;
     }
 
-    CardView* view = nullptr;
+    CardView* view = &folderView;
 
-    if (currViewMode == ViewMode::folder) {
-      view = &folderView;
-    }
-    else if (currViewMode == ViewMode::pool) {
+    if (currViewMode == ViewMode::pool) {
       view = &packView;
     }
 

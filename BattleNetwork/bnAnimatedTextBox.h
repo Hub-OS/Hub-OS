@@ -3,7 +3,9 @@
 #include "bnAnimation.h"
 #include "bnMessageInterface.h"
 #include "bnResourceHandle.h"
-
+#include "bnSceneNode.h"
+#include "bnSpriteProxyNode.h"
+#include "bnAudioResourceManager.h"
 #include <Swoosh/Ease.h>
 
 /**
@@ -11,8 +13,6 @@
  * @author mav
  * @date 13/05/19
  * @brief Animators a mmbn textbox with a mugshot that animates with text
- * 
- * @warning WIP utilities to ask questions but is not working as expected
  * 
  * You can enqueue messages and have them show up in dialogue.
  * This makes for easy story telling.
@@ -22,7 +22,7 @@
  * e.g. Tutorial textbox can dequeue and enqueue the last messages until user says "Dont repeat"
  *      then it can say the last few messages left in queue.
  */
-class AnimatedTextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
+class AnimatedTextBox : public SceneNode, public ResourceHandle {
 private:
   bool isPaused{}; /*!< Pause text flag */
   bool isReady{}; /*!< Ready to type text flag */
@@ -33,15 +33,15 @@ private:
   double totalTime{}; /*!< elapsed */
   double textSpeed{1.0}; /*!< desired speed of text */
   mutable std::vector<sf::Sprite> mugshots; /*!< List of current and next mugshots */
-  mutable sf::Sprite lastSpeaker;
+  mutable std::shared_ptr<SpriteProxyNode> lastSpeaker;
   std::vector<Animation> anims; /*!< List of animation paths for the mugshots */
   std::vector<MessageInterface*> messages; /*!< Lists of current and next messages */
-  mutable sf::Sprite frame; /*!< Size is calculated from the frame sprite */
+  mutable std::shared_ptr<SpriteProxyNode> frame; /*!< Size is calculated from the frame sprite */
   mutable Animation mugAnimator; /*!< Animators the mugshot frames */
   Animation animator; /*!< Animator for the textbox */
   std::shared_ptr<Texture> textureRef; /*!< smart reference to the texture*/
   sf::IntRect textArea; /*!< The area for text to type in */
-  TextBox textBox; /*!< Textbox object types text out for us */
+  std::shared_ptr<TextBox> textBox; /*!< Textbox object types text out for us */
 
 public:
   /**
@@ -182,6 +182,7 @@ public:
   Text MakeTextObject(const std::string& data = std::string());
 
   void ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation);
+  void ChangeBlipSfx(std::shared_ptr<sf::SoundBuffer> newSfx);
 
   Font GetFont() const;
   sf::Vector2f GetTextPosition() const;

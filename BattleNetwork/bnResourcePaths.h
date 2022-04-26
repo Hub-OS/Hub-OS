@@ -155,5 +155,6 @@ namespace AnimationPaths {
 namespace SoundPaths {
   path ICE_FX = "resources/sfx/freeze.ogg";
   path CONFUSED_FX = "resources/sfx/confused.ogg";
+  path COMPILE_BLIP_SFX = "resources/sfx/compile_blip.ogg";
 }
 #undef path

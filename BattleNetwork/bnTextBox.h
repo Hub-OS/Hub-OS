@@ -4,14 +4,16 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <memory>
 #include <cstdint>
 
 #include "bnText.h"
 #include "bnFont.h"
 #include "bnResourceHandle.h"
+#include "bnSceneNode.h"
 
-class TextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
+class TextBox : public SceneNode, public ResourceHandle {
 public:
   typedef uint16_t vfx;
 
@@ -43,7 +45,7 @@ private:
   bool mute{}; /**< Enables a sound to play every time a character is printed */
   bool dirty{};
   int charSize; /**< Font size */
-
+  std::shared_ptr<sf::SoundBuffer> blipSfx;
   /**
    * @brief Takes the input message and finds where the text breaks to form new lines
    */
@@ -146,6 +148,12 @@ public:
    * @param message
    */
   void SetText(const std::string& text);
+
+  /**
+   * @brief Set the blip sfx.
+   * @param blipSfx
+   */
+  void SetBlipSfx(std::shared_ptr<sf::SoundBuffer> blipSfx);
 
   /**
    * @brief Plays text printing

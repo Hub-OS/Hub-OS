@@ -166,13 +166,18 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
 
   setView(sf::Vector2u(480, 320));
 
-  // add the camera to our event bus
-  channel.Register(&camera);
+  // Camera and scripts can be triggered by scene events
+  channel.Register(&camera, &Scripts(), this);
+
+  // create bi-directional communication
+  Scripts().SetEventChannel(channel);
 }
 
 BattleSceneBase::~BattleSceneBase() {
-  // drop the camera from our event bus
-  channel.Drop(&camera);
+  // drop the registered items from the bus
+  channel.Drop(&camera, &Scripts(), this);
+
+  Scripts().DropEventChannel();
 
   for (BattleSceneState* statePtr : states) {
     delete statePtr;
@@ -329,14 +334,21 @@ void BattleSceneBase::SetCustomBarProgress(double value)
     isGaugeFull = false;
   }
 
+  float percentage = (float)(customProgress / customDuration);
   if (customBarShader) {
-    customBarShader->setUniform("factor", std::min(1.0f, (float)(customProgress/customDuration)));
+    customBarShader->setUniform("factor", std::min(1.0f, percentage));
   }
+
+  if (percentage >= 1.0) {
+    percentage = 0.0;
+  }
+
+  channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_value", std::to_string(percentage));
 }
 
 void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
 {
-  this->customDuration = maxTimeSeconds;
+  this->customDuration = std::max(1.0, maxTimeSeconds);
 }
 
 void BattleSceneBase::SubscribeToCardActions(CardActionUsePublisher& publisher)
