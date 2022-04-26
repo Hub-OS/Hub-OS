@@ -179,7 +179,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
             sol::error error = result;
             Logger::Log(LogLevel::critical, error.what());
           }
-          });
+        });
     },
     // repeating instead of using std::optional to get sol to provide type errors
       [](WeakWrapper<E>& entity, Battle::Tile* dest, float destHeight, frame_time_t jumpTime, frame_time_t endlag, ActionOrder order) -> bool {
@@ -208,11 +208,42 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["is_moving"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsMoving();
   };
-  entity_table["set_passthrough"] = [](WeakWrapper<E>& entity, bool passthrough) {
-    entity.Unwrap()->SetPassthrough(passthrough);
+  entity_table["set_intangible"] = [](
+    WeakWrapper<E>& entity,
+    bool intangible,
+    std::optional<frame_time_t> duration,
+    std::optional<bool> retangibleWhenPierced,
+    std::optional<Hit::Flags> hitWeaknesses,
+    std::optional<std::vector<Element>> elementWeaknesses,
+    sol::object onDeactivateObject
+  ) {
+    if (intangible) {
+      entity.Unwrap()->EnableIntangible(
+        duration.value_or(frames(120)),
+        retangibleWhenPierced.value_or(true),
+        hitWeaknesses.value_or(Hit::pierce_invis),
+        elementWeaknesses.value_or(std::vector<Element>{}),
+        [onDeactivateObject] {
+          sol::protected_function onDeactivate = onDeactivateObject;
+
+          if (!onDeactivate.valid()) {
+            return;
+          }
+
+          auto result = onDeactivate();
+
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(LogLevel::critical, error.what());
+          }
+        }
+      );
+    } else {
+      entity.Unwrap()->DisableIntangible();
+    }
   };
-  entity_table["is_passthrough"] = [](WeakWrapper<E>& entity) -> bool {
-    return entity.Unwrap()->IsPassthrough();
+  entity_table["is_intangible"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->IsIntangible();
   };
   entity_table["is_deleted"] = [](WeakWrapper<E>& entity) -> bool {
     auto ptr = entity.Lock();

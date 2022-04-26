@@ -9,7 +9,7 @@
  *
  * Entities by themselves respond to no collision and knows nothing
  * about health points. Entities only know about the tile they are on,
- * their element if any, their team, their passthrough properties,
+ * their element if any, their team, their intangible properties,
  * and maintain a list of Components that may alter their behavior in
  * battle.
  */
@@ -35,6 +35,7 @@ using std::string;
 #include "bnHitPublisher.h"
 #include "bnDefenseFrameStateJudge.h"
 #include "bnDefenseRule.h"
+#include "bnDefenseIntangible.h"
 #include "bnHitProperties.h"
 #include "stx/memory.h"
 
@@ -315,16 +316,31 @@ public:
   void SetTeam(Team _team);
 
   /**
-   * @brief Attacks skip entities with passthrough enabled.
-   * @param state set true for passthrough, set false to be tangible
+   * @brief Attacks skip entities with intangible enabled.
    */
-  void SetPassthrough(bool state);
+  void EnableIntangible(
+    frame_time_t duration = frames(120),
+    bool retangibleWhenPierced = true,
+    Hit::Flags hitWeaknesses = Hit::pierce_invis,
+    std::vector<Element> elementWeaknesses = {},
+    std::function<void()> onDeactivate = nullptr
+  );
 
   /**
-   * @brief Get the passthrough state
-   * @return true if passthrough, false if tangible
+   * @brief Attacks skip entities with intangible enabled.
    */
-  bool IsPassthrough();
+  void DisableIntangible();
+
+  /**
+   * @brief An attack has broken intangibility
+   */
+  bool IsRetangible();
+
+  /**
+   * @brief Get the intangible state
+   * @return true if intangible, false if tangible
+   */
+  bool IsIntangible();
 
   /**
    * @brief Sets the opacity level of this entity
@@ -547,7 +563,7 @@ public:
   * The hit routine that happens for every character. Queues status properties and damage
   * to resolve at the end of the battle step.
   * @param props
-  * @return Returns false  if IsPassthrough() is true (i-frames), otherwise true
+  * @return Returns false  if IsIntangible() is true (i-frames), otherwise true
   */
   const bool Hit(Hit::Properties props = Hit::DefaultProperties);
 
@@ -808,6 +824,8 @@ protected:
 
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
 
+  void CancelFlash();
+
   /**
   * @brief Stun a character for maxCooldown seconds
   * @param maxCooldown
@@ -883,7 +901,6 @@ private:
   bool hasInit{};
   bool isTimeFrozen{};
   bool ownedByField{}; /*!< Must delete the entity manual if not owned by the field. */
-  bool passthrough{};
   bool draggable{ true };
   bool floatShoe{};
   bool airShoe{};
@@ -909,6 +926,7 @@ private:
   Direction facing{};
   sf::Vector2f counterSlideOffset{ 0.f, 0.f }; /*!< Used when enemies delete on counter - they slide back */
   std::vector<std::shared_ptr<DefenseRule>> defenses; /*<! All defense rules sorted by the lowest priority level */
+  std::shared_ptr<DefenseIntangible> defenseIntangible;
   std::string name; /*!< Name of the entity */
 
   // Statuses are resolved one property at a time

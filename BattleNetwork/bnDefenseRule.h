@@ -7,7 +7,7 @@ class Entity;
 
 enum class DefensePriority : uint8_t {
   Internal,
-  // Passthrough, // excluded as modders should use set_passthrough
+  Intangible,
   Barrier,
   Body,
   CardAction,

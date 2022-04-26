@@ -11,8 +11,10 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
   battle_namespace.new_usertype<WeakWrapper<ScriptedDefenseRule>>("DefenseRule",
     sol::factories(
       [](DefensePriority priority, const DefenseOrder& order) -> WeakWrapper<ScriptedDefenseRule> {
-        if (priority == DefensePriority::Internal) {
-          std::runtime_error("DefensePriority reserved for internal use");
+        if (priority == DefensePriority::Internal || priority == DefensePriority::Intangible) {
+          throw std::runtime_error("DefensePriority reserved for internal use");
+        } else if(priority > DefensePriority::Last) {
+          throw std::runtime_error("Unknown DefensePriority");
         }
 
         auto defenseRule = std::make_shared<ScriptedDefenseRule>(priority, order);
@@ -93,7 +95,7 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
 
   state.new_enum("DefensePriority",
     // "Internal", DefensePriority::Internal, // internal use only
-    // "Passthrough", DefensePriority::Passthrough, // excluded as modders should use set_passthrough
+    // "Intangible", DefensePriority::Intangible, // excluded as modders should use set_intangible
     "Barrier", DefensePriority::Barrier,
     "Body", DefensePriority::Body,
     "CardAction", DefensePriority::CardAction,
