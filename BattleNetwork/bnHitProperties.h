@@ -24,6 +24,7 @@ namespace Hit {
   const Flags root                = 0x00001000;
   const Flags blind               = 0x00002000;
   const Flags confuse             = 0x00004000;
+  const Flags pierce_ground       = 0x00008000;
 
   struct Drag {
     Direction dir{ Direction::none };
