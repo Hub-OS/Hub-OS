@@ -37,7 +37,8 @@ namespace Battle {
       char code{ '*' };
       bool canBoost{ true }; /*!< Can this card be boosted by other cards? */
       bool timeFreeze{ false }; /*!< Does this card rely on action items to resolve before resuming the battle scene? */
-      bool skipTimeFreezeIntro{ false }; /*! Skips the fade in/out and name appearing for this card */
+      bool skipTimeFreezeIntro{ false }; /*!< Skips the fade in/out and name appearing for this card */
+      bool counterable{ true }; /*!< During the tf intro, can this card be countered? */
       string shortname;
       string action;
       string description;
