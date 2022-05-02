@@ -41,6 +41,7 @@
 namespace Overworld {
   class SceneBase : public Scene {
   private:
+    sf::Sprite cameraPanUI;
     std::shared_ptr<PlayerSession> playerSession;
     std::shared_ptr<Actor> playerActor;
     Overworld::TeleportController teleportController{};
@@ -52,11 +53,12 @@ namespace Overworld {
     double animElapsed{};
     bool inputLocked{ false };
     bool cameraLocked{ false };
+    bool cameraZoomEnabled{ false }, cameraZoomKeyPressed{ false }, cameraControlsEnabled{ false };
     bool teleportedOut{ false }; /*!< We may return to this area*/
     bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
-    Camera camera;
-    CameraController cameraController; /*!< camera in scene follows player */
+    Camera camera; /*!< camera in scene follows player */
+    sf::Vector2f cameraControlsRange{}, cameraControlsStart{};
     sf::Transformable worldTransform;
 
     sf::Vector3f returnPoint{};
@@ -72,6 +74,8 @@ namespace Overworld {
     Overworld::Map map; /*!< Overworld map */
     std::vector<std::shared_ptr<WorldSprite>> sprites;
     std::vector<std::vector<std::shared_ptr<WorldSprite>>> spriteLayers;
+    std::shared_ptr<sf::Texture> cameraPanUITexture;
+    Animation cameraPanUIAnimation;
     Overworld::MenuSystem menuSystem;
 
     /*!< Current player package selection */
@@ -223,6 +227,19 @@ namespace Overworld {
      */
     void UnlockCamera();
 
+    /**
+     * @brief Allow the player to zoom in and out
+     * @param enabled
+     */
+    void ToggleCameraZoom(bool enabled);
+
+    /**
+   * @brief Show panning arrows and control the camera. Player can exit anytime.
+   * @param distX float max distance from starting point horizontally
+   * @param distY float max distance from starting point vertically
+   */
+    void EnableCameraControls(float distX, float distY);
+    
     //
     // Menu selection callbacks
     //
@@ -256,6 +273,7 @@ namespace Overworld {
     std::optional<CardFolder*> GetSelectedFolder();
     Overworld::MenuSystem& GetMenuSystem();
     bool IsInputLocked();
+    bool IsCameraControlsEnabled();
     bool IsInFocus();
     virtual std::filesystem::path GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);

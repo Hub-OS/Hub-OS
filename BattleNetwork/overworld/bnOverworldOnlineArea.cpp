@@ -377,7 +377,7 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
       GetPlayerController().ReleaseActor();
     }
   }
-  else {
+  else if(!IsCameraControlsEnabled()) {
     UnlockInput();
     GetPlayerController().ControlActor(player);
   }
@@ -913,6 +913,15 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
       break;
     case ServerEvents::track_with_camera:
       receiveTrackWithCameraSignal(reader, data);
+      break;
+    case ServerEvents::enable_camera_controls:
+      receiveEnableCameraControls(reader, data);
+      break;
+    case ServerEvents::enable_camera_zoom:
+      ToggleCameraZoom(true);
+      break;
+    case ServerEvents::disable_camera_zoom:
+      ToggleCameraZoom(false);
       break;
     case ServerEvents::unlock_camera:
       serverCameraController.QueueUnlockCamera();
@@ -1692,16 +1701,16 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
   }
 
   // storing special tile objects in minimap and other variables
-  auto& minimap = GetMinimap();
+  Minimap& minimap = GetMinimap();
   warps.resize(layerCount);
 
-  auto tileSize = map.GetTileSize();
+  sf::Vector2i tileSize = map.GetTileSize();
 
-  for (auto i = 0; i < layerCount; i++) {
+  for (size_t i = 0; i < layerCount; i++) {
     auto& warpLayer = warps[i];
     warpLayer.clear();
 
-    for (auto& tileObject : map.GetLayer(i).GetTileObjects()) {
+    for (TileObject& tileObject : map.GetLayer(i).GetTileObjects()) {
       if (ObjectType::IsWarp(tileObject.type)) {
         tileObject.solid = false;
         warpLayer.push_back(&tileObject);
@@ -1712,8 +1721,8 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
 void Overworld::OnlineArea::receiveHealthSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto health = reader.Read<int>(buffer);
-  auto maxHealth = reader.Read<int>(buffer);
+  int health = reader.Read<int>(buffer);
+  int maxHealth = reader.Read<int>(buffer);
 
   GetPlayerSession()->health = health;
   GetPlayerSession()->maxHealth = maxHealth;
@@ -1721,7 +1730,7 @@ void Overworld::OnlineArea::receiveHealthSignal(BufferReader& reader, const Poco
 
 void Overworld::OnlineArea::receiveEmotionSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto emotion = reader.Read<Emotion>(buffer);
+  Emotion emotion = reader.Read<Emotion>(buffer);
 
   if (emotion >= Emotion::COUNT) {
     emotion = Emotion::normal;
@@ -1732,50 +1741,50 @@ void Overworld::OnlineArea::receiveEmotionSignal(BufferReader& reader, const Poc
 
 void Overworld::OnlineArea::receiveMoneySignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto balance = reader.Read<int>(buffer);
+  int balance = reader.Read<int>(buffer);
   GetPlayerSession()->money = balance;
 }
 
 void Overworld::OnlineArea::receiveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto id = reader.ReadString<uint8_t>(buffer);
-  auto name = reader.ReadString<uint8_t>(buffer);
-  auto description = reader.ReadString<uint16_t>(buffer);
+  std::string id = reader.ReadString<uint8_t>(buffer);
+  std::string name = reader.ReadString<uint8_t>(buffer);
+  std::string description = reader.ReadString<uint16_t>(buffer);
 
   AddItem(id, name, description);
 }
 
 void Overworld::OnlineArea::receiveRemoveItemSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto id = reader.ReadString<uint8_t>(buffer);
+  std::string id = reader.ReadString<uint8_t>(buffer);
 
   RemoveItem(id);
 }
 
 void Overworld::OnlineArea::receivePlaySoundSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
-  auto name = reader.ReadString<uint16_t>(buffer);
+  std::string name = reader.ReadString<uint16_t>(buffer);
 
   Audio().Play(GetAudio(name), AudioPriority::highest);
 }
 
 void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto objectId = reader.Read<uint32_t>(buffer);
+  uint32_t objectId = reader.Read<uint32_t>(buffer);
 
   if (excludedObjects.find(objectId) != excludedObjects.end()) {
     return;
   }
 
-  auto& map = GetMap();
+  Map& map = GetMap();
 
-  for (auto i = 0; i < map.GetLayerCount(); i++) {
-    auto& layer = map.GetLayer(i);
+  for (size_t i = 0; i < map.GetLayerCount(); i++) {
+    Map::Layer& layer = map.GetLayer(i);
 
-    auto optional_object_ref = layer.GetTileObject(objectId);
+    MaybeTileObject optional_object_ref = layer.GetTileObject(objectId);
 
     if (optional_object_ref) {
-      auto object_ref = *optional_object_ref;
-      auto& object = object_ref.get();
+      TileObjectRef object_ref = *optional_object_ref;
+      TileObject& object = object_ref.get();
 
       ExcludedObjectData excludedData{};
       excludedData.visible = object.visible;
@@ -1792,21 +1801,21 @@ void Overworld::OnlineArea::receiveExcludeObjectSignal(BufferReader& reader, con
 
 void Overworld::OnlineArea::receiveIncludeObjectSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto objectId = reader.Read<uint32_t>(buffer);
-  auto& map = GetMap();
+  uint32_t objectId = reader.Read<uint32_t>(buffer);
+  Map& map = GetMap();
 
   if (excludedObjects.erase(objectId) == 0) {
     return;
   }
 
-  for (auto i = 0; i < map.GetLayerCount(); i++) {
-    auto& layer = map.GetLayer(i);
+  for (size_t i = 0; i < map.GetLayerCount(); i++) {
+    Map::Layer& layer = map.GetLayer(i);
 
-    auto optional_object_ref = layer.GetTileObject(objectId);
+    MaybeTileObject optional_object_ref = layer.GetTileObject(objectId);
 
     if (optional_object_ref) {
-      auto object_ref = *optional_object_ref;
-      auto& object = object_ref.get();
+      TileObjectRef object_ref = *optional_object_ref;
+      TileObject& object = object_ref.get();
 
       object.visible = true;
       object.solid = true;
@@ -1817,7 +1826,7 @@ void Overworld::OnlineArea::receiveIncludeObjectSignal(BufferReader& reader, con
 
 void Overworld::OnlineArea::receiveExcludeActorSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto user = reader.ReadString<uint16_t>(buffer);
+  std::string user = reader.ReadString<uint16_t>(buffer);
 
   // store this user id in case their actor is added after this signal
   // or the actor leaves the area and returns
@@ -1875,46 +1884,46 @@ void Overworld::OnlineArea::receiveIncludeActorSignal(BufferReader& reader, cons
 
 void Overworld::OnlineArea::receiveMoveCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto& map = GetMap();
-  auto tileSize = map.GetTileSize();
+  Map& map = GetMap();
+  sf::Vector2i tileSize = map.GetTileSize();
 
-  auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
-  auto y = reader.Read<float>(buffer) * tileSize.y;
-  auto z = reader.Read<float>(buffer);
+  float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  float y = reader.Read<float>(buffer) * tileSize.y;
+  float z = reader.Read<float>(buffer);
 
-  auto position = sf::Vector2f(x, y);
+  sf::Vector2f position = sf::Vector2f(x, y);
 
-  auto screenPos = map.WorldToScreen(position);
+  sf::Vector2f screenPos = map.WorldToScreen(position);
   screenPos.y -= z * tileSize.y / 2.0f;
 
-  auto duration = reader.Read<float>(buffer);
+  float duration = reader.Read<float>(buffer);
 
   serverCameraController.QueuePlaceCamera(screenPos, sf::seconds(duration));
 }
 
 void Overworld::OnlineArea::receiveSlideCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto& map = GetMap();
-  auto tileSize = map.GetTileSize();
+  Map& map = GetMap();
+  sf::Vector2i tileSize = map.GetTileSize();
 
-  auto x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
-  auto y = reader.Read<float>(buffer) * tileSize.y;
-  auto z = reader.Read<float>(buffer);
+  float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  float y = reader.Read<float>(buffer) * tileSize.y;
+  float z = reader.Read<float>(buffer);
 
-  auto position = sf::Vector2f(x, y);
+  sf::Vector2f position = sf::Vector2f(x, y);
 
-  auto screenPos = map.WorldToScreen(position);
+  sf::Vector2f screenPos = map.WorldToScreen(position);
   screenPos.y -= z * tileSize.y / 2.0f;
 
-  auto duration = reader.Read<float>(buffer);
+  float duration = reader.Read<float>(buffer);
 
   serverCameraController.QueueMoveCamera(screenPos, sf::seconds(duration));
 }
 
 void Overworld::OnlineArea::receiveShakeCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto strength = reader.Read<float>(buffer);
-  auto duration = sf::seconds(reader.Read<float>(buffer));
+  float strength = reader.Read<float>(buffer);
+  sf::Time duration = sf::seconds(reader.Read<float>(buffer));
 
   if (serverCameraController.IsQueueEmpty()) {
     // adding shake to the queue can break tracking players
@@ -1928,7 +1937,7 @@ void Overworld::OnlineArea::receiveShakeCameraSignal(BufferReader& reader, const
 
 void Overworld::OnlineArea::receiveFadeCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto duration = sf::seconds(reader.Read<float>(buffer));
+  sf::Time duration = sf::seconds(reader.Read<float>(buffer));
 
   uint8_t rgba[4];
 
@@ -1947,7 +1956,7 @@ void Overworld::OnlineArea::receiveFadeCameraSignal(BufferReader& reader, const 
 
 void Overworld::OnlineArea::receiveTrackWithCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  auto some = reader.Read<bool>(buffer);
+  bool some = reader.Read<bool>(buffer);
 
   if (some) {
     trackedPlayer = reader.ReadString<uint16_t>(buffer);
@@ -1957,25 +1966,33 @@ void Overworld::OnlineArea::receiveTrackWithCameraSignal(BufferReader& reader, c
   }
 }
 
+void Overworld::OnlineArea::receiveEnableCameraControls(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  float dist_x = reader.Read<float>(buffer);
+  float dist_y = reader.Read<float>(buffer);
+
+  EnableCameraControls(dist_x, dist_y);
+}
+
 void Overworld::OnlineArea::receiveTeleportSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   // todo: prevent warp animation for other clients if warp = false?
   // maybe add a warped signal we send to the server?
 
-  auto warp = reader.Read<bool>(buffer);
-  auto x = reader.Read<float>(buffer);
-  auto y = reader.Read<float>(buffer);
-  auto z = reader.Read<float>(buffer);
-  auto direction = reader.Read<Direction>(buffer);
+  bool warp = reader.Read<bool>(buffer);
+  float x = reader.Read<float>(buffer);
+  float y = reader.Read<float>(buffer);
+  float z = reader.Read<float>(buffer);
+  Direction direction = reader.Read<Direction>(buffer);
 
-  auto tileSize = GetMap().GetTileSize();
-  auto position = sf::Vector3f(
+  sf::Vector2i tileSize = GetMap().GetTileSize();
+  sf::Vector3f position = sf::Vector3f(
     x * tileSize.x / 2.0f,
     y * tileSize.y,
     z
   );
 
-  auto player = GetPlayer();
+  ActorPtr player = GetPlayer();
 
   if (warp) {
     auto& action = GetTeleportController().TeleportOut(player);
@@ -3162,7 +3179,12 @@ void Overworld::OnlineArea::receiveActorMinimapColorSignal(BufferReader& reader,
 }
 
 void Overworld::OnlineArea::leave() {
-  cleanup();
+  try {
+    cleanup();
+  }
+  catch (std::exception& e) {
+    Logger::Logf(LogLevel::critical, e.what());
+  }
   tryPopScene = true;
 }
 

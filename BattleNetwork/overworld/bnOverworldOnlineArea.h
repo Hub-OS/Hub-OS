@@ -192,6 +192,7 @@ namespace Overworld {
     void receiveShakeCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveFadeCameraSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTrackWithCameraSignal(BufferReader& reader, const Poco::Buffer<char>& buffer);
+    void receiveEnableCameraControls(BufferReader& reader, const Poco::Buffer<char>& buffer);
     void receiveTeleportSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMessageSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveQuestionSignal(BufferReader& reader, const Poco::Buffer<char>&);

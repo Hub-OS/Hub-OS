@@ -114,6 +114,12 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller) :
   menuSystem.BindMenu(InputEvents::pressed_pause, personalMenu);
   menuSystem.BindMenu(InputEvents::pressed_map, minimap);
   minimap->setScale(2.f, 2.f);
+
+  cameraPanUITexture = Textures().LoadFromFile(TexturePaths::CAMERA_PAN_UI);
+  cameraPanUIAnimation = Animation(AnimationPaths::CAMERA_PAN_UI) << "DEFAULT" << Animator::Mode::Loop;
+  cameraPanUI.setTexture(*cameraPanUITexture, false);
+  cameraPanUI.setScale(2.f, 2.f);
+  cameraPanUIAnimation.Refresh(cameraPanUI);
 }
 
 void Overworld::SceneBase::onStart() {
@@ -253,6 +259,9 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // Update the textbox
   menuSystem.Update((float)elapsed);
 
+  // camera pan ui animates
+  cameraPanUIAnimation.Update(elapsed, cameraPanUI);
+
   HandleCamera((float)elapsed);
 
   // Update foreground
@@ -286,24 +295,89 @@ void Overworld::SceneBase::HandleCamera(float elapsed) {
 
 void Overworld::SceneBase::HandleInput() {
   auto& window = getController().getWindow();
+  auto& input = Input();
   auto mousei = sf::Mouse::getPosition(window);
   auto mousef = window.mapPixelToCoords(mousei);
 
+  if (cameraControlsEnabled) {
+    LockCamera();
+
+    sf::Vector2f panningOffset;
+    float fast = 1.f;
+
+    if (input.Has(InputEvents::held_cancel)) {
+      fast = 3.f;
+    }
+
+    if (input.Has(InputEvents::held_ui_left)) {
+      panningOffset.x -= 2.f;
+    }
+
+    if (input.Has(InputEvents::held_ui_right)) {
+      panningOffset.x += 2.f;
+    }
+
+    if (input.Has(InputEvents::held_ui_up)) {
+      panningOffset.y -= 2.f;
+    }
+
+    if (input.Has(InputEvents::held_ui_down)) {
+      panningOffset.y += 2.f;
+    }
+
+    if (input.GetConfigSettings().GetInvertMinimap()) {
+      panningOffset.x *= -2.f;
+      panningOffset.y *= -2.f;
+    }
+
+    if (input.Has(InputEvents::pressed_shoulder_left)) {
+      cameraControlsEnabled = false;
+      UnlockInput();
+      UnlockCamera();
+    }
+
+    sf::Vector2f newPos = camera.GetView().getCenter() + (panningOffset * fast);
+    newPos.x = std::clamp(newPos.x, cameraControlsStart.x - cameraControlsRange.x, cameraControlsStart.x + cameraControlsRange.x);
+    newPos.y = std::clamp(newPos.y, cameraControlsStart.y - cameraControlsRange.y, cameraControlsStart.y + cameraControlsRange.y);
+    camera.PlaceCamera(newPos);
+    return;
+  }
+
   auto menuSystemOpen = !menuSystem.IsClosed();
 
-  menuSystem.HandleInput(Input(), mousef);
+  menuSystem.HandleInput(input, mousef);
 
   if (menuSystemOpen) {
     return;
   }
 
+  if (cameraZoomEnabled) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
+      worldTransform.setScale(2.f, 2.f);
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp) && !cameraZoomKeyPressed) {
+      worldTransform.setScale(worldTransform.getScale() * 2.f);
+      cameraZoomKeyPressed = true;
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown) && !cameraZoomKeyPressed) {
+      worldTransform.setScale(worldTransform.getScale() * 0.5f);
+      cameraZoomKeyPressed = true;
+    }
+  }
+
+  if (cameraZoomKeyPressed
+    && !sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)
+    && !sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)) {
+    cameraZoomKeyPressed = false;
+  }
+
   // check to see if talk button was pressed
   if (!IsInputLocked()) {
-    if (Input().Has(InputEvents::pressed_interact)) {
+    if (input.Has(InputEvents::pressed_interact)) {
       OnInteract(Interaction::action);
     }
 
-    if (Input().Has(InputEvents::pressed_shoulder_left)) {
+    if (input.Has(InputEvents::pressed_shoulder_left)) {
       OnInteract(Interaction::inspect);
     }
   }
@@ -372,7 +446,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
     surface.draw(*fg);
   }
 
-  if (personalMenu->IsClosed()) {
+  if (personalMenu->IsClosed() && !cameraControlsEnabled) {
     // menuSystem will not draw personal menu if it's closed
     // might make sense to extract some parts of menu system as the closed UI has different requirements
     personalMenu->draw(surface, sf::RenderStates::Default);
@@ -380,6 +454,11 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 
   // This will mask everything before this line with camera fx
   surface.draw(camera.GetLens());
+
+  // camera pan ui on top
+  if (cameraControlsEnabled) {
+    surface.draw(cameraPanUI);
+  }
 
   // always see menus
   surface.draw(menuSystem);
@@ -802,9 +881,17 @@ void Overworld::SceneBase::RemoveActor(const std::shared_ptr<Actor>& actor) {
 
 bool Overworld::SceneBase::IsInputLocked() {
   return
-    inputLocked || !IsInFocus() ||
-    menuSystem.ShouldLockInput() ||
-    !teleportController.IsComplete() || teleportController.TeleportedOut();
+    inputLocked 
+    || !IsInFocus() 
+    || menuSystem.ShouldLockInput() 
+    || !teleportController.IsComplete() 
+    || teleportController.TeleportedOut() 
+    || cameraControlsEnabled;
+}
+
+bool Overworld::SceneBase::IsCameraControlsEnabled()
+{
+  return cameraControlsEnabled;
 }
 
 void Overworld::SceneBase::LockInput() {
@@ -821,6 +908,24 @@ void Overworld::SceneBase::LockCamera() {
 
 void Overworld::SceneBase::UnlockCamera() {
   cameraLocked = false;
+}
+
+void Overworld::SceneBase::ToggleCameraZoom(bool enabled)
+{
+  cameraZoomEnabled = enabled;
+
+  if (!cameraZoomEnabled) {
+    worldTransform.setScale(2.f, 2.f);
+  }
+}
+
+void Overworld::SceneBase::EnableCameraControls(float distX, float distY)
+{
+  // reset camera zoom
+  worldTransform.setScale(2.f, 2.f);
+  cameraControlsEnabled = true;
+  cameraControlsRange = sf::Vector2f(std::fabs(distX), std::fabs(distY));
+  cameraControlsStart = camera.GetView().getCenter();
 }
 
 void Overworld::SceneBase::GotoChipFolder()

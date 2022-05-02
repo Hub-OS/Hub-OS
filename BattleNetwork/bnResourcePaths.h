@@ -123,6 +123,7 @@ namespace TexturePaths {
   path GAMEPAD_SUPPORT_ICON = "resources/ui/gamepad_support_icon.png";
   path MAIN_MENU_UI = "resources/ui/main_menu_ui.png";
   path ELEMENT_ICON = "resources/ui/elements.png";
+  path CAMERA_PAN_UI = "resources/ui/camera_pan_ui.png";
 
   // SHADER TEXTURE MAPS
   path DISTORTION_TEXTURE = "resources/shaders/textures/distortion.png";
@@ -150,6 +151,7 @@ namespace AnimationPaths {
   path MISC_COUNTER_REVEAL = "resources/scenes/battle/counter_reveal.animation";
   path FOLDER_TEXTBOX = "resources/ui/folder_textbox.animation";
   path ANIMATED_TEXT_BOX = "resources/ui/textbox.animation";
+  path CAMERA_PAN_UI = "resources/ui/camera_pan_ui.animation";
 }
 
 namespace SoundPaths {
