@@ -549,12 +549,12 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     });
 
   engine_namespace.set_function("get_cust_gauge_time",
-    [this](double seconds) {
+    [this]() {
       return std::atof(keys["cust_gauge_time"].c_str());
     });
 
   engine_namespace.set_function("get_cust_gauge_max_time",
-    [this](double seconds) {
+    [this]() {
       return std::atof(keys["cust_gauge_max_time"].c_str());
     });
 
@@ -570,7 +570,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     });
 
   engine_namespace.set_function("reset_cust_gauge_to_default",
-    [this](double max_seconds) {
+    [this]() {
       eventChannel->Emit(&BattleSceneBase::ResetCustomBarDuration);
     });
 
