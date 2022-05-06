@@ -178,6 +178,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
 
   // create bi-directional communication
   Scripts().SetEventChannel(channel);
+  Scripts().SetKeyValue("cust_gauge_default_max_time", std::to_string(customDefaultDuration));
 }
 
 BattleSceneBase::~BattleSceneBase() {
@@ -348,6 +349,9 @@ void BattleSceneBase::SetCustomBarProgress(double value)
 
   if (percentage >= 1.0) {
     percentage = 0.0;
+
+    // Reset cust gauge
+    SetCustomBarDuration(customDefaultDuration);
   }
 
   channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_time", std::to_string(customProgress));

@@ -558,6 +558,11 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
       return std::atof(keys["cust_gauge_max_time"].c_str());
     });
 
+  engine_namespace.set_function("get_default_cust_gauge_max_time",
+    [this]() {
+      return std::atof(keys["cust_gauge_default_max_time"].c_str());
+    });
+
   engine_namespace.set_function("set_cust_gauge_time",
     [this](double seconds) {
       if (eventChannel == nullptr) return;
