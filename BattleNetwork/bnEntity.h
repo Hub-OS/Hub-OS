@@ -460,6 +460,13 @@ public:
   template<typename ComponentType>
   std::shared_ptr<ComponentType> GetFirstComponent() const;
 
+  /**
+  * @brief Get the first component that inherits BaseType
+  * @return null if no component is found, otherwise return the component
+  */
+  template<typename BaseType>
+  std::shared_ptr<BaseType> GetFirstComponentDerivedFrom() const;
+
    /**
    * @brief Get all components that matches the exact Type
    * @return vector of specified components
@@ -468,9 +475,9 @@ public:
   std::vector<std::shared_ptr<ComponentType>> GetComponents() const;
 
   /**
-* @brief Get all components that inherit BaseType
-* @return vector of related components
-*/
+  * @brief Get all components that inherit BaseType
+  * @return vector of related components
+  */
   template<typename BaseType>
   std::vector<std::shared_ptr<BaseType>> GetComponentsDerivedFrom() const;
 
@@ -929,6 +936,20 @@ inline std::shared_ptr<ComponentType> Entity::GetFirstComponent() const
   for (auto& component : components) {
     if (typeid(*component) == typeid(ComponentType)) {
       return std::dynamic_pointer_cast<ComponentType>(component);
+    }
+  }
+
+  return nullptr;
+}
+
+template<typename BaseType>
+inline std::shared_ptr<BaseType> Entity::GetFirstComponentDerivedFrom() const
+{
+  for (const auto& component : components) {
+    auto cast = std::dynamic_pointer_cast<BaseType>(component);
+
+    if (cast) {
+      return cast;
     }
   }
 

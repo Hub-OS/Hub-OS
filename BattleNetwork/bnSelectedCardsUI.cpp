@@ -110,6 +110,33 @@ void SelectedCardsUI::OnUpdate(double _elapsed) {
       Hide();
     }
   }
+
+  if (curr < selectedCards->size()) {
+    Battle::Card& card = (*selectedCards)[curr];
+    const std::string& uuid = card.GetUUID();
+
+    stx::result_t<PackageAddress> maybe_addr = PackageAddress::FromStr(card.GetUUID());
+
+    if (partition && !maybe_addr.is_error()) {
+      PackageAddress addr = maybe_addr.value();
+
+      if (partition->HasPackage(addr)) {
+        CardMeta& meta = partition->FindPackageByAddress(addr);
+        std::unique_ptr<CardImpl> cardImpl = std::unique_ptr<CardImpl>(meta.GetData());
+
+        // When we modify a card that we hold in our UI during battle,
+        // we want to affect its base properties, but we might have existing
+        // damage modifiers that we need to preserve (e.g. +10 ATK)
+        // We let the new base properties take precedence over the previous properties
+        // but track the difference in the base properties damge to determine the NEW modded
+        // properties damage value.
+        const unsigned int damageMod = card.GetProps().damage - card.GetBaseProps().damage;
+        cardImpl->OnUpdate(card.GetBaseProps(), _elapsed);
+        card.GetProps() = card.GetBaseProps();
+        card.GetProps().damage += damageMod;
+      }
+    }
+  }
 }
 
 void SelectedCardsUI::LoadCards(std::vector<Battle::Card> incoming) {
@@ -156,11 +183,11 @@ void SelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
   CardActionUsePublisher::Broadcast(action, CurrentTime::AsMilli());
 }
 
-std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek()
+SelectedCardsUI::MaybeCard SelectedCardsUI::Peek()
 {
   if (curr < selectedCards->size()) {
-    using RefType = std::reference_wrapper<const Battle::Card>;
-    return std::optional<RefType>(std::ref((*selectedCards)[curr]));
+    
+    return MaybeCard(std::ref((*selectedCards)[curr]));
   }
 
   return {};
@@ -177,7 +204,7 @@ bool SelectedCardsUI::HandlePlayEvent(std::shared_ptr<Character> from)
     // could act on metadata later:
     // from->OnCard(card)
 
-    if (std::shared_ptr<CardAction> action = CardToAction(card, from, partition, card.props)) {
+    if (std::shared_ptr<CardAction> action = CardToAction(card, from, partition, card.GetProps())) {
       Broadcast(action); // tell the rest of the subsystems
     }
 

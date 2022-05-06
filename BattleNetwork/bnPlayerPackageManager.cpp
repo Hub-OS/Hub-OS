@@ -49,7 +49,7 @@ PlayerMeta& PlayerMeta::SetIconTexture(const std::shared_ptr<sf::Texture> icon)
   return *this;
 }
 
-PlayerMeta& PlayerMeta::SetSpecialDescription(const std::string && special)
+PlayerMeta& PlayerMeta::SetSpecialDescription(const std::string& special)
 {
   PlayerMeta::special = special;
   return *this;

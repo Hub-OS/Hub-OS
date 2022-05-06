@@ -38,7 +38,7 @@ using swoosh::ActivityController;
 
 BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBaseProps& props, BattleResultsFunc onEnd) :
   Scene(controller),
-  cardActionListener(this->getController().CardPackagePartitioner()),
+  cardActionListener(getController().CardPackagePartitioner()),
   localPlayer(props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -53,7 +53,14 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   customBarShader(Shaders().GetShader(ShaderType::CUSTOM_BAR)),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI(CardSelectionCust::Props{ std::move(props.folder), &getController().CardPackagePartitioner().GetPartition(Game::LocalPartition), 8, 8 }),
+  cardCustGUI(
+    CardSelectionCust::Props{ 
+      std::move(props.folder), 
+      &getController().CardPackagePartitioner().GetPartition(Game::LocalPartition), 
+      8, 
+      8
+    }
+  ),
   mobFont(Font::Style::thick),
   camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
   onEndCallback(onEnd),
@@ -328,7 +335,7 @@ const bool BattleSceneBase::IsCustGaugeFull() const
 
 void BattleSceneBase::SetCustomBarProgress(double value)
 {
-  this->customProgress = value;
+  customProgress = value;
 
   if (customProgress < customDuration) {
     isGaugeFull = false;
@@ -343,12 +350,19 @@ void BattleSceneBase::SetCustomBarProgress(double value)
     percentage = 0.0;
   }
 
+  channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_time", std::to_string(customProgress));
   channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_value", std::to_string(percentage));
 }
 
 void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
 {
-  this->customDuration = std::max(1.0, maxTimeSeconds);
+  customDuration = std::max(1.0, maxTimeSeconds);
+  channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_max_time", std::to_string(maxTimeSeconds));
+}
+
+void BattleSceneBase::ResetCustomBarDuration()
+{
+  SetCustomBarDuration(customDefaultDuration);
 }
 
 void BattleSceneBase::SubscribeToCardActions(CardActionUsePublisher& publisher)
@@ -432,6 +446,9 @@ sf::Vector2f BattleSceneBase::PerspectiveOrigin(const sf::Vector2f& origin, cons
 void BattleSceneBase::SpawnLocalPlayer(int x, int y)
 {
   if (hasPlayerSpawned) return;
+  
+  localPlayerSpawnIndex = otherPlayers.size();
+
   hasPlayerSpawned = true;
   Team team = field->GetAt(x, y)->GetTeam();
 
@@ -554,18 +571,18 @@ void BattleSceneBase::FilterSupportCards(const std::shared_ptr<Player>& player, 
 
           if (i > 0 && cards[i - 1u].CanBoost()) {
             adjCards.hasCardToLeft = true;
-            adjCards.leftCard = &cards[i - 1u].props;
+            adjCards.leftCard = &cards[i - 1u].GetProps();
           }
 
           if (i < cards.size() - 1 && cards[i + 1u].CanBoost()) {
             adjCards.hasCardToRight = true;
-            adjCards.rightCard = &cards[i + 1u].props;
+            adjCards.rightCard = &cards[i + 1u].GetProps();
           }
 
           CardMeta& meta = cardPackageManager.FindPackageByID(addr.packageId);
 
           if (meta.filterHandStep) {
-            meta.filterHandStep(cards[i].props, adjCards);
+            meta.filterHandStep(cards[i].GetProps(), adjCards);
           }
 
           if (adjCards.deleteLeft) {
@@ -846,7 +863,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   // custom bar continues to animate when it is already full
   if (isGaugeFull) {
-    customFullAnimDelta += elapsed/customDuration;
+    customFullAnimDelta += elapsed/customDefaultDuration;
     customBarShader->setUniform("factor", (float)(1.0 + customFullAnimDelta));
   }
 
@@ -1156,10 +1173,9 @@ std::vector<std::shared_ptr<Player>> BattleSceneBase::GetOtherPlayers()
 std::vector<std::shared_ptr<Player>> BattleSceneBase::GetAllPlayers()
 {
   std::vector<std::shared_ptr<Player>> result = otherPlayers;
-  result.insert(result.begin(), localPlayer);
+  result.insert(result.begin()+localPlayerSpawnIndex, localPlayer);
   return result;
 }
-
 
 std::shared_ptr<Field> BattleSceneBase::GetField()
 {

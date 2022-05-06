@@ -51,7 +51,7 @@ struct PlayerMeta final : public PackageManager<PlayerMeta>::Meta<Player>{
    * @brief Sets special description information of the navi
    * @return PlayerMeta& to chain
    */
-  PlayerMeta& SetSpecialDescription(const std::string&& special);
+  PlayerMeta& SetSpecialDescription(const std::string& special);
 
   /**
    * @brief Sets attack level to display

@@ -1704,7 +1704,8 @@ void Entity::AddDefenseRule(std::shared_ptr<DefenseRule> rule)
 
   if (rule->Added()) {
     // caught by bindings, crashes if entirely c++ to give line number
-    throw std::runtime_error("DefenseRule has already been added to an entity");
+    // throw std::runtime_error("DefenseRule has already been added to an entity");
+    return;
   }
 
   auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](auto other) { return rule->GetPriorityLevel() == other->GetPriorityLevel(); });

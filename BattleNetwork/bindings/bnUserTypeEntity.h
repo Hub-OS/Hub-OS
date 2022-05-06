@@ -388,6 +388,21 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["store_base_palette"] = [](WeakWrapper<E>& entity, std::shared_ptr<Texture>& texture) {
     entity.Unwrap()->StoreBasePalette(texture);
   };
+  entity_table["get_held_card_props"] = [](WeakWrapper<E>& entity) -> Battle::Card::Properties& {
+    static Battle::Card::Properties dummy;
+    dummy = Battle::Card::Properties{};
+
+    auto ui = entity.Unwrap()->GetFirstComponentDerivedFrom<SelectedCardsUI>();
+
+    if (!ui) return dummy;
+
+    SelectedCardsUI::MaybeCard maybeCard = ui->Peek();
+
+    if (!maybeCard.has_value()) return dummy;
+
+    return maybeCard.value().get().GetProps();
+  };
+
   entity_table["shake_camera"] = [](WeakWrapper<E>& entity, double power, float duration) {
     entity.Unwrap()->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
   };

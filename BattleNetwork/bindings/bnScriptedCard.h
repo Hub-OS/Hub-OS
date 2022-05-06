@@ -25,8 +25,8 @@ public:
       return nullptr;
     }
 
-    auto wrappedCardAction = functionResult.value();
-    auto cardAction = wrappedCardAction.Release();
+    WeakWrapper<ScriptedCardAction> wrappedCardAction = functionResult.value();
+    std::shared_ptr<ScriptedCardAction> cardAction = wrappedCardAction.Release();
 
     if (cardAction) {
       cardAction->SetLockoutGroup(CardAction::LockoutGroup::card);
@@ -35,6 +35,14 @@ public:
     }
 
     return cardAction;
+  }
+
+  void OnUpdate(Battle::Card::Properties& props, double elapsed) override {
+    auto functionResult = CallLuaFunction(script, "card_update", std::ref(props), elapsed);
+
+    if (functionResult.is_error()) {
+      Logger::Log(LogLevel::critical, functionResult.error_cstr());
+    }
   }
 };
 

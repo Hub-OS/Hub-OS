@@ -548,6 +548,16 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
       return std::atof(keys["cust_gauge_value"].c_str());
     });
 
+  engine_namespace.set_function("get_cust_gauge_time",
+    [this](double seconds) {
+      return std::atof(keys["cust_gauge_time"].c_str());
+    });
+
+  engine_namespace.set_function("get_cust_gauge_max_time",
+    [this](double seconds) {
+      return std::atof(keys["cust_gauge_max_time"].c_str());
+    });
+
   engine_namespace.set_function("set_cust_gauge_time",
     [this](double seconds) {
       if (eventChannel == nullptr) return;
@@ -557,6 +567,11 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
   engine_namespace.set_function("set_cust_gauge_max_time",
     [this](double max_seconds) {
       eventChannel->Emit(&BattleSceneBase::SetCustomBarDuration, max_seconds);
+    });
+
+  engine_namespace.set_function("reset_cust_gauge_to_default",
+    [this](double max_seconds) {
+      eventChannel->Emit(&BattleSceneBase::ResetCustomBarDuration);
     });
 
   const auto& elements_table = state.new_enum("Element",

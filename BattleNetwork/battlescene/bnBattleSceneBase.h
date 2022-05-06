@@ -104,6 +104,7 @@ private:
   double elapsed{ 0 }; /*!< total time elapsed in battle */
   double customProgress{ 0 }; /*!< Cust bar progress in seconds */
   double customDuration{ 10.0 }; /*!< Cust bar max time in seconds */
+  double customDefaultDuration{ 10.0 }; /*!< Default value */
   double customFullAnimDelta{ 0 }; /*!< For animating a complete cust bar*/
   double backdropOpacity{ 1.0 };
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
@@ -120,6 +121,7 @@ private:
   std::shared_ptr<Player> localPlayer; /*!< Local player */
   std::vector<Entity::ID_t> deletingRedMobs, deletingBlueMobs; /*!< mobs untrack enemies but we need to know when they fully finish deleting*/
   std::vector<std::shared_ptr<Player>> otherPlayers; /*!< Player array supports multiplayer */
+  size_t localPlayerSpawnIndex{}; /*!< The index in the `otherPlayers` hash to respect spawn order relative to the local player*/
   std::map<Player*, TrackedFormData> allPlayerFormsHash;
   std::map<Player*, Team> allPlayerTeamHash; /*!< Check previous frames teams for traitors */
   Mob* redTeamMob{ nullptr }; /*!< Mob and mob data opposing team are fighting against */
@@ -220,16 +222,15 @@ protected:
       state(copy.state), StateNode(copy.owner, copy.state)
     {}
 
-
     /* 
-        \brief Return the underlining state object as a pointer
+      \brief Return the underlining state object as a pointer
     */
     T* operator->() {
       return &state;
     }
 
     /*
-    \brief Return the underlining state object as a const-qualified pointer
+      \brief Return the underlining state object as a const-qualified pointer
     */
     const T* operator->() const {
       return &state;
@@ -243,7 +244,7 @@ protected:
     }
 
     /*
-        \brief if input functor is a member function, then create a closure to call the function on a class object 
+      \brief if input functor is a member function, then create a closure to call the function on a class object 
     */
     template<
       typename MemberFunc,
@@ -259,7 +260,7 @@ protected:
     }
 
     /* 
-        \brief if input is a lambda, use the ::Link() API function already provided
+      \brief if input is a lambda, use the ::Link() API function already provided
     */
     template<
       typename Lambda,
@@ -316,7 +317,7 @@ public:
   const double GetCustomBarDuration() const;
   void SetCustomBarProgress(double value);
   void SetCustomBarDuration(double maxTimeSeconds);
-
+  void ResetCustomBarDuration();
   void DrawCustGauage(sf::RenderTexture& surface);
   void SubscribeToCardActions(CardActionUsePublisher& publisher);
   const std::vector<std::reference_wrapper<CardActionUsePublisher>>& GetCardActionSubscriptions() const;

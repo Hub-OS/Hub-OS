@@ -18,6 +18,7 @@ class CardImpl {
 public:
   virtual ~CardImpl() {};
   virtual std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, const Battle::Card::Properties& props) = 0;
+  virtual void OnUpdate(Battle::Card::Properties& props, double elapsed) = 0;
 };
 
 struct AdjacentCards {

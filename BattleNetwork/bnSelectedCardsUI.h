@@ -23,6 +23,8 @@ class BattleSceneBase;
 
 class SelectedCardsUI : public CardActionUsePublisher, public UIComponent {
 public:
+  using MaybeCard = std::optional<std::reference_wrapper<Battle::Card>>;
+
   /**
    * \param character Character to attach to
    */
@@ -74,7 +76,7 @@ public:
   * @brief Return a const reference to the next card, if valid
   * @preconditions Assumes the card can be used and currCard < cardCount!
   */
-  std::optional<std::reference_wrapper<const Battle::Card>> Peek();
+  MaybeCard Peek();
 
   //!< Returns true if there was a card to play, false if empty
   bool HandlePlayEvent(std::shared_ptr<Character> from);

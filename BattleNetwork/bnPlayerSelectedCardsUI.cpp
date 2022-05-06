@@ -146,12 +146,14 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
       text.setPosition(2.0f, 296.0f);
 
       // Text sits at the bottom-left of the screen
-      int unmodDamage = currCard.GetUnmoddedProps().damage;
+      int unmodDamage = currCard.GetBaseProps().damage;
       int delta = currCard.GetDamage() - unmodDamage;
       sf::String dmgText = std::to_string(unmodDamage);
 
       if (delta != 0) {
-        dmgText = dmgText + sf::String("+") + sf::String(std::to_string(std::abs(delta)));
+        std::string op = sf::String(delta > 0? "+" : "-");
+
+        dmgText = dmgText + op + sf::String(std::to_string(std::abs(delta)));
       }
 
       // attacks that normally show no damage will show if the modifer adds damage
@@ -209,7 +211,7 @@ void PlayerSelectedCardsUI::OnUpdate(double _elapsed) {
     spread = false;
   }
 
-  elapsed = _elapsed;
+  SelectedCardsUI::OnUpdate(_elapsed);
 }
 
 void PlayerSelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
