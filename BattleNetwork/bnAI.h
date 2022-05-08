@@ -100,33 +100,43 @@ public:
  * e.g. ChangeState<PlayerThrowBombState>(200.f, 300, true);
  */
 template<typename U, typename ...Args>
-  void ChangeState(Args&&... args) {
-    bool change = true;
+void ChangeState(Args&&... args) {
+  bool change = true;
 
-    if (stateMachine && stateMachine->locked) {
-      if (priorityLevel > U::PriorityLevel) {
-        stateMachine->PriorityUnlock();
-      }
-      else {
-        change = false;
-      }
+  if (stateMachine && stateMachine->locked) {
+    if (priorityLevel > U::PriorityLevel) {
+      stateMachine->PriorityUnlock();
     }
-    else if (queuedState && queuedState->locked) {
-      if (priorityLevel > U::PriorityLevel) {
-        queuedState->PriorityUnlock();
-      }
-      else {
-        change = false;
-      }
-    }
-
-    if (change) {
-      if (queuedState) { delete queuedState; }
-      queuedState = new U(std::forward<Args>(args)...);
-
-      priorityLevel = U::PriorityLevel;
+    else {
+      change = false;
     }
   }
+  else if (queuedState && queuedState->locked) {
+    if (priorityLevel > U::PriorityLevel) {
+      queuedState->PriorityUnlock();
+    }
+    else {
+      change = false;
+    }
+  }
+
+  if (change) {
+    if (queuedState) { delete queuedState; }
+    queuedState = new U(std::forward<Args>(args)...);
+
+    priorityLevel = U::PriorityLevel;
+  }
+}
+
+template<typename U, typename Tuple, size_t... Is>
+void ChangeState(const Tuple& tupleArgs, std::index_sequence<Is...>) {
+  ChangeState<U>(std::get<Is>(tupleArgs)...);
+}
+
+template<typename U, typename Tuple, size_t Sz>
+void ChangeState(const Tuple& tupleArgs) {
+  ChangeState<U>(tupleArgs, std::make_index_sequence<Sz>());
+}
 
 /**
  * @brief Update the SM

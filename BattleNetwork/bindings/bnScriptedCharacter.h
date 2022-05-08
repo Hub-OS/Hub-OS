@@ -11,6 +11,7 @@
 
 class AnimationComponent;
 class ScriptedCharacterState;
+class ScriptedIntroState;
 
 /**
  * @class ScriptedCharacter
@@ -20,6 +21,8 @@ class ScriptedCharacterState;
  */
 class ScriptedCharacter final : public Character, public AI<ScriptedCharacter>, public dynamic_object {
   friend class ScriptedCharacterState;
+  friend class ScriptedIntroState;
+
   float height{};
   std::shared_ptr<AnimationComponent> animation{ nullptr };
   bool bossExplosion{ false };
@@ -54,6 +57,7 @@ public:
   sol::object battle_end_func;
   sol::object can_move_to_func;
   sol::object on_countered_func;
+  sol::object intro_func;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {
@@ -79,17 +83,16 @@ public:
 
 using FinishNotifier = std::function<void()>;
 
-template<typename Any>
-class ScriptedIntroState : public AIState<Any> {
+class ScriptedIntroState : public AIState<ScriptedCharacter> {
 private:
   sol::state& script;
   std::string targetState;
   FinishNotifier finishNotifier;
 
 public:
-  ScriptedIntroState(FinishNotifier finishNotifier, sol::state& script, std::shared_ptr<std::string> targetState) :
+  ScriptedIntroState(FinishNotifier finishNotifier, sol::state& script, std::string targetState) :
     script(script),
-    targetState(*targetState),
+    targetState(targetState),
     finishNotifier(finishNotifier) 
   {}
 
@@ -98,7 +101,14 @@ public:
   }
 
   void OnUpdate(double _elapsed, ScriptedCharacter& context) override {
-    CallLuaFunction(script, "intro_func", std::ref(context), targetState, finishNotifier, _elapsed);
+    if (context.intro_func.valid())
+    {
+      auto result = CallLuaCallback(context.intro_func, context.weakWrap, targetState, finishNotifier, _elapsed);
+
+      if (result.is_error()) {
+        Logger::Log(LogLevel::critical, result.error_cstr());
+      }
+    }
   }
 
   void OnLeave(ScriptedCharacter& context) override {

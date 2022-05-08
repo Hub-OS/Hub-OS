@@ -112,6 +112,12 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, const
         character.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
       }
     ),
+    "intro_func", sol::property(
+      [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->intro_func; },
+      [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {
+        character.Unwrap()->intro_func = VerifyLuaCallback(value);
+      }
+    ),
     "battle_start_func", sol::property(
       [](WeakWrapper<ScriptedCharacter>& character) { return character.Unwrap()->battle_start_func; },
       [](WeakWrapper<ScriptedCharacter>& character, sol::stack_object value) {

@@ -132,6 +132,16 @@ public:
     beginInterrupt = true;
   }
 
+  template<typename U, typename Tuple, size_t... Is>
+  void InterruptState(const Tuple& tupleArgs, std::index_sequence<Is...>) {
+    InterruptState<U>(std::get<Is>(tupleArgs)...);
+  }
+
+  template<typename U, typename Tuple, size_t Sz>
+  void InterruptState(const Tuple& tupleArgs) {
+    InterruptState<U>(tupleArgs, std::make_index_sequence<Sz>());
+  }
+
   /**
    * @brief Update the SM
    * @param _elapsed in seconds

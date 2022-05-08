@@ -31,10 +31,10 @@ std::shared_ptr<Mob::Mutator> ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y
 {
   if (scriptedSpawner) {
     if (introState.empty()) {
-      return scriptedSpawner->SpawnAt<FadeInState>(x, y);
+      return scriptedSpawner->SpawnAt<FadeInState<ScriptedCharacter>>(x, y);
     }
     else {
-      return scriptedSpawner->SpawnAt<ScriptedIntroState>(x, y, script, std::make_shared<std::string>(introState));
+      return scriptedSpawner->SpawnAt<ScriptedIntroState>(x, y, std::ref(script), introState);
     }
   }
 

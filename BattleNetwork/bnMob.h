@@ -9,6 +9,7 @@
 #include "bnTile.h"
 #include "stx/tuple.h"
 
+#include <tuple>
 #include <vector>
 #include <map>
 #include <stdexcept>
@@ -363,7 +364,7 @@ public:
   // virtual deconstructor for inheritence
   virtual ~Spawner() { }
 
-  template<template<typename> class IntroState, typename... Args>
+  template<class IntroState, typename... Args>
   std::shared_ptr<Mutator> SpawnAt(unsigned x, unsigned y, Args&&... args) {
     // assert that tileX and tileY exist in field
     assert(x >= 1 && x <= static_cast<unsigned>(mob->field->GetWidth())
@@ -386,17 +387,20 @@ public:
 
     // Thinking we need to remove AI inheritence and be another component on its own
     Mob* mobPtr = this->mob;
-    auto pixelStateInvoker = [mobPtr, &args...](std::shared_ptr<Character> character) {
-      auto onFinish = [mobPtr, &args...]() { mobPtr->FlagNextReady(); };
+    auto pixelStateInvoker = [mobPtr, tupleArgs = std::make_tuple(std::forward<Args>(args) ...)](std::shared_ptr<Character> character) {
+      auto onFinish = [mobPtr]() { mobPtr->FlagNextReady(); };
 
       ClassType* enemy = static_cast<ClassType*>(character.get());
 
+      auto fullTupleArgs = std::tuple_cat(std::make_tuple(onFinish), tupleArgs);
+      using FullTupleArgsT = decltype(fullTupleArgs);
+
       if (enemy) {
         if constexpr (std::is_base_of<AI<ClassType>, ClassType>::value) {
-          enemy->template ChangeState<IntroState<ClassType>>(onFinish, std::forward<decltype(args)>(args)...);
+          enemy->template ChangeState<IntroState, FullTupleArgsT, std::tuple_size_v<FullTupleArgsT>>(fullTupleArgs);
         }
         else {
-          enemy->template InterruptState<IntroState<ClassType>>(onFinish, std::forward<decltype(args)>(args)...);
+          enemy->template InterruptState<IntroState>, FullTupleArgsT, std::tuple_size_v<FullTupleArgsT>>(fullTupleArgs);
         }
       }
     };
