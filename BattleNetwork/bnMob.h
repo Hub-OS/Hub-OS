@@ -363,8 +363,8 @@ public:
   // virtual deconstructor for inheritence
   virtual ~Spawner() { }
 
-  template<template<typename> class IntroState>
-  std::shared_ptr<Mutator> SpawnAt(unsigned x, unsigned y) {
+  template<template<typename> class IntroState, typename... Args>
+  std::shared_ptr<Mutator> SpawnAt(unsigned x, unsigned y, Args&&... args) {
     // assert that tileX and tileY exist in field
     assert(x >= 1 && x <= static_cast<unsigned>(mob->field->GetWidth())
         && y >= 1 && y <= static_cast<unsigned>(mob->field->GetHeight()));
@@ -386,17 +386,17 @@ public:
 
     // Thinking we need to remove AI inheritence and be another component on its own
     Mob* mobPtr = this->mob;
-    auto pixelStateInvoker = [mobPtr](std::shared_ptr<Character> character) {
-      auto onFinish = [mobPtr]() { mobPtr->FlagNextReady(); };
+    auto pixelStateInvoker = [mobPtr, &args...](std::shared_ptr<Character> character) {
+      auto onFinish = [mobPtr, &args...]() { mobPtr->FlagNextReady(); };
 
       ClassType* enemy = static_cast<ClassType*>(character.get());
 
       if (enemy) {
         if constexpr (std::is_base_of<AI<ClassType>, ClassType>::value) {
-          enemy->template ChangeState<IntroState<ClassType>>(onFinish);
+          enemy->template ChangeState<IntroState<ClassType>>(onFinish, std::forward<decltype(args)>(args)...);
         }
         else {
-          enemy->template InterruptState<IntroState<ClassType>>(onFinish);
+          enemy->template InterruptState<IntroState<ClassType>>(onFinish, std::forward<decltype(args)>(args)...);
         }
       }
     };

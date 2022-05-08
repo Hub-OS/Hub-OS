@@ -235,6 +235,11 @@ const int SelectedCardsUI::GetCurrentCardIndex() const
   return curr;
 }
 
+const double SelectedCardsUI::GetElapsed() const
+{
+  return elapsed;
+}
+
 const unsigned SelectedCardsUI::GetMultiplier() const
 {
   return multiplierValue;

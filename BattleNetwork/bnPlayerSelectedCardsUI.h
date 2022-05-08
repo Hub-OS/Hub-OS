@@ -43,12 +43,11 @@ public:
   void Broadcast(std::shared_ptr<CardAction> card) override final;
 
 private:
-  double elapsed{}; /*!< Used by draw function, delta time since last update frame */
   mutable double interpolTimeFlat{}; /*!< Interpolation time for spread cards */
   mutable double interpolTimeDest{}; /*!< Interpolation time for default card stack */
   bool spread{ false }; /*!< If true, spread the cards, otherwise stack like the game */
   mutable bool firstFrame{ true }; /*!< If true, this UI graphic is being drawn for the first time*/
-  sf::Time interpolDur; /*!< Max duration for interpolation 0.2 seconds */
+  sf::Time interpolDur{}; /*!< Max duration for interpolation 0.2 seconds */
   Player* player{ nullptr }; /*!< Player this component is attached to */
   mutable Text text; /*!< Text displays card name */
   mutable Text multiplier;

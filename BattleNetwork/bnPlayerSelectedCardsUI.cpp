@@ -78,7 +78,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         icon.setPosition(((float)alpha * flat) + ((float)(1.0 - alpha) * icon.getPosition()));
 
         interpolTimeDest = 0;
-        interpolTimeFlat += elapsed;
+        interpolTimeFlat += GetElapsed();
       }
       else {
         // If stacked, the algorithm makes a jagged pattern that goes up and to the left:
@@ -97,7 +97,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
         // interpolate
         icon.setPosition(((float)alpha * dest) + ((float)(1.0 - alpha) * icon.getPosition()));
 
-        interpolTimeDest += elapsed;
+        interpolTimeDest += GetElapsed();
 
         interpolTimeFlat = 0;
       }

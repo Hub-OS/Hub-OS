@@ -10,7 +10,8 @@
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
 //
-ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::filesystem::path& path, Character::Rank rank)
+ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::filesystem::path& path, Character::Rank rank) :
+  script(script)
 {
   scriptedSpawner = std::make_unique<Mob::Spawner<ScriptedCharacter>>(rank);
   std::function<std::shared_ptr<ScriptedCharacter>()> lambda = scriptedSpawner->constructor;
@@ -26,11 +27,15 @@ ScriptedMob::ScriptedSpawner::ScriptedSpawner(sol::state& script, const std::fil
   };
 }
 
-std::shared_ptr<Mob::Mutator> ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y)
+std::shared_ptr<Mob::Mutator> ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y, const std::string& introState)
 {
   if (scriptedSpawner) {
-    // todo: swap out with ScriptedIntroState
-    return scriptedSpawner->SpawnAt<FadeInState>(x, y);
+    if (introState.empty()) {
+      return scriptedSpawner->SpawnAt<FadeInState>(x, y);
+    }
+    else {
+      return scriptedSpawner->SpawnAt<ScriptedIntroState>(x, y, script, std::make_shared<std::string>(introState));
+    }
   }
 
   // ensure we're in range or return `nil` in Lua

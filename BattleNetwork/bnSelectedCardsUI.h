@@ -90,6 +90,7 @@ public:
 protected:
 
   const int GetCurrentCardIndex() const;
+  const double GetElapsed() const;
   const unsigned GetMultiplier() const;
   std::vector<Battle::Card>& GetSelectedCards() const;
   SpriteProxyNode& IconNode() const;

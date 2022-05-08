@@ -433,7 +433,14 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) {
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Spawner", key );
     },
-    "spawn_at", &ScriptedMob::ScriptedSpawner::SpawnAt
+    "spawn_at", sol::overload(
+      [](ScriptedMob::ScriptedSpawner& spawner, int x, int y) -> std::shared_ptr<Mob::Mutator> {
+        return spawner.SpawnAt(x, y, "");
+      },
+      [](ScriptedMob::ScriptedSpawner& spawner, int x, int y, const std::string& introState) -> std::shared_ptr<Mob::Mutator> {
+        return spawner.SpawnAt(x, y, introState);
+      }
+    )
   );
 
   battle_namespace.new_usertype<Mob::Mutator>("SpawnMutator",

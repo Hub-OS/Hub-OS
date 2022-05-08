@@ -25,6 +25,7 @@ public:
     std::function<std::shared_ptr<Character>()> constructor;
     std::function<void(std::shared_ptr<Character>)> pixelStateInvoker, defaultStateInvoker;
     Character::Rank rank{};
+    sol::state& script;
 
   public:
     ScriptedSpawner() = default;
@@ -33,7 +34,7 @@ public:
     template<typename BuiltInCharacter>
     void UseBuiltInType(Character::Rank rank);
 
-    std::shared_ptr<Mob::Mutator> SpawnAt(int x, int y);
+    std::shared_ptr<Mob::Mutator> SpawnAt(int x, int y, const std::string& introState);
     void SetMob(Mob* mob);
   };
 
