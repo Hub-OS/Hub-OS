@@ -493,9 +493,18 @@ void Entity::Update(double _elapsed) {
   sf::Uint8 alpha = getSprite().getColor().a;
   for (std::shared_ptr<SceneNode>& child : GetChildNodes()) {
     SpriteProxyNode* sprite = dynamic_cast<SpriteProxyNode*>(child.get());
-    if (sprite) {
+
+    if (!sprite) continue;
+
+    if (sprite->IsUsingParentShader()) {
       sf::Color color = sprite->getColor();
       sprite->setColor(sf::Color(color.r, color.g, color.b, alpha));
+    }
+    else {
+      SmartShader& smartShader = sprite->GetShader();
+      if (smartShader.HasShader()) {
+        smartShader.SetUniform("additiveMode", sprite->GetColorMode() == ColorMode::additive);
+      }
     }
   }
 

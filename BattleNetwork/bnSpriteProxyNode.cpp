@@ -31,7 +31,6 @@ SpriteProxyNode::SpriteProxyNode(SpriteProxyNode&& rhs) noexcept
   rhs.sprite = nullptr;
   rhs.allocatedSprite = false;
   rhs.textureRef.reset();
-
 }
 
 SpriteProxyNode::SpriteProxyNode(sf::Sprite& rhs) : SceneNode() {
@@ -51,7 +50,7 @@ void SpriteProxyNode::operator=(sf::Sprite& rhs) {
   allocatedSprite = false;
 }
 
-const sf::Sprite & SpriteProxyNode::getSpriteConst() const
+const sf::Sprite& SpriteProxyNode::getSpriteConst() const
 {
   return *sprite;
 }

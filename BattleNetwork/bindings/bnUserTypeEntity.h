@@ -304,6 +304,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   };
   entity_table["create_node"] = [](WeakWrapper<E>& entity) -> WeakWrapper<SpriteProxyNode> {
     auto child = std::make_shared<SpriteProxyNode>();
+    child->SetShader(entity.Unwrap()->GetShader());
     entity.Unwrap()->AddNode(child);
 
     return WeakWrapper(child);

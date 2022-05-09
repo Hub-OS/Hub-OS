@@ -43,7 +43,7 @@ public:
   const float GetHeight() const override;
   void SetHeight(const float height);
   void OnDelete() override;
-  bool CanMoveTo(Battle::Tile * next) override;
+  bool CanMoveTo(Battle::Tile *next) override;
   void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
   void ShakeCamera(double power, float duration);
   void OnCountered() override;
@@ -97,7 +97,14 @@ public:
   {}
 
   void OnEnter(ScriptedCharacter& context) override {
+    if (context.intro_func.valid())
+    {
+      auto result = CallLuaCallback(context.intro_func, context.weakWrap, targetState, finishNotifier, 0);
 
+      if (result.is_error()) {
+        Logger::Log(LogLevel::critical, result.error_cstr());
+      }
+    }
   }
 
   void OnUpdate(double _elapsed, ScriptedCharacter& context) override {
