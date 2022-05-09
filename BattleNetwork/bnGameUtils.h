@@ -7,10 +7,9 @@
 #include "bnCardFolder.h"
 
 class GameUtils : public ResourceHandle {
-    Game& game;
+  Game& game;
 
-    public:
-      GameUtils(Game& game);
-
-      void LaunchMobBattle(PlayerMeta&, MobMeta&, std::shared_ptr<Background>, PA&, CardFolder*);
+  public:
+    GameUtils(Game& game);
+    void LaunchMobBattle(PlayerMeta&, MobMeta&, std::shared_ptr<Background>, PA&, CardFolder*);
 };

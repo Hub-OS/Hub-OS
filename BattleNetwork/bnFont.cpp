@@ -1,4 +1,4 @@
-#include "bnFont.h"
+﻿#include "bnFont.h"
 
 #include <iomanip>
 #include <iostream>
@@ -153,7 +153,7 @@ const float Font::GetLetterWidth() const
 
 const float Font::GetLetterHeight() const
 {
-  return static_cast<float>(GetTextureCoords().height)+2.0f; // +2 for letter 'j'
+  return static_cast<float>(GetTextureCoords().height);
 }
 
 const float Font::GetWhiteSpaceWidth() const
@@ -165,4 +165,69 @@ const float Font::GetWhiteSpaceWidth() const
 const float Font::GetLineHeight() const {
   // values are based on the letter 'A' since .animation doesn't have meta data for this type of use case
   return static_cast<float>(letterATexcoords.height);
+}
+
+std::string Font::v2()
+{
+  return u8"\ue005";
+}
+
+std::string Font::v3()
+{
+  return u8"\ue006";
+}
+
+std::string Font::v4()
+{
+  return u8"\ue007";
+}
+
+std::string Font::v5()
+{
+  return u8"\ue008";
+}
+
+std::string Font::sp()
+{
+  return u8"\ue000";
+}
+
+std::string Font::ex()
+{
+  return u8"\ue001";
+}
+
+std::string Font::nm()
+{
+  return u8"\ue002";
+}
+
+std::string Font::rv()
+{
+  return u8"\ue003";
+}
+
+std::string Font::ds()
+{
+  return u8"\ue004";
+}
+
+std::string Font::alpha()
+{
+  return u8"α";
+}
+
+std::string Font::beta()
+{
+  return u8"β";
+}
+
+std::string Font::omega()
+{
+  return u8"Ω";
+}
+
+std::string Font::sigma()
+{
+  return u8"Σ";
 }

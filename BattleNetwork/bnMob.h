@@ -414,42 +414,45 @@ public:
     mob->defaultStateInvokers.push_back(defaultStateInvoker);
 
     // Set name special font based on rank
-    switch(data->character->GetRank()) {
-    case ClassType::Rank::_2:
-      data->character->SetName(data->character->GetName() + "2");
+    switch (data->character->GetRank()) {
+    case Character::Rank::_2:
+      data->character->SetName(data->character->GetName() + Font::v2());
       break;
-    case ClassType::Rank::_3:
-      data->character->SetName(data->character->GetName() + "3");
+    case Character::Rank::_3:
+      data->character->SetName(data->character->GetName() + Font::v3());
       break;
-    case ClassType::Rank::Rare1:
-      data->character->SetName(data->character->GetName() + "R1");
+    case Character::Rank::Rare1:
+      data->character->SetName(data->character->GetName() + Font::v4());
       break;
-    case ClassType::Rank::Rare2:
-      data->character->SetName(data->character->GetName() + "R2");
+    case Character::Rank::Rare2:
+      data->character->SetName(data->character->GetName() + Font::v5());
       break;
-    case ClassType::Rank::SP:
-      data->character->SetName(data->character->GetName() + "\ue000");
+    case Character::Rank::SP:
+      data->character->SetName(data->character->GetName() + Font::sp());
       break;
-    case ClassType::Rank::EX:
-      data->character->SetName(data->character->GetName() + "\ue001");
+    case Character::Rank::EX:
+      data->character->SetName(data->character->GetName() + Font::ex());
       break;
-    case ClassType::Rank::NM:
-      data->character->SetName(data->character->GetName() + "\ue002");
+    case Character::Rank::NM:
+      data->character->SetName(data->character->GetName() + Font::nm());
       break;
-    case ClassType::Rank::RV:
-      data->character->SetName(data->character->GetName() + "\ue003");
+    case Character::Rank::RV:
+      data->character->SetName(data->character->GetName() + Font::rv());
       break;
-    case ClassType::Rank::DS:
-      data->character->SetName(data->character->GetName() + "\ue004");
+    case Character::Rank::DS:
+      data->character->SetName(data->character->GetName() + Font::ds());
       break;
-    case ClassType::Rank::Alpha:
-      data->character->SetName(data->character->GetName() + "α");
+    case Character::Rank::Alpha:
+      data->character->SetName(data->character->GetName() + Font::alpha());
       break;
-    case ClassType::Rank::Beta:
-      data->character->SetName(data->character->GetName() + "β");
+    case Character::Rank::Beta:
+      data->character->SetName(data->character->GetName() + Font::beta());
       break;
-    case ClassType::Rank::Omega:
-      data->character->SetName(data->character->GetName() + "Ω");
+    case Character::Rank::Omega:
+      data->character->SetName(data->character->GetName() + Font::omega());
+      break;
+    case Character::Rank::Sigma:
+      data->character->SetName(data->character->GetName() + Font::sigma());
       break;
     }
 

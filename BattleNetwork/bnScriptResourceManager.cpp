@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <cstdlib>
+#include "bnGameUtils.h"
 #include "bnScriptResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -668,7 +669,8 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "DS", Character::Rank::DS,
     "Alpha", Character::Rank::Alpha,
     "Beta", Character::Rank::Beta,
-    "Omega", Character::Rank::Omega
+    "Omega", Character::Rank::Omega,
+    "Sigma", Character::Rank::Sigma
   );
 
   const auto& audio_type_record = state.new_enum("AudioType",
@@ -797,6 +799,22 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
   const auto& vector_record = state.new_usertype<sf::Vector2f>("Vector2",
     "x", &sf::Vector2f::x,
     "y", &sf::Vector2f::y
+  );
+
+  const auto& char_record = state.new_enum("Char",
+    "v2", [] { return Font::v2(); },
+    "v3", [] { return Font::v3(); },
+    "v4", [] { return Font::v4(); },
+    "v5", [] { return Font::v5(); },
+    "sp", [] { return Font::sp(); },
+    "ex", [] { return Font::ex(); },
+    "nm", [] { return Font::nm(); },
+    "rv", [] { return Font::rv(); },
+    "ds", [] { return Font::ds(); },
+    "alpha", [] { return Font::alpha(); },
+    "beta",  [] { return Font::beta();  },
+    "omega", [] { return Font::omega(); },
+    "sigma", [] { return Font::sigma(); }
   );
 
   state.set_function("frames",

@@ -50,5 +50,19 @@ public:
   const float GetLetterWidth() const;
   const float GetWhiteSpaceWidth() const;
   const float GetLineHeight() const;
+
+  static std::string v2();
+  static std::string v3();
+  static std::string v4();
+  static std::string v5();
+  static std::string sp();
+  static std::string ex();
+  static std::string nm();
+  static std::string rv();
+  static std::string ds();
+  static std::string alpha();
+  static std::string beta();
+  static std::string omega();
+  static std::string sigma();
 };
 

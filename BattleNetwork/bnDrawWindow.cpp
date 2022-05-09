@@ -23,7 +23,7 @@ void DrawWindow::Initialize(const std::string& title, DrawWindow::WindowMode mod
   videoMode.width = unsigned int(480.0f);
   videoMode.height = unsigned int(320.0f);
 #else
-  auto videoMode = VideoMode(480, 320);
+  sf::VideoMode videoMode = VideoMode(480, 320);
 #endif
   auto style = sf::Style::Default;
 

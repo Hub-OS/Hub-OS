@@ -68,18 +68,16 @@ public:
     Alpha,
     Beta,
     Omega,
+    Sigma,
     SIZE
   };
 
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
   virtual void Cleanup() override;
-
   virtual void OnBattleStop() override;
-
   virtual void MakeActionable();
   virtual bool IsActionable() const;
-
   const bool IsLockoutAnimationComplete();
 
   const std::vector<std::shared_ptr<CardAction>> AsyncActionList() const;

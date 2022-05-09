@@ -6,6 +6,7 @@
 #include "../bnTextureResourceManager.h"
 #include "../bnCustomBackground.h"
 #include "../bnSolHelpers.h"
+#include "../bnFont.h"
 
 //
 // class ScriptedMob::Spawner : public Mob::Spawner<ScriptedCharacter>
@@ -70,40 +71,43 @@ std::shared_ptr<Mob::Mutator> ScriptedMob::ScriptedSpawner::SpawnAt(int x, int y
   // Set name special font based on rank
   switch (data->character->GetRank()) {
   case Character::Rank::_2:
-    data->character->SetName(data->character->GetName() + "2");
+    data->character->SetName(data->character->GetName() + Font::v2());
     break;
   case Character::Rank::_3:
-    data->character->SetName(data->character->GetName() + "3");
+    data->character->SetName(data->character->GetName() + Font::v3());
     break;
   case Character::Rank::Rare1:
-    data->character->SetName(data->character->GetName() + "R1");
+    data->character->SetName(data->character->GetName() + Font::v4());
     break;
   case Character::Rank::Rare2:
-    data->character->SetName(data->character->GetName() + "R2");
+    data->character->SetName(data->character->GetName() + Font::v5());
     break;
   case Character::Rank::SP:
-    data->character->SetName(data->character->GetName() + "\ue000");
+    data->character->SetName(data->character->GetName() + Font::sp());
     break;
   case Character::Rank::EX:
-    data->character->SetName(data->character->GetName() + "\ue001");
+    data->character->SetName(data->character->GetName() + Font::ex());
     break;
   case Character::Rank::NM:
-    data->character->SetName(data->character->GetName() + "\ue002");
+    data->character->SetName(data->character->GetName() + Font::nm());
     break;
   case Character::Rank::RV:
-    data->character->SetName(data->character->GetName() + "\ue003");
+    data->character->SetName(data->character->GetName() + Font::rv());
     break;
   case Character::Rank::DS:
-    data->character->SetName(data->character->GetName() + "\ue004");
+    data->character->SetName(data->character->GetName() + Font::ds());
     break;
   case Character::Rank::Alpha:
-    data->character->SetName(data->character->GetName() + "α");
+    data->character->SetName(data->character->GetName() + Font::alpha());
     break;
   case Character::Rank::Beta:
-    data->character->SetName(data->character->GetName() + "β");
+    data->character->SetName(data->character->GetName() + Font::beta());
     break;
   case Character::Rank::Omega:
-    data->character->SetName(data->character->GetName() + "Ω");
+    data->character->SetName(data->character->GetName() + Font::omega());
+    break;
+  case Character::Rank::Sigma:
+    data->character->SetName(data->character->GetName() + Font::sigma());
     break;
   }
 
