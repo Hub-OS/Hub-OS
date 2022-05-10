@@ -88,6 +88,23 @@ private:
   sol::state& script;
   std::string targetState;
   FinishNotifier finishNotifier;
+  long long time{};
+
+  void RunIntroFunc(ScriptedCharacter& context, double elapsed) {
+    if (context.intro_func.valid())
+    {
+      auto result = CallLuaCallback(context.intro_func, context.weakWrap, targetState, finishNotifier, elapsed);
+
+      if (result.is_error()) {
+        Logger::Log(LogLevel::critical, result.error_cstr());
+      }
+    }
+
+    constexpr long long maxWaitTime = 20 * 1'000;
+    if (CurrentTime::AsMilli() - time >= maxWaitTime) {
+      finishNotifier();
+    }
+  }
 
 public:
   ScriptedIntroState(FinishNotifier finishNotifier, sol::state& script, std::string targetState) :
@@ -97,25 +114,12 @@ public:
   {}
 
   void OnEnter(ScriptedCharacter& context) override {
-    if (context.intro_func.valid())
-    {
-      auto result = CallLuaCallback(context.intro_func, context.weakWrap, targetState, finishNotifier, 0);
-
-      if (result.is_error()) {
-        Logger::Log(LogLevel::critical, result.error_cstr());
-      }
-    }
+    time = CurrentTime::AsMilli();
+    RunIntroFunc(context, 0);
   }
 
   void OnUpdate(double _elapsed, ScriptedCharacter& context) override {
-    if (context.intro_func.valid())
-    {
-      auto result = CallLuaCallback(context.intro_func, context.weakWrap, targetState, finishNotifier, _elapsed);
-
-      if (result.is_error()) {
-        Logger::Log(LogLevel::critical, result.error_cstr());
-      }
-    }
+    RunIntroFunc(context, _elapsed);
   }
 
   void OnLeave(ScriptedCharacter& context) override {

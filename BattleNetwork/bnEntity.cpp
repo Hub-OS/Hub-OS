@@ -386,8 +386,10 @@ void Entity::Update(double _elapsed) {
     invincibilityCooldown = frames(0);
   }
 
-  // reset base color
-  setColor(NoopCompositeColor(GetColorMode()));
+  // reset base composite color for the frame while retaining alpha values
+  sf::Color baseColor = NoopCompositeColor(GetColorMode());
+  baseColor.a = GetAlpha();
+  setColor(baseColor);
 
   RefreshShader();
 
@@ -689,7 +691,6 @@ void Entity::draw(sf::RenderTarget& target, sf::RenderStates states) const
         if (auto asSpriteProxyNode = dynamic_cast<SpriteProxyNode*>(currNode)) {
           asSpriteProxyNode->setColor(this->getColor());
         }
-
         states.shader = s;
       }
 

@@ -1245,7 +1245,7 @@ void FolderEditScene::onEnd() {
 void FolderEditScene::ExcludeFolderDataFromPool()
 {
   Battle::Card mock; // will not be used
-  for (auto& f : folderCardSlots) {
+  for (FolderSlot& f : folderCardSlots) {
     auto iter = std::find_if(poolCardBuckets.begin(), poolCardBuckets.end(), [&f](PoolBucket& pack) { return pack.ViewCard() == f.ViewCard(); });
     if (iter != poolCardBuckets.end()) {
       iter->GetCard(mock);
@@ -1258,7 +1258,7 @@ void FolderEditScene::PlaceFolderDataIntoCardSlots()
   CardFolder::Iter iter = folder.Begin();
 
   while (iter != folder.End() && folderCardSlots.size() < 30) {
-    auto slot = FolderSlot();
+    FolderSlot slot;
     slot.AddCard(Battle::Card(**iter));
     folderCardSlots.push_back(slot);
     iter++;

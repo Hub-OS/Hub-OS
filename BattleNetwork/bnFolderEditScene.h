@@ -79,7 +79,7 @@ private:
   private:
     bool occupied{};
   public:
-    FolderSlot() : ICardView(Battle::Card()) {}
+    FolderSlot() : ICardView(Battle::Card{}) {}
 
     void AddCard(Battle::Card other) {
       SetCard(other);

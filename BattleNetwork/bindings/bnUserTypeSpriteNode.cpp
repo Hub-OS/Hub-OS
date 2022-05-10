@@ -118,7 +118,18 @@ void DefineSpriteNodeUserType(sol::state& state, sol::table& engine_namespace) {
     "r", &sf::Color::r,
     "g", &sf::Color::g,
     "b", &sf::Color::b,
-    "a", &sf::Color::a
+    "a", &sf::Color::a,
+    "mix", [](const sf::Color& a, const sf::Color& b, double percent) -> sf::Color {
+      percent = std::clamp(percent, 0.0, 1.0);
+
+      double percentN = 1.0 - percent;
+      return sf::Color(
+        (percentN * a.r) + (percent * b.r),
+        (percentN * a.g) + (percent * b.g),
+        (percentN * a.b) + (percent * b.b),
+        (percentN * a.a) + (percent * b.a)
+      );
+    }
   );
 
   state.new_enum("ColorMode",
