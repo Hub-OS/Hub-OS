@@ -5,7 +5,9 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnMessage.h"
-#include "overworld/bnOverworldHomepage.h"
+
+//#include "overworld/bnOverworldHomepage.h"
+#include "bnRealPETScene.h"
 
 using namespace swoosh::types;
 
@@ -157,7 +159,8 @@ void TitleScene::onUpdate(double elapsed)
     }
     else {
       // We want the next screen to be the main menu screen
-      using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
+      // using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
+      using tx = segue<DiamondTileCircle>::to<RealPET::Homepage>;
       getController().push<tx>();
       leaving = true;
       return;

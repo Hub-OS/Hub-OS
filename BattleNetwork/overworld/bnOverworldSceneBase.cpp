@@ -31,6 +31,7 @@
 #include "../bnVendorScene.h"
 #include "../bnPlayerCustScene.h"
 #include "../battlescene/bnMobBattleScene.h"
+#include "../netplay/bnMatchMakingScene.h"
 
 // Backgrounds
 #include "../bnCustomBackground.h"
@@ -45,8 +46,6 @@
 #include "../bnSecretBackground.h"
 #include "../bnUndernetBackground.h"
 #include "../bnWeatherBackground.h"
-
-#include "../netplay/bnMatchMakingScene.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
