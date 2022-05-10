@@ -115,6 +115,11 @@ namespace TexturePaths {
   path FOLDER_INFO_BG = "resources/scenes/folder/folder_info.png";
   path FOLDER_CHANGE_NAME_BG = "resources/scenes/folder/folder_name.png";
   path NAVI_SELECT_BG = "resources/scenes/select/bg.png";
+  path REAL_PET_BG = "resources/scenes/PET/bg.png";
+  
+  // MISC. / PARTICLES
+  path PET_PARTICLE_FOLDERS = "resources/scenes/PET/folders.png";
+  path PET_PARTICLE_WINDOWS = "resources/scenes/PET/windows.png";
 
   // UI OTHER / ICONS
   path AURA_NUMSET = "resources/ui/aura_numset.png";
@@ -152,11 +157,25 @@ namespace AnimationPaths {
   path FOLDER_TEXTBOX = "resources/ui/folder_textbox.animation";
   path ANIMATED_TEXT_BOX = "resources/ui/textbox.animation";
   path CAMERA_PAN_UI = "resources/ui/camera_pan_ui.animation";
+  path PET_PARTICLE_FOLDERS = "resources/scenes/PET/folders.animation";
+  path PET_PARTICLE_WINDOWS = "resources/scenes/PET/windows.animation";
 }
 
 namespace SoundPaths {
   path ICE_FX = "resources/sfx/freeze.ogg";
   path CONFUSED_FX = "resources/sfx/confused.ogg";
   path COMPILE_BLIP_SFX = "resources/sfx/compile_blip.ogg";
+}
+
+namespace StreamPaths {
+  path REAL_PET = "resources/loops/PET_config.ogg";
+}
+
+namespace FilePaths {
+  path PROFILE = "profile.bin";
+}
+
+namespace FileKeys {
+
 }
 #undef path

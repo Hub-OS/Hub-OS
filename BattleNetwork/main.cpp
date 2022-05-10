@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
     }
 
     DrawWindow win;
-    win.Initialize("Open Net Battle v2.0a", DrawWindow::WindowMode::window);
+    win.Initialize("Open Net Battle v2.5", DrawWindow::WindowMode::window);
     Game game{ win };
 
     // Go the the title screen to kick off the rest of the app

@@ -474,7 +474,10 @@ char Animation::GetMode()
 
 frame_time_t Animation::GetStateDuration(const std::string& state) const
 {
-  auto iter = animations.find(state);
+  std::string currentAnimation = state;
+  std::transform(currentAnimation.begin(), currentAnimation.end(), currentAnimation.begin(), ::toupper);
+
+  auto iter = animations.find(currentAnimation);
 
   if (iter != animations.end()) {
     return iter->second.GetTotalDuration();

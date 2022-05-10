@@ -63,7 +63,7 @@ RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
   Scene(controller)
 {
   auto& session = getController().Session();
-  bool loaded = session.LoadSession("profile.bin");
+  bool loaded = session.LoadSession(FilePaths::PROFILE);
 
   // folders may be blank if session was unable to load a collection
   folders = &session.GetCardFolderCollection();
@@ -105,6 +105,21 @@ RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
     }
     catch (Poco::IOException&) {}
   }
+
+  // Load audio and graphics resources ....
+
+  bgTexture = Textures().LoadFromFile(TexturePaths::REAL_PET_BG);
+  bgSprite.setTexture(*bgTexture);
+  bgSprite.setScale(2.f, 2.f);
+
+  folderTexture = Textures().LoadFromFile(TexturePaths::PET_PARTICLE_FOLDERS);
+  folderAnim = Animation(AnimationPaths::PET_PARTICLE_FOLDERS);
+
+  windowTexture = Textures().LoadFromFile(TexturePaths::PET_PARTICLE_WINDOWS);
+  windowAnim = Animation(AnimationPaths::PET_PARTICLE_WINDOWS) << "default";
+
+  InitializeFolderParticles();
+  InitializeWindowParticles();
 }
 
 RealPET::Homepage::~Homepage() {
@@ -117,6 +132,153 @@ void RealPET::Homepage::UpdateServerStatus(ServerStatus status, uint16_t serverM
   // EnableNetWarps(status == ServerStatus::online);
 }
 
+void RealPET::Homepage::InitializeFolderParticles()
+{
+  maxPoolSize = 12;
+  pool.clear();
+  pool.reserve(maxPoolSize);
+
+  for (size_t i = 0; i < maxPoolSize; i++) {
+    pool.emplace_back(Particle{});
+  }
+}
+
+void RealPET::Homepage::InitializeWindowParticles()
+{
+  maxStaticPoolSize = 3;
+  staticPool.clear();
+  staticPool.reserve(maxStaticPoolSize);
+
+  for (size_t i = 0; i < maxStaticPoolSize; i++) {
+    staticPool.emplace_back(StaticParticle{});
+    staticPool[i].startup_delay = static_cast<double>(rand() % (maxStaticPoolSize*3));
+  }
+}
+
+void RealPET::Homepage::UpdateFolderParticles(double elapsed)
+{
+
+  sf::RenderWindow& window = getController().getWindow();
+  sf::Vector2i mousei = sf::Mouse::getPosition(window);
+  sf::Vector2f mousef = window.mapPixelToCoords(mousei);
+
+  // Find particles that are dead or unborn
+  for (Particle& p : pool) {
+    if (p.lifetime > p.max_lifetime) {
+      p = Particle{
+        0, // lifetime starts at 0
+        rand_val(8.0, 16.0), // duration
+        rand_val(sf::Vector2f(-8, -15), sf::Vector2f(8, 8)), // acceleration
+        rand_val(sf::Vector2f(-1, -1), sf::Vector2f(1, 1)), // velocity
+        rand_val(sf::Vector2f(0.99f, 0.99f), sf::Vector2f(0.5f, 0.65f)), // friction
+        rand_val(sf::Vector2f(-10.f, 80 * 2.f), sf::Vector2f(10.f + 240 * 2.f, 160 * 2.f)), // position
+        rand_val(false, true), // scaleIn
+        rand_val(false, true), // scaleOut
+        rand_val(0, 2) // type
+      };
+    }
+
+    // now update particles
+    p.lifetime += elapsed;
+
+    // fly away from the mouse
+    sf::Vector2f v = p.position - mousef;
+    float length = std::sqrtf(v.x * v.x + v.y * v.y);
+    float max_dist = 50.f;
+
+    if (length > 0.0f) {
+      v.x = v.x / length;
+      v.y = v.y / length;
+    }
+
+    float dropoff = std::clamp(1.0f - (length / max_dist), 0.f, 1.0f);
+
+    double fleeSpeed = 5.f;
+    p.velocity += sf::Vector2f(v.x * fleeSpeed * dropoff, v.y * fleeSpeed * dropoff);
+    p.velocity += sf::Vector2f(p.acceleration.x * elapsed, p.acceleration.y * elapsed);
+    p.velocity.x = std::clamp(p.velocity.x, -100.f, 100.f);
+    p.velocity.y = std::clamp(p.velocity.y, -100.f, 100.f);
+
+    p.position = p.position + sf::Vector2f(p.velocity.x * elapsed * p.friction.x, p.velocity.y * elapsed * p.friction.y);
+  }
+}
+
+void RealPET::Homepage::UpdateWindowParticles(double elapsed)
+{
+  // Find particles that are dead or unborn
+  for (StaticParticle& p : staticPool) {
+    if (p.startup_delay > 0.0) {
+      p.startup_delay -= elapsed;
+      continue; // skip this particle
+    }
+
+    if (p.lifetime > p.max_lifetime) {
+      p = StaticParticle{
+        0, // lifetime starts at 0
+        rand_val(3.0, 15.0), // duration
+        rand_val(sf::Vector2f(60.5f * 2.0, 0), sf::Vector2f((240.f - 60.5f) * 2.f, 160 * 2.f)), // position
+      };
+    }
+
+    // now update particles
+    p.lifetime += elapsed;
+  }
+}
+
+void RealPET::Homepage::DrawFolderParticles(sf::RenderTexture& surface)
+{
+  sf::Sprite particleSpr;
+  particleSpr.setTexture(*folderTexture);
+
+  for (Particle& p : pool) {
+    if (p.lifetime > p.max_lifetime) continue;
+
+    folderAnim.SetAnimation(std::to_string(p.type));
+    folderAnim.Refresh(particleSpr);
+
+    double beta = swoosh::ease::wideParabola(p.lifetime, p.max_lifetime, 1.0);
+
+    bool scaleOut = p.lifetime > (p.max_lifetime * 0.5);
+    bool scaleIn = !scaleOut;
+
+    scaleOut = scaleOut && p.scaleOut;
+    scaleIn = scaleIn && p.scaleIn;
+
+    particleSpr.setPosition(p.position);
+
+    if (scaleOut || scaleIn) {
+      particleSpr.setScale(sf::Vector2f(beta * 2.f, beta * 2.f));
+    }
+
+    particleSpr.setColor(sf::Color(255, 255, 255, static_cast<int>(beta * 100)));
+
+    surface.draw(particleSpr);
+  }
+}
+
+void RealPET::Homepage::DrawWindowParticles(sf::RenderTexture& surface)
+{
+  sf::Sprite particleSpr;
+  particleSpr.setTexture(*windowTexture);
+  frame_time_t windowAnimDur = windowAnim.GetStateDuration("default");
+
+  for (StaticParticle& p : staticPool) {
+    if (p.startup_delay > 0.0) {
+      continue; // skip this particle
+    }
+
+    frame_time_t lifetimeFrames = from_seconds(p.lifetime);
+    if (lifetimeFrames > windowAnimDur) continue;
+
+    windowAnim.SyncTime(lifetimeFrames);
+    windowAnim.Refresh(particleSpr);
+    particleSpr.setPosition(p.pos);
+    particleSpr.setScale(2.f, 2.f);
+
+    surface.draw(particleSpr);
+  }
+}
+
 void RealPET::Homepage::onUpdate(double elapsed)
 {
   if (IsInFocus()) {
@@ -124,16 +286,24 @@ void RealPET::Homepage::onUpdate(double elapsed)
   }
 
   menuSystem.Update(elapsed);
+
+  UpdateFolderParticles(elapsed);
+  UpdateWindowParticles(elapsed);
 }
 
 void RealPET::Homepage::onDraw(sf::RenderTexture& surface)
 {
+  surface.draw(bgSprite);
+
+  DrawFolderParticles(surface);
+  DrawWindowParticles(surface);
+
   surface.draw(menuSystem);
 }
 
 void RealPET::Homepage::onStart()
 {
-  Audio().Stream("resources/loops/loop_overworld.ogg", true);
+  Audio().Stream(StreamPaths::REAL_PET, true);
 
 #ifdef __ANDROID__
     StartupTouchControls();
@@ -174,13 +344,13 @@ void RealPET::Homepage::onStart()
 
 void RealPET::Homepage::onResume()
 {
-  Audio().Stream("resources/loops/loop_overworld.ogg", true);
+  Audio().Stream(StreamPaths::REAL_PET, true);
 
   if (packetProcessor) {
     Net().AddHandler(remoteAddress, packetProcessor);
   }
 
-  getController().Session().SaveSession("profile.bin");
+  getController().Session().SaveSession(FilePaths::PROFILE);
 }
 
 void RealPET::Homepage::onLeave()

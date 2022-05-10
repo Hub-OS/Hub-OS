@@ -15,11 +15,70 @@ using Overworld::ServerStatus;
 using Overworld::PlayerSession;
 using Overworld::MenuSystem;
 
+template<typename T>
+T rand_val(const T& min, const T& max) {
+  int sample = rand() % RAND_MAX;
+  double frac = static_cast<double>(sample) / static_cast<double>(RAND_MAX);
+  
+  return static_cast<T>(((1.0 - frac) * min) + (frac * max));
+}
+
+template<typename T>
+static int rand_val(const int& min, const int& max) {
+  return (rand() % (max-min+1)) + (min);
+}
+
+static sf::Vector2f rand_val(const sf::Vector2f& min, const sf::Vector2f& max) {
+  int sample = rand() % RAND_MAX;
+  double frac = static_cast<double>(sample) / static_cast<double>(RAND_MAX);
+
+  sf::Vector2f result{};
+  result.x = (((1.0 - frac) * min.x) + (frac * max.x));
+
+  // resample for y
+  sample = rand() % RAND_MAX;
+  frac = static_cast<double>(sample) / static_cast<double>(RAND_MAX);
+
+  result.y = (((1.0 - frac) * min.y) + (frac * max.y));
+
+  return result;
+}
+
 namespace RealPET {
+  struct Particle {
+    double lifetime{};
+    double max_lifetime{};
+    sf::Vector2f acceleration;
+    sf::Vector2f velocity;
+    sf::Vector2f friction;
+    sf::Vector2f position;
+    bool scaleIn{}, scaleOut{};
+    int type{};
+  };
+
+  struct StaticParticle {
+    double lifetime{};
+    double max_lifetime{};
+    sf::Vector2f pos;
+    // below is contextual and mostly unused
+    double startup_delay{};
+  };
+
   class Homepage final : public Scene {
   private:
     double animElapsed{};
     bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
+
+    sf::Sprite bgSprite;
+    std::shared_ptr<sf::Texture> bgTexture, folderTexture, windowTexture;
+    Animation folderAnim, windowAnim;
+
+    size_t maxPoolSize{};
+    std::vector<Particle> pool;
+
+    size_t maxStaticPoolSize{};
+    std::vector<StaticParticle> staticPool;
+
     Poco::Net::SocketAddress remoteAddress; //!< server
     std::string host; // need to store host string to retain domain names
     std::shared_ptr<PollingPacketProcessor> packetProcessor;
@@ -37,6 +96,12 @@ namespace RealPET {
     PA programAdvance;
 
     void UpdateServerStatus(ServerStatus status, uint16_t serverMaxPayloadSize);
+    void InitializeFolderParticles();
+    void InitializeWindowParticles();
+    void UpdateFolderParticles(double elapsed);
+    void UpdateWindowParticles(double elapsed);
+    void DrawFolderParticles(sf::RenderTexture& surface);
+    void DrawWindowParticles(sf::RenderTexture& surface);
 
   public:
 
