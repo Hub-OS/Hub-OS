@@ -5,6 +5,8 @@
 #include "../bnMessageQuestion.h"
 #include "../bnMessageQuiz.h"
 
+constexpr float BBS_FADE_DURATION_MAX = 0.5;
+
 namespace Overworld {
   MenuSystem::MenuSystem() : textbox({ 4, 255 }), ResourceHandle() {}
 
@@ -13,40 +15,24 @@ namespace Overworld {
   }
 
   std::optional<std::reference_wrapper<BBS>> MenuSystem::GetBBS() {
-    if (!pendingBbs.empty()) {
-      return *pendingBbs.back().bbs;
-    }
-
-    if (!bbs.empty()) {
-      return *bbs.back();
+    if (bbs) {
+      return *bbs;
     }
 
     return {};
   }
 
-  size_t MenuSystem::CountBBS() {
-    return pendingBbs.size() + bbs.size();
+  void MenuSystem::CloseBBS() {
+    if (bbs) {
+      bbs->Close();
+      bbs = nullptr;
+    }
   }
 
-  void MenuSystem::ClearBBS() {
-    while (!pendingBbs.empty()) {
-      // todo: should this pop from back instead of front?
-      pendingBbs.front().bbs->Close();
-      pendingBbs.pop();
+  void MenuSystem::OpenBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose) {
+    if (bbs) {
+      bbs->Close();
     }
-
-    while (!bbs.empty()) {
-      bbs.back()->Close();
-    }
-
-    bbs.clear();
-
-    totalRemainingMessagesForBBS = 0;
-    bbsNeedsAck = false;
-  }
-
-  void MenuSystem::EnqueueBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose) {
-    auto remainingMessages = textbox.GetRemainingMessages();
 
     auto selectHandler = [this, onSelect](auto& selection) {
       bbsNeedsAck = true;
@@ -55,27 +41,14 @@ namespace Overworld {
 
     auto closeHandler = [this, onClose] {
       onClose();
-      bbs.pop_back();
+      closingBbs = std::move(bbs);
+      bbsFadeDuration = 0.0f;
     };
 
-    auto bbsPtr = std::make_unique<BBS>(topic, color, selectHandler, closeHandler);
+    bbs = std::make_unique<BBS>(topic, color, selectHandler, closeHandler);
+    bbs->setScale(2, 2);
 
-    bbsPtr->setScale(2, 2);
-
-    if (remainingMessages == 0) {
-      bbs.push_back(std::move(bbsPtr));
-      return;
-    }
-
-    remainingMessages -= totalRemainingMessagesForBBS;
-    totalRemainingMessagesForBBS += remainingMessages;
-
-    PendingBBS newPendingBbs = {
-      std::move(bbsPtr),
-      remainingMessages
-    };
-
-    pendingBbs.push(std::move(newPendingBbs));
+    bbsFadeDuration = 0.0f;
   }
 
   void MenuSystem::AcknowledgeBBSSelection() {
@@ -86,65 +59,37 @@ namespace Overworld {
     textbox.SetNextSpeaker(speaker, animation);
   }
 
-  void MenuSystem::PopMessage() {
-    if (pendingBbs.empty()) {
-      return;
-    }
-
-    totalRemainingMessagesForBBS -= 1;
-
-    auto& [board, remainingMessages] = pendingBbs.front();
-
-    remainingMessages -= 1;
-
-    if (remainingMessages == 0) {
-      bbs.push_back(std::move(board));
-      pendingBbs.pop();
-    }
-  }
-
   void MenuSystem::EnqueueMessage(const std::string& message, const std::function<void()>& onComplete) {
-    textbox.EnqueueMessage(message, [=] {
-      PopMessage();
-      onComplete();
-    });
+    textbox.EnqueueMessage(message, onComplete);
   }
 
   void MenuSystem::EnqueueQuestion(const std::string& prompt, const std::function<void(bool)>& onResponse) {
-    textbox.EnqueueQuestion(prompt, [=](bool response) {
-      PopMessage();
-      onResponse(response);
-    });
+    textbox.EnqueueQuestion(prompt, onResponse);
   }
 
   void MenuSystem::EnqueueQuiz(const std::string& optionA, const std::string& optionB, const std::string& optionC, const std::function<void(int)>& onResponse) {
-    textbox.EnqueueQuiz(optionA, optionB, optionC, [=](int response) {
-      PopMessage();
-      onResponse(response);
-    });
+    textbox.EnqueueQuiz(optionA, optionB, optionC, onResponse);
   }
 
   void MenuSystem::EnqueueTextInput(const std::string& initialText, size_t characterLimit, const std::function<void(const std::string&)>& onResponse) {
-    textbox.EnqueueTextInput(initialText, characterLimit, [=](const std::string& text) {
-      PopMessage();
-      onResponse(text);
-    });
+    textbox.EnqueueTextInput(initialText, characterLimit, onResponse);
   }
 
   bool MenuSystem::IsOpen() {
-    return activeBindedMenu || textbox.IsOpen() || !bbs.empty();
+    return activeBindedMenu || textbox.IsOpen() || bbs;
   }
 
   bool MenuSystem::IsClosed() {
-    return !activeBindedMenu && textbox.IsClosed() && bbs.empty();
+    return !activeBindedMenu && textbox.IsClosed() && !bbs;
   }
 
   bool MenuSystem::IsFullscreen() {
-    return (activeBindedMenu && activeBindedMenu->IsFullscreen()) || GetBBS().has_value();
+    float bbsAnimationProgress = bbsFadeDuration / BBS_FADE_DURATION_MAX;
+    return (activeBindedMenu && activeBindedMenu->IsFullscreen()) || (bbs && bbsAnimationProgress > 0.5f);
   }
 
   bool MenuSystem::ShouldLockInput() {
-    return (activeBindedMenu && activeBindedMenu->LocksInput()) || textbox.IsOpen() || !bbs.empty();
+    return (activeBindedMenu && activeBindedMenu->LocksInput()) || textbox.IsOpen() || bbs;
   }
 
   void MenuSystem::Update(float elapsed) {
@@ -152,8 +97,18 @@ namespace Overworld {
       menu->Update(elapsed);
     }
 
-    if (!bbs.empty()) {
-      bbs.back()->Update(elapsed);
+    if (bbsFadeDuration < BBS_FADE_DURATION_MAX) {
+      bbsFadeDuration += elapsed;
+    }
+
+    float bbsAnimationProgress = bbsFadeDuration / BBS_FADE_DURATION_MAX;
+
+    if (bbsAnimationProgress >= 0.5) {
+      if (bbs) {
+        bbs->Update(elapsed);
+      }
+
+      closingBbs = nullptr;
     }
 
     textbox.Update(elapsed);
@@ -176,9 +131,9 @@ namespace Overworld {
       return;
     }
 
-    if (!bbs.empty()) {
+    if (bbs) {
       if (!bbsNeedsAck) {
-        bbs.back()->HandleInput(input);
+        bbs->HandleInput(input);
       }
       return;
     }
@@ -194,11 +149,26 @@ namespace Overworld {
   }
 
   void MenuSystem::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    if (!bbs.empty()) {
-      target.draw(*bbs.back(), states);
+    float bbsAnimationProgress = bbsFadeDuration / BBS_FADE_DURATION_MAX;
+
+    if (bbs && bbsAnimationProgress >= 0.5) {
+      target.draw(*bbs, states);
+    }
+
+    if (closingBbs) {
+      target.draw(*closingBbs, states);
     }
 
     textbox.draw(target, states);
+
+    if (bbsAnimationProgress < 1.0) {
+      float alpha = swoosh::ease::wideParabola(bbsFadeDuration, BBS_FADE_DURATION_MAX, 1.0f);
+
+      sf::RectangleShape fade;
+      fade.setSize(sf::Vector2f(480, 320));
+      fade.setFillColor(sf::Color(0, 0, 0, sf::Uint8(alpha * 255)));
+      target.draw(fade, states);
+    }
 
     if (activeBindedMenu) {
       activeBindedMenu->draw(target, states);

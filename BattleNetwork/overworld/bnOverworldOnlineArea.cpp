@@ -2103,16 +2103,7 @@ static std::vector<BBS::Post> ReadPosts(BufferReader& reader, const Poco::Buffer
 
 void Overworld::OnlineArea::receiveOpenBoardSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  sendBoardOpenSignal();
   auto& menuSystem = GetMenuSystem();
-
-  auto depth = reader.Read<unsigned char>(buffer);
-
-  if (depth != menuSystem.CountBBS()) {
-    // player closed the board this packet is referencing
-    sendBoardCloseSignal();
-    return;
-  }
 
   auto topic = reader.ReadString<uint16_t>(buffer);
   auto r = reader.Read<unsigned char>(buffer);
@@ -2120,12 +2111,14 @@ void Overworld::OnlineArea::receiveOpenBoardSignal(BufferReader& reader, const P
   auto b = reader.Read<unsigned char>(buffer);
   auto posts = ReadPosts(reader, buffer);
 
-  menuSystem.EnqueueBBS(
+  menuSystem.OpenBBS(
     topic,
     sf::Color(r, g, b, 255),
     [=](auto id) { sendPostSelectSignal(id); },
     [=] { sendBoardCloseSignal(); }
   );
+
+  sendBoardOpenSignal();
 
   auto& bbs = menuSystem.GetBBS()->get();
   bbs.AppendPosts(posts);
@@ -2136,13 +2129,6 @@ void Overworld::OnlineArea::receiveOpenBoardSignal(BufferReader& reader, const P
 void Overworld::OnlineArea::receivePrependPostsSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto& menuSystem = GetMenuSystem();
-
-  auto depth = reader.Read<unsigned char>(buffer);
-
-  if (depth != menuSystem.CountBBS()) {
-    // player closed the board this packet is referencing
-    return;
-  }
 
   bool hasReference = reader.Read<bool>(buffer);
   std::string reference = hasReference ? reader.ReadString<uint16_t>(buffer) : "";
@@ -2168,13 +2154,6 @@ void Overworld::OnlineArea::receiveAppendPostsSignal(BufferReader& reader, const
 {
   auto& menuSystem = GetMenuSystem();
 
-  auto depth = reader.Read<unsigned char>(buffer);
-
-  if (depth != menuSystem.CountBBS()) {
-    // player closed the board this packet is referencing
-    return;
-  }
-
   auto hasReference = reader.Read<bool>(buffer);
   auto reference = hasReference ? reader.ReadString<uint16_t>(buffer) : "";
   auto posts = ReadPosts(reader, buffer);
@@ -2199,13 +2178,6 @@ void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const 
 {
   auto& menuSystem = GetMenuSystem();
 
-  auto depth = reader.Read<unsigned char>(buffer);
-
-  if (depth != menuSystem.CountBBS()) {
-    // player closed the board this packet is referencing
-    return;
-  }
-
   auto postId = reader.ReadString<uint16_t>(buffer);
 
   auto optionalBbs = menuSystem.GetBBS();
@@ -2221,7 +2193,7 @@ void Overworld::OnlineArea::receiveRemovePostSignal(BufferReader& reader, const 
 
 void  Overworld::OnlineArea::receiveCloseBBSSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  GetMenuSystem().ClearBBS();
+  GetMenuSystem().CloseBBS();
 }
 
 void Overworld::OnlineArea::receiveShopInventorySignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
