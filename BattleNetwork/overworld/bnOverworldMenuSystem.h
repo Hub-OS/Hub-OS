@@ -21,7 +21,7 @@ namespace Overworld {
 
     // grabs the latest BBS
     std::optional<std::reference_wrapper<BBS>> GetBBS();
-    void OpenBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose);
+    void OpenBBS(const std::string& topic, sf::Color color, bool openInstantly, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose);
     void CloseBBS();
     void AcknowledgeBBSSelection();
 
@@ -51,6 +51,7 @@ namespace Overworld {
     std::shared_ptr<Menu> activeBindedMenu;
     std::unique_ptr<BBS> bbs;
     std::unique_ptr<BBS> closingBbs;
+    bool bbsOpening{ };
     float bbsFadeDuration{ 1.0f };
     Overworld::TextBox textbox;
     bool bbsNeedsAck{ };

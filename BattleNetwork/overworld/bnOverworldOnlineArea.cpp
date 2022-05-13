@@ -2109,11 +2109,13 @@ void Overworld::OnlineArea::receiveOpenBoardSignal(BufferReader& reader, const P
   auto r = reader.Read<unsigned char>(buffer);
   auto g = reader.Read<unsigned char>(buffer);
   auto b = reader.Read<unsigned char>(buffer);
+  auto openInstantly = reader.Read<bool>(buffer);
   auto posts = ReadPosts(reader, buffer);
 
   menuSystem.OpenBBS(
     topic,
     sf::Color(r, g, b, 255),
+    openInstantly,
     [=](auto id) { sendPostSelectSignal(id); },
     [=] { sendBoardCloseSignal(); }
   );

@@ -29,7 +29,9 @@ namespace Overworld {
     }
   }
 
-  void MenuSystem::OpenBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose) {
+  void MenuSystem::OpenBBS(const std::string& topic, sf::Color color, bool openInstantly, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose) {
+    bbsOpening = true;
+
     if (bbs) {
       bbs->Close();
     }
@@ -39,16 +41,26 @@ namespace Overworld {
       onSelect(selection);
     };
 
-    auto closeHandler = [this, onClose] {
-      onClose();
+    auto closeHandler = [this, openInstantly, onClose] {
+      if (!bbsOpening && !openInstantly) {
+        // if there's a new bbs opening. let it handle the fade animation
+        // otherwise only reset the animation if we didn't open instantly
+        bbsFadeDuration = 0.0f;
+      }
+
+      bbsOpening = false;
+
       closingBbs = std::move(bbs);
-      bbsFadeDuration = 0.0f;
+
+      onClose();
     };
 
     bbs = std::make_unique<BBS>(topic, color, selectHandler, closeHandler);
     bbs->setScale(2, 2);
 
-    bbsFadeDuration = 0.0f;
+    if (!openInstantly) {
+      bbsFadeDuration = 0.0f;
+    }
   }
 
   void MenuSystem::AcknowledgeBBSSelection() {
