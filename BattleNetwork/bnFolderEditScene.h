@@ -9,7 +9,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnGame.h"
 #include "bnAnimation.h"
-#include "Overworld/bnOverworldTextBox.h"
+#include "overworld/bnOverworldTextBox.h"
 #include "bnLanBackground.h"
 #include "bnCardFolder.h"
 #include "bnText.h"
@@ -211,8 +211,8 @@ private:
         this->lastIndex = index;
       }
 
-      if (pivotPred) {
-        auto pivot = std::partition(this->container.begin(), this->container.end(), pivotPred);
+      if (this->pivotPred) {
+        auto pivot = std::partition(this->container.begin(), this->container.end(), this->pivotPred);
         size_t pivotDist = std::distance(this->container.begin(), pivot);
 
         std::vector<T> copy = std::vector<T>(this->container.begin(), pivot);
