@@ -59,14 +59,14 @@ public:
   sol::object on_update_func;
   sol::object on_battle_start_func;
   sol::object on_battle_end_func; 
-  sol::object on_normal_attack_func;
-  sol::object on_charged_attack_func;
-  sol::object on_special_attack_func;
   sol::object on_spawn_func;
   sol::object charge_time_table_func;
   sol::object build_special_card_func;
   sol::object build_button1_func;
   sol::object build_button2_func;
+  sol::object normal_attack_func;
+  sol::object charged_attack_func;
+  sol::object special_attack_func;
 };
 
 #endif

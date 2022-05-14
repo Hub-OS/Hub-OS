@@ -44,10 +44,10 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
         defenseRule.Unwrap()->can_block_func = VerifyLuaCallback(value);
       }
     ),
-    "replace_func", sol::property(
-      [](WeakWrapper<ScriptedDefenseRule>& defenseRule) { return defenseRule.Unwrap()->replace_func; },
+    "on_replace_func", sol::property(
+      [](WeakWrapper<ScriptedDefenseRule>& defenseRule) { return defenseRule.Unwrap()->on_replace_func; },
       [](WeakWrapper<ScriptedDefenseRule>& defenseRule, sol::stack_object value) {
-        defenseRule.Unwrap()->replace_func = VerifyLuaCallback(value);
+        defenseRule.Unwrap()->on_replace_func = VerifyLuaCallback(value);
       }
     )
   );

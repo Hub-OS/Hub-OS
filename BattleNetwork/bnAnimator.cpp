@@ -173,6 +173,14 @@ void Animator::operator() (frame_time_t progress, sf::Sprite& target, FrameList&
       queuedOnFinish = nullptr;
     }
 
+    // At minimum perform a refresh
+    size_t len = sequence.frames.size();
+
+    if (len > 0) {
+      UpdateSpriteAttributes(target, sequence.frames.back());
+      UpdateCurrentPoints(len - 1, sequence);
+    }
+
     // End
     return;
   }

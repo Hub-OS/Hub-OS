@@ -484,6 +484,17 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   // Load forms
   cardCustGUI.SetPlayerFormOptions(localPlayer->GetForms());
 
+  std::shared_ptr<PlayerSpecialButton> button1 = localPlayer->GetSpecialButton1();
+  std::shared_ptr<PlayerSpecialButton> button2 = localPlayer->GetSpecialButton2();
+
+  if (button1) {
+    cardCustGUI.SetPlayerSpecialButton1(*button1);
+  }
+
+  if (button2) {
+    cardCustGUI.SetPlayerSpecialButton2(*button2);
+  }
+
   // track forms
   allPlayerFormsHash[localPlayer.get()] = {}; // use default form data values
   allPlayerTeamHash[localPlayer.get()] = team;

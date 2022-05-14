@@ -433,6 +433,16 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
   return res;
 }
 
+std::shared_ptr<PlayerSpecialButton> Player::GetSpecialButton1()
+{
+  return specialButton1;
+}
+
+std::shared_ptr<PlayerSpecialButton> Player::GetSpecialButton2()
+{
+  return specialButton2;
+}
+
 ChargeEffectSceneNode& Player::GetChargeComponent()
 {
   return *chargeEffect;

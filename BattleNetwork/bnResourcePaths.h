@@ -51,6 +51,7 @@ namespace TexturePaths {
   path CUST_FORM_SELECT = "resources/ui/form_select.png";
   path CUST_FORM_CURSOR = "resources/ui/form_cursor.png";
   path CUST_FORM_ITEM_BG = "resources/ui/form_item_bg.png";
+  path CUST_CURSOR_BUTTON2 = "resources/ui/button2_cursor.png";
 
   // In-battle signs
   path PROGRAM_ADVANCE = "resources/ui/program_advance.png";
@@ -168,6 +169,9 @@ namespace AnimationPaths {
   path PET_JACKIN = "resources/scenes/PET/jackin.animation";
   path PET_MENU = "resources/scenes/PET/menu.animation";
   path PET_MISC_MENU = "resources/scenes/PET/misc_menu.animation";
+
+  path CUST_CURSOR_BUTTON2 = "resources/ui/button2_cursor.animation";
+
 }
 
 namespace SoundPaths {

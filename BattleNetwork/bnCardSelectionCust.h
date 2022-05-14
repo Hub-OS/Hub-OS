@@ -42,7 +42,7 @@ public:
    * @author mav
    * @date 05/05/19
    * @brief Card state bucket
-   * 
+   *
    * A card may be voided, staged, queued
    */
   struct Bucket {
@@ -60,13 +60,16 @@ private:
   mutable sf::Sprite custDarkCardOverlay, custMegaCardOverlay, custGigaCardOverlay;
   mutable sf::Sprite cursorSmall; // animated
   mutable sf::Sprite cursorBig;   // animated
+  mutable sf::Sprite cursorButton2;   // animated
   mutable sf::Sprite cardLock;
   mutable sf::Sprite formItemBG;
   mutable sf::Sprite currentFormItem;
   mutable sf::Sprite lockedInFormItem;
   mutable sf::Sprite previousFormItem;
+  mutable sf::Sprite button1Spr, button2Spr; //!< for player special buttons
   Animation cursorSmallAnimator;
   Animation cursorBigAnimator;
+  Animation cursorButton2Animator;
   Animation formSelectAnimator;
   Animation formCursorAnimator;
   mutable SpriteProxyNode icon;
@@ -96,11 +99,13 @@ private:
   mutable int cursorRow; /*!< Row of the cursor */
   bool areCardsReady; /*!< If cards have been OKd by user */
   bool isInView; /*!< If the card cust is all the way in the player's screen */
-  bool isInFormSelect; 
+  bool isInFormSelect;
   bool canInteract;
   bool isDarkCardSelected;
   bool playFormSound;
   bool newHand{};
+  bool playerSpecialButton1Ready{};
+  bool playerSpecialButton2Ready{};
   float darkCardShadowAlpha;
   bool retreatAllowed{true};
   std::vector<sf::Sprite> formUI;
@@ -332,5 +337,7 @@ public:
   void SetPlayerSpecialCard(const Battle::Card& data);
   void SetPlayerSpecialButton1(const PlayerSpecialButton& data);
   void SetPlayerSpecialButton2(const PlayerSpecialButton& data);
+  void RemovePlayerSpecialButton1();
+  void RemovePlayerSpecialButton2();
 };
 

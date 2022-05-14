@@ -102,6 +102,28 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
     "remove_sync_node", [] (WeakWrapper<ScriptedPlayer>& player, const std::shared_ptr<SyncNode>& node) {
       player.Unwrap()->RemoveSyncNode(node);
     },
+    "special_button1",
+      [](WeakWrapper<ScriptedPlayer>& player) {
+        // In lua, if we're requesting this object, we need to provide a default one to build upon
+        auto pPtr = player.Unwrap();
+        std::shared_ptr<PlayerSpecialButton> button = pPtr->GetSpecialButton1();
+        if (!button) {
+          button = std::make_shared<PlayerSpecialButton>();
+          pPtr->SetSpecialButton1(button);
+        }
+        return button;
+    },
+    "special_button2",
+      [](WeakWrapper<ScriptedPlayer>& player) {
+        // In lua, if we're requesting this object, we need to provide a default one to build upon
+        auto pPtr = player.Unwrap();
+        std::shared_ptr<PlayerSpecialButton> button = pPtr->GetSpecialButton2();
+        if (!button) {
+          button = std::make_shared<PlayerSpecialButton>();
+          pPtr->SetSpecialButton2(button);
+        }
+        return button;
+    },
     "on_update_func", sol::property(
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->on_update_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
@@ -120,46 +142,36 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
         player.Unwrap()->on_battle_end_func = VerifyLuaCallback(value);
       }
     ),
-    "on_normal_attack_func", sol::property(
-      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->on_normal_attack_func; },
-      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
-        player.Unwrap()->on_normal_attack_func = VerifyLuaCallback(value);
-      }
-    ),
-    "on_charged_attack_func", sol::property(
-      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->on_charged_attack_func; },
-      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
-        player.Unwrap()->on_charged_attack_func = VerifyLuaCallback(value);
-      }
-    ),
     "charged_time_table_func", sol::property(
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->charge_time_table_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
         player.Unwrap()->charge_time_table_func = VerifyLuaCallback(value);
       }
     ),
-    "on_special_attack_func", sol::property(
-      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->on_special_attack_func; },
+    "special_attack_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->special_attack_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
-        player.Unwrap()->on_special_attack_func = VerifyLuaCallback(value);
+        player.Unwrap()->special_attack_func = VerifyLuaCallback(value);
       }
     ),
+    "normal_attack_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->normal_attack_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->normal_attack_func = VerifyLuaCallback(value);
+      }
+    ),
+    "charged_attack_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->charged_attack_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->charged_attack_func = VerifyLuaCallback(value);
+      }
+     ),
     "build_special_card_func", sol::property(
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->build_special_card_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
         player.Unwrap()->build_special_card_func = VerifyLuaCallback(value);
       }
-    ),
-    "set_special_button1", sol::property(
-      [](WeakWrapper<ScriptedPlayer>& player, const std::shared_ptr<PlayerSpecialButton>& button) {
-        player.Unwrap()->SetSpecialButton1(button);
-      }
-    ),
-    "set_special_button2", sol::property(
-      [](WeakWrapper<ScriptedPlayer>& player, const std::shared_ptr<PlayerSpecialButton>& button) {
-        player.Unwrap()->SetSpecialButton2(button);
-      }
-    )
+     )
   );
 
   DefineEntityFunctionsOn(player_table);
@@ -199,13 +211,13 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
         form.Unwrap().update_func = VerifyLuaCallback(value);
       }
     ),
-    "on_charged_attack_func", sol::property(
+    "charged_attack_func", sol::property(
       [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form) { return form.Unwrap().charged_attack_func; },
       [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, sol::stack_object value) {
         form.Unwrap().charged_attack_func = VerifyLuaCallback(value);
       }
     ),
-    "on_special_attack_func", sol::property(
+    "special_attack_func", sol::property(
       [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form) { return form.Unwrap().special_attack_func; },
       [](WeakWrapperChild<Player, ScriptedPlayerFormMeta>& form, sol::stack_object value) {
         form.Unwrap().special_attack_func = VerifyLuaCallback(value);
@@ -223,6 +235,22 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
     sol::meta_function::length, [](ScopedWrapper<ScriptedPlayerForm>& form) {
       return form.Unwrap().entries.size();
     }
+  );
+
+  battle_namespace.new_usertype<PlayerSpecialButton>("PlayerSpecialButton",
+    "set_texture", [](PlayerSpecialButton& btn, std::shared_ptr<sf::Texture> texture) {
+      btn.texture = texture;
+    },
+    "set_preview_texture", [](PlayerSpecialButton& btn, std::shared_ptr<sf::Texture> texture) {
+      btn.preview = texture;
+    },
+    "set_animation", [](PlayerSpecialButton& btn, std::string path) {
+      btn.anim = Animation(path);
+    },
+    "set_max_uses", [](PlayerSpecialButton& btn, unsigned int max) {
+      btn.maxUses = max;
+    },
+    "on_use_func", &PlayerSpecialButton::onUse
   );
 }
 #endif

@@ -71,9 +71,11 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
 
   cursorBig = sf::Sprite(*Textures().LoadFromFile(TexturePaths::CHIP_CURSOR_BIG));
   cursorBig.setScale(sf::Vector2f(2.f, 2.f));
+  cursorBig.setPosition(sf::Vector2f(2.f * 104.f, 2.f * 122.f));
 
-  // never moves
-  cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*122.f));
+  cursorButton2 = sf::Sprite(*Textures().LoadFromFile(TexturePaths::CUST_CURSOR_BUTTON2));
+  cursorButton2.setScale(sf::Vector2f(2.f, 2.f));
+  cursorButton2.setPosition(sf::Vector2f(2.f * 56.f, 2.f * 128.f));
 
   cardLock = sf::Sprite(*Textures().LoadFromFile(TexturePaths::CHIP_LOCK));
   cardLock.setScale(sf::Vector2f(2.f, 2.f));
@@ -101,6 +103,11 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
   cursorBigAnimator.Reload();
   cursorBigAnimator.SetAnimation("BLINK");
   cursorBigAnimator << Animator::Mode::Loop;
+
+  cursorButton2Animator = Animation(AnimationPaths::CUST_CURSOR_BUTTON2);
+  cursorButton2Animator.Reload();
+  cursorButton2Animator.SetAnimation("BLINK");
+  cursorButton2Animator << Animator::Mode::Loop;
 
   formSelectAnimator = Animation("resources/ui/form_select.animation");
   formSelectAnimator.Reload();
@@ -134,6 +141,8 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
 
 
 CardSelectionCust::~CardSelectionCust() {
+  playerSpecialButton1.reset();
+  playerSpecialButton2.reset();
   ClearCards();
 }
 
@@ -186,8 +195,20 @@ bool CardSelectionCust::CursorDown() {
       return false;
     }
 
-    if (cursorPos > 2) {
-      cursorPos = 0;
+    if (playerSpecialButton1) {
+      if (cursorPos > 2 && cursorPos != 5) {
+        cursorPos = 0;
+      }
+
+      // select special button1
+      if (cursorPos == 5) {
+        cursorRow = 1;
+      }
+    }
+    else {
+      if (cursorPos > 2) {
+        cursorPos = 0;
+      }
     }
 
     return true;
@@ -197,9 +218,17 @@ bool CardSelectionCust::CursorDown() {
 bool CardSelectionCust::CursorRight() {
   if (isInFormSelect) return false;
 
-  if (++cursorPos > 2 && cursorRow == 1) {
-    cursorPos = 5;
-    cursorRow = 0;
+  cursorPos++;
+
+  if (cursorRow == 1) {
+    if (cursorPos > 2 && !playerSpecialButton2) {
+      cursorPos = 5;
+      cursorRow = 0;
+    }
+    else if (cursorPos > 4 && playerSpecialButton2) {
+      cursorPos = 5;
+      cursorRow = 0;
+    }
   }
   else if (cursorPos > 5 && cursorRow == 0) {
     cursorPos = 0;
@@ -256,7 +285,37 @@ bool CardSelectionCust::CursorAction() {
   if (cursorPos == 5 && cursorRow == 0) {
     // End card select
     areCardsReady = true;
-  } else {
+  } if (playerSpecialButton1 && playerSpecialButton1Ready && cursorPos == 5 && cursorRow == 1) {
+    // make a vector for callbacks
+    std::vector<Battle::Card::Properties*> currentSelection;
+    for (int i = 0; i < newSelectCount; i++) {
+      currentSelection.push_back(&newSelectQueue[i]->data->GetBaseProps());
+    }
+
+    playerSpecialButton1->onUse(currentSelection);
+    playerSpecialButton1->uses++;
+    playerSpecialButton1Ready = false;
+    playerSpecialButton1->anim << "WORKING" << [this] {
+      playerSpecialButton1->anim << "DISABLED";
+    };
+    return true;
+  }
+  else if (playerSpecialButton2 && playerSpecialButton2Ready && (cursorPos == 3 || cursorPos == 4) && cursorRow == 1) {
+    // make a vector for callbacks
+    std::vector<Battle::Card::Properties*> currentSelection;
+    for (int i = 0; i < newSelectCount; i++) {
+      currentSelection.push_back(&newSelectQueue[i]->data->GetBaseProps());
+    }
+
+    playerSpecialButton2->onUse(currentSelection);
+    playerSpecialButton2->uses++;
+    playerSpecialButton2Ready = false;
+    playerSpecialButton2->anim << "WORKING" << [this] {
+      playerSpecialButton2->anim << "DISABLED";
+    };
+    return true;
+  }
+  else {
     // Does card exist
     if (cursorPos + (5 * cursorRow) < cardCount) {
       // Queue this card if not selected
@@ -595,10 +654,16 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   cursorSmall.setPosition(x, y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
 
+  // draw the chips
   int row = 0;
   for (int i = 0; i < cardCount; i++) {
     if (i > 4) {
       row = 1;
+    }
+
+    // card 9 and 10 are covered
+    if (playerSpecialButton2 && i >= 9) {
+      break;
     }
 
     icon.setPosition(offset + 2.f*(9.0f + ((i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
@@ -636,6 +701,19 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     target.draw(smCodeLabel, states);
   }
 
+  // draw the special buttons if applicable
+  if (playerSpecialButton1) {
+    button1Spr.setPosition(sf::Vector2f((91.f * 2.f) + offset, 133.f * 2.f));
+    button1Spr.setScale(2.f, 2.f);
+    target.draw(button1Spr, states);
+  }
+
+  if (playerSpecialButton2) {
+    button2Spr.setPosition(sf::Vector2f((56.f * 2.f) + offset, 128.f * 2.f));
+    button2Spr.setScale(2.f, 2.f);
+    target.draw(button2Spr, states);
+  }
+
   icon.SetShader(nullptr);
 
   for (int i = 0; i < newSelectCount; i++) {
@@ -659,7 +737,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     target.draw(icon, states);
   }
 
-  if ((cursorPos < 5 && cursorRow == 0) || (cursorPos < 3 && cursorRow == 1)) {
+  if (cursorPos < 5) {
 
     if (cursorPos + (5 * cursorRow) < cardCount) {
       // Draw the selected card card
@@ -746,9 +824,17 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       cardNoData.setPosition(cardNoDataLastPos);
     }
 
-    // Draw the small cursor
+    // Draw the other 2 cursors
     if (!isInFormSelect) {
-      target.draw(cursorSmall, states);
+      if (playerSpecialButton2 && cursorRow == 1 && (cursorPos == 3 || cursorPos == 4)) {
+        sf::Vector2f lastPos = cursorButton2.getPosition();
+        cursorButton2.setPosition(lastPos.x + offset, lastPos.y);
+        target.draw(cursorButton2, states);
+        cursorButton2.setPosition(lastPos);
+      }
+      else {
+        target.draw(cursorSmall, states);
+      }
     }
   }
   else {
@@ -757,8 +843,16 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     target.draw(cardSendData, states);
     cardSendData.setPosition(cardSendDataLastPos);
 
+    sf::Vector2f destPos = sf::Vector2f(2.f * 104.f, 2.f * 122.f);
+
+    if (playerSpecialButton1 && cursorRow == 1) {
+      destPos = sf::Vector2f(2.f * 104.f, 2.f * 142.f);
+      cardCard.setTexture(playerSpecialButton1->preview, false);
+      target.draw(cardCard);
+    }
+
     sf::Vector2f cursorBigLastPos = cursorBig.getPosition();
-    cursorBig.setPosition(cursorBig.getPosition() + sf::Vector2f(offset, 0));
+    cursorBig.setPosition(destPos + sf::Vector2f(offset, 0));
     target.draw(cursorBig, states);
     cursorBig.setPosition(cursorBigLastPos);
   }
@@ -874,9 +968,9 @@ void CardSelectionCust::Update(double elapsed)
 
   cursorSmallAnimator.Update(elapsed, cursorSmall);
   cursorBigAnimator.Update(elapsed, cursorBig);
+  cursorButton2Animator.Update(elapsed, cursorButton2);
 
   textbox.Update(elapsed);
-
   emblem.Update(elapsed);
 
   formCursorAnimator.Update(elapsed, formCursor.getSprite());
@@ -910,7 +1004,7 @@ void CardSelectionCust::Update(double elapsed)
   if (cardCount > 0) {
     // If OK button is highlighted, we are not selecting a dark card
     // If we are in form select, we are not selecting a dark card
-    if ((cursorRow == 0 && cursorPos == 5) || isInFormSelect) {
+    if (cursorPos == 5 || isInFormSelect) {
       isDarkCardSelected = false;
     }
     else {
@@ -918,6 +1012,22 @@ void CardSelectionCust::Update(double elapsed)
       int index = cursorPos + (5 * cursorRow);
       isDarkCardSelected = this->queue[index].data && this->queue[index].data->GetClass() == Battle::CardClass::dark;
     }
+  }
+
+  if (playerSpecialButton1) {
+    if (playerSpecialButton1Ready && playerSpecialButton1->anim.GetAnimationString() != "ENABLED") {
+      playerSpecialButton1->anim << "ENABLED";
+    }
+
+    playerSpecialButton1->anim.Update(elapsed, button1Spr);
+  }
+
+  if (playerSpecialButton2) {
+    if (playerSpecialButton2Ready && playerSpecialButton2->anim.GetAnimationString() != "ENABLED") {
+      playerSpecialButton2->anim << "ENABLED";
+    }
+
+    playerSpecialButton2->anim.Update(elapsed, button2Spr);
   }
 
   isInView = IsInView();
@@ -1003,6 +1113,14 @@ void CardSelectionCust::ResetState() {
   newHand = false;
   SetSelectedFormIndex(lockedInFormIndex);
   textbox.Reset();
+
+  if (playerSpecialButton1) {
+    playerSpecialButton1Ready = playerSpecialButton1->maxUses == 0 || playerSpecialButton1->uses < playerSpecialButton1->maxUses;
+  }
+
+  if (playerSpecialButton2) {
+    playerSpecialButton2Ready = playerSpecialButton2->maxUses == 0 || playerSpecialButton2->uses < playerSpecialButton2->maxUses;
+  }
 }
 
 void CardSelectionCust::PreventRetreat()
@@ -1118,9 +1236,27 @@ void CardSelectionCust::SetPlayerSpecialCard(const Battle::Card& data)
 void CardSelectionCust::SetPlayerSpecialButton1(const PlayerSpecialButton& data)
 {
   playerSpecialButton1 = data;
+  button1Spr.setTexture(*playerSpecialButton1->texture);
+  playerSpecialButton1->anim << "DISABLED";
+  playerSpecialButton1->anim.Refresh(button1Spr);
+  playerSpecialButton1Ready = true;
 }
 
 void CardSelectionCust::SetPlayerSpecialButton2(const PlayerSpecialButton& data)
 {
   playerSpecialButton2 = data;
+  button2Spr.setTexture(*playerSpecialButton2->texture);
+  playerSpecialButton2->anim << "DISABLED";
+  playerSpecialButton2->anim.Refresh(button2Spr);
+  playerSpecialButton2Ready = true;
+}
+
+void CardSelectionCust::RemovePlayerSpecialButton1()
+{
+  playerSpecialButton1.reset();
+}
+
+void CardSelectionCust::RemovePlayerSpecialButton2()
+{
+  playerSpecialButton2.reset();
 }

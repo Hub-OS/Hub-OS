@@ -177,6 +177,10 @@ void RealPET::Homepage::UpdateFolderParticles(double elapsed)
   // Find particles that are dead or unborn
   for (Particle& p : pool) {
     if (p.lifetime > p.max_lifetime) {
+      if (p.click) {
+        mouseClicked = false; // free mouse
+      }
+
       p = Particle{
         0, // lifetime starts at 0
         rand_val(8.0, 16.0), // duration

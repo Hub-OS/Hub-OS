@@ -178,28 +178,28 @@ void DefineScriptedCardActionUserType(const std::string& namespaceId, ScriptReso
     "time_freeze_blackout_tiles", [](WeakWrapper<ScriptedCardAction>& cardAction, bool enable) {
         cardAction.Unwrap()->TimeFreezeBlackoutTiles(enable);
     },
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->update_func; },
+    "on_update_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->on_update_func; },
       [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
-        cardAction.Unwrap()->update_func = VerifyLuaCallback(value);
+        cardAction.Unwrap()->on_update_func = VerifyLuaCallback(value);
       }
     ),
-    "animation_end_func", sol::property(
-      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->animation_end_func; },
+    "on_animation_end_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->on_animation_end_func; },
       [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
-        cardAction.Unwrap()->animation_end_func = VerifyLuaCallback(value);
+        cardAction.Unwrap()->on_animation_end_func = VerifyLuaCallback(value);
       }
     ),
-    "action_end_func", sol::property(
-      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->action_end_func; },
+    "on_action_end_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->on_action_end_func; },
       [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
-        cardAction.Unwrap()->action_end_func = VerifyLuaCallback(value);
+        cardAction.Unwrap()->on_action_end_func = VerifyLuaCallback(value);
       }
     ),
-    "execute_func", sol::property(
-      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->execute_func; },
+    "on_execute_func", sol::property(
+      [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->on_execute_func; },
       [](WeakWrapper<ScriptedCardAction>& cardAction, sol::stack_object value) {
-        cardAction.Unwrap()->execute_func = VerifyLuaCallback(value);
+        cardAction.Unwrap()->on_execute_func = VerifyLuaCallback(value);
       }
     ),
     "can_move_to_func", sol::property(

@@ -168,6 +168,8 @@ public:
   const bool IsInForm() const;
 
   const std::vector<PlayerFormMeta*> GetForms();
+  std::shared_ptr<PlayerSpecialButton> GetSpecialButton1();
+  std::shared_ptr<PlayerSpecialButton> GetSpecialButton2();
 
   ChargeEffectSceneNode& GetChargeComponent();
 
